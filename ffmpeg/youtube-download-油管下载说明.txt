@@ -1,7 +1,0 @@
-如果源码部署后无法从油管下载视频，请在浏览器中点开下列地址下载，然后放到本目录下
-
-win: https://github.com/jianchang512/pyvideotrans/releases/download/v2.19/ytwin32.exe
-
-mac: https://github.com/jianchang512/pyvideotrans/releases/download/v2.19/ytdarwin
-
-linux: https://github.com/jianchang512/pyvideotrans/releases/download/v2.19/ytlinux

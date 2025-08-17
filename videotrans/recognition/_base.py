@@ -1,6 +1,6 @@
 import copy
 import json
-import os
+import os,sys,subprocess
 import re
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -100,6 +100,8 @@ class BaseRecogn(BaseCon):
             self.inst.status_text="使用LLM重新断句失败" if config.defaulelang=='zh' else "Re-segmenting Error"
             config.logger.error(f"重新断句失败[except]，已恢复原样 {e}")
             raise
+
+
 
     # True 退出
     def _exit(self) -> bool:

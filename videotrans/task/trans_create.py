@@ -363,7 +363,10 @@ class TransCreate(BaseTask):
                 cmdstr=" ".join(cmd)
                 outsrt_file = self.cfg['target_dir'] + '/' + Path(self.cfg['shibie_audio']).stem + ".srt"
                 config.logger.info(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg["source_sub"]=}')
-                subprocess.run(cmd,creationflags=0)
+                
+                self._external_cmd_with_wrapper(cmd)
+
+
                 if outsrt_file != self.cfg['source_sub']:
                     try:
                         shutil.copy2(outsrt_file, self.cfg['source_sub'])
@@ -404,7 +407,6 @@ class TransCreate(BaseTask):
                     self.source_srt_list = raw_subtitles
             self._recogn_succeed()
 
-
         except Exception as e:
             msg = f'{str(e)}'
             if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
@@ -415,7 +417,7 @@ class TransCreate(BaseTask):
                 msg = f'cuDNN错误，请尝试升级显卡驱动，重新安装CUDA12.x和cuDNN9 {msg}' if config.defaulelang == 'zh' else f'cuDNN error, please try upgrading the graphics card driver and reinstalling CUDA12.x and cuDNN9 {msg}'
             self.hasend = True
             self._signal(text=msg, type='error')
-            tools.send_notification(str(e), f'{self.cfg["basename"]}')
+            tools.send_notification(msg, f'{self.cfg["basename"]}')
             raise
 
     def trans(self) -> None:

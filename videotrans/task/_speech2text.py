@@ -1,5 +1,5 @@
 import shutil
-import time
+import time,os
 from pathlib import Path
 
 
@@ -83,7 +83,9 @@ class SpeechToText(BaseTask):
                 outsrt_file=self.cfg['target_dir']+'/'+Path(self.cfg['shibie_audio']).stem+".srt"
                 cmdstr=" ".join(cmd)
                 config.logger.info(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg["target_sub"]=}')
-                subprocess.run(cmd,creationflags=0)
+                
+                self._external_cmd_with_wrapper(cmd)
+
                 if outsrt_file!=self.cfg['target_sub']:
                     try:
                         shutil.copy2(outsrt_file,self.cfg['target_sub'])

@@ -13,9 +13,12 @@ License: GPL-V3
 """
 
 
-import sys
+import os,sys
 import time
 print(f"\n####开始启动时间:{time.time()}")
+
+
+
 
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
 from PySide6.QtCore import Qt, QTimer, QPoint, QSize
