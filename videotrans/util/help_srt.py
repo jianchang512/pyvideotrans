@@ -285,10 +285,18 @@ def set_ass_font(srtfile=None):
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
             ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},&H0,0,0,0,0,100,100,0,0,1,1,0,{subtitle_position},10,10,{marginV},1'.format(
-                fontname=config.settings['fontname'], fontsize=config.settings['fontsize'],
-                fontcolor=config.settings['fontcolor'], fontbordercolor=config.settings['fontbordercolor'],
+                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},{fontcolor},{fontbordercolor},{backgroundcolor},0,0,0,0,100,100,0,0,{borderstyle},{outline},{shadow},{subtitle_position},{marginL},{marginR},{marginV},1'.format(
+                fontname=config.settings['fontname'],
+                fontsize=config.settings['fontsize'],
+                fontcolor=config.settings['fontcolor'],
+                fontbordercolor=config.settings['fontbordercolor'],
+                backgroundcolor=config.settings['backgroundcolor'],
+                borderstyle=int(config.settings.get('borderStyle',1)),# 1轮廓风格，3背景色块风格
+                outline=config.settings.get('outline',1),
+                shadow=config.settings.get('shadow',1),
                 subtitle_position=int(config.settings.get('subtitle_position', 2)),
+                marginL=int(config.settings.get('marginL', 10)),
+                marginR=int(config.settings.get('marginR', 10)),
                 marginV=int(config.settings.get('marginV', 10))
             )
         elif it.find('Dialogue: ') == 0:

@@ -93,9 +93,11 @@ def openwin():
                         end_time = content[idx].split('=')[1].strip()
                         break
                     idx -= 1
-
-                h, m, s = end_time.split(':')
-                tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
+                try:
+                    h, m, s = end_time.split(':')
+                    tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
+                except:
+                    tmp1=0
                 if percent + tmp1 < 99.9:
                     percent += tmp1
                 self.post(type='jd', text=f'{percent:.2f}%')
@@ -247,7 +249,10 @@ def openwin():
             file.write("\n[V4+ Styles]\n")
             file.write(
                 f"Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
-            left, right, vbottom = 10, 10, 10
+            left, right, vbottom = winobj.marginL.text(), winobj.marginR.text(), winobj.marginV.text()
+            align=config.POSTION_ASS_VK.get(winobj.position.currentText(), 2)
+            shadow=winobj.shadow.text()
+            outline=winobj.outline.text()
 
 
             bgcolor = winobj.qcolor_to_ass_color(winobj.selected_backgroundcolor, type='bg')
@@ -258,9 +263,9 @@ def openwin():
             fontcolor = winobj.qcolor_to_ass_color(winobj.selected_color, type='fc')
 
             file.write(
-                f'Style: Default,{winobj.selected_font.family()},{winobj.font_size_edit.text() if winobj.font_size_edit.text() else "20"},{fontcolor},{fontcolor},{bdcolor},{bgcolor},{int(winobj.selected_font.bold())},{int(winobj.selected_font.italic())},0,0,100,100,0,0,{3 if winobj.ysphb_borderstyle.isChecked() else 1},1,0,2,{left},{right},{vbottom},1\n')
+                f'Style: Default,{winobj.selected_font.family()},{winobj.font_size_edit.text() if winobj.font_size_edit.text() else "20"},{fontcolor},{fontcolor},{bdcolor},{bgcolor},{int(winobj.selected_font.bold())},{int(winobj.selected_font.italic())},0,0,100,100,0,0,{3 if winobj.ysphb_borderstyle.isChecked() else 1},{outline},{shadow},{align},{left},{right},{vbottom},1\n')
             file.write("\n[Events]\n")
-            # 'Style: Default,{fontname},{fontsize},{fontcolor},&HFFFFFF,{fontbordercolor},{fontbackcolor},0,0,0,0,100,100,0,0,1,1,0,2,10,10,{subtitle_bottom},1'
+
             file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
             srt_list=tools.get_subtitle_from_srt(file_path,is_file=True)
             for it in srt_list:

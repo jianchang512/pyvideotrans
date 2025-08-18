@@ -46,6 +46,7 @@ class BaseCon:
         if not cmd_list:
             raise ValueError("cmd_list is None")
         from . import config
+        
         try:
             subprocess.run(cmd_list, capture_output=True, text=True, check=True,encoding='utf-8',creationflags=0,cwd=os.path.dirname(cmd_list[0]))
         except subprocess.CalledProcessError as e:

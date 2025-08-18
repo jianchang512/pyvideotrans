@@ -15,7 +15,7 @@ from videotrans.configure import config
 class Ui_setini(object):
     def _show_font_dialog(self):
         default_font = QFontDatabase.systemFont(QFontDatabase.GeneralFont)
-        dialog = QFontDialog(default_font,self)
+        dialog = QFontDialog(default_font, self)
         if dialog.exec():
             font = dialog.selectedFont()
             font_name = font.family()
@@ -29,30 +29,38 @@ class Ui_setini(object):
         g = color.green()
         b = color.blue()
         if type in ['bg', 'bd']:
-            return f"&H80{b:02X}{g:02X}{r:02X}"
+            return f"&H80{b:02X}{g:02X}{r:02X}".upper()
         # 将 RGBA 转换为 ASS 的颜色格式 &HBBGGRR
-        return f"&H{b:02X}{g:02X}{r:02X}"
+        return f"&H{b:02X}{g:02X}{r:02X}".upper()
+
     def set_fontcolor(self):
 
-        fontcolor = QColor(re.sub(r'&h','#',self.fontcolor_lineedit.text(),re.I))  # 默认颜色
+        fontcolor = QColor(re.sub(r'&H', '#', self.fontcolor_lineedit.text(), re.I))  # 默认颜色
         dialog = QColorDialog(fontcolor, self)
         color = dialog.getColor()
         if color.isValid():
-            self.fontcolor_lineedit.setText(self._qcolor_to_ass_color(color,type='fc'))
+            self.fontcolor_lineedit.setText(self._qcolor_to_ass_color(color, type='fc'))
 
     def set_fontbordercolor(self):
 
-        fontbordercolor = QColor(re.sub(r'&h','#',self.fontbordercolor_lineedit.text(),re.I))  # 默认颜色
+        fontbordercolor = QColor(re.sub(r'&H', '#', self.fontbordercolor_lineedit.text().upper(), re.I))  # 默认颜色
         dialog = QColorDialog(fontbordercolor, self)
         dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
         color = dialog.getColor()
         if color.isValid():
-            self.fontbordercolor_lineedit.setText(self._qcolor_to_ass_color(color,type='bd'))
+            self.fontbordercolor_lineedit.setText(self._qcolor_to_ass_color(color, type='bd'))
 
+    def set_backgroundcolor(self):
 
+        backgroundcolor = QColor(re.sub(r'&H', '#', self.backgroundcolor_lineedit.text().upper(), re.I))  # 默认颜色
+        dialog = QColorDialog(backgroundcolor, self)
+        dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
+        color = dialog.getColor()
+        if color.isValid():
+            self.backgroundcolor_lineedit.setText(self._qcolor_to_ass_color(color, type='bg'))
 
     def set_fontname(self):
-        QTimer.singleShot(100,self._show_font_dialog)
+        QTimer.singleShot(100, self._show_font_dialog)
 
     def get_target(self):
         dirname = QFileDialog.getExistingDirectory(self, config.transobj['selectsavedir'], Path.home().as_posix())
@@ -64,8 +72,7 @@ class Ui_setini(object):
             self.homedir_btn.setText(config.HOME_DIR)
             Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
             with Path(config.ROOT_DIR + "/videotrans/cfg.json").open('w', encoding='utf-8') as f:
-                f.write(json.dumps(config.settings,ensure_ascii=False))
-
+                f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def setupUi(self, setini):
         self.centralwidget = QtWidgets.QWidget(setini)
@@ -95,16 +102,16 @@ class Ui_setini(object):
                 "countdown_sec": "当单个视频翻译时，暂停时倒计时秒数",
                 "bgm_split_time": "设置分离背景音时切割片段，防止视频过长卡死，默认300s",
                 "homedir": "家目录，用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认用户家目录",
-                "llm_chunk_size":"LLM大模型重新断句时，每次发送多少个字或单词，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于大模型输出token，过长输入可能导致失败",
-                "llm_ai_type":"LLM重新断句时使用的AI渠道，目前支持openai或deepseek渠道",
-                "gemini_recogn_chunk":"使用gemini识别语音时，每次发送音频切片数，越大效果越好，但失败率会升高"
+                "llm_chunk_size": "LLM大模型重新断句时，每次发送多少个字或单词，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于大模型输出token，过长输入可能导致失败",
+                "llm_ai_type": "LLM重新断句时使用的AI渠道，目前支持openai或deepseek渠道",
+                "gemini_recogn_chunk": "使用gemini识别语音时，每次发送音频切片数，越大效果越好，但失败率会升高"
             },
 
             "video": {
                 "crf": "视频转码时损失控制，0=损失最低，51=损失最大，默认13",
                 "preset": "主要调节编码速度和质量的平衡，有ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
                 "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在倒数第二个位置上,例如  -bf 7 -b_ref_mode middle",
-                "cuda_decode":"使用cuda解码视频",
+                "cuda_decode": "使用cuda解码视频",
                 "video_codec": "采用 libx264 编码或 libx265编码，264兼容性更好，265压缩比更大清晰度更高"
             },
 
@@ -112,9 +119,16 @@ class Ui_setini(object):
                 "fontsize": "硬字幕字体像素尺寸",
                 "fontname": "硬字幕时字体名字",
                 "fontcolor": "设置字体的颜色，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
-                "fontbordercolor": "设置字体边框颜色，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
+
+                "fontbordercolor": "设置字体边框描边颜色(轮廓模式下)，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
+                "backgroundcolor": "背景色块模式下为背景色，轮廓模式下可能是阴影颜色，可能因播放器支持而不同",
                 "subtitle_position": "字幕所处位置，默认底部",
-                "marginV":"字幕距离底部距离"
+                "marginV": "字幕垂直边距",
+                "marginL": "字幕左边距",
+                "marginR": "字幕右边距",
+                "shadow": "字幕阴影大小",
+                "outline": "字幕描边粗细",
+                'borderStyle': "轮廓描边是指字幕有文字描边和阴影但无背景色块，背景色块风格则相反"
 
             },
             "trans": {
@@ -123,13 +137,13 @@ class Ui_setini(object):
                 "retries": "翻译出错时的重试次数",
                 "translation_wait": "每次翻译后暂停时间/秒,用于限制请求频率",
                 "google_trans_newadd": "批量字幕翻译功能当选择Google渠道时，可在此填写新的目标语言代码，请填写ISO-639 代码,多个以英文逗号分隔，语言代码在此查看  https://cloud.google.com/translate/docs/languages",
-                "aisendsrt":"是否在使用AI/Google翻译时发送完整字幕格式内容"
+                "aisendsrt": "是否在使用AI/Google翻译时发送完整字幕格式内容"
 
             },
             "dubbing": {
                 "dubbing_thread": "同时配音的字幕条数",
                 "dubbing_wait": "每次配音后暂停时间/秒,用于限制请求频率",
-                "save_segment_audio":"保留每条字幕的配音文件",
+                "save_segment_audio": "保留每条字幕的配音文件",
                 "azure_lines": "azureTTS一次配音行数",
                 "chattts_voice": "chatTTS 音色值"
             },
@@ -139,10 +153,10 @@ class Ui_setini(object):
             "whisper": {
                 "vad": "是否在faster-whisper字幕整体识别模式时启用VAD",
                 "threshold": "表示语音的概率阈值，VAD 会输出每个音频片段的语音概率。高于该值的概率被认为是语音（SPEECH），低于该值的概率被认为是静音或背景噪音。默认值为 0.5，这在大多数情况下是适用的。但针对不同的数据集，你可以调整这个值以更精确地区分语音和噪音。如果你发现误判太多，可以尝试将其调高到 0.6 或 0.7；如果语音片段丢失过多，则可以降低至 0.3 或 0.4。",
-                "min_speech_duration_ms": "最小语音持续时间，单位：毫秒。如果检测到的语音片段长度小于这个值，则该语音片段会被丢弃。目的是去除一些短暂的非语音声音或噪音。默认值为 1000 毫秒，适合大多数场景。你可以根据需要调整，如果语音片段过短容易被误判为噪音，可以增加该值，例如设置为 1000 毫秒",
-                "max_speech_duration_s": "最大语音持续时间，单位：秒。单个语音片段的最大长度。如果语音片段超过这个时长，则会在此分割。如果没有找到静音位置，则会在该时长前强行分割，避免过长的连续片段。默认是无穷大（不限制），如果需要处理较长的语音片段，可以保留默认值；但如果你希望控制片段长度，比如处理对话或分段输出，可以根据具体需求设定，比如 10 秒或 30 秒。 0表示无穷大",
-                "min_silence_duration_ms": "最小静音持续时间，单位：毫秒。当检测到语音结束后，会等待的静音时间。如果静音持续时间超过该值，才会分割语音片段。默认值是 250 毫秒。",
-                "speech_pad_ms":"语音填充时间，单位：毫秒。在检测到的语音片段前后各添加的填充时间，避免语音片段切割得太紧凑，可能会切掉一些边缘的语音。默认值是 200 毫秒。如果你发现切割后的语音片段有缺失部分，可以增大该值，比如 500 毫秒或 800 毫秒。反之，如果语音片段过长或包含过多的无效部分，可以减少这个值",
+                "min_speech_duration_ms": "最小语音持续时间，单位：毫秒。如果检测到的语音片段长度小于这个值，则该语音片段会被丢弃。目的是去除一些短暂的非语音声音或噪音。你可以根据需要调整，如果语音片段过短容易被误判为噪音，可以增加该值，例如设置为 1000 毫秒",
+                "max_speech_duration_s": "最大语音持续时间，单位：秒。单个语音片段的最大长度。如果语音片段超过这个时长，则会在此分割。如果没有找到静音位置，则会在该时长前强行分割，避免过长的连续片段。如果你希望控制片段长度，比如处理对话或分段输出，可以根据具体需求设定，比如 10 秒或 30 秒。 0表示无穷大",
+                "min_silence_duration_ms": "最小静音持续时间，单位：毫秒。当检测到语音结束后，会等待的静音时间。如果静音持续时间超过该值，才会分割语音片段。",
+                "speech_pad_ms": "语音填充时间，单位：毫秒。在检测到的语音片段前后各添加的填充时间，避免语音片段切割得太紧凑，可能会切掉一些边缘的语音。如果你发现切割后的语音片段有缺失部分，可以增大该值，比如 500 毫秒或 800 毫秒。反之，如果语音片段过长或包含过多的无效部分，可以减少这个值",
 
                 "overall_maxsecs": "字幕最大时长秒数，超过则强制断句",
 
@@ -152,7 +166,6 @@ class Ui_setini(object):
                 "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选",
                 "beam_size": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
-                "temperature": "0=占用更少GPU资源但效果略差，1=占用更多GPU资源同时效果更好",
                 "condition_on_previous_text": "若开启将占用更多GPU，效果也更好",
                 "zh_hant_s": "强制将识别出的繁体字幕转为简体",
                 "initial_prompt_zh-cn": "原始语言为简体中文时发送给whisper模型的提示词",
@@ -190,18 +203,18 @@ class Ui_setini(object):
         }
         # 中文左侧label
         self.titles = {
-            "llm_ai_type":"LLM重新断句时使用的AI渠道",
-            "marginV":"字幕距离底部距离",
-            "gemini_recogn_chunk":"Gemini语音识别时，单次发送音频切片数",
+            "llm_ai_type": "LLM重新断句时使用的AI渠道",
+
+            "gemini_recogn_chunk": "Gemini语音识别时，单次发送音频切片数",
             "ai302_models": "302.ai翻译模型列表",
-            "llm_chunk_size":"LLM重新断句每批次发送字或单词数",
+            "llm_chunk_size": "LLM重新断句每批次发送字或单词数",
             "ai302tts_models": "302.aiTTS模型列表",
             "openairecognapi_model": "OpenAI语音识别模型",
             "homedir": "设置家目录",
             "lang": "界面语言",
-            "save_segment_audio":"保留每条字幕的配音文件",
+            "save_segment_audio": "保留每条字幕的配音文件",
             "crf": "视频转码损失控制",
-            "cuda_decode":"使用cuda解码视频",
+            "cuda_decode": "使用cuda解码视频",
             "preset": "输出视频质量压缩率控制",
             "ffmpeg_cmd": "自定义ffmpeg命令参数",
             "video_codec": "264或265视频编码",
@@ -215,13 +228,11 @@ class Ui_setini(object):
             "bgm_split_time": "背景音分离切割片段/s",
             "vad": "启用VAD",
 
-
             "threshold": "语音阈值",
             "max_speech_duration_s": "最大语音持续时间/秒",
             "min_speech_duration_ms": "最短语音持续时间/毫秒",
             "min_silence_duration_ms": "静音分割毫秒 ",
             "speech_pad_ms": "语音填充毫秒",
-
 
             "overall_maxsecs": "字幕最大时长持续秒数/s",
 
@@ -237,13 +248,20 @@ class Ui_setini(object):
             "cuda_com_type": "CUDA数据类型",
             "beam_size": "字幕识别准确度控制beam_size",
             "best_of": "字幕识别准确度控制best_of",
-            "temperature": "faster-whisper温度控制",
             "condition_on_previous_text": "上下文感知",
             "fontsize": "硬字幕字体像素",
             "fontname": "硬字幕字体名字",
             "fontcolor": "硬字幕文字颜色",
-            "fontbordercolor": "硬字幕文字边框颜色",
+            "fontbordercolor": "硬字幕文字边框描边颜色",
+            "backgroundcolor": "硬字幕背景色块或阴影色",
             "subtitle_position": "硬字幕位置",
+            "marginV": "字幕垂直边距",
+            "marginL": "字幕左边距",
+            "marginR": "字幕右边距",
+            "shadow": "字幕阴影大小",
+            "outline": "字幕描边粗细",
+            'borderStyle': "轮廓描边模式或背景色块模式",
+
             "zh_hant_s": "字幕繁体转为简体",
             "azure_lines": "AzureTTS批量行数",
             "chattts_voice": "ChatTTS音色值",
@@ -251,7 +269,7 @@ class Ui_setini(object):
             "dubbing_wait": "配音后暂停时间/s",
             "gemini_model": "Gemini模型列表",
             "google_trans_newadd": "Google字幕翻译新增语言代码",
-            "aisendsrt":"使用AI翻译时发送完整字幕内容",
+            "aisendsrt": "使用AI翻译时发送完整字幕内容",
 
             "initial_prompt_zh-cn": "whisper模型简体中文提示词",
             "initial_prompt_zh-tw": "whisper模型繁体中文提示词",
@@ -303,13 +321,13 @@ class Ui_setini(object):
                     "countdown_sec": "Countdown seconds when pausing during single video translation",
                     "bgm_split_time": "Set the segment length for splitting background audio to prevent freezing on long videos, default is 300s",
                     "homedir": "Home directory, used to save the results of video separation, subtitle dubbing, subtitle translation, etc. Default user home directory",
-                    "llm_chunk_size":"When the LLM large model re-segmentation, how many words to send each time to prevent the subtitles from being too long and exceeding the LLM output limit",
-                    "llm_ai_type":"The AI channel used when LLM re-segmentation, currently supports openai or deepseek channels",
-                    "gemini_recogn_chunk":"When using Gemini to recognize speech, the larger the number of audio slices sent each time, the better the effect, but the failure rate will increase"
+                    "llm_chunk_size": "When the LLM large model re-segmentation, how many words to send each time to prevent the subtitles from being too long and exceeding the LLM output limit",
+                    "llm_ai_type": "The AI channel used when LLM re-segmentation, currently supports openai or deepseek channels",
+                    "gemini_recogn_chunk": "When using Gemini to recognize speech, the larger the number of audio slices sent each time, the better the effect, but the failure rate will increase"
                 },
                 "video": {
                     "crf": "Loss control during video transcoding, 0 = minimum loss, 51 = maximum loss, default is 13",
-                    "cuda_decode":"Decode the video using cuda",
+                    "cuda_decode": "Decode the video using cuda",
                     "preset": "Mainly adjust the balance of encoding speed and quality, there are ultrafast, superfast, veryfast, fast, fast, medium, slow, slow, veryslow options, encoding speed from fast to slow, compression rate from low to high, video size from large to small.",
                     "ffmpeg_cmd": "Custom ffmpeg command parameters, added at the penultimate position, e.g., -bf 7 -b_ref_mode middle",
                     "video_codec": "Use libx264 or libx265 encoding, 264 has better compatibility, 265 has higher compression ratio and clarity"
@@ -319,9 +337,24 @@ class Ui_setini(object):
                     "fontsize": "Pixel size of the hard subtitle font",
                     "fontname": "Font name for hard subtitles",
                     "fontcolor": "Set the font color, note the 6 characters after &H, each 2 characters represent the BGR color, i.e., 2 blue, 2 green, 2 red, in reverse of the common RGB color.",
-                    "fontbordercolor": "Set the font border color, note the 6 characters after &H, each 2 characters represent the BGR color, i.e., 2 blue, 2 green, 2 red, in reverse of the common RGB color.",
-                    "subtitle_position": "Subtitles top/bottom/center",
-                    "marginV":"Distance between subtitles and bottom edge"
+
+                    "fontbordercolor": "Sets the font border stroke color (in outline mode). Note the six characters after &H. Each two letters represent a BGR color, i.e., 2 bits of blue, 2 bits of green, and 2 bits of red, which is the reverse of the common RGB colors.",
+
+                    "backgroundcolor": "Background color in block mode. It may be the shadow color in outline mode. This may vary depending on player support.",
+
+                    "subtitle_position": "Subtitle position, default is bottom.",
+
+                    "marginV": "Subtitle vertical margin.",
+
+                    "marginL": "Subtitle left margin.",
+
+                    "marginR": "Subtitle right margin.",
+
+                    "shadow": "Subtitle shadow size.",
+
+                    "outline": "Subtitle stroke thickness.",
+
+                    "borderStyle": "Outline stroke means subtitles have a text border and shadow but no background block. Background block style is the opposite."
                 },
                 "trans": {
                     "trans_thread": "Number of subtitles translated simultaneously",
@@ -329,12 +362,12 @@ class Ui_setini(object):
                     "retries": "Number of retries when translation fails",
                     "translation_wait": "Pause time in seconds after each translation, used to limit request frequency",
                     "google_trans_newadd": "Batch Subtitle Translation Function When selecting Google channel, you can fill in the new target language code here, please fill in the ISO-639 code, the language code can be viewed here.  https://cloud.google.com/translate/docs/languages",
-                    "aisendsrt":"Sending full subtitle content when use ai translation"
+                    "aisendsrt": "Sending full subtitle content when use ai translation"
                 },
                 "dubbing": {
                     "dubbing_thread": "Number of subtitles dubbed simultaneously",
                     "dubbing_wait": "Pause time in seconds after each dubbing, used to limit request frequency",
-                    "save_segment_audio":"Save the dubbing file of each subtitle",
+                    "save_segment_audio": "Save the dubbing file of each subtitle",
                     "azure_lines": "Number of lines dubbed at once by azureTTS",
                     "chattts_voice": "chatTTS voice tone"
                 },
@@ -344,11 +377,11 @@ class Ui_setini(object):
                 "whisper": {
                     "vad": "Enable VAD in faster-whisper overall subtitle recognition mode",
 
-                "threshold": "Threshold for audio activity detection for determining whether a voice",
-                "min_speech_duration_ms": "Duration of the shortest speech segment (milliseconds)",
-                "min_silence_duration_ms": "Duration (in milliseconds) of the shortest mute clip, below which mutes will be ignored ",
-                "max_speech_duration_s": "The default is infinity (unlimited), so if you need to process longer voice clips, you can keep the default value; however, if you wish to control the clip length, such as processing a dialog or segmented output, you can set it according to your specific needs, such as 10 seconds or 30 seconds. ",
-                "speech_pad_ms":"Buffer time (in milliseconds) added before and after detected speech segments",
+                    "threshold": "Threshold for audio activity detection for determining whether a voice",
+                    "min_speech_duration_ms": "Duration of the shortest speech segment (milliseconds)",
+                    "min_silence_duration_ms": "Duration (in milliseconds) of the shortest mute clip, below which mutes will be ignored ",
+                    "max_speech_duration_s": "if you wish to control the clip length, such as processing a dialog or segmented output, you can set it according to your specific needs, such as 10 seconds or 30 seconds. ",
+                    "speech_pad_ms": "Buffer time (in milliseconds) added before and after detected speech segments",
                     "overall_maxsecs": "Maximum duration of a sentence in seconds",
                     "voice_silence": "Silence segment for Google api/ms",
                     "interval_split": "Segment duration in seconds in equal split mode",
@@ -357,7 +390,6 @@ class Ui_setini(object):
                     "cuda_com_type": "Data type for cuda in faster mode, int8 = less resource usage, faster speed, lower precision, float32 = more resource usage, slower speed, higher precision, int8_float16 = device auto-select",
                     "beam_size": "Precision adjustment during subtitle recognition, 1-5, 1 = lowest memory usage, 5 = highest memory usage",
                     "best_of": "Precision adjustment during subtitle recognition, 1-5, 1 = lowest memory usage, 5 = highest memory usage",
-                    "temperature": "0 = less GPU resource usage but slightly worse performance, 1 = more GPU resource usage and better performance",
                     "condition_on_previous_text": "true = more GPU usage and better performance, false = less GPU usage but slightly worse performance",
                     "zh_hant_s": "Force conversion of recognized traditional Chinese subtitles to simplified Chinese",
                     "initial_prompt_zh-cn": "Prompts sent to the whisper model when the original language is Simplified Chinese.",
@@ -406,19 +438,19 @@ class Ui_setini(object):
             }
 
             self.titles = {
-                "llm_ai_type":"The AI channel used when LLM re-segmentation",
-                "marginV":"Distance between subtitles and bottom edge",
-                "gemini_recogn_chunk":"Gemini to recognize speech,number of audio slices sent",
+                "llm_ai_type": "The AI channel used when LLM re-segmentation",
+
+                "gemini_recogn_chunk": "Gemini to recognize speech,number of audio slices sent",
                 "homedir": "Set Home directory",
-                "llm_chunk_size":"LLM re-segmentation sends each batch of words",
+                "llm_chunk_size": "LLM re-segmentation sends each batch of words",
                 "ai302_models": "302.ai Translation Models",
                 "ai302tts_models": "302.ai TTS Models",
                 "openairecognapi_model": "OpenAI Speech",
-                "save_segment_audio":"Save the dubbing file of each subtitle",
+                "save_segment_audio": "Save the dubbing file of each subtitle",
                 "lang": "Software Interface Language",
-                "aisendsrt":"Sending full subtitle content when ai translation",
+                "aisendsrt": "Sending full subtitle content when ai translation",
                 "crf": "Video Transcoding Loss Control",
-                "cuda_decode":"Decode the video using cuda",
+                "cuda_decode": "Decode the video using cuda",
                 "preset": "Output Video Quality compression rate",
                 "ffmpeg_cmd": "Custom FFmpeg Command Parameters",
                 "video_codec": "H.264 or H.265 Video Encoding",
@@ -430,16 +462,15 @@ class Ui_setini(object):
                 "model_list": "Models for Faster and OpenAI",
                 "remove_silence": "Remove End Silence in Dubbing",
                 "bgm_split_time": "bgm segment time/s",
-                
+
                 "max_speech_duration_s": "max speech duration sec.",
                 "threshold": "Threshold for determining whether a voice",
                 "min_speech_duration_ms": "Duration of the shortest speech (milliseconds)",
                 "min_silence_duration_ms": "Duration (in milliseconds)  ",
-                "speech_pad_ms":"Buffer time",
+                "speech_pad_ms": "Buffer time",
 
                 "overall_maxsecs": "Maximum Speech Duration",
                 "vad": "Enable VAD",
-
 
                 "voice_silence": "Silence Segment for Google api/ms",
                 "interval_split": "Segment Duration in Equal Division",
@@ -453,13 +484,21 @@ class Ui_setini(object):
                 "cuda_com_type": "CUDA Data Type",
                 "beam_size": "Subtitle Recognition Accuracy Control 1",
                 "best_of": "Subtitle Recognition Accuracy Control 2",
-                "temperature": "Faster-Whisper Temperature Control",
                 "condition_on_previous_text": "Context Awareness",
                 "fontsize": "Hard Subtitle Font Size",
                 "fontname": "Hard Subtitle Font Name",
                 "fontcolor": "Font Color",
-                "fontbordercolor": "Font Border Color",
-                "subtitle_position": "Subtitle position",
+
+                "fontbordercolor": "Stroke color of the hard subtitle text border",
+                "backgroundcolor": "Background color or shadow color of the hard subtitle",
+                "subtitle_position": "Position of the hard subtitle",
+                "marginV": "Vertical margin of the subtitle",
+                "marginL": "Left margin of the subtitle",
+                "marginR": "Right margin of the subtitle",
+                "shadow": "Subtitle shadow size",
+                "outline": "Subtitle stroke thickness",
+                'borderStyle': "Outline stroke mode or background color mode",
+
                 "zh_hant_s": "Traditional to Simplified Chinese Conversion",
                 "azure_lines": "Azure TTS Batch Line Count",
                 "chattts_voice": "ChatTTS Voice Tone Value",
@@ -510,12 +549,12 @@ class Ui_setini(object):
         label_title.setAlignment(Qt.AlignCenter)
         label_title.setStyleSheet("""color:#eeeeee;text-align:center""")
 
-        self.homedir_btn=None
+        self.homedir_btn = None
         box.layout().addWidget(label_title)
         helptext = 'show help' if config.defaulelang != 'zh' else '点击查看帮助信息'
         for headkey, item in self.notices.items():
             label_title = QtWidgets.QLabel()
-            label_title.setText('['+ self.heads[headkey]+"↓]")
+            label_title.setText('[' + self.heads[headkey] + "↓]")
             label_title.setStyleSheet("""color:#148CD2;font-size:18px;""")
             label_title.setObjectName(f"label_{headkey}")
             box.layout().addWidget(label_title)
@@ -524,18 +563,19 @@ class Ui_setini(object):
                 tmp = QtWidgets.QHBoxLayout()
                 tmp_0 = QtWidgets.QPushButton()
                 tmp_0.setStyleSheet("""background-color:transparent;""")
-                #tmp_0.setFixedWidth(350)
+
                 tmp_0.setText(self.titles[key])
                 tmp_0.setObjectName(f'btn_{key}')
                 tmp_0.setToolTip(helptext)
                 tmp_0.setCursor(Qt.PointingHandCursor)
                 tmp.addWidget(tmp_0)
 
-                val=str(config.settings.get(key,"")).lower()
+                val = str(config.settings.get(key, "")).lower()
                 # 是 cuda_com_type
-                if key=='cuda_com_type':
-                    cuda_types=['auto','float32','float16','int8','int16','int8_float16','int8_float32','bfloat16','int8_bfloat16']
-                    tmp1=QtWidgets.QComboBox()
+                if key == 'cuda_com_type':
+                    cuda_types = ['auto', 'float32', 'float16', 'int8', 'int16', 'int8_float16', 'int8_float32',
+                                  'bfloat16', 'int8_bfloat16']
+                    tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(cuda_types)
                     tmp1.setObjectName(key)
                     if val in cuda_types:
@@ -544,9 +584,9 @@ class Ui_setini(object):
                     tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
-                if key=='llm_ai_type':
-                    ai_types=['openai','deepseek']
-                    tmp1=QtWidgets.QComboBox()
+                if key == 'llm_ai_type':
+                    ai_types = ['openai', 'deepseek']
+                    tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(ai_types)
                     tmp1.setObjectName(key)
                     if val in ai_types:
@@ -555,8 +595,8 @@ class Ui_setini(object):
                     tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
-                if key=='preset':
-                    presets = ['ultrafast','superfast','veryfast','faster','fast','medium','slow','veryslow']
+                if key == 'preset':
+                    presets = ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'veryslow']
                     tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(presets)
                     if val in presets:
@@ -566,26 +606,32 @@ class Ui_setini(object):
                     tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
-                if key=='subtitle_position':
-                    pos = ['bottom','top','center']
+                if key == 'subtitle_position':
                     tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems(pos)
-                    cur_text= 'bottom' 
-                    if int(val)==5:
-                        cur_text='center'
-                    elif int(val)==8:
-                        cur_text='top'
+                    tmp1.addItems(list(config.POSTION_ASS_VK.keys()))
+                    # 根据数字1-9获取对应的位置字符串
+                    cur_text = config.POSTION_ASS_KV.get(int(val), 'bottom')
                     tmp1.setCurrentText(cur_text)
                     tmp1.setObjectName(key)
                     tmp.addWidget(tmp1)
                     tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
-
+                if key == 'borderStyle':
+                    tmp1 = QtWidgets.QComboBox()
+                    tmp1.addItems(['轮廓描边' if config.defaulelang == 'zh' else 'Outline Border',
+                                   '背景色块' if config.defaulelang == 'zh' else 'Background Block'])
+                    # val==1 是0位置，代表轮廓风格，val==3 是1位置，代表背景色
+                    tmp1.setCurrentIndex(0 if int(val) == 1 else 1)
+                    tmp1.setObjectName(key)
+                    tmp.addWidget(tmp1)
+                    tmp.addStretch(1)
+                    box.layout().addLayout(tmp)
+                    continue
 
                 # 设置家目录按钮
                 if key == 'homedir':
-                    self.homedir_btn= QtWidgets.QPushButton()
+                    self.homedir_btn = QtWidgets.QPushButton()
                     self.homedir_btn.setCursor(Qt.PointingHandCursor)
                     self.homedir_btn.setText(val)
                     self.homedir_btn.setToolTip(
@@ -597,9 +643,9 @@ class Ui_setini(object):
                     box.layout().addLayout(tmp)
                     continue
                 # 是checkbox
-                if  val in ['true','false']:
-                    tmp_1=QtWidgets.QCheckBox()
-                    tmp_1.setChecked(True if val=='true' else False)
+                if val in ['true', 'false']:
+                    tmp_1 = QtWidgets.QCheckBox()
+                    tmp_1.setChecked(True if val == 'true' else False)
                     tmp_1.setToolTip(tips_str)
                     tmp_1.setObjectName(key)
                     tmp.addWidget(tmp_1)
@@ -607,8 +653,8 @@ class Ui_setini(object):
                     box.layout().addLayout(tmp)
                     continue
                 # 是 model_list faster-whisper
-                if  key == 'model_list':
-                    tmp_1=QtWidgets.QPlainTextEdit()
+                if key == 'model_list':
+                    tmp_1 = QtWidgets.QPlainTextEdit()
                     tmp_1.setPlainText(val)
                     tmp_1.setToolTip(tips_str)
                     tmp_1.setObjectName(key)
@@ -628,39 +674,46 @@ class Ui_setini(object):
                 tmp.addWidget(tmp_1)
 
                 # 挂到self上，方便他处修改
-                if key=='fontsize':
-                    self.fontsize_lineedit=tmp_1
-
+                if key == 'fontsize':
+                    self.fontsize_lineedit = tmp_1
 
                 # 增加字体控制按钮
-                if key=='fontname':
-                    self.fontname_lineedit=tmp_1
+                if key == 'fontname':
+                    self.fontname_lineedit = tmp_1
                     self.fontname_btn = QtWidgets.QPushButton()
                     self.fontname_btn.setCursor(Qt.PointingHandCursor)
-                    self.fontname_btn.setText('选择字体' if config.defaulelang=='zh' else 'Select Font')
+                    self.fontname_btn.setText('选择字体' if config.defaulelang == 'zh' else 'Select Font')
                     self.fontname_btn.clicked.connect(self.set_fontname)
                     tmp.addWidget(self.fontname_btn)
-                elif key=='fontcolor':
-                    self.fontcolor_lineedit=tmp_1
+                elif key == 'fontcolor':
+                    self.fontcolor_lineedit = tmp_1
                     # 增加字体颜色控制按钮
                     self.fontcolor_btn = QtWidgets.QPushButton()
                     self.fontcolor_btn.setCursor(Qt.PointingHandCursor)
                     self.fontcolor_btn.setText('选择字体颜色' if config.defaulelang == 'zh' else 'Select Font Color')
                     self.fontcolor_btn.clicked.connect(self.set_fontcolor)
                     tmp.addWidget(self.fontcolor_btn)
-                elif key=='fontbordercolor':
-                    self.fontbordercolor_lineedit=tmp_1
+                elif key == 'fontbordercolor':
+                    self.fontbordercolor_lineedit = tmp_1
                     # 增加边框颜色控制按钮
                     self.fontbordercolor_btn = QtWidgets.QPushButton()
                     self.fontbordercolor_btn.setCursor(Qt.PointingHandCursor)
-                    self.fontbordercolor_btn.setText('选择字体边框和背景色' if config.defaulelang == 'zh' else 'Select Font outline color')
+                    self.fontbordercolor_btn.setText(
+                        '选择字体边框色' if config.defaulelang == 'zh' else 'Select Font outline color')
                     self.fontbordercolor_btn.clicked.connect(self.set_fontbordercolor)
                     tmp.addWidget(self.fontbordercolor_btn)
+                elif key == 'backgroundcolor':
+                    self.backgroundcolor_lineedit = tmp_1
+                    # 增加边框颜色控制按钮
+                    self.backgroundcolor_btn = QtWidgets.QPushButton()
+                    self.backgroundcolor_btn.setCursor(Qt.PointingHandCursor)
+                    self.backgroundcolor_btn.setText(
+                        '选择字幕背景色块' if config.defaulelang == 'zh' else 'Select Subtitle Background Block')
+                    self.backgroundcolor_btn.clicked.connect(self.set_backgroundcolor)
+                    tmp.addWidget(self.backgroundcolor_btn)
 
                 box.layout().addLayout(tmp)
 
-
-        #box.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
         scroll_area.setWidget(box)
         self.layout.addWidget(scroll_area)
 
