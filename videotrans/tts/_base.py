@@ -188,14 +188,6 @@ class BaseTTS(BaseCon):
         pass
 
 
-    # 有失败发生时，记录失败原因，不抛出异常，只要有一条字幕配音成功，即视为成功
-    def _raise(self,retry_state):
-        try:
-            RetryRaise._raise(retry_state)
-        except BaseException as e:
-            self.error = str(e)
-            self._signal(text=self.error)
-
 
 
     def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:

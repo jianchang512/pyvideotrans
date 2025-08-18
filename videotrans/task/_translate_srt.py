@@ -17,12 +17,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class TranslateSrt(BaseTask):
-    # ==================================================================
-    # 1. 覆盖父类的字段，并定义本类独有的状态属性。
-    #    这些属性都在 __post_init__ 中根据逻辑被赋值，因此设为 init=False。
-    # ==================================================================
-
-
     # 这两个属性依赖于 cfg，所以它们没有默认值，在 post_init 中设置。
     out_format: int = field(init=False)
     rename: bool = field(init=False)
@@ -30,12 +24,7 @@ class TranslateSrt(BaseTask):
     shoud_trans: bool = field(default=True, init=False)
 
 
-    # ==================================================================
-    # 2. 将 __init__ 的所有逻辑移到 __post_init__ 方法中。
-    #    它不接收任何参数，与父类保持一致。
-    # ==================================================================
     def __post_init__(self):
-        # 关键第一步：调用父类的 __post_init__。
         # 这会确保 self.cfg 被正确地合并(cfg+obj)并且 self.uuid 被设置。
         super().__post_init__()
 
