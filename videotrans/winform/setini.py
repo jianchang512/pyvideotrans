@@ -43,12 +43,11 @@ def openwin():
             if hasattr(line_edit, 'objectName') and line_edit.objectName():
                 name = line_edit.objectName()
                 if name == 'subtitle_position':
-                    line_edit_dict[name] = 2
-                    if line_edit.currentText() == 'center':
-                        line_edit_dict[name] = 5
-                    elif line_edit.currentText() == 'top':
-                        line_edit_dict[name] = 8
-
+                    # 根据位置字符串，选择对应的数字
+                    line_edit_dict[name] = config.POSTION_ASS_VK.get(line_edit.currentText(),2)
+                elif name=='borderStyle':
+                    # 背景风格 0位置代表轮廓，1位置代表背景色
+                    line_edit_dict[name] =1 if line_edit.currentIndex()==0 else 3
                 else:
                     # 将objectName作为key，text作为value添加到字典中
                     line_edit_dict[name] = line_edit.currentText()

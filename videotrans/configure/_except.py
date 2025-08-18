@@ -1,8 +1,11 @@
-from videotrans.configure import config
-from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError,Timeout,ConnectionError
-from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError,RateLimitError,APIConnectionError,APIError
-
 from elevenlabs.core import ApiError as ApiError_11
+from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
+    APIConnectionError, APIError
+from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, \
+    Timeout, ConnectionError
+
+from videotrans.configure import config
+
 
 class RetryRaise:
     # 定义一个类属性，属于这些异常的是永久性错误，无法通过重试恢复，直接不重试
@@ -41,15 +44,18 @@ class RetryRaise:
             if isinstance(ex, APIConnectionError):
                 raise RuntimeError(
                     ('连接失败，请检查网络或代理' if config.defaulelang == 'zh' else 'Connection timed out') + f': {ex.message}')
-            if isinstance(ex, APIError):
+
+            if isinstance(ex, APIError) or hasattr(ex, 'message'):
                 raise RuntimeError(ex.message)
-            if isinstance(ex, ApiError_11):
-                raise RuntimeError(ex.body.get('detail',{}).get('message',''))
 
             if isinstance(ex, (Timeout, ConnectionError)):
                 raise RuntimeError(
                     ('连接失败，请检查网络或代理' if config.defaulelang == 'zh' else 'Connection timed out') + f': {ex.args}')
-            if isinstance(ex, BaseException):
+            if isinstance(ex, ApiError_11):
+                raise RuntimeError(ex.body.get('detail', {}).get('message', ''))
+            if not isinstance(ex, str) and hasattr(ex, 'body'):
+                raise RuntimeError(str(ex.body.get('detail', ex.body)) if not isinstance(ex.body, str) else ex.body)
+            if hasattr(ex, 'args'):
                 raise RuntimeError(ex.args)
-
+            raise RuntimeError(ex)
         raise RuntimeError(f"Error:{retry_state.attempt_number} retries")

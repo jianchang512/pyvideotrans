@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import datetime
-import time
 import json
 import locale
 import logging
@@ -13,7 +12,9 @@ from queue import Queue
 
 MAINWIN = None
 
-IS_FROZEN=True if getattr(sys, 'frozen', False) else False
+IS_FROZEN = True if getattr(sys, 'frozen', False) else False
+
+
 # 获取程序执行目录
 def _get_executable_path():
     if IS_FROZEN:
@@ -58,15 +59,14 @@ _console_handler.setFormatter(formatter)
 logger.addHandler(_file_handler)
 logger.addHandler(_console_handler)
 
-
 FFMPEG_BIN = "ffmpeg"
 FFPROBE_BIN = "ffprobe"
 # ffmpeg
 if sys.platform == 'win32':
     os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;' + os.environ['PATH']
     if IS_FROZEN:
-        os.environ['PATH'] = os.environ['PATH']+f';{ROOT_DIR}/_internal/torch/lib'
-        
+        os.environ['PATH'] = os.environ['PATH'] + f';{ROOT_DIR}/_internal/torch/lib'
+
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
 os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
@@ -206,11 +206,11 @@ def parse_init():
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
         "remove_silence": False,
         "vad": True,
-        "threshold": 0.5,
-        "min_speech_duration_ms": 1000,
-        "max_speech_duration_s": 8,
-        "min_silence_duration_ms": 250,
-        "speech_pad_ms": 200,
+        "threshold": 0.45,
+        "min_speech_duration_ms": 250,
+        "max_speech_duration_s": 12,
+        "min_silence_duration_ms": 1000,
+        "speech_pad_ms": 400,
         "overall_maxsecs": 15,
         "rephrase": False,
         "voice_silence": 200,
@@ -261,14 +261,23 @@ def parse_init():
         "initial_prompt_yue": "",
         "beam_size": 5,
         "best_of": 5,
-        "temperature": 0.0,
-        "condition_on_previous_text": False,
+        "condition_on_previous_text": True,
         "fontsize": 16,
         "fontname": "黑体",
         "fontcolor": "&hffffff",
         "fontbordercolor": "&h000000",
-        "subtitle_position": 2,
+        "backgroundcolor":"&h000000",
+        "subtitle_position": 2,# 对应 1到9 位置
+
+
         "marginV": 10,
+        "marginL": 10,
+        "marginR": 10,
+        "outline":1,
+        "shadow":1,
+        "borderStyle":1,#1或3， 轮廓描边风格对应 BorderStyle=1， 背景色块风格对应 BorderStyle=3
+
+
         "cjk_len": 20,
         "other_len": 60,
         "gemini_model": DEFAULT_GEMINI_MODEL,
@@ -312,6 +321,7 @@ def parse_init():
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(default, ensure_ascii=False))
         return default
+
 
 # 高级选项信息
 settings = parse_init()
@@ -593,9 +603,18 @@ def getset_params(obj=None):
     except Exception:
         pass
     return default
+
+
 params = getset_params()
 
 # gemini 语音识别提示词
 _gemini_recogn_txt = 'gemini_recogn.txt' if defaulelang == 'zh' else 'gemini_recogn-en.txt'
 if Path(ROOT_DIR + f'/videotrans/{_gemini_recogn_txt}').exists():
     params['gemini_srtprompt'] = Path(ROOT_DIR + f'/videotrans/{_gemini_recogn_txt}').read_text(encoding='utf-8')
+
+POSTION_ASS_KV = {
+    7: "left-top", 8: "top", 9: "right-top",
+    4: "left-center", 5: "center", 6: "right-center",
+    1: "left-bottom", 2: "bottom", 3: "right-bottom"
+}
+POSTION_ASS_VK = {v: k for k, v in POSTION_ASS_KV.items()}

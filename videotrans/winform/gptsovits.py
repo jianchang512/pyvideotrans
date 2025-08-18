@@ -20,13 +20,26 @@ def openwin():
             return
         if not url.startswith('http'):
             url = 'http://' + url
+
+        winobj.test.setText('测试中请稍等...')
+        
+        extra = winobj.extra.text()
+        role=getrole()
+        
         config.params["gptsovits_url"] = url
         config.params["gptsovits_isv2"] = winobj.is_v2.isChecked()
-        winobj.test.setText('测试中请稍等...')
+        
+        
+        config.params["gptsovits_url"] = url
+        config.params["gptsovits_extra"] = extra
+
+        config.params["gptsovits_isv2"] = winobj.is_v2.isChecked()
+        
+        config.getset_params(config.params)
 
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
-            "role": getrole(),
+            "role": role,
             "filename": config.TEMP_HOME + f"/test-gptsovits.wav",
             "tts_type": tts.GPTSOVITS_TTS}],
                          language="zh",
@@ -61,6 +74,7 @@ def openwin():
             return
         if not url.startswith('http'):
             url = 'http://' + url
+        
         extra = winobj.extra.text()
         role = winobj.role.toPlainText().strip()
 
@@ -69,8 +83,8 @@ def openwin():
         config.params["gptsovits_role"] = role
         config.params["gptsovits_isv2"] = winobj.is_v2.isChecked()
         config.getset_params(config.params)
+        
         tools.set_process(text='gptsovits', type="refreshtts")
-
         winobj.close()
 
     from videotrans.component import GPTSoVITSForm
