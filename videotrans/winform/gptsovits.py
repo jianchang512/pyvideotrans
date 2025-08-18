@@ -11,7 +11,7 @@ def openwin():
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            tools.show_error( d)
+            tools.show_error(d)
         winobj.test.setText('测试api')
 
     def test():
@@ -56,13 +56,13 @@ def openwin():
         for it in tmp.split("\n"):
             s = it.strip().split('#')
             if len(s) != 3:
-                tools.show_error("每行都必须以#分割为三部分，格式为   音频名称.wav#音频文字内容#音频语言代码",False)
+                tools.show_error("每行都必须以英文#号分割为三部分，格式为   音频名称.wav#音频文字内容#音频语言代码",False)
                 return
             if not s[0].endswith(".wav"):
-                tools.show_error("每行都必须以#分割为三部分，格式为  音频名称.wav#音频文字内容#音频语言代码 ,并且第一部分为.wav结尾的音频名称",False)
+                tools.show_error("每行都必须以英文#号分割为三部分，格式为  音频名称.wav#音频文字内容#音频语言代码 ,并且第一部分为.wav结尾的音频名称",False)
                 return
             if s[2] not in ['zh', 'ja', 'en']:
-                tools.show_error("每行必须以#分割为三部分，格式为 音频名称.wav#音频文字内容#音频语言代码 ,并且第三部分语言代码只能是 zh或en或ja",False)
+                tools.show_error("每行必须以英文#号分割为三部分，格式为 音频名称.wav#音频文字内容#音频语言代码 ,并且第三部分语言代码只能是 zh或en或ja",False)
                 return
             role = s[0]
         config.params['gptsovits_role'] = tmp

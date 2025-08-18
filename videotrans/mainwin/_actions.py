@@ -936,7 +936,8 @@ class WinAction(WinActionSub):
         if d['type'] in ['logs', 'error', 'succeed', 'set_precent']:
             self.set_process_btn_text(d)
             if d['type'] in ['error', 'succeed']:
-                config.stoped_uuid_set.add(d['uuid'])
+                if d.get('uuid'):
+                    config.stoped_uuid_set.add(d['uuid'])
 
                 self.edit_subtitle_type = 'edit_subtitle_source'
                 self.wait_subtitle = None

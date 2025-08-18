@@ -30,6 +30,7 @@ class Worker(QThread):
         self.txt = txt
         # 存放处理好的 视频路径等信息
         self.obj_list = obj_list
+        self.uuid=None
 
     def run(self) -> None:
         for obj in self.obj_list:
@@ -37,6 +38,7 @@ class Worker(QThread):
                 shutil.rmtree(obj['target_dir'], ignore_errors=True)
             Path(obj['target_dir']).mkdir(parents=True, exist_ok=True)
             trk = TransCreate(cfg=copy.deepcopy(self.cfg), obj=obj)
+            self.uuid=trk.uuid
             config.task_countdown=0
             trk.prepare()
             self._post(text=trk.cfg['source_sub'], type='edit_subtitle_source')
@@ -106,7 +108,7 @@ class Worker(QThread):
 
     def _post(self,text,type='logs'):
         try:
-            self.uito.emit(json.dumps({"text":text,"type":type}))
+            self.uito.emit(json.dumps({"text":text,"type":type,'uuid':self.uuid}))
         except:
             pass
 
