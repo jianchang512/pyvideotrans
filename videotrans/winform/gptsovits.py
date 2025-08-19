@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets
 
-from videotrans import tts
+
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
@@ -20,7 +20,7 @@ def openwin():
             return
         if not url.startswith('http'):
             url = 'http://' + url
-
+        from videotrans import tts
         winobj.test.setText('测试中请稍等...')
         
         extra = winobj.extra.text()

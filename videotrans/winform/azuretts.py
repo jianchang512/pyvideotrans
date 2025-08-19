@@ -1,6 +1,5 @@
 from PySide6 import QtWidgets
 
-from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
@@ -25,6 +24,7 @@ def openwin():
 
         config.params['azure_speech_key'] = key
         config.params['azure_speech_region'] = region
+        from videotrans import tts
         wk = ListenVoice(parent=winobj, queue_tts=[{"text": '你好啊我的朋友', "role": 'zh-CN-YunjianNeural',
                                                     "filename": config.TEMP_HOME + f"/test-azure.wav",
                                                     "tts_type": tts.AZURE_TTS}], language="zh", tts_type=tts.AZURE_TTS)

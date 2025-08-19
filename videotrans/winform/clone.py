@@ -1,6 +1,5 @@
 from PySide6 import QtWidgets
 
-from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
@@ -23,6 +22,7 @@ def openwin():
             url = 'http://' + url
         config.params['clone_api'] = url
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        from videotrans import tts
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": config.params["clone_voicelist"][1] if len(config.params["clone_voicelist"]) > 1 else '',

@@ -2,7 +2,6 @@ from pathlib import Path
 
 from PySide6 import QtWidgets
 
-from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
@@ -29,6 +28,7 @@ def openwin():
         config.params["chatterbox_exaggeration"] = min(max(float(winobj.exaggeration.text()), 0.25), 2.0)
 
         winobj.test.setText('Testing...')
+        from videotrans import tts
         wk = ListenVoice(parent=winobj, queue_tts=[{"text": 'Hello,my friend,welcom to China', "role": getrole(),
                                                     "filename": config.TEMP_HOME + f"/test-chatterbox.wav",
                                                     "tts_type": tts.CHATTERBOX_TTS}], language="en",
