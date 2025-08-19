@@ -10,6 +10,7 @@ import sys
 import time
 from pathlib import Path
 
+
 def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
     """
     Tries to extract a concise, relevant error message from stderr,
@@ -71,6 +72,7 @@ def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
         return concise_error[:max_length] + "..."
     return concise_error
 
+
 def _get_preset_classification(preset: str) -> str:
     """将 libx264/x265 的 preset 归类为 'fast', 'medium', 'slow'。"""
     SOFTWARE_PRESET_CLASSIFICATION = {
@@ -80,6 +82,7 @@ def _get_preset_classification(preset: str) -> str:
         'slow': 'slow', 'slower': 'slow', 'veryslow': 'slow',
     }
     return SOFTWARE_PRESET_CLASSIFICATION.get(preset, 'medium')  # 默认为 medium
+
 
 def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> int | None:
     """
@@ -99,6 +102,7 @@ def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> int | N
     except (ValueError, TypeError):
         return None
     return None
+
 
 def _build_hw_command(args: list, hw_codec: str):
     from videotrans.configure import config
@@ -198,6 +202,7 @@ def _build_hw_command(args: list, hw_codec: str):
             # config.logger.info("启用 VideoToolbox 硬件解码。")
 
     return new_args, hw_decode_opts
+
 
 def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
     """
@@ -314,6 +319,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
         config.logger.exception(f"执行 ffmpeg 时发生未知错误 (force_cpu={force_cpu})。")
         raise
 
+
 def get_video_codec(force_test: bool = False) -> str:
     """
     通过测试确定最佳可用的硬件加速 H.264/H.265 编码器。
@@ -388,7 +394,7 @@ def get_video_codec(force_test: bool = False) -> str:
         except subprocess.CalledProcessError as e:
             config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试失败。FFmpeg 返回码: {e.returncode}")
             # 只在有 stderr 时记录，避免日志混乱
-            #if e.stderr and e.stderr.strip():
+            # if e.stderr and e.stderr.strip():
             #    config.logger.warning(f"FFmpeg stderr:\n{e.stderr.strip()}")
         except PermissionError:
             config.logger.error(f"失败: 写入 {output_file} 时权限被拒绝。 {command=}")
@@ -444,9 +450,11 @@ def get_video_codec(force_test: bool = False) -> str:
     config.logger.info(f"最终确定的编码器: {selected_codec}")
     return selected_codec
 
+
 class _FFprobeInternalError(Exception):
     """用于内部错误传递的自定义异常。"""
     pass
+
 
 def _run_ffprobe_internal(cmd: list[str]) -> str:
     from videotrans.configure import config
@@ -484,6 +492,7 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
         config.logger.error(msg, exc_info=True)
         raise _FFprobeInternalError(msg) from e
 
+
 def runffprobe(cmd):
     from videotrans.configure import config
     """
@@ -506,6 +515,7 @@ def runffprobe(cmd):
         # 捕获其他意料之外的错误并重新引发，保持行为一致
         config.logger.error(f"An unexpected error occurred in runffprobe: {e}", exc_info=True)
         raise
+
 
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
     """
@@ -596,9 +606,11 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
 
     return result
 
+
 # 获取某个视频的时长 ms
 def get_video_duration(file_path):
     return get_video_info(file_path, video_time=True)
+
 
 def conver_to_16k(audio, target_audio):
     return runffmpeg([
@@ -613,6 +625,7 @@ def conver_to_16k(audio, target_audio):
         "pcm_s16le",
         Path(target_audio).as_posix(),
     ])
+
 
 # wav转为 m4a cuda + h264_cuvid
 def wav2m4a(wavfile, m4afile, extra=None):
@@ -629,8 +642,6 @@ def wav2m4a(wavfile, m4afile, extra=None):
     if extra:
         cmd = cmd[:3] + extra + cmd[3:]
     return runffmpeg(cmd)
-
-
 
 
 def create_concat_txt(filelist, concat_txt=None):
@@ -659,13 +670,14 @@ def create_concat_txt(filelist, concat_txt=None):
     os.chdir(os.path.dirname(concat_txt))
     return concat_txt
 
+
 # 多个音频片段连接
 def concat_multi_audio(*, out=None, concat_txt=None):
     if out:
         out = Path(out).as_posix()
 
     os.chdir(os.path.dirname(concat_txt))
-    cmd = ['-y', '-f', 'concat','-safe', '0', '-i', concat_txt, "-b:a", "128k"]
+    cmd = ['-y', '-f', 'concat', '-safe', '0', '-i', concat_txt, "-b:a", "128k"]
     if out.endswith('.m4a'):
         cmd += ['-c:a', 'aac']
     elif out.endswith('.wav'):
@@ -674,6 +686,7 @@ def concat_multi_audio(*, out=None, concat_txt=None):
     from videotrans.configure import config
     os.chdir(config.TEMP_DIR)
     return True
+
 
 def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None):
     from pydub import AudioSegment
@@ -686,10 +699,10 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None)
         return True
     from videotrans.configure import config
     temp_file = config.SYS_TMP + f'/{time.time_ns()}.{ext}'
-    atempo = current_duration_ms/target_duration_ms
-    if atempo<=1:
+    atempo = current_duration_ms / target_duration_ms
+    if atempo <= 1:
         return True
-    atempo=min(100,atempo)
+    atempo = min(100, atempo)
     runffmpeg(["-i", file_path, "-filter:a", f"atempo={atempo}", temp_file])
     audio = AudioSegment.from_file(temp_file, format='mp4' if ext == 'm4a' else ext)
     diff = len(audio) - target_duration_ms
@@ -700,6 +713,7 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None)
         return True
     audio.export(file_path, format=ext)
     return True
+
 
 # 从音频中截取一个片段
 def cut_from_audio(*, ss, to, audio_file, out_file):
@@ -736,6 +750,7 @@ def send_notification(title, message):
     except:
         pass
 
+
 # 获取音频时长
 def get_audio_time(audio_file):
     # 如果存在缓存并且没有禁用缓存
@@ -744,6 +759,7 @@ def get_audio_time(audio_file):
         raise Exception(f'ffprobe error:dont get video information')
     out = json.loads(out)
     return float(out['format']['duration'])
+
 
 # input_file_path 可能是字符串：文件路径，也可能是音频数据
 def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size=10, is_start=True):
@@ -804,6 +820,7 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
         return input_file_path
     return trimmed_audio
 
+
 def format_video(name, target_dir=None):
     from videotrans.configure import config
     from . import help_misc
@@ -853,7 +870,6 @@ def format_video(name, target_dir=None):
 def large_wav_export_with_soundfile(audio_segment, output_path: str):
     import numpy as np
     import soundfile as sf
-    from pydub import AudioSegment
 
     # audio_segment = AudioSegment.from_file(...)
     """
@@ -873,9 +889,9 @@ def large_wav_export_with_soundfile(audio_segment, output_path: str):
     if sample_width == 1:
         dtype = np.int8  # 8-bit PCM
     elif sample_width == 2:
-        dtype = np.int16 # 16-bit PCM
+        dtype = np.int16  # 16-bit PCM
     elif sample_width == 4:
-        dtype = np.int32 # 32-bit PCM
+        dtype = np.int32  # 32-bit PCM
     else:
         raise ValueError(f"不支持的采样位宽: {sample_width}")
 
@@ -893,7 +909,6 @@ def large_wav_export_with_soundfile(audio_segment, output_path: str):
         output_path,
         numpy_array,
         audio_segment.frame_rate,
-        subtype='PCM_16' if sample_width == 2 else ('PCM_24' if sample_width == 3 else 'PCM_32') # 根据需要选择子类型
+        subtype='PCM_16' if sample_width == 2 else ('PCM_24' if sample_width == 3 else 'PCM_32')  # 根据需要选择子类型
     )
     print("使用 soundfile 导出成功！")
-

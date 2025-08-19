@@ -1,9 +1,10 @@
 import multiprocessing
 import threading
 import time
-from pathlib import Path
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, ClassVar,Union
+from pathlib import Path
+from typing import List, Dict, Any, Union
+
 from videotrans.configure import config
 from videotrans.process._average import run
 from videotrans.recognition._base import BaseRecogn
@@ -25,7 +26,6 @@ class FasterAvg(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
 
-
     # 获取新进程的结果
     def _get_signal_from_process(self, q):
         while not self.has_done:
@@ -36,8 +36,8 @@ class FasterAvg(BaseRecogn):
                 if not q.empty():
                     data = q.get_nowait()
                     if data:
-                        if self.inst and self.inst.status_text and data['type']=='log':
-                            self.inst.status_text=data['text']
+                        if self.inst and self.inst.status_text and data['type'] == 'log':
+                            self.inst.status_text = data['text']
                         self._signal(text=data['text'], type=data['type'])
             except:
                 pass
@@ -50,8 +50,8 @@ class FasterAvg(BaseRecogn):
                 return
             if config.model_process is not None:
                 import glob
-                if len(glob.glob(config.TEMP_DIR+'/*.lock'))==0:
-                    config.model_process=None
+                if len(glob.glob(config.TEMP_DIR + '/*.lock')) == 0:
+                    config.model_process = None
                     break
                 self._signal(text="等待另外进程退出")
                 time.sleep(1)
@@ -70,7 +70,7 @@ class FasterAvg(BaseRecogn):
                 detect = manager.dict({"langcode": self.detect_language})
 
                 # 创建并启动新进程
-                process = multiprocessing.Process(target=run, args=(raws, err,detect), kwargs={
+                process = multiprocessing.Process(target=run, args=(raws, err, detect), kwargs={
                     "model_name": self.model_name,
                     "is_cuda": self.is_cuda,
                     "detect_language": self.detect_language,
@@ -80,18 +80,18 @@ class FasterAvg(BaseRecogn):
                     "defaulelang": config.defaulelang,
                     "ROOT_DIR": config.ROOT_DIR,
                     "TEMP_DIR": config.TEMP_DIR,
-                    "proxy":tools.set_proxy()
+                    "proxy": tools.set_proxy()
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
-                with open(self.pidfile,'w', encoding='utf-8') as f:
+                with open(self.pidfile, 'w', encoding='utf-8') as f:
                     f.write(f'{process.pid}')
                 # 等待进程执行完毕
                 process.join()
                 if err['msg']:
-                    self.error = 'err[msg]='+str(err['msg'])
-                elif len(list(raws))<1:
-                    self.error = "没有识别到任何说话声" if config.defaulelang=='zh' else "No speech detected"
+                    self.error = 'err[msg]=' + str(err['msg'])
+                elif len(list(raws)) < 1:
+                    self.error = "没有识别到任何说话声" if config.defaulelang == 'zh' else "No speech detected"
                     raise RuntimeError(self.error)
                 self.raws = list(raws)
                 try:
@@ -100,7 +100,7 @@ class FasterAvg(BaseRecogn):
                 except:
                     pass
         except Exception as e:
-            self.error='_avagel'+str(e)
+            self.error = '_avagel' + str(e)
             raise
         finally:
             config.model_process = None

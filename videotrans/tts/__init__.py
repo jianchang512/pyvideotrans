@@ -43,7 +43,8 @@ TTS_NAME_LIST = [
     "Qwen TTS"
 ]
 
-AI302_openai = {"alloy": "alloy", "ash": "ash", "ballad": "ballad", "coral": "coral", "echo": "echo", "fable": "fable",  "onyx": "onyx", "nova": "nova", "sage": "sage", "shimmer": "shimmer", "verse": "verse"}
+AI302_openai = {"alloy": "alloy", "ash": "ash", "ballad": "ballad", "coral": "coral", "echo": "echo", "fable": "fable",
+                "onyx": "onyx", "nova": "nova", "sage": "sage", "shimmer": "shimmer", "verse": "verse"}
 AI302_doubao = {"北京小爷（多情感）": "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
                 "柔美女友（多情感）": "zh_female_roumeinvyou_emo_v2_mars_bigtts",
                 "阳光青年（多情感）": "zh_male_yangguangqingnian_emo_v2_mars_bigtts",
@@ -120,7 +121,7 @@ AI302_minimaxi = {"青涩青年音色": "male-qn-qingse", "精英青年音色": 
                   "甜美女性音色-beta": "female-tianmei-jingpin", "聪明男童": "clever_boy", "可爱男童": "cute_boy",
                   "萌萌女童": "lovely_girl", "卡通猪小琪": "cartoon_pig", "俊朗男友": "junlang_nanyou", "冷淡学长": "lengdan_xiongzhang",
                   "霸道少爷": "badao_shaoye", "甜心小玲": "tianxin_xiaoling", "俏皮萌妹": "qiaopi_mengmei", "嗲嗲学妹": "diadia_xuemei",
-                  "淡雅学姐": "danya_xuejie" }
+                  "淡雅学姐": "danya_xuejie"}
 AI302_dubbingx = {"木金(少女、元气、明亮)": "30149", "毛毛(悦耳、磁性、磨砂感)": "30136",
                   "章涵(洪亮、有力、清晰)": "30135", "可乐先生(感染力，青年，洪亮)": "30134", "大炮(饱满、磁性 、温暖)": "30133",
                   "无辄(年轻，武侠风，温暖)": "30132",
@@ -139,14 +140,14 @@ AI302_dubbingx = {"木金(少女、元气、明亮)": "30149", "毛毛(悦耳、
                   "苏慧娘(聪慧、强势、夫人)": "100459", "陆绮娇(高音,快速,明亮,)": "100458", "李守义(中音，温暖，暗哑，)": "100457",
                   "魏巧琦(中音，热情，明亮，亲)": "100456", "高瑾(高音，洪亮，热情，)": "100455"}
 
-AI302_doubao_ja={"かずね（和音）/Javier or Álvaro": "multi_male_jingqiangkanye_moon_bigtts",
-                "はるこ（晴子）/Esmeralda": "multi_female_shuangkuaisisi_moon_bigtts",
-                "ひろし（広志）/Roberto": "multi_male_wanqudashu_moon_bigtts",
-                "あけみ（朱美）": "multi_female_gaolengyujie_moon_bigtts",
-                "ひかる（光）":"multi_zh_male_youyoujunzi_moon_bigtts",
-                "さとみ（智美）":"multi_female_sophie_conversation_wvae_bigtts",
-                "まさお（正男）":"multi_male_xudong_conversation_wvae_bigtts",
-                "つき（月）":"multi_female_maomao_conversation_wvae_bigtts",}
+AI302_doubao_ja = {"かずね（和音）/Javier or Álvaro": "multi_male_jingqiangkanye_moon_bigtts",
+                   "はるこ（晴子）/Esmeralda": "multi_female_shuangkuaisisi_moon_bigtts",
+                   "ひろし（広志）/Roberto": "multi_male_wanqudashu_moon_bigtts",
+                   "あけみ（朱美）": "multi_female_gaolengyujie_moon_bigtts",
+                   "ひかる（光）": "multi_zh_male_youyoujunzi_moon_bigtts",
+                   "さとみ（智美）": "multi_female_sophie_conversation_wvae_bigtts",
+                   "まさお（正男）": "multi_male_xudong_conversation_wvae_bigtts",
+                   "つき（月）": "multi_female_maomao_conversation_wvae_bigtts", }
 
 
 # 检查当前配音渠道是否支持所选配音语言

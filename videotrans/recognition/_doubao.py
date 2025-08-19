@@ -2,26 +2,21 @@
 import os
 import time
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, ClassVar,Union
+from typing import List, Dict, Union
+
 import requests
 
 from videotrans.configure import config
-from videotrans.configure._except import RetryRaise
-
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
 
-RETRY_NUMS=2
-RETRY_DELAY=10
+RETRY_NUMS = 2
+RETRY_DELAY = 10
 
 
 @dataclass
 class DoubaoRecogn(BaseRecogn):
-
     raws: List = field(init=False, default_factory=list)
-
 
     def __post_init__(self):
         super().__post_init__()
@@ -34,7 +29,6 @@ class DoubaoRecogn(BaseRecogn):
         appid = config.params['doubao_appid']
         access_token = config.params['doubao_access']
 
-
         # 尺寸大于190MB，转为 mp3
         if os.path.getsize(self.audio_file) > 199229440:
             tools.runffmpeg(
@@ -45,7 +39,8 @@ class DoubaoRecogn(BaseRecogn):
 
         self._signal(text=f"识别可能较久，请耐心等待")
 
-        languagelist = {"zh": "zh-CN", "en": "en-US", "ja": "ja-JP", "ko": "ko-KR", "es": "es-MX", "ru": "ru-RU", "fr": "fr-FR"}
+        languagelist = {"zh": "zh-CN", "en": "en-US", "ja": "ja-JP", "ko": "ko-KR", "es": "es-MX", "ru": "ru-RU",
+                        "fr": "fr-FR"}
         langcode = self.detect_language[:2].lower()
         if langcode not in languagelist:
             raise RuntimeError(f'不支持的语言代码:{langcode=}')
@@ -121,5 +116,3 @@ class DoubaoRecogn(BaseRecogn):
             )
             self.raws.append(srt)
         return self.raws
-
-

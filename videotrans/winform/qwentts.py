@@ -1,23 +1,20 @@
-from PySide6 import QtWidgets
-
-from videotrans.configure import config
-from videotrans.util import tools
-# set chatgpt
-from videotrans.util.ListenVoice import ListenVoice
-
-
 def openwin():
+    from PySide6 import QtWidgets
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+    from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         else:
-            tools.show_error( d)
+            tools.show_error(d)
         winobj.test_qwentts.setText('测试' if config.defaulelang == 'zh' else 'Test')
 
     def test():
         key = winobj.qwentts_key.text().strip()
         if not key:
-            tools.show_error("API Key is empty",False)
+            tools.show_error("API Key is empty", False)
             return
 
         model = winobj.qwentts_model.currentText()

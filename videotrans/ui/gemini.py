@@ -23,7 +23,7 @@ class Ui_geminiform(object):
 
         v1 = QtWidgets.QVBoxLayout(geminiform)
 
-        h1=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
         self.label_2 = QtWidgets.QLabel(geminiform)
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
@@ -35,7 +35,7 @@ class Ui_geminiform(object):
         h1.addWidget(self.gemini_key)
         v1.addLayout(h1)
 
-        h2=QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
         self.label_3 = QtWidgets.QLabel(geminiform)
         self.label_3.setObjectName("label_3")
         self.model = QtWidgets.QComboBox(geminiform)
@@ -44,9 +44,6 @@ class Ui_geminiform(object):
         h2.addWidget(self.label_3)
         h2.addWidget(self.model)
         v1.addLayout(h2)
-        
-        
-        
 
         self.label_allmodels = QtWidgets.QLabel(geminiform)
         self.label_allmodels.setObjectName("label_allmodels")
@@ -66,46 +63,37 @@ class Ui_geminiform(object):
         v1.addWidget(self.label_4)
         v1.addWidget(self.gemini_template)
 
-
-        self.label_srt=QtWidgets.QLabel(geminiform)
+        self.label_srt = QtWidgets.QLabel(geminiform)
         self.label_srt.setObjectName("label_srt")
-        
-        hrecogn=QtWidgets.QHBoxLayout()        
+
+        hrecogn = QtWidgets.QHBoxLayout()
         hrecogn.addWidget(self.label_srt)
 
-        
         v1.addLayout(hrecogn)
-        
-        self.gemini_srtprompt=QtWidgets.QPlainTextEdit(geminiform)
-        self.gemini_srtprompt.setObjectName("gemini_srtprompt")
-        
-        
 
+        self.gemini_srtprompt = QtWidgets.QPlainTextEdit(geminiform)
+        self.gemini_srtprompt.setObjectName("gemini_srtprompt")
 
         v1.addWidget(self.gemini_srtprompt)
-        
-        
-        h2ttsmodel=QtWidgets.QHBoxLayout()
+
+        h2ttsmodel = QtWidgets.QHBoxLayout()
         self.label_ttsmodel = QtWidgets.QLabel(geminiform)
         self.label_ttsmodel.setObjectName("label_ttsmodel")
         self.label_ttsmodel.setText('TTS model')
-        
+
         self.ttsmodel = QtWidgets.QComboBox(geminiform)
         self.ttsmodel.setMinimumSize(QtCore.QSize(0, 35))
         self.ttsmodel.setObjectName("ttsmodel")
-        self.ttsmodel.addItems(["gemini-2.5-flash-preview-tts","gemini-2.5-pro-preview-tts"])
+        self.ttsmodel.addItems(["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"])
         h2ttsmodel.addWidget(self.label_ttsmodel)
         h2ttsmodel.addWidget(self.ttsmodel)
         v1.addLayout(h2ttsmodel)
-        
-        
 
-
-        h3=QtWidgets.QHBoxLayout()
+        h3 = QtWidgets.QHBoxLayout()
         self.set_gemini = QtWidgets.QPushButton(geminiform)
         self.set_gemini.setMinimumSize(QtCore.QSize(0, 35))
         self.set_gemini.setObjectName("set_gemini")
-        
+
         self.test = QtWidgets.QPushButton(geminiform)
         self.test.setObjectName("test")
 
@@ -122,8 +110,6 @@ class Ui_geminiform(object):
         h3.addWidget(help_btn)
         v1.addLayout(h3)
 
-
-
         self.retranslateUi(geminiform)
         QtCore.QMetaObject.connectSlotsByName(geminiform)
 
@@ -137,6 +123,7 @@ class Ui_geminiform(object):
         self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
         self.gemini_key.setPlaceholderText("secret key")
         self.label_2.setText("Gemini  Key ")
-        self.label_srt.setText('转录音视频为字幕时的提示词' if config.defaulelang=='zh' else 'Prompt for subtitles when converting audio to video')
+        self.label_srt.setText(
+            '转录音视频为字幕时的提示词' if config.defaulelang == 'zh' else 'Prompt for subtitles when converting audio to video')
         self.label_srt.setStyleSheet("color: #999;")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Select model")

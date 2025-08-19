@@ -1,21 +1,19 @@
-import random
+import logging
 import re
-import time
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Union
+from dataclasses import dataclass
+from typing import List, Union
 from urllib.parse import quote
 
 import requests
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.translator._base import BaseTrans
-from videotrans.util import tools
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
 
-RETRY_NUMS=3
-RETRY_DELAY=5
+RETRY_NUMS = 3
+RETRY_DELAY = 5
+
 
 @dataclass
 class FreeGoogle(BaseTrans):
@@ -26,13 +24,15 @@ class FreeGoogle(BaseTrans):
         if pro:
             self.proxies = {"https": pro, "http": pro}
 
-    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+           after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = quote(data)
-        source_code='auto' if not self.source_code else self.source_code
+        source_code = 'auto' if not self.source_code else self.source_code
         url = f"https://translate.google.com/m?sl={source_code}&tl={self.target_code}&hl={self.target_code}&q={text}"
-        config.logger.info(f'[Google] {self.target_code} 请求数据:{url=}')
+        config.logger.info(f'[Google] {self.target_code=} {self.source_code=}')
         headers = {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
         }
@@ -41,14 +41,12 @@ class FreeGoogle(BaseTrans):
         response.raise_for_status()
         config.logger.info(f'[Google]返回数据:{response.status_code=}')
 
-
-        re_result=re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<',response.text)
-        if not re_result or len(re_result.groups())<1:
+        re_result = re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<', response.text)
+        if not re_result or len(re_result.groups()) < 1:
             raise Exception(f'no result:{re_result=}')
         return self.clean_srt(re_result.group(1)) if self.is_srt and self.aisendsrt else re_result.group(1)
 
-
-    def clean_srt(self,srt):
+    def clean_srt(self, srt):
         # 替换特殊符号
         srt = re.sub(r'&gt;', '>', srt)
         # ：: 换成 :

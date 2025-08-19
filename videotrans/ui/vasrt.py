@@ -3,9 +3,9 @@
 from pathlib import Path
 
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import QMetaObject,Qt, QTime, QTimer, QSize, QEvent
-from PySide6.QtWidgets import QHBoxLayout,QFontDialog,QColorDialog, QTimeEdit
-from PySide6.QtGui import QFont, QColor, QDragEnterEvent, QDropEvent
+from PySide6.QtCore import QMetaObject, Qt
+from PySide6.QtGui import QFont, QColor
+from PySide6.QtWidgets import QHBoxLayout, QFontDialog, QColorDialog
 
 from videotrans.configure import config
 
@@ -111,7 +111,6 @@ class Ui_vasrt(object):
             "视频末尾定格" if config.defaulelang == 'zh' else "Video copy",
         ])
 
-
         self.ysphb_maxlenlabel = QtWidgets.QLabel()
         self.ysphb_maxlenlabel.setText("硬字幕单行字符数")
         self.ysphb_maxlen = QtWidgets.QLineEdit()
@@ -152,8 +151,7 @@ class Ui_vasrt(object):
         self.v3.addLayout(self.h6)
         self.v3.addLayout(self.h7)
 
-
-        label_position=QtWidgets.QLabel()
+        label_position = QtWidgets.QLabel()
         label_position.setText('硬字幕：位置' if config.defaulelang == 'zh' else 'Hard subtitle position')
         self.position = QtWidgets.QComboBox()
         self.position.addItems(list(config.POSTION_ASS_VK.keys()))
@@ -161,33 +159,32 @@ class Ui_vasrt(object):
 
         left_label = QtWidgets.QLabel()
         left_label.setText('左边距' if config.defaulelang == 'zh' else 'Margin Left')
-        self.marginL= QtWidgets.QLineEdit()
+        self.marginL = QtWidgets.QLineEdit()
         self.marginL.setText('10')
         self.marginL.setMinimumWidth(50)
 
         bottom_label = QtWidgets.QLabel()
         bottom_label.setText('垂直边距' if config.defaulelang == 'zh' else 'Margin Vcenter')
-        self.marginV= QtWidgets.QLineEdit()
+        self.marginV = QtWidgets.QLineEdit()
         self.marginV.setText('10')
         self.marginV.setMinimumWidth(50)
 
         right_label = QtWidgets.QLabel()
         right_label.setText('右边距' if config.defaulelang == 'zh' else 'Margin Right')
-        self.marginR= QtWidgets.QLineEdit()
+        self.marginR = QtWidgets.QLineEdit()
         self.marginR.setText('10')
         self.marginR.setMinimumWidth(50)
 
         outline_label = QtWidgets.QLabel()
         outline_label.setText('轮廓大小' if config.defaulelang == 'zh' else 'Outline')
-        self.outline= QtWidgets.QLineEdit()
+        self.outline = QtWidgets.QLineEdit()
         self.outline.setText('1')
         self.outline.setMinimumWidth(50)
         shadow_label = QtWidgets.QLabel()
         shadow_label.setText('阴影大小' if config.defaulelang == 'zh' else 'Shadow')
-        self.shadow= QtWidgets.QLineEdit()
+        self.shadow = QtWidgets.QLineEdit()
         self.shadow.setText('1')
         self.shadow.setMinimumWidth(50)
-
 
         fontsize_label = QtWidgets.QLabel()
         fontsize_label.setText('硬字幕：字体大小' if config.defaulelang == 'zh' else 'Font Size')
@@ -208,7 +205,8 @@ class Ui_vasrt(object):
         self.color_button.clicked.connect(self.choose_color)
         self.color_button.setMinimumWidth(150)
 
-        self.backgroundcolor_button = QtWidgets.QPushButton("背景阴影色" if config.defaulelang == 'zh' else 'Backgroud Colors')
+        self.backgroundcolor_button = QtWidgets.QPushButton(
+            "背景阴影色" if config.defaulelang == 'zh' else 'Backgroud Colors')
         self.backgroundcolor_button.setCursor(Qt.PointingHandCursor)
         self.backgroundcolor_button.setMinimumWidth(150)
         self.backgroundcolor_button.clicked.connect(self.choose_backgroundcolor)
@@ -222,22 +220,18 @@ class Ui_vasrt(object):
             '轮廓描边色，某些播放器下可能不起作用' if config.defaulelang == 'zh' else 'May not work in different players')
         self.bordercolor_button.setMinimumWidth(150)
 
-
-
-
-
         # 初始化字体和颜色
         self.selected_font = QFont('Arial', 16)  # 默认字体
         self.selected_color = QColor('#00FFFFFF')  # 默认颜色
         self.selected_backgroundcolor = QColor('#00000000')  # 默认颜色
         self.selected_bordercolor = QColor('#00000000')  # 默认颜色
-        
-        
+
         self.ysphb_borderstyle = QtWidgets.QCheckBox()
         self.ysphb_borderstyle.setObjectName("ysphb_borderstyle")
         self.ysphb_borderstyle.setChecked(False)
-        self.ysphb_borderstyle.setToolTip('不选中表示有轮廓描边阴影但无背景色块，选中则相反'if config.defaulelang == 'zh' else 'Unchecked means there is an outline stroke shadow but no background color block, and the opposite is true if checked')
-        self.ysphb_borderstyle.setText('背景色块风格' if config.defaulelang == 'zh' else  'Background color area Style')
+        self.ysphb_borderstyle.setToolTip(
+            '不选中表示有轮廓描边阴影但无背景色块，选中则相反' if config.defaulelang == 'zh' else 'Unchecked means there is an outline stroke shadow but no background color block, and the opposite is true if checked')
+        self.ysphb_borderstyle.setText('背景色块风格' if config.defaulelang == 'zh' else 'Background color area Style')
 
         format_layout = QHBoxLayout()
         format_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -301,7 +295,7 @@ class Ui_vasrt(object):
 
         QMetaObject.connectSlotsByName(vasrt)
 
-    def qcolor_to_ass_color(self, color, type='fc'):    
+    def qcolor_to_ass_color(self, color, type='fc'):
         # 获取颜色的 RGB 值
         r = color.red()
         g = color.green()
@@ -312,7 +306,7 @@ class Ui_vasrt(object):
         # 将 RGBA 转换为 ASS 的颜色格式 &HBBGGRR
 
         return f"&H{a:02X}{b:02X}{g:02X}{r:02X}".upper()
-        #return f"&H{b:02X}{g:02X}{r:02X}"
+        # return f"&H{b:02X}{g:02X}{r:02X}"
 
     def choose_font(self):
 
@@ -331,6 +325,7 @@ class Ui_vasrt(object):
         bgcolor = '' if self.selected_backgroundcolor.alpha() == 255 else f'background-color:{bgcolor_name}'
         bdcolor_name = self.selected_bordercolor.name()
         bdcolor = '' if self.selected_bordercolor.alpha() == 255 else f'border:1px solid {bdcolor_name}'
+
         # color_name = self.selected_color.name()
         def blend_colors(selected_color: QColor, bgcolor_name: str) -> str:
             bg_color = QColor(bgcolor_name)
@@ -344,15 +339,13 @@ class Ui_vasrt(object):
             css_alpha = inv_alpha
 
             return f'rgba({r}, {g}, {b}, {css_alpha:.2f})'
+
         # color = f'color:{bgcolor_name}' if self.selected_color.alpha()  == 255 else f'color:{color_name}'
         color_name = blend_colors(self.selected_color, bgcolor_name)
         color = f'color:{color_name}'
         font = self.selected_font
         button_style = f"""font-family:'{font.family()}';font-size:{font.pointSize()}px;font-weight:{700 if font.bold() else 400};font-style:{'italic' if font.italic() else 'normal'};{bgcolor};{color};{bdcolor}"""
         self.font_button.setStyleSheet(button_style)
-
-
-
 
     def choose_color(self):
         color = self.selected_color
@@ -364,7 +357,6 @@ class Ui_vasrt(object):
         if color.isValid():
             self.selected_color = color
             self._setfont()
-
 
     def choose_backgroundcolor(self):
         color = self.selected_backgroundcolor
@@ -379,8 +371,6 @@ class Ui_vasrt(object):
             self.selected_backgroundcolor = color
             self._setfont()
 
-
-
     def choose_bordercolor(self):
 
         color = self.selected_bordercolor
@@ -393,8 +383,6 @@ class Ui_vasrt(object):
         if color.isValid():
             self.selected_bordercolor = color
             self._setfont()
-
-
 
     def remainraw(self, t):
         if Path(t).is_file():

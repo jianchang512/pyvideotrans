@@ -1,21 +1,18 @@
-import json
-import os
-import threading
-import time
-from pathlib import Path
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
-from videotrans.configure import config
-# 使用内置的 open 函数
-from videotrans.util import tools
-
-
 # 水印
 def openwin():
+    import json
+    import os
+    import threading
+    import time
+    from pathlib import Path
+
+    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QFileDialog
+
+    from videotrans.configure import config
+    # 使用内置的 open 函数
+    from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/watermark"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 

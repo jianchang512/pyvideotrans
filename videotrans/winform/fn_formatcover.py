@@ -1,19 +1,17 @@
-import json
-import os
-import shutil
-from pathlib import Path
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
-from videotrans.configure import config
-from videotrans.util import tools
-
-
 # 音视频格式转换
 def openwin():
+    import json
+    import os
+    import shutil
+    from pathlib import Path
+
+    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QFileDialog
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+
     RESULT_DIR = config.HOME_DIR + "/formatcover"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
@@ -86,7 +84,7 @@ def openwin():
     def start():
         winobj.has_done = False
         if len(winobj.videourls) < 1:
-            tools.show_error('必须选择音频视频文件' if config.defaulelang == 'zh' else 'Must select videos or audios ',False)
+            tools.show_error('必须选择音频视频文件' if config.defaulelang == 'zh' else 'Must select videos or audios ', False)
             return
 
         winobj.startbtn.setText(

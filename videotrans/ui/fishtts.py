@@ -21,7 +21,7 @@ class Ui_fishttsform(object):
         fishttsform.setSizePolicy(sizePolicy)
         fishttsform.setMaximumSize(QSize(600, 500))
 
-        v1=QtWidgets.QVBoxLayout(fishttsform)
+        v1 = QtWidgets.QVBoxLayout(fishttsform)
 
         self.label = QLabel(fishttsform)
         self.label.setObjectName("label")
@@ -29,12 +29,10 @@ class Ui_fishttsform(object):
         self.api_url = QLineEdit(fishttsform)
         self.api_url.setObjectName("api_url")
         self.api_url.setMinimumSize(QSize(0, 35))
-        h1=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
         h1.addWidget(self.label)
         h1.addWidget(self.api_url)
         v1.addLayout(h1)
-
-
 
         self.label_4 = QLabel(fishttsform)
         self.label_4.setObjectName("label_4")
@@ -58,7 +56,7 @@ class Ui_fishttsform(object):
         self.tips.setReadOnly(True)
         v1.addWidget(self.tips)
 
-        h2=QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
 
         self.save = QPushButton(fishttsform)
         self.save.setObjectName("save")

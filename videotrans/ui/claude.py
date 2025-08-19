@@ -21,12 +21,11 @@ class Ui_claudeform(object):
         claudeform.setSizePolicy(sizePolicy)
         claudeform.setMaximumSize(QtCore.QSize(600, 600))
 
-        v1=QtWidgets.QVBoxLayout(claudeform)
-        h1=QtWidgets.QHBoxLayout()
-        h2=QtWidgets.QHBoxLayout()
-        h3=QtWidgets.QHBoxLayout()
-        h4=QtWidgets.QHBoxLayout()
-
+        v1 = QtWidgets.QVBoxLayout(claudeform)
+        h1 = QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
+        h3 = QtWidgets.QHBoxLayout()
+        h4 = QtWidgets.QHBoxLayout()
 
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -34,7 +33,6 @@ class Ui_claudeform(object):
         self.label_0.setText(
             'Claude API在此使用' if config.defaulelang == 'zh' else 'Claude API used here')
         v1.addWidget(self.label_0)
-
 
         self.label = QtWidgets.QLabel(claudeform)
         self.label.setMinimumSize(QtCore.QSize(0, 35))
@@ -83,7 +81,6 @@ class Ui_claudeform(object):
         self.template.setObjectName("template")
         v1.addWidget(self.label_4)
         v1.addWidget(self.template)
-
 
         self.set = QtWidgets.QPushButton(claudeform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))

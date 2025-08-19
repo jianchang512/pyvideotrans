@@ -3,20 +3,20 @@ import platform
 import re
 import shutil
 import sys
-import threading
-from pathlib import Path
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional, Dict, List, Any
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer, Qt
+
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
 
+
 @dataclass
 class WinActionSub:
-
     main: Optional[Any] = None
 
     update_btn: Optional[Any] = field(default=None, init=False)
@@ -38,10 +38,10 @@ class WinActionSub:
     queue_mp4: List[str] = field(default_factory=list, init=False)
 
     def show_model_help(self):
-        
-        msg="从 tiny 到 base -> small -> medium -> large-v3 模型，识别效果越来越好，但模型体积越来越大，识别速度越来越慢，需要更多CPU/内存/GPU资源。\n默认使用tiny模型，如果想要更好的效果，请使用更大模型\n\n .en 后缀模型和 distil 开头的模型只用于识别英文发音视频\n"
-        if config.defaulelang!='zh':
-            msg='From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. \n default is to use tiny model, if you want better result, please use bigger model \n\n.en suffix model and model starting with distil is only used to recognize English pronunciation video\n'
+
+        msg = "从 tiny 到 base -> small -> medium -> large-v3 模型，识别效果越来越好，但模型体积越来越大，识别速度越来越慢，需要更多CPU/内存/GPU资源。\n默认使用tiny模型，如果想要更好的效果，请使用更大模型\n\n .en 后缀模型和 distil 开头的模型只用于识别英文发音视频\n"
+        if config.defaulelang != 'zh':
+            msg = 'From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. \n default is to use tiny model, if you want better result, please use bigger model \n\n.en suffix model and model starting with distil is only used to recognize English pronunciation video\n'
 
         # 创建 QMessageBox
         msg_box = QtWidgets.QMessageBox(self.main)
@@ -50,10 +50,11 @@ class WinActionSub:
 
         # 添加 OK 按钮
         ok_button = msg_box.addButton(QtWidgets.QMessageBox.Ok)
-        ok_button.setText("知道了" if config.defaulelang=='zh' else 'OK')
+        ok_button.setText("知道了" if config.defaulelang == 'zh' else 'OK')
 
         # 添加“模型选择教程”按钮
-        tutorial_button = QtWidgets.QPushButton("点击查看模型选择教程" if config.defaulelang=='zh' else "Model Selection Tutorial")
+        tutorial_button = QtWidgets.QPushButton(
+            "点击查看模型选择教程" if config.defaulelang == 'zh' else "Model Selection Tutorial")
         msg_box.addButton(tutorial_button, QtWidgets.QMessageBox.ActionRole)
 
         # 显示消息框
@@ -63,7 +64,7 @@ class WinActionSub:
         if msg_box.clickedButton() == tutorial_button:
             tools.open_url("https://pyvideotrans.com/selectmodel")  # 调用模型选择教程的函数
 
-    def update_tips(self,text):
+    def update_tips(self, text):
         if not self.update_btn:
             self.update_btn = QtWidgets.QPushButton()
             self.update_btn.setStyleSheet('color:#ffff00;border:0')
@@ -71,16 +72,19 @@ class WinActionSub:
             self.update_btn.clicked.connect(lambda: self.open_url('download'))
             self.main.container.addWidget(self.update_btn)
         self.update_btn.setText(text)
+
     # 关于页面
     def about(self):
         if config.INFO_WIN['win']:
             config.INFO_WIN['win'].show()
             return
+
         def open():
             from videotrans.component import InfoForm
             config.INFO_WIN['win'] = InfoForm()
             config.INFO_WIN['win'].show()
-        QTimer.singleShot(50,open)
+
+        QTimer.singleShot(50, open)
 
     # 选中按钮时判断当前cuda是否可用
     def check_cuda(self, state):
@@ -88,20 +92,19 @@ class WinActionSub:
         res = state
         # 选中如果无效，则取消
         if state and not torch.cuda.is_available():
-            tools.show_error(config.transobj['nocuda'],False)
+            tools.show_error(config.transobj['nocuda'], False)
             self.main.enable_cuda.setChecked(False)
             self.main.enable_cuda.setDisabled(True)
             res = False
         self.cfg['cuda'] = res
 
-
-
     # 启用标准模式
     def set_biaozhun(self):
         self.main.action_biaozhun.setChecked(True)
-        self.main.splitter.setSizes([self.main.width-300, 300])
+        self.main.splitter.setSizes([self.main.width - 300, 300])
         self.main.app_mode = 'biaozhun'
-        self.main.show_tips.setText("自定义各项配置，批量进行视频翻译。选择单个视频时，处理过程中可暂停编辑字幕" if config.defaulelang=='zh' else 'Customize each configuration to batch video translation. When selecting a single video, you can pause to edit subtitles during processing.')
+        self.main.show_tips.setText(
+            "自定义各项配置，批量进行视频翻译。选择单个视频时，处理过程中可暂停编辑字幕" if config.defaulelang == 'zh' else 'Customize each configuration to batch video translation. When selecting a single video, you can pause to edit subtitles during processing.')
         self.main.startbtn.setText(config.transobj['kaishichuli'])
         self.main.action_tiquzimu.setChecked(False)
 
@@ -174,7 +177,7 @@ class WinActionSub:
     # 视频提取字幕并翻译，无需配音
     def set_tiquzimu(self):
         self.main.action_tiquzimu.setChecked(True)
-        self.main.splitter.setSizes([self.main.width-300, 300])
+        self.main.splitter.setSizes([self.main.width - 300, 300])
         self.main.app_mode = 'tiqu'
         self.main.show_tips.setText(config.transobj['tiquzimu'])
         self.main.startbtn.setText(config.transobj['kaishitiquhefanyi'])
@@ -245,8 +248,8 @@ class WinActionSub:
 
     def source_language_change(self):
         from videotrans import translator
-        langtext=self.main.source_language.currentText()
-        langcode=translator.get_code(show_text=langtext)
+        langtext = self.main.source_language.currentText()
+        langcode = translator.get_code(show_text=langtext)
 
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
@@ -287,11 +290,10 @@ class WinActionSub:
             shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
             shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
             self.remove_qsettings_data()
-            QtWidgets.QMessageBox.information(self.main, 'Please restart the software' if config.defaulelang != 'zh' else '请重启软件',
-                                    'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动，设置中各项配置信息需重新填写')
+            QtWidgets.QMessageBox.information(self.main,
+                                              'Please restart the software' if config.defaulelang != 'zh' else '请重启软件',
+                                              'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动，设置中各项配置信息需重新填写')
             self.main.close()
-
-
 
     def get_mp4(self):
         if self.main.app_mode == 'tiqu':
@@ -299,7 +301,7 @@ class WinActionSub:
         else:
             allowed_exts = config.VIDEO_EXTS
         format_str = " ".join(['*.' + f for f in allowed_exts])
-        mp4_list=[]
+        mp4_list = []
         if self.main.select_file_type.isChecked():
             """选择文件夹并添加到 selected_files 列表中"""
             folder_path = QtWidgets.QFileDialog.getExistingDirectory(
@@ -314,21 +316,21 @@ class WinActionSub:
                 for file in files:
                     if Path(file).suffix[1:].lower() in allowed_exts:
                         mp4_list.append(os.path.join(root, file).replace(os.sep, '/'))
-            p=Path(folder_path)
+            p = Path(folder_path)
             config.params['last_opendir'] = p.parent.as_posix()
-            self.main.target_dir=config.params['last_opendir']+f'/{p.name}_video_out'
+            self.main.target_dir = config.params['last_opendir'] + f'/{p.name}_video_out'
             self.main.btn_save_dir.setToolTip(self.main.target_dir)
         else:
             fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(self.main,
-                                                     '选择一或多个文件' if config.defaulelang=='zh' else "Select one or more files",
-                                                     config.params['last_opendir'],
-                                                     f'Files({format_str})')
+                                                               '选择一或多个文件' if config.defaulelang == 'zh' else "Select one or more files",
+                                                               config.params['last_opendir'],
+                                                               f'Files({format_str})')
             if len(fnames) < 1:
                 return
             for (i, it) in enumerate(fnames):
                 mp4_list.append(Path(it).as_posix())
             config.params['last_opendir'] = Path(mp4_list[0]).parent.resolve().as_posix()
-            self.main.target_dir=config.params['last_opendir']+f'/_video_out'
+            self.main.target_dir = config.params['last_opendir'] + f'/_video_out'
             self.main.btn_save_dir.setToolTip(self.main.target_dir)
 
         if len(mp4_list) > 0:
@@ -338,9 +340,9 @@ class WinActionSub:
     # 保存目录
     def get_save_dir(self):
         dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, config.transobj['selectsavedir'],
-                                                   config.params['last_opendir'])
+                                                             config.params['last_opendir'])
         dirname = Path(dirname).as_posix()
-        self.main.target_dir=dirname
+        self.main.target_dir = dirname
         self.main.btn_save_dir.setToolTip(self.main.target_dir)
 
     # 设置或删除代理
@@ -350,8 +352,8 @@ class WinActionSub:
             if not config.proxy:
                 # 删除代理
                 tools.set_proxy('del')
-            elif re.match(r'https?://(\d+\.){3}\d+:\d+',config.proxy):
-                config.settings['proxy']=config.proxy
+            elif re.match(r'https?://(\d+\.){3}\d+:\d+', config.proxy):
+                config.settings['proxy'] = config.proxy
         except Exception:
             pass
 
@@ -377,10 +379,10 @@ class WinActionSub:
             if config.proxy:
                 # 设置代理
                 tools.set_proxy(config.proxy)
-                config.settings['proxy']=config.proxy
+                config.settings['proxy'] = config.proxy
             else:
                 # 删除代理
-                config.settings['proxy']=''
+                config.settings['proxy'] = ''
                 tools.set_proxy('del')
         except Exception:
             pass
@@ -389,25 +391,27 @@ class WinActionSub:
     # 核对字幕
     def check_txt(self, txt=''):
         if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?', txt):
-            tools.show_error('字幕格式不正确，请重新导入字幕或删除已导入字幕' if config.defaulelang == 'zh' else 'Subtitle format is not correct, please re-import the subtitle or delete the imported subtitle.',False)
+            tools.show_error(
+                '字幕格式不正确，请重新导入字幕或删除已导入字幕' if config.defaulelang == 'zh' else 'Subtitle format is not correct, please re-import the subtitle or delete the imported subtitle.',
+                False)
             return False
         return True
 
     # 如果选中了cuda，判断是否可用
     def cuda_isok(self):
         if not self.main.enable_cuda.isChecked() or platform.system() == 'Darwin':
-            self.cfg['cuda']=False
+            self.cfg['cuda'] = False
             return True
 
         import torch
         from videotrans import recognition
         if not torch.cuda.is_available():
-            self.cfg['cuda']=False
-            tools.show_error(config.transobj["nocuda"],False)
+            self.cfg['cuda'] = False
+            tools.show_error(config.transobj["nocuda"], False)
             return False
 
         if self.main.recogn_type.currentIndex() == recognition.OPENAI_WHISPER:
-            self.cfg['cuda']=True
+            self.cfg['cuda'] = True
             return True
         allow = True
         try:
@@ -418,19 +422,20 @@ class WinActionSub:
             allow = False
         finally:
             if not allow:
-                self.cfg['cuda']=False
+                self.cfg['cuda'] = False
                 self.main.enable_cuda.setChecked(False)
                 tools.show_error(config.transobj["nocudnn"])
                 return False
-        self.cfg['cuda']=True
+        self.cfg['cuda'] = True
         return True
 
     # 检测各个模式下参数是否设置正确
     def set_mode(self):
-        subtitle_type=self.main.subtitle_type.currentIndex()
-        voice_role=self.main.voice_role.currentText()
-        self.cfg['copysrt_rawvideo']=False
-        if self.main.app_mode == 'tiqu' or (self.main.app_mode.startswith('biaozhun') and subtitle_type < 1 and voice_role in ('No',''," ")):
+        subtitle_type = self.main.subtitle_type.currentIndex()
+        voice_role = self.main.voice_role.currentText()
+        self.cfg['copysrt_rawvideo'] = False
+        if self.main.app_mode == 'tiqu' or (
+                self.main.app_mode.startswith('biaozhun') and subtitle_type < 1 and voice_role in ('No', '', " ")):
             self.main.app_mode = 'tiqu'
             # 提取字幕模式，必须有视频、有原始语言，语音模型
             self.cfg['subtitle_type'] = 0
@@ -438,14 +443,13 @@ class WinActionSub:
             self.cfg['voice_rate'] = '+0%'
             self.cfg['voice_autorate'] = False
             self.cfg['back_audio'] = ''
-            self.cfg['copysrt_rawvideo']=self.main.copysrt_rawvideo.isChecked()
-
+            self.cfg['copysrt_rawvideo'] = self.main.copysrt_rawvideo.isChecked()
 
     # 导入背景声音
     def get_background(self):
         format_str = " ".join(['*.' + f for f in config.AUDIO_EXITS])
         fname, _ = QtWidgets.QFileDialog.getOpenFileName(self.main, 'Background music', config.params['last_opendir'],
-                                               f"Audio files({format_str})")
+                                                         f"Audio files({format_str})")
         if not fname:
             return
         fname = Path(fname).as_posix()
@@ -483,7 +487,7 @@ class WinActionSub:
     # 1=均等分割模式
     def check_split_type(self, index):
         index = self.main.split_type.currentIndex()
-        self.cfg['split_type'] = ['all','avg'][index]
+        self.cfg['split_type'] = ['all', 'avg'][index]
         recogn_type = self.main.recogn_type.currentIndex()
         # 如果是均等分割，则阈值相关隐藏
         if recogn_type > 0:
@@ -501,15 +505,17 @@ class WinActionSub:
         from videotrans import translator
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if not lang:
-            return tools.show_error('请先选择目标语言' if config.defaulelang == 'zh' else 'Please select the target language first',False)
+            return tools.show_error(
+                '请先选择目标语言' if config.defaulelang == 'zh' else 'Please select the target language first', False)
 
         text = config.params.get(f'listen_text_{lang}')
         if not text:
-            return tools.show_error('该角色不支持试听' if config.defaulelang == 'zh' else 'The voice is not support listen',False)
+            return tools.show_error('该角色不支持试听' if config.defaulelang == 'zh' else 'The voice is not support listen',
+                                    False)
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
-            return tools.show_error(config.transobj['mustberole'],False)
-        voice_dir = tempfile.gettempdir()+'/pyvideotrans'
+            return tools.show_error(config.transobj['mustberole'], False)
+        voice_dir = tempfile.gettempdir() + '/pyvideotrans'
         if not Path(voice_dir).exists():
             Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
@@ -537,20 +543,22 @@ class WinActionSub:
             "pitch": pitch,
         }
         if role == 'clone':
-            tools.show_error('原音色克隆不可试听' if config.defaulelang == 'zh' else 'The original sound clone cannot be auditioned',False)
+            tools.show_error(
+                '原音色克隆不可试听' if config.defaulelang == 'zh' else 'The original sound clone cannot be auditioned', False)
             return
+
         def feed(d):
             if d != "ok":
                 tools.show_error(d)
-        wk=ListenVoice(parent=self.main, queue_tts=[obj], language=lang, tts_type=obj['tts_type'])
+
+        wk = ListenVoice(parent=self.main, queue_tts=[obj], language=lang, tts_type=obj['tts_type'])
         wk.uito.connect(feed)
         wk.start()
-
 
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):
         from videotrans import tts
-        tts_type=self.main.tts_type.currentIndex()
+        tts_type = self.main.tts_type.currentIndex()
         voice_role = self.main.voice_role.currentText()
         if role == 'No' or (tts_type == tts.CLONE_VOICE_TTS and voice_role == 'clone'):
             self.main.listen_btn.hide()
@@ -565,9 +573,13 @@ class WinActionSub:
             return True
         for vurl in self.queue_mp4:
             if re.search(r'[:\?\*<>\|\"]', vurl[4:]):
-                return tools.show_error('视频所在路径和视频名字中不可含有  :  * ? < > | "  符号，请修正 ' if config.defaulelang == 'zh' else 'The path and name of the video must not contain the  : * ? < > | "  symbols, please revise. ',False)
+                return tools.show_error(
+                    '视频所在路径和视频名字中不可含有  :  * ? < > | "  符号，请修正 ' if config.defaulelang == 'zh' else 'The path and name of the video must not contain the  : * ? < > | "  symbols, please revise. ',
+                    False)
             if len(vurl) > 255:
-                return tools.show_error(f'视频路径总长度超过255个字符，处理中可能会出错，请改短视频文件名，并移动到浅层目录下url={vurl}' if config.defaulelang == 'zh' else f'The total length of the video path is more than 255 characters, there may be an error in processing, please change the short video file name and move it to a shallow directoryurl={vurl}',False)
+                return tools.show_error(
+                    f'视频路径总长度超过255个字符，处理中可能会出错，请改短视频文件名，并移动到浅层目录下url={vurl}' if config.defaulelang == 'zh' else f'The total length of the video path is more than 255 characters, there may be an error in processing, please change the short video file name and move it to a shallow directoryurl={vurl}',
+                    False)
         return True
 
     # 如果存在音频则设为提取
@@ -594,16 +606,18 @@ class WinActionSub:
                 if len(it) > 1:
                     msg += ",".join(it)
             if msg:
-                tools.show_error(f'不可含有名字相同但后缀不同的文件，会导致混淆，请修改 {msg} ' if config.defaulelang == 'zh' else f'Do not include files with the same name but different extensions, this can lead to confusion, please modify {msg} ',False)
+                tools.show_error(
+                    f'不可含有名字相同但后缀不同的文件，会导致混淆，请修改 {msg} ' if config.defaulelang == 'zh' else f'Do not include files with the same name but different extensions, this can lead to confusion, please modify {msg} ',
+                    False)
                 return False
         return True
-
 
     def clear_target_subtitle(self):
         """安全地清除布局中的所有项目，保留布局本身。"""
         if self.removing_layout or not self.scroll_area or not self.scroll_area_after or not self.scroll_area_search:
             return
-        self.removing_layout=True
+        self.removing_layout = True
+
         def clear_and_delete_scroll_area(scroll_area):
             if scroll_area is None:
                 return
@@ -627,16 +641,17 @@ class WinActionSub:
                 elif item.layout():
                     delete_layout_and_children(item.layout())
                 del item
+
         try:
             clear_and_delete_scroll_area(self.scroll_area)
             delete_layout_and_children(self.scroll_area_after)
             delete_layout_and_children(self.scroll_area_search)
         except Exception as e:
             print(e)
-        self.scroll_area=None
-        self.scroll_area_after=None
-        self.scroll_area_search=None
-        self.removing_layout=False
+        self.scroll_area = None
+        self.scroll_area_after = None
+        self.scroll_area_search = None
+        self.removing_layout = False
 
     def get_target_subtitle(self):
         srts = self.extract_subtitle_data_from_area(self.main.target_subtitle_area)
@@ -687,10 +702,12 @@ class WinActionSub:
                         data.append(f'{num}\n{line_time_text}\n{line_edit_text}')
                         num += 1
         return data
-    
+
     def replace_text(self, s_text='', t_text=''):
         if not s_text:
-            return tools.show_error("必须输入要被替换的原始文字" if config.defaulelang=='zh' else 'The original text to be replaced must be entered',False)
+            return tools.show_error(
+                "必须输入要被替换的原始文字" if config.defaulelang == 'zh' else 'The original text to be replaced must be entered',
+                False)
 
         top_layout = self.scroll_area.widget().layout()
         if top_layout is None:
@@ -719,8 +736,6 @@ class WinActionSub:
                     new_text = line_edit_text.replace(s_text, t_text)
                     widget.setPlainText(new_text)
 
-
-
     def show_target_edit(self, srt_str):
         def get_checked_boxes(widget):
             checked_boxes = []
@@ -738,7 +753,8 @@ class WinActionSub:
             default_role = self.cfg.get('voice_role', 'No')
 
             if len(checked_checkbox_names) < 1:
-                return tools.show_error("至少要选择一条字幕" if config.defaulelang=='zh' else 'Choose at least one subtitle',False)
+                return tools.show_error("至少要选择一条字幕" if config.defaulelang == 'zh' else 'Choose at least one subtitle',
+                                        False)
 
             for n in checked_checkbox_names:
                 _, line = n.split('_')
@@ -747,8 +763,6 @@ class WinActionSub:
                 ck.setText(default_role if role in ['No', 'no', '-'] else role)
                 ck.setChecked(False)
                 config.line_roles[line] = default_role if role in ['No', 'no', '-'] else role
-
-
 
         box = QtWidgets.QWidget()
         box.setObjectName('box_name')
@@ -792,43 +806,40 @@ class WinActionSub:
         select_role.addItems(self.main.current_rolelist)
         select_role.setFixedHeight(35)
 
-        apply_role_btn=QtWidgets.QPushButton()
+        apply_role_btn = QtWidgets.QPushButton()
         apply_role_btn.setMinimumSize(80, 30)
-        apply_role_btn.setText('应用' if config.defaulelang=='zh' else 'Apply')
+        apply_role_btn.setText('应用' if config.defaulelang == 'zh' else 'Apply')
         apply_role_btn.clicked.connect(save)
-        
-        if self.cfg.get('voice_role', '-') in ['-', 'No','clone']:
+
+        if self.cfg.get('voice_role', '-') in ['-', 'No', 'clone']:
             select_role.setDisabled(True)
             apply_role_btn.setDisabled(True)
         label_role = QtWidgets.QLabel()
         label_role.setText('设置角色' if config.defaulelang == 'zh' else 'Select Role')
-        
-        
-        source_text=QtWidgets.QLineEdit()
-        source_text.setPlaceholderText('原文字' if config.defaulelang=='zh' else 'Original text')
+
+        source_text = QtWidgets.QLineEdit()
+        source_text.setPlaceholderText('原文字' if config.defaulelang == 'zh' else 'Original text')
         source_text.setMaximumWidth(200)
-        
-        tips_text=QtWidgets.QLabel()
-        tips_text.setText('替换为' if config.defaulelang=='zh' else 'Replace')
-        
-        target_text=QtWidgets.QLineEdit()
-        target_text.setPlaceholderText('目标文字' if config.defaulelang=='zh' else 'Original text')
+
+        tips_text = QtWidgets.QLabel()
+        tips_text.setText('替换为' if config.defaulelang == 'zh' else 'Replace')
+
+        target_text = QtWidgets.QLineEdit()
+        target_text.setPlaceholderText('目标文字' if config.defaulelang == 'zh' else 'Original text')
         target_text.setMaximumWidth(200)
-        
-        replace_btn=QtWidgets.QPushButton()
+
+        replace_btn = QtWidgets.QPushButton()
         replace_btn.setMinimumSize(80, 30)
-        replace_btn.setText('替换' if config.defaulelang=='zh' else 'Replace')
-        replace_btn.clicked.connect(lambda:self.replace_text(source_text.text(),target_text.text()))
-        
+        replace_btn.setText('替换' if config.defaulelang == 'zh' else 'Replace')
+        replace_btn.clicked.connect(lambda: self.replace_text(source_text.text(), target_text.text()))
+
         self.scroll_area_search = QtWidgets.QHBoxLayout()
         self.scroll_area_search.addWidget(source_text)  # Give more space to LineEdits
         self.scroll_area_search.addWidget(tips_text)
         self.scroll_area_search.addWidget(target_text)  # Give more space to LineEdits
-        self.scroll_area_search.addWidget(replace_btn) # Align to right and less space to button
+        self.scroll_area_search.addWidget(replace_btn)  # Align to right and less space to button
         self.scroll_area_search.addStretch()
 
-        
-        
         self.scroll_area_after = QtWidgets.QHBoxLayout()
         self.scroll_area_after.addWidget(label_role)
         self.scroll_area_after.addWidget(select_role)

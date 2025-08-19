@@ -63,7 +63,7 @@ class Ui_videoandsrt(object):
         self.h7.setObjectName("h7")
 
         self.maxlenlabel = QtWidgets.QLabel()
-        self.maxlenlabel.setText("硬字幕单行字符数" if config.defaulelang=='zh' else 'Hard Subtitle Line Characters')
+        self.maxlenlabel.setText("硬字幕单行字符数" if config.defaulelang == 'zh' else 'Hard Subtitle Line Characters')
         self.maxlen = QtWidgets.QLineEdit()
         self.maxlen.setText('30')
 

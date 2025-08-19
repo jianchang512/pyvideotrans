@@ -5,7 +5,6 @@ import tempfile
 import time
 from pathlib import Path
 
-
 import zhconv
 from faster_whisper import WhisperModel
 from pydub import AudioSegment

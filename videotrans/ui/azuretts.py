@@ -21,7 +21,6 @@ class Ui_azurettsform(object):
         azurettsform.setSizePolicy(sizePolicy)
         azurettsform.setMaximumSize(QtCore.QSize(400, 250))
 
-
         self.verticalLayout = QtWidgets.QVBoxLayout(azurettsform)
         self.verticalLayout.setObjectName("verticalLayout")
 
@@ -169,8 +168,6 @@ class Ui_azurettsform(object):
         hv.addWidget(help_btn)
 
         self.verticalLayout.addLayout(hv)
-
-
 
         self.retranslateUi(azurettsform)
         QtCore.QMetaObject.connectSlotsByName(azurettsform)

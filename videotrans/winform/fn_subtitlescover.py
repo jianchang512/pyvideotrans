@@ -1,20 +1,17 @@
-import json
-import os
-import shutil
-import time
-from pathlib import Path
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
-from videotrans.configure import config
-from videotrans.util import tools
-
-
 # 音视频格式转换
 def openwin():
+    import json
+    import os
+    import shutil
+    import time
+    from pathlib import Path
+
+    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QFileDialog
+
+    from videotrans.configure import config
+    from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/subtitlescover"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
@@ -39,20 +36,20 @@ def openwin():
                         continue
                     if self.target_format == 'txt':
                         if raw_path.name.lower().endswith('.srt'):
-                            srt_list=tools.get_subtitle_from_srt(v,is_file=True)
+                            srt_list = tools.get_subtitle_from_srt(v, is_file=True)
                         else:
-                            tmp_srt=config.TEMP_HOME+f'/{time.time()}.srt'
+                            tmp_srt = config.TEMP_HOME + f'/{time.time()}.srt'
                             tools.runffmpeg([
                                 "-y",
                                 "-i",
                                 os.path.normpath(v),
                                 tmp_srt
                             ])
-                            srt_list=tools.get_subtitle_from_srt(tmp_srt,is_file=True)
-                        txt_list=[]
+                            srt_list = tools.get_subtitle_from_srt(tmp_srt, is_file=True)
+                        txt_list = []
                         for srt in srt_list:
                             txt_list.append(srt['text'])
-                        with open(RESULT_DIR + f"/{Path(v).stem}.{self.target_format}",'w',encoding='utf-8') as f:
+                        with open(RESULT_DIR + f"/{Path(v).stem}.{self.target_format}", 'w', encoding='utf-8') as f:
                             f.write("\n".join(txt_list))
                         continue
                     tools.runffmpeg([
@@ -102,7 +99,7 @@ def openwin():
 
     def start():
         if len(winobj.subtitlefiles) < 1:
-            tools.show_error('必须选择字幕文件' if config.defaulelang == 'zh' else 'Must select subtitles ',False)
+            tools.show_error('必须选择字幕文件' if config.defaulelang == 'zh' else 'Must select subtitles ', False)
             return
         winobj.has_done = False
 

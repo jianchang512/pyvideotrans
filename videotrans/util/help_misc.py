@@ -1,11 +1,10 @@
 import hashlib
 import os
 import platform
-import re
-import shutil
 import subprocess
 import time
 from pathlib import Path
+
 
 def show_popup(title, text, parent=None):
     from PySide6.QtGui import QIcon
@@ -25,11 +24,10 @@ def show_popup(title, text, parent=None):
     return x
 
 
-
-def show_error(tb_str,report=True):
+def show_error(tb_str, report=True):
     """槽函数 显示对话框。"""
     from PySide6 import QtWidgets
-    from PySide6.QtGui import QIcon,QDesktopServices
+    from PySide6.QtGui import QIcon, QDesktopServices
     from PySide6.QtCore import QUrl
     from videotrans.configure import config
 
@@ -44,14 +42,15 @@ def show_error(tb_str,report=True):
     msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
     msg_box.setWindowTitle(config.transobj.get('anerror', 'Error'))
     msg_box.setText(tb_str[:300])
-    if len(tb_str)>300:
+    if len(tb_str) > 300:
         msg_box.setDetailedText(tb_str)
-    
+
     # 添加一个标准的“OK”按钮
     ok_button = msg_box.addButton(QtWidgets.QMessageBox.StandardButton.Ok)
     # 添加自定义的“报告错误”按钮
     if report:
-        report_button = msg_box.addButton("报告错误" if config.defaulelang=='zh' else "Report Error", QtWidgets.QMessageBox.ButtonRole.ActionRole)
+        report_button = msg_box.addButton("报告错误" if config.defaulelang == 'zh' else "Report Error",
+                                          QtWidgets.QMessageBox.ButtonRole.ActionRole)
     msg_box.setDefaultButton(ok_button)
     msg_box.setStyleSheet("""
             QMessageBox {
@@ -66,7 +65,7 @@ def show_error(tb_str,report=True):
         clicked_button = msg_box.clickedButton()
         if clicked_button == report_button:
             import urllib.parse
-            import os,platform,sys
+            import os, platform, sys
             from videotrans import VERSION
             # 对全部错误信息进行URL编码
             encoded_content = urllib.parse.quote(f"{tb_str}\n====="
@@ -75,7 +74,7 @@ def show_error(tb_str,report=True):
                                                  f"\nfrozen:{getattr(sys, 'frozen', False)}"
                                                  f"\nlanguage:{config.defaulelang}")
             full_url = f"https://bbs.pyvideotrans.com/?type=post&content={encoded_content}"
-            
+
             # 调用系统默认浏览器打开链接
             QDesktopServices.openUrl(QUrl(full_url))
 
@@ -105,6 +104,7 @@ def open_url(url=None, title: str = None):
     if title and title in title_url_dict:
         return webbrowser.open_new_tab(title_url_dict[title])
 
+
 def vail_file(file=None):
     if not file:
         return False
@@ -114,6 +114,7 @@ def vail_file(file=None):
     if p.stat().st_size == 0:
         return False
     return True
+
 
 def hide_show_element(wrap_layout, show_status):
     def hide_recursive(layout, show_status):
@@ -128,6 +129,7 @@ def hide_show_element(wrap_layout, show_status):
                 hide_recursive(item.layout(), show_status)
 
     hide_recursive(wrap_layout, show_status)
+
 
 def shutdown_system():
     # 获取当前操作系统类型
@@ -145,6 +147,7 @@ def shutdown_system():
     else:
         print(f"Unsupported system: {system}")
 
+
 # 获取 prompt提示词
 def get_prompt(ainame, is_srt=True):
     from videotrans.configure import config
@@ -159,6 +162,7 @@ def get_prompt(ainame, is_srt=True):
         content = content.replace('<INPUT></INPUT>', f"""{glossary_prompt}{glossary}\n\n<INPUT></INPUT>""")
     return content
 
+
 # 获取当前需要操作的prompt txt文件
 def get_prompt_file(ainame, is_srt=True):
     from videotrans.configure import config
@@ -168,16 +172,18 @@ def get_prompt_file(ainame, is_srt=True):
         prompt_path += 'prompts/srt/'
     return f'{prompt_path}{prompt_name}'
 
+
 def check_local_api(api):
     from videotrans.configure import config
     if not api:
-        show_error('必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address',False)
+        show_error('必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address', False)
         return False
     if api.find('0.0.0.0:') > -1:
         show_error(
-            '请将 0.0.0.0 改为 127.0.0.1 ' if config.defaulelang == 'zh' else 'Please change 0.0.0.0 to 127.0.0.1. ',False)
+            '请将 0.0.0.0 改为 127.0.0.1 ' if config.defaulelang == 'zh' else 'Please change 0.0.0.0 to 127.0.0.1. ', False)
         return False
     return True
+
 
 def show_glossary_editor(parent):
     from PySide6.QtWidgets import (QVBoxLayout, QTextEdit, QDialog,
@@ -230,6 +236,7 @@ def show_glossary_editor(parent):
     dialog.setWindowModality(Qt.WindowModality.ApplicationModal)  # 设置模态窗口
     dialog.exec()  # 显示模态窗口
 
+
 # 判断 novoice.mp4是否创建好
 def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
     # 预先创建好的
@@ -268,14 +275,15 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
             continue
         return True
 
+
 # 将字符串做 md5 hash处理
 def get_md5(input_string: str):
     md5 = hashlib.md5()
     md5.update(input_string.encode('utf-8'))
     return md5.hexdigest()
 
+
 def pygameaudio(filepath):
     from .playmp3 import AudioPlayer
     player = AudioPlayer(filepath)
     player.start()
-

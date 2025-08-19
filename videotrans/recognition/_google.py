@@ -1,34 +1,35 @@
 import json
+import logging
 import re
-from datetime import timedelta
-from pathlib import Path
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, ClassVar,Union
+from pathlib import Path
+from typing import List, Dict, Union
+
 import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
 
-RETRY_NUMS=2
-RETRY_DELAY=10
+RETRY_NUMS = 2
+RETRY_DELAY = 10
 
 
 @dataclass
 class GoogleRecogn(BaseRecogn):
     raws: List = field(init=False, default_factory=list)
 
-
     def __post_init__(self):
         super().__post_init__()
         self._set_proxy(type='set')
 
-    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+           after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
@@ -49,7 +50,6 @@ class GoogleRecogn(BaseRecogn):
         total_length = len(nonsilent_data)
         recognizer = sr.Recognizer()
 
-
         for i, duration in enumerate(nonsilent_data):
             if self._exit():
                 return
@@ -60,7 +60,6 @@ class GoogleRecogn(BaseRecogn):
             chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
             audio_chunk = normalized_sound[start_time:end_time]
             audio_chunk.export(chunk_filename, format="wav")
-
 
             with sr.AudioFile(chunk_filename) as source:
                 audio_data = recognizer.record(source)
@@ -81,10 +80,10 @@ class GoogleRecogn(BaseRecogn):
                 "line": len(self.raws) + 1,
                 "time": f"{start} --> {end}",
                 "text": text,
-                "start_time":start_time,
-                "end_time":end_time,
-                "startraw":start,
-                "endraw":end
+                "start_time": start_time,
+                "end_time": end_time,
+                "startraw": start,
+                "endraw": end
             }
             self.raws.append(srt_line)
             if self.inst and self.inst.precent < 55:
@@ -92,7 +91,8 @@ class GoogleRecogn(BaseRecogn):
             self._signal(text=f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
             self._signal(text=f"{srt_line['text']}\n", type='subtitle')
         return self.raws
-    def match_target_amplitude(self,sound, target_dBFS):
+
+    def match_target_amplitude(self, sound, target_dBFS):
         change_in_dBFS = target_dBFS - sound.dBFS
         return sound.apply_gain(change_in_dBFS)
 

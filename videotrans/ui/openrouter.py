@@ -21,12 +21,10 @@ class Ui_openrouterform(object):
         openrouterform.setSizePolicy(sizePolicy)
         openrouterform.setMaximumSize(QtCore.QSize(600, 600))
 
-        v1=QtWidgets.QVBoxLayout(openrouterform)
-        h2=QtWidgets.QHBoxLayout()
+        v1 = QtWidgets.QVBoxLayout(openrouterform)
+        h2 = QtWidgets.QHBoxLayout()
 
-        
-        h4=QtWidgets.QHBoxLayout()
-
+        h4 = QtWidgets.QHBoxLayout()
 
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -34,7 +32,6 @@ class Ui_openrouterform(object):
         self.label_0.setText(
             'openrouter 在此填写api key')
         v1.addWidget(self.label_0)
-
 
         self.label_2 = QtWidgets.QLabel(openrouterform)
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
@@ -46,11 +43,11 @@ class Ui_openrouterform(object):
         h2.addWidget(self.label_2)
         h2.addWidget(self.openrouter_key)
         v1.addLayout(h2)
-        
-        h_model=QtWidgets.QHBoxLayout()
+
+        h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
-        self.label_selectmodel.setText("选择使用模型" if config.defaulelang == 'zh' else  "Select model")
+        self.label_selectmodel.setText("选择使用模型" if config.defaulelang == 'zh' else "Select model")
         self.openrouter_model = QtWidgets.QComboBox()
         self.openrouter_model.setMinimumSize(QtCore.QSize(0, 35))
         self.openrouter_model.setObjectName("openrouter_model")
@@ -68,10 +65,6 @@ class Ui_openrouterform(object):
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-
-
-
-
         self.label_4 = QtWidgets.QLabel(openrouterform)
         self.label_4.setObjectName("label_4")
 
@@ -80,11 +73,10 @@ class Ui_openrouterform(object):
         v1.addWidget(self.label_4)
         v1.addWidget(self.template)
 
-
         self.set = QtWidgets.QPushButton(openrouterform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
-        
+
         self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
@@ -112,6 +104,5 @@ class Ui_openrouterform(object):
         self.template.setPlaceholderText("prompt")
         self.label_4.setText(
             "{lang}代表目标语言名称，不要删除。")
-        self.set.setText('保存' )
+        self.set.setText('保存')
         self.openrouter_key.setPlaceholderText("在此填写openrouter的 API Key")
-

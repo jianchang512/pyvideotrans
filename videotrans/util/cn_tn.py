@@ -12,9 +12,11 @@
 #   - python 3.X
 # notes: python 2.X WILL fail or produce misleading results
 
-import sys, os, argparse
-import string, re
+import argparse
 import csv
+import re
+import string
+import sys
 
 # ================================================================================ #
 #                                    basic constant
@@ -42,9 +44,9 @@ POINT = [u'点', u'點']
 FILLER_CHARS = ['呃', '啊']
 
 ER_WHITELIST = '(儿女|儿子|儿孙|女儿|儿媳|妻儿|' \
-             '胎儿|婴儿|新生儿|婴幼儿|幼儿|少儿|小儿|儿歌|儿童|儿科|托儿所|孤儿|' \
-             '儿戏|儿化|台儿庄|鹿儿岛|正儿八经|吊儿郎当|生儿育女|托儿带女|养儿防老|痴儿呆女|' \
-             '佳儿佳妇|儿怜兽扰|儿无常父|儿不嫌母丑|儿行千里母担忧|儿大不由爷|苏乞儿)'
+               '胎儿|婴儿|新生儿|婴幼儿|幼儿|少儿|小儿|儿歌|儿童|儿科|托儿所|孤儿|' \
+               '儿戏|儿化|台儿庄|鹿儿岛|正儿八经|吊儿郎当|生儿育女|托儿带女|养儿防老|痴儿呆女|' \
+               '佳儿佳妇|儿怜兽扰|儿无常父|儿不嫌母丑|儿行千里母担忧|儿大不由爷|苏乞儿)'
 ER_WHITELIST_PATTERN = re.compile(ER_WHITELIST)
 
 # 中文数字系统类型
@@ -60,7 +62,6 @@ COM_QUANTIFIERS = '(匹|张|座|回|场|尾|条|个|首|阙|阵|网|炮|顶|丘|
                   '盒|杯|钟|斛|锅|簋|篮|盘|桶|罐|瓶|壶|卮|盏|箩|箱|煲|啖|袋|钵|年|月|日|季|刻|时|周|天|秒|分|旬|' \
                   '纪|岁|世|更|夜|春|夏|秋|冬|代|伏|辈|丸|泡|粒|颗|幢|堆|条|根|支|道|面|片|张|颗|块)'
 
-
 # Punctuation information are based on Zhon project (https://github.com/tsroten/zhon.git)
 CN_PUNCS_STOP = '！？｡。'
 CN_PUNCS_NONSTOP = '＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃《》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘’‛“”„‟…‧﹏·〈〉-'
@@ -74,8 +75,7 @@ chars_to_exclude = ',.，。？?!！'
 for char in chars_to_exclude:
     PUNCS = PUNCS.replace(char, '')
 
-PUNCS_TRANSFORM = str.maketrans(PUNCS, ' ' * len(PUNCS), '') # replace puncs with space
-
+PUNCS_TRANSFORM = str.maketrans(PUNCS, ' ' * len(PUNCS), '')  # replace puncs with space
 
 # https://zh.wikipedia.org/wiki/全行和半行
 QJ2BJ = {
@@ -176,7 +176,6 @@ QJ2BJ = {
     '～': '~',
 }
 QJ2BJ_TRANSFORM = str.maketrans(''.join(QJ2BJ.keys()), ''.join(QJ2BJ.values()), '')
-
 
 # 2013 China National Standard: https://zh.wikipedia.org/wiki/通用规范汉字表, raw resources:
 #   https://github.com/mozillazg/pinyin-data/blob/master/kMandarin_8105.txt with 8105 chinese chars in total
@@ -388,13 +387,14 @@ CN_CHARS_COMMON = (
 CN_CHARS_EXT = '吶诶屌囧飚屄'
 
 CN_CHARS = CN_CHARS_COMMON + CN_CHARS_EXT
-IN_CH_CHARS = { c : True for c in CN_CHARS }
+IN_CH_CHARS = {c: True for c in CN_CHARS}
 
 EN_CHARS = string.ascii_letters + string.digits
-IN_EN_CHARS = { c : True for c in EN_CHARS }
+IN_EN_CHARS = {c: True for c in EN_CHARS}
 
 VALID_CHARS = CN_CHARS + EN_CHARS + ' '
-IN_VALID_CHARS = { c : True for c in VALID_CHARS }
+IN_VALID_CHARS = {c: True for c in VALID_CHARS}
+
 
 # ================================================================================ #
 #                                    basic class
@@ -410,7 +410,7 @@ class ChineseChar(object):
     def __init__(self, simplified, traditional):
         self.simplified = simplified
         self.traditional = traditional
-        #self.__repr__ = self.__str__
+        # self.__repr__ = self.__str__
 
     def __str__(self):
         return self.simplified or self.traditional or None
@@ -565,7 +565,7 @@ def create_system(numbering_type=NUMBERING_TYPES[1]):
     positive_cn = CM(POSITIVE[0], POSITIVE[1], '+', lambda x: x)
     negative_cn = CM(NEGATIVE[0], NEGATIVE[1], '-', lambda x: -x)
     point_cn = CM(POINT[0], POINT[1], '.', lambda x,
-                  y: float(str(x) + '.' + str(y)))
+                                                  y: float(str(x) + '.' + str(y)))
     # sil_cn = CM(SIL[0], SIL[1], '-', lambda x, y: float(str(x) + '-' + str(y)))
     system = NumberSystem()
     system.units = smaller_units + larger_units
@@ -576,7 +576,6 @@ def create_system(numbering_type=NUMBERING_TYPES[1]):
 
 
 def chn2num(chinese_string, numbering_type=NUMBERING_TYPES[1]):
-
     def get_symbol(char, system):
         for u in system.units:
             if char in [u.traditional, u.simplified, u.big_s, u.big_t]:
@@ -665,7 +664,6 @@ def chn2num(chinese_string, numbering_type=NUMBERING_TYPES[1]):
 def num2chn(number_string, numbering_type=NUMBERING_TYPES[1], big=False,
             traditional=False, alt_zero=False, alt_one=False, alt_two=True,
             use_zeros=True, use_units=True):
-
     def get_value(value_string, use_zeros=True):
 
         striped_string = value_string.lstrip('0')
@@ -777,6 +775,7 @@ class Cardinal:
 
     def cardinal2chntext(self):
         return num2chn(self.cardinal)
+
 
 class Digit:
     """
@@ -950,7 +949,7 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"\D+((([089]\d|(19|20)\d{2})年)?(\d{1,2}月(\d{1,2}[日号])?)?)")
     matchers = pattern.findall(text)
     if matchers:
-        #print('date')
+        # print('date')
         for matcher in matchers:
             text = text.replace(matcher[0], Date(date=matcher[0]).date2chntext(), 1)
 
@@ -958,7 +957,7 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"\D+((\d+(\.\d+)?)[多余几]?" + CURRENCY_UNITS + r"(\d" + CURRENCY_UNITS + r"?)?)")
     matchers = pattern.findall(text)
     if matchers:
-        #print('money')
+        # print('money')
         for matcher in matchers:
             text = text.replace(matcher[0], Money(money=matcher[0]).money2chntext(), 1)
 
@@ -971,7 +970,7 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"\D((\+?86 ?)?1([38]\d|5[0-35-9]|7[678]|9[89])\d{8})\D")
     matchers = pattern.findall(text)
     if matchers:
-        #print('telephone')
+        # print('telephone')
         for matcher in matchers:
             text = text.replace(matcher[0], TelePhone(telephone=matcher[0]).telephone2chntext(), 1)
     # 固话
@@ -986,7 +985,7 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"(\d+/\d+)")
     matchers = pattern.findall(text)
     if matchers:
-        #print('fraction')
+        # print('fraction')
         for matcher in matchers:
             text = text.replace(matcher, Fraction(fraction=matcher).fraction2chntext(), 1)
 
@@ -995,7 +994,7 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"(\d+(\.\d+)?%)")
     matchers = pattern.findall(text)
     if matchers:
-        #print('percentage')
+        # print('percentage')
         for matcher in matchers:
             text = text.replace(matcher[0], Percentage(percentage=matcher[0]).percentage2chntext(), 1)
 
@@ -1003,7 +1002,7 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"(\d+(\.\d+)?)[多余几]?" + COM_QUANTIFIERS)
     matchers = pattern.findall(text)
     if matchers:
-        #print('cardinal+quantifier')
+        # print('cardinal+quantifier')
         for matcher in matchers:
             text = text.replace(matcher[0], Cardinal(cardinal=matcher[0]).cardinal2chntext(), 1)
 
@@ -1011,7 +1010,7 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"(\d{4,32})")
     matchers = pattern.findall(text)
     if matchers:
-        #print('digit')
+        # print('digit')
         for matcher in matchers:
             text = text.replace(matcher, Digit(digit=matcher).digit2chntext(), 1)
 
@@ -1019,10 +1018,9 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"(\d+(\.\d+)?)")
     matchers = pattern.findall(text)
     if matchers:
-        #print('cardinal')
+        # print('cardinal')
         for matcher in matchers:
             text = text.replace(matcher[0], Cardinal(cardinal=matcher[0]).cardinal2chntext(), 1)
-
 
     # restore P2P, O2O, B2C, B2B etc
     pattern = re.compile(r"(([a-zA-Z]+)二([a-zA-Z]+))")
@@ -1030,7 +1028,7 @@ def normalize_nsw(raw_text):
     if matchers:
         # print('particular')
         for matcher in matchers:
-            text = text.replace(matcher[0], matcher[1]+'2'+matcher[2], 1)
+            text = text.replace(matcher[0], matcher[1] + '2' + matcher[2], 1)
 
     return text.lstrip('^').rstrip('$')
 
@@ -1041,9 +1039,9 @@ def remove_erhua(text):
     他女儿在那边儿 -> 他女儿在那边
     """
 
-    new_str=''
-    while re.search('儿',text):
-        a = re.search('儿',text).span()
+    new_str = ''
+    while re.search('儿', text):
+        a = re.search('儿', text).span()
         remove_er_flag = 0
 
         if ER_WHITELIST_PATTERN.search(text):
@@ -1051,7 +1049,7 @@ def remove_erhua(text):
             if b[0] <= a[0]:
                 remove_er_flag = 1
 
-        if remove_er_flag == 0 :
+        if remove_er_flag == 0:
             new_str = new_str + text[0:a[0]]
             text = text[a[1]:]
         else:
@@ -1065,9 +1063,9 @@ def remove_erhua(text):
 def remove_space(text):
     tokens = text.split()
     new = []
-    for k,t in enumerate(tokens):
+    for k, t in enumerate(tokens):
         if k != 0:
-            if IN_EN_CHARS.get(tokens[k-1][-1]) and IN_EN_CHARS.get(t[0]):
+            if IN_EN_CHARS.get(tokens[k - 1][-1]) and IN_EN_CHARS.get(t[0]):
                 new.append(' ')
         new.append(t)
     return ''.join(new)
@@ -1075,15 +1073,15 @@ def remove_space(text):
 
 class TextNorm:
     def __init__(self,
-        to_banjiao:bool = False,
-        to_upper:bool = False,
-        to_lower:bool = False,
-        remove_fillers:bool = False,
-        remove_erhua:bool = False,
-        check_chars:bool = False,
-        remove_space:bool = False,
-        cc_mode:str = '',
-    ) :
+                 to_banjiao: bool = False,
+                 to_upper: bool = False,
+                 to_lower: bool = False,
+                 remove_fillers: bool = False,
+                 remove_erhua: bool = False,
+                 check_chars: bool = False,
+                 remove_space: bool = False,
+                 cc_mode: str = '',
+                 ):
         self.to_banjiao = to_banjiao
         self.to_upper = to_upper
         self.to_lower = to_lower
@@ -1142,9 +1140,10 @@ if __name__ == '__main__':
     p.add_argument('--to_lower', action='store_true', help='convert to lower case')
     p.add_argument('--remove_fillers', action='store_true', help='remove filler chars such as "呃, 啊"')
     p.add_argument('--remove_erhua', action='store_true', help='remove erhua chars such as "他女儿在那边儿 -> 他女儿在那边"')
-    p.add_argument('--check_chars', action='store_true' , help='skip sentences containing illegal chars')
-    p.add_argument('--remove_space', action='store_true' , help='remove whitespace')
-    p.add_argument('--cc_mode', choices=['', 't2s', 's2t'], default='', help='convert between traditional to simplified')
+    p.add_argument('--check_chars', action='store_true', help='skip sentences containing illegal chars')
+    p.add_argument('--remove_space', action='store_true', help='remove whitespace')
+    p.add_argument('--cc_mode', choices=['', 't2s', 's2t'], default='',
+                   help='convert between traditional to simplified')
 
     # I/O options
     p.add_argument('--log_interval', type=int, default=10000, help='log interval in number of processed lines')
@@ -1159,21 +1158,21 @@ if __name__ == '__main__':
         args.format = 'ark'
 
     normalizer = TextNorm(
-        to_banjiao = args.to_banjiao,
-        to_upper = args.to_upper,
-        to_lower = args.to_lower,
-        remove_fillers = args.remove_fillers,
-        remove_erhua = args.remove_erhua,
-        check_chars = args.check_chars,
-        remove_space = args.remove_space,
-        cc_mode = args.cc_mode,
+        to_banjiao=args.to_banjiao,
+        to_upper=args.to_upper,
+        to_lower=args.to_lower,
+        remove_fillers=args.remove_fillers,
+        remove_erhua=args.remove_erhua,
+        check_chars=args.check_chars,
+        remove_space=args.remove_space,
+        cc_mode=args.cc_mode,
     )
 
     ndone = 0
-    with open(args.ifile, 'r', encoding = 'utf8') as istream, open(args.ofile, 'w+', encoding = 'utf8') as ostream:
+    with open(args.ifile, 'r', encoding='utf8') as istream, open(args.ofile, 'w+', encoding='utf8') as ostream:
         if args.format == 'tsv':
-            reader = csv.DictReader(istream, delimiter = '\t')
-            assert('TEXT' in reader.fieldnames)
+            reader = csv.DictReader(istream, delimiter='\t')
+            assert ('TEXT' in reader.fieldnames)
             print('\t'.join(reader.fieldnames), file=ostream)
 
             for item in reader:
@@ -1184,15 +1183,15 @@ if __name__ == '__main__':
 
                 if text:
                     item['TEXT'] = text
-                    print('\t'.join([ item[f] for f in reader.fieldnames ]), file = ostream)
+                    print('\t'.join([item[f] for f in reader.fieldnames]), file=ostream)
 
                 ndone += 1
                 if ndone % args.log_interval == 0:
-                    print(f'text norm: {ndone} lines done.', file = sys.stderr, flush = True)
+                    print(f'text norm: {ndone} lines done.', file=sys.stderr, flush=True)
         else:
             for l in istream:
                 key, text = '', ''
-                if args.format == 'ark': # KALDI archive, line format: "key text"
+                if args.format == 'ark':  # KALDI archive, line format: "key text"
                     cols = l.strip().split(maxsplit=1)
                     key, text = cols[0], cols[1] if len(cols) == 2 else ''
                 else:
@@ -1203,12 +1202,11 @@ if __name__ == '__main__':
 
                 if text:
                     if args.format == 'ark':
-                        print(key + '\t' + text, file = ostream)
+                        print(key + '\t' + text, file=ostream)
                     else:
-                        print(text, file = ostream)
+                        print(text, file=ostream)
 
                 ndone += 1
                 if ndone % args.log_interval == 0:
-                    print(f'text norm: {ndone} lines done.', file = sys.stderr, flush = True)
-    print(f'text norm: {ndone} lines done in total.', file = sys.stderr, flush = True)
-
+                    print(f'text norm: {ndone} lines done.', file=sys.stderr, flush=True)
+    print(f'text norm: {ndone} lines done in total.', file=sys.stderr, flush=True)

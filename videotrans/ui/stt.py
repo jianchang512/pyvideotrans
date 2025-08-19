@@ -3,7 +3,6 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPlainTextEdit
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -86,8 +85,6 @@ class Ui_sttform(object):
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.stt_model)
         self.verticalLayout.addLayout(self.formLayout_3)
 
-
-
         self.set = QtWidgets.QPushButton(sttform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
@@ -104,10 +101,8 @@ class Ui_sttform(object):
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/stt'))
 
-
         self.layout_btn = QtWidgets.QHBoxLayout()
         self.layout_btn.setObjectName("layout_btn")
-
 
         self.layout_btn.addWidget(self.set)
         self.layout_btn.addWidget(self.test)

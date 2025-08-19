@@ -6,7 +6,6 @@ from PySide6.QtGui import Qt
 
 from videotrans.configure import config
 from videotrans.configure.config import box_lang
-from videotrans.recognition import RECOGN_NAME_LIST
 
 
 class Ui_recogn(object):
@@ -18,7 +17,6 @@ class Ui_recogn(object):
 
         self.centralwidget = QtWidgets.QWidget(recogn)
         self.centralwidget.setObjectName("centralwidget")
-
 
         self.shibie_out_path = None
 
@@ -36,13 +34,11 @@ class Ui_recogn(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
 
-
         self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
         self.shibie_language = QtWidgets.QComboBox()
         self.shibie_language.setMinimumSize(QtCore.QSize(100, 30))
         self.shibie_language.setObjectName("shibie_language")
-
 
         self.is_cuda = QtWidgets.QCheckBox()
         self.is_cuda.setObjectName("is_cuda")
@@ -50,7 +46,6 @@ class Ui_recogn(object):
         # 如果是 MAc系统则隐藏
         if platform.system() == 'Darwin':
             self.is_cuda.setVisible(False)
-
 
         self.shibie_label = QtWidgets.QPushButton()
         self.shibie_label.setText("语音识别\u2193")
@@ -62,19 +57,17 @@ class Ui_recogn(object):
         self.shibie_recogn_type.setMinimumSize(QtCore.QSize(150, 30))
         self.shibie_recogn_type.setObjectName("shibie_recogn_type")
 
-
-
-        label_model=QtWidgets.QLabel()
-        label_model.setText('选择模型' if config.defaulelang=='zh' else 'Select model')
+        label_model = QtWidgets.QLabel()
+        label_model.setText('选择模型' if config.defaulelang == 'zh' else 'Select model')
 
         self.shibie_model = QtWidgets.QComboBox()
         self.shibie_model.setMinimumSize(QtCore.QSize(100, 30))
         self.shibie_model.setObjectName("shibie_model")
-        
+
         self.show_spk = QtWidgets.QCheckBox()
         self.show_spk.setObjectName('show_spk')
         self.show_spk.setText("识别说话人?" if config.defaulelang == 'zh' else 'Speaker classification?')
-        self.show_spk.setChecked(config.params.get('paraformer_spk',False))
+        self.show_spk.setChecked(config.params.get('paraformer_spk', False))
         self.show_spk.setVisible(False)
 
         self.shibie_split_type = QtWidgets.QComboBox()
@@ -84,25 +77,25 @@ class Ui_recogn(object):
         )
         self.shibie_split_type.setToolTip(config.transobj['fenge_tips'])
 
+        split_label = QtWidgets.QLabel()
+        split_label.setText('分割模式' if config.defaulelang == 'zh' else 'Split mode')
 
-        split_label=QtWidgets.QLabel()
-        split_label.setText('分割模式' if config.defaulelang=='zh' else 'Split mode')
-
-        self.equal_split_time= QtWidgets.QLineEdit()
-        self.equal_split_time.setToolTip('每段分割时长/单位秒' if config.defaulelang=='zh' else 'Duration of each segment/second')
-        self.equal_split_time.setText(str(config.settings.get('interval_split',10)))
-        self.equal_split_time_label= QtWidgets.QLabel()
-        self.equal_split_time_label.setText('秒' if config.defaulelang=='zh' else 'Sec')
+        self.equal_split_time = QtWidgets.QLineEdit()
+        self.equal_split_time.setToolTip(
+            '每段分割时长/单位秒' if config.defaulelang == 'zh' else 'Duration of each segment/second')
+        self.equal_split_time.setText(str(config.settings.get('interval_split', 10)))
+        self.equal_split_time_label = QtWidgets.QLabel()
+        self.equal_split_time_label.setText('秒' if config.defaulelang == 'zh' else 'Sec')
         self.equal_split_time.setVisible(False)
         self.equal_split_time_label.setVisible(False)
 
-        self.equal_split_layout= QtWidgets.QHBoxLayout()
+        self.equal_split_layout = QtWidgets.QHBoxLayout()
         self.equal_split_layout.addWidget(self.equal_split_time)
         self.equal_split_layout.addWidget(self.equal_split_time_label)
 
-        lable_out=QtWidgets.QLabel()
-        lable_out.setText('输出字幕格式' if config.defaulelang=='zh' else 'Subtitle format:')
-        self.out_format=QtWidgets.QComboBox()
+        lable_out = QtWidgets.QLabel()
+        lable_out.setText('输出字幕格式' if config.defaulelang == 'zh' else 'Subtitle format:')
+        self.out_format = QtWidgets.QComboBox()
         self.out_format.setMinimumSize(QtCore.QSize(100, 35))
         self.out_format.addItems([
             "srt",
@@ -110,8 +103,6 @@ class Ui_recogn(object):
             "vtt",
             "txt"
         ])
-
-
 
         self.shibie_startbtn = QtWidgets.QPushButton()
         self.shibie_startbtn.setMinimumSize(QtCore.QSize(200, 35))
@@ -121,7 +112,7 @@ class Ui_recogn(object):
         self.shibie_stop = QtWidgets.QPushButton()
         self.shibie_stop.setFixedWidth(80)
         self.shibie_stop.setDisabled(True)
-        self.shibie_stop.setText("停止" if config.defaulelang=='zh' else 'Stop')
+        self.shibie_stop.setText("停止" if config.defaulelang == 'zh' else 'Stop')
         self.shibie_stop.setCursor(Qt.PointingHandCursor)
 
         self.horizontalLayout.addStretch()
@@ -140,7 +131,7 @@ class Ui_recogn(object):
         self.horizontalLayout.addWidget(self.out_format)
         self.horizontalLayout.addStretch()
 
-        h4= QtWidgets.QHBoxLayout()
+        h4 = QtWidgets.QHBoxLayout()
 
         self.label_cjklinenums = QtWidgets.QLabel()
         self.label_cjklinenums.setObjectName("label_cjklinenums")
@@ -152,7 +143,8 @@ class Ui_recogn(object):
         self.cjklinenums.setMinimumWidth(90)
         self.cjklinenums.setMaximum(100)
         self.cjklinenums.setObjectName("cjklinenums")
-        self.cjklinenums.setToolTip("中日韩字幕单行字符数" if config.defaulelang=='zh' else 'Chinese/Japanese/Korean line length')
+        self.cjklinenums.setToolTip(
+            "中日韩字幕单行字符数" if config.defaulelang == 'zh' else 'Chinese/Japanese/Korean line length')
         self.cjklinenums.setValue(int(config.settings.get('cjk_len', 20)))
 
         self.label_othlinenums = QtWidgets.QLabel()
@@ -160,30 +152,31 @@ class Ui_recogn(object):
         self.label_othlinenums.setText(
             '其他语言' if config.defaulelang == 'zh' else 'Other line length')
 
-
         self.othlinenums = QtWidgets.QSpinBox()
-        self.othlinenums.setToolTip("其他语言字幕单行字符数" if config.defaulelang=='zh' else 'Other language line length')
+        self.othlinenums.setToolTip("其他语言字幕单行字符数" if config.defaulelang == 'zh' else 'Other language line length')
         self.othlinenums.setMinimum(5)
         self.othlinenums.setMaximum(100)
         self.othlinenums.setMinimumWidth(90)
         self.othlinenums.setObjectName("othlinenums")
         self.othlinenums.setValue(int(config.settings.get('other_len', 60)))
 
-        self.rephrase=QtWidgets.QCheckBox()
-        self.rephrase.setText('LLM重新断句' if config.defaulelang=='zh' else 'LLM Rephrase')
-        self.rephrase.setToolTip('选择faster/openai-whisper/Deepgram/parakeet渠道时将使用大模型重新断句，若失败将使用原始分段\n使用OpenAI渠道作为断句AI\n确保模型支持json结构化输出' if config.defaulelang=='zh' else 'Valid when selecting the fast/openai-whisper/Deepprogram/parakeet\nOpenAI for LLM re-segment')
+        self.rephrase = QtWidgets.QCheckBox()
+        self.rephrase.setText('LLM重新断句' if config.defaulelang == 'zh' else 'LLM Rephrase')
+        self.rephrase.setToolTip(
+            '选择faster/openai-whisper/Deepgram/parakeet渠道时将使用大模型重新断句，若失败将使用原始分段\n使用OpenAI渠道作为断句AI\n确保模型支持json结构化输出' if config.defaulelang == 'zh' else 'Valid when selecting the fast/openai-whisper/Deepprogram/parakeet\nOpenAI for LLM re-segment')
 
-        self.remove_noise=QtWidgets.QCheckBox()
-        self.remove_noise.setText('降噪' if config.defaulelang=='zh' else 'Noise reduction')
-        self.remove_noise.setToolTip('若选中将从modelscope.cn下载模型做音频降噪处理，比较耗时' if config.defaulelang=='zh' else 'Select to perform noise reduction processing from modelscope.cn, which takes a long time')
+        self.remove_noise = QtWidgets.QCheckBox()
+        self.remove_noise.setText('降噪' if config.defaulelang == 'zh' else 'Noise reduction')
+        self.remove_noise.setToolTip(
+            '若选中将从modelscope.cn下载模型做音频降噪处理，比较耗时' if config.defaulelang == 'zh' else 'Select to perform noise reduction processing from modelscope.cn, which takes a long time')
 
-        self.copysrt_rawvideo=QtWidgets.QCheckBox()
+        self.copysrt_rawvideo = QtWidgets.QCheckBox()
         self.copysrt_rawvideo.setMinimumSize(QtCore.QSize(0, 30))
         self.copysrt_rawvideo.setObjectName("copysrt_rawvideo")
 
-        self.copysrt_rawvideo.setText('字幕输出原位置' if config.defaulelang=='zh' else 'Moving subtitle')
-        self.copysrt_rawvideo.setToolTip('选中则字幕将保存到原音视频位置，并重命名为原音视频同名' if config.defaulelang=='zh' else 'If selected, the subtitles will be saved to the original audio and video location and renamed to the same name as the original audio and video')
-
+        self.copysrt_rawvideo.setText('字幕输出原位置' if config.defaulelang == 'zh' else 'Moving subtitle')
+        self.copysrt_rawvideo.setToolTip(
+            '选中则字幕将保存到原音视频位置，并重命名为原音视频同名' if config.defaulelang == 'zh' else 'If selected, the subtitles will be saved to the original audio and video location and renamed to the same name as the original audio and video')
 
         h4.addStretch()
         h4.addWidget(self.shibie_startbtn)
@@ -200,7 +193,6 @@ class Ui_recogn(object):
         h4.addStretch()
 
         self.verticalLayout_3.addLayout(self.horizontalLayout)
-
 
         # 语音调整行
         # 语音识别高级行
@@ -233,7 +225,6 @@ class Ui_recogn(object):
         self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
         self.hfaster_layout.addWidget(self.min_speech_duration_ms)
         self.hfaster_layout.addStretch()
-
 
         self.min_silence_duration_ms_label = QtWidgets.QLabel()
         self.min_silence_duration_ms_label.setText(
@@ -275,11 +266,8 @@ class Ui_recogn(object):
         self.hfaster_layout.addWidget(self.speech_pad_ms_label)
         self.hfaster_layout.addWidget(self.speech_pad_ms)
 
-
-
         self.verticalLayout_3.addLayout(self.hfaster_layout)
         self.verticalLayout_3.addLayout(h4)
-
 
         self.loglabel = QtWidgets.QPushButton()
         self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
@@ -294,8 +282,6 @@ class Ui_recogn(object):
         self.shibie_text.setObjectName("shibie_text")
         self.shibie_text.setReadOnly(True)
         self.verticalLayout_3.addWidget(self.shibie_text)
-
-
 
         self.shibie_opendir = QtWidgets.QPushButton()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)

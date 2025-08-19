@@ -1,13 +1,11 @@
-import json
-
-from PySide6 import QtWidgets
-
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.ListenVoice import ListenVoice
-
-
 def openwin():
+    import json
+
+    from PySide6 import QtWidgets
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+    from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")

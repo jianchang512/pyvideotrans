@@ -21,10 +21,9 @@ class Ui_doubaoform(object):
         doubaoform.setSizePolicy(sizePolicy)
         doubaoform.setMaximumSize(QtCore.QSize(600, 500))
 
-        v1=QtWidgets.QVBoxLayout(doubaoform)
+        v1 = QtWidgets.QVBoxLayout(doubaoform)
 
-
-        h1=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
         # line2
         self.label_2 = QtWidgets.QLabel(doubaoform)
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
@@ -36,7 +35,7 @@ class Ui_doubaoform(object):
         h1.addWidget(self.label_2)
         h1.addWidget(self.doubao_appid)
         # line3
-        h2=QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
         self.label_3 = QtWidgets.QLabel(doubaoform)
         self.label_3.setObjectName("label_3")
         self.doubao_access = QtWidgets.QLineEdit(doubaoform)
@@ -45,7 +44,7 @@ class Ui_doubaoform(object):
         h2.addWidget(self.label_3)
         h2.addWidget(self.doubao_access)
 
-        h3=QtWidgets.QHBoxLayout()
+        h3 = QtWidgets.QHBoxLayout()
         self.set_save = QtWidgets.QPushButton(doubaoform)
         self.set_save.setMinimumSize(QtCore.QSize(0, 35))
         self.set_save.setObjectName("set_save")
@@ -66,7 +65,6 @@ class Ui_doubaoform(object):
         v1.addLayout(h2)
         v1.addLayout(h3)
 
-
         self.retranslateUi(doubaoform)
         QtCore.QMetaObject.connectSlotsByName(doubaoform)
 
@@ -75,6 +73,6 @@ class Ui_doubaoform(object):
         self.label_3.setText('Access Token')
 
         self.set_save.setText('保存')
-        self.test.setText('测试' if config.defaulelang=='zh' else 'Test')
+        self.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
         self.doubao_appid.setPlaceholderText("填写应用的APP ID")
         self.label_2.setText("APP ID")

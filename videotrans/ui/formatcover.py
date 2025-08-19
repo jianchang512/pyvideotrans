@@ -21,8 +21,7 @@ class Ui_formatcover(object):
         sizePolicy.setHeightForWidth(formatcover.sizePolicy().hasHeightForWidth())
         formatcover.setSizePolicy(sizePolicy)
 
-
-        v1=QtWidgets.QVBoxLayout(formatcover)
+        v1 = QtWidgets.QVBoxLayout(formatcover)
 
         self.formLayout_2 = QtWidgets.QHBoxLayout()
         self.formLayout_2.setObjectName("formLayout_2")
@@ -47,7 +46,6 @@ class Ui_formatcover(object):
         self.formLayout_3 = QtWidgets.QHBoxLayout()
         self.formLayout_3.setAlignment(QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
-
 
         self.labelformat = QtWidgets.QLabel(formatcover)
         self.labelformat.setMinimumSize(QtCore.QSize(0, 35))

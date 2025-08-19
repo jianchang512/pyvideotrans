@@ -1,11 +1,9 @@
-import json
-from pathlib import Path
-
-from videotrans.configure import config
-from videotrans.util import tools
-
-
 def openwin():
+    import json
+    from pathlib import Path
+
+    from videotrans.configure import config
+    from videotrans.util import tools
     def save():
         key = winobj.azure_key.text()
         api = winobj.azure_api.text()

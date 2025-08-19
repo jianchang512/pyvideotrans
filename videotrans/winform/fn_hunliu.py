@@ -1,17 +1,14 @@
-import json
-import os
-from pathlib import Path
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
-from videotrans.configure import config
-from videotrans.util import tools
-
-
 def openwin():
+    import json
+    import os
+    from pathlib import Path
+
+    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QFileDialog
+
+    from videotrans.configure import config
+    from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/hunliu"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
@@ -81,7 +78,7 @@ def openwin():
         audio1 = winobj.hun_file1.text()
         audio2 = winobj.hun_file2.text()
         if not audio1 or not audio2:
-            tools.show_error('必须选择音频1和音频2' if config.defaulelang == 'zh' else '必须选择视频',False)
+            tools.show_error('必须选择音频1和音频2' if config.defaulelang == 'zh' else '必须选择视频', False)
             return
 
         winobj.hun_startbtn.setText(

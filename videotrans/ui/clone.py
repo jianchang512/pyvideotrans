@@ -3,7 +3,6 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -21,7 +20,6 @@ class Ui_cloneform(object):
         sizePolicy.setHeightForWidth(clone.sizePolicy().hasHeightForWidth())
         clone.setSizePolicy(sizePolicy)
         clone.setMaximumSize(QtCore.QSize(500, 300))
-
 
         self.verticalLayout = QtWidgets.QVBoxLayout(clone)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -52,7 +50,6 @@ class Ui_cloneform(object):
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.clone_address)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-
         self.set_clone = QtWidgets.QPushButton(clone)
         self.set_clone.setMinimumSize(QtCore.QSize(0, 35))
         self.set_clone.setObjectName("set_clone")
@@ -76,8 +73,6 @@ class Ui_cloneform(object):
         self.layout_btn.addWidget(help_btn)
 
         self.verticalLayout.addLayout(self.layout_btn)
-
-
 
         self.retranslateUi(clone)
         QtCore.QMetaObject.connectSlotsByName(clone)

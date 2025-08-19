@@ -65,7 +65,8 @@ Documents: pvt9.com"""
         self.link.clicked.connect(lambda: tools.open_url('https://pvt9.com/about.html'))
 
         label = QtWidgets.QLabel(infoform)
-        label.setText("你可以扫描下方二维码捐助或者点击上方按钮打开网页扫码捐助 " if config.defaulelang == 'zh' else "You can scan the QR code or click the above button to donate via the web ")
+        label.setText(
+            "你可以扫描下方二维码捐助或者点击上方按钮打开网页扫码捐助 " if config.defaulelang == 'zh' else "You can scan the QR code or click the above button to donate via the web ")
         h2 = QtWidgets.QHBoxLayout()
         h2.addWidget(self.link)
         h2.addStretch()
@@ -87,8 +88,10 @@ Documents: pvt9.com"""
             wxpaystask = DownloadImg(parent=self,
                                      urls={"name": "wxpay", "link": "https://pvtr2.pyvideotrans.com/images/wxpay.jpg"})
             alipaytask = DownloadImg(parent=self,
-                                     urls={"name": "alipay", "link": "https://pvtr2.pyvideotrans.com/images/alipay.png"})
-            mptask = DownloadImg(parent=self, urls={"name": "mp", "link": "https://pvtr2.pyvideotrans.com/images/mp.jpg"})
+                                     urls={"name": "alipay",
+                                           "link": "https://pvtr2.pyvideotrans.com/images/alipay.png"})
+            mptask = DownloadImg(parent=self,
+                                 urls={"name": "mp", "link": "https://pvtr2.pyvideotrans.com/images/mp.jpg"})
             wxpaystask.finished.connect(lambda: self.showimg("wxpay"))
             wxpaystask.start()
             alipaytask.finished.connect(lambda: self.showimg("alipay"))

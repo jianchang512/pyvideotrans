@@ -5,7 +5,6 @@ from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QFileDialog, QPushButton, QPlainTextEdit
 
 from videotrans.configure import config
-from videotrans.configure.config import transobj
 
 
 class DropButton(QPushButton):
@@ -18,7 +17,7 @@ class DropButton(QPushButton):
 
     def get_file(self):
         format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])
-        fnames, _ = QFileDialog.getOpenFileNames(self, transobj['xuanzeyinpinwenjian'],
+        fnames, _ = QFileDialog.getOpenFileNames(self, config.transobj['xuanzeyinpinwenjian'],
                                                  config.params['last_opendir'],
                                                  filter=f"Video/Audio files({format_str})")
         namestr = []
@@ -26,7 +25,7 @@ class DropButton(QPushButton):
             fnames[i] = it.replace('\\', '/')
             namestr.append(os.path.basename(it))
         self.filelist = fnames
-        self.setText(f'{len(self.filelist)} files \n'+"\n".join(namestr))
+        self.setText(f'{len(self.filelist)} files \n' + "\n".join(namestr))
 
     def dragEnterEvent(self, event):
         files = event.mimeData().text().strip().lower()

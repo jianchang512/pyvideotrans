@@ -3,7 +3,6 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -21,7 +20,6 @@ class Ui_parakeetform(object):
         sizePolicy.setHeightForWidth(parakeet.sizePolicy().hasHeightForWidth())
         parakeet.setSizePolicy(sizePolicy)
         parakeet.setMaximumSize(QtCore.QSize(500, 300))
-
 
         self.verticalLayout = QtWidgets.QVBoxLayout(parakeet)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -52,7 +50,6 @@ class Ui_parakeetform(object):
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.parakeet_address)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-
         self.set_btn = QtWidgets.QPushButton(parakeet)
         self.set_btn.setMinimumSize(QtCore.QSize(0, 35))
         self.set_btn.setObjectName("set_btn")
@@ -76,8 +73,6 @@ class Ui_parakeetform(object):
         self.layout_btn.addWidget(help_btn)
 
         self.verticalLayout.addLayout(self.layout_btn)
-
-
 
         self.retranslateUi(parakeet)
         QtCore.QMetaObject.connectSlotsByName(parakeet)

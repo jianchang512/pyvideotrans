@@ -1,13 +1,11 @@
-from pathlib import Path
-
-from PySide6 import QtWidgets
-
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.ListenVoice import ListenVoice
-
-
 def openwin():
+    from pathlib import Path
+
+    from PySide6 import QtWidgets
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+    from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
         if d == "ok":
             tools.set_process(text='chatterbox', type="refreshtts")
@@ -46,7 +44,9 @@ def openwin():
         for it in tmp.split("\n"):
             s = it.strip()
             if not Path(config.ROOT_DIR + f"/chatterbox/{s}").exists():
-                tools.show_error(f"请确保 chatterbox 文件夹内存在音频文件 {s}" if config.defaulelang == 'zh' else f'Please make sure that the audio file {s} exists in the chatterbox folder',False)
+                tools.show_error(
+                    f"请确保 chatterbox 文件夹内存在音频文件 {s}" if config.defaulelang == 'zh' else f'Please make sure that the audio file {s} exists in the chatterbox folder',
+                    False)
                 return
 
             role = s

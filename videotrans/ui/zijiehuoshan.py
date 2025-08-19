@@ -20,12 +20,11 @@ class Ui_zijiehuoshanform(object):
         zijiehuoshanform.setSizePolicy(sizePolicy)
         zijiehuoshanform.setMaximumSize(QtCore.QSize(600, 570))
 
-        v1=QtWidgets.QVBoxLayout(zijiehuoshanform)
-        h1=QtWidgets.QHBoxLayout()
-        h2=QtWidgets.QHBoxLayout()
-        h3=QtWidgets.QHBoxLayout()
-        h4=QtWidgets.QHBoxLayout()
-
+        v1 = QtWidgets.QVBoxLayout(zijiehuoshanform)
+        h1 = QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
+        h3 = QtWidgets.QHBoxLayout()
+        h4 = QtWidgets.QHBoxLayout()
 
         self.label_2 = QtWidgets.QLabel(zijiehuoshanform)
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
@@ -67,7 +66,6 @@ class Ui_zijiehuoshanform(object):
         self.zijiehuoshan_template.setGeometry(QtCore.QRect(10, 310, 571, 151))
         self.zijiehuoshan_template.setObjectName("zijiehuoshan_template")
         v1.addWidget(self.zijiehuoshan_template)
-
 
         self.set_zijiehuoshan = QtWidgets.QPushButton(zijiehuoshanform)
         self.set_zijiehuoshan.setMinimumSize(QtCore.QSize(0, 35))

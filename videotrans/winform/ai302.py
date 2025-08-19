@@ -1,16 +1,15 @@
-import json
-import webbrowser
-from pathlib import Path
-
-from PySide6 import QtWidgets
-
-from videotrans import translator
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.TestSrtTrans import TestSrtTrans
-
-
 def openwin():
+    import json
+    import webbrowser
+    from pathlib import Path
+
+    from PySide6 import QtWidgets
+
+    from videotrans import translator
+    from videotrans.configure import config
+    from videotrans.util import tools
+
+    from videotrans.util.TestSrtTrans import TestSrtTrans
     def feed(d):
         if not d.startswith("ok"):
             tools.show_error(d)

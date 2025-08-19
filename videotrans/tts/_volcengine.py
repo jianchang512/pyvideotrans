@@ -1,18 +1,18 @@
 import base64
 import datetime
 import json
+import logging
 import time
+from dataclasses import dataclass, field
+from typing import Dict, Optional, ClassVar
 
 import requests
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-from dataclasses import dataclass, field
-from typing import Dict, Optional, ClassVar
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -49,14 +49,14 @@ class VolcEngineTTS(BaseTTS):
         super().__post_init__()
         self.dub_nums = 1
 
-
-
     def _exec(self):
         # 并发限制为1，防止限流
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+               after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -118,9 +118,9 @@ class VolcEngineTTS(BaseTTS):
             resp_json = resp.json()
             if "data" in resp_json:
                 data = resp_json["data"]
-                with open(data_item['filename']+".mp3", "wb") as f:
+                with open(data_item['filename'] + ".mp3", "wb") as f:
                     f.write(base64.b64decode(data))
-                self.convert_to_wav(data_item['filename']+".mp3", data_item['filename'])
+                self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
             if 'code' in resp_json:

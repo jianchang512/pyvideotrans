@@ -1,12 +1,11 @@
-from PySide6 import QtWidgets
-
-from videotrans import translator
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.TestSrtTrans import TestSrtTrans
-
-
 def openwin():
+    from PySide6 import QtWidgets
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+
+    from videotrans.util.TestSrtTrans import TestSrtTrans
+    from videotrans import translator
     def feed(d):
         if not d.startswith("ok"):
             tools.show_error(d)

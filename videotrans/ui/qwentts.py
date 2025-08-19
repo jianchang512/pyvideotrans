@@ -21,11 +21,9 @@ class Ui_qwenttsform(object):
         qwenttsform.setSizePolicy(sizePolicy)
         qwenttsform.setMaximumSize(QtCore.QSize(600, 600))
 
-        v1=QtWidgets.QVBoxLayout(qwenttsform)
+        v1 = QtWidgets.QVBoxLayout(qwenttsform)
 
-
-
-        h2=QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
         self.label_2 = QtWidgets.QLabel(qwenttsform)
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
@@ -37,7 +35,7 @@ class Ui_qwenttsform(object):
         h2.addWidget(self.qwentts_key)
         v1.addLayout(h2)
 
-        h3=QtWidgets.QHBoxLayout()
+        h3 = QtWidgets.QHBoxLayout()
         self.label_3 = QtWidgets.QLabel(qwenttsform)
         self.label_3.setObjectName("label_3")
         self.qwentts_model = QtWidgets.QComboBox(qwenttsform)
@@ -46,20 +44,16 @@ class Ui_qwenttsform(object):
         h3.addWidget(self.label_3)
         h3.addWidget(self.qwentts_model)
 
-
-
         v1.addLayout(h3)
 
-
-        
-        v1.addWidget(QtWidgets.QLabel('角色列表(Dylan:北京男/Jada:吴语女/Sunny:四川女)' if config.defaulelang == 'zh' else 'Role list'))
+        v1.addWidget(
+            QtWidgets.QLabel('角色列表(Dylan:北京男/Jada:吴语女/Sunny:四川女)' if config.defaulelang == 'zh' else 'Role list'))
         self.edit_roles = QtWidgets.QPlainTextEdit(qwenttsform)
         self.edit_roles.setMinimumHeight(40)
         self.edit_roles.setObjectName("edit_roles")
         v1.addWidget(self.edit_roles)
 
-
-        h4=QtWidgets.QHBoxLayout()
+        h4 = QtWidgets.QHBoxLayout()
 
         self.set_qwentts = QtWidgets.QPushButton(qwenttsform)
         self.set_qwentts.setMinimumSize(QtCore.QSize(0, 35))

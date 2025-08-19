@@ -1,23 +1,26 @@
+import os
 import platform
 import shutil
 import threading
-import time, os
+import time
+from pathlib import Path
+
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar,QSizePolicy
-from pathlib import Path
+from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QSizePolicy
+
+from videotrans import VERSION, recognition, tts
 from videotrans.configure import config
+from videotrans.mainwin._actions import WinAction
 from videotrans.ui.en import Ui_MainWindow
 from videotrans.util import tools
-from videotrans.mainwin._actions import WinAction
-from videotrans import VERSION, recognition, tts
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=650):
-        
+
         super(MainWindow, self).__init__(parent)
-        
+
         self.width = width
         self.height = height
         self.resize(width, height)
@@ -32,20 +35,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 当前所有可用角色列表
         self.current_rolelist = []
         self.languagename = config.langnamelist
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))        
-        self.setupUi(self)        
-        
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
+
         self._replace_placeholders()
         self.initUI()
-        
+
         self._retranslateUi_from_logic()
         self.show()
         QTimer.singleShot(50, self._set_cache_set)
         QTimer.singleShot(100, self._start_subform)
         QTimer.singleShot(400, self._bindsignal)
-        QTimer.singleShot(800, self.is_writable)  
-    
-    
+        QTimer.singleShot(800, self.is_writable)
+
     def _replace_placeholders(self):
         """
         用真正的自定义组件替换UI文件中的占位符
@@ -73,24 +75,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
         self.btn_save_dir.setText(config.uilanglist.get("Save to.."))
 
-        self.label_9.setText(config.uilanglist.get("Translate channel")+"\u2193")
+        self.label_9.setText(config.uilanglist.get("Translate channel") + "\u2193")
         self.label_9.setCursor(Qt.PointingHandCursor)
         self.translate_type.setToolTip(
             '翻译字幕文字时使用的翻译渠道' if config.defaulelang == 'zh' else 'Translation channels used in translating subtitle text')
         self.label.setText('网络代理\u2193' if config.defaulelang == 'zh' else 'Proxy')
-        self.label.setToolTip('点击查看网络代理填写教程' if config.defaulelang=='zh' else 'Click to view the tutorial for filling in the network proxy')
+        self.label.setToolTip(
+            '点击查看网络代理填写教程' if config.defaulelang == 'zh' else 'Click to view the tutorial for filling in the network proxy')
         self.label.setCursor(Qt.PointingHandCursor)
 
         self.proxy.setPlaceholderText(config.uilanglist.get("proxy address"))
         self.listen_btn.setToolTip(config.uilanglist.get("shuoming01"))
         self.listen_btn.setText(config.uilanglist.get("Trial dubbing"))
-        self.label_2.setText('发音语言 ' if config.defaulelang=='zh' else "Speech language ")
+        self.label_2.setText('发音语言 ' if config.defaulelang == 'zh' else "Speech language ")
         self.source_language.setToolTip(config.uilanglist.get("The language used for the original video pronunciation"))
         self.label_3.setText(config.uilanglist.get("Target lang"))
         self.target_language.setToolTip(config.uilanglist.get("What language do you want to translate into"))
         self.tts_text.setText("配音渠道\u2193" if config.defaulelang == 'zh' else "Dubbing channel\u2193")
         self.tts_text.setCursor(Qt.PointingHandCursor)
-        self.label_4.setText(config.uilanglist.get("Dubbing role")+" ")
+        self.label_4.setText(config.uilanglist.get("Dubbing role") + " ")
         self.voice_role.setToolTip(config.uilanglist.get("No is not dubbing"))
 
         self.model_name.setToolTip(config.uilanglist.get(
@@ -108,10 +111,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.enable_cuda.setText(config.uilanglist.get("Enable CUDA?"))
         self.is_separate.setText('保留原始背景音' if config.defaulelang == 'zh' else 'Retain original background sound')
-        self.is_separate.setToolTip('若选中则分离人声和背景声，最终输出视频再将背景声嵌入' if config.defaulelang=='zh' else 'If selected, separate human voice and background sound, \nand finally output video will embed background sound')
+        self.is_separate.setToolTip(
+            '若选中则分离人声和背景声，最终输出视频再将背景声嵌入' if config.defaulelang == 'zh' else 'If selected, separate human voice and background sound, \nand finally output video will embed background sound')
         self.startbtn.setText(config.uilanglist.get("Start"))
-        self.addbackbtn.setText('添加额外背景音频' if config.defaulelang=='zh' else 'Add background audio')
-        self.addbackbtn.setToolTip('为输出视频额外添加一个音频作为背景声音' if config.defaulelang=='zh' else 'Add background audio for output video')
+        self.addbackbtn.setText('添加额外背景音频' if config.defaulelang == 'zh' else 'Add background audio')
+        self.addbackbtn.setToolTip(
+            '为输出视频额外添加一个音频作为背景声音' if config.defaulelang == 'zh' else 'Add background audio for output video')
         self.back_audio.setPlaceholderText(config.uilanglist.get("back_audio_place"))
         self.back_audio.setToolTip(config.uilanglist.get("back_audio_place"))
         self.stop_djs.setText(config.uilanglist.get("Pause"))
@@ -125,17 +130,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.toolBar.setWindowTitle("toolBar")
         self.actionbaidu_key.setText("百度翻译" if config.defaulelang == 'zh' else "Baidu Key")
         self.actionali_key.setText("阿里机器翻译" if config.defaulelang == 'zh' else "Alibaba Translation")
-        self.actionchatgpt_key.setText("OpenAI API 及兼容AI" if  config.defaulelang == 'zh' else "OpenAI API & Compatible AI")
-        self.actionzhipuai_key.setText("智谱AI" if  config.defaulelang == 'zh' else 'Zhipu AI')
-        self.actionsiliconflow_key.setText('硅基流动' if  config.defaulelang == 'zh' else  "Siliconflow")
+        self.actionchatgpt_key.setText(
+            "OpenAI API 及兼容AI" if config.defaulelang == 'zh' else "OpenAI API & Compatible AI")
+        self.actionzhipuai_key.setText("智谱AI" if config.defaulelang == 'zh' else 'Zhipu AI')
+        self.actionsiliconflow_key.setText('硅基流动' if config.defaulelang == 'zh' else "Siliconflow")
         self.actiondeepseek_key.setText('DeepSeek')
         self.actionopenrouter_key.setText('OpenRouter.ai')
         self.actionclaude_key.setText("Claude API")
         self.actionlibretranslate_key.setText("LibreTranslate API")
         self.actionopenaitts_key.setText("OpenAI TTS")
         self.actionqwentts_key.setText("Qwen TTS")
-        self.actionopenairecognapi_key.setText( "OpenAI语音识别及兼容API" if config.defaulelang == 'zh' else 'OpenAI Speech to Text API')
-        self.actionparakeet_key.setText( 'Nvidia parakeet-tdt')
+        self.actionopenairecognapi_key.setText(
+            "OpenAI语音识别及兼容API" if config.defaulelang == 'zh' else 'OpenAI Speech to Text API')
+        self.actionparakeet_key.setText('Nvidia parakeet-tdt')
         self.actionai302_key.setText("302.AI API Key" if config.defaulelang == 'zh' else "302.AI API KEY")
         self.actionlocalllm_key.setText("本地大模型(兼容OpenAI)" if config.defaulelang == 'zh' else "Local LLM API")
         self.actionzijiehuoshan_key.setText("字节火山大模型翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
@@ -154,19 +161,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontrans_api.setText("自定义翻译API" if config.defaulelang == 'zh' else "Transate API")
         self.actionrecognapi.setText("自定义语音识别API" if config.defaulelang == 'zh' else "Custom Speech Recognition API")
         self.actionsttapi.setText("STT语音识别API" if config.defaulelang == 'zh' else "STT Speech Recognition API")
-        self.actiondeepgram.setText("Deepgram.com语音识别" if config.defaulelang == 'zh' else "Deepgram Speech Recognition API")
+        self.actiondeepgram.setText(
+            "Deepgram.com语音识别" if config.defaulelang == 'zh' else "Deepgram Speech Recognition API")
         self.actiondoubao_api.setText("字节火山字幕生成" if config.defaulelang == 'zh' else "VolcEngine subtitles")
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_chatterbox.setText("ChatterBox TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
         self.actiontts_fishtts.setText("Fish TTS")
         self.actiontts_f5tts.setText("F5/index/SparK/Dia TTS")
-        self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang=='zh' else 'VolcEngine TTS')
+        self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang == 'zh' else 'VolcEngine TTS')
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")
         self.action_blog.setText("bbs" if config.defaulelang == 'zh' else 'BBS')
         self.action_models.setText(config.uilanglist["Download Models"])
-        self.action_gtrans.setText('下载硬字幕提取软件' if config.defaulelang == 'zh' else 'Download Hard Subtitle Extraction Software')
+        self.action_gtrans.setText(
+            '下载硬字幕提取软件' if config.defaulelang == 'zh' else 'Download Hard Subtitle Extraction Software')
         self.action_cuda.setText('CUDA & cuDNN')
         self.action_online.setText('免责声明' if config.defaulelang == 'zh' else 'Disclaimer')
         self.actiontencent_key.setText("腾讯翻译设置" if config.defaulelang == 'zh' else "Tencent Key")
@@ -236,10 +245,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             '批量将字幕文件进行格式转换(srt/ass/vtt)' if config.defaulelang == 'zh' else 'Batch convert subtitle formats (srt/ass/vtt)')
 
         self.actionsrtmultirole.setText('字幕多角色配音' if config.defaulelang == 'zh' else 'Multi voice dubbing for SRT')
-        self.actionsrtmultirole.setToolTip('字幕多角色配音：为每条字幕分配一个声音' if config.defaulelang=='zh' else 'Subtitle multi-role dubbing: assign a voice to each subtitle')
-    
+        self.actionsrtmultirole.setToolTip(
+            '字幕多角色配音：为每条字幕分配一个声音' if config.defaulelang == 'zh' else 'Subtitle multi-role dubbing: assign a voice to each subtitle')
+
     def initUI(self):
-        
+
         from videotrans.translator import TRANSLASTE_NAME_LIST
 
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
@@ -252,12 +262,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.source_language.addItems(self.languagename)
         self.target_language.addItems(["-"] + self.languagename[:-1])
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
-        
+
         self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pvt9.com "
         self.setWindowTitle(self.rawtitle)
-        self.win_action = WinAction(self)        
+        self.win_action = WinAction(self)
         self.win_action.tts_type_change(config.params['tts_type'])
-        
+
         try:
             config.params['translate_type'] = int(config.params['translate_type'])
         except:
@@ -273,7 +283,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.tts_type.setCurrentIndex(config.params['tts_type'])
         self.voice_role.clear()
-        
+
         if config.params['tts_type'] == tts.CLONE_VOICE_TTS:
             self.voice_role.addItems(config.params["clone_voicelist"])
             threading.Thread(target=tools.get_clone_role).start()
@@ -310,7 +320,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(['No'] + rolelist.split(','))
         elif self.win_action.change_by_lang(config.params['tts_type']):
             self.voice_role.clear()
-        
+
         if config.params['target_language'] and config.params['target_language'] in self.languagename:
             self.target_language.setCurrentText(config.params['target_language'])
             self.win_action.set_voice_role(config.params['target_language'])
@@ -318,7 +328,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     config.params['voice_role'] in self.current_rolelist:
                 self.voice_role.setCurrentText(config.params['voice_role'])
                 self.win_action.show_listen_btn(config.params['voice_role'])
-                
+
         try:
             config.params['recogn_type'] = int(config.params['recogn_type'])
         except:
@@ -336,7 +346,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             curr = config.WHISPER_MODEL_LIST
         if config.params['model_name'] in curr:
             self.model_name.setCurrentText(config.params['model_name'])
-        if config.params['recogn_type'] not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER, recognition.FUNASR_CN, recognition.Deepgram]:
+        if config.params['recogn_type'] not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL,
+                                                recognition.OPENAI_WHISPER, recognition.FUNASR_CN,
+                                                recognition.Deepgram]:
             self.model_name.setDisabled(True)
         else:
             self.model_name.setDisabled(False)
@@ -344,16 +356,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
-        if config.params['model_name'] == 'paraformer-zh' or config.params['recogn_type'] == recognition.Deepgram or  config.params['recogn_type'] == recognition.GEMINI_SPEECH:
+        if config.params['model_name'] == 'paraformer-zh' or config.params['recogn_type'] == recognition.Deepgram or \
+                config.params['recogn_type'] == recognition.GEMINI_SPEECH:
             self.show_spk.setVisible(True)
-            
-        
-    def _bindsignal(self):       
+
+    def _bindsignal(self):
         from videotrans.task.check_update import CheckUpdateWorker
         from videotrans.task.get_role_list import GetRoleWorker
         from videotrans.task.job import start_thread
-        from videotrans.mainwin._signal import UUIDSignalThread        
-        
+        from videotrans.mainwin._signal import UUIDSignalThread
+
         update_role = GetRoleWorker(parent=self)
         update_role.start()
         self.check_update = CheckUpdateWorker(parent=self)
@@ -363,11 +375,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         uuid_signal.uito.connect(self.win_action.update_data)
         uuid_signal.start()
         start_thread(self)
-        
+
         print(f"\n####信号绑定结束:{time.time()}")
 
     def _set_cache_set(self):
-    
+
         if platform.system() == 'Darwin':
             self.enable_cuda.setChecked(False)
             self.enable_cuda.hide()
@@ -459,11 +471,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.split_label.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/splitmode'))
         self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/align'))
         self.glossary.clicked.connect(lambda: tools.show_glossary_editor(self))
-        
+
         print(f"\n####缓存读取结束:{time.time()}")
 
     def _start_subform(self):
-    
+
         self.import_sub.setCursor(Qt.PointingHandCursor)
         self.model_name_help.setCursor(Qt.PointingHandCursor)
         self.stop_djs.setCursor(Qt.PointingHandCursor)
@@ -552,7 +564,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
         Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
-        
+
         print(f"\n####启动窗口结束:{time.time()}")
 
     def is_writable(self):
@@ -562,14 +574,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             with open(temp_file_path, 'w') as f:
                 pass
         except OSError as e:
-            tools.show_error(f"当前目录 {config.ROOT_DIR} 不可写，请将软件移动到非系统目录下或右键管理员权限打开。" if config.defaulelang == 'zh' else f"The current directory {config.ROOT_DIR}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.")
+            tools.show_error(
+                f"当前目录 {config.ROOT_DIR} 不可写，请将软件移动到非系统目录下或右键管理员权限打开。" if config.defaulelang == 'zh' else f"The current directory {config.ROOT_DIR}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.")
         finally:
             if os.path.exists(temp_file_path):
                 try:
                     os.remove(temp_file_path)
                 except OSError as e:
                     pass
-        threading.Thread(target=tools.get_video_codec,args=(True,)).start()
+        threading.Thread(target=tools.get_video_codec, args=(True,)).start()
 
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""
@@ -587,7 +600,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def kill_ffmpeg_processes(self):
         import platform
         import signal
-        import getpass,subprocess
+        import getpass, subprocess
         try:
             system_platform = platform.system()
             current_user = getpass.getuser()

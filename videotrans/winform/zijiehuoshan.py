@@ -1,15 +1,12 @@
-import json
-from pathlib import Path
-
-from PySide6 import QtWidgets
-
-from videotrans import translator
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.TestSrtTrans import TestSrtTrans
-
-
 def openwin():
+    import json
+    from pathlib import Path
+    from PySide6 import QtWidgets
+    from videotrans.configure import config
+    from videotrans.util import tools
+
+    from videotrans.util.TestSrtTrans import TestSrtTrans
+    from videotrans import translator
     def feed(d):
         if not d.startswith("ok"):
             tools.show_error(d)
@@ -21,7 +18,7 @@ def openwin():
         key = winobj.zijiehuoshan_key.text()
         model = winobj.zijiehuoshan_model.currentText()
         if not key or not model.strip():
-            return tools.show_error('必须填写API key和推理接入点',False)
+            return tools.show_error('必须填写API key和推理接入点', False)
 
         template = winobj.zijiehuoshan_template.toPlainText()
         config.params["zijiehuoshan_key"] = key

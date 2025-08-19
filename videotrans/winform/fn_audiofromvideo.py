@@ -1,28 +1,25 @@
-import json
-import os
-from pathlib import Path
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
-from videotrans.configure import config
-from videotrans.util import tools
-
-
 # 从视频分离音频
 def openwin():
+    import json
+    import os
+    from pathlib import Path
+
+    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QFileDialog
+
+    from videotrans.configure import config
+    from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/audiofromvideo"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     class CompThread(QThread):
         uito = Signal(str)
 
-        def __init__(self, *, parent=None, videourls=None,export_video):
+        def __init__(self, *, parent=None, videourls=None, export_video):
             super().__init__(parent=parent)
             self.videourls = videourls
-            self.export_video=export_video
+            self.export_video = export_video
 
         def post(self, type='logs', text=""):
             self.uito.emit(json.dumps({"type": type, "text": text}))
@@ -97,7 +94,7 @@ def openwin():
 
     def start():
         if len(winobj.videourls) < 1:
-            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Must select video ',False)
+            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Must select video ', False)
             return
         winobj.has_done = False
 
@@ -105,7 +102,7 @@ def openwin():
             '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
         winobj.startbtn.setDisabled(True)
         winobj.resultbtn.setDisabled(True)
-        task = CompThread(parent=winobj, videourls=winobj.videourls,export_video=winobj.getvideo.isChecked())
+        task = CompThread(parent=winobj, videourls=winobj.videourls, export_video=winobj.getvideo.isChecked())
         task.uito.connect(feed)
         task.start()
 

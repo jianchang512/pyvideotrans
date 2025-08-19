@@ -266,17 +266,15 @@ def parse_init():
         "fontname": "黑体",
         "fontcolor": "&hffffff",
         "fontbordercolor": "&h000000",
-        "backgroundcolor":"&h000000",
-        "subtitle_position": 2,# 对应 1到9 位置
-
+        "backgroundcolor": "&h000000",
+        "subtitle_position": 2,  # 对应 1到9 位置
 
         "marginV": 10,
         "marginL": 10,
         "marginR": 10,
-        "outline":1,
-        "shadow":1,
-        "borderStyle":1,#1或3， 轮廓描边风格对应 BorderStyle=1， 背景色块风格对应 BorderStyle=3
-
+        "outline": 1,
+        "shadow": 1,
+        "borderStyle": 1,  # 1或3， 轮廓描边风格对应 BorderStyle=1， 背景色块风格对应 BorderStyle=3
 
         "cjk_len": 20,
         "other_len": 60,

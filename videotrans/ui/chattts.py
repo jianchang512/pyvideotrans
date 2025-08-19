@@ -2,7 +2,6 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -77,7 +76,6 @@ class Ui_chatttsform(object):
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout.addLayout(self.formLayout_3)
 
-
         self.set_chattts = QtWidgets.QPushButton(chattts)
         self.set_chattts.setMinimumSize(QtCore.QSize(0, 35))
         self.set_chattts.setObjectName("set_chattts")
@@ -102,7 +100,6 @@ class Ui_chatttsform(object):
         self.layout_btn.addWidget(help_btn)
 
         self.verticalLayout.addLayout(self.layout_btn)
-
 
         self.retranslateUi(chattts)
         QtCore.QMetaObject.connectSlotsByName(chattts)

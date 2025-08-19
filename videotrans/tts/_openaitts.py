@@ -1,18 +1,16 @@
 import copy
+import logging
 import re
-import time
+from dataclasses import dataclass
 
 import httpx
-from openai import OpenAI, RateLimitError, APIConnectionError
+from openai import OpenAI
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
 
 RETRY_NUMS = 2
 RETRY_DELAY = 10
@@ -31,14 +29,14 @@ class OPENAITTS(BaseTTS):
             if pro:
                 self.proxies = pro
 
-
-
     def _exec(self):
         self.dub_nums = 1
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+               after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
         def _run():
             role = data_item['role']
 
@@ -59,15 +57,16 @@ class OPENAITTS(BaseTTS):
                     speed=speed,
                     instructions=config.params.get('openaitts_instructions', '')
             ) as response:
-                with open(data_item['filename']+".mp3", 'wb') as f:
+                with open(data_item['filename'] + ".mp3", 'wb') as f:
                     for chunk in response.iter_bytes():
                         f.write(chunk)
-            self.convert_to_wav(data_item['filename']+".mp3", data_item['filename'])
+            self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error = ''
             self.has_done += 1
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+
         _run()
 
     def _get_url(self, url=""):

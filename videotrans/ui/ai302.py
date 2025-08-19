@@ -19,9 +19,9 @@ class Ui_ai302form(object):
         ai302form.setMaximumSize(QtCore.QSize(600, 550))
 
         self.has_done = False
-        v1= QtWidgets.QVBoxLayout(ai302form)
+        v1 = QtWidgets.QVBoxLayout(ai302form)
 
-        h1= QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
 
         self.label_1 = QtWidgets.QLabel()
         self.label_1.setObjectName("label_1")
@@ -37,7 +37,7 @@ class Ui_ai302form(object):
         h1.addWidget(self.ai302_key)
         v1.addLayout(h1)
 
-        h2= QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
         self.label_3 = QtWidgets.QLabel(ai302form)
@@ -54,8 +54,6 @@ class Ui_ai302form(object):
         self.label_allmodels.setObjectName("label_allmodels")
         v1.addWidget(self.label_allmodels)
 
-
-
         self.edit_allmodels = QtWidgets.QPlainTextEdit(ai302form)
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
@@ -68,8 +66,7 @@ class Ui_ai302form(object):
         self.ai302_template.setObjectName("ai302_template")
         v1.addWidget(self.ai302_template)
 
-
-        h3= QtWidgets.QHBoxLayout()
+        h3 = QtWidgets.QHBoxLayout()
         self.set_ai302 = QtWidgets.QPushButton(ai302form)
         self.set_ai302.setMinimumSize(QtCore.QSize(0, 35))
         self.set_ai302.setObjectName("set_ai302")
@@ -83,7 +80,6 @@ class Ui_ai302form(object):
         self.label_0.setStyleSheet("""text-align:left;background-color:transparent""")
         self.label_0.setText('查看填写教程')
         self.label_0.clicked.connect(lambda: tools.open_url("https://pyvideotrans.com/302ai"))
-
 
         h3.addWidget(self.set_ai302)
         h3.addWidget(self.test_ai302)

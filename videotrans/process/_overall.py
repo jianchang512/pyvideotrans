@@ -4,23 +4,22 @@ import re
 import time
 from pathlib import Path
 
-
-
 from faster_whisper import WhisperModel
 
-from videotrans.util.tools import ms_to_time_string,cleartext
+from videotrans.util.tools import cleartext
 
-def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
-        q: multiprocessing.Queue, ROOT_DIR, TEMP_DIR, settings, defaulelang,proxy=None):
+
+def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
+        q: multiprocessing.Queue, ROOT_DIR, TEMP_DIR, settings, defaulelang, proxy=None):
     os.chdir(ROOT_DIR)
     down_root = ROOT_DIR + "/models"
-    settings['whisper_threads']=int(float(settings.get('whisper_threads',1)))
+    settings['whisper_threads'] = int(float(settings.get('whisper_threads', 1)))
+
     def write_log(jsondata):
         try:
             q.put_nowait(jsondata)
         except:
             pass
-
 
     try:
 
@@ -50,8 +49,8 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
             else:
                 err['msg'] = str(e)
                 return
-        write_log({"text": model_name+" Loaded", "type": "logs"})
-        prompt = settings.get(f'initial_prompt_{detect_language}') if detect_language!='auto' else None
+        write_log({"text": model_name + " Loaded", "type": "logs"})
+        prompt = settings.get(f'initial_prompt_{detect_language}') if detect_language != 'auto' else None
         segments, info = model.transcribe(
             audio_file,
             beam_size=int(settings['beam_size']),
@@ -61,35 +60,36 @@ def run(raws, err,detect, *, model_name, is_cuda, detect_language, audio_file,
             vad_parameters=dict(
                 threshold=float(settings['threshold']),
                 min_speech_duration_ms=int(settings['min_speech_duration_ms']),
-                max_speech_duration_s= float(settings['max_speech_duration_s']) if float(settings['max_speech_duration_s'])>0 else float('inf'),
+                max_speech_duration_s=float(settings['max_speech_duration_s']) if float(
+                    settings['max_speech_duration_s']) > 0 else float('inf'),
                 min_silence_duration_ms=int(settings['min_silence_duration_ms']),
                 speech_pad_ms=int(settings['speech_pad_ms'])
             ),
             word_timestamps=True,
-            language=detect_language.split('-')[0] if detect_language!='auto' else None,
+            language=detect_language.split('-')[0] if detect_language != 'auto' else None,
             initial_prompt=prompt if prompt else None
         )
-        if detect_language=='auto' and info.language!=detect['langcode']:
-            detect['langcode']='zh-cn' if info.language[:2]=='zh' else info.language
-        nums=0
+        if detect_language == 'auto' and info.language != detect['langcode']:
+            detect['langcode'] = 'zh-cn' if info.language[:2] == 'zh' else info.language
+        nums = 0
         for segment in segments:
-            nums+=1
+            nums += 1
             if not Path(TEMP_DIR + f'/{os.getpid()}.lock').exists():
                 return
-            new_seg=[]
+            new_seg = []
             for idx, word in enumerate(segment.words):
-                new_seg.append({"start":word.start,"end":word.end,"word":word.word })
-            text=cleartext(segment.text,remove_start_end=False)
-            raws.append({"words":new_seg,"text":text})
+                new_seg.append({"start": word.start, "end": word.end, "word": word.word})
+            text = cleartext(segment.text, remove_start_end=False)
+            raws.append({"words": new_seg, "text": text})
 
             q.put_nowait({"text": f'{text}\n', "type": "subtitle"})
             q.put_nowait({"text": f' {"字幕" if defaulelang == "zh" else "Subtitles"} {len(raws) + 1} ', "type": "logs"})
-    except (LookupError,ValueError,AttributeError,ArithmeticError) as e:
-        err['msg']=f'{e}'
-        if detect_language=='auto':
-            err['msg']+='检测语言失败，请设置发声语言/Failed to detect language, please set the voice language'
+    except (LookupError, ValueError, AttributeError, ArithmeticError) as e:
+        err['msg'] = f'{e}'
+        if detect_language == 'auto':
+            err['msg'] += '检测语言失败，请设置发声语言/Failed to detect language, please set the voice language'
     except BaseException as e:
-        err['msg'] = '_process:'+str(e)
+        err['msg'] = '_process:' + str(e)
     finally:
         try:
             import torch

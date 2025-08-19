@@ -1,36 +1,33 @@
 # zh_recogn 识别
-import os
-import time
+import logging
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, ClassVar,Union
+from typing import List, Dict, Union
+
 import requests
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
-
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
-import mimetypes
 
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
+RETRY_NUMS = 2
+RETRY_DELAY = 10
 
-RETRY_NUMS=2
-RETRY_DELAY=10
 
 @dataclass
 class AI302Recogn(BaseRecogn):
     raws: List = field(init=False, default_factory=list)
 
-
     def __post_init__(self):
         super().__post_init__()
 
-    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+           after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
         apikey = config.params.get('ai302_key')
-
 
         # 转为 mp3
         tools.runffmpeg(['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/ai302tmp.mp3'])
@@ -43,16 +40,16 @@ class AI302Recogn(BaseRecogn):
             'Authorization': f'Bearer {apikey}',
         }
 
-        prompt=config.settings.get(f'initial_prompt_{self.detect_language}')
+        prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
 
         config.logger.info(f'{prompt=}')
         response = requests.post(url,
-                                 files={"file":open(self.audio_file, 'rb')},
+                                 files={"file": open(self.audio_file, 'rb')},
                                  data={
-                                     "model":'whisper-3',
-                                     'response_format':'verbose_json',
-                                     'prompt':prompt,
-                                     'language':langcode},
+                                     "model": 'whisper-3',
+                                     'response_format': 'verbose_json',
+                                     'prompt': prompt,
+                                     'language': langcode},
                                  headers=headers)
         response.raise_for_status()
         config.logger.info(f'{response.json()=}')
@@ -61,12 +58,12 @@ class AI302Recogn(BaseRecogn):
                 return
             srt = {
                 "line": i + 1,
-                "start_time": int(it['start']*1000),
-                "end_time": int(it['end']*1000),
+                "start_time": int(it['start'] * 1000),
+                "end_time": int(it['end'] * 1000),
                 "text": it['text']
             }
-            srt["endraw"]= tools.ms_to_time_string(ms=srt["end_time"])
-            srt["startraw"]= tools.ms_to_time_string(ms=srt["start_time"])
+            srt["endraw"] = tools.ms_to_time_string(ms=srt["end_time"])
+            srt["startraw"] = tools.ms_to_time_string(ms=srt["start_time"])
             srt['time'] = f'{srt["startraw"]} --> {srt["endraw"]}'
             self._signal(
                 text=f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n',
@@ -74,4 +71,3 @@ class AI302Recogn(BaseRecogn):
             )
             self.raws.append(srt)
         return self.raws
-

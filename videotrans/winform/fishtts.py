@@ -1,11 +1,10 @@
-from PySide6 import QtWidgets
-
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.ListenVoice import ListenVoice
-
-
 def openwin():
+    from PySide6 import QtWidgets
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+
+    from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
@@ -41,10 +40,10 @@ def openwin():
         for it in tmp.split("\n"):
             s = it.strip().split('#')
             if len(s) != 2:
-                tools.show_error("每行都必须以#分割为2部分，格式为   音频名称.wav#音频文字内容",False)
+                tools.show_error("每行都必须以#分割为2部分，格式为   音频名称.wav#音频文字内容", False)
                 return
             if not s[0].endswith(".wav"):
-                tools.show_error("每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容",False)
+                tools.show_error("每行都必须以#分割为2部分，格式为  音频名称.wav#音频文字内容", False)
                 return
             role = s[0]
         config.params['fishtts_role'] = tmp

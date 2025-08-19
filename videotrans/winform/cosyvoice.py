@@ -1,16 +1,14 @@
-from PySide6 import QtWidgets
-
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.ListenVoice import ListenVoice
-
-
 def openwin():
+    from PySide6 import QtWidgets
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+    from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            tools.show_error( d)
+            tools.show_error(d)
         winobj.test.setText('测试api')
 
     def test():

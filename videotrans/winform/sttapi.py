@@ -1,12 +1,10 @@
-from PySide6 import QtWidgets
-
-from videotrans import recognition
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.TestSTT import TestSTT
-
-
 def openwin():
+    from PySide6 import QtWidgets
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+    from videotrans import recognition
+    from videotrans.util.TestSTT import TestSTT
     def feed(d):
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "ok", d[3:])

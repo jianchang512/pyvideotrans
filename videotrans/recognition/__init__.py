@@ -3,9 +3,9 @@ from typing import Union, List, Dict
 
 from videotrans import translator
 from videotrans.configure import config
+
 # 判断各个语音识别模式是否支持所选语言
 # 支持返回True，不支持返回错误文字字符串
-
 
 
 # 数字代表界面中的现实顺序
@@ -42,24 +42,25 @@ RECOGN_NAME_LIST = [
 ]
 
 
-def is_allow_lang(langcode: str = None, recogn_type: int = None,model_name=None):
-    if langcode=='auto' and recogn_type not in [FASTER_WHISPER,OPENAI_WHISPER,GEMINI_SPEECH,ElevenLabs]:
-        return '仅在 faster-whisper/openai-whisper/Gemini模式下允许检测语言' if config.defaulelang=='zh' else 'Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.'
+def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
+    if langcode == 'auto' and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs]:
+        return '仅在 faster-whisper/openai-whisper/Gemini模式下允许检测语言' if config.defaulelang == 'zh' else 'Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.'
     if recogn_type == FUNASR_CN:
-        if model_name=='paraformer-zh' and langcode[:2] not in ('zh','yu'):
+        if model_name == 'paraformer-zh' and langcode[:2] not in ('zh', 'yu'):
             return 'FunASR 下 paraformer-zh  模型仅支持中文语音识别' if config.defaulelang == 'zh' else 'paraformer-zh  models only support Chinese speech recognition'
-        if model_name =='SenseVoiceSmall' and langcode[:2] not in ['zh','en','ja','ko','yu']:
+        if model_name == 'SenseVoiceSmall' and langcode[:2] not in ['zh', 'en', 'ja', 'ko', 'yu']:
             return 'FunASR 下  SenseVoiceSmall 模型仅支持中英日韩语音识别' if config.defaulelang == 'zh' else 'SenseVoiceSmall models only support Chinese,Ja,ko,English speech recognition'
         return True
-    if recogn_type==PARAKEET and langcode[:2] not in ('en','ja'):
+    if recogn_type == PARAKEET and langcode[:2] not in ('en', 'ja'):
         return 'Parakeet-tdt 仅支持英语和日语识别' if config.defaulelang == 'zh' else 'Parakeet-tdt  models only support English & Ja speech recognition'
-    if recogn_type == DOUBAO_API and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru",'yu']:
+    if recogn_type == DOUBAO_API and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru", 'yu']:
         return '豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持'
     return True
 
+
 # 判断 openai whisper和 faster whisper 模型是否存在
-def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=False,source_language_currentText=''):
-    if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER,Faster_Whisper_XXL]:
+def check_model_name(recogn_type=FASTER_WHISPER, name='', source_language_isLast=False, source_language_currentText=''):
+    if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER, Faster_Whisper_XXL]:
         return True
     # 含 / 的需要下载
     if name.find('/') > 0:
@@ -72,53 +73,55 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='',source_language_isLast=
 
     if recogn_type == OPENAI_WHISPER:
         if name.startswith('distil'):
-            return 'distil 开头的模型只可用于 faster-whisper本地模式' if config.defaulelang=='zh' else 'distil-* only use when faster-whisper'
+            return 'distil 开头的模型只可用于 faster-whisper本地模式' if config.defaulelang == 'zh' else 'distil-* only use when faster-whisper'
 
         return True
-    
-    model_path=f'models--Systran--faster-whisper-{name}'
-    if name=='large-v3-turbo':
+
+    model_path = f'models--Systran--faster-whisper-{name}'
+    if name == 'large-v3-turbo':
         model_path = f'models--mobiuslabsgmbh--faster-whisper-{name}'
     elif name.startswith('distil'):
         model_path = f'models--Systran--faster-{name}'
-    
-    file=f'{config.ROOT_DIR}/models/{model_path}'
 
-    if recogn_type==Faster_Whisper_XXL:
-        PATH_DIR=Path(config.settings.get('Faster_Whisper_XXL','')).parent.as_posix()+f'/.cache/hub/{model_path}'
+    file = f'{config.ROOT_DIR}/models/{model_path}'
+
+    if recogn_type == Faster_Whisper_XXL:
+        PATH_DIR = Path(config.settings.get('Faster_Whisper_XXL', '')).parent.as_posix() + f'/.cache/hub/{model_path}'
 
         if Path(file).exists() or Path(PATH_DIR).exists():
             if Path(file).exists() and not Path(PATH_DIR).exists():
                 import threading
-                threading.Thread(target=move_model_toxxl,args=(file,PATH_DIR)).start()
+                threading.Thread(target=move_model_toxxl, args=(file, PATH_DIR)).start()
             return True
-        
+
     return True
 
 
-
-def move_model_toxxl(src,dest):
+def move_model_toxxl(src, dest):
     import shutil
-    config.copying=True
-    shutil.copytree(src,dest,dirs_exist_ok=True)
-    config.copying=False
+    config.copying = True
+    shutil.copytree(src, dest, dirs_exist_ok=True)
+    config.copying = False
+
 
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
-def is_input_api(recogn_type: int = None,return_str=False):
-    from videotrans.winform import recognapi as recognapi_win,  openairecognapi as openairecognapi_win, doubao as doubao_win,sttapi as sttapi_win,deepgram as deepgram_win, gemini as gemini_win,ai302,parakeet as parakeet_win
+def is_input_api(recogn_type: int = None, return_str=False):
+    from videotrans.winform import recognapi as recognapi_win, openairecognapi as openairecognapi_win, \
+        doubao as doubao_win, sttapi as sttapi_win, deepgram as deepgram_win, gemini as gemini_win, ai302, \
+        parakeet as parakeet_win
     if recogn_type == STT_API and not config.params['stt_url']:
         if return_str:
             return "Please configure the api and key information of the stt channel first."
         sttapi_win.openwin()
         return False
-        
+
     if recogn_type == PARAKEET and not config.params['parakeet_address']:
         if return_str:
             return "Please configure the url address."
         parakeet_win.openwin()
         return False
-    
+
     if recogn_type == CUSTOM_API and not config.params['recognapi_url']:
         if return_str:
             return "Please configure the api and key information of the CUSTOM_API channel first."
@@ -150,7 +153,7 @@ def is_input_api(recogn_type: int = None,return_str=False):
             return "Please configure the API Key information of the Gemini channel first."
         ai302.openwin()
         return False
-    #ElevenLabs
+    # ElevenLabs
     if recogn_type == ElevenLabs and not config.params['elevenlabstts_key']:
         if return_str:
             return "Please configure the API Key information of the ElevenLabs channel first."
@@ -158,6 +161,7 @@ def is_input_api(recogn_type: int = None,return_str=False):
         elevenlabs_win.openwin()
         return False
     return True
+
 
 # 统一入口
 def run(*,
@@ -185,8 +189,8 @@ def run(*,
         "uuid": uuid,
         "inst": inst,
         "is_cuda": is_cuda,
-        "subtitle_type":subtitle_type,
-        "target_code":target_code
+        "subtitle_type": subtitle_type,
+        "target_code": target_code
     }
     if recogn_type == OPENAI_WHISPER:
         from ._openai import OpenaiWhisperRecogn
@@ -204,27 +208,27 @@ def run(*,
     if recogn_type == STT_API:
         from ._stt import SttAPIRecogn
         return SttAPIRecogn(**kwargs).run()
-        
+
     if recogn_type == OPENAI_API:
         from ._openairecognapi import OpenaiAPIRecogn
         return OpenaiAPIRecogn(**kwargs).run()
-    if recogn_type==FUNASR_CN:
+    if recogn_type == FUNASR_CN:
         from videotrans.recognition._funasr import FunasrRecogn
         return FunasrRecogn(**kwargs).run()
-    if recogn_type==Deepgram:
+    if recogn_type == Deepgram:
         from ._deepgram import DeepgramRecogn
         return DeepgramRecogn(**kwargs).run()
-    if recogn_type==GEMINI_SPEECH:
+    if recogn_type == GEMINI_SPEECH:
         from ._gemini import GeminiRecogn
         return GeminiRecogn(**kwargs).run()
-    if recogn_type==PARAKEET:
+    if recogn_type == PARAKEET:
         from ._parakeet import ParaketRecogn
         return ParaketRecogn(**kwargs).run()
-    if recogn_type==AI_302:
+    if recogn_type == AI_302:
         from ._ai302 import AI302Recogn
         return AI302Recogn(**kwargs).run()
 
-    if recogn_type==ElevenLabs:
+    if recogn_type == ElevenLabs:
         from ._elevenlabs import ElevenLabsRecogn
         return ElevenLabsRecogn(**kwargs).run()
 

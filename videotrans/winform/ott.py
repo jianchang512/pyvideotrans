@@ -1,8 +1,7 @@
-from videotrans.configure import config
-from videotrans.util import tools
-
-
 def openwin():
+    from videotrans.configure import config
+    from videotrans.util import tools
+
     def save():
         url = winobj.ott_address.text().strip()
         if tools.check_local_api(url) is not True:

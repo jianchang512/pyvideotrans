@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import Union, List
+
 from videotrans.configure import config
-
-
-
 # 数字代表显示顺序
 from videotrans.util import tools
 
@@ -64,39 +62,39 @@ TRANSLASTE_NAME_LIST = [
 # deepl  https://deepl.com/
 # microsoft https://www.bing.com/translator?mkt=zh-CN
 # 阿里 https://help.aliyun.com/zh/machine-translation/developer-reference/machine-translation-language-code-list?spm=a2c4g.11186623.help-menu-30396.d_4_4.4bda2b009oye8y
-LANGNAME_DICT={
-    "zh":"Simplified Chinese" if config.defaulelang != 'zh' else '简体中文', 
-    "zh-cn":"Simplified Chinese" if config.defaulelang != 'zh' else '简体中文', 
-    "zh-tw":"Simplified Chinese" if config.defaulelang != 'zh' else '简体中文', 
-    "en":"English language" if config.defaulelang != 'zh' else '英语',
-    "fr":"French language" if config.defaulelang != 'zh' else '法语',
-    "de":"German language" if config.defaulelang != 'zh' else '德语',
-    "ja":"Japanese language" if config.defaulelang != 'zh' else '日语',
-    "ko":"Korean language" if config.defaulelang != 'zh' else '韩语',
-    "ru":"Russian language" if config.defaulelang != 'zh' else '俄罗斯语',
-    "es":"Spanish language" if config.defaulelang != 'zh' else '西班牙语',
-    "th":"Thai language" if config.defaulelang != 'zh' else '泰国语',
-    "it":"Italian language" if config.defaulelang != 'zh' else '意大利语',
-    "pt":"Portuguese language" if config.defaulelang != 'zh' else '葡萄牙语',
-    "vi":"Vietnamese language" if config.defaulelang != 'zh' else '越南语',
-    "ar":"Arabic language" if config.defaulelang != 'zh' else '阿拉伯语',
-    "tr":"Turkish language" if config.defaulelang != 'zh' else '土耳其语',
-    "hi":"Hindi language" if config.defaulelang != 'zh' else '印度语',
-    "hu":"Hungarian language" if config.defaulelang != 'zh' else '匈牙利语',
-    "uk":"Ukrainian language" if config.defaulelang != 'zh' else '乌克兰语',
-    "id":"Indonesian language" if config.defaulelang != 'zh' else '印度尼西亚语',
-    "ms":"Malay language" if config.defaulelang != 'zh' else '马来西亚语',
-    "kk":"Kazakh language" if config.defaulelang != 'zh' else '哈萨克语',
-    "cs":"Czech language" if config.defaulelang != 'zh' else '捷克语',
-    "pl":"Polish language" if config.defaulelang != 'zh' else '波兰语',
-    "nl":"Dutch" if config.defaulelang != 'zh' else '荷兰语',
-    "sv":"Swedish" if config.defaulelang != 'zh' else '瑞典语',
-    "he":"Hebrew" if config.defaulelang != 'zh' else '希伯来语',
-    "bn":"Bengali" if config.defaulelang != 'zh' else '孟加拉语',
-    "fa":"Persian" if config.defaulelang != 'zh' else '波斯语',
-    "fil":"Filipino" if config.defaulelang != 'zh' else '菲律宾语',
-    "ur":"Urdu" if config.defaulelang != 'zh' else '乌尔都语',
-    "yue":"Cantonese" if config.defaulelang != 'zh' else '粤语',
+LANGNAME_DICT = {
+    "zh": "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',
+    "zh-cn": "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',
+    "zh-tw": "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',
+    "en": "English language" if config.defaulelang != 'zh' else '英语',
+    "fr": "French language" if config.defaulelang != 'zh' else '法语',
+    "de": "German language" if config.defaulelang != 'zh' else '德语',
+    "ja": "Japanese language" if config.defaulelang != 'zh' else '日语',
+    "ko": "Korean language" if config.defaulelang != 'zh' else '韩语',
+    "ru": "Russian language" if config.defaulelang != 'zh' else '俄罗斯语',
+    "es": "Spanish language" if config.defaulelang != 'zh' else '西班牙语',
+    "th": "Thai language" if config.defaulelang != 'zh' else '泰国语',
+    "it": "Italian language" if config.defaulelang != 'zh' else '意大利语',
+    "pt": "Portuguese language" if config.defaulelang != 'zh' else '葡萄牙语',
+    "vi": "Vietnamese language" if config.defaulelang != 'zh' else '越南语',
+    "ar": "Arabic language" if config.defaulelang != 'zh' else '阿拉伯语',
+    "tr": "Turkish language" if config.defaulelang != 'zh' else '土耳其语',
+    "hi": "Hindi language" if config.defaulelang != 'zh' else '印度语',
+    "hu": "Hungarian language" if config.defaulelang != 'zh' else '匈牙利语',
+    "uk": "Ukrainian language" if config.defaulelang != 'zh' else '乌克兰语',
+    "id": "Indonesian language" if config.defaulelang != 'zh' else '印度尼西亚语',
+    "ms": "Malay language" if config.defaulelang != 'zh' else '马来西亚语',
+    "kk": "Kazakh language" if config.defaulelang != 'zh' else '哈萨克语',
+    "cs": "Czech language" if config.defaulelang != 'zh' else '捷克语',
+    "pl": "Polish language" if config.defaulelang != 'zh' else '波兰语',
+    "nl": "Dutch" if config.defaulelang != 'zh' else '荷兰语',
+    "sv": "Swedish" if config.defaulelang != 'zh' else '瑞典语',
+    "he": "Hebrew" if config.defaulelang != 'zh' else '希伯来语',
+    "bn": "Bengali" if config.defaulelang != 'zh' else '孟加拉语',
+    "fa": "Persian" if config.defaulelang != 'zh' else '波斯语',
+    "fil": "Filipino" if config.defaulelang != 'zh' else '菲律宾语',
+    "ur": "Urdu" if config.defaulelang != 'zh' else '乌尔都语',
+    "yue": "Cantonese" if config.defaulelang != 'zh' else '粤语',
 }
 LANG_CODE = {
     "zh-cn": [
@@ -108,9 +106,9 @@ LANG_CODE = {
         "zh",  # OTT通道
         "zh-Hans",  # 微软翻译
         "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',  # AI翻译
-        "zh" #阿里
+        "zh"  # 阿里
     ],
-    "ur":[
+    "ur": [
         "ur",  # google通道
         "urd",  # 字幕嵌入语言
         "ur",  # 百度通道
@@ -119,9 +117,9 @@ LANG_CODE = {
         "No",  # OTT通道
         "ur",  # 微软翻译
         "Urdu" if config.defaulelang != 'zh' else '乌尔都语',  # AI翻译
-        "ur" #阿里
+        "ur"  # 阿里
     ],
-    "yue":[
+    "yue": [
         "yue",  # google通道
         "chi",  # 字幕嵌入语言
         "yue",  # 百度通道
@@ -130,10 +128,10 @@ LANG_CODE = {
         "No",  # OTT通道
         "yue",  # 微软翻译
         "Cantonese" if config.defaulelang != 'zh' else '粤语',  # AI翻译
-        "yue" #阿里
+        "yue"  # 阿里
     ],
 
-    "fil":[
+    "fil": [
         "tl",  # google通道
         "fil",  # 字幕嵌入语言
         "fil",  # 百度通道
@@ -142,9 +140,9 @@ LANG_CODE = {
         "No",  # OTT通道
         "fil",  # 微软翻译
         "Filipino" if config.defaulelang != 'zh' else '菲律宾语',  # AI翻译
-        "fil" #阿里
+        "fil"  # 阿里
     ],
-    "fi":[
+    "fi": [
         "fi",  # google通道
         "fin",  # 字幕嵌入语言
         "fin",  # 百度通道
@@ -153,7 +151,7 @@ LANG_CODE = {
         "No",  # OTT通道
         "fi",  # 微软翻译
         "Finnish" if config.defaulelang != 'zh' else '芬兰语',  # AI翻译
-        "fi" #阿里
+        "fi"  # 阿里
     ],
 
     "zh-tw": [
@@ -451,9 +449,9 @@ LANG_CODE = {
         "No",  # OTT通道
         "fa",  # 微软翻译
         "Persian" if config.defaulelang != 'zh' else '波斯语',  # AI翻译
-        "fa" #阿里
+        "fa"  # 阿里
     ],
-    "auto":[
+    "auto": [
         "auto",
         "auto",
         "auto",
@@ -501,7 +499,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     if show_target and show_target != '-':
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
-    if translate_type in [GOOGLE_INDEX,MyMemoryAPI_INDEX, TRANSAPI_INDEX, FREEGOOGLE_INDEX]:
+    if translate_type in [GOOGLE_INDEX, MyMemoryAPI_INDEX, TRANSAPI_INDEX, FREEGOOGLE_INDEX]:
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
     elif translate_type == BAIDU_INDEX:
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
@@ -510,9 +508,10 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     elif translate_type == TENCENT_INDEX:
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
     elif translate_type in [CHATGPT_INDEX, AZUREGPT_INDEX, GEMINI_INDEX,
-                            LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX,CLAUDE_INDEX,ZHIPUAI_INDEX,SILICONFLOW_INDEX,DEEPSEEK_INDEX,OPENROUTER_INDEX]:
+                            LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX, CLAUDE_INDEX, ZHIPUAI_INDEX, SILICONFLOW_INDEX,
+                            DEEPSEEK_INDEX, OPENROUTER_INDEX]:
         return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
-    elif translate_type in [OTT_INDEX,LIBRE_INDEX]:
+    elif translate_type in [OTT_INDEX, LIBRE_INDEX]:
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
     elif translate_type == MICROSOFT_INDEX:
         return (source_list[6] if source_list else "-", target_list[6] if target_list else "-")
@@ -527,8 +526,8 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 # translate_type翻译通道
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
-def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None,return_str=False):
-    if translate_type in [GOOGLE_INDEX,MyMemoryAPI_INDEX, FREEGOOGLE_INDEX,MICROSOFT_INDEX]:
+def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None, return_str=False):
+    if translate_type in [GOOGLE_INDEX, MyMemoryAPI_INDEX, FREEGOOGLE_INDEX, MICROSOFT_INDEX]:
         return True
 
     if translate_type == CHATGPT_INDEX and not config.params['chatgpt_key']:
@@ -551,7 +550,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         return False
     if translate_type == OPENROUTER_INDEX and not config.params['openrouter_key']:
         if return_str:
-            return "请在菜单-OpenRouter中填写api key" 
+            return "请在菜单-OpenRouter中填写api key"
         from videotrans.winform import openrouter
         openrouter.openwin()
         return False
@@ -577,14 +576,14 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
     if translate_type == TRANSAPI_INDEX and not config.params['trans_api_url']:
         if return_str:
             return "Please configure the api and key information of the Trans_API channel first."
-        from videotrans.winform import  transapi
+        from videotrans.winform import transapi
         transapi.openwin()
         return False
 
     if translate_type == LOCALLLM_INDEX and not config.params['localllm_api']:
         if return_str:
             return "Please configure the api and key information of the LocalLLM channel first."
-        from videotrans.winform import  localllm
+        from videotrans.winform import localllm
         localllm.openwin()
         return False
     if translate_type == ZIJIE_INDEX and (
@@ -658,7 +657,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
     if translate_type == OTT_INDEX and not config.params["ott_address"]:
         if return_str:
             return "Please configure the api and key information of the OTT channel first."
-        from videotrans.winform import  ott
+        from videotrans.winform import ott
         ott.openwin()
         return False
     # 如果只需要判断是否填写了 api key 等信息，到此返回
@@ -715,18 +714,19 @@ def run(*, translate_type=None,
         source_code=None,
         target_code=None,
         uuid=None) -> Union[List, str, None]:
-    translate_type=int(translate_type)
+    translate_type = int(translate_type)
     # ai渠道下，target_language是语言名称
     # 其他渠道下是语言代码
     # source_code是原语言代码
-    target_language_name=target_code
-    if translate_type in [GEMINI_INDEX, AZUREGPT_INDEX,CHATGPT_INDEX,AI302_INDEX,LOCALLLM_INDEX,ZIJIE_INDEX,CLAUDE_INDEX]:
+    target_language_name = target_code
+    if translate_type in [GEMINI_INDEX, AZUREGPT_INDEX, CHATGPT_INDEX, AI302_INDEX, LOCALLLM_INDEX, ZIJIE_INDEX,
+                          CLAUDE_INDEX]:
         _, target_language_name = get_source_target_code(show_target=target_code, translate_type=translate_type)
     kwargs = {
         "text_list": text_list,
         "target_language_name": target_language_name,
         "inst": inst,
-        "source_code": source_code if source_code and source_code not in ['-','No'] else None,
+        "source_code": source_code if source_code and source_code not in ['-', 'No'] else None,
         "target_code": target_code,
         "uuid": uuid,
         "is_test": is_test,
@@ -737,7 +737,7 @@ def run(*, translate_type=None,
         return Google(**kwargs).run()
     if translate_type == MyMemoryAPI_INDEX:
         from videotrans.translator._mymemory import MyMemory
-        config.settings['trans_thread']=min(10,int(config.settings.get('trans_thread',5)))
+        config.settings['trans_thread'] = min(10, int(config.settings.get('trans_thread', 5)))
         return MyMemory(**kwargs).run()
     if translate_type == FREEGOOGLE_INDEX:
         from videotrans.translator._freegoogle import FreeGoogle
@@ -799,7 +799,6 @@ def run(*, translate_type=None,
     if translate_type == SILICONFLOW_INDEX:
         from videotrans.translator._siliconflow import SILICONFLOW
         return SILICONFLOW(**kwargs).run()
-
 
     if translate_type == AZUREGPT_INDEX:
         from videotrans.translator._azure import AzureGPT

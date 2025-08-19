@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Union
 
-
 import whisper
 import zhconv
 from pydub import AudioSegment
@@ -12,9 +11,6 @@ from pydub import AudioSegment
 from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
-
 
 """
 faster-whisper
@@ -22,6 +18,7 @@ openai-whisper
 funasr
 内置的本地大模型不重试
 """
+
 
 @dataclass
 class OpenaiWhisperRecogn(BaseRecogn):
@@ -138,6 +135,6 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 del self.model
             except:
                 pass
-        if not isinstance(self.raws,list) or len(self.raws) < 1:
+        if not isinstance(self.raws, list) or len(self.raws) < 1:
             raise RuntimeError('识别结果为空' if config.defaulelang == 'zh' else 'Recognition result is empty')
         return self.raws
