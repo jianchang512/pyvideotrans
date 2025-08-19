@@ -706,8 +706,11 @@ class WinAction(WinActionSub):
         Path(config.TEMP_DIR+'/stop_porcess.txt').unlink(missing_ok=True)
 
         if self.main.recogn_type.currentIndex() == recognition.FASTER_WHISPER or self.main.app_mode == 'biaozhun':
-            config.settings['backaudio_volume'] = float(self.main.bgmvolume.text())
             config.settings['loop_backaudio'] = self.main.is_loop_bgm.isChecked()
+            try:
+                config.settings['backaudio_volume'] = float(self.main.bgmvolume.text())
+            except:
+                pass
             if self.main.split_type.currentIndex() == 1:
                 try:
                     config.settings['interval_split'] = int(self.main.equal_split_time.text().strip())

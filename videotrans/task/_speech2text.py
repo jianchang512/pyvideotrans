@@ -43,7 +43,7 @@ class SpeechToText(BaseTask):
         self.cfg['shibie_audio'] = self.cfg['cache_folder'] + f'/{self.cfg["noextname"]}-{time.time()}.wav'
         self._signal(text='语音识别文字处理中' if config.defaulelang == 'zh' else 'Speech Recognition to Word Processing')
         self.copysrt_rawvideo=self.cfg.get('copysrt_rawvideo',False)
-        print(f'{self.copysrt_rawvideo=}')
+
     def prepare(self):
         if self._exit():
             return
@@ -119,7 +119,7 @@ class SpeechToText(BaseTask):
         except Exception as e:
             msg = f'{str(e)}'
             tools.send_notification(msg, f'{self.cfg["basename"]}')
-            self._signal(text=f"{msg}", type='error')
+            # self._signal(text=f"{msg}", type='error')
             raise
 
     def task_done(self):

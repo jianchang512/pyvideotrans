@@ -49,13 +49,10 @@ def show_error(tb_str,report=True):
     
     # 添加一个标准的“OK”按钮
     ok_button = msg_box.addButton(QtWidgets.QMessageBox.StandardButton.Ok)
-    
     # 添加自定义的“报告错误”按钮
     if report:
         report_button = msg_box.addButton("报告错误" if config.defaulelang=='zh' else "Report Error", QtWidgets.QMessageBox.ButtonRole.ActionRole)
-
     msg_box.setDefaultButton(ok_button)
-    
     msg_box.setStyleSheet("""
             QMessageBox {
                 min-width: 400px;
@@ -70,23 +67,19 @@ def show_error(tb_str,report=True):
         if clicked_button == report_button:
             import urllib.parse
             import os,platform,sys
-            from videotrans import VERSION     
-
-            
+            from videotrans import VERSION
             # 对全部错误信息进行URL编码
-            encoded_content = urllib.parse.quote(f"{tb_str}\n=====\n{platform.platform()}\nversion:{VERSION}\nfrozen:{getattr(sys, 'frozen', False)}\n")
-            
-
+            encoded_content = urllib.parse.quote(f"{tb_str}\n====="
+                                                 f"\n{platform.platform()}"
+                                                 f"\nversion:{VERSION}"
+                                                 f"\nfrozen:{getattr(sys, 'frozen', False)}"
+                                                 f"\nlanguage:{config.defaulelang}")
             full_url = f"https://bbs.pyvideotrans.com/?type=post&content={encoded_content}"
             
             # 调用系统默认浏览器打开链接
             QDesktopServices.openUrl(QUrl(full_url))
 
 
-        
-    
-    
-    
 def open_url(url=None, title: str = None):
     import webbrowser
     if url:

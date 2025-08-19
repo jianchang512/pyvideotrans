@@ -53,10 +53,10 @@ class TransCreate(BaseTask):
     def __post_init__(self):
         # 首先，处理本类的默认配置
         cfg_default = {
-            "cache_folder": None, 
+            "cache_folder": None,
             "target_dir": None,
             "remove_noise": False,
- 
+
             "detect_language": None,
             'subtitle_language': None,
             "source_language_code": None,
@@ -67,25 +67,25 @@ class TransCreate(BaseTask):
             "source_wav_output": "",
             "target_wav": "",
             "target_wav_output": "",
-            "novoice_mp4": None, 
-            "targetdir_mp4": None, 
-            "instrument": None, 
+            "novoice_mp4": None,
+            "targetdir_mp4": None,
+            "instrument": None,
             "vocal": None,
-            "shibie_audio": None, 
-            'background_music': None, 
+            "shibie_audio": None,
+            'background_music': None,
             'app_mode': "biaozhun",
-            "subtitle_type": 0, 
-            'only_video': False, 
-            "volume": "+0%", 
-            "pitch": "+0Hz", 
+            "subtitle_type": 0,
+            'only_video': False,
+            "volume": "+0%",
+            "pitch": "+0Hz",
             "voice_rate": "+0%",
-            "back_audio":None,
-            "voice_role":None,
-            "is_separate":False,
-            "subtitles":None,
-            "source_language":None,
-            "target_language":None,
-            "noextname":None
+            "back_audio": None,
+            "voice_role": None,
+            "is_separate": False,
+            "subtitles": None,
+            "source_language": None,
+            "target_language": None,
+            "noextname": None
         }
 
         final_cfg = cfg_default.copy()
@@ -150,8 +150,8 @@ class TransCreate(BaseTask):
             self._unlink_size0(self.cfg['instrument'])
             self._unlink_size0(self.cfg['vocal'])
             # 判断是否已存在
-            raw_instrument=f"{self.cfg['target_dir']}/instrument.wav"
-            raw_vocal=f"{self.cfg['target_dir']}/vocal.wav"
+            raw_instrument = f"{self.cfg['target_dir']}/instrument.wav"
+            raw_vocal = f"{self.cfg['target_dir']}/vocal.wav"
             if tools.vail_file(raw_instrument) and tools.vail_file(raw_vocal):
                 shutil.copy2(raw_instrument, self.cfg['instrument'])
                 shutil.copy2(raw_vocal, self.cfg['vocal'])
@@ -181,7 +181,8 @@ class TransCreate(BaseTask):
                 if self._exit():
                     return
                 time.sleep(2)
-                self._signal(text=f"{self.status_text} {int(time.time()-t)}s???{self.precent}", type="set_precent", nologs=True)
+                self._signal(text=f"{self.status_text} {int(time.time() - t)}s???{self.precent}", type="set_precent",
+                             nologs=True)
 
         threading.Thread(target=runing).start()
 
@@ -194,7 +195,8 @@ class TransCreate(BaseTask):
         if source_code:
             self.cfg['source_language_code'] = source_code
         # 检测字幕原始语言
-        self.cfg['detect_language'] = get_audio_code(show_source=self.cfg['source_language_code']) if self.cfg['source_language_code'] != 'auto' else 'auto'
+        self.cfg['detect_language'] = get_audio_code(show_source=self.cfg['source_language_code']) if self.cfg[
+                                                                                                          'source_language_code'] != 'auto' else 'auto'
         # 原始语言一定存在
         self.cfg['source_sub'] = f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.srt"
         # 原始语言wav
@@ -235,16 +237,20 @@ class TransCreate(BaseTask):
         if is_del:
             self._unlink_size0(self.cfg['source_sub'])
             self._unlink_size0(self.cfg['target_sub'])
-        if self.cfg['source_wav']:
-            Path(self.cfg['source_wav']).unlink(missing_ok=True)
-        if self.cfg['source_wav_output']:
-            Path(self.cfg['source_wav_output']).unlink(missing_ok=True)
-        if self.cfg['target_wav']:
-            Path(self.cfg['target_wav']).unlink(missing_ok=True)
-        if self.cfg['target_wav_output']:
-            Path(self.cfg['target_wav_output']).unlink(missing_ok=True)
-        if self.cfg['shibie_audio']:
-            Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
+        try:
+            # 删掉已存在的，可能会失败
+            if self.cfg['source_wav']:
+                Path(self.cfg['source_wav']).unlink(missing_ok=True)
+            if self.cfg['source_wav_output']:
+                Path(self.cfg['source_wav_output']).unlink(missing_ok=True)
+            if self.cfg['target_wav']:
+                Path(self.cfg['target_wav']).unlink(missing_ok=True)
+            if self.cfg['target_wav_output']:
+                Path(self.cfg['target_wav_output']).unlink(missing_ok=True)
+            if self.cfg['shibie_audio']:
+                Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
+        except Exception as e:
+            config.logger.warn(f'删除已存在的文件时失败:{e}')
 
     # 预处理，分离音视频、分离人声等
     # 修改不规则的名字
@@ -262,7 +268,8 @@ class TransCreate(BaseTask):
             config.queue_novice[self.cfg['noextname']] = 'end'
 
         # 添加是否保留背景选项
-        if self.cfg['is_separate'] and (not tools.vail_file(self.cfg['vocal']) or not tools.vail_file(self.cfg['instrument'])):
+        if self.cfg['is_separate'] and (
+                not tools.vail_file(self.cfg['vocal']) or not tools.vail_file(self.cfg['instrument'])):
             try:
                 self._signal(text=config.transobj['Separating background music'])
                 self.status_text = config.transobj['Separating background music']
@@ -270,7 +277,7 @@ class TransCreate(BaseTask):
             except Exception as e:
                 pass
             finally:
-                if not tools.vail_file(self.cfg['vocal']) or not tools.vail_file(self.cfg['instrument']) :
+                if not tools.vail_file(self.cfg['vocal']) or not tools.vail_file(self.cfg['instrument']):
                     # 分离失败
                     self.cfg['instrument'] = None
                     self.cfg['vocal'] = None
@@ -292,9 +299,9 @@ class TransCreate(BaseTask):
                 self._signal(text=str(e), type='error')
                 raise
         if self.cfg['source_wav']:
-            shutil.copy2(self.cfg['source_wav'], self.cfg['target_dir'] + f"/{os.path.basename(self.cfg['source_wav'])}")
+            shutil.copy2(self.cfg['source_wav'],
+                         self.cfg['target_dir'] + f"/{os.path.basename(self.cfg['source_wav'])}")
         self.status_text = config.transobj['endfenliyinpin']
-
 
     def _recogn_succeed(self) -> None:
         # 仅提取字幕
@@ -360,19 +367,18 @@ class TransCreate(BaseTask):
                     if not config.copying:
                         break
                     time.sleep(1)
-                cmdstr=" ".join(cmd)
+                cmdstr = " ".join(cmd)
                 outsrt_file = self.cfg['target_dir'] + '/' + Path(self.cfg['shibie_audio']).stem + ".srt"
                 config.logger.info(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg["source_sub"]=}')
-                
-                self._external_cmd_with_wrapper(cmd)
 
+                self._external_cmd_with_wrapper(cmd)
 
                 if outsrt_file != self.cfg['source_sub']:
                     try:
                         shutil.copy2(outsrt_file, self.cfg['source_sub'])
                     except shutil.SameFileError:
                         pass
-                    #Path(outsrt_file).unlink(missing_ok=True)
+                    # Path(outsrt_file).unlink(missing_ok=True)
                 self._signal(text=Path(self.cfg['source_sub']).read_text(encoding='utf-8'), type='replace_subtitle')
             else:
                 raw_subtitles = run_recogn(
@@ -418,7 +424,7 @@ class TransCreate(BaseTask):
             self.hasend = True
             self._signal(text=msg, type='error')
             tools.send_notification(msg, f'{self.cfg["basename"]}')
-            raise
+            raise RuntimeError(msg)
 
     def trans(self) -> None:
         if self._exit():
@@ -448,8 +454,6 @@ class TransCreate(BaseTask):
                 source_code=self.cfg['source_language_code'],
                 target_code=self.cfg['target_language_code']
             )
-            #
-
             self._save_srt_target(self._check_target_sub(rawsrt, target_srt), self.cfg['target_sub'])
 
             # 仅提取，该名字删原
@@ -462,10 +466,13 @@ class TransCreate(BaseTask):
                     shutil.copy2(self.cfg['target_sub'], f'{p.parent.as_posix()}/{p.stem}.srt')
 
                     shutil.rmtree(self.cfg['target_dir'], ignore_errors=True)
-                Path(self.cfg['source_sub']).unlink(missing_ok=True)
-                Path(self.cfg['target_sub']).unlink(missing_ok=True)
                 self.hasend = True
                 self.precent = 100
+                try:
+                    Path(self.cfg['source_sub']).unlink(missing_ok=True)
+                    Path(self.cfg['target_sub']).unlink(missing_ok=True)
+                except:
+                    pass  # 忽略删除错误
         except Exception as e:
             self.hasend = True
             self._signal(text=str(e), type='error')
@@ -490,7 +497,7 @@ class TransCreate(BaseTask):
                     0] not in config.ELEVENLABS_CLONE) or (
                         self.cfg['target_language_code'].split('-')[0] not in config.ELEVENLABS_CLONE):
                     self.hasend = True
-                    raise Exception('ElevenLabs: Cloning of the selected language is not supported')
+                    raise RuntimeError('ElevenLabs: Cloning of the selected language is not supported')
 
                 self.ignore_align = True
                 from videotrans.tts._elevenlabs import ElevenLabsClone
@@ -597,34 +604,39 @@ class TransCreate(BaseTask):
 
         # 提取时，删除
         if self.cfg['app_mode'] == 'tiqu':
-            Path(f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.srt").unlink(
-                missing_ok=True)
-            Path(f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}.srt").unlink(
-                missing_ok=True)
+            try:
+                Path(f"{self.cfg['target_dir']}/{self.cfg['source_language_code']}.srt").unlink(
+                    missing_ok=True)
+                Path(f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}.srt").unlink(
+                    missing_ok=True)
+            except:
+                pass  # 忽略删除失败
         # 仅保存视频
         elif self.cfg['only_video']:
             outputpath = Path(self.cfg['target_dir'])
             for it in outputpath.iterdir():
                 ext = it.suffix.lower()
                 if ext != '.mp4':
-                    it.unlink(missing_ok=True)
+                    try:
+                        it.unlink(missing_ok=True)
+                    except:
+                        pass
 
         self.hasend = True
         self.precent = 100
         self._signal(text=f"{self.cfg['name']}", type='succeed')
         tools.send_notification(config.transobj['Succeed'], f"{self.cfg['basename']}")
         try:
-            if 'shound_del_name' in self.cfg:
-                Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
             if self.cfg['only_video']:
                 mp4_path = Path(self.cfg['targetdir_mp4'])
                 mp4_path.rename(mp4_path.parent.parent / mp4_path.name)
                 shutil.rmtree(self.cfg['target_dir'], ignore_errors=True)
+            if 'shound_del_name' in self.cfg:
+                Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
             Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
             shutil.rmtree(self.cfg['cache_folder'], ignore_errors=True)
         except Exception as e:
             config.logger.exception(e, exc_info=True)
-
 
     # 从原始视频分离出 无声视频
     def _split_novoice_byraw(self):
@@ -642,7 +654,7 @@ class TransCreate(BaseTask):
         return tools.runffmpeg(cmd, noextname=self.cfg['noextname'])
 
     # 从原始视频中分离出音频
-    def _split_audio_byraw(self,is_separate=False):
+    def _split_audio_byraw(self, is_separate=False):
         cmd = [
             "-y",
             "-i",
@@ -679,7 +691,8 @@ class TransCreate(BaseTask):
         try:
             vocal_file = self.cfg['cache_folder'] + '/vocal.wav'
             if not tools.vail_file(vocal_file):
-                self._signal(text=config.transobj['Separating vocals and background music, which may take a longer time'])
+                self._signal(
+                    text=config.transobj['Separating vocals and background music, which may take a longer time'])
                 try:
                     st.start(audio=tmpfile, path=self.cfg['cache_folder'], uuid=self.uuid)
                 except Exception as e:
@@ -800,7 +813,6 @@ class TransCreate(BaseTask):
                 self.convert_to_wav(self.cfg['background_music'], bgm_file)
                 self.cfg['background_music'] = bgm_file
 
-
                 beishu = math.ceil(vtime / atime)
                 if config.settings['loop_backaudio'] and beishu > 1 and vtime - 1 > atime:
                     # 获取延长片段
@@ -813,21 +825,21 @@ class TransCreate(BaseTask):
                     self.cfg['background_music'] = self.cfg['cache_folder'] + "/bgm_file_extend.wav"
                 # 背景音频降低音量
                 tools.runffmpeg(
-                    ['-y', 
-                    '-i', self.cfg['background_music'], 
-                    "-filter:a", f"volume={config.settings['backaudio_volume']}",
-                    '-c:a', 'pcm_s16le',
-                    self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav"
-                    ])
+                    ['-y',
+                     '-i', self.cfg['background_music'],
+                     "-filter:a", f"volume={config.settings['backaudio_volume']}",
+                     '-c:a', 'pcm_s16le',
+                     self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav"
+                     ])
                 # 背景音频和配音合并
-                cmd = ['-y', 
-                    '-i', self.cfg['target_wav'], 
-                    '-i', self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav",
-                    '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", 
-                    '-ac', '2',
-                    '-c:a', 'pcm_s16le',
-                    self.cfg['cache_folder'] + f"/lastend.wav"
-                ]
+                cmd = ['-y',
+                       '-i', self.cfg['target_wav'],
+                       '-i', self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav",
+                       '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2",
+                       '-ac', '2',
+                       '-c:a', 'pcm_s16le',
+                       self.cfg['cache_folder'] + f"/lastend.wav"
+                       ]
                 tools.runffmpeg(cmd)
                 self.cfg['target_wav'] = self.cfg['cache_folder'] + f"/lastend.wav"
             except Exception as e:
@@ -864,7 +876,7 @@ class TransCreate(BaseTask):
                 config.logger.exception(e, exc_info=True)
 
     #  背景音乐是wav,配音人声是m4a，都在目标文件夹下，合并后最后文件仍为 人声文件，时长需要等于人声
-    def _backandvocal(self,backwav, peiyinm4a):
+    def _backandvocal(self, backwav, peiyinm4a):
         import tempfile
         backwav = Path(backwav).as_posix()
         peiyinm4a = Path(peiyinm4a).as_posix()
@@ -874,9 +886,9 @@ class TransCreate(BaseTask):
         # 背景转为m4a文件,音量降低为0.8
         self.convert_to_wav(backwav, tmpm4a, ["-filter:a", f"volume={config.settings['backaudio_volume']}"])
         tools.runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
-                   "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k", '-c:a', 'pcm_s16le', tmpwav])
+                         "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k",
+                         '-c:a', 'pcm_s16le', tmpwav])
         shutil.copy2(tmpwav, peiyinm4a)
-
 
     # 处理所需字幕
     def _process_subtitles(self) -> tuple[str, str]:

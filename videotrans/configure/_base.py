@@ -1,11 +1,7 @@
-import os,sys,subprocess,tempfile
-
+import os,subprocess
 from videotrans.util import tools
-
-
 from dataclasses import dataclass, field
 from typing import Optional
-
 
 @dataclass
 class BaseCon:
