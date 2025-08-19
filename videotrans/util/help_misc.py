@@ -28,10 +28,11 @@ def show_error(tb_str, report=True):
     """槽函数 显示对话框。"""
     from PySide6 import QtWidgets
     from PySide6.QtGui import QIcon, QDesktopServices
-    from PySide6.QtCore import QUrl
+    from PySide6.QtCore import QUrl, Qt
     from videotrans.configure import config
 
     msg_box = QtWidgets.QMessageBox()
+    msg_box.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint)
 
     icon_path = f"{config.ROOT_DIR}/videotrans/styles/icon.ico"
     try:
@@ -47,11 +48,15 @@ def show_error(tb_str, report=True):
 
     # 添加一个标准的“OK”按钮
     ok_button = msg_box.addButton(QtWidgets.QMessageBox.StandardButton.Ok)
+    if config.defaulelang == 'zh':
+        ok_button.setText("知道了")
+
     # 添加自定义的“报告错误”按钮
     if report:
         report_button = msg_box.addButton("报告错误" if config.defaulelang == 'zh' else "Report Error",
-                                          QtWidgets.QMessageBox.ButtonRole.ActionRole)
+                                          QtWidgets.QMessageBox.ButtonRole.NoRole)
     msg_box.setDefaultButton(ok_button)
+
     msg_box.setStyleSheet("""
             QMessageBox {
                 min-width: 400px;
@@ -60,8 +65,18 @@ def show_error(tb_str, report=True):
                 max-height: 700px;
             }
         """)
+    clicked_button_storage = None
+
+    # 2. 定义一个槽函数，当按钮被点击时，它会记录下是哪个按钮
+    def record_clicked_button(button):
+        nonlocal clicked_button_storage
+        clicked_button_storage = button
+
+    # 3. 将 buttonClicked 信号连接到我们的槽函数
+    msg_box.buttonClicked.connect(record_clicked_button)
+
     msg_box.exec()
-    if report:
+    if report and clicked_button_storage == report_button:
         clicked_button = msg_box.clickedButton()
         if clicked_button == report_button:
             import urllib.parse
