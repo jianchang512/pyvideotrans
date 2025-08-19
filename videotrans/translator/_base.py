@@ -4,10 +4,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Union
 
-import requests
-
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
+from videotrans.configure._except import TranslateSrtError
 from videotrans.util import tools
 
 
@@ -73,9 +72,15 @@ class BaseTrans(BaseCon):
             self.split_source_text = [source_text[i:i + self.trans_thread] for i in
                                       range(0, len(source_text), self.trans_thread)]
         config.logger.info(f'字幕翻译前准备2')
+        try:
+            if self.is_srt and self.aisendsrt:
+                return self._run_srt()
+            return self._run_text()
+        except Exception as e:
+            raise TranslateSrtError(f'{e}:{self.__class__.__name__}') from e
+
+    def _run_text(self):
         # 翻译字幕并且以完整srt格式发送
-        if self.is_srt and self.aisendsrt:
-            return self.runsrt()
         for i, it in enumerate(self.split_source_text):
             """ it=['你好啊我的朋友','第二行'] 
                 此时 _item_task 接收的是 list[str]
@@ -113,7 +118,6 @@ class BaseTrans(BaseCon):
                 self.inst.status_text = '字幕翻译中' if config.defaulelang == 'zh' else 'Translation of subtitles'
             time.sleep(self.wait_sec)
 
-
         # 恢复原代理设置
         if self.shound_del:
             self._set_proxy(type='del')
@@ -132,7 +136,7 @@ class BaseTrans(BaseCon):
 
     # 发送完整字幕格式内容进行翻译
     # 此时 _item_task 接收的是 srt格式的字符串
-    def runsrt(self):
+    def _run_srt(self):
         result_srt_str_list = []
         for i, it in enumerate(self.split_source_text):
             config.logger.info(f'#### [以完整SRT格式发送翻译]，it应是dict列表')
@@ -197,5 +201,3 @@ class BaseTrans(BaseCon):
         Path(config.TEMP_DIR + '/translate_cache').mkdir(parents=True, exist_ok=True)
         return tools.get_md5(
             f'{self.__class__.__name__}-{self.api_url}-{self.trans_thread}-{self.retry}-{self.wait_sec}-{self.iter_num}-{self.is_srt}-{self.aisendsrt}-{self.proxies}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')
-
-

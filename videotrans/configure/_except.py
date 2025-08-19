@@ -2,7 +2,7 @@ from elevenlabs.core import ApiError as ApiError_11
 from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
     APIConnectionError, APIError
 from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, \
-    Timeout, ConnectionError
+    Timeout, ConnectionError, RetryError
 
 from videotrans.configure import config
 
@@ -17,6 +17,8 @@ class RetryRaise:
         InvalidURL,  # URL 格式无效
         ProxyError,  # 代理配置错误
         SSLError,  # SSL 证书验证失败
+        RetryError,
+        ConnectionError,
 
         # openai 库的永久性错误 (通常是 4xx 状态码)
         AuthenticationError,  # 401 认证失败 (API Key 错误)
@@ -29,33 +31,68 @@ class RetryRaise:
     @classmethod
     def _raise(cls, retry_state):
         ex = retry_state.outcome.exception()
-        if ex:
-            config.logger.exception(f'重试{retry_state.attempt_number}次后失败：{ex}', exc_info=True)
+        if not ex:
+            raise RuntimeError(f"Retry failed after {retry_state.attempt_number} attempts without a final exception.")
 
-            if isinstance(ex, (AuthenticationError, PermissionDeniedError)):
-                raise RuntimeError((
-                                       '密钥错误或无权限访问该模型:' if config.defaulelang == 'zh' else 'Secret key error or no permission to access the model:') + ex.message)
-            if isinstance(ex, RateLimitError):
-                raise RuntimeError((
-                                       '请求频繁触发429，请调大暂停时间:' if config.defaulelang == 'zh' else 'Request triggered 429, please increase the pause time:') + ex.message)
-            if isinstance(ex, NotFoundError):
-                raise RuntimeError(
-                    ('请求API地址不存在:' if config.defaulelang == 'zh' else 'API address does not exist:') + ex.message)
-            if isinstance(ex, APIConnectionError):
-                raise RuntimeError(
-                    ('连接失败，请检查网络或代理' if config.defaulelang == 'zh' else 'Connection timed out') + f': {ex.message}')
+        config.logger.exception(f'重试{retry_state.attempt_number}次后失败：{ex}', exc_info=True)
+        lang = config.defaulelang
 
-            if isinstance(ex, APIError) or hasattr(ex, 'message'):
-                raise RuntimeError(ex.message)
+        # 键是异常类型（或类型的元组），值是一个处理函数（lambda），用于生成特定的错误消息。
+        exception_handlers = {
+            (AuthenticationError, PermissionDeniedError):
+                lambda
+                    e: f"{'密钥错误或无权限访问该模型:' if lang == 'zh' else 'Secret key error or no permission to access the model:'} {getattr(e, 'message', e)}",
 
-            if isinstance(ex, (Timeout, ConnectionError)):
-                raise RuntimeError(
-                    ('连接失败，请检查网络或代理' if config.defaulelang == 'zh' else 'Connection timed out') + f': {ex.args}')
-            if isinstance(ex, ApiError_11):
-                raise RuntimeError(ex.body.get('detail', {}).get('message', ''))
-            if not isinstance(ex, str) and hasattr(ex, 'body'):
-                raise RuntimeError(str(ex.body.get('detail', ex.body)) if not isinstance(ex.body, str) else ex.body)
-            if hasattr(ex, 'args'):
-                raise RuntimeError(ex.args)
-            raise RuntimeError(ex)
-        raise RuntimeError(f"Error:{retry_state.attempt_number} retries")
+            RateLimitError:
+                lambda
+                    e: f"{'请求频繁触发429，请调大暂停时间:' if lang == 'zh' else 'Request triggered 429, please increase the pause time:'} {getattr(e, 'message', e)}",
+
+            NotFoundError:
+                lambda
+                    e: f"{'请求API地址不存在或模型名称错误:' if lang == 'zh' else 'API address does not exist or model name is wrong:'} {getattr(e, 'message', e)}",
+
+            APIConnectionError:
+                lambda
+                    e: f"{'连接API失败，请检查网络或代理:' if lang == 'zh' else 'Failed to connect to API, check network or proxy:'} {getattr(e, 'message', e)}",
+
+            (Timeout, ConnectionError):
+                lambda
+                    e: f"{'连接超时，请检查网络或代理:' if lang == 'zh' else 'Connection timed out, check network or proxy:'} {e.args}",
+
+            ApiError_11:
+                lambda e: e.body.get('detail', {}).get('message', 'ElevenLabs API error without detailed message.'),
+
+            APIError:
+                lambda e: getattr(e, 'message', 'An unknown API error occurred.')
+        }
+
+        # 遍历映射，查找匹配的处理器
+        for exc_types, handler in exception_handlers.items():
+            if isinstance(ex, exc_types):
+                raise RuntimeError(handler(ex))
+
+        # --- 如果以上特定异常都未匹配，则执行以下通用后备逻辑 ---
+
+        if hasattr(ex, 'error'):
+            raise RuntimeError(str(ex.error.get('message', ex.error)))
+        if hasattr(ex, 'detail'):
+            raise RuntimeError(str(ex.detail))
+        if hasattr(ex, 'body') and ex.body:
+            raise RuntimeError(str(ex.body))
+        if hasattr(ex, 'args') and ex.args:
+            raise RuntimeError(ex.args)
+
+        # 如果没有任何匹配项，则直接重新抛出原始异常的字符串形式
+        raise RuntimeError(str(ex))
+
+
+class TranslateSrtError(Exception):
+    pass
+
+
+class DubbSrtError(Exception):
+    pass
+
+
+class SpeechToTextError(Exception):
+    pass

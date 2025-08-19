@@ -45,7 +45,7 @@ class Google(BaseTrans):
 
         re_result=re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<',response.text)
         if not re_result or len(re_result.groups())<1:
-            raise Exception(f'no result:{re_result=}')
+            raise RuntimeError(f'Google 翻译失败' if config.defaulelang == 'zh' else 'Google Translate error')
         return self.clean_srt(re_result.group(1)) if self.is_srt and self.aisendsrt else re_result.group(1)
 
     def clean_srt(self,srt):

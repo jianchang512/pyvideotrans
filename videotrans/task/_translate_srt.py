@@ -63,10 +63,11 @@ class TranslateSrt(BaseTask):
                 source_code=self.cfg['source_code'],
                 target_code=self.cfg['target_code'],
             )
+
             if self._exit():
                 return
             if not raw_subtitles or len(raw_subtitles) < 1:
-                raise Exception('Is emtpy '+self.cfg['basename'])
+                raise Exception('字幕翻译结果为空' if config.defaulelang=='zh' else 'Translation subtitles result is empty')
             raw_subtitles=self._check_target_sub(source_sub_list,raw_subtitles)
             if self.out_format==0:
                 self._save_srt_target(raw_subtitles, self.cfg['target_sub'])
@@ -88,9 +89,9 @@ class TranslateSrt(BaseTask):
                 print(f"{self.cfg['target_sub']=}")
                 self._signal(text=srt_string, type='replace')
         except Exception as e:
-            msg = f'{str(e)}'
-            tools.send_notification(msg, f'{self.cfg["basename"]}')
-            self._signal(text=f"{msg}", type='error')
+            # msg = f'{str(e)}'
+            # tools.send_notification(msg, f'{self.cfg["basename"]}')
+            # self._signal(text=f"{msg}", type='error')
             raise
 
 
