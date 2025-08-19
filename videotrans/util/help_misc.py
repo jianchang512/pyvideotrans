@@ -66,15 +66,11 @@ def show_error(tb_str, report=True):
             }
         """)
     clicked_button_storage = None
-
-    # 2. 定义一个槽函数，当按钮被点击时，它会记录下是哪个按钮
     def record_clicked_button(button):
         nonlocal clicked_button_storage
         clicked_button_storage = button
 
-    # 3. 将 buttonClicked 信号连接到我们的槽函数
     msg_box.buttonClicked.connect(record_clicked_button)
-
     msg_box.exec()
     if report and clicked_button_storage == report_button:
         clicked_button = msg_box.clickedButton()
