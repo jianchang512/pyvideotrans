@@ -3,7 +3,6 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPlainTextEdit
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -47,9 +46,6 @@ class Ui_senseform(object):
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.sense_url)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-
-
-
         self.set = QtWidgets.QPushButton(senseform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
@@ -66,10 +62,8 @@ class Ui_senseform(object):
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/sensevoice'))
 
-
         self.layout_btn = QtWidgets.QHBoxLayout()
         self.layout_btn.setObjectName("layout_btn")
-
 
         self.layout_btn.addWidget(self.set)
         self.layout_btn.addWidget(self.test)
@@ -81,9 +75,10 @@ class Ui_senseform(object):
         QtCore.QMetaObject.connectSlotsByName(senseform)
 
     def retranslateUi(self, senseform):
-        senseform.setWindowTitle("SenseVoice语音识别API" if config.defaulelang == 'zh' else 'SenseVoice Speech Recognition API')
+        senseform.setWindowTitle(
+            "SenseVoice语音识别API" if config.defaulelang == 'zh' else 'SenseVoice Speech Recognition API')
 
-        self.label.setText('API地址' if config.defaulelang=='zh' else 'API URL')
+        self.label.setText('API地址' if config.defaulelang == 'zh' else 'API URL')
         self.sense_url.setPlaceholderText('Api url')
         self.set.setText('保存' if config.defaulelang == 'zh' else 'Save')
         self.test.setText('测试' if config.defaulelang == 'zh' else 'Test')

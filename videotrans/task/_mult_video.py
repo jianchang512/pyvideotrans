@@ -7,7 +7,7 @@ from PySide6.QtCore import QThread
 from videotrans.configure import config
 from videotrans.task.trans_create import TransCreate
 from videotrans.util import tools
-from typing import Optional, List, Dict, Any
+
 
 class MultVideo(QThread):
     def __init__(self, *,
@@ -16,7 +16,7 @@ class MultVideo(QThread):
                  obj_list
                  ):
         super().__init__(parent=parent)
-        self.cfg=cfg
+        self.cfg = cfg
         # 存放处理好的 视频路径等信息
         self.obj_list = obj_list
 

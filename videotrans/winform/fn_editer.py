@@ -1,8 +1,6 @@
-from videotrans.configure import config
-
-
 # 字幕编辑
 def openwin():
+    from videotrans.configure import config
     from videotrans.component import SubtitleEditer
     try:
         winobj = config.child_forms.get('subtitle_editer')

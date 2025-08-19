@@ -1,15 +1,15 @@
 import logging
 import os
+from dataclasses import dataclass
 from typing import Optional
 
+from google.cloud import texttospeech
 from tenacity import retry, stop_after_attempt, wait_fixed, before_log, after_log, retry_if_not_exception_type
 
+from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
-from videotrans.configure import config
 from videotrans.util import tools
-from google.cloud import texttospeech
-from dataclasses import dataclass, field
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -27,16 +27,17 @@ try:
 except ImportError:
     TextToSpeechClient = None
 
+
 @dataclass
 class GoogleCloudTTS(BaseTTS):
     """
     TTS usando Google Cloud Text-to-Speech.
     """
-    client:Optional = None
-    cred_path:str=""
-    language_code:str=""
-    voice_name:str=""
-    encoding:str=""
+    client: Optional = None
+    cred_path: str = ""
+    language_code: str = ""
+    voice_name: str = ""
+    encoding: str = ""
 
     def __post_init__(self):
         super().__post_init__()
@@ -44,7 +45,7 @@ class GoogleCloudTTS(BaseTTS):
         self.language_code = config.params.get("gcloud_language_code", "en-US")
         self.voice_name = config.params.get("gcloud_voice_name", "")
         self.encoding = config.params.get("gcloud_audio_encoding", "MP3")
-        
+
         if not self.cred_path or not os.path.isfile(self.cred_path):
             raise RuntimeError("Arquivo de credenciais do Google Cloud TTS não configurado ou não encontrado")
 
@@ -77,11 +78,13 @@ class GoogleCloudTTS(BaseTTS):
                 - rate: taxa de fala como string (ex: "+10%", "-5%")
                 - pitch: tom da voz
         """
-        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+               after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
         def _run():
             if not data_item or tools.vail_file(data_item["filename"]):
                 return
-
 
             # checa dependências antes de tudo
             self._check_client()
@@ -147,7 +150,7 @@ class GoogleCloudTTS(BaseTTS):
             )
 
             # garante diretório
-            out_path = data_item["filename"]+".mp3"
+            out_path = data_item["filename"] + ".mp3"
             parent = os.path.dirname(out_path)
             if parent and not os.path.exists(parent):
                 os.makedirs(parent, exist_ok=True)
@@ -155,7 +158,7 @@ class GoogleCloudTTS(BaseTTS):
             # grava saída
             with open(out_path, "wb") as f:
                 f.write(response.audio_content)
-            self.convert_to_wav(out_path,data_item['filename'])
+            self.convert_to_wav(out_path, data_item['filename'])
             # atualiza progresso
             self.has_done += 1
             self.error = ""

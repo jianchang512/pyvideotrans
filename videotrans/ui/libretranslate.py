@@ -26,13 +26,12 @@ class Ui_libretranslateform(object):
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        
+
         self.formLayout_3 = QtWidgets.QFormLayout()
         self.formLayout_3.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_3.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
-        
-        
+
         self.label = QtWidgets.QLabel(libretranslateform)
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
@@ -42,7 +41,7 @@ class Ui_libretranslateform(object):
         self.address.setMinimumSize(QtCore.QSize(320, 35))
         self.address.setObjectName("address")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.address)
-        
+
         self.label2 = QtWidgets.QLabel(libretranslateform)
         self.label2.setMinimumSize(QtCore.QSize(100, 35))
         self.label2.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
@@ -52,11 +51,10 @@ class Ui_libretranslateform(object):
         self.key.setMinimumSize(QtCore.QSize(320, 35))
         self.key.setObjectName("key")
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.key)
-        
-        
+
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout.addLayout(self.formLayout_3)
-        
+
         self.set = QtWidgets.QPushButton(libretranslateform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
@@ -72,13 +70,12 @@ class Ui_libretranslateform(object):
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/libretranslate'))
 
-        h1=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
         h1.addWidget(self.set)
         h1.addWidget(self.test)
         h1.addWidget(help_btn)
 
         self.verticalLayout.addLayout(h1)
-
 
         self.retranslateUi(libretranslateform)
         QtCore.QMetaObject.connectSlotsByName(libretranslateform)

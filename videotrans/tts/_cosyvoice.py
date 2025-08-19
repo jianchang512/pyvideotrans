@@ -1,19 +1,17 @@
-import copy
+import os
+import logging
 import os
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 import requests
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
-
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -32,7 +30,9 @@ class CosyVoice(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+               after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return

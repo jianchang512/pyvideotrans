@@ -21,12 +21,11 @@ class Ui_chatgptform(object):
         chatgptform.setSizePolicy(sizePolicy)
         chatgptform.setMaximumSize(QtCore.QSize(600, 600))
 
-        v1=QtWidgets.QVBoxLayout(chatgptform)
-        h1=QtWidgets.QHBoxLayout()
-        h2=QtWidgets.QHBoxLayout()
-        h3=QtWidgets.QHBoxLayout()
-        h4=QtWidgets.QHBoxLayout()
-
+        v1 = QtWidgets.QVBoxLayout(chatgptform)
+        h1 = QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
+        h3 = QtWidgets.QHBoxLayout()
+        h4 = QtWidgets.QHBoxLayout()
 
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -34,7 +33,6 @@ class Ui_chatgptform(object):
         self.label_0.setText(
             'OpenAI及兼容的AI可在此使用(将作为LLM重新断句时的AI)' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here(For LLM re-segment)')
         v1.addWidget(self.label_0)
-
 
         self.label = QtWidgets.QLabel(chatgptform)
         self.label.setMinimumSize(QtCore.QSize(0, 35))
@@ -55,8 +53,8 @@ class Ui_chatgptform(object):
         self.chatgpt_key.setObjectName("chatgpt_key")
         h2.addWidget(self.label_2)
         h2.addWidget(self.chatgpt_key)
-        
-        h_token=QtWidgets.QHBoxLayout()
+
+        h_token = QtWidgets.QHBoxLayout()
 
         label_token = QtWidgets.QLabel(chatgptform)
         label_token.setObjectName("label_token")
@@ -67,8 +65,6 @@ class Ui_chatgptform(object):
 
         h_token.addWidget(label_token)
         h_token.addWidget(self.chatgpt_max_token)
-
-
 
         v1.addLayout(h2)
         v1.addLayout(h_token)
@@ -100,7 +96,6 @@ class Ui_chatgptform(object):
         v1.addWidget(self.label_4)
         v1.addWidget(self.chatgpt_template)
 
-
         self.set_chatgpt = QtWidgets.QPushButton(chatgptform)
         self.set_chatgpt.setMinimumSize(QtCore.QSize(0, 35))
         self.set_chatgpt.setObjectName("set_chatgpt")
@@ -125,7 +120,7 @@ class Ui_chatgptform(object):
         QtCore.QMetaObject.connectSlotsByName(chatgptform)
 
     def retranslateUi(self, chatgptform):
-        chatgptform.setWindowTitle("OpenAI API 及兼容AI" if  config.defaulelang == 'zh' else "OpenAI API & Compatible AI")
+        chatgptform.setWindowTitle("OpenAI API 及兼容AI" if config.defaulelang == 'zh' else "OpenAI API & Compatible AI")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
         self.chatgpt_template.setPlaceholderText("prompt")
         self.label_4.setText(

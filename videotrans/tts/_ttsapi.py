@@ -1,23 +1,22 @@
-import copy
+import sys
+import logging
 import sys
 import time
-from pathlib import Path
-from typing import Union, Dict, List
-from urllib.parse import urlparse
+from dataclasses import dataclass
+from typing import List, Dict
+from typing import Union
 
 import requests
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
+
 
 @dataclass
 class TTSAPI(BaseTTS):
@@ -34,7 +33,9 @@ class TTSAPI(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
-        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+               after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
         def _run():
             role = data_item['role'].strip()
 
@@ -71,7 +72,7 @@ class TTSAPI(BaseTTS):
                 time.sleep(RETRY_DELAY)
                 raise RuntimeError(self.error)
             # 返回的是音频url地址
-            tmp_filename = data_item['filename']+".mp3"
+            tmp_filename = data_item['filename'] + ".mp3"
             if isinstance(res['data'], str) and res['data'].startswith('http'):
                 url = res['data']
                 res = requests.get(url)
@@ -95,7 +96,9 @@ class TTSAPI(BaseTTS):
             self.error = ''
             self.has_done += 1
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+
         _run()
+
     def _apirequests(self, text, role, speed=1.0, volume=1.0, pitch=0):
         data = {"text": text.strip(),
                 "language": self.language[:2] if self.language else "",

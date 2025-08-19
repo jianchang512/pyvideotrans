@@ -21,11 +21,10 @@ class Ui_siliconflowform(object):
         siliconflowform.setSizePolicy(sizePolicy)
         siliconflowform.setMaximumSize(QtCore.QSize(600, 600))
 
-        v1=QtWidgets.QVBoxLayout(siliconflowform)
+        v1 = QtWidgets.QVBoxLayout(siliconflowform)
 
-        h3=QtWidgets.QHBoxLayout()
-        h4=QtWidgets.QHBoxLayout()
-
+        h3 = QtWidgets.QHBoxLayout()
+        h4 = QtWidgets.QHBoxLayout()
 
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -33,7 +32,6 @@ class Ui_siliconflowform(object):
         self.label_0.setText(
             '硅基流动在此填写api key')
         v1.addWidget(self.label_0)
-
 
         self.label_3 = QtWidgets.QLabel(siliconflowform)
         self.label_3.setObjectName("label_3")
@@ -43,9 +41,8 @@ class Ui_siliconflowform(object):
         h3.addWidget(self.label_3)
         h3.addWidget(self.guiji_key)
         v1.addLayout(h3)
-        
-        
-        h_model=QtWidgets.QHBoxLayout()
+
+        h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
         self.label_selectmodel.setText("选择使用模型")
@@ -66,8 +63,6 @@ class Ui_siliconflowform(object):
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-
-
         self.label_4 = QtWidgets.QLabel(siliconflowform)
         self.label_4.setObjectName("label_4")
 
@@ -76,16 +71,15 @@ class Ui_siliconflowform(object):
         v1.addWidget(self.label_4)
         v1.addWidget(self.template)
 
-
         self.set = QtWidgets.QPushButton(siliconflowform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
-        
+
         self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
         self.test.setText("Test")
-        
+
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
@@ -109,5 +103,5 @@ class Ui_siliconflowform(object):
         self.template.setPlaceholderText("prompt")
         self.label_4.setText(
             "{lang}代表目标语言名称，不要删除。")
-        self.set.setText('保存' )
+        self.set.setText('保存')
         self.guiji_key.setPlaceholderText("在此填写硅基流动的 API Key")

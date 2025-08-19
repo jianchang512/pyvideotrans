@@ -77,7 +77,7 @@ class Ui_peiyin(object):
         self.hecheng_language.setSizePolicy(sizePolicy)
         self.hecheng_language.setMinimumSize(QtCore.QSize(0, 30))
         self.hecheng_language.setObjectName("hecheng_language")
-        #self.hecheng_language.addItems(['-'] + config.langnamelist)
+        # self.hecheng_language.addItems(['-'] + config.langnamelist)
 
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_language)
         self.horizontalLayout_10.addLayout(self.formLayout_3)
@@ -171,9 +171,8 @@ class Ui_peiyin(object):
             "mp3",
             "m4a"
         ])
-        
-        self.save_to_srt=QtWidgets.QCheckBox()
-        
+
+        self.save_to_srt = QtWidgets.QCheckBox()
 
         self.edge_volume_layout.addWidget(self.volume_label)
         self.edge_volume_layout.addWidget(self.volume_rate)
@@ -192,16 +191,14 @@ class Ui_peiyin(object):
 
         self.hecheng_stop = QtWidgets.QPushButton()
         self.hecheng_stop.setFixedWidth(100)
-        self.hecheng_stop.setText('停止' if config.defaulelang=='zh' else 'Stop')
+        self.hecheng_stop.setText('停止' if config.defaulelang == 'zh' else 'Stop')
         self.hecheng_stop.setDisabled(True)
         self.hecheng_stop.setObjectName("hecheng_stop")
         self.hecheng_stop.setCursor(Qt.PointingHandCursor)
 
-        h1=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
         h1.addWidget(self.hecheng_startbtn)
         h1.addWidget(self.hecheng_stop)
-
-
 
         self.verticalLayout_4.addLayout(self.horizontalLayout_10)
         self.verticalLayout_4.addLayout(self.horizontalLayout_10_1)
@@ -238,6 +235,7 @@ class Ui_peiyin(object):
         self.hecheng_rate.setToolTip(box_lang.get("Negative deceleration, positive acceleration"))
         self.voice_autorate.setText(box_lang.get("Automatic acceleration?"))
         self.save_to_srt.setText("Save to original location" if config.defaulelang != 'zh' else '保存到原位置')
-        self.save_to_srt.setToolTip("If checked, the synthesized audio is saved to the original folder where the srt file is located." if config.defaulelang != 'zh' else '如果选中，则合成后音频保存到srt文件所在原文件夹内')
+        self.save_to_srt.setToolTip(
+            "If checked, the synthesized audio is saved to the original folder where the srt file is located." if config.defaulelang != 'zh' else '如果选中，则合成后音频保存到srt文件所在原文件夹内')
         self.hecheng_startbtn.setText(box_lang.get("Start"))
         self.hecheng_opendir.setText(box_lang.get("Open dir"))

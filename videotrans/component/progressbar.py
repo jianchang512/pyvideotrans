@@ -79,7 +79,8 @@ class ClickableProgressBar(QLabel):
     def setError(self, text=""):
         self.error = text
         self.ended = True
-        self.progress_bar.setToolTip('点击查看详细报错' if config.defaulelang=='zh' else 'Click to view the detailed error report')
+        self.progress_bar.setToolTip(
+            '点击查看详细报错' if config.defaulelang == 'zh' else 'Click to view the detailed error report')
         self.progress_bar.setFormat(f'  [{self.precent}%]  {text[:90]}   {self.basename}')
 
     # 设置按钮显示文字，如果已结束，则不设置，直接返回

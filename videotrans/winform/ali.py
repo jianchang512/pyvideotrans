@@ -1,16 +1,11 @@
-from PySide6 import QtWidgets
-
-from videotrans import translator
-from videotrans.configure import config
-# set baidu
-from videotrans.util import tools
-from videotrans.util.TestSrtTrans import TestSrtTrans
-
-
 def openwin():
+    from PySide6 import QtWidgets
+    from videotrans.configure import config
+    from videotrans.util import tools
+    from videotrans.util.TestSrtTrans import TestSrtTrans
     def feed(d):
         if not d.startswith("ok"):
-            tools.show_error( d)
+            tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
@@ -27,12 +22,14 @@ def openwin():
         appid = winobj.ali_id.text()
         miyue = winobj.ali_key.text()
         if not appid or not miyue:
-            return tools.show_error('必须填写 AccessKey ID 和 AccessKey Secret 等信息' if config.defaulelang == 'zh' else 'Please input AccessKey ID and AccessKey Secret',False)
+            return tools.show_error(
+                '必须填写 AccessKey ID 和 AccessKey Secret 等信息' if config.defaulelang == 'zh' else 'Please input AccessKey ID and AccessKey Secret',
+                False)
         config.params["ali_id"] = appid
         config.params["ali_key"] = miyue
 
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
-
+        from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.ALI_INDEX)
         task.uito.connect(feed)
         task.start()

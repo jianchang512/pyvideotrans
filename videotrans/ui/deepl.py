@@ -15,8 +15,6 @@ class Ui_deeplform(object):
         deeplform.setWindowModality(QtCore.Qt.NonModal)
         deeplform.setMinimumSize(QtCore.QSize(550, 330))
 
-
-
         self.verticalLayout = QtWidgets.QVBoxLayout(deeplform)
         self.verticalLayout.setObjectName("verticalLayout")
 
@@ -81,13 +79,12 @@ class Ui_deeplform(object):
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/deepl'))
 
-        h1=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
         h1.addWidget(self.set_deepl)
         h1.addWidget(self.test)
         h1.addWidget(help_btn)
 
         self.verticalLayout.addLayout(h1)
-
 
         self.retranslateUi(deeplform)
         QtCore.QMetaObject.connectSlotsByName(deeplform)

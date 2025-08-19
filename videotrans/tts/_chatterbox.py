@@ -1,22 +1,21 @@
-import copy
 import os
-import time
 from pathlib import Path
 
+import logging
+import os
+from dataclasses import dataclass
+from pathlib import Path
+from typing import List, Dict, Union
 
 import httpx
 import requests
-from openai import OpenAI, APIConnectionError
+from openai import OpenAI
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional,Union
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
-
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -34,7 +33,9 @@ class ChatterBoxTTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
-        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+               after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
         def _run():
             role = data_item['role']
             if self._exit() or tools.vail_file(data_item['filename']):
@@ -58,14 +59,16 @@ class ChatterBoxTTS(BaseTTS):
                 response_format="mp3"  # 请求mp3格式
             )
 
-            response.stream_to_file(data_item['filename']+".mp3")
-            self.convert_to_wav(data_item['filename']+".mp3", data_item['filename'])
+            response.stream_to_file(data_item['filename'] + ".mp3")
+            self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
             self.has_done += 1
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.error = ''
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+
         _run()
+
     def _item_task_clone(self, text, role, ref_wav=None, filename=None):
         import mimetypes
         if ref_wav:
@@ -102,6 +105,6 @@ class ChatterBoxTTS(BaseTTS):
             # 检查HTTP响应状态码，如果不是2xx，则会引发HTTPError
             response.raise_for_status()
             # 将返回的二进制音频内容写入文件
-            with open(filename+".mp3", 'wb') as output_file:
+            with open(filename + ".mp3", 'wb') as output_file:
                 output_file.write(response.content)
-            self.convert_to_wav(filename+".mp3", filename)
+            self.convert_to_wav(filename + ".mp3", filename)

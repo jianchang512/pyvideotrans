@@ -3,7 +3,6 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -51,7 +50,7 @@ class Ui_ottform(object):
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/ott'))
 
-        h1=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
         h1.addWidget(self.set_ott)
         h1.addWidget(help_btn)
         self.verticalLayout.addLayout(h1)

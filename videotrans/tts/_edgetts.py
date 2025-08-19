@@ -1,4 +1,5 @@
 import asyncio
+from dataclasses import dataclass
 from pathlib import Path
 
 import aiohttp
@@ -7,9 +8,6 @@ from edge_tts.exceptions import NoAudioReceived
 
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
-
 
 # --- 常量定义 ---
 # 最大并发数，可以根据需要调整，或者放入配置文件
@@ -29,7 +27,7 @@ class EdgeTTS(BaseTTS):
         if proxy_file.is_file():
             try:
                 proxy_str = proxy_file.read_text(encoding='utf-8').strip()
-                if proxy_str: # 确保文件不是空的
+                if proxy_str:  # 确保文件不是空的
                     found_proxy = 'http://' + proxy_str
                     config.logger.info(f"从 {proxy_file} 加载代理: {found_proxy}")
             except:
@@ -56,7 +54,8 @@ class EdgeTTS(BaseTTS):
                 await asyncio.sleep(self.wait_sec)
 
             # 移除可能存在的说话人标签
-            config.logger.info(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}]: {self.rate=},{self.volume=},{self.pitch=}, {item['text']}")
+            config.logger.info(
+                f"[Edge-TTS]配音 [{index + 1}/{total_tasks}]: {self.rate=},{self.volume=},{self.pitch=}, {item['text']}")
 
             for attempt in range(RETRY_NUMS):
                 try:
@@ -68,8 +67,8 @@ class EdgeTTS(BaseTTS):
                         proxy=self.proxies,
                         pitch=self.pitch
                     )
-                    await communicate.save(item['filename']+".mp3")
-                    self.convert_to_wav(item['filename']+".mp3", item['filename'])
+                    await communicate.save(item['filename'] + ".mp3")
+                    self.convert_to_wav(item['filename'] + ".mp3", item['filename'])
 
                     # 成功后，更新进度并立即返回
                     if self.inst:
@@ -89,16 +88,15 @@ class EdgeTTS(BaseTTS):
                         f"{RETRY_DELAY} 秒后重试..."
                     )
                     config.logger.error(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 在 {RETRY_NUMS} 次尝试后最终失败。")
-                    self.error=str(e)
-                    self._signal(text=f"{item.get('line','')} retry {attempt}: "+self.error)
+                    self.error = str(e)
+                    self._signal(text=f"{item.get('line', '')} retry {attempt}: " + self.error)
                     await asyncio.sleep(RETRY_DELAY)
                 except Exception as e:
                     # 捕获其他未知异常
                     config.logger.exception(e, exc_info=True)
-                    self.error=str(e.args)
-                    self._signal(text=f"{item.get('line','')} retry {attempt}: "+self.error)
+                    self.error = str(e.args)
+                    self._signal(text=f"{item.get('line', '')} retry {attempt}: " + self.error)
                     await asyncio.sleep(RETRY_DELAY)
-
 
     async def _task_queue(self):
         """
@@ -135,10 +133,8 @@ class EdgeTTS(BaseTTS):
         finally:
             print('配音完毕')
 
-
     # 执行入口，外部会调用该方法
     async def _exec(self) -> None:
         if self._exit():
             return
         await self._task_queue()
-

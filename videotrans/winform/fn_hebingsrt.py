@@ -1,17 +1,14 @@
-import json
-from pathlib import Path
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
-from videotrans.configure import config
-from videotrans.util import tools
-
-
 # 合并2个srt
 def openwin():
+    import json
+    from pathlib import Path
+
+    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QFileDialog
+
+    from videotrans.configure import config
+    from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/Mergersrt"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
@@ -51,7 +48,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            tools.show_error( d['text'])
+            tools.show_error(d['text'])
         elif d['type'] == 'logs':
             winobj.startbtn.setText(d['text'])
         else:
@@ -76,7 +73,9 @@ def openwin():
         srt1 = winobj.srtinput1.text()
         srt2 = winobj.srtinput2.text()
         if not srt1 or not srt2:
-            tools.show_error('必须选择字幕文件1和字幕文件2' if config.defaulelang == 'zh' else 'Subtitle File 1 and Subtitle File 2 must be selected',False)
+            tools.show_error(
+                '必须选择字幕文件1和字幕文件2' if config.defaulelang == 'zh' else 'Subtitle File 1 and Subtitle File 2 must be selected',
+                False)
             return
 
         winobj.startbtn.setText('执行合并中...' if config.defaulelang == 'zh' else 'Consolidation in progress...')

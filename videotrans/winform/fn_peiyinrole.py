@@ -1,110 +1,108 @@
-import copy
-import re
-import json
-import os
-import shutil
-import threading
-import time
-from pathlib import Path
+def openwin():
+    import copy
+    import json
+    import os
+    import threading
+    import time
+    from pathlib import Path
 
+    from PySide6.QtCore import QUrl, QThread, Signal, Qt
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QFileDialog
 
-from PySide6.QtCore import QUrl, QThread, Signal, Qt, QSize
-from PySide6.QtGui import QDesktopServices, QIcon
-from PySide6.QtWidgets import (QMessageBox, QFileDialog, QWidget, QVBoxLayout, QHBoxLayout,
-                               QPushButton, QComboBox, QLabel, QFormLayout, QSpinBox,
-                               QCheckBox, QScrollArea, QSizePolicy)
+    from videotrans.configure import config
 
-from videotrans import translator, tts
-from videotrans.configure import config
-from videotrans.task._dubbing import DubbingSrt
-from videotrans.tts import (EDGE_TTS, AZURE_TTS, AI302_TTS, OPENAI_TTS,QWEN_TTS, GPTSOVITS_TTS, CHATTERBOX_TTS,
-                            COSYVOICE_TTS, FISHTTS, F5_TTS, CHATTTS, GOOGLE_TTS, ELEVENLABS_TTS,
-                            CLONE_VOICE_TTS, TTS_API, GEMINI_TTS, is_input_api, is_allow_lang,
-                            VOLCENGINE_TTS, KOKORO_TTS)
-from videotrans.util import tools
+    from videotrans.util import tools
 
-from PySide6 import QtCore, QtWidgets
+    class SignThread(QThread):
+        uito = Signal(str)
 
+        def __init__(self, uuid_list=None, parent=None):
+            super().__init__(parent=parent)
+            self.uuid_list = uuid_list
 
+        def post(self, jsondata):
+            self.uito.emit(json.dumps(jsondata))
 
-# ==================== 信号处理线程 ====================
-class SignThread(QThread):
-    uito = Signal(str)
+        def run(self):
+            length = len(self.uuid_list)
+            while 1:
+                if len(self.uuid_list) == 0 or config.exit_soft:
+                    self.post({"type": "end"})
+                    time.sleep(1)
+                    return
 
-    def __init__(self, uuid_list=None, parent=None):
-        super().__init__(parent=parent)
-        self.uuid_list = uuid_list
-
-    def post(self, jsondata):
-        self.uito.emit(json.dumps(jsondata))
-
-    def run(self):
-        length = len(self.uuid_list)
-        while 1:
-            if len(self.uuid_list) == 0 or config.exit_soft:
-                self.post({"type": "end"})
-                time.sleep(1)
-                return
-
-            for uuid in self.uuid_list:
-                if uuid in config.stoped_uuid_set:
+                for uuid in self.uuid_list:
+                    if uuid in config.stoped_uuid_set:
+                        try:
+                            self.uuid_list.remove(uuid)
+                        except:
+                            pass
+                        continue
+                    q = config.uuid_logs_queue.get(uuid)
+                    if not q:
+                        continue
                     try:
-                        self.uuid_list.remove(uuid)
+                        if q.empty():
+                            time.sleep(0.5)
+                            continue
+                        data = q.get(block=False)
+                        if not data:
+                            continue
+                        self.post(data)
+                        if data['type'] in ['error', 'succeed']:
+                            self.uuid_list.remove(uuid)
+                            self.post(
+                                {"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
+                            config.stoped_uuid_set.add(uuid)
+                            del config.uuid_logs_queue[uuid]
                     except:
                         pass
-                    continue
-                q = config.uuid_logs_queue.get(uuid)
-                if not q:
-                    continue
-                try:
-                    if q.empty():
-                        time.sleep(0.5)
-                        continue
-                    data = q.get(block=False)
-                    if not data:
-                        continue
-                    self.post(data)
-                    if data['type'] in ['error', 'succeed']:
-                        self.uuid_list.remove(uuid)
-                        self.post({"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
-                        config.stoped_uuid_set.add(uuid)
-                        del config.uuid_logs_queue[uuid]
-                except:
-                    pass
 
-# ==================== 语言字典 (完整版) ====================
-langname_dict={
-    "zh-cn": "中文简", "zh-tw": "中文繁","yue":"粤语", "en": "英语", "fr": "法语", "de": "德语", "ja": "日语", "ko": "韩语", "ru": "俄语", "es": "西班牙语",
-    "th": "泰国语", "it": "意大利语", "pt": "葡萄牙语", "vi": "越南语", "ar": "阿拉伯语", "tr": "土耳其语", "hi": "印度语", "hu": "匈牙利语",
-    "uk": "乌克兰语", "id": "印度尼西亚", "ms": "马来语", "kk": "哈萨克语", "cs": "捷克语", "pl": "波兰语", "nl": "荷兰语", "sv": "瑞典语",
-    "he": "希伯来语", "bn":"孟加拉语", "fil":"菲律宾语", "af": "南非荷兰语", "sq": "阿尔巴尼亚语", "am": "阿姆哈拉语", "az": "阿塞拜疆语",
-    "bs": "波斯尼亚语", "bg": "保加利亚语", "my": "缅甸语", "ca": "加泰罗尼亚语", "hr": "克罗地亚语", "da": "丹麦语", "et": "爱沙尼亚语",
-    "fi": "芬兰语", "gl": "加利西亚语", "ka": "格鲁吉亚语", "el": "希腊语", "gu": "古吉拉特语", "is": "冰岛语", "iu": "因纽特语", "ga": "爱尔兰语",
-    "jv": "爪哇语", "kn": "卡纳达语", "km": "高棉语", "lo": "老挝语", "lv": "拉脱维亚语", "lt": "立陶宛语", "mk": "马其顿语", "ml": "马拉雅拉姆语",
-    "mt": "马耳他语", "mr": "马拉地语", "mn": "蒙古语", "ne": "尼泊尔语", "nb": "挪威语(书面挪威语)", "ps": "普什图语", "fa": "波斯语", "ro": "罗马尼亚语",
-    "sr": "塞尔维亚语", "si": "僧伽罗语", "sk": "斯洛伐克语", "sl": "斯洛文尼亚语", "so": "索马里语", "su": "巽他语", "sw": "斯瓦希里语",
-    "ta": "泰米尔语", "te": "泰卢固语", "ur": "乌尔都语", "uz": "乌兹别克语", "cy": "威尔士语", "zu": "祖鲁语"
-}
-if config.defaulelang !='zh':
-    langname_dict={
-        "zh-cn": "Simplified Chinese", "zh-tw": "Traditional Chinese","yue":"Cantonese", "en": "English", "fr": "French", "de": "German", "ja": "Japanese",
-        "ko": "Korean", "ru": "Russian", "es": "Spanish", "th": "Thai", "it": "Italian", "pt": "Portuguese", "vi": "Vietnamese",
-        "ar": "Arabic", "tr": "Turkish", "hi": "Hindi", "hu": "Hungarian", "uk": "Ukrainian", "id": "Indonesian", "ms": "Malay",
-        "kk": "Kazakh", "cs": "Czech", "pl": "Polish", "nl": "Dutch", "sv": "Swedish", "he": "Hebrew", "bn":"Bengali", "fil":"Filipino",
-        "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "az": "Azerbaijani", "bs": "Bosnian", "bg": "Bulgarian", "my": "Burmese",
-        "ca": "Catalan", "hr": "Croatian", "da": "Danish", "et": "Estonian", "fi": "Finnish", "gl": "Galician", "ka": "Georgian",
-        "el": "Greek", "gu": "Gujarati", "is": "Icelandic", "iu": "Inuktitut", "ga": "Irish", "jv": "Javanese", "kn": "Kannada",
-        "km": "Khmer", "lo": "Lao", "lv": "Latvian", "lt": "Lithuanian", "mk": "Macedonian", "ml": "Malayalam", "mt": "Maltese",
-        "mr": "Marathi", "mn": "Mongolian", "ne": "Nepali", "nb": "Norwegian Bokmål", "ps": "Pashto", "fa": "Persian", "ro": "Romanian",
-        "sr": "Serbian", "si": "Sinhala", "sk": "Slovak", "sl": "Slovenian", "so": "Somali", "su": "Sundanese", "sw": "Swahili",
-        "ta": "Tamil", "te": "Telugu", "ur": "Urdu", "uz": "Uzbek", "cy": "Welsh", "zu": "Zulu"
+    # ==================== 语言字典 (完整版) ====================
+    langname_dict = {
+        "zh-cn": "中文简", "zh-tw": "中文繁", "yue": "粤语", "en": "英语", "fr": "法语", "de": "德语", "ja": "日语", "ko": "韩语",
+        "ru": "俄语", "es": "西班牙语",
+        "th": "泰国语", "it": "意大利语", "pt": "葡萄牙语", "vi": "越南语", "ar": "阿拉伯语", "tr": "土耳其语", "hi": "印度语", "hu": "匈牙利语",
+        "uk": "乌克兰语", "id": "印度尼西亚", "ms": "马来语", "kk": "哈萨克语", "cs": "捷克语", "pl": "波兰语", "nl": "荷兰语", "sv": "瑞典语",
+        "he": "希伯来语", "bn": "孟加拉语", "fil": "菲律宾语", "af": "南非荷兰语", "sq": "阿尔巴尼亚语", "am": "阿姆哈拉语", "az": "阿塞拜疆语",
+        "bs": "波斯尼亚语", "bg": "保加利亚语", "my": "缅甸语", "ca": "加泰罗尼亚语", "hr": "克罗地亚语", "da": "丹麦语", "et": "爱沙尼亚语",
+        "fi": "芬兰语", "gl": "加利西亚语", "ka": "格鲁吉亚语", "el": "希腊语", "gu": "古吉拉特语", "is": "冰岛语", "iu": "因纽特语", "ga": "爱尔兰语",
+        "jv": "爪哇语", "kn": "卡纳达语", "km": "高棉语", "lo": "老挝语", "lv": "拉脱维亚语", "lt": "立陶宛语", "mk": "马其顿语", "ml": "马拉雅拉姆语",
+        "mt": "马耳他语", "mr": "马拉地语", "mn": "蒙古语", "ne": "尼泊尔语", "nb": "挪威语(书面挪威语)", "ps": "普什图语", "fa": "波斯语",
+        "ro": "罗马尼亚语",
+        "sr": "塞尔维亚语", "si": "僧伽罗语", "sk": "斯洛伐克语", "sl": "斯洛文尼亚语", "so": "索马里语", "su": "巽他语", "sw": "斯瓦希里语",
+        "ta": "泰米尔语", "te": "泰卢固语", "ur": "乌尔都语", "uz": "乌兹别克语", "cy": "威尔士语", "zu": "祖鲁语"
     }
+    if config.defaulelang != 'zh':
+        langname_dict = {
+            "zh-cn": "Simplified Chinese", "zh-tw": "Traditional Chinese", "yue": "Cantonese", "en": "English",
+            "fr": "French", "de": "German", "ja": "Japanese",
+            "ko": "Korean", "ru": "Russian", "es": "Spanish", "th": "Thai", "it": "Italian", "pt": "Portuguese",
+            "vi": "Vietnamese",
+            "ar": "Arabic", "tr": "Turkish", "hi": "Hindi", "hu": "Hungarian", "uk": "Ukrainian", "id": "Indonesian",
+            "ms": "Malay",
+            "kk": "Kazakh", "cs": "Czech", "pl": "Polish", "nl": "Dutch", "sv": "Swedish", "he": "Hebrew",
+            "bn": "Bengali", "fil": "Filipino",
+            "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "az": "Azerbaijani", "bs": "Bosnian",
+            "bg": "Bulgarian", "my": "Burmese",
+            "ca": "Catalan", "hr": "Croatian", "da": "Danish", "et": "Estonian", "fi": "Finnish", "gl": "Galician",
+            "ka": "Georgian",
+            "el": "Greek", "gu": "Gujarati", "is": "Icelandic", "iu": "Inuktitut", "ga": "Irish", "jv": "Javanese",
+            "kn": "Kannada",
+            "km": "Khmer", "lo": "Lao", "lv": "Latvian", "lt": "Lithuanian", "mk": "Macedonian", "ml": "Malayalam",
+            "mt": "Maltese",
+            "mr": "Marathi", "mn": "Mongolian", "ne": "Nepali", "nb": "Norwegian Bokmål", "ps": "Pashto",
+            "fa": "Persian", "ro": "Romanian",
+            "sr": "Serbian", "si": "Sinhala", "sk": "Slovak", "sl": "Slovenian", "so": "Somali", "su": "Sundanese",
+            "sw": "Swahili",
+            "ta": "Tamil", "te": "Telugu", "ur": "Urdu", "uz": "Uzbek", "cy": "Welsh", "zu": "Zulu"
+        }
 
-
-# ==================== 功能操作 (修改后) ====================
-def openwin():
     RESULT_DIR = config.HOME_DIR + "/tts"
     Path(RESULT_DIR).mkdir(exist_ok=True)
+    from videotrans.task._dubbing import DubbingSrt
+    from videotrans import translator, tts
 
     def feed(d):
         if winobj.has_done or config.box_tts != 'ing':
@@ -142,12 +140,13 @@ def openwin():
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
-            return tools.show_error(f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen',False)
+            return tools.show_error(f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen',
+                                    False)
         text = config.params[f'listen_text_{lang}']
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
-            return tools.show_error(config.transobj['mustberole'],False)
-        voice_dir = config.TEMP_DIR+'/listen_voice'
+            return tools.show_error(config.transobj['mustberole'], False)
+        voice_dir = config.TEMP_DIR + '/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
 
@@ -172,32 +171,35 @@ def openwin():
 
         if role == 'clone':
             return
-        threading.Thread(target=tts.run, kwargs={'language':lang, "queue_tts": [obj], "play": True, "is_test": True}).start()
+        threading.Thread(target=tts.run,
+                         kwargs={'language': lang, "queue_tts": [obj], "play": True, "is_test": True}).start()
 
     def change_by_lang(type):
-        return type in [EDGE_TTS, AZURE_TTS, VOLCENGINE_TTS, AI302_TTS, KOKORO_TTS]
+        return type in [tts.EDGE_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]
 
     def hecheng_start_fun():
         nonlocal RESULT_DIR
         if not winobj.srt_path:
-            return tools.show_error('请先导入一个 SRT 字幕文件' if config.defaulelang == 'zh' else 'Please import an SRT subtitle file first.',False)
+            return tools.show_error(
+                '请先导入一个 SRT 字幕文件' if config.defaulelang == 'zh' else 'Please import an SRT subtitle file first.', False)
 
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         language = winobj.hecheng_language.currentText()
-        role = winobj.hecheng_role.currentText() # Default role
+        role = winobj.hecheng_role.currentText()  # Default role
         rate = int(winobj.hecheng_rate.value())
         tts_type = winobj.tts_type.currentIndex()
 
-        if language == '-' or role in ['No','-','']:
-            return tools.show_error('必须选择一个默认角色' if config.defaulelang=='zh' else 'A default role must be selected',False)
-                                        
-        if is_input_api(tts_type=tts_type) is not True:
+        if language == '-' or role in ['No', '-', '']:
+            return tools.show_error('必须选择一个默认角色' if config.defaulelang == 'zh' else 'A default role must be selected',
+                                    False)
+
+        if tts.is_input_api(tts_type=tts_type) is not True:
             return False
 
-        if tts_type != EDGE_TTS:
+        if tts_type != tts.EDGE_TTS:
             langcode = translator.get_code(show_text=language)
-            is_allow_lang_res = is_allow_lang(langcode=langcode, tts_type=tts_type)
+            is_allow_lang_res = tts.is_allow_lang(langcode=langcode, tts_type=tts_type)
             if is_allow_lang_res is not True:
                 winobj.loglabel.setText(is_allow_lang_res)
             else:
@@ -205,9 +207,8 @@ def openwin():
         else:
             code_list = [key for key, value in langname_dict.items() if value == language]
             if not code_list:
-                return tools.show_error(f'{language} is not support -1',False)
+                return tools.show_error(f'{language} is not support -1', False)
             langcode = code_list[0]
-        
 
         if rate >= 0:
             rate = f"+{rate}%"
@@ -217,20 +218,14 @@ def openwin():
         pitch = int(winobj.pitch_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
-        
+
         if winobj.save_to_srt.isChecked():
             RESULT_DIR = Path(winobj.srt_path).parent.as_posix()
-        
-        # NOTE: The backend `DubbingSrt` must be modified to handle `config.dubbing_role`.
-        # It should check `config.dubbing_role` for a specific role for each subtitle index,
-        # and if not found, use the default `voice_role` passed here.
-        print("Starting dubbing process with role map:", config.dubbing_role)
-        #return
 
         config.box_tts = 'ing'
         video_obj = tools.format_video(winobj.srt_path, None)
         uuid = video_obj['uuid']
-        
+
         trk = DubbingSrt(cfg={
             "voice_role": role,  # Default role
             "cache_folder": config.TEMP_HOME + f'/{uuid}',
@@ -243,7 +238,7 @@ def openwin():
             "uuid": uuid,
             "pitch": pitch,
             "tts_type": tts_type,
-            "is_multi_role":True,
+            "is_multi_role": True,
             "out_ext": winobj.out_format.currentText(),
             "voice_autorate": winobj.voice_autorate.isChecked()
         }, obj=video_obj)
@@ -276,21 +271,21 @@ def openwin():
         winobj.hecheng_stop.setDisabled(True)
 
     def getlangnamelist(tts_type=0):
-        if tts_type != EDGE_TTS:
+        if tts_type != tts.EDGE_TTS:
             return ['-'] + config.langnamelist
         return ['-'] + list(langname_dict.values())
 
     def tts_type_change(type):
         """TTS类型改变时的处理函数"""
         winobj.reset_assigned_roles()
-        
+
         if change_by_lang(type):
             winobj.volume_rate.setDisabled(False)
             winobj.pitch_rate.setDisabled(False)
         else:
             winobj.volume_rate.setDisabled(True)
             winobj.pitch_rate.setDisabled(True)
-        
+
         current_text = winobj.hecheng_language.currentText()
         winobj.hecheng_language.clear()
         langnamelist = getlangnamelist(type)
@@ -298,33 +293,33 @@ def openwin():
         if current_text in langnamelist:
             winobj.hecheng_language.setCurrentText(current_text)
 
-        if type != EDGE_TTS:
+        if type != tts.EDGE_TTS:
             code = translator.get_code(show_text=current_text)
-            is_allow_lang_res = is_allow_lang(langcode=code, tts_type=type)
+            is_allow_lang_res = tts.is_allow_lang(langcode=code, tts_type=type)
             if is_allow_lang_res is not True:
-                winobj.loglabel.setText( is_allow_lang_res)
+                winobj.loglabel.setText(is_allow_lang_res)
             else:
                 winobj.loglabel.setText('')
-            if is_input_api(tts_type=type) is not True:
+            if tts.is_input_api(tts_type=type) is not True:
                 winobj.tts_type.setCurrentIndex(0)
                 return False
-        
-        if type == GOOGLE_TTS:
+
+        if type == tts.GOOGLE_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(['gtts'])
-        elif type == CHATTTS:
+        elif type == tts.CHATTTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(list(config.ChatTTS_voicelist))
-        elif type == OPENAI_TTS:
+        elif type == tts.OPENAI_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params['openaitts_role'].split(","))
-        elif type == QWEN_TTS:
+        elif type == tts.QWEN_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params['qwentts_role'].split(","))
-        elif type == GEMINI_TTS:
+        elif type == tts.GEMINI_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params['gemini_ttsrole'].split(","))
-        elif type == ELEVENLABS_TTS:
+        elif type == tts.ELEVENLABS_TTS:
             winobj.hecheng_role.clear()
             rolelist = copy.deepcopy(config.params['elevenlabstts_role'])
             if "clone" in rolelist:
@@ -332,70 +327,69 @@ def openwin():
             winobj.hecheng_role.addItems(rolelist)
         elif change_by_lang(type):
             hecheng_language_fun(winobj.hecheng_language.currentText())
-        elif type == CLONE_VOICE_TTS:
+        elif type == tts.CLONE_VOICE_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems([it for it in config.params["clone_voicelist"] if it != 'clone'])
-        elif type == TTS_API:
+        elif type == tts.TTS_API:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params['ttsapi_voice_role'].split(","))
-        elif type == GPTSOVITS_TTS:
+        elif type == tts.GPTSOVITS_TTS:
             rolelist = tools.get_gptsovits_role()
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
-        elif type == CHATTERBOX_TTS:
+        elif type == tts.CHATTERBOX_TTS:
             rolelist = tools.get_chatterbox_role()
             rolelist.remove('clone')
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(rolelist if rolelist else ['chatterbox'])
-        elif type == COSYVOICE_TTS:
+        elif type == tts.COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             del rolelist["clone"]
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['-'])
-        elif type == FISHTTS:
+        elif type == tts.FISHTTS:
             rolelist = tools.get_fishtts_role()
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['FishTTS'])
-        elif type == F5_TTS:
+        elif type == tts.F5_TTS:
             rolelist = tools.get_f5tts_role()
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(list(rolelist.keys()) if rolelist else ['-'])
-        
-        # Manually trigger sync after role list is populated
+
         winobj.sync_roles_to_tmp_list()
 
     def hecheng_language_fun(t):
         tts_type = winobj.tts_type.currentIndex()
-        if tts_type == EDGE_TTS:
+        if tts_type == tts.EDGE_TTS:
             code_list = [key for key, value in langname_dict.items() if value == t]
             code = code_list[0] if code_list else '-'
         else:
             code = translator.get_code(show_text=t)
             if code and code != '-':
-                is_allow_lang_reg = is_allow_lang(langcode=code, tts_type=tts_type)
+                is_allow_lang_reg = tts.is_allow_lang(langcode=code, tts_type=tts_type)
                 if is_allow_lang_reg is not True:
                     winobj.loglabel.setText(is_allow_lang_reg)
                 else:
                     winobj.loglabel.setText('')
-        
+
         if not change_by_lang(tts_type):
             return
-            
+
         winobj.hecheng_role.clear()
         if t == '-':
             winobj.hecheng_role.addItems(['No'])
             return
 
         show_rolelist = {}
-        if tts_type == EDGE_TTS:
+        if tts_type == tts.EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
-        elif tts_type == KOKORO_TTS:
+        elif tts_type == tts.KOKORO_TTS:
             show_rolelist = tools.get_kokoro_rolelist()
-        elif tts_type == AI302_TTS:
+        elif tts_type == tts.AI302_TTS:
             show_rolelist = tools.get_302ai()
-        elif tts_type == VOLCENGINE_TTS:
+        elif tts_type == tts.VOLCENGINE_TTS:
             show_rolelist = tools.get_volcenginetts_rolelist()
-        else: # AzureTTS
+        else:  # AzureTTS
             show_rolelist = tools.get_azure_rolelist()
 
         if not show_rolelist:
@@ -403,7 +397,7 @@ def openwin():
             tools.show_error(config.transobj['nojueselist'])
             return
         try:
-            vt = code.split('-')[0] if code !='yue' else "zh"
+            vt = code.split('-')[0] if code != 'yue' else "zh"
             if vt not in show_rolelist:
                 winobj.hecheng_role.addItems(['No'])
                 return
@@ -417,14 +411,14 @@ def openwin():
 
     def hecheng_import_fun():
         fname, _ = QFileDialog.getOpenFileName(winobj, "选择SRT字幕文件", config.params.get('last_opendir', '.'),
-                                                  "SRT files (*.srt)")
+                                               "SRT files (*.srt)")
         if not fname:
             return
-        
+
         fname = fname.replace('\\', '/')
         config.params['last_opendir'] = os.path.dirname(fname)
         config.getset_params(config.params)
-        
+
         winobj.parse_and_display_srt(fname)
 
     def opendir_fn():
@@ -432,7 +426,7 @@ def openwin():
 
     def show_detail_error():
         if winobj.error_msg:
-            tools.show_error( winobj.error_msg)
+            tools.show_error(winobj.error_msg)
 
     try:
         from videotrans.component import Peiyinformrole
@@ -442,7 +436,7 @@ def openwin():
             winobj.raise_()
             winobj.activateWindow()
             return
-        
+
         winobj = Peiyinformrole()
         config.child_forms['peiyinformrole'] = winobj
 
@@ -458,7 +452,7 @@ def openwin():
         winobj.listen_btn.clicked.connect(listen_voice_fun)
         winobj.hecheng_opendir.clicked.connect(opendir_fn)
         winobj.loglabel.clicked.connect(show_detail_error)
-        
+
         winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)
 

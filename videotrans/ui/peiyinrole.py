@@ -2,15 +2,14 @@
 
 
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import Qt, QMetaObject
-from PySide6.QtWidgets import (QMessageBox, QFileDialog, QWidget, QVBoxLayout, QHBoxLayout,
-                               QPushButton, QComboBox, QLabel, QFormLayout, QSpinBox,
-                               QCheckBox, QScrollArea, QSizePolicy)
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
+                               QPushButton, QComboBox, QLabel, QScrollArea)
 
 from videotrans import tts
-from videotrans.component.component import Textedit
 from videotrans.configure import config
 from videotrans.configure.config import box_lang
+
 
 class Ui_peiyinrole(object):
     def setupUi(self, peiyinrole):
@@ -38,7 +37,7 @@ class Ui_peiyinrole(object):
         self.clear_button.setMinimumHeight(40)
         self.clear_button.setFixedWidth(100)
         self.clear_button.setCursor(Qt.PointingHandCursor)
-        
+
         self.import_layout.addWidget(self.hecheng_importbtn)
         self.import_layout.addWidget(self.clear_button)
         self.main_layout.addLayout(self.import_layout)
@@ -49,7 +48,7 @@ class Ui_peiyinrole(object):
         self.subtitle_scroll_area.setWidgetResizable(True)
         self.subtitle_scroll_area.setMinimumHeight(200)
         self.scroll_area_widget_contents = QWidget()
-        self.subtitle_layout = QVBoxLayout(self.scroll_area_widget_contents) # 字幕行将被添加到这里
+        self.subtitle_layout = QVBoxLayout(self.scroll_area_widget_contents)  # 字幕行将被添加到这里
         self.subtitle_layout.setAlignment(Qt.AlignTop)
         self.subtitle_scroll_area.setWidget(self.scroll_area_widget_contents)
         self.main_layout.addWidget(self.subtitle_scroll_area)
@@ -57,7 +56,7 @@ class Ui_peiyinrole(object):
         # 2.2 角色分配工具栏
         self.assign_role_layout = QHBoxLayout()
         self.assign_role_label = QLabel("为选中行分配角色:" if config.defaulelang == 'zh' else "Assign role to selected:")
-        self.tmp_rolelist = QComboBox() # 这个就是新的角色选择框
+        self.tmp_rolelist = QComboBox()  # 这个就是新的角色选择框
         self.tmp_rolelist.setMinimumWidth(200)
         self.assign_role_button = QPushButton("确认分配" if config.defaulelang == 'zh' else "Assign")
         self.assign_role_button.setCursor(Qt.PointingHandCursor)
@@ -79,7 +78,7 @@ class Ui_peiyinrole(object):
         self.hecheng_language.setMinimumSize(QtCore.QSize(0, 30))
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_language)
         self.horizontalLayout_10.addLayout(self.formLayout_3)
-        
+
         self.formLayout_7 = QtWidgets.QFormLayout()
         self.formLayout_7.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.label_8 = QtWidgets.QLabel()
@@ -90,13 +89,13 @@ class Ui_peiyinrole(object):
         self.tts_type.addItems(tts.TTS_NAME_LIST)
         self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tts_type)
         self.horizontalLayout_10.addLayout(self.formLayout_7)
-        
+
         self.formLayout_4 = QtWidgets.QFormLayout()
         self.formLayout_4.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.label_11 = QtWidgets.QLabel()
         self.label_11.setMinimumSize(QtCore.QSize(0, 30))
         self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_11)
-        self.hecheng_role = QtWidgets.QComboBox() # 这个是原始的，现在作为角色源
+        self.hecheng_role = QtWidgets.QComboBox()  # 这个是原始的，现在作为角色源
         self.hecheng_role.setMinimumSize(QtCore.QSize(0, 30))
         self.hecheng_role.addItems(['No'])
         self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_role)
@@ -121,7 +120,7 @@ class Ui_peiyinrole(object):
         self.horizontalLayout_10_1.addLayout(self.formLayout_5)
         self.voice_autorate = QtWidgets.QCheckBox()
         self.horizontalLayout_10_1.addWidget(self.voice_autorate)
-        
+
         self.edge_volume_layout = QtWidgets.QHBoxLayout()
         self.volume_label = QtWidgets.QLabel("音量+" if config.defaulelang == 'zh' else "Volume+")
         self.volume_rate = QtWidgets.QSpinBox()
@@ -176,7 +175,8 @@ class Ui_peiyinrole(object):
         QtCore.QMetaObject.connectSlotsByName(peiyinrole)
 
     def retranslateUi(self, peiyinrole):
-        peiyinrole.setWindowTitle('字幕多角色配音：为每条字幕分配一个声音' if config.defaulelang=='zh' else 'Subtitle multi-role dubbing: assign a voice to each subtitle')
+        peiyinrole.setWindowTitle(
+            '字幕多角色配音：为每条字幕分配一个声音' if config.defaulelang == 'zh' else 'Subtitle multi-role dubbing: assign a voice to each subtitle')
         self.label_10.setText(box_lang.get("Subtitle lang"))
         self.label_8.setText("TTS" if config.defaulelang != 'zh' else '配音渠道')
         self.label_11.setText("默认角色" if config.defaulelang == 'zh' else "Default Role")
@@ -184,7 +184,7 @@ class Ui_peiyinrole(object):
         self.hecheng_rate.setToolTip(box_lang.get("Negative deceleration, positive acceleration"))
         self.voice_autorate.setText(box_lang.get("Automatic acceleration?"))
         self.save_to_srt.setText("Save to original location" if config.defaulelang != 'zh' else '保存到原位置')
-        self.save_to_srt.setToolTip("If checked, the synthesized audio is saved to the original folder where the srt file is located." if config.defaulelang != 'zh' else '如果选中，则合成后音频保存到srt文件所在原文件夹内')
+        self.save_to_srt.setToolTip(
+            "If checked, the synthesized audio is saved to the original folder where the srt file is located." if config.defaulelang != 'zh' else '如果选中，则合成后音频保存到srt文件所在原文件夹内')
         self.hecheng_startbtn.setText(box_lang.get("Start"))
         self.hecheng_opendir.setText(box_lang.get("Open dir"))
-

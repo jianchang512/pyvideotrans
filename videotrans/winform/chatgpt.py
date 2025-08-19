@@ -1,16 +1,13 @@
-import json
-import os
-from pathlib import Path
-
-from PySide6 import QtWidgets
-
-from videotrans import translator
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.TestSrtTrans import TestSrtTrans
-
-
 def openwin():
+    import json
+    import os
+    from pathlib import Path
+
+    from PySide6 import QtWidgets
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+    from videotrans.util.TestSrtTrans import TestSrtTrans
     def feed(d):
         if not d.startswith("ok"):
             tools.show_error(d)
@@ -37,6 +34,7 @@ def openwin():
         config.params["chatgpt_model"] = model
         config.params["chatgpt_template"] = template
         winobj.test_chatgpt.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.CHATGPT_INDEX)
         task.uito.connect(feed)
         task.start()

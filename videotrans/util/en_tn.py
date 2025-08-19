@@ -18,8 +18,8 @@
 
 """English Normalizer class for CLVP."""
 
-
 import re
+
 
 class EnglishNormalizer:
     def __init__(self):
@@ -64,6 +64,7 @@ class EnglishNormalizer:
             "nineteen",
         ]
         self.tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+
     def number_to_words(self, num: int) -> str:
         """
         Converts numbers(`int`) to words(`str`).
@@ -90,46 +91,47 @@ class EnglishNormalizer:
         # 处理100到999之间的数字，分解为百位和剩余部分，递归调用自身处理剩余部分
         elif num < 1000:
             return (
-                self.ones[num // 100] + " hundred" + (" " + self.number_to_words(num % 100) if num % 100 != 0 else "")
+                    self.ones[num // 100] + " hundred" + (
+                " " + self.number_to_words(num % 100) if num % 100 != 0 else "")
             )
         # 处理1000到999999之间的数字，分解为千位和剩余部分，递归调用自身处理剩余部分
         elif num < 1_000_000:
             return (
-                self.number_to_words(num // 1000)
-                + " thousand"
-                + (", " + self.number_to_words(num % 1000) if num % 1000 != 0 else "")
+                    self.number_to_words(num // 1000)
+                    + " thousand"
+                    + (", " + self.number_to_words(num % 1000) if num % 1000 != 0 else "")
             )
         # 处理1000000到999999999之间的数字，分解为百万位和剩余部分，递归调用自身处理剩余部分
         elif num < 1_000_000_000:
             return (
-                self.number_to_words(num // 1_000_000)
-                + " million"
-                + (", " + self.number_to_words(num % 1_000_000) if num % 1_000_000 != 0 else "")
+                    self.number_to_words(num // 1_000_000)
+                    + " million"
+                    + (", " + self.number_to_words(num % 1_000_000) if num % 1_000_000 != 0 else "")
             )
         # 处理1000000000到999999999999之间的数字，分解为十亿位和剩余部分，递归调用自身处理剩余部分
         elif num < 1_000_000_000_000:
             return (
-                self.number_to_words(num // 1_000_000_000)
-                + " billion"
-                + (", " + self.number_to_words(num % 1_000_000_000) if num % 1_000_000_000 != 0 else "")
+                    self.number_to_words(num // 1_000_000_000)
+                    + " billion"
+                    + (", " + self.number_to_words(num % 1_000_000_000) if num % 1_000_000_000 != 0 else "")
             )
         # 处理1000000000000到999999999999999之间的数字，分解为万亿位和剩余部分，递归调用自身处理剩余部分
         elif num < 1_000_000_000_000_000:
             return (
-                self.number_to_words(num // 1_000_000_000_000)
-                + " trillion"
-                + (", " + self.number_to_words(num % 1_000_000_000_000) if num % 1_000_000_000_000 != 0 else "")
+                    self.number_to_words(num // 1_000_000_000_000)
+                    + " trillion"
+                    + (", " + self.number_to_words(num % 1_000_000_000_000) if num % 1_000_000_000_000 != 0 else "")
             )
         # 处理1000000000000000到999999999999999999之间的数字，分解为千万亿位和剩余部分，递归调用自身处理剩余部分
         elif num < 1_000_000_000_000_000_000:
             return (
-                self.number_to_words(num // 1_000_000_000_000_000)
-                + " quadrillion"
-                + (
-                    ", " + self.number_to_words(num % 1_000_000_000_000_000)
-                    if num % 1_000_000_000_000_000 != 0
-                    else ""
-                )
+                    self.number_to_words(num // 1_000_000_000_000_000)
+                    + " quadrillion"
+                    + (
+                        ", " + self.number_to_words(num % 1_000_000_000_000_000)
+                        if num % 1_000_000_000_000_000 != 0
+                        else ""
+                    )
             )
         # 处理超出范围的数字，返回字符串 "number out of range"
         else:
@@ -141,6 +143,7 @@ class EnglishNormalizer:
         """
         # 将Unicode文本转换为ASCII编码，忽略非ASCII字符
         return text.encode("ascii", "ignore").decode("utf-8")
+
     def _expand_dollars(self, m: str) -> str:
         """
         This method is used to expand numerical dollar values into spoken words.
@@ -221,7 +224,6 @@ class EnglishNormalizer:
                 return self.number_to_words(num)
         else:
             return self.number_to_words(num)
-
 
     # 此方法用于规范化文本中的数字，如将数字转换为单词，移除逗号等操作。
     def normalize_numbers(self, text: str) -> str:

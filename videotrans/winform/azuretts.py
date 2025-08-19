@@ -1,11 +1,9 @@
-from PySide6 import QtWidgets
-
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.ListenVoice import ListenVoice
-
-
 def openwin():
+    from PySide6 import QtWidgets
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+    from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
@@ -16,7 +14,7 @@ def openwin():
     def test():
         key = winobj.speech_key.text().strip()
         if not key:
-            tools.show_error( '填写Azure speech key ',False)
+            tools.show_error('填写Azure speech key ', False)
             return
         region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):

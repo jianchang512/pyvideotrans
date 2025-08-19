@@ -1,13 +1,14 @@
 # stt项目识别接口
 import os
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, ClassVar,Union
+from typing import List, Dict, Union
+
 import requests
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
-from videotrans.util import tools
 from videotrans.recognition._base import BaseRecogn
+from videotrans.util import tools
 
 """
             请求发送：以二进制形式发送键名为 audio 的wav格式音频数据，采样率为16k、通道为1
@@ -26,11 +27,11 @@ from videotrans.recognition._base import BaseRecogn
             }
 """
 
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 import logging
 
-RETRY_NUMS=2
-RETRY_DELAY=10
+RETRY_NUMS = 2
+RETRY_DELAY = 10
 
 
 @dataclass
@@ -47,18 +48,21 @@ class SttAPIRecogn(BaseRecogn):
             api_url = f'http://{api_url}'
         self.api_url = f'{api_url}/api' if not api_url.endswith('/api') else api_url
 
-    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+           after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
         with open(self.audio_file, 'rb') as f:
-            chunk=f.read()
-        files = {"file": (os.path.basename(self.audio_file),chunk)}
+            chunk = f.read()
+        files = {"file": (os.path.basename(self.audio_file), chunk)}
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
 
-        data={"language":self.detect_language[:2],"model":config.params.get('stt_model','tiny'),"response_format":"srt"}
-        res = requests.post(f"{self.api_url}", files=files,data=data, proxies={"http": "", "https": ""}, timeout=7200)
+        data = {"language": self.detect_language[:2], "model": config.params.get('stt_model', 'tiny'),
+                "response_format": "srt"}
+        res = requests.post(f"{self.api_url}", files=files, data=data, proxies={"http": "", "https": ""}, timeout=7200)
         config.logger.info(f'STT_API:{res=}')
         res = res.json()
         if "code" not in res or res['code'] != 0:
@@ -70,4 +74,3 @@ class SttAPIRecogn(BaseRecogn):
             type='replace_subtitle'
         )
         return tools.get_subtitle_from_srt(res['data'], is_file=False)
-

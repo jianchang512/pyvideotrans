@@ -1,14 +1,13 @@
-import os
-
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
-from videotrans.configure import config
-from videotrans.task.separate_worker import SeparateWorker
-# 分离背景音
-from videotrans.util import tools
-
-
 def openwin():
+    import os
+
+    from PySide6.QtWidgets import QFileDialog
+
+    from videotrans.configure import config
+    # 分离背景音
+    from videotrans.util import tools
+
+    from videotrans.task.separate_worker import SeparateWorker
     def get_file():
         format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])
         fname, _ = QFileDialog.getOpenFileName(winobj, "Select audio or video",
@@ -29,13 +28,13 @@ def openwin():
             if len(d) > 5:
                 winobj.set.setText(d[5:])
         elif d.startswith('error:'):
-            tools.show_error( d[6:])
+            tools.show_error(d[6:])
 
     def start():
         # 开始处理分离，判断是否选择了源文件
         file = winobj.fromfile.text()
         if not file or not os.path.exists(file):
-            tools.show_error(config.transobj['must select audio or video file'],False)
+            tools.show_error(config.transobj['must select audio or video file'], False)
             return
         uuid = tools.get_md5(file)
         # 已在执行，在此点击停止

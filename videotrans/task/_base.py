@@ -1,18 +1,15 @@
-import re
-import shutil
+from dataclasses import dataclass, field
 from pathlib import Path
-
+from typing import Dict, Any, List
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
 from videotrans.util import tools
-from dataclasses import dataclass, field, InitVar
-from typing import Dict, Any, List
 
 
 @dataclass
 class BaseTask(BaseCon):
-    cfg: Dict = field(default=None,repr=False)
+    cfg: Dict = field(default=None, repr=False)
     obj: Dict = field(default=None, repr=False)
     uuid: str = None
     precent: int = 1
@@ -23,7 +20,7 @@ class BaseTask(BaseCon):
     hasend: bool = False
 
     # 名字规范化处理后，应该删除的
-    shound_del_name: Any = None # 保持原样
+    shound_del_name: Any = None  # 保持原样
 
     # 是否需要语音识别
     shoud_recogn: bool = False
@@ -50,11 +47,9 @@ class BaseTask(BaseCon):
         if "uuid" in self.cfg and self.cfg['uuid']:
             self.uuid = self.cfg['uuid']
 
-
     # 预先处理，例如从视频中拆分音频、人声背景分离、转码等
     def prepare(self):
         pass
-
 
     # 语音识别创建原始语言字幕
     def recogn(self):
@@ -113,41 +108,41 @@ class BaseTask(BaseCon):
         self._signal(text=Path(file).read_text(encoding='utf-8'), type='replace_subtitle')
         return True
 
+    def _check_target_sub(self, source_srt_list, target_srt_list):
+        import re, copy
 
-    def _check_target_sub(self,source_srt_list,target_srt_list):
-        import re,copy
-
-        if len(source_srt_list)==1 or len(target_srt_list)==1:
-            target_srt_list[0]['line']=1
+        if len(source_srt_list) == 1 or len(target_srt_list) == 1:
+            target_srt_list[0]['line'] = 1
             return target_srt_list[:1]
-        source_len=len(source_srt_list)
-        target_len=len(target_srt_list)
+        source_len = len(source_srt_list)
+        target_len = len(target_srt_list)
         config.logger.info(f'{source_srt_list=}')
         config.logger.info(f'{target_srt_list=}')
-        for i,it in enumerate(source_srt_list):
-            tmp=copy.deepcopy(it)
-            if i>target_len-1:
+        for i, it in enumerate(source_srt_list):
+            tmp = copy.deepcopy(it)
+            if i > target_len - 1:
                 # 超出目标字幕长度
-                tmp['text']='  '
-            elif re.sub(r'\D','',it['time']) == re.sub(r'\D','',target_srt_list[i]['time']):
+                tmp['text'] = '  '
+            elif re.sub(r'\D', '', it['time']) == re.sub(r'\D', '', target_srt_list[i]['time']):
                 # 正常时间码相等
-                tmp['text']=target_srt_list[i]['text']
-            elif i==0 and source_srt_list[1]['time']==target_srt_list[1]['time']:
+                tmp['text'] = target_srt_list[i]['text']
+            elif i == 0 and source_srt_list[1]['time'] == target_srt_list[1]['time']:
                 # 下一行时间码相同
-                tmp['text']=target_srt_list[i]['text']
-            elif i==source_len-1 and source_srt_list[i-1]['time']==target_srt_list[i-1]['time']:
+                tmp['text'] = target_srt_list[i]['text']
+            elif i == source_len - 1 and source_srt_list[i - 1]['time'] == target_srt_list[i - 1]['time']:
                 # 上一行时间码相同
-                tmp['text']=target_srt_list[i]['text']
-            elif i>0 and i<source_len-1 and target_len>i+1 and  source_srt_list[i-1]['time']==target_srt_list[i-1]['time'] and source_srt_list[i+1]['time']==target_srt_list[i+1]['time']:
+                tmp['text'] = target_srt_list[i]['text']
+            elif i > 0 and i < source_len - 1 and target_len > i + 1 and source_srt_list[i - 1]['time'] == \
+                    target_srt_list[i - 1]['time'] and source_srt_list[i + 1]['time'] == target_srt_list[i + 1]['time']:
                 # 上下两行时间码相同
-                tmp['text']=target_srt_list[i]['text']
+                tmp['text'] = target_srt_list[i]['text']
             else:
                 # 其他情况清空目标字幕文字
-                tmp['text']='  '
-            if i > len(target_srt_list)-1:
+                tmp['text'] = '  '
+            if i > len(target_srt_list) - 1:
                 target_srt_list.append(tmp)
             else:
-                target_srt_list[i]=tmp
+                target_srt_list[i] = tmp
         config.logger.info(f'处理后目标字幕：{target_srt_list=}')
         return target_srt_list
 

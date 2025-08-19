@@ -21,7 +21,7 @@ class Ui_openaittsform(object):
         openaittsform.setSizePolicy(sizePolicy)
         openaittsform.setMaximumSize(QtCore.QSize(600, 600))
 
-        v1=QtWidgets.QVBoxLayout(openaittsform)
+        v1 = QtWidgets.QVBoxLayout(openaittsform)
 
         self.label_0 = QtWidgets.QLabel(openaittsform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -29,7 +29,7 @@ class Ui_openaittsform(object):
             'OpenAI官方接口无需填写' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here')
         v1.addWidget(self.label_0)
 
-        h1=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel(openaittsform)
         self.label.setMinimumSize(QtCore.QSize(0, 35))
         self.label.setObjectName("label")
@@ -40,7 +40,7 @@ class Ui_openaittsform(object):
         h1.addWidget(self.openaitts_api)
         v1.addLayout(h1)
 
-        h2=QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
         self.label_2 = QtWidgets.QLabel(openaittsform)
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
@@ -52,7 +52,7 @@ class Ui_openaittsform(object):
         h2.addWidget(self.openaitts_key)
         v1.addLayout(h2)
 
-        h3=QtWidgets.QHBoxLayout()
+        h3 = QtWidgets.QHBoxLayout()
         self.label_3 = QtWidgets.QLabel(openaittsform)
         self.label_3.setObjectName("label_3")
         self.openaitts_model = QtWidgets.QComboBox(openaittsform)
@@ -61,16 +61,16 @@ class Ui_openaittsform(object):
         h3.addWidget(self.label_3)
         h3.addWidget(self.openaitts_model)
 
-        hintru=QtWidgets.QHBoxLayout()
+        hintru = QtWidgets.QHBoxLayout()
         label_intru = QtWidgets.QLabel(openaittsform)
         label_intru.setObjectName("label_intru")
-        label_intru.setText('声音效果提示词(gpt-4o-mini-tts)' if config.defaulelang=='zh' else 'voice with instructions(gpt-4o-mini-tts)')
+        label_intru.setText(
+            '声音效果提示词(gpt-4o-mini-tts)' if config.defaulelang == 'zh' else 'voice with instructions(gpt-4o-mini-tts)')
         self.openaitts_instructions = QtWidgets.QLineEdit(openaittsform)
         self.openaitts_instructions.setMinimumSize(QtCore.QSize(0, 35))
         self.openaitts_instructions.setObjectName("openaitts_instructions")
         hintru.addWidget(label_intru)
         hintru.addWidget(self.openaitts_instructions)
-        
 
         v1.addLayout(h3)
         v1.addLayout(hintru)
@@ -85,16 +85,14 @@ class Ui_openaittsform(object):
         self.edit_allmodels.setMinimumHeight(40)
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
-        
-        
+
         v1.addWidget(QtWidgets.QLabel('角色列表' if config.defaulelang == 'zh' else 'Role list'))
         self.edit_roles = QtWidgets.QPlainTextEdit(openaittsform)
         self.edit_roles.setMinimumHeight(40)
         self.edit_roles.setObjectName("edit_roles")
         v1.addWidget(self.edit_roles)
 
-
-        h4=QtWidgets.QHBoxLayout()
+        h4 = QtWidgets.QHBoxLayout()
 
         self.set_openaitts = QtWidgets.QPushButton(openaittsform)
         self.set_openaitts.setMinimumSize(QtCore.QSize(0, 35))

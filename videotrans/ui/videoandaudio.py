@@ -4,6 +4,7 @@ from PySide6.QtGui import (QCursor)
 from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit,
                                QPushButton,
                                QVBoxLayout, QCheckBox)
+
 from videotrans.configure import config
 
 
@@ -56,12 +57,12 @@ class Ui_videoandaudio(object):
         self.remain = QCheckBox(videoandaudio)
         self.remain.setChecked(False)
 
-        label_audio=QtWidgets.QLabel()
-        label_audio.setText("音频时长大于视频时" if config.defaulelang=='zh' else "Audio duration > video")
-        self.audio_process=QtWidgets.QComboBox()
+        label_audio = QtWidgets.QLabel()
+        label_audio.setText("音频时长大于视频时" if config.defaulelang == 'zh' else "Audio duration > video")
+        self.audio_process = QtWidgets.QComboBox()
         self.audio_process.addItems([
-            "截断" if config.defaulelang=='zh' else "Truncate",
-            "自动加速" if config.defaulelang=='zh' else "Auto Accelerate"
+            "截断" if config.defaulelang == 'zh' else "Truncate",
+            "自动加速" if config.defaulelang == 'zh' else "Auto Accelerate"
         ])
 
         self.h2 = QHBoxLayout()
@@ -70,7 +71,7 @@ class Ui_videoandaudio(object):
         self.h2.addWidget(self.audio_process)
         self.h2.addStretch()
 
-        h3=QHBoxLayout()
+        h3 = QHBoxLayout()
         h3.addStretch()
         h3.addWidget(self.startbtn)
         h3.addStretch()

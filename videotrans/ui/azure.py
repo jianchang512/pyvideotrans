@@ -21,9 +21,9 @@ class Ui_azureform(object):
         azureform.setSizePolicy(sizePolicy)
         azureform.setMaximumSize(QtCore.QSize(600, 580))
 
-        v1=QtWidgets.QVBoxLayout(azureform)
+        v1 = QtWidgets.QVBoxLayout(azureform)
 
-        h1=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(0, 35))
         self.label.setObjectName("label")
@@ -34,7 +34,7 @@ class Ui_azureform(object):
         h1.addWidget(self.azure_api)
         v1.addLayout(h1)
 
-        h2=QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
         self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
@@ -46,7 +46,7 @@ class Ui_azureform(object):
         h2.addWidget(self.azure_key)
         v1.addLayout(h2)
 
-        h3=QtWidgets.QHBoxLayout()
+        h3 = QtWidgets.QHBoxLayout()
         self.label_version = QtWidgets.QLabel()
         self.label_version.setObjectName("label_version")
         self.azure_version = QtWidgets.QComboBox()
@@ -69,7 +69,7 @@ class Ui_azureform(object):
         h3.addWidget(self.azure_version)
         v1.addLayout(h3)
 
-        h4=QtWidgets.QHBoxLayout()
+        h4 = QtWidgets.QHBoxLayout()
         self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
         self.azure_model = QtWidgets.QComboBox()
@@ -110,7 +110,7 @@ class Ui_azureform(object):
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/azure'))
 
-        h5=QtWidgets.QHBoxLayout()
+        h5 = QtWidgets.QHBoxLayout()
         h5.addWidget(self.set_azure)
         h5.addWidget(help_btn)
 

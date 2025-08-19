@@ -48,8 +48,6 @@ class Ui_volcengineform(object):
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.volcenginetts_appid)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-
-
         self.formLayout = QtWidgets.QFormLayout()
         self.formLayout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
@@ -102,7 +100,7 @@ class Ui_volcengineform(object):
         self.formLayout3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.volcenginetts_cluster)
         self.verticalLayout.addLayout(self.formLayout3)
 
-        h4=QtWidgets.QHBoxLayout()
+        h4 = QtWidgets.QHBoxLayout()
 
         self.set = QtWidgets.QPushButton(volcengineform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
@@ -112,26 +110,24 @@ class Ui_volcengineform(object):
         self.test.setMinimumSize(QtCore.QSize(0, 35))
         self.test.setObjectName("test")
 
-
         help_btn = QtWidgets.QPushButton(volcengineform)
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
-        help_btn.clicked.connect(lambda :tools.open_url(url='https://pyvideotrans.com/volcenginetts'))
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/volcenginetts'))
 
         h4.addWidget(self.set)
         h4.addWidget(self.test)
         h4.addWidget(help_btn)
         self.verticalLayout.addLayout(h4)
 
-
         self.retranslateUi(volcengineform)
         QtCore.QMetaObject.connectSlotsByName(volcengineform)
 
     def retranslateUi(self, volcengineform):
-        volcengineform.setWindowTitle("字节火山语音合成设置" if config.defaulelang=='zh' else "Volcengine TTS Setting")
+        volcengineform.setWindowTitle("字节火山语音合成设置" if config.defaulelang == 'zh' else "Volcengine TTS Setting")
         self.label.setText("App id")
         self.label_2.setText("Access token")
         self.label_cluster.setText("Cluster id")

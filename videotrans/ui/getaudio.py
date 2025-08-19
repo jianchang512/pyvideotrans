@@ -51,15 +51,15 @@ class Ui_getaudio(object):
         self.startbtn.setObjectName(u"startbtn")
         self.startbtn.setMinimumSize(QSize(0, 35))
         self.startbtn.setCursor(QCursor(Qt.PointingHandCursor))
-        
+
         h1 = QHBoxLayout()
-        h1.setObjectName("h1")        
+        h1.setObjectName("h1")
         h1.addWidget(self.startbtn)
-        
-        self.getvideo=QtWidgets.QCheckBox()
-        self.getvideo.setText('同时分离无声视频' if config.defaulelang=='zh' else 'Simultaneous export of silent videos')
+
+        self.getvideo = QtWidgets.QCheckBox()
+        self.getvideo.setText('同时分离无声视频' if config.defaulelang == 'zh' else 'Simultaneous export of silent videos')
         h1.addWidget(self.getvideo)
-        
+
         self.verticalLayout.addLayout(h1)
 
         self.resultbtn = QPushButton(getaudio)

@@ -3,7 +3,6 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel
 
 from videotrans.configure import config
 from videotrans.util import tools
@@ -21,7 +20,6 @@ class Ui_kokoroform(object):
         sizePolicy.setHeightForWidth(kokoro.sizePolicy().hasHeightForWidth())
         kokoro.setSizePolicy(sizePolicy)
         kokoro.setMaximumSize(QtCore.QSize(500, 300))
-
 
         self.verticalLayout = QtWidgets.QVBoxLayout(kokoro)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -52,7 +50,6 @@ class Ui_kokoroform(object):
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.kokoro_address)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-
         self.set_kokoro = QtWidgets.QPushButton(kokoro)
         self.set_kokoro.setMinimumSize(QtCore.QSize(0, 35))
         self.set_kokoro.setObjectName("set_kokoro")
@@ -76,8 +73,6 @@ class Ui_kokoroform(object):
         self.layout_btn.addWidget(help_btn)
 
         self.verticalLayout.addLayout(self.layout_btn)
-
-
 
         self.retranslateUi(kokoro)
         QtCore.QMetaObject.connectSlotsByName(kokoro)

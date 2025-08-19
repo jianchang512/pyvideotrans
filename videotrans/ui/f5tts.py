@@ -21,45 +21,42 @@ class Ui_f5ttsform(object):
         f5ttsform.setSizePolicy(sizePolicy)
         f5ttsform.setMaximumSize(QSize(600, 500))
 
-        v1=QtWidgets.QVBoxLayout(f5ttsform)
+        v1 = QtWidgets.QVBoxLayout(f5ttsform)
 
-        
-        self.ttstype=QtWidgets.QComboBox(f5ttsform)
+        self.ttstype = QtWidgets.QComboBox(f5ttsform)
         self.ttstype.setMinimumSize(QtCore.QSize(100, 30))
-        self.ttstype.addItems(['F5-TTS','Spark-TTS','Index-TTS','Dia-TTS'])
-        self.ttstype.setToolTip('选择使用的TTS服务，支持F5-TTS/Spart-TTS/index-TTS 的官方webui服务' if config.defaulelang=='zh' else 'Select the TTS service to use, support the official webui service of F5-TTS/Spart-TTS/index-TTS/Dia-TTS')
+        self.ttstype.addItems(['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS'])
+        self.ttstype.setToolTip(
+            '选择使用的TTS服务，支持F5-TTS/Spart-TTS/index-TTS 的官方webui服务' if config.defaulelang == 'zh' else 'Select the TTS service to use, support the official webui service of F5-TTS/Spart-TTS/index-TTS/Dia-TTS')
 
         self.label = QLabel(f5ttsform)
         self.label.setObjectName("label")
         self.label.setMinimumSize(QSize(0, 35))
-        
+
         self.api_url = QLineEdit(f5ttsform)
         self.api_url.setObjectName("api_url")
         self.api_url.setMinimumSize(QSize(0, 35))
-        h1=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
         h1.addWidget(self.ttstype)
         h1.addWidget(self.label)
         h1.addWidget(self.api_url)
         v1.addLayout(h1)
 
-
-
         self.label_4 = QLabel(f5ttsform)
         self.label_4.setObjectName("label_4")
-        self.label_4.setText('参考音频#音频文字内容' if config.defaulelang=='zh' else 'Reference Audio#Audio Text')
+        self.label_4.setText('参考音频#音频文字内容' if config.defaulelang == 'zh' else 'Reference Audio#Audio Text')
         v1.addWidget(self.label_4)
         self.req = QLabel(f5ttsform)
-        self.req.setText('参考音频需要wav格式，时长10s内，发音清晰无背景噪声，存放到本软件/f5-tts目录下' if config.defaulelang=='zh' else 'Reference audio needs to be in wav format, with a duration of no more than 10 seconds, and stored in the /f5-tts directory of this software')
+        self.req.setText(
+            '参考音频需要wav格式，时长10s内，发音清晰无背景噪声，存放到本软件/f5-tts目录下' if config.defaulelang == 'zh' else 'Reference audio needs to be in wav format, with a duration of no more than 10 seconds, and stored in the /f5-tts directory of this software')
         self.req.setStyleSheet('color:#999')
         v1.addWidget(self.req)
-        
+
         self.role = QPlainTextEdit(f5ttsform)
         self.role.setObjectName("role")
         self.role.setMinimumHeight(100)
         self.role.setReadOnly(False)
         v1.addWidget(self.role)
-
-
 
         self.tips = QPlainTextEdit(f5ttsform)
         self.tips.setObjectName("tips")
@@ -68,7 +65,7 @@ class Ui_f5ttsform(object):
         self.tips.setReadOnly(True)
         v1.addWidget(self.tips)
 
-        h2=QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
 
         self.save = QPushButton(f5ttsform)
         self.save.setObjectName("save")
@@ -87,11 +84,11 @@ class Ui_f5ttsform(object):
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/f5tts'))
-        
-        self.is_whisper=QtWidgets.QCheckBox()
+
+        self.is_whisper = QtWidgets.QCheckBox()
         self.is_whisper.setText("针对F5-TTS重新识别?")
         self.is_whisper.setToolTip("如果选中，则F5-TTS会对参考音频再次使用whisper-v3识别，较慢")
-        
+
         h2.addWidget(self.is_whisper)
         h2.addWidget(self.save)
         h2.addWidget(self.test)
@@ -107,15 +104,16 @@ class Ui_f5ttsform(object):
     def retranslateUi(self, f5ttsform):
         tips = """
 从本软件 v3.68 版本起，只支持使用官方的webui(F5-TTS/Spart-TTS/index-TTS/Dia-TTS)，不再支持三方整合包和api
-""" if config.defaulelang=='zh' else """
+""" if config.defaulelang == 'zh' else """
 Starting from version 3.68 of this software, only the official webui is supported (F5-TTS/Spart-TTS/index-TTS/Dia-TTS), and third-party integration packages and APIs are no longer supported.
 """
 
         f5ttsform.setWindowTitle("F5-TTS/Spart-TTS/index-TTS/Dia-TTS")
-        self.role.setPlaceholderText("在此填写参考音频信息,格式如下\n例如：一行一组\n123.wav#你好啊我的朋友" if config.defaulelang=='zh' else "Fill in the reference audio information, format as follows\nFor example: One line per group\n123.wav#Hello, my friend")
+        self.role.setPlaceholderText(
+            "在此填写参考音频信息,格式如下\n例如：一行一组\n123.wav#你好啊我的朋友" if config.defaulelang == 'zh' else "Fill in the reference audio information, format as follows\nFor example: One line per group\n123.wav#Hello, my friend")
         self.tips.setPlainText(tips)
         self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
-        self.api_url.setPlaceholderText("填写http开头的webui地址"if config.defaulelang=='zh' else "Fill in the http starting webui  address")
+        self.api_url.setPlaceholderText(
+            "填写http开头的webui地址" if config.defaulelang == 'zh' else "Fill in the http starting webui  address")
         self.label.setText("URL")
         self.test.setText("测试" if config.defaulelang == 'zh' else "Test")
-

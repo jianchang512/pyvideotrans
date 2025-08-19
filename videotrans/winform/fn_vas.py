@@ -1,19 +1,3 @@
-import json
-import os
-import textwrap
-import threading
-import time
-from pathlib import Path
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
-from videotrans import translator
-from videotrans.configure import config
-from videotrans.util import tools
-
 def format_milliseconds(milliseconds):
     """
     将毫秒数转换为 HH:mm:ss.zz 格式的字符串。
@@ -41,19 +25,33 @@ def format_milliseconds(milliseconds):
     formatted_seconds = f"{int(seconds):02}"
     formatted_milliseconds = f"{milliseconds_part:02}"
 
-
     return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
+
 
 # 视频 字幕 音频 合并
 def openwin():
+    import json
+    import os
+
+    import threading
+    import time
+    from pathlib import Path
+    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QFileDialog
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+
     RESULT_DIR = config.HOME_DIR + "/vas"
     Path(RESULT_DIR).mkdir(exist_ok=True)
+    from videotrans import translator
 
     class CompThread(QThread):
         uito = Signal(str)
 
         def __init__(self, *, parent=None, video=None, audio=None, srt=None, saveraw=True, is_soft=False, language=None,
-                     maxlen=30,audio_process=0):
+                     maxlen=30, audio_process=0):
             super().__init__(parent=parent)
             self.video = video
             self.audio = audio
@@ -62,7 +60,7 @@ def openwin():
             self.is_soft = is_soft
             self.language = language
             self.maxlen = maxlen
-            self.audio_process=audio_process
+            self.audio_process = audio_process
             self.file = f'{RESULT_DIR}/{Path(self.video).stem}-{int(time.time())}.mp4'
             self.video_info = tools.get_video_info(self.video)
             self.video_time = tools.get_video_duration(self.video)
@@ -97,7 +95,7 @@ def openwin():
                     h, m, s = end_time.split(':')
                     tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
                 except:
-                    tmp1=0
+                    tmp1 = 0
                 if percent + tmp1 < 99.9:
                     percent += tmp1
                 self.post(type='jd', text=f'{percent:.2f}%')
@@ -136,10 +134,10 @@ def openwin():
                             '[aout]',
                             '-ac',
                             '2', tmp_mp4])
-                        self.audio=tmp_mp4
+                        self.audio = tmp_mp4
                         audio_time = int(tools.get_audio_time(self.audio) * 1000)
-                    if self.audio_process==2 and audio_time>video_time:
-                        sec=(audio_time-video_time)/1000
+                    if self.audio_process == 2 and audio_time > video_time:
+                        sec = (audio_time - video_time) / 1000
                         tmp_mp4 = config.TEMP_HOME + f"/{time.time()}.mp4"
                         cmd = [
                             '-y',
@@ -153,14 +151,14 @@ def openwin():
                             tmp_mp4
                         ]
                         tools.runffmpeg(cmd)
-                        self.video=tmp_mp4
-                    elif audio_time<video_time:
+                        self.video = tmp_mp4
+                    elif audio_time < video_time:
                         from pydub import AudioSegment
-                        ext=self.audio.split('.')[-1]
-                        audio_data=AudioSegment.from_file(self.audio,format='mp4' if ext=='m4a' else ext)
-                        audio_data+=AudioSegment.silent(duration=video_time-audio_time)
-                        audio_data.export(self.audio, format='mp4' if ext=='m4a' else ext)
-                        
+                        ext = self.audio.split('.')[-1]
+                        audio_data = AudioSegment.from_file(self.audio, format='mp4' if ext == 'm4a' else ext)
+                        audio_data += AudioSegment.silent(duration=video_time - audio_time)
+                        audio_data.export(self.audio, format='mp4' if ext == 'm4a' else ext)
+
                     # 视频和音频混合
                     # 如果存在字幕则生成中间结果end_mp4
                     if self.srt:
@@ -198,8 +196,8 @@ def openwin():
                         os.path.normpath(self.video)
                     ]
                     if not self.is_soft or not self.language:
-                        assfile=config.TEMP_HOME + f"/vasrt{time.time()}.ass"
-                        save_ass(self.srt,assfile)
+                        assfile = config.TEMP_HOME + f"/vasrt{time.time()}.ass"
+                        save_ass(self.srt, assfile)
                         os.chdir(config.TEMP_HOME)
                         cmd += [
                             '-c:v',
@@ -234,8 +232,7 @@ def openwin():
             else:
                 self.post(type='ok', text=self.file)
 
-
-    def save_ass(file_path,ass_file):
+    def save_ass(file_path, ass_file):
         with open(ass_file, 'w', encoding='utf-8') as file:
             # 写入 ASS 文件的头部信息
             stem = Path(file_path).stem
@@ -250,16 +247,15 @@ def openwin():
             file.write(
                 f"Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
             left, right, vbottom = winobj.marginL.text(), winobj.marginR.text(), winobj.marginV.text()
-            align=config.POSTION_ASS_VK.get(winobj.position.currentText(), 2)
-            shadow=winobj.shadow.text()
-            outline=winobj.outline.text()
-
+            align = config.POSTION_ASS_VK.get(winobj.position.currentText(), 2)
+            shadow = winobj.shadow.text()
+            outline = winobj.outline.text()
 
             bgcolor = winobj.qcolor_to_ass_color(winobj.selected_backgroundcolor, type='bg')
             bdcolor = winobj.qcolor_to_ass_color(winobj.selected_bordercolor, type='bd')
             # 不同字幕渲染器为差异兼容
             if winobj.ysphb_borderstyle.isChecked():
-                bdcolor=bgcolor
+                bdcolor = bgcolor
             fontcolor = winobj.qcolor_to_ass_color(winobj.selected_color, type='fc')
 
             file.write(
@@ -267,11 +263,11 @@ def openwin():
             file.write("\n[Events]\n")
 
             file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
-            srt_list=tools.get_subtitle_from_srt(file_path,is_file=True)
+            srt_list = tools.get_subtitle_from_srt(file_path, is_file=True)
             for it in srt_list:
-                start_str=format_milliseconds(it['start_time'])
-                end_str=format_milliseconds(it['end_time'])
-                text=it['text'].replace("\n","\\N")
+                start_str = format_milliseconds(it['start_time'])
+                end_str = format_milliseconds(it['end_time'])
+                text = it['text'].replace("\n", "\\N")
                 file.write(f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{text}\n")
         return True
 
@@ -289,7 +285,7 @@ def openwin():
             winobj.ysphb_startbtn.setText(d['text'])
         elif d['type'] == 'logs':
             winobj.ysphb_startbtn.setText(d['text'])
-        elif d['type']=='ok':
+        elif d['type'] == 'ok':
             winobj.has_done = True
             winobj.ysphb_startbtn.setText(config.transobj['zhixingwc'])
             winobj.ysphb_startbtn.setDisabled(False)
@@ -336,10 +332,11 @@ def openwin():
         except Exception:
             pass
         if not video:
-            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected',False)
+            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected', False)
             return
         if not audio and not srt:
-            tools.show_error('音频和视频至少要选择一个' if config.defaulelang == 'zh' else 'Choose at least one for audio and video',False)
+            tools.show_error(
+                '音频和视频至少要选择一个' if config.defaulelang == 'zh' else 'Choose at least one for audio and video', False)
             return
 
         winobj.ysphb_startbtn.setText(

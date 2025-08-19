@@ -1,12 +1,8 @@
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt, QTimer, QEvent
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QSizePolicy
 
 from videotrans.configure import config
-#from videotrans.component.controlobj import TextGetdir
-#from videotrans.recognition import RECOGN_NAME_LIST
-#from videotrans.tts import TTS_NAME_LIST
-
 
 
 class Ui_MainWindow(object):
@@ -81,13 +77,14 @@ class Ui_MainWindow(object):
         self.only_video.setObjectName("only_video")
         self.only_video.setText(config.uilanglist['onlyvideo'])
         self.only_video.setToolTip(config.uilanglist['onlyvideo_tips'])
-        
-        self.copysrt_rawvideo=QtWidgets.QCheckBox(self.layoutWidget)
+
+        self.copysrt_rawvideo = QtWidgets.QCheckBox(self.layoutWidget)
         self.copysrt_rawvideo.setMinimumSize(QtCore.QSize(0, 30))
         self.copysrt_rawvideo.setObjectName("copysrt_rawvideo")
         self.copysrt_rawvideo.setVisible(False)
-        self.copysrt_rawvideo.setText('转移字幕位置' if config.defaulelang=='zh' else 'Moving subtitle')
-        self.copysrt_rawvideo.setToolTip('选中该项，并且目标语言和发音语言不同时\n将移动翻译后srt文件到原视频位置，并重命名为视频同名' if config.defaulelang=='zh' else 'When this item is checked, and the target language is different from the language of the pronunciation \n will move the translated srt file to the original video location and rename it to the same name as the video.')
+        self.copysrt_rawvideo.setText('转移字幕位置' if config.defaulelang == 'zh' else 'Moving subtitle')
+        self.copysrt_rawvideo.setToolTip(
+            '选中该项，并且目标语言和发音语言不同时\n将移动翻译后srt文件到原视频位置，并重命名为视频同名' if config.defaulelang == 'zh' else 'When this item is checked, and the target language is different from the language of the pronunciation \n will move the translated srt file to the original video location and rename it to the same name as the video.')
 
         self.shutdown = QtWidgets.QCheckBox(self.layoutWidget)
         self.shutdown.setMinimumSize(QtCore.QSize(50, 20))
@@ -110,12 +107,14 @@ class Ui_MainWindow(object):
         self.label_9.setMinimumSize(QtCore.QSize(0, 30))
         self.label_9.setObjectName("label_9")
         self.label_9.setStyleSheet("""background-color:transparent""")
-        self.label_9.setToolTip('点击设置同时翻译的字幕条数' if config.defaulelang=='zh' else 'Click to set the number of subtitles to be translated at the same time')
+        self.label_9.setToolTip(
+            '点击设置同时翻译的字幕条数' if config.defaulelang == 'zh' else 'Click to set the number of subtitles to be translated at the same time')
 
         self.translate_type = QtWidgets.QComboBox(self.layoutWidget)
         self.translate_type.setMinimumSize(QtCore.QSize(160, 30))
         self.translate_type.setObjectName("translate_type")
-        self.translate_type.setToolTip('选择用来翻译文字的渠道' if config.defaulelang=='zh' else 'Select the channel used to translate text')
+        self.translate_type.setToolTip(
+            '选择用来翻译文字的渠道' if config.defaulelang == 'zh' else 'Select the channel used to translate text')
 
         self.horizontalLayout_5.addWidget(self.label_9)
         self.horizontalLayout_5.addWidget(self.translate_type)
@@ -144,15 +143,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.label_3)
         self.horizontalLayout_5.addWidget(self.target_language)
 
-        
         self.glossary = QtWidgets.QPushButton(self.layoutWidget)
         self.glossary.setMinimumSize(QtCore.QSize(0, 30))
         self.glossary.setObjectName("glossary")
-        self.glossary.setText("glossary" if config.defaulelang!='zh' else '术语表')
+        self.glossary.setText("glossary" if config.defaulelang != 'zh' else '术语表')
         self.glossary.setStyleSheet("""background-color:transparent""")
         self.glossary.setCursor(Qt.PointingHandCursor)
-        self.glossary.setToolTip('点击设置和修改术语表' if config.defaulelang=='zh' else 'Click to set up and modify the glossary')
-        
+        self.glossary.setToolTip(
+            '点击设置和修改术语表' if config.defaulelang == 'zh' else 'Click to set up and modify the glossary')
+
         self.label = QtWidgets.QPushButton(self.layoutWidget)
         self.label.setMinimumSize(QtCore.QSize(0, 30))
         self.label.setObjectName("label")
@@ -162,13 +161,11 @@ class Ui_MainWindow(object):
         self.proxy.setMinimumSize(QtCore.QSize(0, 30))
         self.proxy.setObjectName("proxy")
 
-        self.aisendsrt=QtWidgets.QCheckBox()
-        self.aisendsrt.setText('发送完整字幕' if config.defaulelang=='zh' else 'Send srt')
-        self.aisendsrt.setToolTip('当使用AI或Google翻译渠道时，可选以完整srt字幕格式发送请求，但可能出现较多空行' if config.defaulelang=='zh' else 'When using AI or Google translation channel, you can translate in srt format, but there may be more empty lines')
+        self.aisendsrt = QtWidgets.QCheckBox()
+        self.aisendsrt.setText('发送完整字幕' if config.defaulelang == 'zh' else 'Send srt')
+        self.aisendsrt.setToolTip(
+            '当使用AI或Google翻译渠道时，可选以完整srt字幕格式发送请求，但可能出现较多空行' if config.defaulelang == 'zh' else 'When using AI or Google translation channel, you can translate in srt format, but there may be more empty lines')
         self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
-
-
-
 
         self.horizontalLayout_5.addWidget(self.glossary)
         self.horizontalLayout_5.addWidget(self.aisendsrt)
@@ -188,12 +185,13 @@ class Ui_MainWindow(object):
         self.tts_text.setObjectName("tts_text")
         self.tts_text.setMinimumSize(QtCore.QSize(0, 30))
         self.tts_text.setStyleSheet("""background-color:transparent""")
-        self.tts_text.setToolTip('点击设置配音并发线程数' if config.defaulelang=='zh' else 'Click to set the number of threads to be used for dubbing')
+        self.tts_text.setToolTip(
+            '点击设置配音并发线程数' if config.defaulelang == 'zh' else 'Click to set the number of threads to be used for dubbing')
         self.tts_type = QtWidgets.QComboBox(self.layoutWidget)
         self.tts_type.setMinimumSize(QtCore.QSize(160, 30))
         self.tts_type.setObjectName("tts_type")
-        #self.tts_type.addItems(TTS_NAME_LIST)
-        self.tts_type.setToolTip('选择用来配音的渠道' if config.defaulelang=='zh' else 'Select the channel used to dub')
+        # self.tts_type.addItems(TTS_NAME_LIST)
+        self.tts_type.setToolTip('选择用来配音的渠道' if config.defaulelang == 'zh' else 'Select the channel used to dub')
         self.horizontalLayout.addWidget(self.tts_text)
         self.horizontalLayout.addWidget(self.tts_type)
 
@@ -220,12 +218,11 @@ class Ui_MainWindow(object):
         self.voice_rate.setMinimumWidth(90)
         self.voice_rate.setObjectName("voice_rate")
 
-
         self.volume_label = QtWidgets.QLabel(self.layoutWidget)
         self.volume_label.setText("音量+" if config.defaulelang == 'zh' else "Volume+")
         self.volume_rate = QtWidgets.QSpinBox(self.layoutWidget)
         self.volume_rate.setMinimum(-95)
-        self.volume_rate.setToolTip('音量增减的百分比' if config.defaulelang=='zh' else "Percentage of volume adjustment")
+        self.volume_rate.setToolTip('音量增减的百分比' if config.defaulelang == 'zh' else "Percentage of volume adjustment")
         self.volume_rate.setMaximum(100)
         self.volume_rate.setMinimumWidth(100)
         self.volume_rate.setObjectName("volume_rate")
@@ -270,7 +267,7 @@ class Ui_MainWindow(object):
         self.recogn_type = QtWidgets.QComboBox(self.layoutWidget)
         self.recogn_type.setMinimumSize(QtCore.QSize(160, 30))
         self.recogn_type.setObjectName("label_5")
-        #self.recogn_type.addItems(RECOGN_NAME_LIST)
+        # self.recogn_type.addItems(RECOGN_NAME_LIST)
         self.recogn_type.setToolTip(config.uilanglist['model_type_tips'])
 
         self.model_name_help = QtWidgets.QPushButton(self.layoutWidget)
@@ -283,20 +280,20 @@ class Ui_MainWindow(object):
         self.model_name.setMinimumSize(QtCore.QSize(160, 30))
         self.model_name.setMaximumWidth(160)
         self.model_name.setObjectName("model_name")
-        
+
         self.show_spk = QtWidgets.QCheckBox()
         self.show_spk.setObjectName('show_spk')
         self.show_spk.setText("识别说话人?" if config.defaulelang == 'zh' else 'Speaker classification?')
-        self.show_spk.setChecked(config.params.get('paraformer_spk',False))
+        self.show_spk.setChecked(config.params.get('paraformer_spk', False))
         self.show_spk.setVisible(False)
 
-        self.split_label=QtWidgets.QPushButton()
+        self.split_label = QtWidgets.QPushButton()
         self.split_label.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         self.split_label.setObjectName("split_label")
         self.split_label.setCursor(Qt.PointingHandCursor)
-        self.split_label.setToolTip('选择音频切割方式,点击查看详细说明' if config.defaulelang=='zh' else 'Click for detailed description')
+        self.split_label.setToolTip(
+            '选择音频切割方式,点击查看详细说明' if config.defaulelang == 'zh' else 'Click for detailed description')
         self.split_label.setText("语音切割模式\u2193" if config.defaulelang == 'zh' else "Speech Split\u2193")
-
 
         self.split_type = QtWidgets.QComboBox(self.layoutWidget)
         self.split_type.setMinimumSize(QtCore.QSize(80, 30))
@@ -317,12 +314,14 @@ class Ui_MainWindow(object):
         self.equal_split_layout.addWidget(self.equal_split_time)
         self.equal_split_layout.addWidget(self.equal_split_time_label)
 
-        self.rephrase=QtWidgets.QCheckBox()
-        self.rephrase.setText('LLM重新断句' if config.defaulelang=='zh' else 'LLM Rephrase')
-        self.rephrase.setToolTip('当选择faster/openai-whisper/Deepgram渠道时将使用大模型重新断句，若失败将使用原始分段' if config.defaulelang=='zh' else 'Valid when selecting the fast/openai-whisper/Deep program')
-        self.remove_noise=QtWidgets.QCheckBox()
-        self.remove_noise.setText('降噪' if config.defaulelang=='zh' else 'Noise reduction')
-        self.remove_noise.setToolTip('若选中将从modelscope.cn下载模型做音频降噪处理，比较耗时' if config.defaulelang=='zh' else 'Select to perform noise reduction processing from modelscope.cn, which takes a long time')
+        self.rephrase = QtWidgets.QCheckBox()
+        self.rephrase.setText('LLM重新断句' if config.defaulelang == 'zh' else 'LLM Rephrase')
+        self.rephrase.setToolTip(
+            '当选择faster/openai-whisper/Deepgram渠道时将使用大模型重新断句，若失败将使用原始分段' if config.defaulelang == 'zh' else 'Valid when selecting the fast/openai-whisper/Deep program')
+        self.remove_noise = QtWidgets.QCheckBox()
+        self.remove_noise.setText('降噪' if config.defaulelang == 'zh' else 'Noise reduction')
+        self.remove_noise.setToolTip(
+            '若选中将从modelscope.cn下载模型做音频降噪处理，比较耗时' if config.defaulelang == 'zh' else 'Select to perform noise reduction processing from modelscope.cn, which takes a long time')
 
         self.horizontalLayout_4.addWidget(self.reglabel)
         self.horizontalLayout_4.addWidget(self.recogn_type)
@@ -338,7 +337,7 @@ class Ui_MainWindow(object):
 
         # 语音识别高级行
         self.hfaster_layout = QtWidgets.QHBoxLayout()
-        self.hfaster_help=QtWidgets.QPushButton()
+        self.hfaster_help = QtWidgets.QPushButton()
         self.hfaster_help.setText('打开参数说明?' if config.defaulelang == 'zh' else 'Help')
         self.hfaster_help.setToolTip('点击打开该行参数填写帮助页面' if config.defaulelang == 'zh' else 'Click to open help page')
         self.hfaster_help.setStyleSheet("background-color:transparent;color:#999999")
@@ -359,7 +358,6 @@ class Ui_MainWindow(object):
         self.hfaster_layout.addWidget(self.threshold_label)
         self.hfaster_layout.addWidget(self.threshold)
 
-
         self.min_speech_duration_ms_label = QtWidgets.QLabel()
         self.min_speech_duration_ms_label.setText(
             'min_speech_duration_ms' if config.defaulelang != 'zh' else '最小语音持续毫秒')
@@ -373,8 +371,6 @@ class Ui_MainWindow(object):
             '最小语音持续时间，单位：毫秒。\n如果检测到的语音片段长度小于这个值，则该语音片段会被丢弃。目的是去除一些短暂的非语音声音或噪音。\n默认值为 250 毫秒，适合大多数场景。你可以根据需要调整，如果语音片段过短容易被误判为噪音，可以增加该值，\n例如设置为 500 毫秒' if config.defaulelang == 'zh' else 'Minimum speech duration (ms)')
         self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
         self.hfaster_layout.addWidget(self.min_speech_duration_ms)
-
-
 
         self.min_silence_duration_ms_label = QtWidgets.QLabel()
         self.min_silence_duration_ms_label.setText(
@@ -430,8 +426,6 @@ class Ui_MainWindow(object):
         self.align_btn.setToolTip("点击查看字幕、配音、画面对齐教程" if config.defaulelang == 'zh' else "View alignment tutorial")
         self.gaoji_layout_inner.addWidget(self.align_btn)
 
-
-
         self.voice_autorate = QtWidgets.QCheckBox(self.layoutWidget)
         self.voice_autorate.setObjectName("voice_autorate")
 
@@ -455,7 +449,8 @@ class Ui_MainWindow(object):
         self.cjklinenums.setMinimum(5)
         self.cjklinenums.setMaximum(100)
         self.cjklinenums.setMinimumWidth(90)
-        self.cjklinenums.setToolTip("中日韩字幕单行字符数" if config.defaulelang=='zh' else 'Chinese/Japanese/Korean line length')
+        self.cjklinenums.setToolTip(
+            "中日韩字幕单行字符数" if config.defaulelang == 'zh' else 'Chinese/Japanese/Korean line length')
         self.cjklinenums.setObjectName("cjklinenums")
         self.cjklinenums.setValue(int(config.settings.get('cjk_len', 20)))
 
@@ -468,7 +463,8 @@ class Ui_MainWindow(object):
         self.othlinenums.setMinimum(5)
         self.othlinenums.setMinimumWidth(90)
         self.othlinenums.setMaximum(100)
-        self.othlinenums.setToolTip("其他语言字幕单行字符数" if config.defaulelang=='zh' else 'Number of characters per line for subtitles in other languages')
+        self.othlinenums.setToolTip(
+            "其他语言字幕单行字符数" if config.defaulelang == 'zh' else 'Number of characters per line for subtitles in other languages')
         self.othlinenums.setObjectName("othlinenums")
         self.othlinenums.setValue(int(config.settings.get('other_len', 60)))
 
@@ -488,8 +484,6 @@ class Ui_MainWindow(object):
         self.is_separate.setMinimumSize(QtCore.QSize(0, 30))
         self.is_separate.setObjectName("is_separate")
 
-
-
         self.addbackbtn = QtWidgets.QPushButton(self.layoutWidget)
         self.addbackbtn.setObjectName("addbackbtn")
 
@@ -500,15 +494,16 @@ class Ui_MainWindow(object):
         self.is_loop_bgm = QtWidgets.QCheckBox(self.layoutWidget)
         self.is_loop_bgm.setChecked(True)
         self.is_loop_bgm.setText('循环背景音' if config.defaulelang == 'zh' else 'loop the BGM')
-        self.is_loop_bgm.setToolTip('当背景音频时长不足时，是否循环播放' if config.defaulelang == 'zh' else 'Whether to loop the background music when the duration is insufficient')
+        self.is_loop_bgm.setToolTip(
+            '当背景音频时长不足时，是否循环播放' if config.defaulelang == 'zh' else 'Whether to loop the background music when the duration is insufficient')
 
-        self.bgmvolume_label=QtWidgets.QLabel()
+        self.bgmvolume_label = QtWidgets.QLabel()
         self.bgmvolume_label.setText('背景音量' if config.defaulelang == 'zh' else 'Volume BGM')
-        self.bgmvolume=QtWidgets.QLineEdit()
+        self.bgmvolume = QtWidgets.QLineEdit()
         self.bgmvolume.setText('0.8')
         self.bgmvolume.setMaximumWidth(80)
-        self.bgmvolume.setToolTip('背景音量调整为原始音量的倍数，大于1升高，小于降低' if config.defaulelang=='zh' else 'BGM volume is a multiple of the original volume, greater than 1 increases, less than decreases')
-
+        self.bgmvolume.setToolTip(
+            '背景音量调整为原始音量的倍数，大于1升高，小于降低' if config.defaulelang == 'zh' else 'BGM volume is a multiple of the original volume, greater than 1 increases, less than decreases')
 
         self.gaoji_layout_inner2.addWidget(self.is_separate)
         self.gaoji_layout_inner2.addWidget(self.addbackbtn)
@@ -519,7 +514,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addLayout(self.gaoji_layout_inner2)
 
         self.show_tips = QtWidgets.QPushButton(self.layoutWidget)
-        self.show_tips.setStyleSheet("""background-color:transparent;border-color:transparent;color:#aaaaaa;text-align:left""")
+        self.show_tips.setStyleSheet(
+            """background-color:transparent;border-color:transparent;color:#aaaaaa;text-align:left""")
         self.show_tips.setObjectName("show_tips")
         self.verticalLayout_3.addWidget(self.show_tips)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
@@ -531,8 +527,6 @@ class Ui_MainWindow(object):
         self.enable_cuda.setObjectName("enable_cuda")
         self.enable_cuda.setToolTip(config.transobj['cudatips'])
         self.enable_cuda.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
-
-
 
         self.startbtn = QtWidgets.QPushButton(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -600,7 +594,7 @@ class Ui_MainWindow(object):
         self.subtitle_layout.setContentsMargins(3, 0, 0, 0)
         self.subtitle_layout.setObjectName("subtitle_layout")
 
-        self.source_area_layout=QtWidgets.QVBoxLayout()
+        self.source_area_layout = QtWidgets.QVBoxLayout()
         """
         self.subtitle_area = TextGetdir(self)
         self.subtitle_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
@@ -611,17 +605,14 @@ class Ui_MainWindow(object):
         self.subtitle_area_placeholder = QtWidgets.QWidget(self)
         self.subtitle_area_placeholder.setObjectName("subtitle_area_placeholder")
 
-           
         self.import_sub = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.import_sub.setObjectName("import_sub")
         self.source_area_layout.addWidget(self.subtitle_area_placeholder)
         self.source_area_layout.addWidget(self.import_sub)
-        self.target_subtitle_area= QtWidgets.QVBoxLayout()
-
+        self.target_subtitle_area = QtWidgets.QVBoxLayout()
 
         self.subtitle_layout.addLayout(self.source_area_layout)
         self.subtitle_layout.addLayout(self.target_subtitle_area)
-
 
         self.horizontalLayout_7.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -659,7 +650,7 @@ class Ui_MainWindow(object):
         self.toolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.toolBar.setFloatable(True)
         self.toolBar.setObjectName("toolBar")
-        if config.defaulelang=='zh':
+        if config.defaulelang == 'zh':
             MainWindow.addToolBar(QtCore.Qt.LeftToolBarArea, self.toolBar)
         else:
             # 工具条放在顶部
@@ -739,10 +730,10 @@ class Ui_MainWindow(object):
 
         self.actiontts_gptsovits = QtGui.QAction(MainWindow)
         self.actiontts_gptsovits.setObjectName("actiontts_gptsovits")
-        
+
         self.actiontts_chatterbox = QtGui.QAction(MainWindow)
         self.actiontts_chatterbox.setObjectName("actiontts_chatterbox")
-        
+
         self.actiontts_cosyvoice = QtGui.QAction(MainWindow)
         self.actiontts_cosyvoice.setObjectName("actiontts_cosyvoice")
         self.actiontts_fishtts = QtGui.QAction(MainWindow)
@@ -778,8 +769,6 @@ class Ui_MainWindow(object):
         self.action_biaozhun.setCheckable(True)
         self.action_biaozhun.setChecked(True)
         self.action_biaozhun.setObjectName("action_biaozhun")
-
-
 
         self.action_yuyinshibie = QtGui.QAction(MainWindow)
 
@@ -958,7 +947,7 @@ class Ui_MainWindow(object):
         self.menu_H.addAction(self.action_models)
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_gtrans)
-        
+
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_cuda)
         self.menu_H.addSeparator()
@@ -991,5 +980,3 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionsubtitlescover)
 
         self.toolBar.addAction(self.action_yingyinhebing)
-
-

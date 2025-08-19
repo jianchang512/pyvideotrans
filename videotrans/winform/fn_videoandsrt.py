@@ -1,23 +1,20 @@
-import json
-import os
-import textwrap
-import time
-from pathlib import Path
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
-from videotrans import translator
-from videotrans.configure import config
-from videotrans.util import tools
-
-
 # 视频 字幕 音频 合并
 def openwin():
+    import json
+    import os
+    import textwrap
+    import time
+    from pathlib import Path
+
+    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QFileDialog
+
+    from videotrans.configure import config
+    from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/videoandsrt"
     Path(RESULT_DIR).mkdir(exist_ok=True)
+    from videotrans import translator
 
     class CompThread(QThread):
         uito = Signal(str)
@@ -151,7 +148,9 @@ def openwin():
         winobj.has_done = False
         folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
-            tools.show_error( '必须选择存在同名视频和srt字幕的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and srt subtitles with the same name exists.',False)
+            tools.show_error(
+                '必须选择存在同名视频和srt字幕的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and srt subtitles with the same name exists.',
+                False)
             return
         is_soft = winobj.issoft.isChecked()
         language = winobj.language.currentText()

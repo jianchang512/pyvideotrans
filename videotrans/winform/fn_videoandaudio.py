@@ -1,27 +1,24 @@
-import json
-import os
-import time
-from pathlib import Path
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMessageBox, QFileDialog
-
-from videotrans.configure import config
-# 使用内置的 open 函数
-from videotrans.util import tools
-
-
 # 水印
 def openwin():
+    import json
+    import os
+    import time
+    from pathlib import Path
+
+    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QFileDialog
+
+    from videotrans.configure import config
+    # 使用内置的 open 函数
+    from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/videoandaudio"
     Path(RESULT_DIR).mkdir(exist_ok=True)
 
     class CompThread(QThread):
         uito = Signal(str)
 
-        def __init__(self, *, parent=None, remain=False, folder=None,audio_process=0):
+        def __init__(self, *, parent=None, remain=False, folder=None, audio_process=0):
             super().__init__(parent=parent)
             self.remain = remain
             self.folder = folder
@@ -70,15 +67,16 @@ def openwin():
                 audio = info['audio']
                 try:
                     self.post(f'{Path(audio).name} --> {Path(info["video"]).name} ')
-                    video_time=tools.get_video_duration(info['video'])
-                    audio_time=int(tools.get_audio_time(audio)*1000)
-                    tmp_audio=config.TEMP_HOME + f"/{time.time()}-{Path(audio).name}"
-                    if audio_time > video_time and self.audio_process==0:
-                        tools.runffmpeg(['-y', '-i', audio, '-ss', '00:00:00.000', '-t', str(video_time/1000), tmp_audio])
+                    video_time = tools.get_video_duration(info['video'])
+                    audio_time = int(tools.get_audio_time(audio) * 1000)
+                    tmp_audio = config.TEMP_HOME + f"/{time.time()}-{Path(audio).name}"
+                    if audio_time > video_time and self.audio_process == 0:
+                        tools.runffmpeg(
+                            ['-y', '-i', audio, '-ss', '00:00:00.000', '-t', str(video_time / 1000), tmp_audio])
                         audio = tmp_audio
-                    elif audio_time>video_time and self.audio_process==1:
+                    elif audio_time > video_time and self.audio_process == 1:
                         tools.precise_speed_up_audio(file_path=audio, out=tmp_audio, target_duration_ms=video_time)
-                        audio=tmp_audio
+                        audio = tmp_audio
                     if self.remain:
                         # 需要保留原声
                         video_info = tools.get_video_info(info['video'])
@@ -138,7 +136,7 @@ def openwin():
             winobj.startbtn.setText(d['text'])
         elif d['type'] == 'logs':
             winobj.loglabel.setText(d['text'])
-        elif d['type']=='ok':
+        elif d['type'] == 'ok':
             winobj.has_done = True
             winobj.startbtn.setText(config.transobj['zhixingwc'])
             winobj.startbtn.setDisabled(False)
@@ -154,7 +152,9 @@ def openwin():
         winobj.has_done = False
         folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
-            tools.show_error('必须选择存在同名视频和音频的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and audio with the same name exists.',False)
+            tools.show_error(
+                '必须选择存在同名视频和音频的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and audio with the same name exists.',
+                False)
             return
 
         winobj.startbtn.setText(
@@ -163,7 +163,8 @@ def openwin():
         winobj.startbtn.setDisabled(True)
         winobj.resultbtn.setDisabled(True)
 
-        task = CompThread(parent=winobj, folder=folder, remain=winobj.remain.isChecked(),audio_process=winobj.audio_process.currentIndex())
+        task = CompThread(parent=winobj, folder=folder, remain=winobj.remain.isChecked(),
+                          audio_process=winobj.audio_process.currentIndex())
 
         task.uito.connect(feed)
         task.start()

@@ -1,4 +1,5 @@
-import PySide6,os
+import PySide6
+import os
 from PySide6 import QtWidgets
 from PySide6.QtCore import QEvent
 from PySide6.QtGui import QIcon
@@ -6,33 +7,30 @@ from PySide6.QtWidgets import QDialog
 
 from videotrans.configure import config
 from videotrans.ui.ai302 import Ui_ai302form
+from videotrans.ui.ali import Ui_aliform
 from videotrans.ui.article import Ui_articleform
 from videotrans.ui.azure import Ui_azureform
 from videotrans.ui.azuretts import Ui_azurettsform
 from videotrans.ui.baidu import Ui_baiduform
-from videotrans.ui.ali import Ui_aliform
 from videotrans.ui.chatgpt import Ui_chatgptform
+from videotrans.ui.chatterbox import Ui_chatterboxform
 from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.claude import Ui_claudeform
-from videotrans.ui.parakeet import Ui_parakeetform
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.cosyvoice import Ui_cosyvoiceform
 from videotrans.ui.deepgram import Ui_deepgramform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
+from videotrans.ui.deepseek import Ui_deepseekform
 from videotrans.ui.doubao import Ui_doubaoform
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
+from videotrans.ui.f5tts import Ui_f5ttsform
 from videotrans.ui.fanyi import Ui_fanyisrt
 from videotrans.ui.fishtts import Ui_fishttsform
 from videotrans.ui.formatcover import Ui_formatcover
-from videotrans.ui.zhipuai import Ui_zhipuaiform
-from videotrans.ui.deepseek import Ui_deepseekform
-from videotrans.ui.openrouter import Ui_openrouterform
-from videotrans.ui.siliconflow import Ui_siliconflowform
 from videotrans.ui.gemini import Ui_geminiform
 from videotrans.ui.getaudio import Ui_getaudio
 from videotrans.ui.gptsovits import Ui_gptsovitsform
-from videotrans.ui.chatterbox import Ui_chatterboxform
 from videotrans.ui.hunliu import Ui_hunliu
 from videotrans.ui.info import Ui_infoform
 from videotrans.ui.kokoro import Ui_kokoroform
@@ -40,16 +38,20 @@ from videotrans.ui.libretranslate import Ui_libretranslateform
 from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.openairecognapi import Ui_openairecognapiform
 from videotrans.ui.openaitts import Ui_openaittsform
-from videotrans.ui.qwentts import Ui_qwenttsform
+from videotrans.ui.openrouter import Ui_openrouterform
 from videotrans.ui.ott import Ui_ottform
+from videotrans.ui.parakeet import Ui_parakeetform
 from videotrans.ui.peiyin import Ui_peiyin
+from videotrans.ui.peiyinrole import Ui_peiyinrole
+from videotrans.ui.qwentts import Ui_qwenttsform
 from videotrans.ui.recogn import Ui_recogn
 from videotrans.ui.recognapi import Ui_recognapiform
-from videotrans.ui.stt import Ui_sttform
 from videotrans.ui.separate import Ui_separateform
 from videotrans.ui.setini import Ui_setini
 from videotrans.ui.setlinerole import Ui_setlinerole
+from videotrans.ui.siliconflow import Ui_siliconflowform
 from videotrans.ui.srthebing import Ui_srthebing
+from videotrans.ui.stt import Ui_sttform
 from videotrans.ui.subtitle_editor import Ui_subtitleEditor
 from videotrans.ui.subtitlescover import Ui_subtitlescover
 from videotrans.ui.tencent import Ui_tencentform
@@ -60,14 +62,14 @@ from videotrans.ui.videoandaudio import Ui_videoandaudio
 from videotrans.ui.videoandsrt import Ui_videoandsrt
 from videotrans.ui.volcenginetts import Ui_volcengineform
 from videotrans.ui.watermark import Ui_watermark
+from videotrans.ui.zhipuai import Ui_zhipuaiform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
-from videotrans.ui.f5tts import Ui_f5ttsform
-from videotrans.ui.peiyinrole import Ui_peiyinrole
-from videotrans.util import tools
+
 
 # ==================== 字幕行自定义控件 ====================
 class SubtitleRowWidget(QtWidgets.QWidget):
     """自定义的单条字幕行控件"""
+
     def __init__(self, index, start_time, end_time, text, parent=None):
         super().__init__(parent)
         self.sub_index = index
@@ -101,7 +103,6 @@ class SubtitleRowWidget(QtWidgets.QWidget):
         self.layout.addStretch()
 
 
-
 class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
     def __init__(self, parent=None):
         super(Peiyinformrole, self).__init__(parent)
@@ -111,7 +112,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
         # 新增的信号连接
         self.clear_button.clicked.connect(self.clear_all_ui)
         self.assign_role_button.clicked.connect(self.assign_role_to_selected)
-        
+
         # 当 hecheng_role 的内容改变时，同步到 tmp_rolelist
         self.hecheng_role.model().rowsInserted.connect(self.sync_roles_to_tmp_list)
         self.hecheng_role.model().rowsRemoved.connect(self.sync_roles_to_tmp_list)
@@ -130,13 +131,13 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
             if child.widget():
                 child.widget().deleteLater()
         self.subtitles.clear()
-    
+
     def clear_all_ui(self):
         """点击清空按钮时执行"""
         self.srt_path = None
         self.subtitles.clear()
         config.dubbing_role.clear()
-        
+
         self.clear_subtitle_area()
         self.hecheng_importbtn.setText("导入SRT文件..." if config.defaulelang == 'zh' else 'Import SRT file...')
         self.loglabel.setText("")
@@ -153,29 +154,32 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
 
     def parse_and_display_srt(self, srt_path):
         """解析SRT文件并在UI上显示"""
-        self.clear_all_ui() # 导入新文件前先清空
+        self.clear_all_ui()  # 导入新文件前先清空
         self.srt_path = srt_path
-        
-    
-    
+
         try:
+            from videotrans.util import tools
             subs = tools.get_subtitle_from_srt(srt_path)
             self.subtitles = subs
             for sub in subs:
                 row_widget = SubtitleRowWidget(sub['line'], sub['startraw'], sub['endraw'], sub['text'])
                 self.subtitle_layout.addWidget(row_widget)
-            
+
             self.hecheng_importbtn.setText(f"已导入: {os.path.basename(srt_path)}")
 
-        except Exception as e:            
+        except Exception as e:
             self.clear_all_ui()
             raise
 
     def assign_role_to_selected(self):
         """为选中的行分配角色"""
         selected_role = self.tmp_rolelist.currentText()
+        from videotrans.util import tools
+        from videotrans.configure import config
         if not selected_role or selected_role in ['-', 'No']:
-            tools.show_error("请先在下拉列表中选择一个有效的角色。")
+            tools.show_error(
+                "请先在下拉列表中选择一个有效的角色。" if config.defaulelang == 'zh' else 'Please select a valid role from the dropdown list.',
+                False)
             return
 
         assigned_count = 0
@@ -189,7 +193,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
                 # 分配后取消勾选
                 widget.checkbox.setChecked(False)
                 assigned_count += 1
-        
+
         if assigned_count > 0:
             print(f"Assigned role '{selected_role}' to {assigned_count} lines.")
             print(f"Current config.dubbing_role: {config.dubbing_role}")
@@ -212,6 +216,8 @@ class BaiduForm(QDialog, Ui_baiduform):  # <===
         super(BaiduForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+
 class OpenrouterForm(QDialog, Ui_openrouterform):  # <===
     def __init__(self, parent=None):
         super(OpenrouterForm, self).__init__(parent)
@@ -224,8 +230,6 @@ class AliForm(QDialog, Ui_aliform):  # <===
         super(AliForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
 
 
 class SeparateForm(QDialog, Ui_separateform):  # <===
@@ -263,6 +267,8 @@ class OpenAITTSForm(QDialog, Ui_openaittsform):  # <===
         super(OpenAITTSForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+
 class QwenTTSForm(QDialog, Ui_qwenttsform):  # <===
     def __init__(self, parent=None):
         super(QwenTTSForm, self).__init__(parent)
@@ -324,6 +330,7 @@ class GPTSoVITSForm(QDialog, Ui_gptsovitsform):  # <===
         super(GPTSoVITSForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
 
 class ChatterboxForm(QDialog, Ui_chatterboxform):  # <===
     def __init__(self, parent=None):
@@ -421,11 +428,14 @@ class CloneForm(QDialog, Ui_cloneform):  # <===
         super(CloneForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+
 class ParakeetForm(QDialog, Ui_parakeetform):  # <===
     def __init__(self, parent=None):
         super(ParakeetForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
 
 class KokoroForm(QDialog, Ui_kokoroform):  # <===
     def __init__(self, parent=None):
@@ -489,12 +499,15 @@ class ZhipuAIForm(QDialog, Ui_zhipuaiform):  # <===
         super(ZhipuAIForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+
 class DeepseekForm(QDialog, Ui_deepseekform):  # <===
     def __init__(self, parent=None):
         super(DeepseekForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-        
+
+
 class SiliconflowForm(QDialog, Ui_siliconflowform):  # <===
     def __init__(self, parent=None):
         super(SiliconflowForm, self).__init__(parent)
@@ -549,6 +562,7 @@ class Fanyisrt(QtWidgets.QWidget, Ui_fanyisrt):
         super(Fanyisrt, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
     def changeEvent(self, event):
         """
         重写 changeEvent 方法，监听窗口激活状态变化
@@ -557,7 +571,7 @@ class Fanyisrt(QtWidgets.QWidget, Ui_fanyisrt):
             if self.isActiveWindow():
                 # 在这里执行窗口激活时需要做的操作
                 self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
-        super(Fanyisrt, self).changeEvent(event) # 调用父类的实现，确保默认行为被处理
+        super(Fanyisrt, self).changeEvent(event)  # 调用父类的实现，确保默认行为被处理
 
 
 class Recognform(QtWidgets.QWidget, Ui_recogn):  # <===
@@ -586,7 +600,6 @@ class Videoandsrtform(QDialog, Ui_videoandsrt):  # <===
         super(Videoandsrtform, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
 
 
 class FormatcoverForm(QDialog, Ui_formatcover):  # <===

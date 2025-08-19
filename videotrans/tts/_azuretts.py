@@ -1,27 +1,31 @@
+import logging
 import time
+from dataclasses import dataclass, field
 
 import azure.cognitiveservices.speech as speechsdk
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-from dataclasses import dataclass, field
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
+
 @dataclass
 class AzureTTS(BaseTTS):
     con_num: int = field(init=False)
+
     def __post_init__(self):
         super().__post_init__()
         self.con_num = int(float(config.settings.get('azure_lines', 1)))
 
     def _item_task_pl(self, items: list = None):
-        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+               after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
         def _run():
             if self._exit():
                 return
@@ -49,7 +53,8 @@ class AzureTTS(BaseTTS):
                                         {}
                                         </prosody>
                                     </voice>
-                                    </speak>""".format(self.language, items[0]['role'], self.rate, self.pitch, self.volume,
+                                    </speak>""".format(self.language, items[0]['role'], self.rate, self.pitch,
+                                                       self.volume,
                                                        text_xml)
             config.logger.info(f'{ssml=}')
             bookmarks = []
@@ -92,7 +97,7 @@ class AzureTTS(BaseTTS):
                             str((bookmarks[i + 1]['time'] - it['time']) / 1000)
                         ]
 
-                    cmd += ["-ar","44100","-ac","2","-c:a","pcm_s16le",items[i]['filename']]
+                    cmd += ["-ar", "44100", "-ac", "2", "-c:a", "pcm_s16le", items[i]['filename']]
                     tools.runffmpeg(cmd)
                     self.has_done += 1
                     if self.inst and self.inst.precent < 80:
@@ -105,13 +110,16 @@ class AzureTTS(BaseTTS):
                 cancellation_details = speech_synthesis_result.cancellation_details
                 if cancellation_details.reason == speechsdk.CancellationReason.Error:
                     if cancellation_details.error_details:
-                       raise RuntimeError(str(cancellation_details.error_details))
+                        raise RuntimeError(str(cancellation_details.error_details))
                 raise RuntimeError(str(cancellation_details.reason))
             raise RuntimeError('Test Azure')
+
         _run()
 
     def _item_task(self, data_item):
-        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+               after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -133,7 +141,8 @@ class AzureTTS(BaseTTS):
                                         {}
                                         </prosody>
                                     </voice>
-                                    </speak>""".format(self.language, data_item['role'], self.rate, self.pitch, self.volume,
+                                    </speak>""".format(self.language, data_item['role'], self.rate, self.pitch,
+                                                       self.volume,
                                                        text_xml)
             config.logger.info(f'{ssml=}')
             speech_synthesis_result = speech_synthesizer.speak_ssml_async(ssml).get()
@@ -157,6 +166,7 @@ class AzureTTS(BaseTTS):
                         raise RuntimeError(cancellation_details.error_details)
                 raise RuntimeError(cancellation_details.reason)
             raise RuntimeError('Test Azure SK')
+
         _run()
 
     # 鼠标不重试，直接报错停止

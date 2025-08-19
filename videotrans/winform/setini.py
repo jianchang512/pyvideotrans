@@ -1,15 +1,12 @@
-import json
-
-from PySide6 import QtWidgets
-from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QMessageBox, QLineEdit, QPlainTextEdit, QPushButton, QCheckBox, QComboBox
-
-from videotrans.configure import config
-from videotrans.util import tools
-
-
 # 高级设置
 def openwin():
+    import json
+
+    from PySide6.QtCore import QTimer
+    from PySide6.QtWidgets import QMessageBox, QLineEdit, QPlainTextEdit, QPushButton, QCheckBox, QComboBox
+
+    from videotrans.configure import config
+    from videotrans.util import tools
     winobj = None
 
     def save():
@@ -44,10 +41,10 @@ def openwin():
                 name = line_edit.objectName()
                 if name == 'subtitle_position':
                     # 根据位置字符串，选择对应的数字
-                    line_edit_dict[name] = config.POSTION_ASS_VK.get(line_edit.currentText(),2)
-                elif name=='borderStyle':
+                    line_edit_dict[name] = config.POSTION_ASS_VK.get(line_edit.currentText(), 2)
+                elif name == 'borderStyle':
                     # 背景风格 0位置代表轮廓，1位置代表背景色
-                    line_edit_dict[name] =1 if line_edit.currentIndex()==0 else 3
+                    line_edit_dict[name] = 1 if line_edit.currentIndex() == 0 else 3
                 else:
                     # 将objectName作为key，text作为value添加到字典中
                     line_edit_dict[name] = line_edit.currentText()

@@ -21,12 +21,12 @@ class Ui_localllmform(object):
         localllmform.setSizePolicy(sizePolicy)
         localllmform.setMaximumSize(QtCore.QSize(600, 600))
 
-        v1=QtWidgets.QVBoxLayout(localllmform)
+        v1 = QtWidgets.QVBoxLayout(localllmform)
 
-        h1=QtWidgets.QHBoxLayout()
-        h2=QtWidgets.QHBoxLayout()
-        h3=QtWidgets.QHBoxLayout()
-        h4=QtWidgets.QHBoxLayout()
+        h1 = QtWidgets.QHBoxLayout()
+        h2 = QtWidgets.QHBoxLayout()
+        h3 = QtWidgets.QHBoxLayout()
+        h4 = QtWidgets.QHBoxLayout()
 
         self.label_0 = QtWidgets.QLabel()
         self.label_0.setText(
@@ -43,7 +43,6 @@ class Ui_localllmform(object):
         h1.addWidget(self.label)
         h1.addWidget(self.localllm_api)
         v1.addLayout(h1)
-
 
         self.label_2 = QtWidgets.QLabel(localllmform)
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
@@ -64,28 +63,24 @@ class Ui_localllmform(object):
         self.localllm_max_token = QtWidgets.QLineEdit(localllmform)
         self.localllm_max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.localllm_max_token.setObjectName("localllm_max_token")
-        
-        
-        label_temp=QtWidgets.QLabel(localllmform)
+
+        label_temp = QtWidgets.QLabel(localllmform)
         label_temp.setMinimumSize(QtCore.QSize(0, 35))
         label_temp.setText("temperature")
-        
-        self.localllm_temperature=QtWidgets.QLineEdit(localllmform)
+
+        self.localllm_temperature = QtWidgets.QLineEdit(localllmform)
         self.localllm_temperature.setObjectName("localllm_temperature")
 
-        
-        label_top_p=QtWidgets.QLabel(localllmform)
+        label_top_p = QtWidgets.QLabel(localllmform)
         label_top_p.setMinimumSize(QtCore.QSize(0, 35))
         label_top_p.setText("top_p")
-        
-        self.localllm_top_p=QtWidgets.QLineEdit(localllmform)
+
+        self.localllm_top_p = QtWidgets.QLineEdit(localllmform)
         self.localllm_top_p.setObjectName("localllm_top_p")
-        
-        
 
         h_token.addWidget(label_token)
         h_token.addWidget(self.localllm_max_token)
-        
+
         h_token.addWidget(label_temp)
         h_token.addWidget(self.localllm_temperature)
 
@@ -112,7 +107,6 @@ class Ui_localllmform(object):
         self.edit_allmodels = QtWidgets.QPlainTextEdit(localllmform)
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
-
 
         self.label_4 = QtWidgets.QLabel(localllmform)
         self.label_4.setObjectName("label_4")

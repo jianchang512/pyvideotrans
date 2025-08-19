@@ -23,12 +23,10 @@ class Ui_elevenlabsform(object):
 
         self.verticalLayout = QtWidgets.QVBoxLayout(elevenlabsform)
         self.verticalLayout.setObjectName("verticalLayout")
-        
-        
+
         self.formLayout_2 = QtWidgets.QHBoxLayout()
         self.formLayout_3 = QtWidgets.QHBoxLayout()
-        
-        
+
         self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setObjectName("label")
@@ -36,10 +34,10 @@ class Ui_elevenlabsform(object):
         self.elevenlabstts_key = QtWidgets.QLineEdit()
         self.elevenlabstts_key.setMinimumSize(QtCore.QSize(210, 35))
         self.elevenlabstts_key.setObjectName("elevenlabstts_key")
-        
+
         self.formLayout_2.addWidget(self.label)
         self.formLayout_2.addWidget(self.elevenlabstts_key)
-        
+
         self.label2 = QtWidgets.QLabel()
         self.label2.setMinimumSize(QtCore.QSize(100, 35))
         self.label2.setObjectName("label2")
@@ -47,15 +45,13 @@ class Ui_elevenlabsform(object):
         self.elevenlabstts_models = QtWidgets.QComboBox()
         self.elevenlabstts_models.setMinimumSize(QtCore.QSize(210, 35))
         self.elevenlabstts_models.setObjectName("elevenlabstts_models")
-        self.elevenlabstts_models.addItems(['eleven_flash_v2_5','eleven_multilingual_v2'])
-        
+        self.elevenlabstts_models.addItems(['eleven_flash_v2_5', 'eleven_multilingual_v2'])
+
         self.formLayout_3.addWidget(self.label2)
         self.formLayout_3.addWidget(self.elevenlabstts_models)
-        
+
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout.addLayout(self.formLayout_3)
-
-
 
         self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
@@ -73,7 +69,7 @@ class Ui_elevenlabsform(object):
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/elevenlabstts'))
 
-        hv=QtWidgets.QHBoxLayout()
+        hv = QtWidgets.QHBoxLayout()
         hv.addWidget(self.set)
         hv.addWidget(self.test)
         hv.addWidget(help_btn)
@@ -81,7 +77,7 @@ class Ui_elevenlabsform(object):
         self.verticalLayout.addLayout(hv)
 
         self.retranslateUi(elevenlabsform)
-        #QtCore.QMetaObject.connectSlotsByName(elevenlabsform)
+        # QtCore.QMetaObject.connectSlotsByName(elevenlabsform)
 
     def retranslateUi(self, elevenlabsform):
         elevenlabsform.setWindowTitle("ElevenLabs.io")

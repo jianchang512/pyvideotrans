@@ -79,8 +79,6 @@ class Ui_recognapiform(object):
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.recognapiform_key)
         self.verticalLayout.addLayout(self.formLayout_3)
 
-
-
         self.set = QtWidgets.QPushButton(recognapiform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")

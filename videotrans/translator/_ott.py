@@ -1,15 +1,16 @@
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Union
+import logging
+from dataclasses import dataclass
+from typing import List, Union
+
 import requests
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.translator._base import BaseTrans
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
 
-RETRY_NUMS=3
-RETRY_DELAY=5
+RETRY_NUMS = 3
+RETRY_DELAY = 5
 
 
 @dataclass
@@ -29,9 +30,10 @@ class OTT(BaseTrans):
         if pro:
             self.proxies = {"https": pro, "http": pro}
 
-
     # 实际发出请求获取结果
-    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+           after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         jsondata = {

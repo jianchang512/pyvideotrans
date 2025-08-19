@@ -1,18 +1,16 @@
-import json
-from pathlib import Path
-
-from PySide6 import QtWidgets
-
-from videotrans import translator
-from videotrans.configure import config
-from videotrans.util import tools
-from videotrans.util.TestSrtTrans import TestSrtTrans
-
-
 def openwin():
+    import json
+    from pathlib import Path
+
+    from PySide6 import QtWidgets
+
+    from videotrans.configure import config
+    from videotrans.util import tools
+    from videotrans.util.TestSrtTrans import TestSrtTrans
+    from videotrans import translator
     def feed(d):
         if not d.startswith("ok"):
-            tools.show_error( d)
+            tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         winobj.test_localllm.setText('测试' if config.defaulelang == 'zh' else 'Test')

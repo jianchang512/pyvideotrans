@@ -1,24 +1,23 @@
-import copy
+import mimetypes
+import logging
 import mimetypes
 import struct
 import time
+from dataclasses import dataclass
 
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
 from videotrans.configure._except import RetryRaise
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
-from tenacity import retry,stop_after_attempt, stop_after_delay, wait_fixed, retry_if_exception_type, retry_if_not_exception_type, before_log, after_log
-import logging
-
 
 RETRY_NUMS = 2
 RETRY_DELAY = 10
+
 
 @dataclass
 class GEMINITTS(BaseTTS):
@@ -32,7 +31,9 @@ class GEMINITTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY),before=before_log(config.logger,logging.INFO),after=after_log(config.logger,logging.INFO),retry_error_callback=RetryRaise._raise)
+        @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+               after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
         def _run():
             if tools.vail_file(data_item['filename']):
                 return
@@ -55,8 +56,8 @@ class GEMINITTS(BaseTTS):
                 return
             except APIError as e:
                 config.logger.exception(e, exc_info=True)
-                if e.code in [429,500]:
-                    self._signal(text=f"{data_item.get('line','')}  {e.message}")
+                if e.code in [429, 500]:
+                    self._signal(text=f"{data_item.get('line', '')}  {e.message}")
                     time.sleep(30)
                 else:
                     self.error = str(e.message)
@@ -64,8 +65,9 @@ class GEMINITTS(BaseTTS):
             except Exception as e:
                 config.logger.exception(e, exc_info=True)
                 self.error = str(e)
-                self._signal(text=f"{data_item.get('line','')} "+self.error)
+                self._signal(text=f"{data_item.get('line', '')} " + self.error)
                 time.sleep(30)
+
         _run()
 
     def generate_tts_segment(self, text, voice, model, file_name):

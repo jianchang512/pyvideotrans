@@ -21,12 +21,10 @@ class Ui_zhipuaiform(object):
         zhipuaiform.setSizePolicy(sizePolicy)
         zhipuaiform.setMaximumSize(QtCore.QSize(600, 600))
 
-        v1=QtWidgets.QVBoxLayout(zhipuaiform)
-        h2=QtWidgets.QHBoxLayout()
+        v1 = QtWidgets.QVBoxLayout(zhipuaiform)
+        h2 = QtWidgets.QHBoxLayout()
 
-        
-        h4=QtWidgets.QHBoxLayout()
-
+        h4 = QtWidgets.QHBoxLayout()
 
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -34,7 +32,6 @@ class Ui_zhipuaiform(object):
         self.label_0.setText(
             '智谱AI在此填写api key')
         v1.addWidget(self.label_0)
-
 
         self.label_2 = QtWidgets.QLabel(zhipuaiform)
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
@@ -46,8 +43,8 @@ class Ui_zhipuaiform(object):
         h2.addWidget(self.label_2)
         h2.addWidget(self.zhipu_key)
         v1.addLayout(h2)
-        
-        h_model=QtWidgets.QHBoxLayout()
+
+        h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
         self.label_selectmodel.setText("选择使用模型")
@@ -68,10 +65,6 @@ class Ui_zhipuaiform(object):
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-
-
-
-
         self.label_4 = QtWidgets.QLabel(zhipuaiform)
         self.label_4.setObjectName("label_4")
 
@@ -80,11 +73,10 @@ class Ui_zhipuaiform(object):
         v1.addWidget(self.label_4)
         v1.addWidget(self.template)
 
-
         self.set = QtWidgets.QPushButton(zhipuaiform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
-        
+
         self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
@@ -112,6 +104,5 @@ class Ui_zhipuaiform(object):
         self.template.setPlaceholderText("prompt")
         self.label_4.setText(
             "{lang}代表目标语言名称，不要删除。")
-        self.set.setText('保存' )
+        self.set.setText('保存')
         self.zhipu_key.setPlaceholderText("在此填写智谱AI的 API Key")
-
