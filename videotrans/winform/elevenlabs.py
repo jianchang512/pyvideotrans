@@ -1,7 +1,5 @@
 from PySide6 import QtWidgets
-from PySide6.QtWidgets import QMessageBox
 
-from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
@@ -28,6 +26,7 @@ def openwin():
         config.params['elevenlabstts_key'] = key
 
         try:
+            from videotrans import tts
             wk = ListenVoice(parent=winobj, queue_tts=[{
                 "text": 'hello,my friend',
                 "role": 'Aria',

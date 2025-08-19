@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets
 
-from videotrans import tts
+
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
@@ -22,6 +22,7 @@ def openwin():
             url = 'http://' + url
         config.params['kokoro_api'] = url
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        from videotrans import tts
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": 'hello,my friend',
             "role": "af_alloy",

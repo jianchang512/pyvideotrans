@@ -1,8 +1,4 @@
-import json
-
 from PySide6 import QtWidgets
-
-from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
@@ -26,6 +22,7 @@ def openwin():
         config.params["volcenginetts_appid"] = appid
         config.params["volcenginetts_access"] = access
         config.params["volcenginetts_cluster"] = cluster
+        from videotrans import tts
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": "通用男声",

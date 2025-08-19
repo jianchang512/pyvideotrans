@@ -1,6 +1,5 @@
 from PySide6 import QtWidgets
 
-from videotrans import tts
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
@@ -22,6 +21,7 @@ def openwin():
             url = 'http://' + url
         config.params["fishtts_url"] = url
         winobj.test.setText('测试中请稍等...')
+        from videotrans import tts
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": getrole(),
