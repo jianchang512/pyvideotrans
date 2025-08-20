@@ -121,9 +121,7 @@ class FasterAll(BaseRecogn):
                 process.join()
                 if err['msg']:
                     self.error = str(err['msg'])
-                elif len(list(raws)) < 1:
-                    self.error = "没有识别到任何说话声,请检查说话语言是否同所选一致" if config.defaulelang == 'zh' else "No speech detected"
-                else:
+                elif len(list(raws))>0:
                     self.error = ''
                     if self.detect_language == 'auto' and self.inst and hasattr(self.inst, 'set_source_language'):
                         config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
@@ -145,10 +143,8 @@ class FasterAll(BaseRecogn):
                         process.terminate()
                 except:
                     pass
-        except (LookupError, ValueError, AttributeError, ArithmeticError) as e:
-            config.logger.exception(f'lookup:{e}', exc_info=True)
-            self.error = str(e)
         except Exception as e:
+            config.logger.exception(f'_overall:{e}', exc_info=True)
             self.error = f"_overall:{e}"
         finally:
             config.model_process = None
@@ -157,15 +153,4 @@ class FasterAll(BaseRecogn):
         if not self.error and len(self.raws) > 0:
             return self.raws
 
-        if self.error and "CUBLAS_STATUS_NOT_SUPPORTED" in self.error:
-            raise RuntimeError(
-                "数据类型不兼容：请打开菜单--工具--高级选项--faster/openai语音识别调整--CUDA数据类型--选择 float16，保存后重试" if config.defaulelang == 'zh' else 'Incompatible data type: Please open the menu - Tools - Advanced options - Faster/OpenAI speech recognition adjustment - CUDA data type - select float16, save and try again')
-        if self.error and "cudaErrorNoKernelImageForDevice" in self.error:
-            raise RuntimeError(
-                "pytorch和cuda版本不兼容，请更新显卡驱动后，安装或重装CUDA12.x及cuDNN9.x" if config.defaulelang == 'zh' else 'Pytorch and cuda versions are incompatible. Please update the graphics card driver and install or reinstall CUDA12.x and cuDNN9.x')
-
-        if self.error:
-            raise RuntimeError(self.error)
-
-        if not self.raws or len(self.raws) < 1:
-            raise RuntimeError('未识别到有效文字' if config.defaulelang == 'zh' else 'No speech detected')
+        raise RuntimeError(self.error if self.error else ("没有识别到任何说话声,请确认所选音视频中是否包含人类说话声，以及说话语言是否同所选一致" if config.defaulelang == 'zh' else "No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one."))

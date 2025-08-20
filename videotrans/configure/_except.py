@@ -15,7 +15,6 @@ class RetryRaise:
         MissingSchema,  # URL 缺少协议 (如 "http://")
         InvalidSchema,  # URL 协议无效
         InvalidURL,  # URL 格式无效
-        ProxyError,  # 代理配置错误
         SSLError,  # SSL 证书验证失败
         RetryError,
         ConnectionError,
@@ -58,7 +57,7 @@ class RetryRaise:
             (Timeout, ConnectionError):
                 lambda
                     e: f"{'连接超时，请检查网络或代理:' if lang == 'zh' else 'Connection timed out, check network or proxy:'} {e.args}",
-
+            ProxyError:'无法连接代理地址或代理不可用，请尝试关闭或切换带来' if lang == 'zh' else 'Cannot connect to proxy address or proxy is unavailable, please try to close or switch proxy.',
             ApiError_11:
                 lambda e: e.body.get('detail', {}).get('message', 'ElevenLabs API error without detailed message.'),
 

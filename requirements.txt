@@ -52,3 +52,4 @@ google-cloud-texttospeech>=2.14.0
 hdbscan
 tenacity
 google-genai
+hf_xet

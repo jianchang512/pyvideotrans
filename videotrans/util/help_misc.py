@@ -103,12 +103,12 @@ def open_url(url=None, title: str = None):
         'models': "https://github.com/jianchang512/stt/releases/tag/0.0",
         'stt': "https://github.com/jianchang512/stt/",
 
-        'gtrans': "https://pvt9.com/aiocr",
-        'cuda': "https://pvt9.com/gpu.html",
-        'website': "https://pvt9.com",
-        'help': "https://pvt9.com",
-        'xinshou': "https://pvt9.com/getstart",
-        "about": "https://pvt9.com/about",
+        'gtrans': "https://pyvideotrans.com/aiocr",
+        'cuda': "https://pyvideotrans.com/gpu.html",
+        'website': "https://pyvideotrans.com",
+        'help': "https://pyvideotrans.com",
+        'xinshou': "https://pyvideotrans.com/getstart",
+        "about": "https://pyvideotrans.com/about",
         'download': "https://github.com/jianchang512/pyvideotrans/releases",
         'openvoice': "https://github.com/kungful/openvoice-api"
     }

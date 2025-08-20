@@ -89,10 +89,7 @@ class FasterAvg(BaseRecogn):
                 # 等待进程执行完毕
                 process.join()
                 if err['msg']:
-                    self.error = 'err[msg]=' + str(err['msg'])
-                elif len(list(raws)) < 1:
-                    self.error = "没有识别到任何说话声" if config.defaulelang == 'zh' else "No speech detected"
-                    raise RuntimeError(self.error)
+                    self.error = str(err['msg'])
                 self.raws = list(raws)
                 try:
                     if process.is_alive():
@@ -105,11 +102,6 @@ class FasterAvg(BaseRecogn):
         finally:
             config.model_process = None
             self.has_done = True
-            try:
-                Path(self.pidfile).unlink(missing_ok=True)
-            except:
-                pass
-
-        if self.error:
-            raise Exception(self.error)
-        return self.raws
+        if not self.error and len(self.raws)>0:
+            return self.raws
+        raise RuntimeError(self.error if self.error else ("没有识别到任何说话声,请确认所选音视频中是否包含人类说话声，以及说话语言是否同所选一致" if config.defaulelang == 'zh' else "No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one."))

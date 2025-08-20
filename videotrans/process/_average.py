@@ -7,6 +7,7 @@ from pathlib import Path
 
 import zhconv
 from faster_whisper import WhisperModel
+from huggingface_hub.errors import LocalEntryNotFoundError
 from pydub import AudioSegment
 
 from videotrans.util.tools import ms_to_time_string, vail_file, cleartext
@@ -54,15 +55,19 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
             device="cuda" if is_cuda else "cpu",
             compute_type=com_type,
             download_root=down_root)
+    except LocalEntryNotFoundError:
+        err['msg'] = '下载模型失败了请确认网络稳定后重试，如果已使用代理，请尝试关闭。 访问网址  https://pvt9.com/820  可查看详细详细解决方案' if defaulelang == 'zh' else 'Download model failed, please confirm network stable and try again. Visit https://pvt9.com/820 for more detail.'
+        return
     except Exception as e:
-        if re.match(r'not support', str(e), re.I):
-            model = WhisperModel(
-                model_name,
-                device="cuda" if is_cuda else "cpu",
-                download_root=down_root)
+        error = str(e)
+        if "CUBLAS_STATUS_NOT_SUPPORTED" in error:
+            err['msg'] = "数据类型不兼容：请打开菜单--工具--高级选项--faster/openai语音识别调整--CUDA数据类型--选择 float16，保存后重试" if defaulelang == 'zh' else 'Incompatible data type: Please open the menu - Tools - Advanced options - Faster/OpenAI speech recognition adjustment - CUDA data type - select float16, save and try again'
+        elif "cudaErrorNoKernelImageForDevice" in error:
+            err['msg'] = "pytorch和cuda版本不兼容，请更新显卡驱动后，安装或重装CUDA12.x及cuDNN9.x" if defaulelang == 'zh' else 'Pytorch and cuda versions are incompatible. Please update the graphics card driver and install or reinstall CUDA12.x and cuDNN9.x'
         else:
             err['msg'] = str(e)
-            return
+        return
+
     write_log({"text": model_name + " Loaded", "type": "logs"})
     prompt = settings.get(f'initial_prompt_{detect_language}') if detect_language != 'auto' else None
     try:
@@ -81,10 +86,6 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
                                               best_of=settings['best_of'],
                                               condition_on_previous_text=settings[
                                                   'condition_on_previous_text'],
-                                              temperature=0.0 if settings['temperature'] == 0 else [0.0, 0.2,
-                                                                                                    0.4,
-                                                                                                    0.6, 0.8,
-                                                                                                    1.0],
                                               vad_filter=False,
                                               language=detect_language.split('-')[
                                                   0] if detect_language != 'auto' else None,
@@ -122,7 +123,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
     except (LookupError, ValueError, AttributeError, ArithmeticError) as e:
         err['msg'] = f'{e}'
         if detect_language == 'auto':
-            err['msg'] += '检测语言失败，请设置发声语言/Failed to detect language, please set the voice language'
+            err['msg'] += 'Failed to detect language, please set the voice language'
     except BaseException as e:
         err['msg'] = str(e)
     finally:
