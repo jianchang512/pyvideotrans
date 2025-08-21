@@ -174,8 +174,6 @@ def openwin():
             except:
                 config.settings['interval_split'] = 10
         config.settings['rephrase'] = winobj.rephrase.isChecked()
-        config.settings['cjk_len'] = winobj.cjklinenums.value()
-        config.settings['oth_len'] = winobj.othlinenums.value()
         with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
