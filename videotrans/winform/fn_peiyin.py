@@ -226,6 +226,7 @@ def openwin():
             "zu": "Zulu"
         }
     RESULT_DIR = config.HOME_DIR + "/tts"
+    uuid_list=list()
     Path(RESULT_DIR).mkdir(exist_ok=True)
     from videotrans.task._dubbing import DubbingSrt
     from videotrans.util.ListenVoice import ListenVoice
@@ -326,7 +327,7 @@ def openwin():
 
     # tab-4 语音合成
     def hecheng_start_fun():
-        nonlocal RESULT_DIR
+        nonlocal RESULT_DIR,uuid_list
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         txt = winobj.hecheng_plaintext.toPlainText().strip()
@@ -401,8 +402,6 @@ def openwin():
                 "target_dir": RESULT_DIR,
                 "voice_rate": rate,
                 "volume": volume,
-                "inst": None,
-                "rename": True,
                 "uuid": it['uuid'],
                 "pitch": pitch,
                 "tts_type": tts_type,
@@ -429,6 +428,7 @@ def openwin():
         config.getset_params(config.params)
 
     def stop_tts():
+        nonlocal uuid_list
         config.box_tts = 'stop'
         winobj.has_done = True
         winobj.hecheng_files = []
@@ -437,6 +437,10 @@ def openwin():
         winobj.hecheng_startbtn.setText(config.transobj["zhixingwc"])
         winobj.hecheng_startbtn.setDisabled(False)
         winobj.hecheng_stop.setDisabled(True)
+        if uuid_list:
+            for uuid in uuid_list:
+                config.stoped_uuid_set.add(uuid)
+        uuid_list=list()
 
     def getlangnamelist(tts_type=0):
         if tts_type != tts.EDGE_TTS:

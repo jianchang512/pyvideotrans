@@ -90,7 +90,7 @@ class ClickableProgressBar(QLabel):
                 return
             if not text:
                 text = config.transobj['running']
-            self.progress_bar.setFormat(f'  [{self.precent}%]  {text}   {self.basename}')  # set text format
+            self.progress_bar.setFormat(f'  [{self.precent}%]  {text[:120]}   {self.basename}')  # set text format
 
     def mousePressEvent(self, event):
         if self.target_dir and event.button() == Qt.LeftButton:

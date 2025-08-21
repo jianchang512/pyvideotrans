@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
@@ -9,6 +9,7 @@ from videotrans.util import tools
 
 @dataclass
 class BaseTask(BaseCon):
+    inst: Optional[Any] = None
     cfg: Dict = field(default=None, repr=False)
     obj: Dict = field(default=None, repr=False)
     uuid: str = None
@@ -38,7 +39,7 @@ class BaseTask(BaseCon):
     shoud_hebing: bool = False
 
     def __post_init__(self):
-        # 首先调用父类的真实 __init__
+        # 调用父类的真实 __init__
         super().__init__()
 
         if self.obj:
@@ -83,8 +84,11 @@ class BaseTask(BaseCon):
             return False
         try:
             tools.get_subtitle_from_srt(file)
-        except Exception:
-            Path(file).unlink(missing_ok=True)
+        except:
+            try:
+                Path(file).unlink(missing_ok=True)
+            except:
+                pass
             return False
         return True
 
@@ -94,7 +98,10 @@ class BaseTask(BaseCon):
             return
         p = Path(file)
         if p.exists() and p.stat().st_size == 0:
-            p.unlink(missing_ok=True)
+            try:
+                p.unlink(missing_ok=True)
+            except:
+                pass
 
     # 保存字幕文件 到目标文件夹
     def _save_srt_target(self, srtstr, file):
@@ -103,7 +110,7 @@ class BaseTask(BaseCon):
             txt = tools.get_srt_from_list(srtstr)
             with open(file, "w", encoding="utf-8") as f:
                 f.write(txt)
-        except Exception as e:
+        except Exception:
             raise
         self._signal(text=Path(file).read_text(encoding='utf-8'), type='replace_subtitle')
         return True

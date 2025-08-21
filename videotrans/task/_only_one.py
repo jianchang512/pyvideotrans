@@ -32,10 +32,11 @@ class Worker(QThread):
         self.uuid = None
 
     def run(self) -> None:
-        for obj in self.obj_list:
-            if self.cfg['clear_cache'] and Path(obj['target_dir']).is_dir():
-                shutil.rmtree(obj['target_dir'], ignore_errors=True)
-            Path(obj['target_dir']).mkdir(parents=True, exist_ok=True)
+        obj=self.obj_list[0]
+        if self.cfg['clear_cache'] and Path(obj['target_dir']).is_dir():
+            shutil.rmtree(obj['target_dir'], ignore_errors=True)
+        Path(obj['target_dir']).mkdir(parents=True, exist_ok=True)
+        try:
             trk = TransCreate(cfg=copy.deepcopy(self.cfg), obj=obj)
             self.uuid = trk.uuid
             config.task_countdown = 0
@@ -97,13 +98,13 @@ class Worker(QThread):
                 while config.task_countdown > 0:
                     time.sleep(1)
                     break
-            try:
-                trk.dubbing()
-                trk.align()
-                trk.assembling()
-                trk.task_done()
-            except Exception as e:
-                self._post(text=str(e), type='error')
+
+            trk.dubbing()
+            trk.align()
+            trk.assembling()
+            trk.task_done()
+        except Exception as e:
+            self._post(text=str(e), type='error')
 
     def _post(self, text, type='logs'):
         try:

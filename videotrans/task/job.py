@@ -4,7 +4,7 @@ from threading import Thread
 from videotrans.configure import config
 from videotrans.task._base import BaseTask
 from videotrans.util.tools import set_process
-
+import traceback
 
 # 当前 uuid 是否已停止
 def task_is_stop(uuid) -> bool:
@@ -55,7 +55,7 @@ class WorkerPrepare(Thread):
                     config.assemb_queue.append(trk)
             except Exception as e:
                 config.logger.exception(e, exc_info=True)
-                set_process(text=f'{config.transobj["yuchulichucuo"]}:' + str(e), type='error', uuid=trk.uuid)
+                set_process(text=f'{config.transobj["yuchulichucuo"]}:' + traceback.format_exc(), type='error', uuid=trk.uuid)
 
 
 class WorkerRegcon(Thread):
@@ -84,7 +84,7 @@ class WorkerRegcon(Thread):
                     config.assemb_queue.append(trk)
             except Exception as e:
                 config.logger.exception(e, exc_info=True)
-                set_process(text=f'{config.transobj["shibiechucuo"]}:' + str(e), type='error', uuid=trk.uuid)
+                set_process(text=f'{config.transobj["shibiechucuo"]}:' + traceback.format_exc(), type='error', uuid=trk.uuid)
 
 
 class WorkerTrans(Thread):
@@ -109,7 +109,7 @@ class WorkerTrans(Thread):
                 else:
                     config.assemb_queue.append(trk)
             except Exception as e:
-                msg = f'{config.transobj["fanyichucuo"]}:' + str(e)
+                msg = f'{config.transobj["fanyichucuo"]}:' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
 
@@ -132,7 +132,7 @@ class WorkerDubb(Thread):
                 trk.dubbing()
                 config.align_queue.append(trk)
             except Exception as e:
-                msg = f'{config.transobj["peiyinchucuo"]}:' + str(e)
+                msg = f'{config.transobj["peiyinchucuo"]}:' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
 
@@ -154,7 +154,7 @@ class WorkerAlign(Thread):
             try:
                 trk.align()
             except Exception as e:
-                msg = f'{config.transobj["peiyinchucuo"]}:' + str(e)
+                msg = f'{config.transobj["peiyinchucuo"]}:' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
             else:
@@ -179,7 +179,7 @@ class WorkerAssemb(Thread):
                 trk.assembling()
                 trk.task_done()
             except Exception as e:
-                msg = f'{config.transobj["hebingchucuo"]}:' + str(e)
+                msg = f'{config.transobj["hebingchucuo"]}:' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
 

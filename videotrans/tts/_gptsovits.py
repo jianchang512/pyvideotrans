@@ -57,6 +57,7 @@ class GPTSoVITS(BaseTTS):
                 "extra": config.params['gptsovits_extra'],
                 "ostype": sys.platform
             }
+            print(f'{data=}')
             # refer_wav_path
             # prompt_text
             # prompt_language

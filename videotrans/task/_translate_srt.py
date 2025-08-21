@@ -15,9 +15,8 @@ from videotrans.util import tools
 
 @dataclass
 class TranslateSrt(BaseTask):
-    # 这两个属性依赖于 cfg，所以它们没有默认值，在 post_init 中设置。
+    # 输出格式，例如单语字幕 双语字幕等。
     out_format: int = field(init=False)
-    rename: bool = field(init=False)
     # 在这个子类中，shoud_trans 总是 True，我们直接在定义中声明这一点。
     shoud_trans: bool = field(default=True, init=False)
 
@@ -38,14 +37,8 @@ class TranslateSrt(BaseTask):
         if self.cfg['name'] == self.cfg['target_sub']:
             shutil.copy2(self.cfg['source_sub'], f"{self.cfg['source_sub']}-Raw-Subtitle.srt")
         self._signal(text='字幕翻译处理中' if config.defaulelang == 'zh' else ' Transation subtitles ')
-        self.rename = self.cfg.get('rename', False)
 
-    def prepare(self):
-        if self._exit():
-            return
 
-    def recogn(self):
-        pass
 
     def trans(self):
         if self._exit():
@@ -63,7 +56,7 @@ class TranslateSrt(BaseTask):
             if self._exit():
                 return
             if not raw_subtitles or len(raw_subtitles) < 1:
-                raise Exception('字幕翻译结果为空' if config.defaulelang == 'zh' else 'Translation subtitles result is empty')
+                raise RuntimeError('字幕翻译结果为空' if config.defaulelang == 'zh' else 'Translation subtitles result is empty')
             raw_subtitles = self._check_target_sub(source_sub_list, raw_subtitles)
             if self.out_format == 0:
                 self._save_srt_target(raw_subtitles, self.cfg['target_sub'])
@@ -82,12 +75,9 @@ class TranslateSrt(BaseTask):
                 self.cfg['target_sub'] = self.cfg['target_sub'][:-4] + f'-{self.out_format}.srt'
                 with Path(self.cfg['target_sub']).open('w', encoding='utf-8') as f:
                     f.write(srt_string)
-                print(f"{self.cfg['target_sub']=}")
                 self._signal(text=srt_string, type='replace')
         except Exception as e:
-            # msg = f'{str(e)}'
-            # tools.send_notification(msg, f'{self.cfg["basename"]}')
-            # self._signal(text=f"{msg}", type='error')
+            tools.send_notification(str(e), f'{self.cfg["basename"]}')
             raise
 
     def task_done(self):
@@ -98,9 +88,11 @@ class TranslateSrt(BaseTask):
         if Path(self.cfg['target_sub']).is_file():
             self._signal(text=f"{self.cfg['name']}", type='succeed')
             tools.send_notification(config.transobj['Succeed'], f"{self.cfg['basename']}")
-        if 'shound_del_name' in self.cfg:
-            Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
-
+        try:
+            if 'shound_del_name' in self.cfg:
+                Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
+        except:
+            pass
     def _exit(self):
         if config.exit_soft or config.box_trans != 'ing':
             return True

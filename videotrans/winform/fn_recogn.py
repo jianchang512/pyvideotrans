@@ -84,7 +84,7 @@ def openwin():
             winobj.loglabel.setToolTip('点击查看详细出错信息' if config.defaulelang == 'zh' else 'View  details error')
             winobj.error_msg = d['text']
             winobj.has_done = True
-            winobj.loglabel.setText(d['text'][:120])
+            winobj.loglabel.setText(d['text'][:150])
             winobj.loglabel.setCursor(Qt.PointingHandCursor)
             winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
             winobj.shibie_startbtn.setDisabled(False)

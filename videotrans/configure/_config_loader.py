@@ -174,7 +174,11 @@ codec_cache = {}
 
 
 # 设置默认高级参数值
-def parse_init():
+def parse_init(update_data=None):
+    if update_data:
+        with  open(ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+            f.write(json.dumps(update_data, ensure_ascii=False))
+        return update_data
     _defaulthomedir = (Path.home() / 'Videos/pyvideotrans').as_posix()
     try:
         Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
@@ -283,7 +287,7 @@ def parse_init():
         "llm_ai_type": "openai",
         "gemini_recogn_chunk": 50,
         "zh_hant_s": True,
-        "azure_lines": 100,
+        "azure_lines": 1,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
         "google_trans_newadd": "",
         "proxy": ""

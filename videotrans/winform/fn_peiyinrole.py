@@ -100,6 +100,7 @@ def openwin():
         }
 
     RESULT_DIR = config.HOME_DIR + "/tts"
+    uuid=None
     Path(RESULT_DIR).mkdir(exist_ok=True)
     from videotrans.task._dubbing import DubbingSrt
     from videotrans import translator, tts
@@ -178,7 +179,7 @@ def openwin():
         return type in [tts.EDGE_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]
 
     def hecheng_start_fun():
-        nonlocal RESULT_DIR
+        nonlocal RESULT_DIR,uuid
         if not winobj.srt_path:
             return tools.show_error(
                 '请先导入一个 SRT 字幕文件' if config.defaulelang == 'zh' else 'Please import an SRT subtitle file first.', False)
@@ -233,8 +234,6 @@ def openwin():
             "target_dir": RESULT_DIR,
             "voice_rate": rate,
             "volume": volume,
-            "inst": None,
-            "rename": True,
             "uuid": uuid,
             "pitch": pitch,
             "tts_type": tts_type,
@@ -263,13 +262,16 @@ def openwin():
         config.getset_params(config.params)
 
     def stop_tts():
+        nonlocal uuid
         config.box_tts = 'stop'
         winobj.has_done = True
         winobj.loglabel.setText('Stoped')
         winobj.hecheng_startbtn.setText(config.transobj["zhixingwc"])
         winobj.hecheng_startbtn.setDisabled(False)
         winobj.hecheng_stop.setDisabled(True)
-
+        if uuid:
+            config.stoped_uuid_set.add(uuid)
+        uuid = None
     def getlangnamelist(tts_type=0):
         if tts_type != tts.EDGE_TTS:
             return ['-'] + config.langnamelist

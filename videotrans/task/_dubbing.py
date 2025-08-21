@@ -19,41 +19,23 @@ from videotrans.util import tools
 @dataclass
 class DubbingSrt(BaseTask):
     is_multi_role: bool = field(init=False)
-    rename: bool = field(init=False)
     shoud_dubbing: bool = field(default=True, init=False)
 
     def __post_init__(self):
         super().__post_init__()
-
+        # 是否是 字幕多角色配音
         self.is_multi_role = self.cfg.get('is_multi_role', False)
-        self.rename = self.cfg.get('rename', False)
-        # 2. 处理路径和配置
+        # 输出目标位置
         if 'target_dir' not in self.cfg or not self.cfg['target_dir']:
             self.cfg['target_dir'] = f"{config.HOME_DIR}/tts"
 
-        # 3. 执行副作用（创建文件夹等）
         Path(self.cfg['target_dir']).mkdir(parents=True, exist_ok=True)
-        # 假设 self.cfg 中一定有 'cache_folder'，这与您的原始代码行为一致
         if self.cfg.get('cache_folder'):
             Path(self.cfg["cache_folder"]).mkdir(parents=True, exist_ok=True)
 
-        # 4. 计算并更新 self.cfg
         self.cfg['target_sub'] = self.cfg['name']
-        # 假设 self.cfg 中有 'noextname' 和 'out_ext'
         self.cfg['target_wav'] = f'{self.cfg["target_dir"]}/{self.cfg["noextname"]}.{self.cfg["out_ext"]}'
-
-        # 5. 调用方法
         self._signal(text='字幕配音处理中' if config.defaulelang == 'zh' else ' Dubbing from subtitles ')
-
-    def prepare(self):
-        if self._exit():
-            return
-
-    def recogn(self):
-        pass
-
-    def trans(self):
-        pass
 
     def dubbing(self):
         try:
@@ -76,7 +58,7 @@ class DubbingSrt(BaseTask):
             rate = f"+{rate}%"
         else:
             rate = f"{rate}%"
-        # txt 结尾直接合成为一个
+        # 是txt并且渠道是 edge-tts, 结尾直接合成为一个
         if self.cfg['target_sub'].endswith('.txt') and self.cfg['tts_type'] == tts.EDGE_TTS:
             from edge_tts import Communicate
             import asyncio
@@ -100,7 +82,7 @@ class DubbingSrt(BaseTask):
 
             asyncio.run(_async_dubb())
             return
-
+        # 如果目标是输出 txt
         if self.cfg['target_sub'].endswith('.txt'):
             text = Path(self.cfg['target_sub']).read_text(encoding='utf-8').strip()
             text = re.sub(r"(\s*?\r?\n\s*?){2,}", "\n", text)
@@ -116,14 +98,17 @@ class DubbingSrt(BaseTask):
         else:
             try:
                 subs = tools.get_subtitle_from_srt(self.cfg['target_sub'])
-            except Exception as e:
+            except Exception:
                 raise
 
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
             if it['end_time'] <= it['start_time']:
                 continue
-            spec_role = config.dubbing_role.get(int(it['line'])) if self.is_multi_role else None
+            try:
+                spec_role = config.dubbing_role.get(int(it.get('line', 1))) if self.is_multi_role else None
+            except:
+                spec_role = None
             voice_role = spec_role if spec_role else self.cfg['voice_role']
 
             # 要保存到的文件
@@ -146,7 +131,7 @@ class DubbingSrt(BaseTask):
         Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True, exist_ok=True)
         self.queue_tts = queue_tts
         if not self.queue_tts or len(self.queue_tts) < 1:
-            raise Exception(f'Queue tts length is 0')
+            raise RuntimeError(f'Queue tts length is 0')
         # 具体配音操作
         tts.run(
             queue_tts=copy.deepcopy(self.queue_tts),
@@ -155,7 +140,6 @@ class DubbingSrt(BaseTask):
         )
         if config.settings.get('save_segment_audio', False):
             outname = self.cfg['target_dir'] + f'/segment_audio_{self.cfg["noextname"]}'
-
             Path(outname).mkdir(parents=True, exist_ok=True)
             for it in self.queue_tts:
                 if Path(it['filename']).exists():
@@ -163,6 +147,7 @@ class DubbingSrt(BaseTask):
                     name = f'{outname}/{it["start_time"]}-{text[:60]}.wav'
                     shutil.copy2(it['filename'], name)
 
+    # 音频加速对齐字幕
     def align(self) -> None:
         if self.cfg['target_sub'].endswith('.txt') or len(self.queue_tts) == 1:
             if self.cfg['tts_type'] != tts.EDGE_TTS:
@@ -210,8 +195,11 @@ class DubbingSrt(BaseTask):
 
             self._signal(text=f"{self.cfg['name']}", type='succeed')
             tools.send_notification(config.transobj['Succeed'], f"{self.cfg['basename']}")
-        if 'shound_del_name' in self.cfg:
-            Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
+        try:
+            if 'shound_del_name' in self.cfg:
+                Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
+        except:
+            pass
 
     def _exit(self):
         if config.exit_soft or config.box_tts != 'ing':

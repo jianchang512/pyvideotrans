@@ -18,8 +18,10 @@ class BaseCon:
 
     def _set_proxy(self, type='set'):
         if type == 'del':
+            from . import config
             try:
-                os.environ['bak_proxy'] = os.environ.get('http_proxy') or os.environ.get('https_proxy')
+                os.environ['bak_proxy'] = config.proxy or os.environ.get('http_proxy') or os.environ.get('https_proxy')
+                config.proxy=None
                 del os.environ['http_proxy']
                 del os.environ['https_proxy']
                 del os.environ['all_proxy']
@@ -29,7 +31,8 @@ class BaseCon:
             return
 
         if type == 'set':
-            raw_proxy = os.environ.get('https_proxy') or os.environ.get('http_proxy')
+            from . import config
+            raw_proxy = config.proxy or os.environ.get('https_proxy') or os.environ.get('http_proxy')
             if raw_proxy:
                 return raw_proxy
             if not raw_proxy:

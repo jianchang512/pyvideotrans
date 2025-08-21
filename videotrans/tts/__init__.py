@@ -153,6 +153,8 @@ AI302_doubao_ja = {"かずね（和音）/Javier or Álvaro": "multi_male_jingqi
 # 检查当前配音渠道是否支持所选配音语言
 # 返回True为支持，其他为不支持并返回错误字符串
 def is_allow_lang(langcode: str = None, tts_type: int = None):
+    if langcode is None or tts_type is None:
+        return True
     if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko', 'en', 'yu']:
         return 'GPT-SoVITS 仅支持中日英韩配音' if config.defaulelang == 'zh' else 'GPT-SoVITS only supports Chinese, English, Japanese,ko'
     if tts_type == QWEN_TTS and langcode[:2] not in ['zh', 'en', 'yu']:

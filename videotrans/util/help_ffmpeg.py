@@ -312,7 +312,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
             return runffmpeg(fallback_args, noextname=noextname, uuid=uuid, force_cpu=True)
 
         if noextname: config.queue_novice[noextname] = "error"
-        raise Exception(extract_concise_error(e.stderr))
+        raise RuntimeError(extract_concise_error(e.stderr))
 
     except Exception as e:
         if noextname: config.queue_novice[noextname] = "error"

@@ -16,8 +16,8 @@ from videotrans.util import tools
 
 @dataclass
 class SpeechToText(BaseTask):
+    # 输出的识别结果格式 ，srt txt 等
     out_format: str = field(init=False)
-
     # 在这个子类中，shoud_recogn 总是 True，我们直接在定义中声明。
     shoud_recogn: bool = field(default=True, init=False)
     copysrt_rawvideo: bool = field(default=False, init=False)
@@ -88,18 +88,13 @@ class SpeechToText(BaseTask):
                         shutil.copy2(outsrt_file, self.cfg['target_sub'])
                     except shutil.SameFileError:
                         pass
-                    # Path(outsrt_file).unlink(missing_ok=True)
                 self._signal(text=Path(self.cfg['target_sub']).read_text(encoding='utf-8'), type='replace_subtitle')
             else:
                 raw_subtitles = run(
-                    # faster-whisper openai-whisper googlespeech
                     recogn_type=self.cfg['recogn_type'],
-                    # 整体 预先 均等
                     split_type=self.cfg['split_type'],
                     uuid=self.uuid,
-                    # 模型名
                     model_name=self.cfg['model_name'],
-                    # 识别音频
                     audio_file=self.cfg['shibie_audio'],
                     detect_language=self.cfg['detect_language'],
                     cache_folder=self.cfg['cache_folder'],
@@ -118,7 +113,6 @@ class SpeechToText(BaseTask):
         except Exception as e:
             msg = f'{str(e)}'
             tools.send_notification(msg, f'{self.cfg["basename"]}')
-            # self._signal(text=f"{msg}", type='error')
             raise
 
     def task_done(self):
@@ -139,11 +133,14 @@ class SpeechToText(BaseTask):
             Path(self.cfg['target_sub']).unlink(missing_ok=True)
             self.cfg['target_sub'] = self.cfg['target_sub'][:-3] + self.out_format
 
-        if 'shound_del_name' in self.cfg:
-            Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
-        if self.copysrt_rawvideo:
-            p = Path(self.cfg['name'])
-            shutil.copy2(self.cfg['target_sub'], f'{p.parent.as_posix()}/{p.stem}.{self.out_format}')
+        try:
+            if 'shound_del_name' in self.cfg:
+                Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
+            if self.copysrt_rawvideo:
+                p = Path(self.cfg['name'])
+                shutil.copy2(self.cfg['target_sub'], f'{p.parent.as_posix()}/{p.stem}.{self.out_format}')
+        except:
+            pass
 
     def _exit(self):
         if config.exit_soft or config.box_recogn != 'ing':
