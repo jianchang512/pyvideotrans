@@ -123,7 +123,7 @@ class AzureTTS(BaseTTS):
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            filename = config.TEMP_DIR + f"/azure_tts_{time.time()}.wav"
+            filename = data_item['filename'] + f"-generate.wav"
 
             speech_config = speechsdk.SpeechConfig(
                 subscription=config.params['azure_speech_key'],
@@ -171,7 +171,7 @@ class AzureTTS(BaseTTS):
 
     # 鼠标不重试，直接报错停止
     def _exec(self) -> None:
-        if int(config.settings.get('azure_lines', 1)) <= 150:
+        if int(config.settings.get('azure_lines', 1)) < 100:
             self._local_mul_thread()
             return
 

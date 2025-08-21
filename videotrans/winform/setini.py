@@ -51,8 +51,7 @@ def openwin():
 
         line_edit_dict['homedir'] = winobj.homedir_btn.text()
         try:
-            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-                f.write(json.dumps(line_edit_dict, ensure_ascii=False))
+            config.parse_init(line_edit_dict)
         except Exception as e:
             return tools.show_error(str(e))
         else:

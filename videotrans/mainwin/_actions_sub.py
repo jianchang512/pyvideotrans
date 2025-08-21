@@ -384,7 +384,8 @@ class WinActionSub:
                 # 删除代理
                 config.settings['proxy'] = ''
                 tools.set_proxy('del')
-        except Exception:
+            config.parse_init(config.settings)
+        except:
             pass
         return True
 

@@ -1,9 +1,7 @@
-SOURCE_DIR = ""
 
 
 # 字幕批量翻译
 def openwin():
-    global SOURCE_DIR
     import json
     import os
     import time
@@ -131,11 +129,11 @@ def openwin():
                 f'{config.transobj["yidaorujigewenjian"]}{len(fnames)}\n{",".join(namestr)}')
 
     def fanyi_save_fun():
-        global SOURCE_DIR
+        nonlocal SOURCE_DIR
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR if not SOURCE_DIR else SOURCE_DIR))
 
     def fanyi_start_fun():
-        global SOURCE_DIR
+        nonlocal SOURCE_DIR
 
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
 
@@ -150,8 +148,8 @@ def openwin():
         proxy = winobj.fanyi_proxy.text()
 
         if proxy:
-            tools.set_proxy(proxy)
             config.proxy = proxy
+            tools.set_proxy(proxy)
             config.settings['proxy'] = proxy
 
         rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_code)
@@ -180,8 +178,6 @@ def openwin():
                 "translate_type": translate_type,
                 "text_list": tools.get_subtitle_from_srt(it['name']),
                 "target_dir": SOURCE_DIR if SOURCE_DIR else RESULT_DIR,
-                "inst": None,
-                "rename": True,
                 "uuid": it['uuid'],
                 "source_code": source_code,
                 "target_code": target_code
@@ -338,7 +334,6 @@ def openwin():
         winobj = config.child_forms.get('fanyiform')
 
         if winobj is not None:
-            print("show")
             winobj.show()
             update_target_language()
             winobj.raise_()

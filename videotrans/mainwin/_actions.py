@@ -739,8 +739,8 @@ class WinAction(WinActionSub):
         config.settings['rephrase'] = self.main.rephrase.isChecked()
         config.settings['cjk_len'] = self.main.cjklinenums.value()
         config.settings['other_len'] = self.main.othlinenums.value()
-        with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings, ensure_ascii=False))
+        config.parse_init(config.settings)
+
         self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
         self.clear_target_subtitle()

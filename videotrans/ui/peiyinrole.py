@@ -77,7 +77,6 @@ class Ui_peiyinrole(object):
         self.hecheng_language = QtWidgets.QComboBox()
         self.hecheng_language.setMinimumSize(QtCore.QSize(0, 30))
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_language)
-        self.horizontalLayout_10.addLayout(self.formLayout_3)
 
         self.formLayout_7 = QtWidgets.QFormLayout()
         self.formLayout_7.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
@@ -89,6 +88,7 @@ class Ui_peiyinrole(object):
         self.tts_type.addItems(tts.TTS_NAME_LIST)
         self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tts_type)
         self.horizontalLayout_10.addLayout(self.formLayout_7)
+        self.horizontalLayout_10.addLayout(self.formLayout_3)
 
         self.formLayout_4 = QtWidgets.QFormLayout()
         self.formLayout_4.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
