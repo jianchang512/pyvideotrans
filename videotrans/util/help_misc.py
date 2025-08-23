@@ -277,8 +277,8 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
 
         if config.queue_novice[noextname] == 'ing':
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
-            from . import help_ffmpeg
-            help_ffmpeg.set_process(
+            from . import help_role
+            help_role.set_process(
                 text=f"{noextname} {'分离音频和画面' if config.defaulelang == 'zh' else 'spilt audio and video'} {size}",
                 uuid=uuid)
             time.sleep(3)
