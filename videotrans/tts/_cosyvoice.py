@@ -68,7 +68,8 @@ class CosyVoice(BaseTTS):
                 api_url = self.api_url
                 data = {
                     "text": data_item['text'],
-                    "lang": "zh" if self.language.startswith('zh') else self.language
+                    "lang": "zh" if self.language.startswith('zh') else self.language,
+                    "speed": 1 + rate
                 }
                 rolelist = tools.get_cosyvoice_role()
                 if role == 'clone':
