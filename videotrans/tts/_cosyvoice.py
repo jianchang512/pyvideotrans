@@ -35,7 +35,7 @@ class CosyVoice(BaseTTS):
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            rate = float(self.rate.replace('%', '')) if self.rate else 0
+            rate = float(self.rate.replace('%', '')) / 100 if self.rate else 0
             role = data_item['role']
             if self.api_url.endswith(':9880'):
                 data = {
