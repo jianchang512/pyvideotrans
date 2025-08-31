@@ -115,7 +115,7 @@ class FunasrRecogn(BaseRecogn):
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
-            # trust_remote_code=True,
+            trust_remote_code=True,
             hub='ms'
         )
         # vad
