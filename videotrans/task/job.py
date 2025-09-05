@@ -54,8 +54,10 @@ class WorkerPrepare(Thread):
                 else:
                     config.assemb_queue.append(trk)
             except Exception as e:
+                from videotrans.configure._except import get_msg_from_except
+                except_msg=get_msg_from_except(e)
                 config.logger.exception(e, exc_info=True)
-                set_process(text=f'{config.transobj["yuchulichucuo"]}:' + traceback.format_exc(), type='error', uuid=trk.uuid)
+                set_process(text=f'{config.transobj["yuchulichucuo"]}:{except_msg}:' + traceback.format_exc(), type='error', uuid=trk.uuid)
 
 
 class WorkerRegcon(Thread):
@@ -83,8 +85,10 @@ class WorkerRegcon(Thread):
                 else:
                     config.assemb_queue.append(trk)
             except Exception as e:
+                from videotrans.configure._except import get_msg_from_except
+                except_msg=get_msg_from_except(e)
                 config.logger.exception(e, exc_info=True)
-                set_process(text=f'{config.transobj["shibiechucuo"]}:' + traceback.format_exc(), type='error', uuid=trk.uuid)
+                set_process(text=f'{config.transobj["shibiechucuo"]}:{except_msg}:' + traceback.format_exc(), type='error', uuid=trk.uuid)
 
 
 class WorkerTrans(Thread):
@@ -109,7 +113,9 @@ class WorkerTrans(Thread):
                 else:
                     config.assemb_queue.append(trk)
             except Exception as e:
-                msg = f'{config.transobj["fanyichucuo"]}:' + traceback.format_exc()
+                from videotrans.configure._except import get_msg_from_except
+                except_msg=get_msg_from_except(e)
+                msg = f'{config.transobj["fanyichucuo"]}:{except_msg}:' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
 
@@ -132,7 +138,9 @@ class WorkerDubb(Thread):
                 trk.dubbing()
                 config.align_queue.append(trk)
             except Exception as e:
-                msg = f'{config.transobj["peiyinchucuo"]}:' + traceback.format_exc()
+                from videotrans.configure._except import get_msg_from_except
+                except_msg=get_msg_from_except(e)
+                msg = f'{config.transobj["peiyinchucuo"]}:{except_msg}:' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
 
@@ -154,7 +162,9 @@ class WorkerAlign(Thread):
             try:
                 trk.align()
             except Exception as e:
-                msg = f'{config.transobj["peiyinchucuo"]}:' + traceback.format_exc()
+                from videotrans.configure._except import get_msg_from_except
+                except_msg=get_msg_from_except(e)
+                msg = f'{config.transobj["peiyinchucuo"]}:{except_msg}:' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
             else:
@@ -179,7 +189,9 @@ class WorkerAssemb(Thread):
                 trk.assembling()
                 trk.task_done()
             except Exception as e:
-                msg = f'{config.transobj["hebingchucuo"]}:' + traceback.format_exc()
+                from videotrans.configure._except import get_msg_from_except
+                except_msg=get_msg_from_except(e)
+                msg = f'{config.transobj["hebingchucuo"]}:{except_msg}:' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
 

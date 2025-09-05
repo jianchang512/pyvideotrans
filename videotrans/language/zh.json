@@ -1,7 +1,8 @@
 {
   "translate_language": {
-	"llmduanju":"选择了大模型重新断句，就必须在菜单--翻译设置--OpenAI API中设置可用模型信息",  
-	"Succeed":"执行成功",   
+	"llmduanju":"选择了大模型重新断句，就必须在菜单--翻译设置--OpenAI API中设置可用模型信息,可在高级选项中选择使用DeepSeek断句",
+	"llmduanjudp":"选择了大模型重新断句，就必须在菜单--翻译设置--DeepSeek API中设置可用模型信息",
+	"Succeed":"执行成功",
     "haspaused": "已暂停",
     "shutdownerror": "关机失败",
     "onlycnanden": "仅支持中文和英文配音",

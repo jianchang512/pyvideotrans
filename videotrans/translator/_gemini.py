@@ -10,7 +10,7 @@ from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import RetryRaise
+from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -35,9 +35,9 @@ class Gemini(BaseTrans):
 
         self._set_proxy(type='set')
 
-    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
+           after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
@@ -67,14 +67,18 @@ class Gemini(BaseTrans):
         config.logger.info(f'[gemini]响应:{response=}')
 
         result = ""
-        if response.choices:
-            result = response.choices[0].message.content.strip()
+        if hasattr(response,'choices') and response.choices and response.choices[0].message:
+            result = response.choices[0].message.content
         else:
             config.logger.error(f'[gemini]请求失败:{response=}')
             raise RuntimeError(f"no choices:{response=}")
-
+        
+        if not result or not result.strip():
+            config.logger.error(f'[gemini]请求失败:{response=}')
+            raise RuntimeError(f"no choices:{response=}")
+            
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
                           re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)
         if match:
             return match.group(1)
-        return result.strip()
+        raise RuntimeError(f"Error:{response=}")

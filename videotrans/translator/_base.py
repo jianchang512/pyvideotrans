@@ -77,7 +77,7 @@ class BaseTrans(BaseCon):
                 return self._run_srt()
             return self._run_text()
         except Exception as e:
-            raise TranslateSrtError(f'{e}:{self.__class__.__name__}') from e
+            raise
 
     def _run_text(self):
         # 翻译字幕并且以完整srt格式发送
@@ -151,7 +151,7 @@ class BaseTrans(BaseCon):
             if not result:
                 result = tools.cleartext(self._item_task(srt_str))
                 if not result.strip():
-                    raise RuntimeError('无返回翻译结果' if config.defaulelang == 'zh' else 'Translate result is empty')
+                    raise TranslateSrtError('无返回翻译结果' if config.defaulelang == 'zh' else 'Translate result is empty')
                 self._set_cache(it, result)
 
             if self.inst and self.inst.precent < 75:

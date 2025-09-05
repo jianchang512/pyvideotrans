@@ -6,7 +6,7 @@ from typing import List, Dict, Union
 import requests
 
 from videotrans.configure import config
-from videotrans.configure._except import RetryRaise
+from videotrans.configure._except import   NO_RETRY_EXCEPT
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -48,9 +48,9 @@ class SttAPIRecogn(BaseRecogn):
             api_url = f'http://{api_url}'
         self.api_url = f'{api_url}/api' if not api_url.endswith('/api') else api_url
 
-    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
+           after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return

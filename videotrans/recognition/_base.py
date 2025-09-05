@@ -64,7 +64,7 @@ class BaseRecogn(BaseCon):
             return self._exec()
         except Exception as e:
             config.logger.exception(e, exc_info=True)
-            raise SpeechToTextError(f'{e}:{self.__class__.__name__}') from e
+            raise
         finally:
             if self.shound_del:
                 self._set_proxy(type='del')

@@ -117,8 +117,8 @@ class BaseTTS(BaseCon):
             else:
                 # 可能调用多线程，此时无法捕获异常
                 self._exec()
-        except Exception as e:
-            raise DubbSrtError(f'{e}:{self.__class__.__name__}') from e
+        except Exception:
+            raise
         finally:
             if self.shound_del:
                 self._set_proxy(type='del')

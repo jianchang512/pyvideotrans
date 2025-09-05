@@ -18,4 +18,7 @@ def global_exception_hook(exctype, value, tb):
     tb_str = "".join(traceback.format_exception(exctype, value, tb))
     print(f"!!! UNHANDLED EXCEPTION !!!\n{tb_str}")
 
-    exception_handler.show_exception_signal.emit(tb_str)
+    # 发射详细错误信号（用于日志）
+    exception_handler.show_exception_signal.emit(f"{tb_str}")
+
+

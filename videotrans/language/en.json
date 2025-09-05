@@ -1,6 +1,8 @@
 {
   "translate_language": {
-	  "llmduanju":"If you choose the large model segmentation, you must set the available model information in the translation settings--OpenAI API", 
+
+    "llmduanju":"If you choose to re-segment using a large model, you must set the available model information in Menu--Translation Settings--OpenAI API. You can also choose to use DeepSeek segmentation in Advanced Options.",
+"llmduanjudp":"If you choose to re-segment using a large model, you must set the available model information in Menu--Translation Settings--DeepSeek API.",
 	"Succeed":"Succeed",   
     "haspaused": "Paused",
     "shutdownerror": "computer shutdown error",

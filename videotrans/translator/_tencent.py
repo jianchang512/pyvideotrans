@@ -11,7 +11,7 @@ from tencentcloud.common.profile.http_profile import HttpProfile
 from tencentcloud.tmt.v20180321 import tmt_client, models
 
 from videotrans.configure import config
-from videotrans.configure._except import RetryRaise
+from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -31,9 +31,9 @@ class Tencent(BaseTrans):
             if 'https_proxy' in os.environ: del os.environ['https_proxy']
             if 'all_proxy' in os.environ: del os.environ['all_proxy']
 
-    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
+           after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         cred = credential.Credential(config.params.get('tencent_SecretId', '').strip(),

@@ -8,7 +8,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import RetryRaise
+from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -25,9 +25,9 @@ class MyMemory(BaseTrans):
         if pro:
             self.proxies = {"https": pro, "http": pro}
 
-    @retry(retry=retry_if_not_exception_type(RetryRaise.NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO), retry_error_callback=RetryRaise._raise)
+           after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         headers = {

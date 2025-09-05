@@ -696,7 +696,7 @@ class WinAction(WinActionSub):
                 return
             if ai_type == 'deepseek' and not config.params.get('deepseek_key'):
                 self.main.startbtn.setDisabled(False)
-                tools.show_error(config.transobj['llmduanju'], False)
+                tools.show_error(config.transobj['llmduanjudp'], False)
                 from videotrans.winform import deepseek
                 deepseek.openwin()
                 return
