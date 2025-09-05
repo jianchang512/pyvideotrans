@@ -306,8 +306,3 @@ Please visit https://pyvideotrans.com/guide.html
 
 
 
-## Donate
-
-<img width="200" src="https://pyvideotrans.com/images/bianen.jpg">
-
-[https://ko-fi.com/jianchang512](https://ko-fi.com/jianchang512)
