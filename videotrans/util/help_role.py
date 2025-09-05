@@ -457,8 +457,8 @@ def get_clone_role(set_p=False):
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
         if res.status_code == 200:
             config.params["clone_voicelist"] = ["clone"] + res.json()
-            from . import help_ffmpeg
-            help_ffmpeg.set_process(type='set_clone_role')
+            
+            set_process(type='set_clone_role')
             return True
         raise Exception(
             f"code={res.status_code},{config.transobj['You must deploy and start the clone-voice service']}")

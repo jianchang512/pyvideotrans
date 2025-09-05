@@ -16,13 +16,6 @@
 支持的语言：中文简繁、英语、韩语、日语、俄语、法语、德语、意大利语、西班牙语、葡萄牙语、越南语、泰国语、阿拉伯语、土耳其语、匈牙利语、印度语、乌克兰语、哈萨克语、印尼语、马来语、捷克语、波兰语、荷兰语、瑞典语、芬兰语、菲律宾语、孟加拉语、乌尔都语、希伯来语、粤语等，其他语言可选自动检测
 
 
-> **[赞助商]**
-> 
-> [![](https://github.com/user-attachments/assets/5348c86e-2d5f-44c7-bc1b-3cc5f077e710)](https://gpt302.saaslink.net/teRK8Y)
->  [302.AI](https://gpt302.saaslink.net/teRK8Y)是一个按需付费的一站式AI应用平台，开放平台，开源生态, [302.AI开源地址](https://gpt302.saaslink.net/teRK8Y)
-> 
-> 集合了最新最全的AI模型和品牌/按需付费零月费/管理和使用分离/所有AI能力均提供API/每周推出2-3个新应用
-
 
 ## 主要用途和功能
 
@@ -327,9 +320,7 @@ pip install ctranslate2==3.24.0
 5. [openai-whisper](https://github.com/openai/whisper)
 6. [pydub](https://github.com/jiaaro/pydub)
 
-## 关注作者微信公众号
 
-<img width="200" src="https://github.com/jianchang512/pyvideotrans/assets/3378335/f9337111-9084-41fe-8840-1fb8fedca92d">
 
 
 如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，欢迎捐助
@@ -339,4 +330,3 @@ pip install ctranslate2==3.24.0
 
 <img width="200" src="https://github.com/jianchang512/pyvideotrans/assets/3378335/fe1aa29d-c26d-46d3-b7f3-e9c030ef32c7">
 
-<img width="200" src="https://pyvideotrans.com/images/biancn.jpg">

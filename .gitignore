@@ -1,6 +1,7 @@
 *.log
 *.srt
 .git
+err.txt
 .github
 .idea
 edgetts.txt
