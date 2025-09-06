@@ -44,6 +44,22 @@ class Ui_openrouterform(object):
         h2.addWidget(self.openrouter_key)
         v1.addLayout(h2)
 
+
+
+
+        h_token = QtWidgets.QHBoxLayout()
+
+        label_token = QtWidgets.QLabel()
+        label_token.setObjectName("label_token")
+        label_token.setText("最大输出token" if config.defaulelang == 'zh' else "Maximum output token")
+        self.max_token = QtWidgets.QLineEdit()
+        self.max_token.setMinimumSize(QtCore.QSize(0, 35))
+        self.max_token.setObjectName("max_token")
+
+        h_token.addWidget(label_token)
+        h_token.addWidget(self.max_token)
+        v1.addLayout(h_token)
+
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")

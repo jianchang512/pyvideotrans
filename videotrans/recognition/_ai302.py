@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Dict, Union
 
-import requests
+import requests,time
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
@@ -28,10 +28,10 @@ class AI302Recogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
         apikey = config.params.get('ai302_key')
-
+        print(f'=========={self.audio_file=}')
         # 转为 mp3
-        tools.runffmpeg(['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/ai302tmp.mp3'])
-        self.audio_file = self.cache_folder + '/ai302tmp.mp3'
+        tmpfile = self.cache_folder + f'/ai302tmp-{time.time()}.mp3'
+        tools.runffmpeg(['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', tmpfile])
         self._signal(text=f"start speech to srt")
         langcode = self.detect_language[:2].lower()
         url = "https://api.302.ai/v1/audio/transcriptions"
@@ -44,7 +44,7 @@ class AI302Recogn(BaseRecogn):
 
         config.logger.info(f'{prompt=}')
         response = requests.post(url,
-                                 files={"file": open(self.audio_file, 'rb')},
+                                 files={"file": open(tmpfile, 'rb')},
                                  data={
                                      "model": 'whisper-3',
                                      'response_format': 'verbose_json',

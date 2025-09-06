@@ -19,7 +19,7 @@ ZIJIE_INDEX = 10
 AZUREGPT_INDEX = 11
 GEMINI_INDEX = 12
 TRANSAPI_INDEX = 13
-FREEGOOGLE_INDEX = 14
+QWENMT_INDEX = 14
 CLAUDE_INDEX = 15
 LIBRE_INDEX = 16
 AI302_INDEX = 17
@@ -44,7 +44,7 @@ TRANSLASTE_NAME_LIST = [
     "AzureGPT AI",
     "Gemini AI",
     "自定义翻译API" if config.defaulelang == 'zh' else 'Customized API',
-    "FreeGoogle(免费)" if config.defaulelang == 'zh' else 'FreeGoogle',
+    "Qwen-MT",
     "Claude AI",
     "LibreTranslate(本地)" if config.defaulelang == 'zh' else 'LibreTranslate',
     "302.AI",
@@ -65,7 +65,7 @@ TRANSLASTE_NAME_LIST = [
 LANGNAME_DICT = {
     "zh": "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',
     "zh-cn": "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',
-    "zh-tw": "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',
+    "zh-tw": "Traditional Chinese" if config.defaulelang != 'zh' else '繁体中文',
     "en": "English language" if config.defaulelang != 'zh' else '英语',
     "fr": "French language" if config.defaulelang != 'zh' else '法语',
     "de": "German language" if config.defaulelang != 'zh' else '德语',
@@ -106,7 +106,8 @@ LANG_CODE = {
         "zh",  # OTT通道
         "zh-Hans",  # 微软翻译
         "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',  # AI翻译
-        "zh"  # 阿里
+        "zh",  # 阿里
+        "Chinese" # qwen-mt
     ],
     "ur": [
         "ur",  # google通道
@@ -117,7 +118,8 @@ LANG_CODE = {
         "No",  # OTT通道
         "ur",  # 微软翻译
         "Urdu" if config.defaulelang != 'zh' else '乌尔都语',  # AI翻译
-        "ur"  # 阿里
+        "ur",  # 阿里
+        "Urdu"
     ],
     "yue": [
         "yue",  # google通道
@@ -128,7 +130,8 @@ LANG_CODE = {
         "No",  # OTT通道
         "yue",  # 微软翻译
         "Cantonese" if config.defaulelang != 'zh' else '粤语',  # AI翻译
-        "yue"  # 阿里
+        "yue",  # 阿里
+        "Cantonese"
     ],
 
     "fil": [
@@ -140,7 +143,8 @@ LANG_CODE = {
         "No",  # OTT通道
         "fil",  # 微软翻译
         "Filipino" if config.defaulelang != 'zh' else '菲律宾语',  # AI翻译
-        "fil"  # 阿里
+        "fil",  # 阿里
+        "Filipino"
     ],
     "fi": [
         "fi",  # google通道
@@ -151,7 +155,8 @@ LANG_CODE = {
         "No",  # OTT通道
         "fi",  # 微软翻译
         "Finnish" if config.defaulelang != 'zh' else '芬兰语',  # AI翻译
-        "fi"  # 阿里
+        "fi",  # 阿里
+        "Finnish"
     ],
 
     "zh-tw": [
@@ -163,7 +168,8 @@ LANG_CODE = {
         "zt",
         "zh-Hant",
         "Traditional Chinese" if config.defaulelang != 'zh' else '繁体中文',
-        "zh-tw"
+        "zh-tw",
+        "Chinese",
     ],
     "en": [
         "en",
@@ -174,7 +180,8 @@ LANG_CODE = {
         "en",
         "en",
         "English language" if config.defaulelang != 'zh' else '英语',
-        "en"
+        "en",
+        "English"
     ],
     "fr": [
         "fr",
@@ -185,7 +192,8 @@ LANG_CODE = {
         "fr",
         "fr",
         "French language" if config.defaulelang != 'zh' else '法语',
-        "fr"
+        "fr",
+        "French"
     ],
     "de": [
         "de",
@@ -196,7 +204,8 @@ LANG_CODE = {
         "de",
         "de",
         "German language" if config.defaulelang != 'zh' else '德语',
-        "de"
+        "de",
+        "German"
     ],
     "ja": [
         "ja",
@@ -207,7 +216,8 @@ LANG_CODE = {
         "ja",
         "ja",
         "Japanese language" if config.defaulelang != 'zh' else '日语',
-        "ja"
+        "ja",
+        "Japanese"
     ],
     "ko": [
         "ko",
@@ -218,7 +228,8 @@ LANG_CODE = {
         "ko",
         "ko",
         "Korean language" if config.defaulelang != 'zh' else '韩语',
-        "ko"
+        "ko",
+        "Korean"
     ],
     "ru": [
         "ru",
@@ -229,7 +240,8 @@ LANG_CODE = {
         "ru",
         "ru",
         "Russian language" if config.defaulelang != 'zh' else '俄罗斯语',
-        "ru"
+        "ru",
+        "Russian"
     ],
     "es": [
         "es",
@@ -240,7 +252,8 @@ LANG_CODE = {
         "es",
         "es",
         "Spanish language" if config.defaulelang != 'zh' else '西班牙语',
-        "es"
+        "es",
+        "Spanish"
     ],
     "th": [
         "th",
@@ -251,7 +264,8 @@ LANG_CODE = {
         "th",
         "th",
         "Thai language" if config.defaulelang != 'zh' else '泰国语',
-        "th"
+        "th",
+        "Thai"
     ],
     "it": [
         "it",
@@ -262,7 +276,8 @@ LANG_CODE = {
         "it",
         "it",
         "Italian language" if config.defaulelang != 'zh' else '意大利语',
-        "it"
+        "it",
+        "Italian"
     ],
     "pt": [
         "pt",  # pt-PT
@@ -273,7 +288,8 @@ LANG_CODE = {
         "pt",
         "pt",
         "Portuguese language" if config.defaulelang != 'zh' else '葡萄牙语',
-        "pt"
+        "pt",
+        "Portuguese"
     ],
     "vi": [
         "vi",
@@ -284,7 +300,8 @@ LANG_CODE = {
         "vi",
         "vi",
         "Vietnamese language" if config.defaulelang != 'zh' else '越南语',
-        "vi"
+        "vi",
+        "Vietnamese"
     ],
     "ar": [
         "ar",
@@ -295,7 +312,8 @@ LANG_CODE = {
         "ar",
         "ar",
         "Arabic language" if config.defaulelang != 'zh' else '阿拉伯语',
-        "ar"
+        "ar",
+        "Arabic"
     ],
     "tr": [
         "tr",
@@ -306,7 +324,8 @@ LANG_CODE = {
         "tr",
         "tr",
         "Turkish language" if config.defaulelang != 'zh' else '土耳其语',
-        "tr"
+        "tr",
+        "Turkish"
     ],
     "hi": [
         "hi",
@@ -317,7 +336,8 @@ LANG_CODE = {
         "hi",
         "hi",
         "Hindi language" if config.defaulelang != 'zh' else '印度语',
-        "hi"
+        "hi",
+        "Hindi"
     ],
     "hu": [
         "hu",
@@ -328,7 +348,8 @@ LANG_CODE = {
         "hu",
         "hu",
         "Hungarian language" if config.defaulelang != 'zh' else '匈牙利语',
-        "hu"
+        "hu",
+        "Hungarian"
     ],
     "uk": [
         "uk",
@@ -339,7 +360,8 @@ LANG_CODE = {
         "uk",  # ott
         "uk",  # 微软
         "Ukrainian language" if config.defaulelang != 'zh' else '乌克兰语',
-        "No"
+        "No",
+        "Ukrainian"
     ],
     "id": [
         "id",
@@ -350,7 +372,8 @@ LANG_CODE = {
         "id",
         "id",
         "Indonesian language" if config.defaulelang != 'zh' else '印度尼西亚语',
-        "id"
+        "id",
+        "Indonesian"
     ],
     "ms": [
         "ms",
@@ -361,7 +384,8 @@ LANG_CODE = {
         "ms",
         "ms",
         "Malay language" if config.defaulelang != 'zh' else '马来西亚语',
-        "ms"
+        "ms",
+        "Malay"
     ],
     "kk": [
         "kk",
@@ -372,7 +396,8 @@ LANG_CODE = {
         "No",
         "kk",
         "Kazakh language" if config.defaulelang != 'zh' else '哈萨克语',
-        "kk"
+        "kk",
+        "Kazakh"
     ],
     "cs": [
         "cs",
@@ -383,7 +408,8 @@ LANG_CODE = {
         "cs",
         "cs",
         "Czech language" if config.defaulelang != 'zh' else '捷克语',
-        "cs"
+        "cs",
+        "Czech"
     ],
     "pl": [
         "pl",
@@ -394,7 +420,8 @@ LANG_CODE = {
         "pl",
         "pl",
         "Polish language" if config.defaulelang != 'zh' else '波兰语',
-        "pl"
+        "pl",
+        "Polish"
     ],
     "nl": [
         "nl",  # google通道
@@ -405,7 +432,8 @@ LANG_CODE = {
         "nl",  # OTT通道
         "nl",  # 微软翻译
         "Dutch" if config.defaulelang != 'zh' else '荷兰语',  # AI翻译
-        "nl"
+        "nl",
+        "Dutch"
     ],
     "sv": [
         "sv",  # google通道
@@ -416,7 +444,8 @@ LANG_CODE = {
         "sv",  # OTT通道
         "sv",  # 微软翻译
         "Swedish" if config.defaulelang != 'zh' else '瑞典语',  # AI翻译
-        "sv"
+        "sv",
+        "Swedish"
     ],
     "he": [
         "he",  # google通道
@@ -427,7 +456,8 @@ LANG_CODE = {
         "No",  # OTT通道
         "he",  # 微软翻译
         "Hebrew" if config.defaulelang != 'zh' else '希伯来语',  # AI翻译
-        "he"
+        "he",
+        "Hebrew"
     ],
     "bn": [
         "bn",  # google通道
@@ -438,7 +468,8 @@ LANG_CODE = {
         "No",  # OTT通道
         "bn",  # 微软翻译
         "Bengali" if config.defaulelang != 'zh' else '孟加拉语',  # AI翻译,
-        "bn"
+        "bn",
+        "Bengali"
     ],
     "fa": [
         "fa",  # google通道
@@ -449,7 +480,8 @@ LANG_CODE = {
         "No",  # OTT通道
         "fa",  # 微软翻译
         "Persian" if config.defaulelang != 'zh' else '波斯语',  # AI翻译
-        "fa"  # 阿里
+        "fa",  # 阿里
+        "Persian"
     ],
     "auto": [
         "auto",
@@ -460,7 +492,8 @@ LANG_CODE = {
         "auto",
         "auto",
         "auto",
-        "auto"
+        "auto",
+        "auto",
     ]
 }
 
@@ -499,7 +532,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     if show_target and show_target != '-':
         target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
             config.rev_langlist[show_target]]
-    if translate_type in [GOOGLE_INDEX, MyMemoryAPI_INDEX, TRANSAPI_INDEX, FREEGOOGLE_INDEX]:
+    if translate_type in [GOOGLE_INDEX,QWENMT_INDEX, MyMemoryAPI_INDEX, TRANSAPI_INDEX]:
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
     elif translate_type == BAIDU_INDEX:
         return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
@@ -527,7 +560,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
 def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None, return_str=False):
-    if translate_type in [GOOGLE_INDEX, MyMemoryAPI_INDEX, FREEGOOGLE_INDEX, MICROSOFT_INDEX]:
+    if translate_type in [GOOGLE_INDEX, MyMemoryAPI_INDEX, MICROSOFT_INDEX]:
         return True
 
     if translate_type == CHATGPT_INDEX and not config.params['chatgpt_key']:
@@ -599,6 +632,12 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
             return "Please configure the api and key information of the Gemini channel first."
         from videotrans.winform import gemini
         gemini.openwin()
+        return False
+    if translate_type == QWENMT_INDEX and not config.params['qwenmt_key']:
+        if return_str:
+            return "Please configure the api and key information of the QwenMT channel first."
+        from videotrans.winform import qwenmt
+        qwenmt.openwin()
         return False
     if translate_type == AZUREGPT_INDEX and (
             not config.params['azure_key'] or not config.params['azure_api']):
@@ -739,9 +778,9 @@ def run(*, translate_type=None,
         from videotrans.translator._mymemory import MyMemory
         config.settings['trans_thread'] = min(10, int(config.settings.get('trans_thread', 5)))
         return MyMemory(**kwargs).run()
-    if translate_type == FREEGOOGLE_INDEX:
-        from videotrans.translator._freegoogle import FreeGoogle
-        return FreeGoogle(**kwargs).run()
+    if translate_type == QWENMT_INDEX:
+        from videotrans.translator._qwenmt import QwenMT
+        return QwenMT(**kwargs).run()
 
     if translate_type == MICROSOFT_INDEX:
         from videotrans.translator._microsoft import Microsoft

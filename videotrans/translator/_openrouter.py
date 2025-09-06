@@ -56,7 +56,7 @@ class OpenRouter(BaseTrans):
         response = model.chat.completions.create(
             model=self.model_name,
             messages=message,
-            max_tokens=8092
+            max_tokens=int(config.params.get('openrouter_max_tokens',4096))
         )
 
         result = ""

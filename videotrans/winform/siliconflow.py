@@ -18,8 +18,13 @@ def openwin():
 
     def test():
         key = winobj.guiji_key.text()
+        if not key:
+            return tools.show_error(
+                '必须填写  密钥 信息' if config.defaulelang == 'zh' else 'Please input Secret', False)
         model = winobj.guiji_model.currentText()
         template = winobj.template.toPlainText()
+        max_token= winobj.max_token.text().strip()
+        config.params["guiji_max_token"] = max_token
 
         config.params["guiji_key"] = key
 
@@ -34,6 +39,8 @@ def openwin():
         guiji_key = winobj.guiji_key.text()
         template = winobj.template.toPlainText()
         model = winobj.guiji_model.currentText()
+        max_token= winobj.max_token.text().strip()
+        config.params["guiji_max_token"] = max_token
         with Path(tools.get_prompt_file('zhipuai')).open('w', encoding='utf-8') as f:
             f.write(template)
         config.params["guiji_key"] = guiji_key
@@ -67,6 +74,8 @@ def openwin():
             winobj.guiji_model.setCurrentText(config.params["guiji_model"])
         if config.params["guiji_template"]:
             winobj.template.setPlainText(config.params["guiji_template"])
+        if config.params["guiji_max_token"]:
+            winobj.max_token.setText(config.params["guiji_max_token"])
 
     from videotrans.component import SiliconflowForm
     winobj = config.child_forms.get('siliconfloww')

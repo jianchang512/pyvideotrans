@@ -15,8 +15,14 @@ def openwin():
 
     def test():
         key = winobj.deepseek_key.text()
+        if not key:
+            return tools.show_error(
+                '必须填写  密钥 信息' if config.defaulelang == 'zh' else 'Please input Secret', False)
         model = winobj.deepseek_model.currentText()
         template = winobj.template.toPlainText()
+
+        max_token= winobj.max_token.text().strip()
+        config.params["deepseek_max_token"] = max_token
 
         config.params["deepseek_key"] = key
 
@@ -32,6 +38,8 @@ def openwin():
         deepseek_key = winobj.deepseek_key.text()
         template = winobj.template.toPlainText()
         model = winobj.deepseek_model.currentText()
+        max_token= winobj.max_token.text().strip()
+        config.params["deepseek_max_token"] = max_token
         with Path(tools.get_prompt_file('deepseek')).open('w', encoding='utf-8') as f:
             f.write(template)
         config.params["deepseek_key"] = deepseek_key
@@ -65,6 +73,8 @@ def openwin():
             winobj.deepseek_model.setCurrentText(config.params["deepseek_model"])
         if config.params["deepseek_template"]:
             winobj.template.setPlainText(config.params["deepseek_template"])
+        if config.params["deepseek_max_token"]:
+            winobj.max_token.setText(config.params["deepseek_max_token"])
 
     from videotrans.component import DeepseekForm
     winobj = config.child_forms.get('deepseekw')

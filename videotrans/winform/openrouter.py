@@ -17,8 +17,14 @@ def openwin():
 
     def test():
         key = winobj.openrouter_key.text()
+        if not key:
+            return tools.show_error(
+                '必须填写  密钥 信息' if config.defaulelang == 'zh' else 'Please input Secret', False)
         model = winobj.openrouter_model.currentText()
         template = winobj.template.toPlainText()
+
+        max_token= winobj.max_token.text().strip()
+        config.params["openrouter_max_token"] = max_token
 
         config.params["openrouter_key"] = key
 
@@ -34,6 +40,8 @@ def openwin():
         openrouter_key = winobj.openrouter_key.text()
         template = winobj.template.toPlainText()
         model = winobj.openrouter_model.currentText()
+        max_token= winobj.max_token.text().strip()
+        config.params["openrouter_max_token"] = max_token
         with Path(tools.get_prompt_file('openrouter')).open('w', encoding='utf-8') as f:
             f.write(template)
         config.params["openrouter_key"] = openrouter_key
@@ -67,6 +75,8 @@ def openwin():
             winobj.openrouter_model.setCurrentText(config.params["openrouter_model"])
         if config.params["openrouter_template"]:
             winobj.template.setPlainText(config.params["openrouter_template"])
+        if config.params["openrouter_max_token"]:
+            winobj.max_token.setText(config.params["openrouter_max_token"])
 
     from videotrans.component import OpenrouterForm
     winobj = config.child_forms.get('openrouterw')

@@ -17,8 +17,14 @@ def openwin():
 
     def test():
         key = winobj.zhipu_key.text()
+        if not key:
+            return tools.show_error(
+                '必须填写  密钥 信息' if config.defaulelang == 'zh' else 'Please input Secret', False)
         model = winobj.zhipu_model.currentText()
         template = winobj.template.toPlainText()
+
+        max_token= winobj.max_token.text().strip()
+        config.params["zhipu_max_token"] = max_token
 
         config.params["zhipu_key"] = key
 
@@ -31,6 +37,8 @@ def openwin():
 
     def save():
         zhipu_key = winobj.zhipu_key.text()
+        max_token= winobj.max_token.text().strip()
+        config.params["zhipu_max_token"] = max_token
         template = winobj.template.toPlainText()
         model = winobj.zhipu_model.currentText()
         with Path(tools.get_prompt_file('zhipuai')).open('w', encoding='utf-8') as f:
@@ -66,6 +74,8 @@ def openwin():
             winobj.zhipu_model.setCurrentText(config.params["zhipu_model"])
         if config.params["zhipu_template"]:
             winobj.template.setPlainText(config.params["zhipu_template"])
+        if config.params["zhipu_max_token"]:
+            winobj.max_token.setText(config.params["zhipu_max_token"])
 
     from videotrans.component import ZhipuAIForm
     winobj = config.child_forms.get('zhipuaiw')

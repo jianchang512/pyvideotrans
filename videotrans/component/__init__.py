@@ -13,7 +13,7 @@ __all__ = [
     "SttAPIForm", "VolcEngineTTSForm", "F5TTSForm", "DeepgramForm", "ClaudeForm",
     "LibreForm", "AliForm", "ZhipuAIForm", "KokoroForm", "ParakeetForm",
     "ChatterboxForm", "SiliconflowForm", "DeepseekForm", "OpenrouterForm",
-    "Peiyinformrole", "QwenTTSForm"
+    "Peiyinformrole", "QwenTTSForm","QwenmtForm"
 ]
 
 

@@ -1,14 +1,17 @@
 import logging
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Union
 from urllib.parse import quote
 
+import dashscope
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
+from videotrans import translator
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -16,35 +19,53 @@ RETRY_DELAY = 5
 
 
 @dataclass
-class FreeGoogle(BaseTrans):
+class QwenMT(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
 
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = {"https": pro, "http": pro}
+
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
            after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
-        text = quote(data)
-        source_code = 'auto' if not self.source_code else self.source_code
-        url = f"https://translate.google.com/m?sl={source_code}&tl={self.target_code}&hl={self.target_code}&q={text}"
-        config.logger.info(f'[Google] {self.target_code=} {self.source_code=}')
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+        text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
+        messages = [
+            {
+                "role": "user",
+                "content":text
+            }
+        ]
+        try:
+            target_language=translator.LANG_CODE.get(self.target_code)[9]
+        except:
+            # 根据zh和非zh分别显示中文和英文
+            raise StopRetry( f"获取目标语言名字失败，请检查:{self.target_code=}" if config.defaulelang=='zh' else f'Failed to obtain the target language name, please check:{self.target_code=}')
+        translation_options = {
+            "source_lang": "auto",
+            "target_lang": target_language
         }
+        print(translation_options
+              )
+        if Path(config.ROOT_DIR+'/videotrans/qwenmt.txt').exists():
+            import json
+            translation_options['terms']=json.loads(Path(config.ROOT_DIR+'/videotrans/qwenmt.txt').read_text(encoding='utf-8'))
 
-        response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies, verify=False)
-        response.raise_for_status()
-        config.logger.info(f'[Google]返回数据:{response.status_code=}')
+        response = dashscope.Generation.call(
+            # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
+            api_key=config.params.get('qwenmt_key',''),
+            model=config.params.get('qwenmt_model', 'qwen-mt-turbo'),
+            messages=messages,
+            result_format='message',
+            translation_options=translation_options
+        )
 
-        re_result = re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<', response.text)
-        if not re_result or len(re_result.groups()) < 1:
-            raise Exception(f'no result:{re_result=}')
-        return self.clean_srt(re_result.group(1)) if self.is_srt and self.aisendsrt else re_result.group(1)
+        if response.code or not response.output:
+            raise StopRetry(response.message)
+        return self.clean_srt(response.output.choices[0].message.content)
+
+
 
     def clean_srt(self, srt):
         # 替换特殊符号

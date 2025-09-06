@@ -22,6 +22,7 @@ from videotrans.ui.deepgram import Ui_deepgramform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.deepseek import Ui_deepseekform
+from videotrans.ui.qwenmt import Ui_qwenmtform
 from videotrans.ui.doubao import Ui_doubaoform
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
 from videotrans.ui.f5tts import Ui_f5ttsform
@@ -504,6 +505,11 @@ class ZhipuAIForm(QDialog, Ui_zhipuaiform):  # <===
 class DeepseekForm(QDialog, Ui_deepseekform):  # <===
     def __init__(self, parent=None):
         super(DeepseekForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class QwenmtForm(QDialog, Ui_qwenmtform):  # <===
+    def __init__(self, parent=None):
+        super(QwenmtForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

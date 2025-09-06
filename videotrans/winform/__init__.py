@@ -19,7 +19,8 @@ _module_map = {
     "deepgram": ".deepgram", "claude": ".claude", "libre": ".libre", "ali": ".ali",
     "zhipuai": ".zhipuai", "siliconflow": ".siliconflow", "kokoro": ".kokoro",
     "parakeet": ".parakeet", "chatterbox": ".chatterbox", "deepseek": ".deepseek",
-    "openrouter": ".openrouter", "fn_peiyinrole": ".fn_peiyinrole", "qwentts": ".qwentts"
+    "openrouter": ".openrouter", "fn_peiyinrole": ".fn_peiyinrole", "qwentts": ".qwentts",
+    "qwenmt":".qwenmt"
 }
 
 _loaded_modules = {}  # 用于缓存已经加载过的模块

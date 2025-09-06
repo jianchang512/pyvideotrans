@@ -855,7 +855,7 @@ class WinAction(WinActionSub):
         clickable_progress_bar.setMinimumSize(500, 50)
         clickable_progress_bar.setToolTip(config.transobj['mubiao'])
         # # 将按钮添加到布局中
-        if self.cfg['app_mode'] == 'tiqu' and self.cfg.get('copysrt_rawvideo'):
+        if self.cfg.get('app_mode') == 'tiqu' and self.cfg.get('copysrt_rawvideo'):
             target_dir = Path(name).parent.as_posix()
         else:
             target_dir = Path(target_dir).parent.as_posix() if self.cfg.get('only_video') else target_dir

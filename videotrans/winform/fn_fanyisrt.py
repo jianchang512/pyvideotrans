@@ -226,7 +226,7 @@ def openwin():
     def update_target_language():
         current_target = winobj.fanyi_target.currentText()
         language_namelist = ["-"] + [it for it in config.langnamelist if config.rev_langlist[it] != 'auto']
-        if winobj.fanyi_translate_type.currentIndex() in [translator.GOOGLE_INDEX, translator.FREEGOOGLE_INDEX]:
+        if winobj.fanyi_translate_type.currentIndex() in [translator.GOOGLE_INDEX]:
             language_namelist += get_google_trans_newcode()
         winobj.fanyi_target.clear()
         winobj.fanyi_target.addItems(language_namelist)

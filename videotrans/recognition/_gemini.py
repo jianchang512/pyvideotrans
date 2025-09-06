@@ -103,6 +103,8 @@ class GeminiRecogn(BaseRecogn):
                     config=generate_content_config,
 
             ):
+                if chunk.text is None:
+                    continue
                 res_text += chunk.text
 
             config.logger.info(f'gemini返回结果:{res_text=}')

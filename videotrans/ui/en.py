@@ -668,6 +668,8 @@ class Ui_MainWindow(object):
         self.actionsiliconflow_key.setObjectName("actionsiliconflow_key")
         self.actiondeepseek_key = QtGui.QAction(MainWindow)
         self.actiondeepseek_key.setObjectName("actiondeepseek_key")
+        self.actionqwenmt_key = QtGui.QAction(MainWindow)
+        self.actionqwenmt_key.setObjectName("actionqwenmt_key")
         self.actionopenrouter_key = QtGui.QAction(MainWindow)
         self.actionopenrouter_key.setObjectName("actionopenrouter_key")
 
@@ -843,6 +845,8 @@ class Ui_MainWindow(object):
         self.menu_Key.addAction(self.actionsiliconflow_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiondeepseek_key)
+        self.menu_Key.addSeparator()
+        self.menu_Key.addAction(self.actionqwenmt_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionopenrouter_key)
         self.menu_Key.addSeparator()

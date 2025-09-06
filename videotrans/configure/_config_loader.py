@@ -187,6 +187,7 @@ def parse_init(update_data=None):
         Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
     default = {
         "ai302_models": "gpt-4o-mini,gpt-4o,qwen-max,glm-4,yi-large,deepseek-chat,doubao-pro-128k,gemini-2.0-flash",
+        'qwenmt_model':"qwen-mt-turbo,qwen-mt-plus",
         "homedir": _defaulthomedir,
         "lang": "",
         "Faster_Whisper_XXL": "",
@@ -497,18 +498,28 @@ def getset_params(obj=None):
         "zhipu_key": "",
         "zhipu_model": _zhipuai_model_list[0],
         "zhipu_template": "",
+        "zhipu_max_token": "4096",
         "guiji_key": "",
         "guiji_model": _guiji_model_list[0],
         "guiji_template": "",
+        "guiji_max_token": "4096",
         "deepseek_key": "",
         "deepseek_model": _deepseek_model_list[0],
         "deepseek_template": "",
+        "deepseek_max_token": "8092",
         "openrouter_key": "",
         "openrouter_model": _openrouter_model_list[0],
         "openrouter_template": "",
+        "openrouter_max_token": "4096",
         "zijiehuoshan_key": "",
         "zijiehuoshan_model": _zijiehuoshan_model_list[0],
         "zijiehuoshan_template": "",
+
+
+        "qwenmt_key":"",
+        "qwenmt_model":"qwen-mt-turbo",
+
+
         "ai302_key": "",
         "ai302_model": "",
         "ai302_template": "",

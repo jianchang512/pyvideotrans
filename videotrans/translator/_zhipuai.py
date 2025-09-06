@@ -52,7 +52,7 @@ class ZhipuAI(BaseTrans):
         response = model.chat.completions.create(
             model=self.model_name,
             messages=message,
-            max_tokens=8092
+            max_tokens=int(config.params.get('zhipu_max_tokens',4096))
         )
 
         config.logger.info(f'[zhipuai]响应:{response=}')
