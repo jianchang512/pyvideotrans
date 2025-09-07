@@ -16,7 +16,7 @@ from deepgram_captions import DeepgramConverter, srt
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import  NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -102,7 +102,7 @@ class DeepgramRecogn(BaseRecogn):
                     "line": len(raws) + 1,
                     "start_time": int(it['start'] * 1000),
                     "end_time": int(it['end'] * 1000),
-                    "text": f'[spk{it["speaker"]}]' + it['transcript']
+                    "text": f'[spk-{it["speaker"]}]' + it['transcript']
                 }
                 if self.detect_language[:2] in ['zh', 'ja', 'ko']:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'])
@@ -112,9 +112,7 @@ class DeepgramRecogn(BaseRecogn):
         elif not config.settings.get('rephrase') or not rephrase_ok:
             transcription = DeepgramConverter(res)
             srt_str = srt(transcription,
-                          line_length=config.settings.get('cjk_len') if self.detect_language[:2] in ['zh', 'ja',
-                                                                                                     'ko'] else config.settings.get(
-                              'other_len'))
+                          line_length=config.settings.get('cjk_len') if self.detect_language[:2] in ['zh', 'ja','ko'] else config.settings.get('other_len'))
             raws = tools.get_subtitle_from_srt(srt_str, is_file=False)
             if self.detect_language[:2] in ['zh', 'ja', 'ko']:
                 for i, it in enumerate(raws):

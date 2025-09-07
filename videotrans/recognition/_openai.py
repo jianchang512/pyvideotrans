@@ -22,13 +22,12 @@ funasr
 
 @dataclass
 class OpenaiWhisperRecogn(BaseRecogn):
-    raws: List[Any] = field(default_factory=list, init=False)
     model: Optional[Any] = field(default=None, init=False)
 
     def __post_init__(self):
         super().__post_init__()
 
-    def get_srtlist(self, alllist):
+    def get_srtlist00(self, alllist):
         jianfan = config.settings.get('zh_hant_s')
         for i in alllist:
             if len(i['words']) < 1:

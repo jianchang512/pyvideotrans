@@ -7,7 +7,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -38,8 +38,13 @@ class Google(BaseTrans):
         headers = {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
         }
-        response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies, verify=False)
-        response.raise_for_status()
+        try:
+            response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies, verify=False)
+            response.raise_for_status()
+        except (requests.exceptions.RetryError,requests.exceptions.ConnectionError):
+            if not self.proxies or config.defaulelang=='zh':
+                raise StopRetry(f'国内无法直接访问Google翻译，请使用VPN或代理 {",若已使用代理，请检查代理地址是否正确或可连接" if self.proxies else ""}')
+            raise
         config.logger.info(f'[Google]返回数据:{response.status_code=}')
 
         re_result = re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<', response.text)

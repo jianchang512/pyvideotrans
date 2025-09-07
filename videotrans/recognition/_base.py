@@ -28,9 +28,13 @@ class BaseRecogn(BaseCon):
 
     device: str = field(init=False)
     flag: List[str] = field(init=False)
+    raws: List = field(default_factory=list, init=False)
     join_word_flag: str = field(init=False)
     jianfan: bool = field(init=False)
     maxlen: int = field(init=False)
+
+
+
 
     def __post_init__(self):
         super().__init__()
@@ -88,6 +92,51 @@ class BaseRecogn(BaseCon):
             self.inst.status_text = "使用LLM重新断句失败" if config.defaulelang == 'zh' else "Re-segmenting Error"
             config.logger.error(f"重新断句失败[except]，已恢复原样 {e}")
             raise
+
+
+    def get_srtlist(self, raws):
+        import zhconv
+        jianfan = config.settings.get('zh_hant_s')
+        for i in list(raws):
+            if len(i['words']) < 1:
+                continue
+
+            # 判断当前 whisper已断好的句子， 是否大于 max_speech_duration_s 最大语音持续时间，如何是，则强制断句
+            diff=int(i['words'][-1]['end'] * 1000) - int(i['words'][0]['start'] * 1000)
+            max_s=int(config.settings.get('max_speech_duration_s', 12))*1000
+            if diff>max_s:
+                tmp=None
+                for w in i['words']:
+                    if not tmp:
+                        tmp={
+                            'text': zhconv.convert(w['word'], 'zh-hans') if jianfan and self.detect_language[:2] == 'zh' else w['word'],
+                            'start_time': int(w['start'] * 1000),
+                            'end_time': int(w['end'] * 1000)
+                        }
+                    else:
+                        current_diff=int((w['end']-w['start'])*1000)
+                        if (tmp['end_time']-tmp['start_time'])+current_diff>=max_s:
+                            self.raws.append(tmp)
+                            tmp={
+                                'text': zhconv.convert(w['word'], 'zh-hans') if jianfan and self.detect_language[:2] == 'zh' else w['word'],
+                                'start_time': int(w['start'] * 1000),
+                                'end_time': int(w['end'] * 1000)
+                            }
+                        else:
+                            tmp['text'] += zhconv.convert(w['word'], 'zh-hans') if jianfan and self.detect_language[:2] == 'zh' else w['word']
+                            tmp['end_time'] = int(w['end'] * 1000)
+
+                self.raws.append(tmp)
+            else:
+                tmp = {
+                    'text': zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2] == 'zh' else i['text'],
+                    'start_time': int(i['words'][0]['start'] * 1000),
+                    'end_time': int(i['words'][-1]['end'] * 1000)
+                }
+                tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
+                tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
+                tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
+                self.raws.append(tmp)
 
     # True 退出
     def _exit(self) -> bool:

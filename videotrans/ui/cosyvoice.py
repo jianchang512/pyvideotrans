@@ -88,19 +88,19 @@ class Ui_cosyvoiceform(object):
 
     def retranslateUi(self, cosyvoiceform):
         tips = """
-# 需要预先部署CosyVoice项目，并放入了CosyVoice-api项目中的api.py
-# CosyVoice项目地址 https://github.com/FunAudioLLM/CosyVoice
+# 需要预先部署CosyVoice官方项目，并放入了CosyVoice-api项目中的api.py
 # CosyVoice-api项目地址 https://github.com/jianchang512/CosyVoice-api
+# CosyVoice项目地址 https://github.com/FunAudioLLM/CosyVoice
 
 将以POST请求向填写的API地址发送数据：
 CosyVoice-api项目的api接口默认 http://127.0.0.1:9233
 
 参考音频填写：
 每行都由#符号分割为两部分，第一部分是wav音频路径，第二部分是该音频对应的文字内容，可填写多行。
-wav音频最佳时长5-15s，如果音频放在了CosyVoice项目的根路径下，即webui.py同目录下，这里直接填写名称即可
+wav音频最佳时长3-10s，如果音频放在了CosyVoice项目的根路径下，即webui.py同目录下，这里直接填写名称即可
 如果放在了根目录下的wavs目录下，那么需要填写 wavs/音频名称.wav
 
-参考音频填写示例：如果使用的第三方整合包，不要填写.wav地址，填写整合包要求的信息比如角色名
+参考音频填写示例：
 1.wav#你好啊亲爱的朋友
 wavs/2.wav#你好啊朋友们
 

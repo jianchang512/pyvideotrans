@@ -11,7 +11,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -57,7 +57,7 @@ class GPTSoVITS(BaseTTS):
                 "extra": config.params['gptsovits_extra'],
                 "ostype": sys.platform
             }
-            print(f'{data=}')
+
             # refer_wav_path
             # prompt_text
             # prompt_language
@@ -66,6 +66,8 @@ class GPTSoVITS(BaseTTS):
 
                 if roledict and role in roledict:
                     data.update(roledict[role])
+            if not data.get('refer_wav_path', ''):
+                raise StopRetry(message=f'必须传入参考音频文件路径' if config.defaulelang=='zh' else 'Must pass in the reference audio file path')
             if config.params['gptsovits_isv2']:
                 data = {
                     "text": data_item['text'],

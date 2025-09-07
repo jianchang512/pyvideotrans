@@ -216,7 +216,6 @@ def parse_init(update_data=None):
         "max_speech_duration_s": 12,
         "min_silence_duration_ms": 1000,
         "speech_pad_ms": 400,
-        "overall_maxsecs": 15,
         "rephrase": False,
         "voice_silence": 200,
         "interval_split": 10,

@@ -90,8 +90,10 @@ class Ui_setini(object):
         scroll_area.setWidgetResizable(True)
         scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        box = QtWidgets.QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
-        box.setLayout(QtWidgets.QVBoxLayout())
+        # 2. 创建一个“容器”QWidget，这个容器将承载你的所有内容
+        scroll_content_widget = QtWidgets.QWidget()
+
+
         # ultrafast 、 superfast 、 veryfast 、 faster 、 fast 、 medium （默认）、 slow和veryslow
         # 处理速度越来越慢，输出视频压缩率和质量越来越高，视频尺寸也将变小
 
@@ -158,7 +160,6 @@ class Ui_setini(object):
                 "min_silence_duration_ms": "最小静音持续时间，单位：毫秒。当检测到语音结束后，会等待的静音时间。如果静音持续时间超过该值，才会分割语音片段。",
                 "speech_pad_ms": "语音填充时间，单位：毫秒。在检测到的语音片段前后各添加的填充时间，避免语音片段切割得太紧凑，可能会切掉一些边缘的语音。如果你发现切割后的语音片段有缺失部分，可以增大该值，比如 500 毫秒或 800 毫秒。反之，如果语音片段过长或包含过多的无效部分，可以减少这个值",
 
-                "overall_maxsecs": "字幕最大时长秒数，超过则强制断句",
 
                 "voice_silence": "Google识别api静音片段/ms",
                 "interval_split": "均等分割模式下每个片段时长秒数",
@@ -168,6 +169,8 @@ class Ui_setini(object):
                 "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "condition_on_previous_text": "若开启将占用更多GPU，效果也更好",
                 "zh_hant_s": "强制将识别出的繁体字幕转为简体",
+            },
+            "prompt_init":{
                 "initial_prompt_zh-cn": "原始语言为简体中文时发送给whisper模型的提示词",
                 "initial_prompt_zh-tw": "原始语言为繁体中文时发送给whisper模型的提示词",
                 "initial_prompt_en": "原始语言为英语时发送给whisper模型的提示词",
@@ -204,7 +207,7 @@ class Ui_setini(object):
         # 中文左侧label
         self.titles = {
             "llm_ai_type": "LLM重新断句时使用的AI渠道",
-
+            "prompt_init":"Whisper模型提示词",
             "gemini_recogn_chunk": "Gemini语音识别时，单次发送音频切片数",
             "ai302_models": "302.ai翻译模型列表",
             "llm_chunk_size": "LLM重新断句每批次发送字或单词数",
@@ -234,7 +237,6 @@ class Ui_setini(object):
             "min_silence_duration_ms": "静音分割毫秒 ",
             "speech_pad_ms": "语音填充毫秒",
 
-            "overall_maxsecs": "字幕最大时长持续秒数/s",
 
             "voice_silence": "Google识别api静音片段/ms",
             "interval_split": "均等分割时片段时长/s",
@@ -312,7 +314,8 @@ class Ui_setini(object):
             "justify": "字幕声音画面对齐",
             "subtitle": "硬字幕样式",
             "trans": "字幕翻译调整",
-            "dubbing": "配音调整"
+            "dubbing": "配音调整",
+            "prompt_init":"Whisper模型提示词"
         }
         if config.defaulelang != 'zh':
             self.notices = {
@@ -382,7 +385,6 @@ class Ui_setini(object):
                     "min_silence_duration_ms": "Duration (in milliseconds) of the shortest mute clip, below which mutes will be ignored ",
                     "max_speech_duration_s": "if you wish to control the clip length, such as processing a dialog or segmented output, you can set it according to your specific needs, such as 10 seconds or 30 seconds. ",
                     "speech_pad_ms": "Buffer time (in milliseconds) added before and after detected speech segments",
-                    "overall_maxsecs": "Maximum duration of a sentence in seconds",
                     "voice_silence": "Silence segment for Google api/ms",
                     "interval_split": "Segment duration in seconds in equal split mode",
 
@@ -392,6 +394,8 @@ class Ui_setini(object):
                     "best_of": "Precision adjustment during subtitle recognition, 1-5, 1 = lowest memory usage, 5 = highest memory usage",
                     "condition_on_previous_text": "true = more GPU usage and better performance, false = less GPU usage but slightly worse performance",
                     "zh_hant_s": "Force conversion of recognized traditional Chinese subtitles to simplified Chinese",
+                },
+                "prompt_init":{
                     "initial_prompt_zh-cn": "Prompts sent to the whisper model when the original language is Simplified Chinese.",
                     "initial_prompt_zh-tw": "Prompts sent to the whisper model when the original language is zh-tw.",
                     "initial_prompt_en": "Prompts sent to the whisper model when the original language is en.",
@@ -434,12 +438,13 @@ class Ui_setini(object):
                 "justify": "Subtitle  Alignment",
                 "subtitle": "Hard Subtitle Styles",
                 "trans": "Subtitle Translation",
+                "prompt_init":"Whisper model prompt initial",
                 "dubbing": "Dubbing Adjustments"
             }
 
             self.titles = {
                 "llm_ai_type": "The AI channel used when LLM re-segmentation",
-
+                "prompt_init":"Whisper model prompt initial",
                 "gemini_recogn_chunk": "Gemini to recognize speech,number of audio slices sent",
                 "homedir": "Set Home directory",
                 "llm_chunk_size": "LLM re-segmentation sends each batch of words",
@@ -469,7 +474,6 @@ class Ui_setini(object):
                 "min_silence_duration_ms": "Duration (in milliseconds)  ",
                 "speech_pad_ms": "Buffer time",
 
-                "overall_maxsecs": "Maximum Speech Duration",
                 "vad": "Enable VAD",
 
                 "voice_silence": "Silence Segment for Google api/ms",
@@ -547,12 +551,23 @@ class Ui_setini(object):
             "点击左侧标题将弹出帮助说明,保存设置后，已打开的子功能窗口需关闭后重新打开方生效" if config.defaulelang == 'zh' else 'Clicking  title on the left will show help ')
         label_title.setObjectName(f"label_head")
         label_title.setAlignment(Qt.AlignCenter)
-        label_title.setStyleSheet("""color:#eeeeee;text-align:center""")
+        label_title.setStyleSheet("""color:#eeeeee;text-align:center;font-size:16px;margin-top:10px""")
+        self.layout.addWidget(label_title)
 
         self.homedir_btn = None
-        box.layout().addWidget(label_title)
+        # box.layout().addWidget(label_title)
         helptext = 'show help' if config.defaulelang != 'zh' else '点击查看帮助信息'
+
+        h1=QtWidgets.QHBoxLayout(scroll_content_widget)
+        v1=QtWidgets.QVBoxLayout()
+        v2=QtWidgets.QVBoxLayout()
+        h1.addLayout(v1)
+        h1.addLayout(v2)
+
+        layout_index=0
         for headkey, item in self.notices.items():
+            box = QtWidgets.QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
+            box.setLayout(QtWidgets.QVBoxLayout())
             label_title = QtWidgets.QLabel()
             label_title.setText('[' + self.heads[headkey] + "↓]")
             label_title.setStyleSheet("""color:#148CD2;font-size:18px;""")
@@ -713,8 +728,16 @@ class Ui_setini(object):
                     tmp.addWidget(self.backgroundcolor_btn)
 
                 box.layout().addLayout(tmp)
+            if layout_index%2==0:
+                v1.addWidget(box)
+            else:
+                v2.addWidget(box)
+            layout_index+=1
 
-        scroll_area.setWidget(box)
+        v1.addStretch()
+        v2.addStretch()
+        scroll_area.setWidget(scroll_content_widget)
+
         self.layout.addWidget(scroll_area)
 
         self.set_ok = QtWidgets.QPushButton(setini)
@@ -722,6 +745,7 @@ class Ui_setini(object):
         self.set_ok.setMinimumSize(QtCore.QSize(0, 35))
         self.set_ok.setObjectName("set_ok")
         self.set_ok.setCursor(Qt.PointingHandCursor)
+        self.set_ok.setStyleSheet("""color:#ff0""")
         self.layout.addWidget(self.set_ok)
 
         self.retranslateUi(setini)

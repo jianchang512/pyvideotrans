@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-import zhconv
+
 
 from videotrans.configure import config
 from videotrans.process._overall import run
@@ -22,7 +22,7 @@ funasr
 
 @dataclass
 class FasterAll(BaseRecogn):
-    raws: List = field(default_factory=list, init=False)
+
     pidfile: str = field(default="", init=False)
 
     def __post_init__(self):
@@ -54,21 +54,6 @@ class FasterAll(BaseRecogn):
                 pass
             time.sleep(0.2)
 
-    def get_srtlist(self, raws):
-        jianfan = config.settings.get('zh_hant_s')
-        for i in list(raws):
-            if len(i['words']) < 1:
-                continue
-            tmp = {
-                'text': zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2] == 'zh' else i[
-                    'text'],
-                'start_time': int(i['words'][0]['start'] * 1000),
-                'end_time': int(i['words'][-1]['end'] * 1000)
-            }
-            tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-            tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
-            tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-            self.raws.append(tmp)
 
     def _exec(self):
         # 修复CUDA fork问题：强制使用spawn方法
@@ -153,4 +138,4 @@ class FasterAll(BaseRecogn):
         if not self.error and len(self.raws) > 0:
             return self.raws
 
-        raise RuntimeError(self.error if self.error else ("没有识别到任何说话声,请确认所选音视频中是否包含人类说话声，以及说话语言是否同所选一致" if config.defaulelang == 'zh' else "No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one."))
+        raise RuntimeError(self.error if self.error else (f"没有识别到任何说话声,请确认所选音视频中是否包含人类说话声，以及说话语言是否同所选一致 {',请尝试取消选中CUDA加速后重试' if self.is_cuda else ''}" if config.defaulelang == 'zh' else "No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one."))

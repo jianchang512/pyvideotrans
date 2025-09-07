@@ -24,6 +24,7 @@ class DropButton(QPushButton):
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/')
             namestr.append(os.path.basename(it))
+            config.params['last_opendir']=os.path.dirname(it)
         self.filelist = fnames
         self.setText(f'{len(self.filelist)} files \n' + "\n".join(namestr))
 
