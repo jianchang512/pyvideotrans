@@ -114,8 +114,14 @@ class BaseRecogn(BaseCon):
                             'end_time': int(w['end'] * 1000)
                         }
                     else:
+                        # 当前单词所占时间
                         current_diff=int((w['end']-w['start'])*1000)
-                        if (tmp['end_time']-tmp['start_time'])+current_diff>=max_s:
+                        # 当前tmp[text]末尾或当前word开头是否有标点符号
+                        is_flag=tmp['text'][-1] in self.flag or w['word'][0] in self.flag
+                        # 当前tmp时长
+                        has_time_diff=tmp['end_time']-tmp['start_time']
+                        ## 已存在的并且大于500ms，并且（大于允许时长或存在标点）
+                        if has_time_diff>500 and ( has_time_diff+current_diff>=max_s or is_flag):
                             self.raws.append(tmp)
                             tmp={
                                 'text': zhconv.convert(w['word'], 'zh-hans') if jianfan and self.detect_language[:2] == 'zh' else w['word'],

@@ -213,7 +213,7 @@ def parse_init(update_data=None):
         "vad": True,
         "threshold": 0.45,
         "min_speech_duration_ms": 250,
-        "max_speech_duration_s": 12,
+        "max_speech_duration_s": 8,
         "min_silence_duration_ms": 1000,
         "speech_pad_ms": 400,
         "rephrase": False,
