@@ -124,7 +124,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         config.logger.info(f'断句结果:{self.raws=}')
                     except:
                         self.get_srtlist(alllist)
-        except Exception as e:
+        except Exception:
             raise
         finally:
             try:

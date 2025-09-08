@@ -516,6 +516,7 @@ def getset_params(obj=None):
 
 
         "qwenmt_key":"",
+        "qwenmt_domains":"",
         "qwenmt_model":"qwen-mt-turbo",
 
 

@@ -24,6 +24,7 @@ def openwin():
         config.params["qwenmt_key"] = key
 
         config.params["qwenmt_model"] = model
+        config.params["qwenmt_domains"]=winobj.qwenmt_domains.text()
 
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         from videotrans import translator
@@ -33,8 +34,8 @@ def openwin():
 
     def save():
         qwenmt_key = winobj.qwenmt_key.text()
-
         model = winobj.qwenmt_model.currentText()
+        config.params["qwenmt_domains"]=winobj.qwenmt_domains.text()
         config.params["qwenmt_key"] = qwenmt_key
         config.params["qwenmt_model"] = model
         config.getset_params(config.params)
@@ -61,6 +62,8 @@ def openwin():
 
         if config.params["qwenmt_key"]:
             winobj.qwenmt_key.setText(config.params["qwenmt_key"])
+        if config.params["qwenmt_domains"]:
+            winobj.qwenmt_domains.setText(config.params["qwenmt_domains"])
         if config.params["qwenmt_model"]:
             winobj.qwenmt_model.setCurrentText(config.params["qwenmt_model"])
 

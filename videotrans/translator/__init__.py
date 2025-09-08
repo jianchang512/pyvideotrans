@@ -156,7 +156,7 @@ LANG_CODE = {
         "fi",  # 微软翻译
         "Finnish" if config.defaulelang != 'zh' else '芬兰语',  # AI翻译
         "fi",  # 阿里
-        "Finnish"
+        "Finnish" # qwen-mt 暂不支持翻译菲律宾语
     ],
 
     "zh-tw": [
@@ -169,7 +169,7 @@ LANG_CODE = {
         "zh-Hant",
         "Traditional Chinese" if config.defaulelang != 'zh' else '繁体中文',
         "zh-tw",
-        "Chinese",
+        "Traditional Chinese",
     ],
     "en": [
         "en",
@@ -481,7 +481,7 @@ LANG_CODE = {
         "fa",  # 微软翻译
         "Persian" if config.defaulelang != 'zh' else '波斯语',  # AI翻译
         "fa",  # 阿里
-        "Persian"
+        "Western Persian"
     ],
     "auto": [
         "auto",

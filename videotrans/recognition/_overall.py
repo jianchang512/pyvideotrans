@@ -129,8 +129,8 @@ class FasterAll(BaseRecogn):
                 except:
                     pass
         except Exception as e:
-            config.logger.exception(f'_overall:{e}', exc_info=True)
-            self.error = f"_overall:{e}"
+            config.logger.exception(f'{e}', exc_info=True)
+            self.error = f"{e}"
         finally:
             config.model_process = None
             self.has_done = True

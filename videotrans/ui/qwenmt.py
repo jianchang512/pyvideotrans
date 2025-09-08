@@ -22,9 +22,9 @@ class Ui_qwenmtform(object):
         qwenmtform.setMaximumSize(QtCore.QSize(600, 600))
 
         v1 = QtWidgets.QVBoxLayout(qwenmtform)
-        h2 = QtWidgets.QHBoxLayout()
 
-        h4 = QtWidgets.QHBoxLayout()
+
+
 
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -40,9 +40,27 @@ class Ui_qwenmtform(object):
         self.qwenmt_key = QtWidgets.QLineEdit(qwenmtform)
         self.qwenmt_key.setMinimumSize(QtCore.QSize(0, 35))
         self.qwenmt_key.setObjectName("qwenmt_key")
+        h2 = QtWidgets.QHBoxLayout()
         h2.addWidget(self.label_2)
         h2.addWidget(self.qwenmt_key)
+
+
+
         v1.addLayout(h2)
+
+        label_domains = QtWidgets.QLabel(qwenmtform)
+        label_domains.setMinimumSize(QtCore.QSize(0, 35))
+        label_domains.setSizeIncrement(QtCore.QSize(0, 35))
+        label_domains.setObjectName("label_domains")
+        label_domains.setText("翻译风格提示词" if config.defaulelang == 'zh' else "Translation style prompt")
+        self.qwenmt_domains = QtWidgets.QLineEdit(qwenmtform)
+        self.qwenmt_domains.setMinimumSize(QtCore.QSize(0, 35))
+        self.qwenmt_domains.setObjectName("qwenmt_domains")
+        self.qwenmt_domains.setPlaceholderText("用一段自然语言文本(必须英文)描述您的领域，将其提供给大模型作为提示" if config.defaulelang== 'zh' else "Fill in a natural language text (must be English) describing your domain, which will be provided to the model as a prompt")
+        h3 = QtWidgets.QHBoxLayout()
+        h3.addWidget(label_domains)
+        h3.addWidget(self.qwenmt_domains)
+        v1.addLayout(h3)
 
 
 
@@ -86,6 +104,7 @@ class Ui_qwenmtform(object):
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/qwen-mt'))
 
+        h4 = QtWidgets.QHBoxLayout()
         h4.addWidget(self.set)
         h4.addWidget(self.test)
         h4.addWidget(help_btn)

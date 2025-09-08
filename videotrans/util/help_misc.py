@@ -174,6 +174,19 @@ def get_prompt(ainame, is_srt=True):
     return content
 
 
+def qwenmt_glossary():
+    from videotrans.configure import config
+    if Path(config.ROOT_DIR + '/videotrans/glossary.txt').exists():
+        glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8').strip()
+        if glossary:
+            term=[]
+            for it in glossary.split('\n'):
+                tmp=it.split("=")
+                if len(tmp)==2:
+                    term.append({"source":tmp[0],"target":tmp[1]})
+            return term if len(term)>0 else None
+    return None
+
 # 获取当前需要操作的prompt txt文件
 def get_prompt_file(ainame, is_srt=True):
     from videotrans.configure import config

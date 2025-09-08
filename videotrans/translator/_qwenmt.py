@@ -13,6 +13,7 @@ from videotrans import translator
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.translator._base import BaseTrans
+from videotrans.util import tools
 
 RETRY_NUMS = 3
 RETRY_DELAY = 5
@@ -46,11 +47,13 @@ class QwenMT(BaseTrans):
             "source_lang": "auto",
             "target_lang": target_language
         }
-        print(translation_options
-              )
-        if Path(config.ROOT_DIR+'/videotrans/qwenmt.txt').exists():
-            import json
-            translation_options['terms']=json.loads(Path(config.ROOT_DIR+'/videotrans/qwenmt.txt').read_text(encoding='utf-8'))
+        # 术语表
+        term=tools.qwenmt_glossary()
+        if term:
+            translation_options['terms']=term
+        if config.params.get("qwenmt_domains"):
+            translation_options['domains']=config.params.get("qwenmt_domains")
+        print(translation_options)
 
         response = dashscope.Generation.call(
             # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
