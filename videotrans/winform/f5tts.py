@@ -38,7 +38,7 @@ def openwin():
         winobj.test.setText('测试中请稍等...')
         from videotrans import tts
         wk = ListenVoice(parent=winobj, queue_tts=[{"text": '你好啊我的朋友', "role": role_test,
-                                                    "filename": config.TEMP_HOME + f"/test-f5tts.wav",
+                                                    "filename": config.TEMP_HOME + f"/test-{config.params['f5tts_ttstype']}.wav",
                                                     "tts_type": tts.F5_TTS}], language="zh", tts_type=tts.F5_TTS)
         wk.uito.connect(feed)
         wk.start()

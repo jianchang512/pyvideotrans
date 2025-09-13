@@ -128,7 +128,7 @@ class BaseTTS(BaseCon):
             if tools.vail_file(self.queue_tts[0]['filename']):
                 threading.Thread(target=tools.pygameaudio, args=(self.queue_tts[0]['filename'],)).start()
                 return
-            raise DubbSrtError(self.error, self.__class__.__name__)
+            raise RuntimeError(self.error, self.__class__.__name__)
 
         # 记录成功数量
         succeed_nums = 0
@@ -138,7 +138,6 @@ class BaseTTS(BaseCon):
         # 只有全部配音都失败，才视为失败
         if succeed_nums < 1:
             msg = ('配音全部失败 ' if config.defaulelang == 'zh' else 'Dubbing failed ')
-            #self._signal(text=msg, type="error")
             raise DubbSrtError(message=f'{msg}:{self.__class__.__name__}')
 
         self._signal(

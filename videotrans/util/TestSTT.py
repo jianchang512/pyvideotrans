@@ -25,4 +25,8 @@ class TestSTT(QThread):
             srt_str = tools.get_srt_from_list(res)
             self.uito.emit(f"ok:{srt_str}")
         except Exception as e:
-            self.uito.emit(str(e))
+            from videotrans.configure._except import get_msg_from_except
+            import traceback
+            except_msg=get_msg_from_except(e)
+            msg = f'{except_msg}:' + traceback.format_exc()
+            self.uito.emit(msg)

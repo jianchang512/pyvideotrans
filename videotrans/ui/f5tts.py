@@ -22,7 +22,9 @@ class Ui_f5ttsform(object):
         f5ttsform.setMaximumSize(QSize(600, 500))
 
         v1 = QtWidgets.QVBoxLayout(f5ttsform)
-
+        label0 = QLabel()
+        label0.setText('请确保所选的TTS类型和对应的URL匹配' if config.defaulelang=='zh' else 'Please make sure the selected TTS type matches the corresponding URL')
+        v1.addWidget(label0)
         self.ttstype = QtWidgets.QComboBox(f5ttsform)
         self.ttstype.setMinimumSize(QtCore.QSize(100, 30))
         self.ttstype.addItems(['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS'])

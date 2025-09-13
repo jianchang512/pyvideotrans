@@ -232,7 +232,7 @@ def parse_init(update_data=None):
         "backaudio_volume": 0.8,
         "separate_sec": 600,
         "loop_backaudio": True,
-        "cuda_com_type": "auto",  # int8 int8_float16 int8_float32
+        "cuda_com_type": "default",  # int8 int8_float16 int8_float32
         "initial_prompt_zh-cn": "在每行末尾添加标点符号，在每个句子末尾添加标点符号。",
         "initial_prompt_zh-tw": "在每行末尾添加標點符號，在每個句子末尾添加標點符號。",
         "initial_prompt_en": "Add punctuation at the end of each line, and punctuation at the end of each sentence.",

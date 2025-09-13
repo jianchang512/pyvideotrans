@@ -8,9 +8,10 @@ from typing import List, Dict, Union
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from gradio_client import Client, handle_file
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -39,7 +40,7 @@ class F5TTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task_v1(self, data_item: Union[Dict, List, None]):
-        from gradio_client import Client, handle_file
+
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
@@ -62,20 +63,24 @@ class F5TTS(BaseTTS):
 
         if not Path(data['ref_wav']).exists():
             self.error = f'{role} 角色不存在'
-            return
+            raise StopRetry(self.error)
         if data['ref_text'] and len(data['ref_text']) < 10:
             speed = 0.5
-        client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
+        try:
+            client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
+        
+            result = client.predict(
+                ref_audio_input=handle_file(data['ref_wav']),
+                ref_text_input=data['ref_text'],
+                gen_text_input=text,
+                remove_silence=True,
 
-        result = client.predict(
-            ref_audio_input=handle_file(data['ref_wav']),
-            ref_text_input=data['ref_text'],
-            gen_text_input=text,
-            remove_silence=True,
-
-            speed_slider=speed,
-            api_name='/basic_tts'
-        )
+                speed_slider=speed,
+                api_name='/basic_tts'
+            )
+        except Exception as e:
+            self.error=str(e)
+            return
 
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -84,7 +89,7 @@ class F5TTS(BaseTTS):
         if isinstance(wav_file, str) and Path(wav_file).is_file():
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            return
+            self.error=str(result)
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
         self.error = ''
@@ -92,7 +97,7 @@ class F5TTS(BaseTTS):
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
     def _item_task_spark(self, data_item: Union[Dict, List, None]):
-        from gradio_client import Client, handle_file
+
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
@@ -113,17 +118,20 @@ class F5TTS(BaseTTS):
 
         if not Path(data['ref_wav']).exists():
             self.error = f'{role} 角色不存在'
+            raise StopRetry(self.error)
+        try:
+            client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
+        
+            result = client.predict(
+                text=text,
+                prompt_text=data['ref_text'],
+                prompt_wav_upload=handle_file(data['ref_wav']),
+                prompt_wav_record=None,
+                api_name='/voice_clone'
+            )
+        except Exception as e:
+            self.error=str(e)
             return
-
-        client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
-
-        result = client.predict(
-            text=text,
-            prompt_text=data['ref_text'],
-            prompt_wav_upload=handle_file(data['ref_wav']),
-            prompt_wav_record=None,
-            api_name='/voice_clone'
-        )
 
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -132,7 +140,7 @@ class F5TTS(BaseTTS):
         if isinstance(wav_file, str) and Path(wav_file).is_file():
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            return
+            self.error=str(result)
 
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
@@ -141,7 +149,7 @@ class F5TTS(BaseTTS):
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
     def _item_task_index(self, data_item: Union[Dict, List, None]):
-        from gradio_client import Client, handle_file
+
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
@@ -161,20 +169,20 @@ class F5TTS(BaseTTS):
 
         if not Path(data['ref_wav']).exists():
             self.error = f'{role} 角色不存在'
-            return
+            raise StopRetry(self.error)
         config.logger.info(f'index-tts {data=}')
         try:
             client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
-        except Exception as e:
-            print(f'{self.api_url=},{e=}')
         
-        result = client.predict(
-            prompt=handle_file(data['ref_wav']),
-            emo_ref_path=handle_file(data['ref_wav']),
-            text=text,
-            api_name='/gen_single'
-        )
-
+            result = client.predict(
+                prompt=handle_file(data['ref_wav']),
+                emo_ref_path=handle_file(data['ref_wav']),
+                text=text,
+                api_name='/gen_single'
+            )
+        except Exception as e:
+            self.error=str(e)
+            return
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
@@ -182,7 +190,7 @@ class F5TTS(BaseTTS):
         if isinstance(wav_file, str) and Path(wav_file).is_file():
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            return
+            self.error=str(result)
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
         self.error = ''
@@ -190,7 +198,7 @@ class F5TTS(BaseTTS):
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
     def _item_task_dia(self, data_item: Union[Dict, List, None]):
-        from gradio_client import Client, handle_file
+        
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
@@ -211,16 +219,18 @@ class F5TTS(BaseTTS):
 
         if not Path(data['ref_wav']).exists():
             self.error = f'{role} 角色不存在'
+            raise StopRetry(self.error)
+        try:
+            client = Client(self.api_url, httpx_kwargs={"timeout": 7200, "proxy": None}, ssl_verify=False)
+            result = client.predict(
+                text_input=text,
+                audio_prompt_input=handle_file(data['ref_wav']),
+                transcription_input=data.get('ref_text', ''),
+                api_name='/generate_audio'
+            )
+        except Exception as e:
+            self.error=str(e)
             return
-
-        client = Client(self.api_url, httpx_kwargs={"timeout": 7200, "proxy": None}, ssl_verify=False)
-
-        result = client.predict(
-            text_input=text,
-            audio_prompt_input=handle_file(data['ref_wav']),
-            transcription_input=data.get('ref_text', ''),
-            api_name='/generate_audio'
-        )
 
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -229,7 +239,7 @@ class F5TTS(BaseTTS):
         if isinstance(wav_file, str) and Path(wav_file).is_file():
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            return
+            self.error=str(result)
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
         self.error = ''
@@ -254,5 +264,10 @@ class F5TTS(BaseTTS):
                 self._item_task_dia(data_item)
             else:
                 self._item_task_v1(data_item)
-
+            
+            
+            if self.error and "Cannot find a function with" in self.error:
+                tips="请检查TTS设置中所选TTS类型和URL是否对应" if config.defaulelang=='zh' else 'Please check whether the TTS type selected in the settings corresponds to the URL'
+                self.error=f"{tips}:{self.error}"
         _run()
+        

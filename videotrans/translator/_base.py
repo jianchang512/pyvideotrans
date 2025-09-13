@@ -149,7 +149,7 @@ class BaseTrans(BaseCon):
                 [f"{srtinfo['line']}\n{srtinfo['time']}\n{srtinfo['text'].strip()}" for srtinfo in it])
             result = self._get_cache(srt_str)
             if not result:
-                result = tools.cleartext(self._item_task(srt_str))
+                result = self._item_task(srt_str)
                 if not result.strip():
                     raise TranslateSrtError('无返回翻译结果' if config.defaulelang == 'zh' else 'Translate result is empty')
                 self._set_cache(it, result)

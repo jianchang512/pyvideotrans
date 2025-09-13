@@ -1,6 +1,6 @@
 from PySide6.QtCore import Signal, QThread
 
-from videotrans.configure._except import get_msg_from_except
+
 
 
 class TestSrtTrans(QThread):
@@ -22,4 +22,9 @@ class TestSrtTrans(QThread):
                                   )
             self.uito.emit(f"ok:{raw}\n{text}")
         except Exception as e:
-            self.uito.emit(get_msg_from_except(e))
+            from videotrans.configure._except import get_msg_from_except
+            import traceback
+            except_msg=get_msg_from_except(e)
+            msg = f'{except_msg}:' + traceback.format_exc()
+            self.uito.emit(msg)
+
