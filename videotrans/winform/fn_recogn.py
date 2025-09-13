@@ -174,6 +174,7 @@ def openwin():
             except:
                 config.settings['interval_split'] = 10
         config.settings['rephrase'] = winobj.rephrase.isChecked()
+        config.settings['rephrase_local'] = winobj.rephrase_local.isChecked()
         with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
@@ -272,11 +273,13 @@ def openwin():
             tools.hide_show_element(winobj.equal_split_layout,
                                     True if winobj.shibie_split_type.currentIndex() == 1 else False)
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,
-                               recognition.Deepgram, recognition.FUNASR_CN]:  # 可选模型，whisper funasr deepram
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER
+                               ]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
             winobj.rephrase.setDisabled(True)
+            winobj.rephrase_local.setDisabled(True)
         else:
+            winobj.rephrase_local.setDisabled(False)
             winobj.rephrase.setDisabled(False)
             winobj.shibie_model.setDisabled(False)
             winobj.shibie_model.clear()
@@ -344,6 +347,13 @@ def openwin():
         langtext = winobj.shibie_language.currentText()
         langcode = translator.get_code(show_text=langtext)
 
+    def rephrase_fun(s,name):
+        if s and name=='llm':
+            winobj.rephrase_local.setChecked(False)
+        elif s and name=='local':
+            winobj.rephrase.setChecked(False)
+            
+
     from videotrans.component import Recognform
     try:
         winobj = config.child_forms.get('recognform')
@@ -371,7 +381,9 @@ def openwin():
         winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
         winobj.is_cuda.toggled.connect(check_cuda)
-        winobj.rephrase.setChecked(config.settings.get('rephrase'))
+        local_rephrase=config.settings.get('rephrase_local',False)
+        winobj.rephrase_local.setChecked(local_rephrase)
+        winobj.rephrase.setChecked(config.settings.get('rephrase',False) if not local_rephrase else False)
         winobj.remove_noise.setChecked(config.params.get('stt_remove_noise'))
         winobj.copysrt_rawvideo.setChecked(config.params.get('stt_copysrt_rawvideo', False))
         winobj.out_format.setCurrentText(config.params.get('stt_out_format', 'txt'))
@@ -415,6 +427,11 @@ def openwin():
         winobj.shibie_model.currentTextChanged.connect(
             lambda: check_model_name(winobj.shibie_recogn_type.currentIndex(), winobj.shibie_model.currentText()))
 
+
+        
+        winobj.rephrase.toggled.connect(lambda checked:rephrase_fun(checked,'llm'))
+        winobj.rephrase_local.toggled.connect(lambda checked:rephrase_fun(checked,'local'))
+        
         winobj.show()
     except Exception as e:
         print(e)

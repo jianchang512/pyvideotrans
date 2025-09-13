@@ -234,7 +234,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     # txt 文件转为一条字幕
     if len(result) < 1:
         result = [
-            {"line": 1, "time": "00:00:00,000 --> 00:00:02,000", "text": "\n".join(content)}
+            {"line": 1, "start_time":0,"end_time":2000,"time": "00:00:00,000 --> 00:00:02,000", "text": "\n".join(content)}
         ]
     return result
 

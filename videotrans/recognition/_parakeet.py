@@ -46,15 +46,5 @@ class ParaketRecogn(BaseRecogn):
             if not transcript or not isinstance(transcript, str):
                 raise RuntimeError(f'返回字幕无时间戳，无法使用')
         tmp = transcript.split("----..----")
-        if len(tmp) == 1 or not config.settings['rephrase']:
-            raws = tools.get_subtitle_from_srt(tmp[0], is_file=False)
-        else:
-            try:
-                ## transcript='src字符串----..----[{'start': 2.34, 'end': 3.04, 'word': ' there'},...]'
-                words_list = json.loads(tmp[-1].strip())
-                raws = self.re_segment_sentences(words_list)
-            except:
-                config.logger.info(f'重新断句失败')
-                raws = tools.get_subtitle_from_srt(tmp[0], is_file=False)
-
+        raws = tools.get_subtitle_from_srt(tmp[0], is_file=False)
         return raws

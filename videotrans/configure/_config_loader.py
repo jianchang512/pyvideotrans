@@ -187,7 +187,7 @@ def parse_init(update_data=None):
         Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
     default = {
         "ai302_models": "gpt-4o-mini,gpt-4o,qwen-max,glm-4,yi-large,deepseek-chat,doubao-pro-128k,gemini-2.0-flash",
-        'qwenmt_model':"qwen-mt-turbo,qwen-mt-plus",
+        'qwenmt_model':"qwen-mt-turbo,qwen-mt-plus,qwen3-asr-flash,qwen-plus,qwen-turbo,qwen-plus-latest,qwen-turbo-latest",
         "homedir": _defaulthomedir,
         "lang": "",
         "Faster_Whisper_XXL": "",
@@ -212,11 +212,12 @@ def parse_init(update_data=None):
         "remove_silence": False,
         "vad": True,
         "threshold": 0.45,
-        "min_speech_duration_ms": 250,
+        "min_speech_duration_ms": 1000,
         "max_speech_duration_s": 8,
-        "min_silence_duration_ms": 1000,
+        "min_silence_duration_ms": 250,
         "speech_pad_ms": 400,
         "rephrase": False,
+        "rephrase_local": False,
         "voice_silence": 200,
         "interval_split": 10,
         "bgm_split_time": 300,
@@ -518,6 +519,7 @@ def getset_params(obj=None):
         "qwenmt_key":"",
         "qwenmt_domains":"",
         "qwenmt_model":"qwen-mt-turbo",
+        "qwenmt_asr_model":"qwen3-asr-flash",
 
 
         "ai302_key": "",

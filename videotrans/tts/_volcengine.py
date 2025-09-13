@@ -113,7 +113,7 @@ class VolcEngineTTS(BaseTTS):
                 }
             }
             resp = requests.post(api_url, json.dumps(request_json), headers=header,
-                                 proxies={"http": "", "https": ""})
+                                 proxies={"http": "", "https": ""},verify=False)
             resp.raise_for_status()
             resp_json = resp.json()
             if "data" in resp_json:

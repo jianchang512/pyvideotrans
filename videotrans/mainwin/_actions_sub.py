@@ -86,6 +86,13 @@ class WinActionSub:
 
         QTimer.singleShot(50, open)
 
+    def rephrase_fun(self,s,name):
+        print(f'{s=},{name=}')
+        if s and name=='llm':
+            self.main.rephrase_local.setChecked(False)
+        elif s and name=='local':
+            self.main.rephrase.setChecked(False)
+
     # 选中按钮时判断当前cuda是否可用
     def check_cuda(self, state):
         import torch

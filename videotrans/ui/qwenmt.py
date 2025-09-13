@@ -13,13 +13,13 @@ class Ui_qwenmtform(object):
         self.has_done = False
         qwenmtform.setObjectName("qwenmtform")
         qwenmtform.setWindowModality(QtCore.Qt.NonModal)
-        qwenmtform.resize(600, 600)
+        qwenmtform.resize(800, 600)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(qwenmtform.sizePolicy().hasHeightForWidth())
         qwenmtform.setSizePolicy(sizePolicy)
-        qwenmtform.setMaximumSize(QtCore.QSize(600, 600))
+        qwenmtform.setMaximumSize(QtCore.QSize(800, 600))
 
         v1 = QtWidgets.QVBoxLayout(qwenmtform)
 
@@ -30,7 +30,7 @@ class Ui_qwenmtform(object):
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
         self.label_0.setText(
-            'Qwen-MT 在此填写api key')
+            ' 在这配置阿里百炼的Qwen-MT模型或其他文本生成模型或 Qwen3-ASR 模型')
         v1.addWidget(self.label_0)
 
         self.label_2 = QtWidgets.QLabel(qwenmtform)
@@ -52,11 +52,11 @@ class Ui_qwenmtform(object):
         label_domains.setMinimumSize(QtCore.QSize(0, 35))
         label_domains.setSizeIncrement(QtCore.QSize(0, 35))
         label_domains.setObjectName("label_domains")
-        label_domains.setText("翻译风格提示词" if config.defaulelang == 'zh' else "Translation style prompt")
+        label_domains.setText("Qwen-MT翻译模型风格提示词" if config.defaulelang == 'zh' else "Translation style prompt")
         self.qwenmt_domains = QtWidgets.QLineEdit(qwenmtform)
         self.qwenmt_domains.setMinimumSize(QtCore.QSize(0, 35))
         self.qwenmt_domains.setObjectName("qwenmt_domains")
-        self.qwenmt_domains.setPlaceholderText("用一段自然语言文本(必须英文)描述您的领域，将其提供给大模型作为提示" if config.defaulelang== 'zh' else "Fill in a natural language text (must be English) describing your domain, which will be provided to the model as a prompt")
+        self.qwenmt_domains.setPlaceholderText("用一段自然语言文本(必须英文)描述您的领域，将其提供给Qwen-MT模型作为提示" if config.defaulelang== 'zh' else "Fill in a natural language text (must be English) describing your domain, which will be provided to the model as a prompt")
         h3 = QtWidgets.QHBoxLayout()
         h3.addWidget(label_domains)
         h3.addWidget(self.qwenmt_domains)
@@ -67,7 +67,7 @@ class Ui_qwenmtform(object):
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
-        self.label_selectmodel.setText("选择使用模型")
+        self.label_selectmodel.setText("字幕翻译模型(必须qwen-mt开头或其他qwen文本生成模型)")
         self.qwenmt_model = QtWidgets.QComboBox()
         self.qwenmt_model.setMinimumSize(QtCore.QSize(0, 35))
         self.qwenmt_model.setObjectName("qwenmt_model")
@@ -75,10 +75,21 @@ class Ui_qwenmtform(object):
         h_model.addWidget(self.qwenmt_model)
         v1.addLayout(h_model)
 
+        h_asr_model = QtWidgets.QHBoxLayout()
+        label_asr_selectmodel = QtWidgets.QLabel()
+        label_asr_selectmodel.setObjectName("label_asr_selectmodel")
+        label_asr_selectmodel.setText("语音识别模型(必须qwen3-asr开头)")
+        self.qwenmt_asr_model = QtWidgets.QComboBox()
+        self.qwenmt_asr_model.setMinimumSize(QtCore.QSize(0, 35))
+        self.qwenmt_asr_model.setObjectName("qwenmt_asr_model")
+        h_asr_model.addWidget(label_asr_selectmodel)
+        h_asr_model.addWidget(self.qwenmt_asr_model)
+        v1.addLayout(h_asr_model)
+
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
-            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择(只可填写qwen-mt开头或qwen3-asr开头或其他qwen文本生成模型)' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
         v1.addWidget(self.label_allmodels)
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit()
@@ -114,7 +125,7 @@ class Ui_qwenmtform(object):
         QtCore.QMetaObject.connectSlotsByName(qwenmtform)
 
     def retranslateUi(self, qwenmtform):
-        qwenmtform.setWindowTitle("Qwen MT AI")
-        self.label_2.setText("Qwen MT API Key")
+        qwenmtform.setWindowTitle("阿里百炼API/Qwen3-ASR AI" if config.defaulelang == 'zh' else "Ali-BaiLian API/Qwen3-ASR AI")
+        self.label_2.setText("API Key")
         self.set.setText('保存' if config.defaulelang == 'zh' else 'Save')
-        self.qwenmt_key.setPlaceholderText("在此填写Qwen-MT的 API Key" if config.defaulelang == 'zh' else "Fill in Qwen-MT's API Key here")
+        self.qwenmt_key.setPlaceholderText("在此填写阿里百炼的的 API Key" if config.defaulelang == 'zh' else "Fill in Qwen-MT's API Key here")

@@ -23,6 +23,7 @@ Faster_Whisper_XXL = 10
 AI_302 = 11
 ElevenLabs = 12
 PARAKEET = 13
+QWEN3ASR = 14
 
 RECOGN_NAME_LIST = [
     'faster-whisper(本地)' if config.defaulelang == 'zh' else 'Faster-whisper',
@@ -38,7 +39,8 @@ RECOGN_NAME_LIST = [
     "Faster-Whisper-XXL.exe",
     "302.AI",
     "ElevenLabs.io",
-    "Parakeet-tdt"
+    "Parakeet-tdt",
+    "阿里百炼 Qwen3-ASR" if config.defaulelang == 'zh' else "Ali Qwen3-ASR",
 ]
 
 
@@ -109,7 +111,7 @@ def move_model_toxxl(src, dest):
 def is_input_api(recogn_type: int = None, return_str=False):
     from videotrans.winform import recognapi as recognapi_win, openairecognapi as openairecognapi_win, \
         doubao as doubao_win, sttapi as sttapi_win, deepgram as deepgram_win, gemini as gemini_win, ai302, \
-        parakeet as parakeet_win
+        parakeet as parakeet_win,qwenmt as qwenmt_win
     if recogn_type == STT_API and not config.params['stt_url']:
         if return_str:
             return "Please configure the api and key information of the stt channel first."
@@ -120,6 +122,11 @@ def is_input_api(recogn_type: int = None, return_str=False):
         if return_str:
             return "Please configure the url address."
         parakeet_win.openwin()
+        return False
+    if recogn_type == QWEN3ASR and not config.params['qwenmt_key']:
+        if return_str:
+            return "Please configure the api key ."
+        qwenmt_win.openwin()
         return False
 
     if recogn_type == CUSTOM_API and not config.params['recognapi_url']:
@@ -212,6 +219,9 @@ def run(*,
     if recogn_type == OPENAI_API:
         from ._openairecognapi import OpenaiAPIRecogn
         return OpenaiAPIRecogn(**kwargs).run()
+    if recogn_type == QWEN3ASR:
+        from ._qwen3asr import Qwen3ASRRecogn
+        return Qwen3ASRRecogn(**kwargs).run()
     if recogn_type == FUNASR_CN:
         from videotrans.recognition._funasr import FunasrRecogn
         return FunasrRecogn(**kwargs).run()

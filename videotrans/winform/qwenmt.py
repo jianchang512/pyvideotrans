@@ -19,11 +19,13 @@ def openwin():
             return tools.show_error(
                 '必须填写  密钥 信息' if config.defaulelang == 'zh' else 'Please input Secret', False)
         model = winobj.qwenmt_model.currentText()
+        asr_model = winobj.qwenmt_asr_model.currentText()
 
 
         config.params["qwenmt_key"] = key
 
         config.params["qwenmt_model"] = model
+        config.params["qwenmt_asr_model"] = asr_model
         config.params["qwenmt_domains"]=winobj.qwenmt_domains.text()
 
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
@@ -35,9 +37,11 @@ def openwin():
     def save():
         qwenmt_key = winobj.qwenmt_key.text()
         model = winobj.qwenmt_model.currentText()
+        asr_model = winobj.qwenmt_asr_model.currentText()
         config.params["qwenmt_domains"]=winobj.qwenmt_domains.text()
         config.params["qwenmt_key"] = qwenmt_key
         config.params["qwenmt_model"] = model
+        config.params["qwenmt_asr_model"] = asr_model
         config.getset_params(config.params)
         winobj.close()
 
@@ -57,7 +61,8 @@ def openwin():
         allmodels_str = config.settings['qwenmt_model']
         allmodels = config.settings['qwenmt_model'].split(',')
         winobj.qwenmt_model.clear()
-        winobj.qwenmt_model.addItems(allmodels)
+        winobj.qwenmt_model.addItems([ it  for it in allmodels if not it.startswith('qwen3-asr')])
+        winobj.qwenmt_asr_model.addItems([ it  for it in allmodels if it.startswith('qwen3-asr')])
         winobj.edit_allmodels.setPlainText(allmodels_str)
 
         if config.params["qwenmt_key"]:
@@ -66,6 +71,8 @@ def openwin():
             winobj.qwenmt_domains.setText(config.params["qwenmt_domains"])
         if config.params["qwenmt_model"]:
             winobj.qwenmt_model.setCurrentText(config.params["qwenmt_model"])
+        if config.params["qwenmt_asr_model"]:
+            winobj.qwenmt_asr_model.setCurrentText(config.params["qwenmt_asr_model"])
 
 
     from videotrans.component import QwenmtForm

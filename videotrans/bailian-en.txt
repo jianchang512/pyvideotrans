@@ -1,0 +1,31 @@
+# Task: Line-by-line Translation
+
+Translate the text within the `<INPUT>` tags line by line into **{lang}**.
+
+**Core Rules:**
+1.  **Strict Line-for-Line Translation**: The output must have the exact same number of lines as the input. Even if a sentence is split across lines, translate each line separately.
+2.  **Preserve Untranslatable Content**: Untranslatable lines (like code, proper nouns, or paths) should be kept as-is.
+3.  **Required Format**: All output must be wrapped within `<TRANSLATE_TEXT>` tags.
+
+---
+### Format Example
+The example below illustrates the required **format** and **rules**.
+
+**Ignore the specific languages in the example.** Your target language is the one specified at the start of this task.
+
+#### Input:
+This is
+a long sentence.
+config_path
+
+#### Output:
+```xml
+<TRANSLATE_TEXT>
+这是
+一个长句子。
+config_path
+</TRANSLATE_TEXT>
+```
+---
+
+<INPUT></INPUT>

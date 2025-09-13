@@ -128,6 +128,9 @@ class FasterAll(BaseRecogn):
                         process.terminate()
                 except:
                     pass
+        except (KeyError,IndexError,NameError) as e:
+            config.logger.exception(f'{e}', exc_info=True)
+            self.error = f"{e}"
         except Exception as e:
             config.logger.exception(f'{e}', exc_info=True)
             self.error = f"{e}"

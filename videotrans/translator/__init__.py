@@ -44,7 +44,7 @@ TRANSLASTE_NAME_LIST = [
     "AzureGPT AI",
     "Gemini AI",
     "自定义翻译API" if config.defaulelang == 'zh' else 'Customized API',
-    "Qwen-MT",
+    "阿里百炼" if config.defaulelang == 'zh' else 'Ali-Bailian',
     "Claude AI",
     "LibreTranslate(本地)" if config.defaulelang == 'zh' else 'LibreTranslate',
     "302.AI",
@@ -744,6 +744,17 @@ def get_subtitle_code(*, show_target=None):
         return LANG_CODE[config.rev_langlist[show_target]][1]
     return 'eng'
 
+def _check_google():
+    import requests
+    try:
+        response = requests.get(f"https://translate.google.com")
+    except Exception as e:
+        config.logger.exception(f'检测google翻译失败{e}', exc_info=True)
+        return False
+    
+    return True
+    
+
 
 # 翻译,先根据翻译通道和目标语言，取出目标语言代码
 def run(*, translate_type=None,
@@ -770,10 +781,16 @@ def run(*, translate_type=None,
         "uuid": uuid,
         "is_test": is_test,
     }
-
+    
+    # 未设置代理并且检测google失败，则使用微软翻译
     if translate_type == GOOGLE_INDEX:
-        from videotrans.translator._google import Google
-        return Google(**kwargs).run()
+        if config.proxy or _check_google() is True:
+            from videotrans.translator._google import Google
+            return Google(**kwargs).run()
+        config.logger.info('==未设置代理并且检测google失败，使用微软翻译')
+        from videotrans.translator._microsoft import Microsoft
+        return Microsoft(**kwargs).run()
+        
     if translate_type == MyMemoryAPI_INDEX:
         from videotrans.translator._mymemory import MyMemory
         config.settings['trans_thread'] = min(10, int(config.settings.get('trans_thread', 5)))

@@ -317,7 +317,14 @@ class Ui_MainWindow(object):
         self.rephrase = QtWidgets.QCheckBox()
         self.rephrase.setText('LLM重新断句' if config.defaulelang == 'zh' else 'LLM Rephrase')
         self.rephrase.setToolTip(
-            '当选择faster/openai-whisper/Deepgram渠道时将使用大模型重新断句，若失败将使用原始分段' if config.defaulelang == 'zh' else 'Valid when selecting the fast/openai-whisper/Deep program')
+            '当选择faster/openai-whisper渠道时将使用大模型重新断句，若失败将使用原始分段' if config.defaulelang == 'zh' else 'When selecting the faster/openai-whisper channel, the large model will be used to re-segment the sentence. If it fails, the original segmentation will be used.')
+        
+        self.rephrase_local = QtWidgets.QCheckBox()
+        self.rephrase_local.setText('本地重新断句' if config.defaulelang == 'zh' else 'Rephrase Local')
+        self.rephrase_local.setToolTip(
+            '当选择faster/openai-whisper渠道时将本地基于算法重新断句，若结果中无标点，效果不佳' if config.defaulelang == 'zh' else 'When selecting the faster/openai-whisper channel, the local algorithm will be used to re-segment the sentence')
+        
+        
         self.remove_noise = QtWidgets.QCheckBox()
         self.remove_noise.setText('降噪' if config.defaulelang == 'zh' else 'Noise reduction')
         self.remove_noise.setToolTip(
@@ -332,6 +339,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.split_type)
         self.horizontalLayout_4.addLayout(self.equal_split_layout)
         self.horizontalLayout_4.addWidget(self.rephrase)
+        self.horizontalLayout_4.addWidget(self.rephrase_local)
         self.horizontalLayout_4.addWidget(self.remove_noise)
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
@@ -366,36 +374,35 @@ class Ui_MainWindow(object):
         self.min_speech_duration_ms.setPlaceholderText('200ms')
         self.min_speech_duration_ms.setMaximumWidth(80)
         self.min_speech_duration_ms.setVisible(False)
-        self.min_speech_duration_ms.setText(str(config.settings.get('min_speech_duration_ms', 250)))
+        self.min_speech_duration_ms.setText(str(config.settings.get('min_speech_duration_ms', 1000)))
         self.min_speech_duration_ms.setToolTip(
-            '最小语音持续时间，单位：毫秒。\n如果检测到的语音片段长度小于这个值，则该语音片段会被丢弃。目的是去除一些短暂的非语音声音或噪音。\n默认值为 250 毫秒，适合大多数场景。你可以根据需要调整，如果语音片段过短容易被误判为噪音，可以增加该值，\n例如设置为 500 毫秒' if config.defaulelang == 'zh' else 'Minimum speech duration (ms)')
+            '最小语音持续时间，单位：毫秒。默认值为 1000 毫秒' if config.defaulelang == 'zh' else 'Minimum speech duration (ms)')
         self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
         self.hfaster_layout.addWidget(self.min_speech_duration_ms)
 
         self.min_silence_duration_ms_label = QtWidgets.QLabel()
         self.min_silence_duration_ms_label.setText(
-            'min_silence_duration_ms' if config.defaulelang != 'zh' else '最小静音持续毫秒')
+            'min_silence_duration_ms' if config.defaulelang != 'zh' else '最小静音区间ms')
         self.min_silence_duration_ms_label.setVisible(False)
         self.min_silence_duration_ms = QtWidgets.QLineEdit()
-        self.min_silence_duration_ms.setPlaceholderText('200ms')
+        self.min_silence_duration_ms.setPlaceholderText('250ms')
         self.min_silence_duration_ms.setMaximumWidth(80)
         self.min_silence_duration_ms.setVisible(False)
-        self.min_silence_duration_ms.setText(str(config.settings.get('min_silence_duration_ms', 2000)))
+        self.min_silence_duration_ms.setText(str(config.settings.get('min_silence_duration_ms', 250)))
         self.min_silence_duration_ms.setToolTip(
-            '最小静音持续时间，单位：毫秒。\n当检测到语音结束后，会等待的静音时间。如果静音持续时间超过该值，才会分割语音片段。默认值是 2000 毫秒（2 秒）。\n如果你希望更快速地检测和分割语音片段，可以减小这个值，比如设置为 500 毫秒；\n如果希望更宽松地分割，可以将其增大' if config.defaulelang == 'zh' else 'Minimum silence duration (ms)')
+            '最小静音持续时间，单位：毫秒。\n当检测到语音结束后，会等待的静音时间。如果静音持续时间超过该值，才会分割语音片段。默认值是 250 毫秒' if config.defaulelang == 'zh' else 'Minimum silence duration (ms)')
         self.hfaster_layout.addWidget(self.min_silence_duration_ms_label)
         self.hfaster_layout.addWidget(self.min_silence_duration_ms)
 
         self.max_speech_duration_s_label = QtWidgets.QLabel()
-        self.max_speech_duration_s_label.setText('max_speech_duration_s' if config.defaulelang != 'zh' else '最大语音持续时长')
+        self.max_speech_duration_s_label.setText('max_speech_duration_s' if config.defaulelang != 'zh' else '最大语音持续时长/s')
         self.max_speech_duration_s_label.setVisible(False)
         self.max_speech_duration_s = QtWidgets.QLineEdit()
-        self.max_speech_duration_s.setPlaceholderText('200ms')
         self.max_speech_duration_s.setMaximumWidth(80)
         self.max_speech_duration_s.setVisible(False)
-        self.max_speech_duration_s.setText(str(config.settings.get('max_speech_duration_s', 2000)))
+        self.max_speech_duration_s.setText(str(config.settings.get('max_speech_duration_s', 8)))
         self.max_speech_duration_s.setToolTip(
-            '最大语音持续时间，单位：秒。\n单个语音片段的最大长度。如果语音片段超过这个时长，则会尝试在 100 毫秒以上的静音处进行分割。\n如果没有找到静音位置，则会在该时长前强行分割，避免过长的连续片段。默认是无穷大（不限制），\n如果需要处理较长的语音片段，可以保留默认值；\n但如果你希望控制片段长度，比如处理对话或分段输出，\n可以根据具体需求设定，比如 10 秒或 30 秒。 0表示无穷大' if config.defaulelang == 'zh' else 'max speech duration (s)')
+            '最大语音持续时间，单位：秒。\n单个语音片段的最大长度。如果语音片段超过这个时长，则会尝试强制断句' if config.defaulelang == 'zh' else 'max speech duration (s)')
         self.hfaster_layout.addWidget(self.max_speech_duration_s_label)
         self.hfaster_layout.addWidget(self.max_speech_duration_s)
 

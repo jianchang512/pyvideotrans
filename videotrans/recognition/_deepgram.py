@@ -81,21 +81,7 @@ class DeepgramRecogn(BaseRecogn):
         res = deepgram.listen.rest.v("1").transcribe_file(payload, options, timeout=600)
 
         raws = []
-        rephrase_ok = True
-        if not diarize and config.settings.get('rephrase'):
-            try:
-                words = []
-                for seg in res['results']['utterances']:
-                    for it in seg['words']:
-                        words.append({
-                            "start": it['start'],
-                            "end": it['end'],
-                            "word": it['word']
-                        })
-                self._signal(text="正在重新断句..." if config.defaulelang == 'zh' else "Re-segmenting...")
-                raws = self.re_segment_sentences(words, self.detect_language[:2])
-            except:
-                rephrase_ok = False
+        
         if diarize:
             for it in res['results']['utterances']:
                 tmp = {
@@ -109,7 +95,7 @@ class DeepgramRecogn(BaseRecogn):
                 tmp['time'] = tools.ms_to_time_string(ms=tmp['start_time']) + ' --> ' + tools.ms_to_time_string(
                     ms=tmp['end_time'])
                 raws.append(tmp)
-        elif not config.settings.get('rephrase') or not rephrase_ok:
+        else:
             transcription = DeepgramConverter(res)
             srt_str = srt(transcription,
                           line_length=config.settings.get('cjk_len') if self.detect_language[:2] in ['zh', 'ja','ko'] else config.settings.get('other_len'))

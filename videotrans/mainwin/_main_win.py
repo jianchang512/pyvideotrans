@@ -135,7 +135,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionzhipuai_key.setText("智谱AI" if config.defaulelang == 'zh' else 'Zhipu AI')
         self.actionsiliconflow_key.setText('硅基流动' if config.defaulelang == 'zh' else "Siliconflow")
         self.actiondeepseek_key.setText('DeepSeek')
-        self.actionqwenmt_key.setText('Qwen-MT')
+        self.actionqwenmt_key.setText('阿里百炼/Qwen3-ASR')
         self.actionopenrouter_key.setText('OpenRouter.ai')
         self.actionclaude_key.setText("Claude API")
         self.actionlibretranslate_key.setText("LibreTranslate API")
@@ -437,7 +437,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.enable_cuda.setChecked(True if config.params['cuda'] else False)
         self.only_video.setChecked(True if config.params['only_video'] else False)
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
-        self.rephrase.setChecked(config.settings.get('rephrase'))
+        
+        local_rephrase=config.settings.get('rephrase_local',False)
+        self.rephrase_local.setChecked(local_rephrase)
+        self.rephrase.setChecked(config.settings.get('rephrase',False) if not local_rephrase else False)
         self.remove_noise.setChecked(config.params.get('remove_noise'))
         self.copysrt_rawvideo.setChecked(config.params.get('copysrt_rawvideo', False))
 
@@ -450,6 +453,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_role.currentTextChanged.connect(self.win_action.show_listen_btn)
         self.target_language.currentTextChanged.connect(self.win_action.set_voice_role)
         self.source_language.currentTextChanged.connect(self.win_action.source_language_change)
+        
+        
+        self.rephrase.toggled.connect(lambda  checked:self.win_action.rephrase_fun(checked,'llm'))
+        self.rephrase_local.toggled.connect(lambda checked:self.win_action.rephrase_fun(checked,'local'))
 
         self.proxy.textChanged.connect(self.win_action.change_proxy)
         self.import_sub.clicked.connect(self.win_action.import_sub_fun)

@@ -162,11 +162,15 @@ class F5TTS(BaseTTS):
         if not Path(data['ref_wav']).exists():
             self.error = f'{role} 角色不存在'
             return
-
-        client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
-
+        config.logger.info(f'index-tts {data=}')
+        try:
+            client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
+        except Exception as e:
+            print(f'{self.api_url=},{e=}')
+        
         result = client.predict(
             prompt=handle_file(data['ref_wav']),
+            emo_ref_path=handle_file(data['ref_wav']),
             text=text,
             api_name='/gen_single'
         )

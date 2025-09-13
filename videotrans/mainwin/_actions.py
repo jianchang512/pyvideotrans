@@ -217,15 +217,16 @@ class WinAction(WinActionSub):
             tools.hide_show_element(self.main.equal_split_layout,
                                     False if self.main.split_type.currentIndex() == 0 else True)
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,
-                               recognition.Deepgram, recognition.FUNASR_CN, recognition.PARAKEET]:
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL                              ]:
             # 禁止模块选择
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)
             self.main.rephrase.setDisabled(True)
+            self.main.rephrase_local.setDisabled(True)
         else:
             # 允许模块选择
             self.main.rephrase.setDisabled(False)
+            self.main.rephrase_local.setDisabled(False)
             self.main.model_name_help.setDisabled(False)
             self.main.model_name.setDisabled(False)
             self.main.model_name.clear()
@@ -737,6 +738,7 @@ class WinAction(WinActionSub):
             config.settings["max_speech_duration_s"] = int(self.main.max_speech_duration_s.text())
 
         config.settings['rephrase'] = self.main.rephrase.isChecked()
+        config.settings['rephrase_local'] = self.main.rephrase_local.isChecked()
         config.settings['cjk_len'] = self.main.cjklinenums.value()
         config.settings['other_len'] = self.main.othlinenums.value()
         config.parse_init(config.settings)
@@ -901,8 +903,12 @@ class WinAction(WinActionSub):
             self.disabled_widget(True)
             self.main.startbtn.setText(config.transobj["starting..."])
             return
-        with open(config.TEMP_DIR + '/stop_porcess.txt', 'w', encoding='utf-8') as f:
-            f.write('stop')
+        try:
+            Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
+            with open(config.TEMP_DIR + '/stop_porcess.txt', 'w', encoding='utf-8') as f:
+                f.write('stop')
+        except:
+            pass
         # stop 停止，end=结束
         self.main.subtitle_area.clear()
         self.main.startbtn.setText(config.transobj[type])

@@ -136,8 +136,11 @@ class Ui_recogn(object):
 
         self.rephrase = QtWidgets.QCheckBox()
         self.rephrase.setText('LLM重新断句' if config.defaulelang == 'zh' else 'LLM Rephrase')
-        self.rephrase.setToolTip(
-            '选择faster/openai-whisper/Deepgram/parakeet渠道时将使用大模型重新断句，若失败将使用原始分段\n使用OpenAI渠道作为断句AI\n确保模型支持json结构化输出' if config.defaulelang == 'zh' else 'Valid when selecting the fast/openai-whisper/Deepprogram/parakeet\nOpenAI for LLM re-segment')
+        self.rephrase.setToolTip('选择faster/openai-whisper渠道时将使用大模型重新断句，若失败将使用原始分段' if config.defaulelang == 'zh' else 'When selecting the faster/openai-whisper channel, the large model will be used to re-segment the sentence. If it fails, the original segmentation will be used.')
+        
+        self.rephrase_local = QtWidgets.QCheckBox()
+        self.rephrase_local.setText('本地重新断句' if config.defaulelang == 'zh' else 'Rephrase Local')
+        self.rephrase_local.setToolTip('选择faster/openai-whisper渠道时将本地基于算法重新断句，若结果中无标点，效果不佳' if config.defaulelang == 'zh' else 'When selecting the faster/openai-whisper channel, the local algorithm will be used to re-segment the sentence')
 
         self.remove_noise = QtWidgets.QCheckBox()
         self.remove_noise.setText('降噪' if config.defaulelang == 'zh' else 'Noise reduction')
@@ -157,6 +160,7 @@ class Ui_recogn(object):
         h4.addWidget(self.shibie_stop)
         h4.addWidget(self.is_cuda)
         h4.addWidget(self.rephrase)
+        h4.addWidget(self.rephrase_local)
         h4.addWidget(self.remove_noise)
         h4.addWidget(self.copysrt_rawvideo)
 

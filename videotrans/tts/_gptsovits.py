@@ -88,17 +88,18 @@ class GPTSoVITS(BaseTTS):
             # 克隆声音
             response = requests.get(f"{self.api_url}", params=data, proxies={"http": "", "https": ""}, timeout=3600)
 
-            response.raise_for_status()
-            # 获取响应头中的Content-Type
             content_type = response.headers.get('Content-Type')
-
             if 'application/json' in content_type:
                 # 如果是JSON数据，使用json()方法解析
                 data = response.json()
                 config.logger.info(f'GPT-SoVITS return:{data=}')
                 self.error = f"GPT-SoVITS返回错误信息-1:{data}"
                 time.sleep(RETRY_DELAY)
-                raise RuntimeError(self.error)
+                raise StopRetry(self.error)
+            
+            response.raise_for_status()
+            # 获取响应头中的Content-Type
+            
 
             if 'audio/wav' in content_type or 'audio/x-wav' in content_type:
                 # 如果是WAV音频流，获取原始音频数据

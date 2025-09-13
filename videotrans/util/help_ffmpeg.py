@@ -369,7 +369,7 @@ def get_video_codec(force_test: bool = False) -> str:
         _codec_cache[cache_key] = default_codec
         return default_codec
 
-    def test_encoder_internal(encoder_to_test: str, timeout: int = 20) -> bool:
+    def test_encoder_internal(encoder_to_test: str, timeout: int = 10) -> bool:
         timestamp = int(time.time() * 1000)
         output_file = temp_dir / f"test_{encoder_to_test}_{timestamp}.mp4"
         command = [

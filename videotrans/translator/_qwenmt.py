@@ -32,41 +32,69 @@ class QwenMT(BaseTrans):
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
-        messages = [
-            {
-                "role": "user",
-                "content":text
-            }
-        ]
-        try:
-            target_language=translator.LANG_CODE.get(self.target_code)[9]
-        except:
-            # 根据zh和非zh分别显示中文和英文
-            raise StopRetry( f"获取目标语言名字失败，请检查:{self.target_code=}" if config.defaulelang=='zh' else f'Failed to obtain the target language name, please check:{self.target_code=}')
-        translation_options = {
-            "source_lang": "auto",
-            "target_lang": target_language
-        }
-        # 术语表
-        term=tools.qwenmt_glossary()
-        if term:
-            translation_options['terms']=term
-        if config.params.get("qwenmt_domains"):
-            translation_options['domains']=config.params.get("qwenmt_domains")
-        print(translation_options)
+        model_name=config.params.get('qwenmt_model', 'qwen-mt-turbo')
+        if model_name.startswith('qwen-mt'):
 
+            messages = [
+                {
+                    "role": "user",
+                    "content":text
+                }
+            ]
+            try:
+                target_language=translator.LANG_CODE.get(self.target_code)[9]
+            except:
+                # 根据zh和非zh分别显示中文和英文
+                raise StopRetry( f"获取目标语言名字失败，请检查:{self.target_code=}" if config.defaulelang=='zh' else f'Failed to obtain the target language name, please check:{self.target_code=}')
+            translation_options = {
+                "source_lang": "auto",
+                "target_lang": target_language
+            }
+            # 术语表
+            term=tools.qwenmt_glossary()
+            if term:
+                translation_options['terms']=term
+            if config.params.get("qwenmt_domains"):
+                translation_options['domains']=config.params.get("qwenmt_domains")
+            print(translation_options)
+
+            response = dashscope.Generation.call(
+                # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
+                api_key=config.params.get('qwenmt_key',''),
+                model=model_name,
+                messages=messages,
+                result_format='message',
+                translation_options=translation_options
+            )
+            if response.code or not response.output:
+                raise StopRetry(response.message)
+            return self.clean_srt(response.output.choices[0].message.content)
+
+        target_language=translator.LANG_CODE.get(self.target_code)[8]
+        self.prompt = tools.get_prompt(ainame='bailian', is_srt=self.is_srt).replace('{lang}', target_language)
+        message = [
+            {
+                'role': 'system',
+                'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
+            {
+                'role': 'user',
+                'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
+        ]
         response = dashscope.Generation.call(
-            # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
+            # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx",
             api_key=config.params.get('qwenmt_key',''),
-            model=config.params.get('qwenmt_model', 'qwen-mt-turbo'),
-            messages=messages,
-            result_format='message',
-            translation_options=translation_options
+            model=model_name,
+            # 此处以qwen-plus为例，可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+            messages=message,
+            result_format='message'
         )
 
         if response.code or not response.output:
             raise StopRetry(response.message)
-        return self.clean_srt(response.output.choices[0].message.content)
+        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', response.output.choices[0].message.content, re.S)
+        if match:
+            return match.group(1)
+        return ''
 
 
 
