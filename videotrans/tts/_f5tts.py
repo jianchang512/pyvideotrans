@@ -168,8 +168,10 @@ class F5TTS(BaseTTS):
         result = client.predict(
             prompt=handle_file(data['ref_wav']),
             text=text,
+            emo_ref_path=handle_file(data['ref_wav']),
             api_name='/gen_single'
         )
+        
 
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result

@@ -20,6 +20,7 @@ GOOGLECLOUD_TTS = 15
 GEMINI_TTS = 16
 CHATTERBOX_TTS = 17
 QWEN_TTS = 18
+INDEXTTS2_TTS = 19 # <--- 添加这一行
 
 TTS_NAME_LIST = [
     "Edge-TTS(免费)" if config.defaulelang == 'zh' else 'Edge-TTS',
@@ -40,7 +41,8 @@ TTS_NAME_LIST = [
     "Google Cloud TTS",
     "Gemini TTS",
     "ChatterBox" if config.defaulelang == 'zh' else 'ChatterBox',
-    "Qwen TTS"
+    "Qwen TTS",
+    "Index-TTS2(本地)" if config.defaulelang == 'zh' else 'Index-TTS2' # <--- 添加这一行
 ]
 
 AI302_openai = {"alloy": "alloy", "ash": "ash", "ballad": "ballad", "coral": "coral", "echo": "echo", "fable": "fable",
@@ -286,6 +288,14 @@ def is_input_api(tts_type: int = None, return_str=False):
         from videotrans.winform import googlecloud as googlecloud_win
         googlecloud_win.openwin()
         return False
+    # VVVVVV 在这里添加 VVVVVV
+    if tts_type == INDEXTTS2_TTS and not config.params.get('indextts2_url'):
+        if return_str:
+            return "Please configure the URL for the Index-TTS2 channel first."
+        from videotrans.winform import indextts2 as indextts2_win
+        indextts2_win.openwin()
+        return False
+    # ^^^^^^ 在这里添加 ^^^^^^
     return True
 
 
@@ -361,3 +371,8 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_t
     elif tts_type == GEMINI_TTS:
         from videotrans.tts._geminitts import GEMINITTS
         GEMINITTS(**kwargs).run()
+    # VVVVVV 在这里添加 VVVVVV
+    elif tts_type == INDEXTTS2_TTS:
+        from videotrans.tts._indextts2 import IndexTTS2
+        IndexTTS2(**kwargs).run()
+    # ^^^^^^ 在这里添加 ^^^^^^

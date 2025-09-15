@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QSizePolicy
 
 from videotrans import VERSION, recognition, tts
@@ -169,6 +169,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
         self.actiontts_fishtts.setText("Fish TTS")
         self.actiontts_f5tts.setText("F5/index/SparK/Dia TTS")
+        
+
         self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang == 'zh' else 'VolcEngine TTS')
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")
@@ -300,6 +302,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif config.params['tts_type'] == tts.COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['clone'])
+        # VVVVVV 在这里添加 VVVVVV
+        elif config.params['tts_type'] == tts.INDEXTTS2_TTS:
+            # 让 Index-TTS2 加载它专属的角色列表
+            from videotrans.util import help_role # 导入模块
+            rolelist = help_role.get_indextts2_role() # 调用新函数
+            # 添加 'clone' 选项，并加上从配置文件读取的角色列表
+            self.voice_role.addItems(['clone'] + list(rolelist.keys()) if rolelist else ['clone'])
+        # ^^^^^^ 在这里添加 ^^^^^^
         elif config.params['tts_type'] == tts.F5_TTS:
             rolelist = tools.get_f5tts_role()
             self.voice_role.addItems(['clone'] + list(rolelist.keys()) if rolelist else ['clone'])
@@ -475,7 +485,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         print(f"\n####缓存读取结束:{time.time()}")
 
     def _start_subform(self):
-
+        from videotrans import winform
         self.import_sub.setCursor(Qt.PointingHandCursor)
         self.model_name_help.setCursor(Qt.PointingHandCursor)
         self.stop_djs.setCursor(Qt.PointingHandCursor)
@@ -527,6 +537,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionopenairecognapi_key.triggered.connect(lambda: winform.get_win('openairecognapi').openwin())
         self.actiontts_fishtts.triggered.connect(lambda: winform.get_win('fishtts').openwin())
         self.actiontts_f5tts.triggered.connect(lambda: winform.get_win('f5tts').openwin())
+        
+        # --- 为 Index-TTS2 添加专属配置入口 ---
+        self.actiontts_indextts2 = QAction(self)
+        self.actiontts_indextts2.setText("Index-TTS2")
+        self.menu_TTS.addAction(self.actiontts_indextts2)
+        # 现在这行代码可以正确找到 'winform'
+        self.actiontts_indextts2.triggered.connect(lambda: winform.get_win('indextts2').openwin())
+        # --- 添加结束 ---
+        
         self.actiontts_volcengine.triggered.connect(lambda: winform.get_win('volcenginetts').openwin())
         self.actionzhipuai_key.triggered.connect(lambda: winform.get_win('zhipuai').openwin())
         self.actiondeepseek_key.triggered.connect(lambda: winform.get_win('deepseek').openwin())

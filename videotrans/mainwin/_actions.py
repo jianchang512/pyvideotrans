@@ -407,6 +407,14 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = ['clone'] + list(rolelist.keys()) if rolelist else ['clone']
             self.main.voice_role.addItems(self.main.current_rolelist)
+        # VVVVVV 在这里添加下面的代码块 VVVVVV
+        elif type == tts.INDEXTTS2_TTS:
+            # 这是为 Index-TTS2 在运行时切换时加载角色列表的逻辑
+            rolelist = tools.get_indextts2_role()
+            self.main.voice_role.clear()
+            self.main.current_rolelist = ['clone'] + list(rolelist.keys()) if rolelist else ['clone']
+            self.main.voice_role.addItems(self.main.current_rolelist)
+        # ^^^^^^ 在这里添加上面的代码块 ^^^^^^
 
     # 目标语言改变时设置配音角色
     # t 语言显示文字

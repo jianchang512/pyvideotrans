@@ -64,6 +64,7 @@ from videotrans.ui.volcenginetts import Ui_volcengineform
 from videotrans.ui.watermark import Ui_watermark
 from videotrans.ui.zhipuai import Ui_zhipuaiform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
+from videotrans.ui.indextts2 import Ui_indextts2form
 
 
 # ==================== 字幕行自定义控件 ====================
@@ -620,4 +621,11 @@ class SubtitleEditer(Ui_subtitleEditor):  # <===
     def __init__(self):
         super(SubtitleEditer, self).__init__()
         # self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+
+class IndexTTS2Form(QDialog, Ui_indextts2form):
+    def __init__(self, parent=None):
+        super(IndexTTS2Form, self).__init__(parent)
+        self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))

@@ -488,3 +488,18 @@ def set_process(*, text="", type="logs", uuid=None, nologs=False):
             config.global_msg.append(log)
     except:
         pass
+    
+# VVVVVV 在文件末尾添加以下函数 VVVVVV
+def get_indextts2_role():
+    from videotrans.configure import config
+    try:
+        # 从配置中读取 Index-TTS2 的角色列表字符串
+        txt = config.params.get('indextts2_rolelist', '')
+        if not txt:
+            return {}
+        # 解析字符串 "filename.wav#text" 为字典格式
+        return {it.split('#')[0].strip(): {"ref_text": it.split('#')[1].strip()} for it in txt.split("\n") if
+                it.strip() and len(it.split('#')) == 2 and it.split('#')[0].strip()}
+    except Exception as e:
+        config.logger.error(f"get_indextts2_role error: {e}")
+        return {}
