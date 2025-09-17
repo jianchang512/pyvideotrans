@@ -9,7 +9,7 @@ __all__ = [
     "AI302Form", "SetINIForm", "WatermarkForm", "GetaudioForm", "HunliuForm",
     "VASForm", "Fanyisrt", "Recognform", "Peiyinform", "Videoandaudioform",
     "Videoandsrtform", "OpenAITTSForm", "RecognAPIForm", "OpenaiRecognAPIForm",
-    "FormatcoverForm", "SubtitlescoverForm", "SubtitleEditer",
+    "FormatcoverForm", "SubtitlescoverForm",
     "SttAPIForm", "VolcEngineTTSForm", "F5TTSForm", "DeepgramForm", "ClaudeForm",
     "LibreForm", "AliForm", "ZhipuAIForm", "KokoroForm", "ParakeetForm",
     "ChatterboxForm", "SiliconflowForm", "DeepseekForm", "OpenrouterForm",

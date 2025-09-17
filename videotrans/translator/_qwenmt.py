@@ -56,7 +56,7 @@ class QwenMT(BaseTrans):
                 translation_options['terms']=term
             if config.params.get("qwenmt_domains"):
                 translation_options['domains']=config.params.get("qwenmt_domains")
-            print(translation_options)
+
 
             response = dashscope.Generation.call(
                 # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
@@ -128,7 +128,7 @@ class QwenMT(BaseTrans):
             if len(remove_list) > 0 and str(it) == str(remove_list[-1]):
                 if re.match(r'^\d{1,4}$', it):
                     continue
-                if re.match(r'\d+:\d+:\d+([,.]\d+)? --> \d+:\d+:\d+([,.]\d+)?'):
+                if re.match(r'\d+:\d+:\d+([,.]\d+)? --> \d+:\d+:\d+([,.]\d+)?',it):
                     continue
             remove_list.append(it)
 

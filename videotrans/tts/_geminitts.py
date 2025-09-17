@@ -8,7 +8,8 @@ from dataclasses import dataclass
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -50,25 +51,26 @@ class GEMINITTS(BaseTTS):
                 self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
-                self.error = ''
                 self.has_done += 1
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-                return
+
             except APIError as e:
                 config.logger.exception(e, exc_info=True)
                 if e.code in [429, 500]:
                     self._signal(text=f"{data_item.get('line', '')}  {e.message}")
                     time.sleep(30)
                 else:
-                    self.error = str(e.message)
-                    return
+                    raise
             except Exception as e:
                 config.logger.exception(e, exc_info=True)
-                self.error = str(e)
-                self._signal(text=f"{data_item.get('line', '')} " + self.error)
-                time.sleep(30)
+                raise
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e
 
     def generate_tts_segment(self, text, voice, model, file_name):
         def convert_to_wav(audio_data: bytes, mime_type: str) -> bytes:
@@ -149,7 +151,6 @@ class GEMINITTS(BaseTTS):
             f = open(file_name, "wb")
             f.write(data)
             f.close()
-            print(f"File saved to to: {file_name}")
 
         client = genai.Client(
             api_key=config.params.get('gemini_key', ''),

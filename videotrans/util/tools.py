@@ -25,7 +25,6 @@ def _build_function_map_from_imports():
     if _function_map is not None:
         return
 
-    print("[诊断] 首次调用 tools 中的函数，开始从预定义列表构建函数映射表...")
     _function_map = {}
 
     for module_name in _helper_module_names:
@@ -42,8 +41,6 @@ def _build_function_map_from_imports():
                     _function_map[name] = module_name
         except ImportError as e:
             print(f"Warning: Could not import and inspect module '{module_name}'. Reason: {e}")
-
-    print("[诊断] 函数映射表构建完毕。")
 
 
 # --- 步骤 2 & 3: __getattr__ 和 __dir__ 保持不变，但调用新的构建函数 ---

@@ -196,8 +196,16 @@ def openwin():
                         os.path.normpath(self.video)
                     ]
                     if not self.is_soft or not self.language:
+                        sublist=tools.get_subtitle_from_srt(self.srt,is_file=True)
+                        srt_string=''
+                        for i, it in enumerate(sublist):
+                            tmp = tools.textwrap(it['text'].strip(), self.maxlen)
+                            srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
+                        tmpsrt=config.TEMP_HOME + f"/vas-{time.time()}.srt"
+                        with Path(tmpsrt).open('w', encoding='utf-8') as f:
+                            f.write(srt_string)
                         assfile = config.TEMP_HOME + f"/vasrt{time.time()}.ass"
-                        save_ass(self.srt, assfile)
+                        save_ass(tmpsrt, assfile)
                         os.chdir(config.TEMP_HOME)
                         cmd += [
                             '-c:v',

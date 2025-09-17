@@ -28,7 +28,6 @@ class AI302Recogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
         apikey = config.params.get('ai302_key')
-        print(f'=========={self.audio_file=}')
         # 转为 mp3
         tmpfile = self.cache_folder + f'/ai302tmp-{time.time()}.mp3'
         tools.runffmpeg(['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', tmpfile])
@@ -46,7 +45,7 @@ class AI302Recogn(BaseRecogn):
         response = requests.post(url,
                                  files={"file": open(tmpfile, 'rb')},
                                  data={
-                                     "model": 'whisper-3',
+                                     "model": 'whisper-1',
                                      'response_format': 'verbose_json',
                                      'prompt': prompt,
                                      'language': langcode},

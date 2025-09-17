@@ -173,7 +173,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang == 'zh' else 'VolcEngine TTS')
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("Discord")
-        self.action_blog.setText("bbs" if config.defaulelang == 'zh' else 'BBS')
+        self.action_blog.setText('BBS')
         self.action_models.setText(config.uilanglist["Download Models"])
         self.action_gtrans.setText(
             '下载硬字幕提取软件' if config.defaulelang == 'zh' else 'Download Hard Subtitle Extraction Software')
@@ -203,9 +203,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_yingyinhebing.setText(config.uilanglist.get("Video Subtitles Merging"))
         self.action_yingyinhebing.setToolTip(config.uilanglist.get("Merge audio, video, and subtitles into one file"))
 
-        self.action_subtitleediter.setText('字幕编辑与翻译' if config.defaulelang == 'zh' else 'Subtitle Editing & Translate')
-        self.action_subtitleediter.setToolTip(
-            '导入字幕修改与翻译' if config.defaulelang == 'zh' else 'Importing subtitles and exporting them after modifying them or translation')
 
         self.action_hun.setText(config.uilanglist.get("Mixing 2 Audio Streams"))
         self.action_hun.setToolTip(config.uilanglist.get("Mix two audio files into one audio file"))
@@ -377,8 +374,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         uuid_signal.start()
         start_thread(self)
 
-        print(f"\n####信号绑定结束:{time.time()}")
-
     def _set_cache_set(self):
 
         if platform.system() == 'Darwin':
@@ -480,8 +475,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pvt9.com/align'))
         self.glossary.clicked.connect(lambda: tools.show_glossary_editor(self))
 
-        print(f"\n####缓存读取结束:{time.time()}")
-
     def _start_subform(self):
 
         self.import_sub.setCursor(Qt.PointingHandCursor)
@@ -552,7 +545,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_yinshipinfenli.triggered.connect(lambda: winform.get_win('fn_audiofromvideo').openwin())
         self.action_hun.triggered.connect(lambda: winform.get_win('fn_hunliu').openwin())
         self.action_yingyinhebing.triggered.connect(lambda: winform.get_win('fn_vas').openwin())
-        self.action_subtitleediter.triggered.connect(lambda: winform.get_win('fn_editer').openwin())
         self.action_fanyi.triggered.connect(lambda: winform.get_win('fn_fanyisrt').openwin())
         self.action_yuyinshibie.triggered.connect(lambda: winform.get_win('fn_recogn').openwin())
         self.action_yuyinhecheng.triggered.connect(lambda: winform.get_win('fn_peiyin').openwin())
@@ -574,7 +566,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
         Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
 
-        print(f"\n####启动窗口结束:{time.time()}")
 
     def is_writable(self):
         import uuid
@@ -647,7 +638,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config.INFO_WIN['win'].close()
         except Exception:
             pass
-        print('等待所有进程退出...')
+        print('Wait process exit...')
         time.sleep(3)
         try:
             self.kill_ffmpeg_processes()

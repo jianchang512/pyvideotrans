@@ -338,7 +338,6 @@ class Ui_subtitleEditor(QWidget):
             return
 
         it = tools.format_video(source_file, None)
-        print(f'{it=}')
 
         self.target_file = f'{RESULT_DIR}/{it["noextname"]}.srt'
 
@@ -356,7 +355,6 @@ class Ui_subtitleEditor(QWidget):
             "source_code": source_code,
             "target_code": target_code
         }, it)
-        print(f'{trk.cfg=}')
         th = SignThread(uuid=it['uuid'], parent=self)
         th.uito.connect(self.feed)
         th.start()

@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Set
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -55,8 +56,8 @@ class CloneVoice(BaseTTS):
                 files = None
             else:
                 if not Path(data_item['ref_wav']).exists():
-                    self.error = f'不存在参考音频，无法使用clone功能' if config.defaulelang == 'zh' else 'No reference audio exists and cannot use clone function'
-                    raise RuntimeError(self.error)
+                    msg = f'不存在参考音频，无法使用clone功能' if config.defaulelang == 'zh' else 'No reference audio exists and cannot use clone function'
+                    raise RuntimeError(msg)
                 with open(data_item['ref_wav'], 'rb') as f:
                     chunk = f.read()
                 files = {"audio": chunk}
@@ -68,15 +69,13 @@ class CloneVoice(BaseTTS):
             if "code" not in res or res['code'] != 0:
                 if "msg" in res and res['msg'].find("non-empty") > 0:
                     Path(data_item['filename']).unlink(missing_ok=True)
-                self.error = f'{res}'
                 time.sleep(RETRY_DELAY)
-                raise RuntimeError(self.error)
+                raise RuntimeError(f'{res}')
 
             if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:
                 self.convert_to_wav(re.sub(r'\\{1,}', '/', res['filename']), data_item['filename'])
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
-                self.error = ''
                 self.has_done += 1
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
@@ -90,8 +89,12 @@ class CloneVoice(BaseTTS):
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
-            self.error = ''
             self.has_done += 1
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e

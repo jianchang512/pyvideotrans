@@ -2,7 +2,8 @@ import logging
 from dataclasses import dataclass
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -49,8 +50,12 @@ class KokoroTTS(BaseTTS):
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
-            self.error = ''
             self.has_done += 1
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e

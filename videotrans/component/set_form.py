@@ -53,7 +53,6 @@ from videotrans.ui.setlinerole import Ui_setlinerole
 from videotrans.ui.siliconflow import Ui_siliconflowform
 from videotrans.ui.srthebing import Ui_srthebing
 from videotrans.ui.stt import Ui_sttform
-from videotrans.ui.subtitle_editor import Ui_subtitleEditor
 from videotrans.ui.subtitlescover import Ui_subtitlescover
 from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.transapi import Ui_transapiform
@@ -142,7 +141,6 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
         self.clear_subtitle_area()
         self.hecheng_importbtn.setText("导入SRT文件..." if config.defaulelang == 'zh' else 'Import SRT file...')
         self.loglabel.setText("")
-        print("UI and data cleared.")
 
     def reset_assigned_roles(self):
         """重置所有字幕行已分配的角色"""
@@ -151,7 +149,6 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
             widget = self.subtitle_layout.itemAt(i).widget()
             if isinstance(widget, SubtitleRowWidget):
                 widget.role_label.setText("[未分配角色]")
-        print("Assigned roles have been reset.")
 
     def parse_and_display_srt(self, srt_path):
         """解析SRT文件并在UI上显示"""
@@ -195,10 +192,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
                 widget.checkbox.setChecked(False)
                 assigned_count += 1
 
-        if assigned_count > 0:
-            print(f"Assigned role '{selected_role}' to {assigned_count} lines.")
-            print(f"Current config.dubbing_role: {config.dubbing_role}")
-        else:
+        if assigned_count <1:
             QtWidgets.QMessageBox.information(self, "提示", "没有选中任何字幕行。")
 
 
@@ -621,9 +615,3 @@ class SubtitlescoverForm(QDialog, Ui_subtitlescover):  # <===
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
-
-class SubtitleEditer(Ui_subtitleEditor):  # <===
-    def __init__(self):
-        super(SubtitleEditer, self).__init__()
-        # self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))

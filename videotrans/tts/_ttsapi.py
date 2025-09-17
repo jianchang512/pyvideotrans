@@ -7,7 +7,8 @@ from typing import List, Dict
 from typing import Union
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -56,21 +57,18 @@ class TTSAPI(BaseTTS):
                 res = self._302aiMinimax(data_item['text'], role, speed, volume, pitch)
                 config.logger.info(f'返回数据 {res["base_resp"]=}')
                 if res['base_resp']['status_code'] != 0:
-                    self.error = res['base_resp']['status_msg']
                     time.sleep(RETRY_DELAY)
-                    raise RuntimeError(self.error)
+                    raise RuntimeError(res['base_resp']['status_msg'] )
             else:
                 res = self._apirequests(data_item['text'], role, speed, volume, pitch)
                 config.logger.info(f'返回数据 {res["code"]=}')
                 if "code" not in res or "msg" not in res or res['code'] != 0:
-                    self.error = f'TTS-API:{res["msg"]}'
                     time.sleep(RETRY_DELAY)
-                    raise RuntimeError(self.error)
+                    raise RuntimeError(f'TTS-API:{res["msg"]}' )
 
             if 'data' not in res or not res['data']:
-                self.error = '未返回有效音频地址' if config.defaulelang == 'zh' else 'No valid audio address returned'
                 time.sleep(RETRY_DELAY)
-                raise RuntimeError(self.error)
+                raise RuntimeError( '未返回有效音频地址' if config.defaulelang == 'zh' else 'No valid audio address returned')
             # 返回的是音频url地址
             tmp_filename = data_item['filename'] + ".mp3"
             if isinstance(res['data'], str) and res['data'].startswith('http'):
@@ -86,18 +84,21 @@ class TTSAPI(BaseTTS):
                 with open(tmp_filename, 'wb') as f:
                     f.write(bytes.fromhex(res['data']['audio']))
             else:
-                self.error = '未返回有效音频地址或音频base64数据' if config.defaulelang == 'zh' else 'No valid audio address or base64 audio data returned'
                 time.sleep(RETRY_DELAY)
-                raise RuntimeError(self.error)
+                raise RuntimeError('未返回有效音频地址或音频base64数据' if config.defaulelang == 'zh' else 'No valid audio address or base64 audio data returned' )
             self.convert_to_wav(tmp_filename, data_item['filename'])
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
-            self.error = ''
             self.has_done += 1
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e
 
     def _apirequests(self, text, role, speed=1.0, volume=1.0, pitch=0):
         data = {"text": text.strip(),
@@ -185,7 +186,7 @@ Serene Woman:Serene_Woman
                 "channel": 1
             }
         }, ensure_ascii=False)
-        print(payload)
+
         headers = {
             'Authorization': f"Bearer {config.params['ttsapi_extra']}",
             'Content-Type': 'application/json'

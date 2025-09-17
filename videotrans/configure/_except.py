@@ -159,7 +159,6 @@ def get_msg_from_except(ex):
 
         
     }
-    print(f'{ex=}')
 
     # 遍历映射，查找匹配的处理器
     for exc_types, handler in exception_handlers.items():

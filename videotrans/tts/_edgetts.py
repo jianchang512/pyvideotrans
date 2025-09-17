@@ -88,14 +88,14 @@ class EdgeTTS(BaseTTS):
                         f"{RETRY_DELAY} 秒后重试..."
                     )
                     config.logger.error(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 在 {RETRY_NUMS} 次尝试后最终失败。")
-                    self.error = str(e)
-                    self._signal(text=f"{item.get('line', '')} retry {attempt}: " + self.error)
+                    self.error = e
+                    self._signal(text=f"{item.get('line', '')} retry {attempt} ")
                     await asyncio.sleep(RETRY_DELAY)
                 except Exception as e:
                     # 捕获其他未知异常
                     config.logger.exception(e, exc_info=True)
-                    self.error = str(e.args)
-                    self._signal(text=f"{item.get('line', '')} retry {attempt}: " + self.error)
+                    self.error = e
+                    self._signal(text=f"{item.get('line', '')} retry {attempt}")
                     await asyncio.sleep(RETRY_DELAY)
 
     async def _task_queue(self):
@@ -128,13 +128,12 @@ class EdgeTTS(BaseTTS):
             for task in tasks:
                 if not task.done():
                     task.cancel()
-            # 向上抛出异常，以便外部调用者（如 run 方法）可以捕获它
-            raise e
-        finally:
-            print('配音完毕')
+
 
     # 执行入口，外部会调用该方法
     async def _exec(self) -> None:
         if self._exit():
             return
         await self._task_queue()
+        await asyncio.sleep(0.1)
+

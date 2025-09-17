@@ -6,10 +6,11 @@ from dataclasses import dataclass
 from typing import List, Dict, Union
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -36,8 +37,8 @@ class FishTTS(BaseTTS):
             role = data_item['role']
             roledict = tools.get_fishtts_role()
             if not role or not roledict.get(role):
-                self.error = '必须在设置中填写参考音频路径名、参考音频对应的文字'
-                return
+                raise StopRetry('必须在设置中填写参考音频路径名、参考音频对应的文字')
+
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
 
@@ -49,7 +50,7 @@ class FishTTS(BaseTTS):
             if os.path.exists(audio_path):
                 data['references'][0]['audio'] = self._audio_to_base64(audio_path)
             else:
-                raise RuntimeError(f'参考音频不存在:{audio_path}\n请确保该音频存在')
+                raise StopRetry(f'参考音频不存在:{audio_path}\n请确保该音频存在')
 
             config.logger.info(f'fishTTS-post:{data=},{self.proxies=}')
             response = requests.post(f"{self.api_url}", json=data, proxies=self.proxies, timeout=3600)
@@ -61,15 +62,18 @@ class FishTTS(BaseTTS):
                 f.write(response.content)
             time.sleep(1)
             if not os.path.exists(data_item['filename'] + ".wav"):
-                self.error = f'FishTTS合成声音失败-2'
                 time.sleep(RETRY_DELAY)
-                raise RuntimeError(self.error)
+                raise RuntimeError(f'FishTTS合成声音失败-2')
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
-            self.error = ''
             self.has_done += 1
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e

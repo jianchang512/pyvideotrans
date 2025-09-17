@@ -3,7 +3,8 @@ import time
 from dataclasses import dataclass, field
 
 import azure.cognitiveservices.speech as speechsdk
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -73,7 +74,6 @@ class AzureTTS(BaseTTS):
                     self.has_done += 1
                     if self.inst and self.inst.precent < 80:
                         self.inst.precent += 0.1
-                    self.error = ''
                     if tools.vail_file(filename):
                         self.convert_to_wav(filename, items[0]['filename'])
                     else:
@@ -102,7 +102,6 @@ class AzureTTS(BaseTTS):
                     self.has_done += 1
                     if self.inst and self.inst.precent < 80:
                         self.inst.precent += 0.1
-                    self.error = ''
                     self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
 
@@ -114,7 +113,12 @@ class AzureTTS(BaseTTS):
                 raise RuntimeError(str(cancellation_details.reason))
             raise RuntimeError('Test Azure')
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error=e
 
     def _item_task(self, data_item):
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
@@ -150,12 +154,10 @@ class AzureTTS(BaseTTS):
                 self.has_done += 1
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
-                self.error = ''
                 if tools.vail_file(filename):
                     self.convert_to_wav(filename, data_item['filename'])
                 else:
-                    self.error = "TTS error"
-                    raise RuntimeError(self.error)
+                    raise RuntimeError('TTS Error')
                 self.has_done += 1
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}')
                 return
@@ -167,7 +169,12 @@ class AzureTTS(BaseTTS):
                 raise RuntimeError(cancellation_details.reason)
             raise RuntimeError('Test Azure SK')
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error=e
 
     # 鼠标不重试，直接报错停止
     def _exec(self) -> None:

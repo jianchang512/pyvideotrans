@@ -793,8 +793,6 @@ class Ui_MainWindow(object):
         self.action_yingyinhebing = QtGui.QAction(MainWindow)
         self.action_yingyinhebing.setObjectName("action_yingyinhebing")
 
-        self.action_subtitleediter = QtGui.QAction(MainWindow)
-        self.action_subtitleediter.setObjectName("action_subtitleediter")
 
         self.action_hun = QtGui.QAction(MainWindow)
         self.action_hun.setObjectName("action_hun")
@@ -941,8 +939,6 @@ class Ui_MainWindow(object):
         self.menu.addAction(self.action_hun)
         self.menu.addSeparator()
         self.menu.addAction(self.action_hebingsrt)
-        self.menu.addSeparator()
-        self.menu.addAction(self.action_subtitleediter)
         self.menu.addSeparator()
         self.menu.addAction(self.actionsepar)
         self.menu.addSeparator()

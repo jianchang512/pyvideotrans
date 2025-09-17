@@ -10,10 +10,19 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Union
 
+from tenacity import RetryError
+
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure._except import DubbSrtError
+
+
 from videotrans.util import tools
+
+"""
+可能使用其他线程执行实际 tts 任务，此时异常保存在 self.error 中
+也可能直接调用 self.item_task 或 asyncio异步执行，此时会raise
+
+"""
 
 
 @dataclass
@@ -35,7 +44,7 @@ class BaseTTS(BaseCon):
     copydata: List = field(default_factory=list, init=False)
     wait_sec: float = field(init=False)
     dub_nums: int = field(init=False)
-    error: str = field(default='', init=False)
+    error: Optional[Any] = None
     api_url: str = field(default='', init=False)
 
     def __post_init__(self):
@@ -117,6 +126,8 @@ class BaseTTS(BaseCon):
             else:
                 # 可能调用多线程，此时无法捕获异常
                 self._exec()
+        except RetryError as e:
+            raise e.last_attempt.exception()
         except Exception:
             raise
         finally:
@@ -128,7 +139,7 @@ class BaseTTS(BaseCon):
             if tools.vail_file(self.queue_tts[0]['filename']):
                 threading.Thread(target=tools.pygameaudio, args=(self.queue_tts[0]['filename'],)).start()
                 return
-            raise RuntimeError(self.error, self.__class__.__name__)
+            raise RuntimeError(str(self.error)+self.__class__.__name__)
 
         # 记录成功数量
         succeed_nums = 0
@@ -137,8 +148,10 @@ class BaseTTS(BaseCon):
                 succeed_nums += 1
         # 只有全部配音都失败，才视为失败
         if succeed_nums < 1:
-            msg = ('配音全部失败 ' if config.defaulelang == 'zh' else 'Dubbing failed ')
-            raise DubbSrtError(message=f'{msg}:{self.__class__.__name__}')
+            if isinstance(self.error,Exception):
+                raise self.error
+            msg = ('配音全部失败 ' if config.defaulelang == 'zh' else 'Dubbing failed ')+str(self.error)
+            raise RuntimeError(msg)
 
         self._signal(
             text=f"配音成功{succeed_nums}个，失败 {len(self.queue_tts) - succeed_nums}个" if config.defaulelang == 'zh' else f"Dubbing succeeded {succeed_nums}，failed {len(self.queue_tts) - succeed_nums}")

@@ -3,7 +3,6 @@ import math
 import os
 import re
 import shutil
-import textwrap
 import threading
 import time
 from dataclasses import dataclass, field
@@ -884,13 +883,11 @@ class TransCreate(BaseTask):
             srt_string = ""
             for i, it in enumerate(target_sub_list):
                 # 硬字幕换行，软字幕无需处理
-                tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False) if self.cfg[
-                                                                                                 'subtitle_type'] == 3 else \
-                    it['text'].strip()
+                tmp = tools.textwrap(it['text'].strip(), maxlen) if self.cfg['subtitle_type'] == 3 else  it['text'].strip()
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp}"
                 if source_length > 0 and i < source_length:
                     srt_string += "\n" + (
-                        textwrap.fill(source_sub_list[i]['text'], maxlen_source, replace_whitespace=False).strip() if
+                        tools.textwrap(source_sub_list[i]['text'], maxlen_source).strip() if
                         self.cfg['subtitle_type'] == 3 else source_sub_list[i]['text'])
                 srt_string += "\n\n"
             process_end_subtitle = f"{self.cfg['cache_folder']}/shuang.srt"
@@ -901,7 +898,7 @@ class TransCreate(BaseTask):
             # 单硬字幕，需处理字符数换行
             srt_string = ""
             for i, it in enumerate(target_sub_list):
-                tmp = textwrap.fill(it['text'].strip(), maxlen, replace_whitespace=False)
+                tmp = tools.textwrap(it['text'].strip(), maxlen)
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
             with Path(process_end_subtitle).open('w', encoding='utf-8') as f:
                 f.write(srt_string)

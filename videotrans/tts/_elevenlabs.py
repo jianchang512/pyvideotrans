@@ -10,7 +10,8 @@ from typing import Iterator
 import httpx
 from elevenlabs import ElevenLabs, VoiceSettings
 from elevenlabs.core import ApiError
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -71,12 +72,16 @@ class ElevenLabsC(BaseTTS):
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
-            self.error = ''
             self.has_done += 1
 
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e
 
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
@@ -91,7 +96,6 @@ class ElevenLabsClone():
         self.output_file_path = output_file_path
         self.source_language = source_language
         self.target_language = target_language
-        self.error = ''
         pro = self._set_proxy(type='set')
         if pro:
             self.proxies = pro
@@ -153,14 +157,9 @@ class ElevenLabsClone():
                     tools.runffmpeg(
                         ['-y', '-i', self.output_file_path + ".mp3", "-ar", "44100", "-ac", "2", "-b:a", "128k",
                          self.output_file_path])
-                    self.error = ""
                     return True
-
-                print("Audio is still being dubbed...")
                 time.sleep(5)
-        except ApiError as e:
-            raise RuntimeError(e.body.get('detail', {}).get('message', ''))
+
         except Exception as e:
-            config.logger.exception(e, exc_info=True)
-            self.error = str(e)
+            self.error = e
             raise

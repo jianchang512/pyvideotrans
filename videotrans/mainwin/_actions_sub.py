@@ -87,7 +87,6 @@ class WinActionSub:
         QTimer.singleShot(50, open)
 
     def rephrase_fun(self,s,name):
-        print(f'{s=},{name=}')
         if s and name=='llm':
             self.main.rephrase_local.setChecked(False)
         elif s and name=='local':

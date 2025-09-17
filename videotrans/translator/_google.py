@@ -25,7 +25,7 @@ class Google(BaseTrans):
             self.proxies = {"https": pro, "http": pro}
 
     # 实际发出请求获取结果
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+    @retry( retry=retry_if_not_exception_type(NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
            after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
@@ -38,13 +38,8 @@ class Google(BaseTrans):
         headers = {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
         }
-        try:
-            response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies, verify=False)
-            response.raise_for_status()
-        except (requests.exceptions.RetryError,requests.exceptions.ConnectionError):
-            if not self.proxies or config.defaulelang=='zh':
-                raise StopRetry(f'国内无法直接访问Google翻译，请使用VPN或代理 {",若已使用代理，请检查代理地址是否正确或可连接" if self.proxies else ""}')
-            raise
+        response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies, verify=False)
+        response.raise_for_status()
         config.logger.info(f'[Google]返回数据:{response.status_code=}')
 
         re_result = re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<', response.text)
@@ -86,7 +81,7 @@ class Google(BaseTrans):
             if len(remove_list) > 0 and str(it) == str(remove_list[-1]):
                 if re.match(r'^\d{1,4}$', it):
                     continue
-                if re.match(r'\d+:\d+:\d+([,.]\d+)? --> \d+:\d+:\d+([,.]\d+)?'):
+                if re.match(r'\d+:\d+:\d+([,.]\d+)? --> \d+:\d+:\d+([,.]\d+)?',it):
                     continue
             remove_list.append(it)
 

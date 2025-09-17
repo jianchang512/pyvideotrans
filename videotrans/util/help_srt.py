@@ -221,7 +221,6 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
                 config.logger.exception(e, exc_info=True)
         return content
 
-    content = ''
     if is_file:
         content = _readfile(srtfile)
     else:
@@ -234,7 +233,13 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     # txt 文件转为一条字幕
     if len(result) < 1:
         result = [
-            {"line": 1, "start_time":0,"end_time":2000,"time": "00:00:00,000 --> 00:00:02,000", "text": "\n".join(content)}
+            {"line": 1,
+             "start_time":0,
+             "end_time":2000,
+             "startraw":"00:00:00,000",
+             "endraw":"00:00:02,000",
+             "time": "00:00:00,000 --> 00:00:02,000",
+             "text": "\n".join(content)}
         ]
     return result
 
@@ -305,3 +310,71 @@ def set_ass_font(srtfile=None):
     with open(assfile, 'w', encoding='utf-8') as f:
         f.write("".join(ass_str))
     return assfile
+
+def textwrap(text, maxlen=15):
+    """
+    0. 如果text长度小于maxlen则直接返回。
+    1. text预先移除所有换行符。
+    2. 达到maxlen处，如果当前字符是标点，则在此分组。否则向后查找最多4个字符，
+       在找到的第一个标点处分组。如果都未找到，则在maxlen处硬分割。
+    3. 如果分组数大于1，且最后一组长度小于3，则将最后一组合并到前一组。
+    4. 最后将所有分组使用换行符连接后返回。
+
+    Args:
+      text: 需要处理的输入字符串。
+      maxlen: 每组的目标最大长度，默认为 15。
+
+    Returns:
+      处理过的、用换行符连接的字符串。
+    """
+    # 标点和空格列表
+    flag = [
+        ",", ".", "?", "!", ";",
+        "，", "。", "？", "；", "！", " "
+    ]
+
+    # 1. 移除所有换行符
+    text = text.replace('\n', '').replace('\r', '')
+
+    # 0. 如果文本长度小于等于 maxlen，直接返回
+    if len(text) <= maxlen:
+        return text
+
+    groups = []
+    cursor = 0
+    text_len = len(text)
+
+    while cursor < text_len:
+        # 如果剩余文本不足 maxlen，则全部作为最后一组
+        if text_len - cursor <= maxlen:
+            groups.append(text[cursor:])
+            break
+
+        # 2. 智能分组逻辑
+        break_point = -1
+
+        # 确定查找标点的范围，从 maxlen 位置开始，向后最多看4个字符
+        # 例如 maxlen=15, cursor=0, 则查找索引为 15, 16, 17, 18, 19 的字符
+        search_range = range(cursor + maxlen, min(cursor + maxlen + 5, text_len))
+
+        found_flag = False
+        for i in search_range:
+            if text[i] in flag:
+                # 找到标点，断点设置为标点之后
+                break_point = i + 1
+                found_flag = True
+                break
+
+        # 如果在查找范围内没有找到标点，则在 maxlen 处硬分割
+        if not found_flag:
+            break_point = cursor + maxlen
+
+        groups.append(text[cursor:break_point])
+        cursor = break_point
+
+    # 3. 如果分组大于1，并且最后一组长度小于3，则合并
+    if len(groups) > 1 and len(groups[-1]) < 3:
+        groups[-2] += groups[-1]
+        groups.pop()
+
+    return "\n".join(groups)

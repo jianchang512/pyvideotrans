@@ -12,6 +12,24 @@ def task_is_stop(uuid) -> bool:
         return True
     return False
 
+def get_recogn_type(type_index=None):
+    from videotrans.recognition import RECOGN_NAME_LIST
+    if type_index is None or type_index >= len(RECOGN_NAME_LIST):
+        return '-'
+    return RECOGN_NAME_LIST[type_index]
+def get_tanslate_type(type_index=None):
+    from videotrans.translator import TRANSLASTE_NAME_LIST
+    if type_index is None or type_index >= len(TRANSLASTE_NAME_LIST):
+        return '-'
+    return TRANSLASTE_NAME_LIST[type_index]
+
+def get_tts_type(type_index=None):
+    from videotrans.tts import TTS_NAME_LIST
+    if type_index is None or type_index >= len(TTS_NAME_LIST):
+        return '-'
+    return TTS_NAME_LIST[type_index]
+
+
 
 # 预处理线程，所有任务均需要执行，也是入口
 """
@@ -57,7 +75,7 @@ class WorkerPrepare(Thread):
                 from videotrans.configure._except import get_msg_from_except
                 except_msg=get_msg_from_except(e)
                 config.logger.exception(e, exc_info=True)
-                set_process(text=f'{config.transobj["yuchulichucuo"]}:{except_msg}:' + traceback.format_exc(), type='error', uuid=trk.uuid)
+                set_process(text=f'{config.transobj["yuchulichucuo"]}:{except_msg}:\n' + traceback.format_exc(), type='error', uuid=trk.uuid)
 
 
 class WorkerRegcon(Thread):
@@ -88,7 +106,9 @@ class WorkerRegcon(Thread):
                 from videotrans.configure._except import get_msg_from_except
                 except_msg=get_msg_from_except(e)
                 config.logger.exception(e, exc_info=True)
-                set_process(text=f'{config.transobj["shibiechucuo"]}:{except_msg}:' + traceback.format_exc(), type='error', uuid=trk.uuid)
+                if trk.cfg.get('recogn_type') is not None:
+                    except_msg+=f"[{get_recogn_type(trk.cfg.get('recogn_type'))}]"
+                set_process(text=f'{config.transobj["shibiechucuo"]}:{except_msg}:\n' + traceback.format_exc(), type='error', uuid=trk.uuid)
 
 
 class WorkerTrans(Thread):
@@ -115,7 +135,9 @@ class WorkerTrans(Thread):
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg=get_msg_from_except(e)
-                msg = f'{config.transobj["fanyichucuo"]}:{except_msg}:' + traceback.format_exc()
+                if trk.cfg.get('translate_type') is not None:
+                    except_msg+=f"[{get_tanslate_type(trk.cfg.get('translate_type'))}]"
+                msg = f'{config.transobj["fanyichucuo"]}:{except_msg}:\n' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
 
@@ -140,7 +162,9 @@ class WorkerDubb(Thread):
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg=get_msg_from_except(e)
-                msg = f'{config.transobj["peiyinchucuo"]}:{except_msg}:' + traceback.format_exc()
+                if trk.cfg.get('tts_type') is not None:
+                    except_msg+=f"[{get_tts_type(trk.cfg.get('tts_type'))}]"
+                msg = f'{config.transobj["peiyinchucuo"]}:{except_msg}:\n' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
 

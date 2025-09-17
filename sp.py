@@ -13,19 +13,19 @@ License: GPL-V3
 """
 
 
-import os,sys
+import sys
 import time
-print(f"\n####开始启动时间:{time.time()}")
+print(f"\n#### start:{time.time()}")
 
 
 
 
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
-from PySide6.QtCore import Qt, QTimer, QPoint, QSize
+from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtGui import QPixmap, QIcon, QGuiApplication
 from videotrans.configure._guiexcept import global_exception_hook, exception_handler
 
-VERSION = "v3.79"
+VERSION = "v3.80"
 
 def show_global_error_dialog(tb_str):
     """槽函数 显示对话框。"""
@@ -69,8 +69,7 @@ class StartWindow(QWidget):
 def initialize_full_app(start_window, app_instance):    
     import os
     import argparse
-    import traceback
-      
+
 
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -104,7 +103,6 @@ def initialize_full_app(start_window, app_instance):
     with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
         app_instance.setStyleSheet(f.read())
     
-    from videotrans.configure import config 
     from videotrans.mainwin._main_win import MainWindow
     
     main_window_created = False
@@ -125,7 +123,7 @@ def initialize_full_app(start_window, app_instance):
 
     # 显示主窗口
     if main_window_created and start_window.main_window:
-        print(f"#### 所有初始化完毕，准备关闭启动窗口: {time.time()}")
+        print(f"#### endtm:{time.time()}")
         start_window.main_window.show()
         QTimer.singleShot(1000, lambda: start_window.close())
 

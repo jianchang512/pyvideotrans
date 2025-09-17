@@ -72,10 +72,13 @@ class BaseTrans(BaseCon):
             self.split_source_text = [source_text[i:i + self.trans_thread] for i in
                                       range(0, len(source_text), self.trans_thread)]
         config.logger.info(f'字幕翻译前准备2')
+        from tenacity import RetryError
         try:
             if self.is_srt and self.aisendsrt:
                 return self._run_srt()
             return self._run_text()
+        except RetryError as e:
+            raise e.last_attempt.exception()
         except Exception as e:
             raise
 

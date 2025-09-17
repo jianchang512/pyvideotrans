@@ -8,7 +8,8 @@ from typing import List, Dict
 from typing import Union, Set
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
@@ -93,9 +94,8 @@ class GPTSoVITS(BaseTTS):
                 # 如果是JSON数据，使用json()方法解析
                 data = response.json()
                 config.logger.info(f'GPT-SoVITS return:{data=}')
-                self.error = f"GPT-SoVITS返回错误信息-1:{data}"
                 time.sleep(RETRY_DELAY)
-                raise StopRetry(self.error)
+                raise StopRetry(f"GPT-SoVITS返回错误信息-1:{data}")
             
             response.raise_for_status()
             # 获取响应头中的Content-Type
@@ -107,15 +107,18 @@ class GPTSoVITS(BaseTTS):
                     f.write(response.content)
                 time.sleep(1)
                 if not os.path.exists(data_item['filename'] + ".wav"):
-                    self.error = f'GPT-SoVITS合成声音失败-2'
                     time.sleep(RETRY_DELAY)
-                    raise RuntimeError(self.error)
+                    raise RuntimeError(f'GPT-SoVITS合成声音失败-2')
                 self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
-            self.error = ''
             self.has_done += 1
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e

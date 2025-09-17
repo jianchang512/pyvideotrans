@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 import dashscope
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -49,14 +50,12 @@ class QWENTTS(BaseTTS):
             )
 
             if response is None:
-                self.error = "API call returned None response"
                 time.sleep(RETRY_DELAY)
-                raise RuntimeError(self.error)
+                raise RuntimeError("API call returned None response")
 
             if not hasattr(response, 'output') or response.output is None or not hasattr(response.output, 'audio'):
-                self.error = f"{response.message if hasattr(response, 'message') else str(response)}"
                 time.sleep(RETRY_DELAY)
-                raise RuntimeError(self.error)
+                raise RuntimeError( f"{response.message if hasattr(response, 'message') else str(response)}")
 
             resurl = requests.get(response.output.audio["url"])
             resurl.raise_for_status()  # 检查请求是否成功
@@ -66,8 +65,12 @@ class QWENTTS(BaseTTS):
 
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
-            self.error = ''
             self.has_done += 1
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e

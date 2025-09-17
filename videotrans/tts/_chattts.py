@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -35,7 +36,8 @@ class ChatTTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+        #
+        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
         def _run():
@@ -47,23 +49,20 @@ class ChatTTS(BaseTTS):
             config.logger.info(f'chatTTS:{data=}')
             res = res.json()
             if res is None:
-                self.error = 'ChatTTS端出错，请查看其控制台终端'
                 time.sleep(RETRY_DELAY)
-                raise RuntimeError(self.error)
+                raise RuntimeError('ChatTTS端出错，请查看其控制台终端')
 
             if "code" not in res or res['code'] != 0:
                 if "msg" in res:
                     Path(data_item['filename']).unlink(missing_ok=True)
-                self.error = f'{res}'
                 time.sleep(RETRY_DELAY)
-                raise RuntimeError(self.error)
+                raise RuntimeError(f'{res}')
 
             if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:
                 self.convert_to_wav(re.sub(r'\\{1,}', '/', res['filename']), data_item['filename'])
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
                 self.has_done += 1
-                self.error = ''
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
 
@@ -79,8 +78,11 @@ class ChatTTS(BaseTTS):
             if self.inst and self.inst.precent < 80:
                 self.inst.precent += 0.1
             self.has_done += 1
-            self.error = ''
             self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
             return
-
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error=e

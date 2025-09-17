@@ -282,7 +282,7 @@ def parse_init(update_data=None):
         "borderStyle": 1,  # 1或3， 轮廓描边风格对应 BorderStyle=1， 背景色块风格对应 BorderStyle=3
 
         "cjk_len": 20,
-        "other_len": 60,
+        "other_len": 80,
         "gemini_model": DEFAULT_GEMINI_MODEL,
         "llm_chunk_size": 500,
         "llm_ai_type": "openai",

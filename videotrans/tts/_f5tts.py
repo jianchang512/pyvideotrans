@@ -5,7 +5,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Union
 
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
@@ -62,13 +63,14 @@ class F5TTS(BaseTTS):
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
         if not Path(data['ref_wav']).exists():
-            self.error = f'{role} 角色不存在'
-            raise StopRetry(self.error)
+            raise StopRetry(f'{role} 角色不存在')
         if data['ref_text'] and len(data['ref_text']) < 10:
             speed = 0.5
         try:
             client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
-        
+        except Exception as e:
+            raise StopRetry( f'{e}')
+        try:
             result = client.predict(
                 ref_audio_input=handle_file(data['ref_wav']),
                 ref_text_input=data['ref_text'],
@@ -79,8 +81,7 @@ class F5TTS(BaseTTS):
                 api_name='/basic_tts'
             )
         except Exception as e:
-            self.error=str(e)
-            return
+            raise
 
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -89,10 +90,10 @@ class F5TTS(BaseTTS):
         if isinstance(wav_file, str) and Path(wav_file).is_file():
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            self.error=str(result)
+            raise RuntimeError(str(result))
+
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
-        self.error = ''
         self.has_done += 1
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
@@ -117,11 +118,12 @@ class F5TTS(BaseTTS):
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
         if not Path(data['ref_wav']).exists():
-            self.error = f'{role} 角色不存在'
-            raise StopRetry(self.error)
+            raise StopRetry( f'{role} 角色不存在')
         try:
             client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
-        
+        except Exception as e:
+            raise StopRetry( f'{e}')
+        try:
             result = client.predict(
                 text=text,
                 prompt_text=data['ref_text'],
@@ -130,8 +132,7 @@ class F5TTS(BaseTTS):
                 api_name='/voice_clone'
             )
         except Exception as e:
-            self.error=str(e)
-            return
+            raise
 
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -140,11 +141,10 @@ class F5TTS(BaseTTS):
         if isinstance(wav_file, str) and Path(wav_file).is_file():
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            self.error=str(result)
+            raise RuntimeError(str(result))
 
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
-        self.error = ''
         self.has_done += 1
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
@@ -168,12 +168,14 @@ class F5TTS(BaseTTS):
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
         if not Path(data['ref_wav']).exists():
-            self.error = f'{role} 角色不存在'
-            raise StopRetry(self.error)
+            raise StopRetry(  f'{role} 角色不存在')
         config.logger.info(f'index-tts {data=}')
         try:
             client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
+        except Exception as e:
+            raise StopRetry(str(e))
         
+        try:
             result = client.predict(
                 prompt=handle_file(data['ref_wav']),
                 emo_ref_path=handle_file(data['ref_wav']),
@@ -181,8 +183,17 @@ class F5TTS(BaseTTS):
                 api_name='/gen_single'
             )
         except Exception as e:
-            self.error=str(e)
-            return
+            if "Parameter emo_ref_path is not a valid" not in str(e):
+                raise
+            try:
+                result = client.predict(
+                        prompt=handle_file(data['ref_wav']),
+                        text=text,
+                        api_name='/gen_single'
+                )
+            except Exception as e:
+                raise
+                
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
@@ -190,10 +201,10 @@ class F5TTS(BaseTTS):
         if isinstance(wav_file, str) and Path(wav_file).is_file():
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            self.error=str(result)
+            raise RuntimeError(str(result))
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
-        self.error = ''
+
         self.has_done += 1
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
@@ -222,6 +233,9 @@ class F5TTS(BaseTTS):
             raise StopRetry(self.error)
         try:
             client = Client(self.api_url, httpx_kwargs={"timeout": 7200, "proxy": None}, ssl_verify=False)
+        except Exception as e:
+            raise StopRetry(str(e))
+        try:
             result = client.predict(
                 text_input=text,
                 audio_prompt_input=handle_file(data['ref_wav']),
@@ -229,8 +243,7 @@ class F5TTS(BaseTTS):
                 api_name='/generate_audio'
             )
         except Exception as e:
-            self.error=str(e)
-            return
+            raise
 
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -239,10 +252,11 @@ class F5TTS(BaseTTS):
         if isinstance(wav_file, str) and Path(wav_file).is_file():
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
-            self.error=str(result)
+            raise RuntimeError(str(result))
+
         if self.inst and self.inst.precent < 80:
             self.inst.precent += 0.1
-        self.error = ''
+
         self.has_done += 1
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
@@ -265,9 +279,13 @@ class F5TTS(BaseTTS):
             else:
                 self._item_task_v1(data_item)
             
-            
-            if self.error and "Cannot find a function with" in self.error:
-                tips="请检查TTS设置中所选TTS类型和URL是否对应" if config.defaulelang=='zh' else 'Please check whether the TTS type selected in the settings corresponds to the URL'
-                self.error=f"{tips}:{self.error}"
-        _run()
-        
+
+
+
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e
+

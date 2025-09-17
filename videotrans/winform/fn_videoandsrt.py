@@ -2,7 +2,6 @@
 def openwin():
     import json
     import os
-    import textwrap
     import time
     from pathlib import Path
 
@@ -74,7 +73,7 @@ def openwin():
                         sub_list = tools.get_subtitle_from_srt(srt, is_file=True)
                         text = ""
                         for i, it in enumerate(sub_list):
-                            it['text'] = textwrap.fill(it['text'], self.maxlen, replace_whitespace=False).strip()
+                            it['text'] = tools.textwrap(it['text'], self.maxlen).strip()
                             text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
                         srtfile = config.TEMP_HOME + f"/srt{time.time()}.srt"
                         with Path(srtfile).open('w', encoding='utf-8') as f:

@@ -1,3 +1,4 @@
+TextToSpeechClient = None
 def openwin():
     from PySide6.QtWidgets import (
         QWidget, QFormLayout, QLineEdit, QComboBox, QPushButton,
@@ -9,7 +10,7 @@ def openwin():
     # Import lazy do TextToSpeechClient
     from videotrans.util import tools
 
-    TextToSpeechClient = None
+    global TextToSpeechClient
     try:
         from google.cloud.texttospeech import TextToSpeechClient
     except ImportError:

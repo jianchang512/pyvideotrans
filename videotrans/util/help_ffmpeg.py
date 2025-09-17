@@ -878,7 +878,6 @@ def large_wav_export_with_soundfile(audio_segment, output_path: str):
     :param audio_segment: pydub 的音频对象
     :param output_path: 输出的 .wav 文件路径
     """
-    print(f"正在使用 soundfile 导出到: {output_path}")
 
     # 1. 从 pydub 获取原始 PCM 数据（bytes）
     raw_data = audio_segment.raw_data
@@ -911,4 +910,3 @@ def large_wav_export_with_soundfile(audio_segment, output_path: str):
         audio_segment.frame_rate,
         subtype='PCM_16' if sample_width == 2 else ('PCM_24' if sample_width == 3 else 'PCM_32')  # 根据需要选择子类型
     )
-    print("使用 soundfile 导出成功！")

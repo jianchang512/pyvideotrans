@@ -15,7 +15,7 @@ _module_map = {
     "fn_videoandsrt": ".fn_videoandsrt", "fn_formatcover": ".fn_formatcover",
     "openaitts": ".openaitts", "recognapi": ".recognapi", "sttapi": ".sttapi",
     "openairecognapi": ".openairecognapi", "fn_subtitlescover": ".fn_subtitlescover",
-    "fn_editer": ".fn_editer", "volcenginetts": ".volcenginetts", "f5tts": ".f5tts",
+     "volcenginetts": ".volcenginetts", "f5tts": ".f5tts",
     "deepgram": ".deepgram", "claude": ".claude", "libre": ".libre", "ali": ".ali",
     "zhipuai": ".zhipuai", "siliconflow": ".siliconflow", "kokoro": ".kokoro",
     "parakeet": ".parakeet", "chatterbox": ".chatterbox", "deepseek": ".deepseek",

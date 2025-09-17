@@ -7,7 +7,8 @@ from dataclasses import dataclass, field
 from typing import Dict, Optional, ClassVar
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -124,8 +125,12 @@ class VolcEngineTTS(BaseTTS):
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
             if 'code' in resp_json:
-                self.error = self.error_status.get(str(resp_json['code']), resp_json['message'])
                 config.logger.info(f'字节火山语音合成失败:{resp_json=}')
-            raise RuntimeError(self.error if self.error else "未知错误")
+            raise RuntimeError(self.error_status.get(str(resp_json['code']), resp_json['message']))
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e

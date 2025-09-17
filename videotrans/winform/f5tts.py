@@ -77,7 +77,7 @@ def openwin():
         config.params["f5tts_role"] = role
         config.params["f5tts_is_whisper"] = is_whisper
         config.params["f5tts_ttstype"] = winobj.ttstype.currentText()
-        print(winobj.ttstype.currentText())
+
         config.getset_params(config.params)
         tools.set_process(text='f5tts', type="refreshtts")
         winobj.close()

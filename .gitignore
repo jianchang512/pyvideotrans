@@ -18,6 +18,7 @@ dist
 source
 build
 test.py
+302.py
 test.json
 ffmpeg/ffmpeg.exe
 ffmpeg/ffprobe.exe

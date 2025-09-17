@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Union
 
+from tenacity import RetryError
+
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
 from videotrans.configure._except import SpeechToTextError
@@ -66,6 +68,8 @@ class BaseRecogn(BaseCon):
                 self.flag.append(" ")
                 self.join_word_flag = ""
             return self._exec()
+        except RetryError as e:
+            raise e.last_attempt.exception()
         except Exception as e:
             config.logger.exception(e, exc_info=True)
             raise
@@ -113,6 +117,8 @@ class BaseRecogn(BaseCon):
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
                 self.raws.append(tmp)
             return True
+        if jianfan:
+            self.flag.append(' ')
         all_words=[]
         for it in list(raws):
             if len(it['words'])>0:
@@ -140,7 +146,7 @@ class BaseRecogn(BaseCon):
                 tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
                 tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-                tmp['text']=tmp['text'].strip() + (word_text[0] if word_text[0] in self.flag else '')
+                tmp['text']=tmp['text'] + (word_text[0] if word_text[0] in self.flag else '')
                 self.raws.append(tmp)
                 tmp={
                     'text': word_text[1:] if word_text[0] in self.flag else  word_text,
@@ -157,9 +163,10 @@ class BaseRecogn(BaseCon):
                 continue
             
             # 符合以下条件则为断句之处
+            # 0.若是当前单词和tmp结束时间差距过大(大于2*min_silence)，则无论是否达到最小语句时长也强制断句
             # 1.如果大于等于 min_ms 并且恰好当前末尾或下一个开头有标点 is_flag
-            # 2.或者虽然没有标点，但是开始时间与 tmp 中间距大于等于 min_silence
-            # 3. 或者当前语句已大于2倍的 max_ms 则强制断句
+            # 2.虽然没有标点，但是当前单词与 tmp 中间距大于等于 min_silence
+            # 3.当前语句时长已大于1.5倍的 max_ms 则强制断句
             is_flag=tmp['text'][-1] in self.flag or word_text[0] in self.flag
             # 当前单词和 tmp 结束之间的差距
             current_diff=w['start']*1000-tmp['end_time']
@@ -171,7 +178,7 @@ class BaseRecogn(BaseCon):
                 tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
                 tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-                tmp['text']=tmp['text'].strip() + (word_text[0] if word_text[0] in self.flag else '')
+                tmp['text']=tmp['text'] + (word_text[0] if word_text[0] in self.flag else '')
                 self.raws.append(tmp)
                 tmp={
                     'text': word_text[1:] if word_text[0] in self.flag else  word_text,
@@ -179,10 +186,6 @@ class BaseRecogn(BaseCon):
                     'end_time': int(w['end'] * 1000)
                 }
                 continue
-            
-            
-               
-            
             
             tmp['text'] += word_text
             tmp['end_time'] = int(w['end'] * 1000)
@@ -193,7 +196,6 @@ class BaseRecogn(BaseCon):
             tmp['text']=tmp['text'].strip()
             self.raws.append(tmp)
         
-        print(f'===1 {self.raws=}')
         # 再次检测，将过短的行合并给上一行
         new_raws=[]
         for i,it in enumerate(self.raws):
@@ -204,8 +206,8 @@ class BaseRecogn(BaseCon):
                 new_raws[-1]['time'] = f"{new_raws[-1]['startraw']} --> {new_raws[-1]['endraw']}"
             else:
                 it['line']=len(new_raws)+1
+                it['text']=it['text'].strip()
                 new_raws.append(it)
-        print(f'====2 {new_raws=}')
         self.raws=new_raws
         
     # True 退出

@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from typing import Optional
 
 from google.cloud import texttospeech
-from tenacity import retry, stop_after_attempt, wait_fixed, before_log, after_log, retry_if_not_exception_type
+from tenacity import retry, stop_after_attempt, wait_fixed, before_log, after_log, retry_if_not_exception_type, \
+    RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -161,7 +162,11 @@ class GoogleCloudTTS(BaseTTS):
             self.convert_to_wav(out_path, data_item['filename'])
             # atualiza progresso
             self.has_done += 1
-            self.error = ""
             self._signal(text=f"{self.has_done}/{self.len}")
 
-        _run()
+        try:
+            _run()
+        except RetryError as e:
+            raise e.last_attempt.exception()
+        except Exception as e:
+            self.error = e
