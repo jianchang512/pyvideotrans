@@ -204,8 +204,6 @@ class WinAction(WinActionSub):
         recogn_type = self.main.recogn_type.currentIndex()
         if recogn_type == recognition.Faster_Whisper_XXL and not self.show_xxl_select():
             return
-
-        # 判断不是 faster，禁用分割模式、隐藏vad参数和均等分割设置
         if recogn_type != recognition.FASTER_WHISPER:
             self.main.split_type.setDisabled(True)
             self.main.split_type.setCurrentIndex(0)
@@ -217,7 +215,7 @@ class WinAction(WinActionSub):
             tools.hide_show_element(self.main.equal_split_layout,
                                     False if self.main.split_type.currentIndex() == 0 else True)
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL                              ]:
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram]:
             # 禁止模块选择
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)

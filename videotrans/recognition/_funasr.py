@@ -13,13 +13,6 @@ from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
-"""
-faster-whisper
-openai-whisper
-funasr
-内置的本地大模型不重试
-"""
-
 
 @dataclass
 class FunasrRecogn(BaseRecogn):
@@ -122,8 +115,8 @@ class FunasrRecogn(BaseRecogn):
         vm = AutoModel(
             model="fsmn-vad",
             local_dir=config.ROOT_DIR + "/models",
-            max_single_segment_time=20000,
-            max_end_silence_time=250,
+            max_single_segment_time=int(float(config.settings['max_speech_duration_s'])*1000),
+            max_end_silence_time=int(config.settings.get('min_silence_duration_ms',500)),
             hub='ms',
             disable_update=True,
             disable_progress_bar=True,

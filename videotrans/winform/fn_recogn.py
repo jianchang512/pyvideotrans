@@ -273,7 +273,10 @@ def openwin():
             tools.hide_show_element(winobj.equal_split_layout,
                                     True if winobj.shibie_split_type.currentIndex() == 1 else False)
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER
+        if recogn_type not in [recognition.FASTER_WHISPER,
+                               recognition.Faster_Whisper_XXL,
+                               recognition.OPENAI_WHISPER,
+                               recognition.FUNASR_CN
                                ]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
             winobj.rephrase.setDisabled(True)
@@ -343,9 +346,6 @@ def openwin():
         else:
             tools.hide_show_element(winobj.equal_split_layout, False)
 
-    def source_language_change():
-        langtext = winobj.shibie_language.currentText()
-        langcode = translator.get_code(show_text=langtext)
 
     def rephrase_fun(s,name):
         if s and name=='llm':
@@ -390,7 +390,6 @@ def openwin():
 
         default_lang = int(config.params.get('stt_source_language', 0))
         winobj.shibie_language.setCurrentIndex(default_lang)
-        winobj.shibie_language.currentIndexChanged.connect(source_language_change)
         try:
             default_type = int(config.params.get('stt_recogn_type', 0))
         except:
@@ -416,8 +415,7 @@ def openwin():
             if current_model == 'paraformer-zh' or default_type == recognition.Deepgram or default_type == recognition.GEMINI_SPEECH:
                 winobj.show_spk.setVisible(True)
 
-        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,
-                                recognition.FUNASR_CN, recognition.Deepgram]:
+        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram]:
             winobj.shibie_model.setDisabled(True)
         else:
             winobj.shibie_model.setDisabled(False)

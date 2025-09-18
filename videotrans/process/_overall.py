@@ -43,8 +43,11 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
             err['msg'] = '下载模型失败了请确认网络稳定后重试，如果已使用代理，请尝试关闭。 访问网址  https://pvt9.com/820  可查看详细详细解决方案' if defaulelang == 'zh' else 'Download model failed, please confirm network stable and try again. Visit https://pvt9.com/820 for more detail.'
             return
         except Exception as e:
+            print(f'@@@@@@@@@@@@@{e}')
             error = str(e)
-            if "CUBLAS_STATUS_NOT_SUPPORTED" in error:
+            if "Unable to open file 'model.bin'" in error:
+                err['msg'] = '可能网络原因模型下载中断，请尝试删掉models文件夹内相应模型文件夹，然后重试' if defaulelang == 'zh' else 'Maybe model download failed, please delete the corresponding model folder in the models directory and try again'
+            elif "CUBLAS_STATUS_NOT_SUPPORTED" in error:
                 err['msg'] = "数据类型不兼容：请打开菜单--工具--高级选项--faster/openai语音识别调整--CUDA数据类型--选择 float16，保存后重试" if defaulelang == 'zh' else 'Incompatible data type: Please open the menu - Tools - Advanced options - Faster/OpenAI speech recognition adjustment - CUDA data type - select float16, save and try again'
             elif "cudaErrorNoKernelImageForDevice" in error:
                 err['msg'] = "pytorch和cuda版本不兼容，请更新显卡驱动后，安装或重装CUDA12.x及cuDNN9.x" if defaulelang == 'zh' else 'Pytorch and cuda versions are incompatible. Please update the graphics card driver and install or reinstall CUDA12.x and cuDNN9.x'

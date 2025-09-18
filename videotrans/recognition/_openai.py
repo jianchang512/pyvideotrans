@@ -27,21 +27,6 @@ class OpenaiWhisperRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
 
-    def get_srtlist00(self, alllist):
-        jianfan = config.settings.get('zh_hant_s')
-        for i in alllist:
-            if len(i['words']) < 1:
-                continue
-            tmp = {
-                'text': zhconv.convert(i['text'], 'zh-hans') if jianfan and self.detect_language[:2] == 'zh' else i[
-                    'text'],
-                'start_time': int(i['words'][0]['start'] * 1000),
-                'end_time': int(i['words'][-1]['end'] * 1000)
-            }
-            tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-            tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
-            tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-            self.raws.append(tmp)
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
@@ -88,7 +73,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                     language=self.detect_language.split('-')[0] if self.detect_language != 'auto' else None,
                     word_timestamps=True,
                     initial_prompt=prompt if prompt else None,
-                    condition_on_previous_text=config.settings['condition_on_previous_text']
+                    condition_on_previous_text=config.settings.get('condition_on_previous_text',False)
                 )
                 if self.detect_language == 'auto' and last_detect == 'auto':
                     last_detect = 'zh-cn' if result['language'][:2] == 'zh' else result['language']

@@ -72,6 +72,7 @@ os.environ['SOFT_NAME'] = 'pyvideotrans'
 os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
 os.environ['HF_HOME'] = ROOT_DIR + "/models"
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
+os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
 # 语言
 _env_lang = os.environ.get('PYVIDEOTRANS_LANG')  # 新增：读取环境变量
 if _env_lang:  # 新增：如果环境变量存在，则使用它
@@ -81,7 +82,7 @@ else:  # 原有逻辑
         defaulelang = locale.getdefaultlocale()[0][:2].lower()
     except:
         defaulelang = "zh"
-if defaulelang == 'zh':
+if defaulelang == 'zh' and not Path(ROOT_DIR+"/huggingface.lock").exists():
     os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 ####################################
 # 存储所有任务的进度队列，以uuid为键
@@ -213,7 +214,7 @@ def parse_init(update_data=None):
         "vad": True,
         "threshold": 0.45,
         "min_speech_duration_ms": 1000,
-        "max_speech_duration_s": 8,
+        "max_speech_duration_s": 5,
         "min_silence_duration_ms": 250,
         "speech_pad_ms": 400,
         "rephrase": False,

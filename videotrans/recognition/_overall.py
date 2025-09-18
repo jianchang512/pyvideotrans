@@ -47,7 +47,7 @@ class FasterAll(BaseRecogn):
                         self.inst.precent += 0.1
 
                     if data:
-                        if self.inst and self.inst.status_text and data['type'] == 'log':
+                        if self.inst and self.inst.status_text and data['type'] == 'logs':
                             self.inst.status_text = data['text']
                         self._signal(text=data['text'], type=data['type'])
             except:

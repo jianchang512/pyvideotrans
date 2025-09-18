@@ -52,9 +52,8 @@ def show_error(tb_str, report=True):
         ok_button.setText("知道了")
 
     # 添加自定义的“报告错误”按钮
-    if report:
-        report_button = msg_box.addButton("报告错误" if config.defaulelang == 'zh' else "Report Error",
-                                          QtWidgets.QMessageBox.ButtonRole.NoRole)
+    #if report:
+    report_button = msg_box.addButton("报告错误" if config.defaulelang == 'zh' else "Report Error",QtWidgets.QMessageBox.ButtonRole.NoRole)
     msg_box.setDefaultButton(ok_button)
 
     msg_box.setStyleSheet("""
@@ -72,7 +71,8 @@ def show_error(tb_str, report=True):
 
     msg_box.buttonClicked.connect(record_clicked_button)
     msg_box.exec()
-    if report and clicked_button_storage == report_button:
+    # if report and clicked_button_storage == report_button:
+    if clicked_button_storage == report_button:
         clicked_button = msg_box.clickedButton()
         if clicked_button == report_button:
             import urllib.parse
