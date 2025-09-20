@@ -19,6 +19,7 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         from videotrans import tts
+        import time
         winobj.test.setText('测试中请稍等...')
 
         extra = winobj.extra.text()
@@ -37,7 +38,7 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": role,
-            "filename": config.TEMP_HOME + f"/test-gptsovits.wav",
+            "filename": config.TEMP_HOME + f"/{time.time()}-gptsovits.wav",
             "tts_type": tts.GPTSOVITS_TTS}],
                          language="zh",
                          tts_type=tts.GPTSOVITS_TTS)

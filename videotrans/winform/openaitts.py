@@ -31,10 +31,11 @@ def openwin():
         config.getset_params(config.params)
         winobj.test_openaitts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         from videotrans import tts
+        import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": 'alloy',
-            "filename": config.TEMP_HOME + f"/test-openai.wav",
+            "filename": config.TEMP_HOME + f"/{time.time()}-openai.wav",
             "tts_type": tts.OPENAI_TTS}],
                          language="zh",
                          tts_type=tts.OPENAI_TTS)

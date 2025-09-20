@@ -174,7 +174,6 @@ class F5TTS(BaseTTS):
             client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
         except Exception as e:
             raise StopRetry(str(e))
-        print(f"{config.params.get('index_tts_version',1)=}")
         try:
             if int(config.params.get('index_tts_version',1))==1:
                 result = client.predict(
@@ -241,11 +240,11 @@ class F5TTS(BaseTTS):
                 inference_timesteps_input=10,
                 do_normalize=True,
                 denoise=True,
+
                 api_name='/generate'
             )
         except Exception as e:
             raise
-        print(f'voxcpm-tts {result=}')
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:

@@ -21,10 +21,11 @@ def openwin():
         config.params["volcenginetts_access"] = access
         config.params["volcenginetts_cluster"] = cluster
         from videotrans import tts
+        import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": "通用男声",
-            "filename": config.TEMP_HOME + f"/test-volcenginetts.wav",
+            "filename": config.TEMP_HOME + f"/{time.time()}-volcenginetts.wav",
             "tts_type": tts.VOLCENGINE_TTS}],
                          language="zh",
                          tts_type=tts.VOLCENGINE_TTS)

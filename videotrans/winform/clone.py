@@ -21,10 +21,11 @@ def openwin():
         config.params['clone_api'] = url
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         from videotrans import tts
+        import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": config.params["clone_voicelist"][1] if len(config.params["clone_voicelist"]) > 1 else '',
-            "filename": config.TEMP_HOME + f"/test-clonevoice.wav",
+            "filename": config.TEMP_HOME + f"/{time.time()}-clonevoice.wav",
             "tts_type": tts.CLONE_VOICE_TTS}],
                          language="zh",
                          tts_type=tts.CLONE_VOICE_TTS)

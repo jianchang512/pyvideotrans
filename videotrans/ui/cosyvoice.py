@@ -23,9 +23,9 @@ class Ui_cosyvoiceform(object):
 
         # 创建一个垂直布局
         v1 = QtWidgets.QVBoxLayout(cosyvoiceform)
-
+        v1.addWidget(QLabel('使用该接口需启动 CosyVoice 官方项目的webui.py'))
         h1 = QtWidgets.QHBoxLayout()
-        self.label = QLabel(cosyvoiceform)
+        self.label = QLabel()
         self.label.setObjectName("label")
         self.label.setMinimumSize(QSize(0, 35))
         self.api_url = QLineEdit(cosyvoiceform)
@@ -37,7 +37,7 @@ class Ui_cosyvoiceform(object):
 
         self.label_4 = QLabel(cosyvoiceform)
         self.label_4.setObjectName("label_4")
-        self.label_4.setText('参考音频#音频文字内容')
+        self.label_4.setText('参考音频#音频文字内容【参考音频时长不得大于10s，否则出错】')
         v1.addWidget(self.label_4)
 
         self.role = QPlainTextEdit(cosyvoiceform)
@@ -46,16 +46,6 @@ class Ui_cosyvoiceform(object):
         self.role.setReadOnly(False)
         v1.addWidget(self.role)
 
-        self.label_5 = QLabel(cosyvoiceform)
-        self.label_5.setObjectName("label_5")
-        self.label_5.setText('API请求说明')
-        v1.addWidget(self.label_5)
-
-        self.tips = QPlainTextEdit(cosyvoiceform)
-        self.tips.setObjectName("tips")
-        self.tips.setMaximumHeight(150)
-        self.tips.setReadOnly(True)
-        v1.addWidget(self.tips)
 
         h2 = QtWidgets.QHBoxLayout()
         self.save = QPushButton(cosyvoiceform)
@@ -88,54 +78,25 @@ class Ui_cosyvoiceform(object):
 
     def retranslateUi(self, cosyvoiceform):
         tips = """
-# 需要预先部署CosyVoice官方项目，并放入了CosyVoice-api项目中的api.py
-# CosyVoice-api项目地址 https://github.com/jianchang512/CosyVoice-api
+# 需要预先部署CosyVoice官方项目,然后启动 webui.py
 # CosyVoice项目地址 https://github.com/FunAudioLLM/CosyVoice
-
-将以POST请求向填写的API地址发送数据：
-CosyVoice-api项目的api接口默认 http://127.0.0.1:9233
 
 参考音频填写：
 每行都由#符号分割为两部分，第一部分是wav音频路径，第二部分是该音频对应的文字内容，可填写多行。
-wav音频最佳时长3-10s，如果音频放在了CosyVoice项目的根路径下，即webui.py同目录下，这里直接填写名称即可
-如果放在了根目录下的wavs目录下，那么需要填写 wavs/音频名称.wav
+wav音频最佳时长3-10s，音频必须存放在本软件目录下的 f5-tts 文件夹内，然后在此填写文件名称
 
 参考音频填写示例：
 1.wav#你好啊亲爱的朋友
-wavs/2.wav#你好啊朋友们
+2.wav#你好啊朋友们
 
 
-# 本工具将向填写的API地址发送以下参数
-
-##当角色为clone时：
-text:需要合成的文本/字符串
-lang:文字所属语言代码(zh|ja|en|ko)/字符串
-reference_audio:原视频对应的语音片段
-
-##当角色为预置7种语音时：
-text:需要合成的文本/字符串
-lang:文字所属语言代码(zh|ja|en|ko)/字符串
-role:角色名称
-
-##当角色为自定义的参考音频时
-text:需要合成的文本/字符串
-lang:文字所属语言代码(zh|ja|en|ko)/字符串
-reference_audio:定义的参考音频
-
-
-请求失败时返回：
-{
-    "code": 400, 错误数
-    "msg": "错误信息"
-}            
-请求成功时返回音频流
 """
 
         cosyvoiceform.setWindowTitle("CosyVoice API")
 
-        self.role.setPlaceholderText("在此填写参考音频信息,可以不填写，格式如下\n例如：一行一组\n123.wav#你好啊我的朋友")
-        self.tips.setPlainText(tips)
+        self.role.setPlaceholderText(tips)
+
         self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
-        self.api_url.setPlaceholderText("填写http开头的完整地址,CosyVoice-api默认 http://127.0.0.1:9233")
+        self.api_url.setPlaceholderText("填写CosyVoice的webui.py启动后的地址，默认  http://127.0.0.1:8000")
         self.label.setText("CosyVoice API")
         self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")

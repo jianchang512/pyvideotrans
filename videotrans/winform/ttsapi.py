@@ -28,10 +28,11 @@ def openwin():
         config.params["ttsapi_voice_role"] = role
         winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         from videotrans import tts
+        import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": winobj.voice_role.toPlainText().strip().split(',')[0].strip(),
-            "filename": config.TEMP_HOME + f"/test-ttsapi.wav",
+            "filename": config.TEMP_HOME + f"/{time.time()}-ttsapi.wav",
             "tts_type": tts.TTS_API}],
                          language="zh",
                          tts_type=tts.TTS_API)

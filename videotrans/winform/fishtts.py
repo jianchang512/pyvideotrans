@@ -21,10 +21,11 @@ def openwin():
         config.params["fishtts_url"] = url
         winobj.test.setText('测试中请稍等...')
         from videotrans import tts
+        import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": getrole(),
-            "filename": config.TEMP_HOME + f"/test-fishtts.wav",
+            "filename": config.TEMP_HOME + f"/{time.time()}-fishtts.wav",
             "tts_type": tts.FISHTTS}],
                          language="zh",
                          tts_type=tts.FISHTTS)

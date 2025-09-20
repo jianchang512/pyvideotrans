@@ -23,10 +23,11 @@ def openwin():
         config.getset_params(config.params)
         winobj.test_qwentts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         from videotrans import tts
+        import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": winobj.edit_roles.toPlainText().strip().split(',')[0],
-            "filename": config.TEMP_HOME + f"/test-qwen.wav",
+            "filename": config.TEMP_HOME + f"/{time.time()}-qwen.wav",
             "tts_type": tts.QWEN_TTS}],
                          language="zh",
                          tts_type=tts.QWEN_TTS)

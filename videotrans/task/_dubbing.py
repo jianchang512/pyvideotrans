@@ -164,7 +164,7 @@ class DubbingSrt(BaseTask):
 
             # 要保存到的文件
             filename_md5 = tools.get_md5(
-                f"{self.cfg['tts_type']}-{it['start_time']}-{it['end_time']}-{voice_role}-{rate}-{self.cfg['volume']}-{self.cfg['pitch']}-{len(it['text'])}-{i}")
+                f"{self.cfg['tts_type']}-{voice_role}-{rate}-{self.cfg['volume']}-{self.cfg['pitch']}-{it['text']}")
             tmp_dict = {
                 "line": it['line'],
                 "text": it['text'],

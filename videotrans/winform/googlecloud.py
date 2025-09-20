@@ -150,9 +150,10 @@ def openwin():
                 return
 
             try:
+                import time
                 tts = GoogleCloudTTS()
                 # cria um arquivo temporário simples
-                tmp = "test_gcloud.wav"
+                tmp = f"{time.time()}test_gcloud.wav"
                 tts._item_task({"filename": tmp, "text": "This is a test."})
                 QMessageBox.information(self, "Teste OK", f"Áudio gerado com sucesso: {tmp}")
             except Exception as e:
