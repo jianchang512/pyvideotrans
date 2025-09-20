@@ -36,6 +36,7 @@ flask
 waitress
 edge-tts
 srt
+setuptools<81
 deepgram-sdk
 deepgram-captions
 funasr

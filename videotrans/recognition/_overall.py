@@ -130,10 +130,10 @@ class FasterAll(BaseRecogn):
                     pass
         except (KeyError,IndexError,NameError) as e:
             config.logger.exception(f'{e}', exc_info=True)
-            self.error = f"{e}"
+            self.error = e
         except Exception as e:
             config.logger.exception(f'{e}', exc_info=True)
-            self.error = f"{e}"
+            self.error = e
         finally:
             config.model_process = None
             self.has_done = True
@@ -141,4 +141,6 @@ class FasterAll(BaseRecogn):
         if not self.error and len(self.raws) > 0:
             return self.raws
 
-        raise RuntimeError(self.error if self.error else (f"没有识别到任何说话声,请确认所选音视频中是否包含人类说话声，以及说话语言是否同所选一致 {',请尝试取消选中CUDA加速后重试' if self.is_cuda else ''}" if config.defaulelang == 'zh' else "No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one."))
+        if self.error:
+            raise self.error if isinstance(self.error,Exception) else RuntimeError(self.error)
+        raise RuntimeError(f"没有识别到任何说话声,请确认所选音视频中是否包含人类说话声，以及说话语言是否同所选一致 {',请尝试取消选中CUDA加速后重试' if self.is_cuda else ''}" if config.defaulelang == 'zh' else "No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.")

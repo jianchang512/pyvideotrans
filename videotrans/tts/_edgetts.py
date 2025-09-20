@@ -50,6 +50,8 @@ class EdgeTTS(BaseTTS):
         async with semaphore:
             # 增加请求前的延时，防止请求过于频繁
             # 使用 await asyncio.sleep() 避免阻塞事件循环
+            if self._exit():
+                return
             if self.wait_sec > 0:
                 await asyncio.sleep(self.wait_sec)
 
@@ -58,6 +60,8 @@ class EdgeTTS(BaseTTS):
                 f"[Edge-TTS]配音 [{index + 1}/{total_tasks}]: {self.rate=},{self.volume=},{self.pitch=}, {item['text']}")
 
             for attempt in range(RETRY_NUMS):
+                if self._exit():
+                    return
                 try:
                     communicate = Communicate(
                         item['text'],
@@ -67,7 +71,12 @@ class EdgeTTS(BaseTTS):
                         proxy=self.proxies,
                         pitch=self.pitch
                     )
+                    if self._exit():
+                        return
                     await communicate.save(item['filename'] + ".mp3")
+                    if self._exit():
+                        return
+                    await asyncio.sleep(0.1)
                     self.convert_to_wav(item['filename'] + ".mp3", item['filename'])
 
                     # 成功后，更新进度并立即返回
@@ -81,17 +90,18 @@ class EdgeTTS(BaseTTS):
                     self._signal(text=f'{config.transobj["kaishipeiyin"]} [{index + 1}/{total_tasks}]')
                     config.logger.info(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 成功.")
                     return  # 成功，退出函数
-
                 except (NoAudioReceived, aiohttp.ClientError) as e:
+                    if self._exit():
+                        return
                     config.logger.warning(
-                        f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 第 {attempt + 1}/{RETRY_NUMS} 次尝试失败: {e}. "
-                        f"{RETRY_DELAY} 秒后重试..."
+                        f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 第 {attempt + 1}/{RETRY_NUMS} 次尝试失败: {e}. {RETRY_DELAY} 秒后重试..."
                     )
-                    config.logger.error(f"[Edge-TTS]配音 [{index + 1}/{total_tasks}] 在 {RETRY_NUMS} 次尝试后最终失败。")
                     self.error = e
                     self._signal(text=f"{item.get('line', '')} retry {attempt} ")
                     await asyncio.sleep(RETRY_DELAY)
                 except Exception as e:
+                    if self._exit():
+                        return
                     # 捕获其他未知异常
                     config.logger.exception(e, exc_info=True)
                     self.error = e
@@ -128,7 +138,8 @@ class EdgeTTS(BaseTTS):
             for task in tasks:
                 if not task.done():
                     task.cancel()
-
+        finally:
+            await asyncio.sleep(0.1)
 
     # 执行入口，外部会调用该方法
     async def _exec(self) -> None:

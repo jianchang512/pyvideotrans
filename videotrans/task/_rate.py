@@ -1,3 +1,4 @@
+import errno
 import json
 import os
 import shutil
@@ -443,21 +444,22 @@ class SpeedRate:
                 cmd.extend(['-filter:a', filter_str, '-t', f'{target_duration_sec:.4f}'])
 
                 # [修正] 确保输出是标准化的WAV
-                cmd.extend(['-ar', str(self.AUDIO_SAMPLE_RATE), '-ac', str(self.AUDIO_CHANNELS), '-c:a', 'pcm_s16le',
-                            temp_output_file])
+                cmd.extend(['-ar', str(self.AUDIO_SAMPLE_RATE), '-ac', str(self.AUDIO_CHANNELS), '-c:a', 'pcm_s16le',  temp_output_file])
 
                 try:
                     if tools.runffmpeg(cmd, force_cpu=True):
-                        shutil.move(temp_output_file, input_file)
                         it['dubb_time'] = self._get_audio_time_ms(input_file, line=it['line'])
                         config.logger.info(f"字幕[{it['line']}] 音频变速成功，新时长: {it['dubb_time']}ms")
+                        shutil.move(temp_output_file, input_file)
                     else:
-                        raise RuntimeError("ffmpeg command failed")
+                        config.logger.error(f"字幕[{it['line']}] 音频变速失败")
                 except Exception as e:
                     config.logger.error(f"字幕[{it['line']}]：FFmpeg音频加速失败 {it['filename']}: {e}")
-                    if Path(temp_output_file).exists():
-                        os.remove(temp_output_file)
-
+                    try:
+                        if Path(temp_output_file).exists():
+                            os.remove(temp_output_file)
+                    except:
+                        pass
     def _execute_video_processing(self):
         """
         [修正] 视频处理阶段
@@ -796,31 +798,31 @@ class SpeedRate:
             self._ffmpeg_concat_audio(audio_concat_list, self.target_audio)
 
             if not tools.vail_file(self.target_audio):
-                raise RuntimeError(f"音频拼接失败，最终文件未生成: {self.target_audio}")
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT),self.target_audio)
 
             if self.novoice_mp4 and tools.vail_file(self.novoice_mp4):
                 config.logger.info("开始最终音视频时长对齐检查...")
                 video_duration_ms = self._get_video_duration_safe(self.novoice_mp4)
                 if video_duration_ms == 0:
-                    raise RuntimeError(f'视频时长为0，无法对齐: {self.novoice_mp4}')
+                    raise ValueError(f'Target video duration is 0: {self.novoice_mp4}')
 
                 audio_duration_ms = self._get_audio_time_ms(self.target_audio)
                 if audio_duration_ms == 0:
-                    raise RuntimeError(f'拼接后音频时长为0，无法对齐: {self.target_audio}')
+                    raise ValueError(f'Target dubb audio duration is 0: {self.target_audio}')
 
                 config.logger.info(f"最终检查: 视频物理总长 = {video_duration_ms}ms, 音频物理总长 = {audio_duration_ms}ms")
                 duration_diff = video_duration_ms - audio_duration_ms
                 config.logger.info(f"时长差异 (视频 - 音频) = {duration_diff}ms")
 
-                TOLERANCE_MS = 250
 
-                if duration_diff > TOLERANCE_MS:
+                if duration_diff> 0:
                     config.logger.warning(f"视频比音频长 {duration_diff}ms，将通过FFmpeg apad滤镜在音频末尾补齐等长静音。")
 
                     # [核心修正] 使用FFmpeg apad滤镜高效添加静音，而不是pydub
                     padded_audio_path = Path(
                         f'{self.cache_folder}/padded_audio{Path(self.target_audio).suffix}').as_posix()
                     pad_dur_sec = duration_diff / 1000.0
+                    pad_dur_sec=max(0.1,pad_dur_sec)
 
                     cmd = ['-y', '-i', str(self.target_audio), '-af', f'apad=pad_dur={pad_dur_sec:.4f}']
 
@@ -841,8 +843,9 @@ class SpeedRate:
                         config.logger.error("使用apad滤镜填充静音失败！")
 
 
-                elif duration_diff < -TOLERANCE_MS:
+                elif duration_diff < 0:
                     freeze_duration_sec = abs(duration_diff) / 1000.0
+                    freeze_duration_sec=max(0.1,freeze_duration_sec)
                     config.logger.warning(f"音频比视频长 {abs(duration_diff)}ms，将定格视频最后一帧 {freeze_duration_sec:.3f} 秒以对齐。")
 
                     final_video_path = Path(f'{self.cache_folder}/final_video_with_freeze.mp4').as_posix()
@@ -858,8 +861,6 @@ class SpeedRate:
                         config.logger.info("视频定格延长操作成功。")
                     else:
                         config.logger.error("视频定格延长操作失败！音视频可能存在时长不一致。")
-                else:
-                    config.logger.info("音视频时长差异在容忍范围内，无需额外对齐处理。")
 
             if Path(self.target_audio).exists():
                 try:
@@ -872,7 +873,7 @@ class SpeedRate:
 
         except Exception as e:
             config.logger.exception(f"导出或对齐最终音视频时发生致命错误: {e}")
-            raise RuntimeError(f"导出或对齐最终音视频时发生致命错误: {e}")
+            raise
 
         config.logger.info("所有处理完成，音视频已成功生成。")
 
@@ -909,7 +910,7 @@ class SpeedRate:
             config.logger.info(f"混合拼接步骤1: 创建包含 {len(file_list)} 个文件的拼接列表。{concat_txt_path=}")
             tools.create_concat_txt(file_list, concat_txt=concat_txt_path)
             if not Path(concat_txt_path).exists():
-                raise RuntimeError(f"No {concat_txt_path}")
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT),concat_txt_path)
 
             cmd_step1 = [
                 "-y",

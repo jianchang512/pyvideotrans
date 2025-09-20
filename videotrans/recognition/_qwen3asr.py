@@ -68,6 +68,7 @@ class Qwen3ASRRecogn(BaseRecogn):
     def cut_audio(self):
 
         sampling_rate = 16000
+
         from faster_whisper.audio import decode_audio
         from faster_whisper.vad import (
             VadOptions,

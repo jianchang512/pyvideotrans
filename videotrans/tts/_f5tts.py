@@ -174,25 +174,23 @@ class F5TTS(BaseTTS):
             client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
         except Exception as e:
             raise StopRetry(str(e))
-        
+        print(f"{config.params.get('index_tts_version',1)=}")
         try:
-            result = client.predict(
-                prompt=handle_file(data['ref_wav']),
-                emo_ref_path=handle_file(data['ref_wav']),
-                text=text,
-                api_name='/gen_single'
-            )
-        except Exception as e:
-            if "Parameter emo_ref_path is not a valid" not in str(e):
-                raise
-            try:
+            if int(config.params.get('index_tts_version',1))==1:
+                result = client.predict(
+                    prompt=handle_file(data['ref_wav']),
+                    emo_ref_path=handle_file(data['ref_wav']),
+                    text=text,
+                    api_name='/gen_single'
+                )
+            else:
                 result = client.predict(
                         prompt=handle_file(data['ref_wav']),
                         text=text,
                         api_name='/gen_single'
                 )
-            except Exception as e:
-                raise
+        except Exception as e:
+            raise
                 
         config.logger.info(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -207,6 +205,61 @@ class F5TTS(BaseTTS):
 
         self.has_done += 1
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+
+    def _item_task_voxcpm(self, data_item: Union[Dict, List, None]):
+
+        speed = 1.0
+        try:
+            speed = 1 + float(self.rate.replace('%', '')) / 100
+        except:
+            pass
+
+        text = data_item['text'].strip()
+        role = data_item['role']
+        data = {'ref_wav': ''}
+
+        if role == 'clone':
+            data['ref_wav'] = data_item['ref_wav']
+        else:
+            roledict = tools.get_f5tts_role()
+            if role in roledict:
+                data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
+
+        if not Path(data['ref_wav']).exists():
+            raise StopRetry(f'{role} 角色不存在')
+        config.logger.info(f'voxcpm-tts {data=}')
+        try:
+            client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
+        except Exception as e:
+            raise StopRetry(str(e))
+        try:
+            result = client.predict(
+                text_input=text,
+                prompt_wav_path_input=handle_file(data['ref_wav']),
+                prompt_text_input=data.get('ref_text',''),
+                cfg_value_input=2,
+                inference_timesteps_input=10,
+                do_normalize=True,
+                denoise=True,
+                api_name='/generate'
+            )
+        except Exception as e:
+            raise
+        print(f'voxcpm-tts {result=}')
+        config.logger.info(f'result={result}')
+        wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
+        if isinstance(wav_file, dict) and "value" in wav_file:
+            wav_file = wav_file['value']
+        if isinstance(wav_file, str) and Path(wav_file).is_file():
+            self.convert_to_wav(wav_file, data_item['filename'])
+        else:
+            raise RuntimeError(str(result))
+        if self.inst and self.inst.precent < 80:
+            self.inst.precent += 0.1
+
+        self.has_done += 1
+        self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+
 
     def _item_task_dia(self, data_item: Union[Dict, List, None]):
         
@@ -274,6 +327,8 @@ class F5TTS(BaseTTS):
                 self._item_task_spark(data_item)
             elif ttstype == 'Index-TTS':
                 self._item_task_index(data_item)
+            elif ttstype == 'VoxCPM-TTS':
+                self._item_task_voxcpm(data_item)
             elif ttstype == 'Dia-TTS':
                 self._item_task_dia(data_item)
             else:

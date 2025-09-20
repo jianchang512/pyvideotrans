@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -50,19 +50,18 @@ class CloneVoice(BaseTTS):
 
             data = {"text": data_item['text'], "language": self.language}
             role = data_item['role']
+            if role=='clone' and not Path(data_item['ref_wav']).exists():
+                raise StopRetry(f'不存在参考音频，无法使用clone功能' if config.defaulelang == 'zh' else 'No reference audio exists and cannot use clone function')
             if role != 'clone':
                 # 不是克隆，使用已有声音
                 data['voice'] = role
-                files = None
-            else:
-                if not Path(data_item['ref_wav']).exists():
-                    msg = f'不存在参考音频，无法使用clone功能' if config.defaulelang == 'zh' else 'No reference audio exists and cannot use clone function'
-                    raise RuntimeError(msg)
-                with open(data_item['ref_wav'], 'rb') as f:
-                    chunk = f.read()
-                files = {"audio": chunk}
-            res = requests.post(f"{self.api_url}/apitts", data=data, files=files, proxies=self.proxies,
+                res = requests.post(f"{self.api_url}/apitts", data=data, proxies=self.proxies,
                                 timeout=3600)
+            else:
+                with open(data_item['ref_wav'], 'rb') as f:
+                    files = {"audio": f}
+                    res = requests.post(f"{self.api_url}/apitts", data=data, files=files, proxies=self.proxies,  timeout=3600)
+
             res.raise_for_status()
             config.logger.info(f'clone-voice:{data=},{res.text=}')
             res = res.json()

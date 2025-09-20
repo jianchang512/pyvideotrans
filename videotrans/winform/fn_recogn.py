@@ -276,7 +276,8 @@ def openwin():
         if recogn_type not in [recognition.FASTER_WHISPER,
                                recognition.Faster_Whisper_XXL,
                                recognition.OPENAI_WHISPER,
-                               recognition.FUNASR_CN
+                               recognition.FUNASR_CN,
+                               recognition.Deepgram
                                ]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
             winobj.rephrase.setDisabled(True)

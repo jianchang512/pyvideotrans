@@ -27,9 +27,9 @@ class Ui_f5ttsform(object):
         v1.addWidget(label0)
         self.ttstype = QtWidgets.QComboBox(f5ttsform)
         self.ttstype.setMinimumSize(QtCore.QSize(100, 30))
-        self.ttstype.addItems(['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS'])
+        self.ttstype.addItems(['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS','VoxCPM-TTS'])
         self.ttstype.setToolTip(
-            '选择使用的TTS服务，支持F5-TTS/Spart-TTS/index-TTS 的官方webui服务' if config.defaulelang == 'zh' else 'Select the TTS service to use, support the official webui service of F5-TTS/Spart-TTS/index-TTS/Dia-TTS')
+            '选择使用的TTS服务，支持 F5/Spark/index/Dia/VoxCPM 的官方webui服务' if config.defaulelang == 'zh' else 'Select the TTS service to use, support the official webui service of F5/Spark/index/Dia/VoxCPM')
 
         self.label = QLabel(f5ttsform)
         self.label.setObjectName("label")
@@ -42,7 +42,25 @@ class Ui_f5ttsform(object):
         h1.addWidget(self.ttstype)
         h1.addWidget(self.label)
         h1.addWidget(self.api_url)
+
+        htips = QtWidgets.QHBoxLayout()
+        self.is_whisper = QtWidgets.QCheckBox()
+        self.is_whisper.setText("针对F5-TTS重新识别?" if config.defaulelang=='zh' else 'Re-recognize for F5-TTS?')
+        self.is_whisper.setToolTip("如果选中，则F5-TTS会对参考音频再次使用whisper-v3识别，较慢" if config.defaulelang=='zh' else 'If selected, F5-TTS will re-use Whisper-v3 for the reference audio, which is slower.')
+        self.index_tts_version = QtWidgets.QComboBox()
+        self.index_tts_version.addItems([' V1 ',' V2 '])
+        self.index_tts_version.setToolTip('当使用Index-TTS时，请选择是v1 还是v2版本' if config.defaulelang=='zh' else 'When using Index-TTS, select v1 or v2.')
+        self.index_tts_version.setStyleSheet("""margin-right:15px""")
+        indexttsversion=QtWidgets.QLabel("Index-tts版本?" if config.defaulelang=='zh' else 'IndexTTS version?')
+
+        htips.addWidget(indexttsversion)
+        htips.addWidget(self.index_tts_version)
+        htips.addWidget(self.is_whisper)
+        htips.addStretch()
+
+
         v1.addLayout(h1)
+        v1.addLayout(htips)
 
         self.label_4 = QLabel(f5ttsform)
         self.label_4.setObjectName("label_4")
@@ -87,11 +105,7 @@ class Ui_f5ttsform(object):
         help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/f5tts'))
 
-        self.is_whisper = QtWidgets.QCheckBox()
-        self.is_whisper.setText("针对F5-TTS重新识别?")
-        self.is_whisper.setToolTip("如果选中，则F5-TTS会对参考音频再次使用whisper-v3识别，较慢")
 
-        h2.addWidget(self.is_whisper)
         h2.addWidget(self.save)
         h2.addWidget(self.test)
         h2.addWidget(help_btn)
@@ -105,9 +119,9 @@ class Ui_f5ttsform(object):
 
     def retranslateUi(self, f5ttsform):
         tips = """
-从本软件 v3.68 版本起，只支持使用官方的webui(F5-TTS/Spart-TTS/index-TTS/Dia-TTS)，不再支持三方整合包和api
+从本软件 v3.68 版本起，只支持使用官方的webui(F5-TTS/Spart-TTS/index-TTS/Dia-TTS/VoxCPM)，不再支持三方整合包和api
 """ if config.defaulelang == 'zh' else """
-Starting from version 3.68 of this software, only the official webui is supported (F5-TTS/Spart-TTS/index-TTS/Dia-TTS), and third-party integration packages and APIs are no longer supported.
+Starting from version 3.68 of this software, only the official webui is supported (F5-TTS/Spart-TTS/index-TTS/Dia-TTS/VoxCPM), and third-party integration packages and APIs are no longer supported.
 """
 
         f5ttsform.setWindowTitle("F5-TTS/Spart-TTS/index-TTS/Dia-TTS")

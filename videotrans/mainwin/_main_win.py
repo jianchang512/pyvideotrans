@@ -43,8 +43,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._retranslateUi_from_logic()
         self.show()
-        QTimer.singleShot(50, self._set_cache_set)
-        QTimer.singleShot(100, self._start_subform)
+        QTimer.singleShot(0, self._set_cache_set)
+        QTimer.singleShot(0, self._start_subform)
         QTimer.singleShot(400, self._bindsignal)
         QTimer.singleShot(800, self.is_writable)
 
@@ -120,7 +120,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.back_audio.setPlaceholderText(config.uilanglist.get("back_audio_place"))
         self.back_audio.setToolTip(config.uilanglist.get("back_audio_place"))
         self.stop_djs.setText(config.uilanglist.get("Pause"))
-        self.import_sub.setText(config.uilanglist.get("Import srt"))
+        # 翻译为英文
+        self.import_sub.setText('导入原始语言字幕' if config.defaulelang == 'zh' else 'Import original language SRT')
 
         self.menu_Key.setTitle(config.uilanglist.get("&Setting"))
         self.menu_TTS.setTitle(config.uilanglist.get("&TTSsetting"))
@@ -284,7 +285,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if config.params['tts_type'] == tts.CLONE_VOICE_TTS:
             self.voice_role.addItems(config.params["clone_voicelist"])
-            threading.Thread(target=tools.get_clone_role).start()
+            from PySide6.QtCore import QThreadPool
+            QThreadPool.globalInstance().start(tools.get_clone_role)
         elif config.params['tts_type'] == tts.CHATTTS:
             self.voice_role.addItems(['No'] + list(config.ChatTTS_voicelist))
         elif config.params['tts_type'] == tts.TTS_API:
@@ -582,7 +584,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     os.remove(temp_file_path)
                 except OSError as e:
                     pass
-        threading.Thread(target=tools.get_video_codec, args=(True,)).start()
+        from PySide6.QtCore import QThreadPool
+        QThreadPool.globalInstance().start(lambda: tools.get_video_codec(True))
+
 
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""

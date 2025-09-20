@@ -171,7 +171,6 @@ class TransCreate(BaseTask):
 
         # 如果存在字幕文本，则视为原始语言字幕，不再识别
         if "subtitles" in self.cfg and self.cfg['subtitles'].strip():
-            # 如果不存在目标语言，则视为原始语言字幕
             sub_file = self.cfg['source_sub']
             with open(sub_file, 'w', encoding="utf-8", errors="ignore") as f:
                 txt = re.sub(r':\d+\.\d+', lambda m: m.group().replace('.', ','),

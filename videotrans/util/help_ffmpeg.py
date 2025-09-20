@@ -365,7 +365,7 @@ def get_video_codec(force_test: bool = False) -> str:
         test_input_file = Path(config.ROOT_DIR) / "videotrans/styles/no-remove.mp4"
         temp_dir = Path(config.TEMP_DIR)
     except Exception as e:
-        config.logger.error(f"从配置构建路径时出错: {e}。将回退到 {default_codec}。")
+        config.logger.error(f"准备测试硬件编码器时出错: {e}。将使用软件编码 {default_codec}。")
         _codec_cache[cache_key] = default_codec
         return default_codec
 
@@ -379,29 +379,26 @@ def get_video_codec(force_test: bool = False) -> str:
         ]
         creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
 
-        config.logger.info(f"正在尝试测试编码器: {encoder_to_test}...")
+        config.logger.info(f"正在测试编码器是否可用: {encoder_to_test}...")
         success = False
         try:
             process = subprocess.run(
                 command, check=True, capture_output=True, text=True,
                 encoding='utf-8', errors='ignore', creationflags=creationflags, timeout=timeout
             )
-            config.logger.info(f"成功: 编码器 '{encoder_to_test}' 测试通过。")
+            config.logger.info(f"硬件编码器 '{encoder_to_test}' 可用。")
             success = True
         except FileNotFoundError:
             config.logger.error("'ffmpeg' 命令在 PATH 中未找到。无法进行编码器测试。")
             raise  # 重新抛出异常，让上层逻辑捕获并终止测试
         except subprocess.CalledProcessError as e:
-            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试失败。FFmpeg 返回码: {e.returncode}")
-            # 只在有 stderr 时记录，避免日志混乱
-            # if e.stderr and e.stderr.strip():
-            #    config.logger.warning(f"FFmpeg stderr:\n{e.stderr.strip()}")
+            config.logger.warning(f"硬件编码器 '{encoder_to_test}' 不可用")
         except PermissionError:
-            config.logger.error(f"失败: 写入 {output_file} 时权限被拒绝。 {command=}")
+            config.logger.warning(f"测试硬件编码器时失败:写入 {output_file} 时权限被拒绝。 {command=}")
         except subprocess.TimeoutExpired:
-            config.logger.warning(f"失败: 编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。{command=}")
+            config.logger.warning(f"硬件编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。{command=}")
         except Exception as e:
-            config.logger.error(f"失败: 测试编码器 {encoder_to_test} 时发生意外错误: {e} {command=}", exc_info=True)
+            config.logger.warning(f"测试硬件编码器 {encoder_to_test} 时发生意外错误: {e} {command=}", exc_info=True)
         finally:
             try:
                 if output_file.exists():
@@ -419,35 +416,32 @@ def get_video_codec(force_test: bool = False) -> str:
         config.logger.info(f"平台: {plat}。正在按优先级检测最佳的 '{h_prefix}' 编码器: {encoders_to_test}")
         try:
             for encoder_suffix in encoders_to_test:
-                # --- 优化点 3: 简化的 nvenc 预检查 ---
                 if encoder_suffix == 'nvenc':
                     try:
                         import torch
                         if not torch.cuda.is_available():
-                            config.logger.info("PyTorch 报告 CUDA 不可用，跳过 nvenc 测试。")
+                            config.logger.info("CUDA 不可用，跳过 nvenc 测试。")
                             continue  # 跳过当前循环，测试下一个编码器
                     except ImportError:
-                        # torch 未安装是正常情况，继续尝试测试 nvenc
                         config.logger.info("未找到 torch 模块，将直接尝试 nvenc 测试。")
 
                 full_encoder_name = f"{h_prefix}_{encoder_suffix}"
                 if test_encoder_internal(full_encoder_name):
                     selected_codec = full_encoder_name
                     config.logger.info(f"已选择硬件编码器: {selected_codec}")
-                    break  # 找到第一个可用的，立即停止测试
+                    break
             else:  # for-else 循环正常结束 (没有 break)
-                config.logger.info(f"所有硬件加速器测试均失败。将使用软件编码器: {selected_codec}")
+                config.logger.info(f"所有硬件加速器均未通过测试。将使用软件编码器: {selected_codec}")
 
         except FileNotFoundError:
             config.logger.error(f"由于 'ffmpeg' 未找到，所有硬件加速测试已中止。")
             selected_codec = default_codec  # 确保回退
         except Exception as e:
-            config.logger.error(f"在编码器测试期间发生意外错误: {e}", exc_info=True)
+            config.logger.error(f"在编码器测试期间发生意外错误，将软件编码: {e}", exc_info=True)
             selected_codec = default_codec
 
-    # --- 最终结果 ---
     _codec_cache[cache_key] = selected_codec
-    config.logger.info(f"最终确定的编码器: {selected_codec}")
+    config.logger.info(f"最终确定使用的编码器: {selected_codec}")
     return selected_codec
 
 

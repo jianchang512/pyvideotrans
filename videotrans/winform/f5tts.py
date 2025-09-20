@@ -16,6 +16,7 @@ def openwin():
 
     def test():
         url = winobj.api_url.text().strip()
+        index_tts_version = winobj.index_tts_version.currentIndex()
         if tools.check_local_api(url) is not True:
             return
         if not url.startswith('http'):
@@ -32,6 +33,7 @@ def openwin():
         config.params["f5tts_is_whisper"] = is_whisper
         config.params["f5tts_url"] = url
         config.params["f5tts_role"] = role
+        config.params["index_tts_version"] = index_tts_version
         config.params["f5tts_ttstype"] = winobj.ttstype.currentText()
         config.getset_params(config.params)
 
@@ -66,6 +68,7 @@ def openwin():
 
     def save():
         url = winobj.api_url.text().strip()
+        index_tts_version = winobj.index_tts_version.currentIndex()
         if tools.check_local_api(url) is not True:
             return
         if not url.startswith('http'):
@@ -76,6 +79,7 @@ def openwin():
         config.params["f5tts_url"] = url
         config.params["f5tts_role"] = role
         config.params["f5tts_is_whisper"] = is_whisper
+        config.params["index_tts_version"] = index_tts_version
         config.params["f5tts_ttstype"] = winobj.ttstype.currentText()
 
         config.getset_params(config.params)
@@ -100,6 +104,8 @@ def openwin():
         winobj.is_whisper.setChecked(bool(config.params.get("f5tts_is_whisper")))
     if config.params["f5tts_ttstype"]:
         winobj.ttstype.setCurrentText(config.params["f5tts_ttstype"])
+    if config.params["index_tts_version"]:
+        winobj.index_tts_version.setCurrentIndex(int(config.params['index_tts_version']))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

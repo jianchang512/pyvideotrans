@@ -35,7 +35,7 @@ TTS_NAME_LIST = [
     "Google TTS",
     "自定义TTSAPI" if config.defaulelang == 'zh' else 'Customize API',
     "字节火山语音合成" if config.defaulelang == 'zh' else 'VolcEngine TTS',
-    "F5/Index/Spark/Dia TTS" if config.defaulelang == 'zh' else 'f5/index/spark/dia-TTS',
+    "F5/Index/Spark/Dia/VoxCPM",
     "kokoro-TTS(本地)" if config.defaulelang == 'zh' else 'kokoro-TTS',
     "Google Cloud TTS",
     "Gemini TTS",

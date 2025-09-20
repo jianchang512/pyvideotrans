@@ -128,6 +128,8 @@ class BaseTTS(BaseCon):
                 self._exec()
         except RetryError as e:
             raise e.last_attempt.exception()
+        except RuntimeError as e:
+            print('edge-tts loop is quit')
         except Exception:
             raise
         finally:

@@ -102,7 +102,10 @@ def initialize_full_app(start_window, app_instance):
     import videotrans.ui.dark.darkstyle_rc 
     with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
         app_instance.setStyleSheet(f.read())
-    
+    import urllib3
+    # 禁用 InsecureRequestWarning 警告
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
     from videotrans.mainwin._main_win import MainWindow
     
     main_window_created = False

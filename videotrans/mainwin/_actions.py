@@ -371,7 +371,8 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params["clone_voicelist"]
             self.main.voice_role.addItems(self.main.current_rolelist)
-            threading.Thread(target=tools.get_clone_role).start()
+            from PySide6.QtCore import QThreadPool
+            QThreadPool.globalInstance().start(tools.get_clone_role)
         elif type == tts.CHATTTS:
             self.main.voice_role.clear()
             config.ChatTTS_voicelist = re.split(r'[,，]', config.settings['chattts_voice'])
