@@ -23,7 +23,7 @@ class Ui_cosyvoiceform(object):
 
         # 创建一个垂直布局
         v1 = QtWidgets.QVBoxLayout(cosyvoiceform)
-        v1.addWidget(QLabel('使用该接口需启动 CosyVoice 官方项目的webui.py'))
+        v1.addWidget(QLabel('使用该接口需启动 CosyVoice2 官方项目的webui.py'))
         h1 = QtWidgets.QHBoxLayout()
         self.label = QLabel()
         self.label.setObjectName("label")
@@ -78,7 +78,7 @@ class Ui_cosyvoiceform(object):
 
     def retranslateUi(self, cosyvoiceform):
         tips = """
-# 需要预先部署CosyVoice官方项目,然后启动 webui.py
+# 需要预先部署CosyVoice2官方项目,然后启动 webui.py
 # CosyVoice项目地址 https://github.com/FunAudioLLM/CosyVoice
 
 参考音频填写：
@@ -92,7 +92,7 @@ wav音频最佳时长3-10s，音频必须存放在本软件目录下的 f5-tts �
 
 """
 
-        cosyvoiceform.setWindowTitle("CosyVoice API")
+        cosyvoiceform.setWindowTitle("CosyVoice2 API")
 
         self.role.setPlaceholderText(tips)
 

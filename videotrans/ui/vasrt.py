@@ -112,13 +112,21 @@ class Ui_vasrt(object):
         ])
 
         self.ysphb_maxlenlabel = QtWidgets.QLabel()
-        self.ysphb_maxlenlabel.setText("硬字幕单行字符数")
+        self.ysphb_maxlenlabel.setText("硬字幕单行字符数" if config.defaulelang=='zh' else 'Number of characters per line')
+        self.ysphb_maxlenlabel.setToolTip("硬字幕单行字符数" if config.defaulelang=='zh' else 'Number of characters per line of embed hard subtitles')
         self.ysphb_maxlen = QtWidgets.QLineEdit()
         self.ysphb_maxlen.setText('30')
+        self.ysphb_maxlen.setToolTip('仅在嵌入硬字幕时生效' if config.defaulelang=='zh' else 'Only works when hard subtitles are embedded')
 
         self.layout_form0 = QtWidgets.QFormLayout()
         self.layout_form0.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.ysphb_maxlenlabel)
         self.layout_form0.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.ysphb_maxlen)
+
+        self.remain_hr = QtWidgets.QCheckBox()
+        self.remain_hr.setObjectName("remain_hr")
+        self.remain_hr.setChecked(False)
+        self.remain_hr.setText('保留换行符' if config.defaulelang == 'zh' else 'Preserve line breaks')
+        self.remain_hr.setToolTip('双语硬字幕嵌入时，请选中' if config.defaulelang == 'zh' else 'When embedding bilingual hard subtitles, please select')
 
         self.ysphb_issoft = QtWidgets.QCheckBox()
         self.ysphb_issoft.setObjectName("ysphb_issoft")
@@ -144,6 +152,7 @@ class Ui_vasrt(object):
         self.h7.addWidget(label_audio)
         self.h7.addWidget(self.audio_process)
         self.h7.addLayout(self.layout_form0)
+        self.h7.addWidget(self.remain_hr)
         self.h7.addStretch()
         self.h7.addWidget(self.ysphb_issoft)
         self.h7.addLayout(self.layout_form)

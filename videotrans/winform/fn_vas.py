@@ -51,7 +51,7 @@ def openwin():
         uito = Signal(str)
 
         def __init__(self, *, parent=None, video=None, audio=None, srt=None, saveraw=True, is_soft=False, language=None,
-                     maxlen=30, audio_process=0):
+                     maxlen=30, audio_process=0,remain_hr=False):
             super().__init__(parent=parent)
             self.video = video
             self.audio = audio
@@ -60,6 +60,7 @@ def openwin():
             self.is_soft = is_soft
             self.language = language
             self.maxlen = maxlen
+            self.remain_hr=remain_hr
             self.audio_process = audio_process
             self.file = f'{RESULT_DIR}/{Path(self.video).stem}-{int(time.time())}.mp4'
             self.video_info = tools.get_video_info(self.video)
@@ -195,15 +196,26 @@ def openwin():
                         '-i',
                         os.path.normpath(self.video)
                     ]
+                    # 硬字幕
                     if not self.is_soft or not self.language:
                         sublist=tools.get_subtitle_from_srt(self.srt,is_file=True)
                         srt_string=''
                         for i, it in enumerate(sublist):
-                            tmp = tools.textwrap(it['text'].strip(), self.maxlen)
+                            if self.remain_hr:
+                                txt_list=[]
+                                for txt_line in it['text'].strip().split("\n"):
+                                    txt_list.append(tools.textwrap(txt_line.strip(), self.maxlen))
+                                tmp="\n".join(txt_list)
+
+                                print(f'{txt_list=}')
+                                print(f'{tmp=}')
+                                print('==================')
+                            else:
+                                tmp=tools.textwrap(it['text'].strip(), self.maxlen)
                             srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
                         tmpsrt=config.TEMP_HOME + f"/vas-{time.time()}.srt"
                         with Path(tmpsrt).open('w', encoding='utf-8') as f:
-                            f.write(srt_string)
+                            f.write(srt_string.strip())
                         assfile = config.TEMP_HOME + f"/vasrt{time.time()}.ass"
                         save_ass(tmpsrt, assfile)
                         os.chdir(config.TEMP_HOME)
@@ -235,7 +247,6 @@ def openwin():
                     cmd.append(self.file)
                     tools.runffmpeg(cmd)
             except Exception as e:
-                print(e)
                 self.post(type='error', text=str(e))
             else:
                 self.post(type='ok', text=self.file)
@@ -324,6 +335,7 @@ def openwin():
         if type == 'srt':
             winobj.ysphb_srtinput.setText(fname.replace('\\', '/'))
         config.params['last_opendir'] = os.path.dirname(fname)
+        config.getset_params(config.params)
 
     def start():
         winobj.has_done = False
@@ -359,7 +371,8 @@ def openwin():
                           is_soft=is_soft,
                           language=language,
                           maxlen=maxlen,
-                          audio_process=winobj.audio_process.currentIndex()
+                          audio_process=winobj.audio_process.currentIndex(),
+                          remain_hr=winobj.remain_hr.isChecked()
                           )
         task.uito.connect(feed)
         task.start()
@@ -368,20 +381,19 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import VASForm
-    try:
-        winobj = config.child_forms.get('vasform')
-        if winobj is not None:
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
-        winobj = VASForm()
-        config.child_forms['vasform'] = winobj
-        winobj.ysphb_selectvideo.clicked.connect(lambda: get_file('video'))
-        winobj.ysphb_selectwav.clicked.connect(lambda: get_file('wav'))
-        winobj.ysphb_selectsrt.clicked.connect(lambda: get_file('srt'))
-        winobj.ysphb_startbtn.clicked.connect(start)
-        winobj.ysphb_opendir.clicked.connect(opendir)
+
+    winobj = config.child_forms.get('vasform')
+    if winobj is not None:
         winobj.show()
-    except Exception as e:
-        print(e)
+        winobj.raise_()
+        winobj.activateWindow()
+        return
+    winobj = VASForm()
+    config.child_forms['vasform'] = winobj
+    winobj.ysphb_selectvideo.clicked.connect(lambda: get_file('video'))
+    winobj.ysphb_selectwav.clicked.connect(lambda: get_file('wav'))
+    winobj.ysphb_selectsrt.clicked.connect(lambda: get_file('srt'))
+    winobj.ysphb_startbtn.clicked.connect(start)
+    winobj.ysphb_opendir.clicked.connect(opendir)
+    winobj.show()
+

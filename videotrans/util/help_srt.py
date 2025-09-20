@@ -172,10 +172,10 @@ def srt_str_to_listdict(srt_string):
             text = ('\n'.join(text_lines)).strip()
             text = re.sub(r'</?[a-zA-Z]+>', '', text.replace("\r", '').strip())
             text = re.sub(r'\n{2,}', '\n', text).strip()
-            if text and text[0] in ['-']:
-                text = text[1:]
-            if text and len(text) > 0 and text[-1] in ['-', ']']:
-                text = text[:-1]
+            # if text and text[0] in ['-']:
+            #     text = text[1:]
+            # if text and len(text) > 0 and text[-1] in ['-', ']']:
+            #     text = text[:-1]
             it = {
                 "line": len(srt_list) + 1,  # 字幕索引，转换为整数
                 "start_time": int(start_time),
@@ -206,7 +206,7 @@ def format_srt(content):
 
 
 # 将srt文件或合法srt字符串转为字典对象
-def get_subtitle_from_srt(srtfile, *, is_file=True):
+def get_subtitle_from_srt(srtfile, *, is_file=True,remain_hr=False):
     def _readfile(file):
         content = ""
         try:
@@ -334,7 +334,7 @@ def textwrap(text, maxlen=15):
     ]
 
     # 1. 移除所有换行符
-    text = text.replace('\n', '').replace('\r', '')
+    text = text.replace('\n', ' ').replace('\r', ' ').strip()
 
     # 0. 如果文本长度小于等于 maxlen，直接返回
     if len(text) <= maxlen:
@@ -377,4 +377,4 @@ def textwrap(text, maxlen=15):
         groups[-2] += groups[-1]
         groups.pop()
 
-    return "\n".join(groups)
+    return ("\n".join(groups)).strip()
