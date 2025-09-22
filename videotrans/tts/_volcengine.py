@@ -97,7 +97,7 @@ class VolcEngineTTS(BaseTTS):
                 },
                 "audio": {
                     "voice_type": self.voice_type,
-                    "encoding": "mp3",
+                    "encoding": "wav",
                     "speed_ratio": speed,
                     "volume_ratio": volume,
                     "pitch_ratio": 1.0,
@@ -119,7 +119,7 @@ class VolcEngineTTS(BaseTTS):
             resp_json = resp.json()
             if "data" in resp_json:
                 data = resp_json["data"]
-                with open(data_item['filename'] + ".mp3", "wb") as f:
+                with open(data_item['filename'] , "wb") as f:
                     f.write(base64.b64decode(data))
                 self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')

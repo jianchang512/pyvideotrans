@@ -839,8 +839,8 @@ def format_video(name, target_dir=None):
     rule = r'[\[\]\*\?\"\|\'\:]'
     if re.search(rule, raw_noextname) or re.search(r'[\s\.]$', raw_noextname):
         # 规范化名字
-        raw_noextname = re.sub(rule, f'', raw_noextname)
-        raw_noextname = re.sub(r'[\.\s]$', f'', raw_noextname)
+        raw_noextname = re.sub(rule, '', raw_noextname)
+        raw_noextname = re.sub(r'[\.\s]$', '', raw_noextname)
         raw_noextname = raw_noextname.strip()
 
         if Path(f'{config.TEMP_DIR}/{raw_noextname}{ext}').exists():

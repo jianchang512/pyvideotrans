@@ -176,7 +176,7 @@ def openwin():
                          kwargs={'language': lang, "queue_tts": [obj], "play": True, "is_test": True}).start()
 
     def change_by_lang(type):
-        return type in [tts.EDGE_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]
+        return type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]
 
     def hecheng_start_fun():
         nonlocal RESULT_DIR,uuid
@@ -391,6 +391,8 @@ def openwin():
             show_rolelist = tools.get_302ai()
         elif tts_type == tts.VOLCENGINE_TTS:
             show_rolelist = tools.get_volcenginetts_rolelist()
+        elif tts_type == tts.MINIMAXI_TTS:
+            show_rolelist = tools.get_minimaxi_rolelist()
         else:  # AzureTTS
             show_rolelist = tools.get_azure_rolelist()
 
@@ -402,6 +404,9 @@ def openwin():
             vt = code.split('-')[0] if code != 'yue' else "zh"
             if vt not in show_rolelist:
                 winobj.hecheng_role.addItems(['No'])
+                return
+            if tts_type == tts.MINIMAXI_TTS:
+                winobj.hecheng_role.addItems(list(show_rolelist[vt].keys()))
                 return
             if len(show_rolelist[vt]) < 2:
                 winobj.hecheng_language.setCurrentText('-')

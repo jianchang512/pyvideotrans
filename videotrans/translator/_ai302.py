@@ -35,6 +35,7 @@ class AI302(BaseTrans):
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         payload = {
             "model": config.params['ai302_model'],
+            "max_tokens":8192,
             "messages": [
                 {'role': 'system',
                  'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},

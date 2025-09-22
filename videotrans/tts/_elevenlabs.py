@@ -41,8 +41,8 @@ class ElevenLabsC(BaseTTS):
             if self.rate and self.rate != '+0%':
                 speed += float(self.rate.replace('%', ''))
 
-            with open(os.path.join(config.ROOT_DIR, 'elevenlabs.json'), 'r', encoding="utf-8") as f:
-                jsondata = json.loads(f.read())
+            with open(config.ROOT_DIR+'/videotrans/voicejson/elevenlabs.json','r',encoding='utf-8') as f:
+                jsondata=json.loads(f.read())
 
             client = ElevenLabs(
                 api_key=config.params['elevenlabstts_key'],

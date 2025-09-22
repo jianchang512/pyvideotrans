@@ -9,7 +9,7 @@ import requests
 def get_elevenlabs_role(force=False, raise_exception=False):
     from videotrans.configure import config
     from . import help_misc
-    jsonfile = os.path.join(config.ROOT_DIR, 'elevenlabs.json')
+    jsonfile = os.path.join(config.ROOT_DIR, '/videotrans/voicejson/elevenlabs.json')
     namelist = ["clone"]
     if help_misc.vail_file(jsonfile):
         with open(jsonfile, 'r', encoding='utf-8') as f:
@@ -270,50 +270,39 @@ def get_volcenginetts_rolelist(role_name=None, langcode="zh"):
 #  get role by edge tts
 def get_edge_rolelist():
     from videotrans.configure import config
-    voice_list = {}
     from . import help_misc
-    if help_misc.vail_file(config.ROOT_DIR + "/voice_list.json"):
+    voice_list = {}
+    voice_file=config.ROOT_DIR + "/videotrans/voicejson/voice_list.json"
+    if help_misc.vail_file(voice_file):
         try:
-            voice_list = json.load(open(config.ROOT_DIR + "/voice_list.json", "r", encoding="utf-8"))
-            if len(voice_list) > 0:
-                config.edgeTTS_rolelist = voice_list
-                return voice_list
+            with open(voice_file,'r',encoding='utf-8') as f:
+                voice_list = json.loads(f.read())
         except:
             pass
-    try:
-        import edge_tts
-        import asyncio
-        if sys.platform == 'win32':
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-        else:
-            asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
-        v = asyncio.run(edge_tts.list_voices())
-        for it in v:
-            name = it['ShortName']
-            prefix = name.split('-')[0].lower()
-            if prefix not in voice_list:
-                voice_list[prefix] = ["No", name]
-            else:
-                voice_list[prefix].append(name)
-        with open(config.ROOT_DIR + "/voice_list.json", "w", encoding='utf-8') as f:
-            f.write(json.dumps(voice_list))
-        config.edgeTTS_rolelist = voice_list
-        return voice_list
-    except Exception as e:
-        config.logger.error('获取edgeTTS角色失败' + str(e))
-
+    return voice_list
 
 def get_azure_rolelist():
     from videotrans.configure import config
     from . import help_misc
     voice_list = {}
-
-    if help_misc.vail_file(config.ROOT_DIR + "/azure_voice_list.json"):
+    voice_file=config.ROOT_DIR + "/videotrans/voicejson/azure_voice_list.json"
+    if help_misc.vail_file(voice_file):
         try:
-            voice_list = json.load(open(config.ROOT_DIR + "/azure_voice_list.json", "r", encoding="utf-8"))
-            if len(voice_list) > 0:
-                config.AzureTTS_rolelist = voice_list
-                return voice_list
+            with open(voice_file,'r',encoding='utf-8') as f:
+                voice_list = json.loads(f.read())
+        except:
+            pass
+    return voice_list
+
+def get_minimaxi_rolelist():
+    from videotrans.configure import config
+    from . import help_misc
+    voice_list = {}
+    voice_file=config.ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
+    if help_misc.vail_file(voice_file):
+        try:
+            with open(voice_file,'r',encoding='utf-8') as f:
+                voice_list = json.loads(f.read())
         except:
             pass
     return voice_list

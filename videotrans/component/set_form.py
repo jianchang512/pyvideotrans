@@ -57,6 +57,7 @@ from videotrans.ui.subtitlescover import Ui_subtitlescover
 from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.transapi import Ui_transapiform
 from videotrans.ui.ttsapi import Ui_ttsapiform
+from videotrans.ui.minimaxi import Ui_minimaxiform
 from videotrans.ui.vasrt import Ui_vasrt
 from videotrans.ui.videoandaudio import Ui_videoandaudio
 from videotrans.ui.videoandsrt import Ui_videoandsrt
@@ -253,6 +254,11 @@ class TencentForm(QDialog, Ui_tencentform):  # <===
 class TtsapiForm(QDialog, Ui_ttsapiform):  # <===
     def __init__(self, parent=None):
         super(TtsapiForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class MinimaxiForm(QDialog, Ui_minimaxiform):  # <===
+    def __init__(self, parent=None):
+        super(MinimaxiForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

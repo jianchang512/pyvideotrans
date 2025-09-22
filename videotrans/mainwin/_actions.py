@@ -282,7 +282,7 @@ class WinAction(WinActionSub):
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
-        if type in [tts.EDGE_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]:
+        if type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]:
             return True
         return False
 
@@ -476,6 +476,9 @@ class WinAction(WinActionSub):
             show_rolelist = tools.get_302ai()
         elif tts_type == tts.VOLCENGINE_TTS:
             show_rolelist = tools.get_volcenginetts_rolelist()
+        elif tts_type == tts.MINIMAXI_TTS:
+            show_rolelist = tools.get_minimaxi_rolelist()
+
         else:
             # AzureTTS
             show_rolelist = tools.get_azure_rolelist()
@@ -490,10 +493,16 @@ class WinAction(WinActionSub):
             if vt not in show_rolelist:
                 self.main.voice_role.addItems(['No'])
                 return
+            if tts_type == tts.MINIMAXI_TTS:
+                show_rolelist=list(show_rolelist[vt].keys())
+                self.main.current_rolelist = show_rolelist
+                self.main.voice_role.addItems(show_rolelist)
+                return
             if len(show_rolelist[vt]) < 2:
                 self.main.target_language.setCurrentText('-')
                 tools.show_error(config.transobj['waitrole'])
                 return
+
             self.main.current_rolelist = show_rolelist[vt]
             self.main.voice_role.addItems(show_rolelist[vt])
         except:
@@ -713,7 +722,10 @@ class WinAction(WinActionSub):
         self.delete_process()
         # 设为开始
         self.update_status('ing')
-        Path(config.TEMP_DIR + '/stop_porcess.txt').unlink(missing_ok=True)
+        try:
+            Path(config.TEMP_DIR + '/stop_porcess.txt').unlink(missing_ok=True)
+        except:
+            pass
 
         if self.main.recogn_type.currentIndex() == recognition.FASTER_WHISPER or self.main.app_mode == 'biaozhun':
             config.settings['loop_backaudio'] = self.main.is_loop_bgm.isChecked()
@@ -1116,6 +1128,8 @@ class WinAction(WinActionSub):
             show_rolelist = tools.get_302ai()
         elif tts_type == tts.VOLCENGINE_TTS:
             show_rolelist = tools.get_volcenginetts_rolelist()
+        elif tts_type == tts.MINIMAXI_TTS:
+            show_rolelist = tools.get_minimaxi_rolelist()
         else:
             # AzureTTS
             show_rolelist = tools.get_azure_rolelist()
@@ -1129,6 +1143,9 @@ class WinAction(WinActionSub):
             if vt not in show_rolelist:
                 self.main.voice_role.addItems(['No'])
                 return
+            if tts_type == tts.MINIMAXI_TTS:
+                show_rolelist=list(show_rolelist[vt].keys())
+
             if len(show_rolelist[vt]) < 2:
                 self.main.target_language.setCurrentText('-')
                 tools.show_error(config.transobj['waitrole'])

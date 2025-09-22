@@ -20,6 +20,7 @@ GOOGLECLOUD_TTS = 15
 GEMINI_TTS = 16
 CHATTERBOX_TTS = 17
 QWEN_TTS = 18
+MINIMAXI_TTS=19
 
 TTS_NAME_LIST = [
     "Edge-TTS(免费)" if config.defaulelang == 'zh' else 'Edge-TTS',
@@ -40,7 +41,8 @@ TTS_NAME_LIST = [
     "Google Cloud TTS",
     "Gemini TTS",
     "ChatterBox" if config.defaulelang == 'zh' else 'ChatterBox',
-    "Qwen TTS"
+    "Qwen TTS",
+    "Minimaxi TTS",
 ]
 
 AI302_openai = {
@@ -338,6 +340,12 @@ def is_input_api(tts_type: int = None, return_str=False):
         from videotrans.winform import qwentts as qwentts_win
         qwentts_win.openwin()
         return False
+    if tts_type == MINIMAXI_TTS and not config.params["minimaxi_apikey"]:
+        if return_str:
+            return "Please configure the api key information of the MINIMAXI TTS  channel first."
+        from videotrans.winform import minimaxi as minimaxi_win
+        minimaxi_win.openwin()
+        return False
     if tts_type == KOKORO_TTS and not config.params["kokoro_api"]:
         if return_str:
             return "Please configure the api  information of the kokoro tts channel first."
@@ -505,3 +513,6 @@ def run(*, queue_tts=None, language=None, inst=None, uuid=None, play=False, is_t
     elif tts_type == GEMINI_TTS:
         from videotrans.tts._geminitts import GEMINITTS
         GEMINITTS(**kwargs).run()
+    elif tts_type == MINIMAXI_TTS:
+        from videotrans.tts._minimaxi import MinimaxiTTS
+        MinimaxiTTS(**kwargs).run()

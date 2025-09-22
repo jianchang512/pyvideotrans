@@ -25,7 +25,7 @@ from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtGui import QPixmap, QIcon, QGuiApplication
 from videotrans.configure._guiexcept import global_exception_hook, exception_handler
 
-VERSION = "v3.80"
+VERSION = "v3.81"
 
 def show_global_error_dialog(tb_str):
     """槽函数 显示对话框。"""

@@ -302,10 +302,11 @@ class WinActionSub:
             self.main.close()
 
     def get_mp4(self):
-        if self.main.app_mode == 'tiqu':
-            allowed_exts = config.VIDEO_EXTS + config.AUDIO_EXITS
-        else:
-            allowed_exts = config.VIDEO_EXTS
+        allowed_exts = config.VIDEO_EXTS + config.AUDIO_EXITS
+        # if self.main.app_mode == 'tiqu':
+        #     allowed_exts = config.VIDEO_EXTS + config.AUDIO_EXITS
+        # else:
+        #     allowed_exts = config.VIDEO_EXTS
         format_str = " ".join(['*.' + f for f in allowed_exts])
         mp4_list = []
         if self.main.select_file_type.isChecked():

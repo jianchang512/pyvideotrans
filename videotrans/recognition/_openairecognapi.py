@@ -90,11 +90,11 @@ class OpenaiAPIRecogn(BaseRecogn):
             for i, it in enumerate(transcript.segments):
                 raws.append({
                     "line": len(raws) + 1,
-                    "start_time": it['start'] * 1000,
-                    "end_time": it['end'] * 1000,
-                    "text": it['text'],
-                    "time": tools.ms_to_time_string(ms=it['start'] * 1000) + ' --> ' + tools.ms_to_time_string(
-                        ms=it['end'] * 1000),
+                    "start_time": it.start * 1000,
+                    "end_time": it.end * 1000,
+                    "text": it.text,
+                    "time": tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
+                        ms=it.end * 1000),
                 })
         return raws
 

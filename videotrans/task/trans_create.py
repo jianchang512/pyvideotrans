@@ -47,6 +47,9 @@ class TransCreate(BaseTask):
     # mp4编码类型 264 265
     video_codec_num: int = 264
     ignore_align: bool = False
+
+    # 是否音频翻译
+    is_audio_trans:bool=False
     """
     obj={name,dirname,basename,noextname,ext,target_dir,uuid}
     """
@@ -109,6 +112,9 @@ class TransCreate(BaseTask):
         if "app_mode" not in self.cfg:
             self.cfg['app_mode'] = 'biaozhun'
 
+
+
+
         # 如果存在手动添加的背景音频
         if tools.vail_file(self.cfg['back_audio']):
             self.cfg['background_music'] = Path(self.cfg['back_audio']).as_posix()
@@ -152,6 +158,13 @@ class TransCreate(BaseTask):
         # 最终需要输出的mp4视频
         self.cfg['targetdir_mp4'] = f"{self.cfg['target_dir']}/{self.cfg['noextname']}.mp4"
         self._unlink_size0(self.cfg['targetdir_mp4'])
+
+        # 判断如果是音频，则到生成音频结束，无需合并，并且无需分离视频、无需背景音处理
+        if self.cfg['ext'].lower() in config.AUDIO_EXITS:
+            self.is_audio_trans=True
+            self.cfg['is_separate']=False
+            self.shoud_hebing = False
+
 
         # 是否需要背景音分离：分离出的原始音频文件
         if self.cfg['is_separate']:
@@ -259,7 +272,7 @@ class TransCreate(BaseTask):
         if self._exit():
             return
         # 将原始视频分离为无声视频和音频
-        if self.cfg['app_mode'] not in ['tiqu']:
+        if not self.is_audio_trans and self.cfg['app_mode'] not in ['tiqu']:
             config.queue_novice[self.cfg['noextname']] = 'ing'
             threading.Thread(target=self._split_novoice_byraw).start()
             if not self.is_copy_video:
@@ -345,6 +358,7 @@ class TransCreate(BaseTask):
                 cmd = [
                     config.settings.get('Faster_Whisper_XXL', ''),
                     self.cfg['shibie_audio'],
+                    "-pp",
                     "-f", "srt"
                 ]
                 if self.cfg['detect_language'] != 'auto':
@@ -555,6 +569,9 @@ class TransCreate(BaseTask):
     def assembling(self) -> None:
         if self._exit():
             return
+        if self.is_audio_trans:
+            self.precent = 100
+            return
         if self.cfg['app_mode'] == 'tiqu':
             self.precent = 100
             return
@@ -588,7 +605,7 @@ class TransCreate(BaseTask):
             except:
                 pass  # 忽略删除失败
         # 仅保存视频
-        elif self.cfg['only_video']:
+        elif not self.is_audio_trans and self.cfg['only_video']:
             outputpath = Path(self.cfg['target_dir'])
             for it in outputpath.iterdir():
                 ext = it.suffix.lower()
@@ -602,11 +619,18 @@ class TransCreate(BaseTask):
         self.precent = 100
         self._signal(text=f"{self.cfg['name']}", type='succeed')
         tools.send_notification(config.transobj['Succeed'], f"{self.cfg['basename']}")
+        if self.is_audio_trans and tools.vail_file(self.cfg['target_wav']):
+            try:
+                shutil.copy2(self.cfg['target_wav'], self.cfg['target_wav_output'])
+            except shutil.SameFileError:
+                pass
         try:
-            if self.cfg['only_video']:
+            if not self.is_audio_trans and self.cfg['only_video']:
                 mp4_path = Path(self.cfg['targetdir_mp4'])
                 mp4_path.rename(mp4_path.parent.parent / mp4_path.name)
                 shutil.rmtree(self.cfg['target_dir'], ignore_errors=True)
+
+
             if 'shound_del_name' in self.cfg:
                 Path(self.cfg['shound_del_name']).unlink(missing_ok=True)
             Path(self.cfg['shibie_audio']).unlink(missing_ok=True)

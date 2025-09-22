@@ -56,6 +56,8 @@ class DeepLX(BaseTrans):
             target_code = 'ZH-HANS'
         elif target_code == 'ZH-TW':
             target_code = 'ZH-HANT'
+        elif target_code == 'PT':
+            target_code = 'PT-PT'
         sourcecode = self.source_code.upper()[:2] if self.source_code else None
         sourcecode = sourcecode if sourcecode != 'AUTO' else None
         jsondata = {

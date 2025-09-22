@@ -35,7 +35,7 @@ class ElevenLabsRecogn(BaseRecogn):
 
         with open(self.audio_file, 'rb') as file:
             file_object = file.read()
-
+        
         client = ElevenLabs(
             api_key=config.params['elevenlabstts_key'],
             httpx_client=httpx.Client(proxy=self.proxies) if self.proxies else None
@@ -45,7 +45,6 @@ class ElevenLabsRecogn(BaseRecogn):
         config.logger.info(f'{language_code=}')
 
         raws = []
-
         if language_code:
             res = client.speech_to_text.convert(
                 model_id="scribe_v1",
@@ -59,52 +58,92 @@ class ElevenLabsRecogn(BaseRecogn):
                 file=file_object,
                 diarize=True
             )
-
         last_tmp = None
-        config.logger.info(f'elevenlabs{res=}')
+        config.logger.info(f'elevenlabs{res=}\n')
         for it in res.words:
-            text = it.text.strip()
+            if it.type=='audio_event':
+                continue
+            text = it.text
+            isflag=text[0] in self.flag or text[-1] in self.flag
             spk = it.speaker_id.replace('speaker_', '')
+            
+            st = int(it.start * 1000)
+            end = int(it.end * 1000)
+
+            
+
+                
             if not last_tmp:
+                if not text.strip():
+                    continue
                 last_tmp = {
                     "line": len(raws) + 1,
                     "text": text,
-                    "start_time": int(it.start * 1000),
-                    "end_time": int(it.end * 1000),
+                    "start_time": st,
+                    "end_time": end,
                     "spk": spk
                 }
+                continue
+            
+            # 如果静音超过 200 并且句子时长已超过500，并且有标点，则断句
+            diff_prev=st - last_tmp['end_time']
+            segment_time=last_tmp['end_time'] - last_tmp['start_time']
+            
+            config.logger.info(f'\n{text=},{isflag=},{spk=},{diff_prev=},{segment_time=}\n')
+            
+            # 不同说话人，强制断句
+            
+            if spk != last_tmp['spk']:
+                last_tmp['time'] = tools.ms_to_time_string(
+                    ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=last_tmp['end_time'])
+                config.logger.info(f'segments-spk:{last_tmp=}')
+                if last_tmp['text'].strip():
+                    raws.append(last_tmp)
+                last_tmp = {
+                    "line": len(raws) + 1,
+                    "text": text,
+                    "start_time": st,
+                    "end_time": end,
+                    "spk": spk
+                }
+                continue
+            
+            
+            
+            if (diff_prev >= 200 or segment_time>= 500) and isflag:
+                # 如果标点在开始，则该word给下个，否则给当前
+                if text[0] in self.flag:
+                    last_tmp['text']+=text[0]
+                    last_tmp['time'] = tools.ms_to_time_string(
+                    ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=last_tmp['end_time'])
+                    config.logger.info(f'segments-flag0:{last_tmp=}')
+                    if last_tmp['text'].strip():
+                        raws.append(last_tmp)
+                    last_tmp = {
+                        "line": len(raws) + 1,
+                        "text": text[1:],
+                        "start_time": st,
+                        "end_time": end,
+                        "spk": spk
+                    }
+                    continue
+                    
+                last_tmp['end_time'] = end
+                last_tmp['text'] += text
+                last_tmp['time'] = tools.ms_to_time_string(
+                    ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=end)
+                config.logger.info(f'segments-flag1:{last_tmp=}')
+                if last_tmp['text'].strip():
+                    raws.append(last_tmp)
+                last_tmp = None
             else:
-                st = int(it.start * 1000)
-                ed = int(it.end * 1000)
-                if (spk != last_tmp['spk']) or (st - last_tmp['end_time'] >= 250 and (
-                        last_tmp['end_time'] - last_tmp['start_time'] >= 500) and (text in self.flag or not text)):
-                    # 角色不同，终结此条字幕
-                    if spk != last_tmp['spk']:
-                        last_tmp['time'] = tools.ms_to_time_string(
-                            ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=last_tmp['end_time'])
-                        raws.append(last_tmp)
-                        last_tmp = {
-                            "line": len(raws) + 1,
-                            "text": text,
-                            "start_time": st,
-                            "end_time": ed,
-                            "spk": spk
-                        }
-                    else:
-                        # 角色相同终结字幕
-                        last_tmp['end_time'] = ed
-                        last_tmp['text'] += text
-                        last_tmp['time'] = tools.ms_to_time_string(
-                            ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=ed)
-                        raws.append(last_tmp)
-                        last_tmp = None
-                else:
-                    last_tmp['end_time'] = ed
-                    last_tmp['text'] += ('' if language_code in ['ja', 'zh', 'ko'] or res.language_code in ['ja', 'zh',
-                                                                                                            'ko'] else ' ') + text
+                last_tmp['end_time'] = end
+                last_tmp['text'] +=text
 
-        if last_tmp:
+        if last_tmp and last_tmp['text'].strip():
             last_tmp['time'] = tools.ms_to_time_string(ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(
                 ms=last_tmp['end_time'])
+            config.logger.info(f'segments:{last_tmp=}')
+            
             raws.append(last_tmp)
         return raws

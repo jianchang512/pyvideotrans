@@ -150,7 +150,7 @@ LANG_CODE = {
         "fi",  # google通道
         "fin",  # 字幕嵌入语言
         "fin",  # 百度通道
-        "fi",  # deepl deeplx通道
+        "FI",  # deepl deeplx通道
         "No",  # 腾讯通道
         "No",  # OTT通道
         "fi",  # 微软翻译
@@ -284,7 +284,7 @@ LANG_CODE = {
         "por",
         "pt",
         "PT-PT",
-        "pt",
+        "PT-PT",
         "pt",
         "pt",
         "Portuguese language" if config.defaulelang != 'zh' else '葡萄牙语',
@@ -295,7 +295,7 @@ LANG_CODE = {
         "vi",
         "vie",
         "vie",
-        "No",
+        "vi",
         "vi",
         "vi",
         "vi",
@@ -451,7 +451,7 @@ LANG_CODE = {
         "he",  # google通道
         "heb",  # 字幕嵌入语言
         "heb",  # 百度通道
-        "No",  # deepl deeplx通道
+        "HE",  # deepl deeplx通道
         "No",  # 腾讯通道
         "No",  # OTT通道
         "he",  # 微软翻译
@@ -520,11 +520,12 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     source_list = None
     target_list = None
 
-    # 新增的自定义语言翻译代码，该代码既不在 LANG_CODE 也不在 config.rev_langlist，原羌返回即可
-    customize_source_code = show_source if show_source and show_source not in LANG_CODE and show_source not in config.rev_langlist else None
-    customize_target_code = show_target if show_target and show_target not in LANG_CODE and show_target not in config.rev_langlist else None
-    if customize_source_code or customize_target_code:
-        return customize_source_code, customize_target_code
+    # Google 新增的自定义语言翻译代码，该代码既不在 LANG_CODE 也不在 config.rev_langlist，原羌返回即可
+    if translate_type==GOOGLE_INDEX:
+        customize_source_code = show_source if show_source and show_source not in LANG_CODE and show_source not in config.rev_langlist else None
+        customize_target_code = show_target if show_target and show_target not in LANG_CODE and show_target not in config.rev_langlist else None
+        if customize_source_code or customize_target_code:
+            return customize_source_code, customize_target_code
 
     if show_source and show_source != '-':
         source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[
@@ -541,8 +542,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     elif translate_type == TENCENT_INDEX:
         return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
     elif translate_type in [CHATGPT_INDEX, AZUREGPT_INDEX, GEMINI_INDEX,
-                            LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX, CLAUDE_INDEX, ZHIPUAI_INDEX, SILICONFLOW_INDEX,
-                            DEEPSEEK_INDEX, OPENROUTER_INDEX]:
+                            LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX, CLAUDE_INDEX, ZHIPUAI_INDEX, SILICONFLOW_INDEX,  DEEPSEEK_INDEX, OPENROUTER_INDEX]:
         return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
     elif translate_type in [OTT_INDEX, LIBRE_INDEX]:
         return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
@@ -747,7 +747,7 @@ def get_subtitle_code(*, show_target=None):
 def _check_google():
     import requests
     try:
-        response = requests.get(f"https://translate.google.com")
+        requests.get(f"https://translate.google.com")
     except Exception as e:
         config.logger.exception(f'检测google翻译失败{e}', exc_info=True)
         return False
@@ -769,8 +769,7 @@ def run(*, translate_type=None,
     # 其他渠道下是语言代码
     # source_code是原语言代码
     target_language_name = target_code
-    if translate_type in [GEMINI_INDEX, AZUREGPT_INDEX, CHATGPT_INDEX, AI302_INDEX, LOCALLLM_INDEX, ZIJIE_INDEX,
-                          CLAUDE_INDEX]:
+    if translate_type in [GEMINI_INDEX, AZUREGPT_INDEX, CHATGPT_INDEX, AI302_INDEX, LOCALLLM_INDEX, ZIJIE_INDEX,  CLAUDE_INDEX, ZHIPUAI_INDEX, SILICONFLOW_INDEX,  DEEPSEEK_INDEX, OPENROUTER_INDEX]:
         _, target_language_name = get_source_target_code(show_target=target_code, translate_type=translate_type)
     kwargs = {
         "text_list": text_list,

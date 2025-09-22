@@ -321,7 +321,7 @@ def openwin():
         wk.start()
 
     def change_by_lang(type):
-        if type in [tts.EDGE_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]:
+        if type in [tts.EDGE_TTS,tts.MINIMAXI_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]:
             return True
         return False
 
@@ -563,6 +563,8 @@ def openwin():
             show_rolelist = tools.get_302ai()
         elif tts_type == tts.VOLCENGINE_TTS:
             show_rolelist = tools.get_volcenginetts_rolelist()
+        elif tts_type == tts.MINIMAXI_TTS:
+            show_rolelist = tools.get_minimaxi_rolelist()
         else:
             # AzureTTS
             show_rolelist = tools.get_azure_rolelist()
@@ -575,6 +577,10 @@ def openwin():
             if vt not in show_rolelist:
                 winobj.hecheng_role.addItems(['No'])
                 return
+            if tts_type == tts.MINIMAXI_TTS:
+                winobj.hecheng_role.addItems(list(show_rolelist[vt].keys()))
+                return
+
             if len(show_rolelist[vt]) < 2:
                 winobj.hecheng_language.setCurrentText('-')
                 tools.show_error(config.transobj['waitrole'])

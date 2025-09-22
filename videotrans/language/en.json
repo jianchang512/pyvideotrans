@@ -327,7 +327,7 @@
     "Recognize the sound in audio or video and output SRT text": "Recognize the sound in audio or video and output SRT text",
     "From  Text  Into  Speech": "From  Text  Into  Speech",
     "Generate audio WAV from text or SRT subtitle files": "Generate audio WAV from text or SRT subtitle files",
-    "Extract Srt And Translate": "Extract Srt And Translate",
+    "Extract Srt And Translate": "Transcribe and translate",
     "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language": "Extract SRT subtitles from local videos in the original language and translate them into SRT subtitle files in the target language",
     "Separate Video to audio": "Separate Video to audio",
     "Separate audio and silent videos from videos": "Separate audio and silent videos from videos",

@@ -71,7 +71,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """设置显示文字"""
         self.btn_get_video.setToolTip(
             config.uilanglist.get("Multiple MP4 videos can be selected and automatically queued for processing"))
-        self.btn_get_video.setText('选择要处理的视频' if config.defaulelang == 'zh' else 'Select the video')
+        self.btn_get_video.setText('选择音频或视频' if config.defaulelang == 'zh' else 'Select audio & video')
         self.btn_save_dir.setToolTip(config.uilanglist.get("Select where to save the processed output resources"))
         self.btn_save_dir.setText(config.uilanglist.get("Save to.."))
 
@@ -160,6 +160,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionkokoro_address.setText("Kokoro TTS")
         self.actionchattts_address.setText("ChatTTS")
         self.actiontts_api.setText("自定义TTS API" if config.defaulelang == 'zh' else "TTS API")
+        self.actionminimaxi_api.setText("Minimaxi TTS API")
         self.actiontrans_api.setText("自定义翻译API" if config.defaulelang == 'zh' else "Transate API")
         self.actionrecognapi.setText("自定义语音识别API" if config.defaulelang == 'zh' else "Custom Speech Recognition API")
         self.actionsttapi.setText("STT语音识别API" if config.defaulelang == 'zh' else "STT Speech Recognition API")
@@ -183,9 +184,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontencent_key.setText("腾讯翻译设置" if config.defaulelang == 'zh' else "Tencent Key")
         self.action_about.setText(config.uilanglist.get("Donating developers"))
 
-        self.action_biaozhun.setText(config.uilanglist.get("Standard Function Mode"))
+        self.action_biaozhun.setText('翻译视频或音频' if config.defaulelang=='zh' else  "Standard Function Mode")
         self.action_biaozhun.setToolTip(
-            '批量进行视频翻译，并可按照需求自定义所有配置选项' if config.defaulelang == 'zh' else 'Batch video translation with all configuration options customizable on demand')
+            '批量进行音频或视频翻译，并可按照需求自定义配置选项' if config.defaulelang == 'zh' else 'Batch audio or video translation with all configuration options customizable on demand')
         self.action_yuyinshibie.setText(config.uilanglist.get("Speech Recognition Text"))
         self.action_yuyinshibie.setToolTip(
             '批量将音频或视频中的语音识别为srt字幕' if config.defaulelang == 'zh' else 'Batch recognize speech in audio or video as srt subtitles')
@@ -196,7 +197,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.action_tiquzimu.setText(config.uilanglist.get("Extract Srt And Translate"))
         self.action_tiquzimu.setToolTip(
-            '批量将视频中的语音识别为字幕，并可选择是否同时翻译字幕' if config.defaulelang == 'zh' else 'Batch recognize speech in video as srt subtitles')
+            '批量将音频或视频中的语音识别为字幕，并可选择是否同时翻译字幕' if config.defaulelang == 'zh' else 'Batch recognize speech in video as srt subtitles')
 
         self.action_yinshipinfenli.setText(config.uilanglist.get("Separate Video to audio"))
         self.action_yinshipinfenli.setToolTip(config.uilanglist.get("Separate audio and silent videos from videos"))
@@ -517,6 +518,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionkokoro_address.triggered.connect(lambda: winform.get_win('kokoro').openwin())
         self.actionchattts_address.triggered.connect(lambda: winform.get_win('chattts').openwin())
         self.actiontts_api.triggered.connect(lambda: winform.get_win('ttsapi').openwin())
+        self.actionminimaxi_api.triggered.connect(lambda: winform.get_win('minimaxi').openwin())
         self.actionrecognapi.triggered.connect(lambda: winform.get_win('recognapi').openwin())
         self.actionsttapi.triggered.connect(lambda: winform.get_win('sttapi').openwin())
         self.actiondeepgram.triggered.connect(lambda: winform.get_win('deepgram').openwin())

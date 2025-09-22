@@ -169,8 +169,7 @@ AzureTTS_rolelist = None
 DEFAULT_GEMINI_MODEL = "gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
 line_roles = {}
 dubbing_role = {}
-ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv',
-                    'ms', 'uk', 'cs', 'tl']
+ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv', 'ms', 'uk', 'cs', 'tl']
 codec_cache = {}
 
 
@@ -560,6 +559,11 @@ def getset_params(obj=None):
         "ttsapi_extra": "pyvideotrans",
         "ttsapi_language_boost": "auto",
         "ttsapi_emotion": "happy",
+
+        "minimaxi_apikey":"",
+        "minimaxi_emotion":"",
+        "minimaxi_model":"speech-02-turbo",
+
         "ai302tts_key": "",
         "ai302tts_model": "",
         "ai302tts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer,verse",

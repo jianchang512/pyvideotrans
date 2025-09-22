@@ -602,13 +602,7 @@ class Ui_MainWindow(object):
         self.subtitle_layout.setObjectName("subtitle_layout")
 
         self.source_area_layout = QtWidgets.QVBoxLayout()
-        """
-        self.subtitle_area = TextGetdir(self)
-        self.subtitle_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
-        self.subtitle_area.setPlaceholderText(
-            f"{config.transobj['zimubianjitishi']}\n\n{config.transobj['subtitle_tips']}\n\n{config.transobj['meitiaozimugeshi']}")
-        """
-        # ** 关键修改：使用占位符替换自定义组件 **
+
         self.subtitle_area_placeholder = QtWidgets.QWidget(self)
         self.subtitle_area_placeholder.setObjectName("subtitle_area_placeholder")
 
@@ -724,6 +718,9 @@ class Ui_MainWindow(object):
 
         self.actiontts_api = QtGui.QAction(MainWindow)
         self.actiontts_api.setObjectName("actiontts_api")
+
+        self.actionminimaxi_api = QtGui.QAction(MainWindow)
+        self.actionminimaxi_api.setObjectName("actionminimaxi_api")
 
         self.actiontrans_api = QtGui.QAction(MainWindow)
         self.actiontrans_api.setObjectName("actiontrans_api")
@@ -900,6 +897,8 @@ class Ui_MainWindow(object):
         self.menu_TTS.addAction(self.actionopenaitts_key)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actionqwentts_key)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actionminimaxi_api)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actiontts_api)
         self.menu_TTS.addSeparator()
