@@ -1,6 +1,6 @@
 from elevenlabs.core import ApiError as ApiError_11
 from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError,  APIConnectionError, APIError
-from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, Timeout, ConnectionError, RetryError
+from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, Timeout, ConnectionError, RetryError,HTTPError
 
 from deepgram.clients.common.v1.errors import DeepgramApiError
 from videotrans.configure import config
@@ -45,6 +45,8 @@ NO_RETRY_EXCEPT = (
     InvalidSchema,  # URL 协议无效
     InvalidURL,  # URL 格式无效
     SSLError,  # SSL 证书验证失败
+    
+    HTTPError,
 
     # 连接问题，检查网络或尝试设置代理
     RetryError,
@@ -127,11 +129,13 @@ def get_msg_from_except(ex):
         # 400 错误请求 (例如输入内容过长、参数无效等)
         BadRequestError: lambda
             e: f"{'请求参数错误' if lang == 'zh' else 'Request parameter error or input content is too long '}",
+            
+        HTTPError: lambda e:str(e),
         
         
-        FileNotFoundError: lambda e: f"文件未找到: {e.filename}" if lang == 'zh' else f"File not found: {e.filename}",
-        PermissionError: lambda e: f"权限不足，无法访问: {e.filename}" if lang == 'zh' else f"Permission denied: {e.filename}",
-        FileExistsError: lambda e: f"文件已存在: {e.filename}" if lang == 'zh' else f"File already exists: {e.filename}",
+        FileNotFoundError: lambda e: f"文件未找到: {e.filename} - {e.filename2}" if lang == 'zh' else f"File not found: {e.filename} - {e.filename2}",
+        PermissionError: lambda e: f"权限不足，无法访问: {e.filename} - {e.filename2}" if lang == 'zh' else f"Permission denied: {e.filename} - {e.filename2}",
+        FileExistsError: lambda e: f"文件已存在: {e.filename} - {e.filename2}" if lang == 'zh' else f"File already exists: {e.filename} - {e.filename2}",
         
         
         OSError: lambda e: f"操作系统错误 ({e.errno}): {e.strerror}" if lang == 'zh' else f"Operating System Error ({e.errno}): {e.strerror}",

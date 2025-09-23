@@ -21,12 +21,14 @@ def openwin():
         config.params["qwentts_key"] = key
         config.params["qwentts_model"] = model
         config.getset_params(config.params)
+        config.settings['qwentts_role']=config.QWEN3_TTS_ROLES if model.startswith('qwen3-tts') else   config.QWEN_TTS_ROLES
+        config.parse_init(config.settings)        
         winobj.test_qwentts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
-            "role": winobj.edit_roles.toPlainText().strip().split(',')[0],
+            "role": config.settings['qwentts_role'].split(',')[0],
             "filename": config.TEMP_HOME + f"/{time.time()}-qwen.wav",
             "tts_type": tts.QWEN_TTS}],
                          language="zh",
@@ -42,18 +44,18 @@ def openwin():
         config.params["qwentts_key"] = key
         config.params["qwentts_model"] = model
         config.getset_params(config.params)
+        
+        config.settings['qwentts_role']=config.QWEN3_TTS_ROLES if model.startswith('qwen3-tts') else   config.QWEN_TTS_ROLES
+        config.parse_init(config.settings)
         tools.set_process(text='qwentts', type="refreshtts")
         winobj.close()
 
-    def setedit_roles():
-        t = winobj.edit_roles.toPlainText().strip().replace('，', ',').rstrip(',')
-        config.params['qwentts_role'] = t
-        config.getset_params(config.params)
+
+        
 
     def update_ui():
         winobj.qwentts_model.clear()
-        winobj.qwentts_model.addItems(['qwen-tts-latest'])
-        winobj.edit_roles.setPlainText(config.params['qwentts_role'])
+        winobj.qwentts_model.addItems(config.settings.get('qwentts_models','').split(','))
 
         if config.params["qwentts_key"]:
             winobj.qwentts_key.setText(config.params["qwentts_key"])
@@ -74,5 +76,4 @@ def openwin():
 
     winobj.set_qwentts.clicked.connect(save_qwentts)
     winobj.test_qwentts.clicked.connect(test)
-    winobj.edit_roles.textChanged.connect(setedit_roles)
     winobj.show()

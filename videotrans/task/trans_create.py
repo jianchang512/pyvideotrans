@@ -621,7 +621,7 @@ class TransCreate(BaseTask):
         tools.send_notification(config.transobj['Succeed'], f"{self.cfg['basename']}")
         if self.is_audio_trans and tools.vail_file(self.cfg['target_wav']):
             try:
-                shutil.copy2(self.cfg['target_wav'], self.cfg['target_wav_output'])
+                shutil.copy2(self.cfg['target_wav'], f"{self.cfg['target_dir']}/{self.cfg['target_language_code']}-{self.cfg['noextname']}.wav")
             except shutil.SameFileError:
                 pass
         try:

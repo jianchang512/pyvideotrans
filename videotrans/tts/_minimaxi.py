@@ -31,7 +31,7 @@ class MinimaxiTTS(BaseTTS):
         rolelist=tools.get_minimaxi_rolelist()
         if lang_pre not in rolelist:
             raise RuntimeError(f'Dont support language:{self.language}')
-        self.rolelist=rolelist
+        self.rolelist=rolelist[lang_pre]
     def _exec(self) -> None:
         self._local_mul_thread()
 

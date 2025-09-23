@@ -353,7 +353,7 @@ class WinAction(WinActionSub):
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == tts.QWEN_TTS:
             self.main.voice_role.clear()
-            self.main.current_rolelist = config.params['qwentts_role'].split(',')
+            self.main.current_rolelist = config.settings['qwentts_role'].split(',')
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == tts.GEMINI_TTS:
             self.main.voice_role.clear()

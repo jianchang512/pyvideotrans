@@ -13,13 +13,13 @@ class Ui_qwenttsform(object):
         self.has_done = False
         qwenttsform.setObjectName("qwenttsform")
         qwenttsform.setWindowModality(QtCore.Qt.NonModal)
-        qwenttsform.resize(600, 600)
+        qwenttsform.resize(600, 200)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(qwenttsform.sizePolicy().hasHeightForWidth())
         qwenttsform.setSizePolicy(sizePolicy)
-        qwenttsform.setMaximumSize(QtCore.QSize(600, 600))
+        qwenttsform.setMaximumSize(QtCore.QSize(600, 200))
 
         v1 = QtWidgets.QVBoxLayout(qwenttsform)
 
@@ -47,11 +47,7 @@ class Ui_qwenttsform(object):
         v1.addLayout(h3)
 
         v1.addWidget(
-            QtWidgets.QLabel('角色列表(Dylan:北京男/Jada:吴语女/Sunny:四川女)' if config.defaulelang == 'zh' else 'Role list'))
-        self.edit_roles = QtWidgets.QPlainTextEdit(qwenttsform)
-        self.edit_roles.setMinimumHeight(40)
-        self.edit_roles.setObjectName("edit_roles")
-        v1.addWidget(self.edit_roles)
+            QtWidgets.QLabel('qwen-tts模型仅支持中英,qwen3-tts支持10种语言' if config.defaulelang == 'zh' else 'The qwen-tts model only supports Chinese and English, while the qwen3-tts model supports 10 languages.'))
 
         h4 = QtWidgets.QHBoxLayout()
 

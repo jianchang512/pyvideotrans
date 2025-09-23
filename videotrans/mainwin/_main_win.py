@@ -314,8 +314,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rolelist = config.params.get('openaitts_role', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
         elif config.params['tts_type'] == tts.QWEN_TTS:
-            rolelist = config.params.get('qwentts_role', '')
+            rolelist = config.settings.get('qwentts_role', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
+            self.voice_role.setCurrentText(config.settings.get('qwentts_role', 'No'))
         elif config.params['tts_type'] == tts.GEMINI_TTS:
             rolelist = config.params.get('gemini_ttsrole', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))

@@ -173,6 +173,10 @@ ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 
 codec_cache = {}
 
 
+QWEN_TTS_ROLES='Cherry,Serena,Ethan,Chelsie,Sunny,Jada,Dylan'
+
+QWEN3_TTS_ROLES='Cherry,Ethan,Nofish,Jennifer,Ryan,Katerina,Elias,Jada,Dylan,Sunny,li,Marcus,Roy,Peter,Rocky,Kiki,Eric'
+
 # 设置默认高级参数值
 def parse_init(update_data=None):
     if update_data:
@@ -273,6 +277,9 @@ def parse_init(update_data=None):
         "fontbordercolor": "&h000000",
         "backgroundcolor": "&h000000",
         "subtitle_position": 2,  # 对应 1到9 位置
+        
+        "qwentts_role": "Cherry,Chelsie,Serena,Ethan,Nofish,Jennifer,Ryan,Katerina,Elias,Jada,Dylan,Sunny,li,Marcus,Roy,Peter,Rocky,Kiki,Eric",
+        "qwentts_models":'qwen3-tts-flash,qwen-tts-latest,qwen-tts',
 
         "marginV": 10,
         "marginL": 10,
@@ -539,7 +546,7 @@ def getset_params(obj=None):
         "openaitts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer,verse",
         "qwentts_key": "",
         "qwentts_model": "qwen-tts-latest",
-        "qwentts_role": "Chelsie,Cherry,Serena,Ethan,Dylan,Jada,Sunny",
+        "qwentts_role": "Chelsie",
         "kokoro_api": "",
         "openairecognapi_url": "",
         "openairecognapi_key": "",
@@ -627,6 +634,10 @@ def getset_params(obj=None):
 
 
 params = getset_params()
+
+settings['qwentts_role']=QWEN3_TTS_ROLES if params["qwentts_model"].startswith('qwen3-tts') else   QWEN_TTS_ROLES
+
+parse_init(settings)
 
 # gemini 语音识别提示词
 _gemini_recogn_txt = 'gemini_recogn.txt' if defaulelang == 'zh' else 'gemini_recogn-en.txt'

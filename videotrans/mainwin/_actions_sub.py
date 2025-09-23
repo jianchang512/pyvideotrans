@@ -1,7 +1,7 @@
 import os
 import platform
 import re
-import shutil
+import shutil,time
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -538,8 +538,7 @@ class WinActionSub:
         pitch = int(self.main.pitch_rate.value())
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
-        voice_file = f"{voice_dir}/{self.main.tts_type.currentIndex()}-{lang}-{lujing_role}-{volume}-{pitch}.wav"
-
+        voice_file = f"{voice_dir}/{time.time()}.wav"
         obj = {
             "text": text,
             "rate": rate,
