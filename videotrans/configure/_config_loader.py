@@ -297,7 +297,6 @@ def parse_init(update_data=None):
         "zh_hant_s": True,
         "azure_lines": 1,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
-        "google_trans_newadd": "",
         "proxy": ""
     }
     if not Path(ROOT_DIR + "/videotrans/cfg.json").exists():
@@ -357,10 +356,7 @@ transobj = _obj["translate_language"]
 uilanglist = _obj["ui_lang"]
 # 语言代码:语言显示名称
 langlist: dict = _obj["language_code_list"]
-# 语言显示名称：语言代码
-rev_langlist = {code_alias: code for code, code_alias in langlist.items()}
-# 语言显示名称 list
-langnamelist = list(langlist.values())
+
 # 工具箱语言
 box_lang = _obj['toolbox_lang']
 # 代理地址

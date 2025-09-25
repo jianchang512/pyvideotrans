@@ -211,7 +211,7 @@ class TransCreate(BaseTask):
     ### 同原始语言相关，当原始语言变化或检测出结果时，需要修改==========
     def set_source_language(self, source_language_code=None, is_del=False):
         self.cfg['source_language'] = source_language_code
-        source_code = self.cfg['source_language'] if self.cfg['source_language'] in config.langlist else config.rev_langlist.get(self.cfg['source_language'], None)
+        source_code =   translator.get_code(self.cfg['source_language'])
         if source_code:
             self.cfg['source_language_code'] = source_code
         # 检测字幕原始语言
@@ -228,7 +228,7 @@ class TransCreate(BaseTask):
         # 作为识别音频
         self.cfg['shibie_audio'] = f"{self.cfg['target_dir']}/shibie.wav"
         # 目标语言代码
-        target_code = self.cfg['target_language'] if self.cfg['target_language'] in config.langlist else config.rev_langlist.get(self.cfg['target_language'], None)
+        target_code = translator.get_code(self.cfg['target_language'])
         if target_code:
             self.cfg['target_language_code'] = target_code
 

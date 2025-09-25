@@ -381,6 +381,7 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import VASForm
+    from videotrans.translator import LANGNAME_DICT
 
     winobj = config.child_forms.get('vasform')
     if winobj is not None:
@@ -395,5 +396,6 @@ def openwin():
     winobj.ysphb_selectsrt.clicked.connect(lambda: get_file('srt'))
     winobj.ysphb_startbtn.clicked.connect(start)
     winobj.ysphb_opendir.clicked.connect(opendir)
+    winobj.language.addItems(list(LANGNAME_DICT.values()))
     winobj.show()
 

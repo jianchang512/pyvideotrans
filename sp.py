@@ -11,7 +11,7 @@ License: GPL-V3
 # 写的这么烂，一看就不是AI写的
 
 """
-
+import atexit
 
 import sys
 import time
@@ -26,6 +26,27 @@ from PySide6.QtGui import QPixmap, QIcon, QGuiApplication
 from videotrans.configure._guiexcept import global_exception_hook, exception_handler
 
 VERSION = "v3.81"
+
+def cleanup():
+    """强制清理函数"""
+    try:
+        if 'app' in globals():
+            app.quit()
+            app.deleteLater()
+    except:
+        pass
+
+atexit.register(cleanup)
+
+if sys.platform != "win32":
+    import signal
+    def handle_exit(signum, frame):
+        cleanup()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, handle_exit)
+    signal.signal(signal.SIGTERM, handle_exit)
+
 
 def show_global_error_dialog(tb_str):
     """槽函数 显示对话框。"""
@@ -59,6 +80,19 @@ class StartWindow(QWidget):
         h_layout.addWidget(self.status_label)
         h_layout.addStretch(1)
         v_layout.setContentsMargins(0, 0, 0, 20)
+    def closeEvent(self, event):
+        # 释放启动画面的资源
+        if hasattr(self, 'pixmap') and self.pixmap:
+            self.pixmap = None
+
+        # 如果主窗口不存在，则退出应用程序
+        if self.main_window is None:
+            QApplication.instance().quit()
+        else:
+            # 主窗口存在，我们不需要退出应用，但需要确保启动画面关闭
+            pass
+
+        super().closeEvent(event)
 
     def center(self):
         screen = QGuiApplication.primaryScreen()
@@ -150,4 +184,16 @@ if __name__ == "__main__":
     splash.show()
     
     QTimer.singleShot(50, lambda: initialize_full_app(splash, app))
-    sys.exit(app.exec())
+    res=0
+    try:
+        res=app.exec()
+        res=0 if res is None else  res
+    finally:
+        try:
+            cleanup()
+            import gc
+            gc.collect()
+        except Exception as e:
+            print(e)
+
+    sys.exit(res if isinstance(res, int) else 0)

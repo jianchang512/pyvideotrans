@@ -215,19 +215,11 @@ def openwin():
                                          win=winobj) is not True:
             return
 
-    # 获取新增的google翻译语言代码
-    def get_google_trans_newcode():
-        new_langcode = []
-        if config.settings['google_trans_newadd']:
-            new_langcode = config.settings['google_trans_newadd'].strip().split(',')
-        return new_langcode
 
     # 更新目标语言列表
     def update_target_language():
         current_target = winobj.fanyi_target.currentText()
-        language_namelist = ["-"] + [it for it in config.langnamelist if config.rev_langlist[it] != 'auto']
-        if winobj.fanyi_translate_type.currentIndex() in [translator.GOOGLE_INDEX]:
-            language_namelist += get_google_trans_newcode()
+        language_namelist = ["-"] + list(translator.LANGNAME_DICT.values())
         winobj.fanyi_target.clear()
         winobj.fanyi_target.addItems(language_namelist)
         if current_target and current_target != '-' and current_target in language_namelist:
@@ -346,7 +338,7 @@ def openwin():
         winobj.fanyi_translate_type.setCurrentIndex(int(config.params.get('trans_translate_type', 0)))
 
         update_target_language()
-        winobj.fanyi_source.addItems(['-'] + config.langnamelist)
+        winobj.fanyi_source.addItems(['-'] + list(translator.LANGNAME_DICT.values()))
         winobj.fanyi_import.clicked.connect(fanyi_import_fun)
         winobj.fanyi_start.clicked.connect(fanyi_start_fun)
         winobj.fanyi_stop.clicked.connect(pause_trans)

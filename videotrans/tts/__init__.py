@@ -303,8 +303,7 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
         return True
     if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko', 'en', 'yu']:
         return 'GPT-SoVITS 仅支持中日英韩配音' if config.defaulelang == 'zh' else 'GPT-SoVITS only supports Chinese, English, Japanese,ko'
-    if tts_type == QWEN_TTS and langcode[:2] not in ['zh', 'en', 'yu']:
-        return 'Qwen TS 仅支持中英配音' if config.defaulelang == 'zh' else 'Qwen TTS only supports Chinese, English'
+
     if tts_type == CHATTERBOX_TTS and langcode[:2] not in ['en']:
         return 'ChatterBox TTS 仅支持英语配音' if config.defaulelang == 'zh' else 'ChatterBox TTS only supports English'
     if tts_type == COSYVOICE_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'ko', 'yu']:

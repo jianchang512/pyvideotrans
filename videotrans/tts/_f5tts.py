@@ -175,19 +175,14 @@ class F5TTS(BaseTTS):
         except Exception as e:
             raise StopRetry(str(e))
         try:
+            kw={
+                "prompt":handle_file(data['ref_wav']),
+                "text":text,
+                "api_name":'/gen_single'
+            }
             if int(config.params.get('index_tts_version',1))==1:
-                result = client.predict(
-                    prompt=handle_file(data['ref_wav']),
-                    emo_ref_path=handle_file(data['ref_wav']),
-                    text=text,
-                    api_name='/gen_single'
-                )
-            else:
-                result = client.predict(
-                        prompt=handle_file(data['ref_wav']),
-                        text=text,
-                        api_name='/gen_single'
-                )
+                kw['emo_ref_path']=handle_file(data['ref_wav'])
+            result = client.predict(**kw)
         except Exception as e:
             raise
                 

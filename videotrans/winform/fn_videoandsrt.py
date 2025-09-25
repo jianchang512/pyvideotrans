@@ -176,6 +176,7 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import Videoandsrtform
+    from videotrans.translator import LANGNAME_DICT
     try:
         winobj = config.child_forms.get('vandsrtform')
         if winobj is not None:
@@ -188,6 +189,7 @@ def openwin():
         winobj.folder_btn.clicked.connect(get_file)
         winobj.startbtn.clicked.connect(start)
         winobj.opendir.clicked.connect(opendir)
+        winobj.language.addItems(list(LANGNAME_DICT.values()))
         winobj.show()
     except Exception as e:
         print(e)

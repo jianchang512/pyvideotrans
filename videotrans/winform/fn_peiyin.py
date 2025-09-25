@@ -444,7 +444,7 @@ def openwin():
 
     def getlangnamelist(tts_type=0):
         if tts_type != tts.EDGE_TTS:
-            return ['-'] + config.langnamelist
+            return ['-'] + list(translator.LANGNAME_DICT.values())
 
         return ['-'] + list(langname_dict.values())
 

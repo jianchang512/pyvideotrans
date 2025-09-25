@@ -274,7 +274,7 @@ def openwin():
         uuid = None
     def getlangnamelist(tts_type=0):
         if tts_type != tts.EDGE_TTS:
-            return ['-'] + config.langnamelist
+            return ['-'] + list(translator.LANGNAME_DICT.values())
         return ['-'] + list(langname_dict.values())
 
     def tts_type_change(type):

@@ -68,6 +68,24 @@ NO_RETRY_EXCEPT = (
 )
 
 
+def _handle_openai_error(e, lang='zh'):
+    body =  e.body if hasattr(e,'body')  else None
+    if not body:
+        return  str(e)
+    
+    if isinstance(body,str):
+        import json
+        try:
+            msg=json.loads(body)
+        except json.decoder.JSONDecodeError:
+            return body
+    last_message=body.get('message')
+    if not last_message:
+        return str(body)
+    if 'Insufficient Balance' in last_message:
+        return  '所使用的AI渠道账户余额不足，请去对应平台查看余额' if lang=='zh' else 'The balance of the AI ​​channel account used is insufficient. Please check the balance on the corresponding platform.'
+    return  last_message
+
 # 根据异常类型，返回整理后的可读性错误消息
 def get_msg_from_except(ex):
     lang = config.defaulelang
@@ -80,8 +98,7 @@ def get_msg_from_except(ex):
         ex=ex.ex
     
     # 键是异常类型（或类型的元组），值是一个处理函数（lambda），用于生成特定的错误消息。
-    exception_handlers = {
-        
+    exception_handlers = {       
         
         RateLimitError:
             lambda
@@ -90,11 +107,6 @@ def get_msg_from_except(ex):
         NotFoundError:
             lambda
                 e: f"{'请求API地址不存在或模型名称错误:' if lang == 'zh' else 'API address does not exist or model name is wrong:'} {getattr(e, 'message', e)}",
-
-                
-        
-        
-        
         
         # url地址错误
         (TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, SSLError): lambda
@@ -103,8 +115,7 @@ def get_msg_from_except(ex):
 
         # openai 库的永久性错误 (通常是 4xx 状态码)
         # 401 认证失败 (API Key 错误)
-        AuthenticationError: lambda
-            e: f"{'密钥错误或无权限访问该模型 ' if lang == 'zh' else 'Secret key error or no permission to access the model '}",
+        AuthenticationError: lambda e: f"{'密钥错误或无权限访问该模型 ' if lang == 'zh' else 'Secret key error or no permission to access the model '}",
         
         # 403 无权限访问该模型
         PermissionDeniedError: lambda
@@ -114,7 +125,7 @@ def get_msg_from_except(ex):
             lambda
                 e: f"{'连接API地址失败，请检查网络或代理:' if lang == 'zh' else 'Failed to connect to API, check network or proxy:'} {getattr(e, 'message', e)}",
         # API 错误
-        APIError: lambda e: getattr(e, 'message', 'An unknown API error occurred.'),
+        APIError: lambda e: _handle_openai_error(e, lang),
           
         ApiError_11: lambda e: e.body.get('detail',{}).get('message',e.body),
         
@@ -124,7 +135,7 @@ def get_msg_from_except(ex):
 
         # 连接问题，检查网络或尝试设置代理
         (Timeout,TimeoutError,RetryError,BrokenPipeError, ConnectionError, ConnectionRefusedError, ConnectionResetError, ConnectionAbortedError): lambda
-            e: '无法连接到请求API地址，请检查网络或代理设置是否正确' if lang == 'zh' else 'Cannot connect to request address, please check network or proxy settings.',
+            e: '无法连接到请求API地址，请检查网络或代理设置' if lang == 'zh' else 'Cannot connect to request address, please check network or proxy settings.',
         
         # 400 错误请求 (例如输入内容过长、参数无效等)
         BadRequestError: lambda
@@ -133,7 +144,17 @@ def get_msg_from_except(ex):
         HTTPError: lambda e:str(e),
         
         
-        FileNotFoundError: lambda e: f"文件未找到: {e.filename} - {e.filename2}" if lang == 'zh' else f"File not found: {e.filename} - {e.filename2}",
+        FileNotFoundError: lambda e: (
+            # 首先检查是否是 WinError 206
+            f"【路径过长超过260个字符限制】无法访问文件 '{e.filename}'。请将原始视频或输出目录(如果选择了输出目录)，移动到更短的路径下，例如 'D:\\videos\\' 再重试。"
+            if lang == 'zh' else
+            f"[Path Too Long Error] Cannot access file '{e.filename}'. Please move your Original file or output directory(if an output directory is selected) to a shorter path, e.g., 'D:\\videos\\' and try again."
+        ) if hasattr(e, 'winerror') and e.winerror == 206 else (
+            # 如果不是 WinError 206，则使用您原来的逻辑
+            f"文件未找到: {e.filename}" + (f" - {e.filename2}" if e.filename2 else "")
+            if lang == 'zh' else
+            f"File not found: {e.filename}" + (f" - {e.filename2}" if e.filename2 else "")
+        ),
         PermissionError: lambda e: f"权限不足，无法访问: {e.filename} - {e.filename2}" if lang == 'zh' else f"Permission denied: {e.filename} - {e.filename2}",
         FileExistsError: lambda e: f"文件已存在: {e.filename} - {e.filename2}" if lang == 'zh' else f"File already exists: {e.filename} - {e.filename2}",
         
@@ -169,7 +190,7 @@ def get_msg_from_except(ex):
         if isinstance(ex, exc_types):
             return handler(ex)
 
-    # --- 如果以上特定异常都未匹配，则执行以下通用后备逻辑 ---
+    # --- 如果以上特定异常都未匹配，则执行以下通用后备逻辑，涉及多个第三方api和webui，逐个尝试可能的错误信息 ---
     if hasattr(ex, 'error'):
         return str(ex.error.get('message', ex.error))
     if hasattr(ex, 'message'):

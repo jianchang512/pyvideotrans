@@ -14,6 +14,7 @@ from videotrans.configure import config
 from videotrans.mainwin._actions import WinAction
 from videotrans.ui.en import Ui_MainWindow
 from videotrans.util import tools
+from videotrans.translator import LANGNAME_DICT
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -34,7 +35,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app_mode = "biaozhun"
         # 当前所有可用角色列表
         self.current_rolelist = []
-        self.languagename = config.langnamelist
+        self.languagename = list(LANGNAME_DICT.values())
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
 
@@ -314,9 +315,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rolelist = config.params.get('openaitts_role', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
         elif config.params['tts_type'] == tts.QWEN_TTS:
-            rolelist = config.settings.get('qwentts_role', '')
-            self.voice_role.addItems(['No'] + rolelist.split(','))
-            self.voice_role.setCurrentText(config.settings.get('qwentts_role', 'No'))
+            rolelist = config.settings.get('qwentts_role', '').split(',')
+            self.voice_role.addItems(['No'] + rolelist)
+            current_role=config.settings.get('qwentts_role', 'No')
+            if current_role in rolelist:
+                self.voice_role.setCurrentText()
         elif config.params['tts_type'] == tts.GEMINI_TTS:
             rolelist = config.params.get('gemini_ttsrole', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
@@ -605,37 +608,141 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
 
     def kill_ffmpeg_processes(self):
+        """改进的ffmpeg进程终止函数"""
         import platform
-        import signal
-        import getpass, subprocess
+        
+        import getpass
+        import subprocess
+        import psutil  # 需要安装: pip install psutil
+
         try:
             system_platform = platform.system()
             current_user = getpass.getuser()
 
+            print(f"Attempting to kill ffmpeg processes for user: {current_user}")
+            killed_count = 0
             if system_platform == "Windows":
-                subprocess.call(f"taskkill /F /FI \"USERNAME eq {current_user}\" /IM ffmpeg.exe", shell=True)
-            elif system_platform == "Linux" or system_platform == "Darwin":
-                process = subprocess.Popen(['ps', '-U', current_user], stdout=subprocess.PIPE)
-                out, err = process.communicate()
+                # Windows平台 - 使用taskkill
+                try:
+                    # 方法1: 使用taskkill
+                    result = subprocess.run(
+                        f'taskkill /F /FI "USERNAME eq {current_user}" /IM ffmpeg.exe',
+                        shell=True,
+                        capture_output=True,
+                        text=True
+                    )
+                    if result.returncode == 0:
+                        print("Successfully killed ffmpeg processes using taskkill")
+                    else:
+                        print(f"taskkill returned: {result.returncode}, output: {result.stdout}")
+                except Exception as e:
+                    print(f"Error using taskkill: {e}")
 
-                for line in out.splitlines():
-                    if b'ffmpeg' in line:
-                        pid = int(line.split(None, 1)[0])
-                        os.kill(pid, signal.SIGKILL)
-        except:
-            pass
+                # 方法2: 使用psutil作为备选方案
+                try:
+                    killed_count = 0
+                    for proc in psutil.process_iter(['pid', 'name', 'username']):
+                        try:
+                            if proc.info['name'] and 'ffmpeg' in proc.info['name'].lower():
+                                if proc.info['username'] and current_user in proc.info['username']:
+                                    proc.kill()
+                                    killed_count += 1
+                                    print(f"Killed ffmpeg process: PID {proc.info['pid']}")
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            continue
+                    print(f"Killed {killed_count} ffmpeg processes using psutil")
+                except Exception as e:
+                    print(f"Error using psutil: {e}")
+
+            elif system_platform in ["Linux", "Darwin"]:  # Darwin是macOS
+                import signal
+                killed_count = 0
+
+                # 方法1: 使用pkill命令（更可靠）
+                try:
+                    result = subprocess.run(
+                        ['pkill', '-9', '-u', current_user, 'ffmpeg'],
+                        capture_output=True,
+                        text=True
+                    )
+                    if result.returncode == 0:
+                        print("Successfully killed ffmpeg processes using pkill")
+                    else:
+                        print(f"pkill returned: {result.returncode}")
+                except Exception as e:
+                    print(f"Error using pkill: {e}")
+
+                # 方法2: 使用psutil检查并杀死残留进程
+                try:
+                    for proc in psutil.process_iter(['pid', 'name', 'username', 'cmdline']):
+                        try:
+                            # 检查进程名或命令行中包含ffmpeg
+                            is_ffmpeg = False
+                            if proc.info['name'] and 'ffmpeg' in proc.info['name'].lower():
+                                is_ffmpeg = True
+                            elif proc.info['cmdline']:
+                                cmdline = ' '.join(proc.info['cmdline']).lower()
+                                if 'ffmpeg' in cmdline:
+                                    is_ffmpeg = True
+
+                            if is_ffmpeg:
+                                # 检查用户匹配
+                                if proc.info['username'] == current_user:
+                                    proc.kill()
+                                    killed_count += 1
+                                    print(f"Killed ffmpeg process: PID {proc.info['pid']}")
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            continue
+
+                    print(f"Killed {killed_count} ffmpeg processes using psutil")
+
+                except Exception as e:
+                    print(f"Error using psutil: {e}")
+
+                    # 方法3: 备选方案 - 使用ps命令（原方法改进版）
+                    try:
+                        process = subprocess.Popen(
+                            ['ps', '-u', current_user, '-o', 'pid,comm'],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE
+                        )
+                        out, err = process.communicate()
+
+                        if process.returncode == 0:
+                            for line in out.decode('utf-8').splitlines():
+                                if 'ffmpeg' in line.lower():
+                                    parts = line.strip().split()
+                                    if len(parts) >= 1:
+                                        try:
+                                            pid = int(parts[0])
+                                            os.kill(pid, signal.SIGKILL)
+                                            print(f"Killed ffmpeg process: PID {pid}")
+                                            killed_count += 1
+                                        except (ProcessLookupError, ValueError):
+                                            continue
+                    except Exception as e:
+                        print(f"Error using ps command: {e}")
+
+            print(f"Total ffmpeg processes killed: {killed_count}")
+
+        except Exception as e:
+            print(f"Error in kill_ffmpeg_processes: {e}")
 
     def closeEvent(self, event):
         config.exit_soft = True
         config.current_status = 'stop'
+        self.hide()
+        self.cleanup_and_accept()
+
+        time.sleep(10)
         try:
-            with open(config.TEMP_DIR + '/stop_process.txt', 'w', encoding='utf-8') as f:
-                f.write('stop')
+            event.accept()
         except:
             pass
+
+    def cleanup_and_accept(self):
         sets = QSettings("pyvideotrans", "settings")
         sets.setValue("windowSize", self.size())
-        self.hide()
         try:
             for w in config.child_forms.values():
                 if w and hasattr(w, 'close'):
@@ -646,13 +753,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except Exception:
             pass
         print('Wait process exit...')
-        time.sleep(3)
         try:
             self.kill_ffmpeg_processes()
-            time.sleep(3)
         except:
             pass
         os.chdir(config.ROOT_DIR)
+        try:
+            with open(config.TEMP_DIR + '/stop_process.txt', 'w', encoding='utf-8') as f:
+                f.write('stop')
+        except:
+            pass
         try:
             shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
         except:
@@ -661,4 +771,4 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
         except:
             pass
-        event.accept()
+

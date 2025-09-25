@@ -63,30 +63,29 @@ TRANSLASTE_NAME_LIST = [
 # microsoft https://www.bing.com/translator?mkt=zh-CN
 # 阿里 https://help.aliyun.com/zh/machine-translation/developer-reference/machine-translation-language-code-list?spm=a2c4g.11186623.help-menu-30396.d_4_4.4bda2b009oye8y
 LANGNAME_DICT = {
-    "zh": "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',
     "zh-cn": "Simplified Chinese" if config.defaulelang != 'zh' else '简体中文',
     "zh-tw": "Traditional Chinese" if config.defaulelang != 'zh' else '繁体中文',
-    "en": "English language" if config.defaulelang != 'zh' else '英语',
-    "fr": "French language" if config.defaulelang != 'zh' else '法语',
-    "de": "German language" if config.defaulelang != 'zh' else '德语',
-    "ja": "Japanese language" if config.defaulelang != 'zh' else '日语',
-    "ko": "Korean language" if config.defaulelang != 'zh' else '韩语',
-    "ru": "Russian language" if config.defaulelang != 'zh' else '俄罗斯语',
-    "es": "Spanish language" if config.defaulelang != 'zh' else '西班牙语',
-    "th": "Thai language" if config.defaulelang != 'zh' else '泰国语',
-    "it": "Italian language" if config.defaulelang != 'zh' else '意大利语',
-    "pt": "Portuguese language" if config.defaulelang != 'zh' else '葡萄牙语',
-    "vi": "Vietnamese language" if config.defaulelang != 'zh' else '越南语',
-    "ar": "Arabic language" if config.defaulelang != 'zh' else '阿拉伯语',
-    "tr": "Turkish language" if config.defaulelang != 'zh' else '土耳其语',
-    "hi": "Hindi language" if config.defaulelang != 'zh' else '印度语',
-    "hu": "Hungarian language" if config.defaulelang != 'zh' else '匈牙利语',
-    "uk": "Ukrainian language" if config.defaulelang != 'zh' else '乌克兰语',
-    "id": "Indonesian language" if config.defaulelang != 'zh' else '印度尼西亚语',
-    "ms": "Malay language" if config.defaulelang != 'zh' else '马来西亚语',
-    "kk": "Kazakh language" if config.defaulelang != 'zh' else '哈萨克语',
-    "cs": "Czech language" if config.defaulelang != 'zh' else '捷克语',
-    "pl": "Polish language" if config.defaulelang != 'zh' else '波兰语',
+    "en": "English" if config.defaulelang != 'zh' else '英语',
+    "fr": "French" if config.defaulelang != 'zh' else '法语',
+    "de": "German" if config.defaulelang != 'zh' else '德语',
+    "ja": "Japanese" if config.defaulelang != 'zh' else '日语',
+    "ko": "Korean" if config.defaulelang != 'zh' else '韩语',
+    "ru": "Russian" if config.defaulelang != 'zh' else '俄罗斯语',
+    "es": "Spanish" if config.defaulelang != 'zh' else '西班牙语',
+    "th": "Thai" if config.defaulelang != 'zh' else '泰国语',
+    "it": "Italian" if config.defaulelang != 'zh' else '意大利语',
+    "pt": "Portuguese" if config.defaulelang != 'zh' else '葡萄牙语',
+    "vi": "Vietnamese" if config.defaulelang != 'zh' else '越南语',
+    "ar": "Arabic" if config.defaulelang != 'zh' else '阿拉伯语',
+    "tr": "Turkish" if config.defaulelang != 'zh' else '土耳其语',
+    "hi": "Hindi" if config.defaulelang != 'zh' else '印度语',
+    "hu": "Hungarian" if config.defaulelang != 'zh' else '匈牙利语',
+    "uk": "Ukrainian" if config.defaulelang != 'zh' else '乌克兰语',
+    "id": "Indonesian" if config.defaulelang != 'zh' else '印度尼西亚语',
+    "ms": "Malay" if config.defaulelang != 'zh' else '马来西亚语',
+    "kk": "Kazakh" if config.defaulelang != 'zh' else '哈萨克语',
+    "cs": "Czech" if config.defaulelang != 'zh' else '捷克语',
+    "pl": "Polish" if config.defaulelang != 'zh' else '波兰语',
     "nl": "Dutch" if config.defaulelang != 'zh' else '荷兰语',
     "sv": "Swedish" if config.defaulelang != 'zh' else '瑞典语',
     "he": "Hebrew" if config.defaulelang != 'zh' else '希伯来语',
@@ -96,6 +95,7 @@ LANGNAME_DICT = {
     "ur": "Urdu" if config.defaulelang != 'zh' else '乌尔都语',
     "yue": "Cantonese" if config.defaulelang != 'zh' else '粤语',
 }
+LANGNAME_DICT_REV={v:k for k,v in LANGNAME_DICT.items()}
 LANG_CODE = {
     "zh-cn": [
         "zh-cn",  # google通道
@@ -499,40 +499,35 @@ LANG_CODE = {
 
 
 # 根据界面显示的语言名称，比如“简体中文、English” 获取语言代码，比如 zh-cn en 等, 如果是cli，则直接是语言代码
-def get_code(*, show_text=None):
-    if not show_text or show_text in ['-']:
+def get_code(show_text=None):
+    if not show_text or show_text in ['-','No']:
         return None
 
     if show_text in LANG_CODE:
         return show_text
-    if show_text in config.rev_langlist:
-        return config.rev_langlist[show_text]
-
-    return None
+    return LANGNAME_DICT_REV.get(show_text)
 
 
 # 根据显示的语言和翻译通道，获取该翻译通道要求的源语言代码和目标语言代码
 # translate_type翻译通道索引
-# show_source翻译后显示的原语言名称或 -
-# show_target 翻译后显示的目标语言名称 或 -
-# 如果是cli，则show均是语言代码
+# show_source 显示的原语言名称或 - 或  语言代码 
+# show_target 显示的目标语言名称 或 - 或语言代码 
 def get_source_target_code(*, show_source=None, show_target=None, translate_type=None):
     source_list = None
     target_list = None
 
-    # Google 新增的自定义语言翻译代码，该代码既不在 LANG_CODE 也不在 config.rev_langlist，原羌返回即可
-    if translate_type==GOOGLE_INDEX:
-        customize_source_code = show_source if show_source and show_source not in LANG_CODE and show_source not in config.rev_langlist else None
-        customize_target_code = show_target if show_target and show_target not in LANG_CODE and show_target not in config.rev_langlist else None
-        if customize_source_code or customize_target_code:
-            return customize_source_code, customize_target_code
-
     if show_source and show_source != '-':
-        source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[
-            config.rev_langlist[show_source]]
+        if show_source in LANG_CODE:
+            source_list = LANG_CODE[show_source] 
+        elif LANGNAME_DICT_REV.get(show_source):
+            source_list=LANG_CODE.get(LANGNAME_DICT_REV.get(show_source))
+            
     if show_target and show_target != '-':
-        target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
-            config.rev_langlist[show_target]]
+        if show_target in LANG_CODE:
+            target_list = LANG_CODE[show_target] 
+        elif LANGNAME_DICT_REV.get(show_target):
+            target_list=LANG_CODE.get(LANGNAME_DICT_REV.get(show_target))
+            
     if translate_type in [GOOGLE_INDEX,QWENMT_INDEX, MyMemoryAPI_INDEX, TRANSAPI_INDEX]:
         return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
     elif translate_type == BAIDU_INDEX:
@@ -716,12 +711,9 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         index = 8
 
     if show_target:
-        # 新增自定义语言代码
-        if show_target not in LANG_CODE and show_target not in config.rev_langlist:
-            return True
-        target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE[
-            config.rev_langlist[show_target]]
-        if target_list[index].lower() == 'no':
+        target_list = LANG_CODE[show_target] if show_target in LANG_CODE else LANG_CODE.get(
+            LANGNAME_DICT_REV.get(show_target))
+        if target_list and target_list[index].lower() == 'no':
             if return_str:
                 return config.transobj['deepl_nosupport'] + f':{show_target}'
             tools.show_error(config.transobj['deepl_nosupport'] + f':{show_target}')
@@ -732,7 +724,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
 # 获取用于进行语音识别的预设语言，比如语音是英文发音、中文发音
 # 根据 原语言进行判断,基本等同于google，但只保留_之前的部分
 def get_audio_code(*, show_source=None):
-    source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE[config.rev_langlist[show_source]]
+    source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE.get(LANGNAME_DICT_REV.get(show_source))
     return source_list[0]
 
 
@@ -740,14 +732,14 @@ def get_audio_code(*, show_source=None):
 def get_subtitle_code(*, show_target=None):
     if show_target in LANG_CODE:
         return LANG_CODE[show_target][1]
-    if show_target in config.rev_langlist:
-        return LANG_CODE[config.rev_langlist[show_target]][1]
+    if show_target in LANGNAME_DICT_REV:
+        return LANG_CODE[LANGNAME_DICT_REV[show_target]][1]
     return 'eng'
 
 def _check_google():
     import requests
     try:
-        requests.get(f"https://translate.google.com")
+        requests.head(f"https://translate.google.com")
     except Exception as e:
         config.logger.exception(f'检测google翻译失败{e}', exc_info=True)
         return False

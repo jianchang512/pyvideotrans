@@ -141,7 +141,7 @@ class Ui_vasrt(object):
         self.language = QtWidgets.QComboBox()
         self.language.setMinimumSize(QtCore.QSize(0, 30))
         self.language.setObjectName("language")
-        self.language.addItems(config.langnamelist)
+
         self.language.setDisabled(True)
         self.ysphb_issoft.toggled.connect(self.update_language)
 
