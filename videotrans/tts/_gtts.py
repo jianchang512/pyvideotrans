@@ -23,14 +23,13 @@ class GTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
 
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = {"https": pro, "http": pro}
 
     def _exec(self):
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
+        if self._exit() or not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))

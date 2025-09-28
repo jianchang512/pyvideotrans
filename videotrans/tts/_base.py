@@ -1,4 +1,6 @@
-import asyncio
+import asyncio,sys
+
+
 import base64
 import copy
 import inspect
@@ -40,7 +42,6 @@ class BaseTTS(BaseCon):
 
     len: int = field(init=False)
     has_done: int = field(default=0, init=False)
-    proxies: Optional = field(default=None, init=False)
     copydata: List = field(default_factory=list, init=False)
     wait_sec: float = field(init=False)
     dub_nums: int = field(init=False)
@@ -48,7 +49,7 @@ class BaseTTS(BaseCon):
     api_url: str = field(default='', init=False)
 
     def __post_init__(self):
-        super().__init__()
+        super().__post_init__()
 
         if not self.queue_tts:
             raise Exception("No data")
@@ -106,6 +107,8 @@ class BaseTTS(BaseCon):
     # run->exec->_local_mul_thread->item_task
     # run->exec->item_task
     def run(self) -> None:
+        if self._exit():
+            return
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
         if len(self.queue_tts) < 1:
@@ -114,27 +117,60 @@ class BaseTTS(BaseCon):
             # 检查 self._exec 是不是一个异步函数 (coroutine)
             if inspect.iscoroutinefunction(self._exec):
                 # 如果是异步函数，我们需要一个事件循环来运行它
+                loop=None
                 try:
                     # 尝试获取当前线程正在运行的事件循环
                     loop = asyncio.get_running_loop()
                 except:
-                    # 如果没有，说明在同步环境中，使用 asyncio.run()
-                    asyncio.run(self._exec())
+                    # 如果没有，这是最常见的情况：在一个新线程中运行异步代码
+                    # 我们将手动创建并管理循环，以确保优雅关闭
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    
+                    # 运行主任务
+                    loop.run_until_complete(self._exec())
                 else:
                     # 如果有，就在现有循环上运行它并等待完成
                     loop.run_until_complete(self._exec())
             else:
                 # 可能调用多线程，此时无法捕获异常
                 self._exec()
+        except RuntimeError as e:
+            # 这个捕获现在更有意义，因为它可能捕获到循环相关的错误
+            config.logger.error(f'TTS 线程运行时发生错误: {e}')
+            if 'Event loop is closed' in str(e):
+                config.logger.warning("捕获到 'Event loop is closed' 错误，这通常是关闭时序问题。")
         except RetryError as e:
             raise e.last_attempt.exception()
-        except RuntimeError as e:
-            print('edge-tts loop is quit')
         except Exception:
             raise
         finally:
-            if self.shound_del:
-                self._set_proxy(type='del')
+            # 只有当 self._exec 是异步函数时，我们才需要处理事件循环
+            if inspect.iscoroutinefunction(self._exec) and loop and not loop.is_closed():
+                config.logger.info("开始执行事件循环的关闭流程...")
+                try:
+                    # 步骤 1: 取消所有剩余的任务
+                    tasks = asyncio.all_tasks(loop=loop)
+                    for task in tasks:
+                        task.cancel()
+
+                    # 步骤 2: 聚合所有任务，等待它们完成取消
+                    group = asyncio.gather(*tasks, return_exceptions=True)
+                    loop.run_until_complete(group)
+                    import gc
+                    gc.collect()
+                    loop.run_until_complete(asyncio.sleep(0))
+
+
+                    # 步骤 3: 关闭异步生成器
+                    loop.run_until_complete(loop.shutdown_asyncgens())
+                
+                except Exception as e:
+                    config.logger.error(f"在关闭事件循环时发生错误: {e}", exc_info=True)
+                finally:
+                    # 步骤 4: 最终关闭事件循环
+                    config.logger.info("事件循环已关闭。")
+                    loop.close()
 
         # 是否播放
         if self.play:
@@ -150,9 +186,12 @@ class BaseTTS(BaseCon):
                 succeed_nums += 1
         # 只有全部配音都失败，才视为失败
         if succeed_nums < 1:
+            if config.exit_soft:
+                return
             if isinstance(self.error,Exception):
                 raise self.error
             msg = ('配音全部失败 ' if config.defaulelang == 'zh' else 'Dubbing failed ')+str(self.error)
+            
             raise RuntimeError(msg)
 
         self._signal(

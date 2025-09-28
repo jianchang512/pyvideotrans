@@ -27,19 +27,12 @@ class Claude(BaseTrans):
         # 覆盖父类属性
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
         self.api_url = self._get_url(config.params['claude_api'])
+        self._add_internal_host_noproxy(self.api_url)
         self.model_name = config.params["claude_model"]
 
         self.prompt = tools.get_prompt(ainame='claude', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
 
-        self._check_proxy()
 
-    def _check_proxy(self):
-        if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
-            return
-
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = pro
 
     def _get_url(self, url=""):
         if not url:
@@ -76,7 +69,7 @@ class Claude(BaseTrans):
         client = anthropic.Anthropic(
             base_url=self._get_url(),
             api_key=config.params['claude_key'],
-            http_client=httpx.Client(proxy=self.proxies)
+            http_client=httpx.Client(proxy=self.proxy_str)
         )
 
         response = client.messages.create(

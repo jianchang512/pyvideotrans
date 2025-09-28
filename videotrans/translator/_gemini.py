@@ -10,7 +10,7 @@ from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -33,8 +33,6 @@ class Gemini(BaseTrans):
         self.api_keys = config.params.get('gemini_key', '').strip().split(',')
         self.api_url = 'https://generativelanguage.googleapis.com/v1beta/openai/'
 
-        self._set_proxy(type='set')
-
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
            after=after_log(config.logger, logging.INFO))
@@ -55,27 +53,30 @@ class Gemini(BaseTrans):
         self.api_keys.append(api_key)
         config.logger.info(f'[Gemini]请求发送:{api_key=},{config.params["gemini_model"]=}')
         model = OpenAI(api_key=api_key, base_url=self.api_url,
-                       http_client=httpx.Client(proxy=self.proxies, timeout=7200))
+                       http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
 
         response = model.chat.completions.create(
             model=config.params["gemini_model"],
             timeout=7200,
-            max_tokens=8092,
+            max_tokens=18092,
             messages=message
         )
 
         config.logger.info(f'[gemini]响应:{response=}')
 
         result = ""
-        if hasattr(response,'choices') and response.choices and response.choices[0].message:
-            result = response.choices[0].message.content
+        if not hasattr(response,'choices'):
+            raise StopRetry(str(response))
+        
+        if response.choices and response.choices[0].message:
+            result = response.choices[0].message.content.strip()
         else:
             config.logger.error(f'[gemini]请求失败:{response=}')
-            raise RuntimeError(f"no choices:{response=}")
+            raise StopRetry(response.choices[0].finish_reason)
         
-        if not result or not result.strip():
+        if not result:
             config.logger.error(f'[gemini]请求失败:{response=}')
-            raise RuntimeError(f"no choices:{response=}")
+            raise RuntimeError(f"{response=}")
             
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
                           re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)

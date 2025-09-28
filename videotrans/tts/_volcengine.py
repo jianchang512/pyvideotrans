@@ -55,6 +55,8 @@ class VolcEngineTTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
+        if self._exit() or not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
@@ -113,8 +115,7 @@ class VolcEngineTTS(BaseTTS):
 
                 }
             }
-            resp = requests.post(api_url, json.dumps(request_json), headers=header,
-                                 proxies={"http": "", "https": ""},verify=False)
+            resp = requests.post(api_url, json.dumps(request_json), headers=header,verify=False)
             resp.raise_for_status()
             resp_json = resp.json()
             if "data" in resp_json:

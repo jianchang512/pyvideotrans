@@ -28,12 +28,14 @@ class ChatterBoxTTS(BaseTTS):
         super().__post_init__()
         api_url = config.params['chatterbox_url'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
-        self.proxies = {"http": "", "https": ""}
+        self._add_internal_host_noproxy(self.api_url)
 
     def _exec(self):
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
+        if self._exit() or  not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
@@ -49,8 +51,7 @@ class ChatterBoxTTS(BaseTTS):
                 if self.inst and self.inst.precent < 80:
                     self.inst.precent += 0.1
                 return
-            client = OpenAI(api_key='123456', base_url=self.api_url + '/v1',
-                            http_client=httpx.Client(proxy=None, timeout=7200))
+            client = OpenAI(api_key='123456', base_url=self.api_url + '/v1')
             response = client.audio.speech.create(
                 model="chatterbox-tts",  # 这是一个兼容性参数
                 voice=self.language,  # 这也是一个兼容性参数

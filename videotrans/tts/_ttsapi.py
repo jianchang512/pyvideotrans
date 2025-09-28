@@ -29,15 +29,20 @@ class TTSAPI(BaseTTS):
             self.api_url = 'http://' + api_url
         else:
             self.api_url = api_url
+        self._add_internal_host_noproxy(self.api_url)
 
     def _exec(self) -> None:
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
+        if self._exit() or not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
         def _run():
+            if self._exit() or tools.vail_file(data_item['filename']):
+                return
             role = data_item['role'].strip()
 
             speed = 1.0
@@ -112,7 +117,7 @@ class TTSAPI(BaseTTS):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
         }
         config.logger.info(f'发送数据 {data=}')
-        resraw = requests.post(f"{self.api_url}", data=data, verify=False, headers=headers, proxies=None)
+        resraw = requests.post(f"{self.api_url}", data=data, verify=False, headers=headers)
         resraw.raise_for_status()
         return resraw.json()
 

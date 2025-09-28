@@ -5,6 +5,12 @@ import threading
 import time
 from pathlib import Path
 
+
+import asyncio, sys
+# 这行代码应该在你的主程序入口（启动线程之前）执行一次即可，而不是在模块加载时。
+# 为了安全，我们先注释掉，如果需要，请移到你的主启动逻辑中。
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QSizePolicy
@@ -21,7 +27,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=650):
 
         super(MainWindow, self).__init__(parent)
-
+        self.worker_threads=[]
         self.width = width
         self.height = height
         self.resize(width, height)
@@ -367,19 +373,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _bindsignal(self):
         from videotrans.task.check_update import CheckUpdateWorker
-        from videotrans.task.get_role_list import GetRoleWorker
+        # from videotrans.task.get_role_list import GetRoleWorker
         from videotrans.task.job import start_thread
         from videotrans.mainwin._signal import UUIDSignalThread
 
-        update_role = GetRoleWorker(parent=self)
-        update_role.start()
+        # update_role = GetRoleWorker(parent=self)
+        # update_role.start()
         self.check_update = CheckUpdateWorker(parent=self)
         self.check_update.start()
 
         uuid_signal = UUIDSignalThread(parent=self)
         uuid_signal.uito.connect(self.win_action.update_data)
         uuid_signal.start()
-        start_thread(self)
+        self.worker_threads=start_thread(self)
 
     def _set_cache_set(self):
 
@@ -729,13 +735,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(f"Error in kill_ffmpeg_processes: {e}")
 
     def closeEvent(self, event):
+        self.hide()
         config.exit_soft = True
         config.current_status = 'stop'
-        self.hide()
+        try:
+            with open(config.TEMP_DIR + '/stop_process.txt', 'w', encoding='utf-8') as f:
+                f.write('stop')
+        except:
+            pass
+        
         self.cleanup_and_accept()
 
-        time.sleep(10)
+
+        os.chdir(config.ROOT_DIR)
         try:
+            shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
+        except:
+            pass
+        try:
+            shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
+        except:
+            pass
+            
+        try:
+            time.sleep(3)
             event.accept()
         except:
             pass
@@ -745,30 +768,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         sets.setValue("windowSize", self.size())
         try:
             for w in config.child_forms.values():
-                if w and hasattr(w, 'close'):
+                if w and hasattr(w, 'hide'):
                     w.hide()
+            if config.INFO_WIN['win']:
+                config.INFO_WIN['win'].hide()
+        except Exception:
+            pass
+        # 遍历所有工作线程，等待结束
+        for thread in self.worker_threads:
+            if thread.is_alive():
+                print(f"正在等待线程 {thread.name} 结束...")                
+                # 加一个超时，确保子线程有足够时间退出
+                thread.join(timeout=8)                
+                if thread.is_alive():
+                    print(f"警告：线程 {thread.name} 在5秒后仍未退出！")
+                else:
+                    print(f"线程 {thread.name} 已成功退出。")
+                   
+        try:
+            for w in config.child_forms.values():
+                if w and hasattr(w, 'close'):
                     w.close()
             if config.INFO_WIN['win']:
                 config.INFO_WIN['win'].close()
         except Exception:
             pass
-        print('Wait process exit...')
         try:
             self.kill_ffmpeg_processes()
         except:
             pass
-        os.chdir(config.ROOT_DIR)
-        try:
-            with open(config.TEMP_DIR + '/stop_process.txt', 'w', encoding='utf-8') as f:
-                f.write('stop')
-        except:
-            pass
-        try:
-            shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
-        except:
-            pass
-        try:
-            shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
-        except:
-            pass
+        
+        
 

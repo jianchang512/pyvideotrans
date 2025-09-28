@@ -26,7 +26,6 @@ class BaseRecogn(BaseCon):
     has_done: bool = field(default=False, init=False)
     error: str = field(default='', init=False)
     api_url: str = field(default='', init=False)
-    proxies: Optional = field(default=None, init=False)
 
     device: str = field(init=False)
     flag: List[str] = field(init=False)
@@ -39,7 +38,7 @@ class BaseRecogn(BaseCon):
 
 
     def __post_init__(self):
-        super().__init__()
+        super().__post_init__()
         self.device = 'cuda' if self.is_cuda else 'cpu'
         # 断句标志
         self.flag = [
@@ -73,9 +72,6 @@ class BaseRecogn(BaseCon):
         except Exception as e:
             config.logger.exception(e, exc_info=True)
             raise
-        finally:
-            if self.shound_del:
-                self._set_proxy(type='del')
 
     def _exec(self) -> Union[List[Dict], None]:
         pass

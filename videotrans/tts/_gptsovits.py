@@ -27,11 +27,11 @@ class GPTSoVITS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
 
-        self.proxies = {"http": "", "https": ""}
 
         # 2. 处理并设置 api_url (同样是覆盖父类的值)
         api_url = config.params['gptsovits_url'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
+        self._add_internal_host_noproxy(self.api_url)
 
         # 3. 初始化本类新增的属性
         self.splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…", }
@@ -40,18 +40,20 @@ class GPTSoVITS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
+        if self._exit() or  not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
         def _run():
+            if self._exit() or tools.vail_file(data_item['filename']):
+                return
             role = data_item['role']
 
             if data_item["text"][-1] not in self.splits:
                 data_item["text"] += '.'
             if len(data_item["text"]) < 4:
                 data_item["text"] = f'。{data_item["text"]}，。'
-            if self._exit() or tools.vail_file(data_item['filename']):
-                return
             data = {
                 "text": data_item['text'],
                 "text_language": "zh" if self.language.startswith('zh') else self.language,
@@ -87,7 +89,7 @@ class GPTSoVITS(BaseTTS):
 
             config.logger.info(f'GPT-SoVITS get:{data=}\n{self.api_url=}')
             # 克隆声音
-            response = requests.get(f"{self.api_url}", params=data, proxies={"http": "", "https": ""}, timeout=3600)
+            response = requests.get(f"{self.api_url}", params=data,  timeout=3600)
 
             content_type = response.headers.get('Content-Type')
             if 'application/json' in content_type:

@@ -26,15 +26,16 @@ RETRY_DELAY = 10
 class ElevenLabsC(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = pro
 
     def _item_task(self, data_item: dict = None):
+        if self._exit() or not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
         def _run():
+            if self._exit() or tools.vail_file(data_item['filename']):
+                return
             role = data_item['role']
 
             speed = 1.0
@@ -46,7 +47,7 @@ class ElevenLabsC(BaseTTS):
 
             client = ElevenLabs(
                 api_key=config.params['elevenlabstts_key'],
-                httpx_client=httpx.Client(proxy=self.proxies) if self.proxies else None
+                httpx_client=httpx.Client(proxy=self.proxy_str)
             )
 
             response = client.text_to_speech.convert(
@@ -91,45 +92,17 @@ class ElevenLabsC(BaseTTS):
 
 class ElevenLabsClone():
 
-    def __init__(self, input_file_path, output_file_path, source_language, target_language):
+    def __init__(self, input_file_path, output_file_path, source_language, target_language,proxy_str=None):
         self.input_file_path = input_file_path
         self.output_file_path = output_file_path
         self.source_language = source_language
         self.target_language = target_language
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = pro
         self.client = ElevenLabs(
             api_key=config.params['elevenlabstts_key'],
-            httpx_client=httpx.Client(proxy=self.proxies) if pro else None
+            httpx_client=httpx.Client(proxy=proxy_str)
         )
 
-    def _set_proxy(self, type='set'):
-        if type == 'del' and self.shound_del:
-            try:
-                del os.environ['http_proxy']
-                del os.environ['https_proxy']
-                del os.environ['all_proxy']
-            except:
-                pass
-            self.shound_del = False
-            return
 
-        if type == 'set':
-            raw_proxy = os.environ.get('http_proxy') or os.environ.get('https_proxy')
-            if raw_proxy:
-                return raw_proxy
-            if not raw_proxy:
-                proxy = tools.set_proxy()
-                if proxy:
-                    self.shound_del = True
-                    os.environ['http_proxy'] = proxy
-                    os.environ['https_proxy'] = proxy
-                    os.environ['all_proxy'] = proxy
-                return proxy
-        return None
-
-    # 强制单个线程执行，防止频繁并发失败
     def run(self):
         # 转为mp3发送
         mp3_audio = config.TEMP_DIR + f'/elevlabs-clone-{time.time()}.mp3'

@@ -26,16 +26,6 @@ class AzureGPT(BaseTrans):
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
         self.model_name = config.params["azure_model"]
         self.prompt = tools.get_prompt(ainame='azure', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
-        self._check_proxy()
-
-    def _check_proxy(self):
-        try:
-            c = httpx.Client(proxy=None)
-            c.get(config.params["azure_api"])
-        except Exception as e:
-            pro = self._set_proxy(type='set')
-            if pro:
-                self.proxies = pro
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -46,7 +36,7 @@ class AzureGPT(BaseTrans):
             api_key=config.params["azure_key"],
             api_version=config.params['azure_version'],
             azure_endpoint=config.params["azure_api"],
-            http_client=httpx.Client(proxy=self.proxies)
+            http_client=httpx.Client(proxy=self.proxy_str)
         )
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         message = [

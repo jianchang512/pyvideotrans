@@ -18,7 +18,3 @@ class GetRoleWorker(QThread):
             get_elevenlabs_role()
         except Exception as e:
             print(e)
-        try:
-            get_clone_role()
-        except Exception as e:
-            print(e)

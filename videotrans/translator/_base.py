@@ -25,7 +25,6 @@ class BaseTrans(BaseCon):
     error_code: int = field(default=0, init=False)
     iter_num: int = field(default=0, init=False)
     model_name: str = field(default="", init=False)
-    proxies: Optional[Dict] = field(default=None, init=False)
 
     target_list: List = field(default_factory=list, init=False)
     split_source_text: List = field(default_factory=list, init=False)
@@ -37,7 +36,8 @@ class BaseTrans(BaseCon):
     aisendsrt: bool = field(init=False)
 
     def __post_init__(self):
-        super().__init__()
+        super().__post_init__()
+
 
         self.trans_thread = int(config.settings.get('trans_thread', 5))
         self.retry = int(config.settings.get('retries', 2))
@@ -121,9 +121,6 @@ class BaseTrans(BaseCon):
                 self.inst.status_text = '字幕翻译中' if config.defaulelang == 'zh' else 'Translation of subtitles'
             time.sleep(self.wait_sec)
 
-        # 恢复原代理设置
-        if self.shound_del:
-            self._set_proxy(type='del')
         # text_list是字符串
         if not self.is_srt:
             return "\n".join(self.target_list)
@@ -168,8 +165,6 @@ class BaseTrans(BaseCon):
             time.sleep(self.wait_sec)
 
         # 恢复原代理设置
-        if self.shound_del:
-            self._set_proxy(type='del')
         raws_list = tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
 
         # 双语翻译结果，只取最后一行
@@ -203,4 +198,4 @@ class BaseTrans(BaseCon):
     def _get_key(self, it):
         Path(config.TEMP_DIR + '/translate_cache').mkdir(parents=True, exist_ok=True)
         return tools.get_md5(
-            f'{self.__class__.__name__}-{self.api_url}-{self.trans_thread}-{self.retry}-{self.wait_sec}-{self.iter_num}-{self.is_srt}-{self.aisendsrt}-{self.proxies}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')
+            f'{self.__class__.__name__}-{self.api_url}-{self.trans_thread}-{self.retry}-{self.wait_sec}-{self.iter_num}-{self.is_srt}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')

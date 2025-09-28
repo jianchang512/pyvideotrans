@@ -39,7 +39,7 @@ class DeepgramRecogn(BaseRecogn):
         else:
             self.zimu_len = int(config.settings.get('other_len'))
             self.join_flag = ' '
-        self.proxies = self._set_proxy(type='set')
+
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -56,8 +56,7 @@ class DeepgramRecogn(BaseRecogn):
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
 
-        if self.proxies:
-            httpx.HTTPTransport(proxy=self.proxies)
+        httpx.HTTPTransport(proxy=self.proxy_str)
 
         deepgram = DeepgramClient(config.params.get('deepgram_apikey'))
         payload: FileSource = {

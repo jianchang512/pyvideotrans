@@ -13,12 +13,12 @@ License: GPL-V3
 """
 import atexit
 
-import sys
+import sys,os
 import time
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
 print(f"\n#### start:{time.time()}")
-
-
-
 
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
 from PySide6.QtCore import Qt, QTimer, QSize
@@ -101,14 +101,7 @@ class StartWindow(QWidget):
             self.move(center_point.x() - self.width() // 2, center_point.y() - self.height() // 2)
 
 def initialize_full_app(start_window, app_instance):    
-    import os
     import argparse
-
-
-    os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-    os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
-
     # 日志
     if sys.stdout is None or sys.stderr is None:
         try:

@@ -27,15 +27,16 @@ class CosyVoice(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.api_url = config.params['cosyvoice_url'].strip().rstrip('/').lower()
-        # 3. 覆盖父类中 proxies 的默认值
-        if '127.0.0.1' in  self.api_url or "localhost" in self.api_url:
-            self.proxies = {"http": "", "https": ""} 
+        self._add_internal_host_noproxy(self.api_url)
+
     def _exec(self):
         self._local_mul_thread()
 
     def _item_task_cosyvoice2(self, data_item):
 
         text = data_item['text'].strip()
+        if not text:
+            return
         role = data_item['role']
         data = {'ref_wav': '','ref_text':data_item.get('ref_text','')}
         
@@ -88,7 +89,8 @@ class CosyVoice(BaseTTS):
         
 
     def _item_cosyvoice_api(self, data_item):
-        
+        if not data_item.get('text',''):
+            return
         rate = float(self.rate.replace('%', '')) / 100 if self.rate else 0
         role = data_item['role']
 
@@ -104,7 +106,7 @@ class CosyVoice(BaseTTS):
         if role == 'clone':
             # 克隆音色
             # 原项目使用 clone_mul 跨语种克隆的方案，实际测试效果不如同语种，这地方修改成同语种克隆 /clone_eq
-            ref_wav_path = data_item.get(ref_wav,'')
+            ref_wav_path = data_item.get("ref_wav",'')
             if not Path(ref_wav_path).exists():
                 raise StopRetry(f'不存在参考音频 {ref_wav_path}，无法使用clone功能' if config.defaulelang == 'zh' else f'No reference audio {ref_wav_path} exists')
 
@@ -131,7 +133,7 @@ class CosyVoice(BaseTTS):
 
         config.logger.info(f'请求数据：{api_url=},{data=}')
         # 克隆声音
-        response = requests.post(f"{api_url}", data=data, proxies={"http": "", "https": ""}, timeout=3600)
+        response = requests.post(f"{api_url}", data=data,  timeout=3600)
         response.raise_for_status()
 
         # 如果是WAV音频流，获取原始音频数据
@@ -148,6 +150,8 @@ class CosyVoice(BaseTTS):
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
         
     def _item_task(self, data_item):
+        if self._exit() or  not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO), after=after_log(config.logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):

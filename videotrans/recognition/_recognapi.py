@@ -64,6 +64,7 @@ class APIRecogn(BaseRecogn):
                 api_url += f'?sk={config.params["recognapi_key"]}'
 
         self.api_url = api_url
+        self._add_internal_host_noproxy(self.api_url)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -79,8 +80,7 @@ class APIRecogn(BaseRecogn):
         self._signal(
             text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
 
-        res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files,
-                            proxies={"http": "", "https": ""}, timeout=3600)
+        res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files,timeout=3600)
         res.raise_for_status()
         res = res.json()
         if "code" not in res or res['code'] != 0:

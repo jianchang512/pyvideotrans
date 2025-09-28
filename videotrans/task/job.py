@@ -49,6 +49,7 @@ class WorkerPrepare(Thread):
     def run(self) -> None:
         while 1:
             if config.exit_soft:
+                time.sleep(1)
                 return
             if len(config.prepare_queue) < 1:
                 time.sleep(0.5)
@@ -85,6 +86,7 @@ class WorkerRegcon(Thread):
     def run(self) -> None:
         while 1:
             if config.exit_soft:
+                time.sleep(1)
                 return
 
             if len(config.regcon_queue) < 1:
@@ -107,7 +109,7 @@ class WorkerRegcon(Thread):
                 except_msg=get_msg_from_except(e)
                 config.logger.exception(e, exc_info=True)
                 if trk.cfg.get('recogn_type') is not None:
-                    except_msg+=f"[{get_recogn_type(trk.cfg.get('recogn_type'))}]"
+                    except_msg=f"[{get_recogn_type(trk.cfg.get('recogn_type'))}] {except_msg}"
                 set_process(text=f'{config.transobj["shibiechucuo"]}:{except_msg}:\n' + traceback.format_exc(), type='error', uuid=trk.uuid)
 
 
@@ -118,6 +120,7 @@ class WorkerTrans(Thread):
     def run(self) -> None:
         while 1:
             if config.exit_soft:
+                time.sleep(1)
                 return
             if len(config.trans_queue) < 1:
                 time.sleep(0.5)
@@ -136,7 +139,7 @@ class WorkerTrans(Thread):
                 from videotrans.configure._except import get_msg_from_except
                 except_msg=get_msg_from_except(e)
                 if trk.cfg.get('translate_type') is not None:
-                    except_msg+=f"[{get_tanslate_type(trk.cfg.get('translate_type'))}]"
+                    except_msg=f"[{get_tanslate_type(trk.cfg.get('translate_type'))}] {except_msg}"
                 msg = f'{config.transobj["fanyichucuo"]}:{except_msg}:\n' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
@@ -149,6 +152,7 @@ class WorkerDubb(Thread):
     def run(self) -> None:
         while 1:
             if config.exit_soft:
+                time.sleep(1)
                 return
             if len(config.dubb_queue) < 1:
                 time.sleep(0.5)
@@ -163,7 +167,7 @@ class WorkerDubb(Thread):
                 from videotrans.configure._except import get_msg_from_except
                 except_msg=get_msg_from_except(e)
                 if trk.cfg.get('tts_type') is not None:
-                    except_msg+=f"[{get_tts_type(trk.cfg.get('tts_type'))}]"
+                    except_msg=f"[{get_tts_type(trk.cfg.get('tts_type'))}] {except_msg}"
                 msg = f'{config.transobj["peiyinchucuo"]}:{except_msg}:\n' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
@@ -176,6 +180,7 @@ class WorkerAlign(Thread):
     def run(self) -> None:
         while 1:
             if config.exit_soft:
+                time.sleep(1)
                 return
             if len(config.align_queue) < 1:
                 time.sleep(0.5)
@@ -202,12 +207,17 @@ class WorkerAssemb(Thread):
     def run(self) -> None:
         while 1:
             if config.exit_soft:
+                time.sleep(1)
                 return
             if len(config.assemb_queue) < 1:
                 time.sleep(0.5)
                 continue
             trk = config.assemb_queue.pop(0)
             if task_is_stop(trk.uuid):
+                try:
+                    del trk
+                except:
+                    pass
                 continue
             try:
                 trk.assembling()
@@ -218,12 +228,23 @@ class WorkerAssemb(Thread):
                 msg = f'{config.transobj["hebingchucuo"]}:{except_msg}:' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
-
+            finally:
+                try:
+                    del trk
+                except:
+                    pass
 
 def start_thread(parent=None):
-    WorkerPrepare(parent=parent).start()
-    WorkerRegcon(parent=parent).start()
-    WorkerTrans(parent=parent).start()
-    WorkerDubb(parent=parent).start()
-    WorkerAlign(parent=parent).start()
-    WorkerAssemb(parent=parent).start()
+    workers=[
+        WorkerPrepare(parent=parent),
+        WorkerRegcon(parent=parent),
+        WorkerTrans(parent=parent),
+        WorkerDubb(parent=parent),
+        WorkerAlign(parent=parent),
+        WorkerAssemb(parent=parent)
+    ]
+    for worker in workers:
+        worker.start()
+        
+    # 返回创建的线程列表
+    return workers

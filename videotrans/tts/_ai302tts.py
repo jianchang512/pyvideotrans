@@ -24,6 +24,8 @@ class AI302(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
+        if self._exit() or  not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
@@ -79,7 +81,7 @@ class AI302(BaseTTS):
         response = requests.post('https://api.302.ai/302/v2/audio/tts', headers={
             'Authorization': f'Bearer {config.params["ai302_key"]}',
             'Content-Type': 'application/json'
-        }, data=json.dumps(payload), verify=False, proxies=None)
+        }, data=json.dumps(payload), verify=False)
         response.raise_for_status()
         res = response.json()
         audio_url = res.get("audio_url")

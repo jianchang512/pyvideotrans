@@ -24,21 +24,22 @@ class OPENAITTS(BaseTTS):
 
         self.copydata = copy.deepcopy(self.queue_tts)
         self.api_url = self._get_url(config.params['openaitts_api'])
+        self._add_internal_host_noproxy(self.api_url)
 
-        if not re.search('localhost', self.api_url) and not re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
-            pro = self._set_proxy(type='set')
-            if pro:
-                self.proxies = pro
 
     def _exec(self):
         self.dub_nums = 1
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
+        if self._exit() or not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
         def _run():
+            if self._exit() or tools.vail_file(data_item['filename']):
+                return
             role = data_item['role']
 
             speed = 1.0
@@ -49,7 +50,7 @@ class OPENAITTS(BaseTTS):
                 return
 
             client = OpenAI(api_key=config.params.get('openaitts_key', ''), base_url=self.api_url,
-                            http_client=httpx.Client(proxy=self.proxies, timeout=7200))
+                            http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
             with client.audio.speech.with_streaming_response.create(
                     model=config.params['openaitts_model'],
                     voice=role,

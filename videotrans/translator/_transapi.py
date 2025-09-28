@@ -25,10 +25,8 @@ class TransAPI(BaseTrans):
         if not url.startswith('http'):
             url = f"http://{url}"
         self.api_url = url + ('&' if '?' in url else '/?')
+        self._add_internal_host_noproxy(self.api_url)
 
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = {"https": pro, "http": pro}
 
     # 实际发出请求获取结果
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
@@ -39,7 +37,7 @@ class TransAPI(BaseTrans):
         text = quote("\n".join(data))
         requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code[:2] if self.source_code else ''}&text={text}&secret={config.params['trans_secret']}"
         config.logger.info(f'[TransAPI]请求数据：{requrl=}')
-        response = requests.get(url=requrl, proxies=self.proxies)
+        response = requests.get(url=requrl)
         config.logger.info(f'[TransAPI]返回:{response.text=}')
         response.raise_for_status()
         jsdata = response.json()

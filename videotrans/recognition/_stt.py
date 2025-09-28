@@ -47,6 +47,7 @@ class SttAPIRecogn(BaseRecogn):
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
         self.api_url = f'{api_url}/api' if not api_url.endswith('/api') else api_url
+        self._add_internal_host_noproxy(self.api_url)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -62,7 +63,7 @@ class SttAPIRecogn(BaseRecogn):
 
         data = {"language": self.detect_language[:2], "model": config.params.get('stt_model', 'tiny'),
                 "response_format": "srt"}
-        res = requests.post(f"{self.api_url}", files=files, data=data, proxies={"http": "", "https": ""}, timeout=7200)
+        res = requests.post(f"{self.api_url}", files=files, data=data, timeout=7200)
         config.logger.info(f'STT_API:{res=}')
         res = res.json()
         if "code" not in res or res['code'] != 0:

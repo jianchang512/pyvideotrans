@@ -50,9 +50,8 @@ class OpenRouter(BaseTrans):
         ]
 
         config.logger.info(f"\n[openrouter]发送请求数据:{message=}")
-        pro = self._set_proxy(type='set')
 
-        model = OpenAI(api_key=self.api_key, base_url=self.api_url, http_client=httpx.Client(proxy=pro, timeout=7200))
+        model = OpenAI(api_key=self.api_key, base_url=self.api_url, http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         response = model.chat.completions.create(
             model=self.model_name,
             messages=message,

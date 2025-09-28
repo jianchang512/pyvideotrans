@@ -21,12 +21,6 @@ class FunasrRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
 
-        proxy = os.environ.get('http_proxy')
-        if proxy:
-            self.shound_del = True
-            del os.environ['http_proxy']
-            del os.environ['https_proxy']
-            del os.environ['all_proxy']
 
     def remove_unwanted_characters(self, text: str) -> str:
         # 保留中文、日文、韩文、英文、数字和常见符号，去除其他字符
@@ -42,7 +36,6 @@ class FunasrRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
-        self._set_proxy(type='del')
 
         msg = '检测模型是否存在，若不存在将从 modelscope.cn 下载，请耐心等待' if config.defaulelang == 'zh' else 'The model needs to be downloaded from modelscope.cn, which may take a long time, please be patient'
         self._tosend(msg)

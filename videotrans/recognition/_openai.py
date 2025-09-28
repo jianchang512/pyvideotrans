@@ -41,7 +41,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
         normalized_sound = AudioSegment.from_wav(self.audio_file)  # -20.0
         total_length = 1 + (len(normalized_sound) // inter)
 
-        msg = f'[{self.model_name}]若不存在将从 hf-mirror.com 下载到 models 目录内' if config.defaulelang == 'zh' else f'If [{self.model_name}] not exists, download model from huggingface'
+        msg = f'[{self.model_name}]若不存在将自动下载到 models 目录内' if config.defaulelang == 'zh' else f'If [{self.model_name}] not exists, download model to models folder'
         if self.inst and self.inst.status_text:
             self.inst.status_text = msg
         self._signal(text=f"{msg}")

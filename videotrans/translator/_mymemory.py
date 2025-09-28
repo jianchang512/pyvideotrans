@@ -21,9 +21,6 @@ class MyMemory(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.aisendsrt = False
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = {"https": pro, "http": pro}
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -36,7 +33,7 @@ class MyMemory(BaseTrans):
         text = "\n".join(data)
         url = f"https://api.mymemory.translated.net/get?q={quote(text)}&langpair={self.source_code}|{self.target_code}"
         config.logger.info(f'[mymemory]请求数据:{url=}')
-        response = requests.get(url, proxies=self.proxies, headers=headers, verify=False, timeout=300)
+        response = requests.get(url,  headers=headers, verify=False, timeout=300)
         config.logger.info(f'[mymemory]返回:{response.text=}')
         response.raise_for_status()
 

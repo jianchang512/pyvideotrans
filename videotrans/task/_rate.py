@@ -679,6 +679,20 @@ class SpeedRate:
                         audio_clip = AudioSegment.from_file(it['filename'])
                         # 将配音叠加到静音画布的开头
                         segment = base_segment.overlay(audio_clip)
+                        '''
+                        #==== start 在此针对仅视频慢速、并且是最后一条有效字幕的、并且配音时长大于视频片段物理时长的情况，进行音频加速
+                        if not self.shoud_audiorate and self.shoud_videorate:
+                            #  仅视频加速
+                            if i==len(clip_meta_list)-1 or (i==len(clip_meta_list)-2 and clip_meta_list[-1]['sub']=='gap'):
+                                # 如果是最后一条，或者是倒数第二条但同时最后一条是gap
+                                if len(audio_clip)>task_real_duration:
+                                    # 如果此时音频时长大于视频物理时长，在此加速音频
+                                    tools.precise_speed_up_audio(file_path=it['filename'], target_duration_ms=task_real_duration)
+                                    segment=AudioSegment.from_file(it['filename'])
+
+                        #======= end
+                        '''
+
                     except Exception as e:
                         config.logger.error(f"字幕[{it['line']}] 加载音频失败: {e}，使用等长静音替代。")
                         segment = base_segment
@@ -822,7 +836,7 @@ class SpeedRate:
                     padded_audio_path = Path(
                         f'{self.cache_folder}/padded_audio{Path(self.target_audio).suffix}').as_posix()
                     pad_dur_sec = duration_diff / 1000.0
-                    pad_dur_sec=max(0.1,pad_dur_sec)
+                    pad_dur_sec=max(1,pad_dur_sec)
 
                     cmd = ['-y', '-i', str(self.target_audio), '-af', f'apad=pad_dur={pad_dur_sec:.4f}']
 
@@ -844,8 +858,7 @@ class SpeedRate:
 
 
                 elif duration_diff < 0:
-                    freeze_duration_sec = abs(duration_diff) / 1000.0
-                    freeze_duration_sec=max(0.1,freeze_duration_sec)
+                    freeze_duration_sec = int((abs(duration_diff) / 1000.0)+1)
                     config.logger.warning(f"音频比视频长 {abs(duration_diff)}ms，将定格视频最后一帧 {freeze_duration_sec:.3f} 秒以对齐。")
 
                     final_video_path = Path(f'{self.cache_folder}/final_video_with_freeze.mp4').as_posix()

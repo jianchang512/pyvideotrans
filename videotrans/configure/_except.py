@@ -1,12 +1,17 @@
+import requests
+import urllib3
 from elevenlabs.core import ApiError as ApiError_11
-from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError,  APIConnectionError, APIError
+from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
+    APIConnectionError, APIError, APIStatusError, OpenAIError, ContentFilterFinishReasonError
 from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, Timeout, ConnectionError, RetryError,HTTPError
 
 from deepgram.clients.common.v1.errors import DeepgramApiError
+from urllib3.exceptions import NewConnectionError
+
 from videotrans.configure import config
 
 import httpx,httpcore
-
+from google.genai import errors
 from tenacity import RetryError as TenRetryError
 
 
@@ -51,6 +56,7 @@ NO_RETRY_EXCEPT = (
     # 连接问题，检查网络或尝试设置代理
     RetryError,
     ConnectionError,
+    NewConnectionError,
     ConnectionRefusedError,  # 连接被拒绝
     ConnectionResetError,  # 连接被重置
     ConnectionAbortedError,  #
@@ -69,22 +75,17 @@ NO_RETRY_EXCEPT = (
 
 
 def _handle_openai_error(e, lang='zh'):
-    body =  e.body if hasattr(e,'body')  else None
-    if not body:
-        return  str(e)
-    
-    if isinstance(body,str):
-        import json
-        try:
-            msg=json.loads(body)
-        except json.decoder.JSONDecodeError:
-            return body
-    last_message=body.get('message')
-    if not last_message:
-        return str(body)
-    if 'Insufficient Balance' in last_message:
-        return  '所使用的AI渠道账户余额不足，请去对应平台查看余额' if lang=='zh' else 'The balance of the AI ​​channel account used is insufficient. Please check the balance on the corresponding platform.'
-    return  last_message
+    last_message=e.body.get('message','')
+    if 'Insufficient Balance' in last_message or e.status_code==402:
+        return  '所使用的AI渠道账户可能余额不足，请去对应平台查看余额\n' if lang=='zh' else 'The balance of the AI  channel account  used may be is insufficient. Please check the balance on the corresponding platform.\n'
+    return  last_message+e.message
+
+def _handle_new_connect_error(e, lang='zh'):
+    err=str(e)
+    if "127.0.0.1" in err or "localhost" in err:
+        return  '无法连接到API 地址，请检查远端服务是否部署并启动\n' if lang=='zh' else 'Unable to connect to the API address, please check whether the remote service is deployed and started.\n'
+    return  '无法连接到API地址，请检查API地址是否正确或可连接' if lang=='zh' else 'Unable to connect to the API address. Please check whether the API address is correct or connectable.'
+
 
 # 根据异常类型，返回整理后的可读性错误消息
 def get_msg_from_except(ex):
@@ -102,64 +103,67 @@ def get_msg_from_except(ex):
         
         RateLimitError:
             lambda
-                e: f"{'请求频繁触发429，请调大暂停时间:' if lang == 'zh' else 'Request triggered 429, please increase the pause time:'} {getattr(e, 'message', e)}",
+                e: f"{'请求频繁触发429，请调大暂停时间:' if lang == 'zh' else 'Request triggered 429, please increase the pause time:'} \n{e.message}",
 
         NotFoundError:
             lambda
-                e: f"{'请求API地址不存在或模型名称错误:' if lang == 'zh' else 'API address does not exist or model name is wrong:'} {getattr(e, 'message', e)}",
-        
-        # url地址错误
-        (TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, SSLError): lambda
-            e: '请检查请求API地址是否正确' if lang == 'zh' else 'Please check whether the request address is correct.',
-
+                e: f"{'请求API地址不存在或模型名称错误:' if lang == 'zh' else 'API address does not exist or model name is wrong:'} \n{e.message}",
 
         # openai 库的永久性错误 (通常是 4xx 状态码)
         # 401 认证失败 (API Key 错误)
-        AuthenticationError: lambda e: f"{'密钥错误或无权限访问该模型 ' if lang == 'zh' else 'Secret key error or no permission to access the model '}",
+        AuthenticationError: lambda e: f"{'密钥SK错误' if lang == 'zh' else 'Secret key error'} \n{e.message}",
         
         # 403 无权限访问该模型
         PermissionDeniedError: lambda
-            e: f"{'无访问权限或模型名称错误 ' if lang == 'zh' else 'No access permission or model name error '}",  
-        
+            e: f"{'无访问权限或模型名称错误 ' if lang == 'zh' else 'No access permission or model name error '} \n{e.message}",
+                # 400 错误请求 (例如输入内容过长、参数无效等)
+        BadRequestError: lambda
+            e: f"{'请求参数错误' if lang == 'zh' else 'Request parameter error or input content is too long '}",
+        APIStatusError:lambda e: _handle_openai_error(e, lang) ,
+
+
         APIConnectionError:
             lambda
-                e: f"{'连接API地址失败，请检查网络或代理:' if lang == 'zh' else 'Failed to connect to API, check network or proxy:'} {getattr(e, 'message', e)}",
+                e: f"{'连接API地址失败，请检查网络或代理:' if lang == 'zh' else 'Failed to connect to API, check network or proxy:'} \n{e.message}",
         # API 错误
-        APIError: lambda e: _handle_openai_error(e, lang),
-          
+        APIError: lambda e: e.message,
+
+        ContentFilterFinishReasonError: lambda e: f'{"内容因AI安全原因被过滤" if lang=="zh" else "Content is filtered due to AI security restrictions"} {e.message}',
+        OpenAIError: lambda e: str(e),
+
         ApiError_11: lambda e: e.body.get('detail',{}).get('message',e.body),
-        
-        ProxyError: lambda e: '代理地址错误或代理不可用，请尝试关闭或切换代理' if lang == 'zh' else 'Cannot connect to proxy address or proxy is unavailable, please try to close or switch proxy.',
+        (ProxyError,SSLError): lambda e: '代理地址错误或代理不可用，请尝试关闭或切换代理' if lang == 'zh' else 'Cannot connect to proxy address or proxy is unavailable, please try to close or switch proxy.',
+
+        # url地址错误
+        (TooManyRedirects,MissingSchema, InvalidSchema, InvalidURL): lambda
+            e: '请检查请求API地址是否正确' if lang == 'zh' else 'Please check whether the request address is correct.',
+
+        ConnectionResetError: lambda e:"连接API超时，请尝试使用或关闭代理" if lang=='zh' else 'The connection to the API timed out. Please try using or closing the proxy.',
+
+        # 连接问题
+        (NewConnectionError,ConnectionError,Timeout, RetryError, TimeoutError,BrokenPipeError, ConnectionAbortedError,ConnectionRefusedError): lambda e:_handle_new_connect_error(e,lang),
+
+        HTTPError: lambda e:str(e),
+
+        errors.APIError: lambda e: f'{e.code}:{e.message}',
 
         (httpcore.ConnectTimeout,httpx.ConnectTimeout): lambda e:"连接API超时，请检查网络连接或代理-1" if lang=='zh' else 'Connect Timeout connect to API',
 
-        # 连接问题，检查网络或尝试设置代理
-        (Timeout,TimeoutError,RetryError,BrokenPipeError, ConnectionError, ConnectionRefusedError, ConnectionResetError, ConnectionAbortedError): lambda
-            e: '无法连接到请求API地址，请检查网络或代理设置' if lang == 'zh' else 'Cannot connect to request address, please check network or proxy settings.',
-        
-        # 400 错误请求 (例如输入内容过长、参数无效等)
-        BadRequestError: lambda
-            e: f"{'请求参数错误' if lang == 'zh' else 'Request parameter error or input content is too long '}",
-            
-        HTTPError: lambda e:str(e),
-        
-        
         FileNotFoundError: lambda e: (
             # 首先检查是否是 WinError 206
             f"【路径过长超过260个字符限制】无法访问文件 '{e.filename}'。请将原始视频或输出目录(如果选择了输出目录)，移动到更短的路径下，例如 'D:\\videos\\' 再重试。"
             if lang == 'zh' else
             f"[Path Too Long Error] Cannot access file '{e.filename}'. Please move your Original file or output directory(if an output directory is selected) to a shorter path, e.g., 'D:\\videos\\' and try again."
         ) if hasattr(e, 'winerror') and e.winerror == 206 else (
-            # 如果不是 WinError 206，则使用您原来的逻辑
-            f"文件未找到: {e.filename}" + (f" - {e.filename2}" if e.filename2 else "")
+            f"文件未找到: {e.filename}" + f" {e.filename2 or ''}"
             if lang == 'zh' else
-            f"File not found: {e.filename}" + (f" - {e.filename2}" if e.filename2 else "")
+            f"File not found: {e.filename}" +  f" {e.filename2 or ''}"
         ),
-        PermissionError: lambda e: f"权限不足，无法访问: {e.filename} - {e.filename2}" if lang == 'zh' else f"Permission denied: {e.filename} - {e.filename2}",
-        FileExistsError: lambda e: f"文件已存在: {e.filename} - {e.filename2}" if lang == 'zh' else f"File already exists: {e.filename} - {e.filename2}",
+        PermissionError: lambda e: f"权限不足，无法访问: {e.filename} - {e.filename2 or ''}" if lang == 'zh' else f"Permission denied: {e.filename} - {e.filename2 or ''}",
+        FileExistsError: lambda e: f"文件已存在: {e.filename} - {e.filename2 or ''}" if lang == 'zh' else f"File already exists: {e.filename} - {e.filename2 or ''}",
         
         
-        OSError: lambda e: f"操作系统错误 ({e.errno}): {e.strerror}" if lang == 'zh' else f"Operating System Error ({e.errno}): {e.strerror}",
+        OSError: lambda e: ("系统错误 " if lang == 'zh' else "Operating System Error ")+f"{e.errno or '' } {e.strerror or ''}",
 
         # --- 数据、查找与值错误 (LookupError, ValueError 等) ---
         KeyError: lambda e: f"处理数据时缺少必需的键: {e}" if lang == 'zh' else f"Missing required key in data: {e}",
@@ -181,8 +185,6 @@ def get_msg_from_except(ex):
         
         ZeroDivisionError: lambda e: "算术错误：除数为零" if lang == 'zh' else "Arithmetic error: division by zero.",
         OverflowError: lambda e: "算术错误：数值超出最大限制" if lang == 'zh' else "Arithmetic error: number is too large.",
-
-        
     }
 
     # 遍历映射，查找匹配的处理器
@@ -192,20 +194,12 @@ def get_msg_from_except(ex):
 
     # --- 如果以上特定异常都未匹配，则执行以下通用后备逻辑，涉及多个第三方api和webui，逐个尝试可能的错误信息 ---
     if hasattr(ex, 'error'):
-        return str(ex.error.get('message', ex.error))
+        return str(ex.error)
     if hasattr(ex, 'message'):
         return str(ex.message)
     if hasattr(ex, 'detail'):
-        if ex.detail.get('message'):
-            return str(ex.detail.get('message'))
-        if ex.detail.get('error'):
-            return str(ex.detail.get('error').get('message', ex.detail.get('error')))
         return str(ex.detail)
-    if hasattr(ex, 'body') and ex.body:
-        if ex.body.get('message'):
-            return str(ex.body.get('message', ex.body))
-        if ex.body.get('error'):
-            return str(ex.body.get('error').get('message', ex.body.get('error')))
+    if hasattr(ex, 'body'):
         return str(ex.body)
 
     # 如果没有任何匹配项，则直接重新抛出原始异常的字符串形式

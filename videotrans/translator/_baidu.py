@@ -25,11 +25,6 @@ class Baidu(BaseTrans):
         super().__post_init__()
         self.aisendsrt = False
 
-        proxy = os.environ.get('http_proxy')
-        if proxy:
-            if 'http_proxy' in os.environ: del os.environ['http_proxy']
-            if 'https_proxy' in os.environ: del os.environ['https_proxy']
-            if 'all_proxy' in os.environ: del os.environ['all_proxy']
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -50,14 +45,14 @@ class Baidu(BaseTrans):
         requrl = f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={tocode}&appid={config.params['baidu_appid']}&salt={salt}&sign={sign}"
 
         config.logger.info(f'[Baidu]请求数据:{requrl=}')
-        resraw = requests.get(requrl, proxies={"http": "", "https": ""})
+        resraw = requests.get(requrl)
         resraw.raise_for_status()
         res = resraw.json()
         config.logger.info(f'[Baidu]返回响应:{res=}')
 
         if "error_code" in res or "trans_result" not in res or len(res['trans_result']) < 1:
             config.logger.info(f'Baidu 返回响应:{resraw}')
-            raise RuntimeError(res['error_msg'])
+            raise RuntimeError('请检查appid是否正确，或是否已开通对应服务服务是否开通' if int(res.get('error_code',0))==52003 else res['error_msg'])
 
         result = [tools.cleartext(tres['dst']) for tres in res['trans_result']]
         if not result or len(result) < 1:

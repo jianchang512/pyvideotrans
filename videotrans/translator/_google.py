@@ -20,9 +20,6 @@ class Google(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
 
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = {"https": pro, "http": pro}
 
     # 实际发出请求获取结果
     @retry( retry=retry_if_not_exception_type(NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)),
@@ -38,7 +35,7 @@ class Google(BaseTrans):
         headers = {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
         }
-        response = requests.get(url, headers=headers, timeout=300, proxies=self.proxies, verify=False)
+        response = requests.get(url, headers=headers, timeout=300, verify=False)
         response.raise_for_status()
         config.logger.info(f'[Google]返回数据:{response.status_code=}')
 

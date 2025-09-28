@@ -24,7 +24,6 @@ class HuoShan(BaseTrans):
         super().__post_init__()
 
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.proxies = {"http": "", "https": ""}
         self.model_name = config.params["zijiehuoshan_model"]
 
         self.prompt = tools.get_prompt(ainame='zijie', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
@@ -47,8 +46,7 @@ class HuoShan(BaseTrans):
             "model": config.params['zijiehuoshan_model'],
             "messages": message
         }
-        resp = requests.post("https://ark.cn-beijing.volces.com/api/v3/chat/completions",
-                             proxies=self.proxies, json=req, headers={
+        resp = requests.post("https://ark.cn-beijing.volces.com/api/v3/chat/completions", json=req, headers={
                 "Accept": "application/json",
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {config.params['zijiehuoshan_key']}"

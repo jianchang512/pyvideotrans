@@ -23,7 +23,7 @@ class ParaketRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
         self.api_url = config.params['parakeet_address']
-        self.proxies = None
+        self._add_internal_host_noproxy(self.api_url)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),

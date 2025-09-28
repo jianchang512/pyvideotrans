@@ -25,10 +25,8 @@ class OTT(BaseTrans):
         if not url.startswith('http'):
             url = f"http://{url}"
         self.api_url = url
+        self._add_internal_host_noproxy(self.api_url)
 
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = {"https": pro, "http": pro}
 
     # 实际发出请求获取结果
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
@@ -41,7 +39,7 @@ class OTT(BaseTrans):
             "source": "auto",
             "target": self.target_code[:2]
         }
-        response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)
+        response = requests.post(url=self.api_url, json=jsondata)
         response.raise_for_status()
         result = response.json()
         if "error" in result:

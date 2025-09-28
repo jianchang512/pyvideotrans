@@ -20,12 +20,9 @@ class DeepL(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.api_url = None if not config.params.get('deepl_api') else config.params['deepl_api'].rstrip('/')
-
+        self._add_internal_host_noproxy(self.api_url)
         self.aisendsrt = False
 
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = {"https": pro, "http": pro}
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -37,7 +34,7 @@ class DeepL(BaseTrans):
         if not text or re.match(r'^[\s ~`!@#$%^&*()_+\-=\[\]{}\\|;,./?><:"\'，。、；‘’“”：《》？【】｛｝（）—！·￥…ー]+$', text):
             return text
 
-        deepltranslator = deepl.Translator(config.params['deepl_authkey'], server_url=self.api_url, proxy=self.proxies)
+        deepltranslator = deepl.Translator(config.params['deepl_authkey'], server_url=self.api_url)
         config.logger.info(f'[DeepL]请求数据:{text=},{config.params["deepl_gid"]=}')
         target_code = self.target_code.upper()
         if target_code == 'EN':

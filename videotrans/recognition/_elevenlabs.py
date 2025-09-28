@@ -22,9 +22,6 @@ class ElevenLabsRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = pro
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -38,7 +35,7 @@ class ElevenLabsRecogn(BaseRecogn):
         
         client = ElevenLabs(
             api_key=config.params['elevenlabstts_key'],
-            httpx_client=httpx.Client(proxy=self.proxies) if self.proxies else None
+            httpx_client=httpx.Client(proxy=self.proxy_str)
         )
 
         language_code = self.detect_language[:2] if self.detect_language and self.detect_language != 'auto' else ''

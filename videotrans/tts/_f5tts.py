@@ -32,16 +32,18 @@ class F5TTS(BaseTTS):
         if sepflag > -1:
             self.api_url = self.api_url[:sepflag]
 
-        if not re.search(r'127.0.0.1|localhost', self.api_url):
-            self.v1_local = False
-        elif re.search(r'^https:', self.api_url):
-            self._set_proxy(type='set')
+        # 返回 不是 False，则为内网地址，将代理重设为 None
+        if self.proxy_str and self._get_internal_host is not False:
+            self.proxy_str=None
+        self.client=None
+
 
     def _exec(self):
         self._local_mul_thread()
 
     def _item_task_v1(self, data_item: Union[Dict, List, None]):
-
+        if self._exit() or tools.vail_file(data_item['filename']):
+            return
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
@@ -66,12 +68,9 @@ class F5TTS(BaseTTS):
             raise StopRetry(f'{role} 角色不存在')
         if data['ref_text'] and len(data['ref_text']) < 10:
             speed = 0.5
+
         try:
-            client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
-        except Exception as e:
-            raise StopRetry( f'{e}')
-        try:
-            result = client.predict(
+            result = self.client.predict(
                 ref_audio_input=handle_file(data['ref_wav']),
                 ref_text_input=data['ref_text'],
                 gen_text_input=text,
@@ -98,7 +97,8 @@ class F5TTS(BaseTTS):
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
     def _item_task_spark(self, data_item: Union[Dict, List, None]):
-
+        if self._exit() or tools.vail_file(data_item['filename']):
+            return
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
@@ -119,12 +119,9 @@ class F5TTS(BaseTTS):
 
         if not Path(data['ref_wav']).exists():
             raise StopRetry( f'{role} 角色不存在')
+
         try:
-            client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
-        except Exception as e:
-            raise StopRetry( f'{e}')
-        try:
-            result = client.predict(
+            result = self.client.predict(
                 text=text,
                 prompt_text=data['ref_text'],
                 prompt_wav_upload=handle_file(data['ref_wav']),
@@ -149,7 +146,8 @@ class F5TTS(BaseTTS):
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
     def _item_task_index(self, data_item: Union[Dict, List, None]):
-
+        if self._exit() or tools.vail_file(data_item['filename']):
+            return
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
@@ -170,10 +168,7 @@ class F5TTS(BaseTTS):
         if not Path(data['ref_wav']).exists():
             raise StopRetry(  f'{role} 角色不存在')
         config.logger.info(f'index-tts {data=}')
-        try:
-            client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
-        except Exception as e:
-            raise StopRetry(str(e))
+
         try:
             kw={
                 "prompt":handle_file(data['ref_wav']),
@@ -182,7 +177,7 @@ class F5TTS(BaseTTS):
             }
             if int(config.params.get('index_tts_version',1))==1:
                 kw['emo_ref_path']=handle_file(data['ref_wav'])
-            result = client.predict(**kw)
+            result = self.client.predict(**kw)
         except Exception as e:
             raise
                 
@@ -201,7 +196,8 @@ class F5TTS(BaseTTS):
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
     def _item_task_voxcpm(self, data_item: Union[Dict, List, None]):
-
+        if self._exit() or tools.vail_file(data_item['filename']):
+            return
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
@@ -222,12 +218,9 @@ class F5TTS(BaseTTS):
         if not Path(data['ref_wav']).exists():
             raise StopRetry(f'{role} 角色不存在')
         config.logger.info(f'voxcpm-tts {data=}')
+
         try:
-            client = Client(self.api_url, httpx_kwargs={"timeout": 7200}, ssl_verify=False)
-        except Exception as e:
-            raise StopRetry(str(e))
-        try:
-            result = client.predict(
+            result = self.client.predict(
                 text_input=text,
                 prompt_wav_path_input=handle_file(data['ref_wav']),
                 prompt_text_input=data.get('ref_text',''),
@@ -256,7 +249,8 @@ class F5TTS(BaseTTS):
 
 
     def _item_task_dia(self, data_item: Union[Dict, List, None]):
-        
+        if self._exit() or tools.vail_file(data_item['filename']):
+            return
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
@@ -278,12 +272,9 @@ class F5TTS(BaseTTS):
         if not Path(data['ref_wav']).exists():
             self.error = f'{role} 角色不存在'
             raise StopRetry(self.error)
+
         try:
-            client = Client(self.api_url, httpx_kwargs={"timeout": 7200, "proxy": None}, ssl_verify=False)
-        except Exception as e:
-            raise StopRetry(str(e))
-        try:
-            result = client.predict(
+            result = self.client.predict(
                 text_input=text,
                 audio_prompt_input=handle_file(data['ref_wav']),
                 transcription_input=data.get('ref_text', ''),
@@ -308,7 +299,8 @@ class F5TTS(BaseTTS):
         self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
     def _item_task(self, data_item: Union[Dict, List, None]):
-
+        if self._exit() or  not data_item.get('text','').strip():
+            return
         # Spark-TTS','Index-TTS Dia-TTS
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -317,6 +309,10 @@ class F5TTS(BaseTTS):
             ttstype = config.params.get('f5tts_ttstype')
             if self._exit():
                 return
+            try:
+                self.client = Client(self.api_url, httpx_kwargs={"timeout": 7200,"proxy":self.proxy_str}, ssl_verify=False)
+            except Exception as e:
+                raise StopRetry( f'{e}')
             if ttstype == 'Spark-TTS':
                 self._item_task_spark(data_item)
             elif ttstype == 'Index-TTS':
@@ -328,9 +324,6 @@ class F5TTS(BaseTTS):
             else:
                 self._item_task_v1(data_item)
             
-
-
-
         try:
             _run()
         except RetryError as e:

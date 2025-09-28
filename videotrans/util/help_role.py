@@ -43,24 +43,25 @@ def set_proxy(set_val=''):
     if set_val == 'del':
         config.proxy = None
         # 删除代理
-        if os.environ.get('http_proxy'):
-            os.environ.pop('http_proxy')
-        if os.environ.get('https_proxy'):
-            os.environ.pop('https_proxy')
+        if os.environ.get('HTTP_PROXY'):
+            os.environ.pop('HTTP_PROXY')
+        if os.environ.get('HTTPS_PROXY'):
+            os.environ.pop('HTTPS_PROXY')
         return None
     if set_val:
         # 设置代理
+        set_val=set_val.lower()
         if not set_val.startswith("http") and not set_val.startswith('sock'):
             set_val = f"http://{set_val}"
         config.proxy = set_val
-        os.environ['http_proxy'] = set_val
-        os.environ['https_proxy'] = set_val
-        os.environ['all_proxy'] = set_val
+        os.environ['HTTP_PROXY'] = set_val
+        os.environ['HTTPS_PROXY'] = set_val
         return set_val
 
     # 获取代理
-    http_proxy = config.proxy or os.environ.get('http_proxy') or os.environ.get('https_proxy')
+    http_proxy = config.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
     if http_proxy:
+        http_proxy=http_proxy.lower()
         if not http_proxy.startswith("http") and not http_proxy.startswith('sock'):
             http_proxy = f"http://{http_proxy}"
         return http_proxy
@@ -76,6 +77,7 @@ def set_proxy(set_val=''):
             proxy_server, _ = winreg.QueryValueEx(key, 'ProxyServer')
             if proxy_server:
                 # 是否需要设置代理
+                proxy_server=proxy_server.lower()
                 if not proxy_server.startswith("http") and not proxy_server.startswith('sock'):
                     proxy_server = "http://" + proxy_server
                 try:
@@ -83,7 +85,7 @@ def set_proxy(set_val=''):
                 except Exception:
                     return None
                 return proxy_server
-    except Exception as e:
+    except Exception:
         pass
     return None
 
@@ -446,6 +448,8 @@ def get_clone_role(set_p=False):
 # nologs=False不写入日志
 def set_process(*, text="", type="logs", uuid=None, nologs=False):
     from videotrans.configure import config
+    if config.exit_soft:
+        return
     try:
         if text:
             # 移除html

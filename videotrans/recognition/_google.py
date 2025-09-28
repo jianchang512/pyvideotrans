@@ -25,7 +25,6 @@ class GoogleRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        self._set_proxy(type='set')
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),

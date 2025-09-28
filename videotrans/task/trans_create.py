@@ -494,8 +494,7 @@ class TransCreate(BaseTask):
 
                 self.ignore_align = True
                 from videotrans.tts._elevenlabs import ElevenLabsClone
-                ElevenLabsClone(self.cfg['source_wav'], self.cfg['target_wav'], self.cfg['source_language_code'],
-                                self.cfg['target_language_code']).run()
+                ElevenLabsClone(self.cfg['source_wav'], self.cfg['target_wav'], self.cfg['source_language_code'],  self.cfg['target_language_code'],proxy_str=self.proxy_str).run()
             else:
                 self._tts()
         except Exception as e:

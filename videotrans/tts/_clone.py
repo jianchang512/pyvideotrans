@@ -32,13 +32,14 @@ class CloneVoice(BaseTTS):
         # 确保即使 api_url 为空也不会出错
         if api_url:
             self.api_url = 'http://' + api_url.replace('http://', '')
-
-        self.proxies = {"http": "", "https": ""}
+        self._add_internal_host_noproxy(self.api_url)
 
     def _exec(self):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
+        if self._exit() or  not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
@@ -55,12 +56,11 @@ class CloneVoice(BaseTTS):
             if role != 'clone':
                 # 不是克隆，使用已有声音
                 data['voice'] = role
-                res = requests.post(f"{self.api_url}/apitts", data=data, proxies=self.proxies,
-                                timeout=3600)
+                res = requests.post(f"{self.api_url}/apitts", data=data,timeout=3600)
             else:
                 with open(data_item['ref_wav'], 'rb') as f:
                     files = {"audio": f}
-                    res = requests.post(f"{self.api_url}/apitts", data=data, files=files, proxies=self.proxies,  timeout=3600)
+                    res = requests.post(f"{self.api_url}/apitts", data=data, files=files,  timeout=3600)
 
             res.raise_for_status()
             config.logger.info(f'clone-voice:{data=},{res.text=}')
@@ -79,7 +79,7 @@ class CloneVoice(BaseTTS):
                 self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
 
-            resb = requests.get(res['url'], proxies=self.proxies)
+            resb = requests.get(res['url'])
             resb.raise_for_status()
             with open(data_item['filename'] + ".wav", 'wb') as f:
                 f.write(resb.content)

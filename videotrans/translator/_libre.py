@@ -23,18 +23,18 @@ class Libre(BaseTrans):
         self.aisendsrt = False
 
         url = config.params['libre_address'].strip().rstrip('/')
-        key = config.params['libre_key'].strip()  # Retained for logical equivalence
+        key = config.params.get('libre_key','').strip()  # Retained for logical equivalence
 
         if "/translate" not in url:
             url += '/translate'
 
         self.api_url = f"http://{url}" if not url.startswith('http') else url
-        if not re.search(r'localhost', url) and not re.match(r'https?://(\d+\.){3}\d+', url):
-            pro = self._set_proxy(type='set')
-            if pro:
-                self.proxies = {"https": pro, "http": pro}
-        else:
-            self.proxies = {"http": "", "https": ""}
+        if key and "key=" not in self.api_url:
+            if "?" in self.api_url:
+                self.api_url += f"&key={key}"
+            else:
+                self.api_url += f"?key={key}"
+        self._add_internal_host_noproxy(self.api_url)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -49,7 +49,7 @@ class Libre(BaseTrans):
         }
         config.logger.info(f'[Libre]发送请求数据,{jsondata=}')
 
-        response = requests.post(url=self.api_url, json=jsondata, proxies=self.proxies)
+        response = requests.post(url=self.api_url, json=jsondata)
         response.raise_for_status()
         result = response.json()
         result = tools.cleartext(result['translatedText'])

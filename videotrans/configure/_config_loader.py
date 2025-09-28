@@ -73,6 +73,7 @@ os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
 os.environ['HF_HOME'] = ROOT_DIR + "/models"
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
 os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
+os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "1200"
 # 语言
 _env_lang = os.environ.get('PYVIDEOTRANS_LANG')  # 新增：读取环境变量
 if _env_lang:  # 新增：如果环境变量存在，则使用它
@@ -84,6 +85,8 @@ else:  # 原有逻辑
         defaulelang = "zh"
 if defaulelang == 'zh' and not Path(ROOT_DIR+"/huggingface.lock").exists():
     os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+    os.environ["HF_HUB_DISABLE_XET"] = "1"
+
 ####################################
 # 存储所有任务的进度队列，以uuid为键
 # 根据uuid将日志进度等信息存入队列，如果不存在则创建
@@ -230,9 +233,9 @@ def parse_init(update_data=None):
         "retries": 2,
         "translation_wait": 0,
         "dubbing_wait": 1,
-        "dubbing_thread": 5,
+        "dubbing_thread": 6,
         "save_segment_audio": False,
-        "countdown_sec": 120,
+        "countdown_sec": 90,
         "backaudio_volume": 0.8,
         "separate_sec": 600,
         "loop_backaudio": True,

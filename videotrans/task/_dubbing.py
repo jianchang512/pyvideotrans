@@ -110,17 +110,17 @@ class DubbingSrt(BaseTask):
         if self.cfg['target_sub'].endswith('.txt') and self.cfg['tts_type'] == tts.EDGE_TTS:
             from edge_tts import Communicate
             import asyncio
-            pro = self._set_proxy(type='set')
             # 转为 utf-8 编码
             self.cfg['target_sub']=self._convert_to_utf8_if_needed(self.cfg['target_sub'])
-
+            # 默认跟随设置使用代理，如果不想使用，单独根目录下创建 edgetts-noproxy.txt 文件
+            useproxy=None if not self.proxy_str or Path(f'{config.ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
             async def _async_dubb():
                 communicate_task = Communicate(
                     text=Path(self.cfg['target_sub']).read_text(encoding='utf-8'),
                     voice=self.cfg['voice_role'],
                     rate=rate,
                     volume=self.cfg['volume'],
-                    proxy=pro if pro else None,
+                    proxy=useproxy,
                     pitch=self.cfg['pitch']
                 )
                 tmp_name = self.cfg['target_wav'] if self.cfg["target_wav"].endswith(

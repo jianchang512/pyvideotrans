@@ -33,7 +33,7 @@ class Worker(QThread):
 
     def run(self) -> None:
         obj=self.obj_list[0]
-        if self.cfg['clear_cache'] and Path(obj['target_dir']).is_dir():
+        if self.cfg.get('clear_cache') and Path(obj['target_dir']).is_dir():
             shutil.rmtree(obj['target_dir'], ignore_errors=True)
         Path(obj['target_dir']).mkdir(parents=True, exist_ok=True)
         try:

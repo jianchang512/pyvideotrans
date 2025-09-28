@@ -26,23 +26,12 @@ class LocalLLM(BaseTrans):
 
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
         self.api_url = config.params['localllm_api']
+        self._add_internal_host_noproxy(self.api_url)
         self.model_name = config.params["localllm_model"]
 
         self.prompt = tools.get_prompt(ainame='localllm', is_srt=self.is_srt).replace('{lang}',
                                                                                       self.target_language_name)
 
-        self._check_proxy()
-
-    def _check_proxy(self):
-        if re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url):
-            return
-        try:
-            c = httpx.Client(proxy=None)
-            c.get(self.api_url)
-        except Exception as e:
-            pro = self._set_proxy(type='set')
-            if pro:
-                self.proxies = pro
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -50,7 +39,7 @@ class LocalLLM(BaseTrans):
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         model = OpenAI(api_key=config.params['localllm_key'], base_url=self.api_url,
-                       http_client=httpx.Client(proxy=self.proxies))
+                       http_client=httpx.Client(proxy=self.proxy_str))
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         message = [
             {'role': 'system',

@@ -359,10 +359,14 @@ class WinActionSub:
             if not config.proxy:
                 # 删除代理
                 tools.set_proxy('del')
+                config.settings['proxy'] = ''
             elif re.match(r'https?://(\d+\.){3}\d+:\d+', config.proxy):
                 config.settings['proxy'] = config.proxy
+            config.parse_init(config.settings)
         except Exception:
             pass
+    
+    
 
     # 核对代理填写
     def check_proxy(self):
@@ -382,6 +386,7 @@ class WinActionSub:
                     return False
         # 设置或删除代理
         config.proxy = proxy
+        print(f'{proxy=}')
         try:
             if config.proxy:
                 # 设置代理

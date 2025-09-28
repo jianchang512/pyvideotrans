@@ -29,7 +29,6 @@ class GeminiRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        self._set_proxy(type='set')
         if self.target_code:
             self.target_code = LANGNAME_DICT.get(self.target_code, self.target_code)
 

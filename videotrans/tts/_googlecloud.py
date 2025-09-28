@@ -46,7 +46,6 @@ class GoogleCloudTTS(BaseTTS):
         self.language_code = config.params.get("gcloud_language_code", "en-US")
         self.voice_name = config.params.get("gcloud_voice_name", "")
         self.encoding = config.params.get("gcloud_audio_encoding", "MP3")
-
         if not self.cred_path or not os.path.isfile(self.cred_path):
             raise RuntimeError("Arquivo de credenciais do Google Cloud TTS não configurado ou não encontrado")
 
@@ -79,12 +78,14 @@ class GoogleCloudTTS(BaseTTS):
                 - rate: taxa de fala como string (ex: "+10%", "-5%")
                 - pitch: tom da voz
         """
+        if self._exit() or not data_item.get('text','').strip():
+            return
 
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
         def _run():
-            if not data_item or tools.vail_file(data_item["filename"]):
+            if self._exit() or not data_item or tools.vail_file(data_item["filename"]):
                 return
 
             # checa dependências antes de tudo

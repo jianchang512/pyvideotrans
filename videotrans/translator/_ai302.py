@@ -23,7 +23,6 @@ class AI302(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.trans_thread = int(config.settings.get('aitrans_thread', 500))
-        self.proxies = {"http": "", "https": ""}
         self.model_name = config.params['ai302_model']
         self.prompt = tools.get_prompt(ainame='ai302', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
 
@@ -48,7 +47,7 @@ class AI302(BaseTrans):
             'Authorization': f'Bearer {config.params["ai302_key"]}',
             'User-Agent': 'pyvideotrans',
             'Content-Type': 'application/json'
-        }, json=payload, verify=False, proxies=self.proxies)
+        }, json=payload, verify=False)
 
         response.raise_for_status()
         res = response.json()

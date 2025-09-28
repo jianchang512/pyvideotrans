@@ -20,9 +20,6 @@ class Microsoft(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.aisendsrt = False
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = {"https": pro, "http": pro}
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -33,8 +30,7 @@ class Microsoft(BaseTrans):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         }
 
-        auth = requests.get('https://edge.microsoft.com/translate/auth', headers=headers,
-                            proxies=self.proxies, verify=False)
+        auth = requests.get('https://edge.microsoft.com/translate/auth', headers=headers, verify=False)
         auth.raise_for_status()
         if not self.target_code:
             raise StopRetry('未正确设置目标语言代码，无法翻译' if config.defaulelang=='zh' else 'The target language code is not set correctly and cannot be translated')
@@ -46,7 +42,7 @@ class Microsoft(BaseTrans):
         url = f"https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={tocode}&api-version=3.0&includeSentenceLength=true"
         headers['Authorization'] = f"Bearer {auth.text}"
         config.logger.info(f'[Mircosoft]请求数据:{url=},{auth.text=}')
-        response = requests.post(url, json=[{"Text": "\n".join(data)}], proxies=self.proxies, headers=headers,
+        response = requests.post(url, json=[{"Text": "\n".join(data)}], headers=headers,
                                  verify=False, timeout=300)
         config.logger.info(f'[Mircosoft]返回:{response.text=}')
         response.raise_for_status()

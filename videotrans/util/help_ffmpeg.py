@@ -271,7 +271,8 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
         creationflags = 0
         if sys.platform == 'win32':
             creationflags = subprocess.CREATE_NO_WINDOW
-
+        if config.exit_soft:
+            return
         subprocess.run(
             cmd,
             stdout=subprocess.PIPE,
@@ -292,6 +293,8 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
         raise
 
     except subprocess.CalledProcessError as e:
+        if config.exit_soft:
+            return
         error_message = e.stderr or "(无 stderr 输出)"
         config.logger.error(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message}")
 
@@ -712,6 +715,10 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None)
 # 从音频中截取一个片段
 def cut_from_audio(*, ss, to, audio_file, out_file):
     from . import help_srt
+    from pathlib import Path
+    if not Path(audio_file).exists():
+        return False
+    Path(out_file).parent.mkdir(exist_ok=True,parents=True)
     cmd = [
         "-y",
         "-i",

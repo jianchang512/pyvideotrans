@@ -27,12 +27,11 @@ class ChatGPT(BaseTrans):
         super().__post_init__()
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
         self.api_url = self._get_url(config.params['chatgpt_api'])
+        self._add_internal_host_noproxy(self.api_url)
         self.model_name = config.params["chatgpt_model"]
 
-        self.prompt = tools.get_prompt(ainame='chatgpt', is_srt=self.is_srt).replace('{lang}',
-                                                                                     self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='chatgpt', is_srt=self.is_srt).replace('{lang}',  self.target_language_name)
 
-        self._check_proxy()
 
     def llm_segment(self, words_all, inst=None, ai_type='openai'):
         config.logger.info('llm_segment:self._exit()=' + str(self._exit()))
@@ -60,12 +59,8 @@ class ChatGPT(BaseTrans):
             model_name = config.params['chatgpt_model'] if ai_type == 'openai' else config.params['deepseek_model']
             api_url = self._get_url(
                 config.params['chatgpt_api']) if ai_type == 'openai' else 'https://api.deepseek.com/v1'
-            proxy = None
-            pro = self._set_proxy(type='set')
-            if pro:
-                proxy = pro
-            config.logger.info(f'LLM re-segments:{api_url=},{pro=}')
-            model = OpenAI(api_key=api_key, base_url=api_url, http_client=httpx.Client(proxy=proxy, timeout=7200))
+
+            model = OpenAI(api_key=api_key, base_url=api_url, http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
 
             msg = f'第{batch_num}批次 LLM断句，每批次 {chunk_size} 个字或单词' if config.defaulelang == 'zh' else f'Start sending {batch_num} batches of LLM segments, {chunk_size} words per batch'
             config.logger.info(msg)
@@ -86,13 +81,13 @@ class ChatGPT(BaseTrans):
 
             if not hasattr(response, 'choices') or not response.choices:
                 config.logger.error(f'[LLM re-segments]第{batch_num}批次重新断句失败:{response=}')
-                raise RuntimeError(f"no choices:{response=}")
+                raise RuntimeError(f"{response}")
 
             if response.choices[0].finish_reason == 'length':
                 raise RuntimeError(f"Please increase max_token")
             if not response.choices[0].message.content:
                 config.logger.error(f'[LLM re-segments]第{batch_num}批次重新断句失败:{response=}')
-                raise RuntimeError(f"no choices:{response=}")
+                raise RuntimeError(f"{response}")
 
             result = response.choices[0].message.content
 
@@ -120,14 +115,6 @@ class ChatGPT(BaseTrans):
                 new_sublist.append(tmp)
         return new_sublist
 
-    def _check_proxy(self):
-        if self.api_url and (
-                re.search('localhost', self.api_url) or re.match(r'^https?://(\d+\.){3}\d+(:\d+)?', self.api_url)):
-            self.proxies = None
-            return
-        pro = self._set_proxy(type='set')
-        if pro:
-            self.proxies = pro
 
     def _get_url(self, url=""):
         if not url:
@@ -165,7 +152,7 @@ class ChatGPT(BaseTrans):
 
         config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
         model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
-                       http_client=httpx.Client(proxy=self.proxies, timeout=7200))
+                       http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         response = model.chat.completions.create(
             model=config.params['chatgpt_model'],
             timeout=7200,
@@ -174,11 +161,11 @@ class ChatGPT(BaseTrans):
         )
         config.logger.info(f'[chatGPT]响应:{response=}')
         result = ""
-        if hasattr(response, 'choices') and response.choices:
+        if hasattr(response, 'choices') and response.choices[0].message:
             result = response.choices[0].message.content.strip()
         else:
             config.logger.error(f'[chatGPT]请求失败:{response=}')
-            raise RuntimeError(f"no choices:{response=}")
+            raise RuntimeError(f"{response}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
                           re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)

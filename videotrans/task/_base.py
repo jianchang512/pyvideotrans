@@ -40,7 +40,7 @@ class BaseTask(BaseCon):
 
     def __post_init__(self):
         # 调用父类的真实 __init__
-        super().__init__()
+        super().__post_init__()
 
         if self.obj:
             self.cfg.update(self.obj)

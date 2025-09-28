@@ -27,12 +27,7 @@ class OpenaiAPIRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
         self.api_url = self._get_url(config.params['openairecognapi_url'])
-        if not re.search(r'localhost', self.api_url) and not re.match(r'https?://(\d+\.){3}\d+', self.api_url):
-            pro = self._set_proxy(type='set')
-            if pro:
-                self.proxies = pro
-        else:
-            self.proxies = None
+        self._add_internal_host_noproxy(self.api_url)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -76,7 +71,7 @@ class OpenaiAPIRecogn(BaseRecogn):
         # 发送请求
         raws = []
         client = OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,
-                        http_client=httpx.Client(proxy=self.proxies))
+                        http_client=httpx.Client(proxy=self.proxy_str))
         with open(self.audio_file, 'rb') as file:
             transcript = client.audio.transcriptions.create(
                 file=(self.audio_file, file.read()),
@@ -102,7 +97,7 @@ class OpenaiAPIRecogn(BaseRecogn):
         # 发送请求
         raws = self.cut_audio()
         client = OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,
-                        http_client=httpx.Client(proxy=self.proxies, timeout=7200))
+                        http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         for i, it in enumerate(raws):
             with open(it['file'], 'rb') as file:
                 transcript = client.audio.transcriptions.create(

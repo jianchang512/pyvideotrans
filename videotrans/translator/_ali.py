@@ -23,11 +23,7 @@ class Ali(BaseTrans):
         super().__post_init__()
         self.aisendsrt = False
 
-        proxy = os.environ.get('http_proxy')
-        if proxy:
-            if 'http_proxy' in os.environ: del os.environ['http_proxy']
-            if 'https_proxy' in os.environ: del os.environ['https_proxy']
-            if 'all_proxy' in os.environ: del os.environ['all_proxy']
+
 
     def create_client(self) -> alimt20181012Client:
         """

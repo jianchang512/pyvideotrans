@@ -49,7 +49,6 @@ class DoubaoRecogn(BaseRecogn):
         res = requests.post(
             f'{base_url}/submit',
             data=files,
-            proxies={"http": "", "https": ""},
             params=dict(
                 appid=appid,
                 language=language,
@@ -83,7 +82,6 @@ class DoubaoRecogn(BaseRecogn):
                     id=job_id,
                     blocking=0
                 ),
-                proxies={"http": "", "https": ""},
                 headers={
                     'Authorization': 'Bearer; {}'.format(access_token)
                 }

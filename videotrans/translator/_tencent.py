@@ -24,12 +24,9 @@ class Tencent(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.aisendsrt = False
+        # 腾讯禁止国外ip
+        os.environ["NO_PROXY"]="tmt.tencentcloudapi.com"
 
-        proxy = os.environ.get('http_proxy')
-        if proxy:
-            if 'http_proxy' in os.environ: del os.environ['http_proxy']
-            if 'https_proxy' in os.environ: del os.environ['https_proxy']
-            if 'all_proxy' in os.environ: del os.environ['all_proxy']
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),

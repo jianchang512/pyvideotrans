@@ -1,3 +1,6 @@
+import shutil
+
+
 def format_milliseconds(milliseconds):
     """
     将毫秒数转换为 HH:mm:ss.zz 格式的字符串。
@@ -42,6 +45,7 @@ def openwin():
 
     from videotrans.configure import config
     from videotrans.util import tools
+    from pydub import AudioSegment
 
     RESULT_DIR = config.HOME_DIR + "/vas"
     Path(RESULT_DIR).mkdir(exist_ok=True)
@@ -65,15 +69,16 @@ def openwin():
             self.file = f'{RESULT_DIR}/{Path(self.video).stem}-{int(time.time())}.mp4'
             self.video_info = tools.get_video_info(self.video)
             self.video_time = tools.get_video_duration(self.video)
+            self.is_end=False
 
         def post(self, type='logs', text=''):
             self.uito.emit(json.dumps({"type": type, "text": text}))
 
         #
-        def hebing_pro(self, protxt, video_time):
+        def hebing_pro(self, protxt, video_time=0):
             percent = 0
             while 1:
-                if percent >= 100:
+                if percent >= 100 or self.is_end:
                     return
                 if not os.path.exists(protxt):
                     time.sleep(1)
@@ -99,157 +104,180 @@ def openwin():
                     tmp1 = 0
                 if percent + tmp1 < 99.9:
                     percent += tmp1
+                percent=min(percent,99)
                 self.post(type='jd', text=f'{percent:.2f}%')
                 time.sleep(1)
 
         def run(self):
             try:
-                tmp_mp4 = None
-                end_mp4 = None
-                # 存在音频
+                # 有新的需要插入的音频，才涉及到 保留原声音 、 截断、加速、定格、声音混合等，才需要处理音频、分离无声视频
+                print('11111111')
                 if self.audio:
-                    video_time = tools.get_video_duration(self.video)
+                    ext = self.audio.split('.')[-1].lower()
                     audio_time = int(tools.get_audio_time(self.audio) * 1000)
+
                     tmp_audio = config.TEMP_HOME + f"/{time.time()}-{Path(self.audio).name}"
-                    if audio_time > video_time and self.audio_process == 0:
+                    # 如果音频时长小于视频，则音频直接添加末尾静音
+                    if audio_time<self.video_time:
+                        audio_data = AudioSegment.from_file(self.audio,format='mp4' if ext=='m4a' else ext)+AudioSegment.silent(duration=self.video_time-audio_time)
+                        audio_data.export(self.audio,format="mp4" if ext=='m4a' else ext)
+                    elif audio_time > self.video_time and self.audio_process == 0:
+                        # 截断音频
                         tools.runffmpeg(
-                            ['-y', '-i', self.audio, '-ss', '00:00:00.000', '-t', str(video_time / 1000), tmp_audio])
+                            ['-y', '-i', self.audio, '-ss', '00:00:00.000', '-t', str(self.video_time / 1000), tmp_audio])
                         self.audio = tmp_audio
-                    elif audio_time > video_time and self.audio_process == 1:
-                        tools.precise_speed_up_audio(file_path=self.audio, out=tmp_audio, target_duration_ms=video_time)
+                    elif audio_time > self.video_time and self.audio_process == 1:
+                        # 加速音频
+                        tools.precise_speed_up_audio(file_path=self.audio, out=tmp_audio, target_duration_ms=self.video_time)
                         self.audio = tmp_audio
-                    # 需要保留原视频中声音 并且原视频中有声音
-                    if self.saveraw and self.video_info['streams_audio']:
-                        tmp_mp4 = config.TEMP_HOME + f"/{time.time()}.m4a"
-                        # 存在声音，则需要混合
+                    print(f'未混合前但加速 或截断后的音频 {self.audio=}')
+                    # 需要保留原视频中声音，则需要混合 self.audio 和视频声音
+                    if self.saveraw and  self.video_info['streams_audio']:
+                        tmp_mp4a = config.TEMP_HOME + f"/{time.time()}-fromvideo.wav"
+                        end_m4a = config.TEMP_HOME + f"/{time.time()}.m4a"
+                        # 先取出来视频中的音频为 wav
                         tools.runffmpeg([
                             '-y',
                             '-i',
                             os.path.normpath(self.video),
                             "-vn",
+                            tmp_mp4a]
+                        )
+                        # audio_process=0截断 1=音频加速 2=视频定格
+                        # 音频时长小于视频时长时无需考虑，简单为音频加静音即可
+                        # 需考虑音频时长大于视频时长,并且 2 需定格视频时，要延长视频中声音==self.audio
+                        if audio_time > self.video_time and self.audio_process == 2:
+                            audio_data = AudioSegment.from_file(tmp_mp4a)+AudioSegment.silent(duration=audio_time-self.video_time)
+                            audio_data.export(tmp_mp4a,format="wav")
+
+                        # 到此处，新插入的音频 self.audio和视频剥离的音频，时长已经一致了
+                        # 开始混合 2个音频
+                        tools.runffmpeg([
+                            '-y',
+                            '-i',
+                            os.path.normpath(tmp_mp4a),
                             '-i',
                             os.path.normpath(self.audio),
                             '-filter_complex',
-                            "[1:a]apad[a1];[0:a][a1]amerge=inputs=2[aout]",
+                            "[0:a][1:a]amix=inputs=2:duration=longest[aout]",
                             '-map',
                             '[aout]',
                             '-ac',
-                            '2', tmp_mp4])
-                        self.audio = tmp_mp4
+                            '2', end_m4a])
+                        # 混合后新音频
+                        self.audio = end_m4a
+                        print(f'混合后新音频 {self.audio=}')
+                        # 混合后音频时长，当大于视频时长，并且 audio_process == 2 需定格视频
                         audio_time = int(tools.get_audio_time(self.audio) * 1000)
-                    if self.audio_process == 2 and audio_time > video_time:
-                        sec = (audio_time - video_time) / 1000
-                        tmp_mp4 = config.TEMP_HOME + f"/{time.time()}.mp4"
-                        cmd = [
+
+                    # audio_process=0截断 1=音频加速 2=视频定格
+                    # 如果存在 self.audio ，则无论是否保留原视频中声音，此时都已处理好，直接替换 视频中声音
+                    # 分离出无声视频进行定格操作
+                    cmd = [
                             '-y',
                             '-i',
-                            self.video,
+                            self.video
+                    ]
+                    novoice_mp4 = config.TEMP_HOME + f"/{time.time()}-novice.mp4"
+                    if self.audio_process == 2 and  audio_time >self.video_time:
+                        # 如果定格视频并且音频时长大于视频时长
+                        sec = max((audio_time - self.video_time) / 1000,1)
+                        cmd += [
                             '-vf',
-                            f'tpad=stop_mode=clone:stop_duration={sec}',
-                            "-an",
-                            '-c:v',
-                            'copy' if Path(self.video).suffix.lower() == '.mp4' else 'libx264',
-                            tmp_mp4
+                            f'tpad=stop_mode=clone:stop_duration={sec}'
                         ]
-                        tools.runffmpeg(cmd)
-                        self.video = tmp_mp4
-                    elif audio_time < video_time:
-                        from pydub import AudioSegment
-                        ext = self.audio.split('.')[-1]
-                        audio_data = AudioSegment.from_file(self.audio, format='mp4' if ext == 'm4a' else ext)
-                        audio_data += AudioSegment.silent(duration=video_time - audio_time)
-                        audio_data.export(self.audio, format='mp4' if ext == 'm4a' else ext)
+                    cmd+=[
+                        "-an",
+                        '-c:v',
+                        'libx264',
+                        novoice_mp4
+                    ]
+                    print(f'{novoice_mp4=}')
+                    tools.runffmpeg(cmd)
 
-                    # 视频和音频混合
-                    # 如果存在字幕则生成中间结果end_mp4
-                    if self.srt:
-                        end_mp4 = config.TEMP_HOME + f"/hb{time.time()}.mp4"
+                    # 视频音频合并
+                    audiovideoend_mp4 = config.TEMP_HOME + f"/{time.time()}-audiovideoend.mp4"
                     tools.runffmpeg([
                         '-y',
                         '-i',
-                        os.path.normpath(self.video),
+                        novoice_mp4,
                         '-i',
                         os.path.normpath(self.audio),
                         '-c:v',
-                        'copy' if Path(self.video).suffix.lower() == '.mp4' else 'libx264',
+                        'copy',
                         "-c:a",
                         "aac",
-                        "-map",
-                        "0:v:0",
-                        "-map",
-                        "1:a:0",
-                        "-shortest",
-                        end_mp4 if self.srt else self.file
+                        audiovideoend_mp4
                     ])
-                # 存在字幕则继续嵌入
-                if self.srt:
-                    # 存在中间结果mp4
-                    if end_mp4:
-                        self.video = end_mp4
-                    protxt = config.TEMP_HOME + f'/jd{time.time()}.txt'
-                    threading.Thread(target=self.hebing_pro, args=(protxt, self.video_time,)).start()
-
-                    cmd = [
-                        '-y',
-                        "-progress",
-                        protxt,
+                    print(f'222222 {self.video=}')
+                    # 不存在字幕，则结束了
+                    if not self.srt:
+                        self.post(type='ok', text=self.file)
+                        self.is_end=True
+                        shutil.copy2(audiovideoend_mp4,self.file)
+                        return
+                    self.video=audiovideoend_mp4
+                # 软字幕
+                os.chdir(os.path.dirname(self.srt))
+                protxt = config.TEMP_HOME + f'/jd{time.time()}.txt'
+                cmd = [
+                    '-y',
+                    "-progress",
+                    protxt,
+                    '-i',
+                    self.video,
+                ]
+                if self.is_soft and self.language:
+                    # 软字幕
+                    subtitle_language = translator.get_subtitle_code( show_target=self.language)
+                    cmd+=[
                         '-i',
-                        os.path.normpath(self.video)
+                        os.path.basename(self.srt),
+                        '-c:v',
+                        'copy',
+                        "-c:s",
+                        "mov_text",
+                        "-metadata:s:s:0",
+                        f"language={subtitle_language}",
+                        self.file
                     ]
+                else:
                     # 硬字幕
-                    if not self.is_soft or not self.language:
-                        sublist=tools.get_subtitle_from_srt(self.srt,is_file=True)
-                        srt_string=''
-                        for i, it in enumerate(sublist):
-                            if self.remain_hr:
-                                txt_list=[]
-                                for txt_line in it['text'].strip().split("\n"):
-                                    txt_list.append(tools.textwrap(txt_line.strip(), self.maxlen))
-                                tmp="\n".join(txt_list)
-
-                                print(f'{txt_list=}')
-                                print(f'{tmp=}')
-                                print('==================')
-                            else:
-                                tmp=tools.textwrap(it['text'].strip(), self.maxlen)
-                            srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
-                        tmpsrt=config.TEMP_HOME + f"/vas-{time.time()}.srt"
-                        with Path(tmpsrt).open('w', encoding='utf-8') as f:
-                            f.write(srt_string.strip())
-                        assfile = config.TEMP_HOME + f"/vasrt{time.time()}.ass"
-                        save_ass(tmpsrt, assfile)
-                        os.chdir(config.TEMP_HOME)
-                        cmd += [
-                            '-c:v',
-                            'libx264',
-                            '-vf',
-                            f"subtitles={os.path.basename(assfile)}:charenc=utf-8",
-                            '-crf',
-                            f'{config.settings["crf"]}',
-                            '-preset',
-                            config.settings['preset']
-                        ]
-                    else:
-                        os.chdir(os.path.dirname(self.srt))
-                        # 软字幕
-                        subtitle_language = translator.get_subtitle_code(
-                            show_target=self.language)
-                        cmd += [
-                            '-i',
-                            os.path.basename(self.srt),
-                            '-c:v',
-                            'copy' if Path(self.video).suffix.lower() == '.mp4' else 'libx264',
-                            "-c:s",
-                            "mov_text",
-                            "-metadata:s:s:0",
-                            f"language={subtitle_language}"
-                        ]
-                    cmd.append(self.file)
-                    tools.runffmpeg(cmd)
+                    sublist = tools.get_subtitle_from_srt(self.srt, is_file=True)
+                    srt_string = ''
+                    for i, it in enumerate(sublist):
+                        if self.remain_hr:
+                            txt_list = []
+                            for txt_line in it['text'].strip().split("\n"):
+                                txt_list.append(tools.textwrap(txt_line.strip(), self.maxlen))
+                            tmp = "\n".join(txt_list)
+                        else:
+                            tmp = tools.textwrap(it['text'].strip(), self.maxlen)
+                        srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
+                    tmpsrt = config.TEMP_HOME + f"/vas-{time.time()}.srt"
+                    with Path(tmpsrt).open('w', encoding='utf-8') as f:
+                        f.write(srt_string.strip())
+                    assfile = config.TEMP_HOME + f"/vasrt{time.time()}.ass"
+                    save_ass(tmpsrt, assfile)
+                    os.chdir(config.TEMP_HOME)
+                    cmd += [
+                        '-c:v',
+                        'libx264',
+                        '-vf',
+                        f"subtitles={os.path.basename(assfile)}:charenc=utf-8",
+                        '-crf',
+                        f'{config.settings["crf"]}',
+                        '-preset',
+                        config.settings['preset'],
+                        self.file
+                    ]
+                threading.Thread(target=self.hebing_pro, args=(protxt, self.video_time,)).start()
+                tools.runffmpeg(cmd)
+                self.post(type='ok', text=self.file)
+                self.is_end=True
             except Exception as e:
                 self.post(type='error', text=str(e))
-            else:
-                self.post(type='ok', text=self.file)
+
 
     def save_ass(file_path, ass_file):
         with open(ass_file, 'w', encoding='utf-8') as file:

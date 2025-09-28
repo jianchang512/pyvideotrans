@@ -28,15 +28,15 @@ class ChatTTS(BaseTTS):
         # 从配置中读取并处理 API URL
         api_url = config.params['chattts_api'].strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '').replace('/tts', '')
+        self._add_internal_host_noproxy(self.api_url)
 
-        # 为代理设置一个具体的值
-        self.proxies = {"http": "", "https": ""}
 
     def _exec(self):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        #
+        if self._exit() or  not data_item.get('text','').strip():
+            return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
@@ -44,7 +44,7 @@ class ChatTTS(BaseTTS):
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
             data = {"text": data_item['text'], "voice": data_item['role'], 'prompt': '', 'is_split': 1}
-            res = requests.post(f"{self.api_url}/tts", data=data, proxies=self.proxies, timeout=3600)
+            res = requests.post(f"{self.api_url}/tts", data=data,  timeout=3600)
             res.raise_for_status()
             config.logger.info(f'chatTTS:{data=}')
             res = res.json()
