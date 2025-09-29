@@ -1,7 +1,6 @@
 import os
 import platform
 import shutil
-import threading
 import time
 from pathlib import Path
 
@@ -263,16 +262,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusLabel2 = QPushButton('遇到问题?在线提问' if config.defaulelang == 'zh' else 'Having problems? Ask')
-        self.statusLabel.setStyleSheet("""color:#ffffdd""")
-        self.statusLabel2.setStyleSheet("""color:#ffffdd""")
+        self.statusLabel.setStyleSheet("""color:#ffff99""")
+        self.statusLabel2.setStyleSheet("""color:#ffff99""")
         self.statusBar.addWidget(self.statusLabel)
         self.statusBar.addWidget(self.statusLabel2)
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
-        self.rightbottom.setStyleSheet("""color:#ffffdd""")
+        self.rightbottom.setStyleSheet("""color:#ffff99""")
         self.container = QToolBar()
         self.container.addWidget(self.rightbottom)
         self.restart_btn = QPushButton("重启" if config.defaulelang == 'zh' else "Restart")
-        self.restart_btn.setStyleSheet("""color:#ffffdd""")
+        self.restart_btn.setStyleSheet("""color:#ffff99""")
         self.container.addWidget(self.restart_btn)
         self.restart_btn.clicked.connect(self.restart_app)
 
@@ -767,15 +766,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
         except:
             pass
+        time.sleep(1)
+        if not self.is_restarting:
+            event.accept()
+            return
 
         # 清理后启动新进程，然后立即退出旧进程
-        if self.is_restarting:
-            time.sleep(3)
-            import subprocess
-            if getattr(sys, 'frozen', False):  # PyInstaller 打包模式
-                subprocess.Popen([sys.executable] + sys.argv[1:])
-            else:  # 源代码模式
-                subprocess.Popen([sys.executable, sys.argv[0]] + sys.argv[1:])
+        import subprocess
+        if getattr(sys, 'frozen', False):  # PyInstaller 打包模式
+            subprocess.Popen([sys.executable] + sys.argv[1:])
+        else:  # 源代码模式
+            subprocess.Popen([sys.executable, sys.argv[0]] + sys.argv[1:])
 
         event.accept()
         os._exit(0)  # 立即退出进程，避免 Qt 清理错误
@@ -808,12 +809,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if hasattr(self, 'check_update') and self.check_update.isRunning():
             print('等待 check_update 线程退出')
             self.check_update.quit()
-            self.check_update.wait(5000)
+            self.check_update.wait(3000)
 
         if hasattr(self, 'uuid_signal') and self.uuid_signal.isRunning():
             print('等待 uuid_signal 线程退出')
             self.uuid_signal.quit()
-            self.uuid_signal.wait(5000)
+            self.uuid_signal.wait(3000)
 
         try:
             for w in config.child_forms.values():

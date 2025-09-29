@@ -11,18 +11,16 @@ License: GPL-V3
 # 写的这么烂，一看就不是AI写的
 
 """
-import atexit
-import sys, os
-import time
+import atexit,sys, os,time
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
-print(f"\n#### start:{time.time()}")
+
 
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
-from PySide6.QtCore import Qt, QTimer, QSize, qInstallMessageHandler, QSettings
-from PySide6.QtGui import QPixmap, QIcon, QGuiApplication
+from PySide6.QtCore import Qt, qInstallMessageHandler,QTimer
+from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 
 VERSION = "v3.81"
 
@@ -116,6 +114,7 @@ class StartWindow(QWidget):
 def initialize_full_app(start_window, app_instance):
     import argparse
     from videotrans.configure._guiexcept import global_exception_hook, exception_handler
+    from PySide6.QtCore import QSize, QSettings
     # 日志
     if sys.stdout is None or sys.stderr is None:
         try:
@@ -126,8 +125,8 @@ def initialize_full_app(start_window, app_instance):
             sys.stdout = log_file
             sys.stderr = log_file
             print(f"\n\n--- Application started at {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
-        except Exception:
-            pass
+        except Exception as e:
+            print(e)
 
     sys.excepthook = global_exception_hook
 
@@ -165,7 +164,6 @@ def initialize_full_app(start_window, app_instance):
 
     # 显示主窗口
     if main_window_created and start_window.main_window:
-        print(f"#### endtm:{time.time()}")
         start_window.main_window.show()
         QTimer.singleShot(1000, lambda: start_window.close())
 
