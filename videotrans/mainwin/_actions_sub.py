@@ -24,6 +24,7 @@ class WinActionSub:
     wait_subtitle: str = field(default='', init=False)
     is_render: bool = field(default=False, init=False)
     is_batch: bool = field(default=True, init=False)
+    had_click_btn: bool = field(default=False, init=False)
     removing_layout: bool = field(default=False, init=False)
 
     # -- UI 对象实例 --

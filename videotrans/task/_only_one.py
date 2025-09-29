@@ -73,31 +73,31 @@ class Worker(QThread):
                     self._post(text=trk.cfg['target_sub'], type="edit_subtitle_target")
                     trk.trans()
 
-            if trk.shoud_dubbing:
-                countdown_sec = int(float(config.settings.get('countdown_sec', 1)))
-                config.task_countdown = countdown_sec
-                self._post(text=Path(trk.cfg['target_sub']).read_text(encoding='utf-8'), type='replace_subtitle')
-                self._post(
-                    text=f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
-                    type='show_djs')
-                while config.task_countdown > 0:
-                    if self._exit():
-                        return
-                    # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
-                    time.sleep(1)
-                    # 倒计时中
-                    config.task_countdown -= 1
-                    if config.task_countdown > 0 and config.task_countdown <= countdown_sec:
-                        self._post(
-                            text=f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
-                            type='show_djs')
-                # 禁止修改字幕
-                self._post(text='', type='timeout_djs')
-                # 等待字幕更新完毕
-                config.task_countdown = 10
-                while config.task_countdown > 0:
-                    time.sleep(1)
-                    break
+            # if trk.shoud_dubbing:
+            countdown_sec = int(float(config.settings.get('countdown_sec', 1)))
+            config.task_countdown = countdown_sec
+            self._post(text=Path(trk.cfg['target_sub']).read_text(encoding='utf-8'), type='replace_subtitle')
+            self._post(
+                text=f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
+                type='show_djs')
+            while config.task_countdown > 0:
+                if self._exit():
+                    return
+                # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
+                time.sleep(1)
+                # 倒计时中
+                config.task_countdown -= 1
+                if config.task_countdown > 0 and config.task_countdown <= countdown_sec:
+                    self._post(
+                        text=f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
+                        type='show_djs')
+            # 禁止修改字幕
+            self._post(text='', type='timeout_djs')
+            # 等待字幕更新完毕
+            config.task_countdown = 10
+            while config.task_countdown > 0:
+                time.sleep(1)
+                break
 
             trk.dubbing()
             trk.align()

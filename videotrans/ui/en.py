@@ -946,26 +946,34 @@ class Ui_MainWindow(object):
 
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_website)
+
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_blog)
-        self.menu_H.addSeparator()
 
+        self.menu_H.addSeparator()
+        self.menu_H.addAction(self.action_discord)
+
+        self.menu_H.addSeparator()
+        self.menu_H.addAction(self.action_about)
+
+        self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_models)
+
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_gtrans)
 
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_cuda)
-        self.menu_H.addSeparator()
-        self.menu_H.addAction(self.action_discord)
+
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_git)
+
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_issue)
+
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_ffmpeg)
-        self.menu_H.addSeparator()
-        self.menu_H.addAction(self.action_about)
+
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_online)
         self.menu_H.addSeparator()

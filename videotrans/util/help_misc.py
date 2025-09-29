@@ -90,16 +90,14 @@ def show_error(tb_str, report=True):
             QDesktopServices.openUrl(QUrl(full_url))
 
 
-def open_url(url=None, title: str = None):
+def open_url(title: str = None):
     import webbrowser
-    if url:
-        return webbrowser.open_new_tab(url)
     title_url_dict = {
         'bbs': "https://bbs.pyvideotrans.com",
         'ffmpeg': "https://www.ffmpeg.org/download.html",
         'git': "https://github.com/jianchang512/pyvideotrans",
         'issue': "https://github.com/jianchang512/pyvideotrans/issues",
-        'discord': "https://discord.gg/7ZWbwKGMcx",
+        'hfmirrorcom': "https://pyvideotrans.com/819",
         'models': "https://github.com/jianchang512/stt/releases/tag/0.0",
         'stt': "https://github.com/jianchang512/stt/",
 
@@ -110,10 +108,10 @@ def open_url(url=None, title: str = None):
         'xinshou': "https://pyvideotrans.com/getstart",
         "about": "https://pyvideotrans.com/about",
         'download': "https://github.com/jianchang512/pyvideotrans/releases",
-        'openvoice': "https://github.com/kungful/openvoice-api"
     }
     if title and title in title_url_dict:
         return webbrowser.open_new_tab(title_url_dict[title])
+    return webbrowser.open_new_tab(title)
 
 
 def vail_file(file=None):

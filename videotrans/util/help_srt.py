@@ -354,8 +354,8 @@ def textwrap(text, maxlen=15):
         break_point = -1
 
         # 确定查找标点的范围，从 maxlen 位置开始，向后最多看4个字符
-        # 例如 maxlen=15, cursor=0, 则查找索引为 15, 16, 17, 18, 19 的字符
-        search_range = range(cursor + maxlen, min(cursor + maxlen + 5, text_len))
+        # 例如 maxlen=15, cursor=0, 则查找索引为 15, 16, 17 的字符
+        search_range = range(cursor + maxlen, min(cursor + maxlen + 2, text_len))
 
         found_flag = False
         for i in search_range:

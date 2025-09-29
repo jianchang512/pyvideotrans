@@ -181,8 +181,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_f5tts.setText("F5/index/SparK/Dia TTS")
         self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang == 'zh' else 'VolcEngine TTS')
         self.action_website.setText(config.uilanglist.get("Documents"))
-        self.action_discord.setText("Discord")
-        self.action_blog.setText('BBS')
+        self.action_discord.setText("模型下载失败解决办法")
+        self.action_blog.setText('遇到问题在线提问' if config.defaulelang=='zh' else 'Having problems? Ask')
         self.action_models.setText(config.uilanglist["Download Models"])
         self.action_gtrans.setText(
             '下载硬字幕提取软件' if config.defaulelang == 'zh' else 'Download Hard Subtitle Extraction Software')
@@ -260,7 +260,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         from videotrans.translator import TRANSLASTE_NAME_LIST
 
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
+        self.statusLabel2 = QPushButton('遇到问题?在线提问' if config.defaulelang=='zh' else 'Having problems? Ask')
         self.statusBar.addWidget(self.statusLabel)
+        self.statusBar.addWidget(self.statusLabel2)
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
         self.container = QToolBar()
         self.container.addWidget(self.rightbottom)
@@ -373,12 +375,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _bindsignal(self):
         from videotrans.task.check_update import CheckUpdateWorker
-        # from videotrans.task.get_role_list import GetRoleWorker
         from videotrans.task.job import start_thread
         from videotrans.mainwin._signal import UUIDSignalThread
 
-        # update_role = GetRoleWorker(parent=self)
-        # update_role.start()
         self.check_update = CheckUpdateWorker(parent=self)
         self.check_update.start()
 
@@ -499,6 +498,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_save_dir.setCursor(Qt.PointingHandCursor)
         self.listen_btn.setCursor(Qt.PointingHandCursor)
         self.statusLabel.setCursor(Qt.PointingHandCursor)
+        self.statusLabel2.setCursor(Qt.PointingHandCursor)
         self.rightbottom.setCursor(Qt.PointingHandCursor)
 
         from videotrans import winform
@@ -564,7 +564,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_yuyinhecheng.triggered.connect(lambda: winform.get_win('fn_peiyin').openwin())
         self.action_ffmpeg.triggered.connect(lambda: self.win_action.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.win_action.open_url('git'))
-        self.action_discord.triggered.connect(lambda: self.win_action.open_url('discord'))
+        self.action_discord.triggered.connect(lambda: self.win_action.open_url('hfmirrorcom'))
         self.action_models.triggered.connect(lambda: self.win_action.open_url('models'))
 
         self.action_gtrans.triggered.connect(lambda: self.win_action.open_url('gtrans'))
@@ -578,6 +578,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.aisendsrt.toggled.connect(self.checkbox_state_changed)
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
+        self.statusLabel2.clicked.connect(lambda: self.win_action.open_url('https://bbs.pyvideotrans.com/post'))
         Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
 
 

@@ -27,8 +27,7 @@ def get_proxy():
 
 proxy=get_proxy()
 if proxy:
-    os.environ['http_proxy'] = proxy
-    os.environ['all_proxy'] = proxy
+    os.environ['https_proxy'] = proxy
 # proxies={"http://":proxy,"https://":proxy} if proxy else None
 print(f"\n从 huggingface.co 下载faster-whisper模型，中国大陆地区需开启系统代理...\n")
 print(f'当前使用代理：{proxy}')

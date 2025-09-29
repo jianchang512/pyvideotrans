@@ -139,6 +139,7 @@ class WinAction(WinActionSub):
         self.obj_list = []
         self.main.source_mp4.setText(config.transobj["No select videos"])
 
+
     # 删除进度按钮
     def delete_process(self):
         for i in range(self.main.processlayout.count()):
@@ -152,6 +153,9 @@ class WinAction(WinActionSub):
 
     # 将倒计时设为立即超时
     def set_djs_timeout(self):
+        if self.had_click_btn:
+            return
+        self.had_click_btn=True
         self.main.timeout_tips.setText('')
         self.main.stop_djs.hide()
         self.main.continue_compos.hide()
@@ -160,6 +164,7 @@ class WinAction(WinActionSub):
         self.main.subtitle_area.setReadOnly(True)
         self.update_subtitle()
         config.task_countdown = -1
+        self.had_click_btn=False
 
     # 手动点击暂停按钮
     def reset_timeid(self):
@@ -906,6 +911,9 @@ class WinAction(WinActionSub):
 
     # 更新执行状态
     def update_status(self, type):
+        if self.had_click_btn:
+            return
+        self.had_click_btn=True
         config.current_status = type
         self.main.continue_compos.hide()
         self.main.stop_djs.hide()
@@ -913,6 +921,7 @@ class WinAction(WinActionSub):
             # 重设为开始状态
             self.disabled_widget(True)
             self.main.startbtn.setText(config.transobj["starting..."])
+            self.had_click_btn=False
             return
         try:
             Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
@@ -959,6 +968,7 @@ class WinAction(WinActionSub):
         if self.main.app_mode == 'tiqu':
             self.set_tiquzimu()
         self._reset()
+        self.had_click_btn=False
 
     # 更新 UI
     def update_data(self, json_data):
@@ -970,7 +980,7 @@ class WinAction(WinActionSub):
                     config.stoped_uuid_set.add(d['uuid'])
 
                 self.edit_subtitle_type = 'edit_subtitle_source'
-                self.wait_subtitle = None
+                self.wait_subtitle = ''
                 if not self.is_batch:
                     self.clear_target_subtitle()
         elif d['type'] == 'create_btns':

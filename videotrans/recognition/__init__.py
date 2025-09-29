@@ -78,32 +78,8 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='', source_language_isLast
             return 'distil 开头的模型只可用于 faster-whisper本地模式' if config.defaulelang == 'zh' else 'distil-* only use when faster-whisper'
 
         return True
-
-    model_path = f'models--Systran--faster-whisper-{name}'
-    if name == 'large-v3-turbo':
-        model_path = f'models--mobiuslabsgmbh--faster-whisper-{name}'
-    elif name.startswith('distil'):
-        model_path = f'models--Systran--faster-{name}'
-
-    file = f'{config.ROOT_DIR}/models/{model_path}'
-
-    if recogn_type == Faster_Whisper_XXL:
-        PATH_DIR = Path(config.settings.get('Faster_Whisper_XXL', '')).parent.as_posix() + f'/.cache/hub/{model_path}'
-
-        if Path(file).exists() or Path(PATH_DIR).exists():
-            if Path(file).exists() and not Path(PATH_DIR).exists():
-                import threading
-                threading.Thread(target=move_model_toxxl, args=(file, PATH_DIR)).start()
-            return True
-
     return True
 
-
-def move_model_toxxl(src, dest):
-    import shutil
-    config.copying = True
-    shutil.copytree(src, dest, dirs_exist_ok=True)
-    config.copying = False
 
 
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
