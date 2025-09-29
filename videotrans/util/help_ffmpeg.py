@@ -287,9 +287,10 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
             config.queue_novice[noextname] = "end"
         return True
 
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         config.logger.error(f"命令未找到: {cmd[0]}。请确保 ffmpeg 已安装并在系统 PATH 中。")
-        if noextname: config.queue_novice[noextname] = "error"
+        if noextname:
+            config.queue_novice[noextname] = f"error:{e}"
         raise
 
     except subprocess.CalledProcessError as e:
@@ -314,11 +315,13 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
 
             return runffmpeg(fallback_args, noextname=noextname, uuid=uuid, force_cpu=True)
 
-        if noextname: config.queue_novice[noextname] = "error"
-        raise RuntimeError(extract_concise_error(e.stderr))
+        err=extract_concise_error(e.stderr)
+        if noextname:
+            config.queue_novice[noextname] = f"error:{err}"
+        raise RuntimeError(err)
 
     except Exception as e:
-        if noextname: config.queue_novice[noextname] = "error"
+        if noextname: config.queue_novice[noextname] = f"error:{e}"
         config.logger.exception(f"执行 ffmpeg 时发生未知错误 (force_cpu={force_cpu})。")
         raise
 
@@ -445,6 +448,7 @@ def get_video_codec(force_test: bool = False) -> str:
 
     _codec_cache[cache_key] = selected_codec
     config.logger.info(f"最终确定使用的编码器: {selected_codec}")
+    print(f"最终确定使用的编码器: {selected_codec}")
     return selected_codec
 
 

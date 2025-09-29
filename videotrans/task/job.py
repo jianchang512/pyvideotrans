@@ -45,11 +45,11 @@ assemb_queue
 class WorkerPrepare(Thread):
     def __init__(self, *, parent=None):
         super().__init__()
+        self.name="PrepareVideo"
 
     def run(self) -> None:
         while 1:
             if config.exit_soft:
-                time.sleep(1)
                 return
             if len(config.prepare_queue) < 1:
                 time.sleep(0.5)
@@ -82,11 +82,11 @@ class WorkerPrepare(Thread):
 class WorkerRegcon(Thread):
     def __init__(self, *, parent=None):
         super().__init__()
+        self.name="SpeechToText"
 
     def run(self) -> None:
         while 1:
             if config.exit_soft:
-                time.sleep(1)
                 return
 
             if len(config.regcon_queue) < 1:
@@ -116,11 +116,11 @@ class WorkerRegcon(Thread):
 class WorkerTrans(Thread):
     def __init__(self, *, parent=None):
         super().__init__()
+        self.name="TranslationSRT"
 
     def run(self) -> None:
         while 1:
             if config.exit_soft:
-                time.sleep(1)
                 return
             if len(config.trans_queue) < 1:
                 time.sleep(0.5)
@@ -148,11 +148,11 @@ class WorkerTrans(Thread):
 class WorkerDubb(Thread):
     def __init__(self, *, parent=None):
         super().__init__()
+        self.name="DubbingSrt"
 
     def run(self) -> None:
         while 1:
             if config.exit_soft:
-                time.sleep(1)
                 return
             if len(config.dubb_queue) < 1:
                 time.sleep(0.5)
@@ -176,11 +176,11 @@ class WorkerDubb(Thread):
 class WorkerAlign(Thread):
     def __init__(self, *, parent=None):
         super().__init__()
+        self.name="AlignVieoAudioSrt"
 
     def run(self) -> None:
         while 1:
             if config.exit_soft:
-                time.sleep(1)
                 return
             if len(config.align_queue) < 1:
                 time.sleep(0.5)
@@ -203,11 +203,11 @@ class WorkerAlign(Thread):
 class WorkerAssemb(Thread):
     def __init__(self, *, parent=None):
         super().__init__()
+        self.name="OutVideo"
 
     def run(self) -> None:
         while 1:
             if config.exit_soft:
-                time.sleep(1)
                 return
             if len(config.assemb_queue) < 1:
                 time.sleep(0.5)

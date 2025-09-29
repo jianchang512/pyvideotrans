@@ -33,7 +33,9 @@ class UUIDSignalThread(QThread):
                 if len(config.global_msg) > 0:
                     self.uito.emit(json.dumps(config.global_msg.pop(0)))
                 self._remove_queue()
-                time.sleep(1)
+                if config.exit_soft:
+                    return
+                time.sleep(0.5)
                 continue
             # 找出未停止的
             uuid_list = [obj['uuid'] for obj in self.parent.win_action.obj_list if
@@ -45,14 +47,16 @@ class UUIDSignalThread(QThread):
                 self._remove_queue()
                 continue
             while len(uuid_list) > 0:
-                uuid = uuid_list.pop(0)
                 if config.exit_soft:
                     return
+                uuid = uuid_list.pop(0)
                 if uuid in config.stoped_uuid_set:
                     try:
                         del config.uuid_logs_queue[uuid]
                     except:
                         pass
+                    if config.exit_soft:
+                        return
                     continue
                 try:
                     q: queue.Queue = config.uuid_logs_queue.get(uuid)

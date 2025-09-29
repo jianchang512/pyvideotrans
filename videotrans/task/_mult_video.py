@@ -22,6 +22,7 @@ class MultVideo(QThread):
 
     def run(self):
         for it in self.obj_list:
+            if config.exit_soft:return
             if self.cfg['clear_cache'] and Path(it['target_dir']).is_dir():
                 shutil.rmtree(it['target_dir'], ignore_errors=True)
             Path(it['target_dir']).mkdir(parents=True, exist_ok=True)

@@ -5,13 +5,13 @@ import threading
 import time
 from pathlib import Path
 
-
 import asyncio, sys
+
 # 这行代码应该在你的主程序入口（启动线程之前）执行一次即可，而不是在模块加载时。
 # 为了安全，我们先注释掉，如果需要，请移到你的主启动逻辑中。
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QSizePolicy
 
@@ -27,10 +27,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=650):
 
         super(MainWindow, self).__init__(parent)
-        self.worker_threads=[]
+        self.worker_threads = []
+        self.uuid_signal = None
         self.width = width
         self.height = height
         self.resize(width, height)
+        self.is_restarting = False
         # 实际行为实例
         self.win_action = None
         # 功能模式 dict{str,instance}
@@ -54,6 +56,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QTimer.singleShot(0, self._start_subform)
         QTimer.singleShot(400, self._bindsignal)
         QTimer.singleShot(800, self.is_writable)
+        QThreadPool.globalInstance().start(lambda: tools.get_video_codec(True))
 
     def _replace_placeholders(self):
         """
@@ -182,7 +185,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_volcengine.setText('字节火山语音合成' if config.defaulelang == 'zh' else 'VolcEngine TTS')
         self.action_website.setText(config.uilanglist.get("Documents"))
         self.action_discord.setText("模型下载失败解决办法")
-        self.action_blog.setText('遇到问题在线提问' if config.defaulelang=='zh' else 'Having problems? Ask')
+        self.action_blog.setText('遇到问题在线提问' if config.defaulelang == 'zh' else 'Having problems? Ask')
         self.action_models.setText(config.uilanglist["Download Models"])
         self.action_gtrans.setText(
             '下载硬字幕提取软件' if config.defaulelang == 'zh' else 'Download Hard Subtitle Extraction Software')
@@ -191,7 +194,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontencent_key.setText("腾讯翻译设置" if config.defaulelang == 'zh' else "Tencent Key")
         self.action_about.setText(config.uilanglist.get("Donating developers"))
 
-        self.action_biaozhun.setText('翻译视频或音频' if config.defaulelang=='zh' else  "Standard Function Mode")
+        self.action_biaozhun.setText('翻译视频或音频' if config.defaulelang == 'zh' else "Standard Function Mode")
         self.action_biaozhun.setToolTip(
             '批量进行音频或视频翻译，并可按照需求自定义配置选项' if config.defaulelang == 'zh' else 'Batch audio or video translation with all configuration options customizable on demand')
         self.action_yuyinshibie.setText(config.uilanglist.get("Speech Recognition Text"))
@@ -211,7 +214,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.action_yingyinhebing.setText(config.uilanglist.get("Video Subtitles Merging"))
         self.action_yingyinhebing.setToolTip(config.uilanglist.get("Merge audio, video, and subtitles into one file"))
-
 
         self.action_hun.setText(config.uilanglist.get("Mixing 2 Audio Streams"))
         self.action_hun.setToolTip(config.uilanglist.get("Mix two audio files into one audio file"))
@@ -260,12 +262,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         from videotrans.translator import TRANSLASTE_NAME_LIST
 
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
-        self.statusLabel2 = QPushButton('遇到问题?在线提问' if config.defaulelang=='zh' else 'Having problems? Ask')
+        self.statusLabel2 = QPushButton('遇到问题?在线提问' if config.defaulelang == 'zh' else 'Having problems? Ask')
+        self.statusLabel.setStyleSheet("""color:#ffffdd""")
+        self.statusLabel2.setStyleSheet("""color:#ffffdd""")
         self.statusBar.addWidget(self.statusLabel)
         self.statusBar.addWidget(self.statusLabel2)
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
+        self.rightbottom.setStyleSheet("""color:#ffffdd""")
         self.container = QToolBar()
         self.container.addWidget(self.rightbottom)
+        self.restart_btn = QPushButton("重启" if config.defaulelang == 'zh' else "Restart")
+        self.restart_btn.setStyleSheet("""color:#ffffdd""")
+        self.container.addWidget(self.restart_btn)
+        self.restart_btn.clicked.connect(self.restart_app)
+
         self.statusBar.addPermanentWidget(self.container)
         self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.source_language.addItems(self.languagename)
@@ -295,7 +305,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if config.params['tts_type'] == tts.CLONE_VOICE_TTS:
             self.voice_role.addItems(config.params["clone_voicelist"])
-            from PySide6.QtCore import QThreadPool
             QThreadPool.globalInstance().start(tools.get_clone_role)
         elif config.params['tts_type'] == tts.CHATTTS:
             self.voice_role.addItems(['No'] + list(config.ChatTTS_voicelist))
@@ -325,7 +334,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif config.params['tts_type'] == tts.QWEN_TTS:
             rolelist = config.settings.get('qwentts_role', '').split(',')
             self.voice_role.addItems(['No'] + rolelist)
-            current_role=config.settings.get('qwentts_role', 'No')
+            current_role = config.settings.get('qwentts_role', 'No')
             if current_role in rolelist:
                 self.voice_role.setCurrentText()
         elif config.params['tts_type'] == tts.GEMINI_TTS:
@@ -373,18 +382,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config.params['recogn_type'] == recognition.GEMINI_SPEECH:
             self.show_spk.setVisible(True)
 
+    def restart_app(self):
+        self.is_restarting = True
+        self.close()  # 触发 closeEvent，进行清理，然后在 closeEvent 中重启
+
     def _bindsignal(self):
         from videotrans.task.check_update import CheckUpdateWorker
         from videotrans.task.job import start_thread
         from videotrans.mainwin._signal import UUIDSignalThread
 
         self.check_update = CheckUpdateWorker(parent=self)
-        self.check_update.start()
+        self.uuid_signal = UUIDSignalThread(parent=self)
+        self.uuid_signal.uito.connect(self.win_action.update_data)
+        self.check_update.setObjectName("CheckUpdateThread")
+        self.uuid_signal.setObjectName("UUIDSignalThread")
 
-        uuid_signal = UUIDSignalThread(parent=self)
-        uuid_signal.uito.connect(self.win_action.update_data)
-        uuid_signal.start()
-        self.worker_threads=start_thread(self)
+        self.check_update.start()
+        self.uuid_signal.start()
+        self.worker_threads = start_thread(self)
 
     def _set_cache_set(self):
 
@@ -444,10 +459,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.enable_cuda.setChecked(True if config.params['cuda'] else False)
         self.only_video.setChecked(True if config.params['only_video'] else False)
         self.is_separate.setChecked(True if config.params['is_separate'] else False)
-        
-        local_rephrase=config.settings.get('rephrase_local',False)
+
+        local_rephrase = config.settings.get('rephrase_local', False)
         self.rephrase_local.setChecked(local_rephrase)
-        self.rephrase.setChecked(config.settings.get('rephrase',False) if not local_rephrase else False)
+        self.rephrase.setChecked(config.settings.get('rephrase', False) if not local_rephrase else False)
         self.remove_noise.setChecked(config.params.get('remove_noise'))
         self.copysrt_rawvideo.setChecked(config.params.get('copysrt_rawvideo', False))
 
@@ -460,10 +475,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_role.currentTextChanged.connect(self.win_action.show_listen_btn)
         self.target_language.currentTextChanged.connect(self.win_action.set_voice_role)
         self.source_language.currentTextChanged.connect(self.win_action.source_language_change)
-        
-        
-        self.rephrase.toggled.connect(lambda  checked:self.win_action.rephrase_fun(checked,'llm'))
-        self.rephrase_local.toggled.connect(lambda checked:self.win_action.rephrase_fun(checked,'local'))
+
+        self.rephrase.toggled.connect(lambda checked: self.win_action.rephrase_fun(checked, 'llm'))
+        self.rephrase_local.toggled.connect(lambda checked: self.win_action.rephrase_fun(checked, 'local'))
 
         self.proxy.textChanged.connect(self.win_action.change_proxy)
         self.import_sub.clicked.connect(self.win_action.import_sub_fun)
@@ -500,6 +514,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel.setCursor(Qt.PointingHandCursor)
         self.statusLabel2.setCursor(Qt.PointingHandCursor)
         self.rightbottom.setCursor(Qt.PointingHandCursor)
+        self.restart_btn.setCursor(Qt.PointingHandCursor)
 
         from videotrans import winform
         self.action_biaozhun.triggered.connect(self.win_action.set_biaozhun)
@@ -581,7 +596,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel2.clicked.connect(lambda: self.win_action.open_url('https://bbs.pyvideotrans.com/post'))
         Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
 
-
     def is_writable(self):
         import uuid
         temp_file_path = f"{config.ROOT_DIR}/.permission_test_{uuid.uuid4()}.tmp"
@@ -597,9 +611,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     os.remove(temp_file_path)
                 except OSError as e:
                     pass
-        from PySide6.QtCore import QThreadPool
-        QThreadPool.globalInstance().start(lambda: tools.get_video_codec(True))
-
 
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""
@@ -617,7 +628,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def kill_ffmpeg_processes(self):
         """改进的ffmpeg进程终止函数"""
         import platform
-        
+
         import getpass
         import subprocess
         import psutil  # 需要安装: pip install psutil
@@ -739,16 +750,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hide()
         config.exit_soft = True
         config.current_status = 'stop'
+        os.chdir(config.ROOT_DIR)
+        self.cleanup_and_accept()
         try:
             with open(config.TEMP_DIR + '/stop_process.txt', 'w', encoding='utf-8') as f:
                 f.write('stop')
         except:
             pass
-        
-        self.cleanup_and_accept()
-
-
-        os.chdir(config.ROOT_DIR)
+        # 暂停等待可能的 faster-whisper 独立进程退出
+        time.sleep(3)
         try:
             shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
         except:
@@ -757,14 +767,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
         except:
             pass
-            
-        try:
+
+        # 清理后启动新进程，然后立即退出旧进程
+        if self.is_restarting:
             time.sleep(3)
-            event.accept()
-        except:
-            pass
+            import subprocess
+            if getattr(sys, 'frozen', False):  # PyInstaller 打包模式
+                subprocess.Popen([sys.executable] + sys.argv[1:])
+            else:  # 源代码模式
+                subprocess.Popen([sys.executable, sys.argv[0]] + sys.argv[1:])
+
+        event.accept()
+        os._exit(0)  # 立即退出进程，避免 Qt 清理错误
+
 
     def cleanup_and_accept(self):
+        from PySide6.QtCore import QCoreApplication
+        QCoreApplication.processEvents()
         sets = QSettings("pyvideotrans", "settings")
         sets.setValue("windowSize", self.size())
         try:
@@ -773,31 +792,40 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     w.hide()
             if config.INFO_WIN['win']:
                 config.INFO_WIN['win'].hide()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f'子窗口隐藏中出错 {e}')
+
         # 遍历所有工作线程，等待结束
         for thread in self.worker_threads:
             if thread.is_alive():
-                print(f"正在等待线程 {thread.name} 结束...")                
-                # 加一个超时，确保子线程有足够时间退出
-                thread.join(timeout=8)                
+                print(f"正在等待线程 {thread.name} 结束...")
+                thread.join(timeout=5)
                 if thread.is_alive():
                     print(f"警告：线程 {thread.name} 在5秒后仍未退出！")
                 else:
                     print(f"线程 {thread.name} 已成功退出。")
-                   
+
+        if hasattr(self, 'check_update') and self.check_update.isRunning():
+            print('等待 check_update 线程退出')
+            self.check_update.quit()
+            self.check_update.wait(5000)
+
+        if hasattr(self, 'uuid_signal') and self.uuid_signal.isRunning():
+            print('等待 uuid_signal 线程退出')
+            self.uuid_signal.quit()
+            self.uuid_signal.wait(5000)
+
         try:
             for w in config.child_forms.values():
                 if w and hasattr(w, 'close'):
                     w.close()
             if config.INFO_WIN['win']:
                 config.INFO_WIN['win'].close()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f'子窗口关闭中出错')
+        QThreadPool.globalInstance().waitForDone(5000)
+        # 最后再kill ffmpeg，避免占用
         try:
             self.kill_ffmpeg_processes()
         except:
             pass
-        
-        
-

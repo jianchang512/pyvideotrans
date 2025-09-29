@@ -280,11 +280,9 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
             last_size = current_size
 
         if noextname not in config.queue_novice:
-            msg = f"{noextname} split no voice videoerror:{config.queue_novice=}"
-            raise Exception(msg)
-        if config.queue_novice[noextname] == 'error':
-            msg = f"{noextname} split no voice videoerror"
-            raise Exception(msg)
+            raise RuntimeError(f"{noextname} split no voice videoerror-1")
+        if config.queue_novice[noextname].startswith('error:'):
+            raise RuntimeError(f"{noextname} split no voice {config.queue_novice[noextname]}")
 
         if config.queue_novice[noextname] == 'ing':
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
