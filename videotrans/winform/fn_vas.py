@@ -452,6 +452,7 @@ def openwin():
     winobj.language.addItems(list(LANGNAME_DICT.values()))
     winobj.show()
     def _init_ui():
+        # 初始化上次配置
         cfg_file=f'{config.ROOT_DIR}/videotrans/vas.json'
         if not Path(cfg_file).exists():
             return
