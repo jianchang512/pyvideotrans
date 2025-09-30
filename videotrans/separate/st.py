@@ -13,7 +13,9 @@ from videotrans.configure import config
 from videotrans.separate.vr import AudioPre
 
 
-def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", uuid=None, percent=[0, 1]):
+def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", uuid=None, percent=None):
+    if percent is None:
+        percent = [0, 1]
     infos = []
     pre_fun=None
     try:

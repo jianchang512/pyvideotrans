@@ -1,4 +1,3 @@
-import json
 import io
 import json
 import logging
@@ -9,7 +8,6 @@ from typing import Iterator
 
 import httpx
 from elevenlabs import ElevenLabs, VoiceSettings
-from elevenlabs.core import ApiError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
     RetryError
 
@@ -90,7 +88,7 @@ class ElevenLabsC(BaseTTS):
         self._local_mul_thread()
 
 
-class ElevenLabsClone():
+class ElevenLabsClone:
 
     def __init__(self, input_file_path, output_file_path, source_language, target_language,proxy_str=None):
         self.input_file_path = input_file_path
@@ -125,13 +123,13 @@ class ElevenLabsClone():
                     dubbed_file = self.client.dubbing.audio.get(dubbed.dubbing_id)
                     if isinstance(dubbed_file, Iterator):
                         dubbed_file = b"".join(dubbed_file)
-                    with open(self.output_file_path + ".mp3", "wb") as file:
+                    with open(self.output_file_path + ".mp3", "wb") as f:
                         f.write(dubbed_file)
                     tools.runffmpeg(
                         ['-y', '-i', self.output_file_path + ".mp3", "-ar", "44100", "-ac", "2", "-b:a", "128k",
                          self.output_file_path])
                     return True
-                time.sleep(5)
+                time.sleep(1)
 
         except Exception as e:
             self.error = e

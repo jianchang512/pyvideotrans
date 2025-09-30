@@ -1,11 +1,9 @@
 def openwin():
     import json
-
-    import time
     from pathlib import Path
 
     from PySide6 import QtWidgets
-    from PySide6.QtCore import QUrl, QThread, Signal
+    from PySide6.QtCore import QUrl
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
 
     from videotrans.component.component import DropButton
@@ -13,51 +11,7 @@ def openwin():
 
     from videotrans.util import tools
 
-    class SignThread(QThread):
-        uito = Signal(str)
-
-        def __init__(self, uuid_list=None, parent=None):
-            super().__init__(parent=parent)
-            self.uuid_list = uuid_list
-
-        def post(self, jsondata):
-            self.uito.emit(json.dumps(jsondata))
-
-        def run(self):
-            length = len(self.uuid_list)
-            while 1:
-                if len(self.uuid_list) == 0 or config.exit_soft:
-                    self.post({"type": "end"})
-                    time.sleep(1)
-                    return
-
-                for uuid in self.uuid_list:
-                    if uuid in config.stoped_uuid_set:
-                        try:
-                            self.uuid_list.remove(uuid)
-                        except:
-                            pass
-                        continue
-                    q = config.uuid_logs_queue.get(uuid)
-                    if not q:
-                        continue
-                    try:
-                        if q.empty():
-                            time.sleep(0.5)
-                            continue
-                        data = q.get(block=False)
-                        if not data:
-                            continue
-                        self.post(data)
-                        if data['type'] in ['error', 'succeed']:
-                            self.uuid_list.remove(uuid)
-                            self.post(
-                                {"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
-                            config.stoped_uuid_set.add(uuid)
-                            del config.uuid_logs_queue[uuid]
-                    except:
-                        pass
-
+    from videotrans.task.child_win_sign import SignThread
     from videotrans.task._speech2text import SpeechToText
     from videotrans import translator, recognition
     RESULT_DIR = config.HOME_DIR + f"/recogn"
@@ -137,11 +91,11 @@ def openwin():
         langcode = translator.get_audio_code(show_source=winobj.shibie_language.currentText())
         is_cuda = winobj.is_cuda.isChecked()
         if check_cuda(is_cuda) is not True:
-            return tools.show_error(config.transobj["nocudnn"], False)
+            return tools.show_error(config.transobj["nocudnn"])
         # 待识别音视频文件列表
         files = winobj.shibie_dropbtn.filelist
         if not files or len(files) < 1:
-            return tools.show_error(config.transobj['bixuyinshipin'], False)
+            return tools.show_error(config.transobj['bixuyinshipin'])
 
         is_allow_lang_res = recognition.is_allow_lang(langcode=langcode, recogn_type=recogn_type, model_name=model)
         if is_allow_lang_res is not True:
@@ -155,12 +109,12 @@ def openwin():
         if winobj.rephrase.isChecked():
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
-                tools.show_error(config.transobj['llmduanju'], False)
+                tools.show_error(config.transobj['llmduanju'])
                 from videotrans.winform import chatgpt
                 chatgpt.openwin()
                 return
             if ai_type == 'deepseek' and not config.params.get('deepseek_key'):
-                tools.show_error(config.transobj['llmduanjudp'], False)
+                tools.show_error(config.transobj['llmduanjudp'])
                 from videotrans.winform import deepseek
                 deepseek.openwin()
                 return
@@ -221,7 +175,7 @@ def openwin():
         if state:
             import torch
             if not torch.cuda.is_available():
-                tools.show_error(config.transobj['nocuda'], False)
+                tools.show_error(config.transobj['nocuda'])
                 winobj.is_cuda.setChecked(False)
                 winobj.is_cuda.setDisabled(True)
                 return False
@@ -241,8 +195,7 @@ def openwin():
         import sys
         if sys.platform != 'win32':
             tools.show_error(
-                'faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang == 'zh' else 'faster-whisper-xxl.exe is only available on Windows',
-                False)
+                'faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang == 'zh' else 'faster-whisper-xxl.exe is only available on Windows')
             return False
         if not config.settings.get('Faster_Whisper_XXL') or not Path(
                 config.settings.get('Faster_Whisper_XXL', '')).exists():
@@ -325,7 +278,7 @@ def openwin():
             tools.show_error(winobj.error_msg)
 
     # 点击语音识别，显示隐藏faster时的详情设置
-    def click_reglabel(self):
+    def click_reglabel():
         if winobj.shibie_recogn_type.currentIndex() == recognition.FASTER_WHISPER and winobj.shibie_split_type.currentIndex() == 0:
             tools.hide_show_element(winobj.hfaster_layout, not winobj.threshold.isVisible())
         else:

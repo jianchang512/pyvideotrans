@@ -15,7 +15,7 @@ def openwin():
     class CompThread(QThread):
         uito = Signal(str)
 
-        def __init__(self, *, parent=None, videourls=[]):
+        def __init__(self, *, parent=None, videourls=None):
             super().__init__(parent=parent)
             self.videourls = videourls
             self.file = f'{RESULT_DIR}/{Path(self.videourls[0]).stem}-{Path(self.videourls[1]).stem}.wav'
@@ -78,7 +78,7 @@ def openwin():
         audio1 = winobj.hun_file1.text()
         audio2 = winobj.hun_file2.text()
         if not audio1 or not audio2:
-            tools.show_error('必须选择音频1和音频2' if config.defaulelang == 'zh' else '必须选择视频', False)
+            tools.show_error('必须选择音频1和音频2' if config.defaulelang == 'zh' else '必须选择视频')
             return
 
         winobj.hun_startbtn.setText(

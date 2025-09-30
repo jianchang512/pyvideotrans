@@ -1,25 +1,26 @@
 """
-
 pyVideoTrans: Translate the video from one language to another and add dubbing
 
 Home-page: https://github.com/jianchang512/pyvideotrans
 Author: jianchang512@gmail.com
 Documents: https://pyvideotrans.com
+Discuss: https://bbs.pyvideotrans.com
 License: GPL-V3
 
-# 代码是一坨屎，但又不是不能跑O(∩_∩)O~别在意那些细节
+# 代码是一坨屎，但又不是不能跑 O(∩_∩)O~ 别在意那些细节
 # 写的这么烂，一看就不是AI写的
+# 没有规范，随便乱搞
+# 英文不好，中英混杂
 
 """
-import atexit,sys, os,time
+import atexit, sys, os, time
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
-
+os.environ["OMP_NUM_THREADS"] = "1" if sys.platform == 'darwin' else str(os.cpu_count())
 
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
-from PySide6.QtCore import Qt, qInstallMessageHandler,QTimer
+from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 
 VERSION = "v3.81"
@@ -28,7 +29,7 @@ VERSION = "v3.81"
 # 抑制警告
 def suppress_qt_warnings(msg_type, context, message):
     if "QThreadStorage" in message:
-        return  # 忽略该警告
+        return
 
 
 def cleanup():
@@ -47,7 +48,6 @@ atexit.register(cleanup)
 if sys.platform != "win32":
     import signal
 
-
     def handle_exit(signum, frame):
         cleanup()
         sys.exit(0)
@@ -58,7 +58,6 @@ if sys.platform != "win32":
 
 
 def show_global_error_dialog(tb_str):
-    """槽函数 显示对话框。"""
     from videotrans.util.tools import show_error
     show_error(tb_str)
 
@@ -196,7 +195,6 @@ if __name__ == "__main__":
         try:
             cleanup()
             import gc
-
             gc.collect()
         except Exception as e:
             print(e)

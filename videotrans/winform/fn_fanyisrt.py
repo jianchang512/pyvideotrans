@@ -1,14 +1,11 @@
-
-
 # 字幕批量翻译
 def openwin():
+    from videotrans.task.child_win_sign import SignThread
     import json
     import os
-    import time
     from pathlib import Path
-
     from PySide6 import QtWidgets
-    from PySide6.QtCore import QUrl, QThread, Signal
+    from PySide6.QtCore import QUrl
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
     from PySide6.QtWidgets import QFileDialog, QPlainTextEdit
     from videotrans.configure import config
@@ -20,51 +17,7 @@ def openwin():
     Path(RESULT_DIR).mkdir(exist_ok=True)
     SOURCE_DIR = RESULT_DIR
 
-    class SignThread(QThread):
-        uito = Signal(str)
 
-        def __init__(self, uuid_list=None, parent=None):
-            super().__init__(parent=parent)
-            self.uuid_list = uuid_list
-
-        def post(self, jsondata):
-
-            self.uito.emit(json.dumps(jsondata))
-
-        def run(self):
-            length = len(self.uuid_list)
-            while 1:
-                if len(self.uuid_list) == 0 or config.exit_soft:
-                    self.post({"type": "end"})
-                    time.sleep(1)
-                    return
-
-                for uuid in self.uuid_list:
-                    if uuid in config.stoped_uuid_set:
-                        try:
-                            self.uuid_list.remove(uuid)
-                        except:
-                            pass
-                        continue
-                    q = config.uuid_logs_queue.get(uuid)
-                    if not q:
-                        continue
-                    try:
-                        if q.empty():
-                            time.sleep(0.5)
-                            continue
-                        data = q.get(block=False)
-                        if not data:
-                            continue
-                        self.post(data)
-                        if data['type'] in ['error', 'succeed']:
-                            self.uuid_list.remove(uuid)
-                            self.post(
-                                {"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
-                            config.stoped_uuid_set.add(uuid)
-                            del config.uuid_logs_queue[uuid]
-                    except:
-                        pass
 
     def feed(d):
         if winobj.has_done or config.box_trans != 'ing':
@@ -144,7 +97,7 @@ def openwin():
                                                                      show_target=target_language,
                                                                      translate_type=translate_type)
         if target_language == '-':
-            return tools.show_error(config.transobj["fanyimoshi1"], False)
+            return tools.show_error(config.transobj["fanyimoshi1"])
         proxy = winobj.fanyi_proxy.text()
 
         if proxy:
@@ -156,8 +109,7 @@ def openwin():
         if rs is not True:
             return False
         if len(winobj.files) < 1:
-            return tools.show_error('必须导入srt字幕文件' if config.defaulelang == 'zh' else 'Must import srt subtitle files',
-                                    False)
+            return tools.show_error('必须导入srt字幕文件' if config.defaulelang == 'zh' else 'Must import srt subtitle files')
         winobj.fanyi_sourcetext.clear()
         winobj.fanyi_targettext.clear()
         winobj.loglabel.setText('')
@@ -211,8 +163,7 @@ def openwin():
         if t in ['-', 'No']:
             return
         # 判断翻译渠道是否支持翻译到该目标语言
-        if translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=t,
-                                         win=winobj) is not True:
+        if translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=t) is not True:
             return
 
 
@@ -295,8 +246,7 @@ def openwin():
     def export_srt():
         srt_string = winobj.fanyi_targettext.toPlainText().strip()
         if not srt_string:
-            return tools.show_error('没有翻译结果，无需保存' if config.defaulelang == 'zh' else 'No result, no need to save',
-                                    False)
+            return tools.show_error('没有翻译结果，无需保存' if config.defaulelang == 'zh' else 'No result, no need to save')
         dialog = QFileDialog()
         dialog.setWindowTitle(config.transobj['savesrtto'])
         dialog.setNameFilters(["subtitle files (*.srt)"])

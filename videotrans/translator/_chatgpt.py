@@ -37,7 +37,7 @@ class ChatGPT(BaseTrans):
         config.logger.info('llm_segment:self._exit()=' + str(self._exit()))
         # if self._exit(): return
         # 以2000个字或单词分成一批
-        prompts_template = Path(config.ROOT_DIR + '/videotrans/recharge-llm.txt').read_text(encoding='utf-8')
+        prompts_template = Path(config.ROOT_DIR + '/videotrans/prompts/recharge/recharge-llm.txt').read_text(encoding='utf-8')
         chunk_size = int(config.settings.get('llm_chunk_size', 500))
 
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
@@ -106,9 +106,8 @@ class ChatGPT(BaseTrans):
             sub_list = _send(words_all[idx: idx + chunk_size], order_num)
             config.logger.info(f'LLM断句结果:{sub_list=}')
             for i, s in enumerate(sub_list):
-                tmp = {}
-                tmp['startraw'] = tools.ms_to_time_string(ms=s["start"] * 1000)
-                tmp['endraw'] = tools.ms_to_time_string(ms=s["end"] * 1000)
+                tmp = {'startraw': tools.ms_to_time_string(ms=s["start"] * 1000),
+                       'endraw': tools.ms_to_time_string(ms=s["end"] * 1000)}
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
                 tmp['text'] = s['text'].strip()
                 tmp['line'] = i + 1

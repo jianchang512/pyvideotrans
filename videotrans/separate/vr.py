@@ -40,9 +40,11 @@ class AudioPre:
         self.model = model
 
     def _path_audio_(
-            self, music_file, ins_root=None, format="wav", is_hp3=False, uuid=None, percent=[0, 1]
+            self, music_file, ins_root=None, format="wav", is_hp3=False, uuid=None, percent=None
     ):
 
+        if percent is None:
+            percent = [0, 1]
         if ins_root is None:
             return "No save root."
         name = os.path.splitext(os.path.basename(music_file))[0]
@@ -125,7 +127,7 @@ class AudioPre:
             else:
                 wav_instrument = spec_utils.cmb_spectrogram_to_wave(y_spec_m, self.mp)
             config.logger.info("%s instruments done" % name)
-            if is_hp3 == True:
+            if is_hp3:
                 head = "vocal"
             else:
                 head = "instrument"
@@ -140,7 +142,7 @@ class AudioPre:
                 )  #
 
         if vocal_root is not None:
-            if is_hp3 == True:
+            if is_hp3:
                 head = "instrument"
             else:
                 head = "vocal"

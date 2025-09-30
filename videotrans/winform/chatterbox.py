@@ -45,8 +45,7 @@ def openwin():
             s = it.strip()
             if not Path(config.ROOT_DIR + f"/chatterbox/{s}").exists():
                 tools.show_error(
-                    f"请确保 chatterbox 文件夹内存在音频文件 {s}" if config.defaulelang == 'zh' else f'Please make sure that the audio file {s} exists in the chatterbox folder',
-                    False)
+                    f"请确保 chatterbox 文件夹内存在音频文件 {s}" if config.defaulelang == 'zh' else f'Please make sure that the audio file {s} exists in the chatterbox folder')
                 return
 
             role = s

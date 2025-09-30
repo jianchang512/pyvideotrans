@@ -12,7 +12,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
     from videotrans.process._iscache import check_cache_and_setproxy, down_model_err
     has_cache = False
     try:
-        has_cache = check_cache_and_setproxy(model_name, ROOT_DIR, proxy, defaulelang)
+        has_cache = check_cache_and_setproxy(model_name, ROOT_DIR, proxy)
     except Exception as e:
         pass
     if has_cache:

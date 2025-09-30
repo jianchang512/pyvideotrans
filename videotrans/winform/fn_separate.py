@@ -34,7 +34,7 @@ def openwin():
         # 开始处理分离，判断是否选择了源文件
         file = winobj.fromfile.text()
         if not file or not os.path.exists(file):
-            tools.show_error(config.transobj['must select audio or video file'], False)
+            tools.show_error(config.transobj['must select audio or video file'])
             return
         uuid = tools.get_md5(file)
         # 已在执行，在此点击停止

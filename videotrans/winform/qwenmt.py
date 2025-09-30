@@ -17,7 +17,7 @@ def openwin():
         key = winobj.qwenmt_key.text()
         if not key:
             return tools.show_error(
-                '必须填写  密钥 信息' if config.defaulelang == 'zh' else 'Please input Secret', False)
+                '必须填写  密钥 信息' if config.defaulelang == 'zh' else 'Please input Secret')
         model = winobj.qwenmt_model.currentText()
         asr_model = winobj.qwenmt_asr_model.currentText()
 

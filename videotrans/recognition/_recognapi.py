@@ -137,7 +137,8 @@ class APIRecogn(BaseRecogn):
 
         # 获取结果
         while 1:
-            time.sleep(5)
+            if config.exit_soft:return
+            time.sleep(1)
             response = requests.get(f"https://api.gladia.io/v2/pre-recorded/{id}", headers={"x-gladia-key": api_key})
             response.raise_for_status()
             d = response.json()

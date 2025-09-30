@@ -24,7 +24,6 @@ class Ui_zijiehuoshanform(object):
         h1 = QtWidgets.QHBoxLayout()
         h2 = QtWidgets.QHBoxLayout()
         h3 = QtWidgets.QHBoxLayout()
-        h4 = QtWidgets.QHBoxLayout()
 
         self.label_2 = QtWidgets.QLabel(zijiehuoshanform)
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))

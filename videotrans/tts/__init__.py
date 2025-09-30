@@ -45,19 +45,7 @@ TTS_NAME_LIST = [
     "Minimaxi TTS",
 ]
 
-AI302_openai = {
-  "alloy": "alloy",
-  "ash": "ash",
-  "ballad": "ballad",
-  "coral": "coral",
-  "echo": "echo",
-  "fable": "fable",
-  "onyx": "onyx",
-  "nova": "nova",
-  "sage": "sage",
-  "shimmer": "shimmer",
-  "verse": "verse"
-}
+AI302_openai = {k:k for k in config.OPENAITTS_ROLES.split(",")}
 AI302_doubao = {
   "北京小爷（多情感）": "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
   "柔美女友（多情感）": "zh_female_roumeinvyou_emo_v2_mars_bigtts",

@@ -102,9 +102,12 @@ class Ui_vasrt(object):
         self.ysphb_replace.setDisabled(True)
         self.ysphb_replace.setText(config.transobj['Preserve the original sound in the video'])
 
+
+
         label_audio = QtWidgets.QLabel()
         label_audio.setText("音频时长大于视频时" if config.defaulelang == 'zh' else "Audio duration > video")
         self.audio_process = QtWidgets.QComboBox()
+        self.audio_process.setObjectName("audio_process")
         self.audio_process.addItems([
             "截断" if config.defaulelang == 'zh' else "Truncate",
             "音频加速" if config.defaulelang == 'zh' else "Auto Accelerate",
@@ -115,7 +118,8 @@ class Ui_vasrt(object):
         self.ysphb_maxlenlabel.setText("硬字幕单行字符数" if config.defaulelang=='zh' else 'Number of characters per line')
         self.ysphb_maxlenlabel.setToolTip("硬字幕单行字符数" if config.defaulelang=='zh' else 'Number of characters per line of embed hard subtitles')
         self.ysphb_maxlen = QtWidgets.QLineEdit()
-        self.ysphb_maxlen.setText('30')
+        self.ysphb_maxlen.setObjectName("ysphb_maxlen")
+        self.ysphb_maxlen.setText('16')
         self.ysphb_maxlen.setToolTip('仅在嵌入硬字幕时生效' if config.defaulelang=='zh' else 'Only works when hard subtitles are embedded')
 
         self.layout_form0 = QtWidgets.QFormLayout()
@@ -163,43 +167,53 @@ class Ui_vasrt(object):
         label_position = QtWidgets.QLabel()
         label_position.setText('硬字幕：位置' if config.defaulelang == 'zh' else 'Hard subtitle position')
         self.position = QtWidgets.QComboBox()
+        self.position.setObjectName("position")
         self.position.addItems(list(config.POSTION_ASS_VK.keys()))
         self.position.setToolTip('字幕处于视频中的位置' if config.defaulelang == 'zh' else 'Position of subtitle in video')
 
         left_label = QtWidgets.QLabel()
         left_label.setText('左边距' if config.defaulelang == 'zh' else 'Margin Left')
         self.marginL = QtWidgets.QLineEdit()
-        self.marginL.setText('10')
+        self.marginL.setText('0')
         self.marginL.setMinimumWidth(50)
+        self.marginL.setObjectName("marginL")
 
         bottom_label = QtWidgets.QLabel()
         bottom_label.setText('垂直边距' if config.defaulelang == 'zh' else 'Margin Vcenter')
         self.marginV = QtWidgets.QLineEdit()
         self.marginV.setText('10')
         self.marginV.setMinimumWidth(50)
+        self.marginV.setObjectName("marginV")
 
         right_label = QtWidgets.QLabel()
         right_label.setText('右边距' if config.defaulelang == 'zh' else 'Margin Right')
         self.marginR = QtWidgets.QLineEdit()
-        self.marginR.setText('10')
+        self.marginR.setText('0')
         self.marginR.setMinimumWidth(50)
+        self.marginR.setObjectName("marginR")
+
+
 
         outline_label = QtWidgets.QLabel()
         outline_label.setText('轮廓大小' if config.defaulelang == 'zh' else 'Outline')
         self.outline = QtWidgets.QLineEdit()
         self.outline.setText('1')
         self.outline.setMinimumWidth(50)
+        self.outline.setObjectName("outline")
+
         shadow_label = QtWidgets.QLabel()
         shadow_label.setText('阴影大小' if config.defaulelang == 'zh' else 'Shadow')
         self.shadow = QtWidgets.QLineEdit()
         self.shadow.setText('1')
         self.shadow.setMinimumWidth(50)
+        self.shadow.setObjectName("shadow")
 
         fontsize_label = QtWidgets.QLabel()
         fontsize_label.setText('硬字幕：字体大小' if config.defaulelang == 'zh' else 'Font Size')
         self.font_size_edit = QtWidgets.QLineEdit()
         self.font_size_edit.setMinimumWidth(50)
-        self.font_size_edit.setText('16')
+        self.font_size_edit.setText('14')
+        self.font_size_edit.setObjectName("font_size_edit")
         self.font_size_edit.setPlaceholderText("字体大小" if config.defaulelang == 'zh' else 'Font Size')
         self.font_size_edit.setToolTip("字体大小" if config.defaulelang == 'zh' else 'Font Size')
 
@@ -230,10 +244,13 @@ class Ui_vasrt(object):
         self.bordercolor_button.setMinimumWidth(150)
 
         # 初始化字体和颜色
-        self.selected_font = QFont('Arial', 16)  # 默认字体
-        self.selected_color = QColor('#00FFFFFF')  # 默认颜色
-        self.selected_backgroundcolor = QColor('#00000000')  # 默认颜色
-        self.selected_bordercolor = QColor('#00000000')  # 默认颜色
+        self.selected_font = QFont('Arial', 14)  # 默认字体
+        self.selected_color = QColor('#FFFFFFFF')  # 默认颜色
+        self.selected_backgroundcolor = QColor('#80000000')  # 默认颜色
+        self.selected_bordercolor = QColor('#80000000')  # 默认颜色
+
+
+
 
         self.ysphb_borderstyle = QtWidgets.QCheckBox()
         self.ysphb_borderstyle.setObjectName("ysphb_borderstyle")
@@ -331,26 +348,10 @@ class Ui_vasrt(object):
 
     def _setfont(self):
         bgcolor_name = self.selected_backgroundcolor.name()
-        bgcolor = '' if self.selected_backgroundcolor.alpha() == 255 else f'background-color:{bgcolor_name}'
+        bgcolor =  f'background-color:{bgcolor_name}'
         bdcolor_name = self.selected_bordercolor.name()
-        bdcolor = '' if self.selected_bordercolor.alpha() == 255 else f'border:1px solid {bdcolor_name}'
-
-        # color_name = self.selected_color.name()
-        def blend_colors(selected_color: QColor, bgcolor_name: str) -> str:
-            bg_color = QColor(bgcolor_name)
-            # Invert alpha: 0 = solid color, 255 = transparent
-            inv_alpha = 1.0 - (selected_color.alpha() / 255.0)
-
-            r = int(selected_color.red() * inv_alpha + bg_color.red() * (1 - inv_alpha))
-            g = int(selected_color.green() * inv_alpha + bg_color.green() * (1 - inv_alpha))
-            b = int(selected_color.blue() * inv_alpha + bg_color.blue() * (1 - inv_alpha))
-            # For CSS alpha: 0 (transparent) when selected_color.alpha()==255, 1 (opaque) when ==0
-            css_alpha = inv_alpha
-
-            return f'rgba({r}, {g}, {b}, {css_alpha:.2f})'
-
-        # color = f'color:{bgcolor_name}' if self.selected_color.alpha()  == 255 else f'color:{color_name}'
-        color_name = blend_colors(self.selected_color, bgcolor_name)
+        bdcolor =  f'border:1px solid {bdcolor_name}'
+        color_name = self.selected_color.name() #blend_colors(self.selected_color, bgcolor_name)
         color = f'color:{color_name}'
         font = self.selected_font
         button_style = f"""font-family:'{font.family()}';font-size:{font.pointSize()}px;font-weight:{700 if font.bold() else 400};font-style:{'italic' if font.italic() else 'normal'};{bgcolor};{color};{bdcolor}"""

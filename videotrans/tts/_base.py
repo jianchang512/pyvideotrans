@@ -1,11 +1,8 @@
-import asyncio,sys
-
-
+import asyncio
 import base64
 import copy
 import inspect
 import re
-import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
@@ -16,7 +13,7 @@ from tenacity import RetryError
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-
+from videotrans.task.simple_runnable_qt import run_in_threadpool
 
 from videotrans.util import tools
 
@@ -113,11 +110,11 @@ class BaseTTS(BaseCon):
         self._signal(text="")
         if len(self.queue_tts) < 1:
             raise RuntimeError('没有需要配音的字幕' if config.defaulelang == 'zh' else 'No subtitles required')
+        loop=None
         try:
             # 检查 self._exec 是不是一个异步函数 (coroutine)
             if inspect.iscoroutinefunction(self._exec):
                 # 如果是异步函数，我们需要一个事件循环来运行它
-                loop=None
                 try:
                     # 尝试获取当前线程正在运行的事件循环
                     loop = asyncio.get_running_loop()
@@ -175,7 +172,7 @@ class BaseTTS(BaseCon):
         # 是否播放
         if self.play:
             if tools.vail_file(self.queue_tts[0]['filename']):
-                threading.Thread(target=tools.pygameaudio, args=(self.queue_tts[0]['filename'],)).start()
+                run_in_threadpool(tools.pygameaudio,self.queue_tts[0]['filename'])
                 return
             raise RuntimeError(str(self.error)+self.__class__.__name__)
 

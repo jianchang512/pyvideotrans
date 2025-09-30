@@ -529,22 +529,22 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
             target_list=LANG_CODE.get(LANGNAME_DICT_REV.get(show_target))
             
     if translate_type in [GOOGLE_INDEX,QWENMT_INDEX, MyMemoryAPI_INDEX, TRANSAPI_INDEX]:
-        return (source_list[0] if source_list else "-", target_list[0] if target_list else "-")
+        return source_list[0] if source_list else "-", target_list[0] if target_list else "-"
     elif translate_type == BAIDU_INDEX:
-        return (source_list[2] if source_list else "-", target_list[2] if target_list else "-")
+        return source_list[2] if source_list else "-", target_list[2] if target_list else "-"
     elif translate_type in [DEEPLX_INDEX, DEEPL_INDEX]:
-        return (source_list[3] if source_list else "-", target_list[3] if target_list else "-")
+        return source_list[3] if source_list else "-", target_list[3] if target_list else "-"
     elif translate_type == TENCENT_INDEX:
-        return (source_list[4] if source_list else "-", target_list[4] if target_list else "-")
+        return source_list[4] if source_list else "-", target_list[4] if target_list else "-"
     elif translate_type in [CHATGPT_INDEX, AZUREGPT_INDEX, GEMINI_INDEX,
                             LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX, CLAUDE_INDEX, ZHIPUAI_INDEX, SILICONFLOW_INDEX,  DEEPSEEK_INDEX, OPENROUTER_INDEX]:
-        return (source_list[7] if source_list else "-", target_list[7] if target_list else "-")
+        return source_list[7] if source_list else "-", target_list[7] if target_list else "-"
     elif translate_type in [OTT_INDEX, LIBRE_INDEX]:
-        return (source_list[5] if source_list else "-", target_list[5] if target_list else "-")
+        return source_list[5] if source_list else "-", target_list[5] if target_list else "-"
     elif translate_type == MICROSOFT_INDEX:
-        return (source_list[6] if source_list else "-", target_list[6] if target_list else "-")
+        return source_list[6] if source_list else "-", target_list[6] if target_list else "-"
     elif translate_type == ALI_INDEX:
-        return (source_list[8] if source_list else "-", target_list[8] if target_list else "-")
+        return source_list[8] if source_list else "-", target_list[8] if target_list else "-"
     else:
         raise Exception(f"[error]get_source_target_code:{translate_type=},{show_source=},{show_target=}")
 
@@ -554,7 +554,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 # translate_type翻译通道
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
-def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, win=None, return_str=False):
+def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,  return_str=False):
     if translate_type in [GOOGLE_INDEX, MyMemoryAPI_INDEX, MICROSOFT_INDEX]:
         return True
 

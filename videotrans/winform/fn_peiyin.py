@@ -5,61 +5,13 @@ def openwin():
     import os
     import time
     from pathlib import Path
-
-    from PySide6.QtCore import QUrl, QThread, Signal, Qt
+    from videotrans.task.child_win_sign import SignThread
+    from PySide6.QtCore import QUrl,  Qt
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-
     from videotrans.configure import config
-
     from videotrans.util import tools
 
-    class SignThread(QThread):
-
-        uito = Signal(str)
-
-        def __init__(self, uuid_list=None, parent=None):
-            super().__init__(parent=parent)
-            self.uuid_list = uuid_list
-
-        def post(self, jsondata):
-
-            self.uito.emit(json.dumps(jsondata))
-
-        def run(self):
-            length = len(self.uuid_list)
-            while 1:
-                if len(self.uuid_list) == 0 or config.exit_soft:
-                    self.post({"type": "end"})
-                    time.sleep(1)
-                    return
-
-                for uuid in self.uuid_list:
-                    if uuid in config.stoped_uuid_set:
-                        try:
-                            self.uuid_list.remove(uuid)
-                        except:
-                            pass
-                        continue
-                    q = config.uuid_logs_queue.get(uuid)
-                    if not q:
-                        continue
-                    try:
-                        if q.empty():
-                            time.sleep(0.5)
-                            continue
-                        data = q.get(block=False)
-                        if not data:
-                            continue
-                        self.post(data)
-                        if data['type'] in ['error', 'succeed']:
-                            self.uuid_list.remove(uuid)
-                            self.post(
-                                {"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
-                            config.stoped_uuid_set.add(uuid)
-                            del config.uuid_logs_queue[uuid]
-                    except:
-                        pass
 
     langname_dict = {
         "zh-cn": "中文简",
@@ -274,12 +226,11 @@ def openwin():
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
-            return tools.show_error(f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen',
-                                    False)
+            return tools.show_error(f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen')
         text = config.params[f'listen_text_{lang}']
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
-            return tools.show_error(config.transobj['mustberole'], False)
+            return tools.show_error(config.transobj['mustberole'])
         voice_dir = config.TEMP_DIR + '/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
@@ -337,7 +288,7 @@ def openwin():
         tts_type = winobj.tts_type.currentIndex()
 
         if language == '-' or role in ['No', '-', '']:
-            return tools.show_error(config.transobj['yuyanjuesebixuan'], False)
+            return tools.show_error(config.transobj['yuyanjuesebixuan'])
 
         if tts.is_input_api(tts_type=tts_type) is not True:
             return False
@@ -353,7 +304,7 @@ def openwin():
         else:
             code_list = [key for key, value in langname_dict.items() if value == language]
             if not code_list:
-                return tools.show_error(f'{language} is not support -1', False)
+                return tools.show_error(f'{language} is not support -1')
             langcode = code_list[0]
 
         if rate >= 0:
@@ -367,8 +318,7 @@ def openwin():
 
         if len(winobj.hecheng_files) < 1 and not txt:
             return tools.show_error(
-                '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text',
-                False)
+                '必须导入srt文件或在文本框中填写文字' if config.defaulelang == 'zh' else 'Must import srt file or fill in text box with text')
         if len(winobj.hecheng_files) > 0 and winobj.save_to_srt.isChecked():
             RESULT_DIR = Path(winobj.hecheng_files[0]).parent.as_posix()
         if not Path(config.TEMP_HOME).is_dir():
@@ -570,7 +520,7 @@ def openwin():
             show_rolelist = tools.get_azure_rolelist()
         if not show_rolelist:
             winobj.hecheng_language.setCurrentText('-')
-            tools.show_error(config.transobj['nojueselist'], False)
+            tools.show_error(config.transobj['nojueselist'])
             return
         try:
             vt = code.split('-')[0] if code != 'yue' else "zh"

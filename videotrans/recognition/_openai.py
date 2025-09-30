@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Union
 
 import whisper
-import zhconv
 from pydub import AudioSegment
 
 from videotrans.configure import config
@@ -105,7 +104,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                             words_list += it['words']
                         config.logger.info(f'开始重新断句:')
                         self._signal(text="正在重新断句..." if config.defaulelang == 'zh' else "Re-segmenting...")
-                        self.raws = self.re_segment_sentences(words_list, self.detect_language[:2])
+                        self.raws = self.re_segment_sentences(words_list)
                         config.logger.info(f'断句结果:{self.raws=}')
                     except:
                         self.get_srtlist(alllist)

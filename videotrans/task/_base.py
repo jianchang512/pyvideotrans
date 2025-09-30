@@ -123,8 +123,6 @@ class BaseTask(BaseCon):
             return target_srt_list[:1]
         source_len = len(source_srt_list)
         target_len = len(target_srt_list)
-        config.logger.info(f'{source_srt_list=}')
-        config.logger.info(f'{target_srt_list=}')
         for i, it in enumerate(source_srt_list):
             tmp = copy.deepcopy(it)
             if i > target_len - 1:
@@ -139,7 +137,7 @@ class BaseTask(BaseCon):
             elif i == source_len - 1 and source_srt_list[i - 1]['time'] == target_srt_list[i - 1]['time']:
                 # 上一行时间码相同
                 tmp['text'] = target_srt_list[i]['text']
-            elif i > 0 and i < source_len - 1 and target_len > i + 1 and source_srt_list[i - 1]['time'] == \
+            elif 0 < i < source_len - 1 and target_len > i + 1 and source_srt_list[i - 1]['time'] == \
                     target_srt_list[i - 1]['time'] and source_srt_list[i + 1]['time'] == target_srt_list[i + 1]['time']:
                 # 上下两行时间码相同
                 tmp['text'] = target_srt_list[i]['text']

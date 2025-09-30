@@ -51,11 +51,9 @@ class QWENTTS(BaseTTS):
             )
 
             if response is None:
-                time.sleep(RETRY_DELAY)
                 raise RuntimeError("API call returned None response")
 
             if not hasattr(response, 'output') or response.output is None or not hasattr(response.output, 'audio'):
-                time.sleep(RETRY_DELAY)
                 raise RuntimeError( f"{response.message if hasattr(response, 'message') else str(response)}")
 
             resurl = requests.get(response.output.audio["url"])

@@ -71,7 +71,7 @@ from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
 class SubtitleRowWidget(QtWidgets.QWidget):
     """自定义的单条字幕行控件"""
 
-    def __init__(self, index, start_time, end_time, text, parent=None):
+    def __init__(self, index, start_time, end_time, text, duration_s=0,parent=None):
         super().__init__(parent)
         self.sub_index = index
         self.start_time = start_time
@@ -86,14 +86,16 @@ class SubtitleRowWidget(QtWidgets.QWidget):
         self.checkbox.setFixedWidth(30)
 
         self.role_label = QtWidgets.QLabel("[未分配角色]")
-        self.role_label.setFixedWidth(150)
+        self.role_label.setFixedWidth(120)
         self.role_label.setObjectName(f"role_label_{index}")
 
-        time_str = f"{start_time} --> {end_time}"
+        time_str = f"{duration_s}s  {start_time}-->{end_time}"
         self.time_label = QtWidgets.QLabel(time_str)
-        self.time_label.setFixedWidth(200)
+        self.time_label.setFixedWidth(230)
 
         self.text_label = QtWidgets.QLabel(text)
+        self.text_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        self.text_label.setMinimumHeight(self.text_label.sizeHint().height())
         self.text_label.setWordWrap(True)
 
         self.layout.addWidget(self.index_label)
@@ -101,7 +103,7 @@ class SubtitleRowWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.role_label)
         self.layout.addWidget(self.time_label)
         self.layout.addWidget(self.text_label)
-        self.layout.addStretch()
+        self.layout.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)
 
 
 class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
@@ -161,7 +163,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
             subs = tools.get_subtitle_from_srt(srt_path)
             self.subtitles = subs
             for sub in subs:
-                row_widget = SubtitleRowWidget(sub['line'], sub['startraw'], sub['endraw'], sub['text'])
+                row_widget = SubtitleRowWidget(sub['line'], sub['startraw'], sub['endraw'], sub['text'],round((sub['end_time']-sub['start_time'])/1000,2))
                 self.subtitle_layout.addWidget(row_widget)
 
             self.hecheng_importbtn.setText(f"已导入: {os.path.basename(srt_path)}")
@@ -177,8 +179,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
         from videotrans.configure import config
         if not selected_role or selected_role in ['-', 'No']:
             tools.show_error(
-                "请先在下拉列表中选择一个有效的角色。" if config.defaulelang == 'zh' else 'Please select a valid role from the dropdown list.',
-                False)
+                "请先在下拉列表中选择一个有效的角色。" if config.defaulelang == 'zh' else 'Please select a valid role from the dropdown list.')
             return
 
         assigned_count = 0

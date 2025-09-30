@@ -90,7 +90,7 @@ def set_proxy(set_val=''):
     return None
 
 
-def get_302ai(role_name=None):
+def get_302ai():
     from videotrans import tts
     role_dict = get_azure_rolelist()
     role_dict['zh'] = ['No'] + list(tts.AI302_doubao.keys()) + list(tts.AI302_minimaxi.keys()) + list(
@@ -446,7 +446,7 @@ def get_clone_role(set_p=False):
 # type=logs|error|subtitle|end|stop|succeed|set_precent|replace_subtitle|.... 末尾显示类型，
 # uuid 任务的唯一id，用于确定插入哪个子队列
 # nologs=False不写入日志
-def set_process(*, text="", type="logs", uuid=None, nologs=False):
+def set_process(*, text="", type="logs", uuid=None):
     from videotrans.configure import config
     if config.exit_soft:
         return

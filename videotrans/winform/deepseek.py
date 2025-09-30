@@ -17,7 +17,7 @@ def openwin():
         key = winobj.deepseek_key.text()
         if not key:
             return tools.show_error(
-                '必须填写  密钥 信息' if config.defaulelang == 'zh' else 'Please input Secret', False)
+                '必须填写  密钥 信息' if config.defaulelang == 'zh' else 'Please input Secret')
         model = winobj.deepseek_model.currentText()
         template = winobj.template.toPlainText()
 

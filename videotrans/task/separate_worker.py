@@ -1,10 +1,9 @@
 # 从日志队列获取日志
-import threading
-
 from PySide6.QtCore import QThread, Signal as pyqtSignal
 
 from videotrans.configure import config
 from videotrans.separate import st
+from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools
 
 
@@ -54,7 +53,7 @@ class SeparateWorker(QThread):
                 tools.runffmpeg(cmd)
                 self.file = newfile
             tools.set_process(uuid=self.uuid)
-            threading.Thread(target=self.getqueulog).start()
+            run_in_threadpool(self.getqueulog)
             st.start(self.file, self.out, "win", uuid=self.uuid)
         except Exception as e:
             msg = f"separate vocal and background music:{str(e)}"

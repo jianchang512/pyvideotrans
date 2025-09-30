@@ -196,7 +196,7 @@ class EnglishNormalizer:
         # 提取序数词的数字部分并转换为整数
         num = int(num.group(0)[:-2])
         # 根据序数的不同情况选择正确的后缀
-        if 10 <= num % 100 and num % 100 <= 20:
+        if 10 <= num % 100 <= 20:
             suffix = "th"
         else:
             suffix = ordinal_suffixes.get(num % 10, "th")
@@ -213,10 +213,10 @@ class EnglishNormalizer:
         num = int(m.group(0))
 
         # 如果数字在 1000 到 3000 之间，按特定规则进行英文数字的扩展
-        if num > 1000 and num < 3000:
+        if 1000 < num < 3000:
             if num == 2000:
                 return "two thousand"
-            elif num > 2000 and num < 2010:
+            elif 2000 < num < 2010:
                 return "two thousand " + self.number_to_words(num % 100)
             elif num % 100 == 0:
                 return self.number_to_words(num // 100) + " hundred"

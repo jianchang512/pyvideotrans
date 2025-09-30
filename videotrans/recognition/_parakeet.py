@@ -1,5 +1,4 @@
 # zh_recogn 识别
-import json
 import logging
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Union

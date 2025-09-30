@@ -61,7 +61,7 @@ class Worker(QThread):
                             return
                         time.sleep(1)
                         config.task_countdown -= 1
-                        if config.task_countdown > 0 and config.task_countdown <= countdown_sec:
+                        if 0 < config.task_countdown <= countdown_sec:
                             self._post(text=f"{config.task_countdown} {config.transobj['jimiaohoufanyi']}",
                                        type='show_djs')
                     self._post(text='', type='timeout_djs')
@@ -87,7 +87,7 @@ class Worker(QThread):
                 time.sleep(1)
                 # 倒计时中
                 config.task_countdown -= 1
-                if config.task_countdown > 0 and config.task_countdown <= countdown_sec:
+                if 0 < config.task_countdown <= countdown_sec:
                     self._post(
                         text=f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
                         type='show_djs')

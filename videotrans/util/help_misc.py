@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 
 
-def show_popup(title, text, parent=None):
+def show_popup(title, text):
     from PySide6.QtGui import QIcon
     from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QMessageBox
@@ -24,7 +24,7 @@ def show_popup(title, text, parent=None):
     return x
 
 
-def show_error(tb_str, report=True):
+def show_error(tb_str):
     """槽函数 显示对话框。"""
     from PySide6 import QtWidgets
     from PySide6.QtGui import QIcon, QDesktopServices
@@ -90,7 +90,7 @@ def show_error(tb_str, report=True):
             QDesktopServices.openUrl(QUrl(full_url))
 
 
-def open_url(title: str = None):
+def open_url(url: str = None):
     import webbrowser
     title_url_dict = {
         'bbs': "https://bbs.pyvideotrans.com",
@@ -109,9 +109,11 @@ def open_url(title: str = None):
         "about": "https://pyvideotrans.com/about",
         'download': "https://github.com/jianchang512/pyvideotrans/releases",
     }
-    if title and title in title_url_dict:
-        return webbrowser.open_new_tab(title_url_dict[title])
-    return webbrowser.open_new_tab(title)
+    if url and url.startswith("http"):
+        return webbrowser.open_new_tab(url)
+    if url and url in title_url_dict:
+        return webbrowser.open_new_tab(title_url_dict[url])
+    return
 
 
 def vail_file(file=None):
@@ -192,17 +194,19 @@ def get_prompt_file(ainame, is_srt=True):
     prompt_name = f'{ainame}{"" if config.defaulelang == "zh" else "-en"}.txt'
     if is_srt and config.settings.get('aisendsrt', False):
         prompt_path += 'prompts/srt/'
+    else:
+        prompt_path += 'prompts/text/'
     return f'{prompt_path}{prompt_name}'
 
 
 def check_local_api(api):
     from videotrans.configure import config
     if not api:
-        show_error('必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address', False)
+        show_error('必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address')
         return False
     if api.find('0.0.0.0:') > -1:
         show_error(
-            '请将 0.0.0.0 改为 127.0.0.1 ' if config.defaulelang == 'zh' else 'Please change 0.0.0.0 to 127.0.0.1. ', False)
+            '请将 0.0.0.0 改为 127.0.0.1 ' if config.defaulelang == 'zh' else 'Please change 0.0.0.0 to 127.0.0.1. ')
         return False
     return True
 
@@ -275,7 +279,7 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
             return False
         if vail_file(novoice_mp4):
             current_size = os.path.getsize(novoice_mp4)
-            if last_size > 0 and current_size == last_size and t > 1200:
+            if 0 < last_size == current_size and t > 1200:
                 return True
             last_size = current_size
 
@@ -290,8 +294,8 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
             help_role.set_process(
                 text=f"{noextname} {'分离音频和画面' if config.defaulelang == 'zh' else 'spilt audio and video'} {size}",
                 uuid=uuid)
-            time.sleep(3)
-            t += 3
+            time.sleep(1)
+            t += 1
             continue
         return True
 

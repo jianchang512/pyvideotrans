@@ -14,7 +14,7 @@ def openwin():
     def test():
         key = winobj.speech_key.text().strip()
         if not key:
-            tools.show_error('填写Azure speech key ', False)
+            tools.show_error('填写Azure speech key ')
             return
         region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):

@@ -27,10 +27,13 @@ def make_padding(width, cropsize, offset):
     return left, right, roi_size
 
 
-def inference(X_spec, device, model, aggressiveness, data, source="logs", uuid=None, percent=[0, 1]):
+def inference(X_spec, device, model, aggressiveness, data, source="logs", uuid=None, percent=None):
     """
     data : dic configs
     """
+
+    if percent is None:
+        percent = [0, 1]
 
     def _execute(
             X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half=True, source="logs"

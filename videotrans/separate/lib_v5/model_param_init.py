@@ -1,14 +1,8 @@
 import json
 import pathlib
 
-default_param = {}
-default_param["bins"] = 768
-default_param["unstable_bins"] = 9  # training only
-default_param["reduction_bins"] = 762  # training only
-default_param["sr"] = 44100
-default_param["pre_filter_start"] = 757
-default_param["pre_filter_stop"] = 768
-default_param["band"] = {}
+default_param = {"bins": 768, "unstable_bins": 9, "reduction_bins": 762, "sr": 44100, "pre_filter_start": 757,
+                 "pre_filter_stop": 768, "band": {}}
 
 default_param["band"][1] = {
     "sr": 11025,

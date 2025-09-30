@@ -1,14 +1,11 @@
 # zh_recogn 识别
 import logging
-import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Union
 
 import dashscope
-import httpx
-from openai import OpenAI
 from pydub import AudioSegment
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 

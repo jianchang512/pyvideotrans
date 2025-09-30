@@ -1,16 +1,11 @@
 import multiprocessing
-import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
-
-
-
 from videotrans.configure import config
 from videotrans.process._overall import run
 from videotrans.recognition._base import BaseRecogn
-from videotrans.util import tools
+from videotrans.task.simple_runnable_qt import run_in_threadpool
 
 """
 faster-whisper
@@ -52,7 +47,7 @@ class FasterAll(BaseRecogn):
                         self._signal(text=data['text'], type=data['type'])
             except:
                 pass
-            time.sleep(0.2)
+            time.sleep(0.1)
 
 
     def _exec(self):
@@ -78,7 +73,7 @@ class FasterAll(BaseRecogn):
         result_queue = ctx.Queue()
         try:
             self.has_done = False
-            threading.Thread(target=self._get_signal_from_process, args=(result_queue,)).start()
+            run_in_threadpool(self._get_signal_from_process,result_queue)
             self.error = ''
             with ctx.Manager() as manager:
                 raws = manager.list([])
@@ -120,7 +115,7 @@ class FasterAll(BaseRecogn):
                             for it in list(raws):
                                 words_list += it['words']
                             self._signal(text="正在重新断句..." if config.defaulelang == 'zh' else "Re-segmenting...")
-                            self.raws = self.re_segment_sentences(words_list, self.detect_language[:2])
+                            self.raws = self.re_segment_sentences(words_list)
                         except:
                             self.get_srtlist(raws)
                 try:

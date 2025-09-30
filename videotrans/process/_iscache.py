@@ -110,24 +110,10 @@ def _is_file_valid(file_path) -> bool:
         return False
 
 
-def _check_huggingface_connect(ROOT_DIR: str, proxy: str = None, defaulelang: str = 'zh'):
+def _check_huggingface_connect(ROOT_DIR: str, proxy: str = None):
     import os, requests
-    from pathlib import Path
-    if defaulelang == 'zh' and not Path(ROOT_DIR + "/huggingface.lock").exists() and not proxy:
-        # 中文界面，无锁定huggingface.lock 无代理，需判断能否连接 huggingface.co，如果不能，则使用国内镜像
-        os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
-        os.environ["HF_HUB_DISABLE_XET"] = "1"
-        if os.environ.get('HTTPS_PROXY'):
-            os.environ.pop('HTTPS_PROXY')
-        if os.environ.get('HTTP_PROXY'):
-            os.environ.pop('HTTP_PROXY')
-        with open(f'{ROOT_DIR}/logs/test-huggingface.txt', "a", encoding='utf-8') as f:
-            f.write(
-                f"{proxy=},{os.environ.get('HTTPS_PROXY')=},{os.environ.get('HF_ENDPOINT')=},{os.environ.get('HF_HUB_DISABLE_XET')=}\n")
-        return
-
     try:
-        requests.get(
+        requests.head(
             'https://huggingface.co/api/resolve-cache/models/Systran/faster-whisper-tiny/d90ca5fe260221311c53c58e660288d3deb8d356/config.json',
             proxies=None if not proxy else {"http": proxy, "https": proxy}, timeout=5)
     except Exception as e:
@@ -153,10 +139,10 @@ def _check_huggingface_connect(ROOT_DIR: str, proxy: str = None, defaulelang: st
 
 # 返回 True 有缓存，无需设置
 # 返回 False 没有缓存，需正确设置代理和镜像站
-def check_cache_and_setproxy(repo_id: str, ROOT_DIR: str, proxy: str = None, defulelang: str = 'zh') -> bool:
+def check_cache_and_setproxy(repo_id: str, ROOT_DIR: str, proxy: str = None) -> bool:
     # 没有缓存，需要设置
     if not _is_model_cached(repo_id, f"{ROOT_DIR}/models"):
-        _check_huggingface_connect(ROOT_DIR, proxy, defulelang)
+        _check_huggingface_connect(ROOT_DIR, proxy)
         return False
     return True
 
@@ -166,7 +152,7 @@ def down_model_err(e: Exception, model_name: str, cache_dir: str, defaulelang: s
     import os, requests, traceback
     from huggingface_hub.errors import HfHubHTTPError
     error = "".join(traceback.format_exception(e))
-    if 'json.exception.parse_error' in error:
+    if 'json.exception.parse_error' in error or 'EOF while parsing a value' in error:
         model_dir = get_faster_model_cache(model_name, cache_dir)
         msg = (
             f'模型下载不完整，请删除目录 {model_dir}，重新下载' if defaulelang == "zh" else f"The model download may be incomplete, please delete the directory {model_dir} and download it again")

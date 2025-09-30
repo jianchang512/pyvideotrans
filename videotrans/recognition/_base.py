@@ -7,7 +7,6 @@ from tenacity import RetryError
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure._except import SpeechToTextError
 from videotrans.util import tools
 
 
@@ -76,7 +75,7 @@ class BaseRecogn(BaseCon):
     def _exec(self) -> Union[List[Dict], None]:
         pass
 
-    def re_segment_sentences(self, words, langcode=None):
+    def re_segment_sentences(self, words):
 
         try:
             from videotrans.translator._chatgpt import ChatGPT
@@ -119,15 +118,15 @@ class BaseRecogn(BaseCon):
         for it in list(raws):
             if len(it['words'])>0:
                 all_words+=it['words']
-        
         tmp=None
         # 允许的最长语句时长
-        max_ms=int(config.settings.get('max_speech_duration_s', 8))*1000
+        max_ms=int(config.settings.get('max_speech_duration_s', 5))*1000
         # 允许的最短语句时长
         min_ms=int(config.settings['min_speech_duration_ms'])
         # 分隔句子的最小静音片段，大于则视为断句点
         min_silence=int(config.settings['min_silence_duration_ms'])
-        all_len=len(all_words)
+        config.logger.info(f'进入本地重新断句模式,主要依赖标点符号：{self.flag=}\n{max_ms=},{min_ms=},{min_silence=}')
+
         for i,w in enumerate(all_words):
             word_text=zhconv.convert(w['word'], 'zh-hans') if jianfan and self.detect_language[:2] == 'zh' else w['word']
             if not tmp:
@@ -168,9 +167,9 @@ class BaseRecogn(BaseCon):
             current_diff=w['start']*1000-tmp['end_time']
             new_min_silence=min_silence
             # 如果已经大于 max_ms，但没有遇到标点，此时尝试使用 0.3倍的更小的min_silence分隔句子
-            if not is_flag and tmp_diff_ms>max_ms:
+            if not is_flag and tmp_diff_ms>0.8*max_ms:
                 new_min_silence=0.3*min_silence
-            if is_flag  or (current_diff >= new_min_silence) or tmp_diff_ms>=1.5*max_ms:
+            if is_flag  or (current_diff >= new_min_silence) or tmp_diff_ms>=1.2*max_ms:
                 tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
                 tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"

@@ -7,7 +7,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -37,10 +37,11 @@ class Google(BaseTrans):
         }
         response = requests.get(url, headers=headers, timeout=300, verify=False)
         response.raise_for_status()
-        config.logger.info(f'[Google]返回数据:{response.status_code=}')
+        config.logger.info(f'[Google]返回code:{response.status_code=}')
 
         re_result = re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<', response.text)
         if not re_result or len(re_result.groups()) < 1:
+            config.logger.info(f'[Google]返回数据:{response.text=}')
             raise RuntimeError(f'Google 翻译失败' if config.defaulelang == 'zh' else 'Google Translate error')
         return self.clean_srt(re_result.group(1)) if self.is_srt and self.aisendsrt else re_result.group(1)
 

@@ -1,5 +1,5 @@
-import asyncio, sys
-
+import asyncio
+import os
 from dataclasses import dataclass
 from pathlib import Path
 import functools
@@ -207,13 +207,24 @@ class EdgeTTS(BaseTTS):
             for i, item in enumerate(self.queue_tts):
                 if config.exit_soft:
                     return
-                self._signal(text=f'convert wav [{i + 1}/{total_tasks}]')
                 mp3_path = item['filename'] + ".mp3"
                 if tools.vail_file(mp3_path):
-                    self.convert_to_wav(mp3_path, item['filename'])
                     ok += 1
                 else:
                     err += 1
+
+            if ok>0:
+                all_task = []
+                from concurrent.futures import ThreadPoolExecutor
+                self._signal(text=f'convert wav {total_tasks}')
+                with ThreadPoolExecutor(max_workers=min(12,len(self.queue_tts),os.cpu_count())) as pool:
+                    for item in self.queue_tts:
+                        mp3_path = item['filename'] + ".mp3"
+                        if tools.vail_file(mp3_path):
+                            all_task.append(pool.submit(self.convert_to_wav, mp3_path,item['filename']))
+                    if len(all_task) > 0:
+                        _ = [i.result() for i in all_task]
+
             if err > 0:
                 msg=f'[{err}] subtitle dubbing errors, {ok} successes'
                 self._signal(text=msg)

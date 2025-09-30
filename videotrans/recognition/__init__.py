@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Union, List, Dict
 
 from videotrans import translator
@@ -70,7 +69,7 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='', source_language_isLast
     if name.endswith('.en') and source_language_isLast:
         return '.en结尾的模型不可用于自动检测' if config.defaulelang == 'zh' else 'Models ending in .en may not be used for automated detection'
 
-    if name.endswith('.en') and translator.get_code(show_text=source_language_currentText) != 'en':
+    if (name.endswith('.en') or name.startswith("distil-")) and translator.get_code(show_text=source_language_currentText) != 'en':
         return config.transobj['enmodelerror']
 
     if recogn_type == OPENAI_WHISPER:

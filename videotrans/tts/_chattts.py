@@ -1,4 +1,3 @@
-import re
 import logging
 import re
 import time
@@ -49,13 +48,11 @@ class ChatTTS(BaseTTS):
             config.logger.info(f'chatTTS:{data=}')
             res = res.json()
             if res is None:
-                time.sleep(RETRY_DELAY)
                 raise RuntimeError('ChatTTS端出错，请查看其控制台终端')
 
             if "code" not in res or res['code'] != 0:
                 if "msg" in res:
                     Path(data_item['filename']).unlink(missing_ok=True)
-                time.sleep(RETRY_DELAY)
                 raise RuntimeError(f'{res}')
 
             if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:

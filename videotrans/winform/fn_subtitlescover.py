@@ -99,7 +99,7 @@ def openwin():
 
     def start():
         if len(winobj.subtitlefiles) < 1:
-            tools.show_error('必须选择字幕文件' if config.defaulelang == 'zh' else 'Must select subtitles ', False)
+            tools.show_error('必须选择字幕文件' if config.defaulelang == 'zh' else 'Must select subtitles ')
             return
         winobj.has_done = False
 

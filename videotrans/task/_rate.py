@@ -10,6 +10,7 @@ from pydub import AudioSegment
 
 from videotrans.configure import config
 from videotrans.util import tools
+from concurrent.futures import ThreadPoolExecutor
 
 
 class SpeedRate:
@@ -267,14 +268,15 @@ class SpeedRate:
             try:
                 self.source_video_fps = tools.get_video_info(self.novoice_mp4_original, video_fps=True) or 30
             except Exception as e:
-                config.logger.warning(f"无法探测源视频帧率，将使用默认值30。错误: {e}"); self.source_video_fps = 30
+                config.logger.warning(f"无法探测源视频帧率，将使用默认值30。错误: {e}");
+                self.source_video_fps = 30
         config.logger.info(f"源视频帧率被设定为: {self.source_video_fps}")
 
         for it in self.queue_tts:
             it['start_time_source'] = it['start_time']
             it['end_time_source'] = it['end_time']
             it['source_duration'] = it['end_time_source'] - it['start_time_source']
-            it['dubb_time'] = self._get_audio_time_ms(it['filename'], line=it['line'])
+            it['dubb_time'] = self._get_audio_time_ms(it['filename'])
             it['final_audio_duration_theoretical'] = it['dubb_time']
             it['final_video_duration_theoretical'] = it['source_duration']
             # 用于存储探测到的物理时长
@@ -403,17 +405,21 @@ class SpeedRate:
             config.logger.warning("音频加速被跳过，因为未找到合适的FFmpeg滤镜。")
             return
 
-        for it in self.queue_tts:
+        all_cmds = []
+        for i, it in enumerate(self.queue_tts):
             target_duration_ms = int(it['final_audio_duration_theoretical'])
             current_duration_ms = it['dubb_time']
 
             # 只有在需要压缩时才处理
             if current_duration_ms > target_duration_ms and tools.vail_file(it['filename']):
                 if target_duration_ms <= 0 or current_duration_ms - target_duration_ms < 20:  # 增加容差
+                    all_cmds.append("1")
                     continue
 
                 speedup_ratio = current_duration_ms / target_duration_ms
-                if speedup_ratio < 1.01: continue
+                if speedup_ratio < 1.01:
+                    all_cmds.append("1")
+                    continue
 
                 config.logger.info(
                     f"字幕[{it['line']}]：[执行] 音频加速，倍率={speedup_ratio:.2f} (从 {current_duration_ms}ms -> {target_duration_ms}ms) 使用 {self.audio_speed_filter} 引擎。")
@@ -438,28 +444,52 @@ class SpeedRate:
 
                 if not filter_str:
                     config.logger.error(f"字幕[{it['line']}] 无法为倍率 {speedup_ratio:.2f} 构建有效的filter字符串，跳过变速。")
+                    all_cmds.append("1")
                     continue
 
                 target_duration_sec = target_duration_ms / 1000.0
                 cmd.extend(['-filter:a', filter_str, '-t', f'{target_duration_sec:.4f}'])
-
                 # [修正] 确保输出是标准化的WAV
-                cmd.extend(['-ar', str(self.AUDIO_SAMPLE_RATE), '-ac', str(self.AUDIO_CHANNELS), '-c:a', 'pcm_s16le',  temp_output_file])
+                cmd.extend(['-ar', str(self.AUDIO_SAMPLE_RATE), '-ac', str(self.AUDIO_CHANNELS), '-c:a', 'pcm_s16le', temp_output_file])
+                all_cmds.append(cmd)
+            else:
+                all_cmds.append("1")
 
-                try:
-                    if tools.runffmpeg(cmd, force_cpu=True):
-                        it['dubb_time'] = self._get_audio_time_ms(input_file, line=it['line'])
-                        config.logger.info(f"字幕[{it['line']}] 音频变速成功，新时长: {it['dubb_time']}ms")
-                        shutil.move(temp_output_file, input_file)
-                    else:
-                        config.logger.error(f"字幕[{it['line']}] 音频变速失败")
-                except Exception as e:
-                    config.logger.error(f"字幕[{it['line']}]：FFmpeg音频加速失败 {it['filename']}: {e}")
+        total_tasks = len(all_cmds)
+        if total_tasks == 0:
+            return
+
+        def _speedup_set_dubbtime(i, cmd):
+            it = self.queue_tts[i]
+            if tools.runffmpeg(cmd, force_cpu=True):
+                up_after_time=self._get_audio_time_ms(cmd[-1])
+                raw_time=self._get_audio_time_ms(it["filename"])
+                if up_after_time<raw_time:
                     try:
-                        if Path(temp_output_file).exists():
-                            os.remove(temp_output_file)
-                    except:
-                        pass
+                        shutil.copy2(cmd[-1], it['filename'])
+                    except Exception as e:
+                        config.logger.exception(f"变速后复制 {cmd[-1]} 到 {it['filename']} 失败",exc_info=True)
+                    self.queue_tts[i]['dubb_time'] =up_after_time
+            else:
+                config.logger.error(f"字幕[{it['line']}] 音频变速失败")
+
+        all_task = []
+        with ThreadPoolExecutor(max_workers=min(12,len(all_cmds),os.cpu_count())) as pool:
+            for i, cmd in enumerate(all_cmds):
+                if isinstance(cmd, list):
+                    all_task.append(pool.submit(_speedup_set_dubbtime, i, cmd))
+
+            completed_tasks = 0
+            for task in all_task:
+                try:
+                    task.result()  # 等待任务完成
+                    completed_tasks += 1
+                    tools.set_process(
+                        text=f"[{completed_tasks}/{total_tasks}] 音频加速..." if config.defaulelang == 'zh' else f"[{completed_tasks}/{total_tasks}] Processing audio speedup...",
+                        uuid=self.uuid)
+                except Exception as e:
+                    config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
+
     def _execute_video_processing(self):
         """
         [修正] 视频处理阶段
@@ -477,26 +507,35 @@ class SpeedRate:
 
         clip_meta_list = self._create_clip_meta()
 
-        for task in clip_meta_list:
-            if config.exit_soft: return None
-            # PTS > 1.01 才应用，避免浮点数误差导致不必要的处理
+        all_task = []
+        total_tasks = len(clip_meta_list)
+
+        def _cut_video_get_duration(i, task):
             pts_param = str(task['pts']) if task.get('pts', 1.0) > 1.01 else None
-            self._cut_to_intermediate(ss=task['ss'], to=task['to'], source=self.novoice_mp4_original, pts=pts_param,
-                                      out=task['out'])
+            self._cut_to_intermediate(ss=task['ss'], to=task['to'], source=self.novoice_mp4_original, pts=pts_param, out=task['out'])
 
             real_duration_ms = 0
             if Path(task['out']).exists() and Path(task['out']).stat().st_size > 1024:
                 real_duration_ms = self._get_video_duration_safe(task['out'])
 
-            task['real_duration_ms'] = real_duration_ms
-
+            clip_meta_list[i]['real_duration_ms'] = real_duration_ms
             if task['type'] == 'sub':
-                sub_item = self.queue_tts[task['index']]
-                sub_item['final_video_duration_real'] = real_duration_ms
-                config.logger.info(
-                    f"字幕[{task['line']}] 视频片段处理完成。理论时长: {sub_item['final_video_duration_theoretical']}ms, 物理探测时长: {real_duration_ms}ms")
-            else:
-                config.logger.info(f"间隙片段 {Path(task['out']).name} 处理完成。物理探测时长: {real_duration_ms}ms")
+                clip_meta_list[i]['final_video_duration_real'] = real_duration_ms
+
+        with ThreadPoolExecutor(max_workers=min(12,len(clip_meta_list),os.cpu_count())) as pool:
+            for i, task in enumerate(clip_meta_list):
+                all_task.append(pool.submit(_cut_video_get_duration, i, task))
+                # 监控进度
+            completed_tasks = 0
+            for task in all_task:
+                try:
+                    task.result()  # 等待任务完成
+                    completed_tasks += 1
+                    tools.set_process(
+                        text=f"[{completed_tasks}/{total_tasks}] 处理视频并探测真实时长..." if config.defaulelang == 'zh' else f"[{completed_tasks}/{total_tasks}] Processing video & probing real durations...",
+                        uuid=self.uuid)
+                except Exception as e:
+                    config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
 
         self._concat_and_finalize(clip_meta_list)
         return clip_meta_list
@@ -812,7 +851,7 @@ class SpeedRate:
             self._ffmpeg_concat_audio(audio_concat_list, self.target_audio)
 
             if not tools.vail_file(self.target_audio):
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT),self.target_audio)
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), self.target_audio)
 
             if self.novoice_mp4 and tools.vail_file(self.novoice_mp4):
                 config.logger.info("开始最终音视频时长对齐检查...")
@@ -828,15 +867,14 @@ class SpeedRate:
                 duration_diff = video_duration_ms - audio_duration_ms
                 config.logger.info(f"时长差异 (视频 - 音频) = {duration_diff}ms")
 
-
-                if duration_diff> 0:
+                if duration_diff > 0:
                     config.logger.warning(f"视频比音频长 {duration_diff}ms，将通过FFmpeg apad滤镜在音频末尾补齐等长静音。")
 
                     # [核心修正] 使用FFmpeg apad滤镜高效添加静音，而不是pydub
                     padded_audio_path = Path(
                         f'{self.cache_folder}/padded_audio{Path(self.target_audio).suffix}').as_posix()
                     pad_dur_sec = duration_diff / 1000.0
-                    pad_dur_sec=max(1,pad_dur_sec)
+                    pad_dur_sec = max(1, pad_dur_sec)
 
                     cmd = ['-y', '-i', str(self.target_audio), '-af', f'apad=pad_dur={pad_dur_sec:.4f}']
 
@@ -858,7 +896,7 @@ class SpeedRate:
 
 
                 elif duration_diff < 0:
-                    freeze_duration_sec = int((abs(duration_diff) / 1000.0)+1)
+                    freeze_duration_sec = int((abs(duration_diff) / 1000.0) + 1)
                     config.logger.warning(f"音频比视频长 {abs(duration_diff)}ms，将定格视频最后一帧 {freeze_duration_sec:.3f} 秒以对齐。")
 
                     final_video_path = Path(f'{self.cache_folder}/final_video_with_freeze.mp4').as_posix()
@@ -890,9 +928,8 @@ class SpeedRate:
 
         config.logger.info("所有处理完成，音视频已成功生成。")
 
-    def _get_audio_time_ms(self, file_path, line=None):
+    def _get_audio_time_ms(self, file_path):
         if not tools.vail_file(file_path):
-            if line is not None: config.logger.warning(f"字幕[{line}]：配音文件 {file_path} 不存在。")
             return 0
         try:
             # 优先使用 ffprobe，更准确
@@ -902,7 +939,7 @@ class SpeedRate:
             # ffprobe 失败时，使用 pydub 作为备用
             return len(AudioSegment.from_file(file_path))
         except Exception as e:
-            config.logger.error(f"字幕[{line or 'N/A'}]：获取音频文件 {file_path} 时长失败: {e}")
+            config.logger.error(f"字幕获取音频文件 {file_path} 时长失败: {e}")
             return 0
 
     def _ffmpeg_concat_audio(self, file_list, output_path):
@@ -923,7 +960,7 @@ class SpeedRate:
             config.logger.info(f"混合拼接步骤1: 创建包含 {len(file_list)} 个文件的拼接列表。{concat_txt_path=}")
             tools.create_concat_txt(file_list, concat_txt=concat_txt_path)
             if not Path(concat_txt_path).exists():
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT),concat_txt_path)
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), concat_txt_path)
 
             cmd_step1 = [
                 "-y",

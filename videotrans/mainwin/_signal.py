@@ -35,7 +35,7 @@ class UUIDSignalThread(QThread):
                 self._remove_queue()
                 if config.exit_soft:
                     return
-                time.sleep(0.5)
+                time.sleep(0.1)
                 continue
             # 找出未停止的
             uuid_list = [obj['uuid'] for obj in self.parent.win_action.obj_list if

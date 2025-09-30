@@ -1,4 +1,3 @@
-import mimetypes
 import logging
 import mimetypes
 import struct
@@ -59,7 +58,7 @@ class GEMINITTS(BaseTTS):
                 config.logger.exception(e, exc_info=True)
                 if e.code in [429, 500]:
                     self._signal(text=f"{data_item.get('line', '')}  {e.message}")
-                    time.sleep(30)
+                    time.sleep(self.wait_sec)
                 else:
                     raise
             except Exception as e:
@@ -114,7 +113,7 @@ class GEMINITTS(BaseTTS):
             )
             return header + audio_data
 
-        def parse_audio_mime_type(mime_type: str) -> dict[str, int | None]:
+        def parse_audio_mime_type(mime_type: str):
             """Parses bits per sample and rate from an audio MIME type string.
 
             Assumes bits per sample is encoded like "L16" and rate as "rate=xxxxx".
@@ -195,6 +194,5 @@ class GEMINITTS(BaseTTS):
                 data_buffer = inline_data.data
                 file_extension = mimetypes.guess_extension(inline_data.mime_type)
                 if file_extension is None:
-                    file_extension = ".wav"
                     data_buffer = convert_to_wav(inline_data.data, inline_data.mime_type)
                 save_binary_file(file_name, data_buffer)

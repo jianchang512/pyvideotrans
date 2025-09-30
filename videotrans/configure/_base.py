@@ -1,7 +1,7 @@
 import os
 import subprocess
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
+from typing import Optional
 
 from videotrans.configure import config
 from videotrans.util import tools

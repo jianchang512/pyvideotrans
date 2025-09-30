@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import threading
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -12,6 +11,7 @@ from PySide6.QtWidgets import QFileDialog
 from videotrans import translator, recognition, tts
 from videotrans.configure import config
 from videotrans.mainwin._actions_sub import WinActionSub
+from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools
 
 
@@ -147,7 +147,7 @@ class WinAction(WinActionSub):
             if item.widget():
                 try:
                     item.widget().deleteLater()
-                except Exception as e:
+                except Exception:
                     pass
         self.processbtns = {}
 
@@ -180,7 +180,7 @@ class WinAction(WinActionSub):
         try:
             t = self.main.target_language.currentText()
             if t not in ['-']:
-                rs = translator.is_allow_translate(translate_type=idx, show_target=t, win=self.main)
+                rs = translator.is_allow_translate(translate_type=idx, show_target=t)
                 if rs is not True:
                     return False
         except Exception as e:
@@ -376,8 +376,9 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params["clone_voicelist"]
             self.main.voice_role.addItems(self.main.current_rolelist)
-            from PySide6.QtCore import QThreadPool
-            QThreadPool.globalInstance().start(tools.get_clone_role)
+            # from PySide6.QtCore import QThreadPool
+            # QThreadPool.globalInstance().start(tools.get_clone_role)
+            run_in_threadpool(tools.get_clone_role)
         elif type == tts.CHATTTS:
             self.main.voice_role.clear()
             config.ChatTTS_voicelist = re.split(r'[,，]', config.settings['chattts_voice'])
@@ -427,8 +428,7 @@ class WinAction(WinActionSub):
             else:
                 self.main.show_tips.setText('')
             # 判断翻译渠道是否支持翻译到该目标语言
-            if translator.is_allow_translate(translate_type=self.main.translate_type.currentIndex(), show_target=t,
-                                             win=self.main) is not True:
+            if translator.is_allow_translate(translate_type=self.main.translate_type.currentIndex(), show_target=t) is not True:
                 return
 
         if not self.change_by_lang(self.main.tts_type.currentIndex()):
@@ -562,8 +562,7 @@ class WinAction(WinActionSub):
         # 原始语言是最后一个，即auto自动检查
         if self.main.subtitle_area.toPlainText().strip() and self.main.source_language.currentIndex() == self.main.source_language.count() - 1:
             tools.show_error(
-                '已导入字幕情况下，不可再使用检测功能' if config.defaulelang == 'zh' else 'The detection function cannot be used when subtitles have already been imported.',
-                False)
+                '已导入字幕情况下，不可再使用检测功能' if config.defaulelang == 'zh' else 'The detection function cannot be used when subtitles have already been imported.')
             return False
 
         # 判断是否填写自定义识别 api openai-api识别
@@ -584,7 +583,7 @@ class WinAction(WinActionSub):
         self.main.startbtn.setDisabled(True)
         # 无视频选择 ，也无导入字幕，无法处理
         if len(self.queue_mp4) < 1:
-            tools.show_error('必须选择视频文件' if config.defaulelang == 'zh' else 'Video file must be selected', False)
+            tools.show_error('必须选择视频文件' if config.defaulelang == 'zh' else 'Video file must be selected')
             self.main.startbtn.setDisabled(False)
             return
 
@@ -680,8 +679,7 @@ class WinAction(WinActionSub):
         if self.cfg['target_language'] == '-' and self.cfg['subtitle_type'] > 0:
             self.main.startbtn.setDisabled(False)
             return tools.show_error(
-                '必须选择目标语言才可嵌入字幕' if config.defaulelang == 'zh' else 'Target language must be selected to embed subtitles',
-                False)
+                '必须选择目标语言才可嵌入字幕' if config.defaulelang == 'zh' else 'Target language must be selected to embed subtitles')
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式
         if self.check_name() is not True:
             self.main.startbtn.setDisabled(False)
@@ -691,26 +689,26 @@ class WinAction(WinActionSub):
 
         if self.cfg['voice_role'] == 'clone' and self.cfg['tts_type'] == tts.ELEVENLABS_TTS:
             err = ''
-            if (source_code != 'auto' and source_code[:2] not in config.ELEVENLABS_CLONE):
+            if source_code != 'auto' and source_code[:2] not in config.ELEVENLABS_CLONE:
                 err = "ElevenLabs 不支持所选发音语言的克隆" if config.defaulelang == 'zh' else 'ElevenLabs: Cloning of the selected pronunciation language is not supported'
             elif target_code[:2] not in config.ELEVENLABS_CLONE:
                 err = "ElevenLabs 不支持所选目标语言的克隆" if config.defaulelang == 'zh' else 'ElevenLabs: Cloning in the selected target language is not supported'
 
             if err:
                 self.main.startbtn.setDisabled(False)
-                return tools.show_error(err, False)
+                return tools.show_error(err)
 
         if self.main.rephrase.isChecked():
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
                 self.main.startbtn.setDisabled(False)
-                tools.show_error(config.transobj['llmduanju'], False)
+                tools.show_error(config.transobj['llmduanju'])
                 from videotrans.winform import chatgpt
                 chatgpt.openwin()
                 return
             if ai_type == 'deepseek' and not config.params.get('deepseek_key'):
                 self.main.startbtn.setDisabled(False)
-                tools.show_error(config.transobj.get('llmduanjudp',''), False)
+                tools.show_error(config.transobj.get('llmduanjudp',''))
                 from videotrans.winform import deepseek
                 deepseek.openwin()
                 return

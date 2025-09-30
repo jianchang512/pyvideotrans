@@ -53,17 +53,13 @@ class Ui_azureform(object):
         self.azure_version.setMinimumSize(QtCore.QSize(0, 35))
         self.azure_version.setObjectName("azure_version")
         self.azure_version.addItems([
+            "2025-04-01-preview",
             "2025-02-01-preview",
             "2025-01-01-preview",
             "2024-12-01-preview",
             "2024-09-01-preview",
             "2024-08-01-preview",
             "2024-07-01-preview",
-            "2024-06-01",
-            "2024-05-01-preview",
-            "2024-04-01-preview",
-            "2024-03-01-preview",
-            "2024-02-01"
         ])
         h3.addWidget(self.label_version)
         h3.addWidget(self.azure_version)

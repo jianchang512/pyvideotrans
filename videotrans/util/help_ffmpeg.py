@@ -388,7 +388,7 @@ def get_video_codec(force_test: bool = False) -> str:
         config.logger.info(f"正在测试编码器是否可用: {encoder_to_test}...")
         success = False
         try:
-            process = subprocess.run(
+            subprocess.run(
                 command, check=True, capture_output=True, text=True,
                 encoding='utf-8', errors='ignore', creationflags=creationflags, timeout=timeout
             )

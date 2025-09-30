@@ -2,7 +2,7 @@ import json
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
+from typing import List,  Any, Optional, Union
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
@@ -30,7 +30,6 @@ class BaseTrans(BaseCon):
     split_source_text: List = field(default_factory=list, init=False)
 
     trans_thread: int = field(init=False)
-    retry: int = field(init=False)
     wait_sec: float = field(init=False)
     is_srt: bool = field(init=False)
     aisendsrt: bool = field(init=False)
@@ -40,7 +39,6 @@ class BaseTrans(BaseCon):
 
 
         self.trans_thread = int(config.settings.get('trans_thread', 5))
-        self.retry = int(config.settings.get('retries', 2))
         self.wait_sec = float(config.settings.get('translation_wait', 0))
         self.aisendsrt = config.settings.get('aisendsrt', False)
 
@@ -151,7 +149,7 @@ class BaseTrans(BaseCon):
             if not result:
                 result = self._item_task(srt_str)
                 if not result.strip():
-                    raise TranslateSrtError('无返回翻译结果' if config.defaulelang == 'zh' else 'Translate result is empty')
+                    raise RuntimeError('无返回翻译结果' if config.defaulelang == 'zh' else 'Translate result is empty')
                 self._set_cache(it, result)
 
             if self.inst and self.inst.precent < 75:
@@ -197,5 +195,6 @@ class BaseTrans(BaseCon):
 
     def _get_key(self, it):
         Path(config.TEMP_DIR + '/translate_cache').mkdir(parents=True, exist_ok=True)
-        return tools.get_md5(
-            f'{self.__class__.__name__}-{self.api_url}-{self.trans_thread}-{self.retry}-{self.wait_sec}-{self.iter_num}-{self.is_srt}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}')
+
+        str_for_hash=f'{self.__class__.__name__}-{self.api_url}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}'
+        return tools.get_md5(str_for_hash)

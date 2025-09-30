@@ -1,9 +1,9 @@
-import threading
 
 import pygame
+from PySide6.QtCore import QThread
 
 
-class AudioPlayer(threading.Thread):
+class AudioPlayer(QThread):
     def __init__(self, filepath):
         super().__init__()
         pygame.mixer.init()

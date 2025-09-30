@@ -1,4 +1,3 @@
-import os
 import logging
 import os
 import sys
@@ -96,7 +95,6 @@ class GPTSoVITS(BaseTTS):
                 # 如果是JSON数据，使用json()方法解析
                 data = response.json()
                 config.logger.info(f'GPT-SoVITS return:{data=}')
-                time.sleep(RETRY_DELAY)
                 raise StopRetry(f"GPT-SoVITS返回错误信息-1:{data}")
             
             response.raise_for_status()
@@ -109,7 +107,6 @@ class GPTSoVITS(BaseTTS):
                     f.write(response.content)
                 time.sleep(1)
                 if not os.path.exists(data_item['filename'] + ".wav"):
-                    time.sleep(RETRY_DELAY)
                     raise RuntimeError(f'GPT-SoVITS合成声音失败-2')
                 self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 

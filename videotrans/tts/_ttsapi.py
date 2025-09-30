@@ -1,4 +1,3 @@
-import sys
 import logging
 import sys
 import time
@@ -62,17 +61,14 @@ class TTSAPI(BaseTTS):
                 res = self._302aiMinimax(data_item['text'], role, speed, volume, pitch)
                 config.logger.info(f'返回数据 {res["base_resp"]=}')
                 if res['base_resp']['status_code'] != 0:
-                    time.sleep(RETRY_DELAY)
                     raise RuntimeError(res['base_resp']['status_msg'] )
             else:
                 res = self._apirequests(data_item['text'], role, speed, volume, pitch)
                 config.logger.info(f'返回数据 {res["code"]=}')
                 if "code" not in res or "msg" not in res or res['code'] != 0:
-                    time.sleep(RETRY_DELAY)
                     raise RuntimeError(f'TTS-API:{res["msg"]}' )
 
             if 'data' not in res or not res['data']:
-                time.sleep(RETRY_DELAY)
                 raise RuntimeError( '未返回有效音频地址' if config.defaulelang == 'zh' else 'No valid audio address returned')
             # 返回的是音频url地址
             tmp_filename = data_item['filename'] + ".mp3"
@@ -89,7 +85,6 @@ class TTSAPI(BaseTTS):
                 with open(tmp_filename, 'wb') as f:
                     f.write(bytes.fromhex(res['data']['audio']))
             else:
-                time.sleep(RETRY_DELAY)
                 raise RuntimeError('未返回有效音频地址或音频base64数据' if config.defaulelang == 'zh' else 'No valid audio address or base64 audio data returned' )
             self.convert_to_wav(tmp_filename, data_item['filename'])
 

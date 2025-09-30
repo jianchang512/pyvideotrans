@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import hashlib
 import logging
-import os
 import time
 from dataclasses import dataclass
 from typing import List, Union

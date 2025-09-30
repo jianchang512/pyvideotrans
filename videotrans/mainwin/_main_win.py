@@ -8,6 +8,8 @@ import asyncio, sys
 
 # 这行代码应该在你的主程序入口（启动线程之前）执行一次即可，而不是在模块加载时。
 # 为了安全，我们先注释掉，如果需要，请移到你的主启动逻辑中。
+from videotrans.task.simple_runnable_qt import run_in_threadpool
+
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool
@@ -54,8 +56,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QTimer.singleShot(0, self._set_cache_set)
         QTimer.singleShot(0, self._start_subform)
         QTimer.singleShot(400, self._bindsignal)
-        QTimer.singleShot(800, self.is_writable)
-        QThreadPool.globalInstance().start(lambda: tools.get_video_codec(True))
+        QTimer.singleShot(400, self.is_writable)
+        # QThreadPool.globalInstance().start(lambda: tools.get_video_codec(True))
+        run_in_threadpool(tools.get_video_codec,True)
 
     def _replace_placeholders(self):
         """
@@ -262,16 +265,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.statusLabel = QPushButton(config.transobj["Open Documents"])
         self.statusLabel2 = QPushButton('遇到问题?在线提问' if config.defaulelang == 'zh' else 'Having problems? Ask')
-        self.statusLabel.setStyleSheet("""color:#ffff99""")
-        self.statusLabel2.setStyleSheet("""color:#ffff99""")
+        self.statusLabel.setStyleSheet("""color:#ffffbb""")
+        self.statusLabel2.setStyleSheet("""color:#ffffbb""")
         self.statusBar.addWidget(self.statusLabel)
         self.statusBar.addWidget(self.statusLabel2)
         self.rightbottom = QPushButton(config.transobj['juanzhu'])
-        self.rightbottom.setStyleSheet("""color:#ffff99""")
+        self.rightbottom.setStyleSheet("""color:#ffffbb""")
         self.container = QToolBar()
         self.container.addWidget(self.rightbottom)
         self.restart_btn = QPushButton("重启" if config.defaulelang == 'zh' else "Restart")
-        self.restart_btn.setStyleSheet("""color:#ffff99""")
+        self.restart_btn.setStyleSheet("""color:#ffffbb""")
+        self.restart_btn.setToolTip("点击将会立即结束所有任务并重启" if config.defaulelang == 'zh' else "Click to end all tasks immediately and restart")
         self.container.addWidget(self.restart_btn)
         self.restart_btn.clicked.connect(self.restart_app)
 
@@ -304,7 +308,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if config.params['tts_type'] == tts.CLONE_VOICE_TTS:
             self.voice_role.addItems(config.params["clone_voicelist"])
-            QThreadPool.globalInstance().start(tools.get_clone_role)
+            # QThreadPool.globalInstance().start(tools.get_clone_role)
+            run_in_threadpool(tools.get_clone_role)
         elif config.params['tts_type'] == tts.CHATTTS:
             self.voice_role.addItems(['No'] + list(config.ChatTTS_voicelist))
         elif config.params['tts_type'] == tts.TTS_API:
@@ -382,8 +387,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.show_spk.setVisible(True)
 
     def restart_app(self):
-        self.is_restarting = True
-        self.close()  # 触发 closeEvent，进行清理，然后在 closeEvent 中重启
+        # 创建确认对话框
+        from PySide6.QtWidgets import QMessageBox
+        reply = QMessageBox.question(
+            self,
+            "确认重启" if config.defaulelang == 'zh' else "Restart",
+            "确定要重启应用程序吗？" if config.defaulelang == 'zh' else "Are you sure you want to restart the application?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        # 只有当用户点击“是”时才继续
+        if reply == QMessageBox.StandardButton.Yes:
+            self.is_restarting = True
+            self.close()  # 触发 closeEvent，进行清理，然后在 closeEvent 中重启
+        # self.is_restarting = True
+        # self.close()  # 触发 closeEvent，进行清理，然后在 closeEvent 中重启
 
     def _bindsignal(self):
         from videotrans.task.check_update import CheckUpdateWorker
@@ -391,14 +410,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         from videotrans.mainwin._signal import UUIDSignalThread
 
         self.check_update = CheckUpdateWorker(parent=self)
+        self.check_update.setObjectName("CheckUpdateThread")
         self.uuid_signal = UUIDSignalThread(parent=self)
         self.uuid_signal.uito.connect(self.win_action.update_data)
-        self.check_update.setObjectName("CheckUpdateThread")
         self.uuid_signal.setObjectName("UUIDSignalThread")
 
         self.check_update.start()
         self.uuid_signal.start()
-        self.worker_threads = start_thread(self)
+        self.worker_threads = start_thread()
 
     def _set_cache_set(self):
 
@@ -593,7 +612,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
         self.statusLabel2.clicked.connect(lambda: self.win_action.open_url('https://bbs.pyvideotrans.com/post'))
-        Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
+        try:
+            Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
+        except Exception:
+            pass
 
     def is_writable(self):
         import uuid
@@ -798,13 +820,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 遍历所有工作线程，等待结束
         for thread in self.worker_threads:
-            if thread.is_alive():
+            if thread.isRunning():
                 print(f"正在等待线程 {thread.name} 结束...")
-                thread.join(timeout=5)
-                if thread.is_alive():
-                    print(f"警告：线程 {thread.name} 在5秒后仍未退出！")
-                else:
-                    print(f"线程 {thread.name} 已成功退出。")
+                thread.quit()
+                thread.wait(5000)
 
         if hasattr(self, 'check_update') and self.check_update.isRunning():
             print('等待 check_update 线程退出')

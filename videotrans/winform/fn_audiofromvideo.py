@@ -94,7 +94,7 @@ def openwin():
 
     def start():
         if len(winobj.videourls) < 1:
-            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Must select video ', False)
+            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Must select video ')
             return
         winobj.has_done = False
 

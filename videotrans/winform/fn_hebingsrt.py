@@ -74,8 +74,7 @@ def openwin():
         srt2 = winobj.srtinput2.text()
         if not srt1 or not srt2:
             tools.show_error(
-                '必须选择字幕文件1和字幕文件2' if config.defaulelang == 'zh' else 'Subtitle File 1 and Subtitle File 2 must be selected',
-                False)
+                '必须选择字幕文件1和字幕文件2' if config.defaulelang == 'zh' else 'Subtitle File 1 and Subtitle File 2 must be selected')
             return
 
         winobj.startbtn.setText('执行合并中...' if config.defaulelang == 'zh' else 'Consolidation in progress...')

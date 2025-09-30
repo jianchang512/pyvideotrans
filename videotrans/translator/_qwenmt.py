@@ -1,12 +1,8 @@
 import logging
 import re
 from dataclasses import dataclass
-from pathlib import Path
 from typing import List, Union
-from urllib.parse import quote
-
 import dashscope
-import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans import translator

@@ -1,4 +1,3 @@
-import re
 import logging
 import re
 import time
@@ -68,7 +67,6 @@ class CloneVoice(BaseTTS):
             if "code" not in res or res['code'] != 0:
                 if "msg" in res and res['msg'].find("non-empty") > 0:
                     Path(data_item['filename']).unlink(missing_ok=True)
-                time.sleep(RETRY_DELAY)
                 raise RuntimeError(f'{res}')
 
             if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:

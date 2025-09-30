@@ -206,7 +206,7 @@ def format_srt(content):
 
 
 # 将srt文件或合法srt字符串转为字典对象
-def get_subtitle_from_srt(srtfile, *, is_file=True,remain_hr=False):
+def get_subtitle_from_srt(srtfile, *, is_file=True):
     def _readfile(file):
         content = ""
         try:

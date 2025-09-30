@@ -3,8 +3,8 @@ import math
 import os
 import re
 import shutil
-import threading
 import time
+from PySide6.QtCore import QThreadPool
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict
@@ -15,6 +15,7 @@ from videotrans.recognition import run as run_recogn, Faster_Whisper_XXL
 from videotrans.translator import run as run_trans, get_audio_code
 from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, CHATTERBOX_TTS, COSYVOICE_TTS, F5_TTS, EDGE_TTS, AZURE_TTS, \
     ELEVENLABS_TTS
+from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools
 from ._base import BaseTask
 from ._rate import SpeedRate
@@ -203,10 +204,11 @@ class TransCreate(BaseTask):
             while not self.hasend:
                 if self._exit():
                     return
-                time.sleep(2)
-                self._signal(text=f"{self.status_text} {int(time.time() - t)}s???{self.precent}", type="set_precent", nologs=True)
+                time.sleep(1)
+                self._signal(text=f"{self.status_text} {int(time.time() - t)}s???{self.precent}", type="set_precent")
 
-        threading.Thread(target=runing).start()
+        run_in_threadpool(runing)
+
 
     ### 同原始语言相关，当原始语言变化或检测出结果时，需要修改==========
     def set_source_language(self, source_language_code=None, is_del=False):
@@ -274,7 +276,7 @@ class TransCreate(BaseTask):
         # 将原始视频分离为无声视频和音频
         if not self.is_audio_trans and self.cfg['app_mode'] not in ['tiqu']:
             config.queue_novice[self.cfg['noextname']] = 'ing'
-            threading.Thread(target=self._split_novoice_byraw).start()
+            run_in_threadpool(self._split_novoice_byraw)
             if not self.is_copy_video:
                 self.status_text = '视频需要转码，耗时可能较久..' if config.defaulelang == 'zh' else 'Video needs transcoded and take a long time..'
         else:
@@ -368,10 +370,6 @@ class TransCreate(BaseTask):
                 if Path(txt_file).exists():
                     cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
 
-                while 1:
-                    if not config.copying:
-                        break
-                    time.sleep(1)
                 cmdstr = " ".join(cmd)
                 outsrt_file = self.cfg['target_dir'] + '/' + Path(self.cfg['shibie_audio']).stem + ".srt"
                 config.logger.info(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg["source_sub"]=}')
@@ -710,12 +708,14 @@ class TransCreate(BaseTask):
             rate = f"{rate}%"
         # 取出设置的每行角色
         line_roles = config.line_roles
+        voice_role = self.cfg['voice_role']
+        Path(config.TEMP_DIR + "/dubbing_cache").mkdir(exist_ok=True,parents=True)
+
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
             if it['end_time'] <= it['start_time']:
                 continue
             # 判断是否存在单独设置的行角色，如果不存在则使用全局
-            voice_role = self.cfg['voice_role']
             if line_roles and f'{it["line"]}' in line_roles:
                 voice_role = line_roles[f'{it["line"]}']
             filename_md5 = tools.get_md5(
@@ -726,8 +726,7 @@ class TransCreate(BaseTask):
                 "line": it['line'],
                 "ref_text": source_subs[i]['text'] if source_subs and i < len(source_subs) else '',
                 "role": voice_role,
-                "start_time_source": source_subs[i]['start_time'] if source_subs and i < len(source_subs) else it[
-                    'start_time'],
+                "start_time_source": source_subs[i]['start_time'] if source_subs and i < len(source_subs) else it['start_time'],
                 "end_time_source": source_subs[i]['end_time'] if source_subs and i < len(source_subs) else it[
                     'end_time'],
                 "start_time": it['start_time'],
@@ -742,27 +741,19 @@ class TransCreate(BaseTask):
             }
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆
-            if self.cfg['tts_type'] in [COSYVOICE_TTS, CLONE_VOICE_TTS, F5_TTS,
-                                        CHATTERBOX_TTS] and voice_role == 'clone':
-                if self.cfg['is_separate'] and not tools.vail_file(self.cfg['vocal']):
-                    raise RuntimeError(
-                        f"背景分离出错,请使用其他角色名" if config.defaulelang == 'zh' else 'Background separation error, please use another character name.')
-
-                if tools.vail_file(self.cfg['source_wav']):
-                    tmp_dict['ref_wav'] = config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}-{i}.wav"
-                    tools.cut_from_audio(
-                        audio_file=self.cfg['vocal'] if self.cfg[
-                            'is_separate'] else self.cfg['source_wav'],
-                        ss=it['startraw'],
-                        to=it['endraw'],
-                        out_file=tmp_dict['ref_wav']
-                    )
+            if voice_role == 'clone' and self.cfg['tts_type'] in [COSYVOICE_TTS, CLONE_VOICE_TTS, F5_TTS,  CHATTERBOX_TTS]:
+                tmp_dict['ref_wav'] = config.TEMP_DIR + f"/dubbing_cache/{it['start_time']}-{it['end_time']}-{time.time()}-{i}.wav"
             queue_tts.append(tmp_dict)
 
         self.queue_tts = copy.deepcopy(queue_tts)
-        Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True, exist_ok=True)
+
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise RuntimeError(f'Queue tts length is 0')
+
+        # 如果存在有 ref_wav 即需要clone，存在参考音频的
+        if len([it.get("ref_wav") for it in self.queue_tts if it.get("ref_wav")])>0:
+            self._create_ref_from_vocal()
+
         # 具体配音操作
         run_tts(
             queue_tts=copy.deepcopy(self.queue_tts),
@@ -779,79 +770,109 @@ class TransCreate(BaseTask):
                 if Path(it['filename']).exists():
                     shutil.copy2(it['filename'], name)
 
+
+    # 多线程实现裁剪参考音频
+    def _create_ref_from_vocal(self):
+        Path(config.TEMP_DIR + "/dubbing_cache").mkdir(exist_ok=True,parents=True)
+        # 背景分离人声如果失败则直接使用原始音频
+        vocal=self.cfg['vocal'] if tools.vail_file(self.cfg['vocal']) else self.cfg['source_wav']
+        # 裁切对应片段为参考音频
+        def _cutaudio_from_vocal(it):
+            try:
+                tools.cut_from_audio(
+                    audio_file=vocal,
+                    ss=it['startraw'],
+                    to=it['endraw'],
+                    out_file=it['ref_wav']
+                )
+            except Exception:
+                pass
+        all_task = []
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=min(12,len(self.queue_tts),os.cpu_count())) as pool:
+            for item in self.queue_tts:
+                if item.get('ref_wav'):
+                    all_task.append(pool.submit(_cutaudio_from_vocal, item))
+            if len(all_task)>0:
+                _ = [i.result() for i in all_task]
+
     # 添加背景音乐
     def _back_music(self) -> None:
         if self._exit() or not self.shoud_dubbing:
             return
 
-        if tools.vail_file(self.cfg['target_wav']) and tools.vail_file(
-                self.cfg['background_music']):
-            try:
-                self.status_text = '添加背景音频' if config.defaulelang == 'zh' else 'Adding background audio'
-                # 获取视频长度
-                vtime = tools.get_audio_time(self.cfg['target_wav'])
-                # 获取背景音频长度
-                atime = tools.get_audio_time(self.cfg['background_music'])
-                bgm_file = self.cfg['cache_folder'] + f'/bgm_file.wav'
-                self.convert_to_wav(self.cfg['background_music'], bgm_file)
-                self.cfg['background_music'] = bgm_file
-                beishu = math.ceil(vtime / atime)
-                if config.settings['loop_backaudio'] and beishu > 1 and vtime - 1 > atime:
-                    # 获取延长片段
-                    file_list = [self.cfg['background_music'] for n in range(beishu + 1)]
-                    concat_txt = self.cfg['cache_folder'] + f'/{time.time()}.txt'
-                    tools.create_concat_txt(file_list, concat_txt=concat_txt)
-                    tools.concat_multi_audio(
-                        concat_txt=concat_txt,
-                        out=self.cfg['cache_folder'] + "/bgm_file_extend.wav")
-                    self.cfg['background_music'] = self.cfg['cache_folder'] + "/bgm_file_extend.wav"
-                # 背景音频降低音量
-                tools.runffmpeg(
-                    ['-y',
-                     '-i', self.cfg['background_music'],
-                     "-filter:a", f"volume={config.settings['backaudio_volume']}",
-                     '-c:a', 'pcm_s16le',
-                     self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav"
-                     ])
-                # 背景音频和配音合并
-                cmd = ['-y',
-                       '-i', self.cfg['target_wav'],
-                       '-i', self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav",
-                       '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2",
-                       '-ac', '2',
-                       '-c:a', 'pcm_s16le',
-                       self.cfg['cache_folder'] + f"/lastend.wav"
-                       ]
-                tools.runffmpeg(cmd)
-                self.cfg['target_wav'] = self.cfg['cache_folder'] + f"/lastend.wav"
-            except Exception as e:
-                config.logger.exception(f'添加背景音乐失败:{str(e)}', exc_info=True)
+        if not tools.vail_file(self.cfg['target_wav']) or not  tools.vail_file(self.cfg['background_music']):
+            return
+        try:
+            self.status_text = '添加背景音频' if config.defaulelang == 'zh' else 'Adding background audio'
+            # 获取视频长度
+            vtime = tools.get_audio_time(self.cfg['target_wav'])
+            # 获取背景音频长度
+            atime = tools.get_audio_time(self.cfg['background_music'])
+            bgm_file = self.cfg['cache_folder'] + f'/bgm_file.wav'
+            self.convert_to_wav(self.cfg['background_music'], bgm_file)
+            self.cfg['background_music'] = bgm_file
+            beishu = math.ceil(vtime / atime)
+            if config.settings['loop_backaudio'] and beishu > 1 and vtime - 1 > atime:
+                # 获取延长片段
+                file_list = [self.cfg['background_music'] for n in range(beishu + 1)]
+                concat_txt = self.cfg['cache_folder'] + f'/{time.time()}.txt'
+                tools.create_concat_txt(file_list, concat_txt=concat_txt)
+                tools.concat_multi_audio(
+                    concat_txt=concat_txt,
+                    out=self.cfg['cache_folder'] + "/bgm_file_extend.wav")
+                self.cfg['background_music'] = self.cfg['cache_folder'] + "/bgm_file_extend.wav"
+            # 背景音频降低音量
+            tools.runffmpeg(
+                ['-y',
+                 '-i', self.cfg['background_music'],
+                 "-filter:a", f"volume={config.settings['backaudio_volume']}",
+                 '-c:a', 'pcm_s16le',
+                 self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav"
+                 ])
+            # 背景音频和配音合并
+            cmd = ['-y',
+                   '-i', self.cfg['target_wav'],
+                   '-i', self.cfg['cache_folder'] + f"/bgm_file_extend_volume.wav",
+                   '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2",
+                   '-ac', '2',
+                   '-c:a', 'pcm_s16le',
+                   self.cfg['cache_folder'] + f"/lastend.wav"
+                   ]
+            tools.runffmpeg(cmd)
+            self.cfg['target_wav'] = self.cfg['cache_folder'] + f"/lastend.wav"
+        except Exception as e:
+            config.logger.exception(f'添加背景音乐失败:{str(e)}', exc_info=True)
 
     def _separate(self) -> None:
         if self._exit() or not self.shoud_separate:
             return
-        if tools.vail_file(self.cfg['target_wav']):
-            try:
-                self.status_text = '重新嵌入背景音' if config.defaulelang == 'zh' else 'Re-embedded background sounds'
-                vtime = tools.get_audio_time(self.cfg['target_wav'])
-                atime = tools.get_audio_time(self.cfg['instrument'])
-                beishu = math.ceil(vtime / atime)
+        # 如果背景音频分离失败，则静默返回
+        if not tools.vail_file(self.cfg['instrument']):
+            return
+        if not tools.vail_file(self.cfg['target_wav']):
+            return
+        try:
+            self.status_text = '重新嵌入背景音' if config.defaulelang == 'zh' else 'Re-embedded background sounds'
+            vtime = tools.get_audio_time(self.cfg['target_wav'])
+            atime = tools.get_audio_time(self.cfg['instrument'])
+            beishu = math.ceil(vtime / atime)
 
-                instrument_file = self.cfg['instrument']
-                config.logger.info(f'合并背景音 {beishu=},{atime=},{vtime=}')
-                if config.settings['loop_backaudio'] and atime + 1 < vtime:
-                    # 背景音连接延长片段
-                    file_list = [instrument_file for n in range(beishu + 1)]
-                    concat_txt = self.cfg['cache_folder'] + f'/{time.time()}.txt'
-                    tools.create_concat_txt(file_list, concat_txt=concat_txt)
-                    tools.concat_multi_audio(concat_txt=concat_txt,
-                                             out=self.cfg['cache_folder'] + "/instrument-concat.wav")
-                    self.cfg['instrument'] = self.cfg['cache_folder'] + f"/instrument-concat.wav"
-                # 背景音合并配音
-                self._backandvocal(self.cfg['instrument'], self.cfg['target_wav'])
-                shutil.copy2(self.cfg['instrument'], f"{self.cfg['target_dir']}/{Path(instrument_file).name}")
-            except Exception as e:
-                config.logger.exception(e, exc_info=True)
+            instrument_file = self.cfg['instrument']
+            config.logger.info(f'合并背景音 {beishu=},{atime=},{vtime=}')
+            if config.settings['loop_backaudio'] and atime + 1 < vtime:
+                # 背景音连接延长片段
+                file_list = [instrument_file for n in range(beishu + 1)]
+                concat_txt = self.cfg['cache_folder'] + f'/{time.time()}.txt'
+                tools.create_concat_txt(file_list, concat_txt=concat_txt)
+                tools.concat_multi_audio(concat_txt=concat_txt,
+                                         out=self.cfg['cache_folder'] + "/instrument-concat.wav")
+                self.cfg['instrument'] = self.cfg['cache_folder'] + f"/instrument-concat.wav"
+            # 背景音合并配音
+            self._backandvocal(self.cfg['instrument'], self.cfg['target_wav'])
+            shutil.copy2(self.cfg['instrument'], f"{self.cfg['target_dir']}/{Path(instrument_file).name}")
+        except Exception as e:
+            config.logger.exception(e, exc_info=True)
 
     # 合并后最后文件仍为 人声文件，时长需要等于人声
     def _backandvocal(self, backwav, peiyinm4a):
@@ -971,8 +992,7 @@ class TransCreate(BaseTask):
         self.precent = min(max(95, self.precent), 98)
 
         protxt = config.TEMP_DIR + f"/compose{time.time()}.txt"
-        threading.Thread(target=self._hebing_pro, args=(protxt,)).start()
-
+        run_in_threadpool(self._hebing_pro,protxt)
         # 字幕嵌入时进入视频目录下
         os.chdir(Path(self.cfg['novoice_mp4']).parent.resolve())
         if tools.vail_file(self.cfg['target_wav']):
@@ -1143,7 +1163,7 @@ class TransCreate(BaseTask):
         os.chdir(config.ROOT_DIR)
         self._create_txt()
         self.precent = 100
-        time.sleep(1)
+        time.sleep(0.5)
         self.hasend = True
         return True
 
@@ -1152,10 +1172,11 @@ class TransCreate(BaseTask):
         basenum = 100 - self.precent
         video_time = self.video_time
         while 1:
+            if config.exit_soft:return
             if self.precent >= 100:
                 return
             if not os.path.exists(protxt):
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
             with open(protxt, 'r', encoding='utf-8') as f:
                 content = f.read().strip().split("\n")
@@ -1171,7 +1192,7 @@ class TransCreate(BaseTask):
                 try:
                     h, m, s = end_time.split(':')
                 except:
-                    time.sleep(1)
+                    time.sleep(0.5)
                     continue
                 else:
                     h, m, s = end_time.split(':')
@@ -1180,7 +1201,7 @@ class TransCreate(BaseTask):
                         self.precent += 0.1
                     else:
                         self._signal(text=config.transobj['kaishihebing'] + f' -> {precent * 100}%')
-                    time.sleep(1)
+            time.sleep(0.5)
 
     # 创建说明txt
     def _create_txt(self) -> None:

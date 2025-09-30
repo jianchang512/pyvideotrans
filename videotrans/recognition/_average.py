@@ -1,5 +1,4 @@
 import multiprocessing
-import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -8,7 +7,7 @@ from typing import List, Dict, Any, Union
 from videotrans.configure import config
 from videotrans.process._average import run
 from videotrans.recognition._base import BaseRecogn
-from videotrans.util import tools
+from videotrans.task.simple_runnable_qt import run_in_threadpool
 
 """
 faster-whisper
@@ -41,7 +40,7 @@ class FasterAvg(BaseRecogn):
                         self._signal(text=data['text'], type=data['type'])
             except:
                 pass
-            time.sleep(0.5)
+            time.sleep(0.1)
 
     def _exec(self) -> Union[List[Dict], None]:
         while 1:
@@ -62,7 +61,7 @@ class FasterAvg(BaseRecogn):
         result_queue = multiprocessing.Queue()
         self.has_done = False
 
-        threading.Thread(target=self._get_signal_from_process, args=(result_queue,)).start()
+        run_in_threadpool(self._get_signal_from_process,result_queue)
         try:
             with multiprocessing.Manager() as manager:
                 raws = manager.list([])

@@ -148,8 +148,7 @@ def openwin():
         folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
             tools.show_error(
-                '必须选择存在同名视频和srt字幕的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and srt subtitles with the same name exists.',
-                False)
+                '必须选择存在同名视频和srt字幕的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and srt subtitles with the same name exists.')
             return
         is_soft = winobj.issoft.isChecked()
         language = winobj.language.currentText()

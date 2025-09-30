@@ -10,7 +10,6 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 
 from gradio_client import Client, handle_file
-from typing import List, Dict, Union
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry

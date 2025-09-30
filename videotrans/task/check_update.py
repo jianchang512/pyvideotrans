@@ -2,12 +2,6 @@ import requests
 import sys
 from PySide6.QtCore import QThread
 
-
-
-
-
-
-
 class CheckUpdateWorker(QThread):
 
     def __init__(self, parent=None):

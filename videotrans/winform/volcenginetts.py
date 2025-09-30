@@ -16,7 +16,7 @@ def openwin():
         access = winobj.volcenginetts_access.text().strip()
         cluster = winobj.volcenginetts_cluster.text().strip()
         if not appid or not access or not cluster:
-            return tools.show_error('必须填写 appid access 和 cluster', False)
+            return tools.show_error('必须填写 appid access 和 cluster')
         config.params["volcenginetts_appid"] = appid
         config.params["volcenginetts_access"] = access
         config.params["volcenginetts_cluster"] = cluster

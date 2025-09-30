@@ -1,12 +1,13 @@
+
+
 def openwin():
+    from videotrans.task.simple_runnable_qt import run_in_threadpool
     import copy
     import json
     import os
-    import threading
-    import time
     from pathlib import Path
-
-    from PySide6.QtCore import QUrl, QThread, Signal, Qt
+    from videotrans.task.child_win_sign import SignThread
+    from PySide6.QtCore import QUrl, Qt
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
 
@@ -14,50 +15,6 @@ def openwin():
 
     from videotrans.util import tools
 
-    class SignThread(QThread):
-        uito = Signal(str)
-
-        def __init__(self, uuid_list=None, parent=None):
-            super().__init__(parent=parent)
-            self.uuid_list = uuid_list
-
-        def post(self, jsondata):
-            self.uito.emit(json.dumps(jsondata))
-
-        def run(self):
-            length = len(self.uuid_list)
-            while 1:
-                if len(self.uuid_list) == 0 or config.exit_soft:
-                    self.post({"type": "end"})
-                    time.sleep(1)
-                    return
-
-                for uuid in self.uuid_list:
-                    if uuid in config.stoped_uuid_set:
-                        try:
-                            self.uuid_list.remove(uuid)
-                        except:
-                            pass
-                        continue
-                    q = config.uuid_logs_queue.get(uuid)
-                    if not q:
-                        continue
-                    try:
-                        if q.empty():
-                            time.sleep(0.5)
-                            continue
-                        data = q.get(block=False)
-                        if not data:
-                            continue
-                        self.post(data)
-                        if data['type'] in ['error', 'succeed']:
-                            self.uuid_list.remove(uuid)
-                            self.post(
-                                {"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
-                            config.stoped_uuid_set.add(uuid)
-                            del config.uuid_logs_queue[uuid]
-                    except:
-                        pass
 
     # ==================== 语言字典 (完整版) ====================
     langname_dict = {
@@ -141,12 +98,11 @@ def openwin():
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
-            return tools.show_error(f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen',
-                                    False)
+            return tools.show_error(f"该角色不支持试听" if config.defaulelang == 'zh' else 'The voice is not support listen')
         text = config.params[f'listen_text_{lang}']
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
-            return tools.show_error(config.transobj['mustberole'], False)
+            return tools.show_error(config.transobj['mustberole'])
         voice_dir = config.TEMP_DIR + '/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
@@ -172,8 +128,8 @@ def openwin():
 
         if role == 'clone':
             return
-        threading.Thread(target=tts.run,
-                         kwargs={'language': lang, "queue_tts": [obj], "play": True, "is_test": True}).start()
+        kwargs={'language': lang, "queue_tts": [obj], "play": True, "is_test": True}
+        run_in_threadpool(tts.run,**kwargs)
 
     def change_by_lang(type):
         return type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]
@@ -182,7 +138,7 @@ def openwin():
         nonlocal RESULT_DIR,uuid
         if not winobj.srt_path:
             return tools.show_error(
-                '请先导入一个 SRT 字幕文件' if config.defaulelang == 'zh' else 'Please import an SRT subtitle file first.', False)
+                '请先导入一个 SRT 字幕文件' if config.defaulelang == 'zh' else 'Please import an SRT subtitle file first.')
 
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
@@ -192,8 +148,7 @@ def openwin():
         tts_type = winobj.tts_type.currentIndex()
 
         if language == '-' or role in ['No', '-', '']:
-            return tools.show_error('必须选择一个默认角色' if config.defaulelang == 'zh' else 'A default role must be selected',
-                                    False)
+            return tools.show_error('必须选择一个默认角色' if config.defaulelang == 'zh' else 'A default role must be selected')
 
         if tts.is_input_api(tts_type=tts_type) is not True:
             return False
@@ -208,7 +163,7 @@ def openwin():
         else:
             code_list = [key for key, value in langname_dict.items() if value == language]
             if not code_list:
-                return tools.show_error(f'{language} is not support -1', False)
+                return tools.show_error(f'{language} is not support -1')
             langcode = code_list[0]
 
         if rate >= 0:

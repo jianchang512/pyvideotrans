@@ -1,11 +1,10 @@
 # 水印
 def openwin():
+    from videotrans.task.simple_runnable_qt import run_in_threadpool
     import json
     import os
-    import threading
     import time
     from pathlib import Path
-
     from PySide6.QtCore import QThread, Signal, QUrl
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
@@ -37,6 +36,7 @@ def openwin():
         def hebing_pro(self, protxt, video_time):
             percent = 0
             while 1:
+                if config.exit_soft:return
                 if self.end or percent >= 100:
                     return
                 if not os.path.exists(protxt):
@@ -64,6 +64,7 @@ def openwin():
                 self.post(type='jd', text=f'{self.percent * 100}%')
                 time.sleep(1)
 
+
         def run(self) -> None:
             os.chdir(RESULT_DIR)
             # 确保临时目录存在
@@ -83,7 +84,7 @@ def openwin():
 
                 position = positions[self.pos]
                 protxt = config.TEMP_HOME + f'/jd{time.time()}.txt'
-                threading.Thread(target=self.hebing_pro, args=(protxt, duration,)).start()
+                run_in_threadpool(self.hebing_pro,protxt,duration)
 
                 # 构建 FFmpeg 命令
                 ffmpeg_command = [

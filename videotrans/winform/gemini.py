@@ -55,7 +55,7 @@ def openwin():
         with Path(tools.get_prompt_file('gemini')).open('w', encoding='utf-8') as f:
             f.write(template)
         gemini_recogn_txt = 'gemini_recogn.txt' if config.defaulelang == 'zh' else 'gemini_recogn-en.txt'
-        with Path(config.ROOT_DIR + f'/videotrans/{gemini_recogn_txt}').open('w', encoding='utf-8') as f:
+        with Path(config.ROOT_DIR + f'/videotrans/prompts/recogn/{gemini_recogn_txt}').open('w', encoding='utf-8') as f:
             f.write(gemini_srtprompt)
         config.getset_params(config.params)
         winobj.close()

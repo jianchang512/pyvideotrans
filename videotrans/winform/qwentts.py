@@ -14,7 +14,7 @@ def openwin():
     def test():
         key = winobj.qwentts_key.text().strip()
         if not key:
-            tools.show_error("API Key is empty", False)
+            tools.show_error("API Key is empty")
             return
 
         model = winobj.qwentts_model.currentText()

@@ -1,4 +1,3 @@
-import os
 import logging
 import os
 import time
@@ -64,7 +63,6 @@ class FishTTS(BaseTTS):
                 f.write(response.content)
             time.sleep(1)
             if not os.path.exists(data_item['filename'] + ".wav"):
-                time.sleep(RETRY_DELAY)
                 raise RuntimeError(f'FishTTS合成声音失败-2')
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 

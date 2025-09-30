@@ -35,6 +35,11 @@ _temp_path = _root_path / _tmpname
 _temp_path.mkdir(parents=True, exist_ok=True)
 TEMP_DIR = _temp_path.as_posix()
 Path(TEMP_DIR + '/dubbing_cache').mkdir(exist_ok=True)
+Path(TEMP_DIR + '/translate_cache').mkdir(exist_ok=True)
+Path(ROOT_DIR + '/videotrans/prompts/srt').mkdir(parents=True, exist_ok=True)
+Path(ROOT_DIR + '/videotrans/prompts/text').mkdir(parents=True, exist_ok=True)
+Path(ROOT_DIR + '/videotrans/prompts/recogn').mkdir(parents=True, exist_ok=True)
+Path(ROOT_DIR + '/videotrans/prompts/recharge').mkdir(parents=True, exist_ok=True)
 # 日志目录 logs
 _logs_path = _root_path / "logs"
 _logs_path.mkdir(parents=True, exist_ok=True)
@@ -175,7 +180,7 @@ dubbing_role = {}
 ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv', 'ms', 'uk', 'cs', 'tl']
 codec_cache = {}
 
-
+OPENAITTS_ROLES="alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
 QWEN_TTS_ROLES='Cherry,Serena,Ethan,Chelsie,Sunny,Jada,Dylan'
 
 QWEN3_TTS_ROLES='Cherry,Ethan,Nofish,Jennifer,Ryan,Katerina,Elias,Jada,Dylan,Sunny,li,Marcus,Roy,Peter,Rocky,Kiki,Eric'
@@ -193,8 +198,6 @@ def parse_init(update_data=None):
         _defaulthomedir = ROOT_DIR + '/hometemp'
         Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
     default = {
-        "ai302_models": "gpt-4o-mini,gpt-4o,qwen-max,glm-4,yi-large,deepseek-chat,doubao-pro-128k,gemini-2.0-flash",
-        'qwenmt_model':"qwen-mt-turbo,qwen-mt-plus,qwen3-asr-flash,qwen-plus,qwen-turbo,qwen-plus-latest,qwen-turbo-latest",
         "homedir": _defaulthomedir,
         "lang": "",
         "Faster_Whisper_XXL": "",
@@ -204,6 +207,9 @@ def parse_init(update_data=None):
         "ffmpeg_cmd": "",
         "aisendsrt": False,
         "video_codec": 264,
+
+        "ai302_models": "gpt-4o-mini,gpt-4o,qwen-max,glm-4,yi-large,deepseek-chat,doubao-pro-128k,gemini-2.0-flash",
+        'qwenmt_model':"qwen-mt-turbo,qwen-mt-plus,qwen3-asr-flash,qwen-plus,qwen-turbo,qwen-plus-latest,qwen-turbo-latest",
         "openaitts_model": "tts-1,tts-1-hd,gpt-4o-mini-tts",
         "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe",
         "chatgpt_model": "gpt-4.1,gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4.5,o1,o1-pro,o3-mini,moonshot-v1-8k,deepseek-chat,deepseek-reasoner",
@@ -216,9 +222,10 @@ def parse_init(update_data=None):
         "guiji_model": "Qwen/Qwen3-8B,Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2-7B-Instruct",
         "zijiehuoshan_model": "",
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-whisper-small.en,distil-whisper-medium.en,distil-whisper-large-v2,distil-whisper-large-v3",
+
         "remove_silence": False,
         "vad": True,
-        "threshold": 0.5,
+        "threshold": 0.45,
         "min_speech_duration_ms": 0,
         "max_speech_duration_s": 5,
         "min_silence_duration_ms": 140,
@@ -230,7 +237,6 @@ def parse_init(update_data=None):
         "bgm_split_time": 300,
         "trans_thread": 20,
         "aitrans_thread": 50,
-        "retries": 2,
         "translation_wait": 0,
         "dubbing_wait": 1,
         "dubbing_thread": 6,
@@ -281,7 +287,7 @@ def parse_init(update_data=None):
         "backgroundcolor": "&h000000",
         "subtitle_position": 2,  # 对应 1到9 位置
         
-        "qwentts_role": "Cherry,Chelsie,Serena,Ethan,Nofish,Jennifer,Ryan,Katerina,Elias,Jada,Dylan,Sunny,li,Marcus,Roy,Peter,Rocky,Kiki,Eric",
+        "qwentts_role": QWEN3_TTS_ROLES,
         "qwentts_models":'qwen3-tts-flash,qwen-tts-latest,qwen-tts',
 
         "marginV": 10,
@@ -344,8 +350,6 @@ HOME_DIR = settings['homedir']
 # 家目录下的临时文件存储目录
 TEMP_HOME = settings['homedir'] + f"/{_tmpname}"
 Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
-## 用于 Faster_Whisper_XXL 渠道复制文件中状态标志
-copying = False
 
 # 语言代码文件是否存在
 _lang_path = _root_path / f'videotrans/language/{defaulelang}.json'
@@ -473,10 +477,10 @@ def getset_params(obj=None):
         "baidu_miyue": "",
         "chatgpt_api": "",
         "chatgpt_key": "",
-        "chatgpt_max_token": "4096",
+        "chatgpt_max_token": "8192",
         "chatgpt_model": _chatgpt_model_list[0],
         "chatgpt_template": "",
-        "chatgpt_temperature": "0.7",
+        "chatgpt_temperature": "1.0",
         "chatgpt_top_p": "1.0",
         "claude_api": "",
         "claude_key": "",
@@ -484,11 +488,11 @@ def getset_params(obj=None):
         "claude_template": "",
         "azure_api": "",
         "azure_key": "",
-        "azure_version": "2024-06-01",
+        "azure_version": "2025-04-01-preview",
         "azure_model": _azure_model_list[0],
         "azure_template": "",
         "gemini_key": "",
-        "gemini_model": "gemini-2.0-flash",
+        "gemini_model": "gemini-2.5-flash",
         "gemini_template": "",
         "gemini_ttsrole": "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat",
         "gemini_ttsstyle": "",
@@ -499,7 +503,7 @@ def getset_params(obj=None):
         "localllm_model": _localllm_model_list[0],
         "localllm_template": "",
         "localllm_max_token": "4096",
-        "localllm_temperature": "0.7",
+        "localllm_temperature": "1.0",
         "localllm_top_p": "1.0",
         "zhipu_key": "",
         "zhipu_model": _zhipuai_model_list[0],
@@ -512,11 +516,11 @@ def getset_params(obj=None):
         "deepseek_key": "",
         "deepseek_model": _deepseek_model_list[0],
         "deepseek_template": "",
-        "deepseek_max_token": "8092",
+        "deepseek_max_token": "8192",
         "openrouter_key": "",
         "openrouter_model": _openrouter_model_list[0],
         "openrouter_template": "",
-        "openrouter_max_token": "4096",
+        "openrouter_max_token": "8192",
         "zijiehuoshan_key": "",
         "zijiehuoshan_model": _zijiehuoshan_model_list[0],
         "zijiehuoshan_template": "",
@@ -542,7 +546,7 @@ def getset_params(obj=None):
         "openaitts_key": "",
         "openaitts_model": "tts-1",
         "openaitts_instructions": "",
-        "openaitts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer,verse",
+        "openaitts_role": OPENAITTS_ROLES,
         "qwentts_key": "",
         "qwentts_model": "qwen-tts-latest",
         "qwentts_role": "Chelsie",
@@ -572,7 +576,7 @@ def getset_params(obj=None):
 
         "ai302tts_key": "",
         "ai302tts_model": "",
-        "ai302tts_role": "alloy,ash,coral,echo,fable,onyx,nova,sage,shimmer,verse",
+        "ai302tts_role": OPENAITTS_ROLES,
         "azure_speech_region": "",
         "azure_speech_key": "",
         "chatterbox_url": "",
@@ -620,7 +624,7 @@ def getset_params(obj=None):
         "dubb_volume_rate": 0,
     }
     # 创建默认提示词文件
-    Path(ROOT_DIR + '/videotrans/prompts/srt').mkdir(parents=True, exist_ok=True)
+
     try:
         if Path(ROOT_DIR + "/videotrans/params.json").exists():
             default.update(json.loads(Path(ROOT_DIR + "/videotrans/params.json").read_text(encoding='utf-8')))
@@ -640,12 +644,19 @@ parse_init(settings)
 
 # gemini 语音识别提示词
 _gemini_recogn_txt = 'gemini_recogn.txt' if defaulelang == 'zh' else 'gemini_recogn-en.txt'
-if Path(ROOT_DIR + f'/videotrans/{_gemini_recogn_txt}').exists():
-    params['gemini_srtprompt'] = Path(ROOT_DIR + f'/videotrans/{_gemini_recogn_txt}').read_text(encoding='utf-8')
+if Path(ROOT_DIR + f'/videotrans/prompts/recogn/{_gemini_recogn_txt}').exists():
+    params['gemini_srtprompt'] = Path(ROOT_DIR + f'/videotrans/prompts/recogn/{_gemini_recogn_txt}').read_text(encoding='utf-8')
 
 POSTION_ASS_KV = {
-    7: "left-top", 8: "top", 9: "right-top",
-    4: "left-center", 5: "center", 6: "right-center",
-    1: "left-bottom", 2: "bottom", 3: "right-bottom"
+    7: "left-top",
+    8: "top",
+    9: "right-top",
+    4: "left-center",
+    5: "center",
+    6: "right-center",
+    1: "left-bottom",
+    2: "bottom",
+    3: "right-bottom"
 }
+POSTION_ASS_INDEX=list(POSTION_ASS_KV.keys())
 POSTION_ASS_VK = {v: k for k, v in POSTION_ASS_KV.items()}

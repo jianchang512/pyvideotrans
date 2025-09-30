@@ -1,4 +1,4 @@
-import shutil
+from PySide6.QtWidgets import QWidget, QLineEdit, QComboBox, QCheckBox
 
 
 def format_milliseconds(milliseconds):
@@ -33,10 +33,11 @@ def format_milliseconds(milliseconds):
 
 # 视频 字幕 音频 合并
 def openwin():
+    from videotrans.task.simple_runnable_qt import run_in_threadpool
+    import shutil
     import json
     import os
 
-    import threading
     import time
     from pathlib import Path
     from PySide6.QtCore import QThread, Signal, QUrl
@@ -57,6 +58,7 @@ def openwin():
         def __init__(self, *, parent=None, video=None, audio=None, srt=None, saveraw=True, is_soft=False, language=None,
                      maxlen=30, audio_process=0,remain_hr=False):
             super().__init__(parent=parent)
+            self.winobj=parent
             self.video = video
             self.audio = audio
             self.srt = srt
@@ -106,12 +108,38 @@ def openwin():
                     percent += tmp1
                 percent=min(percent,99)
                 self.post(type='jd', text=f'{percent:.2f}%')
-                time.sleep(1)
+            time.sleep(1)
+
+        def _save_set(self):
+            # 保存各项配置
+             ysphb = {
+                "ysphb_replace": self.winobj.ysphb_replace.isChecked(),
+                "audio_process": self.winobj.audio_process.currentIndex(),
+                "ysphb_maxlen": self.winobj.ysphb_maxlen.text(),
+                "remain_hr": self.winobj.remain_hr.isChecked(),
+                "ysphb_issoft": self.winobj.ysphb_issoft.isChecked(),
+                "language":  self.winobj.language.currentIndex(),
+                "position": self.winobj.position.currentIndex(),
+                "marginL":  self.winobj.marginL.text(),
+                "marginV": self.winobj.marginV.text(),
+                "marginR": self.winobj.marginR.text(),
+                "outline": self.winobj.outline.text(),
+                "shadow": self.winobj.shadow.text(),
+                "font_size_edit": self.winobj.font_size_edit.text(),
+                "ysphb_borderstyle": self.winobj.ysphb_borderstyle.isChecked(),
+                "selected_font": self.winobj.selected_font.family(),
+                "selected_color":   self.winobj.qcolor_to_ass_color(self.winobj.selected_color, type='fc'),
+                "selected_backgroundcolor": self.winobj.qcolor_to_ass_color(self.winobj.selected_backgroundcolor, type='bg'),
+                "selected_bordercolor": self.winobj.qcolor_to_ass_color(self.winobj.selected_bordercolor, type='bg')
+             }
+             with open(f'{config.ROOT_DIR}/videotrans/vas.json','w',encoding='utf-8') as f:
+                import json
+                f.write(json.dumps(ysphb,ensure_ascii=False))
+             return ysphb
 
         def run(self):
             try:
                 # 有新的需要插入的音频，才涉及到 保留原声音 、 截断、加速、定格、声音混合等，才需要处理音频、分离无声视频
-                print('11111111')
                 if self.audio:
                     ext = self.audio.split('.')[-1].lower()
                     audio_time = int(tools.get_audio_time(self.audio) * 1000)
@@ -215,6 +243,7 @@ def openwin():
                         self.post(type='ok', text=self.file)
                         self.is_end=True
                         shutil.copy2(audiovideoend_mp4,self.file)
+                        self._save_set()
                         return
                     self.video=audiovideoend_mp4
                 # 软字幕
@@ -241,6 +270,7 @@ def openwin():
                         f"language={subtitle_language}",
                         self.file
                     ]
+                    self._save_set()
                 else:
                     # 硬字幕
                     sublist = tools.get_subtitle_from_srt(self.srt, is_file=True)
@@ -258,7 +288,7 @@ def openwin():
                     with Path(tmpsrt).open('w', encoding='utf-8') as f:
                         f.write(srt_string.strip())
                     assfile = config.TEMP_HOME + f"/vasrt{time.time()}.ass"
-                    save_ass(tmpsrt, assfile)
+                    self.save_ass(tmpsrt, assfile)
                     os.chdir(config.TEMP_HOME)
                     cmd += [
                         '-c:v',
@@ -271,7 +301,7 @@ def openwin():
                         config.settings['preset'],
                         self.file
                     ]
-                threading.Thread(target=self.hebing_pro, args=(protxt, self.video_time,)).start()
+                run_in_threadpool(self.hebing_pro,protxt,self.video_time)
                 tools.runffmpeg(cmd)
                 self.post(type='ok', text=self.file)
                 self.is_end=True
@@ -279,44 +309,39 @@ def openwin():
                 self.post(type='error', text=str(e))
 
 
-    def save_ass(file_path, ass_file):
-        with open(ass_file, 'w', encoding='utf-8') as file:
-            # 写入 ASS 文件的头部信息
-            stem = Path(file_path).stem
-            file.write("[Script Info]\n")
-            file.write(f"Title: {stem}\n")
-            file.write(f"Original Script: {stem}\n")
-            file.write("ScriptType: v4.00+\n")
-            file.write("PlayResX: 384\nPlayResY: 288\n")
-            file.write("ScaledBorderAndShadow: yes\n")
-            file.write("YCbCr Matrix: None\n")
-            file.write("\n[V4+ Styles]\n")
-            file.write(
-                f"Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
-            left, right, vbottom = winobj.marginL.text(), winobj.marginR.text(), winobj.marginV.text()
-            align = config.POSTION_ASS_VK.get(winobj.position.currentText(), 2)
-            shadow = winobj.shadow.text()
-            outline = winobj.outline.text()
+        def save_ass(self,file_path, ass_file):
+            ysphb=self._save_set()
+            with open(ass_file, 'w', encoding='utf-8') as file:
+                # 写入 ASS 文件的头部信息
+                stem = Path(file_path).stem
+                file.write("[Script Info]\n")
+                file.write(f"Title: {stem}\n")
+                file.write(f"Original Script: {stem}\n")
+                file.write("ScriptType: v4.00+\n")
+                file.write("PlayResX: 384\nPlayResY: 288\n")
+                file.write("ScaledBorderAndShadow: yes\n")
+                file.write("YCbCr Matrix: None\n")
+                file.write("\n[V4+ Styles]\n")
+                file.write(
+                    f"Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
 
-            bgcolor = winobj.qcolor_to_ass_color(winobj.selected_backgroundcolor, type='bg')
-            bdcolor = winobj.qcolor_to_ass_color(winobj.selected_bordercolor, type='bd')
-            # 不同字幕渲染器为差异兼容
-            if winobj.ysphb_borderstyle.isChecked():
-                bdcolor = bgcolor
-            fontcolor = winobj.qcolor_to_ass_color(winobj.selected_color, type='fc')
+                align = config.POSTION_ASS_INDEX[ysphb["position"]]
+                # 不同字幕渲染器为差异兼容
+                if ysphb["ysphb_borderstyle"]:
+                    ysphb["selected_bordercolor"] = ysphb["selected_backgroundcolor"]
 
-            file.write(
-                f'Style: Default,{winobj.selected_font.family()},{winobj.font_size_edit.text() if winobj.font_size_edit.text() else "20"},{fontcolor},{fontcolor},{bdcolor},{bgcolor},{int(winobj.selected_font.bold())},{int(winobj.selected_font.italic())},0,0,100,100,0,0,{3 if winobj.ysphb_borderstyle.isChecked() else 1},{outline},{shadow},{align},{left},{right},{vbottom},1\n')
-            file.write("\n[Events]\n")
 
-            file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
-            srt_list = tools.get_subtitle_from_srt(file_path, is_file=True)
-            for it in srt_list:
-                start_str = format_milliseconds(it['start_time'])
-                end_str = format_milliseconds(it['end_time'])
-                text = it['text'].replace("\n", "\\N")
-                file.write(f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{text}\n")
-        return True
+                file.write(f'Style: Default,{ysphb["selected_font"]},{ysphb["font_size_edit"]},{ysphb["selected_color"]},{ysphb["selected_color"]},{ysphb["selected_bordercolor"]},{ysphb["selected_backgroundcolor"]},{int(self.winobj.selected_font.bold())},{int(self.winobj.selected_font.italic())},0,0,100,100,0,0,{3 if ysphb["ysphb_borderstyle"] else 1},{ysphb["outline"]},{ysphb["shadow"]},{align},{ysphb["marginL"]},{ysphb["marginR"]},{ysphb["marginV"]},1\n')
+                file.write("\n[Events]\n")
+
+                file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
+                srt_list = tools.get_subtitle_from_srt(file_path, is_file=True)
+                for it in srt_list:
+                    start_str = format_milliseconds(it['start_time'])
+                    end_str = format_milliseconds(it['end_time'])
+                    text = it['text'].replace("\n", "\\N")
+                    file.write(f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{text}\n")
+            return True
 
     def feed(d):
         if winobj.has_done:
@@ -380,11 +405,11 @@ def openwin():
         except Exception:
             pass
         if not video:
-            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected', False)
+            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected')
             return
         if not audio and not srt:
             tools.show_error(
-                '音频和视频至少要选择一个' if config.defaulelang == 'zh' else 'Choose at least one for audio and video', False)
+                '音频和视频至少要选择一个' if config.defaulelang == 'zh' else 'Choose at least one for audio and video')
             return
 
         winobj.ysphb_startbtn.setText(
@@ -426,4 +451,35 @@ def openwin():
     winobj.ysphb_opendir.clicked.connect(opendir)
     winobj.language.addItems(list(LANGNAME_DICT.values()))
     winobj.show()
-
+    def _init_ui():
+        cfg_file=f'{config.ROOT_DIR}/videotrans/vas.json'
+        if not Path(cfg_file).exists():
+            return
+        from PySide6.QtGui import QFont, QColor
+        with open(cfg_file, 'r', encoding='utf-8') as f:
+            import json
+            try:
+                ysphb=json.loads(f.read())
+            except json.decoder.JSONDecodeError:
+                return
+            for k,v in ysphb.items():
+                if k=='font_size_edit':
+                    continue
+                if k=='selected_font':
+                    winobj.selected_font = QFont(v, int(ysphb['font_size_edit']))  # 默认字体
+                elif k == 'selected_color':
+                    winobj.selected_color = QColor(ysphb[k].upper().replace('&H','#'))  # 默认颜色
+                elif k == 'selected_backgroundcolor':
+                    winobj.selected_backgroundcolor = QColor(ysphb[k].upper().replace('&H','#'))  # 默认颜色
+                elif k == 'selected_bordercolor':
+                    winobj.selected_bordercolor = QColor(ysphb[k].upper().replace('&H','#'))  # 默认颜色
+                else:
+                    widget = winobj.findChild(QWidget, k)
+                    if isinstance(widget, QLineEdit):
+                        widget.setText(str(v))
+                    elif isinstance(widget, QComboBox):
+                        widget.setCurrentIndex(int(v))
+                    elif isinstance(widget, QCheckBox):
+                        widget.setChecked(bool(v))
+            winobj._setfont()
+    _init_ui()

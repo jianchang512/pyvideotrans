@@ -51,7 +51,7 @@ class SpeechToText(BaseTask):
         while 1:
             if Path(self.cfg['shibie_audio']).exists():
                 break
-            time.sleep(1)
+            time.sleep(0.5)
         try:
             if self.cfg.get('remove_noise'):
                 self._signal(
@@ -73,10 +73,6 @@ class SpeechToText(BaseTask):
                 if Path(txt_file).exists():
                     cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
 
-                while 1:
-                    if not config.copying:
-                        break
-                    time.sleep(1)
                 outsrt_file = self.cfg['target_dir'] + '/' + Path(self.cfg['shibie_audio']).stem + ".srt"
                 cmdstr = " ".join(cmd)
                 config.logger.info(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg["target_sub"]=}')
