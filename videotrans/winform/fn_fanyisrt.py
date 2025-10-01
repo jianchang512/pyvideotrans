@@ -272,57 +272,47 @@ def openwin():
             config.settings['aisendsrt'] = False
 
     from videotrans.component import Fanyisrt
-    try:
-        winobj = config.child_forms.get('fanyiform')
 
-        if winobj is not None:
-            winobj.show()
-            update_target_language()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
+    winobj = Fanyisrt()
+    config.child_forms['fn_fanyisrt'] = winobj
+    winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
+    winobj.fanyi_translate_type.setCurrentIndex(int(config.params.get('trans_translate_type', 0)))
 
-        winobj = Fanyisrt()
-        config.child_forms['fanyiform'] = winobj
-        winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
-        winobj.fanyi_translate_type.setCurrentIndex(int(config.params.get('trans_translate_type', 0)))
+    update_target_language()
+    winobj.fanyi_source.addItems(['-'] + list(translator.LANGNAME_DICT.values()))
+    winobj.fanyi_import.clicked.connect(fanyi_import_fun)
+    winobj.fanyi_start.clicked.connect(fanyi_start_fun)
+    winobj.fanyi_stop.clicked.connect(pause_trans)
 
-        update_target_language()
-        winobj.fanyi_source.addItems(['-'] + list(translator.LANGNAME_DICT.values()))
-        winobj.fanyi_import.clicked.connect(fanyi_import_fun)
-        winobj.fanyi_start.clicked.connect(fanyi_start_fun)
-        winobj.fanyi_stop.clicked.connect(pause_trans)
+    winobj.fanyi_source.setCurrentIndex(config.params.get("trans_source_language", 0))
+    winobj.fanyi_target.setCurrentIndex(config.params.get("trans_target_language", 0))
+    winobj.out_format.setCurrentIndex(config.params.get("trans_out_format", 0))
 
-        winobj.fanyi_source.setCurrentIndex(config.params.get("trans_source_language", 0))
-        winobj.fanyi_target.setCurrentIndex(config.params.get("trans_target_language", 0))
-        winobj.out_format.setCurrentIndex(config.params.get("trans_out_format", 0))
+    winobj.fanyi_target.currentTextChanged.connect(target_lang_change)
 
-        winobj.fanyi_target.currentTextChanged.connect(target_lang_change)
+    show_model_list()
+    winobj.fanyi_translate_type.currentIndexChanged.connect(translate_type_change)
 
-        show_model_list()
-        winobj.fanyi_translate_type.currentIndexChanged.connect(translate_type_change)
+    winobj.fanyi_sourcetext = QPlainTextEdit()
+    sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+    sizePolicy.setHorizontalStretch(0)
+    sizePolicy.setVerticalStretch(0)
 
-        winobj.fanyi_sourcetext = QPlainTextEdit()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
+    winobj.fanyi_sourcetext.setSizePolicy(sizePolicy)
+    winobj.fanyi_sourcetext.setMinimumSize(300, 0)
+    winobj.fanyi_proxy.setText(config.proxy)
 
-        winobj.fanyi_sourcetext.setSizePolicy(sizePolicy)
-        winobj.fanyi_sourcetext.setMinimumSize(300, 0)
-        winobj.fanyi_proxy.setText(config.proxy)
+    winobj.fanyi_sourcetext.setPlaceholderText(config.transobj['tuodongfanyi'])
+    winobj.fanyi_sourcetext.setToolTip(config.transobj['tuodongfanyi'])
+    winobj.fanyi_sourcetext.setReadOnly(True)
 
-        winobj.fanyi_sourcetext.setPlaceholderText(config.transobj['tuodongfanyi'])
-        winobj.fanyi_sourcetext.setToolTip(config.transobj['tuodongfanyi'])
-        winobj.fanyi_sourcetext.setReadOnly(True)
+    winobj.fanyi_layout.insertWidget(0, winobj.fanyi_sourcetext)
+    winobj.daochu.clicked.connect(fanyi_save_fun)
+    winobj.fanyi_model_list.currentTextChanged.connect(model_change)
+    winobj.loglabel.clicked.connect(show_detail_error)
+    winobj.exportsrt.clicked.connect(export_srt)
+    winobj.glossary.clicked.connect(lambda: tools.show_glossary_editor(winobj))
+    winobj.aisendsrt.toggled.connect(checkbox_state_changed)
 
-        winobj.fanyi_layout.insertWidget(0, winobj.fanyi_sourcetext)
-        winobj.daochu.clicked.connect(fanyi_save_fun)
-        winobj.fanyi_model_list.currentTextChanged.connect(model_change)
-        winobj.loglabel.clicked.connect(show_detail_error)
-        winobj.exportsrt.clicked.connect(export_srt)
-        winobj.glossary.clicked.connect(lambda: tools.show_glossary_editor(winobj))
-        winobj.aisendsrt.toggled.connect(checkbox_state_changed)
+    winobj.show()
 
-        winobj.show()
-    except Exception as e:
-        print(e)

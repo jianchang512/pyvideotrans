@@ -88,15 +88,9 @@ def openwin():
         winobj.close()
 
     from videotrans.component import F5TTSForm
-    winobj = config.child_forms.get('f5ttsw')
     Path(config.ROOT_DIR + "/f5-tts").mkdir(exist_ok=True)
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = F5TTSForm()
-    config.child_forms['f5ttsw'] = winobj
+    config.child_forms['f5tts'] = winobj
     if config.params["f5tts_url"]:
         winobj.api_url.setText(config.params["f5tts_url"])
     if config.params["f5tts_role"]:

@@ -41,14 +41,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import LibreForm
-    winobj = config.child_forms.get('librew')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = LibreForm()
-    config.child_forms['librew'] = winobj
+    config.child_forms['libre'] = winobj
     if config.params["libre_address"]:
         winobj.address.setText(config.params["libre_address"])
     if config.params["libre_key"]:

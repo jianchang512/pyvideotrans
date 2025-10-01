@@ -60,35 +60,13 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['guiji_model']
-        allmodels = config.settings['guiji_model'].split(',')
-        winobj.guiji_model.clear()
-        winobj.guiji_model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["guiji_key"]:
-            winobj.guiji_key.setText(config.params["guiji_key"])
-        if config.params["guiji_model"]:
-            winobj.guiji_model.setCurrentText(config.params["guiji_model"])
-        if config.params["guiji_template"]:
-            winobj.template.setPlainText(config.params["guiji_template"])
-        if config.params["guiji_max_token"]:
-            winobj.max_token.setText(config.params["guiji_max_token"])
 
     from videotrans.component import SiliconflowForm
-    winobj = config.child_forms.get('siliconfloww')
     config.params["guiji_template"] = tools.get_prompt('zhipuai')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = SiliconflowForm()
-    config.child_forms['siliconfloww'] = winobj
-    update_ui()
+    config.child_forms['siliconflow'] = winobj
+    winobj.update_ui()
     winobj.set.clicked.connect(save)
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.test.clicked.connect(test)

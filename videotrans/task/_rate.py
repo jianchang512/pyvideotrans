@@ -113,6 +113,18 @@ class SpeedRate:
         self.max_audio_speed_rate = 100
         self.max_video_pts_rate = 10
         self.source_video_fps = 30
+        _cfg_max_audio_speed_rate=f'{config.ROOT_DIR}/videotrans/max_audio_speed_rate.txt'
+        _cfg_max_video_pts_rate=f'{config.ROOT_DIR}/videotrans/max_video_pts_rate.txt'
+        if Path(_cfg_max_audio_speed_rate).exists():
+            try:
+                self.max_audio_speed_rate=int(Path(_cfg_max_audio_speed_rate).read_text())
+            except Exception as e:
+                config.logger.exception(f'读取自定义 max_audio_speed_rate 值时出错，忽略:{e}',exc_info=True)
+        if Path(_cfg_max_video_pts_rate).exists():
+            try:
+                self.max_video_pts_rate=int(Path(_cfg_max_video_pts_rate).read_text())
+            except Exception as e:
+                config.logger.exception(f'读取自定义 max_video_pts_rate 值时出错，忽略:{e}',exc_info=True)
 
         # 检测并设置可用的音频变速滤镜
         self.audio_speed_filter = self._check_ffmpeg_filters()

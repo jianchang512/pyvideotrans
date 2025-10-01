@@ -72,8 +72,8 @@ def split_audio(file_path):
     segment_length = 300
     try:
         segment_length = int(config.settings['bgm_split_time'])
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)
     output_folder = Path(config.TEMP_DIR) / "separate"
     output_folder.mkdir(parents=True, exist_ok=True)
     output_folder = output_folder.as_posix()

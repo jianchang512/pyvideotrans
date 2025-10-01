@@ -1,6 +1,5 @@
 # 高级设置
 def openwin():
-    import json
 
     from PySide6.QtCore import QTimer
     from PySide6.QtWidgets import QMessageBox, QLineEdit, QPlainTextEdit, QPushButton, QCheckBox, QComboBox
@@ -50,14 +49,10 @@ def openwin():
                     line_edit_dict[name] = line_edit.currentText()
 
         line_edit_dict['homedir'] = winobj.homedir_btn.text()
-        try:
-            config.parse_init(line_edit_dict)
-        except Exception as e:
-            return tools.show_error(str(e))
-        else:
-            config.settings = line_edit_dict
-            if shoud_model_list_sign:
-                tools.set_process(text="", type='refreshmodel_list')
+        config.parse_init(line_edit_dict)
+        config.settings = line_edit_dict
+        if shoud_model_list_sign:
+            tools.set_process(text="", type='refreshmodel_list')
 
         winobj.close()
 

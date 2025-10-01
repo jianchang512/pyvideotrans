@@ -89,6 +89,22 @@ class Ui_ai302form(object):
         self.retranslateUi(ai302form)
         QtCore.QMetaObject.connectSlotsByName(ai302form)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['ai302_models']
+        allmodels = config.settings['ai302_models'].split(',')
+
+        self.ai302_model.clear()
+        self.ai302_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["ai302_key"]:
+            self.ai302_key.setText(config.params["ai302_key"])
+        if config.params["ai302_model"] and config.params["ai302_model"] in allmodels:
+            self.ai302_model.setCurrentText(config.params["ai302_model"])
+        if config.params["ai302_template"]:
+            self.ai302_template.setPlainText(config.params["ai302_template"])
     def retranslateUi(self, ai302form):
         ai302form.setWindowTitle("302.ai 接入翻译和配音渠道配置")
         self.label_3.setText('选择模型')

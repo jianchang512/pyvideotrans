@@ -277,35 +277,26 @@ class WinActionSub:
         else:
             tools.open_url(title)
 
-    def remove_qsettings_data(self):
-        try:
-            Path(config.ROOT_DIR + "/videotrans/params.json").unlink(missing_ok=True)
-            Path(config.ROOT_DIR + "/videotrans/cfg.json").unlink(missing_ok=True)
-        except Exception:
-            pass
 
     def clearcache(self):
         if config.defaulelang == 'zh':
-            question = tools.show_popup('确认进行清理？', '清理后需要重启软件并重新填写设置菜单中各项配置信息')
-
+            question = tools.show_popup('确认进行清理？', '清理后需要重启软件，仅清理缓存和临时文件，密钥和配置信息请直接删除 videotrans 目录内的 .json 格式文件即可')
         else:
-            question = tools.show_popup('Confirm cleanup?', 'The software needs to be restarted after cleaning')
+            question = tools.show_popup('Confirm cleanup?', 'After cleaning, you need to restart the software. Only cache and temporary files are cleaned. For configuration information, please directly delete the .json in the videotrans folder.')
 
         if question == QtWidgets.QMessageBox.Yes:
-            shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
-            shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
-            self.remove_qsettings_data()
-            QtWidgets.QMessageBox.information(self.main,
-                                              'Please restart the software' if config.defaulelang != 'zh' else '请重启软件',
-                                              'Please restart the software' if config.defaulelang != 'zh' else '软件将自动关闭，请重新启动，设置中各项配置信息需重新填写')
-            self.main.close()
+            os.chdir(config.ROOT_DIR)
+            config.exit_soft=True
+            QTimer.singleShot(1000,self._clean_dir)
+
+    def _clean_dir(self):
+        shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
+        shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
+        self.main.restart_app()
+
 
     def get_mp4(self):
         allowed_exts = config.VIDEO_EXTS + config.AUDIO_EXITS
-        # if self.main.app_mode == 'tiqu':
-        #     allowed_exts = config.VIDEO_EXTS + config.AUDIO_EXITS
-        # else:
-        #     allowed_exts = config.VIDEO_EXTS
         format_str = " ".join(['*.' + f for f in allowed_exts])
         mp4_list = []
         if self.main.select_file_type.isChecked():
@@ -354,17 +345,14 @@ class WinActionSub:
     # 设置或删除代理
     def change_proxy(self, p):
         config.proxy = p.strip()
-        try:
-            if not config.proxy:
-                # 删除代理
-                tools.set_proxy('del')
-                config.settings['proxy'] = ''
-            elif re.match(r'https?://(\d+\.){3}\d+:\d+', config.proxy):
-                config.settings['proxy'] = config.proxy
-            config.parse_init(config.settings)
-        except Exception:
-            pass
-    
+        if not config.proxy:
+            # 删除代理
+            tools.set_proxy('del')
+            config.settings['proxy'] = ''
+        elif re.match(r'https?://(\d+\.){3}\d+:\d+', config.proxy):
+            config.settings['proxy'] = config.proxy
+        config.parse_init(config.settings)
+
     
 
     # 核对代理填写

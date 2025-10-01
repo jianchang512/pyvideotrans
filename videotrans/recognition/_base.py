@@ -30,10 +30,8 @@ class BaseRecogn(BaseCon):
     flag: List[str] = field(init=False)
     raws: List = field(default_factory=list, init=False)
     join_word_flag: str = field(init=False)
-    jianfan: bool = field(init=False)
-    maxlen: int = field(init=False)
-
-
+    jianfan: bool = field(init=False,default=False)
+    maxlen: int = field(init=False,default=20)
 
 
     def __post_init__(self):
@@ -60,8 +58,10 @@ class BaseRecogn(BaseCon):
     # run->_exec
     def run(self) -> Union[List[Dict], None]:
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
         try:
+
             if self.detect_language[:2].lower() in ['zh', 'ja', 'ko', 'yu']:
                 self.flag.append(" ")
                 self.join_word_flag = ""
@@ -71,6 +71,8 @@ class BaseRecogn(BaseCon):
         except Exception as e:
             config.logger.exception(e, exc_info=True)
             raise
+
+
 
     def _exec(self) -> Union[List[Dict], None]:
         pass

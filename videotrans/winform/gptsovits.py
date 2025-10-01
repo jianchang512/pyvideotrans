@@ -86,14 +86,9 @@ def openwin():
         winobj.close()
 
     from videotrans.component import GPTSoVITSForm
-    winobj = config.child_forms.get('gptsovitsw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
+
     winobj = GPTSoVITSForm()
-    config.child_forms['gptsovitsw'] = winobj
+    config.child_forms['gptsovits'] = winobj
     if config.params["gptsovits_url"]:
         winobj.api_url.setText(config.params["gptsovits_url"])
     if config.params["gptsovits_extra"]:

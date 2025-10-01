@@ -48,17 +48,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import ChatttsForm
-    winobj = config.child_forms.get('chatttsw')
-    if winobj is not None:
-        config.settings = config.parse_init()
-        if config.settings["chattts_voice"]:
-            winobj.chattts_voice.setText(config.settings["chattts_voice"])
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = ChatttsForm()
-    config.child_forms['chatttsw'] = winobj
+    config.child_forms['chattts'] = winobj
 
     if config.params["chattts_api"]:
         winobj.chattts_address.setText(config.params["chattts_api"])

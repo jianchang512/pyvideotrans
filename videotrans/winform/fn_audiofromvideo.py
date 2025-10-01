@@ -1,5 +1,8 @@
 # 从视频分离音频
+
+
 def openwin():
+    from videotrans.configure._except import get_msg_from_except
     import json
     import os
     from pathlib import Path
@@ -54,7 +57,7 @@ def openwin():
                     jd = round((i + 1) * 100 / len(self.videourls), 2)
                     self.post(type='jd', text=f'{jd}%')
             except Exception as e:
-                self.post(type='error', text=str(e))
+                self.post(type='error', text=get_msg_from_except(e))
             else:
                 self.post(type="ok", text='Ended')
 
@@ -110,18 +113,9 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import GetaudioForm
-    try:
-        winobj = config.child_forms.get('audioform')
-        if winobj is not None:
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
-        winobj = GetaudioForm()
-        config.child_forms['audioform'] = winobj
-        winobj.videobtn.clicked.connect(lambda: get_file())
-        winobj.resultbtn.clicked.connect(opendir)
-        winobj.startbtn.clicked.connect(start)
-        winobj.show()
-    except Exception:
-        pass
+    winobj = GetaudioForm()
+    config.child_forms['fn_audiofromvideo'] = winobj
+    winobj.videobtn.clicked.connect(lambda: get_file())
+    winobj.resultbtn.clicked.connect(opendir)
+    winobj.startbtn.clicked.connect(start)
+    winobj.show()

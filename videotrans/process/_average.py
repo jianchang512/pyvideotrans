@@ -13,7 +13,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
     has_cache = False
     try:
         has_cache = check_cache_and_setproxy(model_name, ROOT_DIR, proxy)
-    except Exception as e:
+    except Exception:
         pass
     if has_cache:
         msg = f"模型 {model_name} 已存在，直接使用" if defaulelang == 'zh' else f'Model {model_name} already exists, use it directly'

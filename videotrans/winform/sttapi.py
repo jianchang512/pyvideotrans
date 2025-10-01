@@ -39,14 +39,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import SttAPIForm
-    winobj = config.child_forms.get('sttw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = SttAPIForm()
-    config.child_forms['sttw'] = winobj
+    config.child_forms['sttapi'] = winobj
     if config.params["stt_url"]:
         winobj.stt_url.setText(config.params["stt_url"])
     if config.params["stt_model"]:

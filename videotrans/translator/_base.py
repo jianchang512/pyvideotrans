@@ -7,18 +7,19 @@ from typing import List,  Any, Optional, Union
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
 from videotrans.configure._except import TranslateSrtError
+from videotrans.translator import GOOGLE_INDEX
 from videotrans.util import tools
 
 
 @dataclass
 class BaseTrans(BaseCon):
     text_list: Union[List, str] = ""
-    target_language_name: str = ""
     inst: Optional[Any] = None  # Use Optional and Any for unknown types
-    source_code: str = ""
     uuid: Optional[str] = None
     is_test: bool = False
+    source_code: str = ""
     target_code: str = ""
+    target_language_name: str = "" # 对于AI渠道，这是目标语言的自然语言表达，其他渠道等于 target_code
 
     api_url: str = field(default="", init=False)
     error: str = field(default="", init=False)
@@ -33,6 +34,7 @@ class BaseTrans(BaseCon):
     wait_sec: float = field(init=False)
     is_srt: bool = field(init=False)
     aisendsrt: bool = field(init=False)
+    translate_type:int=0
 
     def __post_init__(self):
         super().__post_init__()
@@ -166,7 +168,7 @@ class BaseTrans(BaseCon):
         raws_list = tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
 
         # 双语翻译结果，只取最后一行
-        config.logger.info(f'{raws_list=}\n{result_srt_str_list=}\n')
+        config.logger.info(f'原始返回SRT翻译结果：{result_srt_str_list=}\n整理为list[dict]后的结果:{raws_list=}')
         for i, it in enumerate(raws_list):
             it['text'] = it['text'].strip().split("\n")
             if it['text']:
@@ -195,6 +197,6 @@ class BaseTrans(BaseCon):
 
     def _get_key(self, it):
         Path(config.TEMP_DIR + '/translate_cache').mkdir(parents=True, exist_ok=True)
-
-        str_for_hash=f'{self.__class__.__name__}-{self.api_url}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}'
-        return tools.get_md5(str_for_hash)
+        key_str=f'{self.translate_type}-{self.api_url}-{self.is_srt}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}';
+        print(f'{key_str=}')
+        return tools.get_md5(key_str)

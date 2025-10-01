@@ -34,14 +34,9 @@ def openwin():
         task.start()
 
     from videotrans.component import BaiduForm
-    winobj = config.child_forms.get('baiduw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
+
     winobj = BaiduForm()
-    config.child_forms['baiduw'] = winobj
+    config.child_forms['baidu'] = winobj
     if config.params["baidu_appid"]:
         winobj.baidu_appid.setText(config.params["baidu_appid"])
     if config.params["baidu_miyue"]:

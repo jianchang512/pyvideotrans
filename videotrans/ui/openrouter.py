@@ -114,6 +114,24 @@ class Ui_openrouterform(object):
         self.retranslateUi(openrouterform)
         QtCore.QMetaObject.connectSlotsByName(openrouterform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['openrouter_model']
+        allmodels = config.settings['openrouter_model'].split(',')
+        self.openrouter_model.clear()
+        self.openrouter_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["openrouter_key"]:
+            self.openrouter_key.setText(config.params["openrouter_key"])
+        if config.params["openrouter_model"]:
+            self.openrouter_model.setCurrentText(config.params["openrouter_model"])
+        if config.params["openrouter_template"]:
+            self.template.setPlainText(config.params["openrouter_template"])
+        if config.params["openrouter_max_token"]:
+            self.max_token.setText(config.params["openrouter_max_token"])
+
     def retranslateUi(self, openrouterform):
         openrouterform.setWindowTitle("OpenRouter")
         self.label_2.setText("OpenRouter Key")

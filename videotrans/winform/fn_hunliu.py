@@ -94,14 +94,8 @@ def openwin():
 
     from videotrans.component import HunliuForm
     try:
-        winobj = config.child_forms.get('hunliuform')
-        if winobj is not None:
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
         winobj = HunliuForm()
-        config.child_forms['hunliuform'] = winobj
+        config.child_forms['fn_hunliu'] = winobj
         winobj.hun_file1btn.clicked.connect(lambda: get_file(1))
         winobj.hun_file2btn.clicked.connect(lambda: get_file(2))
         winobj.hun_opendir.clicked.connect(opendir)

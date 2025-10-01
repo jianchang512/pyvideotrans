@@ -1,21 +1,17 @@
+
+
 def openwin():
+
     import json
     from pathlib import Path
-
     from PySide6 import QtWidgets
-    from PySide6.QtCore import QUrl
+    from PySide6.QtCore import QUrl,QTimer
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
-
-    from videotrans.component.component import DropButton
     from videotrans.configure import config
-
     from videotrans.util import tools
-
-    from videotrans.task.child_win_sign import SignThread
     from videotrans.task._speech2text import SpeechToText
     from videotrans import translator, recognition
     RESULT_DIR = config.HOME_DIR + f"/recogn"
-    Path(RESULT_DIR).mkdir(exist_ok=True)
     COPYSRT_TO_RAWDIR = RESULT_DIR
 
     def feed(d):
@@ -155,6 +151,7 @@ def openwin():
                     "copysrt_rawvideo": winobj.copysrt_rawvideo.isChecked()
                 }, obj=it)
                 config.prepare_queue.append(trk)
+            from videotrans.task.child_win_sign import SignThread
             th = SignThread(uuid_list=uuid_list, parent=winobj)
             th.uito.connect(feed)
             config.params["stt_source_language"] = winobj.shibie_language.currentIndex()
@@ -168,7 +165,8 @@ def openwin():
             th.start()
 
         except Exception as e:
-            tools.show_error(str(e))
+            from videotrans.configure._except import get_msg_from_except
+            tools.show_error(get_msg_from_except(e))
 
     def check_cuda(state):
         # 选中如果无效，则取消
@@ -309,16 +307,14 @@ def openwin():
             
 
     from videotrans.component import Recognform
-    try:
-        winobj = config.child_forms.get('recognform')
-        if winobj is not None:
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
 
-        winobj = Recognform()
-        config.child_forms['recognform'] = winobj
+
+    winobj = Recognform()
+    config.child_forms['fn_recogn'] = winobj
+    winobj.show()
+    def _bind_signal():
+        Path(RESULT_DIR).mkdir(exist_ok=True,parents=True)
+        from videotrans.component.component import DropButton
         winobj.shibie_dropbtn = DropButton(config.transobj['xuanzeyinshipin'])
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -327,7 +323,6 @@ def openwin():
         winobj.shibie_dropbtn.setSizePolicy(sizePolicy)
         winobj.shibie_dropbtn.setMinimumSize(0, 150)
         winobj.shibie_widget.insertWidget(0, winobj.shibie_dropbtn)
-
         winobj.shibie_language.addItems(list(translator.LANGNAME_DICT.values()))
         winobj.shibie_label.clicked.connect(click_reglabel)
 
@@ -379,11 +374,6 @@ def openwin():
         winobj.shibie_model.currentTextChanged.connect(
             lambda: check_model_name(winobj.shibie_recogn_type.currentIndex(), winobj.shibie_model.currentText()))
 
-
-        
         winobj.rephrase.toggled.connect(lambda checked:rephrase_fun(checked,'llm'))
         winobj.rephrase_local.toggled.connect(lambda checked:rephrase_fun(checked,'local'))
-        
-        winobj.show()
-    except Exception as e:
-        print(e)
+    QTimer.singleShot(100,_bind_signal)

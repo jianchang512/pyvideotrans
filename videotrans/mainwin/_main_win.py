@@ -14,7 +14,7 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QSizePolicy
+from PySide6.QtWidgets import QMainWindow, QPushButton, QToolBar, QSizePolicy, QApplication
 
 from videotrans import VERSION, recognition, tts
 from videotrans.configure import config
@@ -53,9 +53,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._retranslateUi_from_logic()
         self.show()
+        QApplication.processEvents()
         QTimer.singleShot(0, self._set_cache_set)
         QTimer.singleShot(0, self._start_subform)
-        QTimer.singleShot(400, self._bindsignal)
+        QTimer.singleShot(200, self._bindsignal)
         QTimer.singleShot(400, self.is_writable)
         # QThreadPool.globalInstance().start(lambda: tools.get_video_codec(True))
         run_in_threadpool(tools.get_video_codec,True)
@@ -228,7 +229,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_hebingsrt.setToolTip(
             '将2个字幕文件合并为一个，组成双语字幕' if config.defaulelang == 'zh' else 'Combine 2 subtitle files into one to form bilingual subtitles')
 
-        self.action_clearcache.setText("Clear Cache" if config.defaulelang != 'zh' else '清理缓存和配置')
+        self.action_clearcache.setText("Clear Cache" if config.defaulelang != 'zh' else '清理缓存')
 
         self.actionazure_key.setText("AzureGPT 翻译 " if config.defaulelang == 'zh' else 'AzureOpenAI Translation')
         self.actionazure_tts.setText("AzureAI 配音" if config.defaulelang == 'zh' else 'AzureAI TTS')
@@ -282,7 +283,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusBar.addPermanentWidget(self.container)
         self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.source_language.addItems(self.languagename)
-        self.target_language.addItems(["-"] + self.languagename[:-1])
+        self.target_language.addItems(["-"] + self.languagename)
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
 
         self.rawtitle = f"{config.transobj['softname']} {VERSION}  {'使用文档' if config.defaulelang == 'zh' else 'Documents'}  pyvideotrans.com "
@@ -401,8 +402,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if reply == QMessageBox.StandardButton.Yes:
             self.is_restarting = True
             self.close()  # 触发 closeEvent，进行清理，然后在 closeEvent 中重启
-        # self.is_restarting = True
-        # self.close()  # 触发 closeEvent，进行清理，然后在 closeEvent 中重启
 
     def _bindsignal(self):
         from videotrans.task.check_update import CheckUpdateWorker
@@ -534,67 +533,68 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.setCursor(Qt.PointingHandCursor)
         self.restart_btn.setCursor(Qt.PointingHandCursor)
 
-        from videotrans import winform
+
         self.action_biaozhun.triggered.connect(self.win_action.set_biaozhun)
         self.action_tiquzimu.triggered.connect(self.win_action.set_tiquzimu)
 
-        self.actionbaidu_key.triggered.connect(lambda: winform.get_win('baidu').openwin())
-        self.actionali_key.triggered.connect(lambda: winform.get_win('ali').openwin())
-        self.actionparakeet_key.triggered.connect(lambda: winform.get_win('parakeet').openwin())
-        self.actionsrtmultirole.triggered.connect(lambda: winform.get_win('fn_peiyinrole').openwin())
-        self.actionsubtitlescover.triggered.connect(lambda: winform.get_win('fn_subtitlescover').openwin())
-        self.actionazure_key.triggered.connect(lambda: winform.get_win('azure').openwin())
-        self.actionazure_tts.triggered.connect(lambda: winform.get_win('azuretts').openwin())
-        self.actiongemini_key.triggered.connect(lambda: winform.get_win('gemini').openwin())
-        self.actiontencent_key.triggered.connect(lambda: winform.get_win('tencent').openwin())
-        self.actionchatgpt_key.triggered.connect(lambda: winform.get_win('chatgpt').openwin())
-        self.actionclaude_key.triggered.connect(lambda: winform.get_win('claude').openwin())
-        self.actionlibretranslate_key.triggered.connect(lambda: winform.get_win('libre').openwin())
-        self.actionai302_key.triggered.connect(lambda: winform.get_win('ai302').openwin())
-        self.actionlocalllm_key.triggered.connect(lambda: winform.get_win('localllm').openwin())
-        self.actionzijiehuoshan_key.triggered.connect(lambda: winform.get_win('zijiehuoshan').openwin())
-        self.actiondeepL_key.triggered.connect(lambda: winform.get_win('deepL').openwin())
-        self.actionElevenlabs_key.triggered.connect(lambda: winform.get_win('elevenlabs').openwin())
-        self.actiondeepLX_address.triggered.connect(lambda: winform.get_win('deepLX').openwin())
-        self.actionott_address.triggered.connect(lambda: winform.get_win('ott').openwin())
-        self.actionclone_address.triggered.connect(lambda: winform.get_win('clone').openwin())
-        self.actionkokoro_address.triggered.connect(lambda: winform.get_win('kokoro').openwin())
-        self.actionchattts_address.triggered.connect(lambda: winform.get_win('chattts').openwin())
-        self.actiontts_api.triggered.connect(lambda: winform.get_win('ttsapi').openwin())
-        self.actionminimaxi_api.triggered.connect(lambda: winform.get_win('minimaxi').openwin())
-        self.actionrecognapi.triggered.connect(lambda: winform.get_win('recognapi').openwin())
-        self.actionsttapi.triggered.connect(lambda: winform.get_win('sttapi').openwin())
-        self.actiondeepgram.triggered.connect(lambda: winform.get_win('deepgram').openwin())
-        self.actiondoubao_api.triggered.connect(lambda: winform.get_win('doubao').openwin())
-        self.actiontrans_api.triggered.connect(lambda: winform.get_win('transapi').openwin())
-        self.actiontts_gptsovits.triggered.connect(lambda: winform.get_win('gptsovits').openwin())
-        self.actiontts_chatterbox.triggered.connect(lambda: winform.get_win('chatterbox').openwin())
-        self.actiontts_cosyvoice.triggered.connect(lambda: winform.get_win('cosyvoice').openwin())
-        self.actionopenaitts_key.triggered.connect(lambda: winform.get_win('openaitts').openwin())
-        self.actionqwentts_key.triggered.connect(lambda: winform.get_win('qwentts').openwin())
-        self.actionopenairecognapi_key.triggered.connect(lambda: winform.get_win('openairecognapi').openwin())
-        self.actiontts_fishtts.triggered.connect(lambda: winform.get_win('fishtts').openwin())
-        self.actiontts_f5tts.triggered.connect(lambda: winform.get_win('f5tts').openwin())
-        self.actiontts_volcengine.triggered.connect(lambda: winform.get_win('volcenginetts').openwin())
-        self.actionzhipuai_key.triggered.connect(lambda: winform.get_win('zhipuai').openwin())
-        self.actiondeepseek_key.triggered.connect(lambda: winform.get_win('deepseek').openwin())
-        self.actionqwenmt_key.triggered.connect(lambda: winform.get_win('qwenmt').openwin())
-        self.actionopenrouter_key.triggered.connect(lambda: winform.get_win('openrouter').openwin())
-        self.actionsiliconflow_key.triggered.connect(lambda: winform.get_win('siliconflow').openwin())
-        self.actionwatermark.triggered.connect(lambda: winform.get_win('fn_watermark').openwin())
-        self.actionsepar.triggered.connect(lambda: winform.get_win('fn_separate').openwin())
-        self.actionsetini.triggered.connect(lambda: winform.get_win('setini').openwin())
-        self.actionvideoandaudio.triggered.connect(lambda: winform.get_win('fn_videoandaudio').openwin())
-        self.actionvideoandsrt.triggered.connect(lambda: winform.get_win('fn_videoandsrt').openwin())
-        self.actionformatcover.triggered.connect(lambda: winform.get_win('fn_formatcover').openwin())
-        self.actionsubtitlescover.triggered.connect(lambda: winform.get_win('fn_subtitlescover').openwin())
-        self.action_hebingsrt.triggered.connect(lambda: winform.get_win('fn_hebingsrt').openwin())
-        self.action_yinshipinfenli.triggered.connect(lambda: winform.get_win('fn_audiofromvideo').openwin())
-        self.action_hun.triggered.connect(lambda: winform.get_win('fn_hunliu').openwin())
-        self.action_yingyinhebing.triggered.connect(lambda: winform.get_win('fn_vas').openwin())
-        self.action_fanyi.triggered.connect(lambda: winform.get_win('fn_fanyisrt').openwin())
-        self.action_yuyinshibie.triggered.connect(lambda: winform.get_win('fn_recogn').openwin())
-        self.action_yuyinhecheng.triggered.connect(lambda: winform.get_win('fn_peiyin').openwin())
+        self.actionbaidu_key.triggered.connect(lambda: self._open_winform('baidu'))
+        self.actionali_key.triggered.connect(lambda: self._open_winform('ali'))
+        self.actionparakeet_key.triggered.connect(lambda: self._open_winform('parakeet'))
+        self.actionsrtmultirole.triggered.connect(lambda: self._open_winform('fn_peiyinrole'))
+        self.actionsubtitlescover.triggered.connect(lambda: self._open_winform('fn_subtitlescover'))
+        self.actionazure_key.triggered.connect(lambda: self._open_winform('azure'))
+        self.actionazure_tts.triggered.connect(lambda: self._open_winform('azuretts'))
+        self.actiongemini_key.triggered.connect(lambda: self._open_winform('gemini'))
+        self.actiontencent_key.triggered.connect(lambda: self._open_winform('tencent'))
+        self.actionchatgpt_key.triggered.connect(lambda: self._open_winform('chatgpt'))
+        self.actionclaude_key.triggered.connect(lambda: self._open_winform('claude'))
+        self.actionlibretranslate_key.triggered.connect(lambda: self._open_winform('libre'))
+        self.actionai302_key.triggered.connect(lambda: self._open_winform('ai302'))
+        self.actionlocalllm_key.triggered.connect(lambda: self._open_winform('localllm'))
+        self.actionzijiehuoshan_key.triggered.connect(lambda: self._open_winform('zijiehuoshan'))
+        self.actiondeepL_key.triggered.connect(lambda: self._open_winform('deepL'))
+        self.actionElevenlabs_key.triggered.connect(lambda: self._open_winform('elevenlabs'))
+        self.actiondeepLX_address.triggered.connect(lambda: self._open_winform('deepLX'))
+        self.actionott_address.triggered.connect(lambda: self._open_winform('ott'))
+        self.actionclone_address.triggered.connect(lambda: self._open_winform('clone'))
+        self.actionkokoro_address.triggered.connect(lambda: self._open_winform('kokoro'))
+        self.actionchattts_address.triggered.connect(lambda: self._open_winform('chattts'))
+        self.actiontts_api.triggered.connect(lambda: self._open_winform('ttsapi'))
+        self.actionminimaxi_api.triggered.connect(lambda: self._open_winform('minimaxi'))
+        self.actionrecognapi.triggered.connect(lambda: self._open_winform('recognapi'))
+        self.actionsttapi.triggered.connect(lambda: self._open_winform('sttapi'))
+        self.actiondeepgram.triggered.connect(lambda: self._open_winform('deepgram'))
+        self.actiondoubao_api.triggered.connect(lambda: self._open_winform('doubao'))
+        self.actiontrans_api.triggered.connect(lambda: self._open_winform('transapi'))
+        self.actiontts_gptsovits.triggered.connect(lambda: self._open_winform('gptsovits'))
+        self.actiontts_chatterbox.triggered.connect(lambda: self._open_winform('chatterbox'))
+        self.actiontts_cosyvoice.triggered.connect(lambda: self._open_winform('cosyvoice'))
+        self.actionopenaitts_key.triggered.connect(lambda: self._open_winform('openaitts'))
+        self.actionqwentts_key.triggered.connect(lambda: self._open_winform('qwentts'))
+        self.actionopenairecognapi_key.triggered.connect(lambda: self._open_winform('openairecognapi'))
+        self.actiontts_fishtts.triggered.connect(lambda: self._open_winform('fishtts'))
+        self.actiontts_f5tts.triggered.connect(lambda: self._open_winform('f5tts'))
+        self.actiontts_volcengine.triggered.connect(lambda: self._open_winform('volcenginetts'))
+        self.actionzhipuai_key.triggered.connect(lambda: self._open_winform('zhipuai'))
+        self.actiondeepseek_key.triggered.connect(lambda: self._open_winform('deepseek'))
+        self.actionqwenmt_key.triggered.connect(lambda: self._open_winform('qwenmt'))
+        self.actionopenrouter_key.triggered.connect(lambda: self._open_winform('openrouter'))
+        self.actionsiliconflow_key.triggered.connect(lambda: self._open_winform('siliconflow'))
+        self.actionwatermark.triggered.connect(lambda: self._open_winform('fn_watermark'))
+        self.actionsepar.triggered.connect(lambda: self._open_winform('fn_separate'))
+        self.actionsetini.triggered.connect(lambda: self._open_winform('setini'))
+        self.actionvideoandaudio.triggered.connect(lambda: self._open_winform('fn_videoandaudio'))
+        self.actionvideoandsrt.triggered.connect(lambda: self._open_winform('fn_videoandsrt'))
+        self.actionformatcover.triggered.connect(lambda: self._open_winform('fn_formatcover'))
+        self.actionsubtitlescover.triggered.connect(lambda: self._open_winform('fn_subtitlescover'))
+        self.action_hebingsrt.triggered.connect(lambda: self._open_winform('fn_hebingsrt'))
+        self.action_yinshipinfenli.triggered.connect(lambda: self._open_winform('fn_audiofromvideo'))
+        self.action_hun.triggered.connect(lambda: self._open_winform('fn_hunliu'))
+        self.action_yingyinhebing.triggered.connect(lambda: self._open_winform('fn_vas'))
+        self.action_fanyi.triggered.connect(lambda: self._open_winform('fn_fanyisrt'))
+        self.action_yuyinshibie.triggered.connect(lambda :self._open_winform('fn_recogn'))
+
+        self.action_yuyinhecheng.triggered.connect(lambda: self._open_winform('fn_peiyin'))
         self.action_ffmpeg.triggered.connect(lambda: self.win_action.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.win_action.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.win_action.open_url('hfmirrorcom'))
@@ -616,6 +616,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
         except Exception:
             pass
+
+    # 打开缓慢
+    def _open_winform(self,name):
+        winobj = config.child_forms.get(name)
+        if winobj:
+            winobj.show()
+            if hasattr(winobj, 'update_ui'):
+                winobj.update_ui()
+            winobj.raise_()
+            winobj.activateWindow()
+            return
+        from videotrans import winform
+
+        QTimer.singleShot(0,winform.get_win(name).openwin)
 
     def is_writable(self):
         import uuid

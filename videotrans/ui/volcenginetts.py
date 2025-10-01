@@ -125,7 +125,14 @@ class Ui_volcengineform(object):
 
         self.retranslateUi(volcengineform)
         QtCore.QMetaObject.connectSlotsByName(volcengineform)
-
+    def update_ui(self):
+        from videotrans.configure import config
+        if config.params["volcenginetts_appid"]:
+            self.volcenginetts_appid.setText(config.params["volcenginetts_appid"])
+        if config.params["volcenginetts_access"]:
+            self.volcenginetts_access.setText(config.params["volcenginetts_access"])
+        if config.params["volcenginetts_cluster"]:
+            self.volcenginetts_cluster.setText(config.params["volcenginetts_cluster"])
     def retranslateUi(self, volcengineform):
         volcengineform.setWindowTitle("字节火山语音合成设置" if config.defaulelang == 'zh' else "Volcengine TTS Setting")
         self.label.setText("App id")

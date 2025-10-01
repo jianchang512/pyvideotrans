@@ -124,6 +124,25 @@ class Ui_qwenmtform(object):
         self.retranslateUi(qwenmtform)
         QtCore.QMetaObject.connectSlotsByName(qwenmtform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['qwenmt_model']
+        allmodels = config.settings['qwenmt_model'].split(',')
+        self.qwenmt_model.clear()
+        self.qwenmt_model.addItems([ it  for it in allmodels if not it.startswith('qwen3-asr')])
+        self.qwenmt_asr_model.addItems([ it  for it in allmodels if it.startswith('qwen3-asr')])
+        self.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["qwenmt_key"]:
+            self.qwenmt_key.setText(config.params["qwenmt_key"])
+        if config.params["qwenmt_domains"]:
+            self.qwenmt_domains.setText(config.params["qwenmt_domains"])
+        if config.params["qwenmt_model"]:
+            self.qwenmt_model.setCurrentText(config.params["qwenmt_model"])
+        if config.params["qwenmt_asr_model"]:
+            self.qwenmt_asr_model.setCurrentText(config.params["qwenmt_asr_model"])
+
     def retranslateUi(self, qwenmtform):
         qwenmtform.setWindowTitle("阿里百炼API/Qwen3-ASR AI" if config.defaulelang == 'zh' else "Ali-BaiLian API/Qwen3-ASR AI")
         self.label_2.setText("API Key")

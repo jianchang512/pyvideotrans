@@ -40,14 +40,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import TransapiForm
-    winobj = config.child_forms.get('transapiw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = TransapiForm()
-    config.child_forms['transapiw'] = winobj
+    config.child_forms['transapi'] = winobj
     if config.params["trans_api_url"]:
         winobj.api_url.setText(config.params["trans_api_url"])
     if config.params["trans_secret"]:

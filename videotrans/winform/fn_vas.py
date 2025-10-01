@@ -1,4 +1,3 @@
-from PySide6.QtWidgets import QWidget, QLineEdit, QComboBox, QCheckBox
 
 
 def format_milliseconds(milliseconds):
@@ -33,6 +32,10 @@ def format_milliseconds(milliseconds):
 
 # 视频 字幕 音频 合并
 def openwin():
+    from PySide6.QtWidgets import QWidget, QLineEdit, QComboBox, QCheckBox
+
+    from videotrans.configure._except import get_msg_from_except
+
     from videotrans.task.simple_runnable_qt import run_in_threadpool
     import shutil
     import json
@@ -306,7 +309,7 @@ def openwin():
                 self.post(type='ok', text=self.file)
                 self.is_end=True
             except Exception as e:
-                self.post(type='error', text=str(e))
+                self.post(type='error', text=get_msg_from_except(e))
 
 
         def save_ass(self,file_path, ass_file):
@@ -399,7 +402,7 @@ def openwin():
         is_soft = winobj.ysphb_issoft.isChecked()
         language = winobj.language.currentText()
         saveraw = winobj.ysphb_replace.isChecked()
-        maxlen = 30
+        maxlen = 20
         try:
             maxlen = int(winobj.ysphb_maxlen.text())
         except Exception:
@@ -436,14 +439,9 @@ def openwin():
     from videotrans.component import VASForm
     from videotrans.translator import LANGNAME_DICT
 
-    winobj = config.child_forms.get('vasform')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
+
     winobj = VASForm()
-    config.child_forms['vasform'] = winobj
+    config.child_forms['fn_vas'] = winobj
     winobj.ysphb_selectvideo.clicked.connect(lambda: get_file('video'))
     winobj.ysphb_selectwav.clicked.connect(lambda: get_file('wav'))
     winobj.ysphb_selectsrt.clicked.connect(lambda: get_file('srt'))

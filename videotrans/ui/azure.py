@@ -114,7 +114,25 @@ class Ui_azureform(object):
 
         self.retranslateUi(azureform)
         QtCore.QMetaObject.connectSlotsByName(azureform)
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['azure_model']
+        allmodels = config.settings['azure_model'].split(',')
+        self.azure_model.clear()
+        self.azure_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
 
+        if config.params["azure_key"]:
+            self.azure_key.setText(config.params["azure_key"])
+        if config.params["azure_api"]:
+            self.azure_api.setText(config.params["azure_api"])
+        if config.params["azure_version"]:
+            self.azure_version.setCurrentText(config.params["azure_version"])
+        if config.params["azure_model"] and config.params['azure_model'] in allmodels:
+            self.azure_model.setCurrentText(config.params["azure_model"])
+        if config.params["azure_template"]:
+            self.azure_template.setPlainText(config.params["azure_template"])
     def retranslateUi(self, azureform):
         azureform.setWindowTitle("AzureGPT")
         self.label_3.setText("Azure Model")

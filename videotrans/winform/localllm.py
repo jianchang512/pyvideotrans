@@ -81,40 +81,12 @@ def openwin():
         with  open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['localllm_model']
-        allmodels = config.settings['localllm_model'].split(',')
-        winobj.localllm_model.clear()
-        winobj.localllm_model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
-        if config.params["localllm_key"]:
-            winobj.localllm_key.setText(config.params["localllm_key"])
-        if config.params["localllm_api"]:
-            winobj.localllm_api.setText(config.params["localllm_api"])
-        if config.params["localllm_model"] and config.params["localllm_model"] in allmodels:
-            winobj.localllm_model.setCurrentText(config.params["localllm_model"])
-        if config.params["localllm_template"]:
-            winobj.localllm_template.setPlainText(config.params["localllm_template"])
-        if config.params["localllm_max_token"]:
-            winobj.localllm_max_token.setText(str(config.params["localllm_max_token"]))
-        if config.params["localllm_temperature"]:
-            winobj.localllm_temperature.setText(str(config.params["localllm_temperature"]))
-        if config.params["localllm_top_p"]:
-            winobj.localllm_top_p.setText(str(config.params["localllm_top_p"]))
 
     from videotrans.component import LocalLLMForm
-    winobj = config.child_forms.get('llmw')
     config.params["localllm_template"] = tools.get_prompt('localllm')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = LocalLLMForm()
-    config.child_forms['llmw'] = winobj
-    update_ui()
+    config.child_forms['localllm'] = winobj
+    winobj.update_ui()
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.set_localllm.clicked.connect(save_localllm)
     winobj.test_localllm.clicked.connect(test)

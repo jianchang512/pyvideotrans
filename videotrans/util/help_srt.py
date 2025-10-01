@@ -227,7 +227,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
         content = srtfile.strip()
 
     if len(content) < 1:
-        raise Exception(f"srt is empty:{srtfile=},{content=}")
+        raise RuntimeError(f"The srt subtitles were not read. The file may be empty or the format does not conform to the SRT specification\n:{srtfile=}\n{content=}")
     result = format_srt(copy.copy(content))
 
     # txt 文件转为一条字幕
@@ -300,8 +300,8 @@ def set_ass_font(srtfile=None):
                 outline=config.settings.get('outline', 1),
                 shadow=config.settings.get('shadow', 1),
                 subtitle_position=int(config.settings.get('subtitle_position', 2)),
-                marginL=int(config.settings.get('marginL', 10)),
-                marginR=int(config.settings.get('marginR', 10)),
+                marginL=int(config.settings.get('marginL', 0)),
+                marginR=int(config.settings.get('marginR', 0)),
                 marginV=int(config.settings.get('marginV', 10))
             )
         elif it.find('Dialogue: ') == 0:

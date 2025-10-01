@@ -111,6 +111,23 @@ class Ui_siliconflowform(object):
         self.retranslateUi(siliconflowform)
         QtCore.QMetaObject.connectSlotsByName(siliconflowform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['guiji_model']
+        allmodels = config.settings['guiji_model'].split(',')
+        self.guiji_model.clear()
+        self.guiji_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["guiji_key"]:
+            self.guiji_key.setText(config.params["guiji_key"])
+        if config.params["guiji_model"]:
+            self.guiji_model.setCurrentText(config.params["guiji_model"])
+        if config.params["guiji_template"]:
+            self.template.setPlainText(config.params["guiji_template"])
+        if config.params["guiji_max_token"]:
+            self.max_token.setText(config.params["guiji_max_token"])
     def retranslateUi(self, siliconflowform):
         siliconflowform.setWindowTitle("Siliconflow硅基流动AI模型")
 

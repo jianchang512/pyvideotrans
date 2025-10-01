@@ -56,37 +56,12 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['qwenmt_model']
-        allmodels = config.settings['qwenmt_model'].split(',')
-        winobj.qwenmt_model.clear()
-        winobj.qwenmt_model.addItems([ it  for it in allmodels if not it.startswith('qwen3-asr')])
-        winobj.qwenmt_asr_model.addItems([ it  for it in allmodels if it.startswith('qwen3-asr')])
-        winobj.edit_allmodels.setPlainText(allmodels_str)
-
-        if config.params["qwenmt_key"]:
-            winobj.qwenmt_key.setText(config.params["qwenmt_key"])
-        if config.params["qwenmt_domains"]:
-            winobj.qwenmt_domains.setText(config.params["qwenmt_domains"])
-        if config.params["qwenmt_model"]:
-            winobj.qwenmt_model.setCurrentText(config.params["qwenmt_model"])
-        if config.params["qwenmt_asr_model"]:
-            winobj.qwenmt_asr_model.setCurrentText(config.params["qwenmt_asr_model"])
 
 
     from videotrans.component import QwenmtForm
-    winobj = config.child_forms.get('qwenmtw')
-
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = QwenmtForm()
-    config.child_forms['qwenmtw'] = winobj
-    update_ui()
+    config.child_forms['qwenmt'] = winobj
+    winobj.update_ui()
     winobj.set.clicked.connect(save)
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.test.clicked.connect(test)

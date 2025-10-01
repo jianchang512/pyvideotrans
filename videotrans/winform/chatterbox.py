@@ -73,14 +73,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import ChatterboxForm
-    winobj = config.child_forms.get('chatterboxw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = ChatterboxForm()
-    config.child_forms['chatterboxw'] = winobj
+    config.child_forms['chatterbox'] = winobj
     if config.params["chatterbox_url"]:
         winobj.api_url.setText(config.params["chatterbox_url"])
     if config.params["chatterbox_role"]:

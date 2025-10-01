@@ -43,21 +43,12 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    def update_ui():
-        if config.params["parakeet_address"]:
-            winobj.parakeet_address.setText(config.params["parakeet_address"])
+
 
     from videotrans.component import ParakeetForm
-    winobj = config.child_forms.get('parakeet')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = ParakeetForm()
     config.child_forms['parakeet'] = winobj
-    update_ui()
+    winobj.update_ui()
     winobj.set_btn.clicked.connect(save_openairecognapi)
     winobj.test.clicked.connect(test)
     winobj.show()

@@ -1,5 +1,8 @@
 # 水印
+
+
 def openwin():
+    from videotrans.configure._except import get_msg_from_except
     from videotrans.task.simple_runnable_qt import run_in_threadpool
     import json
     import os
@@ -105,7 +108,7 @@ def openwin():
                 try:
                     tools.runffmpeg(ffmpeg_command)
                 except Exception as e:
-                    self.post(type='error', text=f'{str(e)}')
+                    self.post(type='error', text=get_msg_from_except(e))
                 finally:
                     self.percent += self.every_percent
                 self.post(type='jd', text=f'{self.percent * 100}%')
@@ -187,21 +190,14 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import WatermarkForm
-    try:
-        winobj = config.child_forms.get('waterform')
-        if winobj is not None:
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
-        winobj = WatermarkForm()
-        config.child_forms['waterform'] = winobj
 
-        winobj.videobtn.clicked.connect(lambda: get_file(1))
-        winobj.pngbtn.clicked.connect(lambda: get_file(2))
 
-        winobj.resultbtn.clicked.connect(opendir)
-        winobj.startbtn.clicked.connect(start)
-        winobj.show()
-    except Exception:
-        pass
+    winobj = WatermarkForm()
+    config.child_forms['fn_watermak'] = winobj
+
+    winobj.videobtn.clicked.connect(lambda: get_file(1))
+    winobj.pngbtn.clicked.connect(lambda: get_file(2))
+
+    winobj.resultbtn.clicked.connect(opendir)
+    winobj.startbtn.clicked.connect(start)
+    winobj.show()

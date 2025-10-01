@@ -46,21 +46,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['ai302_models']
-        allmodels = config.settings['ai302_models'].split(',')
 
-        winobj.ai302_model.clear()
-        winobj.ai302_model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
-
-        if config.params["ai302_key"]:
-            winobj.ai302_key.setText(config.params["ai302_key"])
-        if config.params["ai302_model"] and config.params["ai302_model"] in allmodels:
-            winobj.ai302_model.setCurrentText(config.params["ai302_model"])
-        if config.params["ai302_template"]:
-            winobj.ai302_template.setPlainText(config.params["ai302_template"])
 
     def setallmodels():
         t = winobj.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
@@ -74,17 +60,12 @@ def openwin():
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
     from videotrans.component import AI302Form
-    winobj = config.child_forms.get('ai302fyw')
+
     config.params["ai302_template"] = tools.get_prompt('ai302')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
+
     winobj = AI302Form()
-    config.child_forms['ai302fyw'] = winobj
-    update_ui()
+    config.child_forms['ai302'] = winobj
+    winobj.update_ui()
 
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.set_ai302.clicked.connect(save_ai302)

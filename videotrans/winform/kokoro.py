@@ -44,14 +44,9 @@ def openwin():
         winobj.close()
 
     from videotrans.component import KokoroForm
-    winobj = config.child_forms.get('kokorow')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
+
     winobj = KokoroForm()
-    config.child_forms['kokorow'] = winobj
+    config.child_forms['kokoro'] = winobj
     if config.params["kokoro_api"]:
         winobj.kokoro_address.setText(config.params["kokoro_api"])
     winobj.set_kokoro.clicked.connect(save)

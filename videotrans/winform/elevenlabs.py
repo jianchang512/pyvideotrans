@@ -1,5 +1,8 @@
+
+
 def openwin():
     from PySide6 import QtWidgets
+    from videotrans.configure._except import get_msg_from_except
 
     from videotrans.configure import config
     from videotrans.util import tools
@@ -36,19 +39,12 @@ def openwin():
             wk.uito.connect(feed)
             wk.start()
             winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
-
         except Exception as e:
-            tools.show_error(str(e))
+            tools.show_error(get_msg_from_except(e))
 
     from videotrans.component import ElevenlabsForm
-    winobj = config.child_forms.get('elevenlabsw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = ElevenlabsForm()
-    config.child_forms['elevenlabsw'] = winobj
+    config.child_forms['elevenlabs'] = winobj
     if config.params['elevenlabstts_key']:
         winobj.elevenlabstts_key.setText(config.params['elevenlabstts_key'])
     if config.params['elevenlabstts_models']:

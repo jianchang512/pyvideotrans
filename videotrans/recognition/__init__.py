@@ -157,7 +157,8 @@ def run(*,
         recogn_type: int = 0,
         is_cuda=None,
         target_code=None,
-        subtitle_type=0
+        subtitle_type=0,
+        source_sub=None
         ) -> Union[List[Dict], None]:
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return
@@ -172,7 +173,8 @@ def run(*,
         "inst": inst,
         "is_cuda": is_cuda,
         "subtitle_type": subtitle_type,
-        "target_code": target_code
+        "target_code": target_code,
+
     }
     if recogn_type == OPENAI_WHISPER:
         from ._openai import OpenaiWhisperRecogn
@@ -217,9 +219,9 @@ def run(*,
         from ._elevenlabs import ElevenLabsRecogn
         return ElevenLabsRecogn(**kwargs).run()
 
-    if split_type == 'avg':
-        from ._average import FasterAvg
-        return FasterAvg(**kwargs).run()
-
-    from ._overall import FasterAll
-    return FasterAll(**kwargs).run()
+    from videotrans.process._iscache import _MODELS
+    if split_type != 'avg' or model_name not in _MODELS:
+        from ._overall import FasterAll
+        return FasterAll(**kwargs).run()
+    from ._average import FasterAvg
+    return FasterAvg(**kwargs).run()

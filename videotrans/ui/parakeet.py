@@ -77,6 +77,10 @@ class Ui_parakeetform(object):
         self.retranslateUi(parakeet)
         QtCore.QMetaObject.connectSlotsByName(parakeet)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        if config.params["parakeet_address"]:
+            self.parakeet_address.setText(config.params["parakeet_address"])
     def retranslateUi(self, parakeet):
         parakeet.setWindowTitle("parakeet-tdt api")
         self.label.setText("http地址" if config.defaulelang == 'zh' else 'parakeet url')

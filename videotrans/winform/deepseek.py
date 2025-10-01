@@ -59,35 +59,13 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['deepseek_model']
-        allmodels = config.settings['deepseek_model'].split(',')
-        winobj.deepseek_model.clear()
-        winobj.deepseek_model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["deepseek_key"]:
-            winobj.deepseek_key.setText(config.params["deepseek_key"])
-        if config.params["deepseek_model"]:
-            winobj.deepseek_model.setCurrentText(config.params["deepseek_model"])
-        if config.params["deepseek_template"]:
-            winobj.template.setPlainText(config.params["deepseek_template"])
-        if config.params["deepseek_max_token"]:
-            winobj.max_token.setText(config.params["deepseek_max_token"])
 
     from videotrans.component import DeepseekForm
-    winobj = config.child_forms.get('deepseekw')
     config.params["deepseek_template"] = tools.get_prompt('deepseek')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = DeepseekForm()
-    config.child_forms['deepseekw'] = winobj
-    update_ui()
+    config.child_forms['deepseek'] = winobj
+    winobj.update_ui()
     winobj.set.clicked.connect(save)
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.test.clicked.connect(test)

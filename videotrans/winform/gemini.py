@@ -71,38 +71,14 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['gemini_model']
-        allmodels = config.settings['gemini_model'].split(',')
-        winobj.model.clear()
-        winobj.model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
-        if config.params["gemini_key"]:
-            winobj.gemini_key.setText(config.params["gemini_key"])
-        if config.params["gemini_model"]:
-            winobj.model.setCurrentText(config.params["gemini_model"])
 
-        if config.params["gemini_ttsmodel"]:
-            winobj.ttsmodel.setCurrentText(config.params["gemini_ttsmodel"])
-
-        if config.params["gemini_template"]:
-            winobj.gemini_template.setPlainText(config.params["gemini_template"])
-        if config.params["gemini_srtprompt"]:
-            winobj.gemini_srtprompt.setPlainText(config.params["gemini_srtprompt"])
 
     from videotrans.component import GeminiForm
-    winobj = config.child_forms.get('geminiw')
     config.params["gemini_template"] = tools.get_prompt('gemini')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
+
     winobj = GeminiForm()
-    config.child_forms['geminiw'] = winobj
-    update_ui()
+    config.child_forms['gemini'] = winobj
+    winobj.update_ui()
     winobj.set_gemini.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.edit_allmodels.textChanged.connect(setallmodels)

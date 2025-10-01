@@ -61,35 +61,13 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['openrouter_model']
-        allmodels = config.settings['openrouter_model'].split(',')
-        winobj.openrouter_model.clear()
-        winobj.openrouter_model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["openrouter_key"]:
-            winobj.openrouter_key.setText(config.params["openrouter_key"])
-        if config.params["openrouter_model"]:
-            winobj.openrouter_model.setCurrentText(config.params["openrouter_model"])
-        if config.params["openrouter_template"]:
-            winobj.template.setPlainText(config.params["openrouter_template"])
-        if config.params["openrouter_max_token"]:
-            winobj.max_token.setText(config.params["openrouter_max_token"])
 
     from videotrans.component import OpenrouterForm
-    winobj = config.child_forms.get('openrouterw')
     config.params["openrouter_template"] = tools.get_prompt('openrouter')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = OpenrouterForm()
-    config.child_forms['openrouterw'] = winobj
-    update_ui()
+    config.child_forms['openrouter'] = winobj
+    winobj.update_ui()
     winobj.set.clicked.connect(save)
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.test.clicked.connect(test)

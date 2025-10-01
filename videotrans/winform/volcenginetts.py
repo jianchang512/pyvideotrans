@@ -44,26 +44,12 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    def update_ui():
 
-        if config.params["volcenginetts_appid"]:
-            winobj.volcenginetts_appid.setText(config.params["volcenginetts_appid"])
-        if config.params["volcenginetts_access"]:
-            winobj.volcenginetts_access.setText(config.params["volcenginetts_access"])
-        if config.params["volcenginetts_cluster"]:
-            winobj.volcenginetts_cluster.setText(config.params["volcenginetts_cluster"])
 
     from videotrans.component import VolcEngineTTSForm
-    winobj = config.child_forms.get('volcenginettsw')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = VolcEngineTTSForm()
-    config.child_forms['volcenginettsw'] = winobj
-    update_ui()
+    config.child_forms['volcenginetts'] = winobj
+    winobj.update_ui()
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

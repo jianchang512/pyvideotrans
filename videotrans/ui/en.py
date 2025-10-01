@@ -164,7 +164,7 @@ class Ui_MainWindow(object):
         self.aisendsrt = QtWidgets.QCheckBox()
         self.aisendsrt.setText('发送完整字幕' if config.defaulelang == 'zh' else 'Send srt')
         self.aisendsrt.setToolTip(
-            '当使用AI或Google翻译渠道时，可选以完整srt字幕格式发送请求，但可能出现较多空行' if config.defaulelang == 'zh' else 'When using AI or Google translation channel, you can translate in srt format, but there may be more empty lines')
+            '当使用AI翻译渠道时，可选以完整srt字幕格式发送请求，效果更好' if config.defaulelang == 'zh' else 'When using AI translation channel, you can translate in srt format, but there may be more empty lines')
         self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
 
         self.horizontalLayout_5.addWidget(self.glossary)

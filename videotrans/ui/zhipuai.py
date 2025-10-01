@@ -112,6 +112,23 @@ class Ui_zhipuaiform(object):
         self.retranslateUi(zhipuaiform)
         QtCore.QMetaObject.connectSlotsByName(zhipuaiform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['zhipuai_model']
+        allmodels = config.settings['zhipuai_model'].split(',')
+        self.zhipu_model.clear()
+        self.zhipu_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["zhipu_key"]:
+            self.zhipu_key.setText(config.params["zhipu_key"])
+        if config.params["zhipu_model"]:
+            self.zhipu_model.setCurrentText(config.params["zhipu_model"])
+        if config.params["zhipu_template"]:
+            self.template.setPlainText(config.params["zhipu_template"])
+        if config.params["zhipu_max_token"]:
+            self.max_token.setText(config.params["zhipu_max_token"])
     def retranslateUi(self, zhipuaiform):
         zhipuaiform.setWindowTitle("智谱AI")
         self.label_2.setText("智谱AI API Key")

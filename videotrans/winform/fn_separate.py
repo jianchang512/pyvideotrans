@@ -1,3 +1,6 @@
+from pathlib import Path
+
+
 def openwin():
     import os
 
@@ -60,26 +63,16 @@ def openwin():
         winobj.task.start()
 
     from videotrans.component import SeparateForm
-    try:
 
-        winobj = config.child_forms.get('separatew')
-        if winobj is not None:
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
-        winobj = SeparateForm()
-        config.child_forms['separatew'] = winobj
-        # winobj.set.setText(config.transobj['Start Separate'])
-        outdir = os.path.join(config.HOME_DIR, 'separate').replace('\\', '/')
-        if not os.path.exists(outdir):
-            os.makedirs(outdir, exist_ok=True)
-        # 创建事件过滤器实例并将其安装到 lineEdit 上
-        winobj.url.setText(outdir)
+    winobj = SeparateForm()
+    config.child_forms['fn_separate'] = winobj
+    outdir = os.path.join(config.HOME_DIR, 'separate').replace('\\', '/')
+    Path(outdir).mkdir(exist_ok=True,parents=True)
+    # 创建事件过滤器实例并将其安装到 lineEdit 上
+    winobj.url.setText(outdir)
 
-        winobj.selectfile.clicked.connect(get_file)
+    winobj.selectfile.clicked.connect(get_file)
 
-        winobj.set.clicked.connect(start)
-        winobj.show()
-    except Exception:
-        pass
+    winobj.set.clicked.connect(start)
+    winobj.show()
+

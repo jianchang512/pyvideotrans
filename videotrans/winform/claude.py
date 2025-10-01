@@ -64,35 +64,13 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['claude_model']
-        allmodels = config.settings['claude_model'].split(',')
-        winobj.model.clear()
-        winobj.model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["claude_key"]:
-            winobj.key.setText(config.params["claude_key"])
-        if config.params["claude_api"]:
-            winobj.api.setText(config.params["claude_api"])
-        if config.params["claude_model"] and config.params['claude_model'] in allmodels:
-            winobj.model.setCurrentText(config.params["claude_model"])
-        if config.params["claude_template"]:
-            winobj.template.setPlainText(config.params["claude_template"])
 
     from videotrans.component import ClaudeForm
-    winobj = config.child_forms.get('claudew')
     config.params["claude_template"] = tools.get_prompt('claude')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = ClaudeForm()
-    config.child_forms['claudew'] = winobj
-    update_ui()
+    config.child_forms['claude'] = winobj
+    winobj.update_ui()
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.edit_allmodels.textChanged.connect(setallmodels)

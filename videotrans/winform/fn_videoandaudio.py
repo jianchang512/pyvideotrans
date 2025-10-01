@@ -1,5 +1,8 @@
 # 水印
+
+
 def openwin():
+    from videotrans.configure._except import get_msg_from_except
     import json
     import os
     import time
@@ -116,7 +119,7 @@ def openwin():
                         result_file
                     ])
                 except Exception as e:
-                    self.post(type='error', text=str(e))
+                    self.post(type='error', text=get_msg_from_except(e))
                 finally:
                     percent += round(100 / length, 2)
                     self.post(type='jd', text=f'{percent if percent <= 100 else 99}%')
@@ -172,19 +175,12 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import Videoandaudioform
-    try:
-        winobj = config.child_forms.get('vandaform')
-        if winobj is not None:
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
-        winobj = Videoandaudioform()
-        config.child_forms['vandaform'] = winobj
-        winobj.videobtn.clicked.connect(lambda: get_file())
 
-        winobj.resultbtn.clicked.connect(opendir)
-        winobj.startbtn.clicked.connect(start)
-        winobj.show()
-    except Exception:
-        pass
+    winobj = Videoandaudioform()
+    config.child_forms['fn_videoandaudio'] = winobj
+    winobj.videobtn.clicked.connect(lambda: get_file())
+
+    winobj.resultbtn.clicked.connect(opendir)
+    winobj.startbtn.clicked.connect(start)
+    winobj.show()
+

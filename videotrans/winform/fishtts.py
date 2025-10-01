@@ -66,14 +66,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import FishTTSForm
-    winobj = config.child_forms.get('fishttsw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = FishTTSForm()
-    config.child_forms['fishttsw'] = winobj
+    config.child_forms['fishtts'] = winobj
     if config.params["fishtts_url"]:
         winobj.api_url.setText(config.params["fishtts_url"])
     if config.params["fishtts_role"]:

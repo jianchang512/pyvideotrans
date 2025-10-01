@@ -38,14 +38,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import DeepLForm
-    winobj = config.child_forms.get('deeplw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = DeepLForm()
-    config.child_forms['deeplw'] = winobj
+    config.child_forms['deepl'] = winobj
     if config.params['deepl_authkey']:
         winobj.deepl_authkey.setText(config.params['deepl_authkey'])
     if config.params['deepl_api']:

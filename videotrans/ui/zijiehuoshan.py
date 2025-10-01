@@ -87,6 +87,21 @@ class Ui_zijiehuoshanform(object):
         self.retranslateUi(zijiehuoshanform)
         QtCore.QMetaObject.connectSlotsByName(zijiehuoshanform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['zijiehuoshan_model']
+        allmodels = config.settings['zijiehuoshan_model'].split(',')
+        self.zijiehuoshan_model.clear()
+        self.zijiehuoshan_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["zijiehuoshan_key"]:
+            self.zijiehuoshan_key.setText(config.params["zijiehuoshan_key"])
+        if config.params["zijiehuoshan_model"] and config.params['zijiehuoshan_model'] in allmodels:
+            self.zijiehuoshan_model.setCurrentText(config.params["zijiehuoshan_model"])
+        if config.params["zijiehuoshan_template"]:
+            self.zijiehuoshan_template.setPlainText(config.params["zijiehuoshan_template"])
     def retranslateUi(self, zijiehuoshanform):
         zijiehuoshanform.setWindowTitle("字节火山引擎接入翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
         self.label_3.setText('选择推理接入点')

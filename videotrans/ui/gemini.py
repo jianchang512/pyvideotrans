@@ -113,6 +113,27 @@ class Ui_geminiform(object):
         self.retranslateUi(geminiform)
         QtCore.QMetaObject.connectSlotsByName(geminiform)
 
+
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['gemini_model']
+        allmodels = config.settings['gemini_model'].split(',')
+        self.model.clear()
+        self.model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+        if config.params["gemini_key"]:
+            self.gemini_key.setText(config.params["gemini_key"])
+        if config.params["gemini_model"]:
+            self.model.setCurrentText(config.params["gemini_model"])
+
+        if config.params["gemini_ttsmodel"]:
+            self.ttsmodel.setCurrentText(config.params["gemini_ttsmodel"])
+
+        if config.params["gemini_template"]:
+            self.gemini_template.setPlainText(config.params["gemini_template"])
+        if config.params["gemini_srtprompt"]:
+            self.gemini_srtprompt.setPlainText(config.params["gemini_srtprompt"])
     def retranslateUi(self, geminiform):
         geminiform.setWindowTitle("Gemini Pro")
         self.gemini_template.setPlaceholderText("prompt")

@@ -111,6 +111,24 @@ class Ui_deepseekform(object):
         self.retranslateUi(deepseekform)
         QtCore.QMetaObject.connectSlotsByName(deepseekform)
 
+
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['deepseek_model']
+        allmodels = config.settings['deepseek_model'].split(',')
+        self.deepseek_model.clear()
+        self.deepseek_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["deepseek_key"]:
+            self.deepseek_key.setText(config.params["deepseek_key"])
+        if config.params["deepseek_model"]:
+            self.deepseek_model.setCurrentText(config.params["deepseek_model"])
+        if config.params["deepseek_template"]:
+            self.template.setPlainText(config.params["deepseek_template"])
+        if config.params["deepseek_max_token"]:
+            self.max_token.setText(config.params["deepseek_max_token"])
     def retranslateUi(self, deepseekform):
         deepseekform.setWindowTitle("DeepSeek AI")
         self.label_2.setText("DeepSeek Key")

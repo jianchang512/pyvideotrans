@@ -60,14 +60,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import TtsapiForm
-    winobj = config.child_forms.get('ttsapiw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = TtsapiForm()
-    config.child_forms['ttsapiw'] = winobj
+    config.child_forms['ttsapi'] = winobj
     if config.params["ttsapi_url"]:
         winobj.api_url.setText(config.params["ttsapi_url"])
     if config.params["ttsapi_voice_role"]:

@@ -91,6 +91,24 @@ class Ui_openairecognapiform(object):
         self.retranslateUi(openairecognapiform)
         QtCore.QMetaObject.connectSlotsByName(openairecognapiform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['openairecognapi_model']
+        allmodels = config.settings['openairecognapi_model'].split(',')
+        self.openairecognapi_model.clear()
+        self.openairecognapi_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["openairecognapi_key"]:
+            self.openairecognapi_key.setText(config.params["openairecognapi_key"])
+        if config.params["openairecognapi_prompt"]:
+            self.openairecognapi_prompt.setText(config.params["openairecognapi_prompt"])
+        if config.params["openairecognapi_url"]:
+            self.openairecognapi_url.setText(config.params["openairecognapi_url"])
+        if config.params["openairecognapi_model"] and config.params['openairecognapi_model'] in allmodels:
+            self.openairecognapi_model.setCurrentText(config.params["openairecognapi_model"])
+
     def retranslateUi(self, openairecognapiform):
         openairecognapiform.setWindowTitle(
             "OpenAI API Speech to text" if config.defaulelang != 'zh' else 'OpenAI 在线api语音识别')

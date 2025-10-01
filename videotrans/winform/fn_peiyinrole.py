@@ -392,15 +392,10 @@ def openwin():
 
     try:
         from videotrans.component import Peiyinformrole
-        winobj = config.child_forms.get('peiyinformrole')
-        if winobj is not None:
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
+
 
         winobj = Peiyinformrole()
-        config.child_forms['peiyinformrole'] = winobj
+        config.child_forms['fn_peiyinrole'] = winobj
 
         winobj.voice_autorate.setChecked(config.params.get('dubb_voice_autorate', False))
         winobj.save_to_srt.setChecked(config.params.get('dubb_save_to_srt', False))

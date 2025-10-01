@@ -73,37 +73,14 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['chatgpt_model']
-        allmodels = config.settings['chatgpt_model'].split(',')
-        winobj.chatgpt_model.clear()
-        winobj.chatgpt_model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["chatgpt_key"]:
-            winobj.chatgpt_key.setText(config.params["chatgpt_key"])
-        if config.params["chatgpt_api"]:
-            winobj.chatgpt_api.setText(config.params["chatgpt_api"])
-        if config.params["chatgpt_model"] and config.params['chatgpt_model'] in allmodels:
-            winobj.chatgpt_model.setCurrentText(config.params["chatgpt_model"])
-        if config.params["chatgpt_template"]:
-            winobj.chatgpt_template.setPlainText(config.params["chatgpt_template"])
-        if config.params["chatgpt_max_token"]:
-            winobj.chatgpt_max_token.setText(str(config.params["chatgpt_max_token"]))
 
     from videotrans.component import ChatgptForm
-    winobj = config.child_forms.get('chatgptw')
     config.params["chatgpt_template"] = tools.get_prompt('chatgpt')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
+
     winobj = ChatgptForm()
-    config.child_forms['chatgptw'] = winobj
-    update_ui()
+    config.child_forms['chatgpt'] = winobj
+    winobj.update_ui()
     winobj.set_chatgpt.clicked.connect(save_chatgpt)
     winobj.test_chatgpt.clicked.connect(test)
     winobj.edit_allmodels.textChanged.connect(setallmodels)

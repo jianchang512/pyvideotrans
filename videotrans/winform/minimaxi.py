@@ -55,14 +55,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import MinimaxiForm
-    winobj = config.child_forms.get('minimaxiw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = MinimaxiForm()
-    config.child_forms['minimaxiw'] = winobj
+    config.child_forms['minimaxi'] = winobj
 
 
     if config.params["minimaxi_apikey"]:

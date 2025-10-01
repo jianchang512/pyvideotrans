@@ -119,6 +119,25 @@ class Ui_chatgptform(object):
         self.retranslateUi(chatgptform)
         QtCore.QMetaObject.connectSlotsByName(chatgptform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['chatgpt_model']
+        allmodels = config.settings['chatgpt_model'].split(',')
+        self.chatgpt_model.clear()
+        self.chatgpt_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["chatgpt_key"]:
+            self.chatgpt_key.setText(config.params["chatgpt_key"])
+        if config.params["chatgpt_api"]:
+            self.chatgpt_api.setText(config.params["chatgpt_api"])
+        if config.params["chatgpt_model"] and config.params['chatgpt_model'] in allmodels:
+            self.chatgpt_model.setCurrentText(config.params["chatgpt_model"])
+        if config.params["chatgpt_template"]:
+            self.chatgpt_template.setPlainText(config.params["chatgpt_template"])
+        if config.params["chatgpt_max_token"]:
+            self.chatgpt_max_token.setText(str(config.params["chatgpt_max_token"]))
     def retranslateUi(self, chatgptform):
         chatgptform.setWindowTitle("OpenAI API 及兼容AI" if config.defaulelang == 'zh' else "OpenAI API & Compatible AI")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")

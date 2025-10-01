@@ -105,6 +105,24 @@ class Ui_claudeform(object):
         self.retranslateUi(claudeform)
         QtCore.QMetaObject.connectSlotsByName(claudeform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['claude_model']
+        allmodels = config.settings['claude_model'].split(',')
+        self.model.clear()
+        self.model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+
+        if config.params["claude_key"]:
+            self.key.setText(config.params["claude_key"])
+        if config.params["claude_api"]:
+            self.api.setText(config.params["claude_api"])
+        if config.params["claude_model"] and config.params['claude_model'] in allmodels:
+            self.model.setCurrentText(config.params["claude_model"])
+        if config.params["claude_template"]:
+            self.template.setPlainText(config.params["claude_template"])
+
     def retranslateUi(self, claudeform):
         claudeform.setWindowTitle("Claude API")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")

@@ -67,34 +67,12 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['openairecognapi_model']
-        allmodels = config.settings['openairecognapi_model'].split(',')
-        winobj.openairecognapi_model.clear()
-        winobj.openairecognapi_model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["openairecognapi_key"]:
-            winobj.openairecognapi_key.setText(config.params["openairecognapi_key"])
-        if config.params["openairecognapi_prompt"]:
-            winobj.openairecognapi_prompt.setText(config.params["openairecognapi_prompt"])
-        if config.params["openairecognapi_url"]:
-            winobj.openairecognapi_url.setText(config.params["openairecognapi_url"])
-        if config.params["openairecognapi_model"] and config.params['openairecognapi_model'] in allmodels:
-            winobj.openairecognapi_model.setCurrentText(config.params["openairecognapi_model"])
 
     from videotrans.component import OpenaiRecognAPIForm
-    winobj = config.child_forms.get('openairecognapiw')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = OpenaiRecognAPIForm()
-    config.child_forms['openairecognapiw'] = winobj
-    update_ui()
+    config.child_forms['openairecognapi'] = winobj
+    winobj.update_ui()
     winobj.set_openairecognapi.clicked.connect(save_openairecognapi)
     winobj.test_openairecognapi.clicked.connect(test)
     winobj.edit_allmodels.textChanged.connect(setallmodels)

@@ -3,6 +3,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from videotrans.configure import config
+
 from videotrans.process._overall import run
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.simple_runnable_qt import run_in_threadpool
@@ -17,7 +18,6 @@ funasr
 
 @dataclass
 class FasterAll(BaseRecogn):
-
     pidfile: str = field(default="", init=False)
 
     def __post_init__(self):
@@ -28,6 +28,69 @@ class FasterAll(BaseRecogn):
             self.maxlen = int(config.settings.get('cjk_len', 20))
         else:
             self.maxlen = int(config.settings.get('other_len', 60))
+
+    def _create_from_huggingface(self, model_id, audio_file, language):
+        from transformers import pipeline
+        from huggingface_hub import snapshot_download
+        import os
+        from videotrans.process._iscache import _check_huggingface_connect
+
+        # 设置代理（如果需要）
+        # os.environ['https_proxy'] = 'http://127.0.0.1:10808'
+
+        # 定义本地保存路径
+        local_dir = f"{config.ROOT_DIR}/models/" + model_id.split("/")[-1]
+
+        if not os.path.exists(local_dir) or len([it for it in Path(local_dir).glob('*')])<3:
+            _check_huggingface_connect(config.ROOT_DIR, self.proxy_str)
+            print(f"下载模型到 {local_dir}...")
+            # 使用 snapshot_download 下载完整模型
+            snapshot_download(
+                repo_id=model_id,
+                local_dir=local_dir,
+            )
+            print(f"模型已保存到 {local_dir}")
+        else:
+            print(f"使用本地模型: {local_dir}")
+
+        # 使用本地模型路径创建 pipeline
+        asr_pipeline = pipeline(
+            "automatic-speech-recognition",
+            model=local_dir,
+            feature_extractor=local_dir,  # Whisper 使用 feature_extractor
+            tokenizer=local_dir,  # 明确指定 tokenizer
+            chunk_length_s=30,
+            device=self.device,
+        )
+
+        # 如果需要时间戳（用于字幕）
+        generate_cfg={ "task": "transcribe"}
+        if language and language!='auto':
+            generate_cfg['language']=language
+        result_with_timestamps = asr_pipeline(
+            audio_file,
+            generate_kwargs=generate_cfg,
+            return_timestamps=True
+        )
+
+        # 打印分段结果
+        raws=[]
+        for segment in result_with_timestamps.get("chunks", []):
+            start, end = segment["timestamp"]
+            text = segment["text"]
+            print(f"[{start:.2f}s - {end:.2f}s] {text}")
+            startraw = f"{int(start // 3600):02d}:{int(start // 60 % 60):02d}:{int(start % 60):02d},{int(start % 1 * 1000):03d}"
+            endraw = f"{int(end // 3600):02d}:{int(end // 60 % 60):02d}:{int(end % 60):02d},{int(end % 1 * 1000):03d}"
+            raws.append({
+                "line": len(raws) + 1,
+                "start_time": int(start*1000),
+                "end_time": int(end*1000),
+                "startraw": startraw,
+                "endraw": endraw,
+                "text": text
+            })
+        return raws
+
 
     # 获取新进程的结果
     def _get_signal_from_process(self, q: multiprocessing.Queue):
@@ -50,7 +113,11 @@ class FasterAll(BaseRecogn):
             time.sleep(0.1)
 
 
+
     def _exec(self):
+        from videotrans.process._iscache import _MODELS
+        if self.model_name not in _MODELS and "faster" not in self.model_name:
+            return self._create_from_huggingface(self.model_name, self.audio_file, self.detect_language)
         # 修复CUDA fork问题：强制使用spawn方法
         multiprocessing.set_start_method('spawn', force=True)
 

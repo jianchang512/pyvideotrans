@@ -78,36 +78,12 @@ def openwin():
         config.params['openaitts_role'] = t
         config.getset_params(config.params)
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['openaitts_model']
-        allmodels = config.settings['openaitts_model'].split(',')
 
-        winobj.openaitts_model.clear()
-        winobj.openaitts_model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
-        winobj.edit_roles.setPlainText(config.params['openaitts_role'])
-
-        if config.params["openaitts_key"]:
-            winobj.openaitts_key.setText(config.params["openaitts_key"])
-        if config.params["openaitts_instructions"]:
-            winobj.openaitts_instructions.setText(config.params.get("openaitts_instructions", ''))
-        if config.params["openaitts_api"]:
-            winobj.openaitts_api.setText(config.params["openaitts_api"])
-        if config.params["openaitts_model"] and config.params['openaitts_model'] in allmodels:
-            winobj.openaitts_model.setCurrentText(config.params["openaitts_model"])
 
     from videotrans.component import OpenAITTSForm
-    winobj = config.child_forms.get('openaittsw')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = OpenAITTSForm()
-    config.child_forms['openaittsw'] = winobj
-    update_ui()
+    config.child_forms['openaitts'] = winobj
+    winobj.update_ui()
 
     winobj.set_openaitts.clicked.connect(save_openaitts)
     winobj.test_openaitts.clicked.connect(test)

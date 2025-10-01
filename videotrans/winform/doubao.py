@@ -39,14 +39,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import DoubaoForm
-    winobj = config.child_forms.get('doubaow')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = DoubaoForm()
-    config.child_forms['doubaow'] = winobj
+    config.child_forms['doubao'] = winobj
     if config.params["doubao_appid"]:
         winobj.doubao_appid.setText(config.params["doubao_appid"])
     if config.params["doubao_access"]:

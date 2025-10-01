@@ -1,5 +1,8 @@
 # 音视频格式转换
+
+
 def openwin():
+    from videotrans.configure._except import get_msg_from_except
     import json
     import os
     import shutil
@@ -43,7 +46,7 @@ def openwin():
                     jd = round((i + 1) * 100 / len(self.videourls), 2)
                     self.post(type='jd', text=f'{jd}%')
             except Exception as e:
-                self.post(type='error', text=str(e))
+                self.post(type='error', text=get_msg_from_except(e))
             else:
                 self.post(type="ok", text='Ended')
 
@@ -100,18 +103,10 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import FormatcoverForm
-    try:
-        winobj = config.child_forms.get('formatcoverform')
-        if winobj is not None:
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
-        winobj = FormatcoverForm()
-        config.child_forms['formatcoverform'] = winobj
-        winobj.selectbtn.clicked.connect(lambda: get_file())
-        winobj.opendir.clicked.connect(opendir)
-        winobj.startbtn.clicked.connect(start)
-        winobj.show()
-    except Exception:
-        pass
+    winobj = FormatcoverForm()
+    config.child_forms['fn_formatcover'] = winobj
+    winobj.selectbtn.clicked.connect(lambda: get_file())
+    winobj.opendir.clicked.connect(opendir)
+    winobj.startbtn.clicked.connect(start)
+    winobj.show()
+

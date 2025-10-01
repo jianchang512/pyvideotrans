@@ -118,6 +118,25 @@ class Ui_openaittsform(object):
         self.retranslateUi(openaittsform)
         QtCore.QMetaObject.connectSlotsByName(openaittsform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['openaitts_model']
+        allmodels = config.settings['openaitts_model'].split(',')
+
+        self.openaitts_model.clear()
+        self.openaitts_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+        self.edit_roles.setPlainText(config.params['openaitts_role'])
+
+        if config.params["openaitts_key"]:
+            self.openaitts_key.setText(config.params["openaitts_key"])
+        if config.params["openaitts_instructions"]:
+            self.openaitts_instructions.setText(config.params.get("openaitts_instructions", ''))
+        if config.params["openaitts_api"]:
+            self.openaitts_api.setText(config.params["openaitts_api"])
+        if config.params["openaitts_model"] and config.params['openaitts_model'] in allmodels:
+            self.openaitts_model.setCurrentText(config.params["openaitts_model"])
     def retranslateUi(self, openaittsform):
         openaittsform.setWindowTitle("OpenAI API TTS")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")

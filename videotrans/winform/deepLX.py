@@ -39,14 +39,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import DeepLXForm
-    winobj = config.child_forms.get('deeplxw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = DeepLXForm()
-    config.child_forms['deeplxw'] = winobj
+    config.child_forms['deeplx'] = winobj
     if config.params["deeplx_address"]:
         winobj.deeplx_address.setText(config.params["deeplx_address"])
     if config.params["deeplx_key"]:

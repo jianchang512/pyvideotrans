@@ -60,35 +60,13 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['zhipuai_model']
-        allmodels = config.settings['zhipuai_model'].split(',')
-        winobj.zhipu_model.clear()
-        winobj.zhipu_model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["zhipu_key"]:
-            winobj.zhipu_key.setText(config.params["zhipu_key"])
-        if config.params["zhipu_model"]:
-            winobj.zhipu_model.setCurrentText(config.params["zhipu_model"])
-        if config.params["zhipu_template"]:
-            winobj.template.setPlainText(config.params["zhipu_template"])
-        if config.params["zhipu_max_token"]:
-            winobj.max_token.setText(config.params["zhipu_max_token"])
 
     from videotrans.component import ZhipuAIForm
-    winobj = config.child_forms.get('zhipuaiw')
     config.params["zhipu_template"] = tools.get_prompt('zhipuai')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = ZhipuAIForm()
-    config.child_forms['zhipuaiw'] = winobj
-    update_ui()
+    config.child_forms['zhipuai'] = winobj
+    winobj.update_ui()
     winobj.set.clicked.connect(save)
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.test.clicked.connect(test)

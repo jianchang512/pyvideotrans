@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from pathlib import Path
 from typing import Union, List
 
 from videotrans.configure import config
@@ -94,7 +95,18 @@ LANGNAME_DICT = {
     "fil": "Filipino" if config.defaulelang != 'zh' else '菲律宾语',
     "ur": "Urdu" if config.defaulelang != 'zh' else '乌尔都语',
     "yue": "Cantonese" if config.defaulelang != 'zh' else '粤语',
+    "ug": "ug" if config.defaulelang != 'zh' else 'ug',
 }
+
+# 如果存在新增
+try:
+    if Path(config.ROOT_DIR+f'/videotrans/newlang.txt').exists():
+        _new_lang=Path(config.ROOT_DIR+f'/videotrans/newlang.txt').read_text().strip().split("\n")
+        for nl in _new_lang:
+            LANGNAME_DICT[nl]=nl
+except Exception as e:
+    config.logger.exception(f'读取自定义新增语言代码 newlang.txt 时出错 {e}',exc_info=True)
+
 LANGNAME_DICT_REV={v:k for k,v in LANGNAME_DICT.items()}
 LANG_CODE = {
     "zh-cn": [
@@ -483,6 +495,18 @@ LANG_CODE = {
         "fa",  # 阿里
         "Western Persian"
     ],
+    "ug": [
+        "ug",  # google通道
+        "ug",  # 字幕嵌入语言
+        "ug",  # 百度通道
+        "No",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "ug",  # 微软翻译
+        "ug" if config.defaulelang != 'zh' else 'ug',  # AI翻译
+        "ug",  # 阿里
+        "ug"
+    ],
     "auto": [
         "auto",
         "auto",
@@ -505,48 +529,58 @@ def get_code(show_text=None):
 
     if show_text in LANG_CODE:
         return show_text
-    return LANGNAME_DICT_REV.get(show_text)
+    return LANGNAME_DICT_REV.get(show_text,show_text)
 
 
 # 根据显示的语言和翻译通道，获取该翻译通道要求的源语言代码和目标语言代码
-# translate_type翻译通道索引
+# translate_type 翻译通道索引
 # show_source 显示的原语言名称或 - 或  语言代码 
-# show_target 显示的目标语言名称 或 - 或语言代码 
+# show_target 显示的目标语言名称 或 - 或语言代码
+# 如果是AI渠道则返回语言的自然语言名称
+# 新增的语言代码直接返回
+# - No 是兼容早期不规范写法
 def get_source_target_code(*, show_source=None, show_target=None, translate_type=None):
     source_list = None
     target_list = None
 
-    if show_source and show_source != '-':
+    if show_source and show_source not in ['-','No']:
         if show_source in LANG_CODE:
             source_list = LANG_CODE[show_source] 
         elif LANGNAME_DICT_REV.get(show_source):
             source_list=LANG_CODE.get(LANGNAME_DICT_REV.get(show_source))
             
-    if show_target and show_target != '-':
+    if show_target and show_target not in ['-','No']:
         if show_target in LANG_CODE:
             target_list = LANG_CODE[show_target] 
         elif LANGNAME_DICT_REV.get(show_target):
             target_list=LANG_CODE.get(LANGNAME_DICT_REV.get(show_target))
-            
+
+    # 均未找到，可能是新增语言代码
+    if not source_list and not target_list:
+        return show_source,show_target
+
     if translate_type in [GOOGLE_INDEX,QWENMT_INDEX, MyMemoryAPI_INDEX, TRANSAPI_INDEX]:
-        return source_list[0] if source_list else "-", target_list[0] if target_list else "-"
-    elif translate_type == BAIDU_INDEX:
-        return source_list[2] if source_list else "-", target_list[2] if target_list else "-"
-    elif translate_type in [DEEPLX_INDEX, DEEPL_INDEX]:
-        return source_list[3] if source_list else "-", target_list[3] if target_list else "-"
-    elif translate_type == TENCENT_INDEX:
-        return source_list[4] if source_list else "-", target_list[4] if target_list else "-"
-    elif translate_type in [CHATGPT_INDEX, AZUREGPT_INDEX, GEMINI_INDEX,
+        return source_list[0] if source_list else show_source, target_list[0] if target_list else show_target
+
+    if translate_type == BAIDU_INDEX:
+        return source_list[2] if source_list else show_source, target_list[2] if target_list else show_target
+
+    if translate_type in [DEEPLX_INDEX, DEEPL_INDEX]:
+        return source_list[3] if source_list else show_source, target_list[3] if target_list else show_target
+
+    if translate_type == TENCENT_INDEX:
+        return source_list[4] if source_list else show_source, target_list[4] if target_list else show_target
+
+    if translate_type in [CHATGPT_INDEX, AZUREGPT_INDEX, GEMINI_INDEX,
                             LOCALLLM_INDEX, ZIJIE_INDEX, AI302_INDEX, CLAUDE_INDEX, ZHIPUAI_INDEX, SILICONFLOW_INDEX,  DEEPSEEK_INDEX, OPENROUTER_INDEX]:
-        return source_list[7] if source_list else "-", target_list[7] if target_list else "-"
-    elif translate_type in [OTT_INDEX, LIBRE_INDEX]:
-        return source_list[5] if source_list else "-", target_list[5] if target_list else "-"
-    elif translate_type == MICROSOFT_INDEX:
-        return source_list[6] if source_list else "-", target_list[6] if target_list else "-"
-    elif translate_type == ALI_INDEX:
-        return source_list[8] if source_list else "-", target_list[8] if target_list else "-"
-    else:
-        raise Exception(f"[error]get_source_target_code:{translate_type=},{show_source=},{show_target=}")
+        return source_list[7] if source_list else show_source, target_list[7] if target_list else show_target
+    if translate_type in [OTT_INDEX, LIBRE_INDEX]:
+        return source_list[5] if source_list else show_source, target_list[5] if target_list else show_target
+    if translate_type == MICROSOFT_INDEX:
+        return source_list[6] if source_list else show_source, target_list[6] if target_list else show_target
+    if translate_type == ALI_INDEX:
+        return source_list[8] if source_list else show_source, target_list[8] if target_list else show_target
+    return show_source,show_target
 
 
 # 判断当前翻译通道和目标语言是否允许翻译
@@ -725,7 +759,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
 # 根据 原语言进行判断,基本等同于google，但只保留_之前的部分
 def get_audio_code(*, show_source=None):
     source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE.get(LANGNAME_DICT_REV.get(show_source))
-    return source_list[0]
+    return source_list[0] if source_list else "en"
 
 
 # 获取嵌入软字幕的3位字母语言代码，根据目标语言确定
@@ -762,6 +796,7 @@ def run(*, translate_type=None,
     # source_code是原语言代码
     target_language_name = target_code
     if translate_type in [GEMINI_INDEX, AZUREGPT_INDEX, CHATGPT_INDEX, AI302_INDEX, LOCALLLM_INDEX, ZIJIE_INDEX,  CLAUDE_INDEX, ZHIPUAI_INDEX, SILICONFLOW_INDEX,  DEEPSEEK_INDEX, OPENROUTER_INDEX]:
+        # 对AI渠道，返回目标语言的自然语言表达
         _, target_language_name = get_source_target_code(show_target=target_code, translate_type=translate_type)
     kwargs = {
         "text_list": text_list,
@@ -771,6 +806,7 @@ def run(*, translate_type=None,
         "target_code": target_code,
         "uuid": uuid,
         "is_test": is_test,
+        "translate_type":translate_type
     }
     
     # 未设置代理并且检测google失败，则使用微软翻译
@@ -864,4 +900,4 @@ def run(*, translate_type=None,
         from videotrans.translator._ali import Ali
         return Ali(**kwargs).run()
 
-    raise Exception('No translation channel')
+    raise RuntimeError('未选中任何翻译渠道')

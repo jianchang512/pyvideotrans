@@ -43,14 +43,9 @@ def openwin():
         winobj.close()
 
     from videotrans.component import AzurettsForm
-    winobj = config.child_forms.get('azurettsw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
+
     winobj = AzurettsForm()
-    config.child_forms['azurettsw'] = winobj
+    config.child_forms['azuretts'] = winobj
     if config.params['azure_speech_region'] and config.params['azure_speech_region'].startswith('http'):
         winobj.speech_region.setText(config.params['azure_speech_region'])
     else:

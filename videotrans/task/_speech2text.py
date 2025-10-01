@@ -96,7 +96,9 @@ class SpeechToText(BaseTask):
                     cache_folder=self.cfg['cache_folder'],
                     is_cuda=self.cfg['is_cuda'],
                     subtitle_type=0,
-                    inst=self)
+                    inst=self,
+                    source_sub=self.cfg['target_sub']
+                )
                 if self._exit():
                     return
                 if not raw_subtitles or len(raw_subtitles) < 1:
@@ -106,9 +108,7 @@ class SpeechToText(BaseTask):
                 self._save_srt_target(raw_subtitles, self.cfg['target_sub'])
 
             Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
-        except Exception as e:
-            msg = f'{str(e)}'
-            tools.send_notification(msg, f'{self.cfg["basename"]}')
+        except Exception:
             raise
 
     def task_done(self):

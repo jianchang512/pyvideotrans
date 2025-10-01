@@ -34,14 +34,9 @@ def openwin():
         task.start()
 
     from videotrans.component import AliForm
-    winobj = config.child_forms.get('aliw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
+
     winobj = AliForm()
-    config.child_forms['aliw'] = winobj
+    config.child_forms['ali'] = winobj
     if config.params["ali_id"]:
         winobj.ali_id.setText(config.params["ali_id"])
     if config.params["ali_key"]:

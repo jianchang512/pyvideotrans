@@ -177,14 +177,9 @@ def openwin():
     from videotrans.component import Videoandsrtform
     from videotrans.translator import LANGNAME_DICT
     try:
-        winobj = config.child_forms.get('vandsrtform')
-        if winobj is not None:
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
+
         winobj = Videoandsrtform()
-        config.child_forms['vandsrtform'] = winobj
+        config.child_forms['fn_videoandsrt'] = winobj
         winobj.folder_btn.clicked.connect(get_file)
         winobj.startbtn.clicked.connect(start)
         winobj.opendir.clicked.connect(opendir)

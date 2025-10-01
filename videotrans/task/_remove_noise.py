@@ -23,7 +23,7 @@ def remove_noise(audio_path, output_file):
         tools.runffmpeg(['-y', '-i', output_file, '-af', "volume=2", tmp_name])
         return tmp_name
     except Exception as e:
-        config.logger.exception(e, exc_info=True)
+        config.logger.exception(f'降噪时出错:{e}', exc_info=True)
     finally:
         proxy = os.environ.get('http_proxy') or os.environ.get('https_proxy') or os.environ.get('bak_proxy')
         if proxy:

@@ -267,7 +267,7 @@ class TransCreate(BaseTask):
             if self.cfg['shibie_audio']:
                 Path(self.cfg['shibie_audio']).unlink(missing_ok=True)
         except Exception as e:
-            config.logger.warn(f'删除已存在的文件时失败:{e}')
+            config.logger.exception(f'删除已存在的文件时失败:{e}',exc_info=True)
 
     # 1. 预处理，分离音视频、分离人声等
     def prepare(self) -> None:
@@ -346,80 +346,71 @@ class TransCreate(BaseTask):
             self.hasend = True
             raise RuntimeError(error)
 
-        try:
-            if not tools.vail_file(self.cfg['shibie_audio']):
-                tools.conver_to_16k(self.cfg['source_wav'], self.cfg['shibie_audio'])
+        if not tools.vail_file(self.cfg['shibie_audio']):
+            tools.conver_to_16k(self.cfg['source_wav'], self.cfg['shibie_audio'])
 
-            if self.cfg['remove_noise']:
-                self.status_text = '开始语音降噪处理，用时可能较久，请耐心等待' if config.defaulelang == 'zh' else 'Starting to process speech noise reduction, which may take a long time, please be patient'
-                self.cfg['shibie_audio'] = remove_noise(self.cfg['shibie_audio'],f"{self.cfg['cache_folder']}/remove_noise.wav")
-            self.status_text = '语音识别文字处理中' if config.defaulelang == 'zh' else 'Speech Recognition to Word Processing'
+        if self.cfg['remove_noise']:
+            self.status_text = '开始语音降噪处理，用时可能较久，请耐心等待' if config.defaulelang == 'zh' else 'Starting to process speech noise reduction, which may take a long time, please be patient'
+            self.cfg['shibie_audio'] = remove_noise(self.cfg['shibie_audio'],f"{self.cfg['cache_folder']}/remove_noise.wav")
+        self.status_text = '语音识别文字处理中' if config.defaulelang == 'zh' else 'Speech Recognition to Word Processing'
 
-            if self.cfg['recogn_type'] == Faster_Whisper_XXL:
-                import subprocess, shutil
-                cmd = [
-                    config.settings.get('Faster_Whisper_XXL', ''),
-                    self.cfg['shibie_audio'],
-                    "-pp",
-                    "-f", "srt"
-                ]
-                if self.cfg['detect_language'] != 'auto':
-                    cmd.extend(['-l', self.cfg['detect_language'].split('-')[0]])
-                cmd.extend(['--model', self.cfg['model_name'], '--output_dir', self.cfg['target_dir']])
-                txt_file = Path(config.settings.get('Faster_Whisper_XXL', '')).parent.as_posix() + '/pyvideotrans.txt'
-                if Path(txt_file).exists():
-                    cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
+        if self.cfg['recogn_type'] == Faster_Whisper_XXL:
+            import subprocess, shutil
+            cmd = [
+                config.settings.get('Faster_Whisper_XXL', ''),
+                self.cfg['shibie_audio'],
+                "-pp",
+                "-f", "srt"
+            ]
+            if self.cfg['detect_language'] != 'auto':
+                cmd.extend(['-l', self.cfg['detect_language'].split('-')[0]])
+            cmd.extend(['--model', self.cfg['model_name'], '--output_dir', self.cfg['target_dir']])
+            txt_file = Path(config.settings.get('Faster_Whisper_XXL', '')).parent.as_posix() + '/pyvideotrans.txt'
+            if Path(txt_file).exists():
+                cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
 
-                cmdstr = " ".join(cmd)
-                outsrt_file = self.cfg['target_dir'] + '/' + Path(self.cfg['shibie_audio']).stem + ".srt"
-                config.logger.info(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg["source_sub"]=}')
+            cmdstr = " ".join(cmd)
+            outsrt_file = self.cfg['target_dir'] + '/' + Path(self.cfg['shibie_audio']).stem + ".srt"
+            config.logger.info(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg["source_sub"]=}')
 
-                self._external_cmd_with_wrapper(cmd)
+            self._external_cmd_with_wrapper(cmd)
 
-                if outsrt_file != self.cfg['source_sub']:
-                    try:
-                        shutil.copy2(outsrt_file, self.cfg['source_sub'])
-                    except shutil.SameFileError:
-                        pass
-                self._signal(text=Path(self.cfg['source_sub']).read_text(encoding='utf-8'), type='replace_subtitle')
+            if outsrt_file != self.cfg['source_sub']:
+                try:
+                    shutil.copy2(outsrt_file, self.cfg['source_sub'])
+                except shutil.SameFileError:
+                    pass
+            self._signal(text=Path(self.cfg['source_sub']).read_text(encoding='utf-8'), type='replace_subtitle')
+        else:
+            raw_subtitles = run_recogn(
+                recogn_type=self.cfg['recogn_type'],
+                split_type=self.cfg['split_type'],
+                uuid=self.uuid,
+                model_name=self.cfg['model_name'],
+                audio_file=self.cfg['shibie_audio'],
+                detect_language=self.cfg['detect_language'],
+                cache_folder=self.cfg['cache_folder'],
+                is_cuda=self.cfg['cuda'],
+                subtitle_type=self.cfg.get('subtitle_type', 0),
+                target_code=self.cfg['target_language_code'] if self.shoud_trans else None,
+                inst=self,
+                source_sub=self.cfg['source_sub']
+            )
+            if self._exit():
+                return
+            if not raw_subtitles or len(raw_subtitles) < 1:
+                raise RuntimeError(
+                    self.cfg['basename'] + config.transobj['recogn result is empty'].replace('{lang}', self.cfg['source_language']))
+            if isinstance(raw_subtitles, tuple):
+                self._save_srt_target(raw_subtitles[0], self.cfg['source_sub'])
+                self.source_srt_list = raw_subtitles[0]
+                if len(raw_subtitles) == 2:
+                    self._save_srt_target(raw_subtitles[1], self.cfg['target_sub'])
             else:
-                raw_subtitles = run_recogn(
-                    recogn_type=self.cfg['recogn_type'],
-                    split_type=self.cfg['split_type'],
-                    uuid=self.uuid,
-                    model_name=self.cfg['model_name'],
-                    audio_file=self.cfg['shibie_audio'],
-                    detect_language=self.cfg['detect_language'],
-                    cache_folder=self.cfg['cache_folder'],
-                    is_cuda=self.cfg['cuda'],
-                    subtitle_type=self.cfg.get('subtitle_type', 0),
-                    target_code=self.cfg['target_language_code'] if self.shoud_trans else None,
-                    inst=self)
-                if self._exit():
-                    return
-                if not raw_subtitles or len(raw_subtitles) < 1:
-                    raise RuntimeError(
-                        self.cfg['basename'] + config.transobj['recogn result is empty'].replace('{lang}', self.cfg['source_language']))
-                if isinstance(raw_subtitles, tuple):
-                    self._save_srt_target(raw_subtitles[0], self.cfg['source_sub'])
-                    self.source_srt_list = raw_subtitles[0]
-                    if len(raw_subtitles) == 2:
-                        self._save_srt_target(raw_subtitles[1], self.cfg['target_sub'])
-                else:
-                    self._save_srt_target(raw_subtitles, self.cfg['source_sub'])
-                    self.source_srt_list = raw_subtitles
-            self._recogn_succeed()
-        except Exception as e:
-            msg = f'{str(e)}'
-            if re.search(r'cub[a-zA-Z0-9_.-]+?\.dll', msg, re.I | re.M) is not None:
-                msg = f'【缺少cuBLAS.dll】请点击菜单栏-帮助/支持-下载cublasxx.dll,或者切换为openai模型 {msg} ' if config.defaulelang == 'zh' else f'[missing cublasxx.dll] Open menubar Help&Support->Download cuBLASxx.dll or use openai model {msg}'
-            elif re.search(r'out\s+?of.*?memory', msg, re.I):
-                msg = f'显存不足，请使用较小模型，比如 tiny/base/small {msg}' if config.defaulelang == 'zh' else f'Insufficient video memory, use a smaller model such as tiny/base/small {msg}'
-            elif re.search(r'cudnn', msg, re.I):
-                msg = f'cuDNN错误，请尝试升级显卡驱动，重新安装CUDA12.x和cuDNN9 {msg}' if config.defaulelang == 'zh' else f'cuDNN error, please try upgrading the graphics card driver and reinstalling CUDA12.x and cuDNN9 {msg}'
-            self.hasend = True
-            tools.send_notification(msg, f'{self.cfg["basename"]}')
-            raise RuntimeError(msg)
+                self._save_srt_target(raw_subtitles, self.cfg['source_sub'])
+                self.source_srt_list = raw_subtitles
+        self._recogn_succeed()
+
 
     # 翻译字幕文件
     def trans(self) -> None:

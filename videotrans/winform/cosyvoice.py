@@ -73,14 +73,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import CosyVoiceForm
-    winobj = config.child_forms.get('cosyvoicew')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = CosyVoiceForm()
-    config.child_forms['cosyvoicew'] = winobj
+    config.child_forms['cosyvoice'] = winobj
     if config.params["cosyvoice_url"]:
         winobj.api_url.setText(config.params["cosyvoice_url"])
     if config.params["cosyvoice_role"]:

@@ -162,13 +162,7 @@ def openwin():
                 )
 
     """Função de entrada para abrir o formulário de configurações do Google Cloud TTS."""
-    winobj = config.child_forms.get('googlecloudw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
 
     winobj = GoogleCloudSettingsForm()
-    config.child_forms['googlecloudw'] = winobj
+    config.child_forms['googlecloud'] = winobj
     winobj.show()

@@ -53,26 +53,12 @@ def openwin():
 
         
 
-    def update_ui():
-        winobj.qwentts_model.clear()
-        winobj.qwentts_model.addItems(config.settings.get('qwentts_models','').split(','))
 
-        if config.params["qwentts_key"]:
-            winobj.qwentts_key.setText(config.params["qwentts_key"])
-        if config.params["qwentts_model"]:
-            winobj.qwentts_model.setCurrentText(config.params["qwentts_model"])
 
     from videotrans.component import QwenTTSForm
-    winobj = config.child_forms.get('qwenttsw')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = QwenTTSForm()
-    config.child_forms['qwenttsw'] = winobj
-    update_ui()
+    config.child_forms['qwentts'] = winobj
+    winobj.update_ui()
 
     winobj.set_qwentts.clicked.connect(save_qwentts)
     winobj.test_qwentts.clicked.connect(test)

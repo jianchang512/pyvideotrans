@@ -45,14 +45,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import CloneForm
-    winobj = config.child_forms.get('clonew')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = CloneForm()
-    config.child_forms['clonew'] = winobj
+    config.child_forms['clone'] = winobj
     if config.params["clone_api"]:
         winobj.clone_address.setText(config.params["clone_api"])
     winobj.set_clone.clicked.connect(save)

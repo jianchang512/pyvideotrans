@@ -75,6 +75,15 @@ class Ui_qwenttsform(object):
         self.retranslateUi(qwenttsform)
         QtCore.QMetaObject.connectSlotsByName(qwenttsform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        self.qwentts_model.clear()
+        self.qwentts_model.addItems(config.settings.get('qwentts_models','').split(','))
+
+        if config.params["qwentts_key"]:
+            self.qwentts_key.setText(config.params["qwentts_key"])
+        if config.params["qwentts_model"]:
+            self.qwentts_model.setCurrentText(config.params["qwentts_model"])
     def retranslateUi(self, qwenttsform):
         qwenttsform.setWindowTitle("Qwen TTS")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")

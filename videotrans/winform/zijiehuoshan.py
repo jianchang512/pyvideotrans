@@ -57,33 +57,13 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    def update_ui():
-        config.settings = config.parse_init()
-        allmodels_str = config.settings['zijiehuoshan_model']
-        allmodels = config.settings['zijiehuoshan_model'].split(',')
-        winobj.zijiehuoshan_model.clear()
-        winobj.zijiehuoshan_model.addItems(allmodels)
-        winobj.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["zijiehuoshan_key"]:
-            winobj.zijiehuoshan_key.setText(config.params["zijiehuoshan_key"])
-        if config.params["zijiehuoshan_model"] and config.params['zijiehuoshan_model'] in allmodels:
-            winobj.zijiehuoshan_model.setCurrentText(config.params["zijiehuoshan_model"])
-        if config.params["zijiehuoshan_template"]:
-            winobj.zijiehuoshan_template.setPlainText(config.params["zijiehuoshan_template"])
 
     from videotrans.component import ZijiehuoshanForm
-    winobj = config.child_forms.get('zijiew')
     config.params["zijiehuoshan_template"] = tools.get_prompt('zijie')
-    if winobj is not None:
-        winobj.show()
-        update_ui()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = ZijiehuoshanForm()
-    config.child_forms['zijiew'] = winobj
-    update_ui()
+    config.child_forms['zijie'] = winobj
+    winobj.update_ui()
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.set_zijiehuoshan.clicked.connect(save_zijiehuoshan)
     winobj.test_zijiehuoshan.clicked.connect(test)

@@ -139,6 +139,29 @@ class Ui_localllmform(object):
         self.retranslateUi(localllmform)
         QtCore.QMetaObject.connectSlotsByName(localllmform)
 
+    def update_ui(self):
+        from videotrans.configure import config
+        config.settings = config.parse_init()
+        allmodels_str = config.settings['localllm_model']
+        allmodels = config.settings['localllm_model'].split(',')
+        self.localllm_model.clear()
+        self.localllm_model.addItems(allmodels)
+        self.edit_allmodels.setPlainText(allmodels_str)
+        if config.params["localllm_key"]:
+            self.localllm_key.setText(config.params["localllm_key"])
+        if config.params["localllm_api"]:
+            self.localllm_api.setText(config.params["localllm_api"])
+        if config.params["localllm_model"] and config.params["localllm_model"] in allmodels:
+            self.localllm_model.setCurrentText(config.params["localllm_model"])
+        if config.params["localllm_template"]:
+            self.localllm_template.setPlainText(config.params["localllm_template"])
+        if config.params["localllm_max_token"]:
+            self.localllm_max_token.setText(str(config.params["localllm_max_token"]))
+        if config.params["localllm_temperature"]:
+            self.localllm_temperature.setText(str(config.params["localllm_temperature"]))
+        if config.params["localllm_top_p"]:
+            self.localllm_top_p.setText(str(config.params["localllm_top_p"]))
+
     def retranslateUi(self, localllmform):
         localllmform.setWindowTitle("本地大模型(兼容OpenAI)" if config.defaulelang == 'zh' else "Local LLM API")
         self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")

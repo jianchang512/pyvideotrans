@@ -44,14 +44,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import RecognAPIForm
-    winobj = config.child_forms.get('recognapiw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = RecognAPIForm()
-    config.child_forms['recognapiw'] = winobj
+    config.child_forms['recognapi'] = winobj
     if config.params["recognapi_url"]:
         winobj.recognapiform_address.setText(config.params["recognapi_url"])
     if config.params["recognapi_key"]:

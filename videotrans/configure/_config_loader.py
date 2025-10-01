@@ -36,10 +36,6 @@ _temp_path.mkdir(parents=True, exist_ok=True)
 TEMP_DIR = _temp_path.as_posix()
 Path(TEMP_DIR + '/dubbing_cache').mkdir(exist_ok=True)
 Path(TEMP_DIR + '/translate_cache').mkdir(exist_ok=True)
-Path(ROOT_DIR + '/videotrans/prompts/srt').mkdir(parents=True, exist_ok=True)
-Path(ROOT_DIR + '/videotrans/prompts/text').mkdir(parents=True, exist_ok=True)
-Path(ROOT_DIR + '/videotrans/prompts/recogn').mkdir(parents=True, exist_ok=True)
-Path(ROOT_DIR + '/videotrans/prompts/recharge').mkdir(parents=True, exist_ok=True)
 # 日志目录 logs
 _logs_path = _root_path / "logs"
 _logs_path.mkdir(parents=True, exist_ok=True)

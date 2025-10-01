@@ -19,6 +19,7 @@ class Google(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
+        self.aisendsrt = False
 
 
     # 实际发出请求获取结果

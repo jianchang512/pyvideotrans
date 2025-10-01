@@ -39,14 +39,8 @@ def openwin():
         winobj.close()
 
     from videotrans.component import DeepgramForm
-    winobj = config.child_forms.get('deepgramw')
-    if winobj is not None:
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-        return
     winobj = DeepgramForm()
-    config.child_forms['deepgramw'] = winobj
+    config.child_forms['deepgram'] = winobj
     if config.params["deepgram_apikey"]:
         winobj.apikey.setText(config.params["deepgram_apikey"])
     if config.params["deepgram_utt"]:
