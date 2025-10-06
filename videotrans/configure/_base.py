@@ -4,37 +4,39 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
 @dataclass
 class BaseCon:
+    # 每个任务唯一的uuid
     uuid: Optional[str] = field(default=None, init=False)
     # 用于其他需要直接代理字符串
     proxy_str: str = ''
-    no_proxy:str=''
+    # 不需要代理的host
+    no_proxy: str = ''
 
     def __post_init__(self):
         self.proxy_str = self._set_proxy(type='set')
+        config.settings=config.parse_init()
         # 用于 requests 库
         # 国内某些渠道禁止国外ip及代理
         # 本地类型地址禁止使用代理
-        self.no_proxy="tmt.tencentcloudapi.com,api.fanyi.baidu.com,mt.cn-hangzhou.aliyuncs.com,openspeech.bytedance.com,api.minimaxi.com,api.deepseek.com,modelscope.cn,www.modelscope.cn,127.0.0.1,localhost,0.0.0.0,127.0.0.0,127.0.0.2"
+        self.no_proxy = "tmt.tencentcloudapi.com,api.fanyi.baidu.com,mt.cn-hangzhou.aliyuncs.com,openspeech.bytedance.com,api.minimaxi.com,api.deepseek.com,modelscope.cn,www.modelscope.cn,127.0.0.1,localhost,0.0.0.0,127.0.0.0,127.0.0.2"
 
         if self.proxy_str:
-            os.environ['HTTPS_PROXY']=self.proxy_str
-            os.environ['HTTP_PROXY']=self.proxy_str
+            os.environ['HTTPS_PROXY'] = self.proxy_str
+            os.environ['HTTP_PROXY'] = self.proxy_str
             config.proxy = self.proxy_str
         else:
             config.proxy = None
-            try:
-                del os.environ['HTTPS_PROXY']
-                del os.environ['HTTP_PROXY']
-            except:
-                pass
+            os.environ.pop('HTTPS_PROXY',None)
+            os.environ.pop('HTTP_PROXY',None)
 
-        os.environ['no_proxy']=self.no_proxy
+        os.environ['no_proxy'] = self.no_proxy
 
+    # 所有窗口和任务信息通过队列交互
     def _signal(self, **kwargs):
         from . import config
         if 'uuid' not in kwargs:
@@ -42,16 +44,15 @@ class BaseCon:
         if not config.exit_soft:
             tools.set_process(**kwargs)
 
+    # 设置、获取代理
     def _set_proxy(self, type='set'):
         if type == 'del':
             from . import config
-            try:
-                os.environ['bak_proxy'] = config.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
-                config.proxy = None
-                del os.environ['HTTPS_PROXY']
-                del os.environ['HTTP_PROXY']
-            except:
-                pass
+            os.environ['bak_proxy'] = config.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
+            config.proxy = None
+            os.environ.pop('HTTPS_PROXY',None)
+            os.environ.pop('HTTP_PROXY',None)
+
             return None
 
         if type == 'set':
@@ -67,6 +68,7 @@ class BaseCon:
                 return proxy
         return None
 
+    # 调用 faster-xxl.exe
     def _external_cmd_with_wrapper(self, cmd_list=None):
         if not cmd_list:
             raise ValueError("cmd_list is None")
@@ -77,10 +79,10 @@ class BaseCon:
                            cwd=os.path.dirname(cmd_list[0]))
         except subprocess.CalledProcessError as e:
             if os.name == 'nt' and config.IS_FROZEN:
-                raise RuntimeError(
-                    '当前Faster-Whisper-XXL无法在打包版中使用，请源码部署或单独使用Faster-Whisper-XXL转录' if config.defaulelang == 'zh' else 'Currently Faster-Whisper-XXL cannot be used in the packaged version. Please deploy the source code or use Faster-Whisper-XXL transcription separately.')
+                raise RuntimeError(tr('Currently Faster-Whisper-XXL cannot be used in the packaged version. Please deploy the source code or use Faster-Whisper-XXL transcription separately.'))
             raise RuntimeError(e.stderr)
 
+    # 语音合成后统一转为 wav 音频
     def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None):
         from . import config
         if config.exit_soft:
@@ -105,11 +107,11 @@ class BaseCon:
             return
         try:
             return tools.runffmpeg(cmd, force_cpu=True)
-        except:
+        except Exception:
             pass
 
-
-    def _get_internal_host(self,url: str):
+    # 判断是否为内网地址
+    def _get_internal_host(self, url: str):
         from urllib.parse import urlparse
         import ipaddress
         """
@@ -135,7 +137,7 @@ class BaseCon:
 
             # 1. 优先处理 'localhost' 字符串
             if hostname.lower() == 'localhost':
-                return parsed_url.netloc # 返回 'localhost:port'
+                return parsed_url.netloc  # 返回 'localhost:port'
 
             # 2. 尝试将主机名解析为 IP 地址
             ip_addr = ipaddress.ip_address(hostname)
@@ -145,7 +147,7 @@ class BaseCon:
             # is_loopback: 127/8
             # is_unspecified: 0.0.0.0
             if ip_addr.is_private or ip_addr.is_loopback or ip_addr.is_unspecified:
-                return parsed_url.netloc # 返回 'ip:port'
+                return parsed_url.netloc  # 返回 'ip:port'
 
         except ValueError:
             # 如果 hostname 是一个域名 (如 www.google.com) 而不是 IP，
@@ -157,8 +159,8 @@ class BaseCon:
         return False
 
     # 判断 api_url 如果是内网地址，则将 host 加入 no_proxy,避免 requests 使用代理访问
-    def _add_internal_host_noproxy(self,api_url=''):
-        host=self._get_internal_host(api_url)
+    def _add_internal_host_noproxy(self, api_url=''):
+        host = self._get_internal_host(api_url)
         if host is not False:
-            self.no_proxy+=f',{host}'
-            os.environ['no_proxy']=self.no_proxy
+            self.no_proxy += f',{host}'
+            os.environ['no_proxy'] = self.no_proxy

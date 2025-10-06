@@ -4,13 +4,14 @@ def openwin():
     from videotrans.util import tools
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
+    from videotrans.configure.config import tr
     def feed(d):
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
         else:
             tools.show_error(d)
         winobj.test.setText(
-            '测试' if config.defaulelang == 'zh' else 'Test')
+            tr("Test"))
 
     def test():
         appid = winobj.doubao_appid.text()
@@ -21,7 +22,7 @@ def openwin():
             tools.show_error('必须填写 Appid & Access_token')
             return
 
-        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.DOUBAO_API)
         task.uito.connect(feed)
         task.start()
@@ -41,10 +42,8 @@ def openwin():
     from videotrans.component import DoubaoForm
     winobj = DoubaoForm()
     config.child_forms['doubao'] = winobj
-    if config.params["doubao_appid"]:
-        winobj.doubao_appid.setText(config.params["doubao_appid"])
-    if config.params["doubao_access"]:
-        winobj.doubao_access.setText(config.params["doubao_access"])
+    winobj.doubao_appid.setText(config.params.get("doubao_appid",''))
+    winobj.doubao_access.setText(config.params.get("doubao_access",''))
 
     winobj.set_save.clicked.connect(save)
     winobj.test.clicked.connect(test)

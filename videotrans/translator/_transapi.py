@@ -21,7 +21,7 @@ class TransAPI(BaseTrans):
         super().__post_init__()
         self.aisendsrt = False
 
-        url = config.params['trans_api_url'].strip().rstrip('/').lower()
+        url = config.params.get('trans_api_url','').strip().rstrip('/').lower()
         if not url.startswith('http'):
             url = f"http://{url}"
         self.api_url = url + ('&' if '?' in url else '/?')
@@ -35,7 +35,7 @@ class TransAPI(BaseTrans):
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = quote("\n".join(data))
-        requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code[:2] if self.source_code else ''}&text={text}&secret={config.params['trans_secret']}"
+        requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code[:2] if self.source_code else ''}&text={text}&secret={config.params.get('trans_secret','')}"
         config.logger.info(f'[TransAPI]请求数据：{requrl=}')
         response = requests.get(url=requrl)
         config.logger.info(f'[TransAPI]返回:{response.text=}')

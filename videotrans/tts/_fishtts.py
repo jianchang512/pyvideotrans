@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -21,7 +22,7 @@ RETRY_DELAY = 5
 class FishTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        api_url = config.params['fishtts_url'].strip().rstrip('/').lower()
+        api_url = config.params.get('fishtts_url','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
         self._add_internal_host_noproxy(self.api_url)
 
@@ -40,7 +41,7 @@ class FishTTS(BaseTTS):
             role = data_item['role']
             roledict = tools.get_fishtts_role()
             if not role or not roledict.get(role):
-                raise StopRetry('必须在设置中填写参考音频路径名、参考音频对应的文字')
+                raise StopRetry(tr('The reference audio path name and the text corresponding to the reference audio must be filled in the settings'))
 
 
             data = {"text": data_item['text'],
@@ -51,7 +52,7 @@ class FishTTS(BaseTTS):
             if os.path.exists(audio_path):
                 data['references'][0]['audio'] = self._audio_to_base64(audio_path)
             else:
-                raise StopRetry(f'参考音频不存在:{audio_path}\n请确保该音频存在')
+                raise StopRetry(tr('Reference audio does not exist: {} Please make sure the audio exists',audio_path))
 
             config.logger.info(f'fishTTS-post:{data=}')
             response = requests.post(f"{self.api_url}", json=data, timeout=3600)
@@ -63,17 +64,13 @@ class FishTTS(BaseTTS):
                 f.write(response.content)
             time.sleep(1)
             if not os.path.exists(data_item['filename'] + ".wav"):
-                raise RuntimeError(f'FishTTS合成声音失败-2')
+                raise RuntimeError(f'FishTTS dubbing error -2')
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.has_done += 1
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e

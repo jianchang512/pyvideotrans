@@ -2,13 +2,11 @@ import copy
 import json
 import os
 import platform
-import random
-import re
-import shutil
 import subprocess
 import sys
 import time
 from pathlib import Path
+
 
 
 def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
@@ -253,21 +251,16 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
     cmd.extend(final_args)
 
     if cmd and Path(cmd[-1]).suffix:
-        try:
-            cmd[-1] = Path(cmd[-1]).as_posix()
-        except Exception:
-            pass
+        cmd[-1] = Path(cmd[-1]).as_posix()
 
     if config.settings.get('ffmpeg_cmd'):
-        custom_params = [p for p in config.settings['ffmpeg_cmd'].split(' ') if p]
+        custom_params = [p for p in config.settings.get('ffmpeg_cmd','').split(' ') if p]
         cmd = cmd[:-1] + custom_params + cmd[-1:]
 
     if noextname:
         config.queue_novice[noextname] = 'ing'
 
     try:
-        # config.logger.info(f"执行 FFmpeg 命令 (force_cpu={force_cpu}): {' '.join(cmd)}")
-
         creationflags = 0
         if sys.platform == 'win32':
             creationflags = subprocess.CREATE_NO_WINDOW
@@ -323,7 +316,28 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
     except Exception as e:
         if noextname: config.queue_novice[noextname] = f"error:{e}"
         config.logger.exception(f"执行 ffmpeg 时发生未知错误 (force_cpu={force_cpu})。")
+        # 针对win上路径和名称问题单独提示
+        if sys.platform=='win32' and 'No such file or directory' in str(e):
+            err=get_filepath_from_cmd(cmd)
+            if err:
+                raise RuntimeError(err)
         raise
+
+# 从 cmd 列表中获取 -i 之后的路径和 最后一个路径，以判断文件名是否规则，
+
+def get_filepath_from_cmd(cmd:list):
+    from videotrans.configure._config_loader import tr
+    file_list=[cmd[i+1] for i,param in enumerate(cmd) if param=='-i']
+    file_list.append(cmd[-1])
+    special=['"',"'","`","*","?",":",">","<","|","\n","\r"]
+    for file in file_list:
+        if len(file)>=255:
+            return  tr('The file path and file name may be too long. Please move the file to a flat and short directory and rename the file to a shorter name, ensuring that the length from the drive letter to the end of the file name does not exceed 255 characters: {},For example D:/videotrans/1.mp4 D:/videotrans/2.wav',file)
+        for flag in special:
+            if flag in file:
+                return tr('There may be special characters in the file name or path. Please move the file to a simple directory consisting of English and numerical characters, rename the file to a simple name, and try again to avoid errors: {},For example D:/videotrans/1.mp4 D:/videotrans/2.wav',file)
+    return None
+
 
 
 def get_video_codec(force_test: bool = False) -> str:
@@ -409,7 +423,7 @@ def get_video_codec(force_test: bool = False) -> str:
             try:
                 if output_file.exists():
                     output_file.unlink(missing_ok=True)
-            except:
+            except OSError:
                 pass
             return success
 
@@ -523,6 +537,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     (兼容性接口) 获取视频信息。
     """
     from videotrans.configure import config
+
     if not Path(mp4_file).exists():
         raise Exception(f'{mp4_file} is not exists')
     try:
@@ -530,16 +545,20 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
             ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file]
         )
         if not out_json:
-            raise Exception('ffprobe error: dont get video information')
+            raise RuntimeError(config.tr('Failed to parse {} information, please confirm that the file can be played normally',mp4_file))
     except Exception as e:
         # 确保抛出的异常与旧版本一致
-        raise Exception(f'ffprobe error: {e}. {mp4_file=}') from e
+        raise
 
     # 解析 JSON 并填充结果字典
     try:
         out = json.loads(out_json)
-    except json.JSONDecodeError as e:
-        raise Exception('ffprobe error: failed to parse JSON output') from e
+    except json.JSONDecodeError:
+        raise RuntimeError(config.tr('Failed to parse {} information, please confirm that the file can be played normally',mp4_file))
+
+
+    if "streams" not in out or not out["streams"]:
+        raise RuntimeError(config.tr('The original file {} does not contain any audio or video data. The file may be damaged. Please confirm that the file can be played.',mp4_file))
 
     result = {
         "video_fps": 30,
@@ -548,22 +567,20 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "width": 0,
         "height": 0,
         "time": 0,
-        "streams_len": 0,
+        "streams_len": len(out['streams']),
         "streams_audio": 0,
+        "video_streams":0,
         "color": "yuv420p"
     }
 
-    if "streams" not in out or not out["streams"]:
-        raise Exception('ffprobe error: streams is 0')
-
-    result['streams_len'] = len(out['streams'])
 
     if "format" in out and out['format'].get('duration'):
         try:
-            # 保持返回整数毫秒的逻辑
+            # 返回整数毫秒
             result['time'] = int(float(out['format']['duration']) * 1000)
         except (ValueError, TypeError):
-            config.logger.warning(f"Could not parse duration: {out['format'].get('duration')}")
+            result['time']=int(float(out['streams'][0]['duration'])*1000)
+            config.logger.warning(f"Could not parse duration: {out=}")
 
     video_stream = next((s for s in out['streams'] if s.get('codec_type') == 'video'), None)
     audio_streams = [s for s in out['streams'] if s.get('codec_type') == 'audio']
@@ -573,6 +590,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         result['audio_codec_name'] = audio_streams[0].get('codec_name', "")
 
     if video_stream:
+        result['video_streams']=1
         result['video_codec_name'] = video_stream.get('codec_name', "")
         result['width'] = int(video_stream.get('width', 0))
         result['height'] = int(video_stream.get('height', 0))
@@ -742,17 +760,19 @@ def send_notification(title, message):
     from videotrans.configure import config
     if config.exec_mode == 'api' or config.exit_soft:
         return
+    if config.settings.get('dont_notify',False):
+        return
     from plyer import notification
     try:
         notification.notify(
             title=title[:60],
             message=message[:120],
             ticker="pyVideoTrans",
-            app_name="pyVideoTrans",  # config.uilanglist['SP-video Translate Dubbing'],
+            app_name="pyVideoTrans",
             app_icon=config.ROOT_DIR + '/videotrans/styles/icon.ico',
             timeout=10  # Display duration in seconds
         )
-    except:
+    except Exception:
         pass
 
 
@@ -827,7 +847,6 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
 
 
 def format_video(name, target_dir=None):
-    from videotrans.configure import config
     from . import help_misc
     raw_pathlib = Path(name)
     raw_basename = raw_pathlib.name
@@ -847,22 +866,6 @@ def format_video(name, target_dir=None):
         "ext": ext[1:]
         # 最终存放目标位置，直接存到这里
     }
-    rule = r'[\[\]\*\?\"\|\'\:]'
-    if re.search(rule, raw_noextname) or re.search(r'[\s\.]$', raw_noextname):
-        # 规范化名字
-        raw_noextname = re.sub(rule, '', raw_noextname)
-        raw_noextname = re.sub(r'[\.\s]$', '', raw_noextname)
-        raw_noextname = raw_noextname.strip()
-
-        if Path(f'{config.TEMP_DIR}/{raw_noextname}{ext}').exists():
-            raw_noextname += f'{chr(random.randint(97, 122))}'
-
-        new_name = f'{config.TEMP_DIR}/{raw_noextname}{ext}'
-        shutil.copy2(name, new_name)
-        obj['name'] = new_name
-        obj['noextname'] = raw_noextname
-        obj['basename'] = f'{raw_noextname}{ext}'
-        obj['shound_del_name'] = new_name
 
     if target_dir:
         obj['target_dir'] = Path(f'{target_dir}/{raw_noextname}').as_posix()

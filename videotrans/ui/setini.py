@@ -10,6 +10,7 @@ from PySide6.QtGui import Qt, QFontDatabase, QColor
 from PySide6.QtWidgets import QFileDialog, QFontDialog, QColorDialog
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 
 
 class Ui_setini(object):
@@ -63,7 +64,7 @@ class Ui_setini(object):
         QTimer.singleShot(100, self._show_font_dialog)
 
     def get_target(self):
-        dirname = QFileDialog.getExistingDirectory(self, config.transobj['selectsavedir'], Path.home().as_posix())
+        dirname = QFileDialog.getExistingDirectory(self, tr('selectsavedir'), Path.home().as_posix())
         if dirname:
             dirpath = Path(dirname)
             config.HOME_DIR = dirpath.as_posix()
@@ -106,7 +107,8 @@ class Ui_setini(object):
                 "homedir": "家目录，用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认用户家目录",
                 "llm_chunk_size": "LLM大模型重新断句时，每次发送多少个字或单词，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于大模型输出token，过长输入可能导致失败",
                 "llm_ai_type": "LLM重新断句时使用的AI渠道，目前支持openai或deepseek渠道",
-                "gemini_recogn_chunk": "使用gemini识别语音时，每次发送音频切片数，越大效果越好，但失败率会升高"
+                "gemini_recogn_chunk": "使用gemini识别语音时，每次发送音频切片数，越大效果越好，但失败率会升高",
+                "dont_notify": "任务完成或失败后不显示桌面通知",
             },
 
             "video": {
@@ -205,6 +207,7 @@ class Ui_setini(object):
         }
         # 中文左侧label
         self.titles = {
+            "dont_notify": "禁止桌面通知",
             "llm_ai_type": "LLM重新断句时使用的AI渠道",
             "prompt_init":"Whisper模型提示词",
             "gemini_recogn_chunk": "Gemini语音识别时，单次发送音频切片数",
@@ -324,7 +327,8 @@ class Ui_setini(object):
                     "homedir": "Home directory, used to save the results of video separation, subtitle dubbing, subtitle translation, etc. Default user home directory",
                     "llm_chunk_size": "When the LLM large model re-segmentation, how many words to send each time to prevent the subtitles from being too long and exceeding the LLM output limit",
                     "llm_ai_type": "The AI channel used when LLM re-segmentation, currently supports openai or deepseek channels",
-                    "gemini_recogn_chunk": "When using Gemini to recognize speech, the larger the number of audio slices sent each time, the better the effect, but the failure rate will increase"
+                    "gemini_recogn_chunk": "When using Gemini to recognize speech, the larger the number of audio slices sent each time, the better the effect, but the failure rate will increase",
+                    "dont_notify": "Do not display desktop notifications when a task completes or fails",
                 },
                 "video": {
                     "crf": "Loss control during video transcoding, 0 = minimum loss, 51 = maximum loss, default is 13",
@@ -440,6 +444,7 @@ class Ui_setini(object):
             }
 
             self.titles = {
+                "dont_notify": "Disable desktop notifications",
                 "llm_ai_type": "The AI channel used when LLM re-segmentation",
                 "prompt_init":"Whisper model prompt initial",
                 "gemini_recogn_chunk": "Gemini to recognize speech,number of audio slices sent",
@@ -544,15 +549,14 @@ class Ui_setini(object):
 
         label_title = QtWidgets.QLabel()
         label_title.setText(
-            "点击左侧标题将弹出帮助说明,保存设置后，已打开的子功能窗口需关闭后重新打开方生效" if config.defaulelang == 'zh' else 'Clicking  title on the left will show help ')
+            tr("Clicking  title on the left will show help"))
         label_title.setObjectName(f"label_head")
         label_title.setAlignment(Qt.AlignCenter)
         label_title.setStyleSheet("""color:#eeeeee;text-align:center;font-size:16px;margin-top:10px""")
         self.layout.addWidget(label_title)
 
         self.homedir_btn = None
-        # box.layout().addWidget(label_title)
-        helptext = 'show help' if config.defaulelang != 'zh' else '点击查看帮助信息'
+        helptext = tr("show help")
 
         h1=QtWidgets.QHBoxLayout(scroll_content_widget)
         v1=QtWidgets.QVBoxLayout()
@@ -584,8 +588,7 @@ class Ui_setini(object):
                 val = str(config.settings.get(key, "")).lower()
                 # 是 cuda_com_type
                 if key == 'cuda_com_type':
-                    cuda_types = ['default','auto', 'float32', 'float16', 'int8', 'int16', 'int8_float16', 'int8_float32',
-                                  'bfloat16', 'int8_bfloat16']
+                    cuda_types = ['default','auto', 'float32', 'float16', 'int8', 'int16', 'int8_float16', 'int8_float32', 'bfloat16', 'int8_bfloat16']
                     tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(cuda_types)
                     tmp1.setObjectName(key)
@@ -630,8 +633,8 @@ class Ui_setini(object):
                     continue
                 if key == 'borderStyle':
                     tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems(['轮廓描边' if config.defaulelang == 'zh' else 'Outline Border',
-                                   '背景色块' if config.defaulelang == 'zh' else 'Background Block'])
+                    tmp1.addItems([tr("Outline Border"),
+                                   tr("Background Block")])
                     # val==1 是0位置，代表轮廓风格，val==3 是1位置，代表背景色
                     tmp1.setCurrentIndex(0 if int(val) == 1 else 1)
                     tmp1.setObjectName(key)
@@ -639,14 +642,23 @@ class Ui_setini(object):
                     tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
-
+                if key=="lang":
+                    tmp1 = QtWidgets.QComboBox()
+                    tmp1.addItems(list(config.SUPPORT_LANG.keys()))
+                    # val==1 是0位置，代表轮廓风格，val==3 是1位置，代表背景色
+                    tmp1.setCurrentText(config.defaulelang)
+                    tmp1.setObjectName(key)
+                    tmp.addWidget(tmp1)
+                    tmp.addStretch(1)
+                    box.layout().addLayout(tmp)
+                    continue
                 # 设置家目录按钮
                 if key == 'homedir':
                     self.homedir_btn = QtWidgets.QPushButton()
                     self.homedir_btn.setCursor(Qt.PointingHandCursor)
                     self.homedir_btn.setText(val)
                     self.homedir_btn.setToolTip(
-                        '点击设置家目录，用于保存视频分离、字幕翻译、字幕配音等结果文件' if config.defaulelang == 'zh' else 'Click on Set Home Directory to save the result files for video separation, subtitle translation, subtitle dubbing, etc.')
+                        tr("Click on Set Home Directory to save the result files for video separation, subtitle translation, subtitle dubbing, etc."))
                     self.homedir_btn.clicked.connect(self.get_target)
                     self.homedir_btn.setObjectName(key)
                     tmp.addWidget(self.homedir_btn)
@@ -693,7 +705,7 @@ class Ui_setini(object):
                     self.fontname_lineedit = tmp_1
                     self.fontname_btn = QtWidgets.QPushButton()
                     self.fontname_btn.setCursor(Qt.PointingHandCursor)
-                    self.fontname_btn.setText('选择字体' if config.defaulelang == 'zh' else 'Select Font')
+                    self.fontname_btn.setText(tr("Select Font"))
                     self.fontname_btn.clicked.connect(self.set_fontname)
                     tmp.addWidget(self.fontname_btn)
                 elif key == 'fontcolor':
@@ -701,7 +713,7 @@ class Ui_setini(object):
                     # 增加字体颜色控制按钮
                     self.fontcolor_btn = QtWidgets.QPushButton()
                     self.fontcolor_btn.setCursor(Qt.PointingHandCursor)
-                    self.fontcolor_btn.setText('选择字体颜色' if config.defaulelang == 'zh' else 'Select Font Color')
+                    self.fontcolor_btn.setText(tr("Select Font Color"))
                     self.fontcolor_btn.clicked.connect(self.set_fontcolor)
                     tmp.addWidget(self.fontcolor_btn)
                 elif key == 'fontbordercolor':
@@ -710,7 +722,7 @@ class Ui_setini(object):
                     self.fontbordercolor_btn = QtWidgets.QPushButton()
                     self.fontbordercolor_btn.setCursor(Qt.PointingHandCursor)
                     self.fontbordercolor_btn.setText(
-                        '选择字体边框色' if config.defaulelang == 'zh' else 'Select Font outline color')
+                        tr("Select Font outline color"))
                     self.fontbordercolor_btn.clicked.connect(self.set_fontbordercolor)
                     tmp.addWidget(self.fontbordercolor_btn)
                 elif key == 'backgroundcolor':
@@ -719,7 +731,7 @@ class Ui_setini(object):
                     self.backgroundcolor_btn = QtWidgets.QPushButton()
                     self.backgroundcolor_btn.setCursor(Qt.PointingHandCursor)
                     self.backgroundcolor_btn.setText(
-                        '选择字幕背景色块' if config.defaulelang == 'zh' else 'Select Subtitle Background Block')
+                        tr("Select Subtitle Background Block"))
                     self.backgroundcolor_btn.clicked.connect(self.set_backgroundcolor)
                     tmp.addWidget(self.backgroundcolor_btn)
 
@@ -748,5 +760,5 @@ class Ui_setini(object):
         QtCore.QMetaObject.connectSlotsByName(setini)
 
     def retranslateUi(self, setini):
-        setini.setWindowTitle('选项' if config.defaulelang == 'zh' else 'Options')
-        self.set_ok.setText('保存并关闭' if config.defaulelang == 'zh' else "Save and Close")
+        setini.setWindowTitle(tr("Options"))
+        self.set_ok.setText(tr("Save and Close"))

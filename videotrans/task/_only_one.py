@@ -1,7 +1,5 @@
 # 执行单个视频翻译任务时 暂停等待
-import copy
 import json
-import shutil
 import time
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -9,6 +7,8 @@ from typing import Optional, List, Dict, Any
 from PySide6.QtCore import QThread, Signal, QObject
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
+from videotrans.task.taskcfg import TaskCfg
 from videotrans.task.trans_create import TransCreate
 from videotrans.util import tools
 
@@ -33,36 +33,33 @@ class Worker(QThread):
 
     def run(self) -> None:
         obj=self.obj_list[0]
-        if self.cfg.get('clear_cache') and Path(obj['target_dir']).is_dir():
-            shutil.rmtree(obj['target_dir'], ignore_errors=True)
-        Path(obj['target_dir']).mkdir(parents=True, exist_ok=True)
         try:
-            trk = TransCreate(cfg=copy.deepcopy(self.cfg), obj=obj)
-            self.uuid = trk.uuid
+            self.uuid = obj['uuid']
+            trk = TransCreate(cfg=TaskCfg(**self.cfg|obj))
             config.task_countdown = 0
             trk.prepare()
-            self._post(text=trk.cfg['source_sub'], type='edit_subtitle_source')
+            self._post(text=trk.cfg.source_sub, type='edit_subtitle_source')
             trk.recogn()
             if trk.shoud_trans:
-                if tools.vail_file(trk.cfg['target_sub']):
-                    if tools.vail_file(trk.cfg['source_sub']):
-                        self._post(text=Path(trk.cfg['source_sub']).read_text(encoding='utf-8'),
+                if tools.vail_file(trk.cfg.target_sub):
+                    if tools.vail_file(trk.cfg.source_sub):
+                        self._post(text=Path(trk.cfg.source_sub).read_text(encoding='utf-8'),
                                    type='replace_subtitle')
-                    self._post(text=trk.cfg['target_sub'], type="edit_subtitle_target")
+                    self._post(text=trk.cfg.target_sub, type="edit_subtitle_target")
                 else:
                     time.sleep(1)
                     countdown_sec = int(float(config.settings.get('countdown_sec', 1)))
                     config.task_countdown = countdown_sec
                     # 等待编辑原字幕后翻译,允许修改字幕
-                    self._post(text=Path(trk.cfg['source_sub']).read_text(encoding='utf-8'), type='replace_subtitle')
-                    self._post(text=f"{config.task_countdown} {config.transobj['jimiaohoufanyi']}", type='show_djs')
+                    self._post(text=Path(trk.cfg.source_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+                    self._post(text=f"{config.task_countdown} {tr('jimiaohoufanyi')}", type='show_djs')
                     while config.task_countdown > 0:
                         if self._exit():
                             return
                         time.sleep(1)
                         config.task_countdown -= 1
                         if 0 < config.task_countdown <= countdown_sec:
-                            self._post(text=f"{config.task_countdown} {config.transobj['jimiaohoufanyi']}",
+                            self._post(text=f"{config.task_countdown} {tr('jimiaohoufanyi')}",
                                        type='show_djs')
                     self._post(text='', type='timeout_djs')
                     # 等待字幕更新完毕
@@ -70,15 +67,15 @@ class Worker(QThread):
                     while config.task_countdown > 0:
                         time.sleep(1)
                         break
-                    self._post(text=trk.cfg['target_sub'], type="edit_subtitle_target")
+                    self._post(text=trk.cfg.target_sub, type="edit_subtitle_target")
                     trk.trans()
 
             # if trk.shoud_dubbing:
             countdown_sec = int(float(config.settings.get('countdown_sec', 1)))
             config.task_countdown = countdown_sec
-            self._post(text=Path(trk.cfg['target_sub']).read_text(encoding='utf-8'), type='replace_subtitle')
+            self._post(text=Path(trk.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
             self._post(
-                text=f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
+                text=f"{config.task_countdown}{tr('zidonghebingmiaohou')}",
                 type='show_djs')
             while config.task_countdown > 0:
                 if self._exit():
@@ -89,7 +86,7 @@ class Worker(QThread):
                 config.task_countdown -= 1
                 if 0 < config.task_countdown <= countdown_sec:
                     self._post(
-                        text=f"{config.task_countdown}{config.transobj['zidonghebingmiaohou']}",
+                        text=f"{config.task_countdown}{tr('zidonghebingmiaohou')}",
                         type='show_djs')
             # 禁止修改字幕
             self._post(text='', type='timeout_djs')
@@ -109,7 +106,7 @@ class Worker(QThread):
     def _post(self, text, type='logs'):
         try:
             self.uito.emit(json.dumps({"text": text, "type": type, 'uuid': self.uuid}))
-        except:
+        except TypeError:
             pass
 
     def _exit(self):

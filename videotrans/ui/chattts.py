@@ -3,7 +3,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -89,7 +89,7 @@ class Ui_chatttsform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/chattts'))
 
         self.layout_btn = QtWidgets.QHBoxLayout()
@@ -106,9 +106,9 @@ class Ui_chatttsform(object):
 
     def retranslateUi(self, chattts):
         chattts.setWindowTitle("ChatTTS API")
-        self.label.setText("http地址" if config.defaulelang == 'zh' else 'ChatTTS URL')
-        self.label3.setText("音色值" if config.defaulelang == 'zh' else 'ChatTTS Voice')
+        self.label.setText(tr("ChatTTS URL"))
+        self.label3.setText(tr("ChatTTS Voice"))
         self.chattts_address.setPlaceholderText(
-            '填写 ChatTTS webUI 项目启动后的http地址' if config.defaulelang == 'zh' else 'Fill in the HTTP address after the ChatTTS webUI program starts')
-        self.set_chattts.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
+            tr("Fill in the HTTP address after the ChatTTS webUI program starts"))
+        self.set_chattts.setText(tr("Save"))
+        self.test.setText(tr("Test"))

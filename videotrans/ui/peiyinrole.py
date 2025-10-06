@@ -8,32 +8,32 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
 
 from videotrans import tts
 from videotrans.configure import config
-from videotrans.configure.config import box_lang
+from videotrans.configure.config import tr
 
 
 class Ui_peiyinrole(object):
     def setupUi(self, peiyinrole):
         self.has_done = False
-        if not peiyinrole.objectName():
-            peiyinrole.setObjectName(u"peiyinrole")
-        peiyinrole.resize(850, 650)
-
         # 全局变量初始化
         self.srt_path = None
         self.subtitles = []
         self.error_msg = ""
         if not hasattr(config, 'dubbing_role'):
             config.dubbing_role = {}
+        if not peiyinrole.objectName():
+            peiyinrole.setObjectName(u"peiyinrole")
+        peiyinrole.setMinimumSize(850, 650)
+
 
         self.main_layout = QtWidgets.QVBoxLayout(peiyinrole)
         self.main_layout.setObjectName("main_layout")
 
         # 1. 顶部文件导入区域
         self.import_layout = QtWidgets.QHBoxLayout()
-        self.hecheng_importbtn = QPushButton("导入SRT文件..." if config.defaulelang == 'zh' else 'Import SRT file...')
+        self.hecheng_importbtn = QPushButton(tr("Import SRT file..."))
         self.hecheng_importbtn.setMinimumHeight(40)
         self.hecheng_importbtn.setCursor(Qt.PointingHandCursor)
-        self.clear_button = QtWidgets.QPushButton("清空" if config.defaulelang == 'zh' else 'Clear')
+        self.clear_button = QtWidgets.QPushButton(tr("Clear Cache"))
         self.clear_button.setMinimumHeight(40)
         self.clear_button.setFixedWidth(100)
         self.clear_button.setCursor(Qt.PointingHandCursor)
@@ -55,10 +55,10 @@ class Ui_peiyinrole(object):
 
         # 2.2 角色分配工具栏
         self.assign_role_layout = QHBoxLayout()
-        self.assign_role_label = QLabel("为选中行分配角色:" if config.defaulelang == 'zh' else "Assign role to selected:")
+        self.assign_role_label = QLabel(tr("Assign role to selected:"))
         self.tmp_rolelist = QComboBox()  # 这个就是新的角色选择框
         self.tmp_rolelist.setMinimumWidth(200)
-        self.assign_role_button = QPushButton("确认分配" if config.defaulelang == 'zh' else "Assign")
+        self.assign_role_button = QPushButton(tr("Assign"))
         self.assign_role_button.setCursor(Qt.PointingHandCursor)
         self.assign_role_layout.addWidget(self.assign_role_label)
         self.assign_role_layout.addWidget(self.tmp_rolelist)
@@ -103,7 +103,7 @@ class Ui_peiyinrole(object):
 
         self.listen_btn = QtWidgets.QPushButton()
         self.listen_btn.setFixedWidth(80)
-        self.listen_btn.setText(config.uilanglist.get("Trial dubbing"))
+        self.listen_btn.setText(tr("Trial dubbing"))
         self.horizontalLayout_10.addWidget(self.listen_btn)
         self.main_layout.addLayout(self.horizontalLayout_10)
 
@@ -122,17 +122,17 @@ class Ui_peiyinrole(object):
         self.horizontalLayout_10_1.addWidget(self.voice_autorate)
 
         self.edge_volume_layout = QtWidgets.QHBoxLayout()
-        self.volume_label = QtWidgets.QLabel("音量+" if config.defaulelang == 'zh' else "Volume+")
+        self.volume_label = QtWidgets.QLabel(tr("Volume+"))
         self.volume_rate = QtWidgets.QSpinBox()
         self.volume_rate.setMinimum(-95)
         self.volume_rate.setMaximum(100)
         self.volume_rate.setMinimumWidth(90)
-        self.pitch_label = QtWidgets.QLabel("音调+" if config.defaulelang == 'zh' else "Pitch+")
+        self.pitch_label = QtWidgets.QLabel(tr("Pitch+"))
         self.pitch_rate = QtWidgets.QSpinBox()
         self.pitch_rate.setMinimum(-100)
         self.pitch_rate.setMaximum(100)
         self.pitch_rate.setMinimumWidth(90)
-        self.out_format_label = QtWidgets.QLabel('输出格式' if config.defaulelang == 'zh' else 'Out format')
+        self.out_format_label = QtWidgets.QLabel(tr("Out format"))
         self.out_format = QtWidgets.QComboBox()
         self.out_format.addItems(['wav', "mp3", "m4a"])
         self.save_to_srt = QtWidgets.QCheckBox()
@@ -152,7 +152,7 @@ class Ui_peiyinrole(object):
         self.hecheng_startbtn = QtWidgets.QPushButton()
         self.hecheng_startbtn.setMinimumSize(QtCore.QSize(200, 40))
         self.hecheng_startbtn.setCursor(Qt.PointingHandCursor)
-        self.hecheng_stop = QtWidgets.QPushButton('停止' if config.defaulelang == 'zh' else 'Stop')
+        self.hecheng_stop = QtWidgets.QPushButton(tr("Stop"))
         self.hecheng_stop.setFixedWidth(100)
         self.hecheng_stop.setDisabled(True)
         self.hecheng_stop.setCursor(Qt.PointingHandCursor)
@@ -176,15 +176,15 @@ class Ui_peiyinrole(object):
 
     def retranslateUi(self, peiyinrole):
         peiyinrole.setWindowTitle(
-            '字幕多角色配音：为每条字幕分配一个声音' if config.defaulelang == 'zh' else 'Subtitle multi-role dubbing: assign a voice to each subtitle')
-        self.label_10.setText(box_lang.get("Subtitle lang"))
-        self.label_8.setText("TTS" if config.defaulelang != 'zh' else '配音渠道')
-        self.label_11.setText("默认角色" if config.defaulelang == 'zh' else "Default Role")
-        self.label_12.setText(box_lang.get("Speed change"))
-        self.hecheng_rate.setToolTip(box_lang.get("Negative deceleration, positive acceleration"))
-        self.voice_autorate.setText(box_lang.get("Automatic acceleration?"))
-        self.save_to_srt.setText("Save to original location" if config.defaulelang != 'zh' else '保存到原位置')
+            tr("Subtitle multi-role dubbing: assign a voice to each subtitle"))
+        self.label_10.setText(tr("Subtitle lang"))
+        self.label_8.setText(tr("TTS"))
+        self.label_11.setText(tr("Default Role"))
+        self.label_12.setText(tr("Speed change"))
+        self.hecheng_rate.setToolTip(tr("Negative deceleration, positive acceleration"))
+        self.voice_autorate.setText(tr("Automatic acceleration?"))
+        self.save_to_srt.setText(tr("Save to original location"))
         self.save_to_srt.setToolTip(
-            "If checked, the synthesized audio is saved to the original folder where the srt file is located." if config.defaulelang != 'zh' else '如果选中，则合成后音频保存到srt文件所在原文件夹内')
-        self.hecheng_startbtn.setText(box_lang.get("Start"))
-        self.hecheng_opendir.setText(box_lang.get("Open dir"))
+            tr("If checked, the synthesized audio is saved to the original folder where the srt file is located."))
+        self.hecheng_startbtn.setText(tr("Start"))
+        self.hecheng_opendir.setText(tr("Open output directory"))

@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -26,11 +27,11 @@ class Claude(BaseTrans):
 
         # 覆盖父类属性
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.api_url = self._get_url(config.params['claude_api'])
+        self.api_url = self._get_url(config.params.get('claude_api',''))
         self._add_internal_host_noproxy(self.api_url)
-        self.model_name = config.params["claude_model"]
+        self.model_name = config.params.get("claude_model",'')
 
-        self.prompt = tools.get_prompt(ainame='claude', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='claude',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
 
 
 
@@ -68,14 +69,14 @@ class Claude(BaseTrans):
 
         client = anthropic.Anthropic(
             base_url=self._get_url(),
-            api_key=config.params['claude_key'],
+            api_key=config.params.get('claude_key',''),
             http_client=httpx.Client(proxy=self.proxy_str)
         )
 
         response = client.messages.create(
-            model=config.params['claude_model'],
-            max_tokens=8096,
-            system="You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。',
+            model=config.params.get('claude_model',''),
+            max_tokens=int(config.params.get('chatgpt_max_token', 8192)),
+            system=tr("You are a top-notch subtitle translation engine."),
             messages=message
         )
 

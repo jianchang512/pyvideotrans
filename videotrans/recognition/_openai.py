@@ -1,27 +1,24 @@
 # openai
 import copy
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Union
 
 import whisper
 from pydub import AudioSegment
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
 """
-faster-whisper
 openai-whisper
-funasr
-内置的本地大模型不重试
 """
 
 
 @dataclass
 class OpenaiWhisperRecogn(BaseRecogn):
-    model: Optional[Any] = field(default=None, init=False)
 
     def __post_init__(self):
         super().__post_init__()
@@ -30,7 +27,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
-
+        model=None
         tmp_path = Path(f'{self.cache_folder}/{Path(self.audio_file).name}_tmp')
         tmp_path.mkdir(parents=True, exist_ok=True)
         tmp_path = tmp_path.as_posix()
@@ -41,18 +38,17 @@ class OpenaiWhisperRecogn(BaseRecogn):
         total_length = 1 + (len(normalized_sound) // inter)
 
         if not Path(f'{config.ROOT_DIR}/models/{self.model_name}.pt').exists():
-            msg = f'[{self.model_name}] 不存在将自动下载到 models 目录内' if config.defaulelang == 'zh' else f'The [{self.model_name}] not exists, download model to models folder'
+            msg = tr('The [{}] not exists, download model to models folder')
         else:
             msg=f"Load {self.model_name}.pt"
 
-        if self.inst and self.inst.status_text:
-            self.inst.status_text = msg
         self._signal(text=f"{msg}")
-        self.model = whisper.load_model(
+        model = whisper.load_model(
             self.model_name,
             device="cuda" if self.is_cuda else "cpu",
             download_root=config.ROOT_DIR + "/models"
         )
+        self._signal(text=f"Loaded {self.model_name}")
         prompt = config.settings.get(
             f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None
         try:
@@ -71,7 +67,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 audio_chunk = normalized_sound[start_time:end_time]
                 audio_chunk.export(chunk_filename, format="wav")
 
-                result = self.model.transcribe(
+                result = model.transcribe(
                     chunk_filename,
                     language=self.detect_language.split('-')[0] if self.detect_language != 'auto' else None,
                     word_timestamps=True,
@@ -93,25 +89,28 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         new_seg[idx]['end'] = word['end'] + start_time / 1000
                         del new_seg[idx]['probability']
                     alllist.append({"words": new_seg, "text": text})
-                    self._signal(text=f"{config.transobj['yuyinshibiejindu']} {nums}")
+                    self._signal(text=f"{tr('yuyinshibiejindu')} {tr('Subtitles')} {nums}")
                     self._signal(
                         text=f'{text}\n',
                         type='subtitle'
                     )
             if len(alllist) > 0:
-                if not config.settings['rephrase']:
-                    self.get_srtlist(alllist)
-                else:
+                _llm_rephrase=False
+                if config.settings.get('rephrase'):
                     try:
                         words_list = []
                         for it in list(alllist):
                             words_list += it['words']
                         config.logger.info(f'开始重新断句:')
-                        self._signal(text="正在重新断句..." if config.defaulelang == 'zh' else "Re-segmenting...")
+                        self._signal(text=tr("Re-segmenting..."))
                         self.raws = self.re_segment_sentences(words_list)
                         config.logger.info(f'断句结果:{self.raws=}')
-                    except:
-                        self.get_srtlist(alllist)
+                        _llm_rephrase=True
+                    except Exception:
+                        _llm_rephrase=False
+
+                if not _llm_rephrase:
+                    self.raws=self.get_srtlist(alllist)
         except Exception:
             raise
         finally:
@@ -119,9 +118,9 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 import torch
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
-                del self.model
-            except:
+                del model
+            except Exception:
                 pass
         if not isinstance(self.raws, list) or len(self.raws) < 1:
-            raise RuntimeError('识别结果为空' if config.defaulelang == 'zh' else 'Recognition result is empty')
+            raise RuntimeError(tr("Recognition result is empty"))
         return self.raws

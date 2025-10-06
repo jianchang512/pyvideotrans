@@ -4,8 +4,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import (QMetaObject, Qt)
 from PySide6.QtGui import (QCursor)
 from PySide6.QtWidgets import (QHBoxLayout, QLabel)
-
-from videotrans.configure import config
+from videotrans.configure.config import tr
 
 
 class Ui_videoandsrt(object):
@@ -13,8 +12,7 @@ class Ui_videoandsrt(object):
         self.has_done = False
         if not videoandsrt.objectName():
             videoandsrt.setObjectName(u"videoandsrt")
-        videoandsrt.resize(700, 400)
-        videoandsrt.setWindowModality(QtCore.Qt.NonModal)
+        videoandsrt.setMinimumSize(700, 400)
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -63,7 +61,7 @@ class Ui_videoandsrt(object):
         self.h7.setObjectName("h7")
 
         self.maxlenlabel = QtWidgets.QLabel()
-        self.maxlenlabel.setText("硬字幕单行字符数" if config.defaulelang == 'zh' else 'Hard Subtitle Line Characters')
+        self.maxlenlabel.setText(tr("Hard Subtitle Line Characters"))
         self.maxlen = QtWidgets.QLineEdit()
         self.maxlen.setText('30')
 
@@ -74,12 +72,12 @@ class Ui_videoandsrt(object):
         self.issoft = QtWidgets.QCheckBox()
         self.issoft.setObjectName("issoft")
         self.issoft.setChecked(False)
-        self.issoft.setText('嵌入软字幕' if config.defaulelang == 'zh' else 'Embedded Soft Subtitles')
+        self.issoft.setText(tr("Embedded Soft Subtitles"))
 
         self.layout_form = QtWidgets.QFormLayout()
 
         self.languagelabel = QtWidgets.QLabel()
-        self.languagelabel.setText('软字幕语言' if config.defaulelang == 'zh' else 'soft subtitle language')
+        self.languagelabel.setText(tr("soft subtitle language"))
         self.languagelabel.setStyleSheet('color:#777')
         self.language = QtWidgets.QComboBox()
         self.language.setMinimumSize(QtCore.QSize(0, 30))
@@ -121,7 +119,8 @@ class Ui_videoandsrt(object):
         # end
         self.horizontalLayout_3.addLayout(self.v3)
 
-        self.retranslateUi(videoandsrt)
+        videoandsrt.setWindowTitle(tr("video/subtitles merger"))
+        self.retranslateUi()
 
         QMetaObject.connectSlotsByName(videoandsrt)
 
@@ -129,15 +128,14 @@ class Ui_videoandsrt(object):
         self.languagelabel.setStyleSheet(f"""color:#f1f1f1""" if state else 'color:#777777')
         self.language.setDisabled(False if state else True)
 
-    def retranslateUi(self, videoandsrt):
-        videoandsrt.setWindowTitle('批量视频与字幕合并' if config.defaulelang == 'zh' else 'video/subtitles merger')
+    def retranslateUi(self):
 
         self.labeltips.setText(
-            "将把所选文件夹内同名的视频和srt字幕进行合并，例如 1.mp4 和 1.srt" if config.defaulelang == 'zh' else 'Will merge video and srt subtitles with the same name in that folder, e.g. 1.mp4 and 1.srt')
+            tr("Will merge video and srt subtitles with the same name in that folder, e.g. 1.mp4 and 1.srt"))
 
-        self.label_4.setText('视频和字幕文件夹' if config.defaulelang == 'zh' else 'Video and subtitle folders')
-        self.folder_btn.setText('选择文件夹' if config.defaulelang == 'zh' else 'Select folder')
+        self.label_4.setText(tr("Video and subtitle folders"))
+        self.folder_btn.setText(tr("Select folder"))
         self.folder.setPlaceholderText(
-            '选择同名视频和字幕所在文件夹' if config.defaulelang == 'zh' else 'Select the folder where the video and subtitles of the same name are located')
-        self.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'Start operating')
-        self.opendir.setText('打开结果目录' if config.defaulelang == 'zh' else 'Open the results catalog')
+            tr("Select the folder where the video and subtitles of the same name are located"))
+        self.startbtn.setText(tr("Start operating"))
+        self.opendir.setText(tr("Open the results catalog"))

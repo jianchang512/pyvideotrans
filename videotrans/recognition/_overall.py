@@ -3,6 +3,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from videotrans.configure import config
+from videotrans.configure.config import tr
 
 from videotrans.process._overall import run
 from videotrans.recognition._base import BaseRecogn
@@ -10,8 +11,6 @@ from videotrans.task.simple_runnable_qt import run_in_threadpool
 
 """
 faster-whisper
-openai-whisper
-funasr
 内置的本地大模型不重试
 """
 
@@ -22,12 +21,6 @@ class FasterAll(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-
-        if self.detect_language and self.detect_language[:2].lower() in ['zh', 'ja', 'ko', 'yu']:
-            self.flag.append(" ")
-            self.maxlen = int(config.settings.get('cjk_len', 20))
-        else:
-            self.maxlen = int(config.settings.get('other_len', 60))
 
     def _create_from_huggingface(self, model_id, audio_file, language):
         from transformers import pipeline
@@ -101,14 +94,9 @@ class FasterAll(BaseRecogn):
                     return
                 if not q.empty():
                     data = q.get_nowait()
-                    if self.inst and self.inst.precent < 50:
-                        self.inst.precent += 0.1
-
                     if data:
-                        if self.inst and self.inst.status_text and data['type'] == 'logs':
-                            self.inst.status_text = data['text']
                         self._signal(text=data['text'], type=data['type'])
-            except:
+            except Exception:
                 pass
             time.sleep(0.1)
 
@@ -130,8 +118,8 @@ class FasterAll(BaseRecogn):
                 if len(glob.glob(config.TEMP_DIR + '/*.lock')) == 0:
                     config.model_process = None
                     break
-                self._signal(text="等待另外进程退出")
-                time.sleep(1)
+                self._signal(text="wait...")
+                time.sleep(0.5)
                 continue
             break
 
@@ -153,10 +141,6 @@ class FasterAll(BaseRecogn):
                     "detect_language": self.detect_language,
                     "audio_file": self.audio_file,
                     "q": result_queue,
-                    "settings": config.settings,
-                    "defaulelang": config.defaulelang,
-                    "ROOT_DIR": config.ROOT_DIR,
-                    "TEMP_DIR": config.TEMP_DIR,
                     "proxy": self.proxy_str
                 })
                 process.start()
@@ -170,32 +154,33 @@ class FasterAll(BaseRecogn):
                     self.error = str(err['msg'])
                 elif len(list(raws))>0:
                     self.error = ''
-                    if self.detect_language == 'auto' and self.inst and hasattr(self.inst, 'set_source_language'):
+                    if self.detect_language == 'auto':
                         config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
-                        self.detect_language = detect['langcode']
+                        self.detect_language = detect.get('langcode','auto')
+                    # 没有使用 LLM 重新断句，
+                    _llm_rephrase=False
+                    if config.settings.get('rephrase',''):
 
-                    if not config.settings['rephrase']:
-                        self.get_srtlist(raws)
-                    else:
                         try:
                             words_list = []
                             for it in list(raws):
                                 words_list += it['words']
-                            self._signal(text="正在重新断句..." if config.defaulelang == 'zh' else "Re-segmenting...")
+                            self._signal(text=tr("Re-segmenting..."))
                             self.raws = self.re_segment_sentences(words_list)
-                        except:
-                            self.get_srtlist(raws)
+                            _llm_rephrase=True
+                        except Exception:
+                            _llm_rephrase=False
+                    if not _llm_rephrase:
+                        self.raws=self.get_srtlist(raws)
+
                 try:
                     if process.is_alive():
                         process.terminate()
-                except:
+                except Exception:
                     pass
-        except (KeyError,IndexError,NameError) as e:
-            config.logger.exception(f'{e}', exc_info=True)
-            self.error = e
         except Exception as e:
             config.logger.exception(f'{e}', exc_info=True)
-            self.error = e
+            self.error = str(e)
         finally:
             config.model_process = None
             self.has_done = True
@@ -205,4 +190,4 @@ class FasterAll(BaseRecogn):
 
         if self.error:
             raise self.error if isinstance(self.error,Exception) else RuntimeError(self.error)
-        raise RuntimeError(f"没有识别到任何说话声,请确认所选音视频中是否包含人类说话声，以及说话语言是否同所选一致 {',请尝试取消选中CUDA加速后重试' if self.is_cuda else ''}" if config.defaulelang == 'zh' else "No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.")
+        raise RuntimeError(tr('No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.'))

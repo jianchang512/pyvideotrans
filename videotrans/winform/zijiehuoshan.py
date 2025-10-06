@@ -1,10 +1,9 @@
 def openwin():
     import json
-    from pathlib import Path
     from PySide6 import QtWidgets
     from videotrans.configure import config
     from videotrans.util import tools
-
+    from videotrans.configure.config import tr
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     def feed(d):
@@ -20,11 +19,9 @@ def openwin():
         if not key or not model.strip():
             return tools.show_error('必须填写API key和推理接入点')
 
-        template = winobj.zijiehuoshan_template.toPlainText()
         config.params["zijiehuoshan_key"] = key
         config.params["zijiehuoshan_model"] = model
-        config.params["zijiehuoshan_template"] = template
-        winobj.test_zijiehuoshan.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test_zijiehuoshan.setText(tr("Testing..."))
 
         task = TestSrtTrans(parent=winobj, translator_type=translator.ZIJIE_INDEX)
         task.uito.connect(feed)
@@ -34,14 +31,10 @@ def openwin():
         key = winobj.zijiehuoshan_key.text()
 
         model = winobj.zijiehuoshan_model.currentText()
-        template = winobj.zijiehuoshan_template.toPlainText()
 
         config.params["zijiehuoshan_key"] = key
         config.params["zijiehuoshan_model"] = model
-        config.params["zijiehuoshan_template"] = template
-        with Path(tools.get_prompt_file('zijie')).open('w', encoding='utf-8') as f:
-            f.write(template)
-            f.flush()
+
         config.getset_params(config.params)
         winobj.close()
 
@@ -60,7 +53,6 @@ def openwin():
 
 
     from videotrans.component import ZijiehuoshanForm
-    config.params["zijiehuoshan_template"] = tools.get_prompt('zijie')
     winobj = ZijiehuoshanForm()
     config.child_forms['zijie'] = winobj
     winobj.update_ui()

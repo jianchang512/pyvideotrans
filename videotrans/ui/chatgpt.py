@@ -5,6 +5,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -31,7 +32,7 @@ class Ui_chatgptform(object):
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
         self.label_0.setText(
-            'OpenAI及兼容的AI可在此使用(将作为LLM重新断句时的AI)' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here(For LLM re-segment)')
+            tr("AIs compatible with the ChatGPT also used here(For LLM re-segment)"))
         v1.addWidget(self.label_0)
 
         self.label = QtWidgets.QLabel(chatgptform)
@@ -58,7 +59,7 @@ class Ui_chatgptform(object):
 
         label_token = QtWidgets.QLabel(chatgptform)
         label_token.setObjectName("label_token")
-        label_token.setText("最大输出token" if config.defaulelang == 'zh' else "Maximum output token")
+        label_token.setText(tr("Maximum output token"))
         self.chatgpt_max_token = QtWidgets.QLineEdit(chatgptform)
         self.chatgpt_max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_max_token.setObjectName("chatgpt_max_token")
@@ -81,7 +82,7 @@ class Ui_chatgptform(object):
         self.label_allmodels = QtWidgets.QLabel(chatgptform)
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
-            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+            tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
         v1.addWidget(self.label_allmodels)
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(chatgptform)
@@ -93,6 +94,7 @@ class Ui_chatgptform(object):
 
         self.chatgpt_template = QtWidgets.QPlainTextEdit(chatgptform)
         self.chatgpt_template.setObjectName("chatgpt_template")
+        self.chatgpt_template.setReadOnly(True)
         v1.addWidget(self.label_4)
         v1.addWidget(self.chatgpt_template)
 
@@ -108,13 +110,14 @@ class Ui_chatgptform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/openai'))
 
         h4.addWidget(self.set_chatgpt)
         h4.addWidget(self.test_chatgpt)
         h4.addWidget(help_btn)
         v1.addLayout(h4)
+        self.chatgpt_template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'chatgpt' if config.defaulelang=='zh' else 'chatgpt-en')))
 
         self.retranslateUi(chatgptform)
         QtCore.QMetaObject.connectSlotsByName(chatgptform)
@@ -122,36 +125,30 @@ class Ui_chatgptform(object):
     def update_ui(self):
         from videotrans.configure import config
         config.settings = config.parse_init()
-        allmodels_str = config.settings['chatgpt_model']
-        allmodels = config.settings['chatgpt_model'].split(',')
+        allmodels_str = config.settings.get('chatgpt_model','')
+        allmodels = config.settings.get('chatgpt_model','').split(',')
         self.chatgpt_model.clear()
         self.chatgpt_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["chatgpt_key"]:
-            self.chatgpt_key.setText(config.params["chatgpt_key"])
-        if config.params["chatgpt_api"]:
-            self.chatgpt_api.setText(config.params["chatgpt_api"])
-        if config.params["chatgpt_model"] and config.params['chatgpt_model'] in allmodels:
-            self.chatgpt_model.setCurrentText(config.params["chatgpt_model"])
-        if config.params["chatgpt_template"]:
-            self.chatgpt_template.setPlainText(config.params["chatgpt_template"])
-        if config.params["chatgpt_max_token"]:
-            self.chatgpt_max_token.setText(str(config.params["chatgpt_max_token"]))
+        self.chatgpt_key.setText(config.params.get("chatgpt_key",''))
+        self.chatgpt_api.setText(config.params.get("chatgpt_api",''))
+        self.chatgpt_model.setCurrentText(config.params.get("chatgpt_model",''))
+        self.chatgpt_max_token.setText(str(config.params.get("chatgpt_max_token",'')))
     def retranslateUi(self, chatgptform):
-        chatgptform.setWindowTitle("OpenAI API 及兼容AI" if config.defaulelang == 'zh' else "OpenAI API & Compatible AI")
-        self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
+        chatgptform.setWindowTitle(tr("OpenAI API & Compatible AI"))
+        self.label_3.setText(tr("Model"))
         self.chatgpt_template.setPlaceholderText("prompt")
         self.label_4.setText(
-            "{lang}代表目标语言名称，不要删除。" if config.defaulelang == 'zh' else "{lang} represents the target language name, do not delete it.")
-        self.set_chatgpt.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test_chatgpt.setText('测试..' if config.defaulelang == 'zh' else "Test..")
+            tr("{lang} represents the target language name, do not delete it."))
+        self.set_chatgpt.setText(tr("Save"))
+        self.test_chatgpt.setText(tr("Test"))
         self.chatgpt_api.setPlaceholderText(
-            '若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang == 'zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
+            tr("If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here"))
         self.chatgpt_api.setToolTip(
-            '若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang == 'zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
+            tr("If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here"))
         self.chatgpt_key.setPlaceholderText("Secret key")
         self.chatgpt_key.setToolTip(
-            "必须是付费账号，免费账号频率受限无法使用" if config.defaulelang == 'zh' else 'Must be a paid account, free account frequency is limited and cannot be used')
-        self.label.setText("API URL")
-        self.label_2.setText("SK")
+            tr("Must be a paid account, free account frequency is limited and cannot be used"))
+        self.label.setText(tr("API URL"))
+        self.label_2.setText(tr("SK"))

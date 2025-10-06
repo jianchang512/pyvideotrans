@@ -1,9 +1,7 @@
 def openwin():
     import json
-    from pathlib import Path
-
     from PySide6 import QtWidgets
-
+    from videotrans.configure.config import tr
     from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
@@ -13,18 +11,15 @@ def openwin():
             tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
-        winobj.test_localllm.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test_localllm.setText(tr("Test"))
 
     def test():
         key = winobj.localllm_key.text()
         url = winobj.localllm_api.text().strip()
         max_token = winobj.localllm_max_token.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
         model = winobj.localllm_model.currentText()
-        template = winobj.localllm_template.toPlainText()
 
         temperature = winobj.localllm_temperature.text().strip()
         top_p = winobj.localllm_top_p.text().strip()
@@ -36,8 +31,7 @@ def openwin():
         config.params["localllm_key"] = key
         config.params["localllm_api"] = url
         config.params["localllm_model"] = model
-        config.params["localllm_template"] = template
-        winobj.test_localllm.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test_localllm.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.LOCALLLM_INDEX)
         task.uito.connect(feed)
         task.start()
@@ -45,12 +39,9 @@ def openwin():
     def save_localllm():
         key = winobj.localllm_key.text()
         url = winobj.localllm_api.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
         model = winobj.localllm_model.currentText()
-        template = winobj.localllm_template.toPlainText()
         max_token = winobj.localllm_max_token.text().strip()
 
         temperature = winobj.localllm_temperature.text().strip()
@@ -63,10 +54,7 @@ def openwin():
         config.params["localllm_max_token"] = max_token
 
         config.params["localllm_model"] = model
-        config.params["localllm_template"] = template
-        with Path(tools.get_prompt_file('localllm')).open('w', encoding='utf-8') as f:
-            f.write(template)
-            f.flush()
+
         config.getset_params(config.params)
         winobj.close()
 
@@ -83,7 +71,6 @@ def openwin():
 
 
     from videotrans.component import LocalLLMForm
-    config.params["localllm_template"] = tools.get_prompt('localllm')
     winobj = LocalLLMForm()
     config.child_forms['localllm'] = winobj
     winobj.update_ui()

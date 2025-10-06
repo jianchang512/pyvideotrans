@@ -19,8 +19,17 @@ from dataclasses import dataclass
 
 @dataclass
 class AI302(BaseTTS):
+
+    def __post_init__(self):
+        with open(config.ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
+            ai302_voice_roles = json.loads(f.read())
+            self.AI302_doubao = ai302_voice_roles.get("AI302_doubao", {})
+            self.AI302_minimaxi = ai302_voice_roles.get("AI302_minimaxi", {})
+            self.AI302_dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
+            self.AI302_doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
+        self.AI302_openai=config.OPENAITTS_ROLES.split(",")
+
     def _exec(self):
-        self.dub_nums = 1
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
@@ -33,15 +42,11 @@ class AI302(BaseTTS):
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
             self._generate(data=data_item)
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.has_done += 1
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error=e
 
@@ -61,25 +66,25 @@ class AI302(BaseTTS):
             "speed": speed,
             "volume": volume
         }
-        if data['role'] in tts.AI302_doubao or data['role'] in tts.AI302_doubao_ja:
+        if data['role'] in self.AI302_doubao or data['role'] in self.AI302_doubao_ja:
             payload['provider'] = 'doubao'
-            payload['voice'] = tts.AI302_doubao.get(data['role'],tts.AI302_doubao_ja.get(data['role']))
-        elif data['role'] in tts.AI302_minimaxi:
+            payload['voice'] = self.AI302_doubao.get(data['role'],self.AI302_doubao_ja.get(data['role']))
+        elif data['role'] in self.AI302_minimaxi:
             payload['provider'] = 'minimaxi'
             payload['model'] = 'speech-02-hd'
-            payload['voice'] = tts.AI302_minimaxi.get(data['role'])
-        elif data['role'] in tts.AI302_dubbingx:
+            payload['voice'] = self.AI302_minimaxi.get(data['role'])
+        elif data['role'] in self.AI302_dubbingx:
             payload['provider'] = 'dubbingx'
-            payload['voice'] = tts.AI302_dubbingx.get(data['role'])
-        elif data['role'] in tts.AI302_openai:
+            payload['voice'] = self.AI302_dubbingx.get(data['role'])
+        elif data['role'] in self.AI302_openai:
             payload['provider'] = 'openai'
             payload['model'] = 'gpt-4o-mini-tts'
-            payload['voice'] = tts.AI302_openai.get(data['role'])
+            payload['voice'] = data['role']
         else:
             payload['provider'] = 'azure'
         # print(f'{payload=}')
         response = requests.post('https://api.302.ai/302/v2/audio/tts', headers={
-            'Authorization': f'Bearer {config.params["ai302_key"]}',
+            'Authorization': f'Bearer {config.params.get("ai302_key",'')}',
             'Content-Type': 'application/json'
         }, data=json.dumps(payload), verify=False)
         response.raise_for_status()

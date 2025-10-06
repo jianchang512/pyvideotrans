@@ -3,6 +3,8 @@
 
 from PySide6 import QtCore, QtWidgets
 
+from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -25,7 +27,7 @@ class Ui_ai302form(object):
 
         self.label_1 = QtWidgets.QLabel()
         self.label_1.setObjectName("label_1")
-        self.label_1.setText("已接入文字大模型翻译字幕 及 语音识别 和 openai/豆包/Azure/Minimaxi/Dubbingx 配音角色")
+        self.label_1.setText(tr("Has been connected to the text model translation subtitles and speech recognition and openai/doubao/Azure/Minimaxi/Dubbingx dubbing characters"))
         v1.addWidget(self.label_1)
 
         self.label_2 = QtWidgets.QLabel()
@@ -64,6 +66,8 @@ class Ui_ai302form(object):
 
         self.ai302_template = QtWidgets.QPlainTextEdit(ai302form)
         self.ai302_template.setObjectName("ai302_template")
+        self.ai302_template.setReadOnly(True)
+        self.ai302_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'ai302' if config.defaulelang=='zh' else 'ai302-en'))
         v1.addWidget(self.ai302_template)
 
         h3 = QtWidgets.QHBoxLayout()
@@ -78,7 +82,7 @@ class Ui_ai302form(object):
         self.label_0 = QtWidgets.QPushButton(ai302form)
         self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
         self.label_0.setStyleSheet("""text-align:left;background-color:transparent""")
-        self.label_0.setText('查看填写教程')
+        self.label_0.setText(tr('Fill out the tutorial'))
         self.label_0.clicked.connect(lambda: tools.open_url("https://pyvideotrans.com/302ai"))
 
         h3.addWidget(self.set_ai302)
@@ -92,27 +96,23 @@ class Ui_ai302form(object):
     def update_ui(self):
         from videotrans.configure import config
         config.settings = config.parse_init()
-        allmodels_str = config.settings['ai302_models']
-        allmodels = config.settings['ai302_models'].split(',')
+        allmodels_str = config.settings.get('ai302_models','')
+        allmodels = config.settings.get('ai302_models','').split(',')
 
         self.ai302_model.clear()
         self.ai302_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["ai302_key"]:
-            self.ai302_key.setText(config.params["ai302_key"])
-        if config.params["ai302_model"] and config.params["ai302_model"] in allmodels:
-            self.ai302_model.setCurrentText(config.params["ai302_model"])
-        if config.params["ai302_template"]:
-            self.ai302_template.setPlainText(config.params["ai302_template"])
+        if config.params.get("ai302_key",''):
+            self.ai302_key.setText(config.params.get("ai302_key",''))
+        if  config.params.get("ai302_model") in allmodels:
+            self.ai302_model.setCurrentText(config.params.get("ai302_model",''))
+
     def retranslateUi(self, ai302form):
-        ai302form.setWindowTitle("302.ai 接入翻译和配音渠道配置")
-        self.label_3.setText('选择模型')
-        self.label_allmodels.setText('填写所有可用模型，以英文逗号分隔，填写后可在上方选择')
-        self.ai302_template.setPlaceholderText("prompt")
-        self.label_4.setText("{lang}代表目标语言名称，不要删除。")
-        self.set_ai302.setText('保存')
-        self.test_ai302.setText('测试..')
-        self.ai302_key.setPlaceholderText("在api超市-api管理-创建API KEY")
-        self.ai302_key.setToolTip("如果没有账号，可去 302.ai 注册，有7元免费额度")
-        self.label_2.setText("API KEY")
+        ai302form.setWindowTitle("302.ai"+tr("Access translation and dubbing channel configuration"))
+        self.label_3.setText(tr('Model'))
+        self.label_allmodels.setText(tr('Fill in all available models, separated by commas. After filling in, you can select them above'))
+        self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
+        self.set_ai302.setText(tr('Save'))
+        self.test_ai302.setText(tr('Test'))
+        self.label_2.setText(tr("SK"))

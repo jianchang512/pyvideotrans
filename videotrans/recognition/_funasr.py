@@ -1,25 +1,22 @@
 # stt项目识别接口
 import re
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict, Union
 
 from funasr import AutoModel
 from pydub import AudioSegment
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
-from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools
 
 
 @dataclass
 class FunasrRecogn(BaseRecogn):
-    raws: List = field(init=False, default_factory=list)
 
     def __post_init__(self):
         super().__post_init__()
-
 
     def remove_unwanted_characters(self, text: str) -> str:
         # 保留中文、日文、韩文、英文、数字和常见符号，去除其他字符
@@ -29,14 +26,12 @@ class FunasrRecogn(BaseRecogn):
 
     def _tosend(self, msg):
         self._signal(text=msg)
-        if self.inst and self.inst.status_text:
-            self.inst.status_text = msg
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
 
-        msg = '检测模型是否存在，若不存在将从 modelscope.cn 下载，请耐心等待' if config.defaulelang == 'zh' else 'The model needs to be downloaded from modelscope.cn, which may take a long time, please be patient'
+        msg = tr("The model needs to be downloaded from modelscope.cn, which may take a long time, please be patient")
         self._tosend(msg)
         if self.model_name == 'SenseVoiceSmall':
             return self._exec1()
@@ -54,7 +49,7 @@ class FunasrRecogn(BaseRecogn):
             disable_log=True,
             device=self.device
         )
-        msg = f"模型加载完毕，进入识别" if config.defaulelang == 'zh' else 'Model loading is complete, enter recognition'
+        msg = tr("Model loading is complete, enter recognition")
         self._tosend(msg)
         res = model.generate(input=self.audio_file, return_raw_text=True, is_final=True,
                              sentence_timestamp=True, batch_size_s=100, disable_pbar=True)
@@ -94,14 +89,14 @@ class FunasrRecogn(BaseRecogn):
         vm = AutoModel(
             model="fsmn-vad",
             local_dir=config.ROOT_DIR + "/models",
-            max_single_segment_time=int(float(config.settings['max_speech_duration_s'])*1000),
+            max_single_segment_time=int(float(config.settings.get('max_speech_duration_s',5))*1000),
             max_end_silence_time=int(config.settings.get('min_silence_duration_ms',500)),
             hub='ms',
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
             device=self.device)
-        msg = f"模型已加载开始识别，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient'
+        msg = tr("Recognition may take a while, please be patient")
         self._tosend(msg)
         segments = vm.generate(input=self.audio_file)
         audiodata = AudioSegment.from_file(self.audio_file)

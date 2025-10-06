@@ -4,6 +4,7 @@ from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPushButton, QSizePolicy
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -63,7 +64,7 @@ class Ui_transapiform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/transapi'))
         h3.addWidget(self.save)
         h3.addWidget(self.test)
@@ -103,15 +104,15 @@ Expect data to be returned from the interface in json format:
 Usage: github.com/jianchang512/translate-api
 """
         transapiform.setWindowTitle(
-            "自定义翻译API/无编码能力勿使用该功能" if config.defaulelang == 'zh' else "Customizing the Translate API")
-        self.label_3.setText("密钥" if config.defaulelang == 'zh' else "Secret")
+            tr("Customizing the Translate API"))
+        self.label_3.setText(tr("Secret"))
         self.miyue.setPlaceholderText("填写密钥")
 
         self.tips.setPlainText(tips)
 
-        self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
+        self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText(
-            "填写http开头的翻译api地址" if config.defaulelang == 'zh' else "Fill in the full address starting with http")
-        self.label.setText("自定义翻译API" if config.defaulelang == 'zh' else "Translate API")
-        self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")
+            tr("Fill in the full address starting with http"))
+        self.label.setText(tr("Translate API"))
+        self.test.setText(tr("Test"))
     # retranslateUi

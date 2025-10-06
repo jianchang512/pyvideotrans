@@ -1,7 +1,7 @@
 
 
 def openwin():
-
+    from videotrans.configure.config import tr
     import json
     from pathlib import Path
     from PySide6 import QtWidgets
@@ -10,6 +10,7 @@ def openwin():
     from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.task._speech2text import SpeechToText
+    from videotrans.task.taskcfg import TaskCfg
     from videotrans import translator, recognition
     RESULT_DIR = config.HOME_DIR + f"/recogn"
     COPYSRT_TO_RAWDIR = RESULT_DIR
@@ -31,14 +32,14 @@ def openwin():
             winobj.shibie_text.moveCursor(QTextCursor.End)
             winobj.shibie_text.insertPlainText(d['text'])
         elif d['type'] == 'error':
-            winobj.loglabel.setToolTip('点击查看详细出错信息' if config.defaulelang == 'zh' else 'View  details error')
+            toggle_state(False)
+            winobj.loglabel.setToolTip(tr("View  details error"))
             winobj.error_msg = d['text']
             winobj.has_done = True
             winobj.loglabel.setText(d['text'][:150])
             winobj.loglabel.setCursor(Qt.PointingHandCursor)
             winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
-            winobj.shibie_startbtn.setDisabled(False)
-            winobj.shibie_startbtn.setText(config.box_lang["Start"])
+            winobj.shibie_startbtn.setText(tr("Start"))
         elif d['type'] == 'logs' and d['text']:
             winobj.loglabel.setText(d['text'] + ' ... ')
         elif d['type'] in ['jindu', 'succeed']:
@@ -46,11 +47,10 @@ def openwin():
         elif d['type'] in ['end']:
             config.box_recogn = 'stop'
             winobj.has_done = True
-            winobj.loglabel.setText(config.transobj['quanbuend'])
-            winobj.shibie_startbtn.setText(config.transobj["zhixingwc"])
-            winobj.shibie_startbtn.setDisabled(False)
-            winobj.shibie_stop.setDisabled(True)
-            winobj.shibie_dropbtn.setText(config.transobj['quanbuend'] + ". " + config.transobj['xuanzeyinshipin'])
+            toggle_state(False)
+            winobj.loglabel.setText(tr('quanbuend'))
+            winobj.shibie_startbtn.setText(tr("zhixingwc"))
+            winobj.shibie_dropbtn.setText(tr('quanbuend') + ". " + tr('xuanzeyinshipin'))
 
     def opendir_fn():
         QDesktopServices.openUrl(QUrl.fromLocalFile(COPYSRT_TO_RAWDIR))
@@ -72,6 +72,24 @@ def openwin():
             winobj.show_spk.setVisible(False)
         return True
 
+    def toggle_state(state):
+        winobj.shibie_language.setDisabled(state)
+        winobj.is_cuda.setDisabled(state)
+        winobj.shibie_recogn_type.setDisabled(state)
+        winobj.shibie_model.setDisabled(state)
+        winobj.show_spk.setDisabled(state)
+        winobj.shibie_split_type.setDisabled(state)
+        winobj.equal_split_time.setDisabled(state)
+        winobj.out_format.setDisabled(state)
+        winobj.shibie_opendir.setDisabled(state)
+        winobj.shibie_startbtn.setDisabled(state)
+        winobj.shibie_dropbtn.setDisabled(state)
+        winobj.rephrase.setDisabled(state)
+        winobj.rephrase_local.setDisabled(state)
+        winobj.remove_noise.setDisabled(state)
+        winobj.copysrt_rawvideo.setDisabled(state)
+        winobj.shibie_stop.setDisabled(not state)
+
     def shibie_start_fun():
         nonlocal COPYSRT_TO_RAWDIR
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
@@ -87,11 +105,11 @@ def openwin():
         langcode = translator.get_audio_code(show_source=winobj.shibie_language.currentText())
         is_cuda = winobj.is_cuda.isChecked()
         if check_cuda(is_cuda) is not True:
-            return tools.show_error(config.transobj["nocudnn"])
+            return tools.show_error(tr("nocudnn"))
         # 待识别音视频文件列表
         files = winobj.shibie_dropbtn.filelist
         if not files or len(files) < 1:
-            return tools.show_error(config.transobj['bixuyinshipin'])
+            return tools.show_error(tr('bixuyinshipin'))
 
         is_allow_lang_res = recognition.is_allow_lang(langcode=langcode, recogn_type=recogn_type, model_name=model)
         if is_allow_lang_res is not True:
@@ -105,51 +123,51 @@ def openwin():
         if winobj.rephrase.isChecked():
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
-                tools.show_error(config.transobj['llmduanju'])
+                tools.show_error(tr('llmduanju'))
                 from videotrans.winform import chatgpt
                 chatgpt.openwin()
                 return
             if ai_type == 'deepseek' and not config.params.get('deepseek_key'):
-                tools.show_error(config.transobj['llmduanjudp'])
+                tools.show_error(tr('llmduanjudp'))
                 from videotrans.winform import deepseek
                 deepseek.openwin()
                 return
-
-        winobj.shibie_startbtn.setText(config.transobj["running"])
+        toggle_state(True)
+        winobj.shibie_startbtn.setText(tr("running"))
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()
         if recogn_type == recognition.FASTER_WHISPER and split_type_index == 1:
             try:
                 config.settings['interval_split'] = int(winobj.equal_split_time.text().strip())
-            except:
+            except ValueError:
                 config.settings['interval_split'] = 10
         config.settings['rephrase'] = winobj.rephrase.isChecked()
         config.settings['rephrase_local'] = winobj.rephrase_local.isChecked()
         with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-        winobj.shibie_opendir.setDisabled(False)
+        # winobj.shibie_opendir.setDisabled(False)
         try:
             COPYSRT_TO_RAWDIR = RESULT_DIR if not winobj.copysrt_rawvideo.isChecked() else RESULT_DIR
-            winobj.shibie_startbtn.setDisabled(True)
-            winobj.shibie_stop.setDisabled(False)
+            # winobj.shibie_startbtn.setDisabled(True)
+            # winobj.shibie_dropbtn.setDisabled(True)
+            # winobj.shibie_stop.setDisabled(False)
             winobj.loglabel.setText('')
             config.box_recogn = 'ing'
 
             video_list = [tools.format_video(it, None) for it in files]
             uuid_list = [obj['uuid'] for obj in video_list]
             for it in video_list:
-                trk = SpeechToText(cfg={
+                cfg={
                     "recogn_type": recogn_type,
                     "split_type": ["all", "avg"][split_type_index],
                     "model_name": model,
-                    "is_cuda": is_cuda,
+                    "cuda": is_cuda,
                     "target_dir": RESULT_DIR,
                     "detect_language": langcode,
-                    "out_format": winobj.out_format.currentText(),
                     "remove_noise": winobj.remove_noise.isChecked(),
-                    "copysrt_rawvideo": winobj.copysrt_rawvideo.isChecked()
-                }, obj=it)
+                }
+                trk = SpeechToText(cfg=TaskCfg(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
                 config.prepare_queue.append(trk)
             from videotrans.task.child_win_sign import SignThread
             th = SignThread(uuid_list=uuid_list, parent=winobj)
@@ -173,7 +191,7 @@ def openwin():
         if state:
             import torch
             if not torch.cuda.is_available():
-                tools.show_error(config.transobj['nocuda'])
+                tools.show_error(tr('nocuda'))
                 winobj.is_cuda.setChecked(False)
                 winobj.is_cuda.setDisabled(True)
                 return False
@@ -183,7 +201,7 @@ def openwin():
             if winobj.shibie_recogn_type.currentIndex() == recognition.FASTER_WHISPER:
                 from torch.backends import cudnn
                 if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
-                    tools.show_error(config.transobj["nocudnn"])
+                    tools.show_error(tr("nocudnn"))
                     winobj.is_cuda.setChecked(False)
                     winobj.is_cuda.setDisabled(True)
                     return False
@@ -193,13 +211,13 @@ def openwin():
         import sys
         if sys.platform != 'win32':
             tools.show_error(
-                'faster-whisper-xxl.exe 仅在Windows下可用' if config.defaulelang == 'zh' else 'faster-whisper-xxl.exe is only available on Windows')
+                tr("faster-whisper-xxl.exe is only available on Windows"))
             return False
         if not config.settings.get('Faster_Whisper_XXL') or not Path(
                 config.settings.get('Faster_Whisper_XXL', '')).exists():
             from PySide6.QtWidgets import QFileDialog
             exe, _ = QFileDialog.getOpenFileName(winobj,
-                                                 '选择 faster-whisper-xxl.exe' if config.defaulelang == 'zh' else "Select faster-whisper-xxl.exe",
+                                                 tr("Select faster-whisper-xxl.exe"),
                                                  'C:/', f'Files(*.exe)')
             if exe:
                 config.settings['Faster_Whisper_XXL'] = Path(exe).as_posix()
@@ -266,10 +284,12 @@ def openwin():
         config.box_recogn = 'stop'
         winobj.has_done = True
         winobj.loglabel.setText('Stoped')
-        winobj.shibie_startbtn.setText(config.transobj["zhixingwc"])
-        winobj.shibie_startbtn.setDisabled(False)
-        winobj.shibie_stop.setDisabled(True)
-        winobj.shibie_dropbtn.setText(config.transobj['xuanzeyinshipin'])
+        winobj.shibie_startbtn.setText(tr("zhixingwc"))
+        # winobj.shibie_startbtn.setDisabled(False)
+        # winobj.shibie_dropbtn.setDisabled(False)
+        # winobj.shibie_stop.setDisabled(True)
+        winobj.shibie_dropbtn.setText(tr('xuanzeyinshipin'))
+        toggle_state(False)
 
     def show_detail_error():
         if winobj.error_msg:
@@ -312,10 +332,10 @@ def openwin():
     winobj = Recognform()
     config.child_forms['fn_recogn'] = winobj
     winobj.show()
-    def _bind_signal():
+    def _bind():
         Path(RESULT_DIR).mkdir(exist_ok=True,parents=True)
         from videotrans.component.component import DropButton
-        winobj.shibie_dropbtn = DropButton(config.transobj['xuanzeyinshipin'])
+        winobj.shibie_dropbtn = DropButton(tr('xuanzeyinshipin'))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -323,7 +343,7 @@ def openwin():
         winobj.shibie_dropbtn.setSizePolicy(sizePolicy)
         winobj.shibie_dropbtn.setMinimumSize(0, 150)
         winobj.shibie_widget.insertWidget(0, winobj.shibie_dropbtn)
-        winobj.shibie_language.addItems(list(translator.LANGNAME_DICT.values()))
+        winobj.shibie_language.addItems(list(translator.LANGNAME_DICT.values())+['auto'])
         winobj.shibie_label.clicked.connect(click_reglabel)
 
         winobj.shibie_startbtn.clicked.connect(shibie_start_fun)
@@ -335,13 +355,13 @@ def openwin():
         winobj.rephrase.setChecked(config.settings.get('rephrase',False) if not local_rephrase else False)
         winobj.remove_noise.setChecked(config.params.get('stt_remove_noise'))
         winobj.copysrt_rawvideo.setChecked(config.params.get('stt_copysrt_rawvideo', False))
-        winobj.out_format.setCurrentText(config.params.get('stt_out_format', 'txt'))
+        winobj.out_format.setCurrentText(config.params.get('stt_out_format', 'srt'))
 
         default_lang = int(config.params.get('stt_source_language', 0))
         winobj.shibie_language.setCurrentIndex(default_lang)
         try:
             default_type = int(config.params.get('stt_recogn_type', 0))
-        except:
+        except ValueError:
             default_type = 0
         winobj.shibie_recogn_type.clear()
         winobj.shibie_recogn_type.addItems(recognition.RECOGN_NAME_LIST)
@@ -376,4 +396,4 @@ def openwin():
 
         winobj.rephrase.toggled.connect(lambda checked:rephrase_fun(checked,'llm'))
         winobj.rephrase_local.toggled.connect(lambda checked:rephrase_fun(checked,'local'))
-    QTimer.singleShot(100,_bind_signal)
+    QTimer.singleShot(10,_bind)

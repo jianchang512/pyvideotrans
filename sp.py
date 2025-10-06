@@ -9,8 +9,7 @@ License: GPL-V3
 
 # 代码是一坨屎，但又不是不能跑 O(∩_∩)O~ 别在意那些细节
 # 写的这么烂，一看就不是AI写的
-# 没有规范，随便乱搞
-# 英文不好，中英混杂
+# 没有规范，随便乱搞, 英文不好，中英混杂
 
 """
 import atexit, sys, os, time
@@ -48,6 +47,7 @@ atexit.register(cleanup)
 if sys.platform != "win32":
     import signal
 
+
     def handle_exit(signum, frame):
         cleanup()
         sys.exit(0)
@@ -62,6 +62,7 @@ def show_global_error_dialog(tb_str):
     show_error(tb_str)
 
 
+# 启动画面
 class StartWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -110,11 +111,12 @@ class StartWindow(QWidget):
             self.move(center_point.x() - self.width() // 2, center_point.y() - self.height() // 2)
 
 
+# 启动主窗口
 def initialize_full_app(start_window, app_instance):
     import argparse
     from videotrans.configure._guiexcept import global_exception_hook, exception_handler
     from PySide6.QtCore import QSize, QSettings
-    # 日志
+
     if sys.stdout is None or sys.stderr is None:
         try:
             log_dir = os.path.join(os.getcwd(), "logs")
@@ -143,7 +145,6 @@ def initialize_full_app(start_window, app_instance):
     import urllib3
     # 禁用 InsecureRequestWarning 警告
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
     from videotrans.mainwin._main_win import MainWindow
 
     main_window_created = False
@@ -161,7 +162,6 @@ def initialize_full_app(start_window, app_instance):
         app_instance.quit()
         return
 
-    # 显示主窗口
     if main_window_created and start_window.main_window:
         start_window.main_window.show()
         QTimer.singleShot(1000, lambda: start_window.close())
@@ -195,6 +195,7 @@ if __name__ == "__main__":
         try:
             cleanup()
             import gc
+
             gc.collect()
         except Exception as e:
             print(e)

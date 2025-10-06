@@ -22,8 +22,8 @@ class DeepLX(BaseTrans):
         super().__post_init__()
         self.aisendsrt = False
 
-        url = config.params['deeplx_address'].strip().rstrip('/')
-        key = config.params['deeplx_key'].strip()
+        url = config.params.get('deeplx_address','').strip().rstrip('/')
+        key = config.params.get('deeplx_key','').strip()
 
         if "/translate" not in url:
             url += '/translate'

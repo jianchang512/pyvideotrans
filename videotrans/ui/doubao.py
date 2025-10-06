@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -69,10 +69,10 @@ class Ui_doubaoform(object):
         QtCore.QMetaObject.connectSlotsByName(doubaoform)
 
     def retranslateUi(self, doubaoform):
-        doubaoform.setWindowTitle("字节火山字幕生成" if config.defaulelang == 'zh' else "ByteDance VolcEngine Subtitle")
+        doubaoform.setWindowTitle(tr("ByteDance VolcEngine Subtitle"))
         self.label_3.setText('Access Token')
 
         self.set_save.setText('保存')
-        self.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        self.test.setText(tr("Test"))
         self.doubao_appid.setPlaceholderText("填写应用的APP ID")
         self.label_2.setText("APP ID")

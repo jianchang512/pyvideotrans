@@ -10,7 +10,6 @@ import tempfile
 from pathlib import Path
 from queue import Queue
 
-MAINWIN = None
 
 IS_FROZEN = True if getattr(sys, 'frozen', False) else False
 
@@ -34,14 +33,14 @@ _tmpname = f'tmp'
 _temp_path = _root_path / _tmpname
 _temp_path.mkdir(parents=True, exist_ok=True)
 TEMP_DIR = _temp_path.as_posix()
-Path(TEMP_DIR + '/dubbing_cache').mkdir(exist_ok=True)
-Path(TEMP_DIR + '/translate_cache').mkdir(exist_ok=True)
+Path(TEMP_DIR + '/dubbing_cache').mkdir(exist_ok=True,parents=True)
+Path(TEMP_DIR + '/translate_cache').mkdir(exist_ok=True,parents=True)
+
 # 日志目录 logs
 _logs_path = _root_path / "logs"
 _logs_path.mkdir(parents=True, exist_ok=True)
-LOGS_DIR = _logs_path.as_posix()
-# 确保同时只能一个 faster-whisper进程在执行
-model_process = None
+
+
 ###################################
 logger = logging.getLogger('VideoTrans')
 logger.setLevel(logging.INFO)
@@ -59,6 +58,9 @@ _console_handler.setFormatter(formatter)
 # 添加处理器到日志记录器
 logger.addHandler(_file_handler)
 logger.addHandler(_console_handler)
+
+
+
 
 FFMPEG_BIN = "ffmpeg"
 FFPROBE_BIN = "ffprobe"
@@ -82,8 +84,9 @@ if _env_lang:  # 新增：如果环境变量存在，则使用它
 else:  # 原有逻辑
     try:
         defaulelang = locale.getdefaultlocale()[0][:2].lower()
-    except:
+    except Exception:
         defaulelang = "zh"
+# 中文系统，设置镜像
 if defaulelang == 'zh' and not Path(ROOT_DIR+"/huggingface.lock").exists():
     os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
     os.environ["HF_HUB_DISABLE_XET"] = "1"
@@ -92,8 +95,6 @@ if defaulelang == 'zh' and not Path(ROOT_DIR+"/huggingface.lock").exists():
 # 存储所有任务的进度队列，以uuid为键
 # 根据uuid将日志进度等信息存入队列，如果不存在则创建
 uuid_logs_queue = {}
-
-
 def push_queue(uuid, jsondata):
     if uuid in stoped_uuid_set:
         return
@@ -107,6 +108,8 @@ def push_queue(uuid, jsondata):
         pass
 
 
+# 确保同时只能一个 faster-whisper进程在执行
+model_process = None
 # 存储已停止/暂停的任务
 stoped_uuid_set = set()
 # 全局消息，不存在uuid，用于控制软件
@@ -143,12 +146,14 @@ dubb_queue = []
 align_queue = []
 # 合成队列
 assemb_queue = []
+# 最终完成结束任务队列
+taskdone_queue=[]
+
 # 执行模式 gui 或 api
 exec_mode = "gui"
 # funasr模型
 FUNASR_MODEL = ['paraformer-zh', 'SenseVoiceSmall']
-# 存储下载进度
-FUNASR_DOWNMSG = ""
+
 DEEPGRAM_MODEL = [
     "nova-3",
     "whisper-large",
@@ -166,19 +171,14 @@ VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts"]
 AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
 # 设置当前可用视频编码  libx264 h264_qsv h264_nvenc 等
 video_codec = None
-#######################################
-# 存放 edget-tts 角色列表
-edgeTTS_rolelist = None
-AzureTTS_rolelist = None
-DEFAULT_GEMINI_MODEL = "gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
 line_roles = {}
 dubbing_role = {}
-ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv', 'ms', 'uk', 'cs', 'tl']
 codec_cache = {}
-
+#######################################
+DEFAULT_GEMINI_MODEL = "gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
+ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv', 'ms', 'uk', 'cs', 'tl']
 OPENAITTS_ROLES="alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
 QWEN_TTS_ROLES='Cherry,Serena,Ethan,Chelsie,Sunny,Jada,Dylan'
-
 QWEN3_TTS_ROLES='Cherry,Ethan,Nofish,Jennifer,Ryan,Katerina,Elias,Jada,Dylan,Sunny,li,Marcus,Roy,Peter,Rocky,Kiki,Eric'
 
 # 设置默认高级参数值
@@ -190,7 +190,7 @@ def parse_init(update_data=None):
     _defaulthomedir = (Path.home() / 'Videos/pyvideotrans').as_posix()
     try:
         Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
-    except:
+    except OSError:
         _defaulthomedir = ROOT_DIR + '/hometemp'
         Path(_defaulthomedir).mkdir(parents=True, exist_ok=True)
     default = {
@@ -202,6 +202,7 @@ def parse_init(update_data=None):
         "preset": "fast",
         "ffmpeg_cmd": "",
         "aisendsrt": False,
+        "dont_notify": False,
         "video_codec": 264,
 
         "ai302_models": "gpt-4o-mini,gpt-4o,qwen-max,glm-4,yi-large,deepseek-chat,doubao-pro-128k,gemini-2.0-flash",
@@ -310,7 +311,7 @@ def parse_init(update_data=None):
         return default
     try:
         temp_json = json.loads(Path(ROOT_DIR + "/videotrans/cfg.json").read_text(encoding='utf-8'))
-    except Exception as e:
+    except json.JSONDecodeError:
         return default
     else:
         _settings = {}
@@ -340,53 +341,48 @@ def parse_init(update_data=None):
 # 高级选项信息
 settings = parse_init()
 if not _env_lang and settings.get('lang'):
-    defaulelang = settings['lang'].lower()
+    defaulelang = settings.get('lang','').lower()
+
+# 获取已有的语言文件
+SUPPORT_LANG={}
+for it in Path(f'{ROOT_DIR}/videotrans/language').glob('*.json'):
+    if it.stat().st_size>0:
+        SUPPORT_LANG[it.stem]=it.as_posix()
+if defaulelang not in SUPPORT_LANG:
+    defaulelang = "en"
+
 # 家目录
-HOME_DIR = settings['homedir']
+HOME_DIR = settings.get('homedir','')
 # 家目录下的临时文件存储目录
-TEMP_HOME = settings['homedir'] + f"/{_tmpname}"
+TEMP_HOME = settings.get('homedir','') + f"/{_tmpname}"
 Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
 
-# 语言代码文件是否存在
-_lang_path = _root_path / f'videotrans/language/{defaulelang}.json'
-if not _lang_path.exists():
-    defaulelang = "en"
-    _lang_path = _root_path / f'videotrans/language/{defaulelang}.json'
-_obj = json.loads(_lang_path.read_text(encoding='utf-8'))
-# 交互语言代码
-transobj = _obj["translate_language"]
-# 软件界面
-uilanglist = _obj["ui_lang"]
-# 语言代码:语言显示名称
-langlist: dict = _obj["language_code_list"]
 
-# 工具箱语言
-box_lang = _obj['toolbox_lang']
 # 代理地址
 proxy = settings.get('proxy', '')
+
 #############################################
-# openai  faster-whisper 识别模型
 
-WHISPER_MODEL_LIST = re.split(r'[,，]', settings['model_list'])
-ChatTTS_voicelist = re.split(r'[,，]', str(settings['chattts_voice']))
+WHISPER_MODEL_LIST = re.split(r'[,，]', settings.get('model_list',''))
+ChatTTS_voicelist = re.split(r'[,，]', str(settings.get('chattts_voice','')))
 
-_chatgpt_model_list = [it.strip() for it in settings['chatgpt_model'].split(',') if it.strip()]
+_chatgpt_model_list = [it.strip() for it in settings.get('chatgpt_model','').split(',') if it.strip()]
 _chatgpt_model_list = _chatgpt_model_list if len(_chatgpt_model_list) > 0 else ['']
-_claude_model_list = [it.strip() for it in settings['claude_model'].split(',') if it.strip()]
+_claude_model_list = [it.strip() for it in settings.get('claude_model','').split(',') if it.strip()]
 _claude_model_list = _claude_model_list if len(_claude_model_list) > 0 else ['']
-_azure_model_list = [it.strip() for it in settings['azure_model'].split(',') if it.strip()]
+_azure_model_list = [it.strip() for it in settings.get('azure_model','').split(',') if it.strip()]
 _azure_model_list = _azure_model_list if len(_azure_model_list) > 0 else ['']
-_localllm_model_list = [it.strip() for it in settings['localllm_model'].split(',') if it.strip()]
+_localllm_model_list = [it.strip() for it in settings.get('localllm_model','').split(',') if it.strip()]
 _localllm_model_list = _localllm_model_list if len(_localllm_model_list) > 0 else ['']
-_zijiehuoshan_model_list = [it.strip() for it in settings['zijiehuoshan_model'].split(',') if it.strip()]
+_zijiehuoshan_model_list = [it.strip() for it in settings.get('zijiehuoshan_model','').split(',') if it.strip()]
 _zijiehuoshan_model_list = _zijiehuoshan_model_list if len(_zijiehuoshan_model_list) > 0 else ['']
-_zhipuai_model_list = [it.strip() for it in settings['zhipuai_model'].split(',') if it.strip()]
+_zhipuai_model_list = [it.strip() for it in settings.get('zhipuai_model','').split(',') if it.strip()]
 _zhipuai_model_list = _zhipuai_model_list if len(_zhipuai_model_list) > 0 else ['']
-_guiji_model_list = [it.strip() for it in settings['guiji_model'].split(',') if it.strip()]
+_guiji_model_list = [it.strip() for it in settings.get('guiji_model','').split(',') if it.strip()]
 _guiji_model_list = _guiji_model_list if len(_guiji_model_list) > 0 else ['']
-_deepseek_model_list = [it.strip() for it in settings['deepseek_model'].split(',') if it.strip()]
+_deepseek_model_list = [it.strip() for it in settings.get('deepseek_model','').split(',') if it.strip()]
 _deepseek_model_list = _deepseek_model_list if len(_deepseek_model_list) > 0 else ['']
-_openrouter_model_list = [it.strip() for it in settings['openrouter_model'].split(',') if it.strip()]
+_openrouter_model_list = [it.strip() for it in settings.get('openrouter_model','').split(',') if it.strip()]
 _openrouter_model_list = _openrouter_model_list if len(_openrouter_model_list) > 0 else ['']
 
 
@@ -475,51 +471,40 @@ def getset_params(obj=None):
         "chatgpt_key": "",
         "chatgpt_max_token": "8192",
         "chatgpt_model": _chatgpt_model_list[0],
-        "chatgpt_template": "",
         "chatgpt_temperature": "1.0",
         "chatgpt_top_p": "1.0",
         "claude_api": "",
         "claude_key": "",
         "claude_model": _claude_model_list[0],
-        "claude_template": "",
         "azure_api": "",
         "azure_key": "",
         "azure_version": "2025-04-01-preview",
         "azure_model": _azure_model_list[0],
-        "azure_template": "",
         "gemini_key": "",
         "gemini_model": "gemini-2.5-flash",
-        "gemini_template": "",
         "gemini_ttsrole": "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat",
         "gemini_ttsstyle": "",
         "gemini_ttsmodel": "gemini-2.5-flash-preview-tts",
-        "gemini_srtprompt": "",
         "localllm_api": "",
         "localllm_key": "",
         "localllm_model": _localllm_model_list[0],
-        "localllm_template": "",
         "localllm_max_token": "4096",
         "localllm_temperature": "1.0",
         "localllm_top_p": "1.0",
         "zhipu_key": "",
         "zhipu_model": _zhipuai_model_list[0],
-        "zhipu_template": "",
         "zhipu_max_token": "4096",
         "guiji_key": "",
         "guiji_model": _guiji_model_list[0],
-        "guiji_template": "",
         "guiji_max_token": "4096",
         "deepseek_key": "",
         "deepseek_model": _deepseek_model_list[0],
-        "deepseek_template": "",
         "deepseek_max_token": "8192",
         "openrouter_key": "",
         "openrouter_model": _openrouter_model_list[0],
-        "openrouter_template": "",
         "openrouter_max_token": "8192",
         "zijiehuoshan_key": "",
         "zijiehuoshan_model": _zijiehuoshan_model_list[0],
-        "zijiehuoshan_template": "",
 
 
         "qwenmt_key":"",
@@ -530,7 +515,6 @@ def getset_params(obj=None):
 
         "ai302_key": "",
         "ai302_model": "",
-        "ai302_template": "",
         "trans_api_url": "",
         "trans_secret": "",
         "coquitts_role": "",
@@ -593,6 +577,12 @@ def getset_params(obj=None):
         "f5tts_role": "",
         "index_tts_version":1,
         "f5tts_is_whisper": False,
+
+        "indextts_url":"",
+        "voxcpmtts_url":"",
+        "sparktts_url":"",
+        "diatts_url":"",
+
         "doubao_appid": "",
         "doubao_access": "",
         "volcenginetts_appid": "",
@@ -604,6 +594,9 @@ def getset_params(obj=None):
         "stt_recogn_type": 0,
         "stt_model_name": "",
         "stt_remove_noise": False,
+
+        "subtitlecover_outformat":"srt",
+
         "deepgram_apikey": "",
         "deepgram_utt": 200,
         "trans_translate_type": 0,
@@ -619,30 +612,23 @@ def getset_params(obj=None):
         "dubb_pitch_rate": 0,
         "dubb_volume_rate": 0,
     }
-    # 创建默认提示词文件
-
     try:
         if Path(ROOT_DIR + "/videotrans/params.json").exists():
             default.update(json.loads(Path(ROOT_DIR + "/videotrans/params.json").read_text(encoding='utf-8')))
         else:
             with open(ROOT_DIR + "/videotrans/params.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(default, ensure_ascii=False))
-    except Exception:
+    except (OSError,json.JSONDecodeError):
         pass
     return default
 
-
 params = getset_params()
 
-settings['qwentts_role']=QWEN3_TTS_ROLES if params["qwentts_model"].startswith('qwen3-tts') else   QWEN_TTS_ROLES
+settings['qwentts_role']=QWEN3_TTS_ROLES if params.get("qwentts_model",'').startswith('qwen3-tts') else   QWEN_TTS_ROLES
 
 parse_init(settings)
 
-# gemini 语音识别提示词
-_gemini_recogn_txt = 'gemini_recogn.txt' if defaulelang == 'zh' else 'gemini_recogn-en.txt'
-if Path(ROOT_DIR + f'/videotrans/prompts/recogn/{_gemini_recogn_txt}').exists():
-    params['gemini_srtprompt'] = Path(ROOT_DIR + f'/videotrans/prompts/recogn/{_gemini_recogn_txt}').read_text(encoding='utf-8')
-
+# 硬字幕字幕位置
 POSTION_ASS_KV = {
     7: "left-top",
     8: "top",
@@ -656,3 +642,46 @@ POSTION_ASS_KV = {
 }
 POSTION_ASS_INDEX=list(POSTION_ASS_KV.keys())
 POSTION_ASS_VK = {v: k for k, v in POSTION_ASS_KV.items()}
+
+
+############ F5-TTS 面板多渠道共用
+# F5-TTS 设置窗口 5个类型通用
+F5_TTS_WINFORM_NAMES=['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS','VoxCPM-TTS']
+#  F5-TTS 渠道名字获取对应url
+def get_url_byf5tts(name):
+    params=getset_params()
+    TTS_URL_LIST={
+            F5_TTS_WINFORM_NAMES[0]:params.get('f5tts_url',''),
+            F5_TTS_WINFORM_NAMES[1]:params.get('sparktts_url',''),
+            F5_TTS_WINFORM_NAMES[2]:params.get('indextts_url',''),
+            F5_TTS_WINFORM_NAMES[3]:params.get('diatts_url',''),
+            F5_TTS_WINFORM_NAMES[4]:params.get('voxcpmtts_url',''),
+    }
+    return TTS_URL_LIST.get(name,'')
+
+# F5-TTS 根据 name 获取对应的url值键名
+def get_key_byf5tts(name):
+    return {
+            F5_TTS_WINFORM_NAMES[0]:'f5tts_url',
+            F5_TTS_WINFORM_NAMES[1]:'sparktts_url',
+            F5_TTS_WINFORM_NAMES[2]:'indextts_url',
+            F5_TTS_WINFORM_NAMES[3]:'diatts_url',
+            F5_TTS_WINFORM_NAMES[4]:'voxcpmtts_url',
+    }.get(name,'f5tts_url')
+
+
+## 翻译,lang_key对应 transobj中键名，kw多个位置参数，对应替换 lang_key中 {}
+# tr("xxxxx",root_dir,length)
+transobj = json.loads(Path(SUPPORT_LANG[defaulelang]).read_text(encoding='utf-8'))
+def tr(lang_key,*kw):
+    lang=transobj.get(lang_key)
+    if not lang:
+        with open(ROOT_DIR+"/nolang.txt","a",encoding='utf-8') as f:
+            f.write(f'{lang_key}\n')
+        return lang_key
+    if not kw:
+        return lang
+    try:
+        return lang.format(*kw)
+    except IndexError:
+        return lang

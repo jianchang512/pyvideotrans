@@ -5,6 +5,7 @@ import re
 from datetime import timedelta
 
 
+
 def process_text_to_srt_str(input_text: str):
     if is_srt_string(input_text):
         return input_text
@@ -246,7 +247,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
 
 # 从 字幕 对象中获取 srt 字幕串
 def get_srt_from_list(srt_list):
-    from videotrans.configure import config
+    from videotrans.configure._config_loader import tr
     txt = ""
     line = 0
     # it中可能含有完整时间戳 it['time']   00:00:01,123 --> 00:00:12,345
@@ -266,7 +267,7 @@ def get_srt_from_list(srt_list):
                 endraw = ms_to_time_string(ms=it['end_time'])
             else:
                 raise Exception(
-                    f'字幕中不存在 time/startraw/start_time 任何有效时间戳形式' if config.defaulelang == 'zh' else 'There is no time/startraw/start_time in the subtitle in any valid timestamp form.')
+                    tr("There is no time/startraw/start_time in the subtitle in any valid timestamp form."))
         else:
             # 存在单独开始和结束  时:分:秒,毫秒 字符串
             startraw = it['startraw']
@@ -289,13 +290,12 @@ def set_ass_font(srtfile=None):
 
     for i, it in enumerate(ass_str):
         if it.find('Style: ') == 0:
-            ass_str[
-                i] = 'Style: Default,{fontname},{fontsize},{fontcolor},{fontcolor},{fontbordercolor},{backgroundcolor},0,0,0,0,100,100,0,0,{borderstyle},{outline},{shadow},{subtitle_position},{marginL},{marginR},{marginV},1'.format(
-                fontname=config.settings['fontname'],
-                fontsize=config.settings['fontsize'],
-                fontcolor=config.settings['fontcolor'],
-                fontbordercolor=config.settings['fontbordercolor'],
-                backgroundcolor=config.settings['backgroundcolor'],
+            ass_str[i] = 'Style: Default,{fontname},{fontsize},{fontcolor},{fontcolor},{fontbordercolor},{backgroundcolor},0,0,0,0,100,100,0,0,{borderstyle},{outline},{shadow},{subtitle_position},{marginL},{marginR},{marginV},1'.format(
+                fontname=config.settings.get('fontname',''),
+                fontsize=config.settings.get('fontsize',''),
+                fontcolor=config.settings.get('fontcolor',''),
+                fontbordercolor=config.settings.get('fontbordercolor',''),
+                backgroundcolor=config.settings.get('backgroundcolor',''),
                 borderstyle=int(config.settings.get('borderStyle', 1)),  # 1轮廓风格，3背景色块风格
                 outline=config.settings.get('outline', 1),
                 shadow=config.settings.get('shadow', 1),

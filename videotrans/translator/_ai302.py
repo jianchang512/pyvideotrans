@@ -9,6 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -23,8 +24,8 @@ class AI302(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.trans_thread = int(config.settings.get('aitrans_thread', 500))
-        self.model_name = config.params['ai302_model']
-        self.prompt = tools.get_prompt(ainame='ai302', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+        self.model_name = config.params.get('ai302_model','')
+        self.prompt = tools.get_prompt(ainame='ai302',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -33,18 +34,18 @@ class AI302(BaseTrans):
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         payload = {
-            "model": config.params['ai302_model'],
+            "model": config.params.get('ai302_model',''),
             "max_tokens":8192,
             "messages": [
                 {'role': 'system',
-                 'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
+                 'content': tr("You are a top-notch subtitle translation engine.")},
                 {'role': 'user',
                  'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
             ]
         }
         response = requests.post('https://api.302.ai/v1/chat/completions', headers={
             'Accept': 'application/json',
-            'Authorization': f'Bearer {config.params["ai302_key"]}',
+            'Authorization': f'Bearer {config.params.get("ai302_key",'')}',
             'User-Agent': 'pyvideotrans',
             'Content-Type': 'application/json'
         }, json=payload, verify=False)

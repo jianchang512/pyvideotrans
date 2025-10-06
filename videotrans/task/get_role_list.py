@@ -1,7 +1,7 @@
 # 从日志队列获取日志
 from PySide6.QtCore import QThread
 
-from videotrans.util.tools import get_edge_rolelist, get_elevenlabs_role, get_clone_role
+from videotrans.util.tools import get_edge_rolelist, get_elevenlabs_role
 
 
 class GetRoleWorker(QThread):

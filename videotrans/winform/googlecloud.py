@@ -1,3 +1,6 @@
+from PySide6.QtCore import QTimer
+from PySide6.QtGui import QIcon
+
 TextToSpeechClient = None
 def openwin():
     from PySide6.QtWidgets import (
@@ -6,8 +9,6 @@ def openwin():
     )
     from videotrans.configure import config
     from videotrans.tts._googlecloud import GoogleCloudTTS
-
-    # Import lazy do TextToSpeechClient
     from videotrans.util import tools
 
     global TextToSpeechClient
@@ -69,8 +70,9 @@ def openwin():
 
             # --- Signals
             self.lang_cb.currentTextChanged.connect(self.populate_voices)
+            self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
             # popula voices logo na abertura
-            self.populate_voices(self.lang_cb.currentText())
+            # QTimer.singleShot(100,self.populate_voices)
 
         def _available_languages(self):
             # use a mesma lista de idiomas que o dropdown principal
@@ -103,7 +105,8 @@ def openwin():
                         return False
             return True
 
-        def populate_voices(self, lang_code):
+        def populate_voices(self):
+            lang_code=self.lang_cb.currentText()
             if not self._check_tts_client():
                 return
 

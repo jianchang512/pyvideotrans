@@ -8,6 +8,8 @@ from videotrans.configure import config
 
 
 # 数字代表界面中的现实顺序
+from videotrans.configure.config import tr
+
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
 FUNASR_CN = 2
@@ -25,35 +27,35 @@ PARAKEET = 13
 QWEN3ASR = 14
 
 RECOGN_NAME_LIST = [
-    'faster-whisper(本地)' if config.defaulelang == 'zh' else 'Faster-whisper',
-    'openai-whisper(本地)' if config.defaulelang == 'zh' else 'OpenAI-whisper',
-    "阿里FunASR中文(本地)" if config.defaulelang == 'zh' else "FunASR-Chinese",
-    "STT语音识别(本地)" if config.defaulelang == 'zh' else "STT Speech API",
-    "字节火山字幕生成" if config.defaulelang == 'zh' else "VolcEngine Subtitle API",
-    "Deepgram.com" if config.defaulelang == 'zh' else "Deepgram.com",
-    "OpenAI语音识别" if config.defaulelang == 'zh' else "OpenAI Speech to Text",
-    "自定义识别API" if config.defaulelang == 'zh' else "Custom API",
-    "Google识别API(免费)" if config.defaulelang == 'zh' else "Google Speech to Text",
-    "Gemini大模型识别" if config.defaulelang == 'zh' else "Gemini AI",
+    tr("Faster-whisper"),
+    tr("OpenAI-whisper"),
+    tr("FunASR-Chinese"),
+    tr("STT Speech API"),
+    tr("VolcEngine Subtitle API"),
+    tr("Deepgram.com"),
+    tr("OpenAI Speech to Text"),
+    tr("Custom API"),
+    tr("Google Speech to Text"),
+    tr("Gemini AI"),
     "Faster-Whisper-XXL.exe",
     "302.AI",
     "ElevenLabs.io",
     "Parakeet-tdt",
-    "阿里百炼 Qwen3-ASR" if config.defaulelang == 'zh' else "Ali Qwen3-ASR",
+    tr("Ali Qwen3-ASR"),
 ]
 
 
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
-    if langcode == 'auto' and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs]:
-        return '仅在 faster-whisper/openai-whisper/Gemini模式下允许检测语言' if config.defaulelang == 'zh' else 'Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.'
+    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL]:
+        return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
     if recogn_type == FUNASR_CN:
         if model_name == 'paraformer-zh' and langcode[:2] not in ('zh', 'yu'):
-            return 'FunASR 下 paraformer-zh  模型仅支持中文语音识别' if config.defaulelang == 'zh' else 'paraformer-zh  models only support Chinese speech recognition'
+            return tr("paraformer-zh  models only support Chinese speech recognition")
         if model_name == 'SenseVoiceSmall' and langcode[:2] not in ['zh', 'en', 'ja', 'ko', 'yu']:
-            return 'FunASR 下  SenseVoiceSmall 模型仅支持中英日韩语音识别' if config.defaulelang == 'zh' else 'SenseVoiceSmall models only support Chinese,Ja,ko,English speech recognition'
+            return tr("SenseVoiceSmall models only support Chinese,Ja,ko,English speech recognition")
         return True
     if recogn_type == PARAKEET and langcode[:2] not in ('en', 'ja'):
-        return 'Parakeet-tdt 仅支持英语和日语识别' if config.defaulelang == 'zh' else 'Parakeet-tdt  models only support English & Ja speech recognition'
+        return tr("Parakeet-tdt  models only support English & Ja speech recognition")
     if recogn_type == DOUBAO_API and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru", 'yu']:
         return '豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持'
     return True
@@ -67,14 +69,14 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='', source_language_isLast
     if name.find('/') > 0:
         return True
     if name.endswith('.en') and source_language_isLast:
-        return '.en结尾的模型不可用于自动检测' if config.defaulelang == 'zh' else 'Models ending in .en may not be used for automated detection'
+        return tr("Models ending in .en may not be used for automated detection")
 
     if (name.endswith('.en') or name.startswith("distil-")) and translator.get_code(show_text=source_language_currentText) != 'en':
-        return config.transobj['enmodelerror']
+        return tr('enmodelerror')
 
     if recogn_type == OPENAI_WHISPER:
         if name.startswith('distil'):
-            return 'distil 开头的模型只可用于 faster-whisper本地模式' if config.defaulelang == 'zh' else 'distil-* only use when faster-whisper'
+            return tr("distil-* only use when faster-whisper")
 
         return True
     return True
@@ -87,56 +89,56 @@ def is_input_api(recogn_type: int = None, return_str=False):
     from videotrans.winform import recognapi as recognapi_win, openairecognapi as openairecognapi_win, \
         doubao as doubao_win, sttapi as sttapi_win, deepgram as deepgram_win, gemini as gemini_win, ai302, \
         parakeet as parakeet_win,qwenmt as qwenmt_win
-    if recogn_type == STT_API and not config.params['stt_url']:
+    if recogn_type == STT_API and not config.params.get('stt_url',''):
         if return_str:
             return "Please configure the api and key information of the stt channel first."
         sttapi_win.openwin()
         return False
 
-    if recogn_type == PARAKEET and not config.params['parakeet_address']:
+    if recogn_type == PARAKEET and not config.params.get('parakeet_address',''):
         if return_str:
             return "Please configure the url address."
         parakeet_win.openwin()
         return False
-    if recogn_type == QWEN3ASR and not config.params['qwenmt_key']:
+    if recogn_type == QWEN3ASR and not config.params.get('qwenmt_key',''):
         if return_str:
             return "Please configure the api key ."
         qwenmt_win.openwin()
         return False
 
-    if recogn_type == CUSTOM_API and not config.params['recognapi_url']:
+    if recogn_type == CUSTOM_API and not config.params.get('recognapi_url',''):
         if return_str:
             return "Please configure the api and key information of the CUSTOM_API channel first."
         recognapi_win.openwin()
         return False
 
-    if recogn_type == OPENAI_API and not config.params['openairecognapi_key']:
+    if recogn_type == OPENAI_API and not config.params.get('openairecognapi_key',''):
         if return_str:
             return "Please configure the api and key information of the OPENAI_API channel first."
         openairecognapi_win.openwin()
         return False
-    if recogn_type == DOUBAO_API and not config.params['doubao_appid']:
+    if recogn_type == DOUBAO_API and not config.params.get('doubao_appid',''):
         if return_str:
             return "Please configure the api and key information of the DOUBAO_API channel first."
         doubao_win.openwin()
         return False
-    if recogn_type == Deepgram and not config.params['deepgram_apikey']:
+    if recogn_type == Deepgram and not config.params.get('deepgram_apikey',''):
         if return_str:
             return "Please configure the API Key information of the Deepgram channel first."
         deepgram_win.openwin()
         return False
-    if recogn_type == GEMINI_SPEECH and not config.params['gemini_key']:
+    if recogn_type == GEMINI_SPEECH and not config.params.get('gemini_key',''):
         if return_str:
             return "Please configure the API Key information of the Gemini channel first."
         gemini_win.openwin()
         return False
-    if recogn_type == AI_302 and not config.params['ai302_key']:
+    if recogn_type == AI_302 and not config.params.get('ai302_key',''):
         if return_str:
             return "Please configure the API Key information of the Gemini channel first."
         ai302.openwin()
         return False
     # ElevenLabs
-    if recogn_type == ElevenLabs and not config.params['elevenlabstts_key']:
+    if recogn_type == ElevenLabs and not config.params.get('elevenlabstts_key',''):
         if return_str:
             return "Please configure the API Key information of the ElevenLabs channel first."
         from videotrans.winform import elevenlabs as elevenlabs_win
@@ -152,28 +154,23 @@ def run(*,
         audio_file=None,
         cache_folder=None,
         model_name=None,
-        inst=None,
         uuid=None,
         recogn_type: int = 0,
         is_cuda=None,
-        target_code=None,
-        subtitle_type=0,
-        source_sub=None
+        subtitle_type=0
         ) -> Union[List[Dict], None]:
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return
-    if model_name and model_name.startswith('distil-'):
-        model_name = model_name.replace('-whisper', '')
+
     kwargs = {
         "detect_language": detect_language,
         "audio_file": audio_file,
         "cache_folder": cache_folder,
         "model_name": model_name,
         "uuid": uuid,
-        "inst": inst,
         "is_cuda": is_cuda,
         "subtitle_type": subtitle_type,
-        "target_code": target_code,
+        "recogn_type":recogn_type
 
     }
     if recogn_type == OPENAI_WHISPER:

@@ -29,7 +29,7 @@ class SignThread(QThread):
                 if uuid in config.stoped_uuid_set:
                     try:
                         self.uuid_list.remove(uuid)
-                    except:
+                    except ValueError:
                         pass
                     continue
                 q = config.uuid_logs_queue.get(uuid)
@@ -49,5 +49,5 @@ class SignThread(QThread):
                             {"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
                         config.stoped_uuid_set.add(uuid)
                         del config.uuid_logs_queue[uuid]
-                except:
+                except Exception:
                     pass

@@ -1,7 +1,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -21,7 +21,7 @@ class Ui_openairecognapiform(object):
         self.label_0 = QtWidgets.QLabel(openairecognapiform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setText(
-            'OpenAI官方接口无需填写' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here')
+            tr("AIs compatible with the ChatGPT also used here"))
 
         self.label = QtWidgets.QLabel(openairecognapiform)
         self.label.setGeometry(QtCore.QRect(10, 45, 130, 35))
@@ -64,7 +64,7 @@ class Ui_openairecognapiform(object):
         self.label_allmodels.setGeometry(QtCore.QRect(10, 220, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
-            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+            tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(openairecognapiform)
         self.edit_allmodels.setGeometry(QtCore.QRect(10, 250, 571, 100))
@@ -85,7 +85,7 @@ class Ui_openairecognapiform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/openairecogn'))
 
         self.retranslateUi(openairecognapiform)
@@ -94,36 +94,31 @@ class Ui_openairecognapiform(object):
     def update_ui(self):
         from videotrans.configure import config
         config.settings = config.parse_init()
-        allmodels_str = config.settings['openairecognapi_model']
-        allmodels = config.settings['openairecognapi_model'].split(',')
+        allmodels_str = config.settings.get('openairecognapi_model','')
+        allmodels = config.settings.get('openairecognapi_model','').split(',')
         self.openairecognapi_model.clear()
         self.openairecognapi_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["openairecognapi_key"]:
-            self.openairecognapi_key.setText(config.params["openairecognapi_key"])
-        if config.params["openairecognapi_prompt"]:
-            self.openairecognapi_prompt.setText(config.params["openairecognapi_prompt"])
-        if config.params["openairecognapi_url"]:
-            self.openairecognapi_url.setText(config.params["openairecognapi_url"])
-        if config.params["openairecognapi_model"] and config.params['openairecognapi_model'] in allmodels:
-            self.openairecognapi_model.setCurrentText(config.params["openairecognapi_model"])
+        self.openairecognapi_key.setText(config.params.get("openairecognapi_key",''))
+        self.openairecognapi_prompt.setText(config.params.get("openairecognapi_prompt",''))
+        self.openairecognapi_url.setText(config.params.get("openairecognapi_url",''))
+        if config.params.get('openairecognapi_model','') in allmodels:
+            self.openairecognapi_model.setCurrentText(config.params.get("openairecognapi_model",''))
 
     def retranslateUi(self, openairecognapiform):
         openairecognapiform.setWindowTitle(
-            "OpenAI API Speech to text" if config.defaulelang != 'zh' else 'OpenAI 在线api语音识别')
-        self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
-        self.set_openairecognapi.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test_openairecognapi.setText('测试' if config.defaulelang == 'zh' else "Test")
+            tr("OpenAI API Speech to text"))
+        self.label_3.setText(tr("Model"))
+        self.set_openairecognapi.setText(tr("Save"))
+        self.test_openairecognapi.setText(tr("Test"))
         self.openairecognapi_url.setPlaceholderText(
-            '若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang == 'zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
+            tr("If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here"))
         self.openairecognapi_url.setToolTip(
-            '若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang == 'zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
+            tr("If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here"))
         self.openairecognapi_key.setPlaceholderText("Secret key")
-        self.openairecognapi_prompt.setPlaceholderText(
-            "An optional text to guide the model's style or continue a previous audio segment" if config.defaulelang != 'zh' else '提示词，不懂无需填写')
         self.openairecognapi_key.setToolTip(
-            "必须是付费账号，免费账号频率受限无法使用" if config.defaulelang == 'zh' else 'Must be a paid account, free account frequency is limited and cannot be used')
-        self.label.setText("API URL")
-        self.label_2.setText("SK")
-        self.label_prompt.setText("Prompt" if config.defaulelang != 'zh' else '提示词')
+            tr("Must be a paid account, free account frequency is limited and cannot be used"))
+        self.label.setText(tr("API URL"))
+        self.label_2.setText(tr("SK"))
+        self.label_prompt.setText(tr("Prompt"))

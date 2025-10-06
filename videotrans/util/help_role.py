@@ -6,6 +6,7 @@ import sys
 import requests
 
 
+
 def get_elevenlabs_role(force=False, raise_exception=False):
     from videotrans.configure import config
     from . import help_misc
@@ -21,7 +22,7 @@ def get_elevenlabs_role(force=False, raise_exception=False):
         return namelist
     try:
         from elevenlabs import ElevenLabs
-        client = ElevenLabs(api_key=config.params["elevenlabstts_key"])
+        client = ElevenLabs(api_key=config.params.get("elevenlabstts_key",''))
         voiceslist = client.voices.get_all()
         result = {}
         for it in voiceslist.voices:
@@ -91,11 +92,18 @@ def set_proxy(set_val=''):
 
 
 def get_302ai():
-    from videotrans import tts
+    from videotrans.configure import config
     role_dict = get_azure_rolelist()
-    role_dict['zh'] = ['No'] + list(tts.AI302_doubao.keys()) + list(tts.AI302_minimaxi.keys()) + list(
-        tts.AI302_dubbingx.keys()) + list(tts.AI302_openai.keys()) + role_dict['zh'][1:]
-    role_dict['ja'] += list(tts.AI302_doubao_ja.keys())
+    with open(config.ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
+        ai302_voice_roles = json.loads(f.read())
+        _doubao = ai302_voice_roles.get("AI302_doubao", {})
+        _minimaxi = ai302_voice_roles.get("AI302_minimaxi", {})
+        _dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
+        _doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
+    _openai=config.OPENAITTS_ROLES.split(",")
+    role_dict['zh'] = ['No'] + list(_doubao.keys()) + list(_minimaxi.keys()) + list(
+        _dubbingx.keys()) + _openai + role_dict['zh'][1:]
+    role_dict['ja'] += list(_doubao_ja.keys())
     return role_dict
 
 
@@ -279,7 +287,7 @@ def get_edge_rolelist():
         try:
             with open(voice_file,'r',encoding='utf-8') as f:
                 voice_list = json.loads(f.read())
-        except:
+        except (OSError,json.JSONDecodeError):
             pass
     return voice_list
 
@@ -292,7 +300,7 @@ def get_azure_rolelist():
         try:
             with open(voice_file,'r',encoding='utf-8') as f:
                 voice_list = json.loads(f.read())
-        except:
+        except (OSError,json.JSONDecodeError):
             pass
     return voice_list
 
@@ -305,7 +313,7 @@ def get_minimaxi_rolelist():
         try:
             with open(voice_file,'r',encoding='utf-8') as f:
                 voice_list = json.loads(f.read())
-        except:
+        except (OSError,json.JSONDecodeError):
             pass
     return voice_list
 
@@ -358,10 +366,10 @@ def get_kokoro_rolelist():
 # 根据 gptsovits config.params['gptsovits_role'] 返回以参考音频为key的dict
 def get_gptsovits_role():
     from videotrans.configure import config
-    if not config.params['gptsovits_role'].strip():
+    if not config.params.get('gptsovits_role','').strip():
         return None
     rolelist = {}
-    for it in config.params['gptsovits_role'].strip().split("\n"):
+    for it in config.params.get('gptsovits_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 3:
             continue
@@ -372,9 +380,9 @@ def get_gptsovits_role():
 def get_chatterbox_role():
     from videotrans.configure import config
     rolelist = ['chatterbox', 'clone']
-    if not config.params['chatterbox_role'].strip():
+    if not config.params.get('chatterbox_role','').strip():
         return rolelist
-    for it in config.params['chatterbox_role'].strip().split("\n"):
+    for it in config.params.get('chatterbox_role','').strip().split("\n"):
         rolelist.append(it.strip())
     return rolelist
 
@@ -385,7 +393,7 @@ def get_cosyvoice_role():
         "clone": 'clone'
     }
 
-    for it in config.params['cosyvoice_role'].strip().split("\n"):
+    for it in config.params.get('cosyvoice_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 2:
             continue
@@ -395,10 +403,10 @@ def get_cosyvoice_role():
 
 def get_fishtts_role():
     from videotrans.configure import config
-    if not config.params['fishtts_role'].strip():
+    if not config.params.get('fishtts_role','').strip():
         return None
     rolelist = {}
-    for it in config.params['fishtts_role'].strip().split("\n"):
+    for it in config.params.get('fishtts_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 2:
             continue
@@ -408,10 +416,10 @@ def get_fishtts_role():
 
 def get_f5tts_role():
     from videotrans.configure import config
-    if not config.params['f5tts_role'].strip():
+    if not config.params.get('f5tts_role','').strip():
         return
     rolelist = {}
-    for it in config.params['f5tts_role'].strip().split("\n"):
+    for it in config.params.get('f5tts_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 2:
             continue
@@ -422,23 +430,18 @@ def get_f5tts_role():
 # 获取clone-voice的角色列表
 def get_clone_role(set_p=False):
     from videotrans.configure import config
-    if not config.params['clone_api']:
+    if not config.params.get('clone_api',''):
         if set_p:
-            raise Exception(config.transobj['bixutianxiecloneapi'])
+            raise Exception(config.tr('bixutianxiecloneapi'))
         return False
     try:
-        url = config.params['clone_api'].strip().rstrip('/') + "/init"
+        url = config.params.get('clone_api','').strip().rstrip('/') + "/init"
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
-        if res.status_code == 200:
-            config.params["clone_voicelist"] = ["clone"] + res.json()
-            
-            set_process(type='set_clone_role')
-            return True
-        raise Exception(
-            f"code={res.status_code},{config.transobj['You must deploy and start the clone-voice service']}")
+        res.raise_for_status()
+        config.params["clone_voicelist"] = ["clone"] + res.json()
+        set_process(type='set_clone_role')
     except Exception as e:
-        if set_p:
-            raise
+        if set_p: raise
     return False
 
 
@@ -462,5 +465,5 @@ def set_process(*, text="", type="logs", uuid=None):
             config.push_queue(uuid, log)
         else:
             config.global_msg.append(log)
-    except:
+    except Exception:
         pass

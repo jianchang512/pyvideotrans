@@ -1,8 +1,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import (QMetaObject)
 from PySide6.QtWidgets import (QHBoxLayout, QVBoxLayout)
-
-from videotrans.configure import config
+from videotrans.configure.config import tr
 
 
 class Ui_hunliu(object):
@@ -10,8 +9,8 @@ class Ui_hunliu(object):
         self.has_done = False
         if not hunliu.objectName():
             hunliu.setObjectName(u"hunliu")
-        hunliu.resize(643, 400)
-        hunliu.setWindowModality(QtCore.Qt.NonModal)
+        hunliu.setMinimumSize(643, 400)
+
         self.horizontalLayout_3 = QHBoxLayout(hunliu)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
 
@@ -79,17 +78,17 @@ class Ui_hunliu(object):
         self.v1.addLayout(self.h3)
         self.v1.addStretch()
         self.horizontalLayout_3.addLayout(self.v1)
-        self.retranslateUi(hunliu)
+        hunliu.setWindowTitle(tr("Mix 2 Audio"))
+        self.retranslateUi()
         QMetaObject.connectSlotsByName(hunliu)
 
-    def retranslateUi(self, hunliu):
-        hunliu.setWindowTitle("混合2个音频" if config.defaulelang == 'zh' else 'Mix 2 Audio')
+    def retranslateUi(self):
         self.l1.setText('Audio 1')
         self.l2.setText('Audio 2')
-        self.hun_file1.setPlaceholderText('Select an audio' if config.defaulelang != 'zh' else '选择第一个音频文件')
-        self.hun_file1btn.setText('Select Audio' if config.defaulelang != 'zh' else '选择音频文件')
-        self.hun_file2.setPlaceholderText('Select an audio' if config.defaulelang != 'zh' else '选择第二个音频文件')
-        self.hun_file2btn.setText('Select Audio' if config.defaulelang != 'zh' else '选择音频文件')
-        self.hun_out.setPlaceholderText('Output directory' if config.defaulelang != 'zh' else '输出目录')
-        self.hun_opendir.setText('Open output directory' if config.defaulelang != 'zh' else '打开输出目录')
-        self.hun_startbtn.setText('开始混合' if config.defaulelang == 'zh' else 'Start operate')
+        self.hun_file1.setPlaceholderText(tr("Select an audio"))
+        self.hun_file1btn.setText(tr("Select Audio"))
+        self.hun_file2.setPlaceholderText(tr("Select an audio"))
+        self.hun_file2btn.setText(tr("Select Audio"))
+        self.hun_out.setPlaceholderText(tr("Output directory"))
+        self.hun_opendir.setText(tr("Open output directory"))
+        self.hun_startbtn.setText(tr("Start operate"))

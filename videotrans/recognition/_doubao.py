@@ -1,7 +1,7 @@
 # zh_recogn 识别
 import os
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict, Union
 
 import requests
@@ -16,7 +16,6 @@ RETRY_DELAY = 10
 
 @dataclass
 class DoubaoRecogn(BaseRecogn):
-    raws: List = field(init=False, default_factory=list)
 
     def __post_init__(self):
         super().__post_init__()
@@ -26,8 +25,8 @@ class DoubaoRecogn(BaseRecogn):
             return
 
         base_url = 'https://openspeech.bytedance.com/api/v1/vc'
-        appid = config.params['doubao_appid']
-        access_token = config.params['doubao_access']
+        appid = config.params.get('doubao_appid','')
+        access_token = config.params.get('doubao_access','')
 
         # 尺寸大于190MB，转为 mp3
         if os.path.getsize(self.audio_file) > 199229440:
@@ -86,6 +85,7 @@ class DoubaoRecogn(BaseRecogn):
                     'Authorization': 'Bearer; {}'.format(access_token)
                 }
             )
+            response.raise_for_status()
 
             result = response.json()
             if result['code'] == 2000:

@@ -3,7 +3,7 @@ from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -61,7 +61,7 @@ class Ui_cosyvoiceform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/cosyvoice'))
 
         h2.addWidget(self.save)
@@ -96,7 +96,7 @@ wav音频最佳时长3-10s，音频必须存放在本软件目录下的 f5-tts �
 
         self.role.setPlaceholderText(tips)
 
-        self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
+        self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText("填写CosyVoice的webui.py启动后的地址，默认  http://127.0.0.1:8000")
         self.label.setText("CosyVoice API")
-        self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")
+        self.test.setText(tr("Test"))

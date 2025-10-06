@@ -32,28 +32,22 @@ def format_milliseconds(milliseconds):
 
 # 视频 字幕 音频 合并
 def openwin():
-    from PySide6.QtWidgets import QWidget, QLineEdit, QComboBox, QCheckBox
-
-    from videotrans.configure._except import get_msg_from_except
-
-    from videotrans.task.simple_runnable_qt import run_in_threadpool
+    from PySide6.QtWidgets import QWidget, QLineEdit, QComboBox, QCheckBox,QFileDialog
     import shutil
     import json
     import os
-
+    from videotrans.configure.config import tr
     import time
     from pathlib import Path
-    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
-    from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import config
     from videotrans.util import tools
-    from pydub import AudioSegment
 
     RESULT_DIR = config.HOME_DIR + "/vas"
-    Path(RESULT_DIR).mkdir(exist_ok=True)
-    from videotrans import translator
+
+    from videotrans.translator import LANGNAME_DICT,get_subtitle_code
 
     class CompThread(QThread):
         uito = Signal(str)
@@ -90,7 +84,7 @@ def openwin():
                     continue
                 try:
                     content = Path(protxt).read_text(encoding='utf-8').strip().split("\n")
-                except Exception:
+                except (OSError,ValueError,AttributeError):
                     continue
 
                 if content[-1] == 'progress=end':
@@ -105,7 +99,7 @@ def openwin():
                 try:
                     h, m, s = end_time.split(':')
                     tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
-                except:
+                except ValueError:
                     tmp1 = 0
                 if percent + tmp1 < 99.9:
                     percent += tmp1
@@ -141,6 +135,7 @@ def openwin():
              return ysphb
 
         def run(self):
+            from pydub import AudioSegment
             try:
                 # 有新的需要插入的音频，才涉及到 保留原声音 、 截断、加速、定格、声音混合等，才需要处理音频、分离无声视频
                 if self.audio:
@@ -261,7 +256,7 @@ def openwin():
                 ]
                 if self.is_soft and self.language:
                     # 软字幕
-                    subtitle_language = translator.get_subtitle_code( show_target=self.language)
+                    subtitle_language = get_subtitle_code( show_target=self.language)
                     cmd+=[
                         '-i',
                         os.path.basename(self.srt),
@@ -299,16 +294,18 @@ def openwin():
                         '-vf',
                         f"subtitles={os.path.basename(assfile)}:charenc=utf-8",
                         '-crf',
-                        f'{config.settings["crf"]}',
+                        f'{config.settings.get("crf",23)}',
                         '-preset',
-                        config.settings['preset'],
+                        config.settings.get('preset','fast'),
                         self.file
                     ]
+                from videotrans.task.simple_runnable_qt import run_in_threadpool
                 run_in_threadpool(self.hebing_pro,protxt,self.video_time)
                 tools.runffmpeg(cmd)
                 self.post(type='ok', text=self.file)
                 self.is_end=True
             except Exception as e:
+                from videotrans.configure._except import get_msg_from_except
                 self.post(type='error', text=get_msg_from_except(e))
 
 
@@ -353,7 +350,7 @@ def openwin():
         if d['type'] == "error":
             winobj.has_done = True
             tools.show_error(d['text'])
-            winobj.ysphb_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.ysphb_startbtn.setText(tr("start operate"))
             winobj.ysphb_startbtn.setDisabled(False)
             winobj.ysphb_opendir.setDisabled(False)
         elif d['type'] == 'jd':
@@ -362,7 +359,7 @@ def openwin():
             winobj.ysphb_startbtn.setText(d['text'])
         elif d['type'] == 'ok':
             winobj.has_done = True
-            winobj.ysphb_startbtn.setText(config.transobj['zhixingwc'])
+            winobj.ysphb_startbtn.setText(tr('zhixingwc'))
             winobj.ysphb_startbtn.setDisabled(False)
             winobj.ysphb_out.setText(d['text'])
             winobj.ysphb_opendir.setDisabled(False)
@@ -371,14 +368,14 @@ def openwin():
         fname = None
         if type == 'video':
             format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS])
-            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Video', config.params['last_opendir'],
+            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Video', config.params.get('last_opendir',''),
                                                    f"Video files({format_str})")
         elif type == 'wav':
             format_str = " ".join(['*.' + f for f in config.AUDIO_EXITS])
-            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Audio', config.params['last_opendir'],
+            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Audio', config.params.get('last_opendir',''),
                                                    f"Audio files({format_str})")
         elif type == 'srt':
-            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select SRT', config.params['last_opendir'],
+            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select SRT', config.params.get('last_opendir',''),
                                                    "Srt files(*.srt)")
 
         if not fname:
@@ -405,18 +402,18 @@ def openwin():
         maxlen = 20
         try:
             maxlen = int(winobj.ysphb_maxlen.text())
-        except Exception:
+        except ValueError:
             pass
         if not video:
-            tools.show_error('必须选择视频' if config.defaulelang == 'zh' else 'Video must be selected')
+            tools.show_error(tr("Video must be selected"))
             return
         if not audio and not srt:
             tools.show_error(
-                '音频和视频至少要选择一个' if config.defaulelang == 'zh' else 'Choose at least one for audio and video')
+                tr("Choose at least one for audio and video"))
             return
 
         winobj.ysphb_startbtn.setText(
-            '执行中...' if config.defaulelang == 'zh' else 'In Progress...')
+            tr("In Progress..."))
         winobj.ysphb_startbtn.setDisabled(True)
         winobj.ysphb_opendir.setDisabled(True)
         task = CompThread(parent=winobj,
@@ -437,19 +434,20 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import VASForm
-    from videotrans.translator import LANGNAME_DICT
+
 
 
     winobj = VASForm()
     config.child_forms['fn_vas'] = winobj
-    winobj.ysphb_selectvideo.clicked.connect(lambda: get_file('video'))
-    winobj.ysphb_selectwav.clicked.connect(lambda: get_file('wav'))
-    winobj.ysphb_selectsrt.clicked.connect(lambda: get_file('srt'))
-    winobj.ysphb_startbtn.clicked.connect(start)
-    winobj.ysphb_opendir.clicked.connect(opendir)
-    winobj.language.addItems(list(LANGNAME_DICT.values()))
     winobj.show()
     def _init_ui():
+        Path(RESULT_DIR).mkdir(exist_ok=True)
+        winobj.ysphb_selectvideo.clicked.connect(lambda: get_file('video'))
+        winobj.ysphb_selectwav.clicked.connect(lambda: get_file('wav'))
+        winobj.ysphb_selectsrt.clicked.connect(lambda: get_file('srt'))
+        winobj.ysphb_startbtn.clicked.connect(start)
+        winobj.ysphb_opendir.clicked.connect(opendir)
+        winobj.language.addItems(list(LANGNAME_DICT.values()))
         # 初始化上次配置
         cfg_file=f'{config.ROOT_DIR}/videotrans/vas.json'
         if not Path(cfg_file).exists():
@@ -481,4 +479,4 @@ def openwin():
                     elif isinstance(widget, QCheckBox):
                         widget.setChecked(bool(v))
             winobj._setfont()
-    _init_ui()
+    QTimer.singleShot(10,_init_ui)

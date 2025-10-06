@@ -4,19 +4,18 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import (QMetaObject, Qt)
 
 from videotrans.configure import config
-from videotrans.configure.config import box_lang
+from videotrans.configure.config import tr
 
 
 class Ui_fanyisrt(object):
     def setupUi(self, fanyisrt):
         self.has_done = False
-        if not fanyisrt.objectName():
-            fanyisrt.setObjectName(u"fanyisrt")
-        fanyisrt.resize(1150, 535)
-        fanyisrt.setWindowModality(QtCore.Qt.NonModal)
-
         self.files = []
         self.error_msg = ""
+        if not fanyisrt.objectName():
+            fanyisrt.setObjectName(u"fanyisrt")
+        fanyisrt.setMinimumSize(1150, 535)
+
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -39,7 +38,7 @@ class Ui_fanyisrt(object):
         self.horizontalLayout_18.addWidget(self.label_13)
 
         self.fanyi_translate_type = QtWidgets.QComboBox()
-        self.fanyi_translate_type.setMinimumSize(QtCore.QSize(100, 30))
+        self.fanyi_translate_type.setMinimumSize(QtCore.QSize(200, 30))
         self.fanyi_translate_type.setObjectName("fanyi_translate_type")
 
         self.fanyi_model_list = QtWidgets.QComboBox()
@@ -81,21 +80,21 @@ class Ui_fanyisrt(object):
         self.glossary = QtWidgets.QPushButton()
         self.glossary.setMinimumSize(QtCore.QSize(100, 25))
         self.glossary.setObjectName("glossary")
-        self.glossary.setText("glossary" if config.defaulelang != 'zh' else '术语表')
+        self.glossary.setText(tr("glossary"))
         self.glossary.setToolTip(
-            '点击设置和修改术语表' if config.defaulelang == 'zh' else 'Click to set up and modify the glossary')
+            tr("Click to set up and modify the glossary"))
         self.glossary.setCursor(Qt.PointingHandCursor)
 
         self.out_format = QtWidgets.QComboBox()
 
         self.out_format.addItems([
-            "单语字幕" if config.defaulelang == 'zh' else 'Monolingual subtitles',
-            "目标语言在上(双语)" if config.defaulelang == 'zh' else 'Target language up(Bilingual)',
-            "目标语言在下(双语)" if config.defaulelang == 'zh' else 'Target language under(Bilingual)'
+            tr("Monolingual subtitles"),
+            tr("Target language up(Bilingual)"),
+            tr("Target language under(Bilingual)")
         ])
 
         label_out = QtWidgets.QLabel()
-        label_out.setText('输出' if config.defaulelang == 'zh' else 'Output')
+        label_out.setText(tr("Output"))
         self.horizontalLayout_18.addWidget(label_out)
         self.horizontalLayout_18.addWidget(self.out_format)
         self.horizontalLayout_18.addWidget(self.glossary)
@@ -103,9 +102,9 @@ class Ui_fanyisrt(object):
         self.verticalLayout_13.addLayout(self.horizontalLayout_18)
 
         self.aisendsrt = QtWidgets.QCheckBox()
-        self.aisendsrt.setText('发送完整字幕' if config.defaulelang == 'zh' else 'Send SRT')
+        self.aisendsrt.setText(tr("Send SRT"))
         self.aisendsrt.setToolTip(
-            '当使用AI翻译渠道时，可选以完整srt字幕格式发送请求，效果更好' if config.defaulelang == 'zh' else 'When using AI  translation channel, you can translate in srt format, but there may be more empty lines')
+            tr("When using AI  translation channel, you can translate in srt format, but there may be more empty lines"))
         self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
 
         self.fanyi_proxy = QtWidgets.QLineEdit()
@@ -147,7 +146,7 @@ class Ui_fanyisrt(object):
         self.horizontalLayout_19.addWidget(self.fanyi_import)
 
         self.save_source = QtWidgets.QCheckBox()
-        self.save_source.setText('原地保存' if config.defaulelang == 'zh' else 'save in situ')
+        self.save_source.setText(tr("save in situ"))
 
         self.daochu = QtWidgets.QToolButton()
         self.daochu.setMinimumSize(QtCore.QSize(0, 28))
@@ -177,7 +176,7 @@ class Ui_fanyisrt(object):
         self.fanyi_stop.setObjectName("fanyi_stop")
         self.fanyi_stop.setDisabled(True)
         self.fanyi_stop.setCursor(Qt.PointingHandCursor)
-        self.fanyi_stop.setText("停止" if config.defaulelang == 'zh' else 'Stop')
+        self.fanyi_stop.setText(tr("Stop"))
 
         v1 = QtWidgets.QVBoxLayout()
         v1.setAlignment(QtCore.Qt.AlignmentFlag.AlignVCenter)
@@ -198,23 +197,23 @@ class Ui_fanyisrt(object):
 
         # end
 
-        self.retranslateUi(fanyisrt)
+        fanyisrt.setWindowTitle(tr("Text  Or Srt  Translation"))
+        self.retranslateUi()
 
         QMetaObject.connectSlotsByName(fanyisrt)
 
     # setupUi
 
-    def retranslateUi(self, fanyisrt):
-        fanyisrt.setWindowTitle(config.uilanglist.get("Text  Or Srt  Translation"))
-        self.label_13.setText('翻译渠道' if config.defaulelang == 'zh' else "Translation channels")
-        self.label_613.setText(box_lang.get("Target lang"))
-        self.label_source.setText('原语言' if config.defaulelang == 'zh' else 'Source language')
-        self.label_614.setText('网络代理' if config.defaulelang == 'zh' else 'Proxy')
+    def retranslateUi(self):
+        self.label_13.setText(tr("Translation channels"))
+        self.label_613.setText(tr("Target lang"))
+        self.label_source.setText(tr("Source language"))
+        self.label_614.setText(tr("Proxy"))
         self.fanyi_proxy.setPlaceholderText(
-            box_lang.get("Failed to access Google services. Please set up the proxy correctly"))
-        self.fanyi_import.setText(box_lang.get("Import text to be translated from a file.."))
-        self.daochu.setText(config.transobj['dakaizimubaocunmulu'])
-        self.fanyi_start.setText(box_lang.get("Start>"))
-        self.exportsrt.setText('保存修改' if config.defaulelang == 'zh' else 'Save ')
+            tr("Failed to access Google services. Please set up the proxy correctly"))
+        self.fanyi_import.setText(tr("Import text to be translated from a file.."))
+        self.daochu.setText(tr('dakaizimubaocunmulu'))
+        self.fanyi_start.setText(tr("Start>"))
+        self.exportsrt.setText(tr("Save"))
         self.fanyi_targettext.setPlaceholderText(
-            '一次只翻译一个字幕文件时，可在此处修改翻译结果，然后保存' if config.defaulelang == 'zh' else 'Modify the translation result and save it when translating a single subtitle file')
+            tr("Modify the translation result and save it when translating a single subtitle file"))

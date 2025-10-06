@@ -1,7 +1,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -123,7 +123,7 @@ class Ui_googlecloudform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/googlecloudtts'))
         self.horizontalLayout.addWidget(help_btn)
 
@@ -134,14 +134,13 @@ class Ui_googlecloudform(object):
 
     def retranslateUi(self, googlecloudform):
         googlecloudform.setWindowTitle("Google Cloud TTS Settings")
-        self.label_cred.setText("Credential JSON" if config.defaulelang == 'zh' else "Credential JSON")
-        self.label_lang.setText("Language" if config.defaulelang == 'zh' else "Language")
-        self.label_voice.setText("Voice" if config.defaulelang == 'zh' else "Voice")
-        self.label_encoding.setText("Audio Encoding" if config.defaulelang == 'zh' else "Audio Encoding")
-        self.browse_btn.setText("Browse" if config.defaulelang == 'zh' else "Browse")
-        self.save.setText("Save" if config.defaulelang == 'zh' else "Save")
-        self.test.setText("Test" if config.defaulelang == 'zh' else "Test")
+        self.label_cred.setText(tr("Credential JSON"))
+        self.label_lang.setText(tr("Language"))
+        self.label_voice.setText(tr("Voice"))
+        self.label_encoding.setText(tr("Audio Encoding"))
+        self.browse_btn.setText(tr("Browse"))
+        self.save.setText(tr("Save"))
+        self.test.setText(tr("Test"))
         self.credential_path.setPlaceholderText(
-            "Path to Google Cloud credentials JSON file" if config.defaulelang == 'zh'
-            else "Path to Google Cloud credentials JSON file"
+            "Path to Google Cloud credentials JSON file"
         )

@@ -1,17 +1,18 @@
-import copy
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Union
 
+from gradio_client import Client, handle_file
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
     RetryError
 
+from videotrans import tts
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-from gradio_client import Client, handle_file
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -23,8 +24,17 @@ class F5TTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.copydata = copy.deepcopy(self.queue_tts)
-        api_url = config.params['f5tts_url'].strip().rstrip('/').lower()
+        if self.tts_type==tts.DIA_TTS:
+            api_url=config.params.get('diatts_url', '')
+        elif self.tts_type==tts.INDEX_TTS:
+            api_url=config.params.get('indextts_url', '')
+        elif self.tts_type==tts.VOXCPM_TTS:
+            api_url=config.params.get('voxcpmtts_url', '')
+        elif self.tts_type==tts.SPARK_TTS:
+            api_url=config.params.get('sparktts_url', '')
+        else:
+            api_url=config.params.get('f5tts_url', '')
+        api_url = api_url.strip().rstrip('/').lower()
         self.api_url = f'http://{api_url}' if not api_url.startswith('http') else api_url
         self.v1_local = True
         sepflag = self.api_url.find('/', 9)
@@ -46,7 +56,7 @@ class F5TTS(BaseTTS):
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
-        except:
+        except ValueError:
             pass
 
         text = data_item['text'].strip()
@@ -64,7 +74,7 @@ class F5TTS(BaseTTS):
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
         if not Path(data['ref_wav']).exists():
-            raise StopRetry(f'{role} 角色不存在')
+            raise StopRetry(tr('The role {} does not exist',role))
         if data['ref_text'] and len(data['ref_text']) < 10:
             speed = 0.5
 
@@ -90,18 +100,13 @@ class F5TTS(BaseTTS):
         else:
             raise RuntimeError(str(result))
 
-        if self.inst and self.inst.precent < 80:
-            self.inst.precent += 0.1
-        self.has_done += 1
-        self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-
     def _item_task_spark(self, data_item: Union[Dict, List, None]):
         if self._exit() or tools.vail_file(data_item['filename']):
             return
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
-        except:
+        except ValueError:
             pass
 
         text = data_item['text'].strip()
@@ -117,7 +122,7 @@ class F5TTS(BaseTTS):
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
         if not Path(data['ref_wav']).exists():
-            raise StopRetry( f'{role} 角色不存在')
+            raise StopRetry(tr('The role {} does not exist',role))
 
         try:
             result = self.client.predict(
@@ -139,18 +144,13 @@ class F5TTS(BaseTTS):
         else:
             raise RuntimeError(str(result))
 
-        if self.inst and self.inst.precent < 80:
-            self.inst.precent += 0.1
-        self.has_done += 1
-        self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-
     def _item_task_index(self, data_item: Union[Dict, List, None]):
         if self._exit() or tools.vail_file(data_item['filename']):
             return
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
-        except:
+        except ValueError:
             pass
 
         text = data_item['text'].strip()
@@ -165,7 +165,7 @@ class F5TTS(BaseTTS):
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
         if not Path(data['ref_wav']).exists():
-            raise StopRetry(  f'{role} 角色不存在')
+            raise StopRetry(tr('The role {} does not exist',role))
         config.logger.info(f'index-tts {data=}')
 
         try:
@@ -188,11 +188,6 @@ class F5TTS(BaseTTS):
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
             raise RuntimeError(str(result))
-        if self.inst and self.inst.precent < 80:
-            self.inst.precent += 0.1
-
-        self.has_done += 1
-        self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
     def _item_task_voxcpm(self, data_item: Union[Dict, List, None]):
         if self._exit() or tools.vail_file(data_item['filename']):
@@ -200,7 +195,7 @@ class F5TTS(BaseTTS):
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
-        except:
+        except ValueError:
             pass
 
         text = data_item['text'].strip()
@@ -215,7 +210,7 @@ class F5TTS(BaseTTS):
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
         if not Path(data['ref_wav']).exists():
-            raise StopRetry(f'{role} 角色不存在')
+            raise StopRetry(tr('The role {} does not exist',role))
         config.logger.info(f'voxcpm-tts {data=}')
 
         try:
@@ -240,11 +235,6 @@ class F5TTS(BaseTTS):
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
             raise RuntimeError(str(result))
-        if self.inst and self.inst.precent < 80:
-            self.inst.precent += 0.1
-
-        self.has_done += 1
-        self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
 
     def _item_task_dia(self, data_item: Union[Dict, List, None]):
@@ -253,7 +243,7 @@ class F5TTS(BaseTTS):
         speed = 1.0
         try:
             speed = 1 + float(self.rate.replace('%', '')) / 100
-        except:
+        except ValueError:
             pass
 
         text = data_item['text'].strip()
@@ -269,7 +259,7 @@ class F5TTS(BaseTTS):
                 data['ref_text'] = roledict.get('ref_text', '')
 
         if not Path(data['ref_wav']).exists():
-            self.error = f'{role} 角色不存在'
+            self.error =tr('The role {} does not exist',role)
             raise StopRetry(self.error)
 
         try:
@@ -291,34 +281,30 @@ class F5TTS(BaseTTS):
         else:
             raise RuntimeError(str(result))
 
-        if self.inst and self.inst.precent < 80:
-            self.inst.precent += 0.1
-
-        self.has_done += 1
-        self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-
     def _item_task(self, data_item: Union[Dict, List, None]):
         if self._exit() or  not data_item.get('text','').strip():
             return
+        # F5_TTS_WINFORM_NAMES=['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS','VoxCPM-TTS']
         # Spark-TTS','Index-TTS Dia-TTS
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
         def _run():
             ttstype = config.params.get('f5tts_ttstype')
+            print(f'{ttstype=}')
             if self._exit():
                 return
             try:
                 self.client = Client(self.api_url, httpx_kwargs={"timeout": 7200,"proxy":self.proxy_str}, ssl_verify=False)
             except Exception as e:
                 raise StopRetry( f'{e}')
-            if ttstype == 'Spark-TTS':
+            if ttstype == config.F5_TTS_WINFORM_NAMES[1]:
                 self._item_task_spark(data_item)
-            elif ttstype == 'Index-TTS':
+            elif ttstype ==  config.F5_TTS_WINFORM_NAMES[2]:
                 self._item_task_index(data_item)
-            elif ttstype == 'VoxCPM-TTS':
+            elif ttstype ==  config.F5_TTS_WINFORM_NAMES[4]:
                 self._item_task_voxcpm(data_item)
-            elif ttstype == 'Dia-TTS':
+            elif ttstype ==  config.F5_TTS_WINFORM_NAMES[3]:
                 self._item_task_dia(data_item)
             else:
                 self._item_task_v1(data_item)
@@ -326,7 +312,7 @@ class F5TTS(BaseTTS):
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e
 

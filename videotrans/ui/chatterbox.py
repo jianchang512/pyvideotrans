@@ -3,7 +3,7 @@ from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy, QHBoxLayout, QVBoxLayout
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -27,7 +27,7 @@ class Ui_chatterboxform(object):
 
         label_github = QLabel()
         label_github.setText(
-            '需要安装并启动 https://github.com/jianchang512/chatterbox-api 才可使用' if config.defaulelang == 'zh' else 'You need to install and start https://github.com/jianchang512/chatterbox-api before you can use it')
+            tr("You need to install and start https://github.com/jianchang512/chatterbox-api before you can use it"))
 
         self.inner_v.addWidget(label_github)
 
@@ -71,7 +71,7 @@ class Ui_chatterboxform(object):
         self.role.setMinimumSize(QSize(571, 100))
         self.role.setReadOnly(False)
         self.role.setPlaceholderText(
-            '将参考音频放于该软件根目录下chatterbox文件夹内，在此填写参考音频含后缀名称\n例如\n123.mp3' if config.defaulelang == 'zh' else 'Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix \n, for example\n123.mp3')
+            tr("Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3"))
         self.inner_v.addWidget(self.role)
 
         h4 = QHBoxLayout()
@@ -88,7 +88,7 @@ class Ui_chatterboxform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/chatterbox'))
         h4.addWidget(self.save)
         h4.addWidget(self.test)
@@ -106,8 +106,8 @@ class Ui_chatterboxform(object):
 
     def retranslateUi(self, chatterboxform):
         chatterboxform.setWindowTitle("Chatterbox-TTS API")
-        self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
+        self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText("填写http开头的完整地址 http://127.0.0.1:5093")
         self.label.setText("Chatterbox TTS API")
 
-        self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")
+        self.test.setText(tr("Test"))

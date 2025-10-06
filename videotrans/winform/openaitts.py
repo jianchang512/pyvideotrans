@@ -1,7 +1,7 @@
 def openwin():
     import json
     from PySide6 import QtWidgets
-
+    from videotrans.configure.config import tr
     from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
@@ -10,14 +10,12 @@ def openwin():
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         else:
             tools.show_error(d)
-        winobj.test_openaitts.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test_openaitts.setText(tr("Test"))
 
     def test():
         key = winobj.openaitts_key.text()
         url = winobj.openaitts_api.text().strip()
         url = url if url else 'https://api.openai.com/v1'
-        if tools.check_local_api(url) is not True:
-            return
 
         if not url.startswith('http'):
             url = 'http://' + url
@@ -29,7 +27,7 @@ def openwin():
         config.params["openaitts_api"] = url
         config.params["openaitts_model"] = model
         config.getset_params(config.params)
-        winobj.test_openaitts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test_openaitts.setText(tr("Testing..."))
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
@@ -46,8 +44,6 @@ def openwin():
         key = winobj.openaitts_key.text()
         url = winobj.openaitts_api.text().strip()
         url = url if url else 'https://api.openai.com/v1'
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
 

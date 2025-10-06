@@ -63,9 +63,9 @@ class VolcEngineTTS(BaseTTS):
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            appid = config.params['volcenginetts_appid']
-            access_token = config.params['volcenginetts_access']
-            cluster = config.params['volcenginetts_cluster']
+            appid = config.params.get('volcenginetts_appid','')
+            access_token = config.params.get('volcenginetts_access','')
+            cluster = config.params.get('volcenginetts_cluster','')
             speed = 1.0
             if self.rate:
                 rate = float(self.rate.replace('%', '')) / 100
@@ -123,7 +123,6 @@ class VolcEngineTTS(BaseTTS):
                 with open(data_item['filename'] , "wb") as f:
                     f.write(base64.b64decode(data))
                 self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
             if 'code' in resp_json:
                 config.logger.info(f'字节火山语音合成失败:{resp_json=}')
@@ -132,6 +131,6 @@ class VolcEngineTTS(BaseTTS):
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e

@@ -43,7 +43,7 @@ def uvr(*, model_name=None, save_root=None, inp_path=None, source="logs", uuid=N
             done = 1
         except  Exception:
             traceback.print_exc()
-    except:
+    except Exception:
         infos.append(traceback.format_exc())
         yield "\n".join(infos)
     finally:
@@ -69,11 +69,7 @@ def convert_to_pure_eng_num(string):
 
 def split_audio(file_path):
     audio = AudioSegment.from_wav(file_path)
-    segment_length = 300
-    try:
-        segment_length = int(config.settings['bgm_split_time'])
-    except Exception as e:
-        print(e)
+    segment_length = int(config.settings.get('bgm_split_time',300))
     output_folder = Path(config.TEMP_DIR) / "separate"
     output_folder.mkdir(parents=True, exist_ok=True)
     output_folder = output_folder.as_posix()

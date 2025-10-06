@@ -2,17 +2,10 @@ def remove_noise(audio_path, output_file):
     from videotrans.configure import config
     from videotrans.util import tools
     from pathlib import Path
-    import time, os
+    import time
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
     try:
-        try:
-            os.environ['bak_proxy'] = os.environ.get('http_proxy') or os.environ.get('https_proxy')
-            del os.environ['http_proxy']
-            del os.environ['https_proxy']
-            del os.environ['all_proxy']
-        except:
-            pass
         ans = pipeline(
             Tasks.acoustic_noise_suppression,
             model='damo/speech_zipenhancer_ans_multiloss_16k_base')
@@ -24,10 +17,4 @@ def remove_noise(audio_path, output_file):
         return tmp_name
     except Exception as e:
         config.logger.exception(f'降噪时出错:{e}', exc_info=True)
-    finally:
-        proxy = os.environ.get('http_proxy') or os.environ.get('https_proxy') or os.environ.get('bak_proxy')
-        if proxy:
-            os.environ['http_proxy'] = proxy
-            os.environ['https_proxy'] = proxy
-            os.environ['all_proxy'] = proxy
     return audio_path

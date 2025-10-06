@@ -3,7 +3,7 @@ def openwin():
 
     from videotrans.configure import config
     from videotrans.util import tools
-
+    from videotrans.configure.config import tr
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     def feed(d):
@@ -11,27 +11,23 @@ def openwin():
             tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
-        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test.setText(tr("Test"))
 
     def test():
         url = winobj.address.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
         key = winobj.key.text().strip()
 
         config.params["libre_address"] = url
         config.params["libre_key"] = key
-        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.LIBRE_INDEX)
         task.uito.connect(feed)
         task.start()
 
     def save():
         url = winobj.address.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
         key = winobj.key.text().strip()
@@ -43,10 +39,8 @@ def openwin():
     from videotrans.component import LibreForm
     winobj = LibreForm()
     config.child_forms['libre'] = winobj
-    if config.params["libre_address"]:
-        winobj.address.setText(config.params["libre_address"])
-    if config.params["libre_key"]:
-        winobj.key.setText(config.params["libre_key"])
+    winobj.address.setText(config.params.get("libre_address",''))
+    winobj.key.setText(config.params.get("libre_key",''))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

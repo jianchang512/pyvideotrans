@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -62,7 +62,7 @@ class Ui_parakeetform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看教程" if config.defaulelang == 'zh' else "The tutorial")
+        help_btn.setText(tr("The tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/parakeet'))
 
         self.layout_btn = QtWidgets.QHBoxLayout()
@@ -79,12 +79,9 @@ class Ui_parakeetform(object):
 
     def update_ui(self):
         from videotrans.configure import config
-        if config.params["parakeet_address"]:
-            self.parakeet_address.setText(config.params["parakeet_address"])
+        self.parakeet_address.setText(config.params.get("parakeet_address",''))
     def retranslateUi(self, parakeet):
         parakeet.setWindowTitle("parakeet-tdt api")
-        self.label.setText("http地址" if config.defaulelang == 'zh' else 'parakeet url')
-        self.parakeet_address.setPlaceholderText(
-            '填写 github.com/jianchang512/parakeet-api 项目启动后的http地址' if config.defaulelang == 'zh' else 'Fill in the HTTP address after the "github.com/jianchang512/parakeet-api" program starts')
-        self.set_btn.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
+        self.label.setText(tr("parakeet url"))
+        self.set_btn.setText(tr("Save"))
+        self.test.setText(tr("Test"))

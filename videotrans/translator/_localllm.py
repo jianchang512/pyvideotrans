@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -25,11 +26,11 @@ class LocalLLM(BaseTrans):
         super().__post_init__()
 
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.api_url = config.params['localllm_api']
+        self.api_url = config.params.get('localllm_api','')
         self._add_internal_host_noproxy(self.api_url)
-        self.model_name = config.params["localllm_model"]
+        self.model_name = config.params.get("localllm_model",'')
 
-        self.prompt = tools.get_prompt(ainame='localllm', is_srt=self.is_srt).replace('{lang}',
+        self.prompt = tools.get_prompt(ainame='localllm',aisendsrt=self.aisendsrt).replace('{lang}',
                                                                                       self.target_language_name)
 
 
@@ -38,19 +39,19 @@ class LocalLLM(BaseTrans):
            after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
-        model = OpenAI(api_key=config.params['localllm_key'], base_url=self.api_url,
+        model = OpenAI(api_key=config.params.get('localllm_key',''), base_url=self.api_url,
                        http_client=httpx.Client(proxy=self.proxy_str))
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         message = [
             {'role': 'system',
-             'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
+             'content': tr("You are a top-notch subtitle translation engine.")},
             {'role': 'user',
              'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
         ]
         config.logger.info(f"\n[localllm]发送请求数据:{message=}")
 
         response = model.chat.completions.create(
-            model=config.params['localllm_model'],
+            model=config.params.get('localllm_model',''),
             max_tokens=int(config.params.get('localllm_max_token')) if config.params.get(
                 'localllm_max_token') else 4096,
             temperature=float(config.params.get('localllm_temperature', 0.7)),

@@ -21,7 +21,7 @@ class Libre(BaseTrans):
         super().__post_init__()
         self.aisendsrt = False
 
-        url = config.params['libre_address'].strip().rstrip('/')
+        url = config.params.get('libre_address','').strip().rstrip('/')
         key = config.params.get('libre_key','').strip()  # Retained for logical equivalence
 
         if "/translate" not in url:

@@ -8,6 +8,7 @@ from edge_tts import Communicate
 from edge_tts.exceptions import NoAudioReceived
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 
 # edge-tts 限流，可能产生大量超时、401等错误
@@ -60,7 +61,7 @@ class EdgeTTS(BaseTTS):
                     try:
                         config.logger.info(f"{task_id}: 开始第 {attempt + 1} 次尝试。")
                         if attempt>0:
-                            msg=f"第{attempt}次失败重试 " if config.defaulelang=='zh' else f'Retry after {attempt}nd failure '
+                            msg= f'Retry after {attempt}nd  '
                         communicate = Communicate(
                             item['text'], voice=item['role'], rate=self.rate,
                             volume=self.volume, proxy=self.useproxy, pitch=self.pitch, connect_timeout=5
@@ -71,15 +72,12 @@ class EdgeTTS(BaseTTS):
                             timeout=SAVE_TIMEOUT
                         )
                         
-                        if self.inst:
-                            progress = ((index + 1) / total_tasks) * 80
-                            if progress > self.inst.precent: self.inst.precent = progress
-                        
+
                         if self._stop_event.is_set(): return
                         loop = asyncio.get_running_loop()
                         signal_with_args = functools.partial(
                             self._signal, 
-                            text=f'{config.transobj["kaishipeiyin"]} {msg}[{self.ends_counter + 1}/{total_tasks}]'
+                            text=f'{tr("kaishipeiyin")} {msg}[{self.ends_counter + 1}/{total_tasks}]'
                         )
                         
                         try:

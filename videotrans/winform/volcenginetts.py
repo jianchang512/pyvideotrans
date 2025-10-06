@@ -3,12 +3,13 @@ def openwin():
     from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
+    from videotrans.configure.config import tr
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
             tools.show_error(d)
-        winobj.test.setText('测试')
+        winobj.test.setText(tr('Test'))
 
     def test():
 
@@ -16,7 +17,7 @@ def openwin():
         access = winobj.volcenginetts_access.text().strip()
         cluster = winobj.volcenginetts_cluster.text().strip()
         if not appid or not access or not cluster:
-            return tools.show_error('必须填写 appid access 和 cluster')
+            return tools.show_error(tr('Appid access and cluster are required'))
         config.params["volcenginetts_appid"] = appid
         config.params["volcenginetts_access"] = access
         config.params["volcenginetts_cluster"] = cluster
@@ -31,7 +32,7 @@ def openwin():
                          tts_type=tts.VOLCENGINE_TTS)
         wk.uito.connect(feed)
         wk.start()
-        winobj.test.setText('测试中请稍等...')
+        winobj.test.setText(tr('Testing...'))
 
     def save():
         appid = winobj.volcenginetts_appid.text().strip()

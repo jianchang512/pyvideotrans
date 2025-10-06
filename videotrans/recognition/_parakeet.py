@@ -1,13 +1,14 @@
 # zh_recogn 识别
 import logging
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Union
+from dataclasses import dataclass
+from typing import List, Dict, Union
 
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import   NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -17,11 +18,9 @@ RETRY_DELAY = 10
 
 @dataclass
 class ParaketRecogn(BaseRecogn):
-    raws: List[Any] = field(default_factory=list, init=False)
-
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = config.params['parakeet_address']
+        self.api_url = config.params.get('parakeet_address','')
         self._add_internal_host_noproxy(self.api_url)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
@@ -43,7 +42,7 @@ class ParaketRecogn(BaseRecogn):
                 response_format="srt"
             )
             if not transcript or not isinstance(transcript, str):
-                raise RuntimeError(f'返回字幕无时间戳，无法使用')
+                raise StopRetry(tr('The returned subtitles have no timestamp and cannot be used'))
         tmp = transcript.split("----..----")
         raws = tools.get_subtitle_from_srt(tmp[0], is_file=False)
         return raws

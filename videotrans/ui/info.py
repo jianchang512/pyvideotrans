@@ -4,6 +4,7 @@ from PySide6.QtCore import QByteArray, QThread, Signal
 from PySide6.QtGui import Qt, QPixmap
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -23,7 +24,7 @@ class Ui_infoform(object):
 
         self.label = QtWidgets.QLabel(infoform)
         self.label.setText(
-            '捐助该软件以帮助持续维护' if config.defaulelang == 'zh' else 'Donate to help the software to keep on maintaining')
+            tr("Donate to help the software to keep on maintaining"))
         self.label.setStyleSheet("""font-size:20px""")
         self.v1.addWidget(self.label)
 
@@ -57,7 +58,7 @@ Documents: pvt9.com"""
 
         self.link = QtWidgets.QPushButton(infoform)
         self.link.setText(
-            " 感谢所有捐助者，本项目的每一点改善都离不开您的帮助 " if config.defaulelang == 'zh' else " Thank all donators, Click to view the list of donators ")
+            tr("Thank all donators, Click to view the list of donators"))
         # 设置高度35px，最大宽度300
         self.link.setFixedHeight(35)
         self.link.setStyleSheet("""background-color:transparent""")
@@ -66,7 +67,7 @@ Documents: pvt9.com"""
 
         label = QtWidgets.QLabel(infoform)
         label.setText(
-            "你可以扫描下方二维码捐助或者点击上方按钮打开网页扫码捐助 " if config.defaulelang == 'zh' else "You can scan the QR code or click the above button to donate via the web ")
+            tr("You can scan the QR code or click the above button to donate via the web"))
         h2 = QtWidgets.QHBoxLayout()
         h2.addWidget(self.link)
         h2.addStretch()
@@ -114,12 +115,12 @@ Documents: pvt9.com"""
         lawbtn.setMaximumWidth(300)
         lawbtn.setStyleSheet("background-color:rgba(255,255,255,0);text-align:left""")
         lawbtn.setCursor(Qt.PointingHandCursor)
-        lawbtn.setText("软件使用协议/免责声明" if config.defaulelang == 'zh' else "Software License Agreement")
+        lawbtn.setText(tr("Software License Agreement"))
         lawbtn.clicked.connect(lambda: tools.open_url('https://pvt9.com/law.html'))
         self.v1.addWidget(lawbtn)
         self.v1.addStretch()
         infoform.setWindowTitle(
-            "捐助该软件以帮助持续维护" if config.defaulelang == 'zh' else "Donate to help the software to keep on maintaining")
+            tr("Donate to help the software to keep on maintaining"))
         QtCore.QMetaObject.connectSlotsByName(infoform)
 
     def showimg(self, name):
@@ -150,8 +151,8 @@ class DownloadImg(QThread):
         # 遍历字典 self.urls 分别获取 key和value
         try:
             response = requests.get(self.urls['link'])
-            if response.status_code == 200:
-                config.INFO_WIN["data"][self.urls['name']] = QByteArray(response.content)
-                self.finished.emit(self.urls['name'])
-        except:
+            response.raise_for_status()
+            config.INFO_WIN["data"][self.urls['name']] = QByteArray(response.content)
+            self.finished.emit(self.urls['name'])
+        except Exception:
             pass

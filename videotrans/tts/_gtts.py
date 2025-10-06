@@ -44,14 +44,9 @@ class GTTS(BaseTTS):
             response.save(data_item['filename'] + ".mp3")
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
 
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.has_done += 1
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e

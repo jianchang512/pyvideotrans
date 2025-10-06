@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -47,7 +47,7 @@ class Ui_qwenttsform(object):
         v1.addLayout(h3)
 
         v1.addWidget(
-            QtWidgets.QLabel('qwen-tts模型仅支持中英,qwen3-tts支持10种语言' if config.defaulelang == 'zh' else 'The qwen-tts model only supports Chinese and English, while the qwen3-tts model supports 10 languages.'))
+            QtWidgets.QLabel(tr("The qwen-tts model only supports Chinese and English, while the qwen3-tts model supports 10 languages.")))
 
         h4 = QtWidgets.QHBoxLayout()
 
@@ -64,7 +64,7 @@ class Ui_qwenttsform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/qwentts'))
 
         h4.addWidget(self.set_qwentts)
@@ -80,14 +80,14 @@ class Ui_qwenttsform(object):
         self.qwentts_model.clear()
         self.qwentts_model.addItems(config.settings.get('qwentts_models','').split(','))
 
-        if config.params["qwentts_key"]:
-            self.qwentts_key.setText(config.params["qwentts_key"])
-        if config.params["qwentts_model"]:
-            self.qwentts_model.setCurrentText(config.params["qwentts_model"])
+        if config.params.get("qwentts_key",''):
+            self.qwentts_key.setText(config.params.get("qwentts_key",''))
+        if config.params.get("qwentts_model",''):
+            self.qwentts_model.setCurrentText(config.params.get("qwentts_model",''))
     def retranslateUi(self, qwenttsform):
         qwenttsform.setWindowTitle("Qwen TTS")
-        self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
-        self.set_qwentts.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test_qwentts.setText('测试..' if config.defaulelang == 'zh' else "Test..")
-        self.qwentts_key.setPlaceholderText("QwenTTS API KEY")
-        self.label_2.setText("API KEY")
+        self.label_3.setText(tr("Model"))
+        self.set_qwentts.setText(tr("Save"))
+        self.test_qwentts.setText(tr("Test"))
+        self.qwentts_key.setPlaceholderText(f"{tr('Ali-Bailian')} {tr('SK')}")
+        self.label_2.setText(f"{tr('Ali-Bailian')} {tr('SK')}")

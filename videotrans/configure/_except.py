@@ -2,7 +2,8 @@ import re
 
 from elevenlabs.core import ApiError as ApiError_11
 from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
-    APIConnectionError, APIError, APIStatusError, OpenAIError, ContentFilterFinishReasonError
+    APIConnectionError, APIError,  ContentFilterFinishReasonError, InternalServerError, \
+    LengthFinishReasonError
 from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, Timeout, ConnectionError, RetryError
 from deepgram.clients.common.v1.errors import DeepgramApiError
 from videotrans.configure import config
@@ -127,7 +128,7 @@ def _handle_connection_error_detail(error, lang):
             "域名解析失败，无法找到服务器地址" if lang == 'zh'
             else "Domain name resolution failed, cannot find server address"
         )
-    elif "refused" in error_str:
+    elif "refused" in error_str or "10061" in error_str or "积极拒绝" in error_str:
         if is_local:
             base_message = (
                 "连接被拒绝，请确保本地服务已启动并正在运行" if lang == 'zh'
@@ -148,6 +149,18 @@ def _handle_connection_error_detail(error, lang):
             "连接超时，请检查网络连接是否稳定" if lang == 'zh'
             else "Connection timeout, please check network stability"
         )
+    elif "max retries exceeded" in error_str:
+        if is_local:
+            base_message = (
+                "多次重试连接失败，请确保本地服务已正确启动" if lang == 'zh'
+                else "Multiple connection retries failed, please ensure local service is properly started"
+            )
+        else:
+            base_message = (
+                "多次重试连接失败，服务可能暂时不可用" if lang == 'zh'
+                else "Multiple connection retries failed, service may be temporarily unavailable"
+            )
+
     else:
         base_message = (
             "网络连接失败" if lang == 'zh'
@@ -184,8 +197,10 @@ def _handle_api_error_detail(error, lang):
             message = error.detail.get('message') or error.detail.get('error', {}).get('message', '')
         else:
             message = str(error.detail)
-
+    if _is_local_address(message):
+        message=f'{"请确认本地服务已启动 " if lang=="zh" else "please ensure local service is properly started"} {message}'
     if message:
+
         return (
             f"服务返回错误：{message}" if lang == 'zh'
             else f"Service returned error: {message}"
@@ -232,7 +247,7 @@ def get_msg_from_except(ex):
     if isinstance(ex, TenRetryError):
         try:
             ex = ex.last_attempt.exception()
-        except:
+        except AttributeError:
             pass
     if isinstance(ex, VideoTransError) and ex.ex:
         ex = ex.ex
@@ -255,6 +270,8 @@ def get_msg_from_except(ex):
             "请求过于频繁，请稍后重试或调大暂停时间" if lang == 'zh'
             else "Too many requests, please try again later or adjust settings"
         ),
+        InternalServerError:lambda e:(f'{e.status_code}错误: API服务端内部错误' if lang=='zh' else f'{e.status_code}: {e.message}'),
+        LengthFinishReasonError:lambda e:(f'内容太长超出最大允许token，请减小内容或增大max_token' if lang=='zh' else f'{e}'),
         ContentFilterFinishReasonError: lambda e: "内容触发AI风控被过滤" if lang=='zh' else 'Content triggers AI risk control and is filtered',
         # === 网络连接问题 ===
         (httpcore.ConnectTimeout, httpx.ConnectTimeout): lambda e: (
@@ -336,6 +353,18 @@ def get_msg_from_except(ex):
 
         ApiError_11: lambda e: _handle_api_error_detail(e, lang),
 
+        RuntimeError: lambda e: (
+            _handle_connection_error_detail(e, lang)
+            if any(keyword in str(e).lower() for keyword in [
+                'connection', 'connect', 'refused', 'reset', 'timeout', 'retries',
+                '连接', '拒绝', '重置', '超时', '重试', 'host', 'port'
+            ])
+            else (
+                f"运行时错误：{e}" if lang == 'zh'
+                else f"Runtime error: {e}"
+            )
+        ),
+
         # === 操作系统错误 ===
         OSError: lambda e: (
             f"系统错误 ({e.errno})：{e.strerror}" if lang == 'zh'
@@ -415,6 +444,13 @@ def get_msg_from_except(ex):
             return handler(ex)
 
     # === 后备处理逻辑 ===
+    error_str = str(ex)
+    if any(keyword in error_str.lower() for keyword in [
+        'connection', 'connect', 'refused', 'reset', 'timeout', 'retries',
+        '连接', '拒绝', '重置', '超时', '重试', 'host', 'port', 'http', 'tcp'
+    ]):
+        return _handle_connection_error_detail(ex, lang)
+
     # 尝试从异常对象中提取更具体的信息
     if hasattr(ex, 'error') and ex.error:
         if isinstance(ex.error, dict):

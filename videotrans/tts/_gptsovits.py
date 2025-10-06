@@ -12,6 +12,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -28,7 +29,7 @@ class GPTSoVITS(BaseTTS):
 
 
         # 2. 处理并设置 api_url (同样是覆盖父类的值)
-        api_url = config.params['gptsovits_url'].strip().rstrip('/').lower()
+        api_url = config.params.get('gptsovits_url','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
         self._add_internal_host_noproxy(self.api_url)
 
@@ -56,7 +57,7 @@ class GPTSoVITS(BaseTTS):
             data = {
                 "text": data_item['text'],
                 "text_language": "zh" if self.language.startswith('zh') else self.language,
-                "extra": config.params['gptsovits_extra'],
+                "extra": config.params.get('gptsovits_extra',''),
                 "ostype": sys.platform
             }
 
@@ -69,8 +70,8 @@ class GPTSoVITS(BaseTTS):
                 if roledict and role in roledict:
                     data.update(roledict[role])
             if not data.get('refer_wav_path', ''):
-                raise StopRetry(message=f'必须传入参考音频文件路径' if config.defaulelang=='zh' else 'Must pass in the reference audio file path')
-            if config.params['gptsovits_isv2']:
+                raise StopRetry(message=tr("Must pass in the reference audio file path"))
+            if config.params.get('gptsovits_isv2',''):
                 data = {
                     "text": data_item['text'],
                     "text_lang": data.get('text_language', 'zh'),
@@ -95,7 +96,7 @@ class GPTSoVITS(BaseTTS):
                 # 如果是JSON数据，使用json()方法解析
                 data = response.json()
                 config.logger.info(f'GPT-SoVITS return:{data=}')
-                raise StopRetry(f"GPT-SoVITS返回错误信息-1:{data}")
+                raise StopRetry(f"GPT-SoVITS error-1:{data}")
             
             response.raise_for_status()
             # 获取响应头中的Content-Type
@@ -107,17 +108,12 @@ class GPTSoVITS(BaseTTS):
                     f.write(response.content)
                 time.sleep(1)
                 if not os.path.exists(data_item['filename'] + ".wav"):
-                    raise RuntimeError(f'GPT-SoVITS合成声音失败-2')
+                    raise RuntimeError(f'GPT-SoVITS error-2')
                 self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
-
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.has_done += 1
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e

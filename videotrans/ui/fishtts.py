@@ -3,7 +3,7 @@ from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QMetaObject, QRect, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -73,7 +73,7 @@ class Ui_fishttsform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/fishtts'))
 
         h2.addWidget(self.save)
@@ -110,8 +110,8 @@ references[0][text]:参考音频中的语音文本
         fishttsform.setWindowTitle("Fish-speech API/fish-speech >=1.5.0")
         self.role.setPlaceholderText("在此填写参考音频信息,格式如下\n例如：一行一组\n123.wav#你好啊我的朋友")
         self.tips.setPlainText(tips)
-        self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
+        self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText("填写http开头的API,Fish-speech 1.5.0默认 http://127.0.0.1:8080/v1/tts")
         self.label.setText("Fish-speech API")
-        self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")
+        self.test.setText(tr("Test"))
     # retranslateUi

@@ -1,9 +1,9 @@
 # zh_recogn 识别
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Union
 
 import dashscope
 from pydub import AudioSegment
@@ -20,7 +20,6 @@ RETRY_DELAY = 10
 
 @dataclass
 class Qwen3ASRRecogn(BaseRecogn):
-    raws: List[Any] = field(default_factory=list, init=False)
 
     def __post_init__(self):
         super().__post_init__()
@@ -30,8 +29,7 @@ class Qwen3ASRRecogn(BaseRecogn):
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
            after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
-        if self._exit():
-            return
+        if self._exit(): return
         # 发送请求
         raws = self.cut_audio()
         api_key=config.params.get('qwenmt_key','')
@@ -85,12 +83,11 @@ class Qwen3ASRRecogn(BaseRecogn):
             return milliseconds_timestamps
 
         vad_p = {
-            "threshold": float(config.settings['threshold']),
-            "min_speech_duration_ms": int(config.settings['min_speech_duration_ms']),
-            "max_speech_duration_s": float(config.settings['max_speech_duration_s']) if float(
-                config.settings['max_speech_duration_s']) > 0 else float('inf'),
-            "min_silence_duration_ms": int(config.settings['min_silence_duration_ms']),
-            "speech_pad_ms": int(config.settings['speech_pad_ms'])
+            "threshold": float(config.settings.get('threshold',0.45)),
+            "min_speech_duration_ms": int(config.settings.get('min_speech_duration_ms',0)),
+            "max_speech_duration_s": float(config.settings.get('max_speech_duration_s',5)),
+            "min_silence_duration_ms": int(config.settings.get('min_silence_duration_ms',140)),
+            "speech_pad_ms": int(config.settings.get('speech_pad_ms',0))
         }
         speech_chunks = get_speech_timestamps(decode_audio(self.audio_file, sampling_rate=sampling_rate),
                                               vad_options=VadOptions(**vad_p))

@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -30,7 +31,7 @@ class OpenRouter(BaseTrans):
         self.model_name = config.params.get('openrouter_model', "")
         self.api_url = 'https://openrouter.ai/api/v1'
 
-        self.prompt = tools.get_prompt(ainame='openrouter', is_srt=self.is_srt).replace('{lang}',
+        self.prompt = tools.get_prompt(ainame='openrouter',aisendsrt=self.aisendsrt).replace('{lang}',
                                                                                         self.target_language_name)
         self.api_key = config.params.get('openrouter_key', '')
 
@@ -43,7 +44,7 @@ class OpenRouter(BaseTrans):
         message = [
             {
                 'role': 'system',
-                'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
+                'content': tr("You are a top-notch subtitle translation engine.")},
             {
                 'role': 'user',
                 'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},

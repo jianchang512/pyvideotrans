@@ -80,7 +80,7 @@ class MinimaxiTTS(BaseTTS):
             }, ensure_ascii=False)
 
             headers = {
-                'Authorization': f"Bearer {config.params['minimaxi_apikey']}",
+                'Authorization': f"Bearer {config.params.get('minimaxi_apikey','')}",
                 'Content-Type': 'application/json'
             }
 
@@ -92,22 +92,18 @@ class MinimaxiTTS(BaseTTS):
                 raise RuntimeError(res['base_resp']['status_msg'])
 
             if 'data' not in res or not res['data']:
-                raise RuntimeError(f'未返回有效音频地址:{res}' if config.defaulelang == 'zh' else f'No valid audio address returned:{res}')
+                raise RuntimeError(f'No valid audio address returned:{res}')
 
             if isinstance(res['data'], dict) and 'audio' in res['data']:
                 with open(data_item['filename'], 'wb') as f:
                     f.write(bytes.fromhex(res['data']['audio']))
             else:
-                raise RuntimeError(f'未返回有效音频数据:{res}' if config.defaulelang == 'zh' else f'No valid audio  data returned:{res}')
+                raise RuntimeError(f'No valid audio  data returned:{res}')
 
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.has_done += 1
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e

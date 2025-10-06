@@ -161,13 +161,10 @@ class GoogleCloudTTS(BaseTTS):
             with open(out_path, "wb") as f:
                 f.write(response.audio_content)
             self.convert_to_wav(out_path, data_item['filename'])
-            # atualiza progresso
-            self.has_done += 1
-            self._signal(text=f"{self.has_done}/{self.len}")
 
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e

@@ -1,7 +1,10 @@
 *.log
 *.srt
+*.7z
 .git
 err.txt
+ceshi.txt
+nolang.txt
 .github
 .idea
 edgetts.txt
@@ -46,7 +49,6 @@ videotrans/params.json
 videotrans/glossary.txt
 tmp/
 runtime
-f5-tts
 
 # Arquivos do sistema
 .DS_Store

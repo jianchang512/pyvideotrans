@@ -5,6 +5,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -30,7 +31,7 @@ class Ui_localllmform(object):
 
         self.label_0 = QtWidgets.QLabel()
         self.label_0.setText(
-            '兼容OpenAI接口的本地大模型在此使用，例如ollama，api地址通常以 /v1 结尾' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT Local LLM also used here')
+            tr("AIs compatible with the ChatGPT Local LLM also used here"))
 
         v1.addWidget(self.label_0)
 
@@ -59,7 +60,7 @@ class Ui_localllmform(object):
         label_token.setMinimumSize(QtCore.QSize(0, 35))
         label_token.setSizeIncrement(QtCore.QSize(0, 35))
         label_token.setObjectName("label_token")
-        label_token.setText("最大输出token" if config.defaulelang == 'zh' else "Maximum output token")
+        label_token.setText(tr("Maximum output token"))
         self.localllm_max_token = QtWidgets.QLineEdit(localllmform)
         self.localllm_max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.localllm_max_token.setObjectName("localllm_max_token")
@@ -102,7 +103,7 @@ class Ui_localllmform(object):
         self.label_allmodels = QtWidgets.QLabel(localllmform)
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
-            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+            tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
         v1.addWidget(self.label_allmodels)
         self.edit_allmodels = QtWidgets.QPlainTextEdit(localllmform)
         self.edit_allmodels.setObjectName("edit_allmodels")
@@ -114,6 +115,7 @@ class Ui_localllmform(object):
 
         self.localllm_template = QtWidgets.QPlainTextEdit(localllmform)
         self.localllm_template.setObjectName("localllm_template")
+        self.localllm_template.setReadOnly(True)
         v1.addWidget(self.localllm_template)
 
         self.set_localllm = QtWidgets.QPushButton(localllmform)
@@ -129,12 +131,13 @@ class Ui_localllmform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/localllm'))
         h4.addWidget(self.set_localllm)
         h4.addWidget(self.test_localllm)
         h4.addWidget(help_btn)
         v1.addLayout(h4)
+        self.localllm_template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'localllm' if config.defaulelang=='zh' else 'localllm-en')))
 
         self.retranslateUi(localllmform)
         QtCore.QMetaObject.connectSlotsByName(localllmform)
@@ -142,37 +145,28 @@ class Ui_localllmform(object):
     def update_ui(self):
         from videotrans.configure import config
         config.settings = config.parse_init()
-        allmodels_str = config.settings['localllm_model']
-        allmodels = config.settings['localllm_model'].split(',')
+        allmodels_str = config.settings.get('localllm_model','')
+        allmodels = config.settings.get('localllm_model','').split(',')
         self.localllm_model.clear()
         self.localllm_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        if config.params["localllm_key"]:
-            self.localllm_key.setText(config.params["localllm_key"])
-        if config.params["localllm_api"]:
-            self.localllm_api.setText(config.params["localllm_api"])
-        if config.params["localllm_model"] and config.params["localllm_model"] in allmodels:
-            self.localllm_model.setCurrentText(config.params["localllm_model"])
-        if config.params["localllm_template"]:
-            self.localllm_template.setPlainText(config.params["localllm_template"])
-        if config.params["localllm_max_token"]:
-            self.localllm_max_token.setText(str(config.params["localllm_max_token"]))
-        if config.params["localllm_temperature"]:
-            self.localllm_temperature.setText(str(config.params["localllm_temperature"]))
-        if config.params["localllm_top_p"]:
-            self.localllm_top_p.setText(str(config.params["localllm_top_p"]))
+        self.localllm_key.setText(config.params.get("localllm_key",''))
+        self.localllm_api.setText(config.params.get("localllm_api",''))
+        self.localllm_model.setCurrentText(config.params.get("localllm_model",''))
+        self.localllm_max_token.setText(str(config.params.get("localllm_max_token",'')))
+        self.localllm_temperature.setText(str(config.params.get("localllm_temperature",'')))
+        self.localllm_top_p.setText(str(config.params.get("localllm_top_p",'')))
 
     def retranslateUi(self, localllmform):
-        localllmform.setWindowTitle("本地大模型(兼容OpenAI)" if config.defaulelang == 'zh' else "Local LLM API")
-        self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
-        self.localllm_template.setPlaceholderText("prompt")
+        localllmform.setWindowTitle(tr("Local LLM API"))
+        self.label_3.setText(tr("Model"))
         self.label_4.setText(
-            "{lang}代表目标语言名称，不要删除。" if config.defaulelang == 'zh' else "{lang} represents the target language name, do not delete it.")
-        self.set_localllm.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test_localllm.setText('测试..' if config.defaulelang == 'zh' else "Test..")
+            tr("{lang} represents the target language name, do not delete it."))
+        self.set_localllm.setText(tr("Save"))
+        self.test_localllm.setText(tr("Test"))
         self.localllm_api.setPlaceholderText(
-            '大模型Api接口地址，不自动加/v1,如有需要请手动加' if config.defaulelang == 'zh' else 'Local LLM API url')
+            tr("Local LLM API url"))
         self.localllm_key.setPlaceholderText("Secret key")
-        self.localllm_key.setToolTip("若未设置留空即可" if config.defaulelang == 'zh' else 'If not remain empty')
-        self.label.setText("API接口地址" if config.defaulelang == 'zh' else 'API url')
-        self.label_2.setText("SK")
+        self.localllm_key.setToolTip(tr("If not remain empty"))
+        self.label.setText(tr("API URL"))
+        self.label_2.setText(tr("SK"))

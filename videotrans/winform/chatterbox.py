@@ -1,3 +1,6 @@
+from videotrans.configure.config import tr
+
+
 def openwin():
     from pathlib import Path
 
@@ -16,8 +19,7 @@ def openwin():
 
     def test():
         url = winobj.api_url.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
+
         if not url.startswith('http'):
             url = 'http://' + url
         config.params["chatterbox_url"] = url
@@ -44,8 +46,7 @@ def openwin():
         for it in tmp.split("\n"):
             s = it.strip()
             if not Path(config.ROOT_DIR + f"/chatterbox/{s}").exists():
-                tools.show_error(
-                    f"请确保 chatterbox 文件夹内存在音频文件 {s}" if config.defaulelang == 'zh' else f'Please make sure that the audio file {s} exists in the chatterbox folder')
+                tools.show_error(tr('Please make sure that the audio file {} exists in the chatterbox folder',s))
                 return
 
             role = s
@@ -54,8 +55,7 @@ def openwin():
 
     def save():
         url = winobj.api_url.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
+
         if not url.startswith('http'):
             url = 'http://' + url
 
@@ -75,14 +75,10 @@ def openwin():
     from videotrans.component import ChatterboxForm
     winobj = ChatterboxForm()
     config.child_forms['chatterbox'] = winobj
-    if config.params["chatterbox_url"]:
-        winobj.api_url.setText(config.params["chatterbox_url"])
-    if config.params["chatterbox_role"]:
-        winobj.role.setPlainText(config.params["chatterbox_role"])
-    if config.params["chatterbox_cfg_weight"]:
-        winobj.cfg_weight.setText(str(config.params["chatterbox_cfg_weight"]))
-    if config.params["chatterbox_exaggeration"]:
-        winobj.exaggeration.setText(str(config.params["chatterbox_exaggeration"]))
+    winobj.api_url.setText(config.params.get("chatterbox_url",''))
+    winobj.role.setPlainText(config.params.get("chatterbox_role",''))
+    winobj.cfg_weight.setText(str(config.params.get("chatterbox_cfg_weight",'')))
+    winobj.exaggeration.setText(str(config.params.get("chatterbox_exaggeration",'')))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

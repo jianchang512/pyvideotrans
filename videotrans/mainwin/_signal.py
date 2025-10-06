@@ -6,6 +6,7 @@ import time
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 
 
 class UUIDSignalThread(QThread):
@@ -17,15 +18,12 @@ class UUIDSignalThread(QThread):
 
     def _remove_queue(self):
         for uuid in config.stoped_uuid_set:
-            try:
-                del config.uuid_logs_queue[uuid]
-            except:
-                pass
+            config.uuid_logs_queue.pop(uuid,None)
 
     def run(self):
         if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
             self.uito.emit(json.dumps(
-                {"type": "ffmpeg", "text": '请安装ffmpeg' if config.defaulelang == 'zh' else 'Please install ffmpeg'}))
+                {"type": "ffmpeg", "text": tr("Please install ffmpeg")}))
         while 1:
             if config.exit_soft:
                 return
@@ -51,10 +49,7 @@ class UUIDSignalThread(QThread):
                     return
                 uuid = uuid_list.pop(0)
                 if uuid in config.stoped_uuid_set:
-                    try:
-                        del config.uuid_logs_queue[uuid]
-                    except:
-                        pass
+                    config.uuid_logs_queue.pop(uuid,None)
                     if config.exit_soft:
                         return
                     continue

@@ -2,9 +2,9 @@
 import logging
 import re
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Union
 
 import httpx
 from openai import OpenAI
@@ -12,7 +12,7 @@ from pydub import AudioSegment
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import   NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -22,20 +22,18 @@ RETRY_DELAY = 10
 
 @dataclass
 class OpenaiAPIRecogn(BaseRecogn):
-    raws: List[Any] = field(default_factory=list, init=False)
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = self._get_url(config.params['openairecognapi_url'])
+        self.api_url = self._get_url(config.params.get('openairecognapi_url',''))
         self._add_internal_host_noproxy(self.api_url)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
            after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
-        if self._exit():
-            return
-        if not re.search(r'api\.openai\.com/v1', self.api_url) or config.params["openairecognapi_model"].find(
+        if self._exit(): return
+        if not re.search(r'api\.openai\.com/v1', self.api_url) or config.params.get("openairecognapi_model",'').find(
                 'gpt-4o-') > -1:
             return self._thrid_api()
 
@@ -67,21 +65,21 @@ class OpenaiAPIRecogn(BaseRecogn):
             if Path(mp3_tmp).exists():
                 self.audio_file = mp3_tmp
         if not Path(self.audio_file).is_file():
-            raise RuntimeError(f'No {self.audio_file}')
+            raise StopRetry(f'No {self.audio_file}')
         # 发送请求
         raws = []
-        client = OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,
+        client = OpenAI(api_key=config.params.get('openairecognapi_key',''), base_url=self.api_url,
                         http_client=httpx.Client(proxy=self.proxy_str))
         with open(self.audio_file, 'rb') as file:
             transcript = client.audio.transcriptions.create(
                 file=(self.audio_file, file.read()),
-                model=config.params["openairecognapi_model"],
-                prompt=config.params['openairecognapi_prompt'],
+                model=config.params.get("openairecognapi_model",''),
+                prompt=config.params.get('openairecognapi_prompt',''),
                 language=self.detect_language[:2].lower(),
                 response_format="verbose_json"
             )
             if not hasattr(transcript, 'segments'):
-                raise RuntimeError(f'返回字幕无时间戳，无法使用')
+                raise StopRetry(f'返回字幕无时间戳，无法使用')
             for i, it in enumerate(transcript.segments):
                 raws.append({
                     "line": len(raws) + 1,
@@ -96,14 +94,14 @@ class OpenaiAPIRecogn(BaseRecogn):
     def _thrid_api(self):
         # 发送请求
         raws = self.cut_audio()
-        client = OpenAI(api_key=config.params['openairecognapi_key'], base_url=self.api_url,
+        client = OpenAI(api_key=config.params.get('openairecognapi_key',''), base_url=self.api_url,
                         http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         for i, it in enumerate(raws):
             with open(it['file'], 'rb') as file:
                 transcript = client.audio.transcriptions.create(
                     file=(it['file'], file.read()),
-                    model=config.params["openairecognapi_model"],
-                    prompt=config.params['openairecognapi_prompt'],
+                    model=config.params.get("openairecognapi_model",''),
+                    prompt=config.params.get('openairecognapi_prompt',''),
                     timeout=7200,
                     language=self.detect_language[:2].lower(),
                     response_format="json"
@@ -114,9 +112,7 @@ class OpenaiAPIRecogn(BaseRecogn):
         return raws
 
     def cut_audio(self):
-
         sampling_rate = 16000
-
         from faster_whisper.audio import decode_audio
         from faster_whisper.vad import (
             VadOptions,
@@ -136,12 +132,11 @@ class OpenaiAPIRecogn(BaseRecogn):
             return milliseconds_timestamps
 
         vad_p = {
-            "threshold": float(config.settings['threshold']),
-            "min_speech_duration_ms": int(config.settings['min_speech_duration_ms']),
-            "max_speech_duration_s": float(config.settings['max_speech_duration_s']) if float(
-                config.settings['max_speech_duration_s']) > 0 else float('inf'),
-            "min_silence_duration_ms": int(config.settings['min_silence_duration_ms']),
-            "speech_pad_ms": int(config.settings['speech_pad_ms'])
+            "threshold": float(config.settings.get('threshold',0.45)),
+            "min_speech_duration_ms": int(config.settings.get('min_speech_duration_ms',0)),
+            "max_speech_duration_s": float(config.settings.get('max_speech_duration_s',5)),
+            "min_silence_duration_ms": int(config.settings.get('min_silence_duration_ms',140)),
+            "speech_pad_ms": int(config.settings.get('speech_pad_ms',0))
         }
         speech_chunks = get_speech_timestamps(decode_audio(self.audio_file, sampling_rate=sampling_rate),
                                               vad_options=VadOptions(**vad_p))

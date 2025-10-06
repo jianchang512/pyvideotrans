@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -47,7 +47,7 @@ class Ui_ottform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/ott'))
 
         h1 = QtWidgets.QHBoxLayout()
@@ -59,8 +59,8 @@ class Ui_ottform(object):
         QtCore.QMetaObject.connectSlotsByName(ottform)
 
     def retranslateUi(self, ottform):
-        ottform.setWindowTitle("OTT离线翻译" if config.defaulelang == 'zh' else 'Offline Text Translate')
-        self.label.setText("OTT_api")
+        ottform.setWindowTitle(tr("Offline Text Translate"))
+        self.label.setText("OTT API")
         self.ott_address.setPlaceholderText(
-            '在此填写你的OTT项目部署后的http地址' if config.defaulelang == 'zh' else 'Fill in the HTTP address for your OTT project deployment here')
-        self.set_ott.setText('保存' if config.defaulelang == 'zh' else "Save")
+            tr("Fill in the HTTP address for your OTT project deployment here"))
+        self.set_ott.setText(tr("Save"))

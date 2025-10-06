@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Union
 
@@ -11,7 +11,8 @@ from pydub.silence import detect_nonsilent
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import  NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -21,7 +22,6 @@ RETRY_DELAY = 10
 
 @dataclass
 class GoogleRecogn(BaseRecogn):
-    raws: List = field(init=False, default_factory=list)
 
     def __post_init__(self):
         super().__post_init__()
@@ -30,8 +30,7 @@ class GoogleRecogn(BaseRecogn):
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
            after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
-        if self._exit():
-            return
+        if self._exit():  return
 
         tmp_path = Path(f'{self.cache_folder}/{Path(self.audio_file).name}_tmp')
         tmp_path.mkdir(parents=True, exist_ok=True)
@@ -50,11 +49,10 @@ class GoogleRecogn(BaseRecogn):
         recognizer = sr.Recognizer()
 
         for i, duration in enumerate(nonsilent_data):
-            if self._exit():
-                return
+            if self._exit(): return
             start_time, end_time, buffered = duration
             if start_time == end_time:
-                end_time += int(config.settings['voice_silence'])
+                end_time += int(config.settings.get('voice_silence',140))
 
             chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
             audio_chunk = normalized_sound[start_time:end_time]
@@ -85,9 +83,7 @@ class GoogleRecogn(BaseRecogn):
                 "endraw": end
             }
             self.raws.append(srt_line)
-            if self.inst and self.inst.precent < 55:
-                self.inst.precent += 0.1
-            self._signal(text=f"{config.transobj['yuyinshibiejindu']} {srt_line['line']}/{total_length}")
+            self._signal(text=f"{tr('yuyinshibiejindu')} {srt_line['line']}/{total_length}")
             self._signal(text=f"{srt_line['text']}\n", type='subtitle')
         return self.raws
 
@@ -97,10 +93,10 @@ class GoogleRecogn(BaseRecogn):
 
     def _shorten_voice_old(self, normalized_sound):
         normalized_sound = self.match_target_amplitude(normalized_sound, -20.0)
-        max_interval = int(config.settings['interval_split']) * 1000
-        buffer = int(config.settings['voice_silence'])
+        max_interval = int(config.settings.get('interval_split',5)) * 1000
+        buffer = int(config.settings.get('voice_silence',140))
         nonsilent_data = []
-        audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings['voice_silence']),
+        audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings.get('voice_silence',140)),
                                         silence_thresh=-20 - 25)
         for i, chunk in enumerate(audio_chunks):
             start_time, end_time = chunk

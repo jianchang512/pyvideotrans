@@ -8,6 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -33,7 +34,7 @@ class Microsoft(BaseTrans):
         auth = requests.get('https://edge.microsoft.com/translate/auth', headers=headers, verify=False)
         auth.raise_for_status()
         if not self.target_code:
-            raise StopRetry('未正确设置目标语言代码，无法翻译' if config.defaulelang=='zh' else 'The target language code is not set correctly and cannot be translated')
+            raise StopRetry(tr("The target language code is not set correctly and cannot be translated"))
         tocode = self.target_code
         if tocode.lower() == 'zh-cn':
             tocode = 'zh-Hans'

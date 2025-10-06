@@ -6,9 +6,9 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.ui.ai302 import Ui_ai302form
 from videotrans.ui.ali import Ui_aliform
-from videotrans.ui.article import Ui_articleform
 from videotrans.ui.azure import Ui_azureform
 from videotrans.ui.azuretts import Ui_azurettsform
 from videotrans.ui.baidu import Ui_baiduform
@@ -67,137 +67,6 @@ from videotrans.ui.zhipuai import Ui_zhipuaiform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
 
 
-# ==================== 字幕行自定义控件 ====================
-class SubtitleRowWidget(QtWidgets.QWidget):
-    """自定义的单条字幕行控件"""
-
-    def __init__(self, index, start_time, end_time, text, duration_s=0,parent=None):
-        super().__init__(parent)
-        self.sub_index = index
-        self.start_time = start_time
-        self.end_time = end_time
-        self.text = text
-
-        self.layout = QtWidgets.QHBoxLayout(self)
-        self.layout.setContentsMargins(5, 5, 5, 5)
-
-        self.index_label = QtWidgets.QLabel(f"{self.sub_index}")
-        self.checkbox = QtWidgets.QCheckBox()
-        self.checkbox.setFixedWidth(30)
-
-        self.role_label = QtWidgets.QLabel("[未分配角色]")
-        self.role_label.setFixedWidth(120)
-        self.role_label.setObjectName(f"role_label_{index}")
-
-        time_str = f"{duration_s}s  {start_time}-->{end_time}"
-        self.time_label = QtWidgets.QLabel(time_str)
-        self.time_label.setFixedWidth(230)
-
-        self.text_label = QtWidgets.QLabel(text)
-        self.text_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
-        self.text_label.setMinimumHeight(self.text_label.sizeHint().height())
-        self.text_label.setWordWrap(True)
-
-        self.layout.addWidget(self.index_label)
-        self.layout.addWidget(self.checkbox)
-        self.layout.addWidget(self.role_label)
-        self.layout.addWidget(self.time_label)
-        self.layout.addWidget(self.text_label)
-        self.layout.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)
-
-
-class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
-    def __init__(self, parent=None):
-        super(Peiyinformrole, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-        # 新增的信号连接
-        self.clear_button.clicked.connect(self.clear_all_ui)
-        self.assign_role_button.clicked.connect(self.assign_role_to_selected)
-
-        # 当 hecheng_role 的内容改变时，同步到 tmp_rolelist
-        self.hecheng_role.model().rowsInserted.connect(self.sync_roles_to_tmp_list)
-        self.hecheng_role.model().rowsRemoved.connect(self.sync_roles_to_tmp_list)
-
-    def sync_roles_to_tmp_list(self, parent=None, first=None, last=None):
-        """同步 hecheng_role 的角色列表到 tmp_rolelist"""
-        self.tmp_rolelist.clear()
-        roles = [self.hecheng_role.itemText(i) for i in range(self.hecheng_role.count())]
-        if roles:
-            self.tmp_rolelist.addItems(roles)
-
-    def clear_subtitle_area(self):
-        """清空字幕显示区域"""
-        while self.subtitle_layout.count():
-            child = self.subtitle_layout.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
-        self.subtitles.clear()
-
-    def clear_all_ui(self):
-        """点击清空按钮时执行"""
-        self.srt_path = None
-        self.subtitles.clear()
-        config.dubbing_role.clear()
-
-        self.clear_subtitle_area()
-        self.hecheng_importbtn.setText("导入SRT文件..." if config.defaulelang == 'zh' else 'Import SRT file...')
-        self.loglabel.setText("")
-
-    def reset_assigned_roles(self):
-        """重置所有字幕行已分配的角色"""
-        config.dubbing_role.clear()
-        for i in range(self.subtitle_layout.count()):
-            widget = self.subtitle_layout.itemAt(i).widget()
-            if isinstance(widget, SubtitleRowWidget):
-                widget.role_label.setText("[未分配角色]")
-
-    def parse_and_display_srt(self, srt_path):
-        """解析SRT文件并在UI上显示"""
-        self.clear_all_ui()  # 导入新文件前先清空
-        self.srt_path = srt_path
-
-        try:
-            from videotrans.util import tools
-            subs = tools.get_subtitle_from_srt(srt_path)
-            self.subtitles = subs
-            for sub in subs:
-                row_widget = SubtitleRowWidget(sub['line'], sub['startraw'], sub['endraw'], sub['text'],round((sub['end_time']-sub['start_time'])/1000,2))
-                self.subtitle_layout.addWidget(row_widget)
-
-            self.hecheng_importbtn.setText(f"已导入: {os.path.basename(srt_path)}")
-
-        except Exception as e:
-            self.clear_all_ui()
-            raise
-
-    def assign_role_to_selected(self):
-        """为选中的行分配角色"""
-        selected_role = self.tmp_rolelist.currentText()
-        from videotrans.util import tools
-        from videotrans.configure import config
-        if not selected_role or selected_role in ['-', 'No']:
-            tools.show_error(
-                "请先在下拉列表中选择一个有效的角色。" if config.defaulelang == 'zh' else 'Please select a valid role from the dropdown list.')
-            return
-
-        assigned_count = 0
-        for i in range(self.subtitle_layout.count()):
-            widget = self.subtitle_layout.itemAt(i).widget()
-            if isinstance(widget, SubtitleRowWidget) and widget.checkbox.isChecked():
-                # 更新UI
-                widget.role_label.setText(selected_role)
-                # 更新全局配置
-                config.dubbing_role[widget.sub_index] = selected_role
-                # 分配后取消勾选
-                widget.checkbox.setChecked(False)
-                assigned_count += 1
-
-        if assigned_count <1:
-            QtWidgets.QMessageBox.information(self, "提示", "没有选中任何字幕行。")
-
-
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
     def __init__(self, parent=None):
         super(SetLineRole, self).__init__(parent)
@@ -229,22 +98,6 @@ class AliForm(QDialog, Ui_aliform):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class SeparateForm(QDialog, Ui_separateform):  # <===
-    def __init__(self, parent=None):
-        super(SeparateForm, self).__init__(parent)
-        self.task = None
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-    def closeEvent(self, event):
-        config.separate_status = 'stop'
-        if self.task:
-            self.task.finish_event.emit("end")
-            self.task = None
-        self.hide()
-        event.ignore()
-
-
 class TencentForm(QDialog, Ui_tencentform):  # <===
     def __init__(self, parent=None):
         super(TencentForm, self).__init__(parent)
@@ -257,6 +110,8 @@ class TtsapiForm(QDialog, Ui_ttsapiform):  # <===
         super(TtsapiForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+
 class MinimaxiForm(QDialog, Ui_minimaxiform):  # <===
     def __init__(self, parent=None):
         super(MinimaxiForm, self).__init__(parent)
@@ -404,12 +259,6 @@ class InfoForm(QDialog, Ui_infoform):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class ArticleForm(QDialog, Ui_articleform):  # <===
-    def __init__(self, parent=None):
-        super(ArticleForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
 
 class DeepLXForm(QDialog, Ui_deeplxform):  # <===
     def __init__(self, parent=None):
@@ -482,13 +331,6 @@ class ZijiehuoshanForm(QDialog, Ui_zijiehuoshanform):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class HebingsrtForm(QtWidgets.QWidget, Ui_srthebing):  # <===
-    def __init__(self, parent=None):
-        super(HebingsrtForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
 class GeminiForm(QDialog, Ui_geminiform):  # <===
     def __init__(self, parent=None):
         super(GeminiForm, self).__init__(parent)
@@ -508,6 +350,8 @@ class DeepseekForm(QDialog, Ui_deepseekform):  # <===
         super(DeepseekForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+
 class QwenmtForm(QDialog, Ui_qwenmtform):  # <===
     def __init__(self, parent=None):
         super(QwenmtForm, self).__init__(parent)
@@ -529,13 +373,6 @@ class AzureForm(QDialog, Ui_azureform):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class WatermarkForm(QDialog, Ui_watermark):  # <===
-    def __init__(self, parent=None):
-        super(WatermarkForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
 class VolcEngineTTSForm(QDialog, Ui_volcengineform):  # <===
     def __init__(self, parent=None):
         super(VolcEngineTTSForm, self).__init__(parent)
@@ -543,21 +380,183 @@ class VolcEngineTTSForm(QDialog, Ui_volcengineform):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class GetaudioForm(QDialog, Ui_getaudio):  # <===
+class WatermarkForm(QtWidgets.QWidget, Ui_watermark):  # <===
+    def __init__(self, parent=None):
+        super(WatermarkForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+
+class HebingsrtForm(QtWidgets.QWidget, Ui_srthebing):  # <===
+    def __init__(self, parent=None):
+        super(HebingsrtForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+
+# ==================== 字幕行自定义控件 ====================
+class SubtitleRowWidget(QtWidgets.QWidget):
+    """自定义的单条字幕行控件"""
+
+    def __init__(self, index, start_time, end_time, text, duration_s=0, parent=None):
+        super().__init__(parent)
+        self.sub_index = index
+        self.start_time = start_time
+        self.end_time = end_time
+        self.text = text
+
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.setContentsMargins(5, 5, 5, 5)
+
+        self.index_label = QtWidgets.QLabel(f"{self.sub_index}")
+        self.checkbox = QtWidgets.QCheckBox()
+        self.checkbox.setFixedWidth(30)
+
+        self.role_label = QtWidgets.QLabel("[未分配角色]")
+        self.role_label.setFixedWidth(120)
+        self.role_label.setObjectName(f"role_label_{index}")
+
+        time_str = f"{duration_s}s  {start_time}-->{end_time}"
+        self.time_label = QtWidgets.QLabel(time_str)
+        self.time_label.setFixedWidth(230)
+
+        self.text_label = QtWidgets.QLabel(text)
+        self.text_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        self.text_label.setMinimumHeight(self.text_label.sizeHint().height())
+        self.text_label.setWordWrap(True)
+
+        self.layout.addWidget(self.index_label)
+        self.layout.addWidget(self.checkbox)
+        self.layout.addWidget(self.role_label)
+        self.layout.addWidget(self.time_label)
+        self.layout.addWidget(self.text_label)
+        self.layout.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)
+
+
+class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
+    def __init__(self, parent=None):
+        super(Peiyinformrole, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+        # 新增的信号连接
+        self.clear_button.clicked.connect(self.clear_all_ui)
+        self.assign_role_button.clicked.connect(self.assign_role_to_selected)
+
+        # 当 hecheng_role 的内容改变时，同步到 tmp_rolelist
+        self.hecheng_role.model().rowsInserted.connect(self.sync_roles_to_tmp_list)
+        self.hecheng_role.model().rowsRemoved.connect(self.sync_roles_to_tmp_list)
+
+    def sync_roles_to_tmp_list(self, parent=None, first=None, last=None):
+        """同步 hecheng_role 的角色列表到 tmp_rolelist"""
+        self.tmp_rolelist.clear()
+        roles = [self.hecheng_role.itemText(i) for i in range(self.hecheng_role.count())]
+        if roles:
+            self.tmp_rolelist.addItems(roles)
+
+    def clear_subtitle_area(self):
+        """清空字幕显示区域"""
+        while self.subtitle_layout.count():
+            child = self.subtitle_layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        self.subtitles.clear()
+
+    def clear_all_ui(self):
+        """点击清空按钮时执行"""
+        self.srt_path = None
+        self.subtitles.clear()
+        config.dubbing_role.clear()
+
+        self.clear_subtitle_area()
+        self.hecheng_importbtn.setText(tr("Import SRT file..."))
+        self.loglabel.setText("")
+
+    def reset_assigned_roles(self):
+        """重置所有字幕行已分配的角色"""
+        config.dubbing_role.clear()
+        for i in range(self.subtitle_layout.count()):
+            widget = self.subtitle_layout.itemAt(i).widget()
+            if isinstance(widget, SubtitleRowWidget):
+                widget.role_label.setText("[未分配角色]")
+
+    def parse_and_display_srt(self, srt_path):
+        """解析SRT文件并在UI上显示"""
+        self.clear_all_ui()  # 导入新文件前先清空
+        self.srt_path = srt_path
+
+        try:
+            from videotrans.util import tools
+            subs = tools.get_subtitle_from_srt(srt_path)
+            self.subtitles = subs
+            for sub in subs:
+                row_widget = SubtitleRowWidget(sub['line'], sub['startraw'], sub['endraw'], sub['text'],
+                                               round((sub['end_time'] - sub['start_time']) / 1000, 2))
+                self.subtitle_layout.addWidget(row_widget)
+
+            self.hecheng_importbtn.setText(f"已导入: {os.path.basename(srt_path)}")
+
+        except Exception as e:
+            self.clear_all_ui()
+            raise
+
+    def assign_role_to_selected(self):
+        """为选中的行分配角色"""
+        selected_role = self.tmp_rolelist.currentText()
+        from videotrans.util import tools
+        from videotrans.configure import config
+        if not selected_role or selected_role in ['-', 'No']:
+            tools.show_error(
+                tr("Please select a valid role from the dropdown list."))
+            return
+
+        assigned_count = 0
+        for i in range(self.subtitle_layout.count()):
+            widget = self.subtitle_layout.itemAt(i).widget()
+            if isinstance(widget, SubtitleRowWidget) and widget.checkbox.isChecked():
+                # 更新UI
+                widget.role_label.setText(selected_role)
+                # 更新全局配置
+                config.dubbing_role[widget.sub_index] = selected_role
+                # 分配后取消勾选
+                widget.checkbox.setChecked(False)
+                assigned_count += 1
+
+        if assigned_count < 1:
+            QtWidgets.QMessageBox.information(self, "提示", "没有选中任何字幕行。")
+
+
+class SeparateForm(QtWidgets.QWidget, Ui_separateform):  # <===
+    def __init__(self, parent=None):
+        super(SeparateForm, self).__init__(parent)
+        self.task = None
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+    def closeEvent(self, event):
+        config.separate_status = 'stop'
+        if self.task:
+            self.task.finish_event.emit("end")
+            self.task = None
+        self.hide()
+        event.ignore()
+
+
+class GetaudioForm(QtWidgets.QWidget, Ui_getaudio):  # <===
     def __init__(self, parent=None):
         super(GetaudioForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class HunliuForm(QDialog, Ui_hunliu):  # <===
+class HunliuForm(QtWidgets.QWidget, Ui_hunliu):  # <===
     def __init__(self, parent=None):
         super(HunliuForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class VASForm(QDialog, Ui_vasrt):  # <===
+class VASForm(QtWidgets.QWidget, Ui_vasrt):  # <===
     def __init__(self, parent=None):
         super(VASForm, self).__init__(parent)
         self.setupUi(self)
@@ -595,30 +594,29 @@ class Peiyinform(QtWidgets.QWidget, Ui_peiyin):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class Videoandaudioform(QDialog, Ui_videoandaudio):  # <===
+class Videoandaudioform(QtWidgets.QWidget, Ui_videoandaudio):  # <===
     def __init__(self, parent=None):
         super(Videoandaudioform, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class Videoandsrtform(QDialog, Ui_videoandsrt):  # <===
+class Videoandsrtform(QtWidgets.QWidget, Ui_videoandsrt):  # <===
     def __init__(self, parent=None):
         super(Videoandsrtform, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class FormatcoverForm(QDialog, Ui_formatcover):  # <===
+class FormatcoverForm(QtWidgets.QWidget, Ui_formatcover):  # <===
     def __init__(self, parent=None):
         super(FormatcoverForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-class SubtitlescoverForm(QDialog, Ui_subtitlescover):  # <===
+class SubtitlescoverForm(QtWidgets.QWidget, Ui_subtitlescover):  # <===
     def __init__(self, parent=None):
         super(SubtitlescoverForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-

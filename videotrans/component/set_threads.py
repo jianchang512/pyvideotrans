@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 )
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -27,9 +28,9 @@ class SetThreadTransDubb(QDialog):
 
         # 创建标签和输入框
         if name == 'trans':
-            self.label = QLabel("传统翻译每次字幕行数:" if config.defaulelang == 'zh' else "Subtitles lines:")
+            self.label = QLabel(tr("Subtitles lines:"))
         else:
-            self.label = QLabel("并发数:" if config.defaulelang == 'zh' else "Number:")
+            self.label = QLabel(tr("Number:"))
         self.input = QLineEdit()
         self.input.setText(str(self.nums))
 
@@ -40,10 +41,10 @@ class SetThreadTransDubb(QDialog):
 
         if name == 'trans':
             # 设置对话框标题
-            self.setWindowTitle("设置同时翻译的字幕条数和暂停秒" if config.defaulelang == 'zh' else "Set Translation subtitles rows")
-            wait_msg = '暂停秒:' if config.defaulelang == 'zh' else "Wait/s:"
+            self.setWindowTitle(tr("Set Translation subtitles rows"))
+            wait_msg = tr("Wait/s:")
 
-            self.ailabel = QLabel("AI翻译每次字幕行数:" if config.defaulelang == 'zh' else "Number:")
+            self.ailabel = QLabel(tr("Number:"))
             self.aiinput = QLineEdit()
             self.aiinput.setText(str(self.ai_nums))
             ainum_layout = QHBoxLayout()
@@ -52,17 +53,17 @@ class SetThreadTransDubb(QDialog):
             layout.addLayout(ainum_layout)
 
         else:
-            wait_msg = '暂停秒/并发为1时生效:' if config.defaulelang == 'zh' else "Wait/s/1 thread:"
-            self.setWindowTitle('设置同时配音的并发线程数和暂停秒' if config.defaulelang == 'zh' else "Set dubbing threads")
+            wait_msg = tr("Wait/s/1 thread:")
+            self.setWindowTitle(tr("Set dubbing threads"))
 
         self.wait_label = QLabel(wait_msg)
         self.wait_input = QLineEdit()
         self.wait_input.setText(str(self.sec))
-        tips_msg = '每完成一次请求后的暂停等待秒数，用于防止某些渠道限流出错' if config.defaulelang == 'zh' else 'The number of seconds to pause and wait after each completed request'
+        tips_msg = tr("The number of seconds to pause and wait after each completed request")
         self.wait_input.setToolTip(tips_msg)
 
         # 创建按钮
-        self.ok_button = QPushButton("保存" if config.defaulelang == 'zh' else "Save")
+        self.ok_button = QPushButton(tr("Save"))
         self.ok_button.clicked.connect(self.accept)  # 点击OK按钮后关闭对话框
         # 设置确认按钮高度为35
         self.ok_button.setFixedHeight(35)
@@ -82,7 +83,7 @@ class SetThreadTransDubb(QDialog):
             help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0);color:#777777")
             help_btn.setObjectName("help_btn")
             help_btn.setCursor(Qt.PointingHandCursor)
-            help_btn.setText("查看如何选择翻译渠道教程" if config.defaulelang == 'zh' else "Help document")
+            help_btn.setText(tr("Help document"))
             help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/selecttranslate'))
             layout.addWidget(help_btn)
 
@@ -95,7 +96,7 @@ class SetThreadTransDubb(QDialog):
             ainum = int(self.aiinput.text().strip())
         try:
             num, wait = max(int(num), 1), max(round(float(wait), 1), 0)
-        except:
+        except ValueError:
             num = 5
             wait = 0
         return num, wait, ainum

@@ -1,6 +1,6 @@
 def openwin():
     from PySide6 import QtWidgets
-
+    from videotrans.configure.config import tr
     from videotrans.configure import config
     from videotrans.util import tools
     from videotrans import recognition
@@ -10,12 +10,10 @@ def openwin():
             QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
         else:
             tools.show_error(d)
-        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test.setText(tr("Test"))
 
     def test():
         url = winobj.recognapiform_address.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
 
@@ -24,15 +22,13 @@ def openwin():
         config.params["recognapi_key"] = key
         config.getset_params(config.params)
 
-        winobj.test.setText('测试中...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.CUSTOM_API)
         task.uito.connect(feed)
         task.start()
 
     def save():
         url = winobj.recognapiform_address.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
 
         if not url.startswith('http'):
             url = 'http://' + url
@@ -46,10 +42,8 @@ def openwin():
     from videotrans.component import RecognAPIForm
     winobj = RecognAPIForm()
     config.child_forms['recognapi'] = winobj
-    if config.params["recognapi_url"]:
-        winobj.recognapiform_address.setText(config.params["recognapi_url"])
-    if config.params["recognapi_key"]:
-        winobj.recognapiform_key.setText(config.params["recognapi_key"])
+    winobj.recognapiform_address.setText(config.params.get("recognapi_url",''))
+    winobj.recognapiform_key.setText(config.params.get("recognapi_key",''))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

@@ -1,6 +1,6 @@
 # openai
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict, Union
 
 import httpx
@@ -8,7 +8,7 @@ from elevenlabs import ElevenLabs
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import   NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -18,7 +18,6 @@ RETRY_DELAY = 10
 
 @dataclass
 class ElevenLabsRecogn(BaseRecogn):
-    raws: List = field(init=False, default_factory=list)
 
     def __post_init__(self):
         super().__post_init__()
@@ -27,14 +26,13 @@ class ElevenLabsRecogn(BaseRecogn):
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
            after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
-        if self._exit():
-            return
+        if self._exit(): return
 
         with open(self.audio_file, 'rb') as file:
             file_object = file.read()
         
         client = ElevenLabs(
-            api_key=config.params['elevenlabstts_key'],
+            api_key=config.params.get('elevenlabstts_key',''),
             httpx_client=httpx.Client(proxy=self.proxy_str)
         )
 
@@ -66,9 +64,6 @@ class ElevenLabsRecogn(BaseRecogn):
             
             st = int(it.start * 1000)
             end = int(it.end * 1000)
-
-            
-
                 
             if not last_tmp:
                 if not text.strip():
@@ -104,9 +99,7 @@ class ElevenLabsRecogn(BaseRecogn):
                     "spk": spk
                 }
                 continue
-            
-            
-            
+
             if (diff_prev >= 200 or segment_time>= 500) and isflag:
                 # 如果标点在开始，则该word给下个，否则给当前
                 if text[0] in self.flag:

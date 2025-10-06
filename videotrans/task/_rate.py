@@ -9,6 +9,7 @@ from pathlib import Path
 from pydub import AudioSegment
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 from concurrent.futures import ThreadPoolExecutor
 
@@ -187,7 +188,7 @@ class SpeedRate:
         3. 生成一个文件列表供FFmpeg concat使用。
         4. 调用通用的 `_finalize_files` 方法来处理拼接和与视频的最终对齐。
         """
-        process_text = "[纯净模式] 正在拼接音频..." if config.defaulelang == 'zh' else "[Pure Mode] Merging audio..."
+        process_text = tr("[Pure Mode] Merging audio...")
         tools.set_process(text=process_text, uuid=self.uuid)
         config.logger.info("================== [纯净模式] 开始处理 ==================")
 
@@ -272,7 +273,7 @@ class SpeedRate:
         同时，`final_video_duration_real` 字段也被初始化。
         :return:
         """
-        tools.set_process(text="[1/5] 准备数据..." if config.defaulelang == 'zh' else "[1/5] Preparing data...",
+        tools.set_process(text=tr("[1/5] Preparing data..."),
                           uuid=self.uuid)
         config.logger.info("================== [阶段 1/5] 准备数据 ==================")
 
@@ -280,7 +281,7 @@ class SpeedRate:
             try:
                 self.source_video_fps = tools.get_video_info(self.novoice_mp4_original, video_fps=True) or 30
             except Exception as e:
-                config.logger.warning(f"无法探测源视频帧率，将使用默认值30。错误: {e}");
+                config.logger.warning(f"无法探测源视频帧率，将使用默认值30。错误: {e}")
                 self.source_video_fps = 30
         config.logger.info(f"源视频帧率被设定为: {self.source_video_fps}")
 
@@ -310,7 +311,7 @@ class SpeedRate:
         最终，它会为每个需要调整的片段计算出一个“理论目标时长”。
         :return:
         """
-        tools.set_process(text="[2/5] 计算调整方案..." if config.defaulelang == 'zh' else "[2/5] Calculating adjustments...",
+        tools.set_process(text=tr("[2/5] Calculating adjustments..."),
                           uuid=self.uuid)
         config.logger.info("================== [阶段 2/5] 计算调整方案 ==================")
 
@@ -409,7 +410,7 @@ class SpeedRate:
         """
         使用FFmpeg的`rubberband`或`atempo`滤镜进行高质量音频变速。
         """
-        tools.set_process(text="[3/5] 处理音频..." if config.defaulelang == 'zh' else "[3/5] Processing audio...",
+        tools.set_process(text=tr("[3/5] Processing audio..."),
                           uuid=self.uuid)
         config.logger.info("================== [阶段 3/5] 执行音频加速 ==================")
 
@@ -497,7 +498,7 @@ class SpeedRate:
                     task.result()  # 等待任务完成
                     completed_tasks += 1
                     tools.set_process(
-                        text=f"[{completed_tasks}/{total_tasks}] 音频加速..." if config.defaulelang == 'zh' else f"[{completed_tasks}/{total_tasks}] Processing audio speedup...",
+                        text=f"[{completed_tasks}/{total_tasks}] ...",
                         uuid=self.uuid)
                 except Exception as e:
                     config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
@@ -508,7 +509,7 @@ class SpeedRate:
         确保在处理完成后，返回包含了真实物理时长的`clip_meta_list`。
         """
         tools.set_process(
-            text="[4/5] 处理视频并探测真实时长..." if config.defaulelang == 'zh' else "[4/5] Processing video & probing real durations...",
+            text=tr("[4/5] Processing video & probing real durations..."),
             uuid=self.uuid)
         config.logger.info("================== [阶段 4/5] 执行视频处理并探测真实时长 ==================")
         if not self.shoud_videorate or not self.novoice_mp4_original or not tools.vail_file(self.novoice_mp4_original):
@@ -544,7 +545,7 @@ class SpeedRate:
                     task.result()  # 等待任务完成
                     completed_tasks += 1
                     tools.set_process(
-                        text=f"[{completed_tasks}/{total_tasks}] 处理视频并探测真实时长..." if config.defaulelang == 'zh' else f"[{completed_tasks}/{total_tasks}] Processing video & probing real durations...",
+                        text=tr("[{}/{}] Processing video & probing real durations...",completed_tasks,total_tasks),
                         uuid=self.uuid)
                 except Exception as e:
                     config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
@@ -619,10 +620,10 @@ class SpeedRate:
                 if st_size < 1024:
                     config.logger.warning(f"中间片段 {Path(out).name} 生成成功，但尺寸为 {st_size} < 1024B，无效需删除。")
                     Path(out).unlink(missing_ok=True)
-        except:
+        except Exception:
             try:
                 Path(out).unlink(missing_ok=True)
-            except:
+            except OSError:
                 pass
 
     def _concat_and_finalize(self, clip_meta_list):
@@ -650,7 +651,7 @@ class SpeedRate:
             return
 
         final_video_path = Path(f'{self.cache_folder}/merged_{self.noextname}.mp4').as_posix()
-        video_codec = config.settings['video_codec']
+        video_codec = config.settings.get('video_codec','')
         finalize_cmd = ['-y', '-i', intermediate_merged_path, '-c:v', f'libx{video_codec}', '-crf',
                         str(config.settings.get("crf", 23)), '-preset', config.settings.get('preset', 'fast'), '-an',
                         final_video_path]
@@ -666,13 +667,13 @@ class SpeedRate:
         for clip_path in valid_clips:
             try:
                 if Path(clip_path).exists(): os.remove(clip_path)
-            except:
+            except OSError:
                 pass
 
         try:
             if Path(intermediate_merged_path).exists(): os.remove(intermediate_merged_path)
             if Path(concat_txt_path).exists(): os.remove(concat_txt_path)
-        except:
+        except OSError:
             pass
 
     def _recalculate_timeline_and_merge_audio(self, clip_meta_list):
@@ -680,7 +681,7 @@ class SpeedRate:
         [修正] 音频重建阶段。
         根据 `shoud_videorate` 的值，正确分发到物理时间轴或理论时间轴模型。
         """
-        process_text = "[5/5] 生成音频片段..." if config.defaulelang == 'zh' else "[5/5] Generating audio clips..."
+        process_text = tr("[5/5] Generating audio clips...")
         tools.set_process(text=process_text, uuid=self.uuid)
         config.logger.info("================== [阶段 5/5] 生成音频片段以供拼接 ==================")
 
@@ -854,7 +855,7 @@ class SpeedRate:
         """
         负责使用FFmpeg拼接音频片段列表，并执行最后的音视频对齐检查。
         """
-        final_step_text = "[最终步骤] 拼接音频并对齐..." if config.defaulelang == 'zh' else '[Final Step] Concatenating audio and finalizing...'
+        final_step_text = tr("Concatenating audio and finalizing...")
         tools.set_process(text=final_step_text, uuid=self.uuid)
         config.logger.info("================== [最终步骤] 拼接音频、对齐并交付 ==================")
 
@@ -914,7 +915,7 @@ class SpeedRate:
                     final_video_path = Path(f'{self.cache_folder}/final_video_with_freeze.mp4').as_posix()
                     cmd = ['-y', '-i', self.novoice_mp4,
                            '-vf', f'tpad=stop_mode=clone:stop_duration={freeze_duration_sec}',
-                           '-c:v', f'libx{config.settings["video_codec"]}',
+                           '-c:v', f'libx{config.settings.get("video_codec",264)}',
                            '-crf', str(config.settings.get("crf", 23)),
                            '-preset', config.settings.get('preset', 'fast'),
                            '-an', final_video_path]
@@ -948,9 +949,10 @@ class SpeedRate:
             duration = tools.get_audio_time(file_path)
             if duration is not None:
                 return int(duration * 1000)
-            # ffprobe 失败时，使用 pydub 作为备用
-            return len(AudioSegment.from_file(file_path))
+            raise
         except Exception as e:
+            if tools.vail_file(file_path):
+                return len(AudioSegment.from_file(file_path))
             config.logger.error(f"字幕获取音频文件 {file_path} 时长失败: {e}")
             return 0
 

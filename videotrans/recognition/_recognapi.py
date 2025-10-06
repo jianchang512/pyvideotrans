@@ -1,13 +1,14 @@
 # zh_recogn 识别
 import re
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict, Union
 
 import requests
 
 from videotrans.configure import config
-from videotrans.configure._except import   NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -45,23 +46,21 @@ RETRY_DELAY = 10
 
 @dataclass
 class APIRecogn(BaseRecogn):
-    raws: List = field(default_factory=list, init=False)
 
     def __post_init__(self):
         super().__post_init__()
-        self.raws = []
-        api_url = config.params['recognapi_url'].strip().rstrip('/').lower()
+        api_url = config.params.get('recognapi_url','').strip().rstrip('/').lower()
         if not api_url:
-            raise RuntimeError('必须填写自定义api地址' if config.defaulelang == 'zh' else 'Custom api address must be filled in')
+            raise RuntimeError(tr("Custom api address must be filled in"))
 
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
 
         if config.params.get('recognapi_key'):
             if '?' in api_url:
-                api_url += f'&sk={config.params["recognapi_key"]}'
+                api_url += f'&sk={config.params.get("recognapi_key","")}'
             else:
-                api_url += f'?sk={config.params["recognapi_key"]}'
+                api_url += f'?sk={config.params.get("recognapi_key","")}'
 
         self.api_url = api_url
         self._add_internal_host_noproxy(self.api_url)
@@ -70,15 +69,14 @@ class APIRecogn(BaseRecogn):
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
            after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
-        if self._exit():
-            return
+        if self._exit():  return
         if re.search(r'api\.gladia\.io', self.api_url, re.I):
             return self._whisperzero()
         with open(self.audio_file, 'rb') as f:
             chunk = f.read()
         files = {"audio": chunk}
         self._signal(
-            text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
+            text=tr("Recognition may take a while, please be patient"))
 
         res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files,timeout=3600)
         res.raise_for_status()
@@ -96,7 +94,7 @@ class APIRecogn(BaseRecogn):
     def _whisperzero(self):
         api_key = config.params.get("recognapi_key")
         if not api_key:
-            raise RuntimeError('必须填写api key' if config.defaulelang == 'zh' else 'api key must be filled in')
+            raise StopRetry(tr("api key must be filled in"))
         # 上传 self.audio_file
         with open(self.audio_file, "rb") as f:
             audio_file = f.read()
@@ -144,7 +142,7 @@ class APIRecogn(BaseRecogn):
             d = response.json()
             if d['status'] == 'error':
                 config.logger.error(d)
-                raise RuntimeError(f"Error:{d['error_code']}")
+                raise StopRetry(f"Error:{d['error_code']}")
             if d['status'] == 'done':
                 config.logger.info(d)
                 sens = d['result']['transcription']['subtitles'][0]['subtitles']

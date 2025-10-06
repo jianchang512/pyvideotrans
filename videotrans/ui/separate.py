@@ -5,7 +5,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QObject, QEvent, QUrl, Qt
 from PySide6.QtGui import QDesktopServices
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 
 
 class LineEditClickFilter(QObject):
@@ -24,45 +24,43 @@ class Ui_separateform(object):
     def setupUi(self, separateform):
         self.has_done = False
         separateform.setObjectName("separateform")
-        separateform.setWindowModality(QtCore.Qt.NonModal)
-        separateform.resize(600, 300)
+
+        separateform.setMinimumSize(600, 300)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(separateform.sizePolicy().hasHeightForWidth())
         separateform.setSizePolicy(sizePolicy)
-        separateform.setMaximumSize(QtCore.QSize(600, 300))
 
-        self.showtips = QtWidgets.QLabel(separateform)
-        self.showtips.setGeometry(QtCore.QRect(10, 130, 500, 50))
+        v1=QtWidgets.QVBoxLayout(separateform)
+
+        self.showtips = QtWidgets.QLabel()
         self.showtips.setStyleSheet("""color:#eeeeee""")
         # 开始分离
         self.showtips.setObjectName("showtips")
         self.showtips.setText(
             "如果文件过大，或频繁分离出错，建议选择独立分离工具，比如uvr5或vocal-separate\ngithub.com/Anjok07/ultimatevocalremovergui/releases\ngithub.com/jianchang512/vocal-separate/releases")
+        v1.addWidget(self.showtips)
 
-        self.set = QtWidgets.QPushButton(separateform)
-        self.set.setGeometry(QtCore.QRect(170, 200, 141, 35))
+
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         # 开始分离
         self.set.setObjectName("set")
         self.set.setCursor(Qt.PointingHandCursor)
 
-        # 创建一个布局
-        self.layoutWidget = QtWidgets.QWidget(separateform)
-        self.layoutWidget.setGeometry(QtCore.QRect(10, 16, 471, 80))
-        self.layoutWidget.setObjectName("layoutWidget")
         # 创建表单布局
-        self.formLayout = QtWidgets.QFormLayout(self.layoutWidget)
+        self.formLayout = QtWidgets.QFormLayout()
         self.formLayout.setContentsMargins(0, 0, 0, 0)
         self.formLayout.setObjectName("formLayout")
+
 
         # 创建垂直布局
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
 
         # 选择文件按钮
-        self.selectfile = QtWidgets.QPushButton(self.layoutWidget)
+        self.selectfile = QtWidgets.QPushButton()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -74,7 +72,7 @@ class Ui_separateform(object):
         # 垂直布局中添加一个选择文件按钮
         self.verticalLayout.addWidget(self.selectfile)
 
-        self.label_2 = QtWidgets.QLabel(self.layoutWidget)
+        self.label_2 = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -90,7 +88,7 @@ class Ui_separateform(object):
         # 垂直布局2中添加一个文本框用于显示选择的文件路径
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.fromfile = QtWidgets.QLineEdit(self.layoutWidget)
+        self.fromfile = QtWidgets.QLineEdit()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -99,16 +97,16 @@ class Ui_separateform(object):
         self.fromfile.setMinimumSize(QtCore.QSize(0, 35))
         self.fromfile.setReadOnly(True)
         self.fromfile.setObjectName("fromfile")
-        self.fromfile.setPlaceholderText("显示选择的音视频文件" if config.defaulelang == 'zh' else "show file where you selected")
+        self.fromfile.setPlaceholderText(tr("show file where you selected"))
         self.verticalLayout_2.addWidget(self.fromfile)
 
-        self.url = QtWidgets.QPushButton(self.layoutWidget)
+        self.url = QtWidgets.QPushButton()
         self.url.setMinimumSize(QtCore.QSize(0, 35))
         self.url.setObjectName("url")
         self.url.setStyleSheet("""background-color:transparent""")
         self.url.setCursor(Qt.PointingHandCursor)
-        self.url.setToolTip('点击打开结果文件夹' if config.defaulelang == 'zh' else 'Open target dir')
-        # self.url.setReadOnly(True)
+        self.url.setToolTip(tr("Open target dir"))
+
 
         self.click_filter = LineEditClickFilter()
         self.url.installEventFilter(self.click_filter)
@@ -116,16 +114,20 @@ class Ui_separateform(object):
 
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.verticalLayout_2)
 
-        self.logs = QtWidgets.QLabel(separateform)
-        self.logs.setGeometry(QtCore.QRect(30, 250, 441, 16))
+        v1.addLayout(self.formLayout)
+        v1.addWidget(self.set)
+
+        self.logs = QtWidgets.QLabel()
         self.logs.setText("")
         self.logs.setObjectName("logs")
+        v1.addWidget(self.logs)
 
-        self.retranslateUi(separateform)
+        self.retranslateUi()
+        separateform.setWindowTitle(tr("Separte vocal and instrument"))
         QtCore.QMetaObject.connectSlotsByName(separateform)
 
-    def retranslateUi(self, separateform):
-        separateform.setWindowTitle('分离人声和背景音' if config.defaulelang == 'zh' else "Separte vocal and instrument")
-        self.set.setText('立即开始' if config.defaulelang == 'zh' else "Start Separate")
-        self.label_2.setText('分离结果保存到' if config.defaulelang == 'zh' else "Outdir click open")
-        self.selectfile.setText('选择音视频文件' if config.defaulelang == 'zh' else "Select file")
+
+    def retranslateUi(self):
+        self.set.setText(tr("Start Separate"))
+        self.label_2.setText(tr("Outdir click open"))
+        self.selectfile.setText(tr("Select file"))

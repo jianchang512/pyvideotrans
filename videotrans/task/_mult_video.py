@@ -1,10 +1,10 @@
-import copy
 import shutil
 from pathlib import Path
 
 from PySide6.QtCore import QThread
 
 from videotrans.configure import config
+from videotrans.task.taskcfg import TaskCfg
 from videotrans.task.trans_create import TransCreate
 from videotrans.util import tools
 
@@ -26,7 +26,10 @@ class MultVideo(QThread):
             if self.cfg['clear_cache'] and Path(it['target_dir']).is_dir():
                 shutil.rmtree(it['target_dir'], ignore_errors=True)
             Path(it['target_dir']).mkdir(parents=True, exist_ok=True)
-            trk = TransCreate(cfg=copy.deepcopy(self.cfg), obj=it)
-            tools.set_process(text=config.transobj['kaishichuli'], uuid=it['uuid'])
-            # 压入识别队列开始执行
-            config.prepare_queue.append(trk)
+            try:
+                trk = TransCreate(cfg=TaskCfg(**self.cfg|it))
+            except Exception as e:
+                tools.set_process(text=str(e),type="error",uuid=it['uuid'])
+            else:
+                # 压入识别队列开始执行
+                config.prepare_queue.append(trk)

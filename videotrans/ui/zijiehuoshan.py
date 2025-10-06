@@ -4,6 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -49,7 +50,7 @@ class Ui_zijiehuoshanform(object):
 
         self.label_allmodels = QtWidgets.QLabel(zijiehuoshanform)
         self.label_allmodels.setObjectName("label_allmodels")
-        self.label_allmodels.setText('填写所有推理接入点，填写后可在上方选择')
+        self.label_allmodels.setText(tr('Fill in all inference access points, and you can select them above'))
         v1.addWidget(self.label_allmodels)
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit(zijiehuoshanform)
@@ -57,13 +58,14 @@ class Ui_zijiehuoshanform(object):
         v1.addWidget(self.edit_allmodels)
 
         self.label_4 = QtWidgets.QLabel(zijiehuoshanform)
-        self.label_4.setGeometry(QtCore.QRect(10, 285, 571, 21))
+        # self.label_4.setGeometry(QtCore.QRect(10, 285, 571, 21))
         self.label_4.setObjectName("label_4")
         v1.addWidget(self.label_4)
 
         self.zijiehuoshan_template = QtWidgets.QPlainTextEdit(zijiehuoshanform)
-        self.zijiehuoshan_template.setGeometry(QtCore.QRect(10, 310, 571, 151))
+        # self.zijiehuoshan_template.setGeometry(QtCore.QRect(10, 310, 571, 151))
         self.zijiehuoshan_template.setObjectName("zijiehuoshan_template")
+        self.zijiehuoshan_template.setReadOnly(True)
         v1.addWidget(self.zijiehuoshan_template)
 
         self.set_zijiehuoshan = QtWidgets.QPushButton(zijiehuoshanform)
@@ -75,7 +77,7 @@ class Ui_zijiehuoshanform(object):
         self.test_zijiehuoshan.setObjectName("test_zijiehuoshan")
 
         self.label_0 = QtWidgets.QPushButton(zijiehuoshanform)
-        self.label_0.setText('点击打开使用教程')
+        self.label_0.setText(tr('Click to open help page'))
         self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
         self.label_0.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/zijiehuoshan'))
         self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
@@ -84,30 +86,26 @@ class Ui_zijiehuoshanform(object):
         h3.addWidget(self.label_0)
         v1.addLayout(h3)
 
+        self.zijiehuoshan_template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'zijie' if config.defaulelang=='zh' else 'zijie-en')))
         self.retranslateUi(zijiehuoshanform)
         QtCore.QMetaObject.connectSlotsByName(zijiehuoshanform)
 
     def update_ui(self):
         from videotrans.configure import config
         config.settings = config.parse_init()
-        allmodels_str = config.settings['zijiehuoshan_model']
-        allmodels = config.settings['zijiehuoshan_model'].split(',')
+        allmodels_str = config.settings.get('zijiehuoshan_model','')
+        allmodels = config.settings.get('zijiehuoshan_model','').split(',')
         self.zijiehuoshan_model.clear()
         self.zijiehuoshan_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["zijiehuoshan_key"]:
-            self.zijiehuoshan_key.setText(config.params["zijiehuoshan_key"])
-        if config.params["zijiehuoshan_model"] and config.params['zijiehuoshan_model'] in allmodels:
-            self.zijiehuoshan_model.setCurrentText(config.params["zijiehuoshan_model"])
-        if config.params["zijiehuoshan_template"]:
-            self.zijiehuoshan_template.setPlainText(config.params["zijiehuoshan_template"])
+        self.zijiehuoshan_key.setText(config.params.get("zijiehuoshan_key",''))
+        if config.params.get("zijiehuoshan_model",'') in allmodels:
+            self.zijiehuoshan_model.setCurrentText(config.params.get("zijiehuoshan_model",''))
     def retranslateUi(self, zijiehuoshanform):
-        zijiehuoshanform.setWindowTitle("字节火山引擎接入翻译" if config.defaulelang == 'zh' else 'ByteDance Ark')
-        self.label_3.setText('选择推理接入点')
-        self.zijiehuoshan_template.setPlaceholderText("prompt")
-        self.label_4.setText("{lang}代表目标语言名称，不要删除。")
-        self.set_zijiehuoshan.setText('保存')
-        self.test_zijiehuoshan.setText('测试..')
-        self.zijiehuoshan_key.setPlaceholderText("填写API key")
-        self.label_2.setText("API key")
+        zijiehuoshanform.setWindowTitle(tr("ByteDance Ark"))
+        self.label_3.setText(tr('Selecting an Inference Access Point'))
+        self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
+        self.set_zijiehuoshan.setText(tr('Save'))
+        self.test_zijiehuoshan.setText(tr('Test'))
+        self.label_2.setText(tr("SK"))

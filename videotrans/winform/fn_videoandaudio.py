@@ -1,14 +1,13 @@
 # 水印
 
-
 def openwin():
-    from videotrans.configure._except import get_msg_from_except
+
     import json
     import os
     import time
     from pathlib import Path
-
-    from PySide6.QtCore import QThread, Signal, QUrl
+    from videotrans.configure.config import tr
+    from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
 
@@ -16,7 +15,7 @@ def openwin():
     # 使用内置的 open 函数
     from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/videoandaudio"
-    Path(RESULT_DIR).mkdir(exist_ok=True)
+
 
     class CompThread(QThread):
         uito = Signal(str)
@@ -59,12 +58,11 @@ def openwin():
             vailfiles, length = self.get_list()
             if not vailfiles:
                 self.post(type='error',
-                          text='不存在同名视频和音频，无法合并' if config.defaulelang == 'zh' else 'Video and audio of the same name do not exist and cannot be merged')
+                          text=tr("Video and audio of the same name do not exist and cannot be merged"))
                 return
 
             percent = 0
-            self.post(
-                f'有{length}组同名视频和音频需合并' if config.defaulelang == 'zh' else f'There are {length} sets of videos with the same name and audio that need to be merged.')
+            self.post(tr('There are {} sets of videos with the same name and audio that need to be merged.',length))
             for name, info in vailfiles.items():
                 result_file = RESULT_DIR + f'/{name}.mp4'
                 audio = info['audio']
@@ -119,11 +117,12 @@ def openwin():
                         result_file
                     ])
                 except Exception as e:
+                    from videotrans.configure._except import get_msg_from_except
                     self.post(type='error', text=get_msg_from_except(e))
                 finally:
                     percent += round(100 / length, 2)
                     self.post(type='jd', text=f'{percent if percent <= 100 else 99}%')
-            self.post(type='ok', text="执行结束" if config.defaulelang == 'zh' else 'Ended')
+            self.post(type='ok', text=tr("Ended"))
 
     def feed(d):
         if winobj.has_done:
@@ -132,7 +131,7 @@ def openwin():
         if d['type'] == "error":
             winobj.has_done = True
             tools.show_error(d['text'])
-            winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.loglabel.setText('')
         elif d['type'] == 'jd':
@@ -141,14 +140,14 @@ def openwin():
             winobj.loglabel.setText(d['text'])
         elif d['type'] == 'ok':
             winobj.has_done = True
-            winobj.startbtn.setText(config.transobj['zhixingwc'])
+            winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
-            winobj.loglabel.setText(config.transobj['quanbuend'])
+            winobj.loglabel.setText(tr('quanbuend'))
             winobj.resultbtn.setDisabled(False)
 
     def get_file():
-        dirname = QFileDialog.getExistingDirectory(winobj, config.transobj['selectsavedir'],
-                                                   config.params['last_opendir'])
+        dirname = QFileDialog.getExistingDirectory(winobj,tr('selectsavedir'),
+                                                   config.params.get('last_opendir',''))
         winobj.folder.setText(dirname.replace('\\', '/'))
 
     def start():
@@ -156,11 +155,11 @@ def openwin():
         folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
             tools.show_error(
-                '必须选择存在同名视频和音频的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and audio with the same name exists.')
+                tr("You must select the folder where the video and audio with the same name exists."))
             return
 
         winobj.startbtn.setText(
-            '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
+            tr("under implementation in progress..."))
         winobj.loglabel.setText('')
         winobj.startbtn.setDisabled(True)
         winobj.resultbtn.setDisabled(True)
@@ -178,9 +177,10 @@ def openwin():
 
     winobj = Videoandaudioform()
     config.child_forms['fn_videoandaudio'] = winobj
-    winobj.videobtn.clicked.connect(lambda: get_file())
-
-    winobj.resultbtn.clicked.connect(opendir)
-    winobj.startbtn.clicked.connect(start)
     winobj.show()
-
+    def _bind():
+        Path(RESULT_DIR).mkdir(exist_ok=True)
+        winobj.videobtn.clicked.connect(lambda: get_file())
+        winobj.resultbtn.clicked.connect(opendir)
+        winobj.startbtn.clicked.connect(start)
+    QTimer.singleShot(10,_bind)

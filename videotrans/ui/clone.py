@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -19,7 +19,7 @@ class Ui_cloneform(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(clone.sizePolicy().hasHeightForWidth())
         clone.setSizePolicy(sizePolicy)
-        clone.setMaximumSize(QtCore.QSize(500, 300))
+
 
         self.verticalLayout = QtWidgets.QVBoxLayout(clone)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -44,7 +44,7 @@ class Ui_cloneform(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.clone_address.sizePolicy().hasHeightForWidth())
         self.clone_address.setSizePolicy(sizePolicy)
-        self.clone_address.setMinimumSize(QtCore.QSize(400, 35))
+        self.clone_address.setMinimumSize(QtCore.QSize(200, 35))
         self.clone_address.setObjectName("clone_address")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.clone_address)
@@ -62,7 +62,7 @@ class Ui_cloneform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/clonevoice'))
 
         self.layout_btn = QtWidgets.QHBoxLayout()
@@ -79,8 +79,8 @@ class Ui_cloneform(object):
 
     def retranslateUi(self, clone):
         clone.setWindowTitle("clone-voice")
-        self.label.setText("http地址" if config.defaulelang == 'zh' else 'clone-voice url')
+        self.label.setText(tr("clone-voice url"))
         self.clone_address.setPlaceholderText(
-            '填写clone-voice项目启动后的http地址' if config.defaulelang == 'zh' else 'Fill in the HTTP address after the clone voice program starts')
-        self.set_clone.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test.setText('测试并更新角色' if config.defaulelang == 'zh' else "Test & update role")
+            tr("Fill in the HTTP address after the clone voice program starts"))
+        self.set_clone.setText(tr("Save"))
+        self.test.setText(tr("Test & update role"))

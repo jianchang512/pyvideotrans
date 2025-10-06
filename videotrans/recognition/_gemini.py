@@ -5,7 +5,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Any
+from typing import List
 
 from google import genai
 from google.genai import types
@@ -13,9 +13,8 @@ from pydub import AudioSegment
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import   NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.recognition._base import BaseRecogn
-from videotrans.translator import LANGNAME_DICT
 from videotrans.util import tools
 
 RETRY_NUMS = 2
@@ -24,13 +23,10 @@ RETRY_DELAY = 10
 
 @dataclass
 class GeminiRecogn(BaseRecogn):
-    raws: List[Any] = field(default_factory=list, init=False)
     api_keys: List[str] = field(init=False)
 
     def __post_init__(self):
         super().__post_init__()
-        if self.target_code:
-            self.target_code = LANGNAME_DICT.get(self.target_code, self.target_code)
 
         self.api_keys = config.params.get('gemini_key', '').strip().split(',')
 
@@ -39,13 +35,13 @@ class GeminiRecogn(BaseRecogn):
            after=after_log(config.logger, logging.INFO))
     def _exec(self):
         seg_list = self.cut_audio()
-        nums = int(config.settings.get('gemini_recogn_chunk', 50))
-        seg_list = [seg_list[i:i + nums] for i in range(0, len(seg_list), nums)]
         if len(seg_list) < 1:
             raise RuntimeError(f'VAD error')
+        nums = int(config.settings.get('gemini_recogn_chunk', 50))
+        seg_list = [seg_list[i:i + nums] for i in range(0, len(seg_list), nums)]
         srt_str_list = []
 
-        prompt = config.params['gemini_srtprompt']
+        prompt = Path(config.ROOT_DIR+'/videotrans/prompts/recogn/gemini_recogn.txt').read_text(encoding='utf-8')
 
         for seg_group in seg_list:
             api_key = self.api_keys.pop(0)
@@ -117,7 +113,7 @@ class GeminiRecogn(BaseRecogn):
                     endraw = tools.ms_to_time_string(ms=f['end_time'])
                     text = m[i].strip()
                     if not config.params.get('paraformer_spk', False):
-                        text = re.sub(r'\[?spk\-?\d{1,}\]', '', text, re.I)
+                        text = re.sub(r'\[?spk\-?\d+\]', '', text, re.I)
                     srt = {
                         "line": len(srt_str_list) + 1,
                         "start_time": f['start_time'],
@@ -139,9 +135,7 @@ class GeminiRecogn(BaseRecogn):
 
     # 根据 时间开始结束点，切割音频片段,并保存为wav到临时目录，记录每个wav的绝对路径到list，然后返回该list
     def cut_audio(self):
-
         sampling_rate = 16000
-
         from faster_whisper.audio import decode_audio
         from faster_whisper.vad import (
             VadOptions,
@@ -161,12 +155,11 @@ class GeminiRecogn(BaseRecogn):
             return milliseconds_timestamps
 
         vad_p = {
-            "threshold": float(config.settings['threshold']),
-            "min_speech_duration_ms": int(config.settings['min_speech_duration_ms']),
-            "max_speech_duration_s": float(config.settings['max_speech_duration_s']) if float(
-                config.settings['max_speech_duration_s']) > 0 else float('inf'),
-            "min_silence_duration_ms": int(config.settings['min_silence_duration_ms']),
-            "speech_pad_ms": int(config.settings['speech_pad_ms'])
+            "threshold": float(config.settings.get('threshold',0.45)),
+            "min_speech_duration_ms": int(config.settings.get('min_speech_duration_ms',0)),
+            "max_speech_duration_s": float(config.settings.get('max_speech_duration_s',5)),
+            "min_silence_duration_ms": int(config.settings.get('min_silence_duration_ms',140)),
+            "speech_pad_ms": int(config.settings.get('speech_pad_ms',0))
         }
         speech_chunks = get_speech_timestamps(decode_audio(self.audio_file, sampling_rate=sampling_rate),
                                               vad_options=VadOptions(**vad_p))

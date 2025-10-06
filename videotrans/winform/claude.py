@@ -1,6 +1,6 @@
 def openwin():
     import json
-    from pathlib import Path
+    from videotrans.configure.config import tr
 
     from PySide6 import QtWidgets
     from videotrans.configure import config
@@ -11,14 +11,13 @@ def openwin():
             tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
-        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test.setText(tr("Test"))
 
     def test():
         key = winobj.key.text()
         url = winobj.api.text().strip()
         url = url if url else 'https://api.anthropic.com'
-        if tools.check_local_api(url) is not True:
-            return
+
         if not url.startswith('http'):
             url = 'http://' + url
         model = winobj.model.currentText()
@@ -27,8 +26,7 @@ def openwin():
         config.params["claude_key"] = key
         config.params["claude_api"] = url
         config.params["claude_model"] = model
-        config.params["claude_template"] = template
-        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.CLAUDE_INDEX)
         task.uito.connect(feed)
@@ -38,18 +36,13 @@ def openwin():
         key = winobj.key.text()
         url = winobj.api.text().strip()
         url = url if url else 'https://api.anthropic.com'
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
         model = winobj.model.currentText()
-        template = winobj.template.toPlainText()
-        with Path(tools.get_prompt_file('claude')).open('w', encoding='utf-8') as f:
-            f.write(template)
+
         config.params["claude_key"] = key
         config.params["claude_api"] = url
         config.params["claude_model"] = model
-        config.params["claude_template"] = template
         config.getset_params(config.params)
         winobj.close()
 
@@ -67,7 +60,6 @@ def openwin():
 
 
     from videotrans.component import ClaudeForm
-    config.params["claude_template"] = tools.get_prompt('claude')
     winobj = ClaudeForm()
     config.child_forms['claude'] = winobj
     winobj.update_ui()

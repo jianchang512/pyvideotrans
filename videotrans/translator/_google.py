@@ -8,6 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -43,14 +44,14 @@ class Google(BaseTrans):
         re_result = re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<', response.text)
         if not re_result or len(re_result.groups()) < 1:
             config.logger.info(f'[Google]返回数据:{response.text=}')
-            raise RuntimeError(f'Google 翻译失败' if config.defaulelang == 'zh' else 'Google Translate error')
-        return self.clean_srt(re_result.group(1)) if self.is_srt and self.aisendsrt else re_result.group(1)
+            raise RuntimeError(tr("Google Translate error"))
+        return re_result.group(1)
 
     def clean_srt(self, srt):
         # 翻译后的srt字幕极大可能存在各种语法错误，符号和格式错乱
         try:
             srt = re.sub(r'(\d{2})\s*[:：]\s*(\d{2})[:：]\s*(\d{2})[\s\,，]+(\d{3})', r'\1:\2:\3,\4', srt)
-        except:
+        except re.error:
             pass
         srt = re.sub(r'&gt;', '>', srt)
         # ：: 换成 :

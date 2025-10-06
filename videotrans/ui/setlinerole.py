@@ -2,8 +2,7 @@
 
 
 from PySide6 import QtCore, QtWidgets
-
-from videotrans.configure import config
+from videotrans.configure.config import tr
 
 
 class Ui_setlinerole(object):
@@ -41,5 +40,5 @@ class Ui_setlinerole(object):
         QtCore.QMetaObject.connectSlotsByName(setlinerole)
 
     def retranslateUi(self, setlinerole):
-        setlinerole.setWindowTitle(config.uilanglist['Set role by line'])
-        self.set_ok.setText('保存' if config.defaulelang == 'zh' else "Save")
+        setlinerole.setWindowTitle(tr('Set role by line'))
+        self.set_ok.setText(tr("Save"))

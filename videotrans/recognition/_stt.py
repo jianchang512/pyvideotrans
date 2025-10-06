@@ -1,12 +1,13 @@
 # stt项目识别接口
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict, Union
 
 import requests
 
 from videotrans.configure import config
-from videotrans.configure._except import   NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -36,13 +37,12 @@ RETRY_DELAY = 10
 
 @dataclass
 class SttAPIRecogn(BaseRecogn):
-    raws: List = field(default_factory=list, init=False)
 
     def __post_init__(self):
         super().__post_init__()
         api_url = config.params.get('stt_url', '').strip().rstrip('/').lower()
         if not api_url:
-            raise RuntimeError('必须填写自定义api地址' if config.defaulelang == 'zh' else 'Custom api address must be filled in')
+            raise StopRetry(tr("Custom api address must be filled in"))
 
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
@@ -53,23 +53,23 @@ class SttAPIRecogn(BaseRecogn):
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
            after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
-        if self._exit():
-            return
+        if self._exit(): return
         with open(self.audio_file, 'rb') as f:
             chunk = f.read()
         files = {"file": (os.path.basename(self.audio_file), chunk)}
         self._signal(
-            text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
+            text=tr("Recognition may take a while, please be patient"))
 
         data = {"language": self.detect_language[:2], "model": config.params.get('stt_model', 'tiny'),
                 "response_format": "srt"}
         res = requests.post(f"{self.api_url}", files=files, data=data, timeout=7200)
+        res.raise_for_status()
         config.logger.info(f'STT_API:{res=}')
         res = res.json()
         if "code" not in res or res['code'] != 0:
-            raise RuntimeError(f'{res["msg"]}')
+            raise StopRetry(f'{res["msg"]}')
         if "data" not in res or len(res['data']) < 1:
-            raise RuntimeError(f'识别出错{res=}')
+            raise StopRetry(f'{res=}')
         self._signal(
             text=res['data'],
             type='replace_subtitle'

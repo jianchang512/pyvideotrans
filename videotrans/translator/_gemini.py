@@ -11,6 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -27,9 +28,9 @@ class Gemini(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.model_name = config.params["gemini_model"]
+        self.model_name = config.params.get("gemini_model",'')
 
-        self.prompt = tools.get_prompt(ainame='gemini', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='gemini',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
         self.api_keys = config.params.get('gemini_key', '').strip().split(',')
         self.api_url = 'https://generativelanguage.googleapis.com/v1beta/openai/'
 
@@ -42,7 +43,7 @@ class Gemini(BaseTrans):
         message = [
             {
                 'role': 'system',
-                'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
+                'content': tr("You are a top-notch subtitle translation engine.")},
             {
                 'role': 'user',
                 'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
@@ -51,12 +52,12 @@ class Gemini(BaseTrans):
         config.logger.info(f"\n[gemini]发送请求数据:{message=}")
         api_key = self.api_keys.pop(0)
         self.api_keys.append(api_key)
-        config.logger.info(f'[Gemini]请求发送:{api_key=},{config.params["gemini_model"]=}')
+        config.logger.info(f'[Gemini]请求发送:{api_key=},{config.params.get("gemini_model","")=}')
         model = OpenAI(api_key=api_key, base_url=self.api_url,
                        http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
 
         response = model.chat.completions.create(
-            model=config.params["gemini_model"],
+            model=config.params.get("gemini_model",''),
             timeout=7200,
             max_tokens=18092,
             messages=message

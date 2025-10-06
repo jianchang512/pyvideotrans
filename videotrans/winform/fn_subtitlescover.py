@@ -1,22 +1,18 @@
-# 音视频格式转换
-
-
 def openwin():
-    from videotrans.configure._except import get_msg_from_except
     import json
     import os
     import shutil
     import time
     from pathlib import Path
-
-    from PySide6.QtCore import QThread, Signal, QUrl
+    from videotrans.configure.config import tr
+    from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import config
     from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/subtitlescover"
-    Path(RESULT_DIR).mkdir(exist_ok=True)
+
 
     class CompThread(QThread):
         uito = Signal(str)
@@ -64,6 +60,7 @@ def openwin():
                     jd = round((i + 1) * 100 / len(self.subtitlefiles), 2)
                     self.post(type='jd', text=f'{jd}%')
             except Exception as e:
+                from videotrans.configure._except import get_msg_from_except
                 self.post(type='error', text=get_msg_from_except(e))
             else:
                 self.post(type="ok", text='Ended')
@@ -75,21 +72,21 @@ def openwin():
         if d['type'] == "error":
             winobj.has_done = True
             tools.show_error(d['text'])
-            winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.opendir.setDisabled(False)
         elif d['type'] == 'jd' or d['type'] == 'logs':
             winobj.startbtn.setText(d['text'])
         else:
             winobj.has_done = True
-            winobj.startbtn.setText(config.transobj['zhixingwc'])
+            winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
             winobj.opendir.setDisabled(False)
             winobj.subtitlefiles = []
 
     def get_file():
-        fnames, _ = QFileDialog.getOpenFileNames(winobj, config.transobj['selectmp4'],
-                                                 config.params['last_opendir'], "Subtitles files(*.srt *.vtt *.ass)")
+        fnames, _ = QFileDialog.getOpenFileNames(winobj, tr('selectmp4'),
+                                                 config.params.get('last_opendir',''), "Subtitles files(*.srt *.vtt *.ass)")
         if len(fnames) < 1:
             return
         winobj.subtitlefiles = []
@@ -102,12 +99,12 @@ def openwin():
 
     def start():
         if len(winobj.subtitlefiles) < 1:
-            tools.show_error('必须选择字幕文件' if config.defaulelang == 'zh' else 'Must select subtitles ')
+            tools.show_error(tr("Must select subtitles"))
             return
         winobj.has_done = False
 
         winobj.startbtn.setText(
-            '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
+            tr("under implementation in progress..."))
         winobj.startbtn.setDisabled(True)
         winobj.opendir.setDisabled(True)
         target_format = winobj.formatlist.currentText()
@@ -115,6 +112,8 @@ def openwin():
                           target_format=target_format)
         task.uito.connect(feed)
         task.start()
+        config.params['subtitlecover_outformat']=target_format
+        config.getset_params(config.params)
 
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
@@ -122,8 +121,12 @@ def openwin():
     from videotrans.component import SubtitlescoverForm
     winobj = SubtitlescoverForm()
     config.child_forms['fn_subtitlescover'] = winobj
-    winobj.selectbtn.clicked.connect(lambda: get_file())
-    winobj.opendir.clicked.connect(opendir)
-    winobj.startbtn.clicked.connect(start)
     winobj.show()
+    def _bind():
+        Path(RESULT_DIR).mkdir(exist_ok=True)
+        winobj.selectbtn.clicked.connect(lambda: get_file())
+        winobj.opendir.clicked.connect(opendir)
+        winobj.startbtn.clicked.connect(start)
+        winobj.formatlist.setCurrentText(config.params.get('subtitlecover_outformat','srt'))
+    QTimer.singleShot(10,_bind)
 

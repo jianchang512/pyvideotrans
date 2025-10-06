@@ -1,19 +1,19 @@
+from videotrans.configure.config import tr
+
+
 def openwin():
     from PySide6 import QtWidgets
 
     from videotrans.configure import config
-    from videotrans.util import tools
 
     from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
-        winobj.test.setText('测试api' if config.defaulelang == 'zh' else 'Test api')
+        winobj.test.setText(tr("Test"))
 
     def test():
         url = winobj.api_url.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
         extra = winobj.extra.text()
@@ -26,7 +26,7 @@ def openwin():
         config.params["ttsapi_url"] = url
         config.params["ttsapi_extra"] = extra
         config.params["ttsapi_voice_role"] = role
-        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText(tr("Testing..."))
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
@@ -41,8 +41,6 @@ def openwin():
 
     def save():
         url = winobj.api_url.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
         extra = winobj.extra.text()

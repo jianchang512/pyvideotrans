@@ -3,8 +3,7 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -115,7 +114,7 @@ class Ui_volcengineform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/volcenginetts'))
 
         h4.addWidget(self.set)
@@ -127,16 +126,13 @@ class Ui_volcengineform(object):
         QtCore.QMetaObject.connectSlotsByName(volcengineform)
     def update_ui(self):
         from videotrans.configure import config
-        if config.params["volcenginetts_appid"]:
-            self.volcenginetts_appid.setText(config.params["volcenginetts_appid"])
-        if config.params["volcenginetts_access"]:
-            self.volcenginetts_access.setText(config.params["volcenginetts_access"])
-        if config.params["volcenginetts_cluster"]:
-            self.volcenginetts_cluster.setText(config.params["volcenginetts_cluster"])
+        self.volcenginetts_appid.setText(config.params.get("volcenginetts_appid",''))
+        self.volcenginetts_access.setText(config.params.get("volcenginetts_access",''))
+        self.volcenginetts_cluster.setText(config.params.get("volcenginetts_cluster",''))
     def retranslateUi(self, volcengineform):
-        volcengineform.setWindowTitle("字节火山语音合成设置" if config.defaulelang == 'zh' else "Volcengine TTS Setting")
+        volcengineform.setWindowTitle(tr("Volcengine TTS Setting"))
         self.label.setText("App id")
         self.label_2.setText("Access token")
         self.label_cluster.setText("Cluster id")
-        self.set.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
+        self.set.setText(tr("Save"))
+        self.test.setText(tr("Test"))

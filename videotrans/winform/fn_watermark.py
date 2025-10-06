@@ -1,22 +1,19 @@
 # 水印
-
-
 def openwin():
-    from videotrans.configure._except import get_msg_from_except
-    from videotrans.task.simple_runnable_qt import run_in_threadpool
+
     import json
     import os
     import time
     from pathlib import Path
-    from PySide6.QtCore import QThread, Signal, QUrl
+    from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-
+    from videotrans.configure.config import tr
     from videotrans.configure import config
     # 使用内置的 open 函数
     from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/watermark"
-    Path(RESULT_DIR).mkdir(exist_ok=True)
+
 
     class CompThread(QThread):
         uito = Signal(str)
@@ -47,7 +44,7 @@ def openwin():
                     continue
                 try:
                     content = Path(protxt).read_text(encoding='utf-8').strip().split("\n")
-                except Exception:
+                except (OSError,ValueError,AttributeError):
                     continue
                 if content[-1] == 'progress=end':
                     return
@@ -87,6 +84,7 @@ def openwin():
 
                 position = positions[self.pos]
                 protxt = config.TEMP_HOME + f'/jd{time.time()}.txt'
+                from videotrans.task.simple_runnable_qt import run_in_threadpool
                 run_in_threadpool(self.hebing_pro,protxt,duration)
 
                 # 构建 FFmpeg 命令
@@ -99,8 +97,8 @@ def openwin():
                     "-filter_complex",
                     f"[1:v]scale={self.width}:{self.height}[overlay];[0:v][overlay]overlay={position}:enable='between(t,0,999999)'",
                     "-c:v", "libx264",
-                    "-crf", f"{config.settings['crf']}",
-                    "-preset", f"{config.settings['preset']}",
+                    "-crf", f"{config.settings.get('crf',23)}",
+                    "-preset", f"{config.settings.get('preset','fast')}",
                     "-c:a", "aac",
                     "-pix_fmt", "yuv420p",
                     result_file
@@ -108,6 +106,7 @@ def openwin():
                 try:
                     tools.runffmpeg(ffmpeg_command)
                 except Exception as e:
+                    from videotrans.configure._except import get_msg_from_except
                     self.post(type='error', text=get_msg_from_except(e))
                 finally:
                     self.percent += self.every_percent
@@ -122,7 +121,7 @@ def openwin():
         if d['type'] == "error":
             winobj.has_done = True
             tools.show_error(d['text'])
-            winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.resultlabel.setText('')
         elif d['type'] == 'jd':
@@ -131,9 +130,9 @@ def openwin():
             winobj.resultlabel.setText(d['text'])
         else:
             winobj.has_done = True
-            winobj.startbtn.setText(config.transobj['zhixingwc'])
+            winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
-            winobj.resultlabel.setText(config.transobj['quanbuend'])
+            winobj.resultlabel.setText(tr('quanbuend'))
             winobj.resultbtn.setDisabled(False)
 
     def get_file(type):
@@ -156,28 +155,28 @@ def openwin():
         winobj.has_done = False
         png = winobj.pngurl.text()
         if len(winobj.videourls) < 1 or not png:
-            tools.show_error('必须选择视频和水印图片' if config.defaulelang == 'zh' else 'Must select video and watermark image')
+            tools.show_error(tr("Must select video and watermark image"))
             return
 
         winobj.startbtn.setText(
-            '执行中...' if config.defaulelang == 'zh' else 'under implementation in progress...')
+            tr("under implementation in progress..."))
         winobj.startbtn.setDisabled(True)
         winobj.resultbtn.setDisabled(True)
 
         x, y = 10, 10
         try:
             x = int(winobj.linex.text())
-        except Exception:
+        except ValueError:
             pass
         try:
             y = int(winobj.liney.text())
-        except Exception:
+        except ValueError:
             pass
         w, h = 50, 50
         try:
             tmp_w = winobj.linew.text().strip().split('x')
             w, h = int(tmp_w[0]), int(tmp_w[1])
-        except Exception:
+        except (ValueError,AttributeError):
             pass
 
         task = CompThread(parent=winobj, png=png, x=max(x, 0), y=max(y, 0),
@@ -190,14 +189,14 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component import WatermarkForm
-
-
     winobj = WatermarkForm()
     config.child_forms['fn_watermak'] = winobj
-
-    winobj.videobtn.clicked.connect(lambda: get_file(1))
-    winobj.pngbtn.clicked.connect(lambda: get_file(2))
-
-    winobj.resultbtn.clicked.connect(opendir)
-    winobj.startbtn.clicked.connect(start)
     winobj.show()
+    def _bind():
+        Path(RESULT_DIR).mkdir(exist_ok=True)
+        winobj.videobtn.clicked.connect(lambda: get_file(1))
+        winobj.pngbtn.clicked.connect(lambda: get_file(2))
+
+        winobj.resultbtn.clicked.connect(opendir)
+        winobj.startbtn.clicked.connect(start)
+    QTimer.singleShot(10,_bind)

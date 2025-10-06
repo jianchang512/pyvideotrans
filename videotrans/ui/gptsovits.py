@@ -4,7 +4,7 @@ from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy, QHBoxLayout, QVBoxLayout, \
     QCheckBox
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -77,7 +77,7 @@ class Ui_gptsovitsform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/gptsovits'))
 
         h3.addWidget(self.test)
@@ -98,9 +98,9 @@ class Ui_gptsovitsform(object):
         self.label_3.setText("额外参数")
         self.role.setPlaceholderText(
             "在此填写参考音频信息,一行一组，音频必须是wav格式，时长必须在3-10秒之内，否则会报400错误\n音频放在GPT-SoVITS项目根目录下，在此填写带后缀wav名称\n填写示例格式如下\n\n123.wav#你好啊我的朋友#zh\n\n示例解释:123.wav 是wav格式的音频文件，放在GPT-SoVITS根下，时长在3-10秒内，中间文字是该音频对应文本，zh代表该文本语言代码")
-        self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
+        self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText("填写http开头的完整地址,GPT-SoVITS自带api默认 http://127.0.0.1:9880")
         self.label.setText("GPT-SoVITS API")
         self.extra.setPlaceholderText("填写通过extra键向api传递的额外参数，为空则传递pyvideotrans")
-        self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")
+        self.test.setText(tr("Test"))
     # retranslateUi

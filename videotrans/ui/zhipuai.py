@@ -5,6 +5,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -29,8 +30,7 @@ class Ui_zhipuaiform(object):
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.setText(
-            '智谱AI在此填写api key')
+        self.label_0.setText(tr('Zhipu AI'))
         v1.addWidget(self.label_0)
 
         self.label_2 = QtWidgets.QLabel(zhipuaiform)
@@ -49,7 +49,7 @@ class Ui_zhipuaiform(object):
 
         label_token = QtWidgets.QLabel()
         label_token.setObjectName("label_token")
-        label_token.setText("最大输出token" if config.defaulelang == 'zh' else "Maximum output token")
+        label_token.setText(tr("Maximum output token"))
         self.max_token = QtWidgets.QLineEdit()
         self.max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.max_token.setObjectName("max_token")
@@ -61,7 +61,7 @@ class Ui_zhipuaiform(object):
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
-        self.label_selectmodel.setText("选择使用模型")
+        self.label_selectmodel.setText(tr("Model"))
         self.zhipu_model = QtWidgets.QComboBox()
         self.zhipu_model.setMinimumSize(QtCore.QSize(0, 35))
         self.zhipu_model.setObjectName("zhipu_model")
@@ -72,7 +72,7 @@ class Ui_zhipuaiform(object):
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
-            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+            tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
         v1.addWidget(self.label_allmodels)
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit()
@@ -84,6 +84,7 @@ class Ui_zhipuaiform(object):
 
         self.template = QtWidgets.QPlainTextEdit(zhipuaiform)
         self.template.setObjectName("template")
+        self.template.setReadOnly(True)
         v1.addWidget(self.label_4)
         v1.addWidget(self.template)
 
@@ -94,20 +95,21 @@ class Ui_zhipuaiform(object):
         self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
-        self.test.setText("Test")
+        self.test.setText(tr("Test"))
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/zhipuai-ai'))
 
         h4.addWidget(self.set)
         h4.addWidget(self.test)
         h4.addWidget(help_btn)
         v1.addLayout(h4)
+        self.template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'zhipuai' if config.defaulelang=='zh' else 'zhipuai-en')))
 
         self.retranslateUi(zhipuaiform)
         QtCore.QMetaObject.connectSlotsByName(zhipuaiform)
@@ -115,25 +117,16 @@ class Ui_zhipuaiform(object):
     def update_ui(self):
         from videotrans.configure import config
         config.settings = config.parse_init()
-        allmodels_str = config.settings['zhipuai_model']
-        allmodels = config.settings['zhipuai_model'].split(',')
+        allmodels_str = config.settings.get('zhipuai_model','')
+        allmodels = config.settings.get('zhipuai_model','').split(',')
         self.zhipu_model.clear()
         self.zhipu_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-
-        if config.params["zhipu_key"]:
-            self.zhipu_key.setText(config.params["zhipu_key"])
-        if config.params["zhipu_model"]:
-            self.zhipu_model.setCurrentText(config.params["zhipu_model"])
-        if config.params["zhipu_template"]:
-            self.template.setPlainText(config.params["zhipu_template"])
-        if config.params["zhipu_max_token"]:
-            self.max_token.setText(config.params["zhipu_max_token"])
+        self.zhipu_key.setText(config.params.get("zhipu_key",''))
+        self.zhipu_model.setCurrentText(config.params.get("zhipu_model",''))
+        self.max_token.setText(config.params.get("zhipu_max_token",''))
     def retranslateUi(self, zhipuaiform):
-        zhipuaiform.setWindowTitle("智谱AI")
-        self.label_2.setText("智谱AI API Key")
-        self.template.setPlaceholderText("prompt")
-        self.label_4.setText(
-            "{lang}代表目标语言名称，不要删除。")
-        self.set.setText('保存')
-        self.zhipu_key.setPlaceholderText("在此填写智谱AI的 API Key")
+        zhipuaiform.setWindowTitle(tr("Zhipu AI"))
+        self.label_2.setText(tr("SK"))
+        self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
+        self.set.setText(tr('Save'))

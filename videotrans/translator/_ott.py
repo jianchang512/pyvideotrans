@@ -20,7 +20,7 @@ class OTT(BaseTrans):
         super().__post_init__()
         self.aisendsrt = False
 
-        url = config.params['ott_address'].strip().rstrip('/').lower().replace('/translate', '') + '/translate'
+        url = config.params.get('ott_address','').strip().rstrip('/').lower().replace('/translate', '') + '/translate'
         url = url.replace('//translate', '/translate')
         if not url.startswith('http'):
             url = f"http://{url}"

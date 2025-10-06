@@ -13,6 +13,7 @@ from gradio_client import Client, handle_file
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -25,7 +26,7 @@ RETRY_DELAY = 5
 class CosyVoice(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = config.params['cosyvoice_url'].strip().rstrip('/').lower()
+        self.api_url = config.params.get('cosyvoice_url','').strip().rstrip('/').lower()
         self._add_internal_host_noproxy(self.api_url)
 
     def _exec(self):
@@ -42,7 +43,7 @@ class CosyVoice(BaseTTS):
         rolelist = tools.get_cosyvoice_role()
 
         if role not in rolelist:
-            raise StopRetry(f'{role} 角色不存在')
+            raise StopRetry(tr('The role {} does not exist',role))
         if role == 'clone':
             data['ref_wav'] = data_item.get('ref_wav','')
             data['ref_text'] = data_item.get('ref_text','')
@@ -80,12 +81,7 @@ class CosyVoice(BaseTTS):
             self.convert_to_wav(wav_file, data_item['filename'])
         else:
             raise RuntimeError(str(result))
-        if self.inst and self.inst.precent < 80:
-            self.inst.precent += 0.1
 
-        self.has_done += 1
-        self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-        
 
     def _item_cosyvoice_api(self, data_item):
         if not data_item.get('text',''):
@@ -101,13 +97,13 @@ class CosyVoice(BaseTTS):
         }
         rolelist = tools.get_cosyvoice_role()
         if role not in rolelist:
-            raise StopRetry(f'预设角色 {role} 未在配置中找到')
+            raise StopRetry(tr('The preset role {} was not found in the configuration',role))
         if role == 'clone':
             # 克隆音色
             # 原项目使用 clone_mul 跨语种克隆的方案，实际测试效果不如同语种，这地方修改成同语种克隆 /clone_eq
             ref_wav_path = data_item.get("ref_wav",'')
             if not Path(ref_wav_path).exists():
-                raise StopRetry(f'不存在参考音频 {ref_wav_path}，无法使用clone功能' if config.defaulelang == 'zh' else f'No reference audio {ref_wav_path} exists')
+                raise StopRetry(tr('No reference audio {} exists',ref_wav_path))
 
             data['reference_text'] = data_item.get('ref_text','')
             data['reference_audio'] = self._audio_to_base64(ref_wav_path)
@@ -118,7 +114,7 @@ class CosyVoice(BaseTTS):
             data['reference_audio'] = config.ROOT_DIR+"/f5-tts/"+role_info.get('reference_audio','')
 
             if not data['reference_audio']:
-                raise StopRetry(f'预设角色 {role} 配置不正确，缺少克隆参考音频')
+                raise StopRetry(tr('Preset role {} is incorrectly configured, missing clone reference audio',role))
 
             # 检查是否存在参考文本，以决定使用哪个克隆接口
             reference_text = role_info.get('reference_text', '').strip()
@@ -140,14 +136,9 @@ class CosyVoice(BaseTTS):
             f.write(response.content)
         time.sleep(1)
         if not os.path.exists(data_item['filename'] + ".wav"):
-            raise RuntimeError(f'CosyVoice 合成声音失败-2')
+            raise RuntimeError(tr('CosyVoice synthesis failed -2'))
         self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
-        if self.inst and self.inst.precent < 80:
-            self.inst.precent += 0.1
-        self.has_done += 1
-        self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
-        
     def _item_task(self, data_item):
         if self._exit() or  not data_item.get('text','').strip():
             return
@@ -164,7 +155,7 @@ class CosyVoice(BaseTTS):
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e
-            raise
+

@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -66,7 +66,7 @@ class Ui_elevenlabsform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/elevenlabstts'))
 
         hv = QtWidgets.QHBoxLayout()
@@ -77,11 +77,11 @@ class Ui_elevenlabsform(object):
         self.verticalLayout.addLayout(hv)
 
         self.retranslateUi(elevenlabsform)
-        # QtCore.QMetaObject.connectSlotsByName(elevenlabsform)
+        QtCore.QMetaObject.connectSlotsByName(elevenlabsform)
 
     def retranslateUi(self, elevenlabsform):
         elevenlabsform.setWindowTitle("ElevenLabs.io")
         self.label2.setText("TTS model")
         self.label.setText("API_KEY")
-        self.set.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test.setText('测试并获取角色' if config.defaulelang == 'zh' else "Test & get roles")
+        self.set.setText(tr("Save"))
+        self.test.setText(tr("Test & get roles"))

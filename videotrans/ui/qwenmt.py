@@ -5,6 +5,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -29,8 +30,7 @@ class Ui_qwenmtform(object):
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.setText(
-            ' 在这配置阿里百炼的Qwen-MT模型或其他文本生成模型或 Qwen3-ASR 模型')
+        self.label_0.setText(tr('Configure Alibaba Bailian Qwen-MT model or other text models or Qwen3-ASR speech recognition model here'))
         v1.addWidget(self.label_0)
 
         self.label_2 = QtWidgets.QLabel(qwenmtform)
@@ -52,11 +52,11 @@ class Ui_qwenmtform(object):
         label_domains.setMinimumSize(QtCore.QSize(0, 35))
         label_domains.setSizeIncrement(QtCore.QSize(0, 35))
         label_domains.setObjectName("label_domains")
-        label_domains.setText("Qwen-MT翻译模型风格提示词" if config.defaulelang == 'zh' else "Translation style prompt")
+        label_domains.setText(tr("Translation style prompt"))
         self.qwenmt_domains = QtWidgets.QLineEdit(qwenmtform)
         self.qwenmt_domains.setMinimumSize(QtCore.QSize(0, 35))
         self.qwenmt_domains.setObjectName("qwenmt_domains")
-        self.qwenmt_domains.setPlaceholderText("用一段自然语言文本(必须英文)描述您的领域，将其提供给Qwen-MT模型作为提示" if config.defaulelang== 'zh' else "Fill in a natural language text (must be English) describing your domain, which will be provided to the model as a prompt")
+        self.qwenmt_domains.setPlaceholderText(tr("Fill in a natural language text (must be English) describing your domain, which will be provided to the model as a prompt"))
         h3 = QtWidgets.QHBoxLayout()
         h3.addWidget(label_domains)
         h3.addWidget(self.qwenmt_domains)
@@ -67,7 +67,7 @@ class Ui_qwenmtform(object):
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
-        self.label_selectmodel.setText("字幕翻译模型(必须qwen-mt开头或其他qwen文本生成模型)")
+        self.label_selectmodel.setText(tr("Subtitle translation model (must start with qwen-mt or other qwen text generation model)"))
         self.qwenmt_model = QtWidgets.QComboBox()
         self.qwenmt_model.setMinimumSize(QtCore.QSize(0, 35))
         self.qwenmt_model.setObjectName("qwenmt_model")
@@ -78,7 +78,7 @@ class Ui_qwenmtform(object):
         h_asr_model = QtWidgets.QHBoxLayout()
         label_asr_selectmodel = QtWidgets.QLabel()
         label_asr_selectmodel.setObjectName("label_asr_selectmodel")
-        label_asr_selectmodel.setText("语音识别模型(必须qwen3-asr开头)")
+        label_asr_selectmodel.setText(tr("Speech recognition model (must start with qwen3-asr)"))
         self.qwenmt_asr_model = QtWidgets.QComboBox()
         self.qwenmt_asr_model.setMinimumSize(QtCore.QSize(0, 35))
         self.qwenmt_asr_model.setObjectName("qwenmt_asr_model")
@@ -89,14 +89,20 @@ class Ui_qwenmtform(object):
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
-            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择(只可填写qwen-mt开头或qwen3-asr开头或其他qwen文本生成模型)' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+            tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
         v1.addWidget(self.label_allmodels)
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit()
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
+        self.template = QtWidgets.QPlainTextEdit()
+        self.template.setObjectName("template")
+        self.template.setReadOnly(True)
+        self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it",
+                                            'bailian' if config.defaulelang == 'zh' else 'bailian-en'))
 
+        v1.addWidget(self.template)
 
         self.set = QtWidgets.QPushButton(qwenmtform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
@@ -105,14 +111,14 @@ class Ui_qwenmtform(object):
         self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
-        self.test.setText("Test")
+        self.test.setText(tr("Test"))
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/qwen-mt'))
 
         h4 = QtWidgets.QHBoxLayout()
@@ -127,24 +133,20 @@ class Ui_qwenmtform(object):
     def update_ui(self):
         from videotrans.configure import config
         config.settings = config.parse_init()
-        allmodels_str = config.settings['qwenmt_model']
-        allmodels = config.settings['qwenmt_model'].split(',')
+        allmodels_str = config.settings.get('qwenmt_model','')
+        allmodels = config.settings.get('qwenmt_model','').split(',')
         self.qwenmt_model.clear()
+        self.qwenmt_asr_model.clear()
         self.qwenmt_model.addItems([ it  for it in allmodels if not it.startswith('qwen3-asr')])
         self.qwenmt_asr_model.addItems([ it  for it in allmodels if it.startswith('qwen3-asr')])
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params["qwenmt_key"]:
-            self.qwenmt_key.setText(config.params["qwenmt_key"])
-        if config.params["qwenmt_domains"]:
-            self.qwenmt_domains.setText(config.params["qwenmt_domains"])
-        if config.params["qwenmt_model"]:
-            self.qwenmt_model.setCurrentText(config.params["qwenmt_model"])
-        if config.params["qwenmt_asr_model"]:
-            self.qwenmt_asr_model.setCurrentText(config.params["qwenmt_asr_model"])
+        self.qwenmt_key.setText(config.params.get("qwenmt_key",''))
+        self.qwenmt_domains.setText(config.params.get("qwenmt_domains",''))
+        self.qwenmt_model.setCurrentText(config.params.get("qwenmt_model",''))
+        self.qwenmt_asr_model.setCurrentText(config.params.get("qwenmt_asr_model",''))
 
     def retranslateUi(self, qwenmtform):
-        qwenmtform.setWindowTitle("阿里百炼API/Qwen3-ASR AI" if config.defaulelang == 'zh' else "Ali-BaiLian API/Qwen3-ASR AI")
-        self.label_2.setText("API Key")
-        self.set.setText('保存' if config.defaulelang == 'zh' else 'Save')
-        self.qwenmt_key.setPlaceholderText("在此填写阿里百炼的的 API Key" if config.defaulelang == 'zh' else "Fill in Qwen-MT's API Key here")
+        qwenmtform.setWindowTitle(tr("Ali-BaiLian API/Qwen3-ASR AI"))
+        self.label_2.setText(f"{tr('Ali-Bailian')} {tr('SK')}")
+        self.set.setText(tr("Save"))

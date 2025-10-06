@@ -25,7 +25,7 @@ class ChatTTS(BaseTTS):
         super().__post_init__()
 
         # 从配置中读取并处理 API URL
-        api_url = config.params['chattts_api'].strip().rstrip('/').lower()
+        api_url = config.params.get('chattts_api','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '').replace('/tts', '')
         self._add_internal_host_noproxy(self.api_url)
 
@@ -56,11 +56,7 @@ class ChatTTS(BaseTTS):
                 raise RuntimeError(f'{res}')
 
             if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:
-                self.convert_to_wav(re.sub(r'\\{1,}', '/', res['filename']), data_item['filename'])
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
-                self.has_done += 1
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
+                self.convert_to_wav(re.sub(r'\\+', '/', res['filename']), data_item['filename'])
                 return
 
             resb = requests.get(res['url'])
@@ -72,14 +68,10 @@ class ChatTTS(BaseTTS):
             time.sleep(1)
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.has_done += 1
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
             return
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error=e

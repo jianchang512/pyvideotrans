@@ -1,8 +1,10 @@
-from pathlib import Path
 
 
 def openwin():
     import os
+    from pathlib import Path
+    from videotrans.configure.config import tr
+    from PySide6.QtCore import QTimer
 
     from PySide6.QtWidgets import QFileDialog
 
@@ -10,11 +12,12 @@ def openwin():
     # 分离背景音
     from videotrans.util import tools
 
-    from videotrans.task.separate_worker import SeparateWorker
+
+    outdir = os.path.join(config.HOME_DIR, 'separate').replace('\\', '/')
     def get_file():
         format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])
         fname, _ = QFileDialog.getOpenFileName(winobj, "Select audio or video",
-                                               config.params['last_opendir'],
+                                               config.params.get('last_opendir',''),
                                                f"files({format_str})")
         if fname:
             winobj.fromfile.setText(fname.replace('file:///', '').replace('\\', '/'))
@@ -22,10 +25,10 @@ def openwin():
     def update(d):
         # 更新
         if d == 'succeed':
-            winobj.set.setText(config.transobj['Separate End/Restart'])
+            winobj.set.setText(tr('Separate End/Restart'))
             winobj.fromfile.setText('')
         elif d == 'end':
-            winobj.set.setText(config.transobj['Start Separate'])
+            winobj.set.setText(tr('Start Separate'))
             winobj.logs.setText('')
         elif d.startswith('logs:'):
             if len(d) > 5:
@@ -37,20 +40,20 @@ def openwin():
         # 开始处理分离，判断是否选择了源文件
         file = winobj.fromfile.text()
         if not file or not os.path.exists(file):
-            tools.show_error(config.transobj['must select audio or video file'])
+            tools.show_error(tr('must select audio or video file'))
             return
         uuid = tools.get_md5(file)
         # 已在执行，在此点击停止
         if winobj.has_done:
             winobj.has_done = False
             config.uuid_logs_queue[uuid] = 'stop'
-            winobj.set.setText(config.transobj['Start Separate'])
+            winobj.set.setText(tr('Start Separate'))
             return
         winobj.has_done = True
         if uuid in config.uuid_logs_queue:
             del config.uuid_logs_queue[uuid]
 
-        winobj.set.setText(config.transobj['Start Separate...'])
+        winobj.set.setText(tr('Start Separate...'))
         basename = os.path.basename(file)
         # 判断名称是否正常
         # 创建文件夹
@@ -58,6 +61,7 @@ def openwin():
         os.makedirs(out, exist_ok=True)
         winobj.url.setText(out)
         # 开始分离
+        from videotrans.task.separate_worker import SeparateWorker
         winobj.task = SeparateWorker(parent=winobj, out=out, file=file, basename=basename, uuid=uuid)
         winobj.task.finish_event.connect(update)
         winobj.task.start()
@@ -66,13 +70,14 @@ def openwin():
 
     winobj = SeparateForm()
     config.child_forms['fn_separate'] = winobj
-    outdir = os.path.join(config.HOME_DIR, 'separate').replace('\\', '/')
-    Path(outdir).mkdir(exist_ok=True,parents=True)
-    # 创建事件过滤器实例并将其安装到 lineEdit 上
-    winobj.url.setText(outdir)
-
-    winobj.selectfile.clicked.connect(get_file)
-
-    winobj.set.clicked.connect(start)
     winobj.show()
+    def _bind():
 
+        Path(outdir).mkdir(exist_ok=True,parents=True)
+        # 创建事件过滤器实例并将其安装到 lineEdit 上
+        winobj.url.setText(outdir)
+
+        winobj.selectfile.clicked.connect(get_file)
+
+        winobj.set.clicked.connect(start)
+    QTimer.singleShot(10,_bind)

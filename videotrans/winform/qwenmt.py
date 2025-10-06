@@ -1,7 +1,7 @@
 def openwin():
     import json
 
-
+    from videotrans.configure.config import tr
     from PySide6 import QtWidgets
     from videotrans.configure import config
     from videotrans.util import tools
@@ -11,13 +11,13 @@ def openwin():
             tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
-        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test.setText(tr("Test"))
 
     def test():
         key = winobj.qwenmt_key.text()
         if not key:
             return tools.show_error(
-                '必须填写  密钥 信息' if config.defaulelang == 'zh' else 'Please input Secret')
+                tr("Please input Secret"))
         model = winobj.qwenmt_model.currentText()
         asr_model = winobj.qwenmt_asr_model.currentText()
 
@@ -28,7 +28,7 @@ def openwin():
         config.params["qwenmt_asr_model"] = asr_model
         config.params["qwenmt_domains"]=winobj.qwenmt_domains.text()
 
-        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.QWENMT_INDEX)
         task.uito.connect(feed)

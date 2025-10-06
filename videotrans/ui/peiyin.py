@@ -6,17 +6,18 @@ from PySide6.QtCore import Qt, QMetaObject
 
 from videotrans import tts
 from videotrans.component.component import Textedit
-from videotrans.configure import config
-from videotrans.configure.config import box_lang
+
+from videotrans.configure.config import  tr
 
 
 class Ui_peiyin(object):
     def setupUi(self, peiyin):
         self.has_done = False
+        self.hecheng_files = []
+        self.error_msg = ""
         if not peiyin.objectName():
-            peiyin.setObjectName(u"peiyin")
-        peiyin.resize(800, 500)
-        peiyin.setWindowModality(QtCore.Qt.NonModal)
+            peiyin.setObjectName("peiyin")
+        peiyin.setMinimumSize(800, 500)
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -24,8 +25,6 @@ class Ui_peiyin(object):
         sizePolicy.setHeightForWidth(peiyin.sizePolicy().hasHeightForWidth())
         peiyin.setSizePolicy(sizePolicy)
 
-        self.hecheng_files = []
-        self.error_msg = ""
 
         self.horizontalLayout_11 = QtWidgets.QHBoxLayout(peiyin)
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
@@ -41,13 +40,13 @@ class Ui_peiyin(object):
         sizePolicy.setHeightForWidth(self.hecheng_plaintext.sizePolicy().hasHeightForWidth())
         self.hecheng_plaintext.setSizePolicy(sizePolicy)
         self.hecheng_plaintext.setMinimumSize(0, 150)
-        self.hecheng_plaintext.setPlaceholderText(config.transobj['tuodonghuoshuru'])
+        self.hecheng_plaintext.setPlaceholderText(tr('tuodonghuoshuru'))
         self.hecheng_importbtn = QtWidgets.QPushButton()
         self.hecheng_importbtn.setObjectName("hecheng_importbtn")
         self.hecheng_importbtn.setFixedHeight(150)
         self.hecheng_importbtn.setCursor(Qt.PointingHandCursor)
 
-        self.hecheng_importbtn.setText(config.box_lang['Import text to be translated from a file..'])
+        self.hecheng_importbtn.setText(tr('Import text to be translated from a file..'))
 
         self.hecheng_layout.insertWidget(0, self.hecheng_importbtn)
         self.hecheng_layout.insertWidget(1, self.hecheng_plaintext)
@@ -119,8 +118,8 @@ class Ui_peiyin(object):
 
         self.listen_btn = QtWidgets.QPushButton()
         self.listen_btn.setFixedWidth(80)
-        self.listen_btn.setToolTip(config.uilanglist.get("shuoming01"))
-        self.listen_btn.setText(config.uilanglist.get("Trial dubbing"))
+        self.listen_btn.setToolTip(tr("shuoming01"))
+        self.listen_btn.setText(tr("Trial dubbing"))
         self.horizontalLayout_10.addWidget(self.listen_btn)
 
         self.formLayout_5 = QtWidgets.QFormLayout()
@@ -146,7 +145,7 @@ class Ui_peiyin(object):
         self.edge_volume_layout = QtWidgets.QHBoxLayout()
 
         self.volume_label = QtWidgets.QLabel()
-        self.volume_label.setText("音量+" if config.defaulelang == 'zh' else "Volume+")
+        self.volume_label.setText(tr("Volume+"))
 
         self.volume_rate = QtWidgets.QSpinBox()
         self.volume_rate.setMinimum(-95)
@@ -155,14 +154,14 @@ class Ui_peiyin(object):
         self.volume_rate.setObjectName("volume_rate")
 
         self.pitch_label = QtWidgets.QLabel()
-        self.pitch_label.setText("音调+" if config.defaulelang == 'zh' else "Pitch+")
+        self.pitch_label.setText(tr("Pitch+"))
         self.pitch_rate = QtWidgets.QSpinBox()
         self.pitch_rate.setMinimum(-100)
         self.pitch_rate.setMaximum(100)
         self.pitch_rate.setMinimumWidth(90)
         self.pitch_rate.setObjectName("pitch_rate")
 
-        self.out_format_label = QtWidgets.QLabel(text='输出格式' if config.defaulelang == 'zh' else 'Out format')
+        self.out_format_label = QtWidgets.QLabel(text=tr("Out format"))
 
         self.out_format = QtWidgets.QComboBox()
         self.out_format.addItems([
@@ -190,7 +189,7 @@ class Ui_peiyin(object):
 
         self.hecheng_stop = QtWidgets.QPushButton()
         self.hecheng_stop.setFixedWidth(100)
-        self.hecheng_stop.setText('停止' if config.defaulelang == 'zh' else 'Stop')
+        self.hecheng_stop.setText(tr("Stop"))
         self.hecheng_stop.setDisabled(True)
         self.hecheng_stop.setObjectName("hecheng_stop")
         self.hecheng_stop.setCursor(Qt.PointingHandCursor)
@@ -218,23 +217,23 @@ class Ui_peiyin(object):
         self.verticalLayout_4.addWidget(self.hecheng_opendir)
         self.horizontalLayout_11.addLayout(self.verticalLayout_4)
 
-        self.retranslateUi(peiyin)
+        peiyin.setWindowTitle(tr("From  Text  Into  Speech"))
+        self.retranslateUi()
 
         # tab-4 语音合成
 
         QMetaObject.connectSlotsByName(peiyin)
 
-    def retranslateUi(self, peiyin):
-        peiyin.setWindowTitle(config.uilanglist.get("From  Text  Into  Speech"))
+    def retranslateUi(self):
 
-        self.label_10.setText(box_lang.get("Subtitle lang"))
-        self.label_8.setText("TTS" if config.defaulelang != 'zh' else '配音渠道')
-        self.label_11.setText(box_lang.get("Select role"))
-        self.label_12.setText(box_lang.get("Speed change"))
-        self.hecheng_rate.setToolTip(box_lang.get("Negative deceleration, positive acceleration"))
-        self.voice_autorate.setText(box_lang.get("Automatic acceleration?"))
-        self.save_to_srt.setText("Save to original location" if config.defaulelang != 'zh' else '保存到原位置')
+        self.label_10.setText(tr("Subtitle lang"))
+        self.label_8.setText(tr("TTS"))
+        self.label_11.setText(tr("Select role"))
+        self.label_12.setText(tr("Speed change"))
+        self.hecheng_rate.setToolTip(tr("Negative deceleration, positive acceleration"))
+        self.voice_autorate.setText(tr("Automatic acceleration?"))
+        self.save_to_srt.setText(tr("Save to original location"))
         self.save_to_srt.setToolTip(
-            "If checked, the synthesized audio is saved to the original folder where the srt file is located." if config.defaulelang != 'zh' else '如果选中，则合成后音频保存到srt文件所在原文件夹内')
-        self.hecheng_startbtn.setText(box_lang.get("Start"))
-        self.hecheng_opendir.setText(box_lang.get("Open dir"))
+            tr("If checked, the synthesized audio is saved to the original folder where the srt file is located."))
+        self.hecheng_startbtn.setText(tr("Start"))
+        self.hecheng_opendir.setText(tr("Open output directory"))

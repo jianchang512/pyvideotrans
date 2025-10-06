@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
 )
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 
 
 class SubtitleSettingsDialog(QDialog):
@@ -14,20 +15,20 @@ class SubtitleSettingsDialog(QDialog):
         self.resize(300, 200)
 
         # 设置对话框标题
-        self.setWindowTitle("设置硬字幕行字符数" if config.defaulelang == 'zh' else "Set Subtitle Length")
+        self.setWindowTitle(tr("Set Subtitle Length"))
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
         # 创建标签和输入框
-        self.cjk_label = QLabel("中日韩硬字幕一行字符数:" if config.defaulelang == 'zh' else "CJK Subtitle Length:")
+        self.cjk_label = QLabel(tr("CJK Subtitle Length:"))
         self.cjk_input = QLineEdit()
         self.cjk_input.setText(str(self.cjk_len))
 
-        self.other_label = QLabel("其他语言硬字幕一行字符数:" if config.defaulelang == 'zh' else "Other Language Subtitle Length:")
+        self.other_label = QLabel(tr("Other Language Subtitle Length:"))
         self.other_input = QLineEdit()
         self.other_input.setText(str(self.other_len))
 
         # 创建按钮
-        self.ok_button = QPushButton("保存" if config.defaulelang == 'zh' else "Save")
+        self.ok_button = QPushButton(tr("Save"))
         self.ok_button.clicked.connect(self.accept)  # 点击OK按钮后关闭对话框
         self.ok_button.setFixedHeight(35)
 
@@ -56,7 +57,7 @@ class SubtitleSettingsDialog(QDialog):
         try:
             cjk_len = int(cjk_len) if cjk_len else 24
             other_len = int(other_len) if other_len else 66
-        except:
+        except ValueError:
             cjk_len = 24
             other_len = 66
         return cjk_len, other_len

@@ -1,6 +1,6 @@
 def openwin():
     from PySide6 import QtWidgets
-
+    from videotrans.configure.config import tr
     from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
@@ -9,7 +9,7 @@ def openwin():
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         else:
             tools.show_error(d)
-        winobj.test_qwentts.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test_qwentts.setText(tr("Test"))
 
     def test():
         key = winobj.qwentts_key.text().strip()
@@ -23,12 +23,12 @@ def openwin():
         config.getset_params(config.params)
         config.settings['qwentts_role']=config.QWEN3_TTS_ROLES if model.startswith('qwen3-tts') else   config.QWEN_TTS_ROLES
         config.parse_init(config.settings)        
-        winobj.test_qwentts.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test_qwentts.setText(tr("Testing..."))
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
-            "role": config.settings['qwentts_role'].split(',')[0],
+            "role": config.settings.get('qwentts_role','').split(',')[0],
             "filename": config.TEMP_HOME + f"/{time.time()}-qwen.wav",
             "tts_type": tts.QWEN_TTS}],
                          language="zh",

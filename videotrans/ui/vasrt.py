@@ -8,6 +8,7 @@ from PySide6.QtGui import QFont, QColor
 from PySide6.QtWidgets import QHBoxLayout, QFontDialog, QColorDialog
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 
 
 class Ui_vasrt(object):
@@ -15,8 +16,8 @@ class Ui_vasrt(object):
         self.has_done = False
         if not vasrt.objectName():
             vasrt.setObjectName(u"vasrt")
-        vasrt.resize(1000, 500)
-        vasrt.setWindowModality(QtCore.Qt.NonModal)
+        vasrt.setMinimumSize(1000, 500)
+
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -100,27 +101,27 @@ class Ui_vasrt(object):
         self.ysphb_replace = QtWidgets.QCheckBox()
         self.ysphb_replace.setObjectName("ysphb_replace")
         self.ysphb_replace.setDisabled(True)
-        self.ysphb_replace.setText(config.transobj['Preserve the original sound in the video'])
+        self.ysphb_replace.setText(tr('Preserve the original sound in the video'))
 
 
 
         label_audio = QtWidgets.QLabel()
-        label_audio.setText("音频时长大于视频时" if config.defaulelang == 'zh' else "Audio duration > video")
+        label_audio.setText(tr("Audio duration > video"))
         self.audio_process = QtWidgets.QComboBox()
         self.audio_process.setObjectName("audio_process")
         self.audio_process.addItems([
-            "截断" if config.defaulelang == 'zh' else "Truncate",
-            "音频加速" if config.defaulelang == 'zh' else "Auto Accelerate",
-            "视频末尾定格" if config.defaulelang == 'zh' else "Video copy",
+            tr("Truncate"),
+            tr("Auto Accelerate"),
+            tr("Video copy"),
         ])
 
         self.ysphb_maxlenlabel = QtWidgets.QLabel()
-        self.ysphb_maxlenlabel.setText("硬字幕单行字符数" if config.defaulelang=='zh' else 'Number of characters per line')
-        self.ysphb_maxlenlabel.setToolTip("硬字幕单行字符数" if config.defaulelang=='zh' else 'Number of characters per line of embed hard subtitles')
+        self.ysphb_maxlenlabel.setText(tr("Number of characters per line"))
+        self.ysphb_maxlenlabel.setToolTip(tr("Number of characters per line of embed hard subtitles"))
         self.ysphb_maxlen = QtWidgets.QLineEdit()
         self.ysphb_maxlen.setObjectName("ysphb_maxlen")
         self.ysphb_maxlen.setText('16')
-        self.ysphb_maxlen.setToolTip('仅在嵌入硬字幕时生效' if config.defaulelang=='zh' else 'Only works when hard subtitles are embedded')
+        self.ysphb_maxlen.setToolTip(tr("Only works when hard subtitles are embedded"))
 
         self.layout_form0 = QtWidgets.QFormLayout()
         self.layout_form0.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.ysphb_maxlenlabel)
@@ -129,18 +130,18 @@ class Ui_vasrt(object):
         self.remain_hr = QtWidgets.QCheckBox()
         self.remain_hr.setObjectName("remain_hr")
         self.remain_hr.setChecked(False)
-        self.remain_hr.setText('保留换行符' if config.defaulelang == 'zh' else 'Preserve line breaks')
-        self.remain_hr.setToolTip('双语硬字幕嵌入时，请选中' if config.defaulelang == 'zh' else 'When embedding bilingual hard subtitles, please select')
+        self.remain_hr.setText(tr("Preserve line breaks"))
+        self.remain_hr.setToolTip(tr("When embedding bilingual hard subtitles, please select"))
 
         self.ysphb_issoft = QtWidgets.QCheckBox()
         self.ysphb_issoft.setObjectName("ysphb_issoft")
         self.ysphb_issoft.setChecked(False)
-        self.ysphb_issoft.setText('嵌入软字幕' if config.defaulelang == 'zh' else 'Embedded Soft Subtitles')
+        self.ysphb_issoft.setText(tr("Embedded Soft Subtitles"))
 
         self.layout_form = QtWidgets.QFormLayout()
 
         self.languagelabel = QtWidgets.QLabel()
-        self.languagelabel.setText('软字幕语言' if config.defaulelang == 'zh' else 'soft subtitle language')
+        self.languagelabel.setText(tr("soft subtitle language"))
         self.languagelabel.setStyleSheet('color:#777')
         self.language = QtWidgets.QComboBox()
         self.language.setMinimumSize(QtCore.QSize(0, 30))
@@ -165,28 +166,28 @@ class Ui_vasrt(object):
         self.v3.addLayout(self.h7)
 
         label_position = QtWidgets.QLabel()
-        label_position.setText('硬字幕：位置' if config.defaulelang == 'zh' else 'Hard subtitle position')
+        label_position.setText(tr("Hard subtitle position"))
         self.position = QtWidgets.QComboBox()
         self.position.setObjectName("position")
         self.position.addItems(list(config.POSTION_ASS_VK.keys()))
-        self.position.setToolTip('字幕处于视频中的位置' if config.defaulelang == 'zh' else 'Position of subtitle in video')
+        self.position.setToolTip(tr("Position of subtitle in video"))
 
         left_label = QtWidgets.QLabel()
-        left_label.setText('左边距' if config.defaulelang == 'zh' else 'Margin Left')
+        left_label.setText(tr("Margin Left"))
         self.marginL = QtWidgets.QLineEdit()
         self.marginL.setText('0')
         self.marginL.setMinimumWidth(50)
         self.marginL.setObjectName("marginL")
 
         bottom_label = QtWidgets.QLabel()
-        bottom_label.setText('垂直边距' if config.defaulelang == 'zh' else 'Margin Vcenter')
+        bottom_label.setText(tr("Margin Vcenter"))
         self.marginV = QtWidgets.QLineEdit()
         self.marginV.setText('10')
         self.marginV.setMinimumWidth(50)
         self.marginV.setObjectName("marginV")
 
         right_label = QtWidgets.QLabel()
-        right_label.setText('右边距' if config.defaulelang == 'zh' else 'Margin Right')
+        right_label.setText(tr("Margin Right"))
         self.marginR = QtWidgets.QLineEdit()
         self.marginR.setText('0')
         self.marginR.setMinimumWidth(50)
@@ -195,52 +196,52 @@ class Ui_vasrt(object):
 
 
         outline_label = QtWidgets.QLabel()
-        outline_label.setText('轮廓大小' if config.defaulelang == 'zh' else 'Outline')
+        outline_label.setText(tr("Outline"))
         self.outline = QtWidgets.QLineEdit()
         self.outline.setText('1')
         self.outline.setMinimumWidth(50)
         self.outline.setObjectName("outline")
 
         shadow_label = QtWidgets.QLabel()
-        shadow_label.setText('阴影大小' if config.defaulelang == 'zh' else 'Shadow')
+        shadow_label.setText(tr("Shadow"))
         self.shadow = QtWidgets.QLineEdit()
         self.shadow.setText('1')
         self.shadow.setMinimumWidth(50)
         self.shadow.setObjectName("shadow")
 
         fontsize_label = QtWidgets.QLabel()
-        fontsize_label.setText('硬字幕：字体大小' if config.defaulelang == 'zh' else 'Font Size')
+        fontsize_label.setText(tr("Font Size"))
         self.font_size_edit = QtWidgets.QLineEdit()
         self.font_size_edit.setMinimumWidth(50)
         self.font_size_edit.setText('14')
         self.font_size_edit.setObjectName("font_size_edit")
-        self.font_size_edit.setPlaceholderText("字体大小" if config.defaulelang == 'zh' else 'Font Size')
-        self.font_size_edit.setToolTip("字体大小" if config.defaulelang == 'zh' else 'Font Size')
+        self.font_size_edit.setPlaceholderText(tr("Font Size"))
+        self.font_size_edit.setToolTip(tr("Font Size"))
 
-        self.font_button = QtWidgets.QPushButton("选择字体" if config.defaulelang == 'zh' else 'Select Fonts')
-        self.font_button.setToolTip('点击选择字体' if config.defaulelang == 'zh' else 'Click it for select fonts')
+        self.font_button = QtWidgets.QPushButton(tr("Select Fonts"))
+        self.font_button.setToolTip(tr("Click it for select fonts"))
         self.font_button.clicked.connect(self.choose_font)
         self.font_button.setMinimumWidth(150)
         self.font_button.setCursor(Qt.PointingHandCursor)
 
-        self.color_button = QtWidgets.QPushButton("字体颜色" if config.defaulelang == 'zh' else 'Text Colors')
+        self.color_button = QtWidgets.QPushButton(tr("Text Colors"))
         self.color_button.setCursor(Qt.PointingHandCursor)
         self.color_button.clicked.connect(self.choose_color)
         self.color_button.setMinimumWidth(150)
 
         self.backgroundcolor_button = QtWidgets.QPushButton(
-            "背景阴影色" if config.defaulelang == 'zh' else 'Backgroud Colors')
+            tr("Backgroud Colors"))
         self.backgroundcolor_button.setCursor(Qt.PointingHandCursor)
         self.backgroundcolor_button.setMinimumWidth(150)
         self.backgroundcolor_button.clicked.connect(self.choose_backgroundcolor)
         self.backgroundcolor_button.setToolTip(
-            '背景色或阴影色，某些播放器下可能不起作用' if config.defaulelang == 'zh' else 'May not work in different players')
+            tr("May not work in different players"))
 
-        self.bordercolor_button = QtWidgets.QPushButton("轮廓色" if config.defaulelang == 'zh' else 'Border Colors')
+        self.bordercolor_button = QtWidgets.QPushButton(tr("Border Colors"))
         self.bordercolor_button.setCursor(Qt.PointingHandCursor)
         self.bordercolor_button.clicked.connect(self.choose_bordercolor)
         self.bordercolor_button.setToolTip(
-            '轮廓描边色，某些播放器下可能不起作用' if config.defaulelang == 'zh' else 'May not work in different players')
+            tr("May not work in different players"))
         self.bordercolor_button.setMinimumWidth(150)
 
         # 初始化字体和颜色
@@ -256,8 +257,8 @@ class Ui_vasrt(object):
         self.ysphb_borderstyle.setObjectName("ysphb_borderstyle")
         self.ysphb_borderstyle.setChecked(False)
         self.ysphb_borderstyle.setToolTip(
-            '不选中表示有轮廓描边阴影但无背景色块，选中则相反' if config.defaulelang == 'zh' else 'Unchecked means there is an outline stroke shadow but no background color block, and the opposite is true if checked')
-        self.ysphb_borderstyle.setText('背景色块风格' if config.defaulelang == 'zh' else 'Background color area Style')
+            tr("Unchecked means there is an outline stroke shadow but no background color block, and the opposite is true if checked"))
+        self.ysphb_borderstyle.setText(tr("Background color area Style"))
 
         format_layout = QHBoxLayout()
         format_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -316,8 +317,8 @@ class Ui_vasrt(object):
 
         # end
         self.horizontalLayout_3.addLayout(self.v3)
-
-        self.retranslateUi(vasrt)
+        vasrt.setWindowTitle(tr("Video, audio, and subtitle merging"))
+        self.retranslateUi()
 
         QMetaObject.connectSlotsByName(vasrt)
 
@@ -412,17 +413,17 @@ class Ui_vasrt(object):
         self.backgroundcolor_button.setDisabled(True if state else False)
         self.bordercolor_button.setDisabled(True if state else False)
 
-    def retranslateUi(self, vasrt):
-        vasrt.setWindowTitle("视频、音频、字幕三者合并" if config.defaulelang == 'zh' else 'Video, audio, and subtitle merging')
+    def retranslateUi(self):
 
-        self.label_4.setText('视频文件' if config.defaulelang == 'zh' else 'Video')
-        self.label_5.setText('音频文件' if config.defaulelang == 'zh' else 'Audio')
-        self.label_6.setText('字幕文件/srt' if config.defaulelang == 'zh' else 'Subtitles/srt')
-        self.ysphb_selectvideo.setText('选择视频文件' if config.defaulelang == 'zh' else 'Select a Video')
-        self.ysphb_videoinput.setPlaceholderText('选择视频文件' if config.defaulelang == 'zh' else 'Select a Video')
-        self.ysphb_selectwav.setText('选择音频文件' if config.defaulelang == 'zh' else 'Select a Audio')
-        self.ysphb_wavinput.setPlaceholderText('选择音频文件' if config.defaulelang == 'zh' else 'Select a Audio')
-        self.ysphb_selectsrt.setText('选择srt字幕文件' if config.defaulelang == 'zh' else 'Select a Srt file')
-        self.ysphb_srtinput.setPlaceholderText('选择srt字幕文件' if config.defaulelang == 'zh' else 'Select a Srt file')
-        self.ysphb_startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'Start operating')
-        self.ysphb_opendir.setText('打开结果目录' if config.defaulelang == 'zh' else 'Open the results catalog')
+
+        self.label_4.setText(tr("Video"))
+        self.label_5.setText(tr("Audio"))
+        self.label_6.setText(tr("Subtitles/srt"))
+        self.ysphb_selectvideo.setText(tr("Select a Video"))
+        self.ysphb_videoinput.setPlaceholderText(tr("Select a Video"))
+        self.ysphb_selectwav.setText(tr("Select a Audio"))
+        self.ysphb_wavinput.setPlaceholderText(tr("Select a Audio"))
+        self.ysphb_selectsrt.setText(tr("Select a Srt file"))
+        self.ysphb_srtinput.setPlaceholderText(tr("Select a Srt file"))
+        self.ysphb_startbtn.setText(tr("Start operating"))
+        self.ysphb_opendir.setText(tr("Open the results catalog"))

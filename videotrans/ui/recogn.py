@@ -6,20 +6,17 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import Qt
 
 from videotrans.configure import config
-from videotrans.configure.config import box_lang
+from videotrans.configure.config import  tr
 
 
 class Ui_recogn(object):
     def setupUi(self, recogn):
         self.has_done = False
         self.error_msg = ""
+        self.shibie_out_path = None
         recogn.setObjectName("recogn")
         recogn.setMinimumSize(1000, 500)
 
-        self.centralwidget = QtWidgets.QWidget(recogn)
-        self.centralwidget.setObjectName("centralwidget")
-
-        self.shibie_out_path = None
 
         # 语音识别
         self.horizontalLayout_9 = QtWidgets.QHBoxLayout(recogn)
@@ -105,7 +102,7 @@ class Ui_recogn(object):
         self.horizontalLayout.addStretch()
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
-        recogn.setWindowTitle(config.uilanglist.get("Speech Recognition Text"))
+        recogn.setWindowTitle(tr("Speech Recognition Text"))
         QtCore.QMetaObject.connectSlotsByName(recogn)
         QTimer.singleShot(0,self.retranslateUi)
 
@@ -211,75 +208,75 @@ class Ui_recogn(object):
 
         self.horizontalLayout_9.addLayout(self.verticalLayout_3)
 
-        self.threshold_label.setText('threshold' if config.defaulelang != 'zh' else '语音识别阈值')
+        self.threshold_label.setText(tr("threshold"))
         self.shibie_startbtn.setCursor(Qt.PointingHandCursor)
         self.min_speech_duration_ms.setPlaceholderText('0ms')
-        self.max_speech_duration_s_label.setText('max_speech_duration_s' if config.defaulelang != 'zh' else '最大语音持续时长')
+        self.max_speech_duration_s_label.setText(tr("max_speech_duration_s"))
         self.max_speech_duration_s.setPlaceholderText('5s')
         self.speech_pad_ms.setToolTip(
-            '语音填充时间，单位：毫秒。' if config.defaulelang == 'zh' else 'Speech padding (ms)')
+            tr("Speech padding (ms)"))
         self.shibie_opendir.setCursor(Qt.PointingHandCursor)
-        self.is_cuda.setText("启用CUDA?" if config.defaulelang == 'zh' else 'Enable CUDA?')
+        self.is_cuda.setText(tr("Enable CUDA?"))
         self.shibie_label.setText("语音识别\u2193")
         self.shibie_label.setStyleSheet("""background-color:transparent""")
         self.shibie_label.setCursor(Qt.PointingHandCursor)
         self.shibie_label.setToolTip(
-            '当faster-whisper时，可点击设置详细识别参数' if config.defaulelang == 'zh' else 'Click to set detailed recognition parameters when using faster-whisper')
-        self.label_model.setText('选择模型' if config.defaulelang == 'zh' else 'Select model')
-        self.show_spk.setText("识别说话人?" if config.defaulelang == 'zh' else 'Speaker classification?')
+            tr("Click to set detailed recognition parameters when using faster-whisper"))
+        self.label_model.setText(tr("Select model"))
+        self.show_spk.setText(tr("Speaker classification?"))
         self.shibie_split_type.addItems(
-            [config.transobj['whisper_type_all'],
-             config.transobj['whisper_type_avg']]
+            [tr('whisper_type_all'),
+             tr('whisper_type_avg')]
         )
-        self.shibie_split_type.setToolTip(config.transobj['fenge_tips'])
-        self.split_label.setText('分割模式' if config.defaulelang == 'zh' else 'Split mode')
+        self.shibie_split_type.setToolTip(tr('fenge_tips'))
+        self.split_label.setText(tr("Split mode"))
         self.equal_split_time.setToolTip(
-            '每段分割时长/单位秒' if config.defaulelang == 'zh' else 'Duration of each segment/second')
+            tr("Duration of each segment/second"))
         self.equal_split_time.setText(str(config.settings.get('interval_split', 10)))
-        self.equal_split_time_label.setText('秒' if config.defaulelang == 'zh' else 'Sec')
-        self.lable_out.setText('输出字幕格式' if config.defaulelang == 'zh' else 'Subtitle format:')
+        self.equal_split_time_label.setText(tr("Sec"))
+        self.lable_out.setText(tr("Subtitle format:"))
         self.out_format.addItems([
             "srt",
             "ass",
             "vtt",
             "txt"
         ])
-        self.shibie_stop.setText("停止" if config.defaulelang == 'zh' else 'Stop')
+        self.shibie_stop.setText(tr("Stop"))
         self.shibie_stop.setCursor(Qt.PointingHandCursor)
-        self.rephrase.setText('LLM重新断句' if config.defaulelang == 'zh' else 'LLM Rephrase')
-        self.rephrase.setToolTip('选择faster/openai-whisper渠道时将使用大模型重新断句，若失败将使用原始分段' if config.defaulelang == 'zh' else 'When selecting the faster/openai-whisper channel, the large model will be used to re-segment the sentence. If it fails, the original segmentation will be used.')
-        self.rephrase_local.setText('本地重新断句' if config.defaulelang == 'zh' else 'Rephrase Local')
-        self.rephrase_local.setToolTip('选择faster/openai-whisper渠道时将本地基于算法重新断句，若结果中无标点，效果不佳' if config.defaulelang == 'zh' else 'When selecting the faster/openai-whisper channel, the local algorithm will be used to re-segment the sentence')
+        self.rephrase.setText(tr("LLM Rephrase"))
+        self.rephrase.setToolTip(tr("When selecting the faster/openai-whisper channel, the large model will be used to re-segment the sentence. If it fails, the original segmentation will be used."))
+        self.rephrase_local.setText(tr("Rephrase Local"))
+        self.rephrase_local.setToolTip(tr("When selecting the faster/openai-whisper channel, the local algorithm will be used to re-segment the sentence"))
 
-        self.remove_noise.setText('降噪' if config.defaulelang == 'zh' else 'Noise reduction')
+        self.remove_noise.setText(tr("Noise reduction"))
         self.remove_noise.setToolTip(
-            '若选中将从modelscope.cn下载模型做音频降噪处理，比较耗时' if config.defaulelang == 'zh' else 'Select to perform noise reduction processing from modelscope.cn, which takes a long time')
-        self.copysrt_rawvideo.setText('字幕输出原位置' if config.defaulelang == 'zh' else 'Moving subtitle')
+            tr("Select to perform noise reduction processing from modelscope.cn, which takes a long time"))
+        self.copysrt_rawvideo.setText(tr("Moving subtitle"))
         self.copysrt_rawvideo.setToolTip(
-            '选中则字幕将保存到原音视频位置，并重命名为原音视频同名' if config.defaulelang == 'zh' else 'If selected, the subtitles will be saved to the original audio and video location and renamed to the same name as the original audio and video')
+            tr("If selected, the subtitles will be saved to the original audio and video location and renamed to the same name as the original audio and video"))
         self.threshold.setPlaceholderText('200ms')
         self.threshold.setToolTip(
-            '表示语音的概率阈值，VAD 会输出每个音频片段的语音概率。' if config.defaulelang == 'zh' else 'Threshold for speech detection')
+            tr("Threshold for speech detection"))
         self.threshold.setText(str(config.settings.get('threshold', 0.5)))
         self.min_speech_duration_ms_label.setText(
-            'min_speech_duration_ms' if config.defaulelang != 'zh' else '最小语音持续毫秒')
+            tr("min_speech_duration_ms"))
         self.min_speech_duration_ms.setText(str(config.settings.get('min_speech_duration_ms', 0)))
         self.min_speech_duration_ms.setToolTip(
-            '最小语音持续时间，单位：毫秒。' if config.defaulelang == 'zh' else 'Minimum speech duration (ms)')
+            tr("Minimum speech duration (ms)"))
         self.min_silence_duration_ms_label.setText(
-            'min_silence_duration_ms' if config.defaulelang != 'zh' else '最小静音持续毫秒')
+            tr("min_silence_duration_ms"))
         self.min_silence_duration_ms.setPlaceholderText('200ms')
         self.min_silence_duration_ms.setText(str(config.settings.get('min_silence_duration_ms', 2000)))
         self.min_silence_duration_ms.setToolTip(
-            '最小静音持续时间，单位：毫秒。' if config.defaulelang == 'zh' else 'Minimum silence duration (ms)')
+            tr("Minimum silence duration (ms)"))
         self.max_speech_duration_s.setText(str(config.settings.get('max_speech_duration_s', 2000)))
         self.max_speech_duration_s.setToolTip(
-            '最大语音持续时间，单位：秒。' if config.defaulelang == 'zh' else 'max speech duration (s)')
-        self.speech_pad_ms_label.setText('speech_pad_ms' if config.defaulelang != 'zh' else '填充毫秒')
+            tr("max speech duration (s)"))
+        self.speech_pad_ms_label.setText(tr("speech_pad_ms"))
         self.speech_pad_ms.setPlaceholderText('200ms')
         self.speech_pad_ms.setText(str(config.settings.get('speech_pad_ms', 400)))
         self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
-        self.shibie_opendir.setText('打开识别结果保存目录' if config.defaulelang == 'zh' else 'Open Output dir')
+        self.shibie_opendir.setText(tr("Open output directory"))
 
-        self.label_3.setText(box_lang.get("Source lang"))
-        self.shibie_startbtn.setText(box_lang.get("Start"))
+        self.label_3.setText(tr("Source lang"))
+        self.shibie_startbtn.setText(tr("Start"))

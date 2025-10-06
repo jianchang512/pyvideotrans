@@ -4,6 +4,7 @@ from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -57,7 +58,7 @@ class Ui_ttsapiform(object):
 
         self.label_4 = QLabel(ttsapiform)
         self.label_4.setObjectName("label_4")
-        self.label_4.setText("语言，默认auto" if config.defaulelang == 'zh' else 'Language')
+        self.label_4.setText(tr("Language"))
         self.language_boost = QtWidgets.QComboBox(ttsapiform)
         self.language_boost.setObjectName("language_boost")
         self.language_boost.setMinimumSize(QSize(0, 35))
@@ -66,7 +67,7 @@ class Ui_ttsapiform(object):
              'German', 'Turkish', 'Dutch', 'Ukrainian', 'Vietnamese', 'Indonesian', 'Japanese', 'Italian', 'Korean'])
 
         label_5 = QLabel(ttsapiform)
-        label_5.setText('情绪' if config.defaulelang == 'zh' else 'Emotion')
+        label_5.setText(tr("Emotion"))
         self.emotion = QtWidgets.QComboBox(ttsapiform)
         self.language_boost.setObjectName("emotion")
         self.emotion.setMinimumSize(QSize(0, 35))
@@ -100,7 +101,7 @@ class Ui_ttsapiform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/ttsapi'))
 
         h4.addWidget(self.save)
@@ -154,18 +155,18 @@ Expect data to be returned from the interface in json format:
     data:On successful synthesis, return the full url of the mp3 file for downloading within the software. When it fails, the url will be empty.
 }            
 """
-        ttsapiform.setWindowTitle("自定义TTS-API/无编码能力勿使用该功能" if config.defaulelang == 'zh' else "Customizing the TTS-API")
-        self.label_3.setText("密钥SK" if config.defaulelang == 'zh' else "SK")
+        ttsapiform.setWindowTitle(tr("Customizing the TTS-API"))
+        self.label_3.setText(tr("SK"))
         self.tips.setPlainText(tips)
         self.tips.setPlaceholderText("")
-        self.save.setText("保存" if config.defaulelang == 'zh' else "Save")
+        self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText(
-            "填写http开头的完整地址" if config.defaulelang == 'zh' else "Fill in the full address starting with http")
-        self.label.setText("自定义TTS API" if config.defaulelang == 'zh' else "Customizing TTS-API")
-        self.voice_role.setPlaceholderText("填写可用的配音角色名称，以英文逗号分隔多个" if config.defaulelang == 'zh' else "")
+            tr("Fill in the full address starting with http"))
+        self.label.setText(tr("Customizing TTS-API"))
+        self.voice_role.setPlaceholderText(tr("Fill in the available voice acting role names, separate multiple with English commas"))
         self.label_2.setText(
-            "配音角色名称" if config.defaulelang == 'zh' else "Fill in the names of the available voiceover characters, separating multiple ones with English commas")
+            tr("Fill in the names of the available voiceover characters, separating multiple ones with English commas"))
         self.extra.setPlaceholderText(
-            "填写通过extra键向api传递的额外参数，为空则传递pyvideotrans" if config.defaulelang == 'zh' else "Fill in the extra parameters passed to the api via the extra key, null to pass pyvideotrans")
-        self.test.setText("测试Api" if config.defaulelang == 'zh' else "Test API")
+            tr("Fill in the extra parameters passed to the api via the extra key, null to pass pyvideotrans"))
+        self.test.setText(tr("Test"))
     # retranslateUi

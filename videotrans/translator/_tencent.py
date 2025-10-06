@@ -34,7 +34,7 @@ class Tencent(BaseTrans):
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         cred = credential.Credential(config.params.get('tencent_SecretId', '').strip(),
-                                     config.params['tencent_SecretKey'])
+                                     config.params.get('tencent_SecretKey',''))
         # 实例化一个http选项，可选的，没有特殊需求可以跳过
         httpProfile = HttpProfile(proxy="")
         httpProfile.endpoint = "tmt.tencentcloudapi.com"
@@ -47,12 +47,12 @@ class Tencent(BaseTrans):
 
         reqdata = {
             "SourceText": "\n".join(data),
-            "Source": 'zh' if self.source_code.lower() == 'zh-cn' else self.source_code,
+            "Source": 'zh' if self.source_code.lower() == 'zh-cn' else (self.source_code or 'auto'),
             "Target": 'zh' if self.target_code.lower() == 'zh-cn' else self.target_code,
             "ProjectId": 0,
         }
-        if config.params['tencent_termlist']:
-            reqdata['TermRepoIDList'] = config.params['tencent_termlist'].split(',')
+        if config.params.get('tencent_termlist',''):
+            reqdata['TermRepoIDList'] = config.params.get('tencent_termlist','').split(',')
 
         req = models.TextTranslateRequest()
         config.logger.info(f'[腾讯]请求数据:{reqdata=}')

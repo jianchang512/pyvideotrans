@@ -2,7 +2,7 @@ def openwin():
     import json
 
     from PySide6 import QtWidgets
-
+    from videotrans.configure.config import tr
     from videotrans.configure import config
     # set chatgpt
     from videotrans.util import tools
@@ -15,15 +15,13 @@ def openwin():
         else:
             tools.show_error(d)
         winobj.test_openairecognapi.setText(
-            '测试' if config.defaulelang == 'zh' else 'Test')
+            tr("Test"))
 
     def test():
         key = winobj.openairecognapi_key.text()
         prompt = winobj.openairecognapi_prompt.text()
         url = winobj.openairecognapi_url.text().strip()
         url = url if url else 'https://api.openai.com/v1'
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
         model = winobj.openairecognapi_model.currentText()
@@ -32,7 +30,7 @@ def openwin():
         config.params["openairecognapi_url"] = url
         config.params["openairecognapi_model"] = model
         config.params["openairecognapi_prompt"] = prompt
-        winobj.test_openairecognapi.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test_openairecognapi.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.OPENAI_API)
         task.uito.connect(feed)
         task.start()
@@ -42,8 +40,6 @@ def openwin():
         prompt = winobj.openairecognapi_prompt.text()
         url = winobj.openairecognapi_url.text().strip()
         url = url if url else 'https://api.openai.com/v1'
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
 

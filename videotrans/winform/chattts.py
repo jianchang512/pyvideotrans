@@ -2,6 +2,7 @@ def openwin():
     import json
 
     from PySide6 import QtWidgets
+    from videotrans.configure.config import tr
 
     from videotrans.configure import config
     from videotrans.util import tools
@@ -11,17 +12,16 @@ def openwin():
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
             tools.show_error(d)
-        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test.setText(tr("Test"))
 
     def test():
 
         url = winobj.chattts_address.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
+
         if not url.startswith('http'):
             url = 'http://' + url
         config.params['chattts_api'] = url
-        winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText(tr("Testing..."))
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{"text": '你好啊我的朋友', "role": "boy1",
@@ -32,8 +32,6 @@ def openwin():
 
     def save():
         url = winobj.chattts_address.text().strip()
-        if tools.check_local_api(url) is not True:
-            return
         if not url.startswith('http'):
             url = 'http://' + url
         url = url.rstrip('/').replace('/tts', '')
@@ -51,10 +49,8 @@ def openwin():
     winobj = ChatttsForm()
     config.child_forms['chattts'] = winobj
 
-    if config.params["chattts_api"]:
-        winobj.chattts_address.setText(config.params["chattts_api"])
-    if config.settings["chattts_voice"]:
-        winobj.chattts_voice.setText(config.settings["chattts_voice"])
+    winobj.chattts_address.setText(config.params.get("chattts_api",''))
+    winobj.chattts_voice.setText(config.settings.get("chattts_voice",''))
     winobj.set_chattts.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

@@ -1,6 +1,5 @@
 import logging
 import sys
-import time
 from dataclasses import dataclass
 from typing import List, Dict
 from typing import Union
@@ -11,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -23,7 +23,7 @@ class TTSAPI(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        api_url = config.params['ttsapi_url'].strip().rstrip('/').lower()
+        api_url = config.params.get('ttsapi_url','').strip().rstrip('/').lower()
         if not api_url.startswith('http'):
             self.api_url = 'http://' + api_url
         else:
@@ -69,7 +69,7 @@ class TTSAPI(BaseTTS):
                     raise RuntimeError(f'TTS-API:{res["msg"]}' )
 
             if 'data' not in res or not res['data']:
-                raise RuntimeError( '未返回有效音频地址' if config.defaulelang == 'zh' else 'No valid audio address returned')
+                raise RuntimeError( tr("No valid audio address returned"))
             # 返回的是音频url地址
             tmp_filename = data_item['filename'] + ".mp3"
             if isinstance(res['data'], str) and res['data'].startswith('http'):
@@ -85,25 +85,20 @@ class TTSAPI(BaseTTS):
                 with open(tmp_filename, 'wb') as f:
                     f.write(bytes.fromhex(res['data']['audio']))
             else:
-                raise RuntimeError('未返回有效音频地址或音频base64数据' if config.defaulelang == 'zh' else 'No valid audio address or base64 audio data returned' )
+                raise RuntimeError(tr("No valid audio address or base64 audio data returned") )
             self.convert_to_wav(tmp_filename, data_item['filename'])
-
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.has_done += 1
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e
 
     def _apirequests(self, text, role, speed=1.0, volume=1.0, pitch=0):
         data = {"text": text.strip(),
                 "language": self.language[:2] if self.language else "",
-                "extra": config.params['ttsapi_extra'],
+                "extra": config.params.get('ttsapi_extra',''),
                 "voice": role,
                 "ostype": sys.platform,
                 "rate": speed}
@@ -188,7 +183,7 @@ Serene Woman:Serene_Woman
         }, ensure_ascii=False)
 
         headers = {
-            'Authorization': f"Bearer {config.params['ttsapi_extra']}",
+            'Authorization': f"Bearer {config.params.get('ttsapi_extra','')}",
             'Content-Type': 'application/json'
         }
 

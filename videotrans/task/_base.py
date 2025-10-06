@@ -1,27 +1,27 @@
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import List
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
+from videotrans.task.taskcfg import TaskCfg
 from videotrans.util import tools
 
 
 @dataclass
 class BaseTask(BaseCon):
-    inst: Optional[Any] = None
-    cfg: Dict = field(default=None, repr=False)
-    obj: Dict = field(default=None, repr=False)
-    uuid: str = None
+    # 各项配置信息，例如 翻译、配音、识别渠道等
+    cfg: TaskCfg = field(default_factory=TaskCfg, repr=False)
+    # 进度记录
     precent: int = 1
-    status_text: str = config.transobj['ing']
-    # 使用 field(default_factory=list) 来防止所有实例共享同一个列表
+    # 需要配音的原始字幕信息 List[dict]
     queue_tts: List = field(default_factory=list, repr=False)
     # 是否已结束
     hasend: bool = False
 
-    # 名字规范化处理后，应该删除的
-    shound_del_name: Any = None  # 保持原样
+    # 名字规范化处理后，应该删除的文件名字
+    shound_del_name: str = None
 
     # 是否需要语音识别
     shoud_recogn: bool = False
@@ -39,15 +39,11 @@ class BaseTask(BaseCon):
     shoud_hebing: bool = False
 
     def __post_init__(self):
-        # 调用父类的真实 __init__
         super().__post_init__()
-
-        if self.obj:
-            self.cfg.update(self.obj)
-
-        if "uuid" in self.cfg and self.cfg['uuid']:
-            self.uuid = self.cfg['uuid']
-
+        if self.cfg.uuid:
+            self.uuid = self.cfg.uuid
+        if self.cfg.clear_cache and Path(self.cfg.target_dir).is_dir():
+            shutil.rmtree(self.cfg.target_dir, ignore_errors=True)
     # 预先处理，例如从视频中拆分音频、人声背景分离、转码等
     def prepare(self):
         pass
@@ -84,10 +80,10 @@ class BaseTask(BaseCon):
             return False
         try:
             tools.get_subtitle_from_srt(file)
-        except:
+        except Exception:
             try:
                 Path(file).unlink(missing_ok=True)
-            except:
+            except OSError:
                 pass
             return False
         return True
@@ -100,7 +96,7 @@ class BaseTask(BaseCon):
         if p.exists() and p.stat().st_size == 0:
             try:
                 p.unlink(missing_ok=True)
-            except:
+            except OSError:
                 pass
 
     # 保存字幕文件 到目标文件夹
@@ -154,5 +150,6 @@ class BaseTask(BaseCon):
     # 完整流程判断是否需退出，子功能需重写
     def _exit(self):
         if config.exit_soft or config.current_status != 'ing':
+            self.hasend=True
             return True
         return False

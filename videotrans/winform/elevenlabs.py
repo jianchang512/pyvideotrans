@@ -2,7 +2,8 @@
 
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure._except import get_msg_from_except
+    from videotrans.configure.config import tr
+
 
     from videotrans.configure import config
     from videotrans.util import tools
@@ -12,7 +13,7 @@ def openwin():
             tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
-        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test.setText(tr("Test"))
 
     def save():
         key = winobj.elevenlabstts_key.text()
@@ -38,17 +39,16 @@ def openwin():
                              tts_type=tts.ELEVENLABS_TTS)
             wk.uito.connect(feed)
             wk.start()
-            winobj.test.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+            winobj.test.setText(tr("Testing..."))
         except Exception as e:
+            from videotrans.configure._except import get_msg_from_except
             tools.show_error(get_msg_from_except(e))
 
     from videotrans.component import ElevenlabsForm
     winobj = ElevenlabsForm()
     config.child_forms['elevenlabs'] = winobj
-    if config.params['elevenlabstts_key']:
-        winobj.elevenlabstts_key.setText(config.params['elevenlabstts_key'])
-    if config.params['elevenlabstts_models']:
-        winobj.elevenlabstts_models.setCurrentText(config.params['elevenlabstts_models'])
+    winobj.elevenlabstts_key.setText(config.params.get('elevenlabstts_key',''))
+    winobj.elevenlabstts_models.setCurrentText(config.params.get('elevenlabstts_models',''))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

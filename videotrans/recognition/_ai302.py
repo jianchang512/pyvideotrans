@@ -1,6 +1,6 @@
 # zh_recogn 识别
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict, Union
 
 import requests,time
@@ -17,7 +17,6 @@ RETRY_DELAY = 10
 
 @dataclass
 class AI302Recogn(BaseRecogn):
-    raws: List = field(init=False, default_factory=list)
 
     def __post_init__(self):
         super().__post_init__()

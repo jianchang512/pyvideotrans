@@ -8,6 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -37,14 +38,10 @@ class QwenMT(BaseTrans):
                     "content":text
                 }
             ]
-            try:
-                target_language=translator.LANG_CODE.get(self.target_code)[9]
-            except:
-                # 根据zh和非zh分别显示中文和英文
-                raise StopRetry( f"获取目标语言名字失败，请检查:{self.target_code=}" if config.defaulelang=='zh' else f'Failed to obtain the target language name, please check:{self.target_code=}')
+
             translation_options = {
                 "source_lang": "auto",
-                "target_lang": target_language
+                "target_lang": self.target_language_name
             }
             # 术语表
             term=tools.qwenmt_glossary()
@@ -67,11 +64,11 @@ class QwenMT(BaseTrans):
             return self.clean_srt(response.output.choices[0].message.content)
 
         target_language=translator.LANG_CODE.get(self.target_code)[8]
-        self.prompt = tools.get_prompt(ainame='bailian', is_srt=self.is_srt).replace('{lang}', target_language)
+        self.prompt = tools.get_prompt(ainame='bailian',aisendsrt=self.aisendsrt).replace('{lang}', target_language)
         message = [
             {
                 'role': 'system',
-                'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
+                'content': tr("You are a top-notch subtitle translation engine.")},
             {
                 'role': 'user',
                 'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},

@@ -1,7 +1,9 @@
 import time
 from PySide6.QtCore import QThread
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.task._base import BaseTask
+from videotrans.util import tools
 from videotrans.util.tools import set_process
 import traceback
 
@@ -42,6 +44,7 @@ trans_queue
 dubb_queue
 align_queue
 assemb_queue
+taskdone_queue
 """
 
 
@@ -59,12 +62,11 @@ class WorkerPrepare(QThread):
                 continue
             try:
                 trk: BaseTask = config.prepare_queue.pop(0)
-            except:
+            except IndexError:
                 continue
             if task_is_stop(trk.uuid):
                 continue
             try:
-
                 trk.prepare()
                 # 如果需要识别，则插入 recogn_queue队列，否则继续判断翻译队列、配音队列，都不吻合则插入最终队列
                 if trk.shoud_recogn:
@@ -73,14 +75,21 @@ class WorkerPrepare(QThread):
                     config.trans_queue.append(trk)
                 elif trk.shoud_dubbing:
                     config.dubb_queue.append(trk)
-                else:
+                elif trk.shoud_hebing:
                     config.assemb_queue.append(trk)
+                else:
+                    config.taskdone_queue.append(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 config.logger.exception(e, exc_info=True)
-                set_process(text=f'{config.transobj["yuchulichucuo"]}:{except_msg}:\n' + traceback.format_exc(),
+                set_process(text=f'{tr("yuchulichucuo")}:{except_msg}:\n' + traceback.format_exc(),
                             type='error', uuid=trk.uuid)
+                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+                try:
+                    del trk
+                except NameError:
+                    pass
 
 
 class WorkerRegcon(QThread):
@@ -106,16 +115,23 @@ class WorkerRegcon(QThread):
                     config.trans_queue.append(trk)
                 elif trk.shoud_dubbing:
                     config.dubb_queue.append(trk)
-                else:
+                elif trk.shoud_hebing:
                     config.assemb_queue.append(trk)
+                else:
+                    config.taskdone_queue.append(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 config.logger.exception(e, exc_info=True)
-                if trk.cfg.get('recogn_type') is not None:
-                    except_msg = f"[{get_recogn_type(trk.cfg.get('recogn_type'))}] {except_msg}"
-                set_process(text=f'{config.transobj["shibiechucuo"]}:{except_msg}:\n' + traceback.format_exc(),
+                if trk.cfg.recogn_type is not None:
+                    except_msg = f"[{get_recogn_type(trk.cfg.recogn_type)}] {except_msg}"
+                set_process(text=f'{tr("shibiechucuo")}:{except_msg}:\n' + traceback.format_exc(),
                             type='error', uuid=trk.uuid)
+                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+                try:
+                    del trk
+                except NameError:
+                    pass
 
 
 class WorkerTrans(QThread):
@@ -138,16 +154,23 @@ class WorkerTrans(QThread):
                 # 如果需要配音，则插入 dubb_queue 队列，否则插入最终队列
                 if trk.shoud_dubbing:
                     config.dubb_queue.append(trk)
-                else:
+                elif trk.shoud_hebing:
                     config.assemb_queue.append(trk)
+                else:
+                    config.taskdone_queue.append(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
-                if trk.cfg.get('translate_type') is not None:
-                    except_msg = f"[{get_tanslate_type(trk.cfg.get('translate_type'))}] {except_msg}"
-                msg = f'{config.transobj["fanyichucuo"]}:{except_msg}:\n' + traceback.format_exc()
+                if trk.cfg.translate_type is not None:
+                    except_msg = f"[{get_tanslate_type(trk.cfg.translate_type)}] {except_msg}"
+                msg = f'{tr("fanyichucuo")}:{except_msg}:\n' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
+                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+                try:
+                    del trk
+                except NameError:
+                    pass
 
 
 class WorkerDubb(QThread):
@@ -166,16 +189,22 @@ class WorkerDubb(QThread):
             if task_is_stop(trk.uuid):
                 continue
             try:
+                # 只要配音，就必须进入 同步对齐队列
                 trk.dubbing()
                 config.align_queue.append(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
-                if trk.cfg.get('tts_type') is not None:
-                    except_msg = f"[{get_tts_type(trk.cfg.get('tts_type'))}] {except_msg}"
-                msg = f'{config.transobj["peiyinchucuo"]}:{except_msg}:\n' + traceback.format_exc()
+                if trk.cfg.tts_type is not None:
+                    except_msg = f"[{get_tts_type(trk.cfg.tts_type)}] {except_msg}"
+                msg = f'{tr("peiyinchucuo")}:{except_msg}:\n' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
+                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+                try:
+                    del trk
+                except NameError:
+                    pass
 
 
 class WorkerAlign(QThread):
@@ -195,20 +224,28 @@ class WorkerAlign(QThread):
                 continue
             try:
                 trk.align()
+                if trk.shoud_hebing:
+                    config.assemb_queue.append(trk)
+                else:
+                    config.taskdone_queue.append(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
-                msg = f'{config.transobj["peiyinchucuo"]}:{except_msg}:\n' + traceback.format_exc()
+                msg = f'{except_msg}:\n' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
-            else:
-                config.assemb_queue.append(trk)
+                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+                try:
+                    del trk
+                except NameError:
+                    pass
+
 
 
 class WorkerAssemb(QThread):
     def __init__(self):
         super().__init__()
-        self.name = "OutVideo"
+        self.name = "AssembVideoAudioSrt"
 
     def run(self) -> None:
         while 1:
@@ -219,24 +256,53 @@ class WorkerAssemb(QThread):
                 continue
             trk = config.assemb_queue.pop(0)
             if task_is_stop(trk.uuid):
-                try:
-                    del trk
-                except:
-                    pass
                 continue
             try:
                 trk.assembling()
+                config.taskdone_queue.append(trk)
+            except Exception as e:
+                from videotrans.configure._except import get_msg_from_except
+                except_msg = get_msg_from_except(e)
+                msg = f'{tr("hebingchucuo")}:{except_msg}:\n' + traceback.format_exc()
+                config.logger.exception(e, exc_info=True)
+                set_process(text=msg, type='error', uuid=trk.uuid)
+                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+                try:
+                    del trk
+                except NameError:
+                    pass
+
+
+class WorkerTaskDone(QThread):
+    def __init__(self):
+        super().__init__()
+        self.name = "TaskDone"
+
+    def run(self) -> None:
+        while 1:
+            if config.exit_soft:
+                return
+            if len(config.taskdone_queue) < 1:
+                time.sleep(0.1)
+                continue
+            trk = config.taskdone_queue.pop(0)
+            if task_is_stop(trk.uuid):
+                continue
+            try:
                 trk.task_done()
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
-                msg = f'{config.transobj["hebingchucuo"]}:{except_msg}:\n' + traceback.format_exc()
+                msg = f'{except_msg}:\n' + traceback.format_exc()
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
+                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+            else:
+                tools.send_notification(tr('Succeed'), f"{trk.cfg.basename}")
             finally:
                 try:
                     del trk
-                except:
+                except NameError:
                     pass
 
 
@@ -247,7 +313,8 @@ def start_thread():
         WorkerTrans(),
         WorkerDubb(),
         WorkerAlign(),
-        WorkerAssemb()
+        WorkerAssemb(),
+        WorkerTaskDone(),
     ]
     for worker in workers:
         worker.start()

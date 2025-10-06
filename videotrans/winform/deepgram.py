@@ -1,6 +1,6 @@
 def openwin():
     from PySide6 import QtWidgets
-
+    from videotrans.configure.config import tr
     from videotrans import recognition
     from videotrans.configure import config
     from videotrans.util import tools
@@ -10,18 +10,18 @@ def openwin():
             QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
         else:
             tools.show_error(d)
-        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test.setText(tr("Test"))
 
     def test():
         apikey = winobj.apikey.text().strip()
         utt = winobj.utt.text().strip()
         if not apikey:
-            tools.show_error('必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key')
+            tools.show_error(tr("Must fill in the API Key"))
             return
         config.params["deepgram_apikey"] = apikey
         config.params["deepgram_utt"] = 200 if utt else 200
         config.getset_params(config.params)
-        winobj.test.setText('测试...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.Deepgram, model_name="whisper-large")
         task.uito.connect(feed)
         task.start()
@@ -30,7 +30,7 @@ def openwin():
         apikey = winobj.apikey.text().strip()
         utt = winobj.utt.text().strip()
         if not apikey:
-            tools.show_error('必须填写 API Key' if config.defaulelang == 'zh' else 'Must fill in the API Key')
+            tools.show_error(tr("Must fill in the API Key"))
             return
 
         config.params["deepgram_apikey"] = apikey
@@ -41,10 +41,8 @@ def openwin():
     from videotrans.component import DeepgramForm
     winobj = DeepgramForm()
     config.child_forms['deepgram'] = winobj
-    if config.params["deepgram_apikey"]:
-        winobj.apikey.setText(config.params["deepgram_apikey"])
-    if config.params["deepgram_utt"]:
-        winobj.utt.setText(str(config.params["deepgram_utt"]))
+    winobj.apikey.setText(config.params.get("deepgram_apikey",''))
+    winobj.utt.setText(str(config.params.get("deepgram_utt",'')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

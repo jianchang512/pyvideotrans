@@ -32,7 +32,7 @@ class Baidu(BaseTrans):
         if self._exit(): return
         text = "\n".join(data)
         salt = int(time.time())
-        strtext = f"{config.params['baidu_appid']}{text}{salt}{config.params['baidu_miyue']}"
+        strtext = f"{config.params.get('baidu_appid','')}{text}{salt}{config.params.get('baidu_miyue','')}"
         md5 = hashlib.md5()
         md5.update(strtext.encode('utf-8'))
         sign = md5.hexdigest()
@@ -41,7 +41,7 @@ class Baidu(BaseTrans):
             tocode = 'cht'
         elif tocode.lower() == 'zh-cn':
             tocode = 'zh'
-        requrl = f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={tocode}&appid={config.params['baidu_appid']}&salt={salt}&sign={sign}"
+        requrl = f"http://api.fanyi.baidu.com/api/trans/vip/translate?q={text}&from=auto&to={tocode}&appid={config.params.get('baidu_appid','')}&salt={salt}&sign={sign}"
 
         config.logger.info(f'[Baidu]请求数据:{requrl=}')
         resraw = requests.get(requrl)

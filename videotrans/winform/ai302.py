@@ -1,7 +1,9 @@
+
+
 def openwin():
+    from videotrans.configure.config import tr
     import json
     import webbrowser
-    from pathlib import Path
 
     from PySide6 import QtWidgets
 
@@ -15,18 +17,16 @@ def openwin():
             tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
-        winobj.test_ai302.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test_ai302.setText(tr("Test"))
 
     def test():
         key = winobj.ai302_key.text()
         model = winobj.ai302_model.currentText()
-        template = winobj.ai302_template.toPlainText()
 
         config.params["ai302_key"] = key
         config.params["ai302_model"] = model
-        config.params["ai302_template"] = template
 
-        winobj.test_ai302.setText('测试中请稍等...' if config.defaulelang == 'zh' else 'Testing...')
+        winobj.test_ai302.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.AI302_INDEX)
         task.uito.connect(feed)
         task.start()
@@ -34,15 +34,10 @@ def openwin():
     def save_ai302():
         key = winobj.ai302_key.text()
         model = winobj.ai302_model.currentText()
-        template = winobj.ai302_template.toPlainText()
 
         config.params["ai302_key"] = key
         config.params["ai302_model"] = model
-        config.params["ai302_template"] = template
 
-        with Path(tools.get_prompt_file('ai302')).open('w', encoding='utf-8') as f:
-            f.write(template)
-            f.flush()
         config.getset_params(config.params)
         winobj.close()
 
@@ -61,7 +56,6 @@ def openwin():
 
     from videotrans.component import AI302Form
 
-    config.params["ai302_template"] = tools.get_prompt('ai302')
 
     winobj = AI302Form()
     config.child_forms['ai302'] = winobj

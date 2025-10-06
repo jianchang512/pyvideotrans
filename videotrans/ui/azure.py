@@ -5,6 +5,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -79,7 +80,7 @@ class Ui_azureform(object):
         self.label_allmodels.setGeometry(QtCore.QRect(10, 200, 571, 21))
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
-            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+            tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
         v1.addWidget(self.label_allmodels)
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit()
@@ -91,6 +92,7 @@ class Ui_azureform(object):
         self.label_4.setObjectName("label_4")
         self.azure_template = QtWidgets.QPlainTextEdit()
         self.azure_template.setObjectName("azure_template")
+        self.azure_template.setReadOnly(True)
         v1.addWidget(self.label_4)
         v1.addWidget(self.azure_template)
 
@@ -103,7 +105,7 @@ class Ui_azureform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/azure'))
 
         h5 = QtWidgets.QHBoxLayout()
@@ -111,37 +113,31 @@ class Ui_azureform(object):
         h5.addWidget(help_btn)
 
         v1.addLayout(h5)
+        self.azure_template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'azure' if config.defaulelang=='zh' else 'azure-en')))
 
         self.retranslateUi(azureform)
         QtCore.QMetaObject.connectSlotsByName(azureform)
     def update_ui(self):
         from videotrans.configure import config
         config.settings = config.parse_init()
-        allmodels_str = config.settings['azure_model']
-        allmodels = config.settings['azure_model'].split(',')
+        allmodels_str = config.settings.get('azure_model','')
+        allmodels = config.settings.get('azure_model','').split(',')
         self.azure_model.clear()
         self.azure_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-
-        if config.params["azure_key"]:
-            self.azure_key.setText(config.params["azure_key"])
-        if config.params["azure_api"]:
-            self.azure_api.setText(config.params["azure_api"])
-        if config.params["azure_version"]:
-            self.azure_version.setCurrentText(config.params["azure_version"])
-        if config.params["azure_model"] and config.params['azure_model'] in allmodels:
-            self.azure_model.setCurrentText(config.params["azure_model"])
-        if config.params["azure_template"]:
-            self.azure_template.setPlainText(config.params["azure_template"])
+        self.azure_key.setText(config.params.get("azure_key",''))
+        self.azure_api.setText(config.params.get("azure_api",''))
+        self.azure_version.setCurrentText(config.params.get("azure_version",''))
+        if config.params.get('azure_model','') in allmodels:
+            self.azure_model.setCurrentText(config.params.get("azure_model",''))
     def retranslateUi(self, azureform):
         azureform.setWindowTitle("AzureGPT")
-        self.label_3.setText("Azure Model")
+        self.label_3.setText(tr("Model"))
         self.label_version.setText("API Version")
-        self.azure_template.setPlaceholderText("prompt")
         self.label_4.setText(
-            "{lang}代表目标语言名称，不要删除。" if config.defaulelang == 'zh' else "{lang} represents the target language name, do not delete it.")
-        self.set_azure.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.azure_api.setPlaceholderText('填写你的api地址' if config.defaulelang == 'zh' else "Api url")
-        self.azure_key.setPlaceholderText('填写你的密钥' if config.defaulelang == 'zh' else "Secret key")
-        self.label.setText("API URL")
-        self.label_2.setText("Azure  Key ")
+            tr("{lang} represents the target language name, do not delete it."))
+        self.set_azure.setText(tr("Save"))
+        self.azure_api.setPlaceholderText(tr("API URL"))
+        self.azure_key.setPlaceholderText(tr("SK"))
+        self.label.setText(tr("API URL"))
+        self.label_2.setText(tr("SK"))

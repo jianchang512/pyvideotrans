@@ -2,8 +2,8 @@
 import logging
 import os
 import re
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Union
+from dataclasses import dataclass
+from typing import List, Dict,  Union
 
 import httpx
 import zhconv
@@ -17,6 +17,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -26,19 +27,9 @@ RETRY_DELAY = 10
 
 @dataclass
 class DeepgramRecogn(BaseRecogn):
-    raws: List[Any] = field(default_factory=list, init=False)
-    zimu_len: int = field(init=False)
-    join_flag: str = field(init=False)
 
     def __post_init__(self):
         super().__post_init__()
-        self.raws = []
-        if self.detect_language and self.detect_language[:2] in ['zh', 'ja', 'ko', 'yu']:
-            self.zimu_len = int(config.settings.get('cjk_len'))
-            self.join_flag = ''
-        else:
-            self.zimu_len = int(config.settings.get('other_len'))
-            self.join_flag = ' '
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
@@ -54,7 +45,7 @@ class DeepgramRecogn(BaseRecogn):
         with open(self.audio_file, "rb") as file:
             buffer_data = file.read()
         self._signal(
-            text=f"识别可能较久，请耐心等待" if config.defaulelang == 'zh' else 'Recognition may take a while, please be patient')
+            text=tr("Recognition may take a while, please be patient"))
 
         httpx.HTTPTransport(proxy=self.proxy_str)
 

@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPlainTextEdit
 
 from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -92,7 +93,7 @@ class Ui_recognapiform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/recognapi'))
 
         self.ask = QPlainTextEdit(recognapiform)
@@ -113,10 +114,10 @@ class Ui_recognapiform(object):
         QtCore.QMetaObject.connectSlotsByName(recognapiform)
 
     def retranslateUi(self, recognapiform):
-        recognapiform.setWindowTitle("自定义语音识别API" if config.defaulelang == 'zh' else 'Custom Speech Recognition API')
+        recognapiform.setWindowTitle(tr("Custom Speech Recognition API"))
 
-        self.label.setText('API' if config.defaulelang == 'zh' else 'API')
-        self.labelkey.setText('密钥密码等' if config.defaulelang == 'zh' else 'Password/Token')
+        self.label.setText(tr("API"))
+        self.labelkey.setText(tr("Password/Token"))
         tips = """
         请求发送：以二进制形式发送键名为 audio 的wav格式音频数据，采样率为16k、通道为1
         
@@ -177,5 +178,5 @@ class Ui_recognapiform(object):
             '''
         self.ask.setPlainText(tips)
         self.recognapiform_address.setPlaceholderText('http api')
-        self.set.setText('保存' if config.defaulelang == 'zh' else 'Save')
-        self.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        self.set.setText(tr("Save"))
+        self.test.setText(tr("Test"))

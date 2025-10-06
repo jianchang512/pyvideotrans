@@ -3,8 +3,7 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -39,8 +38,6 @@ class Ui_azurettsform(object):
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.speech_region = QtWidgets.QLineEdit(azurettsform)
-        self.speech_region.setPlaceholderText(
-            "如果不知怎么填请留空" if config.defaulelang == 'zh' else "Leave blank if you don't know how to fill in")
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -159,7 +156,7 @@ class Ui_azurettsform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/azuretts'))
 
         hv = QtWidgets.QHBoxLayout()
@@ -174,8 +171,8 @@ class Ui_azurettsform(object):
 
     def retranslateUi(self, azurettsform):
         azurettsform.setWindowTitle("AzureTTS")
-        self.label.setText("自定义区域URL" if config.defaulelang == 'zh' else "Your SPEECH REGION")
-        self.label22.setText("授权key" if config.defaulelang == 'zh' else "SPEECH_KEY")
-        self.label222.setText("选择区域" if config.defaulelang == 'zh' else "REGION")
-        self.save.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
+        self.label.setText(tr("Your SPEECH REGION"))
+        self.label22.setText(tr("SPEECH_KEY"))
+        self.label222.setText(tr("REGION"))
+        self.save.setText(tr("Save"))
+        self.test.setText(tr("Test"))

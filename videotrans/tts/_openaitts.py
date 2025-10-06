@@ -1,4 +1,3 @@
-import copy
 import logging
 import re
 from dataclasses import dataclass
@@ -22,8 +21,7 @@ class OPENAITTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
 
-        self.copydata = copy.deepcopy(self.queue_tts)
-        self.api_url = self._get_url(config.params['openaitts_api'])
+        self.api_url = self._get_url(config.params.get('openaitts_api',''))
         self._add_internal_host_noproxy(self.api_url)
 
 
@@ -52,7 +50,7 @@ class OPENAITTS(BaseTTS):
             client = OpenAI(api_key=config.params.get('openaitts_key', ''), base_url=self.api_url,
                             http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
             with client.audio.speech.with_streaming_response.create(
-                    model=config.params['openaitts_model'],
+                    model=config.params.get('openaitts_model',''),
                     voice=role,
                     input=data_item['text'],
                     timeout=7200,
@@ -63,15 +61,11 @@ class OPENAITTS(BaseTTS):
                     for chunk in response.iter_bytes():
                         f.write(chunk)
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.has_done += 1
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e
 

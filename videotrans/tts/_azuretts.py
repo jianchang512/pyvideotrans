@@ -33,8 +33,8 @@ class AzureTTS(BaseTTS):
             filename = config.TEMP_DIR + f"/azure_tts_{time.time()}.wav"
 
             speech_config = speechsdk.SpeechConfig(
-                subscription=config.params['azure_speech_key'],
-                region=config.params['azure_speech_region']
+                subscription=config.params.get('azure_speech_key',''),
+                region=config.params.get('azure_speech_region','')
             )
             speech_config.set_speech_synthesis_output_format(
                 speechsdk.SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm)
@@ -71,14 +71,10 @@ class AzureTTS(BaseTTS):
             speech_synthesis_result = speech_synthesizer.speak_ssml_async(ssml).get()
             if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                 if len(items) == 1:
-                    self.has_done += 1
-                    if self.inst and self.inst.precent < 80:
-                        self.inst.precent += 0.1
                     if tools.vail_file(filename):
                         self.convert_to_wav(filename, items[0]['filename'])
                     else:
                         raise RuntimeError('TTS error')
-                    self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                     return
                 length = len(bookmarks)
                 for i, it in enumerate(bookmarks):
@@ -99,10 +95,6 @@ class AzureTTS(BaseTTS):
 
                     cmd += ["-ar", "44100", "-ac", "2", "-c:a", "pcm_s16le", items[i]['filename']]
                     tools.runffmpeg(cmd)
-                    self.has_done += 1
-                    if self.inst and self.inst.precent < 80:
-                        self.inst.precent += 0.1
-                    self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
                 return
 
             if speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
@@ -116,7 +108,7 @@ class AzureTTS(BaseTTS):
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error=e.last_attempt.exception()
         except Exception as e:
             self.error=e
 
@@ -132,8 +124,8 @@ class AzureTTS(BaseTTS):
             filename = data_item['filename'] + f"-generate.wav"
 
             speech_config = speechsdk.SpeechConfig(
-                subscription=config.params['azure_speech_key'],
-                region=config.params['azure_speech_region']
+                subscription=config.params.get('azure_speech_key',''),
+                region=config.params.get('azure_speech_region','')
             )
             speech_config.set_speech_synthesis_output_format(
                 speechsdk.SpeechSynthesisOutputFormat.Riff48Khz16BitMonoPcm)
@@ -153,15 +145,10 @@ class AzureTTS(BaseTTS):
             config.logger.info(f'{ssml=}')
             speech_synthesis_result = speech_synthesizer.speak_ssml_async(ssml).get()
             if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-                self.has_done += 1
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
                 if tools.vail_file(filename):
                     self.convert_to_wav(filename, data_item['filename'])
                 else:
                     raise RuntimeError('TTS Error')
-                self.has_done += 1
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}')
                 return
             if speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
                 cancellation_details = speech_synthesis_result.cancellation_details
@@ -174,9 +161,11 @@ class AzureTTS(BaseTTS):
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
+            print(f'#####{e}')
         except Exception as e:
             self.error=e
+            print(f'==={e}')
 
     # 鼠标不重试，直接报错停止
     def _exec(self) -> None:

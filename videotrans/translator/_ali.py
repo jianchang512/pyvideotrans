@@ -31,8 +31,8 @@ class Ali(BaseTrans):
         @throws Exception
         """
         cf = open_api_models.Config(
-            access_key_id=config.params['ali_id'],
-            access_key_secret=config.params['ali_key']
+            access_key_id=config.params.get('ali_id',''),
+            access_key_secret=config.params.get('ali_key','')
         )
         # Endpoint 请参考 https://api.aliyun.com/product/alimt
         cf.endpoint = f'mt.cn-hangzhou.aliyuncs.com'

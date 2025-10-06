@@ -44,7 +44,7 @@ class ElevenLabsC(BaseTTS):
                 jsondata=json.loads(f.read())
 
             client = ElevenLabs(
-                api_key=config.params['elevenlabstts_key'],
+                api_key=config.params.get('elevenlabstts_key',''),
                 httpx_client=httpx.Client(proxy=self.proxy_str)
             )
 
@@ -69,16 +69,11 @@ class ElevenLabsC(BaseTTS):
                     if chunk:
                         f.write(chunk)
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self.has_done += 1
-
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e
 
@@ -96,7 +91,7 @@ class ElevenLabsClone:
         self.source_language = source_language
         self.target_language = target_language
         self.client = ElevenLabs(
-            api_key=config.params['elevenlabstts_key'],
+            api_key=config.params.get('elevenlabstts_key',''),
             httpx_client=httpx.Client(proxy=proxy_str)
         )
 

@@ -3,8 +3,7 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-
-from videotrans.configure import config
+from videotrans.configure.config import tr
 
 
 class Ui_subtitlescover(object):
@@ -12,13 +11,7 @@ class Ui_subtitlescover(object):
         self.subtitlefiles = []
         self.has_done = False
         subtitlescover.setObjectName("subtitlescover")
-        subtitlescover.setWindowModality(QtCore.Qt.NonModal)
-        subtitlescover.resize(800, 400)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(subtitlescover.sizePolicy().hasHeightForWidth())
-        subtitlescover.setSizePolicy(sizePolicy)
+        subtitlescover.setMinimumSize(800, 400)
 
         v1 = QtWidgets.QVBoxLayout(subtitlescover)
 
@@ -26,12 +19,12 @@ class Ui_subtitlescover(object):
         self.formLayout_2.setObjectName("formLayout_2")
         self.formLayout_2.setAlignment(QtCore.Qt.AlignVCenter)
 
-        self.selectbtn = QtWidgets.QPushButton(subtitlescover)
+        self.selectbtn = QtWidgets.QPushButton()
         self.selectbtn.setMinimumSize(QtCore.QSize(150, 35))
         self.selectbtn.setObjectName("selectbtn")
         self.selectbtn.setCursor(Qt.PointingHandCursor)
 
-        self.pathdir = QtWidgets.QLineEdit(subtitlescover)
+        self.pathdir = QtWidgets.QLineEdit()
         self.pathdir.setMinimumSize(QtCore.QSize(0, 35))
         self.pathdir.setObjectName("pathdir")
         self.pathdir.setReadOnly(True)
@@ -45,11 +38,11 @@ class Ui_subtitlescover(object):
         self.formLayout_3.setAlignment(QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
 
-        self.labelformat = QtWidgets.QLabel(subtitlescover)
+        self.labelformat = QtWidgets.QLabel()
         self.labelformat.setMinimumSize(QtCore.QSize(0, 35))
         self.labelformat.setObjectName("label")
 
-        self.formatlist = QtWidgets.QComboBox(subtitlescover)
+        self.formatlist = QtWidgets.QComboBox()
         self.formatlist.setFixedHeight(40)
         self.formatlist.setFixedWidth(320)
         self.formatlist.setObjectName("formatlist")
@@ -65,12 +58,12 @@ class Ui_subtitlescover(object):
         self.formLayout_3.addWidget(self.formatlist)
         v1.addLayout(self.formLayout_3)
 
-        self.startbtn = QtWidgets.QPushButton(subtitlescover)
+        self.startbtn = QtWidgets.QPushButton()
         self.startbtn.setMinimumSize(QtCore.QSize(200, 35))
         self.startbtn.setObjectName("startbtn")
         self.startbtn.setCursor(Qt.PointingHandCursor)
 
-        self.opendir = QtWidgets.QPushButton(subtitlescover)
+        self.opendir = QtWidgets.QPushButton()
         self.opendir.setMinimumSize(QtCore.QSize(0, 35))
         self.opendir.setStyleSheet('''background-color:transparent''')
         self.opendir.setObjectName("opendir")
@@ -92,20 +85,20 @@ class Ui_subtitlescover(object):
         v1.addStretch()
         v1.addLayout(self.opendir_layout)
 
-        self.retranslateUi(subtitlescover)
+        subtitlescover.setWindowTitle(
+            tr("Convert subtitles between SRT/ASS/VTT/TXT formats"))
+        self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(subtitlescover)
 
-    def retranslateUi(self, subtitlescover):
-        subtitlescover.setWindowTitle(
-            '将字幕在 SRT/ASS/VTT/TXT 格式间互相转换' if config.defaulelang == 'zh' else 'Convert subtitles between SRT/ASS/VTT/TXT formats')
+    def retranslateUi(self):
 
         self.selectbtn.setText(
-            '选择要转换的字幕/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')
+            tr("Select files to be converted/multiple selections possible"))
 
-        self.labelformat.setText('要转换到的格式' if config.defaulelang == 'zh' else 'Target format')
+        self.labelformat.setText(tr("Target format"))
 
         self.pathdir.setPlaceholderText(
-            '选择要转换的字幕/可多选' if config.defaulelang == 'zh' else 'Select files to be converted/multiple selections possible')
+            tr("Select files to be converted/multiple selections possible"))
 
-        self.startbtn.setText('开始转换' if config.defaulelang == 'zh' else 'Start')
-        self.opendir.setText('打开结果目录' if config.defaulelang == 'zh' else 'Open the results catalog')
+        self.startbtn.setText(tr("Start"))
+        self.opendir.setText(tr("Open the results catalog"))

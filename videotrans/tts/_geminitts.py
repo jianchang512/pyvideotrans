@@ -1,12 +1,10 @@
 import logging
 import mimetypes
 import struct
-import time
 from dataclasses import dataclass
 
 from google import genai
 from google.genai import types
-from google.genai.errors import APIError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
     RetryError
 
@@ -46,21 +44,10 @@ class GEMINITTS(BaseTTS):
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
             try:
-                self.generate_tts_segment(data_item['text'], role, config.params['gemini_ttsmodel'],
+                self.generate_tts_segment(data_item['text'], role, config.params.get('gemini_ttsmodel',''),
                                           data_item['filename'] + '.wav')
                 self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
-                self.has_done += 1
-                self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
-            except APIError as e:
-                config.logger.exception(e, exc_info=True)
-                if e.code in [429, 500]:
-                    self._signal(text=f"{data_item.get('line', '')}  {e.message}")
-                    time.sleep(self.wait_sec)
-                else:
-                    raise
             except Exception as e:
                 config.logger.exception(e, exc_info=True)
                 raise
@@ -68,7 +55,7 @@ class GEMINITTS(BaseTTS):
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e
 

@@ -1,7 +1,6 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -82,7 +81,7 @@ class Ui_tencentform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/tencent'))
 
         h1.addWidget(self.set_tencent)
@@ -98,5 +97,5 @@ class Ui_tencentform(object):
         self.label_term.setText("术语库id")
         self.tencent_term.setPlaceholderText("术语库id,多个以英文逗号隔开")
         self.label_2.setText("SecretKey")
-        self.set_tencent.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
+        self.set_tencent.setText(tr("Save"))
+        self.test.setText(tr("Test"))

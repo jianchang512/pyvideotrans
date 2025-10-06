@@ -9,6 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -28,7 +29,7 @@ class DeepSeek(BaseTrans):
         self.model_name = config.params.get('deepseek_model', "deepseek-chat")
         self.api_url = 'https://api.deepseek.com/v1/'
 
-        self.prompt = tools.get_prompt(ainame='deepseek', is_srt=self.is_srt).replace('{lang}',
+        self.prompt = tools.get_prompt(ainame='deepseek',aisendsrt=self.aisendsrt).replace('{lang}',
                                                                                       self.target_language_name)
         self.api_key = config.params.get('deepseek_key', '')
 
@@ -41,7 +42,7 @@ class DeepSeek(BaseTrans):
         message = [
             {
                 'role': 'system',
-                'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
+                'content': tr("You are a top-notch subtitle translation engine.")},
             {
                 'role': 'user',
                 'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},

@@ -12,6 +12,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -26,14 +27,14 @@ class ChatGPT(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.api_url = self._get_url(config.params['chatgpt_api'])
+        self.api_url = self._get_url(config.params.get('chatgpt_api',''))
         self._add_internal_host_noproxy(self.api_url)
-        self.model_name = config.params["chatgpt_model"]
+        self.model_name = config.params.get("chatgpt_model",'')
 
-        self.prompt = tools.get_prompt(ainame='chatgpt', is_srt=self.is_srt).replace('{lang}',  self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='chatgpt',aisendsrt=self.aisendsrt).replace('{lang}',  self.target_language_name)
 
 
-    def llm_segment(self, words_all, inst=None, ai_type='openai'):
+    def llm_segment(self, words_all, ai_type='openai'):
         config.logger.info('llm_segment:self._exit()=' + str(self._exit()))
         # if self._exit(): return
         # 以2000个字或单词分成一批
@@ -55,29 +56,21 @@ class ChatGPT(BaseTrans):
             ]
             config.logger.info(f'需要断句的:{message=}')
 
-            api_key = config.params['chatgpt_key'] if ai_type == 'openai' else config.params['deepseek_key']
-            model_name = config.params['chatgpt_model'] if ai_type == 'openai' else config.params['deepseek_model']
+            api_key = config.params.get('chatgpt_key','') if ai_type == 'openai' else config.params.get('deepseek_key','')
+            model_name = config.params.get('chatgpt_model','') if ai_type == 'openai' else config.params.get('deepseek_model','')
             api_url = self._get_url(
-                config.params['chatgpt_api']) if ai_type == 'openai' else 'https://api.deepseek.com/v1'
+                config.params.get('chatgpt_api','')) if ai_type == 'openai' else 'https://api.deepseek.com/v1'
 
             model = OpenAI(api_key=api_key, base_url=api_url, http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
 
-            msg = f'第{batch_num}批次 LLM断句，每批次 {chunk_size} 个字或单词' if config.defaulelang == 'zh' else f'Start sending {batch_num} batches of LLM segments, {chunk_size} words per batch'
-            config.logger.info(msg)
-            if inst:
-                inst.status_text = msg
-                self._signal(text=msg)
+            config.logger.info(f'第{batch_num}批次 LLM断句，每批次 {chunk_size} 个字或单词')
             response = model.chat.completions.create(
                 model=model_name,
                 max_completion_tokens=max(int(config.params.get('chatgpt_max_token', 8192)), 8192),
                 messages=message,
                 response_format={"type": "json_object"}
             )
-            msg = f'第{batch_num}批次 LLM断句 完成' if config.defaulelang == 'zh' else f'Ended  {batch_num} batches of LLM segments'
-            config.logger.info(msg)
-            if inst:
-                inst.status_text = msg
-                self._signal(text=msg)
+            config.logger.info(f'第{batch_num}批次 LLM断句 完成')
 
             if not hasattr(response, 'choices') or not response.choices:
                 config.logger.error(f'[LLM re-segments]第{batch_num}批次重新断句失败:{response=}')
@@ -106,8 +99,10 @@ class ChatGPT(BaseTrans):
             sub_list = _send(words_all[idx: idx + chunk_size], order_num)
             config.logger.info(f'LLM断句结果:{sub_list=}')
             for i, s in enumerate(sub_list):
-                tmp = {'startraw': tools.ms_to_time_string(ms=s["start"] * 1000),
-                       'endraw': tools.ms_to_time_string(ms=s["end"] * 1000)}
+                tmp = {
+                    'startraw': tools.ms_to_time_string(ms=s["start"] * 1000),
+                    'endraw': tools.ms_to_time_string(ms=s["end"] * 1000)
+                }
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
                 tmp['text'] = s['text'].strip()
                 tmp['line'] = i + 1
@@ -143,17 +138,17 @@ class ChatGPT(BaseTrans):
         message = [
             {
                 'role': 'system',
-                'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
+                'content': tr("You are a top-notch subtitle translation engine.")},
             {
                 'role': 'user',
                 'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
         ]
 
         config.logger.info(f"\n[chatGPT]发送请求数据:{message=}")
-        model = OpenAI(api_key=config.params['chatgpt_key'], base_url=self.api_url,
+        model = OpenAI(api_key=config.params.get('chatgpt_key',''), base_url=self.api_url,
                        http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         response = model.chat.completions.create(
-            model=config.params['chatgpt_model'],
+            model=config.params.get('chatgpt_model',''),
             timeout=7200,
             max_completion_tokens=int(config.params.get('chatgpt_max_token', 8192)),
             messages=message

@@ -9,6 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -24,9 +25,9 @@ class HuoShan(BaseTrans):
         super().__post_init__()
 
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.model_name = config.params["zijiehuoshan_model"]
+        self.model_name = config.params.get("zijiehuoshan_model",'')
 
-        self.prompt = tools.get_prompt(ainame='zijie', is_srt=self.is_srt).replace('{lang}', self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='zijie',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -36,20 +37,20 @@ class HuoShan(BaseTrans):
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         message = [
             {'role': 'system',
-             'content': "You are a top-notch subtitle translation engine." if config.defaulelang != 'zh' else '您是一名顶级的字幕翻译引擎。'},
+             'content': tr("You are a top-notch subtitle translation engine.")},
             {'role': 'user',
              'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
         ]
-        config.logger.info(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{config.params['zijiehuoshan_model']}")
+        config.logger.info(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{config.params.get('zijiehuoshan_model','')}")
 
         req = {
-            "model": config.params['zijiehuoshan_model'],
+            "model": config.params.get('zijiehuoshan_model',''),
             "messages": message
         }
         resp = requests.post("https://ark.cn-beijing.volces.com/api/v3/chat/completions", json=req, headers={
                 "Accept": "application/json",
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {config.params['zijiehuoshan_key']}"
+                "Authorization": f"Bearer {config.params.get('zijiehuoshan_key','')}"
             })
         resp.raise_for_status()
         config.logger.info(f'[字节火山引擎]响应:{resp.text=}')

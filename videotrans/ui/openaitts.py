@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -26,7 +26,7 @@ class Ui_openaittsform(object):
         self.label_0 = QtWidgets.QLabel(openaittsform)
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setText(
-            'OpenAI官方接口无需填写' if config.defaulelang == 'zh' else 'AIs compatible with the ChatGPT also used here')
+            tr("AIs compatible with the ChatGPT also used here"))
         v1.addWidget(self.label_0)
 
         h1 = QtWidgets.QHBoxLayout()
@@ -65,7 +65,7 @@ class Ui_openaittsform(object):
         label_intru = QtWidgets.QLabel(openaittsform)
         label_intru.setObjectName("label_intru")
         label_intru.setText(
-            '声音效果提示词(gpt-4o-mini-tts)' if config.defaulelang == 'zh' else 'voice with instructions(gpt-4o-mini-tts)')
+            tr("voice with instructions(gpt-4o-mini-tts)"))
         self.openaitts_instructions = QtWidgets.QLineEdit(openaittsform)
         self.openaitts_instructions.setMinimumSize(QtCore.QSize(0, 35))
         self.openaitts_instructions.setObjectName("openaitts_instructions")
@@ -79,14 +79,14 @@ class Ui_openaittsform(object):
 
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
-            '填写所有可用模型，以英文逗号分隔，填写后可在上方选择' if config.defaulelang == 'zh' else 'Fill in all available models, separated by commas. After filling in, you can select them above')
+            tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
         v1.addWidget(self.label_allmodels)
         self.edit_allmodels = QtWidgets.QPlainTextEdit(openaittsform)
         self.edit_allmodels.setMinimumHeight(40)
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-        v1.addWidget(QtWidgets.QLabel('角色列表' if config.defaulelang == 'zh' else 'Role list'))
+        v1.addWidget(QtWidgets.QLabel(tr("Role list")))
         self.edit_roles = QtWidgets.QPlainTextEdit(openaittsform)
         self.edit_roles.setMinimumHeight(40)
         self.edit_roles.setObjectName("edit_roles")
@@ -107,7 +107,7 @@ class Ui_openaittsform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/openaitts'))
 
         h4.addWidget(self.set_openaitts)
@@ -121,33 +121,33 @@ class Ui_openaittsform(object):
     def update_ui(self):
         from videotrans.configure import config
         config.settings = config.parse_init()
-        allmodels_str = config.settings['openaitts_model']
-        allmodels = config.settings['openaitts_model'].split(',')
+        allmodels_str = config.settings.get('openaitts_model','')
+        allmodels = config.settings.get('openaitts_model','').split(',')
 
         self.openaitts_model.clear()
         self.openaitts_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.edit_roles.setPlainText(config.params['openaitts_role'])
+        self.edit_roles.setPlainText(config.params.get('openaitts_role',''))
 
-        if config.params["openaitts_key"]:
-            self.openaitts_key.setText(config.params["openaitts_key"])
-        if config.params["openaitts_instructions"]:
+        if config.params.get("openaitts_key",''):
+            self.openaitts_key.setText(config.params.get("openaitts_key",''))
+        if config.params.get("openaitts_instructions",''):
             self.openaitts_instructions.setText(config.params.get("openaitts_instructions", ''))
-        if config.params["openaitts_api"]:
-            self.openaitts_api.setText(config.params["openaitts_api"])
-        if config.params["openaitts_model"] and config.params['openaitts_model'] in allmodels:
-            self.openaitts_model.setCurrentText(config.params["openaitts_model"])
+        if config.params.get("openaitts_api",''):
+            self.openaitts_api.setText(config.params.get("openaitts_api",''))
+        if config.params.get("openaitts_model",'') and config.params.get('openaitts_model','') in allmodels:
+            self.openaitts_model.setCurrentText(config.params.get("openaitts_model",''))
     def retranslateUi(self, openaittsform):
         openaittsform.setWindowTitle("OpenAI API TTS")
-        self.label_3.setText('选择模型' if config.defaulelang == 'zh' else "Model")
-        self.set_openaitts.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test_openaitts.setText('测试..' if config.defaulelang == 'zh' else "Test..")
+        self.label_3.setText(tr("Model"))
+        self.set_openaitts.setText(tr("Save"))
+        self.test_openaitts.setText(tr("Test"))
         self.openaitts_api.setPlaceholderText(
-            '若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang == 'zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
+            tr("If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here"))
         self.openaitts_api.setToolTip(
-            '若使用OpenAI官方接口，无需填写;第三方api在此填写' if config.defaulelang == 'zh' else 'If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here')
+            tr("If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here"))
         self.openaitts_key.setPlaceholderText("Secret key")
         self.openaitts_key.setToolTip(
-            "必须是付费账号，免费账号频率受限无法使用" if config.defaulelang == 'zh' else 'Must be a paid account, free account frequency is limited and cannot be used')
-        self.label.setText("API URL")
-        self.label_2.setText("SK")
+            tr("Must be a paid account, free account frequency is limited and cannot be used"))
+        self.label.setText(tr("API URL"))
+        self.label_2.setText(tr("SK"))

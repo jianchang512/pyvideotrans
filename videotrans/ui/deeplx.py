@@ -3,7 +3,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -67,7 +67,7 @@ class Ui_deeplxform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/deeplx'))
 
         h1 = QtWidgets.QHBoxLayout()
@@ -82,11 +82,11 @@ class Ui_deeplxform(object):
 
     def retranslateUi(self, deeplxform):
         deeplxform.setWindowTitle("DeepLx")
-        self.label.setText("DeepLX_API")
-        self.label2.setText("Token/Key")
+        self.label.setText(tr("API URL"))
+        self.label2.setText(tr("SK"))
         self.deeplx_key.setPlaceholderText(
-            '填写key或密钥，不存在为空即可' if config.defaulelang == 'zh' else 'Input your deeplx key ')
+            tr("Input your deeplx key"))
         self.deeplx_address.setPlaceholderText(
-            '在此填写你部署的DeepLx地址' if config.defaulelang == 'zh' else 'Input your deeplx api url')
-        self.set_deeplx.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
+            tr("Input your deeplx api url"))
+        self.set_deeplx.setText(tr("Save"))
+        self.test.setText(tr("Test"))

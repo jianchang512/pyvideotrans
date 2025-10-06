@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 
+
 def show_popup(title, text):
     from PySide6.QtGui import QIcon
     from PySide6.QtCore import Qt
@@ -41,7 +42,7 @@ def show_error(tb_str):
         print(f"Warning: Could not load window icon from {icon_path}. Error: {e}")
 
     msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
-    msg_box.setWindowTitle(config.transobj.get('anerror', 'Error'))
+    msg_box.setWindowTitle(config.tr('anerror'))
     msg_box.setText(tb_str[:300])
     if len(tb_str) > 300:
         msg_box.setDetailedText(tb_str)
@@ -53,7 +54,7 @@ def show_error(tb_str):
 
     # 添加自定义的“报告错误”按钮
     #if report:
-    report_button = msg_box.addButton("报告错误" if config.defaulelang == 'zh' else "Report Error",QtWidgets.QMessageBox.ButtonRole.NoRole)
+    report_button = msg_box.addButton(config.tr("Report Error"),QtWidgets.QMessageBox.ButtonRole.NoRole)
     msg_box.setDefaultButton(ok_button)
 
     msg_box.setStyleSheet("""
@@ -160,10 +161,11 @@ def shutdown_system():
 
 
 # 获取 prompt提示词
-def get_prompt(ainame, is_srt=True):
+def get_prompt(ainame,aisendsrt=True):
     from videotrans.configure import config
-    prompt_file = get_prompt_file(ainame=ainame, is_srt=is_srt)
+    prompt_file = get_prompt_file(ainame=ainame,aisendsrt=aisendsrt)
     content = Path(prompt_file).read_text(encoding='utf-8')
+    print(f'{content=}')
     glossary = ''
     if Path(config.ROOT_DIR + '/videotrans/glossary.txt').exists():
         glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8').strip()
@@ -188,27 +190,17 @@ def qwenmt_glossary():
     return None
 
 # 获取当前需要操作的prompt txt文件
-def get_prompt_file(ainame, is_srt=True):
+def get_prompt_file(ainame,aisendsrt=True):
     from videotrans.configure import config
     prompt_path = f'{config.ROOT_DIR}/videotrans/'
     prompt_name = f'{ainame}{"" if config.defaulelang == "zh" else "-en"}.txt'
-    if is_srt and config.settings.get('aisendsrt', False):
+    if aisendsrt:
         prompt_path += 'prompts/srt/'
     else:
         prompt_path += 'prompts/text/'
     return f'{prompt_path}{prompt_name}'
 
 
-def check_local_api(api):
-    from videotrans.configure import config
-    if not api:
-        show_error('必须填写http地址' if config.defaulelang == 'zh' else 'Must fill in the http address')
-        return False
-    if api.find('0.0.0.0:') > -1:
-        show_error(
-            '请将 0.0.0.0 改为 127.0.0.1 ' if config.defaulelang == 'zh' else 'Please change 0.0.0.0 to 127.0.0.1. ')
-        return False
-    return True
 
 
 def show_glossary_editor(parent):
@@ -223,14 +215,14 @@ def show_glossary_editor(parent):
         parent: 父窗口 (QWidget)
     """
     dialog = QDialog(parent)
-    dialog.setWindowTitle("在此填写术语对照表，格式： 术语=翻译" if config.defaulelang == 'zh' else '')
+    dialog.setWindowTitle(config.tr('Glossary'))
     dialog.setMinimumSize(600, 400)
 
     layout = QVBoxLayout(dialog)
 
     text_edit = QTextEdit()
     text_edit.setPlaceholderText(
-        "请按照 术语=翻译 的格式，一行一组来填写，例如\n\n首席执行官=CEO\n人工智能=AI\n\n在原文中如果遇到以上左侧文字，则翻译结果使用右侧文字" if config.defaulelang == 'zh' else "Please fill in one line at a time, following the term on the left and the translation on the right, e.g. \nBallistic Missile Defense=BMD\nChief Executive Officer=CEO")
+        config.tr("Please fill in one line at a time, following the term on the left and the translation on the right, e.g. ,Ballistic Missile Defense=BMD"))
     layout.addWidget(text_edit)
 
     button_box = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
@@ -292,7 +284,7 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
             from . import help_role
             help_role.set_process(
-                text=f"{noextname} {'分离音频和画面' if config.defaulelang == 'zh' else 'spilt audio and video'} {size}",
+                text=f"{noextname} {config.tr('spilt audio and video')} {size}",
                 uuid=uuid)
             time.sleep(1)
             t += 1

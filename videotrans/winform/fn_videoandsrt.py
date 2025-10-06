@@ -4,15 +4,15 @@ def openwin():
     import os
     import time
     from pathlib import Path
-
-    from PySide6.QtCore import QThread, Signal, QUrl
+    from videotrans.configure.config import tr
+    from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import config
     from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/videoandsrt"
-    Path(RESULT_DIR).mkdir(exist_ok=True)
+
     from videotrans import translator
 
     class CompThread(QThread):
@@ -53,11 +53,11 @@ def openwin():
             vailfiles, length = self.get_list()
             if not vailfiles:
                 self.post(type='error',
-                          text='不存在同名视频和srt字幕，无法合并' if config.defaulelang == 'zh' else 'Video and srt of the same name do not exist and cannot be merged')
+                          text=tr("Video and srt of the same name do not exist and cannot be merged"))
                 return
             percent = 0
             self.post(type='logs',
-                      text=f'有{length}组同名视频和srt字幕需合并' if config.defaulelang == 'zh' else f'There are {length} sets of videos with the same name and srt subtitles that need to be merged.')
+                      text=tr('There are {} sets of videos with the same name and srt subtitles that need to be merged.',length))
             for name, info in vailfiles.items():
                 try:
                     srt = info['srt']
@@ -87,9 +87,9 @@ def openwin():
                             '-vf',
                             f"subtitles={os.path.basename(assfile)}",
                             '-crf',
-                            f'{config.settings["crf"]}',
+                            f'{config.settings.get("crf",23)}',
                             '-preset',
-                            config.settings['preset']
+                            config.settings.get('preset','fast')
                         ]
                     else:
                         # 软字幕
@@ -115,7 +115,7 @@ def openwin():
                 finally:
                     percent += round(100 / length, 2)
                     self.post(type='jd', text=f'{percent if percent <= 100 else 99}%')
-            self.post(type='ok', text='执行完成' if config.defaulelang == 'zh' else 'Ended')
+            self.post(type='ok', text=tr("Ended"))
 
     def feed(d):
         if winobj.has_done:
@@ -124,7 +124,7 @@ def openwin():
         if d['type'] == "error":
             winobj.has_done = True
             tools.show_error(d['text'])
-            winobj.startbtn.setText('开始执行' if config.defaulelang == 'zh' else 'start operate')
+            winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.opendir.setDisabled(False)
         elif d['type'] == 'jd':
@@ -133,14 +133,14 @@ def openwin():
             winobj.loglabel.setText(d['text'])
         else:
             winobj.has_done = True
-            winobj.startbtn.setText(config.transobj['zhixingwc'])
+            winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
-            winobj.loglabel.setText(config.transobj['quanbuend'])
+            winobj.loglabel.setText(tr('quanbuend'))
             winobj.opendir.setDisabled(False)
 
     def get_file():
-        dirname = QFileDialog.getExistingDirectory(winobj, config.transobj['selectsavedir'],
-                                                   config.params['last_opendir'])
+        dirname = QFileDialog.getExistingDirectory(winobj, tr('selectsavedir'),
+                                                   config.params.get('last_opendir',''))
         winobj.folder.setText(dirname.replace('\\', '/'))
 
     def start():
@@ -148,18 +148,18 @@ def openwin():
         folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
             tools.show_error(
-                '必须选择存在同名视频和srt字幕的文件夹' if config.defaulelang == 'zh' else 'You must select the folder where the video and srt subtitles with the same name exists.')
+                tr("You must select the folder where the video and srt subtitles with the same name exists."))
             return
         is_soft = winobj.issoft.isChecked()
         language = winobj.language.currentText()
         maxlen = 30
         try:
             maxlen = int(winobj.maxlen.text())
-        except Exception:
+        except ValueError:
             pass
 
         winobj.startbtn.setText(
-            '执行中...' if config.defaulelang == 'zh' else 'In Progress...')
+            tr("In Progress..."))
         winobj.startbtn.setDisabled(True)
         winobj.opendir.setDisabled(True)
         task = CompThread(parent=winobj,
@@ -176,14 +176,15 @@ def openwin():
 
     from videotrans.component import Videoandsrtform
     from videotrans.translator import LANGNAME_DICT
-    try:
+    winobj = Videoandsrtform()
+    config.child_forms['fn_videoandsrt'] = winobj
+    winobj.show()
 
-        winobj = Videoandsrtform()
-        config.child_forms['fn_videoandsrt'] = winobj
+    def _bind():
+        Path(RESULT_DIR).mkdir(exist_ok=True)
         winobj.folder_btn.clicked.connect(get_file)
         winobj.startbtn.clicked.connect(start)
         winobj.opendir.clicked.connect(opendir)
         winobj.language.addItems(list(LANGNAME_DICT.values()))
-        winobj.show()
-    except Exception as e:
-        print(e)
+
+    QTimer.singleShot(10,_bind)

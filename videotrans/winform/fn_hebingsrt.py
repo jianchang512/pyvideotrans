@@ -1,19 +1,17 @@
 # 合并2个srt
 
-
 def openwin():
-    from videotrans.configure._except import get_msg_from_except
     import json
     from pathlib import Path
-
-    from PySide6.QtCore import QThread, Signal, QUrl
+    from videotrans.configure.config import tr
+    from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import config
     from videotrans.util import tools
     RESULT_DIR = config.HOME_DIR + "/Mergersrt"
-    Path(RESULT_DIR).mkdir(exist_ok=True)
+
 
     class CompThread(QThread):
         uito = Signal(str)
@@ -43,6 +41,7 @@ def openwin():
                     f.flush()
                 self.post(type='ok', text=self.result_file)
             except Exception as e:
+                from videotrans.configure._except import get_msg_from_except
                 self.post(type='error', text=get_msg_from_except(e))
 
     def feed(d):
@@ -56,14 +55,14 @@ def openwin():
             winobj.startbtn.setText(d['text'])
         else:
             winobj.has_done = True
-            winobj.startbtn.setText('开始执行合并' if config.defaulelang == 'zh' else 'commencement of execution')
+            winobj.startbtn.setText(tr("commencement of execution"))
             winobj.startbtn.setDisabled(False)
             winobj.resultlabel.setText(d['text'])
             winobj.resultbtn.setDisabled(False)
             winobj.resultinput.setPlainText(Path(winobj.resultlabel.text()).read_text(encoding='utf-8'))
 
     def get_file(inputname):
-        fname, _ = QFileDialog.getOpenFileName(winobj, "Select subtitles srt", config.params['last_opendir'],
+        fname, _ = QFileDialog.getOpenFileName(winobj, "Select subtitles srt", config.params.get('last_opendir',''),
                                                "files(*.srt)")
         if fname:
             if inputname == 1:
@@ -77,10 +76,10 @@ def openwin():
         srt2 = winobj.srtinput2.text()
         if not srt1 or not srt2:
             tools.show_error(
-                '必须选择字幕文件1和字幕文件2' if config.defaulelang == 'zh' else 'Subtitle File 1 and Subtitle File 2 must be selected')
+                tr("Subtitle File 1 and Subtitle File 2 must be selected"))
             return
 
-        winobj.startbtn.setText('执行合并中...' if config.defaulelang == 'zh' else 'Consolidation in progress...')
+        winobj.startbtn.setText(tr("Consolidation in progress..."))
         winobj.startbtn.setDisabled(True)
         winobj.resultbtn.setDisabled(True)
         winobj.resultinput.setPlainText("")
@@ -97,10 +96,12 @@ def openwin():
 
     winobj = HebingsrtForm()
     config.child_forms['fn_hebingsrt'] = winobj
-    winobj.srtbtn1.clicked.connect(lambda: get_file(1))
-    winobj.srtbtn2.clicked.connect(lambda: get_file(2))
-
-    winobj.resultbtn.clicked.connect(opendir)
-    winobj.startbtn.clicked.connect(start)
     winobj.show()
+    def _bind():
+        Path(RESULT_DIR).mkdir(exist_ok=True)
+        winobj.srtbtn1.clicked.connect(lambda: get_file(1))
+        winobj.srtbtn2.clicked.connect(lambda: get_file(2))
 
+        winobj.resultbtn.clicked.connect(opendir)
+        winobj.startbtn.clicked.connect(start)
+    QTimer.singleShot(10,_bind)

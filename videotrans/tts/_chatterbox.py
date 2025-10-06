@@ -22,7 +22,7 @@ RETRY_DELAY = 5
 class ChatterBoxTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        api_url = config.params['chatterbox_url'].strip().rstrip('/').lower()
+        api_url = config.params.get('chatterbox_url','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
         self._add_internal_host_noproxy(self.api_url)
 
@@ -43,31 +43,24 @@ class ChatterBoxTTS(BaseTTS):
                     role and role != 'chatterbox' and Path(f'{config.ROOT_DIR}/chatterbox/{role}').exists()):
                 # 克隆
                 self._item_task_clone(data_item['text'], role, data_item.get('ref_wav'), data_item['filename'])
-                self.has_done += 1
-                if self.inst and self.inst.precent < 80:
-                    self.inst.precent += 0.1
                 return
             client = OpenAI(api_key='123456', base_url=self.api_url + '/v1')
             response = client.audio.speech.create(
                 model="chatterbox-tts",  # 这是一个兼容性参数
                 voice=self.language,  # 这也是一个兼容性参数
                 input=data_item['text'],
-                speed=float(config.params["chatterbox_cfg_weight"]),  # 兼容，用于传递 cfg_weight
-                instructions=str(config.params["chatterbox_exaggeration"]),  # 兼容传递 exaggeration
+                speed=float(config.params.get("chatterbox_cfg_weight",'1.0')),  # 兼容，用于传递 cfg_weight
+                instructions=str(config.params.get("chatterbox_exaggeration",'')),  # 兼容传递 exaggeration
                 response_format="mp3"  # 请求mp3格式
             )
 
             response.stream_to_file(data_item['filename'] + ".mp3")
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
-            self.has_done += 1
-            if self.inst and self.inst.precent < 80:
-                self.inst.precent += 0.1
-            self._signal(text=f'{config.transobj["kaishipeiyin"]} {self.has_done}/{self.len}')
 
         try:
             _run()
         except RetryError as e:
-            raise e.last_attempt.exception()
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error=e
 
@@ -93,8 +86,8 @@ class ChatterBoxTTS(BaseTTS):
             form_data = {
                 'input': text,
                 'response_format': 'mp3',
-                'cfg_weight': config.params["chatterbox_cfg_weight"],
-                'exaggeration': config.params["chatterbox_exaggeration"],
+                'cfg_weight': config.params.get("chatterbox_cfg_weight",'0.3'),
+                'exaggeration': config.params.get("chatterbox_exaggeration",''),
                 'language': self.language
             }
             # 发送POST请求，设置合理的超时时间

@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -62,7 +62,7 @@ class Ui_kokoroform(object):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText("查看填写教程" if config.defaulelang == 'zh' else "Fill out the tutorial")
+        help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/kokorotts'))
 
         self.layout_btn = QtWidgets.QHBoxLayout()
@@ -79,8 +79,8 @@ class Ui_kokoroform(object):
 
     def retranslateUi(self, kokoro):
         kokoro.setWindowTitle("Kokoro TTS")
-        self.label.setText("http地址" if config.defaulelang == 'zh' else 'kokoro api')
+        self.label.setText(tr("kokoro api"))
         self.kokoro_address.setPlaceholderText(
-            'kokoro-uiapi启动后的地址,默认请填写 http://127.0.0.1:5066' if config.defaulelang == 'zh' else 'Fill in the HTTP address after the kokoro program starts')
-        self.set_kokoro.setText('保存' if config.defaulelang == 'zh' else "Save")
-        self.test.setText('测试' if config.defaulelang == 'zh' else "Test")
+            tr("Fill in the HTTP address after the kokoro program starts"))
+        self.set_kokoro.setText(tr("Save"))
+        self.test.setText(tr("Test"))

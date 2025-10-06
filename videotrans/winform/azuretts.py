@@ -1,6 +1,6 @@
 def openwin():
     from PySide6 import QtWidgets
-
+    from videotrans.configure.config import tr
     from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
@@ -9,7 +9,7 @@ def openwin():
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
             tools.show_error(d)
-        winobj.test.setText('测试' if config.defaulelang == 'zh' else 'Test')
+        winobj.test.setText(tr("Test"))
 
     def test():
         key = winobj.speech_key.text().strip()
@@ -46,12 +46,12 @@ def openwin():
 
     winobj = AzurettsForm()
     config.child_forms['azuretts'] = winobj
-    if config.params['azure_speech_region'] and config.params['azure_speech_region'].startswith('http'):
-        winobj.speech_region.setText(config.params['azure_speech_region'])
+    if config.params.get('azure_speech_region','') and config.params.get('azure_speech_region','').startswith('http'):
+        winobj.speech_region.setText(config.params.get('azure_speech_region',''))
     else:
-        winobj.azuretts_area.setCurrentText(config.params['azure_speech_region'])
-    if config.params['azure_speech_key']:
-        winobj.speech_key.setText(config.params['azure_speech_key'])
+        winobj.azuretts_area.setCurrentText(config.params.get('azure_speech_region',''))
+    if config.params.get('azure_speech_key',''):
+        winobj.speech_key.setText(config.params.get('azure_speech_key',''))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()
