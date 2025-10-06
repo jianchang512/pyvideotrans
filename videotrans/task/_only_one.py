@@ -30,17 +30,20 @@ class Worker(QThread):
         # 存放处理好的 视频路径等信息
         self.obj_list = obj_list
         self.uuid = None
-
+    # 使用冗余的 if self._exit(): return 来处理倒计时延迟问题
     def run(self) -> None:
         obj=self.obj_list[0]
         try:
             self.uuid = obj['uuid']
             trk = TransCreate(cfg=TaskCfg(**self.cfg|obj))
+            if self._exit(): return
             config.task_countdown = 0
             trk.prepare()
+            if self._exit(): return
             self._post(text=trk.cfg.source_sub, type='edit_subtitle_source')
             trk.recogn()
             if trk.shoud_trans:
+                if self._exit(): return
                 if tools.vail_file(trk.cfg.target_sub):
                     if tools.vail_file(trk.cfg.source_sub):
                         self._post(text=Path(trk.cfg.source_sub).read_text(encoding='utf-8'),
@@ -48,28 +51,32 @@ class Worker(QThread):
                     self._post(text=trk.cfg.target_sub, type="edit_subtitle_target")
                 else:
                     time.sleep(1)
+                    if self._exit(): return
                     countdown_sec = int(float(config.settings.get('countdown_sec', 1)))
                     config.task_countdown = countdown_sec
                     # 等待编辑原字幕后翻译,允许修改字幕
                     self._post(text=Path(trk.cfg.source_sub).read_text(encoding='utf-8'), type='replace_subtitle')
                     self._post(text=f"{config.task_countdown} {tr('jimiaohoufanyi')}", type='show_djs')
                     while config.task_countdown > 0:
-                        if self._exit():
-                            return
+                        if self._exit(): return
                         time.sleep(1)
                         config.task_countdown -= 1
                         if 0 < config.task_countdown <= countdown_sec:
                             self._post(text=f"{config.task_countdown} {tr('jimiaohoufanyi')}",
                                        type='show_djs')
+                    if self._exit(): return
                     self._post(text='', type='timeout_djs')
                     # 等待字幕更新完毕
                     config.task_countdown = 10
                     while config.task_countdown > 0:
-                        time.sleep(1)
+                        if self._exit(): return
+                        time.sleep(0.1)
                         break
-                    self._post(text=trk.cfg.target_sub, type="edit_subtitle_target")
-                    trk.trans()
-
+                    if not self._exit():
+                        self._post(text=trk.cfg.target_sub, type="edit_subtitle_target")
+                        trk.trans()
+            
+            if self._exit(): return
             # if trk.shoud_dubbing:
             countdown_sec = int(float(config.settings.get('countdown_sec', 1)))
             config.task_countdown = countdown_sec
@@ -78,10 +85,10 @@ class Worker(QThread):
                 text=f"{config.task_countdown}{tr('zidonghebingmiaohou')}",
                 type='show_djs')
             while config.task_countdown > 0:
-                if self._exit():
-                    return
+                if self._exit(): return
                 # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
                 time.sleep(1)
+                if self._exit(): return
                 # 倒计时中
                 config.task_countdown -= 1
                 if 0 < config.task_countdown <= countdown_sec:
@@ -93,13 +100,21 @@ class Worker(QThread):
             # 等待字幕更新完毕
             config.task_countdown = 10
             while config.task_countdown > 0:
+                if self._exit(): return
                 time.sleep(1)
                 break
-
-            trk.dubbing()
-            trk.align()
-            trk.assembling()
-            trk.task_done()
+            
+            if not self._exit():
+                trk.dubbing()
+            
+            if not self._exit():
+                trk.align()
+            
+            if not self._exit():
+                trk.assembling()
+            
+            if not self._exit():
+                trk.task_done()
         except Exception as e:
             self._post(text=str(e), type='error')
 

@@ -139,6 +139,9 @@ class WinAction(WinActionSub):
         # 存放需要处理的视频dict信息，包括uuid
         self.obj_list = []
         self.main.source_mp4.setText(tr("No select videos"))
+        self.main.timeout_tips.setText('')
+        self.main.stop_djs.hide()
+        self.main.continue_compos.hide()
 
 
     # 删除进度按钮
@@ -934,6 +937,9 @@ class WinAction(WinActionSub):
         self.disabled_widget(False)
         # 启用相关模式
         self._disabled_button(False)
+        for it in self.obj_list:
+            if it['uuid'] in config.uuid_logs_queue:
+                del config.uuid_logs_queue[it['uuid']]
         if type == 'end':
             self.main.subtitle_area.clear()
 
@@ -949,17 +955,14 @@ class WinAction(WinActionSub):
             self.main.target_dir = None
             self.main.btn_save_dir.setToolTip('')
         else:
+            config.task_countdown = -1
+            self.set_djs_timeout()
             # 任务队列中设为停止并删除队列，防止后续到来的日志继续显示
             for it in self.obj_list:
                 # 按钮设为暂停
                 if it['uuid'] in self.processbtns:
                     self.processbtns[it['uuid']].setPause()
-            self.set_djs_timeout()
-            self.main.stop_djs.hide()
-            self.main.continue_compos.hide()
-        for it in self.obj_list:
-            if it['uuid'] in config.uuid_logs_queue:
-                del config.uuid_logs_queue[it['uuid']]
+        
         if self.main.app_mode == 'tiqu':
             self.set_tiquzimu()
         self._reset()
@@ -1017,7 +1020,7 @@ class WinAction(WinActionSub):
                 self.show_target_edit(d['text'])
         elif d['type'] == 'timeout_djs':
             self.set_djs_timeout()
-        elif d['type'] == 'show_djs':
+        elif d['type'] == 'show_djs' and config.current_status=='ing':
             self.main.continue_compos.show()
             self.main.continue_compos.setDisabled(False)
             self.main.continue_compos.setText(

@@ -112,8 +112,7 @@ LANGNAME_DICT = {
     "fa": tr("Persian"),
     "fil": tr("Filipino"),
     "ur": tr("Urdu"),
-    "yue": tr("Cantonese"),
-    "ug": tr("ug"),
+    "yue": tr("Cantonese")
 }
 
 # 如果存在新增
@@ -513,18 +512,6 @@ LANG_CODE = {
         tr("Persian"),  # AI翻译
         "fa",  # 阿里
         "Western Persian"
-    ],
-    "ug": [
-        "ug",  # google通道
-        "ug",  # 字幕嵌入语言
-        "ug",  # 百度通道
-        "No",  # deepl deeplx通道
-        "No",  # 腾讯通道
-        "No",  # OTT通道
-        "ug",  # 微软翻译
-        tr("ug"),  # AI翻译
-        "ug",  # 阿里
-        "ug"
     ],
     "auto": [
         "auto",
