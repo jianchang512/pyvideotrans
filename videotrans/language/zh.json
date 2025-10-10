@@ -232,7 +232,7 @@
     "Kokoro TTS only supports Chinese, English, Japanese, Portuguese, Spanish, it, hi, fr": "kokoro tts 仅支持中、日、英、葡萄牙、西班牙、意大利、印度、法语配音",
     "Korean": "韩语",
     "Korean language": "韩语语言",
-    "LLM Rephrase": "大语言模型润色",
+    "LLM Rephrase": "LLM重新断句",
     "LLM重新断句": "LLM Rephrase",
     "Language": "语言",
     "LibreTranslate": "LibreTranslate(本地)",
@@ -737,5 +737,6 @@
     "Selecting an Inference Access Point": "选择推理接入点",
     "Fill in all inference access points, and you can select them above": "填写所有推理接入点，填写后可在上方选择",
     "Prompt: Please open the {} file directly to modify it": "字幕翻译提示词请直接打开 软件目录/videotrans/prompts 文件夹修改，\n\n【软件目录/videotrans/prompts/srt/】存放的是选中【发送完整字幕】时的提示词，\n【软件目录/videotrans/prompts/text/】存放的是未选中时的提示词\n当前渠道所用提示词文件是:【{}.txt】",
-    "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "将参考音频放在软件根目录下的 chatterbox 文件夹中，填写参考音频名称带后缀，例如 123.mp3"
+    "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "将参考音频放在软件根目录下的 chatterbox 文件夹中，填写参考音频名称带后缀，例如 123.mp3",
+    "Reference audio does not exist: {} Please make sure the audio exists": "参考音频 {} 不存在，请检查"
 }

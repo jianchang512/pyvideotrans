@@ -1,15 +1,14 @@
+import asyncio, sys
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 import os
 import platform
 import shutil
 import time
 from pathlib import Path
 
-import asyncio, sys
-
 from videotrans.configure._config_loader import tr
-
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool
 from PySide6.QtGui import QIcon
@@ -36,6 +35,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.is_restarting = False
         # 实际行为实例
         self.win_action = None
+
         # 功能模式 dict{str,instance}
         self.moshi = None
         # 当前目标文件夹
@@ -230,7 +230,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionazure_key.setText(tr("AzureOpenAI Translation"))
         self.actionazure_tts.setText(tr("AzureAI TTS"))
-        self.actiongemini_key.setText("Gemini Pro")
+        self.actiongemini_key.setText("Gemini AI")
         self.actionElevenlabs_key.setText("ElevenLabs.io")
 
         self.actionwatermark.setText(tr("Add watermark to video"))
@@ -278,89 +278,90 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.statusBar.addPermanentWidget(self.container)
         self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        self.source_language.addItems(self.languagename)
+        self.source_language.addItems(self.languagename+['auto'])
         self.target_language.addItems(["-"] + self.languagename)
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
 
         self.rawtitle = f"{tr('softname')} {VERSION} {tr('Documents')} pyvideotrans.com"
         self.setWindowTitle(self.rawtitle)
         self.win_action = WinAction(self)
-        self.win_action.tts_type_change(config.params.get('tts_type',''))
+        self.win_action.tts_type_change(config.params.get('tts_type', ''))
 
-        config.params['translate_type'] = int(config.params.get('translate_type',0))
-        self.translate_type.setCurrentIndex(config.params.get('translate_type',0))
+        config.params['translate_type'] = int(config.params.get('translate_type', 0))
+        self.translate_type.setCurrentIndex(config.params.get('translate_type', 0))
 
-        if config.params.get('source_language','') and config.params.get('source_language','') in self.languagename:
-            self.source_language.setCurrentText(config.params.get('source_language',''))
-        config.params['tts_type'] = int(config.params.get('tts_type',0))
+        if config.params.get('source_language', '') and config.params.get('source_language', '') in self.languagename:
+            self.source_language.setCurrentText(config.params.get('source_language', ''))
+        config.params['tts_type'] = int(config.params.get('tts_type', 0))
 
-        self.tts_type.setCurrentIndex(config.params.get('tts_type',''))
+        self.tts_type.setCurrentIndex(config.params.get('tts_type', ''))
         self.voice_role.clear()
 
-        if config.params.get('tts_type','') == tts.CLONE_VOICE_TTS:
-            self.voice_role.addItems(config.params.get("clone_voicelist",''))
+        if config.params.get('tts_type', '') == tts.CLONE_VOICE_TTS:
+            self.voice_role.addItems(config.params.get("clone_voicelist", ''))
             run_in_threadpool(tools.get_clone_role)
-        elif config.params.get('tts_type','') == tts.CHATTTS:
+        elif config.params.get('tts_type', '') == tts.CHATTTS:
             self.voice_role.addItems(['No'] + list(config.ChatTTS_voicelist))
-        elif config.params.get('tts_type','') == tts.TTS_API:
-            self.voice_role.addItems(config.params.get('ttsapi_voice_role','').strip().split(','))
-        elif config.params.get('tts_type','') == tts.CHATTERBOX_TTS:
+        elif config.params.get('tts_type', '') == tts.TTS_API:
+            self.voice_role.addItems(config.params.get('ttsapi_voice_role', '').strip().split(','))
+        elif config.params.get('tts_type', '') == tts.CHATTERBOX_TTS:
             rolelist = tools.get_chatterbox_role()
             self.voice_role.addItems(rolelist if rolelist else ['chatterbox'])
-        elif config.params.get('tts_type','') == tts.GPTSOVITS_TTS:
+        elif config.params.get('tts_type', '') == tts.GPTSOVITS_TTS:
             rolelist = tools.get_gptsovits_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
-        elif config.params.get('tts_type','') == tts.COSYVOICE_TTS:
+        elif config.params.get('tts_type', '') == tts.COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['clone'])
-        elif config.params.get('tts_type','') in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS, tts.DIA_TTS]:
+        elif config.params.get('tts_type', '') in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,
+                                                   tts.DIA_TTS]:
             rolelist = tools.get_f5tts_role()
             self.voice_role.addItems(['clone'] + list(rolelist.keys()) if rolelist else ['clone'])
-        elif config.params.get('tts_type','') == tts.FISHTTS:
+        elif config.params.get('tts_type', '') == tts.FISHTTS:
             rolelist = tools.get_fishtts_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['No'])
-        elif config.params.get('tts_type','') == tts.ELEVENLABS_TTS:
+        elif config.params.get('tts_type', '') == tts.ELEVENLABS_TTS:
             rolelist = tools.get_elevenlabs_role()
             self.voice_role.addItems(['No'] + rolelist)
-        elif config.params.get('tts_type','') == tts.OPENAI_TTS:
+        elif config.params.get('tts_type', '') == tts.OPENAI_TTS:
             rolelist = config.params.get('openaitts_role', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
-        elif config.params.get('tts_type','') == tts.QWEN_TTS:
+        elif config.params.get('tts_type', '') == tts.QWEN_TTS:
             rolelist = config.settings.get('qwentts_role', '').split(',')
             self.voice_role.addItems(['No'] + rolelist)
             current_role = config.settings.get('qwentts_role', 'No')
             if current_role in rolelist:
-                self.voice_role.setCurrentText()
-        elif config.params.get('tts_type','') == tts.GEMINI_TTS:
+                self.voice_role.setCurrentText(current_role)
+        elif config.params.get('tts_type', '') == tts.GEMINI_TTS:
             rolelist = config.params.get('gemini_ttsrole', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
-        elif self.win_action.change_by_lang(config.params.get('tts_type','')):
+        elif self.win_action.change_by_lang(config.params.get('tts_type', '')):
             self.voice_role.clear()
 
-        if config.params.get('target_language','') and config.params.get('target_language','') in self.languagename:
-            self.target_language.setCurrentText(config.params.get('target_language',''))
-            self.win_action.set_voice_role(config.params.get('target_language',''))
-            if config.params.get('voice_role','') != 'No' and self.current_rolelist and \
-                    config.params.get('voice_role','') in self.current_rolelist:
-                self.voice_role.setCurrentText(config.params.get('voice_role',''))
-                self.win_action.show_listen_btn(config.params.get('voice_role',''))
+        if config.params.get('target_language', '') and config.params.get('target_language', '') in self.languagename:
+            self.target_language.setCurrentText(config.params.get('target_language', ''))
+            self.win_action.set_voice_role(config.params.get('target_language', ''))
+            if config.params.get('voice_role', '') != 'No' and self.current_rolelist and \
+                    config.params.get('voice_role', '') in self.current_rolelist:
+                self.voice_role.setCurrentText(config.params.get('voice_role', ''))
+                self.win_action.show_listen_btn(config.params.get('voice_role', ''))
 
-        self.recogn_type.setCurrentIndex(int(config.params.get('recogn_type','0')))
+        self.recogn_type.setCurrentIndex(int(config.params.get('recogn_type', '0')))
         self.model_name.clear()
-        if config.params.get('recogn_type','') == recognition.Deepgram:
+        if config.params.get('recogn_type', '') == recognition.Deepgram:
             self.model_name.addItems(config.DEEPGRAM_MODEL)
             curr = config.DEEPGRAM_MODEL
-        elif config.params.get('recogn_type','') == recognition.FUNASR_CN:
+        elif config.params.get('recogn_type', '') == recognition.FUNASR_CN:
             self.model_name.addItems(config.FUNASR_MODEL)
             curr = config.FUNASR_MODEL
         else:
             self.model_name.addItems(config.WHISPER_MODEL_LIST)
             curr = config.WHISPER_MODEL_LIST
-        if config.params.get('model_name','') in curr:
-            self.model_name.setCurrentText(config.params.get('model_name',''))
-        if config.params.get('recogn_type','') not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL,
-                                                recognition.OPENAI_WHISPER, recognition.FUNASR_CN,
-                                                recognition.Deepgram]:
+        if config.params.get('model_name', '') in curr:
+            self.model_name.setCurrentText(config.params.get('model_name', ''))
+        if config.params.get('recogn_type', '') not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL,
+                                                        recognition.OPENAI_WHISPER, recognition.FUNASR_CN,
+                                                        recognition.Deepgram]:
             self.model_name.setDisabled(True)
         else:
             self.model_name.setDisabled(False)
@@ -368,7 +369,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
-        if config.params.get('model_name','') == 'paraformer-zh' or config.params.get('recogn_type','') == recognition.Deepgram or  config.params.get('recogn_type','') == recognition.GEMINI_SPEECH:
+        if config.params.get('model_name', '') == 'paraformer-zh' or config.params.get('recogn_type', '') in [
+            recognition.Deepgram, recognition.GEMINI_SPEECH]:
             self.show_spk.setVisible(True)
 
     def restart_app(self):
@@ -421,39 +423,39 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config.tr('embedsubtitle2'),
                 config.tr('softsubtitle2')
             ])
-        self.subtitle_type.setCurrentIndex(int(config.params.get('subtitle_type',0)))
+        self.subtitle_type.setCurrentIndex(int(config.params.get('subtitle_type', 0)))
 
-        if int(config.params.get('recogn_type',0)) > 1:
+        if int(config.params.get('recogn_type', 0)) > 1:
             self.model_name_help.setVisible(False)
         else:
             self.model_name_help.clicked.connect(self.win_action.show_model_help)
 
-        config.params['tts_type'] = int(config.params.get('tts_type',0))
+        config.params['tts_type'] = int(config.params.get('tts_type', 0))
 
         d = {"all": 0, "avg": 1}
-        self.split_type.setCurrentIndex(d[config.params.get('split_type','all')])
+        self.split_type.setCurrentIndex(d.get(config.params.get('split_type', 'all'), 0))
 
-        self.subtitle_type.setCurrentIndex(int(config.params.get('subtitle_type',0)))
+        self.subtitle_type.setCurrentIndex(int(config.params.get('subtitle_type', 0)))
 
-        self.voice_rate.setValue(int(config.params.get('voice_rate','0').replace('%', '')))
-        self.volume_rate.setValue(int(config.params.get('volume','0').replace('%','')))
-        self.pitch_rate.setValue(int(config.params.get('pitch','0').replace('Hz', '')))
+        self.voice_rate.setValue(int(config.params.get('voice_rate', '0').replace('%', '')))
+        self.volume_rate.setValue(int(config.params.get('volume', '0').replace('%', '')))
+        self.pitch_rate.setValue(int(config.params.get('pitch', '0').replace('Hz', '')))
 
         self.addbackbtn.clicked.connect(self.win_action.get_background)
 
-        self.split_type.setDisabled(True if config.params.get('recogn_type','')  else False)
-        self.voice_autorate.setChecked(bool(config.params.get('voice_autorate','')))
-        self.video_autorate.setChecked(bool(config.params.get('video_autorate','')))
-        self.clear_cache.setChecked(bool(config.params.get('clear_cache','')))
-        self.enable_cuda.setChecked(True if config.params.get('cuda','') else False)
-        self.only_video.setChecked(True if config.params.get('only_video','') else False)
-        self.is_separate.setChecked(True if config.params.get('is_separate','') else False)
+        self.split_type.setDisabled(int(config.params.get('recogn_type', '0')) > 1)
+        self.voice_autorate.setChecked(bool(config.params.get('voice_autorate', False)))
+        self.video_autorate.setChecked(bool(config.params.get('video_autorate', False)))
+        self.clear_cache.setChecked(bool(config.params.get('clear_cache', False)))
+        self.enable_cuda.setChecked(bool(config.params.get('cuda', False)))
+        self.only_video.setChecked(bool(config.params.get('only_video', False)))
+        self.is_separate.setChecked(bool(config.params.get('is_separate', False)))
 
-        local_rephrase = config.settings.get('rephrase_local', False)
+        local_rephrase = bool(config.settings.get('rephrase_local', False))
         self.rephrase_local.setChecked(local_rephrase)
-        self.rephrase.setChecked(config.settings.get('rephrase', False) if not local_rephrase else False)
-        self.remove_noise.setChecked(config.params.get('remove_noise'))
-        self.copysrt_rawvideo.setChecked(config.params.get('copysrt_rawvideo', False))
+        self.rephrase.setChecked(not local_rephrase and bool(config.settings.get('rephrase', False)))
+        self.remove_noise.setChecked(bool(config.params.get('remove_noise')))
+        self.copysrt_rawvideo.setChecked(bool(config.params.get('copysrt_rawvideo', False)))
 
         self.bgmvolume.setText(str(config.settings.get('backaudio_volume', 0.8)))
         self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio', True)))
@@ -591,7 +593,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         winobj = config.child_forms.get(name)
         if winobj:
             if hasattr(winobj, 'update_ui'):
-                print(f'{name=}')
                 winobj.update_ui()
             winobj.show()
             winobj.raise_()
@@ -609,7 +610,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 pass
         except OSError as e:
             tools.show_error(
-                tr("The current directory {}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.",config.ROOT_DIR))
+                tr("The current directory {}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.",
+                   config.ROOT_DIR))
         finally:
             if os.path.exists(temp_file_path):
                 try:
@@ -623,7 +625,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.settings['aisendsrt'] = True
         else:
             config.settings['aisendsrt'] = False
-        config.settings=config.parse_init(config.settings)
+        config.settings = config.parse_init(config.settings)
 
     def changeEvent(self, event):
         super().changeEvent(event)
@@ -674,9 +676,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(f"Error using pkill: {e}")
 
     def closeEvent(self, event):
-        self.hide()
         config.exit_soft = True
         config.current_status = 'stop'
+        self.hide()
         os.chdir(config.ROOT_DIR)
         self.cleanup_and_accept()
         try:
@@ -723,22 +725,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except Exception as e:
             print(f'子窗口隐藏中出错 {e}')
 
+        if hasattr(self, 'check_update') and self.check_update.isRunning():
+            print('等待 check_update 线程退出')
+            self.check_update.quit()
+            self.check_update.wait(1000)
+
+        if hasattr(self, 'uuid_signal') and self.uuid_signal.isRunning():
+            print('等待 uuid_signal 线程退出')
+            self.uuid_signal.quit()
+            self.uuid_signal.wait(3000)
+
         # 遍历所有工作线程，等待结束
         for thread in self.worker_threads:
             if thread.isRunning():
                 print(f"正在等待线程 {thread.name} 结束...")
                 thread.quit()
                 thread.wait(5000)
-
-        if hasattr(self, 'check_update') and self.check_update.isRunning():
-            print('等待 check_update 线程退出')
-            self.check_update.quit()
-            self.check_update.wait(3000)
-
-        if hasattr(self, 'uuid_signal') and self.uuid_signal.isRunning():
-            print('等待 uuid_signal 线程退出')
-            self.uuid_signal.quit()
-            self.uuid_signal.wait(3000)
 
         try:
             for w in config.child_forms.values():

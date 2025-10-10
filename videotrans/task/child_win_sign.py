@@ -19,7 +19,8 @@ class SignThread(QThread):
     def run(self):
         length = len(self.uuid_list)
         while 1:
-            if len(self.uuid_list) == 0 or config.exit_soft:
+            if config.exit_soft: return
+            if len(self.uuid_list) == 0:
                 self.post({"type": "end"})
                 time.sleep(0.1)
                 return
@@ -39,7 +40,7 @@ class SignThread(QThread):
                     if q.empty():
                         time.sleep(0.1)
                         continue
-                    data = q.get(block=False)
+                    data = q.get(block=True,timeout=0.1)
                     if not data:
                         continue
                     self.post(data)
@@ -48,6 +49,7 @@ class SignThread(QThread):
                         self.post(
                             {"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
                         config.stoped_uuid_set.add(uuid)
-                        del config.uuid_logs_queue[uuid]
+                        config.uuid_logs_queue.pop(uuid,None)
+                    q.task_done()
                 except Exception:
                     pass

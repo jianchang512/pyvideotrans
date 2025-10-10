@@ -134,7 +134,7 @@ class Ui_qwenmtform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('qwenmt_model','')
-        allmodels = config.settings.get('qwenmt_model','').split(',')
+        allmodels = str(config.settings.get('qwenmt_model','')).split(',')
         self.qwenmt_model.clear()
         self.qwenmt_asr_model.clear()
         self.qwenmt_model.addItems([ it  for it in allmodels if not it.startswith('qwen3-asr')])

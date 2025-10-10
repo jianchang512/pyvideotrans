@@ -20,6 +20,8 @@ def openwin():
     def test():
         key = winobj.gemini_key.text()
         model = winobj.model.currentText()
+        gemini_maxtoken = winobj.gemini_maxtoken.text()
+        config.params["gemini_maxtoken"] = gemini_maxtoken
         os.environ['GOOGLE_API_KEY'] = key
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
@@ -37,6 +39,9 @@ def openwin():
         key = winobj.gemini_key.text()
         model = winobj.model.currentText()
         gemini_srtprompt = winobj.gemini_srtprompt.toPlainText()
+        
+        gemini_maxtoken = winobj.gemini_maxtoken.text()
+        config.params["gemini_maxtoken"] = gemini_maxtoken
 
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key

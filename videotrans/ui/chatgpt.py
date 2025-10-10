@@ -126,7 +126,7 @@ class Ui_chatgptform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('chatgpt_model','')
-        allmodels = config.settings.get('chatgpt_model','').split(',')
+        allmodels = str(config.settings.get('chatgpt_model','')).split(',')
         self.chatgpt_model.clear()
         self.chatgpt_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

@@ -6,6 +6,7 @@ from typing import List, Union
 
 import httpx
 from openai import OpenAI
+from openai import LengthFinishReasonError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
@@ -63,13 +64,17 @@ class LocalLLM(BaseTrans):
 
         if isinstance(response, str):
             raise RuntimeError(f'{response=}')
+        
+        if not hasattr(response,'choices'):
+            raise RuntimeError(str(response))
+        if response.choices[0].finish_reason=='length':
+            raise LengthFinishReasonError(completion=response)    
+        if not response.choices[0].message.content:
+            raise RuntimeError(f"[LocalLLM] {response.choices[0].finish_reason}:{response}")
+        result = response.choices[0].message.content.strip()
+        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
+                          re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)
+        if match:
+            return match.group(1)
+        return result.strip()
 
-        if hasattr(response, 'choices') and response.choices:
-            result = response.choices[0].message.content.strip()
-            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
-                              re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)
-            if match:
-                return match.group(1)
-            return result.strip()
-
-        raise RuntimeError(f'[localllm]请求失败:{response=}')

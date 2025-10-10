@@ -8,13 +8,6 @@ from videotrans.util.tools import set_process
 import traceback
 
 
-# 当前 uuid 是否已停止
-def task_is_stop(uuid) -> bool:
-    if uuid in config.stoped_uuid_set:
-        return True
-    return False
-
-
 def get_recogn_type(type_index=None):
     from videotrans.recognition import RECOGN_NAME_LIST
     if type_index is None or type_index >= len(RECOGN_NAME_LIST):
@@ -64,7 +57,7 @@ class WorkerPrepare(QThread):
                 trk: BaseTask = config.prepare_queue.pop(0)
             except IndexError:
                 continue
-            if task_is_stop(trk.uuid):
+            if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
                 trk.prepare()
@@ -86,10 +79,7 @@ class WorkerPrepare(QThread):
                 set_process(text=f'{tr("yuchulichucuo")}:{except_msg}:\n' + traceback.format_exc(),
                             type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-                try:
-                    del trk
-                except NameError:
-                    pass
+
 
 
 class WorkerRegcon(QThread):
@@ -105,8 +95,11 @@ class WorkerRegcon(QThread):
             if len(config.regcon_queue) < 1:
                 time.sleep(0.1)
                 continue
-            trk = config.regcon_queue.pop(0)
-            if task_is_stop(trk.uuid):
+            try:
+                trk = config.regcon_queue.pop(0)
+            except IndexError:
+                continue
+            if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
                 trk.recogn()
@@ -128,10 +121,7 @@ class WorkerRegcon(QThread):
                 set_process(text=f'{tr("shibiechucuo")}:{except_msg}:\n' + traceback.format_exc(),
                             type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-                try:
-                    del trk
-                except NameError:
-                    pass
+
 
 
 class WorkerTrans(QThread):
@@ -146,8 +136,11 @@ class WorkerTrans(QThread):
             if len(config.trans_queue) < 1:
                 time.sleep(0.1)
                 continue
-            trk = config.trans_queue.pop(0)
-            if task_is_stop(trk.uuid):
+            try:    
+                trk = config.trans_queue.pop(0)
+            except IndexError:
+                continue
+            if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
                 trk.trans()
@@ -167,10 +160,6 @@ class WorkerTrans(QThread):
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-                try:
-                    del trk
-                except NameError:
-                    pass
 
 
 class WorkerDubb(QThread):
@@ -185,8 +174,11 @@ class WorkerDubb(QThread):
             if len(config.dubb_queue) < 1:
                 time.sleep(0.1)
                 continue
-            trk = config.dubb_queue.pop(0)
-            if task_is_stop(trk.uuid):
+            try:
+                trk = config.dubb_queue.pop(0)
+            except IndexError:
+                continue
+            if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
                 # 只要配音，就必须进入 同步对齐队列
@@ -201,10 +193,7 @@ class WorkerDubb(QThread):
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-                try:
-                    del trk
-                except NameError:
-                    pass
+
 
 
 class WorkerAlign(QThread):
@@ -219,8 +208,12 @@ class WorkerAlign(QThread):
             if len(config.align_queue) < 1:
                 time.sleep(0.1)
                 continue
-            trk = config.align_queue.pop(0)
-            if task_is_stop(trk.uuid):
+            try:
+                trk = config.align_queue.pop(0)
+            except IndexError:
+                continue
+            
+            if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
                 trk.align()
@@ -235,10 +228,7 @@ class WorkerAlign(QThread):
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-                try:
-                    del trk
-                except NameError:
-                    pass
+
 
 
 
@@ -254,8 +244,11 @@ class WorkerAssemb(QThread):
             if len(config.assemb_queue) < 1:
                 time.sleep(0.1)
                 continue
-            trk = config.assemb_queue.pop(0)
-            if task_is_stop(trk.uuid):
+            try:
+                trk = config.assemb_queue.pop(0)
+            except IndexError:
+                continue
+            if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
                 trk.assembling()
@@ -267,10 +260,7 @@ class WorkerAssemb(QThread):
                 config.logger.exception(e, exc_info=True)
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-                try:
-                    del trk
-                except NameError:
-                    pass
+
 
 
 class WorkerTaskDone(QThread):
@@ -285,8 +275,11 @@ class WorkerTaskDone(QThread):
             if len(config.taskdone_queue) < 1:
                 time.sleep(0.1)
                 continue
-            trk = config.taskdone_queue.pop(0)
-            if task_is_stop(trk.uuid):
+            try:
+                trk = config.taskdone_queue.pop(0)
+            except IndexError:
+                continue
+            if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
                 trk.task_done()
@@ -299,11 +292,7 @@ class WorkerTaskDone(QThread):
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
             else:
                 tools.send_notification(tr('Succeed'), f"{trk.cfg.basename}")
-            finally:
-                try:
-                    del trk
-                except NameError:
-                    pass
+            
 
 
 def start_thread():

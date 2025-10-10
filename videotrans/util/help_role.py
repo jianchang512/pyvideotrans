@@ -448,16 +448,15 @@ def get_clone_role(set_p=False):
 # 综合写入日志，默认sp界面
 # type=logs|error|subtitle|end|stop|succeed|set_precent|replace_subtitle|.... 末尾显示类型，
 # uuid 任务的唯一id，用于确定插入哪个子队列
-# nologs=False不写入日志
 def set_process(*, text="", type="logs", uuid=None):
     from videotrans.configure import config
     if config.exit_soft:
         return
+    if uuid and uuid in config.stoped_uuid_set:
+        return
     try:
         if text:
-            # 移除html
-            if type == 'error':
-                text = text.replace('\\n', ' ').strip()
+            text = text.replace('\\n', ' ').strip()
         if type == 'logs':
             text = text[:150]
         log = {"text": text, "type": type, "uuid": uuid}

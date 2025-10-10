@@ -17,8 +17,8 @@ def openwin():
 
 
     langname_dict = {
-        "zh-cn": "中文简",
-        "zh-tw": "中文繁",
+        "zh-cn": "简体中文",
+        "zh-tw": "繁体中文",
         "yue": "粤语",
         "en": "英语",
         "fr": "法语",
@@ -242,6 +242,7 @@ def openwin():
     # 试听配音
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
+        print(f'{lang=}')
         if not lang or lang == '-':
             return tools.show_error(tr("The voice is not support listen"))
         text = config.params[f'listen_text_{lang}']
@@ -276,6 +277,7 @@ def openwin():
             "volume": volume,
             "pitch": pitch,
         }
+        print(obj)
 
         if role == 'clone':
             return

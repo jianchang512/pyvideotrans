@@ -15,6 +15,8 @@ from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
+from openai import LengthFinishReasonError
+
 RETRY_NUMS = 3
 RETRY_DELAY = 10
 
@@ -59,7 +61,7 @@ class Gemini(BaseTrans):
         response = model.chat.completions.create(
             model=config.params.get("gemini_model",''),
             timeout=7200,
-            max_tokens=18092,
+            max_tokens=int(config.params.get("gemini_maxtoken",18192)),
             messages=message
         )
 
@@ -69,15 +71,17 @@ class Gemini(BaseTrans):
         if not hasattr(response,'choices'):
             raise StopRetry(str(response))
         
-        if response.choices and response.choices[0].message:
+        if response.choices[0].finish_reason=='length':
+            raise LengthFinishReasonError(completion=response)
+        if response.choices[0].message.content:
             result = response.choices[0].message.content.strip()
         else:
             config.logger.error(f'[gemini]请求失败:{response=}')
-            raise StopRetry(response.choices[0].finish_reason)
+            raise StopRetry(f'{response.choices[0].finish_reason}:{response}')
         
         if not result:
             config.logger.error(f'[gemini]请求失败:{response=}')
-            raise RuntimeError(f"{response=}")
+            raise RuntimeError(f"[Gemini]:{response}")
             
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
                           re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)

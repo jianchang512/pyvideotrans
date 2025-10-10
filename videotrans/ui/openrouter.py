@@ -120,7 +120,7 @@ class Ui_openrouterform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('openrouter_model','')
-        allmodels = config.settings.get('openrouter_model','').split(',')
+        allmodels = str(config.settings.get('openrouter_model','')).split(',')
         self.openrouter_model.clear()
         self.openrouter_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

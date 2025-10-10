@@ -122,7 +122,7 @@ class Ui_openaittsform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('openaitts_model','')
-        allmodels = config.settings.get('openaitts_model','').split(',')
+        allmodels = str(config.settings.get('openaitts_model','')).split(',')
 
         self.openaitts_model.clear()
         self.openaitts_model.addItems(allmodels)

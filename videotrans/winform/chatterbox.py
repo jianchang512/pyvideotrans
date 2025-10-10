@@ -15,7 +15,7 @@ def openwin():
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
             tools.show_error(d)
-        winobj.test.setText('Test')
+        winobj.test.setText(tr('Test'))
 
     def test():
         url = winobj.api_url.text().strip()
@@ -27,7 +27,7 @@ def openwin():
         config.params["chatterbox_cfg_weight"] = min(max(float(winobj.cfg_weight.text()), 0.0), 1.0)
         config.params["chatterbox_exaggeration"] = min(max(float(winobj.exaggeration.text()), 0.25), 2.0)
 
-        winobj.test.setText('Testing...')
+        winobj.test.setText(tr('Testing...'))
         from videotrans import tts
         wk = ListenVoice(parent=winobj, queue_tts=[{"text": 'Hello,my friend,welcom to China', "role": getrole(),
                                                     "filename": config.TEMP_HOME + f"/test-chatterbox.wav",

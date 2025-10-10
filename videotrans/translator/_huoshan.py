@@ -55,8 +55,10 @@ class HuoShan(BaseTrans):
         resp.raise_for_status()
         config.logger.info(f'[字节火山引擎]响应:{resp.text=}')
         data = resp.json()
-        if 'choices' not in data or len(data['choices']) < 1:
+        if 'choices' not in data or len(data['choices']) < 1 or not data['choices'][0]['message']['content']:
             raise RuntimeError(f'字节火山翻译失败:{resp.text=}')
+        
+        
         result = data['choices'][0]['message']['content'].strip()
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)
         if match:

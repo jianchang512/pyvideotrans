@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import shutil
 import time
 from pathlib import Path
 
@@ -8,7 +9,7 @@ from pathlib import Path
 
 
 def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
-        q: multiprocessing.Queue,proxy=None):
+        q: multiprocessing.Queue,proxy=None,TEMP_DIR=None,settings=None,defaulelang='zh'):
     from videotrans.configure import config
     from videotrans.process._iscache import check_cache_and_setproxy, down_model_err
     os.chdir(config.ROOT_DIR)
@@ -18,9 +19,9 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
     except Exception as e:
         pass
     if has_cache:
-        msg = f"模型 {model_name} 已存在，直接使用" if config.defaulelang == 'zh' else f'Model {model_name} already exists, use it directly'
+        msg = f"模型 {model_name} 已存在，直接使用" if defaulelang == 'zh' else f'Model {model_name} already exists, use it directly'
     else:
-        msg = f"模型 {model_name} 不存在，将自动下载 {os.environ.get('HF_ENDPOINT')}" if config.defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
+        msg = f"模型 {model_name} 不存在，将自动下载 {os.environ.get('HF_ENDPOINT')}" if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
 
 
     def write_log(jsondata):
@@ -37,7 +38,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
         if model_name.startswith('distil-'):
             com_type = "default"
         else:
-            com_type = config.settings.get('cuda_com_type','default')
+            com_type = settings.get('cuda_com_type','default')
 
         try:
             model = WhisperModel(
@@ -47,23 +48,23 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
                 download_root=down_root
             )
         except Exception as e:
-            err['msg'] = down_model_err(e, model_name, down_root, config.defaulelang)
+            err['msg'] = down_model_err(e, model_name, down_root, defaulelang)
             return
 
         write_log({"text": model_name + " Loaded", "type": "logs"})
-        prompt = config.settings.get(f'initial_prompt_{detect_language}') if detect_language != 'auto' else None
+        prompt = settings.get(f'initial_prompt_{detect_language}') if detect_language != 'auto' else None
         segments, info = model.transcribe(
             audio_file,
-            beam_size=int(config.settings.get('beam_size',5)),
-            best_of=int(config.settings.get('best_of',5)),
-            condition_on_previous_text=bool(config.settings.get('condition_on_previous_text',False)),
-            vad_filter=bool(config.settings.get('vad',False)),
+            beam_size=int(settings.get('beam_size',5)),
+            best_of=int(settings.get('best_of',5)),
+            condition_on_previous_text=bool(settings.get('condition_on_previous_text',False)),
+            vad_filter=bool(settings.get('vad',False)),
             vad_parameters=dict(
-                threshold=float(config.settings.get('threshold',0.45)),
-                min_speech_duration_ms=int(config.settings.get('min_speech_duration_ms',0)),
-                max_speech_duration_s=float(config.settings.get('max_speech_duration_s',5)),
-                min_silence_duration_ms=int(config.settings.get('min_silence_duration_ms',140)),
-                speech_pad_ms=int(config.settings.get('speech_pad_ms',0))
+                threshold=float(settings.get('threshold',0.45)),
+                min_speech_duration_ms=int(settings.get('min_speech_duration_ms',0)),
+                max_speech_duration_s=float(settings.get('max_speech_duration_s',5)),
+                min_silence_duration_ms=int(settings.get('min_silence_duration_ms',140)),
+                speech_pad_ms=int(settings.get('speech_pad_ms',0))
             ),
             word_timestamps=True,
             language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
@@ -72,9 +73,10 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
         if detect_language == 'auto' and info.language != detect['langcode']:
             detect['langcode'] = 'zh-cn' if info.language[:2] == 'zh' else info.language
         nums = 0
+        # print(f'{list(segments)=}')
         for segment in segments:
             nums += 1
-            if not Path(config.TEMP_DIR + f'/{os.getpid()}.lock').exists():
+            if not Path(TEMP_DIR + f'/{os.getpid()}.lock').exists():
                 return
             new_seg = []
             for idx, word in enumerate(segment.words):
@@ -83,12 +85,14 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
             raws.append({"words": new_seg, "text": text})
 
             q.put_nowait({"text": f'{text}\n', "type": "subtitle"})
-            q.put_nowait({"text": f' {config.tr("Subtitles")}  {len(raws) + 1} ', "type": "logs"})
-    except Exception:
+            q.put_nowait({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
+    except BaseException as e:
         import traceback
         err['msg'] = traceback.format_exc()
     finally:
         try:
+            shutil.rmtree(config.TEMP_DIR,ignore_errors=True)
+            shutil.rmtree(config.TEMP_HOME,ignore_errors=True)
             import torch
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()

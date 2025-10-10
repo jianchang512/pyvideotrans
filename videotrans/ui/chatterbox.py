@@ -107,7 +107,6 @@ class Ui_chatterboxform(object):
     def retranslateUi(self, chatterboxform):
         chatterboxform.setWindowTitle("Chatterbox-TTS API")
         self.save.setText(tr("Save"))
-        self.api_url.setPlaceholderText("填写http开头的完整地址 http://127.0.0.1:5093")
         self.label.setText("Chatterbox TTS API")
 
         self.test.setText(tr("Test"))

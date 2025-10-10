@@ -15,6 +15,7 @@ from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
+from openai import LengthFinishReasonError
 
 RETRY_NUMS = 2
 RETRY_DELAY = 10
@@ -155,11 +156,16 @@ class ChatGPT(BaseTrans):
         )
         config.logger.info(f'[chatGPT]响应:{response=}')
         result = ""
-        if hasattr(response, 'choices') and response.choices[0].message:
+        if not hasattr(response,'choices'):
+            raise RuntimeError(str(response))
+        
+        if response.choices[0].finish_reason=='length':
+            raise LengthFinishReasonError(completion=response)
+        if response.choices[0].message.content:
             result = response.choices[0].message.content.strip()
         else:
             config.logger.error(f'[chatGPT]请求失败:{response=}')
-            raise RuntimeError(f"{response}")
+            raise RuntimeError(f"[OpenAIChatGPT]{response.choices[0].finish_reason}:{response}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
                           re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)

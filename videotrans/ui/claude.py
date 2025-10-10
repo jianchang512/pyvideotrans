@@ -112,7 +112,7 @@ class Ui_claudeform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('claude_model','')
-        allmodels = config.settings.get('claude_model','').split(',')
+        allmodels = str(config.settings.get('claude_model','')).split(',')
         self.model.clear()
         self.model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

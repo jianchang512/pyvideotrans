@@ -94,7 +94,7 @@ class Ui_zijiehuoshanform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('zijiehuoshan_model','')
-        allmodels = config.settings.get('zijiehuoshan_model','').split(',')
+        allmodels = str(config.settings.get('zijiehuoshan_model','')).split(',')
         self.zijiehuoshan_model.clear()
         self.zijiehuoshan_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

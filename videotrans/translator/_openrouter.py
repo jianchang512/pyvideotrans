@@ -6,6 +6,7 @@ from typing import List, Union
 
 import httpx
 from openai import OpenAI
+from openai import LengthFinishReasonError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
@@ -58,13 +59,16 @@ class OpenRouter(BaseTrans):
             messages=message,
             max_tokens=int(config.params.get('openrouter_max_tokens',4096))
         )
-
+        if not hasattr(response,'choices'):
+            raise RuntimeError(str(response))
+        if response.choices[0].finish_reason=='length':
+            raise LengthFinishReasonError(completion=response)
         result = ""
-        if response.choices:
+        if response.choices[0].message.content:
             result = response.choices[0].message.content.strip()
         else:
             config.logger.error(f'[openrouter]请求失败:{response=}')
-            raise RuntimeError(f"no choices:{response=}")
+            raise RuntimeError(f"[OpenRouter] {response.choices[0].finish_reason}:{response}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)
         if match:

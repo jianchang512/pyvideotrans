@@ -95,7 +95,7 @@ class Ui_openairecognapiform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('openairecognapi_model','')
-        allmodels = config.settings.get('openairecognapi_model','').split(',')
+        allmodels = str(config.settings.get('openairecognapi_model','')).split(',')
         self.openairecognapi_model.clear()
         self.openairecognapi_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

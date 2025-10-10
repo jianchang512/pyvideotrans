@@ -738,5 +738,6 @@
     "Fill in all inference access points, and you can select them above": "Fill in all inference access points, and you can select them above",
 
     "Prompt: Please open the {} file directly to modify it": "To modify subtitle translation prompts, open the [Software Directory/videotrans/prompts] folder.\n\n[Software Directory/videotrans/prompts/srt/] stores prompts when Send Full Subtitles is selected.\n[Software Directory/videotrans/prompts/text/] stores prompts when Send Full Subtitles is unchecked.\nThe prompt word file used by the current channel is: [{}.txt]",
-    "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3"
+    "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3",
+    "Reference audio does not exist: {} Please make sure the audio exists": "Reference audio does not exist: {} Please make sure the audio exists"
 }

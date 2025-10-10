@@ -37,3 +37,13 @@ proxy='http://127.0.0.1:10808',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:1
 proxy='http://127.0.0.1:10808',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10808',os.environ.get('HF_ENDPOINT')='https://huggingface.co',os.environ.get('HF_HUB_DISABLE_XET')=None
 proxy='http://127.0.0.1:10808',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10808',os.environ.get('HF_ENDPOINT')='https://huggingface.co',os.environ.get('HF_HUB_DISABLE_XET')=None
 proxy='http://127.0.0.1:10808',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10808',os.environ.get('HF_ENDPOINT')='https://huggingface.co',os.environ.get('HF_HUB_DISABLE_XET')=None
+proxy='http://127.0.0.1:10807',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10807',os.environ.get('HF_ENDPOINT')='https://hf-mirror.com',os.environ.get('HF_HUB_DISABLE_XET')='1'
+proxy='http://127.0.0.1:10807',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10807',os.environ.get('HF_ENDPOINT')='https://hf-mirror.com',os.environ.get('HF_HUB_DISABLE_XET')='1'
+proxy='http://127.0.0.1:10807',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10807',os.environ.get('HF_ENDPOINT')='https://hf-mirror.com',os.environ.get('HF_HUB_DISABLE_XET')='1'
+proxy='http://127.0.0.1:10807',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10807',os.environ.get('HF_ENDPOINT')='https://hf-mirror.com',os.environ.get('HF_HUB_DISABLE_XET')='1'
+proxy='http://127.0.0.1:10808',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10808',os.environ.get('HF_ENDPOINT')='https://huggingface.co',os.environ.get('HF_HUB_DISABLE_XET')=None
+proxy='http://127.0.0.1:10807',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10807',os.environ.get('HF_ENDPOINT')='https://hf-mirror.com',os.environ.get('HF_HUB_DISABLE_XET')='1'
+proxy='http://127.0.0.1:10807',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10807',os.environ.get('HF_ENDPOINT')='https://hf-mirror.com',os.environ.get('HF_HUB_DISABLE_XET')='1'
+proxy='http://127.0.0.1:10807',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10807',os.environ.get('HF_ENDPOINT')='https://hf-mirror.com',os.environ.get('HF_HUB_DISABLE_XET')='1'
+proxy='http://127.0.0.1:10808',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10808',os.environ.get('HF_ENDPOINT')='https://huggingface.co',os.environ.get('HF_HUB_DISABLE_XET')=None
+proxy='http://127.0.0.1:10808',os.environ.get('HTTPS_PROXY')='http://127.0.0.1:10808',os.environ.get('HF_ENDPOINT')='https://huggingface.co',os.environ.get('HF_HUB_DISABLE_XET')=None

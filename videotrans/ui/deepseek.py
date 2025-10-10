@@ -119,7 +119,7 @@ class Ui_deepseekform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('deepseek_model','')
-        allmodels = config.settings.get('deepseek_model','').split(',')
+        allmodels = str(config.settings.get('deepseek_model','')).split(',')
         self.deepseek_model.clear()
         self.deepseek_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

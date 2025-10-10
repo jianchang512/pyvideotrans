@@ -25,11 +25,11 @@ class Ui_geminiform(object):
         v1 = QtWidgets.QVBoxLayout(geminiform)
 
         h1 = QtWidgets.QHBoxLayout()
-        self.label_2 = QtWidgets.QLabel(geminiform)
+        self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
-        self.gemini_key = QtWidgets.QLineEdit(geminiform)
+        self.gemini_key = QtWidgets.QLineEdit()
         self.gemini_key.setMinimumSize(QtCore.QSize(0, 35))
         self.gemini_key.setObjectName("gemini_key")
         h1.addWidget(self.label_2)
@@ -37,35 +37,47 @@ class Ui_geminiform(object):
         v1.addLayout(h1)
 
         h2 = QtWidgets.QHBoxLayout()
-        self.label_3 = QtWidgets.QLabel(geminiform)
+        self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
-        self.model = QtWidgets.QComboBox(geminiform)
+        self.model = QtWidgets.QComboBox()
         self.model.setMinimumSize(QtCore.QSize(0, 35))
         self.model.setObjectName("model")
         h2.addWidget(self.label_3)
         h2.addWidget(self.model)
         v1.addLayout(h2)
+        
+        
+        h_token=QtWidgets.QHBoxLayout()
+        label_token = QtWidgets.QLabel()
+        label_token.setObjectName("label_token")
+        label_token.setText('Max Token')
+        self.gemini_maxtoken = QtWidgets.QLineEdit()
+        self.gemini_maxtoken.setObjectName("gemini_maxtoken")
+        h_token.addWidget(label_token)
+        h_token.addWidget(self.gemini_maxtoken)
+        v1.addLayout(h_token)
+        
 
-        self.label_allmodels = QtWidgets.QLabel(geminiform)
+        self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
             tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
         self.label_allmodels.setStyleSheet("color:#999")
 
-        self.edit_allmodels = QtWidgets.QPlainTextEdit(geminiform)
+        self.edit_allmodels = QtWidgets.QPlainTextEdit()
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.label_allmodels)
         v1.addWidget(self.edit_allmodels)
 
-        self.label_4 = QtWidgets.QLabel(geminiform)
+        self.label_4 = QtWidgets.QLabel()
         self.label_4.setObjectName("label_4")
-        self.gemini_template = QtWidgets.QPlainTextEdit(geminiform)
+        self.gemini_template = QtWidgets.QPlainTextEdit()
         self.gemini_template.setObjectName("gemini_template")
         self.gemini_template.setReadOnly(True)
         v1.addWidget(self.label_4)
         v1.addWidget(self.gemini_template)
 
-        self.label_srt = QtWidgets.QLabel(geminiform)
+        self.label_srt = QtWidgets.QLabel()
         self.label_srt.setObjectName("label_srt")
 
         hrecogn = QtWidgets.QHBoxLayout()
@@ -73,17 +85,17 @@ class Ui_geminiform(object):
 
         v1.addLayout(hrecogn)
 
-        self.gemini_srtprompt = QtWidgets.QPlainTextEdit(geminiform)
+        self.gemini_srtprompt = QtWidgets.QPlainTextEdit()
         self.gemini_srtprompt.setObjectName("gemini_srtprompt")
 
         v1.addWidget(self.gemini_srtprompt)
 
         h2ttsmodel = QtWidgets.QHBoxLayout()
-        self.label_ttsmodel = QtWidgets.QLabel(geminiform)
+        self.label_ttsmodel = QtWidgets.QLabel()
         self.label_ttsmodel.setObjectName("label_ttsmodel")
         self.label_ttsmodel.setText('TTS model')
 
-        self.ttsmodel = QtWidgets.QComboBox(geminiform)
+        self.ttsmodel = QtWidgets.QComboBox()
         self.ttsmodel.setMinimumSize(QtCore.QSize(0, 35))
         self.ttsmodel.setObjectName("ttsmodel")
         self.ttsmodel.addItems(["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"])
@@ -92,11 +104,11 @@ class Ui_geminiform(object):
         v1.addLayout(h2ttsmodel)
 
         h3 = QtWidgets.QHBoxLayout()
-        self.set_gemini = QtWidgets.QPushButton(geminiform)
+        self.set_gemini = QtWidgets.QPushButton()
         self.set_gemini.setMinimumSize(QtCore.QSize(0, 35))
         self.set_gemini.setObjectName("set_gemini")
 
-        self.test = QtWidgets.QPushButton(geminiform)
+        self.test = QtWidgets.QPushButton()
         self.test.setObjectName("test")
 
         help_btn = QtWidgets.QPushButton()
@@ -111,9 +123,9 @@ class Ui_geminiform(object):
         h3.addWidget(self.test)
         h3.addWidget(help_btn)
         v1.addLayout(h3)
-        self.gemini_template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'gemini' if config.defaulelang=='zh' else 'gemini-en')))
-
-        self.retranslateUi(geminiform)
+        self.gemini_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'gemini'))
+        geminiform.setWindowTitle("Gemini AI")
+        self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(geminiform)
 
 
@@ -121,17 +133,19 @@ class Ui_geminiform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('gemini_model','')
-        allmodels = config.settings.get('gemini_model','').split(',')
+        allmodels = str(config.settings.get('gemini_model','')).split(',')
         self.model.clear()
         self.model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
         self.gemini_key.setText(config.params.get("gemini_key",''))
         self.model.setCurrentText(config.params.get("gemini_model",''))
+        
+        self.gemini_maxtoken.setText(str(config.params.get("gemini_maxtoken",'18192')))
 
         self.ttsmodel.setCurrentText(config.params.get("gemini_ttsmodel",''))
         self.gemini_srtprompt.setPlainText(Path(config.ROOT_DIR+'/videotrans/prompts/recogn/gemini_recogn.txt').read_text(encoding='utf-8'))
-    def retranslateUi(self, geminiform):
-        geminiform.setWindowTitle("Gemini Pro")
+    def retranslateUi(self):
+        
         self.gemini_template.setPlaceholderText("prompt")
         self.label_4.setText(
             tr("{lang} represents the target language name, do not delete it."))

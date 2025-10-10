@@ -553,13 +553,12 @@ class WinAction(WinActionSub):
         recogn_type = self.main.recogn_type.currentIndex()
         model_name = self.main.model_name.currentText()
         res = recognition.is_allow_lang(langcode=langcode, recogn_type=recogn_type, model_name=model_name)
-        if res is not True:
-            self.main.show_tips.setText(res)
-        else:
-            self.main.show_tips.setText('')
+        self.main.show_tips.setText(res if res is not True else '')
 
         # 原始语言是最后一个，即auto自动检查
-        if self.main.subtitle_area.toPlainText().strip() and self.main.source_language.currentIndex() == self.main.source_language.count() - 1:
+        source_code = translator.get_code(show_text=self.main.source_language.currentText())
+
+        if self.main.subtitle_area.toPlainText().strip() and source_code=='auto':
             tools.show_error(
                 tr("The detection function cannot be used when subtitles have already been imported."))
             return False
@@ -670,12 +669,8 @@ class WinAction(WinActionSub):
         if self.cuda_isok() is not True:
             self.main.startbtn.setDisabled(False)
             return
-        # 核对文件路径是否符合规范，防止ffmpeg处理中出错
-        if self.url_right() is not True:
-            self.main.startbtn.setDisabled(False)
-            return
 
-        if self.cfg['target_language'] == '-' and self.cfg['subtitle_type'] > 0:
+        if self.cfg.get('target_language','-') == '-' and self.cfg['subtitle_type'] > 0:
             self.main.startbtn.setDisabled(False)
             return tools.show_error(
                 tr("Target language must be selected to embed subtitles"))
@@ -832,7 +827,8 @@ class WinAction(WinActionSub):
             )
             task.uito.connect(self.update_data)
             task.start()
-            if self.cfg['target_language'] != '-' and self.cfg['target_language'] != self.cfg['source_language']:
+            target_language=self.cfg.get('target_language','-')
+            if  target_language != '-' and target_language != self.cfg.get('source_language'):
                 if not self.main.isMaximized():
                     self.main.showMaximized()
             return
@@ -939,7 +935,7 @@ class WinAction(WinActionSub):
         self._disabled_button(False)
         for it in self.obj_list:
             if it['uuid'] in config.uuid_logs_queue:
-                del config.uuid_logs_queue[it['uuid']]
+                config.uuid_logs_queue.pop(it['uuid'],None)
         if type == 'end':
             self.main.subtitle_area.clear()
 

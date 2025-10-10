@@ -1,13 +1,14 @@
 import json
 import os
 import re
+import shutil
 import tempfile
 import time
 from pathlib import Path
 
 
 
-def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, q,proxy=None):
+def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, q,proxy=None,TEMP_DIR=None,settings=None,defaulelang='zh'):
     from videotrans.configure import  config
     os.chdir(config.ROOT_DIR)
     from videotrans.process._iscache import check_cache_and_setproxy, down_model_err
@@ -17,9 +18,9 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
     except Exception:
         pass
     if has_cache:
-        msg = f"模型 {model_name} 已存在，直接使用" if config.defaulelang == 'zh' else f'Model {model_name} already exists, use it directly'
+        msg = f"模型 {model_name} 已存在，直接使用" if defaulelang == 'zh' else f'Model {model_name} already exists, use it directly'
     else:
-        msg = f"模型 {model_name} 不存在，将自动下载 {os.environ.get('HF_ENDPOINT')}" if config.defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
+        msg = f"模型 {model_name} 不存在，将自动下载 {os.environ.get('HF_ENDPOINT')}" if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
 
     import zhconv
     from faster_whisper import WhisperModel
@@ -41,7 +42,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
     if vail_file(nonslient_file):
         nonsilent_data = json.load(open(nonslient_file, 'r'))
     else:
-        nonsilent_data = _shorten_voice_old(normalized_sound, config.settings)
+        nonsilent_data = _shorten_voice_old(normalized_sound, settings)
         with open(nonslient_file, 'w') as f:
             f.write(json.dumps(nonsilent_data))
 
@@ -50,7 +51,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
     if model_name.startswith('distil-'):
         com_type = "default"
     else:
-        com_type = config.settings.get('cuda_com_type','default')
+        com_type = settings.get('cuda_com_type','default')
 
     down_root = config.ROOT_DIR + "/models"
     write_log({"text": msg, "type": "logs"})
@@ -63,15 +64,15 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
             download_root=down_root
         )
     except Exception as e:
-        err['msg'] = down_model_err(e, model_name, down_root, config.defaulelang)
+        err['msg'] = down_model_err(e, model_name, down_root, defaulelang)
         return
 
     write_log({"text": model_name + " Loaded", "type": "logs"})
-    prompt = config.settings.get(f'initial_prompt_{detect_language}') if detect_language and detect_language != 'auto' else None
+    prompt = settings.get(f'initial_prompt_{detect_language}') if detect_language and detect_language != 'auto' else None
     try:
         last_detect = detect_language
         for i, duration in enumerate(nonsilent_data):
-            if not Path(config.TEMP_DIR + f'/{os.getpid()}.lock').exists():
+            if not Path(TEMP_DIR + f'/{os.getpid()}.lock').exists():
                 return
             start_time, end_time, buffered = duration
             chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
@@ -80,9 +81,9 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
 
             text = ""
             segments, info = model.transcribe(chunk_filename,
-                                              beam_size=config.settings.get('beam_size',''),
-                                              best_of=config.settings.get('best_of',''),
-                                              condition_on_previous_text=config.settings[
+                                              beam_size=settings.get('beam_size',''),
+                                              best_of=settings.get('best_of',''),
+                                              condition_on_previous_text=settings[
                                                   'condition_on_previous_text'],
                                               vad_filter=False,
                                               language=detect_language.split('-')[
@@ -100,7 +101,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
             if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
                 continue
 
-            if detect['langcode'][:2] == 'zh' and config.settings.get('zh_hant_s',''):
+            if detect['langcode'][:2] == 'zh' and settings.get('zh_hant_s',''):
                 text = zhconv.convert(text, 'zh-hans')
 
             start = ms_to_time_string(ms=start_time)
@@ -117,12 +118,14 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, 
             }
             raws.append(srt_line)
             write_log({"text": f"{srt_line['line']}\n{srt_line['time']}\n{srt_line['text']}\n\n", "type": "subtitle"})
-            write_log({"text": f" {config.tr('Subtitles')} {srt_line['line']}/{total_length}", "type": "logs"})
-    except Exception as e:
+            write_log({"text": f" Subtitles {srt_line['line']}/{total_length}", "type": "logs"})
+    except BaseException as e:
         import traceback
         err['msg'] = traceback.format_exc()
     finally:
         try:
+            shutil.rmtree(config.TEMP_DIR,ignore_errors=True)
+            shutil.rmtree(config.TEMP_HOME,ignore_errors=True)
             import torch
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()

@@ -158,18 +158,21 @@ def down_model_err(e: Exception, model_name: str, cache_dir: str, defaulelang: s
             f'模型下载不完整，请删除目录 {model_dir}，重新下载' if defaulelang == "zh" else f"The model download may be incomplete, please delete the directory {model_dir} and download it again")
         if 'hf-mirror.com' in os.environ.get('HF_ENDPOINT', ''):
             msg += f"\n当前从国内镜像站下载，若频繁失败，请考虑科学上网并在软件目录下创建 huggingface.lock 文件，以便从国外源站下载\n更多下载方法查看 https://pvt9.com/819\n"
-        msg = f"{msg}\n{error}"
+        msg = f"{msg}"
+    
+    elif 'ProxyError' in error:
+        msg= "代理设置不正确或代理不可用，请检查代理或关闭代理并删掉代理文本框中所填内容" if defaulelang == 'zh'  else "Proxy configuration issue, check settings or disable proxy"    
     elif isinstance(e, (requests.exceptions.ChunkedEncodingError,
                         HfHubHTTPError)) or "Unable to open file 'model.bin'" in error or "CAS service error" in error:
         if 'hf-mirror.com' in os.environ.get('HF_ENDPOINT', ''):
             msg = '从国内镜像站下载模型失败，若频繁失败，请考虑科学上网并在软件目录下创建 huggingface.lock 文件，以便从国外源站下载\n更多下载方法查看 https://pvt9.com/819\n'
         else:
             msg = f'下载模型失败了，请确认网络稳定并能连接 huggingface.co\n更多下载方法查看 https://pvt9.com/819\n' if defaulelang == 'zh' else f'Download model failed, please confirm network stable and try again.\n'
-        msg = f'{msg}{error}'
+        msg = f'{msg}'
     elif "CUBLAS_STATUS_NOT_SUPPORTED" in error:
         msg = f"数据类型不兼容：请打开菜单--工具--高级选项--faster/openai语音识别调整--CUDA数据类型--选择 float16，保存后重试:{error}" if defaulelang == 'zh' else f'Incompatible data type: Please open the menu - Tools - Advanced options - Faster/OpenAI speech recognition adjustment - CUDA data type - select float16, save and try again:{error}'
     elif "cudaErrorNoKernelImageForDevice" in error:
-        msg = f"pytorch和cuda版本不兼容，请更新显卡驱动后，安装或重装CUDA12.x及cuDNN9.x:{error}" if defaulelang == 'zh' else f'Pytorch and cuda versions are incompatible. Please update the graphics card driver and install or reinstall CUDA12.x and cuDNN9.x:{error}'
+        msg = f"pytorch和cuda版本不兼容，请更新显卡驱动后，安装或重装CUDA12.x及cuDNN9.x:{error}" if defaulelang == 'zh' else f'Pytorch and cuda versions are incompatible. Please update the graphics card driver and install or reinstall CUDA12.x and cuDNN9.x'
     else:
         msg = error
     return msg

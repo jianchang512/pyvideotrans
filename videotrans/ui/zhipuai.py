@@ -118,7 +118,7 @@ class Ui_zhipuaiform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('zhipuai_model','')
-        allmodels = config.settings.get('zhipuai_model','').split(',')
+        allmodels = str(config.settings.get('zhipuai_model','')).split(',')
         self.zhipu_model.clear()
         self.zhipu_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

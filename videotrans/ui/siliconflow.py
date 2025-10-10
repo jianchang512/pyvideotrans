@@ -117,7 +117,7 @@ class Ui_siliconflowform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('guiji_model','')
-        allmodels = config.settings.get('guiji_model','').split(',')
+        allmodels = str(config.settings.get('guiji_model','')).split(',')
         self.guiji_model.clear()
         self.guiji_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

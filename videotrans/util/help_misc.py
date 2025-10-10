@@ -300,6 +300,12 @@ def get_md5(input_string: str):
 
 
 def pygameaudio(filepath):
-    from .playmp3 import AudioPlayer
-    player = AudioPlayer(filepath)
-    player.start()
+    try:
+        import pygame
+        pygame.mixer.init()
+        sound = pygame.mixer.Sound(filepath)
+        sound.play()
+        while pygame.mixer.get_busy():
+            pygame.time.Clock().tick(10)
+    except Exception as e:
+        print(e)

@@ -97,7 +97,7 @@ class Ui_ai302form(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('ai302_models','')
-        allmodels = config.settings.get('ai302_models','').split(',')
+        allmodels = str(config.settings.get('ai302_models','')).split(',')
 
         self.ai302_model.clear()
         self.ai302_model.addItems(allmodels)

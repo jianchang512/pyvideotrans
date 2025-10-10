@@ -8,14 +8,15 @@ from PySide6.QtCore import QThread, Signal
 from videotrans.configure import config
 from videotrans.configure.config import tr
 
-
+# 循环从日志队列中取出消息
 class UUIDSignalThread(QThread):
     uito = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.parent = parent
-
+    
+    # 已停止的，删除掉日志队列
     def _remove_queue(self):
         for uuid in config.stoped_uuid_set:
             config.uuid_logs_queue.pop(uuid,None)
@@ -25,17 +26,16 @@ class UUIDSignalThread(QThread):
             self.uito.emit(json.dumps(
                 {"type": "ffmpeg", "text": tr("Please install ffmpeg")}))
         while 1:
-            if config.exit_soft:
-                return
+            if config.exit_soft: return
+            
             if len(self.parent.win_action.obj_list) < 1:
                 if len(config.global_msg) > 0:
                     self.uito.emit(json.dumps(config.global_msg.pop(0)))
                 self._remove_queue()
-                if config.exit_soft:
-                    return
+                if config.exit_soft: return
                 time.sleep(0.1)
                 continue
-            # 找出未停止的
+            # 找出未停止的任务
             uuid_list = [obj['uuid'] for obj in self.parent.win_action.obj_list if
                          obj['uuid'] not in config.stoped_uuid_set]
             # 全部结束
@@ -44,21 +44,28 @@ class UUIDSignalThread(QThread):
                 time.sleep(0.1)
                 self._remove_queue()
                 continue
+            
             while len(uuid_list) > 0:
-                if config.exit_soft:
-                    return
-                uuid = uuid_list.pop(0)
+                if config.exit_soft: return
+                try:
+                    uuid = uuid_list.pop(0)
+                except IndexError:
+                    time.sleep(0.1)
+                    continue
+                # 该任务已停止
                 if uuid in config.stoped_uuid_set:
                     config.uuid_logs_queue.pop(uuid,None)
-                    if config.exit_soft:
-                        return
+                    continue
+                if config.exit_soft: return
+                q: queue.Queue = config.uuid_logs_queue.get(uuid)
+                if not q:
                     continue
                 try:
-                    q: queue.Queue = config.uuid_logs_queue.get(uuid)
-                    if not q:
-                        continue
                     data = q.get(block=True, timeout=0.1)
                     if data:
                         self.uito.emit(json.dumps(data))
+                    q.task_done()
                 except Exception:
                     pass
+                finally:
+                    if config.exit_soft: return

@@ -69,7 +69,10 @@ class FasterAvg(BaseRecogn):
                     "detect_language": self.detect_language,
                     "audio_file": self.audio_file,
                     "q": result_queue,
-                    "proxy": self.proxy_str
+                    "proxy": self.proxy_str,
+                    "TEMP_DIR":config.TEMP_DIR,
+                    "defaulelang":config.defaulelang,
+                    "settings":config.settings
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'

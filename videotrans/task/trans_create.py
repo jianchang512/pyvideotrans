@@ -85,26 +85,7 @@ class TransCreate(BaseTask):
         self.cfg.targetdir_mp4 = f"{self.cfg.target_dir}/{self.cfg.noextname}.mp4"
 
 
-        # 如果存在字幕文本，则视为原始语言字幕，不再识别
-        if self.cfg.subtitles.strip():
-            sub_file = self.cfg.source_sub
-            with open(sub_file, 'w', encoding="utf-8", errors="ignore") as f:
-                txt = re.sub(r':\d+\.\d+', lambda m: m.group().replace('.', ','),
-                             self.cfg.subtitles.strip(), re.S | re.M)
-                f.write(txt)
-            self.shoud_recogn = False
-        # 获取高级设置选项
-        config.settings = config.parse_init()
-        # 禁止修改字幕
-        self._signal(text="forbid", type="disabled_edit")
 
-        # 判断如果是音频，则到生成音频结束，无需合并，并且无需分离视频、无需背景音处理
-        if self.cfg.ext.lower() in config.AUDIO_EXITS:
-            self.is_audio_trans=True
-            self.cfg.is_separate=False
-            self.shoud_hebing = False
-        # 记录最终使用的配置信息
-        config.logger.info(f"最终配置信息：{self.cfg=}")
 
 
 
@@ -133,6 +114,14 @@ class TransCreate(BaseTask):
         self.cfg.target_wav = f"{self.cfg.cache_folder}/target.wav"
 
 
+
+        # 获取高级设置选项
+        config.settings = config.parse_init()
+        # 禁止修改字幕
+        self._signal(text="forbid", type="disabled_edit")
+
+
+
         # 是否需要翻译:存在目标语言代码并且不等于原始语言，并且不存在目标字幕文件，则需要翻译
         if self.cfg.target_language_code and  self.cfg.target_language_code != self.cfg.source_language_code:
             self.shoud_trans = True
@@ -148,6 +137,14 @@ class TransCreate(BaseTask):
         if not self.cfg.target_language_code:
             self.shoud_dubbing=False
             self.shoud_trans=False
+
+        # 判断如果是音频，则到生成音频结束，无需合并，并且无需分离视频、无需背景音处理
+        if self.cfg.ext.lower() in config.AUDIO_EXITS:
+            self.is_audio_trans=True
+            self.cfg.is_separate=False
+            self.shoud_hebing = False
+        # 记录最终使用的配置信息
+        config.logger.info(f"最终配置信息：{self.cfg=}")
 
         # 开启一个线程显示进度
         def runing():
@@ -166,6 +163,13 @@ class TransCreate(BaseTask):
         self._unlink_size0(self.cfg.targetdir_mp4)
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
         Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
+        # 如果存在字幕文本，则视为原始语言字幕，不再识别
+        if self.cfg.subtitles.strip():
+            with open(self.cfg.source_sub, 'w', encoding="utf-8", errors="ignore") as f:
+                txt = re.sub(r':\d+\.\d+', lambda m: m.group().replace('.', ','),
+                             self.cfg.subtitles.strip(), re.S | re.M)
+                f.write(txt)
+            self.shoud_recogn = False
         try:
             # 删掉已存在的，可能会失败
             if self.cfg.source_wav:

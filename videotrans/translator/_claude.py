@@ -86,7 +86,7 @@ class Claude(BaseTrans):
             result = response.content[0].text.strip()
         else:
             config.logger.error(f'[claude]请求失败:{response=}')
-            raise RuntimeError(f"no content:{response=}")
+            raise RuntimeError(f"[claude]:{response=}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)
         if match:

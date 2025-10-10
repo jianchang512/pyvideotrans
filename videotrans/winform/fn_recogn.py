@@ -25,6 +25,7 @@ def openwin():
             winobj.loglabel.setStyleSheet("""color:#148cd2;background-color:transparent""")
             winobj.error_msg = ""
             winobj.loglabel.setToolTip('')
+        
         if d['type'] in ['replace', 'replace_subtitle']:
             winobj.shibie_text.clear()
             winobj.shibie_text.insertPlainText(d["text"])
@@ -146,15 +147,10 @@ def openwin():
         with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-        # winobj.shibie_opendir.setDisabled(False)
         try:
             COPYSRT_TO_RAWDIR = RESULT_DIR if not winobj.copysrt_rawvideo.isChecked() else RESULT_DIR
-            # winobj.shibie_startbtn.setDisabled(True)
-            # winobj.shibie_dropbtn.setDisabled(True)
-            # winobj.shibie_stop.setDisabled(False)
             winobj.loglabel.setText('')
             config.box_recogn = 'ing'
-
             video_list = [tools.format_video(it, None) for it in files]
             uuid_list = [obj['uuid'] for obj in video_list]
             for it in video_list:
@@ -167,8 +163,11 @@ def openwin():
                     "detect_language": langcode,
                     "remove_noise": winobj.remove_noise.isChecked(),
                 }
-                trk = SpeechToText(cfg=TaskCfg(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
-                config.prepare_queue.append(trk)
+                try:
+                    trk = SpeechToText(cfg=TaskCfg(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
+                    config.prepare_queue.append(trk)
+                except Exception as e:
+                    print(e)
             from videotrans.task.child_win_sign import SignThread
             th = SignThread(uuid_list=uuid_list, parent=winobj)
             th.uito.connect(feed)
@@ -285,9 +284,6 @@ def openwin():
         winobj.has_done = True
         winobj.loglabel.setText('Stoped')
         winobj.shibie_startbtn.setText(tr("zhixingwc"))
-        # winobj.shibie_startbtn.setDisabled(False)
-        # winobj.shibie_dropbtn.setDisabled(False)
-        # winobj.shibie_stop.setDisabled(True)
         winobj.shibie_dropbtn.setText(tr('xuanzeyinshipin'))
         toggle_state(False)
 

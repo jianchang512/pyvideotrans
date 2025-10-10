@@ -146,7 +146,7 @@ class Ui_localllmform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('localllm_model','')
-        allmodels = config.settings.get('localllm_model','').split(',')
+        allmodels = str(config.settings.get('localllm_model','')).split(',')
         self.localllm_model.clear()
         self.localllm_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

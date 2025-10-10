@@ -42,8 +42,8 @@ class Worker(QThread):
             if self._exit(): return
             self._post(text=trk.cfg.source_sub, type='edit_subtitle_source')
             trk.recogn()
+            if self._exit(): return
             if trk.shoud_trans:
-                if self._exit(): return
                 if tools.vail_file(trk.cfg.target_sub):
                     if tools.vail_file(trk.cfg.source_sub):
                         self._post(text=Path(trk.cfg.source_sub).read_text(encoding='utf-8'),
@@ -77,7 +77,6 @@ class Worker(QThread):
                         trk.trans()
             
             if self._exit(): return
-            # if trk.shoud_dubbing:
             countdown_sec = int(float(config.settings.get('countdown_sec', 1)))
             config.task_countdown = countdown_sec
             self._post(text=Path(trk.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
@@ -88,7 +87,6 @@ class Worker(QThread):
                 if self._exit(): return
                 # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
                 time.sleep(1)
-                if self._exit(): return
                 # 倒计时中
                 config.task_countdown -= 1
                 if 0 < config.task_countdown <= countdown_sec:
@@ -115,7 +113,10 @@ class Worker(QThread):
             
             if not self._exit():
                 trk.task_done()
+                tools.send_notification(tr('Succeed'), f"{trk.cfg.basename}")
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             self._post(text=str(e), type='error')
 
     def _post(self, text, type='logs'):

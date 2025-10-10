@@ -548,19 +548,14 @@ class WinActionSub:
 
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):
-        from videotrans import tts
-        tts_type = self.main.tts_type.currentIndex()
         voice_role = self.main.voice_role.currentText()
-        if role == 'No' or (tts_type == tts.CLONE_VOICE_TTS and voice_role == 'clone'):
+        if role == 'No' or voice_role == 'clone':
             self.main.listen_btn.hide()
             return
         if self.main.app_mode in ['biaozhun']:
             self.main.listen_btn.show()
             self.main.listen_btn.setDisabled(False)
 
-    # 判断文件路径是否正确
-    def url_right(self):
-        return True
 
     # 如果存在音频则设为提取
     # 如果有同名则停止

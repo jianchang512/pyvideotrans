@@ -121,7 +121,7 @@ class Ui_azureform(object):
         from videotrans.configure import config
         config.settings = config.parse_init()
         allmodels_str = config.settings.get('azure_model','')
-        allmodels = config.settings.get('azure_model','').split(',')
+        allmodels = str(config.settings.get('azure_model','')).split(',')
         self.azure_model.clear()
         self.azure_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

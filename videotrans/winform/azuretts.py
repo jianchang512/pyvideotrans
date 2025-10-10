@@ -29,7 +29,7 @@ def openwin():
                                                     "tts_type": tts.AZURE_TTS}], language="zh", tts_type=tts.AZURE_TTS)
         wk.uito.connect(feed)
         wk.start()
-        winobj.test.setText('testing...')
+        winobj.test.setText('Testing...')
 
     def save():
         key = winobj.speech_key.text()

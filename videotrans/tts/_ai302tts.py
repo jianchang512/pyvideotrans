@@ -84,7 +84,7 @@ class AI302(BaseTTS):
             payload['provider'] = 'azure'
         # print(f'{payload=}')
         response = requests.post('https://api.302.ai/302/v2/audio/tts', headers={
-            'Authorization': f'Bearer {config.params.get("ai302_key",'')}',
+            'Authorization': f'Bearer {config.params.get("ai302_key","")}',
             'Content-Type': 'application/json'
         }, data=json.dumps(payload), verify=False)
         response.raise_for_status()
