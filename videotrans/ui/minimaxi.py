@@ -37,7 +37,7 @@ class Ui_minimaxiform(object):
         v1.addLayout(h1)
         
         h3 = QtWidgets.QHBoxLayout()
-        h4 = QtWidgets.QHBoxLayout()
+        hmodel = QtWidgets.QHBoxLayout()
         h5 = QtWidgets.QHBoxLayout()
 
         self.label_3 = QLabel()
@@ -67,13 +67,14 @@ class Ui_minimaxiform(object):
             "speech-01-turbo",
         ])
 
-        h4.addWidget(label_6)
-        h4.addWidget(self.model)
+        hmodel.addWidget(label_6)
+        hmodel.addWidget(self.model)
 
         h5.addWidget(label_5)
         h5.addWidget(self.emotion)
 
         v1.addLayout(h3)
+        v1.addLayout(hmodel)
         v1.addLayout(h5)
 
 

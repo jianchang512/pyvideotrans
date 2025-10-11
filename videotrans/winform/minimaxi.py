@@ -118,7 +118,7 @@ def openwin():
     winobj.apiurl.setCurrentText(config.params.get("minimaxi_apiurl",'api.minimaxi.com'))
 
     winobj.emotion.setCurrentText(config.params.get("minimaxi_emotion",''))
-    winobj.emotion.setCurrentText(config.params.get("minimaxi_model",''))
+    winobj.model.setCurrentText(config.params.get("minimaxi_model",''))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
