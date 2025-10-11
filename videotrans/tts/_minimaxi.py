@@ -22,7 +22,8 @@ class MinimaxiTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_url='https://api.minimaxi.com/v1/t2a_v2'
+        
+        self.api_url='https://'+config.params.get('minimaxi_apiurl','api.minimaxi.com')+'/v1/t2a_v2'
         self.rolelist = {}
         lang_pre = self.language.split('-')[0].lower()
         rolelist=tools.get_minimaxi_rolelist()

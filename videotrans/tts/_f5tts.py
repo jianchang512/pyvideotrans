@@ -64,7 +64,7 @@ class F5TTS(BaseTTS):
         data = {'ref_text': '', 'ref_wav': ''}
 
         if role == 'clone':
-            data['ref_wav'] = data_item['ref_wav']
+            data['ref_wav'] = data_item.get('ref_wav','')
             if not config.params.get('f5tts_is_whisper'):
                 data['ref_text'] = data_item.get('ref_text').strip()
         else:
@@ -73,7 +73,7 @@ class F5TTS(BaseTTS):
                 data['ref_text'] = roledict[role]['ref_text'] if not config.params.get('f5tts_is_whisper') else ''
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
-        if not Path(data['ref_wav']).exists():
+        if not data.get('ref_wav') or not Path(data.get('ref_wav')).exists():
             raise StopRetry(tr('The role {} does not exist',role))
         if data['ref_text'] and len(data['ref_text']) < 10:
             speed = 0.5
@@ -114,14 +114,14 @@ class F5TTS(BaseTTS):
         data = {'ref_text': '', 'ref_wav': ''}
 
         if role == 'clone':
-            data['ref_wav'] = data_item['ref_wav']
+            data['ref_wav'] = data_item.get('ref_wav','')
             data['ref_text'] = data_item.get('ref_text', '')
         else:
             roledict = tools.get_f5tts_role()
             if role in roledict:
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
-        if not Path(data['ref_wav']).exists():
+        if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',role))
 
         try:
@@ -158,13 +158,13 @@ class F5TTS(BaseTTS):
         data = {'ref_wav': ''}
 
         if role == 'clone':
-            data['ref_wav'] = data_item['ref_wav']
+            data['ref_wav'] = data_item.get('ref_wav','')
         else:
             roledict = tools.get_f5tts_role()
             if role in roledict:
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
-        if not Path(data['ref_wav']).exists():
+        if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',role))
         config.logger.info(f'index-tts {data=}')
 
@@ -203,13 +203,13 @@ class F5TTS(BaseTTS):
         data = {'ref_wav': ''}
 
         if role == 'clone':
-            data['ref_wav'] = data_item['ref_wav']
+            data['ref_wav'] = data_item.get('ref_wav','')
         else:
             roledict = tools.get_f5tts_role()
             if role in roledict:
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
-        if not Path(data['ref_wav']).exists():
+        if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',role))
         config.logger.info(f'voxcpm-tts {data=}')
 
@@ -251,14 +251,14 @@ class F5TTS(BaseTTS):
         data = {'ref_wav': ''}
 
         if role == 'clone':
-            data['ref_wav'] = data_item['ref_wav']
+            data['ref_wav'] = data_item.get('ref_wav','')
         else:
             roledict = tools.get_f5tts_role()
             if role in roledict:
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
                 data['ref_text'] = roledict.get('ref_text', '')
 
-        if not Path(data['ref_wav']).exists():
+        if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             self.error =tr('The role {} does not exist',role)
             raise StopRetry(self.error)
 

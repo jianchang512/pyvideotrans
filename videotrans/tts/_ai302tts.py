@@ -21,6 +21,7 @@ from dataclasses import dataclass
 class AI302(BaseTTS):
 
     def __post_init__(self):
+        super().__post_init__()
         with open(config.ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
             ai302_voice_roles = json.loads(f.read())
             self.AI302_doubao = ai302_voice_roles.get("AI302_doubao", {})

@@ -494,7 +494,9 @@ class WinAction(WinActionSub):
             self.main.target_language.setCurrentText('-')
             tools.show_error(tr('waitrole'))
             return
-        vt = code.split('-')[0] if code != 'yue' else "zh"
+        if not code:
+            self.main.voice_role.addItems(['No'])
+        vt = code.split('-')[0] #if code != 'yue' else "zh"
 
         if vt not in show_rolelist:
             self.main.voice_role.addItems(['No'])
@@ -1040,7 +1042,7 @@ class WinAction(WinActionSub):
             self.main.startbtn.setStyleSheet("""color:#ff0000""")
         elif d['type'] == 'refreshtts':
             currentIndex = self.main.tts_type.currentIndex()
-            if currentIndex in [tts.GPTSOVITS_TTS, tts.COSYVOICE_TTS, tts.FISHTTS, tts.CHATTTS, tts.CLONE_VOICE_TTS, tts.F5_TTS,tts.DIA_TTS,tts.SPARK_TTS,tts.INDEX_TTS,tts.VOXCPM_TTS, tts.OPENAI_TTS, tts.QWEN_TTS, tts.GEMINI_TTS, tts.CHATTERBOX_TTS]:
+            if currentIndex >0:
                 self.main.tts_type.setCurrentIndex(0)
                 QTimer.singleShot(100,lambda: self.main.tts_type.setCurrentIndex(currentIndex))
         elif d['type'] == 'refreshmodel_list':

@@ -141,15 +141,28 @@ def openwin():
         voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.wav"
 
         obj = {
-            "text": text, "rate": rate, "role": role, "filename": voice_file, "tts_type": tts_type,
-            "language": lang, "volume": volume, "pitch": pitch,
+            "text": text, 
+            "rate": rate, 
+            "role": role, 
+            "filename": voice_file, 
+            "tts_type": tts_type,
+            "language": lang, 
+            "volume": volume, 
+            "pitch": pitch,
         }
 
         if role == 'clone':
             return
-        kwargs={'language': lang, "queue_tts": [obj], "play": True, "is_test": True}
-        from videotrans.task.simple_runnable_qt import run_in_threadpool
-        run_in_threadpool(tts.run,**kwargs)
+        
+        def feed(d):
+            if d != "ok":
+                tools.show_error(d)
+        from videotrans.util.ListenVoice import ListenVoice
+        wk = ListenVoice(parent=winobj, queue_tts=[obj], language=lang, tts_type=tts_type)
+        wk.uito.connect(feed)
+        wk.start()
+        
+        
 
     def change_by_lang(type):
         return type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]
@@ -370,7 +383,10 @@ def openwin():
             winobj.hecheng_language.setCurrentText('-')
             tools.show_error(tr('nojueselist'))
             return
-        vt = code.split('-')[0] if code != 'yue' else "zh"
+        if not code:
+            winobj.hecheng_role.addItems(['No'])
+            return
+        vt = code.split('-')[0] #if code != 'yue' else "zh"
         if vt not in show_rolelist:
             winobj.hecheng_role.addItems(['No'])
             return

@@ -309,6 +309,9 @@ def get_minimaxi_rolelist():
     from . import help_misc
     voice_list = {}
     voice_file=config.ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
+
+    if config.params.get("minimaxi_apiurl",'')=='api.minimax.io':
+        voice_file=config.ROOT_DIR + "/videotrans/voicejson/minimaxiio.json"
     if help_misc.vail_file(voice_file):
         try:
             with open(voice_file,'r',encoding='utf-8') as f:
@@ -316,6 +319,9 @@ def get_minimaxi_rolelist():
         except (OSError,json.JSONDecodeError):
             pass
     return voice_list
+
+
+
 
 
 def get_kokoro_rolelist():

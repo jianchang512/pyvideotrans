@@ -818,12 +818,15 @@
     "zh-CN-shaanxi-XiaoniNeural",
     "zh-CN-shandong-YunxiangNeural",
     "zh-CN-sichuan-YunxiNeural",
-    "zh-HK-HiuMaanNeural",
-    "zh-HK-WanLungNeural",
-    "zh-HK-HiuGaaiNeural",
     "zh-TW-HsiaoChenNeural",
     "zh-TW-YunJheNeural",
     "zh-TW-HsiaoYuNeural"
+  ],
+  "yue":[
+	"No",
+    "zh-HK-HiuMaanNeural",
+    "zh-HK-WanLungNeural",
+    "zh-HK-HiuGaaiNeural"
   ],
   "zu": [
     "No",

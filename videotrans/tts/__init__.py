@@ -47,14 +47,14 @@ TTS_NAME_LIST = [
     "F5-TTS",
     "kokoro TTS",
     "Index TTS",
-    # "Google Cloud TTS",
     "Gemini TTS",
     "ChatterBox TTS",
     "Qwen TTS",
     "Minimaxi TTS",
     "VoxCPM TTS",
     "Spark TTS",
-    "Dia TTS"
+    "Dia TTS",
+    # "Google Cloud TTS",
 ]
 
 

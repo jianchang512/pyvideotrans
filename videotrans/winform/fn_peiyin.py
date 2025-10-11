@@ -539,8 +539,10 @@ def openwin():
             winobj.hecheng_language.setCurrentText('-')
             tools.show_error(tr('nojueselist'))
             return
-
-        vt = code.split('-')[0] if code != 'yue' else "zh"
+        if not code:
+            winobj.hecheng_role.addItems(['No'])
+            return
+        vt = code.split('-')[0]# if code != 'yue' else "zh"
         if vt not in show_rolelist:
             winobj.hecheng_role.addItems(['No'])
             return

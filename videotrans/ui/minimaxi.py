@@ -13,18 +13,29 @@ class Ui_minimaxiform(object):
         if not minimaxiform.objectName():
             minimaxiform.setObjectName("minimaxiform")
         minimaxiform.setWindowModality(Qt.NonModal)
-        minimaxiform.resize(400, 300)
+        minimaxiform.resize(800, 300)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(minimaxiform.sizePolicy().hasHeightForWidth())
         minimaxiform.setSizePolicy(sizePolicy)
-        minimaxiform.setMaximumSize(QSize(400, 300))
+        minimaxiform.setMaximumSize(QSize(800, 300))
 
         v1 = QtWidgets.QVBoxLayout(minimaxiform)
 
 
 
+        h1 = QtWidgets.QHBoxLayout()
+        label_api = QLabel()
+        label_api.setObjectName("label_api")
+        label_api.setText(tr('API minimax'))
+        self.apiurl = QtWidgets.QComboBox()
+        self.apiurl.setObjectName("apiurl")
+        self.apiurl.addItems(["api.minimaxi.com", "api.minimax.io"])
+        h1.addWidget(label_api)
+        h1.addWidget(self.apiurl)
+        v1.addLayout(h1)
+        
         h3 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
         h5 = QtWidgets.QHBoxLayout()
@@ -32,7 +43,7 @@ class Ui_minimaxiform(object):
         self.label_3 = QLabel()
         self.label_3.setObjectName("label_3")
         self.apikey = QLineEdit()
-        self.apikey.setObjectName("extra")
+        self.apikey.setObjectName("apikey")
         h3.addWidget(self.label_3)
         h3.addWidget(self.apikey)
 

@@ -167,7 +167,7 @@ DEEPGRAM_MODEL = [
     "base",
 ]
 # 支持的视频格式
-VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts"]
+VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts","flv"]
 # 支持的音频格式
 AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
 # 设置当前可用视频编码  libx264 h264_qsv h264_nvenc 等
@@ -344,7 +344,8 @@ HOME_DIR = settings.get('homedir', HOME_DIR)
 
 # 获取已有的语言文件
 if not _env_lang:
-    defaulelang= settings.get('lang',defaulelang).lower()
+    _env_lang= settings.get('lang','').lower().strip()
+defaulelang=_env_lang if _env_lang else defaulelang
 SUPPORT_LANG = {}
 for it in Path(f'{ROOT_DIR}/videotrans/language').glob('*.json'):
     if it.stat().st_size > 0:
@@ -540,6 +541,7 @@ def getset_params(obj=None):
 
         "minimaxi_apikey": "",
         "minimaxi_emotion": "",
+        "minimaxi_apiurl": "api.minimaxi.com",
         "minimaxi_model": "speech-02-turbo",
 
         "ai302tts_key": "",

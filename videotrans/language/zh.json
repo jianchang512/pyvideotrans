@@ -135,7 +135,7 @@
     "Download Models": "下载识别模型",
     "Dubbing": "配音中",
     "Dubbing acceler": "配音加速",
-    "Dubbing channel": "配音声道↓",
+    "Dubbing channel": "配音渠道↓",
     "Dubbing failed": "配音全部失败 ",
     "Dubbing from subtitles": "字幕配音处理中",
     "Dubbing role": "配音角色",
@@ -738,5 +738,6 @@
     "Fill in all inference access points, and you can select them above": "填写所有推理接入点，填写后可在上方选择",
     "Prompt: Please open the {} file directly to modify it": "字幕翻译提示词请直接打开 软件目录/videotrans/prompts 文件夹修改，\n\n【软件目录/videotrans/prompts/srt/】存放的是选中【发送完整字幕】时的提示词，\n【软件目录/videotrans/prompts/text/】存放的是未选中时的提示词\n当前渠道所用提示词文件是:【{}.txt】",
     "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "将参考音频放在软件根目录下的 chatterbox 文件夹中，填写参考音频名称带后缀，例如 123.mp3",
-    "Reference audio does not exist: {} Please make sure the audio exists": "参考音频 {} 不存在，请检查"
+    "Reference audio does not exist: {} Please make sure the audio exists": "参考音频 {} 不存在，请检查",
+	"API minimax":".com国内/.io国际(两者不互通)"
 }
