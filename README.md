@@ -1,5 +1,13 @@
 [简体中文](docs/README_CN.md)
 
+> **Sponsored Links**
+>
+> ## Recall.ai - Meeting Transcription API
+>
+> If you’re looking for a transcription API for meetings, consider checking out [Recall.ai](https://www.recall.ai/product/meeting-transcription-api), an API that works with Zoom, Google Meet, Microsoft Teams, and more. Recall.ai diarizes by pulling the speaker data and separate audio streams from the meeting platforms, which means 100% accurate speaker diarization with actual speaker names.
+
+
+
 # Video Translation and Dubbing Tool
 
 This is a powerful **open-source video translation, transcription, and speech synthesis software**, dedicated to seamlessly converting a video from one language to another, complete with dubbing and subtitles.
