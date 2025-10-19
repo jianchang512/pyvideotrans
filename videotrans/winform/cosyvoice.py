@@ -69,7 +69,7 @@ def openwin():
 
         winobj.close()
 
-    from videotrans.component import CosyVoiceForm
+    from videotrans.component.set_form import CosyVoiceForm
     winobj = CosyVoiceForm()
     config.child_forms['cosyvoice'] = winobj
     if config.params["cosyvoice_url"]:

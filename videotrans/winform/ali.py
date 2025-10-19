@@ -37,7 +37,7 @@ def openwin():
         task.uito.connect(feed)
         task.start()
 
-    from videotrans.component import AliForm
+    from videotrans.component.set_form import AliForm
 
     winobj = AliForm()
     config.child_forms['ali'] = winobj

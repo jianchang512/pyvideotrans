@@ -39,7 +39,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import RecognAPIForm
+    from videotrans.component.set_form import RecognAPIForm
     winobj = RecognAPIForm()
     config.child_forms['recognapi'] = winobj
     winobj.recognapiform_address.setText(config.params.get("recognapi_url",''))

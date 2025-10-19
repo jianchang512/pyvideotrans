@@ -188,7 +188,7 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component import WatermarkForm
+    from videotrans.component.set_form import WatermarkForm
     winobj = WatermarkForm()
     config.child_forms['fn_watermak'] = winobj
     winobj.show()

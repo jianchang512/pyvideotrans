@@ -643,8 +643,8 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
     if translate_type == SILICONFLOW_INDEX and not config.params.get('guiji_key',''):
         if return_str:
             return "请在菜单-硅基流动中填写硅基流动的api key"
-        from videotrans.winform import zhipuai
-        zhipuai.openwin()
+        from videotrans.winform import siliconflow
+        siliconflow.openwin()
         return False
     if translate_type == AI302_INDEX and not config.params.get('ai302_key',''):
         if return_str:

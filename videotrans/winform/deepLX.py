@@ -35,7 +35,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import DeepLXForm
+    from videotrans.component.set_form import DeepLXForm
     winobj = DeepLXForm()
     config.child_forms['deeplx'] = winobj
     winobj.deeplx_address.setText(config.params.get("deeplx_address",''))

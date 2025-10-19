@@ -594,6 +594,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if winobj:
             if hasattr(winobj, 'update_ui'):
                 winobj.update_ui()
+
             winobj.show()
             winobj.raise_()
             winobj.activateWindow()

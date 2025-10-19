@@ -1,8 +1,11 @@
 import re
 
+import aiohttp
 from elevenlabs.core import ApiError as ApiError_11
-from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError,   APIConnectionError, APIError,  ContentFilterFinishReasonError, InternalServerError,  LengthFinishReasonError
-from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, Timeout, ConnectionError as ReqConnectionError, RetryError,HTTPError
+from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
+    APIConnectionError, APIError, ContentFilterFinishReasonError, InternalServerError, LengthFinishReasonError
+from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, \
+    Timeout, ConnectionError as ReqConnectionError, RetryError, HTTPError
 from deepgram.clients.common.v1.errors import DeepgramApiError
 from videotrans.configure import config
 import httpx, httpcore
@@ -76,10 +79,10 @@ NO_RETRY_EXCEPT = (
     PermissionDeniedError,  # 403 无权限访问该模型
     NotFoundError,  # 404 找不到资源 (例如模型名称错误)
     BadRequestError,  # 400 错误请求 (例如输入内容过长、参数无效等)
-    
+
     LengthFinishReasonError,
     RateLimitError,
-    
+
     DeepgramApiError,
     StopRetry
 )
@@ -119,13 +122,15 @@ def _extract_api_url_from_error(error):
 
 
 """处理连接错误的详细信息"""
+
+
 def _handle_connection_error_detail(error, lang):
     error_str = str(error).lower()
 
     # 检查是否为本地地址
     is_local = _is_local_address(error_str)
     api_url = _extract_api_url_from_error(error)
-    
+
     base_message = ""
 
     if "dns" in error_str or "name or service not known" in error_str:
@@ -137,8 +142,8 @@ def _handle_connection_error_detail(error, lang):
         base_message = (
             "代理设置不正确或代理不可用，请检查代理或关闭代理并删掉代理文本框中所填内容" if lang == 'zh'
             else "The proxy address is not available, please check"
-        )    
-    
+        )
+
     elif "refused" in error_str or "10061" in error_str or "积极拒绝" in error_str:
         if is_local:
             base_message = (
@@ -162,10 +167,16 @@ def _handle_connection_error_detail(error, lang):
         )
     elif "max retries exceeded" in error_str:
         if is_local:
-            base_message = (
-                "多次重试连接失败，请确保本地服务已正确启动" if lang == 'zh'
-                else "Multiple connection retries failed, please ensure local service is properly started"
-            )
+            if "0.0.0.0" in error_str:
+                base_message = (
+                    "API 地址不可是 0.0.0.0 ，请修改为 127.0.0.1 " if lang == 'zh'
+                    else "The API address cannot be 0.0.0.0, please change it to 127.0.0.1"
+                )
+            else:
+                base_message = (
+                    "多次重试连接失败，请确保本地服务已正确启动" if lang == 'zh'
+                    else "Multiple connection retries failed, please ensure local service is properly started"
+                )
         else:
             base_message = (
                 "多次重试连接失败，服务可能暂时不可用" if lang == 'zh'
@@ -195,6 +206,8 @@ def _handle_connection_error_detail(error, lang):
 
 
 """处理API错误的详细信息"""
+
+
 def _handle_api_error_detail(error, lang):
     message = ""
 
@@ -209,7 +222,7 @@ def _handle_api_error_detail(error, lang):
         else:
             message = str(error.detail)
     if _is_local_address(message):
-        message=f'{"请确认本地服务已启动 " if lang=="zh" else "please ensure local service is properly started"} {message}'
+        message = f'{"请确认本地服务已启动 " if lang == "zh" else "please ensure local service is properly started"} {message}'
     if message:
 
         return (
@@ -282,14 +295,16 @@ def get_msg_from_except(ex):
             "请求过于频繁，请稍后重试或调大暂停时间" if lang == 'zh'
             else "Too many requests, please try again later or adjust settings"
         ),
-        InternalServerError:lambda e:(f'{e.status_code}错误: API服务端内部错误' if lang=='zh' else f'{e.status_code}: {e.message}'),
-        LengthFinishReasonError:lambda e:(f'内容太长超出最大允许Token，请减小内容或增大max_token,或者降低每次发送字幕行数\n{e}' if lang=='zh' else f'{e}'),
-        ContentFilterFinishReasonError: lambda e: "内容触发AI风控被过滤" if lang=='zh' else 'Content triggers AI risk control and is filtered\n{e}',
+        InternalServerError: lambda e: (
+            f'{e.status_code}错误: API服务端内部错误' if lang == 'zh' else f'{e.status_code}: {e.message}'),
+        LengthFinishReasonError: lambda e: (
+            f'内容太长超出最大允许Token，请减小内容或增大max_token,或者降低每次发送字幕行数\n{e}' if lang == 'zh' else f'{e}'),
+        ContentFilterFinishReasonError: lambda
+            e: "内容触发AI风控被过滤" if lang == 'zh' else 'Content triggers AI risk control and is filtered\n{e}',
         # === 网络连接问题 ===
-        (httpcore.ConnectTimeout, httpx.ConnectTimeout,httpx.ConnectError): lambda e: (
+        (httpcore.ConnectTimeout, httpx.ConnectTimeout, httpx.ConnectError): lambda e: (
             _handle_connection_error_detail(e, lang)
         ),
-
 
         APIConnectionError: lambda e: (
             _handle_connection_error_detail(e, lang)
@@ -306,7 +321,7 @@ def get_msg_from_except(ex):
             else "Secure connection failed, check system time or network settings"
         ),
 
-        ProxyError: lambda e: (
+        (ProxyError, aiohttp.client_exceptions.ClientProxyConnectionError): lambda e: (
             "代理设置不正确或代理不可用，请检查代理或关闭代理并删掉代理文本框中所填内容" if lang == 'zh'
             else "Proxy configuration issue, check settings or disable proxy"
         ),
@@ -316,7 +331,6 @@ def get_msg_from_except(ex):
             "请求的资源不存在，请检查模型名称或API地址" if lang == 'zh'
             else "Requested resource not found, check model name or API address"
         ),
-        
 
         # === 请求参数问题 ===
         BadRequestError: lambda e: (
@@ -330,12 +344,12 @@ def get_msg_from_except(ex):
         DeepgramApiError: lambda e: _handle_api_error_detail(e, lang),
 
         ApiError_11: lambda e: _handle_api_error_detail(e, lang),
-        
+
         Timeout: lambda e: (
             _handle_connection_error_detail(e, lang)
         ),
         HTTPError: lambda e: f'{e}',
-        
+
         ConnectionRefusedError: lambda e: (
             _handle_connection_error_detail(e, lang)
         ),
@@ -348,7 +362,7 @@ def get_msg_from_except(ex):
             "连接意外中断，请检查网络稳定性" if lang == 'zh'
             else "Connection aborted unexpectedly, check network stability"
         ),
-        (ReqConnectionError,ConnectionError): lambda e: (
+        (ReqConnectionError, ConnectionError): lambda e: (
             _handle_connection_error_detail(e, lang)
         ),
         RetryError: lambda e: (
@@ -359,15 +373,14 @@ def get_msg_from_except(ex):
         RuntimeError: lambda e: (
             _handle_connection_error_detail(e, lang)
             if any(keyword in str(e).lower() for keyword in [
-                'connection', 'connect', 'refused', 'reset', 'timeout', 'retries',
-                '连接', '拒绝', '重置', '超时', '重试', 'host', 'port'
+                'connection', 'reset', 'timeout', '连接', '拒绝', '重置', '超时', '重试'
             ])
             else (
                 f"运行时错误：{e}" if lang == 'zh'
                 else f"Runtime error: {e}"
             )
         ),
-        
+
         FileNotFoundError: lambda e: (
             f"文件不存在：{getattr(e, 'filename', '')}" if lang == 'zh'
             else f"File not found: {getattr(e, 'filename', '')}"
@@ -445,8 +458,6 @@ def get_msg_from_except(ex):
             else f"{e}"
         ),
 
-        
-
         BrokenPipeError: lambda e: (
             "连接管道损坏，请检查网络连接" if lang == 'zh'
             else "Broken pipe error, check network connection"
@@ -506,6 +517,6 @@ def get_msg_from_except(ex):
 
     # 默认错误消息
     return (
-        "操作失败，请稍后重试" if lang == 'zh'
-        else "Operation failed, please try again later"
+        f"操作失败，请稍后重试{ex.args}" if lang == 'zh'
+        else f"Operation failed, please try again later:{ex.args}"
     )

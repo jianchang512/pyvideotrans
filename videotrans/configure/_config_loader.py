@@ -39,12 +39,13 @@ Path(TEMP_DIR + '/translate_cache').mkdir(exist_ok=True, parents=True)
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
 
 ###################################
+
 logger = logging.getLogger('VideoTrans')
 logger.setLevel(logging.INFO)
 # 创建文件处理器，并设置级别G
 _file_handler = logging.FileHandler(f'{ROOT_DIR}/logs/{datetime.datetime.now().strftime("%Y%m%d")}.log',
                                     encoding='utf-8')
-_file_handler.setLevel(logging.INFO)
+_file_handler.setLevel(logging.DEBUG)
 # 创建控制台处理器，并设置级别
 _console_handler = logging.StreamHandler(sys.stdout)
 _console_handler.setLevel(logging.WARNING)
@@ -56,13 +57,22 @@ _console_handler.setFormatter(formatter)
 logger.addHandler(_file_handler)
 logger.addHandler(_console_handler)
 
+fw_logger = logging.getLogger("faster_whisper")
+
+# 2. 为该 logger 设置你希望捕获的最低日志级别
+fw_logger.setLevel(logging.DEBUG)
+
+# 3. 将您现有的文件处理器添加到 faster_whisper 的 logger 中
+fw_logger.addHandler(_file_handler)
+
+
 FFMPEG_BIN = "ffmpeg"
 FFPROBE_BIN = "ffprobe"
 # ffmpeg
 if sys.platform == 'win32':
     os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;' + os.environ['PATH']
     if IS_FROZEN:
-        os.environ['PATH'] = os.environ['PATH'] + f';{ROOT_DIR}/_internal/torch/lib'
+        os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;'+os.environ['PATH']
 
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
@@ -276,7 +286,7 @@ def parse_init(update_data=None):
         "initial_prompt_yue": "",
         "beam_size": 5,
         "best_of": 5,
-        "condition_on_previous_text": True,
+        "condition_on_previous_text": False,
         "fontsize": 14,
         "fontname": "黑体",
         "fontcolor": "&hffffff",

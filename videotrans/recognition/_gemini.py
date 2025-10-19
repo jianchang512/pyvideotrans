@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List
 
 from google import genai
-from google.genai import types
+from google.genai import types,errors
 from pydub import AudioSegment
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
@@ -33,22 +33,15 @@ class GeminiRecogn(BaseRecogn):
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
            after=after_log(config.logger, logging.INFO))
-    def _exec(self):
-        seg_list = self.cut_audio()
-        if len(seg_list) < 1:
-            raise RuntimeError(f'VAD error')
-        nums = int(config.settings.get('gemini_recogn_chunk', 50))
-        seg_list = [seg_list[i:i + nums] for i in range(0, len(seg_list), nums)]
-        srt_str_list = []
-
-        prompt = Path(config.ROOT_DIR+'/videotrans/prompts/recogn/gemini_recogn.txt').read_text(encoding='utf-8')
-
-        for seg_group in seg_list:
-            api_key = self.api_keys.pop(0)
-            self.api_keys.append(api_key)
-
+    def _req(self,seg_group,api_key,prompt):
+        res_text = ""
+        try:
             client = genai.Client(
-                api_key=api_key
+                api_key=api_key,
+                http_options = types.HttpOptions(
+                    client_args={'proxy': self.proxy_str},
+                    async_client_args={'proxy': self.proxy_str},
+                )
             )
             parts = []
             for f in seg_group:
@@ -64,7 +57,7 @@ class GeminiRecogn(BaseRecogn):
             generate_content_config = types.GenerateContentConfig(
                 max_output_tokens=65536,
                 thinking_config=types.ThinkingConfig(
-                    thinking_budget=0,
+                    thinking_budget=1,
                 ),
                 safety_settings=[
                     types.SafetySetting(
@@ -91,7 +84,7 @@ class GeminiRecogn(BaseRecogn):
                     parts=parts
                 )
             ]
-            res_text = ""
+            
             for chunk in client.models.generate_content_stream(
                     model='gemini-2.5-flash',
                     contents=contents,
@@ -101,7 +94,26 @@ class GeminiRecogn(BaseRecogn):
                 if chunk.text is None:
                     continue
                 res_text += chunk.text
+            return res_text
+        except errors.APIError as e:
+            if e.code in [400,403,404,429,500]:
+                raise StopRetry(e.message)
+            return ''
+    def _exec(self):
+        seg_list = self.cut_audio()
+        if len(seg_list) < 1:
+            raise RuntimeError(f'VAD error')
+        nums = int(config.settings.get('gemini_recogn_chunk', 50))
+        seg_list = [seg_list[i:i + nums] for i in range(0, len(seg_list), nums)]
+        srt_str_list = []
 
+        prompt = Path(config.ROOT_DIR+'/videotrans/prompts/recogn/gemini_recogn.txt').read_text(encoding='utf-8')
+
+        for seg_group in seg_list:
+            api_key = self.api_keys.pop(0)
+            self.api_keys.append(api_key)
+            
+            res_text=self._req(seg_group,api_key,prompt)
             config.logger.info(f'gemini返回结果:{res_text=}')
             m = re.findall(r'<audio_text>(.*?)<\/audio_text>', res_text.strip(), re.I | re.S)
             if len(m) < 1:
@@ -114,13 +126,15 @@ class GeminiRecogn(BaseRecogn):
                     text = m[i].strip()
                     if not config.params.get('paraformer_spk', False):
                         text = re.sub(r'\[?spk\-?\d+\]', '', text, re.I)
+                    if not text or re.match(r'^\[?spk\-?\d+\]?$',text.strip()):
+                        continue
                     srt = {
                         "line": len(srt_str_list) + 1,
                         "start_time": f['start_time'],
                         "end_time": f['end_time'],
                         "startraw": startraw,
                         "endraw": endraw,
-                        "text": text
+                        "text": text  
                     }
                     srt_str_list.append(srt)
                     str_s.append(f'{srt["line"]}\n{startraw} --> {endraw}\n{srt["text"]}')
@@ -133,48 +147,4 @@ class GeminiRecogn(BaseRecogn):
             raise RuntimeError('No result:The return format may not meet the requirements')
         return srt_str_list
 
-    # 根据 时间开始结束点，切割音频片段,并保存为wav到临时目录，记录每个wav的绝对路径到list，然后返回该list
-    def cut_audio(self):
-        sampling_rate = 16000
-        from faster_whisper.audio import decode_audio
-        from faster_whisper.vad import (
-            VadOptions,
-            get_speech_timestamps
-        )
 
-        def convert_to_milliseconds(timestamps):
-            milliseconds_timestamps = []
-            for timestamp in timestamps:
-                milliseconds_timestamps.append(
-                    {
-                        "start": int(round(timestamp["start"] / sampling_rate * 1000)),
-                        "end": int(round(timestamp["end"] / sampling_rate * 1000)),
-                    }
-                )
-
-            return milliseconds_timestamps
-
-        vad_p = {
-            "threshold": float(config.settings.get('threshold',0.45)),
-            "min_speech_duration_ms": int(config.settings.get('min_speech_duration_ms',0)),
-            "max_speech_duration_s": float(config.settings.get('max_speech_duration_s',5)),
-            "min_silence_duration_ms": int(config.settings.get('min_silence_duration_ms',140)),
-            "speech_pad_ms": int(config.settings.get('speech_pad_ms',0))
-        }
-        speech_chunks = get_speech_timestamps(decode_audio(self.audio_file, sampling_rate=sampling_rate),
-                                              vad_options=VadOptions(**vad_p))
-        speech_chunks = convert_to_milliseconds(speech_chunks)
-
-        # 在config.TEMP_DIR下创建一个以当前时间戳为名的文件夹，用于保存切割后的音频片段
-        dir_name = f"{config.TEMP_DIR}/{time.time()}"
-        Path(dir_name).mkdir(parents=True, exist_ok=True)
-        data = []
-        audio = AudioSegment.from_wav(self.audio_file)
-        for it in speech_chunks:
-            start_ms, end_ms = it['start'], it['end']
-            chunk = audio[start_ms:end_ms]
-            file_name = f"{dir_name}/{start_ms}_{end_ms}.wav"
-            chunk.export(file_name, format="wav")
-            data.append({"start_time": start_ms, "end_time": end_ms, "file": file_name})
-
-        return data

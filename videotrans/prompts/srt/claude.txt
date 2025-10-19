@@ -39,7 +39,6 @@
 </TRANSLATE_TEXT>
 ```
 
-# 输入规范
-现在，请处理下方 `<INPUT>` 标签内的原始SRT字幕内容。
+
 
 <INPUT></INPUT>

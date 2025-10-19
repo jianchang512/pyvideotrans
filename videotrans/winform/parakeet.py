@@ -45,7 +45,7 @@ def openwin():
 
 
 
-    from videotrans.component import ParakeetForm
+    from videotrans.component.set_form import ParakeetForm
     winobj = ParakeetForm()
     config.child_forms['parakeet'] = winobj
     winobj.update_ui()

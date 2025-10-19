@@ -76,7 +76,7 @@ def openwin():
 
 
 
-    from videotrans.component import OpenAITTSForm
+    from videotrans.component.set_form import OpenAITTSForm
     winobj = OpenAITTSForm()
     config.child_forms['openaitts'] = winobj
     winobj.update_ui()

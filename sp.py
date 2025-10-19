@@ -22,7 +22,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxL
 from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 
-VERSION = "v3.81"
+VERSION = "v3.82"
 
 
 # 抑制警告
@@ -121,7 +121,7 @@ def initialize_full_app(start_window, app_instance):
         try:
             log_dir = os.path.join(os.getcwd(), "logs")
             os.makedirs(log_dir, exist_ok=True)
-            log_file_path = os.path.join(log_dir, f"app-log-{time.strftime('%Y-%m-%d')}.txt")
+            log_file_path = os.path.join(log_dir, f"{time.strftime('%Y%m%d')}.log")
             log_file = open(log_file_path, 'a', encoding='utf-8', buffering=1)
             sys.stdout = log_file
             sys.stderr = log_file

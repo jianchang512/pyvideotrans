@@ -93,7 +93,7 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component import HunliuForm
+    from videotrans.component.set_form import HunliuForm
     winobj = HunliuForm()
     config.child_forms['fn_hunliu'] = winobj
     winobj.show()

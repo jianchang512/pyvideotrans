@@ -118,7 +118,7 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component import SubtitlescoverForm
+    from videotrans.component.set_form import SubtitlescoverForm
     winobj = SubtitlescoverForm()
     config.child_forms['fn_subtitlescover'] = winobj
     winobj.show()

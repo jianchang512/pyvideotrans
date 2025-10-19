@@ -111,57 +111,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 raws[i]['text'] = transcript.text
         return raws
 
-    def cut_audio(self):
-        sampling_rate = 16000
-        from faster_whisper.audio import decode_audio
-        from faster_whisper.vad import (
-            VadOptions,
-            get_speech_timestamps
-        )
 
-        def convert_to_milliseconds(timestamps):
-            milliseconds_timestamps = []
-            for timestamp in timestamps:
-                milliseconds_timestamps.append(
-                    {
-                        "start": int(round(timestamp["start"] / sampling_rate * 1000)),
-                        "end": int(round(timestamp["end"] / sampling_rate * 1000)),
-                    }
-                )
-
-            return milliseconds_timestamps
-
-        vad_p = {
-            "threshold": float(config.settings.get('threshold',0.45)),
-            "min_speech_duration_ms": int(config.settings.get('min_speech_duration_ms',0)),
-            "max_speech_duration_s": float(config.settings.get('max_speech_duration_s',5)),
-            "min_silence_duration_ms": int(config.settings.get('min_silence_duration_ms',140)),
-            "speech_pad_ms": int(config.settings.get('speech_pad_ms',0))
-        }
-        speech_chunks = get_speech_timestamps(decode_audio(self.audio_file, sampling_rate=sampling_rate),
-                                              vad_options=VadOptions(**vad_p))
-        speech_chunks = convert_to_milliseconds(speech_chunks)
-
-        # 在config.TEMP_DIR下创建一个以当前时间戳为名的文件夹，用于保存切割后的音频片段
-        dir_name = f"{config.TEMP_DIR}/{time.time()}"
-        Path(dir_name).mkdir(parents=True, exist_ok=True)
-
-        data = []
-        audio = AudioSegment.from_file(self.audio_file, format=self.audio_file[-3:])
-        for it in speech_chunks:
-            start_ms, end_ms = it['start'], it['end']
-            chunk = audio[start_ms:end_ms]
-            file_name = f"{dir_name}/{start_ms}_{end_ms}.wav"
-            chunk.export(file_name, format="wav")
-            data.append({
-                "start_time": start_ms,
-                "end_time": end_ms,
-                "file": file_name,
-                "text": "",
-                "time": tools.ms_to_time_string(ms=start_ms) + ' --> ' + tools.ms_to_time_string(ms=end_ms)
-            })
-
-        return data
 
     def _get_url(self, url=""):
         baseurl = "https://api.openai.com/v1"

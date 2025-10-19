@@ -80,7 +80,7 @@ class WinActionSub:
             return
 
         def open():
-            from videotrans.component import InfoForm
+            from videotrans.component.set_form import InfoForm
             config.INFO_WIN['win'] = InfoForm()
             config.INFO_WIN['win'].show()
 

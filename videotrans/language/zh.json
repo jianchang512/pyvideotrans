@@ -308,7 +308,7 @@
     "OpenAI Speech to Text": "OpenAI语音识别",
     "OpenAI Speech to Text API": "OpenAI语音识别及兼容API",
     "OpenAI-whisper": "openai-whisper(本地)",
-    "Options": "选项",
+    "Options": "高级选项",
     "Original text": "目标文字",
     "Other Language Subtitle Length:": "其他语言硬字幕一行字符数:",
     "Out format": "输出格式",
@@ -739,5 +739,8 @@
     "Prompt: Please open the {} file directly to modify it": "字幕翻译提示词请直接打开 软件目录/videotrans/prompts 文件夹修改，\n\n【软件目录/videotrans/prompts/srt/】存放的是选中【发送完整字幕】时的提示词，\n【软件目录/videotrans/prompts/text/】存放的是未选中时的提示词\n当前渠道所用提示词文件是:【{}.txt】",
     "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "将参考音频放在软件根目录下的 chatterbox 文件夹中，填写参考音频名称带后缀，例如 123.mp3",
     "Reference audio does not exist: {} Please make sure the audio exists": "参考音频 {} 不存在，请检查",
-	"API minimax":".com国内/.io国际(两者不互通)"
+	"API minimax":".com国内/.io国际(两者不互通)",
+	"elevenlabs toggle role":"如果界面中配音渠道里当前所选是Elevenlabs.io，你需要先切换到其他渠道，然后再切换回来，才能看到新角色",
+	"Please also check whether CUDA12.8 and cudnn9 are installed correctly.":"同时请检查是否已正确安装CUDA12.8和cudnn9",
+	"The current language does not support audition":"当前语言不支持试听"
 }

@@ -67,7 +67,6 @@ class CosyVoice(BaseTTS):
             prompt_text=data.get('ref_text',''),
             instruct_text="",
             seed=0,
-            stream="false",
             api_name="/generate_audio"
 
         )

@@ -28,8 +28,6 @@ class FasterAll(BaseRecogn):
         import os
         from videotrans.process._iscache import _check_huggingface_connect
 
-        # 设置代理（如果需要）
-        # os.environ['https_proxy'] = 'http://127.0.0.1:10808'
 
         # 定义本地保存路径
         local_dir = f"{config.ROOT_DIR}/models/" + model_id.split("/")[-1]
@@ -71,7 +69,6 @@ class FasterAll(BaseRecogn):
         for segment in result_with_timestamps.get("chunks", []):
             start, end = segment["timestamp"]
             text = segment["text"]
-            print(f"[{start:.2f}s - {end:.2f}s] {text}")
             startraw = f"{int(start // 3600):02d}:{int(start // 60 % 60):02d}:{int(start % 60):02d},{int(start % 1 * 1000):03d}"
             endraw = f"{int(end // 3600):02d}:{int(end // 60 % 60):02d}:{int(end % 60):02d},{int(end % 1 * 1000):03d}"
             raws.append({
@@ -134,7 +131,7 @@ class FasterAll(BaseRecogn):
                 raws = manager.list([])
                 err = manager.dict({"msg": ""})
                 detect = manager.dict({"langcode": self.detect_language})
-                # 创建并启动新进程
+
                 process = ctx.Process(target=run, args=(raws, err, detect), kwargs={
                     "model_name": self.model_name,
                     "is_cuda": self.is_cuda,
@@ -153,34 +150,43 @@ class FasterAll(BaseRecogn):
                     f.write(f'{process.pid}')
                 # 等待进程执行完毕
                 process.join()
-                if err['msg']:
-                    self.error = str(err['msg'])
-                elif len(list(raws))>0:
-                    self.error = ''
-                    if self.detect_language == 'auto':
-                        config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
-                        self.detect_language = detect.get('langcode','auto')
-                    # 没有使用 LLM 重新断句，
-                    _llm_rephrase=False
-                    if config.settings.get('rephrase',''):
-
-                        try:
-                            words_list = []
-                            for it in list(raws):
-                                words_list += it['words']
-                            self._signal(text=tr("Re-segmenting..."))
-                            self.raws = self.re_segment_sentences(words_list)
-                            _llm_rephrase=True
-                        except Exception:
-                            _llm_rephrase=False
-                    if not _llm_rephrase:
-                        self.raws=self.get_srtlist(raws)
-
                 try:
                     if process.is_alive():
                         process.terminate()
                 except Exception:
                     pass
+                
+                if err['msg']:
+                    config.logger.error(f'{err["msg"]}')
+                    self.error=err['msg']
+                else:
+                    if self.detect_language == 'auto':
+                        config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
+                        self.detect_language = detect.get('langcode','auto')
+                    # 没有任何断句方式
+                    if not config.settings.get('rephrase') and not config.settings.get('rephrase_local'):
+                        return self.get_srtlist(raws)
+                    
+                    words_list = []
+                    for it in list(raws):
+                        words_list += it['words']
+                    if config.settings.get('rephrase'):
+                        # LLM断句
+                        try:
+                            self._signal(text=tr("Re-segmenting..."))                            
+                            return self.re_segment_sentences(words_list)
+                        except Exception as e:
+                            config.logger.exception(f'LLM断句失败，将使用默认断句：{e}', exc_info=True)
+                    elif config.settings.get('rephrase_local', False):
+                        # 本地断句
+                        try:
+                            self._signal(text=tr("Re-segmenting..."))                            
+                            return self.re_segment_sentences_local(words_list)
+                        except Exception as e:
+                            config.logger.exception(f'本地断句失败，将使用默认断句：{e}', exc_info=True)
+                    # 断句失败或者没有断句
+                    return self.get_srtlist(raws)
+                
         except Exception as e:
             config.logger.exception(f'{e}', exc_info=True)
             self.error = str(e)
@@ -188,9 +194,13 @@ class FasterAll(BaseRecogn):
             config.model_process = None
             self.has_done = True
 
-        if not self.error and len(self.raws) > 0:
-            return self.raws
-
+        
         if self.error:
-            raise self.error if isinstance(self.error,Exception) else RuntimeError(self.error)
-        raise RuntimeError(tr('No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.'))
+            raise RuntimeError(str(self.error))
+        
+        err=tr('No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.')
+        if not self.is_cuda:
+            raise RuntimeError(err)
+        
+        raise RuntimeError(err+"\n"+tr('Please also check whether CUDA12.8 and cudnn9 are installed correctly.'))
+            

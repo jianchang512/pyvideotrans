@@ -174,7 +174,7 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component import Videoandsrtform
+    from videotrans.component.set_form import Videoandsrtform
     from videotrans.translator import LANGNAME_DICT
     winobj = Videoandsrtform()
     config.child_forms['fn_videoandsrt'] = winobj

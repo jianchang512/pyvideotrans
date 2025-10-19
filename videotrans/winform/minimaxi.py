@@ -69,9 +69,6 @@ def openwin():
 
     def updaterole():
         import requests
-        import os
-
-
         url = f'https://{config.params.get("minimaxi_apiurl")}/v1/get_voice'
         headers = {
             'authority': 'api.minimax.io',
@@ -109,7 +106,7 @@ def openwin():
         
 
 
-    from videotrans.component import MinimaxiForm
+    from videotrans.component.set_form import MinimaxiForm
     winobj = MinimaxiForm()
     config.child_forms['minimaxi'] = winobj
 

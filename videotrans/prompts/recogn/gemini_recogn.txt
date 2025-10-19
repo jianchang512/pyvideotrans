@@ -24,7 +24,6 @@
     <audio_text>[spk0]这是第一个文件的转录结果。</audio_text>
     <audio_text>[spk1]This is the transcription for the second file, it might be very long but all content must be in this single tag.</audio_text>
     <audio_text>[spk0]这是第三个文件的转录结果，说话人与第一个文件相同。</audio_text>
-    <audio_text>[spk-1]</audio_text> 
 </result>
 ```
 

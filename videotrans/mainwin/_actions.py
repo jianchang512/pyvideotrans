@@ -243,6 +243,14 @@ class WinAction(WinActionSub):
                 self.main.model_name.addItems(config.DEEPGRAM_MODEL)
             else:
                 self.main.model_name.addItems(config.FUNASR_MODEL)
+        
+        if recogn_type in [recognition.FASTER_WHISPER, recognition.PARAKEET, recognition.OPENAI_WHISPER]:
+            self.main.rephrase_local.setDisabled(False)
+            self.main.rephrase.setDisabled(False)
+        else:
+            self.main.rephrase.setDisabled(True)
+            self.main.rephrase_local.setDisabled(True)
+        
         lang = translator.get_code(show_text=self.main.source_language.currentText())
         if (
                 self.main.model_name.currentText() == 'paraformer-zh' and recogn_type == recognition.FUNASR_CN) or recogn_type == recognition.Deepgram or recogn_type == recognition.GEMINI_SPEECH:

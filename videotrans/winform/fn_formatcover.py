@@ -101,7 +101,7 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component import FormatcoverForm
+    from videotrans.component.set_form import FormatcoverForm
     winobj = FormatcoverForm()
     config.child_forms['fn_formatcover'] = winobj
     winobj.show()

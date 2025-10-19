@@ -119,6 +119,15 @@ class BaseTask(BaseCon):
             return target_srt_list[:1]
         source_len = len(source_srt_list)
         target_len = len(target_srt_list)
+        
+        if source_len==target_len:
+            for i,it in enumerate(source_srt_list):
+                tmp = copy.deepcopy(it)
+                tmp['text']=target_srt_list[i]['text']
+                target_srt_list[i]=tmp
+            return target_srt_list
+                
+        
         for i, it in enumerate(source_srt_list):
             tmp = copy.deepcopy(it)
             if i > target_len - 1:

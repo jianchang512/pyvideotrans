@@ -72,7 +72,7 @@ class MinimaxiTTS(BaseTTS):
                     "emotion": config.params.get('minimaxi_emotion', 'happy'),
                     "text_normalization": True,
                 },
-                "language_boost": 'auto',
+                "language_boost": 'auto' if self.language!='yue' else 'Chinese,Yue',
                 "audio_setting": {
                     "sample_rate": 44100,
                     "format": "wav",

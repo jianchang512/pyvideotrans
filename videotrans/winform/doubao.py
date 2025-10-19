@@ -39,7 +39,7 @@ def openwin():
 
         winobj.close()
 
-    from videotrans.component import DoubaoForm
+    from videotrans.component.set_form import DoubaoForm
     winobj = DoubaoForm()
     config.child_forms['doubao'] = winobj
     winobj.doubao_appid.setText(config.params.get("doubao_appid",''))

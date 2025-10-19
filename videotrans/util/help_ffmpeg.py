@@ -6,7 +6,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-
+from typing import Union
 
 
 def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
@@ -82,7 +82,7 @@ def _get_preset_classification(preset: str) -> str:
     return SOFTWARE_PRESET_CLASSIFICATION.get(preset, 'medium')  # 默认为 medium
 
 
-def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> int | None:
+def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> Union[int, None]:
     """
     将 CRF 值近似转换为不同硬件编码器的质量值。
     这是一个经验性转换，并非精确等效。

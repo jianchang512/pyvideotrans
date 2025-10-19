@@ -62,10 +62,10 @@ def openwin():
 
     def create():
         nonlocal winobj
-        from videotrans.component import SetINIForm
+        from videotrans.component.set_form import SetINIForm
 
         winobj = SetINIForm()
-        config.child_forms['setiniw'] = winobj
+        config.child_forms['setini'] = winobj
         for button in winobj.findChildren(QPushButton):
             if button.objectName().startswith('btn_'):
                 button.clicked.connect(lambda checked, btn=button: alert(btn))

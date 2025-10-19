@@ -65,7 +65,7 @@ def openwin():
 
 
 
-    from videotrans.component import OpenaiRecognAPIForm
+    from videotrans.component.set_form import OpenaiRecognAPIForm
     winobj = OpenaiRecognAPIForm()
     config.child_forms['openairecognapi'] = winobj
     winobj.update_ui()

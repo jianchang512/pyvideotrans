@@ -38,7 +38,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import TencentForm
+    from videotrans.component.set_form import TencentForm
     winobj = TencentForm()
     config.child_forms['tencent'] = winobj
     if config.params["tencent_SecretId"]:

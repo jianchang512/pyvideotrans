@@ -1,13 +1,13 @@
 # zh_recogn 识别
-import logging
+import json
 from dataclasses import dataclass
 from typing import List, Dict, Union
 
 from openai import OpenAI
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure._except import  StopRetry
 from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
@@ -23,9 +23,9 @@ class ParaketRecogn(BaseRecogn):
         self.api_url = config.params.get('parakeet_address','')
         self._add_internal_host_noproxy(self.api_url)
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+    #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+    #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+    #       after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
@@ -44,5 +44,29 @@ class ParaketRecogn(BaseRecogn):
             if not transcript or not isinstance(transcript, str):
                 raise StopRetry(tr('The returned subtitles have no timestamp and cannot be used'))
         tmp = transcript.split("----..----")
-        raws = tools.get_subtitle_from_srt(tmp[0], is_file=False)
-        return raws
+
+        if len(tmp)==1 or  not (config.settings.get('rephrase') or config.settings.get('rephrase_local')):
+            return tools.get_subtitle_from_srt(tmp[0], is_file=False)
+        
+        words_list=[]
+        try:
+            words_list=json.loads(tmp[1])
+        except json.JSONDecodeError:
+            config.logger.exception(f'获取 api 返回的word列表json格式化失败')
+            words_list=[]
+        
+        if not words_list:    
+            return tools.get_subtitle_from_srt(tmp[0], is_file=False)
+            
+        if config.settings.get('rephrase'):
+            try:
+                return self.re_segment_sentences(words_list)
+            except Exception as e:
+                config.logger.exception(f'LLM重新断句失败', exc_info=True)
+        elif config.settings.get('rephrase_local'):
+            try:
+                return self.re_segment_sentences_local(words_list)
+            except Exception as e:
+                config.logger.exception(f'本地重新断句失败', exc_info=True)
+        
+        return tools.get_subtitle_from_srt(tmp[0], is_file=False)

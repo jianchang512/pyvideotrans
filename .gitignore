@@ -60,7 +60,7 @@ runtime
 .Trashes
 ehthumbs.db
 Thumbs.db
-
+logs
 # Diretórios específicos do projeto
 videotrans/core/
 videotrans/planner/

@@ -57,7 +57,7 @@ def openwin():
 
 
 
-    from videotrans.component import OpenrouterForm
+    from videotrans.component.set_form import OpenrouterForm
     winobj = OpenrouterForm()
     config.child_forms['openrouter'] = winobj
     winobj.update_ui()

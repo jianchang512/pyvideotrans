@@ -57,7 +57,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import TtsapiForm
+    from videotrans.component.set_form import TtsapiForm
     winobj = TtsapiForm()
     config.child_forms['ttsapi'] = winobj
     if config.params["ttsapi_url"]:

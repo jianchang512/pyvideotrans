@@ -55,7 +55,7 @@ def openwin():
 
 
 
-    from videotrans.component import QwenTTSForm
+    from videotrans.component.set_form import QwenTTSForm
     winobj = QwenTTSForm()
     config.child_forms['qwentts'] = winobj
     winobj.update_ui()

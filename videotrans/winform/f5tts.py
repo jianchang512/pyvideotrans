@@ -120,7 +120,7 @@ def openwin(init_show_type=None):
         tools.set_process(text='f5tts', type="refreshtts")
         winobj.close()
 
-    from videotrans.component import F5TTSForm
+    from videotrans.component.set_form import F5TTSForm
     Path(config.ROOT_DIR + "/f5-tts").mkdir(exist_ok=True)
     winobj = F5TTSForm()
     config.child_forms['f5tts'] = winobj

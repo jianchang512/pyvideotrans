@@ -39,7 +39,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import KokoroForm
+    from videotrans.component.set_form import KokoroForm
 
     winobj = KokoroForm()
     config.child_forms['kokoro'] = winobj

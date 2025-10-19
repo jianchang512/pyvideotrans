@@ -55,7 +55,7 @@ def openwin():
 
 
 
-    from videotrans.component import SiliconflowForm
+    from videotrans.component.set_form import SiliconflowForm
     winobj = SiliconflowForm()
     config.child_forms['siliconflow'] = winobj
     winobj.update_ui()

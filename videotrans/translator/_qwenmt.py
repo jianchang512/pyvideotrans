@@ -23,9 +23,9 @@ class QwenMT(BaseTrans):
 
 
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+    #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+    #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+    #       after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
@@ -60,7 +60,7 @@ class QwenMT(BaseTrans):
                 translation_options=translation_options
             )
             if response.code or not response.output:
-                raise StopRetry(response.message)
+                raise RuntimeError(response.message)
             return self.clean_srt(response.output.choices[0].message.content)
 
         target_language=translator.LANG_CODE.get(self.target_code)[8]
@@ -83,7 +83,7 @@ class QwenMT(BaseTrans):
         )
 
         if response.code or not response.output:
-            raise StopRetry(response.message)
+            raise RuntimeError(response.message)
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', response.output.choices[0].message.content, re.S)
         if match:
             return match.group(1)

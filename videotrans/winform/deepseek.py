@@ -55,7 +55,7 @@ def openwin():
 
 
 
-    from videotrans.component import DeepseekForm
+    from videotrans.component.set_form import DeepseekForm
     winobj = DeepseekForm()
     config.child_forms['deepseek'] = winobj
     winobj.update_ui()

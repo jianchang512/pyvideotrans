@@ -68,7 +68,7 @@ def openwin():
 
 
 
-    from videotrans.component import GeminiForm
+    from videotrans.component.set_form import GeminiForm
 
     winobj = GeminiForm()
     config.child_forms['gemini'] = winobj

@@ -4,7 +4,7 @@ from pathlib import Path
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
+
 from videotrans.configure.config import tr
 from videotrans.util import tools
 

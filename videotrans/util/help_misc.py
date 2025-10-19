@@ -80,11 +80,11 @@ def show_error(tb_str):
             import os, platform, sys
             from videotrans import VERSION
             # 对全部错误信息进行URL编码
-            encoded_content = urllib.parse.quote(f"{tb_str}\n====="
-                                                 f"\n{platform.platform()}"
-                                                 f"\nversion:{VERSION}"
-                                                 f"\nfrozen:{getattr(sys, 'frozen', False)}"
-                                                 f"\nlanguage:{config.defaulelang}")
+            _isfrozen=getattr(sys, 'frozen', False)
+            _msg=f"{tb_str}\n=====\nsystem:{platform.platform()}\nversion:{VERSION}\nfrozen:{_isfrozen}\nlanguage:{config.defaulelang}\nroot_dir:{config.ROOT_DIR}\n"
+            if not _isfrozen:
+                _msg+=f"Python: {sys.version}\n"
+            encoded_content = urllib.parse.quote(_msg)
             full_url = f"https://bbs.pyvideotrans.com/?type=post&content={encoded_content}"
 
             # 调用系统默认浏览器打开链接

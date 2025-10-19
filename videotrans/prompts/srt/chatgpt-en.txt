@@ -39,13 +39,8 @@ Original Text
 </TRANSLATE_TEXT>
 ```
 
-# Input Specification
-Now, process the original SRT subtitle content provided within the `<INPUT>` tag below.
 
-## Glossary of terms
-Translations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:
-| Glossary | Translation |
-| --------- | ----- |
-|CEO|首席执行官|
+
+
 
 <INPUT></INPUT>

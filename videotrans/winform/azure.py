@@ -31,7 +31,7 @@ def openwin():
 
 
 
-    from videotrans.component import AzureForm
+    from videotrans.component.set_form import AzureForm
 
     winobj = AzureForm()
     config.child_forms['azure'] = winobj

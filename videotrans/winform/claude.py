@@ -59,7 +59,7 @@ def openwin():
 
 
 
-    from videotrans.component import ClaudeForm
+    from videotrans.component.set_form import ClaudeForm
     winobj = ClaudeForm()
     config.child_forms['claude'] = winobj
     winobj.update_ui()

@@ -433,6 +433,8 @@ class SpeedRate:
                 if speedup_ratio < 1.01:
                     all_cmds.append("1")
                     continue
+                # 如果超出最大加速倍数，则强制设限，自此不可再对齐
+                speedup_ratio=self.max_audio_speed_rate if self.max_audio_speed_rate< speedup_ratio else speedup_ratio
 
                 config.logger.info(
                     f"字幕[{it['line']}]：[执行] 音频加速，倍率={speedup_ratio:.2f} (从 {current_duration_ms}ms -> {target_duration_ms}ms) 使用 {self.audio_speed_filter} 引擎。")
@@ -524,7 +526,10 @@ class SpeedRate:
         total_tasks = len(clip_meta_list)
 
         def _cut_video_get_duration(i, task):
-            pts_param = str(task['pts']) if task.get('pts', 1.0) > 1.01 else None
+            pts_param = float(task['pts']) if float(task.get('pts',0)) > 1.01 else None
+            # 如果超出最大允许慢速倍数，则强制设限，自此无法再对齐
+            if pts_param is not None and self.max_video_pts_rate<pts_param:
+                pts_param=self.max_video_pts_rate
             self._cut_to_intermediate(ss=task['ss'], to=task['to'], source=self.novoice_mp4_original, pts=pts_param, out=task['out'])
 
             real_duration_ms = 0

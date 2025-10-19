@@ -66,7 +66,7 @@ def openwin():
         winobj.task.finish_event.connect(update)
         winobj.task.start()
 
-    from videotrans.component import SeparateForm
+    from videotrans.component.set_form import SeparateForm
 
     winobj = SeparateForm()
     config.child_forms['fn_separate'] = winobj

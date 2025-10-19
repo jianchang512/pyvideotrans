@@ -54,7 +54,7 @@ def openwin():
         with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
-    from videotrans.component import AI302Form
+    from videotrans.component.set_form import AI302Form
 
 
     winobj = AI302Form()

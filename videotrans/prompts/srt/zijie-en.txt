@@ -39,7 +39,6 @@ Original Text
 </TRANSLATE_TEXT>
 ```
 
-# Input Specification
-Now, process the original SRT subtitle content provided within the `<INPUT>` tag below.
+
 
 <INPUT></INPUT>

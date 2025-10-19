@@ -245,7 +245,9 @@ def openwin():
         print(f'{lang=}')
         if not lang or lang == '-':
             return tools.show_error(tr("The voice is not support listen"))
-        text = config.params[f'listen_text_{lang}']
+        text = config.params.get(f'listen_text_{lang}')
+        if not text:
+            return tools.show_error(tr('The current language does not support audition'))
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
             return tools.show_error(tr('mustberole'))
@@ -582,7 +584,7 @@ def openwin():
         if winobj.error_msg:
             tools.show_error(winobj.error_msg)
 
-    from videotrans.component import Peiyinform
+    from videotrans.component.set_form import Peiyinform
     winobj = Peiyinform()
     config.child_forms['fn_peiyin'] = winobj
     winobj.show()

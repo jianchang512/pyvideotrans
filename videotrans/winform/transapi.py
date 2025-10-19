@@ -35,7 +35,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import TransapiForm
+    from videotrans.component.set_form import TransapiForm
     winobj = TransapiForm()
     config.child_forms['transapi'] = winobj
     winobj.api_url.setText(config.params.get("trans_api_url",''))

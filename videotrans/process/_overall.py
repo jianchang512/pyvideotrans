@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 
+
 # 该文件运行在独立进程
 
 
@@ -29,7 +30,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
             q.put_nowait(jsondata)
         except Exception:
             pass
-
+    
     from faster_whisper import WhisperModel
     from videotrans.util.tools import cleartext
     down_root = config.ROOT_DIR + "/models"

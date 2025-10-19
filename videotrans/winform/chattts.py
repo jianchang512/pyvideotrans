@@ -45,7 +45,7 @@ def openwin():
         tools.set_process(text='chattts', type="refreshtts")
         winobj.close()
 
-    from videotrans.component import ChatttsForm
+    from videotrans.component.set_form import ChatttsForm
     winobj = ChatttsForm()
     config.child_forms['chattts'] = winobj
 

@@ -34,7 +34,7 @@ def openwin():
         task.uito.connect(feed)
         task.start()
 
-    from videotrans.component import BaiduForm
+    from videotrans.component.set_form import BaiduForm
 
     winobj = BaiduForm()
     config.child_forms['baidu'] = winobj

@@ -63,7 +63,7 @@ def openwin():
 
 
 
-    from videotrans.component import ChatgptForm
+    from videotrans.component.set_form import ChatgptForm
 
     winobj = ChatgptForm()
     config.child_forms['chatgpt'] = winobj

@@ -57,7 +57,7 @@ def openwin():
 
 
 
-    from videotrans.component import ZhipuAIForm
+    from videotrans.component.set_form import ZhipuAIForm
     winobj = ZhipuAIForm()
     config.child_forms['zhipuai'] = winobj
     winobj.update_ui()

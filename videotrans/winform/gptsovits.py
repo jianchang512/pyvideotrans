@@ -75,7 +75,7 @@ def openwin():
         tools.set_process(text='gptsovits', type="refreshtts")
         winobj.close()
 
-    from videotrans.component import GPTSoVITSForm
+    from videotrans.component.set_form import GPTSoVITSForm
 
     winobj = GPTSoVITSForm()
     config.child_forms['gptsovits'] = winobj

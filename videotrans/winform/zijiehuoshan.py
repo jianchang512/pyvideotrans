@@ -52,7 +52,7 @@ def openwin():
 
 
 
-    from videotrans.component import ZijiehuoshanForm
+    from videotrans.component.set_form import ZijiehuoshanForm
     winobj = ZijiehuoshanForm()
     config.child_forms['zijie'] = winobj
     winobj.update_ui()

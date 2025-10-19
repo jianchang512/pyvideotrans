@@ -111,7 +111,7 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component import GetaudioForm
+    from videotrans.component.set_form import GetaudioForm
     winobj = GetaudioForm()
     config.child_forms['fn_audiofromvideo'] = winobj
     winobj.show()

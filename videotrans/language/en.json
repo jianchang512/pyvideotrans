@@ -308,7 +308,7 @@
     "OpenAI Speech to Text": "OpenAI Speech to Text",
     "OpenAI Speech to Text API": "OpenAI Speech to Text & Compatible API",
     "OpenAI-whisper": "openai-whisper (local)",
-    "Options": "Options",
+    "Options": "Advanced Options",
     "Original text": "Target text",
     "Other Language Subtitle Length:": "Other Lang hardsub line length:",
     "Out format": "Output Format",
@@ -740,5 +740,8 @@
     "Prompt: Please open the {} file directly to modify it": "To modify subtitle translation prompts, open the [Software Directory/videotrans/prompts] folder.\n\n[Software Directory/videotrans/prompts/srt/] stores prompts when Send Full Subtitles is selected.\n[Software Directory/videotrans/prompts/text/] stores prompts when Send Full Subtitles is unchecked.\nThe prompt word file used by the current channel is: [{}.txt]",
     "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3",
     "Reference audio does not exist: {} Please make sure the audio exists": "Reference audio does not exist: {} Please make sure the audio exists",
-	"API minimax":"com(China)/io(Other)"
+	"API minimax":"com(China)/io(Other)",
+	"elevenlabs toggle role":"If the dubbing channel currently selected in the interface is Elevenlabs.io, you need to switch to another channel first, and then switch back to see the new role",
+	"Please also check whether CUDA12.8 and cudnn9 are installed correctly.":"Please also check whether CUDA12.8 and cudnn9 are installed correctly.",
+	"The current language does not support audition":"The current language does not support audition"
 }

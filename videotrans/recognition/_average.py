@@ -96,6 +96,12 @@ class FasterAvg(BaseRecogn):
         if not self.error and len(self.raws)>0:
             return self.raws
 
+        
         if self.error:
-            raise self.error if isinstance(self.error,Exception) else RuntimeError(self.error)
-        raise RuntimeError( tr("No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one."))
+            raise RuntimeError(str(self.error))
+        
+        err=tr('No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.')
+        if not self.is_cuda:
+            raise RuntimeError(err)
+        
+        raise RuntimeError(err+"\n"+tr('Please also check whether CUDA12.8 and cudnn9 are installed correctly.'))

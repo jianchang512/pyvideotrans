@@ -132,7 +132,7 @@ def _check_huggingface_connect(ROOT_DIR: str, proxy: str = None):
             os.environ.pop('HTTPS_PROXY')
         if os.environ.get('HTTP_PROXY'):
             os.environ.pop('HTTP_PROXY')
-    with open(f'{ROOT_DIR}/logs/test-huggingface.txt', "a", encoding='utf-8') as f:
+    with open(f'{ROOT_DIR}/logs/test-huggingface.log', "a", encoding='utf-8') as f:
         f.write(
             f"{proxy=},{os.environ.get('HTTPS_PROXY')=},{os.environ.get('HF_ENDPOINT')=},{os.environ.get('HF_HUB_DISABLE_XET')=}\n")
 

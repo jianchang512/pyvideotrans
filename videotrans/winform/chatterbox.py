@@ -72,7 +72,7 @@ def openwin():
 
         winobj.close()
 
-    from videotrans.component import ChatterboxForm
+    from videotrans.component.set_form import ChatterboxForm
     winobj = ChatterboxForm()
     config.child_forms['chatterbox'] = winobj
     winobj.api_url.setText(config.params.get("chatterbox_url",''))

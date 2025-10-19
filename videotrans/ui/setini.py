@@ -94,7 +94,6 @@ class Ui_setini(object):
         # 2. 创建一个“容器”QWidget，这个容器将承载你的所有内容
         scroll_content_widget = QtWidgets.QWidget()
 
-
         # ultrafast 、 superfast 、 veryfast 、 faster 、 fast 、 medium （默认）、 slow和veryslow
         # 处理速度越来越慢，输出视频压缩率和质量越来越高，视频尺寸也将变小
 
@@ -102,29 +101,30 @@ class Ui_setini(object):
         self.notices = {
             "common": {
                 "lang": "设置软件界面语言，修改后需要重启软件",
-                "countdown_sec": "当单个视频翻译时，暂停时倒计时秒数",
-                "bgm_split_time": "设置分离背景音时切割片段，防止视频过长卡死，默认300s",
-                "homedir": "家目录，用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认用户家目录",
-                "llm_chunk_size": "LLM大模型重新断句时，每次发送多少个字或单词，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于大模型输出token，过长输入可能导致失败",
+                "countdown_sec": "当单个视频翻译时，暂停倒计时秒数",
+                "bgm_split_time": "设置分离背景音切割片段，防止视频过长卡死，默认300s",
+                "homedir": "用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认软件安装目录下output文件夹",
+                "llm_chunk_size": "LLM大模型重新断句时，每次发送多少个字或单词，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于max_token，过长输入可能导致失败",
                 "llm_ai_type": "LLM重新断句时使用的AI渠道，目前支持openai或deepseek渠道",
                 "gemini_recogn_chunk": "使用gemini识别语音时，每次发送音频切片数，越大效果越好，但失败率会升高",
                 "dont_notify": "任务完成或失败后不显示桌面通知",
             },
 
             "video": {
-                "crf": "视频转码时损失控制，0=损失最低，51=损失最大，默认13",
-                "preset": "主要调节编码速度和质量的平衡，有ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
+                "crf": "视频转码时损失控制，0=无损，51=损失最大，默认25",
+                "preset": "主要调节编码速度和质量的平衡，有 ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
                 "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在倒数第二个位置上,例如  -bf 7 -b_ref_mode middle",
-                "cuda_decode": "使用cuda解码视频",
-                "video_codec": "采用 libx264 编码或 libx265编码，264兼容性更好，265压缩比更大清晰度更高"
+                "cuda_decode": "使用cuda解码视频,易出错",
+                "video_codec": "采用 libx264 编码或 libx265 编码，264兼容性更好，265压缩比更大清晰度更高"
             },
 
             "subtitle": {
                 "fontsize": "硬字幕字体像素尺寸",
-                "fontname": "硬字幕时字体名字",
+                "fontname": "硬字幕字体名字",
                 "fontcolor": "设置字体的颜色，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
 
                 "fontbordercolor": "设置字体边框描边颜色(轮廓模式下)，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
+
                 "backgroundcolor": "背景色块模式下为背景色，轮廓模式下可能是阴影颜色，可能因播放器支持而不同",
                 "subtitle_position": "字幕所处位置，默认底部",
                 "marginV": "字幕垂直边距",
@@ -136,124 +136,119 @@ class Ui_setini(object):
 
             },
             "trans": {
-                "trans_thread": "传统翻译每次发送字幕行数",
-                "aitrans_thread": "AI翻译每次发送字幕行数",
-                "retries": "翻译出错时的重试次数",
-                "translation_wait": "每次翻译后暂停时间/秒,用于限制请求频率",
-                "aisendsrt": "是否在使用AI/Google翻译时发送完整字幕格式内容"
-
+                "trans_thread": "传统翻译渠道每次发送字幕行数",
+                "aitrans_thread": "AI翻译渠道每次发送字幕行数",
+                "translation_wait": "每次翻译后暂停秒数,用于限制请求频率",
+                "aisendsrt": "是否在使用AI翻译渠道时发送完整字幕格式内容"
             },
             "dubbing": {
-                "dubbing_thread": "同时配音的字幕条数",
-                "dubbing_wait": "每次配音后暂停时间/秒,用于限制请求频率",
-                "save_segment_audio": "保留每条字幕的配音文件",
-                "azure_lines": "azureTTS一次配音行数",
-                "chattts_voice": "chatTTS 音色值"
+                "dubbing_thread": "同时配音的字幕行数(线程数)",
+                "dubbing_wait": "每次配音后暂停秒数,用于限制请求频率",
+                "save_segment_audio": "保留每行字幕的配音结果",
+                "azure_lines": "Azure TTS批量配音行数，一次多少行",
+                "chattts_voice": "ChatTTS 音色值"
             },
             "justify": {
                 "remove_silence": "是否移除配音末尾空白",
             },
             "whisper": {
-                "vad": "是否在faster-whisper字幕整体识别模式时启用VAD",
-                "threshold": "表示语音的概率阈值，VAD 会输出每个音频片段的语音概率。高于该值的概率被认为是语音（SPEECH），低于该值的概率被认为是静音或背景噪音。默认值为 0.5，这在大多数情况下是适用的。但针对不同的数据集，你可以调整这个值以更精确地区分语音和噪音。如果你发现误判太多，可以尝试将其调高到 0.6 或 0.7；如果语音片段丢失过多，则可以降低至 0.3 或 0.4。",
-                "min_speech_duration_ms": "最小语音持续时间，单位：毫秒。如果检测到的语音片段长度小于这个值，则该语音片段会被丢弃。目的是去除一些短暂的非语音声音或噪音。你可以根据需要调整，如果语音片段过短容易被误判为噪音，可以增加该值，例如设置为 1000 毫秒",
-                "max_speech_duration_s": "最大语音持续时间，单位：秒。单个语音片段的最大长度。如果语音片段超过这个时长，则会在此分割。如果没有找到静音位置，则会在该时长前强行分割，避免过长的连续片段。如果你希望控制片段长度，比如处理对话或分段输出，可以根据具体需求设定，比如 10 秒或 30 秒。 0表示无穷大",
-                "min_silence_duration_ms": "最小静音持续时间，单位：毫秒。当检测到语音结束后，会等待的静音时间。如果静音持续时间超过该值，才会分割语音片段。",
-                "speech_pad_ms": "语音填充时间，单位：毫秒。在检测到的语音片段前后各添加的填充时间，避免语音片段切割得太紧凑，可能会切掉一些边缘的语音。如果你发现切割后的语音片段有缺失部分，可以增大该值，比如 500 毫秒或 800 毫秒。反之，如果语音片段过长或包含过多的无效部分，可以减少这个值",
+                "vad": "是否在faster-whisper渠道整体识别模式时启用VAD",
+                "threshold": "表示音频片段被认为是语音的最低概率。Silero VAD 会为每个音频片段计算语音概率，超过此阈值（threshold）的部分被视为语音，反之视为静音或噪音。默认0.45",
+                "min_speech_duration_ms": "如果检测到的语音片段长度小于此值，会被丢弃，目的是去除短暂的非语音噪音。填写数字，单位是ms，默认0ms",
+                "max_speech_duration_s": "限制单个语音片段的最大长度。超过此时长时，系统会在持续超过 100 毫秒的静音处分割；若无静音，则在指定时长前强制分割，避免过长片段。填写数字，单位是秒，默认5秒",
+                "min_silence_duration_ms": "在语音结束时，需等待的静音时间达到此值后，才会分割出语音片段。填写数字，单位ms，默认140ms",
+                "speech_pad_ms": "在检测到的语音片段前后添加缓冲时间，避免切掉边缘语音。填写数字，单位ms，默认0",
 
-
-                "voice_silence": "Google识别api静音片段/ms",
-                "interval_split": "均等分割模式下每个片段时长秒数",
+                "voice_silence": "Google识别Api静音片段/ms",
+                "interval_split": "faster-whisper渠道均等分割模式下分割秒数",
                 "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
-                "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，int8_float16=设备自选",
+                "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，float16适合GPU加速。default默认自选",
                 "beam_size": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
-                "condition_on_previous_text": "若开启将占用更多GPU，效果也更好",
+                "condition_on_previous_text": "若开启将占用更多GPU，效果也更好，但也容易出现重复或幻觉",
                 "zh_hant_s": "强制将识别出的繁体字幕转为简体",
             },
-            "prompt_init":{
-                "initial_prompt_zh-cn": "原始语言为简体中文时发送给whisper模型的提示词",
-                "initial_prompt_zh-tw": "原始语言为繁体中文时发送给whisper模型的提示词",
-                "initial_prompt_en": "原始语言为英语时发送给whisper模型的提示词",
-                "initial_prompt_fr": "原始语言为法语时发送给whisper模型的提示词",
-                "initial_prompt_de": "原始语言为德语时发送给whisper模型的提示词",
-                "initial_prompt_ja": "原始语言为日语时发送给whisper模型的提示词",
-                "initial_prompt_ko": "原始语言为韩语时发送给whisper模型的提示词",
-                "initial_prompt_ru": "原始语言为俄语时发送给whisper模型的提示词",
-                "initial_prompt_es": "原始语言为西班牙语时发送给whisper模型的提示词",
-                "initial_prompt_th": "原始语言为泰国语时发送给whisper模型的提示词",
-                "initial_prompt_it": "原始语言为意大利语时发送给whisper模型的提示词",
-                "initial_prompt_pt": "原始语言为葡萄牙语时发送给whisper模型的提示词",
-                "initial_prompt_vi": "原始语言为越南语时发送给whisper模型的提示词",
-                "initial_prompt_ar": "原始语言为阿拉伯语时发送给whisper模型的提示词",
-                "initial_prompt_tr": "原始语言为土耳其语时发送给whisper模型的提示词",
-                "initial_prompt_hi": "原始语言为印度语时发送给whisper模型的提示词",
-                "initial_prompt_hu": "原始语言为匈牙利语时发送给whisper模型的提示词",
-                "initial_prompt_uk": "原始语言为乌克兰语时发送给whisper模型的提示词",
-                "initial_prompt_id": "原始语言为印尼语时发送给whisper模型的提示词",
-                "initial_prompt_ms": "原始语言为马来西亚语时发送给whisper模型的提示词",
-                "initial_prompt_kk": "原始语言为哈萨克语时发送给whisper模型的提示词",
-                "initial_prompt_cs": "原始语言为捷克语时发送给whisper模型的提示词",
-                "initial_prompt_pl": "原始语言为波兰语时发送给whisper模型的提示词",
-                "initial_prompt_nl": "原始语言为荷兰语时发送给whisper模型的提示词",
-                "initial_prompt_sv": "原始语言为瑞典语时发送给whisper模型的提示词",
-                "initial_prompt_he": "原始语言为瑞典语时发送给whisper模型的提示词",
-                "initial_prompt_bn": "原始语言为瑞典语时发送给whisper模型的提示词",
-                "initial_prompt_fa": "原始语言为波斯语时发送给whisper模型的提示词",
-                "initial_prompt_ur": "原始语言为乌尔都语时发送给whisper模型的提示词",
-                "initial_prompt_yue": "原始语言为粤语时发送给whisper模型的提示词",
-                "initial_prompt_fil": "原始语言为菲律宾语时发送给whisper模型的提示词"
+            "prompt_init": {
+                "initial_prompt_zh-cn": "发音语言为简体中文时发送给whisper模型的提示词",
+                "initial_prompt_zh-tw": "发音语言为繁体中文时发送给whisper模型的提示词",
+                "initial_prompt_en": "发音语言为英语时发送给whisper模型的提示词",
+                "initial_prompt_fr": "发音语言为法语时发送给whisper模型的提示词",
+                "initial_prompt_de": "发音语言为德语时发送给whisper模型的提示词",
+                "initial_prompt_ja": "发音语言为日语时发送给whisper模型的提示词",
+                "initial_prompt_ko": "发音语言为韩语时发送给whisper模型的提示词",
+                "initial_prompt_ru": "发音语言为俄语时发送给whisper模型的提示词",
+                "initial_prompt_es": "发音语言为西班牙语时发送给whisper模型的提示词",
+                "initial_prompt_th": "发音语言为泰国语时发送给whisper模型的提示词",
+                "initial_prompt_it": "发音语言为意大利语时发送给whisper模型的提示词",
+                "initial_prompt_pt": "发音语言为葡萄牙语时发送给whisper模型的提示词",
+                "initial_prompt_vi": "发音语言为越南语时发送给whisper模型的提示词",
+                "initial_prompt_ar": "发音语言为阿拉伯语时发送给whisper模型的提示词",
+                "initial_prompt_tr": "发音语言为土耳其语时发送给whisper模型的提示词",
+                "initial_prompt_hi": "发音语言为印度语时发送给whisper模型的提示词",
+                "initial_prompt_hu": "发音语言为匈牙利语时发送给whisper模型的提示词",
+                "initial_prompt_uk": "发音语言为乌克兰语时发送给whisper模型的提示词",
+                "initial_prompt_id": "发音语言为印尼语时发送给whisper模型的提示词",
+                "initial_prompt_ms": "发音语言为马来西亚语时发送给whisper模型的提示词",
+                "initial_prompt_kk": "发音语言为哈萨克语时发送给whisper模型的提示词",
+                "initial_prompt_cs": "发音语言为捷克语时发送给whisper模型的提示词",
+                "initial_prompt_pl": "发音语言为波兰语时发送给whisper模型的提示词",
+                "initial_prompt_nl": "发音语言为荷兰语时发送给whisper模型的提示词",
+                "initial_prompt_sv": "发音语言为瑞典语时发送给whisper模型的提示词",
+                "initial_prompt_he": "发音语言为瑞典语时发送给whisper模型的提示词",
+                "initial_prompt_bn": "发音语言为瑞典语时发送给whisper模型的提示词",
+                "initial_prompt_fa": "发音语言为波斯语时发送给whisper模型的提示词",
+                "initial_prompt_ur": "发音语言为乌尔都语时发送给whisper模型的提示词",
+                "initial_prompt_yue": "发音语言为粤语时发送给whisper模型的提示词",
+                "initial_prompt_fil": "发音语言为菲律宾语时发送给whisper模型的提示词"
             }
         }
         # 中文左侧label
         self.titles = {
-            "dont_notify": "禁止桌面通知",
-            "llm_ai_type": "LLM重新断句时使用的AI渠道",
-            "prompt_init":"Whisper模型提示词",
+            "dont_notify": "是否禁用桌面通知",
+            "llm_ai_type": "LLM重新断句时的AI渠道",
+            "prompt_init": "Whisper模型提示词",
             "gemini_recogn_chunk": "Gemini语音识别时，单次发送音频切片数",
-            "ai302_models": "302.ai翻译模型列表",
             "llm_chunk_size": "LLM重新断句每批次发送字或单词数",
+            "ai302_models": "302.ai翻译模型列表",
             "ai302tts_models": "302.aiTTS模型列表",
             "openairecognapi_model": "OpenAI语音识别模型",
-            "homedir": "设置家目录",
-            "lang": "界面语言",
-            "save_segment_audio": "保留每条字幕的配音文件",
-            "crf": "视频转码损失控制",
-            "cuda_decode": "使用cuda解码视频",
-            "preset": "输出视频质量压缩率控制",
-            "ffmpeg_cmd": "自定义ffmpeg命令参数",
-            "video_codec": "264或265视频编码",
             "chatgpt_model": "ChatGPT模型列表",
             "openaitts_model": "OpenAI TTS模型列表",
             "azure_model": "Azure模型列表",
             "localllm_model": "本地LLM模型列表",
             "zijiehuoshan_model": "字节火山推理接入点",
             "model_list": "faster和openai的模型列表",
-            "remove_silence": "移除配音末尾空白",
+            "homedir": "设置输出目录",
+            "lang": "软件界面语言",
+            "save_segment_audio": "保留每条字幕的配音文件",
+            "crf": "视频转码损失控制",
+            "cuda_decode": "强制CUDA硬解码视频",
+            "preset": "输出视频压缩率",
+            "ffmpeg_cmd": "自定义ffmpeg命令参数",
+            "video_codec": "264/265编码",
+            "remove_silence": "是否移除配音末尾空白",
             "bgm_split_time": "背景音分离切割片段/s",
-            "vad": "启用VAD",
+            "vad": "启用VAD断句",
 
             "threshold": "语音阈值",
-            "max_speech_duration_s": "最大语音持续时间/秒",
-            "min_speech_duration_ms": "最短语音持续时间/毫秒",
-            "min_silence_duration_ms": "静音分割毫秒 ",
-            "speech_pad_ms": "语音填充毫秒",
+            "max_speech_duration_s": "最长语音持续秒数",
+            "min_speech_duration_ms": "最短语音持续毫秒数",
+            "min_silence_duration_ms": "静音分割持续毫秒数",
+            "speech_pad_ms": "语音填充毫秒数",
 
-
-            "voice_silence": "Google识别api静音片段/ms",
-            "interval_split": "均等分割时片段时长/s",
-            "trans_thread": "传统翻译每次发送字幕行数",
-            "aitrans_thread": "AI翻译每次发送字幕行数",
-            "retries": "翻译出错重试数",
-            "dubbing_thread": "同时配音字幕数",
-            "countdown_sec": "暂停倒计时/s",
-            "backaudio_volume": "背景音量倍数",
-            "loop_backaudio": "循环播放背景音",
+            "voice_silence": "Google识别Api静音片段/ms",
+            "interval_split": "faster渠道均等分割片段时长/s",
+            "trans_thread": "传统翻译渠道每次发送字幕行数",
+            "aitrans_thread": "AI翻译渠道每次发送字幕行数",
+            "dubbing_thread": "同时配音字幕行数(线程数)",
+            "countdown_sec": "暂停倒计时秒数",
+            "backaudio_volume": "背景音量变化倍数",
+            "loop_backaudio": "是否循环播放背景音",
             "cuda_com_type": "CUDA数据类型",
-            "beam_size": "字幕识别准确度控制beam_size",
-            "best_of": "字幕识别准确度控制best_of",
-            "condition_on_previous_text": "上下文感知",
-            "fontsize": "硬字幕字体像素",
+            "beam_size": "字幕识别准确度beam_size",
+            "best_of": "字幕识别准确度best_of",
+            "condition_on_previous_text": "是否启用上下文感知",
+            "fontsize": "硬字幕字体大小",
             "fontname": "硬字幕字体名字",
             "fontcolor": "硬字幕文字颜色",
             "fontbordercolor": "硬字幕文字边框描边颜色",
@@ -269,10 +264,12 @@ class Ui_setini(object):
             "zh_hant_s": "字幕繁体转为简体",
             "azure_lines": "AzureTTS批量行数",
             "chattts_voice": "ChatTTS音色值",
-            "translation_wait": "翻译后暂停时间/s",
-            "dubbing_wait": "配音后暂停时间/s",
+            "translation_wait": "翻译后暂停秒数",
+            "dubbing_wait": "配音后暂停秒数"
+            ,
             "gemini_model": "Gemini模型列表",
-            "aisendsrt": "使用AI翻译时发送完整字幕内容",
+
+            "aisendsrt": "使用AI翻译渠道时是否发送完整字幕",
 
             "initial_prompt_zh-cn": "whisper模型简体中文提示词",
             "initial_prompt_zh-tw": "whisper模型繁体中文提示词",
@@ -316,234 +313,213 @@ class Ui_setini(object):
             "subtitle": "硬字幕样式",
             "trans": "字幕翻译调整",
             "dubbing": "配音调整",
-            "prompt_init":"Whisper模型提示词"
+            "prompt_init": "Whisper模型提示词"
         }
         if config.defaulelang != 'zh':
             self.notices = {
                 "common": {
-                    "lang": "Set the software interface language, a restart is required after modification",
-                    "countdown_sec": "Countdown seconds when pausing during single video translation",
-                    "bgm_split_time": "Set the segment length for splitting background audio to prevent freezing on long videos, default is 300s",
-                    "homedir": "Home directory, used to save the results of video separation, subtitle dubbing, subtitle translation, etc. Default user home directory",
-                    "llm_chunk_size": "When the LLM large model re-segmentation, how many words to send each time to prevent the subtitles from being too long and exceeding the LLM output limit",
-                    "llm_ai_type": "The AI channel used when LLM re-segmentation, currently supports openai or deepseek channels",
-                    "gemini_recogn_chunk": "When using Gemini to recognize speech, the larger the number of audio slices sent each time, the better the effect, but the failure rate will increase",
-                    "dont_notify": "Do not display desktop notifications when a task completes or fails",
+                    "lang": "Set UI language, requires restart.",
+                    "countdown_sec": "Countdown seconds for single video translation pause.",
+                    "bgm_split_time": "BGM split time (s) to prevent freezing on long videos. Default: 300s.",
+                    "homedir": "Output directory for results (separation, dubbing, subtitles). Default: 'output' folder.",
+                    "llm_chunk_size": "LLM chunk size for re-segmentation. Larger is better but limited by max_token.",
+                    "llm_ai_type": "AI provider for LLM re-segmentation (e.g., openai, deepseek).",
+                    "gemini_recogn_chunk": "Number of audio chunks for Gemini recognition. Larger improves quality but may increase failure rate.",
+                    "dont_notify": "Disable desktop notifications for task completion/failure."
                 },
                 "video": {
-                    "crf": "Loss control during video transcoding, 0 = minimum loss, 51 = maximum loss, default is 13",
-                    "cuda_decode": "Decode the video using cuda",
-                    "preset": "Mainly adjust the balance of encoding speed and quality, there are ultrafast, superfast, veryfast, fast, fast, medium, slow, slow, veryslow options, encoding speed from fast to slow, compression rate from low to high, video size from large to small.",
-                    "ffmpeg_cmd": "Custom ffmpeg command parameters, added at the penultimate position, e.g., -bf 7 -b_ref_mode middle",
-                    "video_codec": "Use libx264 or libx265 encoding, 264 has better compatibility, 265 has higher compression ratio and clarity"
+                    "crf": "CRF (Constant Rate Factor) for transcoding. 0=lossless, 51=max loss. Default: 25.",
+                    "preset": "Encoding preset (speed vs. quality): ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow.",
+                    "ffmpeg_cmd": "Custom ffmpeg parameters (e.g., -bf 7 -b_ref_mode middle).",
+                    "cuda_decode": "Use CUDA for video decoding (may be unstable).",
+                    "video_codec": "Video codec: libx264 (better compatibility) or libx265 (better compression/quality)."
                 },
-
                 "subtitle": {
-                    "fontsize": "Pixel size of the hard subtitle font",
-                    "fontname": "Font name for hard subtitles",
-                    "fontcolor": "Set the font color, note the 6 characters after &H, each 2 characters represent the BGR color, i.e., 2 blue, 2 green, 2 red, in reverse of the common RGB color.",
-
-                    "fontbordercolor": "Sets the font border stroke color (in outline mode). Note the six characters after &H. Each two letters represent a BGR color, i.e., 2 bits of blue, 2 bits of green, and 2 bits of red, which is the reverse of the common RGB colors.",
-
-                    "backgroundcolor": "Background color in block mode. It may be the shadow color in outline mode. This may vary depending on player support.",
-
-                    "subtitle_position": "Subtitle position, default is bottom.",
-
-                    "marginV": "Subtitle vertical margin.",
-
-                    "marginL": "Subtitle left margin.",
-
-                    "marginR": "Subtitle right margin.",
-
-                    "shadow": "Subtitle shadow size.",
-
-                    "outline": "Subtitle stroke thickness.",
-
-                    "borderStyle": "Outline stroke means subtitles have a text border and shadow but no background block. Background block style is the opposite."
+                    "fontsize": "Hardsub font size (pixels).",
+                    "fontname": "Hardsub font name.",
+                    "fontcolor": "Font color in BGR format (&HBBGGRR).",
+                    "fontbordercolor": "Font border color in BGR format (&HBBGGRR).",
+                    "backgroundcolor": "Background/shadow color. Varies by mode and player.",
+                    "subtitle_position": "Subtitle position. Default: bottom.",
+                    "marginV": "Vertical margin.",
+                    "marginL": "Left margin.",
+                    "marginR": "Right margin.",
+                    "shadow": "Shadow size.",
+                    "outline": "Outline thickness.",
+                    "borderStyle": "Border Style: Outline (text border and shadow) vs. Background (solid block)."
                 },
                 "trans": {
-                    "trans_thread": "Number of subtitles translated simultaneously",
-                    "aitrans_thread": "Number of subtitles AI translated simultaneously",
-                    "retries": "Number of retries when translation fails",
-                    "translation_wait": "Pause time in seconds after each translation, used to limit request frequency",
-                    "aisendsrt": "Sending full subtitle content when use ai translation"
+                    "trans_thread": "Lines per request (traditional translation).",
+                    "aitrans_thread": "Lines per request (AI translation).",
+                    "translation_wait": "Wait time (s) after each translation to limit request rate.",
+                    "aisendsrt": "Send full SRT format content when using AI translation."
                 },
                 "dubbing": {
-                    "dubbing_thread": "Number of subtitles dubbed simultaneously",
-                    "dubbing_wait": "Pause time in seconds after each dubbing, used to limit request frequency",
-                    "save_segment_audio": "Save the dubbing file of each subtitle",
-                    "azure_lines": "Number of lines dubbed at once by azureTTS",
-                    "chattts_voice": "chatTTS voice tone"
+                    "dubbing_thread": "Concurrent dubbing lines (threads).",
+                    "dubbing_wait": "Wait time (s) after each dubbing to limit request rate.",
+                    "save_segment_audio": "Save audio for each subtitle line.",
+                    "azure_lines": "Lines per batch for Azure TTS.",
+                    "chattts_voice": "ChatTTS voice timbre value."
                 },
                 "justify": {
-                    "remove_silence": "Whether to remove silence at the end of the dubbing",
+                    "remove_silence": "Remove trailing silence from dubbing."
                 },
                 "whisper": {
-                    "vad": "Enable VAD in faster-whisper overall subtitle recognition mode",
-
-                    "threshold": "Threshold for audio activity detection for determining whether a voice",
-                    "min_speech_duration_ms": "Duration of the shortest speech segment (milliseconds)",
-                    "min_silence_duration_ms": "Duration (in milliseconds) of the shortest mute clip, below which mutes will be ignored ",
-                    "max_speech_duration_s": "if you wish to control the clip length, such as processing a dialog or segmented output, you can set it according to your specific needs, such as 10 seconds or 30 seconds. ",
-                    "speech_pad_ms": "Buffer time (in milliseconds) added before and after detected speech segments",
-                    "voice_silence": "Silence segment for Google api/ms",
-                    "interval_split": "Segment duration in seconds in equal split mode",
-
-                    "model_list": "Model names list for faster mode and openai mode, separated by commas",
-                    "cuda_com_type": "Data type for cuda in faster mode, int8 = less resource usage, faster speed, lower precision, float32 = more resource usage, slower speed, higher precision, int8_float16 = device auto-select",
-                    "beam_size": "Precision adjustment during subtitle recognition, 1-5, 1 = lowest memory usage, 5 = highest memory usage",
-                    "best_of": "Precision adjustment during subtitle recognition, 1-5, 1 = lowest memory usage, 5 = highest memory usage",
-                    "condition_on_previous_text": "true = more GPU usage and better performance, false = less GPU usage but slightly worse performance",
-                    "zh_hant_s": "Force conversion of recognized traditional Chinese subtitles to simplified Chinese",
+                    "vad": "Enable VAD for faster-whisper.",
+                    "threshold": "VAD probability threshold for speech detection. Default: 0.45.",
+                    "min_speech_duration_ms": "Minimum speech duration (ms) to filter out noise. Default: 0ms.",
+                    "max_speech_duration_s": "Maximum speech duration (s) before splitting. Default: 5s.",
+                    "min_silence_duration_ms": "Minimum silence duration (ms) to mark end of speech. Default: 140ms.",
+                    "speech_pad_ms": "Padding (ms) at the beginning/end of speech segments. Default: 0.",
+                    "voice_silence": "Google recognition API silence segment (ms).",
+                    "interval_split": "Split interval (s) for faster-whisper equal-split mode.",
+                    "model_list": "Model names for faster/openai modes (comma-separated).",
+                    "cuda_com_type": "CUDA compute type for faster mode (int8, float16, float32, default).",
+                    "beam_size": "Beam size for recognition accuracy (1-5). Higher uses more VRAM.",
+                    "best_of": "Best of for recognition accuracy (1-5). Higher uses more VRAM.",
+                    "condition_on_previous_text": "Condition on previous text (better but uses more GPU, may cause repetition).",
+                    "zh_hant_s": "Force convert Traditional Chinese to Simplified."
                 },
-                "prompt_init":{
-                    "initial_prompt_zh-cn": "Prompts sent to the whisper model when the original language is Simplified Chinese.",
-                    "initial_prompt_zh-tw": "Prompts sent to the whisper model when the original language is zh-tw.",
-                    "initial_prompt_en": "Prompts sent to the whisper model when the original language is en.",
-                    "initial_prompt_fr": "Prompts sent to the whisper model when the original language is fr.",
-                    "initial_prompt_de": "Prompts sent to the whisper model when the original language is de.",
-                    "initial_prompt_ja": "Prompts sent to the whisper model when the original language is ja.",
-                    "initial_prompt_ko": "Prompts sent to the whisper model when the original language is ko.",
-                    "initial_prompt_ru": "Prompts sent to the whisper model when the original language is ru.",
-                    "initial_prompt_es": "Prompts sent to the whisper model when the original language is es.",
-                    "initial_prompt_th": "Prompts sent to the whisper model when the original language is th.",
-                    "initial_prompt_it": "Prompts sent to the whisper model when the original language is it.",
-                    "initial_prompt_pt": "Prompts sent to the whisper model when the original language is pt.",
-                    "initial_prompt_vi": "Prompts sent to the whisper model when the original language is vi.",
-                    "initial_prompt_ar": "Prompts sent to the whisper model when the original language is ar.",
-                    "initial_prompt_tr": "Prompts sent to the whisper model when the original language is tr.",
-                    "initial_prompt_hi": "Prompts sent to the whisper model when the original language is hi.",
-                    "initial_prompt_hu": "Prompts sent to the whisper model when the original language is hu.",
-                    "initial_prompt_uk": "Prompts sent to the whisper model when the original language is uk.",
-                    "initial_prompt_id": "Prompts sent to the whisper model when the original language is id.",
-                    "initial_prompt_ms": "Prompts sent to the whisper model when the original language is ms.",
-                    "initial_prompt_kk": "Prompts sent to the whisper model when the original language is kk.",
-                    "initial_prompt_cs": "Prompts sent to the whisper model when the original language is cs.",
-                    "initial_prompt_pl": "Prompts sent to the whisper model when the original language is pl.",
-                    "initial_prompt_nl": "Prompts sent to the whisper model when the original language is nl.",
-                    "initial_prompt_sv": "Prompts sent to the whisper model when the original language is sv.",
-                    "initial_prompt_he": "Prompts sent to the whisper model when the original language is he.",
-                    "initial_prompt_bn": "Prompts sent to the whisper model when the original language is bn.",
-                    "initial_prompt_fa": "Prompts sent to the whisper model when the original language is fa.",
-                    "initial_prompt_ur": "Prompts sent to the whisper model when the original language is Urdu.",
-                    "initial_prompt_yue": "Prompts sent to the whisper model when the original language is Cantonese.",
-                    "initial_prompt_fil": "Prompts sent to the whisper model when the original language is fil."
-                },
+                "prompt_init": {
+                    "initial_prompt_zh-cn": "Prompt for Whisper when speech is Simplified Chinese.",
+                    "initial_prompt_zh-tw": "Prompt for Whisper when speech is Traditional Chinese.",
+                    "initial_prompt_en": "Prompt for Whisper when speech is English.",
+                    "initial_prompt_fr": "Prompt for Whisper when speech is French.",
+                    "initial_prompt_de": "Prompt for Whisper when speech is German.",
+                    "initial_prompt_ja": "Prompt for Whisper when speech is Japanese.",
+                    "initial_prompt_ko": "Prompt for Whisper when speech is Korean.",
+                    "initial_prompt_ru": "Prompt for Whisper when speech is Russian.",
+                    "initial_prompt_es": "Prompt for Whisper when speech is Spanish.",
+                    "initial_prompt_th": "Prompt for Whisper when speech is Thai.",
+                    "initial_prompt_it": "Prompt for Whisper when speech is Italian.",
+                    "initial_prompt_pt": "Prompt for Whisper when speech is Portuguese.",
+                    "initial_prompt_vi": "Prompt for Whisper when speech is Vietnamese.",
+                    "initial_prompt_ar": "Prompt for Whisper when speech is Arabic.",
+                    "initial_prompt_tr": "Prompt for Whisper when speech is Turkish.",
+                    "initial_prompt_hi": "Prompt for Whisper when speech is Hindi.",
+                    "initial_prompt_hu": "Prompt for Whisper when speech is Hungarian.",
+                    "initial_prompt_uk": "Prompt for Whisper when speech is Ukrainian.",
+                    "initial_prompt_id": "Prompt for Whisper when speech is Indonesian.",
+                    "initial_prompt_ms": "Prompt for Whisper when speech is Malaysian.",
+                    "initial_prompt_kk": "Prompt for Whisper when speech is Kazakh.",
+                    "initial_prompt_cs": "Prompt for Whisper when speech is Czech.",
+                    "initial_prompt_pl": "Prompt for Whisper when speech is Polish.",
+                    "initial_prompt_nl": "Prompt for Whisper when speech is Dutch.",
+                    "initial_prompt_sv": "Prompt for Whisper when speech is Swedish.",
+                    "initial_prompt_he": "Prompt for Whisper when speech is Hebrew.",
+                    "initial_prompt_bn": "Prompt for Whisper when speech is Bengali.",
+                    "initial_prompt_fa": "Prompt for Whisper when speech is Persian.",
+                    "initial_prompt_ur": "Prompt for Whisper when speech is Urdu.",
+                    "initial_prompt_yue": "Prompt for Whisper when speech is Cantonese.",
+                    "initial_prompt_fil": "Prompt for Whisper when speech is Filipino."
+                }
             }
-
-            self.heads = {
-                "common": "General Settings",
-                "model": "AI Model List",
-                "video": "Video Output",
-                "whisper": "faster-whisper/openai-whisper speech to text",
-                "justify": "Subtitle  Alignment",
-                "subtitle": "Hard Subtitle Styles",
-                "trans": "Subtitle Translation",
-                "prompt_init":"Whisper model prompt initial",
-                "dubbing": "Dubbing Adjustments"
-            }
-
             self.titles = {
                 "dont_notify": "Disable desktop notifications",
-                "llm_ai_type": "The AI channel used when LLM re-segmentation",
-                "prompt_init":"Whisper model prompt initial",
-                "gemini_recogn_chunk": "Gemini to recognize speech,number of audio slices sent",
-                "homedir": "Set Home directory",
-                "llm_chunk_size": "LLM re-segmentation sends each batch of words",
-                "ai302_models": "302.ai Translation Models",
-                "ai302tts_models": "302.ai TTS Models",
-                "openairecognapi_model": "OpenAI Speech",
-                "save_segment_audio": "Save the dubbing file of each subtitle",
-                "lang": "Software Interface Language",
-                "aisendsrt": "Sending full subtitle content when ai translation",
-                "crf": "Video Transcoding Loss Control",
-                "cuda_decode": "Decode the video using cuda",
-                "preset": "Output Video Quality compression rate",
-                "ffmpeg_cmd": "Custom FFmpeg Command Parameters",
-                "video_codec": "H.264 or H.265 Video Encoding",
-                "chatgpt_model": "ChatGPT Model List",
-                "openaitts_model": "OpenAI TTS models",
-                "azure_model": "Azure Model List",
-                "localllm_model": "Local LLM Model List",
-                "zijiehuoshan_model": "Byte Volcano Inference Access Point",
-                "model_list": "Models for Faster and OpenAI",
-                "remove_silence": "Remove End Silence in Dubbing",
-                "bgm_split_time": "bgm segment time/s",
-
-                "max_speech_duration_s": "max speech duration sec.",
-                "threshold": "Threshold for determining whether a voice",
-                "min_speech_duration_ms": "Duration of the shortest speech (milliseconds)",
-                "min_silence_duration_ms": "Duration (in milliseconds)  ",
-                "speech_pad_ms": "Buffer time",
-
-                "vad": "Enable VAD",
-
-                "voice_silence": "Silence Segment for Google api/ms",
-                "interval_split": "Segment Duration in Equal Division",
-                "trans_thread": "Number of Subtitles Translated Simultaneously",
-                "aitrans_thread": "Number of Subtitles AI Translated Simultaneously",
-                "retries": "Number of Retries on Translation Failure",
-                "dubbing_thread": "Number of Subtitles Dubbed Simultaneously",
-                "countdown_sec": "Countdown Seconds on Pause",
-                "backaudio_volume": "Background Volume Multiplier",
-                "loop_backaudio": "Loop Background Audio",
-                "cuda_com_type": "CUDA Data Type",
-                "beam_size": "Subtitle Recognition Accuracy Control 1",
-                "best_of": "Subtitle Recognition Accuracy Control 2",
-                "condition_on_previous_text": "Context Awareness",
-                "fontsize": "Hard Subtitle Font Size",
-                "fontname": "Hard Subtitle Font Name",
-                "fontcolor": "Font Color",
-
-                "fontbordercolor": "Stroke color of the hard subtitle text border",
-                "backgroundcolor": "Background color or shadow color of the hard subtitle",
-                "subtitle_position": "Position of the hard subtitle",
-                "marginV": "Vertical margin of the subtitle",
-                "marginL": "Left margin of the subtitle",
-                "marginR": "Right margin of the subtitle",
+                "llm_ai_type": "AI channel for LLM re-segmentation",
+                "prompt_init": "Whisper model prompt",
+                "gemini_recogn_chunk": "Gemini speech recognition audio chunk size",
+                "llm_chunk_size": "LLM re-segmentation batch size (words)",
+                "ai302_models": "302.ai translation model list",
+                "ai302tts_models": "302.ai TTS model list",
+                "openairecognapi_model": "OpenAI speech recognition model",
+                "chatgpt_model": "ChatGPT model list",
+                "openaitts_model": "OpenAI TTS model list",
+                "azure_model": "Azure model list",
+                "localllm_model": "Local LLM model list",
+                "zijiehuoshan_model": "ByteDance Volcano Engine endpoint",
+                "model_list": "faster & openai model list",
+                "homedir": "Set output directory",
+                "lang": "Software UI language",
+                "save_segment_audio": "Save audio for each subtitle",
+                "crf": "Video CRF (Constant Rate Factor)",
+                "cuda_decode": "Force CUDA hardware decoding",
+                "preset": "Output video compression preset",
+                "ffmpeg_cmd": "Custom ffmpeg command arguments",
+                "video_codec": "h264/h265 codec",
+                "remove_silence": "Remove trailing silence from dubbing",
+                "bgm_split_time": "BGM separation clip duration (s)",
+                "vad": "Enable VAD segmentation",
+                "threshold": "Voice activity threshold",
+                "max_speech_duration_s": "Max speech duration (s)",
+                "min_speech_duration_ms": "Min speech duration (ms)",
+                "min_silence_duration_ms": "Min silence duration (ms)",
+                "speech_pad_ms": "Speech padding (ms)",
+                "voice_silence": "Google API silence segment (ms)",
+                "interval_split": "faster channel split duration (s)",
+                "trans_thread": "Traditional translation batch size (lines)",
+                "aitrans_thread": "AI translation batch size (lines)",
+                "dubbing_thread": "Concurrent dubbing threads",
+                "countdown_sec": "Pause countdown (s)",
+                "backaudio_volume": "Background audio volume multiplier",
+                "loop_backaudio": "Loop background audio",
+                "cuda_com_type": "CUDA data type",
+                "beam_size": "Subtitle recognition beam_size",
+                "best_of": "Subtitle recognition best_of",
+                "condition_on_previous_text": "Enable context-aware processing",
+                "fontsize": "Hard subtitle font size",
+                "fontname": "Hard subtitle font name",
+                "fontcolor": "Hard subtitle font color",
+                "fontbordercolor": "Hard subtitle border color",
+                "backgroundcolor": "Hard subtitle background/shadow color",
+                "subtitle_position": "Hard subtitle position",
+                "marginV": "Subtitle vertical margin",
+                "marginL": "Subtitle left margin",
+                "marginR": "Subtitle right margin",
                 "shadow": "Subtitle shadow size",
-                "outline": "Subtitle stroke thickness",
-                'borderStyle': "Outline stroke mode or background color mode",
-
-                "zh_hant_s": "Traditional to Simplified Chinese Conversion",
-                "azure_lines": "Azure TTS Batch Line Count",
-                "chattts_voice": "ChatTTS Voice Tone Value",
-                "translation_wait": "Pause Time After Translation",
-                "dubbing_wait": "Pause Time After Dubbing",
-                "gemini_model": "Gemini Model List",
-
-                "initial_prompt_zh-cn": "whisper prompt when zh-cn",
-                "initial_prompt_zh-tw": "whisper prompt when zh-tw",
-                "initial_prompt_en": "whisper prompt when en",
-                "initial_prompt_fr": "whisper prompt when fr",
-                "initial_prompt_de": "whisper prompt when de",
-                "initial_prompt_ja": "whisper prompt when ja",
-                "initial_prompt_ko": "whisper prompt when ko",
-                "initial_prompt_ru": "whisper prompt when ru",
-                "initial_prompt_es": "whisper prompt when es",
-                "initial_prompt_th": "whisper prompt when th",
-                "initial_prompt_it": "whisper prompt when it",
-                "initial_prompt_pt": "whisper prompt when pt",
-                "initial_prompt_vi": "whisper prompt when vi",
-                "initial_prompt_ar": "whisper prompt when ar",
-                "initial_prompt_tr": "whisper prompt when tr",
-                "initial_prompt_hi": "whisper prompt when hi",
-                "initial_prompt_hu": "whisper prompt when hu",
-                "initial_prompt_uk": "whisper prompt when uk",
-                "initial_prompt_id": "whisper prompt when id",
-                "initial_prompt_ms": "whisper prompt when ms",
-                "initial_prompt_kk": "whisper prompt when kk",
-                "initial_prompt_cs": "whisper prompt when cs",
-                "initial_prompt_pl": "whisper prompt when pl",
-                "initial_prompt_nl": "whisper prompt when nl",
-                "initial_prompt_sv": "whisper prompt when sv",
-                "initial_prompt_he": "whisper prompt when he",
-                "initial_prompt_bn": "whisper prompt when bn",
-                "initial_prompt_fa": "whisper prompt when fa",
-                "initial_prompt_ur": "whisper prompt when Urdu",
-                "initial_prompt_yue": "whisper prompt when Cantonese",
-                "initial_prompt_fil": "whisper prompt when fil"
+                "outline": "Subtitle outline thickness",
+                "borderStyle": "Outline or background box mode",
+                "zh_hant_s": "Convert Trad. Chinese to Simp.",
+                "azure_lines": "Azure TTS batch size (lines)",
+                "chattts_voice": "ChatTTS voice timbre",
+                "translation_wait": "Wait after translation (s)",
+                "dubbing_wait": "Wait after dubbing (s)",
+                "gemini_model": "Gemini model list",
+                "aisendsrt": "Send full SRT for AI translation",
+                "initial_prompt_zh-cn": "Whisper model prompt (Simp. Chinese)",
+                "initial_prompt_zh-tw": "Whisper model prompt (Trad. Chinese)",
+                "initial_prompt_en": "Whisper model prompt (English)",
+                "initial_prompt_fr": "Whisper model prompt (French)",
+                "initial_prompt_de": "Whisper model prompt (German)",
+                "initial_prompt_ja": "Whisper model prompt (Japanese)",
+                "initial_prompt_ko": "Whisper model prompt (Korean)",
+                "initial_prompt_ru": "Whisper model prompt (Russian)",
+                "initial_prompt_es": "Whisper model prompt (Spanish)",
+                "initial_prompt_th": "Whisper model prompt (Thai)",
+                "initial_prompt_it": "Whisper model prompt (Italian)",
+                "initial_prompt_pt": "Whisper model prompt (Portuguese)",
+                "initial_prompt_vi": "Whisper model prompt (Vietnamese)",
+                "initial_prompt_ar": "Whisper model prompt (Arabic)",
+                "initial_prompt_tr": "Whisper model prompt (Turkish)",
+                "initial_prompt_hi": "Whisper model prompt (Hindi)",
+                "initial_prompt_hu": "Whisper model prompt (Hungarian)",
+                "initial_prompt_uk": "Whisper model prompt (Ukrainian)",
+                "initial_prompt_id": "Whisper model prompt (Indonesian)",
+                "initial_prompt_ms": "Whisper model prompt (Malay)",
+                "initial_prompt_kk": "Whisper model prompt (Kazakh)",
+                "initial_prompt_cs": "Whisper model prompt (Czech)",
+                "initial_prompt_pl": "Whisper model prompt (Polish)",
+                "initial_prompt_nl": "Whisper model prompt (Dutch)",
+                "initial_prompt_bn": "Whisper model prompt (Bengali)",
+                "initial_prompt_he": "Whisper model prompt (Hebrew)",
+                "initial_prompt_sv": "Whisper model prompt (Swedish)",
+                "initial_prompt_fa": "Whisper model prompt (Persian)",
+                "initial_prompt_ur": "Whisper model prompt (Urdu)",
+                "initial_prompt_yue": "Whisper model prompt (Cantonese)",
+                "initial_prompt_fil": "Whisper model prompt (Filipino)"
             }
+            self.heads = {
+                "common": "Common",
+                "model": "AI Models",
+                "video": "Video Output",
+                "whisper": "ASR Settings",
+                "justify": "Alignment",
+                "subtitle": "Subtitle Style",
+                "trans": "Translation",
+                "dubbing": "Dubbing",
+                "prompt_init": "Whisper Prompt"
+            }
+
         self.alertnotice = {}
         # 界面语言
 
@@ -558,13 +534,13 @@ class Ui_setini(object):
         self.homedir_btn = None
         helptext = tr("show help")
 
-        h1=QtWidgets.QHBoxLayout(scroll_content_widget)
-        v1=QtWidgets.QVBoxLayout()
-        v2=QtWidgets.QVBoxLayout()
+        h1 = QtWidgets.QHBoxLayout(scroll_content_widget)
+        v1 = QtWidgets.QVBoxLayout()
+        v2 = QtWidgets.QVBoxLayout()
         h1.addLayout(v1)
         h1.addLayout(v2)
 
-        layout_index=0
+        layout_index = 0
         for headkey, item in self.notices.items():
             box = QtWidgets.QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
             box.setLayout(QtWidgets.QVBoxLayout())
@@ -588,7 +564,8 @@ class Ui_setini(object):
                 val = str(config.settings.get(key, "")).lower()
                 # 是 cuda_com_type
                 if key == 'cuda_com_type':
-                    cuda_types = ['default','auto', 'float32', 'float16', 'int8', 'int16', 'int8_float16', 'int8_float32', 'bfloat16', 'int8_bfloat16']
+                    cuda_types = ['default', 'auto', 'float32', 'float16', 'int8', 'int16', 'int8_float16',
+                                  'int8_float32', 'bfloat16', 'int8_bfloat16']
                     tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(cuda_types)
                     tmp1.setObjectName(key)
@@ -642,7 +619,7 @@ class Ui_setini(object):
                     tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
-                if key=="lang":
+                if key == "lang":
                     tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(list(config.SUPPORT_LANG.keys()))
                     # val==1 是0位置，代表轮廓风格，val==3 是1位置，代表背景色
@@ -736,11 +713,11 @@ class Ui_setini(object):
                     tmp.addWidget(self.backgroundcolor_btn)
 
                 box.layout().addLayout(tmp)
-            if layout_index%2==0:
+            if layout_index % 2 == 0:
                 v1.addWidget(box)
             else:
                 v2.addWidget(box)
-            layout_index+=1
+            layout_index += 1
 
         v1.addStretch()
         v2.addStretch()
@@ -759,6 +736,24 @@ class Ui_setini(object):
         self.retranslateUi(setini)
         QtCore.QMetaObject.connectSlotsByName(setini)
 
+    def update_ui(self):
+        obj=self.findChild(QtWidgets.QComboBox,'lang')
+        current_text=obj.currentText()
+        _support={}
+        for it in Path(f'{config.ROOT_DIR}/videotrans/language').glob('*.json'):
+            if it.stat().st_size > 0:
+                _support[it.stem] = it.as_posix()
+        # 有变化时
+        if _support and _support.keys()!=config.SUPPORT_LANG.keys():
+            config.SUPPORT_LANG=_support
+            obj.clear()
+            obj.addItems(list(_support.keys()))
+            if current_text in _support:
+                obj.setCurrentText(current_text)
+
+
+
     def retranslateUi(self, setini):
         setini.setWindowTitle(tr("Options"))
         self.set_ok.setText(tr("Save and Close"))
+

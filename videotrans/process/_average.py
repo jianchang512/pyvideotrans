@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 
+
 def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file, q,proxy=None,TEMP_DIR=None,settings=None,defaulelang='zh'):
     from videotrans.configure import  config
     os.chdir(config.ROOT_DIR)

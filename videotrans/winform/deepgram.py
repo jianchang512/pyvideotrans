@@ -38,7 +38,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import DeepgramForm
+    from videotrans.component.set_form import DeepgramForm
     winobj = DeepgramForm()
     config.child_forms['deepgram'] = winobj
     winobj.apikey.setText(config.params.get("deepgram_apikey",''))

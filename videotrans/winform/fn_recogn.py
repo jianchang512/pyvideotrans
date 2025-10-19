@@ -248,11 +248,7 @@ def openwin():
                                recognition.Deepgram
                                ]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
-            winobj.rephrase.setDisabled(True)
-            winobj.rephrase_local.setDisabled(True)
         else:
-            winobj.rephrase_local.setDisabled(False)
-            winobj.rephrase.setDisabled(False)
             winobj.shibie_model.setDisabled(False)
             winobj.shibie_model.clear()
             if recogn_type in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER]:
@@ -261,6 +257,14 @@ def openwin():
                 winobj.shibie_model.addItems(config.DEEPGRAM_MODEL)
             else:
                 winobj.shibie_model.addItems(config.FUNASR_MODEL)
+        
+        if recogn_type in [recognition.FASTER_WHISPER, recognition.PARAKEET, recognition.OPENAI_WHISPER]:
+            winobj.rephrase_local.setDisabled(False)
+            winobj.rephrase.setDisabled(False)
+        else:
+            winobj.rephrase.setDisabled(True)
+            winobj.rephrase_local.setDisabled(True)
+            
         if check_model_name(recogn_type, winobj.shibie_model.currentText()) is not True:
             return
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
@@ -322,7 +326,7 @@ def openwin():
             winobj.rephrase.setChecked(False)
             
 
-    from videotrans.component import Recognform
+    from videotrans.component.set_form import Recognform
 
 
     winobj = Recognform()

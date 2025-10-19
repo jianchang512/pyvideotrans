@@ -92,7 +92,7 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component import HebingsrtForm
+    from videotrans.component.set_form import HebingsrtForm
 
     winobj = HebingsrtForm()
     config.child_forms['fn_hebingsrt'] = winobj

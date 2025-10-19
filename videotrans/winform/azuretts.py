@@ -42,7 +42,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import AzurettsForm
+    from videotrans.component.set_form import AzurettsForm
 
     winobj = AzurettsForm()
     config.child_forms['azuretts'] = winobj

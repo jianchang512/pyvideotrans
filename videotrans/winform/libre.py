@@ -36,7 +36,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import LibreForm
+    from videotrans.component.set_form import LibreForm
     winobj = LibreForm()
     config.child_forms['libre'] = winobj
     winobj.address.setText(config.params.get("libre_address",''))

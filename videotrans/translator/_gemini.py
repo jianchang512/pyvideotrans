@@ -17,11 +17,16 @@ from videotrans.util import tools
 
 from openai import LengthFinishReasonError
 
-RETRY_NUMS = 3
-RETRY_DELAY = 10
+from google import genai
+from google.genai import types,errors
 
 
-# 代理修改  site-packages\google\ai\generativelanguage_v1beta\services\generative_service\transports\grpc_asyncio.py __init__方法的 options 添加 ("grpc.http_proxy",os.environ.get('http_proxy') or os.environ.get('https_proxy'))
+
+
+RETRY_NUMS = 2
+RETRY_DELAY = 5
+
+
 @dataclass
 class Gemini(BaseTrans):
     prompt: str = field(init=False)
@@ -42,49 +47,79 @@ class Gemini(BaseTrans):
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
-        message = [
-            {
-                'role': 'system',
-                'content': tr("You are a top-notch subtitle translation engine.")},
-            {
-                'role': 'user',
-                'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
-        ]
 
-        config.logger.info(f"\n[gemini]发送请求数据:{message=}")
+
         api_key = self.api_keys.pop(0)
         self.api_keys.append(api_key)
-        config.logger.info(f'[Gemini]请求发送:{api_key=},{config.params.get("gemini_model","")=}')
-        model = OpenAI(api_key=api_key, base_url=self.api_url,
-                       http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
+        try:
+            client = genai.Client(
+                api_key=api_key,
+                http_options = types.HttpOptions(
+                    client_args={'proxy': self.proxy_str},
+                    async_client_args={'proxy': self.proxy_str},
+                )
 
-        response = model.chat.completions.create(
-            model=config.params.get("gemini_model",''),
-            timeout=7200,
-            max_tokens=int(config.params.get("gemini_maxtoken",18192)),
-            messages=message
-        )
+            )
+            model = config.params.get("gemini_model","gemini-2.5-flash")
+            message=self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')
+            contents = [
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part.from_text(text=message),
+                    ],
+                ),
+            ]
+            generate_content_config = types.GenerateContentConfig(
+                max_output_tokens=int(config.params.get("gemini_maxtoken",65530)),
+                safety_settings=[
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    )
+                  ],
 
-        config.logger.info(f'[gemini]响应:{response=}')
+                thinking_config = types.ThinkingConfig(
+                    thinking_budget=1 if "gemini-2.5" in model or "gemini-3" in model else 0,
+                ),
+                system_instruction=[
+                    types.Part.from_text(text=tr("You are a top-notch subtitle translation engine.")),
+                ],
+            )
+            config.logger.info(f'[Gemini]请求发送:{message=}')
+            result = ""
+            for chunk in client.models.generate_content_stream(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            ):
+                result+=chunk.text
+                     
+            config.logger.info(f'{result=}')
+            if not result:
+                config.logger.error(f'[gemini]请求失败')
+                raise RuntimeError(f"[Gemini]result is empty")
+                
+            match = re.search(r'<TRANSLATE_TEXT>(.*?)(?:</TRANSLATE_TEXT>|$)',
+                              re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)
+            if match:
+                return match.group(1)
+            raise RuntimeError(f"Gemini result is emtpy")
+        except errors.APIError as e:
+            config.logger.error(f'{e=}')
+            if e.code in [400,403,404,429,500]:
+                raise StopRetry(e.message)
+            raise RuntimeError(e.message)
 
-        result = ""
-        if not hasattr(response,'choices'):
-            raise StopRetry(str(response))
-        
-        if response.choices[0].finish_reason=='length':
-            raise LengthFinishReasonError(completion=response)
-        if response.choices[0].message.content:
-            result = response.choices[0].message.content.strip()
-        else:
-            config.logger.error(f'[gemini]请求失败:{response=}')
-            raise StopRetry(f'{response.choices[0].finish_reason}:{response}')
-        
-        if not result:
-            config.logger.error(f'[gemini]请求失败:{response=}')
-            raise RuntimeError(f"[Gemini]:{response}")
-            
-        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
-                          re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)
-        if match:
-            return match.group(1)
-        raise RuntimeError(f"Error:{response=}")

@@ -70,7 +70,7 @@ def openwin():
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
 
-    from videotrans.component import LocalLLMForm
+    from videotrans.component.set_form import LocalLLMForm
     winobj = LocalLLMForm()
     config.child_forms['localllm'] = winobj
     winobj.update_ui()

@@ -1,5 +1,3 @@
-import json
-
 from videotrans.configure import config
 
 # 数字代表界面中的显示顺序

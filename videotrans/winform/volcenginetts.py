@@ -47,7 +47,7 @@ def openwin():
 
 
 
-    from videotrans.component import VolcEngineTTSForm
+    from videotrans.component.set_form import VolcEngineTTSForm
     winobj = VolcEngineTTSForm()
     config.child_forms['volcenginetts'] = winobj
     winobj.update_ui()

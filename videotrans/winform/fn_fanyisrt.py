@@ -278,7 +278,7 @@ def openwin():
         else:
             config.settings['aisendsrt'] = False
 
-    from videotrans.component import Fanyisrt
+    from videotrans.component.set_form import Fanyisrt
 
     winobj = Fanyisrt()
     config.child_forms['fn_fanyisrt'] = winobj

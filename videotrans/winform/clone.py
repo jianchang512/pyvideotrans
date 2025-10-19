@@ -40,7 +40,7 @@ def openwin():
         tools.set_process(text='clone', type="refreshtts")
         winobj.close()
 
-    from videotrans.component import CloneForm
+    from videotrans.component.set_form import CloneForm
     winobj = CloneForm()
     config.child_forms['clone'] = winobj
     if config.params.get("clone_api",''):

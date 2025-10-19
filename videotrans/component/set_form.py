@@ -1,6 +1,6 @@
 import PySide6
 import os
-from PySide6 import QtWidgets
+from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QEvent
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
@@ -229,7 +229,17 @@ class SetINIForm(QtWidgets.QWidget, Ui_setini):  # <===
         super(SetINIForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+    def event(self, event: QtCore.QEvent) -> bool:
+        """
+        重写 event 方法来捕获窗口事件
+        """
+        # 检查事件的类型是否为窗口激活事件
+        if event.type() == QtCore.QEvent.Type.WindowActivate:
+            # 如果是，就调用我们的更新方法
+            self.update_ui()
 
+        # 对于所有其他事件，必须调用父类的 event() 方法来确保它们被正常处理
+        return super().event(event)
 
 class DeepLForm(QDialog, Ui_deeplform):  # <===
     def __init__(self, parent=None):

@@ -59,7 +59,7 @@ def openwin():
         tools.set_process(text='fishtts', type="refreshtts")
         winobj.close()
 
-    from videotrans.component import FishTTSForm
+    from videotrans.component.set_form import FishTTSForm
     winobj = FishTTSForm()
     config.child_forms['fishtts'] = winobj
     winobj.api_url.setText(config.params.get("fishtts_url",''))

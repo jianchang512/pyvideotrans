@@ -8,7 +8,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import OttForm
+    from videotrans.component.set_form import OttForm
     winobj = OttForm()
     config.child_forms['ott'] = winobj
     winobj.ott_address.setText(config.params.get("ott_address",''))

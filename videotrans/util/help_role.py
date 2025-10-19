@@ -10,7 +10,7 @@ import requests
 def get_elevenlabs_role(force=False, raise_exception=False):
     from videotrans.configure import config
     from . import help_misc
-    jsonfile = os.path.join(config.ROOT_DIR, '/videotrans/voicejson/elevenlabs.json')
+    jsonfile = f'{config.ROOT_DIR}/videotrans/voicejson/elevenlabs.json'
     namelist = ["clone"]
     if help_misc.vail_file(jsonfile):
         with open(jsonfile, 'r', encoding='utf-8') as f:
@@ -24,16 +24,19 @@ def get_elevenlabs_role(force=False, raise_exception=False):
         from elevenlabs import ElevenLabs
         client = ElevenLabs(api_key=config.params.get("elevenlabstts_key",''))
         voiceslist = client.voices.get_all()
+
         result = {}
         for it in voiceslist.voices:
             n = re.sub(r'[^a-zA-Z0-9_ -]+', '', it.name).strip()
             result[n] = {"name": n, "voice_id": it.voice_id}
             namelist.append(n)
+
         with open(jsonfile, 'w', encoding="utf-8") as f:
             f.write(json.dumps(result))
         config.params['elevenlabstts_role'] = namelist
         return namelist
     except Exception as e:
+        config.logger.exception(f'获取 elevenlabs 角色失败:{e}', exc_info=True)
         if raise_exception:
             raise
     return []
@@ -462,7 +465,7 @@ def set_process(*, text="", type="logs", uuid=None):
         return
     try:
         if text:
-            text = text.replace('\\n', ' ').strip()
+            text = text.replace('\\n', ' ')
         if type == 'logs':
             text = text[:150]
         log = {"text": text, "type": type, "uuid": uuid}

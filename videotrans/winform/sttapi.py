@@ -34,7 +34,7 @@ def openwin():
         config.getset_params(config.params)
         winobj.close()
 
-    from videotrans.component import SttAPIForm
+    from videotrans.component.set_form import SttAPIForm
     winobj = SttAPIForm()
     config.child_forms['sttapi'] = winobj
     winobj.stt_url.setText(config.params.get("stt_url",''))

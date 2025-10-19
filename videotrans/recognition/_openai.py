@@ -94,25 +94,33 @@ class OpenaiWhisperRecogn(BaseRecogn):
                         text=f'{text}\n',
                         type='subtitle'
                     )
-            if len(alllist) > 0:
-                _llm_rephrase=False
+            if len(alllist) == 0:
+                self.error=f"No reuslt: {result}"
+            else:
+                # 没有任何断句方式
+                if not config.settings.get('rephrase') and not config.settings.get('rephrase_local'):
+                    return self.get_srtlist(alllist)
+                
+                words_list = []
+                for it in list(alllist):
+                    words_list += it['words']
+                
+                config.logger.info(f'开始重新断句:')
                 if config.settings.get('rephrase'):
                     try:
-                        words_list = []
-                        for it in list(alllist):
-                            words_list += it['words']
-                        config.logger.info(f'开始重新断句:')
                         self._signal(text=tr("Re-segmenting..."))
-                        self.raws = self.re_segment_sentences(words_list)
-                        config.logger.info(f'断句结果:{self.raws=}')
-                        _llm_rephrase=True
-                    except Exception:
-                        _llm_rephrase=False
-
-                if not _llm_rephrase:
-                    self.raws=self.get_srtlist(alllist)
-        except Exception:
-            raise
+                        return self.re_segment_sentences(words_list)
+                    except Exception as e:
+                        config.logger.exception(f'LLM断句失败，将使用默认断句：{e}', exc_info=True)
+                elif config.settings.get('rephrase_local', False):
+                    try:
+                        self._signal(text=tr("Re-segmenting..."))
+                        return self.re_segment_sentences_local(words_list)
+                    except Exception as e:
+                        config.logger.exception(f'本地断句失败，将使用默认断句：{e}', exc_info=True)
+                return self.get_srtlist(alllist)
+        except Exception as e:
+            self.error=str(e)
         finally:
             try:
                 import torch
@@ -121,6 +129,5 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 del model
             except Exception:
                 pass
-        if not isinstance(self.raws, list) or len(self.raws) < 1:
-            raise RuntimeError(tr("Recognition result is empty"))
-        return self.raws
+        raise RuntimeError(str(self.error)  if self.error else tr("Recognition result is empty"))
+
