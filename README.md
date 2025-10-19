@@ -1,12 +1,14 @@
 [简体中文](docs/README_CN.md)
 
+---
+
 > **Sponsored Links**
 >
 > ## Recall.ai - Meeting Transcription API
 >
 > If you’re looking for a transcription API for meetings, consider checking out [Recall.ai](https://www.recall.ai/product/meeting-transcription-api), an API that works with Zoom, Google Meet, Microsoft Teams, and more. Recall.ai diarizes by pulling the speaker data and separate audio streams from the meeting platforms, which means 100% accurate speaker diarization with actual speaker names.
 
-
+---
 
 # Video Translation and Dubbing Tool
 
@@ -168,7 +170,7 @@ Please visit https://pyvideotrans.com
 
 # Software Preview
 
-![](https://pvtr2.pyvideotrans.com/1760079781627_image.png)
+![](https://github.com/user-attachments/assets/f27d6e24-8828-471a-8194-36007e015065)
 
 
 ## Acknowledgments
