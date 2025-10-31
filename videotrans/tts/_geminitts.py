@@ -9,6 +9,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import logs
+
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -24,7 +26,6 @@ class GEMINITTS(BaseTTS):
         super().__post_init__()
 
     def _exec(self):
-        self.dub_nums = 1
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
@@ -49,7 +50,7 @@ class GEMINITTS(BaseTTS):
                 self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
 
             except Exception as e:
-                config.logger.exception(e, exc_info=True)
+                logs(e, level="except")
                 raise
 
         try:

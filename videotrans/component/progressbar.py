@@ -95,8 +95,8 @@ class ClickableProgressBar(QLabel):
             if re.match(r'^\d+?$',text):
                 # 更新时间
                 self.duration=text
-                if self.precent < 93 and  int(text)%5==0:
-                    self.precent+=0.01
+                if self.precent < 60 and  int(text)%5==0:
+                    self.precent+=0.001
             else:
                 self.msg=text[:150].replace("\n",' ')
             self.progress_bar.setFormat(f' [{self.precent:.2f}%  {self.duration}s]  {self.msg} {self.basename}')  # set text format

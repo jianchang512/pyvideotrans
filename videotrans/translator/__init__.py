@@ -4,47 +4,57 @@ from typing import Union, List
 
 from videotrans.configure import config
 # 数字代表显示顺序
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.util import tools
 
 GOOGLE_INDEX = 0
 MICROSOFT_INDEX = 1
 MyMemoryAPI_INDEX = 2
-BAIDU_INDEX = 3
-DEEPL_INDEX = 4
-DEEPLX_INDEX = 5
-OTT_INDEX = 6
-TENCENT_INDEX = 7
-CHATGPT_INDEX = 8
-LOCALLLM_INDEX = 9
-ZIJIE_INDEX = 10
-AZUREGPT_INDEX = 11
-GEMINI_INDEX = 12
-TRANSAPI_INDEX = 13
-QWENMT_INDEX = 14
-CLAUDE_INDEX = 15
-LIBRE_INDEX = 16
-AI302_INDEX = 17
+
+
+CHATGPT_INDEX = 3
+DEEPSEEK_INDEX = 4
+GEMINI_INDEX = 5
+ZHIPUAI_INDEX = 6
+AZUREGPT_INDEX = 7
+LOCALLLM_INDEX = 8
+
+
+OPENROUTER_INDEX = 9
+SILICONFLOW_INDEX = 10
+AI302_INDEX = 11
+
+QWENMT_INDEX = 12
+ZIJIE_INDEX = 13
+
+
+TENCENT_INDEX = 14
+BAIDU_INDEX = 15
+DEEPL_INDEX = 16
+DEEPLX_INDEX = 17
 ALI_INDEX = 18
-ZHIPUAI_INDEX = 19
-SILICONFLOW_INDEX = 20
-DEEPSEEK_INDEX = 21
-OPENROUTER_INDEX = 22
+
+OTT_INDEX = 19
+LIBRE_INDEX = 20
+
+CLAUDE_INDEX = 21
+TRANSAPI_INDEX = 22
+
 
 # AI翻译渠道，方便判断
 AI_TRANS_CHANNELS=[
-CHATGPT_INDEX,
-LOCALLLM_INDEX,
-ZIJIE_INDEX,
-AZUREGPT_INDEX,
-GEMINI_INDEX,
-QWENMT_INDEX,
-CLAUDE_INDEX,
-AI302_INDEX,
-ZHIPUAI_INDEX,
-SILICONFLOW_INDEX,
-DEEPSEEK_INDEX,
-OPENROUTER_INDEX
+    CHATGPT_INDEX,
+    LOCALLLM_INDEX,
+    ZIJIE_INDEX,
+    AZUREGPT_INDEX,
+    GEMINI_INDEX,
+    QWENMT_INDEX,
+    CLAUDE_INDEX,
+    AI302_INDEX,
+    ZHIPUAI_INDEX,
+    SILICONFLOW_INDEX,
+    DEEPSEEK_INDEX,
+    OPENROUTER_INDEX
 ]
 
 # 翻译通道名字列表，显示在界面
@@ -52,26 +62,32 @@ TRANSLASTE_NAME_LIST = [
     tr('Google'),
     tr('Microsoft'),
     tr('MyMemoryAPI'),
+    
+    tr('OpenAI ChatGPT'),
+    "DeepSeek",
+    "Gemini AI",
+    tr('Zhipu AI'),
+    "AzureGPT AI",
+    tr('Local LLM'),
+    
+    "OpenRouter",
+    tr('SiliconFlow'),
+    "302.AI",
+    
+    tr('Ali-Bailian'),
+    tr('VolcEngine LLM'),
+
+    tr('Tencent'),
     tr('Baidu'),
     "DeepL",
     "DeepLx",
-    tr('OTT'),
-    tr('Tencent'),
-    tr('OpenAI ChatGPT'),
-    tr('Local LLM'),
-    tr('VolcEngine LLM'),
-    "AzureGPT AI",
-    "Gemini AI",
-    tr('Customized API'),
-    tr('Ali-Bailian'),
-    "Claude AI",
-    tr('LibreTranslate'),
-    "302.AI",
     tr('Alibaba Machine Translation'),
-    tr('Zhipu AI'),
-    tr('SiliconFlow'),
-    "DeepSeek",
-    "OpenRouter"
+
+    tr('OTT'),
+    tr('LibreTranslate'),
+
+    "Claude AI",
+    tr('Customized API'),
 ]
 # subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2%E4%BB%A3%E7%A0%81%E5%88%97%E8%A1%A8
 #  https://www.loc.gov/standards/iso639-2/php/code_list.php
@@ -82,9 +98,9 @@ TRANSLASTE_NAME_LIST = [
 # microsoft https://www.bing.com/translator?mkt=zh-CN
 # 阿里 https://help.aliyun.com/zh/machine-translation/developer-reference/machine-translation-language-code-list?spm=a2c4g.11186623.help-menu-30396.d_4_4.4bda2b009oye8y
 LANGNAME_DICT = {
+    "en": tr("English"),
     "zh-cn": tr("Simplified Chinese"),
     "zh-tw": tr("Traditional Chinese"),
-    "en": tr("English"),
     "fr": tr("French"),
     "de": tr("German"),
     "ja": tr("Japanese"),
@@ -122,7 +138,7 @@ try:
         for nl in _new_lang:
             LANGNAME_DICT[nl]=nl
 except Exception as e:
-    config.logger.exception(f'读取自定义新增语言代码 newlang.txt 时出错 {e}',exc_info=True)
+    logs(f'读取自定义新增语言代码 newlang.txt 时出错 {e}',level="except")
 # 反向按照显示名字查找语言代码
 LANGNAME_DICT_REV={v:k for k,v in LANGNAME_DICT.items()}
 # 根据语言代码查找各个翻译渠道对应的 代码list
@@ -806,7 +822,7 @@ def _check_google():
     try:
         requests.head(f"https://translate.google.com")
     except Exception as e:
-        config.logger.exception(f'检测google翻译失败{e}', exc_info=True)
+        logs(f'检测google翻译失败{e}', level="except")
         return False
     
     return True
@@ -843,7 +859,7 @@ def run(*, translate_type=0,
         if config.proxy or _check_google() is True:
             from videotrans.translator._google import Google
             return Google(**kwargs).run()
-        config.logger.info('==未设置代理并且检测google失败，使用微软翻译')
+        logs('==未设置代理并且检测google失败，使用微软翻译')
         from videotrans.translator._microsoft import Microsoft
         return Microsoft(**kwargs).run()
         

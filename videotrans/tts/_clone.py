@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -63,7 +63,7 @@ class CloneVoice(BaseTTS):
                     res = requests.post(f"{self.api_url}/apitts", data=data, files=files,  timeout=3600)
 
             res.raise_for_status()
-            config.logger.info(f'clone-voice:{data=},{res.text=}')
+            logs(f'clone-voice:{data=},{res.text=}')
             res = res.json()
             if "code" not in res or res['code'] != 0:
                 if "msg" in res and res['msg'].find("non-empty") > 0:

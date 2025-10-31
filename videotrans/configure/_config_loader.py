@@ -50,7 +50,7 @@ _file_handler.setLevel(logging.DEBUG)
 _console_handler = logging.StreamHandler(sys.stdout)
 _console_handler.setLevel(logging.WARNING)
 # 设置日志格式
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 _file_handler.setFormatter(formatter)
 _console_handler.setFormatter(formatter)
 # 添加处理器到日志记录器
@@ -69,10 +69,9 @@ fw_logger.addHandler(_file_handler)
 FFMPEG_BIN = "ffmpeg"
 FFPROBE_BIN = "ffprobe"
 # ffmpeg
-if sys.platform == 'win32':
-    os.environ['PATH'] = ROOT_DIR + f';{ROOT_DIR}/ffmpeg;' + os.environ['PATH']
-    if IS_FROZEN:
-        os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;'+os.environ['PATH']
+os.environ['PATH'] = ROOT_DIR +os.pathsep+f'{ROOT_DIR}/ffmpeg'+os.pathsep + os.environ.get("PATH", "")
+if sys.platform == 'win32' and IS_FROZEN:
+    os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;'+os.environ['PATH']
 
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
@@ -176,6 +175,7 @@ DEEPGRAM_MODEL = [
     "enhanced",
     "base",
 ]
+
 # 支持的视频格式
 VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts","flv"]
 # 支持的音频格式
@@ -183,10 +183,21 @@ AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
 # 设置当前可用视频编码  libx264 h264_qsv h264_nvenc 等
 video_codec = None
 codec_cache = {}
+
+# 单个视频精修模式所需全局变量
 # 字幕按行赋予角色
 line_roles = {}
+# 原始语言字幕路径
+onlyone_source_sub=None
+# 目标语言字幕路径
+onlyone_target_sub=None
+# 是否需要翻译，仅在需要翻译时，才需传递做参考的对比原始字幕
+onlyone_trans=False
+
 # 字幕多角色配音
 dubbing_role = {}
+
+
 #######################################
 DEFAULT_GEMINI_MODEL = "gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
 ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv',
@@ -207,9 +218,11 @@ def parse_init(update_data=None):
         "homedir": _defaulthomedir,
         "lang": "",
         "Faster_Whisper_XXL": "",
-        "crf": 25,
-        "cuda_decode": False,
-        "preset": "fast",
+        "Whisper.cpp": "",
+        "Whisper.cpp.models": "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin",
+        "crf": 18,
+        "force_lib": False,
+        "preset": "ultrafast",
         "ffmpeg_cmd": "",
         "aisendsrt": False,
         "dont_notify": False,
@@ -231,6 +244,10 @@ def parse_init(update_data=None):
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-small.en,distil-medium.en,distil-large-v2,distil-large-v3",
 
         "remove_silence": False,
+        "max_audio_speed_rate":100,
+        "max_video_pts_rate":10,
+        
+        
         "vad": True,
         "threshold": 0.45,
         "min_speech_duration_ms": 0,
@@ -246,7 +263,7 @@ def parse_init(update_data=None):
         "aitrans_thread": 50,
         "translation_wait": 0,
         "dubbing_wait": 1,
-        "dubbing_thread": 6,
+        "dubbing_thread": 1,
         "save_segment_audio": False,
         "countdown_sec": 90,
         "backaudio_volume": 0.8,
@@ -287,22 +304,12 @@ def parse_init(update_data=None):
         "beam_size": 5,
         "best_of": 5,
         "condition_on_previous_text": False,
-        "fontsize": 14,
-        "fontname": "黑体",
-        "fontcolor": "&hffffff",
-        "fontbordercolor": "&h000000",
-        "backgroundcolor": "&h000000",
-        "subtitle_position": 2,  # 对应 1到9 位置
+
 
         "qwentts_role": QWEN3_TTS_ROLES,
         "qwentts_models": 'qwen3-tts-flash,qwen-tts-latest,qwen-tts',
 
-        "marginV": 10,
-        "marginL": 0,
-        "marginR": 0,
-        "outline": 1,
-        "shadow": 1,
-        "borderStyle": 1,  # 1或3， 轮廓描边风格对应 BorderStyle=1， 背景色块风格对应 BorderStyle=3
+
 
         "cjk_len": 15,
         "other_len": 60,
@@ -369,7 +376,7 @@ TEMP_HOME = f"{HOME_DIR}/{_tmpname}"
 Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
 
 # 代理地址
-proxy = settings.get('proxy', '')
+proxy = settings.get('proxy', os.environ.get('HTTPS_PROXY',''))
 
 #############################################
 
@@ -385,6 +392,7 @@ _zhipuai_model_list = str(settings.get('zhipuai_model', '-')).strip().split(',')
 _guiji_model_list = str(settings.get('guiji_model', '-')).strip().split(',')
 _deepseek_model_list = str(settings.get('deepseek_model', '-')).strip().split(',')
 _openrouter_model_list = str(settings.get('openrouter_model', '-')).strip().split(',')
+Whisper_CPP_MODEL_LIST = str(settings.get('Whisper.cpp.models', 'ggml-tiny')).strip().split(',')
 
 # 设置或获取 config.params
 def getset_params(obj=None):
@@ -399,7 +407,6 @@ def getset_params(obj=None):
         "cuda": False,
         "paraformer_spk": False,
         "line_roles": {},
-        "only_video": False,
         "is_separate": False,
         "remove_noise": False,
         "target_dir": "",
@@ -585,9 +592,17 @@ def getset_params(obj=None):
 
         "doubao_appid": "",
         "doubao_access": "",
+
         "volcenginetts_appid": "",
         "volcenginetts_access": "",
         "volcenginetts_cluster": "",
+        
+        "doubao2_appid":"",
+        "doubao2_access":"",
+
+        "zijierecognmodel_appid":"",
+        "zijierecognmodel_token":"",
+
         "chattts_api": "",
         "app_mode": "biaozhun",
         "stt_source_language": 0,
@@ -598,7 +613,7 @@ def getset_params(obj=None):
         "subtitlecover_outformat": "srt",
 
         "deepgram_apikey": "",
-        "deepgram_utt": 200,
+
         "trans_translate_type": 0,
         "trans_source_language": 0,
         "trans_target_language": 1,
@@ -692,3 +707,18 @@ def tr(lang_key, *kw):
         return lang.format(*kw)
     except IndexError:
         return lang
+
+
+def logs(msg,level="info"):
+    if level in ['except']:
+        logger.exception(msg,exc_info=True)
+        return
+    _map={
+        "info":logger.info,
+        "debug":logger.debug,
+        "warn":logger.warning,
+        "error":logger.error,
+        "critical":logger.critical
+    }
+    fun=_map.get(level,logger.info)
+    fun(msg)

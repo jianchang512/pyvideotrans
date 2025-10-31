@@ -8,7 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -28,11 +28,11 @@ class QWENTTS(BaseTTS):
         if not config.params.get('qwentts_key',''):
             raise Exception(
                 tr("please input your Qwen TTS  API KEY"))
-        self.dub_nums = 1
+        self.stop_next_all=False
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        if self._exit() or not data_item.get('text','').strip():
+        if self.stop_next_all or  self._exit() or not data_item.get('text','').strip():
             return
         # 主循环，用于无限重试连接错误
         #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
@@ -52,7 +52,11 @@ class QWENTTS(BaseTTS):
 
             if response is None:
                 raise RuntimeError("API call returned None response")
-
+            
+            if "Access denied" in response.message:
+                self.stop_next_all=True
+                raise RuntimeError(response.message)
+            
             if not hasattr(response, 'output') or response.output is None or not hasattr(response.output, 'audio'):
                 raise RuntimeError( f"{response.message if hasattr(response, 'message') else str(response)}")
 

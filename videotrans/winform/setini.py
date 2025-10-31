@@ -1,4 +1,7 @@
 # 高级设置
+from videotrans.task.simple_runnable_qt import run_in_threadpool
+
+
 def openwin():
 
     from PySide6.QtCore import QTimer
@@ -12,7 +15,7 @@ def openwin():
         # 创建一个空字典来存储结果
         line_edit_dict = config.settings
         shoud_model_list_sign = False
-
+        before_video_codec=line_edit_dict.get('video_codec')
         # 遍历找到的所有QLineEdit控件
         for line_edit in winobj.findChildren(QLineEdit):
             # 检查QLineEdit是否有objectName
@@ -24,7 +27,7 @@ def openwin():
             # 检查QLineEdit是否有objectName
             if hasattr(line_edit, 'objectName') and line_edit.objectName():
                 name = line_edit.objectName()
-                if name == 'model_list' and line_edit.toPlainText() != line_edit_dict[name]:
+                if name in ['model_list','Whisper.cpp.models'] and line_edit.toPlainText() != line_edit_dict[name]:
                     shoud_model_list_sign = True
                 # 将objectName作为key，text作为value添加到字典中
                 line_edit_dict[name] = line_edit.toPlainText()
@@ -38,17 +41,18 @@ def openwin():
             # 检查QLineEdit是否有objectName
             if hasattr(line_edit, 'objectName') and line_edit.objectName():
                 name = line_edit.objectName()
-                if name == 'subtitle_position':
-                    # 根据位置字符串，选择对应的数字
-                    line_edit_dict[name] = config.POSTION_ASS_VK.get(line_edit.currentText(), 2)
-                elif name == 'borderStyle':
-                    # 背景风格 0位置代表轮廓，1位置代表背景色
-                    line_edit_dict[name] = 1 if line_edit.currentIndex() == 0 else 3
+                if name=='video_codec':
+                    line_edit_dict[name]=int(line_edit.currentText())
                 else:
                     # 将objectName作为key，text作为value添加到字典中
                     line_edit_dict[name] = line_edit.currentText()
 
         line_edit_dict['homedir'] = winobj.homedir_btn.text()
+        if before_video_codec!=line_edit_dict.get('video_codec'):
+            # 编码方式变更了 ,需要重新运行编码
+            config.codec_cache={}
+            config.video_codec=None
+            run_in_threadpool(tools.get_video_codec, True)
         config.parse_init(line_edit_dict)
         config.settings = line_edit_dict
         if shoud_model_list_sign:
@@ -56,9 +60,6 @@ def openwin():
 
         winobj.close()
 
-    def alert(btn):
-        name = btn.objectName()[4:]
-        QMessageBox.information(winobj, f'Help {winobj.titles[name]}', winobj.alertnotice[name])
 
     def create():
         nonlocal winobj
@@ -66,9 +67,6 @@ def openwin():
 
         winobj = SetINIForm()
         config.child_forms['setini'] = winobj
-        for button in winobj.findChildren(QPushButton):
-            if button.objectName().startswith('btn_'):
-                button.clicked.connect(lambda checked, btn=button: alert(btn))
         winobj.set_ok.clicked.connect(save)
         winobj.show()
 

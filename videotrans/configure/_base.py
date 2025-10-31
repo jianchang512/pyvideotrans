@@ -1,6 +1,8 @@
+import base64
 import os
 import subprocess
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
 
 from videotrans.configure import config
@@ -19,6 +21,7 @@ class BaseCon:
 
     def __post_init__(self):
         self.proxy_str = self._set_proxy(type='set')
+        print(f'{self.proxy_str=}')
         config.settings=config.parse_init()
         # 用于 requests 库
         # 国内某些渠道禁止国外ip及代理
@@ -59,12 +62,14 @@ class BaseCon:
             from . import config
             raw_proxy = config.proxy or os.environ.get('HTTPS_PROXY') or os.environ.get('HTTP_PROXY')
             if raw_proxy:
+                config.proxy=raw_proxy
                 return raw_proxy
             if not raw_proxy:
                 proxy = tools.set_proxy() or os.environ.get('bak_proxy')
                 if proxy:
                     os.environ['HTTP_PROXY'] = proxy
                     os.environ['HTTPS_PROXY'] = proxy
+                config.proxy=raw_proxy
                 return proxy
         return None
 
@@ -164,3 +169,45 @@ class BaseCon:
         if host is not False:
             self.no_proxy += f',{host}'
             os.environ['no_proxy'] = self.no_proxy
+
+    def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:
+        if not encoded_str:
+            raise ValueError("Base64 encoded string is empty.")
+        # 如果存在data前缀，则按照前缀中包含的音频格式保存为转换格式
+        if encoded_str.startswith('data:audio/'):
+            output_ext = Path(output_path).suffix.lower()[1:]
+            mime_type, encoded_str = encoded_str.split(',', 1)  # 提取 Base64 数据部分
+            # 提取音频格式 (例如 'mp3', 'wav')
+            audio_format = mime_type.split('/')[1].split(';')[0].lower()
+            support_format = {
+                "mpeg": "mp3",
+                "wav": "wav",
+                "ogg": "ogg",
+                "aac": "aac"
+            }
+            base64data_ext = support_format.get(audio_format, "")
+            if base64data_ext and base64data_ext != output_ext:
+                # 格式不同需要转换格式
+                # 将base64编码的字符串解码为字节
+                wav_bytes = base64.b64decode(encoded_str)
+                # 将解码后的字节写入文件
+                with open(output_path + f'.{base64data_ext}', "wb") as wav_file:
+                    wav_file.write(wav_bytes)
+
+                tools.runffmpeg([
+                    "-y", "-i", output_path + f'.{base64data_ext}', "-b:a", "128k", output_path
+                ])
+                return
+        # 将base64编码的字符串解码为字节
+        wav_bytes = base64.b64decode(encoded_str)
+        # 将解码后的字节写入文件
+        with open(output_path, "wb") as wav_file:
+            wav_file.write(wav_bytes)
+
+    def _audio_to_base64(self, file_path: str):
+        if not file_path or not Path(file_path).exists():
+            return None
+        with open(file_path, "rb") as wav_file:
+            wav_content = wav_file.read()
+            base64_encoded = base64.b64encode(wav_content)
+            return base64_encoded.decode("utf-8")

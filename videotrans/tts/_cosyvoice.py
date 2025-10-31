@@ -13,7 +13,7 @@ from gradio_client import Client, handle_file
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -54,7 +54,7 @@ class CosyVoice(BaseTTS):
         if not Path(data['ref_wav']).exists():
             raise StopRetry(f"{data['ref_wav']} is not exists")
         
-        config.logger.info(f'cosyvoice-tts {data=}')
+        logs(f'cosyvoice-tts {data=}')
         try:
             client = Client(self.api_url, ssl_verify=False)
         except Exception as e:
@@ -72,7 +72,7 @@ class CosyVoice(BaseTTS):
         )
 
 
-        config.logger.info(f'result={result}')
+        logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -125,7 +125,7 @@ class CosyVoice(BaseTTS):
                 # 仅提供参考音频，使用跨语种克隆
                 api_url += '/clone_mul'
 
-        config.logger.info(f'请求数据：{api_url=},{data=}')
+        logs(f'请求数据：{api_url=},{data=}')
         # 克隆声音
         response = requests.post(f"{api_url}", data=data,  timeout=3600)
         response.raise_for_status()

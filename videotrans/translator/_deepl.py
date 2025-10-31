@@ -9,6 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import logs
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -35,7 +36,7 @@ class DeepL(BaseTrans):
             return text
 
         deepltranslator = deepl.Translator(config.params.get('deepl_authkey',''), server_url=self.api_url)
-        config.logger.info(f'[DeepL]请求数据:{text=}')
+        logs(f'[DeepL]请求数据:{text=}')
         target_code = self.target_code.upper()
         if target_code == 'EN':
             target_code = 'EN-US'
@@ -54,5 +55,5 @@ class DeepL(BaseTrans):
             glossary=config.params.get('deepl_gid')
         )
 
-        config.logger.info(f'[DeepL]返回:{result=}')
+        logs(f'[DeepL]返回:{result=}')
         return result.text

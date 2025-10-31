@@ -9,6 +9,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import logs
+
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -22,7 +24,7 @@ class MinimaxiTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        
+        self.stop_next_all=False
         self.api_url='https://'+config.params.get('minimaxi_apiurl','api.minimaxi.com')+'/v1/t2a_v2'
         self.rolelist = {}
         lang_pre = self.language.split('-')[0].lower()
@@ -34,12 +36,12 @@ class MinimaxiTTS(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: Union[Dict, List, None]):
-        if self._exit() or not data_item.get('text','').strip():
+        if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
             return
 
-        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+        # @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+        #        wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+        #        after=after_log(config.logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -88,7 +90,9 @@ class MinimaxiTTS(BaseTTS):
             response = requests.request("POST", self.api_url, headers=headers, data=payload)
             response.raise_for_status()
             res=response.json()
-            config.logger.info(f'返回数据 {res}')
+            logs(f'返回数据 {res}')
+            if res['base_resp']['status_code'] != 1004:
+                self.stop_next_all=True
             if res['base_resp']['status_code'] != 0:
                 raise RuntimeError(res['base_resp']['status_msg'])
 

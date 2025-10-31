@@ -11,6 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import logs
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -20,7 +21,7 @@ RETRY_DELAY = 5
 
 
 @dataclass
-class VolcEngineTTS(BaseTTS):
+class DoubaoTTS(BaseTTS):
     error_status: ClassVar[Dict[str, str]] = {
         "3001": "无效的请求,若是正式版，可能当前所用音色需要单独从字节火山购买",
         "3003": "并发超限",
@@ -48,18 +49,19 @@ class VolcEngineTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.dub_nums = 1
+        #self.dub_nums = 1
+        self.stop_next_all=False
 
     def _exec(self):
         # 并发限制为1，防止限流
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        if self._exit() or not data_item.get('text','').strip():
+        if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
             return
-        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+        # @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+        #        wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+        #        after=after_log(config.logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -79,7 +81,7 @@ class VolcEngineTTS(BaseTTS):
             role = data_item['role']
             langcode = self.language[:2].lower()
             if not self.voice_type:
-                self.voice_type = tools.get_volcenginetts_rolelist(role, self.language)
+                self.voice_type = tools.get_doubao_rolelist(role, self.language)
 
             if langcode == 'zh':
                 langcode = self.fangyan.get(role[:2], "cn")
@@ -118,14 +120,18 @@ class VolcEngineTTS(BaseTTS):
             resp = requests.post(api_url, json.dumps(request_json), headers=header,verify=False)
             resp.raise_for_status()
             resp_json = resp.json()
+
             if "data" in resp_json:
                 data = resp_json["data"]
                 with open(data_item['filename'] , "wb") as f:
                     f.write(base64.b64decode(data))
                 self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
                 return
+            if 'authenticate' in resp_json.get('message','') or 'access denied' in resp_json.get('message',''):
+                self.stop_next_all=True
+                raise RuntimeError(resp_json.get('message'))
             if 'code' in resp_json:
-                config.logger.info(f'字节火山语音合成失败:{resp_json=}')
+                logs(f'字节火山语音合成失败:{resp_json=}')
             raise RuntimeError(self.error_status.get(str(resp_json['code']), resp_json['message']))
 
         try:

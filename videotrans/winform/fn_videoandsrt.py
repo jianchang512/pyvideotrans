@@ -4,7 +4,7 @@ def openwin():
     import os
     import time
     from pathlib import Path
-    from videotrans.configure.config import tr
+    from videotrans.configure.config import tr,logs
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog

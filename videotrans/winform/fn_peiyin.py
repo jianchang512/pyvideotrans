@@ -293,7 +293,7 @@ def openwin():
         wk.start()
 
     def change_by_lang(type):
-        if type in [tts.EDGE_TTS,tts.MINIMAXI_TTS, tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]:
+        if type in [tts.EDGE_TTS,tts.MINIMAXI_TTS, tts.AZURE_TTS, tts.DOUBAO_TTS,tts.DOUBAO2_TTS,tts.AI302_TTS, tts.KOKORO_TTS]:
             return True
         return False
 
@@ -530,8 +530,10 @@ def openwin():
             show_rolelist = tools.get_kokoro_rolelist()
         elif tts_type == tts.AI302_TTS:
             show_rolelist = tools.get_302ai()
-        elif tts_type == tts.VOLCENGINE_TTS:
-            show_rolelist = tools.get_volcenginetts_rolelist()
+        elif tts_type == tts.DOUBAO2_TTS:
+            show_rolelist = tools.get_doubao2_rolelist()
+        elif tts_type == tts.DOUBAO_TTS:
+            show_rolelist = tools.get_doubao_rolelist()
         elif tts_type == tts.MINIMAXI_TTS:
             show_rolelist = tools.get_minimaxi_rolelist()
         else:

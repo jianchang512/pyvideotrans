@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import logs
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -47,7 +48,7 @@ class ChatterBoxTTS(BaseTTS):
             client = OpenAI(api_key='123456', base_url=self.api_url + '/v1')
             response = client.audio.speech.create(
                 model="chatterbox-tts",  # 这是一个兼容性参数
-                voice=self.language,  # 这也是一个兼容性参数
+                voice=self.language.split('-')[0],  # 这也是一个兼容性参数
                 input=data_item['text'],
                 speed=float(config.params.get("chatterbox_cfg_weight",'1.0')),  # 兼容，用于传递 cfg_weight
                 instructions=str(config.params.get("chatterbox_exaggeration",'')),  # 兼容传递 exaggeration

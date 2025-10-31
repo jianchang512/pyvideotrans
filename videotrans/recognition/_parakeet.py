@@ -8,7 +8,7 @@ from openai import OpenAI
 
 from videotrans.configure import config
 from videotrans.configure._except import  StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -52,7 +52,7 @@ class ParaketRecogn(BaseRecogn):
         try:
             words_list=json.loads(tmp[1])
         except json.JSONDecodeError:
-            config.logger.exception(f'获取 api 返回的word列表json格式化失败')
+            logs(f'获取 api 返回的word列表json格式化失败')
             words_list=[]
         
         if not words_list:    
@@ -62,11 +62,11 @@ class ParaketRecogn(BaseRecogn):
             try:
                 return self.re_segment_sentences(words_list)
             except Exception as e:
-                config.logger.exception(f'LLM重新断句失败', exc_info=True)
+                logs(f'LLM重新断句失败', level="except")
         elif config.settings.get('rephrase_local'):
             try:
                 return self.re_segment_sentences_local(words_list)
             except Exception as e:
-                config.logger.exception(f'本地重新断句失败', exc_info=True)
+                logs(f'本地重新断句失败', level="except")
         
         return tools.get_subtitle_from_srt(tmp[0], is_file=False)

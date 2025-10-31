@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.util import tools
 
 
@@ -93,7 +93,7 @@ class Ui_zijiehuoshanform(object):
     def update_ui(self):
         from videotrans.configure import config
         config.settings = config.parse_init()
-        allmodels_str = config.settings.get('zijiehuoshan_model','')
+        allmodels_str = str(config.settings.get('zijiehuoshan_model',''))
         allmodels = str(config.settings.get('zijiehuoshan_model','')).split(',')
         self.zijiehuoshan_model.clear()
         self.zijiehuoshan_model.addItems(allmodels)

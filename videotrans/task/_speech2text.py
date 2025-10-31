@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
-from videotrans.recognition import run, Faster_Whisper_XXL
+from videotrans.configure.config import tr, logs
+from videotrans.recognition import run, Faster_Whisper_XXL,Whisper_CPP
 from videotrans.task._base import BaseTask
 from videotrans.task._remove_noise import remove_noise
 from videotrans.util import tools
@@ -65,10 +65,18 @@ class SpeechToText(BaseTask):
                 cmd = [
                     config.settings.get('Faster_Whisper_XXL', ''),
                     self.cfg.shibie_audio,
+                    "-pp",
                     "-f", "srt"
                 ]
                 if self.cfg.detect_language != 'auto':
                     cmd.extend(['-l', self.cfg.detect_language.split('-')[0]])
+                
+                prompt=None
+                if self.cfg.detect_language!='auto':
+                    prompt = config.settings.get(f'initial_prompt_{self.cfg.detect_language}')
+                if prompt:
+                    cmd+=['--initial_prompt',prompt]
+                
                 cmd.extend(['--model', self.cfg.model_name, '--output_dir', self.cfg.target_dir])
                 txt_file = Path(config.settings.get('Faster_Whisper_XXL', '')).parent.as_posix() + '/pyvideotrans.txt'
                 if Path(txt_file).exists():
@@ -76,17 +84,50 @@ class SpeechToText(BaseTask):
 
                 outsrt_file = self.cfg.target_dir + '/' + Path(self.cfg.shibie_audio).stem + ".srt"
                 cmdstr = " ".join(cmd)
-                config.logger.info(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg.target_sub=}')
+                logs(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg.target_sub=}')
 
                 self._external_cmd_with_wrapper(cmd)
 
-                if outsrt_file != self.cfg.target_sub:
-                    try:
-                        shutil.copy2(outsrt_file, self.cfg.target_sub)
-                    except shutil.SameFileError:
-                        pass
+
+                try:
+                    shutil.copy2(outsrt_file, self.cfg.target_sub)
+                except shutil.SameFileError:
+                    pass
                 self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
                 return
+            if self.cfg.recogn_type == Whisper_CPP:
+
+                import subprocess, shutil
+                cpp_path=config.settings.get('Whisper.cpp', 'whisper-cli')
+                cmd = [
+                    cpp_path,
+                    "-f",
+                    self.cfg.shibie_audio,
+                    "-osrt",
+                    "-np"
+                ]
+                cmd+=["-l",self.cfg.detect_language.split('-')[0]]
+                prompt=None
+                if self.cfg.detect_language!='auto':
+                    prompt = config.settings.get(f'initial_prompt_{self.cfg.detect_language}')
+                if prompt:
+                    cmd+=['--prompt',prompt]
+                cpp_folder=Path(cpp_path).parent.resolve().as_posix()
+                if not Path(f'{cpp_folder}/models/{self.cfg.model_name}').is_file():
+                    raise RuntimeError(tr('The model does not exist. Please download the model to the {} directory first.',f'{cpp_folder}/models'))
+                txt_file =  cpp_folder+ '/pyvideotrans.txt'
+                if Path(txt_file).exists():
+                    cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
+                
+                cmd.extend(['-m', f'models/{self.cfg.model_name}', '-of', self.cfg.target_sub[:-4]])
+                
+                logs(f'Whipser.cpp: {cmd=}')
+
+                self._external_cmd_with_wrapper(cmd)
+
+
+                self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+                return    
             # 其他识别渠道
             raw_subtitles = run(
                 recogn_type=self.cfg.recogn_type,

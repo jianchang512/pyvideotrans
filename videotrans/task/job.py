@@ -1,7 +1,7 @@
 import time
 from PySide6.QtCore import QThread
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.task._base import BaseTask
 from videotrans.util import tools
 from videotrans.util.tools import set_process
@@ -75,7 +75,7 @@ class WorkerPrepare(QThread):
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
-                config.logger.exception(e, exc_info=True)
+                logs(e, level="except")
                 set_process(text=f'{tr("yuchulichucuo")}:{except_msg}:\n' + traceback.format_exc(),
                             type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
@@ -115,7 +115,7 @@ class WorkerRegcon(QThread):
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
-                config.logger.exception(e, exc_info=True)
+                logs(e, level="except")
                 if trk.cfg.recogn_type is not None:
                     except_msg = f"[{get_recogn_type(trk.cfg.recogn_type)}] {except_msg}"
                 set_process(text=f'{tr("shibiechucuo")}:{except_msg}:\n' + traceback.format_exc(),
@@ -157,7 +157,7 @@ class WorkerTrans(QThread):
                 if trk.cfg.translate_type is not None:
                     except_msg = f"[{get_tanslate_type(trk.cfg.translate_type)}] {except_msg}"
                 msg = f'{tr("fanyichucuo")}:{except_msg}:\n' + traceback.format_exc()
-                config.logger.exception(e, exc_info=True)
+                logs(e, level="except")
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
 
@@ -190,7 +190,7 @@ class WorkerDubb(QThread):
                 if trk.cfg.tts_type is not None:
                     except_msg = f"[{get_tts_type(trk.cfg.tts_type)}] {except_msg}"
                 msg = f'{tr("peiyinchucuo")}:{except_msg}:\n' + traceback.format_exc()
-                config.logger.exception(e, exc_info=True)
+                logs(e, level="except")
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
 
@@ -225,7 +225,7 @@ class WorkerAlign(QThread):
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 msg = f'{except_msg}:\n' + traceback.format_exc()
-                config.logger.exception(e, exc_info=True)
+                logs(e, level="except")
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
 
@@ -257,7 +257,7 @@ class WorkerAssemb(QThread):
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 msg = f'{tr("hebingchucuo")}:{except_msg}:\n' + traceback.format_exc()
-                config.logger.exception(e, exc_info=True)
+                logs(e, level="except")
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
 
@@ -287,7 +287,7 @@ class WorkerTaskDone(QThread):
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 msg = f'{except_msg}:\n' + traceback.format_exc()
-                config.logger.exception(e, exc_info=True)
+                logs(e, level="except")
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
             else:

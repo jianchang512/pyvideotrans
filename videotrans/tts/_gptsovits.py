@@ -12,7 +12,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -87,7 +87,7 @@ class GPTSoVITS(BaseTTS):
                 if not self.api_url.endswith('/tts'):
                     self.api_url += '/tts'
 
-            config.logger.info(f'GPT-SoVITS get:{data=}\n{self.api_url=}')
+            logs(f'GPT-SoVITS get:{data=}\n{self.api_url=}')
             # 克隆声音
             response = requests.get(f"{self.api_url}", params=data,  timeout=3600)
 
@@ -95,7 +95,7 @@ class GPTSoVITS(BaseTTS):
             if 'application/json' in content_type:
                 # 如果是JSON数据，使用json()方法解析
                 data = response.json()
-                config.logger.info(f'GPT-SoVITS return:{data=}')
+                logs(f'GPT-SoVITS return:{data=}')
                 raise StopRetry(f"GPT-SoVITS error-1:{data}")
             
             response.raise_for_status()

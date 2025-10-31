@@ -59,10 +59,10 @@ class Ui_minimaxiform(object):
         label_6.setText(tr("Model"))
         self.model = QtWidgets.QComboBox()
         self.model.addItems([
+            "speech-2.6-hd",
+            "speech-2.6-turbo",
             "speech-02-hd",
             "speech-02-turbo",
-            "speech-2.5-hd-preview",
-            "speech-2.5-turbo-preview",
             "speech-01-hd",
             "speech-01-turbo",
         ])

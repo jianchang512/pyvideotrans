@@ -1,6 +1,8 @@
 # stt项目识别接口
+import json
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Dict, Union
 
 from funasr import AutoModel
@@ -38,7 +40,7 @@ class FunasrRecogn(BaseRecogn):
         raw_subtitles = []
 
         model = AutoModel(
-            model=self.model_name, model_revision="v2.0.4",
+            model=self.model_name, model_revision="v2.0.5",
             vad_model="fsmn-vad", vad_model_revision="v2.0.4",
             punc_model="ct-punc", punc_model_revision="v2.0.4",
             local_dir=config.ROOT_DIR + "/models",
@@ -54,10 +56,16 @@ class FunasrRecogn(BaseRecogn):
         res = model.generate(input=self.audio_file, return_raw_text=True, is_final=True,
                              sentence_timestamp=True, batch_size_s=100, disable_pbar=True)
 
+        speaker_list=[]
         for it in res[0]['sentence_info']:
+            if not it.get('text','').strip():
+                continue
+
+            if config.params.get('paraformer_spk', False):
+                speaker_list.append(f"spk{it.get('spk', 0)}")
             tmp = {
                 "line": len(raw_subtitles) + 1,
-                "text": (f"[spk-{it['spk']}]" if config.params.get('paraformer_spk', False) else '') + it['text'],
+                "text":it['text'].strip(),
                 "start_time": it['start'],
                 "end_time": it['end'],
                 "startraw": f'{tools.ms_to_time_string(ms=it["start"])}',
@@ -66,7 +74,8 @@ class FunasrRecogn(BaseRecogn):
             self._signal(text=it['text'] + "\n", type='subtitle')
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
             raw_subtitles.append(tmp)
-
+        if speaker_list:
+            Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
         return raw_subtitles
 
     def _exec1(self) -> Union[List[Dict], None]:

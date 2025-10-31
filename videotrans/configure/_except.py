@@ -1,6 +1,7 @@
 import re
 
 import aiohttp
+import requests
 from elevenlabs.core import ApiError as ApiError_11
 from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
     APIConnectionError, APIError, ContentFilterFinishReasonError, InternalServerError, LengthFinishReasonError
@@ -70,6 +71,7 @@ NO_RETRY_EXCEPT = (
     ConnectionAbortedError,  #
 
     httpx.ConnectError,
+    httpx.ReadError,
 
     # 代理错误
     ProxyError,
@@ -281,74 +283,85 @@ def get_msg_from_except(ex):
     exception_handlers = {
         # === 认证和权限问题 ===
         AuthenticationError: lambda e: (
-            "API密钥错误，请检查密钥是否正确" if lang == 'zh'
-            else "API key error, please check if the key is correct"
+            f"API密钥错误，请检查密钥是否正确 {e.message}" if lang == 'zh'
+            else f"API key error, please check if the key is correct {e.message}"
         ),
 
         PermissionDeniedError: lambda e: (
-            "当前密钥没有访问权限，请检查权限设置" if lang == 'zh'
-            else "No access permission with current API key"
+            f"当前密钥没有访问权限，请检查权限设置 {e.message}" if lang == 'zh'
+            else f"No access permission with current API key {e.message}"
         ),
 
         # === 频率限制 ===
         RateLimitError: lambda e: (
-            "请求过于频繁，请稍后重试或调大暂停时间" if lang == 'zh'
-            else "Too many requests, please try again later or adjust settings"
+            f"请求过于频繁，请稍后重试或调大暂停时间 {e.message}" if lang == 'zh'
+            else f"Too many requests, please try again later or adjust settings {e.message}"
         ),
         InternalServerError: lambda e: (
-            f'{e.status_code}错误: API服务端内部错误' if lang == 'zh' else f'{e.status_code}: {e.message}'),
-        LengthFinishReasonError: lambda e: (
-            f'内容太长超出最大允许Token，请减小内容或增大max_token,或者降低每次发送字幕行数\n{e}' if lang == 'zh' else f'{e}'),
-        ContentFilterFinishReasonError: lambda
-            e: "内容触发AI风控被过滤" if lang == 'zh' else 'Content triggers AI risk control and is filtered\n{e}',
-        # === 网络连接问题 ===
-        (httpcore.ConnectTimeout, httpx.ConnectTimeout, httpx.ConnectError): lambda e: (
-            _handle_connection_error_detail(e, lang)
+            f'{e.status_code} 错误: API服务端内部错误 {e.message}' if lang == 'zh' else f'{e.status_code}: {e.message}'),
+
+        # === 资源不存在问题 ===
+        NotFoundError: lambda e: (
+            f"请求的资源不存在，请检查模型名称或API地址 {e.message}" if lang == 'zh'
+            else f"Requested resource not found, check model name or API address {e.message}"
+        ),
+
+        # === 请求参数问题 ===
+        BadRequestError: lambda e: (
+            f"请求参数不正确:{e.message}" if lang == 'zh'
+            else f"Request parameters incorrect, check input or settings {e.message}"
         ),
 
         APIConnectionError: lambda e: (
             _handle_connection_error_detail(e, lang)
         ),
 
+
+        # === 服务端问题 ===
+        APIError: lambda e: _handle_api_error_detail(e, lang),
+
+        LengthFinishReasonError: lambda e: (
+            f'内容太长超出最大允许Token，请减小内容或增大max_token,或者降低每次发送字幕行数\n{e}' if lang == 'zh' else f'{e}'),
+        ContentFilterFinishReasonError: lambda
+            e: f"内容触发AI风控被过滤 {e}" if lang == 'zh' else f'Content triggers AI risk control and is filtered\n{e}',
+
+
+
         # === 配置和地址问题 ===
         (TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL): lambda e: (
-            "请求地址格式不正确，请检查配置" if lang == 'zh'
-            else "Request URL format is incorrect, check configuration"
-        ),
-
-        SSLError: lambda e: (
-            "安全连接失败，请检查系统时间或网络设置，如果使用了代理，请关闭后重试" if lang == 'zh'
-            else "Secure connection failed, check system time or network settings"
+            f"请求地址格式不正确，请检查配置 {e.message}" if lang == 'zh'
+            else f"Request URL format is incorrect, check configuration {e.message}"
         ),
 
         (ProxyError, aiohttp.client_exceptions.ClientProxyConnectionError): lambda e: (
             "代理设置不正确或代理不可用，请检查代理或关闭代理并删掉代理文本框中所填内容" if lang == 'zh'
             else "Proxy configuration issue, check settings or disable proxy"
         ),
-
-        # === 资源不存在问题 ===
-        NotFoundError: lambda e: (
-            "请求的资源不存在，请检查模型名称或API地址" if lang == 'zh'
-            else "Requested resource not found, check model name or API address"
+        SSLError: lambda e: (
+            "安全连接失败，请检查系统时间或网络设置，如果使用了代理，请关闭后重试" if lang == 'zh'
+            else "Secure connection failed, check system time or network settings"
         ),
-
-        # === 请求参数问题 ===
-        BadRequestError: lambda e: (
-            "请检查输入内容是否过长，若涉及参考音频，请检查是否存在" if lang == 'zh'
-            else "Request parameters incorrect, check input or settings"
-        ),
-
-        # === 服务端问题 ===
-        APIError: lambda e: _handle_api_error_detail(e, lang),
-
-        DeepgramApiError: lambda e: _handle_api_error_detail(e, lang),
-
-        ApiError_11: lambda e: _handle_api_error_detail(e, lang),
 
         Timeout: lambda e: (
             _handle_connection_error_detail(e, lang)
         ),
+
         HTTPError: lambda e: f'{e}',
+
+        RetryError: lambda e: (
+            "重试多次后仍然失败，请检查网络连接或服务状态" if lang == 'zh'
+            else "Failed after multiple retries, check network connection or service status"
+        ),
+        # === 网络连接问题 ===
+        (httpcore.ConnectTimeout, httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadError): lambda e: (
+            _handle_connection_error_detail(e, lang)
+        ),
+
+
+        DeepgramApiError: lambda e: _handle_api_error_detail(e, lang),
+
+        ApiError_11: lambda e: e.body.get('detail',{}).get('message',e.body),
+
 
         ConnectionRefusedError: lambda e: (
             _handle_connection_error_detail(e, lang)
@@ -365,10 +378,7 @@ def get_msg_from_except(ex):
         (ReqConnectionError, ConnectionError): lambda e: (
             _handle_connection_error_detail(e, lang)
         ),
-        RetryError: lambda e: (
-            "重试多次后仍然失败，请检查网络连接或服务状态" if lang == 'zh'
-            else "Failed after multiple retries, check network connection or service status"
-        ),
+        requests.exceptions.RequestException:lambda e:f'{e}',
 
         RuntimeError: lambda e: (
             _handle_connection_error_detail(e, lang)

@@ -8,7 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -33,17 +33,17 @@ class Google(BaseTrans):
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         source_code = 'auto' if not self.source_code else self.source_code
         url = f"https://translate.google.com/m?sl={source_code}&tl={self.target_code}&hl={self.target_code}&q={text}"
-        config.logger.info(f'[Google] {self.target_code=} {self.source_code=}')
+        logs(f'[Google] {self.target_code=} {self.source_code=}')
         headers = {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
         }
         response = requests.get(url, headers=headers, timeout=300, verify=False)
         response.raise_for_status()
-        config.logger.info(f'[Google]返回code:{response.status_code=}')
+        logs(f'[Google]返回code:{response.status_code=}')
 
         re_result = re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<', response.text)
         if not re_result or len(re_result.groups()) < 1:
-            config.logger.info(f'[Google]返回数据:{response.text=}')
+            logs(f'[Google]返回数据:{response.text=}')
             raise RuntimeError(tr("Google Translate error"))
         return re_result.group(1)
 

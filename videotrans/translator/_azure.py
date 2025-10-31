@@ -10,7 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 from openai import LengthFinishReasonError
@@ -48,12 +48,12 @@ class AzureGPT(BaseTrans):
              'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
         ]
 
-        config.logger.info(f"\n[AzureGPT]请求数据:{message=}")
+        logs(f"\n[AzureGPT]请求数据:{message=}")
         response = model.chat.completions.create(
             model=config.params.get("azure_model",''),
             messages=message
         )
-        config.logger.info(f'[AzureGPT]返回响应:{response=}')
+        logs(f'[AzureGPT]返回响应:{response=}')
         if not hasattr(response,'choices'):
             raise RuntimeError(str(response))
         
@@ -62,7 +62,7 @@ class AzureGPT(BaseTrans):
         if response.choices[0].message.content:
             result = response.choices[0].message.content.strip()
         else:
-            config.logger.error(f'[AzureGPT]请求失败:{response=}')
+            logs(f'[AzureGPT]请求失败:{response=}',level='warn')
             raise RuntimeError(f"[Azure] {response.choices[0].finish_reason}: {response=}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)

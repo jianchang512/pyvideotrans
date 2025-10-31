@@ -9,6 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import logs
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -37,7 +38,7 @@ class ElevenLabsRecogn(BaseRecogn):
         )
 
         language_code = self.detect_language[:2] if self.detect_language and self.detect_language != 'auto' else ''
-        config.logger.info(f'{language_code=}')
+        logs(f'{language_code=}')
 
         raws = []
         if language_code:
@@ -54,7 +55,7 @@ class ElevenLabsRecogn(BaseRecogn):
                 diarize=True
             )
         last_tmp = None
-        config.logger.info(f'elevenlabs{res=}\n')
+        logs(f'elevenlabs{res=}\n')
         for it in res.words:
             if it.type=='audio_event':
                 continue
@@ -81,14 +82,14 @@ class ElevenLabsRecogn(BaseRecogn):
             diff_prev=st - last_tmp['end_time']
             segment_time=last_tmp['end_time'] - last_tmp['start_time']
             
-            config.logger.info(f'\n{text=},{isflag=},{spk=},{diff_prev=},{segment_time=}\n')
+            logs(f'\n{text=},{isflag=},{spk=},{diff_prev=},{segment_time=}\n')
             
             # 不同说话人，强制断句
             
             if spk != last_tmp['spk']:
                 last_tmp['time'] = tools.ms_to_time_string(
                     ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=last_tmp['end_time'])
-                config.logger.info(f'segments-spk:{last_tmp=}')
+                logs(f'segments-spk:{last_tmp=}')
                 if last_tmp['text'].strip():
                     raws.append(last_tmp)
                 last_tmp = {
@@ -106,7 +107,7 @@ class ElevenLabsRecogn(BaseRecogn):
                     last_tmp['text']+=text[0]
                     last_tmp['time'] = tools.ms_to_time_string(
                     ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=last_tmp['end_time'])
-                    config.logger.info(f'segments-flag0:{last_tmp=}')
+                    logs(f'segments-flag0:{last_tmp=}')
                     if last_tmp['text'].strip():
                         raws.append(last_tmp)
                     last_tmp = {
@@ -122,7 +123,7 @@ class ElevenLabsRecogn(BaseRecogn):
                 last_tmp['text'] += text
                 last_tmp['time'] = tools.ms_to_time_string(
                     ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=end)
-                config.logger.info(f'segments-flag1:{last_tmp=}')
+                logs(f'segments-flag1:{last_tmp=}')
                 if last_tmp['text'].strip():
                     raws.append(last_tmp)
                 last_tmp = None
@@ -133,7 +134,7 @@ class ElevenLabsRecogn(BaseRecogn):
         if last_tmp and last_tmp['text'].strip():
             last_tmp['time'] = tools.ms_to_time_string(ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(
                 ms=last_tmp['end_time'])
-            config.logger.info(f'segments:{last_tmp=}')
+            logs(f'segments:{last_tmp=}')
             
             raws.append(last_tmp)
         return raws

@@ -7,7 +7,7 @@ def openwin():
     import json
     import os
     from pathlib import Path
-    from videotrans.configure.config import tr
+    from videotrans.configure.config import tr,logs
     from PySide6.QtCore import QUrl, Qt,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
@@ -167,7 +167,7 @@ def openwin():
         
 
     def change_by_lang(type):
-        return type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]
+        return type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.DOUBAO_TTS,tts.DOUBAO2_TTS,tts.AI302_TTS, tts.KOKORO_TTS]
 
     def hecheng_start_fun():
         nonlocal RESULT_DIR,uuid
@@ -374,8 +374,10 @@ def openwin():
             show_rolelist = tools.get_kokoro_rolelist()
         elif tts_type == tts.AI302_TTS:
             show_rolelist = tools.get_302ai()
-        elif tts_type == tts.VOLCENGINE_TTS:
-            show_rolelist = tools.get_volcenginetts_rolelist()
+        elif tts_type == tts.DOUBAO2_TTS:
+            show_rolelist = tools.get_doubao2_rolelist()
+        elif tts_type == tts.DOUBAO_TTS:
+            show_rolelist = tools.get_doubao_rolelist()
         elif tts_type == tts.MINIMAXI_TTS:
             show_rolelist = tools.get_minimaxi_rolelist()
         else:  # AzureTTS
@@ -403,7 +405,7 @@ def openwin():
 
 
     def hecheng_import_fun():
-        fname, _ = QFileDialog.getOpenFileName(winobj, "选择SRT字幕文件", config.params.get('last_opendir', '.'),
+        fname, _ = QFileDialog.getOpenFileName(winobj, "SRT", config.params.get('last_opendir', '.'),
                                                "SRT files (*.srt)")
         if not fname:
             return

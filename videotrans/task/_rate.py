@@ -1,27 +1,25 @@
-import errno
+import errno, math
 import json
 import os
 import shutil
 import subprocess
-import time
+import time, random
 from pathlib import Path
 
 from pydub import AudioSegment
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.util import tools
 from concurrent.futures import ThreadPoolExecutor
 
-
-class SpeedRate:
-    """
+"""
 通过音频加速和视频慢放来对齐翻译配音和原始视频时间轴。
 
 主要实现原理
 # 功能概述, 使用python3开发视频翻译功能：
 1. 即A语言发音的视频，分离出无声画面视频文件和音频文件，使用语音识别对音频文件识别出原始字幕后，将该字幕翻译翻译为B语言的字幕，再将该B语言字幕配音为B语言配音，然后将B语言字幕和B语言配音同A分离出的无声视频，进行音画同步对齐和合并为新视频。
-2. 当前正在做的这部分就是“配音、字幕、视频对齐”，B语言字幕是逐条配音的，每条字幕的配音生成一个mp3音频文件。
+2. 当前正在做的这部分就是“配音、字幕、视频对齐”，B语言字幕是逐条配音的，每条字幕的配音生成一个wav音频文件。
 3. 因为语言不同，因此每条配音可能大于该条字幕的时间，例如该条字幕时长是3s，配音后的mp3时长如果小于等于3s，则不影响，但如果配音时长大于3s，则有问题，需要通过将音频片段自动加速到3s实现同步。也可以通过将该字幕的原始字幕所对应原始视频该片段截取下来，慢速播放延长该视频时长直到匹配配音时长，实现对齐。当然也可以同时 音频自动加速 和 视频慢速，从而避免音频加速太多或视频慢速太多。
 
 # 具体音画同步原理说明
@@ -29,28 +27,28 @@ class SpeedRate:
 ## 音频和视频同时启用时的策略
 1. 如果配音时长 小于 当前片段的原始字幕时长，则无需音频加速和视频慢速
 2. 如果配音时长 大于 当前片段的原始字幕时长，则判断音频时长缩短到和原始字幕时长一致时，需要的加速倍数是多少，
-- 如果该倍数 小于等于 1.5，则照此对配音加速即可，无需视频慢速处理
-- 如果该倍数 大于 1.5，则将 原始字幕时长 加上 和  下条字幕开始时间之间的静默时间(该静默可能时0，也可能小于或大于`self.MIN_CLIP_DURATION_MS`，如果最后一条字幕，可能到视频结尾还有静默区间),记为  total_a
+- 如果该倍数 小于等于 1.3，则照此对配音加速即可，无需视频慢速处理
+- 如果该倍数 大于 1.3，则将 原始字幕时长 加上 和  下条字幕开始时间之间的静默时间,记为  total_a
    * 如果该时长 total_a 大于 配音时长，则配音无需加速，自然播放完毕即可，视频也无需慢速，注意因此导致的时间轴变化和对视频裁切的影响
    * 如果该时长 total_a 小于配音时长，则计算将配音时长缩短到 total_a 时，需要的加速倍数
-        - 如果该倍数 小于等于 1.5，则照此加速音频即可，无需视频慢速，注意因此导致的时间轴变化和对视频裁切的影响
-        - 如果该倍数 大于1.5，则按之前逻辑，音频加速和视频慢速各自负担一半
+        - 如果该倍数 小于等于 1.3，则照此加速音频即可，无需视频慢速，注意因此导致的时间轴变化和对视频裁切的影响
+        - 如果该倍数 大于1.3，则按之前逻辑，音频加速和视频慢速各自负担一半
 
 ## 仅仅使用音频加速时
 
 1. 如果配音时长 小于 当前片段的原始字幕时长，则无需音频加速
 2. 如果配音时长 大于 当前片段的原始字幕时长，则计算将音频缩短到和原始字幕时长一致时，所需的加速倍数是多少，
-- 如果该倍数 小于等于 1.5，则照此对配音加速即可
-- 如果该倍数 大于 1.5，则将原始字幕时长加上 和  下条字幕开始时间之间的静默时间(可能时0，也可能小于或大于`self.MIN_CLIP_DURATION_MS`，如果最后一条字幕，可能到视频结尾还有静默区间),记为  total_b
+- 如果该倍数 小于等于 1.3，则照此对配音加速即可
+- 如果该倍数 大于 1.3，则将原始字幕时长加上 和  下条字幕开始时间之间的静默时间,记为  total_b
    * 如果该时长 total_b 大于配音时长，则将配音无需加速，自然播放完毕即可，total_b 在容下配音后如果还有剩余空间则使用静音填充。
-   * 如果该时长 total_b 仍小于配音时长，则无视倍数，强制将配音时长缩短到total_a
-3. 注意开头和结尾以及字幕之间的静默区间，尤其是利用后可能还剩余的静默空间，最终合成后的音频长度，在存在视频时(self.novoice_mp4) 长度应等于视频长度，在不存在时，长度应等于从0到最后一条字幕的结束时间。
+   * 如果该时长 total_b 仍小于配音时长，强制将配音时长缩短到total_a，倍数最大不超过max_audio_speed_rate
+3. 注意开头和结尾以及字幕之间的静默区间，尤其是利用后可能还剩余的静默空间，最终合成后的音频长度，在存在视频时(self.novoice_mp4) 长度应等于视频长度，在不存在时，长度应不小于 self.raw_total_time。
 
 ## 仅仅视频慢速时
 1. 如果配音时长 小于 当前片段的原始字幕时长，则无需视频慢速，直接从本条字幕开始时间裁切到下条字幕开始时间，如果这是第一条字幕，则从0时间开始裁切
-2. 如果配音时长 大于 当前片段的原始字幕时长，则判断原始字幕时长加上 和  下条字幕开始时间之间的静默时间(可能时0，也可能小于或大于`self.MIN_CLIP_DURATION_MS`,如果最后一条字幕，可能到视频结尾还有静默区间),记为  total_c
+2. 如果配音时长 大于 当前片段的原始字幕时长，则判断原始字幕时长加上 和  下条字幕开始时间之间的静默时间,记为  total_c
    * 如果该时长 total_c 大于 配音时长，则无需视频慢速，自然播放完毕即可，此时应裁切 total_c 时长的视频片段，即裁切到到下条字幕开始时间，而且无需慢速处理，同样如果这是第一条字幕，则从0时间开始裁切
-   * 如果该时长 total_c 仍小于配音时长，强制将视频片段(时长为total_a) 慢速延长到和配音等长，此处注意下，如果PTS倍数大于10，可能失败，因此PTS最大为10，如果到10了，仍短于配音时长，则设PTS=10,并将配音时长强制缩短到和慢速后的视频一样长。
+   * 如果该时长 total_c 仍小于配音时长，强制将视频片段(时长为total_a) 慢速延长到和配音等长，此处注意下，PTS倍数最大不超过 max_video_speed_rate。
 3. 裁切需注意第一条字幕前的区域(开始时间可能大于0)和最后一条字幕后的区域(结束时间可能不到视频末尾)
 4. 无需慢速处理的片段，直接裁切本条字幕开始时间到下条字幕开始时间，无需单独区分静默，因为均无慢速。
 5. 需要慢速处理的片段，则需要注意其后的静默空间问题，避免导致丢失视频片段
@@ -65,7 +63,7 @@ class SpeedRate:
 4. 如果是最后一条字幕，则直接将该配音片段拼接上即可，无需判断后边是否还有空间。
 
 - 第二步查看是否存在视频文件
-1. elf.novoice_mp4 is not None, 并且该文件存在，则为存在视频，此时比较合并后的音频时长和视频时长
+1. self.novoice_mp4 is not None, 并且该文件存在，则为存在视频，此时比较合并后的音频时长和视频时长
     - 如果音频时长 小于 视频时长，则音频末尾填充静音直到长度一致
     - 如果音频时长 大于 视频时长，则视频最后定格延长，直到和音频时长一致
 2. 如果不存在视频文件，则无需其他处理
@@ -73,27 +71,34 @@ class SpeedRate:
 
 ## 小于 1024B 的视频片段可视为无效，过滤掉，容器、元信息加一帧图片，尺寸在 1024B以上
 
-    ===============================================================================================
-    """
+## 小于 40ms的视频片段可能达不到一帧，导致获取视频片段时长失败，此时强制将片段时长指定为  1000/帧率
 
-    MIN_CLIP_DURATION_MS = 50
+## 在无视频慢速参与情况下，按照配音，整理字幕时间轴，确保声音和字幕同时显示与消失
+## 在有视频慢速参与情况下，将配音片段同视频片段挨个对齐，如果配音片段短于当前视频片段，补充静音，如果大于，则无视，继续拼接，字幕时间轴以配音为准显示
+===============================================================================================
+"""
+
+
+class SpeedRate:
+    MIN_CLIP_DURATION_MS = 40
     # [新增] 统一所有中间音频文件的参数，防止拼接错误
     AUDIO_SAMPLE_RATE = 44100
     AUDIO_CHANNELS = 2
+    BESTER_AUDIO_RATE = 1.3
 
     def __init__(self,
                  *,
-                 queue_tts=None,
-                 shoud_videorate=False,
-                 shoud_audiorate=False,
-                 uuid=None,
-                 novoice_mp4=None,
-                 raw_total_time=0,
-                 noextname=None,
-                 target_audio=None,
-                 cache_folder=None
+                 queue_tts=None,  # 原始字幕列表 list[dict,...]
+                 shoud_videorate=False,  # 是否需要视频慢速
+                 shoud_audiorate=False,  # 是否需要音频加速
+                 uuid=None,  # 该任务唯一标识符
+                 novoice_mp4=None,  # 原始无音轨视频
+                 raw_total_time=0,  # 原始视频时长毫秒
+
+                 target_audio=None,  # 合并后的音频绝对路径
+                 cache_folder=None  # 缓存目录
                  ):
-        self.noextname = noextname
+
         self.raw_total_time = raw_total_time
         self.queue_tts = queue_tts
         self.shoud_videorate = shoud_videorate
@@ -110,29 +115,23 @@ class SpeedRate:
 
         self.target_audio_original = target_audio
         self.target_audio = Path(f'{self.cache_folder}/final_audio{Path(target_audio).suffix}').as_posix()
-
-        self.max_audio_speed_rate = 100
-        self.max_video_pts_rate = 10
+        config.settings = config.parse_init()
+        # 音频加速允许的最大加速倍数
+        self.max_audio_speed_rate = float(config.settings.get('max_audio_speed_rate', 100))
+        # 视频慢速允许的最大PTS
+        self.max_video_pts_rate = float(config.settings.get('max_video_pts_rate', 10))
+        # 默认帧率
         self.source_video_fps = 30
-        _cfg_max_audio_speed_rate=f'{config.ROOT_DIR}/videotrans/max_audio_speed_rate.txt'
-        _cfg_max_video_pts_rate=f'{config.ROOT_DIR}/videotrans/max_video_pts_rate.txt'
-        if Path(_cfg_max_audio_speed_rate).exists():
-            try:
-                self.max_audio_speed_rate=int(Path(_cfg_max_audio_speed_rate).read_text())
-            except Exception as e:
-                config.logger.exception(f'读取自定义 max_audio_speed_rate 值时出错，忽略:{e}',exc_info=True)
-        if Path(_cfg_max_video_pts_rate).exists():
-            try:
-                self.max_video_pts_rate=int(Path(_cfg_max_video_pts_rate).read_text())
-            except Exception as e:
-                config.logger.exception(f'读取自定义 max_video_pts_rate 值时出错，忽略:{e}',exc_info=True)
+        # 默认一帧时长ms
+        self.fps_ms = 1000 // 30
 
         # 检测并设置可用的音频变速滤镜
         self.audio_speed_filter = self._check_ffmpeg_filters()
 
-        config.logger.info(
+        logs(f'允许的最大音频加速倍数={self.max_audio_speed_rate},允许的最大视频慢放倍数={self.max_video_pts_rate}')
+        logs(
             f"SpeedRate 初始化。音频加速: {self.shoud_audiorate}, 视频慢速: {self.shoud_videorate}, 音频变速引擎: {self.audio_speed_filter}")
-        config.logger.info(f"所有中间音频将统一为: {self.AUDIO_SAMPLE_RATE}Hz, {self.AUDIO_CHANNELS} 声道。")
+        logs(f"所有中间音频将统一为: {self.AUDIO_SAMPLE_RATE}Hz, {self.AUDIO_CHANNELS} 声道。")
 
     def _check_ffmpeg_filters(self):
         """
@@ -145,126 +144,120 @@ class SpeedRate:
             filters_output = result.stdout
 
             if 'rubberband' in filters_output:
-                config.logger.info("检测到FFmpeg支持 'rubberband' 滤镜，将优先使用。")
+                logs("检测到FFmpeg支持 'rubberband' 滤镜，将优先使用。")
                 return 'rubberband'
             elif 'atempo' in filters_output:
-                config.logger.info("未检测到 'rubberband' 滤镜，将使用 'atempo' 滤镜。")
+                logs("未检测到 'rubberband' 滤镜，将使用 'atempo' 滤镜。")
                 return 'atempo'
             else:
-                config.logger.warning("FFmpeg中未检测到 'rubberband' 或 'atempo' 滤镜，音频加速功能可能受限。")
+                logs("FFmpeg中未检测到 'rubberband' 或 'atempo' 滤镜，音频加速功能可能受限。",level='warn')
                 return None
         except Exception as e:
-            config.logger.error(f"检查FFmpeg滤镜时出错: {e}。将无法使用高质量音频变速。")
+            logs(f"检查FFmpeg滤镜时出错: {e}。将无法使用高质量音频变速。",level='warn')
             return None
 
     def run(self):
-        # =========================================================================================
-        # 如果既不加速音频也不慢放视频
+        # 如果既不加速音频也不慢放视频，仅连接音频
         if not self.shoud_audiorate and not self.shoud_videorate:
-            config.logger.info("检测到未启用音视频变速，进入纯净拼接模式。")
+            logs("检测到未启用音视频变速，进入纯净拼接模式。")
             self._run_no_rate_change_mode()
             return self.queue_tts
         # 否则，执行加减速同步流程
+        # 组装数据，记录字幕原始时间及配音原始时长等
         self._prepare_data()
+        # 预先计算出 音频和视频应该变化到的新时长
         self._calculate_adjustments()
+        # 先执行音频加速
         self._execute_audio_speedup()
+        # 再执行视频慢速
         clip_meta_list_with_real_durations = self._execute_video_processing()
-
+        # 重新校正时间轴，音频加速和视频慢速的新值和理论值存在误差
         audio_concat_list = self._recalculate_timeline_and_merge_audio(clip_meta_list_with_real_durations)
+        # 拼接音频和视频
         if audio_concat_list:
             self._finalize_files(audio_concat_list)
-        return self.queue_tts
+        # 返回更新后的队列，有些视频片段丢失，对应的配音和字幕也应当丢弃
+        for i, it in enumerate(self.queue_tts):
+            if it.get('shoud_del'):
+                logs(f'[{i=}]字幕视频创建失败，将字幕清空，因对应的配音也删掉了，需保证一致,{it=}')
+                self.queue_tts[i]['text']=''
 
-    def _standardize_audio_segment(self, segment):
-        """[新增] 辅助函数，用于将任何AudioSegment对象标准化"""
-        return segment.set_frame_rate(self.AUDIO_SAMPLE_RATE).set_channels(self.AUDIO_CHANNELS)
+        return self.queue_tts
 
     def _run_no_rate_change_mode(self):
         """
         模式 不对音频视频做任何加减速处理。
-        [重构] 现在此模式也使用基于FFmpeg的流式拼接，以处理大文件。
+        此模式也使用基于FFmpeg的流式拼接，以处理大文件。
         1. 准备数据。
         2. 循环中，生成每个音频片段（配音+静音）的临时WAV文件。
         3. 生成一个文件列表供FFmpeg concat使用。
-        4. 调用通用的 `_finalize_files` 方法来处理拼接和与视频的最终对齐。
+        4. 调用通用的 `_finalize_files` 方法来处理拼接和与字幕的最终对齐。
         """
-        process_text = tr("[Pure Mode] Merging audio...")
+        process_text = tr("Merging audio...")
         tools.set_process(text=process_text, uuid=self.uuid)
-        config.logger.info("================== [纯净模式] 开始处理 ==================")
+        logs("================== [纯净模式] 开始处理 ==================")
 
         self._prepare_data()
 
         audio_concat_list = []
-        last_end_time = 0
         total_audio_duration = 0
 
         for i, it in enumerate(self.queue_tts):
             # 1. 填充字幕前的静音
-            silence_duration = it['start_time_source'] - last_end_time
-            if silence_duration > self.MIN_CLIP_DURATION_MS:
-                silence_clip_path = Path(self.audio_clips_folder, f"{i:05d}_pre_silence.wav").as_posix()
-                # [修正] 标准化静音参数
-                silent_segment = AudioSegment.silent(duration=silence_duration)
-                self._standardize_audio_segment(silent_segment).export(silence_clip_path, format="wav")
-                audio_concat_list.append(silence_clip_path)
-                config.logger.info(f"字幕[{it['line']}]前，生成静音片段 {silence_duration}ms")
+            silence_duration = it['start_time_source'] - (0 if i == 0 else self.queue_tts[i - 1]['end_time_source'])
+            if silence_duration > 0:
+                audio_concat_list.append(self._create_silen_file(i, silence_duration))
+                logs(f"字幕[{it['line']}]前，生成静音片段 {silence_duration}ms")
                 total_audio_duration += silence_duration
+
+            it['start_time'] = total_audio_duration
 
             # 加载并处理配音片段
             segment = None
-            dubb_duration = 0
+            source_duration = it['end_time_source'] - it['start_time_source']
+            dubb_duration = source_duration
             if tools.vail_file(it['filename']):
                 try:
-                    # [修正] 标准化加载的音频
+                    # 标准化加载的音频
                     segment = AudioSegment.from_file(it['filename'])
-                    segment = self._standardize_audio_segment(segment)
                     dubb_duration = len(segment)
                 except Exception as e:
-                    config.logger.error(f"字幕[{it['line']}] 加载音频文件 {it['filename']} 失败: {e}，将忽略此片段。")
+                    logs(f"字幕[{it['line']}] 加载音频文件 {it['filename']} 失败: {e}，填充静音。",level='warn')
             else:
-                config.logger.warning(f"字幕[{it['line']}] 配音文件不存在: {it['filename']}，将忽略此片段。")
-
+                logs(f"字幕[{it['line']}] 配音文件不存在: {it['filename']}，将填充静音。",level='warn')
+            # 真实配音时长
             it['dubb_time'] = dubb_duration
+            total_audio_duration += dubb_duration
 
-            if not segment:
-                last_end_time = it['end_time_source']
-                continue
+            it['end_time'] = it['start_time'] + dubb_duration
 
-            it['start_time'] = total_audio_duration
-            it['end_time'] = it['start_time'] + it['dubb_time']
             it['startraw'], it['endraw'] = tools.ms_to_time_string(ms=it['start_time']), tools.ms_to_time_string(
                 ms=it['end_time'])
+            if not segment:
+                # 配音失败，使用原始静音填充
+                audio_concat_list.append(self._create_silen_file(i, dubb_duration))
+                continue
 
             # 导出当前配音片段
             dub_clip_path = Path(self.audio_clips_folder, f"{i:05d}_dub.wav").as_posix()
             segment.export(dub_clip_path, format="wav")
             audio_concat_list.append(dub_clip_path)
-            total_audio_duration += dubb_duration
-            config.logger.info(
-                f"字幕[{it['line']}] 已生成配音片段，时长: {dubb_duration}ms, 新时间区间: {it['start_time']}-{it['end_time']}")
 
-            # 填充配音后的静音
-            if i < len(self.queue_tts) - 1:
-                next_start_time = self.queue_tts[i + 1]['start_time_source']
-                available_space = next_start_time - it['start_time_source']
-                if available_space >= dubb_duration:
-                    remaining_silence = available_space - dubb_duration
-                    if remaining_silence > self.MIN_CLIP_DURATION_MS:
-                        post_silence_path = Path(self.audio_clips_folder, f"{i:05d}_post_silence.wav").as_posix()
-                        # [修正] 标准化静音参数
-                        silent_segment = AudioSegment.silent(duration=remaining_silence)
-                        self._standardize_audio_segment(silent_segment).export(post_silence_path, format="wav")
-                        audio_concat_list.append(post_silence_path)
-                        total_audio_duration += remaining_silence
-                        config.logger.info(f"字幕[{it['line']}]后，生成剩余静音片段 {remaining_silence}ms")
-                    last_end_time = next_start_time
-                else:
-                    last_end_time = it['start_time_source'] + dubb_duration
-            else:
-                last_end_time = it['start_time'] + it['dubb_time']
+            # 如果配音时长小于,需在后边填充静音
+            if dubb_duration < source_duration:
+                audio_concat_list.append(self._create_silen_file(i, source_duration - dubb_duration))
+                total_audio_duration += source_duration - dubb_duration
+
+            logs(
+                f"字幕[{it['line']}] 已生成配音片段，配音时长: {dubb_duration}ms, 原时长 {source_duration}\n")
+
+        # 补充判断是否需要补充静音
+        if self.raw_total_time > 0 and total_audio_duration < self.raw_total_time:
+            audio_concat_list.append(
+                self._create_silen_file(len(self.queue_tts), self.raw_total_time - total_audio_duration))
 
         self._finalize_files(audio_concat_list)
-        config.logger.info("================== [纯净模式] 处理完成 ==================")
+        logs("================== [纯净模式] 处理完成 ==================")
 
     def _prepare_data(self):
         """
@@ -273,26 +266,81 @@ class SpeedRate:
         同时，`final_video_duration_real` 字段也被初始化。
         :return:
         """
-        tools.set_process(text=tr("[1/5] Preparing data..."),
-                          uuid=self.uuid)
-        config.logger.info("================== [阶段 1/5] 准备数据 ==================")
+        tools.set_process(text=tr("[1/5] Preparing data..."), uuid=self.uuid)
+        logs("================== [阶段 1/5] 准备数据 ==================")
 
-        if self.novoice_mp4_original and tools.vail_file(self.novoice_mp4_original):
+        if self.shoud_videorate and self.novoice_mp4_original and tools.vail_file(self.novoice_mp4_original):
             try:
                 self.source_video_fps = tools.get_video_info(self.novoice_mp4_original, video_fps=True) or 30
+                self.fps_ms = 1000 // self.source_video_fps
             except Exception as e:
-                config.logger.warning(f"无法探测源视频帧率，将使用默认值30。错误: {e}")
+                logs(f"无法探测源视频帧率，将使用默认值30。错误: {e}",level='warn')
                 self.source_video_fps = 30
-        config.logger.info(f"源视频帧率被设定为: {self.source_video_fps}")
+        logs(f"源视频帧率被设定为: {self.source_video_fps}")
 
-        for it in self.queue_tts:
+        # 如果需要视频慢速，额外预先多遍历一次，本次是为了将字幕前小于40ms的空隙去掉，合并进紧邻的后个字幕里，防止过短空隙导致视频裁切出错
+        # 使用冗余的多次遍历，每次仅处理一个任务，防止逻辑混乱
+        if self.shoud_videorate:
+            queue_tts_len=len(self.queue_tts)
+            for i,it in enumerate(self.queue_tts):
+                if i==0 and 0<it['start_time'] <self.MIN_CLIP_DURATION_MS:
+                    it['start_time']=0
+                elif i>0 and i<queue_tts_len-1:
+                    #不是最后一个,判断和前面的空隙是否小于 self.MIN_CLIP_DURATION_MS
+                    diff = it['start_time']-self.queue_tts[i-1]['end_time']
+                    if 0<diff < self.MIN_CLIP_DURATION_MS:
+                        it['start_time']=self.queue_tts[i-1]['end_time']
+                elif i==queue_tts_len-1:
+                    diff=self.raw_total_time-it['end_time']
+                    if 0<diff<self.MIN_CLIP_DURATION_MS:
+                        it['end_time']=self.raw_total_time
+        
+        # 在启用了视频慢速或音频时，再遍历一次，本次仅仅处理字幕文本为空的情况，将它合并进前面的字幕，
+        if self.shoud_videorate or self.shoud_audiorate: 
+            for i,it in enumerate(self.queue_tts): 
+                if it['text'].strip():
+                    continue
+                # 文本为空，则配音文件无论是否存在均无意义
+                # 但该条字幕不删，以便和原始转录的字幕条数一一对应，防止双字幕时错乱
+                it['filename']=None
+                if i>0:
+                    # 合并进前边的字幕
+                    self.queue_tts[i-1]['end_time']=it['end_time']
+                    it['start_time']=it['end_time']
+        
+                    
+
+        for i, it in enumerate(self.queue_tts):
+            # 原始字幕时长
+            it['source_duration'] = it['end_time'] - it['start_time']
+            # 原始字幕的起始时间
             it['start_time_source'] = it['start_time']
             it['end_time_source'] = it['end_time']
-            it['source_duration'] = it['end_time_source'] - it['start_time_source']
+
+            # 如果时长为0，要么因为当前字幕为空已处理，要么出错了，则删掉配音文件，后续音频和视频处理均跳过
+            if it['source_duration'] <= 0:
+                it['dubb_time'] = 0
+                it['filename'] = None
+                # 原始视频片段时长
+                it['final_video_duration_theoretical'] = 0
+                # 用于存储探测到的物理时长
+                it['final_video_duration_real'] = 0
+                it['final_audio_duration_theoretical'] = 0
+                continue
+
             it['dubb_time'] = self._get_audio_time_ms(it['filename'])
+            # 如果配音文件不存在或尺寸为0，使用静音替代
+            if it['dubb_time'] == 0:
+                it['dubb_time'] = it['source_duration']
+                it['filename'] = None
+                it['final_video_duration_theoretical'] = it['source_duration']
+                # 用于存储探测到的物理时长
+                it['final_video_duration_real'] = it['source_duration']
+                it['final_audio_duration_theoretical'] = it['source_duration']
+                continue
+            # 这几个值非确定，等待 _calculate_adjustments 再设置
             it['final_audio_duration_theoretical'] = it['dubb_time']
             it['final_video_duration_theoretical'] = it['source_duration']
-            # 用于存储探测到的物理时长
             it['final_video_duration_real'] = it['source_duration']
 
         for i, it in enumerate(self.queue_tts):
@@ -311,100 +359,90 @@ class SpeedRate:
         最终，它会为每个需要调整的片段计算出一个“理论目标时长”。
         :return:
         """
-        tools.set_process(text=tr("[2/5] Calculating adjustments..."),
-                          uuid=self.uuid)
-        config.logger.info("================== [阶段 2/5] 计算调整方案 ==================")
+        tools.set_process(text=tr("[2/5] Calculating adjustments..."), uuid=self.uuid)
+        logs("================== [阶段 2/5] 计算调整方案 ==================")
 
         for i, it in enumerate(self.queue_tts):
-            config.logger.info(f"--- 开始分析字幕[{it['line']}] ---")
             dubb_duration = it['dubb_time']
             source_duration = it['source_duration']
+            logs(f"\n--- 开始分析字幕[{it['line']}]---")
 
             if source_duration <= 0 or dubb_duration <= 0:
-                it['final_video_duration_theoretical'] = source_duration if source_duration > 0 else 0
-                it['final_audio_duration_theoretical'] = dubb_duration if dubb_duration > 0 else 0
-                config.logger.warning(f"字幕[{it['line']}] 原始时长({source_duration}ms)或配音时长({dubb_duration}ms)为0，跳过调整计算。")
+                it['final_video_duration_theoretical'] = source_duration
+                it['final_audio_duration_theoretical'] = source_duration
+                logs(f"字幕[{it['line']}], 原始时长或配音时长为0，跳过调整计算。",level='warn')
                 continue
 
             silent_gap = it['silent_gap']
             block_source_duration = source_duration + silent_gap
 
             config.logger.debug(
-                f"字幕[{it['line']}]：原始数据：配音时长={dubb_duration}ms, 字幕时长={source_duration}ms, 静默间隙={silent_gap}ms, 可用总长={block_source_duration}ms")
+                f"字幕[{it['line']}], 原始数据：配音时长={dubb_duration}ms, 字幕时长={source_duration}ms, 静默间隙={silent_gap}ms, 可用总长={block_source_duration}ms")
 
             # 如果音频可以被原始时段容纳，则无需处理
             if dubb_duration <= source_duration:
-                config.logger.info(f"字幕[{it['line']}]：配音({dubb_duration}ms) <= 字幕({source_duration}ms)，无需调整。")
+                logs(f"字幕[{it['line']}], 配音({dubb_duration}ms) <= 字幕({source_duration}ms)，无需调整。")
                 it['final_video_duration_theoretical'] = source_duration
                 it['final_audio_duration_theoretical'] = dubb_duration  # 音频时长就是其本身
                 continue
 
+            # 需要达到的音频目标时长：初始化为配音时长,即不变速
             target_duration = dubb_duration
+            # 需要达到的视频目标时长：初始化为原字幕对应时长，即不变速
+            video_target_duration = source_duration
 
             if self.shoud_audiorate and self.shoud_videorate:
-                config.logger.debug(f"字幕[{it['line']}]：进入[音视频结合]决策模式。")
+                config.logger.debug(f"字幕[{it['line']}], 进入[音频加速 + 视频慢速]模式。")
+                # 配音完全缩短的 source_duration 的加速倍数
                 speed_to_fit_source = dubb_duration / source_duration
-                if speed_to_fit_source <= 1.5:
-                    config.logger.info(
-                        f"字幕[{it['line']}]：[决策] 仅需音频加速（倍率{speed_to_fit_source:.2f} <= 1.5），视频不慢放。目标时长将为原字幕时长。")
-                    target_duration = source_duration
-                elif block_source_duration >= dubb_duration:
-                    config.logger.info(f"字幕[{it['line']}]：[决策] 利用静默间隙({silent_gap}ms)即可容纳配音，音视频均不变速。目标时长将为配音时长。")
-                    target_duration = dubb_duration
-                else:
-                    speed_to_fit_block = dubb_duration / block_source_duration
-                    if speed_to_fit_block <= 1.5:
-                        config.logger.info(
-                            f"字幕[{it['line']}]：[决策] 音频加速填满可用总长即可（倍率{speed_to_fit_block:.2f} <= 1.5）。目标时长将为可用总长。")
-                        target_duration = block_source_duration
-                    else:
-                        config.logger.info(f"字幕[{it['line']}]：[决策] 加速倍率({speed_to_fit_block:.2f}) > 1.5，音视频共同承担调整。")
-                        over_time = dubb_duration - block_source_duration
-                        video_extension = over_time / 2
-                        target_duration = int(block_source_duration + video_extension)
-            elif self.shoud_audiorate:
-                config.logger.debug(f"字幕[{it['line']}]：进入[仅音频加速]决策模式。")
-                speed_to_fit_source = dubb_duration / source_duration
-                if speed_to_fit_source <= 1.5:
-                    config.logger.info(f"字幕[{it['line']}]：[决策] 加速倍率({speed_to_fit_source:.2f}) <= 1.5，压缩至原字幕时长。")
-                    target_duration = source_duration
-                elif block_source_duration >= dubb_duration:
-                    config.logger.info(f"字幕[{it['line']}]：[决策] 利用静默间隙({silent_gap}ms)即可容纳，无需加速。目标时长将为配音时长。")
-                    target_duration = dubb_duration
-                else:
-                    config.logger.info(f"字幕[{it['line']}]：[决策] 空间不足，强制压缩至可用总长({block_source_duration}ms)。")
-                    target_duration = block_source_duration
-            elif self.shoud_videorate:
-                config.logger.debug(f"字幕[{it['line']}]：进入[仅视频慢速]决策模式。")
+
                 if block_source_duration >= dubb_duration:
-                    config.logger.info(f"字幕[{it['line']}]：[决策] 利用静默间隙({silent_gap}ms)即可容纳，无需慢放。目标时长为配音时长。")
+                    logs(f"字幕[{it['line']}], 利用静默间隙({silent_gap}ms)即可容纳配音，音视频均不变速。目标时长将为配音时长。")
                     target_duration = dubb_duration
+                elif speed_to_fit_source <= self.BESTER_AUDIO_RATE:
+                    logs(
+                        f"字幕[{it['line']}], 仅需音频加速（音倍率{speed_to_fit_source:.2f} <= {self.BESTER_AUDIO_RATE}），视频不慢放。目标时长将为原字幕时长。")
+                    target_duration = source_duration
                 else:
-                    config.logger.info(f"字幕[{it['line']}]：[决策] 空间不足，视频将慢放到配音时长。")
+                    logs(f"字幕[{it['line']}], 此时音频和视频共同承担调整，各自负责一半。")
+                    over_time = dubb_duration - source_duration
+                    video_extension = over_time / 2
+                    target_duration = int(source_duration + video_extension)
+                    video_target_duration=target_duration
+                    # 为保证对齐，忽略最大最小倍数限制，强制两者时长一致                    
+            elif self.shoud_audiorate:
+                config.logger.debug(f"字幕[{it['line']}], 进入[仅音频加速]模式。")
+                speed_to_fit_source = dubb_duration / source_duration
+                if block_source_duration >= dubb_duration:
+                    logs(f"字幕[{it['line']}], [决策] 利用静默间隙({silent_gap}ms)即可容纳，无需加速。目标时长将为配音时长。")
                     target_duration = dubb_duration
+                elif speed_to_fit_source<= self.BESTER_AUDIO_RATE:
+                    logs(f"字幕[{it['line']}], 加速倍率({speed_to_fit_source:.2f})< {self.BESTER_AUDIO_RATE}，压缩至原字幕时长。")
+                    target_duration = source_duration
+                else:
+                    speed_to_fit_source=min(speed_to_fit_source,self.max_audio_speed_rate)
+                    target_duration=int(dubb_duration/speed_to_fit_source)
+                    
+            elif self.shoud_videorate:
+                # 仅仅视频慢速，此时视频应该慢放到等于配音时长
+                config.logger.debug(f"字幕[{it['line']}], 进入[仅视频慢速/音频不变]模式。")
+                speed_to_fit_source = dubb_duration / source_duration
+                if block_source_duration >= dubb_duration:
+                    logs(f"字幕[{it['line']}], [决策] 利用静默间隙({silent_gap}ms)即可容纳，无需慢放。")
+                    video_target_duration = source_duration
+                elif speed_to_fit_source<=self.max_video_pts_rate:
+                    logs(f"字幕[{it['line']}], [决策] 空间不足，视频将慢放到配音时长。")
+                    video_target_duration = dubb_duration
+                else:
+                    speed_to_fit_source=min(speed_to_fit_source,self.max_video_pts_rate)
+                    video_target_duration=int(dubb_duration/speed_to_fit_source)
+            
+            it['final_audio_duration_theoretical']=target_duration
+            it['final_video_duration_theoretical']=video_target_duration
+            
 
-            # 为视频和音频分别设置理论目标时长
-            it['final_audio_duration_theoretical'] = target_duration
-
-            if self.shoud_videorate:
-                # 当启用视频慢放时，视频的理论时长与音频目标时长一致
-                video_target_duration = target_duration
-                # 检查视频PTS限制
-                # 视频慢放的目标是原始的 source_duration + silent_gap 这段区域
-                pts_ratio = video_target_duration / block_source_duration if block_source_duration > 0 else 1.0
-                if pts_ratio > self.max_video_pts_rate:
-                    config.logger.warning(
-                        f"字幕[{it['line']}]：计算出的视频慢放倍率({pts_ratio:.2f})超过最大值({self.max_video_pts_rate})，已强制修正。")
-                    video_target_duration = int(block_source_duration * self.max_video_pts_rate)
-                    # 如果视频被限制，音频也必须被压缩到同样的时长以保持同步
-                    it['final_audio_duration_theoretical'] = video_target_duration
-                it['final_video_duration_theoretical'] = video_target_duration
-            else:
-                # 在非视频慢放模式下，视频的理论时长等于它所占用的空间
-                it['final_video_duration_theoretical'] = min(target_duration, block_source_duration)
-
-            config.logger.info(
-                f"字幕[{it['line']}]：[最终方案] 理论目标音频时长: {it['final_audio_duration_theoretical']}ms, 理论目标视频时长: {it['final_video_duration_theoretical']}ms")
+            logs(
+                f"字幕[{it['line']}], [最终方案] 理论目标音频时长: {target_duration}ms,理论视频时长:{video_target_duration}ms")
 
     def _execute_audio_speedup(self):
         """
@@ -412,63 +450,68 @@ class SpeedRate:
         """
         tools.set_process(text=tr("[3/5] Processing audio..."),
                           uuid=self.uuid)
-        config.logger.info("================== [阶段 3/5] 执行音频加速 ==================")
+        logs("================== [阶段 3/5] 执行音频加速 ==================")
 
         if not self.audio_speed_filter:
-            config.logger.warning("音频加速被跳过，因为未找到合适的FFmpeg滤镜。")
+            logs("音频加速被跳过，因为未找到合适的FFmpeg滤镜。",level='warn')
+            return
+        if not self.shoud_audiorate:
+            logs("未启用音频加速",level='warn')
             return
 
         all_cmds = []
         for i, it in enumerate(self.queue_tts):
+            # 需要加速后的新配音时长
             target_duration_ms = int(it['final_audio_duration_theoretical'])
-            current_duration_ms = it['dubb_time']
-
-            # 只有在需要压缩时才处理
-            if current_duration_ms > target_duration_ms and tools.vail_file(it['filename']):
-                if target_duration_ms <= 0 or current_duration_ms - target_duration_ms < 20:  # 增加容差
-                    all_cmds.append("1")
-                    continue
-
-                speedup_ratio = current_duration_ms / target_duration_ms
-                if speedup_ratio < 1.01:
-                    all_cmds.append("1")
-                    continue
-                # 如果超出最大加速倍数，则强制设限，自此不可再对齐
-                speedup_ratio=self.max_audio_speed_rate if self.max_audio_speed_rate< speedup_ratio else speedup_ratio
-
-                config.logger.info(
-                    f"字幕[{it['line']}]：[执行] 音频加速，倍率={speedup_ratio:.2f} (从 {current_duration_ms}ms -> {target_duration_ms}ms) 使用 {self.audio_speed_filter} 引擎。")
-
-                input_file = it['filename']
-                temp_output_file = f"{Path(input_file).parent / (Path(input_file).stem + '_temp')}.wav"
-
-                cmd = ['-y', '-i', input_file]
-
-                filter_str = ""
-                if self.audio_speed_filter == 'rubberband':
-                    filter_str = f"rubberband=tempo={speedup_ratio}"
-                elif self.audio_speed_filter == 'atempo':
-                    tempo_filters = []
-                    current_tempo = speedup_ratio
-                    while current_tempo > 4.0:
-                        tempo_filters.append("atempo=4.0")
-                        current_tempo /= 4.0
-                    if current_tempo >= 0.5:
-                        tempo_filters.append(f"atempo={current_tempo}")
-                    filter_str = ",".join(tempo_filters)
-
-                if not filter_str:
-                    config.logger.error(f"字幕[{it['line']}] 无法为倍率 {speedup_ratio:.2f} 构建有效的filter字符串，跳过变速。")
-                    all_cmds.append("1")
-                    continue
-
-                target_duration_sec = target_duration_ms / 1000.0
-                cmd.extend(['-filter:a', filter_str, '-t', f'{target_duration_sec:.4f}'])
-                # [修正] 确保输出是标准化的WAV
-                cmd.extend(['-ar', str(self.AUDIO_SAMPLE_RATE), '-ac', str(self.AUDIO_CHANNELS), '-c:a', 'pcm_s16le', temp_output_file])
-                all_cmds.append(cmd)
-            else:
+            if target_duration_ms <= 0:  # 增加容差
                 all_cmds.append("1")
+                continue
+            # 原始配音时长
+            current_duration_ms = it['dubb_time']
+            # 只有在需要压缩时才处理
+            if current_duration_ms <= target_duration_ms or not tools.vail_file(it['filename']):
+                all_cmds.append("1")
+                continue
+
+            # 在理论计算时已限制最大加速倍数，不再处理超过的情况
+            speedup_ratio = current_duration_ms / target_duration_ms
+            if float(speedup_ratio) <= 1.0:
+                all_cmds.append("1")
+                continue
+            
+            logs(
+                f"字幕[{it['line']}]：[执行] 音频加速，倍率={speedup_ratio:.2f} (从 {current_duration_ms}ms -> {target_duration_ms}ms) 使用 {self.audio_speed_filter} 引擎。")
+
+            input_file = it['filename']
+            temp_output_file = f"{Path(input_file).parent / (Path(input_file).stem + '_temp')}.wav"
+
+            cmd = ['-y', '-i', input_file]
+
+            filter_str = ""
+            if self.audio_speed_filter == 'rubberband':
+                filter_str = f"rubberband=tempo={speedup_ratio}"
+            elif self.audio_speed_filter == 'atempo':
+                tempo_filters = []
+                current_tempo = speedup_ratio
+                while current_tempo > 4.0:
+                    tempo_filters.append("atempo=4.0")
+                    current_tempo /= 4.0
+                if current_tempo >= 0.5:
+                    tempo_filters.append(f"atempo={current_tempo}")
+                filter_str = ",".join(tempo_filters)
+
+            if not filter_str:
+                logs(f"字幕[{it['line']}] 无法为倍率 {speedup_ratio:.2f} 构建有效的filter字符串，跳过变速。",level='warn')
+                all_cmds.append("1")
+                continue
+
+            target_duration_sec = target_duration_ms / 1000.0
+            cmd.extend(['-filter:a', filter_str, '-t', f'{target_duration_sec:.4f}'])
+
+            cmd.extend(['-ar', str(self.AUDIO_SAMPLE_RATE), '-ac', str(self.AUDIO_CHANNELS), '-c:a', 'pcm_s16le',
+                        temp_output_file])
+            all_cmds.append(cmd)
+
 
         total_tasks = len(all_cmds)
         if total_tasks == 0:
@@ -476,20 +519,27 @@ class SpeedRate:
 
         def _speedup_set_dubbtime(i, cmd):
             it = self.queue_tts[i]
-            if tools.runffmpeg(cmd, force_cpu=True):
-                up_after_time=self._get_audio_time_ms(cmd[-1])
-                raw_time=self._get_audio_time_ms(it["filename"])
-                if up_after_time<raw_time:
+            try:
+                tools.runffmpeg(cmd, force_cpu=True)
+                # 加速后实际的音频新时长，可能和理论不一致
+                up_after_time = self._get_audio_time_ms(cmd[-1])
+                if up_after_time > 0 and up_after_time < it['dubb_time'] and tools.vail_file(cmd[-1]):
+                    self.queue_tts[i]['dubb_time'] = up_after_time
                     try:
                         shutil.copy2(cmd[-1], it['filename'])
-                    except Exception as e:
-                        config.logger.exception(f"变速后复制 {cmd[-1]} 到 {it['filename']} 失败",exc_info=True)
-                    self.queue_tts[i]['dubb_time'] =up_after_time
-            else:
-                config.logger.error(f"字幕[{it['line']}] 音频变速失败")
+                    except shutil.SameFileError:
+                        pass
+                else:
+                    self.queue_tts[i]['dubb_time']=self.queue_tts[i]['source_duration']
+                    self.queue_tts[i]['filename']=None
+                    logs(f"变速后复制 {cmd[-1]} 到 {it['filename']} 失败", level="except")
+            except Exception as e:
+                self.queue_tts[i]['dubb_time']=self.queue_tts[i]['source_duration']
+                self.queue_tts[i]['filename']=None
+                logs(f"字幕[{it['line']}] 音频变速失败 {e}",level='warn')
 
         all_task = []
-        with ThreadPoolExecutor(max_workers=min(12,len(all_cmds),os.cpu_count())) as pool:
+        with ThreadPoolExecutor(max_workers=min(12, len(all_cmds), os.cpu_count())) as pool:
             for i, cmd in enumerate(all_cmds):
                 if isinstance(cmd, list):
                     all_task.append(pool.submit(_speedup_set_dubbtime, i, cmd))
@@ -503,22 +553,22 @@ class SpeedRate:
                         text=f"[{completed_tasks}/{total_tasks}] ...",
                         uuid=self.uuid)
                 except Exception as e:
-                    config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
+                    logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
 
     def _execute_video_processing(self):
         """
-        [修正] 视频处理阶段
+        视频处理阶段
         确保在处理完成后，返回包含了真实物理时长的`clip_meta_list`。
         """
-        tools.set_process(
-            text=tr("[4/5] Processing video & probing real durations..."),
-            uuid=self.uuid)
-        config.logger.info("================== [阶段 4/5] 执行视频处理并探测真实时长 ==================")
         if not self.shoud_videorate or not self.novoice_mp4_original or not tools.vail_file(self.novoice_mp4_original):
-            config.logger.warning("视频处理被跳过，因为未启用或无声视频文件不存在。")
+            logs("视频处理被跳过，因为未启用或无声视频文件不存在。",level='warn')
             for it in self.queue_tts:
                 it['final_video_duration_real'] = it['final_video_duration_theoretical']
             return None
+        tools.set_process(
+            text=tr("[4/5] Processing video & probing real durations..."),
+            uuid=self.uuid)
+        logs("================== [阶段 4/5] 执行视频处理并探测真实时长 ==================")
 
         clip_meta_list = self._create_clip_meta()
 
@@ -526,21 +576,38 @@ class SpeedRate:
         total_tasks = len(clip_meta_list)
 
         def _cut_video_get_duration(i, task):
-            pts_param = float(task['pts']) if float(task.get('pts',0)) > 1.01 else None
-            # 如果超出最大允许慢速倍数，则强制设限，自此无法再对齐
-            if pts_param is not None and self.max_video_pts_rate<pts_param:
-                pts_param=self.max_video_pts_rate
-            self._cut_to_intermediate(ss=task['ss'], to=task['to'], source=self.novoice_mp4_original, pts=pts_param, out=task['out'])
+            duration = task['to'] - task['ss']
+            subject = f"字幕[{task.get('line', 'gap')}],[index={i}]"
+            msg = f"\n{subject} ,start_time_source={task['ss']},正在生成中间片段, 原始范围: {task['ss']}-{task['to']}={duration}ms,"
+            if duration <= 0:
+                clip_meta_list[i]['final_video_duration_real'] = 0
+                logs(f"{msg},字幕时长为0，跳过裁切视频片段\n")
+                return
+            pts_param = float(task['pts']) if float(task.get('pts', 0)) > 1.0 else None
+            # 在理论计算阶段已限制最大倍数，不再处理
+            if pts_param:
+                logs(f"{msg} [变速]: PTS={pts_param},理论上生成后视频片段时长={float(pts_param) * (duration)}ms")
+            else:
+                logs(f"{msg} [不变速]: PTS=1")
 
+            self._cut_to_intermediate(ss=task['ss'], to=task['to'], source=self.novoice_mp4_original, pts=pts_param,
+                                      out=task['out'])
+            # 获取生成后的真实视频片段时长，为0则是生成片段出错，需对应跳过该字幕和配音
             real_duration_ms = 0
             if Path(task['out']).exists() and Path(task['out']).stat().st_size > 1024:
                 real_duration_ms = self._get_video_duration_safe(task['out'])
-
+                if real_duration_ms == -1:
+                    # 生成真的失败了
+                    Path(task['out']).unlink(missing_ok=True)
+                elif real_duration_ms == 0:
+                    # 可能存在一帧
+                    real_duration_ms = self.fps_ms
+            logs(f"{subject} 实际生成后物理时长:{real_duration_ms}ms\n")
             clip_meta_list[i]['real_duration_ms'] = real_duration_ms
             if task['type'] == 'sub':
                 clip_meta_list[i]['final_video_duration_real'] = real_duration_ms
 
-        with ThreadPoolExecutor(max_workers=min(12,len(clip_meta_list),os.cpu_count())) as pool:
+        with ThreadPoolExecutor(max_workers=min(12, len(clip_meta_list), os.cpu_count())) as pool:
             for i, task in enumerate(clip_meta_list):
                 all_task.append(pool.submit(_cut_video_get_duration, i, task))
                 # 监控进度
@@ -550,10 +617,10 @@ class SpeedRate:
                     task.result()  # 等待任务完成
                     completed_tasks += 1
                     tools.set_process(
-                        text=tr("[{}/{}] Processing video & probing real durations...",completed_tasks,total_tasks),
+                        text=tr("[{}/{}] Processing video & probing real durations...", completed_tasks, total_tasks),
                         uuid=self.uuid)
                 except Exception as e:
-                    config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
+                    logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
 
         self._concat_and_finalize(clip_meta_list)
         return clip_meta_list
@@ -564,11 +631,10 @@ class SpeedRate:
         """
         clip_meta_list = []
         last_end_time = 0
-        if not self.queue_tts: return []
 
         # 处理第一条字幕前的间隙
         first_sub_start = self.queue_tts[0]['start_time_source']
-        if first_sub_start > self.MIN_CLIP_DURATION_MS:
+        if first_sub_start > 0:
             clip_path = Path(f'{self.cache_folder}/00000_first_gap.mp4').as_posix()
             clip_meta_list.append({"type": "gap", "out": clip_path, "ss": 0, "to": first_sub_start, "pts": 1.0})
             last_end_time = first_sub_start
@@ -577,23 +643,24 @@ class SpeedRate:
             # 处理字幕间的间隙
             gap_start = last_end_time
             gap_end = it['start_time_source']
-            if gap_end - gap_start >= self.MIN_CLIP_DURATION_MS:
+            start_time = it['start_time_source']
+            if gap_end > gap_start:
                 clip_path = Path(f'{self.cache_folder}/{i:05d}_gap.mp4').as_posix()
                 clip_meta_list.append({"type": "gap", "out": clip_path, "ss": gap_start, "to": gap_end, "pts": 1.0})
 
             # 处理字幕本身
             if it['source_duration'] > 0:
                 clip_path = Path(f"{self.cache_folder}/{i:05d}_sub.mp4").as_posix()
-                # [修正] 视频慢放的目标是原始的 source_duration, 所以pts基于此计算
+                # 视频慢放的目标是原始的 source_duration, 所以pts基于此计算
                 pts_val = it['final_video_duration_theoretical'] / it['source_duration'] if it[
                                                                                                 'source_duration'] > 0 else 1.0
-                clip_meta_list.append({"type": "sub", "index": i, "out": clip_path, "ss": it['start_time_source'],
+                clip_meta_list.append({"type": "sub", "index": i, "out": clip_path, "ss": start_time,
                                        "to": it['end_time_source'], "pts": pts_val, "line": it['line']})
 
             last_end_time = it['end_time_source']
 
         # 处理最后一条字幕后的间隙
-        if self.raw_total_time - last_end_time >= self.MIN_CLIP_DURATION_MS:
+        if self.raw_total_time > last_end_time:
             clip_path = Path(f'{self.cache_folder}/zzzz_final_gap.mp4').as_posix()
             clip_meta_list.append(
                 {"type": "gap", "out": clip_path, "ss": last_end_time, "to": self.raw_total_time, "pts": 1.0})
@@ -604,27 +671,29 @@ class SpeedRate:
         return clip_meta_list
 
     def _cut_to_intermediate(self, ss, to, source, pts, out):
-        """将视频片段裁切为标准化的中间格式"""
-        cmd = ['-y', '-ss', tools.ms_to_time_string(ms=ss, sepflag='.'), '-to',
-               tools.ms_to_time_string(ms=to, sepflag='.'), '-i', source,
-               '-an', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '10',
-               '-pix_fmt', 'yuv420p', '-r', str(self.source_video_fps)]
-        if pts: cmd.extend(['-vf', f'setpts={pts}*PTS,fps={self.source_video_fps}'])
+        """视频变速"""
+        cmd = ['-y',  '-ss', tools.ms_to_time_string(ms=ss, sepflag='.'), '-t',
+               f'{(to - ss) / 1000.0}','-i', source, 
+               '-an', '-c:v', 'libx264',"-x264-params", "keyint=1:min-keyint=1:scenecut=0", '-preset', 'ultrafast', '-crf', '10',
+               '-pix_fmt', 'yuv420p']
+        if pts:
+            cmd.extend(['-vf', f'setpts={pts}*PTS', '-vsync', 'vfr'])
+        else:
+            cmd.extend(['-vf', f'setpts=PTS', '-vsync', 'vfr'])
         cmd.append(out)
-
-        config.logger.info(f"正在生成中间片段: {Path(out).name}, 原始范围: {ss}-{to}, PTS={pts or '1.0'}")
-
         try:
             tools.runffmpeg(cmd, force_cpu=True)
-            if not Path(out).exists() and pts:
-                config.logger.warning(f"中间片段 {Path(out).name} 生成失败，尝试无PTS参数重试。")
-                if pts: cmd.pop(-2); cmd.pop(-2)
-                tools.runffmpeg(cmd, force_cpu=True)
-            if Path(out).exists():
-                st_size = Path(out).stat().st_size
-                if st_size < 1024:
-                    config.logger.warning(f"中间片段 {Path(out).name} 生成成功，但尺寸为 {st_size} < 1024B，无效需删除。")
-                    Path(out).unlink(missing_ok=True)
+            if (not Path(out).exists() or Path(out).stat().st_size < 1024) and pts:
+                logs(f"中间片段 {Path(out).name} 生成失败，尝试无PTS参数重试。",level='warn')
+                tools.runffmpeg(['-y', '-ss', tools.ms_to_time_string(ms=ss, sepflag='.'), '-t',
+                                 f'{(to - ss) / 1000.0}', '-i', source,
+                                 '-an', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '10',
+                                 '-pix_fmt', 'yuv420p', '-vf', f'setpts=PTS', '-vsync', 'vfr', out],
+                                force_cpu=True)
+            # 仍然有错就放弃了
+            if Path(out).exists() and Path(out).stat().st_size < 1024:
+                logs(f"中间片段 {Path(out).name} 生成成功，但尺寸为 < 1024B，无效需删除。",level='warn')
+                Path(out).unlink(missing_ok=True)
         except Exception:
             try:
                 Path(out).unlink(missing_ok=True)
@@ -636,7 +705,7 @@ class SpeedRate:
         valid_clips = [task['out'] for task in clip_meta_list if
                        Path(task['out']).exists() and Path(task['out']).stat().st_size > 1024]
         if not valid_clips:
-            config.logger.error("没有任何有效的视频中间片段生成，视频处理失败！")
+            logs("没有任何有效的视频中间片段生成，视频处理失败！",level='warn')
             self.novoice_mp4 = self.novoice_mp4_original
             return
 
@@ -644,217 +713,215 @@ class SpeedRate:
         try:
             tools.create_concat_txt(valid_clips, concat_txt=concat_txt_path)
         except ValueError as e:
-            config.logger.error(f"创建视频拼接列表失败: {e}")
+            logs(f"创建视频拼接列表失败: {e}",level='warn')
             return
 
         intermediate_merged_path = Path(f'{self.cache_folder}/intermediate_merged.mp4').as_posix()
-        concat_cmd = ['-y', '-f', 'concat', '-safe', '0', '-i', concat_txt_path, '-c', 'copy', intermediate_merged_path]
+        concat_cmd = ['-y', '-fflags', '+genpts', '-f', 'concat', '-safe', '0', '-i', concat_txt_path, '-c:v', 'copy',
+                      intermediate_merged_path]
         tools.runffmpeg(concat_cmd, force_cpu=True)
 
         if not Path(intermediate_merged_path).exists():
-            config.logger.error("拼接后的中间视频文件未能生成，视频处理失败！")
+            logs("拼接后的中间视频文件未能生成，视频处理失败！",level='warn')
             return
-
-        final_video_path = Path(f'{self.cache_folder}/merged_{self.noextname}.mp4').as_posix()
-        video_codec = config.settings.get('video_codec','')
-        finalize_cmd = ['-y', '-i', intermediate_merged_path, '-c:v', f'libx{video_codec}', '-crf',
-                        str(config.settings.get("crf", 23)), '-preset', config.settings.get('preset', 'fast'), '-an',
-                        final_video_path]
-        tools.runffmpeg(finalize_cmd)
-
-        if Path(final_video_path).exists():
-            shutil.copy2(final_video_path, self.novoice_mp4)
-            config.logger.info(f"最终无声视频已成功生成并复制到: {self.novoice_mp4}")
+        tools.runffmpeg(['-y','-i',intermediate_merged_path,'-c','copy',self.novoice_mp4],force_cpu=True)
+        if Path(self.novoice_mp4).exists():
+            logs(f"最终无声视频已成功生成并复制到: {self.novoice_mp4}")
         else:
-            config.logger.error("最终视频编码失败，保留原始无声视频。")
+            logs("最终视频编码失败，保留原始无声视频。",level='warn')
             self.novoice_mp4 = self.novoice_mp4_original
         # 删除临时片段
         for clip_path in valid_clips:
             try:
-                if Path(clip_path).exists(): os.remove(clip_path)
+                Path(clip_path).unlink(missing_ok=True)
             except OSError:
                 pass
-
         try:
-            if Path(intermediate_merged_path).exists(): os.remove(intermediate_merged_path)
-            if Path(concat_txt_path).exists(): os.remove(concat_txt_path)
+            Path(intermediate_merged_path).unlink(missing_ok=True)
+            Path(concat_txt_path).unlink(missing_ok=True)
         except OSError:
             pass
 
     def _recalculate_timeline_and_merge_audio(self, clip_meta_list):
         """
-        [修正] 音频重建阶段。
+        音频重建阶段。
         根据 `shoud_videorate` 的值，正确分发到物理时间轴或理论时间轴模型。
         """
         process_text = tr("[5/5] Generating audio clips...")
         tools.set_process(text=process_text, uuid=self.uuid)
-        config.logger.info("================== [阶段 5/5] 生成音频片段以供拼接 ==================")
+        logs("================== [阶段 5/5] 生成音频片段以供拼接 ==================")
 
-        # [关键修正] 严格根据 `shoud_videorate` 和 `clip_meta_list` 的有效性来选择路径
         if self.shoud_videorate and clip_meta_list:
-            config.logger.info("进入物理时间轴模型（基于视频片段真实时长）构建音频。")
+            logs("进入物理时间轴模型（基于视频片段真实时长）构建音频。")
             return self._recalculate_timeline_based_on_physical_video(clip_meta_list)
         else:
-            config.logger.info("进入理论时间轴模型（基于计算偏移）构建音频。")
+            logs("进入理论时间轴模型（基于计算偏移）构建音频。")
             return self._recalculate_timeline_with_theoretical_offset()
 
-    def _recalculate_timeline_based_on_physical_video(self, clip_meta_list):
-        """
-        [新增] 基于视频片段的物理真实时长来构建音频片段列表。
-        此方法仅在 `shoud_videorate=True` 时被调用。
-        """
+    def _recalculate_timeline_based_on_physical_video(self, clip_meta_list=None):
         audio_concat_list = []
-        current_timeline_ms = 0
 
-        for i, task in enumerate(clip_meta_list):
-            task_real_duration = int(task.get('real_duration_ms', 0))
-            if task_real_duration <= 0:
+        # 需要到 clip_meta_list 种获取对应的本条字幕新视频片段的开始和结束时间 以及真实时间
+        def _get_s2e_by_line(line):
+            start_time = 0
+            for it in clip_meta_list:
+                it_line = it.get('line')
+                if not it_line or it_line < line:
+                    gap_ms = it.get('real_duration_ms', 0)
+                    start_time += gap_ms if gap_ms > 0 else self.fps_ms
+                elif it_line == line:
+                    sub_ms = it.get('real_duration_ms', 0)
+                    return start_time, sub_ms if sub_ms > 0 else self.fps_ms
+            return 0, 0
+
+        audio_all_duration = 0
+
+        for i, it in enumerate(self.queue_tts):
+            # 从 clip_meta_list 中获取当前对应片段的视频开始时间和时长
+            start_time, video_duration = _get_s2e_by_line(it['line'])
+            if video_duration <= 0 or it['start_time'] == it['end_time']:
                 continue
+            # 如果音频时长小于视频开始时长 start_time,则补充静音
+            logs(f'\n【字幕 {it["line"]}】,获取到视频 {start_time=},{video_duration=},当前 {audio_all_duration=}')
+            if audio_all_duration < start_time:
+                audio_concat_list.append(self._create_silen_file(i, start_time - audio_all_duration))
+                audio_all_duration = start_time
+                it['start_time'] = start_time
+            else:
+                # 配音已长于视频开始时间，不处理
+                it['start_time'] = audio_all_duration
 
-            clip_path = Path(self.audio_clips_folder, f"v_clip_{i:05d}.wav").as_posix()
-            segment = None
+            clip_path = Path(self.audio_clips_folder, f"t_clip_{i:05d}.wav").as_posix()
+            # 判断该配音文件是否出错
+            occur_error = False
+            # 视频片段时长
+            source_duration = video_duration
+            
+            if  not tools.vail_file(it.get('filename')):
+                occur_error = True
+                logs(f'[{i=}] 读取配音文件失败，插入原始时长静音')
 
-            if task['type'] == 'gap':
-                segment = AudioSegment.silent(duration=task_real_duration)
-                config.logger.info(f"生成物理间隙音频片段：时长 {task_real_duration}ms -> {clip_path}")
-                current_timeline_ms += task_real_duration
 
-            elif task['type'] == 'sub':
-                it = self.queue_tts[task['index']]
-                it['start_time'] = current_timeline_ms
-                it['end_time'] = it['start_time'] + it['dubb_time']
-                it['startraw'], it['endraw'] = tools.ms_to_time_string(ms=it['start_time']), tools.ms_to_time_string(
-                    ms=it['end_time'])
-                config.logger.info(
-                    f"字幕[{it['line']}] 字幕时间精确化：新区间 {it['start_time']}-{it['end_time']} (配音时长 {it['dubb_time']}ms)")
 
-                # 创建一个与视频片段等长的静音画布
-                base_segment = AudioSegment.silent(duration=task_real_duration)
-
-                if tools.vail_file(it['filename']):
-                    try:
-                        audio_clip = AudioSegment.from_file(it['filename'])
-                        # 将配音叠加到静音画布的开头
-                        segment = base_segment.overlay(audio_clip)
-                        '''
-                        #==== start 在此针对仅视频慢速、并且是最后一条有效字幕的、并且配音时长大于视频片段物理时长的情况，进行音频加速
-                        if not self.shoud_audiorate and self.shoud_videorate:
-                            #  仅视频加速
-                            if i==len(clip_meta_list)-1 or (i==len(clip_meta_list)-2 and clip_meta_list[-1]['sub']=='gap'):
-                                # 如果是最后一条，或者是倒数第二条但同时最后一条是gap
-                                if len(audio_clip)>task_real_duration:
-                                    # 如果此时音频时长大于视频物理时长，在此加速音频
-                                    tools.precise_speed_up_audio(file_path=it['filename'], target_duration_ms=task_real_duration)
-                                    segment=AudioSegment.from_file(it['filename'])
-
-                        #======= end
-                        '''
-
-                    except Exception as e:
-                        config.logger.error(f"字幕[{it['line']}] 加载音频失败: {e}，使用等长静音替代。")
-                        segment = base_segment
-                else:
-                    config.logger.warning(f"字幕[{it['line']}] 配音文件不存在，使用等长静音替代。")
-                    segment = base_segment
-
-                current_timeline_ms += task_real_duration
-                config.logger.info(f"字幕[{it['line']}] 音频流重建：生成片段，时长 {task_real_duration}ms -> {clip_path}")
-
-            if segment:
-                # [核心修正] 导出前统一所有片段的参数
-                self._standardize_audio_segment(segment).export(clip_path, format="wav")
+            # 出错时使用视频片段时长的静音片段替代
+            if occur_error:
+                it['dubb_time'] = source_duration
+                it['end_time'] = it['start_time'] + source_duration
+                audio_concat_list.append(self._create_silen_file(i, source_duration))
+                audio_all_duration += source_duration
+                logs(f'[{i=}] 配音出错，强制配音时长为视频时长={source_duration}ms')
+            else:
+                logs(f'[{i=}] 配音OK')
+                shutil.copy2(it['filename'], clip_path)
                 audio_concat_list.append(clip_path)
+                if it['dubb_time'] < source_duration:
+                    it['end_time'] = it['start_time'] + it['dubb_time']
+                    # 配音短于视频片段时长，需补充静音
+                    audio_concat_list.append(self._create_silen_file(i, source_duration - it['dubb_time']))
+                    audio_all_duration += source_duration
+                    logs(f"[{i=}] 配音短于视频片段时长，需补充静音={source_duration - it['dubb_time']}ms")
+                else:
+                    # 如果配音长于视频，忽略不处理
+                    it['end_time'] = it['start_time'] + it['dubb_time']
+                    audio_all_duration += it['dubb_time']
+                    logs(f"[{i=}] 配音长于视频片段时长{it['dubb_time'] - source_duration}ms")
+
+            it['startraw'], it['endraw'] = tools.ms_to_time_string(ms=it['start_time']), tools.ms_to_time_string(
+                ms=it['end_time'])
 
         return audio_concat_list
 
+    # 创建静音音频文件并返回路径
+    def _create_silen_file(self, i, duration):
+        silence_path = Path(self.audio_clips_folder,
+                            f"t_clip_{i:05d}_{random.randint(0, 99999)}_silence.wav").as_posix()
+        silent_segment = AudioSegment.silent(duration=duration)
+        silent_segment.export(silence_path, format="wav")
+        return silence_path
+
     def _recalculate_timeline_with_theoretical_offset(self):
         """
-        [修正] 备用方法：当不处理视频时，生成基于理论 time_offset 的音频片段列表。
-        修正了时间轴计算的逻辑错误，避免不正确的静音累积。
+        当不处理视频时，单纯计算配音时长。
         """
         audio_concat_list = []
-        time_offset = 0
-        current_timeline_ms = 0
-
+        logs(f'【仅音频加速】：开始重新整理音频时间轴')
         for i, it in enumerate(self.queue_tts):
-            target_start_time = it['start_time_source'] + time_offset
+            if i == 0 and it['start_time_source'] > 0:
+                # 开头有静音片段，需插入
+                audio_concat_list.append(self._create_silen_file(i, it['start_time_source']))
 
-            it['start_time'] = target_start_time
+            # 原始字幕时长
+            source_duration = it['end_time_source'] - it['start_time_source']
+            # 跳过原始字幕时长为0的
+            if source_duration <= 0:
+                continue
+            # 判断该配音文件是否出错
+            occur_error = False
+            logs(
+                f"\n字幕[{it['line']}] 原始区间{it['start_time_source']}-{it['end_time_source']} (原字幕长) {source_duration}ms")
+            if not tools.vail_file(it.get('filename')):
+                occur_error = True
+                logs(f'[{i=}] 读取配音文件失败，插入原始时长静音')
+
+            clip_path = Path(self.audio_clips_folder, f"t_clip_{i:05d}.wav").as_posix()
+            # 出错时使用原始字幕时长的静音片段替代
+            if occur_error:
+                error_silent = self._create_silen_file(i, source_duration)
+                it['dubb_time'] = source_duration
+
+            if i == 0:
+                it['start_time'] = it['start_time_source']
+                logs(
+                    f'[{i=}]{"error" if occur_error else "OK"},第一条字幕开始时间保持原始不变，{it["start_time"]=},{it["end_time"]=}')
+            else:
+                # 后续字幕，如果上一条end_time>start_time_source,则使其等于上条 end_time,否则，两者之间添加静音片段
+                last_end_time = self.queue_tts[i - 1]['end_time'] - it['start_time_source']
+                if last_end_time >= 0:
+                    it['start_time'] = self.queue_tts[i - 1]['end_time']
+                    logs(
+                        f'[{i=}]{"error" if occur_error else "OK"},当前字幕被上条字幕覆盖时间 {last_end_time}ms，因此将本条start_time,设为上条的end_time,{it["start_time"]=},{it["end_time"]=}')
+                else:
+                    # 同上一条字幕之间存在空隙，添加静音
+                    silen_time = abs(last_end_time)
+                    audio_concat_list.append(self._create_silen_file(i, silen_time))
+
+                    it['start_time'] = it['start_time_source']
+                    logs(
+                        f'[{i=}]{"error" if occur_error else "OK"},当前字幕距离上条字幕存在 {silen_time}ms空隙，因此本条字幕开始时间不变,{it["start_time"]=},{it["end_time"]=}')
+
             it['end_time'] = it['start_time'] + it['dubb_time']
+            if not occur_error:
+                shutil.copy2(it['filename'], clip_path)
+                audio_concat_list.append(clip_path)
+            else:
+                audio_concat_list.append(error_silent)
             it['startraw'], it['endraw'] = tools.ms_to_time_string(ms=it['start_time']), tools.ms_to_time_string(
                 ms=it['end_time'])
-            config.logger.info(
-                f"字幕[{it['line']}] 字幕时间精确化：新区间 {it['start_time']}-{it['end_time']} (配音时长 {it['dubb_time']}ms)")
 
-            silence_needed = max(0, target_start_time - current_timeline_ms)
+            logs(
+                f"字幕[{it['line']}] 新区间 {it['start_time']}-{it['end_time']} (配音时长 {it['dubb_time']}ms)\n")
 
-            if silence_needed > self.MIN_CLIP_DURATION_MS:
-                silence_path = Path(self.audio_clips_folder, f"t_clip_{i:05d}_silence.wav").as_posix()
-                # [修正] 标准化
-                silent_segment = AudioSegment.silent(duration=silence_needed)
-                self._standardize_audio_segment(silent_segment).export(silence_path, format="wav")
-                audio_concat_list.append(silence_path)
-                current_timeline_ms += silence_needed
-                config.logger.info(f"理论模式：字幕[{it['line']}]前插入静音 {silence_needed}ms")
-
-            final_segment_duration = int(it['final_audio_duration_theoretical'])
-            if final_segment_duration <= 0:
-                time_offset += (final_segment_duration - it['source_duration'])
-                continue
-
-            # 创建一个目标时长的静音画布
-            base_segment = AudioSegment.silent(duration=final_segment_duration)
-            segment = base_segment
-            if tools.vail_file(it['filename']):
-                try:
-                    audio_clip = AudioSegment.from_file(it['filename'])
-                    # 叠加配音
-                    segment = base_segment.overlay(audio_clip)
-                except Exception as e:
-                    config.logger.error(f"字幕[{it['line']}] 加载音频失败: {e}，使用等长静音替代。")
-            else:
-                config.logger.warning(f"字幕[{it['line']}] 配音文件不存在，使用等长静音替代。")
-
-            clip_path = Path(self.audio_clips_folder, f"t_clip_{i:05d}_sub.wav").as_posix()
-            # [修正] 标准化
-            self._standardize_audio_segment(segment).export(clip_path, format="wav")
-            audio_concat_list.append(clip_path)
-
-            current_timeline_ms += final_segment_duration
-            time_offset += (final_segment_duration - it['source_duration'])
-            config.logger.info(f"理论模式：字幕[{it['line']}]生成片段，时长 {final_segment_duration}ms，累积时间偏移 {time_offset}ms")
-
-        # 理论模式下的最终视频时长
-        final_video_duration = self.raw_total_time + time_offset
-        final_gap = final_video_duration - current_timeline_ms
-        if final_gap > self.MIN_CLIP_DURATION_MS:
-            # final_gap_path = Path(self.audio_clips_folder, "t_clip_zzzz_final_gap.wav").as_posix()
-            final_gap_path = Path(self.audio_clips_folder, "t_clip_zzzz_final_gap.wav").as_posix()
-            # [修正] 标准化
-            silent_segment = AudioSegment.silent(duration=final_gap)
-            self._standardize_audio_segment(silent_segment).export(final_gap_path, format="wav")
-            audio_concat_list.append(final_gap_path)
-            config.logger.info(f"理论模式：末尾添加静音 {final_gap}ms")
-        config.logger.info(f"{audio_concat_list=}")
         return audio_concat_list
 
     def _get_video_duration_safe(self, file_path):
         """
         一个健壮的视频时长获取方法。
+        return -1 出错
+        返回0不代表出错，可能仅有一帧数据，无法获取到精确时间
         """
         path_obj = Path(file_path)
         if not path_obj.exists() or path_obj.stat().st_size == 0:
-            config.logger.warning(f"视频时长探测失败：文件不存在或为空 -> {file_path}")
-            return 0
+            logs(f"视频时长探测失败：文件不存在或为空 -> {file_path}",level='warn')
+            return -1
         try:
             duration_ms = tools.get_video_info(file_path, video_time=True)
             if duration_ms is None:
-                config.logger.warning(f"视频时长探测返回 None，可能文件已损坏 -> {file_path}")
-                return 0
+                logs(f"视频时长探测返回 None，可能文件已损坏 -> {file_path}",level='warn')
+                return -1
             return duration_ms
         except Exception as e:
-            config.logger.error(f"探测视频时长时发生严重错误: {e}。文件 -> {file_path}。将视其时长为0。")
-            return 0
+            logs(f"探测视频时长时发生严重错误: {e}。文件 -> {file_path}。将视其时长为0。",level='warn')
+            return -1
 
     def _finalize_files(self, audio_concat_list):
         """
@@ -862,7 +929,7 @@ class SpeedRate:
         """
         final_step_text = tr("Concatenating audio and finalizing...")
         tools.set_process(text=final_step_text, uuid=self.uuid)
-        config.logger.info("================== [最终步骤] 拼接音频、对齐并交付 ==================")
+        logs("================== [最终步骤] 拼接音频、对齐并交付 ==================")
 
         try:
             # 初始拼接
@@ -871,112 +938,143 @@ class SpeedRate:
             if not tools.vail_file(self.target_audio):
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), self.target_audio)
 
-            if self.novoice_mp4 and tools.vail_file(self.novoice_mp4):
-                config.logger.info("开始最终音视频时长对齐检查...")
+            audio_duration_ms = self._get_audio_time_ms(self.target_audio)
+            if audio_duration_ms == 0:
+                raise ValueError(f'Target dubb audio duration is 0: {self.target_audio}')
+
+            # 只有选择了视频慢速，才会进入该逻辑
+            if self.shoud_videorate:
+                if not self.novoice_mp4 or not tools.vail_file(self.novoice_mp4):
+                    raise RuntimeError(f'Not found: {self.novoice_mp4} ')
+                logs("开始最终音视频时长对齐检查...")
                 video_duration_ms = self._get_video_duration_safe(self.novoice_mp4)
-                if video_duration_ms == 0:
+                if video_duration_ms <= 0:
                     raise ValueError(f'Target video duration is 0: {self.novoice_mp4}')
 
-                audio_duration_ms = self._get_audio_time_ms(self.target_audio)
-                if audio_duration_ms == 0:
-                    raise ValueError(f'Target dubb audio duration is 0: {self.target_audio}')
-
-                config.logger.info(f"最终检查: 视频物理总长 = {video_duration_ms}ms, 音频物理总长 = {audio_duration_ms}ms")
+                logs(f"最终检查: 视频物理总长 = {video_duration_ms}ms, 音频物理总长 = {audio_duration_ms}ms")
                 duration_diff = video_duration_ms - audio_duration_ms
-                config.logger.info(f"时长差异 (视频 - 音频) = {duration_diff}ms")
+                logs(f"时长差异 (视频 - 音频) = {duration_diff}ms")
 
                 if duration_diff > 0:
-                    config.logger.warning(f"视频比音频长 {duration_diff}ms，将通过FFmpeg apad滤镜在音频末尾补齐等长静音。")
-
-                    # [核心修正] 使用FFmpeg apad滤镜高效添加静音，而不是pydub
-                    padded_audio_path = Path(
-                        f'{self.cache_folder}/padded_audio{Path(self.target_audio).suffix}').as_posix()
-                    pad_dur_sec = duration_diff / 1000.0
-                    pad_dur_sec = max(1, pad_dur_sec)
-
-                    cmd = ['-y', '-i', str(self.target_audio), '-af', f'apad=pad_dur={pad_dur_sec:.4f}']
-
-                    # 保持编码参数一致
-                    ext = Path(self.target_audio).suffix.lower()
-                    if ext == '.wav':
-                        cmd.extend(["-c:a", "pcm_s16le"])
-                    elif ext == '.m4a':
-                        cmd.extend(["-c:a", "aac", "-b:a", "128k"])
-                    else:  # 默认mp3
-                        cmd.extend(["-c:a", "libmp3lame", "-q:a", "2"])
-                    cmd.append(padded_audio_path)
-
-                    if tools.runffmpeg(cmd) and tools.vail_file(padded_audio_path):
-                        shutil.move(padded_audio_path, self.target_audio)
-                        config.logger.info("音频补齐静音并重新导出完成。")
-                    else:
-                        config.logger.error("使用apad滤镜填充静音失败！")
-
-
+                    logs(f"视频比音频长 {duration_diff}ms，将通过FFmpeg apad滤镜在音频末尾补齐等长静音。",level='warn')
+                    self._audio_extend(duration_diff)
                 elif duration_diff < 0:
-                    freeze_duration_sec = int((abs(duration_diff) / 1000.0) + 1)
-                    config.logger.warning(f"音频比视频长 {abs(duration_diff)}ms，将定格视频最后一帧 {freeze_duration_sec:.3f} 秒以对齐。")
+                    freeze_duration_sec = math.ceil(abs(duration_diff) / 1000.0)
+                    logs(f"音频比视频长 {abs(duration_diff)}ms，将定格视频最后一帧 {freeze_duration_sec:.3f} 秒以对齐。",level='warn')
+                    self._video_extend(freeze_duration_sec)
+            elif self.raw_total_time and audio_duration_ms < self.raw_total_time:
+                # 仅音频加速【trans_create或字幕配音(无视频)】 或 纯净模式[trans_create]，按照self.raw_total_time延长音频
+                self._audio_extend(self.raw_total_time - audio_duration_ms)
+            elif self.novoice_mp4 and self.raw_total_time and audio_duration_ms > self.raw_total_time:
+                # 有视频且视频未慢速处理，如果音频长于视频，需对视频定格math.ceil(abs(duration_diff) / 1000.0)
+                self._video_extend(math.ceil((audio_duration_ms - self.raw_total_time) / 1000.0))
 
-                    final_video_path = Path(f'{self.cache_folder}/final_video_with_freeze.mp4').as_posix()
-                    cmd = ['-y', '-i', self.novoice_mp4,
-                           '-vf', f'tpad=stop_mode=clone:stop_duration={freeze_duration_sec}',
-                           '-c:v', f'libx{config.settings.get("video_codec",264)}',
-                           '-crf', str(config.settings.get("crf", 23)),
-                           '-preset', config.settings.get('preset', 'fast'),
-                           '-an', final_video_path]
-
-                    if tools.runffmpeg(cmd, force_cpu=True) and Path(final_video_path).exists():
-                        shutil.copy2(final_video_path, self.novoice_mp4)
-                        config.logger.info("视频定格延长操作成功。")
-                    else:
-                        config.logger.error("视频定格延长操作失败！音视频可能存在时长不一致。")
-
-            if Path(self.target_audio).exists():
-                try:
-                    shutil.copy2(self.target_audio, self.target_audio_original)
-                    config.logger.info(f"最终音频文件已成功交付到: {self.target_audio_original}")
-                except shutil.SameFileError:
-                    pass
-            else:
-                config.logger.error(f"最终音频文件 {self.target_audio} 未能生成，交付失败！")
-
+            try:
+                shutil.copy2(self.target_audio, self.target_audio_original)
+                logs(f"最终音频文件已成功交付到: {self.target_audio_original}")
+            except shutil.SameFileError:
+                pass
         except Exception as e:
-            config.logger.exception(f"导出或对齐最终音视频时发生致命错误: {e}")
+            logs(f"导出或对齐最终音视频时发生致命错误: {e}")
             raise
+        logs("所有处理完成，音视频已成功生成。")
 
-        config.logger.info("所有处理完成，音视频已成功生成。")
+    # 视频定格最后一帧
+    def _video_extend(self, freeze_duration_sec=1):
+        final_video_path = Path(f'{self.cache_folder}/final_video_with_freeze.mp4').as_posix()
+        cmd = ['-y', '-i', self.novoice_mp4,
+               '-vf', f'tpad=stop_mode=clone:stop_duration={freeze_duration_sec}',
+               '-c:v', 'libx264',
+               '-crf', '10',
+               '-preset', 'ultrafast',
+               '-an', final_video_path]
+
+        if tools.runffmpeg(cmd, force_cpu=True) and Path(final_video_path).exists():
+            shutil.copy2(final_video_path, self.novoice_mp4)
+            logs("视频定格延长操作成功。")
+        else:
+            logs("视频定格延长操作失败！音视频可能存在时长不一致。",level='warn')
+
+    def _audio_extend(self, duration_diff):
+        # 音频末尾添加静音延长
+        padded_audio_path = Path(
+            f'{self.cache_folder}/padded_audio{Path(self.target_audio).suffix}').as_posix()
+        pad_dur_sec = duration_diff / 1000.0
+        pad_dur_sec = math.ceil(pad_dur_sec)
+        logs(f'音频末尾增加 {pad_dur_sec} 秒静音')
+
+        cmd = ['-y', '-i', str(self.target_audio), '-af', f'apad=pad_dur={pad_dur_sec:.4f}']
+
+        # 保持编码参数一致
+        ext = Path(self.target_audio).suffix.lower()
+        if ext == '.wav':
+            cmd.extend(["-c:a", "pcm_s16le"])
+        elif ext == '.m4a':
+            cmd.extend(["-c:a", "aac", "-b:a", "128k"])
+        else:  # 默认mp3
+            cmd.extend(["-c:a", "libmp3lame", "-q:a", "2"])
+        cmd.append(padded_audio_path)
+
+        if tools.runffmpeg(cmd) and tools.vail_file(padded_audio_path):
+            shutil.move(padded_audio_path, self.target_audio)
+            logs("音频补齐静音并重新导出完成。")
+        else:
+            logs("使用apad滤镜填充静音失败！",level='warn')
+
+    def _standardize_audio_segment(self, segment):
+        """辅助函数，用于将任何AudioSegment对象标准化，防止DTS错乱"""
+        return segment.set_frame_rate(self.AUDIO_SAMPLE_RATE).set_channels(self.AUDIO_CHANNELS)
 
     def _get_audio_time_ms(self, file_path):
-        if not tools.vail_file(file_path):
+        if not file_path or not tools.vail_file(file_path):
             return 0
         try:
-            # 优先使用 ffprobe，更准确
-            duration = tools.get_audio_time(file_path)
-            if duration is not None:
-                return int(duration * 1000)
-            raise
+            return len(AudioSegment.from_file(file_path))
         except Exception as e:
-            if tools.vail_file(file_path):
-                return len(AudioSegment.from_file(file_path))
-            config.logger.error(f"字幕获取音频文件 {file_path} 时长失败: {e}")
+            logs(f"字幕获取音频文件 {file_path} 时长失败: {e}",level='warn')
             return 0
 
     def _ffmpeg_concat_audio(self, file_list, output_path):
         """
-        [核心修正] 使用混合拼接法来健壮地拼接大量音频文件，以规避Windows命令行长度限制。
+        使用混合拼接法来健壮地拼接大量音频文件，以规避Windows命令行长度限制。
         步骤1: 使用concat demuxer + 重新编码，生成一个临时的、干净的WAV文件。
         步骤2: 将这个临时的WAV文件转码为最终的目标格式。
         """
         if not file_list:
-            config.logger.warning("音频拼接列表为空，无法生成最终音频。")
+            logs("音频拼接列表为空，无法生成最终音频。",level='warn')
             return
 
         concat_txt_path = Path(f'{self.cache_folder}/audio_clips/audio_concat_list.txt').as_posix()
         temp_wav_output = Path(f'{self.cache_folder}/temp_concatenated.wav').as_posix()
 
+        # 对所有音频标准化
+        def _format_wav(file_name):
+            try:
+                self._standardize_audio_segment(AudioSegment.from_file(file_name, format="wav")).export(file_name,
+                                                                                                        format="wav")
+            except Exception as e:
+                logs(f'对音频切片{file_name} 标准化时出错 {e}', level="except")
+
+        all_task = []
+        with ThreadPoolExecutor(max_workers=min(12, len(file_list), os.cpu_count())) as pool:
+            for i, fpath in enumerate(file_list):
+                all_task.append(pool.submit(_format_wav, fpath))
+                # 监控进度
+            completed_tasks = 0
+            for task in all_task:
+                try:
+                    task.result()  # 等待任务完成
+                    completed_tasks += 1
+                    tools.set_process(
+                        text=f'audio clip standardize {completed_tasks}',
+                        uuid=self.uuid)
+                except Exception as e:
+                    logs(f"Task:audio clip standardize {completed_tasks + 1} failed with error: {e}",
+                                            level="except")
+
         try:
-            # 步骤1: 使用concat demuxer进行稳定的拼接
-            config.logger.info(f"混合拼接步骤1: 创建包含 {len(file_list)} 个文件的拼接列表。{concat_txt_path=}")
+            # 使用concat demuxer进行稳定的拼接
+            logs(f"混合拼接步骤1: 创建包含 {len(file_list)} 个文件的拼接列表")
             tools.create_concat_txt(file_list, concat_txt=concat_txt_path)
             if not Path(concat_txt_path).exists():
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), concat_txt_path)
@@ -991,16 +1089,16 @@ class SpeedRate:
                 "-ac", str(self.AUDIO_CHANNELS),
                 temp_wav_output
             ]
-            config.logger.info(f"混合拼接步骤1: 正在将列表拼接并重新编码为临时WAV文件: {temp_wav_output}")
+            logs(f"混合拼接步骤1: 正在将列表拼接并重新编码为临时WAV文件: {temp_wav_output}")
             tools.runffmpeg(cmd_step1, force_cpu=True)
             os.chdir(config.ROOT_DIR)
 
             if not tools.vail_file(temp_wav_output):
-                config.logger.error(f"音频拼接失败，临时文件 {temp_wav_output} 未生成。")
+                logs(f"音频拼接失败，临时文件 {temp_wav_output} 未生成。",level='warn')
                 return
 
             # 步骤2: 将拼接好的临时WAV转码为最终格式
-            config.logger.info(f"混合拼接步骤2: 正在将临时WAV转码为最终格式: {output_path}")
+            logs(f"混合拼接步骤2: 正在将临时WAV转码为最终格式: {output_path}")
             cmd_step2 = ["-y", "-i", temp_wav_output]
 
             ext = Path(output_path).suffix.lower()
@@ -1020,15 +1118,13 @@ class SpeedRate:
                     pass
             else:
                 tools.runffmpeg(cmd_step2, force_cpu=True)
-
         finally:
-            pass
             # 清理临时文件
             try:
                 if Path(concat_txt_path).exists():
                     os.remove(concat_txt_path)
                 if Path(temp_wav_output).exists():
                     os.remove(temp_wav_output)
-                config.logger.info("已清理音频拼接临时文件。")
+                logs("已清理音频拼接临时文件。")
             except Exception as e:
-                config.logger.warning(f"清理音频拼接临时文件失败: {e}")
+                logs(f"清理音频拼接临时文件失败: {e}",level='warn')

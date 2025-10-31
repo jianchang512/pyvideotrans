@@ -2,7 +2,7 @@ def openwin():
     import json
 
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr
+    from videotrans.configure.config import tr,logs
     from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans

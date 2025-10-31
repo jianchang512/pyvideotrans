@@ -8,6 +8,8 @@ import time
 from pathlib import Path
 from typing import Union
 
+from videotrans.configure.config import logs
+
 
 def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
     """
@@ -167,12 +169,12 @@ def _build_hw_command(args: list, hw_codec: str):
                 crf_value = args[i + 1]
                 hw_quality_value = _translate_crf_to_hw_quality(crf_value, encoder_family)
                 if hw_quality_value is not None:
-                    # config.logger.info(f"将 -crf {crf_value} 替换为硬件参数 {hw_quality_param} {hw_quality_value}")
+                    # logs(f"将 -crf {crf_value} 替换为硬件参数 {hw_quality_param} {hw_quality_value}")
                     new_args.extend([hw_quality_param, str(hw_quality_value)])
                 else:
-                    config.logger.error(f"无法转换 -crf {crf_value} 的值，将忽略此质量参数。")
+                    logs(f"无法转换 -crf {crf_value} 的值，将忽略此质量参数。",level='warn')
             else:
-                config.logger.error(f"编码器 {encoder_family} 不支持CRF到硬件质量参数的自动替换，将忽略 -crf。")
+                logs(f"编码器 {encoder_family} 不支持CRF到硬件质量参数的自动替换，将忽略 -crf。",level='warn')
             i += 2
             continue
 
@@ -191,13 +193,13 @@ def _build_hw_command(args: list, hw_codec: str):
             'cuda_decode', False):
         if encoder_family == 'nvenc':
             hw_decode_opts = ['-hwaccel', 'cuda', '-hwaccel_output_format', 'cuda']
-            # config.logger.info("启用 CUDA 硬件解码。")
+            # logs("启用 CUDA 硬件解码。")
         elif encoder_family == 'qsv':
             hw_decode_opts = ['-hwaccel', 'qsv', '-hwaccel_output_format', 'qsv']
-            # config.logger.info("启用 QSV 硬件解码。")
+            # logs("启用 QSV 硬件解码。")
         elif encoder_family == 'videotoolbox':
             hw_decode_opts = ['-hwaccel', 'videotoolbox']
-            # config.logger.info("启用 VideoToolbox 硬件解码。")
+            # logs("启用 VideoToolbox 硬件解码。")
 
     return new_args, hw_decode_opts
 
@@ -215,6 +217,8 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
         force_cpu (bool): 如果为 True，则强制使用 CPU 编码，不尝试硬件加速。
     """
     from videotrans.configure import config
+    if config.settings.get('force_lib'):
+        force_cpu=True
     arg_copy = copy.deepcopy(arg)
 
     default_codec = f"libx{config.settings.get('video_codec', '264')}"
@@ -239,12 +243,12 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
             config.video_codec = get_video_codec()
 
         if config.video_codec and 'libx' not in config.video_codec:
-            # config.logger.info(f"检测到硬件编码器 {config.video_codec}，正在调整参数...")
+            # logs(f"检测到硬件编码器 {config.video_codec}，正在调整参数...")
             final_args, hw_decode_opts = _build_hw_command(arg, config.video_codec)
         else:
-            config.logger.info("未找到或未选择硬件编码器，将使用软件编码。")
+            logs("未找到或未选择硬件编码器，将使用软件编码。")
 
-    cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown"]
+    cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown",'-threads','0']
     if "-y" not in final_args:
         cmd.append("-y")
     cmd.extend(hw_decode_opts)
@@ -259,6 +263,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
 
     if noextname:
         config.queue_novice[noextname] = 'ing'
+
 
     try:
         creationflags = 0
@@ -281,7 +286,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
         return True
 
     except FileNotFoundError as e:
-        config.logger.error(f"命令未找到: {cmd[0]}。请确保 ffmpeg 已安装并在系统 PATH 中。")
+        logs(f"命令未找到: {cmd[0]}。请确保 ffmpeg 已安装并在系统 PATH 中。",level='warn')
         if noextname:
             config.queue_novice[noextname] = f"error:{e}"
         raise
@@ -290,11 +295,11 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
         if config.exit_soft:
             return
         error_message = e.stderr or "(无 stderr 输出)"
-        config.logger.error(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message}")
+        logs(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message}",level='warn')
 
         is_video_output = cmd[-1].lower().endswith('.mp4')
         if not force_cpu and is_video_output:
-            config.logger.warning("硬件加速失败，将自动回退到 CPU 编码重试...")
+            logs("硬件加速失败，将自动回退到 CPU 编码重试...",level='warn')
 
             fallback_args = []
             i = 0
@@ -315,7 +320,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
 
     except Exception as e:
         if noextname: config.queue_novice[noextname] = f"error:{e}"
-        config.logger.exception(f"执行 ffmpeg 时发生未知错误 (force_cpu={force_cpu})。")
+        logs(f"执行 ffmpeg 时发生未知错误 (force_cpu={force_cpu})。")
         # 针对win上路径和名称问题单独提示
         if sys.platform=='win32' and 'No such file or directory' in str(e):
             err=get_filepath_from_cmd(cmd)
@@ -340,7 +345,7 @@ def get_filepath_from_cmd(cmd:list):
 
 
 
-def get_video_codec(force_test: bool = False) -> str:
+def get_video_codec() -> str:
     """
     通过测试确定最佳可用的硬件加速 H.264/H.265 编码器。
 
@@ -358,22 +363,28 @@ def get_video_codec(force_test: bool = False) -> str:
     """
     from videotrans.configure import config
     _codec_cache = config.codec_cache  # 使用 config 中的缓存
-
+    try:
+        if not _codec_cache and Path(f'{config.ROOT_DIR}/videotrans/codec.json').exists():
+            _codec_cache=json.loads(Path(f'{config.ROOT_DIR}/videotrans/codec.json').read_text(encoding='utf-8'))
+    except Exception as e:
+        logs(f'parse codec.json error:{e}')
+        
+    
     plat = platform.system()
     try:
         video_codec_pref = int(config.settings.get('video_codec', 264))
     except (ValueError, TypeError):
-        config.logger.warning("配置中 'video_codec' 无效。将默认使用 H.264 (264)。")
+        logs("配置中 'video_codec' 无效。将默认使用 H.264 (264)。",level='warn')
         video_codec_pref = 264
 
-    cache_key = (plat, video_codec_pref)
-    if not force_test and cache_key in _codec_cache:
-        config.logger.info(f"返回缓存的编解码器 {cache_key}: {_codec_cache[cache_key]}")
+    cache_key = f'{plat}-{video_codec_pref}'
+    if cache_key in _codec_cache:
+        logs(f"返回缓存的编解码器 {cache_key}: {_codec_cache[cache_key]}")
         return _codec_cache[cache_key]
 
     h_prefix, default_codec = ('hevc', 'libx265') if video_codec_pref == 265 else ('h264', 'libx264')
     if video_codec_pref not in [264, 265]:
-        config.logger.warning(f"未预期的 video_codec 值 '{video_codec_pref}'。将视为 H.264 处理。")
+        logs(f"未预期的 video_codec 值 '{video_codec_pref}'。将视为 H.264 处理。",level='warn')
 
     ENCODER_PRIORITY = {
         'Darwin': ['videotoolbox'],
@@ -385,7 +396,7 @@ def get_video_codec(force_test: bool = False) -> str:
         test_input_file = Path(config.ROOT_DIR) / "videotrans/styles/no-remove.mp4"
         temp_dir = Path(config.TEMP_DIR)
     except Exception as e:
-        config.logger.error(f"准备测试硬件编码器时出错: {e}。将使用软件编码 {default_codec}。")
+        logs(f"准备测试硬件编码器时出错: {e}。将使用软件编码 {default_codec}。",level='warn')
         _codec_cache[cache_key] = default_codec
         return default_codec
 
@@ -399,26 +410,26 @@ def get_video_codec(force_test: bool = False) -> str:
         ]
         creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
 
-        config.logger.info(f"正在测试编码器是否可用: {encoder_to_test}...")
+        logs(f"正在测试编码器是否可用: {encoder_to_test}...")
         success = False
         try:
             subprocess.run(
                 command, check=True, capture_output=True, text=True,
                 encoding='utf-8', errors='ignore', creationflags=creationflags, timeout=timeout
             )
-            config.logger.info(f"硬件编码器 '{encoder_to_test}' 可用。")
+            logs(f"硬件编码器 '{encoder_to_test}' 可用。")
             success = True
         except FileNotFoundError:
-            config.logger.error("'ffmpeg' 命令在 PATH 中未找到。无法进行编码器测试。")
+            logs("'ffmpeg' 命令在 PATH 中未找到。无法进行编码器测试。")
             raise  # 重新抛出异常，让上层逻辑捕获并终止测试
         except subprocess.CalledProcessError as e:
-            config.logger.warning(f"硬件编码器 '{encoder_to_test}' 不可用")
+            logs(f"硬件编码器 '{encoder_to_test}' 不可用")
         except PermissionError:
-            config.logger.warning(f"测试硬件编码器时失败:写入 {output_file} 时权限被拒绝。 {command=}")
+            logs(f"测试硬件编码器时失败:写入 {output_file} 时权限被拒绝。 {command=}")
         except subprocess.TimeoutExpired:
-            config.logger.warning(f"硬件编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。{command=}")
+            logs(f"硬件编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。{command=}")
         except Exception as e:
-            config.logger.warning(f"测试硬件编码器 {encoder_to_test} 时发生意外错误: {e} {command=}", exc_info=True)
+            logs(f"测试硬件编码器 {encoder_to_test} 时发生意外错误: {e} {command=}")
         finally:
             try:
                 if output_file.exists():
@@ -431,38 +442,40 @@ def get_video_codec(force_test: bool = False) -> str:
 
     encoders_to_test = ENCODER_PRIORITY.get(plat, [])
     if not encoders_to_test:
-        config.logger.info(f"不支持的平台: {plat}。将使用软件编码器 {default_codec}。")
+        logs(f"不支持的平台: {plat}。将使用软件编码器 {default_codec}。")
     else:
-        config.logger.info(f"平台: {plat}。正在按优先级检测最佳的 '{h_prefix}' 编码器: {encoders_to_test}")
+        logs(f"平台: {plat}。正在按优先级检测最佳的 '{h_prefix}' 编码器: {encoders_to_test}")
         try:
             for encoder_suffix in encoders_to_test:
                 if encoder_suffix == 'nvenc':
                     try:
                         import torch
                         if not torch.cuda.is_available():
-                            config.logger.info("CUDA 不可用，跳过 nvenc 测试。")
+                            logs("CUDA 不可用，跳过 nvenc 测试。")
                             continue  # 跳过当前循环，测试下一个编码器
                     except ImportError:
-                        config.logger.info("未找到 torch 模块，将直接尝试 nvenc 测试。")
+                        logs("未找到 torch 模块，将直接尝试 nvenc 测试。")
 
                 full_encoder_name = f"{h_prefix}_{encoder_suffix}"
                 if test_encoder_internal(full_encoder_name):
                     selected_codec = full_encoder_name
-                    config.logger.info(f"已选择硬件编码器: {selected_codec}")
+                    logs(f"已选择硬件编码器: {selected_codec}")
                     break
             else:  # for-else 循环正常结束 (没有 break)
-                config.logger.info(f"所有硬件加速器均未通过测试。将使用软件编码器: {selected_codec}")
+                logs(f"所有硬件加速器均未通过测试。将使用软件编码器: {selected_codec}")
 
         except FileNotFoundError:
-            config.logger.error(f"由于 'ffmpeg' 未找到，所有硬件加速测试已中止。")
+            logs(f"由于 'ffmpeg' 未找到，所有硬件加速测试已中止。")
             selected_codec = default_codec  # 确保回退
         except Exception as e:
-            config.logger.error(f"在编码器测试期间发生意外错误，将软件编码: {e}", exc_info=True)
+            logs(f"在编码器测试期间发生意外，将使用软件编码: {e}", level='except')
             selected_codec = default_codec
 
     _codec_cache[cache_key] = selected_codec
-    config.logger.info(f"最终确定使用的编码器: {selected_codec}")
-    print(f"最终确定使用的编码器: {selected_codec}")
+    # 保存缓存到本地
+    Path(f"{config.ROOT_DIR}/videotrans/codec.json").write_text(json.dumps(_codec_cache))
+    
+    logs(f"最终确定使用的编码器: {selected_codec}")
     return selected_codec
 
 
@@ -482,7 +495,7 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
 
     command = [config.FFPROBE_BIN] + [str(arg) for arg in cmd]
     creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
-
+    # print(command)
     try:
         p = subprocess.run(
             command,
@@ -496,15 +509,15 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
         return p.stdout.strip()
     except FileNotFoundError as e:
         msg = f"Command not found: '{config.FFPROBE_BIN}'. Ensure FFmpeg is installed and in your PATH."
-        config.logger.error(msg)
+        logs(msg,level='warn')
         raise _FFprobeInternalError(msg) from e
     except subprocess.CalledProcessError as e:
         concise_error = extract_concise_error(e.stderr)
-        config.logger.error(f"ffprobe command failed: {concise_error}")
+        logs(f"ffprobe command failed: {concise_error}",level="except")
         raise _FFprobeInternalError(concise_error) from e
     except (PermissionError, OSError) as e:
         msg = f"OS error running ffprobe: {e}"
-        config.logger.error(msg, exc_info=True)
+        logs(msg, level="except")
         raise _FFprobeInternalError(msg) from e
 
 
@@ -521,20 +534,20 @@ def runffprobe(cmd):
         # 如果 stdout 为空，但进程没有出错（不常见），则模拟旧的错误路径
         #  _run_ffprobe_internal 中，如果 stderr 有内容且返回码非0，
         # 会直接抛出异常，所以这段逻辑主要为了覆盖极端的边缘情况。
-        config.logger.error("ffprobe ran successfully but produced no output.")
+        logs("ffprobe ran successfully but produced no output.",level='warn')
         raise Exception("ffprobe ran successfully but produced no output.")
 
     except _FFprobeInternalError as e:
         raise
     except Exception as e:
         # 捕获其他意料之外的错误并重新引发，保持行为一致
-        config.logger.error(f"An unexpected error occurred in runffprobe: {e}", exc_info=True)
+        logs(f"An unexpected error occurred in runffprobe: {e}", level="except")
         raise
 
 
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
     """
-    (兼容性接口) 获取视频信息。
+    获取视频信息。
     """
     from videotrans.configure import config
 
@@ -547,10 +560,8 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         if not out_json:
             raise RuntimeError(config.tr('Failed to parse {} information, please confirm that the file can be played normally',mp4_file))
     except Exception as e:
-        # 确保抛出的异常与旧版本一致
         raise
 
-    # 解析 JSON 并填充结果字典
     try:
         out = json.loads(out_json)
     except json.JSONDecodeError:
@@ -573,14 +584,13 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "color": "yuv420p"
     }
 
-
     if "format" in out and out['format'].get('duration'):
         try:
             # 返回整数毫秒
             result['time'] = int(float(out['format']['duration']) * 1000)
         except (ValueError, TypeError):
             result['time']=int(float(out['streams'][0]['duration'])*1000)
-            config.logger.warning(f"Could not parse duration: {out=}")
+            logs(f"Could not parse duration: {out=}",level='warn')
 
     video_stream = next((s for s in out['streams'] if s.get('codec_type') == 'video'), None)
     audio_streams = [s for s in out['streams'] if s.get('codec_type') == 'audio']
@@ -610,7 +620,6 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         # 优先使用 avg_frame_rate
         final_fps = fps_avg if fps_avg != 0 else fps1
 
-        # 保持旧的帧率范围限制
         result['video_fps'] = final_fps if 1 <= final_fps <= 60 else 30
 
     # 确保向后兼容
@@ -632,19 +641,23 @@ def get_video_duration(file_path):
 
 
 def conver_to_16k(audio, target_audio):
-    return runffmpeg([
-        "-y",
-        "-i",
-        Path(audio).as_posix(),
-        "-ac",
-        "1",
-        "-ar",
-        "16000",
-        "-c:a",
-        "pcm_s16le",
-        Path(target_audio).as_posix(),
-    ])
-
+    cmd=[
+            "-y",
+            "-i",
+            Path(audio).as_posix(),
+            "-ac",
+            "1",
+            "-ar",
+            "16000",
+            "-c:a",
+            "pcm_s16le"
+    ]
+    try:
+        return runffmpeg(cmd+["-af","highpass=f=80,afftdn=nf=-25,loudnorm,volume=1.5",Path(target_audio).as_posix()])
+    except Exception as e:
+        from videotrans.configure import config
+        logs(f'语音降噪失败，使用未降噪版本：{e}',level="except")
+        return runffmpeg(cmd+[Path(target_audio).as_posix()])
 
 # wav转为 m4a cuda + h264_cuvid
 def wav2m4a(wavfile, m4afile, extra=None):
@@ -681,7 +694,7 @@ def create_concat_txt(filelist, concat_txt=None):
         # 如果没有有效文件，创建一个空的concat文件可能导致错误，不如直接抛出异常
         raise ValueError("Cannot create concat txt from an empty or invalid file list.")
 
-    config.logger.info(f'{txt=},{concat_txt=},{filelist[0]=}')
+    logs(f'{concat_txt=},{filelist[0]=}')
     with open(concat_txt, 'w', encoding='utf-8') as f:
         f.write("\n".join(txt))
         f.flush()
@@ -855,6 +868,7 @@ def format_video(name, target_dir=None):
     raw_dirname = raw_pathlib.parent.resolve().as_posix()
 
     obj = {
+        # 原始文件名含完整路径
         "name": name,
         # 处理后 移动后符合规范的目录名
         "dirname": raw_dirname,

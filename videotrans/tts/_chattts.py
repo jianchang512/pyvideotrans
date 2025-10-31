@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import logs
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -45,7 +46,7 @@ class ChatTTS(BaseTTS):
             data = {"text": data_item['text'], "voice": data_item['role'], 'prompt': '', 'is_split': 1}
             res = requests.post(f"{self.api_url}/tts", data=data,  timeout=3600)
             res.raise_for_status()
-            config.logger.info(f'chatTTS:{data=}')
+            logs(f'chatTTS:{data=}')
             res = res.json()
             if res is None:
                 raise RuntimeError('ChatTTS端出错，请查看其控制台终端')
@@ -62,7 +63,7 @@ class ChatTTS(BaseTTS):
             resb = requests.get(res['url'])
             resb.raise_for_status()
 
-            config.logger.info(f'ChatTTS:resb={resb.status_code=}')
+            logs(f'ChatTTS:resb={resb.status_code=}')
             with open(data_item['filename'] + ".wav", 'wb') as f:
                 f.write(resb.content)
             time.sleep(1)

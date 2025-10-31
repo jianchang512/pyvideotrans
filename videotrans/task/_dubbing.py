@@ -216,14 +216,12 @@ class DubbingSrt(BaseTask):
             target_path = Path(self.cfg.target_wav)
             # 目前文件夹内存在同名，则添加时间后缀
             if target_path.is_file() and target_path.stat().st_size > 0:
-                self.cfg.target_wav = self.cfg.target_wav[
-                                         :-4] + f'-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}{target_path.suffix}'
+                self.cfg.target_wav = self.cfg.target_wav[:-4] + f'-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}{target_path.suffix}'
             rate_inst = SpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,
                 shoud_audiorate=self.cfg.voice_autorate,
                 raw_total_time=self.queue_tts[-1]['end_time'],
-                noextname=self.cfg.noextname,
                 target_audio=self.cfg.target_wav,
                 cache_folder=self.cfg.cache_folder
             )

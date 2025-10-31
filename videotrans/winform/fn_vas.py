@@ -107,32 +107,7 @@ def openwin():
                 self.post(type='jd', text=f'{percent:.2f}%')
             time.sleep(1)
 
-        def _save_set(self):
-            # 保存各项配置
-             ysphb = {
-                "ysphb_replace": self.winobj.ysphb_replace.isChecked(),
-                "audio_process": self.winobj.audio_process.currentIndex(),
-                "ysphb_maxlen": self.winobj.ysphb_maxlen.text(),
-                "remain_hr": self.winobj.remain_hr.isChecked(),
-                "ysphb_issoft": self.winobj.ysphb_issoft.isChecked(),
-                "language":  self.winobj.language.currentIndex(),
-                "position": self.winobj.position.currentIndex(),
-                "marginL":  self.winobj.marginL.text(),
-                "marginV": self.winobj.marginV.text(),
-                "marginR": self.winobj.marginR.text(),
-                "outline": self.winobj.outline.text(),
-                "shadow": self.winobj.shadow.text(),
-                "font_size_edit": self.winobj.font_size_edit.text(),
-                "ysphb_borderstyle": self.winobj.ysphb_borderstyle.isChecked(),
-                "selected_font": self.winobj.selected_font.family(),
-                "selected_color":   self.winobj.qcolor_to_ass_color(self.winobj.selected_color, type='fc'),
-                "selected_backgroundcolor": self.winobj.qcolor_to_ass_color(self.winobj.selected_backgroundcolor, type='bg'),
-                "selected_bordercolor": self.winobj.qcolor_to_ass_color(self.winobj.selected_bordercolor, type='bg')
-             }
-             with open(f'{config.ROOT_DIR}/videotrans/vas.json','w',encoding='utf-8') as f:
-                import json
-                f.write(json.dumps(ysphb,ensure_ascii=False))
-             return ysphb
+
 
         def run(self):
             from pydub import AudioSegment
@@ -285,8 +260,9 @@ def openwin():
                     tmpsrt = config.TEMP_HOME + f"/vas-{time.time()}.srt"
                     with Path(tmpsrt).open('w', encoding='utf-8') as f:
                         f.write(srt_string.strip())
-                    assfile = config.TEMP_HOME + f"/vasrt{time.time()}.ass"
-                    self.save_ass(tmpsrt, assfile)
+                    #assfile = config.TEMP_HOME + f"/vasrt{time.time()}.ass"
+                    #self.save_ass(tmpsrt, assfile)
+                    assfile=tools.set_ass_font(tmpsrt)
                     os.chdir(config.TEMP_HOME)
                     cmd += [
                         '-c:v',
@@ -433,8 +409,16 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
+    def _open_ass():
+        from videotrans.component.set_ass import ASSStyleDialog
+        dialog = ASSStyleDialog()
+        dialog.exec()
+    
     from videotrans.component.set_form import VASForm
 
+
+    
+    
 
 
     winobj = VASForm()
@@ -448,35 +432,6 @@ def openwin():
         winobj.ysphb_startbtn.clicked.connect(start)
         winobj.ysphb_opendir.clicked.connect(opendir)
         winobj.language.addItems(list(LANGNAME_DICT.values()))
-        # 初始化上次配置
-        cfg_file=f'{config.ROOT_DIR}/videotrans/vas.json'
-        if not Path(cfg_file).exists():
-            return
-        from PySide6.QtGui import QFont, QColor
-        with open(cfg_file, 'r', encoding='utf-8') as f:
-            import json
-            try:
-                ysphb=json.loads(f.read())
-            except json.decoder.JSONDecodeError:
-                return
-            for k,v in ysphb.items():
-                if k=='font_size_edit':
-                    continue
-                if k=='selected_font':
-                    winobj.selected_font = QFont(v, int(ysphb['font_size_edit']))  # 默认字体
-                elif k == 'selected_color':
-                    winobj.selected_color = QColor(ysphb[k].upper().replace('&H','#'))  # 默认颜色
-                elif k == 'selected_backgroundcolor':
-                    winobj.selected_backgroundcolor = QColor(ysphb[k].upper().replace('&H','#'))  # 默认颜色
-                elif k == 'selected_bordercolor':
-                    winobj.selected_bordercolor = QColor(ysphb[k].upper().replace('&H','#'))  # 默认颜色
-                else:
-                    widget = winobj.findChild(QWidget, k)
-                    if isinstance(widget, QLineEdit):
-                        widget.setText(str(v))
-                    elif isinstance(widget, QComboBox):
-                        widget.setCurrentIndex(int(v))
-                    elif isinstance(widget, QCheckBox):
-                        widget.setChecked(bool(v))
-            winobj._setfont()
+        winobj.set_ass.clicked.connect(_open_ass)
+
     QTimer.singleShot(10,_init_ui)

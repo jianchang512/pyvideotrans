@@ -8,6 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import logs
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -36,9 +37,9 @@ class TransAPI(BaseTrans):
         if self._exit(): return
         text = quote("\n".join(data))
         requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code[:2] if self.source_code else ''}&text={text}&secret={config.params.get('trans_secret','')}"
-        config.logger.info(f'[TransAPI]请求数据：{requrl=}')
+        logs(f'[TransAPI]请求数据：{requrl=}')
         response = requests.get(url=requrl)
-        config.logger.info(f'[TransAPI]返回:{response.text=}')
+        logs(f'[TransAPI]返回:{response.text=}')
         response.raise_for_status()
         jsdata = response.json()
         if jsdata['code'] != 0:

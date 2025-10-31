@@ -1,5 +1,5 @@
 # zh_recogn 识别
-
+import json
 import logging
 import re
 import time
@@ -13,7 +13,8 @@ from pydub import AudioSegment
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import logs
+from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -53,7 +54,7 @@ class GeminiRecogn(BaseRecogn):
                 )
             parts.append(types.Part.from_text(text=prompt))
 
-            config.logger.info(f'发送音频到Gemini:prompt={prompt},{seg_group=}')
+            logs(f'发送音频到Gemini:prompt={prompt},{seg_group=}')
             generate_content_config = types.GenerateContentConfig(
                 max_output_tokens=65536,
                 thinking_config=types.ThinkingConfig(
@@ -108,13 +109,14 @@ class GeminiRecogn(BaseRecogn):
         srt_str_list = []
 
         prompt = Path(config.ROOT_DIR+'/videotrans/prompts/recogn/gemini_recogn.txt').read_text(encoding='utf-8')
-
+        # 保存说话人
+        speaker_list=[]
         for seg_group in seg_list:
             api_key = self.api_keys.pop(0)
             self.api_keys.append(api_key)
             
             res_text=self._req(seg_group,api_key,prompt)
-            config.logger.info(f'gemini返回结果:{res_text=}')
+            logs(f'gemini返回结果:{res_text=}')
             m = re.findall(r'<audio_text>(.*?)<\/audio_text>', res_text.strip(), re.I | re.S)
             if len(m) < 1:
                 continue
@@ -124,10 +126,13 @@ class GeminiRecogn(BaseRecogn):
                     startraw = tools.ms_to_time_string(ms=f['start_time'])
                     endraw = tools.ms_to_time_string(ms=f['end_time'])
                     text = m[i].strip()
-                    if not config.params.get('paraformer_spk', False):
-                        text = re.sub(r'\[?spk\-?\d+\]', '', text, re.I)
-                    if not text or re.match(r'^\[?spk\-?\d+\]?$',text.strip()):
+                    if not text:
                         continue
+                    mt=re.match(r'^\[(spk\d+)\]',text,re.I)
+                    if mt and config.params.get('paraformer_spk', False):
+                        speaker_list.append(mt.group(1))
+                    if mt:
+                        text = re.sub(r'^\[spk\d+\]', '', text, re.I)
                     srt = {
                         "line": len(srt_str_list) + 1,
                         "start_time": f['start_time'],
@@ -145,6 +150,8 @@ class GeminiRecogn(BaseRecogn):
 
         if len(srt_str_list) < 1:
             raise RuntimeError('No result:The return format may not meet the requirements')
+        if speaker_list:
+            Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
         return srt_str_list
 
 

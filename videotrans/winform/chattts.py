@@ -50,7 +50,7 @@ def openwin():
     config.child_forms['chattts'] = winobj
 
     winobj.chattts_address.setText(config.params.get("chattts_api",''))
-    winobj.chattts_voice.setText(config.settings.get("chattts_voice",''))
+    winobj.chattts_voice.setText(str(config.settings.get("chattts_voice",'')))
     winobj.set_chattts.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

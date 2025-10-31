@@ -12,6 +12,7 @@ from tencentcloud.tmt.v20180321 import tmt_client, models
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import logs
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -55,8 +56,8 @@ class Tencent(BaseTrans):
             reqdata['TermRepoIDList'] = config.params.get('tencent_termlist','').split(',')
 
         req = models.TextTranslateRequest()
-        config.logger.info(f'[腾讯]请求数据:{reqdata=}')
+        logs(f'[腾讯]请求数据:{reqdata=}')
         req.from_json_string(json.dumps(reqdata))
         resp = client.TextTranslate(req)
-        config.logger.info(f'[腾讯]返回:{resp.TargetText=}')
+        logs(f'[腾讯]返回:{resp.TargetText=}')
         return resp.TargetText.strip()

@@ -6,7 +6,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import Qt
 
 from videotrans.configure import config
-from videotrans.configure.config import  tr
+from videotrans.configure.config import  tr,logs
 
 
 class Ui_recogn(object):
@@ -15,7 +15,7 @@ class Ui_recogn(object):
         self.error_msg = ""
         self.shibie_out_path = None
         recogn.setObjectName("recogn")
-        recogn.setMinimumSize(1000, 500)
+        recogn.setMinimumSize(1060, 500)
 
 
         # 语音识别
@@ -217,7 +217,7 @@ class Ui_recogn(object):
             tr("Speech padding (ms)"))
         self.shibie_opendir.setCursor(Qt.PointingHandCursor)
         self.is_cuda.setText(tr("Enable CUDA?"))
-        self.shibie_label.setText("语音识别\u2193")
+        self.shibie_label.setText(tr("Speech Recognit"))
         self.shibie_label.setStyleSheet("""background-color:transparent""")
         self.shibie_label.setCursor(Qt.PointingHandCursor)
         self.shibie_label.setToolTip(

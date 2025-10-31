@@ -6,6 +6,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import logs
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -21,6 +22,7 @@ class AI302(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
+        stop_next_all=False
         with open(config.ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
             ai302_voice_roles = json.loads(f.read())
             self.AI302_doubao = ai302_voice_roles.get("AI302_doubao", {})
@@ -33,7 +35,7 @@ class AI302(BaseTTS):
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        if self._exit() or  not data_item.get('text','').strip():
+        if self.stop_next_all or self._exit() or  not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -87,6 +89,8 @@ class AI302(BaseTTS):
             'Authorization': f'Bearer {config.params.get("ai302_key","")}',
             'Content-Type': 'application/json'
         }, data=json.dumps(payload), verify=False)
+        if response.status_code in [401,403,402,404]:
+            self.stop_next_all=True
         response.raise_for_status()
         res = response.json()
         audio_url = res.get("audio_url")

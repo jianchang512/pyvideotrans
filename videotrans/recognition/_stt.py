@@ -7,7 +7,7 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -64,7 +64,7 @@ class SttAPIRecogn(BaseRecogn):
                 "response_format": "srt"}
         res = requests.post(f"{self.api_url}", files=files, data=data, timeout=7200)
         res.raise_for_status()
-        config.logger.info(f'STT_API:{res=}')
+        logs(f'STT_API:{res=}')
         res = res.json()
         if "code" not in res or res['code'] != 0:
             raise StopRetry(f'{res["msg"]}')

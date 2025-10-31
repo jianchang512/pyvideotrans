@@ -4,14 +4,15 @@ import re
 import sys
 
 import requests
-
+from videotrans.configure.config import logs
+from pathlib import Path
 
 
 def get_elevenlabs_role(force=False, raise_exception=False):
     from videotrans.configure import config
     from . import help_misc
     jsonfile = f'{config.ROOT_DIR}/videotrans/voicejson/elevenlabs.json'
-    namelist = ["clone"]
+    namelist = []
     if help_misc.vail_file(jsonfile):
         with open(jsonfile, 'r', encoding='utf-8') as f:
             cache = json.loads(f.read())
@@ -36,7 +37,7 @@ def get_elevenlabs_role(force=False, raise_exception=False):
         config.params['elevenlabstts_role'] = namelist
         return namelist
     except Exception as e:
-        config.logger.exception(f'获取 elevenlabs 角色失败:{e}', exc_info=True)
+        logs(f'获取 elevenlabs 角色失败:{e}', level="except")
         if raise_exception:
             raise
     return []
@@ -111,173 +112,33 @@ def get_302ai():
 
 
 # 字节火山语音合成角色
-def get_volcenginetts_rolelist(role_name=None, langcode="zh"):
-    zh = {
-        "灿灿2.0": "BV700_V2_streaming",
-        "炀炀": "BV705_streaming",
-        "擎苍2.0": "BV701_V2_streaming",
-        "通用女声 2.0": "BV001_V2_streaming",
-        "灿灿": "BV700_streaming",
-        "超自然音色-梓梓2.0": "BV406_V2_streaming",
-        "超自然音色-梓梓": "BV406_streaming",
-        "超自然音色-燃燃2.0": "BV407_V2_streaming",
-        "超自然音色-燃燃": "BV407_streaming",
-        "通用女声": "BV001_streaming",
-        "通用男声": "BV002_streaming",
-        "擎苍": "BV701_streaming",
-        "阳光青年": "BV123_streaming",
-        "通用赘婿": "BV119_streaming",
-        "古风少御": "BV115_streaming",
-        "霸气青叔": "BV107_streaming",
-        "质朴青年": "BV100_streaming",
-        "温柔淑女": "BV104_streaming",
-        "开朗青年": "BV004_streaming",
-        "甜宠少御": "BV113_streaming",
-        "儒雅青年": "BV102_streaming",
-        "甜美小源": "BV405_streaming",
-        "亲切女声": "BV007_streaming",
-        "知性女声": "BV009_streaming",
-        "诚诚": "BV419_streaming",
-        "童童": "BV415_streaming",
-        "亲切男声": "BV008_streaming",
-        "译制片男声": "BV408_streaming",
-        "懒小羊": "BV426_streaming",
-        "清新文艺女声": "BV428_streaming",
-        "鸡汤女声": "BV403_streaming",
-        "智慧老者": "BV158_streaming",
-        "慈爱姥姥": "BV157_streaming",
-        "说唱小哥": "BR001_streaming",
-        "活力解说男": "BV410_streaming",
-        "影视解说小帅": "BV411_streaming",
-        "解说小帅多情感": "BV437_streaming",
-        "影视解说小美": "BV412_streaming",
-        "纨绔青年": "BV159_streaming",
-        "直播一姐": "BV418_streaming",
-        "反卷青年": "BV120_streaming",
-        "沉稳解说男": "BV142_streaming",
-        "潇洒青年": "BV143_streaming",
-        "阳光男声": "BV056_streaming",
-        "活泼女声": "BV005_streaming",
-        "小萝莉": "BV064_streaming",
-        "奶气萌娃": "BV051_streaming",
-        "动漫海绵": "BV063_streaming",
-        "动漫海星": "BV417_streaming",
-        "动漫小新": "BV050_streaming",
-        "天才童声": "BV061_streaming",
-        "促销男声": "BV401_streaming",
-        "促销女声": "BV402_streaming",
-        "磁性男声": "BV006_streaming",
-        "新闻女声": "BV011_streaming",
-        "新闻男声": "BV012_streaming",
-        "知性姐姐": "BV034_streaming",
-        "温柔小哥": "BV033_streaming",
-
-        "东北老铁": "BV021_streaming",
-        "东北丫头": "BV020_streaming",
-        "东北灿灿": "BV704_streaming",
-
-        "西安佟掌柜": "BV210_streaming",
-
-        "上海阿姐": "BV217_streaming",
-
-        "广西表哥": "BV213_streaming",
-        "广西灿灿": "BV704_streaming",
-
-        "甜美台妹": "BV025_streaming",
-        "台普男声": "BV227_streaming",
-        "台湾灿灿": "BV704_streaming",
-
-        "港剧男神": "BV026_streaming",
-        "广东女仔": "BV424_streaming",
-        "粤语灿灿": "BV704_streaming",
-
-        "相声演员": "BV212_streaming",
-
-        "重庆小伙": "BV019_streaming",
-        "四川甜妹儿": "BV221_streaming",
-        "重庆幺妹儿": "BV423_streaming",
-        "成都灿灿": "BV704_streaming",
-
-        "郑州乡村企业家": "BV214_streaming",
-        "湖南妹坨": "BV226_streaming",
-        "长沙靓女": "BV216_streaming"
-    }
-    en = {
-        "慵懒女声-Ava": "BV511_streaming",
-        "议论女声-Alicia": "BV505_streaming",
-        "情感女声-Lawrence": "BV138_streaming",
-        "美式女声-Amelia": "BV027_streaming",
-        "讲述女声-Amanda": "BV502_streaming",
-        "活力女声-Ariana": "BV503_streaming",
-        "活力男声-Jackson": "BV504_streaming",
-        "天才少女": "BV421_streaming",
-        "Stefan": "BV702_streaming",
-        "天真萌娃-Lily": "BV506_streaming",
-        "亲切女声-Anna": "BV040_streaming",
-        "澳洲男声-Henry": "BV516_streaming"
-    }
-    ja = {
-        "元气少女": "BV520_streaming",
-        "萌系少女": "BV521_streaming",
-        "天才少女": "BV421_streaming",
-        "气质女声": "BV522_streaming",
-        "Stefan": "BV702_streaming",
-        "灿灿": "BV700_streaming",
-        "日语男声": "BV524_streaming",
-    }
-    pt = {
-        "活力男声Carlos": "BV531_streaming",
-        "活力女声": "BV530_streaming",
-        "天才少女": "BV421_streaming",
-        "Stefan": "BV702_streaming",
-        "灿灿": "BV700_streaming",
-    }
-    es = {
-        "气质御姐": "BV065_streaming",
-        "天才少女": "BV421_streaming",
-        "Stefan": "BV702_streaming",
-        "灿灿": "BV700_streaming",
-    }
-    th = {
-        "天才少女": "BV421_streaming"
-    }
-    vi = {
-        "天才少女": "BV421_streaming"
-    }
-    id = {
-        "天才少女": "BV421_streaming",
-        "Stefan": "BV702_streaming",
-        "灿灿": "BV700_streaming",
-    }
-    if role_name and langcode[:2] == 'zh':
-        return zh.get(role_name, zh[list(zh.keys())[0]])
-    if role_name and langcode[:2] == 'en':
-        return en.get(role_name, en[list(en.keys())[0]])
-    if role_name and langcode[:2] == 'ja':
-        return ja.get(role_name, ja[list(ja.keys())[0]])
-    if role_name and langcode[:2] == 'pt':
-        return pt.get(role_name, pt[list(pt.keys())[0]])
-    if role_name and langcode[:2] == 'es':
-        return es.get(role_name, es[list(es.keys())[0]])
-    if role_name and langcode[:2] == 'th':
-        return th.get(role_name, th[list(th.keys())[0]])
-    if role_name and langcode[:2] == 'vi':
-        return vi.get(role_name, vi[list(vi.keys())[0]])
-    if role_name and langcode[:2] == 'id':
-        return id.get(role_name, id[list(id.keys())[0]])
+def get_doubao_rolelist(role_name=None, langcode="zh"):
+    from videotrans.configure import config
+    roledata=json.loads(Path(f'{config.ROOT_DIR}/videotrans/voicejson/doubao0.json').read_text(encoding='utf-8'))
+    
+   
     if role_name:
-        raise
+        current_d=roledata.get(langcode[:2])
+        if not current_d:
+            return 'No'
+        return current_d.get(role_name)
+    
+    return { key:list(item.keys())  for key,item in roledata.items()}
 
-    return {
-        "zh": list(zh.keys()),
-        "ja": list(ja.keys()),
-        "en": list(en.keys()),
-        "pt": list(pt.keys()),
-        "es": list(es.keys()),
-        "th": list(th.keys()),
-        "id": list(id.keys()),
-        "vi": list(vi.keys())
-    }
+
+def get_doubao2_rolelist(role_name=None, langcode="zh"):
+    from videotrans.configure import config
+    roledata=json.loads(Path(f'{config.ROOT_DIR}/videotrans/voicejson/doubao2.json').read_text(encoding='utf-8'))
+    
+   
+    if role_name:
+        current_d=roledata.get(langcode[:2])
+        if not current_d:
+            return 'No'
+        return current_d.get(role_name)
+    
+    return { key:list(item.keys())  for key,item in roledata.items()}
+
 
 
 #  get role by edge tts

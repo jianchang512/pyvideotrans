@@ -8,7 +8,7 @@ import whisper
 from pydub import AudioSegment
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -38,7 +38,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
         total_length = 1 + (len(normalized_sound) // inter)
 
         if not Path(f'{config.ROOT_DIR}/models/{self.model_name}.pt').exists():
-            msg = tr('The [{}] not exists, download model to models folder')
+            msg = tr('The [{}] not exists, download model to models folder',self.model_name)
         else:
             msg=f"Load {self.model_name}.pt"
 
@@ -105,19 +105,19 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 for it in list(alllist):
                     words_list += it['words']
                 
-                config.logger.info(f'开始重新断句:')
+                logs(f'开始重新断句:')
                 if config.settings.get('rephrase'):
                     try:
                         self._signal(text=tr("Re-segmenting..."))
                         return self.re_segment_sentences(words_list)
                     except Exception as e:
-                        config.logger.exception(f'LLM断句失败，将使用默认断句：{e}', exc_info=True)
+                        logs(f'LLM断句失败，将使用默认断句：{e}', level="except")
                 elif config.settings.get('rephrase_local', False):
                     try:
                         self._signal(text=tr("Re-segmenting..."))
                         return self.re_segment_sentences_local(words_list)
                     except Exception as e:
-                        config.logger.exception(f'本地断句失败，将使用默认断句：{e}', exc_info=True)
+                        logs(f'本地断句失败，将使用默认断句：{e}', level="except")
                 return self.get_srtlist(alllist)
         except Exception as e:
             self.error=str(e)

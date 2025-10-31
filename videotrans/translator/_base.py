@@ -7,7 +7,7 @@ from typing import List, Optional, Union
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.util import tools
 
 
@@ -62,7 +62,7 @@ class BaseTrans(BaseCon):
         # 开始对分割后的每一组进行处理
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
-        config.logger.info(f'#### 字幕翻译前准备1:{self.aisendsrt=},{self.trans_thread=}')
+        logs(f'#### 字幕翻译前准备1:{self.aisendsrt=},{self.trans_thread=}')
 
         # 如果是不是以 完整字幕格式发送，则组成字符串列表，否则组成 [dict,dict] 列表，每个dict都是字幕行信息
         if not self.aisendsrt:
@@ -73,7 +73,7 @@ class BaseTrans(BaseCon):
             source_text=self.text_list
 
         split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(self.text_list), self.trans_thread)]
-        config.logger.info(f'字幕翻译前准备2')
+        logs(f'字幕翻译前准备2')
         from tenacity import RetryError
         try:
             if self.aisendsrt:
@@ -91,7 +91,7 @@ class BaseTrans(BaseCon):
             """ it=['你好啊我的朋友','第二行'] 
                 此时 _item_task 接收的是 list[str]
             """
-            config.logger.info(f'##### [以文字行形式翻译]')
+            logs(f'##### [以文字行形式翻译]')
             if self._exit(): return
 
             result = self._get_cache(it)
@@ -131,7 +131,7 @@ class BaseTrans(BaseCon):
         result_srt_str_list = []
         for i, it in enumerate(split_source_text):
             # 是字幕类表，此时 it=[{text,line,time}]
-            config.logger.info(f'#### [以完整SRT格式发送翻译]，it应是dict列表')
+            logs(f'#### [以完整SRT格式发送翻译]，it应是dict列表')
             if self._exit(): return
             for j, srt in enumerate(it):
                 it[j]['text'] = srt['text'].strip().replace("\n", " ")
@@ -154,7 +154,7 @@ class BaseTrans(BaseCon):
         raws_list = tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
 
         # 双语翻译结果，只取最后一行
-        config.logger.info(f'原始返回SRT翻译结果：{result_srt_str_list=}\n整理为list[dict]后的结果:{raws_list=}')
+        logs(f'原始返回SRT翻译结果：{result_srt_str_list=}\n整理为list[dict]后的结果:{raws_list=}')
         for i, it in enumerate(raws_list):
             it['text'] = it['text'].strip().split("\n")
             if it['text']:

@@ -3,7 +3,7 @@
 def openwin():
     import os
     from pathlib import Path
-    from videotrans.configure.config import tr
+    from videotrans.configure.config import tr,logs
     from PySide6.QtCore import QTimer
 
     from PySide6.QtWidgets import QFileDialog

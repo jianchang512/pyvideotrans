@@ -10,138 +10,20 @@ from PySide6.QtWidgets import QFileDialog
 
 from videotrans import translator, recognition, tts
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools
 
-
-def _list_gcloud_voices_for(lang_code: str, cred_path: str):
-    TextToSpeechClient = None
-    try:
-        from google.cloud.texttospeech import TextToSpeechClient
-    except ImportError:
-        try:
-            from google.cloud import texttospeech
-            TextToSpeechClient = texttospeech.TextToSpeechClient
-        except ImportError:
-            pass
-    """Lista as vozes do Google Cloud TTS disponíveis para um idioma específico."""
-    if not cred_path:
-        config.logger.error("Caminho das credenciais do Google Cloud TTS não configurado")
-        return []
-
-    if not TextToSpeechClient:
-        config.logger.error(
-            "Pacote google-cloud-texttospeech não encontrado. Execute: pip install google-cloud-texttospeech")
-        return []
-
-    if not os.path.isfile(cred_path):
-        config.logger.error(f"Arquivo de credenciais não encontrado: {cred_path}")
-        return []
-
-    # Mapeamento de nomes de idiomas para códigos do Google Cloud TTS
-    GOOGLE_TTS_LANG_MAP = {
-        "Portuguese": "pt-BR",  # Mapeamento especial para "Portuguese"
-        "English": "en-US",
-        "Spanish": "es-ES",
-        "French": "fr-FR",
-        "German": "de-DE",
-        "Italian": "it-IT",
-        "Japanese": "ja-JP",
-        "Korean": "ko-KR",
-        "Chinese": "zh-CN",
-        "Traditional Chinese": "zh-TW",
-        "Russian": "ru-RU",
-        "Hindi": "hi-IN",
-        "Arabic": "ar-XA",
-        "Turkish": "tr-TR",
-        "Thai": "th-TH",
-        "Vietnamese": "vi-VN",
-        "Indonesian": "id-ID"
-    }
-
-    # Se o código de idioma for um nome (ex: "Portuguese"), converte para o código do Google Cloud TTS
-    google_lang_code = GOOGLE_TTS_LANG_MAP.get(lang_code, lang_code)
-
-    # Se ainda não estiver no formato do Google Cloud TTS (ex: "pt"), tenta converter
-    if '-' not in google_lang_code:
-        # Mapeamento de códigos base para códigos completos do Google Cloud TTS
-        BASE_TO_GOOGLE = {
-            "pt": "pt-BR",
-            "en": "en-US",
-            "es": "es-ES",
-            "fr": "fr-FR",
-            "de": "de-DE",
-            "it": "it-IT",
-            "ja": "ja-JP",
-            "ko": "ko-KR",
-            "zh": "zh-CN",
-            "zh-tw": "zh-TW",
-            "ru": "ru-RU",
-            "hi": "hi-IN",
-            "ar": "ar-XA",
-            "tr": "tr-TR",
-            "th": "th-TH",
-            "vi": "vi-VN",
-            "id": "id-ID"
-        }
-        lang_base = google_lang_code.split('-')[0].lower()
-        google_lang_code = BASE_TO_GOOGLE.get(lang_base, google_lang_code)
-
-    config.logger.info(f"Usando código de idioma do Google Cloud TTS: {google_lang_code} (original: {lang_code})")
-
-    try:
-        config.logger.info(f"Tentando listar vozes do Google Cloud TTS para idioma {google_lang_code}")
-        client = TextToSpeechClient.from_service_account_file(cred_path)
-
-        # Tenta listar todas as vozes
-        try:
-            all_voices = client.list_voices().voices
-            config.logger.info(f"Total de vozes encontradas: {len(all_voices)}")
-        except Exception as e:
-            config.logger.error(f"Erro ao listar vozes: {str(e)}")
-            if "PERMISSION_DENIED" in str(e):
-                config.logger.error("Credenciais sem permissão para acessar a API do Google Cloud TTS")
-            return []
-
-        # Filtra vozes pelo idioma
-        voices = sorted([
-            v.name for v in all_voices
-            if any(google_lang_code.lower() in lc.lower() for lc in v.language_codes)
-        ])
-
-        config.logger.info(f"Vozes encontradas para {google_lang_code}: {len(voices)}")
-        if voices:
-            config.logger.info(f"Primeiras vozes: {voices[:3]}")
-        else:
-            config.logger.warning(f"Nenhuma voz encontrada para o idioma {google_lang_code}")
-
-        return voices
-
-    except Exception as e:
-        config.logger.error(f"Erro ao listar vozes do Google Cloud TTS: {str(e)}")
-        if "invalid_grant" in str(e).lower():
-            config.logger.error("Credenciais inválidas ou expiradas")
-        elif "not found" in str(e).lower():
-            config.logger.error("Arquivo de credenciais não encontrado ou inválido")
-        return []
 
 
 @dataclass
 class WinAction(WinActionSub):
 
     def _reset(self):
-        # 单个执行时，当前字幕所处阶段：识别后编辑或翻译后编辑
-        self.edit_subtitle_type = ''
-        # 单个任务时，修改字幕后需要保存到的位置，原始语言字幕或者目标语音字幕
-        self.wait_subtitle = ''
         # 存放需要处理的视频dict信息，包括uuid
         self.obj_list = []
         self.main.source_mp4.setText(tr("No select videos"))
-        self.main.timeout_tips.setText('')
-        self.main.stop_djs.hide()
-        self.main.continue_compos.hide()
 
 
     # 删除进度按钮
@@ -160,24 +42,11 @@ class WinAction(WinActionSub):
         if self.had_click_btn:
             return
         self.had_click_btn=True
-        self.main.timeout_tips.setText('')
-        self.main.stop_djs.hide()
-        self.main.continue_compos.hide()
-        self.main.continue_compos.setText('')
-        self.main.continue_compos.setDisabled(True)
         self.main.subtitle_area.setReadOnly(True)
-        self.update_subtitle()
         config.task_countdown = -1
         self.had_click_btn=False
 
-    # 手动点击暂停按钮
-    def reset_timeid(self):
-        config.task_countdown = 86400
-        self.main.stop_djs.hide()
-        self.main.timeout_tips.setText('')
-        self.main.continue_compos.setDisabled(False)
-        self.main.continue_compos.setText(tr('nextstep'))
-        self.update_data('{"type":"allow_edit"}')
+
 
     # 翻译渠道变化时，检测条件
     def set_translate_type(self, idx):
@@ -196,22 +65,40 @@ class WinAction(WinActionSub):
             tools.show_error(
                 tr("faster-whisper-xxl.exe is only available on Windows"))
             return False
-        if not config.settings.get('Faster_Whisper_XXL') or not Path(
-                config.settings.get('Faster_Whisper_XXL', '')).exists():
-            from PySide6.QtWidgets import QFileDialog
-            exe, _ = QFileDialog.getOpenFileName(self.main,
-                                                 tr("Select faster-whisper-xxl.exe"),
-                                                 'C:/', f'Files(*.exe)')
-            if exe:
-                config.settings['Faster_Whisper_XXL'] = Path(exe).as_posix()
-                return True
+        xxl_path=config.settings.get('Faster_Whisper_XXL', '')  
+        if not xxl_path or not Path(xxl_path).exists():
+            from videotrans.component.set_xxl import SetFasterXXL
+            dialog = SetFasterXXL()
+            if dialog.exec():  # OK 按钮被点击时 exec 返回 True
+                xxl_path = dialog.get_values()
+                if xxl_path and Path(xxl_path).is_file():
+                    return True
+            tools.show_error(
+                tr("Must be selected, otherwise it cannot be used"))
             return False
         return True
+    def show_cpp_select(self):
+        import sys
+        cpp_path=config.settings.get('Whisper.cpp', '')
+        if not cpp_path or not Path(cpp_path).exists():
+            from videotrans.component.set_cpp import SetWhisperCPP
+            dialog = SetWhisperCPP()
+            if dialog.exec():  # OK 按钮被点击时 exec 返回 True
+                cpp_path = dialog.get_values()
+                if cpp_path and Path(cpp_path).is_file():
+                    return True
+            tools.show_error(
+                tr("Must be selected, otherwise it cannot be used"))
+            return False
+        return True
+
 
     # 语音识别方式改变时
     def recogn_type_change(self):
         recogn_type = self.main.recogn_type.currentIndex()
         if recogn_type == recognition.Faster_Whisper_XXL and not self.show_xxl_select():
+            return
+        if recogn_type == recognition.Whisper_CPP and not self.show_cpp_select():
             return
         if recogn_type != recognition.FASTER_WHISPER:
             self.main.split_type.setDisabled(True)
@@ -224,7 +111,7 @@ class WinAction(WinActionSub):
             tools.hide_show_element(self.main.equal_split_layout,
                                     False if self.main.split_type.currentIndex() == 0 else True)
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram]:
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP]:
             # 禁止模块选择
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)
@@ -241,6 +128,8 @@ class WinAction(WinActionSub):
                 self.main.model_name.addItems(config.WHISPER_MODEL_LIST)
             elif recogn_type == recognition.Deepgram:
                 self.main.model_name.addItems(config.DEEPGRAM_MODEL)
+            elif recogn_type == recognition.Whisper_CPP:
+                self.main.model_name.addItems(config.Whisper_CPP_MODEL_LIST)
             else:
                 self.main.model_name.addItems(config.FUNASR_MODEL)
         
@@ -252,8 +141,7 @@ class WinAction(WinActionSub):
             self.main.rephrase_local.setDisabled(True)
         
         lang = translator.get_code(show_text=self.main.source_language.currentText())
-        if (
-                self.main.model_name.currentText() == 'paraformer-zh' and recogn_type == recognition.FUNASR_CN) or recogn_type == recognition.Deepgram or recogn_type == recognition.GEMINI_SPEECH:
+        if ( self.main.model_name.currentText() == 'paraformer-zh' and recogn_type == recognition.FUNASR_CN) or recogn_type in [ recognition.Deepgram,recognition.GEMINI_SPEECH,recognition.ZIJIE_RECOGN_MODEL]:
             self.main.show_spk.setVisible(True)
         else:
             self.main.show_spk.setVisible(False)
@@ -299,7 +187,7 @@ class WinAction(WinActionSub):
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
-        if type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.VOLCENGINE_TTS, tts.AI302_TTS, tts.KOKORO_TTS]:
+        if type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.DOUBAO_TTS,tts.DOUBAO2_TTS, tts.AI302_TTS, tts.KOKORO_TTS]:
             return True
         return False
 
@@ -322,48 +210,7 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = ["gtts"]
             self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.GOOGLECLOUD_TTS:
-            # Para Google Cloud TTS, vamos usar o idioma atual para listar as vozes
-            lang = self.main.target_language.currentText()
-            cred = config.params.get("gcloud_credential_json", "").strip()
 
-            if not cred:
-                tools.show_error(
-                    "Por favor, configure o arquivo de credenciais do Google Cloud TTS em:\n"
-                    "Configurações > Google Cloud TTS > Credenciais"
-                )
-                self.main.voice_role.clear()
-                self.main.current_rolelist = ['No']
-                self.main.voice_role.addItems(['No'])
-                return
-
-            try:
-                roles = _list_gcloud_voices_for(lang, cred)
-                self.main.voice_role.clear()
-                self.main.current_rolelist = roles
-
-                if not roles:
-                    tools.show_error(
-                        f"Não foi possível encontrar vozes para o idioma {lang}.\n\n"
-                        "Verifique:\n"
-                        "1. Se o arquivo de credenciais está correto\n"
-                        "2. Se as credenciais têm permissão para acessar a API\n"
-                        "3. Se o idioma selecionado é suportado\n\n"
-                        "Consulte os logs para mais detalhes."
-                    )
-                    self.main.voice_role.addItems(['No'])
-                else:
-                    self.main.voice_role.addItems(['No'] + roles)
-
-            except Exception as e:
-                config.logger.error(f"Erro ao listar vozes do Google Cloud TTS: {str(e)}")
-                tools.show_error(
-                    f"Erro ao listar vozes do Google Cloud TTS:\n{str(e)}\n\n"
-                    "Verifique os logs para mais detalhes."
-                )
-                self.main.voice_role.clear()
-                self.main.current_rolelist = ['No']
-                self.main.voice_role.addItems(['No'])
         elif type == tts.OPENAI_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params.get('openaitts_role','').split(',')
@@ -459,29 +306,6 @@ class WinAction(WinActionSub):
 
         tts_type = self.main.tts_type.currentIndex()
 
-        # Caso especial para Google Cloud TTS
-        if tts_type == tts.GOOGLECLOUD_TTS:
-            cred = config.params.get("gcloud_credential_json", "").strip()
-            if not cred:
-                tools.show_error(
-                    "Por favor, configure o arquivo de credenciais do Google Cloud TTS em:\n"
-                    "Configurações > Google Cloud TTS > Credenciais"
-                )
-                self.main.voice_role.clear()
-                self.main.current_rolelist = ['No']
-                self.main.voice_role.addItems(['No'])
-                return
-
-            try:
-                roles = _list_gcloud_voices_for(code, cred)
-                self.main.voice_role.clear()
-                self.main.current_rolelist = roles
-                self.main.voice_role.addItems(['No'] + roles)
-                return
-            except Exception as e:
-                config.logger.error(f"Erro ao listar vozes do Google Cloud TTS: {str(e)}")
-                self.main.voice_role.addItems(['No'])
-                return
 
         if tts_type == tts.EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
@@ -489,8 +313,10 @@ class WinAction(WinActionSub):
             show_rolelist = tools.get_kokoro_rolelist()
         elif tts_type == tts.AI302_TTS:
             show_rolelist = tools.get_302ai()
-        elif tts_type == tts.VOLCENGINE_TTS:
-            show_rolelist = tools.get_volcenginetts_rolelist()
+        elif tts_type == tts.DOUBAO2_TTS:
+            show_rolelist = tools.get_doubao2_rolelist()
+        elif tts_type == tts.DOUBAO_TTS:
+            show_rolelist = tools.get_doubao_rolelist()
         elif tts_type == tts.MINIMAXI_TTS:
             show_rolelist = tools.get_minimaxi_rolelist()
 
@@ -576,11 +402,45 @@ class WinAction(WinActionSub):
         # 判断是否填写自定义识别 api openai-api识别
         return recognition.is_input_api(recogn_type=recogn_type)
 
+    
+    def check_output(self):
+        from PySide6.QtWidgets import QMessageBox
+        input_folder=Path(self.queue_mp4[0]).parent
+        if not self.main.target_dir:
+            self.main.target_dir= (input_folder / '_video_out').as_posix()
+        output_folder=Path(self.main.target_dir)
+        # 输出文件夹尚不存在
+        if not output_folder.exists():
+            return True
+        
+        # 输入输出是同个文件夹，
+        if input_folder.samefile(output_folder):
+            tools.show_error(tr("The output directory is not allowed to point to the input directory. Please use the default or create an empty folder as the output"))
+            return False
+        
+        # 输出目录是空的
+        if not self.main.clear_cache.isChecked() or not any(output_folder.iterdir()):
+            return True
+        
+       
+        
+        reply = QMessageBox.question(
+            self.main,
+            tr("Are you sure the cleanup has been output?"),
+            tr("If you confirm to clean up, all files in the output directory will be deleted. If you manually specify the output directory, please make sure there are no important files in the directory and back it up in advance to avoid data loss.",output_folder),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply != QMessageBox.StandardButton.Yes:
+            return False
+
+        return True
+
     # 检测开始状态并启动
     def check_start(self):
         self.cfg = {}
         self.is_render = False
-        self.edit_subtitle_type = 'edit_subtitle_source'
 
         if config.current_status == 'ing':
             # 已在执行中，则停止
@@ -646,8 +506,13 @@ class WinAction(WinActionSub):
 
         # 添加背景音频
         self.cfg['back_audio'] = self.main.back_audio.text().strip()
-        self.cfg['only_video'] = self.main.only_video.isChecked()
         self.cfg['clear_cache'] = True if self.main.clear_cache.isChecked() else False
+        
+        # 检查输入 输出目录
+        if self.check_output() is not True:
+            self.main.startbtn.setDisabled(False)
+            return
+            
 
         # 核对识别是否正确
         if self.check_reccogn() is not True:
@@ -684,6 +549,7 @@ class WinAction(WinActionSub):
             self.main.startbtn.setDisabled(False)
             return tools.show_error(
                 tr("Target language must be selected to embed subtitles"))
+        
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式
         if self.check_name() is not True:
             self.main.startbtn.setDisabled(False)
@@ -701,7 +567,8 @@ class WinAction(WinActionSub):
             if err:
                 self.main.startbtn.setDisabled(False)
                 return tools.show_error(err)
-
+        
+        # LLM 重新断句
         if self.main.rephrase.isChecked():
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
@@ -716,6 +583,7 @@ class WinAction(WinActionSub):
                 from videotrans.winform import deepseek
                 deepseek.openwin()
                 return
+
 
         config.line_roles = {}
 
@@ -764,10 +632,12 @@ class WinAction(WinActionSub):
 
         self._disabled_button(True)
         self.main.startbtn.setDisabled(False)
-        self.clear_target_subtitle()
+        self.main.subtitle_area.setReadOnly(True)
 
         tools.set_process(text='start', type='create_btns')
 
+
+    # 设置每行字幕的长度
     def click_subtitle(self):
         from videotrans.component.set_subtitles_length import SubtitleSettingsDialog
         dialog = SubtitleSettingsDialog(self.main, config.settings.get('cjk_len', 24),
@@ -779,6 +649,7 @@ class WinAction(WinActionSub):
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
 
+    # 设置每次翻译字幕行数
     def click_translate_type(self):
         from videotrans.component.set_threads import SetThreadTransDubb
         dialog = SetThreadTransDubb(name='trans', nums=config.settings.get('trans_thread', 5),
@@ -791,7 +662,7 @@ class WinAction(WinActionSub):
             config.settings['translation_wait'] = wait
             with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
-
+    # 设置配音线程
     def click_tts_type(self):
         from videotrans.component.set_threads import SetThreadTransDubb
         dialog = SetThreadTransDubb(name='dubbing', nums=config.settings.get('dubbing_thread', 5),
@@ -804,8 +675,8 @@ class WinAction(WinActionSub):
                 f.write(json.dumps(config.settings, ensure_ascii=False))
 
     def create_btns(self):
-        target_dir = Path(self.main.target_dir if self.main.target_dir else Path(
-            self.queue_mp4[0]).parent.as_posix() + "/_video_out").resolve().as_posix()
+
+        target_dir = self.main.target_dir
         self.cfg["target_dir"] = target_dir
         self.main.btn_save_dir.setToolTip(target_dir)
         self.obj_list = []
@@ -879,8 +750,7 @@ class WinAction(WinActionSub):
         # # 将按钮添加到布局中
         if self.cfg.get('app_mode') == 'tiqu' and self.cfg.get('copysrt_rawvideo'):
             target_dir = Path(name).parent.as_posix()
-        else:
-            target_dir = Path(target_dir).parent.as_posix() if self.cfg.get('only_video') else target_dir
+
         clickable_progress_bar.setTarget(
             target_dir=target_dir,
             name=name
@@ -919,8 +789,6 @@ class WinAction(WinActionSub):
             return
         self.had_click_btn=True
         config.current_status = type
-        self.main.continue_compos.hide()
-        self.main.stop_djs.hide()
         if type == 'ing':
             # 重设为开始状态
             self.disabled_widget(True)
@@ -979,14 +847,8 @@ class WinAction(WinActionSub):
         d = json.loads(json_data) if isinstance(json_data, str) else json_data
         if d['type'] in ['logs', 'error', 'succeed', 'set_precent']:
             self.set_process_btn_text(d)
-            if d['type'] in ['error', 'succeed']:
-                if d.get('uuid'):
-                    config.stoped_uuid_set.add(d['uuid'])
-
-                self.edit_subtitle_type = 'edit_subtitle_source'
-                self.wait_subtitle = ''
-                if not self.is_batch:
-                    self.clear_target_subtitle()
+            if d['type'] in ['error', 'succeed'] and d.get('uuid'):
+                config.stoped_uuid_set.add(d['uuid'])
         elif d['type'] == 'create_btns':
             self.create_btns()
         # 任务开始执行，初始化按钮等
@@ -996,45 +858,41 @@ class WinAction(WinActionSub):
             # 任务全部完成时出现 end
             self.update_status(d['type'])
         # 一行一行插入字幕到字幕编辑区
-        elif d['type'] == "subtitle" and config.current_status == 'ing' and (
-                self.is_batch or config.task_countdown <= 0):
-            if self.is_batch or (not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_source'):
-                self.main.subtitle_area.moveCursor(QTextCursor.End)
-                self.main.subtitle_area.insertPlainText(d['text'])
-        elif d['type'] == 'edit_subtitle_source' or d['type'] == 'edit_subtitle_target':
-            self.wait_subtitle = d['text']
-            self.edit_subtitle_type = d['type']
-            # 显示出合成按钮,等待编辑字幕,允许修改字幕
-            if d['type'] == 'edit_subtitle_source':
-                self.main.subtitle_area.setReadOnly(False)
-                self.main.subtitle_area.setFocus()
-        elif d['type'] == 'disabled_edit':
-            # 禁止修改字幕
-            self.main.subtitle_area.setReadOnly(True)
-        elif d['type'] == 'allow_edit':
-            # 允许修改字幕
-            if self.edit_subtitle_type == 'edit_subtitle_source':
-                self.main.subtitle_area.setReadOnly(False)
-                self.main.subtitle_area.setFocus()
+        elif d['type'] == "subtitle" and config.current_status == 'ing':
+            self.main.subtitle_area.moveCursor(QTextCursor.End)
+            self.main.subtitle_area.insertPlainText(d['text'])
+        elif d['type'] == 'edit_subtitle_source':
+            # 显示编辑翻译框
+            from videotrans.component.onlyone_set_recogn import EditRecognResultDialog
+            
+            dialog=EditRecognResultDialog(
+                source_sub=config.onlyone_source_sub           
+            )
+            dialog.raise_()
+            dialog.activateWindow()
+            if dialog.exec():
+                self.set_djs_timeout()
+            else:
+                self.update_status('stop')
+        elif d['type'] == 'edit_subtitle_target':
+            # 弹出编辑配音字幕
+            from videotrans.component.onlyone_set_role import SpeakerAssignmentDialog
+            
+            dialog=SpeakerAssignmentDialog(
+                source_sub=None if not config.onlyone_trans else config.onlyone_source_sub,
+                target_sub=config.onlyone_target_sub,
+                all_voices=self.main.current_rolelist,
+                cache_folder=d['text']
+            )
+
+            if dialog.exec():
+                self.set_djs_timeout()                
+            else:
+                self.update_status('stop')
         elif d['type'] == 'replace_subtitle':
             # 完全替换字幕区
-            if self.is_batch or (not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_source'):
-                self.main.subtitle_area.clear()
-                self.main.subtitle_area.insertPlainText(d['text'])
-            elif not self.is_batch and self.edit_subtitle_type == 'edit_subtitle_target' and not self.is_render:
-                self.is_render = True
-                self.show_target_edit(d['text'])
-        elif d['type'] == 'timeout_djs':
-            self.set_djs_timeout()
-        elif d['type'] == 'show_djs' and config.current_status=='ing':
-            self.main.continue_compos.show()
-            self.main.continue_compos.setDisabled(False)
-            self.main.continue_compos.setText(
-                tr("Continue next step"))
-            self.main.stop_djs.show()
-            self.main.timeout_tips.setText(d['text'])
-            if self.edit_subtitle_type == 'edit_subtitle_source':
-                self.main.subtitle_area.setReadOnly(False)
+            self.main.subtitle_area.clear()
+            self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'check_soft_update':
             self.update_tips(d['text'])
         elif d['type'] == 'set_clone_role' and self.main.tts_type.currentText() == 'clone-voice':
@@ -1055,29 +913,13 @@ class WinAction(WinActionSub):
                 QTimer.singleShot(100,lambda: self.main.tts_type.setCurrentIndex(currentIndex))
         elif d['type'] == 'refreshmodel_list':
             config.WHISPER_MODEL_LIST = re.split(r'[,，]', config.settings.get('model_list',''))
-            if self.main.recogn_type.currentIndex() in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER,recognition.Faster_Whisper_XXL]:
+            config.Whisper_CPP_MODEL_LIST = re.split(r'[,，]', config.settings.get('Whisper.cpp.models',''))
+            if self.main.recogn_type.currentIndex() in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER,recognition.Faster_Whisper_XXL,recognition.Whisper_CPP]:
                 current_model_name = self.main.model_name.currentText()
                 self.main.model_name.clear()
-                self.main.model_name.addItems(config.WHISPER_MODEL_LIST)
+                self.main.model_name.addItems(config.Whisper_CPP_MODEL_LIST if self.main.recogn_type.currentIndex()==recognition.Whisper_CPP else config.WHISPER_MODEL_LIST)
                 self.main.model_name.setCurrentText(current_model_name)
 
-    # update subtitle 手动 点解了 立即合成按钮，或者倒计时结束超时自动执行
-    def update_subtitle(self):
-        self.main.stop_djs.hide()
-        self.main.continue_compos.setDisabled(True)
-        # 是单个视频执行时
-        if self.is_batch or not self.wait_subtitle:
-            return
-        if self.edit_subtitle_type == 'edit_subtitle_source':
-            txt = self.main.subtitle_area.toPlainText().strip()
-        # 目标字幕区
-        else:
-            txt = self.get_target_subtitle()
-        if not txt:
-            return
-        with Path(self.wait_subtitle).open('w', encoding='utf-8') as f:
-            f.write(txt)
-        return True
 
     def target_lang_change(self, t):
         if not t or t == '-':
@@ -1092,46 +934,7 @@ class WinAction(WinActionSub):
             self.main.voice_role.addItems(['No'])
             return
 
-        # Caso especial para Google Cloud TTS
-        if tts_type == tts.GOOGLECLOUD_TTS:
-            cred = config.params.get("gcloud_credential_json", "").strip()
-            if not cred:
-                tools.show_error(
-                    "Por favor, configure o arquivo de credenciais do Google Cloud TTS em:\n"
-                    "Configurações > Google Cloud TTS > Credenciais"
-                )
-                self.main.voice_role.clear()
-                self.main.current_rolelist = ['No']
-                self.main.voice_role.addItems(['No'])
-                return
 
-            try:
-                roles = _list_gcloud_voices_for(code, cred)
-                self.main.voice_role.clear()
-                self.main.current_rolelist = roles
-
-                if not roles:
-                    tools.show_error(
-                        f"Não foi possível encontrar vozes para o idioma {t}.\n\n"
-                        "Verifique:\n"
-                        "1. Se o arquivo de credenciais está correto\n"
-                        "2. Se as credenciais têm permissão para acessar a API\n"
-                        "3. Se o idioma selecionado é suportado\n\n"
-                        "Consulte os logs para mais detalhes."
-                    )
-                    self.main.voice_role.addItems(['No'])
-                else:
-                    self.main.voice_role.addItems(['No'] + roles)
-
-            except Exception as e:
-                config.logger.error(f"Erro ao listar vozes do Google Cloud TTS: {str(e)}")
-                tools.show_error(f"Erro ao listar vozes do Google Cloud TTS:\n{str(e)}\n\n"
-                                 "Verifique os logs para mais detalhes."
-                                 )
-                self.main.voice_role.clear()
-                self.main.current_rolelist = ['No']
-                self.main.voice_role.addItems(['No'])
-            return
 
         if tts_type == tts.EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
@@ -1139,8 +942,10 @@ class WinAction(WinActionSub):
             show_rolelist = tools.get_kokoro_rolelist()
         elif tts_type == tts.AI302_TTS:
             show_rolelist = tools.get_302ai()
-        elif tts_type == tts.VOLCENGINE_TTS:
-            show_rolelist = tools.get_volcenginetts_rolelist()
+        elif tts_type == tts.DOUBAO2_TTS:
+            show_rolelist = tools.get_doubao2_rolelist()
+        elif tts_type == tts.DOUBAO_TTS:
+            show_rolelist = tools.get_doubao_rolelist()
         elif tts_type == tts.MINIMAXI_TTS:
             show_rolelist = tools.get_minimaxi_rolelist()
         else:

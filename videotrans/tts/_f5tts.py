@@ -10,7 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans import tts
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -91,7 +91,7 @@ class F5TTS(BaseTTS):
         except Exception as e:
             raise
 
-        config.logger.info(f'result={result}')
+        logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -136,7 +136,7 @@ class F5TTS(BaseTTS):
         except Exception as e:
             raise
 
-        config.logger.info(f'result={result}')
+        logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -166,8 +166,8 @@ class F5TTS(BaseTTS):
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
-            raise StopRetry(tr('The role {} does not exist',role))
-        config.logger.info(f'index-tts {data=}')
+            raise StopRetry(tr('The role {} does not exist',data['ref_wav']))
+        logs(f'index-tts {data=}')
 
         try:
             kw={
@@ -181,7 +181,7 @@ class F5TTS(BaseTTS):
         except Exception as e:
             raise
                 
-        config.logger.info(f'result={result}')
+        logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -214,7 +214,7 @@ class F5TTS(BaseTTS):
 
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',role))
-        config.logger.info(f'voxcpm-tts {data=}')
+        logs(f'voxcpm-tts {data=}')
 
         try:
             result = self.client.predict(
@@ -230,7 +230,7 @@ class F5TTS(BaseTTS):
             )
         except Exception as e:
             raise
-        config.logger.info(f'result={result}')
+        logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -275,7 +275,7 @@ class F5TTS(BaseTTS):
         except Exception as e:
             raise
 
-        config.logger.info(f'result={result}')
+        logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']

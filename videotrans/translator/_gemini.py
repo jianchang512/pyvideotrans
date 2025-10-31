@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -98,7 +98,7 @@ class Gemini(BaseTrans):
                     types.Part.from_text(text=tr("You are a top-notch subtitle translation engine.")),
                 ],
             )
-            config.logger.info(f'[Gemini]请求发送:{message=}')
+            logs(f'[Gemini]请求发送:{message=}')
             result = ""
             for chunk in client.models.generate_content_stream(
                 model=model,
@@ -107,9 +107,9 @@ class Gemini(BaseTrans):
             ):
                 result+=chunk.text
                      
-            config.logger.info(f'{result=}')
+            logs(f'{result=}')
             if not result:
-                config.logger.error(f'[gemini]请求失败')
+                logs(f'[gemini]请求失败',level='warn')
                 raise RuntimeError(f"[Gemini]result is empty")
                 
             match = re.search(r'<TRANSLATE_TEXT>(.*?)(?:</TRANSLATE_TEXT>|$)',
@@ -118,7 +118,7 @@ class Gemini(BaseTrans):
                 return match.group(1)
             raise RuntimeError(f"Gemini result is emtpy")
         except errors.APIError as e:
-            config.logger.error(f'{e=}')
+            logs(f'{e=}',level='warn')
             if e.code in [400,403,404,429,500]:
                 raise StopRetry(e.message)
             raise RuntimeError(e.message)

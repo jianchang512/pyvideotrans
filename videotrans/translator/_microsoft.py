@@ -8,7 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -42,10 +42,10 @@ class Microsoft(BaseTrans):
             tocode = 'zh-Hant'
         url = f"https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={tocode}&api-version=3.0&includeSentenceLength=true"
         headers['Authorization'] = f"Bearer {auth.text}"
-        config.logger.info(f'[Mircosoft]请求数据:{url=},{auth.text=}')
+        logs(f'[Mircosoft]请求数据:{url=},{auth.text=}')
         response = requests.post(url, json=[{"Text": "\n".join(data)}], headers=headers,
                                  verify=False, timeout=300)
-        config.logger.info(f'[Mircosoft]返回:{response.text=}')
+        logs(f'[Mircosoft]返回:{response.text=}')
         response.raise_for_status()
         re_result = response.json()
         if len(re_result) == 0 or len(re_result[0]['translations']) == 0:

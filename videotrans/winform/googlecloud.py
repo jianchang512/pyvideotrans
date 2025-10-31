@@ -7,6 +7,7 @@ def openwin():
         QFileDialog, QMessageBox, QHBoxLayout
     )
     from videotrans.configure import config
+    from videotrans.configure.config import logs
     from videotrans.tts._googlecloud import GoogleCloudTTS
     from videotrans.util import tools
 

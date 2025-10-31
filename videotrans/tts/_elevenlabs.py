@@ -7,12 +7,14 @@ from dataclasses import dataclass
 from typing import Iterator
 
 import httpx
+import elevenlabs
 from elevenlabs import ElevenLabs, VoiceSettings
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
     RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import logs
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -24,14 +26,19 @@ RETRY_DELAY = 10
 class ElevenLabsC(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
+        # 是否终止所有配音，当出现401 403 授权错误 等不论多少次尝试注定失败的错误，提前终止
+        self.stop_next_all=False
 
     def _item_task(self, data_item: dict = None):
         if self._exit() or not data_item.get('text','').strip():
+            return
+        if self.stop_next_all:
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
         def _run():
+        
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
             role = data_item['role']
@@ -43,31 +50,36 @@ class ElevenLabsC(BaseTTS):
             with open(config.ROOT_DIR+'/videotrans/voicejson/elevenlabs.json','r',encoding='utf-8') as f:
                 jsondata=json.loads(f.read())
 
-            client = ElevenLabs(
-                api_key=config.params.get('elevenlabstts_key',''),
-                httpx_client=httpx.Client(proxy=self.proxy_str)
-            )
-
-            response = client.text_to_speech.convert(
-                text=data_item['text'],
-                voice_id=jsondata[role]['voice_id'],
-                model_id=config.params.get("elevenlabstts_models"),
-
-                output_format="mp3_44100_128",
-
-                apply_text_normalization='auto',
-                voice_settings=VoiceSettings(
-                    speed=speed,
-                    stability=0,
-                    similarity_boost=0,
-                    style=0,
-                    use_speaker_boost=True
+            try:
+                client = ElevenLabs(
+                    api_key=config.params.get('elevenlabstts_key',''),
+                    httpx_client=httpx.Client(proxy=self.proxy_str)
                 )
-            )
-            with open(data_item['filename'] + ".mp3", 'wb') as f:
-                for chunk in response:
-                    if chunk:
-                        f.write(chunk)
+                response = client.text_to_speech.convert(
+                    text=data_item['text'],
+                    voice_id=jsondata[role]['voice_id'],
+                    model_id=config.params.get("elevenlabstts_models"),
+
+                    output_format="mp3_44100_128",
+
+                    apply_text_normalization='auto',
+                    voice_settings=VoiceSettings(
+                        speed=speed,
+                        stability=0,
+                        similarity_boost=0,
+                        style=0,
+                        use_speaker_boost=True
+                    )
+                )
+                with open(data_item['filename'] + ".mp3", 'wb') as f:
+                    for chunk in response:
+                        if chunk:
+                            f.write(chunk)
+            except elevenlabs.core.api_error.ApiError as e:
+                if e.status_code in [401,403]:
+                    self.stop_next_all=True
+                    raise StopRetry(e.body.get('detail',{}).get('message'))
+                raise    
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
 
         try:
@@ -79,53 +91,6 @@ class ElevenLabsC(BaseTTS):
 
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
-        self.dub_nums = 1
+        #self.dub_nums = 1
         self._local_mul_thread()
 
-
-class ElevenLabsClone:
-
-    def __init__(self, input_file_path, output_file_path, source_language, target_language,proxy_str=None):
-        self.input_file_path = input_file_path
-        self.output_file_path = output_file_path
-        self.source_language = source_language
-        self.target_language = target_language
-        self.client = ElevenLabs(
-            api_key=config.params.get('elevenlabstts_key',''),
-            httpx_client=httpx.Client(proxy=proxy_str)
-        )
-
-
-    def run(self):
-        # 转为mp3发送
-        mp3_audio = config.TEMP_DIR + f'/elevlabs-clone-{time.time()}.mp3'
-        tools.runffmpeg(['-y', '-i', self.input_file_path, mp3_audio])
-
-        try:
-            with open(mp3_audio, "rb") as f:
-                file_content_bytes = f.read()
-
-            audio_data = io.BytesIO(file_content_bytes)
-            audio_data.name = os.path.basename(mp3_audio)
-            # Start dubbing
-            dubbed = self.client.dubbing.create(
-                file=audio_data, target_lang=self.target_language[:2]
-            )
-
-            while True:
-                status = self.client.dubbing.get(dubbed.dubbing_id).status
-                if status == "dubbed":
-                    dubbed_file = self.client.dubbing.audio.get(dubbed.dubbing_id)
-                    if isinstance(dubbed_file, Iterator):
-                        dubbed_file = b"".join(dubbed_file)
-                    with open(self.output_file_path + ".mp3", "wb") as f:
-                        f.write(dubbed_file)
-                    tools.runffmpeg(
-                        ['-y', '-i', self.output_file_path + ".mp3", "-ar", "44100", "-ac", "2", "-b:a", "128k",
-                         self.output_file_path])
-                    return True
-                time.sleep(1)
-
-        except Exception as e:
-            self.error = e
-            raise

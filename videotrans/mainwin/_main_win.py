@@ -1,5 +1,7 @@
 import asyncio, sys
 
+
+
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 import os
@@ -8,7 +10,7 @@ import shutil
 import time
 from pathlib import Path
 
-from videotrans.configure._config_loader import tr
+from videotrans.configure._config_loader import tr,logs
 
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool
 from PySide6.QtGui import QIcon
@@ -56,7 +58,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QTimer.singleShot(0, self._start_subform)
         QTimer.singleShot(200, self._bindsignal)
         QTimer.singleShot(400, self.is_writable)
-        run_in_threadpool(tools.get_video_codec, True)
+        run_in_threadpool(tools.get_video_codec)
+
 
     def _replace_placeholders(self):
         """
@@ -129,8 +132,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             tr("Add background audio for output video"))
         self.back_audio.setPlaceholderText(tr("back_audio_place"))
         self.back_audio.setToolTip(tr("back_audio_place"))
-        self.stop_djs.setText(tr("Pause"))
-        # 翻译为英文
+
+
         self.import_sub.setText(tr("Import original language SRT"))
 
         self.menu_Key.setTitle(tr("&Setting"))
@@ -176,13 +179,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionsttapi.setText(tr("STT Speech Recognition API"))
         self.actiondeepgram.setText(
             tr("Deepgram Speech Recognition API"))
+        self.actionxxl.setText('Faster_Whisper_XXL.exe')
+        self.actioncpp.setText('Whisper.cpp')
         self.actiondoubao_api.setText(tr("VolcEngine subtitles"))
+        self.actionzijierecognmodel_api.setText(tr("VolcEngine STT"))
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_chatterbox.setText("ChatterBox TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
         self.actiontts_fishtts.setText("Fish TTS")
         self.actiontts_f5tts.setText("F5-TTS/Index-TTS/VoxCPM/SparK-TTS/Dia-TTS")
         self.actiontts_volcengine.setText(tr("VolcEngine TTS"))
+        self.actiontts_doubao2.setText(tr("DouBao2"))
         self.action_website.setText(tr("Documents"))
         self.action_discord.setText(tr("Solution to model download failure"))
         self.action_blog.setText(tr("Having problems? Ask"))
@@ -214,6 +221,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.action_yingyinhebing.setText(config.tr("Video Subtitles Merging"))
         self.action_yingyinhebing.setToolTip(config.tr("Merge audio, video, and subtitles into one file"))
+        self.action_clipvideo.setText(config.tr("Edit video on subtitles"))
+        self.action_clipvideo.setToolTip(config.tr("Edit video on subtitles"))
 
         self.action_hun.setText(config.tr("Mixing 2 Audio Streams"))
         self.action_hun.setToolTip(config.tr("Mix two audio files into one audio file"))
@@ -227,6 +236,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             tr("Combine 2 subtitle files into one to form bilingual subtitles"))
 
         self.action_clearcache.setText(tr("Clear Cache"))
+        self.action_set_proxy.setText(tr("Setting up a network proxy"))
 
         self.actionazure_key.setText(tr("AzureOpenAI Translation"))
         self.actionazure_tts.setText(tr("AzureAI TTS"))
@@ -351,6 +361,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params.get('recogn_type', '') == recognition.Deepgram:
             self.model_name.addItems(config.DEEPGRAM_MODEL)
             curr = config.DEEPGRAM_MODEL
+        elif config.params.get('recogn_type', '') == recognition.Whisper_CPP:
+            curr = config.Whisper_CPP_MODEL_LIST
+            self.model_name.addItems(config.Whisper_CPP_MODEL_LIST)
         elif config.params.get('recogn_type', '') == recognition.FUNASR_CN:
             self.model_name.addItems(config.FUNASR_MODEL)
             curr = config.FUNASR_MODEL
@@ -360,6 +373,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params.get('model_name', '') in curr:
             self.model_name.setCurrentText(config.params.get('model_name', ''))
         if config.params.get('recogn_type', '') not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL,
+                                                        recognition.Whisper_CPP,
                                                         recognition.OPENAI_WHISPER, recognition.FUNASR_CN,
                                                         recognition.Deepgram]:
             self.model_name.setDisabled(True)
@@ -403,16 +417,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.uuid_signal.start()
         self.worker_threads = start_thread()
 
+
+
+
     def _set_cache_set(self):
 
         if platform.system() == 'Darwin':
             self.enable_cuda.setChecked(False)
             self.enable_cuda.hide()
-        self.source_mp4.setAcceptDrops(True)
 
-        self.stop_djs.setStyleSheet("""background-color:#148CD2;color:#ffffff""")
+
+        if not config.proxy:
+            config.proxy=tools.set_proxy() or ''
         self.proxy.setText(config.proxy)
-        self.continue_compos.setToolTip(config.tr('Click to start the next step immediately'))
         self.split_type.addItems([config.tr('whisper_type_all'), config.tr('whisper_type_avg')])
 
         self.subtitle_type.addItems(
@@ -448,7 +465,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.video_autorate.setChecked(bool(config.params.get('video_autorate', False)))
         self.clear_cache.setChecked(bool(config.params.get('clear_cache', False)))
         self.enable_cuda.setChecked(bool(config.params.get('cuda', False)))
-        self.only_video.setChecked(bool(config.params.get('only_video', False)))
+
         self.is_separate.setChecked(bool(config.params.get('is_separate', False)))
 
         local_rephrase = bool(config.settings.get('rephrase_local', False))
@@ -475,8 +492,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.startbtn.clicked.connect(self.win_action.check_start)
         self.btn_save_dir.clicked.connect(self.win_action.get_save_dir)
         self.btn_get_video.clicked.connect(self.win_action.get_mp4)
-        self.stop_djs.clicked.connect(self.win_action.reset_timeid)
-        self.continue_compos.clicked.connect(self.win_action.set_djs_timeout)
         self.listen_btn.clicked.connect(self.win_action.listen_voice_fun)
         self.split_type.currentIndexChanged.connect(self.win_action.check_split_type)
         self.model_name.currentTextChanged.connect(self.win_action.check_model_name)
@@ -495,8 +510,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.import_sub.setCursor(Qt.PointingHandCursor)
         self.model_name_help.setCursor(Qt.PointingHandCursor)
-        self.stop_djs.setCursor(Qt.PointingHandCursor)
-        self.continue_compos.setCursor(Qt.PointingHandCursor)
         self.startbtn.setCursor(Qt.PointingHandCursor)
         self.btn_get_video.setCursor(Qt.PointingHandCursor)
         self.btn_save_dir.setCursor(Qt.PointingHandCursor)
@@ -511,6 +524,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionbaidu_key.triggered.connect(lambda: self._open_winform('baidu'))
         self.actionali_key.triggered.connect(lambda: self._open_winform('ali'))
+        self.set_ass.clicked.connect(lambda: self._open_winform('set_ass'))
         self.actionparakeet_key.triggered.connect(lambda: self._open_winform('parakeet'))
         self.actionsrtmultirole.triggered.connect(lambda: self._open_winform('fn_peiyinrole'))
         self.actionazure_key.triggered.connect(lambda: self._open_winform('azure'))
@@ -535,7 +549,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionrecognapi.triggered.connect(lambda: self._open_winform('recognapi'))
         self.actionsttapi.triggered.connect(lambda: self._open_winform('sttapi'))
         self.actiondeepgram.triggered.connect(lambda: self._open_winform('deepgram'))
+        self.actionxxl.triggered.connect(lambda: self._open_winform('xxl'))
+        self.actioncpp.triggered.connect(lambda: self._open_winform('cpp'))
         self.actiondoubao_api.triggered.connect(lambda: self._open_winform('doubao'))
+        self.actionzijierecognmodel_api.triggered.connect(lambda: self._open_winform('zijierecognmodel'))
         self.actiontrans_api.triggered.connect(lambda: self._open_winform('transapi'))
         self.actiontts_gptsovits.triggered.connect(lambda: self._open_winform('gptsovits'))
         self.actiontts_chatterbox.triggered.connect(lambda: self._open_winform('chatterbox'))
@@ -546,6 +563,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_fishtts.triggered.connect(lambda: self._open_winform('fishtts'))
         self.actiontts_f5tts.triggered.connect(lambda: self._open_winform('f5tts'))
         self.actiontts_volcengine.triggered.connect(lambda: self._open_winform('volcenginetts'))
+        self.actiontts_doubao2.triggered.connect(lambda: self._open_winform('doubao2'))
         self.actionzhipuai_key.triggered.connect(lambda: self._open_winform('zhipuai'))
         self.actiondeepseek_key.triggered.connect(lambda: self._open_winform('deepseek'))
         self.actionqwenmt_key.triggered.connect(lambda: self._open_winform('qwenmt'))
@@ -562,6 +580,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_yinshipinfenli.triggered.connect(lambda: self._open_winform('fn_audiofromvideo'))
         self.action_hun.triggered.connect(lambda: self._open_winform('fn_hunliu'))
         self.action_yingyinhebing.triggered.connect(lambda: self._open_winform('fn_vas'))
+        self.action_clipvideo.triggered.connect(lambda: self._open_winform('clipvideo'))
         self.action_fanyi.triggered.connect(lambda: self._open_winform('fn_fanyisrt'))
         self.action_yuyinshibie.triggered.connect(lambda: self._open_winform('fn_recogn'))
 
@@ -573,12 +592,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.action_gtrans.triggered.connect(lambda: self.win_action.open_url('gtrans'))
         self.action_cuda.triggered.connect(lambda: self.win_action.open_url('cuda'))
-        self.action_online.triggered.connect(lambda: self.win_action.open_url('online'))
+        self.action_online.triggered.connect(self.win_action.lawalert)
         self.action_website.triggered.connect(lambda: self.win_action.open_url('website'))
         self.action_blog.triggered.connect(lambda: self.win_action.open_url('bbs'))
         self.action_issue.triggered.connect(lambda: self.win_action.open_url('issue'))
         self.action_about.triggered.connect(self.win_action.about)
         self.action_clearcache.triggered.connect(self.win_action.clearcache)
+        self.action_set_proxy.triggered.connect(self.win_action.proxy_alert)
         self.aisendsrt.toggled.connect(self.checkbox_state_changed)
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
@@ -588,8 +608,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except OSError:
             pass
 
+
     # 打开缓慢
     def _open_winform(self, name):
+        if name=='set_ass':
+            from videotrans.component.set_ass import ASSStyleDialog
+            dialog = ASSStyleDialog()
+            dialog.exec()
+            return
+        if name == 'xxl':
+            from videotrans.component.set_xxl import SetFasterXXL
+            dialog = SetFasterXXL()
+            dialog.exec()
+            return
+
+        if name=='cpp':
+            from videotrans.component.set_cpp import SetWhisperCPP
+            dialog = SetWhisperCPP()
+            dialog.exec()
+            return
+
         winobj = config.child_forms.get(name)
         if winobj:
             if hasattr(winobj, 'update_ui'):
@@ -599,6 +637,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             winobj.raise_()
             winobj.activateWindow()
             return
+        if name=='clipvideo':
+            from videotrans.component.clip_video import ClipVideoWindow
+            window = ClipVideoWindow()
+            config.child_forms[name]=window
+            window.show()
+            return
+
         from videotrans import winform
 
         QTimer.singleShot(0, winform.get_win(name).openwin)

@@ -1,7 +1,7 @@
 
 
 def openwin():
-    from videotrans.configure.config import tr
+    from videotrans.configure.config import tr,logs
     import json
     from pathlib import Path
     from PySide6 import QtWidgets
@@ -67,7 +67,7 @@ def openwin():
         if res is not True:
             return tools.show_error(res)
         if (
-                model == 'paraformer-zh' and recogn_type == recognition.FUNASR_CN) or recogn_type == recognition.Deepgram or recogn_type == recognition.GEMINI_SPEECH:
+                model == 'paraformer-zh' and recogn_type == recognition.FUNASR_CN) or recogn_type in[recognition.Deepgram,recognition.GEMINI_SPEECH,recognition.ZIJIE_RECOGN_MODEL]:
             winobj.show_spk.setVisible(True)
         else:
             winobj.show_spk.setVisible(False)
@@ -223,11 +223,28 @@ def openwin():
                 return True
             return False
         return True
+    
+    def show_cpp_select():
+        import sys
+        cpp_path=config.settings.get('Whisper.cpp', '')
+        if not cpp_path or not Path(cpp_path).exists():
+            from videotrans.component.set_cpp import SetWhisperCPP
+            dialog = SetWhisperCPP()
+            if dialog.exec():  # OK 按钮被点击时 exec 返回 True
+                cpp_path = dialog.get_values()
+                if cpp_path and Path(cpp_path).is_file():
+                    return True
+            tools.show_error(
+                tr("Must be selected, otherwise it cannot be used"))
+            return False
+        return True    
 
     # 识别类型改变时
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
         if recogn_type == recognition.Faster_Whisper_XXL and not show_xxl_select():
+            return
+        if recogn_type == recognition.Whisper_CPP and not show_cpp_select():
             return
         # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
         if recogn_type != recognition.FASTER_WHISPER:  # openai-whisper
@@ -243,6 +260,7 @@ def openwin():
 
         if recogn_type not in [recognition.FASTER_WHISPER,
                                recognition.Faster_Whisper_XXL,
+                               recognition.Whisper_CPP,
                                recognition.OPENAI_WHISPER,
                                recognition.FUNASR_CN,
                                recognition.Deepgram
@@ -255,6 +273,8 @@ def openwin():
                 winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
             elif recogn_type == recognition.Deepgram:
                 winobj.shibie_model.addItems(config.DEEPGRAM_MODEL)
+            elif recogn_type == recognition.Whisper_CPP:
+                winobj.shibie_model.addItems(config.Whisper_CPP_MODEL_LIST)
             else:
                 winobj.shibie_model.addItems(config.FUNASR_MODEL)
         
@@ -372,6 +392,9 @@ def openwin():
         if default_type == recognition.Deepgram:
             curr = config.DEEPGRAM_MODEL
             winobj.shibie_model.addItems(config.DEEPGRAM_MODEL)
+        elif default_type == recognition.Whisper_CPP:
+            curr = config.Whisper_CPP_MODEL_LIST
+            winobj.shibie_model.addItems(config.Whisper_CPP_MODEL_LIST)
         elif default_type == recognition.FUNASR_CN:
             curr = config.FUNASR_MODEL
             winobj.shibie_model.addItems(config.FUNASR_MODEL)
@@ -384,7 +407,7 @@ def openwin():
             if current_model == 'paraformer-zh' or default_type == recognition.Deepgram or default_type == recognition.GEMINI_SPEECH:
                 winobj.show_spk.setVisible(True)
 
-        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram]:
+        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP]:
             winobj.shibie_model.setDisabled(True)
         else:
             winobj.shibie_model.setDisabled(False)

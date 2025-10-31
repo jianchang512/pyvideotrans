@@ -34,6 +34,7 @@ __pycache__
 *.spec
 *.ui
 *.bak
+.agree.txt
 *.aac
 *.pyi
 5.wav
@@ -45,9 +46,10 @@ pack-api.bat
 gitcmd.bat
 google.txt
 videotrans/translator/freechatgpt.py
+videotrans/ass.json
+videotrans/codec.json
 videotrans/cfg.json
 videotrans/params.json
-videotrans/1params.json
 videotrans/glossary.txt
 tmp/
 runtime

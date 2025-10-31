@@ -5,6 +5,9 @@ import re
 from dataclasses import dataclass
 from typing import List, Dict,  Union
 
+from pathlib import Path
+import json
+
 import httpx
 import zhconv
 from deepgram import (
@@ -17,7 +20,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -65,26 +68,32 @@ class DeepgramRecogn(BaseRecogn):
             utterances=True,
             diarize=diarize,
 
-            utt_split=int(config.params.get('deepgram_utt', 200)) / 1000,
+            utt_split=int(config.settings.get('min_silence_duration_ms', 140)) / 1000,
         )
 
         res = deepgram.listen.rest.v("1").transcribe_file(payload, options, timeout=600)
 
         raws = []
-        
         if diarize:
+            speaker_list=[]
+            logs(f"{res['results']['utterances']=}")
             for it in res['results']['utterances']:
+                if not it.transcript.strip():
+                    continue
+                speaker_list.append(f'[spk{it.speaker}]')
                 tmp = {
                     "line": len(raws) + 1,
-                    "start_time": int(it['start'] * 1000),
-                    "end_time": int(it['end'] * 1000),
-                    "text": f'[spk-{it["speaker"]}]' + it['transcript']
+                    "start_time": int(it.start * 1000),
+                    "end_time": int(it.end * 1000),
+                    "text": it.transcript
                 }
                 if self.detect_language[:2] in ['zh', 'ja', 'ko']:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'])
                 tmp['time'] = tools.ms_to_time_string(ms=tmp['start_time']) + ' --> ' + tools.ms_to_time_string(
                     ms=tmp['end_time'])
                 raws.append(tmp)
+            if speaker_list:
+                Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
         else:
             transcription = DeepgramConverter(res)
             srt_str = srt(transcription,

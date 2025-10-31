@@ -1,57 +1,72 @@
 from videotrans.configure import config
 
 # 数字代表界面中的显示顺序
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 
 EDGE_TTS = 0
-COSYVOICE_TTS = 1
-CHATTTS = 2
-AI302_TTS = 3
-FISHTTS = 4
-AZURE_TTS = 5
-GPTSOVITS_TTS = 6
-CLONE_VOICE_TTS = 7
-OPENAI_TTS = 8
-ELEVENLABS_TTS = 9
-GOOGLE_TTS = 10
-TTS_API = 11
-VOLCENGINE_TTS = 12
-F5_TTS = 13
-KOKORO_TTS = 14
-INDEX_TTS = 15
-GEMINI_TTS = 16
-CHATTERBOX_TTS = 17
-QWEN_TTS = 18
-MINIMAXI_TTS = 19
-VOXCPM_TTS = 20
-SPARK_TTS = 21
-DIA_TTS = 22
-GOOGLECLOUD_TTS = 23
+MINIMAXI_TTS = 1
+
+OPENAI_TTS = 2
+AZURE_TTS = 3
+QWEN_TTS = 4
+DOUBAO2_TTS=5
+ELEVENLABS_TTS = 6
+DOUBAO_TTS = 7
+AI302_TTS = 8
+GEMINI_TTS =9
+
+
+GPTSOVITS_TTS = 10
+COSYVOICE_TTS = 12
+CHATTERBOX_TTS = 13
+CHATTTS = 14
+
+F5_TTS = 15
+INDEX_TTS = 16
+VOXCPM_TTS = 17
+SPARK_TTS = 18
+DIA_TTS = 19
+
+KOKORO_TTS = 19
+CLONE_VOICE_TTS = 20
+FISHTTS = 21
+
+GOOGLE_TTS = 22
+TTS_API = 23
+
+GOOGLECLOUD_TTS = 24
 
 TTS_NAME_LIST = [
     tr("Edge-TTS(free)"),
-    'CosyVoice',
-    "ChatTTS",
-    "302.AI",
-    "Fish TTS",
-    "Azure-TTS",
-    "GPT-SoVITS",
-    'clone-voice',
-    "OpenAI TTS",
-    "Elevenlabs.io",
-    "Google TTS",
-    tr("Customize API"),
-    tr("VolcEngine TTS"),
-    "F5-TTS",
-    "kokoro TTS",
-    "Index TTS",
-    "Gemini TTS",
-    "ChatterBox TTS",
-    "Qwen TTS",
     "Minimaxi TTS",
+
+    "OpenAI TTS",
+    "Azure-TTS",
+    "Qwen TTS",
+    tr("DouBao2"),
+    "Elevenlabs.io",
+    tr("VolcEngine TTS"),
+    "302.AI",
+    "Gemini TTS",
+    
+    "GPT-SoVITS",
+    'CosyVoice',
+    "ChatterBox TTS",
+    "ChatTTS",
+    
+    "F5-TTS",
+    "Index TTS",
     "VoxCPM TTS",
     "Spark TTS",
     "Dia TTS",
+
+    "kokoro TTS",
+    'clone-voice',
+    "Fish TTS",
+
+
+    "Google TTS",
+    tr("Customize API"),
     # "Google Cloud TTS",
 ]
 
@@ -74,7 +89,7 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 
 
 
-    if tts_type == VOLCENGINE_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'pt', 'es', 'th', 'vi', 'id', 'yu']:
+    if tts_type == DOUBAO_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'pt', 'es', 'th', 'vi', 'id', 'yu']:
         return tr("Byte VolcEngine TTS only supports Chinese, English, Japanese, Portuguese, Spanish, Thai, Vietnamese, Indonesian")
     if tts_type == KOKORO_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'pt', 'es', 'it', 'hi', 'fr']:
         return tr("Kokoro TTS only supports Chinese, English, Japanese, Portuguese, Spanish, it, hi, fr")
@@ -175,7 +190,7 @@ def is_input_api(tts_type: int = None, return_str=False):
         from videotrans.winform import gemini as gemini_win
         gemini_win.openwin()
         return False
-    if tts_type == VOLCENGINE_TTS and (
+    if tts_type == DOUBAO_TTS and (
             not config.params.get('volcenginetts_appid','') or not config.params.get('volcenginetts_access','') or not config.params.get('volcenginetts_cluster','')):
         if return_str:
             return "Please configure the api and key information of the VolcEngine TTS channel first."
@@ -283,9 +298,12 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
     elif tts_type == TTS_API:
         from videotrans.tts._ttsapi import TTSAPI
         TTSAPI(**kwargs).run()
-    elif tts_type == VOLCENGINE_TTS:
-        from videotrans.tts._volcengine import VolcEngineTTS
-        VolcEngineTTS(**kwargs).run()
+    elif tts_type == DOUBAO_TTS:
+        from videotrans.tts._doubao import DoubaoTTS
+        DoubaoTTS(**kwargs).run()
+    elif tts_type == DOUBAO2_TTS:
+        from videotrans.tts._doubao2 import Doubao2TTS
+        Doubao2TTS(**kwargs).run()
     elif tts_type in [F5_TTS, INDEX_TTS, SPARK_TTS, DIA_TTS, VOXCPM_TTS]:
         from videotrans.tts._f5tts import F5TTS
         F5TTS(**kwargs).run()

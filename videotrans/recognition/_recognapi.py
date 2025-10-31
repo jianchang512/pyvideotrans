@@ -8,7 +8,7 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -141,10 +141,10 @@ class APIRecogn(BaseRecogn):
             response.raise_for_status()
             d = response.json()
             if d['status'] == 'error':
-                config.logger.error(d)
+                logs(d,level='warn')
                 raise StopRetry(f"Error:{d['error_code']}")
             if d['status'] == 'done':
-                config.logger.info(d)
+                logs(d)
                 sens = d['result']['transcription']['subtitles'][0]['subtitles']
                 raws = tools.get_subtitle_from_srt(sens, is_file=False)
                 if self.detect_language and self.detect_language[:2] in ['zh', 'ja', 'ko']:

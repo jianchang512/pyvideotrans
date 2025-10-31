@@ -3,14 +3,19 @@ import re
 from dataclasses import dataclass
 
 import httpx
-from openai import OpenAI
+
+from openai import OpenAI,AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError
+
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import logs
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+
+
 
 RETRY_NUMS = 2
 RETRY_DELAY = 10
@@ -20,17 +25,17 @@ RETRY_DELAY = 10
 class OPENAITTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-
+        self.stop_next_all=False
         self.api_url = self._get_url(config.params.get('openaitts_api',''))
         self._add_internal_host_noproxy(self.api_url)
 
 
     def _exec(self):
-        self.dub_nums = 1
+
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        if self._exit() or not data_item.get('text','').strip():
+        if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
@@ -46,20 +51,23 @@ class OPENAITTS(BaseTTS):
                 speed += rate
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-
-            client = OpenAI(api_key=config.params.get('openaitts_key', ''), base_url=self.api_url,
-                            http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
-            with client.audio.speech.with_streaming_response.create(
-                    model=config.params.get('openaitts_model',''),
-                    voice=role,
-                    input=data_item['text'],
-                    timeout=7200,
-                    speed=speed,
-                    instructions=config.params.get('openaitts_instructions', '')
-            ) as response:
-                with open(data_item['filename'] + ".mp3", 'wb') as f:
-                    for chunk in response.iter_bytes():
-                        f.write(chunk)
+            try:
+                client = OpenAI(api_key=config.params.get('openaitts_key', ''), base_url=self.api_url,
+                                http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
+                with client.audio.speech.with_streaming_response.create(
+                        model=config.params.get('openaitts_model',''),
+                        voice=role,
+                        input=data_item['text'],
+                        timeout=7200,
+                        speed=speed,
+                        instructions=config.params.get('openaitts_instructions', '')
+                ) as response:
+                    with open(data_item['filename'] + ".mp3", 'wb') as f:
+                        for chunk in response.iter_bytes():
+                            f.write(chunk)
+            except (AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError):
+                self.stop_next_all=True
+                raise
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
 
         try:

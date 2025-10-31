@@ -6,7 +6,7 @@ class TaskCfg:
 
     remove_noise: bool=False  # 是否移除噪声
     is_separate: bool=False  # 是否进行人声、背景音分离
-    only_video: bool=False  # 是否仅仅输出视频，如果是，则删除生成的其他文件
+
 
     detect_language: str=None  # 字幕检测语言代码
     subtitle_language: str=None  # 软字幕嵌入语言代码，3位

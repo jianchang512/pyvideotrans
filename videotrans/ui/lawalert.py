@@ -1,0 +1,156 @@
+from pathlib import Path
+
+import requests
+from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import QByteArray, QThread, Signal
+from PySide6.QtGui import Qt, QPixmap, QIcon
+
+from videotrans.configure import config
+from videotrans.configure.config import tr
+from videotrans.util import tools
+
+
+class Ui_lawalert(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+        self.main=parent
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+    def setupUi(self, lawalert):
+
+        lawalert.setObjectName("lawalert")
+        lawalert.setWindowModality(QtCore.Qt.ApplicationModal)
+        lawalert.resize(950, 600)
+        flags = QtCore.Qt.Window | QtCore.Qt.WindowTitleHint | QtCore.Qt.WindowCloseButtonHint
+        self.setWindowFlags(flags)
+        self.window().setWindowFlag(QtCore.Qt.WindowCloseButtonHint, False)
+
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(lawalert.sizePolicy().hasHeightForWidth())
+        lawalert.setSizePolicy(sizePolicy)
+        self.v1 = QtWidgets.QVBoxLayout(lawalert)
+        # 将 v1 设为垂直顶部对齐
+        self.v1.setAlignment(Qt.AlignTop)
+
+        self.text1 = QtWidgets.QTextEdit()
+        self.text1.setObjectName("text1")
+        self.text1.setReadOnly(True)
+        self.text1.setMinimumHeight(400)
+        self.text1.setHtml("""<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body {  line-height: 1.6; font-size: 15px; }
+    h1 { font-size: 22px;  border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    h2 { font-size: 18px;  margin-top: 30px; }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 8px; }
+    p { margin-bottom: 12px; }
+    strong, b { color: #c0392b; }
+    code { padding: 2px 5px; border-radius: 3px; }
+    .warning {
+        border-left: 5px solid #c0392b;
+        padding: 10px 15px;
+        margin: 15px 0;
+    }
+</style>
+</head>
+<body>
+
+<h1>pyVideoTrans 软件许可与服务协议</h1>
+<p>更新日期：2025年10月21日</p>
+
+<p>欢迎使用 pyVideoTrans（以下简称“本软件”）！本软件是一款免费、开源的本地视频翻译和语音转录工具。在安装、复制或以任何方式使用本软件前，请您务必仔细阅读并充分理解本协议中的所有条款。</p>
+
+<p class="warning"><strong>您的安装、复制、下载或任何形式的使用行为，即表示您已阅读、理解并无条件接受本协议所有条款的约束。如果您不同意本协议的任何内容，请立即停止使用并从您的设备中彻底删除本软件。</strong></p>
+
+<h2>1. 许可授予与软件性质</h2>
+<ul>
+    <li><strong>开源免费</strong>：本软件是一款基于 GPL-v3 开源协议发布的免费软件。您可以从官方渠道（<code>https://github.com/jianchang512/pyvideotrans</code>）或文档站(<code>https://pyvideotrans.com</code>)获取本软件的源代码和Windows预打包版。</li>
+    <li><strong>禁止商业销售</strong>：开发者未授权任何实体或个人销售本软件。任何通过付费渠道获取本软件的行为均与开发者无关，开发者对此不承担任何责任。</li>
+    <li><strong>重要提醒：</strong>第三方 API 需您自行提供账户和密钥（仅本地存储），产生的费用由第三方收取，与开发者无关，开发者仅在软件中提供API对接技术规范。请查阅各 API 协议以确认商用许可及费用标准。
+    </li>
+</ul>
+
+<h2>2. 数据隐私</h2>
+<ul>
+    <li><strong>本地运行</strong>：本软件的核心功能完全在您的本地计算机上运行，不会收集或上传您的任何个人信息、视频文件或操作数据至开发者服务器。</li>
+    <li><strong>第三方服务</strong>：当您选择使用集成的第三方API服务（如 Microsoft Azure, OpenAI, Edge TTS等）时，相关数据将直接由您的计算机发送至相应的第三方服务提供商。您的数据处理将受限于该第三方服务商的隐私政策和使用条款。开发者不参与此过程，也不对第三方服务的数据安全和隐私泄露承担任何责任。</li>
+    <li><strong>版本更新与报错信息</strong>：软件通过 <code>https://pyvideotrans.com/version.json</code> 这个静态文件获取最新版本号; <br>当你在软件中点击“报告错误”按钮时，会打开 <code>https://bbs.pyvideotrans.com/post</code> 报错提交页面并显示错误信息，在该页面你仍需要再次点击“发布”按钮，才会向开发者提交错误信息，否则错误信息只会保留在本地和你的浏览器缓存中，不会提交。</li>
+</ul>
+
+<h2>3. 免责声明与责任限制</h2>
+<p class="warning">
+    <strong>本软件按“原样” 提供，不附带任何形式的明示或暗示的保证，包括但不限于对适销性、特定用途适用性及非侵权性的保证。</strong>
+</p>
+<ul>
+    <li><strong>无保证</strong>：开发者不保证本软件能够满足您的所有需求，也不保证软件运行不会中断或出现错误。您将承担使用本软件所带来的一切风险。</li>
+    <li><strong>责任限制</strong>：在任何情况下，无论基于何种法律理论（无论是合同、侵权或其他），<strong>开发者均不对任何因使用或无法使用本软件而导致的任何形式的直接、间接、特殊、偶然或后果性损害承担责任</strong>。这包括但不限于：数据丢失、文件损坏、利润损失、业务中断、计算机故障或任何其他商业损害或损失，即便开发者已被告知存在此类损害的可能性。</li>
+    <li><strong>用户责任</strong>：您对通过本软件处理的所有内容负全部责任。您必须确保拥有处理这些内容的合法权利，并遵守您所在地区及中华人民共和国的所有适用法律法规，包括但不限于版权法和知识产权法。任何因非法使用本软件而导致的法律后果，均由您自行承担。</li>
+</ul>
+
+<h2>4. 您的义务</h2>
+<ul>
+    <li><strong>数据备份</strong>：软件缺陷或不当操作可能导致数据丢失或文件损坏。<strong>在使用本软件处理任何重要文件之前，您有绝对责任对您的原始文件和重要数据进行充分备份。</strong></li>
+    <li><strong>合法使用</strong>：您承诺不使用本软件进行任何非法活动，包括但不限于侵犯他人版权、传播非法信息等。</li>
+</ul>
+
+<h2>5. 其他条款</h2>
+<ul>
+    <li><strong>协议修改</strong>：开发者保留随时修改本协议条款的权利。修改后的协议将在官方渠道公布，恕不另行通知。您继续使用本软件将被视为接受修改后的协议。</li>
+    <li><strong>最终解释权</strong>：在法律允许的最大范围内，本协议的最终解释权归本软件开发者所有。</li>
+</ul>
+
+<p>如果您已阅读并同意上述所有条款，请点击“<strong>同意并继续</strong>”开始使用本软件。否则，请关闭此窗口并删除本软件。</p>
+
+</body>
+</html>
+
+"""
+                                )
+        # text1的边框合为0
+        self.text1.setFrameStyle(QtWidgets.QFrame.NoFrame)
+        self.text1.setStyleSheet("""
+        border:none;
+        """)
+        self.v1.addWidget(self.text1)
+
+
+        lawbtn = QtWidgets.QPushButton()
+        lawbtn.setFixedHeight(35)
+        lawbtn.setMaximumWidth(300)
+
+        lawbtn.setCursor(Qt.PointingHandCursor)
+        lawbtn.setText(tr("I Agree and Continue"))
+        lawbtn.clicked.connect(lambda :self._close(True))
+
+        dont = QtWidgets.QPushButton()
+        dont.setFixedHeight(35)
+        dont.setMaximumWidth(200)
+
+        dont.setCursor(Qt.PointingHandCursor)
+        dont.setText(tr("Disagree"))
+        dont.clicked.connect(lambda :self._close(False))
+
+        btn_h=QtWidgets.QHBoxLayout()
+        btn_h.addWidget(lawbtn)
+        btn_h.addWidget(dont)
+        self.v1.addLayout(btn_h)
+
+        lawalert.setWindowTitle('pyVideoTrans '+tr('Software License Agreement'))
+
+    def _close(self,res=True):
+        if res:
+            Path(config.ROOT_DIR+"/.agree.txt").write_text("Yes,I Agree and Continue ")
+            self.close()
+        else:
+            self.hide()
+            self.main.close()
+            Path(config.ROOT_DIR+"/.agree.txt").unlink(missing_ok=True)
+            self.close()
+
+
+

@@ -1,3 +1,5 @@
+# 对应 豆包语音合成
+
 def openwin():
     from PySide6 import QtWidgets
     from videotrans.configure import config
@@ -27,9 +29,9 @@ def openwin():
             "text": '你好啊我的朋友',
             "role": "通用男声",
             "filename": config.TEMP_HOME + f"/{time.time()}-volcenginetts.wav",
-            "tts_type": tts.VOLCENGINE_TTS}],
+            "tts_type": tts.DOUBAO_TTS}],
                          language="zh",
-                         tts_type=tts.VOLCENGINE_TTS)
+                         tts_type=tts.DOUBAO_TTS)
         wk.uito.connect(feed)
         wk.start()
         winobj.test.setText(tr('Testing...'))

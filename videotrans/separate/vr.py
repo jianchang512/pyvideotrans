@@ -6,6 +6,7 @@ import soundfile as sf
 import torch
 
 from videotrans.configure import config
+from videotrans.configure.config import logs
 from videotrans.separate.lib_v5 import nets_61968KB as Nets
 from videotrans.separate.lib_v5 import spec_utils
 from videotrans.separate.lib_v5.model_param_init import ModelParameters
@@ -126,7 +127,7 @@ class AudioPre:
                 )
             else:
                 wav_instrument = spec_utils.cmb_spectrogram_to_wave(y_spec_m, self.mp)
-            config.logger.info("%s instruments done" % name)
+            logs("%s instruments done" % name)
             if is_hp3:
                 head = "vocal"
             else:
@@ -155,7 +156,7 @@ class AudioPre:
                 )
             else:
                 wav_vocals = spec_utils.cmb_spectrogram_to_wave(v_spec_m, self.mp)
-            config.logger.info("%s vocals done" % name)
+            logs("%s vocals done" % name)
             if format in ["wav", "flac"]:
                 sf.write(
                     os.path.join(

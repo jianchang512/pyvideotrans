@@ -10,58 +10,12 @@ from PySide6.QtGui import Qt, QFontDatabase, QColor
 from PySide6.QtWidgets import QFileDialog, QFontDialog, QColorDialog
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.util import tools
+from videotrans.configure.config import tr,logs
 
 
 class Ui_setini(object):
-    def _show_font_dialog(self):
-        default_font = QFontDatabase.systemFont(QFontDatabase.GeneralFont)
-        dialog = QFontDialog(default_font, self)
-        if dialog.exec():
-            font = dialog.selectedFont()
-            font_name = font.family()
-            font_size = font.pointSize()
-            self.fontsize_lineedit.setText(str(font_size))
-            self.fontname_lineedit.setText(font_name)
 
-    def _qcolor_to_ass_color(self, color, type='fc'):
-        # 获取颜色的 RGB 值
-        r = color.red()
-        g = color.green()
-        b = color.blue()
-        if type in ['bg', 'bd']:
-            return f"&H80{b:02X}{g:02X}{r:02X}".upper()
-        # 将 RGBA 转换为 ASS 的颜色格式 &HBBGGRR
-        return f"&H{b:02X}{g:02X}{r:02X}".upper()
-
-    def set_fontcolor(self):
-
-        fontcolor = QColor(re.sub(r'&H', '#', self.fontcolor_lineedit.text(), re.I))  # 默认颜色
-        dialog = QColorDialog(fontcolor, self)
-        color = dialog.getColor()
-        if color.isValid():
-            self.fontcolor_lineedit.setText(self._qcolor_to_ass_color(color, type='fc'))
-
-    def set_fontbordercolor(self):
-
-        fontbordercolor = QColor(re.sub(r'&H', '#', self.fontbordercolor_lineedit.text().upper(), re.I))  # 默认颜色
-        dialog = QColorDialog(fontbordercolor, self)
-        dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
-        color = dialog.getColor()
-        if color.isValid():
-            self.fontbordercolor_lineedit.setText(self._qcolor_to_ass_color(color, type='bd'))
-
-    def set_backgroundcolor(self):
-
-        backgroundcolor = QColor(re.sub(r'&H', '#', self.backgroundcolor_lineedit.text().upper(), re.I))  # 默认颜色
-        dialog = QColorDialog(backgroundcolor, self)
-        dialog.setOption(QColorDialog.ShowAlphaChannel, True)  # 启用透明度选择
-        color = dialog.getColor()
-        if color.isValid():
-            self.backgroundcolor_lineedit.setText(self._qcolor_to_ass_color(color, type='bg'))
-
-    def set_fontname(self):
-        QTimer.singleShot(100, self._show_font_dialog)
 
     def get_target(self):
         dirname = QFileDialog.getExistingDirectory(self, tr('selectsavedir'), Path.home().as_posix())
@@ -86,8 +40,10 @@ class Ui_setini(object):
         self.layout = QtWidgets.QVBoxLayout(setini)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setObjectName("layout")
+        
+        action_layout=QtWidgets.QHBoxLayout()
 
-        scroll_area = QtWidgets.QScrollArea(setini)
+        scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
 
@@ -114,27 +70,11 @@ class Ui_setini(object):
                 "crf": "视频转码时损失控制，0=无损，51=损失最大，默认25",
                 "preset": "主要调节编码速度和质量的平衡，有 ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
                 "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在倒数第二个位置上,例如  -bf 7 -b_ref_mode middle",
-                "cuda_decode": "使用cuda解码视频,易出错",
+                "force_lib": "强制软件编码?（速度慢但兼容性好不易出错，默认优选硬件编码）",
                 "video_codec": "采用 libx264 编码或 libx265 编码，264兼容性更好，265压缩比更大清晰度更高"
             },
 
-            "subtitle": {
-                "fontsize": "硬字幕字体像素尺寸",
-                "fontname": "硬字幕字体名字",
-                "fontcolor": "设置字体的颜色，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
 
-                "fontbordercolor": "设置字体边框描边颜色(轮廓模式下)，注意&H后的6个字符，每2个字母分别代表 BGR 颜色，即2位蓝色/2位绿色/2位红色，同同时常见的RGB色色颠倒的。",
-
-                "backgroundcolor": "背景色块模式下为背景色，轮廓模式下可能是阴影颜色，可能因播放器支持而不同",
-                "subtitle_position": "字幕所处位置，默认底部",
-                "marginV": "字幕垂直边距",
-                "marginL": "字幕左边距",
-                "marginR": "字幕右边距",
-                "shadow": "字幕阴影大小",
-                "outline": "字幕描边粗细",
-                'borderStyle': "轮廓描边是指字幕有文字描边和阴影但无背景色块，背景色块风格则相反"
-
-            },
             "trans": {
                 "trans_thread": "传统翻译渠道每次发送字幕行数",
                 "aitrans_thread": "AI翻译渠道每次发送字幕行数",
@@ -150,6 +90,8 @@ class Ui_setini(object):
             },
             "justify": {
                 "remove_silence": "是否移除配音末尾空白",
+                "max_audio_speed_rate":"最大音频加速倍数，默认100",
+                "max_video_pts_rate":"视频慢放最大倍数，默认10，不可大于10",
             },
             "whisper": {
                 "vad": "是否在faster-whisper渠道整体识别模式时启用VAD",
@@ -162,6 +104,7 @@ class Ui_setini(object):
                 "voice_silence": "Google识别Api静音片段/ms",
                 "interval_split": "faster-whisper渠道均等分割模式下分割秒数",
                 "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
+                "Whisper.cpp.models": "whisper.cpp模式下的模型名字列表，英文逗号分隔",
                 "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，float16适合GPU加速。default默认自选",
                 "beam_size": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
@@ -204,6 +147,8 @@ class Ui_setini(object):
         }
         # 中文左侧label
         self.titles = {
+            "max_audio_speed_rate":"最大音频加速倍数，默认100",
+            "max_video_pts_rate":"视频慢放最大倍数，默认10，不可大于10",
             "dont_notify": "是否禁用桌面通知",
             "llm_ai_type": "LLM重新断句时的AI渠道",
             "prompt_init": "Whisper模型提示词",
@@ -218,11 +163,12 @@ class Ui_setini(object):
             "localllm_model": "本地LLM模型列表",
             "zijiehuoshan_model": "字节火山推理接入点",
             "model_list": "faster和openai的模型列表",
+            "Whisper.cpp.models": "whisper.cpp的模型名字",
             "homedir": "设置输出目录",
             "lang": "软件界面语言",
             "save_segment_audio": "保留每条字幕的配音文件",
             "crf": "视频转码损失控制",
-            "cuda_decode": "强制CUDA硬解码视频",
+            "force_lib": "是否强制软编码视频?",
             "preset": "输出视频压缩率",
             "ffmpeg_cmd": "自定义ffmpeg命令参数",
             "video_codec": "264/265编码",
@@ -248,18 +194,7 @@ class Ui_setini(object):
             "beam_size": "字幕识别准确度beam_size",
             "best_of": "字幕识别准确度best_of",
             "condition_on_previous_text": "是否启用上下文感知",
-            "fontsize": "硬字幕字体大小",
-            "fontname": "硬字幕字体名字",
-            "fontcolor": "硬字幕文字颜色",
-            "fontbordercolor": "硬字幕文字边框描边颜色",
-            "backgroundcolor": "硬字幕背景色块或阴影色",
-            "subtitle_position": "硬字幕位置",
-            "marginV": "字幕垂直边距",
-            "marginL": "字幕左边距",
-            "marginR": "字幕右边距",
-            "shadow": "字幕阴影大小",
-            "outline": "字幕描边粗细",
-            'borderStyle': "轮廓描边模式或背景色块模式",
+
 
             "zh_hant_s": "字幕繁体转为简体",
             "azure_lines": "AzureTTS批量行数",
@@ -308,9 +243,8 @@ class Ui_setini(object):
             "common": "通用设置",
             "model": "AI模型列表",
             "video": "视频输出控制",
-            "whisper": "faster/openai语音识别调整",
+            "whisper": "faster/openai/whisper语音识别调整",
             "justify": "字幕声音画面对齐",
-            "subtitle": "硬字幕样式",
             "trans": "字幕翻译调整",
             "dubbing": "配音调整",
             "prompt_init": "Whisper模型提示词"
@@ -331,23 +265,10 @@ class Ui_setini(object):
                     "crf": "CRF (Constant Rate Factor) for transcoding. 0=lossless, 51=max loss. Default: 25.",
                     "preset": "Encoding preset (speed vs. quality): ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow.",
                     "ffmpeg_cmd": "Custom ffmpeg parameters (e.g., -bf 7 -b_ref_mode middle).",
-                    "cuda_decode": "Use CUDA for video decoding (may be unstable).",
+                    "force_lib": "Force software encoding? (Slow but more compatible and less prone to errors, hardware encoding is preferred by default)",
                     "video_codec": "Video codec: libx264 (better compatibility) or libx265 (better compression/quality)."
                 },
-                "subtitle": {
-                    "fontsize": "Hardsub font size (pixels).",
-                    "fontname": "Hardsub font name.",
-                    "fontcolor": "Font color in BGR format (&HBBGGRR).",
-                    "fontbordercolor": "Font border color in BGR format (&HBBGGRR).",
-                    "backgroundcolor": "Background/shadow color. Varies by mode and player.",
-                    "subtitle_position": "Subtitle position. Default: bottom.",
-                    "marginV": "Vertical margin.",
-                    "marginL": "Left margin.",
-                    "marginR": "Right margin.",
-                    "shadow": "Shadow size.",
-                    "outline": "Outline thickness.",
-                    "borderStyle": "Border Style: Outline (text border and shadow) vs. Background (solid block)."
-                },
+                
                 "trans": {
                     "trans_thread": "Lines per request (traditional translation).",
                     "aitrans_thread": "Lines per request (AI translation).",
@@ -362,7 +283,9 @@ class Ui_setini(object):
                     "chattts_voice": "ChatTTS voice timbre value."
                 },
                 "justify": {
-                    "remove_silence": "Remove trailing silence from dubbing."
+                    "remove_silence": "Remove trailing silence from dubbing.",
+                    "max_audio_speed_rate": "Maximum audio acceleration factor, default is 100",
+                    "max_video_pts_rate": "Maximum video slowdown factor, default is 10",
                 },
                 "whisper": {
                     "vad": "Enable VAD for faster-whisper.",
@@ -374,6 +297,7 @@ class Ui_setini(object):
                     "voice_silence": "Google recognition API silence segment (ms).",
                     "interval_split": "Split interval (s) for faster-whisper equal-split mode.",
                     "model_list": "Model names for faster/openai modes (comma-separated).",
+                    "Whisper.cpp.models": "Models name for whisper.cpp(comma-separated)",
                     "cuda_com_type": "CUDA compute type for faster mode (int8, float16, float32, default).",
                     "beam_size": "Beam size for recognition accuracy (1-5). Higher uses more VRAM.",
                     "best_of": "Best of for recognition accuracy (1-5). Higher uses more VRAM.",
@@ -415,6 +339,8 @@ class Ui_setini(object):
                 }
             }
             self.titles = {
+                "max_audio_speed_rate": "Maximum audio acceleration factor, default is 100",
+                "max_video_pts_rate": "Maximum video slowdown factor, default is 10",
                 "dont_notify": "Disable desktop notifications",
                 "llm_ai_type": "AI channel for LLM re-segmentation",
                 "prompt_init": "Whisper model prompt",
@@ -428,12 +354,13 @@ class Ui_setini(object):
                 "azure_model": "Azure model list",
                 "localllm_model": "Local LLM model list",
                 "zijiehuoshan_model": "ByteDance Volcano Engine endpoint",
-                "model_list": "faster & openai model list",
+                "model_list": "faster & openai models",
+                "Whisper.cpp.models": "whisper.cpp models",
                 "homedir": "Set output directory",
                 "lang": "Software UI language",
                 "save_segment_audio": "Save audio for each subtitle",
                 "crf": "Video CRF (Constant Rate Factor)",
-                "cuda_decode": "Force CUDA hardware decoding",
+                "force_lib": "Force soft encoding of video?",
                 "preset": "Output video compression preset",
                 "ffmpeg_cmd": "Custom ffmpeg command arguments",
                 "video_codec": "h264/h265 codec",
@@ -457,18 +384,7 @@ class Ui_setini(object):
                 "beam_size": "Subtitle recognition beam_size",
                 "best_of": "Subtitle recognition best_of",
                 "condition_on_previous_text": "Enable context-aware processing",
-                "fontsize": "Hard subtitle font size",
-                "fontname": "Hard subtitle font name",
-                "fontcolor": "Hard subtitle font color",
-                "fontbordercolor": "Hard subtitle border color",
-                "backgroundcolor": "Hard subtitle background/shadow color",
-                "subtitle_position": "Hard subtitle position",
-                "marginV": "Subtitle vertical margin",
-                "marginL": "Subtitle left margin",
-                "marginR": "Subtitle right margin",
-                "shadow": "Subtitle shadow size",
-                "outline": "Subtitle outline thickness",
-                "borderStyle": "Outline or background box mode",
+                
                 "zh_hant_s": "Convert Trad. Chinese to Simp.",
                 "azure_lines": "Azure TTS batch size (lines)",
                 "chattts_voice": "ChatTTS voice timbre",
@@ -514,13 +430,11 @@ class Ui_setini(object):
                 "video": "Video Output",
                 "whisper": "ASR Settings",
                 "justify": "Alignment",
-                "subtitle": "Subtitle Style",
                 "trans": "Translation",
                 "dubbing": "Dubbing",
                 "prompt_init": "Whisper Prompt"
             }
 
-        self.alertnotice = {}
         # 界面语言
 
         label_title = QtWidgets.QLabel()
@@ -532,7 +446,7 @@ class Ui_setini(object):
         self.layout.addWidget(label_title)
 
         self.homedir_btn = None
-        helptext = tr("show help")
+
 
         h1 = QtWidgets.QHBoxLayout(scroll_content_widget)
         v1 = QtWidgets.QVBoxLayout()
@@ -550,15 +464,13 @@ class Ui_setini(object):
             label_title.setObjectName(f"label_{headkey}")
             box.layout().addWidget(label_title)
             for key, tips_str in item.items():
-                self.alertnotice[key] = tips_str
                 tmp = QtWidgets.QHBoxLayout()
                 tmp_0 = QtWidgets.QPushButton()
                 tmp_0.setStyleSheet("""background-color:transparent;""")
 
                 tmp_0.setText(self.titles[key])
                 tmp_0.setObjectName(f'btn_{key}')
-                tmp_0.setToolTip(helptext)
-                tmp_0.setCursor(Qt.PointingHandCursor)
+                tmp_0.setToolTip(tips_str)
                 tmp.addWidget(tmp_0)
 
                 val = str(config.settings.get(key, "")).lower()
@@ -586,6 +498,17 @@ class Ui_setini(object):
                     tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
+                if key == 'video_codec':
+                    codecv = ['264', '265']
+                    tmp1 = QtWidgets.QComboBox()
+                    tmp1.addItems(codecv)
+                    tmp1.setObjectName(key)
+                    if val in codecv:
+                        tmp1.setCurrentText(val)
+                    tmp.addWidget(tmp1)
+                    tmp.addStretch(1)
+                    box.layout().addLayout(tmp)
+                    continue
                 if key == 'preset':
                     presets = ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'veryslow']
                     tmp1 = QtWidgets.QComboBox()
@@ -597,28 +520,7 @@ class Ui_setini(object):
                     tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
-                if key == 'subtitle_position':
-                    tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems(list(config.POSTION_ASS_VK.keys()))
-                    # 根据数字1-9获取对应的位置字符串
-                    cur_text = config.POSTION_ASS_KV.get(int(val), 'bottom')
-                    tmp1.setCurrentText(cur_text)
-                    tmp1.setObjectName(key)
-                    tmp.addWidget(tmp1)
-                    tmp.addStretch(1)
-                    box.layout().addLayout(tmp)
-                    continue
-                if key == 'borderStyle':
-                    tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems([tr("Outline Border"),
-                                   tr("Background Block")])
-                    # val==1 是0位置，代表轮廓风格，val==3 是1位置，代表背景色
-                    tmp1.setCurrentIndex(0 if int(val) == 1 else 1)
-                    tmp1.setObjectName(key)
-                    tmp.addWidget(tmp1)
-                    tmp.addStretch(1)
-                    box.layout().addLayout(tmp)
-                    continue
+                
                 if key == "lang":
                     tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(list(config.SUPPORT_LANG.keys()))
@@ -653,7 +555,7 @@ class Ui_setini(object):
                     box.layout().addLayout(tmp)
                     continue
                 # 是 model_list faster-whisper
-                if key == 'model_list':
+                if key in ['model_list','Whisper.cpp.models']:
                     tmp_1 = QtWidgets.QPlainTextEdit()
                     tmp_1.setPlainText(val)
                     tmp_1.setToolTip(tips_str)
@@ -673,44 +575,7 @@ class Ui_setini(object):
                 tmp_1.setObjectName(key)
                 tmp.addWidget(tmp_1)
 
-                # 挂到self上，方便他处修改
-                if key == 'fontsize':
-                    self.fontsize_lineedit = tmp_1
-
-                # 增加字体控制按钮
-                if key == 'fontname':
-                    self.fontname_lineedit = tmp_1
-                    self.fontname_btn = QtWidgets.QPushButton()
-                    self.fontname_btn.setCursor(Qt.PointingHandCursor)
-                    self.fontname_btn.setText(tr("Select Font"))
-                    self.fontname_btn.clicked.connect(self.set_fontname)
-                    tmp.addWidget(self.fontname_btn)
-                elif key == 'fontcolor':
-                    self.fontcolor_lineedit = tmp_1
-                    # 增加字体颜色控制按钮
-                    self.fontcolor_btn = QtWidgets.QPushButton()
-                    self.fontcolor_btn.setCursor(Qt.PointingHandCursor)
-                    self.fontcolor_btn.setText(tr("Select Font Color"))
-                    self.fontcolor_btn.clicked.connect(self.set_fontcolor)
-                    tmp.addWidget(self.fontcolor_btn)
-                elif key == 'fontbordercolor':
-                    self.fontbordercolor_lineedit = tmp_1
-                    # 增加边框颜色控制按钮
-                    self.fontbordercolor_btn = QtWidgets.QPushButton()
-                    self.fontbordercolor_btn.setCursor(Qt.PointingHandCursor)
-                    self.fontbordercolor_btn.setText(
-                        tr("Select Font outline color"))
-                    self.fontbordercolor_btn.clicked.connect(self.set_fontbordercolor)
-                    tmp.addWidget(self.fontbordercolor_btn)
-                elif key == 'backgroundcolor':
-                    self.backgroundcolor_lineedit = tmp_1
-                    # 增加边框颜色控制按钮
-                    self.backgroundcolor_btn = QtWidgets.QPushButton()
-                    self.backgroundcolor_btn.setCursor(Qt.PointingHandCursor)
-                    self.backgroundcolor_btn.setText(
-                        tr("Select Subtitle Background Block"))
-                    self.backgroundcolor_btn.clicked.connect(self.set_backgroundcolor)
-                    tmp.addWidget(self.backgroundcolor_btn)
+                
 
                 box.layout().addLayout(tmp)
             if layout_index % 2 == 0:
@@ -725,13 +590,25 @@ class Ui_setini(object):
 
         self.layout.addWidget(scroll_area)
 
-        self.set_ok = QtWidgets.QPushButton(setini)
-
+        self.set_ok = QtWidgets.QPushButton()
         self.set_ok.setMinimumSize(QtCore.QSize(0, 35))
         self.set_ok.setObjectName("set_ok")
         self.set_ok.setCursor(Qt.PointingHandCursor)
         self.set_ok.setStyleSheet("""color:#ff0""")
-        self.layout.addWidget(self.set_ok)
+        
+        self.help_btn = QtWidgets.QPushButton()
+        self.help_btn.setObjectName("help_btn")
+        self.help_btn.setMaximumWidth(200)
+        self.help_btn.setCursor(Qt.PointingHandCursor)
+        self.help_btn.setText(tr("Fill out the tutorial"))
+        self.help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/adv'))
+        
+        
+        action_layout.addWidget(self.set_ok)
+        action_layout.addWidget(self.help_btn)
+        
+        
+        self.layout.addLayout(action_layout)
 
         self.retranslateUi(setini)
         QtCore.QMetaObject.connectSlotsByName(setini)

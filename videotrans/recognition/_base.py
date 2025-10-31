@@ -7,7 +7,7 @@ from tenacity import RetryError
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.util import tools
 
 
@@ -79,7 +79,7 @@ class BaseRecogn(BaseCon):
         except RetryError as e:
             raise e.last_attempt.exception()
         except Exception as e:
-            config.logger.exception(e, exc_info=True)
+            logs(e, level="except")
             raise
 
     def _exec(self) -> Union[List[Dict], None]:
@@ -110,11 +110,11 @@ class BaseRecogn(BaseCon):
             return ob.llm_segment(words, config.settings.get('llm_ai_type', 'openai'))
         except json.decoder.JSONDecodeError as e:
             self._signal(text=tr("Re-segmenting Error"))
-            config.logger.error(f"重新断句失败[JSONDecodeError]，已恢复原样 {e}")
+            logs(f"重新断句失败[JSONDecodeError]，已恢复原样 {e}",level='warn')
             raise
         except Exception as e:
             self._signal(text=tr("Re-segmenting Error"))
-            config.logger.error(f"重新断句失败[except]，已恢复原样 {e}")
+            logs(f"重新断句失败[except]，已恢复原样 {e}",level='warn')
             raise
 
 
@@ -174,7 +174,7 @@ class BaseRecogn(BaseCon):
         effective_min_ms = max(min_ms, 500)
         # 最小词数（每个word_list项计为1词），低于此不考虑断句，除非强制
         min_words = 3
-        config.logger.info(f'进入本地重新断句模式,主要依赖标点符号：{all_flags=}\n{max_ms=},{effective_min_ms=},{min_silence=},{min_words=}')
+        logs(f'进入本地重新断句模式,主要依赖标点符号：{all_flags=}\n{max_ms=},{effective_min_ms=},{min_silence=},{min_words=}')
         
         def finalize_segment(tmp, srt_raws):
             tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
@@ -208,7 +208,7 @@ class BaseRecogn(BaseCon):
             # 强制断句：如果间隙过大（>= 3 * min_silence），无论其他条件如何（提高阈值以减少不必要断）
             if current_diff >= 3 * min_silence:
                 if word_text and word_text[0] in all_flags:
-                    tmp['text'] += word_text[0]
+                    tmp['text'] += self.join_word_flag+word_text[0]
                     next_text = word_text[1:]
                 else:
                     next_text = word_text
@@ -224,7 +224,7 @@ class BaseRecogn(BaseCon):
             
             # 如果当前句子太短（时长 < effective_min_ms 或词数 < min_words），继续累积
             if tmp_diff_ms < effective_min_ms or tmp['word_count'] < min_words:
-                tmp['text'] += word_text
+                tmp['text'] +=self.join_word_flag+ word_text
                 tmp['end_time'] = int(w['end'] * 1000)
                 tmp['word_count'] += 1
                 continue
@@ -252,7 +252,7 @@ class BaseRecogn(BaseCon):
             
             if should_break:
                 if word_text and word_text[0] in all_flags:
-                    tmp['text'] += word_text[0]
+                    tmp['text'] +=self.join_word_flag+ word_text[0]
                     next_text = word_text[1:]
                     tmp['word_count'] += 1 if next_text else 0  # 标点不计词
                 else:
@@ -267,7 +267,7 @@ class BaseRecogn(BaseCon):
                 continue
             
             # 默认累积
-            tmp['text'] += word_text
+            tmp['text'] +=self.join_word_flag+ word_text
             tmp['end_time'] = int(w['end'] * 1000)
             tmp['word_count'] += 1
         
@@ -286,14 +286,14 @@ class BaseRecogn(BaseCon):
             if seg_duration < effective_min_ms or seg_words < min_words:
                 if new_raws and new_raws[-1]['text'][-1] not in sentence_end_flags:
                     # 向前合并，如果上一句不以句末标点结束
-                    new_raws[-1]['text'] += it['text']
+                    new_raws[-1]['text'] +=self.join_word_flag+ it['text']
                     new_raws[-1]['end_time'] = it['end_time']
                     new_raws[-1]['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                     new_raws[-1]['time'] = f"{new_raws[-1]['startraw']} --> {new_raws[-1]['endraw']}"
                 elif i + 1 < len(srt_raws) and it['text'][-1] not in sentence_end_flags:
                     # 向后合并，如果当前不以句末结束，且下一句存在
                     next_seg = srt_raws[i + 1]
-                    it['text'] += next_seg['text']
+                    it['text'] +=self.join_word_flag+ next_seg['text']
                     it['end_time'] = next_seg['end_time']
                     it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                     it['time'] = f"{it['startraw']} --> {it['endraw']}"
@@ -316,98 +316,6 @@ class BaseRecogn(BaseCon):
                 it['text']=zhconv.convert(it['text'], 'zh-hans')
         return new_raws
 
-    def re_segment_sentences_local_1012(self,all_words):
-        import zhconv     
-        srt_raws = []
-        tmp = None
-        # 标点符号
-        # self.flag = [",", ".", "?", "!", ";", "，", "。", "？", "；", "！"]
-        # 
-        # 允许的最长语句时长
-        max_ms = int(config.settings.get('max_speech_duration_s', 5)) * 1000
-        # 允许的最短语句时长
-        min_ms = int(config.settings.get('min_speech_duration_ms',0))
-        # 分隔句子的最小静音片段，大于则视为断句点
-        min_silence = int(config.settings.get('min_silence_duration_ms',140))
-        config.logger.info(f'进入本地重新断句模式,主要依赖标点符号：{self.flag=}\n{max_ms=},{min_ms=},{min_silence=}')
-
-        for i, w in enumerate(all_words):
-            word_text = zhconv.convert(w['word'], 'zh-hans') if self.jianfan else w['word']
-            if not tmp:
-                tmp = {
-                    'text': word_text,
-                    'start_time': int(w['start'] * 1000),
-                    'end_time': int(w['end'] * 1000)
-                }
-                continue
-            # 虽然句子时长小于 min_ms 应该继续，但若是当前单词和tmp结束时间差距过大(大于2*min_silence)，也应强制断句
-            if w['start'] * 1000 - tmp['end_time'] >= 2 * min_silence:
-                tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-                tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
-                tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-                tmp['text'] = tmp['text'] + (word_text[0] if word_text[0] in self.flag else '')
-                srt_raws.append(tmp)
-                tmp = {
-                    'text': word_text[1:] if word_text[0] in self.flag else word_text,
-                    'start_time': int(w['start'] * 1000),
-                    'end_time': int(w['end'] * 1000)
-                }
-                continue
-
-            # 当前句子时长如果小于 min_ms,继续插入
-            tmp_diff_ms = tmp['end_time'] - tmp['start_time']
-            if tmp_diff_ms < min_ms or word_text[-1] in self.flag:
-                tmp['end_time'] = int(w['end'] * 1000)
-                tmp['text'] += word_text
-                continue
-
-            # 符合以下条件则为断句之处
-            # 0.若是当前单词和tmp结束时间差距过大(大于2*min_silence)，则无论是否达到最小语句时长也强制断句
-            # 1.如果大于等于 min_ms 并且恰好当前末尾或下一个开头有标点 is_flag
-            # 2.虽然没有标点，但是当前单词与 tmp 中间距大于等于 min_silence
-            # 3.当前语句时长已大于1.5倍的 max_ms 则强制断句
-            is_flag = tmp['text'][-1] in self.flag or word_text[0] in self.flag
-            # 当前单词和 tmp 结束之间的差距
-            current_diff = w['start'] * 1000 - tmp['end_time']
-            new_min_silence = min_silence
-            # 如果已经大于 max_ms，但没有遇到标点，此时尝试使用 0.3倍的更小的min_silence分隔句子
-            if not is_flag and tmp_diff_ms > 0.8 * max_ms:
-                new_min_silence = 0.3 * min_silence
-            if is_flag or (current_diff >= new_min_silence) or tmp_diff_ms >= 1.2 * max_ms:
-                tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-                tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
-                tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-                tmp['text'] = tmp['text'] + (word_text[0] if word_text[0] in self.flag else '')
-                srt_raws.append(tmp)
-                tmp = {
-                    'text': word_text[1:] if word_text[0] in self.flag else word_text,
-                    'start_time': int(w['start'] * 1000),
-                    'end_time': int(w['end'] * 1000)
-                }
-                continue
-
-            tmp['text'] += word_text
-            tmp['end_time'] = int(w['end'] * 1000)
-        if tmp:
-            tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-            tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
-            tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-            tmp['text'] = tmp['text'].strip()
-            srt_raws.append(tmp)
-
-        # 再次检测，将过短的行合并给上一行
-        new_raws = []
-        for i, it in enumerate(srt_raws):
-            if i > 0 and it['end_time'] - it['start_time'] < min_ms:
-                new_raws[-1]['text'] += it['text']
-                new_raws[-1]['end_time'] = it['end_time']
-                new_raws[-1]['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
-                new_raws[-1]['time'] = f"{new_raws[-1]['startraw']} --> {new_raws[-1]['endraw']}"
-            else:
-                it['line'] = len(new_raws) + 1
-                it['text'] = it['text'].strip()
-                new_raws.append(it)
-        return new_raws
 
 
     # 根据 时间开始结束点，切割音频片段,并保存为wav到临时目录，记录每个wav的绝对路径到list，然后返回该list

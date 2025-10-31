@@ -28,9 +28,10 @@ class SetThreadTransDubb(QDialog):
 
         # 创建标签和输入框
         if name == 'trans':
+            # 传统翻译
             self.label = QLabel(tr("Subtitles lines:"))
         else:
-            self.label = QLabel(tr("Number:"))
+            self.label = QLabel(tr("Number dubbing threads"))
         self.input = QLineEdit()
         self.input.setText(str(self.nums))
 
@@ -43,8 +44,8 @@ class SetThreadTransDubb(QDialog):
             # 设置对话框标题
             self.setWindowTitle(tr("Set Translation subtitles rows"))
             wait_msg = tr("Wait/s:")
-
-            self.ailabel = QLabel(tr("Number:"))
+            # ai翻译
+            self.ailabel = QLabel(tr("Number subtitle lines AI translation"))
             self.aiinput = QLineEdit()
             self.aiinput.setText(str(self.ai_nums))
             ainum_layout = QHBoxLayout()
@@ -54,7 +55,7 @@ class SetThreadTransDubb(QDialog):
 
         else:
             wait_msg = tr("Wait/s/1 thread:")
-            self.setWindowTitle(tr("Set dubbing threads"))
+            self.setWindowTitle(tr("Number dubbing threads"))
 
         self.wait_label = QLabel(wait_msg)
         self.wait_input = QLineEdit()

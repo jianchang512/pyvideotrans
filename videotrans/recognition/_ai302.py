@@ -8,6 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import  NO_RETRY_EXCEPT
+from videotrans.configure.config import logs
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -40,7 +41,7 @@ class AI302Recogn(BaseRecogn):
 
         prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
 
-        config.logger.info(f'{prompt=}')
+        logs(f'{prompt=}')
         response = requests.post(url,
                                  files={"file": open(tmpfile, 'rb')},
                                  data={
@@ -50,7 +51,7 @@ class AI302Recogn(BaseRecogn):
                                      'language': langcode},
                                  headers=headers)
         response.raise_for_status()
-        config.logger.info(f'{response.json()=}')
+        logs(f'{response.json()=}')
         for i, it in enumerate(response.json()['segments']):
             if self._exit():
                 return

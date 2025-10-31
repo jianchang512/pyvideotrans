@@ -8,13 +8,13 @@ from edge_tts import Communicate
 from edge_tts.exceptions import NoAudioReceived
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.tts._base import BaseTTS
 
 # edge-tts 限流，可能产生大量超时、401等错误
 from videotrans.util import tools
 
-MAX_CONCURRENT_TASKS = int(float(config.settings.get('dubbing_thread', 5)))
+MAX_CONCURRENT_TASKS = 6
 RETRY_NUMS = 3
 RETRY_DELAY = 3
 POLL_INTERVAL = 0.1
@@ -43,7 +43,7 @@ class EdgeTTS(BaseTTS):
 
     async def _create_audio_with_retry(self, item, index, total_tasks, semaphore):
 
-        task_id = f"任务 [{index + 1}/{total_tasks}]"
+        task_id = f" [{index + 1}/{total_tasks}]"
         if not item.get('text','').strip() or tools.vail_file(item['filename']):
             await self.increment_counter()
             return
@@ -59,9 +59,10 @@ class EdgeTTS(BaseTTS):
                         return
                     
                     try:
-                        config.logger.info(f"{task_id}: 开始第 {attempt + 1} 次尝试。")
+                        logs(f"{task_id}: 开始第 {attempt + 1} 次尝试。")
                         if attempt>0:
                             msg= f'Retry after {attempt}nd  '
+                        # print(f'{self.useproxy=}')
                         communicate = Communicate(
                             item['text'], voice=item['role'], rate=self.rate,
                             volume=self.volume, proxy=self.useproxy, pitch=self.pitch, connect_timeout=5
@@ -86,45 +87,47 @@ class EdgeTTS(BaseTTS):
                                 timeout=SIGNAL_TIMEOUT
                             )
                         except asyncio.TimeoutError:
-                            config.logger.error(f"{task_id}: 发送 UI 信号超时！")
+                            logs(f"{task_id}: 发送 UI 信号超时！",level='warn')
 
-                        config.logger.info(f"{task_id}: 成功。")
+                        logs(f"{task_id}: 成功。")
                         return
 
                     except asyncio.TimeoutError as e:
-                        config.logger.warning(f"{task_id}: 第 {attempt + 1} 次尝试超时 (SAVE_TIMEOUT={SAVE_TIMEOUT}s)")
+                        logs(f"{task_id}: 第 {attempt + 1} 次尝试超时 (SAVE_TIMEOUT={SAVE_TIMEOUT}s)",level='warn')
                         if attempt < RETRY_NUMS - 1:
                             await asyncio.sleep(RETRY_DELAY)
                         else:
-                            config.logger.error(f"{task_id}: 已达到最大重试次数，任务失败 (超时)。")
+                            logs(f"{task_id}: 已达到最大重试次数，任务失败 (超时)。",level='warn')
                             self.error=e
                             # 失败也是一种完成，直接返回
                             return
                     except (NoAudioReceived, aiohttp.ClientError) as e:
-                        self.error=e
-                        config.logger.warning(f"{task_id}: 第 {attempt + 1} 次尝试失败: {e}")
+                        self.error=e if not self.useproxy else f'proxy={self.useproxy}, {tr("Please turn off the clear proxy and try again")}:{e}'
+                        logs(f"{task_id}: 第 {attempt + 1} 次尝试失败，{self.useproxy=} : {e}",level='warn')
+                        # 强制禁用代理重试
+                        self.useproxy=None
                         if attempt < RETRY_NUMS - 1:
                             await asyncio.sleep(RETRY_DELAY)
                         else:
-                            config.logger.error(f"{task_id}: 已达到最大重试次数，任务失败。")
+                            logs(f"{task_id}: 已达到最大重试次数，任务失败。",level='warn')
                             # 失败也是一种完成，直接返回
                             return
 
         except asyncio.CancelledError as e:
-            config.logger.info(f"{task_id}: 被 cancel() 强制中断。")
+            logs(f"{task_id}: 被 cancel() 强制中断。")
             self.error=e
         except Exception as e:
-            config.logger.error(f"{task_id}: 发生未知严重错误，任务终止。", exc_info=True)
+            logs(f"{task_id}: 发生未知严重错误，任务终止。", level="except")
             self.error=e
         finally:
             # 无论成功、失败、取消还是异常，都在这里统一增加计数
             await self.increment_counter()
-            config.logger.info(f'[任务:{index+1} 彻底结束, 当前总完成数: {self.ends_counter}]')
+            logs(f'[任务:{index+1} 彻底结束, 当前总完成数: {self.ends_counter}]')
 
     async def watchdog(self, tasks):
         """看门狗"""
         await self._stop_event.wait()
-        config.logger.info("看门狗：检测到停止信号！正在取消所有任务...")
+        logs("看门狗：检测到停止信号！正在取消所有任务...")
         for task in tasks:
             task.cancel()
 
@@ -135,7 +138,7 @@ class EdgeTTS(BaseTTS):
                 break
             await asyncio.sleep(POLL_INTERVAL)
         if self._exit():
-            config.logger.info("监控器：检测到 self._exit() 为 True，正在设置停止事件...")
+            logs("监控器：检测到 self._exit() 为 True，正在设置停止事件...")
             self._stop_event.set()
     
     async def _exec(self) -> None:
@@ -170,15 +173,15 @@ class EdgeTTS(BaseTTS):
                 timeout=total_tasks * SAVE_TIMEOUT * 2  # 总任务 * 每个超时 * 2（缓冲）
             )
         except asyncio.TimeoutError:
-            config.logger.error("整体执行超时！强制取消所有任务。")
+            logs("整体执行超时！强制取消所有任务。",level='warn')
             self._stop_event.set()
             done, pending = await asyncio.wait([all_workers_done, monitor_task], return_when=asyncio.ALL_COMPLETED)
         
         try:
             if monitor_task in done:
-                config.logger.info("执行流程：由“退出监控器”触发终止。")
+                logs("执行流程：由“退出监控器”触发终止。")
             else:
-                config.logger.info("执行流程：所有配音任务正常完成。")
+                logs("执行流程：所有配音任务正常完成。")
                 monitor_task.cancel()
 
             watchdog_task.cancel()
@@ -189,14 +192,15 @@ class EdgeTTS(BaseTTS):
             
             final_count = self.ends_counter
             if final_count != total_tasks:
-                config.logger.critical(
+                logs(
                     f"!!!!!!!!!!!!!!!!!! 任务计数不匹配 !!!!!!!!!!!!!!!!!!"
                     f"预期任务数: {total_tasks}, 实际完成数: {final_count}."
                     f"丢失了 {total_tasks - final_count} 个任务的状态。"
-                    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+                    level="error"
                 )
             else:
-                config.logger.info(f"所有 {total_tasks} 个任务的状态已确认。")
+                logs(f"所有 {total_tasks} 个任务的状态已确认。")
             
             
             # ======== 转换wav阶段 ========
@@ -226,6 +230,6 @@ class EdgeTTS(BaseTTS):
             if err > 0:
                 msg=f'[{err}] subtitle dubbing errors, {ok} successes'
                 self._signal(text=msg)
-                config.logger.info(f'EdgeTTS ended: {msg}')
+                logs(f'EdgeTTS ended: {msg}')
         finally:
             await asyncio.sleep(0.1)

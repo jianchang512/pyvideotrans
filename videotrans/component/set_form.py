@@ -6,7 +6,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.ui.ai302 import Ui_ai302form
 from videotrans.ui.ali import Ui_aliform
 from videotrans.ui.azure import Ui_azureform
@@ -15,6 +15,7 @@ from videotrans.ui.baidu import Ui_baiduform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.chatterbox import Ui_chatterboxform
 from videotrans.ui.chattts import Ui_chatttsform
+from videotrans.ui.doubao2 import Ui_doubao2form
 from videotrans.ui.claude import Ui_claudeform
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.cosyvoice import Ui_cosyvoiceform
@@ -65,6 +66,7 @@ from videotrans.ui.volcenginetts import Ui_volcengineform
 from videotrans.ui.watermark import Ui_watermark
 from videotrans.ui.zhipuai import Ui_zhipuaiform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
+from videotrans.ui.zijierecognmodel import Ui_zijierecognform
 
 
 class SetLineRole(QDialog, Ui_setlinerole):  # <===
@@ -389,6 +391,17 @@ class VolcEngineTTSForm(QDialog, Ui_volcengineform):  # <===
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
+class Doubao2TTSForm(QDialog, Ui_doubao2form):  # <===
+    def __init__(self, parent=None):
+        super(Doubao2TTSForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class ZijierecognmodelForm(QDialog, Ui_zijierecognform):  # <===
+    def __init__(self, parent=None):
+        super(ZijierecognmodelForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
 
 class WatermarkForm(QtWidgets.QWidget, Ui_watermark):  # <===
     def __init__(self, parent=None):
@@ -422,7 +435,7 @@ class SubtitleRowWidget(QtWidgets.QWidget):
         self.checkbox = QtWidgets.QCheckBox()
         self.checkbox.setFixedWidth(30)
 
-        self.role_label = QtWidgets.QLabel("[未分配角色]")
+        self.role_label = QtWidgets.QLabel("[Default]")
         self.role_label.setFixedWidth(120)
         self.role_label.setObjectName(f"role_label_{index}")
 
@@ -488,7 +501,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
         for i in range(self.subtitle_layout.count()):
             widget = self.subtitle_layout.itemAt(i).widget()
             if isinstance(widget, SubtitleRowWidget):
-                widget.role_label.setText("[未分配角色]")
+                widget.role_label.setText("[Default]")
 
     def parse_and_display_srt(self, srt_path):
         """解析SRT文件并在UI上显示"""
@@ -504,7 +517,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
                                                round((sub['end_time'] - sub['start_time']) / 1000, 2))
                 self.subtitle_layout.addWidget(row_widget)
 
-            self.hecheng_importbtn.setText(f"已导入: {os.path.basename(srt_path)}")
+            self.hecheng_importbtn.setText(f"{os.path.basename(srt_path)}")
 
         except Exception as e:
             self.clear_all_ui()

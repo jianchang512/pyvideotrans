@@ -13,7 +13,7 @@ from tenacity import RetryError
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 
 from videotrans.util import tools
 
@@ -79,14 +79,9 @@ class BaseTTS(BaseCon):
             from videotrans.util.en_tn import EnglishNormalizer
             normalizer = EnglishNormalizer()
         for i, it in enumerate(self.queue_tts):
-            text = re.sub(r'\[?spk-?\d+\]', '', it.get('text', '').strip(), re.I)
-            if normalizer:
-                text = normalizer(text)
-            if not text:
-                # 移除该条目
-                self.queue_tts.pop(i)
-            else:
-                self.queue_tts[i]['text'] = text
+            text = it.get('text', '').strip()
+            if text and normalizer:
+                self.queue_tts[i]['text'] = normalizer(text)
 
         if "volume" in self.queue_tts[0]:
             self.volume = self.queue_tts[0]['volume']
@@ -142,9 +137,9 @@ class BaseTTS(BaseCon):
                 self._exec()
         except RuntimeError as e:
             # 这个捕获现在更有意义，因为它可能捕获到循环相关的错误
-            config.logger.error(f'TTS 线程运行时发生错误: {e}')
+            logs(f'TTS 线程运行时发生错误: {e}',level='warn')
             if 'Event loop is closed' in str(e):
-                config.logger.warning("捕获到 'Event loop is closed' 错误，这通常是关闭时序问题。")
+                logs("捕获到 'Event loop is closed' 错误，这通常是关闭时序问题。",level='warn')
         except RetryError as e:
             raise e.last_attempt.exception()
         except Exception:
@@ -152,7 +147,7 @@ class BaseTTS(BaseCon):
         finally:
             # 只有当 self._exec 是异步函数时，我们才需要处理事件循环
             if inspect.iscoroutinefunction(self._exec) and loop and not loop.is_closed():
-                config.logger.info("开始执行事件循环的关闭流程...")
+                logs("开始执行事件循环的关闭流程...")
                 try:
                     # 步骤 1: 取消所有剩余的任务
                     tasks = asyncio.all_tasks(loop=loop)
@@ -168,10 +163,10 @@ class BaseTTS(BaseCon):
                     # 步骤 3: 关闭异步生成器
                     loop.run_until_complete(loop.shutdown_asyncgens())
                 except Exception as e:
-                    config.logger.error(f"在关闭事件循环时发生错误: {e}", exc_info=True)
+                    logs(f"在关闭事件循环时发生错误: {e}", level="except")
                 finally:
                     # 步骤 4: 最终关闭事件循环
-                    config.logger.info("事件循环已关闭。")
+                    logs("事件循环已关闭。")
                     loop.close()
 
         # 试听或测试时播放
@@ -184,7 +179,7 @@ class BaseTTS(BaseCon):
         # 记录成功数量
         succeed_nums = 0
         for it in self.queue_tts:
-            if it['text'].strip() and tools.vail_file(it['filename']):
+            if not it['text'].strip() or tools.vail_file(it['filename']):
                 succeed_nums += 1
         # 只有全部配音都失败，才视为失败
         if succeed_nums < 1:
@@ -209,6 +204,8 @@ class BaseTTS(BaseCon):
         # 单个字幕行，无需多线程
         if len(self.queue_tts) == 1 or self.dub_nums == 1:
             for k, item in enumerate(self.queue_tts):
+                if not item.get('text'):
+                    continue
                 try:
                     self._item_task(item)
                 except Exception as e:
@@ -217,10 +214,12 @@ class BaseTTS(BaseCon):
                     self._signal(text=f'TTS[{k+1}/{self.len}]')
                 time.sleep(self.wait_sec)
             return
-        #
+
         all_task = []
         with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
             for k, item in enumerate(self.queue_tts):
+                if not item.get('text'):
+                    continue
                 all_task.append(pool.submit(self._item_task, item))
 
             completed_tasks = 0
@@ -238,47 +237,6 @@ class BaseTTS(BaseCon):
     def _item_task(self, data_item: Union[Dict, List, None]) -> Union[bool, None]:
         pass
 
-    def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:
-        if not encoded_str:
-            raise ValueError("Base64 encoded string is empty.")
-        # 如果存在data前缀，则按照前缀中包含的音频格式保存为转换格式
-        if encoded_str.startswith('data:audio/'):
-            output_ext = Path(output_path).suffix.lower()[1:]
-            mime_type, encoded_str = encoded_str.split(',', 1)  # 提取 Base64 数据部分
-            # 提取音频格式 (例如 'mp3', 'wav')
-            audio_format = mime_type.split('/')[1].split(';')[0].lower()
-            support_format = {
-                "mpeg": "mp3",
-                "wav": "wav",
-                "ogg": "ogg",
-                "aac": "aac"
-            }
-            base64data_ext = support_format.get(audio_format, "")
-            if base64data_ext and base64data_ext != output_ext:
-                # 格式不同需要转换格式
-                # 将base64编码的字符串解码为字节
-                wav_bytes = base64.b64decode(encoded_str)
-                # 将解码后的字节写入文件
-                with open(output_path + f'.{base64data_ext}', "wb") as wav_file:
-                    wav_file.write(wav_bytes)
-
-                tools.runffmpeg([
-                    "-y", "-i", output_path + f'.{base64data_ext}', "-b:a", "128k", output_path
-                ])
-                return
-        # 将base64编码的字符串解码为字节
-        wav_bytes = base64.b64decode(encoded_str)
-        # 将解码后的字节写入文件
-        with open(output_path, "wb") as wav_file:
-            wav_file.write(wav_bytes)
-
-    def _audio_to_base64(self, file_path: str) -> Union[None, str]:
-        if not file_path or not Path(file_path).exists():
-            return None
-        with open(file_path, "rb") as wav_file:
-            wav_content = wav_file.read()
-            base64_encoded = base64.b64encode(wav_content)
-            return base64_encoded.decode("utf-8")
 
     def _exit(self):
         if config.exit_soft or (config.current_status != 'ing' and config.box_tts != 'ing' and not self.is_test):

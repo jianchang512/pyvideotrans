@@ -8,6 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, before_log, after_lo
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import logs
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -107,7 +108,7 @@ class GoogleCloudTTS(BaseTTS):
             # pega a voz (role) que veio do pipeline, ou usa o default do config
             voice_name = data_item.get("role", self.voice_name)
             if not voice_name or voice_name == "No":
-                config.logger.warning("Nenhuma voz selecionada, usando voz padrão")
+                logs("Nenhuma voz selecionada, usando voz padrão",level='warn')
                 voice_name = self.voice_name
 
             voice_params = texttospeech.VoiceSelectionParams(
@@ -123,7 +124,7 @@ class GoogleCloudTTS(BaseTTS):
             try:
                 rate_val = float(rate_str.replace("%", "").replace("+", ""))
             except ValueError:
-                config.logger.warning(f"Taxa de fala inválida: {rate_str}, usando 0%")
+                logs(f"Taxa de fala inválida: {rate_str}, usando 0%",level='warn')
                 rate_val = 0.0
             # converte de percentual para fator (ex: "+10%" → 1.10)
             speaking_rate = 1.0 + (rate_val / 100.0)
@@ -135,7 +136,7 @@ class GoogleCloudTTS(BaseTTS):
                 # Remove Hz e converte para float
                 pitch_val = float(pitch_str.replace("Hz", "").replace("+", ""))
             except ValueError:
-                config.logger.warning(f"Tom inválido: {pitch_str}, usando 0Hz")
+                logs(f"Tom inválido: {pitch_str}, usando 0Hz",level='warn')
                 pitch_val = 0.0
 
             audio_config = texttospeech.AudioConfig(

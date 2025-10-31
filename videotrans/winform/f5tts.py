@@ -1,7 +1,7 @@
 
 
 def openwin(init_show_type=None):
-    from videotrans.configure.config import tr
+    from videotrans.configure.config import tr,logs
     from videotrans.configure import config
     if not init_show_type:
         init_show_type=config.params.get("f5tts_ttstype",'F5-TTS')

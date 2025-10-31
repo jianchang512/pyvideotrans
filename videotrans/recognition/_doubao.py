@@ -29,10 +29,10 @@ class DoubaoRecogn(BaseRecogn):
         access_token = config.params.get('doubao_access','')
 
         # 尺寸大于190MB，转为 mp3
-        if os.path.getsize(self.audio_file) > 199229440:
-            tools.runffmpeg(
-                ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/doubao-tmp.mp3'])
-            self.audio_file = self.cache_folder + '/doubao-tmp.mp3'
+
+        tools.runffmpeg(
+            ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/doubao-tmp.mp3'])
+        self.audio_file = self.cache_folder + '/doubao-tmp.mp3'
         with open(self.audio_file, 'rb') as f:
             files = f.read()
 

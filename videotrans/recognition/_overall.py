@@ -3,7 +3,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 
 from videotrans.process._overall import run
 from videotrans.recognition._base import BaseRecogn
@@ -145,7 +145,7 @@ class FasterAll(BaseRecogn):
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
-                config.logger.info(f'开始创建 pid:{self.pidfile=}')
+                logs(f'开始创建 pid:{self.pidfile=}')
                 with open(self.pidfile, 'w', encoding='utf-8') as f:
                     f.write(f'{process.pid}')
                 # 等待进程执行完毕
@@ -157,11 +157,11 @@ class FasterAll(BaseRecogn):
                     pass
                 
                 if err['msg']:
-                    config.logger.error(f'{err["msg"]}')
+                    logs(f'{err["msg"]}',level='warn')
                     self.error=err['msg']
                 else:
                     if self.detect_language == 'auto':
-                        config.logger.info(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
+                        logs(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language = detect.get('langcode','auto')
                     # 没有任何断句方式
                     if not config.settings.get('rephrase') and not config.settings.get('rephrase_local'):
@@ -176,19 +176,19 @@ class FasterAll(BaseRecogn):
                             self._signal(text=tr("Re-segmenting..."))                            
                             return self.re_segment_sentences(words_list)
                         except Exception as e:
-                            config.logger.exception(f'LLM断句失败，将使用默认断句：{e}', exc_info=True)
+                            logs(f'LLM断句失败，将使用默认断句：{e}', level="except")
                     elif config.settings.get('rephrase_local', False):
                         # 本地断句
                         try:
                             self._signal(text=tr("Re-segmenting..."))                            
                             return self.re_segment_sentences_local(words_list)
                         except Exception as e:
-                            config.logger.exception(f'本地断句失败，将使用默认断句：{e}', exc_info=True)
+                            logs(f'本地断句失败，将使用默认断句：{e}', level="except")
                     # 断句失败或者没有断句
                     return self.get_srtlist(raws)
                 
         except Exception as e:
-            config.logger.exception(f'{e}', exc_info=True)
+            logs(f'{e}', level="except")
             self.error = str(e)
         finally:
             config.model_process = None

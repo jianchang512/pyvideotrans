@@ -7,7 +7,7 @@ from typing import Optional, List, Dict, Any
 from PySide6.QtCore import QThread, Signal, QObject
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.task.taskcfg import TaskCfg
 from videotrans.task.trans_create import TransCreate
 from videotrans.util import tools
@@ -36,72 +36,50 @@ class Worker(QThread):
         try:
             self.uuid = obj['uuid']
             trk = TransCreate(cfg=TaskCfg(**self.cfg|obj))
+            # 原始语言字幕文件
+            config.onlyone_source_sub=trk.cfg.source_sub
+            # 目标语言字幕文件
+            config.onlyone_target_sub=trk.cfg.target_sub
             if self._exit(): return
             config.task_countdown = 0
             trk.prepare()
             if self._exit(): return
-            self._post(text=trk.cfg.source_sub, type='edit_subtitle_source')
             trk.recogn()
             if self._exit(): return
+            
+            config.task_countdown=86400
+            self._post(text='', type='edit_subtitle_source')
+            self._post(text=Path(trk.cfg.source_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+            # 等待编辑原字幕后翻译,允许修改字幕
+            while config.task_countdown > 0:
+                time.sleep(1)
+                config.task_countdown -= 1
+                if self._exit(): return
+            
             if trk.shoud_trans:
+                config.onlyone_trans=True
                 if tools.vail_file(trk.cfg.target_sub):
-                    if tools.vail_file(trk.cfg.source_sub):
-                        self._post(text=Path(trk.cfg.source_sub).read_text(encoding='utf-8'),
-                                   type='replace_subtitle')
-                    self._post(text=trk.cfg.target_sub, type="edit_subtitle_target")
+                    self._post(text="已存在翻译文件，跳过")
                 else:
-                    time.sleep(1)
-                    if self._exit(): return
-                    countdown_sec = int(float(config.settings.get('countdown_sec', 1)))
-                    config.task_countdown = countdown_sec
-                    # 等待编辑原字幕后翻译,允许修改字幕
-                    self._post(text=Path(trk.cfg.source_sub).read_text(encoding='utf-8'), type='replace_subtitle')
-                    self._post(text=f"{config.task_countdown} {tr('jimiaohoufanyi')}", type='show_djs')
-                    while config.task_countdown > 0:
-                        if self._exit(): return
-                        time.sleep(1)
-                        config.task_countdown -= 1
-                        if 0 < config.task_countdown <= countdown_sec:
-                            self._post(text=f"{config.task_countdown} {tr('jimiaohoufanyi')}",
-                                       type='show_djs')
-                    if self._exit(): return
-                    self._post(text='', type='timeout_djs')
-                    # 等待字幕更新完毕
-                    config.task_countdown = 10
-                    while config.task_countdown > 0:
-                        if self._exit(): return
-                        time.sleep(0.1)
-                        break
-                    if not self._exit():
-                        self._post(text=trk.cfg.target_sub, type="edit_subtitle_target")
-                        trk.trans()
+                    trk.trans()
             
             if self._exit(): return
-            countdown_sec = int(float(config.settings.get('countdown_sec', 1)))
-            config.task_countdown = countdown_sec
-            self._post(text=Path(trk.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
-            self._post(
-                text=f"{config.task_countdown}{tr('zidonghebingmiaohou')}",
-                type='show_djs')
-            while config.task_countdown > 0:
-                if self._exit(): return
-                # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
-                time.sleep(1)
-                # 倒计时中
-                config.task_countdown -= 1
-                if 0 < config.task_countdown <= countdown_sec:
-                    self._post(
-                        text=f"{config.task_countdown}{tr('zidonghebingmiaohou')}",
-                        type='show_djs')
-            # 禁止修改字幕
-            self._post(text='', type='timeout_djs')
-            # 等待字幕更新完毕
-            config.task_countdown = 10
-            while config.task_countdown > 0:
-                if self._exit(): return
-                time.sleep(1)
-                break
             
+            # 插入指定说话人，进行倒计时处理后再返回此处继续
+            # 需要配音时
+            if trk.shoud_dubbing:
+                config.task_countdown=86400
+                self._post(text=Path(trk.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+                # 传递过去临时目录，用于获取 speaker.json
+                self._post(text=trk.cfg.cache_folder, type="edit_subtitle_target")
+                while config.task_countdown > 0:
+                    if self._exit(): return
+                    # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
+                    time.sleep(1)
+                    # 倒计时中
+                    config.task_countdown -= 1
+
+
             if not self._exit():
                 trk.dubbing()
             

@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, logs
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -51,7 +51,7 @@ class OpenRouter(BaseTrans):
                 'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
         ]
 
-        config.logger.info(f"\n[openrouter]发送请求数据:{message=}")
+        logs(f"\n[openrouter]发送请求数据:{message=}")
 
         model = OpenAI(api_key=self.api_key, base_url=self.api_url, http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         response = model.chat.completions.create(
@@ -67,7 +67,7 @@ class OpenRouter(BaseTrans):
         if response.choices[0].message.content:
             result = response.choices[0].message.content.strip()
         else:
-            config.logger.error(f'[openrouter]请求失败:{response=}')
+            logs(f'[openrouter]请求失败:{response=}',level='warn')
             raise RuntimeError(f"[OpenRouter] {response.choices[0].finish_reason}:{response}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)

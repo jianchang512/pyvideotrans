@@ -8,45 +8,59 @@ from videotrans.configure import config
 
 
 # 数字代表界面中的现实顺序
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
 FUNASR_CN = 2
-STT_API = 3
-DOUBAO_API = 4
-Deepgram = 5
-OPENAI_API = 6
-CUSTOM_API = 7
-GOOGLE_SPEECH = 8
-GEMINI_SPEECH = 9
-Faster_Whisper_XXL = 10
-AI_302 = 11
-ElevenLabs = 12
-PARAKEET = 13
-QWEN3ASR = 14
+
+OPENAI_API = 3
+GEMINI_SPEECH = 4
+QWEN3ASR = 5
+ZIJIE_RECOGN_MODEL=6
+
+ElevenLabs = 7
+Deepgram = 8
+DOUBAO_API = 9
+
+
+PARAKEET = 10
+Whisper_CPP=11
+Faster_Whisper_XXL = 12
+
+
+AI_302 = 12
+STT_API = 14
+GOOGLE_SPEECH = 15
+CUSTOM_API = 16
 
 RECOGN_NAME_LIST = [
     tr("Faster-whisper"),
     tr("OpenAI-whisper"),
     tr("FunASR-Chinese"),
-    tr("STT Speech API"),
-    tr("VolcEngine Subtitle API"),
-    tr("Deepgram.com"),
+    
     tr("OpenAI Speech to Text"),
-    tr("Custom API"),
-    tr("Google Speech to Text"),
     tr("Gemini AI"),
-    "Faster-Whisper-XXL.exe",
-    "302.AI",
+    tr("Ali Qwen3-ASR"),    
+    tr("VolcEngine STT"),
+    
     "ElevenLabs.io",
+    "Deepgram.com",
+    tr("VolcEngine Subtitle API"),
+    
     "Parakeet-tdt",
-    tr("Ali Qwen3-ASR"),
+    "Whisper.cpp",
+    "Faster-Whisper-XXL.exe",
+
+    "302.AI",
+    tr("STT Speech API"),
+    tr("Google Speech to Text"),
+    tr("Custom API"),
 ]
 
 
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
-    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL]:
+    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL,Whisper_CPP]:
         return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
     if recogn_type == FUNASR_CN:
         if model_name == 'paraformer-zh' and langcode[:2] not in ('zh', 'yu'):
@@ -63,7 +77,7 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
 
 # 判断 openai whisper和 faster whisper 模型是否存在
 def check_model_name(recogn_type=FASTER_WHISPER, name='', source_language_isLast=False, source_language_currentText=''):
-    if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER, Faster_Whisper_XXL]:
+    if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER]:
         return True
     # 含 / 的需要下载
     if name.find('/') > 0:
@@ -88,7 +102,7 @@ def check_model_name(recogn_type=FASTER_WHISPER, name='', source_language_isLast
 def is_input_api(recogn_type: int = None, return_str=False):
     from videotrans.winform import recognapi as recognapi_win, openairecognapi as openairecognapi_win, \
         doubao as doubao_win, sttapi as sttapi_win, deepgram as deepgram_win, gemini as gemini_win, ai302, \
-        parakeet as parakeet_win,qwenmt as qwenmt_win
+        parakeet as parakeet_win,qwenmt as qwenmt_win,zijierecognmodel as zijierecogn_win
     if recogn_type == STT_API and not config.params.get('stt_url',''):
         if return_str:
             return "Please configure the api and key information of the stt channel first."
@@ -121,6 +135,11 @@ def is_input_api(recogn_type: int = None, return_str=False):
         if return_str:
             return "Please configure the api and key information of the DOUBAO_API channel first."
         doubao_win.openwin()
+        return False
+    if recogn_type == ZIJIE_RECOGN_MODEL and not config.params.get('zijierecognmodel_appid',''):
+        if return_str:
+            return "Please configure the api and key information of the Volcengine channel first."
+        zijierecogn_win.openwin()
         return False
     if recogn_type == Deepgram and not config.params.get('deepgram_apikey',''):
         if return_str:
@@ -183,6 +202,9 @@ def run(*,
     if recogn_type == DOUBAO_API:
         from ._doubao import DoubaoRecogn
         return DoubaoRecogn(**kwargs).run()
+    if recogn_type == ZIJIE_RECOGN_MODEL:
+        from ._zijiemodel import ZijieRecogn
+        return ZijieRecogn(**kwargs).run()
     if recogn_type == CUSTOM_API:
         from ._recognapi import APIRecogn
         return APIRecogn(**kwargs).run()

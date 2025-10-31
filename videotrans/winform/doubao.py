@@ -1,3 +1,5 @@
+# 字节火山音视频字幕生成 对应 字节字幕生成渠道
+
 def openwin():
     from PySide6 import QtWidgets
     from videotrans.configure import config
@@ -21,7 +23,7 @@ def openwin():
         if not appid or not access:
             tools.show_error('必须填写 Appid & Access_token')
             return
-
+        config.getset_params(config.params)
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.DOUBAO_API)
         task.uito.connect(feed)

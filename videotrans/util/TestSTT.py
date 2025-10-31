@@ -16,7 +16,7 @@ class TestSTT(QThread):
             from videotrans.util import tools
             config.box_recogn = 'ing'
             res = recognition.run(
-                audio_file=config.ROOT_DIR + '/videotrans/styles/no-remove.mp3',
+                audio_file=config.ROOT_DIR + '/videotrans/styles/no-remove.wav',
                 cache_folder=config.SYS_TMP,
                 recogn_type=self.recogn_type,
                 model_name=self.model_name,

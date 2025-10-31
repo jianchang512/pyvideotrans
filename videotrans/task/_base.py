@@ -5,6 +5,7 @@ from typing import List
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
+from videotrans.configure.config import logs
 from videotrans.task.taskcfg import TaskCfg
 from videotrans.util import tools
 
@@ -153,7 +154,7 @@ class BaseTask(BaseCon):
                 target_srt_list.append(tmp)
             else:
                 target_srt_list[i] = tmp
-        config.logger.info(f'处理后目标字幕：{target_srt_list=}')
+        logs(f'处理后目标字幕：{target_srt_list=}')
         return target_srt_list
 
     # 完整流程判断是否需退出，子功能需重写
