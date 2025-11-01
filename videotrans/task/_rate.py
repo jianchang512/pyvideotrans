@@ -726,6 +726,7 @@ class SpeedRate:
         intermediate_merged_path = Path(f'{self.cache_folder}/intermediate_merged.mp4').as_posix()
         concat_cmd = ['-y', '-fflags', '+genpts', '-f', 'concat', '-safe', '0', '-i', concat_txt_path, '-c:v', 'copy',
                       intermediate_merged_path]
+        tools.set_process(text=f"Concat {len(valid_clips)} video file...",uuid=self.uuid)
         tools.runffmpeg(concat_cmd, force_cpu=True)
 
         if not Path(intermediate_merged_path).exists():

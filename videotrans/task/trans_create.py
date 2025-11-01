@@ -1133,7 +1133,7 @@ class TransCreate(BaseTask):
                     precent = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) * basenum / video_time, 2)
                     if self.precent + 0.1 < 99:
                         self.precent += 0.1
-                    elif self.precent<100:
+                    elif self.precent<1:
                         self._signal(text=config.tr('kaishihebing') + f' -> {precent * 100}%')
             time.sleep(0.5)
 
