@@ -90,8 +90,8 @@ class MinimaxiTTS(BaseTTS):
             response = requests.request("POST", self.api_url, headers=headers, data=payload)
             response.raise_for_status()
             res=response.json()
-            logs(f'返回数据 {res}')
-            if res['base_resp']['status_code'] != 1004:
+            logs(f'返回数据 {res["base_resp"]=}')
+            if res['base_resp']['status_code'] == 1004:
                 self.stop_next_all=True
             if res['base_resp']['status_code'] != 0:
                 raise RuntimeError(res['base_resp']['status_msg'])
