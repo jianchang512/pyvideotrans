@@ -61,8 +61,9 @@ class Ui_videoandsrt(object):
         self.h7.setObjectName("h7")
 
         
-        self.ass_set=QtWidgets.QPushButton()
-        self.ass_set.setCursor(Qt.PointingHandCursor)
+        self.set_ass=QtWidgets.QPushButton()
+        self.set_ass.setCursor(Qt.PointingHandCursor)
+        self.set_ass.setText(tr('Modify hard subtitle style'))
         
         self.maxlenlabel = QtWidgets.QLabel()
         self.maxlenlabel.setText(tr("Hard Subtitle Line Characters"))
@@ -92,7 +93,7 @@ class Ui_videoandsrt(object):
         self.layout_form.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.languagelabel)
         self.layout_form.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.language)
 
-        self.h7.addLayout(self.set_ass)
+        self.h7.addWidget(self.set_ass)
         self.h7.addLayout(self.layout_form0)
         self.h7.addStretch()
         self.h7.addWidget(self.issoft)

@@ -174,6 +174,11 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
+    def _open_ass():
+        from videotrans.component.set_ass import ASSStyleDialog
+        dialog = ASSStyleDialog()
+        dialog.exec()
+
     from videotrans.component.set_form import Videoandsrtform
     from videotrans.translator import LANGNAME_DICT
     winobj = Videoandsrtform()
@@ -186,5 +191,6 @@ def openwin():
         winobj.startbtn.clicked.connect(start)
         winobj.opendir.clicked.connect(opendir)
         winobj.language.addItems(list(LANGNAME_DICT.values()))
+        winobj.set_ass.clicked.connect(_open_ass)
 
     QTimer.singleShot(10,_bind)

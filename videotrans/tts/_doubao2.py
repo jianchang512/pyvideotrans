@@ -136,9 +136,6 @@ class Doubao2TTS(BaseTTS):
         session = requests.Session()
         response=None
         try:
-            logs('请求的url:', url)
-            logs('请求的headers:', headers)
-            logs('请求的params:\n', payload)
             
             response = session.post(url, headers=headers, json=payload, stream=True)
             

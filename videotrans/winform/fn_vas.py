@@ -285,40 +285,6 @@ def openwin():
                 self.post(type='error', text=get_msg_from_except(e))
 
 
-        def save_ass(self,file_path, ass_file):
-            ysphb=self._save_set()
-            with open(ass_file, 'w', encoding='utf-8') as file:
-                # 写入 ASS 文件的头部信息
-                stem = Path(file_path).stem
-                file.write("[Script Info]\n")
-                file.write(f"Title: {stem}\n")
-                file.write(f"Original Script: {stem}\n")
-                file.write("ScriptType: v4.00+\n")
-                file.write("PlayResX: 384\nPlayResY: 288\n")
-                file.write("ScaledBorderAndShadow: yes\n")
-                file.write("YCbCr Matrix: None\n")
-                file.write("\n[V4+ Styles]\n")
-                file.write(
-                    f"Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
-
-                align = config.POSTION_ASS_INDEX[ysphb["position"]]
-                # 不同字幕渲染器为差异兼容
-                if ysphb["ysphb_borderstyle"]:
-                    ysphb["selected_bordercolor"] = ysphb["selected_backgroundcolor"]
-
-
-                file.write(f'Style: Default,{ysphb["selected_font"]},{ysphb["font_size_edit"]},{ysphb["selected_color"]},{ysphb["selected_color"]},{ysphb["selected_bordercolor"]},{ysphb["selected_backgroundcolor"]},{int(self.winobj.selected_font.bold())},{int(self.winobj.selected_font.italic())},0,0,100,100,0,0,{3 if ysphb["ysphb_borderstyle"] else 1},{ysphb["outline"]},{ysphb["shadow"]},{align},{ysphb["marginL"]},{ysphb["marginR"]},{ysphb["marginV"]},1\n')
-                file.write("\n[Events]\n")
-
-                file.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
-                srt_list = tools.get_subtitle_from_srt(file_path, is_file=True)
-                for it in srt_list:
-                    start_str = format_milliseconds(it['start_time'])
-                    end_str = format_milliseconds(it['end_time'])
-                    text = it['text'].replace("\n", "\\N")
-                    file.write(f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{text}\n")
-            return True
-
     def feed(d):
         if winobj.has_done:
             return
