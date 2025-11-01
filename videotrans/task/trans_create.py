@@ -547,10 +547,12 @@ class TransCreate(BaseTask):
                 shutil.copy2(self.cfg.target_wav, f"{self.cfg.target_dir}/{self.cfg.target_language_code}-{self.cfg.noextname}.wav")
             except shutil.SameFileError:
                 pass
+
         try:
             if self.cfg.shound_del_name:
                 Path(self.cfg.shound_del_name).unlink(missing_ok=True)
             Path(self.cfg.shibie_audio).unlink(missing_ok=True)
+            shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
         except Exception as e:
             logs(e, level="except")
 
@@ -567,7 +569,7 @@ class TransCreate(BaseTask):
             "copy" if self.is_copy_video else f"libx264"
         ]
         if not self.is_copy_video:
-            cmd += ["-crf", '10','-preset','ultrafast']
+            cmd += ["-crf", '18','-preset','ultrafast']
         cmd += [self.cfg.novoice_mp4]
         return tools.runffmpeg(cmd, noextname=self.cfg.noextname)
 
@@ -948,7 +950,7 @@ class TransCreate(BaseTask):
                         "-movflags",
                         "+faststart",
                         '-crf',
-                        f'{config.settings.get("crf",13)}',
+                        f'{config.settings.get("crf",18)}',
                         '-preset',
                         config.settings.get('preset','ultrafast'),
                         "-shortest",
@@ -980,7 +982,7 @@ class TransCreate(BaseTask):
                         "-movflags",
                         "+faststart",
                         '-crf',
-                        f'{config.settings.get("crf",13)}',
+                        f'{config.settings.get("crf",18)}',
                         '-preset',
                         config.settings.get('preset','ultrafast'),
                         "-shortest",
@@ -1006,7 +1008,7 @@ class TransCreate(BaseTask):
                     "-movflags",
                     "+faststart",
                     '-crf',
-                    f'{config.settings.get("crf",13)}',
+                    f'{config.settings.get("crf",18)}',
                     '-preset',
                     config.settings.get('preset','ultrafast'),
                     "-shortest",
@@ -1039,7 +1041,7 @@ class TransCreate(BaseTask):
                     "-movflags",
                     "+faststart",
                     '-crf',
-                    f'{config.settings.get("crf",13)}',
+                    f'{config.settings.get("crf",18)}',
                     '-preset',
                     config.settings.get('preset','ultrafast'),
                     "-shortest",
@@ -1079,7 +1081,7 @@ class TransCreate(BaseTask):
                     "-movflags",
                     "+faststart",
                     '-crf',
-                    f'{config.settings.get("crf",13)}',
+                    f'{config.settings.get("crf",18)}',
                     '-preset',
                     config.settings.get('preset','ultrafast'),
                     "-shortest",
@@ -1131,7 +1133,7 @@ class TransCreate(BaseTask):
                     precent = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) * basenum / video_time, 2)
                     if self.precent + 0.1 < 99:
                         self.precent += 0.1
-                    else:
+                    elif self.precent<100:
                         self._signal(text=config.tr('kaishihebing') + f' -> {precent * 100}%')
             time.sleep(0.5)
 

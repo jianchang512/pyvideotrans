@@ -124,7 +124,14 @@ class SpeedRate:
         self.source_video_fps = 30
         # 默认一帧时长ms
         self.fps_ms = 1000 // 30
-
+        
+        self.crf="13"
+        try:
+            if Path(config.ROOT_DIR+"/crf.txt").exists():
+                self.crf=str(int(Path(config.ROOT_DIR+"/crf.txt").read_text()))
+        except Exception:
+            pass
+        
         # 检测并设置可用的音频变速滤镜
         self.audio_speed_filter = self._check_ffmpeg_filters()
 
@@ -674,7 +681,7 @@ class SpeedRate:
         """视频变速"""
         cmd = ['-y',  '-ss', tools.ms_to_time_string(ms=ss, sepflag='.'), '-t',
                f'{(to - ss) / 1000.0}','-i', source, 
-               '-an', '-c:v', 'libx264',"-x264-params", "keyint=1:min-keyint=1:scenecut=0", '-preset', 'ultrafast', '-crf', '10',
+               '-an', '-c:v', 'libx264',"-x264-params", "keyint=1:min-keyint=1:scenecut=0", '-preset', 'ultrafast', '-crf', self.crf,
                '-pix_fmt', 'yuv420p']
         if pts:
             cmd.extend(['-vf', f'setpts={pts}*PTS', '-vsync', 'vfr'])
@@ -687,7 +694,7 @@ class SpeedRate:
                 logs(f"中间片段 {Path(out).name} 生成失败，尝试无PTS参数重试。",level='warn')
                 tools.runffmpeg(['-y', '-ss', tools.ms_to_time_string(ms=ss, sepflag='.'), '-t',
                                  f'{(to - ss) / 1000.0}', '-i', source,
-                                 '-an', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '10',
+                                 '-an', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', self.crf,
                                  '-pix_fmt', 'yuv420p', '-vf', f'setpts=PTS', '-vsync', 'vfr', out],
                                 force_cpu=True)
             # 仍然有错就放弃了
@@ -985,7 +992,7 @@ class SpeedRate:
         cmd = ['-y', '-i', self.novoice_mp4,
                '-vf', f'tpad=stop_mode=clone:stop_duration={freeze_duration_sec}',
                '-c:v', 'libx264',
-               '-crf', '10',
+               '-crf', self.crf,
                '-preset', 'ultrafast',
                '-an', final_video_path]
 
