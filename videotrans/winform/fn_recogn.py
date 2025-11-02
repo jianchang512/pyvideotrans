@@ -66,11 +66,6 @@ def openwin():
 
         if res is not True:
             return tools.show_error(res)
-        if (
-                model == 'paraformer-zh' and recogn_type == recognition.FUNASR_CN) or recogn_type in[recognition.Deepgram,recognition.GEMINI_SPEECH,recognition.ZIJIE_RECOGN_MODEL]:
-            winobj.show_spk.setVisible(True)
-        else:
-            winobj.show_spk.setVisible(False)
         return True
 
     def toggle_state(state):
@@ -78,7 +73,6 @@ def openwin():
         winobj.is_cuda.setDisabled(state)
         winobj.shibie_recogn_type.setDisabled(state)
         winobj.shibie_model.setDisabled(state)
-        winobj.show_spk.setDisabled(state)
         winobj.shibie_split_type.setDisabled(state)
         winobj.equal_split_time.setDisabled(state)
         winobj.out_format.setDisabled(state)
@@ -177,7 +171,7 @@ def openwin():
             config.params["stt_out_format"] = winobj.out_format.currentText()
             config.params["stt_remove_noise"] = winobj.remove_noise.isChecked()
             config.params["stt_copysrt_rawvideo"] = winobj.copysrt_rawvideo.isChecked()
-            config.params["paraformer_spk"] = winobj.show_spk.isChecked()
+            config.params["stt_spk_insert"] = winobj.spk_insert.isChecked()
             config.getset_params(config.params)
             th.start()
 
@@ -290,11 +284,6 @@ def openwin():
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
 
-        if recogn_type == recognition.Deepgram or recogn_type == recognition.GEMINI_SPEECH or (
-                winobj.shibie_model.currentText() == 'paraformer-zh' and recogn_type == recognition.FUNASR_CN):
-            winobj.show_spk.setVisible(True)
-        else:
-            winobj.show_spk.setVisible(False)
         lang = translator.get_code(show_text=winobj.shibie_language.currentText())
         is_allow_lang_res = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
                                                       model_name=winobj.shibie_model.currentText())
@@ -375,6 +364,7 @@ def openwin():
         winobj.rephrase.setChecked(config.settings.get('rephrase',False) if not local_rephrase else False)
         winobj.remove_noise.setChecked(config.params.get('stt_remove_noise'))
         winobj.copysrt_rawvideo.setChecked(config.params.get('stt_copysrt_rawvideo', False))
+        winobj.spk_insert.setChecked(config.params.get('stt_spk_insert', False))
         winobj.out_format.setCurrentText(config.params.get('stt_out_format', 'srt'))
 
         default_lang = int(config.params.get('stt_source_language', 0))
@@ -404,8 +394,6 @@ def openwin():
         if config.params.get('stt_model_name') in curr:
             current_model = config.params.get('stt_model_name')
             winobj.shibie_model.setCurrentText(current_model)
-            if current_model == 'paraformer-zh' or default_type == recognition.Deepgram or default_type == recognition.GEMINI_SPEECH:
-                winobj.show_spk.setVisible(True)
 
         if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP]:
             winobj.shibie_model.setDisabled(True)

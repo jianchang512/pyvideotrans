@@ -283,6 +283,8 @@ class WinActionSub:
     def _clean_dir(self):
         shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
         shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
+        Path(config.ROOT_DIR+"/videotrans/codec.json").unlink(missing_ok=True)
+        Path(config.ROOT_DIR+"/videotrans/ass.json").unlink(missing_ok=True)
         self.main.restart_app()
 
 

@@ -32,7 +32,7 @@ class Ui_ai302form(object):
 
         self.label_2 = QtWidgets.QLabel()
         self.label_2.setObjectName("label_2")
-        self.ai302_key = QtWidgets.QLineEdit(ai302form)
+        self.ai302_key = QtWidgets.QLineEdit()
         self.ai302_key.setMinimumSize(QtCore.QSize(0, 35))
         self.ai302_key.setObjectName("ai302_key")
         h1.addWidget(self.label_2)
@@ -40,46 +40,56 @@ class Ui_ai302form(object):
         v1.addLayout(h1)
 
         h2 = QtWidgets.QHBoxLayout()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        h2_recogn = QtWidgets.QHBoxLayout()
 
-        self.label_3 = QtWidgets.QLabel(ai302form)
+        self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
-        self.ai302_model = QtWidgets.QComboBox(ai302form)
+        self.ai302_model = QtWidgets.QComboBox()
         self.ai302_model.setMinimumSize(QtCore.QSize(0, 35))
         self.ai302_model.setObjectName("ai302_model")
-        self.ai302_model.setSizePolicy(sizePolicy)
         h2.addWidget(self.label_3)
         h2.addWidget(self.ai302_model)
-        v1.addLayout(h2)
 
-        self.label_allmodels = QtWidgets.QLabel(ai302form)
+        self.label_recogn = QtWidgets.QLabel()
+        self.label_recogn.setObjectName("label_recogn")
+        self.ai302_model_recogn = QtWidgets.QComboBox()
+        self.ai302_model_recogn.setMinimumSize(QtCore.QSize(0, 35))
+        self.ai302_model_recogn.setObjectName("ai302_model_recogn")
+        h2_recogn.addWidget(self.label_recogn)
+        h2_recogn.addWidget(self.ai302_model_recogn)
+        
+        
+        v1.addLayout(h2)
+        v1.addLayout(h2_recogn)
+
+        self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
         v1.addWidget(self.label_allmodels)
 
-        self.edit_allmodels = QtWidgets.QPlainTextEdit(ai302form)
+        self.edit_allmodels = QtWidgets.QPlainTextEdit()
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-        self.label_4 = QtWidgets.QLabel(ai302form)
+        self.label_4 = QtWidgets.QLabel()
         self.label_4.setObjectName("label_4")
         v1.addWidget(self.label_4)
 
-        self.ai302_template = QtWidgets.QPlainTextEdit(ai302form)
+        self.ai302_template = QtWidgets.QPlainTextEdit()
         self.ai302_template.setObjectName("ai302_template")
         self.ai302_template.setReadOnly(True)
         self.ai302_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'ai302' if config.defaulelang=='zh' else 'ai302-en'))
         v1.addWidget(self.ai302_template)
 
         h3 = QtWidgets.QHBoxLayout()
-        self.set_ai302 = QtWidgets.QPushButton(ai302form)
+        self.set_ai302 = QtWidgets.QPushButton()
         self.set_ai302.setMinimumSize(QtCore.QSize(0, 35))
         self.set_ai302.setObjectName("set_ai302")
 
-        self.test_ai302 = QtWidgets.QPushButton(ai302form)
+        self.test_ai302 = QtWidgets.QPushButton()
         self.test_ai302.setMinimumSize(QtCore.QSize(0, 30))
         self.test_ai302.setObjectName("test_ai302")
 
-        self.label_0 = QtWidgets.QPushButton(ai302form)
+        self.label_0 = QtWidgets.QPushButton()
         self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
         self.label_0.setStyleSheet("""text-align:left;background-color:transparent""")
         self.label_0.setText(tr('Fill out the tutorial'))
@@ -101,16 +111,20 @@ class Ui_ai302form(object):
 
         self.ai302_model.clear()
         self.ai302_model.addItems(allmodels)
+        self.ai302_model_recogn.clear()
+        self.ai302_model_recogn.addItems(['whisper-1','gpt-4o-transcribe','gpt-4o-mini-transcribe','gpt-4o-transcribe-diarize'])
         self.edit_allmodels.setPlainText(allmodels_str)
 
         if config.params.get("ai302_key",''):
             self.ai302_key.setText(config.params.get("ai302_key",''))
         if  config.params.get("ai302_model") in allmodels:
             self.ai302_model.setCurrentText(config.params.get("ai302_model",''))
+        self.ai302_model_recogn.setCurrentText(config.params.get("ai302_model_recogn",''))
 
     def retranslateUi(self, ai302form):
         ai302form.setWindowTitle("302.ai"+tr("Access translation and dubbing channel configuration"))
-        self.label_3.setText(tr('Model'))
+        self.label_3.setText(tr('starttrans')+" Model")
+        self.label_recogn.setText(tr('Whisper model'))
         self.label_allmodels.setText(tr('Fill in all available models, separated by commas. After filling in, you can select them above'))
         self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
         self.set_ai302.setText(tr('Save'))

@@ -220,9 +220,9 @@ def parse_init(update_data=None):
         "Faster_Whisper_XXL": "",
         "Whisper.cpp": "",
         "Whisper.cpp.models": "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin",
-        "crf": 18,
+        "crf": 22,
         "force_lib": False,
-        "preset": "ultrafast",
+        "preset": "fast",
         "ffmpeg_cmd": "",
         "aisendsrt": False,
         "dont_notify": False,
@@ -405,7 +405,6 @@ def getset_params(obj=None):
     default = {
         "last_opendir": os.path.expanduser("~"),
         "cuda": False,
-        "paraformer_spk": False,
         "line_roles": {},
         "is_separate": False,
         "remove_noise": False,
@@ -490,6 +489,7 @@ def getset_params(obj=None):
         "gemini_key": "",
         "gemini_model": "gemini-2.5-flash",
         "gemini_maxtoken":18192,
+        "gemini_thinking_budget":24576,
         "gemini_ttsrole": "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat",
         "gemini_ttsstyle": "",
         "gemini_ttsmodel": "gemini-2.5-flash-preview-tts",
@@ -521,6 +521,8 @@ def getset_params(obj=None):
 
         "ai302_key": "",
         "ai302_model": "",
+        "ai302_model_recogn":"whisper-1",
+        
         "trans_api_url": "",
         "trans_secret": "",
         "coquitts_role": "",

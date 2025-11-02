@@ -57,7 +57,7 @@ class DeepgramRecogn(BaseRecogn):
             "buffer": buffer_data,
         }
 
-        diarize = config.params.get('paraformer_spk', False)
+        diarize = True
         options = PrerecordedOptions(
             model=self.model_name,
             # detect_language=True,

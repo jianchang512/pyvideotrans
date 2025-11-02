@@ -510,7 +510,7 @@ class Ui_setini(object):
                     box.layout().addLayout(tmp)
                     continue
                 if key == 'preset':
-                    presets = ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'veryslow']
+                    presets = ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow','slower', 'veryslow']
                     tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(presets)
                     if val in presets:

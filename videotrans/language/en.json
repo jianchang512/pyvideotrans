@@ -823,6 +823,8 @@
         "border_style_outline": "Outline (1)",
         "border_style_opaque": "Opaque Box (3)",
         "preview_text": "This is subtitle preview text",
-		"DouBao2":"Doubao Speech 2.0"
+		"DouBao2":"Doubao Speech 2.0",
+        "Insert speaker": "Insert speaker",
+        "If the selected channel supports speaker recognition, selecting this option will insert a speaker identifier at the beginning of the subtitles": "If the selected channel supports speaker recognition, selecting this option will insert a speaker identifier at the beginning of the subtitles."
 
 }

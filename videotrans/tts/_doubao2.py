@@ -173,7 +173,6 @@ class Doubao2TTS(BaseTTS):
                 if data.get("code", 0) > 0:
                     
                     raise RuntimeError(str(data))
-                    break
 
             if audio_data:
                 self._save_pcm_to_wav(audio_data,data_item['filename'])

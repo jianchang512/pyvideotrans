@@ -826,5 +826,7 @@
         "border_style_outline": "轮廓 (1)",
         "border_style_opaque": "不透明框 (3)",
         "preview_text": "这是字幕预览文本",
-		"DouBao2":"豆包语音合成模型2.0"
+		"DouBao2":"豆包语音合成模型2.0",
+        "Insert speaker": "插入说话人",
+        "If the selected channel supports speaker recognition, selecting this option will insert a speaker identifier at the beginning of the subtitles": "如果所选渠道支持识别说话人，选中将在字幕开头插入说话人标识"
 }

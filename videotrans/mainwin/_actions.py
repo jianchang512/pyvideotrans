@@ -141,11 +141,7 @@ class WinAction(WinActionSub):
             self.main.rephrase_local.setDisabled(True)
         
         lang = translator.get_code(show_text=self.main.source_language.currentText())
-        if ( self.main.model_name.currentText() == 'paraformer-zh' and recogn_type == recognition.FUNASR_CN) or recogn_type in [ recognition.Deepgram,recognition.GEMINI_SPEECH,recognition.ZIJIE_RECOGN_MODEL]:
-            self.main.show_spk.setVisible(True)
-        else:
-            self.main.show_spk.setVisible(False)
-            self.main.show_spk.setChecked(False)
+
 
         is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
                                                   model_name=self.main.model_name.currentText())
@@ -169,12 +165,6 @@ class WinAction(WinActionSub):
 
         if res is not True:
             return tools.show_error(res)
-
-        if (
-                model == 'paraformer-zh' and recogn_type == recognition.FUNASR_CN) or recogn_type == recognition.Deepgram or recogn_type == recognition.GEMINI_SPEECH:
-            self.main.show_spk.setVisible(True)
-        else:
-            self.main.show_spk.setVisible(False)
         return True
 
     # 判断 语音参数 vad参数区域是否应该可见
@@ -591,7 +581,6 @@ class WinAction(WinActionSub):
             self.cfg['app_mode'] = self.main.app_mode
 
         self.cfg['remove_noise'] = self.main.remove_noise.isChecked()
-        self.cfg["paraformer_spk"] = self.main.show_spk.isChecked()
         config.params.update(self.cfg)
         config.getset_params(config.params)
         self.delete_process()
@@ -877,12 +866,15 @@ class WinAction(WinActionSub):
         elif d['type'] == 'edit_subtitle_target':
             # 弹出编辑配音字幕
             from videotrans.component.onlyone_set_role import SpeakerAssignmentDialog
-            
+            cache_folder,target_language,tts_type=d['text'].split('<|>')
             dialog=SpeakerAssignmentDialog(
                 source_sub=None if not config.onlyone_trans else config.onlyone_source_sub,
                 target_sub=config.onlyone_target_sub,
                 all_voices=self.main.current_rolelist,
-                cache_folder=d['text']
+                cache_folder=cache_folder,
+                target_language=target_language,
+                tts_type=int(tts_type)
+                
             )
 
             if dialog.exec():

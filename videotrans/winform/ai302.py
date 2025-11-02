@@ -22,9 +22,11 @@ def openwin():
     def test():
         key = winobj.ai302_key.text()
         model = winobj.ai302_model.currentText()
+        model_recogn = winobj.ai302_model_recogn.currentText()
 
         config.params["ai302_key"] = key
         config.params["ai302_model"] = model
+        config.params["ai302_model_recogn"] = model_recogn
 
         winobj.test_ai302.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.AI302_INDEX)
@@ -34,9 +36,11 @@ def openwin():
     def save_ai302():
         key = winobj.ai302_key.text()
         model = winobj.ai302_model.currentText()
+        model_recogn = winobj.ai302_model_recogn.currentText()
 
         config.params["ai302_key"] = key
         config.params["ai302_model"] = model
+        config.params["ai302_model_recogn"] = model_recogn
 
         config.getset_params(config.params)
         winobj.close()

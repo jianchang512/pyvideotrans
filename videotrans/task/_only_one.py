@@ -71,7 +71,7 @@ class Worker(QThread):
                 config.task_countdown=86400
                 self._post(text=Path(trk.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
                 # 传递过去临时目录，用于获取 speaker.json
-                self._post(text=trk.cfg.cache_folder, type="edit_subtitle_target")
+                self._post(text=f'{trk.cfg.cache_folder}<|>{trk.cfg.target_language_code}<|>{trk.cfg.tts_type}', type="edit_subtitle_target")
                 while config.task_countdown > 0:
                     if self._exit(): return
                     # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时

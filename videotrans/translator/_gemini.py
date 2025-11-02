@@ -92,7 +92,7 @@ class Gemini(BaseTrans):
                   ],
 
                 thinking_config = types.ThinkingConfig(
-                    thinking_budget=1 if "gemini-2.5" in model or "gemini-3" in model else 0,
+                    thinking_budget=int(config.params.get('gemini_thinking_budget',24576)),
                 ),
                 system_instruction=[
                     types.Part.from_text(text=tr("You are a top-notch subtitle translation engine.")),

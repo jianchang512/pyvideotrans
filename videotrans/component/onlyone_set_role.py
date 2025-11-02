@@ -3,7 +3,7 @@ import sys
 from typing import List, Dict, Optional
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QCheckBox,
-    QComboBox, QPushButton, QScrollArea, QWidget, QGroupBox, QSplitter,QPlainTextEdit,QFrame
+    QComboBox, QPushButton, QScrollArea, QWidget, QGroupBox, QSplitter,QPlainTextEdit,QFrame,QMessageBox
 )
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QTimer,QSize
@@ -21,13 +21,17 @@ class SpeakerAssignmentDialog(QDialog):
         target_sub: str = None,
         all_voices: Optional[List[str]] = None,
         source_sub: str = None,
-        cache_folder=None
+        cache_folder=None,
+        target_language="en",
+        tts_type=0
     ):
         # 初始化对话框的基本属性
         super().__init__(parent)
         self.target_sub=target_sub
         self.source_srtstring=None
         self.cache_folder=cache_folder
+        self.target_language=target_language
+        self.tts_type=tts_type
         if source_sub:
             sour_pt=Path(source_sub)
             if sour_pt.as_posix() and not sour_pt.samefile(Path(target_sub)):
@@ -45,7 +49,7 @@ class SpeakerAssignmentDialog(QDialog):
             _set =set(_list_sub) if _list_sub else None
             if _set and len(_set)>1:
                 self.speaker_list_sub=_list_sub
-                self.speakers={it:None for it in _set}
+                self.speakers={it:None for it in sorted(list(_set))}
         except Exception as e:
             logs(f'获取说话人id失败:{e}',level="except")
         print(self.speaker_list_sub)
@@ -355,10 +359,47 @@ class SpeakerAssignmentDialog(QDialog):
         assign_button.clicked.connect(self.assign_subtitle_roles)  # 连接到分配方法
         assign_button.setMinimumSize(QSize(200, 30))
         bottom_row.addWidget(assign_button)  # 添加按钮
+        
+        self.listen_button = QPushButton(tr("Trial dubbing"))  
+        self.listen_button.setCursor(Qt.PointingHandCursor)
+        self.listen_button.clicked.connect(self.listen_dubbing)  
+
+        bottom_row.addWidget(self.listen_button)  # 添加按钮
+        
+        
         bottom_row.addStretch()
         layout.addLayout(bottom_row)  # 添加底部行到组布局
 
         return group  # 返回组框
+
+    def listen_dubbing(self):
+        # 获取当前选中的角色文本
+        selected_role = self.subtitle_combo.currentText()
+        # 如果是 "No"，则角色值为 None，否则为选中文本
+        role_value = None if selected_role == "No" else selected_role
+        if not role_value:
+            return
+        from videotrans.util.ListenVoice import ListenVoice
+        import time
+        def feed(d):
+            self.listen_button.setText(tr("Trial dubbing"))
+            self.listen_button.setDisabled(False)
+            if d == "ok":
+                QMessageBox.information(self, "ok", "Test Ok")
+            else:
+                tools.show_error(d)
+        wk = ListenVoice(parent=self, queue_tts=[{
+            "text": self.subtitle_rows[0]['item']['text'],
+            "role": role_value,
+            "filename": config.TEMP_HOME + f"/{time.time()}-onlyone_setrole.wav",
+            "tts_type": self.tts_type}],
+                         language=self.target_language,
+                         tts_type=self.tts_type)
+        wk.uito.connect(feed)
+        wk.start()    
+        self.listen_button.setText('Listening...')
+        self.listen_button.setDisabled(True)
+            
 
     def replace_text(self):
         # 获取查找和替换的文本

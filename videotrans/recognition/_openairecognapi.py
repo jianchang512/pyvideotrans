@@ -126,7 +126,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 prompt=config.params.get('openairecognapi_prompt',''),
                 # timeout=7200,
                 language=self.detect_language[:2].lower(),
-                response_format="json"
+                response_format="diarized_json"
             )
 
             if not hasattr(transcript, 'segments') or not transcript.segments:
@@ -140,8 +140,6 @@ class OpenaiAPIRecogn(BaseRecogn):
                     "time": tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
                         ms=it.end * 1000),
                 })
-                if not config.params.get('paraformer_spk', False):
-                    continue
                 sp=it.get('speaker')
                 if not sp:
                     speaker_list.append(f'spk{len(speaker_list)}')

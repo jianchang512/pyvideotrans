@@ -1,3 +1,4 @@
+import json
 import shutil
 import time
 from dataclasses import dataclass, field
@@ -143,6 +144,15 @@ class SpeechToText(BaseTask):
             if self._exit(): return
             if not raw_subtitles or len(raw_subtitles) < 1:
                 raise RuntimeError( self.cfg.basename + tr('recogn result is empty'))
+
+            if config.params.get("stt_spk_insert") and Path(self.cfg.cache_folder+"/speaker.json").exists():
+                speakers=json.loads(Path(self.cfg.cache_folder+"/speaker.json").read_text(encoding='utf-8'))
+                if speakers:
+                    speakers_len=len(speakers)
+                    for i,it in enumerate(raw_subtitles):
+                        if i<speakers_len and speakers[i]:
+                            it['text']=f'[{speakers[i]}]{it["text"]}'
+
 
             self._save_srt_target(raw_subtitles, self.cfg.target_sub)
             try:

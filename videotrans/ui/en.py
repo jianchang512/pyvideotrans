@@ -146,11 +146,7 @@ class Ui_MainWindow(object):
         self.model_name.setMaximumWidth(160)
         self.model_name.setObjectName("model_name")
 
-        self.show_spk = QtWidgets.QCheckBox()
-        self.show_spk.setObjectName('show_spk')
-        self.show_spk.setText(tr("Speaker classification?"))
-        self.show_spk.setChecked(config.params.get('paraformer_spk', False))
-        self.show_spk.setVisible(False)
+
 
         self.split_label = QtWidgets.QPushButton()
         self.split_label.setStyleSheet("background-color: rgba(255, 255, 255,0)")
@@ -197,7 +193,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.recogn_type)
         self.horizontalLayout_4.addWidget(self.model_name_help)
         self.horizontalLayout_4.addWidget(self.model_name)
-        self.horizontalLayout_4.addWidget(self.show_spk)
         
         self.horizontalLayout_4.addWidget(self.split_label)
         self.horizontalLayout_4.addWidget(self.split_type)

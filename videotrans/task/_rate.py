@@ -126,9 +126,14 @@ class SpeedRate:
         self.fps_ms = 1000 // 30
         
         self.crf="13"
+        self.preset="veryfast"
         try:
             if Path(config.ROOT_DIR+"/crf.txt").exists():
                 self.crf=str(int(Path(config.ROOT_DIR+"/crf.txt").read_text()))
+            if Path(config.ROOT_DIR+"/preset.txt").exists():
+                preset=str(Path(config.ROOT_DIR+"/preset.txt").read_text().strip())
+                if preset in ['ultrafast','superfast','veryfast','faster','fast','medium','slow','slower','veryslow']:
+                    self.preset=preset
         except Exception:
             pass
         
@@ -681,7 +686,7 @@ class SpeedRate:
         """视频变速"""
         cmd = ['-y',  '-ss', tools.ms_to_time_string(ms=ss, sepflag='.'), '-t',
                f'{(to - ss) / 1000.0}','-i', source, 
-               '-an', '-c:v', 'libx264',"-x264-params", "keyint=1:min-keyint=1:scenecut=0", '-preset', 'ultrafast', '-crf', self.crf,
+               '-an', '-c:v', 'libx264',"-x264-params", "keyint=1:min-keyint=1:scenecut=0", '-preset', self.preset, '-crf', self.crf,
                '-pix_fmt', 'yuv420p']
         if pts:
             cmd.extend(['-vf', f'setpts={pts}*PTS', '-vsync', 'vfr'])
@@ -694,7 +699,7 @@ class SpeedRate:
                 logs(f"中间片段 {Path(out).name} 生成失败，尝试无PTS参数重试。",level='warn')
                 tools.runffmpeg(['-y', '-ss', tools.ms_to_time_string(ms=ss, sepflag='.'), '-t',
                                  f'{(to - ss) / 1000.0}', '-i', source,
-                                 '-an', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', self.crf,
+                                 '-an', '-c:v', 'libx264', '-preset', self.preset, '-crf', self.crf,
                                  '-pix_fmt', 'yuv420p', '-vf', f'setpts=PTS', '-vsync', 'vfr', out],
                                 force_cpu=True)
             # 仍然有错就放弃了
@@ -994,7 +999,7 @@ class SpeedRate:
                '-vf', f'tpad=stop_mode=clone:stop_duration={freeze_duration_sec}',
                '-c:v', 'libx264',
                '-crf', self.crf,
-               '-preset', 'ultrafast',
+               '-preset', self.preset,
                '-an', final_video_path]
 
         if tools.runffmpeg(cmd, force_cpu=True) and Path(final_video_path).exists():

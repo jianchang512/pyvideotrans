@@ -55,10 +55,7 @@ class Ui_recogn(object):
         self.shibie_model.setMinimumSize(QtCore.QSize(100, 30))
         self.shibie_model.setObjectName("shibie_model")
 
-        self.show_spk = QtWidgets.QCheckBox()
-        self.show_spk.setObjectName('show_spk')
-        self.show_spk.setChecked(config.params.get('paraformer_spk', False))
-        self.show_spk.setVisible(False)
+
 
         self.shibie_split_type = QtWidgets.QComboBox()
 
@@ -77,6 +74,10 @@ class Ui_recogn(object):
         self.out_format = QtWidgets.QComboBox()
         self.out_format.setMinimumSize(QtCore.QSize(100, 35))
 
+        self.spk_insert=QtWidgets.QCheckBox()
+        self.spk_insert.setText(tr('Insert speaker'))
+        self.spk_insert.setToolTip(tr('If the selected channel supports speaker recognition, selecting this option will insert a speaker identifier at the beginning of the subtitles'))
+
         self.shibie_startbtn = QtWidgets.QPushButton()
         self.shibie_startbtn.setMinimumSize(QtCore.QSize(200, 35))
         self.shibie_startbtn.setObjectName("shibie_startbtn")
@@ -93,12 +94,12 @@ class Ui_recogn(object):
         self.horizontalLayout.addWidget(self.shibie_recogn_type)
         self.horizontalLayout.addWidget(self.label_model)
         self.horizontalLayout.addWidget(self.shibie_model)
-        self.horizontalLayout.addWidget(self.show_spk)
         self.horizontalLayout.addWidget(self.split_label)
         self.horizontalLayout.addWidget(self.shibie_split_type)
         self.horizontalLayout.addLayout(self.equal_split_layout)
         self.horizontalLayout.addWidget(self.lable_out)
         self.horizontalLayout.addWidget(self.out_format)
+        self.horizontalLayout.addWidget(self.spk_insert)
         self.horizontalLayout.addStretch()
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
@@ -223,7 +224,6 @@ class Ui_recogn(object):
         self.shibie_label.setToolTip(
             tr("Click to set detailed recognition parameters when using faster-whisper"))
         self.label_model.setText(tr("Select model"))
-        self.show_spk.setText(tr("Speaker classification?"))
         self.shibie_split_type.addItems(
             [tr('whisper_type_all'),
              tr('whisper_type_avg')]

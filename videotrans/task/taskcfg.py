@@ -60,7 +60,6 @@ class TaskCfg:
     voice_autorate:bool=False #是否音频自动加速
     video_autorate:bool=False #是否视频自动慢速
     cuda:bool=False#是否使用cuda加速
-    paraformer_spk:bool=False#阿里FunASR的paraformer模型时是否识别说话人
 
     name:str=None # 规范化处理的原始文件绝对路径 D:/XXX/1.MP4
     basename:str=None # noextname + ext 名 1.mp4

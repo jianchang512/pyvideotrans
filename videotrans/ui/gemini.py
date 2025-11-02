@@ -5,7 +5,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,ROOT_DIR
 from videotrans.util import tools
 
 
@@ -53,8 +53,13 @@ class Ui_geminiform(object):
         label_token.setText('Max Token')
         self.gemini_maxtoken = QtWidgets.QLineEdit()
         self.gemini_maxtoken.setObjectName("gemini_maxtoken")
+        
+        self.thinking_budget = QtWidgets.QLineEdit()
+        self.thinking_budget.setObjectName("thinking_budget")
         h_token.addWidget(label_token)
         h_token.addWidget(self.gemini_maxtoken)
+        h_token.addWidget(QtWidgets.QLabel('Thinking budget'))
+        h_token.addWidget(self.thinking_budget)
         v1.addLayout(h_token)
         
 
@@ -85,8 +90,11 @@ class Ui_geminiform(object):
 
         v1.addLayout(hrecogn)
 
-        self.gemini_srtprompt = QtWidgets.QPlainTextEdit()
+        self.gemini_srtprompt = QtWidgets.QLineEdit()
         self.gemini_srtprompt.setObjectName("gemini_srtprompt")
+        self.gemini_srtprompt.setReadOnly(True)
+        self.gemini_srtprompt.setDisabled(True)
+        self.gemini_srtprompt.setText(f'{ROOT_DIR}/videotrans/prompts/recogn/gemini_recogn.txt')
 
         v1.addWidget(self.gemini_srtprompt)
 
@@ -141,9 +149,10 @@ class Ui_geminiform(object):
         self.model.setCurrentText(config.params.get("gemini_model",''))
         
         self.gemini_maxtoken.setText(str(config.params.get("gemini_maxtoken",'18192')))
+        self.thinking_budget.setText(str(config.params.get("thinking_budget",'24576')))
 
         self.ttsmodel.setCurrentText(config.params.get("gemini_ttsmodel",''))
-        self.gemini_srtprompt.setPlainText(Path(config.ROOT_DIR+'/videotrans/prompts/recogn/gemini_recogn.txt').read_text(encoding='utf-8'))
+
     def retranslateUi(self):
         
         self.gemini_template.setPlaceholderText("prompt")

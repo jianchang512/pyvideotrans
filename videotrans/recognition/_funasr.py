@@ -45,7 +45,7 @@ class FunasrRecogn(BaseRecogn):
             punc_model="ct-punc", punc_model_revision="v2.0.4",
             local_dir=config.ROOT_DIR + "/models",
             hub='ms',
-            spk_model="cam++" if config.params.get('paraformer_spk', False) else None, spk_model_revision="v2.0.2",
+            spk_model="cam++", spk_model_revision="v2.0.2",
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
@@ -61,8 +61,7 @@ class FunasrRecogn(BaseRecogn):
             if not it.get('text','').strip():
                 continue
 
-            if config.params.get('paraformer_spk', False):
-                speaker_list.append(f"spk{it.get('spk', 0)}")
+            speaker_list.append(f"spk{it.get('spk', 0)}")
             tmp = {
                 "line": len(raw_subtitles) + 1,
                 "text":it['text'].strip(),

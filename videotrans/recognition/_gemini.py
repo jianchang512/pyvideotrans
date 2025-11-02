@@ -129,9 +129,9 @@ class GeminiRecogn(BaseRecogn):
                     if not text:
                         continue
                     mt=re.match(r'^\[(spk\d+)\]',text,re.I)
-                    if mt and config.params.get('paraformer_spk', False):
-                        speaker_list.append(mt.group(1))
+
                     if mt:
+                        speaker_list.append(mt.group(1))
                         text = re.sub(r'^\[spk\d+\]', '', text, re.I)
                     srt = {
                         "line": len(srt_str_list) + 1,

@@ -86,8 +86,7 @@ class ZijieRecogn(BaseRecogn):
         for it in seg_list:
             if not it.get('text','').strip():
                 continue
-            if config.params.get('paraformer_spk', False):
-                speaker_list.append(f'spk{it.get("additions", {}).get("speaker", 0)}')
+            speaker_list.append(f'spk{it.get("additions", {}).get("speaker", 0)}')
             startraw = tools.ms_to_time_string(ms=it['start_time'])
             endraw = tools.ms_to_time_string(ms=it['end_time'])
             tmp={

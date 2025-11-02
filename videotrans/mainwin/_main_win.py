@@ -383,9 +383,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
-        if config.params.get('model_name', '') == 'paraformer-zh' or config.params.get('recogn_type', '') in [
-            recognition.Deepgram, recognition.GEMINI_SPEECH]:
-            self.show_spk.setVisible(True)
+
 
     def restart_app(self):
         # 创建确认对话框
@@ -607,7 +605,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
         except OSError:
             pass
-
+        
 
     # 打开缓慢
     def _open_winform(self, name):

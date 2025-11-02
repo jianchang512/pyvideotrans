@@ -21,10 +21,12 @@ def openwin():
         key = winobj.gemini_key.text()
         model = winobj.model.currentText()
         gemini_maxtoken = winobj.gemini_maxtoken.text()
+        thinking_budget = winobj.thinking_budget.text()
         config.params["gemini_maxtoken"] = gemini_maxtoken
         os.environ['GOOGLE_API_KEY'] = key
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
+        config.params["gemini_thinking_budget"] = thinking_budget
 
         ttsmodel = winobj.ttsmodel.currentText()
         config.params["gemini_ttsmodel"] = ttsmodel
@@ -38,10 +40,12 @@ def openwin():
     def save():
         key = winobj.gemini_key.text()
         model = winobj.model.currentText()
-        gemini_srtprompt = winobj.gemini_srtprompt.toPlainText()
+
         
         gemini_maxtoken = winobj.gemini_maxtoken.text()
+        thinking_budget = winobj.thinking_budget.text()
         config.params["gemini_maxtoken"] = gemini_maxtoken
+        config.params["gemini_thinking_budget"] = thinking_budget
 
         config.params["gemini_model"] = model
         config.params["gemini_key"] = key
@@ -50,8 +54,7 @@ def openwin():
         config.params["gemini_ttsmodel"] = ttsmodel
 
 
-        with Path(config.ROOT_DIR + f'/videotrans/prompts/recogn/gemini_recogn.txt').open('w', encoding='utf-8') as f:
-            f.write(gemini_srtprompt)
+
         config.getset_params(config.params)
         winobj.close()
 
