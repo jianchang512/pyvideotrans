@@ -144,7 +144,7 @@ def openwin():
                 "target_language_code": target_code
             }
             trk = TranslateSrt(cfg=TaskCfg(**cfg|it),out_format=winobj.out_format.currentIndex())
-            config.trans_queue.append(trk)
+            config.trans_queue.put_nowait(trk)
         from videotrans.task.child_win_sign import SignThread
         th = SignThread(uuid_list=uuid_list, parent=winobj)
         th.uito.connect(feed)

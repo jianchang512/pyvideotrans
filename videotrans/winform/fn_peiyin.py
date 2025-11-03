@@ -380,7 +380,7 @@ def openwin():
                 "voice_autorate": winobj.voice_autorate.isChecked()
             }
             trk = DubbingSrt(cfg=TaskCfg(**cfg|it),out_ext=winobj.out_format.currentText())
-            config.dubb_queue.append(trk)
+            config.dubb_queue.put_nowait(trk)
         from videotrans.task.child_win_sign import SignThread
         th = SignThread(uuid_list=uuid_list, parent=winobj)
         th.uito.connect(feed)

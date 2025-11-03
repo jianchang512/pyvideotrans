@@ -159,7 +159,7 @@ def openwin():
                 }
                 try:
                     trk = SpeechToText(cfg=TaskCfg(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
-                    config.prepare_queue.append(trk)
+                    config.prepare_queue.put_nowait(trk)
                 except Exception as e:
                     print(e)
             from videotrans.task.child_win_sign import SignThread

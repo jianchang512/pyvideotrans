@@ -862,28 +862,33 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
 def format_video(name, target_dir=None):
     from . import help_misc
     raw_pathlib = Path(name)
+    # 原始基本名字,例如 `1.mp4`
     raw_basename = raw_pathlib.name
+    # 无后缀的基本名字，例如 `1`
     raw_noextname = raw_pathlib.stem
-    ext = raw_pathlib.suffix
+    # 后缀，如 `.mp4`
+    ext = raw_pathlib.suffix.lower()
+    # 所在目录
     raw_dirname = raw_pathlib.parent.resolve().as_posix()
 
     obj = {
-        # 原始文件名含完整路径
+        # 原始文件名含完整路径，如 F:/python/1.mp4
         "name": name,
-        # 处理后 移动后符合规范的目录名
+        # 原始所在目录 如 F:/python
         "dirname": raw_dirname,
-        # 符合规范的基本名带后缀
+        # 基本名带后缀 如 1.mp4
         "basename": raw_basename,
-        # 符合规范的不带后缀
+        # 基本名不带后缀,如 1
         "noextname": raw_noextname,
-        # 扩展名
+        # 扩展名去掉点.  如 mp4
         "ext": ext[1:]
         # 最终存放目标位置，直接存到这里
     }
 
+    # 如果存在目标文件夹，则在其之下生成 以无后缀的基本名的子文件夹
     if target_dir:
         obj['target_dir'] = Path(f'{target_dir}/{raw_noextname}').as_posix()
-
+    # 唯一id标识
     obj['uuid'] = help_misc.get_md5(f'{name}-{time.time()}')[:10]
     return obj
 

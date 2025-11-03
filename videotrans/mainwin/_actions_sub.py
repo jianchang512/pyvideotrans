@@ -1,3 +1,4 @@
+import json
 import os
 import platform
 import re
@@ -38,6 +39,46 @@ class WinActionSub:
     obj_list: List[Dict] = field(default_factory=list, init=False)
     cfg: Dict = field(default_factory=dict, init=False)
     queue_mp4: List[str] = field(default_factory=list, init=False)
+
+
+
+    # 设置每行字幕的长度
+    def click_subtitle(self):
+        from videotrans.component.set_subtitles_length import SubtitleSettingsDialog
+        dialog = SubtitleSettingsDialog(self.main, config.settings.get('cjk_len', 24),
+                                        config.settings.get('other_len', 66))
+        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
+            cjk_value, other_value = dialog.get_values()
+            config.settings['cjk_len'] = cjk_value
+            config.settings['other_len'] = other_value
+            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+                f.write(json.dumps(config.settings, ensure_ascii=False))
+
+    # 设置每次翻译字幕行数
+    def click_translate_type(self):
+        from videotrans.component.set_threads import SetThreadTransDubb
+        dialog = SetThreadTransDubb(name='trans', nums=config.settings.get('trans_thread', 5),
+                                    sec=config.settings.get('translation_wait', 0),
+                                    ai_nums=config.settings.get('aitrans_thread', 500))
+        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
+            num, wait, ainums = dialog.get_values()
+            config.settings['trans_thread'] = num
+            config.settings['aitrans_thread'] = ainums
+            config.settings['translation_wait'] = wait
+            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+                f.write(json.dumps(config.settings, ensure_ascii=False))
+    # 设置配音线程
+    def click_tts_type(self):
+        from videotrans.component.set_threads import SetThreadTransDubb
+        dialog = SetThreadTransDubb(name='dubbing', nums=config.settings.get('dubbing_thread', 5),
+                                    sec=config.settings.get('dubbing_wait', 0))
+        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
+            num, wait, _ = dialog.get_values()
+            config.settings['dubbing_thread'] = num
+            config.settings['dubbing_wait'] = wait
+            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
+                f.write(json.dumps(config.settings, ensure_ascii=False))
+
 
     def show_model_help(self):
 

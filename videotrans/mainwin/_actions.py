@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import re
@@ -429,35 +430,45 @@ class WinAction(WinActionSub):
 
     # 检测开始状态并启动
     def check_start(self):
-        self.cfg = {}
-        self.is_render = False
-
+        # 已在执行中，则停止
         if config.current_status == 'ing':
-            # 已在执行中，则停止
             self.update_status('stop')
             return
-
-        config.settings = config.parse_init()
         self.main.startbtn.setDisabled(True)
+        # 存储所有音视频文件都需要用到信息，例如原始语言 目标语言、 渠道、角色等
+        self.cfg = {}
+        # 重置字幕行角色
+        config.line_roles = {}
+        self.is_render = False
+        config.settings = config.parse_init()
+        # 倒计时
+        config.task_countdown = int(float(config.settings.get('countdown_sec', 1)))
+
+
         # 无视频选择 ，也无导入字幕，无法处理
         if len(self.queue_mp4) < 1:
             tools.show_error(tr("Video file must be selected"))
             self.main.startbtn.setDisabled(False)
             return
-
+        # 核对代理
         if self.check_proxy() is not True:
             self.main.startbtn.setDisabled(False)
             return
 
-        config.task_countdown = int(float(config.settings.get('countdown_sec', 1)))
 
-        # 顶部行
+        # 先确定原始和目标语言
         self.cfg['translate_type'] = self.main.translate_type.currentIndex()
+        # 存储 原始语言 目标语言显示文字，非语言代码
         self.cfg['source_language'] = self.main.source_language.currentText()
         self.cfg['target_language'] = self.main.target_language.currentText()
+        # 存储语言代码
+        self.cfg['source_language_code'] = translator.get_code(show_text=self.cfg['source_language'])
+        self.cfg['target_language_code'] = translator.get_code(show_text=self.cfg['target_language'])
 
-        # 配音行
-        # 配音角色
+        # 清理缓存
+        self.cfg['clear_cache'] = True if self.main.clear_cache.isChecked() else False
+
+        # 配音设置
         self.cfg['tts_type'] = self.main.tts_type.currentIndex()
         self.cfg['voice_role'] = self.main.voice_role.currentText()
         try:
@@ -468,41 +479,42 @@ class WinAction(WinActionSub):
             pitch=0
         self.cfg['volume'] = f'+{volume}%' if volume >= 0 else f'{volume}%'
         self.cfg['pitch'] = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
-        # 语音识别行
-        # 识别模式，从faster--openai--googlespeech ...
+
+        # 语音识别设置
         self.cfg['recogn_type'] = self.main.recogn_type.currentIndex()
         if self.cfg['recogn_type'] == recognition.Faster_Whisper_XXL and not self.show_xxl_select():
             self.main.startbtn.setDisabled(False)
             return
         self.cfg['model_name'] = self.main.model_name.currentText()
         self.cfg['split_type'] = 'all' if self.main.split_type.currentIndex() < 1 else 'avg'
+        # 降噪
+        self.cfg['remove_noise'] = self.main.remove_noise.isChecked()
+
         # 字幕嵌入类型
         self.cfg['subtitle_type'] = self.main.subtitle_type.currentIndex()
 
-        # 对齐行
+        # 对齐控制 配音加速 视频慢速
         self.cfg['voice_rate'] = self.main.voice_rate.value()
         try:
             voice_rate = int(self.main.voice_rate.value())
         except ValueError:
             voice_rate=0
         self.cfg['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"{voice_rate}%"
-        # 配音自动加速
         self.cfg['voice_autorate'] = self.main.voice_autorate.isChecked()
         self.cfg['video_autorate'] = self.main.video_autorate.isChecked()
+
+        # 人声背景音分离 添加背景音频
         self.cfg['is_separate'] = self.main.is_separate.isChecked()
         if self.cfg['voice_role'] == 'No':
             self.cfg['is_separate'] = False
-        self.cfg['cuda'] = self.main.enable_cuda.isChecked()
-
-        # 添加背景音频
         self.cfg['back_audio'] = self.main.back_audio.text().strip()
-        self.cfg['clear_cache'] = True if self.main.clear_cache.isChecked() else False
-        
+
+
         # 检查输入 输出目录
         if self.check_output() is not True:
             self.main.startbtn.setDisabled(False)
             return
-            
+
 
         # 核对识别是否正确
         if self.check_reccogn() is not True:
@@ -512,7 +524,7 @@ class WinAction(WinActionSub):
         # 如果需要翻译，再判断是否符合翻译规则
         if self.shound_translate() and translator.is_allow_translate(
                 translate_type=self.cfg['translate_type'],
-                show_target=self.cfg['target_language']) is not True:
+                show_target=self.cfg['target_language_code']) is not True:
             self.main.startbtn.setDisabled(False)
             return
 
@@ -527,15 +539,17 @@ class WinAction(WinActionSub):
             self.main.tts_type.setCurrentIndex(0)
             self.main.startbtn.setDisabled(False)
             return
-        # 设置各项模式参数
-        self.set_mode()
+
+
 
         # 判断CUDA
+        self.cfg['cuda'] = self.main.enable_cuda.isChecked()
         if self.cuda_isok() is not True:
             self.main.startbtn.setDisabled(False)
             return
 
-        if self.cfg.get('target_language','-') == '-' and self.cfg['subtitle_type'] > 0:
+        # 未设置目标语言，不允许嵌入字幕
+        if not self.cfg.get('target_language_code') and self.cfg['subtitle_type'] > 0:
             self.main.startbtn.setDisabled(False)
             return tools.show_error(
                 tr("Target language must be selected to embed subtitles"))
@@ -544,21 +558,8 @@ class WinAction(WinActionSub):
         if self.check_name() is not True:
             self.main.startbtn.setDisabled(False)
             return
-        source_code = translator.get_code(show_text=self.cfg['source_language'])
-        target_code = translator.get_code(show_text=self.cfg['target_language'])
 
-        if self.cfg['voice_role'] == 'clone' and self.cfg['tts_type'] == tts.ELEVENLABS_TTS:
-            err = ''
-            if (not source_code) or source_code[:2] not in config.ELEVENLABS_CLONE:
-                err = tr("ElevenLabs: Cloning of the selected pronunciation language is not supported")
-            elif not target_code or target_code[:2] not in config.ELEVENLABS_CLONE:
-                err = tr("ElevenLabs: Cloning in the selected target language is not supported")
-
-            if err:
-                self.main.startbtn.setDisabled(False)
-                return tools.show_error(err)
-        
-        # LLM 重新断句
+        # LLM 重新断句时，需判断 deepseek或openai chatgpt填写了信息
         if self.main.rephrase.isChecked():
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
@@ -574,15 +575,15 @@ class WinAction(WinActionSub):
                 deepseek.openwin()
                 return
 
-
-        config.line_roles = {}
-
+        # 设置各项模式参数
+        self.set_mode()
         if self.main.app_mode in ['biaozhun', 'tiqu']:
             self.cfg['app_mode'] = self.main.app_mode
 
-        self.cfg['remove_noise'] = self.main.remove_noise.isChecked()
+
         config.params.update(self.cfg)
         config.getset_params(config.params)
+
         self.delete_process()
         # 设为开始
         self.update_status('ing')
@@ -592,17 +593,19 @@ class WinAction(WinActionSub):
             pass
 
         if self.main.recogn_type.currentIndex() == recognition.FASTER_WHISPER or self.main.app_mode == 'biaozhun':
+            # 背景音量
             config.settings['loop_backaudio'] = self.main.is_loop_bgm.isChecked()
             try:
                 config.settings['backaudio_volume'] = float(self.main.bgmvolume.text())
             except ValueError:
                 pass
+            # 均等分割
             if self.main.split_type.currentIndex() == 1:
                 try:
                     config.settings['interval_split'] = int(self.main.equal_split_time.text().strip())
                 except ValueError:
                     config.settings['interval_split'] = 10
-
+            # VAD参数
             config.settings["threshold"] = min(
                 0.9,
                 max(float(self.main.threshold.text().strip()), 0.1)
@@ -612,100 +615,60 @@ class WinAction(WinActionSub):
             config.settings["speech_pad_ms"] = int(self.main.speech_pad_ms.text())
             config.settings["max_speech_duration_s"] = int(self.main.max_speech_duration_s.text())
 
+        # LLM重新断句
         config.settings['rephrase'] = self.main.rephrase.isChecked()
+        # 本地断句
         config.settings['rephrase_local'] = self.main.rephrase_local.isChecked()
+        # 中日韩硬字幕单行字符
         config.settings['cjk_len'] = self.main.cjklinenums.value()
+        # 其他语言硬字幕单行字符
         config.settings['other_len'] = self.main.othlinenums.value()
+        # AI翻译发送完整字幕
         config.settings['aisendsrt']=self.main.aisendsrt.isChecked()
         config.parse_init(config.settings)
 
         self._disabled_button(True)
-        self.main.startbtn.setDisabled(False)
         self.main.subtitle_area.setReadOnly(True)
-
         tools.set_process(text='start', type='create_btns')
+        self.main.startbtn.setDisabled(False)
 
 
-    # 设置每行字幕的长度
-    def click_subtitle(self):
-        from videotrans.component.set_subtitles_length import SubtitleSettingsDialog
-        dialog = SubtitleSettingsDialog(self.main, config.settings.get('cjk_len', 24),
-                                        config.settings.get('other_len', 66))
-        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            cjk_value, other_value = dialog.get_values()
-            config.settings['cjk_len'] = cjk_value
-            config.settings['other_len'] = other_value
-            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-                f.write(json.dumps(config.settings, ensure_ascii=False))
-
-    # 设置每次翻译字幕行数
-    def click_translate_type(self):
-        from videotrans.component.set_threads import SetThreadTransDubb
-        dialog = SetThreadTransDubb(name='trans', nums=config.settings.get('trans_thread', 5),
-                                    sec=config.settings.get('translation_wait', 0),
-                                    ai_nums=config.settings.get('aitrans_thread', 500))
-        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            num, wait, ainums = dialog.get_values()
-            config.settings['trans_thread'] = num
-            config.settings['aitrans_thread'] = ainums
-            config.settings['translation_wait'] = wait
-            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-                f.write(json.dumps(config.settings, ensure_ascii=False))
-    # 设置配音线程
-    def click_tts_type(self):
-        from videotrans.component.set_threads import SetThreadTransDubb
-        dialog = SetThreadTransDubb(name='dubbing', nums=config.settings.get('dubbing_thread', 5),
-                                    sec=config.settings.get('dubbing_wait', 0))
-        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            num, wait, _ = dialog.get_values()
-            config.settings['dubbing_thread'] = num
-            config.settings['dubbing_wait'] = wait
-            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-                f.write(json.dumps(config.settings, ensure_ascii=False))
-
+    # 创建进度按钮
     def create_btns(self):
-
+        # 输出目录，此时该目录是 视频名子文件夹的父级
         target_dir = self.main.target_dir
-        self.cfg["target_dir"] = target_dir
         self.main.btn_save_dir.setToolTip(target_dir)
+        # 待翻译的文件列表
         self.obj_list = []
-        # queue_mp4中的名字可能已修改为规范
-        new_name = []
+
+        # new_name = []
         for video_path in self.queue_mp4:
             obj = tools.format_video(video_path, target_dir)
-            new_name.append(obj['name'])
             self.obj_list.append(obj)
             self.add_process_btn(target_dir=Path(obj['target_dir']).as_posix(), name=obj['name'], uuid=obj['uuid'])
 
-        self.queue_mp4 = new_name
         txt = self.main.subtitle_area.toPlainText().strip()
         self.cfg.update(
             {'subtitles': txt, 'app_mode': self.main.app_mode}
         )
+        cfg=copy.deepcopy(self.cfg)
 
         # 启动任务
         tools.set_process(text=tr('kaishichuli'), uuid=self.obj_list[0]['uuid'])
+        # 单个视频处理模式
         if self.main.app_mode not in ['tiqu'] and len(self.obj_list) == 1:
-            self.is_batch = False
             from videotrans.task._only_one import Worker
             task = Worker(
                 parent=self.main,
-                app_mode=self.main.app_mode,
                 obj_list=self.obj_list,
-                txt=txt,
-                cfg=self.cfg
+                cfg=cfg
             )
             task.uito.connect(self.update_data)
             task.start()
-            target_language=self.cfg.get('target_language','-')
-            if  target_language != '-' and target_language != self.cfg.get('source_language'):
-                if not self.main.isMaximized():
-                    self.main.showMaximized()
             return
 
-        self.is_batch = True
         from videotrans.task._mult_video import MultVideo
-        MultVideo(parent=self.main, cfg=self.cfg, obj_list=self.obj_list).start()
+        MultVideo(parent=self.main, cfg=cfg, obj_list=self.obj_list).start()
 
     # 启动时禁用相关模式按钮，停止时重新启用
     def _disabled_button(self, disabled=True):

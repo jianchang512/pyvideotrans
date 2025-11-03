@@ -95,10 +95,7 @@ class BaseTask(BaseCon):
             return
         p = Path(file)
         if p.exists() and p.stat().st_size == 0:
-            try:
-                p.unlink(missing_ok=True)
-            except OSError:
-                pass
+            p.unlink(missing_ok=True)
 
     # 保存字幕文件 到目标文件夹
     def _save_srt_target(self, srtstr, file):

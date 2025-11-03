@@ -6,6 +6,8 @@ from videotrans.task._base import BaseTask
 from videotrans.util import tools
 from videotrans.util.tools import set_process
 import traceback
+from queue import  Empty, Full
+
 
 
 def get_recogn_type(type_index=None):
@@ -50,12 +52,12 @@ class WorkerPrepare(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if len(config.prepare_queue) < 1:
+            if  config.prepare_queue.empty():
                 time.sleep(0.1)
                 continue
             try:
-                trk: BaseTask = config.prepare_queue.pop(0)
-            except IndexError:
+                trk: BaseTask = config.prepare_queue.get_nowait()
+            except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
                 continue
@@ -63,15 +65,15 @@ class WorkerPrepare(QThread):
                 trk.prepare()
                 # 如果需要识别，则插入 recogn_queue队列，否则继续判断翻译队列、配音队列，都不吻合则插入最终队列
                 if trk.shoud_recogn:
-                    config.regcon_queue.append(trk)
+                    config.regcon_queue.put_nowait(trk)
                 elif trk.shoud_trans:
-                    config.trans_queue.append(trk)
+                    config.trans_queue.put_nowait(trk)
                 elif trk.shoud_dubbing:
-                    config.dubb_queue.append(trk)
+                    config.dubb_queue.put_nowait(trk)
                 elif trk.shoud_hebing:
-                    config.assemb_queue.append(trk)
+                    config.assemb_queue.put_nowait(trk)
                 else:
-                    config.taskdone_queue.append(trk)
+                    config.taskdone_queue.put_nowait(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
@@ -92,12 +94,12 @@ class WorkerRegcon(QThread):
             if config.exit_soft:
                 return
 
-            if len(config.regcon_queue) < 1:
+            if config.regcon_queue.empty():
                 time.sleep(0.1)
                 continue
             try:
-                trk = config.regcon_queue.pop(0)
-            except IndexError:
+                trk = config.regcon_queue.get_nowait()
+            except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
                 continue
@@ -105,13 +107,13 @@ class WorkerRegcon(QThread):
                 trk.recogn()
                 # 如果需要识翻译,则插入翻译队列，否则就行判断配音队列，都不吻合则插入最终队列
                 if trk.shoud_trans:
-                    config.trans_queue.append(trk)
+                    config.trans_queue.put_nowait(trk)
                 elif trk.shoud_dubbing:
-                    config.dubb_queue.append(trk)
+                    config.dubb_queue.put_nowait(trk)
                 elif trk.shoud_hebing:
-                    config.assemb_queue.append(trk)
+                    config.assemb_queue.put_nowait(trk)
                 else:
-                    config.taskdone_queue.append(trk)
+                    config.taskdone_queue.put_nowait(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
@@ -133,12 +135,12 @@ class WorkerTrans(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if len(config.trans_queue) < 1:
+            if  config.trans_queue.empty():
                 time.sleep(0.1)
                 continue
             try:    
-                trk = config.trans_queue.pop(0)
-            except IndexError:
+                trk = config.trans_queue.get_nowait()
+            except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
                 continue
@@ -146,11 +148,11 @@ class WorkerTrans(QThread):
                 trk.trans()
                 # 如果需要配音，则插入 dubb_queue 队列，否则插入最终队列
                 if trk.shoud_dubbing:
-                    config.dubb_queue.append(trk)
+                    config.dubb_queue.put_nowait(trk)
                 elif trk.shoud_hebing:
-                    config.assemb_queue.append(trk)
+                    config.assemb_queue.put_nowait(trk)
                 else:
-                    config.taskdone_queue.append(trk)
+                    config.taskdone_queue.put_nowait(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
@@ -171,19 +173,19 @@ class WorkerDubb(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if len(config.dubb_queue) < 1:
+            if  config.dubb_queue.empty():
                 time.sleep(0.1)
                 continue
             try:
-                trk = config.dubb_queue.pop(0)
-            except IndexError:
+                trk = config.dubb_queue.get_nowait()
+            except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
                 # 只要配音，就必须进入 同步对齐队列
                 trk.dubbing()
-                config.align_queue.append(trk)
+                config.align_queue.put_nowait(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
@@ -205,12 +207,12 @@ class WorkerAlign(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if len(config.align_queue) < 1:
+            if config.align_queue.empty():
                 time.sleep(0.1)
                 continue
             try:
-                trk = config.align_queue.pop(0)
-            except IndexError:
+                trk = config.align_queue.get_nowait()
+            except Empty:
                 continue
             
             if trk.uuid in config.stoped_uuid_set:
@@ -218,9 +220,9 @@ class WorkerAlign(QThread):
             try:
                 trk.align()
                 if trk.shoud_hebing:
-                    config.assemb_queue.append(trk)
+                    config.assemb_queue.put_nowait(trk)
                 else:
-                    config.taskdone_queue.append(trk)
+                    config.taskdone_queue.put_nowait(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
@@ -241,18 +243,18 @@ class WorkerAssemb(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if len(config.assemb_queue) < 1:
+            if config.assemb_queue.empty():
                 time.sleep(0.1)
                 continue
             try:
-                trk = config.assemb_queue.pop(0)
-            except IndexError:
+                trk = config.assemb_queue.get_nowait()
+            except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
                 trk.assembling()
-                config.taskdone_queue.append(trk)
+                config.taskdone_queue.put_nowait(trk)
             except Exception as e:
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
@@ -272,12 +274,12 @@ class WorkerTaskDone(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if len(config.taskdone_queue) < 1:
+            if config.taskdone_queue.empty():
                 time.sleep(0.1)
                 continue
             try:
-                trk = config.taskdone_queue.pop(0)
-            except IndexError:
+                trk = config.taskdone_queue.get_nowait()
+            except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
                 continue

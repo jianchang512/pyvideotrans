@@ -32,4 +32,4 @@ class MultVideo(QThread):
                 tools.set_process(text=str(e),type="error",uuid=it['uuid'])
             else:
                 # 压入识别队列开始执行
-                config.prepare_queue.append(trk)
+                config.prepare_queue.put_nowait(trk)

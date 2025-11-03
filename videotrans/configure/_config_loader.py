@@ -108,7 +108,7 @@ def push_queue(uuid, jsondata):
     if exit_soft or uuid in stoped_uuid_set:
         return
     if uuid not in uuid_logs_queue:
-        uuid_logs_queue[uuid] = Queue()
+        uuid_logs_queue[uuid] = Queue(maxsize=0)
     try:
         # 暂停时会重设为字符串 stop
         if isinstance(uuid_logs_queue[uuid], Queue):
@@ -145,19 +145,19 @@ box_recogn = 'stop'
 task_countdown = 0
 #####################################
 # 预先处理队列
-prepare_queue = []
+prepare_queue = Queue(maxsize=0)
 # 识别队列
-regcon_queue = []
+regcon_queue = Queue(maxsize=0)
 # 翻译队列
-trans_queue = []
+trans_queue = Queue(maxsize=0)
 # 配音队列
-dubb_queue = []
+dubb_queue = Queue(maxsize=0)
 # 音视频画面对齐
-align_queue = []
+align_queue = Queue(maxsize=0)
 # 合成队列
-assemb_queue = []
+assemb_queue = Queue(maxsize=0)
 # 最终完成结束任务队列
-taskdone_queue = []
+taskdone_queue = Queue(maxsize=0)
 
 # 执行模式 gui 或 api
 exec_mode = "gui"

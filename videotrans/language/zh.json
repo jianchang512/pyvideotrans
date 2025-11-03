@@ -747,7 +747,7 @@
     "I Agree and Continue": "同意并继续",
     "Disagree": "不同意并退出",
     "Are you sure the cleanup has been output?": "确认清理已生成吗？清理后无法恢复",
-    "If you confirm to clean up, all files in the output directory will be deleted. If you manually specify the output directory, please make sure there are no important files in the directory and back it up in advance to avoid data loss.": "如果确认清理已生成，会删掉输出目录内的所有文件，请确认该目录内[{}]没有重要文件，并请提前备份，以避免丢失数据",
+    "If you confirm to clean up, all files in the output directory will be deleted. If you manually specify the output directory, please make sure there are no important files in the directory and back it up in advance to avoid data loss.": "如果确认清理已生成，会删掉输出目录内与所选视频同名的的文件夹(不含后缀)，请确认该目录内[{}]没有重要文件，并请提前备份，以避免丢失数据",
 	"The output directory is not allowed to point to the input directory. Please use the default or create an empty folder as the output":"输出目录不允许指向输入目录，请使用默认或创建一个空文件夹作为输出",
 	"Setting up a network proxy":"设置网络代理",
 	"Click on faster-xxl":"点击选择 Faster_Whisper_XXL.exe",

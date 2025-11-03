@@ -93,8 +93,7 @@ class Doubao2TTS(BaseTTS):
         access_token = config.params.get('doubao2_access','')
         speed = 1.0
         if self.rate:
-            rate = float(self.rate.replace('%', '')) / 100
-            speed += rate
+            speed += float(self.rate.replace('%', '')) / 100
         speed=max(-50,min(100,100*(speed-1.0)))
         volume = 1.0
         if self.volume:
@@ -124,8 +123,8 @@ class Doubao2TTS(BaseTTS):
                     "format": "pcm",
                     "sample_rate": 44100,
                     "enable_timestamp": True,
-                    "speech_rate":speed,
-                    "loudness_rate":volume
+                    "speech_rate":int(speed),
+                    "loudness_rate":int(volume)
                 },
                 "additions": "{\"explicit_language\":\"crosslingual\",\"enable_language_detector\":\"true\",\"disable_markdown_filter\":true}\"}"
             }

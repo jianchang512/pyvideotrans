@@ -18,15 +18,10 @@ class Worker(QThread):
 
     def __init__(self, *,
                  parent: Optional[QObject] = None,
-                 app_mode: Optional[str] = None,
-                 txt: Optional[str] = None,
                  obj_list: Optional[List[Dict[str, Any]]] = None,
                  cfg: Optional[Dict[str, Any]] = None):
         super().__init__(parent=parent)
-        self.app_mode = app_mode
         self.cfg = cfg
-
-        self.txt = txt
         # 存放处理好的 视频路径等信息
         self.obj_list = obj_list
         self.uuid = None
