@@ -1,9 +1,0 @@
-
-faster-whisper和 openai-whisper 语音识别模型可自动下载，若需手动下载请查看
-# 下载地址：
-
-===
-===
-
-降噪模型、说话人识别模型、人声背景声分离模型、实时语音转录模型需手动下载，下载后解压，将.onnx后缀和.txt后缀文件放入当前目录的 onnx 文件夹内，若不存在该文件夹，请手动创建
-# 下载地址： https://github.com/jianchang512/stt/releases/download/0.0/noise-uvr-speaker-realtime.7z
