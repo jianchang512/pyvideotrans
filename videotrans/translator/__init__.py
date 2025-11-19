@@ -37,8 +37,7 @@ ALI_INDEX = 18
 OTT_INDEX = 19
 LIBRE_INDEX = 20
 
-CLAUDE_INDEX = 21
-TRANSAPI_INDEX = 22
+TRANSAPI_INDEX = 21
 
 
 # AI翻译渠道，方便判断
@@ -49,7 +48,6 @@ AI_TRANS_CHANNELS=[
     AZUREGPT_INDEX,
     GEMINI_INDEX,
     QWENMT_INDEX,
-    CLAUDE_INDEX,
     AI302_INDEX,
     ZHIPUAI_INDEX,
     SILICONFLOW_INDEX,
@@ -86,7 +84,6 @@ TRANSLASTE_NAME_LIST = [
     tr('OTT'),
     tr('LibreTranslate'),
 
-    "Claude AI",
     tr('Customized API'),
 ]
 # subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2%E4%BB%A3%E7%A0%81%E5%88%97%E8%A1%A8
@@ -668,12 +665,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         from videotrans.winform import ai302
         ai302.openwin()
         return False
-    if translate_type == CLAUDE_INDEX and not config.params.get('claude_key',''):
-        if return_str:
-            return "Please configure the api and key information of the Claude API channel first."
-        from videotrans.winform import claude
-        claude.openwin()
-        return False
+
     if translate_type == TRANSAPI_INDEX and not config.params.get('trans_api_url',''):
         if return_str:
             return "Please configure the api and key information of the Trans_API channel first."
@@ -934,9 +926,6 @@ def run(*, translate_type=0,
     if translate_type == GEMINI_INDEX:
         from videotrans.translator._gemini import Gemini
         return Gemini(**kwargs).run()
-    if translate_type == CLAUDE_INDEX:
-        from videotrans.translator._claude import Claude
-        return Claude(**kwargs).run()
     if translate_type == LIBRE_INDEX:
         from videotrans.translator._libre import Libre
         return Libre(**kwargs).run()

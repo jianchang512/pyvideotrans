@@ -232,7 +232,7 @@ def parse_init(update_data=None):
         "force_lib": False,
         "preset": "fast",
         "ffmpeg_cmd": "",
-        "aisendsrt": False,
+        "aisendsrt": True,
         "dont_notify": False,
         "video_codec": 264,
         
@@ -637,7 +637,7 @@ def getset_params(obj=None):
         "dubb_tts_type": 0,
         "dubb_role": 0,
         "dubb_out_format": 0,
-        "dubb_voice_autorate": True,
+        "dubb_voice_autorate": False,
         "dubb_hecheng_rate": 0,
         "dubb_pitch_rate": 0,
         "dubb_volume_rate": 0,

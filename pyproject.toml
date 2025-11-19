@@ -1,7 +1,7 @@
 [project]
 name = "pyVideoTrans"
-version = "3.82"
-requires-python = "==3.10.4"
+version = "3.85"
+requires-python = "==3.10.*"
 dependencies = [
     "absl-py==2.0.0",
     "accelerate==1.7.0",
@@ -69,7 +69,7 @@ dependencies = [
     "elevenlabs==2.8.1",
     "exceptiongroup==1.2.2",
     "executing==2.0.1",
-    "faster-whisper==1.1.1",
+    "faster-whisper",
     "ffmpeg-python==0.2.0",
     "filelock==3.20.0",
     "flask==3.0.3",
@@ -153,9 +153,8 @@ dependencies = [
     "numpy==1.26.0",
     "oauthlib==3.2.2",
     "omegaconf==2.3.0",
-    "onnxruntime==1.23.1",
+    "onnxruntime==1.23.2",
     "openai==2.6.0",
-    "openai-whisper",
     "opt-einsum==3.3.0",
     "ordered-set==4.1.0",
     "oss2==2.19.1",
@@ -265,14 +264,15 @@ dependencies = [
     "websockets==13.1",
     "werkzeug==3.0.1",
     "wheel==0.45.1",
-    "whisper==1.1.10",
+    "openai-whisper",
     "wrapt==1.15.0",
     "xxhash==3.5.0",
     "yarl==1.20.1",
     "zhconv==1.4.3",
     "zipp==3.23.0",
-	"sherpa-onnx>=1.12.15",
-	"sounddevice>=0.5.3"
+    "sherpa-onnx>=1.12.15",
+    "sounddevice>=0.5.3",
+    "sherpa-onnx-core>=1.12.17",
 ]
 
 
@@ -295,6 +295,3 @@ torchaudio = [
     { index = "pytorch-cu128", marker = "sys_platform == 'win32' or sys_platform == 'linux'" },
     { index = "pytorch-cpu", marker = "sys_platform == 'darwin'" },
 ]
-faster-whisper = { url = "https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz" }
-openai-whisper = { git = "https://github.com/openai/whisper.git", rev = "90db0de1896c23cbfaf0c58bc2d30665f709f170" }
-

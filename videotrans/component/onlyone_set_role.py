@@ -234,7 +234,7 @@ class SpeakerAssignmentDialog(QDialog):
         group = QGroupBox("")
         layout = QVBoxLayout(group)  # 垂直布局
         label_tips=QLabel(tr("Assign a timbre to each speaker"))
-        label_tips.setStyleSheet("color:#dddddd")
+        label_tips.setStyleSheet("color:#aaaaaa")
         layout.addWidget(label_tips)
 
         # 初始化存储说话人复选框和标签的字典
@@ -310,7 +310,7 @@ class SpeakerAssignmentDialog(QDialog):
         scroll_layout = QVBoxLayout(scroll_widget)  # 垂直布局
         label_tips=QLabel(tr('assign a specific voice to a line of subtitles'))
         label_tips.setWordWrap(True)
-        label_tips.setStyleSheet("color:#dddddd")
+        label_tips.setStyleSheet("color:#aaaaaa")
         scroll_layout.addWidget(label_tips)
 
         # 初始化存储字幕行信息的列表

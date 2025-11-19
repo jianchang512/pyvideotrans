@@ -1,2 +1,2 @@
 @echo off
-call %cd%\\venv\\scripts\\python.exe api.py
+call uv run api.py

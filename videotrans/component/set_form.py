@@ -16,7 +16,6 @@ from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.chatterbox import Ui_chatterboxform
 from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.doubao2 import Ui_doubao2form
-from videotrans.ui.claude import Ui_claudeform
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.cosyvoice import Ui_cosyvoiceform
 from videotrans.ui.deepgram import Ui_deepgramform
@@ -162,12 +161,6 @@ class OpenaiRecognAPIForm(QDialog, Ui_openairecognapiform):  # <===
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
-
-class ClaudeForm(QDialog, Ui_claudeform):  # <===
-    def __init__(self, parent=None):
-        super(ClaudeForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
 class LibreForm(QDialog, Ui_libretranslateform):  # <===

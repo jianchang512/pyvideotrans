@@ -9,7 +9,6 @@ _module_map = {
 "chatgpt":".chatgpt",
 "chatterbox":".chatterbox",
 "chattts":".chattts",
-"claude":".claude",
 "clone":".clone",
 "cosyvoice":".cosyvoice",
 "deepgram":".deepgram",

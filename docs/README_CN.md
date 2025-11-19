@@ -1,5 +1,10 @@
 [English](../README.md)
 
+
+> ## Recall.ai - Meeting Transcription API
+>
+> If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more. Recall.ai diarizes by pulling the speaker data and separate audio streams from the meeting platforms, which means 100% accurate speaker diarization with actual speaker names.
+
 # 视频翻译配音工具
 
 这是一款功能强大的**开源视频翻译/语音转录/语音合成软件**，致力于将视频从一种语言，无缝转换到包含另一种语言配音和字幕的视频。
@@ -35,17 +40,15 @@
 
 
 
-## MacOS源码部署
+## 源码部署
 
-0. 打开终端窗口，分别执行如下命令
-	
-	> 执行前确保已安装 Homebrew，如果你没有安装 Homebrew,那么需要先安装
-	>
-	> 执行命令安装 Homebrew：  `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-	>
-	> 安装完成后，执行： `eval $(brew --config)`
-	>
+> [推荐使用 uv 安装，如果还没有 uv，请查看官方安装方法](https://docs.astral.sh/uv/getting-started/installation/)
+>
+> [Windows用户也可查看该方法安装 uv 和 ffmpeg](https://pyvideotrans.com/zh/blog/uv-ffmpeg)
 
+1. MacOS/Linux预先安装工具
+
+	MacOS需执行如下命令安装相关库
     ```
     brew install libsndfile
 
@@ -56,133 +59,17 @@
     brew install python@3.10
 
     ```
-
-    继续执行
-
-    ```
-    export PATH="/usr/local/opt/python@3.10/bin:$PATH"
-
-    source ~/.bash_profile 
 	
-	source ~/.zshrc
+	Linux需安装 `ffmpeg`，命令`sudo yum install -y ffmpeg`或`apt-get install ffmpeg`
 
-    ```
-
-
-
-1. 创建不含空格和中文的文件夹，在终端中进入该文件夹。
-2. 终端中执行命令 `git clone https://github.com/jianchang512/pyvideotrans `
-3. 执行命令 `cd pyvideotrans`
-4. 继续执行 `python3.10 -m venv venv`
-5. 继续执行命令 `source ./venv/bin/activate`，执行完毕查看确认终端命令提示符已变成已`(venv)`开头,以下命令必须确定终端提示符是以`(venv)`开头
-6. 执行 `pip3 install -r requirements.txt `，如果提示失败，执行如下2条命令切换pip镜像到阿里镜像
-
-    ```
-    pip3 config set global.index-url https://mirrors.aliyun.com/pypi/simple/
-    pip3 config set install.trusted-host mirrors.aliyun.com
-    ```
-
-    然后重新执行
-    如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r requirements.txt`
-
-7. `python3.10 sp.py` 打开软件界面
-
-
-
-## Linux 源码部署
-
-0. CentOS/RHEL系依次执行如下命令安装 python3.10
-
-```
-
-sudo yum update
-
-sudo yum groupinstall "Development Tools"
-
-sudo yum install openssl-devel bzip2-devel libffi-devel
-
-cd /tmp
-
-wget https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tgz
-
-tar xzf Python-3.10.4.tgz
-
-cd Python-3.10.4
-
-./configure — enable-optimizations
-
-sudo make && sudo make install
-
-sudo alternatives — install /usr/bin/python3 python3 /usr/local/bin/python3.10 1
-
-sudo yum install -y ffmpeg
-
-```
-
-1. Ubuntu/Debian系执行如下命令安装python3.10
-
-```
-
-apt update && apt upgrade -y
-
-apt install software-properties-common -y
-
-add-apt-repository ppa:deadsnakes/ppa
-
-apt update
-
-sudo apt-get install libxcb-cursor0
-
-apt install python3.10
-
-curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
-
-sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10  1
-
-sudo update-alternatives --config python
-
-apt-get install ffmpeg
-
-```
-
-
-**打开任意一个终端，执行 `python3 -V`，如果显示 “3.10.4”，说明安装成功，否则失败**
-
-
-1. 创建个不含空格和中文的文件夹， 从终端打开该文件夹。
-3. 终端中执行命令 `git clone https://github.com/jianchang512/pyvideotrans`
-4. 继续执行命令 `cd pyvideotrans`
-5. 继续执行 `python3 -m venv venv`
-6. 继续执行命令 `source ./venv/scripts/activate`，执行完毕查看确认终端命令提示符已变成已`(venv)`开头,以下命令必须确定终端提示符是以`(venv)`开头
-7. 执行 `pip3 install -r requirements.txt`，如果提示失败，执行如下2条命令切换pip镜像到阿里镜像
-
-    ```
-
-    pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
-    pip config set install.trusted-host mirrors.aliyun.com
-
-    ```
-
-    然后重新执行,如果已切换到阿里镜像源，仍提示失败，请尝试执行 `pip install -r requirements.txt `
-8. 如果要使用CUDA加速，分别执行
-
-    `pip3 uninstall -y torch torchaudio`
-
-    `pip3 install torch torchaudio --index-url https://download.pytorch.org/whl/cu126`
-
-    `pip3 install nvidia-cublas-cu12 nvidia-cudnn-cu12`
-
-9. linux 如果要启用cuda加速，必须有英伟达显卡，并且配置好了CUDA12+环境,请自行搜索 "Linux CUDA 安装"
-
-
-10. `python3 sp.py` 打开软件界面
-
-
-
-
-## 使用 UV 部署：参考文档
-
-- 提前安装好uv，然后项目目录下运行命令 `uv sync`
+2. 创建不含空格和中文的文件夹，在终端中进入该文件夹，然后终端中执行命令 
+	```
+	git clone https://github.com/jianchang512/pyvideotrans
+	cd pyvideotrans
+	```
+	> 也可直接去 https://github.com/jianchang512/pyvideotrans  该地址点击绿色*Code*按钮下载源码，解压后进入`sp.py`所在目录
+3. 执行命令 `uv sync` 安装模块，根据网络情况，可能需要几分钟到十几分钟，中国大陆用户可使用镜像加速安装，命令：`uv sync --index https://mirrors.aliyun.com/pypi/simple/`
+4. 执行命令 `uv run sp.py` 打开软件界面
 
 
 ##  源码部署问题说明
@@ -191,13 +78,11 @@ apt-get install ffmpeg
 
 ```
 
-pip uninstall -y ctranslate2
+uv remove ctranslate2
 
-pip install ctranslate2==3.24.0
+uv add ctranslate2==3.24.0
 
 ```
-
-2. 可能会遇到 `xx module not found ` 之类错误，请打开 requirements.txt，搜索该 xx 模块，然后将xx后的 ==及等会后的版本号去掉
 
 
 
@@ -233,6 +118,7 @@ pip install ctranslate2==3.24.0
 4. [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
 5. [openai-whisper](https://github.com/openai/whisper)
 6. [pydub](https://github.com/jiaaro/pydub)
+6. [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)
 
 
 
