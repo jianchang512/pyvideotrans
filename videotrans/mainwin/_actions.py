@@ -104,13 +104,9 @@ class WinAction(WinActionSub):
         if recogn_type != recognition.FASTER_WHISPER:
             self.main.split_type.setDisabled(True)
             self.main.split_type.setCurrentIndex(0)
-            tools.hide_show_element(self.main.hfaster_layout, False)
-            tools.hide_show_element(self.main.equal_split_layout, False)
         else:
             # 是 faster，启用 分割模式，根据需要显示均等分割
             self.main.split_type.setDisabled(False)
-            tools.hide_show_element(self.main.equal_split_layout,
-                                    False if self.main.split_type.currentIndex() == 0 else True)
 
         if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP]:
             # 禁止模块选择
@@ -168,13 +164,7 @@ class WinAction(WinActionSub):
             return tools.show_error(res)
         return True
 
-    # 判断 语音参数 vad参数区域是否应该可见
-    # 仅当是 faster并且 是整体识别
-    def click_reglabel(self):
-        if self.main.recogn_type.currentIndex() == recognition.FASTER_WHISPER and self.main.split_type.currentIndex() == 0:
-            self.hide_show_element(self.main.hfaster_layout, not self.main.threshold.isVisible())
-        else:
-            self.hide_show_element(self.main.hfaster_layout, False)
+
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
@@ -295,11 +285,15 @@ class WinAction(WinActionSub):
             return
 
 
+        if not code:
+            self.main.voice_role.addItems(['No'])
+        vt = code.split('-')[0] #if code != 'yue' else "zh"
         tts_type = self.main.tts_type.currentIndex()
 
 
         if tts_type == tts.EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
+            
         elif tts_type == tts.KOKORO_TTS:
             show_rolelist = tools.get_kokoro_rolelist()
         elif tts_type == tts.AI302_TTS:
@@ -319,9 +313,6 @@ class WinAction(WinActionSub):
             self.main.target_language.setCurrentText('-')
             tools.show_error(tr('waitrole'))
             return
-        if not code:
-            self.main.voice_role.addItems(['No'])
-        vt = code.split('-')[0] #if code != 'yue' else "zh"
 
         if vt not in show_rolelist:
             self.main.voice_role.addItems(['No'])
@@ -331,13 +322,16 @@ class WinAction(WinActionSub):
             self.main.current_rolelist = show_rolelist
             self.main.voice_role.addItems(show_rolelist)
             return
-        if len(show_rolelist[vt]) < 2:
+        if len(show_rolelist[vt]) < 1:
             self.main.target_language.setCurrentText('-')
             tools.show_error(tr('waitrole'))
             return
-
-        self.main.current_rolelist = show_rolelist[vt]
-        self.main.voice_role.addItems(show_rolelist[vt])
+        if isinstance(show_rolelist[vt],list):
+            self.main.current_rolelist = show_rolelist[vt]
+            self.main.voice_role.addItems(show_rolelist[vt])
+        else:
+            self.main.current_rolelist = list(show_rolelist[vt].keys())
+            self.main.voice_role.addItems(self.main.current_rolelist)
 
     # 从本地导入字幕文件
     def import_sub_fun(self):
@@ -486,7 +480,7 @@ class WinAction(WinActionSub):
             self.main.startbtn.setDisabled(False)
             return
         self.cfg['model_name'] = self.main.model_name.currentText()
-        self.cfg['split_type'] = 'all' if self.main.split_type.currentIndex() < 1 else 'avg'
+        self.cfg['split_type'] = self.main.split_type.currentIndex()
         # 降噪
         self.cfg['remove_noise'] = self.main.remove_noise.isChecked()
 
@@ -508,6 +502,19 @@ class WinAction(WinActionSub):
         if self.cfg['voice_role'] == 'No':
             self.cfg['is_separate'] = False
         self.cfg['back_audio'] = self.main.back_audio.text().strip()
+        self.cfg['enable_diariz'] = self.main.enable_diariz.isChecked()
+        self.cfg['nums_diariz'] = self.main.nums_diariz.currentIndex()
+        
+        if (self.cfg['is_separate'] and not Path(f'{config.ROOT_DIR}/models/onnx/UVR-MDX-NET-Voc_FT.onnx').exists()): 
+            self.main.startbtn.setDisabled(False)
+            tools.show_download_tips(self.main,tr('Retain original background sound'))
+            return
+
+        if self.cfg['enable_diariz'] and not Path(f'{config.ROOT_DIR}/models/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx').exists():
+            self.main.startbtn.setDisabled(False)
+            tools.show_download_tips(self.main,tr('Speaker'))
+            return
+
 
 
         # 检查输入 输出目录
@@ -544,6 +551,12 @@ class WinAction(WinActionSub):
 
         # 判断CUDA
         self.cfg['cuda'] = self.main.enable_cuda.isChecked()
+        self.cfg['remove_silent_mid'] = False 
+        self.cfg['align_sub_audio'] = True 
+        # 只有未启用 音频加速 视频慢速时才起作用
+        if not self.cfg['voice_autorate'] and not self.cfg['video_autorate']:
+            self.cfg['remove_silent_mid']=self.main.remove_silent_mid.isChecked()
+            self.cfg['align_sub_audio']=self.main.align_sub_audio.isChecked()
         if self.cuda_isok() is not True:
             self.main.startbtn.setDisabled(False)
             return
@@ -560,7 +573,7 @@ class WinAction(WinActionSub):
             return
 
         # LLM 重新断句时，需判断 deepseek或openai chatgpt填写了信息
-        if self.main.rephrase.isChecked():
+        if self.main.rephrase.currentIndex()==1:
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
                 self.main.startbtn.setDisabled(False)
@@ -599,12 +612,7 @@ class WinAction(WinActionSub):
                 config.settings['backaudio_volume'] = float(self.main.bgmvolume.text())
             except ValueError:
                 pass
-            # 均等分割
-            if self.main.split_type.currentIndex() == 1:
-                try:
-                    config.settings['interval_split'] = int(self.main.equal_split_time.text().strip())
-                except ValueError:
-                    config.settings['interval_split'] = 10
+
             # VAD参数
             config.settings["threshold"] = min(
                 0.9,
@@ -612,13 +620,14 @@ class WinAction(WinActionSub):
             )
             config.settings["min_speech_duration_ms"] = int(self.main.min_speech_duration_ms.text())
             config.settings["min_silence_duration_ms"] = int(self.main.min_silence_duration_ms.text())
-            config.settings["speech_pad_ms"] = int(self.main.speech_pad_ms.text())
             config.settings["max_speech_duration_s"] = int(self.main.max_speech_duration_s.text())
-
+        
+        config.settings['dubbing_wait'] = self.main.dubbing_wait.text()
+        config.settings['trans_thread'] = self.main.trans_thread.text()
+        config.settings['aitrans_thread'] = self.main.aitrans_thread.text()
+        config.settings['translation_wait'] = self.main.translation_wait.text()
         # LLM重新断句
-        config.settings['rephrase'] = self.main.rephrase.isChecked()
-        # 本地断句
-        config.settings['rephrase_local'] = self.main.rephrase_local.isChecked()
+        config.settings['rephrase'] = self.main.rephrase.currentIndex()
         # 中日韩硬字幕单行字符
         config.settings['cjk_len'] = self.main.cjklinenums.value()
         # 其他语言硬字幕单行字符
@@ -668,7 +677,11 @@ class WinAction(WinActionSub):
             return
 
         from videotrans.task._mult_video import MultVideo
-        MultVideo(parent=self.main, cfg=cfg, obj_list=self.obj_list).start()
+        task=MultVideo(parent=self.main, cfg=cfg, obj_list=self.obj_list)
+        # 单个顺序执行
+        if config.settings.get('batch_single'):
+            task.uito.connect(self.update_data)
+        task.start()
 
     # 启动时禁用相关模式按钮，停止时重新启用
     def _disabled_button(self, disabled=True):
@@ -811,6 +824,7 @@ class WinAction(WinActionSub):
             self.update_status(d['type'])
         # 一行一行插入字幕到字幕编辑区
         elif d['type'] == "subtitle" and config.current_status == 'ing':
+            #print(f'{d["text"]=}')
             self.main.subtitle_area.moveCursor(QTextCursor.End)
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'edit_subtitle_source':
@@ -818,10 +832,10 @@ class WinAction(WinActionSub):
             from videotrans.component.onlyone_set_recogn import EditRecognResultDialog
             
             dialog=EditRecognResultDialog(
-                source_sub=config.onlyone_source_sub           
+                source_sub=config.onlyone_source_sub,
+                parent=self.main
             )
-            dialog.raise_()
-            dialog.activateWindow()
+            
             if dialog.exec():
                 self.set_djs_timeout()
             else:
@@ -836,10 +850,10 @@ class WinAction(WinActionSub):
                 all_voices=self.main.current_rolelist,
                 cache_folder=cache_folder,
                 target_language=target_language,
-                tts_type=int(tts_type)
+                tts_type=int(tts_type),
+                parent=self.main
                 
             )
-
             if dialog.exec():
                 self.set_djs_timeout()                
             else:
@@ -876,54 +890,3 @@ class WinAction(WinActionSub):
                 self.main.model_name.setCurrentText(current_model_name)
 
 
-    def target_lang_change(self, t):
-        if not t or t == '-':
-            self.main.voice_role.clear()
-            self.main.voice_role.addItems(['No'])
-            return
-
-        tts_type = self.main.tts_type.currentIndex()
-        code = translator.get_code(show_text=t)
-        if not code:
-            self.main.voice_role.clear()
-            self.main.voice_role.addItems(['No'])
-            return
-
-
-
-        if tts_type == tts.EDGE_TTS:
-            show_rolelist = tools.get_edge_rolelist()
-        elif tts_type == tts.KOKORO_TTS:
-            show_rolelist = tools.get_kokoro_rolelist()
-        elif tts_type == tts.AI302_TTS:
-            show_rolelist = tools.get_302ai()
-        elif tts_type == tts.DOUBAO2_TTS:
-            show_rolelist = tools.get_doubao2_rolelist()
-        elif tts_type == tts.DOUBAO_TTS:
-            show_rolelist = tools.get_doubao_rolelist()
-        elif tts_type == tts.MINIMAXI_TTS:
-            show_rolelist = tools.get_minimaxi_rolelist()
-        else:
-            # AzureTTS
-            show_rolelist = tools.get_azure_rolelist()
-
-        if not show_rolelist:
-            self.main.target_language.setCurrentText('-')
-            tools.show_error(tr('waitrole'))
-            return
-        try:
-            vt = code.split('-')[0]
-            if vt not in show_rolelist:
-                self.main.voice_role.addItems(['No'])
-                return
-            if tts_type == tts.MINIMAXI_TTS:
-                show_rolelist=list(show_rolelist[vt].keys())
-
-            if len(show_rolelist[vt]) < 2:
-                self.main.target_language.setCurrentText('-')
-                tools.show_error(tr('waitrole'))
-                return
-            self.main.current_rolelist = show_rolelist[vt]
-            self.main.voice_role.addItems(show_rolelist[vt])
-        except Exception:
-            self.main.voice_role.addItems(['No'])

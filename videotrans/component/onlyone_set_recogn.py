@@ -20,7 +20,8 @@ class EditRecognResultDialog(QDialog):
         source_sub: str = None
     ):
         # 初始化对话框的基本属性
-        super().__init__(parent)
+        super().__init__()
+        self.parent=parent
         self.source_sub=source_sub
         # 整理后的字幕
         self.srt_list_dict=tools.get_subtitle_from_srt(self.source_sub)
@@ -47,7 +48,7 @@ class EditRecognResultDialog(QDialog):
 
         self.prompt_label = QLabel(tr("jimiaohoufanyi"))
         self.prompt_label.setStyleSheet('font-size:14px;text-align:center;color:#aaaaaa')
-        self.prompt_label.setAlignment(Qt.AlignCenter)
+        self.prompt_label.setWordWrap(True)
         hstop.addWidget(self.prompt_label)
 
         self.stop_button = QPushButton(f"{tr('Click here to stop the countdown')}({self.count_down})")
@@ -62,6 +63,7 @@ class EditRecognResultDialog(QDialog):
 
         prompt_label2 = QLabel(tr("If you need to delete a line of subtitles, just clear the text in that line"))
         prompt_label2.setAlignment(Qt.AlignCenter)
+        prompt_label2.setWordWrap(True)
         main_layout.addWidget(prompt_label2)
 
 
@@ -123,7 +125,12 @@ class EditRecognResultDialog(QDialog):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_countdown)
         self.timer.start(1000)
+        QTimer.singleShot(0, self._active)
     
+    
+    def _active(self):
+        self.parent.raise_()
+        self.parent.activateWindow()    
     
     def cancel_and_close(self):
         # 停止倒计时并关闭窗口，返回 False (QDialog.Rejected)

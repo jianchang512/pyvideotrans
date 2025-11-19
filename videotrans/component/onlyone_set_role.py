@@ -26,7 +26,8 @@ class SpeakerAssignmentDialog(QDialog):
         tts_type=0
     ):
         # 初始化对话框的基本属性
-        super().__init__(parent)
+        super().__init__()
+        self.parent=parent
         self.target_sub=target_sub
         self.source_srtstring=None
         self.cache_folder=cache_folder
@@ -52,8 +53,7 @@ class SpeakerAssignmentDialog(QDialog):
                 self.speakers={it:None for it in sorted(list(_set))}
         except Exception as e:
             logs(f'获取说话人id失败:{e}',level="except")
-        print(self.speaker_list_sub)
-        print(self.speakers)
+
 
 
         # 存储所有可用发音人列表，如果为空则默认为空列表
@@ -102,7 +102,8 @@ class SpeakerAssignmentDialog(QDialog):
         
         self.prompt_label = QLabel(tr("This window will automatically close after the countdown ends"))
         self.prompt_label.setStyleSheet('font-size:14px;text-align:center;color:#aaaaaa')
-        self.prompt_label.setAlignment(Qt.AlignCenter)
+
+        self.prompt_label.setWordWrap(True)
         hstop.addWidget(self.prompt_label)
         
         self.stop_button = QPushButton(f"{tr('Click here to stop the countdown')}({self.count_down})")
@@ -116,6 +117,7 @@ class SpeakerAssignmentDialog(QDialog):
         
         prompt_label2 = QLabel(tr("If you need to delete a line of subtitles, just clear the text in that line"))
         prompt_label2.setAlignment(Qt.AlignCenter)
+        prompt_label2.setWordWrap(True)
         top_layout.addWidget(prompt_label2) 
         
         main_layout.addLayout(top_layout)
@@ -196,6 +198,11 @@ class SpeakerAssignmentDialog(QDialog):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_countdown)
         self.timer.start(1000)
+        QTimer.singleShot(0, self._active)
+        
+    def _active(self):
+        self.parent.raise_()
+        self.parent.activateWindow()
     
     def cancel_and_close(self):
         # 停止倒计时并关闭窗口，返回 False (QDialog.Rejected)
@@ -226,6 +233,9 @@ class SpeakerAssignmentDialog(QDialog):
         # 创建说话人分配角色区域的组框
         group = QGroupBox("")
         layout = QVBoxLayout(group)  # 垂直布局
+        label_tips=QLabel(tr("Assign a timbre to each speaker"))
+        label_tips.setStyleSheet("color:#dddddd")
+        layout.addWidget(label_tips)
 
         # 初始化存储说话人复选框和标签的字典
         self.speaker_checks = {}  # 键: QCheckBox, 值: spk_id
@@ -233,17 +243,23 @@ class SpeakerAssignmentDialog(QDialog):
         
         
         
-        # 为每个说话人 ID 创建一行布局
-        for spk_id in self.speakers:
-            row_layout = QHBoxLayout()  # 水平布局
+        row_layout = None  # 水平布局
+        for i,spk_id in enumerate(self.speakers):
+            if row_layout is None:
+                row_layout = QHBoxLayout()  # 水平布局
             check = QCheckBox(f'{tr("Speaker")}{spk_id}')  # 创建复选框，文本为 spk_id
-            row_layout.addWidget(check)  # 添加复选框
             label = QLabel("")  # 创建初始为空的标签，用于显示分配角色
+                
+            row_layout.addWidget(check)  # 添加复选框
             row_layout.addWidget(label)  # 添加标签
             row_layout.addStretch()  # 添加伸展以右对齐
-            layout.addLayout(row_layout)  # 添加行布局到组布局
+            if i > 0 and i%3==2:
+                layout.addLayout(row_layout)  # 添加行布局到组布局
+                row_layout=None
             self.speaker_checks[check] = spk_id  # 存储复选框和 spk_id
             self.speaker_labels[check] = label  # 存储复选框和标签
+        if row_layout is not None:
+            layout.addLayout(row_layout)
 
         # 底部行：组合框和按钮
         bottom_row = QHBoxLayout()  # 水平布局
@@ -292,6 +308,10 @@ class SpeakerAssignmentDialog(QDialog):
         scroll = QScrollArea()
         scroll_widget = QWidget()  # 滚动内容小部件
         scroll_layout = QVBoxLayout(scroll_widget)  # 垂直布局
+        label_tips=QLabel(tr('assign a specific voice to a line of subtitles'))
+        label_tips.setWordWrap(True)
+        label_tips.setStyleSheet("color:#dddddd")
+        scroll_layout.addWidget(label_tips)
 
         # 初始化存储字幕行信息的列表
         self.subtitle_rows = []
@@ -436,21 +456,22 @@ class SpeakerAssignmentDialog(QDialog):
         config.line_roles={}
         srt_str_list=[]
         # 更新所有字幕行的文本，使用编辑后的内容
+
         for i,row in enumerate(self.subtitle_rows):
             # 保存修改后的字幕
             text = row['text_edit'].text().strip()
             srt_str_list.append(f'{row["item"]["line"]}\n{row["item"]["startraw"]} --> {row["item"]["endraw"]}\n{text}')
             
             # 获取角色
-            role= row.get('role')
+            role= row['item'].get('role')
             # 如果不存在，则使用说话人对应角色,最终未指定角色的统一使用默认
             if not role and self.speakers and i<len(self.speaker_list_sub):
                 role=self.speakers.get(self.speaker_list_sub[i])
             # 更新该行字幕对应角色
             if role:
                 config.line_roles[f'{row["item"]["line"]}']=role
-        
+        #print(f'{config.line_roles=}')
         Path(self.target_sub).write_text("\n\n".join(srt_str_list),encoding="utf-8")
-        print(f'{config.line_roles=}')
+
         # 接受对话框，关闭并返回 True (QDialog.Accepted)
         self.accept()  # Closes and returns QDialog.Accepted (which is 1, but user can check if exec() == True)

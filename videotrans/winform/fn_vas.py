@@ -33,7 +33,7 @@ def format_milliseconds(milliseconds):
 # 视频 字幕 音频 合并
 def openwin():
     from PySide6.QtWidgets import QWidget, QLineEdit, QComboBox, QCheckBox,QFileDialog
-    import shutil
+    import shutil,threading
     import json
     import os
     from videotrans.configure.config import tr
@@ -79,12 +79,9 @@ def openwin():
             while 1:
                 if percent >= 100 or self.is_end:
                     return
-                if not os.path.exists(protxt):
+                content = tools.read_last_n_lines(protxt)    
+                if not content:
                     time.sleep(1)
-                    continue
-                try:
-                    content = Path(protxt).read_text(encoding='utf-8').strip().split("\n")
-                except (OSError,ValueError,AttributeError):
                     continue
 
                 if content[-1] == 'progress=end':
@@ -96,16 +93,9 @@ def openwin():
                         end_time = content[idx].split('=')[1].strip()
                         break
                     idx -= 1
-                try:
-                    h, m, s = end_time.split(':')
-                    tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
-                except ValueError:
-                    tmp1 = 0
-                if percent + tmp1 < 99.9:
-                    percent += tmp1
-                percent=min(percent,99)
-                self.post(type='jd', text=f'{percent:.2f}%')
-            time.sleep(1)
+                self.post(type='jd', text=f'{end_time}')
+                time.sleep(1)
+
 
 
 
@@ -275,8 +265,7 @@ def openwin():
                         config.settings.get('preset','fast'),
                         self.file
                     ]
-                from videotrans.task.simple_runnable_qt import run_in_threadpool
-                run_in_threadpool(self.hebing_pro,protxt,self.video_time)
+                threading.Thread(target=self.hebing_pro,args=(protxt,self.video_time)).start()
                 tools.runffmpeg(cmd)
                 self.post(type='ok', text=self.file)
                 self.is_end=True

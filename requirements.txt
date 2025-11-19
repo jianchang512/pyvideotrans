@@ -263,3 +263,5 @@ xxhash==3.5.0
 yarl==1.20.1
 zhconv==1.4.3
 zipp==3.23.0
+sherpa-onnx
+sounddevice

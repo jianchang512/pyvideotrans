@@ -98,7 +98,7 @@ class OpenaiWhisperRecogn(BaseRecogn):
                 self.error=f"No reuslt: {result}"
             else:
                 # 没有任何断句方式
-                if not config.settings.get('rephrase') and not config.settings.get('rephrase_local'):
+                if int(config.settings.get('rephrase',0))==0:
                     return self.get_srtlist(alllist)
                 
                 words_list = []
@@ -106,13 +106,13 @@ class OpenaiWhisperRecogn(BaseRecogn):
                     words_list += it['words']
                 
                 logs(f'开始重新断句:')
-                if config.settings.get('rephrase'):
+                if int(config.settings.get('rephrase',0))==1:
                     try:
                         self._signal(text=tr("Re-segmenting..."))
                         return self.re_segment_sentences(words_list)
                     except Exception as e:
                         logs(f'LLM断句失败，将使用默认断句：{e}', level="except")
-                elif config.settings.get('rephrase_local', False):
+                else:
                     try:
                         self._signal(text=tr("Re-segmenting..."))
                         return self.re_segment_sentences_local(words_list)

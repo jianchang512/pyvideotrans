@@ -74,16 +74,15 @@ def openwin():
         winobj.shibie_recogn_type.setDisabled(state)
         winobj.shibie_model.setDisabled(state)
         winobj.shibie_split_type.setDisabled(state)
-        winobj.equal_split_time.setDisabled(state)
         winobj.out_format.setDisabled(state)
         winobj.shibie_opendir.setDisabled(state)
         winobj.shibie_startbtn.setDisabled(state)
         winobj.shibie_dropbtn.setDisabled(state)
         winobj.rephrase.setDisabled(state)
-        winobj.rephrase_local.setDisabled(state)
         winobj.remove_noise.setDisabled(state)
         winobj.copysrt_rawvideo.setDisabled(state)
         winobj.shibie_stop.setDisabled(not state)
+
 
     def shibie_start_fun():
         nonlocal COPYSRT_TO_RAWDIR
@@ -115,7 +114,7 @@ def openwin():
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
 
-        if winobj.rephrase.isChecked():
+        if winobj.rephrase.currentIndex()==1:
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
                 tools.show_error(tr('llmduanju'))
@@ -127,17 +126,16 @@ def openwin():
                 from videotrans.winform import deepseek
                 deepseek.openwin()
                 return
+        enable_diariz_is=winobj.enable_diariz.isChecked()
+        if enable_diariz_is and not Path(f'{config.ROOT_DIR}/models/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx').exists():
+            tools.show_download_tips(winobj,tr('Speaker'))
+            return
+        
         toggle_state(True)
         winobj.shibie_startbtn.setText(tr("running"))
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()
-        if recogn_type == recognition.FASTER_WHISPER and split_type_index == 1:
-            try:
-                config.settings['interval_split'] = int(winobj.equal_split_time.text().strip())
-            except ValueError:
-                config.settings['interval_split'] = 10
-        config.settings['rephrase'] = winobj.rephrase.isChecked()
-        config.settings['rephrase_local'] = winobj.rephrase_local.isChecked()
+        config.settings['rephrase'] = winobj.rephrase.currentIndex()
         with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
@@ -147,15 +145,19 @@ def openwin():
             config.box_recogn = 'ing'
             video_list = [tools.format_video(it, None) for it in files]
             uuid_list = [obj['uuid'] for obj in video_list]
+            remove_noise_is=winobj.remove_noise.isChecked()
+            nums_diariz=winobj.nums_diariz.currentIndex()
             for it in video_list:
                 cfg={
                     "recogn_type": recogn_type,
-                    "split_type": ["all", "avg"][split_type_index],
+                    "split_type": split_type_index,
                     "model_name": model,
                     "cuda": is_cuda,
                     "target_dir": RESULT_DIR,
                     "detect_language": langcode,
-                    "remove_noise": winobj.remove_noise.isChecked(),
+                    "remove_noise": remove_noise_is,
+                    "enable_diariz": enable_diariz_is,
+                    "nums_diariz":nums_diariz
                 }
                 try:
                     trk = SpeechToText(cfg=TaskCfg(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
@@ -169,9 +171,12 @@ def openwin():
             config.params["stt_recogn_type"] = winobj.shibie_recogn_type.currentIndex()
             config.params["stt_model_name"] = winobj.shibie_model.currentText()
             config.params["stt_out_format"] = winobj.out_format.currentText()
-            config.params["stt_remove_noise"] = winobj.remove_noise.isChecked()
+            config.params["stt_remove_noise"] = remove_noise_is
             config.params["stt_copysrt_rawvideo"] = winobj.copysrt_rawvideo.isChecked()
+            config.params["stt_enable_diariz"] = enable_diariz_is
+            config.params["stt_nums_diariz"] = nums_diariz
             config.params["stt_spk_insert"] = winobj.spk_insert.isChecked()
+            config.params["stt_split_type"] = split_type_index
             config.getset_params(config.params)
             th.start()
 
@@ -244,13 +249,9 @@ def openwin():
         if recogn_type != recognition.FASTER_WHISPER:  # openai-whisper
             winobj.shibie_split_type.setDisabled(True)
             winobj.shibie_split_type.setCurrentIndex(0)
-            tools.hide_show_element(winobj.equal_split_layout, False)
             tools.hide_show_element(winobj.hfaster_layout, False)
         else:
             winobj.shibie_split_type.setDisabled(False)
-            # faster
-            tools.hide_show_element(winobj.equal_split_layout,
-                                    True if winobj.shibie_split_type.currentIndex() == 1 else False)
 
         if recogn_type not in [recognition.FASTER_WHISPER,
                                recognition.Faster_Whisper_XXL,
@@ -273,11 +274,9 @@ def openwin():
                 winobj.shibie_model.addItems(config.FUNASR_MODEL)
         
         if recogn_type in [recognition.FASTER_WHISPER, recognition.PARAKEET, recognition.OPENAI_WHISPER]:
-            winobj.rephrase_local.setDisabled(False)
             winobj.rephrase.setDisabled(False)
         else:
             winobj.rephrase.setDisabled(True)
-            winobj.rephrase_local.setDisabled(True)
             
         if check_model_name(recogn_type, winobj.shibie_model.currentText()) is not True:
             return
@@ -318,21 +317,10 @@ def openwin():
         # 如果是均等分割，则阈值相关隐藏
         if recogn_type != recognition.FASTER_WHISPER:
             tools.hide_show_element(winobj.hfaster_layout, False)
-            tools.hide_show_element(winobj.equal_split_layout, False)
             winobj.shibie_split_type.setCurrentIndex(0)
             winobj.shibie_split_type.setDisabled(True)
         elif split_type_index == 1:
             tools.hide_show_element(winobj.hfaster_layout, False)
-            tools.hide_show_element(winobj.equal_split_layout, True)
-        else:
-            tools.hide_show_element(winobj.equal_split_layout, False)
-
-
-    def rephrase_fun(s,name):
-        if s and name=='llm':
-            winobj.rephrase_local.setChecked(False)
-        elif s and name=='local':
-            winobj.rephrase.setChecked(False)
             
 
     from videotrans.component.set_form import Recognform
@@ -359,12 +347,13 @@ def openwin():
         winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
         winobj.is_cuda.toggled.connect(check_cuda)
-        local_rephrase=config.settings.get('rephrase_local',False)
-        winobj.rephrase_local.setChecked(local_rephrase)
-        winobj.rephrase.setChecked(config.settings.get('rephrase',False) if not local_rephrase else False)
-        winobj.remove_noise.setChecked(config.params.get('stt_remove_noise'))
+        winobj.rephrase.setCurrentIndex(int(config.settings.get('rephrase',0)))
+        winobj.remove_noise.setChecked(bool(config.params.get('stt_remove_noise')))
         winobj.copysrt_rawvideo.setChecked(config.params.get('stt_copysrt_rawvideo', False))
-        winobj.spk_insert.setChecked(config.params.get('stt_spk_insert', False))
+        winobj.spk_insert.setChecked(bool(config.params.get('stt_spk_insert', False)))
+        winobj.enable_diariz.setChecked(bool(config.params.get('stt_enable_diariz', False)))
+
+        winobj.nums_diariz.setCurrentIndex(int(config.params.get("stt_nums_diariz",0)))
         winobj.out_format.setCurrentText(config.params.get('stt_out_format', 'srt'))
 
         default_lang = int(config.params.get('stt_source_language', 0))
@@ -394,7 +383,9 @@ def openwin():
         if config.params.get('stt_model_name') in curr:
             current_model = config.params.get('stt_model_name')
             winobj.shibie_model.setCurrentText(current_model)
-
+        
+        winobj.shibie_split_type.setCurrentIndex(int(config.params.get("stt_split_type",0)))
+        
         if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP]:
             winobj.shibie_model.setDisabled(True)
         else:
@@ -405,6 +396,4 @@ def openwin():
         winobj.shibie_model.currentTextChanged.connect(
             lambda: check_model_name(winobj.shibie_recogn_type.currentIndex(), winobj.shibie_model.currentText()))
 
-        winobj.rephrase.toggled.connect(lambda checked:rephrase_fun(checked,'llm'))
-        winobj.rephrase_local.toggled.connect(lambda checked:rephrase_fun(checked,'local'))
     QTimer.singleShot(10,_bind)

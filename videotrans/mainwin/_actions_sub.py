@@ -39,45 +39,9 @@ class WinActionSub:
     obj_list: List[Dict] = field(default_factory=list, init=False)
     cfg: Dict = field(default_factory=dict, init=False)
     queue_mp4: List[str] = field(default_factory=list, init=False)
+    show_adv_status:bool=False # 高级选项当前显示状态，默认不显示
 
 
-
-    # 设置每行字幕的长度
-    def click_subtitle(self):
-        from videotrans.component.set_subtitles_length import SubtitleSettingsDialog
-        dialog = SubtitleSettingsDialog(self.main, config.settings.get('cjk_len', 24),
-                                        config.settings.get('other_len', 66))
-        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            cjk_value, other_value = dialog.get_values()
-            config.settings['cjk_len'] = cjk_value
-            config.settings['other_len'] = other_value
-            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-                f.write(json.dumps(config.settings, ensure_ascii=False))
-
-    # 设置每次翻译字幕行数
-    def click_translate_type(self):
-        from videotrans.component.set_threads import SetThreadTransDubb
-        dialog = SetThreadTransDubb(name='trans', nums=config.settings.get('trans_thread', 5),
-                                    sec=config.settings.get('translation_wait', 0),
-                                    ai_nums=config.settings.get('aitrans_thread', 500))
-        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            num, wait, ainums = dialog.get_values()
-            config.settings['trans_thread'] = num
-            config.settings['aitrans_thread'] = ainums
-            config.settings['translation_wait'] = wait
-            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-                f.write(json.dumps(config.settings, ensure_ascii=False))
-    # 设置配音线程
-    def click_tts_type(self):
-        from videotrans.component.set_threads import SetThreadTransDubb
-        dialog = SetThreadTransDubb(name='dubbing', nums=config.settings.get('dubbing_thread', 5),
-                                    sec=config.settings.get('dubbing_wait', 0))
-        if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-            num, wait, _ = dialog.get_values()
-            config.settings['dubbing_thread'] = num
-            config.settings['dubbing_wait'] = wait
-            with  open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-                f.write(json.dumps(config.settings, ensure_ascii=False))
 
 
     def show_model_help(self):
@@ -127,11 +91,6 @@ class WinActionSub:
 
         QTimer.singleShot(50, open)
 
-    def rephrase_fun(self,s,name):
-        if s and name=='llm':
-            self.main.rephrase_local.setChecked(False)
-        elif s and name=='local':
-            self.main.rephrase.setChecked(False)
 
     # 选中按钮时判断当前cuda是否可用
     def check_cuda(self, state):
@@ -144,6 +103,22 @@ class WinActionSub:
             self.main.enable_cuda.setDisabled(True)
             res = False
         self.cfg['cuda'] = res
+
+    def check_voice_autorate(self,state):
+        if state:
+            self.main.remove_silent_mid.setVisible(False)
+            self.main.align_sub_audio.setVisible(False)
+        elif not self.main.video_autorate.isChecked():
+            self.main.remove_silent_mid.setVisible(True)
+            self.main.align_sub_audio.setVisible(True)
+    def check_video_autorate(self,state):
+        if state:
+            self.main.remove_silent_mid.setVisible(False)
+            self.main.align_sub_audio.setVisible(False)
+        elif not self.main.voice_autorate.isChecked():
+            self.main.remove_silent_mid.setVisible(True)
+            self.main.align_sub_audio.setVisible(True)
+
 
     # 启用标准模式
     def set_biaozhun(self):
@@ -192,7 +167,6 @@ class WinActionSub:
         self.main.split_type.show()
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.subtitle_type.show()
-        self.main.subtitle_label.show()
         self.main.rephrase.show()
         self.main.remove_noise.show()
 
@@ -200,26 +174,27 @@ class WinActionSub:
         self.main.align_btn.show()
         self.main.voice_rate.show()
         self.main.label_6.show()
-        self.main.voice_autorate.setChecked(True)
         self.main.voice_autorate.show()
-        self.main.video_autorate.setChecked(True)
         self.main.video_autorate.show()
-        self.main.is_separate.setDisabled(False)
-        self.main.is_separate.setChecked(False)
-        self.main.is_separate.show()
-        self.main.enable_cuda.setChecked(False)
         self.main.label_cjklinenums.show()
         self.main.cjklinenums.show()
+        self.main.set_ass.show()
         self.main.label_othlinenums.show()
         self.main.othlinenums.show()
         if platform.system() != 'Darwin':
             self.main.enable_cuda.show()
-        # 添加背景行
-        self.main.addbackbtn.show()
-        self.main.back_audio.show()
-        self.main.is_loop_bgm.show()
-        self.main.bgmvolume_label.show()
-        self.main.bgmvolume.show()
+
+        if not self.main.voice_autorate.isChecked() and not self.main.video_autorate.isChecked():
+            self.main.remove_silent_mid.setVisible(True)
+            self.main.align_sub_audio.setVisible(True)
+        else:
+            self.main.remove_silent_mid.setVisible(False)
+            self.main.align_sub_audio.setVisible(False)
+        
+        # 高级        
+        #self.main.set_adv_status.show()
+        self.show_adv_status=True
+        self.toggle_adv()
 
     # 视频提取字幕并翻译，无需配音
     def set_tiquzimu(self):
@@ -264,7 +239,6 @@ class WinActionSub:
         self.main.split_type.show()
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.subtitle_type.hide()
-        self.main.subtitle_label.hide()
         self.main.rephrase.show()
         self.main.remove_noise.show()
 
@@ -272,27 +246,29 @@ class WinActionSub:
         self.main.align_btn.hide()
         self.main.label_6.hide()
         self.main.voice_rate.hide()
-        self.main.voice_autorate.setChecked(True)
         self.main.voice_autorate.hide()
-        self.main.video_autorate.setChecked(True)
         self.main.video_autorate.hide()
 
-        self.main.is_separate.setChecked(False)
-        self.main.is_separate.hide()
-        self.main.enable_cuda.setChecked(False)
-        self.main.label_cjklinenums.hide()
-        self.main.cjklinenums.hide()
-        self.main.label_othlinenums.hide()
-        self.main.othlinenums.hide()
+        self.main.set_ass.hide()
+        self.main.remove_silent_mid.hide()
+        self.main.align_sub_audio.hide()
         if platform.system() != 'Darwin':
             self.main.enable_cuda.show()
-        # 添加背景行
-        self.main.addbackbtn.hide()
-        self.main.back_audio.hide()
-        self.main.is_loop_bgm.hide()
-        self.main.bgmvolume_label.hide()
-        self.main.bgmvolume.hide()
+        
+        #self.main.set_adv_status.hide()
+        self.show_adv_status=True
+        self.toggle_adv()
 
+
+    # 显示或隐藏高级选项
+    def toggle_adv(self):
+        self.show_adv_status=not self.show_adv_status
+        self.hide_show_element(self.main.hfaster_layout,self.show_adv_status)
+        self.hide_show_element(self.main.adv_layout,self.show_adv_status)
+        self.hide_show_element(self.main.bgm_layout,self.show_adv_status)
+        self.hide_show_element(self.main.trans_thread_layout,self.show_adv_status)
+        self.hide_show_element(self.main.dubb_thread_layout,self.show_adv_status)
+        self.main.advcontainer.setVisible(self.show_adv_status)
 
     # 隐藏布局及其元素
     def hide_show_element(self, wrap_layout, show_status):
@@ -343,14 +319,18 @@ class WinActionSub:
 
             if not folder_path:
                 return
-            for root, _, files in os.walk(folder_path):
-                for file in files:
-                    if Path(file).suffix[1:].lower() in allowed_exts:
-                        mp4_list.append(os.path.join(root, file).replace(os.sep, '/'))
             p = Path(folder_path)
-            config.params['last_opendir'] = p.parent.as_posix()
-            #self.main.target_dir = config.params.get('last_opendir','') + f'/{p.name}_video_out'
-            #self.main.btn_save_dir.setToolTip(self.main.target_dir)
+
+            # 使用列表推导式一行完成
+            mp4_list = [
+                file.as_posix()
+                for file in p.rglob('*')
+                if file.is_file() and file.suffix[1:].lower() in allowed_exts
+            ]
+
+            config.params['last_opendir'] = p.as_posix()
+            self.main.target_dir = p.as_posix()
+            self.main.btn_save_dir.setToolTip(self.main.target_dir)
         else:
             fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(self.main,
                                                                tr("Select one or more files"),
@@ -361,8 +341,6 @@ class WinActionSub:
             for (i, it) in enumerate(fnames):
                 mp4_list.append(Path(it).as_posix())
             config.params['last_opendir'] = Path(mp4_list[0]).parent.resolve().as_posix()
-            #self.main.target_dir = config.params.get('last_opendir','') + f'/_video_out'
-            #self.main.btn_save_dir.setToolTip(self.main.target_dir)
 
         if len(mp4_list) > 0:
             self.main.source_mp4.setText(f'{len(mp4_list)} videos')
@@ -468,8 +446,7 @@ class WinActionSub:
         subtitle_type = self.main.subtitle_type.currentIndex()
         voice_role = self.main.voice_role.currentText()
         self.cfg['copysrt_rawvideo'] = False
-        if self.main.app_mode == 'tiqu' or (
-                self.main.app_mode.startswith('biaozhun') and subtitle_type < 1 and voice_role in ('No', '', " ")):
+        if self.main.app_mode == 'tiqu' or (subtitle_type < 1 and voice_role in ('No', '', " ")):
             self.main.app_mode = 'tiqu'
             # 提取字幕模式，必须有视频、有原始语言，语音模型
             self.cfg['subtitle_type'] = 0
@@ -514,31 +491,19 @@ class WinActionSub:
         self.main.is_loop_bgm.setDisabled(type)
         self.main.aisendsrt.setDisabled(type)
         self.main.rephrase.setDisabled(type)
-        self.main.rephrase_local.setDisabled(type)
+        self.main.remove_silent_mid.setDisabled(type)
+        self.main.align_sub_audio.setDisabled(type)
         self.main.remove_noise.setDisabled(type)
         self.main.cjklinenums.setDisabled(type)
         self.main.othlinenums.setDisabled(type)
         self.main.bgmvolume.setDisabled(type)
+        self.main.set_adv_status.setDisabled(type)
         self.main.select_file_type.setDisabled(type)
         self.main.is_separate.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
         self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
         self.main.back_audio.setReadOnly(True if self.main.app_mode in ['tiqu'] else type)
 
-    # 0=整体识别模型
-    # 1=均等分割模式
-    def check_split_type(self, index):
-        index = self.main.split_type.currentIndex()
-        self.cfg['split_type'] = ['all', 'avg'][index]
-        recogn_type = self.main.recogn_type.currentIndex()
-        # 如果是均等分割，则阈值相关隐藏
-        if recogn_type > 0:
-            tools.hide_show_element(self.main.hfaster_layout, False)
-            tools.hide_show_element(self.main.equal_split_layout, False)
-        elif index == 1:
-            tools.hide_show_element(self.main.equal_split_layout, True)
-            tools.hide_show_element(self.main.hfaster_layout, False)
-        else:
-            tools.hide_show_element(self.main.equal_split_layout, False)
+
 
 
     def lawalert(self):

@@ -237,8 +237,7 @@ def run(*,
         return ElevenLabsRecogn(**kwargs).run()
 
     from videotrans.process._iscache import _MODELS
-    if split_type != 'avg' or model_name not in _MODELS:
-        from ._overall import FasterAll
-        return FasterAll(**kwargs).run()
-    from ._average import FasterAvg
-    return FasterAvg(**kwargs).run()
+    kwargs['split_type']=0 if split_type==0 or model_name not in _MODELS else 1
+    from ._overall import FasterAll
+    return FasterAll(**kwargs).run()
+

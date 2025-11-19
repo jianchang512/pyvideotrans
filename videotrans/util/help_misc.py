@@ -7,6 +7,16 @@ from pathlib import Path
 
 
 
+def show_download_tips(Win,tr_text=""):
+    from videotrans.configure import config
+    from PySide6.QtWidgets import QMessageBox,QApplication
+
+    QApplication.clipboard().setText('https://github.com/jianchang512/stt/releases/download/0.0/noise-uvr-speaker-realtime.7z')
+    reply = QMessageBox.information(Win,
+                config.tr("The model is missing. Please download it!"),
+                config.tr("DownloadRealTimeModel",tr_text,f'{config.ROOT_DIR}/models/onnx')
+    )
+
 def show_popup(title, text):
     from PySide6.QtGui import QIcon
     from PySide6.QtCore import Qt
@@ -165,7 +175,6 @@ def get_prompt(ainame,aisendsrt=True):
     from videotrans.configure import config
     prompt_file = get_prompt_file(ainame=ainame,aisendsrt=aisendsrt)
     content = Path(prompt_file).read_text(encoding='utf-8')
-    print(f'{content=}')
     glossary = ''
     if Path(config.ROOT_DIR + '/videotrans/glossary.txt').exists():
         glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8').strip()
@@ -309,3 +318,19 @@ def pygameaudio(filepath):
             pygame.time.Clock().tick(10)
     except Exception as e:
         print(e)
+
+
+
+def read_last_n_lines(filename, n=100):
+    if not Path(filename).exists():
+        return []
+    from collections import deque
+    try:
+        with open(filename, 'r', encoding='utf-8') as file:
+            # 使用 deque 只保留最后 n 行
+            last_lines = deque(file, maxlen=n)
+        return list(last_lines)  # 返回列表形式
+    except FileNotFoundError:
+        return []
+    except Exception as e:
+        return []

@@ -3,7 +3,7 @@ def openwin():
 
     import json
     import os
-    import time
+    import time,threading
     from pathlib import Path
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
@@ -33,19 +33,18 @@ def openwin():
         def post(self, type='logs', text=""):
             self.uito.emit(json.dumps({"type": type, "text": text}))
 
-        def hebing_pro(self, protxt, video_time):
+        def hebing_pro(self, protxt, video_time=0):
             percent = 0
             while 1:
                 if config.exit_soft:return
                 if self.end or percent >= 100:
                     return
-                if not os.path.exists(protxt):
+                content = tools.read_last_n_lines(protxt)    
+                if not content:
                     time.sleep(1)
                     continue
-                try:
-                    content = Path(protxt).read_text(encoding='utf-8').strip().split("\n")
-                except (OSError,ValueError,AttributeError):
-                    continue
+                
+                
                 if content[-1] == 'progress=end':
                     return
                 idx = len(content) - 1
@@ -55,7 +54,10 @@ def openwin():
                         end_time = content[idx].split('=')[1].strip()
                         break
                     idx -= 1
-
+                if video_time==0:                
+                    self.post(type='jd', text=f'{end_time}')
+                    time.sleep(1)
+                    continue
                 h, m, s = end_time.split(':')
                 tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
                 if percent + tmp1 < 99.9:
@@ -84,8 +86,7 @@ def openwin():
 
                 position = positions[self.pos]
                 protxt = config.TEMP_HOME + f'/jd{time.time()}.txt'
-                from videotrans.task.simple_runnable_qt import run_in_threadpool
-                run_in_threadpool(self.hebing_pro,protxt,duration)
+                threading.Thread(target=self.hebing_pro,args=(protxt,duration)).start()
 
                 # 构建 FFmpeg 命令
                 ffmpeg_command = [

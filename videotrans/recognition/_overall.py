@@ -86,13 +86,13 @@ class FasterAll(BaseRecogn):
     def _get_signal_from_process(self, q: multiprocessing.Queue):
         while not self.has_done:
             try:
-                if self._exit() and self.pidfile and Path(self.pidfile).exists():
-                    Path(self.pidfile).unlink(missing_ok=True)
+                if self._exit():
+                    if Path(self.pidfile).exists():
+                        Path(self.pidfile).unlink(missing_ok=True)
                     return
-                if not q.empty():
-                    data = q.get_nowait()
-                    if data:
-                        self._signal(text=data['text'], type=data['type'])
+                data = q.get_nowait()
+                if data:
+                    self._signal(text=data['text'], type=data['type'])
             except Exception:
                 pass
             time.sleep(0.1)
@@ -141,7 +141,8 @@ class FasterAll(BaseRecogn):
                     "proxy": self.proxy_str,
                     "TEMP_DIR":config.TEMP_DIR,
                     "defaulelang":config.defaulelang,
-                    "settings":config.settings
+                    "settings":config.settings,
+                    "split_type":self.split_type
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
@@ -164,20 +165,20 @@ class FasterAll(BaseRecogn):
                         logs(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language = detect.get('langcode','auto')
                     # 没有任何断句方式
-                    if not config.settings.get('rephrase') and not config.settings.get('rephrase_local'):
+                    if self.split_type==1 or int(config.settings.get('rephrase',0))==0:
                         return self.get_srtlist(raws)
                     
                     words_list = []
                     for it in list(raws):
                         words_list += it['words']
-                    if config.settings.get('rephrase'):
+                    if int(config.settings.get('rephrase',0))==1:
                         # LLM断句
                         try:
                             self._signal(text=tr("Re-segmenting..."))                            
                             return self.re_segment_sentences(words_list)
                         except Exception as e:
                             logs(f'LLM断句失败，将使用默认断句：{e}', level="except")
-                    elif config.settings.get('rephrase_local', False):
+                    else:
                         # 本地断句
                         try:
                             self._signal(text=tr("Re-segmenting..."))                            

@@ -271,6 +271,8 @@ dependencies = [
     "yarl==1.20.1",
     "zhconv==1.4.3",
     "zipp==3.23.0",
+	"sherpa-onnx>=1.12.15",
+	"sounddevice>=0.5.3"
 ]
 
 

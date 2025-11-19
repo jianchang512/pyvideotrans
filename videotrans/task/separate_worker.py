@@ -2,20 +2,21 @@
 from PySide6.QtCore import QThread, Signal as pyqtSignal
 
 from videotrans.configure import config
-from videotrans.separate import st
+from videotrans.separate import run_sep
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools
+import time
+from pathlib import Path
 
 
 class SeparateWorker(QThread):
     finish_event = pyqtSignal(str)
 
-    def __init__(self, *, basename=None, file=None, out=None, parent=None, uuid=None):
+    def __init__(self, *, file=None, out=None, parent=None, uuid=None):
         super().__init__(parent=parent)
-        self.basename = basename
         self.file = file
-        self.out = out
         self.uuid = uuid
+        self.out = out
 
     def getqueulog(self):
         while 1:
@@ -34,29 +35,37 @@ class SeparateWorker(QThread):
                 pass
 
     def run(self):
+        print(f'{config.TEMP_HOME=}')
         try:
+            
+            print(f'1 {self.file=}')
+            p=Path(self.file)
+            print(f'{p.suffix.lower()=}')
             # 如果不是wav，需要先转为wav
-            if not self.file.lower().endswith('.wav'):
-                newfile = config.TEMP_HOME + f'/{self.basename}.wav'
+            if  p.suffix.lower()!= '.wav':
+                newfile = config.TEMP_HOME + f'/sep-{time.time()}.wav'
                 cmd = [
                     "-y",
                     "-i",
                     self.file,
+                    "-vn",
                     "-ac",
                     "1",
                     "-ar",
                     "44100",
                     newfile
                 ]
-                if self.basename.split('.')[-1].lower() in ['mp4', 'mov', 'mkv', 'mpeg']:
-                    cmd.insert(3, '-vn')
+                
                 tools.runffmpeg(cmd)
                 self.file = newfile
+            print(f'2 {self.file=}')
+            print(f'{self.out=}')
             tools.set_process(uuid=self.uuid)
             run_in_threadpool(self.getqueulog)
-            st.start(self.file, self.out, "win", uuid=self.uuid)
+            run_sep(self.file, f"{self.out}/vocal-{p.stem}.wav", f"{self.out}/instrument-{p.stem}.wav")
         except Exception as e:
-            msg = f"separate vocal and background music:{str(e)}"
+            print(e)
+            msg = f"error:separate vocal and background music:{str(e)}"
             self.finish_event.emit(msg)
         else:
             self.finish_event.emit('succeed')

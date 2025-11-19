@@ -3,12 +3,12 @@ import shutil
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-
+from typing import List, Dict
 from videotrans.configure import config
 from videotrans.configure.config import tr, logs
 from videotrans.recognition import run, Faster_Whisper_XXL,Whisper_CPP
 from videotrans.task._base import BaseTask
-from videotrans.task._remove_noise import remove_noise
+
 from videotrans.util import tools
 
 """
@@ -24,6 +24,8 @@ class SpeechToText(BaseTask):
     shoud_recogn: bool = field(default=True, init=False)
     # 是否需要将生成的字幕复制到原始视频所在目录下，并重命名为视频同名，以方便视频自动加载软字幕
     copysrt_rawvideo: bool = field(default=False, init=True)
+    # 存放原始语言字幕
+    source_srt_list: List = field(default_factory=list)
 
     def __post_init__(self):
         super().__post_init__()
@@ -58,7 +60,12 @@ class SpeechToText(BaseTask):
             if self.cfg.remove_noise:
                 self._signal(
                     text=tr("Starting to process speech noise reduction, which may take a long time, please be patient"))
-                self.cfg.shibie_audio = remove_noise(self.cfg.shibie_audio, f"{self.cfg.cache_folder}/removed_noise_{time.time()}.wav")
+                from ._remove_noise import run_remove
+                self.cfg.shibie_audio = run_remove(
+                    self.cfg.shibie_audio, 
+                    f"{self.cfg.cache_folder}/removed_noise_{time.time()}.wav",
+                    int(config.settings.get('noise_separate_nums',4))
+                )
             if self._exit(): return
             # faster_xxl.exe 单独处理
             if self.cfg.recogn_type == Faster_Whisper_XXL:
@@ -95,6 +102,7 @@ class SpeechToText(BaseTask):
                 except shutil.SameFileError:
                     pass
                 self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+                self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub,is_file=True)    
                 return
             if self.cfg.recogn_type == Whisper_CPP:
 
@@ -128,6 +136,7 @@ class SpeechToText(BaseTask):
 
 
                 self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+                self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub,is_file=True)   
                 return    
             # 其他识别渠道
             raw_subtitles = run(
@@ -145,25 +154,44 @@ class SpeechToText(BaseTask):
             if not raw_subtitles or len(raw_subtitles) < 1:
                 raise RuntimeError( self.cfg.basename + tr('recogn result is empty'))
 
-            if config.params.get("stt_spk_insert") and Path(self.cfg.cache_folder+"/speaker.json").exists():
-                speakers=json.loads(Path(self.cfg.cache_folder+"/speaker.json").read_text(encoding='utf-8'))
-                if speakers:
-                    speakers_len=len(speakers)
-                    for i,it in enumerate(raw_subtitles):
-                        if i<speakers_len and speakers[i]:
-                            it['text']=f'[{speakers[i]}]{it["text"]}'
 
 
-            self._save_srt_target(raw_subtitles, self.cfg.target_sub)
-            try:
-                Path(self.cfg.shibie_audio).unlink(missing_ok=True)
-            except OSError:
-                pass
+            self.source_srt_list = raw_subtitles
+            
         except Exception:
             raise
 
+    
+    def diariz(self):
+        if self._exit() or self.cfg.detect_language[:2] not in ['zh','en'] or not self.cfg.enable_diariz or Path(self.cfg.cache_folder+"/speaker.json").exists():
+            return
+        try:
+            self._signal(text=tr('Begin separating the speakers'))
+            from videotrans.diarization import assign_speakers
+            spk_list=assign_speakers(
+                self.cfg.shibie_audio,
+                self.cfg.detect_language,
+                [ [it['start_time'],it['end_time']] for it in self.source_srt_list],
+                -1 if self.cfg.nums_diariz<1 else self.cfg.nums_diariz+1,
+                self.uuid
+            )
+            Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')            
+            logs('分离说话人成功完成')
+            self._signal(text=tr('separating speakers end'))
+        except Exception as e:
+            logs('分离说话人失败，静默跳过','except')
+            self._signal(text=tr('Speaker separation failed, silent skip.'))
+
     def task_done(self):
         if self._exit(): return
+        if config.params.get("stt_spk_insert") and Path(self.cfg.cache_folder+"/speaker.json").exists():
+            speakers=json.loads(Path(self.cfg.cache_folder+"/speaker.json").read_text(encoding='utf-8'))
+            if speakers:
+                speakers_len=len(speakers)
+                for i,it in enumerate(self.source_srt_list):
+                    if i<speakers_len and speakers[i]:
+                        it['text']=f'[{speakers[i]}]{it["text"]}'
+        self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
         self._signal(text=f"{self.cfg.name}", type='succeed')
         if self.out_format == 'txt':
             import re

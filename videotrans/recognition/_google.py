@@ -93,10 +93,10 @@ class GoogleRecogn(BaseRecogn):
 
     def _shorten_voice_old(self, normalized_sound):
         normalized_sound = self.match_target_amplitude(normalized_sound, -20.0)
-        max_interval = int(config.settings.get('interval_split',5)) * 1000
-        buffer = int(config.settings.get('voice_silence',140))
+        max_interval = int(config.settings.get('max_speech_duration_s',5)) * 1000
+        buffer = int(config.settings.get('min_silence_duration_ms',140))
         nonsilent_data = []
-        audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings.get('voice_silence',140)),
+        audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings.get('min_silence_duration_ms',140)),
                                         silence_thresh=-20 - 25)
         for i, chunk in enumerate(audio_chunks):
             start_time, end_time = chunk

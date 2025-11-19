@@ -49,6 +49,7 @@ class BaseRecogn(BaseCon):
     jianfan: bool = False
     # 字幕行字符数
     maxlen: int = 20
+    split_type: int=0 #0 整体识别，1 均等分割
 
     def __post_init__(self):
         super().__post_init__()
@@ -73,7 +74,7 @@ class BaseRecogn(BaseCon):
     def run(self) -> Union[List[Dict], None]:
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
-        self._signal(text="")
+        self._signal(text=tr("Speech Recognition to Word Processing"))
         try:
             return self._exec()
         except RetryError as e:

@@ -61,10 +61,9 @@ class UUIDSignalThread(QThread):
                 if not q:
                     continue
                 try:
-                    data = q.get(block=True, timeout=0.1)
+                    data = q.get_nowait()
                     if data:
                         self.uito.emit(json.dumps(data))
-                    q.task_done()
                 except Exception:
                     pass
                 finally:

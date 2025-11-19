@@ -35,6 +35,9 @@ HOME_DIR = ROOT_DIR + "/output"
 
 Path(TEMP_DIR + '/dubbing_cache').mkdir(exist_ok=True, parents=True)
 Path(TEMP_DIR + '/translate_cache').mkdir(exist_ok=True, parents=True)
+
+# 家目录下的临时文件存储目录
+TEMP_HOME = TEMP_DIR
 # 日志目录 logs
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
 
@@ -113,8 +116,8 @@ def push_queue(uuid, jsondata):
         # 暂停时会重设为字符串 stop
         if isinstance(uuid_logs_queue[uuid], Queue):
             uuid_logs_queue[uuid].put_nowait(jsondata)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.exception(f'push_queue错误：{e}',exc_info=True)
 
 
 # 确保同时只能一个 faster-whisper进程在执行
@@ -148,6 +151,8 @@ task_countdown = 0
 prepare_queue = Queue(maxsize=0)
 # 识别队列
 regcon_queue = Queue(maxsize=0)
+# 说话人队列
+diariz_queue = Queue(maxsize=0)
 # 翻译队列
 trans_queue = Queue(maxsize=0)
 # 配音队列
@@ -219,14 +224,21 @@ def parse_init(update_data=None):
         "lang": "",
         "Faster_Whisper_XXL": "",
         "Whisper.cpp": "",
+        "faster_batch":False,
         "Whisper.cpp.models": "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin",
-        "crf": 22,
+        "crf": 23,
+        "edgetts_max_concurrent_tasks":10,
+        "edgetts_retry_nums":3,
         "force_lib": False,
         "preset": "fast",
         "ffmpeg_cmd": "",
         "aisendsrt": False,
         "dont_notify": False,
         "video_codec": 264,
+        
+        "noise_separate_nums":4,
+        
+        "batch_single":False,
 
         "ai302_models": "gpt-4o-mini,gpt-4o,qwen-max,glm-4,yi-large,deepseek-chat,doubao-pro-128k,gemini-2.0-flash",
         'qwenmt_model': "qwen-mt-turbo,qwen-mt-plus,qwen3-asr-flash,qwen-plus,qwen-turbo,qwen-plus-latest,qwen-turbo-latest",
@@ -254,20 +266,15 @@ def parse_init(update_data=None):
         "max_speech_duration_s": 5,
         "min_silence_duration_ms": 140,
         "speech_pad_ms": 0,
-        "rephrase": False,
-        "rephrase_local": False,
-        "voice_silence": 140,
-        "interval_split": 5,
-        "bgm_split_time": 300,
+        "rephrase": 0,
         "trans_thread": 20,
-        "aitrans_thread": 50,
+        "aitrans_thread": 25,
         "translation_wait": 0,
         "dubbing_wait": 1,
         "dubbing_thread": 1,
         "save_segment_audio": False,
         "countdown_sec": 90,
         "backaudio_volume": 0.8,
-        "separate_sec": 600,
         "loop_backaudio": True,
         "cuda_com_type": "default",  # int8 int8_float16 int8_float32
         "initial_prompt_zh-cn": "在每行末尾添加标点符号，在每个句子末尾添加标点符号。",
@@ -310,8 +317,10 @@ def parse_init(update_data=None):
         "qwentts_models": 'qwen3-tts-flash,qwen-tts-latest,qwen-tts',
 
 
+        "show_more_settings":False,
 
-        "cjk_len": 15,
+
+        "cjk_len": 20,
         "other_len": 60,
         "gemini_model": DEFAULT_GEMINI_MODEL,
         "llm_chunk_size": 500,
@@ -371,9 +380,8 @@ if defaulelang not in SUPPORT_LANG:
     defaulelang = "en"
 
 
-# 家目录下的临时文件存储目录
-TEMP_HOME = f"{HOME_DIR}/{_tmpname}"
-Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
+
+
 
 # 代理地址
 proxy = settings.get('proxy', os.environ.get('HTTPS_PROXY',''))
@@ -407,7 +415,9 @@ def getset_params(obj=None):
         "cuda": False,
         "line_roles": {},
         "is_separate": False,
-        "remove_noise": False,
+        "remove_noise": True,
+        "enable_diariz": False,
+        "nums_diariz": 0,
         "target_dir": "",
         "source_language": "en",
         "target_language": "zh-cn",
@@ -446,13 +456,13 @@ def getset_params(obj=None):
         "listen_text_ur": "ہیلو پیارے دوست، مجھے امید ہے کہ آپ آج خوش ہوں گے۔",
         "listen_text_yue": "你好啊親愛嘅朋友，希望你今日好開心",
         "tts_type": 0,  # 所选的tts顺序
-        "split_type": "all",
+        "split_type": 0,
         "model_name": "large-v3-turbo",  # 模型名
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
         "voice_autorate": True,
+        "video_autorate": False,
         "voice_role": "No",
         "voice_rate": "0",
-        "video_autorate": True,
         "deepl_authkey": "",
         "deepl_api": "",
         "deepl_gid": "",
@@ -609,8 +619,11 @@ def getset_params(obj=None):
         "app_mode": "biaozhun",
         "stt_source_language": 0,
         "stt_recogn_type": 0,
+        "stt_split_type": 0,
         "stt_model_name": "",
-        "stt_remove_noise": False,
+        "stt_remove_noise": True,
+        "stt_enable_diariz": False,
+        "stt_nums_diariz": 0,
 
         "subtitlecover_outformat": "srt",
 

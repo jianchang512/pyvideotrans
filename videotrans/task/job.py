@@ -1,4 +1,4 @@
-import time
+import time,shutil
 from PySide6.QtCore import QThread
 from videotrans.configure import config
 from videotrans.configure.config import tr, logs
@@ -62,7 +62,9 @@ class WorkerPrepare(QThread):
             if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
+                print(f'进入执行分离阶段')
                 trk.prepare()
+                
                 # 如果需要识别，则插入 recogn_queue队列，否则继续判断翻译队列、配音队列，都不吻合则插入最终队列
                 if trk.shoud_recogn:
                     config.regcon_queue.put_nowait(trk)
@@ -75,11 +77,11 @@ class WorkerPrepare(QThread):
                 else:
                     config.taskdone_queue.put_nowait(trk)
             except Exception as e:
+                logs(e, level="except")
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
-                logs(e, level="except")
-                set_process(text=f'{tr("yuchulichucuo")}:{except_msg}:\n' + traceback.format_exc(),
-                            type='error', uuid=trk.uuid)
+                msg=f'{tr("yuchulichucuo")}:{except_msg}:\n' + traceback.format_exc()+f"\n{trk.cfg}"
+                set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
 
 
@@ -97,6 +99,7 @@ class WorkerRegcon(QThread):
             if config.regcon_queue.empty():
                 time.sleep(0.1)
                 continue
+            
             try:
                 trk = config.regcon_queue.get_nowait()
             except Empty:
@@ -104,7 +107,46 @@ class WorkerRegcon(QThread):
             if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
+                print(f'进入执行语音识别阶段')
                 trk.recogn()
+                config.diariz_queue.put_nowait(trk)
+            except Exception as e:
+                logs(e, level="except")
+                from videotrans.configure._except import get_msg_from_except
+                except_msg = get_msg_from_except(e)
+                if trk.cfg.recogn_type is not None:
+                    except_msg = f"[{get_recogn_type(trk.cfg.recogn_type)}] {except_msg}"
+                msg=f'{tr("shibiechucuo")}:{except_msg}:\n' + traceback.format_exc()+f"\n{trk.cfg}"
+                set_process(text=msg, type='error', uuid=trk.uuid)
+                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+
+
+class WorkerDiariz(QThread):
+    def __init__(self):
+        super().__init__()
+        self.name = "DiarizSpeaker"
+
+    def run(self) -> None:
+        while 1:
+            if config.exit_soft:
+                return
+
+            if config.diariz_queue.empty():
+                time.sleep(0.1)
+                continue
+            
+            try:
+                trk = config.diariz_queue.get_nowait()
+            except Empty:
+                continue
+            if trk.uuid in config.stoped_uuid_set:
+                continue
+            try:
+                print(f'进入执行说话人分离阶段')
+                trk.diariz()
+            except Exception as e:
+                logs(e, level="except")
+            finally:
                 # 如果需要识翻译,则插入翻译队列，否则就行判断配音队列，都不吻合则插入最终队列
                 if trk.shoud_trans:
                     config.trans_queue.put_nowait(trk)
@@ -114,15 +156,6 @@ class WorkerRegcon(QThread):
                     config.assemb_queue.put_nowait(trk)
                 else:
                     config.taskdone_queue.put_nowait(trk)
-            except Exception as e:
-                from videotrans.configure._except import get_msg_from_except
-                except_msg = get_msg_from_except(e)
-                logs(e, level="except")
-                if trk.cfg.recogn_type is not None:
-                    except_msg = f"[{get_recogn_type(trk.cfg.recogn_type)}] {except_msg}"
-                set_process(text=f'{tr("shibiechucuo")}:{except_msg}:\n' + traceback.format_exc(),
-                            type='error', uuid=trk.uuid)
-                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
 
 
 
@@ -145,6 +178,7 @@ class WorkerTrans(QThread):
             if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
+                print(f'进入执行字幕翻译阶段')
                 trk.trans()
                 # 如果需要配音，则插入 dubb_queue 队列，否则插入最终队列
                 if trk.shoud_dubbing:
@@ -154,12 +188,12 @@ class WorkerTrans(QThread):
                 else:
                     config.taskdone_queue.put_nowait(trk)
             except Exception as e:
+                logs(e, level="except")
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 if trk.cfg.translate_type is not None:
                     except_msg = f"[{get_tanslate_type(trk.cfg.translate_type)}] {except_msg}"
-                msg = f'{tr("fanyichucuo")}:{except_msg}:\n' + traceback.format_exc()
-                logs(e, level="except")
+                msg = f'{tr("fanyichucuo")}:{except_msg}:\n' + traceback.format_exc()+f"\n{trk.cfg}"
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
 
@@ -184,15 +218,16 @@ class WorkerDubb(QThread):
                 continue
             try:
                 # 只要配音，就必须进入 同步对齐队列
+                print(f'进入执行配音阶段')
                 trk.dubbing()
                 config.align_queue.put_nowait(trk)
             except Exception as e:
+                logs(e, level="except")
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 if trk.cfg.tts_type is not None:
                     except_msg = f"[{get_tts_type(trk.cfg.tts_type)}] {except_msg}"
-                msg = f'{tr("peiyinchucuo")}:{except_msg}:\n' + traceback.format_exc()
-                logs(e, level="except")
+                msg = f'{tr("peiyinchucuo")}:{except_msg}:\n' + traceback.format_exc()+f"\n{trk.cfg}"
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
 
@@ -218,18 +253,23 @@ class WorkerAlign(QThread):
             if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
+                print(f'进入执行对齐阶段')
                 trk.align()
                 if trk.shoud_hebing:
                     config.assemb_queue.put_nowait(trk)
                 else:
                     config.taskdone_queue.put_nowait(trk)
             except Exception as e:
+                logs(e, level="except")
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
-                msg = f'{except_msg}:\n' + traceback.format_exc()
-                logs(e, level="except")
+                msg = f'{except_msg}:\n' + traceback.format_exc()+f"\n{trk.cfg}"
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+                try:
+                    shutil.rmtree(trk.cfg.cache_folder, ignore_errors=True)
+                except Exception:
+                    pass
 
 
 
@@ -253,15 +293,20 @@ class WorkerAssemb(QThread):
             if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
+                print(f'进入执行合并阶段')
                 trk.assembling()
                 config.taskdone_queue.put_nowait(trk)
             except Exception as e:
+                logs(e, level="except")
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
-                msg = f'{tr("hebingchucuo")}:{except_msg}:\n' + traceback.format_exc()
-                logs(e, level="except")
+                msg = f'{tr("hebingchucuo")}:{except_msg}:\n' + traceback.format_exc()+f"\n{trk.cfg}"
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+                try:
+                    shutil.rmtree(trk.cfg.cache_folder, ignore_errors=True)
+                except Exception:
+                    pass
 
 
 
@@ -284,12 +329,13 @@ class WorkerTaskDone(QThread):
             if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
+                print(f'进入执行完成阶段')
                 trk.task_done()
             except Exception as e:
+                logs(e, level="except")
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
-                msg = f'{except_msg}:\n' + traceback.format_exc()
-                logs(e, level="except")
+                msg = f'{except_msg}:\n' + traceback.format_exc()+f"\n{trk.cfg}"
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
             else:
@@ -301,6 +347,7 @@ def start_thread():
     workers = [
         WorkerPrepare(),
         WorkerRegcon(),
+        WorkerDiariz(),
         WorkerTrans(),
         WorkerDubb(),
         WorkerAlign(),

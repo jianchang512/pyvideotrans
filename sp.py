@@ -22,7 +22,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxL
 from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 
-VERSION = "v3.84"
+VERSION = "v3.85"
 
 
 # 抑制警告

@@ -54,21 +54,23 @@ class Ui_recogn(object):
         self.shibie_model = QtWidgets.QComboBox()
         self.shibie_model.setMinimumSize(QtCore.QSize(100, 30))
         self.shibie_model.setObjectName("shibie_model")
+        
+        self.remove_noise = QtWidgets.QCheckBox()
+
+
+        
+        
+        
+        self.enable_diariz = QtWidgets.QCheckBox()
+        self.enable_diariz.setToolTip(tr("Speaker classification"))
+        self.enable_diariz.setText(tr("Speaker classification"))
+        
+        self.nums_diariz = QtWidgets.QComboBox()
+        self.nums_diariz.setToolTip(tr("Specifying the number of speakers"))
+        self.nums_diariz.addItems([tr("No limit"),"2","3","4","5","6","7","8","9","10"])
 
 
 
-        self.shibie_split_type = QtWidgets.QComboBox()
-
-        self.split_label = QtWidgets.QLabel()
-
-        self.equal_split_time = QtWidgets.QLineEdit()
-        self.equal_split_time_label = QtWidgets.QLabel()
-        self.equal_split_time.setVisible(False)
-        self.equal_split_time_label.setVisible(False)
-
-        self.equal_split_layout = QtWidgets.QHBoxLayout()
-        self.equal_split_layout.addWidget(self.equal_split_time)
-        self.equal_split_layout.addWidget(self.equal_split_time_label)
 
         self.lable_out = QtWidgets.QLabel()
         self.out_format = QtWidgets.QComboBox()
@@ -87,45 +89,47 @@ class Ui_recogn(object):
         self.shibie_stop.setDisabled(True)
 
         self.horizontalLayout.addStretch()
-
         self.horizontalLayout.addWidget(self.label_3)
         self.horizontalLayout.addWidget(self.shibie_language)
         self.horizontalLayout.addWidget(self.shibie_label)
         self.horizontalLayout.addWidget(self.shibie_recogn_type)
         self.horizontalLayout.addWidget(self.label_model)
         self.horizontalLayout.addWidget(self.shibie_model)
-        self.horizontalLayout.addWidget(self.split_label)
-        self.horizontalLayout.addWidget(self.shibie_split_type)
-        self.horizontalLayout.addLayout(self.equal_split_layout)
-        self.horizontalLayout.addWidget(self.lable_out)
-        self.horizontalLayout.addWidget(self.out_format)
+        
+        self.horizontalLayout.addWidget(self.remove_noise)
+        self.horizontalLayout.addWidget(self.enable_diariz)
+        self.horizontalLayout.addWidget(self.nums_diariz)
+
+
         self.horizontalLayout.addWidget(self.spk_insert)
         self.horizontalLayout.addStretch()
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
         recogn.setWindowTitle(tr("Speech Recognition Text"))
-        QtCore.QMetaObject.connectSlotsByName(recogn)
-        QTimer.singleShot(0,self.retranslateUi)
 
-    def retranslateUi(self):
-        self.rephrase = QtWidgets.QCheckBox()
+        self.rephrase = QtWidgets.QComboBox()
+        self.rephrase.addItems([tr('Default sentence'),tr("LLM Rephrase"),tr("Rephrase Local")])
+        self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
 
-        self.rephrase_local = QtWidgets.QCheckBox()
-        self.remove_noise = QtWidgets.QCheckBox()
+        
 
         self.copysrt_rawvideo = QtWidgets.QCheckBox()
         self.copysrt_rawvideo.setMinimumSize(QtCore.QSize(0, 30))
         self.copysrt_rawvideo.setObjectName("copysrt_rawvideo")
+        
+
+        self.shibie_split_type = QtWidgets.QComboBox()
 
 
         self.h4 = QtWidgets.QHBoxLayout()
         self.h4.addStretch()
+        self.h4.addWidget(self.is_cuda)
         self.h4.addWidget(self.shibie_startbtn)
         self.h4.addWidget(self.shibie_stop)
-        self.h4.addWidget(self.is_cuda)
+        self.h4.addWidget(self.shibie_split_type)
         self.h4.addWidget(self.rephrase)
-        self.h4.addWidget(self.rephrase_local)
-        self.h4.addWidget(self.remove_noise)
+        self.h4.addWidget(self.lable_out)
+        self.h4.addWidget(self.out_format)
         self.h4.addWidget(self.copysrt_rawvideo)
         self.h4.addStretch()
         # 语音调整行
@@ -136,9 +140,9 @@ class Ui_recogn(object):
         self.threshold = QtWidgets.QLineEdit()
         self.threshold.setMaximumWidth(80)
         self.threshold.setVisible(False)
+        self.hfaster_layout.addStretch()
         self.hfaster_layout.addWidget(self.threshold_label)
         self.hfaster_layout.addWidget(self.threshold)
-        self.hfaster_layout.addStretch()
 
         self.min_speech_duration_ms_label = QtWidgets.QLabel()
         self.min_speech_duration_ms_label.setVisible(False)
@@ -147,7 +151,6 @@ class Ui_recogn(object):
         self.min_speech_duration_ms.setVisible(False)
         self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
         self.hfaster_layout.addWidget(self.min_speech_duration_ms)
-        self.hfaster_layout.addStretch()
 
         self.min_silence_duration_ms_label = QtWidgets.QLabel()
         self.min_silence_duration_ms_label.setVisible(False)
@@ -172,6 +175,7 @@ class Ui_recogn(object):
         self.speech_pad_ms.setVisible(False)
         self.hfaster_layout.addWidget(self.speech_pad_ms_label)
         self.hfaster_layout.addWidget(self.speech_pad_ms)
+        self.hfaster_layout.addStretch()
 
         self.verticalLayout_3.addLayout(self.hfaster_layout)
         self.verticalLayout_3.addLayout(self.h4)
@@ -229,11 +233,7 @@ class Ui_recogn(object):
              tr('whisper_type_avg')]
         )
         self.shibie_split_type.setToolTip(tr('fenge_tips'))
-        self.split_label.setText(tr("Split mode"))
-        self.equal_split_time.setToolTip(
-            tr("Duration of each segment/second"))
-        self.equal_split_time.setText(str(config.settings.get('interval_split', 10)))
-        self.equal_split_time_label.setText(tr("Sec"))
+
         self.lable_out.setText(tr("Subtitle format:"))
         self.out_format.addItems([
             "srt",
@@ -243,10 +243,6 @@ class Ui_recogn(object):
         ])
         self.shibie_stop.setText(tr("Stop"))
         self.shibie_stop.setCursor(Qt.PointingHandCursor)
-        self.rephrase.setText(tr("LLM Rephrase"))
-        self.rephrase.setToolTip(tr("When selecting the faster/openai-whisper channel, the large model will be used to re-segment the sentence. If it fails, the original segmentation will be used."))
-        self.rephrase_local.setText(tr("Rephrase Local"))
-        self.rephrase_local.setToolTip(tr("When selecting the faster/openai-whisper channel, the local algorithm will be used to re-segment the sentence"))
 
         self.remove_noise.setText(tr("Noise reduction"))
         self.remove_noise.setToolTip(
@@ -280,3 +276,4 @@ class Ui_recogn(object):
 
         self.label_3.setText(tr("Source lang"))
         self.shibie_startbtn.setText(tr("Start"))
+        QtCore.QMetaObject.connectSlotsByName(recogn)

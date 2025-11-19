@@ -6,6 +6,7 @@ import sys
 import requests
 from videotrans.configure.config import logs
 from pathlib import Path
+from functools import lru_cache
 
 
 def get_elevenlabs_role(force=False, raise_exception=False):
@@ -142,18 +143,23 @@ def get_doubao2_rolelist(role_name=None, langcode="zh"):
 
 
 #  get role by edge tts
-def get_edge_rolelist():
+@lru_cache(maxsize=None)
+def get_edge_rolelist(role_name=None,locale=None):
     from videotrans.configure import config
     from . import help_misc
     voice_list = {}
-    voice_file=config.ROOT_DIR + "/videotrans/voicejson/voice_list.json"
+    voice_file=config.ROOT_DIR + "/videotrans/voicejson/edge_tts.json"
     if help_misc.vail_file(voice_file):
         try:
             with open(voice_file,'r',encoding='utf-8') as f:
                 voice_list = json.loads(f.read())
         except (OSError,json.JSONDecodeError):
             pass
+    if role_name and locale:
+        #print(f'{role_name=},{locale=}')
+        return voice_list.get(locale.split('-')[0],{}).get(role_name)
     return voice_list
+
 
 def get_azure_rolelist():
     from videotrans.configure import config
@@ -334,5 +340,5 @@ def set_process(*, text="", type="logs", uuid=None):
             config.push_queue(uuid, log)
         else:
             config.global_msg.append(log)
-    except Exception:
-        pass
+    except Exception as e:
+        config.logger.exception(f'set_process：{e}',exc_info=True)

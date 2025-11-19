@@ -377,7 +377,9 @@ def openwin():
                 "uuid": it['uuid'],
                 "pitch": pitch,
                 "tts_type": tts_type,
-                "voice_autorate": winobj.voice_autorate.isChecked()
+                "voice_autorate": winobj.voice_autorate.isChecked(),
+                "remove_silent_mid": winobj.remove_silent_mid.isChecked(),
+                "align_sub_audio":False
             }
             trk = DubbingSrt(cfg=TaskCfg(**cfg|it),out_ext=winobj.out_format.currentText())
             config.dubb_queue.put_nowait(trk)
@@ -395,6 +397,8 @@ def openwin():
         config.params["dubb_hecheng_rate"] = int(winobj.hecheng_rate.value())
         config.params["dubb_pitch_rate"] = int(winobj.pitch_rate.value())
         config.params["dubb_volume_rate"] = int(winobj.volume_rate.value())
+        if not config.params["dubb_voice_autorate"]:
+            config.params['dubb_remove_silent_mid']=winobj.remove_silent_mid.isChecked()
         config.getset_params(config.params)
 
     def stop_tts():
@@ -523,6 +527,10 @@ def openwin():
         if t == '-':
             winobj.hecheng_role.addItems(['No'])
             return
+        if not code:
+            winobj.hecheng_role.addItems(['No'])
+            return
+        vt = code.split('-')[0]# if code != 'yue' else "zh"
 
         if tts_type == tts.EDGE_TTS:
             show_rolelist = tools.get_edge_rolelist()
@@ -543,10 +551,6 @@ def openwin():
             winobj.hecheng_language.setCurrentText('-')
             tools.show_error(tr('nojueselist'))
             return
-        if not code:
-            winobj.hecheng_role.addItems(['No'])
-            return
-        vt = code.split('-')[0]# if code != 'yue' else "zh"
         if vt not in show_rolelist:
             winobj.hecheng_role.addItems(['No'])
             return
@@ -554,11 +558,14 @@ def openwin():
             winobj.hecheng_role.addItems(list(show_rolelist[vt].keys()))
             return
 
-        if len(show_rolelist[vt]) < 2:
+        if len(show_rolelist[vt]) < 1:
             winobj.hecheng_language.setCurrentText('-')
             tools.show_error(tr('waitrole'))
             return
-        winobj.hecheng_role.addItems(show_rolelist[vt])
+        if isinstance(show_rolelist[vt],list):    
+            winobj.hecheng_role.addItems(show_rolelist[vt])
+        else:
+            winobj.hecheng_role.addItems(list(show_rolelist[vt].keys()))
 
     # 导入字幕
     def hecheng_import_fun():
@@ -586,6 +593,9 @@ def openwin():
         if winobj.error_msg:
             tools.show_error(winobj.error_msg)
 
+    def check_voice_autorate(state):
+        winobj.remove_silent_mid.setVisible(not state)
+
     from videotrans.component.set_form import Peiyinform
     winobj = Peiyinform()
     config.child_forms['fn_peiyin'] = winobj
@@ -597,6 +607,10 @@ def openwin():
         winobj.hecheng_rate.setValue(config.params.get('dubb_hecheng_rate', 0))
         winobj.pitch_rate.setValue(config.params.get('dubb_pitch_rate', 0))
         winobj.volume_rate.setValue(config.params.get('dubb_volume_rate', 0))
+        
+        if not config.params.get('dubb_voice_autorate', False):
+            winobj.remove_silent_mid.setVisible(True)
+            winobj.remove_silent_mid.setChecked(config.params.get('dubb_remove_silent_mid', False))
 
         winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
@@ -607,12 +621,13 @@ def openwin():
         last_tts_type = config.params.get("dubb_tts_type", 0)
         langnamelist = getlangnamelist(last_tts_type)
         winobj.hecheng_language.addItems(langnamelist)
-        # if last_tts_type!=EDGE_TTS:
+
         winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
         winobj.hecheng_language.setCurrentIndex(config.params.get("dubb_source_language", 0))
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)
         winobj.tts_type.setCurrentIndex(last_tts_type)
-        # else:
+        winobj.voice_autorate.toggled.connect(check_voice_autorate)
+
 
         winobj.hecheng_role.setCurrentIndex(config.params.get("dubb_role", 0))
         winobj.out_format.setCurrentIndex(config.params.get("dubb_out_format", 0))

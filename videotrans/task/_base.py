@@ -52,6 +52,10 @@ class BaseTask(BaseCon):
     # 语音识别创建原始语言字幕
     def recogn(self):
         pass
+    
+    # 说话人识别，Funasr/豆包语音识别大模型 /Deepgram 除外，再判断是否已有说话人，Gemini/openai gpt4-dia 会生成说话人
+    def diariz(self):
+        pass
 
     # 将原始语言字幕翻译到目标语言字幕
     def trans(self):
@@ -111,12 +115,12 @@ class BaseTask(BaseCon):
 
     def _check_target_sub(self, source_srt_list, target_srt_list):
         import re, copy
-
         if len(source_srt_list) == 1 or len(target_srt_list) == 1:
             target_srt_list[0]['line'] = 1
             return target_srt_list[:1]
         source_len = len(source_srt_list)
         target_len = len(target_srt_list)
+        logs(f'核对翻译结果前->原始语言字幕行数:{source_len},目标语言字幕行数:{target_len}')
         
         if source_len==target_len:
             for i,it in enumerate(source_srt_list):
@@ -154,6 +158,45 @@ class BaseTask(BaseCon):
         logs(f'处理后目标字幕：{target_srt_list=}')
         return target_srt_list
 
+
+    async def _edgetts_single(self,target_audio,kwargs):
+        from edge_tts import Communicate
+        from edge_tts.exceptions import NoAudioReceived
+        import aiohttp,asyncio
+        from io import BytesIO
+        
+        useproxy_initial = None if not self.proxy_str or Path(f'{config.ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
+        proxies_to_try = [useproxy_initial]
+        if useproxy_initial is not None:
+            proxies_to_try.append(None)
+        last_exception = None
+        for proxy in proxies_to_try:
+            try:
+                audio_buffer = BytesIO()
+                communicate_task = Communicate(
+                            text=kwargs['text'],
+                            voice=kwargs['voice'],
+                            rate=kwargs['rate'],
+                            volume=kwargs['volume'],
+                            proxy=proxy,
+                            pitch=kwargs['pitch']
+                        )
+                idx=0
+                async for chunk in communicate_task.stream():
+                    if chunk["type"] == "audio":
+                        audio_buffer.write(chunk["data"])
+                        self._signal(text=f'{idx} segment')
+                        idx+=1
+                audio_buffer.seek(0)        
+                from pydub import AudioSegment
+                au=AudioSegment.from_file(audio_buffer,format="mp3")
+                au.export(target_audio,format='mp3')
+                return
+            except (NoAudioReceived, aiohttp.ClientError) as e:
+                last_exception = e
+            except Exception:
+                raise
+        raise last_exception if last_exception else RuntimeError(f'Dubbing error')
     # 完整流程判断是否需退出，子功能需重写
     def _exit(self):
         if config.exit_soft or config.current_status != 'ing':

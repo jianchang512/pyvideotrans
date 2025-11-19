@@ -3,8 +3,7 @@ from dataclasses import dataclass
 
 import dashscope
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
-    RetryError
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, RetryError
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -35,9 +34,9 @@ class QWENTTS(BaseTTS):
         if self.stop_next_all or  self._exit() or not data_item.get('text','').strip():
             return
         # 主循环，用于无限重试连接错误
-        #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-        #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-        #       after=after_log(config.logger, logging.INFO))
+        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+               after=after_log(config.logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -69,7 +68,7 @@ class QWENTTS(BaseTTS):
 
         try:
             _run()
-        #except RetryError as e:
-        #    self.error= e.last_attempt.exception()
+        except RetryError as e:
+            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e

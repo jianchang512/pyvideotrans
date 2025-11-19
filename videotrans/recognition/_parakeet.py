@@ -45,7 +45,7 @@ class ParaketRecogn(BaseRecogn):
                 raise StopRetry(tr('The returned subtitles have no timestamp and cannot be used'))
         tmp = transcript.split("----..----")
 
-        if len(tmp)==1 or  not (config.settings.get('rephrase') or config.settings.get('rephrase_local')):
+        if len(tmp)==1 or  int(config.settings.get('rephrase',0))==0:
             return tools.get_subtitle_from_srt(tmp[0], is_file=False)
         
         words_list=[]
@@ -58,12 +58,12 @@ class ParaketRecogn(BaseRecogn):
         if not words_list:    
             return tools.get_subtitle_from_srt(tmp[0], is_file=False)
             
-        if config.settings.get('rephrase'):
+        if int(config.settings.get('rephrase',0))==1:
             try:
                 return self.re_segment_sentences(words_list)
             except Exception as e:
                 logs(f'LLM重新断句失败', level="except")
-        elif config.settings.get('rephrase_local'):
+        else:
             try:
                 return self.re_segment_sentences_local(words_list)
             except Exception as e:

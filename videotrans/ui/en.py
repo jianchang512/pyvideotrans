@@ -69,7 +69,6 @@ class Ui_MainWindow(object):
         self.btn_save_dir = QtWidgets.QPushButton()
         self.btn_save_dir.setMinimumSize(QtCore.QSize(120, 30))
         self.btn_save_dir.setObjectName("btn_save_dir")
-        self.horizontalLayout_6.addWidget(self.btn_save_dir)
 
 
         self.copysrt_rawvideo = QtWidgets.QCheckBox(self.layoutWidget)
@@ -88,9 +87,6 @@ class Ui_MainWindow(object):
         self.shutdown.setText(tr("Automatic shutdown"))
         self.shutdown.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
 
-        self.horizontalLayout_6.addWidget(self.copysrt_rawvideo)
-        self.horizontalLayout_6.addWidget(self.shutdown)
-        
         self.horizontalLayout_6.addStretch()
         # proxy
         proxy_layout=QtWidgets.QHBoxLayout()
@@ -102,17 +98,16 @@ class Ui_MainWindow(object):
         self.proxy = QtWidgets.QLineEdit(self.layoutWidget)
         self.proxy.setMinimumSize(QtCore.QSize(0, 30))
         self.proxy.setObjectName("proxy")
-        if config.defaulelang!='zh':
-            self.label.hide()
-            self.proxy.hide()
+
         
         proxy_layout.addWidget(self.label)
-        proxy_layout.addWidget(self.proxy)        
+        proxy_layout.addWidget(self.proxy)
+
+        self.horizontalLayout_6.addWidget(self.btn_save_dir)
+        self.horizontalLayout_6.addWidget(self.copysrt_rawvideo)
+        self.horizontalLayout_6.addWidget(self.shutdown)
         
-        
-        self.horizontalLayout_6.addLayout(proxy_layout)
-        
-        # proxy
+         
         
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_6)
@@ -148,139 +143,33 @@ class Ui_MainWindow(object):
 
 
 
-        self.split_label = QtWidgets.QPushButton()
-        self.split_label.setStyleSheet("background-color: rgba(255, 255, 255,0)")
-        self.split_label.setObjectName("split_label")
-        self.split_label.setCursor(Qt.PointingHandCursor)
-        self.split_label.setToolTip(
-            tr("Click for detailed description"))
-        self.split_label.setText(tr("Speech Split"))
 
-        self.split_type = QtWidgets.QComboBox(self.layoutWidget)
+
+        self.rephrase = QtWidgets.QComboBox()
+        self.rephrase.addItems([tr('Default sentence'),tr("LLM Rephrase"),tr("Rephrase Local")])
+        self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
+        
+       
+        self.split_type = QtWidgets.QComboBox()
         self.split_type.setMinimumSize(QtCore.QSize(80, 30))
         self.split_type.setObjectName("split_type")
-
-        self.equal_split_time = QtWidgets.QLineEdit()
-        self.equal_split_time.setToolTip(
-            tr("Duration of each segment/second"))
-        self.equal_split_time.setText(str(config.settings.get('interval_split', 10)))
-        self.equal_split_time_label = QtWidgets.QLabel()
-        self.equal_split_time_label.setText(tr("Sec"))
-        self.equal_split_time.setVisible(False)
-        self.equal_split_time_label.setVisible(False)
-
-        self.equal_split_layout = QtWidgets.QHBoxLayout()
-        self.equal_split_layout.addWidget(self.equal_split_time)
-        self.equal_split_layout.addWidget(self.equal_split_time_label)
-
-        self.rephrase = QtWidgets.QCheckBox()
-        self.rephrase.setText(tr("LLM Rephrase"))
-        self.rephrase.setToolTip(
-            tr("When selecting the faster/openai-whisper channel, the large model will be used to re-segment the sentence. If it fails, the original segmentation will be used."))
         
-        self.rephrase_local = QtWidgets.QCheckBox()
-        self.rephrase_local.setText(tr("Rephrase Local"))
-        self.rephrase_local.setToolTip(
-            tr("When selecting the faster/openai-whisper channel, the local algorithm will be used to re-segment the sentence"))
-        
-        
-        self.remove_noise = QtWidgets.QCheckBox()
-        self.remove_noise.setText(tr("Noise reduction"))
-        self.remove_noise.setToolTip(
-            tr("Select to perform noise reduction processing from modelscope.cn, which takes a long time"))
 
         self.horizontalLayout_4.addWidget(self.reglabel)
         self.horizontalLayout_4.addWidget(self.recogn_type)
         self.horizontalLayout_4.addWidget(self.model_name_help)
         self.horizontalLayout_4.addWidget(self.model_name)
         
-        self.horizontalLayout_4.addWidget(self.split_label)
-        self.horizontalLayout_4.addWidget(self.split_type)
-        self.horizontalLayout_4.addLayout(self.equal_split_layout)
-        self.horizontalLayout_4.addStretch()
+
+
         self.horizontalLayout_4.addWidget(self.rephrase)
-        self.horizontalLayout_4.addWidget(self.rephrase_local)
-        self.horizontalLayout_4.addWidget(self.remove_noise)
+        self.horizontalLayout_4.addWidget(self.split_type)
+        self.horizontalLayout_4.addStretch()
+
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
         
-        # 语音识别精细调整行
-        self.hfaster_layout = QtWidgets.QHBoxLayout()
-        self.hfaster_help = QtWidgets.QPushButton()
-        self.hfaster_help.setText(tr("Help"))
-        self.hfaster_help.setToolTip(tr("Click to open help page"))
-        self.hfaster_help.setStyleSheet("background-color:transparent;color:#999999")
-        self.hfaster_help.setCursor(Qt.PointingHandCursor)
-        self.hfaster_help.setVisible(False)
-
-        self.threshold_label = QtWidgets.QLabel()
-        self.threshold_label.setText(tr("threshold"))
-        self.threshold_label.setVisible(False)
-        self.threshold = QtWidgets.QLineEdit()
-        self.threshold.setPlaceholderText('200ms')
-        self.threshold.setMaximumWidth(80)
-        self.threshold.setVisible(False)
-        self.threshold.setToolTip(
-            tr("Threshold for speech detection"))
-        self.threshold.setText(str(config.settings.get('threshold', 0.5)))
-        self.hfaster_layout.addWidget(self.hfaster_help)
-        self.hfaster_layout.addWidget(self.threshold_label)
-        self.hfaster_layout.addWidget(self.threshold)
-
-        self.min_speech_duration_ms_label = QtWidgets.QLabel()
-        self.min_speech_duration_ms_label.setText(
-            tr("min_speech_duration_ms"))
-        self.min_speech_duration_ms_label.setVisible(False)
-        self.min_speech_duration_ms = QtWidgets.QLineEdit()
-        self.min_speech_duration_ms.setPlaceholderText('200ms')
-        self.min_speech_duration_ms.setMaximumWidth(80)
-        self.min_speech_duration_ms.setVisible(False)
-        self.min_speech_duration_ms.setText(str(config.settings.get('min_speech_duration_ms', 1000)))
-        self.min_speech_duration_ms.setToolTip(
-            tr("Minimum speech duration (ms)"))
-        self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
-        self.hfaster_layout.addWidget(self.min_speech_duration_ms)
-
-        self.min_silence_duration_ms_label = QtWidgets.QLabel()
-        self.min_silence_duration_ms_label.setText(
-            tr("min_silence_duration_ms"))
-        self.min_silence_duration_ms_label.setVisible(False)
-        self.min_silence_duration_ms = QtWidgets.QLineEdit()
-        self.min_silence_duration_ms.setPlaceholderText('250ms')
-        self.min_silence_duration_ms.setMaximumWidth(80)
-        self.min_silence_duration_ms.setVisible(False)
-        self.min_silence_duration_ms.setText(str(config.settings.get('min_silence_duration_ms', 250)))
-        self.min_silence_duration_ms.setToolTip(
-            tr("Minimum silence duration (ms)"))
-        self.hfaster_layout.addWidget(self.min_silence_duration_ms_label)
-        self.hfaster_layout.addWidget(self.min_silence_duration_ms)
-
-        self.max_speech_duration_s_label = QtWidgets.QLabel()
-        self.max_speech_duration_s_label.setText(tr("max_speech_duration_s"))
-        self.max_speech_duration_s_label.setVisible(False)
-        self.max_speech_duration_s = QtWidgets.QLineEdit()
-        self.max_speech_duration_s.setMaximumWidth(80)
-        self.max_speech_duration_s.setVisible(False)
-        self.max_speech_duration_s.setText(str(config.settings.get('max_speech_duration_s', 8)))
-        self.max_speech_duration_s.setToolTip(
-            tr("max speech duration (s)"))
-        self.hfaster_layout.addWidget(self.max_speech_duration_s_label)
-        self.hfaster_layout.addWidget(self.max_speech_duration_s)
-
-        self.speech_pad_ms_label = QtWidgets.QLabel()
-        self.speech_pad_ms_label.setText(tr("speech_pad_ms"))
-        self.speech_pad_ms_label.setVisible(False)
-        self.speech_pad_ms = QtWidgets.QLineEdit()
-        self.speech_pad_ms.setPlaceholderText('200ms')
-        self.speech_pad_ms.setMaximumWidth(80)
-        self.speech_pad_ms.setVisible(False)
-        self.speech_pad_ms.setToolTip(
-            tr("Speech padding (ms)"))
-        self.speech_pad_ms.setText(str(config.settings.get('speech_pad_ms', 400)))
-        self.hfaster_layout.addWidget(self.speech_pad_ms_label)
-        self.hfaster_layout.addWidget(self.speech_pad_ms)
-
-        self.verticalLayout_3.addLayout(self.hfaster_layout)
+        
         
         
         
@@ -319,8 +208,9 @@ class Ui_MainWindow(object):
         self.label_3.setObjectName("label_3")
         self.label_3.setStyleSheet("""background-color:transparent""")
         self.target_language = QtWidgets.QComboBox(self.layoutWidget)
-        #self.target_language.setMinimumSize(QtCore.QSize(100, 30))
         self.target_language.setObjectName("target_language")
+        
+        
 
         self.horizontalLayout_5.addWidget(self.label_2)
         self.horizontalLayout_5.addWidget(self.source_language)
@@ -328,26 +218,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.target_language)
         self.horizontalLayout_5.addStretch()
 
-        self.glossary = QtWidgets.QPushButton(self.layoutWidget)
-        self.glossary.setMinimumSize(QtCore.QSize(0, 30))
-        self.glossary.setObjectName("glossary")
-        self.glossary.setText(tr("glossary"))
-        self.glossary.setStyleSheet("""background-color:transparent""")
-        self.glossary.setCursor(Qt.PointingHandCursor)
-        self.glossary.setToolTip(
-            tr("Click to set up and modify the glossary"))
-        
-        
-
-        
-        self.aisendsrt = QtWidgets.QCheckBox()
-        self.aisendsrt.setText(tr("Send SRT"))
-        self.aisendsrt.setToolTip(
-            tr("When using AI translation channel, you can translate in srt format, but there may be more empty lines"))
-        self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
-
-        self.horizontalLayout_5.addWidget(self.glossary)
-        self.horizontalLayout_5.addWidget(self.aisendsrt)
         
 
         self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
@@ -386,50 +256,16 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.voice_role)
         self.horizontalLayout.addWidget(self.listen_btn)
         self.horizontalLayout.addStretch()
-
-        self.label_6 = QtWidgets.QLabel(self.layoutWidget)
-
-        self.label_6.setObjectName("label_6")
-
-        self.voice_rate = QtWidgets.QSpinBox(self.layoutWidget)
-        self.voice_rate.setMinimum(-50)
-        self.voice_rate.setMaximum(50)
-        self.voice_rate.setMinimumWidth(80)
-        self.voice_rate.setObjectName("voice_rate")
-
-        self.volume_label = QtWidgets.QLabel(self.layoutWidget)
-        self.volume_label.setText(tr("Volume+"))
-        self.volume_rate = QtWidgets.QSpinBox(self.layoutWidget)
-        self.volume_rate.setMinimum(-95)
-        self.volume_rate.setToolTip(tr("Percentage of volume adjustment"))
-        self.volume_rate.setMaximum(100)
-        self.volume_rate.setMinimumWidth(80)
-        self.volume_rate.setObjectName("volume_rate")
+            
 
 
-        self.pitch_label = QtWidgets.QLabel(self.layoutWidget)
-        self.pitch_label.setText(tr("Pitch+"))
-        self.pitch_rate = QtWidgets.QSpinBox(self.layoutWidget)
-        self.pitch_rate.setMinimum(-100)
-        self.pitch_rate.setMaximum(100)
-        self.pitch_rate.setMinimumWidth(80)
-        self.pitch_rate.setObjectName("pitch_rate")
-
-
-        self.horizontalLayout.addWidget(self.label_6)
-        self.horizontalLayout.addWidget(self.voice_rate)
-        self.horizontalLayout.addWidget(self.volume_label)
-        self.horizontalLayout.addWidget(self.volume_rate)
-        self.horizontalLayout.addWidget(self.pitch_label)
-        self.horizontalLayout.addWidget(self.pitch_rate)
+        
 
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
         
         # 对齐行
-        self.gaoji_layout_inner = QtWidgets.QHBoxLayout()
-        self.gaoji_layout_inner.setObjectName("gaoji_layout_inner")
-
+        self.align_layout = QtWidgets.QHBoxLayout()
         self.align_btn = QtWidgets.QPushButton()
 
         self.align_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
@@ -437,34 +273,115 @@ class Ui_MainWindow(object):
         self.align_btn.setCursor(Qt.PointingHandCursor)
         self.align_btn.setText(tr("Alignment control"))
         self.align_btn.setToolTip(tr("View alignment tutorial"))
-        self.gaoji_layout_inner.addWidget(self.align_btn)
 
         self.voice_autorate = QtWidgets.QCheckBox(self.layoutWidget)
         self.voice_autorate.setObjectName("voice_autorate")
 
         self.video_autorate = QtWidgets.QCheckBox(self.layoutWidget)
         self.video_autorate.setObjectName("videoe_autorate")
+        
+        self.remove_silent_mid = QtWidgets.QCheckBox()
+        self.remove_silent_mid.setObjectName("remove_silent_mid")
+        self.remove_silent_mid.setVisible(False)
+        self.align_sub_audio = QtWidgets.QCheckBox()
+        self.align_sub_audio.setObjectName("align_sub_audio")
+        self.align_sub_audio.setVisible(False)
+
+
 
         self.subtitle_type = QtWidgets.QComboBox(self.layoutWidget)
         self.subtitle_type.setMinimumSize(QtCore.QSize(100, 30))
         self.subtitle_type.setObjectName("subtitle_type")
 
+        
+
+        
+        
+        
+
+        self.align_layout.addWidget(self.align_btn)
+        self.align_layout.addWidget(self.voice_autorate)
+        self.align_layout.addWidget(self.video_autorate)
+        self.align_layout.addWidget(self.remove_silent_mid)
+        self.align_layout.addWidget(self.align_sub_audio)
+        self.align_layout.addWidget(self.subtitle_type)
+
+        
+        
+        self.set_adv_status=QtWidgets.QPushButton()
+        self.set_adv_status.setStyleSheet("background-color:transparent;border:0")
+        self.set_adv_status.setText(tr('More settings'))
+        self.set_adv_status.setCursor(Qt.PointingHandCursor)
+
+        self.align_layout.addLayout(proxy_layout)        
+        self.align_layout.addWidget(self.set_adv_status)        
+        self.verticalLayout_3.addLayout(self.align_layout)
+        
+        # 背景行
+        self.bgm_layout = QtWidgets.QHBoxLayout()
+        self.bgm_layout.setObjectName("bgm_layout")
+
+        self.is_separate = QtWidgets.QCheckBox(self.layoutWidget)
+        self.is_separate.setMinimumSize(QtCore.QSize(0, 30))
+        self.is_separate.setObjectName("is_separate")
+        self.is_separate.setVisible(False)
+
+        self.addbackbtn = QtWidgets.QPushButton(self.layoutWidget)
+        self.addbackbtn.setObjectName("addbackbtn")
+        self.addbackbtn.setVisible(False)
+        self.addbackbtn.setCursor(Qt.PointingHandCursor)
+
+        self.back_audio = QtWidgets.QLineEdit(self.layoutWidget)
+        self.back_audio.setObjectName("back_audio")
+        self.back_audio.setVisible(False)
+
+        # 是否循环播放背景
+        self.is_loop_bgm = QtWidgets.QCheckBox(self.layoutWidget)
+        self.is_loop_bgm.setChecked(True)
+        self.is_loop_bgm.setVisible(False)
+        self.is_loop_bgm.setText(tr("loop the BGM"))
+        self.is_loop_bgm.setToolTip(
+            tr("Whether to loop the background music when the duration is insufficient"))
+
+        self.bgmvolume_label = QtWidgets.QLabel()
+        self.bgmvolume_label.setText(tr("Volume BGM"))
+        self.bgmvolume_label.setVisible(False)
+        self.bgmvolume = QtWidgets.QLineEdit()
+        self.bgmvolume.setText('0.8')
+        self.bgmvolume.setMaximumWidth(80)
+        self.bgmvolume.setVisible(False)
+        self.bgmvolume.setToolTip(
+            tr("BGM volume is a multiple of the original volume, greater than 1 increases, less than decreases"))
+
+        self.bgm_layout.addWidget(self.is_separate)
+        self.bgm_layout.addWidget(self.is_loop_bgm)
+        self.bgm_layout.addWidget(self.bgmvolume_label)
+        self.bgm_layout.addWidget(self.bgmvolume)
+        
+        self.bgm_layout.addWidget(self.addbackbtn)
+        self.bgm_layout.addWidget(self.back_audio)
+        self.bgm_layout.addStretch()
+        
+        
         self.label_cjklinenums = QtWidgets.QLabel(self.layoutWidget)
         self.label_cjklinenums.setObjectName("label_cjklinenums")
         self.label_cjklinenums.setText(
             tr("Line length"))
+        self.label_cjklinenums.setVisible(False)
 
         self.cjklinenums = QtWidgets.QSpinBox(self.layoutWidget)
 
         self.cjklinenums.setMinimum(5)
         self.cjklinenums.setMaximum(100)
         self.cjklinenums.setMinimumWidth(90)
+        self.cjklinenums.setVisible(False)
         self.cjklinenums.setToolTip(
             tr("Chinese/Japanese/Korean line length"))
         self.cjklinenums.setObjectName("cjklinenums")
         self.cjklinenums.setValue(int(config.settings.get('cjk_len', 20)))
 
         self.label_othlinenums = QtWidgets.QLabel(self.layoutWidget)
+        self.label_othlinenums.setVisible(False)
         self.label_othlinenums.setObjectName("label_othlinenums")
         self.label_othlinenums.setText(
             tr("Ohter Line length"))
@@ -473,71 +390,239 @@ class Ui_MainWindow(object):
         self.othlinenums.setMinimum(5)
         self.othlinenums.setMinimumWidth(90)
         self.othlinenums.setMaximum(100)
+        self.othlinenums.setVisible(False)
         self.othlinenums.setToolTip(
             tr("Number of characters per line for subtitles in other languages"))
         self.othlinenums.setObjectName("othlinenums")
         self.othlinenums.setValue(int(config.settings.get('other_len', 60)))
-
-        self.gaoji_layout_inner.addWidget(self.voice_autorate)
-        self.gaoji_layout_inner.addWidget(self.video_autorate)
-        
-        self.subtitle_label=QtWidgets.QLabel(tr('How embed subtitles'))
-        self.gaoji_layout_inner.addWidget(self.subtitle_label)
-        self.gaoji_layout_inner.addWidget(self.subtitle_type)
-        
         self.set_ass=QtWidgets.QPushButton()
         self.set_ass.setStyleSheet("background-color:transparent;border:0")
         self.set_ass.setText(tr('Modify hard subtitle style'))
         self.set_ass.setCursor(Qt.PointingHandCursor)
-        self.gaoji_layout_inner.addWidget(self.set_ass)
+        self.set_ass.setVisible(False)
         
-        self.gaoji_layout_inner.addStretch()
+        # 单行字符数
+        self.adv_layout=QtWidgets.QHBoxLayout()
+        self.adv_layout.addWidget(self.label_cjklinenums)
+        self.adv_layout.addWidget(self.cjklinenums)
+        self.adv_layout.addWidget(self.label_othlinenums)
+        self.adv_layout.addWidget(self.othlinenums)
+        self.adv_layout.addWidget(self.set_ass)
+        self.adv_layout.addStretch()
         
-        self.gaoji_layout_inner.addWidget(self.label_cjklinenums)
-        self.gaoji_layout_inner.addWidget(self.cjklinenums)
-        self.gaoji_layout_inner.addWidget(self.label_othlinenums)
-        self.gaoji_layout_inner.addWidget(self.othlinenums)
-        self.verticalLayout_3.addLayout(self.gaoji_layout_inner)
+        # 语音识别精细调整行
+        self.hfaster_layout = QtWidgets.QHBoxLayout()
+
+        self.threshold_label = QtWidgets.QLabel()
+        self.threshold_label.setText(tr("threshold"))
+        self.threshold_label.setVisible(False)
+        self.threshold = QtWidgets.QLineEdit()
+        self.threshold.setMaximumWidth(80)
+        self.threshold.setVisible(False)
+        self.threshold.setToolTip(
+            tr("Threshold for speech detection"))
+        self.threshold.setText(str(config.settings.get('threshold', 0.5)))
+        self.hfaster_layout.addWidget(self.threshold_label)
+        self.hfaster_layout.addWidget(self.threshold)
+
+        self.min_speech_duration_ms_label = QtWidgets.QLabel()
+        self.min_speech_duration_ms_label.setText(
+            tr("min_speech_duration_ms"))
+        self.min_speech_duration_ms_label.setVisible(False)
+        self.min_speech_duration_ms = QtWidgets.QLineEdit()
+        self.min_speech_duration_ms.setVisible(False)
+        self.min_speech_duration_ms.setPlaceholderText('200ms')
+        self.min_speech_duration_ms.setMaximumWidth(80)
+        self.min_speech_duration_ms.setText(str(config.settings.get('min_speech_duration_ms', 1000)))
+        self.min_speech_duration_ms.setToolTip(
+            tr("Minimum speech duration (ms)"))
+        self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
+        self.hfaster_layout.addWidget(self.min_speech_duration_ms)
+
+        self.min_silence_duration_ms_label = QtWidgets.QLabel()
+        self.min_silence_duration_ms_label.setVisible(False)
+        self.min_silence_duration_ms_label.setText(
+            tr("min_silence_duration_ms"))
+        self.min_silence_duration_ms = QtWidgets.QLineEdit()
+        self.min_silence_duration_ms.setVisible(False)
+        self.min_silence_duration_ms.setMaximumWidth(80)
+        self.min_silence_duration_ms.setText(str(config.settings.get('min_silence_duration_ms', 250)))
+        self.min_silence_duration_ms.setToolTip(
+            tr("Minimum silence duration (ms)"))
+
+        self.max_speech_duration_s_label = QtWidgets.QLabel()
+        self.max_speech_duration_s_label.setVisible(False)
+        self.max_speech_duration_s_label.setText(tr("max_speech_duration_s"))
+        self.max_speech_duration_s = QtWidgets.QLineEdit()
+        self.max_speech_duration_s.setVisible(False)
+        self.max_speech_duration_s.setMaximumWidth(80)
+        self.max_speech_duration_s.setText(str(config.settings.get('max_speech_duration_s', 8)))
+        self.max_speech_duration_s.setToolTip(
+            tr("max speech duration (s)"))
+        self.hfaster_layout.addWidget(self.max_speech_duration_s_label)
+        self.hfaster_layout.addWidget(self.max_speech_duration_s)
+        self.hfaster_layout.addWidget(self.min_silence_duration_ms_label)
+        self.hfaster_layout.addWidget(self.min_silence_duration_ms)
+
+
         
-        # 背景行
-        self.gaoji_layout_inner2 = QtWidgets.QHBoxLayout()
-        self.gaoji_layout_inner2.setObjectName("gaoji_layout_inner2")
-
-        self.is_separate = QtWidgets.QCheckBox(self.layoutWidget)
-        self.is_separate.setMinimumSize(QtCore.QSize(0, 30))
-        self.is_separate.setObjectName("is_separate")
-
-        self.addbackbtn = QtWidgets.QPushButton(self.layoutWidget)
-        self.addbackbtn.setObjectName("addbackbtn")
-
-        self.back_audio = QtWidgets.QLineEdit(self.layoutWidget)
-        self.back_audio.setObjectName("back_audio")
-
-        # 是否循环播放背景
-        self.is_loop_bgm = QtWidgets.QCheckBox(self.layoutWidget)
-        self.is_loop_bgm.setChecked(True)
-        self.is_loop_bgm.setText(tr("loop the BGM"))
-        self.is_loop_bgm.setToolTip(
-            tr("Whether to loop the background music when the duration is insufficient"))
-
-        self.bgmvolume_label = QtWidgets.QLabel()
-        self.bgmvolume_label.setText(tr("Volume BGM"))
-        self.bgmvolume = QtWidgets.QLineEdit()
-        self.bgmvolume.setText('0.8')
-        self.bgmvolume.setMaximumWidth(80)
-        self.bgmvolume.setToolTip(
-            tr("BGM volume is a multiple of the original volume, greater than 1 increases, less than decreases"))
-
-        self.gaoji_layout_inner2.addWidget(self.is_separate)
-        self.gaoji_layout_inner2.addWidget(self.is_loop_bgm)
-        self.gaoji_layout_inner2.addWidget(self.bgmvolume_label)
-        self.gaoji_layout_inner2.addWidget(self.bgmvolume)
-        self.gaoji_layout_inner2.addStretch()
         
-        self.gaoji_layout_inner2.addWidget(self.addbackbtn)
-        self.gaoji_layout_inner2.addWidget(self.back_audio)
-        self.verticalLayout_3.addLayout(self.gaoji_layout_inner2)
+        self.remove_noise = QtWidgets.QCheckBox()
+        self.remove_noise.setText(tr("Noise reduction"))
+        self.remove_noise.setToolTip(
+            tr("Select to perform noise reduction processing from modelscope.cn, which takes a long time"))
+        self.remove_noise.setVisible(False)
         
+        
+        
+
+        
+
+
+        self.enable_diariz = QtWidgets.QCheckBox()
+        self.enable_diariz.setToolTip(tr("Speaker classification"))
+        self.enable_diariz.setText(tr("Speaker classification"))
+        
+        self.nums_diariz = QtWidgets.QComboBox()
+        self.nums_diariz.setToolTip(tr("Specifying the number of speakers"))
+        self.nums_diariz.addItems([tr("No limit"),"2","3","4","5","6","7","8","9","10"])
+
+        
+
+        self.hfaster_layout.addWidget(self.remove_noise)
+        self.hfaster_layout.addWidget(self.enable_diariz)
+        self.hfaster_layout.addWidget(self.nums_diariz)
+        self.hfaster_layout.addStretch()
+        
+        # 翻译并发
+        self.trans_thread_label = QtWidgets.QLabel(tr("Subtitles lines:"))
+        self.trans_thread_label.setVisible(False)
+        self.trans_thread = QtWidgets.QLineEdit()
+        self.trans_thread.setVisible(False)
+        self.trans_thread.setText(str(config.settings.get('trans_thread', 5)))
+        self.trans_thread.setToolTip(tr('Set dubbing threads'))
+        
+        self.aitrans_thread_label = QtWidgets.QLabel(tr("Number subtitle lines AI translation"))
+        self.aitrans_thread_label.setVisible(False)
+        self.aitrans_thread = QtWidgets.QLineEdit()
+        self.aitrans_thread.setVisible(False)
+        self.aitrans_thread.setText(str(config.settings.get('aitrans_thread', 100)))
+        self.aitrans_thread.setToolTip(tr('Set dubbing threads'))
+        
+        self.translation_wait_label = QtWidgets.QLabel(tr("Wait/s:"))
+        self.translation_wait_label.setVisible(False)
+        self.translation_wait = QtWidgets.QLineEdit()
+        self.translation_wait.setVisible(False)
+        self.translation_wait.setText(str(config.settings.get('translation_wait', 0)))
+        self.translation_wait.setToolTip(tr('The number of seconds to pause and wait after each completed request'))
+        
+        
+        self.aisendsrt = QtWidgets.QCheckBox()
+        self.aisendsrt.setVisible(False)
+        self.aisendsrt.setText(tr("Send SRT"))
+        self.aisendsrt.setToolTip(
+            tr("When using AI translation channel, you can translate in srt format, but there may be more empty lines"))
+        self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+        
+        self.glossary = QtWidgets.QPushButton(self.layoutWidget)
+        self.glossary.setMinimumSize(QtCore.QSize(0, 30))
+        self.glossary.setObjectName("glossary")
+        self.glossary.setVisible(False)
+        self.glossary.setText(tr("glossary"))
+        self.glossary.setStyleSheet("""background-color:transparent""")
+        self.glossary.setCursor(Qt.PointingHandCursor)
+        self.glossary.setToolTip(
+            tr("Click to set up and modify the glossary"))
+        
+        
+        self.trans_thread_layout = QtWidgets.QHBoxLayout()
+        self.trans_thread_layout.addWidget(self.trans_thread_label)
+        self.trans_thread_layout.addWidget(self.trans_thread)
+        self.trans_thread_layout.addWidget(self.aitrans_thread_label)
+        self.trans_thread_layout.addWidget(self.aitrans_thread)
+        self.trans_thread_layout.addWidget(self.aisendsrt)
+        self.trans_thread_layout.addWidget(self.translation_wait_label)
+        self.trans_thread_layout.addWidget(self.translation_wait)
+        self.trans_thread_layout.addWidget(self.glossary)
+        
+        self.trans_thread_layout.addStretch()
+
+        # 配音
+        
+        self.dubbing_wait_label = QtWidgets.QLabel(tr("Wait/s/1 thread:"))
+        self.dubbing_wait_label.setVisible(False)
+        self.dubbing_wait = QtWidgets.QLineEdit()
+        self.dubbing_wait.setVisible(False)
+        self.dubbing_wait.setText(str(config.settings.get('dubbing_wait', 0)))
+        self.dubbing_wait.setToolTip(tr('The number of seconds to pause and wait after each completed request'))
+        
+        self.label_6 = QtWidgets.QLabel(self.layoutWidget)
+        self.label_6.setObjectName("label_6")
+        self.label_6.setVisible(False)
+
+        self.voice_rate = QtWidgets.QSpinBox(self.layoutWidget)
+        self.voice_rate.setMinimum(-50)
+        self.voice_rate.setMaximum(50)
+        self.voice_rate.setMinimumWidth(80)
+        self.voice_rate.setObjectName("voice_rate")
+        self.voice_rate.setVisible(False)
+
+        self.volume_label = QtWidgets.QLabel(self.layoutWidget)
+        self.volume_label.setText(tr("Volume+"))
+        self.volume_label.setVisible(False)
+        self.volume_rate = QtWidgets.QSpinBox(self.layoutWidget)
+        self.volume_rate.setMinimum(-95)
+        self.volume_rate.setToolTip(tr("Percentage of volume adjustment"))
+        self.volume_rate.setMaximum(100)
+        self.volume_rate.setMinimumWidth(80)
+        self.volume_rate.setObjectName("volume_rate")
+        self.volume_rate.setVisible(False)
+
+
+        self.pitch_label = QtWidgets.QLabel(self.layoutWidget)
+        self.pitch_label.setText(tr("Pitch+"))
+        self.pitch_label.setVisible(False)
+        self.pitch_rate = QtWidgets.QSpinBox(self.layoutWidget)
+        self.pitch_rate.setVisible(False)
+        self.pitch_rate.setMinimum(-100)
+        self.pitch_rate.setMaximum(100)
+        self.pitch_rate.setMinimumWidth(80)
+        self.pitch_rate.setObjectName("pitch_rate")
+
+
+        
+
+        self.dubb_thread_layout = QtWidgets.QHBoxLayout()
+
+
+        self.dubb_thread_layout.addWidget(self.dubbing_wait_label)
+        self.dubb_thread_layout.addWidget(self.dubbing_wait)
+        self.dubb_thread_layout.addWidget(self.label_6)
+        self.dubb_thread_layout.addWidget(self.voice_rate)
+        self.dubb_thread_layout.addWidget(self.volume_label)
+        self.dubb_thread_layout.addWidget(self.volume_rate)
+        self.dubb_thread_layout.addWidget(self.pitch_label)
+        self.dubb_thread_layout.addWidget(self.pitch_rate)
+        self.dubb_thread_layout.addStretch()
+
+        
+        self.adv_layout_outer=QtWidgets.QVBoxLayout()
+        self.advcontainer = QtWidgets.QWidget()
+        self.advcontainer.setLayout(self.adv_layout_outer)
+        self.advcontainer.setObjectName("advContainer")
+        self.advcontainer.setStyleSheet("""#advContainer {
+        border: 1px solid #455364;
+        border-radius: 5px;         
+        padding: 10px; 
+    }""")
+
+        self.adv_layout_outer.addLayout(self.hfaster_layout)  # 语音识别      
+        self.adv_layout_outer.addLayout(self.trans_thread_layout)  # 翻译      
+        self.adv_layout_outer.addLayout(self.dubb_thread_layout)  # 配音      
+        self.adv_layout_outer.addLayout(self.adv_layout)# 字幕
+        self.adv_layout_outer.addLayout(self.bgm_layout)#背景
+        self.verticalLayout_3.addWidget(self.advcontainer)
+        self.advcontainer.setVisible(False)
         
         
         # 简短提示行
@@ -641,11 +726,9 @@ class Ui_MainWindow(object):
         self.toolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.toolBar.setFloatable(True)
         self.toolBar.setObjectName("toolBar")
-        #if config.defaulelang == 'zh':
+
         MainWindow.addToolBar(QtCore.Qt.LeftToolBarArea, self.toolBar)
-        #else:
-        #    # 工具条放在顶部
-        #    MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
+
         self.actionbaidu_key = QtGui.QAction(MainWindow)
         self.actionbaidu_key.setObjectName("actionbaidu_key")
         self.actionali_key = QtGui.QAction(MainWindow)
@@ -790,6 +873,8 @@ class Ui_MainWindow(object):
         self.action_yingyinhebing.setObjectName("action_yingyinhebing")
         self.action_clipvideo = QtGui.QAction(MainWindow)
         self.action_clipvideo.setObjectName("action_clipvideo")
+        self.action_realtime_stt = QtGui.QAction(MainWindow)
+        self.action_realtime_stt.setObjectName("action_realtime_stt")
 
 
         self.action_hun = QtGui.QAction(MainWindow)
@@ -1004,7 +1089,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.action_fanyi)
         self.toolBar.addAction(self.action_yuyinhecheng)
         self.toolBar.addAction(self.actionsrtmultirole)
-        self.toolBar.addAction(self.actionsubtitlescover)
 
         self.toolBar.addAction(self.action_yingyinhebing)
         self.toolBar.addAction(self.action_clipvideo)
+        self.toolBar.addAction(self.action_realtime_stt)

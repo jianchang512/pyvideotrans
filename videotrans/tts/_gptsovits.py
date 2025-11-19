@@ -42,9 +42,9 @@ class GPTSoVITS(BaseTTS):
     def _item_task(self, data_item: Union[Dict, List, None]):
         if self._exit() or  not data_item.get('text','').strip():
             return
-        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+        #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+        #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+        #       after=after_log(config.logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -90,6 +90,7 @@ class GPTSoVITS(BaseTTS):
             logs(f'GPT-SoVITS get:{data=}\n{self.api_url=}')
             # 克隆声音
             response = requests.get(f"{self.api_url}", params=data,  timeout=3600)
+            response.raise_for_status()
 
             content_type = response.headers.get('Content-Type')
             if 'application/json' in content_type:
@@ -98,7 +99,6 @@ class GPTSoVITS(BaseTTS):
                 logs(f'GPT-SoVITS return:{data=}')
                 raise StopRetry(f"GPT-SoVITS error-1:{data}")
             
-            response.raise_for_status()
             # 获取响应头中的Content-Type
             
 
@@ -113,7 +113,5 @@ class GPTSoVITS(BaseTTS):
 
         try:
             _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
         except Exception as e:
             self.error = e

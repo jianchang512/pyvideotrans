@@ -25,7 +25,6 @@ class DubbingSrt(BaseTask):
     is_multi_role: bool = field(init=True,default=False)
     # 固定为True
     shoud_dubbing: bool = field(default=True, init=False)
-
     def __post_init__(self):
         super().__post_init__()
         # 是否是 字幕多角色配音
@@ -40,6 +39,7 @@ class DubbingSrt(BaseTask):
         # 配音后音频文件保存为
         self.cfg.target_wav = f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'
         self._signal(text=tr("Dubbing from subtitles"))
+        config.logger.info(f'配音 {self.cfg=}')
 
     def dubbing(self):
         try:
@@ -105,34 +105,48 @@ class DubbingSrt(BaseTask):
             rate = f"+{rate}%"
         else:
             rate = f"{rate}%"
-        # 如果配音文件是txt，并且渠道是 edge-tts, 快捷处理，结尾直接合成为一个
-        if self.cfg.target_sub.endswith('.txt') and self.cfg.tts_type == tts.EDGE_TTS:
+        # 如果渠道是 edge-tts,并且非多角色配音 
+        _enter_edgetts_single=self.cfg.tts_type == tts.EDGE_TTS and not self.is_multi_role
+        if _enter_edgetts_single:
+            # 配音文件是txt
+            if self.cfg.target_sub.endswith('.txt'):
+                _enter_edgetts_single=True
+            elif not self.cfg.voice_autorate and self.cfg.remove_silent_mid:
+                # 或者未自动加速 并且移除了字幕间静音
+                _enter_edgetts_single=True
+            else:
+                _enter_edgetts_single=False
+        
+        
+        if _enter_edgetts_single:
             from edge_tts import Communicate
             import asyncio
             self.cfg.target_sub = self._convert_to_utf8_if_needed(self.cfg.target_sub)
-            # 默认跟随设置使用代理，如果不想使用，单独根目录下创建 edgetts-noproxy.txt 文件
-            useproxy = None if not self.proxy_str or Path(
-                f'{config.ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
-
-            async def _async_dubb():
-                communicate_task = Communicate(
-                    text=Path(self.cfg.target_sub).read_text(encoding='utf-8'),
-                    voice=self.cfg.voice_role,
+            
+            tmp_name = self.cfg.target_wav if self.cfg.target_wav.endswith(
+                '.mp3') else f"{self.cfg.cache_folder}/{self.cfg.noextname}-edgetts-txt-{time.time()}.mp3"
+            if self.cfg.target_sub.endswith('.txt'):
+                text=Path(self.cfg.target_sub).read_text(encoding='utf-8')
+            else:
+                text=""
+                self.queue_tts=tools.get_subtitle_from_srt(self.cfg.target_sub)
+                for it in self.queue_tts:
+                    text+=it["text"]+"\n"
+                self.queue_tts=self.queue_tts[:1]    
+            asyncio.run(self._edgetts_single(
+                tmp_name,
+                dict(text=text,
+                    voice=tools.get_edge_rolelist(self.cfg.voice_role,locale=self.cfg.target_language_code),
                     rate=rate,
                     volume=self.cfg.volume,
-                    proxy=useproxy,
                     pitch=self.cfg.pitch
                 )
-                tmp_name = self.cfg.target_wav if self.cfg.target_wav.endswith(
-                    '.mp3') else f"{self.cfg.cache_folder}/{self.cfg.noextname}-edgetts-txt-{time.time()}.mp3"
-                await communicate_task.save(tmp_name)
-
-                if not self.cfg.target_wav.endswith('.mp3'):
-                    tools.runffmpeg(['-y', '-i', tmp_name, '-b:a', '128k', self.cfg.target_wav])
-                await asyncio.sleep(0.1)
-
-            asyncio.run(_async_dubb())
+            ))
+            config.logger.info(f'edge-tts配音，未音频加速，未视频慢速，未强制对齐，已删字幕间静音，使用单独文本配音')
+            if not self.cfg.target_wav.endswith('.mp3'):
+                tools.runffmpeg(['-y', '-i', tmp_name, '-b:a', '128k', self.cfg.target_wav])
             return
+        
         # 如果配音文件是txt，则转为单条字幕形式，以便统一处理
         if self.cfg.target_sub.endswith('.txt'):
             text = Path(self.cfg.target_sub).read_text(encoding='utf-8').strip()
@@ -147,10 +161,7 @@ class DubbingSrt(BaseTask):
                 "text": text
             }]
         else:
-            try:
-                subs = tools.get_subtitle_from_srt(self.cfg.target_sub)
-            except Exception:
-                raise
+            subs = tools.get_subtitle_from_srt(self.cfg.target_sub)
 
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
@@ -202,6 +213,8 @@ class DubbingSrt(BaseTask):
                     except shutil.SameFileError:
                         pass
 
+    
+    
     # 音频加速对齐字幕
     def align(self) -> None:
         # 只有一行
@@ -223,7 +236,10 @@ class DubbingSrt(BaseTask):
                 shoud_audiorate=self.cfg.voice_autorate,
                 raw_total_time=self.queue_tts[-1]['end_time'],
                 target_audio=self.cfg.target_wav,
-                cache_folder=self.cfg.cache_folder
+                cache_folder=self.cfg.cache_folder,
+                remove_silent_mid=self.cfg.remove_silent_mid, # 是否移除字幕间空隙 仅在未自动加速时才起作用
+                align_sub_audio=False # 不对齐字幕 仅在未自动加速时才起作用
+                
             )
             volume = self.cfg.volume.strip()
 

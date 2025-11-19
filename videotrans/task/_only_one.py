@@ -41,6 +41,8 @@ class Worker(QThread):
             if self._exit(): return
             trk.recogn()
             if self._exit(): return
+            trk.diariz()
+            if self._exit(): return
             
             config.task_countdown=86400
             self._post(text='', type='edit_subtitle_source')

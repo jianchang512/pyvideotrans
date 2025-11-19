@@ -1,6 +1,6 @@
 import copy
 import json
-import os
+import os,re
 import platform
 import subprocess
 import sys
@@ -12,65 +12,18 @@ from videotrans.configure.config import logs
 
 
 def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
-    """
-    Tries to extract a concise, relevant error message from stderr,
-    often focusing on the last few lines or lines with error keywords.
-
-    Args:
-        stderr_text: The full stderr output string.
-        max_lines: How many lines from the end to primarily consider.
-        max_length: Max length of the returned string snippet.
-
-    Returns:
-        A concise string representing the likely error.
-    """
     if not stderr_text:
         return "Unknown error (empty stderr)"
 
     lines = stderr_text.strip().splitlines()
     if not lines:
         return "Unknown error (empty stderr lines)"
+    
+    result=re.findall(r'Error\s(.*?)\n',stderr_text)
+    if not result:
+        return " ".join(lines[-10:])
+    return " ".join(result)
 
-    # Look for lines with common error keywords in the last few lines
-    error_keywords = ["error", "invalid", "fail", "could not", "no such",
-                      "denied", "unsupported", "unable", "can't open", "conversion failed"]
-
-    relevant_lines_indices = range(max(0, len(lines) - max_lines), len(lines))
-
-    found_error_lines = []
-    for i in reversed(relevant_lines_indices):
-        line = lines[i].strip()
-        if not line:  # Skip empty lines
-            continue
-
-        # Check if the line contains any of the keywords (case-insensitive)
-        if any(keyword in line.lower() for keyword in error_keywords):
-            # Prepend the previous line if it exists and isn't empty, might add context
-            context_line = ""
-            if i > 0 and lines[i - 1].strip():
-                context_line = lines[i - 1].strip() + "\n"  # Add newline for clarity
-
-            found_error_lines.append(context_line + line)
-            # Often, the first keyword line found (reading backwards) is the most specific
-            break
-
-    if found_error_lines:
-        # Take the first one found (which was likely the last 'errorry' line in the output)
-        concise_error = found_error_lines[0]
-    else:
-        # Fallback: take the last non-empty line if no keywords found
-        last_non_empty_line = ""
-        for line in reversed(lines):
-            stripped_line = line.strip()
-            if stripped_line:
-                last_non_empty_line = stripped_line
-                break
-        concise_error = last_non_empty_line or "Unknown error (no specific error line found)"
-
-    # Limit the total length
-    if len(concise_error) > max_length:
-        return concise_error[:max_length] + "..."
-    return concise_error
 
 
 def _get_preset_classification(preset: str) -> str:
@@ -294,7 +247,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
     except subprocess.CalledProcessError as e:
         if config.exit_soft:
             return
-        error_message = e.stderr or "(无 stderr 输出)"
+        error_message = e.stderr or ""
         logs(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message}",level='warn')
 
         is_video_output = cmd[-1].lower().endswith('.mp4')
@@ -424,12 +377,16 @@ def get_video_codec() -> str:
             raise  # 重新抛出异常，让上层逻辑捕获并终止测试
         except subprocess.CalledProcessError as e:
             logs(f"硬件编码器 '{encoder_to_test}' 不可用")
+            raise
         except PermissionError:
             logs(f"测试硬件编码器时失败:写入 {output_file} 时权限被拒绝。 {command=}")
+            raise
         except subprocess.TimeoutExpired:
             logs(f"硬件编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。{command=}")
+            raise
         except Exception as e:
             logs(f"测试硬件编码器 {encoder_to_test} 时发生意外错误: {e} {command=}")
+            raise
         finally:
             try:
                 if output_file.exists():
@@ -464,16 +421,15 @@ def get_video_codec() -> str:
             else:  # for-else 循环正常结束 (没有 break)
                 logs(f"所有硬件加速器均未通过测试。将使用软件编码器: {selected_codec}")
 
-        except FileNotFoundError:
-            logs(f"由于 'ffmpeg' 未找到，所有硬件加速测试已中止。")
-            selected_codec = default_codec  # 确保回退
+            _codec_cache[cache_key] = selected_codec
+            # 保存缓存到本地
+            Path(f"{config.ROOT_DIR}/videotrans/codec.json").write_text(json.dumps(_codec_cache))
         except Exception as e:
+            # 发生异常不缓存
             logs(f"在编码器测试期间发生意外，将使用软件编码: {e}", level='except')
             selected_codec = default_codec
-
+    # 
     _codec_cache[cache_key] = selected_codec
-    # 保存缓存到本地
-    Path(f"{config.ROOT_DIR}/videotrans/codec.json").write_text(json.dumps(_codec_cache))
     
     logs(f"最终确定使用的编码器: {selected_codec}")
     return selected_codec
@@ -650,14 +606,10 @@ def conver_to_16k(audio, target_audio):
             "-ar",
             "16000",
             "-c:a",
-            "pcm_s16le"
+            "pcm_s16le",
+            Path(target_audio).as_posix()
     ]
-    try:
-        return runffmpeg(cmd+["-af","highpass=f=80,afftdn=nf=-25,loudnorm,volume=1.5",Path(target_audio).as_posix()])
-    except Exception as e:
-        from videotrans.configure import config
-        logs(f'语音降噪失败，使用未降噪版本：{e}',level="except")
-        return runffmpeg(cmd+[Path(target_audio).as_posix()])
+    return runffmpeg(cmd)
 
 # wav转为 m4a cuda + h264_cuvid
 def wav2m4a(wavfile, m4afile, extra=None):

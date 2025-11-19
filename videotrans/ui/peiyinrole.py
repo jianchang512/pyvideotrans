@@ -22,7 +22,7 @@ class Ui_peiyinrole(object):
             config.dubbing_role = {}
         if not peiyinrole.objectName():
             peiyinrole.setObjectName(u"peiyinrole")
-        peiyinrole.setMinimumSize(850, 650)
+        peiyinrole.setMinimumSize(950, 650)
 
 
         self.main_layout = QtWidgets.QVBoxLayout(peiyinrole)
@@ -119,7 +119,10 @@ class Ui_peiyinrole(object):
         self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_rate)
         self.horizontalLayout_10_1.addLayout(self.formLayout_5)
         self.voice_autorate = QtWidgets.QCheckBox()
+        self.remove_silent_mid = QtWidgets.QCheckBox()
+        self.remove_silent_mid.setVisible(False)
         self.horizontalLayout_10_1.addWidget(self.voice_autorate)
+        self.horizontalLayout_10_1.addWidget(self.remove_silent_mid)
 
         self.edge_volume_layout = QtWidgets.QHBoxLayout()
         self.volume_label = QtWidgets.QLabel(tr("Volume+"))
@@ -188,3 +191,5 @@ class Ui_peiyinrole(object):
             tr("If checked, the synthesized audio is saved to the original folder where the srt file is located."))
         self.hecheng_startbtn.setText(tr("Start"))
         self.hecheng_opendir.setText(tr("Open output directory"))
+        self.remove_silent_mid.setText(tr("Del inline mute?"))
+        self.remove_silent_mid.setToolTip(tr("Selecting this option will delete the silent intervals between subtitles"))

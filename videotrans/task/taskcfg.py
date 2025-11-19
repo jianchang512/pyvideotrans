@@ -55,7 +55,7 @@ class TaskCfg:
     tts_type:int=None # 语音合成渠道
     recogn_type:int=None #语音识别渠道
     model_name:str=None #模型名字
-    split_type:str='all' # 语音识别切割类型，整体识别与平均分割
+    split_type:int=0 # 语音识别切割类型，整体识别与平均分割
 
     voice_autorate:bool=False #是否音频自动加速
     video_autorate:bool=False #是否视频自动慢速
@@ -68,3 +68,8 @@ class TaskCfg:
     shound_del_name:str=None # 如果规范化后移动了，则需要删除的临时文件绝对路径
 
     uuid:str=None # 默认唯一任务id
+    remove_silent_mid:bool=False # 是否移除字幕间的空隙
+    align_sub_audio:bool=True # 是否强制对齐字幕和声音
+    
+    enable_diariz:bool=False # 是否进行说话人识别
+    nums_diariz:int=0 # 是否进行说话人识别

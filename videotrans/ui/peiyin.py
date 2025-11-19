@@ -17,7 +17,7 @@ class Ui_peiyin(object):
         self.error_msg = ""
         if not peiyin.objectName():
             peiyin.setObjectName("peiyin")
-        peiyin.setMinimumSize(800, 500)
+        peiyin.setMinimumSize(900, 500)
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -139,8 +139,13 @@ class Ui_peiyin(object):
 
         self.voice_autorate = QtWidgets.QCheckBox()
         self.voice_autorate.setObjectName("voice_autorate")
+        
+        self.remove_silent_mid = QtWidgets.QCheckBox()
+        self.remove_silent_mid.setObjectName("remove_silent_mid")
+        self.remove_silent_mid.setVisible(False)
 
         self.horizontalLayout_10_1.addWidget(self.voice_autorate)
+        self.horizontalLayout_10_1.addWidget(self.remove_silent_mid)
 
         self.edge_volume_layout = QtWidgets.QHBoxLayout()
 
@@ -232,6 +237,8 @@ class Ui_peiyin(object):
         self.label_12.setText(tr("Speed change"))
         self.hecheng_rate.setToolTip(tr("Negative deceleration, positive acceleration"))
         self.voice_autorate.setText(tr("Automatic acceleration?"))
+        self.remove_silent_mid.setText(tr("Del inline mute?"))
+        self.remove_silent_mid.setToolTip(tr("Selecting this option will delete the silent intervals between subtitles"))
         self.save_to_srt.setText(tr("Save to original location"))
         self.save_to_srt.setToolTip(
             tr("If checked, the synthesized audio is saved to the original folder where the srt file is located."))

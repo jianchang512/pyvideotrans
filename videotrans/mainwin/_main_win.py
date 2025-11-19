@@ -111,8 +111,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.model_name.setToolTip(tr(
             "From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower"))
-        self.split_type.setToolTip(tr(
-            "Overall recognition is suitable for videos with or without background music and noticeable silence"))
+        self.split_type.setToolTip(tr("fenge_tips"))
         self.subtitle_type.setToolTip(tr("shuoming02"))
 
         self.label_6.setText(tr("Dubbing speed"))
@@ -121,6 +120,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_autorate.setToolTip(tr("shuoming03"))
         self.video_autorate.setText(tr("Slow video"))
         self.video_autorate.setToolTip(tr("Video Auto Slow"))
+        
+        self.remove_silent_mid.setText(tr("Del inline mute?"))
+        self.remove_silent_mid.setToolTip(tr("Selecting this option will delete the silent intervals between subtitles"))
+        
+        self.align_sub_audio.setText(tr("Align subtitles and audio"))
+        self.align_sub_audio.setToolTip(tr("If selected, it will force the subtitles and audio to align."))
 
         self.enable_cuda.setText(tr("Enable CUDA?"))
         self.is_separate.setText(tr("Retain original background sound"))
@@ -223,6 +228,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_yingyinhebing.setToolTip(config.tr("Merge audio, video, and subtitles into one file"))
         self.action_clipvideo.setText(config.tr("Edit video on subtitles"))
         self.action_clipvideo.setToolTip(config.tr("Edit video on subtitles"))
+        self.action_realtime_stt.setText(config.tr("Real-time speech-to-text"))
+        self.action_realtime_stt.setToolTip(config.tr("Real-time speech-to-text"))
 
         self.action_hun.setText(config.tr("Mixing 2 Audio Streams"))
         self.action_hun.setToolTip(config.tr("Mix two audio files into one audio file"))
@@ -351,10 +358,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if config.params.get('target_language', '') and config.params.get('target_language', '') in self.languagename:
             self.target_language.setCurrentText(config.params.get('target_language', ''))
             self.win_action.set_voice_role(config.params.get('target_language', ''))
-            if config.params.get('voice_role', '') != 'No' and self.current_rolelist and \
-                    config.params.get('voice_role', '') in self.current_rolelist:
-                self.voice_role.setCurrentText(config.params.get('voice_role', ''))
-                self.win_action.show_listen_btn(config.params.get('voice_role', ''))
+            default_role=config.params.get('voice_role', '')
+            if default_role != 'No' and self.current_rolelist and default_role in self.current_rolelist:
+                self.voice_role.setCurrentText(default_role)
+                self.win_action.show_listen_btn(default_role)
 
         self.recogn_type.setCurrentIndex(int(config.params.get('recogn_type', '0')))
         self.model_name.clear()
@@ -447,10 +454,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         config.params['tts_type'] = int(config.params.get('tts_type', 0))
 
-        d = {"all": 0, "avg": 1}
-        self.split_type.setCurrentIndex(d.get(config.params.get('split_type', 'all'), 0))
-
-        self.subtitle_type.setCurrentIndex(int(config.params.get('subtitle_type', 0)))
+        if config.params.get('split_type', 0) in [0,1]:
+            self.split_type.setCurrentIndex(config.params.get('split_type', 0))
 
         self.voice_rate.setValue(int(config.params.get('voice_rate', '0').replace('%', '')))
         self.volume_rate.setValue(int(config.params.get('volume', '0').replace('%', '')))
@@ -461,47 +466,50 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.split_type.setDisabled(int(config.params.get('recogn_type', '0')) > 1)
         self.voice_autorate.setChecked(bool(config.params.get('voice_autorate', False)))
         self.video_autorate.setChecked(bool(config.params.get('video_autorate', False)))
+        
+        if not config.params.get('voice_autorate', False) and not config.params.get('video_autorate', False):
+            self.remove_silent_mid.setVisible(True)
+            self.remove_silent_mid.setChecked(config.params.get('remove_silent_mid', False))
+            self.align_sub_audio.setVisible(True)
+            self.align_sub_audio.setChecked(config.params.get('align_sub_audio', False))
+        
         self.clear_cache.setChecked(bool(config.params.get('clear_cache', False)))
         self.enable_cuda.setChecked(bool(config.params.get('cuda', False)))
+        self.enable_diariz.setChecked(bool(config.params.get('enable_diariz', False)))
+        self.nums_diariz.setCurrentIndex(int(config.params.get('nums_diariz', 0)))
+
 
         self.is_separate.setChecked(bool(config.params.get('is_separate', False)))
 
-        local_rephrase = bool(config.settings.get('rephrase_local', False))
-        self.rephrase_local.setChecked(local_rephrase)
-        self.rephrase.setChecked(not local_rephrase and bool(config.settings.get('rephrase', False)))
+        self.rephrase.setCurrentIndex(int(config.settings.get('rephrase', 0)))
         self.remove_noise.setChecked(bool(config.params.get('remove_noise')))
         self.copysrt_rawvideo.setChecked(bool(config.params.get('copysrt_rawvideo', False)))
 
         self.bgmvolume.setText(str(config.settings.get('backaudio_volume', 0.8)))
         self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio', True)))
 
+        self.voice_autorate.toggled.connect(self.win_action.check_voice_autorate)
+        self.video_autorate.toggled.connect(self.win_action.check_video_autorate)
         self.enable_cuda.toggled.connect(self.win_action.check_cuda)
         self.tts_type.currentIndexChanged.connect(self.win_action.tts_type_change)
         self.translate_type.currentIndexChanged.connect(self.win_action.set_translate_type)
         self.voice_role.currentTextChanged.connect(self.win_action.show_listen_btn)
         self.target_language.currentTextChanged.connect(self.win_action.set_voice_role)
 
-        self.rephrase.toggled.connect(lambda checked: self.win_action.rephrase_fun(checked, 'llm'))
-        self.rephrase_local.toggled.connect(lambda checked: self.win_action.rephrase_fun(checked, 'local'))
 
         self.proxy.textChanged.connect(self.win_action.change_proxy)
         self.import_sub.clicked.connect(self.win_action.import_sub_fun)
 
         self.startbtn.clicked.connect(self.win_action.check_start)
         self.btn_save_dir.clicked.connect(self.win_action.get_save_dir)
+        self.set_adv_status.clicked.connect(self.win_action.toggle_adv)
         self.btn_get_video.clicked.connect(self.win_action.get_mp4)
         self.listen_btn.clicked.connect(self.win_action.listen_voice_fun)
-        self.split_type.currentIndexChanged.connect(self.win_action.check_split_type)
         self.model_name.currentTextChanged.connect(self.win_action.check_model_name)
         self.recogn_type.currentIndexChanged.connect(self.win_action.recogn_type_change)
-        self.reglabel.clicked.connect(self.win_action.click_reglabel)
-        self.label_9.clicked.connect(self.win_action.click_translate_type)
-        self.tts_text.clicked.connect(self.win_action.click_tts_type)
 
         self.label.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/proxy'))
-        self.hfaster_help.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/vad'))
-        self.split_label.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/splitmode'))
-        self.align_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/align'))
+
         self.glossary.clicked.connect(lambda: tools.show_glossary_editor(self))
 
     def _start_subform(self):
@@ -579,6 +587,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_hun.triggered.connect(lambda: self._open_winform('fn_hunliu'))
         self.action_yingyinhebing.triggered.connect(lambda: self._open_winform('fn_vas'))
         self.action_clipvideo.triggered.connect(lambda: self._open_winform('clipvideo'))
+        self.action_realtime_stt.triggered.connect(lambda: self._open_winform('realtime_stt'))
         self.action_fanyi.triggered.connect(lambda: self._open_winform('fn_fanyisrt'))
         self.action_yuyinshibie.triggered.connect(lambda: self._open_winform('fn_recogn'))
 
@@ -601,10 +610,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
         self.statusLabel2.clicked.connect(lambda: self.win_action.open_url('https://bbs.pyvideotrans.com/post'))
-        try:
-            Path(config.TEMP_DIR + '/stop_process.txt').unlink(missing_ok=True)
-        except OSError:
-            pass
+        if config.settings.get('show_more_settings'):
+            self.win_action.toggle_adv()
         
 
     # 打开缓慢
@@ -626,6 +633,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             dialog.exec()
             return
 
+        if name=='clipvideo':
+            from videotrans.component.clip_video import ClipVideoWindow
+            window = ClipVideoWindow()
+            config.child_forms[name]=window
+            window.show()
+            return
+        if name=='realtime_stt':
+            from videotrans.component.realtime_stt import RealTimeWindow
+            window = RealTimeWindow()
+            config.child_forms[name]=window
+            window.show()
+            return    
+
         winobj = config.child_forms.get(name)
         if winobj:
             if hasattr(winobj, 'update_ui'):
@@ -634,12 +654,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             winobj.show()
             winobj.raise_()
             winobj.activateWindow()
-            return
-        if name=='clipvideo':
-            from videotrans.component.clip_video import ClipVideoWindow
-            window = ClipVideoWindow()
-            config.child_forms[name]=window
-            window.show()
             return
 
         from videotrans import winform

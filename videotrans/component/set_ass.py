@@ -3,7 +3,7 @@ import json
 import os
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFormLayout,
-    QFontComboBox, QSpinBox, QCheckBox, QComboBox, QColorDialog, QGridLayout,
+    QFontComboBox, QSpinBox,QDoubleSpinBox, QCheckBox, QComboBox, QColorDialog, QGridLayout,
     QGroupBox, QApplication, QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
     QGraphicsTextItem, QGraphicsRectItem, QGraphicsPathItem,QSpacerItem,QSizePolicy
 )
@@ -36,8 +36,8 @@ DEFAULT_STYLE = {
     'Spacing': 0,
     'Angle': 0,
     'BorderStyle': 1,
-    'Outline': 1,
-    'Shadow': 0,
+    'Outline': 0.5,
+    'Shadow': 0.5,
     'Alignment': 2,
     'MarginL': 10,
     'MarginR': 10,
@@ -362,14 +362,18 @@ class ASSStyleDialog(QDialog):
         self.form_layout.addRow(tr("border_style"), self.border_style_combo)
 
         # Outline (border size)
-        self.outline_spin = QSpinBox()
-        self.outline_spin.setRange(0, 10)
+        self.outline_spin = QDoubleSpinBox()
+        self.outline_spin.setSingleStep(0.1)
+        self.outline_spin.setRange(0.0, 10.0)
+        self.outline_spin.setDecimals(1)
         self.outline_spin.valueChanged.connect(self.update_preview)
         self.form_layout.addRow(tr("outline_size"), self.outline_spin)
 
         # Shadow
-        self.shadow_spin = QSpinBox()
-        self.shadow_spin.setRange(0, 10)
+        self.shadow_spin = QDoubleSpinBox()
+        self.shadow_spin.setRange(0.0, 10.0)
+        self.shadow_spin.setSingleStep(0.1)
+        self.shadow_spin.setDecimals(1)
         self.shadow_spin.valueChanged.connect(self.update_preview)
         self.form_layout.addRow(tr("shadow_size"), self.shadow_spin)
 

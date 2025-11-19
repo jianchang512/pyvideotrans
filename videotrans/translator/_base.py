@@ -44,7 +44,6 @@ class BaseTrans(BaseCon):
         #是AI翻译渠道并且选中了以完整字幕发送
         if config.settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS:
             self.aisendsrt=True
-        print(f'{self.aisendsrt=}')
 
     # 发出请求获取内容 data=[text1,text2,text] | text
     # 按行翻译时，data=[text_str,...]
@@ -62,7 +61,6 @@ class BaseTrans(BaseCon):
         # 开始对分割后的每一组进行处理
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
-        logs(f'#### 字幕翻译前准备1:{self.aisendsrt=},{self.trans_thread=}')
 
         # 如果是不是以 完整字幕格式发送，则组成字符串列表，否则组成 [dict,dict] 列表，每个dict都是字幕行信息
         if not self.aisendsrt:
@@ -73,7 +71,6 @@ class BaseTrans(BaseCon):
             source_text=self.text_list
 
         split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(self.text_list), self.trans_thread)]
-        logs(f'字幕翻译前准备2')
         from tenacity import RetryError
         try:
             if self.aisendsrt:
@@ -91,9 +88,10 @@ class BaseTrans(BaseCon):
             """ it=['你好啊我的朋友','第二行'] 
                 此时 _item_task 接收的是 list[str]
             """
-            logs(f'##### [以文字行形式翻译]')
             if self._exit(): return
 
+            self._signal(text=tr('starttrans') + f' {i} ')
+            #print(f'{i=}')
             result = self._get_cache(it)
             if not result:
                 result = tools.cleartext(self._item_task(it))
@@ -105,11 +103,7 @@ class BaseTrans(BaseCon):
             for x, result_item in enumerate(sep_res):
                 if x < len(it):
                     target_list.append(result_item.strip())
-                    self._signal(
-                        text=result_item + "\n",
-                        type='subtitle')
-                    self._signal(
-                        text=tr('starttrans') + f' {i * self.trans_thread + x + 1} ')
+                    self._signal(text=result_item + "\n",type='subtitle')
             # 行数不匹配填充空行
             if len(sep_res) < len(it):
                 tmp = ["" for x in range(len(it) - len(sep_res))]
@@ -131,8 +125,8 @@ class BaseTrans(BaseCon):
         result_srt_str_list = []
         for i, it in enumerate(split_source_text):
             # 是字幕类表，此时 it=[{text,line,time}]
-            logs(f'#### [以完整SRT格式发送翻译]，it应是dict列表')
             if self._exit(): return
+            self._signal(text=tr('starttrans') + f' {i} ')
             for j, srt in enumerate(it):
                 it[j]['text'] = srt['text'].strip().replace("\n", " ")
             # 组成合法的srt格式字符串
