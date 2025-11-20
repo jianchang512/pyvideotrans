@@ -46,7 +46,7 @@ Before getting started, please ensure you understand the core working mechanism 
 
 ## Source Code Deployment
 
-> [Recommended: Install using `uv`. If you don't have `uv` yet, check the official installation guide.](https://docs.astral.sh/uv/getting-started/installation/]
+> [Recommended: Install using `uv`. If you don't have `uv` yet, check the official installation guide.](https://docs.astral.sh/uv/getting-started/installation/)
 
 1. **Prerequisites for MacOS/Linux**
 
