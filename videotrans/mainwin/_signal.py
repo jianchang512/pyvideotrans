@@ -57,10 +57,10 @@ class UUIDSignalThread(QThread):
                     config.uuid_logs_queue.pop(uuid,None)
                     continue
                 if config.exit_soft: return
-                q: queue.Queue = config.uuid_logs_queue.get(uuid)
-                if not q:
-                    continue
                 try:
+                    q = config.uuid_logs_queue.get(uuid)
+                    if not q:
+                        continue
                     data = q.get_nowait()
                     if data:
                         self.uito.emit(json.dumps(data))

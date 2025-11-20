@@ -98,6 +98,35 @@ class Gemini(BaseTrans):
                     types.Part.from_text(text=tr("You are a top-notch subtitle translation engine.")),
                 ],
             )
+            if model.startswith('gemini-3'):
+                generate_content_config = types.GenerateContentConfig(
+                    max_output_tokens=int(config.params.get("gemini_maxtoken",65530)),
+                    safety_settings=[
+                        types.SafetySetting(
+                            category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                        ),
+                        types.SafetySetting(
+                            category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                        ),
+                        types.SafetySetting(
+                            category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                        ),
+                        types.SafetySetting(
+                            category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                        )
+                      ],
+
+                    thinking_config = types.ThinkingConfig(
+                        thinking_level="HIGH",
+                    ),
+                    system_instruction=[
+                        types.Part.from_text(text=tr("You are a top-notch subtitle translation engine.")),
+                    ],
+                )
             logs(f'[Gemini]请求发送:{message=}')
             result = ""
             for chunk in client.models.generate_content_stream(

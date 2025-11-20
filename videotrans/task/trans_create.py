@@ -107,7 +107,7 @@ class TransCreate(BaseTask):
         # 如果不是 tiqu，则均需要合并视频音频字幕
         if self.cfg.app_mode != 'tiqu' and (self.shoud_dubbing or self.cfg.subtitle_type > 0):
             self.shoud_hebing = True
-
+        
         # 是否需要翻译:存在目标语言代码并且不等于原始语言，则需要翻译
         if self.cfg.target_language_code and  self.cfg.target_language_code != self.cfg.source_language_code:
             self.shoud_trans = True
@@ -128,6 +128,10 @@ class TransCreate(BaseTask):
             self.is_audio_trans=True
             self.cfg.is_separate=False
             self.shoud_hebing = False
+            
+        if self.cfg.app_mode == 'tiqu':
+            self.cfg.is_separate=False
+            self.cfg.enable_diariz=False
 
         Path(self.cfg.cache_folder).mkdir(parents=True,exist_ok=True)
         Path(self.cfg.target_dir).mkdir(parents=True,exist_ok=True)
@@ -149,7 +153,7 @@ class TransCreate(BaseTask):
                 if self._exit(): return
                 time.sleep(1)
                 self._signal(text=f"{int(time.time() - t)}???{self.precent}", type="set_precent")
-        run_in_threadpool(runing)
+        threading.Thread(target=runing).start()
 
     # 1. 预处理，分离音视频、分离人声等
     def prepare(self) -> None:
@@ -572,6 +576,7 @@ class TransCreate(BaseTask):
         except Exception as e:
             logs(e, level="except")
         self._signal(text=f"{self.cfg.name}", type='succeed')
+        tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
         
         
     # 从原始视频分离出 无声视频

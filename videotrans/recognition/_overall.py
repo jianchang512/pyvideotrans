@@ -5,10 +5,12 @@ from pathlib import Path
 from videotrans.configure import config
 from videotrans.configure.config import tr, logs
 
-from videotrans.process._overall import run
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 
+import os
+from videotrans.process._iscache import _MODELS
+import glob
 """
 faster-whisper
 内置的本地大模型不重试
@@ -25,9 +27,7 @@ class FasterAll(BaseRecogn):
     def _create_from_huggingface(self, model_id, audio_file, language):
         from transformers import pipeline
         from huggingface_hub import snapshot_download
-        import os
         from videotrans.process._iscache import _check_huggingface_connect
-
 
         # 定义本地保存路径
         local_dir = f"{config.ROOT_DIR}/models/" + model_id.split("/")[-1]
@@ -100,7 +100,6 @@ class FasterAll(BaseRecogn):
 
 
     def _exec(self):
-        from videotrans.process._iscache import _MODELS
         if self.model_name not in _MODELS and "faster" not in self.model_name:
             return self._create_from_huggingface(self.model_name, self.audio_file, self.detect_language)
         # 修复CUDA fork问题：强制使用spawn方法
@@ -111,7 +110,7 @@ class FasterAll(BaseRecogn):
                 return
 
             if config.model_process is not None:
-                import glob
+                
                 if len(glob.glob(config.TEMP_DIR + '/*.lock')) == 0:
                     config.model_process = None
                     break
@@ -119,7 +118,6 @@ class FasterAll(BaseRecogn):
                 time.sleep(0.5)
                 continue
             break
-
         ctx = multiprocessing.get_context('spawn')
         # 创建队列用于在进程间传递结果
         result_queue = ctx.Queue()
@@ -127,11 +125,11 @@ class FasterAll(BaseRecogn):
             self.has_done = False
             run_in_threadpool(self._get_signal_from_process,result_queue)
             self.error = ''
+            from videotrans.process._overall import run
             with ctx.Manager() as manager:
                 raws = manager.list([])
                 err = manager.dict({"msg": ""})
                 detect = manager.dict({"langcode": self.detect_language})
-
                 process = ctx.Process(target=run, args=(raws, err, detect), kwargs={
                     "model_name": self.model_name,
                     "is_cuda": self.is_cuda,
@@ -142,7 +140,8 @@ class FasterAll(BaseRecogn):
                     "TEMP_DIR":config.TEMP_DIR,
                     "defaulelang":config.defaulelang,
                     "settings":config.settings,
-                    "split_type":self.split_type
+                    "split_type":self.split_type,
+                    "whisper_type":self.recogn_type
                 })
                 process.start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'

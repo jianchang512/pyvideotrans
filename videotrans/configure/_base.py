@@ -21,7 +21,7 @@ class BaseCon:
 
     def __post_init__(self):
         self.proxy_str = self._set_proxy(type='set')
-        print(f'{self.proxy_str=}')
+        print(f'{self.proxy_str=},{self.uuid=}')
         config.settings=config.parse_init()
         # 用于 requests 库
         # 国内某些渠道禁止国外ip及代理
@@ -42,9 +42,11 @@ class BaseCon:
     # 所有窗口和任务信息通过队列交互
     def _signal(self, **kwargs):
         from . import config
+        #print(f'_signal {self.uuid=}')
         if 'uuid' not in kwargs:
             kwargs['uuid'] = self.uuid
         if not config.exit_soft:
+            #print(f'{kwargs=}')
             tools.set_process(**kwargs)
 
     # 设置、获取代理

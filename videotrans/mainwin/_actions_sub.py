@@ -327,7 +327,8 @@ class WinActionSub:
             ]
 
             config.params['last_opendir'] = p.as_posix()
-            self.main.target_dir = p.as_posix()
+            self.main.target_dir = p.parent.as_posix()+"/_video_out"
+            print(f'{self.main.target_dir=}')
             self.main.btn_save_dir.setToolTip(self.main.target_dir)
         else:
             fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(self.main,

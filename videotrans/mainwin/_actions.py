@@ -113,11 +113,9 @@ class WinAction(WinActionSub):
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)
             self.main.rephrase.setDisabled(True)
-            self.main.rephrase_local.setDisabled(True)
         else:
             # 允许模块选择
             self.main.rephrase.setDisabled(False)
-            self.main.rephrase_local.setDisabled(False)
             self.main.model_name_help.setDisabled(False)
             self.main.model_name.setDisabled(False)
             self.main.model_name.clear()
@@ -131,11 +129,9 @@ class WinAction(WinActionSub):
                 self.main.model_name.addItems(config.FUNASR_MODEL)
         
         if recogn_type in [recognition.FASTER_WHISPER, recognition.PARAKEET, recognition.OPENAI_WHISPER]:
-            self.main.rephrase_local.setDisabled(False)
             self.main.rephrase.setDisabled(False)
         else:
             self.main.rephrase.setDisabled(True)
-            self.main.rephrase_local.setDisabled(True)
         
         lang = translator.get_code(show_text=self.main.source_language.currentText())
 
@@ -824,7 +820,6 @@ class WinAction(WinActionSub):
             self.update_status(d['type'])
         # 一行一行插入字幕到字幕编辑区
         elif d['type'] == "subtitle" and config.current_status == 'ing':
-            #print(f'{d["text"]=}')
             self.main.subtitle_area.moveCursor(QTextCursor.End)
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'edit_subtitle_source':

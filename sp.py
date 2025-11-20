@@ -16,7 +16,7 @@ import atexit, sys, os, time
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-os.environ["OMP_NUM_THREADS"] = "1" if sys.platform == 'darwin' else str(os.cpu_count())
+os.environ["OMP_NUM_THREADS"] = "1"
 
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
 from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer

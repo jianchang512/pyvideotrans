@@ -39,7 +39,6 @@ class MultVideo(QThread):
                     trk.align()
                     trk.assembling()
                     trk.task_done()
-                    tools.send_notification(config.tr('Succeed'), f"{trk.cfg.basename}")
                     self.uito.emit(json.dumps({"text": config.tr('Succeed'), "type": 'succeed', 'uuid': it['uuid']}))
                 else:
                     # 压入识别队列开始执行

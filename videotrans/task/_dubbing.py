@@ -270,6 +270,7 @@ class DubbingSrt(BaseTask):
                 Path(self.cfg.shound_del_name).unlink(missing_ok=True)
         except OSError:
             pass
+        tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")    
 
     def _exit(self):
         if config.exit_soft or config.box_tts != 'ing':

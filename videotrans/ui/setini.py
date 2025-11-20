@@ -198,6 +198,9 @@ class Ui_setini(object):
 
             "trans_thread": "传统翻译渠道每批字幕行数",
             "aitrans_thread": "AI翻译渠道每批字幕行数",
+            "aisendsrt": "发送完整字幕",
+            "translation_wait": "翻译后暂停秒",
+            "dubbing_wait": "配音后暂停秒",
             "dubbing_thread": "并发配音线程数",
             "countdown_sec": "单视频翻译暂停倒计时",
             "backaudio_volume": "背景音量变化倍数",
@@ -211,12 +214,9 @@ class Ui_setini(object):
             "zh_hant_s": "字幕繁体转简体",
             "azure_lines": "AzureTTS批量行数",
             "chattts_voice": "ChatTTS音色值",
-            "translation_wait": "每翻译请求后暂停秒",
-            "dubbing_wait": "每配音请求后暂停秒"
-            ,
+            
             "gemini_model": "Gemini模型列表",
 
-            "aisendsrt": "AI翻译渠道发送完整字幕",
 
             "initial_prompt_zh-cn": "whisper模型简体中文提示词",
             "initial_prompt_zh-tw": "whisper模型繁体中文提示词",

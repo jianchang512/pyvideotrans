@@ -47,7 +47,7 @@ As for the maintenance issue, it is all about giving love to the open source, so
 Of course, if you think this project is useful to you and want it to be stable and continue to maintain, you are welcome to donate a small amount.
 
 Email: jianchang512@gmail.com
-Documents: pvt9.com"""
+Documents: pyvideotrans.com"""
                                 )
         # text1的边框合为0
         self.text1.setFrameStyle(QtWidgets.QFrame.NoFrame)
@@ -63,7 +63,7 @@ Documents: pvt9.com"""
         self.link.setFixedHeight(35)
         self.link.setStyleSheet("""background-color:transparent""")
         self.link.setCursor(Qt.PointingHandCursor)
-        self.link.clicked.connect(lambda: tools.open_url('https://pvt9.com/about.html'))
+        self.link.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/about.html'))
 
         label = QtWidgets.QLabel(infoform)
         label.setText(
@@ -116,7 +116,7 @@ Documents: pvt9.com"""
         lawbtn.setStyleSheet("background-color:rgba(255,255,255,0);text-align:left""")
         lawbtn.setCursor(Qt.PointingHandCursor)
         lawbtn.setText(tr("Software License Agreement"))
-        lawbtn.clicked.connect(lambda: tools.open_url('https://pvt9.com/law.html'))
+        lawbtn.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/law.html'))
         self.v1.addWidget(lawbtn)
         self.v1.addStretch()
         infoform.setWindowTitle(

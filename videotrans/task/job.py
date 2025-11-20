@@ -52,18 +52,20 @@ class WorkerPrepare(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if  config.prepare_queue.empty():
+            if  config.prepare_queue.empty() and config.prepare_queue.qsize()<1:
                 time.sleep(0.1)
                 continue
             try:
                 trk: BaseTask = config.prepare_queue.get_nowait()
             except Empty:
+                print('异常？')
                 continue
             if trk.uuid in config.stoped_uuid_set:
                 continue
             try:
-                print(f'进入执行分离阶段')
+                print(f'进入执行分离阶段 {trk.shoud_recogn=}')
                 trk.prepare()
+                print(f'应该送入语音识别队列 {trk.shoud_recogn=}')
                 
                 # 如果需要识别，则插入 recogn_queue队列，否则继续判断翻译队列、配音队列，都不吻合则插入最终队列
                 if trk.shoud_recogn:
@@ -96,7 +98,7 @@ class WorkerRegcon(QThread):
             if config.exit_soft:
                 return
 
-            if config.regcon_queue.empty():
+            if config.regcon_queue.empty() and config.regcon_queue.qsize()<1:
                 time.sleep(0.1)
                 continue
             
@@ -131,7 +133,7 @@ class WorkerDiariz(QThread):
             if config.exit_soft:
                 return
 
-            if config.diariz_queue.empty():
+            if config.diariz_queue.empty() and config.diariz_queue.qsize()<1:
                 time.sleep(0.1)
                 continue
             
@@ -168,7 +170,7 @@ class WorkerTrans(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if  config.trans_queue.empty():
+            if  config.trans_queue.empty()  and config.trans_queue.qsize()<1:
                 time.sleep(0.1)
                 continue
             try:    
@@ -207,7 +209,7 @@ class WorkerDubb(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if  config.dubb_queue.empty():
+            if  config.dubb_queue.empty() and config.dubb_queue.qsize()<1:
                 time.sleep(0.1)
                 continue
             try:
@@ -242,7 +244,7 @@ class WorkerAlign(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if config.align_queue.empty():
+            if config.align_queue.empty() and config.align_queue.qsize()<1:
                 time.sleep(0.1)
                 continue
             try:
@@ -283,7 +285,7 @@ class WorkerAssemb(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if config.assemb_queue.empty():
+            if config.assemb_queue.empty() and config.assemb_queue.qsize()<1:
                 time.sleep(0.1)
                 continue
             try:
@@ -319,7 +321,7 @@ class WorkerTaskDone(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if config.taskdone_queue.empty():
+            if config.taskdone_queue.empty() and config.taskdone_queue.qsize()<1:
                 time.sleep(0.1)
                 continue
             try:
@@ -338,8 +340,7 @@ class WorkerTaskDone(QThread):
                 msg = f'{except_msg}:\n' + traceback.format_exc()+f"\n{trk.cfg}"
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-            else:
-                tools.send_notification(tr('Succeed'), f"{trk.cfg.basename}")
+                
             
 
 

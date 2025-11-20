@@ -264,7 +264,6 @@ dependencies = [
     "websockets==13.1",
     "werkzeug==3.0.1",
     "wheel==0.45.1",
-    "openai-whisper",
     "wrapt==1.15.0",
     "xxhash==3.5.0",
     "yarl==1.20.1",
@@ -273,6 +272,7 @@ dependencies = [
     "sherpa-onnx>=1.12.15",
     "sounddevice>=0.5.3",
     "sherpa-onnx-core>=1.12.17",
+    "openai-whisper>=20250625",
 ]
 
 

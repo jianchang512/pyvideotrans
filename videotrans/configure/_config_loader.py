@@ -204,7 +204,7 @@ dubbing_role = {}
 
 
 #######################################
-DEFAULT_GEMINI_MODEL = "gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
+DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
 ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv',
                     'ms', 'uk', 'cs', 'tl']
 OPENAITTS_ROLES = "alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
@@ -415,7 +415,7 @@ def getset_params(obj=None):
         "cuda": False,
         "line_roles": {},
         "is_separate": False,
-        "remove_noise": True,
+        "remove_noise": False,
         "enable_diariz": False,
         "nums_diariz": 0,
         "target_dir": "",
@@ -621,7 +621,7 @@ def getset_params(obj=None):
         "stt_recogn_type": 0,
         "stt_split_type": 0,
         "stt_model_name": "",
-        "stt_remove_noise": True,
+        "stt_remove_noise": False,
         "stt_enable_diariz": False,
         "stt_nums_diariz": 0,
 

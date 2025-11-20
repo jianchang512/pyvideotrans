@@ -1,10 +1,7 @@
 import asyncio, sys
-
-
-
+import os
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-import os
 import platform
 import shutil
 import time
@@ -701,7 +698,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         system_platform = platform.system()
         current_user = getpass.getuser()
 
-        print(f"Attempting to kill ffmpeg processes for user: {current_user}")
         if system_platform == "Windows":
             # Windows平台 - 使用taskkill
             try:

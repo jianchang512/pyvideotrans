@@ -1,5 +1,5 @@
 # 执行单个视频翻译任务时 暂停等待
-import json
+import json,os
 import time
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -88,7 +88,6 @@ class Worker(QThread):
             
             if not self._exit():
                 trk.task_done()
-                tools.send_notification(tr('Succeed'), f"{trk.cfg.basename}")
         except Exception as e:
             import traceback
             traceback.print_exc()

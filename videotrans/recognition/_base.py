@@ -74,7 +74,6 @@ class BaseRecogn(BaseCon):
     def run(self) -> Union[List[Dict], None]:
         Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
-        self._signal(text=tr("Speech Recognition to Word Processing"))
         try:
             return self._exec()
         except RetryError as e:

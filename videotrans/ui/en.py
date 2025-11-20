@@ -290,7 +290,7 @@ class Ui_MainWindow(object):
 
 
         self.subtitle_type = QtWidgets.QComboBox(self.layoutWidget)
-        self.subtitle_type.setMinimumSize(QtCore.QSize(100, 30))
+        self.subtitle_type.setMinimumSize(QtCore.QSize(150, 30))
         self.subtitle_type.setObjectName("subtitle_type")
 
         
@@ -726,6 +726,13 @@ class Ui_MainWindow(object):
         self.toolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.toolBar.setFloatable(True)
         self.toolBar.setObjectName("toolBar")
+        self.toolBar.setStyleSheet("""
+    QToolBar QToolButton {
+        min-width: 130px; 
+        text-align: center; 
+    }
+""")
+
 
         MainWindow.addToolBar(QtCore.Qt.LeftToolBarArea, self.toolBar)
 
@@ -1081,6 +1088,9 @@ class Ui_MainWindow(object):
         self.menuBar.addAction(self.menu_RECOGN.menuAction())
         self.menuBar.addAction(self.menu.menuAction())
         self.menuBar.addAction(self.menu_H.menuAction())
+
+
+
 
         self.toolBar.addAction(self.action_biaozhun)
         self.toolBar.addAction(self.action_tiquzimu)

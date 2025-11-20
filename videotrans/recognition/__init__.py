@@ -1,11 +1,7 @@
+import os
 from typing import Union, List, Dict
-
 from videotrans import translator
 from videotrans.configure import config
-
-# 判断各个语音识别模式是否支持所选语言
-# 支持返回True，不支持返回错误文字字符串
-
 
 # 数字代表界面中的现实顺序
 from videotrans.configure.config import tr,logs
@@ -166,7 +162,7 @@ def is_input_api(recogn_type: int = None, return_str=False):
 
 # 统一入口
 def run(*,
-        split_type="all",
+        split_type=0,
         detect_language=None,
         audio_file=None,
         cache_folder=None,
@@ -178,7 +174,6 @@ def run(*,
         ) -> Union[List[Dict], None]:
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return
-
     kwargs = {
         "detect_language": detect_language,
         "audio_file": audio_file,
@@ -189,10 +184,8 @@ def run(*,
         "subtitle_type": subtitle_type,
         "recogn_type":recogn_type
 
-    }
-    if recogn_type == OPENAI_WHISPER:
-        from ._openai import OpenaiWhisperRecogn
-        return OpenaiWhisperRecogn(**kwargs).run()
+    }            
+
     if recogn_type == GOOGLE_SPEECH:
         from ._google import GoogleRecogn
         return GoogleRecogn(**kwargs).run()
@@ -216,8 +209,8 @@ def run(*,
     if recogn_type == QWEN3ASR:
         from ._qwen3asr import Qwen3ASRRecogn
         return Qwen3ASRRecogn(**kwargs).run()
-    if recogn_type == FUNASR_CN:
-        from videotrans.recognition._funasr import FunasrRecogn
+    if recogn_type == FUNASR_CN:     
+        from ._funasr import FunasrRecogn
         return FunasrRecogn(**kwargs).run()
     if recogn_type == Deepgram:
         from ._deepgram import DeepgramRecogn
@@ -235,9 +228,10 @@ def run(*,
     if recogn_type == ElevenLabs:
         from ._elevenlabs import ElevenLabsRecogn
         return ElevenLabsRecogn(**kwargs).run()
-
+    
     from videotrans.process._iscache import _MODELS
-    kwargs['split_type']=0 if split_type==0 or model_name not in _MODELS else 1
-    from ._overall import FasterAll
+    if recogn_type != OPENAI_WHISPER:
+        kwargs['split_type']=0 if split_type==0 or model_name not in _MODELS else 1
+    from ._overall import FasterAll    
     return FasterAll(**kwargs).run()
 
