@@ -58,8 +58,6 @@
 
     brew install git
 
-    brew install python@3.10
-
     ```
 	
 	Linux需安装 `ffmpeg`，命令`sudo yum install -y ffmpeg`或`apt-get install ffmpeg`
