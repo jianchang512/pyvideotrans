@@ -97,8 +97,9 @@ Please visit https://pyvideotrans.com
 
 
 ## Software Preview
+<img width="1772" height="972" alt="2" src="https://github.com/user-attachments/assets/d03edfd9-8f21-44df-8a74-e9c7a3c48103" />
 
-<img width="1772" height="972" alt="1" src="https://github.com/user-attachments/assets/df3136f8-f9af-493a-bdb2-a822cb7c4037" />
+
 
 
 
