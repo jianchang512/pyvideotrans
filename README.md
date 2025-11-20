@@ -98,7 +98,8 @@ Please visit https://pyvideotrans.com
 
 ## Software Preview
 
-![](https://pvtr2.pyvideotrans.com/1763635344886_2.png)
+<img width="1772" height="972" alt="1" src="https://github.com/user-attachments/assets/df3136f8-f9af-493a-bdb2-a822cb7c4037" />
+
 
 
 
