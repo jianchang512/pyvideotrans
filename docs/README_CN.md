@@ -5,7 +5,7 @@
 >
 > If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more. Recall.ai diarizes by pulling the speaker data and separate audio streams from the meeting platforms, which means 100% accurate speaker diarization with actual speaker names.
 
-# 视频翻译配音工具
+## 视频翻译配音工具
 
 这是一款功能强大的**开源视频翻译/语音转录/语音合成软件**，致力于将视频从一种语言，无缝转换到包含另一种语言配音和字幕的视频。
 
@@ -16,6 +16,8 @@
 *   **语音转录/音视频转字幕**：批量将视频或音频文件中的人类说话声，精准转录为带时间轴的 SRT 字幕文件。
 *   **语音合成/文字转语音 (TTS)**：利用多种先进的 TTS 渠道，为您的文本或 SRT 字幕文件生成高质量、自然流畅的配音。
 *   **SRT 字幕文件翻译**：支持批量翻译 SRT 字幕文件，保留原有时间码和格式，并提供多种双语字幕样式。
+*   **实时语音转文字**：支持实时监听麦克风，并将说话声转为文字
+
 
 
 ##  软件工作原理
@@ -87,25 +89,16 @@ uv add ctranslate2==3.24.0
 
 
 
-# 使用教程和文档
+## 使用教程和文档
 
 请查看 https://pyvideotrans.com
 
 
 
 
-# 视频教程(第三方)
+## 软件预览截图
 
-[Mac下源码部署/b站](https://www.bilibili.com/video/BV1tK421y7rd/)
-
-[用Gemini Api 给视频翻译设置方法/b站](https://b23.tv/fED1dS3)
-
-[如何下载和安装](https://www.bilibili.com/video/BV1Gr421s7cN/)
-
-
-# 软件预览截图
-
-![](https://pvtr2.pyvideotrans.com/1760079781627_image.png)
+![](https://pvtr2.pyvideotrans.com/1763635378449_1.png)
 
 
 ## 致谢

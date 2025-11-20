@@ -6,7 +6,7 @@
 > If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more. Recall.ai diarizes by pulling the speaker data and separate audio streams from the meeting platforms, which means 100% accurate speaker diarization with actual speaker names.
 
 
-# Video Translation & Dubbing Tool
+## Video Translation & Dubbing Tool
 
 This is a powerful **open-source video translation / audio transcription / speech synthesis tool**, dedicated to seamlessly converting videos from one language to another, complete with dubbed audio and subtitles.
 
@@ -17,6 +17,8 @@ This is a powerful **open-source video translation / audio transcription / speec
 *   **Voice Transcription / Audio & Video to Subtitles**: Batch transcribes human speech from video or audio files into SRT subtitle files with precise time codes.
 *   **Speech Synthesis / Text-to-Speech (TTS)**: Utilizes various advanced TTS channels to generate high-quality, natural-sounding voiceovers for your text or SRT subtitle files.
 *   **SRT Subtitle Translation**: Supports batch translation of SRT subtitle files, preserving original timestamps and formatting, while providing multiple bilingual subtitle styles.
+*   **Real-time Speech-to-Text**: Supports real-time microphone monitoring to convert speech into text.
+
 
 
 ## How It Works
@@ -88,25 +90,16 @@ uv add ctranslate2==3.24.0
 
 
 
-# Tutorials and Documentation
+## Tutorials and Documentation
 
 Please visit https://pyvideotrans.com
 
 
 
+## Software Preview
 
-# Video Tutorials (Third-party)
+![](https://pvtr2.pyvideotrans.com/1763635344886_2.png)
 
-[Source Deployment on Mac / Bilibili](https://www.bilibili.com/video/BV1tK421y7rd/)
-
-[How to Configure Gemini API for Video Translation / Bilibili](https://b23.tv/fED1dS3)
-
-[How to Download and Install](https://www.bilibili.com/video/BV1Gr421s7cN/)
-
-
-# Software Preview
-
-![](https://pvtr2.pyvideotrans.com/1760079781627_image.png)
 
 
 ## Acknowledgements
