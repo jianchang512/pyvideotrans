@@ -46,9 +46,7 @@ Before getting started, please ensure you understand the core working mechanism 
 
 ## Source Code Deployment
 
-> [Recommended: Install using `uv`. If you don't have `uv` yet, check the official installation guide.](https://docs.astral.sh/uv/getting-started/installation/)
->
-> [Windows users can also check this guide for installing `uv` and `ffmpeg`.](https://pyvideotrans.com/zh/blog/uv-ffmpeg)
+> [Recommended: Install using `uv`. If you don't have `uv` yet, check the official installation guide.](https://docs.astral.sh/uv/getting-started/installation/]
 
 1. **Prerequisites for MacOS/Linux**
 
@@ -60,7 +58,7 @@ Before getting started, please ensure you understand the core working mechanism 
 
     brew install git
 
-    brew install python@3.10
+   
     ```
 	
 	**Linux**: Install `ffmpeg` using `sudo yum install -y ffmpeg` or `apt-get install ffmpeg`.
