@@ -65,7 +65,7 @@ Before getting started, please ensure you understand the core working mechanism 
 	
 	**Linux**: Install `ffmpeg` using `sudo yum install -y ffmpeg` or `apt-get install ffmpeg`.
 
-2. Create a folder with **no spaces or Chinese characters** in its name. Open a terminal in that folder and execute:
+2. Create a folder with **no spaces** in its name. Open a terminal in that folder and execute:
 	```bash
 	git clone https://github.com/jianchang512/pyvideotrans
 	cd pyvideotrans
