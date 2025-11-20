@@ -299,7 +299,7 @@ class TransCreate(BaseTask):
             cmd.extend(['-l', self.cfg.detect_language.split('-')[0]])
             prompt=None
             if self.cfg.detect_language!='auto':
-                prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
+                prompt = config.settings.get(f'initial_prompt_{self.cfg.detect_language}')
             if prompt:
                 cmd+=['--initial_prompt',prompt]
             cmd.extend(['--model', self.cfg.model_name, '--output_dir', self.cfg.target_dir])
