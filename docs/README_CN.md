@@ -98,7 +98,8 @@ uv add ctranslate2==3.24.0
 
 ## 软件预览截图
 
-![](https://pvtr2.pyvideotrans.com/1763635378449_1.png)
+<img width="1772" height="972" alt="1" src="https://github.com/user-attachments/assets/0228a914-07a8-4e13-83ca-2fa82b52aee2" />
+
 
 
 ## 致谢
