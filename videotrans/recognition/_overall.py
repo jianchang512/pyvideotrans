@@ -177,13 +177,7 @@ class FasterAll(BaseRecogn):
                             return self.re_segment_sentences(words_list)
                         except Exception as e:
                             logs(f'LLM断句失败，将使用默认断句：{e}', level="except")
-                    else:
-                        # 本地断句
-                        try:
-                            self._signal(text=tr("Re-segmenting..."))                            
-                            return self.re_segment_sentences_local(words_list)
-                        except Exception as e:
-                            logs(f'本地断句失败，将使用默认断句：{e}', level="except")
+
                     # 断句失败或者没有断句
                     return self.get_srtlist(raws)
                 

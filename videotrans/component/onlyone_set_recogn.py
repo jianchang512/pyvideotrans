@@ -1,48 +1,189 @@
-
+import math
+from pathlib import Path
 
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
-     QPushButton, QScrollArea, QWidget, QGroupBox, QFrame
+    QPushButton, QScrollArea, QWidget, QGroupBox, QFrame,
+    QProgressBar, QApplication, QListView, QStyle, QStyledItemDelegate,QToolTip
 )
-from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt, QTimer,QSize
+from PySide6.QtGui import QIcon, QPen, QColor, QBrush, QPalette
+from PySide6.QtCore import Qt, QTimer, QSize, QAbstractListModel, QModelIndex, QRect, QEvent
 
 from videotrans.configure.config import tr
 from videotrans.util import tools
 from videotrans.configure import config
-from pathlib import Path
+
+# ===========================================================================
+# 1. 定义数据模型 负责管理字幕数据列表，提供给 ListView 读取和修改
+
+class SubtitleModel(QAbstractListModel):
+    # 自定义角色，用于区分获取整个数据项还是仅获取特定字段
+    RawDataRole = Qt.UserRole + 1
+
+    def __init__(self, subtitles=None, parent=None):
+        super().__init__(parent)
+        self._data = subtitles or []
+
+    def rowCount(self, parent=QModelIndex()):
+        return len(self._data)
+
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid() or index.row() >= len(self._data):
+            return None
+
+        item = self._data[index.row()]
+
+        if role == Qt.DisplayRole or role == Qt.EditRole:
+            return item['text']
+
+        if role == self.RawDataRole:
+            return item
+
+        return None
+
+    def setData(self, index, value, role=Qt.EditRole):
+        if index.isValid() and role == Qt.EditRole:
+            # 更新内存中的数据
+            self._data[index.row()]['text'] = value
+            self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
+            return True
+        return False
+
+    def flags(self, index):
+        if not index.isValid():
+            return Qt.NoItemFlags
+        # 允许选中和编辑
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+
+    def get_all_data(self):
+        return self._data
+
+# ===========================================================================
+# 2. 定义委托 负责绘制每一行（模拟原有的两行布局），以及创建编辑器
+
+class SubtitleDelegate(QStyledItemDelegate):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.row_height = 70  # 保持原有高度
+    def helpEvent(self, event, view, option, index):
+        """
+        处理 ToolTip 事件：
+        当鼠标悬停在输入框区域时，显示提示文本。
+        """
+        if event.type() == QEvent.Type.ToolTip:
+            # 1. 重新计算输入框区域
+            rect = option.rect
+            bottom_row_y = rect.top() + 40
+            left_margin = rect.left() + 5
+            # 输入框区域
+            input_rect = QRect(left_margin, bottom_row_y, rect.width() - 10, 30)
+
+            # 2. 检查鼠标位置是否在输入框内
+            # event.pos() 是相对于 View 的坐标
+            if input_rect.contains(event.pos()):
+                # 显示提示
+                QToolTip.showText(event.globalPos(), tr("Double-click the text box to edit the subtitles"))
+                return True
+
+        return super().helpEvent(event, view, option, index)
+
+    def sizeHint(self, option, index):
+        return QSize(option.rect.width(), self.row_height)
+
+    def paint(self, painter, option, index):
+        # 获取数据
+        item = index.data(SubtitleModel.RawDataRole)
+        text = item['text']
+
+        # 计算时间显示字符串
+        duration = (item['end_time'] - item['start_time']) / 1000.0
+        time_str = f"[{item['line']}] {item['startraw']}->{item['endraw']}({duration}s) "
+
+        painter.save()
+
+        # 绘制背景（如果被选中）
+        if option.state & QStyle.State_Selected:
+            painter.fillRect(option.rect, option.palette.highlight())
+
+        # 定义区域
+        rect = option.rect
+        # 上半部分：时间标签区域
+        time_rect = QRect(rect.left() + 5, rect.top() + 5, rect.width() - 10, 20)
+        # 下半部分：文本编辑框模拟区域
+        text_rect = QRect(rect.left() + 5, rect.top() + 30, rect.width() - 10, 30)
+
+        # 1. 绘制时间文本 (模拟 QLabel)
+        # 选中时字体颜色需要适配
+        if option.state & QStyle.State_Selected:
+            painter.setPen(option.palette.highlightedText().color())
+        else:
+            painter.setPen(option.palette.text().color())
+
+        painter.drawText(time_rect, Qt.AlignLeft | Qt.AlignVCenter, time_str)
+
+        # 2. 绘制“伪”输入框背景 (模拟 QLineEdit)
+        # 我们画一个框框，让用户知道这里是文本
+        input_bg_color = option.palette.base().color()
+        border_color = QColor("#455364")
+
+        painter.setBrush(QBrush(input_bg_color))
+        painter.setPen(QPen(border_color))
+        # 圆角
+        painter.drawRoundedRect(text_rect, 4, 4)
+
+        # 3. 绘制字幕内容
+        # 输入框内的文字通常是黑色的（除非暗色模式），这里用 WindowText
+        painter.setPen(option.palette.windowText().color())
+        # 文字稍微缩进一点，不要贴着边框
+        text_draw_rect = text_rect.adjusted(4, 0, -4, 0)
+
+        painter.drawText(text_draw_rect, Qt.AlignLeft | Qt.AlignVCenter, text)
+
+        painter.restore()
+
+    # 创建编辑器时（用户双击或按回车时调用）
+    def createEditor(self, parent, option, index):
+        editor = QLineEdit(parent)
+        return editor
+
+    # 设置编辑器的数据
+    def setEditorData(self, editor, index):
+        text = index.model().data(index, Qt.EditRole)
+        editor.setText(text)
+
+    # 将编辑器的数据保存回模型
+    def setModelData(self, editor, model, index):
+        model.setData(index, editor.text(), Qt.EditRole)
+
+    # 关键：确保编辑器只出现在“下半部分”，覆盖我们画的那个框框
+    def updateEditorGeometry(self, editor, option, index):
+        rect = option.rect
+        # 编辑器位置与 paint 中的 text_rect 一致
+        editor.setGeometry(rect.left() + 5, rect.top() + 30, rect.width() - 10, 30)
 
 
+# ===========================================================================
+# 3. 主窗口
 class EditRecognResultDialog(QDialog):
     def __init__(
         self,
         parent=None,
         source_sub: str = None
     ):
-        # 初始化对话框的基本属性
         super().__init__()
         self.parent=parent
         self.source_sub=source_sub
-        # 整理后的字幕
         self.srt_list_dict=tools.get_subtitle_from_srt(self.source_sub)
-        
 
-
-        # 设置窗口标题
         self.setWindowTitle(tr("zimubianjitishi"))
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-        # 设置窗口最小宽度为 1000px
         self.setMinimumWidth(1000)
         self.setMinimumHeight(600)
-        # 设置窗口标志：禁用关闭按钮，启用最大化按钮
         self.setWindowFlags(Qt.WindowTitleHint | Qt.WindowSystemMenuHint  | Qt.WindowMaximizeButtonHint)
-        # 添加顶部提示行和按钮
+
         self.count_down = int(float(config.settings.get('countdown_sec', 1)))
 
-        # 创建主布局：水平布局，用于左右分隔
         main_layout = QVBoxLayout(self)
-        
-
 
         hstop=QHBoxLayout()
 
@@ -60,84 +201,97 @@ class EditRecognResultDialog(QDialog):
 
         main_layout.addLayout(hstop)
 
-
         prompt_label2 = QLabel(tr("If you need to delete a line of subtitles, just clear the text in that line"))
         prompt_label2.setAlignment(Qt.AlignCenter)
         prompt_label2.setWordWrap(True)
         main_layout.addWidget(prompt_label2)
 
-
-        right_widget = QWidget()  # 创建右侧容器小部件
-        right_layout = QVBoxLayout(right_widget)  # 垂直布局
-        
-
-        # 添加顶部查找和替换布局
+        # 查找和替换布局
         search_replace_layout = QHBoxLayout()
         search_replace_layout.addStretch()
-        self.search_input = QLineEdit()  # 创建查找目标输入框
+        self.search_input = QLineEdit()
         self.search_input.setPlaceholderText(tr("Original text"))
         self.search_input.setMaximumWidth(200)
         search_replace_layout.addWidget(self.search_input)
-        self.replace_input = QLineEdit()  # 创建替换为输入框
+        self.replace_input = QLineEdit()
         self.replace_input.setPlaceholderText(tr("Replace"))
         self.replace_input.setMaximumWidth(200)
         search_replace_layout.addWidget(self.replace_input)
-        replace_button = QPushButton(tr("Replace"))  # 创建替换按钮
+        replace_button = QPushButton(tr("Replace"))
         replace_button.setMinimumWidth(100)
         replace_button.setMaximumWidth(200)
         replace_button.setCursor(Qt.PointingHandCursor)
-        replace_button.clicked.connect(self.replace_text)  # 连接到替换方法
+        replace_button.clicked.connect(self.replace_text)
         search_replace_layout.addWidget(replace_button)
         search_replace_layout.addStretch()
-        right_layout.addLayout(search_replace_layout)
+        main_layout.addLayout(search_replace_layout)
 
-        
+        # Loading 控件 
+        self.loading_widget = QWidget()
+        load_layout = QVBoxLayout(self.loading_widget)
+        self.loading_label = QLabel(tr('The subtitle editing interface is rendering'), self)
+        self.loading_label.setAlignment(Qt.AlignCenter)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setValue(5)
 
-        
+        load_layout.addWidget(self.loading_label)
+        load_layout.addWidget(self.progress_bar)
+        main_layout.addWidget(self.loading_widget)
 
 
-        subtitle_area = self.create_subtitle_assignment_area()  # 创建字幕区域
-        right_layout.addWidget(subtitle_area)  # 添加到右侧布局
+        self.list_view = QListView()
+        self.list_view.setUniformItemSizes(True) # 优化性能关键
+        self.list_view.setResizeMode(QListView.Adjust)
+        self.list_view.setVisible(False) # 初始隐藏，等待 lazy_load
+        # 设置按 TAB 键切换到下一行编辑
+        self.list_view.setTabKeyNavigation(True)
 
-        main_layout.addWidget(right_widget, stretch=7)  # 添加右侧到主布局，伸展因子 7
+        main_layout.addWidget(self.list_view)
 
         # 底部保存按钮
-        save_button = QPushButton(tr("nextstep"))  # 创建保存按钮
+        save_button = QPushButton(tr("nextstep"))
         save_button.setCursor(Qt.PointingHandCursor)
         save_button.setMinimumSize(QSize(400, 35))
-        save_button.clicked.connect(self.save_and_close)  # 连接点击信号到保存方法
-        cancel_button = QPushButton(tr("Terminate this mission"))  # 创建保存按钮
+        save_button.clicked.connect(self.save_and_close)
+        cancel_button = QPushButton(tr("Terminate this mission"))
         cancel_button.setCursor(Qt.PointingHandCursor)
         cancel_button.setMaximumSize(QSize(200, 30))
-        cancel_button.clicked.connect(self.cancel_and_close)  # 连接点击信号到保存方法
-        bottom_layout = QHBoxLayout()  # 水平布局用于居中按钮
-        bottom_layout.addStretch()  # 左侧伸展
-        bottom_layout.addWidget(save_button)  # 添加按钮
-        bottom_layout.addWidget(cancel_button)  # 添加按钮
-        bottom_layout.addStretch()  # 右侧伸展
-        
-        main_layout.addLayout(bottom_layout)  # 添加底部布局到右侧
+        cancel_button.clicked.connect(self.cancel_and_close)
+        bottom_layout = QHBoxLayout()
+        bottom_layout.addStretch()
+        bottom_layout.addWidget(save_button)
+        bottom_layout.addWidget(cancel_button)
+        bottom_layout.addStretch()
 
-        # 设置对话框的主布局
+        main_layout.addLayout(bottom_layout)
+
         self.setLayout(main_layout)
+        QTimer.singleShot(50,self.lazy_load_interface)
 
-        # 启动倒计时
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_countdown)
-        self.timer.start(1000)
-        QTimer.singleShot(0, self._active)
-    
-    
+    def lazy_load_interface(self):
+        # 调用数据加载
+        self.create_subtitle_assignment_area()
+        QApplication.processEvents()
+
+        def _finish():
+            # 显示 ListView，隐藏 Loading
+            self.list_view.setVisible(True)
+            self.loading_widget.deleteLater()
+            self.timer = QTimer(self)
+            self.timer.timeout.connect(self.update_countdown)
+            self.timer.start(1000)
+            self._active()
+
+        QTimer.singleShot(50, _finish)
+
     def _active(self):
-        self.parent.raise_()
-        self.parent.activateWindow()    
-    
+        self.parent.activateWindow()
+
     def cancel_and_close(self):
-        # 停止倒计时并关闭窗口，返回 False (QDialog.Rejected)
-        if self.timer:
+        if hasattr(self, 'timer') and self.timer:
             self.timer.stop()
-        self.reject()  # Closes and returns QDialog.Rejected (0)    
-        
+        self.reject()
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             event.ignore()
@@ -152,81 +306,67 @@ class EditRecognResultDialog(QDialog):
             self.save_and_close()
 
     def stop_countdown(self):
-        self.timer.stop()
+        if hasattr(self, 'timer'):
+            self.timer.stop()
         self.stop_button.deleteLater()
         self.prompt_label.deleteLater()
 
 
-    def create_subtitle_assignment_area(self) -> QWidget:
-        # 创建字幕按行分配角色区域的组框
-        group = QGroupBox("")
-        layout = QVBoxLayout(group)  # 垂直布局
+    def create_subtitle_assignment_area(self):
 
-        # 创建滚动区域以处理大量字幕行
-        scroll = QScrollArea()
-        scroll_widget = QWidget()  # 滚动内容小部件
-        scroll_layout = QVBoxLayout(scroll_widget)  # 垂直布局
+        # 1. 创建 Model
+        self.model = SubtitleModel(self.srt_list_dict, self)
 
-        # 初始化存储字幕行信息的列表
-        self.subtitle_rows = []
+        # 2. 创建 Delegate
+        self.delegate = SubtitleDelegate(self.list_view)
 
-        # 为每个字幕条目创建一行布局
-        for i,item in enumerate(self.srt_list_dict):
-            row_outer_layout = QVBoxLayout()  # 水平布局
+        # 3. 绑定到 View
+        self.list_view.setModel(self.model)
+        self.list_view.setItemDelegate(self.delegate)
 
-            # 创建时间标签，包含 时长、开始和结束时间
-            duration=(item['end_time']-item['start_time'])/1000.0
-            time_label = QLabel(f"{item['line']} ({duration}s) {item['startraw']}->{item['endraw']} ")
-            row_outer_layout.addWidget(time_label)  # 添加时间标签
+        # 更新进度条
+        self.progress_bar.setValue(100)
+        self.loading_label.setText(tr("Data is ready rendering is in progress"))
+        QApplication.processEvents()
 
-            text_edit = QLineEdit()  # 创建可编辑文本编辑器
-            text_edit.setText(item['text'])  # 设置初始文本
-            row_outer_layout.addWidget(text_edit)
-
-            scroll_layout.addLayout(row_outer_layout)  # 添加行布局到滚动布局
-            if i < len(self.srt_list_dict) - 1:
-                separator = QFrame()
-                separator.setFrameShape(QFrame.HLine)
-                separator.setFrameShadow(QFrame.Sunken)
-                separator.setStyleSheet("color: #aaaaaa;")
-                scroll_layout.addWidget(separator)
-            # 存储行信息字典
-            self.subtitle_rows.append({
-                'text_edit': text_edit,  # 文本编辑器
-                'item': item  # 对应的字幕数据项
-            })
-
-        scroll.setWidget(scroll_widget)  # 设置滚动内容
-        scroll.setWidgetResizable(True)  # 允许调整大小
-        layout.addWidget(scroll)  # 添加滚动区域到组布局
-
-
-        return group  # 返回组框
     def replace_text(self):
         # 获取查找和替换的文本
         search_text = self.search_input.text()
         replace_text = self.replace_input.text()
 
-        # 遍历所有字幕行，替换文本
-        for row in self.subtitle_rows:
-            current_text = row['text_edit'].text()
-            updated_text = current_text.replace(search_text, replace_text)
-            row['text_edit'].setText(updated_text)
-            row['item']['text'] = updated_text  # 同步更新 srt_list_dict 中的文本
+        if not search_text:
+            return
 
+        # model.get_all_data() 返回的是引用，直接修改它后通知 Model 更新视图
+        source_data = self.model.get_all_data()
+
+        # 批量更新标志
+        data_changed = False
+
+        for i, item in enumerate(source_data):
+            if search_text in item['text']:
+                item['text'] = item['text'].replace(search_text, replace_text)
+                # 标记这一行发生了改变
+                index = self.model.index(i)
+                self.model.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
+                data_changed = True
+
+        if data_changed:
+            # 强制刷新一下界面
+            self.list_view.viewport().update()
 
     def save_and_close(self):
         # 更新角色
         srt_str_list=[]
-        # 更新所有字幕行的文本，使用编辑后的内容
-        for row in self.subtitle_rows:
-            # 保存修改后的字幕
-            text = row['text_edit'].text().strip()
+
+        # 从 Model 获取最终数据
+        all_items = self.model.get_all_data()
+
+        for item in all_items:
+            text = item['text'].strip()
             if text:
-                srt_str_list.append(f'{row["item"]["line"]}\n{row["item"]["startraw"]} --> {row["item"]["endraw"]}\n{text}')
-            
-        
-        Path(self.source_sub).write_text("\n\n".join(srt_str_list),encoding="utf-8")
-        
-        # 接受对话框，关闭并返回 True (QDialog.Accepted)
-        self.accept()  # Closes and returns QDialog.Accepted (which is 1, but user can check if exec() == True)
+                srt_str_list.append(f'{item["line"]}\n{item["startraw"]} --> {item["endraw"]}\n{text}')
+
+        Path(self.source_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
+
+        self.accept()

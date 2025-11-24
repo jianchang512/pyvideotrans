@@ -9,7 +9,7 @@ from pathlib import Path
 import json
 
 import httpx
-import zhconv
+
 from deepgram import (
     DeepgramClient,
     PrerecordedOptions,
@@ -41,6 +41,7 @@ class DeepgramRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
+        import zhconv    
         if os.path.getsize(self.audio_file) > 52428800:
             tools.runffmpeg(
                 ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/deepgram-tmp.mp3'])

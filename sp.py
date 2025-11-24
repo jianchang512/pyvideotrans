@@ -19,10 +19,11 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
-from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer
+from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer, QLocale
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 
-VERSION = "v3.85"
+
+VERSION = "v3.86"
 
 
 # 抑制警告
@@ -81,13 +82,11 @@ class StartWindow(QWidget):
         # 背景上叠加文字
         v_layout = QVBoxLayout(self)
         v_layout.addStretch(1)
-        h_layout = QHBoxLayout()
-        v_layout.addLayout(h_layout)
-        h_layout.addStretch(1)
-        self.status_label = QLabel(f"pyVideoTrans {VERSION} Loading...")
+        self.status_label = QLabel(f"pyVideoTrans {VERSION} {'加载中稍等' if QLocale.system().name().lower().startswith('zh') else 'Loading hold on'}...")
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.status_label.setStyleSheet("font-size:16px; color:white; background-color:transparent;")
-        h_layout.addWidget(self.status_label)
-        h_layout.addStretch(1)
+
+        v_layout.addWidget(self.status_label)
         v_layout.setContentsMargins(0, 0, 0, 20)
 
     def closeEvent(self, event):

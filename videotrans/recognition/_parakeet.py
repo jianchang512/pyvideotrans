@@ -63,10 +63,5 @@ class ParaketRecogn(BaseRecogn):
                 return self.re_segment_sentences(words_list)
             except Exception as e:
                 logs(f'LLM重新断句失败', level="except")
-        else:
-            try:
-                return self.re_segment_sentences_local(words_list)
-            except Exception as e:
-                logs(f'本地重新断句失败', level="except")
-        
+
         return tools.get_subtitle_from_srt(tmp[0], is_file=False)

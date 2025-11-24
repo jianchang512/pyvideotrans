@@ -98,7 +98,7 @@ def openwin():
     config.child_forms['fn_hunliu'] = winobj
     winobj.show()
     def _bind():
-        Path(RESULT_DIR).mkdir(exist_ok=True)
+        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.hun_file1btn.clicked.connect(lambda: get_file(1))
         winobj.hun_file2btn.clicked.connect(lambda: get_file(2))
         winobj.hun_opendir.clicked.connect(opendir)

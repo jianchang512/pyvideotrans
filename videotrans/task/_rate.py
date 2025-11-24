@@ -1,4 +1,4 @@
-import errno, math
+import math
 import json
 import os
 import shutil
@@ -996,14 +996,7 @@ class SpeedRate:
         tools.set_process(text=final_step_text, uuid=self.uuid)
         logs("================== [最终步骤] 拼接音频、对齐并交付 ==================")
 
-        try:
-            # 初始拼接
-            self._ffmpeg_concat_audio(audio_concat_list)
-            if not tools.vail_file(self.target_audio):
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), self.target_audio)
-        except Exception as e:
-            logs(f"导出或对齐最终音视频时发生致命错误: {e}")
-            raise
+        self._ffmpeg_concat_audio(audio_concat_list)
         logs("所有处理完成，音视频已成功生成。")
     
     def _standardize_audio_segment(self, segment):
@@ -1058,17 +1051,17 @@ class SpeedRate:
             # 使用concat demuxer进行稳定的拼接
             logs(f"混合拼接步骤1: 创建包含 {len(file_list)} 个文件的拼接列表")
             tools.create_concat_txt(file_list, concat_txt=concat_txt_path)
-            if not Path(concat_txt_path).exists():
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), concat_txt_path)
-            protxt=config.TEMP_DIR + f"/rate_audio_{time.time()}.txt"
 
+            protxt=config.TEMP_DIR + f"/rate_audio_{time.time()}.txt"
+            ext=Path(self.target_audio).suffix.lower()
+            codecs={".m4a":"aac",".mp3":"libmp3lame",".wav":"copy"}
             cmd_step1 = [
                 "-y",
                 "-progress",protxt,
                 "-f", "concat",
                 "-safe", "0",
                 "-i", concat_txt_path,
-                "-c:a", "copy",
+                "-c:a", codecs.get(ext,'copy'),
                 self.target_audio
             ]
             self.stop_show_process=False

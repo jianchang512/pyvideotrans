@@ -284,7 +284,7 @@ def openwin():
     config.child_forms['fn_fanyisrt'] = winobj
     winobj.show()
     def _bind():
-        Path(RESULT_DIR).mkdir(exist_ok=True)
+        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
         winobj.fanyi_translate_type.setCurrentIndex(int(config.params.get('trans_translate_type', 0)))
 

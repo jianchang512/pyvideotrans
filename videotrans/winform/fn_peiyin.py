@@ -344,7 +344,7 @@ def openwin():
         if len(winobj.hecheng_files) > 0 and winobj.save_to_srt.isChecked():
             RESULT_DIR = Path(winobj.hecheng_files[0]).parent.as_posix()
         if not Path(config.TEMP_HOME).is_dir():
-            Path(config.TEMP_HOME).mkdir(exist_ok=True)
+            Path(config.TEMP_HOME).mkdir(parents=True,exist_ok=True)
         if txt:
             newsrtfile = config.TEMP_HOME + f"/peiyin{time.time()}."
             is_srt = re.match(
@@ -601,7 +601,7 @@ def openwin():
     config.child_forms['fn_peiyin'] = winobj
     winobj.show()
     def _bind():
-        Path(RESULT_DIR).mkdir(exist_ok=True)
+        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.voice_autorate.setChecked(config.params.get('dubb_voice_autorate', False))
         winobj.save_to_srt.setChecked(config.params.get('dubb_save_to_srt', False))
         winobj.hecheng_rate.setValue(config.params.get('dubb_hecheng_rate', 0))

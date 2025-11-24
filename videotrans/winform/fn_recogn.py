@@ -81,6 +81,7 @@ def openwin():
         winobj.rephrase.setDisabled(state)
         winobj.remove_noise.setDisabled(state)
         winobj.copysrt_rawvideo.setDisabled(state)
+        winobj.auto_fix.setDisabled(state)
         winobj.shibie_stop.setDisabled(not state)
 
 
@@ -114,7 +115,7 @@ def openwin():
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
 
-        if winobj.rephrase.currentIndex()==1:
+        if winobj.rephrase.isChecked():
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
                 tools.show_error(tr('llmduanju'))
@@ -135,7 +136,7 @@ def openwin():
         winobj.shibie_startbtn.setText(tr("running"))
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()
-        config.settings['rephrase'] = winobj.rephrase.currentIndex()
+        config.settings['rephrase'] = winobj.rephrase.isChecked()
         with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
@@ -147,6 +148,7 @@ def openwin():
             uuid_list = [obj['uuid'] for obj in video_list]
             remove_noise_is=winobj.remove_noise.isChecked()
             nums_diariz=winobj.nums_diariz.currentIndex()
+            auto_fix=winobj.auto_fix.isChecked()
             for it in video_list:
                 cfg={
                     "recogn_type": recogn_type,
@@ -157,7 +159,8 @@ def openwin():
                     "detect_language": langcode,
                     "remove_noise": remove_noise_is,
                     "enable_diariz": enable_diariz_is,
-                    "nums_diariz":nums_diariz
+                    "nums_diariz":nums_diariz,
+                    "auto_fix":auto_fix
                 }
                 try:
                     trk = SpeechToText(cfg=TaskCfg(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
@@ -177,6 +180,7 @@ def openwin():
             config.params["stt_nums_diariz"] = nums_diariz
             config.params["stt_spk_insert"] = winobj.spk_insert.isChecked()
             config.params["stt_split_type"] = split_type_index
+            config.params["stt_auto_fix"] = auto_fix
             config.getset_params(config.params)
             th.start()
 
@@ -347,11 +351,12 @@ def openwin():
         winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
         winobj.is_cuda.toggled.connect(check_cuda)
-        winobj.rephrase.setCurrentIndex(int(config.settings.get('rephrase',0)))
+        winobj.rephrase.setChecked(bool(config.settings.get('rephrase',False)))
         winobj.remove_noise.setChecked(bool(config.params.get('stt_remove_noise')))
         winobj.copysrt_rawvideo.setChecked(config.params.get('stt_copysrt_rawvideo', False))
         winobj.spk_insert.setChecked(bool(config.params.get('stt_spk_insert', False)))
         winobj.enable_diariz.setChecked(bool(config.params.get('stt_enable_diariz', False)))
+        winobj.auto_fix.setChecked(bool(config.params.get('stt_auto_fix', True)))
 
         winobj.nums_diariz.setCurrentIndex(int(config.params.get("stt_nums_diariz",0)))
         winobj.out_format.setCurrentText(config.params.get('stt_out_format', 'srt'))

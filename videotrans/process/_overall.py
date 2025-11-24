@@ -17,7 +17,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
     os.environ["OMP_NUM_THREADS"] = "1"
     import torch
     from videotrans.configure import config
-    from videotrans.process._iscache import check_cache_and_setproxy, down_model_err
+    from videotrans.process._iscache import check_cache_and_setproxy, down_model_err,_MODELS
     from videotrans.util.tools import cleartext
     os.chdir(config.ROOT_DIR)
     has_cache = False
@@ -80,7 +80,8 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
             write_log({"text": f"模型 {model_name} 不存在，将自动下载 {os.environ.get('HF_ENDPOINT')}" if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded', "type": "logs"})
         
         from faster_whisper import WhisperModel,BatchedInferencePipeline
-        
+        if model_name not in _MODELS:
+            split_type=0
         
         try:
             if model_name.startswith('distil-'):

@@ -380,7 +380,7 @@ def openwin():
     config.child_forms['fn_vas'] = winobj
     winobj.show()
     def _init_ui():
-        Path(RESULT_DIR).mkdir(exist_ok=True)
+        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.ysphb_selectvideo.clicked.connect(lambda: get_file('video'))
         winobj.ysphb_selectwav.clicked.connect(lambda: get_file('wav'))
         winobj.ysphb_selectsrt.clicked.connect(lambda: get_file('srt'))

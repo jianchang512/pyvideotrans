@@ -89,9 +89,7 @@ class BaseTrans(BaseCon):
                 此时 _item_task 接收的是 list[str]
             """
             if self._exit(): return
-
             self._signal(text=tr('starttrans') + f' {i} ')
-            #print(f'{i=}')
             result = self._get_cache(it)
             if not result:
                 result = tools.cleartext(self._item_task(it))

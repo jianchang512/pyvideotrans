@@ -186,7 +186,7 @@ def openwin():
     winobj.show()
 
     def _bind():
-        Path(RESULT_DIR).mkdir(exist_ok=True)
+        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.folder_btn.clicked.connect(get_file)
         winobj.startbtn.clicked.connect(start)
         winobj.opendir.clicked.connect(opendir)

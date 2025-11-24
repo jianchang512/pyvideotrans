@@ -121,7 +121,7 @@ class Gemini(BaseTrans):
                       ],
 
                     thinking_config = types.ThinkingConfig(
-                        thinking_level="HIGH",
+                        thinking_level="high",
                     ),
                     system_instruction=[
                         types.Part.from_text(text=tr("You are a top-notch subtitle translation engine.")),

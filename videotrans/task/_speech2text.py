@@ -69,7 +69,6 @@ class SpeechToText(BaseTask):
             if self._exit(): return
             # faster_xxl.exe 单独处理
             if self.cfg.recogn_type == Faster_Whisper_XXL:
-                import subprocess, shutil
                 cmd = [
                     config.settings.get('Faster_Whisper_XXL', ''),
                     self.cfg.shibie_audio,
@@ -101,12 +100,11 @@ class SpeechToText(BaseTask):
                     shutil.copy2(outsrt_file, self.cfg.target_sub)
                 except shutil.SameFileError:
                     pass
-                self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+                #self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
                 self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub,is_file=True)    
-                return
-            if self.cfg.recogn_type == Whisper_CPP:
+                #return
+            elif self.cfg.recogn_type == Whisper_CPP:
 
-                import subprocess, shutil
                 cpp_path=config.settings.get('Whisper.cpp', 'whisper-cli')
                 cmd = [
                     cpp_path,
@@ -135,28 +133,34 @@ class SpeechToText(BaseTask):
                 self._external_cmd_with_wrapper(cmd)
 
 
-                self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
                 self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub,is_file=True)   
-                return    
-            # 其他识别渠道
-            raw_subtitles = run(
-                recogn_type=self.cfg.recogn_type,
-                split_type=self.cfg.split_type,
-                uuid=self.uuid,
-                model_name=self.cfg.model_name,
-                audio_file=self.cfg.shibie_audio,
-                detect_language=self.cfg.detect_language,
-                cache_folder=self.cfg.cache_folder,
-                is_cuda=self.cfg.cuda,
-                subtitle_type=0,
-            )
+                #return    
+            else:
+                # 其他识别渠道
+                raw_subtitles = run(
+                    recogn_type=self.cfg.recogn_type,
+                    split_type=self.cfg.split_type,
+                    uuid=self.uuid,
+                    model_name=self.cfg.model_name,
+                    audio_file=self.cfg.shibie_audio,
+                    detect_language=self.cfg.detect_language,
+                    cache_folder=self.cfg.cache_folder,
+                    is_cuda=self.cfg.cuda,
+                    subtitle_type=0,
+                )
+                self.source_srt_list = raw_subtitles
+                self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
             if self._exit(): return
             if not raw_subtitles or len(raw_subtitles) < 1:
                 raise RuntimeError( self.cfg.basename + tr('recogn result is empty'))
-
-
-
-            self.source_srt_list = raw_subtitles
+            if self.cfg.auto_fix and self.cfg.detect_language !='auto':
+                # 自动修正字幕
+                shutil.copy2(self.cfg.target_sub,f'{self.cfg.target_sub}-noautofix.srt')
+                self.source_srt_list=tools.auto_fix_srtdict(self.source_srt_list,self.cfg.detect_language)
+                self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+            self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+            
+            
             
         except Exception:
             raise

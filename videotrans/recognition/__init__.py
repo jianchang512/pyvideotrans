@@ -1,10 +1,23 @@
-import os
 from typing import Union, List, Dict
 from videotrans import translator
 from videotrans.configure import config
-
+import time
 # 数字代表界面中的现实顺序
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
+from videotrans.recognition._overall import FasterAll
+from videotrans.recognition._ai302 import AI302Recogn
+from videotrans.recognition._elevenlabs import ElevenLabsRecogn
+from videotrans.recognition._google import GoogleRecogn
+from videotrans.recognition._doubao import DoubaoRecogn
+from videotrans.recognition._zijiemodel import ZijieRecogn
+from videotrans.recognition._recognapi import APIRecogn
+from videotrans.recognition._stt import SttAPIRecogn
+from videotrans.recognition._openairecognapi import OpenaiAPIRecogn
+from videotrans.recognition._funasr import FunasrRecogn
+from videotrans.recognition._qwen3asr import Qwen3ASRRecogn
+from videotrans.recognition._deepgram import DeepgramRecogn
+from videotrans.recognition._gemini import GeminiRecogn
+from videotrans.recognition._parakeet import ParaketRecogn
 
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
@@ -172,6 +185,7 @@ def run(*,
         is_cuda=None,
         subtitle_type=0
         ) -> Union[List[Dict], None]:
+
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
         return
     kwargs = {
@@ -182,56 +196,42 @@ def run(*,
         "uuid": uuid,
         "is_cuda": is_cuda,
         "subtitle_type": subtitle_type,
-        "recogn_type":recogn_type
+        "recogn_type":recogn_type,
+        "split_type":split_type
+    }
 
-    }            
+
+
 
     if recogn_type == GOOGLE_SPEECH:
-        from ._google import GoogleRecogn
         return GoogleRecogn(**kwargs).run()
 
     if recogn_type == DOUBAO_API:
-        from ._doubao import DoubaoRecogn
         return DoubaoRecogn(**kwargs).run()
     if recogn_type == ZIJIE_RECOGN_MODEL:
-        from ._zijiemodel import ZijieRecogn
         return ZijieRecogn(**kwargs).run()
     if recogn_type == CUSTOM_API:
-        from ._recognapi import APIRecogn
         return APIRecogn(**kwargs).run()
     if recogn_type == STT_API:
-        from ._stt import SttAPIRecogn
         return SttAPIRecogn(**kwargs).run()
 
     if recogn_type == OPENAI_API:
-        from ._openairecognapi import OpenaiAPIRecogn
         return OpenaiAPIRecogn(**kwargs).run()
     if recogn_type == QWEN3ASR:
-        from ._qwen3asr import Qwen3ASRRecogn
         return Qwen3ASRRecogn(**kwargs).run()
     if recogn_type == FUNASR_CN:     
-        from ._funasr import FunasrRecogn
+        
         return FunasrRecogn(**kwargs).run()
     if recogn_type == Deepgram:
-        from ._deepgram import DeepgramRecogn
         return DeepgramRecogn(**kwargs).run()
     if recogn_type == GEMINI_SPEECH:
-        from ._gemini import GeminiRecogn
         return GeminiRecogn(**kwargs).run()
     if recogn_type == PARAKEET:
-        from ._parakeet import ParaketRecogn
         return ParaketRecogn(**kwargs).run()
     if recogn_type == AI_302:
-        from ._ai302 import AI302Recogn
         return AI302Recogn(**kwargs).run()
 
     if recogn_type == ElevenLabs:
-        from ._elevenlabs import ElevenLabsRecogn
         return ElevenLabsRecogn(**kwargs).run()
-    
-    from videotrans.process._iscache import _MODELS
-    if recogn_type != OPENAI_WHISPER:
-        kwargs['split_type']=0 if split_type==0 or model_name not in _MODELS else 1
-    from ._overall import FasterAll    
     return FasterAll(**kwargs).run()
 

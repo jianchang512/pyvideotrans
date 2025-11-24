@@ -1528,18 +1528,6 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-openmp"
-version = "2021.4.0"
-source = { registry = "https://pypi.org/simple" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/97/62/8b06bd5e455110b9dd8cdff4cc85685f4ce206fcbc9513e4fa0791ae1c04/intel_openmp-2021.4.0-py2.py3-none-macosx_10_15_x86_64.macosx_11_0_x86_64.whl", hash = "sha256:41c01e266a7fdb631a7609191709322da2bbf24b252ba763f125dd651bcc7675", size = 1263776, upload-time = "2021-09-28T17:18:57.676Z" },
-    { url = "https://files.pythonhosted.org/packages/e6/a7/d0f7074b1f0670d1e3c694e101cf577d5b50fde265146ff11ca73ff1d679/intel_openmp-2021.4.0-py2.py3-none-manylinux1_i686.whl", hash = "sha256:3b921236a38384e2016f0f3d65af6732cf2c12918087128a9163225451e776f2", size = 952837, upload-time = "2021-09-28T17:13:35.594Z" },
-    { url = "https://files.pythonhosted.org/packages/08/a0/eacf78b5d87cec6c6664d018b48d65051bf70bc43098e6fa589b17ae9f48/intel_openmp-2021.4.0-py2.py3-none-manylinux1_x86_64.whl", hash = "sha256:e2240ab8d01472fed04f3544a878cda5da16c26232b7ea1b59132dbfb48b186e", size = 9946392, upload-time = "2021-09-28T17:13:40.836Z" },
-    { url = "https://files.pythonhosted.org/packages/45/18/527f247d673ff84c38e0b353b6901539b99e83066cd505be42ad341ab16d/intel_openmp-2021.4.0-py2.py3-none-win32.whl", hash = "sha256:6e863d8fd3d7e8ef389d52cf97a50fe2afe1a19247e8c0d168ce021546f96fc9", size = 1860605, upload-time = "2021-09-28T17:03:44.748Z" },
-    { url = "https://files.pythonhosted.org/packages/6f/21/b590c0cc3888b24f2ac9898c41d852d7454a1695fbad34bee85dba6dc408/intel_openmp-2021.4.0-py2.py3-none-win_amd64.whl", hash = "sha256:eef4c8bcc8acefd7f5cd3b9384dbf73d59e2c99fc56545712ded913f43c4a94f", size = 3516906, upload-time = "2021-09-28T17:03:50.453Z" },
-]
-
-[[package]]
 name = "ipython"
 version = "8.23.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2932,7 +2920,7 @@ wheels = [
 
 [[package]]
 name = "pyvideotrans"
-version = "3.85"
+version = "3.86"
 source = { virtual = "." }
 dependencies = [
     { name = "absl-py" },
@@ -3045,7 +3033,6 @@ dependencies = [
     { name = "imageio-ffmpeg" },
     { name = "importlib-metadata" },
     { name = "inflate64" },
-    { name = "intel-openmp" },
     { name = "ipython" },
     { name = "iso639-lang" },
     { name = "itsdangerous" },
@@ -3126,7 +3113,6 @@ dependencies = [
     { name = "pynndescent" },
     { name = "pyparsing" },
     { name = "pyppmd" },
-    { name = "pyreadline3" },
     { name = "pyside6" },
     { name = "pyside6-addons" },
     { name = "pyside6-essentials" },
@@ -3134,8 +3120,6 @@ dependencies = [
     { name = "python-dateutil" },
     { name = "pytorch-wpe" },
     { name = "pytz" },
-    { name = "pywin32-ctypes" },
-    { name = "pywinstyles" },
     { name = "pyyaml" },
     { name = "pyzstd" },
     { name = "qdarkstyle" },
@@ -3324,7 +3308,6 @@ requires-dist = [
     { name = "imageio-ffmpeg", specifier = "==0.4.9" },
     { name = "importlib-metadata", specifier = "==8.7.0" },
     { name = "inflate64", specifier = "==1.0.0" },
-    { name = "intel-openmp", specifier = "==2021.4.0" },
     { name = "ipython", specifier = "==8.23.0" },
     { name = "iso639-lang", specifier = "==2.2.3" },
     { name = "itsdangerous", specifier = "==2.2.0" },
@@ -3405,7 +3388,6 @@ requires-dist = [
     { name = "pynndescent", specifier = "==0.5.13" },
     { name = "pyparsing", specifier = "==3.1.1" },
     { name = "pyppmd", specifier = "==1.1.0" },
-    { name = "pyreadline3", specifier = "==3.5.4" },
     { name = "pyside6", specifier = "==6.9.2" },
     { name = "pyside6-addons", specifier = "==6.9.2" },
     { name = "pyside6-essentials", specifier = "==6.9.2" },
@@ -3413,8 +3395,6 @@ requires-dist = [
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
     { name = "pytorch-wpe", specifier = "==0.0.1" },
     { name = "pytz", specifier = "==2025.2" },
-    { name = "pywin32-ctypes", specifier = "==0.2.2" },
-    { name = "pywinstyles", specifier = "==1.4" },
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "pyzstd", specifier = "==0.16.1" },
     { name = "qdarkstyle", specifier = "==3.2.3" },
@@ -3497,15 +3477,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/10/3d/0cfbca45201351fe8c09cca743403e6c2407892e256e25d126ad64dc6bb7/pywin32-ctypes-0.2.2.tar.gz", hash = "sha256:3426e063bdd5fd4df74a14fa3cf80a0b42845a87e1d1e81f6549f9daec593a60", size = 26950, upload-time = "2023-06-27T11:13:01.641Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a4/bc/78b2c00cc64c31dbb3be42a0e8600bcebc123ad338c3b714754d668c7c2d/pywin32_ctypes-0.2.2-py3-none-any.whl", hash = "sha256:bf490a1a709baf35d688fe0ecf980ed4de11d2b3e37b51e5442587a75d9957e7", size = 30152, upload-time = "2023-06-27T11:13:00.189Z" },
-]
-
-[[package]]
-name = "pywinstyles"
-version = "1.4"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/73/9e/461dd1ff27a26beafbd099f03857283717cd28e51fac43405cbad1b3a0c4/pywinstyles-1.4.tar.gz", hash = "sha256:1a3d77eecfb2d3cfeea0a0038be79c94b302b620e12194652b166dbe9c495de2", size = 8648, upload-time = "2023-08-09T10:55:17.048Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f3/21/e534920d6e54abdd61e8075cf3ee4c516abcdce3fbb67a6d7b5c3eaa4d34/pywinstyles-1.4-py3-none-any.whl", hash = "sha256:12ddc60f47b4373e05a614a9cba0cf233a895a353e2547c7960433ecfe9f5844", size = 8948, upload-time = "2023-08-09T10:55:15.57Z" },
 ]
 
 [[package]]

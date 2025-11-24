@@ -308,10 +308,12 @@ def get_md5(input_string: str):
     return md5.hexdigest()
 
 
-def pygameaudio(filepath):
+def pygameaudio(filepath=None):
     try:
         import pygame
         pygame.mixer.init()
+        if not filepath:
+            return
         sound = pygame.mixer.Sound(filepath)
         sound.play()
         while pygame.mixer.get_busy():

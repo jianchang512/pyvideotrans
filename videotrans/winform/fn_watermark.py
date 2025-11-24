@@ -194,7 +194,7 @@ def openwin():
     config.child_forms['fn_watermak'] = winobj
     winobj.show()
     def _bind():
-        Path(RESULT_DIR).mkdir(exist_ok=True)
+        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.videobtn.clicked.connect(lambda: get_file(1))
         winobj.pngbtn.clicked.connect(lambda: get_file(2))
 

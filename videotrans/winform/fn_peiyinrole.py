@@ -439,7 +439,7 @@ def openwin():
     config.child_forms['fn_peiyinrole'] = winobj
     winobj.show()
     def _bind():
-        Path(RESULT_DIR).mkdir(exist_ok=True)
+        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.voice_autorate.setChecked(config.params.get('dubb_voice_autorate', False))
         winobj.save_to_srt.setChecked(config.params.get('dubb_save_to_srt', False))
         winobj.hecheng_rate.setValue(config.params.get('dubb_hecheng_rate', 0))

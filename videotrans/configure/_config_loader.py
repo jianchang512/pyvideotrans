@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import json
-import locale
+from PySide6.QtCore import QLocale
 import logging
 import os
 import re
@@ -90,7 +90,8 @@ if _env_lang := os.environ.get('PYVIDEOTRANS_LANG'):  # 新增：如果环境变
     defaulelang = _env_lang
 else:  # 原有逻辑
     try:
-        defaulelang = locale.getdefaultlocale()[0][:2].lower()
+        locale = QLocale.system()  # 获取系统默认语言环境
+        defaulelang = locale.name()[:2].lower()
     except Exception:
         defaulelang = "zh"
 
@@ -261,12 +262,13 @@ def parse_init(update_data=None):
         
         
         "vad": True,
+        
         "threshold": 0.45,
         "min_speech_duration_ms": 0,
         "max_speech_duration_s": 5,
         "min_silence_duration_ms": 140,
         "speech_pad_ms": 0,
-        "rephrase": 0,
+        "rephrase": False,
         "trans_thread": 20,
         "aitrans_thread": 25,
         "translation_wait": 0,
@@ -320,8 +322,8 @@ def parse_init(update_data=None):
         "show_more_settings":False,
 
 
-        "cjk_len": 20,
-        "other_len": 60,
+        "cjk_len": 22,
+        "other_len": 46,
         "gemini_model": DEFAULT_GEMINI_MODEL,
         "llm_chunk_size": 500,
         "llm_ai_type": "openai",
@@ -367,6 +369,8 @@ def parse_init(update_data=None):
 settings = parse_init()
 # 根据已保存的配置更新 HOME_DIR
 HOME_DIR = settings.get('homedir', HOME_DIR)
+
+Path(HOME_DIR).mkdir(parents=True,exist_ok=True)
 
 # 获取已有的语言文件
 if not _env_lang:
@@ -461,6 +465,7 @@ def getset_params(obj=None):
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
         "voice_autorate": True,
         "video_autorate": False,
+        "auto_fix":True,#自动校正语音转录结果字幕
         "voice_role": "No",
         "voice_rate": "0",
         "deepl_authkey": "",
@@ -620,6 +625,7 @@ def getset_params(obj=None):
         "stt_source_language": 0,
         "stt_recogn_type": 0,
         "stt_split_type": 0,
+        "stt_auto_fix": True,
         "stt_model_name": "",
         "stt_remove_noise": False,
         "stt_enable_diariz": False,

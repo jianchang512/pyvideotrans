@@ -60,12 +60,10 @@ def run_sep(wav_file,vocal_file,instr_file,thread_nums=4):
     output = sp.process(sample_rate=sample_rate, samples=samples)
     end = time.time()
 
-    print("output.sample_rate", output.sample_rate)
-
     assert len(output.stems) == 2, len(output.stems)
 
-    non_vocals = output.stems[0].data
-    vocals = output.stems[1].data
+    non_vocals = output.stems[1].data
+    vocals = output.stems[0].data
     # vocals.shape (num_channels, num_samples)
 
     vocals = np.transpose(vocals)

@@ -88,20 +88,7 @@ class Ui_MainWindow(object):
         self.shutdown.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_6.addStretch()
-        # proxy
-        proxy_layout=QtWidgets.QHBoxLayout()
-        self.label = QtWidgets.QPushButton(self.layoutWidget)
-        self.label.setMinimumSize(QtCore.QSize(0, 30))
-        self.label.setObjectName("label")
-        self.label.setStyleSheet("""background-color:transparent""")
 
-        self.proxy = QtWidgets.QLineEdit(self.layoutWidget)
-        self.proxy.setMinimumSize(QtCore.QSize(0, 30))
-        self.proxy.setObjectName("proxy")
-
-        
-        proxy_layout.addWidget(self.label)
-        proxy_layout.addWidget(self.proxy)
 
         self.horizontalLayout_6.addWidget(self.btn_save_dir)
         self.horizontalLayout_6.addWidget(self.copysrt_rawvideo)
@@ -145,8 +132,8 @@ class Ui_MainWindow(object):
 
 
 
-        self.rephrase = QtWidgets.QComboBox()
-        self.rephrase.addItems([tr('Default sentence'),tr("LLM Rephrase"),tr("Rephrase Local")])
+        self.rephrase = QtWidgets.QCheckBox()
+        self.rephrase.setText(tr("LLM Rephrase"))
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
         
        
@@ -154,16 +141,32 @@ class Ui_MainWindow(object):
         self.split_type.setMinimumSize(QtCore.QSize(80, 30))
         self.split_type.setObjectName("split_type")
         
+        self.auto_fix = QtWidgets.QCheckBox()
+        self.auto_fix.setObjectName("auto_fix")
+        self.auto_fix.setText(tr("Automatic correction"))
+        self.auto_fix.setToolTip(tr("Automatic subtitle correction"))
+
+        self.label_2 = QtWidgets.QPushButton(self.layoutWidget)
+        # self.label_2.setMinimumSize(QtCore.QSize(0, 30))
+        self.label_2.setStyleSheet("""background-color:transparent""")
+        self.label_2.setObjectName("label_2")
+        self.source_language = QtWidgets.QComboBox(self.layoutWidget)
+        # self.source_language.setMinimumSize(QtCore.QSize(160, 30))
+        self.source_language.setObjectName("source_language")
+        
 
         self.horizontalLayout_4.addWidget(self.reglabel)
         self.horizontalLayout_4.addWidget(self.recogn_type)
+        self.horizontalLayout_4.addWidget(self.label_2)
+        self.horizontalLayout_4.addWidget(self.source_language)
         self.horizontalLayout_4.addWidget(self.model_name_help)
         self.horizontalLayout_4.addWidget(self.model_name)
         
 
 
-        self.horizontalLayout_4.addWidget(self.rephrase)
         self.horizontalLayout_4.addWidget(self.split_type)
+        self.horizontalLayout_4.addWidget(self.rephrase)
+        self.horizontalLayout_4.addWidget(self.auto_fix)
         self.horizontalLayout_4.addStretch()
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
@@ -195,13 +198,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.translate_type)
 
         # 原始语言 目标语言 start
-        self.label_2 = QtWidgets.QPushButton(self.layoutWidget)
-        self.label_2.setMinimumSize(QtCore.QSize(0, 30))
-        self.label_2.setStyleSheet("""background-color:transparent""")
-        self.label_2.setObjectName("label_2")
-        self.source_language = QtWidgets.QComboBox(self.layoutWidget)
-        self.source_language.setMinimumSize(QtCore.QSize(160, 30))
-        self.source_language.setObjectName("source_language")
+
 
         self.label_3 = QtWidgets.QPushButton(self.layoutWidget)
         self.label_3.setMinimumSize(QtCore.QSize(0, 30))
@@ -209,13 +206,29 @@ class Ui_MainWindow(object):
         self.label_3.setStyleSheet("""background-color:transparent""")
         self.target_language = QtWidgets.QComboBox(self.layoutWidget)
         self.target_language.setObjectName("target_language")
+
+        self.aisendsrt = QtWidgets.QCheckBox()
+        self.aisendsrt.setText(tr("Send SRT"))
+        self.aisendsrt.setToolTip(
+            tr("When using AI translation channel, you can translate in srt format, but there may be more empty lines"))
+        self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+
+        self.glossary = QtWidgets.QPushButton(self.layoutWidget)
+        self.glossary.setMinimumSize(QtCore.QSize(0, 30))
+        self.glossary.setObjectName("glossary")
+        self.glossary.setText(tr("glossary"))
+        self.glossary.setStyleSheet("""background-color:transparent""")
+        self.glossary.setCursor(Qt.PointingHandCursor)
+        self.glossary.setToolTip(
+            tr("Click to set up and modify the glossary"))
         
         
 
-        self.horizontalLayout_5.addWidget(self.label_2)
-        self.horizontalLayout_5.addWidget(self.source_language)
+
         self.horizontalLayout_5.addWidget(self.label_3)
         self.horizontalLayout_5.addWidget(self.target_language)
+        self.horizontalLayout_5.addWidget(self.aisendsrt)
+        self.horizontalLayout_5.addWidget(self.glossary)
         self.horizontalLayout_5.addStretch()
 
         
@@ -313,8 +326,19 @@ class Ui_MainWindow(object):
         self.set_adv_status.setText(tr('More settings'))
         self.set_adv_status.setCursor(Qt.PointingHandCursor)
 
-        self.align_layout.addLayout(proxy_layout)        
-        self.align_layout.addWidget(self.set_adv_status)        
+        self.label = QtWidgets.QPushButton(self.layoutWidget)
+        self.label.setMinimumSize(QtCore.QSize(0, 30))
+        self.label.setObjectName("label")
+        self.label.setStyleSheet("""background-color:transparent""")
+
+        self.proxy = QtWidgets.QLineEdit(self.layoutWidget)
+        self.proxy.setMinimumSize(QtCore.QSize(200, 30))
+        self.proxy.setObjectName("proxy")
+
+        self.align_layout.addStretch()
+        self.align_layout.addWidget(self.label)
+        self.align_layout.addWidget(self.proxy)
+        self.align_layout.addWidget(self.set_adv_status)
         self.verticalLayout_3.addLayout(self.align_layout)
         
         # 背景行
@@ -517,22 +541,7 @@ class Ui_MainWindow(object):
         self.translation_wait.setToolTip(tr('The number of seconds to pause and wait after each completed request'))
         
         
-        self.aisendsrt = QtWidgets.QCheckBox()
-        self.aisendsrt.setVisible(False)
-        self.aisendsrt.setText(tr("Send SRT"))
-        self.aisendsrt.setToolTip(
-            tr("When using AI translation channel, you can translate in srt format, but there may be more empty lines"))
-        self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
-        
-        self.glossary = QtWidgets.QPushButton(self.layoutWidget)
-        self.glossary.setMinimumSize(QtCore.QSize(0, 30))
-        self.glossary.setObjectName("glossary")
-        self.glossary.setVisible(False)
-        self.glossary.setText(tr("glossary"))
-        self.glossary.setStyleSheet("""background-color:transparent""")
-        self.glossary.setCursor(Qt.PointingHandCursor)
-        self.glossary.setToolTip(
-            tr("Click to set up and modify the glossary"))
+
         
         
         self.trans_thread_layout = QtWidgets.QHBoxLayout()
@@ -540,11 +549,11 @@ class Ui_MainWindow(object):
         self.trans_thread_layout.addWidget(self.trans_thread)
         self.trans_thread_layout.addWidget(self.aitrans_thread_label)
         self.trans_thread_layout.addWidget(self.aitrans_thread)
-        self.trans_thread_layout.addWidget(self.aisendsrt)
+
         self.trans_thread_layout.addWidget(self.translation_wait_label)
         self.trans_thread_layout.addWidget(self.translation_wait)
-        self.trans_thread_layout.addWidget(self.glossary)
-        
+
+
         self.trans_thread_layout.addStretch()
 
         # 配音

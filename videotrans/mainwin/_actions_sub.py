@@ -473,6 +473,7 @@ class WinActionSub:
         self.main.import_sub.setDisabled(type)
         self.main.btn_get_video.setDisabled(type)
         self.main.btn_save_dir.setDisabled(type)
+        self.main.auto_fix.setDisabled(type)
         self.main.translate_type.setDisabled(type)
         self.main.proxy.setDisabled(type)
         self.main.source_language.setDisabled(type)

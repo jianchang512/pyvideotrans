@@ -13,18 +13,15 @@ import httpx, httpcore
 from tenacity import RetryError as TenRetryError
 
 
+# 内部已整理好错误提示消息的异常，将ex=None,message='{错误消息}'
 class VideoTransError(Exception):
-    def __init__(self, ex=None, message=''):
+    def __init__(self, message=''):
         super().__init__(message)
-        self.ex = None
-        if ex and isinstance(ex, Exception):
-            self.ex = ex
-        elif ex and isinstance(ex, str):
-            message = f'{ex} {message}'
-        self.message = message
+        self.message=message
+        
 
     def __str__(self):
-        return f'{str(self.ex) if self.ex else ""} {str(self.message)}'
+        return str(self.message)
 
 
 class TranslateSrtError(VideoTransError):
@@ -43,15 +40,6 @@ class StopRetry(VideoTransError):
     pass
 
 
-# 错误分类枚举
-class ErrorCategory:
-    AUTHENTICATION = "authentication"  # 认证问题
-    NETWORK = "network"  # 网络连接问题
-    CONFIGURATION = "configuration"  # 配置问题
-    RESOURCE = "resource"  # 资源问题
-    SERVER = "server"  # 服务器问题
-    CLIENT = "client"  # 客户端问题
-    UNKNOWN = "unknown"  # 未知错误
 
 
 # 无需继续重试的异常
@@ -238,46 +226,18 @@ def _handle_api_error_detail(error, lang):
         )
 
 
-def _get_error_category(exc_type):
-    """根据异常类型返回错误分类"""
-    if isinstance(exc_type, tuple):
-        exc_type = exc_type[0]
-
-    category_map = {
-        AuthenticationError: ErrorCategory.AUTHENTICATION,
-        PermissionDeniedError: ErrorCategory.AUTHENTICATION,
-        RateLimitError: ErrorCategory.NETWORK,
-        Timeout: ErrorCategory.NETWORK,
-        ConnectionError: ErrorCategory.NETWORK,
-        ReqConnectionError: ErrorCategory.NETWORK,
-        APIConnectionError: ErrorCategory.NETWORK,
-        (httpcore.ConnectTimeout, httpx.ConnectTimeout): ErrorCategory.NETWORK,
-        ConnectionRefusedError: ErrorCategory.NETWORK,
-        ConnectionResetError: ErrorCategory.NETWORK,
-        ConnectionAbortedError: ErrorCategory.NETWORK,
-        ProxyError: ErrorCategory.NETWORK,
-        NotFoundError: ErrorCategory.RESOURCE,
-        FileNotFoundError: ErrorCategory.RESOURCE,
-        BadRequestError: ErrorCategory.CLIENT,
-        (TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL): ErrorCategory.CONFIGURATION,
-        SSLError: ErrorCategory.CONFIGURATION,
-        (APIError, DeepgramApiError, ApiError_11): ErrorCategory.SERVER,
-        (AttributeError, NameError, TypeError): ErrorCategory.CLIENT,
-    }
-
-    return category_map.get(exc_type, ErrorCategory.UNKNOWN)
-
 
 # 根据异常类型，返回整理后的可读性错误消息
 def get_msg_from_except(ex):
+    if isinstance(ex, VideoTransError):
+        return str(ex)
+        
     lang = config.defaulelang
     if isinstance(ex, TenRetryError):
         try:
             ex = ex.last_attempt.exception()
         except AttributeError:
             pass
-    if isinstance(ex, VideoTransError) and ex.ex:
-        ex = ex.ex
 
     # 异常处理映射
     exception_handlers = {
@@ -483,7 +443,7 @@ def get_msg_from_except(ex):
     error_str = str(ex)
     if any(keyword in error_str.lower() for keyword in [
         'connection', 'connect', 'refused', 'reset', 'timeout', 'retries',
-        '连接', '拒绝', '重置', '超时', '重试', 'host', 'port', 'http', 'tcp'
+        '连接', '拒绝', '重置', '超时', '重试', 'host', 'port', 'http', 'tcp','ProxyError'
     ]):
         return _handle_connection_error_detail(ex, lang)
 

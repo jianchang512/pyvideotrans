@@ -1,10 +1,459 @@
 # 将普通文本转为合法的srt字符串
 import copy
 import os,json,re
-import re
+import math
+from collections import deque
 from datetime import timedelta
-
 from videotrans.configure.config import logs
+
+# -*- coding: utf-8 -*-
+"""
+srt_autofix_module.py
+Subtitle auto-fix module — single-file, entry signature preserved.
+
+NEW FEATURES:
+- min_duration_ms：分句最小时长
+- max_duration_ms：分句最大时长
+"""
+
+import re
+from typing import List, Dict
+import os
+
+
+
+# -----------------------------------------------------
+# Utilities
+# -----------------------------------------------------
+def ms_to_srt_time(ms: int) -> str:
+    s, ms = divmod(int(ms), 1000)
+    m, s = divmod(s, 60)
+    h, m = divmod(m, 60)
+    return f"{h:02}:{m:02}:{s:02},{ms:03}"
+
+
+CJK_RE = re.compile(r'[\u4e00-\u9fff]')
+
+
+def is_cjk_text(text: str) -> bool:
+    return bool(CJK_RE.search(text))
+
+
+def weighted_len(text: str, cjk_weight: float = 1.25) -> float:
+    cjk_count = sum(1 for ch in text if CJK_RE.match(ch))
+    other_count = len(text) - cjk_count
+    return cjk_count * cjk_weight + other_count
+
+
+def clean_text_for_srtdict(text: str, is_cjk: bool) -> str:
+    if not text:
+        return ""
+    text = re.sub(r'[^\w\s,.?!;:"\'%，。！？；：“”‘’、\-\u4e00-\u9fff]', '', text)
+
+    if is_cjk:
+        text = re.sub(r'^[嗯呃哎噢哦呢啊]+[，,]*', '', text)
+        text = re.sub(r'[嗯呃哎噢哦呢啊]+', '', text)
+        text = re.sub(r'\s+([，；。！？])', r'\1', text)
+    else:
+        text = re.sub(r'\b(um|uh|hmm|er|ah)\b', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\s+([,;:.!?])', r'\1', text)
+        text = re.sub(r'([,;:.!?])(?=[A-Za-z0-9])', r'\1 ', text)
+        text = re.sub(r'\s+', ' ', text)
+
+    text = text.strip()
+    return text
+
+
+# -----------------------------------------------------
+# Text splitting helpers
+# -----------------------------------------------------
+def split_by_punctuation_levels(text: str) -> List[str]:
+    text = text.strip()
+    if not text:
+        return []
+
+    strong = re.split(r'(?<=[。！？!?])\s*', text)
+    strong = [s for s in strong if s.strip()]
+    if len(strong) > 1:
+        return strong
+
+    weak = re.split(r'[;；,:，]\s*', text)
+    weak = [s for s in weak if s.strip()]
+    return weak if weak else [text]
+
+
+def split_chinese_connectors(text: str) -> List[str]:
+    connectors = ["然后", "但是", "不过", "然而", "因为", "所以", "比如", "例如", "如果", "而且"]
+    pattern = "(" + "|".join(map(re.escape, connectors)) + ")"
+    parts = re.split(pattern, text)
+    out = []
+    buf = ""
+    i = 0
+    while i < len(parts):
+        p = parts[i]
+        if p in connectors:
+            if buf:
+                out.append(buf)
+            buf = p
+            i += 1
+            if i < len(parts):
+                buf += parts[i]
+            out.append(buf)
+            buf = ""
+        else:
+            if not buf:
+                buf = p
+            else:
+                buf += p
+            out.append(buf)
+            buf = ""
+        i += 1
+    return [o.strip() for o in out if o.strip()] or [text]
+
+
+def merge_short_frags(chunks: List[str], min_len_weight: float) -> List[str]:
+    if len(chunks) <= 1:
+        return chunks
+
+    out = []
+    i = 0
+    while i < len(chunks):
+        cur = chunks[i]
+
+        if weighted_len(cur) < min_len_weight and i + 1 < len(chunks):
+            merged = (cur + " " + chunks[i+1]).strip()
+            out.append(merged)
+            i += 2
+        else:
+            out.append(cur)
+            i += 1
+    return out
+
+
+def hard_cut_cjk_text(text: str, target_weight: float = 28.0) -> List[str]:
+    if weighted_len(text) <= target_weight:
+        return [text]
+
+    frags = []
+    buf = ""
+    cur = 0
+    for ch in text:
+        w = 1.25 if CJK_RE.match(ch) else 1
+        if cur + w > target_weight and buf:
+            frags.append(buf)
+            buf = ch
+            cur = w
+        else:
+            buf += ch
+            cur += w
+    if buf:
+        frags.append(buf)
+
+    return merge_short_frags(frags, min_len_weight=10)
+
+
+def hard_cut_non_cjk_text(text: str, max_chars: int = 46) -> List[str]:
+    words = text.split()
+    frags = []
+    buf = []
+    for w in words:
+        tmp = " ".join(buf + [w])
+        if len(tmp) > max_chars and buf:
+            frags.append(" ".join(buf))
+            buf = [w]
+        else:
+            buf += [w]
+    if buf:
+        frags.append(" ".join(buf))
+
+    return merge_short_frags(frags, min_len_weight=10)
+
+
+# -----------------------------------------------------
+# Duration distribution
+# -----------------------------------------------------
+def enforce_duration_range(pieces: List[Dict], min_ms: int, max_ms: int) -> List[Dict]:
+    """Ensure each piece duration is within [min_ms, max_ms]."""
+
+    # 1) merge too short pieces upward
+    merged = []
+    buf = None
+    for p in pieces:
+        dur = p["end_time"] - p["start_time"]
+        if dur >= min_ms:
+            if buf:
+                merged.append(buf)
+                buf = None
+            merged.append(p)
+        else:
+            # merge with next later
+            if buf is None:
+                buf = p
+            else:
+                # expand buf
+                buf = {
+                    "start_time": buf["start_time"],
+                    "end_time": p["end_time"],
+                    "text": buf["text"] + " " + p["text"]
+                }
+    if buf:
+        merged.append(buf)
+
+    # 2) split pieces > max_ms
+    final = []
+    for m in merged:
+        s = m["start_time"]
+        e = m["end_time"]
+        dur = e - s
+        text = m["text"]
+
+        if dur <= max_ms:
+            final.append(m)
+        else:
+            # too long, need hard cut
+            if is_cjk_text(text):
+                frags = hard_cut_cjk_text(text, target_weight=28)
+            else:
+                frags = hard_cut_non_cjk_text(text)
+
+            total_weight = sum(weighted_len(f) for f in frags)
+            cur = s
+            acc = 0
+
+            for i, f in enumerate(frags):
+                if i == len(frags) - 1:
+                    ndur = e - cur
+                else:
+                    ndur = max(min_ms, int(dur * weighted_len(f) / total_weight))
+                    acc += ndur
+
+                final.append({
+                    "start_time": cur,
+                    "end_time": cur + ndur,
+                    "text": f
+                })
+                cur += ndur
+
+    return final
+
+
+# -----------------------------------------------------
+# reorder & format
+# -----------------------------------------------------
+def reorder_and_format(final_list: List[Dict]) -> List[Dict]:
+    final_list = sorted(final_list, key=lambda x: x["start_time"])
+
+    out = []
+    prev_end = None
+    for item in final_list:
+        s = int(item["start_time"])
+        e = int(item["end_time"])
+        t = item.get("text", "").strip()
+
+        if prev_end is not None and s < prev_end:
+            s = prev_end
+        if e <= s:
+            e = s + 20
+
+        out.append({
+            "line": len(out) + 1,
+            "start_time": s,
+            "end_time": e,
+            "text": t,
+            "startraw": ms_to_srt_time(s),
+            "endraw": ms_to_srt_time(e),
+            "time": f"{ms_to_srt_time(s)} --> {ms_to_srt_time(e)}"
+        })
+        prev_end = e
+
+    return out
+
+
+# -----------------------------------------------------
+# Entry function (signature preserved)
+# -----------------------------------------------------
+def auto_fix_srtdict(
+    srt_dict_list: List[Dict],
+    language: str = "zh",
+    use_jieba: bool = True,
+    min_duration_ms: int = 600
+) -> List[Dict]:
+    from videotrans.configure import config
+    import jieba
+    is_cjk_lang = language.lower() in ["zh", "ja", "ko", "cmn", "yue"]
+
+    max_duration_ms=int(float(config.settings.get("max_speech_duration_s",5))*1000)
+
+    # 1. Clean input
+    cleaned = []
+    for x in srt_dict_list:
+        st = int(x.get("start_time", 0))
+        et = int(x.get("end_time", st + 100))
+        if et <= st:
+            et = st + 100
+
+        text = clean_text_for_srtdict(x.get("text", "") or "", is_cjk_lang)
+        if not text:
+            continue
+
+        cleaned.append({
+            "start_time": st,
+            "end_time": et,
+            "text": text
+        })
+
+    if not cleaned:
+        return []
+
+    cleaned.sort(key=lambda x: x["start_time"])
+
+    # 2. Merge extremely close blocks
+    merged = []
+    buf = cleaned[0]
+    for nxt in cleaned[1:]:
+        if nxt["start_time"] - buf["end_time"] <= 80:
+            buf = {
+                "start_time": buf["start_time"],
+                "end_time": nxt["end_time"],
+                "text": buf["text"] + " " + nxt["text"]
+            }
+        else:
+            merged.append(buf)
+            buf = nxt
+    merged.append(buf)
+
+    # 3. Split blocks
+    pieces = []
+    for block in merged:
+        st, et, text = block["start_time"], block["end_time"], block["text"]
+        dur = et - st
+
+        # short enough
+        if dur <= max_duration_ms and weighted_len(text) <= (30 if is_cjk_lang else 60):
+            pieces.append(block)
+            continue
+
+        # punctuation
+        parts = split_by_punctuation_levels(text)
+        if len(parts) > 1:
+            parts = merge_short_frags(parts, min_len_weight=8)
+            weight = sum(weighted_len(p) for p in parts)
+            cur = st
+            for i, p in enumerate(parts):
+                if i == len(parts) - 1:
+                    ndur = et - cur
+                else:
+                    ndur = max(min_duration_ms, int(dur * weighted_len(p) / weight))
+
+                pieces.append({
+                    "start_time": cur,
+                    "end_time": cur + ndur,
+                    "text": p
+                })
+                cur += ndur
+            continue
+
+        # CJK
+        if is_cjk_text(text):
+            # jieba optional
+            if use_jieba:
+                ws = list(jieba.cut(text))
+                frags = []
+                buf = ""
+                for w in ws:
+                    if weighted_len(buf + w) > 28 and buf:
+                        frags.append(buf)
+                        buf = w
+                    else:
+                        buf += w
+                if buf:
+                    frags.append(buf)
+
+                frags = merge_short_frags(frags, min_len_weight=8)
+                if len(frags) > 1:
+                    weight = sum(weighted_len(f) for f in frags)
+                    cur = st
+                    for i, f in enumerate(frags):
+                        if i == len(frags) - 1:
+                            ndur = et - cur
+                        else:
+                            ndur = max(min_duration_ms, int(dur * weighted_len(f) / weight))
+                        pieces.append({
+                            "start_time": cur,
+                            "end_time": cur + ndur,
+                            "text": f
+                        })
+                        cur += ndur
+                    continue
+
+            # connectors
+            conn = split_chinese_connectors(text)
+            conn = merge_short_frags(conn, min_len_weight=8)
+            if len(conn) > 1:
+                weight = sum(weighted_len(f) for f in conn)
+                cur = st
+                for i, f in enumerate(conn):
+                    if i == len(conn) - 1:
+                        ndur = et - cur
+                    else:
+                        ndur = max(min_duration_ms, int(dur * weighted_len(f) / weight))
+                    pieces.append({
+                        "start_time": cur,
+                        "end_time": cur + ndur,
+                        "text": f
+                    })
+                    cur += ndur
+                continue
+
+            # hard cut
+            frags = hard_cut_cjk_text(text)
+            if len(frags) > 1:
+                weight = sum(weighted_len(f) for f in frags)
+                cur = st
+                for i, f in enumerate(frags):
+                    if i == len(frags) - 1:
+                        ndur = et - cur
+                    else:
+                        ndur = max(min_duration_ms, int(dur * weighted_len(f) / weight))
+                    pieces.append({
+                        "start_time": cur,
+                        "end_time": cur + ndur,
+                        "text": f
+                    })
+                    cur += ndur
+                continue
+
+            pieces.append(block)
+            continue
+
+        # Non-CJK
+        frags = hard_cut_non_cjk_text(text)
+        if len(frags) > 1:
+            weight = sum(len(f) for f in frags)
+            cur = st
+            for i, f in enumerate(frags):
+                if i == len(frags) - 1:
+                    ndur = et - cur
+                else:
+                    ndur = max(min_duration_ms, int(dur * len(f) / weight))
+                pieces.append({
+                    "start_time": cur,
+                    "end_time": cur + ndur,
+                    "text": f
+                })
+                cur += ndur
+            continue
+
+        pieces.append(block)
+
+    # 4. enforce min/max duration
+    pieces = enforce_duration_range(pieces, min_duration_ms, max_duration_ms)
+
+    # 5. Final reorder + formatting
+    return reorder_and_format(pieces)
+
+
+# -----------------------------------------------------
 
 
 def process_text_to_srt_str(input_text: str):
@@ -88,8 +537,7 @@ def ms_to_time_string(*, ms=0, seconds=None, sepflag=','):
     minutes, seconds = divmod(remainder, 60)
     milliseconds = td.microseconds // 1000
 
-    time_string = f"{hours}:{minutes}:{seconds},{milliseconds}"
-    return format_time(time_string, f'{sepflag}')
+    return f"{hours:02}:{minutes:02}:{seconds:02}{sepflag}{milliseconds:03}"
 
 
 # 将不规范的 时:分:秒,|.毫秒格式为  aa:bb:cc,ddd形式
@@ -405,39 +853,6 @@ def set_ass_font(srtfile: str) -> str:
 
     return ass_file_path
 
-def set_ass_font1(srtfile=None):
-    from . import help_ffmpeg
-    from videotrans.configure import config
-    if not os.path.exists(srtfile) or os.path.getsize(srtfile) == 0:
-        return os.path.basename(srtfile)
-    help_ffmpeg.runffmpeg(['-y', '-i', srtfile, f'{srtfile}.ass'])
-    assfile = f'{srtfile}.ass'
-
-    with open(assfile, 'r', encoding='utf-8') as f:
-        ass_str = f.readlines()
-
-    for i, it in enumerate(ass_str):
-        if it.find('Style: ') == 0:
-            ass_str[i] = 'Style: Default,{fontname},{fontsize},{fontcolor},{fontcolor},{fontbordercolor},{backgroundcolor},0,0,0,0,100,100,0,0,{borderstyle},{outline},{shadow},{subtitle_position},{marginL},{marginR},{marginV},1'.format(
-                fontname=config.settings.get('fontname',''),
-                fontsize=config.settings.get('fontsize',''),
-                fontcolor=config.settings.get('fontcolor',''),
-                fontbordercolor=config.settings.get('fontbordercolor',''),
-                backgroundcolor=config.settings.get('backgroundcolor',''),
-                borderstyle=int(config.settings.get('borderStyle', 1)),  # 1轮廓风格，3背景色块风格
-                outline=config.settings.get('outline', 1),
-                shadow=config.settings.get('shadow', 1),
-                subtitle_position=int(config.settings.get('subtitle_position', 2)),
-                marginL=int(config.settings.get('marginL', 0)),
-                marginR=int(config.settings.get('marginR', 0)),
-                marginV=int(config.settings.get('marginV', 10))
-            )
-        elif it.find('Dialogue: ') == 0:
-            ass_str[i] = it.replace('  ', '\\N')
-
-    with open(assfile, 'w', encoding='utf-8') as f:
-        f.write("".join(ass_str))
-    return assfile
 
 def textwrap(text, maxlen=15):
     """

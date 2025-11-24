@@ -38,9 +38,9 @@ class Ali(BaseTrans):
         cf.endpoint = f'mt.cn-hangzhou.aliyuncs.com'
         return alimt20181012Client(cf)
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+    #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+    #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+    #       after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         client = self.create_client()
@@ -55,5 +55,5 @@ class Ali(BaseTrans):
 
         res = client.translate_with_options(translate_general_request, runtime)
         if int(res.body.code) != 200:
-            raise RuntimeError(f'error:{res.body.code}')
+            raise RuntimeError(f'error:{res.body}')
         return res.body.data.translated

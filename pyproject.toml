@@ -1,6 +1,6 @@
 [project]
 name = "pyVideoTrans"
-version = "3.85"
+version = "3.86"
 requires-python = "==3.10.*"
 dependencies = [
     "absl-py==2.0.0",
@@ -113,7 +113,6 @@ dependencies = [
     "imageio-ffmpeg==0.4.9",
     "importlib-metadata==8.7.0",
     "inflate64==1.0.0",
-    "intel-openmp==2021.4.0",
     "ipython==8.23.0",
     "iso639-lang==2.2.3",
     "itsdangerous==2.2.0",
@@ -193,7 +192,6 @@ dependencies = [
     "pynndescent==0.5.13",
     "pyparsing==3.1.1",
     "pyppmd==1.1.0",
-    "pyreadline3==3.5.4",
     "pyside6==6.9.2",
     "pyside6-addons==6.9.2",
     "pyside6-essentials==6.9.2",
@@ -201,8 +199,6 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "pytorch-wpe==0.0.1",
     "pytz==2025.2",
-    "pywin32-ctypes==0.2.2",
-    "pywinstyles==1.4",
     "pyyaml==6.0.3",
     "pyzstd==0.16.1",
     "qdarkstyle==3.2.3",

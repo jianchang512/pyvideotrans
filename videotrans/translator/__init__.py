@@ -6,6 +6,30 @@ from videotrans.configure import config
 # 数字代表显示顺序
 from videotrans.configure.config import tr,logs
 from videotrans.util import tools
+from videotrans.translator._google import Google
+from videotrans.translator._microsoft import Microsoft
+from videotrans.translator._deepl import DeepL
+from videotrans.translator._ai302 import AI302
+from videotrans.translator._deeplx import DeepLX
+from videotrans.translator._localllm import LocalLLM
+from videotrans.translator._huoshan import HuoShan
+from videotrans.translator._chatgpt import ChatGPT
+from videotrans.translator._openrouter import OpenRouter
+from videotrans.translator._zhipuai import ZhipuAI
+from videotrans.translator._deepseek import DeepSeek
+from videotrans.translator._ali import Ali
+from videotrans.translator._siliconflow import SILICONFLOW
+from videotrans.translator._azure import AzureGPT
+from videotrans.translator._gemini import Gemini
+from videotrans.translator._libre import Libre
+from videotrans.translator._mymemory import MyMemory
+from videotrans.translator._tencent import Tencent
+from videotrans.translator._qwenmt import QwenMT
+from videotrans.translator._microsoft import Microsoft
+from videotrans.translator._baidu import Baidu
+from videotrans.translator._ott import OTT
+from videotrans.translator._transapi import TransAPI
+
 
 GOOGLE_INDEX = 0
 MICROSOFT_INDEX = 1
@@ -849,88 +873,65 @@ def run(*, translate_type=0,
     # 未设置代理并且检测google失败，则使用微软翻译
     if translate_type == GOOGLE_INDEX:
         if config.proxy or _check_google() is True:
-            from videotrans.translator._google import Google
             return Google(**kwargs).run()
         logs('==未设置代理并且检测google失败，使用微软翻译')
-        from videotrans.translator._microsoft import Microsoft
         return Microsoft(**kwargs).run()
         
     if translate_type == MyMemoryAPI_INDEX:
-        from videotrans.translator._mymemory import MyMemory
         return MyMemory(**kwargs).run()
     if translate_type == QWENMT_INDEX:
-        from videotrans.translator._qwenmt import QwenMT
         return QwenMT(**kwargs).run()
 
     if translate_type == MICROSOFT_INDEX:
-        from videotrans.translator._microsoft import Microsoft
         return Microsoft(**kwargs).run()
 
     if translate_type == TENCENT_INDEX:
-        from videotrans.translator._tencent import Tencent
         return Tencent(**kwargs).run()
 
     if translate_type == BAIDU_INDEX:
-        from videotrans.translator._baidu import Baidu
         return Baidu(**kwargs).run()
 
     if translate_type == OTT_INDEX:
-        from videotrans.translator._ott import OTT
         return OTT(**kwargs).run()
 
     if translate_type == TRANSAPI_INDEX:
-        from videotrans.translator._transapi import TransAPI
         return TransAPI(**kwargs).run()
 
     if translate_type == DEEPL_INDEX:
-        from videotrans.translator._deepl import DeepL
         return DeepL(**kwargs).run()
 
     if translate_type == DEEPLX_INDEX:
-        from videotrans.translator._deeplx import DeepLX
         return DeepLX(**kwargs).run()
 
     if translate_type == AI302_INDEX:
-        from videotrans.translator._ai302 import AI302
         return AI302(**kwargs).run()
 
     if translate_type == LOCALLLM_INDEX:
-        from videotrans.translator._localllm import LocalLLM
         return LocalLLM(**kwargs).run()
 
     if translate_type == ZIJIE_INDEX:
-        from videotrans.translator._huoshan import HuoShan
         return HuoShan(**kwargs).run()
 
     if translate_type == CHATGPT_INDEX:
-        from videotrans.translator._chatgpt import ChatGPT
         return ChatGPT(**kwargs).run()
     if translate_type == ZHIPUAI_INDEX:
-        from videotrans.translator._zhipuai import ZhipuAI
         return ZhipuAI(**kwargs).run()
     if translate_type == OPENROUTER_INDEX:
-        from videotrans.translator._openrouter import OpenRouter
         return OpenRouter(**kwargs).run()
     if translate_type == DEEPSEEK_INDEX:
-        from videotrans.translator._deepseek import DeepSeek
         return DeepSeek(**kwargs).run()
 
     if translate_type == SILICONFLOW_INDEX:
-        from videotrans.translator._siliconflow import SILICONFLOW
         return SILICONFLOW(**kwargs).run()
 
     if translate_type == AZUREGPT_INDEX:
-        from videotrans.translator._azure import AzureGPT
         return AzureGPT(**kwargs).run()
 
     if translate_type == GEMINI_INDEX:
-        from videotrans.translator._gemini import Gemini
         return Gemini(**kwargs).run()
     if translate_type == LIBRE_INDEX:
-        from videotrans.translator._libre import Libre
         return Libre(**kwargs).run()
     if translate_type == ALI_INDEX:
-        from videotrans.translator._ali import Ali
         return Ali(**kwargs).run()
 
     raise RuntimeError('未选中任何翻译渠道')

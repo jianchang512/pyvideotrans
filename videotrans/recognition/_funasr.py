@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Union
 
-from funasr import AutoModel
+
 from pydub import AudioSegment
 
 from videotrans.configure import config
@@ -38,6 +38,7 @@ class FunasrRecogn(BaseRecogn):
         if self.model_name == 'SenseVoiceSmall':
             return self._exec1()
         raw_subtitles = []
+        from funasr import AutoModel
 
         model = AutoModel(
             model=self.model_name, model_revision="v2.0.5",
@@ -81,7 +82,9 @@ class FunasrRecogn(BaseRecogn):
         if self._exit():
             return
 
+        from funasr import AutoModel
         from funasr.utils.postprocess_utils import rich_transcription_postprocess
+        
         model = AutoModel(
             model="iic/SenseVoiceSmall",
             punc_model="ct-punc",

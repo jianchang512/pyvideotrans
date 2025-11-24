@@ -15,6 +15,9 @@ from videotrans.configure.config import tr,logs
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools
+from videotrans.component.onlyone_set_editdubb import EditDubbingResultDialog
+from videotrans.component.onlyone_set_recogn import EditRecognResultDialog
+from videotrans.component.onlyone_set_role import SpeakerAssignmentDialog
 
 
 
@@ -40,11 +43,11 @@ class WinAction(WinActionSub):
 
     # 将倒计时设为立即超时
     def set_djs_timeout(self):
+        config.task_countdown = -1
         if self.had_click_btn:
             return
         self.had_click_btn=True
         self.main.subtitle_area.setReadOnly(True)
-        config.task_countdown = -1
         self.had_click_btn=False
 
 
@@ -547,6 +550,7 @@ class WinAction(WinActionSub):
 
         # 判断CUDA
         self.cfg['cuda'] = self.main.enable_cuda.isChecked()
+        self.cfg['auto_fix'] = self.main.auto_fix.isChecked()
         self.cfg['remove_silent_mid'] = False 
         self.cfg['align_sub_audio'] = True 
         # 只有未启用 音频加速 视频慢速时才起作用
@@ -569,7 +573,7 @@ class WinAction(WinActionSub):
             return
 
         # LLM 重新断句时，需判断 deepseek或openai chatgpt填写了信息
-        if self.main.rephrase.currentIndex()==1:
+        if self.main.rephrase.isChecked():
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
                 self.main.startbtn.setDisabled(False)
@@ -623,7 +627,7 @@ class WinAction(WinActionSub):
         config.settings['aitrans_thread'] = self.main.aitrans_thread.text()
         config.settings['translation_wait'] = self.main.translation_wait.text()
         # LLM重新断句
-        config.settings['rephrase'] = self.main.rephrase.currentIndex()
+        config.settings['rephrase'] = self.main.rephrase.isChecked()
         # 中日韩硬字幕单行字符
         config.settings['cjk_len'] = self.main.cjklinenums.value()
         # 其他语言硬字幕单行字符
@@ -806,6 +810,9 @@ class WinAction(WinActionSub):
     # 更新 UI
     def update_data(self, json_data):
         d = json.loads(json_data) if isinstance(json_data, str) else json_data
+        if config.current_status !='ing' and d['type'] not in [ 'error', 'succeed']:
+            return
+
         if d['type'] in ['logs', 'error', 'succeed', 'set_precent']:
             self.set_process_btn_text(d)
             if d['type'] in ['error', 'succeed'] and d.get('uuid'):
@@ -822,9 +829,22 @@ class WinAction(WinActionSub):
         elif d['type'] == "subtitle" and config.current_status == 'ing':
             self.main.subtitle_area.moveCursor(QTextCursor.End)
             self.main.subtitle_area.insertPlainText(d['text'])
+        elif d['type'] == 'edit_dubbing':
+            # 显示编辑翻译框
+            cache_folder,language=d['text'].split('<|>')
+            dialog=EditDubbingResultDialog(
+                cache_folder=cache_folder,
+                language=language,
+                parent=self.main
+            )
+            
+            if dialog.exec():
+                self.set_djs_timeout()
+            else:
+                self.update_status('stop')
         elif d['type'] == 'edit_subtitle_source':
             # 显示编辑翻译框
-            from videotrans.component.onlyone_set_recogn import EditRecognResultDialog
+
             
             dialog=EditRecognResultDialog(
                 source_sub=config.onlyone_source_sub,
@@ -837,7 +857,7 @@ class WinAction(WinActionSub):
                 self.update_status('stop')
         elif d['type'] == 'edit_subtitle_target':
             # 弹出编辑配音字幕
-            from videotrans.component.onlyone_set_role import SpeakerAssignmentDialog
+
             cache_folder,target_language,tts_type=d['text'].split('<|>')
             dialog=SpeakerAssignmentDialog(
                 source_sub=None if not config.onlyone_trans else config.onlyone_source_sub,

@@ -89,6 +89,7 @@ class Ui_recogn(object):
         self.shibie_stop.setDisabled(True)
 
         self.horizontalLayout.addStretch()
+        self.horizontalLayout.addWidget(self.is_cuda)
         self.horizontalLayout.addWidget(self.label_3)
         self.horizontalLayout.addWidget(self.shibie_language)
         self.horizontalLayout.addWidget(self.shibie_label)
@@ -107,8 +108,8 @@ class Ui_recogn(object):
 
         recogn.setWindowTitle(tr("Speech Recognition Text"))
 
-        self.rephrase = QtWidgets.QComboBox()
-        self.rephrase.addItems([tr('Default sentence'),tr("LLM Rephrase"),tr("Rephrase Local")])
+        self.rephrase = QtWidgets.QCheckBox()
+        self.rephrase.setText(tr("LLM Rephrase"))
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
 
         
@@ -119,15 +120,19 @@ class Ui_recogn(object):
         
 
         self.shibie_split_type = QtWidgets.QComboBox()
+        self.auto_fix = QtWidgets.QCheckBox()
+        self.auto_fix.setObjectName("auto_fix")
+        self.auto_fix.setText(tr("Automatic correction"))
+        self.auto_fix.setToolTip(tr("Automatic subtitle correction"))
 
 
         self.h4 = QtWidgets.QHBoxLayout()
         self.h4.addStretch()
-        self.h4.addWidget(self.is_cuda)
         self.h4.addWidget(self.shibie_startbtn)
         self.h4.addWidget(self.shibie_stop)
         self.h4.addWidget(self.shibie_split_type)
         self.h4.addWidget(self.rephrase)
+        self.h4.addWidget(self.auto_fix)
         self.h4.addWidget(self.lable_out)
         self.h4.addWidget(self.out_format)
         self.h4.addWidget(self.copysrt_rawvideo)

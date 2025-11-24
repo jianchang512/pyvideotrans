@@ -73,3 +73,4 @@ class TaskCfg:
     
     enable_diariz:bool=False # 是否进行说话人识别
     nums_diariz:int=0 # 是否进行说话人识别
+    auto_fix:bool=True # 是否进行自动修正字幕

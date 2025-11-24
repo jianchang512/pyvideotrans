@@ -2,7 +2,26 @@ from videotrans.configure import config
 
 # 数字代表界面中的显示顺序
 from videotrans.configure.config import tr,logs
-
+from videotrans.tts._minimaxi import MinimaxiTTS
+from videotrans.tts._azuretts import AzureTTS
+from videotrans.tts._cosyvoice import CosyVoice
+from videotrans.tts._edgetts import EdgeTTS
+from videotrans.tts._ai302tts import AI302
+from videotrans.tts._chattts import ChatTTS
+from videotrans.tts._fishtts import FishTTS
+from videotrans.tts._kokoro import KokoroTTS
+from videotrans.tts._gptsovits import GPTSoVITS
+from videotrans.tts._chatterbox import ChatterBoxTTS
+from videotrans.tts._clone import CloneVoice
+from videotrans.tts._openaitts import OPENAITTS
+from videotrans.tts._qwentts import QWENTTS
+from videotrans.tts._elevenlabs import ElevenLabsC
+from videotrans.tts._gtts import GTTS
+from videotrans.tts._geminitts import GEMINITTS
+from videotrans.tts._ttsapi import TTSAPI
+from videotrans.tts._doubao import DoubaoTTS
+from videotrans.tts._doubao2 import Doubao2TTS
+from videotrans.tts._f5tts import F5TTS
 EDGE_TTS = 0
 MINIMAXI_TTS = 1
 
@@ -245,6 +264,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
     if config.exit_soft or (not is_test and config.current_status != 'ing' and config.box_tts != 'ing'):
         return
 
+
     kwargs = {
         "queue_tts": queue_tts,
         "language": language,
@@ -254,65 +274,44 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         "tts_type":tts_type
     }
     if tts_type == AZURE_TTS:
-        from videotrans.tts._azuretts import AzureTTS
         AzureTTS(**kwargs).run()
     elif tts_type == EDGE_TTS:
-        from videotrans.tts._edgetts import EdgeTTS
         EdgeTTS(**kwargs).run()
     elif tts_type == AI302_TTS:
-        from videotrans.tts._ai302tts import AI302
         AI302(**kwargs).run()
     elif tts_type == COSYVOICE_TTS:
-        from videotrans.tts._cosyvoice import CosyVoice
         CosyVoice(**kwargs).run()
     elif tts_type == CHATTTS:
-        from videotrans.tts._chattts import ChatTTS
         ChatTTS(**kwargs).run()
     elif tts_type == FISHTTS:
-        from videotrans.tts._fishtts import FishTTS
         FishTTS(**kwargs).run()
     elif tts_type == KOKORO_TTS:
-        from videotrans.tts._kokoro import KokoroTTS
         KokoroTTS(**kwargs).run()
     elif tts_type == GPTSOVITS_TTS:
-        from videotrans.tts._gptsovits import GPTSoVITS
         GPTSoVITS(**kwargs).run()
     elif tts_type == CHATTERBOX_TTS:
-        from videotrans.tts._chatterbox import ChatterBoxTTS
         ChatterBoxTTS(**kwargs).run()
     elif tts_type == CLONE_VOICE_TTS:
-        from videotrans.tts._clone import CloneVoice
         CloneVoice(**kwargs).run()
     elif tts_type == OPENAI_TTS:
-        from videotrans.tts._openaitts import OPENAITTS
         OPENAITTS(**kwargs).run()
     elif tts_type == QWEN_TTS:
-        from videotrans.tts._qwentts import QWENTTS
         QWENTTS(**kwargs).run()
     elif tts_type == ELEVENLABS_TTS:
-        from videotrans.tts._elevenlabs import ElevenLabsC
         ElevenLabsC(**kwargs).run()
     elif tts_type == GOOGLE_TTS:
-        from videotrans.tts._gtts import GTTS
+
         GTTS(**kwargs).run()
     elif tts_type == TTS_API:
-        from videotrans.tts._ttsapi import TTSAPI
         TTSAPI(**kwargs).run()
     elif tts_type == DOUBAO_TTS:
-        from videotrans.tts._doubao import DoubaoTTS
         DoubaoTTS(**kwargs).run()
     elif tts_type == DOUBAO2_TTS:
-        from videotrans.tts._doubao2 import Doubao2TTS
         Doubao2TTS(**kwargs).run()
     elif tts_type in [F5_TTS, INDEX_TTS, SPARK_TTS, DIA_TTS, VOXCPM_TTS]:
-        from videotrans.tts._f5tts import F5TTS
         F5TTS(**kwargs).run()
-    elif tts_type == GOOGLECLOUD_TTS:
-        from videotrans.tts._googlecloud import GoogleCloudTTS
-        GoogleCloudTTS(**kwargs).run()
+
     elif tts_type == GEMINI_TTS:
-        from videotrans.tts._geminitts import GEMINITTS
         GEMINITTS(**kwargs).run()
     elif tts_type == MINIMAXI_TTS:
-        from videotrans.tts._minimaxi import MinimaxiTTS
         MinimaxiTTS(**kwargs).run()
