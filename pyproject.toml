@@ -235,17 +235,17 @@ dependencies = [
     "tencentcloud-sdk-python-common==3.0.1032",
     "tencentcloud-sdk-python-tmt==3.0.1032",
     "tensorboardx==2.6.4",
-    "termcolor==2.3.0",
-    "texttable==1.7.0",
-    "threadpoolctl==3.6.0",
+
+
+
     "tiktoken==0.6.0",
     "tokenizers==0.19.1",
     "torch==2.7.1",
     "torch-complex==0.4.4",
     "torchaudio==2.7.1",
-    "tornado==6.5.1",
+
     "tqdm==4.67.1",
-    "traitlets==5.14.1",
+
     "transformers==4.44.0",
     "typer==0.19.2",
     "typing-extensions==4.15.0",
