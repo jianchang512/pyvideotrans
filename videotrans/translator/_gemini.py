@@ -70,6 +70,14 @@ class Gemini(BaseTrans):
                     ],
                 ),
             ]
+            think_cfg=types.ThinkingConfig(
+                    thinking_budget=int(config.params.get('gemini_thinking_budget',24576)),
+                )
+            if model.startswith('gemini-3'):    
+                think_cfg=types.ThinkingConfig(
+                        thinking_level="high",
+                )
+                
             generate_content_config = types.GenerateContentConfig(
                 max_output_tokens=int(config.params.get("gemini_maxtoken",65530)),
                 safety_settings=[
@@ -91,42 +99,13 @@ class Gemini(BaseTrans):
                     )
                   ],
 
-                thinking_config = types.ThinkingConfig(
-                    thinking_budget=int(config.params.get('gemini_thinking_budget',24576)),
-                ),
+                thinking_config = think_cfg,
                 system_instruction=[
                     types.Part.from_text(text=tr("You are a top-notch subtitle translation engine.")),
                 ],
             )
-            if model.startswith('gemini-3'):
-                generate_content_config = types.GenerateContentConfig(
-                    max_output_tokens=int(config.params.get("gemini_maxtoken",65530)),
-                    safety_settings=[
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
-                        ),
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
-                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
-                        ),
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
-                        ),
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
-                        )
-                      ],
-
-                    thinking_config = types.ThinkingConfig(
-                        thinking_level="high",
-                    ),
-                    system_instruction=[
-                        types.Part.from_text(text=tr("You are a top-notch subtitle translation engine.")),
-                    ],
-                )
+            if model.startswith('gemini-1.') or model.startswith('gemini-2.0'):            
+                generate_content_config = types.GenerateContentConfig()
             logs(f'[Gemini]请求发送:{message=}')
             result = ""
             for chunk in client.models.generate_content_stream(

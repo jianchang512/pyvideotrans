@@ -205,7 +205,7 @@ dubbing_role = {}
 
 
 #######################################
-DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.5-flash-preview-04-17,gemini-2.5-flash-preview-05-20,gemini-2.5-pro-preview-05-06,gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash,gemini-1.5-pro,gemini-1.5-flash-8b"
+DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
 ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv',
                     'ms', 'uk', 'cs', 'tl']
 OPENAITTS_ROLES = "alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
