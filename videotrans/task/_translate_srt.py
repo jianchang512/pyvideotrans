@@ -53,6 +53,7 @@ class TranslateSrt(BaseTask):
             if self._exit(): return
             if not raw_subtitles or len(raw_subtitles) < 1:
                 raise RuntimeError(tr("Translation subtitles result is empty"))
+
             raw_subtitles = self._check_target_sub(source_sub_list, raw_subtitles)
 
             # 单语字幕

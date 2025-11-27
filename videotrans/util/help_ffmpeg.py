@@ -196,10 +196,9 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
             config.video_codec = get_video_codec()
 
         if config.video_codec and 'libx' not in config.video_codec:
-            # logs(f"检测到硬件编码器 {config.video_codec}，正在调整参数...")
+            logs(f"检测到硬件编码器 {config.video_codec}，正在调整参数...")
             final_args, hw_decode_opts = _build_hw_command(arg, config.video_codec)
-        else:
-            logs("未找到或未选择硬件编码器，将使用软件编码。")
+
 
     cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown",'-threads','0']
     if "-y" not in final_args:

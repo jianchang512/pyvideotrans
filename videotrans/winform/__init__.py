@@ -58,7 +58,8 @@ _module_map = {
 "volcenginetts":".volcenginetts",
 "zhipuai":".zhipuai",
 "zijiehuoshan":".zijiehuoshan",
-"zijierecognmodel":".zijierecognmodel"
+"zijierecognmodel":".zijierecognmodel",
+"whisperxapi":".whisperxapi",
 }
 
 _loaded_modules = {}  # 用于缓存已经加载过的模块

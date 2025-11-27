@@ -55,7 +55,7 @@ class DeepSeek(BaseTrans):
         response = model.chat.completions.create(
             model=self.model_name,
             messages=message,
-            max_tokens=int(config.params.get('deepseek_max_tokens',8092))
+            max_tokens=int(config.params.get('deepseek_max_tokens',8192)) if not self.model_name.startswith('deepseek-reasoner') else 65536
         )
 
         logs(f'[deepseek]响应:{response=}')

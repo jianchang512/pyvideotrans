@@ -50,30 +50,30 @@ class Google(BaseTrans):
     def clean_srt(self, srt):
         # 翻译后的srt字幕极大可能存在各种语法错误，符号和格式错乱
         try:
-            srt = re.sub(r'(\d{2})\s*[:：]\s*(\d{2})[:：]\s*(\d{2})[\s\,，]+(\d{3})', r'\1:\2:\3,\4', srt)
+            srt = re.sub(r'(\d{2})\s*[:：]\s*(\d{2})[:：]\s*(\d{2})[\s\,，]+(\d{3})', r'\1:\2:\3,\4', srt,flags=re.I | re.S)
         except re.error:
             pass
-        srt = re.sub(r'&gt;', '>', srt)
+        srt = re.sub(r'&gt;', '>', srt,flags=re.I | re.S)
         # ：: 换成 :
-        srt = re.sub(r'([：:])\s*', ':', srt)
+        srt = re.sub(r'([：:])\s*', ':', srt,flags=re.I | re.S)
         # ,， 换成 ,
-        srt = re.sub(r'([,，])\s*', ',', srt)
-        srt = re.sub(r'([`’\'\"])\s*', '', srt)
+        srt = re.sub(r'([,，])\s*', ',', srt,flags=re.I | re.S)
+        srt = re.sub(r'([`’\'\"])\s*', '', srt,flags=re.I | re.S)
 
         # 秒和毫秒间的.换成,
-        srt = re.sub(r'(:\d+)\.\s*?(\d+)', r'\1,\2', srt)
+        srt = re.sub(r'(:\d+)\.\s*?(\d+)', r'\1,\2', srt,flags=re.I | re.S)
         # 时间行前后加空格
         time_line = r'(\s?\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s?)'
-        srt = re.sub(time_line, r"\n\1 --> \2\n", srt)
+        srt = re.sub(time_line, r"\n\1 --> \2\n", srt,flags=re.I | re.S)
         # twenty one\n00:01:18,560 --> 00:01:22,000\n
         srt = re.sub(r'\s?[a-zA-Z ]{3,}\s*?\n?(\d{2}:\d{2}:\d{2}\,\d{3}\s*?\-\->\s*?\d{2}:\d{2}:\d{2}\,\d{3})\s?\n?',
-                     "\n" + r'1\n\1\n', srt)
+                     "\n" + r'1\n\1\n', srt,flags=re.I | re.S)
         # 去除多余的空行
         srt = "\n".join([it.strip() for it in srt.splitlines() if it.strip()])
 
         # 删掉以空格或换行连接的多个时间行
         time_line2 = r'(\s\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s)(?:\s*\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s*)'
-        srt = re.sub(time_line2, r'\n\1 --> \2\n', srt)
+        srt = re.sub(time_line2, r'\n\1 --> \2\n', srt,flags=re.I | re.S)
         srt_list = [it.strip() for it in srt.splitlines() if it.strip()]
 
         remove_list = []
@@ -88,5 +88,5 @@ class Google(BaseTrans):
         srt = "\n".join(remove_list)
 
         # 行号前添加换行符
-        srt = re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)', r"\n\n\1\n\2", srt)
+        srt = re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)', r"\n\n\1\n\2", srt,flags=re.I | re.S)
         return srt.strip().replace('&#39;', '"').replace('&quot;', "'")

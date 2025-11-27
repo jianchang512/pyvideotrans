@@ -111,18 +111,16 @@ class WinAction(WinActionSub):
             # 是 faster，启用 分割模式，根据需要显示均等分割
             self.main.split_type.setDisabled(False)
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP]:
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API]:
             # 禁止模块选择
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)
-            self.main.rephrase.setDisabled(True)
         else:
             # 允许模块选择
-            self.main.rephrase.setDisabled(False)
             self.main.model_name_help.setDisabled(False)
             self.main.model_name.setDisabled(False)
             self.main.model_name.clear()
-            if recogn_type in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL]:
+            if recogn_type in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.WHISPERX_API]:
                 self.main.model_name.addItems(config.WHISPER_MODEL_LIST)
             elif recogn_type == recognition.Deepgram:
                 self.main.model_name.addItems(config.DEEPGRAM_MODEL)
@@ -131,11 +129,7 @@ class WinAction(WinActionSub):
             else:
                 self.main.model_name.addItems(config.FUNASR_MODEL)
         
-        if recogn_type in [recognition.FASTER_WHISPER, recognition.PARAKEET, recognition.OPENAI_WHISPER]:
-            self.main.rephrase.setDisabled(False)
-        else:
-            self.main.rephrase.setDisabled(True)
-        
+
         lang = translator.get_code(show_text=self.main.source_language.currentText())
 
 
@@ -548,11 +542,12 @@ class WinAction(WinActionSub):
 
 
 
+        # LLM重新断句
+        self.cfg['rephrase'] = self.main.rephrase.currentIndex()
         # 判断CUDA
         self.cfg['cuda'] = self.main.enable_cuda.isChecked()
-        self.cfg['auto_fix'] = self.main.auto_fix.isChecked()
-        self.cfg['remove_silent_mid'] = False 
-        self.cfg['align_sub_audio'] = True 
+        self.cfg['remove_silent_mid'] = False
+        self.cfg['align_sub_audio'] = True
         # 只有未启用 音频加速 视频慢速时才起作用
         if not self.cfg['voice_autorate'] and not self.cfg['video_autorate']:
             self.cfg['remove_silent_mid']=self.main.remove_silent_mid.isChecked()
@@ -573,7 +568,7 @@ class WinAction(WinActionSub):
             return
 
         # LLM 重新断句时，需判断 deepseek或openai chatgpt填写了信息
-        if self.main.rephrase.isChecked():
+        if self.main.rephrase.currentIndex()==1:
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
                 self.main.startbtn.setDisabled(False)
@@ -626,8 +621,7 @@ class WinAction(WinActionSub):
         config.settings['trans_thread'] = self.main.trans_thread.text()
         config.settings['aitrans_thread'] = self.main.aitrans_thread.text()
         config.settings['translation_wait'] = self.main.translation_wait.text()
-        # LLM重新断句
-        config.settings['rephrase'] = self.main.rephrase.isChecked()
+
         # 中日韩硬字幕单行字符
         config.settings['cjk_len'] = self.main.cjklinenums.value()
         # 其他语言硬字幕单行字符

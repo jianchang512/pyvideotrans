@@ -121,7 +121,7 @@ class Gemini(BaseTrans):
                 raise RuntimeError(f"[Gemini]result is empty")
                 
             match = re.search(r'<TRANSLATE_TEXT>(.*?)(?:</TRANSLATE_TEXT>|$)',
-                              re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)
+                              re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S), re.S | re.I)
             if match:
                 return match.group(1)
             raise RuntimeError(f"Gemini result is emtpy")

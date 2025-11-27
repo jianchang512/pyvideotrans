@@ -58,7 +58,7 @@ class DeepgramRecogn(BaseRecogn):
             "buffer": buffer_data,
         }
 
-        diarize = True
+        diarize = self.max_speakers>-1
         options = PrerecordedOptions(
             model=self.model_name,
             # detect_language=True,
@@ -89,7 +89,7 @@ class DeepgramRecogn(BaseRecogn):
                     "text": it.transcript
                 }
                 if self.detect_language[:2] in ['zh', 'ja', 'ko']:
-                    tmp['text'] = re.sub(r'\s| ', '', tmp['text'])
+                    tmp['text'] = re.sub(r'\s| ', '', tmp['text'],flags=re.I | re.S)
                 tmp['time'] = tools.ms_to_time_string(ms=tmp['start_time']) + ' --> ' + tools.ms_to_time_string(
                     ms=tmp['end_time'])
                 raws.append(tmp)

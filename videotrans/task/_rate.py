@@ -14,8 +14,20 @@ from videotrans.configure.config import tr, logs
 from videotrans.util import tools
 from concurrent.futures import ThreadPoolExecutor
 
+import soundfile as sf
+try:
+    import pyrubberband as pyrb
+except ImportError as e:
+    print(f'Recommended installation uv add pyrubberband')
+
+
 """
 通过音频加速和视频慢放来对齐翻译配音和原始视频时间轴。
+
+
+*简单起见，视频慢速暂不考虑 插帧补帧光流法 等复杂方式,仅仅使用 setpts=X*PTS*
+*音频加速使用 https://breakfastquay.com/rubberband/，ffmpeg atempo作为后备*
+
 
 主要实现原理
 # 功能概述, 使用python3开发视频翻译功能：
@@ -24,6 +36,7 @@ from concurrent.futures import ThreadPoolExecutor
 3. 因为语言不同，因此每条配音可能大于该条字幕的时间，例如该条字幕时长是3s，配音后的mp3时长如果小于等于3s，则不影响，但如果配音时长大于3s，则有问题，需要通过将音频片段自动加速到3s实现同步。也可以通过将该字幕的原始字幕所对应原始视频该片段截取下来，慢速播放延长该视频时长直到匹配配音时长，实现对齐。当然也可以同时 音频自动加速 和 视频慢速，从而避免音频加速太多或视频慢速太多。
 
 # 具体音画同步原理说明
+
 
 ## 音频和视频同时启用时的策略
 1. 如果配音时长 小于 当前片段的原始字幕时长，则无需音频加速和视频慢速
@@ -133,6 +146,7 @@ class SpeedRate:
         
         self.crf="20"
         self.preset="fast"
+        self.audio_speed_filter='atempo'
         try:
             if Path(config.ROOT_DIR+"/crf.txt").exists():
                 self.crf=str(int(Path(config.ROOT_DIR+"/crf.txt").read_text()))
@@ -144,11 +158,11 @@ class SpeedRate:
             pass
         
         # 检测并设置可用的音频变速滤镜
-        self.audio_speed_filter = self._check_ffmpeg_filters()
+        self.audio_speed_rubberband = shutil.which("rubberband")
 
         logs(f'允许的最大音频加速倍数={self.max_audio_speed_rate},允许的最大视频慢放倍数={self.max_video_pts_rate}')
         logs(
-            f"SpeedRate 初始化。音频加速: {self.shoud_audiorate}, 视频慢速: {self.shoud_videorate}, 音频变速引擎: {self.audio_speed_filter}")
+            f"SpeedRate 初始化。音频加速: {self.shoud_audiorate}, 视频慢速: {self.shoud_videorate}")
         logs(f"所有中间音频将统一为: {self.AUDIO_SAMPLE_RATE}Hz, {self.AUDIO_CHANNELS} 声道。")
 
     def _check_ffmpeg_filters(self):
@@ -186,7 +200,15 @@ class SpeedRate:
         # 预先计算出 音频和视频应该变化到的新时长
         self._calculate_adjustments()
         # 先执行音频加速
-        self._execute_audio_speedup()
+        if self.shoud_audiorate:
+            if self.audio_speed_rubberband:
+                self._execute_audio_speedup_rubberband()
+            else:
+                print(f'For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip')
+                print(f'MacOS: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm')
+                print(f'Ubuntu: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm')
+                self.audio_speed_filter=self._check_ffmpeg_filters()
+                self._execute_audio_speedup()
         # 再执行视频慢速
         clip_meta_list_with_real_durations = self._execute_video_processing()
         # 重新校正时间轴，音频加速和视频慢速的新值和理论值存在误差
@@ -471,9 +493,7 @@ class SpeedRate:
                           uuid=self.uuid)
         logs("================== [阶段 3/5] 执行音频加速 ==================")
 
-        if not self.audio_speed_filter:
-            logs("音频加速被跳过，因为未找到合适的FFmpeg滤镜。",level='warn')
-            return
+
         if not self.shoud_audiorate:
             logs("未启用音频加速",level='warn')
             return
@@ -1025,6 +1045,7 @@ class SpeedRate:
         concat_txt_path = Path(f'{self.cache_folder}/audio_clips/audio_concat_list.txt').as_posix()
 
         # 对所有音频标准化
+        
         def _format_wav(file_name):
             try:
                 self._standardize_audio_segment(AudioSegment.from_file(file_name, format="wav")).export(file_name,
@@ -1046,7 +1067,7 @@ class SpeedRate:
                 except Exception as e:
                     logs(f"Task:audio clip standardize {completed_tasks + 1} failed with error: {e}",
                                             level="except")
-
+        
         try:
             # 使用concat demuxer进行稳定的拼接
             logs(f"混合拼接步骤1: 创建包含 {len(file_list)} 个文件的拼接列表")
@@ -1081,3 +1102,93 @@ class SpeedRate:
                 logs("已清理音频拼接临时文件。")
             except Exception as e:
                 logs(f"清理音频拼接临时文件失败: {e}",level='warn')
+    
+    
+    def _execute_audio_speedup_rubberband(self):
+        """
+        使用FFmpeg的`rubberband`或`atempo`滤镜进行高质量音频变速。
+        """
+        tools.set_process(text=tr("[3/5] audio by rubberband..."),
+                          uuid=self.uuid)
+        logs("================== [阶段 3/5] 执行音频加速,使用rubberband算法 ==================")
+
+
+        all_cmds = []
+
+        for i, it in enumerate(self.queue_tts):
+            tools.set_process(text=f'{tr("[3/5] audio by rubberband...")} {i}/{self.len_queue}', uuid=self.uuid)
+            # 需要加速后的新配音时长
+            target_duration_ms = int(it['final_audio_duration_theoretical'])
+            if target_duration_ms <= 0:  # 增加容差
+                all_cmds.append("1")
+                continue
+            # 原始配音时长
+            current_duration_ms = it['dubb_time']
+            # 只有在需要压缩时才处理
+            if current_duration_ms <= target_duration_ms or not tools.vail_file(it['filename']):
+                all_cmds.append("1")
+                continue
+
+            # 在理论计算时已限制最大加速倍数，不再处理超过的情况
+            speedup_ratio = current_duration_ms / target_duration_ms
+            if float(speedup_ratio) <= 1.0:
+                all_cmds.append("1")
+                continue
+            cmd = (it['filename'],target_duration_ms)
+            all_cmds.append(cmd)
+
+
+        total_tasks = len(all_cmds)
+
+        if total_tasks == 0:
+            return
+
+        def _speedup_set_dubbtime(i, cmd):
+            it = self.queue_tts[i]
+            try:
+                self.change_speed_rubberband(cmd[0],cmd[1])
+                # 加速后实际的音频新时长，可能和理论不一致
+                up_after_time = self._get_audio_time_ms(cmd[0])
+                logs(f"变速后实际时长 {up_after_time}ms, 目标要求时长 {cmd[1]}ms")
+            except Exception as e:
+                self.queue_tts[i]['dubb_time']=self.queue_tts[i]['source_duration']
+                self.queue_tts[i]['filename']=None
+                logs(f"字幕[{it['line']}] 音频变速失败 {e}",level='warn')
+
+        all_task = []
+        with ThreadPoolExecutor(max_workers=min(12, len(all_cmds), os.cpu_count())) as pool:
+            for i, cmd in enumerate(all_cmds):
+                if isinstance(cmd, tuple):
+                    all_task.append(pool.submit(_speedup_set_dubbtime, i, cmd))
+
+            completed_tasks = 0
+            for task in all_task:
+                try:
+                    task.result()  # 等待任务完成
+                    completed_tasks += 1
+                    tools.set_process( text=f"audio rubberband [{completed_tasks}/{total_tasks}] ...",
+                        uuid=self.uuid)
+                except Exception as e:
+                    logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
+
+    
+
+    def change_speed_rubberband(self,input_path, target_duration):
+        """
+        使用 Rubber Band 算法进行高保真实时变速
+        """
+        y, sr = sf.read(input_path)
+        
+        current_duration = int((len(y) / sr)*1000)
+        
+        # 计算变速倍率
+        time_stretch_rate = current_duration / target_duration
+        
+        # pyrubberband 支持多声道，直接传入即可
+        # ts_mag 是变速倍率，>1 为变快（时长变短）
+        y_stretched = pyrb.time_stretch(y, sr, time_stretch_rate)
+        
+        sf.write(input_path, y_stretched, sr)
+        print(f"原时长: {current_duration:.2f}ms -> 目标时长: {target_duration:.2f}ms (倍率: {time_stretch_rate:.2f}x)")
+
+

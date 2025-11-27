@@ -23,7 +23,7 @@ from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer, QLocale
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 
 
-VERSION = "v3.86"
+VERSION = "v3.87"
 
 
 # 抑制警告

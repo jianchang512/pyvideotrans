@@ -67,7 +67,7 @@ class GoogleRecogn(BaseRecogn):
                 except sr.RequestError as e:
                     raise
 
-            text = re.sub(r'&#\d+;', '', f"{text.capitalize()}. ".replace('&#39;', "'")).strip()
+            text = re.sub(r'&#\d+;', '', f"{text.capitalize()}. ".replace('&#39;', "'"),flags=re.I | re.S).strip()
             if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
                 continue
             start = tools.ms_to_time_string(ms=start_time)

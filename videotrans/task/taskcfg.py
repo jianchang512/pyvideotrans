@@ -73,4 +73,4 @@ class TaskCfg:
     
     enable_diariz:bool=False # 是否进行说话人识别
     nums_diariz:int=0 # 是否进行说话人识别
-    auto_fix:bool=True # 是否进行自动修正字幕
+    rephrase:int=2 #0 默认断句不处理 1=LLM重新断句 2=自动修正

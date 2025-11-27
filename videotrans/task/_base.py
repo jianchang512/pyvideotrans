@@ -106,11 +106,11 @@ class BaseTask(BaseCon):
         # 是字幕列表形式，重新组装
         try:
             txt = tools.get_srt_from_list(srtstr)
-            with open(file, "w", encoding="utf-8") as f:
+            with open(file, "w", encoding="utf-8",errors="ignore") as f:
                 f.write(txt)
         except Exception:
             raise
-        self._signal(text=Path(file).read_text(encoding='utf-8'), type='replace_subtitle')
+        self._signal(text=Path(file).read_text(encoding='utf-8',errors="ignore"), type='replace_subtitle')
         return True
 
     def _check_target_sub(self, source_srt_list, target_srt_list):
@@ -129,13 +129,13 @@ class BaseTask(BaseCon):
                 target_srt_list[i]=tmp
             return target_srt_list
                 
-        
+        logs(f'原始字幕和翻译字幕行数不等，可能产生了合并行 移除空白行等')
         for i, it in enumerate(source_srt_list):
             tmp = copy.deepcopy(it)
             if i > target_len - 1:
                 # 超出目标字幕长度
                 tmp['text'] = '  '
-            elif re.sub(r'\D', '', it['time']) == re.sub(r'\D', '', target_srt_list[i]['time']):
+            elif re.sub(r'\D', '', it['time'],flags=re.I | re.S) == re.sub(r'\D', '', target_srt_list[i]['time'],flags=re.I | re.S):
                 # 正常时间码相等
                 tmp['text'] = target_srt_list[i]['text']
             elif i == 0 and source_srt_list[1]['time'] == target_srt_list[1]['time']:
@@ -155,7 +155,7 @@ class BaseTask(BaseCon):
                 target_srt_list.append(tmp)
             else:
                 target_srt_list[i] = tmp
-        logs(f'处理后目标字幕：{target_srt_list=}')
+        logs(f'强制目标字幕行数等于原始字幕行数后：{target_srt_list=}')
         return target_srt_list
 
 

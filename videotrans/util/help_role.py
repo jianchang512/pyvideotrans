@@ -29,7 +29,7 @@ def get_elevenlabs_role(force=False, raise_exception=False):
 
         result = {}
         for it in voiceslist.voices:
-            n = re.sub(r'[^a-zA-Z0-9_ -]+', '', it.name).strip()
+            n = re.sub(r'[^a-zA-Z0-9_ -]+', '', it.name,flags=re.I | re.S).strip()
             result[n] = {"name": n, "voice_id": it.voice_id}
             namelist.append(n)
 

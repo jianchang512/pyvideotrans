@@ -57,7 +57,7 @@ class ChatTTS(BaseTTS):
                 raise RuntimeError(f'{res}')
 
             if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:
-                self.convert_to_wav(re.sub(r'\\+', '/', res['filename']), data_item['filename'])
+                self.convert_to_wav(re.sub(r'\\+', '/', res['filename'],flags=re.I | re.S), data_item['filename'])
                 return
 
             resb = requests.get(res['url'])

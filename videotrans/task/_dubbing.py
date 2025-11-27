@@ -150,8 +150,8 @@ class DubbingSrt(BaseTask):
         # 如果配音文件是txt，则转为单条字幕形式，以便统一处理
         if self.cfg.target_sub.endswith('.txt'):
             text = Path(self.cfg.target_sub).read_text(encoding='utf-8').strip()
-            text = re.sub(r"(\s*?\r?\n\s*?){2,}", "\n", text)
-            text = re.sub(r"(\s*?\r?\n\s*?)", "\n", text)
+            text = re.sub(r"(\s*?\r?\n\s*?){2,}", "\n", text,flags=re.I | re.S)
+            text = re.sub(r"(\s*?\r?\n\s*?)", "\n", text,flags=re.I | re.S)
             subs = [{
                 "line": 1,
                 "start_time": 0,
@@ -206,7 +206,7 @@ class DubbingSrt(BaseTask):
             Path(outname).mkdir(parents=True, exist_ok=True)
             for it in self.queue_tts:
                 if Path(it['filename']).exists():
-                    text = re.sub(r'["\'*?\\/\|:<>\r\n\t]+', '', it['text'])
+                    text = re.sub(r'["\'*?\\/\|:<>\r\n\t]+', '', it['text'],flags=re.I | re.S)
                     name = f'{outname}/{it["start_time"]}-{text[:60]}.wav'
                     try:
                         shutil.copy2(it['filename'], name)

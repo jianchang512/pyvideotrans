@@ -149,6 +149,6 @@ class APIRecogn(BaseRecogn):
                 raws = tools.get_subtitle_from_srt(sens, is_file=False)
                 if self.detect_language and self.detect_language[:2] in ['zh', 'ja', 'ko']:
                     for i, it in enumerate(raws):
-                        text = re.sub(r'\s+', '', it['text'])
+                        text = re.sub(r'\s+', '', it['text'],flags=re.I | re.S)
                         raws[i]['text'] = text
                 return raws

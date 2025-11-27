@@ -18,6 +18,7 @@ from videotrans.recognition._qwen3asr import Qwen3ASRRecogn
 from videotrans.recognition._deepgram import DeepgramRecogn
 from videotrans.recognition._gemini import GeminiRecogn
 from videotrans.recognition._parakeet import ParaketRecogn
+from videotrans.recognition._whisperx import WhisperXRecogn
 
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
@@ -40,6 +41,7 @@ AI_302 = 13
 STT_API = 14
 GOOGLE_SPEECH = 15
 CUSTOM_API = 16
+WHISPERX_API = 17
 
 RECOGN_NAME_LIST = [
     tr("Faster-whisper"),
@@ -63,6 +65,7 @@ RECOGN_NAME_LIST = [
     tr("STT Speech API"),
     tr("Google Speech to Text"),
     tr("Custom API"),
+    "WhisperX",
 ]
 
 
@@ -183,7 +186,8 @@ def run(*,
         uuid=None,
         recogn_type: int = 0,
         is_cuda=None,
-        subtitle_type=0
+        subtitle_type=0,
+        max_speakers=-1 # -1 不启用说话人识别,0=不限制数量，>0最大数量
         ) -> Union[List[Dict], None]:
 
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
@@ -197,7 +201,8 @@ def run(*,
         "is_cuda": is_cuda,
         "subtitle_type": subtitle_type,
         "recogn_type":recogn_type,
-        "split_type":split_type
+        "split_type":split_type,
+        "max_speakers":max_speakers
     }
 
 
@@ -217,6 +222,8 @@ def run(*,
 
     if recogn_type == OPENAI_API:
         return OpenaiAPIRecogn(**kwargs).run()
+    if recogn_type == WHISPERX_API:
+        return WhisperXRecogn(**kwargs).run()
     if recogn_type == QWEN3ASR:
         return Qwen3ASRRecogn(**kwargs).run()
     if recogn_type == FUNASR_CN:     

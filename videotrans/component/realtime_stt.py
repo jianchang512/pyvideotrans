@@ -7,7 +7,6 @@ from pathlib import Path
 import sherpa_onnx
 import onnxruntime
 import numpy as np
-import sounddevice as sd
 import wave
 
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout,QMessageBox, QHBoxLayout, QComboBox, QPushButton, QPlainTextEdit, QFileDialog,QLabel
@@ -16,6 +15,7 @@ from PySide6.QtGui import QIcon, QCloseEvent,QDesktopServices
 
 from videotrans.configure import config as cfg
 from videotrans.util import tools
+import sounddevice as sd
 
 
 CTC_MODEL_FILE=f"{cfg.ROOT_DIR}/models/onnx/ctc.model.onnx"
@@ -258,6 +258,29 @@ class Worker(QThread):
         wav_file.close()
         txt_file.close()
 
+class CheckMics(QThread):
+    devices = Signal(str)
+    def __init__(self,parent=None):
+        super().__init__(parent)
+    
+    
+    def run(self):
+        devices = sd.query_devices()
+        input_devices = [d for d in devices if d['max_input_channels'] > 0]
+
+        if not input_devices:
+            self.devices.emit("No")
+            return
+
+        default_idx = sd.default.device[0]
+        default_item = 0
+        for i, d in enumerate(input_devices):            
+            if d['index'] == default_idx:
+                default_item = i
+
+        self.devices.emit(json.dumps({"devices":input_devices,"default":default_item}))
+        
+
 # Main GUI window
 class RealTimeWindow(QWidget):
     def __init__(self):
@@ -268,10 +291,17 @@ class RealTimeWindow(QWidget):
         self.layout = QVBoxLayout(self)
 
         # Microphone selection
+       
         self.mic_layout = QHBoxLayout()
         self.combo = QComboBox()
+        self.combo.setMinimumWidth(250)
+        
+        self.checkbtn=QPushButton()
+        self.checkbtn.setText(cfg.tr('Detection microphone'))
+        self.checkbtn.clicked.connect(self.populate_mics)
         
         self.mic_layout.addWidget(self.combo)
+        self.mic_layout.addWidget(self.checkbtn)
 
         self.start_button = QPushButton(cfg.tr("Initiating real-time transcription"))
         self.start_button.setCursor(Qt.PointingHandCursor)
@@ -279,6 +309,7 @@ class RealTimeWindow(QWidget):
         self.start_button.setMinimumWidth(150)
         self.start_button.clicked.connect(self.toggle_transcription)
         self.mic_layout.addWidget(self.start_button)
+        self.mic_layout.addStretch()
         self.layout.addLayout(self.mic_layout)
 
         # Real-time text
@@ -324,7 +355,7 @@ class RealTimeWindow(QWidget):
         self.worker = None
         self.transcribing = False
         
-        QTimer.singleShot(50, self.populate_mics)
+        QTimer.singleShot(300, self.populate_mics)
         
 
     def check_model_exist(self):
@@ -343,24 +374,22 @@ class RealTimeWindow(QWidget):
         
 
     def populate_mics(self):
-        cache=Path(f'{cfg.ROOT_DIR}/videotrans/input_devices.json')
-        if not cache.exists():
-            devices = sd.query_devices()
-            input_devices = [d for d in devices if d['max_input_channels'] > 0]
-            cache.write_text(json.dumps(input_devices),encoding="utf-8")
-        else:
-            input_devices=json.loads(cache.read_text(encoding='utf-8'))
-        if not input_devices:
-            print("未找到任何可用麦克风")
-            sys.exit(0)
-
-        default_idx = sd.default.device[0]
-        default_item = 0
-        for i, d in enumerate(input_devices):
-            self.combo.addItem(d['name'], d['index'])
-            if d['index'] == default_idx:
-                default_item = i
-        self.combo.setCurrentIndex(default_item)
+        def _get_dev(data):
+            self.checkbtn.setDisabled(False)
+            if data=='No':
+                self.checkbtn.setText(cfg.tr('No valid microphone exists'))
+                return
+            data=json.loads(data)
+            for i, d in enumerate(data['devices']):
+                self.combo.addItem(d['name'], d['index'])
+            self.combo.setCurrentIndex(data['default'])
+        self.checkbtn.setDisabled(True)
+        task=CheckMics(self)
+        task.devices.connect(_get_dev)
+        task.start()
+    
+        
+        
 
     def toggle_transcription(self):
         if self.check_model_exist() is not True:

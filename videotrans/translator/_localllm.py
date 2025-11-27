@@ -73,7 +73,7 @@ class LocalLLM(BaseTrans):
             raise RuntimeError(f"[LocalLLM] {response.choices[0].finish_reason}:{response}")
         result = response.choices[0].message.content.strip()
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
-                          re.sub(r'<think>(.*?)</think>', '', result, re.S | re.I), re.S | re.I)
+                          re.sub(r'<think>(.*?)</think>', '', result,flags=re.I | re.S), re.S | re.I)
         if match:
             return match.group(1)
         return result.strip()

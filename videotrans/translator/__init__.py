@@ -64,6 +64,7 @@ LIBRE_INDEX = 20
 TRANSAPI_INDEX = 21
 
 
+
 # AI翻译渠道，方便判断
 AI_TRANS_CHANNELS=[
     CHATGPT_INDEX,
@@ -172,7 +173,7 @@ LANG_CODE = {
         "zh",  # 腾讯通道
         "zh",  # OTT通道
         "zh-Hans",  # 微软翻译
-        tr("Simplified Chinese"),  # AI翻译
+        "Simplified Chinese",  # AI翻译
         "zh",  # 阿里
         "Chinese" # qwen-mt
     ],
@@ -184,7 +185,7 @@ LANG_CODE = {
         "No",  # 腾讯通道
         "No",  # OTT通道
         "ur",  # 微软翻译
-        tr("Urdu"),  # AI翻译
+        "Urdu",  # AI翻译
         "ur",  # 阿里
         "Urdu"
     ],
@@ -196,7 +197,7 @@ LANG_CODE = {
         "No",  # 腾讯通道
         "No",  # OTT通道
         "yue",  # 微软翻译
-        tr("Cantonese"),  # AI翻译
+        "Cantonese",  # AI翻译
         "yue",  # 阿里
         "Cantonese"
     ],
@@ -209,7 +210,7 @@ LANG_CODE = {
         "No",  # 腾讯通道
         "No",  # OTT通道
         "fil",  # 微软翻译
-        tr("Filipino"),  # AI翻译
+        "Filipino",  # AI翻译
         "fil",  # 阿里
         "Filipino"
     ],
@@ -221,7 +222,7 @@ LANG_CODE = {
         "No",  # 腾讯通道
         "No",  # OTT通道
         "fi",  # 微软翻译
-        tr("Finnish"),  # AI翻译
+        "Finnish",  # AI翻译
         "fi",  # 阿里
         "Finnish" # qwen-mt 暂不支持翻译菲律宾语
     ],
@@ -234,7 +235,7 @@ LANG_CODE = {
         "zh-TW",
         "zt",
         "zh-Hant",
-        tr("Traditional Chinese"),
+        "Traditional Chinese",
         "zh-tw",
         "Traditional Chinese",
     ],
@@ -246,7 +247,7 @@ LANG_CODE = {
         "en",
         "en",
         "en",
-        tr("English language"),
+        "English",
         "en",
         "English"
     ],
@@ -258,7 +259,7 @@ LANG_CODE = {
         "fr",
         "fr",
         "fr",
-        tr("French language"),
+        "French",
         "fr",
         "French"
     ],
@@ -270,7 +271,7 @@ LANG_CODE = {
         "de",
         "de",
         "de",
-        tr("German language"),
+        "German",
         "de",
         "German"
     ],
@@ -282,7 +283,7 @@ LANG_CODE = {
         "ja",
         "ja",
         "ja",
-        tr("Japanese language"),
+        "Japanese",
         "ja",
         "Japanese"
     ],
@@ -294,7 +295,7 @@ LANG_CODE = {
         "ko",
         "ko",
         "ko",
-        tr("Korean language"),
+        "Korean",
         "ko",
         "Korean"
     ],
@@ -306,7 +307,7 @@ LANG_CODE = {
         "ru",
         "ru",
         "ru",
-        tr("Russian language"),
+        "Russian",
         "ru",
         "Russian"
     ],
@@ -318,7 +319,7 @@ LANG_CODE = {
         "es",
         "es",
         "es",
-        tr("Spanish language"),
+        "Spanish",
         "es",
         "Spanish"
     ],
@@ -330,7 +331,7 @@ LANG_CODE = {
         "th",
         "th",
         "th",
-        tr("Thai language"),
+        "Thai",
         "th",
         "Thai"
     ],
@@ -342,7 +343,7 @@ LANG_CODE = {
         "it",
         "it",
         "it",
-        tr("Italian language"),
+        "Italian",
         "it",
         "Italian"
     ],
@@ -354,7 +355,7 @@ LANG_CODE = {
         "PT-PT",
         "pt",
         "pt",
-        tr("Portuguese language"),
+        "Portuguese",
         "pt",
         "Portuguese"
     ],
@@ -366,7 +367,7 @@ LANG_CODE = {
         "vi",
         "vi",
         "vi",
-        tr("Vietnamese language"),
+        "Vietnamese",
         "vi",
         "Vietnamese"
     ],
@@ -378,7 +379,7 @@ LANG_CODE = {
         "ar",
         "ar",
         "ar",
-        tr("Arabic language"),
+        "Arabic",
         "ar",
         "Arabic"
     ],
@@ -390,7 +391,7 @@ LANG_CODE = {
         "tr",
         "tr",
         "tr",
-        tr("Turkish language"),
+        "Turkish",
         "tr",
         "Turkish"
     ],
@@ -402,7 +403,7 @@ LANG_CODE = {
         "hi",
         "hi",
         "hi",
-        tr("Hindi language"),
+        "Hindi",
         "hi",
         "Hindi"
     ],
@@ -414,7 +415,7 @@ LANG_CODE = {
         "No",
         "hu",
         "hu",
-        tr("Hungarian language"),
+        "Hungarian",
         "hu",
         "Hungarian"
     ],
@@ -426,7 +427,7 @@ LANG_CODE = {
         "No",  # 腾讯
         "uk",  # ott
         "uk",  # 微软
-        tr("Ukrainian language"),
+        "Ukrainian",
         "No",
         "Ukrainian"
     ],
@@ -438,7 +439,7 @@ LANG_CODE = {
         "id",
         "id",
         "id",
-        tr("Indonesian language"),
+        "Indonesian",
         "id",
         "Indonesian"
     ],
@@ -450,7 +451,7 @@ LANG_CODE = {
         "ms",
         "ms",
         "ms",
-        tr("Malay language"),
+        "Malay",
         "ms",
         "Malay"
     ],
@@ -462,7 +463,7 @@ LANG_CODE = {
         "No",
         "No",
         "kk",
-        tr("Kazakh language"),
+        "Kazakh",
         "kk",
         "Kazakh"
     ],
@@ -474,7 +475,7 @@ LANG_CODE = {
         "No",
         "cs",
         "cs",
-        tr("Czech language"),
+        "Czech",
         "cs",
         "Czech"
     ],
@@ -486,7 +487,7 @@ LANG_CODE = {
         "No",
         "pl",
         "pl",
-        tr("Polish language"),
+        "Polish",
         "pl",
         "Polish"
     ],
@@ -498,7 +499,7 @@ LANG_CODE = {
         "No",  # 腾讯通道
         "nl",  # OTT通道
         "nl",  # 微软翻译
-        tr("Dutch"),  # AI翻译
+        "Dutch",  # AI翻译
         "nl",
         "Dutch"
     ],
@@ -510,7 +511,7 @@ LANG_CODE = {
         "No",  # 腾讯通道
         "sv",  # OTT通道
         "sv",  # 微软翻译
-        tr("Swedish"),  # AI翻译
+        "Swedish",  # AI翻译
         "sv",
         "Swedish"
     ],
@@ -522,7 +523,7 @@ LANG_CODE = {
         "No",  # 腾讯通道
         "No",  # OTT通道
         "he",  # 微软翻译
-        tr("Hebrew"),  # AI翻译
+        "Hebrew",  # AI翻译
         "he",
         "Hebrew"
     ],
@@ -534,7 +535,7 @@ LANG_CODE = {
         "No",  # 腾讯通道
         "No",  # OTT通道
         "bn",  # 微软翻译
-        tr("Bengali"),  # AI翻译,
+        "Bengali",  # AI翻译,
         "bn",
         "Bengali"
     ],
@@ -546,7 +547,7 @@ LANG_CODE = {
         "No",  # 腾讯通道
         "No",  # OTT通道
         "fa",  # 微软翻译
-        tr("Persian"),  # AI翻译
+        "Persian",  # AI翻译
         "fa",  # 阿里
         "Western Persian"
     ],

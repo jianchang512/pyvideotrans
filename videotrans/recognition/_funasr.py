@@ -24,7 +24,7 @@ class FunasrRecogn(BaseRecogn):
         # 保留中文、日文、韩文、英文、数字和常见符号，去除其他字符
         allowed_characters = re.compile(r'[^\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af'
                                         r'a-zA-Z0-9\s.,!@#$%^&*()_+\-=\[\]{};\'"\\|<>/?，。！｛｝【】；‘’“”《》、（）￥]+')
-        return re.sub(allowed_characters, '', text)
+        return re.sub(allowed_characters, '', text,flags=re.I | re.S)
 
     def _tosend(self, msg):
         self._signal(text=msg)
@@ -46,7 +46,7 @@ class FunasrRecogn(BaseRecogn):
             punc_model="ct-punc", punc_model_revision="v2.0.4",
             local_dir=config.ROOT_DIR + "/models",
             hub='ms',
-            spk_model="cam++", spk_model_revision="v2.0.2",
+            spk_model="cam++" if self.max_speakers>-1 else None, spk_model_revision="v2.0.2" if self.max_speakers>-1 else None,
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
@@ -61,8 +61,8 @@ class FunasrRecogn(BaseRecogn):
         for it in res[0]['sentence_info']:
             if not it.get('text','').strip():
                 continue
-
-            speaker_list.append(f"spk{it.get('spk', 0)}")
+            if self.max_speakers>-1:
+                speaker_list.append(f"spk{it.get('spk', 0)}")
             tmp = {
                 "line": len(raw_subtitles) + 1,
                 "text":it['text'].strip(),

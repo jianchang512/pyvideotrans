@@ -357,8 +357,8 @@ def openwin():
                 newsrtfile += 'srt'
                 with open(newsrtfile, "w", encoding="utf-8") as f:
                     if not is_srt:
-                        txt = re.sub(r"(\s*?\r?\n\s*?){2,}", "\n", txt)
-                        txt = re.sub(r"(\s*?\r?\n\s*?)", "\n", txt)
+                        txt = re.sub(r"(\s*?\r?\n\s*?){2,}", "\n", txt,flags=re.I | re.S)
+                        txt = re.sub(r"(\s*?\r?\n\s*?)", "\n", txt,flags=re.I | re.S)
                         txt = f"1\n00:00:00,000 --> 00:00:01,000\n{txt}"
                     f.write(txt)
             winobj.hecheng_files.append(newsrtfile)

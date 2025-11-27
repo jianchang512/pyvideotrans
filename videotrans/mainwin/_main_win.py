@@ -165,7 +165,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondeepseek_key.setText('DeepSeek')
         self.actionqwenmt_key.setText(config.tr('Ali Qwen3-ASR'))
         self.actionopenrouter_key.setText('OpenRouter.ai')
-        self.actionclaude_key.setText("Claude API")
         self.actionlibretranslate_key.setText("LibreTranslate API")
         self.actionopenaitts_key.setText("OpenAI TTS")
         self.actionqwentts_key.setText("Qwen TTS")
@@ -191,6 +190,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontrans_api.setText(config.tr("Transate API"))
         self.actionrecognapi.setText(config.tr("Custom Speech Recognition API"))
         self.actionsttapi.setText(config.tr("STT Speech Recognition API"))
+        self.actionwhisperx.setText('WhisperX-API')
         self.actiondeepgram.setText(
             config.tr("Deepgram Speech Recognition API"))
         self.actionxxl.setText('Faster_Whisper_XXL.exe')
@@ -388,10 +388,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             curr = config.WHISPER_MODEL_LIST
         if config.params.get('model_name', '') in curr:
             self.model_name.setCurrentText(config.params.get('model_name', ''))
-        if config.params.get('recogn_type', '') not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL,
-                                                        recognition.Whisper_CPP,
-                                                        recognition.OPENAI_WHISPER, recognition.FUNASR_CN,
-                                                        recognition.Deepgram]:
+        if config.params.get('recogn_type', '') not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.Whisper_CPP, recognition.OPENAI_WHISPER, recognition.FUNASR_CN,
+                                                        recognition.Deepgram,recognition.WHISPERX_API]:
             self.model_name.setDisabled(True)
         else:
             self.model_name.setDisabled(False)
@@ -490,13 +488,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.is_separate.setChecked(bool(config.params.get('is_separate', False)))
 
-        self.rephrase.setChecked(bool(config.settings.get('rephrase', False)))
+        self.rephrase.setCurrentIndex(int(config.params.get('rephrase', 2)))
         self.remove_noise.setChecked(bool(config.params.get('remove_noise')))
         self.copysrt_rawvideo.setChecked(bool(config.params.get('copysrt_rawvideo', False)))
 
         self.bgmvolume.setText(str(config.settings.get('backaudio_volume', 0.8)))
         self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio', True)))
-        self.auto_fix.setChecked(bool(config.params.get('auto_fix',True)))
+
 
         self.voice_autorate.toggled.connect(self.win_action.check_voice_autorate)
         self.video_autorate.toggled.connect(self.win_action.check_video_autorate)
@@ -548,7 +546,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiongemini_key.triggered.connect(lambda: self._open_winform('gemini'))
         self.actiontencent_key.triggered.connect(lambda: self._open_winform('tencent'))
         self.actionchatgpt_key.triggered.connect(lambda: self._open_winform('chatgpt'))
-        self.actionclaude_key.triggered.connect(lambda: self._open_winform('claude'))
         self.actionlibretranslate_key.triggered.connect(lambda: self._open_winform('libre'))
         self.actionai302_key.triggered.connect(lambda: self._open_winform('ai302'))
         self.actionlocalllm_key.triggered.connect(lambda: self._open_winform('localllm'))
@@ -564,6 +561,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionminimaxi_api.triggered.connect(lambda: self._open_winform('minimaxi'))
         self.actionrecognapi.triggered.connect(lambda: self._open_winform('recognapi'))
         self.actionsttapi.triggered.connect(lambda: self._open_winform('sttapi'))
+        self.actionwhisperx.triggered.connect(lambda: self._open_winform('whisperxapi'))
         self.actiondeepgram.triggered.connect(lambda: self._open_winform('deepgram'))
         self.actionxxl.triggered.connect(lambda: self._open_winform('xxl'))
         self.actioncpp.triggered.connect(lambda: self._open_winform('cpp'))
@@ -650,6 +648,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             dialog.exec()
             return
 
+        winobj = config.child_forms.get(name)
+        if winobj:
+            if hasattr(winobj, 'update_ui'):
+                winobj.update_ui()
+
+            winobj.show()
+            #winobj.raise_()
+            winobj.activateWindow()
+            return
         if name=='clipvideo':
             from videotrans.component.clip_video import ClipVideoWindow
             window = ClipVideoWindow()
@@ -663,18 +670,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             window.show()
             return    
 
-        winobj = config.child_forms.get(name)
-        if winobj:
-            if hasattr(winobj, 'update_ui'):
-                winobj.update_ui()
-
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
+        
 
         from videotrans import winform
-
         QTimer.singleShot(0, winform.get_win(name).openwin)
 
     def is_writable(self):

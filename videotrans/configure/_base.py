@@ -26,7 +26,7 @@ class BaseCon:
         # 用于 requests 库
         # 国内某些渠道禁止国外ip及代理
         # 本地类型地址禁止使用代理
-        self.no_proxy = "tmt.tencentcloudapi.com,api.fanyi.baidu.com,mt.cn-hangzhou.aliyuncs.com,openspeech.bytedance.com,api.minimaxi.com,api.deepseek.com,modelscope.cn,www.modelscope.cn,127.0.0.1,localhost,0.0.0.0,127.0.0.0,127.0.0.2"
+        self.no_proxy = "tmt.tencentcloudapi.com,api.fanyi.baidu.com,mt.cn-hangzhou.aliyuncs.com,openspeech.bytedance.com,api.minimaxi.com,api.deepseek.com,*.modelscope.cn,modelscope.cn,www.modelscope.cn,127.0.0.1,localhost,0.0.0.0,127.0.0.0,127.0.0.2,dashscope.aliyuncs.com,*.aliyuncs.com,aliyuncs.com,api.siliconflow.cn"
 
         if self.proxy_str:
             os.environ['HTTPS_PROXY'] = self.proxy_str

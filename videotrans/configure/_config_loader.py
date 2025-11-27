@@ -23,18 +23,18 @@ def _get_executable_path():
         return Path(__file__).parent.parent.parent.as_posix()
 
 
-_tmpname = f'tmp{os.getpid()}'
 
 SYS_TMP = Path(tempfile.gettempdir()).as_posix()
 # 程序根目录
 ROOT_DIR = _get_executable_path()
 # 程序根下临时目录tmp
-TEMP_DIR = f'{ROOT_DIR}/{_tmpname}'
+TEMP_DIR = f'{ROOT_DIR}/tmp/{os.getpid()}'
 # 家目录
 HOME_DIR = ROOT_DIR + "/output"
 
-Path(TEMP_DIR + '/dubbing_cache').mkdir(exist_ok=True, parents=True)
-Path(TEMP_DIR + '/translate_cache').mkdir(exist_ok=True, parents=True)
+Path(TEMP_DIR).mkdir(exist_ok=True, parents=True)
+Path(f'{ROOT_DIR}/tmp/dubbing_cache').mkdir(exist_ok=True, parents=True)
+Path(f'{ROOT_DIR}/tmp/translate_cache').mkdir(exist_ok=True, parents=True)
 
 # 家目录下的临时文件存储目录
 TEMP_HOME = TEMP_DIR
@@ -268,7 +268,7 @@ def parse_init(update_data=None):
         "max_speech_duration_s": 5,
         "min_silence_duration_ms": 140,
         "speech_pad_ms": 0,
-        "rephrase": False,
+
         "trans_thread": 20,
         "aitrans_thread": 25,
         "translation_wait": 0,
@@ -325,7 +325,7 @@ def parse_init(update_data=None):
         "cjk_len": 22,
         "other_len": 46,
         "gemini_model": DEFAULT_GEMINI_MODEL,
-        "llm_chunk_size": 500,
+        "llm_chunk_size": 20,
         "llm_ai_type": "openai",
         "gemini_recogn_chunk": 50,
         "zh_hant_s": True,
@@ -418,6 +418,7 @@ def getset_params(obj=None):
         "last_opendir": os.path.expanduser("~"),
         "cuda": False,
         "line_roles": {},
+        "rephrase": 0,
         "is_separate": False,
         "remove_noise": False,
         "enable_diariz": False,
@@ -427,7 +428,7 @@ def getset_params(obj=None):
         "target_language": "zh-cn",
         "subtitle_language": "chi",
         "translate_type": 0,
-        "subtitle_type": 0,  # embed soft
+        "subtitle_type": 1,  # embed hard
         "listen_text_zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
         "listen_text_zh-tw": "你好啊，我親愛的朋友，希望你的每一天都是美好愉快的！",
         "listen_text_en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
@@ -465,7 +466,7 @@ def getset_params(obj=None):
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
         "voice_autorate": True,
         "video_autorate": False,
-        "auto_fix":True,#自动校正语音转录结果字幕
+
         "voice_role": "No",
         "voice_rate": "0",
         "deepl_authkey": "",
@@ -537,6 +538,8 @@ def getset_params(obj=None):
         "ai302_key": "",
         "ai302_model": "",
         "ai302_model_recogn":"whisper-1",
+
+        "whipserx_api":"http://127.0.0.1:9092",
         
         "trans_api_url": "",
         "trans_secret": "",
@@ -625,10 +628,10 @@ def getset_params(obj=None):
         "stt_source_language": 0,
         "stt_recogn_type": 0,
         "stt_split_type": 0,
-        "stt_auto_fix": True,
         "stt_model_name": "",
         "stt_remove_noise": False,
         "stt_enable_diariz": False,
+        "stt_rephrase": 0,
         "stt_nums_diariz": 0,
 
         "subtitlecover_outformat": "srt",

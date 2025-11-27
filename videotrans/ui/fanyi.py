@@ -104,7 +104,7 @@ class Ui_fanyisrt(object):
         self.aisendsrt = QtWidgets.QCheckBox()
         self.aisendsrt.setText(tr("Send SRT"))
         self.aisendsrt.setToolTip(
-            tr("When using AI  translation channel, you can translate in srt format, but there may be more empty lines"))
+            tr("When using AI translation channel, you can translate in srt format, but there may be more empty lines"))
         self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
 
         self.fanyi_proxy = QtWidgets.QLineEdit()

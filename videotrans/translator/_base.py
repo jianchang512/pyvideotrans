@@ -37,6 +37,7 @@ class BaseTrans(BaseCon):
     trans_thread: int = int(config.settings.get('trans_thread', 5))
     # 翻译后暂停秒
     wait_sec: float = float(config.settings.get('translation_wait', 0))
+    # 以srt格式发送
     aisendsrt: bool = False
 
     def __post_init__(self):
@@ -110,6 +111,7 @@ class BaseTrans(BaseCon):
             time.sleep(self.wait_sec)
 
         max_i = len(target_list)
+        logs(f'以普通文本行按行翻译：原始行数:{len(self.text_list)},翻译后行数:{max_i}')
         for i, it in enumerate(self.text_list):
             if i < max_i:
                 self.text_list[i]['text'] = target_list[i]
@@ -146,7 +148,7 @@ class BaseTrans(BaseCon):
         raws_list = tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
 
         # 双语翻译结果，只取最后一行
-        logs(f'原始返回SRT翻译结果：{result_srt_str_list=}\n整理为list[dict]后的结果:{raws_list=}')
+        logs(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},整理为list[dict]后的行数:{len(raws_list)}')
         for i, it in enumerate(raws_list):
             it['text'] = it['text'].strip().split("\n")
             if it['text']:

@@ -81,7 +81,6 @@ def openwin():
         winobj.rephrase.setDisabled(state)
         winobj.remove_noise.setDisabled(state)
         winobj.copysrt_rawvideo.setDisabled(state)
-        winobj.auto_fix.setDisabled(state)
         winobj.shibie_stop.setDisabled(not state)
 
 
@@ -115,7 +114,7 @@ def openwin():
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
 
-        if winobj.rephrase.isChecked():
+        if winobj.rephrase.currentIndex()==1:
             ai_type = config.settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not config.params.get('chatgpt_key'):
                 tools.show_error(tr('llmduanju'))
@@ -136,7 +135,7 @@ def openwin():
         winobj.shibie_startbtn.setText(tr("running"))
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()
-        config.settings['rephrase'] = winobj.rephrase.isChecked()
+        stt_rephrase= int(winobj.rephrase.currentIndex())
         with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(config.settings, ensure_ascii=False))
 
@@ -148,7 +147,6 @@ def openwin():
             uuid_list = [obj['uuid'] for obj in video_list]
             remove_noise_is=winobj.remove_noise.isChecked()
             nums_diariz=winobj.nums_diariz.currentIndex()
-            auto_fix=winobj.auto_fix.isChecked()
             for it in video_list:
                 cfg={
                     "recogn_type": recogn_type,
@@ -160,7 +158,7 @@ def openwin():
                     "remove_noise": remove_noise_is,
                     "enable_diariz": enable_diariz_is,
                     "nums_diariz":nums_diariz,
-                    "auto_fix":auto_fix
+                    "rephrase":stt_rephrase
                 }
                 try:
                     trk = SpeechToText(cfg=TaskCfg(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
@@ -180,7 +178,7 @@ def openwin():
             config.params["stt_nums_diariz"] = nums_diariz
             config.params["stt_spk_insert"] = winobj.spk_insert.isChecked()
             config.params["stt_split_type"] = split_type_index
-            config.params["stt_auto_fix"] = auto_fix
+            config.params["stt_rephrase"] = stt_rephrase
             config.getset_params(config.params)
             th.start()
 
@@ -262,13 +260,14 @@ def openwin():
                                recognition.Whisper_CPP,
                                recognition.OPENAI_WHISPER,
                                recognition.FUNASR_CN,
-                               recognition.Deepgram
+                               recognition.Deepgram,
+                               recognition.WHISPERX_API,
                                ]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
         else:
             winobj.shibie_model.setDisabled(False)
             winobj.shibie_model.clear()
-            if recogn_type in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER]:
+            if recogn_type in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.WHISPERX_API]:
                 winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
             elif recogn_type == recognition.Deepgram:
                 winobj.shibie_model.addItems(config.DEEPGRAM_MODEL)
@@ -277,10 +276,7 @@ def openwin():
             else:
                 winobj.shibie_model.addItems(config.FUNASR_MODEL)
         
-        if recogn_type in [recognition.FASTER_WHISPER, recognition.PARAKEET, recognition.OPENAI_WHISPER]:
-            winobj.rephrase.setDisabled(False)
-        else:
-            winobj.rephrase.setDisabled(True)
+
             
         if check_model_name(recogn_type, winobj.shibie_model.currentText()) is not True:
             return
@@ -351,12 +347,11 @@ def openwin():
         winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
         winobj.is_cuda.toggled.connect(check_cuda)
-        winobj.rephrase.setChecked(bool(config.settings.get('rephrase',False)))
+        winobj.rephrase.setCurrentIndex(int(config.params.get('stt_rephrase',2)))
         winobj.remove_noise.setChecked(bool(config.params.get('stt_remove_noise')))
         winobj.copysrt_rawvideo.setChecked(config.params.get('stt_copysrt_rawvideo', False))
         winobj.spk_insert.setChecked(bool(config.params.get('stt_spk_insert', False)))
         winobj.enable_diariz.setChecked(bool(config.params.get('stt_enable_diariz', False)))
-        winobj.auto_fix.setChecked(bool(config.params.get('stt_auto_fix', True)))
 
         winobj.nums_diariz.setCurrentIndex(int(config.params.get("stt_nums_diariz",0)))
         winobj.out_format.setCurrentText(config.params.get('stt_out_format', 'srt'))
@@ -391,7 +386,7 @@ def openwin():
         
         winobj.shibie_split_type.setCurrentIndex(int(config.params.get("stt_split_type",0)))
         
-        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP]:
+        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API]:
             winobj.shibie_model.setDisabled(True)
         else:
             winobj.shibie_model.setDisabled(False)

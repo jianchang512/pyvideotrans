@@ -48,17 +48,17 @@ def weighted_len(text: str, cjk_weight: float = 1.25) -> float:
 def clean_text_for_srtdict(text: str, is_cjk: bool) -> str:
     if not text:
         return ""
-    text = re.sub(r'[^\w\s,.?!;:"\'%，。！？；：“”‘’、\-\u4e00-\u9fff]', '', text)
+    text = re.sub(r'[^\w\s,.?!;:"\'%，。！？；：“”‘’、\-\u4e00-\u9fff]', '', text,flags=re.I | re.S)
 
     if is_cjk:
-        text = re.sub(r'^[嗯呃哎噢哦呢啊]+[，,]*', '', text)
-        text = re.sub(r'[嗯呃哎噢哦呢啊]+', '', text)
-        text = re.sub(r'\s+([，；。！？])', r'\1', text)
+        text = re.sub(r'^[嗯呃哎噢哦呢啊]+[，,]*', '', text,flags=re.I | re.S)
+        text = re.sub(r'[嗯呃哎噢哦呢啊]+', '', text,flags=re.I | re.S)
+        text = re.sub(r'\s+([，；。！？])', r'\1', text,flags=re.I | re.S)
     else:
-        text = re.sub(r'\b(um|uh|hmm|er|ah)\b', '', text, flags=re.IGNORECASE)
-        text = re.sub(r'\s+([,;:.!?])', r'\1', text)
-        text = re.sub(r'([,;:.!?])(?=[A-Za-z0-9])', r'\1 ', text)
-        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'\b(um|uh|hmm|er|ah)\b', '', text, flags=re.I)
+        text = re.sub(r'\s+([,;:.!?])', r'\1', text,flags=re.I | re.S)
+        text = re.sub(r'([,;:.!?])(?=[A-Za-z0-9])', r'\1 ', text,flags=re.I | re.S)
+        text = re.sub(r'\s+', ' ', text,flags=re.I | re.S)
 
     text = text.strip()
     return text
@@ -517,7 +517,7 @@ def is_srt_string(input_text):
 def cleartext(text: str, remove_start_end=True):
     res_text = text.replace('&#39;', "'").replace('&quot;', '"').replace("\u200b", " ").strip()
     # 删掉连续的多个标点符号，只保留一个
-    res_text = re.sub(r'([，。！？,.?]\s?){2,}', ',', res_text)
+    res_text = re.sub(r'([，。！？,.?]\s?){2,}', ',', res_text,flags=re.I | re.S)
     if not res_text or not remove_start_end:
         return res_text
     if res_text[-1] in ['，', ',']:
@@ -620,12 +620,8 @@ def srt_str_to_listdict(srt_string):
                     i += 1
 
             text = ('\n'.join(text_lines)).strip()
-            text = re.sub(r'</?[a-zA-Z]+>', '', text.replace("\r", '').strip())
-            text = re.sub(r'\n{2,}', '\n', text).strip()
-            # if text and text[0] in ['-']:
-            #     text = text[1:]
-            # if text and len(text) > 0 and text[-1] in ['-', ']']:
-            #     text = text[:-1]
+            text = re.sub(r'</?[a-zA-Z]+>', '', text.replace("\r", '').strip(),flags=re.I | re.S)
+            text = re.sub(r'\n{2,}', '\n', text,flags=re.I | re.S).strip()
             it = {
                 "line": len(srt_list) + 1,  # 字幕索引，转换为整数
                 "start_time": int(start_time),

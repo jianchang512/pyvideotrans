@@ -48,19 +48,19 @@
 >
 > [Windows用户也可查看该方法安装 uv 和 ffmpeg](https://pyvideotrans.com/zh/blog/uv-ffmpeg)
 
+                print(f'For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip')
+
+
+
 1. MacOS/Linux预先安装工具
 
 	MacOS需执行如下命令安装相关库
     ```
-    brew install libsndfile
-
-    brew install ffmpeg
-
-    brew install git
+    brew install libsndfile ffmpeg git rubberband
 
     ```
 	
-	Linux需安装 `ffmpeg`，命令`sudo yum install -y ffmpeg`或`apt-get install ffmpeg`
+	Linux需安装 `ffmpeg`，命令centos系 `sudo yum install -y ffmpeg rubberband-cli libsndfile1-dev`或 ubuntu系 `apt-get install ffmpeg rubberband-cli libsndfile1-dev`
 
 2. 创建不含空格和中文的文件夹，在终端中进入该文件夹，然后终端中执行命令 
 	```
@@ -84,6 +84,9 @@ uv add ctranslate2==3.24.0
 
 ```
 
+2. 建议安装 rubberband 库，音频变速会更自然，音质更佳
+
+https://breakfastquay.com/rubberband/
 
 
 

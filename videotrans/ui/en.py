@@ -132,8 +132,8 @@ class Ui_MainWindow(object):
 
 
 
-        self.rephrase = QtWidgets.QCheckBox()
-        self.rephrase.setText(tr("LLM Rephrase"))
+        self.rephrase = QtWidgets.QComboBox()
+        self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase"),tr("Automatic correction")])
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
         
        
@@ -141,10 +141,6 @@ class Ui_MainWindow(object):
         self.split_type.setMinimumSize(QtCore.QSize(80, 30))
         self.split_type.setObjectName("split_type")
         
-        self.auto_fix = QtWidgets.QCheckBox()
-        self.auto_fix.setObjectName("auto_fix")
-        self.auto_fix.setText(tr("Automatic correction"))
-        self.auto_fix.setToolTip(tr("Automatic subtitle correction"))
 
         self.label_2 = QtWidgets.QPushButton(self.layoutWidget)
         # self.label_2.setMinimumSize(QtCore.QSize(0, 30))
@@ -166,7 +162,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_4.addWidget(self.split_type)
         self.horizontalLayout_4.addWidget(self.rephrase)
-        self.horizontalLayout_4.addWidget(self.auto_fix)
         self.horizontalLayout_4.addStretch()
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
@@ -219,8 +214,7 @@ class Ui_MainWindow(object):
         self.glossary.setText(tr("glossary"))
         self.glossary.setStyleSheet("""background-color:transparent""")
         self.glossary.setCursor(Qt.PointingHandCursor)
-        self.glossary.setToolTip(
-            tr("Click to set up and modify the glossary"))
+        self.glossary.setToolTip( tr("Click to set up and modify the glossary"))
         
         
 
@@ -504,7 +498,7 @@ class Ui_MainWindow(object):
 
 
         self.enable_diariz = QtWidgets.QCheckBox()
-        self.enable_diariz.setToolTip(tr("Speaker classification"))
+        self.enable_diariz.setToolTip(tr("Speaker classification language"))
         self.enable_diariz.setText(tr("Speaker classification"))
         
         self.nums_diariz = QtWidgets.QComboBox()
@@ -763,8 +757,6 @@ class Ui_MainWindow(object):
         self.actionopenrouter_key = QtGui.QAction(MainWindow)
         self.actionopenrouter_key.setObjectName("actionopenrouter_key")
 
-        self.actionclaude_key = QtGui.QAction(MainWindow)
-        self.actionclaude_key.setObjectName("actionclaude_key")
         self.actionlibretranslate_key = QtGui.QAction(MainWindow)
         self.actionlibretranslate_key.setObjectName("actionlibretranslate_key")
         self.actionopenaitts_key = QtGui.QAction(MainWindow)
@@ -817,6 +809,8 @@ class Ui_MainWindow(object):
         self.actionrecognapi.setObjectName("actionrecognapi")
         self.actionsttapi = QtGui.QAction(MainWindow)
         self.actionsttapi.setObjectName("actionsttapi")
+        self.actionwhisperx = QtGui.QAction(MainWindow)
+        self.actionwhisperx.setObjectName("actionwhisperx")
         self.actiondeepgram = QtGui.QAction(MainWindow)
         self.actiondeepgram.setObjectName("actiondeepgram")
         self.actionxxl = QtGui.QAction(MainWindow)
@@ -956,8 +950,6 @@ class Ui_MainWindow(object):
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionopenrouter_key)
         self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actionclaude_key)
-        self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionlibretranslate_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actionzijiehuoshan_key)
@@ -1024,6 +1016,8 @@ class Ui_MainWindow(object):
         self.menu_RECOGN.addAction(self.actionai302_key)
         self.menu_RECOGN.addSeparator()
         self.menu_RECOGN.addAction(self.actionsttapi)
+        self.menu_RECOGN.addSeparator()
+        self.menu_RECOGN.addAction(self.actionwhisperx)
         self.menu_RECOGN.addSeparator()
         self.menu_RECOGN.addAction(self.actiondeepgram)
         self.menu_RECOGN.addSeparator()

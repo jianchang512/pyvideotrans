@@ -4,9 +4,11 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict
+
+from videotrans import recognition
 from videotrans.configure import config
 from videotrans.configure.config import tr, logs
-from videotrans.recognition import run, Faster_Whisper_XXL,Whisper_CPP
+from videotrans.recognition import run, Faster_Whisper_XXL, Whisper_CPP
 from videotrans.task._base import BaseTask
 
 from videotrans.util import tools
@@ -19,7 +21,7 @@ from videotrans.util import tools
 @dataclass
 class SpeechToText(BaseTask):
     # 识别后输出的字幕格式，srt txt 等
-    out_format: str = field(init=True,default='srt')
+    out_format: str = field(init=True, default='srt')
     # 在这个子类中，shoud_recogn 总是 True。
     shoud_recogn: bool = field(default=True, init=False)
     # 是否需要将生成的字幕复制到原始视频所在目录下，并重命名为视频同名，以方便视频自动加载软字幕
@@ -29,6 +31,10 @@ class SpeechToText(BaseTask):
 
     def __post_init__(self):
         super().__post_init__()
+        # -1=不启用说话人，0=启用并且不限制说话人数量，>0+1是最大说话人数量
+        self.max_speakers=self.cfg.nums_diariz if self.cfg.enable_diariz else -1
+        if self.max_speakers>0:
+            self.max_speakers+=1
         # 存放目标文件夹
         if not self.cfg.target_dir:
             self.cfg.target_dir = config.HOME_DIR + f"/recogn"
@@ -59,12 +65,13 @@ class SpeechToText(BaseTask):
             # 需要降噪
             if self.cfg.remove_noise:
                 self._signal(
-                    text=tr("Starting to process speech noise reduction, which may take a long time, please be patient"))
+                    text=tr(
+                        "Starting to process speech noise reduction, which may take a long time, please be patient"))
                 from ._remove_noise import run_remove
                 self.cfg.shibie_audio = run_remove(
-                    self.cfg.shibie_audio, 
+                    self.cfg.shibie_audio,
                     f"{self.cfg.cache_folder}/removed_noise_{time.time()}.wav",
-                    int(config.settings.get('noise_separate_nums',4))
+                    int(config.settings.get('noise_separate_nums', 4))
                 )
             if self._exit(): return
             # faster_xxl.exe 单独处理
@@ -77,13 +84,13 @@ class SpeechToText(BaseTask):
                 ]
                 if self.cfg.detect_language != 'auto':
                     cmd.extend(['-l', self.cfg.detect_language.split('-')[0]])
-                
-                prompt=None
-                if self.cfg.detect_language!='auto':
+
+                prompt = None
+                if self.cfg.detect_language != 'auto':
                     prompt = config.settings.get(f'initial_prompt_{self.cfg.detect_language}')
                 if prompt:
-                    cmd+=['--initial_prompt',prompt]
-                
+                    cmd += ['--initial_prompt', prompt]
+
                 cmd.extend(['--model', self.cfg.model_name, '--output_dir', self.cfg.target_dir])
                 txt_file = Path(config.settings.get('Faster_Whisper_XXL', '')).parent.as_posix() + '/pyvideotrans.txt'
                 if Path(txt_file).exists():
@@ -95,17 +102,15 @@ class SpeechToText(BaseTask):
 
                 self._external_cmd_with_wrapper(cmd)
 
-
                 try:
                     shutil.copy2(outsrt_file, self.cfg.target_sub)
                 except shutil.SameFileError:
                     pass
-                #self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
-                self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub,is_file=True)    
-                #return
+                self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub, is_file=True)
+                # return
             elif self.cfg.recogn_type == Whisper_CPP:
 
-                cpp_path=config.settings.get('Whisper.cpp', 'whisper-cli')
+                cpp_path = config.settings.get('Whisper.cpp', 'whisper-cli')
                 cmd = [
                     cpp_path,
                     "-f",
@@ -113,28 +118,29 @@ class SpeechToText(BaseTask):
                     "-osrt",
                     "-np"
                 ]
-                cmd+=["-l",self.cfg.detect_language.split('-')[0]]
-                prompt=None
-                if self.cfg.detect_language!='auto':
+                cmd += ["-l", self.cfg.detect_language.split('-')[0]]
+                prompt = None
+                if self.cfg.detect_language != 'auto':
                     prompt = config.settings.get(f'initial_prompt_{self.cfg.detect_language}')
                 if prompt:
-                    cmd+=['--prompt',prompt]
-                cpp_folder=Path(cpp_path).parent.resolve().as_posix()
+                    cmd += ['--prompt', prompt]
+                cpp_folder = Path(cpp_path).parent.resolve().as_posix()
                 if not Path(f'{cpp_folder}/models/{self.cfg.model_name}').is_file():
-                    raise RuntimeError(tr('The model does not exist. Please download the model to the {} directory first.',f'{cpp_folder}/models'))
-                txt_file =  cpp_folder+ '/pyvideotrans.txt'
+                    raise RuntimeError(
+                        tr('The model does not exist. Please download the model to the {} directory first.',
+                           f'{cpp_folder}/models'))
+                txt_file = cpp_folder + '/pyvideotrans.txt'
                 if Path(txt_file).exists():
                     cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
-                
+
                 cmd.extend(['-m', f'models/{self.cfg.model_name}', '-of', self.cfg.target_sub[:-4]])
-                
+
                 logs(f'Whipser.cpp: {cmd=}')
 
                 self._external_cmd_with_wrapper(cmd)
 
-
-                self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub,is_file=True)   
-                #return    
+                self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub, is_file=True)
+                # return
             else:
                 # 其他识别渠道
                 raw_subtitles = run(
@@ -147,61 +153,83 @@ class SpeechToText(BaseTask):
                     cache_folder=self.cfg.cache_folder,
                     is_cuda=self.cfg.cuda,
                     subtitle_type=0,
+                    max_speakers=self.max_speakers
                 )
                 self.source_srt_list = raw_subtitles
                 self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-            if self._exit(): return
-            if not raw_subtitles or len(raw_subtitles) < 1:
-                raise RuntimeError( self.cfg.basename + tr('recogn result is empty'))
-            if self.cfg.auto_fix and self.cfg.detect_language !='auto':
-                # 自动修正字幕
-                shutil.copy2(self.cfg.target_sub,f'{self.cfg.target_sub}-noautofix.srt')
-                self.source_srt_list=tools.auto_fix_srtdict(self.source_srt_list,self.cfg.detect_language)
-                self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+                if not raw_subtitles or len(raw_subtitles) < 1:
+                    raise RuntimeError(self.cfg.basename + tr('recogn result is empty'))
+            if self._exit() or self.cfg.detect_language == 'auto': return
+            # whisperx-api
+            # openairecogn并且模型是gpt-4o-transcribe-diarize
+            # funasr并且模型是paraformer-zh
+            # deepgram
+            # 以上这些本身已有说话人识别，如果以有说话人，就不再重新断句
             self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
-            
-            
-            
+            if Path(self.cfg.cache_folder+"/speaker.json").exists():
+                return
+
+
+            if self.cfg.rephrase == 2:
+                # 自动修正字幕
+                self.source_srt_list = tools.auto_fix_srtdict(self.source_srt_list, self.cfg.detect_language)
+                self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+            elif self.cfg.rephrase == 1:
+                # LLM重新断句
+                try:
+                    from videotrans.translator._chatgpt import ChatGPT
+
+                    ob = ChatGPT(uuid=self.uuid)
+                    self._signal(text=tr("Re-segmenting..."))
+                    srt_list = ob.llm_segment(self.source_srt_list, config.settings.get('llm_ai_type', 'openai'))
+                    if srt_list and len(srt_list) > len(self.source_srt_list) / 2:
+                        self.source_srt_list = srt_list
+                        self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+                    else:
+                        raise
+                except Exception as e:
+                    self._signal(text=tr("Re-segmenting Error"))
+                    logs(f"重新断句失败[except]，已恢复原样 {e}", level='warn')
         except Exception:
             raise
 
-    
+
     def diariz(self):
-        if self._exit() or self.cfg.detect_language[:2] not in ['zh','en'] or not self.cfg.enable_diariz or Path(self.cfg.cache_folder+"/speaker.json").exists():
+        if self._exit() or self.cfg.detect_language[:2] not in ['zh', 'en'] or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
             return
         try:
             self._signal(text=tr('Begin separating the speakers'))
             from videotrans.diarization import assign_speakers
-            spk_list=assign_speakers(
+            spk_list = assign_speakers(
                 self.cfg.shibie_audio,
                 self.cfg.detect_language,
-                [ [it['start_time'],it['end_time']] for it in self.source_srt_list],
-                -1 if self.cfg.nums_diariz<1 else self.cfg.nums_diariz+1,
+                [[it['start_time'], it['end_time']] for it in self.source_srt_list],
+                -1 if self.max_speakers < 1 else self.max_speakers,
                 self.uuid
             )
-            Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')            
+            Path(self.cfg.cache_folder + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
             logs('分离说话人成功完成')
             self._signal(text=tr('separating speakers end'))
         except Exception as e:
-            logs('分离说话人失败，静默跳过','except')
+            logs('分离说话人失败，静默跳过', 'except')
             self._signal(text=tr('Speaker separation failed, silent skip.'))
 
     def task_done(self):
         if self._exit(): return
-        if config.params.get("stt_spk_insert") and Path(self.cfg.cache_folder+"/speaker.json").exists():
-            speakers=json.loads(Path(self.cfg.cache_folder+"/speaker.json").read_text(encoding='utf-8'))
+        if self.cfg.enable_diariz and config.params.get("stt_spk_insert") and Path(self.cfg.cache_folder + "/speaker.json").exists():
+            speakers = json.loads(Path(self.cfg.cache_folder + "/speaker.json").read_text(encoding='utf-8'))
             if speakers:
-                speakers_len=len(speakers)
-                for i,it in enumerate(self.source_srt_list):
-                    if i<speakers_len and speakers[i]:
-                        it['text']=f'[{speakers[i]}]{it["text"]}'
+                speakers_len = len(speakers)
+                for i, it in enumerate(self.source_srt_list):
+                    if i < speakers_len and speakers[i]:
+                        it['text'] = f'[{speakers[i]}]{it["text"]}'
         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
         self._signal(text=f"{self.cfg.name}", type='succeed')
         if self.out_format == 'txt':
             import re
             content = Path(self.cfg.target_sub).read_text(encoding='utf-8')
-            content = re.sub(r"(\r\n|\r|\n|\s|^)\d+(\r\n|\r|\n)", "\n", content)
-            content = re.sub(r'\n\d+:\d+:\d+(\,\d+)\s*-->\s*\d+:\d+:\d+(\,\d+)?\n?', '', content)
+            content = re.sub(r"(\r\n|\r|\n|\s|^)\d+(\r\n|\r|\n)", "\n", content,flags=re.I | re.S)
+            content = re.sub(r'\n\d+:\d+:\d+(\,\d+)\s*-->\s*\d+:\d+:\d+(\,\d+)?\n?', '', content,flags=re.I | re.S)
             with open(self.cfg.target_sub[:-3] + 'txt', 'w', encoding='utf-8') as f:
                 f.write(content)
             self.cfg.target_sub = self.cfg.target_sub[:-3] + 'txt'
@@ -221,10 +249,10 @@ class SpeechToText(BaseTask):
                 Path(self.cfg.shound_del_name).unlink(missing_ok=True)
         except Exception:
             pass
-        tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")    
+        tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
 
     def _exit(self):
         if config.exit_soft or config.box_recogn != 'ing':
-            self.hasend=True
+            self.hasend = True
             return True
         return False

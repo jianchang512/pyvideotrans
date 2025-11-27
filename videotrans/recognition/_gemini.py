@@ -132,7 +132,7 @@ class GeminiRecogn(BaseRecogn):
 
                     if mt:
                         speaker_list.append(mt.group(1))
-                        text = re.sub(r'^\[spk\d+\]', '', text, re.I)
+                        text = re.sub(r'^\[spk\d+\]', '', text,flags=re.I | re.S)
                     srt = {
                         "line": len(srt_str_list) + 1,
                         "start_time": f['start_time'],

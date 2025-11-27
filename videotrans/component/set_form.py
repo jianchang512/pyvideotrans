@@ -53,6 +53,7 @@ from videotrans.ui.setlinerole import Ui_setlinerole
 from videotrans.ui.siliconflow import Ui_siliconflowform
 from videotrans.ui.srthebing import Ui_srthebing
 from videotrans.ui.stt import Ui_sttform
+from videotrans.ui.whisperx import Ui_whisperx
 from videotrans.ui.subtitlescover import Ui_subtitlescover
 from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.transapi import Ui_transapiform
@@ -144,6 +145,12 @@ class RecognAPIForm(QDialog, Ui_recognapiform):  # <===
 class SttAPIForm(QDialog, Ui_sttform):  # <===
     def __init__(self, parent=None):
         super(SttAPIForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+class WhisperXAPIForm(QDialog, Ui_whisperx):  # <===
+    def __init__(self, parent=None):
+        super(WhisperXAPIForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

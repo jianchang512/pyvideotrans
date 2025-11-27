@@ -50,6 +50,7 @@ class BaseRecogn(BaseCon):
     # 字幕行字符数
     maxlen: int = 20
     split_type: int=0 #0 整体识别，1 均等分割
+    max_speakers:int=-1 # 说话人，-1不启用说话人，0=不限制数量，>0 说话人最大数量
 
     def __post_init__(self):
         super().__post_init__()
@@ -102,7 +103,7 @@ class BaseRecogn(BaseCon):
         ...
     ]
     '''
-    def re_segment_sentences(self, words):
+    def re_segment_sentences_json(self, words):
         try:
             from videotrans.translator._chatgpt import ChatGPT
             ob = ChatGPT()
@@ -117,26 +118,8 @@ class BaseRecogn(BaseCon):
             logs(f"重新断句失败[except]，已恢复原样 {e}",level='warn')
             raise
 
-
     # 不需要本地重新断句
-    def get_srtlist(self, raws):
-        import zhconv
-        srt_raws = []
-        for i in list(raws):
-            if len(i['words']) < 1:
-                continue
-            tmp = {
-                'text': zhconv.convert(i['text'], 'zh-hans') if self.jianfan else i[
-                    'text'],
-                'start_time': int(i['words'][0]['start'] * 1000),
-                'end_time': int(i['words'][-1]['end'] * 1000)
-            }
-            tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-            tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
-            tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-            srt_raws.append(tmp)
-            
-        return srt_raws
+
 
 
     # 根据 时间开始结束点，切割音频片段,并保存为wav到临时目录，记录每个wav的绝对路径到list，然后返回该list

@@ -174,21 +174,21 @@ def shutdown_system():
 def get_prompt(ainame,aisendsrt=True):
     from videotrans.configure import config
     prompt_file = get_prompt_file(ainame=ainame,aisendsrt=aisendsrt)
-    content = Path(prompt_file).read_text(encoding='utf-8')
+    content = Path(prompt_file).read_text(encoding='utf-8',errors="ignore")
     glossary = ''
     if Path(config.ROOT_DIR + '/videotrans/glossary.txt').exists():
-        glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8').strip()
+        glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8',errors="ignore").strip()
     if glossary:
         glossary = "\n".join(["|" + it.replace("=", '|') + "|" for it in glossary.split('\n')])
-        glossary_prompt = """## 术语表\n严格按照以下术语表进行翻译,如果句子中出现术语,必须使用对应的翻译,而不能自由翻译：\n| 术语  | 翻译  |\n| --------- | ----- |\n""" if config.defaulelang == 'zh' else """## Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n"""
-        content = content.replace('<INPUT></INPUT>', f"""{glossary_prompt}{glossary}\n\n<INPUT></INPUT>""")
+        glossary_prompt = """\n# Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n"""
+        content = content.replace('# Input SRT', f"""{glossary_prompt}{glossary}\n\n# Input SRT""")
     return content
 
 
 def qwenmt_glossary():
     from videotrans.configure import config
     if Path(config.ROOT_DIR + '/videotrans/glossary.txt').exists():
-        glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8').strip()
+        glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8',errors="ignore").strip()
         if glossary:
             term=[]
             for it in glossary.split('\n'):
@@ -202,7 +202,7 @@ def qwenmt_glossary():
 def get_prompt_file(ainame,aisendsrt=True):
     from videotrans.configure import config
     prompt_path = f'{config.ROOT_DIR}/videotrans/'
-    prompt_name = f'{ainame}{"" if config.defaulelang == "zh" else "-en"}.txt'
+    prompt_name = f'{ainame}.txt'
     if aisendsrt:
         prompt_path += 'prompts/srt/'
     else:
@@ -217,12 +217,7 @@ def show_glossary_editor(parent):
                                    QDialogButtonBox)
     from PySide6.QtCore import Qt
     from videotrans.configure import config
-    """
-    弹出一个窗口，包含一个文本框和保存按钮，并处理文本的读取和保存。
 
-    Args:
-        parent: 父窗口 (QWidget)
-    """
     dialog = QDialog(parent)
     dialog.setWindowTitle(config.tr('Glossary'))
     dialog.setMinimumSize(600, 400)
@@ -241,7 +236,7 @@ def show_glossary_editor(parent):
     file_path = config.ROOT_DIR + "/videotrans/glossary.txt"
     try:
         if os.path.exists(file_path):
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, "r", encoding="utf-8",errors="ignore") as f:
                 content = f.read()
                 text_edit.setText(content)
     except Exception as e:
@@ -252,7 +247,7 @@ def show_glossary_editor(parent):
         点击保存按钮，将文本框内容写回文件。
         """
         try:
-            with open(file_path, "w", encoding="utf-8") as f:
+            with open(file_path, "w", encoding="utf-8",errors="ignore") as f:
                 f.write(text_edit.toPlainText())  # toPlainText 获取纯文本
             dialog.accept()
         except Exception as e:

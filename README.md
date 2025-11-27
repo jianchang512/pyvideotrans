@@ -52,16 +52,12 @@ Before getting started, please ensure you understand the core working mechanism 
 
 	**MacOS**: Execute the following commands to install the required libraries:
     ```bash
-    brew install libsndfile
-
-    brew install ffmpeg
-
-    brew install git
+    brew install libsndfile ffmpeg git rubberband
 
    
     ```
 	
-	**Linux**: Install `ffmpeg` using `sudo yum install -y ffmpeg` or `apt-get install ffmpeg`.
+	**Linux**: Install `ffmpeg` using centos like  `sudo yum install -y ffmpeg rubberband-cli libsndfile1-dev` or  ubuntu like `apt-get install ffmpeg rubberband-cli libsndfile1-dev`
 
 2. Create a folder with **no spaces** in its name. Open a terminal in that folder and execute:
 	```bash
@@ -85,7 +81,9 @@ uv remove ctranslate2
 uv add ctranslate2==3.24.0
 ```
 
+2. Use a better audio acceleration
 
+https://breakfastquay.com/rubberband/
 
 
 ## Tutorials and Documentation

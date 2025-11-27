@@ -18,7 +18,7 @@ from videotrans.util import tools
 
 
 RETRY_NUMS = 2
-RETRY_DELAY = 10
+RETRY_DELAY = 5
 
 
 @dataclass
@@ -31,7 +31,6 @@ class OPENAITTS(BaseTTS):
 
 
     def _exec(self):
-
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
@@ -53,22 +52,22 @@ class OPENAITTS(BaseTTS):
                 return
             try:
                 client = OpenAI(api_key=config.params.get('openaitts_key', ''), base_url=self.api_url,
-                                http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
+                                http_client=httpx.Client(proxy=self.proxy_str))
                 with client.audio.speech.with_streaming_response.create(
                         model=config.params.get('openaitts_model',''),
                         voice=role,
                         input=data_item['text'],
-                        timeout=7200,
                         speed=speed,
+                        response_format="wav",
                         instructions=config.params.get('openaitts_instructions', '')
                 ) as response:
-                    with open(data_item['filename'] + ".mp3", 'wb') as f:
+                    with open(data_item['filename'] + ".wav", 'wb') as f:
                         for chunk in response.iter_bytes():
                             f.write(chunk)
             except (AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError):
                 self.stop_next_all=True
                 raise
-            self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
+            self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
         try:
             _run()
@@ -86,12 +85,14 @@ class OPENAITTS(BaseTTS):
         url = url.rstrip('/').lower()
         if url.find(".openai.com") > -1:
             return "https://api.openai.com/v1"
+
         if url.endswith('/v1'):
             return url
         # 存在 /v1/xx的，改为 /v1
-        if re.match(r'.*/v1/.*$', url):
-            return re.sub(r'/v1.*$', '/v1', url)
+        if url.find('/v1/chat/') > -1:
+            return re.sub(r'/v1.*$', '/v1', url,flags=re.I | re.S)
 
-        if re.match(r'^https?://[^/]+[a-zA-Z]+$', url):
+        if re.match(r'^https?://[a-zA-Z0-9_\.-]+$', url):
             return url + "/v1"
+
         return url
