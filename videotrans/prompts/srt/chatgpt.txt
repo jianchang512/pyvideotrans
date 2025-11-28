@@ -48,7 +48,7 @@ You **must not remove or merge original text lines**.
 3. Output must contain the **same number of subtitle entries** as the input.
 
 
-# Universal Syllable Estimation Rule (Robust)
+# Universal Syllable Estimation Rule
 To maintain cross-language timing consistency, estimate syllables as follows:
 
 1. CJK languages (zh/ja/ko):
@@ -90,4 +90,5 @@ Translated Line 2
 ```
 
 # Input SRT
+
 <INPUT></INPUT>

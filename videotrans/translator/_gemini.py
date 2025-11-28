@@ -35,11 +35,11 @@ class Gemini(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.model_name = config.params.get("gemini_model",'')
+        self.model_name = config.params.get("gemini_model",'gemini-2.5-flash')
 
         self.prompt = tools.get_prompt(ainame='gemini',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
         self.api_keys = config.params.get('gemini_key', '').strip().split(',')
-        self.api_url = 'https://generativelanguage.googleapis.com/v1beta/openai/'
+
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),

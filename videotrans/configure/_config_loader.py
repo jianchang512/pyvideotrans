@@ -325,7 +325,7 @@ def parse_init(update_data=None):
         "cjk_len": 22,
         "other_len": 46,
         "gemini_model": DEFAULT_GEMINI_MODEL,
-        "llm_chunk_size": 20,
+        "llm_chunk_size": 50,
         "llm_ai_type": "openai",
         "gemini_recogn_chunk": 50,
         "zh_hant_s": True,

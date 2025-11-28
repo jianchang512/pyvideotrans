@@ -149,7 +149,7 @@ dependencies = [
     "numpy==1.26.0",
     "oauthlib==3.2.2",
     "omegaconf==2.3.0",
-    "onnxruntime==1.23.2",
+    "onnxruntime",
     "openai==2.6.0",
     "opt-einsum==3.3.0",
     "ordered-set==4.1.0",
