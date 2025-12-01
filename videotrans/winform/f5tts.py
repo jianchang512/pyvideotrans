@@ -77,7 +77,7 @@ def openwin(init_show_type=None):
         import time
         print(f'{TTS_TYPE_LIST[show_ttstype_name]=}')
         wk = ListenVoice(parent=winobj,
-                         queue_tts=[{"text": '你好啊我的朋友', "role": role_test, "filename": config.TEMP_HOME + f"/{time.time()}-{show_ttstype_name}.wav", "tts_type": TTS_TYPE_LIST[show_ttstype_name]}],
+                         queue_tts=[{"text": '你好啊我的朋友', "role": role_test, "filename": config.TEMP_DIR + f"/{time.time()}-{show_ttstype_name}.wav", "tts_type": TTS_TYPE_LIST[show_ttstype_name]}],
                          language="zh",
                          tts_type=TTS_TYPE_LIST[show_ttstype_name])
         wk.uito.connect(feed)

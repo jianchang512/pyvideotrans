@@ -35,15 +35,11 @@ class SeparateWorker(QThread):
                 pass
 
     def run(self):
-        print(f'{config.TEMP_HOME=}')
         try:
-            
-            print(f'1 {self.file=}')
             p=Path(self.file)
-            print(f'{p.suffix.lower()=}')
             # 如果不是wav，需要先转为wav
             if  p.suffix.lower()!= '.wav':
-                newfile = config.TEMP_HOME + f'/sep-{time.time()}.wav'
+                newfile = config.TEMP_DIR + f'/sep-{time.time()}.wav'
                 cmd = [
                     "-y",
                     "-i",
@@ -58,13 +54,10 @@ class SeparateWorker(QThread):
                 
                 tools.runffmpeg(cmd)
                 self.file = newfile
-            print(f'2 {self.file=}')
-            print(f'{self.out=}')
             tools.set_process(uuid=self.uuid)
             run_in_threadpool(self.getqueulog)
             run_sep(self.file, f"{self.out}/vocal-{p.stem}.wav", f"{self.out}/instrument-{p.stem}.wav")
         except Exception as e:
-            print(e)
             msg = f"error:separate vocal and background music:{str(e)}"
             self.finish_event.emit(msg)
         else:

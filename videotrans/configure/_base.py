@@ -90,7 +90,7 @@ class BaseCon:
             raise RuntimeError(e.stderr)
 
     # 语音合成后统一转为 wav 音频
-    def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None):
+    def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None,remove_silence=True):
         from . import config
         if config.exit_soft:
             return
@@ -99,7 +99,7 @@ class BaseCon:
             "-i",
             mp3_file_path,
             "-ar",
-            "44100",
+            "48000",
             "-ac",
             "2",
             "-c:a",
@@ -113,9 +113,10 @@ class BaseCon:
         if config.exit_soft:
             return
         try:
-            return tools.runffmpeg(cmd, force_cpu=True)
+            tools.runffmpeg(cmd, force_cpu=True)
         except Exception:
             pass
+        return True
 
     # 判断是否为内网地址
     def _get_internal_host(self, url: str):

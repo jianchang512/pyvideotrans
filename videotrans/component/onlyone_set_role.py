@@ -455,10 +455,10 @@ class SpeakerAssignmentDialog(QDialog):
         innerc_layout.addWidget(right_widget, stretch=7)
 
         # 底部保存按钮
-        save_button = QPushButton(tr("nextstep"))
-        save_button.setCursor(Qt.PointingHandCursor)
-        save_button.setMinimumSize(QSize(400, 35))
-        save_button.clicked.connect(self.save_and_close)
+        self.save_button = QPushButton(tr("nextstep"))
+        self.save_button.setCursor(Qt.PointingHandCursor)
+        self.save_button.setMinimumSize(QSize(400, 35))
+        self.save_button.clicked.connect(self.save_and_close)
 
         cancel_button = QPushButton(tr("Terminate this mission"))
         cancel_button.setCursor(Qt.PointingHandCursor)
@@ -467,7 +467,7 @@ class SpeakerAssignmentDialog(QDialog):
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addStretch()
-        bottom_layout.addWidget(save_button)
+        bottom_layout.addWidget(self.save_button)
         bottom_layout.addWidget(cancel_button)
         bottom_layout.addStretch()
 
@@ -666,7 +666,7 @@ class SpeakerAssignmentDialog(QDialog):
         wk = ListenVoice(parent=self, queue_tts=[{
             "text": first_item['text'],
             "role": role_value,
-            "filename": config.TEMP_HOME + f"/{time.time()}-onlyone_setrole.wav",
+            "filename": config.TEMP_DIR + f"/{time.time()}-onlyone_setrole.wav",
             "tts_type": self.tts_type}],
                          language=self.target_language,
                          tts_type=self.tts_type)
@@ -714,6 +714,7 @@ class SpeakerAssignmentDialog(QDialog):
                 self.model.dataChanged.emit(idx, idx, [SubtitleSpeakerModel.RoleChecked, SubtitleSpeakerModel.RoleRole])
 
     def save_and_close(self):
+        self.save_button.setDisabled(True)
         config.line_roles={}
         srt_str_list=[]
 

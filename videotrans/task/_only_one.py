@@ -9,6 +9,7 @@ from PySide6.QtCore import QThread, Signal, QObject
 from videotrans.configure import config
 from videotrans.configure.config import tr,logs
 from videotrans.task.taskcfg import TaskCfg
+
 from videotrans.task.trans_create import TransCreate
 from videotrans.util import tools
 
@@ -80,32 +81,32 @@ class Worker(QThread):
                         # 倒计时中
                         config.task_countdown -= 1
 
-            if not self._exit():
-                trk.dubbing()
+                if not self._exit():
+                    trk.dubbing()
 
-            if float(config.settings.get('countdown_sec',0))>0:
+                # 没有忽略配音
+                if not trk.ignore_align and float(config.settings.get('countdown_sec',0))>0:
+                        # 调整配音，对 trk.queue_tts 进行调整
+                    for it in trk.queue_tts:
+                        if self._exit(): return
+                        # 当前配音时长,0=不存在配音文件
+                        it['dubbing_s']=(len(AudioSegment.from_file(it['filename'])) if tools.vail_file(it['filename']) else 0)/1000.0
 
-                # 调整配音，对 trk.queue_tts 进行调整
-                for it in trk.queue_tts:
-                    if self._exit(): return
-                    # 当前配音时长,0=不存在配音文件
-                    it['dubbing_s']=(len(AudioSegment.from_file(it['filename'])) if tools.vail_file(it['filename']) else 0)/1000.0
+                    # 存入临时目录
+                    Path(f'{trk.cfg.cache_folder}/queue_tts.json').write_text(json.dumps(trk.queue_tts,ensure_ascii=False),encoding='utf-8')
 
-                # 存入临时目录
-                Path(f'{trk.cfg.cache_folder}/queue_tts.json').write_text(json.dumps(trk.queue_tts,ensure_ascii=False),encoding='utf-8')
+                    config.task_countdown=86400
+                    self._post(text=f"{trk.cfg.cache_folder}<|>{trk.cfg.target_language_code}", type='edit_dubbing')
+                    self._post(text=tr('The subtitle editing interface is rendering'))
+                    while config.task_countdown > 0:
+                        if self._exit(): return
+                        # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
+                        time.sleep(1)
+                        # 倒计时中
+                        config.task_countdown -= 1
 
-                config.task_countdown=86400
-                self._post(text=f"{trk.cfg.cache_folder}<|>{trk.cfg.target_language_code}", type='edit_dubbing')
-                self._post(text=tr('The subtitle editing interface is rendering'))
-                while config.task_countdown > 0:
-                    if self._exit(): return
-                    # 其他情况，字幕处理完毕，未超时，等待1s，继续倒计时
-                    time.sleep(1)
-                    # 倒计时中
-                    config.task_countdown -= 1
-
-                # 重新整理赋值给 trk.queue_tts
-                trk.queue_tts=json.loads(Path(f'{trk.cfg.cache_folder}/queue_tts.json').read_text(encoding='utf-8'))
+                    # 重新整理赋值给 trk.queue_tts
+                    trk.queue_tts=json.loads(Path(f'{trk.cfg.cache_folder}/queue_tts.json').read_text(encoding='utf-8'))
 
 
             if not self._exit():

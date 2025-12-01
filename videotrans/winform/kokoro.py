@@ -23,7 +23,7 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": 'hello,my friend',
             "role": "af_alloy",
-            "filename": config.TEMP_HOME + f"/{time.time()}-kokoro.wav",
+            "filename": config.TEMP_DIR + f"/{time.time()}-kokoro.wav",
             "tts_type": tts.KOKORO_TTS}],
                          language="en",
                          tts_type=tts.KOKORO_TTS)

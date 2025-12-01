@@ -690,6 +690,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     os.remove(temp_file_path)
                 except OSError as e:
                     pass
+        if not config.IS_FROZEN and not shutil.which("rubberband"):
+            print(
+                f'For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip')
+            print(
+                f'MacOS: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm')
+            print(
+                f'Ubuntu: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm')
+
 
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""
@@ -758,6 +766,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         time.sleep(4)
         try:
             shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
+            shutil.rmtree(config.TEMP_ROOT, ignore_errors=True)
         except OSError:
             pass
         if not self.is_restarting:

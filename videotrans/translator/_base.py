@@ -60,7 +60,7 @@ class BaseTrans(BaseCon):
     # 实际操作 run|runsrt -> _item_task
     def run(self) -> Union[List, str, None]:
         # 开始对分割后的每一组进行处理
-        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
 
         # 如果是不是以 完整字幕格式发送，则组成字符串列表，否则组成 [dict,dict] 列表，每个dict都是字幕行信息
@@ -161,20 +161,20 @@ class BaseTrans(BaseCon):
             return
         key_cache = self._get_key(it)
 
-        file_cache = config.TEMP_DIR + f'/translate_cache/{key_cache}.txt'
-        if not Path(config.TEMP_DIR + f'/translate_cache').is_dir():
-            Path(config.TEMP_DIR + f'/translate_cache').mkdir(parents=True, exist_ok=True)
+        file_cache = config.TEMP_ROOT + f'/translate_cache/{key_cache}.txt'
+        if not Path(config.TEMP_ROOT + f'/translate_cache').is_dir():
+            Path(config.TEMP_ROOT + f'/translate_cache').mkdir(parents=True, exist_ok=True)
         Path(file_cache).write_text(res_str, encoding='utf-8')
 
     def _get_cache(self, it):
         if self.is_test: return None
         key_cache = self._get_key(it)
-        file_cache = config.TEMP_DIR + f'/translate_cache/{key_cache}.txt'
+        file_cache = config.TEMP_ROOT + f'/translate_cache/{key_cache}.txt'
         if Path(file_cache).exists():
             return Path(file_cache).read_text(encoding='utf-8')
         return None
 
     def _get_key(self, it):
-        Path(config.TEMP_DIR + '/translate_cache').mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_ROOT + '/translate_cache').mkdir(parents=True, exist_ok=True)
         key_str=f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}'
         return tools.get_md5(key_str)

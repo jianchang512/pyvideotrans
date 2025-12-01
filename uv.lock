@@ -2947,7 +2947,7 @@ wheels = [
 
 [[package]]
 name = "pyvideotrans"
-version = "3.86"
+version = "3.87"
 source = { virtual = "." }
 dependencies = [
     { name = "absl-py" },
@@ -3359,7 +3359,7 @@ requires-dist = [
     { name = "numpy", specifier = "==1.26.0" },
     { name = "oauthlib", specifier = "==3.2.2" },
     { name = "omegaconf", specifier = "==2.3.0" },
-    { name = "onnxruntime", specifier = "==1.23.2" },
+    { name = "onnxruntime" },
     { name = "openai", specifier = "==2.6.0" },
     { name = "openai-whisper", specifier = ">=20250625" },
     { name = "opt-einsum", specifier = "==3.3.0" },

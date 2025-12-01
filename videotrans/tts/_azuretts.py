@@ -94,7 +94,7 @@ class AzureTTS(BaseTTS):
                             str((bookmarks[i + 1]['time'] - it['time']) / 1000)
                         ]
 
-                    cmd += ["-ar", "44100", "-ac", "2", "-c:a", "pcm_s16le", items[i]['filename']]
+                    cmd += ["-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", items[i]['filename']]
                     tools.runffmpeg(cmd)
                 return
 

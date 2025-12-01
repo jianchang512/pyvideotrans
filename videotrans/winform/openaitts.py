@@ -33,7 +33,7 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": 'alloy',
-            "filename": config.TEMP_HOME + f"/{time.time()}-openai.wav",
+            "filename": config.TEMP_DIR + f"/{time.time()}-openai.wav",
             "tts_type": tts.OPENAI_TTS}],
                          language="zh",
                          tts_type=tts.OPENAI_TTS)

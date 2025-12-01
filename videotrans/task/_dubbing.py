@@ -25,6 +25,7 @@ class DubbingSrt(BaseTask):
     is_multi_role: bool = field(init=True,default=False)
     # 固定为True
     shoud_dubbing: bool = field(default=True, init=False)
+    ignore_align:bool=False
     def __post_init__(self):
         super().__post_init__()
         # 是否是 字幕多角色配音
@@ -117,10 +118,12 @@ class DubbingSrt(BaseTask):
             else:
                 _enter_edgetts_single=False
         
-        
+        print(f'{_enter_edgetts_single=}')
         if _enter_edgetts_single:
             from edge_tts import Communicate
             import asyncio
+            # 忽略对齐
+            self.ignore_align=True
             self.cfg.target_sub = self._convert_to_utf8_if_needed(self.cfg.target_sub)
             
             tmp_name = self.cfg.target_wav if self.cfg.target_wav.endswith(
@@ -132,7 +135,8 @@ class DubbingSrt(BaseTask):
                 self.queue_tts=tools.get_subtitle_from_srt(self.cfg.target_sub)
                 for it in self.queue_tts:
                     text+=it["text"]+"\n"
-                self.queue_tts=self.queue_tts[:1]    
+                self.queue_tts=self.queue_tts[:1]
+            print(f'{text=}')
             asyncio.run(self._edgetts_single(
                 tmp_name,
                 dict(text=text,
@@ -152,14 +156,35 @@ class DubbingSrt(BaseTask):
             text = Path(self.cfg.target_sub).read_text(encoding='utf-8').strip()
             text = re.sub(r"(\s*?\r?\n\s*?){2,}", "\n", text,flags=re.I | re.S)
             text = re.sub(r"(\s*?\r?\n\s*?)", "\n", text,flags=re.I | re.S)
-            subs = [{
-                "line": 1,
-                "start_time": 0,
-                "end_time": 1000,
-                "startraw": "00:00:00,000",
-                "endraw": "00:00:01,000",
-                "text": text
-            }]
+            text_list=re.findall(r'.*?(?:[?，。？！,?!\n]|\. )',text)
+            text_str=""
+            subs=[]
+            for i,it in enumerate(text_list):
+                if not it.strip():
+                    continue
+                if it[-1]=="\n":
+                    it[-1]="。"
+                text_str+=it
+                if len(text_str)>=100:
+                    subs.append({
+                        "line": i+1,
+                        "start_time": i*1000,
+                        "end_time": i*1000+1000,
+                        "startraw": f"00:00:00,000",
+                        "endraw": "00:00:01,000",
+                        "text": text_str
+                    })
+                    text_str=''
+            if text_str:
+                subs.append({
+                        "line": len(subs)+1,
+                        "start_time": len(subs)*1000,
+                        "end_time": len(subs)*1000+1000,
+                        "startraw": f"00:00:00,000",
+                        "endraw": "00:00:01,000",
+                        "text": text_str
+                })
+            print(subs)
         else:
             subs = tools.get_subtitle_from_srt(self.cfg.target_sub)
 
@@ -173,9 +198,6 @@ class DubbingSrt(BaseTask):
                 spec_role = None
             voice_role = spec_role if spec_role else self.cfg.voice_role
 
-            # 要保存到的文件
-            filename_md5 = tools.get_md5(
-                f"{self.cfg.tts_type}-{voice_role}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{it['text']}")
             tmp_dict = {
                 "line": it['line'],
                 "text": it['text'],
@@ -186,9 +208,9 @@ class DubbingSrt(BaseTask):
                 "volume": self.cfg.volume,
                 "pitch": self.cfg.pitch,
                 "tts_type": int(self.cfg.tts_type),
-                "filename": config.TEMP_DIR + f"/dubbing_cache/{filename_md5}.wav"}
+                "filename": f"{self.cfg.cache_folder}/dubb-{i}.wav"}
             queue_tts.append(tmp_dict)
-        Path(config.TEMP_DIR + "/dubbing_cache").mkdir(parents=True, exist_ok=True)
+
         self.queue_tts = queue_tts
 
         if not self.queue_tts or len(self.queue_tts) < 1:
@@ -217,8 +239,11 @@ class DubbingSrt(BaseTask):
     
     # 音频加速对齐字幕
     def align(self) -> None:
+        # txt配音并且是 edgetts，已结束
+        if self.ignore_align:
+            return
         # 只有一行
-        if self.cfg.target_sub.endswith('.txt') or len(self.queue_tts) == 1:
+        if len(self.queue_tts) == 1:
             if self.cfg.tts_type != tts.EDGE_TTS:
                 tools.runffmpeg(['-y', '-i', self.queue_tts[0]['filename'], '-b:a', '128k', self.cfg.target_wav])
             return
@@ -230,17 +255,21 @@ class DubbingSrt(BaseTask):
             # 目前文件夹内存在同名，则添加时间后缀
             if target_path.is_file() and target_path.stat().st_size > 0:
                 self.cfg.target_wav = self.cfg.target_wav[:-4] + f'-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}{target_path.suffix}'
+            # txt 配音 不音频加速，移除字幕间静音即有空隙也忽略，直接配音文件相连
+            # 单独配音功能不强制对齐
             rate_inst = SpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,
-                shoud_audiorate=self.cfg.voice_autorate,
+                shoud_audiorate=self.cfg.voice_autorate if not self.cfg.target_sub.endswith('.txt') else False,# txt 配音禁止自动加速，需要移除字幕静音，即直接相连即可
                 raw_total_time=self.queue_tts[-1]['end_time'],
                 target_audio=self.cfg.target_wav,
                 cache_folder=self.cfg.cache_folder,
-                remove_silent_mid=self.cfg.remove_silent_mid, # 是否移除字幕间空隙 仅在未自动加速时才起作用
+                remove_silent_mid=self.cfg.remove_silent_mid if not self.cfg.target_sub.endswith('.txt') else True, # 是否移除字幕间空隙 仅在未自动加速时才起作用,txt配音时移除，即直接音频文件相连
                 align_sub_audio=False # 不对齐字幕 仅在未自动加速时才起作用
-                
             )
+            self.queue_tts = rate_inst.run()
+
+
             volume = self.cfg.volume.strip()
 
             if volume != '+0%':
@@ -250,7 +279,6 @@ class DubbingSrt(BaseTask):
                     tools.runffmpeg(['-y', '-i', self.cfg.target_wav, '-af', f"volume={volume}", tmp_name])
                 except Exception:
                     pass
-            self.queue_tts = rate_inst.run()
         except Exception as e:
             self.hasend = True
             raise
@@ -261,9 +289,8 @@ class DubbingSrt(BaseTask):
         self.hasend = True
         self.precent = 100
         if Path(self.cfg.target_wav).is_file():
-            if not self.cfg.target_sub.endswith('.txt'):
-                tools.remove_silence_from_end(self.cfg.target_wav, is_start=False)
-
+            # 移除末尾静音
+            tools.remove_silence_from_end(self.cfg.target_wav, is_start=False)
             self._signal(text=f"{self.cfg.name}", type='succeed')
         try:
             if self.cfg.shound_del_name:

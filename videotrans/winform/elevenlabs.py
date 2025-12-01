@@ -37,7 +37,7 @@ def openwin():
             wk = ListenVoice(parent=winobj, queue_tts=[{
                 "text": 'hello,my friend',
                 "role": list(jsondata.keys())[0],
-                "filename": config.TEMP_HOME + f"/{time.time()}-elevenlabs.wav",
+                "filename": config.TEMP_DIR + f"/{time.time()}-elevenlabs.wav",
                 "tts_type": tts.ELEVENLABS_TTS}],
                              language="en",
                              tts_type=tts.ELEVENLABS_TTS)

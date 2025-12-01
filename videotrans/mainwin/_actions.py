@@ -2,6 +2,7 @@ import copy
 import json
 import os
 import re
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,7 +19,7 @@ from videotrans.util import tools
 from videotrans.component.onlyone_set_editdubb import EditDubbingResultDialog
 from videotrans.component.onlyone_set_recogn import EditRecognResultDialog
 from videotrans.component.onlyone_set_role import SpeakerAssignmentDialog
-
+from videotrans.task.trans_create import TransCreate
 
 
 @dataclass
@@ -390,6 +391,7 @@ class WinAction(WinActionSub):
         # 输出文件夹尚不存在
         if not output_folder.exists():
             return True
+
         
         # 输入输出是同个文件夹，
         if input_folder.samefile(output_folder):
@@ -397,22 +399,23 @@ class WinAction(WinActionSub):
             return False
         
         # 输出目录是空的
-        if not self.main.clear_cache.isChecked() or not any(output_folder.iterdir()):
+        if not self.main.clear_cache.isChecked():
             return True
-        
-       
-        
-        reply = QMessageBox.question(
-            self.main,
-            tr("Are you sure the cleanup has been output?"),
-            tr("If you confirm to clean up, all files in the output directory will be deleted. If you manually specify the output directory, please make sure there are no important files in the directory and back it up in advance to avoid data loss.",output_folder),
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
-        )
+        for it in self.queue_mp4:
+            p=Path(it)
+            folder=output_folder / f'{p.stem}-{p.suffix.lower()[1:]}'
+            if  folder.exists():
+                reply = QMessageBox.question(
+                    self.main,
+                    tr("Are you sure the cleanup has been output?"),
+                    tr("If you confirm to clean up, all files in the output directory will be deleted. If you manually specify the output directory, please make sure there are no important files in the directory and back it up in advance to avoid data loss.",folder.as_posix()),
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    QMessageBox.StandardButton.No
+                )
 
-        if reply != QMessageBox.StandardButton.Yes:
-            return False
-
+                if reply != QMessageBox.StandardButton.Yes:
+                    return False
+                return True
         return True
 
     # 检测开始状态并启动
@@ -540,8 +543,6 @@ class WinAction(WinActionSub):
             self.main.startbtn.setDisabled(False)
             return
 
-
-
         # LLM重新断句
         self.cfg['rephrase'] = self.main.rephrase.currentIndex()
         # 判断CUDA
@@ -660,12 +661,15 @@ class WinAction(WinActionSub):
         tools.set_process(text=tr('kaishichuli'), uuid=self.obj_list[0]['uuid'])
         # 单个视频处理模式
         if self.main.app_mode not in ['tiqu'] and len(self.obj_list) == 1:
+            print(f'-1={time.time()}')
             from videotrans.task._only_one import Worker
+            print(f'0={time.time()}')
             task = Worker(
                 parent=self.main,
                 obj_list=self.obj_list,
                 cfg=cfg
             )
+            print(f'0.5={time.time()}')
             task.uito.connect(self.update_data)
             task.start()
             return

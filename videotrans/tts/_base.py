@@ -111,7 +111,7 @@ class BaseTTS(BaseCon):
     # run->exec->item_task
     def run(self) -> None:
         if self._exit(): return
-        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
         loop=None
         try:
@@ -190,11 +190,7 @@ class BaseTTS(BaseCon):
 
         self._signal(
             text=tr("Dubbing succeeded {}，failed {}",succeed_nums,len(self.queue_tts) - succeed_nums))
-        # 去除末尾静音
-        if config.settings.get('remove_silence',''):
-            for it in self.queue_tts:
-                if tools.vail_file(it['filename']):
-                    tools.remove_silence_from_end(it['filename'])
+
 
     # 用于除  edge-tts 之外的渠道，在此进行单或多线程气动。调用 _item_task
     # exec->_local_mul_thread->item_task

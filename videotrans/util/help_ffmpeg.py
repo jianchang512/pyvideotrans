@@ -157,7 +157,7 @@ def _build_hw_command(args: list, hw_codec: str):
     return new_args, hw_decode_opts
 
 
-def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
+def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False,cmd_dir=None):
     """
     执行 ffmpeg 命令，智能应用硬件加速并处理平台兼容性。
 
@@ -231,7 +231,8 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
             errors='replace',
             check=True,
             text=True,
-            creationflags=creationflags
+            creationflags=creationflags,
+            cwd=cmd_dir
         )
         if noextname:
             config.queue_novice[noextname] = "end"
@@ -263,7 +264,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False):
                     fallback_args.append(arg_copy[i])
                     i += 1
 
-            return runffmpeg(fallback_args, noextname=noextname, uuid=uuid, force_cpu=True)
+            return runffmpeg(fallback_args, noextname=noextname, uuid=uuid, force_cpu=True,cmd_dir=cmd_dir)
 
         err=extract_concise_error(e.stderr)
         if noextname:
@@ -297,7 +298,7 @@ def get_filepath_from_cmd(cmd:list):
 
 
 
-def get_video_codec() -> str:
+def get_video_codec(compat=None) -> str:
     """
     通过测试确定最佳可用的硬件加速 H.264/H.265 编码器。
 
@@ -477,10 +478,6 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
 
 
 def runffprobe(cmd):
-    from videotrans.configure import config
-    """
-    (兼容性接口) 运行 ffprobe。
-    """
     try:
         stdout_result = _run_ffprobe_internal(cmd)
         if stdout_result:
@@ -499,6 +496,14 @@ def runffprobe(cmd):
         logs(f"An unexpected error occurred in runffprobe: {e}", level="except")
         raise
 
+
+# 获取无音频的视频流时长
+def get_video_ms_noaudio(mp4):
+    try:
+        ms=runffprobe(['-v','error','-select_streams','v:0','-show_entries','stream=duration','-of','default=noprint_wrappers=1:nokey=1',mp4])
+        return int(ms*1000)
+    except Exception:
+        return 0
 
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
     """
@@ -528,24 +533,17 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
 
     result = {
         "video_fps": 30,
+        "r_frame_rate":30,
         "video_codec_name": "",
         "audio_codec_name": "",
         "width": 0,
         "height": 0,
-        "time": 0,
+        "time": int(float(out['streams'][0]['duration'])*1000),#第一个流的长度为准
         "streams_len": len(out['streams']),
         "streams_audio": 0,
         "video_streams":0,
         "color": "yuv420p"
     }
-
-    if "format" in out and out['format'].get('duration'):
-        try:
-            # 返回整数毫秒
-            result['time'] = int(float(out['format']['duration']) * 1000)
-        except (ValueError, TypeError):
-            result['time']=int(float(out['streams'][0]['duration'])*1000)
-            logs(f"Could not parse duration: {out=}",level='warn')
 
     video_stream = next((s for s in out['streams'] if s.get('codec_type') == 'video'), None)
     audio_streams = [s for s in out['streams'] if s.get('codec_type') == 'audio']
@@ -571,11 +569,14 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
 
         fps1 = parse_fps(video_stream.get('r_frame_rate'))
         fps_avg = parse_fps(video_stream.get('avg_frame_rate'))
+        if not fps_avg or fps_avg<1:
+            up,down=fps1.split('/')
+            fps_avg=float(up)/float(down)
 
-        # 优先使用 avg_frame_rate
-        final_fps = fps_avg if fps_avg != 0 else fps1
 
-        result['video_fps'] = final_fps if 1 <= final_fps <= 60 else 30
+
+        result['video_fps'] = fps_avg if 1 <= fps_avg <= 120 else 30
+        result['r_frame_rate'] = video_stream.get('r_frame_rate',result['video_fps'])
 
     # 确保向后兼容
     if video_time:
@@ -592,7 +593,11 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
 
 # 获取某个视频的时长 ms
 def get_video_duration(file_path):
-    return get_video_info(file_path, video_time=True)
+    try:
+        ms=runffprobe(['-v','error','-select_streams','v:0','-show_entries','stream=duration','-of','default=noprint_wrappers=1:nokey=1',file_path])
+        return int(float(ms)*1000)
+    except Exception:
+        return 0
 
 
 def conver_to_16k(audio, target_audio):
@@ -648,9 +653,6 @@ def create_concat_txt(filelist, concat_txt=None):
     logs(f'{concat_txt=},{filelist[0]=}')
     with open(concat_txt, 'w', encoding='utf-8') as f:
         f.write("\n".join(txt))
-        f.flush()
-    # 进入路径下
-    os.chdir(os.path.dirname(concat_txt))
     return concat_txt
 
 
@@ -659,43 +661,65 @@ def concat_multi_audio(*, out=None, concat_txt=None):
     if out:
         out = Path(out).as_posix()
 
-    os.chdir(os.path.dirname(concat_txt))
+
     cmd = ['-y', '-f', 'concat', '-safe', '0', '-i', concat_txt, "-b:a", "128k"]
     if out.endswith('.m4a'):
         cmd += ['-c:a', 'aac']
     elif out.endswith('.wav'):
         cmd += ['-c:a', 'pcm_s16le']
-    runffmpeg(cmd + [out])
-    from videotrans.configure import config
-    os.chdir(config.TEMP_DIR)
+    runffmpeg(cmd + [out],cmd_dir=Path(concat_txt).parent.as_posix())
     return True
 
 
 def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None):
     from pydub import AudioSegment
-    ext = file_path[-3:]
+    ext = file_path[-3:].lower()
+    out_ext=ext
+    if out:
+        out_ext=out[-3:].lower()
+    codecs = {"m4a": "aac", "mp3": "libmp3lame", "wav": "pcm_s16le"}
     audio = AudioSegment.from_file(file_path, format='mp4' if ext == 'm4a' else ext)
 
-    # 首先确保原时长和目标时长单位一致（毫秒）,缩短音频到 target_duration_ms
     current_duration_ms = len(audio)
-    if not target_duration_ms or target_duration_ms <= 0 or current_duration_ms <= 0 or current_duration_ms <= target_duration_ms:
-        return True
-    from videotrans.configure import config
-    temp_file = config.SYS_TMP + f'/{time.time_ns()}.{ext}'
-    atempo = current_duration_ms / target_duration_ms
-    if atempo <= 1:
-        return True
-    atempo = min(100, atempo)
-    runffmpeg(["-i", file_path, "-filter:a", f"atempo={atempo}", temp_file])
-    audio = AudioSegment.from_file(temp_file, format='mp4' if ext == 'm4a' else ext)
-    diff = len(audio) - target_duration_ms
-    if diff > 0:
-        audio = audio[:-diff]
-    if out:
-        audio.export(out, format=ext)
-        return True
-    audio.export(file_path, format=ext)
-    return True
+
+    # 完成使用 atempo 滤镜加速
+    # 构造 atempo 滤镜链
+    # atempo 限制：参数必须在 [0.5, 2.0] 之间
+    atempo_list = []
+    speed_factor = current_duration_ms / target_duration_ms
+
+    # 处理加速情况 (> 2.0)
+    while speed_factor > 2.0:
+        atempo_list.append("atempo=2.0")
+        speed_factor /= 2.0
+
+    # 放入剩余的倍率
+    atempo_list.append(f"atempo={speed_factor}")
+
+    # 用逗号连接滤镜，形成串联效果，如 "atempo=2.0,atempo=1.5"
+    filter_str = ",".join(atempo_list)
+    rubberband_filter_str = f"rubberband=tempo={current_duration_ms / target_duration_ms}"
+    if not out:
+        Path(file_path).rename(file_path+f".{ext}")
+        file_path=file_path+f".{ext}"
+        out=file_path
+    cmd = [
+        '-y',
+        '-i',
+        file_path,
+        '-filter:a',
+        rubberband_filter_str,
+        '-t', f"{target_duration_ms/1000.0}",  # 强制裁剪到目标时长，防止精度误差
+        '-ar', "48000",
+        '-ac', "2",
+        '-c:a', codecs.get(out_ext,'pcm_s16le'),
+        out
+    ]
+    try:
+        runffmpeg(cmd, force_cpu=True)
+    except Exception as e:
+        cmd[4]=filter_str
+        runffmpeg(cmd, force_cpu=True)
 
 
 # 从音频中截取一个片段
@@ -740,28 +764,64 @@ def send_notification(title, message):
         pass
 
 
-# 获取音频时长
+# 获取音频时长 返回ms
 def get_audio_time(audio_file):
-    # 如果存在缓存并且没有禁用缓存
-    out = runffprobe(['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', audio_file])
-    if out is False:
-        raise Exception(f'ffprobe error:dont get video information')
-    out = json.loads(out)
-    return float(out['format']['duration'])
+    try:
+        ms=runffprobe(['-v','error','-select_streams','a:0','-show_entries','stream=duration','-of','default=noprint_wrappers=1:nokey=1',audio_file])
+        return int(float(ms)*1000)
+    except Exception:
+        return 0
+
+
+def remove_silence_wav(audio_file):
+    from pydub import AudioSegment
+    from pydub.silence import detect_nonsilent
+    audio=AudioSegment.from_file(audio_file,format="wav")
+    # 2. 激进的参数设置
+    # TTS通常比较干净，我们可以把阈值设得离平均音量更近一些
+    # 这里设置为比平均音量低 10dB 即视为静音（非常激进）
+    silence_threshold = audio.dBFS - 20
+
+    # 只要静音持续 10ms 以上就检测出来
+    min_silence_len = 50
+
+    # 3. 检测非静音片段
+    # seek_step=1 保证毫秒级的精度
+    nonsilent_chunks = detect_nonsilent(
+        audio,
+        min_silence_len=min_silence_len,
+        silence_thresh=silence_threshold,
+        seek_step=1
+    )
+
+    # 4. 处理剪切逻辑
+    if len(nonsilent_chunks) > 0:
+        # 获取第一个非静音块的开始时间
+        start_trim = nonsilent_chunks[0][0]
+        # 获取最后一个非静音块的结束时间
+        end_trim = nonsilent_chunks[-1][1]
+
+        # 裁剪音频
+        trimmed_audio = audio[start_trim:end_trim]
+
+        # [可选] 增加极短的淡入淡出，防止因为切得太极限导致爆音（Click sound）
+        # 如果追求极致的“去除”，可以注释掉下面这行，或者设置 duration=1
+        # trimmed_audio = trimmed_audio.fade_in(5).fade_out(5)
+
+        print(f"原时长: {len(audio)}ms, 裁剪后: {len(trimmed_audio)}ms {min_silence_len=}")
+        print(f"切除头部: {start_trim}ms, 切除尾部: {len(audio) - end_trim}ms")
+        trimmed_audio.export(audio_file,format="wav")
+    else:
+        print("未检测到声音，文件可能全是静音。")
+
+    return True
 
 
 # input_file_path 可能是字符串：文件路径，也可能是音频数据
-def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size=10, is_start=True):
+def remove_silence_from_end(input_file_path,is_start=True):
     from pydub import AudioSegment
     from pydub.silence import detect_nonsilent
-    """
-    Removes silence from the end of an audio file.
 
-    :param input_file_path: path to the input mp3 file
-    :param silence_threshold: the threshold in dBFS considered as silence
-    :param chunk_size: the chunk size to use in silence detection (in milliseconds)
-    :return: an AudioSegment without silence at the end
-    """
     # Load the audio file
     format = "wav"
     if isinstance(input_file_path, str):
@@ -782,8 +842,8 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
     # Detect non-silent chunks
     nonsilent_chunks = detect_nonsilent(
         audio,
-        min_silence_len=chunk_size,
-        silence_thresh=silence_threshold
+        min_silence_len=10,
+        silence_thresh=audio.dBFS - 20
     )
 
     # If we have nonsilent chunks, get the start and end of the last nonsilent chunk
@@ -795,8 +855,6 @@ def remove_silence_from_end(input_file_path, silence_threshold=-50.0, chunk_size
 
     # Remove the silence from the end by slicing the audio segment
     trimmed_audio = audio[:end_index]
-    if is_start and nonsilent_chunks[0] and nonsilent_chunks[0][0] > 0:
-        trimmed_audio = audio[nonsilent_chunks[0][0]:end_index]
     if isinstance(input_file_path, str):
         if format in ['wav', 'mp3', 'm4a']:
             trimmed_audio.export(input_file_path, format=format if format in ['wav', 'mp3'] else 'mp4')
@@ -818,7 +876,7 @@ def format_video(name, target_dir=None):
     # 无后缀的基本名字，例如 `1`
     raw_noextname = raw_pathlib.stem
     # 后缀，如 `.mp4`
-    ext = raw_pathlib.suffix.lower()
+    ext = raw_pathlib.suffix.lower()[1:]
     # 所在目录
     raw_dirname = raw_pathlib.parent.resolve().as_posix()
 
@@ -832,13 +890,13 @@ def format_video(name, target_dir=None):
         # 基本名不带后缀,如 1
         "noextname": raw_noextname,
         # 扩展名去掉点.  如 mp4
-        "ext": ext[1:]
+        "ext": ext
         # 最终存放目标位置，直接存到这里
     }
 
     # 如果存在目标文件夹，则在其之下生成 以无后缀的基本名的子文件夹
     if target_dir:
-        obj['target_dir'] = Path(f'{target_dir}/{raw_noextname}').as_posix()
+        obj['target_dir'] = Path(f'{target_dir}/{raw_noextname}-{ext}').as_posix()
     # 唯一id标识
     obj['uuid'] = help_misc.get_md5(f'{name}-{time.time()}')[:10]
     return obj

@@ -43,7 +43,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 'gpt-4o-') > -1:
             return self._thrid_api()
 
-        mp3_tmp = config.TEMP_HOME + f'/recogn{time.time()}.mp3'
+        mp3_tmp = config.TEMP_DIR + f'/recogn{time.time()}.mp3'
         tools.runffmpeg([
             "-y",
             "-i",

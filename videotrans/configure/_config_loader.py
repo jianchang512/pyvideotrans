@@ -28,16 +28,15 @@ SYS_TMP = Path(tempfile.gettempdir()).as_posix()
 # 程序根目录
 ROOT_DIR = _get_executable_path()
 # 程序根下临时目录tmp
-TEMP_DIR = f'{ROOT_DIR}/tmp/{os.getpid()}'
+TEMP_ROOT=f'{ROOT_DIR}/tmp'
+TEMP_DIR = f'{TEMP_ROOT}/{os.getpid()}'
 # 家目录
 HOME_DIR = ROOT_DIR + "/output"
 
 Path(TEMP_DIR).mkdir(exist_ok=True, parents=True)
-Path(f'{ROOT_DIR}/tmp/dubbing_cache').mkdir(exist_ok=True, parents=True)
-Path(f'{ROOT_DIR}/tmp/translate_cache').mkdir(exist_ok=True, parents=True)
+Path(f'{TEMP_ROOT}/translate_cache').mkdir(exist_ok=True, parents=True)
 
-# 家目录下的临时文件存储目录
-TEMP_HOME = TEMP_DIR
+
 # 日志目录 logs
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
 

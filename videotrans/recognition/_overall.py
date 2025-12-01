@@ -153,6 +153,7 @@ class FasterAll(BaseRecogn):
                     f.write(f'{process.pid}')
                 # 等待进程执行完毕
                 process.join()
+                self._signal(text="STT end, hold on...")
                 try:
                     if process.is_alive():
                         process.terminate()

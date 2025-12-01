@@ -61,7 +61,8 @@ class ChatGPT(BaseTrans):
             response = model.chat.completions.create(
                 model=model_name,
                 max_completion_tokens=max(int(config.params.get('chatgpt_max_token', 8192)), 8192),
-                messages=message
+                messages=message,
+                timeout=300 # 超过5分钟为失败
             )
             if not hasattr(response, 'choices') or not response.choices:
                 logs(f'[LLM re-segments]重新断句失败:{response=}',level='warn')
@@ -132,7 +133,7 @@ class ChatGPT(BaseTrans):
                        http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         response = model.chat.completions.create(
             model=config.params.get('chatgpt_model',''),
-            timeout=7200,
+            timeout=300,
             max_completion_tokens=int(config.params.get('chatgpt_max_token', 8192)),
             messages=message
         )

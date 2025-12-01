@@ -30,7 +30,7 @@ def openwin():
         winobj.test.setText(tr('Testing...'))
         from videotrans import tts
         wk = ListenVoice(parent=winobj, queue_tts=[{"text": 'Hello,my friend,welcom to China', "role": getrole(),
-                                                    "filename": config.TEMP_HOME + f"/test-chatterbox.wav",
+                                                    "filename": config.TEMP_DIR + f"/test-chatterbox.wav",
                                                     "tts_type": tts.CHATTERBOX_TTS}], language="en",
                          tts_type=tts.CHATTERBOX_TTS)
         wk.uito.connect(feed)

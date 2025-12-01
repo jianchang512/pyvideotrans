@@ -51,7 +51,7 @@ class CloneVoice(BaseTTS):
 
             data = {"text": data_item['text'], "language": self.language}
             role = data_item['role']
-            if role=='clone' and not Path(data_item['ref_wav']).exists():
+            if role=='clone'  and (not data_item.get('ref_wav') or not Path(data_item.get('ref_wav')).exists()):
                 raise StopRetry(tr("No reference audio exists and cannot use clone function"))
             if role != 'clone':
                 # 不是克隆，使用已有声音

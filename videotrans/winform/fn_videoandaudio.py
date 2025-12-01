@@ -53,7 +53,7 @@ def openwin():
         def run(self) -> None:
             os.chdir(RESULT_DIR)
             # 确保临时目录存在
-            os.makedirs(config.TEMP_HOME, exist_ok=True)
+            os.makedirs(config.TEMP_DIR, exist_ok=True)
 
             vailfiles, length = self.get_list()
             if not vailfiles:
@@ -69,8 +69,8 @@ def openwin():
                 try:
                     self.post(f'{Path(audio).name} --> {Path(info["video"]).name} ')
                     video_time = tools.get_video_duration(info['video'])
-                    audio_time = int(tools.get_audio_time(audio) * 1000)
-                    tmp_audio = config.TEMP_HOME + f"/{time.time()}-{Path(audio).name}"
+                    audio_time = int(tools.get_audio_time(audio))
+                    tmp_audio = config.TEMP_DIR + f"/{time.time()}-{Path(audio).name}"
                     if audio_time > video_time and self.audio_process == 0:
                         tools.runffmpeg(
                             ['-y', '-i', audio, '-ss', '00:00:00.000', '-t', str(video_time / 1000), tmp_audio])
@@ -82,7 +82,7 @@ def openwin():
                         # 需要保留原声
                         video_info = tools.get_video_info(info['video'])
                         if video_info['streams_audio']:
-                            tmp_mp4 = config.TEMP_HOME + f"/{name}-{time.time()}.m4a"
+                            tmp_mp4 = config.TEMP_DIR + f"/{name}-{time.time()}.m4a"
                             # 存在声音，则需要混合
                             tools.runffmpeg([
                                 '-y',

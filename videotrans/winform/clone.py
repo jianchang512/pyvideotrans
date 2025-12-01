@@ -23,7 +23,7 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": config.params.get("clone_voicelist",'')[1] if len(config.params.get("clone_voicelist",'')) > 1 else '',
-            "filename": config.TEMP_HOME + f"/{time.time()}-clonevoice.wav",
+            "filename": config.TEMP_DIR + f"/{time.time()}-clonevoice.wav",
             "tts_type": tts.CLONE_VOICE_TTS}],
                          language="zh",
                          tts_type=tts.CLONE_VOICE_TTS)

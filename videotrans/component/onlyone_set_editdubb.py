@@ -596,17 +596,17 @@ class EditDubbingResultDialog(QDialog):
         self.list_view.setSpacing(2)
         main_layout.addWidget(self.list_view)
 
-        save_button = QPushButton(tr("nextstep"))
-        save_button.setCursor(Qt.PointingHandCursor)
-        save_button.setMinimumSize(QSize(400, 35))
-        save_button.clicked.connect(self.save_and_close)
+        self.save_button = QPushButton(tr("nextstep"))
+        self.save_button.setCursor(Qt.PointingHandCursor)
+        self.save_button.setMinimumSize(QSize(400, 35))
+        self.save_button.clicked.connect(self.save_and_close)
         cancel_button = QPushButton(tr("Terminate this mission"))
         cancel_button.setCursor(Qt.PointingHandCursor)
         cancel_button.setMaximumSize(QSize(200, 30))
         cancel_button.clicked.connect(self.cancel_and_close)
         bottom_layout = QHBoxLayout()
         bottom_layout.addStretch()
-        bottom_layout.addWidget(save_button)
+        bottom_layout.addWidget(self.save_button)
         bottom_layout.addWidget(cancel_button)
         bottom_layout.addStretch()
 
@@ -759,10 +759,17 @@ class EditDubbingResultDialog(QDialog):
         pass
 
     def save_and_close(self):
+        self.save_button.setDisabled(True)
         for i, item in enumerate(self.queue_tts):
             text = item['text'].strip()
             if not text:
                 Path(item['filename']).unlink(missing_ok=True)
+            try:
+                del item['__display_text']
+                del item['__display_tip']
+                del item['__display_msg_only']
+            except Exception:
+                pass
         try:
             Path(f'{self.cache_folder}/queue_tts.json').write_text(json.dumps(self.queue_tts), encoding="utf-8")
         except Exception:

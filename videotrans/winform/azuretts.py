@@ -25,7 +25,7 @@ def openwin():
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{"text": '你好啊我的朋友', "role": 'zh-CN-YunjianNeural',
-                                                    "filename": config.TEMP_HOME + f"/{time.time()}-azure.wav",
+                                                    "filename": config.TEMP_DIR + f"/{time.time()}-azure.wav",
                                                     "tts_type": tts.AZURE_TTS}], language="zh", tts_type=tts.AZURE_TTS)
         wk.uito.connect(feed)
         wk.start()

@@ -22,10 +22,8 @@ class Ui_setini(object):
         if dirname:
             dirpath = Path(dirname)
             config.HOME_DIR = dirpath.as_posix()
-            config.TEMP_HOME = config.HOME_DIR + '/tmp'
             config.settings['homedir'] = config.HOME_DIR
             self.homedir_btn.setText(config.HOME_DIR)
-            Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
             with Path(config.ROOT_DIR + "/videotrans/cfg.json").open('w', encoding='utf-8') as f:
                 f.write(json.dumps(config.settings, ensure_ascii=False))
 

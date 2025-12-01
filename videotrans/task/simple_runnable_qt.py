@@ -9,7 +9,10 @@ class SimpleRunnable(QRunnable):
         self.kwargs = kwargs
 
     def run(self):
-        self.func(*self.args, **self.kwargs)
+        try:
+            self.func(*self.args, **self.kwargs)
+        except Exception as e:
+            print(e)
 
 # 通用的线程池运行函数
 def run_in_threadpool(func, *args, **kwargs):

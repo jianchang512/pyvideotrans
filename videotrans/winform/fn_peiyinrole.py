@@ -175,7 +175,7 @@ def openwin():
             return tools.show_error(
                 tr("Please import an SRT subtitle file first."))
 
-        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         language = winobj.hecheng_language.currentText()
         role = winobj.hecheng_role.currentText()  # Default role
@@ -218,7 +218,7 @@ def openwin():
         uuid = video_obj['uuid']
         cfg={
             "voice_role": role,  # Default role
-            "cache_folder": config.TEMP_HOME + f'/{uuid}',
+            "cache_folder": config.TEMP_DIR + f'/{uuid}',
             "target_language_code": langcode,
             "target_dir": RESULT_DIR,
             "voice_rate": rate,

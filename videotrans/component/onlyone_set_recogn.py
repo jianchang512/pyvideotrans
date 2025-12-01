@@ -249,17 +249,17 @@ class EditRecognResultDialog(QDialog):
         main_layout.addWidget(self.list_view)
 
         # 底部保存按钮
-        save_button = QPushButton(tr("nextstep"))
-        save_button.setCursor(Qt.PointingHandCursor)
-        save_button.setMinimumSize(QSize(400, 35))
-        save_button.clicked.connect(self.save_and_close)
+        self.save_button = QPushButton(tr("nextstep"))
+        self.save_button.setCursor(Qt.PointingHandCursor)
+        self.save_button.setMinimumSize(QSize(400, 35))
+        self.save_button.clicked.connect(self.save_and_close)
         cancel_button = QPushButton(tr("Terminate this mission"))
         cancel_button.setCursor(Qt.PointingHandCursor)
         cancel_button.setMaximumSize(QSize(200, 30))
         cancel_button.clicked.connect(self.cancel_and_close)
         bottom_layout = QHBoxLayout()
         bottom_layout.addStretch()
-        bottom_layout.addWidget(save_button)
+        bottom_layout.addWidget(self.save_button)
         bottom_layout.addWidget(cancel_button)
         bottom_layout.addStretch()
 
@@ -356,6 +356,7 @@ class EditRecognResultDialog(QDialog):
             self.list_view.viewport().update()
 
     def save_and_close(self):
+        self.save_button.setDisabled(True)
         # 更新角色
         srt_str_list=[]
 

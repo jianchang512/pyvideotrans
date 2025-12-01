@@ -37,7 +37,7 @@ def openwin():
                         "-ac",
                         "2",
                         "-ar",
-                        "44100",
+                        "48000",
                         "-c:a",
                         "pcm_s16le",
                         RESULT_DIR + f"/{Path(v).stem}.wav"

@@ -1,6 +1,6 @@
 [project]
 name = "pyVideoTrans"
-version = "3.86"
+version = "3.87"
 requires-python = "==3.10.*"
 dependencies = [
     "absl-py==2.0.0",

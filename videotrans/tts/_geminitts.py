@@ -50,7 +50,7 @@ class GEMINITTS(BaseTTS):
                 self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
 
             except Exception as e:
-                logs(e, level="except")
+                logs(str(e), level="except")
                 raise
 
         try:

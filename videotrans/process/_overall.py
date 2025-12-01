@@ -169,6 +169,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
         gc.collect()
         del model
         del batched_model
+        shutil.rmtree(config.TEMP_DIR,ignore_errors=True)
     except Exception:
         pass
     time.sleep(1)

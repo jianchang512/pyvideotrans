@@ -99,8 +99,9 @@ class MinimaxiTTS(BaseTTS):
                 raise RuntimeError(f'No valid audio address returned:{res}')
 
             if isinstance(res['data'], dict) and 'audio' in res['data']:
-                with open(data_item['filename'], 'wb') as f:
+                with open(data_item['filename']+'.wav', 'wb') as f:
                     f.write(bytes.fromhex(res['data']['audio']))
+                self.convert_to_wav(data_item['filename']+".wav",data_item['filename'])
             else:
                 raise RuntimeError(f'No valid audio  data returned:{res}')
 

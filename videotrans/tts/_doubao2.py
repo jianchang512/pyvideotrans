@@ -53,7 +53,7 @@ class Doubao2TTS(BaseTTS):
     
 
     def _save_pcm_to_wav(self,audio_data, output_filename: str, 
-                        channels: int = 1, sample_rate: int = 44100, sample_width: int = 2):
+                        channels: int = 2, sample_rate: int = 48000, sample_width: int = 2):
         import wave
         import struct
         import math
@@ -121,7 +121,7 @@ class Doubao2TTS(BaseTTS):
                 "model":"seed-tts-1.1",
                 "audio_params": {
                     "format": "pcm",
-                    "sample_rate": 44100,
+                    "sample_rate": 48000,
                     "enable_timestamp": True,
                     "speech_rate":int(speed),
                     "loudness_rate":int(volume)

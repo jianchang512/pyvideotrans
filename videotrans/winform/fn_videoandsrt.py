@@ -75,12 +75,12 @@ def openwin():
                         for i, it in enumerate(sub_list):
                             it['text'] = tools.textwrap(it['text'], self.maxlen).strip()
                             text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
-                        srtfile = config.TEMP_HOME + f"/srt{time.time()}.srt"
+                        srtfile = config.TEMP_DIR + f"/srt{time.time()}.srt"
                         with Path(srtfile).open('w', encoding='utf-8') as f:
                             f.write(text)
                             f.flush()
                         assfile = tools.set_ass_font(srtfile)
-                        os.chdir(config.TEMP_HOME)
+                        os.chdir(config.TEMP_DIR)
                         cmd += [
                             '-c:v',
                             'libx264',

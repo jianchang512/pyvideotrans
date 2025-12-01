@@ -73,14 +73,13 @@ class BaseRecogn(BaseCon):
 
     # run->_exec
     def run(self) -> Union[List[Dict], None]:
-        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         try:
             return self._exec()
         except RetryError as e:
             raise e.last_attempt.exception()
         except Exception as e:
-            logs(e, level="except")
+            logs(str(e), level="except")
             raise
 
     def _exec(self) -> Union[List[Dict], None]:

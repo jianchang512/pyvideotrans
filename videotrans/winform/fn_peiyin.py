@@ -1,4 +1,5 @@
 # 合成配音
+from datetime import datetime
 
 
 def openwin():
@@ -242,7 +243,6 @@ def openwin():
     # 试听配音
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
-        print(f'{lang=}')
         if not lang or lang == '-':
             return tools.show_error(tr("The voice is not support listen"))
         text = config.params.get(f'listen_text_{lang}')
@@ -300,7 +300,7 @@ def openwin():
     # tab-4 语音合成
     def hecheng_start_fun():
         nonlocal RESULT_DIR,uuid_list
-        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         txt = winobj.hecheng_plaintext.toPlainText().strip()
         language = winobj.hecheng_language.currentText()
@@ -343,23 +343,17 @@ def openwin():
         toggle_state(True)
         if len(winobj.hecheng_files) > 0 and winobj.save_to_srt.isChecked():
             RESULT_DIR = Path(winobj.hecheng_files[0]).parent.as_posix()
-        if not Path(config.TEMP_HOME).is_dir():
-            Path(config.TEMP_HOME).mkdir(parents=True,exist_ok=True)
+
         if txt:
-            newsrtfile = config.TEMP_HOME + f"/peiyin{time.time()}."
+            newsrtfile = config.TEMP_DIR + f"/{datetime.now().strftime('%Y%m%d-%H%M%S')}."
             is_srt = re.match(
                 r'^1\s*[\r\n]+\s*\d{1,2}:\d{1,2}:\d{1,2}(\,\d{1,3})?\s*-->\s*\d{1,2}:\d{1,2}:\d{1,2}(\,\d{1,3})?', txt)
-            if tts_type == tts.EDGE_TTS and not is_srt:
+            if not is_srt:
                 newsrtfile += 'txt'
                 Path(newsrtfile).write_text(txt, encoding='utf-8')
-
             else:
                 newsrtfile += 'srt'
                 with open(newsrtfile, "w", encoding="utf-8") as f:
-                    if not is_srt:
-                        txt = re.sub(r"(\s*?\r?\n\s*?){2,}", "\n", txt,flags=re.I | re.S)
-                        txt = re.sub(r"(\s*?\r?\n\s*?)", "\n", txt,flags=re.I | re.S)
-                        txt = f"1\n00:00:00,000 --> 00:00:01,000\n{txt}"
                     f.write(txt)
             winobj.hecheng_files.append(newsrtfile)
 
@@ -369,7 +363,7 @@ def openwin():
         for it in video_list:
             cfg={
                 "voice_role": role,
-                "cache_folder": config.TEMP_HOME + f'/{it["uuid"]}',
+                "cache_folder": config.TEMP_DIR + f'/{it["uuid"]}',
                 "target_language_code": langcode,
                 "target_dir": RESULT_DIR,
                 "voice_rate": rate,

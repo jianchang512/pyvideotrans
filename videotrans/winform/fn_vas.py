@@ -105,9 +105,9 @@ def openwin():
                 # 有新的需要插入的音频，才涉及到 保留原声音 、 截断、加速、定格、声音混合等，才需要处理音频、分离无声视频
                 if self.audio:
                     ext = self.audio.split('.')[-1].lower()
-                    audio_time = int(tools.get_audio_time(self.audio) * 1000)
+                    audio_time = int(tools.get_audio_time(self.audio))
 
-                    tmp_audio = config.TEMP_HOME + f"/{time.time()}-{Path(self.audio).name}"
+                    tmp_audio = config.TEMP_DIR + f"/{time.time()}-{Path(self.audio).name}"
                     # 如果音频时长小于视频，则音频直接添加末尾静音
                     if audio_time<self.video_time:
                         audio_data = AudioSegment.from_file(self.audio,format='mp4' if ext=='m4a' else ext)+AudioSegment.silent(duration=self.video_time-audio_time)
@@ -124,8 +124,8 @@ def openwin():
                     print(f'未混合前但加速 或截断后的音频 {self.audio=}')
                     # 需要保留原视频中声音，则需要混合 self.audio 和视频声音
                     if self.saveraw and  self.video_info['streams_audio']:
-                        tmp_mp4a = config.TEMP_HOME + f"/{time.time()}-fromvideo.wav"
-                        end_m4a = config.TEMP_HOME + f"/{time.time()}.m4a"
+                        tmp_mp4a = config.TEMP_DIR + f"/{time.time()}-fromvideo.wav"
+                        end_m4a = config.TEMP_DIR + f"/{time.time()}.m4a"
                         # 先取出来视频中的音频为 wav
                         tools.runffmpeg([
                             '-y',
@@ -159,7 +159,7 @@ def openwin():
                         self.audio = end_m4a
                         print(f'混合后新音频 {self.audio=}')
                         # 混合后音频时长，当大于视频时长，并且 audio_process == 2 需定格视频
-                        audio_time = int(tools.get_audio_time(self.audio) * 1000)
+                        audio_time = int(tools.get_audio_time(self.audio))
 
                     # audio_process=0截断 1=音频加速 2=视频定格
                     # 如果存在 self.audio ，则无论是否保留原视频中声音，此时都已处理好，直接替换 视频中声音
@@ -211,7 +211,7 @@ def openwin():
                     self.video=audiovideoend_mp4
                 # 软字幕
                 os.chdir(os.path.dirname(self.srt))
-                protxt = config.TEMP_HOME + f'/jd{time.time()}.txt'
+                protxt = config.TEMP_DIR + f'/jd{time.time()}.txt'
                 cmd = [
                     '-y',
                     "-progress",
@@ -247,13 +247,13 @@ def openwin():
                         else:
                             tmp = tools.textwrap(it['text'].strip(), self.maxlen)
                         srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
-                    tmpsrt = config.TEMP_HOME + f"/vas-{time.time()}.srt"
+                    tmpsrt = config.TEMP_DIR + f"/vas-{time.time()}.srt"
                     with Path(tmpsrt).open('w', encoding='utf-8') as f:
                         f.write(srt_string.strip())
                     #assfile = config.TEMP_HOME + f"/vasrt{time.time()}.ass"
                     #self.save_ass(tmpsrt, assfile)
                     assfile=tools.set_ass_font(tmpsrt)
-                    os.chdir(config.TEMP_HOME)
+                    os.chdir(config.TEMP_DIR)
                     cmd += [
                         '-c:v',
                         'libx264',

@@ -41,7 +41,7 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": "青涩青年音色" if "api.minimaxi.com"==apiurl else 'Reliable Executive',
-            "filename": config.TEMP_HOME + f"/{time.time()}-minimaxi.wav",
+            "filename": config.TEMP_DIR + f"/{time.time()}-minimaxi.wav",
             "tts_type": tts.MINIMAXI_TTS}],
                          language="zh",
                          tts_type=tts.MINIMAXI_TTS)

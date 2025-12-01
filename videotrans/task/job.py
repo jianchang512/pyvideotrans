@@ -305,10 +305,8 @@ class WorkerAssemb(QThread):
                 msg = f'{tr("hebingchucuo")}:{except_msg}:\n' + traceback.format_exc()+f"\n{trk.cfg}"
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-                try:
-                    shutil.rmtree(trk.cfg.cache_folder, ignore_errors=True)
-                except Exception:
-                    pass
+
+
 
 
 
@@ -340,6 +338,8 @@ class WorkerTaskDone(QThread):
                 msg = f'{except_msg}:\n' + traceback.format_exc()+f"\n{trk.cfg}"
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+            finally:
+                shutil.rmtree(trk.cfg.cache_folder)
                 
             
 

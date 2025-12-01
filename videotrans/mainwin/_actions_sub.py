@@ -297,7 +297,6 @@ class WinActionSub:
 
     def _clean_dir(self):
         shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
-        shutil.rmtree(config.TEMP_HOME, ignore_errors=True)
         Path(config.ROOT_DIR+"/videotrans/codec.json").unlink(missing_ok=True)
         Path(config.ROOT_DIR+"/videotrans/ass.json").unlink(missing_ok=True)
         self.main.restart_app()
@@ -577,7 +576,6 @@ class WinActionSub:
 
 
     # 如果存在音频则设为提取
-    # 如果有同名则停止
     def check_name(self):
         if self.main.app_mode != 'tiqu':
             for it in self.queue_mp4:
@@ -585,23 +583,6 @@ class WinActionSub:
                     self.main.app_mode = 'tiqu'
                     self.cfg['is_separate'] = False
                     break
-
-        if len(self.queue_mp4) > 1:
-            same_name = {}
-            for it in self.queue_mp4:
-                p = Path(it)
-                stem = p.stem
-                if stem in same_name:
-                    same_name[stem].append(p.name)
-                else:
-                    same_name[stem] = [p.name]
-            msg = ''
-            for it in same_name.values():
-                if len(it) > 1:
-                    msg += ",".join(it)
-            if msg:
-                tools.show_error(tr('Do not include files with the same name but different extensions, this can lead to confusion, please modify {}',msg))
-                return False
         return True
 
 

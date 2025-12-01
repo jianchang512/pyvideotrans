@@ -86,7 +86,7 @@ def openwin():
 
     def shibie_start_fun():
         nonlocal COPYSRT_TO_RAWDIR
-        Path(config.TEMP_HOME).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         model = winobj.shibie_model.currentText()
         split_type_index = winobj.shibie_split_type.currentIndex()

@@ -37,7 +37,7 @@ def openwin():
                         if raw_path.name.lower().endswith('.srt'):
                             srt_list = tools.get_subtitle_from_srt(v, is_file=True)
                         else:
-                            tmp_srt = config.TEMP_HOME + f'/{time.time()}.srt'
+                            tmp_srt = config.TEMP_DIR + f'/{time.time()}.srt'
                             tools.runffmpeg([
                                 "-y",
                                 "-i",
