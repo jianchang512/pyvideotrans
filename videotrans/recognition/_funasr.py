@@ -76,6 +76,7 @@ class FunasrRecogn(BaseRecogn):
             raw_subtitles.append(tmp)
         if speaker_list:
             Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
+
         return raw_subtitles
 
     def _exec1(self) -> Union[List[Dict], None]:

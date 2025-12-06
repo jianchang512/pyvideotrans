@@ -339,7 +339,10 @@ class WorkerTaskDone(QThread):
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
             finally:
-                shutil.rmtree(trk.cfg.cache_folder)
+                try:
+                    shutil.rmtree(trk.cfg.cache_folder)
+                except:
+                    pass
                 
             
 

@@ -41,6 +41,7 @@ class Ui_peiyin(object):
         self.hecheng_plaintext.setSizePolicy(sizePolicy)
         self.hecheng_plaintext.setMinimumSize(0, 150)
         self.hecheng_plaintext.setPlaceholderText(tr('tuodonghuoshuru'))
+        '''
         self.hecheng_importbtn = QtWidgets.QPushButton()
         self.hecheng_importbtn.setObjectName("hecheng_importbtn")
         self.hecheng_importbtn.setFixedHeight(150)
@@ -49,6 +50,7 @@ class Ui_peiyin(object):
         self.hecheng_importbtn.setText(tr('Import text to be translated from a file..'))
 
         self.hecheng_layout.insertWidget(0, self.hecheng_importbtn)
+        '''
         self.hecheng_layout.insertWidget(1, self.hecheng_plaintext)
         self.verticalLayout_4.addLayout(self.hecheng_layout)
 

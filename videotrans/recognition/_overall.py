@@ -13,6 +13,7 @@ from videotrans.process._iscache import _MODELS
 import glob
 
 from videotrans.util import tools
+import zhconv
 
 """
 faster-whisper
@@ -159,7 +160,7 @@ class FasterAll(BaseRecogn):
                         process.terminate()
                 except Exception:
                     pass
-                
+
                 if err['msg']:
                     logs(f'{err["msg"]}',level='warn')
                     self.error=err['msg']
@@ -167,6 +168,7 @@ class FasterAll(BaseRecogn):
                     if self.detect_language == 'auto':
                         logs(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language = detect.get('langcode','auto')
+
                     return self.get_srtlist(raws)
         except Exception as e:
             logs(f'{e}', level="except")
@@ -186,9 +188,13 @@ class FasterAll(BaseRecogn):
         raise RuntimeError(err+"\n"+tr('Please also check whether CUDA12.8 and cudnn9 are installed correctly.'))
             
     def get_srtlist(self, raws):
-        import zhconv
+
         srt_raws = []
-        for i in list(raws):
+        raws=list(raws)
+        raws_len=len(raws)
+        for idx,i in enumerate(raws):
+            if self.jianfan:
+                self._signal(text=f"简繁转换中 [{idx+1}/{raws_len}]...")
             if len(i['words']) < 1:
                 continue
             tmp = {

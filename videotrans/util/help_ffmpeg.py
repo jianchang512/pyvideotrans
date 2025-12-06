@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 from typing import Union
 
+from videotrans.configure import config
 from videotrans.configure.config import logs
 
 
@@ -157,7 +158,7 @@ def _build_hw_command(args: list, hw_codec: str):
     return new_args, hw_decode_opts
 
 
-def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False,cmd_dir=None):
+def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
     """
     执行 ffmpeg 命令，智能应用硬件加速并处理平台兼容性。
 
@@ -191,10 +192,10 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False,cmd_dir=None):
                 final_args.insert(-1, "-preset")
                 final_args.insert(-1, "ultrafast")
 
+    # 尝试硬件编码
     if not force_cpu:
         if not hasattr(config, 'video_codec') or not config.video_codec:
             config.video_codec = get_video_codec()
-
         if config.video_codec and 'libx' not in config.video_codec:
             logs(f"检测到硬件编码器 {config.video_codec}，正在调整参数...")
             final_args, hw_decode_opts = _build_hw_command(arg, config.video_codec)
@@ -223,6 +224,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False,cmd_dir=None):
             creationflags = subprocess.CREATE_NO_WINDOW
         if config.exit_soft:
             return
+        logs(f'{cmd=}','debug')
         subprocess.run(
             cmd,
             stdout=subprocess.PIPE,
@@ -252,7 +254,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=False,cmd_dir=None):
 
         is_video_output = cmd[-1].lower().endswith('.mp4')
         if not force_cpu and is_video_output:
-            logs("硬件加速失败，将自动回退到 CPU 编码重试...",level='warn')
+            logs("回退： 硬件加速失败，将自动回退到 CPU 编码重试...",level='warn')
 
             fallback_args = []
             i = 0
@@ -296,7 +298,9 @@ def get_filepath_from_cmd(cmd:list):
                 return tr('There may be special characters in the file name or path. Please move the file to a simple directory consisting of English and numerical characters, rename the file to a simple name, and try again to avoid errors: {},For example D:/videotrans/1.mp4 D:/videotrans/2.wav',file)
     return None
 
-
+def check_hw_on_start(_compat=None):
+    get_video_codec(264)
+    get_video_codec(265)
 
 def get_video_codec(compat=None) -> str:
     """
@@ -324,11 +328,14 @@ def get_video_codec(compat=None) -> str:
         
     
     plat = platform.system()
-    try:
-        video_codec_pref = int(config.settings.get('video_codec', 264))
-    except (ValueError, TypeError):
-        logs("配置中 'video_codec' 无效。将默认使用 H.264 (264)。",level='warn')
-        video_codec_pref = 264
+    if compat and compat in [264,265]:
+        video_codec_pref=compat
+    else:
+        try:
+            video_codec_pref = int(config.settings.get('video_codec', 264))
+        except (ValueError, TypeError):
+            logs("配置中 'video_codec' 无效。将默认使用 H.264 (264)。",level='warn')
+            video_codec_pref = 264
 
     cache_key = f'{plat}-{video_codec_pref}'
     if cache_key in _codec_cache:
@@ -497,13 +504,6 @@ def runffprobe(cmd):
         raise
 
 
-# 获取无音频的视频流时长
-def get_video_ms_noaudio(mp4):
-    try:
-        ms=runffprobe(['-v','error','-select_streams','v:0','-show_entries','stream=duration','-of','default=noprint_wrappers=1:nokey=1',mp4])
-        return int(ms*1000)
-    except Exception:
-        return 0
 
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
     """
@@ -538,12 +538,21 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "audio_codec_name": "",
         "width": 0,
         "height": 0,
-        "time": int(float(out['streams'][0]['duration'])*1000),#第一个流的长度为准
+        "time": 0,
         "streams_len": len(out['streams']),
         "streams_audio": 0,
         "video_streams":0,
         "color": "yuv420p"
     }
+    try:
+        # 以第一个流中duration为准，但可能某些格式，例如mkv第一个流中无duration字段或始终为0
+        result['time']=int(float(out['streams'][0]['duration'])*1000)#第一个流的长度为准
+        if result['time']<=0:
+            result['time']=int(float(out['format']['duration'])*1000)
+    except:
+        result['time']=int(float(out['format']['duration'])*1000)
+    
+        
 
     video_stream = next((s for s in out['streams'] if s.get('codec_type') == 'video'), None)
     audio_streams = [s for s in out['streams'] if s.get('codec_type') == 'audio']
@@ -564,14 +573,15 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
             try:
                 num, den = map(int, rate_str.split('/'))
                 return num / den if den != 0 else 0
-            except (ValueError, ZeroDivisionError, AttributeError):
+            except:
                 return 0
 
         fps1 = parse_fps(video_stream.get('r_frame_rate'))
-        fps_avg = parse_fps(video_stream.get('avg_frame_rate'))
-        if not fps_avg or fps_avg<1:
-            up,down=fps1.split('/')
-            fps_avg=float(up)/float(down)
+        
+        if not fps1 or fps1<1:
+            fps_avg=parse_fps(video_stream.get('avg_frame_rate'))
+        else:
+            fps_avg = fps1
 
 
 
@@ -591,13 +601,34 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     return result
 
 
+def _get_ms_from_media(file):
+    ms=0
+    ext=Path(file).suffix.lower()[1:]
+    try:
+        if ext in config.VIDEO_EXTS:
+            ms=int(float(runffprobe(['-v','error','-select_streams','v:0','-show_entries','stream=duration','-of','default=noprint_wrappers=1:nokey=1',file]))*1000)
+        elif ext in config.AUDIO_EXITS:
+            ms=int(float(runffprobe(['-v','error','-select_streams','a:0','-show_entries','stream=duration','-of','default=noprint_wrappers=1:nokey=1',file]))*1000)
+    except Exception:
+        # mkv 等其他格式可能无法从流中读取 duration
+        pass
+    if ms==0:
+        ms=int(float(runffprobe(['-v','error','-show_entries','format=duration','-of','default=noprint_wrappers=1:nokey=1',file])))
+    return ms
+
+
+# 获取无音频的视频流时长
+def get_video_ms_noaudio(mp4):
+    return _get_ms_from_media(mp4)
+
+
 # 获取某个视频的时长 ms
 def get_video_duration(file_path):
-    try:
-        ms=runffprobe(['-v','error','-select_streams','v:0','-show_entries','stream=duration','-of','default=noprint_wrappers=1:nokey=1',file_path])
-        return int(float(ms)*1000)
-    except Exception:
-        return 0
+    return _get_ms_from_media(file_path)
+# 获取音频时长 返回ms
+def get_audio_time(audio_file):
+    return _get_ms_from_media(audio_file)
+
 
 
 def conver_to_16k(audio, target_audio):
@@ -764,13 +795,6 @@ def send_notification(title, message):
         pass
 
 
-# 获取音频时长 返回ms
-def get_audio_time(audio_file):
-    try:
-        ms=runffprobe(['-v','error','-select_streams','a:0','-show_entries','stream=duration','-of','default=noprint_wrappers=1:nokey=1',audio_file])
-        return int(float(ms)*1000)
-    except Exception:
-        return 0
 
 
 def remove_silence_wav(audio_file):
@@ -800,20 +824,9 @@ def remove_silence_wav(audio_file):
         start_trim = nonsilent_chunks[0][0]
         # 获取最后一个非静音块的结束时间
         end_trim = nonsilent_chunks[-1][1]
-
         # 裁剪音频
         trimmed_audio = audio[start_trim:end_trim]
-
-        # [可选] 增加极短的淡入淡出，防止因为切得太极限导致爆音（Click sound）
-        # 如果追求极致的“去除”，可以注释掉下面这行，或者设置 duration=1
-        # trimmed_audio = trimmed_audio.fade_in(5).fade_out(5)
-
-        print(f"原时长: {len(audio)}ms, 裁剪后: {len(trimmed_audio)}ms {min_silence_len=}")
-        print(f"切除头部: {start_trim}ms, 切除尾部: {len(audio) - end_trim}ms")
         trimmed_audio.export(audio_file,format="wav")
-    else:
-        print("未检测到声音，文件可能全是静音。")
-
     return True
 
 

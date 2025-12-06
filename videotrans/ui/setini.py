@@ -90,7 +90,7 @@ class Ui_setini(object):
                 "edgetts_retry_nums":"EdgeTTS渠道失败后重试次数,有些失败无论多少次重试也无法恢复，太大只会延长耗时"
             },
             "justify": {
-                "remove_silence": "是否移除配音末尾空白",
+
                 "max_audio_speed_rate":"最大音频加速倍数，默认100",
                 "max_video_pts_rate":"视频慢放最大倍数，默认10，不可大于10",
             },
@@ -185,7 +185,6 @@ class Ui_setini(object):
             "preset": "输出视频压缩率",
             "ffmpeg_cmd": "自定义ffmpeg命令参数",
             "video_codec": "264/265编码",
-            "remove_silence": "移除配音末尾空白",
             "vad": "启用VAD断句",
 
             "threshold": "语音阈值",
@@ -295,7 +294,7 @@ class Ui_setini(object):
         "chattts_voice": "ChatTTS voice timbre value."
     },
     "justify": {
-        "remove_silence": "Remove trailing silence from dubbed audio.",
+
         "max_audio_speed_rate": "Maximum audio speed-up rate. Default: 100.",
         "max_video_pts_rate": "Maximum video slow-down rate. Default: 10 (cannot exceed 10)."
     },
@@ -387,7 +386,7 @@ class Ui_setini(object):
     "preset": "Output video compression preset",
     "ffmpeg_cmd": "Custom FFmpeg command arguments",
     "video_codec": "H.264/H.265 encoding",
-    "remove_silence": "Remove trailing silence from dubbing",
+
     "vad": "Enable VAD segmentation",
     "threshold": "VAD: Speech probability threshold",
     "max_speech_duration_s": "VAD: Max speech duration (s)",

@@ -648,10 +648,16 @@ class Ui_MainWindow(object):
         self.startbtn.setMinimumSize(QtCore.QSize(160, 40))
         self.startbtn.setObjectName("startbtn")
 
+        self.retrybtn = QtWidgets.QPushButton(self.layoutWidget)
+        self.retrybtn.setObjectName("retrybtn")
+        self.retrybtn.setVisible(False)
+        self.retrybtn.setText(tr('Retry failed'))
+
 
         self.horizontalLayout_3.addStretch(1)
         self.horizontalLayout_3.addWidget(self.enable_cuda)
         self.horizontalLayout_3.addWidget(self.startbtn)
+        self.horizontalLayout_3.addWidget(self.retrybtn)
         self.horizontalLayout_3.addStretch(1)
         self.verticalLayout_3.addLayout(self.horizontalLayout_3)
 

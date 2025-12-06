@@ -1,10 +1,8 @@
 
 
-def openwin(init_show_type=None):
+def openwin(init=False):
     from videotrans.configure.config import tr,logs
     from videotrans.configure import config
-    if not init_show_type:
-        init_show_type=config.params.get("f5tts_ttstype",'F5-TTS')
     from pathlib import Path
 
     from PySide6 import QtWidgets
@@ -12,16 +10,7 @@ def openwin(init_show_type=None):
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans import tts
-    # 每个渠道的名字 # NAMES=['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS','VoxCPM-TTS']
-    NAMES=config.F5_TTS_WINFORM_NAMES
-    # 根据名字对应 渠道类型
-    TTS_TYPE_LIST={
-        NAMES[0]:tts.F5_TTS,
-        NAMES[1]:tts.SPARK_TTS,
-        NAMES[2]:tts.INDEX_TTS,
-        NAMES[3]:tts.DIA_TTS,
-        NAMES[4]:tts.VOXCPM_TTS,
-    }
+    
 
     def feed(d):
         if d == "ok":
@@ -29,31 +18,16 @@ def openwin(init_show_type=None):
         else:
             tools.show_error(d)
 
-        winobj.test.setText(tr('Test'))
 
-    # URL 输入框变化时更新url地址
-    def _change_byurl(url):
-        name=winobj.ttstype.currentText()
-        config.params[config.get_key_byf5tts(name)]=url
-
-    # 下拉框变化时根据name对应名字，取出url给api_url文本框
-    def _change_bytype(name):
-        url=config.get_url_byf5tts(name)
-        winobj.api_url.setText(url)
-
-    def _save_url_bytype():
-        # 每个渠道的名字 # NAMES=['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS','VoxCPM-TTS']
-        url = winobj.api_url.text().strip()
-        if not url.startswith('http'):
-            url=f'http://{url}'
-        name=winobj.ttstype.currentText()
-        config.params[config.get_key_byf5tts(name)]=url
+        for it in test_btn.values():
+            it.setText(tr('Test'))
 
 
 
-    def test():
+    def test(tts_type=tts.F5_TTS):
+        
         index_tts_version = winobj.index_tts_version.currentIndex()
-        role = winobj.role.toPlainText().strip()
+        role = winobj.f5tts_role.toPlainText().strip()
         if not role:
             tools.show_error(tr('Please input reference audio path'))
             return
@@ -65,26 +39,28 @@ def openwin(init_show_type=None):
         config.params["f5tts_is_whisper"] = is_whisper
         config.params["index_tts_version"] = index_tts_version
         config.params["f5tts_role"] = role
+        config.params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
+        config.params["diatts_url"] = winobj.diatts_url.text()
+        config.params["indextts_url"] = winobj.indextts_url.text()
+        config.params["sparktts_url"] = winobj.sparktts_url.text()
+        config.params["f5tts_url"] = winobj.f5tts_url.text()
 
-        # 当前类型显示名字，用于默认显示，内容如 config.F5_TTS_WINFORM_NAMES
-        show_ttstype_name=  winobj.ttstype.currentText()
-        config.params["f5tts_ttstype"]=show_ttstype_name
-        _save_url_bytype()
+
 
         config.getset_params(config.params)
 
-        winobj.test.setText(tr('Testing...'))
+        test_btn[tts_type].setText(tr('Testing...'))
         import time
-        print(f'{TTS_TYPE_LIST[show_ttstype_name]=}')
+        print(f'{tts_type}')
         wk = ListenVoice(parent=winobj,
-                         queue_tts=[{"text": '你好啊我的朋友', "role": role_test, "filename": config.TEMP_DIR + f"/{time.time()}-{show_ttstype_name}.wav", "tts_type": TTS_TYPE_LIST[show_ttstype_name]}],
+                         queue_tts=[{"text": '你好啊我的朋友', "role": role_test, "filename": config.TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
                          language="zh",
-                         tts_type=TTS_TYPE_LIST[show_ttstype_name])
+                         tts_type=tts_type)
         wk.uito.connect(feed)
         wk.start()
 
     def getrole():
-        tmp = winobj.role.toPlainText().strip()
+        tmp = winobj.f5tts_role.toPlainText().strip()
         role = None
         if not tmp:
             return role
@@ -104,16 +80,18 @@ def openwin(init_show_type=None):
     def save():
 
         index_tts_version = winobj.index_tts_version.currentIndex()
-        role = winobj.role.toPlainText().strip()
+        role = winobj.f5tts_role.toPlainText().strip()
         is_whisper = winobj.is_whisper.isChecked()
 
         config.params["f5tts_role"] = role
         config.params["f5tts_is_whisper"] = is_whisper
         config.params["index_tts_version"] = index_tts_version
-
-        show_ttstype_name=  winobj.ttstype.currentText()
-        config.params["f5tts_ttstype"]=show_ttstype_name
-        _save_url_bytype()
+        
+        config.params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
+        config.params["diatts_url"] = winobj.diatts_url.text()
+        config.params["indextts_url"] = winobj.indextts_url.text()
+        config.params["sparktts_url"] = winobj.sparktts_url.text()
+        config.params["f5tts_url"] = winobj.f5tts_url.text()
 
 
         config.getset_params(config.params)
@@ -124,20 +102,27 @@ def openwin(init_show_type=None):
     Path(config.ROOT_DIR + "/f5-tts").mkdir(exist_ok=True)
     winobj = F5TTSForm()
     config.child_forms['f5tts'] = winobj
-    winobj.role.setPlainText(config.params.get("f5tts_role",''))
+    winobj.f5tts_role.setPlainText(config.params.get("f5tts_role",''))
     winobj.is_whisper.setChecked(bool(config.params.get("f5tts_is_whisper",False)))
     winobj.index_tts_version.setCurrentIndex(int(config.params.get('index_tts_version',0)))
+    
+    winobj.f5tts_url.setText(config.params.get('f5tts_url',''))
+    winobj.sparktts_url.setText(config.params.get('sparktts_url',''))
+    winobj.indextts_url.setText(config.params.get('indextts_url',''))
+    winobj.diatts_url.setText(config.params.get('diatts_url',''))
+    winobj.voxcpmtts_url.setText(config.params.get('voxcpmtts_url',''))
 
-    # open参数是默认需要显示的
-    init_show_url=config.get_url_byf5tts(init_show_type)
-    if init_show_url:
-        winobj.api_url.setText(init_show_url)
-
-    winobj.ttstype.setCurrentText(init_show_type)
-
-
-    winobj.ttstype.currentTextChanged.connect(_change_bytype)
-    winobj.api_url.textChanged.connect(_change_byurl)
     winobj.save.clicked.connect(save)
-    winobj.test.clicked.connect(test)
+    winobj.f5tts_urltest.clicked.connect(lambda: test(tts.F5_TTS))
+    winobj.sparktts_urltest.clicked.connect(lambda: test(tts.SPARK_TTS))
+    winobj.indextts_urltest.clicked.connect(lambda: test(tts.INDEX_TTS))
+    winobj.diatts_urltest.clicked.connect(lambda: test(tts.DIA_TTS))
+    winobj.voxcpmtts_urltest.clicked.connect(lambda: test(tts.VOXCPM_TTS))
     winobj.show()
+    test_btn={
+        tts.F5_TTS:winobj.f5tts_urltest,
+        tts.INDEX_TTS:winobj.indextts_urltest,
+        tts.SPARK_TTS:winobj.sparktts_urltest,
+        tts.DIA_TTS:winobj.diatts_urltest,
+        tts.VOXCPM_TTS:winobj.voxcpmtts_urltest,
+    }

@@ -21,6 +21,12 @@ class QWENTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
+        self.role_dict=tools.get_qwen3tts_rolelist()
+        self.model=config.params.get('qwentts_model', 'qwen3-tts-flash')
+        self.api_key=config.params.get('qwentts_key', '')
+        if self.model.startswith('qwen-tts'):
+            self.model='qwen3-tts-flash'
+
 
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
@@ -40,11 +46,10 @@ class QWENTTS(BaseTTS):
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            role = data_item['role']
-
+            role = self.role_dict.get(data_item['role'],'Cherry')
             response = dashscope.audio.qwen_tts.SpeechSynthesizer.call(
-                model=config.params.get('qwentts_model', 'qwen-tts-latest'),
-                api_key=config.params.get('qwentts_key', ''),
+                model=self.model,
+                api_key=self.api_key,
                 text=data_item['text'],
                 voice=role,
             )

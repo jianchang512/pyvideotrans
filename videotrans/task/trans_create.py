@@ -46,7 +46,7 @@ class TransCreate(BaseTask):
     # 对视频是否执行 c:v copy 操作
     is_copy_video: bool = False
     # mp4编码类型 264 265
-    video_codec_num: int = 264
+    video_codec_num: int = 265
     # 是否忽略音频和视频对齐
     ignore_align: bool = False
 
@@ -227,8 +227,8 @@ class TransCreate(BaseTask):
             try:
                 self._signal(text=tr('Separating background music'))
                 self._split_audio_byraw(True)
-            except:
-                pass
+            except Exception as e:
+                config.logger.exception(f'分离人声背景声失败',exc_info=True)
             finally:
                 if not tools.vail_file(self.cfg.vocal) or not tools.vail_file(self.cfg.instrument):
                     # 分离失败
@@ -638,7 +638,7 @@ class TransCreate(BaseTask):
             "copy" if self.is_copy_video else f"libx264"
         ]
         if not self.is_copy_video:
-            cmd += ["-crf", '20','-preset','fast']
+            cmd += ["-crf", '20','-preset','veryfast']
         cmd += [self.cfg.novoice_mp4]
         return tools.runffmpeg(cmd, noextname=self.uuid)
 
@@ -987,13 +987,13 @@ class TransCreate(BaseTask):
 
     # 视频定格最后一帧
     def _video_extend(self, duration_ms=1000):
-        sec=math.ceil(duration_ms / 1000.0)
+        sec=duration_ms / 1000.0
         final_video_path = Path(f'{self.cfg.cache_folder}/final_video_with_freeze_lastend.mp4').as_posix()
         cmd = ['-y', '-i', self.cfg.novoice_mp4,
-               '-vf', f'tpad=stop_mode=clone:stop_duration={sec}',
+               '-vf', f'tpad=stop_mode=clone:stop_duration={sec:.3f}',
                '-c:v', 'libx264',
                '-crf', f'{config.settings.get("crf",23)}',
-               '-preset', config.settings.get('preset','fast'),
+               '-preset', config.settings.get('preset','veryfast'),
                '-an', final_video_path]
 
         if tools.runffmpeg(cmd, force_cpu=True) and Path(final_video_path).exists():
@@ -1006,8 +1006,7 @@ class TransCreate(BaseTask):
         # 音频末尾添加静音延长
         padded_audio_path = Path(f'{self.cfg.cache_folder}/last_end_com.m4a').as_posix()
         pad_dur_sec = duration_diff / 1000.0
-        pad_dur_sec = math.ceil(pad_dur_sec)
-        logs(f'音频末尾应增加{duration_diff}ms，实际向上取整秒，增加 {pad_dur_sec} 秒静音')
+        logs(f'音频末尾应增加{duration_diff}ms静音')
 
         cmd = ['-y', '-i', output_ma4, '-af', f'apad=pad_dur={pad_dur_sec:.4f}',"-c:a", "aac",padded_audio_path]
 
@@ -1093,16 +1092,12 @@ class TransCreate(BaseTask):
         os.chdir(Path(self.cfg.novoice_mp4).parent.resolve())
 
         # 末尾对齐
+        duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
         audio_ms=tools.get_audio_time(target_m4a)
-        if tools.vail_file(self.cfg.novoice_mp4):
-            duration_ms = tools.get_video_duration(self.cfg.novoice_mp4)
-            if audio_ms<duration_ms:
-                logs(f'音频时长{audio_ms} < 视频时长{duration_ms}，应延长音频')
-                self._audio_extend(duration_ms-audio_ms,target_m4a)
-            elif audio_ms>duration_ms:
-                logs(f'音频时长{audio_ms} > 视频时长{duration_ms}，应定格视频')
-                self._video_extend(audio_ms-duration_ms)
-
+        if duration_ms<audio_ms:
+            self._video_extend(audio_ms-duration_ms)
+        duration_s=f'{duration_ms/1000.0:.6f}'
+       
 
         try:
             #先导出到临时目录，防止包含各种奇怪符号的targetdir_mp4导致ffmpeg失败
@@ -1111,9 +1106,14 @@ class TransCreate(BaseTask):
             threading.Thread(target=self._hebing_pro,args=(protxt,self.video_time)).start()
             self._signal(text=config.tr("Video + Subtitles + Dubbing in merge"))
             cmd = []
+            is_copy_mode = (str(self.video_codec_num) == '264')
+            v_codec = "copy" if is_copy_mode else f'libx{self.video_codec_num}'
+
+
+
             # 有字幕有配音
             if self.cfg.voice_role != 'No' and self.cfg.subtitle_type > 0:
-                # 硬字幕有配音
+                # 硬字幕有配音 必须重编码
                 if self.cfg.subtitle_type in [1, 3]:
                     self._signal(text=config.tr('peiyin-yingzimu'))
                     cmd = [
@@ -1124,25 +1124,24 @@ class TransCreate(BaseTask):
                         self.cfg.novoice_mp4,
                         "-i",
                         target_m4a,
+                        '-map', '0:v',
+                        '-map', '1:a',
                         "-c:v",
-                        f"libx{self.video_codec_num}",
+                        f'libx{self.video_codec_num}',
                         "-c:a",
                         "copy",
                         "-vf",
                         f"subtitles={subtitles_file}",
                         "-movflags",
                         "+faststart",
-                        '-crf',
-                        f'{config.settings.get("crf",23)}',
-                        '-preset',
-                        config.settings.get('preset','fast'),
-                        "-shortest",
-                        tmp_target_mp4
+                        '-crf', str(config.settings.get("crf", 23)),
+                        '-preset', config.settings.get('preset', 'fast')                        
                     ]
                     if self.cfg.video_autorate:
-                        cmd.insert(-1,"-fps_mode")
-                        cmd.insert(-1,"vfr")
-                # 软字幕有配音
+                        cmd.extend(["-fps_mode", "vfr"])
+
+                    cmd.extend(["-t", str(duration_s),tmp_target_mp4])
+                # 软字幕有配音 无需重编码
                 else:
                     self._signal(text=config.tr('peiyin-ruanzimu'))
                     cmd = [
@@ -1155,8 +1154,12 @@ class TransCreate(BaseTask):
                         target_m4a,
                         "-i",
                         subtitles_file,
+                        "-map", "0:v",  # 取第1个输入的视频流
+                        "-map", "1:a",  # 取第2个输入的音频流
+                        "-map", "2:s",  # 取第3个输入的字幕流
+
                         "-c:v",
-                        "copy" if str(self.video_codec_num)=='264' else f'libx{self.video_codec_num}',
+                        v_codec,
                         "-c:a",
                         "copy",
                         "-c:s",
@@ -1164,18 +1167,21 @@ class TransCreate(BaseTask):
                         "-metadata:s:s:0",
                         f"language={subtitle_langcode}",
                         "-movflags",
-                        "+faststart",
-                        '-crf',
-                        f'{config.settings.get("crf",23)}',
-                        '-preset',
-                        config.settings.get('preset','fast'),
-                        "-shortest",
-                        tmp_target_mp4
+                        "+faststart"                        
                     ]
-                    if self.cfg.video_autorate and str(self.video_codec_num)!='264':
-                        cmd.insert(-1,"-fps_mode")
-                        cmd.insert(-1,"vfr")
-            # 无字幕有配音
+                    if not is_copy_mode:
+                        cmd.extend([
+                            '-crf',
+                            f'{config.settings.get("crf",23)}',
+                            '-preset',
+                            config.settings.get('preset','fast')
+                        ])                        
+                        # 处理 VFR (仅在重新编码时有效)
+                        if self.cfg.video_autorate:
+                            cmd.extend(["-fps_mode", "vfr"])
+                    cmd.extend(["-t",str(duration_s),tmp_target_mp4])
+
+            # 无字幕有配音 无需重编码
             elif self.cfg.voice_role != 'No':                
                 self._signal(text=config.tr('onlypeiyin'))
                 cmd = [
@@ -1186,23 +1192,27 @@ class TransCreate(BaseTask):
                     self.cfg.novoice_mp4,
                     "-i",
                     target_m4a,
+                    '-map', '0:v',
+                    '-map', '1:a',
                     "-c:v",
-                    "copy" if str(self.video_codec_num)=='264' else f'libx{self.video_codec_num}',
+                    v_codec,
                     "-c:a",
                     "copy",
                     "-movflags",
-                    "+faststart",
-                    '-crf',
-                    f'{config.settings.get("crf",23)}',
-                    '-preset',
-                    config.settings.get('preset','fast'),
-                    "-shortest",
-                    tmp_target_mp4
+                    "+faststart"
                 ]
-                if self.cfg.video_autorate and str(self.video_codec_num)!='264':
-                    cmd.insert(-1, "-fps_mode")
-                    cmd.insert(-1, "vfr")
-            # 硬字幕无配音  原始 wav 合并
+                if not is_copy_mode:
+                    cmd.extend([
+                        '-crf',
+                        f'{config.settings.get("crf",23)}',
+                        '-preset',
+                        config.settings.get('preset','fast')
+                    ])
+                    if self.cfg.video_autorate:
+                        cmd.extend(["-fps_mode", "vfr"])
+
+                cmd.extend(["-t",str(duration_s), tmp_target_mp4])
+            # 硬字幕无配音  原始 wav 合并  必须重编码
             elif self.cfg.subtitle_type in [1, 3]:
                 self._signal(text=config.tr('onlyyingzimu'))
                 cmd = [
@@ -1213,8 +1223,7 @@ class TransCreate(BaseTask):
                     self.cfg.novoice_mp4
                 ]
                 if tools.vail_file(target_m4a):
-                    cmd.append('-i')
-                    cmd.append(Path(target_m4a).as_posix())
+                    cmd.extend(['-i',Path(target_m4a).as_posix(),'-map', '0:v','-map', '1:a'])
 
                 cmd.append('-c:v')
                 cmd.append(f'libx{self.video_codec_num}')
@@ -1229,13 +1238,13 @@ class TransCreate(BaseTask):
                     '-crf',
                     f'{config.settings.get("crf",23)}',
                     '-preset',
-                    config.settings.get('preset','fast'),
-                    "-shortest",
-                    tmp_target_mp4
+                    config.settings.get('preset','fast')
                 ]
-            # 软字幕无配音
+                if self.cfg.video_autorate:
+                    cmd.extend(["-fps_mode", "vfr"])
+                cmd.extend(["-t",str(duration_s),tmp_target_mp4])
+            # 软字幕无配音 无需重编码
             elif self.cfg.subtitle_type in [2, 4]:
-                
                 self._signal(text=config.tr('onlyruanzimu'))
                 # 原视频
                 cmd = [
@@ -1247,14 +1256,20 @@ class TransCreate(BaseTask):
                 ]
                 # 原配音流
                 if tools.vail_file(target_m4a):
-                    cmd.append("-i")
-                    cmd.append(Path(target_m4a).as_posix())
+                    cmd.extend(['-i',Path(target_m4a).as_posix()])
                 # 目标字幕流
                 cmd += [
                     "-i",
                     subtitles_file,
+                ]
+                if tools.vail_file(target_m4a):
+                    cmd.extend(['-map', '0:v','-map', '1:a','-map','2:s'])
+                else:
+                    cmd.extend(['-map', '0:v','-map', '1:s',])
+                
+                cmd+=[
                     "-c:v",
-                    "copy" if str(self.video_codec_num)=='264' else f'libx{self.video_codec_num}',
+                    v_codec
                 ]
                 if tools.vail_file(target_m4a):
                     cmd.append('-c:a')
@@ -1265,23 +1280,35 @@ class TransCreate(BaseTask):
                     "-metadata:s:s:0",
                     f"language={subtitle_langcode}",
                     "-movflags",
-                    "+faststart",
-                    '-crf',
-                    f'{config.settings.get("crf",23)}',
-                    '-preset',
-                    config.settings.get('preset','fast'),
-                    "-shortest",
-                    tmp_target_mp4
+                    "+faststart"                    
                 ]
-
-            logs(f"\n最终确定的音视频字幕合并命令为:{cmd=}\n")
+                if not is_copy_mode:
+                    cmd.extend([
+                        '-crf',
+                        f'{config.settings.get("crf",23)}',
+                        '-preset',
+                        config.settings.get('preset','fast')
+                    ])
+                    if self.cfg.video_autorate:
+                        cmd.extend(["-fps_mode", "vfr"])
+                cmd.extend([
+                    "-t",str(duration_s),
+                    tmp_target_mp4
+                ])
             if cmd:
-                tools.runffmpeg(cmd,cmd_dir=self.cfg.cache_folder)
+                tools.runffmpeg(cmd,cmd_dir=self.cfg.cache_folder,force_cpu=False)
             shutil.move(tmp_target_mp4,self.cfg.targetdir_mp4)
+            os.chdir(config.ROOT_DIR)
         except Exception as e:
             msg =tr('Error in embedding the final step of the subtitle dubbing')
             raise RuntimeError(msg)
-        os.chdir(config.ROOT_DIR)
+        
+        
+        try:
+            shutil.rmtree(self.cfg.cache_folder,ignore_errors=True)        
+        except:
+            pass
+        
         self._create_txt()
         self.precent = 100
         time.sleep(1)
@@ -1301,11 +1328,13 @@ class TransCreate(BaseTask):
             "-y",
             "-i",
             self.cfg.name,
-            "-vn",
-            "-c:a",
-            "copy" if self.video_info['audio_codec_name']=='aac' else 'aac',
-            output
+            "-vn"
         ]
+        if self.video_info['audio_codec_name']=='aac':
+            cmd.extend(['-c:a','copy'])
+        else:
+            cmd.extend(['-c:a','aac','-b:a','128k'])
+        cmd.append(output)
         return tools.runffmpeg(cmd)
         
 

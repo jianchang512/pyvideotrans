@@ -305,8 +305,9 @@ def openwin():
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params.get('openaitts_role','').split(","))
         elif type == tts.QWEN_TTS:
+            rolelist=tools.get_qwen3tts_rolelist()
             winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(config.settings.get('qwentts_role','').split(","))
+            winobj.hecheng_role.addItems(list(rolelist.keys()))
         elif type == tts.GEMINI_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params.get('gemini_ttsrole','').split(","))

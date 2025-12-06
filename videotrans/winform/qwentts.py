@@ -21,8 +21,8 @@ def openwin():
         config.params["qwentts_key"] = key
         config.params["qwentts_model"] = model
         config.getset_params(config.params)
-        config.settings['qwentts_role']=config.QWEN3_TTS_ROLES if model.startswith('qwen3-tts') else   config.QWEN_TTS_ROLES
-        config.parse_init(config.settings)        
+        config.settings['qwentts_models']=winobj.qwentts_modellist.toPlainText().strip()
+        config.parse_init(config.settings)
         winobj.test_qwentts.setText(tr("Testing..."))
         from videotrans import tts
         import time
@@ -43,9 +43,10 @@ def openwin():
 
         config.params["qwentts_key"] = key
         config.params["qwentts_model"] = model
+
         config.getset_params(config.params)
-        
-        config.settings['qwentts_role']=config.QWEN3_TTS_ROLES if model.startswith('qwen3-tts') else   config.QWEN_TTS_ROLES
+
+        config.settings['qwentts_models']=winobj.qwentts_modellist.toPlainText().strip()
         config.parse_init(config.settings)
         tools.set_process(text='qwentts', type="refreshtts")
         winobj.close()

@@ -300,7 +300,8 @@ class EditRecognResultDialog(QDialog):
 
     def update_countdown(self):
         self.count_down -= 1
-        self.stop_button.setText(f"{tr('点此停止倒计时')}({self.count_down})")
+        if self.stop_button and hasattr(self.stop_button,'setText'):
+            self.stop_button.setText(f"{tr('点此停止倒计时')}({self.count_down})")
         if self.count_down <= 0:
             self.timer.stop()
             self.save_and_close()

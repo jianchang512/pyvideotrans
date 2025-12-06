@@ -881,5 +881,6 @@
 	"Exceeded":"超出",
 	"Detection microphone":"检测麦克风",
 	"noautofix":"未自动修正前",
-    "whisperx-tips": "请部署并启动 whisperx-api 项目，并在api地址框中填写 http://127.0.0.1:9092\n具体安装使用方法请点击 【查看填写教程】 \nwhisperx-api项目地址:  https://github.com/jianchang512/whisperx-api"
+    "whisperx-tips": "请部署并启动 whisperx-api 项目，并在api地址框中填写 http://127.0.0.1:9092\n具体安装使用方法请点击 【查看填写教程】 \nwhisperx-api项目地址:  https://github.com/jianchang512/whisperx-api",
+    "Retry failed": "重试失败"
 }

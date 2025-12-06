@@ -208,8 +208,6 @@ DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-2.5-pro,gemini-2.5-flash,gem
 ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv',
                     'ms', 'uk', 'cs', 'tl']
 OPENAITTS_ROLES = "alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
-QWEN_TTS_ROLES = 'Cherry,Serena,Ethan,Chelsie,Sunny,Jada,Dylan'
-QWEN3_TTS_ROLES = 'Cherry,Ethan,Nofish,Jennifer,Ryan,Katerina,Elias,Jada,Dylan,Sunny,li,Marcus,Roy,Peter,Rocky,Kiki,Eric'
 
 
 # 设置默认高级参数值
@@ -226,15 +224,15 @@ def parse_init(update_data=None):
         "Whisper.cpp": "",
         "faster_batch":False,
         "Whisper.cpp.models": "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin",
-        "crf": 23,
+        "crf": 24,
         "edgetts_max_concurrent_tasks":10,
         "edgetts_retry_nums":3,
         "force_lib": False,
-        "preset": "fast",
+        "preset": "veryfast",
         "ffmpeg_cmd": "",
         "aisendsrt": True,
         "dont_notify": False,
-        "video_codec": 264,
+        "video_codec": 265,
         
         "noise_separate_nums":4,
         
@@ -255,7 +253,7 @@ def parse_init(update_data=None):
         "zijiehuoshan_model": "",
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-small.en,distil-medium.en,distil-large-v2,distil-large-v3",
 
-        "remove_silence": False,
+
         "max_audio_speed_rate":100,
         "max_video_pts_rate":10,
         
@@ -314,8 +312,8 @@ def parse_init(update_data=None):
         "condition_on_previous_text": False,
 
 
-        "qwentts_role": QWEN3_TTS_ROLES,
-        "qwentts_models": 'qwen3-tts-flash,qwen-tts-latest,qwen-tts',
+        "qwentts_role": '',
+        "qwentts_models": 'qwen3-tts-flash',
 
 
         "show_more_settings":False,
@@ -465,6 +463,8 @@ def getset_params(obj=None):
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
         "voice_autorate": True,
         "video_autorate": False,
+        
+        "align_sub_audio":True,
 
         "voice_role": "No",
         "voice_rate": "0",
@@ -662,8 +662,6 @@ def getset_params(obj=None):
 
 
 params = getset_params()
-settings['qwentts_role'] = QWEN3_TTS_ROLES if params.get("qwentts_model", '').startswith(
-    'qwen3-tts') else QWEN_TTS_ROLES
 # 更新 settings配置
 parse_init(settings)
 
@@ -682,33 +680,6 @@ POSTION_ASS_KV = {
 POSTION_ASS_INDEX = list(POSTION_ASS_KV.keys())
 POSTION_ASS_VK = {v: k for k, v in POSTION_ASS_KV.items()}
 
-############ F5-TTS 面板多渠道共用
-# F5-TTS 设置窗口 5个类型通用
-F5_TTS_WINFORM_NAMES = ['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS', 'VoxCPM-TTS']
-
-
-#  F5-TTS 渠道名字获取对应url
-def get_url_byf5tts(name):
-    params = getset_params()
-    TTS_URL_LIST = {
-        F5_TTS_WINFORM_NAMES[0]: params.get('f5tts_url', ''),
-        F5_TTS_WINFORM_NAMES[1]: params.get('sparktts_url', ''),
-        F5_TTS_WINFORM_NAMES[2]: params.get('indextts_url', ''),
-        F5_TTS_WINFORM_NAMES[3]: params.get('diatts_url', ''),
-        F5_TTS_WINFORM_NAMES[4]: params.get('voxcpmtts_url', ''),
-    }
-    return TTS_URL_LIST.get(name, '')
-
-
-# F5-TTS 根据 name 获取对应的url值键名
-def get_key_byf5tts(name):
-    return {
-        F5_TTS_WINFORM_NAMES[0]: 'f5tts_url',
-        F5_TTS_WINFORM_NAMES[1]: 'sparktts_url',
-        F5_TTS_WINFORM_NAMES[2]: 'indextts_url',
-        F5_TTS_WINFORM_NAMES[3]: 'diatts_url',
-        F5_TTS_WINFORM_NAMES[4]: 'voxcpmtts_url',
-    }.get(name, 'f5tts_url')
 
 
 ## 翻译,lang_key对应 transobj中键名，kw多个位置参数，对应替换 lang_key中 {}

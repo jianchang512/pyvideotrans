@@ -875,5 +875,6 @@
 	"Exceeded":"Exceeded",
 	"Detection microphone":"Detection microphone",
 	"noautofix":"Before-automatic-correction",
-    "whisperx-tips": "Please deploy and start the whisperx-api project, and enter http://127.0.0.1:9092 in the API address box. \nFor detailed installation and usage instructions, please click the Help/Tutorials button to view. \nWhisperx-api project address: https://github.com/jianchang512/whisperx-api"
+    "whisperx-tips": "Please deploy and start the whisperx-api project, and enter http://127.0.0.1:9092 in the API address box. \nFor detailed installation and usage instructions, please click the Help/Tutorials button to view. \nWhisperx-api project address: https://github.com/jianchang512/whisperx-api",
+    "Retry failed": "Retry failed"
 }

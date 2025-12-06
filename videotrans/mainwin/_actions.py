@@ -192,7 +192,7 @@ class WinAction(WinActionSub):
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == tts.QWEN_TTS:
             self.main.voice_role.clear()
-            self.main.current_rolelist = config.settings.get('qwentts_role','').split(',')
+            self.main.current_rolelist = list(tools.get_qwen3tts_rolelist().keys())
             self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
         elif type == tts.GEMINI_TTS:
             self.main.voice_role.clear()
@@ -635,6 +635,44 @@ class WinAction(WinActionSub):
         self.main.subtitle_area.setReadOnly(True)
         tools.set_process(text='start', type='create_btns')
         self.main.startbtn.setDisabled(False)
+        self.retry_queue_mp4=[]
+        self.uuid_queue_mp4={}
+
+
+    def retry(self):
+        if not self.retry_queue_mp4:
+            self.main.retrybtn.setVisible(False)
+            return
+
+        self._disabled_button(True)
+        self.main.retrybtn.setVisible(False)
+        self.main.subtitle_area.setReadOnly(True)
+        self.delete_process()
+        # 设为开始
+        self.update_status('ing')
+        # 待翻译的文件列表
+        self.obj_list = []
+
+        for v in self.retry_queue_mp4:
+            obj = tools.format_video(v.get('file'), v.get('target_dir'))
+            self.obj_list.append(obj)
+            self.add_process_btn(target_dir=Path(obj['target_dir']).as_posix(), name=obj['name'], uuid=obj['uuid'])
+
+        cfg = copy.deepcopy(self.cfg)
+        cfg['clear_cache']=False
+
+        # 启动任务
+        tools.set_process(text=tr('kaishichuli'), uuid=self.obj_list[0]['uuid'])
+
+        from videotrans.task._mult_video import MultVideo
+        task = MultVideo(parent=self.main, cfg=cfg, obj_list=self.obj_list)
+        # 单个顺序执行
+        if config.settings.get('batch_single'):
+            task.uito.connect(self.update_data)
+        task.start()
+        self.main.startbtn.setDisabled(False)
+        # 不再重试
+        self.retry_queue_mp4=[]
 
 
     # 创建进度按钮
@@ -646,12 +684,13 @@ class WinAction(WinActionSub):
         self.obj_list = []
 
         # new_name = []
+        txt = self.main.subtitle_area.toPlainText().strip()
         for video_path in self.queue_mp4:
             obj = tools.format_video(video_path, target_dir)
             self.obj_list.append(obj)
             self.add_process_btn(target_dir=Path(obj['target_dir']).as_posix(), name=obj['name'], uuid=obj['uuid'])
+            self.uuid_queue_mp4[obj['uuid']]=(video_path,target_dir)
 
-        txt = self.main.subtitle_area.toPlainText().strip()
         self.cfg.update(
             {'subtitles': txt, 'app_mode': self.main.app_mode}
         )
@@ -661,15 +700,12 @@ class WinAction(WinActionSub):
         tools.set_process(text=tr('kaishichuli'), uuid=self.obj_list[0]['uuid'])
         # 单个视频处理模式
         if self.main.app_mode not in ['tiqu'] and len(self.obj_list) == 1:
-            print(f'-1={time.time()}')
             from videotrans.task._only_one import Worker
-            print(f'0={time.time()}')
             task = Worker(
                 parent=self.main,
                 obj_list=self.obj_list,
                 cfg=cfg
             )
-            print(f'0.5={time.time()}')
             task.uito.connect(self.update_data)
             task.start()
             return
@@ -815,6 +851,13 @@ class WinAction(WinActionSub):
             self.set_process_btn_text(d)
             if d['type'] in ['error', 'succeed'] and d.get('uuid'):
                 config.stoped_uuid_set.add(d['uuid'])
+            if d['type']!='error' or not d.get('uuid'):
+                return
+            uuid=d.get('uuid')
+            vdata=self.uuid_queue_mp4.get(uuid)
+            if not vdata:
+                return
+            self.retry_queue_mp4.append({"file":vdata[0],"target_dir":vdata[1]})
         elif d['type'] == 'create_btns':
             self.create_btns()
         # 任务开始执行，初始化按钮等
@@ -823,6 +866,7 @@ class WinAction(WinActionSub):
         elif d['type'] in ['end']:
             # 任务全部完成时出现 end
             self.update_status(d['type'])
+            self.main.retrybtn.setVisible(True if self.retry_queue_mp4 else False)
         # 一行一行插入字幕到字幕编辑区
         elif d['type'] == "subtitle" and config.current_status == 'ing':
             self.main.subtitle_area.moveCursor(QTextCursor.End)

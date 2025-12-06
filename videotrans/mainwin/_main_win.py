@@ -67,7 +67,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # QTimer.singleShot(10, self._bindsignal)
         self.is_writable()
         # QTimer.singleShot(50, self.is_writable)
-        run_in_threadpool(tools.get_video_codec)
+        run_in_threadpool(tools.check_hw_on_start)
 
 
     def _replace_placeholders(self):
@@ -167,7 +167,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionopenrouter_key.setText('OpenRouter.ai')
         self.actionlibretranslate_key.setText("LibreTranslate API")
         self.actionopenaitts_key.setText("OpenAI TTS")
-        self.actionqwentts_key.setText("Qwen TTS")
+        self.actionqwentts_key.setText("Qwen3 TTS")
         self.actionopenairecognapi_key.setText(
             config.tr("OpenAI Speech to Text API"))
         self.actionparakeet_key.setText('Nvidia parakeet-tdt')
@@ -476,9 +476,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         if not config.params.get('voice_autorate', False) and not config.params.get('video_autorate', False):
             self.remove_silent_mid.setVisible(True)
-            self.remove_silent_mid.setChecked(config.params.get('remove_silent_mid', False))
             self.align_sub_audio.setVisible(True)
-            self.align_sub_audio.setChecked(config.params.get('align_sub_audio', False))
+            
+        self.remove_silent_mid.setChecked(config.params.get('remove_silent_mid', False))
+        self.align_sub_audio.setChecked(config.params.get('align_sub_audio', False))
         
         self.clear_cache.setChecked(bool(config.params.get('clear_cache', False)))
         self.enable_cuda.setChecked(bool(config.params.get('cuda', False)))
@@ -509,6 +510,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.import_sub.clicked.connect(self.win_action.import_sub_fun)
 
         self.startbtn.clicked.connect(self.win_action.check_start)
+        self.retrybtn.clicked.connect(self.win_action.retry)
         self.btn_save_dir.clicked.connect(self.win_action.get_save_dir)
         self.set_adv_status.clicked.connect(self.win_action.toggle_adv)
         self.btn_get_video.clicked.connect(self.win_action.get_mp4)
@@ -654,7 +656,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 winobj.update_ui()
 
             winobj.show()
-            #winobj.raise_()
             winobj.activateWindow()
             return
         if name=='clipvideo':

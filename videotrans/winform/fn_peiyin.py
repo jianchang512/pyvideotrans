@@ -11,6 +11,7 @@ def openwin():
     from videotrans.configure.config import tr
     from PySide6.QtCore import QUrl,  Qt,QTimer
     from PySide6.QtGui import QDesktopServices
+    from PySide6 import QtWidgets
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure import config
     from videotrans.util import tools
@@ -224,7 +225,7 @@ def openwin():
             winobj.loglabel.setText(d['text'][:150])
             winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
             winobj.loglabel.setCursor(Qt.PointingHandCursor)
-            if len(winobj.hecheng_files) > 0:
+            if len(winobj.hecheng_importbtn.filelist) > 0:
                 winobj.hecheng_plaintext.clear()
         elif d['type'] in ['logs', 'succeed']:
             if d['text']:
@@ -233,7 +234,7 @@ def openwin():
             winobj.hecheng_startbtn.setText(d['text'])
         elif d['type'] == 'end':
             winobj.has_done = True
-            winobj.hecheng_files = []
+            winobj.hecheng_importbtn.filelist = []
             winobj.hecheng_importbtn.setText(tr('Import text to be translated from a file..'))
             winobj.loglabel.setText(tr('quanbuend'))
             winobj.hecheng_startbtn.setText(tr("zhixingwc"))
@@ -337,12 +338,12 @@ def openwin():
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
 
-        if len(winobj.hecheng_files) < 1 and not txt:
+        if len(winobj.hecheng_importbtn.filelist) < 1 and not txt:
             return tools.show_error(
                 tr("Must import srt file or fill in text box with text"))
         toggle_state(True)
-        if len(winobj.hecheng_files) > 0 and winobj.save_to_srt.isChecked():
-            RESULT_DIR = Path(winobj.hecheng_files[0]).parent.as_posix()
+        if len(winobj.hecheng_importbtn.filelist) > 0 and winobj.save_to_srt.isChecked():
+            RESULT_DIR = Path(winobj.hecheng_importbtn.filelist[0]).parent.as_posix()
 
         if txt:
             newsrtfile = config.TEMP_DIR + f"/{datetime.now().strftime('%Y%m%d-%H%M%S')}."
@@ -355,10 +356,10 @@ def openwin():
                 newsrtfile += 'srt'
                 with open(newsrtfile, "w", encoding="utf-8") as f:
                     f.write(txt)
-            winobj.hecheng_files.append(newsrtfile)
+            winobj.hecheng_importbtn.filelist.append(newsrtfile)
 
         config.box_tts = 'ing'
-        video_list = [tools.format_video(it, None) for it in winobj.hecheng_files]
+        video_list = [tools.format_video(it, None) for it in winobj.hecheng_importbtn.filelist]
         uuid_list = [obj['uuid'] for obj in video_list]
         for it in video_list:
             cfg={
@@ -399,7 +400,7 @@ def openwin():
         nonlocal uuid_list
         config.box_tts = 'stop'
         winobj.has_done = True
-        winobj.hecheng_files = []
+        winobj.hecheng_importbtn.filelist = []
         winobj.hecheng_importbtn.setText(tr('Import text to be translated from a file..'))
         winobj.loglabel.setText('Stoped')
         winobj.hecheng_startbtn.setText(tr("zhixingwc"))
@@ -454,8 +455,9 @@ def openwin():
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params.get('openaitts_role','').split(","))
         elif type == tts.QWEN_TTS:
+            rolelist=tools.get_qwen3tts_rolelist()
             winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(config.settings.get('qwentts_role','').split(","))
+            winobj.hecheng_role.addItems(list(rolelist.keys()))
         elif type == tts.GEMINI_TTS:
             winobj.hecheng_role.clear()
             winobj.hecheng_role.addItems(config.params['gemini_ttsrole'].split(","))
@@ -561,25 +563,8 @@ def openwin():
         else:
             winobj.hecheng_role.addItems(list(show_rolelist[vt].keys()))
 
-    # 导入字幕
-    def hecheng_import_fun():
-        fnames, _ = QFileDialog.getOpenFileNames(winobj, "Select srt", config.params['last_opendir'],
-                                                 "Text files(*.srt *.txt)")
-        if len(fnames) < 1:
-            return
-        namestr = []
-        for (i, it) in enumerate(fnames):
-            it = it.replace('\\', '/').replace('file:///', '')
-            fnames[i] = it
-            namestr.append(os.path.basename(it))
-
-        if len(fnames) > 0:
-            config.params['last_opendir'] = os.path.dirname(fnames[0])
-            winobj.hecheng_files = fnames
-            file_str =tr('Import {} Subtitles',len(fnames))
-            file_str += ("\n".join(namestr))
-            winobj.hecheng_importbtn.setText(file_str)
-
+  
+  
     def opendir_fn():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
@@ -595,6 +580,16 @@ def openwin():
     config.child_forms['fn_peiyin'] = winobj
     winobj.show()
     def _bind():
+        from videotrans.component.component import PeiyinDropButton
+        winobj.hecheng_importbtn = PeiyinDropButton(tr('xuanzeyinshipin'))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(winobj.hecheng_importbtn.sizePolicy().hasHeightForWidth())
+        winobj.hecheng_importbtn.setSizePolicy(sizePolicy)
+        winobj.hecheng_importbtn.setMinimumSize(0, 150)
+        winobj.hecheng_layout.insertWidget(0, winobj.hecheng_importbtn)
+    
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.voice_autorate.setChecked(config.params.get('dubb_voice_autorate', False))
         winobj.save_to_srt.setChecked(config.params.get('dubb_save_to_srt', False))
@@ -606,7 +601,7 @@ def openwin():
             winobj.remove_silent_mid.setVisible(True)
             winobj.remove_silent_mid.setChecked(config.params.get('dubb_remove_silent_mid', False))
 
-        winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
+        #winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
         winobj.hecheng_stop.clicked.connect(stop_tts)
         winobj.listen_btn.clicked.connect(listen_voice_fun)

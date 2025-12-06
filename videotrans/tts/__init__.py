@@ -61,7 +61,7 @@ TTS_NAME_LIST = [
 
     "OpenAI TTS",
     "Azure-TTS",
-    "Qwen TTS",
+    "Qwen3 TTS",
     tr("DouBao2"),
     "Elevenlabs.io",
     tr("VolcEngine TTS"),
@@ -227,25 +227,25 @@ def is_input_api(tts_type: int = None, return_str=False):
         if return_str:
             return "Please configure the api and key information of the VolcEngine Index-TTS channel first."
         from videotrans.winform import f5tts as f5tts_win
-        f5tts_win.openwin('Index-TTS')
+        f5tts_win.openwin()
         return False
     if tts_type == SPARK_TTS and not config.params.get('sparktts_url',''):
         if return_str:
             return "Please configure the api and key information of the VolcEngine Spark-TTS channel first."
         from videotrans.winform import f5tts as f5tts_win
-        f5tts_win.openwin('Spark-TTS')
+        f5tts_win.openwin()
         return False
     if tts_type == VOXCPM_TTS and not config.params.get('voxcpmtts_url',''):
         if return_str:
             return "Please configure the api and key information of the VolcEngine VoxCPM-TTS channel first."
         from videotrans.winform import f5tts as f5tts_win
-        f5tts_win.openwin('VoxCPM-TTS')
+        f5tts_win.openwin()
         return False
     if tts_type == DIA_TTS and not config.params.get('diatts_url',''):
         if return_str:
             return "Please configure the api and key information of the VolcEngine DIA-TTS channel first."
         from videotrans.winform import f5tts as f5tts_win
-        f5tts_win.openwin('Dia-TTS')
+        f5tts_win.openwin()
         return False
     if tts_type == GOOGLECLOUD_TTS and not config.params.get('gcloud_credential_json'):
         if return_str:

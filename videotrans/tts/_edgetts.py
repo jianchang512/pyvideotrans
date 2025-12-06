@@ -215,7 +215,7 @@ class EdgeTTS(BaseTTS):
                     for item in self.queue_tts:
                         mp3_path = item['filename'] + ".mp3"
                         if tools.vail_file(mp3_path):
-                            all_task.append(pool.submit(self.convert_to_wav, mp3_path,item['filename'],remove_silence=True))
+                            all_task.append(pool.submit(self.convert_to_wav, mp3_path,item['filename']))
                     completed_tasks = 0
                     for task in all_task:
                         try:

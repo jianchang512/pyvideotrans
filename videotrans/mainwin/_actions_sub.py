@@ -40,6 +40,10 @@ class WinActionSub:
     cfg: Dict = field(default_factory=dict, init=False)
     queue_mp4: List[str] = field(default_factory=list, init=False)
     show_adv_status:bool=False # 高级选项当前显示状态，默认不显示
+    # 存储失败重试的信息
+    retry_queue_mp4: List[Dict] = field(default_factory=list, init=False)
+    # 保存原始的 uuid:mp4 信息，用于出错重试
+    uuid_queue_mp4: Dict = field(default_factory=dict, init=False)
 
 
 

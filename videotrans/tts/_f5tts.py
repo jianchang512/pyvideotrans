@@ -78,18 +78,15 @@ class F5TTS(BaseTTS):
         if data['ref_text'] and len(data['ref_text']) < 10:
             speed = 0.5
 
-        try:
-            result = self.client.predict(
-                ref_audio_input=handle_file(data['ref_wav']),
-                ref_text_input=data['ref_text'],
-                gen_text_input=text,
-                remove_silence=True,
+        result = self.client.predict(
+            ref_audio_input=handle_file(data['ref_wav']),
+            ref_text_input=data['ref_text'],
+            gen_text_input=text,
+            remove_silence=True,
 
-                speed_slider=speed,
-                api_name='/basic_tts'
-            )
-        except Exception as e:
-            raise
+            speed_slider=speed,
+            api_name='/basic_tts'
+        )
 
         logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -125,16 +122,13 @@ class F5TTS(BaseTTS):
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',role))
 
-        try:
-            result = self.client.predict(
-                text=text,
-                prompt_text=data['ref_text'],
-                prompt_wav_upload=handle_file(data['ref_wav']),
-                prompt_wav_record=None,
-                api_name='/voice_clone'
-            )
-        except Exception as e:
-            raise
+        result = self.client.predict(
+            text=text,
+            prompt_text=data['ref_text'],
+            prompt_wav_upload=handle_file(data['ref_wav']),
+            prompt_wav_record=None,
+            api_name='/voice_clone'
+        )
 
         logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -169,17 +163,14 @@ class F5TTS(BaseTTS):
             raise StopRetry(tr('The role {} does not exist',data['ref_wav']))
         logs(f'index-tts {data=}')
 
-        try:
-            kw={
-                "prompt":handle_file(data['ref_wav']),
-                "text":text,
-                "api_name":'/gen_single'
-            }
-            if int(config.params.get('index_tts_version',1))==1:
-                kw['emo_ref_path']=handle_file(data['ref_wav'])
-            result = self.client.predict(**kw)
-        except Exception as e:
-            raise
+        kw={
+            "prompt":handle_file(data['ref_wav']),
+            "text":text,
+            "api_name":'/gen_single'
+        }
+        if int(config.params.get('index_tts_version',1))==1:
+            kw['emo_ref_path']=handle_file(data['ref_wav'])
+        result = self.client.predict(**kw)
                 
         logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -216,20 +207,17 @@ class F5TTS(BaseTTS):
             raise StopRetry(tr('The role {} does not exist',role))
         logs(f'voxcpm-tts {data=}')
 
-        try:
-            result = self.client.predict(
-                text_input=text,
-                prompt_wav_path_input=handle_file(data['ref_wav']),
-                prompt_text_input=data.get('ref_text',''),
-                cfg_value_input=2,
-                inference_timesteps_input=10,
-                do_normalize=True,
-                denoise=True,
+        result = self.client.predict(
+            text_input=text,
+            prompt_wav_path_input=handle_file(data['ref_wav']),
+            prompt_text_input=data.get('ref_text',''),
+            cfg_value_input=2,
+            inference_timesteps_input=10,
+            do_normalize=True,
+            denoise=True,
 
-                api_name='/generate'
-            )
-        except Exception as e:
-            raise
+            api_name='/generate'
+        )
         logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
@@ -265,15 +253,12 @@ class F5TTS(BaseTTS):
             self.error =tr('The role {} does not exist',role)
             raise StopRetry(self.error)
 
-        try:
-            result = self.client.predict(
-                text_input=text,
-                audio_prompt_input=handle_file(data['ref_wav']),
-                transcription_input=data.get('ref_text', ''),
-                api_name='/generate_audio'
-            )
-        except Exception as e:
-            raise
+        result = self.client.predict(
+            text_input=text,
+            audio_prompt_input=handle_file(data['ref_wav']),
+            transcription_input=data.get('ref_text', ''),
+            api_name='/generate_audio'
+        )
 
         logs(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
@@ -293,21 +278,24 @@ class F5TTS(BaseTTS):
                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
                after=after_log(config.logger, logging.INFO))
         def _run():
-            ttstype = config.params.get('f5tts_ttstype')
-            print(f'{ttstype=}')
+            
             if self._exit():
                 return
             try:
                 self.client = Client(self.api_url, httpx_kwargs={"timeout": 7200,"proxy":self.proxy_str}, ssl_verify=False)
+            except ValueError as e:
+                if 'api_name' in str(e):
+                    raise StopRetry(f'api_name名称不正确，请确保使用该TTS的官方源码部署\F5-TTS: https://github.com/SWivid/F5-TTS\nIndex-TTS: https://github.com/index-tts/index-tts\nSpark-TTS: https://github.com/SparkAudio/Spark-TTS\nVoxCPM-TTS: https://github.com/OpenBMB/VoxCPM\nDia-TTS: https://github.com/nari-labs/dia')
+                raise
             except Exception as e:
                 raise StopRetry( f'{e}')
-            if ttstype == config.F5_TTS_WINFORM_NAMES[1]:
+            if self.tts_type==tts.SPARK_TTS:
                 self._item_task_spark(data_item)
-            elif ttstype ==  config.F5_TTS_WINFORM_NAMES[2]:
+            elif self.tts_type==tts.INDEX_TTS:
                 self._item_task_index(data_item)
-            elif ttstype ==  config.F5_TTS_WINFORM_NAMES[4]:
+            elif self.tts_type==tts.VOXCPM_TTS:
                 self._item_task_voxcpm(data_item)
-            elif ttstype ==  config.F5_TTS_WINFORM_NAMES[3]:
+            elif self.tts_type==tts.DIA_TTS:
                 self._item_task_dia(data_item)
             else:
                 self._item_task_v1(data_item)

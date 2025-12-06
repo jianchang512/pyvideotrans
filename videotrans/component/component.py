@@ -47,6 +47,45 @@ class DropButton(QPushButton):
         self.setText(f'{len(self.filelist)} files')
 
 
+
+class PeiyinDropButton(QPushButton):
+    def __init__(self, text=""):
+        super(PeiyinDropButton, self).__init__(text)
+        self.setAcceptDrops(True)
+        self.clicked.connect(self.get_file)
+        self.filelist = []
+        self.setCursor(Qt.PointingHandCursor)
+
+    def get_file(self):
+        fnames, _ = QFileDialog.getOpenFileNames(self, "Select srt", config.params['last_opendir'],
+                                                 "Text files(*.srt *.txt)")
+        namestr = []
+        for (i, it) in enumerate(fnames):
+            fnames[i] = it.replace('\\', '/')
+            namestr.append(os.path.basename(it))
+            config.params['last_opendir']=os.path.dirname(it)
+        self.filelist = fnames
+        self.setText(f'{len(self.filelist)} files \n' + "\n".join(namestr))
+
+    def dragEnterEvent(self, event):
+        files = event.mimeData().text().strip().lower()
+        allow = True
+        for it in files.split("\n"):
+            if it.split('.')[-1] not in ['srt','txt']:
+                allow = False
+                break
+        if allow:
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        filepath = event.mimeData().text().strip().split("\n")
+        self.filelist = [file.replace('file:///', '') for file in filepath]
+        self.setText(f'{len(self.filelist)} files')
+
+
+
 # 文本框 获取内容
 class Textedit(QPlainTextEdit):
     def __init__(self):

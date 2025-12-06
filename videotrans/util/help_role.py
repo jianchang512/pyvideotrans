@@ -4,6 +4,8 @@ import re
 import sys
 
 import requests
+
+from videotrans.configure import config
 from videotrans.configure.config import logs
 from pathlib import Path
 from functools import lru_cache
@@ -191,6 +193,8 @@ def get_minimaxi_rolelist():
     return voice_list
 
 
+def get_qwen3tts_rolelist():
+    return json.loads(Path(config.ROOT_DIR+"/videotrans/voicejson/qwen3tts.json").read_text(encoding='utf-8'))
 
 
 

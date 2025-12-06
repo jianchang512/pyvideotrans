@@ -1,5 +1,5 @@
 import math
-import json
+import json,re
 import os
 import shutil
 import subprocess
@@ -141,7 +141,7 @@ class SpeedRate:
         self.fps_ms = 1000 // 30
 
         self.crf = "20"
-        self.preset = "fast"
+        self.preset = "veryfast"
         self.audio_speed_filter = 'atempo'
         try:
             if Path(config.ROOT_DIR + "/crf.txt").exists():
@@ -301,37 +301,43 @@ class SpeedRate:
         logs(f"源视频帧率被设定为: {self.source_video_fps}\n")
         logs("[start]========在变速前，整理数据，修复错误时间轴==============")
         queue_tts_len = len(self.queue_tts)
-        for i, it in enumerate(self.queue_tts):
-            # 第一条字幕，如果前面有少于 40ms的空隙，将字幕开始时间前移到0
-            if i == 0 and 0 < it['start_time'] < self.MIN_CLIP_DURATION_MS:
-                it['start_time'] = 0
-            # 如果字幕和下条字幕空隙小于 40ms，则当前字幕结束时间后移
-            if i < queue_tts_len - 1 and ( self.queue_tts[i + 1]['start_time'] > it['end_time']):
-                # 不是最后一个,判断和前面的空隙是否小于 self.MIN_CLIP_DURATION_MS
-                it['end_time'] = self.queue_tts[i + 1]['start_time']
+        
+        # 将每个字幕的 end_time 都改为和下一个字幕的 start_time 一致
+
+        for i,it in enumerate(self.queue_tts):
+            if i==0 and it['start_time']<self.MIN_CLIP_DURATION_MS:
+                it['start_time']=0
+            
+            if i< queue_tts_len-1:
+                it['end_time']=self.queue_tts[i+1]['start_time']
+
+                
         # 处理末尾一条字幕
-        if  self.raw_total_time > self.queue_tts[-1]['end_time']:
+        if  self.raw_total_time and self.raw_total_time > self.queue_tts[-1]['end_time']:
             # 视频时长大于字幕末尾时长,延长末尾字幕结束时间，最多延长10s
             self.queue_tts[-1]['end_time']=self.raw_total_time
 
         # 3. 遍历一次，本次仅仅处理字幕文本为空的情况，将它合并进前面的字幕，
         dubb_list = []
+        notext_audio=0
         for i, it in enumerate(self.queue_tts):
-            if it['text'].strip():
-                if Path(it['filename']).exists():
-                    dubb_list.append(it['filename'])
+            if it['text'].strip() and Path(it['filename']).exists():
+                dubb_list.append(it['filename'])
                 continue
             logs(f'字幕{it.get("line")} 无文本，移除，{it["filename"]}')
             # 文本为空，则配音文件无论是否存在均无意义
             # 但该条字幕不删，以便和原始转录的字幕条数一一对应，防止双字幕时错乱
             it['filename'] = None
-            Path(it['filename']).unlink(missing_ok=True)
+            if it['end_time']>it['start_time']:
+                it['filename']=self.cache_folder+f'/dubb-{i}.wav'
+                AudioSegment.silent(duration=it['end_time']-it['start_time']).set_channels(self.AUDIO_CHANNELS).set_frame_rate(self.AUDIO_SAMPLE_RATE).export(it['filename'],  format="wav")
+                notext_audio+=1
+
 
         # 对配音文件移除头部 尾部静音
-        # tools.remove_silence_wav(output_wav_file_path)
         all_task = []
         total_tasks = len(dubb_list)
-        logs(f'共{len(self.queue_tts)}条字幕，共{total_tasks}个配音文件，开始对配音文件移除开头默认静默片段')
+        logs(f'共{len(self.queue_tts)}条字幕，共{total_tasks}个需要移除的配音文件，共{notext_audio}条无文字行的空字幕，开始对配音文件移除开头默认静默片段')
         with ThreadPoolExecutor(max_workers=min(12, total_tasks, os.cpu_count())) as pool:
             for i, d in enumerate(dubb_list):
                 all_task.append(pool.submit(tools.remove_silence_wav, d))
@@ -345,6 +351,7 @@ class SpeedRate:
                 except Exception as e:
                     logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
         logs(f'再次遍历字幕，获取每个移除开头结尾静默片段后的配音时长')
+        
         # 4. 再次遍历，获取配音时长
         for i, it in enumerate(self.queue_tts):
             # 原始字幕时长
@@ -354,12 +361,14 @@ class SpeedRate:
             it['end_time_source'] = it['end_time']
 
             # 如果时长为0，要么因为当前字幕为空已处理，要么出错了，则删掉配音文件
-            if it['source_duration'] <= 0 or not it['filename']:
+            if it['source_duration'] <= 0:
                 it['dubb_time'] = 0
                 it['filename'] = None
                 continue
 
             tools.set_process(text=f"{tr('[1/5] Preparing data...')} {i}/{self.len_queue}", uuid=self.uuid)
+            if not it['filename']:
+                it['filename']=self.cache_folder+f'/dubb-{i}.wav'
             if not Path(it['filename']).exists():
                 it['dubb_time']=it['source_duration']
                 AudioSegment.silent(duration=it['source_duration']).set_channels(self.AUDIO_CHANNELS).set_frame_rate(self.AUDIO_SAMPLE_RATE).export(it['filename'],  format="wav")
@@ -523,7 +532,7 @@ class SpeedRate:
                 temp_output_file = self.cache_folder + f'/temp-{i}-{time.time()}.wav'
                 if self.audio_speed_filter == 'rubberband':
                     filter_str = f"rubberband=tempo={it['dubb_time'] / it['target_time']}"
-                    cmd = ['-y', '-i', it['filename'], '-filter:a', filter_str, '-t', f"{it['target_time']/1000.0}", '-ar',
+                    cmd = ['-y', '-i', it['filename'], '-filter:a', filter_str, '-t', f"{it['target_time']/1000.0:.6f}", '-ar',
                            str(self.AUDIO_SAMPLE_RATE), '-ac', str(self.AUDIO_CHANNELS), '-c:a', 'pcm_s16le',
                            temp_output_file]
                 else:
@@ -548,7 +557,7 @@ class SpeedRate:
                         '-y',
                         '-i', it['filename'],
                         '-filter:a', filter_str,
-                        '-t', f"{it['target_time']/1000.0}",  # 强制裁剪到目标时长，防止精度误差
+                        '-t', f"{it['target_time']/1000.0:.6f}",  # 强制裁剪到目标时长，防止精度误差
                         '-ar', str(self.AUDIO_SAMPLE_RATE),
                         '-ac', str(self.AUDIO_CHANNELS),
                         '-c:a', 'pcm_s16le',
@@ -656,6 +665,8 @@ class SpeedRate:
             })
         wanto_times=[]
         real_times=[]
+        # 存储每个片段实际时长-期望时长的差值，如果小于0，则 额外补50ms
+        offset_end=[]
         # 开始处理
         def _cut_video_get_duration(i, task):
             duration = task['end'] - task['start']
@@ -664,29 +675,31 @@ class SpeedRate:
             if duration <= 0:
                 logs(f"{flag},时长为0，跳过裁切视频片段")
                 return
-
+            # 冗余，弥补最后一帧强制截断时长比预期变短，累计相差太大
+            add_offset=50
+            duration_s=f'{(duration+add_offset) / 1000.0:.6f}'
             logs(flag)
             cmd = [
                 '-y',
                 '-ss',
                 tools.ms_to_time_string(ms=task['start'], sepflag='.'),
                 '-t',
-                f'{duration / 1000.0}',
+                duration_s,
                 '-i',
                 self.novoice_mp4_original,
                 '-an',
                 '-c:v',
-                'libx264', "-x264-params", "keyint=1:min-keyint=1:scenecut=0",
+                'libx264', "-g", "1",
                 '-preset', self.preset, '-crf', self.crf,
                 '-pix_fmt', 'yuv420p']
             cmd_bak = cmd[:]
             if task['pts'] > 1:
                 qiwang=task["pts"]*duration
-                cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts={task["pts"]}*PTS', '-fps_mode', 'vfr','-t',str(qiwang/1000.0)])
+                cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts={task["pts"]}*PTS', '-fps_mode', 'vfr','-t',f'{(qiwang+add_offset)/1000.0:.6f}'])
                 # 失败后重试不变速
-                cmd_bak.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts=PTS', '-fps_mode', 'vfr','-t',str(duration/1000.0),task['filename']])
+                cmd_bak.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s,task['filename']])
             else:
-                cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts=PTS', '-fps_mode', 'vfr','-t',str(duration/1000.0)])
+                cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s])
             cmd.append(task['filename'])
             try:
                 tools.runffmpeg(cmd, force_cpu=True)
@@ -701,6 +714,7 @@ class SpeedRate:
                 else:
                     real_time=tools.get_video_duration(task["filename"])
                     diff=real_time-qiwang
+                    offset_end.append(diff)
                     real_times.append(real_time)
                     wanto_times.append(qiwang)
                     logs(f'视频{i} 切片,期望时长={qiwang} ，实际时长={real_time}, {"【变长】" if diff>0 else "【变短】"} {abs(diff)}ms\n')
@@ -733,7 +747,7 @@ class SpeedRate:
         real_videotime=sum(real_times)
         wanto_videotime=sum(wanto_times)
         diff=real_videotime-wanto_videotime
-        logs(f'原始视频时长={self.raw_total_time}ms，实际视频切片变速后，所有切片真实总时长={real_videotime}ms,期望总时长 {wanto_videotime}ms, 实际比期望 { "【长了】" if diff>0 else "【短了】"}{abs(diff)}ms')
+        logs(f'原始视频时长={self.raw_total_time}ms，实际视频切片变速后，所有切片真实总时长={real_videotime}ms,期望总时长 {wanto_videotime}ms, 实际时长比期望 { "【长了】" if diff>0 else "【短了】"}{abs(diff)}ms')
         logs(f'[end]=========视频变速处理结束==========\n')
         return data
 
@@ -773,57 +787,109 @@ class SpeedRate:
         len_tts = len(self.queue_tts)
         logs(f'[start]=====配音变速完成后，拼接之前，重新校正时间轴，字幕数量：{len_tts} ============')
         # 因变速精确度 及 最大倍数限制，可能出现变速后音频时长仍超出，此时需要后移 end_time
-        offset = 0
+        # 这几个变量调试用哪个
+        # 理论所有配音和静音总时长
+        total_time=0
+        # 理论应插入的静音总时长
+        insert_silent_nums=0
+        # 理论应插入静音片段个数
+        insert_silent_time=0
+        
         for i, it in enumerate(self.queue_tts):
-            source = it['source_duration']
+            # 有视频慢速时，使用原始 
+            source = it['end_time']-it['start_time'] #if not self.shoud_videorate else it['source_duration']
             if source <= 0:
+                it['real_dubb_time']=0
                 continue
-            if i==0:
-                if it['start_time']>0:
-                    file_list.append(self._create_silen_file(i, it['start_time']))
-                    logs(f'字幕{it.get("line")} 前添加静音长度={it["start_time"]}\n')
-
+            if i==0 and it['start_time']>0:
+                file_list.append(self._create_silen_file(i, it['start_time'],f'0-before-{it["start_time"]}'))
+                logs(f'字幕{it.get("line")} 前添加静音长度={it["start_time"]}')
+                total_time+=it['start_time']
+                insert_silent_nums+=1
+                insert_silent_time+=it['start_time']
+            
             seg = AudioSegment.from_file(it['filename'], format='wav')
             seg_len=len(seg)
-            diff=source-seg_len
-
-
-            it['start_time']+=offset
-            it['end_time'] = it['start_time'] + seg_len
+            
             file_list.append(it['filename'])
-
+            it['real_dubb_time']=seg_len
+            # 原始区间 - 当前真实配音时长
+            total_time+=seg_len
+            diff=source-seg_len
             if diff>0:
-                # 配音时长 小于 原字幕时长，有视频慢速时，直接补静音，无视频慢速时，减少offset
-                logs(f'字幕{it.get("line")} 配音真实时长={seg_len},原字幕区间时长={source},配音[短了]{diff},   {offset=}')
-                if not self.shoud_videorate:
-                    newoffset=offset-diff
-                    if newoffset>=0:
-                        # 偏移去掉 diff 后仍大于0，无需补静音
-                        logs(f'无视频慢速，从偏移offset中去掉 diff 距离,新的偏移是{newoffset=},无需补静音\n')
-                        offset=newoffset
-                    else:
-                        # diff 大于 偏移offset，完全抵消偏移后仍有空余，需补静音
-                        logs(f'无视频慢速,从偏移offset中去电 diff 距离,新的偏移是 0,需补静音{abs(newoffset)}\n')
-                        offset=0
-                        file_list.append(self._create_silen_file(i,abs(newoffset)))
-                else:
-                    logs(f'有视频慢速，后补静音{diff}\n')
-                    file_list.append(self._create_silen_file(i,diff))
-            else:
-                offset+=seg_len-source
-                logs(f'字幕{it.get("line")} 配音真实时长={seg_len},原字幕区间时长={source},配音[长了]{abs(diff)}  {offset=}\n')
-
-        if self.raw_total_time>self.queue_tts[-1]['end_time']:
+                # 配音时长 小于 原字幕时长，后补静音
+                file_list.append(self._create_silen_file(i,diff,f'{i}-before-{diff}'))
+                logs(f'字幕{it.get("line")} 配音真实时长={seg_len},原字幕区间时长={source},配音[短了],后补静音{diff}\n')
+                
+                total_time+=diff
+                insert_silent_nums+=1
+                insert_silent_time+=diff
+            elif diff<0:
+                logs(f'字幕{it.get("line")} 配音真实时长={seg_len},原字幕区间时长={source},配音[长了]{abs(diff)}\n')
+            
+            
+        last_end_diff= self.raw_total_time-self.queue_tts[-1]['end_time']   
+        if last_end_diff>0:
+            logs(f"插入最后一条，{self.raw_total_time=},{self.queue_tts[-1]['end_time']=},差值{last_end_diff}")
             self.queue_tts[-1]['end_time']=self.raw_total_time
-            file_list.append(self._create_silen_file('lastsilent',self.raw_total_time>self.queue_tts[-1]['end_time']))
-
-        ce_time=0
+            file_list.append(self._create_silen_file('lastsilent',last_end_diff,f'jy_{i}-after-{last_end_diff}'))
+            insert_silent_nums+=1
+            insert_silent_time+=self.raw_total_time-self.queue_tts[-1]['end_time']
+            total_time+=last_end_diff
+        
+        
+        # 再一次更新字幕结束时间戳
+        offset=0
+        for i,it in enumerate(self.queue_tts):
+            it['start_time']+=offset
+            diff=it.get('real_dubb_time',0)-it['source_duration']
+            # 如果配音大于原时长，需要将字幕开始时间后移
+            if diff>0:
+                offset+=diff
+            it['end_time']=it['start_time']+it['real_dubb_time']
+            it['startraw']=tools.ms_to_time_string(ms=it['start_time'])
+            it['endraw']=tools.ms_to_time_string(ms=it['end_time'])
+            logs(f'字幕{it.get("line")} {offset=} 持续时长 {it["end_time"]-it["start_time"]}, 配音时长 {it["real_dubb_time"]}')
+        
+       
+       
+        # 真实所有配音和静音片段时长
+        real_file_time=0
+        # 真实静音片段总时长
+        real_insert_silent_time=0
+        # 真实插入静音个数
+        real_insert_silent_nums=0
         for it in file_list:
-            ce_time+=len(AudioSegment.from_file(it,format="wav"))
-
-        logs(f'配音后最后音频 end_time={self.queue_tts[-1]["end_time"]},真实配音片段总时长={ce_time}')
+            t=len(AudioSegment.from_file(it,format="wav"))
+            name=Path(it).name
+            if name.startswith('dubb-'):
+                index=re.findall(r'dubb-(\d+)-',name)
+                if not index:
+                    real_file_time+=t
+                    continue
+                index=int(index[0])
+                if index>=len(self.queue_tts):
+                    real_file_time+=t
+                    continue
+                item=self.queue_tts[index]
+                startraw=item['startraw']
+                endraw=item['endraw']
+                logs(f'字幕{item.get("line")} {startraw}->{endraw}, start_time->end_time={item["start_time"]}->{item["end_time"]}，从0至此配音时长:dubb_start->dubb_end={real_file_time} --> {real_file_time+t}, 两者应相等')
+            elif name.startswith('jy_'):
+                real_insert_silent_time+=t
+                real_insert_silent_nums+=1
+            real_file_time+=t
+        
+        logs(f'\n理论应插入 {insert_silent_time} ms 静音,实际插入 {real_insert_silent_time} ms静音，理论应插入 {insert_silent_nums} 个静音，实际插入 {real_insert_silent_nums} 个静音')
+        
+        end_time_raw=tools.ms_to_time_string(ms=self.queue_tts[-1]["end_time"])        
+        real_file_time_raw=tools.ms_to_time_string(ms=real_file_time)
+        
+        logs(f'\n配音后最后音频时刻字幕end_time={end_time_raw},理论音频总时长 {total_time=},实际配音总时长 {real_file_time=},{real_file_time_raw=},')
+        
         logs(f'[end]=====配音变速完成后，拼接之前，重新校正时间轴，字幕数量：{len_tts}============\n')
         self._exec_concat_audio(file_list)
+
 
     def _exec_concat_audio(self, file_list):
         concat_txt_path = Path(f'{self.cache_folder}/audio_concat_list.txt').as_posix()
@@ -840,8 +906,11 @@ class SpeedRate:
             "-c:a", 'copy',
             outname
         ]
+        self.stop_show_process = False
+        threading.Thread(target=self._hebing_pro, args=(protxt, 'concat audio')).start()
         tools.runffmpeg(cmd_step1, force_cpu=True,cmd_dir=self.cache_folder)
-        logs(f'===拼接配音片段后，目标音频{outname}, 总时长={len(AudioSegment.from_file(outname, format="wav"))}\n')
+        self.stop_show_process = True
+        logs(f'===拼接配音片段后，目标音频{outname}, 真实总时长={len(AudioSegment.from_file(outname, format="wav"))}\n')
         # 直接连接，如果输出要求不是wav，需要再转码
         if ext!='.wav':
             cmd_step2 = [
@@ -853,13 +922,11 @@ class SpeedRate:
             ]
 
             self.stop_show_process = False
-            threading.Thread(target=self._hebing_pro, args=(protxt, 'concat audio')).start()
+            threading.Thread(target=self._hebing_pro, args=(protxt, 'conver audio')).start()
             tools.runffmpeg(cmd_step2, force_cpu=True)
             self.stop_show_process = True
         if not tools.vail_file(self.target_audio):
             logs(f"音频拼接失败， {self.target_audio} 未生成。", level='warn')
-
-
 
     # ffmpeg进度日志
     def _hebing_pro(self, protxt, text="") -> None:
@@ -884,11 +951,13 @@ class SpeedRate:
             time.sleep(0.5)
 
     # 创建静音音频文件并返回路径
-    def _create_silen_file(self, i, duration):
-        silence_path = Path(self.cache_folder, f"silen_{i}_{time.time()}.wav").as_posix()
+    def _create_silen_file(self, i, duration,newname=None):
+        if not newname:
+            silence_path = Path(self.cache_folder, f"jingyin_{i}_{time.time()}.wav").as_posix()
+        else:
+            silence_path = Path(self.cache_folder, f"jy_{newname}_{time.time()}.wav").as_posix()
         silent_segment = AudioSegment.silent(duration=duration)
-        silent_segment.set_channels(self.AUDIO_CHANNELS).set_frame_rate(self.AUDIO_SAMPLE_RATE).export(silence_path,
-                                                                                                       format="wav")
+        silent_segment.set_channels(self.AUDIO_CHANNELS).set_frame_rate(self.AUDIO_SAMPLE_RATE).export(silence_path,  format="wav")
         return silence_path
 
 
@@ -905,4 +974,5 @@ class SpeedRate:
         y_stretched = pyrb.time_stretch(y, sr, time_stretch_rate)
         sf.write(input_path, y_stretched, sr)
         real_time=len(AudioSegment.from_file(input_path))
-        logs(f"""配音原时长: {current_duration}ms -> 期望变速目标时长: {target_duration}ms (pts:{time_stretch_rate})，变速后实际时长:{real_time}ms，实际时长-期望目标时长={real_time-target_duration}ms""")
+        if real_time-target_duration !=0:
+            logs(f"""配音原时长: {current_duration}ms -> 期望变速目标时长: {target_duration}ms (pts:{time_stretch_rate})，变速后实际时长:{real_time}ms，实际时长-期望目标时长={real_time-target_duration}ms""")

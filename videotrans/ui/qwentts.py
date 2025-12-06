@@ -4,6 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
+from videotrans.configure import config
 from videotrans.configure.config import tr
 from videotrans.util import tools
 
@@ -44,10 +45,11 @@ class Ui_qwenttsform(object):
         h3.addWidget(self.label_3)
         h3.addWidget(self.qwentts_model)
 
-        v1.addLayout(h3)
+        self.qwentts_modellist=QtWidgets.QPlainTextEdit()
 
-        v1.addWidget(
-            QtWidgets.QLabel(tr("The qwen-tts model only supports Chinese and English, while the qwen3-tts model supports 10 languages.")))
+
+        v1.addLayout(h3)
+        v1.addWidget(self.qwentts_modellist)
 
         h4 = QtWidgets.QHBoxLayout()
 
@@ -84,8 +86,10 @@ class Ui_qwenttsform(object):
             self.qwentts_key.setText(config.params.get("qwentts_key",''))
         if config.params.get("qwentts_model",''):
             self.qwentts_model.setCurrentText(config.params.get("qwentts_model",''))
+        self.qwentts_modellist.setPlainText(config.settings.get('qwentts_models'))
+
     def retranslateUi(self, qwenttsform):
-        qwenttsform.setWindowTitle("Qwen TTS")
+        qwenttsform.setWindowTitle("Qwen3 TTS")
         self.label_3.setText(tr("Model"))
         self.set_qwentts.setText(tr("Save"))
         self.test_qwentts.setText(tr("Test"))

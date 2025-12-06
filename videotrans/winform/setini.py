@@ -15,7 +15,6 @@ def openwin():
         # 创建一个空字典来存储结果
         line_edit_dict = config.settings
         shoud_model_list_sign = False
-        before_video_codec=line_edit_dict.get('video_codec')
         # 遍历找到的所有QLineEdit控件
         for line_edit in winobj.findChildren(QLineEdit):
             # 检查QLineEdit是否有objectName
@@ -48,11 +47,6 @@ def openwin():
                     line_edit_dict[name] = line_edit.currentText()
 
         line_edit_dict['homedir'] = winobj.homedir_btn.text()
-        if before_video_codec!=line_edit_dict.get('video_codec'):
-            # 编码方式变更了 ,需要重新运行编码
-            config.codec_cache={}
-            config.video_codec=None
-            run_in_threadpool(tools.get_video_codec, True)
         config.parse_init(line_edit_dict)
         config.settings = line_edit_dict
         if shoud_model_list_sign:
@@ -64,7 +58,10 @@ def openwin():
     def create():
         nonlocal winobj
         from videotrans.component.set_form import SetINIForm
-
+        winobj=config.child_forms.get('setini')
+        if winobj:
+            winobj.show()
+            return
         winobj = SetINIForm()
         config.child_forms['setini'] = winobj
         winobj.set_ok.clicked.connect(save)

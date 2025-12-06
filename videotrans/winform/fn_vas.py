@@ -169,7 +169,7 @@ def openwin():
                             '-i',
                             self.video
                     ]
-                    novoice_mp4 = config.TEMP_HOME + f"/{time.time()}-novice.mp4"
+                    novoice_mp4 = config.TEMP_DIR + f"/{time.time()}-novice.mp4"
                     if self.audio_process == 2 and  audio_time >self.video_time:
                         # 如果定格视频并且音频时长大于视频时长
                         sec = max((audio_time - self.video_time) / 1000,1)
@@ -180,14 +180,14 @@ def openwin():
                     cmd+=[
                         "-an",
                         '-c:v',
-                        'libx264',
+                        f'libx{config.settings.get("video_codec", 264)}',
                         novoice_mp4
                     ]
-                    print(f'{novoice_mp4=}')
+
                     tools.runffmpeg(cmd)
 
                     # 视频音频合并
-                    audiovideoend_mp4 = config.TEMP_HOME + f"/{time.time()}-audiovideoend.mp4"
+                    audiovideoend_mp4 = config.TEMP_DIR + f"/{time.time()}-audiovideoend.mp4"
                     tools.runffmpeg([
                         '-y',
                         '-i',
@@ -200,13 +200,12 @@ def openwin():
                         "aac",
                         audiovideoend_mp4
                     ])
-                    print(f'222222 {self.video=}')
+
                     # 不存在字幕，则结束了
                     if not self.srt:
                         self.post(type='ok', text=self.file)
                         self.is_end=True
                         shutil.copy2(audiovideoend_mp4,self.file)
-                        self._save_set()
                         return
                     self.video=audiovideoend_mp4
                 # 软字幕
@@ -233,7 +232,6 @@ def openwin():
                         f"language={subtitle_language}",
                         self.file
                     ]
-                    self._save_set()
                 else:
                     # 硬字幕
                     sublist = tools.get_subtitle_from_srt(self.srt, is_file=True)
@@ -250,13 +248,11 @@ def openwin():
                     tmpsrt = config.TEMP_DIR + f"/vas-{time.time()}.srt"
                     with Path(tmpsrt).open('w', encoding='utf-8') as f:
                         f.write(srt_string.strip())
-                    #assfile = config.TEMP_HOME + f"/vasrt{time.time()}.ass"
-                    #self.save_ass(tmpsrt, assfile)
                     assfile=tools.set_ass_font(tmpsrt)
                     os.chdir(config.TEMP_DIR)
                     cmd += [
                         '-c:v',
-                        'libx264',
+                        f'libx{config.settings.get("video_codec", 264)}',
                         '-vf',
                         f"subtitles={os.path.basename(assfile)}:charenc=utf-8",
                         '-crf',
@@ -265,8 +261,9 @@ def openwin():
                         config.settings.get('preset','fast'),
                         self.file
                     ]
+                print(cmd)
                 threading.Thread(target=self.hebing_pro,args=(protxt,self.video_time)).start()
-                tools.runffmpeg(cmd)
+                tools.runffmpeg(cmd,force_cpu=False)
                 self.post(type='ok', text=self.file)
                 self.is_end=True
             except Exception as e:
