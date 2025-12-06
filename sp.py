@@ -13,6 +13,7 @@ License: GPL-V3
 
 """
 import atexit, sys, os, time
+VERSION = "v3.89"
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -23,7 +24,6 @@ from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer, QLocale
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 
 
-VERSION = "v3.88"
 
 
 # 抑制警告

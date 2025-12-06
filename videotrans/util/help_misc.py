@@ -11,7 +11,7 @@ def show_download_tips(Win,tr_text=""):
     from videotrans.configure import config
     from PySide6.QtWidgets import QMessageBox,QApplication
 
-    QApplication.clipboard().setText('https://github.com/jianchang512/stt/releases/download/0.0/noise-uvr-speaker-realtime.7z')
+    QApplication.clipboard().setText('https://github.com/jianchang512/stt/releases/download/0.0/2noise-uvr-speaker-realtime.7z')
     reply = QMessageBox.information(Win,
                 config.tr("The model is missing. Please download it!"),
                 config.tr("DownloadRealTimeModel",tr_text,f'{config.ROOT_DIR}/models/onnx')

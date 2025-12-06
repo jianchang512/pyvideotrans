@@ -46,11 +46,14 @@ def openwin():
         if not file or not os.path.exists(file):
             tools.show_error(tr('must select audio or video file'))
             return
+        if not Path(f'{config.ROOT_DIR}/models/onnx/UVR-MDX-NET-Inst_HQ_4.onnx').exists():
+            tools.show_download_tips(winobj,tr('Retain original background sound'))
+            return
         uuid = tools.get_md5(file)
         # 已在执行，在此点击停止
         if winobj.has_done:
             winobj.has_done = False
-            config.uuid_logs_queue[uuid] = 'stop'
+            del config.uuid_logs_queue[uuid]
             winobj.set.setText(tr('Start Separate'))
             return
         winobj.has_done = True
@@ -63,7 +66,6 @@ def openwin():
         # 创建文件夹
         Path(outdir).mkdir(parents=True,exist_ok=True)
         winobj.url.setText(outdir)
-        print(f'=={outdir=}')
         # 开始分离
         from videotrans.task.separate_worker import SeparateWorker
         winobj.task = SeparateWorker(parent=winobj, file=file, out=outdir, uuid=uuid)

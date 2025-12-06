@@ -15,7 +15,7 @@ import soundfile as sf
 
 
 def create_offline_source_separation(thread_nums=4):
-    model = f"{cfg.ROOT_DIR}/models/onnx/UVR-MDX-NET-Voc_FT.onnx"
+    model = f"{cfg.ROOT_DIR}/models/onnx/UVR-MDX-NET-Inst_HQ_4.onnx"
 
     if not Path(model).is_file():
         raise ValueError(f"{model} does not exist.")
@@ -62,8 +62,8 @@ def run_sep(wav_file,vocal_file,instr_file,thread_nums=4):
 
     assert len(output.stems) == 2, len(output.stems)
 
-    non_vocals = output.stems[1].data
-    vocals = output.stems[0].data
+    non_vocals = output.stems[0].data
+    vocals = output.stems[1].data
     # vocals.shape (num_channels, num_samples)
 
     vocals = np.transpose(vocals)

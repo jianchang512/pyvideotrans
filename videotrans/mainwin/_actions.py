@@ -456,7 +456,8 @@ class WinAction(WinActionSub):
         self.cfg['target_language_code'] = translator.get_code(show_text=self.cfg['target_language'])
 
         # 清理缓存
-        self.cfg['clear_cache'] = True if self.main.clear_cache.isChecked() else False
+        self.cfg['clear_cache'] = self.main.clear_cache.isChecked()
+        self.cfg['only_out_mp4'] = self.main.only_out_mp4.isChecked()
 
         # 配音设置
         self.cfg['tts_type'] = self.main.tts_type.currentIndex()
@@ -501,7 +502,7 @@ class WinAction(WinActionSub):
         self.cfg['enable_diariz'] = self.main.enable_diariz.isChecked()
         self.cfg['nums_diariz'] = self.main.nums_diariz.currentIndex()
         
-        if (self.cfg['is_separate'] and not Path(f'{config.ROOT_DIR}/models/onnx/UVR-MDX-NET-Voc_FT.onnx').exists()): 
+        if self.cfg['is_separate'] and not Path(f'{config.ROOT_DIR}/models/onnx/UVR-MDX-NET-Inst_HQ_4.onnx').exists():
             self.main.startbtn.setDisabled(False)
             tools.show_download_tips(self.main,tr('Retain original background sound'))
             return

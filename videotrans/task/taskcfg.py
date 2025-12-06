@@ -74,3 +74,5 @@ class TaskCfg:
     enable_diariz:bool=False # 是否进行说话人识别
     nums_diariz:int=0 # 是否进行说话人识别
     rephrase:int=2 #0 默认断句不处理 1=LLM重新断句 2=自动修正
+    # 是否仅仅输出mp4,仅视频翻译使用
+    only_out_mp4:bool=False

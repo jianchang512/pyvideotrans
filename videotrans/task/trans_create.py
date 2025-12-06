@@ -618,7 +618,12 @@ class TransCreate(BaseTask):
         try:
             if self.cfg.shound_del_name:
                 Path(self.cfg.shound_del_name).unlink(missing_ok=True)
-            # shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
+            if self.cfg.only_out_mp4:
+                for it in Path(self.cfg.target_dir).rglob('*'):
+                    if it.is_file() and it.suffix[1:].lower()!='mp4':
+                        it.unlink(missing_ok=False)                  
+                    elif it.is_dir():
+                        shutil.rmtree(it.as_posix(),ignore_errors=True)
         except Exception as e:
             logs(e, level="except")
         self._signal(text=f"{self.cfg.name}", type='succeed')
@@ -910,16 +915,17 @@ class TransCreate(BaseTask):
     # 处理所需字幕
     def _process_subtitles(self) -> tuple[str, str]:
         logs(f"\n======准备要嵌入的字幕:{self.cfg.subtitle_type=}=====")
-        if not self.cfg.target_sub or not Path(self.cfg.target_sub).exists():
+        if not Path(self.cfg.target_sub).exists():
             raise RuntimeError( config.tr("No valid subtitle file exists"))
-
+    
         # 如果原始语言和目标语言相同，或不存原始语言字幕，则强制单字幕
-        if (self.cfg.source_language_code == self.cfg.target_language_code) or (
-                not self.cfg.source_sub or not Path(self.cfg.source_sub).exists()):
+        if not Path(self.cfg.source_sub).exists() or (self.cfg.source_language_code == self.cfg.target_language_code) :
             if self.cfg.subtitle_type == 3:
                 self.cfg.subtitle_type = 1
             elif self.cfg.subtitle_type == 4:
                 self.cfg.subtitle_type = 2
+        
+        
         # 最终处理后需要嵌入视频的字幕
         process_end_subtitle = self.cfg.cache_folder + f'/end.srt'
         # 硬字幕时单行字符数
@@ -927,10 +933,6 @@ class TransCreate(BaseTask):
             config.settings.get('cjk_len',15) if self.cfg.target_language_code[:2] in ["zh", "ja", "jp", "ko", 'yu'] else
             config.settings.get('other_len',60))
         target_sub_list = tools.get_subtitle_from_srt(self.cfg.target_sub)
-
-        if self.cfg.subtitle_type in [3, 4] and not Path(self.cfg.source_sub).exists():
-            logs(f'无源语言字幕，使用目标语言字幕')
-            self.cfg.subtitle_type = 1 if self.cfg.subtitle_type == 3 else 2
 
         # 双硬 双软字幕组装
         if self.cfg.subtitle_type in [3, 4]:

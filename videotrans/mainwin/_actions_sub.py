@@ -164,6 +164,7 @@ class WinActionSub:
 
         # 语音识别行
         self.main.reglabel.show()
+        self.main.only_out_mp4.show()
         self.main.recogn_type.show()
         self.main.model_name_help.show()
         self.main.model_name.show()
@@ -195,7 +196,6 @@ class WinActionSub:
             self.main.align_sub_audio.setVisible(False)
         
         # 高级        
-        #self.main.set_adv_status.show()
         self.show_adv_status=True
         self.toggle_adv()
 
@@ -223,6 +223,7 @@ class WinActionSub:
             self.main.proxy.show()
 
         # 配音角色
+        self.main.only_out_mp4.hide()
         self.main.tts_text.hide()
         self.main.tts_type.hide()
         self.main.label_4.hide()
@@ -257,7 +258,6 @@ class WinActionSub:
         if platform.system() != 'Darwin':
             self.main.enable_cuda.show()
         
-        #self.main.set_adv_status.hide()
         self.show_adv_status=True
         self.toggle_adv()
 
@@ -473,6 +473,7 @@ class WinActionSub:
         self.main.clear_cache.setDisabled(type)
         self.main.volume_rate.setDisabled(type)
         self.main.pitch_rate.setDisabled(type)
+        self.main.only_out_mp4.setDisabled(type)
         self.main.import_sub.setDisabled(type)
         self.main.btn_get_video.setDisabled(type)
         self.main.btn_save_dir.setDisabled(type)

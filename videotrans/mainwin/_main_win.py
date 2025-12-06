@@ -1,8 +1,5 @@
 import asyncio, sys
 import os
-
-
-
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 import shutil,uuid
@@ -59,14 +56,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._retranslateUi_from_logic()
         self.show()
         QApplication.processEvents()
-        self._set_cache_set()
-        # QTimer.singleShot(0, self._set_cache_set)
-        self._start_subform()
-        # QTimer.singleShot(0, self._start_subform)
-        self._bindsignal()
-        # QTimer.singleShot(10, self._bindsignal)
-        self.is_writable()
-        # QTimer.singleShot(50, self.is_writable)
+        QTimer.singleShot(0,self._set_cache_set)
+        
+        
         run_in_threadpool(tools.check_hw_on_start)
 
 
@@ -414,23 +406,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.is_restarting = True
             self.close()  # 触发 closeEvent，进行清理，然后在 closeEvent 中重启
 
-    def _bindsignal(self):
-
-
-        self.check_update = CheckUpdateWorker(parent=self)
-        self.check_update.setObjectName("CheckUpdateThread")
-        self.uuid_signal = UUIDSignalThread(parent=self)
-        self.uuid_signal.uito.connect(self.win_action.update_data)
-        self.uuid_signal.setObjectName("UUIDSignalThread")
-
-        self.check_update.start()
-        self.uuid_signal.start()
-        self.worker_threads = start_thread()
-
-
-
-
-
 
     def _set_cache_set(self):
 
@@ -473,6 +448,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.split_type.setDisabled(int(config.params.get('recogn_type', '0')) > 1)
         self.voice_autorate.setChecked(bool(config.params.get('voice_autorate', False)))
         self.video_autorate.setChecked(bool(config.params.get('video_autorate', False)))
+        self.only_out_mp4.setChecked(bool(config.params.get('only_out_mp4', False)))
         
         if not config.params.get('voice_autorate', False) and not config.params.get('video_autorate', False):
             self.remove_silent_mid.setVisible(True)
@@ -521,6 +497,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/proxy'))
 
         self.glossary.clicked.connect(lambda: tools.show_glossary_editor(self))
+
+        QTimer.singleShot(0,self._start_subform)
+        
 
     def _start_subform(self):
 
@@ -622,14 +601,51 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel2.clicked.connect(lambda: self.win_action.open_url('https://bbs.pyvideotrans.com/post'))
         if config.settings.get('show_more_settings'):
             self.win_action.toggle_adv()
+        QTimer.singleShot(0,self._bindsignal)
+        
 
-        # dialog=EditDubbingResultDialog(
-        #         cache_folder="c:/users/c1/videos",
-        #         language="zh",
-        #         parent=self
-        #     )
-        #
-        # dialog.exec()
+
+    def _bindsignal(self):
+
+
+        self.check_update = CheckUpdateWorker(parent=self)
+        self.check_update.setObjectName("CheckUpdateThread")
+        self.uuid_signal = UUIDSignalThread(parent=self)
+        self.uuid_signal.uito.connect(self.win_action.update_data)
+        self.uuid_signal.setObjectName("UUIDSignalThread")
+
+        self.check_update.start()
+        self.uuid_signal.start()
+        self.worker_threads = start_thread()
+        QTimer.singleShot(0,self.is_writable)
+        
+
+
+    def is_writable(self):
+        temp_file_path = f"{config.ROOT_DIR}/.permission_test_{uuid.uuid4()}.tmp"
+        try:
+            with open(temp_file_path, 'w') as f:
+                pass
+        except OSError as e:
+            tools.show_error(
+                config.tr("The current directory {}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.",
+                   config.ROOT_DIR))
+        finally:
+            if os.path.exists(temp_file_path):
+                try:
+                    os.remove(temp_file_path)
+                except OSError as e:
+                    pass
+        import torch
+        if not config.IS_FROZEN and not shutil.which("rubberband"):
+            print(
+                f'For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip')
+            print(
+                f'MacOS: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm')
+            print(
+                f'Ubuntu: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm')
+
+
 
     # 打开缓慢
     def _open_winform(self, name):
@@ -675,30 +691,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         from videotrans import winform
         QTimer.singleShot(0, winform.get_win(name).openwin)
-
-    def is_writable(self):
-        temp_file_path = f"{config.ROOT_DIR}/.permission_test_{uuid.uuid4()}.tmp"
-        try:
-            with open(temp_file_path, 'w') as f:
-                pass
-        except OSError as e:
-            tools.show_error(
-                config.tr("The current directory {}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.",
-                   config.ROOT_DIR))
-        finally:
-            if os.path.exists(temp_file_path):
-                try:
-                    os.remove(temp_file_path)
-                except OSError as e:
-                    pass
-        if not config.IS_FROZEN and not shutil.which("rubberband"):
-            print(
-                f'For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip')
-            print(
-                f'MacOS: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm')
-            print(
-                f'Ubuntu: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm')
-
 
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""

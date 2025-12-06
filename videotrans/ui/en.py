@@ -79,8 +79,12 @@ class Ui_MainWindow(object):
         self.copysrt_rawvideo.setToolTip(
             tr("When this item is checked, and the target language is different from the language of the pronunciation will move the translated srt file to the original video location and rename it to the same name as the video."))
 
-        self.shutdown = QtWidgets.QCheckBox(self.layoutWidget)
-        self.shutdown.setMinimumSize(QtCore.QSize(50, 20))
+        self.only_out_mp4 = QtWidgets.QCheckBox()
+        self.only_out_mp4.setText(tr('Output only mp4'))
+        self.only_out_mp4.setToolTip(tr('only_out_mp4'))
+        
+        self.shutdown = QtWidgets.QCheckBox()
+        
         self.shutdown.setObjectName("shutdown")
         self.shutdown.setToolTip(
             tr("Automatic shutdown after completing all tasks"))
@@ -92,6 +96,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_6.addWidget(self.btn_save_dir)
         self.horizontalLayout_6.addWidget(self.copysrt_rawvideo)
+        self.horizontalLayout_6.addWidget(self.only_out_mp4)
         self.horizontalLayout_6.addWidget(self.shutdown)
         
          

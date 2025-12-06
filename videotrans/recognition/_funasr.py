@@ -24,7 +24,7 @@ class FunasrRecogn(BaseRecogn):
         # 保留中文、日文、韩文、英文、数字和常见符号，去除其他字符
         allowed_characters = re.compile(r'[^\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af'
                                         r'a-zA-Z0-9\s.,!@#$%^&*()_+\-=\[\]{};\'"\\|<>/?，。！｛｝【】；‘’“”《》、（）￥]+')
-        return re.sub(allowed_characters, '', text,flags=re.I | re.S)
+        return re.sub(allowed_characters, '', text)
 
     def _tosend(self, msg):
         self._signal(text=msg)
