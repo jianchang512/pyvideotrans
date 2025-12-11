@@ -13,7 +13,7 @@ License: GPL-V3
 
 """
 import atexit, sys, os, time
-VERSION = "v3.89"
+VERSION = "v3.90"
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -42,20 +42,6 @@ def cleanup():
         pass
 
 
-qInstallMessageHandler(suppress_qt_warnings)
-atexit.register(cleanup)
-
-if sys.platform != "win32":
-    import signal
-
-
-    def handle_exit(signum, frame):
-        cleanup()
-        sys.exit(0)
-
-
-    signal.signal(signal.SIGINT, handle_exit)
-    signal.signal(signal.SIGTERM, handle_exit)
 
 
 def show_global_error_dialog(tb_str):
@@ -68,6 +54,8 @@ class StartWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.main_window = None
+        self.LoadNotif = None
+        self.start_time=time.time()
 
         self.resize(560, 350)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
@@ -102,6 +90,14 @@ class StartWindow(QWidget):
             pass
 
         super().closeEvent(event)
+
+    def update_lable(self,t):
+        print(t)
+        if t=='end':
+            self.status_label.setText(f'Total time {int(time.time()-self.start_time)}s')
+            QTimer.singleShot(1000, lambda: self.close())
+        else:
+            self.status_label.setText(f'{t}  {int(time.time()-self.start_time)}s')
 
     def center(self):
         screen = QGuiApplication.primaryScreen()
@@ -148,12 +144,14 @@ def initialize_full_app(start_window, app_instance):
 
     main_window_created = False
     try:
+
         screen = QGuiApplication.primaryScreen().geometry()
         sets = QSettings("pyvideotrans", "settings")
         w, h = int(screen.width() * 0.85), int(screen.height() * 0.85)
         size = sets.value("windowSize", QSize(w, h))
         w, h = size.width(), size.height()
         start_window.main_window = MainWindow(width=w, height=h)
+        start_window.main_window.uito.connect(start_window.update_lable)
         exception_handler.show_exception_signal.connect(show_global_error_dialog)
         main_window_created = True
     except Exception as e:
@@ -163,14 +161,23 @@ def initialize_full_app(start_window, app_instance):
 
     if main_window_created and start_window.main_window:
         start_window.main_window.show()
-        QTimer.singleShot(1000, lambda: start_window.close())
+        #QTimer.singleShot(1000, lambda: start_window.close())
 
 
 if __name__ == "__main__":
     # Windows 打包需要
     import multiprocessing
-
     multiprocessing.freeze_support()
+    qInstallMessageHandler(suppress_qt_warnings)
+    atexit.register(cleanup)
+    if sys.platform != "win32":
+        import signal
+        def handle_exit(signum, frame):
+            cleanup()
+            sys.exit(0)
+        signal.signal(signal.SIGINT, handle_exit)
+        signal.signal(signal.SIGTERM, handle_exit)
+
 
     # 设置 HighDpi
     try:

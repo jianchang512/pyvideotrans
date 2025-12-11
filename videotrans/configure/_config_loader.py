@@ -205,10 +205,9 @@ dubbing_role = {}
 
 #######################################
 DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
-ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv',
-                    'ms', 'uk', 'cs', 'tl']
-OPENAITTS_ROLES = "alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
-
+ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv', 'ms', 'uk', 'cs', 'tl']
+OPENAITTS_ROLES = "No,alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
+GEMINITTS_ROLES = "No,Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
 
 # 设置默认高级参数值
 def parse_init(update_data=None):
@@ -505,7 +504,6 @@ def getset_params(obj=None):
         "gemini_model": "gemini-2.5-flash",
         "gemini_maxtoken":18192,
         "gemini_thinking_budget":24576,
-        "gemini_ttsrole": "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat",
         "gemini_ttsstyle": "",
         "gemini_ttsmodel": "gemini-2.5-flash-preview-tts",
         "localllm_api": "",
@@ -551,7 +549,6 @@ def getset_params(obj=None):
         "openaitts_key": "",
         "openaitts_model": "tts-1",
         "openaitts_instructions": "",
-        "openaitts_role": OPENAITTS_ROLES,
         "qwentts_key": "",
         "qwentts_model": "qwen-tts-latest",
         "qwentts_role": "Chelsie",

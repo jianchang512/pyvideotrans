@@ -12,7 +12,7 @@ from pydub import AudioSegment
 from videotrans.configure import config
 from videotrans.configure.config import tr, logs
 from videotrans.util import tools
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 import soundfile as sf
 import pyrubberband as pyrb
@@ -85,9 +85,81 @@ import pyrubberband as pyrb
 ===============================================================================================
 """
 
+# 视频慢速处理
+def _cut_video_get_duration(i, task,novoice_mp4_original,preset,crf):
+    duration = task['end'] - task['start']
+    qiwang=duration
+    flag = f'视频{i} 切片pts={task["pts"]}  {"gap" if task["pts"] == 1 else "sub"}-{task["start"]}-{task["end"]}'
+    if duration <= 0:
+        logs(f"{flag},时长为0，跳过裁切视频片段")
+        return
+    # 冗余，弥补最后一帧强制截断时长比预期变短，累计相差太大
+    add_offset=50
+    duration_s=f'{(duration+add_offset) / 1000.0:.6f}'
+    logs(flag)
+    cmd = [
+        '-y',
+        '-ss',
+        tools.ms_to_time_string(ms=task['start'], sepflag='.'),
+        '-t',
+        duration_s,
+        '-i',
+        novoice_mp4_original,
+        '-an',
+        '-c:v',
+        'libx264', "-g", "1",
+        '-preset', preset, '-crf', crf,
+        '-pix_fmt', 'yuv420p']
+    cmd_bak = cmd[:]
+    if task['pts'] > 1:
+        qiwang=task["pts"]*duration
+        cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts={task["pts"]}*PTS', '-fps_mode', 'vfr','-t',f'{(qiwang+add_offset)/1000.0:.6f}'])
+        # 失败后重试不变速
+        cmd_bak.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s,task['filename']])
+    else:
+        cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s])
+    cmd.append(task['filename'])
+    try:
+        tools.runffmpeg(cmd, force_cpu=True)
+        if (not Path(task['filename']).exists() or Path(task['filename']).stat().st_size < 1024) and task['pts'] > 1:
+            logs(f"{flag} 中间片段 {Path(task['filename']).name} 生成失败{cmd=}，尝试无PTS参数重试{cmd_bak=}。", level='warn')
+            tools.runffmpeg(cmd_bak, force_cpu=True)
+        # 仍然有错就放弃了
+        if Path(task['filename']).exists() and Path(task['filename']).stat().st_size < 1024:
+            logs(f"{flag} 中间片段 {Path(task['filename']).name} 生成成功，但尺寸为 < 1024B，无效需删除。{cmd=}", level='warn')
+            logs(f'视频{i} 切片,失败了\n')
+            Path(task['filename']).unlink(missing_ok=True)
+        else:
+            real_time=tools.get_video_duration(task["filename"])
+            diff=real_time-qiwang
+            logs(f'视频{i} 切片,期望时长={qiwang} ，实际时长={real_time}, {"【变长】" if diff>0 else "【变短】"} {abs(diff)}ms\n')
+    except Exception as e:
+        logs(f'视频{i} 切片出错了 {e}\n')
+        try:
+            Path(task['filename']).unlink(missing_ok=True)
+        except OSError:
+            pass
+
+# 音频加速处理
+def _change_speed_rubberband(input_path, target_duration):
+    """
+    使用 Rubber Band 算法进行高保真实时变速
+    """
+    y, sr = sf.read(input_path)
+    current_duration = int((len(y) / sr) * 1000)
+    # 计算变速倍率
+    time_stretch_rate = current_duration / target_duration
+    # pyrubberband 支持多声道，直接传入即可
+    # ts_mag 是变速倍率，>1 为变快（时长变短）
+    y_stretched = pyrb.time_stretch(y, sr, time_stretch_rate)
+    sf.write(input_path, y_stretched, sr)
+    real_time=len(AudioSegment.from_file(input_path))
+    if real_time-target_duration !=0:
+        logs(f"""配音原时长: {current_duration}ms -> 期望变速目标时长: {target_duration}ms (pts:{time_stretch_rate})，变速后实际时长:{real_time}ms，实际时长-期望目标时长={real_time-target_duration}ms""")
+
 
 class SpeedRate:
-    MIN_CLIP_DURATION_MS = 40
+    MIN_CLIP_DURATION_MS = 100
     # 统一所有中间音频文件的参数，防止拼接错误
     AUDIO_SAMPLE_RATE = 48000
     AUDIO_CHANNELS = 2
@@ -196,14 +268,17 @@ class SpeedRate:
         self._calculate_adjustments()
         # 先执行音频加速
         if self.audio_data:
+            tools.set_process(text='process dubbing speed', uuid=self.uuid)
             if self.audio_speed_rubberband:
                 self._execute_audio_speedup_rubberband()
             else:
                 self._execute_audio_speedup()
         # 配音文件连接
+        tools.set_process(text='concat dubbing', uuid=self.uuid)
         self._concat_audio()
         # 视频文件连接
         if self.video_for_clips:
+            tools.set_process(text='process video speed', uuid=self.uuid)
             self._concat_video(self._video_speeddown())
 
         return self.queue_tts
@@ -338,7 +413,7 @@ class SpeedRate:
         all_task = []
         total_tasks = len(dubb_list)
         logs(f'共{len(self.queue_tts)}条字幕，共{total_tasks}个需要移除的配音文件，共{notext_audio}条无文字行的空字幕，开始对配音文件移除开头默认静默片段')
-        with ThreadPoolExecutor(max_workers=min(12, total_tasks, os.cpu_count())) as pool:
+        with ProcessPoolExecutor(max_workers=min(12, total_tasks, os.cpu_count())) as pool:
             for i, d in enumerate(dubb_list):
                 all_task.append(pool.submit(tools.remove_silence_wav, d))
 
@@ -610,9 +685,9 @@ class SpeedRate:
             return
 
         all_task = []
-        with ThreadPoolExecutor(max_workers=min(12, total_tasks, os.cpu_count())) as pool:
+        with ProcessPoolExecutor(max_workers=min(12, total_tasks, os.cpu_count())) as pool:
             for i, d in enumerate(self.audio_data):
-                all_task.append(pool.submit(self.change_speed_rubberband, d['filename'], d['target_time']))
+                all_task.append(pool.submit(_change_speed_rubberband, d['filename'], d['target_time']))
 
             completed_tasks = 0
             for task in all_task:
@@ -663,74 +738,13 @@ class SpeedRate:
                 "pts": 1,
                 "filename": f'{self.cache_folder}/gap-last-{time.time()}.mp4'
             })
-        wanto_times=[]
-        real_times=[]
-        # 存储每个片段实际时长-期望时长的差值，如果小于0，则 额外补50ms
-        offset_end=[]
-        # 开始处理
-        def _cut_video_get_duration(i, task):
-            duration = task['end'] - task['start']
-            qiwang=duration
-            flag = f'视频{i} 切片pts={task["pts"]}  {"gap" if task["pts"] == 1 else "sub"}-{task["start"]}-{task["end"]}'
-            if duration <= 0:
-                logs(f"{flag},时长为0，跳过裁切视频片段")
-                return
-            # 冗余，弥补最后一帧强制截断时长比预期变短，累计相差太大
-            add_offset=50
-            duration_s=f'{(duration+add_offset) / 1000.0:.6f}'
-            logs(flag)
-            cmd = [
-                '-y',
-                '-ss',
-                tools.ms_to_time_string(ms=task['start'], sepflag='.'),
-                '-t',
-                duration_s,
-                '-i',
-                self.novoice_mp4_original,
-                '-an',
-                '-c:v',
-                'libx264', "-g", "1",
-                '-preset', self.preset, '-crf', self.crf,
-                '-pix_fmt', 'yuv420p']
-            cmd_bak = cmd[:]
-            if task['pts'] > 1:
-                qiwang=task["pts"]*duration
-                cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts={task["pts"]}*PTS', '-fps_mode', 'vfr','-t',f'{(qiwang+add_offset)/1000.0:.6f}'])
-                # 失败后重试不变速
-                cmd_bak.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s,task['filename']])
-            else:
-                cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s])
-            cmd.append(task['filename'])
-            try:
-                tools.runffmpeg(cmd, force_cpu=True)
-                if (not Path(task['filename']).exists() or Path(task['filename']).stat().st_size < 1024) and task['pts'] > 1:
-                    logs(f"{flag} 中间片段 {Path(task['filename']).name} 生成失败{cmd=}，尝试无PTS参数重试{cmd_bak=}。", level='warn')
-                    tools.runffmpeg(cmd_bak, force_cpu=True)
-                # 仍然有错就放弃了
-                if Path(task['filename']).exists() and Path(task['filename']).stat().st_size < 1024:
-                    logs(f"{flag} 中间片段 {Path(task['filename']).name} 生成成功，但尺寸为 < 1024B，无效需删除。{cmd=}", level='warn')
-                    logs(f'视频{i} 切片,失败了\n')
-                    Path(task['filename']).unlink(missing_ok=True)
-                else:
-                    real_time=tools.get_video_duration(task["filename"])
-                    diff=real_time-qiwang
-                    offset_end.append(diff)
-                    real_times.append(real_time)
-                    wanto_times.append(qiwang)
-                    logs(f'视频{i} 切片,期望时长={qiwang} ，实际时长={real_time}, {"【变长】" if diff>0 else "【变短】"} {abs(diff)}ms\n')
-            except Exception as e:
-                logs(f'视频{i} 切片出错了 {e}\n')
-                try:
-                    Path(task['filename']).unlink(missing_ok=True)
-                except OSError:
-                    pass
 
         total_task = len(data)
         logs(f'需要处理的视频片段数量={total_task}')
         all_task = []
-        with ThreadPoolExecutor(max_workers=min(12, total_task, os.cpu_count())) as pool:
+        with ProcessPoolExecutor(max_workers=min(12, total_task, os.cpu_count())) as pool:
             for i, d in enumerate(data):
-                all_task.append(pool.submit(_cut_video_get_duration, i, d))
+                all_task.append(pool.submit(_cut_video_get_duration, i, d,self.novoice_mp4_original,self.preset,self.crf))
                 # 监控进度
             completed_tasks = 0
             for t in all_task:
@@ -744,10 +758,6 @@ class SpeedRate:
                     logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
 
         
-        real_videotime=sum(real_times)
-        wanto_videotime=sum(wanto_times)
-        diff=real_videotime-wanto_videotime
-        logs(f'原始视频时长={self.raw_total_time}ms，实际视频切片变速后，所有切片真实总时长={real_videotime}ms,期望总时长 {wanto_videotime}ms, 实际时长比期望 { "【长了】" if diff>0 else "【短了】"}{abs(diff)}ms')
         logs(f'[end]=========视频变速处理结束==========\n')
         return data
 
@@ -961,18 +971,3 @@ class SpeedRate:
         return silence_path
 
 
-    def change_speed_rubberband(self, input_path, target_duration):
-        """
-        使用 Rubber Band 算法进行高保真实时变速
-        """
-        y, sr = sf.read(input_path)
-        current_duration = int((len(y) / sr) * 1000)
-        # 计算变速倍率
-        time_stretch_rate = current_duration / target_duration
-        # pyrubberband 支持多声道，直接传入即可
-        # ts_mag 是变速倍率，>1 为变快（时长变短）
-        y_stretched = pyrb.time_stretch(y, sr, time_stretch_rate)
-        sf.write(input_path, y_stretched, sr)
-        real_time=len(AudioSegment.from_file(input_path))
-        if real_time-target_duration !=0:
-            logs(f"""配音原时长: {current_duration}ms -> 期望变速目标时长: {target_duration}ms (pts:{time_stretch_rate})，变速后实际时长:{real_time}ms，实际时长-期望目标时长={real_time-target_duration}ms""")

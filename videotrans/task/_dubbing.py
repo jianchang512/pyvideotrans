@@ -162,8 +162,6 @@ class DubbingSrt(BaseTask):
             for i,it in enumerate(text_list):
                 if not it.strip():
                     continue
-                if it[-1]=="\n":
-                    it[-1]="。"
                 text_str+=it
                 if len(text_str)>=100:
                     subs.append({

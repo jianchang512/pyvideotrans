@@ -1,6 +1,5 @@
 {
     "zh": {
-        "No": "No",
         "青涩青年音色": "male-qn-qingse",
         "精英青年音色": "male-qn-jingying",
         "霸道青年音色": "male-qn-badao",
@@ -71,7 +70,6 @@
         "软软女孩": "Chinese (Mandarin)_Soft_Girl"
     },
     "yue": {
-        "No": "No",
         "专业女主持": "Cantonese_ProfessionalHost（F)",
         "温柔女声": "Cantonese_GentleLady",
         "专业男主持": "Cantonese_ProfessionalHost（M)",
@@ -80,7 +78,6 @@
         "善良女声": "Cantonese_KindWoman"
     },
     "en": {
-        "No": "No",
         "Trustworthy Man": "English_Trustworthy_Man",
         "Graceful Lady": "English_Graceful_Lady",
         "Aussie Bloke": "English_Aussie_Bloke",
@@ -89,7 +86,6 @@
         "Gentle-voiced man": "English_Gentle-voiced_man"
     },
     "ja": {
-        "No": "No",
         "Intellectual Senior": "Japanese_IntellectualSenior",
         "Decisive Princess": "Japanese_DecisivePrincess",
         "Loyal Knight": "Japanese_LoyalKnight",
@@ -107,16 +103,13 @@
         "Graceful Maiden": "Japanese_GracefulMaiden"
     },
     "nl": {
-        "No": "No",
         "Kind-hearted girl": "Dutch_kindhearted_girl",
         "Bossy leader": "Dutch_bossy_leader"
     },
     "vi": {
-        "No": "No",
         "Kind-hearted girl": "Vietnamese_kindhearted_girl"
     },
     "ko": {
-        "No": "No",
         "Sweet Girl": "Korean_SweetGirl",
         "Cheerful Boyfriend": "Korean_CheerfulBoyfriend",
         "Enchanting Sister": "Korean_EnchantingSister",
@@ -168,7 +161,6 @@
         "Optimistic Youth": "Korean_OptimisticYouth"
     },
     "es": {
-        "No": "No",
         "Serene Woman": "Spanish_SereneWoman",
         "Mature Partner": "Spanish_MaturePartner",
         "Captivating Storyteller": "Spanish_CaptivatingStoryteller",
@@ -218,7 +210,6 @@
         "Thoughtful Lady": "Spanish_ThoughtfulLady"
     },
     "pt": {
-        "No": "No",
         "Sentimental Lady": "Portuguese_SentimentalLady",
         "Bossy Leader": "Portuguese_BossyLeader",
         "Wise lady": "Portuguese_Wiselady",
@@ -294,7 +285,6 @@
         "Determined Manager": "Portuguese_DeterminedManager"
     },
     "fr": {
-        "No": "No",
         "Level-Headed Man": "French_Male_Speech_New",
         "Patient Female Presenter": "French_Female_News Anchor",
         "Casual Man": "French_CasualMan",
@@ -303,7 +293,6 @@
         "Male Narrator": "French_MaleNarrator"
     },
     "id": {
-        "No": "No",
         "Sweet Girl": "Indonesian_SweetGirl",
         "Reserved Young Man": "Indonesian_ReservedYoungMan",
         "Charming Girl": "Indonesian_CharmingGirl",
@@ -315,13 +304,11 @@
         "Gentle Girl": "Indonesian_GentleGirl"
     },
     "de": {
-        "No": "No",
         "Friendly Man": "German_FriendlyMan",
         "Sweet Lady": "German_SweetLady",
         "Playful Man": "German_PlayfulMan"
     },
     "ru": {
-        "No": "No",
         "Handsome Childhood Friend": "Russian_HandsomeChildhoodFriend",
         "Bright Queen": "Russian_BrightHeroine",
         "Ambitious Woman": "Russian_AmbitiousWoman",
@@ -332,24 +319,20 @@
         "Bad-tempered Boy": "Russian_Bad-temperedBoy"
     },
     "it": {
-        "No": "No",
         "Brave Heroine": "Italian_BraveHeroine",
         "Narrator": "Italian_Narrator",
         "Wandering Sorcerer": "Italian_WanderingSorcerer",
         "Diligent Leader": "Italian_DiligentLeader"
     },
     "ar": {
-        "No": "No",
         "Calm Woman": "Arabic_CalmWoman",
         "Friendly Guy": "Arabic_FriendlyGuy"
     },
     "tr": {
-        "No": "No",
         "Calm Woman": "Turkish_CalmWoman",
         "Trustworthy man": "Turkish_Trustworthyman"
     },
     "uk": {
-        "No": "No",
         "Calm Woman": "Ukrainian_CalmWoman",
         "Wise Scholar": "Ukrainian_WiseScholar"
     }

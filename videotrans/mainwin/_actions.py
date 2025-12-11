@@ -183,32 +183,31 @@ class WinAction(WinActionSub):
         config.line_roles = {}
         if type == tts.GOOGLE_TTS:
             self.main.voice_role.clear()
-            self.main.current_rolelist = ["gtts"]
+            self.main.current_rolelist = ['No',"gtts"]
             self.main.voice_role.addItems(self.main.current_rolelist)
-
         elif type == tts.OPENAI_TTS:
             self.main.voice_role.clear()
-            self.main.current_rolelist = config.params.get('openaitts_role','').split(',')
-            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
+            self.main.current_rolelist = config.OPENAITTS_ROLES.split(',')
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.QWEN_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = list(tools.get_qwen3tts_rolelist().keys())
-            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.GEMINI_TTS:
             self.main.voice_role.clear()
-            self.main.current_rolelist = config.params.get('gemini_ttsrole','').split(',')
-            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
+            self.main.current_rolelist = config.GEMINITTS_ROLES.split(',')
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.ELEVENLABS_TTS:
             self.main.voice_role.clear()
-            self.main.current_rolelist = config.params.get('elevenlabstts_role','')
-            if len(self.main.current_rolelist) < 1:
-                self.main.current_rolelist = tools.get_elevenlabs_role()
-            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
+            self.main.current_rolelist = tools.get_elevenlabs_role()
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif self.change_by_lang(type):
             self.set_voice_role(self.main.target_language.currentText())
         elif type == tts.CLONE_VOICE_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params.get("clone_voicelist",'')
+            if self.main.current_rolelist[0]!='No':
+                self.main.current_rolelist.insert(0,'No')
             self.main.voice_role.addItems(self.main.current_rolelist)
             run_in_threadpool(tools.get_clone_role)
         elif type == tts.CHATTTS:
@@ -219,31 +218,31 @@ class WinAction(WinActionSub):
         elif type == tts.TTS_API:
             self.main.voice_role.clear()
             self.main.current_rolelist = config.params.get('ttsapi_voice_role','').strip().split(',')
-            self.main.voice_role.addItems(self.main.current_rolelist)
+            self.main.voice_role.addItems(['No']+self.main.current_rolelist)
         elif type == tts.GPTSOVITS_TTS:
             rolelist = tools.get_gptsovits_role()
             self.main.voice_role.clear()
-            self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['GPT-SoVITS']
+            self.main.current_rolelist = list(rolelist.keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.CHATTERBOX_TTS:
             rolelist = tools.get_chatterbox_role()
             self.main.voice_role.clear()
-            self.main.current_rolelist = rolelist if rolelist else ['chatterbox']
+            self.main.current_rolelist = rolelist
             self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             self.main.voice_role.clear()
-            self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['clone']
+            self.main.current_rolelist = list(rolelist.keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.FISHTTS:
             rolelist = tools.get_fishtts_role()
             self.main.voice_role.clear()
-            self.main.current_rolelist = list(rolelist.keys()) if rolelist else ['FishTTS']
+            self.main.current_rolelist = list(rolelist.keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
         elif type in [tts.F5_TTS,tts.VOXCPM_TTS,tts.SPARK_TTS,tts.INDEX_TTS,tts.DIA_TTS]:
             rolelist = tools.get_f5tts_role()
             self.main.voice_role.clear()
-            self.main.current_rolelist = ['clone'] + list(rolelist.keys()) if rolelist else ['clone']
+            self.main.current_rolelist = list(rolelist.keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
 
     # 目标语言改变时设置配音角色
@@ -654,12 +653,15 @@ class WinAction(WinActionSub):
         # 待翻译的文件列表
         self.obj_list = []
 
+        cfg = copy.deepcopy(self.cfg)
         for v in self.retry_queue_mp4:
             obj = tools.format_video(v.get('file'), v.get('target_dir'))
             self.obj_list.append(obj)
-            self.add_process_btn(target_dir=Path(obj['target_dir']).as_posix(), name=obj['name'], uuid=obj['uuid'])
+            self.add_process_btn(
+                target_dir=Path(obj['target_dir']).as_posix() if cfg.get('app_mode')=='tiqu' or not cfg.get('only_out_mp4') else v.get('target_dir'),
+                name=obj['name'],
+                uuid=obj['uuid'])
 
-        cfg = copy.deepcopy(self.cfg)
         cfg['clear_cache']=False
 
         # 启动任务
@@ -686,16 +688,20 @@ class WinAction(WinActionSub):
 
         # new_name = []
         txt = self.main.subtitle_area.toPlainText().strip()
-        for video_path in self.queue_mp4:
-            obj = tools.format_video(video_path, target_dir)
-            self.obj_list.append(obj)
-            self.add_process_btn(target_dir=Path(obj['target_dir']).as_posix(), name=obj['name'], uuid=obj['uuid'])
-            self.uuid_queue_mp4[obj['uuid']]=(video_path,target_dir)
-
         self.cfg.update(
             {'subtitles': txt, 'app_mode': self.main.app_mode}
         )
         cfg=copy.deepcopy(self.cfg)
+
+        for video_path in self.queue_mp4:
+            obj = tools.format_video(video_path, target_dir)
+            self.obj_list.append(obj)
+            self.add_process_btn(
+                target_dir=Path(obj['target_dir']).as_posix() if cfg.get('app_mode')=='tiqu' or not cfg.get('only_out_mp4') else target_dir,
+                name=obj['name'],
+                uuid=obj['uuid'])
+            self.uuid_queue_mp4[obj['uuid']]=(video_path,target_dir)
+
 
         # 启动任务
         tools.set_process(text=tr('kaishichuli'), uuid=self.obj_list[0]['uuid'])

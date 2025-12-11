@@ -1,6 +1,6 @@
 # stt项目识别接口
 import json
-import re
+import re,os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Union
@@ -9,7 +9,7 @@ from typing import List, Dict, Union
 from pydub import AudioSegment
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,logs
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -35,13 +35,13 @@ class FunasrRecogn(BaseRecogn):
 
         msg = tr("The model needs to be downloaded from modelscope.cn, which may take a long time, please be patient")
         self._tosend(msg)
-        if self.model_name == 'SenseVoiceSmall':
+        if self.model_name == 'SenseVoiceSmall' or self.detect_language[:2].lower() in ['ja','en','ko','yu']:
             return self._exec1()
         raw_subtitles = []
         from funasr import AutoModel
 
         model = AutoModel(
-            model=self.model_name, model_revision="v2.0.5",
+            model='iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch', model_revision="v2.0.5",
             vad_model="fsmn-vad", vad_model_revision="v2.0.4",
             punc_model="ct-punc", punc_model_revision="v2.0.4",
             local_dir=config.ROOT_DIR + "/models",
@@ -85,6 +85,7 @@ class FunasrRecogn(BaseRecogn):
 
         from funasr import AutoModel
         from funasr.utils.postprocess_utils import rich_transcription_postprocess
+        from concurrent.futures import ThreadPoolExecutor
         
         model = AutoModel(
             model="iic/SenseVoiceSmall",
@@ -113,31 +114,54 @@ class FunasrRecogn(BaseRecogn):
         segments = vm.generate(input=self.audio_file)
         audiodata = AudioSegment.from_file(self.audio_file)
 
-        srts = []
-        for seg in segments[0]['value']:
+        srts = {}
+        for i,seg in enumerate(segments[0]['value']):
             chunk = audiodata[seg[0]:seg[1]]
             filename = f"{config.TEMP_DIR}/{seg[0]}-{seg[1]}.wav"
             chunk.export(filename)
-            res = model.generate(
-                input=filename,
-                language=self.detect_language[:2],  # "zh", "en", "yue", "ja", "ko", "nospeech"
-                use_itn=True,
-                disable_pbar=True
-            )
-            text = self.remove_unwanted_characters(rich_transcription_postprocess(res[0]["text"]))
-            srt = {
+            srt = {                
                 "line": len(srts) + 1,
-                "text": text,
+                "text": '',
+                "filename":filename,
                 "start_time": seg[0],
                 "end_time": seg[1],
                 "startraw": f'{tools.ms_to_time_string(ms=seg[0])}',
                 "endraw": f'{tools.ms_to_time_string(ms=seg[1])}'
             }
             srt['time'] = f"{srt['startraw']} --> {srt['endraw']}"
-            srts.append(srt)
+            srts[f"{srt['line']}"]=srt
+
+        
+        def _stt(it):
+            res = model.generate(
+                input=it['filename'],
+                language=self.detect_language[:2],  # "zh", "en", "yue", "ja", "ko", "nospeech"
+                use_itn=True,
+                disable_pbar=True
+            )
+            text = self.remove_unwanted_characters(rich_transcription_postprocess(res[0]["text"]))
+            srts[f'{it["line"]}']['text']=text
+  
 
             self._signal(
                 text=text + "\n",
                 type='subtitle'
             )
-        return srts
+            
+
+        all_task = []
+        with ThreadPoolExecutor(max_workers=min(4,len(srts),os.cpu_count())) as pool:
+            for k,item in srts.items():
+                all_task.append(pool.submit(_stt, item))
+            completed_tasks = 0
+            total_tasks=len(all_task)
+            for task in all_task:
+                try:
+                    task.result()  # 等待任务完成
+                    completed_tasks += 1
+                    self._signal( text=f"stt [{completed_tasks}/{total_tasks}]" )
+                except Exception as e:
+                    logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
+                    
+
+        return list(srts.values())

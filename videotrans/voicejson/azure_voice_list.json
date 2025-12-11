@@ -1,16 +1,16 @@
 {
   "af": [
-    "No",
+
     "af-ZA-AdriNeural",
     "af-ZA-WillemNeural"
   ],
   "am": [
-    "No",
+
     "am-ET-MekdesNeural",
     "am-ET-AmehaNeural"
   ],
   "ar": [
-    "No",
+
     "ar-AE-FatimaNeural",
     "ar-AE-HamdanNeural",
     "ar-BH-LailaNeural",
@@ -45,55 +45,55 @@
     "ar-YE-SalehNeural"
   ],
   "as": [
-    "No",
+
     "as-IN-YashicaNeural",
     "as-IN-PriyomNeural"
   ],
   "az": [
-    "No",
+
     "az-AZ-BanuNeural",
     "az-AZ-BabekNeural"
   ],
   "bg": [
-    "No",
+
     "bg-BG-KalinaNeural",
     "bg-BG-BorislavNeural"
   ],
   "bn": [
-    "No",
+
     "bn-BD-NabanitaNeural",
     "bn-BD-PradeepNeural",
     "bn-IN-TanishaaNeural",
     "bn-IN-BashkarNeural"
   ],
   "bs": [
-    "No",
+
     "bs-BA-VesnaNeural",
     "bs-BA-GoranNeural"
   ],
   "ca": [
-    "No",
+
     "ca-ES-JoanaNeural",
     "ca-ES-EnricNeural",
     "ca-ES-AlbaNeural"
   ],
   "cs": [
-    "No",
+
     "cs-CZ-VlastaNeural",
     "cs-CZ-AntoninNeural"
   ],
   "cy": [
-    "No",
+
     "cy-GB-NiaNeural",
     "cy-GB-AledNeural"
   ],
   "da": [
-    "No",
+
     "da-DK-ChristelNeural",
     "da-DK-JeppeNeural"
   ],
   "de": [
-    "No",
+
     "de-AT-IngridNeural",
     "de-AT-JonasNeural",
     "de-CH-LeniNeural",
@@ -119,12 +119,12 @@
     "de-DE-Seraphina:DragonHDLatestNeural"
   ],
   "el": [
-    "No",
+
     "el-GR-AthinaNeural",
     "el-GR-NestorasNeural"
   ],
   "en": [
-    "No",
+
     "en-AU-NatashaNeural",
     "en-AU-WilliamNeural",
     "en-AU-WilliamMultilingualNeural",
@@ -268,7 +268,7 @@
     "en-ZA-LukeNeural"
   ],
   "es": [
-    "No",
+
     "es-AR-ElenaNeural",
     "es-AR-TomasNeural",
     "es-BO-SofiaNeural",
@@ -350,33 +350,33 @@
     "es-VE-SebastianNeural"
   ],
   "et": [
-    "No",
+
     "et-EE-AnuNeural",
     "et-EE-KertNeural"
   ],
   "eu": [
-    "No",
+
     "eu-ES-AinhoaNeural",
     "eu-ES-AnderNeural"
   ],
   "fa": [
-    "No",
+
     "fa-IR-DilaraNeural",
     "fa-IR-FaridNeural"
   ],
   "fi": [
-    "No",
+
     "fi-FI-SelmaNeural",
     "fi-FI-HarriNeural",
     "fi-FI-NooraNeural"
   ],
   "fil": [
-    "No",
+
     "fil-PH-BlessicaNeural",
     "fil-PH-AngeloNeural"
   ],
   "fr": [
-    "No",
+
     "fr-BE-CharlineNeural",
     "fr-BE-GerardNeural",
     "fr-CA-SylvieNeural",
@@ -406,27 +406,27 @@
     "fr-FR-Vivienne:DragonHDLatestNeural"
   ],
   "ga": [
-    "No",
+
     "ga-IE-OrlaNeural",
     "ga-IE-ColmNeural"
   ],
   "gl": [
-    "No",
+
     "gl-ES-SabelaNeural",
     "gl-ES-RoiNeural"
   ],
   "gu": [
-    "No",
+
     "gu-IN-DhwaniNeural",
     "gu-IN-NiranjanNeural"
   ],
   "he": [
-    "No",
+
     "he-IL-HilaNeural",
     "he-IL-AvriNeural"
   ],
   "hi": [
-    "No",
+
     "hi-IN-AaravNeural",
     "hi-IN-AnanyaNeural",
     "hi-IN-AartiNeural",
@@ -438,32 +438,32 @@
     "hi-IN-MadhurNeural"
   ],
   "hr": [
-    "No",
+
     "hr-HR-GabrijelaNeural",
     "hr-HR-SreckoNeural"
   ],
   "hu": [
-    "No",
+
     "hu-HU-NoemiNeural",
     "hu-HU-TamasNeural"
   ],
   "hy": [
-    "No",
+
     "hy-AM-AnahitNeural",
     "hy-AM-HaykNeural"
   ],
   "id": [
-    "No",
+
     "id-ID-GadisNeural",
     "id-ID-ArdiNeural"
   ],
   "is": [
-    "No",
+
     "is-IS-GudrunNeural",
     "is-IS-GunnarNeural"
   ],
   "it": [
-    "No",
+
     "it-IT-ElsaNeural",
     "it-IT-IsabellaNeural",
     "it-IT-DiegoNeural",
@@ -488,14 +488,14 @@
     "it-IT-Isabella:DragonHDLatestNeural"
   ],
   "iu": [
-    "No",
+
     "iu-Cans-CA-SiqiniqNeural",
     "iu-Cans-CA-TaqqiqNeural",
     "iu-Latn-CA-SiqiniqNeural",
     "iu-Latn-CA-TaqqiqNeural"
   ],
   "ja": [
-    "No",
+
     "ja-JP-NanamiNeural",
     "ja-JP-KeitaNeural",
     "ja-JP-AoiNeural",
@@ -507,32 +507,32 @@
     "ja-JP-Nanami:DragonHDLatestNeural"
   ],
   "jv": [
-    "No",
+
     "jv-ID-SitiNeural",
     "jv-ID-DimasNeural"
   ],
   "ka": [
-    "No",
+
     "ka-GE-EkaNeural",
     "ka-GE-GiorgiNeural"
   ],
   "kk": [
-    "No",
+
     "kk-KZ-AigulNeural",
     "kk-KZ-DauletNeural"
   ],
   "km": [
-    "No",
+
     "km-KH-SreymomNeural",
     "km-KH-PisethNeural"
   ],
   "kn": [
-    "No",
+
     "kn-IN-SapnaNeural",
     "kn-IN-GaganNeural"
   ],
   "ko": [
-    "No",
+
     "ko-KR-SunHiNeural",
     "ko-KR-InJoonNeural",
     "ko-KR-HyunsuMultilingualNeural",
@@ -545,68 +545,68 @@
     "ko-KR-YuJinNeural"
   ],
   "lo": [
-    "No",
+
     "lo-LA-KeomanyNeural",
     "lo-LA-ChanthavongNeural"
   ],
   "lt": [
-    "No",
+
     "lt-LT-OnaNeural",
     "lt-LT-LeonasNeural"
   ],
   "lv": [
-    "No",
+
     "lv-LV-EveritaNeural",
     "lv-LV-NilsNeural"
   ],
   "mk": [
-    "No",
+
     "mk-MK-MarijaNeural",
     "mk-MK-AleksandarNeural"
   ],
   "ml": [
-    "No",
+
     "ml-IN-SobhanaNeural",
     "ml-IN-MidhunNeural"
   ],
   "mn": [
-    "No",
+
     "mn-MN-YesuiNeural",
     "mn-MN-BataaNeural"
   ],
   "mr": [
-    "No",
+
     "mr-IN-AarohiNeural",
     "mr-IN-ManoharNeural"
   ],
   "ms": [
-    "No",
+
     "ms-MY-YasminNeural",
     "ms-MY-OsmanNeural"
   ],
   "mt": [
-    "No",
+
     "mt-MT-GraceNeural",
     "mt-MT-JosephNeural"
   ],
   "my": [
-    "No",
+
     "my-MM-NilarNeural",
     "my-MM-ThihaNeural"
   ],
   "nb": [
-    "No",
+
     "nb-NO-PernilleNeural",
     "nb-NO-FinnNeural",
     "nb-NO-IselinNeural"
   ],
   "ne": [
-    "No",
+
     "ne-NP-HemkalaNeural",
     "ne-NP-SagarNeural"
   ],
   "nl": [
-    "No",
+
     "nl-BE-DenaNeural",
     "nl-BE-ArnaudNeural",
     "nl-NL-FennaNeural",
@@ -614,28 +614,28 @@
     "nl-NL-ColetteNeural"
   ],
   "or": [
-    "No",
+
     "or-IN-SubhasiniNeural",
     "or-IN-SukantNeural"
   ],
   "pa": [
-    "No",
+
     "pa-IN-OjasNeural",
     "pa-IN-VaaniNeural"
   ],
   "pl": [
-    "No",
+
     "pl-PL-AgnieszkaNeural",
     "pl-PL-MarekNeural",
     "pl-PL-ZofiaNeural"
   ],
   "ps": [
-    "No",
+
     "ps-AF-LatifaNeural",
     "ps-AF-GulNawazNeural"
   ],
   "pt": [
-    "No",
+
     "pt-BR-FranciscaNeural",
     "pt-BR-AntonioNeural",
     "pt-BR-MacerioMultilingualNeural",
@@ -661,68 +661,68 @@
     "pt-PT-FernandaNeural"
   ],
   "ro": [
-    "No",
+
     "ro-RO-AlinaNeural",
     "ro-RO-EmilNeural"
   ],
   "ru": [
-    "No",
+
     "ru-RU-SvetlanaNeural",
     "ru-RU-DmitryNeural",
     "ru-RU-DariyaNeural"
   ],
   "si": [
-    "No",
+
     "si-LK-ThiliniNeural",
     "si-LK-SameeraNeural"
   ],
   "sk": [
-    "No",
+
     "sk-SK-ViktoriaNeural",
     "sk-SK-LukasNeural"
   ],
   "sl": [
-    "No",
+
     "sl-SI-PetraNeural",
     "sl-SI-RokNeural"
   ],
   "so": [
-    "No",
+
     "so-SO-UbaxNeural",
     "so-SO-MuuseNeural"
   ],
   "sq": [
-    "No",
+
     "sq-AL-AnilaNeural",
     "sq-AL-IlirNeural"
   ],
   "sr": [
-    "No",
+
     "sr-Latn-RS-NicholasNeural",
     "sr-Latn-RS-SophieNeural",
     "sr-RS-SophieNeural",
     "sr-RS-NicholasNeural"
   ],
   "su": [
-    "No",
+
     "su-ID-TutiNeural",
     "su-ID-JajangNeural"
   ],
   "sv": [
-    "No",
+
     "sv-SE-SofieNeural",
     "sv-SE-MattiasNeural",
     "sv-SE-HilleviNeural"
   ],
   "sw": [
-    "No",
+
     "sw-KE-ZuriNeural",
     "sw-KE-RafikiNeural",
     "sw-TZ-RehemaNeural",
     "sw-TZ-DaudiNeural"
   ],
   "ta": [
-    "No",
+
     "ta-IN-PallaviNeural",
     "ta-IN-ValluvarNeural",
     "ta-LK-SaranyaNeural",
@@ -733,55 +733,55 @@
     "ta-SG-AnbuNeural"
   ],
   "te": [
-    "No",
+
     "te-IN-ShrutiNeural",
     "te-IN-MohanNeural"
   ],
   "th": [
-    "No",
+
     "th-TH-PremwadeeNeural",
     "th-TH-NiwatNeural",
     "th-TH-AcharaNeural"
   ],
   "tr": [
-    "No",
+
     "tr-TR-EmelNeural",
     "tr-TR-AhmetNeural"
   ],
   "uk": [
-    "No",
+
     "uk-UA-PolinaNeural",
     "uk-UA-OstapNeural"
   ],
   "ur": [
-    "No",
+
     "ur-IN-GulNeural",
     "ur-IN-SalmanNeural",
     "ur-PK-UzmaNeural",
     "ur-PK-AsadNeural"
   ],
   "uz": [
-    "No",
+
     "uz-UZ-MadinaNeural",
     "uz-UZ-SardorNeural"
   ],
   "vi": [
-    "No",
+
     "vi-VN-HoaiMyNeural",
     "vi-VN-NamMinhNeural"
   ],
   "wuu": [
-    "No",
+
     "wuu-CN-XiaotongNeural",
     "wuu-CN-YunzheNeural"
   ],
   "yue": [
-    "No",
+
     "yue-CN-XiaoMinNeural",
     "yue-CN-YunSongNeural"
   ],
   "zh": [
-    "No",
+
     "zh-CN-XiaoxiaoNeural",
     "zh-CN-YunxiNeural",
     "zh-CN-YunjianNeural",
@@ -823,13 +823,13 @@
     "zh-TW-HsiaoYuNeural"
   ],
   "yue":[
-	"No",
+
     "zh-HK-HiuMaanNeural",
     "zh-HK-WanLungNeural",
     "zh-HK-HiuGaaiNeural"
   ],
   "zu": [
-    "No",
+
     "zu-ZA-ThandoNeural",
     "zu-ZA-ThembaNeural"
   ]

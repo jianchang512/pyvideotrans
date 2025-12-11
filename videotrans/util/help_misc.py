@@ -306,13 +306,14 @@ def get_md5(input_string: str):
 def pygameaudio(filepath=None):
     try:
         import pygame
-        pygame.mixer.init()
+        pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
         if not filepath:
             return
         sound = pygame.mixer.Sound(filepath)
         sound.play()
         while pygame.mixer.get_busy():
             pygame.time.Clock().tick(10)
+        pygame.mixer.quit()    
     except Exception as e:
         print(e)
 

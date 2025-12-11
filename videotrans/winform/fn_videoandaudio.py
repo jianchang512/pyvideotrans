@@ -106,7 +106,7 @@ def openwin():
                         '-i',
                         os.path.normpath(audio),
                         '-c:v',
-                        'copy' if Path(info['video']).suffix.lower() == '.mp4' else 'libx264',
+                        'copy' if Path(info['video']).suffix.lower() == '.mp4' else 'libx265',
                         "-c:a",
                         "aac",
                         "-map",
@@ -115,7 +115,7 @@ def openwin():
                         "1:a:0",
                         "-shortest",
                         result_file
-                    ])
+                    ],force_cpu=False)
                 except Exception as e:
                     from videotrans.configure._except import get_msg_from_except
                     self.post(type='error', text=get_msg_from_except(e))

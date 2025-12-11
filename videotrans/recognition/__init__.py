@@ -73,15 +73,10 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
     if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL,Whisper_CPP]:
         return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
     if recogn_type == FUNASR_CN:
-        if model_name == 'paraformer-zh' and langcode[:2] not in ('zh', 'yu'):
-            return tr("paraformer-zh  models only support Chinese speech recognition")
-        if model_name == 'SenseVoiceSmall' and langcode[:2] not in ['zh', 'en', 'ja', 'ko', 'yu']:
+        if langcode[:2] not in ('zh', 'yu','en','ja','ko'):
             return tr("SenseVoiceSmall models only support Chinese,Ja,ko,English speech recognition")
         return True
-    if recogn_type == PARAKEET and langcode[:2] not in ('en', 'ja'):
-        return tr("Parakeet-tdt  models only support English & Ja speech recognition")
-    if recogn_type == DOUBAO_API and langcode[:2] not in ["zh", "en", "ja", "ko", "es", "fr", "ru", 'yu']:
-        return '豆包语音识别仅支持中英日韩法俄西班牙语言，其他不支持'
+
     return True
 
 

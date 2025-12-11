@@ -833,7 +833,7 @@ wheels = [
 
 [[package]]
 name = "edge-tts"
-version = "7.2.3"
+version = "7.2.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -841,9 +841,9 @@ dependencies = [
     { name = "tabulate" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e8/d0/db9a841ac29f119ca8e3d2a22325849997c571a4f31f728042c5fdbdff33/edge_tts-7.2.3.tar.gz", hash = "sha256:b85e271181cd52656934069237bfc3853335a17f7e51a4f7116e2936d32e62d2", size = 27308, upload-time = "2025-08-28T21:13:53.376Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/72/a4/a27d3eaf3c09e455209d990d21b0b1feadf2d72248b62d197c1a6d8ef3b7/edge_tts-7.2.4.tar.gz", hash = "sha256:7b049273e154bd6da3807a6ac5799e1dc8d369f682acd7e01fa3319216907ada", size = 27331, upload-time = "2025-12-11T14:40:14.2Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c3/c6/9387c3f9decdd9780dfe21b7d9c0831aafd5d6813baf4f17b50afc7b7d77/edge_tts-7.2.3-py3-none-any.whl", hash = "sha256:62c87df25dedb6cd565cbdf87c639e01c466095b1e8f48ab8fa9efbb2123f53c", size = 30349, upload-time = "2025-08-28T21:13:52.145Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/b5/cf40525972208f467beaacd0432a402663a02fc66cadbaa690252f0b940e/edge_tts-7.2.4-py3-none-any.whl", hash = "sha256:f87d198528a279c9ddc43b12478e7298716f9ea46d7ca450325c16ceda131fc4", size = 30376, upload-time = "2025-12-11T14:40:12.596Z" },
 ]
 
 [[package]]
@@ -2947,7 +2947,7 @@ wheels = [
 
 [[package]]
 name = "pyvideotrans"
-version = "3.87"
+version = "3.90"
 source = { virtual = "." }
 dependencies = [
     { name = "absl-py" },
@@ -3273,7 +3273,7 @@ requires-dist = [
     { name = "diffusers", specifier = "==0.33.1" },
     { name = "dill", specifier = "==0.3.8" },
     { name = "distro", specifier = "==1.8.0" },
-    { name = "edge-tts", specifier = "==7.2.3" },
+    { name = "edge-tts" },
     { name = "editdistance", specifier = "==0.8.1" },
     { name = "elevenlabs", specifier = "==2.8.1" },
     { name = "exceptiongroup", specifier = "==1.2.2" },

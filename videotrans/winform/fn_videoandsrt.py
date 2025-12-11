@@ -83,11 +83,11 @@ def openwin():
                         os.chdir(config.TEMP_DIR)
                         cmd += [
                             '-c:v',
-                            'libx264',
+                            'libx265',
                             '-vf',
                             f"subtitles={os.path.basename(assfile)}",
                             '-crf',
-                            f'{config.settings.get("crf",23)}',
+                            f'{config.settings.get("crf",26)}',
                             '-preset',
                             config.settings.get('preset','fast')
                         ]
@@ -100,14 +100,14 @@ def openwin():
                             '-i',
                             os.path.basename(srt),
                             '-c:v',
-                            'copy' if Path(info['video']).suffix.lower() == '.mp4' else 'libx264',
+                            'copy' if Path(info['video']).suffix.lower() == '.mp4' else 'libx265',
                             "-c:s",
                             "mov_text",
                             "-metadata:s:s:0",
                             f"language={subtitle_language}"
                         ]
                     cmd.append(result_file)
-                    tools.runffmpeg(cmd)
+                    tools.runffmpeg(cmd,force_cpu=False)
                 except Exception as e:
                     print(e)
                     self.post(type='error', text=str(e))

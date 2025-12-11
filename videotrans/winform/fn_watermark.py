@@ -97,15 +97,15 @@ def openwin():
                     "-i", os.path.normpath(self.png),
                     "-filter_complex",
                     f"[1:v]scale={self.width}:{self.height}[overlay];[0:v][overlay]overlay={position}:enable='between(t,0,999999)'",
-                    "-c:v", "libx264",
-                    "-crf", f"{config.settings.get('crf',23)}",
+                    "-c:v", "libx265",
+                    "-crf", f"{config.settings.get('crf',26)}",
                     "-preset", f"{config.settings.get('preset','fast')}",
                     "-c:a", "aac",
                     "-pix_fmt", "yuv420p",
                     result_file
                 ]
                 try:
-                    tools.runffmpeg(ffmpeg_command)
+                    tools.runffmpeg(ffmpeg_command,force_cpu=False)
                 except Exception as e:
                     from videotrans.configure._except import get_msg_from_except
                     self.post(type='error', text=get_msg_from_except(e))

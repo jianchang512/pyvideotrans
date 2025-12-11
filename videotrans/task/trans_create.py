@@ -118,17 +118,21 @@ class TransCreate(BaseTask):
             self.cfg.target_wav = f"{self.cfg.cache_folder}/target-dubbing.wav"
             self.shoud_dubbing=True
 
-        # 没有设置目标语言，不配音不翻译
-        if not self.cfg.target_language_code:
-            self.shoud_dubbing=False
-            self.shoud_trans=False
 
         # 判断如果是音频，则到生成音频结束，无需合并，并且无需分离视频、无需背景音处理
         if self.cfg.ext in config.AUDIO_EXITS:
             self.is_audio_trans=True
             self.cfg.is_separate=False
             self.shoud_hebing = False
-            
+
+        # 没有设置目标语言，不配音不翻译
+        if not self.cfg.target_language_code:
+            self.shoud_dubbing=False
+            self.shoud_trans=False
+
+        if self.cfg.voice_role=='No':
+            self.shoud_dubbing=False
+
         if self.cfg.app_mode == 'tiqu':
             self.cfg.is_separate=False
             self.cfg.enable_diariz=False
@@ -619,11 +623,8 @@ class TransCreate(BaseTask):
             if self.cfg.shound_del_name:
                 Path(self.cfg.shound_del_name).unlink(missing_ok=True)
             if self.cfg.only_out_mp4:
-                for it in Path(self.cfg.target_dir).rglob('*'):
-                    if it.is_file() and it.suffix[1:].lower()!='mp4':
-                        it.unlink(missing_ok=False)                  
-                    elif it.is_dir():
-                        shutil.rmtree(it.as_posix(),ignore_errors=True)
+                shutil.move(self.cfg.targetdir_mp4,Path(self.cfg.target_dir).parent / f'{self.cfg.noextname}.mp4')
+                shutil.rmtree(self.cfg.target_dir,ignore_errors=True)
         except Exception as e:
             logs(e, level="except")
         self._signal(text=f"{self.cfg.name}", type='succeed')
@@ -1095,10 +1096,12 @@ class TransCreate(BaseTask):
 
         # 末尾对齐
         duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
+        duration_s=f'{duration_ms/1000.0:.6f}'
         audio_ms=tools.get_audio_time(target_m4a)
         if duration_ms<audio_ms:
             self._video_extend(audio_ms-duration_ms)
-        duration_s=f'{duration_ms/1000.0:.6f}'
+            duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
+            duration_s=f'{duration_ms/1000.0:.6f}'
        
 
         try:

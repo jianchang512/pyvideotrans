@@ -6,7 +6,8 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Union
+from typing import Union,Tuple,List,Dict
+
 
 from videotrans.configure import config
 from videotrans.configure.config import logs
@@ -26,8 +27,23 @@ def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
     return " ".join(result)
 
 
-
 def _get_preset_classification(preset: str) -> str:
+    """将 libx264/x265 的 preset 归类为 'fast', 'medium', 'slow'。"""
+    if not preset:
+        return 'medium'
+    
+    p = preset.lower()
+    SOFTWARE_PRESET_CLASSIFICATION = {
+        'ultrafast': 'fast', 'superfast': 'fast', 'veryfast': 'fast',
+        'faster': 'fast', 'fast': 'fast',
+        'medium': 'medium',
+        'slow': 'slow', 'slower': 'slow', 'veryslow': 'slow',
+        'placebo': 'slow'
+    }
+    return SOFTWARE_PRESET_CLASSIFICATION.get(p, 'medium')
+
+
+def _get_preset_classification2(preset: str) -> str:
     """将 libx264/x265 的 preset 归类为 'fast', 'medium', 'slow'。"""
     SOFTWARE_PRESET_CLASSIFICATION = {
         'ultrafast': 'fast', 'superfast': 'fast', 'veryfast': 'fast',
@@ -39,6 +55,39 @@ def _get_preset_classification(preset: str) -> str:
 
 
 def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> Union[int, None]:
+    """
+    将 CRF 值近似转换为不同硬件编码器的质量值。
+    """
+    try:
+        crf = float(crf_value) # 使用 float 兼容性更好
+        crf_int = int(crf)
+
+        # 1. NVENC (CQ), QSV (Global Quality), VAAPI
+        # 范围 1-51，越小质量越高。与 CRF 逻辑一致。
+        if encoder_family in ['nvenc', 'qsv', 'vaapi']:
+            return max(1, min(crf_int, 51))
+        
+        # 2. VideoToolbox (macOS)
+        # 使用 -q:v，范围 1-100。
+        # 注意：VideoToolbox 的 scale 是反的（或者说是正向的品质），100 是最高质量，1 是最低。
+        # CRF 0 (无损) ~ 对应 q:v 100
+        # CRF 23 (默认) ~ 对应 q:v 60-70 左右
+        # CRF 51 (最差) ~ 对应 q:v 1
+        # 简单的线性映射公式：Quality = 100 - (CRF * 1.8) 
+        if encoder_family == 'videotoolbox':
+            quality = 100 - (crf * 1.8)
+            return int(max(1, min(quality, 100)))
+
+        # 3. AMF (AMD)
+        # AMF 比较复杂，通常用 -qp_i / -qp_p，但也支持 -quality。
+        # 简单的 CRF 映射很难精准，暂不处理以免画质崩坏。
+        
+    except (ValueError, TypeError):
+        return None
+    return None
+
+
+def _translate_crf_to_hw_quality2(crf_value: str, encoder_family: str) -> Union[int, None]:
     """
     将 CRF 值近似转换为不同硬件编码器的质量值。
     这是一个经验性转换，并非精确等效。
@@ -57,8 +106,116 @@ def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> Union[i
         return None
     return None
 
+def _build_hw_command(args: list, hw_codec: str) -> Tuple[List[str], List[str]]:
+    """
+    根据选择的硬件编码器，构建 ffmpeg 命令参数列表和硬件解码选项
+    此函数是纯粹的，它不修改输入列表，而是返回一个新的列表。
+    """
+    # 模拟外部 config 对象，防止报错，实际使用时请删除下面这行或保留原本的 import
+    from videotrans.configure import config
 
-def _build_hw_command(args: list, hw_codec: str):
+    if not hw_codec or 'libx' in hw_codec or hw_codec == 'copy':
+        return list(args), []
+
+    # 更加健壮的 encoder_family 提取 (全小写)
+    encoder_family = hw_codec.split('_')[-1].lower()
+
+    # --- 参数映射表 ---
+    PRESET_MAP = {
+        # NVENC: p1 (最快) - p7 (最慢/质量最好)
+        'nvenc': {'fast': 'p2', 'medium': 'p4', 'slow': 'p7'}, 
+        # QSV: veryfast, faster, fast, medium, slow, slower, veryslow
+        'qsv': {'fast': 'faster', 'medium': 'medium', 'slow': 'slower'},
+        # AMF: speed, balanced, quality
+        'amf': {'fast': 'speed', 'medium': 'balanced', 'slow': 'quality'},
+        # VAAPI: 通常也接受 standard presets
+        'vaapi': {'fast': 'veryfast', 'medium': 'medium', 'slow': 'veryslow'},
+        # VideoToolbox: 通常不支持 -preset 参数，留空以跳过处理
+        'videotoolbox': None 
+    }
+
+    # 定义硬件质量参数的名称
+    QUALITY_PARAM_MAP = {
+        'nvenc': '-cq',             # 还需要配合自动添加 -rc:v vbr 逻辑吗？通常 -cq 足够触发 VBR 模式
+        'qsv': '-global_quality',   # ICQ 模式
+        'vaapi': '-global_quality',
+        'videotoolbox': '-q:v',     # 苹果硬编质量参数
+    }
+
+    new_args = []
+    hw_decode_opts = []
+
+    i = 0
+    main_input_file = ""
+    
+    # 预扫描：检查是否包含字幕流或滤镜，用于后续决定是否开启硬件解码
+    has_subtitles = "-c:s" in args
+    # 检查所有形式的滤镜参数
+    has_filters = any(x in args for x in ["-vf", "-filter_complex", "-lavfi"])
+    
+    while i < len(args):
+        arg = args[i]
+        
+        # 记录主输入文件 (通常是第一个 -i 后的参数)
+        if arg == '-i' and not main_input_file and i + 1 < len(args):
+            main_input_file = args[i + 1]
+
+        # 1. 替换视频编码器
+        if arg == '-c:v' and i + 1 < len(args):
+            # 确保 copy 模式不被覆盖
+            if args[i + 1] == 'copy':
+                new_args.extend(['-c:v', 'copy'])
+            else:
+                new_args.extend(['-c:v', hw_codec])
+            i += 2
+            continue
+
+        # 2. 调整 preset 参数
+        if arg == '-preset' and i + 1 < len(args):
+            family_presets = PRESET_MAP.get(encoder_family)
+            # 如果该家族有定义的 preset 映射，则替换；
+            # 如果 family_presets 为 None (如 videotoolbox)，则直接丢弃原 preset 参数
+            if family_presets:
+                classification = _get_preset_classification(args[i + 1])
+                new_preset = family_presets.get(classification)
+                if new_preset:
+                    new_args.extend(['-preset', new_preset])
+            # 如果是 videotoolbox，直接跳过 '-preset' 和它的值，因为不支持
+            i += 2
+            continue
+
+        # 3. 替换 -crf 参数
+        if arg == '-crf' and i + 1 < len(args):
+            hw_quality_param = QUALITY_PARAM_MAP.get(encoder_family)
+            if hw_quality_param:
+                crf_value = args[i + 1]
+                hw_quality_value = _translate_crf_to_hw_quality(crf_value, encoder_family)
+                
+                if hw_quality_value is not None:
+                    new_args.extend([hw_quality_param, str(hw_quality_value)])
+                    
+                    # 【NVENC 特殊处理】
+                    # 使用 -cq 时，如果不指定 -rc，默认为 constant QP 还是 VBR 取决于驱动。
+                    # 为了体感接近 CRF，强制指定 VBR 可能是个好选择，但为了保持函数纯洁性，
+                    # 这里仅做参数替换。如需更稳定，可取消下面注释：
+                    # if encoder_family == 'nvenc' and '-rc' not in args and '-rc:v' not in args:
+                    #     new_args.extend(['-rc:v', 'vbr'])
+                else:
+                    # logs(f"无法转换 -crf {crf_value}，忽略。", level='warn')
+                    pass
+            else:
+                # logs(f"编码器 {encoder_family} 不支持 CRF 替换，忽略。", level='warn')
+                pass
+            i += 2
+            continue
+
+        new_args.append(arg)
+        i += 1
+    return new_args
+
+
+
+def _build_hw_command2(args: list, hw_codec: str):
     from videotrans.configure import config
     """
     根据选择的硬件编码器，构建 ffmpeg 命令参数列表和硬件解码选项
@@ -134,7 +291,8 @@ def _build_hw_command(args: list, hw_codec: str):
 
         new_args.append(arg)
         i += 1
-
+    return new_args
+    '''
     # --- 硬件解码逻辑 ---
     output_file = new_args[-1] if new_args else ""
     is_output_mp4 = isinstance(output_file, str) and output_file.lower().endswith('.mp4')
@@ -156,6 +314,7 @@ def _build_hw_command(args: list, hw_codec: str):
             # logs("启用 VideoToolbox 硬件解码。")
 
     return new_args, hw_decode_opts
+    '''
 
 
 def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
@@ -175,10 +334,10 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
         force_cpu=True
     arg_copy = copy.deepcopy(arg)
 
-    default_codec = f"libx{config.settings.get('video_codec', '264')}"
+    default_codec = f"libx{config.settings.get('video_codec', '265')}"
 
     final_args = arg
-    hw_decode_opts = []
+    #hw_decode_opts = []
 
     # 如果 crf < 10 则直接强制使用软编码
     if "-crf" in final_args and final_args[-1].endswith(".mp4"):
@@ -198,13 +357,13 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
             config.video_codec = get_video_codec()
         if config.video_codec and 'libx' not in config.video_codec:
             logs(f"检测到硬件编码器 {config.video_codec}，正在调整参数...")
-            final_args, hw_decode_opts = _build_hw_command(arg, config.video_codec)
+            final_args = _build_hw_command(arg, config.video_codec)
 
 
     cmd = [config.FFMPEG_BIN, "-hide_banner", "-ignore_unknown",'-threads','0']
     if "-y" not in final_args:
         cmd.append("-y")
-    cmd.extend(hw_decode_opts)
+    #cmd.extend(hw_decode_opts)
     cmd.extend(final_args)
 
     if cmd and Path(cmd[-1]).suffix:
@@ -224,7 +383,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
             creationflags = subprocess.CREATE_NO_WINDOW
         if config.exit_soft:
             return
-        logs(f'{cmd=}','debug')
+        logs(f'{cmd=}','info')
         subprocess.run(
             cmd,
             stdout=subprocess.PIPE,

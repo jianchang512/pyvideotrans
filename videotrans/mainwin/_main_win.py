@@ -1,3 +1,8 @@
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication, QThread,Signal,QObject
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QMessageBox,QMainWindow, QPushButton, QToolBar, QSizePolicy, QApplication
+
+
 import asyncio, sys
 import os
 if sys.platform == "win32":
@@ -7,10 +12,6 @@ import time
 import platform
 import getpass
 import subprocess
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication, QThread
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QMessageBox,QMainWindow, QPushButton, QToolBar, QSizePolicy, QApplication
-
 
 from videotrans import VERSION, recognition, tts
 from videotrans.component.controlobj import TextGetdir
@@ -18,18 +19,22 @@ from videotrans.task.check_update import CheckUpdateWorker
 from videotrans.task.job import start_thread
 from videotrans.mainwin._signal import UUIDSignalThread
 from videotrans.task.simple_runnable_qt import run_in_threadpool
+
 from videotrans.translator import TRANSLASTE_NAME_LIST, LANGNAME_DICT
 from videotrans.configure import config
 from videotrans.mainwin._actions import WinAction
 from videotrans.ui.en import Ui_MainWindow
+
 from videotrans.util import tools
 
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+    uito = Signal(str)
     def __init__(self, parent=None, width=1200, height=650):
 
         super(MainWindow, self).__init__(parent)
+        self.uito.emit('Init ui...')
         self.worker_threads = []
         self.uuid_signal = None
         self.width = width
@@ -51,14 +56,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
+        self.uito.emit('Set text...')
         self._replace_placeholders()
         self.initUI()
         self._retranslateUi_from_logic()
         self.show()
         QApplication.processEvents()
         QTimer.singleShot(0,self._set_cache_set)
-        
-        
         run_in_threadpool(tools.check_hw_on_start)
 
 
@@ -389,6 +393,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
+        self.uito.emit('Show ui...')
 
 
     def restart_app(self):
@@ -408,7 +413,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def _set_cache_set(self):
-
+        self.uito.emit('Set default params...')
         if platform.system() == 'Darwin':
             self.enable_cuda.setChecked(False)
             self.enable_cuda.hide()
@@ -498,11 +503,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.glossary.clicked.connect(lambda: tools.show_glossary_editor(self))
 
+        self.uito.emit('Load subform...')
         QTimer.singleShot(0,self._start_subform)
         
 
     def _start_subform(self):
-
         self.import_sub.setCursor(Qt.PointingHandCursor)
         self.model_name_help.setCursor(Qt.PointingHandCursor)
         self.startbtn.setCursor(Qt.PointingHandCursor)
@@ -601,12 +606,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel2.clicked.connect(lambda: self.win_action.open_url('https://bbs.pyvideotrans.com/post'))
         if config.settings.get('show_more_settings'):
             self.win_action.toggle_adv()
+        self.uito.emit('Bind signal...')
         QTimer.singleShot(0,self._bindsignal)
         
 
 
     def _bindsignal(self):
-
 
         self.check_update = CheckUpdateWorker(parent=self)
         self.check_update.setObjectName("CheckUpdateThread")
@@ -614,28 +619,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.uuid_signal.uito.connect(self.win_action.update_data)
         self.uuid_signal.setObjectName("UUIDSignalThread")
 
+        self.uito.emit('Load torch...')
         self.check_update.start()
         self.uuid_signal.start()
         self.worker_threads = start_thread()
-        QTimer.singleShot(0,self.is_writable)
-        
-
-
-    def is_writable(self):
-        temp_file_path = f"{config.ROOT_DIR}/.permission_test_{uuid.uuid4()}.tmp"
-        try:
-            with open(temp_file_path, 'w') as f:
-                pass
-        except OSError as e:
-            tools.show_error(
-                config.tr("The current directory {}  is not writable, please try moving the software to a non-system directory or right-clicking with administrator privileges.",
-                   config.ROOT_DIR))
-        finally:
-            if os.path.exists(temp_file_path):
-                try:
-                    os.remove(temp_file_path)
-                except OSError as e:
-                    pass
         import torch
         if not config.IS_FROZEN and not shutil.which("rubberband"):
             print(
@@ -644,6 +631,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f'MacOS: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm')
             print(
                 f'Ubuntu: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm')
+        self.uito.emit('end')
 
 
 

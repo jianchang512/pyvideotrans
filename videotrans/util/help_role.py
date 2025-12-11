@@ -15,7 +15,7 @@ def get_elevenlabs_role(force=False, raise_exception=False):
     from videotrans.configure import config
     from . import help_misc
     jsonfile = f'{config.ROOT_DIR}/videotrans/voicejson/elevenlabs.json'
-    namelist = []
+    namelist = ["No"]
     if help_misc.vail_file(jsonfile):
         with open(jsonfile, 'r', encoding='utf-8') as f:
             cache = json.loads(f.read())
@@ -29,6 +29,7 @@ def get_elevenlabs_role(force=False, raise_exception=False):
         client = ElevenLabs(api_key=config.params.get("elevenlabstts_key",''))
         voiceslist = client.voices.get_all()
 
+        namelist=['No']
         result = {}
         for it in voiceslist.voices:
             n = re.sub(r'[^a-zA-Z0-9_ -]+', '', it.name,flags=re.I | re.S).strip()
@@ -101,6 +102,7 @@ def set_proxy(set_val=''):
 def get_302ai():
     from videotrans.configure import config
     role_dict = get_azure_rolelist()
+
     with open(config.ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
         ai302_voice_roles = json.loads(f.read())
         _doubao = ai302_voice_roles.get("AI302_doubao", {})
@@ -108,8 +110,8 @@ def get_302ai():
         _dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
         _doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
     _openai=config.OPENAITTS_ROLES.split(",")
-    role_dict['zh'] = ['No'] + list(_doubao.keys()) + list(_minimaxi.keys()) + list(
-        _dubbingx.keys()) + _openai + role_dict['zh'][1:]
+    role_dict['zh'] = role_dict['zh']+ list(_doubao.keys()) + list(_minimaxi.keys()) + list(
+        _dubbingx.keys()) + _openai
     role_dict['ja'] += list(_doubao_ja.keys())
     return role_dict
 
@@ -126,7 +128,7 @@ def get_doubao_rolelist(role_name=None, langcode="zh"):
             return 'No'
         return current_d.get(role_name)
     
-    return { key:list(item.keys())  for key,item in roledata.items()}
+    return { key:['No']+list(item.keys())  for key,item in roledata.items()}
 
 
 def get_doubao2_rolelist(role_name=None, langcode="zh"):
@@ -140,7 +142,7 @@ def get_doubao2_rolelist(role_name=None, langcode="zh"):
             return 'No'
         return current_d.get(role_name)
     
-    return { key:list(item.keys())  for key,item in roledata.items()}
+    return { key:['No']+list(item.keys())  for key,item in roledata.items()}
 
 
 
@@ -155,10 +157,11 @@ def get_edge_rolelist(role_name=None,locale=None):
         try:
             with open(voice_file,'r',encoding='utf-8') as f:
                 voice_list = json.loads(f.read())
+            for i,it in voice_list.items():
+                voice_list[i]={"No":"No"}|it
         except (OSError,json.JSONDecodeError):
             pass
     if role_name and locale:
-        #print(f'{role_name=},{locale=}')
         return voice_list.get(locale.split('-')[0],{}).get(role_name)
     return voice_list
 
@@ -172,6 +175,8 @@ def get_azure_rolelist():
         try:
             with open(voice_file,'r',encoding='utf-8') as f:
                 voice_list = json.loads(f.read())
+            for it in voice_list.values():
+                it.insert(0,'No')
         except (OSError,json.JSONDecodeError):
             pass
     return voice_list
@@ -188,13 +193,17 @@ def get_minimaxi_rolelist():
         try:
             with open(voice_file,'r',encoding='utf-8') as f:
                 voice_list = json.loads(f.read())
+            for i,it in voice_list.items():
+                voice_list[i]={"No":"No"}|it
         except (OSError,json.JSONDecodeError):
             pass
     return voice_list
 
 
 def get_qwen3tts_rolelist():
-    return json.loads(Path(config.ROOT_DIR+"/videotrans/voicejson/qwen3tts.json").read_text(encoding='utf-8'))
+    voices=json.loads(Path(config.ROOT_DIR+"/videotrans/voicejson/qwen3tts.json").read_text(encoding='utf-8'))
+    voices={"No":"No"}|voices
+    return voices
 
 
 
@@ -248,7 +257,7 @@ def get_gptsovits_role():
     from videotrans.configure import config
     if not config.params.get('gptsovits_role','').strip():
         return None
-    rolelist = {}
+    rolelist = {"No":"No"}
     for it in config.params.get('gptsovits_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 3:
@@ -259,7 +268,7 @@ def get_gptsovits_role():
 
 def get_chatterbox_role():
     from videotrans.configure import config
-    rolelist = ['chatterbox', 'clone']
+    rolelist = ['No', 'clone']
     if not config.params.get('chatterbox_role','').strip():
         return rolelist
     for it in config.params.get('chatterbox_role','').strip().split("\n"):
@@ -270,6 +279,7 @@ def get_chatterbox_role():
 def get_cosyvoice_role():
     from videotrans.configure import config
     rolelist = {
+        "No":"No",
         "clone": 'clone'
     }
 
@@ -285,7 +295,7 @@ def get_fishtts_role():
     from videotrans.configure import config
     if not config.params.get('fishtts_role','').strip():
         return None
-    rolelist = {}
+    rolelist = {"No":"No"}
     for it in config.params.get('fishtts_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 2:
@@ -298,7 +308,7 @@ def get_f5tts_role():
     from videotrans.configure import config
     if not config.params.get('f5tts_role','').strip():
         return
-    rolelist = {}
+    rolelist = {"No":"No","clone":"clone"}
     for it in config.params.get('f5tts_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 2:
@@ -318,7 +328,7 @@ def get_clone_role(set_p=False):
         url = config.params.get('clone_api','').strip().rstrip('/') + "/init"
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
         res.raise_for_status()
-        config.params["clone_voicelist"] = ["clone"] + res.json()
+        config.params["clone_voicelist"] = ['No',"clone"] + res.json()
         set_process(type='set_clone_role')
     except Exception as e:
         if set_p: raise

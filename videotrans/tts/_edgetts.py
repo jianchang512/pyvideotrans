@@ -1,5 +1,6 @@
 import asyncio
 import os
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 import functools
@@ -22,6 +23,26 @@ SIGNAL_TIMEOUT = 2 # 发给UI界面的信号，超时2秒，以防UI卡顿
 SAVE_TIMEOUT = 30  # edge_tts可能限流超时，超过30s就认定失败，防止无限挂起
 
     
+
+# 用于多进程转换
+def _convert_to_wav(mp3_file_path, output_wav_file_path):
+    cmd = [
+        "-y",
+        "-i",
+        mp3_file_path,
+        "-ar",
+        "48000",
+        "-ac",
+        "2",
+        "-c:a",
+        "pcm_s16le",
+        output_wav_file_path
+    ]
+    try:
+        tools.runffmpeg(cmd, force_cpu=True)
+    except Exception:
+        pass
+    return True
 
 @dataclass
 class EdgeTTS(BaseTTS):
@@ -211,11 +232,11 @@ class EdgeTTS(BaseTTS):
                 all_task = []
                 from concurrent.futures import ThreadPoolExecutor
                 self._signal(text=f'convert wav {total_tasks}')
-                with ThreadPoolExecutor(max_workers=min(12,len(self.queue_tts),os.cpu_count())) as pool:
+                with ProcessPoolExecutor(max_workers=min(12,len(self.queue_tts),os.cpu_count())) as pool:
                     for item in self.queue_tts:
                         mp3_path = item['filename'] + ".mp3"
                         if tools.vail_file(mp3_path):
-                            all_task.append(pool.submit(self.convert_to_wav, mp3_path,item['filename']))
+                            all_task.append(pool.submit(_convert_to_wav, mp3_path,item['filename']))
                     completed_tasks = 0
                     for task in all_task:
                         try:
