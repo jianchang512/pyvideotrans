@@ -33,13 +33,16 @@ class FunasrRecogn(BaseRecogn):
         if self._exit():
             return
 
-        msg = tr("The model needs to be downloaded from modelscope.cn, which may take a long time, please be patient")
-        self._tosend(msg)
+
         if self.model_name == 'SenseVoiceSmall' or self.detect_language[:2].lower() in ['ja','en','ko','yu']:
             return self._exec1()
         raw_subtitles = []
+        if not Path(f'{config.ROOT_DIR}/models/models/iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch/model.pt').exists():
+            self._tosend('Download paraformer-zh from modelscope.cn')
+        else:
+            self._tosend('Load paraformer-zh')
         from funasr import AutoModel
-
+        
         model = AutoModel(
             model='iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch', model_revision="v2.0.5",
             vad_model="fsmn-vad", vad_model_revision="v2.0.4",
@@ -83,6 +86,10 @@ class FunasrRecogn(BaseRecogn):
         if self._exit():
             return
 
+        if not Path(f'{config.ROOT_DIR}/models/models/iic/SenseVoiceSmall/model.pt').exists():
+            self._tosend('Download SenseVoiceSmall from modelscope.cn')
+        else:
+            self._tosend('Load SenseVoiceSmall')
         from funasr import AutoModel
         from funasr.utils.postprocess_utils import rich_transcription_postprocess
         from concurrent.futures import ThreadPoolExecutor
@@ -95,10 +102,11 @@ class FunasrRecogn(BaseRecogn):
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
-            trust_remote_code=True,
+            trust_remote_code=False,
             hub='ms'
         )
         # vad
+        
         vm = AutoModel(
             model="fsmn-vad",
             local_dir=config.ROOT_DIR + "/models",
@@ -109,12 +117,14 @@ class FunasrRecogn(BaseRecogn):
             disable_progress_bar=True,
             disable_log=True,
             device=self.device)
+        
         msg = tr("Recognition may take a while, please be patient")
         self._tosend(msg)
         segments = vm.generate(input=self.audio_file)
         audiodata = AudioSegment.from_file(self.audio_file)
-
-        srts = {}
+        
+        #srts = self.cut_audio()
+        srts=[]
         for i,seg in enumerate(segments[0]['value']):
             chunk = audiodata[seg[0]:seg[1]]
             filename = f"{config.TEMP_DIR}/{seg[0]}-{seg[1]}.wav"
@@ -122,25 +132,25 @@ class FunasrRecogn(BaseRecogn):
             srt = {                
                 "line": len(srts) + 1,
                 "text": '',
-                "filename":filename,
+                "file":filename,
                 "start_time": seg[0],
                 "end_time": seg[1],
                 "startraw": f'{tools.ms_to_time_string(ms=seg[0])}',
                 "endraw": f'{tools.ms_to_time_string(ms=seg[1])}'
             }
             srt['time'] = f"{srt['startraw']} --> {srt['endraw']}"
-            srts[f"{srt['line']}"]=srt
+            srts.append(srt)
 
         
-        def _stt(it):
+        def _stt(i,it):
             res = model.generate(
-                input=it['filename'],
+                input=it['file'],
                 language=self.detect_language[:2],  # "zh", "en", "yue", "ja", "ko", "nospeech"
                 use_itn=True,
                 disable_pbar=True
             )
             text = self.remove_unwanted_characters(rich_transcription_postprocess(res[0]["text"]))
-            srts[f'{it["line"]}']['text']=text
+            srts[i]['text']=text
   
 
             self._signal(
@@ -151,8 +161,8 @@ class FunasrRecogn(BaseRecogn):
 
         all_task = []
         with ThreadPoolExecutor(max_workers=min(4,len(srts),os.cpu_count())) as pool:
-            for k,item in srts.items():
-                all_task.append(pool.submit(_stt, item))
+            for i,item in enumerate(srts):
+                all_task.append(pool.submit(_stt, i,item))
             completed_tasks = 0
             total_tasks=len(all_task)
             for task in all_task:
@@ -164,4 +174,4 @@ class FunasrRecogn(BaseRecogn):
                     logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
                     
 
-        return list(srts.values())
+        return srts

@@ -623,7 +623,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.check_update.start()
         self.uuid_signal.start()
         self.worker_threads = start_thread()
-        import torch
+        #import torch
         if not config.IS_FROZEN and not shutil.which("rubberband"):
             print(
                 f'For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip')

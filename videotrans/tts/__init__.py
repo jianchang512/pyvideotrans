@@ -22,11 +22,12 @@ from videotrans.tts._ttsapi import TTSAPI
 from videotrans.tts._doubao import DoubaoTTS
 from videotrans.tts._doubao2 import Doubao2TTS
 from videotrans.tts._f5tts import F5TTS
+from videotrans.tts._kokocnen import KokoCNEN
+from videotrans.tts._vits import VitsCNEN
 EDGE_TTS = 0
-MINIMAXI_TTS = 1
-
-OPENAI_TTS = 2
-AZURE_TTS = 3
+VITSCNEN_TTS = 1
+KOKOCNEN_TTS = 2
+OPENAI_TTS = 3
 QWEN_TTS = 4
 DOUBAO2_TTS=5
 ELEVENLABS_TTS = 6
@@ -45,19 +46,19 @@ INDEX_TTS = 15
 VOXCPM_TTS = 16
 SPARK_TTS = 17
 DIA_TTS = 18
-
 KOKORO_TTS = 19
 CLONE_VOICE_TTS = 20
 FISHTTS = 21
-
-GOOGLE_TTS = 22
-TTS_API = 23
-
-GOOGLECLOUD_TTS = 24
+MINIMAXI_TTS = 22
+AZURE_TTS = 23
+GOOGLE_TTS = 24
+TTS_API = 25
+GOOGLECLOUD_TTS = 26
 
 TTS_NAME_LIST = [
     tr("Edge-TTS(free)"),
-    "Minimaxi TTS",
+    f'Vits-cn-en({tr("Local")})',
+    f'Koko-cn-en({tr("Local")})',
 
     "OpenAI TTS",
     "Azure-TTS",
@@ -84,8 +85,10 @@ TTS_NAME_LIST = [
     "Fish TTS",
 
 
+    "Minimaxi TTS",
     "Google TTS",
     tr("Customize API"),
+    
     # "Google Cloud TTS",
 ]
 
@@ -315,3 +318,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         GEMINITTS(**kwargs).run()
     elif tts_type == MINIMAXI_TTS:
         MinimaxiTTS(**kwargs).run()
+    elif tts_type == KOKOCNEN_TTS:
+        KokoCNEN(**kwargs).run()
+    elif tts_type == VITSCNEN_TTS:
+        VitsCNEN(**kwargs).run()

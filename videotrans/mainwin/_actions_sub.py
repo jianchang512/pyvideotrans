@@ -15,7 +15,7 @@ from videotrans.configure import config
 from videotrans.configure.config import tr,logs
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
-
+from videotrans import tts
 
 @dataclass
 class WinActionSub:
@@ -560,11 +560,20 @@ class WinActionSub:
             tools.show_error(
                 tr("The original sound clone cannot be auditioned"))
             return
-
+        if obj['tts_type']==tts.KOKOCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/kokocnen/model.onnx').exists():
+            tools.show_download_tts(self.main)
+            return
+        if obj['tts_type']==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
+            tools.show_download_tts(self.main)
+            return
+        raw_text=self.main.listen_btn.text()
         def feed(d):
+            self.main.listen_btn.setDisabled(False)
+            self.main.listen_btn.setText(raw_text)
             if d != "ok":
                 tools.show_error(d)
-
+        self.main.listen_btn.setDisabled(True)
+        self.main.listen_btn.setText('load...')
         wk = ListenVoice(parent=self.main, queue_tts=[obj], language=lang, tts_type=obj['tts_type'])
         wk.uito.connect(feed)
         wk.start()

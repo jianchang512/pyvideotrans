@@ -16,6 +16,17 @@ def show_download_tips(Win,tr_text=""):
                 config.tr("The model is missing. Please download it!"),
                 config.tr("DownloadRealTimeModel",tr_text,f'{config.ROOT_DIR}/models/onnx')
     )
+    
+def show_download_tts(Win):
+    from videotrans.configure import config
+    from PySide6.QtWidgets import QMessageBox,QApplication
+    url=f'https://github.com/jianchang512/stt/releases/download/0.0/kokocnen-vits-tts-models.7z'
+    QApplication.clipboard().setText(url)
+    reply = QMessageBox.information(Win,
+                config.tr("model is missing. Please download it")[:30],
+                config.tr("model is missing. Please download it",f'{config.ROOT_DIR}/models')
+    )
+        
 
 def show_popup(title, text):
     from PySide6.QtGui import QIcon

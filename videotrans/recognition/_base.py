@@ -1,4 +1,4 @@
-import json
+import json,re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict,  Optional, Union
@@ -75,7 +75,15 @@ class BaseRecogn(BaseCon):
     def run(self) -> Union[List[Dict], None]:
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         try:
-            return self._exec()
+            srt_list=[]
+            
+            for i,it in enumerate(self._exec()):
+                text=it['text'].strip()
+                # 移除无效行
+                if text and not re.match(r'^[,.?!;\'"_，。？；‘’“”！~@#￥%…&*（【】）｛｝《、》\$\(\)\[\]\{\}=+\<\>\s-]+$',text):
+                    it['line']=len(srt_list)+1
+                    srt_list.append(it)
+            return srt_list
         except RetryError as e:
             raise e.last_attempt.exception()
         except Exception as e:
@@ -160,12 +168,12 @@ class BaseRecogn(BaseCon):
         Path(dir_name).mkdir(parents=True, exist_ok=True)
         data = []
         audio = AudioSegment.from_wav(self.audio_file)
-        for it in speech_chunks:
+        for i,it in enumerate(speech_chunks):
             start_ms, end_ms = it['start'], it['end']
             chunk = audio[start_ms:end_ms]
             file_name = f"{dir_name}/{start_ms}_{end_ms}.wav"
             chunk.export(file_name, format="wav")
-            data.append({"start_time": start_ms, "end_time": end_ms, "file": file_name})
+            data.append({"line":i+1,"text":"","start_time": start_ms, "end_time": end_ms, "file": file_name})
 
         return data
     # True 退出

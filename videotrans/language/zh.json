@@ -884,5 +884,8 @@
     "whisperx-tips": "请部署并启动 whisperx-api 项目，并在api地址框中填写 http://127.0.0.1:9092\n具体安装使用方法请点击 【查看填写教程】 \nwhisperx-api项目地址:  https://github.com/jianchang512/whisperx-api",
     "Retry failed": "重试失败",
 	"only_out_mp4":"默认将输出srt/音频等中间素材，选中将仅输出MP4",
-	"Output only mp4":"仅输出mp4"
+	"Output only mp4":"仅输出mp4",
+	"model is missing. Please download it":"配音模型下载地址已复制到剪贴板内，请到浏览器地址栏中粘贴下载\n\n下载完成后解压，会看到2个文件夹，将他们复制到 【{}】 目录内即可。",
+	"Local":"本地",
+	"Built-in":"内置"
 }

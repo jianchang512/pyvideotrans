@@ -47,6 +47,30 @@ def get_elevenlabs_role(force=False, raise_exception=False):
     return []
 
 
+def get_vits_role():
+    zh=['No',"zh_female"]
+    en=['No',"en_female"]
+    for i in range(109):
+        en.append(f'en_{i}')
+    for i in range(174):
+        zh.append(f'zh_{i}')
+    
+    return {"zh":{k:k for k in zh},"en":{k:k for k in en}}
+
+def get_kokocnen_role(name=None,langcode=None):
+    rolelist=json.loads(Path(config.ROOT_DIR+'/videotrans/voicejson/kokocnen.json').read_text(encoding='utf-8'))
+    if name:
+        sid= rolelist.get(name,18)
+        print(f'{name=},{sid=}')
+        return int(sid)
+    
+    return_dict={
+        "zh":{"No":"No"}|{i:k for i,k in rolelist.items() if i.startswith('z')},
+        "en":{"No":"No"}|rolelist
+    }
+    
+    return return_dict
+
 def set_proxy(set_val=''):
     from videotrans.configure import config
     if set_val == 'del':

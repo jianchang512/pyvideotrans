@@ -878,5 +878,8 @@
     "whisperx-tips": "Please deploy and start the whisperx-api project, and enter http://127.0.0.1:9092 in the API address box. \nFor detailed installation and usage instructions, please click the Help/Tutorials button to view. \nWhisperx-api project address: https://github.com/jianchang512/whisperx-api",
     "Retry failed": "Retry failed",
 	"only_out_mp4":"By default, will output intermediate materials such as SRT/audio files; selecting this option will output only MP4 files.",
-	"Output only mp4":"OutputOnly MP4"
+	"Output only mp4":"OutputOnly MP4",
+	"model is missing. Please download it":"The download link for the TTS model has been copied to your clipboard. Please paste it into your browser's address bar to download. After downloading, extract the files. You will see 2 folder. Copy these  to the directory specified in {}.",
+	"Local":"Local",
+	"Built-in":"Built-in"
 }

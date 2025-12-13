@@ -262,7 +262,7 @@ def parse_init(update_data=None):
         "threshold": 0.45,
         "min_speech_duration_ms": 0,
         "max_speech_duration_s": 5,
-        "min_silence_duration_ms": 140,
+        "min_silence_duration_ms": 250,
         "speech_pad_ms": 0,
 
         "trans_thread": 20,

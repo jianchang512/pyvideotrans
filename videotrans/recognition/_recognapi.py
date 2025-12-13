@@ -50,8 +50,7 @@ class APIRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
         api_url = config.params.get('recognapi_url','').strip().rstrip('/').lower()
-        if not api_url:
-            raise RuntimeError(tr("Custom api address must be filled in"))
+
 
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
@@ -78,18 +77,21 @@ class APIRecogn(BaseRecogn):
         self._signal(
             text=tr("Recognition may take a while, please be patient"))
 
-        res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files,timeout=3600)
+        res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files,timeout=600)
         res.raise_for_status()
-        res = res.json()
-        if "code" not in res or res['code'] != 0:
-            raise RuntimeError(f'{res["msg"]}')
-        if "data" not in res or len(res['data']) < 1:
-            raise RuntimeError(f'识别出错{res=}')
-        self._signal(
-            text=tools.get_srt_from_list(res['data']),
-            type='replace_subtitle'
-        )
-        return res['data']
+        content_type = res.headers.get('Content-Type')
+        if 'application/json' in content_type:
+            res = res.json()
+            if "code" not in res or res['code'] != 0:
+                raise RuntimeError(f'{res["msg"]}')
+            if "data" not in res or len(res['data']) < 1:
+                raise RuntimeError(f'识别出错{res=}')
+            self._signal(
+                text=tools.get_srt_from_list(res['data']),
+                type='replace_subtitle'
+            )
+            return res['data']
+        return tools.get_subtitle_from_srt(res.text,is_file=False)
 
     def _whisperzero(self):
         api_key = config.params.get("recognapi_key")

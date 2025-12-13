@@ -13,7 +13,7 @@ from videotrans.process._iscache import _MODELS
 import glob
 
 from videotrans.util import tools
-import zhconv
+
 
 """
 faster-whisper
@@ -188,7 +188,8 @@ class FasterAll(BaseRecogn):
         raise RuntimeError(err+"\n"+tr('Please also check whether CUDA12.8 and cudnn9 are installed correctly.'))
             
     def get_srtlist(self, raws):
-
+        if self.jianfan:
+            import zhconv
         srt_raws = []
         raws=list(raws)
         raws_len=len(raws)
