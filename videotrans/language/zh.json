@@ -887,5 +887,6 @@
 	"Output only mp4":"仅输出mp4",
 	"model is missing. Please download it":"配音模型下载地址已复制到剪贴板内，请到浏览器地址栏中粘贴下载\n\n下载完成后解压，会看到2个文件夹，将他们复制到 【{}】 目录内即可。",
 	"Local":"本地",
-	"Built-in":"内置"
+	"Built-in":"内置",
+    "win-forbid-name": "Windows系统中，文件名不允许使用这些符号【 {} 】,某些下载工具可能会创建不符合Windows规则的文件名,请修改后重试。"
 }

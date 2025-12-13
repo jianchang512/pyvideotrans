@@ -2,6 +2,7 @@ import copy
 import json
 import os
 import re
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -700,21 +701,32 @@ class WinAction(WinActionSub):
         # 待翻译的文件列表
         self.obj_list = []
 
-        # new_name = []
+        # 判断非法文件名
+        forbid_names=[]
+        for video_path in self.queue_mp4:
+            obj = tools.format_video(video_path, target_dir)
+            if sys.platform=="win32" and re.search(r'[?:<>*|/"]',obj['basename']):
+                forbid_names.append(obj['basename'])
+                continue
+            self.obj_list.append(obj)
+
+        if forbid_names:
+            self.update_status("stop")
+            tools.show_error(tr('win-forbid-name','?:<>*|/"')+"\n"+("\n".join(forbid_names)))
+            return
+
         txt = self.main.subtitle_area.toPlainText().strip()
         self.cfg.update(
             {'subtitles': txt, 'app_mode': self.main.app_mode}
         )
         cfg=copy.deepcopy(self.cfg)
 
-        for video_path in self.queue_mp4:
-            obj = tools.format_video(video_path, target_dir)
-            self.obj_list.append(obj)
+        for obj in self.obj_list:
             self.add_process_btn(
                 target_dir=Path(obj['target_dir']).as_posix() if cfg.get('app_mode')=='tiqu' or not cfg.get('only_out_mp4') else target_dir,
                 name=obj['name'],
                 uuid=obj['uuid'])
-            self.uuid_queue_mp4[obj['uuid']]=(video_path,target_dir)
+            self.uuid_queue_mp4[obj['uuid']]=(obj['name'],target_dir)
 
 
         # 启动任务

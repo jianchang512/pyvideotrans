@@ -881,5 +881,6 @@
 	"Output only mp4":"OutputOnly MP4",
 	"model is missing. Please download it":"The download link for the TTS model has been copied to your clipboard. Please paste it into your browser's address bar to download. After downloading, extract the files. You will see 2 folder. Copy these  to the directory specified in {}.",
 	"Local":"Local",
-	"Built-in":"Built-in"
+	"Built-in":"Built-in",
+    "win-forbid-name": "In Windows, filenames are not allowed to use the symbols {}. Some download tools may create filenames that do not conform to Windows rules. Please modify them and try again."
 }
