@@ -103,7 +103,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                     language=self.detect_language[:2].lower(),
                     response_format="json"
                 )
-                if not hasattr(transcript, 'text') or not transcript.text:
+                if not hasattr(transcript, 'text') or not transcript.text or not transcript.text.strip():
                     continue
                 raws[i]['text'] = transcript.text
         return raws
