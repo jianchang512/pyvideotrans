@@ -113,11 +113,11 @@ def _cut_video_get_duration(i, task,novoice_mp4_original,preset,crf):
     cmd_bak = cmd[:]
     if task['pts'] > 1:
         qiwang=task["pts"]*duration
-        cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts={task["pts"]}*PTS', '-fps_mode', 'vfr','-t',f'{(qiwang+add_offset)/1000.0:.6f}'])
+        cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.2,setpts={task["pts"]}*PTS', '-fps_mode', 'vfr','-t',f'{(qiwang+add_offset)/1000.0:.6f}'])
         # 失败后重试不变速
-        cmd_bak.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s,task['filename']])
+        cmd_bak.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.2,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s,task['filename']])
     else:
-        cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.1,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s])
+        cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.2,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s])
     cmd.append(task['filename'])
     try:
         tools.runffmpeg(cmd, force_cpu=True)

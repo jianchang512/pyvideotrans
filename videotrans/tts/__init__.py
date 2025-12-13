@@ -1,7 +1,7 @@
 from videotrans.configure import config
 
 # 数字代表界面中的显示顺序
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.tts._minimaxi import MinimaxiTTS
 from videotrans.tts._azuretts import AzureTTS
 from videotrans.tts._cosyvoice import CosyVoice

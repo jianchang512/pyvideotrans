@@ -281,7 +281,7 @@ def get_gptsovits_role():
     from videotrans.configure import config
     if not config.params.get('gptsovits_role','').strip():
         return None
-    rolelist = {"No":"No"}
+    rolelist = {"No":"No","clone":"clone"}
     for it in config.params.get('gptsovits_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 3:

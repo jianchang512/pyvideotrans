@@ -15,7 +15,8 @@ from videotrans.configure import config
 from videotrans.configure._config_loader import tr,logs
 from videotrans.recognition import run as run_recogn, Faster_Whisper_XXL,Whisper_CPP
 from videotrans.translator import run as run_trans, get_audio_code
-from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, CHATTERBOX_TTS, COSYVOICE_TTS, F5_TTS, EDGE_TTS, AZURE_TTS,  INDEX_TTS,VOXCPM_TTS,SPARK_TTS,DIA_TTS
+from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, CHATTERBOX_TTS, COSYVOICE_TTS, F5_TTS, EDGE_TTS, AZURE_TTS, \
+    INDEX_TTS, VOXCPM_TTS, SPARK_TTS, DIA_TTS, GPTSOVITS_TTS
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools
 from ._base import BaseTask
@@ -767,8 +768,9 @@ class TransCreate(BaseTask):
             }
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆
-            if voice == 'clone' and self.cfg.tts_type in [COSYVOICE_TTS, CLONE_VOICE_TTS, F5_TTS,INDEX_TTS,VOXCPM_TTS,SPARK_TTS,DIA_TTS,CHATTERBOX_TTS]:
+            if voice == 'clone' and self.cfg.tts_type in [COSYVOICE_TTS, CLONE_VOICE_TTS, F5_TTS,INDEX_TTS,VOXCPM_TTS,SPARK_TTS,DIA_TTS,CHATTERBOX_TTS,GPTSOVITS_TTS]:
                 tmp_dict['ref_wav'] = f"{self.cfg.cache_folder}/clone-{i}-{time.time()}.wav"
+                tmp_dict['ref_language']=self.cfg.detect_language[:2]
             queue_tts.append(tmp_dict)
 
         self.queue_tts = copy.deepcopy(queue_tts)

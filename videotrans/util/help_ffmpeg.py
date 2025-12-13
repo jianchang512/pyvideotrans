@@ -292,29 +292,6 @@ def _build_hw_command2(args: list, hw_codec: str):
         new_args.append(arg)
         i += 1
     return new_args
-    '''
-    # --- 硬件解码逻辑 ---
-    output_file = new_args[-1] if new_args else ""
-    is_output_mp4 = isinstance(output_file, str) and output_file.lower().endswith('.mp4')
-    is_input_media = isinstance(main_input_file, str) and main_input_file.lower().endswith(
-        ('.mp4', '.mkv', '.mov', '.ts', '.txt'))
-
-    # 无字幕嵌入时可尝试硬件解码
-    # 有字幕或 -vf 滤镜时不使用，容易出错且需要上传下载数据
-    if "-c:s" not in new_args and "-vf" not in new_args and is_input_media and is_output_mp4 and config.settings.get(
-            'cuda_decode', False):
-        if encoder_family == 'nvenc':
-            hw_decode_opts = ['-hwaccel', 'cuda', '-hwaccel_output_format', 'cuda']
-            # logs("启用 CUDA 硬件解码。")
-        elif encoder_family == 'qsv':
-            hw_decode_opts = ['-hwaccel', 'qsv', '-hwaccel_output_format', 'qsv']
-            # logs("启用 QSV 硬件解码。")
-        elif encoder_family == 'videotoolbox':
-            hw_decode_opts = ['-hwaccel', 'videotoolbox']
-            # logs("启用 VideoToolbox 硬件解码。")
-
-    return new_args, hw_decode_opts
-    '''
 
 
 def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
