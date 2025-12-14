@@ -13,8 +13,8 @@ from videotrans.util import tools
 import time
 
 from concurrent.futures import ProcessPoolExecutor
-import sherpa_onnx
-import soundfile as sf
+import wave
+from piper import PiperVoice,SynthesisConfig
 
 
 # 用于多进程转换
@@ -38,71 +38,48 @@ def _convert_to_wav(mp3_file_path, output_wav_file_path):
     return True
 
 #用于多进程
-def _t(it,device='cpu',rate=1.0,language='zh'):
+def _t(it,device='cpu',rate=1.0,model_file=None):
     if not it.get('text','').strip():
         return
-    tts_config = sherpa_onnx.OfflineTtsConfig(
-        model=sherpa_onnx.OfflineTtsModelConfig(             
-           
-            kokoro=sherpa_onnx.OfflineTtsKokoroModelConfig(
-                model=f'{config.ROOT_DIR}/models/kokocnen/model.onnx',
-                voices=f'{config.ROOT_DIR}/models/kokocnen/voices.bin',
-                tokens=f'{config.ROOT_DIR}/models/kokocnen/tokens.txt',
-                data_dir=f'{config.ROOT_DIR}/models/kokocnen/espeak-ng-data',
-                lexicon=f'{config.ROOT_DIR}/models/kokocnen/lexicon-us-en.txt,{config.ROOT_DIR}/models/kokocnen/lexicon-gb-en.txt,{config.ROOT_DIR}/models/kokocnen/lexicon-zh.txt',
-            ),
-            
-            provider=device,
-            debug=False,
-            num_threads=2,
-        ),
-        rule_fsts='' if language[:2]!='zh' else f"{config.ROOT_DIR}/models/kokocnen/date-zh.fst,{config.ROOT_DIR}/models/kokocnen/number-zh.fst,{config.ROOT_DIR}/models/kokocnen/phone-zh.fst",
-        max_num_sentences=1,
+    voice = PiperVoice.load(model_file,use_cuda=True if device=='cuda' else False)
+    syn_config = SynthesisConfig(
+        length_scale=rate,  # twice as slow
     )
-    if not tts_config.validate():
-        raise ValueError("Please check your config")
 
-    tts = sherpa_onnx.OfflineTts(tts_config)
-
-    start = time.time()
-    
-    
-    audio = tts.generate(it['text'], sid=tools.get_kokocnen_role(name=it['role']), speed=rate)
-    end = time.time()
-
-    if len(audio.samples) == 0:
-        print("Error in generating audios. Please read previous error messages.")
-        return
-
-    elapsed_seconds = end - start
-    audio_duration = len(audio.samples) / audio.sample_rate
-    real_time_factor = elapsed_seconds / audio_duration
-
-    sf.write(
-        it['filename']+"-24k.wav",
-        audio.samples,
-        samplerate=audio.sample_rate,
-        subtype="PCM_16",
-    )
+    with wave.open(it['filename']+'-24k.wav', "wb") as wav_file:
+        voice.synthesize_wav(it.get('text'), wav_file,syn_config=syn_config)
+        
 
 
 
 
 @dataclass
-class KokoCNEN(BaseTTS):
+class PiperTTS(BaseTTS):
 
     def __post_init__(self):
 
         super().__post_init__()
-        self.rate=1+float(self.rate.replace('%',''))/100
+        self.rate=round(1/(1+float(self.rate.replace('%',''))/100),1)
         self.device="cpu"# todo cuda
-        
+    def _get_model_from_name(self,name):
+        return config.ROOT_DIR+'/models/piper/'+name.split('_')[0]+'/'+name.replace('-','/')+f'/{name}.onnx'
+
     def _exec(self):
+        # 再次判断模型是否存在
+        no_files=[]
+        for it in set([it['role'] for it in self.queue_tts]):
+            filename=self._get_model_from_name(it)
+            if not Path(filename).exists():
+                no_files.append(filename)
+            if not Path(filename+".json").exists():
+                no_files.append(filename+".json")
+        if no_files:
+            raise RuntimeError("Models not exists:\n" +("\n".join(no_files)))
 
         all_task=[]
         with ProcessPoolExecutor(max_workers=min(max(2,int(config.settings.get('dubbing_thread',1))),len(self.queue_tts),os.cpu_count())) as pool:
             for item in self.queue_tts:
-                all_task.append(pool.submit(_t, item,self.device,self.rate,self.language))
+                all_task.append(pool.submit(_t, item,self.device,self.rate,self._get_model_from_name(item['role'])))
             completed_tasks = 0
             for task in all_task:
                 try:

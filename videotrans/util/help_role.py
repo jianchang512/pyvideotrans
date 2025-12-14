@@ -57,19 +57,24 @@ def get_vits_role():
     
     return {"zh":{k:k for k in zh},"en":{k:k for k in en}}
 
-def get_kokocnen_role(name=None,langcode=None):
-    rolelist=json.loads(Path(config.ROOT_DIR+'/videotrans/voicejson/kokocnen.json').read_text(encoding='utf-8'))
-    if name:
-        sid= rolelist.get(name,18)
-        print(f'{name=},{sid=}')
-        return int(sid)
-    
-    return_dict={
-        "zh":{"No":"No"}|{i:k for i,k in rolelist.items() if i.startswith('z')},
-        "en":{"No":"No"}|rolelist
-    }
-    
-    return return_dict
+def get_piper_role():
+    file_path=f"{config.ROOT_DIR}/videotrans/voicejson/piper.json"
+    if Path(file_path).exists():
+        rolelist=json.loads(Path(file_path).read_text(encoding='utf-8'))
+    else:
+        rolelist={}
+        from videotrans.translator import LANGNAME_DICT
+        langkeys=[it.split('-')[0] for it in LANGNAME_DICT.keys()]
+        for it in Path(f'{config.ROOT_DIR}/models/piper').rglob('*.onnx'):
+            rolename=Path(it).stem
+            tmp=rolename.split('_')#tmp[0] 语言代码
+            if tmp[0] not in langkeys:
+                continue
+            if tmp[0] not in rolelist:
+                rolelist[tmp[0]]={"No":"No"}
+            rolelist[tmp[0]][rolename]=rolename
+        Path(file_path).write_text(json.dumps(rolelist,indent=4),encoding='utf-8')
+    return rolelist
 
 def set_proxy(set_val=''):
     from videotrans.configure import config

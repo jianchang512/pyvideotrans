@@ -13,19 +13,12 @@ import platform
 import getpass
 import subprocess
 
-from videotrans import VERSION, recognition, tts
-from videotrans.component.controlobj import TextGetdir
-from videotrans.task.check_update import CheckUpdateWorker
-from videotrans.task.job import start_thread
-from videotrans.mainwin._signal import UUIDSignalThread
-from videotrans.task.simple_runnable_qt import run_in_threadpool
 
-from videotrans.translator import TRANSLASTE_NAME_LIST, LANGNAME_DICT
 from videotrans.configure import config
-from videotrans.mainwin._actions import WinAction
-from videotrans.ui.en import Ui_MainWindow
 
-from videotrans.util import tools
+from videotrans.ui.en import Ui_MainWindow
+from videotrans.translator import TRANSLASTE_NAME_LIST, LANGNAME_DICT
+
 
 
 
@@ -35,11 +28,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         super(MainWindow, self).__init__(parent)
         self.uito.emit('Init ui...')
+        self.resize(width, height)
+        self.setupUi(self)
+
         self.worker_threads = []
         self.uuid_signal = None
         self.width = width
         self.height = height
-        self.resize(width, height)
         self.is_restarting = False
         # 实际行为实例
         self.win_action = None
@@ -52,41 +47,65 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app_mode = "biaozhun"
         # 当前所有可用角色列表
         self.current_rolelist = []
-        self.languagename = list(LANGNAME_DICT.values())
-        
+
+        self.rawtitle="pyVideoTrans"
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setupUi(self)
-        self.uito.emit('Set text...')
-        self._replace_placeholders()
-        self.initUI()
-        self._retranslateUi_from_logic()
+        self.languagename=list(LANGNAME_DICT.values())
+        self.source_language.addItems(self.languagename)
+        self.target_language.addItems(["-"] + self.languagename)
+        self.translate_type.addItems(TRANSLASTE_NAME_LIST)        
         self.show()
-        QApplication.processEvents()
-        QTimer.singleShot(0,self._set_cache_set)
-        run_in_threadpool(tools.check_hw_on_start)
+        self.uito.emit('Set text...')
+        QTimer.singleShot(300,self._set_Ui_Text)
+        
 
 
-    def _replace_placeholders(self):
-        """
-        用真正的自定义组件替换UI文件中的占位符
-        """
-        self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
-        self.tts_type.addItems(tts.TTS_NAME_LIST)
-
-
+    def _set_Ui_Text(self):
+        # 字幕显示区域
+        from videotrans.component.controlobj import TextGetdir
         self.subtitle_area = TextGetdir(self)
         self.subtitle_area.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
         self.subtitle_area.setObjectName("subtitle_area")
         self.subtitle_area.setPlaceholderText(
             f"{config.tr('zimubianjitishi')}\n\n{config.tr('subtitle_tips')}\n\n{config.tr('meitiaozimugeshi')}")
-        # 替换占位符
-        index = self.source_area_layout.indexOf(self.subtitle_area_placeholder)
-        self.source_area_layout.insertWidget(index, self.subtitle_area)
+        self.source_area_layout.insertWidget(self.source_area_layout.indexOf(self.subtitle_area_placeholder), self.subtitle_area)
         self.subtitle_area_placeholder.hide()
         self.subtitle_area_placeholder.deleteLater()
 
-    def _retranslateUi_from_logic(self):
-        """设置显示文字"""
+        from videotrans import VERSION, recognition, tts
+        from videotrans.util import tools
+        from videotrans.task.simple_runnable_qt import run_in_threadpool
+        self.rawtitle = f"{config.tr('softname')} {VERSION} {config.tr('Documents')} pyvideotrans.com"
+        self.setWindowTitle(self.rawtitle)
+        
+        # 底部状态条
+        self.statusLabel = QPushButton(config.tr("Open Documents"))
+        self.statusLabel2 = QPushButton(config.tr("Having problems? Ask"))
+        self.statusLabel.setStyleSheet("""color:#ffffbb""")
+        self.statusBar.addWidget(self.statusLabel)
+        self.statusBar.addWidget(self.statusLabel2)
+
+        self.rightbottom = QPushButton(config.tr('juanzhu'))
+
+        self.container = QToolBar()
+        self.container.addWidget(self.rightbottom)
+        self.restart_btn = QPushButton(config.tr("Restart"))
+        self.container.addWidget(self.restart_btn)
+        self.statusBar.addPermanentWidget(self.container)
+              
+
+        # 设置显示文字和样式
+        self.statusLabel2.setStyleSheet("""color:#ffffbb""")
+        self.rightbottom.setStyleSheet("""color:#ffffbb""")
+        self.restart_btn.setStyleSheet("""color:#ffffbb""")
+        self.restart_btn.setToolTip(
+            config.tr("Click to end all tasks immediately and restart"))
+        self.restart_btn.clicked.connect(self.restart_app)
+
+        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+
+
+
         self.btn_get_video.setToolTip(
             config.tr("Multiple MP4 videos can be selected and automatically queued for processing"))
         self.btn_get_video.setText(config.tr("Select audio & video"))
@@ -143,9 +162,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.back_audio.setPlaceholderText(config.tr("back_audio_place"))
         self.back_audio.setToolTip(config.tr("back_audio_place"))
 
-
         self.import_sub.setText(config.tr("Import original language SRT"))
-
+        
+        # 菜单
         self.menu_Key.setTitle(config.tr("&Setting"))
         self.menu_TTS.setTitle(config.tr("&TTSsetting"))
         self.menu_RECOGN.setTitle(config.tr("&RECOGNsetting"))
@@ -278,34 +297,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionsrtmultirole.setText(config.tr("Multi voice dubbing for SRT"))
         self.actionsrtmultirole.setToolTip(
             config.tr("Subtitle multi-role dubbing: assign a voice to each subtitle"))
+        self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
+        self.tts_type.addItems(tts.TTS_NAME_LIST)
+        
+        # 主功能 设置默认参数
+        from videotrans.mainwin._actions import WinAction
+        from videotrans.task.simple_runnable_qt import run_in_threadpool
+        self.uito.emit('Set default params')
 
-    def initUI(self):
-
-        self.statusLabel = QPushButton(config.tr("Open Documents"))
-        self.statusLabel2 = QPushButton(config.tr("Having problems? Ask"))
-        self.statusLabel.setStyleSheet("""color:#ffffbb""")
-        self.statusLabel2.setStyleSheet("""color:#ffffbb""")
-        self.statusBar.addWidget(self.statusLabel)
-        self.statusBar.addWidget(self.statusLabel2)
-        self.rightbottom = QPushButton(config.tr('juanzhu'))
-        self.rightbottom.setStyleSheet("""color:#ffffbb""")
-        self.container = QToolBar()
-        self.container.addWidget(self.rightbottom)
-        self.restart_btn = QPushButton(config.tr("Restart"))
-        self.restart_btn.setStyleSheet("""color:#ffffbb""")
-        self.restart_btn.setToolTip(
-            config.tr("Click to end all tasks immediately and restart"))
-        self.container.addWidget(self.restart_btn)
-        self.restart_btn.clicked.connect(self.restart_app)
-
-        self.statusBar.addPermanentWidget(self.container)
-        self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        self.source_language.addItems(self.languagename)
-        self.target_language.addItems(["-"] + self.languagename)
-        self.translate_type.addItems(TRANSLASTE_NAME_LIST)
-
-        self.rawtitle = f"{config.tr('softname')} {VERSION} {config.tr('Documents')} pyvideotrans.com"
-        self.setWindowTitle(self.rawtitle)
         self.win_action = WinAction(self)
         self.win_action.tts_type_change(config.params.get('tts_type', ''))
 
@@ -393,27 +392,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
-        self.uito.emit('Show ui...')
-
-
-    def restart_app(self):
-        # 创建确认对话框
-
-        reply = QMessageBox.question(
-            self,
-            config.tr("Restart"),
-            config.tr("Are you sure you want to restart the application?"),
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
-        )
-
-        if reply == QMessageBox.StandardButton.Yes:
-            self.is_restarting = True
-            self.close()  # 触发 closeEvent，进行清理，然后在 closeEvent 中重启
-
-
-    def _set_cache_set(self):
-        self.uito.emit('Set default params...')
+    
+        
+        
+        
         if platform.system() == 'Darwin':
             self.enable_cuda.setChecked(False)
             self.enable_cuda.hide()
@@ -478,6 +460,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio', True)))
 
 
+
+        
+        self.import_sub.setCursor(Qt.PointingHandCursor)
+        self.model_name_help.setCursor(Qt.PointingHandCursor)
+        self.startbtn.setCursor(Qt.PointingHandCursor)
+        self.btn_get_video.setCursor(Qt.PointingHandCursor)
+        self.btn_save_dir.setCursor(Qt.PointingHandCursor)
+        self.listen_btn.setCursor(Qt.PointingHandCursor)
+        self.statusLabel.setCursor(Qt.PointingHandCursor)
+        self.statusLabel2.setCursor(Qt.PointingHandCursor)
+        self.rightbottom.setCursor(Qt.PointingHandCursor)
+        self.restart_btn.setCursor(Qt.PointingHandCursor)
+        
+        self.uito.emit('Bind signal...')        
+        run_in_threadpool(tools.check_hw_on_start)
+        self._bind_signal()
+
+    def _bind_signal(self):
+        from videotrans.util import tools
+        from videotrans.task.check_update import CheckUpdateWorker
+        from videotrans.task.job import start_thread
+        from videotrans.mainwin._signal import UUIDSignalThread
+        # 绑定行为
         self.voice_autorate.toggled.connect(self.win_action.check_voice_autorate)
         self.video_autorate.toggled.connect(self.win_action.check_video_autorate)
         self.enable_cuda.toggled.connect(self.win_action.check_cuda)
@@ -502,23 +507,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/proxy'))
 
         self.glossary.clicked.connect(lambda: tools.show_glossary_editor(self))
-
-        self.uito.emit('Load subform...')
-        QTimer.singleShot(0,self._start_subform)
-        
-
-    def _start_subform(self):
-        self.import_sub.setCursor(Qt.PointingHandCursor)
-        self.model_name_help.setCursor(Qt.PointingHandCursor)
-        self.startbtn.setCursor(Qt.PointingHandCursor)
-        self.btn_get_video.setCursor(Qt.PointingHandCursor)
-        self.btn_save_dir.setCursor(Qt.PointingHandCursor)
-        self.listen_btn.setCursor(Qt.PointingHandCursor)
-        self.statusLabel.setCursor(Qt.PointingHandCursor)
-        self.statusLabel2.setCursor(Qt.PointingHandCursor)
-        self.rightbottom.setCursor(Qt.PointingHandCursor)
-        self.restart_btn.setCursor(Qt.PointingHandCursor)
-
         self.action_biaozhun.triggered.connect(self.win_action.set_biaozhun)
         self.action_tiquzimu.triggered.connect(self.win_action.set_tiquzimu)
 
@@ -606,20 +594,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusLabel2.clicked.connect(lambda: self.win_action.open_url('https://bbs.pyvideotrans.com/post'))
         if config.settings.get('show_more_settings'):
             self.win_action.toggle_adv()
-        self.uito.emit('Bind signal...')
-        QTimer.singleShot(0,self._bindsignal)
-        
 
-
-    def _bindsignal(self):
 
         self.check_update = CheckUpdateWorker(parent=self)
-        self.check_update.setObjectName("CheckUpdateThread")
         self.uuid_signal = UUIDSignalThread(parent=self)
         self.uuid_signal.uito.connect(self.win_action.update_data)
         self.uuid_signal.setObjectName("UUIDSignalThread")
+        self.check_update.setObjectName("CheckUpdateThread")
 
-        self.uito.emit('Load torch...')
         self.check_update.start()
         self.uuid_signal.start()
         self.worker_threads = start_thread()
@@ -631,6 +613,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f'MacOS: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm')
             print(
                 f'Ubuntu: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm')
+        QApplication.processEvents()
+        self.uito.emit('Load torch...')
+        import torch
         self.uito.emit('end')
 
 
@@ -679,6 +664,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         from videotrans import winform
         QTimer.singleShot(0, winform.get_win(name).openwin)
+
+    def restart_app(self):
+        # 创建确认对话框
+
+        reply = QMessageBox.question(
+            self,
+            config.tr("Restart"),
+            config.tr("Are you sure you want to restart the application?"),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            self.is_restarting = True
+            self.close()  # 触发 closeEvent，进行清理，然后在 closeEvent 中重启
+
 
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""

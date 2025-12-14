@@ -157,8 +157,8 @@ def openwin():
 
         if role == 'clone':
             return
-        if tts_type==tts.KOKOCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/kokocnen/model.onnx').exists():
-            tools.show_download_tts(winobj)
+        if tts_type==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
+            tools.show_download_piper(winobj)
             return
         if tts_type==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
             tools.show_download_tts(winobj)
@@ -180,7 +180,7 @@ def openwin():
         
 
     def change_by_lang(type):
-        return type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.DOUBAO_TTS,tts.DOUBAO2_TTS,tts.AI302_TTS, tts.KOKORO_TTS,tts.KOKOCNEN_TTS,tts.VITSCNEN_TTS]
+        return type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.DOUBAO_TTS,tts.DOUBAO2_TTS,tts.AI302_TTS, tts.KOKORO_TTS,tts.PIPER_TTS,tts.VITSCNEN_TTS]
 
     def hecheng_start_fun():
         nonlocal RESULT_DIR,uuid
@@ -197,8 +197,8 @@ def openwin():
         if tts_type==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/matcha/zh_en/model.onnx').exists():
             tools.show_download_tts(winobj)
             return
-        if tts_type==tts.KOKOCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/kokocnen/model.onnx').exists():
-            tools.show_download_tts(winobj)
+        if tts_type==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
+            tools.show_download_piper(winobj)
             return
         if language == '-' or role in ['No', '-', '']:
             return tools.show_error(tr("A default role must be selected"))
@@ -398,8 +398,8 @@ def openwin():
             show_rolelist = tools.get_edge_rolelist()
         elif tts_type == tts.KOKORO_TTS:
             show_rolelist = tools.get_kokoro_rolelist()
-        elif tts_type == tts.KOKOCNEN_TTS:
-            show_rolelist = tools.get_kokocnen_role()
+        elif tts_type == tts.PIPER_TTS:
+            show_rolelist = tools.get_piper_role()
         elif tts_type == tts.VITSCNEN_TTS:
             show_rolelist = tools.get_vits_role()
         elif tts_type == tts.AI302_TTS:

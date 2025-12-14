@@ -560,8 +560,8 @@ class WinActionSub:
             tools.show_error(
                 tr("The original sound clone cannot be auditioned"))
             return
-        if obj['tts_type']==tts.KOKOCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/kokocnen/model.onnx').exists():
-            tools.show_download_tts(self.main)
+        if obj['tts_type']==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
+            tools.show_download_piper(self.main)
             return
         if obj['tts_type']==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
             tools.show_download_tts(self.main)

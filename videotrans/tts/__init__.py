@@ -22,11 +22,11 @@ from videotrans.tts._ttsapi import TTSAPI
 from videotrans.tts._doubao import DoubaoTTS
 from videotrans.tts._doubao2 import Doubao2TTS
 from videotrans.tts._f5tts import F5TTS
-from videotrans.tts._kokocnen import KokoCNEN
+from videotrans.tts._piper import PiperTTS
 from videotrans.tts._vits import VitsCNEN
 EDGE_TTS = 0
 VITSCNEN_TTS = 1
-KOKOCNEN_TTS = 2
+PIPER_TTS = 2
 OPENAI_TTS = 3
 QWEN_TTS = 4
 DOUBAO2_TTS=5
@@ -57,8 +57,8 @@ GOOGLECLOUD_TTS = 26
 
 TTS_NAME_LIST = [
     tr("Edge-TTS(free)"),
-    f'Vits-cn-en({tr("Local")})',
-    f'Koko-cn-en({tr("Local")})',
+    f'VITS-cnen({tr("Local")})',
+    f'Piper-TTS({tr("Local")})',
 
     "OpenAI TTS",
     "Azure-TTS",
@@ -318,7 +318,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         GEMINITTS(**kwargs).run()
     elif tts_type == MINIMAXI_TTS:
         MinimaxiTTS(**kwargs).run()
-    elif tts_type == KOKOCNEN_TTS:
-        KokoCNEN(**kwargs).run()
+    elif tts_type == PIPER_TTS:
+        PiperTTS(**kwargs).run()
     elif tts_type == VITSCNEN_TTS:
         VitsCNEN(**kwargs).run()

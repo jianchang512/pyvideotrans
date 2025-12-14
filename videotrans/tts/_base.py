@@ -138,8 +138,10 @@ class BaseTTS(BaseCon):
         except RuntimeError as e:
             # 这个捕获现在更有意义，因为它可能捕获到循环相关的错误
             logs(f'TTS 线程运行时发生错误: {e}',level='warn')
-            if 'Event loop is closed' in str(e):
+            if 'Event loop' in str(e):
                 logs("捕获到 'Event loop is closed' 错误，这通常是关闭时序问题。",level='warn')
+            else:
+                raise
         except RetryError as e:
             raise e.last_attempt.exception()
         except Exception:

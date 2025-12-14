@@ -163,7 +163,7 @@ class WinAction(WinActionSub):
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
-        if type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.DOUBAO_TTS,tts.DOUBAO2_TTS, tts.AI302_TTS, tts.KOKORO_TTS,tts.KOKOCNEN_TTS,tts.VITSCNEN_TTS]:
+        if type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.DOUBAO_TTS,tts.DOUBAO2_TTS, tts.AI302_TTS, tts.KOKORO_TTS,tts.PIPER_TTS,tts.VITSCNEN_TTS]:
             return True
         return False
 
@@ -290,8 +290,8 @@ class WinAction(WinActionSub):
             
         elif tts_type == tts.KOKORO_TTS:
             show_rolelist = tools.get_kokoro_rolelist()
-        elif tts_type == tts.KOKOCNEN_TTS:
-            show_rolelist = tools.get_kokocnen_role()
+        elif tts_type == tts.PIPER_TTS:
+            show_rolelist = tools.get_piper_role()
         elif tts_type == tts.VITSCNEN_TTS:
             show_rolelist = tools.get_vits_role()
         elif tts_type == tts.AI302_TTS:
@@ -594,8 +594,8 @@ class WinAction(WinActionSub):
             self.main.startbtn.setDisabled(False)
             return
             
-        if self.main.tts_type.currentIndex()==tts.KOKOCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/kokocnen/model.onnx').exists():
-            tools.show_download_tts(self.main)
+        if self.main.tts_type.currentIndex()==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
+            tools.show_download_piper(self.main)
             self.main.startbtn.setDisabled(False)
             return
 

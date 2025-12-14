@@ -2373,6 +2373,21 @@ wheels = [
 ]
 
 [[package]]
+name = "piper-tts"
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "onnxruntime" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9b/c0/d9b5f64869274be3ebc6dc483f13791a3c6ebbc0e37fad4e237a76d5365b/piper_tts-1.3.0-cp39-abi3-macosx_10_9_x86_64.whl", hash = "sha256:0af0c90aeddf762555ed940de1ac576acbefb3623e6d5ca4fb1a70359ee7e65d", size = 13819597, upload-time = "2025-07-10T21:07:22.893Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/17/6a059c0a45e582fadd4545ed092294fd0add7c679f6c09440af5cd2678b5/piper_tts-1.3.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:810c91a084d335d32b42928b1ef69d6480cf7e3a5a8b15eff98edd2ef55f2791", size = 13828403, upload-time = "2025-07-10T21:07:25.386Z" },
+    { url = "https://files.pythonhosted.org/packages/8c/92/f37e5111440fc6c6336f42f8dab88afaa545394784dc930f808a68883c48/piper_tts-1.3.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:8d39f85c3f4b6ade512976849579344fc72595ec613f374dbcf8521716398907", size = 13836863, upload-time = "2025-07-10T21:07:27.616Z" },
+    { url = "https://files.pythonhosted.org/packages/2b/73/3d29175cfd93e791baaef3335819778d3f8c8898e2fe16cd0cc8b8163f84/piper_tts-1.3.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:234c25474655b26f3418b84522c815c43e9b1bc8a1fdb13c2b28514290c165f0", size = 13836748, upload-time = "2025-07-10T21:07:29.912Z" },
+    { url = "https://files.pythonhosted.org/packages/10/a5/d782d469fc19db9bf19f1725d4a6ef77d2413515b61f5017340688f5d093/piper_tts-1.3.0-cp39-abi3-win_amd64.whl", hash = "sha256:dc6b5be4e15f3c0f4a6067b515bc6202ddf3e2b0c6cbd6c8bdeccab2453c89c7", size = 13826773, upload-time = "2025-07-10T21:07:31.95Z" },
+]
+
+[[package]]
 name = "platformdirs"
 version = "4.3.8"
 source = { registry = "https://pypi.org/simple" }
@@ -3110,6 +3125,7 @@ dependencies = [
     { name = "peft" },
     { name = "pillow" },
     { name = "pip" },
+    { name = "piper-tts" },
     { name = "platformdirs" },
     { name = "plyer" },
     { name = "pooch" },
@@ -3372,6 +3388,7 @@ requires-dist = [
     { name = "peft", specifier = "==0.15.2" },
     { name = "pillow", specifier = "==8.4.0" },
     { name = "pip", specifier = "==25.1.1" },
+    { name = "piper-tts", specifier = ">=1.3.0" },
     { name = "platformdirs", specifier = "==4.3.8" },
     { name = "plyer", specifier = "==2.1.0" },
     { name = "pooch", specifier = "==1.8.2" },

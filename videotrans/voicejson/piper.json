@@ -1,0 +1,23 @@
+{
+    "en": {
+        "No": "No",
+        "en_US-amy-medium": "en_US-amy-medium",
+        "en_US-arctic-medium": "en_US-arctic-medium",
+        "en_US-bryce-medium": "en_US-bryce-medium",
+        "en_US-danny-low": "en_US-danny-low",
+        "en_US-hfc_female-medium": "en_US-hfc_female-medium",
+        "en_US-hfc_male-medium": "en_US-hfc_male-medium",
+        "en_US-joe-medium": "en_US-joe-medium",
+        "en_US-john-medium": "en_US-john-medium",
+        "en_US-kathleen-low": "en_US-kathleen-low",
+        "en_US-kristin-medium": "en_US-kristin-medium"
+    },
+    "es": {
+        "No": "No",
+        "es_AR-daniela-high": "es_AR-daniela-high"
+    },
+    "zh": {
+        "No": "No",
+        "zh_CN-huayan-medium": "zh_CN-huayan-medium"
+    }
+}
