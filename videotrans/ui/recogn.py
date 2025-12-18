@@ -52,7 +52,7 @@ class Ui_recogn(object):
         self.label_model = QtWidgets.QLabel()
 
         self.shibie_model = QtWidgets.QComboBox()
-        self.shibie_model.setMinimumSize(QtCore.QSize(100, 30))
+        self.shibie_model.setMinimumSize(QtCore.QSize(150, 30))
         self.shibie_model.setObjectName("shibie_model")
         
         self.remove_noise = QtWidgets.QCheckBox()

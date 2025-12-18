@@ -394,61 +394,59 @@ class SpeedRate:
 
         # 3. 遍历一次，本次仅仅处理字幕文本为空的情况，将它合并进前面的字幕，
         dubb_list = []
-        notext_audio=0
         for i, it in enumerate(self.queue_tts):
-            if it['text'].strip() and Path(it['filename']).exists():
-                dubb_list.append(it['filename'])
-                continue
-            logs(f'字幕{it.get("line")} 无文本，移除，{it["filename"]}')
-            # 文本为空，则配音文件无论是否存在均无意义
-            # 但该条字幕不删，以便和原始转录的字幕条数一一对应，防止双字幕时错乱
-            it['filename'] = None
-            if it['end_time']>it['start_time']:
-                it['filename']=self.cache_folder+f'/dubb-{i}.wav'
-                AudioSegment.silent(duration=it['end_time']-it['start_time']).set_channels(self.AUDIO_CHANNELS).set_frame_rate(self.AUDIO_SAMPLE_RATE).export(it['filename'],  format="wav")
-                notext_audio+=1
-
-
-        # 对配音文件移除头部 尾部静音
-        all_task = []
-        total_tasks = len(dubb_list)
-        logs(f'共{len(self.queue_tts)}条字幕，共{total_tasks}个需要移除的配音文件，共{notext_audio}条无文字行的空字幕，开始对配音文件移除开头默认静默片段')
-        with ProcessPoolExecutor(max_workers=min(12, total_tasks, os.cpu_count())) as pool:
-            for i, d in enumerate(dubb_list):
-                all_task.append(pool.submit(tools.remove_silence_wav, d))
-
-            completed_tasks = 0
-            for task in all_task:
-                try:
-                    task.result()  # 等待任务完成
-                    completed_tasks += 1
-                    tools.set_process(text=f"remove silence [{completed_tasks}/{total_tasks}] ...", uuid=self.uuid)
-                except Exception as e:
-                    logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
-        logs(f'再次遍历字幕，获取每个移除开头结尾静默片段后的配音时长')
-        
-        # 4. 再次遍历，获取配音时长
-        for i, it in enumerate(self.queue_tts):
-            # 原始字幕时长
+            # 字幕时长
             it['source_duration'] = it['end_time'] - it['start_time']
-            # 原始字幕的起始时间
+            # 字幕的起始时间
             it['start_time_source'] = it['start_time']
             it['end_time_source'] = it['end_time']
 
-            # 如果时长为0，要么因为当前字幕为空已处理，要么出错了，则删掉配音文件
-            if it['source_duration'] <= 0:
+            # 如果时长为0，或当前字幕为空，删掉配音文件
+            if it['source_duration'] <= 0 or not it['text'].strip():
                 it['dubb_time'] = 0
+                it['source_duration']=0
                 it['filename'] = None
+                it['end_time']=max(it['start_time'],it['end_time'])
                 continue
 
-            tools.set_process(text=f"{tr('[1/5] Preparing data...')} {i}/{self.len_queue}", uuid=self.uuid)
             if not it['filename']:
                 it['filename']=self.cache_folder+f'/dubb-{i}.wav'
+            
             if not Path(it['filename']).exists():
                 it['dubb_time']=it['source_duration']
                 AudioSegment.silent(duration=it['source_duration']).set_channels(self.AUDIO_CHANNELS).set_frame_rate(self.AUDIO_SAMPLE_RATE).export(it['filename'],  format="wav")
             else:
                 it['dubb_time'] = len(AudioSegment.from_file(it['filename'],format="wav"))
+
+            if it['dubb_time']> it['source_duration']:
+                dubb_list.append(it['filename'])
+
+            
+
+        # 对配音文件移除头部 尾部静音
+        if dubb_list:
+            all_task = []
+            total_tasks = len(dubb_list)
+            logs(f'共{len(self.queue_tts)}条字幕，共{total_tasks}个需要移除的配音文件，开始对配音文件移除开头默认静默片段')
+            with ProcessPoolExecutor(max_workers=min(12, total_tasks, os.cpu_count())) as pool:
+                for i, d in enumerate(dubb_list):
+                    all_task.append(pool.submit(tools.remove_silence_wav, d))
+
+                completed_tasks = 0
+                for task in all_task:
+                    try:
+                        task.result()  # 等待任务完成
+                        completed_tasks += 1
+                        tools.set_process(text=f"remove silence [{completed_tasks}/{total_tasks}] ...", uuid=self.uuid)
+                    except Exception as e:
+                        logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
+        
+            logs(f'再次遍历字幕，获取每个移除开头结尾静默片段后的配音时长')
+            
+            # 4. 再次遍历，获取配音时长. 静音去除有可能出现失败，so全部再获取一遍配音时长
+            for i, it in enumerate(self.queue_tts):
+                if it['filename'] and Path(it['filename']).exists():
+                    it['dubb_time'] = len(AudioSegment.from_file(it['filename'],format="wav"))
 
         logs("[end]========在变速前，整理数据，修复错误时间轴 ==============\n")
     

@@ -59,14 +59,21 @@ class CosyVoice(BaseTTS):
             client = Client(self.api_url, ssl_verify=False)
         except Exception as e:
             raise StopRetry(str(e))
-
+        # 参考音频对应文本内容
+        prompt_text=data.get('ref_text','')
+        # 提示词，克隆时放入参考音频文本中
+        instruct_text=config.params.get('cosyvoice_instruct_text','')
+        if instruct_text:
+            prompt_text=f'You are a helpful assistant.{instruct_text}<|endofprompt|>{prompt_text}'
         result = client.predict(
             tts_text=text,
+            mode_checkbox_group="3s极速复刻",
             prompt_wav_upload=handle_file(data['ref_wav']),
             prompt_wav_record=handle_file(data['ref_wav']),
-            prompt_text=data.get('ref_text',''),
-            instruct_text="",
+            prompt_text=prompt_text,
+            instruct_text=instruct_text,
             seed=0,
+            stream=False,
             api_name="/generate_audio"
 
         )
@@ -141,7 +148,7 @@ class CosyVoice(BaseTTS):
     def _item_task(self, data_item):
         if self._exit() or  not data_item.get('text','').strip():
             return
-        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO), after=after_log(config.logger, logging.INFO))
+        #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO), after=after_log(config.logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -151,10 +158,5 @@ class CosyVoice(BaseTTS):
                 self._item_task_cosyvoice2(data_item)
             else:
                 self._item_cosyvoice_api(data_item)
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error = e
-
+        _run()
+        

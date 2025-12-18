@@ -4,99 +4,96 @@ from videotrans.configure import config
 import time
 # 数字代表界面中的现实顺序
 from videotrans.configure.config import tr
+# 这2个渠道 不可局部导入，否则可能卡住
 from videotrans.recognition._overall import FasterAll
-from videotrans.recognition._ai302 import AI302Recogn
-from videotrans.recognition._elevenlabs import ElevenLabsRecogn
-from videotrans.recognition._google import GoogleRecogn
-from videotrans.recognition._doubao import DoubaoRecogn
-from videotrans.recognition._zijiemodel import ZijieRecogn
-from videotrans.recognition._recognapi import APIRecogn
-from videotrans.recognition._stt import SttAPIRecogn
-from videotrans.recognition._openairecognapi import OpenaiAPIRecogn
 from videotrans.recognition._funasr import FunasrRecogn
-from videotrans.recognition._qwen3asr import Qwen3ASRRecogn
-from videotrans.recognition._deepgram import DeepgramRecogn
-from videotrans.recognition._gemini import GeminiRecogn
-from videotrans.recognition._parakeet import ParaketRecogn
-from videotrans.recognition._whisperx import WhisperXRecogn
+
+
+
+
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
 FUNASR_CN = 2
+HUGGINGFACE_ASR = 3
 
-OPENAI_API = 3
-GEMINI_SPEECH = 4
-QWEN3ASR = 5
-ZIJIE_RECOGN_MODEL=6
+OPENAI_API = 4
+GEMINI_SPEECH = 5
+QWEN3ASR = 6
+ZIJIE_RECOGN_MODEL=7
 
-ElevenLabs = 7
-Deepgram = 8
-DOUBAO_API = 9
+ElevenLabs = 8
+Deepgram = 9
+DOUBAO_API = 10
 
 
-PARAKEET = 10
-Whisper_CPP=11
-Faster_Whisper_XXL = 12
-AI_302 = 13
-STT_API = 14
-GOOGLE_SPEECH = 15
-CUSTOM_API = 16
+PARAKEET = 11
+Whisper_CPP=12
+Faster_Whisper_XXL = 13
+AI_302 = 14
+STT_API = 15
+GOOGLE_SPEECH = 16
 WHISPERX_API = 17
+CUSTOM_API = 18
 
-RECOGN_NAME_LIST = [
-    tr("Faster-whisper"),
-    tr("OpenAI-whisper"),
-    tr("FunASR-Chinese"),
+_ID_NAME_DICT = {
+    FASTER_WHISPER:tr("Faster-whisper"),
+    OPENAI_WHISPER:tr("OpenAI-whisper"),
+    FUNASR_CN:tr("FunASR-Chinese"),
+    HUGGINGFACE_ASR:'Huggingface_ASR',
     
-    tr("OpenAI Speech to Text"),
-    tr("Gemini AI"),
-    tr("Ali Qwen3-ASR"),    
-    tr("VolcEngine STT"),
+    OPENAI_API:tr("OpenAI Speech to Text"),
+    GEMINI_SPEECH:tr("Gemini AI"),
+    QWEN3ASR:tr("Ali Qwen3-ASR"),    
+    ZIJIE_RECOGN_MODEL:tr("VolcEngine STT"),
     
-    "ElevenLabs.io",
-    "Deepgram.com",
-    tr("VolcEngine Subtitle API"),
+    ElevenLabs:"ElevenLabs.io",
+    Deepgram:"Deepgram.com",
+    DOUBAO_API:tr("VolcEngine Subtitle API"),
     
-    "Parakeet-tdt",
-    "Whisper.cpp",
-    "Faster-Whisper-XXL.exe",
+    PARAKEET:"Parakeet-tdt",
+    Whisper_CPP:"Whisper.cpp",
+    Faster_Whisper_XXL:"Faster-Whisper-XXL.exe",
 
-    "302.AI",
-    tr("STT Speech API"),
-    tr("Google Speech to Text"),
-    tr("Custom API"),
-    "WhisperX",
-]
+    AI_302:"302.AI",
+    STT_API:tr("STT Speech API"),
+    GOOGLE_SPEECH:tr("Google Speech to Text"),
+    WHISPERX_API:"WhisperX",
+    CUSTOM_API:tr("Custom API"),
+}
+RECOGN_NAME_LIST=list(_ID_NAME_DICT.values())
 
+HUGGINGFACE_ASR_MODELS={
+"parakeet-ctc-1.1b":['en'],
+"moonshine-base-ar":['ar'],
+"moonshine-base-zh":['zh'],
+"moonshine-base":['en'],
+"moonshine-base-ja":['ja'],
+"moonshine-base-ko":['ko'],
+"moonshine-base-es":['es'],
+"moonshine-base-uk":['uk'],
+"moonshine-base-vi":['vi'],
+}
 
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
     if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL,Whisper_CPP]:
         return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
-    if recogn_type == FUNASR_CN:
-        if langcode[:2] not in ('zh', 'yu','en','ja','ko'):
-            return tr("SenseVoiceSmall models only support Chinese,Ja,ko,English speech recognition")
-        return True
 
+    if recogn_type==HUGGINGFACE_ASR and model_name in HUGGINGFACE_ASR_MODELS:
+        model_lang_support=",".join(HUGGINGFACE_ASR_MODELS[model_name])
+        if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
+            return tr("This model only supports speech transcription of these languages:")+model_lang_support
     return True
 
 
 # 判断 openai whisper和 faster whisper 模型是否存在
-def check_model_name(recogn_type=FASTER_WHISPER, name='', source_language_isLast=False, source_language_currentText=''):
+def check_model_name(recogn_type=FASTER_WHISPER, name='',  source_language_currentText=''):
     if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER]:
         return True
     # 含 / 的需要下载
     if name.find('/') > 0:
         return True
-    if name.endswith('.en') and source_language_isLast:
-        return tr("Models ending in .en may not be used for automated detection")
-
-    if (name.endswith('.en') or name.startswith("distil-")) and translator.get_code(show_text=source_language_currentText) != 'en':
-        return tr('enmodelerror')
-
-    if recogn_type == OPENAI_WHISPER:
-        if name.startswith('distil'):
-            return tr("distil-* only use when faster-whisper")
-
-        return True
+    if recogn_type == OPENAI_WHISPER and name.startswith('distil'):
+        return tr("distil-* only use when faster-whisper")
     return True
 
 
@@ -199,42 +196,51 @@ def run(*,
         "max_speakers":max_speakers
     }
 
-
-
-
-
-
     if recogn_type == GOOGLE_SPEECH:
+        from videotrans.recognition._google import GoogleRecogn
         return GoogleRecogn(**kwargs).run()
 
     if recogn_type == DOUBAO_API:
+        from videotrans.recognition._doubao import DoubaoRecogn
         return DoubaoRecogn(**kwargs).run()
     if recogn_type == ZIJIE_RECOGN_MODEL:
+        from videotrans.recognition._zijiemodel import ZijieRecogn
         return ZijieRecogn(**kwargs).run()
     if recogn_type == CUSTOM_API:
+        from videotrans.recognition._recognapi import APIRecogn
         return APIRecogn(**kwargs).run()
     if recogn_type == STT_API:
+        from videotrans.recognition._stt import SttAPIRecogn
         return SttAPIRecogn(**kwargs).run()
 
     if recogn_type == OPENAI_API:
+        from videotrans.recognition._openairecognapi import OpenaiAPIRecogn
         return OpenaiAPIRecogn(**kwargs).run()
     if recogn_type == WHISPERX_API:
+        from videotrans.recognition._whisperx import WhisperXRecogn
         return WhisperXRecogn(**kwargs).run()
     if recogn_type == QWEN3ASR:
+        from videotrans.recognition._qwen3asr import Qwen3ASRRecogn
         return Qwen3ASRRecogn(**kwargs).run()
-    if recogn_type == FUNASR_CN:     
-        
+    if recogn_type == FUNASR_CN:       
         return FunasrRecogn(**kwargs).run()
     if recogn_type == Deepgram:
+        from videotrans.recognition._deepgram import DeepgramRecogn
         return DeepgramRecogn(**kwargs).run()
     if recogn_type == GEMINI_SPEECH:
+        from videotrans.recognition._gemini import GeminiRecogn
         return GeminiRecogn(**kwargs).run()
     if recogn_type == PARAKEET:
+        from videotrans.recognition._parakeet import ParaketRecogn
         return ParaketRecogn(**kwargs).run()
     if recogn_type == AI_302:
+        from videotrans.recognition._ai302 import AI302Recogn
         return AI302Recogn(**kwargs).run()
-
     if recogn_type == ElevenLabs:
+        from videotrans.recognition._elevenlabs import ElevenLabsRecogn
         return ElevenLabsRecogn(**kwargs).run()
+    if recogn_type == HUGGINGFACE_ASR:
+        from videotrans.recognition._huggingface import HuggingfaceRecogn
+        return HuggingfaceRecogn(**kwargs).run()
     return FasterAll(**kwargs).run()
 

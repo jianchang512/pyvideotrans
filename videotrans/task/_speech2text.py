@@ -41,7 +41,7 @@ class SpeechToText(BaseTask):
         # 转录后的目标字幕文件，先统一转为srt，然后再使用ffmpeg转为其他格式字幕
         self.cfg.target_sub = self.cfg.target_dir + '/' + self.cfg.noextname + '.srt'
         # 临时文件夹
-        self.cfg.cache_folder = config.TEMP_DIR + f'/speech2text'
+        self.cfg.cache_folder = config.TEMP_DIR + f'/{self.uuid}'
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
         Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
         # 处理为 16k 的wav单通道音频，供模型识别用

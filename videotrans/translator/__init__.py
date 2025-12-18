@@ -79,38 +79,39 @@ AI_TRANS_CHANNELS=[
     DEEPSEEK_INDEX,
     OPENROUTER_INDEX
 ]
-
 # 翻译通道名字列表，显示在界面
-TRANSLASTE_NAME_LIST = [
-    tr('Google'),
-    tr('Microsoft'),
-    tr('MyMemoryAPI'),
+_ID_NAME_DICT = {
+    GOOGLE_INDEX:tr('Google'),
+    MICROSOFT_INDEX:tr('Microsoft'),
+    MyMemoryAPI_INDEX:tr('MyMemoryAPI'),
     
-    tr('OpenAI ChatGPT'),
-    "DeepSeek",
-    "Gemini AI",
-    tr('Zhipu AI'),
-    "AzureGPT AI",
-    tr('Local LLM'),
+    CHATGPT_INDEX:tr('OpenAI ChatGPT'),
+    DEEPSEEK_INDEX:"DeepSeek",
+    GEMINI_INDEX:"Gemini AI",
+    ZHIPUAI_INDEX:tr('Zhipu AI'),
+    AZUREGPT_INDEX:"AzureGPT AI",
+    LOCALLLM_INDEX:tr('Local LLM'),
     
-    "OpenRouter",
-    tr('SiliconFlow'),
-    "302.AI",
+    OPENROUTER_INDEX:"OpenRouter",
+    SILICONFLOW_INDEX:tr('SiliconFlow'),
+    AI302_INDEX:"302.AI",
     
-    tr('Ali-Bailian'),
-    tr('VolcEngine LLM'),
+    QWENMT_INDEX:tr('Ali-Bailian'),
+    ZIJIE_INDEX:tr('VolcEngine LLM'),
 
-    tr('Tencent'),
-    tr('Baidu'),
-    "DeepL",
-    "DeepLx",
-    tr('Alibaba Machine Translation'),
+    TENCENT_INDEX:tr('Tencent'),
+    BAIDU_INDEX:tr('Baidu'),
+    DEEPL_INDEX:"DeepL",
+    DEEPLX_INDEX:"DeepLx",
+    ALI_INDEX:tr('Alibaba Machine Translation'),
 
-    tr('OTT'),
-    tr('LibreTranslate'),
+    OTT_INDEX:tr('OTT'),
+    LIBRE_INDEX:tr('LibreTranslate'),
 
-    tr('Customized API'),
-]
+    TRANSAPI_INDEX:tr('Customized API'),
+}
+TRANSLASTE_NAME_LIST=list(_ID_NAME_DICT.values())
+
 # subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2%E4%BB%A3%E7%A0%81%E5%88%97%E8%A1%A8
 #  https://www.loc.gov/standards/iso639-2/php/code_list.php
 # 腾讯翻译 https://cloud.tencent.com/document/api/551/15619

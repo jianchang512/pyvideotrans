@@ -34,9 +34,9 @@ class DeepSeek(BaseTrans):
                                                                                       self.target_language_name)
         self.api_key = config.params.get('deepseek_key', '')
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+    #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+    #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
+    #       after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data

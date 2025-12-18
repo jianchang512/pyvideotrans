@@ -79,6 +79,7 @@ os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
 os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
 os.environ['HF_HOME'] = ROOT_DIR + "/models"
+os.environ['HF_HUB_CACHE'] = ROOT_DIR + "/models"
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
 os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
 os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "1200"
@@ -167,7 +168,7 @@ taskdone_queue = Queue(maxsize=0)
 # 执行模式 gui 或 api
 exec_mode = "gui"
 # funasr模型
-FUNASR_MODEL = ['paraformer-zh', 'SenseVoiceSmall']
+FUNASR_MODEL = ['Fun-ASR-Nano-2512','paraformer-zh', 'SenseVoiceSmall']
 
 DEEPGRAM_MODEL = [
     "nova-3",
@@ -204,7 +205,7 @@ dubbing_role = {}
 
 
 #######################################
-DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
+DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-3-flash-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
 ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv', 'ms', 'uk', 'cs', 'tl']
 OPENAITTS_ROLES = "No,alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
 GEMINITTS_ROLES = "No,Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
@@ -250,7 +251,7 @@ def parse_init(update_data=None):
         "openrouter_model": "moonshotai/kimi-k2:free,tngtech/deepseek-r1t2-chimera:free,deepseek/deepseek-r1-0528:free",
         "guiji_model": "Qwen/Qwen3-8B,Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2-7B-Instruct",
         "zijiehuoshan_model": "",
-        "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v1,large-v2,large-v3,large-v3-turbo,distil-small.en,distil-medium.en,distil-large-v2,distil-large-v3",
+        "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-small.en,distil-medium.en,distil-large-v2,distil-large-v3",
 
 
         "max_audio_speed_rate":100,

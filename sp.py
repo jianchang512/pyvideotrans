@@ -13,7 +13,7 @@ License: GPL-V3
 
 """
 import atexit, sys, os, time
-VERSION = "v3.90"
+VERSION = "v3.91"
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -94,10 +94,13 @@ class StartWindow(QWidget):
     def update_lable(self,t):
         print(t)
         if t=='end':
+
             self.status_label.setText(f'Total time {int(time.time()-self.start_time)}s')
+            QApplication.processEvents()
             QTimer.singleShot(1000, lambda: self.close())
         else:
             self.status_label.setText(f'{t}  {int(time.time()-self.start_time)}s')
+            QApplication.processEvents()
 
     def center(self):
         screen = QGuiApplication.primaryScreen()

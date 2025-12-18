@@ -34,9 +34,7 @@ def openwin(init=False):
         role_test = getrole()
         if not role_test:
             return
-        is_whisper = winobj.is_whisper.isChecked()
         # 通用
-        config.params["f5tts_is_whisper"] = is_whisper
         config.params["index_tts_version"] = index_tts_version
         config.params["f5tts_role"] = role
         config.params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
@@ -53,7 +51,7 @@ def openwin(init=False):
         import time
         print(f'{tts_type}')
         wk = ListenVoice(parent=winobj,
-                         queue_tts=[{"text": '你好啊我的朋友', "role": role_test, "filename": config.TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
+                         queue_tts=[{"text": '你好啊我的朋友,希望你今天开心！', "role": role_test, "filename": config.TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
                          language="zh",
                          tts_type=tts_type)
         wk.uito.connect(feed)
@@ -81,10 +79,8 @@ def openwin(init=False):
 
         index_tts_version = winobj.index_tts_version.currentIndex()
         role = winobj.f5tts_role.toPlainText().strip()
-        is_whisper = winobj.is_whisper.isChecked()
 
         config.params["f5tts_role"] = role
-        config.params["f5tts_is_whisper"] = is_whisper
         config.params["index_tts_version"] = index_tts_version
         
         config.params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
@@ -103,7 +99,6 @@ def openwin(init=False):
     winobj = F5TTSForm()
     config.child_forms['f5tts'] = winobj
     winobj.f5tts_role.setPlainText(config.params.get("f5tts_role",''))
-    winobj.is_whisper.setChecked(bool(config.params.get("f5tts_is_whisper",False)))
     winobj.index_tts_version.setCurrentIndex(int(config.params.get('index_tts_version',0)))
     
     winobj.f5tts_url.setText(config.params.get('f5tts_url',''))

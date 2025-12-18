@@ -113,7 +113,7 @@ class WinAction(WinActionSub):
             # 是 faster，启用 分割模式，根据需要显示均等分割
             self.main.split_type.setDisabled(False)
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API]:
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR]:
             # 禁止模块选择
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)
@@ -128,6 +128,8 @@ class WinAction(WinActionSub):
                 self.main.model_name.addItems(config.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
                 self.main.model_name.addItems(config.Whisper_CPP_MODEL_LIST)
+            elif recogn_type==recognition.HUGGINGFACE_ASR:
+                self.main.model_name.addItems(list(recognition.HUGGINGFACE_ASR_MODELS.keys()))                
             else:
                 self.main.model_name.addItems(config.FUNASR_MODEL)
         
@@ -151,7 +153,6 @@ class WinAction(WinActionSub):
         res = recognition.check_model_name(
             recogn_type=recogn_type,
             name=model,
-            source_language_isLast=self.main.source_language.currentIndex() == self.main.source_language.count() - 1,
             source_language_currentText=self.main.source_language.currentText()
         )
 
@@ -160,6 +161,14 @@ class WinAction(WinActionSub):
         return True
 
 
+    def model_type_change(self):
+        lang = translator.get_code(show_text=self.main.source_language.currentText())
+        recogn_type = self.main.recogn_type.currentIndex()
+        is_allow_lang=recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type, model_name=self.main.model_name.currentText())
+        if is_allow_lang is not True:
+            self.main.show_tips.setText(is_allow_lang)
+        else:
+            self.main.show_tips.setText('')
 
     # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
     def change_by_lang(self, type):
@@ -373,14 +382,6 @@ class WinAction(WinActionSub):
         model_name = self.main.model_name.currentText()
         res = recognition.is_allow_lang(langcode=langcode, recogn_type=recogn_type, model_name=model_name)
         self.main.show_tips.setText(res if res is not True else '')
-
-        # 原始语言是最后一个，即auto自动检查
-        source_code = translator.get_code(show_text=self.main.source_language.currentText())
-
-        if self.main.subtitle_area.toPlainText().strip() and source_code=='auto':
-            tools.show_error(
-                tr("The detection function cannot be used when subtitles have already been imported."))
-            return False
 
         # 判断是否填写自定义识别 api openai-api识别
         return recognition.is_input_api(recogn_type=recogn_type)
@@ -652,6 +653,7 @@ class WinAction(WinActionSub):
         self.main.startbtn.setDisabled(False)
         self.retry_queue_mp4=[]
         self.uuid_queue_mp4={}
+        self.main.retrybtn.setVisible(False)
 
 
     def retry(self):

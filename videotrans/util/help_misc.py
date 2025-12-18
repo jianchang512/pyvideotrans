@@ -1,5 +1,5 @@
 import hashlib
-import os
+import os,re
 import platform
 import subprocess
 import time
@@ -60,7 +60,7 @@ def show_error(tb_str):
     from PySide6.QtGui import QIcon, QDesktopServices
     from PySide6.QtCore import QUrl, Qt
     from videotrans.configure import config
-
+    
     msg_box = QtWidgets.QMessageBox()
     msg_box.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint)
 
@@ -82,8 +82,12 @@ def show_error(tb_str):
         ok_button.setText("知道了")
 
     # 添加自定义的“报告错误”按钮
-    #if report:
     report_button = msg_box.addButton(config.tr("Report Error"),QtWidgets.QMessageBox.ButtonRole.NoRole)
+    url_button=None
+    urls=re.findall(r'\[(https?:.*?)\]',tb_str)
+    if urls:
+        url_button = msg_box.addButton(config.tr("Open")+config.tr('Download URL'),QtWidgets.QMessageBox.ButtonRole.NoRole)
+    
     msg_box.setDefaultButton(ok_button)
 
     msg_box.setStyleSheet("""
@@ -102,9 +106,9 @@ def show_error(tb_str):
     msg_box.buttonClicked.connect(record_clicked_button)
     msg_box.exec()
     # if report and clicked_button_storage == report_button:
+    full_url=None
     if clicked_button_storage == report_button:
-        clicked_button = msg_box.clickedButton()
-        if clicked_button == report_button:
+        if msg_box.clickedButton() == report_button:
             import urllib.parse
             import os, platform, sys
             from videotrans import VERSION
@@ -115,10 +119,13 @@ def show_error(tb_str):
                 _msg+=f"Python: {sys.version}\n"
             encoded_content = urllib.parse.quote(_msg)
             full_url = f"https://bbs.pyvideotrans.com/?type=post&content={encoded_content}"
-
-            # 调用系统默认浏览器打开链接
-            QDesktopServices.openUrl(QUrl(full_url))
-
+    elif url_button and clicked_button_storage == url_button:
+        if msg_box.clickedButton() == url_button:
+            full_url=urls[0]
+    # 调用系统默认浏览器打开链接
+    if full_url:
+        QDesktopServices.openUrl(QUrl(full_url))
+    
 
 def open_url(url: str = None):
     import webbrowser

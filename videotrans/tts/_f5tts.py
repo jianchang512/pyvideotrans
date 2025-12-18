@@ -13,6 +13,8 @@ from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.configure.config import tr,logs
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+from pydub import AudioSegment
+
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -65,16 +67,19 @@ class F5TTS(BaseTTS):
 
         if role == 'clone':
             data['ref_wav'] = data_item.get('ref_wav','')
-            if not config.params.get('f5tts_is_whisper'):
-                data['ref_text'] = data_item.get('ref_text').strip()
+            data['ref_text'] = data_item.get('ref_text').strip()
         else:
             roledict = tools.get_f5tts_role()
             if role in roledict:
-                data['ref_text'] = roledict[role]['ref_text'] if not config.params.get('f5tts_is_whisper') else ''
+                data['ref_text'] = roledict[role]['ref_text']
                 data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
 
         if not data.get('ref_wav') or not Path(data.get('ref_wav')).exists():
             raise StopRetry(tr('The role {} does not exist',role))
+        ref_wav_audio=AudioSegment.from_file(data.get('ref_wav'))
+        if len(ref_wav_audio)>12000:
+            ref_wav_audio[:12000].export(data.get('ref_wav'))
+        
         if data['ref_text'] and len(data['ref_text']) < 10:
             speed = 0.5
 
@@ -83,6 +88,11 @@ class F5TTS(BaseTTS):
             ref_text_input=data['ref_text'],
             gen_text_input=text,
             remove_silence=True,
+            randomize_seed=True,
+            seed_input=0,  # 开启随机后，这个数字会被忽略，填多少都行
+            cross_fade_duration_slider=0.0, # 默认交叉淡入淡出时长
+            nfe_slider=32,            # 默认推理步数，F5-TTS 推荐 32
+
 
             speed_slider=speed,
             api_name='/basic_tts'

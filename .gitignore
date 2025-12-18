@@ -1,6 +1,7 @@
 *.log
 *.srt
 *.7z
+*.wav
 .git
 err.txt
 ceshi.txt

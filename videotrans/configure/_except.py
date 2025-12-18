@@ -346,8 +346,8 @@ def get_msg_from_except(ex):
                 'connection', 'reset', 'timeout', '连接', '拒绝', '重置', '超时', '重试'
             ])
             else (
-                f"运行时错误：{e}" if lang == 'zh'
-                else f"Runtime error: {e}"
+                f"{e}" if lang == 'zh'
+                else f"{e}"
             )
         ),
 

@@ -20,6 +20,8 @@ def openwin():
             url = 'http://' + url
         
         role = winobj.role.toPlainText().strip()
+        instruct_text = winobj.instruct_text.text()
+        config.params["cosyvoice_instruct_text"] = instruct_text
         if not role:
             return tools.show_error(tr('"The reference audio path name and the text corresponding to the reference audio must be filled in the settings"'))
         
@@ -36,15 +38,14 @@ def openwin():
                 return tools.show_error(tr("No reference audio {} exists",file))
             if not file.endswith('.wav'):
                 return tools.show_error(tr('Please upload reference audio in wav format'))
-            if len(AudioSegment.from_file(file))>=10000:
-                return tools.show_error(tr('Please ensure that the reference audio duration is less than 10 seconds'))
+
         
         
         winobj.test.setText(tr('Testing...'))
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
-            "text": '你好啊我的朋友',
+            "text": '你好啊我的朋友,希望你的每一天都美好愉快',
             "role": role.split("\n")[0].split('#')[0],
             "filename": config.TEMP_DIR + f"/{time.time()}-cosyvoice.wav",
             "tts_type": tts.COSYVOICE_TTS}],
@@ -64,6 +65,8 @@ def openwin():
         config.params["cosyvoice_url"] = url
 
         config.params["cosyvoice_role"] = role
+        instruct_text = winobj.instruct_text.text()
+        config.params["cosyvoice_instruct_text"] = instruct_text
         config.getset_params(config.params)
         tools.set_process(text='cosyvoice', type="refreshtts")
 
@@ -76,6 +79,8 @@ def openwin():
         winobj.api_url.setText(config.params["cosyvoice_url"])
     if config.params["cosyvoice_role"]:
         winobj.role.setPlainText(config.params["cosyvoice_role"])
+    if config.params.get("cosyvoice_instruct_text"):
+        winobj.instruct_text.setText(config.params.get("instruct_text"))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

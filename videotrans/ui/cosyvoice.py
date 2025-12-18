@@ -23,24 +23,35 @@ class Ui_cosyvoiceform(object):
 
         # 创建一个垂直布局
         v1 = QtWidgets.QVBoxLayout(cosyvoiceform)
-        v1.addWidget(QLabel('使用该接口需启动 CosyVoice2 官方项目的webui.py'))
+        tipslabel=QLabel(tr('cosyvoice23webui'))
+        tipslabel.setWordWrap(True)
+        v1.addWidget(tipslabel)
         h1 = QtWidgets.QHBoxLayout()
         self.label = QLabel()
         self.label.setObjectName("label")
         self.label.setMinimumSize(QSize(0, 35))
-        self.api_url = QLineEdit(cosyvoiceform)
+        self.api_url = QLineEdit()
         self.api_url.setObjectName("api_url")
         self.api_url.setMinimumSize(QSize(0, 35))
         h1.addWidget(self.label)
         h1.addWidget(self.api_url)
         v1.addLayout(h1)
 
-        self.label_4 = QLabel(cosyvoiceform)
+        h1_prompt = QtWidgets.QHBoxLayout()
+        self.instruct_text = QLineEdit()
+        self.instruct_text.setPlaceholderText('instruct text')
+        h1_prompt.addWidget(QLabel('prompt'))
+        h1_prompt.addWidget(self.instruct_text)
+        v1.addLayout(h1_prompt)
+        
+        self.label_4 = QLabel()
         self.label_4.setObjectName("label_4")
-        self.label_4.setText('参考音频#音频文字内容【参考音频时长不得大于10s，否则出错】')
+        self.label_4.setText(tr('Reference Audio#Audio Text'))
         v1.addWidget(self.label_4)
+        
 
-        self.role = QPlainTextEdit(cosyvoiceform)
+
+        self.role = QPlainTextEdit()
         self.role.setObjectName("role")
         self.role.setMinimumHeight(100)
         self.role.setReadOnly(False)
@@ -48,11 +59,11 @@ class Ui_cosyvoiceform(object):
 
 
         h2 = QtWidgets.QHBoxLayout()
-        self.save = QPushButton(cosyvoiceform)
+        self.save = QPushButton()
         self.save.setObjectName("save")
         self.save.setMinimumSize(QSize(0, 35))
 
-        self.test = QPushButton(cosyvoiceform)
+        self.test = QPushButton()
         self.test.setObjectName("test")
         self.test.setMinimumSize(QSize(0, 35))
 
@@ -78,7 +89,9 @@ class Ui_cosyvoiceform(object):
 
     def retranslateUi(self, cosyvoiceform):
         tips = """
-# 需要预先部署CosyVoice2官方项目,然后启动 webui.py
+# 需要预先部署CosyVoice2/3官方项目,然后启动 webui.py
+# cosyvoice3无法直接使用官方webui.py对接本软件，点击填写教程按钮，查看解决办法
+
 # CosyVoice项目地址 https://github.com/FunAudioLLM/CosyVoice
 
 参考音频填写：
@@ -90,13 +103,15 @@ wav音频最佳时长3-10s，音频必须存放在本软件目录下的 f5-tts �
 2.wav#你好啊朋友们
 
 
+# instruct text 填写提示词，例如请使用愤怒的声音
+
 """
 
-        cosyvoiceform.setWindowTitle("CosyVoice2 API")
+        cosyvoiceform.setWindowTitle("CosyVoice2/3")
 
         self.role.setPlaceholderText(tips)
 
         self.save.setText(tr("Save"))
-        self.api_url.setPlaceholderText("填写CosyVoice的webui.py启动后的地址，默认  http://127.0.0.1:8000")
-        self.label.setText("CosyVoice API")
+        self.api_url.setPlaceholderText("webui url http://127.0.0.1:8000")
+        self.label.setText("WebUI url")
         self.test.setText(tr("Test"))

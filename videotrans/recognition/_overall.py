@@ -31,13 +31,13 @@ class FasterAll(BaseRecogn):
     def _create_from_huggingface(self, model_id, audio_file, language):
         from transformers import pipeline
         from huggingface_hub import snapshot_download
-        from videotrans.process._iscache import _check_huggingface_connect
+        from videotrans.process._iscache import check_huggingface_connect
 
         # 定义本地保存路径
         local_dir = f"{config.ROOT_DIR}/models/" + model_id.split("/")[-1]
 
         if not os.path.exists(local_dir) or len([it for it in Path(local_dir).glob('*')])<3:
-            _check_huggingface_connect(config.ROOT_DIR, self.proxy_str)
+            check_huggingface_connect(config.ROOT_DIR, self.proxy_str)
             print(f"下载模型到 {local_dir}...")
             # 使用 snapshot_download 下载完整模型
             snapshot_download(

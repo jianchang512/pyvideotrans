@@ -35,10 +35,6 @@ class Ui_f5ttsform(object):
         h1f5tts_url.addWidget(self.f5tts_urllabel)
         h1f5tts_url.addWidget(self.f5tts_url)
         self.f5tts_urltest = QPushButton(tr("Test"))
-        self.is_whisper = QtWidgets.QCheckBox()
-        self.is_whisper.setText(tr("Re-recognize for F5-TTS?"))
-        self.is_whisper.setToolTip(tr("If selected, F5-TTS will re-use Whisper-v3 for the reference audio, which is slower."))        
-        h1f5tts_url.addWidget(self.is_whisper)
         h1f5tts_url.addWidget(self.f5tts_urltest)
         v1.addLayout(h1f5tts_url)
 
@@ -115,7 +111,7 @@ class Ui_f5ttsform(object):
         v1.addWidget(self.label_4)
         self.req = QLabel(f5ttsform)
         self.req.setText(
-            tr("Reference audio needs to be in wav format, with a duration of no more than 10 seconds, and stored in the /f5-tts directory of this software"))
+            tr("Reference audio needs to be in wav format, with a duration of no more than 12 seconds, and stored in the /f5-tts directory of this software"))
         self.req.setStyleSheet('color:#999')
         v1.addWidget(self.req)
 

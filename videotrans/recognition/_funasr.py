@@ -1,6 +1,6 @@
 # stt项目识别接口
 import json
-import re,os
+import re,os,requests
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Union
@@ -34,31 +34,39 @@ class FunasrRecogn(BaseRecogn):
             return
 
 
-        if self.model_name == 'SenseVoiceSmall' or self.detect_language[:2].lower() in ['ja','en','ko','yu']:
+        if self.model_name in ['SenseVoiceSmall','Fun-ASR-Nano-2512'] or self.detect_language[:2].lower() not in ['zh','yu','en']:
             return self._exec1()
-        raw_subtitles = []
-        if not Path(f'{config.ROOT_DIR}/models/models/iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch/model.pt').exists():
-            self._tosend('Download paraformer-zh from modelscope.cn')
+            
+        raw_subtitles = []       
+        model_dir=f'{config.ROOT_DIR}/models/models/iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch'
+        if not Path(model_dir).exists():
+            self._tosend(f'Download {self.model_name} from modelscope.cn')
         else:
-            self._tosend('Load paraformer-zh')
+            self._tosend(f'Load {self.model_name} model')
         from funasr import AutoModel
+        model=None
+        try:
+            model = AutoModel(
+                model='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',
+                vad_model="fsmn-vad", 
+                punc_model="ct-punc",
+                local_dir=config.ROOT_DIR + "/models",
+                hub='ms',
+                spk_model="cam++" if self.max_speakers>-1 else None, 
+                disable_update=True,
+                disable_progress_bar=True,
+                disable_log=True,
+                device=self.device
+            )
+        except (OSError,AssertionError) as e:
+            if not Path(model_dir+'/config.yaml').exists():
+                raise RuntimeError(config.tr('downloading model.safetensors and all .json files',f'{config.ROOT_DIR}/models/models/iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch')+f'\n[https://modelscope.cn/models/iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch/files]\n{e}')
+            raise
         
-        model = AutoModel(
-            model='iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch', model_revision="v2.0.5",
-            vad_model="fsmn-vad", vad_model_revision="v2.0.4",
-            punc_model="ct-punc", punc_model_revision="v2.0.4",
-            local_dir=config.ROOT_DIR + "/models",
-            hub='ms',
-            spk_model="cam++" if self.max_speakers>-1 else None, spk_model_revision="v2.0.2" if self.max_speakers>-1 else None,
-            disable_update=True,
-            disable_progress_bar=True,
-            disable_log=True,
-            device=self.device
-        )
         msg = tr("Model loading is complete, enter recognition")
         self._tosend(msg)
-        res = model.generate(input=self.audio_file, return_raw_text=True, is_final=True,
-                             sentence_timestamp=True, batch_size_s=100, disable_pbar=True)
+        res = model.generate(input=self.audio_file, return_raw_text=True, is_final=True,batch_size=16,
+                             sentence_timestamp=True, disable_pbar=True)
 
         speaker_list=[]
         for it in res[0]['sentence_info']:
@@ -79,33 +87,122 @@ class FunasrRecogn(BaseRecogn):
             raw_subtitles.append(tmp)
         if speaker_list:
             Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
-
+        try:
+            import torch
+            import gc
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            gc.collect()
+            del model
+        except Exception:
+            pass
         return raw_subtitles
+
+    def download_qwen_model(self,model_name):
+        url = "https://modelscope.cn/models/Qwen/Qwen3-0.6B/resolve/master/model.safetensors"
+        output_dir = f'{config.ROOT_DIR}/models/models/{model_name}/Qwen3-0.6B'
+        save_path = f'{output_dir}/model.safetensors'
+        self._tosend(f'Downloading Qwen3-0.6B model.safetensors')
+        Path(output_dir).mkdir(exist_ok=True, parents=True)
+        print(f"开始下载到: {save_path}")
+        
+        try:
+            with requests.get(url, stream=True) as response:
+                response.raise_for_status()
+                # 获取预期总大小 (字节)
+                total_expected_size = int(response.headers.get('content-length', 0))
+                
+                # 手动计数器，用于记录实际下载量
+                downloaded_size = 0
+                
+                # 1MB 一个分块
+                chunk_size = 1024 * 1024 
+                
+                with open(save_path, 'wb') as file:
+                    for chunk in response.iter_content(chunk_size=chunk_size):
+                        if chunk: # 过滤掉保持连接的空块
+                            file.write(chunk)
+                            downloaded_size += len(chunk) # 累加当前块的大小
+                            
+                            # 简单的打印，避免屏幕刷屏，每下载 100MB 打印一次
+                            if downloaded_size % (100 * 1024 * 1024) < chunk_size:
+                                print(f"已下载: {downloaded_size / (1024*1024):.2f} MB", end='\r')
+                                self._tosend(f'{downloaded_size*100/total_expected_size:.2f}% Qwen3-0.6B model.safetensors')
+
+                print(f"\n下载结束。")
+
+                # 4. 校验完整性
+                if total_expected_size != 0 and downloaded_size != total_expected_size:
+                    print(f"[错误] 文件不完整！")
+                    print(f"预期大小: {total_expected_size} 字节")
+                    print(f"实际大小: {downloaded_size} 字节")
+                    raise RuntimeError(f'下载出错,请手动打开网址\n{url}\n下载后保存到 {output_dir}\n')
+                else:
+                    print(f"[成功] 文件已保存，大小校验通过。")
+
+        except Exception as e:
+            raise
+
 
     def _exec1(self) -> Union[List[Dict], None]:
         if self._exit():
             return
-
-        if not Path(f'{config.ROOT_DIR}/models/models/iic/SenseVoiceSmall/model.pt').exists():
-            self._tosend('Download SenseVoiceSmall from modelscope.cn')
+        
+        if self.model_name=='Fun-ASR-Nano-2512':
+            model_name='FunAudioLLM/Fun-ASR-Nano-2512'
         else:
-            self._tosend('Load SenseVoiceSmall')
+            model_name='iic/SenseVoiceSmall'
+        if not Path(f'{config.ROOT_DIR}/models/models/{model_name}').exists():
+            self._tosend(f'Download {model_name} from modelscope.cn')
+        else:
+            self._tosend(f'Load {model_name}')
         from funasr import AutoModel
         from funasr.utils.postprocess_utils import rich_transcription_postprocess
         from concurrent.futures import ThreadPoolExecutor
-        
-        model = AutoModel(
-            model="iic/SenseVoiceSmall",
-            punc_model="ct-punc",
-            device=self.device,
-            local_dir=config.ROOT_DIR + "/models",
-            disable_update=True,
-            disable_progress_bar=True,
-            disable_log=True,
-            trust_remote_code=False,
-            hub='ms'
-        )
+        print(f'{self.model_name=},{model_name=}')
+        model=None
+        try:
+            model = AutoModel(
+                model=model_name,
+                punc_model="ct-punc",
+                device=self.device,
+                local_dir=config.ROOT_DIR + "/models",
+                disable_update=True,
+                disable_progress_bar=True,
+                disable_log=True,
+                trust_remote_code=True,
+                remote_code=f"{config.ROOT_DIR}/videotrans/codes/model.py",
+                hub='ms',
+            )
+        except (OSError,AssertionError) as e:
+            # Fun-ASR-Nano-2512库中 缺少qwen3-0.6b model.safetensors，模型几乎肯定自动下载失败
+            # 失败后从 qwen3-0.6b库中单独下载
+            # https://modelscope.cn/models/FunAudioLLM/Fun-ASR-Nano-2512/files
+            # https://modelscope.cn/models/Qwen/Qwen3-0.6B
+            model_1=f'{config.ROOT_DIR}/models/models/{model_name}/model.pt'
+            model_2=f'{config.ROOT_DIR}/models/models/{model_name}/Qwen3-0.6B/model.safetensors'
+            if self.model_name=='Fun-ASR-Nano-2512' and Path(model_1).exists() and not Path(model_2).exists():
+                self.download_qwen_model(model_name)
+                model = AutoModel(
+                    model=model_name,
+                    punc_model="ct-punc",
+                    device=self.device,
+                    local_dir=config.ROOT_DIR + "/models",
+                    disable_update=True,
+                    disable_progress_bar=True,
+                    disable_log=True,
+                    trust_remote_code=True,
+                    remote_code=f"{config.ROOT_DIR}/videotrans/codes/model.py",
+                    hub='ms',
+                )
+            elif not Path(f'{config.ROOT_DIR}/models/models/{model_name}/config.yaml').exists():
+                raise RuntimeError(config.tr('downloading model.safetensors and all .json files',f'{config.ROOT_DIR}/models/models/{model_name}')+f'\n[https://modelscope.cn/models/{model_name}/files]\n{e}')
+            raise
+        except Exception as e:
+            raise 
         # vad
+        msg = tr("Recognition may take a while, please be patient")
+        self._tosend(msg)
         
         vm = AutoModel(
             model="fsmn-vad",
@@ -116,18 +213,20 @@ class FunasrRecogn(BaseRecogn):
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
-            device=self.device)
+            device=self.device
+        )
         
-        msg = tr("Recognition may take a while, please be patient")
-        self._tosend(msg)
         segments = vm.generate(input=self.audio_file)
         audiodata = AudioSegment.from_file(self.audio_file)
         
-        #srts = self.cut_audio()
+
         srts=[]
+        is_cjk=True if self.detect_language[:2] in ['zh','ja','ko','yu'] else False
+        total=len(segments[0]['value'])
         for i,seg in enumerate(segments[0]['value']):
+            self._signal( text=f"stt [{i+1}/{total}]" )
             chunk = audiodata[seg[0]:seg[1]]
-            filename = f"{config.TEMP_DIR}/{seg[0]}-{seg[1]}.wav"
+            filename = f"{self.cache_folder}/seg-{seg[0]}-{seg[1]}.wav"
             chunk.export(filename)
             srt = {                
                 "line": len(srts) + 1,
@@ -139,39 +238,31 @@ class FunasrRecogn(BaseRecogn):
                 "endraw": f'{tools.ms_to_time_string(ms=seg[1])}'
             }
             srt['time'] = f"{srt['startraw']} --> {srt['endraw']}"
-            srts.append(srt)
-
-        
-        def _stt(i,it):
             res = model.generate(
-                input=it['file'],
+                input=filename,
                 language=self.detect_language[:2],  # "zh", "en", "yue", "ja", "ko", "nospeech"
                 use_itn=True,
+                batch_size=1,
                 disable_pbar=True
             )
             text = self.remove_unwanted_characters(rich_transcription_postprocess(res[0]["text"]))
-            srts[i]['text']=text
-  
-
+            srt['text']=text.replace(' ','') if is_cjk else text
+            srts.append(srt)
             self._signal(
                 text=text + "\n",
                 type='subtitle'
             )
-            
 
-        all_task = []
-        with ThreadPoolExecutor(max_workers=min(4,len(srts),os.cpu_count())) as pool:
-            for i,item in enumerate(srts):
-                all_task.append(pool.submit(_stt, i,item))
-            completed_tasks = 0
-            total_tasks=len(all_task)
-            for task in all_task:
-                try:
-                    task.result()  # 等待任务完成
-                    completed_tasks += 1
-                    self._signal( text=f"stt [{completed_tasks}/{total_tasks}]" )
-                except Exception as e:
-                    logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
-                    
+        try:
+            import torch
+            import gc
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            gc.collect()
+            del model
+            del vm
+        except Exception:
+            pass
+
 
         return srts

@@ -2,10 +2,12 @@ from videotrans.configure import config
 
 # 数字代表界面中的显示顺序
 from videotrans.configure.config import tr
+from videotrans.tts._edgetts import EdgeTTS
+from videotrans.tts._qwentts import QWENTTS
+
 from videotrans.tts._minimaxi import MinimaxiTTS
 from videotrans.tts._azuretts import AzureTTS
 from videotrans.tts._cosyvoice import CosyVoice
-from videotrans.tts._edgetts import EdgeTTS
 from videotrans.tts._ai302tts import AI302
 from videotrans.tts._chattts import ChatTTS
 from videotrans.tts._fishtts import FishTTS
@@ -14,7 +16,6 @@ from videotrans.tts._gptsovits import GPTSoVITS
 from videotrans.tts._chatterbox import ChatterBoxTTS
 from videotrans.tts._clone import CloneVoice
 from videotrans.tts._openaitts import OPENAITTS
-from videotrans.tts._qwentts import QWENTTS
 from videotrans.tts._elevenlabs import ElevenLabsC
 from videotrans.tts._gtts import GTTS
 from videotrans.tts._geminitts import GEMINITTS
@@ -22,8 +23,7 @@ from videotrans.tts._ttsapi import TTSAPI
 from videotrans.tts._doubao import DoubaoTTS
 from videotrans.tts._doubao2 import Doubao2TTS
 from videotrans.tts._f5tts import F5TTS
-from videotrans.tts._piper import PiperTTS
-from videotrans.tts._vits import VitsCNEN
+
 EDGE_TTS = 0
 VITSCNEN_TTS = 1
 PIPER_TTS = 2
@@ -55,44 +55,45 @@ GOOGLE_TTS = 24
 TTS_API = 25
 GOOGLECLOUD_TTS = 26
 
-TTS_NAME_LIST = [
-    tr("Edge-TTS(free)"),
-    f'VITS-cnen({tr("Local")})',
-    f'Piper-TTS({tr("Local")})',
+_ID_NAME_DICT = {
+    EDGE_TTS:tr("Edge-TTS(free)"),
+    VITSCNEN_TTS:f'VITS-cnen({tr("Local")})',
+    PIPER_TTS:f'Piper-TTS({tr("Local")})',
 
-    "OpenAI TTS",
-    "Azure-TTS",
-    "Qwen3 TTS",
-    tr("DouBao2"),
-    "Elevenlabs.io",
-    tr("VolcEngine TTS"),
-    "302.AI",
-    "Gemini TTS",
+    OPENAI_TTS:"OpenAI TTS",
     
-    "GPT-SoVITS",
-    'CosyVoice',
-    "ChatterBox TTS",
-    "ChatTTS",
+    QWEN_TTS:"Qwen3 TTS",
+    DOUBAO2_TTS:tr("DouBao2"),
+    ELEVENLABS_TTS:"Elevenlabs.io",
+    DOUBAO_TTS:tr("VolcEngine TTS"),
+    AI302_TTS:"302.AI",
+    GEMINI_TTS:"Gemini TTS",
     
-    "F5-TTS",
-    "Index TTS",
-    "VoxCPM TTS",
-    "Spark TTS",
-    "Dia TTS",
-
-    "kokoro TTS",
-    'clone-voice',
-    "Fish TTS",
-
-
-    "Minimaxi TTS",
-    "Google TTS",
-    tr("Customize API"),
+    GPTSOVITS_TTS:"GPT-SoVITS",
+    COSYVOICE_TTS:'CosyVoice',
+    CHATTERBOX_TTS:"ChatterBox TTS",
+    CHATTTS:"ChatTTS",
     
-    # "Google Cloud TTS",
-]
+    F5_TTS:"F5-TTS",
+    INDEX_TTS:"Index TTS",
+    VOXCPM_TTS:"VoxCPM TTS",
+    SPARK_TTS:"Spark TTS",
+    DIA_TTS:"Dia TTS",
 
+    KOKORO_TTS:"kokoro TTS",
+    CLONE_VOICE_TTS:'clone-voice',
+    FISHTTS:"Fish TTS",
 
+    
+    MINIMAXI_TTS:"Minimaxi TTS",
+    AZURE_TTS:"Azure-TTS",
+    GOOGLE_TTS:"Google TTS",
+    TTS_API:tr("Customize API"),
+    
+    #GOOGLECLOUD_TTS:"Google Cloud TTS",
+}
+
+TTS_NAME_LIST=list(_ID_NAME_DICT.values())
 
 # 检查当前配音渠道是否支持所选配音语言
 # 返回True为支持，其他为不支持并返回错误字符串
@@ -102,19 +103,8 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko', 'en', 'yu']:
         return tr("GPT-SoVITS only supports Chinese, English, Japanese,ko")
 
-
-    if tts_type == COSYVOICE_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'ko', 'yu']:
-        return tr("CosyVoice only supports Chinese, English, Japanese and Korean")
-
     if tts_type == CHATTTS and langcode[:2] not in ['zh', 'en']:
         return tr("ChatTTS only supports Chinese, English")
-
-
-
-    if tts_type == DOUBAO_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'pt', 'es', 'th', 'vi', 'id', 'yu']:
-        return tr("Byte VolcEngine TTS only supports Chinese, English, Japanese, Portuguese, Spanish, Thai, Vietnamese, Indonesian")
-    if tts_type == KOKORO_TTS and langcode[:2] not in ['zh', 'ja', 'en', 'pt', 'es', 'it', 'hi', 'fr']:
-        return tr("Kokoro TTS only supports Chinese, English, Japanese, Portuguese, Spanish, it, hi, fr")
 
     return True
 
@@ -319,6 +309,8 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
     elif tts_type == MINIMAXI_TTS:
         MinimaxiTTS(**kwargs).run()
     elif tts_type == PIPER_TTS:
+        from videotrans.tts._piper import PiperTTS
         PiperTTS(**kwargs).run()
     elif tts_type == VITSCNEN_TTS:
+        from videotrans.tts._vits import VitsCNEN
         VitsCNEN(**kwargs).run()

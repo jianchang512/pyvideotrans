@@ -60,7 +60,6 @@ def openwin():
         res = recognition.check_model_name(
             recogn_type=recogn_type,
             name=model,
-            source_language_isLast=winobj.shibie_language.currentIndex() == winobj.shibie_language.count() - 1,
             source_language_currentText=winobj.shibie_language.currentText()
         )
 
@@ -241,6 +240,15 @@ def openwin():
         return True    
 
     # 识别类型改变时
+    def model_type_change():
+        lang = translator.get_code(show_text=winobj.shibie_language.currentText())
+        recogn_type = winobj.shibie_recogn_type.currentIndex()
+        is_allow_lang=recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type, model_name=winobj.shibie_model.currentText())
+        if is_allow_lang is not True:
+            winobj.loglabel.setText(is_allow_lang)
+        else:
+            winobj.loglabel.setText('')
+    
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
         if recogn_type == recognition.Faster_Whisper_XXL and not show_xxl_select():
@@ -262,6 +270,7 @@ def openwin():
                                recognition.FUNASR_CN,
                                recognition.Deepgram,
                                recognition.WHISPERX_API,
+                               recognition.HUGGINGFACE_ASR,
                                ]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
         else:
@@ -273,6 +282,8 @@ def openwin():
                 winobj.shibie_model.addItems(config.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
                 winobj.shibie_model.addItems(config.Whisper_CPP_MODEL_LIST)
+            elif recogn_type == recognition.HUGGINGFACE_ASR:
+                winobj.shibie_model.addItems(list(recognition.HUGGINGFACE_ASR_MODELS.keys()))
             else:
                 winobj.shibie_model.addItems(config.FUNASR_MODEL)
         
@@ -377,6 +388,9 @@ def openwin():
         elif default_type == recognition.FUNASR_CN:
             curr = config.FUNASR_MODEL
             winobj.shibie_model.addItems(config.FUNASR_MODEL)
+        elif default_type == recognition.HUGGINGFACE_ASR:
+            curr=list(recognition.HUGGINGFACE_ASR_MODELS.keys())
+            winobj.shibie_model.addItems(curr)            
         else:
             curr = config.WHISPER_MODEL_LIST
             winobj.shibie_model.addItems(config.WHISPER_MODEL_LIST)
@@ -386,14 +400,14 @@ def openwin():
         
         winobj.shibie_split_type.setCurrentIndex(int(config.params.get("stt_split_type",0)))
         
-        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API]:
+        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR]:
             winobj.shibie_model.setDisabled(True)
         else:
             winobj.shibie_model.setDisabled(False)
 
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.shibie_split_type.currentIndexChanged.connect(shibie_split_type_change)
-        winobj.shibie_model.currentTextChanged.connect(
-            lambda: check_model_name(winobj.shibie_recogn_type.currentIndex(), winobj.shibie_model.currentText()))
+        winobj.shibie_model.currentIndexChanged.connect(model_type_change)
+
 
     QTimer.singleShot(10,_bind)
