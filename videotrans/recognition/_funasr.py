@@ -97,52 +97,7 @@ class FunasrRecogn(BaseRecogn):
         except Exception:
             pass
         return raw_subtitles
-
-    def download_qwen_model(self,model_name):
-        url = "https://modelscope.cn/models/Qwen/Qwen3-0.6B/resolve/master/model.safetensors"
-        output_dir = f'{config.ROOT_DIR}/models/models/{model_name}/Qwen3-0.6B'
-        save_path = f'{output_dir}/model.safetensors'
-        self._tosend(f'Downloading Qwen3-0.6B model.safetensors')
-        Path(output_dir).mkdir(exist_ok=True, parents=True)
-        print(f"开始下载到: {save_path}")
-        
-        try:
-            with requests.get(url, stream=True) as response:
-                response.raise_for_status()
-                # 获取预期总大小 (字节)
-                total_expected_size = int(response.headers.get('content-length', 0))
-                
-                # 手动计数器，用于记录实际下载量
-                downloaded_size = 0
-                
-                # 1MB 一个分块
-                chunk_size = 1024 * 1024 
-                
-                with open(save_path, 'wb') as file:
-                    for chunk in response.iter_content(chunk_size=chunk_size):
-                        if chunk: # 过滤掉保持连接的空块
-                            file.write(chunk)
-                            downloaded_size += len(chunk) # 累加当前块的大小
-                            
-                            # 简单的打印，避免屏幕刷屏，每下载 100MB 打印一次
-                            if downloaded_size % (100 * 1024 * 1024) < chunk_size:
-                                print(f"已下载: {downloaded_size / (1024*1024):.2f} MB", end='\r')
-                                self._tosend(f'{downloaded_size*100/total_expected_size:.2f}% Qwen3-0.6B model.safetensors')
-
-                print(f"\n下载结束。")
-
-                # 4. 校验完整性
-                if total_expected_size != 0 and downloaded_size != total_expected_size:
-                    print(f"[错误] 文件不完整！")
-                    print(f"预期大小: {total_expected_size} 字节")
-                    print(f"实际大小: {downloaded_size} 字节")
-                    raise RuntimeError(f'下载出错,请手动打开网址\n{url}\n下载后保存到 {output_dir}\n')
-                else:
-                    print(f"[成功] 文件已保存，大小校验通过。")
-
-        except Exception as e:
-            raise
-
+    
 
     def _exec1(self) -> Union[List[Dict], None]:
         if self._exit():
@@ -174,30 +129,6 @@ class FunasrRecogn(BaseRecogn):
                 remote_code=f"{config.ROOT_DIR}/videotrans/codes/model.py",
                 hub='ms',
             )
-        except (OSError,AssertionError) as e:
-            # Fun-ASR-Nano-2512库中 缺少qwen3-0.6b model.safetensors，模型几乎肯定自动下载失败
-            # 失败后从 qwen3-0.6b库中单独下载
-            # https://modelscope.cn/models/FunAudioLLM/Fun-ASR-Nano-2512/files
-            # https://modelscope.cn/models/Qwen/Qwen3-0.6B
-            model_1=f'{config.ROOT_DIR}/models/models/{model_name}/model.pt'
-            model_2=f'{config.ROOT_DIR}/models/models/{model_name}/Qwen3-0.6B/model.safetensors'
-            if self.model_name=='Fun-ASR-Nano-2512' and Path(model_1).exists() and not Path(model_2).exists():
-                self.download_qwen_model(model_name)
-                model = AutoModel(
-                    model=model_name,
-                    punc_model="ct-punc",
-                    device=self.device,
-                    local_dir=config.ROOT_DIR + "/models",
-                    disable_update=True,
-                    disable_progress_bar=True,
-                    disable_log=True,
-                    trust_remote_code=True,
-                    remote_code=f"{config.ROOT_DIR}/videotrans/codes/model.py",
-                    hub='ms',
-                )
-            elif not Path(f'{config.ROOT_DIR}/models/models/{model_name}/config.yaml').exists():
-                raise RuntimeError(config.tr('downloading model.safetensors and all .json files',f'{config.ROOT_DIR}/models/models/{model_name}')+f'\n[https://modelscope.cn/models/{model_name}/files]\n{e}')
-            raise
         except Exception as e:
             raise 
         # vad
