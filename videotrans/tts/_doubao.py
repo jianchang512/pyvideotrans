@@ -117,15 +117,16 @@ class DoubaoTTS(BaseTTS):
 
                 }
             }
+            config.logger.info(f'字节语音合成:{request_json=}')
             resp = requests.post(api_url, json.dumps(request_json), headers=header,verify=False)
             resp.raise_for_status()
             resp_json = resp.json()
 
             if "data" in resp_json:
                 data = resp_json["data"]
-                with open(data_item['filename'] , "wb") as f:
+                with open(data_item['filename']+"-tmp.wav" , "wb") as f:
                     f.write(base64.b64decode(data))
-                self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
+                self.convert_to_wav(data_item['filename']+"-tmp.wav", data_item['filename'])
                 return
             if 'authenticate' in resp_json.get('message','') or 'access denied' in resp_json.get('message',''):
                 self.stop_next_all=True

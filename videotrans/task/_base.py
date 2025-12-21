@@ -128,35 +128,20 @@ class BaseTask(BaseCon):
                 tmp['text']=target_srt_list[i]['text']
                 target_srt_list[i]=tmp
             return target_srt_list
-                
-        logs(f'原始字幕和翻译字幕行数不等，可能产生了合并行 移除空白行等')
-        for i, it in enumerate(source_srt_list):
-            tmp = copy.deepcopy(it)
-            if i > target_len - 1:
-                # 超出目标字幕长度
-                tmp['text'] = '  '
-            elif re.sub(r'\D', '', it['time'],flags=re.I | re.S) == re.sub(r'\D', '', target_srt_list[i]['time'],flags=re.I | re.S):
-                # 正常时间码相等
-                tmp['text'] = target_srt_list[i]['text']
-            elif i == 0 and source_srt_list[1]['time'] == target_srt_list[1]['time']:
-                # 下一行时间码相同
-                tmp['text'] = target_srt_list[i]['text']
-            elif i == source_len - 1 and source_srt_list[i - 1]['time'] == target_srt_list[i - 1]['time']:
-                # 上一行时间码相同
-                tmp['text'] = target_srt_list[i]['text']
-            elif 0 < i < source_len - 1 and target_len > i + 1 and source_srt_list[i - 1]['time'] == \
-                    target_srt_list[i - 1]['time'] and source_srt_list[i + 1]['time'] == target_srt_list[i + 1]['time']:
-                # 上下两行时间码相同
-                tmp['text'] = target_srt_list[i]['text']
-            else:
-                # 其他情况清空目标字幕文字
-                tmp['text'] = '  '
-            if i > len(target_srt_list) - 1:
+
+        if target_len>source_len:
+            logs(f'翻译结果行数大于原始字幕行，截取0-{source_len}')
+            return target_srt_list[:source_len]
+        
+        
+        logs(f'翻译结果行数少于原始字幕行，追加')
+        for i,it in enumerate(source_srt_list):
+            if i>=target_len:
+                tmp=copy.deepcopy(it)
+                tmp['text']=' '
                 target_srt_list.append(tmp)
-            else:
-                target_srt_list[i] = tmp
-        logs(f'强制目标字幕行数等于原始字幕行数后：{target_srt_list=}')
         return target_srt_list
+        
 
 
     async def _edgetts_single(self,target_audio,kwargs):

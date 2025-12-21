@@ -9,11 +9,11 @@ License: GPL-V3
 
 # 代码是一坨屎，但又不是不能跑 O(∩_∩)O~ 别在意那些细节
 # 写的这么烂，一看就不是AI写的
-# 没有规范，随便乱搞, 英文不好，中英混杂
+# 没有规范，随便搞搞
 
 """
 import atexit, sys, os, time
-VERSION = "v3.91"
+VERSION = "v3.92"
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"

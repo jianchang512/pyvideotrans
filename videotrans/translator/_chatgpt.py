@@ -122,7 +122,7 @@ class ChatGPT(BaseTrans):
         message = [
             {
                 'role': 'system',
-                'content': tr("You are a top-notch subtitle translation engine.")},
+                'content': 'You are a top-tier Subtitle Translation Engine.'},
             {
                 'role': 'user',
                 'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},

@@ -1,6 +1,6 @@
 [project]
 name = "pyVideoTrans"
-version = "3.91"
+version = "3.92"
 requires-python = "==3.10.*"
 dependencies = [
     "absl-py==2.0.0",
@@ -84,7 +84,7 @@ dependencies = [
     "google-auth-httplib2==0.2.0",
     "google-auth-oauthlib==0.4.6",
     "google-cloud-texttospeech==2.27.0",
-    "google-genai==1.16.1",
+    "google-genai",
     "google-pasta==0.2.0",
     "googleapis-common-protos==1.63.0",
     "grpcio==1.60.0",

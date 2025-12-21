@@ -73,9 +73,9 @@ class Gemini(BaseTrans):
             think_cfg=types.ThinkingConfig(
                     thinking_budget=int(config.params.get('gemini_thinking_budget',24576)),
                 )
-            if model.startswith('gemini-3'):    
+            if model.startswith('gemini-3'):
                 think_cfg=types.ThinkingConfig(
-                        thinking_level="high",
+                        thinking_level="HIGH",
                 )
                 
             generate_content_config = types.GenerateContentConfig(
@@ -101,7 +101,7 @@ class Gemini(BaseTrans):
 
                 thinking_config = think_cfg,
                 system_instruction=[
-                    types.Part.from_text(text=tr("You are a top-notch subtitle translation engine.")),
+                    types.Part.from_text(text='You are a top-tier Subtitle Translation Engine.'),
                 ],
             )
             if model.startswith('gemini-1.') or model.startswith('gemini-2.0'):            

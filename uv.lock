@@ -1115,6 +1115,11 @@ wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/9e/8d/ddbcf81ec751d8ee5fd18ac11ff38a0e110f39dfbf105e6d9db69d556dd0/google_auth-2.29.0-py2.py3-none-any.whl", hash = "sha256:d452ad095688cd52bae0ad6fafe027f6a6d6f560e810fec20914e17a09526415" },
 ]
 
+[package.optional-dependencies]
+requests = [
+    { name = "requests" },
+]
+
 [[package]]
 name = "google-auth-httplib2"
 version = "0.2.0"
@@ -1158,20 +1163,23 @@ wheels = [
 
 [[package]]
 name = "google-genai"
-version = "1.16.1"
+version = "1.55.0"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
 dependencies = [
     { name = "anyio" },
-    { name = "google-auth" },
+    { name = "distro" },
+    { name = "google-auth", extra = ["requests"] },
     { name = "httpx" },
     { name = "pydantic" },
     { name = "requests" },
+    { name = "sniffio" },
+    { name = "tenacity" },
     { name = "typing-extensions" },
     { name = "websockets" },
 ]
-sdist = { url = "https://mirrors.aliyun.com/pypi/packages/ca/1f/1a52736e87b4a22afef615de45e2f509fbfb55c09798620b0c3f394076ef/google_genai-1.16.1.tar.gz", hash = "sha256:4b4ed4ed781a9d61e5ce0fef1486dd3a5d7ff0a73bd76b9633d21e687ab998df" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/1d/7c/19b59750592702305ae211905985ec8ab56f34270af4a159fba5f0214846/google_genai-1.55.0.tar.gz", hash = "sha256:ae9f1318fedb05c7c1b671a4148724751201e8908a87568364a309804064d986" }
 wheels = [
-    { url = "https://mirrors.aliyun.com/pypi/packages/bc/31/30caa8d4ae987e47c5250fb6680588733863fd5b39cacb03ba1977c29bde/google_genai-1.16.1-py3-none-any.whl", hash = "sha256:6ae5d24282244f577ca4f0d95c09f75ab29e556602c9d3531b70161e34cd2a39" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/3e/86/a5a8e32b2d40b30b5fb20e7b8113fafd1e38befa4d1801abd5ce6991065a/google_genai-1.55.0-py3-none-any.whl", hash = "sha256:98c422762b5ff6e16b8d9a1e4938e8e0ad910392a5422e47f5301498d7f373a1" },
 ]
 
 [[package]]
@@ -2959,7 +2967,7 @@ wheels = [
 
 [[package]]
 name = "pyvideotrans"
-version = "3.91"
+version = "3.92"
 source = { virtual = "." }
 dependencies = [
     { name = "absl-py" },
@@ -3306,7 +3314,7 @@ requires-dist = [
     { name = "google-auth-httplib2", specifier = "==0.2.0" },
     { name = "google-auth-oauthlib", specifier = "==0.4.6" },
     { name = "google-cloud-texttospeech", specifier = "==2.27.0" },
-    { name = "google-genai", specifier = "==1.16.1" },
+    { name = "google-genai" },
     { name = "google-pasta", specifier = "==0.2.0" },
     { name = "googleapis-common-protos", specifier = "==1.63.0" },
     { name = "gradio-client", specifier = ">=2.0.1" },

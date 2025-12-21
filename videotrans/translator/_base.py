@@ -122,7 +122,7 @@ class BaseTrans(BaseCon):
     # 发送完整字幕格式内容进行翻译
     # 此时 _item_task 接收的是 srt格式的字符串
     def _run_srt(self,split_source_text):
-        result_srt_str_list = []
+        raws_list=[]
         for i, it in enumerate(split_source_text):
             # 是字幕类表，此时 it=[{text,line,time}]
             if self._exit(): return
@@ -141,19 +141,17 @@ class BaseTrans(BaseCon):
 
 
             self._signal(text=result, type='subtitle')
-            result_srt_str_list.append(result)
-
+            tmp=tools.get_subtitle_from_srt(result, is_file=False)
+            logs(f'\n原始待翻译文本:{srt_str=}\n翻译结果:{result=}\n整理后：{tmp=}')
+            raws_list.extend(tmp)
             time.sleep(self.wait_sec)
-
-        raws_list = tools.get_subtitle_from_srt("\n\n".join(result_srt_str_list), is_file=False)
 
         # 双语翻译结果，只取最后一行
         logs(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},整理为list[dict]后的行数:{len(raws_list)}')
         for i, it in enumerate(raws_list):
-            it['text'] = it['text'].strip().split("\n")
-            if it['text']:
-                it['text'] = it['text'][-1]
-            raws_list[i] = it
+            if i>=len(self.text_list):
+                continue
+            it['text']=it['text'].strip()
         return raws_list
 
     def _set_cache(self, it, res_str):

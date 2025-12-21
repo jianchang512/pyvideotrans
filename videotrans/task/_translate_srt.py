@@ -72,7 +72,7 @@ class TranslateSrt(BaseTask):
                 else:
                     tmp_text = f"{raw_subtitles[i]['text'].strip()}" if i < target_length else ''
                     tmp_text = f"{it['text'].strip()}\n{tmp_text}"
-                srt_string += f"{it['line']}\n{it['time']}\n{tmp_text}\n\n"
+                srt_string += f"{it['line']}\n{it['time']}\n{tmp_text.strip()}\n\n"
             self.cfg.target_sub = self.cfg.target_sub[:-4] + f'-{self.out_format}.srt'
             with Path(self.cfg.target_sub).open('w', encoding='utf-8') as f:
                 f.write(srt_string)

@@ -33,17 +33,13 @@ class ZhipuAI(BaseTrans):
         self.api_key = config.params.get('zhipu_key', '')
         self.prompt = tools.get_prompt(ainame='zhipuai',aisendsrt=self.aisendsrt).replace('{lang}',
                                                                                      self.target_language_name)
-
-    # @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-    #        wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-    #        after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         message = [
             {
                 'role': 'system',
-                'content': tr("You are a top-notch subtitle translation engine.")},
+                'content': 'You are a top-tier Subtitle Translation Engine.'},
             {
                 'role': 'user',
                 'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},

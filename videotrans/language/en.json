@@ -735,7 +735,7 @@
     "Selecting an Inference Access Point": "Select Inference Point",
     "Fill in all inference access points, and you can select them above": "Inference Points (Selectable above)",
     "Prompt: Please open the {} file directly to modify it": "Edit Prompt: Open {}/videotrans/prompts.\n[srt/] = Full Sub mode.\n[text/] = Text mode.\nCurrent: {}.txt",
-    "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "Place audio in 'chatterbox' folder. Fill filename (e.g. 123.mp3)",
+    "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "Place audio in 'chatterbox' folder. Fill filename (e.g. 123.mp3),One per line",
     "Reference audio does not exist: {} Please make sure the audio exists": "Ref Audio {} Missing",
     "API minimax": ".com (CN) / .io (Intl) - Not compatible",
     "elevenlabs toggle role": "ElevenLabs: Switch channel & back to refresh roles",

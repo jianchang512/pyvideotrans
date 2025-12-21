@@ -168,7 +168,7 @@ taskdone_queue = Queue(maxsize=0)
 # 执行模式 gui 或 api
 exec_mode = "gui"
 # funasr模型
-FUNASR_MODEL = ['Fun-ASR-Nano-2512','paraformer-zh', 'SenseVoiceSmall']
+FUNASR_MODEL = ['Fun-ASR-Nano-2512','Fun-ASR-MLT-Nano-2512','paraformer-zh', 'SenseVoiceSmall']
 
 DEEPGRAM_MODEL = [
     "nova-3",
@@ -262,12 +262,12 @@ def parse_init(update_data=None):
         
         "threshold": 0.45,
         "min_speech_duration_ms": 0,
-        "max_speech_duration_s": 5,
+        "max_speech_duration_s": 6,
         "min_silence_duration_ms": 250,
         "speech_pad_ms": 0,
 
         "trans_thread": 20,
-        "aitrans_thread": 25,
+        "aitrans_thread": 50,
         "translation_wait": 0,
         "dubbing_wait": 1,
         "dubbing_thread": 1,

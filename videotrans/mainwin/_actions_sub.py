@@ -424,7 +424,7 @@ class WinActionSub:
             tools.show_error(tr("nocuda"))
             return False
 
-        if self.main.recogn_type.currentIndex() == recognition.OPENAI_WHISPER:
+        if self.main.recogn_type.currentIndex() != recognition.FASTER_WHISPER:
             self.cfg['cuda'] = True
             return True
         allow = True
