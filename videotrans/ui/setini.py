@@ -95,12 +95,12 @@ class Ui_setini(object):
                 "max_video_pts_rate":"视频慢放最大倍数，默认10，不可大于10",
             },
             "whisper": {
-                "vad": "是否在faster-whisper渠道整体识别模式时启用VAD",
-                "threshold": "表示音频片段被认为是语音的最低概率。VAD 会为每个音频片段计算语音概率，超过此阈值的部分被视为语音，反之视为静音或噪音。\n默认0.45，越小越灵敏但可能误将噪声视为语音",
-                "min_speech_duration_ms": "如果检测到的语音片段长度小于此值，会被丢弃，目的是去除短暂的非语音噪音。填写数字，单位是ms，默认0ms\n过大会出现漏字",
-                "max_speech_duration_s": "限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒，默认5秒",
-                "min_silence_duration_ms": "在语音结束时，需等待的静音时间达到此值后，才会分割出语音片段。填写数字，单位ms，默认140ms\n也就是只在大于此值的静音片段处分割",
-                "speech_pad_ms": "在检测到的语音片段前后添加缓冲时间，避免切掉边缘语音。填写数字，单位ms，默认0",
+                "threshold": "表示音频片段被认为是语音的最低概率。VAD 会为每个音频片段计算语音概率，超过此阈值的部分被视为语音，反之视为静音或噪音。\n默认0.5，越小越灵敏但可能误将噪声视为语音",
+                "max_speech_duration_s": "限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒，默认8秒",
+                "min_silence_duration_ms": "在语音结束时，需等待的静音时间达到此值后，才会分割出语音片段。填写数字，单位ms，默认500ms\n也就是只在大于此值的静音片段处分割",
+                "min_speech_duration_ms": "如果某条字幕时长小于该值对应ms，则尝试将该字幕合并进相邻字幕中，默认1000ms",
+                "merge_short_sub":"只有选中该项，才会合并短字幕",
+                "no_speech_threshold":"no speech threshold",
 
 
                 "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
@@ -160,6 +160,8 @@ class Ui_setini(object):
             "gemini_recogn_chunk": "Gemini语音识别每批切片数",
             "llm_chunk_size": "LLM重新断句每批字幕行数",
             
+            "no_speech_threshold":"no speech threshold",
+            
             "show_more_settings": "主界面显示所有参数?",
             
             "edgetts_max_concurrent_tasks":"EdgeTTS配音渠道配音并发数",
@@ -185,13 +187,13 @@ class Ui_setini(object):
             "preset": "输出视频压缩率",
             "ffmpeg_cmd": "自定义ffmpeg命令参数",
             "video_codec": "264/265编码",
-            "vad": "启用VAD断句",
 
             "threshold": "语音阈值",
             "max_speech_duration_s": "最长语音持续秒数",
-            "min_speech_duration_ms": "最短语音持续毫秒数",
             "min_silence_duration_ms": "静音分割持续毫秒数",
-            "speech_pad_ms": "语音填充毫秒数",
+            "min_speech_duration_ms": "最短字幕时长毫秒",
+            "merge_short_sub":"合并过短字幕到邻近",
+            
 
             "trans_thread": "传统翻译渠道每批字幕行数",
             "aitrans_thread": "AI翻译渠道每批字幕行数",
@@ -299,12 +301,16 @@ class Ui_setini(object):
         "max_video_pts_rate": "Maximum video slow-down rate. Default: 10 (cannot exceed 10)."
     },
     "whisper": {
-        "vad": "Enable Voice Activity Detection (VAD) for faster-whisper's global recognition mode.",
-        "threshold": "VAD: Minimum probability for an audio chunk to be considered speech. Default: 0.45.",
-        "min_speech_duration_ms": "VAD: Minimum duration (ms) for a speech segment to be kept. Default: 0ms.",
-        "max_speech_duration_s": "VAD: Maximum duration (s) of a single speech segment before splitting. Default: 5s.",
-        "min_silence_duration_ms": "VAD: Minimum silence duration (ms) to mark the end of a segment. Default: 140ms.",
-        "speech_pad_ms": "VAD: Padding (ms) added to the start and end of detected speech segments. Default: 0.",
+        "threshold": "VAD: Minimum probability for an audio chunk to be considered speech. Default: 0.5.",
+        "max_speech_duration_s": "VAD: Maximum duration (s) of a single speech segment before splitting. Default: 8s.",
+        "min_silence_duration_ms": "VAD: Minimum silence duration (ms) to mark the end of a segment. Default: 500ms.",
+        "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle. Default is 1000ms",
+        
+        "no_speech_threshold":"no speech threshold",
+        "merge_short_sub":"Short subtitles will only be merged if this option is selected",
+        
+        
+        
         "model_list": "Comma-separated list of model names for faster-whisper and OpenAI modes.",
         "Whisper.cpp.models": "Comma-separated list of model names for whisper.cpp mode.",
         "cuda_com_type": "CUDA compute type for faster-whisper (e.g., int8, float16, float32, default).",
@@ -363,6 +369,7 @@ class Ui_setini(object):
     "ai302_models": "302.AI translation models",
     "faster_batch": "Force batch inference",
     "ai302tts_models": "302.AI-TTS models",
+    "no_speech_threshold":"no speech threshold",
     
     "show_more_settings": "Show all parameters?",
     
@@ -387,12 +394,11 @@ class Ui_setini(object):
     "ffmpeg_cmd": "Custom FFmpeg command arguments",
     "video_codec": "H.264/H.265 encoding",
 
-    "vad": "Enable VAD segmentation",
     "threshold": "VAD: Speech probability threshold",
-    "max_speech_duration_s": "VAD: Max speech duration (s)",
-    "min_speech_duration_ms": "VAD: Min speech duration (ms)",
-    "min_silence_duration_ms": "VAD: Min silence duration for split (ms)",
-    "speech_pad_ms": "VAD: Speech padding (ms)",
+    "max_speech_duration_s": "VAD: Max speech duration(s)",
+    "min_silence_duration_ms": "VAD: Min silence duration for split(ms)",
+    "min_speech_duration_ms": "Merge sub into adjacent sub if less than",
+    "merge_short_sub":"Short sub will be merged if selected",
     "trans_thread": "Batch size (lines) for traditional translation",
     "aitrans_thread": "Batch size (lines) for AI translation",
     "dubbing_thread": "Concurrent dubbing threads",

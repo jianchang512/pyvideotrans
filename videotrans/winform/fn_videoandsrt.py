@@ -68,19 +68,18 @@ def openwin():
                         '-i',
                         os.path.normpath(info['video'])
                     ]
+                    sub_list = tools.get_subtitle_from_srt(srt, is_file=True)
+                    text = ""
+                    for i, it in enumerate(sub_list):
+                        it['text'] = tools.textwrap(it['text'], self.maxlen).strip()
+                        text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
+                    srtfile = config.TEMP_DIR + f"/srt{time.time()}.srt"
+                    with Path(srtfile).open('w', encoding='utf-8') as f:
+                        f.write(text)
+                    os.chdir(config.TEMP_DIR)
                     if not self.is_soft or not self.language:
                         # 硬字幕
-                        sub_list = tools.get_subtitle_from_srt(srt, is_file=True)
-                        text = ""
-                        for i, it in enumerate(sub_list):
-                            it['text'] = tools.textwrap(it['text'], self.maxlen).strip()
-                            text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
-                        srtfile = config.TEMP_DIR + f"/srt{time.time()}.srt"
-                        with Path(srtfile).open('w', encoding='utf-8') as f:
-                            f.write(text)
-                            f.flush()
                         assfile = tools.set_ass_font(srtfile)
-                        os.chdir(config.TEMP_DIR)
                         cmd += [
                             '-c:v',
                             'libx265',
@@ -93,12 +92,11 @@ def openwin():
                         ]
                     else:
                         # 软字幕
-                        os.chdir(self.folder)
                         subtitle_language = translator.get_subtitle_code(
                             show_target=self.language)
                         cmd += [
                             '-i',
-                            os.path.basename(srt),
+                            srtfile,
                             '-c:v',
                             'copy' if Path(info['video']).suffix.lower() == '.mp4' else 'libx265',
                             "-c:s",

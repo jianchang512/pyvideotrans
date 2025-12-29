@@ -118,7 +118,7 @@ class DubbingSrt(BaseTask):
             else:
                 _enter_edgetts_single=False
         
-        print(f'{_enter_edgetts_single=}')
+
         if _enter_edgetts_single:
             from edge_tts import Communicate
             import asyncio
@@ -136,7 +136,7 @@ class DubbingSrt(BaseTask):
                 for it in self.queue_tts:
                     text+=it["text"]+"\n"
                 self.queue_tts=self.queue_tts[:1]
-            print(f'{text=}')
+
             asyncio.run(self._edgetts_single(
                 tmp_name,
                 dict(text=text,

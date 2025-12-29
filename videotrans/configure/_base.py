@@ -20,13 +20,12 @@ class BaseCon:
     no_proxy: str = ''
 
     def __post_init__(self):
+        self.no_proxy=config.no_proxy
         self.proxy_str = self._set_proxy(type='set')
         print(f'{self.proxy_str=},{self.uuid=}')
         config.settings=config.parse_init()
-        # 用于 requests 库
-        # 国内某些渠道禁止国外ip及代理
-        # 本地类型地址禁止使用代理
-        self.no_proxy = "tmt.tencentcloudapi.com,api.fanyi.baidu.com,mt.cn-hangzhou.aliyuncs.com,openspeech.bytedance.com,api.minimaxi.com,api.deepseek.com,*.modelscope.cn,modelscope.cn,www.modelscope.cn,127.0.0.1,localhost,0.0.0.0,127.0.0.0,127.0.0.2,dashscope.aliyuncs.com,*.aliyuncs.com,aliyuncs.com,api.siliconflow.cn,*.ms.show"
+        
+
 
         if self.proxy_str:
             os.environ['HTTPS_PROXY'] = self.proxy_str
@@ -37,7 +36,7 @@ class BaseCon:
             os.environ.pop('HTTPS_PROXY',None)
             os.environ.pop('HTTP_PROXY',None)
 
-        os.environ['no_proxy'] = self.no_proxy
+
 
     # 所有窗口和任务信息通过队列交互
     def _signal(self, **kwargs):
@@ -114,6 +113,7 @@ class BaseCon:
             return
         try:
             tools.runffmpeg(cmd, force_cpu=True)
+            tools.remove_silence_wav(output_wav_file_path)
         except Exception:
             pass
         return True

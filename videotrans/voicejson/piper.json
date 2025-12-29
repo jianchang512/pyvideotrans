@@ -1,6 +1,41 @@
 {
+    "ar": {
+        "No": "No",
+        "ar_JO-kareem-low": "ar_JO-kareem-low",
+        "ar_JO-kareem-medium": "ar_JO-kareem-medium"
+    },
+    "cs": {
+        "No": "No",
+        "cs_CZ-jirka-low": "cs_CZ-jirka-low",
+        "cs_CZ-jirka-medium": "cs_CZ-jirka-medium"
+    },
+    "de": {
+        "No": "No",
+        "de_DE-eva_k-x_low": "de_DE-eva_k-x_low",
+        "de_DE-karlsson-low": "de_DE-karlsson-low",
+        "de_DE-kerstin-low": "de_DE-kerstin-low",
+        "de_DE-mls-medium": "de_DE-mls-medium",
+        "de_DE-pavoque-low": "de_DE-pavoque-low",
+        "de_DE-ramona-low": "de_DE-ramona-low",
+        "de_DE-thorsten-high": "de_DE-thorsten-high",
+        "de_DE-thorsten-low": "de_DE-thorsten-low",
+        "de_DE-thorsten-medium": "de_DE-thorsten-medium",
+        "de_DE-thorsten_emotional-medium": "de_DE-thorsten_emotional-medium"
+    },
     "en": {
         "No": "No",
+        "en_GB-alan-low": "en_GB-alan-low",
+        "en_GB-alan-medium": "en_GB-alan-medium",
+        "en_GB-alba-medium": "en_GB-alba-medium",
+        "en_GB-aru-medium": "en_GB-aru-medium",
+        "en_GB-cori-high": "en_GB-cori-high",
+        "en_GB-cori-medium": "en_GB-cori-medium",
+        "en_GB-jenny_dioco-medium": "en_GB-jenny_dioco-medium",
+        "en_GB-northern_english_male-medium": "en_GB-northern_english_male-medium",
+        "en_GB-semaine-medium": "en_GB-semaine-medium",
+        "en_GB-southern_english_female-low": "en_GB-southern_english_female-low",
+        "en_GB-vctk-medium": "en_GB-vctk-medium",
+        "en_US-amy-low": "en_US-amy-low",
         "en_US-amy-medium": "en_US-amy-medium",
         "en_US-arctic-medium": "en_US-arctic-medium",
         "en_US-bryce-medium": "en_US-bryce-medium",
@@ -10,10 +45,142 @@
         "en_US-joe-medium": "en_US-joe-medium",
         "en_US-john-medium": "en_US-john-medium",
         "en_US-kathleen-low": "en_US-kathleen-low",
-        "en_US-kristin-medium": "en_US-kristin-medium"
+        "en_US-kristin-medium": "en_US-kristin-medium",
+        "en_US-kusal-medium": "en_US-kusal-medium",
+        "en_US-l2arctic-medium": "en_US-l2arctic-medium",
+        "en_US-lessac-high": "en_US-lessac-high",
+        "en_US-lessac-low": "en_US-lessac-low",
+        "en_US-lessac-medium": "en_US-lessac-medium",
+        "en_US-libritts-high": "en_US-libritts-high",
+        "en_US-libritts_r-medium": "en_US-libritts_r-medium",
+        "en_US-ljspeech-high": "en_US-ljspeech-high",
+        "en_US-ljspeech-medium": "en_US-ljspeech-medium",
+        "en_US-norman-medium": "en_US-norman-medium",
+        "en_US-reza_ibrahim-medium": "en_US-reza_ibrahim-medium",
+        "en_US-ryan-high": "en_US-ryan-high",
+        "en_US-ryan-low": "en_US-ryan-low",
+        "en_US-ryan-medium": "en_US-ryan-medium",
+        "en_US-sam-medium": "en_US-sam-medium"
+    },
+    "es": {
+        "No": "No",
+        "es_AR-daniela-high": "es_AR-daniela-high",
+        "es_ES-carlfm-x_low": "es_ES-carlfm-x_low",
+        "es_ES-davefx-medium": "es_ES-davefx-medium",
+        "es_ES-mls_10246-low": "es_ES-mls_10246-low",
+        "es_ES-mls_9972-low": "es_ES-mls_9972-low",
+        "es_ES-sharvard-medium": "es_ES-sharvard-medium",
+        "es_MX-ald-medium": "es_MX-ald-medium",
+        "es_MX-claude-high": "es_MX-claude-high"
+    },
+    "fa": {
+        "No": "No",
+        "fa_IR-amir-medium": "fa_IR-amir-medium",
+        "fa_IR-ganji-medium": "fa_IR-ganji-medium",
+        "fa_IR-ganji_adabi-medium": "fa_IR-ganji_adabi-medium",
+        "fa_IR-gyro-medium": "fa_IR-gyro-medium",
+        "fa_IR-reza_ibrahim-medium": "fa_IR-reza_ibrahim-medium"
+    },
+    "fr": {
+        "No": "No",
+        "fr_FR-gilles-low": "fr_FR-gilles-low",
+        "fr_FR-mls-medium": "fr_FR-mls-medium",
+        "fr_FR-mls_1840-low": "fr_FR-mls_1840-low",
+        "fr_FR-siwis-low": "fr_FR-siwis-low",
+        "fr_FR-siwis-medium": "fr_FR-siwis-medium",
+        "fr_FR-tom-medium": "fr_FR-tom-medium",
+        "fr_FR-upmc-medium": "fr_FR-upmc-medium"
+    },
+    "he": {
+        "No": "No",
+        "he_IL-motek-medium": "he_IL-motek-medium"
+    },
+    "hi": {
+        "No": "No",
+        "hi_IN-pratham-medium": "hi_IN-pratham-medium",
+        "hi_IN-priyamvada-medium": "hi_IN-priyamvada-medium",
+        "hi_IN-rohan-medium": "hi_IN-rohan-medium"
+    },
+    "hu": {
+        "No": "No",
+        "hu_HU-anna-medium": "hu_HU-anna-medium",
+        "hu_HU-berta-medium": "hu_HU-berta-medium",
+        "hu_HU-imre-medium": "hu_HU-imre-medium"
+    },
+    "id": {
+        "No": "No",
+        "id_ID-news_tts-medium": "id_ID-news_tts-medium"
+    },
+    "it": {
+        "No": "No",
+        "it_IT-paola-medium": "it_IT-paola-medium",
+        "it_IT-riccardo-x_low": "it_IT-riccardo-x_low"
+    },
+    "kk": {
+        "No": "No",
+        "kk_KZ-iseke-x_low": "kk_KZ-iseke-x_low",
+        "kk_KZ-issai-high": "kk_KZ-issai-high",
+        "kk_KZ-raya-x_low": "kk_KZ-raya-x_low"
+    },
+    "nl": {
+        "No": "No",
+        "nl_BE-nathalie-medium": "nl_BE-nathalie-medium",
+        "nl_BE-nathalie-x_low": "nl_BE-nathalie-x_low",
+        "nl_BE-rdh-medium": "nl_BE-rdh-medium",
+        "nl_BE-rdh-x_low": "nl_BE-rdh-x_low",
+        "nl_NL-mls-medium": "nl_NL-mls-medium",
+        "nl_NL-mls_5809-low": "nl_NL-mls_5809-low",
+        "nl_NL-mls_7432-low": "nl_NL-mls_7432-low",
+        "nl_NL-pim-medium": "nl_NL-pim-medium",
+        "nl_NL-ronnie-medium": "nl_NL-ronnie-medium"
+    },
+    "pl": {
+        "No": "No",
+        "pl_PL-darkman-medium": "pl_PL-darkman-medium",
+        "pl_PL-gosia-medium": "pl_PL-gosia-medium",
+        "pl_PL-mc_speech-medium": "pl_PL-mc_speech-medium",
+        "pl_PL-mls_6892-low": "pl_PL-mls_6892-low"
+    },
+    "pt": {
+        "No": "No",
+        "pt_BR-cadu-medium": "pt_BR-cadu-medium",
+        "pt_BR-edresson-low": "pt_BR-edresson-low",
+        "pt_BR-faber-medium": "pt_BR-faber-medium",
+        "pt_BR-jeff-medium": "pt_BR-jeff-medium",
+        "pt_PT-tug\u00e3o-medium": "pt_PT-tug\u00e3o-medium"
+    },
+    "ru": {
+        "No": "No",
+        "ru_RU-denis-medium": "ru_RU-denis-medium",
+        "ru_RU-dmitri-medium": "ru_RU-dmitri-medium",
+        "ru_RU-irina-medium": "ru_RU-irina-medium",
+        "ru_RU-ruslan-medium": "ru_RU-ruslan-medium"
+    },
+    "sv": {
+        "No": "No",
+        "sv_SE-lisa-medium": "sv_SE-lisa-medium",
+        "sv_SE-nst-medium": "sv_SE-nst-medium"
+    },
+    "tr": {
+        "No": "No",
+        "tr_TR-dfki-medium": "tr_TR-dfki-medium",
+        "tr_TR-fahrettin-medium": "tr_TR-fahrettin-medium",
+        "tr_TR-fettah-medium": "tr_TR-fettah-medium"
+    },
+    "uk": {
+        "No": "No",
+        "uk_UA-lada-x_low": "uk_UA-lada-x_low",
+        "uk_UA-ukrainian_tts-medium": "uk_UA-ukrainian_tts-medium"
+    },
+    "vi": {
+        "No": "No",
+        "vi_VN-25hours_single-low": "vi_VN-25hours_single-low",
+        "vi_VN-vais1000-medium": "vi_VN-vais1000-medium",
+        "vi_VN-vivos-x_low": "vi_VN-vivos-x_low"
     },
     "zh": {
         "No": "No",
-        "zh_CN-huayan-medium": "zh_CN-huayan-medium"
+        "zh_CN-huayan-medium": "zh_CN-huayan-medium",
+        "zh_CN-huayan-x_low": "zh_CN-huayan-x_low"
     }
 }

@@ -81,6 +81,9 @@ class BaseTrans(BaseCon):
             raise e.last_attempt.exception()
         except Exception as e:
             raise
+        finally:
+            if hasattr(self,'_unload'):
+                self._unload()
 
     def _run_text(self,split_source_text):
         # 传统翻译渠道或AI翻译渠道以按行形式翻译

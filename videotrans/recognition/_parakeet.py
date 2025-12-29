@@ -58,10 +58,5 @@ class ParaketRecogn(BaseRecogn):
         if not words_list:    
             return tools.get_subtitle_from_srt(tmp[0], is_file=False)
             
-        if int(config.settings.get('rephrase',0))==1:
-            try:
-                return self.re_segment_sentences(words_list)
-            except Exception as e:
-                logs(f'LLM重新断句失败', level="except")
 
         return tools.get_subtitle_from_srt(tmp[0], is_file=False)

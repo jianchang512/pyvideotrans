@@ -21,7 +21,9 @@ GEMINI_SPEECH = 5
 QWEN3ASR = 6
 ZIJIE_RECOGN_MODEL=7
 
-ElevenLabs = 8
+ZHIPU_API = 8
+
+
 Deepgram = 9
 DOUBAO_API = 10
 
@@ -29,11 +31,16 @@ DOUBAO_API = 10
 PARAKEET = 11
 Whisper_CPP=12
 Faster_Whisper_XXL = 13
-AI_302 = 14
-STT_API = 15
-GOOGLE_SPEECH = 16
-WHISPERX_API = 17
-CUSTOM_API = 18
+WHISPERX_API = 14
+
+AI_302 = 15
+ElevenLabs = 16
+
+GOOGLE_SPEECH = 17
+
+
+STT_API = 18
+CUSTOM_API = 19
 
 _ID_NAME_DICT = {
     FASTER_WHISPER:tr("Faster-whisper"),
@@ -45,19 +52,21 @@ _ID_NAME_DICT = {
     GEMINI_SPEECH:tr("Gemini AI"),
     QWEN3ASR:tr("Ali Qwen3-ASR"),    
     ZIJIE_RECOGN_MODEL:tr("VolcEngine STT"),
+    ZHIPU_API:f'{tr("Zhipu AI")} GLM-ASR',
     
-    ElevenLabs:"ElevenLabs.io",
     Deepgram:"Deepgram.com",
     DOUBAO_API:tr("VolcEngine Subtitle API"),
     
     PARAKEET:"Parakeet-tdt",
+    
     Whisper_CPP:"Whisper.cpp",
     Faster_Whisper_XXL:"Faster-Whisper-XXL.exe",
+    WHISPERX_API:"WhisperX",
 
     AI_302:"302.AI",
-    STT_API:tr("STT Speech API"),
+    ElevenLabs:"ElevenLabs.io",
     GOOGLE_SPEECH:tr("Google Speech to Text"),
-    WHISPERX_API:"WhisperX",
+    STT_API:tr("STT Speech API"),
     CUSTOM_API:tr("Custom API"),
 }
 RECOGN_NAME_LIST=list(_ID_NAME_DICT.values())
@@ -75,6 +84,8 @@ HUGGINGFACE_ASR_MODELS={
 }
 
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
+    if langcode!='en' and ( model_name.startswith('distil-')  or model_name.endswith('.en')):
+        return tr('enmodelerror')
     if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL,Whisper_CPP]:
         return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
 
@@ -164,6 +175,12 @@ def is_input_api(recogn_type: int = None, return_str=False):
         from videotrans.winform import elevenlabs as elevenlabs_win
         elevenlabs_win.openwin()
         return False
+    if recogn_type == ZHIPU_API and not config.params.get('zhipu_key',''):
+        if return_str:
+            return "Please configure the API Key information of the Zhipu AI channel first."
+        from videotrans.winform import zhipuai as zhipuai_win
+        zhipuai_win.openwin()
+        return False
     return True
 
 
@@ -242,5 +259,8 @@ def run(*,
     if recogn_type == HUGGINGFACE_ASR:
         from videotrans.recognition._huggingface import HuggingfaceRecogn
         return HuggingfaceRecogn(**kwargs).run()
+    if recogn_type == ZHIPU_API:
+        from videotrans.recognition._glmasr import GLMASRRecogn
+        return GLMASRRecogn(**kwargs).run()
     return FasterAll(**kwargs).run()
 

@@ -170,11 +170,7 @@ class SpeechToText(BaseTask):
                 return
 
 
-            if self.cfg.rephrase == 2:
-                # 自动修正字幕
-                self.source_srt_list = tools.auto_fix_srtdict(self.source_srt_list, self.cfg.detect_language)
-                self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-            elif self.cfg.rephrase == 1:
+            if self.cfg.rephrase == 1:
                 # LLM重新断句
                 try:
                     from videotrans.translator._chatgpt import ChatGPT

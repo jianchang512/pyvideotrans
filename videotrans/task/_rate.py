@@ -424,6 +424,7 @@ class SpeedRate:
             
 
         # 对配音文件移除头部 尾部静音
+        '''
         if dubb_list:
             all_task = []
             total_tasks = len(dubb_list)
@@ -447,7 +448,7 @@ class SpeedRate:
             for i, it in enumerate(self.queue_tts):
                 if it['filename'] and Path(it['filename']).exists():
                     it['dubb_time'] = len(AudioSegment.from_file(it['filename'],format="wav"))
-
+        '''
         logs("[end]========在变速前，整理数据，修复错误时间轴 ==============\n")
     
     def _calculate_adjustments_audiorate(self):

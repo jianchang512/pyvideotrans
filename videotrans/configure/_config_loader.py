@@ -11,7 +11,24 @@ from pathlib import Path
 from queue import Queue
 
 IS_FROZEN = True if getattr(sys, 'frozen', False) else False
-
+no_proxy=(
+    "tmt.tencentcloudapi.com,"
+    "hf-mirror.com,"
+    "api.fanyi.baidu.com,"
+    "openspeech.bytedance.com,"
+    "api.minimaxi.com,"
+    "api.deepseek.com,"
+    "modelscope.cn,"        # 涵盖了 *.modelscope.cn
+    "aliyuncs.com,"         # 涵盖了 dashscope, mt.cn-hangzhou 等所有子域
+    "api.siliconflow.cn,"
+    "ms.show,"              # 涵盖 *.ms.show
+    "bigmodel.cn,"
+    "localhost,"
+    "127.0.0.1"
+    "127.0.0.2"
+)
+os.environ['no_proxy'] = no_proxy
+os.environ['NO_PROXY'] = no_proxy # 某些系统或库可能检查大写
 
 # 获取程序执行目录
 def _get_executable_path():
@@ -40,8 +57,6 @@ Path(f'{TEMP_ROOT}/translate_cache').mkdir(exist_ok=True, parents=True)
 # 日志目录 logs
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
 
-###################################
-
 logger = logging.getLogger('VideoTrans')
 logger.setLevel(logging.INFO)
 # 创建文件处理器，并设置级别G
@@ -60,11 +75,7 @@ logger.addHandler(_file_handler)
 logger.addHandler(_console_handler)
 
 fw_logger = logging.getLogger("faster_whisper")
-
-# 2. 为该 logger 设置你希望捕获的最低日志级别
 fw_logger.setLevel(logging.DEBUG)
-
-# 3. 将您现有的文件处理器添加到 faster_whisper 的 logger 中
 fw_logger.addHandler(_file_handler)
 
 
@@ -84,11 +95,10 @@ os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
 os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
 os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "1200"
 
-# 语言
-# _env_lang =   # 新增：读取环境变量
-if _env_lang := os.environ.get('PYVIDEOTRANS_LANG'):  # 新增：如果环境变量存在，则使用它
+# _env_lang =   
+if _env_lang := os.environ.get('PYVIDEOTRANS_LANG'):
     defaulelang = _env_lang
-else:  # 原有逻辑
+else:
     try:
         locale = QLocale.system()  # 获取系统默认语言环境
         defaulelang = locale.name()[:2].lower()
@@ -136,7 +146,6 @@ INFO_WIN = {"data": {}, "win": None}
 # 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, "ing"=需等待，end=成功完成，error=出错了
 queue_novice = {}
 
-#################################################
 # 主界面完整流程状态标识：开始按钮状态 ing 执行中，stop手动停止 end 正常结束
 current_status = "stop"
 # 工具箱翻译进行状态,ing进行中，其他停止
@@ -206,7 +215,6 @@ dubbing_role = {}
 
 #######################################
 DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-3-flash-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
-ELEVENLABS_CLONE = ['zh', 'en', 'fr', 'de', 'hi', 'pt', 'es', 'ja', 'ko', 'ar', 'ru', 'id', 'it', 'tr', 'pl', 'sv', 'ms', 'uk', 'cs', 'tl']
 OPENAITTS_ROLES = "No,alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
 GEMINITTS_ROLES = "No,Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
 
@@ -216,9 +224,8 @@ def parse_init(update_data=None):
         with  open(ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(update_data, ensure_ascii=False))
         return update_data
-    _defaulthomedir = HOME_DIR
     default = {
-        "homedir": _defaulthomedir,
+        "homedir": HOME_DIR,
         "lang": "",
         "Faster_Whisper_XXL": "",
         "Whisper.cpp": "",
@@ -237,34 +244,38 @@ def parse_init(update_data=None):
         "noise_separate_nums":4,
         
         "batch_single":False,
-
-        "ai302_models": "gpt-4o-mini,gpt-4o,qwen-max,glm-4,yi-large,deepseek-chat,doubao-pro-128k,gemini-2.0-flash",
-        'qwenmt_model': "qwen-mt-turbo,qwen-mt-plus,qwen3-asr-flash,qwen-plus,qwen-turbo,qwen-plus-latest,qwen-turbo-latest",
+        
+        # 默认显示模型
+        "ai302_models": "deepseek-chat,gemini-2.5-flash",
+        'qwenmt_model': "qwen3-max,qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen3-asr-flash",
         "openaitts_model": "tts-1,tts-1-hd,gpt-4o-mini-tts",
-        "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe",
-        "chatgpt_model": "gpt-4.1,gpt-4o-mini,gpt-4o,gpt-4,gpt-4-turbo,gpt-4.5,o1,o1-pro,o3-mini,moonshot-v1-8k,deepseek-chat,deepseek-reasoner",
-        "claude_model": "claude-3-5-sonnet-latest,claude-3-7-sonnet-latest,claude-3-5-haiku-latest",
-        "azure_model": "gpt-4.1,gpt-4o,gpt-4o-mini,gpt-4,gpt-4.5-preview,o3-mini,o1,o1-mini",
-        "localllm_model": "qwen:7b,moonshot-v1-8k,deepseek-chat",
-        "zhipuai_model": "glm-4-flash",
+        "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe,gpt-4o-transcribe-diarize",
+        "chatgpt_model": "gpt-5.2,gpt-5.2-pro,gpt-5,gpt-5-mini,gpt-5-nano,gpt-4.1",
+        "claude_model": "claude-sonnet-4-5,claude-haiku-4-5,claude-opus-4-5",
+        "azure_model": "gpt-5.2,gpt-5.2-pro,gpt-5,gpt-5-mini,gpt-5-nano,gpt-4.1",
+        "localllm_model": "qwen:7b,deepseek-chat",
+        "zhipuai_model": "glm-4.5-flash",
         "deepseek_model": "deepseek-chat,deepseek-reasoner",
         "openrouter_model": "moonshotai/kimi-k2:free,tngtech/deepseek-r1t2-chimera:free,deepseek/deepseek-r1-0528:free",
         "guiji_model": "Qwen/Qwen3-8B,Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2-7B-Instruct",
         "zijiehuoshan_model": "",
-        "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-small.en,distil-medium.en,distil-large-v2,distil-large-v3",
+        
+        # 默认 faster_whisper和openai-whisper模型
+        "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3.5",
+        
 
 
         "max_audio_speed_rate":100,
         "max_video_pts_rate":10,
         
         
-        "vad": True,
-        
-        "threshold": 0.45,
-        "min_speech_duration_ms": 0,
+       
+        "threshold": 0.5,
+        "min_speech_duration_ms": 1000,
         "max_speech_duration_s": 6,
-        "min_silence_duration_ms": 250,
-        "speech_pad_ms": 0,
+        "min_silence_duration_ms": 600,
+        "no_speech_threshold": 0.5,
+        "merge_short_sub":True,
 
         "trans_thread": 20,
         "aitrans_thread": 50,
@@ -276,9 +287,9 @@ def parse_init(update_data=None):
         "backaudio_volume": 0.8,
         "loop_backaudio": True,
         "cuda_com_type": "default",  # int8 int8_float16 int8_float32
-        "initial_prompt_zh-cn": "在每行末尾添加标点符号，在每个句子末尾添加标点符号。",
-        "initial_prompt_zh-tw": "在每行末尾添加標點符號，在每個句子末尾添加標點符號。",
-        "initial_prompt_en": "Add punctuation at the end of each line, and punctuation at the end of each sentence.",
+        "initial_prompt_zh-cn": "",
+        "initial_prompt_zh-tw": "",
+        "initial_prompt_en": "",
         "initial_prompt_fr": "",
         "initial_prompt_de": "",
         "initial_prompt_ja": "",
@@ -313,7 +324,7 @@ def parse_init(update_data=None):
 
 
         "qwentts_role": '',
-        "qwentts_models": 'qwen3-tts-flash',
+        "qwentts_models": 'qwen3-tts-flash-2025-11-27,qwen3-tts-flash',
 
 
         "show_more_settings":False,
@@ -354,9 +365,13 @@ def parse_init(update_data=None):
                 _settings[key] = False
             elif value:
                 _settings[key] = value
+        # 补充新增的模型到 缓存
+        _de=default['model_list'].split(',')
+        _ca=_settings['model_list'].split(',')
+        _new=[it for it in _de if it not in _ca]
+        _ca.extend(_new)
+        _settings['model_list']=",".join(_ca)
         default.update(_settings)
-        # 旧版本模型写法 distil-whisper- 改为 distil-
-        default['model_list'] = default['model_list'].replace('distil-whisper-', 'distil-')
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(default, ensure_ascii=False))
         return default
@@ -386,8 +401,6 @@ if defaulelang not in SUPPORT_LANG:
 
 # 代理地址
 proxy = settings.get('proxy', os.environ.get('HTTPS_PROXY',''))
-
-#############################################
 
 WHISPER_MODEL_LIST = re.split(r'[,，]', settings.get('model_list', ''))
 ChatTTS_voicelist = re.split(r'[,，]', str(settings.get('chattts_voice', '')))
@@ -515,7 +528,7 @@ def getset_params(obj=None):
         "localllm_top_p": "1.0",
         "zhipu_key": "",
         "zhipu_model": _zhipuai_model_list[0],
-        "zhipu_max_token": "4096",
+        "zhipu_max_token": "98304",
         "guiji_key": "",
         "guiji_model": _guiji_model_list[0],
         "guiji_max_token": "4096",

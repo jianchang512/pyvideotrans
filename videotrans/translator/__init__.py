@@ -33,7 +33,7 @@ from videotrans.translator._transapi import TransAPI
 
 GOOGLE_INDEX = 0
 MICROSOFT_INDEX = 1
-MyMemoryAPI_INDEX = 2
+M2M100_INDEX=2
 
 
 CHATGPT_INDEX = 3
@@ -61,7 +61,8 @@ ALI_INDEX = 18
 OTT_INDEX = 19
 LIBRE_INDEX = 20
 
-TRANSAPI_INDEX = 21
+MyMemoryAPI_INDEX = 21
+TRANSAPI_INDEX = 22
 
 
 
@@ -83,7 +84,8 @@ AI_TRANS_CHANNELS=[
 _ID_NAME_DICT = {
     GOOGLE_INDEX:tr('Google'),
     MICROSOFT_INDEX:tr('Microsoft'),
-    MyMemoryAPI_INDEX:tr('MyMemoryAPI'),
+    M2M100_INDEX:f'M2M100({tr("Local")})',
+    
     
     CHATGPT_INDEX:tr('OpenAI ChatGPT'),
     DEEPSEEK_INDEX:"DeepSeek",
@@ -107,7 +109,7 @@ _ID_NAME_DICT = {
 
     OTT_INDEX:tr('OTT'),
     LIBRE_INDEX:tr('LibreTranslate'),
-
+    MyMemoryAPI_INDEX:tr('MyMemoryAPI'),
     TRANSAPI_INDEX:tr('Customized API'),
 }
 TRANSLASTE_NAME_LIST=list(_ID_NAME_DICT.values())
@@ -176,7 +178,8 @@ LANG_CODE = {
         "zh-Hans",  # 微软翻译
         "Simplified Chinese",  # AI翻译
         "zh",  # 阿里
-        "Chinese" # qwen-mt
+        "Chinese", # qwen-mt
+        "zh" # m2m100
     ],
     "ur": [
         "ur",  # google通道
@@ -188,7 +191,8 @@ LANG_CODE = {
         "ur",  # 微软翻译
         "Urdu",  # AI翻译
         "ur",  # 阿里
-        "Urdu"
+        "Urdu",
+        "ur" # m2m100
     ],
     "yue": [
         "yue",  # google通道
@@ -200,7 +204,8 @@ LANG_CODE = {
         "yue",  # 微软翻译
         "Cantonese",  # AI翻译
         "yue",  # 阿里
-        "Cantonese"
+        "Cantonese",
+        "zh" # m2m100
     ],
 
     "fil": [
@@ -213,20 +218,10 @@ LANG_CODE = {
         "fil",  # 微软翻译
         "Filipino",  # AI翻译
         "fil",  # 阿里
-        "Filipino"
+        "Filipino",
+        "No"
     ],
-    "fi": [
-        "fi",  # google通道
-        "fin",  # 字幕嵌入语言
-        "fin",  # 百度通道
-        "FI",  # deepl deeplx通道
-        "No",  # 腾讯通道
-        "No",  # OTT通道
-        "fi",  # 微软翻译
-        "Finnish",  # AI翻译
-        "fi",  # 阿里
-        "Finnish" # qwen-mt 暂不支持翻译菲律宾语
-    ],
+    
 
     "zh-tw": [
         "zh-tw",
@@ -239,6 +234,7 @@ LANG_CODE = {
         "Traditional Chinese",
         "zh-tw",
         "Traditional Chinese",
+        "zh" # m2m100
     ],
     "en": [
         "en",
@@ -250,7 +246,8 @@ LANG_CODE = {
         "en",
         "English",
         "en",
-        "English"
+        "English",
+        "en" # m2m100
     ],
     "fr": [
         "fr",
@@ -262,7 +259,8 @@ LANG_CODE = {
         "fr",
         "French",
         "fr",
-        "French"
+        "French",
+        "fr" # m2m100
     ],
     "de": [
         "de",
@@ -274,7 +272,8 @@ LANG_CODE = {
         "de",
         "German",
         "de",
-        "German"
+        "German",
+        "de" # m2m100
     ],
     "ja": [
         "ja",
@@ -286,7 +285,8 @@ LANG_CODE = {
         "ja",
         "Japanese",
         "ja",
-        "Japanese"
+        "Japanese",
+        "ja" # m2m100
     ],
     "ko": [
         "ko",
@@ -298,7 +298,8 @@ LANG_CODE = {
         "ko",
         "Korean",
         "ko",
-        "Korean"
+        "Korean",
+        "ko" # m2m100
     ],
     "ru": [
         "ru",
@@ -310,7 +311,8 @@ LANG_CODE = {
         "ru",
         "Russian",
         "ru",
-        "Russian"
+        "Russian",
+        "ru" # m2m100
     ],
     "es": [
         "es",
@@ -322,7 +324,8 @@ LANG_CODE = {
         "es",
         "Spanish",
         "es",
-        "Spanish"
+        "Spanish",
+        "es" # m2m100
     ],
     "th": [
         "th",
@@ -334,7 +337,8 @@ LANG_CODE = {
         "th",
         "Thai",
         "th",
-        "Thai"
+        "Thai",
+        "th" # m2m100
     ],
     "it": [
         "it",
@@ -346,7 +350,8 @@ LANG_CODE = {
         "it",
         "Italian",
         "it",
-        "Italian"
+        "Italian",
+        "it" # m2m100
     ],
     "pt": [
         "pt",  # pt-PT
@@ -358,7 +363,8 @@ LANG_CODE = {
         "pt",
         "Portuguese",
         "pt",
-        "Portuguese"
+        "Portuguese",
+        "pt" # m2m100
     ],
     "vi": [
         "vi",
@@ -370,7 +376,8 @@ LANG_CODE = {
         "vi",
         "Vietnamese",
         "vi",
-        "Vietnamese"
+        "Vietnamese",
+        "vi" # m2m100
     ],
     "ar": [
         "ar",
@@ -382,7 +389,8 @@ LANG_CODE = {
         "ar",
         "Arabic",
         "ar",
-        "Arabic"
+        "Arabic",
+        "ar" # m2m100
     ],
     "tr": [
         "tr",
@@ -394,7 +402,8 @@ LANG_CODE = {
         "tr",
         "Turkish",
         "tr",
-        "Turkish"
+        "Turkish",
+        "tr" # m2m100
     ],
     "hi": [
         "hi",
@@ -406,7 +415,8 @@ LANG_CODE = {
         "hi",
         "Hindi",
         "hi",
-        "Hindi"
+        "Hindi",
+        "hi" # m2m100
     ],
     "hu": [
         "hu",
@@ -418,7 +428,8 @@ LANG_CODE = {
         "hu",
         "Hungarian",
         "hu",
-        "Hungarian"
+        "Hungarian",
+        "hu" # m2m100
     ],
     "uk": [
         "uk",
@@ -430,7 +441,8 @@ LANG_CODE = {
         "uk",  # 微软
         "Ukrainian",
         "No",
-        "Ukrainian"
+        "Ukrainian",
+        "uk" # m2m100
     ],
     "id": [
         "id",
@@ -442,7 +454,8 @@ LANG_CODE = {
         "id",
         "Indonesian",
         "id",
-        "Indonesian"
+        "Indonesian",
+        "id" # m2m100
     ],
     "ms": [
         "ms",
@@ -454,7 +467,8 @@ LANG_CODE = {
         "ms",
         "Malay",
         "ms",
-        "Malay"
+        "Malay",
+        "ms" # m2m100
     ],
     "kk": [
         "kk",
@@ -466,7 +480,8 @@ LANG_CODE = {
         "kk",
         "Kazakh",
         "kk",
-        "Kazakh"
+        "Kazakh",
+        "kk" # m2m100
     ],
     "cs": [
         "cs",
@@ -478,7 +493,8 @@ LANG_CODE = {
         "cs",
         "Czech",
         "cs",
-        "Czech"
+        "Czech",
+        "cs" # m2m100
     ],
     "pl": [
         "pl",
@@ -490,7 +506,8 @@ LANG_CODE = {
         "pl",
         "Polish",
         "pl",
-        "Polish"
+        "Polish",
+        "pl" # m2m100
     ],
     "nl": [
         "nl",  # google通道
@@ -502,7 +519,8 @@ LANG_CODE = {
         "nl",  # 微软翻译
         "Dutch",  # AI翻译
         "nl",
-        "Dutch"
+        "Dutch",
+        "nl" # m2m100
     ],
     "sv": [
         "sv",  # google通道
@@ -514,7 +532,8 @@ LANG_CODE = {
         "sv",  # 微软翻译
         "Swedish",  # AI翻译
         "sv",
-        "Swedish"
+        "Swedish",
+        "sv" # m2m100
     ],
     "he": [
         "he",  # google通道
@@ -526,7 +545,8 @@ LANG_CODE = {
         "he",  # 微软翻译
         "Hebrew",  # AI翻译
         "he",
-        "Hebrew"
+        "Hebrew",
+        "he" # m2m100
     ],
     "bn": [
         "bn",  # google通道
@@ -538,7 +558,8 @@ LANG_CODE = {
         "bn",  # 微软翻译
         "Bengali",  # AI翻译,
         "bn",
-        "Bengali"
+        "Bengali",
+        "bn" # m2m100
     ],
     "fa": [
         "fa",  # google通道
@@ -550,7 +571,8 @@ LANG_CODE = {
         "fa",  # 微软翻译
         "Persian",  # AI翻译
         "fa",  # 阿里
-        "Western Persian"
+        "Western Persian",
+        "fa" # m2m100
     ],
     "auto": [
         "auto",
@@ -563,6 +585,7 @@ LANG_CODE = {
         "auto",
         "auto",
         "auto",
+        "auto"
     ]
 }
 
@@ -640,6 +663,8 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return source_list[6] if source_list else show_source, target_list[6] if target_list else show_target
     if translate_type == ALI_INDEX:
         return source_list[8] if source_list else show_source, target_list[8] if target_list else show_target
+    if translate_type == M2M100_INDEX:
+        return source_list[10] if source_list else show_source, target_list[10] if target_list else show_target
     return show_source,show_target
 
 
@@ -800,6 +825,8 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         index = 6
     elif translate_type == ALI_INDEX:
         index = 8
+    elif translate_type == M2M100_INDEX:
+        index = 10
 
     if show_target:
         target_list=None
@@ -838,7 +865,7 @@ def get_subtitle_code(*, show_target=None):
 def _check_google():
     import requests
     try:
-        requests.head(f"https://translate.google.com")
+        requests.head(f"https://translate.google.com",timeout=10)
     except Exception as e:
         logs(f'检测google翻译失败{e}', level="except")
         return False
@@ -935,5 +962,8 @@ def run(*, translate_type=0,
         return Libre(**kwargs).run()
     if translate_type == ALI_INDEX:
         return Ali(**kwargs).run()
+    if translate_type == M2M100_INDEX:
+        from videotrans.translator._m2m100 import M2M100Trans 
+        return M2M100Trans(**kwargs).run()
 
     raise RuntimeError('未选中任何翻译渠道')

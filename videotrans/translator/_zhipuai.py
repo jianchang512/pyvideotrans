@@ -27,7 +27,7 @@ class ZhipuAI(BaseTrans):
         super().__post_init__()
 
         self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.model_name = config.params.get('zhipu_model', "glm-4-flash")
+        self.model_name = config.params.get('zhipu_model', "glm-4.5-flash")
         self.api_url = 'https://open.bigmodel.cn/api/paas/v4/'
 
         self.api_key = config.params.get('zhipu_key', '')
@@ -50,7 +50,7 @@ class ZhipuAI(BaseTrans):
         response = model.chat.completions.create(
             model=self.model_name,
             messages=message,
-            max_tokens=int(config.params.get('zhipu_max_tokens',4096))
+            max_tokens=int(config.params.get('zhipu_max_token',4095))
         )
 
         logs(f'[zhipuai]响应:{response=}')

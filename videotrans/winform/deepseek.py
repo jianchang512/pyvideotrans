@@ -19,8 +19,6 @@ def openwin():
                 tr("Please input Secret"))
         model = winobj.deepseek_model.currentText()
 
-        max_token= winobj.max_token.text().strip()
-        config.params["deepseek_max_token"] = max_token
 
         config.params["deepseek_key"] = key
 
@@ -34,8 +32,6 @@ def openwin():
     def save():
         deepseek_key = winobj.deepseek_key.text()
         model = winobj.deepseek_model.currentText()
-        max_token= winobj.max_token.text().strip()
-        config.params["deepseek_max_token"] = max_token
 
         config.params["deepseek_key"] = deepseek_key
         config.params["deepseek_model"] = model

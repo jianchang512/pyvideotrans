@@ -138,7 +138,7 @@ class Ui_MainWindow(object):
 
 
         self.rephrase = QtWidgets.QComboBox()
-        self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase"),tr("Automatic correction")])
+        self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase")])
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
         
        
@@ -858,8 +858,6 @@ class Ui_MainWindow(object):
         self.action_blog.setObjectName("action_blog")
         self.action_discord = QtGui.QAction(MainWindow)
         self.action_discord.setObjectName("action_discord")
-        self.action_models = QtGui.QAction(MainWindow)
-        self.action_models.setObjectName("action_models")
 
         self.action_gtrans = QtGui.QAction(MainWindow)
         self.action_gtrans.setObjectName("action_gtrans")
@@ -908,6 +906,8 @@ class Ui_MainWindow(object):
 
         self.action_clearcache = QtGui.QAction(MainWindow)
         self.action_clearcache.setObjectName("action_clearcache")
+        self.action_downmodels = QtGui.QAction(MainWindow)
+        self.action_downmodels.setObjectName("action_downmodels")
         self.action_set_proxy = QtGui.QAction(MainWindow)
         self.action_set_proxy.setObjectName("action_set_proxy")
 
@@ -1060,6 +1060,8 @@ class Ui_MainWindow(object):
         self.menu.addSeparator()
         self.menu.addAction(self.action_set_proxy)
         self.menu.addSeparator()
+        self.menu.addAction(self.action_downmodels)
+        self.menu.addSeparator()
         self.menu.addAction(self.action_clearcache)
         self.menu.addSeparator()
 
@@ -1075,8 +1077,6 @@ class Ui_MainWindow(object):
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_about)
 
-        self.menu_H.addSeparator()
-        self.menu_H.addAction(self.action_models)
 
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_gtrans)

@@ -13,7 +13,7 @@ License: GPL-V3
 
 """
 import atexit, sys, os, time
-VERSION = "v3.92"
+VERSION = "v3.93"
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -164,7 +164,6 @@ def initialize_full_app(start_window, app_instance):
 
     if main_window_created and start_window.main_window:
         start_window.main_window.show()
-        #QTimer.singleShot(1000, lambda: start_window.close())
 
 
 if __name__ == "__main__":

@@ -109,7 +109,7 @@ class Ui_recogn(object):
         recogn.setWindowTitle(tr("Speech Recognition Text"))
 
         self.rephrase = QtWidgets.QComboBox()
-        self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase"),tr("Automatic correction")])
+        self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase")])
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
 
         

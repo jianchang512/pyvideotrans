@@ -117,7 +117,7 @@ class GeminiRecogn(BaseRecogn):
             
             res_text=self._req(seg_group,api_key,prompt)
             logs(f'gemini返回结果:{res_text=}')
-            m = re.findall(r'<audio_text>(.*?)<\/audio_text>', res_text.strip(), re.I | re.S)
+            m = re.findall(r'<audio_text[^\>]*?>(.*?)<\/audio_text>', res_text.strip(), re.I | re.S)
             if len(m) < 1:
                 continue
             str_s = []

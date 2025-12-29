@@ -7,34 +7,6 @@ from pathlib import Path
 
 
 
-def show_download_tips(Win,tr_text=""):
-    from videotrans.configure import config
-    from PySide6.QtWidgets import QMessageBox,QApplication
-
-    QApplication.clipboard().setText('https://github.com/jianchang512/stt/releases/download/0.0/2noise-uvr-speaker-realtime.7z')
-    reply = QMessageBox.information(Win,
-                config.tr("The model is missing. Please download it!"),
-                config.tr("DownloadRealTimeModel",tr_text,f'{config.ROOT_DIR}/models/onnx')
-    )
-    
-def show_download_tts(Win):
-    from videotrans.configure import config
-    from PySide6.QtWidgets import QMessageBox,QApplication
-    url=f'https://github.com/jianchang512/stt/releases/download/0.0/vits-tts-models.7z'
-    QApplication.clipboard().setText(url)
-    reply = QMessageBox.information(Win,
-                config.tr("model is missing. Please download it")[:30],
-                config.tr("model is missing. Please download it", f'{config.ROOT_DIR}/models')
-    )
-def show_download_piper(Win):
-    from videotrans.configure import config
-    from PySide6.QtWidgets import QMessageBox,QApplication
-    url=f'https://github.com/jianchang512/stt/releases/download/0.0/piper-zh-en.7z'
-    QApplication.clipboard().setText(url)
-    reply = QMessageBox.information(Win,
-                config.tr("model is missing. Please download it")[:30],
-                config.tr("model is missing. Please download it", f'{config.ROOT_DIR}/models')
-    )    
 
 def show_popup(title, text):
     from PySide6.QtGui import QIcon

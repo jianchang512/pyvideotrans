@@ -241,13 +241,11 @@ class TransCreate(BaseTask):
                     self.cfg.vocal = None
                     self.cfg.is_separate = False
                     self.shoud_separate = False
-        # 需分离，并存在分离后的纯净人声
-        if self.cfg.is_separate and tools.vail_file(self.cfg.vocal) and not tools.vail_file(self.cfg.source_wav):
-            tools.conver_to_16k(self.cfg.vocal, self.cfg.source_wav)
         
         # 如果还不存在原音频 self.cfg.source_wav,可能原因上一步分离人声背景声失败
         if self.video_info.get('streams_audio',0)>0 and not tools.vail_file(self.cfg.source_wav):
             self._split_audio_byraw()
+            print(f'{self.cfg.source_wav=}')
         
 
         self._signal(text=tr('endfenliyinpin'))
@@ -390,13 +388,7 @@ class TransCreate(BaseTask):
             self._signal(text=tr('endtiquzimu'))
             return
 
-        if self.cfg.rephrase==2:
-            # 自动修正字幕
-            self._signal(text=tr('Automatic correction ing'))
-            shutil.copy2(self.cfg.source_sub,f'{self.cfg.source_sub}-{tr("noautofix")}.srt')
-            self.source_srt_list=tools.auto_fix_srtdict(self.source_srt_list,self.cfg.detect_language)
-            self._save_srt_target(self.source_srt_list, self.cfg.source_sub)
-        elif self.cfg.rephrase==1:
+        if self.cfg.rephrase==1:
             #LLM重新断句
             try:
                 from videotrans.translator._chatgpt import ChatGPT
@@ -656,10 +648,14 @@ class TransCreate(BaseTask):
             "-i",
             self.cfg.name,
             "-vn",
+            "-ac",
+            "1",
             "-ar",
             "16000",
             "-c:a",
             "pcm_s16le",
+            '-af', 
+            "volume=2.0,alimiter=limit=1.0",
             self.cfg.source_wav
         ]
         rs = tools.runffmpeg(cmd)
@@ -689,6 +685,21 @@ class TransCreate(BaseTask):
             run_sep(tmpfile,self.cfg.vocal,self.cfg.instrument,int(config.settings.get('noise_separate_nums',4)))
             if tools.vail_file(self.cfg.vocal):
                 shutil.copy2(self.cfg.vocal,f'{self.cfg.target_dir}/vocal.wav')
+                cmd = [
+                    "-y",
+                    "-i",
+                    f'{self.cfg.target_dir}/vocal.wav',
+                    "-ac",
+                    "1",
+                    "-ar",
+                    "16000",
+                    "-c:a",
+                    "pcm_s16le",
+                    '-af', 
+                    "volume=2.0,alimiter=limit=1.0",
+                    self.cfg.source_wav
+                ]
+                tools.runffmpeg(cmd)
             if tools.vail_file(self.cfg.instrument):
                 shutil.copy2(self.cfg.instrument,f'{self.cfg.target_dir}/instrument.wav')
 
@@ -950,30 +961,29 @@ class TransCreate(BaseTask):
             # 双语字幕，目标字幕在上，原字幕在下
             for i, it in enumerate(target_sub_list):
                 # 硬字幕换行，软字幕无需处理
-                tmp = tools.textwrap(it['text'].strip(), maxlen) if self.cfg.subtitle_type == 3 else  it['text'].strip()
+                tmp = tools.textwrap(it['text'].strip(), maxlen)
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp}"
                 if source_length > 0 and i < source_length:
-                    srt_string += "\n" + (
-                        tools.textwrap(source_sub_list[i]['text'], maxlen_source).strip() if
-                        self.cfg.subtitle_type == 3 else source_sub_list[i]['text'])
+                    srt_string += "\n" + tools.textwrap(source_sub_list[i]['text'], maxlen_source).strip()
                 srt_string += "\n\n"
             process_end_subtitle = f"{self.cfg.cache_folder}/shuang.srt"
             with Path(process_end_subtitle).open('w', encoding='utf-8') as f:
                 f.write(srt_string.strip())
             shutil.copy2(process_end_subtitle, self.cfg.target_dir + "/shuang.srt")
-        elif self.cfg.subtitle_type == 1:
-            # 单硬字幕，需处理字符数换行
+        #elif self.cfg.subtitle_type == 1:
+        else:
+            # 单字幕，需处理字符数换行
             srt_string = ""
             for i, it in enumerate(target_sub_list):
                 tmp = tools.textwrap(it['text'].strip(), maxlen)
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
             with Path(process_end_subtitle).open('w', encoding='utf-8') as f:
                 f.write(srt_string)
-        else:
-            # 单软字幕
-            basename = os.path.basename(self.cfg.target_sub)
-            process_end_subtitle = self.cfg.cache_folder + f"/{basename}"
-            shutil.copy2(self.cfg.target_sub, process_end_subtitle)
+        #else:
+        #    # 单软字幕
+        #    basename = os.path.basename(self.cfg.target_sub)
+        #    process_end_subtitle = self.cfg.cache_folder + f"/{basename}"
+        #    shutil.copy2(self.cfg.target_sub, process_end_subtitle)
 
         # 目标字幕语言
         subtitle_langcode = translator.get_subtitle_code(show_target=self.cfg.target_language)

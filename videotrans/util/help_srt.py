@@ -6,7 +6,6 @@ from collections import deque
 from datetime import timedelta
 from videotrans.configure.config import logs
 
-# -*- coding: utf-8 -*-
 """
 srt_autofix_module.py
 Subtitle auto-fix module — single-file, entry signature preserved.
@@ -22,16 +21,6 @@ import os
 
 
 
-# -----------------------------------------------------
-# Utilities
-# -----------------------------------------------------
-def ms_to_srt_time(ms: int) -> str:
-    s, ms = divmod(int(ms), 1000)
-    m, s = divmod(s, 60)
-    h, m = divmod(m, 60)
-    return f"{h:02}:{m:02}:{s:02},{ms:03}"
-
-
 CJK_RE = re.compile(r'[\u4e00-\u9fff]')
 
 
@@ -45,21 +34,15 @@ def weighted_len(text: str, cjk_weight: float = 1.25) -> float:
     return cjk_count * cjk_weight + other_count
 
 
-def clean_text_for_srtdict(text: str, is_cjk: bool) -> str:
+def clean_text_for_srtdict(text: str) -> str:
     if not text:
         return ""
     text = re.sub(r'[^\w\s,.?!;:"\'%，。！？；：“”‘’、\-\u4e00-\u9fff]', '', text,flags=re.I | re.S)
 
-    if is_cjk:
-        text = re.sub(r'^[嗯呃哎噢哦呢啊]+[，,]*', '', text,flags=re.I | re.S)
-        text = re.sub(r'[嗯呃哎噢哦呢啊]+', '', text,flags=re.I | re.S)
-        text = re.sub(r'\s+([，；。！？])', r'\1', text,flags=re.I | re.S)
-    else:
-        text = re.sub(r'\b(um|uh|hmm|er|ah)\b', '', text, flags=re.I)
-        text = re.sub(r'\s+([,;:.!?])', r'\1', text,flags=re.I | re.S)
-        text = re.sub(r'([,;:.!?])(?=[A-Za-z0-9])', r'\1 ', text,flags=re.I | re.S)
-        text = re.sub(r'\s+', ' ', text,flags=re.I | re.S)
-
+    text = re.sub(r'\s+([，；。！？])', r'\1', text,flags=re.I | re.S)
+    text = re.sub(r'\s+([,;:.!?])', r'\1', text,flags=re.I | re.S)
+    text = re.sub(r'([,;:.!?])(?=[A-Za-z0-9])', r'\1 ', text,flags=re.I | re.S)
+    text = re.sub(r'\s+', ' ', text,flags=re.I | re.S)
     text = text.strip()
     return text
 
@@ -83,7 +66,25 @@ def split_by_punctuation_levels(text: str) -> List[str]:
 
 
 def split_chinese_connectors(text: str) -> List[str]:
-    connectors = ["然后", "但是", "不过", "然而", "因为", "所以", "比如", "例如", "如果", "而且"]
+    connectors = [
+        "然后", "但是", "不过", "然而", "因为", "所以", "比如", "例如", "如果", "而且",
+        # 转折
+        "可是", "只是", "尽管", "虽然", "即便", "反之", "这是","那么",
+        # 因果/目的
+        "因此", "因而", "由于", "既然", "从而", "于是", "为了", "由此可见",
+        # 递进/并列
+        "此外", "另外", "并且", "甚至", "况且", "再加上", "与此同时",
+        # 时间/顺序
+        "首先", "其次", "最后", "接着", "随后", "目前", "刚才", "后来", "起初", "当时","最近",
+        # 假设/条件
+        "只要", "只有", "除非",  "假如", "万一", "倘若",
+        # 总结/解释
+        "总之", "总而言之", "综上所述", "也就是说", "换句话说", "其实", "事实上", "显然",
+        # 语气/副词
+        "难道", "莫非", "反正", "也许", "居然", "竟然", "果然", "原来", "幸好",
+        # 代词
+        "大家", "我们", "他们"
+    ]
     pattern = "(" + "|".join(map(re.escape, connectors)) + ")"
     parts = re.split(pattern, text)
     out = []
@@ -249,23 +250,24 @@ def reorder_and_format(final_list: List[Dict]) -> List[Dict]:
         s = int(item["start_time"])
         e = int(item["end_time"])
         t = item.get("text", "").strip()
+        if not t:
+            continue
 
         if prev_end is not None and s < prev_end:
             s = prev_end
         if e <= s:
-            e = s + 20
+            e = s
 
         out.append({
             "line": len(out) + 1,
             "start_time": s,
             "end_time": e,
             "text": t,
-            "startraw": ms_to_srt_time(s),
-            "endraw": ms_to_srt_time(e),
-            "time": f"{ms_to_srt_time(s)} --> {ms_to_srt_time(e)}"
+            "startraw": ms_to_time_string(ms=s),
+            "endraw": ms_to_time_string(ms=e),
+            "time": f"{ms_to_time_string(ms=s)} --> {ms_to_time_string(ms=e)}"
         })
         prev_end = e
-
     return out
 
 
@@ -292,7 +294,7 @@ def auto_fix_srtdict(
         if et <= st:
             et = st + 100
 
-        text = clean_text_for_srtdict(x.get("text", "") or "", is_cjk_lang)
+        text = clean_text_for_srtdict(x.get("text", "") or "")
         if not text:
             continue
 
@@ -461,7 +463,7 @@ def process_text_to_srt_str(input_text: str):
         return input_text
 
     # 将文本按换行符切割成列表
-    text_lines = [line.strip() for line in input_text.replace("\r", "").splitlines() if line.strip()]
+    text_lines = [line.strip() for line in input_text.replace("\n", "").splitlines() if line.strip()]
 
     # 分割大于50个字符的行
     text_str_list = []
@@ -496,7 +498,7 @@ def is_srt_string(input_text):
         return False
 
     # 将文本按换行符切割成列表
-    text_lines = input_text.replace("\r", "").splitlines()
+    text_lines = input_text.replace("\n", "").splitlines()
     if len(text_lines) < 3:
         return False
 
@@ -515,15 +517,9 @@ def is_srt_string(input_text):
 
 # 删除翻译结果的特殊字符
 def cleartext(text: str, remove_start_end=True):
-    res_text = text.replace('&#39;', "'").replace('&quot;', '"').replace("\u200b", " ").strip()
+    res_text = text.replace('&#39;', "").replace('&quot;', '').replace("\u200b", " ").strip()
     # 删掉连续的多个标点符号，只保留一个
     res_text = re.sub(r'([，。！？,.?]\s?){2,}', ',', res_text,flags=re.I | re.S)
-    if not res_text or not remove_start_end:
-        return res_text
-    if res_text[-1] in ['，', ',']:
-        res_text = res_text[:-1]
-    if res_text and res_text[0] in ['，', ',']:
-        res_text = res_text[1:]
     return res_text
 
 
@@ -750,7 +746,15 @@ def set_ass_font(srtfile: str) -> str:
     from videotrans.configure import config
     if not os.path.exists(srtfile) or os.path.getsize(srtfile) == 0:
         return os.path.basename(srtfile)
-    help_ffmpeg.runffmpeg(['-y', '-i', srtfile, f'{srtfile}.ass'])
+
+    # 将 text 中的\n替换为\N
+    srt_ass_str=""    
+    for it in get_subtitle_from_srt(srtfile,is_file=True):
+        t=re.sub(r'\n|\\n',r'\\N',it['text'])
+        srt_ass_str+=f'{it["line"]}\n{it["startraw"]} --> {it["endraw"]}\n{t}\n\n' 
+    with open(srtfile+".srt",'w',encoding='utf-8') as f:
+        f.write(srt_ass_str.strip())
+    help_ffmpeg.runffmpeg(['-y', '-i', srtfile+".srt", f'{srtfile}.ass'])
     ass_file_path = f'{srtfile}.ass'
 
     # 1. 验证 ASS 文件是否存在
@@ -830,11 +834,6 @@ def set_ass_font(srtfile: str) -> str:
 
     try:
         new_content, count = re.subn(pattern, replacer, content, flags=re.MULTILINE)
-        if count == 0:
-            # 如果没找到 [V4+ Styles]，追加
-            logs(f"[export_style] 警告：ASS 文件中未找到 [V4+ Styles]，将追加样式")
-            header = "[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
-            new_content = content.rstrip() + "\n\n" + header + new_style_line
     except Exception as e:
         logs(f"[export_style] 错误：正则替换失败: {e}")
         return ass_file_path
@@ -873,43 +872,51 @@ def textwrap(text, maxlen=15):
     ]
 
     # 1. 移除所有换行符
-    text = text.replace('\n', ' ').replace('\r', ' ').strip()
+    text_string = text.strip() #replace('\n', ' ').replace('\r', ' ').strip()
 
     # 0. 如果文本长度小于等于 maxlen，直接返回
-    if len(text) <= maxlen:
-        return text
+    if len(text_string) <= maxlen:
+        return text_string
 
     groups = []
-    cursor = 0
-    text_len = len(text)
+    # 保留原始换行
+    for text in re.split(r'\n|\\n',text_string):
+        text=text.strip()
+        if not text:
+            continue
+        cursor = 0
+        text_len = len(text)
+        if text_len<=maxlen:
+            groups.append(text)
+            continue
 
-    while cursor < text_len:
-        # 如果剩余文本不足 maxlen，则全部作为最后一组
-        if text_len - cursor <= maxlen:
-            groups.append(text[cursor:])
-            break
-
-        # 2. 智能分组逻辑
-        break_point = -1
-
-        # 确定查找标点的范围，从 maxlen 位置开始，向后最多看4个字符
-        # 例如 maxlen=15, cursor=0, 则查找索引为 15, 16, 17 的字符
-        search_range = range(cursor + maxlen, min(cursor + maxlen + 2, text_len))
-
-        found_flag = False
-        for i in search_range:
-            if text[i] in flag:
-                # 找到标点，断点设置为标点之后
-                break_point = i + 1
-                found_flag = True
+        while cursor < text_len:
+            # 如果剩余文本不足 maxlen，则全部作为最后一组
+            if text_len - cursor <= maxlen:
+                groups.append(text[cursor:])
                 break
 
-        # 如果在查找范围内没有找到标点，则在 maxlen 处硬分割
-        if not found_flag:
-            break_point = cursor + maxlen
+            # 2. 智能分组逻辑
+            break_point = -1
 
-        groups.append(text[cursor:break_point])
-        cursor = break_point
+            # 确定查找标点的范围，从 maxlen 位置开始，向后最多看4个字符
+            # 例如 maxlen=15, cursor=0, 则查找索引为 15, 16, 17 的字符
+            search_range = range(max(cursor + maxlen-3,0), min(cursor + maxlen + 2, text_len))
+
+            found_flag = False
+            for i in search_range:
+                if text[i] in flag:
+                    # 找到标点，断点设置为标点之后
+                    break_point = i + 1
+                    found_flag = True
+                    break
+
+            # 如果在查找范围内没有找到标点，则在 maxlen 处硬分割
+            if not found_flag:
+                break_point = cursor + maxlen
+
+            groups.append(text[cursor:break_point])
+            cursor = break_point
 
     # 3. 如果分组大于1，并且最后一组长度小于3，则合并
     if len(groups) > 1 and len(groups[-1]) < 3:

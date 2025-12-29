@@ -38,6 +38,8 @@ class ChatGPT(BaseTrans):
     def llm_segment(self, srt_list, ai_type='openai'):
 
         prompts_template = Path(config.ROOT_DIR + '/videotrans/prompts/recharge/recharge-llm.txt').read_text(encoding='utf-8')
+        max_speech_s=config.settings.get('max_speech_duration_s',6)
+        prompts_template=prompts_template.replace('{max_speech_s}',max_speech_s)
 
         chunk_size = int(config.settings.get('llm_chunk_size', 20))
         api_key = config.params.get('chatgpt_key','') if ai_type == 'openai' else config.params.get('deepseek_key','')

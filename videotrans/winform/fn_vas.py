@@ -121,7 +121,7 @@ def openwin():
                         # 加速音频
                         tools.precise_speed_up_audio(file_path=self.audio, out=tmp_audio, target_duration_ms=self.video_time)
                         self.audio = tmp_audio
-                    print(f'未混合前但加速 或截断后的音频 {self.audio=}')
+
                     # 需要保留原视频中声音，则需要混合 self.audio 和视频声音
                     if self.saveraw and  self.video_info['streams_audio']:
                         tmp_mp4a = config.TEMP_DIR + f"/{time.time()}-fromvideo.wav"
@@ -218,12 +218,29 @@ def openwin():
                     '-i',
                     self.video,
                 ]
+                
+                # 硬字幕
+                sublist = tools.get_subtitle_from_srt(self.srt, is_file=True)
+                srt_string = ''
+                for i, it in enumerate(sublist):
+                    if self.remain_hr:
+                        txt_list = []
+                        for txt_line in it['text'].strip().split("\n"):
+                            txt_list.append(tools.textwrap(txt_line.strip(), self.maxlen))
+                        tmp = "\n".join(txt_list)
+                    else:
+                        tmp = tools.textwrap(it['text'].strip(), self.maxlen)
+                    srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
+                tmpsrt = config.TEMP_DIR + f"/vas-{time.time()}.srt"
+                with Path(tmpsrt).open('w', encoding='utf-8') as f:
+                    f.write(srt_string.strip())
+                os.chdir(config.TEMP_DIR)
                 if self.is_soft and self.language:
                     # 软字幕
                     subtitle_language = get_subtitle_code( show_target=self.language)
                     cmd+=[
                         '-i',
-                        os.path.basename(self.srt),
+                        tmpsrt,
                         '-c:v',
                         'copy',
                         "-c:s",
@@ -233,23 +250,8 @@ def openwin():
                         self.file
                     ]
                 else:
-                    # 硬字幕
-                    sublist = tools.get_subtitle_from_srt(self.srt, is_file=True)
-                    srt_string = ''
-                    for i, it in enumerate(sublist):
-                        if self.remain_hr:
-                            txt_list = []
-                            for txt_line in it['text'].strip().split("\n"):
-                                txt_list.append(tools.textwrap(txt_line.strip(), self.maxlen))
-                            tmp = "\n".join(txt_list)
-                        else:
-                            tmp = tools.textwrap(it['text'].strip(), self.maxlen)
-                        srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
-                    tmpsrt = config.TEMP_DIR + f"/vas-{time.time()}.srt"
-                    with Path(tmpsrt).open('w', encoding='utf-8') as f:
-                        f.write(srt_string.strip())
                     assfile=tools.set_ass_font(tmpsrt)
-                    os.chdir(config.TEMP_DIR)
+                    
                     cmd += [
                         '-c:v',
                         f'libx{config.settings.get("video_codec", 264)}',

@@ -51,7 +51,7 @@ class Qwen3ASRRecogn(BaseRecogn):
                 asr_options={
                     "language": self.detect_language[:2].lower(), # 可选，若已知音频的语种，可通过该参数指定待识别语种，以提升识别准确率
                     "enable_lid": True,
-                    "enable_itn": False
+                    "enable_itn": True
                 }
             )
             if not hasattr(response, 'output') or not hasattr(response.output, 'choices'):

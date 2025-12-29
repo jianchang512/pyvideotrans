@@ -1,5 +1,5 @@
 import multiprocessing
-import time
+import time,json
 from dataclasses import dataclass, field
 from pathlib import Path
 from videotrans.configure import config
@@ -11,7 +11,7 @@ from videotrans.task.simple_runnable_qt import run_in_threadpool
 import os
 from videotrans.process._iscache import _MODELS
 import glob
-
+import threading
 from videotrans.util import tools
 
 
@@ -99,12 +99,12 @@ class FasterAll(BaseRecogn):
                     self._signal(text=data['text'], type=data['type'])
             except Exception:
                 pass
-            time.sleep(0.1)
+            time.sleep(1)
 
 
 
     def _exec(self):
-        if self.model_name not in _MODELS and "faster" not in self.model_name:
+        if self.model_name not in _MODELS:
             return self._create_from_huggingface(self.model_name, self.audio_file, self.detect_language)
         # 修复CUDA fork问题：强制使用spawn方法
         multiprocessing.set_start_method('spawn', force=True)
@@ -127,13 +127,16 @@ class FasterAll(BaseRecogn):
         result_queue = ctx.Queue()
         try:
             self.has_done = False
-            run_in_threadpool(self._get_signal_from_process,result_queue)
+            
             self.error = ''
             from videotrans.process._overall import run
             with ctx.Manager() as manager:
                 raws = manager.list([])
                 err = manager.dict({"msg": ""})
                 detect = manager.dict({"langcode": self.detect_language})
+                # 使用ten-vad切割
+                speech_timestamps=self.get_speech_timestamp(self.audio_file)
+                
                 process = ctx.Process(target=run, args=(raws, err, detect), kwargs={
                     "model_name": self.model_name,
                     "is_cuda": self.is_cuda,
@@ -145,14 +148,16 @@ class FasterAll(BaseRecogn):
                     "defaulelang":config.defaulelang,
                     "settings":config.settings,
                     "split_type":self.split_type,
-                    "whisper_type":self.recogn_type
+                    "whisper_type":self.recogn_type,
+                    "speech_timestamps":speech_timestamps
                 })
+                # 等待进程执行完毕
                 process.start()
+                threading.Thread(target=self._get_signal_from_process,args=(result_queue,)).start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
                 logs(f'开始创建 pid:{self.pidfile=}')
                 with open(self.pidfile, 'w', encoding='utf-8') as f:
                     f.write(f'{process.pid}')
-                # 等待进程执行完毕
                 process.join()
                 self._signal(text="STT end, hold on...")
                 try:
@@ -168,7 +173,7 @@ class FasterAll(BaseRecogn):
                     if self.detect_language == 'auto':
                         logs(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language = detect.get('langcode','auto')
-
+        
                     return self.get_srtlist(raws)
         except Exception as e:
             logs(f'{e}', level="except")
@@ -185,28 +190,34 @@ class FasterAll(BaseRecogn):
         if not self.is_cuda:
             raise RuntimeError(err)
         
-        raise RuntimeError(err+"\n"+tr('Please also check whether CUDA12.8 and cudnn9 are installed correctly.'))
+        raise RuntimeError(err+' '+tr('Please also check whether CUDA12.8 and cudnn9 are installed correctly.'))
             
     def get_srtlist(self, raws):
+        
         if self.jianfan:
             import zhconv
         srt_raws = []
         raws=list(raws)
+        Path("test-0.json").write_text(json.dumps(raws,indent=4,ensure_ascii=False),encoding='utf-8')
         raws_len=len(raws)
-        for idx,i in enumerate(raws):
+        for idx,it in enumerate(raws):
+            if not it['text'].strip():
+                continue
             if self.jianfan:
                 self._signal(text=f"简繁转换中 [{idx+1}/{raws_len}]...")
-            if len(i['words']) < 1:
-                continue
+            s,e=int(it['start']*1000),int(it['end']*1000)
+            text=zhconv.convert(it['text'], 'zh-hans') if self.jianfan else it['text']
+            
             tmp = {
-                'text': zhconv.convert(i['text'], 'zh-hans') if self.jianfan else i[
-                    'text'],
-                'start_time': int(i['words'][0]['start'] * 1000),
-                'end_time': int(i['words'][-1]['end'] * 1000)
+                'text': text,
+                'start_time': s,
+                'end_time': e
             }
+
             tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
             tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
             srt_raws.append(tmp)
-
+        
         return srt_raws
+        

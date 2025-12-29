@@ -12,13 +12,13 @@ from pathlib import Path
 
 
 def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
-        q: multiprocessing.Queue,proxy=None,TEMP_DIR=None,settings=None,defaulelang='zh',split_type=0,whisper_type=0):
+        q: multiprocessing.Queue,proxy=None,TEMP_DIR=None,settings=None,defaulelang='zh',split_type=0,whisper_type=0,speech_timestamps=None):
     os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
     os.environ["OMP_NUM_THREADS"] = "1"
     import torch
     from videotrans.configure import config
     from videotrans.process._iscache import _MODELS,is_model_cached,check_huggingface_connect
-    from videotrans.util.tools import cleartext
+    from videotrans.util.tools import clean_text_for_srtdict
     os.chdir(config.ROOT_DIR)
     down_root = config.ROOT_DIR + "/models"
     model=None
@@ -32,6 +32,7 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
             pass
     
     def _get_modeldir_download(model_name):   
+        print(f'下载 {model_name=}')
         write_log({"text": "Checking if the model exists", "type": "logs"})
         local_dir=f'{down_root}/models--'
         if model_name in _MODELS:
@@ -75,12 +76,12 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
                 repo_id=repo_id,
                 local_dir=local_dir,
                 local_dir_use_symlinks=False,
-                ignore_patterns=["*.msgpack", "*.h5", ".git*"]
+                ignore_patterns=["*.msgpack", "*.h5", ".git*","*.md"]
             )
             write_log({"text": "The model downloaded ", "type": "logs"})
         except Exception as e:
             msg=f'下载模型失败，你可以打开以下网址，将 .bin/.txt/.json 文件下载到\n {local_dir} 文件夹内\n' if defaulelang=='zh' else f'The model download failed. You can try opening the following URL and downloading the .bin/.txt/.json files to the {local_dir} folder.'
-            raise RuntimeError(f'{msg}\n[https://huggingface.co/{repo_id}/tree/main]\n\n')
+            raise RuntimeError(f'{msg}\n[https://huggingface.co/{repo_id}/tree/main]\n{e}')
         else:
             junk_paths = [
                 ".cache",
@@ -104,39 +105,73 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
             return local_dir
 
     
-    
+    last_end_time=speech_timestamps[-1][1]/1000.0
+    print(f's={time.time()}')
+    print(float(settings.get('no_speech_threshold',0.5)))
     if whisper_type==1:
         import whisper
         if not Path(f'{down_root}/{model_name}.pt').exists():
             msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
             write_log({"text": msg, "type": "logs"})
         try:
+            write_log({"text": f"load {model_name}", "type": "logs"})
             model = whisper.load_model(
                 model_name,
                 device="cuda" if is_cuda else "cpu",
                 download_root=down_root
             )
-            result = model.transcribe(
-                    audio_file,
-                    language=detect_language.split('-')[0] if detect_language != 'auto' else None,
-                    word_timestamps=True,
-                    initial_prompt=prompt if prompt else None,
-                    condition_on_previous_text=config.settings.get('condition_on_previous_text',False)
-                )
-            nums = 0
-
-            for segment in result['segments']:
-                nums += 1
-                if not Path(TEMP_DIR + f'/{os.getpid()}.lock').exists():
-                    return
-                new_seg = []
-                for idx, word in enumerate(segment['words']):
-                    new_seg.append({"start": word['start'], "end": word['end'], "word": word['word']})
-                text = cleartext(segment['text'], remove_start_end=False)
-                raws.append({"words": new_seg, "text": text})
-
-                write_log({"text": f'{text}\n', "type": "subtitle"})
-                write_log({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
+            write_log({"text": f"Loaded {model_name}", "type": "logs"})
+            speech_timestamps_flat=[]
+            
+            if split_type==1 or settings.get('faster_batch'):
+                print(f'openai-whisper 批量')
+                from pydub import AudioSegment
+                audio=AudioSegment.from_file(audio_file)
+                time_int=int(time.time()*1000)
+                for i,it in enumerate(speech_timestamps):
+                    filename=f'{config.ROOT_DIR}/tmp/{i}-{it[0]}-{it[1]}-{time_int}.wav'
+                    audio[it[0]:it[1]].export(filename,format="wav")
+                    result = model.transcribe(
+                        filename,
+                        language=detect_language.split('-')[0] if detect_language != 'auto' else None,
+                        initial_prompt=prompt if prompt else None,
+                        no_speech_threshold=float(settings.get('no_speech_threshold',0.5)),
+                        condition_on_previous_text=config.settings.get('condition_on_previous_text',False)
+                    )
+                    text=''
+                    for segment in result['segments']:
+                        text+=segment['text']
+                    text=clean_text_for_srtdict(text)
+                    if text:
+                        raws.append({"text": text,"start":it[0]/1000.0,'end':it[1]/1000.0})
+                        write_log({"text": f'{text}\n', "type": "subtitle"})
+                        write_log({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
+            else:
+                print(f'openai-whisper 整体识别')
+                for it in speech_timestamps:
+                    speech_timestamps_flat.extend([it[0]/1000.0,it[1]/1000.0])
+                
+                result = model.transcribe(
+                        audio_file,
+                        no_speech_threshold=float(settings.get('no_speech_threshold',0.5)),
+                        language=detect_language.split('-')[0] if detect_language != 'auto' else None,
+                        clip_timestamps=speech_timestamps_flat,
+                        initial_prompt=prompt if prompt else None,
+                        condition_on_previous_text=config.settings.get('condition_on_previous_text',False)
+                    )
+                for segment in result['segments']:
+                    #print(f'{time.time()=}')
+                    if not Path(TEMP_DIR + f'/{os.getpid()}.lock').exists():
+                        return
+                    # 时间戳大于总时长，出错跳过
+                    if segment['end']>last_end_time:
+                        continue
+                    text = clean_text_for_srtdict(segment['text'])
+                    if not text.strip():
+                        continue
+                    raws.append({"text": text,"start":segment['start'],'end':segment['end']})
+                    write_log({"text": f'{text}\n', "type": "subtitle"})
+                    write_log({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
         except Exception as e:
             import traceback
             err['msg'] = traceback.format_exc()
@@ -182,66 +217,72 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
 
             write_log({"text": model_name + " Loaded", "type": "logs"})
             
+            
             # 批量或均等分割
             if split_type==1 or settings.get('faster_batch'):
-                chunk_length=int(float(settings.get('max_speech_duration_s',6)))
-                chunk_length=max(chunk_length,1)
-                batched_model = BatchedInferencePipeline(model=model)
-                segments, info=batched_model.transcribe(audio_file,
-                    batch_size=16,
-                    beam_size=int(settings.get('beam_size',5)),
-                    best_of=int(settings.get('best_of',5)),
-                    condition_on_previous_text=bool(settings.get('condition_on_previous_text',False)),
-                    vad_filter=bool(settings.get('vad',False)),
-                    vad_parameters=dict(
-                        threshold=float(settings.get('threshold',0.45)),
-                        min_speech_duration_ms=int(settings.get('min_speech_duration_ms',0)),
-                        min_silence_duration_ms=int(settings.get('min_silence_duration_ms',140)),
-                        speech_pad_ms=int(settings.get('speech_pad_ms',0))
-                    ),
-                    chunk_length=chunk_length,
-                    word_timestamps=True,
-                    language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
-                    initial_prompt=prompt if prompt else None
-                )
+                print(f'faster-whisper 批量')
+                from pydub import AudioSegment
+                audio=AudioSegment.from_file(audio_file)
+                time_int=int(time.time()*1000)
+                for i,it in enumerate(speech_timestamps):
+                    filename=f'{config.ROOT_DIR}/tmp/{i}-{it[0]}-{it[1]}-{time_int}.wav'
+                    audio[it[0]:it[1]].export(filename,format="wav")
+                    segments, info = model.transcribe(
+                        filename,
+                        beam_size=int(settings.get('beam_size',5)),
+                        best_of=int(settings.get('best_of',5)),
+                        no_speech_threshold=float(settings.get('no_speech_threshold',0.5)),
+                        condition_on_previous_text=bool(settings.get('condition_on_previous_text',False)),
+                        word_timestamps=False,
+                        #clip_timestamps=speech_timestamps_flat,
+                        language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
+                        initial_prompt=prompt if prompt else None
+                    )
+                    if not Path(TEMP_DIR + f'/{os.getpid()}.lock').exists():
+                        return
+                    text=''
+                    for segment in segments:
+                        text+=segment.text
+                    text = clean_text_for_srtdict(text)
+            
+                    raws.append({"text": text,"start":it[0]/1000.0,'end':it[1]/1000.0})
+                    write_log({"text": f'{text}\n', "type": "subtitle"})
+                    write_log({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
             else:
+                print(f'faster-whisper 整体识别')
+                speech_timestamps_flat=[]
+                for it in speech_timestamps:
+                    speech_timestamps_flat.extend([it[0]/1000.0,it[1]/1000.0])
                 segments, info = model.transcribe(
                     audio_file,
                     beam_size=int(settings.get('beam_size',5)),
                     best_of=int(settings.get('best_of',5)),
+                    no_speech_threshold=float(settings.get('no_speech_threshold',0.5)),
                     condition_on_previous_text=bool(settings.get('condition_on_previous_text',False)),
-                    vad_filter=bool(settings.get('vad',False)),
-                    vad_parameters=dict(
-                        threshold=float(settings.get('threshold',0.45)),
-                        min_speech_duration_ms=int(settings.get('min_speech_duration_ms',0)),
-                        max_speech_duration_s=float(settings.get('max_speech_duration_s',5)),
-                        min_silence_duration_ms=int(settings.get('min_silence_duration_ms',140)),
-                        speech_pad_ms=int(settings.get('speech_pad_ms',0))
-                    ),
-                    word_timestamps=True,
+                    word_timestamps=False,
+                    clip_timestamps=speech_timestamps_flat,
                     language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
                     initial_prompt=prompt if prompt else None
                 )
-            if detect_language == 'auto' and info.language != detect['langcode']:
-                detect['langcode'] = 'zh-cn' if info.language[:2] == 'zh' else info.language
-            nums = 0
+                #if detect_language == 'auto' and info.language != detect['langcode']:
+                    #detect['langcode'] = 'zh-cn' if info.language[:2] == 'zh' else info.language
 
-            for segment in segments:
-                nums += 1
-                if not Path(TEMP_DIR + f'/{os.getpid()}.lock').exists():
-                    return
-                new_seg = []
-                for idx, word in enumerate(segment.words):
-                    new_seg.append({"start": word.start, "end": word.end, "word": word.word})
-                text = cleartext(segment.text, remove_start_end=False)
-                raws.append({"words": new_seg, "text": text})
-
-                write_log({"text": f'{text}\n', "type": "subtitle"})
-                write_log({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
+                for segment in segments:
+                    if not Path(TEMP_DIR + f'/{os.getpid()}.lock').exists():
+                        return
+                    if segment.end>last_end_time:
+                        continue
+                    text = clean_text_for_srtdict(segment.text)
+                    if not text.strip():
+                        continue
+                    s,e=segment.start,segment.end
+                    raws.append({"text": text,"start":s,'end':e})
+                    write_log({"text": f'{text}\n', "type": "subtitle"})
+                    write_log({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
         except BaseException as e:
             import traceback
             err['msg'] = traceback.format_exc()
-
+    print(f'e={time.time()}')
     try:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()

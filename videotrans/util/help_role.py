@@ -235,6 +235,12 @@ def get_qwen3tts_rolelist():
     return voices
 
 
+def get_glmtts_rolelist():
+    voices=json.loads(Path(config.ROOT_DIR+"/videotrans/voicejson/glmtts.json").read_text(encoding='utf-8'))
+    voices={"No":"No"}|voices
+    return voices
+
+
 
 def get_kokoro_rolelist():
     voice_list = {

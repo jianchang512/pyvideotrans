@@ -96,6 +96,22 @@ def openwin():
         nonlocal SOURCE_DIR
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR if not SOURCE_DIR else SOURCE_DIR))
 
+    
+    def show_downloadmodel():
+        from videotrans.component.downmodels import MainWindow as downwin
+        w = config.child_forms.get('downmodels')
+        if w:
+            w.show()
+            w.activateWindow()
+            w.auto_start('m2m100_12b')
+            return
+        
+        w=downwin()
+        config.child_forms['downmodels']=w
+        w.show()
+        w.auto_start('m2m100_12b')
+    
+
     def fanyi_start_fun():
         nonlocal SOURCE_DIR
 
@@ -109,6 +125,10 @@ def openwin():
                                                                      translate_type=translate_type)
         if target_language == '-':
             return tools.show_error(tr("fanyimoshi1"))
+        
+        if translate_type == translator.M2M100_INDEX and not Path(f'{config.ROOT_DIR}/models/m2m100_12b/model.bin').exists():
+            show_downloadmodel()
+            return
         proxy = winobj.fanyi_proxy.text()
 
         if proxy:

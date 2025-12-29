@@ -45,18 +45,6 @@ class Ui_deepseekform(object):
         h2.addWidget(self.deepseek_key)
         v1.addLayout(h2)
 
-        h_token = QtWidgets.QHBoxLayout()
-
-        label_token = QtWidgets.QLabel()
-        label_token.setObjectName("label_token")
-        label_token.setText(tr("Maximum output token"))
-        self.max_token = QtWidgets.QLineEdit()
-        self.max_token.setMinimumSize(QtCore.QSize(0, 35))
-        self.max_token.setObjectName("max_token")
-
-        h_token.addWidget(label_token)
-        h_token.addWidget(self.max_token)
-        v1.addLayout(h_token)
 
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
@@ -126,7 +114,7 @@ class Ui_deepseekform(object):
 
         self.deepseek_key.setText(config.params.get("deepseek_key",''))
         self.deepseek_model.setCurrentText(config.params.get("deepseek_model",''))
-        self.max_token.setText(config.params.get("deepseek_max_token",''))
+
     def retranslateUi(self, deepseekform):
         deepseekform.setWindowTitle("DeepSeek AI")
         self.label_2.setText(tr("SK"))

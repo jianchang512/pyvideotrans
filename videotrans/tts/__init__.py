@@ -23,17 +23,21 @@ from videotrans.tts._ttsapi import TTSAPI
 from videotrans.tts._doubao import DoubaoTTS
 from videotrans.tts._doubao2 import Doubao2TTS
 from videotrans.tts._f5tts import F5TTS
+from videotrans.tts._glmtts import GLMTTS
 
 EDGE_TTS = 0
 VITSCNEN_TTS = 1
 PIPER_TTS = 2
+
 OPENAI_TTS = 3
 QWEN_TTS = 4
 DOUBAO2_TTS=5
 ELEVENLABS_TTS = 6
 DOUBAO_TTS = 7
-AI302_TTS = 8
-GEMINI_TTS =9
+GLM_TTS = 8
+AI302_TTS = 9
+
+
 
 
 GPTSOVITS_TTS = 10
@@ -50,15 +54,18 @@ KOKORO_TTS = 19
 CLONE_VOICE_TTS = 20
 FISHTTS = 21
 MINIMAXI_TTS = 22
+
 AZURE_TTS = 23
 GOOGLE_TTS = 24
-TTS_API = 25
-GOOGLECLOUD_TTS = 26
+GEMINI_TTS =25
+
+TTS_API = 26
+GOOGLECLOUD_TTS = 27
 
 _ID_NAME_DICT = {
     EDGE_TTS:tr("Edge-TTS(free)"),
-    VITSCNEN_TTS:f'VITS-cnen({tr("Local")})',
-    PIPER_TTS:f'Piper-TTS({tr("Local")})',
+    VITSCNEN_TTS:f'VITS({tr("Local")})',
+    PIPER_TTS:f'piper TTS({tr("Local")})',
 
     OPENAI_TTS:"OpenAI TTS",
     
@@ -66,8 +73,9 @@ _ID_NAME_DICT = {
     DOUBAO2_TTS:tr("DouBao2"),
     ELEVENLABS_TTS:"Elevenlabs.io",
     DOUBAO_TTS:tr("VolcEngine TTS"),
+    GLM_TTS:f'{tr("Zhipu AI")} GLM-TTS',
     AI302_TTS:"302.AI",
-    GEMINI_TTS:"Gemini TTS",
+    
     
     GPTSOVITS_TTS:"GPT-SoVITS",
     COSYVOICE_TTS:'CosyVoice',
@@ -88,6 +96,8 @@ _ID_NAME_DICT = {
     MINIMAXI_TTS:"Minimaxi TTS",
     AZURE_TTS:"Azure-TTS",
     GOOGLE_TTS:"Google TTS",
+    
+    GEMINI_TTS:"Gemini TTS",
     TTS_API:tr("Customize API"),
     
     #GOOGLECLOUD_TTS:"Google Cloud TTS",
@@ -246,6 +256,12 @@ def is_input_api(tts_type: int = None, return_str=False):
         from videotrans.winform import googlecloud as googlecloud_win
         googlecloud_win.openwin()
         return False
+    if tts_type == GLM_TTS and not config.params.get('zhipu_key'):
+        if return_str:
+            return "Please configure the ZhipuAI credentials first."
+        from videotrans.winform import zhipuai as zhipuai_win
+        zhipuai_win.openwin()
+        return False
     return True
 
 
@@ -314,3 +330,6 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
     elif tts_type == VITSCNEN_TTS:
         from videotrans.tts._vits import VitsCNEN
         VitsCNEN(**kwargs).run()
+    elif tts_type == GLM_TTS:
+        from videotrans.tts._glmtts import GLMTTS
+        GLMTTS(**kwargs).run()

@@ -29,6 +29,8 @@ def init_speaker_diarization(language,num_speakers=-1):
     embedding_extractor_model = (
         f"{cfg.ROOT_DIR}/models/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"  if language=='zh' else   f"{cfg.ROOT_DIR}/models/onnx/nemo_en_titanet_small.onnx" 
     )
+    if not Path(embedding_extractor_model).exists():
+        raise RuntimeError('Not found speaker_diarization model')
 
     config = sherpa_onnx.OfflineSpeakerDiarizationConfig(
         segmentation=sherpa_onnx.OfflineSpeakerSegmentationModelConfig(

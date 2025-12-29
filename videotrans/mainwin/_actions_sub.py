@@ -561,10 +561,12 @@ class WinActionSub:
                 tr("The original sound clone cannot be auditioned"))
             return
         if obj['tts_type']==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
-            tools.show_download_piper(self.main)
+            #tools.show_download_piper(self.main)
+            self.main._open_winform('downmodels')
             return
         if obj['tts_type']==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
-            tools.show_download_tts(self.main)
+            #tools.show_download_tts(self.main)
+            self.main._open_winform('downmodels')
             return
         raw_text=self.main.listen_btn.text()
         def feed(d):

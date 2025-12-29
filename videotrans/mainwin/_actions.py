@@ -106,7 +106,7 @@ class WinAction(WinActionSub):
             return
         if recogn_type == recognition.Whisper_CPP and not self.show_cpp_select():
             return
-        if recogn_type != recognition.FASTER_WHISPER:
+        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:
             self.main.split_type.setDisabled(True)
             self.main.split_type.setCurrentIndex(0)
         else:
@@ -202,6 +202,10 @@ class WinAction(WinActionSub):
         elif type == tts.QWEN_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = list(tools.get_qwen3tts_rolelist().keys())
+            self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == tts.GLM_TTS:
+            self.main.voice_role.clear()
+            self.main.current_rolelist = list(tools.get_glmtts_rolelist().keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.GEMINI_TTS:
             self.main.voice_role.clear()
@@ -516,13 +520,8 @@ class WinAction(WinActionSub):
             self.main.startbtn.setDisabled(False)
             tools.show_download_tips(self.main,tr('Speaker'))
             return
+            
 
-
-
-        # 检查输入 输出目录
-        if self.check_output() is not True:
-            self.main.startbtn.setDisabled(False)
-            return
 
 
         # 核对识别是否正确
@@ -531,12 +530,16 @@ class WinAction(WinActionSub):
             return
 
         # 如果需要翻译，再判断是否符合翻译规则
-        if self.shound_translate() and translator.is_allow_translate(
+        if self.shound_translate():
+            if translator.is_allow_translate(
                 translate_type=self.cfg['translate_type'],
                 show_target=self.cfg['target_language_code']) is not True:
-            self.main.startbtn.setDisabled(False)
-            return
-
+                self.main.startbtn.setDisabled(False)
+                return
+            if self.cfg['translate_type'] == translator.M2M100_INDEX and not Path(f'{config.ROOT_DIR}/models/m2m100_12b/model.bin').exists():
+                self.main.startbtn.setDisabled(False)
+                self.main._open_winform('downmodels','m2m100_12b')
+                return
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
         if self.check_txt(txt) is not True:
@@ -591,12 +594,19 @@ class WinAction(WinActionSub):
                 return
 
         if self.main.tts_type.currentIndex()==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
-            tools.show_download_tts(self.main)
+            #tools.show_download_tts(self.main)
             self.main.startbtn.setDisabled(False)
+            self.main._open_winform('downmodels','vits')
             return
             
         if self.main.tts_type.currentIndex()==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
-            tools.show_download_piper(self.main)
+            #tools.show_download_piper(self.main)
+            self.main.startbtn.setDisabled(False)
+            self.main._open_winform('downmodels','piper')
+            return
+
+        # 检查输入 输出目录
+        if self.check_output() is not True:
             self.main.startbtn.setDisabled(False)
             return
 

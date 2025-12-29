@@ -31,6 +31,7 @@ def _convert_to_wav(mp3_file_path, output_wav_file_path):
     ]
     try:
         tools.runffmpeg(cmd, force_cpu=True)
+        tools.remove_silence_wav(output_wav_file_path)
     except Exception:
         pass
     return True

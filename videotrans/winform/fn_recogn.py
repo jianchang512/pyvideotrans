@@ -256,7 +256,7 @@ def openwin():
         if recogn_type == recognition.Whisper_CPP and not show_cpp_select():
             return
         # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
-        if recogn_type != recognition.FASTER_WHISPER:  # openai-whisper
+        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:  # openai-whisper
             winobj.shibie_split_type.setDisabled(True)
             winobj.shibie_split_type.setCurrentIndex(0)
             tools.hide_show_element(winobj.hfaster_layout, False)
@@ -316,7 +316,7 @@ def openwin():
 
     # 点击语音识别，显示隐藏faster时的详情设置
     def click_reglabel():
-        if winobj.shibie_recogn_type.currentIndex() == recognition.FASTER_WHISPER and winobj.shibie_split_type.currentIndex() == 0:
+        if winobj.shibie_recogn_type.currentIndex() in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:
             tools.hide_show_element(winobj.hfaster_layout, not winobj.threshold.isVisible())
         else:
             tools.hide_show_element(winobj.hfaster_layout, False)
@@ -326,7 +326,7 @@ def openwin():
         split_type_index = winobj.shibie_split_type.currentIndex()
         recogn_type = winobj.shibie_recogn_type.currentIndex()
         # 如果是均等分割，则阈值相关隐藏
-        if recogn_type != recognition.FASTER_WHISPER:
+        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:
             tools.hide_show_element(winobj.hfaster_layout, False)
             winobj.shibie_split_type.setCurrentIndex(0)
             winobj.shibie_split_type.setDisabled(True)

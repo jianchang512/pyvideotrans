@@ -18,7 +18,7 @@ from videotrans.configure import config
 
 from videotrans.ui.en import Ui_MainWindow
 from videotrans.translator import TRANSLASTE_NAME_LIST, LANGNAME_DICT
-
+from videotrans.component.downmodels import MainWindow as downwin
 
 
 
@@ -82,10 +82,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         # 底部状态条
         self.statusLabel = QPushButton(config.tr("Open Documents"))
-        self.statusLabel2 = QPushButton(config.tr("Having problems? Ask"))
         self.statusLabel.setStyleSheet("""color:#ffffbb""")
         self.statusBar.addWidget(self.statusLabel)
-        self.statusBar.addWidget(self.statusLabel2)
 
         self.rightbottom = QPushButton(config.tr('juanzhu'))
 
@@ -99,7 +97,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
               
 
         # 设置显示文字和样式
-        self.statusLabel2.setStyleSheet("""color:#ffffbb""")
         self.rightbottom.setStyleSheet("""color:#ffffbb""")
         self.restart_btn.setStyleSheet("""color:#ffffbb""")
         self.restart_btn.setToolTip(
@@ -227,7 +224,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_website.setText(config.tr("Documents"))
         self.action_discord.setText(config.tr("Solution to model download failure"))
         self.action_blog.setText(config.tr("Having problems? Ask"))
-        self.action_models.setText(config.tr("Download Models"))
         self.action_gtrans.setText(
             config.tr("Download Hard Subtitle Extraction Software"))
         self.action_cuda.setText('CUDA & cuDNN')
@@ -272,6 +268,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             config.tr("Combine 2 subtitle files into one to form bilingual subtitles"))
 
         self.action_clearcache.setText(config.tr("Clear Cache"))
+        self.action_downmodels.setText(config.tr("Download Models"))
         self.action_set_proxy.setText(config.tr("Setting up a network proxy"))
 
         self.actionazure_key.setText(config.tr("AzureOpenAI Translation"))
@@ -358,11 +355,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rolelist = config.params.get('openaitts_role', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
         elif config.params.get('tts_type', '') == tts.QWEN_TTS:
-            rolelist = config.settings.get('qwentts_role', '').split(',')
-            self.voice_role.addItems(['No'] + rolelist)
-            current_role = config.settings.get('qwentts_role', 'No')
-            if current_role in rolelist:
-                self.voice_role.setCurrentText(current_role)
+            rolelist = list(tools.get_qwen3tts_rolelist().keys())
+            self.voice_role.addItems(rolelist)
+        elif config.params.get('tts_type', '') == tts.GLM_TTS:
+            rolelist = list(tools.get_glmtts_rolelist().keys())
+            self.voice_role.addItems(rolelist)
         elif config.params.get('tts_type', '') == tts.GEMINI_TTS:
             rolelist = config.params.get('gemini_ttsrole', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
@@ -441,7 +438,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.addbackbtn.clicked.connect(self.win_action.get_background)
 
-        self.split_type.setDisabled(int(config.params.get('recogn_type', '0')) > 1)
+        self.split_type.setDisabled(int(config.params.get('recogn_type', 0)) > 1)
         self.voice_autorate.setChecked(bool(config.params.get('voice_autorate', False)))
         self.video_autorate.setChecked(bool(config.params.get('video_autorate', False)))
         self.only_out_mp4.setChecked(bool(config.params.get('only_out_mp4', False)))
@@ -461,7 +458,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.is_separate.setChecked(bool(config.params.get('is_separate', False)))
 
-        self.rephrase.setCurrentIndex(int(config.params.get('rephrase', 2)))
+        self.rephrase.setCurrentIndex(int(config.params.get('rephrase', 0)))
         self.remove_noise.setChecked(bool(config.params.get('remove_noise')))
         self.copysrt_rawvideo.setChecked(bool(config.params.get('copysrt_rawvideo', False)))
 
@@ -478,7 +475,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_save_dir.setCursor(Qt.PointingHandCursor)
         self.listen_btn.setCursor(Qt.PointingHandCursor)
         self.statusLabel.setCursor(Qt.PointingHandCursor)
-        self.statusLabel2.setCursor(Qt.PointingHandCursor)
         self.rightbottom.setCursor(Qt.PointingHandCursor)
         self.restart_btn.setCursor(Qt.PointingHandCursor)
         
@@ -588,7 +584,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_ffmpeg.triggered.connect(lambda: self.win_action.open_url('ffmpeg'))
         self.action_git.triggered.connect(lambda: self.win_action.open_url('git'))
         self.action_discord.triggered.connect(lambda: self.win_action.open_url('hfmirrorcom'))
-        self.action_models.triggered.connect(lambda: self.win_action.open_url('models'))
 
         self.action_gtrans.triggered.connect(lambda: self.win_action.open_url('gtrans'))
         self.action_cuda.triggered.connect(lambda: self.win_action.open_url('cuda'))
@@ -598,11 +593,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_issue.triggered.connect(lambda: self.win_action.open_url('issue'))
         self.action_about.triggered.connect(self.win_action.about)
         self.action_clearcache.triggered.connect(self.win_action.clearcache)
+        self.action_downmodels.triggered.connect(lambda: self._open_winform('downmodels'))
         self.action_set_proxy.triggered.connect(self.win_action.proxy_alert)
         self.aisendsrt.toggled.connect(self.checkbox_state_changed)
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
-        self.statusLabel2.clicked.connect(lambda: self.win_action.open_url('https://bbs.pyvideotrans.com/post'))
         if config.settings.get('show_more_settings'):
             self.win_action.toggle_adv()
 
@@ -627,12 +622,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.uito.emit('Import torch...')
         QApplication.processEvents()
         import torch
+        self.uito.emit('init downmodels window')
+        config.child_forms['downmodels']=downwin()
         self.uito.emit('end')
 
 
 
     # 打开缓慢
-    def _open_winform(self, name):
+    def _open_winform(self, name,extra_name=None):
+            
         if name=='set_ass':
             from videotrans.component.set_ass import ASSStyleDialog
             dialog = ASSStyleDialog()
@@ -657,6 +655,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             winobj.show()
             winobj.activateWindow()
+            if name=='downmodels' and extra_name:
+                winobj.auto_start(extra_name)
+            return
+        
+        if name=='downmodels':
+            window=downwin()
+            config.child_forms[name]=window
+            window.show()
+            if extra_name:
+                window.auto_start(extra_name)
             return
         if name=='clipvideo':
             from videotrans.component.clip_video import ClipVideoWindow

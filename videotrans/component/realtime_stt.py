@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import sys,json
 import time
 import threading
@@ -14,7 +12,6 @@ from PySide6.QtCore import QThread, Signal,Qt,QUrl,QTimer
 from PySide6.QtGui import QIcon, QCloseEvent,QDesktopServices
 
 from videotrans.configure import config as cfg
-from videotrans.util import tools
 import sounddevice as sd
 
 
@@ -357,10 +354,25 @@ class RealTimeWindow(QWidget):
         
         QTimer.singleShot(300, self.populate_mics)
         
-
+    
+    def _show_downloadmodel(self):
+        from videotrans.component.downmodels import MainWindow as downwin
+        w = cfg.child_forms.get('downmodels')
+        if w:
+            w.show()
+            w.activateWindow()
+            w.auto_start('onnx')
+            return
+        
+        w=downwin()
+        cfg.child_forms['downmodels']=w
+        w.show()
+        w.auto_start('onnx')
+    
     def check_model_exist(self):
         if not Path(PAR_ENCODER).exists() or not Path(CTC_MODEL_FILE).exists() or not Path(PAR_DECODER).exists():
-            tools.show_download_tips(self,cfg.tr('Real-time speech-to-text'))
+            self._show_downloadmodel()
+            #tools.show_download_tips(self,cfg.tr('Real-time speech-to-text'))
             return False
         return True
         

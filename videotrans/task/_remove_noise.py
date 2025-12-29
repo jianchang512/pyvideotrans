@@ -69,9 +69,9 @@ def run_remove(input_file,output_file,thread_nums=4):
         tmp_name = Path(output_file).parent.as_posix() + f'/noise-{time.time()}.wav'
 
         sf.write(tmp_name, denoised.samples, denoised.sample_rate)
-        tools.runffmpeg(['-y', '-i', tmp_name, '-af', "volume=1.5", output_file])
+        tools.runffmpeg(['-y', '-i', tmp_name, '-af', "volume=2.0,alimiter=limit=1.0", output_file])
         
-        cfg.logger.info(f'降噪成功完成')
+        cfg.logger.info(f'降噪成功完成 {output_file}')
         return output_file
     except Exception as e:
         cfg.logger.exception(f'降噪时出错:{e}', exc_info=True)
