@@ -9,7 +9,6 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import logs
 from videotrans.translator._base import BaseTrans
 
 RETRY_NUMS = 3
@@ -33,9 +32,9 @@ class MyMemory(BaseTrans):
         }
         text = "\n".join(data)
         url = f"https://api.mymemory.translated.net/get?q={quote(text)}&langpair={self.source_code}|{self.target_code}"
-        logs(f'[mymemory]请求数据:{url=}')
+        config.logger.debug(f'[mymemory]请求数据:{url=}')
         response = requests.get(url,  headers=headers, verify=False, timeout=300)
-        logs(f'[mymemory]返回:{response.text=}')
+        config.logger.debug(f'[mymemory]返回:{response.text=}')
         response.raise_for_status()
 
         re_result = response.json()

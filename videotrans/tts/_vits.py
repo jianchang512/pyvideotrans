@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Set
 
 from videotrans.configure import config
-from videotrans.configure.config import tr, logs
+from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 import time
@@ -177,7 +177,7 @@ class VitsCNEN(BaseTTS):
                     completed_tasks += 1
                     self._signal( text=f"tts [{completed_tasks}/{len(self.queue_tts)}]" )
                 except Exception as e:
-                    logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
+                    config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
         
         
         ok, err = 0, 0
@@ -205,11 +205,11 @@ class VitsCNEN(BaseTTS):
                         completed_tasks += 1
                         self._signal( text=f"convert wav [{completed_tasks}/{total_tasks}]" )
                     except Exception as e:
-                        logs(f"Task {completed_tasks + 1} failed with error: {e}", level="except")
+                        config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
                 
         if err > 0:
             msg=f'[{err}] errors, {ok} succeed'
             self._signal(text=msg)
-            logs(f'Match配音结束：{msg}')
+            config.logger.debug(f'Match配音结束：{msg}')
 
 

@@ -1,7 +1,7 @@
 
 
 def openwin():
-    from videotrans.configure.config import tr,logs
+    from videotrans.configure.config import tr
     import json
     from pathlib import Path
     from PySide6 import QtWidgets

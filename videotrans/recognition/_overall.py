@@ -3,7 +3,7 @@ import time,json
 from dataclasses import dataclass, field
 from pathlib import Path
 from videotrans.configure import config
-from videotrans.configure.config import tr, logs
+from videotrans.configure.config import tr
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.simple_runnable_qt import run_in_threadpool
@@ -11,7 +11,7 @@ from videotrans.task.simple_runnable_qt import run_in_threadpool
 import os
 from videotrans.process._iscache import _MODELS
 import glob
-import threading
+import threading,requests
 from videotrans.util import tools
 
 
@@ -29,15 +29,25 @@ class FasterAll(BaseRecogn):
         super().__post_init__()
 
     def _create_from_huggingface(self, model_id, audio_file, language):
+        
+        try:
+            requests.head('https://huggingface.co',timeout=5)
+        except Exception:
+            print('无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
+            os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+            os.environ["HF_HUB_DISABLE_XET"] = "1"
+        else:
+            print('可以使用 huggingface.co')
+            os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
+            os.environ["HF_HUB_DISABLE_XET"] = "0"
+        
         from transformers import pipeline
         from huggingface_hub import snapshot_download
-        from videotrans.process._iscache import check_huggingface_connect
 
         # 定义本地保存路径
         local_dir = f"{config.ROOT_DIR}/models/" + model_id.split("/")[-1]
 
         if not os.path.exists(local_dir) or len([it for it in Path(local_dir).glob('*')])<3:
-            check_huggingface_connect(config.ROOT_DIR, self.proxy_str)
             print(f"下载模型到 {local_dir}...")
             # 使用 snapshot_download 下载完整模型
             snapshot_download(
@@ -155,7 +165,7 @@ class FasterAll(BaseRecogn):
                 process.start()
                 threading.Thread(target=self._get_signal_from_process,args=(result_queue,)).start()
                 self.pidfile = config.TEMP_DIR + f'/{process.pid}.lock'
-                logs(f'开始创建 pid:{self.pidfile=}')
+                config.logger.debug(f'开始创建 pid:{self.pidfile=}')
                 with open(self.pidfile, 'w', encoding='utf-8') as f:
                     f.write(f'{process.pid}')
                 process.join()
@@ -167,16 +177,16 @@ class FasterAll(BaseRecogn):
                     pass
 
                 if err['msg']:
-                    logs(f'{err["msg"]}',level='warn')
+                    config.logger.warning( f'{err["msg"]}' )
                     self.error=err['msg']
                 else:
                     if self.detect_language == 'auto':
-                        logs(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
+                        config.logger.debug(f'需要自动检测语言，当前检测出的语言为{detect["langcode"]=}')
                         self.detect_language = detect.get('langcode','auto')
         
                     return self.get_srtlist(raws)
         except Exception as e:
-            logs(f'{e}', level="except")
+            config.logger.exception(e, exc_info=True)
             self.error = str(e)
         finally:
             config.model_process = None
@@ -198,7 +208,6 @@ class FasterAll(BaseRecogn):
             import zhconv
         srt_raws = []
         raws=list(raws)
-        Path("test-0.json").write_text(json.dumps(raws,indent=4,ensure_ascii=False),encoding='utf-8')
         raws_len=len(raws)
         for idx,it in enumerate(raws):
             if not it['text'].strip():

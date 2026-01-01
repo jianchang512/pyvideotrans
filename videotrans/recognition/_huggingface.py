@@ -1,5 +1,4 @@
 # zh_recogn 识别
-import json,os,requests,shutil
 import re
 import time
 from dataclasses import dataclass
@@ -11,6 +10,7 @@ from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.recognition._base import BaseRecogn
 from transformers import pipeline
+import json,os,requests,shutil
 
 
 
@@ -62,8 +62,18 @@ class HuggingfaceRecogn(BaseRecogn):
             print('已存在模型')
             return
         from huggingface_hub import snapshot_download
-        self.check_huggingface_connect()
         self._signal(text=f"Downloading {self.model_name} ...")
+        # 先测试能否连接 huggingface.co, 中国大陆地区不可访问，除非使用VPN
+        try:
+            requests.head('https://huggingface.co',timeout=5)
+        except Exception:
+            print('无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
+            os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+            os.environ["HF_HUB_DISABLE_XET"] = "1"
+        else:
+            print('可以使用 huggingface.co')
+            os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
+            os.environ["HF_HUB_DISABLE_XET"] = "0"
         try:
             snapshot_download(
                 repo_id=self.model_name,
@@ -97,21 +107,4 @@ class HuggingfaceRecogn(BaseRecogn):
         self._signal(text=f"Downloaded ")
 
 
-    def check_huggingface_connect(self):
-        proxy=config.proxy
-        if proxy:
-            os.environ['HTTPS_PROXY'] = proxy
-            os.environ['HTTP_PROXY'] = proxy
-        try:
-            requests.head('https://huggingface.co', proxies=None if not proxy else {"http": proxy, "https": proxy}, timeout=5)
-        except Exception as e:
-            os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
-            os.environ["HF_HUB_DISABLE_XET"] = "1"
-        else:
-            os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
-            if os.environ.get("HF_HUB_DISABLE_XET"):
-                os.environ.pop("HF_HUB_DISABLE_XET")
 
-        with open(f'{config.ROOT_DIR}/logs/test-huggingface.log', "a", encoding='utf-8') as f:
-            f.write(
-                f"{proxy=},{os.environ.get('HTTPS_PROXY')=},{os.environ.get('HF_ENDPOINT')=},{os.environ.get('HF_HUB_DISABLE_XET')=}\n")

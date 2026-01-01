@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QFileDialog, QFontDialog, QColorDialog
 
 from videotrans.configure import config
 from videotrans.util import tools
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 
 
 class Ui_setini(object):
@@ -101,6 +101,9 @@ class Ui_setini(object):
                 "min_speech_duration_ms": "如果某条字幕时长小于该值对应ms，则尝试将该字幕合并进相邻字幕中，默认1000ms",
                 "merge_short_sub":"只有选中该项，才会合并短字幕",
                 "no_speech_threshold":"no speech threshold",
+                
+                "speaker_type":"用于说话人分离的模型，默认内置模型支持中英. \n若选 pyannote 必须拥有 https://huggingface.co 上的token，\n并且同意pyannote组织的授权协议\n\n具体请访问URL查看教程:\nhttps://pvt9.com/shuohuaren",
+                "hf_token":"填写你在 huggingface.co 的token，否则无法使用 pyannote，具体查看教程\nhttps://pvt9.com/shuohuaren",
 
 
                 "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
@@ -161,6 +164,10 @@ class Ui_setini(object):
             "llm_chunk_size": "LLM重新断句每批字幕行数",
             
             "no_speech_threshold":"no speech threshold",
+            
+            "speaker_type":"说话人分离模型",
+
+            "hf_token":"Huggingface的token",
             
             "show_more_settings": "主界面显示所有参数?",
             
@@ -309,6 +316,9 @@ class Ui_setini(object):
         "no_speech_threshold":"no speech threshold",
         "merge_short_sub":"Short subtitles will only be merged if this option is selected",
         
+        "speaker_type":"The model used for speaker separation. The default is the built-in model, supporting both Chinese and English. Pyannote is optional. \nIf selected, you must have a token from \nhttps://huggingface.co \nand agree to the Pyannote licensing agreement. \nFor details, please visit the URL for a tutorial: \nhttps://pvt9.com/shuohuaren",
+
+        "hf_token":"Enter your token from huggingface.co. Otherwise, you cannot use Pyannote speaker separation. \nFor details, please see the tutorial: \nhttps://pvt9.com/shuohuaren",
         
         
         "model_list": "Comma-separated list of model names for faster-whisper and OpenAI modes.",
@@ -370,6 +380,11 @@ class Ui_setini(object):
     "faster_batch": "Force batch inference",
     "ai302tts_models": "302.AI-TTS models",
     "no_speech_threshold":"no speech threshold",
+    
+    
+    "speaker_type":"Model for speaker separation",
+
+    "hf_token":"Your token from huggingface.co",
     
     "show_more_settings": "Show all parameters?",
     
@@ -515,6 +530,18 @@ class Ui_setini(object):
                     continue
                 if key == 'llm_ai_type':
                     ai_types = ['openai', 'deepseek']
+                    tmp1 = QtWidgets.QComboBox()
+                    tmp1.addItems(ai_types)
+                    tmp1.setObjectName(key)
+                    tmp1.setToolTip(tips_str)
+                    if val in ai_types:
+                        tmp1.setCurrentText(val)
+                    tmp.addWidget(tmp1)
+                    tmp.addStretch(1)
+                    box.layout().addLayout(tmp)
+                    continue
+                if key == 'speaker_type':
+                    ai_types = ['built', 'pyannote']
                     tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(ai_types)
                     tmp1.setObjectName(key)

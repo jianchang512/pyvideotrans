@@ -6,7 +6,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.ui.ai302 import Ui_ai302form
 from videotrans.ui.ali import Ui_aliform
 from videotrans.ui.azure import Ui_azureform

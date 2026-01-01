@@ -1,4 +1,4 @@
-import json
+import json,os
 import shutil
 import time
 from dataclasses import dataclass, field
@@ -7,7 +7,7 @@ from typing import List, Dict
 
 from videotrans import recognition
 from videotrans.configure import config
-from videotrans.configure.config import tr, logs
+from videotrans.configure.config import tr
 from videotrans.recognition import run, Faster_Whisper_XXL, Whisper_CPP
 from videotrans.task._base import BaseTask
 
@@ -98,7 +98,7 @@ class SpeechToText(BaseTask):
 
                 outsrt_file = self.cfg.target_dir + '/' + Path(self.cfg.shibie_audio).stem + ".srt"
                 cmdstr = " ".join(cmd)
-                logs(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg.target_sub=}')
+                config.logger.debug(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg.target_sub=}')
 
                 self._external_cmd_with_wrapper(cmd)
 
@@ -135,7 +135,7 @@ class SpeechToText(BaseTask):
 
                 cmd.extend(['-m', f'models/{self.cfg.model_name}', '-of', self.cfg.target_sub[:-4]])
 
-                logs(f'Whipser.cpp: {cmd=}')
+                config.logger.debug(f'Whipser.cpp: {cmd=}')
 
                 self._external_cmd_with_wrapper(cmd)
 
@@ -153,7 +153,8 @@ class SpeechToText(BaseTask):
                     cache_folder=self.cfg.cache_folder,
                     is_cuda=self.cfg.cuda,
                     subtitle_type=0,
-                    max_speakers=self.max_speakers
+                    max_speakers=self.max_speakers,
+                    llm_post=self.cfg.rephrase == 1
                 )
                 self.source_srt_list = raw_subtitles
                 self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
@@ -185,14 +186,40 @@ class SpeechToText(BaseTask):
                         raise
                 except Exception as e:
                     self._signal(text=tr("Re-segmenting Error"))
-                    logs(f"重新断句失败[except]，已恢复原样 {e}", level='warn')
+                    config.logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
         except Exception:
             raise
 
 
     def diariz(self):
-        if self._exit() or self.cfg.detect_language[:2] not in ['zh', 'en'] or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
+        if self._exit()  or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
             return
+            
+        speaker_type=config.settings.get('speaker_type','built')
+        hf_token=config.settings.get('hf_token')
+        
+        if speaker_type=='built' and self.cfg.detect_language[:2] not in ['zh','en']:
+            config.logger.error(f'当前选择 built 说话人分离模型，但不支持当前语言:{self.cfg.detect_language}')
+            return
+        if speaker_type=='pyannote' and not hf_token:
+            config.logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
+            return
+        
+        if speaker_type=='pyannote':
+            # 判断是否可访问 huggingface.co
+            # 先测试能否连接 huggingface.co, 中国大陆地区不可访问，除非使用VPN
+            try:
+                import requests
+                requests.head('https://huggingface.co',timeout=5)
+            except Exception:
+                config.logger.error(f'当前选择 pyannote 说话人分离模型，但无法连接到 https://huggingface.co')
+                return
+            else:
+                print('可以使用 huggingface.co')
+                os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
+                os.environ["HF_HUB_DISABLE_XET"] = "0"
+                Path(os.environ['HF_TOKEN_PATH']).write_text(hf_token)
+        
         try:
             self._signal(text=tr('Begin separating the speakers'))
             from videotrans.diarization import assign_speakers
@@ -201,13 +228,14 @@ class SpeechToText(BaseTask):
                 self.cfg.detect_language,
                 [[it['start_time'], it['end_time']] for it in self.source_srt_list],
                 -1 if self.max_speakers < 1 else self.max_speakers,
-                self.uuid
+                self.uuid,
+                speaker_type
             )
             Path(self.cfg.cache_folder + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
-            logs('分离说话人成功完成')
+            config.logger.debug('分离说话人成功完成')
             self._signal(text=tr('separating speakers end'))
         except Exception as e:
-            logs('分离说话人失败，静默跳过', 'except')
+            config.logger.exception(f'分离说话人失败，静默跳过{e}',exc_info=True)
             self._signal(text=tr('Speaker separation failed, silent skip.'))
 
     def task_done(self):

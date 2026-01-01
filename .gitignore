@@ -24,6 +24,7 @@ dist
 source
 build
 test.py
+test*
 302.py
 test.json
 ffmpeg/ffmpeg.exe

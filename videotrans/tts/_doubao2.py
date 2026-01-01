@@ -9,7 +9,6 @@ from typing import Dict, Optional, ClassVar
 import requests
 
 from videotrans.configure import config
-from videotrans.configure.config import logs
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -80,7 +79,7 @@ class Doubao2TTS(BaseTTS):
                 wf.writeframes(audio_data)
 
         except Exception as e:
-            logs(f"保存WAV文件时出错: {e}",'except')
+            config.logger.exception(f"保存WAV文件时出错: {e}",exc_info=True)
 
     
     def _item_task(self, data_item: dict = None):
@@ -148,7 +147,7 @@ class Doubao2TTS(BaseTTS):
             
             
             response.raise_for_status()
-            logs(f"code: {response.status_code} header: {response.headers}")
+            config.logger.debug(f"code: {response.status_code} header: {response.headers}")
 
             # 用于存储音频数据
             audio_data = bytearray()
@@ -177,7 +176,7 @@ class Doubao2TTS(BaseTTS):
                 self._save_pcm_to_wav(audio_data,data_item['filename'])
 
         except Exception as e:
-            logs(e,'except')
+            config.logger.exception(e,exc_info=True)
             raise
         finally:
             if response:

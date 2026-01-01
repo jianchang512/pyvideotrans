@@ -5,7 +5,6 @@ from typing import List
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure.config import logs
 from videotrans.task.taskcfg import TaskCfg
 from videotrans.util import tools
 
@@ -120,7 +119,7 @@ class BaseTask(BaseCon):
             return target_srt_list[:1]
         source_len = len(source_srt_list)
         target_len = len(target_srt_list)
-        logs(f'核对翻译结果前->原始语言字幕行数:{source_len},目标语言字幕行数:{target_len}')
+        config.logger.debug(f'核对翻译结果前->原始语言字幕行数:{source_len},目标语言字幕行数:{target_len}')
         
         if source_len==target_len:
             for i,it in enumerate(source_srt_list):
@@ -130,11 +129,11 @@ class BaseTask(BaseCon):
             return target_srt_list
 
         if target_len>source_len:
-            logs(f'翻译结果行数大于原始字幕行，截取0-{source_len}')
+            config.logger.debug(f'翻译结果行数大于原始字幕行，截取0-{source_len}')
             return target_srt_list[:source_len]
         
         
-        logs(f'翻译结果行数少于原始字幕行，追加')
+        config.logger.debug(f'翻译结果行数少于原始字幕行，追加')
         for i,it in enumerate(source_srt_list):
             if i>=target_len:
                 tmp=copy.deepcopy(it)

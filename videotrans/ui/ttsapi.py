@@ -4,7 +4,7 @@ from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
 
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 

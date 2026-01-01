@@ -10,7 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -54,7 +54,7 @@ class FishTTS(BaseTTS):
             else:
                 raise StopRetry(tr('Reference audio does not exist: {} Please make sure the audio exists',audio_path))
 
-            logs(f'fishTTS-post:{data=}')
+            config.logger.debug(f'fishTTS-post:{data=}')
             response = requests.post(f"{self.api_url}", json=data, timeout=3600)
 
             response.raise_for_status()

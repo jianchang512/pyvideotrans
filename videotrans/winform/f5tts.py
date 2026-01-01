@@ -1,7 +1,7 @@
 
 
 def openwin(init=False):
-    from videotrans.configure.config import tr,logs
+    from videotrans.configure.config import tr
     from videotrans.configure import config
     from pathlib import Path
 

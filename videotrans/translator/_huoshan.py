@@ -9,7 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr, logs
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -41,7 +41,7 @@ class HuoShan(BaseTrans):
             {'role': 'user',
              'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
         ]
-        logs(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{config.params.get('zijiehuoshan_model','')}")
+        config.logger.debug(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{config.params.get('zijiehuoshan_model','')}")
 
         req = {
             "model": config.params.get('zijiehuoshan_model',''),
@@ -53,7 +53,7 @@ class HuoShan(BaseTrans):
                 "Authorization": f"Bearer {config.params.get('zijiehuoshan_key','')}"
             })
         resp.raise_for_status()
-        logs(f'[字节火山引擎]响应:{resp.text=}')
+        config.logger.debug(f'[字节火山引擎]响应:{resp.text=}')
         data = resp.json()
         if 'choices' not in data or len(data['choices']) < 1 or not data['choices'][0]['message']['content']:
             raise RuntimeError(f'字节火山翻译失败:{resp.text=}')

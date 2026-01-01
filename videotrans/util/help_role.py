@@ -6,7 +6,6 @@ import sys
 import requests
 
 from videotrans.configure import config
-from videotrans.configure.config import logs
 from pathlib import Path
 from functools import lru_cache
 
@@ -41,7 +40,7 @@ def get_elevenlabs_role(force=False, raise_exception=False):
         config.params['elevenlabstts_role'] = namelist
         return namelist
     except Exception as e:
-        logs(f'获取 elevenlabs 角色失败:{e}', level="except")
+        config.logger.exception(f'获取 elevenlabs 角色失败:{e}', exc_info=True)
         if raise_exception:
             raise
     return []

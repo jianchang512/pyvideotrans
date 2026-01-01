@@ -4,7 +4,7 @@ from typing import Union, List
 
 from videotrans.configure import config
 # 数字代表显示顺序
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.util import tools
 from videotrans.translator._google import Google
 from videotrans.translator._microsoft import Microsoft
@@ -163,7 +163,7 @@ try:
         for nl in _new_lang:
             LANGNAME_DICT[nl]=nl
 except Exception as e:
-    logs(f'读取自定义新增语言代码 newlang.txt 时出错 {e}',level="except")
+    config.logger.exception(f'读取自定义新增语言代码 newlang.txt 时出错 {e}', exc_info=True)
 # 反向按照显示名字查找语言代码
 LANGNAME_DICT_REV={v:k for k,v in LANGNAME_DICT.items()}
 # 根据语言代码查找各个翻译渠道对应的 代码list
@@ -865,9 +865,9 @@ def get_subtitle_code(*, show_target=None):
 def _check_google():
     import requests
     try:
-        requests.head(f"https://translate.google.com",timeout=10)
+        requests.head(f"https://translate.google.com",timeout=5)
     except Exception as e:
-        logs(f'检测google翻译失败{e}', level="except")
+        config.logger.exception(f'检测google翻译失败{e}', exc_info=True)
         return False
     
     return True
@@ -903,7 +903,7 @@ def run(*, translate_type=0,
     if translate_type == GOOGLE_INDEX:
         if config.proxy or _check_google() is True:
             return Google(**kwargs).run()
-        logs('==未设置代理并且检测google失败，使用微软翻译')
+        config.logger.info('==未设置代理并且检测google失败，使用微软翻译')
         return Microsoft(**kwargs).run()
         
     if translate_type == MyMemoryAPI_INDEX:

@@ -7,8 +7,8 @@ for a list of available models.
 from pathlib import Path
 from videotrans.configure import config as cfg
 from videotrans.util import tools
-
-
+import torch,torchaudio
+import os,sys
 
 def resample_audio(audio, sample_rate, target_sample_rate):
     import librosa
@@ -55,6 +55,52 @@ def init_speaker_diarization(language,num_speakers=-1):
     return sherpa_onnx.OfflineSpeakerDiarization(config)
 
 
+def get_diariz_pyannote(wave_filename,language,num_speakers=-1,uuid="",enable_gpu=False):
+    # pyannote-audio==3.4.0
+    import pyannote.audio
+    torch.serialization.add_safe_globals([
+        torch.torch_version.TorchVersion,
+        pyannote.audio.core.task.Specifications,
+        pyannote.audio.core.task.Problem,
+        pyannote.audio.core.task.Resolution
+    ])
+
+    from pyannote.audio import Pipeline
+    pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1")
+    
+    if enable_gpu:
+        pipeline.to(torch.device("cuda"))
+        
+
+    # apply pretrained pipeline
+    waveform, sample_rate = torchaudio.load(wave_filename)
+    if num_speakers>0:
+        diarization = pipeline({"waveform": waveform, "sample_rate": sample_rate},num_speakers=num_speakers)
+    else:
+        diarization = pipeline({"waveform": waveform, "sample_rate": sample_rate})
+
+
+    output=[]
+    # 获取的说话人数字id可能很乱，并非顺序增长，需要重新整理为0-n递增
+    speaker_list=set()
+    for turn, _, speaker in diarization.itertracks(yield_label=True):
+        speaker=speaker.replace('SPEAKER_','')
+        speaker_list.add(f'spk{speaker}')
+        output.append([[int(turn.start*1000),int(turn.end*1000)],f'spk{speaker}'])
+    speaker_list=sorted(list(speaker_list))
+
+    # 映射
+    spk_neworder_dict={}    
+    for i,it in enumerate(speaker_list):
+        spk_neworder_dict[it]=f'spk{i}'
+    print(f'原始说话人排序后：{speaker_list=}')
+    print(f'映射为新说话人标识：{spk_neworder_dict=}')
+    print(f'原始 {output=}')
+
+    for i,it in enumerate(output):
+        output[i][1]=spk_neworder_dict.get(it[1],'spk0')
+    print(f'重排 {output=}')
+    return output
 
 
 def get_diariz(wave_filename,language,num_speakers=-1,uuid=""):
@@ -110,9 +156,14 @@ def get_diariz(wave_filename,language,num_speakers=-1,uuid=""):
     
     return output
 
-def assign_speakers(wave_filename,language,subtitles,num_speakers=-1,uuid=""):
+# speaker_type: built=sherpa_onnx pyannote=pyannote
+def assign_speakers(wave_filename,language,subtitles,num_speakers=-1,uuid="",speaker_type='built',enable_gpu=False):
     cfg.logger.info(f'开始说话人分离 {language=},{num_speakers=}')
-    diarizations=get_diariz(wave_filename,language,num_speakers,uuid)
+    # 根据选择使用内置或 pyannote 方式
+    if speaker_type=='built':
+        diarizations=get_diariz(wave_filename,language,num_speakers,uuid)
+    else:
+        diarizations=get_diariz_pyannote(wave_filename,language,num_speakers,uuid,enable_gpu)
     if not diarizations:
         return None
     output = []

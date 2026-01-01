@@ -40,7 +40,7 @@ class DubbingSrt(BaseTask):
         # 配音后音频文件保存为
         self.cfg.target_wav = f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'
         self._signal(text=tr("Dubbing from subtitles"))
-        config.logger.info(f'配音 {self.cfg=}')
+        config.logger.debug(f'配音 {self.cfg=}')
 
     def dubbing(self):
         try:
@@ -146,7 +146,7 @@ class DubbingSrt(BaseTask):
                     pitch=self.cfg.pitch
                 )
             ))
-            config.logger.info(f'edge-tts配音，未音频加速，未视频慢速，未强制对齐，已删字幕间静音，使用单独文本配音')
+            config.logger.debug(f'edge-tts配音，未音频加速，未视频慢速，未强制对齐，已删字幕间静音，使用单独文本配音')
             if not self.cfg.target_wav.endswith('.mp3'):
                 tools.runffmpeg(['-y', '-i', tmp_name, '-b:a', '128k', self.cfg.target_wav])
             return

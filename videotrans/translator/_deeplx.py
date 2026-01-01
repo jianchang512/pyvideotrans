@@ -8,7 +8,6 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import logs
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -60,10 +59,10 @@ class DeepLX(BaseTrans):
             "source_lang": sourcecode,
             "target_lang": target_code
         }
-        logs(f'[DeepLX]发送请求数据,{jsondata=}')
+        config.logger.debug(f'[DeepLX]发送请求数据,{jsondata=}')
         response = requests.post(url=self.api_url, json=jsondata)
         response.raise_for_status()
-        logs(f'[DeepLX]返回响应,{response.text=}')
+        config.logger.debug(f'[DeepLX]返回响应,{response.text=}')
 
         result = response.json()
         result = tools.cleartext(result['data'])

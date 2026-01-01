@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
 )
 
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 
 
 class SubtitleSettingsDialog(QDialog):

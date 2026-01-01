@@ -7,7 +7,7 @@ from pydub import AudioSegment
 from PySide6.QtCore import QThread, Signal, QObject
 
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.task.taskcfg import TaskCfg
 
 from videotrans.task.trans_create import TransCreate

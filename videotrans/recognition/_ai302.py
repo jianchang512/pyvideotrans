@@ -10,7 +10,6 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import  NO_RETRY_EXCEPT
-from videotrans.configure.config import logs
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -51,7 +50,7 @@ class AI302Recogn(BaseRecogn):
 
         prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
 
-        logs(f'{prompt=}')
+        config.logger.debug(f'{prompt=}')
         response = requests.post(url,
                                  files={"file": open(self.audio_file, 'rb')},
                                  data={
@@ -62,7 +61,7 @@ class AI302Recogn(BaseRecogn):
                                  headers=headers)
         if response.status_code!=200:
              raise RuntimeError(response.text)
-        logs(f'{response.json()=}')
+
         for i, it in enumerate(response.json()['segments']):
             if self._exit():
                 return
@@ -94,7 +93,7 @@ class AI302Recogn(BaseRecogn):
             'Authorization': f'Bearer {apikey}',
         }
         prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
-        logs(f'{prompt=}')
+        config.logger.debug(f'{prompt=}')
         err=''
         ok_nums=0
         for i, it in enumerate(raws):
@@ -114,7 +113,7 @@ class AI302Recogn(BaseRecogn):
             if "text" not in res_json or "error" in res_json:
                 err=f'{res_json}'
                 continue
-            logs(f'{res_json=}')
+            config.logger.debug(f'{res_json=}')
             raws[i]['text'] = res_json['text']
             ok_nums+=1
         if ok_nums<1:
@@ -146,7 +145,7 @@ class AI302Recogn(BaseRecogn):
         # print(f'{prompt=},{headers=},{langcode=},{self.audio_file=}')
         if response.status_code!=200:
             raise RuntimeError(response.text)
-        logs(f'{response.json()=}')
+
         raws=[]
         speaker_list=[]
         speaker_name=[]

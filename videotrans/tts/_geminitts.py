@@ -9,7 +9,6 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
-from videotrans.configure.config import logs
 
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
@@ -50,7 +49,6 @@ class GEMINITTS(BaseTTS):
                 self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
 
             except Exception as e:
-                logs(str(e), level="except")
                 raise
 
         try:

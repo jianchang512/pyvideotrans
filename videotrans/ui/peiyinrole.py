@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
 
 from videotrans import tts
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 
 
 class Ui_peiyinrole(object):

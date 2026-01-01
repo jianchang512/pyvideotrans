@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QColor, QPixmap, QFont, QPen, QBrush, QPainterPath, QTransform, QPainterPathStroker,QIcon
 from PySide6.QtCore import Qt, Signal,QSize
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 
 from pathlib import Path
 

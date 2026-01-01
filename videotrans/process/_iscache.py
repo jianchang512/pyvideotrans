@@ -75,26 +75,3 @@ def _is_file_valid(file_path) -> bool:
     except (OSError, ValueError):
         return False
 
-
-def check_huggingface_connect(ROOT_DIR: str, proxy: str = None):
-    import os, requests
-    if proxy:
-        os.environ['HTTPS_PROXY'] = proxy
-        os.environ['HTTP_PROXY'] = proxy
-    try:
-        requests.head('https://huggingface.co',
-            proxies=None if not proxy else {"http": proxy, "https": proxy}, timeout=5)
-    except Exception as e:
-        os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
-        os.environ["HF_HUB_DISABLE_XET"] = "1"
-    else:
-        os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
-        if os.environ.get("HF_HUB_DISABLE_XET"):
-            os.environ.pop("HF_HUB_DISABLE_XET")
-
-    with open(f'{ROOT_DIR}/logs/test-huggingface.log', "a", encoding='utf-8') as f:
-        f.write(
-            f"{proxy=},{os.environ.get('HTTPS_PROXY')=},{os.environ.get('HF_ENDPOINT')=},{os.environ.get('HF_HUB_DISABLE_XET')=}\n")
-
-
-

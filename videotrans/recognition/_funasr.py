@@ -9,7 +9,7 @@ from typing import List, Dict, Union
 from pydub import AudioSegment
 
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 

@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit,
                                QVBoxLayout)
 
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 
 
 class Ui_watermark(object):

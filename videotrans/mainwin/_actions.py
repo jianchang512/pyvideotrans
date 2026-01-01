@@ -13,7 +13,7 @@ from PySide6.QtWidgets import QFileDialog
 
 from videotrans import translator, recognition, tts
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools

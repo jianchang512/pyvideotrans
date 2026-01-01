@@ -11,7 +11,7 @@ from pathlib import Path
 from PySide6.QtWidgets import (QApplication,QWidget, QVBoxLayout, QPushButton, 
                                QProgressBar, QLabel, QMessageBox, QHBoxLayout, 
                                QFrame, QScrollArea)
-from PySide6.QtCore import Qt, QThread, Signal, Slot
+from PySide6.QtCore import Qt, QThread, Signal, Slot,QTimer
 from PySide6.QtGui import QIcon,QShowEvent
 import platform
 from urllib.parse import urlparse
@@ -23,11 +23,11 @@ MODEL_DIR=f'{config.ROOT_DIR}/models/'
 CN_LANGDICT = {
     "app_title": "模型下载",
     "header_title": "可在此手动下载所需模型",
-    "header_tips": "vits/piper/m2m100使用前先下载，其他模型使用时也会自动下载",
+    "header_tips": "vits/piper/m2m100渠道模型需在使用前手动点击下载，其他模型使用时自动下载",
     
-    "section_tts": "vits/piper/M2M100模型(使用前需下载)",
-    "section_openai": "openai-whisper渠道所需模型(使用时也会自动下载)",
-    "section_faster": "faster-whisper渠道所需模型(使用时也会自动下载)",
+    "section_tts": "vits/piper/M2M100渠道模型(需使用前下载)",
+    "section_openai": "语音识别openai-whisper渠道模型(使用时自动下载)",
+    "section_faster": "语音识别faster-whisper渠道模型(使用时自动下载)",
 
     # 按钮与状态
     "btn_start": "开始下载",
@@ -162,14 +162,16 @@ class DownloadWorker(QThread):
                 # 判断能否联通 huggingface.co，如果不能，则使用镜像 hf-mirror.com 替换
                 hf_mirror=False
                 if 'huggingface.co' in self.task['urls'][0]:
+                    self.status_signal.emit(f"check huggingface.co ...")
                     try:
-                        self.status_signal.emit(f"check huggingface.co ...")
-                        requests.head('https://huggingface.co',timeout=10)
-                        print('可以使用 huggingface.co')
+                        requests.head('https://huggingface.co',timeout=5)
                     except Exception:
                         print(f'无法联通 huggingface.co, 使用镜像 hf-mirror.com 替换')
                         self.status_signal.emit(f"use hf-mirror.com")
                         hf_mirror=True
+                    else:
+                        print('可以使用 huggingface.co')
+                        
                 for url in self.task["urls"]:
                     if hf_mirror:
                         url=url.replace('https://huggingface.co','https://hf-mirror.com')
@@ -728,25 +730,28 @@ class MainWindow(QWidget):
             t=TaskWidget(task)
             self.task_obj[task['zip_folder']]=t
             content_layout.addWidget(t)
+        
+        
+        def _second_init():
+            # 添加第二组：OpenAI Whisper
+            add_section_header(TRANS["section_openai"])
+            for task in self.tasks_openai:
+                t=TaskWidget(task)
+                self.task_obj[task['name']]=t
+                content_layout.addWidget(t)
 
-        # 添加第二组：OpenAI Whisper
-        add_section_header(TRANS["section_openai"])
-        for task in self.tasks_openai:
-            t=TaskWidget(task)
-            self.task_obj[task['name']]=t
-            content_layout.addWidget(t)
+            # 添加第三组：Faster Whisper
+            add_section_header(TRANS["section_faster"])
+            for task in self.tasks_faster:
+                t=TaskWidget(task)
+                self.task_obj[task['name']]=t
+                content_layout.addWidget(t)
 
-        # 添加第三组：Faster Whisper
-        add_section_header(TRANS["section_faster"])
-        for task in self.tasks_faster:
-            t=TaskWidget(task)
-            self.task_obj[task['name']]=t
-            content_layout.addWidget(t)
-
-        content_layout.addStretch() # 底部弹簧
+            content_layout.addStretch() # 底部弹簧
         
         scroll.setWidget(content_widget)
         outer_layout.addWidget(scroll)
+        QTimer.singleShot(200,_second_init)
 
     def auto_start(self,zip_folder=None):
         if zip_folder and zip_folder in self.task_obj and hasattr(self.task_obj[zip_folder],'toggle_download'):

@@ -8,7 +8,7 @@ from openai import OpenAI
 
 from videotrans.configure import config
 from videotrans.configure._except import  StopRetry
-from videotrans.configure.config import tr, logs
+from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -52,7 +52,7 @@ class ParaketRecogn(BaseRecogn):
         try:
             words_list=json.loads(tmp[1])
         except json.JSONDecodeError:
-            logs(f'获取 api 返回的word列表json格式化失败')
+            config.logger.debug(f'获取 api 返回的word列表json格式化失败')
             words_list=[]
         
         if not words_list:    

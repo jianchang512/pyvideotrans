@@ -12,7 +12,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 from openai import LengthFinishReasonError
@@ -57,7 +57,7 @@ class ChatGPT(BaseTrans):
                     'content': f"""```srt\n{srt}\n```"""
                 }
             ]
-            logs(f'需要断句的:{message=}')
+            config.logger.debug(f'需要断句的:{message=}')
             model = OpenAI(api_key=api_key, base_url=api_url, http_client=httpx.Client(proxy=self.proxy_str))
 
             response = model.chat.completions.create(
@@ -67,18 +67,18 @@ class ChatGPT(BaseTrans):
                 timeout=300 # 超过5分钟为失败
             )
             if not hasattr(response, 'choices') or not response.choices:
-                logs(f'[LLM re-segments]重新断句失败:{response=}',level='warn')
+                config.logger.warning(f'[LLM re-segments]重新断句失败:{response=}')
                 raise RuntimeError(f"{response}")
 
             if response.choices[0].finish_reason == 'length':
                 raise RuntimeError(f"Please increase max_token")
             if not response.choices[0].message.content:
-                logs(f'[LLM re-segments]重新断句失败:{response=}',level='warn')
+                config.logger.warning(f'[LLM re-segments]重新断句失败:{response=}')
                 raise RuntimeError(f"{response}")
 
             result = response.choices[0].message.content
             match = re.search(r'<SRT>(.*?)</SRT>', re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S), re.S | re.I)
-            logs(f'[LLM re-segments]重新断句结果:{result=}',level='warn')
+            config.logger.warning(f'[LLM re-segments]重新断句结果:{result=}')
             if match:
                 return match.group(1)
             return result.strip()
@@ -130,7 +130,7 @@ class ChatGPT(BaseTrans):
                 'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
         ]
 
-        logs(f"\n[chatGPT]发送请求数据:{message=}")
+        config.logger.debug(f"\n[chatGPT]发送请求数据:{message=}")
         model = OpenAI(api_key=config.params.get('chatgpt_key',''), base_url=self.api_url,
                        http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         response = model.chat.completions.create(
@@ -139,7 +139,7 @@ class ChatGPT(BaseTrans):
             max_completion_tokens=int(config.params.get('chatgpt_max_token', 8192)),
             messages=message
         )
-        logs(f'[chatGPT]响应:{response=}')
+        config.logger.debug(f'[chatGPT]响应:{response=}')
         result = ""
         if not hasattr(response,'choices'):
             raise RuntimeError(str(response))
@@ -149,7 +149,7 @@ class ChatGPT(BaseTrans):
         if response.choices[0].message.content:
             result = response.choices[0].message.content.strip()
         else:
-            logs(f'[chatGPT]请求失败:{response=}',level='warn')
+            config.logger.warning(f'[chatGPT]请求失败:{response=}')
             raise RuntimeError(f"[OpenAIChatGPT]{response.choices[0].finish_reason}:{response}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',

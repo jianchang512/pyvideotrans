@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr, logs
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -49,7 +49,7 @@ class LocalLLM(BaseTrans):
             {'role': 'user',
              'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
         ]
-        logs(f"\n[localllm]发送请求数据:{message=}")
+        config.logger.debug(f"\n[localllm]发送请求数据:{message=}")
 
         response = model.chat.completions.create(
             model=config.params.get('localllm_model',''),
@@ -60,7 +60,7 @@ class LocalLLM(BaseTrans):
             messages=message
         )
 
-        logs(f'[localllm]响应:{response=}')
+        config.logger.debug(f'[localllm]响应:{response=}')
 
         if isinstance(response, str):
             raise RuntimeError(f'{response=}')

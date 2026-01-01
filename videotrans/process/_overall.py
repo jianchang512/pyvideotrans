@@ -6,19 +6,15 @@ import shutil
 import time
 from pathlib import Path
 
-
-
-# 该文件运行在独立进程
+# 中国大陆除非已使用VPN，否则无法连接 huggingface.co, 使用镜像站 hf-mirror.com 替换，但不太稳定，下载大文件容易失败
+# 针对默认模型 large-v3-turbo，在无法连接 huggingface.co 时，优先从 modelscope.cn 下载
 
 
 def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
         q: multiprocessing.Queue,proxy=None,TEMP_DIR=None,settings=None,defaulelang='zh',split_type=0,whisper_type=0,speech_timestamps=None):
-    os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-    os.environ["OMP_NUM_THREADS"] = "1"
-    import torch
     from videotrans.configure import config
-    from videotrans.process._iscache import _MODELS,is_model_cached,check_huggingface_connect
-    from videotrans.util.tools import clean_text_for_srtdict
+    from videotrans.process._iscache import _MODELS,is_model_cached
+    import torch,requests
     os.chdir(config.ROOT_DIR)
     down_root = config.ROOT_DIR + "/models"
     model=None
@@ -31,8 +27,50 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
         except Exception:
             pass
     
+    # 在下载默认模型 large-v3-turbo时，针对国内无法连接huggingface.co，且镜像站不稳定的情况，使用 modelscope.cn替换
+    def _faster_turbo_from_modelscope(local_dir):
+        print('阿里镜像下载')
+        urls=[
+            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/config.json',
+            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/preprocessor_config.json',
+            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/tokenizer.json',
+            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/vocabulary.json',
+            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/model.bin',
+        ]
+        write_log({"text": f"downloading large-v3-turbo from modelscope.cn", "type": "logs"})
+        for index,url in enumerate(urls):
+            filename=os.path.basename(url)
+            write_log({"text": f"start downloading {index+1}/5 from modelscope.cn", "type": "logs"})
+            with requests.get(url, stream=True, timeout=60) as response:
+                response.raise_for_status()
+                
+                total_length = response.headers.get('content-length')
+                dest_file_obj = open(f'{local_dir}/{filename}', 'wb')
+                try:
+                    if total_length is None:
+                        dest_file_obj.write(response.content)
+                    else:
+                        total_length = int(total_length)
+                        downloaded = 0
+                        last_send=time.time()
+                        for chunk in response.iter_content(chunk_size=8192):
+                            if chunk:
+                                dest_file_obj.write(chunk)
+                                downloaded += len(chunk)
+                                file_percent = min((downloaded / total_length)*100,100)
+                                if time.time()-last_send>3:
+                                    last_send=time.time()
+                                    write_log({"text": f"downloading {index+1}/5 {file_percent:.2f}%", "type": "logs"})
+                finally:
+                    dest_file_obj.close()                   
+            write_log({"text": f"end downloading {index+1}/5 from modelscope.cn", "type": "logs"})
+            
+        
+        return local_dir
+        
+    # 下载模型，首先测试 huggingface.co 连通性，不可用则回退镜像 hf-mirror.com
     def _get_modeldir_download(model_name):   
-        print(f'下载 {model_name=}')
+        print(f'下载 {model_name=},proxy={os.environ.get("HTTPS_PROXY")}')
         write_log({"text": "Checking if the model exists", "type": "logs"})
         local_dir=f'{down_root}/models--'
         if model_name in _MODELS:
@@ -45,6 +83,25 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
         if Path(local_dir).exists() and Path(local_dir+"/model.bin").is_file():
             write_log({"text": "The model already exists.", "type": "logs"})
             return local_dir
+        
+        try:
+            requests.head('https://huggingface.co',timeout=5)
+        except Exception:
+            print(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com, {model_name=}')
+            os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+            os.environ["HF_HUB_DISABLE_XET"] = "1"
+            if model_name in ['large-v3-turbo','turbo']:
+                try:
+                    # 针对 large-v3-turbo 模型使用 modelscope.cn 下载
+                    return _faster_turbo_from_modelscope(local_dir)
+                except Exception as e:
+                    print(e)
+                    pass#失败继续使用镜像尝试
+        else:
+            print('可以使用 huggingface.co')
+            os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
+            os.environ["HF_HUB_DISABLE_XET"] = "0"
+        
         Path(local_dir).mkdir(exist_ok=True, parents=True)
         # 不存在，判断缓存中是否存在
         # 用于兼容处理旧版本模型目录
@@ -68,9 +125,8 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
             write_log({"text": "The model already exists.", "type": "logs"})
             return local_dir
         # 不存在，需要下载
-        write_log({"text": "Downloading the model...", "type": "logs"})
+        write_log({"text": f"Downloading the model from {os.environ['HF_ENDPOINT']} ...", "type": "logs"})
         from huggingface_hub import snapshot_download
-        check_huggingface_connect(config.ROOT_DIR,proxy)
         try:
             snapshot_download(
                 repo_id=repo_id,
@@ -108,12 +164,12 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
     last_end_time=speech_timestamps[-1][1]/1000.0
     print(f's={time.time()}')
     print(float(settings.get('no_speech_threshold',0.5)))
-    if whisper_type==1:
-        import whisper
-        if not Path(f'{down_root}/{model_name}.pt').exists():
-            msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
-            write_log({"text": msg, "type": "logs"})
-        try:
+    try:
+        if whisper_type==1:
+            import whisper
+            if not Path(f'{down_root}/{model_name}.pt').exists():
+                msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
+                write_log({"text": msg, "type": "logs"})
             write_log({"text": f"load {model_name}", "type": "logs"})
             model = whisper.load_model(
                 model_name,
@@ -141,11 +197,15 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
                     text=''
                     for segment in result['segments']:
                         text+=segment['text']
-                    text=clean_text_for_srtdict(text)
                     if text:
                         raws.append({"text": text,"start":it[0]/1000.0,'end':it[1]/1000.0})
                         write_log({"text": f'{text}\n', "type": "subtitle"})
                         write_log({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
+                    try:
+                        Path(filename).unlink(missing_ok=True)
+                    except:
+                        pass
+                    
             else:
                 print(f'openai-whisper 整体识别')
                 for it in speech_timestamps:
@@ -166,29 +226,25 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
                     # 时间戳大于总时长，出错跳过
                     if segment['end']>last_end_time:
                         continue
-                    text = clean_text_for_srtdict(segment['text'])
+                    text = segment['text']
                     if not text.strip():
                         continue
                     raws.append({"text": text,"start":segment['start'],'end':segment['end']})
                     write_log({"text": f'{text}\n', "type": "subtitle"})
                     write_log({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
-        except Exception as e:
-            import traceback
-            err['msg'] = traceback.format_exc()
-    else:
-        if model_name not in _MODELS:
-            split_type=0
-             
-        try:
-            local_dir=_get_modeldir_download(model_name)
-        except Exception as e:# 可能下载失败
-            err['msg'] = str(e)
-            return
+        else:
+            if model_name not in _MODELS:
+                split_type=0
+                 
+            try:
+                local_dir=_get_modeldir_download(model_name)
+            except Exception as e:# 可能下载失败
+                err['msg'] = str(e)
+                return
 
-
-        from faster_whisper import WhisperModel,BatchedInferencePipeline
-        
-        try:
+            write_log({"text": f"load {model_name}", "type": "logs"})
+            from faster_whisper import WhisperModel,BatchedInferencePipeline
+            
             if model_name.startswith('distil-'):
                 com_type = "default"
             else:
@@ -243,11 +299,14 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
                     text=''
                     for segment in segments:
                         text+=segment.text
-                    text = clean_text_for_srtdict(text)
             
                     raws.append({"text": text,"start":it[0]/1000.0,'end':it[1]/1000.0})
                     write_log({"text": f'{text}\n', "type": "subtitle"})
                     write_log({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
+                    try:
+                        Path(filename).unlink(missing_ok=True)
+                    except:
+                        pass
             else:
                 print(f'faster-whisper 整体识别')
                 speech_timestamps_flat=[]
@@ -272,16 +331,18 @@ def run(raws, err, detect, *, model_name, is_cuda, detect_language, audio_file,
                         return
                     if segment.end>last_end_time:
                         continue
-                    text = clean_text_for_srtdict(segment.text)
+                    text = segment.text
                     if not text.strip():
                         continue
                     s,e=segment.start,segment.end
                     raws.append({"text": text,"start":s,'end':e})
                     write_log({"text": f'{text}\n', "type": "subtitle"})
                     write_log({"text": f' Subtitles {len(raws) + 1} ', "type": "logs"})
-        except BaseException as e:
-            import traceback
-            err['msg'] = traceback.format_exc()
+        
+        
+    except BaseException as e:
+        import traceback
+        err['msg'] = traceback.format_exc()
     print(f'e={time.time()}')
     try:
         if torch.cuda.is_available():

@@ -195,7 +195,8 @@ def run(*,
         recogn_type: int = 0,
         is_cuda=None,
         subtitle_type=0,
-        max_speakers=-1 # -1 不启用说话人识别,0=不限制数量，>0最大数量
+        max_speakers=-1, # -1 不启用说话人识别,0=不限制数量，>0最大数量
+        llm_post=False
         ) -> Union[List[Dict], None]:
 
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
@@ -210,7 +211,8 @@ def run(*,
         "subtitle_type": subtitle_type,
         "recogn_type":recogn_type,
         "split_type":split_type,
-        "max_speakers":max_speakers
+        "max_speakers":max_speakers,
+        "llm_post":llm_post
     }
 
     if recogn_type == GOOGLE_SPEECH:

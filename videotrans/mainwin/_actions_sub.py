@@ -12,7 +12,7 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer, Qt
 
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
 from videotrans import tts
@@ -365,6 +365,8 @@ class WinActionSub:
             config.settings['proxy'] = ''
         elif re.match(r'https?://(\d+\.){3}\d+:\d+', config.proxy):
             config.settings['proxy'] = config.proxy
+            tools.set_proxy(config.proxy)
+            
         config.parse_init(config.settings)
 
     

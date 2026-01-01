@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 

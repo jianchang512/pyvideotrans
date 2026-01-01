@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QSizePolicy
 
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 
 
 class Ui_MainWindow(object):
@@ -1038,6 +1038,8 @@ class Ui_MainWindow(object):
 
         self.menu.addAction(self.actionsetini)
         self.menu.addSeparator()
+        self.menu.addAction(self.action_downmodels)
+        self.menu.addSeparator()
         self.menu.addAction(self.actionwatermark)
         self.menu.addSeparator()
         self.menu.addAction(self.actionvideoandaudio)
@@ -1060,8 +1062,7 @@ class Ui_MainWindow(object):
         self.menu.addSeparator()
         self.menu.addAction(self.action_set_proxy)
         self.menu.addSeparator()
-        self.menu.addAction(self.action_downmodels)
-        self.menu.addSeparator()
+        
         self.menu.addAction(self.action_clearcache)
         self.menu.addSeparator()
 

@@ -256,6 +256,7 @@ dependencies = [
     "funasr>=1.2.7",
     "gradio-client>=2.0.1",
     "ten-vad>=1.0.6.8",
+    "pyannote-audio==3.4.0",
 ]
 
 [[tool.uv.index]]

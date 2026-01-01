@@ -1,7 +1,7 @@
 import time,shutil
 from PySide6.QtCore import QThread
 from videotrans.configure import config
-from videotrans.configure.config import tr, logs
+from videotrans.configure.config import tr
 from videotrans.task._base import BaseTask
 from videotrans.util import tools
 from videotrans.util.tools import set_process
@@ -79,7 +79,7 @@ class WorkerPrepare(QThread):
                 else:
                     config.taskdone_queue.put_nowait(trk)
             except Exception as e:
-                logs(e, level="except")
+                config.logger.exception(e, exc_info=True)
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 msg=f'{tr("yuchulichucuo")} {except_msg}\n' + traceback.format_exc()+f"\n{trk.cfg}"
@@ -113,7 +113,7 @@ class WorkerRegcon(QThread):
                 trk.recogn()
                 config.diariz_queue.put_nowait(trk)
             except Exception as e:
-                logs(e, level="except")
+                config.logger.exception(e, exc_info=True)
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 if trk.cfg.recogn_type is not None:
@@ -147,7 +147,7 @@ class WorkerDiariz(QThread):
                 print(f'进入执行说话人分离阶段')
                 trk.diariz()
             except Exception as e:
-                logs(e, level="except")
+                config.logger.exception(e, exc_info=True)
             finally:
                 # 如果需要识翻译,则插入翻译队列，否则就行判断配音队列，都不吻合则插入最终队列
                 if trk.shoud_trans:
@@ -190,7 +190,7 @@ class WorkerTrans(QThread):
                 else:
                     config.taskdone_queue.put_nowait(trk)
             except Exception as e:
-                logs(e, level="except")
+                config.logger.exception(e, exc_info=True)
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 if trk.cfg.translate_type is not None:
@@ -224,7 +224,7 @@ class WorkerDubb(QThread):
                 trk.dubbing()
                 config.align_queue.put_nowait(trk)
             except Exception as e:
-                logs(e, level="except")
+                config.logger.exception(e, exc_info=True)
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 if trk.cfg.tts_type is not None:
@@ -262,7 +262,7 @@ class WorkerAlign(QThread):
                 else:
                     config.taskdone_queue.put_nowait(trk)
             except Exception as e:
-                logs(e, level="except")
+                config.logger.exception(e, exc_info=True)
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 msg = f'{except_msg}\n' + traceback.format_exc()+f"\n{trk.cfg}"
@@ -299,7 +299,7 @@ class WorkerAssemb(QThread):
                 trk.assembling()
                 config.taskdone_queue.put_nowait(trk)
             except Exception as e:
-                logs(e, level="except")
+                config.logger.exception(e, exc_info=True)
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 msg = f'{tr("hebingchucuo")} {except_msg}\n' + traceback.format_exc()+f"\n{trk.cfg}"
@@ -332,7 +332,7 @@ class WorkerTaskDone(QThread):
                 print(f'进入执行完成阶段')
                 trk.task_done()
             except Exception as e:
-                logs(e, level="except")
+                config.logger.exception(e, exc_info=True)
                 from videotrans.configure._except import get_msg_from_except
                 except_msg = get_msg_from_except(e)
                 msg = f'{except_msg}\n' + traceback.format_exc()+f"\n{trk.cfg}"

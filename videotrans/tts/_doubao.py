@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
-from videotrans.configure.config import logs
+
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -117,7 +117,7 @@ class DoubaoTTS(BaseTTS):
 
                 }
             }
-            config.logger.info(f'字节语音合成:{request_json=}')
+            config.logger.debug(f'字节语音合成:{request_json=}')
             resp = requests.post(api_url, json.dumps(request_json), headers=header,verify=False)
             resp.raise_for_status()
             resp_json = resp.json()
@@ -132,7 +132,7 @@ class DoubaoTTS(BaseTTS):
                 self.stop_next_all=True
                 raise RuntimeError(resp_json.get('message'))
             if 'code' in resp_json:
-                logs(f'字节火山语音合成失败:{resp_json=}')
+                config.logger.debug(f'字节火山语音合成失败:{resp_json=}')
             raise RuntimeError(self.error_status.get(str(resp_json['code']), resp_json['message']))
 
         try:

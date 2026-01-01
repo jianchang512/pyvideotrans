@@ -8,7 +8,7 @@ from PySide6.QtGui import QFont, QColor
 from PySide6.QtWidgets import QHBoxLayout, QFontDialog, QColorDialog
 
 from videotrans.configure import config
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 
 
 class Ui_vasrt(object):

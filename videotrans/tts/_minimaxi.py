@@ -8,8 +8,6 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log,   RetryError
 
 from videotrans.configure import config
-from videotrans.configure.config import logs
-
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -89,7 +87,7 @@ class MinimaxiTTS(BaseTTS):
             response = requests.request("POST", self.api_url, headers=headers, data=payload)
             response.raise_for_status()
             res=response.json()
-            logs(f'返回数据 {res["base_resp"]=}')
+            config.logger.debug(f'返回数据 {res["base_resp"]=}')
             if res['base_resp']['status_code'] == 1004:
                 self.stop_next_all=True
             if res['base_resp']['status_code'] != 0:

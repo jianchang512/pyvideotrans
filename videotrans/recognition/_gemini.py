@@ -13,7 +13,6 @@ from pydub import AudioSegment
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
-from videotrans.configure.config import logs
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
@@ -54,7 +53,7 @@ class GeminiRecogn(BaseRecogn):
                 )
             parts.append(types.Part.from_text(text=prompt))
 
-            logs(f'发送音频到Gemini:prompt={prompt},{seg_group=}')
+            config.logger.debug(f'发送音频到Gemini:prompt={prompt},{seg_group=}')
             generate_content_config = types.GenerateContentConfig(
                 max_output_tokens=65536,
                 thinking_config=types.ThinkingConfig(
@@ -116,7 +115,7 @@ class GeminiRecogn(BaseRecogn):
             self.api_keys.append(api_key)
             
             res_text=self._req(seg_group,api_key,prompt)
-            logs(f'gemini返回结果:{res_text=}')
+            config.logger.debug(f'gemini返回结果:{res_text=}')
             m = re.findall(r'<audio_text[^\>]*?>(.*?)<\/audio_text>', res_text.strip(), re.I | re.S)
             if len(m) < 1:
                 continue

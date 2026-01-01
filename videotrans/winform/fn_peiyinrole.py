@@ -9,7 +9,7 @@ def openwin():
     import json
     import os
     from pathlib import Path
-    from videotrans.configure.config import tr,logs
+    from videotrans.configure.config import tr
     from PySide6.QtCore import QUrl, Qt,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog

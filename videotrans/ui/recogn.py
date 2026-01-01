@@ -6,7 +6,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import Qt
 
 from videotrans.configure import config
-from videotrans.configure.config import  tr,logs
+from videotrans.configure.config import  tr
 
 
 class Ui_recogn(object):

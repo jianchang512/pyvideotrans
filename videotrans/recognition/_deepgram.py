@@ -20,7 +20,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -77,7 +77,7 @@ class DeepgramRecogn(BaseRecogn):
         raws = []
         if diarize:
             speaker_list=[]
-            logs(f"{res['results']['utterances']=}")
+            config.logger.debug(f"{res['results']['utterances']=}")
             for it in res['results']['utterances']:
                 if not it.transcript.strip():
                     continue

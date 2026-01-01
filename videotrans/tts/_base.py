@@ -13,7 +13,7 @@ from tenacity import RetryError
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 
 from videotrans.util import tools
 
@@ -137,9 +137,9 @@ class BaseTTS(BaseCon):
                 self._exec()
         except RuntimeError as e:
             # 这个捕获现在更有意义，因为它可能捕获到循环相关的错误
-            logs(f'TTS 线程运行时发生错误: {e}',level='warn')
+            config.logger.warning(f'TTS 线程运行时发生错误: {e}')
             if 'Event loop' in str(e):
-                logs("捕获到 'Event loop is closed' 错误，这通常是关闭时序问题。",level='warn')
+                config.logger.warning("捕获到 'Event loop is closed' 错误，这通常是关闭时序问题。")
             else:
                 raise
         except RetryError as e:
@@ -149,7 +149,7 @@ class BaseTTS(BaseCon):
         finally:
             # 只有当 self._exec 是异步函数时，我们才需要处理事件循环
             if inspect.iscoroutinefunction(self._exec) and loop and not loop.is_closed():
-                logs("开始执行事件循环的关闭流程...")
+                config.logger.debug("开始执行事件循环的关闭流程...")
                 try:
                     # 步骤 1: 取消所有剩余的任务
                     tasks = asyncio.all_tasks(loop=loop)
@@ -165,10 +165,10 @@ class BaseTTS(BaseCon):
                     # 步骤 3: 关闭异步生成器
                     loop.run_until_complete(loop.shutdown_asyncgens())
                 except Exception as e:
-                    logs(f"在关闭事件循环时发生错误: {e}", level="except")
+                    config.logger.exception(e, exc_info=True)
                 finally:
                     # 步骤 4: 最终关闭事件循环
-                    logs("事件循环已关闭。")
+                    config.logger.debug("事件循环已关闭。")
                     loop.close()
 
         # 试听或测试时播放

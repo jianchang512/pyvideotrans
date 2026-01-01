@@ -7,7 +7,7 @@ from typing import List, Optional, Union
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure.config import tr, logs
+from videotrans.configure.config import tr
 from videotrans.util import tools
 
 
@@ -114,7 +114,7 @@ class BaseTrans(BaseCon):
             time.sleep(self.wait_sec)
 
         max_i = len(target_list)
-        logs(f'以普通文本行按行翻译：原始行数:{len(self.text_list)},翻译后行数:{max_i}')
+        config.logger.debug(f'以普通文本行按行翻译：原始行数:{len(self.text_list)},翻译后行数:{max_i}')
         for i, it in enumerate(self.text_list):
             if i < max_i:
                 self.text_list[i]['text'] = target_list[i]
@@ -145,12 +145,12 @@ class BaseTrans(BaseCon):
 
             self._signal(text=result, type='subtitle')
             tmp=tools.get_subtitle_from_srt(result, is_file=False)
-            logs(f'\n原始待翻译文本:{srt_str=}\n翻译结果:{result=}\n整理后：{tmp=}')
+            config.logger.debug(f'\n原始待翻译文本:{srt_str=}\n翻译结果:{result=}\n整理后：{tmp=}')
             raws_list.extend(tmp)
             time.sleep(self.wait_sec)
 
         # 双语翻译结果，只取最后一行
-        logs(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},整理为list[dict]后的行数:{len(raws_list)}')
+        config.logger.debug(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},整理为list[dict]后的行数:{len(raws_list)}')
         for i, it in enumerate(raws_list):
             if i>=len(self.text_list):
                 continue

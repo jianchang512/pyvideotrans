@@ -40,7 +40,7 @@ class WhisperXRecogn(BaseRecogn):
         raws = []
         speaker_list = []
         speaker_name = []
-        config.logger.info(f'[whisperx-api]:指定最大说话人：{self.max_speakers=}')
+        config.logger.debug(f'[whisperx-api]:指定最大说话人：{self.max_speakers=}')
         with open(self.audio_file, 'rb') as file:
 
             transcript = client.audio.transcriptions.create(

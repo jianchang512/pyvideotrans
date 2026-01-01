@@ -4,22 +4,22 @@ import os,json,re
 import math
 from collections import deque
 from datetime import timedelta
-from videotrans.configure.config import logs
-
-"""
-srt_autofix_module.py
-Subtitle auto-fix module — single-file, entry signature preserved.
-
-NEW FEATURES:
-- min_duration_ms：分句最小时长
-- max_duration_ms：分句最大时长
-"""
-
-import re
+from videotrans.configure import config
 from typing import List, Dict
-import os
 
+def clean_text_for_srtdict(text: str) -> str:
+    if not text:
+        return ""
+    text = re.sub(r'[^\w\s,.?!;:"\'%，。！？；：“”‘’、\-\u4e00-\u9fff]', '', text,flags=re.I | re.S)
 
+    text = re.sub(r'\s+([，；。！？])', r'\1', text,flags=re.I | re.S)
+    text = re.sub(r'\s+([,;:.!?])', r'\1', text,flags=re.I | re.S)
+    text = re.sub(r'([,;:.!?])(?=[A-Za-z0-9])', r'\1 ', text,flags=re.I | re.S)
+    text = re.sub(r'\s+', ' ', text,flags=re.I | re.S)
+    text = text.strip()
+    return text
+
+'''
 
 CJK_RE = re.compile(r'[\u4e00-\u9fff]')
 
@@ -33,18 +33,6 @@ def weighted_len(text: str, cjk_weight: float = 1.25) -> float:
     other_count = len(text) - cjk_count
     return cjk_count * cjk_weight + other_count
 
-
-def clean_text_for_srtdict(text: str) -> str:
-    if not text:
-        return ""
-    text = re.sub(r'[^\w\s,.?!;:"\'%，。！？；：“”‘’、\-\u4e00-\u9fff]', '', text,flags=re.I | re.S)
-
-    text = re.sub(r'\s+([，；。！？])', r'\1', text,flags=re.I | re.S)
-    text = re.sub(r'\s+([,;:.!?])', r'\1', text,flags=re.I | re.S)
-    text = re.sub(r'([,;:.!?])(?=[A-Za-z0-9])', r'\1 ', text,flags=re.I | re.S)
-    text = re.sub(r'\s+', ' ', text,flags=re.I | re.S)
-    text = text.strip()
-    return text
 
 
 # -----------------------------------------------------
@@ -456,7 +444,7 @@ def auto_fix_srtdict(
 
 
 # -----------------------------------------------------
-
+'''
 
 def process_text_to_srt_str(input_text: str):
     if is_srt_string(input_text):
@@ -659,8 +647,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
                 with open(file, 'r', encoding='gbk') as f:
                     content = f.read().strip()
             except UnicodeDecodeError as e:
-                from videotrans.configure import config
-                logs(e, level="except")
+                config.logger.exception(e, exc_info=True)
                 raise
         except BaseException:
             raise
@@ -691,7 +678,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
 
 # 从 字幕 对象中获取 srt 字幕串
 def get_srt_from_list(srt_list):
-    from videotrans.configure._config_loader import tr
+    from videotrans.configure.config import tr
     txt = ""
     line = 0
     # it中可能含有完整时间戳 it['time']   00:00:01,123 --> 00:00:12,345
@@ -759,20 +746,20 @@ def set_ass_font(srtfile: str) -> str:
 
     # 1. 验证 ASS 文件是否存在
     if not os.path.exists(ass_file_path):
-        logs(f"[export_style] 错误：ASS 文件不存在: {ass_file_path}")
+        config.logger.warning(f"[export_style] 错误：ASS 文件不存在: {ass_file_path}")
         return ass_file_path
 
     # 2. 读取 JSON 样式
     JSON_FILE=f'{config.ROOT_DIR}/videotrans/ass.json'
     if not os.path.exists(JSON_FILE):
-        logs(f"[export_style] 警告：JSON 配置文件不存在: {JSON_FILE}，跳过样式替换")
+        config.logger.debug(f"[export_style] 警告：JSON 配置文件不存在: {JSON_FILE}，跳过样式替换")
         return ass_file_path
 
     try:
         with open(JSON_FILE, 'r', encoding='utf-8') as f:
             style = json.load(f)
     except Exception as e:
-        logs(f"[export_style] 错误：无法读取或解析 JSON 文件 {JSON_FILE}: {e}")
+        config.logger.exception(f"[export_style] 错误：无法读取或解析 JSON 文件 {JSON_FILE}: {e}",exc_info=True)
         return ass_file_path
 
     # 3. 构建新的 Style 行
@@ -803,7 +790,7 @@ def set_ass_font(srtfile: str) -> str:
             f"{style.get('Encoding', 1)}\n"
         )
     except Exception as e:
-        logs(f"[export_style] 错误：构建 Style 行失败: {e}")
+        config.logger.exception(f"[export_style] 错误：构建 Style 行失败: {e}",exc_info=True)
         return ass_file_path
 
     # 4. 读取 ASS 文件内容
@@ -811,7 +798,7 @@ def set_ass_font(srtfile: str) -> str:
         with open(ass_file_path, 'r', encoding='utf-8-sig') as f:
             content = f.read()
     except Exception as e:
-        logs(f"[export_style] 错误：无法读取 ASS 文件: {e}")
+        config.logger.exception(f"[export_style] 错误：无法读取 ASS 文件: {e}",exc_info=True)
         return ass_file_path
 
     # 5. 正则替换 [V4+ Styles] 区块
@@ -835,16 +822,16 @@ def set_ass_font(srtfile: str) -> str:
     try:
         new_content, count = re.subn(pattern, replacer, content, flags=re.MULTILINE)
     except Exception as e:
-        logs(f"[export_style] 错误：正则替换失败: {e}")
+        config.logger.exception(f"[export_style] 错误：正则替换失败: {e}",exc_info=True)
         return ass_file_path
 
     # 6. 写回文件
     try:
         with open(ass_file_path, 'w', encoding='utf-8-sig', newline='') as f:
             f.write(new_content)
-        logs(f"[export_style] 成功：样式已更新到 {ass_file_path}")
     except Exception as e:
-        logs(f"[export_style] 错误：无法写入 ASS 文件: {e}")
+        config.logger.exception(f"[export_style] 错误：无法写入 ASS 文件: {e}",exc_info=True)
+
 
     return ass_file_path
 

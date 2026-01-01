@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
-from videotrans.configure.config import tr, logs
+from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -106,7 +106,7 @@ class Gemini(BaseTrans):
             )
             if model.startswith('gemini-1.') or model.startswith('gemini-2.0'):            
                 generate_content_config = types.GenerateContentConfig()
-            logs(f'[Gemini]请求发送:{message=}')
+            config.logger.debug(f'[Gemini]请求发送:{message=}')
             result = ""
             for chunk in client.models.generate_content_stream(
                 model=model,
@@ -115,9 +115,9 @@ class Gemini(BaseTrans):
             ):
                 result+=chunk.text
                      
-            logs(f'{result=}')
+            config.logger.debug(f'{result=}')
             if not result:
-                logs(f'[gemini]请求失败',level='warn')
+                config.logger.warning(f'[gemini]请求失败')
                 raise RuntimeError(f"[Gemini]result is empty")
                 
             match = re.search(r'<TRANSLATE_TEXT>(.*?)(?:</TRANSLATE_TEXT>|$)',
@@ -126,7 +126,7 @@ class Gemini(BaseTrans):
                 return match.group(1)
             raise RuntimeError(f"Gemini result is emtpy")
         except errors.APIError as e:
-            logs(f'{e=}',level='warn')
+            config.logger.warning(f'{e=}')
             if e.code in [400,403,404,429,500]:
                 raise StopRetry(e.message)
             raise RuntimeError(e.message)

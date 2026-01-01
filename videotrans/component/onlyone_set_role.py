@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QIcon, QPen, QColor, QBrush, QPainter
 from PySide6.QtCore import Qt, QTimer, QSize, QAbstractListModel, QModelIndex, QRect, QPoint,QEvent
 
-from videotrans.configure.config import logs, tr
+from videotrans.configure.config import  tr
 from videotrans.util import tools
 from videotrans.configure import config
 
@@ -348,7 +348,7 @@ class SpeakerAssignmentDialog(QDialog):
                 self.speaker_list_sub=_list_sub
                 self.speakers={it:None for it in sorted(list(_set))}
         except Exception as e:
-            logs(f'获取说话人id失败:{e}',level="except")
+            config.logger.exception(f'获取说话人id失败:{e}', exc_info=True)
 
         self.all_voices = all_voices or []
 

@@ -10,7 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr,logs
+from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -59,12 +59,12 @@ class TTSAPI(BaseTTS):
 
             if '/t2a_v2' in self.api_url and 'minimax' in self.api_url:
                 res = self._302aiMinimax(data_item['text'], role, speed, volume, pitch)
-                logs(f'返回数据 {res["base_resp"]=}')
+                config.logger.debug(f'返回数据 {res["base_resp"]=}')
                 if res['base_resp']['status_code'] != 0:
                     raise RuntimeError(res['base_resp']['status_msg'] )
             else:
                 res = self._apirequests(data_item['text'], role, speed, volume, pitch)
-                logs(f'返回数据 {res["code"]=}')
+                config.logger.debug(f'返回数据 {res["code"]=}')
                 if "code" not in res or "msg" not in res or res['code'] != 0:
                     raise RuntimeError(f'TTS-API:{res["msg"]}' )
 
@@ -106,7 +106,7 @@ class TTSAPI(BaseTTS):
             'Content-Type': 'application/x-www-form-urlencoded',
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
         }
-        logs(f'发送数据 {data=}')
+        config.logger.debug(f'发送数据 {data=}')
         resraw = requests.post(f"{self.api_url}", data=data, verify=False, headers=headers)
         resraw.raise_for_status()
         return resraw.json()

@@ -8,7 +8,6 @@ from typing import List, Dict, Union
 import requests
 
 from videotrans.configure import config
-from videotrans.configure.config import logs
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
@@ -65,8 +64,8 @@ class ZijieRecogn(BaseRecogn):
         # print(request)
 
         response = requests.post(submit_url, json=request, headers=headers)
-        logs(f'{response=}')
-        logs(f'{response.headers=}')
+        config.logger.info(f'{response=}')
+        config.logger.info(f'{response.headers=}')
         response.raise_for_status()
         code = response.headers.get('X-Api-Status-Code')
         if not code:

@@ -622,6 +622,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.uito.emit('Import torch...')
         QApplication.processEvents()
         import torch
+        QApplication.processEvents()
         self.uito.emit('init downmodels window')
         config.child_forms['downmodels']=downwin()
         self.uito.emit('end')

@@ -12,7 +12,7 @@ from typing import List, Dict
 
 from videotrans import translator
 from videotrans.configure import config
-from videotrans.configure._config_loader import tr,logs
+from videotrans.configure.config import tr
 from videotrans.recognition import run as run_recogn, Faster_Whisper_XXL,Whisper_CPP
 from videotrans.translator import run as run_trans, get_audio_code
 from videotrans.tts import run as run_tts, CLONE_VOICE_TTS, CHATTERBOX_TTS, COSYVOICE_TTS, F5_TTS, EDGE_TTS, AZURE_TTS, \
@@ -142,7 +142,7 @@ class TransCreate(BaseTask):
         Path(self.cfg.cache_folder).mkdir(parents=True,exist_ok=True)
         Path(self.cfg.target_dir).mkdir(parents=True,exist_ok=True)
         # 记录最终使用的配置信息
-        logs(f"最终配置信息：{self.cfg=}")
+        config.logger.debug(f"最终配置信息：{self.cfg=}")
         # 删掉可能存在的无效文件
         self._unlink_size0(self.cfg.source_sub)
         self._unlink_size0(self.cfg.target_sub)
@@ -179,7 +179,7 @@ class TransCreate(BaseTask):
             Path(self.cfg.target_wav).unlink(missing_ok=True)
             Path(self.cfg.target_wav_output).unlink(missing_ok=True)
         except Exception as e:
-            logs(f'删除已存在的文件时失败:{e}',level="except")
+            config.logger.exception(f'删除已存在的文件时失败:{e}',exc_info=True)
 
         # 是否需要背景音分离：分离出的原始音频文件
         if self.cfg.is_separate:
@@ -319,7 +319,7 @@ class TransCreate(BaseTask):
 
             cmdstr = " ".join(cmd)
             outsrt_file = self.cfg.target_dir + '/' + Path(self.cfg.source_wav).stem + ".srt"
-            logs(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg.source_sub=}')
+            config.logger.debug(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg.source_sub=}')
 
             self._external_cmd_with_wrapper(cmd)
 
@@ -353,7 +353,7 @@ class TransCreate(BaseTask):
             
             cmd.extend(['-m', f'models/{self.cfg.model_name}', '-of', self.cfg.source_sub[:-4]])
                 
-            logs(f'Whisper.cpp: {cmd=}')
+            config.logger.debug(f'Whisper.cpp: {cmd=}')
 
             self._external_cmd_with_wrapper(cmd)
             self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.source_sub,is_file=True)
@@ -370,7 +370,8 @@ class TransCreate(BaseTask):
                 cache_folder=self.cfg.cache_folder,
                 is_cuda=self.cfg.cuda,
                 subtitle_type=self.cfg.subtitle_type,
-                max_speakers=self.max_speakers
+                max_speakers=self.max_speakers,
+                llm_post=self.cfg.rephrase == 1
             )
             if self._exit(): return
             if not raw_subtitles:
@@ -404,15 +405,39 @@ class TransCreate(BaseTask):
                     raise
             except Exception as e:
                 self._signal(text=tr("Re-segmenting Error"))
-                logs(f"重新断句失败[except]，已恢复原样 {e}", level='warn')
+                config.logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
 
         self._recogn_succeed()
         self._signal(text=tr('endtiquzimu'))
 
 
     def diariz(self):
-        if self._exit() or self.cfg.detect_language[:2] not in ['zh','en'] or not self.cfg.enable_diariz or Path(self.cfg.cache_folder+"/speaker.json").exists():
+        if self._exit() or not self.cfg.enable_diariz or Path(self.cfg.cache_folder+"/speaker.json").exists():
             return
+        speaker_type=config.settings.get('speaker_type','built')
+        hf_token=config.settings.get('hf_token')
+        if speaker_type=='built' and self.cfg.detect_language[:2] not in ['zh','en']:
+            config.logger.error(f'当前选择 built 说话人分离模型，但不支持当前语言:{self.cfg.detect_language}')
+            return
+        if speaker_type=='pyannote' and not hf_token:
+            config.logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
+            return
+        if speaker_type=='pyannote':
+            # 判断是否可访问 huggingface.co
+            # 先测试能否连接 huggingface.co, 中国大陆地区不可访问，除非使用VPN
+            try:
+                import requests
+                requests.head('https://huggingface.co',timeout=5)
+            except Exception:
+                config.logger.error(f'当前选择 pyannote 说话人分离模型，但无法连接到 https://huggingface.co')
+                return
+            else:
+                print('可以使用 huggingface.co')
+                os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
+                os.environ["HF_HUB_DISABLE_XET"] = "0"
+                Path(os.environ['HF_TOKEN_PATH']).write_text(hf_token)
+                
+        
         try:
             self.precent += 3
             self._signal(text=tr('Begin separating the speakers'))
@@ -422,14 +447,15 @@ class TransCreate(BaseTask):
                 self.cfg.detect_language,
                 [ [it['start_time'],it['end_time']] for it in self.source_srt_list],
                 -1 if self.max_speakers<1 else self.max_speakers,
-                self.uuid
+                self.uuid,
+                speaker_type
             )
             Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')            
-            logs('分离说话人成功完成')
+            config.logger.debug('分离说话人成功完成')
             shutil.copy2(self.cfg.cache_folder+"/speaker.json",self.cfg.target_dir+"/speaker.json")
             self._signal(text=tr('separating speakers end'))
         except Exception as e:
-            logs('分离说话人失败，静默跳过','except')
+            config.logger.exception(f'分离说话人失败，静默跳过{e}',exc_info=True)
             self._signal(text=tr('Speaker separation failed, silent skip.'))
 
     # 翻译字幕文件
@@ -619,7 +645,7 @@ class TransCreate(BaseTask):
                 shutil.move(self.cfg.targetdir_mp4,Path(self.cfg.target_dir).parent / f'{self.cfg.noextname}.mp4')
                 shutil.rmtree(self.cfg.target_dir,ignore_errors=True)
         except Exception as e:
-            logs(e, level="except")
+            config.logger.exception(e, exc_info=True)
         self._signal(text=f"{self.cfg.name}", type='succeed')
         tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
         
@@ -750,7 +776,7 @@ class TransCreate(BaseTask):
                 )
             ))
             tools.runffmpeg(['-y', '-i', tmp_name, '-b:a', '128k', self.cfg.target_wav])
-            config.logger.info(f'edge-tts配音，未音频加速，未视频慢速，未强制对齐，已删字幕间静音，使用单独文本配音')
+            config.logger.debug(f'edge-tts配音，未音频加速，未视频慢速，未强制对齐，已删字幕间静音，使用单独文本配音')
             return
 
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
@@ -880,7 +906,7 @@ class TransCreate(BaseTask):
             tools.runffmpeg(cmd)
             self.cfg.target_wav = self.cfg.cache_folder + f"/lastend.wav"
         except Exception as e:
-            logs(f'添加背景音乐失败:{str(e)}', level="except")
+            config.logger.exception(f'添加背景音乐失败:{str(e)}', exc_info=True)
 
     def _separate(self) -> None:
         if self._exit() or not self.shoud_separate:
@@ -897,7 +923,7 @@ class TransCreate(BaseTask):
             beishu = math.ceil(vtime / atime)
 
             instrument_file = self.cfg.instrument
-            logs(f'合并背景音 {beishu=},{atime=},{vtime=}')
+            config.logger.debug(f'合并背景音 {beishu=},{atime=},{vtime=}')
             if config.settings.get('loop_backaudio') and atime+1000 < vtime:
                 # 背景音连接延长片段
                 file_list = [instrument_file for n in range(beishu + 1)]
@@ -909,7 +935,7 @@ class TransCreate(BaseTask):
             # 背景音合并配音
             self._backandvocal(self.cfg.instrument, self.cfg.target_wav)
         except Exception as e:
-            logs(e, level="except")
+            config.logger.exception(e, exc_info=True)
 
     # 合并后最后文件仍为 人声文件，时长需要等于人声
     def _backandvocal(self, backwav, peiyinm4a):
@@ -928,7 +954,7 @@ class TransCreate(BaseTask):
 
     # 处理所需字幕
     def _process_subtitles(self) -> tuple[str, str]:
-        logs(f"\n======准备要嵌入的字幕:{self.cfg.subtitle_type=}=====")
+        config.logger.debug(f"\n======准备要嵌入的字幕:{self.cfg.subtitle_type=}=====")
         if not Path(self.cfg.target_sub).exists():
             raise RuntimeError( config.tr("No valid subtitle file exists"))
     
@@ -988,8 +1014,7 @@ class TransCreate(BaseTask):
         # 目标字幕语言
         subtitle_langcode = translator.get_subtitle_code(show_target=self.cfg.target_language)
 
-        logs(
-            f'最终确定字幕嵌入类型:{self.cfg.subtitle_type} ,目标字幕语言:{subtitle_langcode}, 字幕文件:{process_end_subtitle}\n')
+        config.logger.debug(            f'最终确定字幕嵌入类型:{self.cfg.subtitle_type} ,目标字幕语言:{subtitle_langcode}, 字幕文件:{process_end_subtitle}\n')
         # 单软 或双软
         if self.cfg.subtitle_type in [2, 4]:
             return os.path.basename(process_end_subtitle), subtitle_langcode
@@ -1013,24 +1038,24 @@ class TransCreate(BaseTask):
 
         if tools.runffmpeg(cmd, force_cpu=True) and Path(final_video_path).exists():
             shutil.copy2(final_video_path, self.cfg.novoice_mp4)
-            logs(f"视频定格应延长{duration_ms}ms，实际向上取整秒延长{sec}s,操作成功。")
+            config.logger.debug(f"视频定格应延长{duration_ms}ms，实际向上取整秒延长{sec}s,操作成功。")
         else:
-            logs("视频定格延长操作失败！",level='warn')
+            config.logger.warning("视频定格延长操作失败！")
 
     def _audio_extend(self, duration_diff,output_ma4):
         # 音频末尾添加静音延长
         padded_audio_path = Path(f'{self.cfg.cache_folder}/last_end_com.m4a').as_posix()
         pad_dur_sec = duration_diff / 1000.0
-        logs(f'音频末尾应增加{duration_diff}ms静音')
+        config.logger.debug(f'音频末尾应增加{duration_diff}ms静音')
 
         cmd = ['-y', '-i', output_ma4, '-af', f'apad=pad_dur={pad_dur_sec:.4f}',"-c:a", "aac",padded_audio_path]
 
         if tools.runffmpeg(cmd) and tools.vail_file(padded_audio_path):
             # Path(output_ma4).unlink(missing_ok=True)
             shutil.move(padded_audio_path,output_ma4)
-            logs("音频补齐静音并重新导出完成。")
+            config.logger.debug("音频补齐静音并重新导出完成。")
         else:
-            logs("使用apad滤镜填充静音失败！",level='warn')
+            config.logger.warning("使用apad滤镜填充静音失败！")
 
     # 最终合成视频
     def _join_video_audio_srt(self) -> None:
