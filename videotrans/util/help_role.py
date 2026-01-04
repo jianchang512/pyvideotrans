@@ -76,15 +76,7 @@ def get_piper_role():
     return rolelist
 
 def set_proxy(set_val=''):
-    from videotrans.configure import config
-    if set_val == 'del':
-        config.proxy = None
-        # 删除代理
-        if os.environ.get('HTTP_PROXY'):
-            os.environ.pop('HTTP_PROXY')
-        if os.environ.get('HTTPS_PROXY'):
-            os.environ.pop('HTTPS_PROXY')
-        return None
+
     if set_val:
         # 设置代理
         set_val=set_val.lower()
@@ -97,6 +89,7 @@ def set_proxy(set_val=''):
 
     # 获取代理
     http_proxy = config.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
+
     if http_proxy:
         http_proxy=http_proxy.lower()
         if not http_proxy.startswith("http") and not http_proxy.startswith('sock'):
@@ -112,15 +105,12 @@ def set_proxy(set_val=''):
             # 读取代理设置
             proxy_enable, _ = winreg.QueryValueEx(key, 'ProxyEnable')
             proxy_server, _ = winreg.QueryValueEx(key, 'ProxyServer')
-            if proxy_server:
+            if proxy_enable==1 and proxy_server:
                 # 是否需要设置代理
                 proxy_server=proxy_server.lower()
                 if not proxy_server.startswith("http") and not proxy_server.startswith('sock'):
                     proxy_server = "http://" + proxy_server
-                try:
-                    requests.head(proxy_server, proxies={"http": "", "https": ""})
-                except Exception:
-                    return None
+
                 return proxy_server
     except Exception:
         pass

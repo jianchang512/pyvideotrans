@@ -72,7 +72,6 @@ def openwin():
         winobj.is_cuda.setDisabled(state)
         winobj.shibie_recogn_type.setDisabled(state)
         winobj.shibie_model.setDisabled(state)
-        winobj.shibie_split_type.setDisabled(state)
         winobj.out_format.setDisabled(state)
         winobj.shibie_opendir.setDisabled(state)
         winobj.shibie_startbtn.setDisabled(state)
@@ -88,7 +87,6 @@ def openwin():
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         model = winobj.shibie_model.currentText()
-        split_type_index = winobj.shibie_split_type.currentIndex()
         recogn_type = winobj.shibie_recogn_type.currentIndex()
         if recogn_type == recognition.Faster_Whisper_XXL and not show_xxl_select():
             return
@@ -149,7 +147,6 @@ def openwin():
             for it in video_list:
                 cfg={
                     "recogn_type": recogn_type,
-                    "split_type": split_type_index,
                     "model_name": model,
                     "cuda": is_cuda,
                     "target_dir": RESULT_DIR,
@@ -176,7 +173,6 @@ def openwin():
             config.params["stt_enable_diariz"] = enable_diariz_is
             config.params["stt_nums_diariz"] = nums_diariz
             config.params["stt_spk_insert"] = winobj.spk_insert.isChecked()
-            config.params["stt_split_type"] = split_type_index
             config.params["stt_rephrase"] = stt_rephrase
             config.getset_params(config.params)
             th.start()
@@ -257,11 +253,7 @@ def openwin():
             return
         # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
         if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:  # openai-whisper
-            winobj.shibie_split_type.setDisabled(True)
-            winobj.shibie_split_type.setCurrentIndex(0)
             tools.hide_show_element(winobj.hfaster_layout, False)
-        else:
-            winobj.shibie_split_type.setDisabled(False)
 
         if recogn_type not in [recognition.FASTER_WHISPER,
                                recognition.Faster_Whisper_XXL,
@@ -321,17 +313,6 @@ def openwin():
         else:
             tools.hide_show_element(winobj.hfaster_layout, False)
 
-    # 整体识别和均等分割变化
-    def shibie_split_type_change():
-        split_type_index = winobj.shibie_split_type.currentIndex()
-        recogn_type = winobj.shibie_recogn_type.currentIndex()
-        # 如果是均等分割，则阈值相关隐藏
-        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:
-            tools.hide_show_element(winobj.hfaster_layout, False)
-            winobj.shibie_split_type.setCurrentIndex(0)
-            winobj.shibie_split_type.setDisabled(True)
-        elif split_type_index == 1:
-            tools.hide_show_element(winobj.hfaster_layout, False)
             
 
     from videotrans.component.set_form import Recognform
@@ -398,7 +379,7 @@ def openwin():
             current_model = config.params.get('stt_model_name')
             winobj.shibie_model.setCurrentText(current_model)
         
-        winobj.shibie_split_type.setCurrentIndex(int(config.params.get("stt_split_type",0)))
+
         
         if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR]:
             winobj.shibie_model.setDisabled(True)
@@ -406,7 +387,6 @@ def openwin():
             winobj.shibie_model.setDisabled(False)
 
         winobj.loglabel.clicked.connect(show_detail_error)
-        winobj.shibie_split_type.currentIndexChanged.connect(shibie_split_type_change)
         winobj.shibie_model.currentIndexChanged.connect(model_type_change)
 
 

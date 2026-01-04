@@ -136,7 +136,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.model_name.setToolTip(config.tr(
             "From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower"))
-        self.split_type.setToolTip(config.tr("fenge_tips"))
         self.subtitle_type.setToolTip(config.tr("shuoming02"))
 
         self.label_6.setText(config.tr("Dubbing speed"))
@@ -410,7 +409,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not config.proxy:
             config.proxy=tools.set_proxy() or ''
         self.proxy.setText(config.proxy)
-        self.split_type.addItems([config.tr('whisper_type_all'), config.tr('whisper_type_avg')])
 
         self.subtitle_type.addItems(
             [
@@ -429,8 +427,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         config.params['tts_type'] = int(config.params.get('tts_type', 0))
 
-        if config.params.get('split_type', 0) in [0,1]:
-            self.split_type.setCurrentIndex(config.params.get('split_type', 0))
 
         self.voice_rate.setValue(int(config.params.get('voice_rate', '0').replace('%', '')))
         self.volume_rate.setValue(int(config.params.get('volume', '0').replace('%', '')))
@@ -438,7 +434,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.addbackbtn.clicked.connect(self.win_action.get_background)
 
-        self.split_type.setDisabled(int(config.params.get('recogn_type', 0)) > 1)
         self.voice_autorate.setChecked(bool(config.params.get('voice_autorate', False)))
         self.video_autorate.setChecked(bool(config.params.get('video_autorate', False)))
         self.only_out_mp4.setChecked(bool(config.params.get('only_out_mp4', False)))

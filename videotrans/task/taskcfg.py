@@ -55,7 +55,6 @@ class TaskCfg:
     tts_type:int=None # 语音合成渠道
     recogn_type:int=None #语音识别渠道
     model_name:str=None #模型名字
-    split_type:int=0 # 语音识别切割类型，整体识别与平均分割
 
     voice_autorate:bool=False #是否音频自动加速
     video_autorate:bool=False #是否视频自动慢速

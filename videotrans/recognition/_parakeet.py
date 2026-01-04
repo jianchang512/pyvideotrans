@@ -23,9 +23,6 @@ class ParaketRecogn(BaseRecogn):
         self.api_url = config.params.get('parakeet_address','')
         self._add_internal_host_noproxy(self.api_url)
 
-    #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-    #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-    #       after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
@@ -45,18 +42,6 @@ class ParaketRecogn(BaseRecogn):
                 raise StopRetry(tr('The returned subtitles have no timestamp and cannot be used'))
         tmp = transcript.split("----..----")
 
-        if len(tmp)==1 or  int(config.settings.get('rephrase',0))==0:
-            return tools.get_subtitle_from_srt(tmp[0], is_file=False)
-        
-        words_list=[]
-        try:
-            words_list=json.loads(tmp[1])
-        except json.JSONDecodeError:
-            config.logger.debug(f'获取 api 返回的word列表json格式化失败')
-            words_list=[]
-        
-        if not words_list:    
-            return tools.get_subtitle_from_srt(tmp[0], is_file=False)
-            
-
         return tools.get_subtitle_from_srt(tmp[0], is_file=False)
+        
+        

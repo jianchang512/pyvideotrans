@@ -15,7 +15,7 @@ class Ui_recogn(object):
         self.error_msg = ""
         self.shibie_out_path = None
         recogn.setObjectName("recogn")
-        recogn.setMinimumSize(1060, 500)
+        recogn.setMinimumSize(1100, 500)
 
 
         # 语音识别
@@ -52,10 +52,10 @@ class Ui_recogn(object):
         self.label_model = QtWidgets.QLabel()
 
         self.shibie_model = QtWidgets.QComboBox()
-        self.shibie_model.setMinimumSize(QtCore.QSize(150, 30))
+        self.shibie_model.setMinimumSize(QtCore.QSize(250, 30))
         self.shibie_model.setObjectName("shibie_model")
         
-        self.remove_noise = QtWidgets.QCheckBox()
+        
 
 
         
@@ -81,7 +81,7 @@ class Ui_recogn(object):
         self.spk_insert.setToolTip(tr('If the selected channel supports speaker recognition, selecting this option will insert a speaker identifier at the beginning of the subtitles'))
 
         self.shibie_startbtn = QtWidgets.QPushButton()
-        self.shibie_startbtn.setMinimumSize(QtCore.QSize(200, 35))
+        self.shibie_startbtn.setMinimumSize(QtCore.QSize(250, 35))
         self.shibie_startbtn.setObjectName("shibie_startbtn")
 
         self.shibie_stop = QtWidgets.QPushButton()
@@ -97,7 +97,7 @@ class Ui_recogn(object):
         self.horizontalLayout.addWidget(self.label_model)
         self.horizontalLayout.addWidget(self.shibie_model)
         
-        self.horizontalLayout.addWidget(self.remove_noise)
+
         self.horizontalLayout.addWidget(self.enable_diariz)
         self.horizontalLayout.addWidget(self.nums_diariz)
 
@@ -119,14 +119,14 @@ class Ui_recogn(object):
         self.copysrt_rawvideo.setObjectName("copysrt_rawvideo")
         
 
-        self.shibie_split_type = QtWidgets.QComboBox()
 
 
+        self.remove_noise = QtWidgets.QCheckBox()
         self.h4 = QtWidgets.QHBoxLayout()
         self.h4.addStretch()
+        self.h4.addWidget(self.remove_noise)
         self.h4.addWidget(self.shibie_startbtn)
         self.h4.addWidget(self.shibie_stop)
-        self.h4.addWidget(self.shibie_split_type)
         self.h4.addWidget(self.rephrase)
         self.h4.addWidget(self.lable_out)
         self.h4.addWidget(self.out_format)
@@ -228,11 +228,6 @@ class Ui_recogn(object):
         self.shibie_label.setToolTip(
             tr("Click to set detailed recognition parameters when using faster-whisper"))
         self.label_model.setText(tr("Select model"))
-        self.shibie_split_type.addItems(
-            [tr('whisper_type_all'),
-             tr('whisper_type_avg')]
-        )
-        self.shibie_split_type.setToolTip(tr('fenge_tips'))
 
         self.lable_out.setText(tr("Subtitle format:"))
         self.out_format.addItems([

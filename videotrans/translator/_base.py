@@ -9,7 +9,7 @@ from videotrans.configure import config
 from videotrans.configure._base import BaseCon
 from videotrans.configure.config import tr
 from videotrans.util import tools
-
+from tenacity import RetryError
 
 @dataclass
 class BaseTrans(BaseCon):
@@ -34,7 +34,7 @@ class BaseTrans(BaseCon):
     model_name: str = field(default="", init=False)
 
     # 同时翻译的字幕行数量
-    trans_thread: int = int(config.settings.get('trans_thread', 5))
+    trans_thread: int = 5
     # 翻译后暂停秒
     wait_sec: float = float(config.settings.get('translation_wait', 0))
     # 以srt格式发送
@@ -45,7 +45,10 @@ class BaseTrans(BaseCon):
         #是AI翻译渠道并且选中了以完整字幕发送
         if config.settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS:
             self.aisendsrt=True
-
+        if self.translate_type not in translator.AI_TRANS_CHANNELS:
+            self.trans_thread = int(config.settings.get('trans_thread', 5))
+        else:
+            self.trans_thread = int(config.settings.get('aitrans_thread', 20))
     # 发出请求获取内容 data=[text1,text2,text] | text
     # 按行翻译时，data=[text_str,...]
     # AI发送完整字幕时 data=srt_string
@@ -72,7 +75,7 @@ class BaseTrans(BaseCon):
             source_text=self.text_list
 
         split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(self.text_list), self.trans_thread)]
-        from tenacity import RetryError
+        
         try:
             if self.aisendsrt:
                 return self._run_srt(split_source_text)
@@ -149,7 +152,6 @@ class BaseTrans(BaseCon):
             raws_list.extend(tmp)
             time.sleep(self.wait_sec)
 
-        # 双语翻译结果，只取最后一行
         config.logger.debug(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},整理为list[dict]后的行数:{len(raws_list)}')
         for i, it in enumerate(raws_list):
             if i>=len(self.text_list):

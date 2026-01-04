@@ -615,18 +615,17 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     target_list = None
 
     if show_source and show_source not in ['-','No']:
-        if show_source in LANG_CODE:
+        if show_source in LANG_CODE:# 是语言代码
             source_list = LANG_CODE[show_source] 
-        elif LANGNAME_DICT_REV.get(show_source):
+        elif LANGNAME_DICT_REV.get(show_source):#是语言显示名字
             source_list=LANG_CODE.get(LANGNAME_DICT_REV.get(show_source))
-        elif show_source=='zh':
-            # 特殊兼容zh
+        elif show_source=='zh':#特殊兼容zh
             source_list=LANG_CODE['zh-cn']
 
     if show_target and show_target not in ['-','No']:
-        if show_target in LANG_CODE:
+        if show_target in LANG_CODE:#是语言代码
             target_list = LANG_CODE[show_target] 
-        elif LANGNAME_DICT_REV.get(show_target):
+        elif LANGNAME_DICT_REV.get(show_target):#语言名字
             target_list=LANG_CODE.get(LANGNAME_DICT_REV.get(show_target))
         elif show_target=='zh':
             # 特殊兼容zh
@@ -634,7 +633,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 
     # 均未找到，可能是新增语言代码
     if not source_list and not target_list:
-        return show_source,show_target
+        return show_source,show_target#返回原始输入
 
     # 未设置渠道则使用 Google
     if not translate_type or translate_type in [GOOGLE_INDEX,MyMemoryAPI_INDEX, TRANSAPI_INDEX]:
@@ -642,8 +641,13 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 
     # qwenmt翻译渠道语言代码
     if translate_type == QWENMT_INDEX:
-        return 'auto',target_list[9] if target_list else show_target
+        if config.params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):        
+            return 'auto',target_list[9] if target_list else show_target
+        return source_list[7] if source_list else show_source, target_list[7] if target_list else show_target
 
+    # AI渠道
+    if translate_type in AI_TRANS_CHANNELS:
+        return source_list[7] if source_list else show_source, target_list[7] if target_list else show_target
 
     if translate_type == BAIDU_INDEX:
         return source_list[2] if source_list else show_source, target_list[2] if target_list else show_target
@@ -654,9 +658,6 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     if translate_type == TENCENT_INDEX:
         return source_list[4] if source_list else show_source, target_list[4] if target_list else show_target
 
-    # qwenmt渠道已提前返回
-    if translate_type in AI_TRANS_CHANNELS:
-        return source_list[7] if source_list else show_source, target_list[7] if target_list else show_target
     if translate_type in [OTT_INDEX, LIBRE_INDEX]:
         return source_list[5] if source_list else show_source, target_list[5] if target_list else show_target
     if translate_type == MICROSOFT_INDEX:
@@ -667,6 +668,17 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return source_list[10] if source_list else show_source, target_list[10] if target_list else show_target
     return show_source,show_target
 
+# 针对AI渠道目标语言，返回自然名称
+def get_ai_language_name(show_target=None,translate_type=None):
+    # qwen-mt特殊处理
+    if translate_type is not None and translate_type==QWENMT_INDEX and config.params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
+        return 'auto',target_list[9] if target_list else show_target
+    if show_target in LANG_CODE:
+        return LANG_CODE[show_target][7]
+    if show_target in LANGNAME_DICT_REV:
+        return LANG_CODE[LANGNAME_DICT_REV.get(show_target)][7]
+    return None
+        
 
 # 判断当前翻译通道和目标语言是否允许翻译
 # 比如deepl不允许翻译到某些目标语言，某些通道是否填写api key 等

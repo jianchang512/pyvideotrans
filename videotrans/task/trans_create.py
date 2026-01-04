@@ -362,7 +362,6 @@ class TransCreate(BaseTask):
 
             raw_subtitles = run_recogn(
                 recogn_type=self.cfg.recogn_type,
-                split_type=self.cfg.split_type,
                 uuid=self.uuid,
                 model_name=self.cfg.model_name,
                 audio_file=self.cfg.source_wav,

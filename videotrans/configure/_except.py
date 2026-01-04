@@ -340,16 +340,7 @@ def get_msg_from_except(ex):
         ),
         requests.exceptions.RequestException:lambda e:f'{e}',
 
-        RuntimeError: lambda e: (
-            _handle_connection_error_detail(e, lang)
-            if any(keyword in str(e).lower() for keyword in [
-                'connection', 'reset', 'timeout', '连接', '拒绝', '重置', '超时', '重试'
-            ])
-            else (
-                f"{e}" if lang == 'zh'
-                else f"{e}"
-            )
-        ),
+        RuntimeError: lambda e: (f"{e}" if lang == 'zh' else f"{e}" ),
 
         FileNotFoundError: lambda e: (
             f"文件不存在：{getattr(e, 'filename', '')}" if lang == 'zh'

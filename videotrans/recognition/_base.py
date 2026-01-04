@@ -52,7 +52,6 @@ class BaseRecogn(BaseCon):
     jianfan: bool = False
     # 字幕行字符数
     maxlen: int = 20
-    split_type: int = 0  # 0 整体识别，1 均等分割
     max_speakers: int = -1  # 说话人，-1不启用说话人，0=不限制数量，>0 说话人最大数量
     llm_post: bool = False  # 是否进行llm重新断句，如果是，则无需在识别完成后进行简单修正
 
@@ -99,7 +98,7 @@ class BaseRecogn(BaseCon):
             # 修正时间戳重叠
             for i, it in enumerate(srt_list):
                 if i > 0 and srt_list[i - 1]['end_time'] > it['start_time']:
-                    config.logger.warning(f'修正字幕时间轴重叠：{it=}，前面字幕 end_time={srt_list[i - 1]["end_time"]}')
+                    config.logger.warning(f'修正字幕时间轴重叠：将前面字幕 end_time={srt_list[i - 1]["end_time"]} 改为当前字幕 start_time, {it=}')
                     srt_list[i - 1]['end_time'] = it['start_time']
                     srt_list[i - 1]['endraw'] = tools.ms_to_time_string(ms=it['start_time'])
                     srt_list[i - 1]['time'] = f"{srt_list[i - 1]['startraw']} --> {srt_list[i - 1]['endraw']}"
@@ -135,15 +134,15 @@ class BaseRecogn(BaseCon):
                 # 距离前个更近
                 if (post_srt_raws[-1]['text'][-1] not in self.flag and it['text'][-1] in self.flag) or (
                         post_srt_raws[-1]['text'][-1] in self.half_flag and it['text'][
-                    -1] in self.end_flag) or prev_diff < next_diff:
+                    -1] in self.end_flag) or prev_diff <= next_diff:
                     config.logger.warning(
-                        f'字幕时长小于{min_speech=}，需要合并进前面字幕,{prev_diff=},{next_diff=}，{it=},{post_srt_raws[-1]=}')
+                        f'字幕时长小于{min_speech=}，需要合并进前面字幕,{prev_diff=},{next_diff=}，当前字幕={it},前面字幕={post_srt_raws[-1]}')
                     post_srt_raws[-1]['end_time'] = it['end_time']
                     post_srt_raws[-1]['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                     post_srt_raws[-1]['time'] = f"{post_srt_raws[-1]['startraw']} --> {post_srt_raws[-1]['endraw']}"
                     post_srt_raws[-1]['text'] += ' ' + it['text']
                 else:
-                    config.logger.warning(f'字幕时长小于{min_speech=}，需要合并进后面字幕,{prev_diff=},{next_diff=}，{it=}')
+                    config.logger.warning(f'字幕时长小于{min_speech=}，需要合并进后面字幕,{prev_diff=},{next_diff=}，当前字幕={it},后边字幕={srt_list[idx + 1]}')
                     srt_list[idx + 1]['text'] = it['text'] + ' ' + srt_list[idx + 1]['text']
                     srt_list[idx + 1]['start_time'] = it['start_time']
                     srt_list[idx + 1]['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
@@ -247,6 +246,12 @@ class BaseRecogn(BaseCon):
             config.logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
             raise
 
+
+    def _padforaudio(self):
+        from pydub import AudioSegment
+        silent_segment = AudioSegment.silent(duration=500)
+        silent_segment.set_channels(1).set_frame_rate(16000)
+        return silent_segment
     def cut_audio(self):
         from pydub import AudioSegment
         import time
@@ -259,7 +264,7 @@ class BaseRecogn(BaseCon):
         # 对大于30s的强制拆分，小于1s的强制合并，防止某些识别引擎不支持而报错
         check_1 = []
         # 裁切出的最小语音时长需符合 min_speech_duration_ms 要求，合并过短的
-        min_speech_duration_ms = min(29000, max(int(config.settings.get('min_speech_duration_ms', 1000)), 1000))
+        min_speech_duration_ms = min(25000, max(int(config.settings.get('min_speech_duration_ms', 1000)), 1000))
         for i, it in enumerate(speech_chunks):
             diff = it[1] - it[0]
             if diff < min_speech_duration_ms:
@@ -297,13 +302,24 @@ class BaseRecogn(BaseCon):
                 check_1.append([it[0] + off, it[1]])
                 config.logger.warning(f'cut_audio 超过30s需要拆分，{diff=}')
         speech_chunks = check_1
-
+        # 两侧填充空白
+        silent_segment=self._padforaudio()
         for i, it in enumerate(speech_chunks):
             start_ms, end_ms = it[0], it[1]
+            startraw,endraw=tools.ms_to_time_string(ms=it[0]),tools.ms_to_time_string(ms=it[1])
             chunk = audio[start_ms:end_ms]
             file_name = f"{dir_name}/audio_{i}.wav"
-            chunk.export(file_name, format="wav")
-            data.append({"line": i + 1, "text": "", "start_time": start_ms, "end_time": end_ms, "file": file_name})
+            (silent_segment+chunk+silent_segment).export(file_name, format="wav")
+            data.append({
+                "line": i + 1, 
+                "text": "", 
+                "start_time": start_ms, 
+                "end_time": end_ms, 
+                "startraw":startraw,
+                "endraw":endraw,
+                "time":f'{startraw} --> {endraw}',
+                "file": file_name
+            })
 
         return data
 
@@ -441,11 +457,11 @@ class BaseRecogn(BaseCon):
 
             if diff >= min_speech_duration_ms:
                 check_1.append(it)
-            elif diff < 500:
-                # 低于500ms的视为噪音，直接丢弃
+            elif diff < 200:
+                # 低于200ms的视为噪音，直接丢弃
                 continue
             else:
-                # 500-min_speech_duration_ms 之间的语音片段合并到邻近
+                # 200-min_speech_duration_ms 之间的语音片段合并到邻近
                 # 距离前面空隙
                 prev_diff = it[0] - check_1[-1][1] if len(check_1) > 0 else None
                 # 距离下个空隙

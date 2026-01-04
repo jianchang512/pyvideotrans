@@ -145,7 +145,6 @@ class SpeechToText(BaseTask):
                 # 其他识别渠道
                 raw_subtitles = run(
                     recogn_type=self.cfg.recogn_type,
-                    split_type=self.cfg.split_type,
                     uuid=self.uuid,
                     model_name=self.cfg.model_name,
                     audio_file=self.cfg.shibie_audio,

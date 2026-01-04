@@ -4,9 +4,7 @@ from videotrans.configure import config
 import time
 # 数字代表界面中的现实顺序
 from videotrans.configure.config import tr
-# 这2个渠道 不可局部导入，否则可能卡住
-from videotrans.recognition._overall import FasterAll
-from videotrans.recognition._funasr import FunasrRecogn
+
 
 
 
@@ -72,15 +70,41 @@ _ID_NAME_DICT = {
 RECOGN_NAME_LIST=list(_ID_NAME_DICT.values())
 
 HUGGINGFACE_ASR_MODELS={
-"parakeet-ctc-1.1b":['en'],
-"moonshine-base-ar":['ar'],
-"moonshine-base-zh":['zh'],
-"moonshine-base":['en'],
-"moonshine-base-ja":['ja'],
-"moonshine-base-ko":['ko'],
-"moonshine-base-es":['es'],
-"moonshine-base-uk":['uk'],
-"moonshine-base-vi":['vi'],
+"UsefulSensors/moonshine-base-zh":['zh'],
+"UsefulSensors/moonshine-base":['en'],
+"nvidia/parakeet-ctc-1.1b":['en'],
+
+
+# hub
+"reazon-research/japanese-hubert-base-k2-rs35kh-bpe":['ja'],
+
+# whisper
+"efwkjn/whisper-ja-anime-v0.3":['ja'],
+
+
+# faster
+"zh-plus/faster-whisper-large-v2-japanese-5k-steps":['ja'],
+"JhonVanced/whisper-large-v3-japanese-4k-steps-ct2":['ja'],
+
+# wav2vec2
+"jonatasgrosman/wav2vec2-large-xlsr-53-japanese":['ja'],
+"UsefulSensors/moonshine-base-ja":['ja'],
+
+# 
+"UsefulSensors/moonshine-base-ko":['ko'],
+
+
+"suzii/vi-whisper-large-v3-turbo-v1":['vi'],
+
+"UsefulSensors/moonshine-base-vi":['vi'],
+
+# whisper
+"biodatlab/whisper-th-medium":['th'],
+"biodatlab/whisper-th-large-v3":['th'],
+
+"UsefulSensors/moonshine-base-es":['es'],
+"UsefulSensors/moonshine-base-uk":['uk'],
+"UsefulSensors/moonshine-base-ar":['ar'],
 }
 
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
@@ -186,7 +210,6 @@ def is_input_api(recogn_type: int = None, return_str=False):
 
 # 统一入口
 def run(*,
-        split_type=0,
         detect_language=None,
         audio_file=None,
         cache_folder=None,
@@ -210,7 +233,6 @@ def run(*,
         "is_cuda": is_cuda,
         "subtitle_type": subtitle_type,
         "recogn_type":recogn_type,
-        "split_type":split_type,
         "max_speakers":max_speakers,
         "llm_post":llm_post
     }
@@ -241,7 +263,8 @@ def run(*,
     if recogn_type == QWEN3ASR:
         from videotrans.recognition._qwen3asr import Qwen3ASRRecogn
         return Qwen3ASRRecogn(**kwargs).run()
-    if recogn_type == FUNASR_CN:       
+    if recogn_type == FUNASR_CN:     
+        from videotrans.recognition._funasr import FunasrRecogn
         return FunasrRecogn(**kwargs).run()
     if recogn_type == Deepgram:
         from videotrans.recognition._deepgram import DeepgramRecogn
@@ -264,5 +287,6 @@ def run(*,
     if recogn_type == ZHIPU_API:
         from videotrans.recognition._glmasr import GLMASRRecogn
         return GLMASRRecogn(**kwargs).run()
+    from videotrans.recognition._overall import FasterAll
     return FasterAll(**kwargs).run()
 

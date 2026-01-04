@@ -168,7 +168,6 @@ class WinActionSub:
         self.main.recogn_type.show()
         self.main.model_name_help.show()
         self.main.model_name.show()
-        self.main.split_type.show()
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.subtitle_type.show()
         self.main.rephrase.show()
@@ -239,7 +238,6 @@ class WinActionSub:
         self.main.recogn_type.show()
         self.main.model_name_help.show()
         self.main.model_name.show()
-        self.main.split_type.show()
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.subtitle_type.hide()
         self.main.rephrase.show()
@@ -360,10 +358,8 @@ class WinActionSub:
     def change_proxy(self, p):
         config.proxy = p.strip()
         if not config.proxy:
-            # 删除代理
-            tools.set_proxy('del')
             config.settings['proxy'] = ''
-        elif re.match(r'https?://(\d+\.){3}\d+:\d+', config.proxy):
+        else:
             config.settings['proxy'] = config.proxy
             tools.set_proxy(config.proxy)
             
@@ -485,7 +481,6 @@ class WinActionSub:
         self.main.target_language.setDisabled(type)
         self.main.tts_type.setDisabled(type)
         self.main.model_name.setDisabled(type)
-        self.main.split_type.setDisabled(type)
         self.main.subtitle_type.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
         self.main.recogn_type.setDisabled(type)

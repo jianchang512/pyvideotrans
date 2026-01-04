@@ -129,7 +129,7 @@ class Ui_MainWindow(object):
         self.model_name_help.setMinimumSize(QtCore.QSize(0, 30))
 
         self.model_name = QtWidgets.QComboBox(self.layoutWidget)
-        self.model_name.setMinimumSize(QtCore.QSize(160, 30))
+        self.model_name.setMinimumSize(QtCore.QSize(250, 30))
         self.model_name.setMaximumWidth(160)
         self.model_name.setObjectName("model_name")
 
@@ -142,17 +142,12 @@ class Ui_MainWindow(object):
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
         
        
-        self.split_type = QtWidgets.QComboBox()
-        self.split_type.setMinimumSize(QtCore.QSize(80, 30))
-        self.split_type.setObjectName("split_type")
         
 
         self.label_2 = QtWidgets.QPushButton(self.layoutWidget)
-        # self.label_2.setMinimumSize(QtCore.QSize(0, 30))
         self.label_2.setStyleSheet("""background-color:transparent""")
         self.label_2.setObjectName("label_2")
         self.source_language = QtWidgets.QComboBox(self.layoutWidget)
-        # self.source_language.setMinimumSize(QtCore.QSize(160, 30))
         self.source_language.setObjectName("source_language")
         
 
@@ -163,9 +158,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.model_name_help)
         self.horizontalLayout_4.addWidget(self.model_name)
         
-
-
-        self.horizontalLayout_4.addWidget(self.split_type)
         self.horizontalLayout_4.addWidget(self.rephrase)
         self.horizontalLayout_4.addStretch()
 

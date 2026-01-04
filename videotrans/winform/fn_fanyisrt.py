@@ -123,6 +123,8 @@ def openwin():
         source_code, target_code = translator.get_source_target_code(show_source=winobj.fanyi_source.currentText(),
                                                                      show_target=target_language,
                                                                      translate_type=translate_type)
+       
+        print(f'@@@@@@@@@{target_code=}')
         if target_language == '-':
             return tools.show_error(tr("fanyimoshi1"))
         

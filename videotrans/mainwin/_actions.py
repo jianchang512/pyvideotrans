@@ -106,12 +106,6 @@ class WinAction(WinActionSub):
             return
         if recogn_type == recognition.Whisper_CPP and not self.show_cpp_select():
             return
-        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:
-            self.main.split_type.setDisabled(True)
-            self.main.split_type.setCurrentIndex(0)
-        else:
-            # 是 faster，启用 分割模式，根据需要显示均等分割
-            self.main.split_type.setDisabled(False)
 
         if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR]:
             # 禁止模块选择
@@ -486,7 +480,6 @@ class WinAction(WinActionSub):
             self.main.startbtn.setDisabled(False)
             return
         self.cfg['model_name'] = self.main.model_name.currentText()
-        self.cfg['split_type'] = self.main.split_type.currentIndex()
         # 降噪
         self.cfg['remove_noise'] = self.main.remove_noise.isChecked()
 

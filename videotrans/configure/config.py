@@ -52,9 +52,6 @@ HOME_DIR = ROOT_DIR + "/output"
 
 Path(TEMP_DIR).mkdir(exist_ok=True, parents=True)
 Path(f'{TEMP_ROOT}/translate_cache').mkdir(exist_ok=True, parents=True)
-
-
-# 日志目录 logs
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger('VideoTrans')
@@ -67,7 +64,7 @@ _file_handler.setLevel(logging.DEBUG)
 _console_handler = logging.StreamHandler(sys.stdout)
 _console_handler.setLevel(logging.WARNING)
 # 设置日志格式
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s[%(levelname)s] %(message)s')
 _file_handler.setFormatter(formatter)
 _console_handler.setFormatter(formatter)
 # 添加处理器到日志记录器
@@ -474,7 +471,6 @@ def getset_params(obj=None):
         "listen_text_ur": "ہیلو پیارے دوست، مجھے امید ہے کہ آپ آج خوش ہوں گے۔",
         "listen_text_yue": "你好啊親愛嘅朋友，希望你今日好開心",
         "tts_type": 0,  # 所选的tts顺序
-        "split_type": 0,
         "model_name": "large-v3-turbo",  # 模型名
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
         "voice_autorate": True,
@@ -640,7 +636,6 @@ def getset_params(obj=None):
         "app_mode": "biaozhun",
         "stt_source_language": 0,
         "stt_recogn_type": 0,
-        "stt_split_type": 0,
         "stt_model_name": "",
         "stt_remove_noise": False,
         "stt_enable_diariz": False,
@@ -716,17 +711,3 @@ def tr(lang_key, *kw):
     except IndexError:
         return lang
 
-
-def logs(msg,level="debug"):
-    if level in ['except']:
-        logger.exception(msg,exc_info=True)
-        return
-    _map={
-        "info":logger.info,
-        "debug":logger.debug,
-        "warn":logger.warning,
-        "error":logger.error,
-        "critical":logger.critical
-    }
-    fun=_map.get(level,logger.info)
-    fun(msg)

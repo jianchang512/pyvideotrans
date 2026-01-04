@@ -25,6 +25,8 @@ class QwenMT(BaseTrans):
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         model_name=config.params.get('qwenmt_model', 'qwen-mt-turbo')
+        if model_name=='qwen-turbo':
+            model_name='qwen-mt-turbo'
         if model_name.startswith('qwen-mt'):
 
             messages = [
@@ -58,8 +60,7 @@ class QwenMT(BaseTrans):
                 raise RuntimeError(response.message)
             return self.clean_srt(response.output.choices[0].message.content)
 
-        target_language=translator.LANG_CODE.get(self.target_code)[8]
-        self.prompt = tools.get_prompt(ainame='bailian',aisendsrt=self.aisendsrt).replace('{lang}', target_language)
+        self.prompt = tools.get_prompt(ainame='bailian',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
         message = [
             {
                 'role': 'system',

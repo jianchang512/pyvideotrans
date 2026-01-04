@@ -95,17 +95,9 @@ class GPTSoVITS(BaseTTS):
         config.logger.debug(f'GPT-SoVITS get:{data=}\n{self.api_url=}')
         # 克隆声音
         response = requests.get(f"{self.api_url}", params=data,  timeout=3600)
-        response.raise_for_status()
-
-        content_type = response.headers.get('Content-Type')
-        if 'application/json' in content_type:
-            # 如果是JSON数据，使用json()方法解析
-            data = response.json()
-            config.logger.debug(f'GPT-SoVITS return:{data=}')
-            raise StopRetry(f"GPT-SoVITS error-1:{data}")
-
-        # 获取响应头中的Content-Type
-        if 'audio/wav' in content_type or 'audio/x-wav' in content_type:
+        
+        
+        if response.ok:
             # 如果是WAV音频流，获取原始音频数据
             with open(data_item['filename'] + ".wav", 'wb') as f:
                 f.write(response.content)
@@ -113,3 +105,13 @@ class GPTSoVITS(BaseTTS):
             if not os.path.exists(data_item['filename'] + ".wav"):
                 raise RuntimeError(f'GPT-SoVITS error-2')
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
+        else:
+            try:
+                error_data = response.json() # 这里可以直接拿到 500 时的 JSON
+                print("错误信息:", error_data)
+            except:
+                print("错误内容不是JSON:", response.text)
+                error_data=response.text
+            config.logger.debug(f'GPT-SoVITS return:{error_data=}')
+            raise StopRetry(f"GPT-SoVITS error-1:{error_data}")
+
