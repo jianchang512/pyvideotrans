@@ -83,6 +83,7 @@ os.environ['PATH'] = ROOT_DIR +os.pathsep+f'{ROOT_DIR}/ffmpeg'+os.pathsep + os.e
 if sys.platform == 'win32' and IS_FROZEN:
     os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;'+os.environ['PATH']
 
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0" 
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
 os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
@@ -91,7 +92,9 @@ os.environ['HF_HUB_CACHE'] = ROOT_DIR + "/models"
 os.environ['HF_TOKEN_PATH'] = ROOT_DIR + "/models/hf_token.txt"
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
 os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
-os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "1200"
+os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "3600"
+os.environ["HF_HUB_DISABLE_XET"] = "1"
+
 
 # _env_lang =   
 if _env_lang := os.environ.get('PYVIDEOTRANS_LANG'):
@@ -265,7 +268,7 @@ def parse_init(update_data=None):
        
         "threshold": 0.5,
         "min_speech_duration_ms": 1000,
-        "max_speech_duration_s": 6,
+        "max_speech_duration_s": 5,
         "min_silence_duration_ms": 600,
         "no_speech_threshold": 0.5,
         "merge_short_sub":True,
@@ -370,6 +373,16 @@ def parse_init(update_data=None):
         default.update(_settings)
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(default, ensure_ascii=False))
+        p=Path(ROOT_DIR + "/models/hf_token.txt")
+        if p.is_file():
+            tk=p.read_text().strip()
+            if tk:
+                default['hf_token']=tk
+            else:
+                p.unlink(missing_ok=True)
+        
+        if not p.is_file() and default.get('hf_token'):
+            p.write_text(default['hf_token'])
         return default
 
 
@@ -471,7 +484,7 @@ def getset_params(obj=None):
         "listen_text_ur": "ہیلو پیارے دوست، مجھے امید ہے کہ آپ آج خوش ہوں گے۔",
         "listen_text_yue": "你好啊親愛嘅朋友，希望你今日好開心",
         "tts_type": 0,  # 所选的tts顺序
-        "model_name": "large-v3-turbo",  # 模型名
+        "model_name": "medium",  # 模型名
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
         "voice_autorate": True,
         "video_autorate": False,

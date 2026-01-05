@@ -234,18 +234,8 @@ class BaseRecogn(BaseCon):
     def _exec(self) -> Union[List[Dict], None]:
         pass
 
-    # 重新进行LLM断句
-    def re_segment_sentences_json(self, words):
-        try:
-            from videotrans.translator._chatgpt import ChatGPT
-            ob = ChatGPT()
-            self._signal(text=tr("Re-segmenting..."))
-            return ob.llm_segment(words, config.settings.get('llm_ai_type', 'openai'))
-        except Exception as e:
-            self._signal(text=tr("Re-segmenting Error"))
-            config.logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
-            raise
-
+   
+   
 
     def _padforaudio(self):
         from pydub import AudioSegment

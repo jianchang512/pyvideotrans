@@ -86,7 +86,15 @@ def set_proxy(set_val=''):
         os.environ['HTTP_PROXY'] = set_val
         os.environ['HTTPS_PROXY'] = set_val
         return set_val
-
+    
+    if set_val=='del':
+        if os.environ.get('HTTP_PROXY'):
+            del os.environ['HTTP_PROXY']
+        if os.environ.get('HTTPS_PROXY'):
+            del os.environ['HTTPS_PROXY']
+        return
+        
+    
     # 获取代理
     http_proxy = config.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
 

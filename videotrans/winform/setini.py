@@ -9,6 +9,7 @@ def openwin():
 
     from videotrans.configure import config
     from videotrans.util import tools
+    from pathlib import Path
     winobj = None
 
     def save():
@@ -22,6 +23,8 @@ def openwin():
                 name = line_edit.objectName()
                 # 将objectName作为key，text作为value添加到字典中
                 line_edit_dict[name] = line_edit.text()
+                if name=='hf_token':
+                    Path(config.ROOT_DIR + "/models/hf_token.txt").write_text(line_edit.text().strip())
         for line_edit in winobj.findChildren(QPlainTextEdit):
             # 检查QLineEdit是否有objectName
             if hasattr(line_edit, 'objectName') and line_edit.objectName():
@@ -47,8 +50,9 @@ def openwin():
                     line_edit_dict[name] = line_edit.currentText()
 
         line_edit_dict['homedir'] = winobj.homedir_btn.text()
-        config.parse_init(line_edit_dict)
-        config.settings = line_edit_dict
+        
+        config.settings = config.parse_init(line_edit_dict)
+        
         if shoud_model_list_sign:
             tools.set_process(text="", type='refreshmodel_list')
 
@@ -65,6 +69,7 @@ def openwin():
         winobj = SetINIForm()
         config.child_forms['setini'] = winobj
         winobj.set_ok.clicked.connect(save)
+        
         winobj.show()
 
     QTimer.singleShot(100, create)

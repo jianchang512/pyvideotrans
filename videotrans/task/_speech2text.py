@@ -195,7 +195,7 @@ class SpeechToText(BaseTask):
             return
             
         speaker_type=config.settings.get('speaker_type','built')
-        hf_token=config.settings.get('hf_token')
+        hf_token= config.settings.get('hf_token')
         
         if speaker_type=='built' and self.cfg.detect_language[:2] not in ['zh','en']:
             config.logger.error(f'当前选择 built 说话人分离模型，但不支持当前语言:{self.cfg.detect_language}')
@@ -212,12 +212,9 @@ class SpeechToText(BaseTask):
                 requests.head('https://huggingface.co',timeout=5)
             except Exception:
                 config.logger.error(f'当前选择 pyannote 说话人分离模型，但无法连接到 https://huggingface.co')
-                return
-            else:
-                print('可以使用 huggingface.co')
-                os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
-                os.environ["HF_HUB_DISABLE_XET"] = "0"
-                Path(os.environ['HF_TOKEN_PATH']).write_text(hf_token)
+
+
+
         
         try:
             self._signal(text=tr('Begin separating the speakers'))

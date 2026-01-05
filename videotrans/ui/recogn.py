@@ -52,7 +52,7 @@ class Ui_recogn(object):
         self.label_model = QtWidgets.QLabel()
 
         self.shibie_model = QtWidgets.QComboBox()
-        self.shibie_model.setMinimumSize(QtCore.QSize(250, 30))
+        self.shibie_model.setMinimumSize(QtCore.QSize(350, 30))
         self.shibie_model.setObjectName("shibie_model")
         
         
@@ -87,23 +87,21 @@ class Ui_recogn(object):
         self.shibie_stop = QtWidgets.QPushButton()
         self.shibie_stop.setFixedWidth(80)
         self.shibie_stop.setDisabled(True)
+        self.remove_noise = QtWidgets.QCheckBox()
+
 
         self.horizontalLayout.addStretch()
         self.horizontalLayout.addWidget(self.is_cuda)
+        self.horizontalLayout.addWidget(self.remove_noise)
         self.horizontalLayout.addWidget(self.label_3)
         self.horizontalLayout.addWidget(self.shibie_language)
         self.horizontalLayout.addWidget(self.shibie_label)
         self.horizontalLayout.addWidget(self.shibie_recogn_type)
         self.horizontalLayout.addWidget(self.label_model)
         self.horizontalLayout.addWidget(self.shibie_model)
+        self.horizontalLayout.addStretch()
         
 
-        self.horizontalLayout.addWidget(self.enable_diariz)
-        self.horizontalLayout.addWidget(self.nums_diariz)
-
-
-        self.horizontalLayout.addWidget(self.spk_insert)
-        self.horizontalLayout.addStretch()
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
         recogn.setWindowTitle(tr("Speech Recognition Text"))
@@ -121,16 +119,23 @@ class Ui_recogn(object):
 
 
 
-        self.remove_noise = QtWidgets.QCheckBox()
+        
         self.h4 = QtWidgets.QHBoxLayout()
         self.h4.addStretch()
-        self.h4.addWidget(self.remove_noise)
         self.h4.addWidget(self.shibie_startbtn)
         self.h4.addWidget(self.shibie_stop)
         self.h4.addWidget(self.rephrase)
         self.h4.addWidget(self.lable_out)
         self.h4.addWidget(self.out_format)
         self.h4.addWidget(self.copysrt_rawvideo)
+        
+        self.h4.addWidget(self.enable_diariz)
+        self.h4.addWidget(self.nums_diariz)
+
+
+        self.h4.addWidget(self.spk_insert)
+
+        
         self.h4.addStretch()
         # 语音调整行
         # 语音识别高级行

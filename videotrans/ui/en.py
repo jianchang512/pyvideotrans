@@ -129,7 +129,7 @@ class Ui_MainWindow(object):
         self.model_name_help.setMinimumSize(QtCore.QSize(0, 30))
 
         self.model_name = QtWidgets.QComboBox(self.layoutWidget)
-        self.model_name.setMinimumSize(QtCore.QSize(250, 30))
+        self.model_name.setMinimumSize(QtCore.QSize(330, 30))
         self.model_name.setMaximumWidth(160)
         self.model_name.setObjectName("model_name")
 

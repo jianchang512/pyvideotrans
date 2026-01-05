@@ -70,41 +70,28 @@ _ID_NAME_DICT = {
 RECOGN_NAME_LIST=list(_ID_NAME_DICT.values())
 
 HUGGINGFACE_ASR_MODELS={
-"UsefulSensors/moonshine-base-zh":['zh'],
-"UsefulSensors/moonshine-base":['en'],
 "nvidia/parakeet-ctc-1.1b":['en'],
 
 
 # hub
-"reazon-research/japanese-hubert-base-k2-rs35kh-bpe":['ja'],
+"reazon-research/japanese-wav2vec2-large-rs35kh":['ja'],
+# pipeline whisper
+"kotoba-tech/kotoba-whisper-v2.0":['ja'],
 
-# whisper
-"efwkjn/whisper-ja-anime-v0.3":['ja'],
-
+# wav2vec2
+"jonatasgrosman/wav2vec2-large-xlsr-53-japanese":['ja'],
 
 # faster
 "zh-plus/faster-whisper-large-v2-japanese-5k-steps":['ja'],
 "JhonVanced/whisper-large-v3-japanese-4k-steps-ct2":['ja'],
 
-# wav2vec2
-"jonatasgrosman/wav2vec2-large-xlsr-53-japanese":['ja'],
-"UsefulSensors/moonshine-base-ja":['ja'],
-
-# 
-"UsefulSensors/moonshine-base-ko":['ko'],
-
-
+# pipeline whisper
 "suzii/vi-whisper-large-v3-turbo-v1":['vi'],
 
-"UsefulSensors/moonshine-base-vi":['vi'],
 
-# whisper
+# pipeline whisper
 "biodatlab/whisper-th-medium":['th'],
 "biodatlab/whisper-th-large-v3":['th'],
-
-"UsefulSensors/moonshine-base-es":['es'],
-"UsefulSensors/moonshine-base-uk":['uk'],
-"UsefulSensors/moonshine-base-ar":['ar'],
 }
 
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
@@ -114,7 +101,7 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
         return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
 
     if recogn_type==HUGGINGFACE_ASR and model_name in HUGGINGFACE_ASR_MODELS:
-        model_lang_support=",".join(HUGGINGFACE_ASR_MODELS[model_name])
+        model_lang_support=",".join([ tr(it) for it in HUGGINGFACE_ASR_MODELS[model_name]])
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
             return tr("This model only supports speech transcription of these languages:")+model_lang_support
     return True

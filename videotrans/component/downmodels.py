@@ -23,7 +23,7 @@ MODEL_DIR=f'{config.ROOT_DIR}/models/'
 CN_LANGDICT = {
     "app_title": "模型下载",
     "header_title": "可在此手动下载所需模型",
-    "header_tips": "vits/piper/m2m100渠道模型需在使用前手动点击下载，其他模型使用时自动下载",
+    "header_tips": "vits/piper/m2m100渠道模型需在使用前手动点击下载，其他模型使用时自动下载\n可从 https://pvt9.com/huggingface  页面查看模型下载地址",
     
     "section_tts": "vits/piper/M2M100渠道模型(需使用前下载)",
     "section_openai": "语音识别openai-whisper渠道模型(使用时自动下载)",
@@ -69,15 +69,15 @@ CN_LANGDICT = {
 
 EN_LANGDICT = {
     "app_title": "Models Downloader",
-"header_title": "Manually download the required models here",
+    "header_title": "Manually download the required models here",
 
-"header_tips": "Download vits/piper/m2m100 before use; other models will be automatically downloaded upon use",
+    "header_tips": "Download vits/piper/m2m100 before use; other models will be automatically downloaded upon use\nThe model download link can be found at https://pvt9.com/huggingface",
 
-"section_tts": "vits/piper/M2M100 models (required for download before use)",
+    "section_tts": "vits/piper/M2M100 models (required for download before use)",
 
-"section_openai": "Models required for the openai-whisper channel (will be automatically downloaded upon use)",
+    "section_openai": "Models required for the openai-whisper channel (will be automatically downloaded upon use)",
 
-"section_faster": "Models required for the faster-whisper channel (will be automatically downloaded upon use)",
+    "section_faster": "Models required for the faster-whisper channel (will be automatically downloaded upon use)",
 
     "btn_start": "Download",
     "btn_redownload": "Redownload",
@@ -684,6 +684,7 @@ class MainWindow(QWidget):
                 ]
             }
         ]
+        
 
     def init_ui(self):
         # 外层布局
@@ -734,12 +735,13 @@ class MainWindow(QWidget):
         
         def _second_init():
             # 添加第二组：OpenAI Whisper
+            '''
             add_section_header(TRANS["section_openai"])
             for task in self.tasks_openai:
                 t=TaskWidget(task)
                 self.task_obj[task['name']]=t
                 content_layout.addWidget(t)
-
+            '''
             # 添加第三组：Faster Whisper
             add_section_header(TRANS["section_faster"])
             for task in self.tasks_faster:

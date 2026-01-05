@@ -886,5 +886,12 @@
 	"This model only supports speech transcription of these languages:":"This speech recognition model only supports speech transcription of the following languages:",
 	"cosyvoice23webui":"Using this interface requires launching the webui.py file of the official CosyVoice2/3 project. CosyVoice3 cannot directly use the official webui.py file to interface with this software. Click the Fill in Tutorial  button in the lower right corner to see the solution.",
 	"Download URL":" Download URL for models",
-	"downloading all files":"If the model download failed, \nyou can try opening the following URL and downloading all files to the\n {} folder."
+	"downloading all files":"If the model download failed, \nyou can try opening the following URL and downloading all files to the\n {} folder.",
+	"ko":"Korean",
+	"ja":"Japanese",
+	"en":"English",
+	"zh":"Chinese",
+	"vi":"Vietnamese",
+	"th":"Thai",
+	"ar":"Arabic"
 }

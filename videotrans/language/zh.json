@@ -892,6 +892,13 @@
 	"This model only supports speech transcription of these languages:":"该语音识别模型仅支持如下语言的语音转录:",
 	"cosyvoice23webui":"使用该接口需启动 CosyVoice2/3 官方项目的webui.py, cosyvoice3无法直接使用官方webui.py对接本软件，点击右下角填写教程按钮，查看解决办法",
 	"Download URL":"模型下载地址",
-	"downloading all files":"下载模型失败，\n你可以尝试打开以下网址，将所有文件下载到\n {} 文件夹内"
+	"downloading all files":"下载模型失败，\n你可以尝试打开以下网址，将所有文件下载到\n {} 文件夹内",
+	"ja":"日语",
+	"en":"英语",
+	"zh":"中文",
+	"vi":"越南语",
+	"th":"泰国语",
+	"ko":"韩语",
+	"ar":"阿拉伯语"
 	
 }

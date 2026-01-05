@@ -359,6 +359,7 @@ class WinActionSub:
         config.proxy = p.strip()
         if not config.proxy:
             config.settings['proxy'] = ''
+            tools.set_proxy('del')
         else:
             config.settings['proxy'] = config.proxy
             tools.set_proxy(config.proxy)

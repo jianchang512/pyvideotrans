@@ -5,7 +5,55 @@ import subprocess
 import time
 from pathlib import Path
 
+from tqdm import tqdm
 
+
+def create_tqdm_class(callback):
+    class QtAwareTqdm(tqdm):
+        def update(self, n=1):
+            # 执行父类更新
+            displayed = super().update(n)
+            
+            # 2. 区分是“总文件计数”还是“单个文件下载”
+            # HuggingFace 的文件下载进度条 unit 通常是 'B' (字节)
+            # 总文件数进度条 unit 通常是 'it' (个) 或默认值
+            is_bytes = self.unit == 'B' or self.unit_scale is True
+            
+            filename = self.desc if self.desc else "Initializing..."
+            
+            # 过滤逻辑：
+            # 如果你只想在 UI 显示具体文件的下载进度，可以忽略非字节单位的进度条
+            # 这里我把 type 传出去，由你的 UI 决定是否显示
+            
+            if self.total and self.total > 0:
+                percent = (self.n / self.total) * 100
+            else:
+                percent = 0.0
+
+            progress_data = {
+                "filename": filename,
+                "percent": percent,
+                "current": self.n,
+                "total": self.total,
+                "type": "file" if is_bytes else "summary"  # 增加类型标识
+            }
+            print(f'{progress_data=}')
+
+            if callback:
+                # 只有当它是具体文件下载，或者你确实想看总文件进度时才发送
+                # 建议：如果只想看下载进度，加一个 if is_bytes: 判断
+                callback(progress_data)
+
+            return displayed
+        def display(self, msg=None, pos=None):
+            """
+            核心修改：重写 display 方法并留空。
+            tqdm 原本通过此方法打印字符到终端。
+            将其留空后，终端将不会有任何输出，但内部计算依然正常进行。
+            """
+            pass
+
+    return QtAwareTqdm
 
 
 def show_popup(title, text):

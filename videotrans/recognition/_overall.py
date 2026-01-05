@@ -245,6 +245,26 @@ class FasterAll(BaseRecogn):
             self._signal(text=f"end downloading {index+1}/5 from modelscope.cn")
         return local_dir
         
+        
+    def _progress_callback(self, data):
+        msg_type = data.get("type")
+        percent = data.get("percent")
+        filename = data.get("filename")
+        
+        if msg_type == "file":
+           
+            # 标签显示当前文件名
+            self._signal(text=f"{filename} {percent:.2f}%")
+            
+        else:
+            # === 情况 B：这是总文件计数 (Fetching 4 files) ===
+            # 不要更新进度条！否则会由 100% 突然跳回 25%
+            # 建议只在某个副标签显示总进度，或者干脆忽略
+            current_file_idx = data.get("current")
+            total_files = data.get("total")
+            
+            self._signal(text=f"{current_file_idx}/{total_files} files")
+    
     # 下载模型，首先测试 huggingface.co 连通性，不可用则回退镜像 hf-mirror.com
     def _get_modeldir_download(self,model_name):   
         print(f'下载 {model_name=},proxy={config.proxy}')
@@ -269,8 +289,7 @@ class FasterAll(BaseRecogn):
             requests.head('https://huggingface.co',timeout=5)
         except Exception:
             print(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com, {model_name=}')
-            os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
-            os.environ["HF_HUB_DISABLE_XET"] = "1"
+            endpoint = 'https://hf-mirror.com'
             if model_name in ['large-v3-turbo','turbo']:
                 try:
                     # 针对 large-v3-turbo 模型使用 modelscope.cn 下载
@@ -280,8 +299,8 @@ class FasterAll(BaseRecogn):
                     #失败继续使用镜像尝试
         else:
             print('可以使用 huggingface.co')
-            os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
-            os.environ["HF_HUB_DISABLE_XET"] = "0"
+            endpoint = 'https://huggingface.co'
+
         
         Path(local_dir).mkdir(exist_ok=True, parents=True)
         # 不存在，判断缓存中是否存在
@@ -306,17 +325,20 @@ class FasterAll(BaseRecogn):
             self._signal(text="The model already exists.")
             return local_dir
         # 不存在，需要下载
-        self._signal(text=f"Downloading the model from {os.environ['HF_ENDPOINT']} ...")
+        self._signal(text=f"Downloading the model from {endpoint} ...")
         from huggingface_hub import snapshot_download
         try:
+            MyTqdmClass = tools.create_tqdm_class(self._progress_callback)
             snapshot_download(
                 repo_id=repo_id,
                 local_dir=local_dir,
                 local_dir_use_symlinks=False,
-                endpoint=os.environ.get('HF_ENDPOINT'),
+                endpoint=endpoint,
+                tqdm_class=MyTqdmClass,
                 ignore_patterns=["*.msgpack", "*.h5", ".git*","*.md"]
             )
-            self._signal(text="The model downloaded ")
+            self._signal(text="Downloaded end")
+
         except Exception as e:
             msg=f'下载模型失败，你可以打开以下网址，将 .bin/.txt/.json 文件下载到\n {local_dir} 文件夹内\n' if config.defaulelang=='zh' else f'The model download failed. You can try opening the following URL and downloading the .bin/.txt/.json files to the {local_dir} folder.'
             raise RuntimeError(f'{msg}\n[https://huggingface.co/{repo_id}/tree/main]\n{e}')

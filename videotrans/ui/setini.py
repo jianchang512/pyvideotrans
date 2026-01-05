@@ -513,7 +513,7 @@ class Ui_setini(object):
                 tmp_0.setToolTip(tips_str)
                 tmp.addWidget(tmp_0)
 
-                val = str(config.settings.get(key, "")).lower()
+                val = str(config.settings.get(key, ""))
                 # 是 cuda_com_type
                 if key == 'cuda_com_type':
                     cuda_types = ['default', 'auto', 'float32', 'float16', 'int8', 'int16', 'int8_float16',
@@ -522,7 +522,7 @@ class Ui_setini(object):
                     tmp1.addItems(cuda_types)
                     tmp1.setObjectName(key)
                     tmp1.setToolTip(tips_str)
-                    if val in cuda_types:
+                    if val.lower() in cuda_types:
                         tmp1.setCurrentText(val)
                     tmp.addWidget(tmp1)
                     tmp.addStretch(1)
@@ -534,7 +534,7 @@ class Ui_setini(object):
                     tmp1.addItems(ai_types)
                     tmp1.setObjectName(key)
                     tmp1.setToolTip(tips_str)
-                    if val in ai_types:
+                    if val.lower() in ai_types:
                         tmp1.setCurrentText(val)
                     tmp.addWidget(tmp1)
                     tmp.addStretch(1)
@@ -546,7 +546,7 @@ class Ui_setini(object):
                     tmp1.addItems(ai_types)
                     tmp1.setObjectName(key)
                     tmp1.setToolTip(tips_str)
-                    if val in ai_types:
+                    if val.lower() in ai_types:
                         tmp1.setCurrentText(val)
                     tmp.addWidget(tmp1)
                     tmp.addStretch(1)
@@ -558,7 +558,7 @@ class Ui_setini(object):
                     tmp1.addItems(codecv)
                     tmp1.setObjectName(key)
                     tmp1.setToolTip(tips_str)
-                    if val in codecv:
+                    if val.lower() in codecv:
                         tmp1.setCurrentText(val)
                     tmp.addWidget(tmp1)
                     tmp.addStretch(1)
@@ -569,7 +569,7 @@ class Ui_setini(object):
                     tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(presets)
                     tmp1.setToolTip(tips_str)
-                    if val in presets:
+                    if val.lower() in presets:
                         tmp1.setCurrentText(val)
                     tmp1.setObjectName(key)
                     tmp.addWidget(tmp1)
@@ -602,7 +602,7 @@ class Ui_setini(object):
                     box.layout().addLayout(tmp)
                     continue
                 # 是checkbox
-                if val in ['true', 'false']:
+                if val.lower() in ['true', 'false']:
                     tmp_1 = QtWidgets.QCheckBox()
                     tmp_1.setChecked(True if val == 'true' else False)
                     tmp_1.setToolTip(tips_str)
@@ -621,6 +621,8 @@ class Ui_setini(object):
                     tmp.addWidget(tmp_1)
                     box.layout().addLayout(tmp)
                     continue
+                
+                
 
                 # 文本框
                 tmp_1 = QtWidgets.QLineEdit()
