@@ -10,16 +10,14 @@ from pathlib import Path
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog
-
+print(f'before import recognition {time.time()}')
 from videotrans import translator, recognition, tts
+print(f'after import recognition {time.time()}')
 from videotrans.configure import config
 from videotrans.configure.config import tr
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools
-from videotrans.component.onlyone_set_editdubb import EditDubbingResultDialog
-from videotrans.component.onlyone_set_recogn import EditRecognResultDialog
-from videotrans.component.onlyone_set_role import SpeakerAssignmentDialog
 from videotrans.task.trans_create import TransCreate
 
 
@@ -140,19 +138,6 @@ class WinAction(WinActionSub):
 
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
-
-    def check_model_name(self):
-        recogn_type = self.main.recogn_type.currentIndex()
-        model = self.main.model_name.currentText()
-        res = recognition.check_model_name(
-            recogn_type=recogn_type,
-            name=model,
-            source_language_currentText=self.main.source_language.currentText()
-        )
-
-        if res is not True:
-            return tools.show_error(res)
-        return True
 
 
     def model_type_change(self):
@@ -911,6 +896,8 @@ class WinAction(WinActionSub):
             self.main.subtitle_area.insertPlainText(d['text'])
         elif d['type'] == 'edit_dubbing':
             # 显示编辑翻译框
+            from videotrans.component.onlyone_set_editdubb import EditDubbingResultDialog
+
             cache_folder,language=d['text'].split('<|>')
             dialog=EditDubbingResultDialog(
                 cache_folder=cache_folder,
@@ -924,8 +911,8 @@ class WinAction(WinActionSub):
                 self.update_status('stop')
         elif d['type'] == 'edit_subtitle_source':
             # 显示编辑翻译框
-
-            
+            from videotrans.component.onlyone_set_recogn import EditRecognResultDialog
+           
             dialog=EditRecognResultDialog(
                 source_sub=config.onlyone_source_sub,
                 parent=self.main
@@ -937,7 +924,7 @@ class WinAction(WinActionSub):
                 self.update_status('stop')
         elif d['type'] == 'edit_subtitle_target':
             # 弹出编辑配音字幕
-
+            from videotrans.component.onlyone_set_role import SpeakerAssignmentDialog
             cache_folder,target_language,tts_type=d['text'].split('<|>')
             dialog=SpeakerAssignmentDialog(
                 source_sub=None if not config.onlyone_trans else config.onlyone_source_sub,

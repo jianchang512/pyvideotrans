@@ -18,12 +18,24 @@ VERSION = "v3.94"
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
-from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer, QLocale
+from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer, QLocale,QThread
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 
+class AiLoaderThread(QThread):
 
+    def run(self):
+        print("sp.py preload transformers/torch/ctranslate2...")
+        try:
+            # 这里 import，会写入 sys.modules
+            import transformers,torch
+            from transformers import pipeline
+            print("sp.py preload ended")
+        except Exception as e:
+            print(f"sp.py preload error:{e}")
 
 
 # 抑制警告
@@ -56,6 +68,8 @@ class StartWindow(QWidget):
         self.main_window = None
         self.LoadNotif = None
         self.start_time=time.time()
+        self.loader = AiLoaderThread()
+        self.loader.start()
 
         self.resize(560, 350)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
@@ -163,6 +177,8 @@ def initialize_full_app(start_window, app_instance):
         return
 
     if main_window_created and start_window.main_window:
+        
+
         start_window.main_window.show()
 
 
@@ -184,11 +200,11 @@ if __name__ == "__main__":
     # 设置 HighDpi
     try:
         QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+        
     except AttributeError:
         pass
 
     app = QApplication(sys.argv)
-
     splash = StartWindow()
     splash.setWindowIcon(QIcon("./videotrans/styles/icon.ico"))
     splash.center()

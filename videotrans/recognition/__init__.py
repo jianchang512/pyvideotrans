@@ -2,11 +2,9 @@ from typing import Union, List, Dict
 from videotrans import translator
 from videotrans.configure import config
 import time
-# 数字代表界面中的现实顺序
 from videotrans.configure.config import tr
-
-
-
+from videotrans.recognition._huggingface import HuggingfaceRecogn
+from videotrans.recognition._overall import FasterAll
 
 
 FASTER_WHISPER = 0
@@ -105,19 +103,6 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
             return tr("This model only supports speech transcription of these languages:")+model_lang_support
     return True
-
-
-# 判断 openai whisper和 faster whisper 模型是否存在
-def check_model_name(recogn_type=FASTER_WHISPER, name='',  source_language_currentText=''):
-    if recogn_type not in [OPENAI_WHISPER, FASTER_WHISPER]:
-        return True
-    # 含 / 的需要下载
-    if name.find('/') > 0:
-        return True
-    if recogn_type == OPENAI_WHISPER and name.startswith('distil'):
-        return tr("distil-* only use when faster-whisper")
-    return True
-
 
 
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
@@ -223,6 +208,7 @@ def run(*,
         "max_speakers":max_speakers,
         "llm_post":llm_post
     }
+    config.logger.debug(f'[recognition]__init__:run() {time.time()=} {kwargs=}')
 
     if recogn_type == GOOGLE_SPEECH:
         from videotrans.recognition._google import GoogleRecogn
@@ -269,11 +255,13 @@ def run(*,
         from videotrans.recognition._elevenlabs import ElevenLabsRecogn
         return ElevenLabsRecogn(**kwargs).run()
     if recogn_type == HUGGINGFACE_ASR:
-        from videotrans.recognition._huggingface import HuggingfaceRecogn
+        config.logger.debug(f'start import HuggingfaceRecogn')
+        
+        config.logger.debug(f'end import HuggingfaceRecogn')
         return HuggingfaceRecogn(**kwargs).run()
     if recogn_type == ZHIPU_API:
         from videotrans.recognition._glmasr import GLMASRRecogn
         return GLMASRRecogn(**kwargs).run()
-    from videotrans.recognition._overall import FasterAll
+    
     return FasterAll(**kwargs).run()
 

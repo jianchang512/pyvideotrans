@@ -12,6 +12,7 @@ from videotrans.task.simple_runnable_qt import run_in_threadpool
 from faster_whisper.utils import _MODELS
 import threading,requests
 from videotrans.util import tools
+from huggingface_hub import snapshot_download
 
 
 """
@@ -29,7 +30,7 @@ class FasterAll(BaseRecogn):
     def _exec(self):
         if self._exit():
             return
-        self.has_done = False
+        config.logger.debug(f'[FasterAll]_exec {time.time()=}:{self.model_name=}')
         self.error = ''
         self._signal(text="STT starting, hold on...")
         if self.recogn_type==1:#openai-whisper
@@ -62,7 +63,6 @@ class FasterAll(BaseRecogn):
         )
         self._signal(text=f"Loaded {self.model_name}")
         raws=[]
-        print(f'openai-whisper 整体识别')
         speech_timestamps=self.get_speech_timestamp(self.audio_file)
         last_end_time=speech_timestamps[-1][1]/1000.0
         speech_timestamps_flat=[]
@@ -105,7 +105,7 @@ class FasterAll(BaseRecogn):
 
         self._signal(text=f"load {self.model_name}")
         
-        from faster_whisper import WhisperModel,BatchedInferencePipeline
+        from faster_whisper import WhisperModel
         
         if self.model_name.startswith('distil-'):
             com_type = "default"
@@ -115,7 +115,7 @@ class FasterAll(BaseRecogn):
         try:
             model = WhisperModel(
                 local_dir,
-                device="cuda" if self.is_cuda else "cpu",
+                device="cuda" if self.is_cuda else "auto",
                 compute_type=com_type
             )
         except Exception as e:
@@ -136,7 +136,6 @@ class FasterAll(BaseRecogn):
 
         # 批量或均等分割
         speech_timestamps=self.get_speech_timestamp(self.audio_file)            
-        print(f'faster-whisper 整体识别')
         last_end_time=speech_timestamps[-1][1]/1000.0
         speech_timestamps_flat=[]
         for it in speech_timestamps:
@@ -145,6 +144,7 @@ class FasterAll(BaseRecogn):
             self.audio_file,
             beam_size=int(config.settings.get('beam_size',5)),
             best_of=int(config.settings.get('best_of',5)),
+            vad_filter=False,
             no_speech_threshold=float(config.settings.get('no_speech_threshold',0.5)),
             condition_on_previous_text=bool(config.settings.get('condition_on_previous_text',False)),
             word_timestamps=False,
@@ -326,7 +326,6 @@ class FasterAll(BaseRecogn):
             return local_dir
         # 不存在，需要下载
         self._signal(text=f"Downloading the model from {endpoint} ...")
-        from huggingface_hub import snapshot_download
         try:
             MyTqdmClass = tools.create_tqdm_class(self._progress_callback)
             snapshot_download(
@@ -334,6 +333,7 @@ class FasterAll(BaseRecogn):
                 local_dir=local_dir,
                 local_dir_use_symlinks=False,
                 endpoint=endpoint,
+                etag_timeout=5,
                 tqdm_class=MyTqdmClass,
                 ignore_patterns=["*.msgpack", "*.h5", ".git*","*.md"]
             )

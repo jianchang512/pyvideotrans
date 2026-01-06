@@ -37,6 +37,12 @@ class CosyVoice(BaseTTS):
         text = data_item['text'].strip()
         if not text:
             return
+        speed = 1.0
+        try:
+            speed = 1 + float(self.rate.replace('%', '')) / 100
+        except ValueError:
+            pass
+        speed=max(0.5,min(2,speed))
         role = data_item['role']
         data = {'ref_wav': '','ref_text':data_item.get('ref_text','')}
         
@@ -74,6 +80,7 @@ class CosyVoice(BaseTTS):
             instruct_text=instruct_text,
             seed=0,
             stream=False,
+            speed=speed,
             api_name="/generate_audio"
 
         )

@@ -123,11 +123,7 @@ TRANS = CN_LANGDICT if LANG_CODE == 'zh' else EN_LANGDICT
 # ==========================================
 # 1. 核心逻辑
 # ==========================================
-try:
-    import py7zr
-    HAS_7Z = True
-except ImportError:
-    HAS_7Z = False
+HAS_7Z = False
 
 class DownloadWorker(QThread):
     progress_signal = Signal(int)       
@@ -270,9 +266,6 @@ class DownloadWorker(QThread):
                         fname = item["fname"]
                         if fname.endswith('.7z'):
                             if not HAS_7Z: raise ImportError(TRANS["err_no_py7zr"])
-                            if not py7zr.is_7zfile(dest_file_obj): raise Exception(TRANS["err_format"])
-                            with py7zr.SevenZipFile(dest_file_obj, 'r') as z:
-                                z.extractall(path=target_dir)
                         else:
                             with zipfile.ZipFile(dest_file_obj) as zf:
                                 zf.extractall(path=target_dir)
@@ -715,45 +708,41 @@ class MainWindow(QWidget):
         
         # 滚动区域的内容容器
         content_widget = QWidget()
-        content_layout = QVBoxLayout(content_widget)
-        content_layout.setSpacing(5)
+        self.content_layout = QVBoxLayout(content_widget)
+        self.content_layout.setSpacing(5)
 
         # --- 辅助函数：添加分节标题 ---
+        '''
         def add_section_header(text):
             lbl = QLabel(text)
             lbl.setWordWrap(True)
             lbl.setStyleSheet("padding: 8px; font-weight: bold; font-size:14px; color: #fff; margin-top: 10px; border-radius: 4px;")
-            content_layout.addWidget(lbl)
+            self.content_layout.addWidget(lbl)
 
         # 添加第一组：TTS & ZIP
         add_section_header(TRANS["section_tts"])
         for task in self.tasks_zip:
             t=TaskWidget(task)
             self.task_obj[task['zip_folder']]=t
-            content_layout.addWidget(t)
+            self.content_layout.addWidget(t)
         
+        
+        add_section_header(TRANS["section_faster"])
         
         def _second_init():
             # 添加第二组：OpenAI Whisper
-            '''
+            
             add_section_header(TRANS["section_openai"])
             for task in self.tasks_openai:
                 t=TaskWidget(task)
                 self.task_obj[task['name']]=t
                 content_layout.addWidget(t)
-            '''
-            # 添加第三组：Faster Whisper
-            add_section_header(TRANS["section_faster"])
-            for task in self.tasks_faster:
-                t=TaskWidget(task)
-                self.task_obj[task['name']]=t
-                content_layout.addWidget(t)
-
-            content_layout.addStretch() # 底部弹簧
+        '''
+            
         
         scroll.setWidget(content_widget)
         outer_layout.addWidget(scroll)
-        QTimer.singleShot(200,_second_init)
+        #QTimer.singleShot(200,_second_init)
 
     def auto_start(self,zip_folder=None):
         if zip_folder and zip_folder in self.task_obj and hasattr(self.task_obj[zip_folder],'toggle_download'):
@@ -764,6 +753,12 @@ class MainWindow(QWidget):
             for k,v in self.task_obj.items():
                 v.update_status()
     
+    def _add_section_header(self,text):
+        lbl = QLabel(text)
+        lbl.setWordWrap(True)
+        lbl.setStyleSheet("padding: 8px; font-weight: bold; font-size:14px; color: #fff; margin-top: 10px; border-radius: 4px;")
+        self.content_layout.addWidget(lbl)
+    
     def showEvent(self, event: QShowEvent):
         self.show_num+=1
         """
@@ -771,7 +766,24 @@ class MainWindow(QWidget):
         """
         super().showEvent(event)
         
-        if self.show_num>1:
+        if self.show_num==1:
+            self._add_section_header(TRANS["section_tts"])
+            for task in self.tasks_zip:
+                t=TaskWidget(task)
+                self.task_obj[task['zip_folder']]=t
+                self.content_layout.addWidget(t)
+            
+            
+            self._add_section_header(TRANS["section_faster"])
+        
+            # 添加第三组：Faster Whisper
+            for task in self.tasks_faster:
+                t=TaskWidget(task)
+                self.task_obj[task['name']]=t
+                self.content_layout.addWidget(t)
+
+            self.content_layout.addStretch() # 底部弹簧
+        else:
             self.refresh_data()
 
     

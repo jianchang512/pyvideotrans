@@ -115,7 +115,6 @@ class Ui_setini(object):
                 
                 "noise_separate_nums":"降噪和人声背景声分离线程数，越大越快但占用资源越多",
                 
-                "faster_batch":"整体识别模式强制批量推理，更快但断句较长",
                 "zh_hant_s": "强制将识别出的繁体字幕转为简体",
             },
             "prompt_init": {
@@ -175,7 +174,6 @@ class Ui_setini(object):
             "edgetts_retry_nums":"EdgeTTS配音渠道失败重试次数",
             
             "ai302_models": "302.AI翻译模型",
-            "faster_batch":"强制批量推理",
             "ai302tts_models": "302.AI-TTS模型",
             "openairecognapi_model": "OpenAI语音识别模型",
             "chatgpt_model": "ChatGPT模型列表",
@@ -329,7 +327,6 @@ class Ui_setini(object):
         "condition_on_previous_text": "Condition on previous text for better context (uses more GPU, may cause repetition).",
         "noise_separate_nums":"The more threads used for noise reduction and separation of human and background voices, the faster the process, but the more resources it consumes.",
         
-        "faster_batch": "Force batch inference in global recognition mode (faster, but results in longer segments).",
         "zh_hant_s": "Force conversion of recognized Traditional Chinese to Simplified Chinese."
     },
     "prompt_init": {
@@ -377,7 +374,6 @@ class Ui_setini(object):
     "gemini_recogn_chunk": "Gemini speech recognition batch slice count",
     "llm_chunk_size": "LLM re-segmentation How many subtitles are sent each time",
     "ai302_models": "302.AI translation models",
-    "faster_batch": "Force batch inference",
     "ai302tts_models": "302.AI-TTS models",
     "no_speech_threshold":"no speech threshold",
     

@@ -107,9 +107,10 @@ class WorkerRegcon(QThread):
             except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
+                config.logger.debug(f'[job] {trk.uuid=}已停止，执行语音识别阶段 {trk.cfg=}')
                 continue
             try:
-                print(f'进入执行语音识别阶段')
+                config.logger.debug(f'[job] 进入执行语音识别阶段 {trk.cfg=}')
                 trk.recogn()
                 config.diariz_queue.put_nowait(trk)
             except Exception as e:

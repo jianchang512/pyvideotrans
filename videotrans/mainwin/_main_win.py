@@ -15,11 +15,39 @@ import subprocess
 
 
 from videotrans.configure import config
-
+from videotrans import VERSION
 from videotrans.ui.en import Ui_MainWindow
 from videotrans.translator import TRANSLASTE_NAME_LIST, LANGNAME_DICT
 from videotrans.component.downmodels import MainWindow as downwin
 
+import huggingface_hub
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
+
+# 1. 定义一个工厂函数，返回配置好的 Session
+def _custom_session_factory():
+    sess = requests.Session()
+    # 配置重试策略
+    retries = Retry(
+        total=3,                # 总重试次数 (改为3)
+        connect=2,              # 连接重试次数
+        read=2,                 # 读取重试次数
+        backoff_factor=1,       # 重试间隔时间 (秒)，避免瞬间频繁请求
+        status_forcelist=[500, 502, 503, 504] # 遇到这些状态码才重试
+    )
+    
+    # 将重试策略挂载到 http 和 https 协议上
+    adapter = HTTPAdapter(max_retries=retries)
+    sess.mount('http://', adapter)
+    sess.mount('https://', adapter)
+    return sess
+
+# 2. 将这个工厂函数注册给 huggingface_hub
+huggingface_hub.configure_http_backend(backend_factory=_custom_session_factory)
+
+
+        
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -48,20 +76,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 当前所有可用角色列表
         self.current_rolelist = []
 
-        self.rawtitle="pyVideoTrans"
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
         self.languagename=list(LANGNAME_DICT.values())
         self.source_language.addItems(self.languagename)
         self.target_language.addItems(["-"] + self.languagename)
-        self.translate_type.addItems(TRANSLASTE_NAME_LIST)        
+        self.translate_type.addItems(TRANSLASTE_NAME_LIST)   
+                
+        self.rawtitle = f"{config.tr('softname')} {VERSION} {config.tr('Documents')} pyvideotrans.com"
+        self.setWindowTitle(self.rawtitle)
+
         self.show()
-        QTimer.singleShot(300,self._set_Ui_Text)
+        self.uito.emit('load subtitles area...')
+        QTimer.singleShot(200,self._set_Ui_Text)
         
 
 
     def _set_Ui_Text(self):
-        self.uito.emit('load subtitles area...')
-        QApplication.processEvents()
         # 字幕显示区域
         from videotrans.component.controlobj import TextGetdir
         self.subtitle_area = TextGetdir(self)
@@ -72,13 +102,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.source_area_layout.insertWidget(self.source_area_layout.indexOf(self.subtitle_area_placeholder), self.subtitle_area)
         self.subtitle_area_placeholder.hide()
         self.subtitle_area_placeholder.deleteLater()
-        self.uito.emit('Set ui text...')
-        QApplication.processEvents()
-        from videotrans import VERSION, recognition, tts
-        self.uito.emit('Set style...')
-        QApplication.processEvents()
-        self.rawtitle = f"{config.tr('softname')} {VERSION} {config.tr('Documents')} pyvideotrans.com"
-        self.setWindowTitle(self.rawtitle)
+               
         
         # 底部状态条
         self.statusLabel = QPushButton(config.tr("Open Documents"))
@@ -298,18 +322,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionsrtmultirole.setText(config.tr("Multi voice dubbing for SRT"))
         self.actionsrtmultirole.setToolTip(
             config.tr("Subtitle multi-role dubbing: assign a voice to each subtitle"))
-        self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
-        self.tts_type.addItems(tts.TTS_NAME_LIST)
-        self.uito.emit('Load function window...')
+        
         QApplication.processEvents()
-        # 主功能 设置默认参数
+        self.uito.emit('import action')
         from videotrans.mainwin._actions import WinAction
-        from videotrans.task.simple_runnable_qt import run_in_threadpool
-        self.uito.emit('Set default params')
         QApplication.processEvents()
+        self.uito.emit('Set default params')
+        from videotrans import tts
+        from videotrans.task.simple_runnable_qt import run_in_threadpool
+        from videotrans.util import tools
 
+        self.tts_type.addItems(tts.TTS_NAME_LIST)
         self.win_action = WinAction(self)
         self.win_action.tts_type_change(config.params.get('tts_type', ''))
+
 
         config.params['translate_type'] = int(config.params.get('translate_type', 0))
         self.translate_type.setCurrentIndex(config.params.get('translate_type', 0))
@@ -322,7 +348,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.voice_role.clear()
         
         
-        from videotrans.util import tools
 
         if config.params.get('tts_type', '') == tts.CLONE_VOICE_TTS:
             self.voice_role.addItems(config.params.get("clone_voicelist", ''))
@@ -372,33 +397,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if default_role != 'No' and self.current_rolelist and default_role in self.current_rolelist:
                 self.voice_role.setCurrentText(default_role)
                 self.win_action.show_listen_btn(default_role)
-
-        self.recogn_type.setCurrentIndex(int(config.params.get('recogn_type', '0')))
-        self.model_name.clear()
-        if config.params.get('recogn_type', '') == recognition.Deepgram:
-            self.model_name.addItems(config.DEEPGRAM_MODEL)
-            curr = config.DEEPGRAM_MODEL
-        elif config.params.get('recogn_type', '') == recognition.Whisper_CPP:
-            curr = config.Whisper_CPP_MODEL_LIST
-            self.model_name.addItems(config.Whisper_CPP_MODEL_LIST)
-        elif config.params.get('recogn_type', '') == recognition.FUNASR_CN:
-            self.model_name.addItems(config.FUNASR_MODEL)
-            curr = config.FUNASR_MODEL
-        else:
-            self.model_name.addItems(config.WHISPER_MODEL_LIST)
-            curr = config.WHISPER_MODEL_LIST
-        if config.params.get('model_name', '') in curr:
-            self.model_name.setCurrentText(config.params.get('model_name', ''))
-        if config.params.get('recogn_type', '') not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.Whisper_CPP, recognition.OPENAI_WHISPER, recognition.FUNASR_CN,recognition.Deepgram,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR]:
-            self.model_name.setDisabled(True)
-        else:
-            self.model_name.setDisabled(False)
+         
+            
         self.moshi = {
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
-    
-        
+           
         
         
         if platform.system() == 'Darwin':
@@ -459,9 +464,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.bgmvolume.setText(str(config.settings.get('backaudio_volume', 0.8)))
         self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio', True)))
-
-
-
+        QApplication.processEvents()
+        self.uito.emit('set cursor...')
         
         self.import_sub.setCursor(Qt.PointingHandCursor)
         self.model_name_help.setCursor(Qt.PointingHandCursor)
@@ -473,8 +477,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.setCursor(Qt.PointingHandCursor)
         self.restart_btn.setCursor(Qt.PointingHandCursor)
         
-        self.uito.emit('Bind signal...')        
         QApplication.processEvents()
+        self.uito.emit('Bind signal...')        
+
+        
         run_in_threadpool(tools.check_hw_on_start)
         self._bind_signal()
 
@@ -483,6 +489,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         from videotrans.task.check_update import CheckUpdateWorker
         from videotrans.task.job import start_thread
         from videotrans.mainwin._signal import UUIDSignalThread
+        from videotrans import recognition
+
+        self.model_name.clear()
+        self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
+        self.recogn_type.setCurrentIndex(int(config.params.get('recogn_type',0)))
+        if config.params.get('recogn_type', '') == recognition.Deepgram:
+            self.model_name.addItems(config.DEEPGRAM_MODEL)
+            curr = config.DEEPGRAM_MODEL
+        elif config.params.get('recogn_type', '') == recognition.Whisper_CPP:
+            curr = config.Whisper_CPP_MODEL_LIST
+            self.model_name.addItems(config.Whisper_CPP_MODEL_LIST)
+        elif config.params.get('recogn_type', '') == recognition.FUNASR_CN:
+            self.model_name.addItems(config.FUNASR_MODEL)
+            curr = config.FUNASR_MODEL
+        elif config.params.get('recogn_type', '') == recognition.HUGGINGFACE_ASR:
+            curr = list(recognition.HUGGINGFACE_ASR_MODELS.keys())
+            self.model_name.addItems(curr)
+        else:
+            self.model_name.addItems(config.WHISPER_MODEL_LIST)
+            curr = config.WHISPER_MODEL_LIST
+        if config.params.get('model_name', '') in curr:
+            self.model_name.setCurrentText(config.params.get('model_name', ''))
+        if config.params.get('recogn_type', '') not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.Whisper_CPP, recognition.OPENAI_WHISPER, recognition.FUNASR_CN,recognition.Deepgram,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR]:
+            self.model_name.setDisabled(True)
+        else:
+            self.model_name.setDisabled(False)
+        
         # 绑定行为
         self.voice_autorate.toggled.connect(self.win_action.check_voice_autorate)
         self.video_autorate.toggled.connect(self.win_action.check_video_autorate)
@@ -502,7 +535,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.set_adv_status.clicked.connect(self.win_action.toggle_adv)
         self.btn_get_video.clicked.connect(self.win_action.get_mp4)
         self.listen_btn.clicked.connect(self.win_action.listen_voice_fun)
-        self.model_name.currentTextChanged.connect(self.win_action.check_model_name)
         self.recogn_type.currentIndexChanged.connect(self.win_action.recogn_type_change)
         self.model_name.currentIndexChanged.connect(self.win_action.model_type_change)
 
@@ -614,13 +646,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(
                 f'Ubuntu: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm')
 
-        self.uito.emit('Import torch...')
         QApplication.processEvents()
-        import torch
-        QApplication.processEvents()
-        self.uito.emit('init downmodels window')
+        self.uito.emit('preload model window')
         config.child_forms['downmodels']=downwin()
         self.uito.emit('end')
+
 
 
 
@@ -754,16 +784,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hide()
         os.chdir(config.ROOT_DIR)
         self.cleanup_and_accept()
-        try:
-            with open(config.TEMP_DIR + '/stop_process.txt', 'w', encoding='utf-8') as f:
-                f.write('stop')
-        except OSError:
-            pass
+
         # 暂停等待可能的 faster-whisper 独立进程退出
         time.sleep(4)
         try:
             shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
-            shutil.rmtree(config.TEMP_ROOT, ignore_errors=True)
+            #shutil.rmtree(config.TEMP_ROOT, ignore_errors=True)
         except OSError:
             pass
         if not self.is_restarting:

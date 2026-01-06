@@ -77,6 +77,14 @@ def get_piper_role():
 
 def set_proxy(set_val=''):
 
+    if set_val=='del':
+        config.proxy=''
+        if os.environ.get('HTTP_PROXY'):
+            del os.environ['HTTP_PROXY']
+        if os.environ.get('HTTPS_PROXY'):
+            del os.environ['HTTPS_PROXY']
+        return
+
     if set_val:
         # 设置代理
         set_val=set_val.lower()
@@ -87,12 +95,6 @@ def set_proxy(set_val=''):
         os.environ['HTTPS_PROXY'] = set_val
         return set_val
     
-    if set_val=='del':
-        if os.environ.get('HTTP_PROXY'):
-            del os.environ['HTTP_PROXY']
-        if os.environ.get('HTTPS_PROXY'):
-            del os.environ['HTTPS_PROXY']
-        return
         
     
     # 获取代理

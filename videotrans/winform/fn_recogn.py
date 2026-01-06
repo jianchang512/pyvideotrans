@@ -56,16 +56,6 @@ def openwin():
     def opendir_fn():
         QDesktopServices.openUrl(QUrl.fromLocalFile(COPYSRT_TO_RAWDIR))
 
-    def check_model_name(recogn_type, model):
-        res = recognition.check_model_name(
-            recogn_type=recogn_type,
-            name=model,
-            source_language_currentText=winobj.shibie_language.currentText()
-        )
-
-        if res is not True:
-            return tools.show_error(res)
-        return True
 
     def toggle_state(state):
         winobj.shibie_language.setDisabled(state)
@@ -91,8 +81,6 @@ def openwin():
         if recogn_type == recognition.Faster_Whisper_XXL and not show_xxl_select():
             return
 
-        if check_model_name(recogn_type, model) is not True:
-            return
         langcode = translator.get_audio_code(show_source=winobj.shibie_language.currentText())
         is_cuda = winobj.is_cuda.isChecked()
         if check_cuda(is_cuda) is not True:
@@ -281,8 +269,6 @@ def openwin():
         
 
             
-        if check_model_name(recogn_type, winobj.shibie_model.currentText()) is not True:
-            return
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
 

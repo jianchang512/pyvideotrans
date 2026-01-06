@@ -57,6 +57,7 @@ class BaseRecogn(BaseCon):
 
     def __post_init__(self):
         super().__post_init__()
+        config.logger.debug(f'BaseRecogn 初始化')
         if not tools.vail_file(self.audio_file):
             raise RuntimeError(f'No {self.audio_file}')
         self.device = 'cuda' if self.is_cuda else 'cpu'
@@ -388,7 +389,7 @@ class BaseRecogn(BaseCon):
         try:
             sr, data = Wavfile.read(input_wav)
         except Exception as e:
-            print(f"Error reading wav file: {e}")
+            config.logger.exception(f"Error reading wav file: {e}")
             return []
 
         # --- 第一阶段：使用初始长静音阈值进行初步切分 (不设 max_speech 限制) ---

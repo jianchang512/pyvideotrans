@@ -359,7 +359,6 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
             creationflags = subprocess.CREATE_NO_WINDOW
         if config.exit_soft:
             return
-        config.logger.info(f'{cmd=}')
         subprocess.run(
             cmd,
             stdout=subprocess.PIPE,

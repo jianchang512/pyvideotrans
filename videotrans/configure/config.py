@@ -29,6 +29,7 @@ no_proxy=(
 )
 os.environ['no_proxy'] = no_proxy
 os.environ['NO_PROXY'] = no_proxy # 某些系统或库可能检查大写
+os.environ["TOKENIZERS_PARALLELISM"] = "false" 
 
 # 获取程序执行目录
 def _get_executable_path():
@@ -64,7 +65,7 @@ _file_handler.setLevel(logging.DEBUG)
 _console_handler = logging.StreamHandler(sys.stdout)
 _console_handler.setLevel(logging.WARNING)
 # 设置日志格式
-formatter = logging.Formatter('%(asctime)s[%(levelname)s] %(message)s')
+formatter = logging.Formatter('[%(levelname)s] %(message)s')
 _file_handler.setFormatter(formatter)
 _console_handler.setFormatter(formatter)
 # 添加处理器到日志记录器
@@ -225,7 +226,6 @@ def parse_init(update_data=None):
         "lang": "",
         "Faster_Whisper_XXL": "",
         "Whisper.cpp": "",
-        "faster_batch":False,
         "Whisper.cpp.models": "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin",
         "crf": 24,
         "edgetts_max_concurrent_tasks":10,

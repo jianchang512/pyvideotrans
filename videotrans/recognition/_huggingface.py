@@ -9,8 +9,9 @@ from typing import List, Dict, Union
 from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.recognition._base import BaseRecogn
-from transformers import pipeline
-import json,requests,shutil
+
+import json,shutil,requests
+from huggingface_hub import snapshot_download
 
 
 @dataclass
@@ -18,10 +19,13 @@ class HuggingfaceRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
+        config.logger.debug(f'HuggingfaceRecogn 初始化')
         self.local_dir=f'{config.ROOT_DIR}/models/models--'+self.model_name.replace('/','--')
+        self._signal(text=f"use {self.model_name}")
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
+        config.logger.debug(f'[HuggingfaceRecogn]_exec {time.time()=}:{self.model_name=}')
         self._get_modeldir_download()
         result=[]        
         if self.model_name in ['JhonVanced/whisper-large-v3-japanese-4k-steps-ct2','zh-plus/faster-whisper-large-v2-japanese-5k-steps']:
@@ -43,19 +47,38 @@ class HuggingfaceRecogn(BaseRecogn):
         raise RuntimeError(f'No recognition results found:{self.model_name}')
 
     def _pipe_asr(self):
+        config.logger.debug(f'before import pipeline {int(time.time())}')
+        from transformers import pipeline
+        import torch
+        config.logger.debug(f'after import pipeline {int(time.time())}')
         raws = self.cut_audio()
         p = pipeline(
             task="automatic-speech-recognition",
             model=self.local_dir,
-            device_map="auto",
+            device_map="cuda:0" if self.is_cuda else "auto",
+            dtype=torch.float16 if self.is_cuda else torch.float32,
         )
+        config.logger.debug(f'use device={(p.model.device)}')
         generate_kwargs={"language": self.detect_language[:2], "task": "transcribe"}
         if self.model_name in ['nvidia/parakeet-ctc-1.1b']:
             generate_kwargs={}
-        for i, it in enumerate(raws):
-            self._signal(text=f"subtitles {i+1}/{len(raws)}...")
+        def inputs_generator():
+            for item in raws:
+                yield item['file']
+        results_iterator = p(
+            inputs_generator(), 
+            batch_size=4, 
+            generate_kwargs=generate_kwargs,
+            ignore_warning=True
+        )     
+        total = len(raws)
+
+        for i, (it,res) in enumerate(zip(raws, results_iterator)):
+            self._signal(text=f"subtitles {i+1}/{total}...")
             res=p(it['file'],ignore_warning=True,generate_kwargs=generate_kwargs)
-            del it['file']
+            if 'file' in it:
+                del it['file']
+
             if res.get('text'):
                 it['text']=re.sub(r'<unk>|</unk>','',res['text'])
                 self._signal(text=f'{it["text"]}\n', type="subtitle")       
@@ -68,14 +91,18 @@ class HuggingfaceRecogn(BaseRecogn):
         raws=self.cut_audio()
         model = WhisperModel(
                 self.local_dir,
-                device="cuda" if self.is_cuda else "cpu"
+                device="cuda" if self.is_cuda else "auto"
         )
         for i,it in enumerate(raws):
             segments, info = model.transcribe(
                 it['file'],
+                beam_size=int(config.settings.get('beam_size',5)),
+                best_of=int(config.settings.get('best_of',5)),
                 no_speech_threshold=float(config.settings.get('no_speech_threshold',0.5)),
                 condition_on_previous_text=bool(config.settings.get('condition_on_previous_text',False)),
                 word_timestamps=False,
+                vad_filter=False,   
+                temperature=0,
                 language=self.detect_language.split('-')[0] if self.detect_language and self.detect_language != 'auto' else None
             )
             del it['file']
@@ -87,6 +114,8 @@ class HuggingfaceRecogn(BaseRecogn):
                 it['text']=text
                 self._signal(text=f'{text}\n', type="subtitle")
                 self._signal(text=f' Subtitles {len(raws) + 1} ')
+        
+        
         return raws
     
     def _progress_callback(self, data):
@@ -126,7 +155,6 @@ class HuggingfaceRecogn(BaseRecogn):
             self._signal(text=f"{self.model_name} has exists")
             print('已存在模型')
             return
-        from huggingface_hub import snapshot_download
         self._signal(text=f"Downloading {self.model_name} ...")
         # 先测试能否连接 huggingface.co, 中国大陆地区不可访问，除非使用VPN
         try:
@@ -141,12 +169,13 @@ class HuggingfaceRecogn(BaseRecogn):
             os.environ["HF_HUB_DISABLE_XET"] = "0"
         try:
             MyTqdmClass = tools.create_tqdm_class(self._progress_callback)
-
+            print(f'{self.model_name=}##################')
             snapshot_download(
                 repo_id=self.model_name,
                 local_dir=self.local_dir,
                 local_dir_use_symlinks=False,
                 endpoint=endpoint,
+                etag_timeout=5,
                 tqdm_class=MyTqdmClass,
                 ignore_patterns=["*.msgpack", "*.h5", ".git*"]
             )

@@ -359,7 +359,7 @@ class TransCreate(BaseTask):
             self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.source_sub,is_file=True)
         else:
             #-1不启用，0不限制数量，>0加1为指定的说话人数量
-
+            config.logger.debug(f'[trans_create]:run_recogn() {time.time()=}')
             raw_subtitles = run_recogn(
                 recogn_type=self.cfg.recogn_type,
                 uuid=self.uuid,

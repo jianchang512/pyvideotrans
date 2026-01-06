@@ -26,10 +26,8 @@ def openwin():
         config.params["gptsovits_url"] = url
         config.params["gptsovits_isv2"] = winobj.is_v2.isChecked()
 
-        config.params["gptsovits_url"] = url
         config.params["gptsovits_extra"] = extra
 
-        config.params["gptsovits_isv2"] = winobj.is_v2.isChecked()
 
         config.getset_params(config.params)
 
