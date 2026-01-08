@@ -1,18 +1,19 @@
-
+import threading
 import time,json,shutil
 import os
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from dataclasses import dataclass
 from videotrans.configure import config
 
 from videotrans.recognition._base import BaseRecogn
 
-from faster_whisper.utils import _MODELS
+
 import requests
 from videotrans.util import tools
 from huggingface_hub import snapshot_download
-import zhconv
 
+from videotrans.process import openai_whisper,faster_whisper
 """
 faster-whisper
 内置的本地大模型不重试
@@ -37,178 +38,97 @@ class FasterAll(BaseRecogn):
             raws=self._openai()
         else:
             raws=self._faster()        
-        try:
-            import torch
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            import gc
-            gc.collect()
-        except Exception:
-            pass
-        return self._get_srtlist(raws)
 
-
-    def _openai(self):
-        import whisper
-        prompt=config.settings.get(f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None
-        if not Path(f'{config.ROOT_DIR}/models/{self.model_name}.pt').exists():
-            msg = f"模型 {self.model_name} 不存在，将自动下载 " if config.defaulelang == 'zh' else f'Model {self.model_name} does not exist and will be automatically downloaded'
-            self._signal(text=msg)
-        else:
-            self._signal(text=f"load {self.model_name}")
-        model = whisper.load_model(
-            self.model_name,
-            device="cuda" if self.is_cuda else "cpu",
-            download_root=config.ROOT_DIR + "/models"
-        )
-        self._signal(text=f"Loaded {self.model_name}")
-        raws=[]
-        
-        last_end_time=self.speech_timestamps[-1][1]/1000.0
-        speech_timestamps_flat=[]
-        for it in self.speech_timestamps:
-            speech_timestamps_flat.extend([it[0]/1000.0,it[1]/1000.0])
-        
-        result = model.transcribe(
-                self.audio_file,
-                no_speech_threshold=float(config.settings.get('no_speech_threshold',0.5)),
-                language=self.detect_language.split('-')[0] if self.detect_language != 'auto' else None,
-                clip_timestamps=speech_timestamps_flat,
-                initial_prompt=prompt if prompt else None,
-                condition_on_previous_text=config.settings.get('condition_on_previous_text',False)
-            )
-        for segment in result['segments']:
-            # 时间戳大于总时长，出错跳过
-            if segment['end']>last_end_time:
-                continue
-            text = segment['text']
-            if not text.strip():
-                continue
-            raws.append({"text": text,"start":segment['start'],'end':segment['end']})
-            self._signal(text=f'{text}\n', type="subtitle")
-            self._signal(text=f' Subtitles {len(raws) + 1} ')
-        try:
-            if model:
-                del model
-        except Exception:
-            pass
         return raws
 
+    def _openai(self):
+        # 起一个进程
+        logs_file=f'{config.TEMP_DIR}/{self.uuid}/openai-{self.detect_language}-{time.time()}.log'
+        kwars={
+            "prompt": config.settings.get(f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
+            "detect_language":self.detect_language,
+            "model_name":self.model_name,
+            "ROOT_DIR":config.ROOT_DIR,
+            "logs_file":logs_file,
+            "defaulelang":config.defaulelang,
+            "is_cuda":self.is_cuda,
+            "no_speech_threshold":float(config.settings.get('no_speech_threshold',0.5)),
+            "condition_on_previous_text":config.settings.get('condition_on_previous_text',False),
+            "speech_timestamps":self.speech_timestamps,
+            "audio_file":self.audio_file,
+            "TEMP_ROOT":config.TEMP_ROOT,
+            "jianfan":self.jianfan
+        }
+        threading.Thread(target=self._process,args=(logs_file,),daemon=True).start()
+        raws=[]
+        with ProcessPoolExecutor(max_workers=1) as executor:
+                # 提交任务，并显式传入参数，确保子进程拿到正确的参数
+                future = executor.submit(
+                    openai_whisper,
+                    **kwars
+                )
+                # .result() 会阻塞当前线程直到子进程计算完毕，并返回结果
+                raws = future.result()
+        if isinstance(raws,str):
+            raise RuntimeError(raws)
+        return raws
+
+
+    # 获取进度
+    def _process(self,logs_file):
+        last_mtime=0
+        while 1:
+            _p=Path(logs_file)
+            if _p.is_file() and _p.stat().st_mtime!=last_mtime:
+                last_mtime=_p.stat().st_mtime
+                _tmp=json.loads(_p.read_text(encoding='utf-8'))
+                self._signal(text=_tmp.get('text'),type=_tmp.get('type','logs'))
+                if _tmp.get('type','')=='error':
+                    return
+            time.sleep(0.5)
+
+
     def _faster(self):
-        prompt = config.settings.get(f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None
-        raws = []
 
         local_dir = self._get_modeldir_download(self.model_name)
 
         self._signal(text=f"load {self.model_name}")
 
-        # 引入 BatchedInferencePipeline
-        import torch
-        from faster_whisper import WhisperModel, BatchedInferencePipeline
-        device_indices = list(range(torch.cuda.device_count())) if self.is_cuda else 0
-
-        try:
-            # 1. 加载基础模型
-            model = WhisperModel(
-                local_dir,
-                device="cuda" if self.is_cuda else "auto",
-                device_index=device_indices,
-                compute_type=config.settings.get('cuda_com_type', 'default')
-            )
-        except Exception as e:
-            import traceback
-            error = "".join(traceback.format_exception(e))
-            if 'json.exception.parse_error' in error or 'EOF while parsing a value' in error:
-                msg = (f'模型下载不完整，请删除目录 {local_dir}，重新下载' if config.defaulelang == "zh" else f"The model download may be incomplete, please delete the directory {local_dir} and download it again")
-            elif "CUBLAS_STATUS_NOT_SUPPORTED" in error:
-                msg = f"数据类型不兼容...:{error}"
-            elif "cudaErrorNoKernelImageForDevice" in error:
-                msg = f"pytorch和cuda版本不兼容...:{error}"
-            else:
-                msg = error
-            raise RuntimeError(msg)
-
-        self._signal(text=self.model_name + " Loaded")
-
-        # 2. 准备 Batched Pipeline
-        # 注意：这里实例化 Pipeline
-        batched_model = BatchedInferencePipeline(model=model)
-
-        last_end_time = self.speech_timestamps[-1][1] / 1000.0
-
-        # 3. 转换时间戳格式
-        # BatchedInferencePipeline 需要 [{'start': start_sec, 'end': end_sec}, ...]
-        clip_timestamps_dicts = [
-            {"start": it[0] / 1000.0, "end": it[1] / 1000.0}
-            for it in self.speech_timestamps
-        ]
-
-        # 4. 执行批量推理
-        # 使用 batched_model.transcribe
-        segments, info = batched_model.transcribe(
-            self.audio_file,
-            batch_size=int(config.settings.get('batch_size', 8)), #
-            beam_size=int(config.settings.get('beam_size', 5)),
-            best_of=int(config.settings.get('best_of', 5)),
-            # vad_filter 必须为 False，否则 clip_timestamps 可能被忽略或产生冲突，
-            vad_filter=False,
-            clip_timestamps=clip_timestamps_dicts, # 自定义分段
-            condition_on_previous_text=bool(config.settings.get('condition_on_previous_text', False)),
-            word_timestamps=False,
-            language=self.detect_language.split('-')[0] if self.detect_language and self.detect_language != 'auto' else None,
-            initial_prompt=prompt if prompt else None
-        )
-
-        for segment in segments:
-            if segment.end > last_end_time:
-                continue
-            text = segment.text
-            if not text.strip():
-                continue
-            s, e = segment.start, segment.end
-            raws.append({"text": text, "start": s, 'end': e})
-            self._signal(text=f'{text}\n', type="subtitle")
-            self._signal(text=f' Subtitles {len(raws) + 1} ')
-
-        try:
-            if model:
-                del model
-            if 'batched_model' in locals():
-                del batched_model
-        except Exception:
-            pass
+        logs_file=f'{config.TEMP_DIR}/{self.uuid}/faster-{self.detect_language}-{time.time()}.log'
+        kwars={
+            "prompt": config.settings.get(f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
+            "detect_language":self.detect_language,
+            "model_name":self.model_name,
+            "ROOT_DIR":config.ROOT_DIR,
+            "logs_file":logs_file,
+            "defaulelang":config.defaulelang,
+            "is_cuda":self.is_cuda,
+            "no_speech_threshold":float(config.settings.get('no_speech_threshold',0.5)),
+            "condition_on_previous_text":config.settings.get('condition_on_previous_text',False),
+            "speech_timestamps":self.speech_timestamps,
+            "audio_file":self.audio_file,
+            "TEMP_ROOT":config.TEMP_ROOT,
+            "local_dir":local_dir,
+            "compute_type":config.settings.get('cuda_com_type', 'default'),
+            "batch_size":int(config.settings.get('batch_size', 8)),
+            "beam_size":int(config.settings.get('beam_size', 5)),
+            "best_of":int(config.settings.get('best_of', 5)),
+            "jianfan":self.jianfan
+        }
+        # 获取进度
+        threading.Thread(target=self._process,args=(logs_file,),daemon=True).start()
+        raws=[]
+        with ProcessPoolExecutor(max_workers=1) as executor:
+                # 提交任务，并显式传入参数，确保子进程拿到正确的参数
+                future = executor.submit(
+                    faster_whisper,
+                    **kwars
+                )
+                # .result() 会阻塞当前线程直到子进程计算完毕，并返回结果
+                raws = future.result()
+        if isinstance(raws,str):
+            raise RuntimeError(raws)
         return raws
-
-
-    def _get_srtlist(self, raws):
-        srt_raws = []
-        raws=list(raws)
-        raws_len=len(raws)
-        for idx,it in enumerate(raws):
-            if not it['text'].strip():
-                continue
-            if self.jianfan:
-                self._signal(text=f"简繁转换中 [{idx+1}/{raws_len}]...")
-            text=zhconv.convert(it['text'], 'zh-hans') if self.jianfan else it['text']
-            if it.get('start_time'):
-                s,e=it['start_time'],it['end_time']
-            else:
-                s,e=int(it['start']*1000),int(it['end']*1000)
-            
-            tmp = {
-                'text': text,
-                'start_time': s,
-                'end_time': e
-            }
-
-            tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-            tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
-            tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-            srt_raws.append(tmp)
-        
-        return srt_raws
-        
-
 
     # 在下载默认模型 large-v3-turbo时，针对国内无法连接huggingface.co，且镜像站不稳定的情况，使用 modelscope.cn替换
     def _faster_turbo_from_modelscope(self,local_dir):
@@ -271,8 +191,8 @@ class FasterAll(BaseRecogn):
             self._signal(text=f"{current_file_idx}/{total_files} files")
     
     # 下载模型，首先测试 huggingface.co 连通性，不可用则回退镜像 hf-mirror.com
-    def _get_modeldir_download(self,model_name):   
-        print(f'下载 {model_name=},proxy={config.proxy}')
+    def _get_modeldir_download(self,model_name):
+        from faster_whisper.utils import _MODELS
         self._signal(text="Checking if the model exists")
         local_dir=f'{config.ROOT_DIR}/models/models--'
         if model_name in _MODELS:
@@ -372,6 +292,7 @@ class FasterAll(BaseRecogn):
     
     
     def _is_model_cached(self,repo_id: str, cache_dir: str = ''):
+        from faster_whisper.utils import _MODELS
         try:
             # 将 repo_id 转换为缓存目录的命名格式
             if repo_id in _MODELS:

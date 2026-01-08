@@ -74,8 +74,8 @@ class StartWindow(QWidget):
         self.main_window = None
         self.LoadNotif = None
         self.start_time=time.time()
-        self.loader = AiLoaderThread()
-        self.loader.start()
+        # self.loader = AiLoaderThread()
+        # self.loader.start()
 
         self.resize(560, 350)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)

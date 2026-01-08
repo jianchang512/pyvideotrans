@@ -90,7 +90,9 @@ HUGGINGFACE_ASR_MODELS={
 "biodatlab/whisper-th-medium":['th'],
 "biodatlab/whisper-th-large-v3":['th'],
 "openai/whisper-large-v2":[],
-"openai/whisper-large-v3":[]
+"openai/whisper-large-v3":[],
+"openai/whisper-tiny":[],
+"Systran/faster-whisper-tiny":[]
 }
 
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
