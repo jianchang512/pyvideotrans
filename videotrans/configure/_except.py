@@ -477,7 +477,4 @@ def get_msg_from_except(ex):
         return str(ex.body)
 
     # 默认错误消息
-    return (
-        f"操作失败，请稍后重试{ex.args}" if lang == 'zh'
-        else f"Operation failed, please try again later:{ex.args}"
-    )
+    return ''

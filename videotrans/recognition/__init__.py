@@ -6,7 +6,6 @@ from videotrans.configure.config import tr
 from videotrans.recognition._huggingface import HuggingfaceRecogn
 from videotrans.recognition._overall import FasterAll
 
-
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
 FUNASR_CN = 2
@@ -90,6 +89,8 @@ HUGGINGFACE_ASR_MODELS={
 # pipeline whisper
 "biodatlab/whisper-th-medium":['th'],
 "biodatlab/whisper-th-large-v3":['th'],
+"openai/whisper-large-v2":[],
+"openai/whisper-large-v3":[]
 }
 
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
@@ -99,6 +100,8 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
         return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
 
     if recogn_type==HUGGINGFACE_ASR and model_name in HUGGINGFACE_ASR_MODELS:
+        if not HUGGINGFACE_ASR_MODELS[model_name]:
+            return True
         model_lang_support=",".join([ tr(it) for it in HUGGINGFACE_ASR_MODELS[model_name]])
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
             return tr("This model only supports speech transcription of these languages:")+model_lang_support
@@ -208,7 +211,7 @@ def run(*,
         "max_speakers":max_speakers,
         "llm_post":llm_post
     }
-    config.logger.debug(f'[recognition]__init__:run() {time.time()=} {kwargs=}')
+    config.logger.debug(f'[recognition]__init__:{kwargs=}')
 
     if recogn_type == GOOGLE_SPEECH:
         from videotrans.recognition._google import GoogleRecogn
@@ -255,13 +258,12 @@ def run(*,
         from videotrans.recognition._elevenlabs import ElevenLabsRecogn
         return ElevenLabsRecogn(**kwargs).run()
     if recogn_type == HUGGINGFACE_ASR:
-        config.logger.debug(f'start import HuggingfaceRecogn')
-        
-        config.logger.debug(f'end import HuggingfaceRecogn')
+
         return HuggingfaceRecogn(**kwargs).run()
     if recogn_type == ZHIPU_API:
         from videotrans.recognition._glmasr import GLMASRRecogn
         return GLMASRRecogn(**kwargs).run()
     
+
     return FasterAll(**kwargs).run()
 

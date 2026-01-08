@@ -13,6 +13,7 @@ License: GPL-V3
 
 """
 import atexit, sys, os, time
+
 VERSION = "v3.94"
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -26,16 +27,21 @@ from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer, QLocale,QThread
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 
 class AiLoaderThread(QThread):
-
     def run(self):
-        print("sp.py preload transformers/torch/ctranslate2...")
+        print("preload transformers/torch/ctranslate2...")
         try:
-            # 这里 import，会写入 sys.modules
-            import transformers,torch
+            _st=time.time()
+            # 提前异步加载大型库 import，会写入 sys.modules
+            import torch
+            import transformers
             from transformers import pipeline
-            print("sp.py preload ended")
+            import ctranslate2
+            from ten_vad import TenVad
+            import modelscope
+            print(f"preload AI models ended: {int(time.time()-_st)}")
         except Exception as e:
-            print(f"sp.py preload error:{e}")
+            import traceback
+            print(traceback.format_exc())
 
 
 # 抑制警告
@@ -106,9 +112,7 @@ class StartWindow(QWidget):
         super().closeEvent(event)
 
     def update_lable(self,t):
-        print(t)
         if t=='end':
-
             self.status_label.setText(f'Total time {int(time.time()-self.start_time)}s')
             QApplication.processEvents()
             QTimer.singleShot(1000, lambda: self.close())

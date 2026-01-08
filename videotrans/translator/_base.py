@@ -64,6 +64,7 @@ class BaseTrans(BaseCon):
     def run(self) -> Union[List, str, None]:
         # 开始对分割后的每一组进行处理
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        _st=time.time()
         self._signal(text="")
 
         # 如果是不是以 完整字幕格式发送，则组成字符串列表，否则组成 [dict,dict] 列表，每个dict都是字幕行信息
@@ -87,7 +88,8 @@ class BaseTrans(BaseCon):
         finally:
             if hasattr(self,'_unload'):
                 self._unload()
-
+            config.logger.debug(f'[字幕翻译]渠道{self.translate_type},{self.model_name}:共耗时:{int(time.time()-_st)}s')
+            
     def _run_text(self,split_source_text):
         # 传统翻译渠道或AI翻译渠道以按行形式翻译
         target_list=[]

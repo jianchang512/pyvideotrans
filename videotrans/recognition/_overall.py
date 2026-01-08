@@ -4,16 +4,14 @@ import os
 from pathlib import Path
 from dataclasses import dataclass
 from videotrans.configure import config
-from videotrans.configure.config import tr
 
 from videotrans.recognition._base import BaseRecogn
-from videotrans.task.simple_runnable_qt import run_in_threadpool
 
 from faster_whisper.utils import _MODELS
-import threading,requests
+import requests
 from videotrans.util import tools
 from huggingface_hub import snapshot_download
-
+import zhconv
 
 """
 faster-whisper
@@ -27,17 +25,20 @@ class FasterAll(BaseRecogn):
         super().__post_init__()
 
 
+
     def _exec(self):
         if self._exit():
             return
-        config.logger.debug(f'[FasterAll]_exec {time.time()=}:{self.model_name=}')
+
         self.error = ''
         self._signal(text="STT starting, hold on...")
+        
         if self.recogn_type==1:#openai-whisper
             raws=self._openai()
         else:
             raws=self._faster()        
         try:
+            import torch
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
             import gc
@@ -46,10 +47,9 @@ class FasterAll(BaseRecogn):
             pass
         return self._get_srtlist(raws)
 
-    
+
     def _openai(self):
         import whisper
-        raws=[]
         prompt=config.settings.get(f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None
         if not Path(f'{config.ROOT_DIR}/models/{self.model_name}.pt').exists():
             msg = f"模型 {self.model_name} 不存在，将自动下载 " if config.defaulelang == 'zh' else f'Model {self.model_name} does not exist and will be automatically downloaded'
@@ -63,10 +63,10 @@ class FasterAll(BaseRecogn):
         )
         self._signal(text=f"Loaded {self.model_name}")
         raws=[]
-        speech_timestamps=self.get_speech_timestamp(self.audio_file)
-        last_end_time=speech_timestamps[-1][1]/1000.0
+        
+        last_end_time=self.speech_timestamps[-1][1]/1000.0
         speech_timestamps_flat=[]
-        for it in speech_timestamps:
+        for it in self.speech_timestamps:
             speech_timestamps_flat.extend([it[0]/1000.0,it[1]/1000.0])
         
         result = model.transcribe(
@@ -92,90 +92,95 @@ class FasterAll(BaseRecogn):
                 del model
         except Exception:
             pass
-
-        
         return raws
 
-
     def _faster(self):
-        prompt=config.settings.get(f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None
-        raws=[]
-        
-        local_dir=self._get_modeldir_download(self.model_name)
+        prompt = config.settings.get(f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None
+        raws = []
+
+        local_dir = self._get_modeldir_download(self.model_name)
 
         self._signal(text=f"load {self.model_name}")
-        
-        from faster_whisper import WhisperModel
-        
-        if self.model_name.startswith('distil-'):
-            com_type = "default"
-        else:
-            com_type = config.settings.get('cuda_com_type','default')
+
+        # 引入 BatchedInferencePipeline
+        import torch
+        from faster_whisper import WhisperModel, BatchedInferencePipeline
+        device_indices = list(range(torch.cuda.device_count())) if self.is_cuda else 0
 
         try:
+            # 1. 加载基础模型
             model = WhisperModel(
                 local_dir,
                 device="cuda" if self.is_cuda else "auto",
-                compute_type=com_type
+                device_index=device_indices,
+                compute_type=config.settings.get('cuda_com_type', 'default')
             )
         except Exception as e:
             import traceback
             error = "".join(traceback.format_exception(e))
             if 'json.exception.parse_error' in error or 'EOF while parsing a value' in error:
-                msg = (
-                    f'模型下载不完整，请删除目录 {local_dir}，重新下载' if config.defaulelang == "zh" else f"The model download may be incomplete, please delete the directory {local_dir} and download it again")
+                msg = (f'模型下载不完整，请删除目录 {local_dir}，重新下载' if config.defaulelang == "zh" else f"The model download may be incomplete, please delete the directory {local_dir} and download it again")
             elif "CUBLAS_STATUS_NOT_SUPPORTED" in error:
-                msg = f"数据类型不兼容：请打开菜单--工具--高级选项--faster/openai语音识别调整--CUDA数据类型--选择 float16，保存后重试:{error}" if config.defaulelang == 'zh' else f'Incompatible data type: Please open the menu - Tools - Advanced options - Faster/OpenAI speech recognition adjustment - CUDA data type - select float16, save and try again:{error}'
+                msg = f"数据类型不兼容...:{error}"
             elif "cudaErrorNoKernelImageForDevice" in error:
-                msg = f"pytorch和cuda版本不兼容，请更新显卡驱动后，安装或重装CUDA12.x及cuDNN9.x:{error}" if config.defaulelang == 'zh' else f'Pytorch and cuda versions are incompatible. Please update the graphics card driver and install or reinstall CUDA12.x and cuDNN9.x'
+                msg = f"pytorch和cuda版本不兼容...:{error}"
             else:
                 msg = error
             raise RuntimeError(msg)
 
         self._signal(text=self.model_name + " Loaded")
 
-        # 批量或均等分割
-        speech_timestamps=self.get_speech_timestamp(self.audio_file)            
-        last_end_time=speech_timestamps[-1][1]/1000.0
-        speech_timestamps_flat=[]
-        for it in speech_timestamps:
-            speech_timestamps_flat.extend([it[0]/1000.0,it[1]/1000.0])
-        segments, info = model.transcribe(
+        # 2. 准备 Batched Pipeline
+        # 注意：这里实例化 Pipeline
+        batched_model = BatchedInferencePipeline(model=model)
+
+        last_end_time = self.speech_timestamps[-1][1] / 1000.0
+
+        # 3. 转换时间戳格式
+        # BatchedInferencePipeline 需要 [{'start': start_sec, 'end': end_sec}, ...]
+        clip_timestamps_dicts = [
+            {"start": it[0] / 1000.0, "end": it[1] / 1000.0}
+            for it in self.speech_timestamps
+        ]
+
+        # 4. 执行批量推理
+        # 使用 batched_model.transcribe
+        segments, info = batched_model.transcribe(
             self.audio_file,
-            beam_size=int(config.settings.get('beam_size',5)),
-            best_of=int(config.settings.get('best_of',5)),
+            batch_size=int(config.settings.get('batch_size', 8)), #
+            beam_size=int(config.settings.get('beam_size', 5)),
+            best_of=int(config.settings.get('best_of', 5)),
+            # vad_filter 必须为 False，否则 clip_timestamps 可能被忽略或产生冲突，
             vad_filter=False,
-            no_speech_threshold=float(config.settings.get('no_speech_threshold',0.5)),
-            condition_on_previous_text=bool(config.settings.get('condition_on_previous_text',False)),
+            clip_timestamps=clip_timestamps_dicts, # 自定义分段
+            condition_on_previous_text=bool(config.settings.get('condition_on_previous_text', False)),
             word_timestamps=False,
-            clip_timestamps=speech_timestamps_flat,
             language=self.detect_language.split('-')[0] if self.detect_language and self.detect_language != 'auto' else None,
             initial_prompt=prompt if prompt else None
         )
 
-
         for segment in segments:
-            if segment.end>last_end_time:
+            if segment.end > last_end_time:
                 continue
             text = segment.text
             if not text.strip():
                 continue
-            s,e=segment.start,segment.end
-            raws.append({"text": text,"start":s,'end':e})
+            s, e = segment.start, segment.end
+            raws.append({"text": text, "start": s, 'end': e})
             self._signal(text=f'{text}\n', type="subtitle")
             self._signal(text=f' Subtitles {len(raws) + 1} ')
-        
+
         try:
             if model:
                 del model
+            if 'batched_model' in locals():
+                del batched_model
         except Exception:
             pass
         return raws
-        
+
+
     def _get_srtlist(self, raws):
-        
-        if self.jianfan:
-            import zhconv
         srt_raws = []
         raws=list(raws)
         raws_len=len(raws)
@@ -391,10 +396,10 @@ class FasterAll(BaseRecogn):
             # 检查关键文件：config.json 和 model.bin
             for it in ["config.json", "model.bin", "tokenizer.json","vocabulary"]:
                 if it =='vocabulary':
-                    if not _is_file_valid(snapshot_dir / 'vocabulary.txt') and not _is_file_valid(snapshot_dir / 'vocabulary.json'):
+                    if not self._is_file_valid(snapshot_dir / 'vocabulary.txt') and not self._is_file_valid(snapshot_dir / 'vocabulary.json'):
                         return False
                     continue
-                if not _is_file_valid(snapshot_dir / it):
+                if not self._is_file_valid(snapshot_dir / it):
                     return False
             return str(snapshot_dir)
         except Exception:

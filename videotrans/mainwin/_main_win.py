@@ -47,9 +47,6 @@ def _custom_session_factory():
 huggingface_hub.configure_http_backend(backend_factory=_custom_session_factory)
 
 
-        
-
-
 class MainWindow(QMainWindow, Ui_MainWindow):
     uito = Signal(str)
     def __init__(self, parent=None, width=1200, height=650):
@@ -789,7 +786,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         time.sleep(4)
         try:
             shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
-            #shutil.rmtree(config.TEMP_ROOT, ignore_errors=True)
         except OSError:
             pass
         if not self.is_restarting:

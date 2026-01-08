@@ -712,7 +712,8 @@ class MainWindow(QWidget):
         self.content_layout.setSpacing(5)
 
         # --- 辅助函数：添加分节标题 ---
-        '''
+        
+        
         def add_section_header(text):
             lbl = QLabel(text)
             lbl.setWordWrap(True)
@@ -728,7 +729,7 @@ class MainWindow(QWidget):
         
         
         add_section_header(TRANS["section_faster"])
-        
+        '''
         def _second_init():
             # 添加第二组：OpenAI Whisper
             
@@ -766,17 +767,8 @@ class MainWindow(QWidget):
         """
         super().showEvent(event)
         
-        if self.show_num==1:
-            self._add_section_header(TRANS["section_tts"])
-            for task in self.tasks_zip:
-                t=TaskWidget(task)
-                self.task_obj[task['zip_folder']]=t
-                self.content_layout.addWidget(t)
-            
-            
-            self._add_section_header(TRANS["section_faster"])
-        
-            # 添加第三组：Faster Whisper
+        if self.show_num==1:        
+            # 添加组：Faster Whisper
             for task in self.tasks_faster:
                 t=TaskWidget(task)
                 self.task_obj[task['name']]=t

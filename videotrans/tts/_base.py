@@ -113,6 +113,7 @@ class BaseTTS(BaseCon):
         if self._exit(): return
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
+        _st=time.time()
         loop=None
         try:
             # 检查 self._exec 是不是一个异步函数 (coroutine)
@@ -147,7 +148,7 @@ class BaseTTS(BaseCon):
         except Exception:
             raise
         finally:
-            # 只有当 self._exec 是异步函数时，我们才需要处理事件循环
+            # 只有当 self._exec 是异步函数时，才需要处理事件循环
             if inspect.iscoroutinefunction(self._exec) and loop and not loop.is_closed():
                 config.logger.debug("开始执行事件循环的关闭流程...")
                 try:
@@ -170,7 +171,8 @@ class BaseTTS(BaseCon):
                     # 步骤 4: 最终关闭事件循环
                     config.logger.debug("事件循环已关闭。")
                     loop.close()
-
+            config.logger.debug(f'[字幕配音]渠道{self.tts_type}:共耗时:{int(time.time()-_st)}s')
+            
         # 试听或测试时播放
         if self.play:
             if tools.vail_file(self.queue_tts[0]['filename']):
@@ -190,8 +192,7 @@ class BaseTTS(BaseCon):
                 raise self.error
             raise RuntimeError((tr("Dubbing failed"))+str(self.error))
 
-        self._signal(
-            text=tr("Dubbing succeeded {}，failed {}",succeed_nums,len(self.queue_tts) - succeed_nums))
+        self._signal(text=tr("Dubbing succeeded {}，failed {}",succeed_nums,len(self.queue_tts) - succeed_nums))
 
 
     # 用于除  edge-tts 之外的渠道，在此进行单或多线程气动。调用 _item_task

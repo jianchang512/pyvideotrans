@@ -10,9 +10,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog
-print(f'before import recognition {time.time()}')
 from videotrans import translator, recognition, tts
-print(f'after import recognition {time.time()}')
 from videotrans.configure import config
 from videotrans.configure.config import tr
 from videotrans.mainwin._actions_sub import WinActionSub

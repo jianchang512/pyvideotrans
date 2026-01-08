@@ -11,6 +11,19 @@ from pathlib import Path
 from queue import Queue
 
 IS_FROZEN = True if getattr(sys, 'frozen', False) else False
+FFMPEG_BIN = "ffmpeg"
+FFPROBE_BIN = "ffprobe"
+
+# 获取程序执行目录
+def _get_executable_path():
+    if IS_FROZEN:
+        # 如果程序是被"冻结"打包的，使用这个路径
+        os.environ['TQDM_DISABLE'] = '1'
+        return Path(sys.executable).parent.as_posix()
+    else:
+        return Path(__file__).parent.parent.parent.as_posix()
+
+
 no_proxy=(
     "tmt.tencentcloudapi.com,"
     "hf-mirror.com,"
@@ -27,24 +40,34 @@ no_proxy=(
     "127.0.0.1"
     "127.0.0.2"
 )
-os.environ['no_proxy'] = no_proxy
-os.environ['NO_PROXY'] = no_proxy # 某些系统或库可能检查大写
-os.environ["TOKENIZERS_PARALLELISM"] = "false" 
-
-# 获取程序执行目录
-def _get_executable_path():
-    if IS_FROZEN:
-        # 如果程序是被"冻结"打包的，使用这个路径
-        os.environ['TQDM_DISABLE'] = '1'
-        return Path(sys.executable).parent.as_posix()
-    else:
-        return Path(__file__).parent.parent.parent.as_posix()
-
-
 
 SYS_TMP = Path(tempfile.gettempdir()).as_posix()
 # 程序根目录
 ROOT_DIR = _get_executable_path()
+
+os.environ['no_proxy'] = no_proxy
+os.environ['NO_PROXY'] = no_proxy # 某些系统或库可能检查大写
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0" 
+os.environ['QT_API'] = 'pyside6'
+os.environ['SOFT_NAME'] = 'pyvideotrans'
+os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
+os.environ['HF_HOME'] = ROOT_DIR + "/models"
+os.environ['HF_HUB_CACHE'] = ROOT_DIR + "/models"
+os.environ['HF_TOKEN_PATH'] = ROOT_DIR + "/models/hf_token.txt"
+os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
+os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
+os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "3600"
+os.environ["HF_HUB_DISABLE_XET"] = "1"
+# ffmpeg
+os.environ['PATH'] = ROOT_DIR +os.pathsep+f'{ROOT_DIR}/ffmpeg'+os.pathsep + os.environ.get("PATH", "")
+if sys.platform == 'win32' and IS_FROZEN:
+    os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;'+os.environ['PATH']
+
+
 # 程序根下临时目录tmp
 TEMP_ROOT=f'{ROOT_DIR}/tmp'
 TEMP_DIR = f'{TEMP_ROOT}/{os.getpid()}'
@@ -72,32 +95,11 @@ _console_handler.setFormatter(formatter)
 logger.addHandler(_file_handler)
 logger.addHandler(_console_handler)
 
-fw_logger = logging.getLogger("faster_whisper")
-fw_logger.setLevel(logging.DEBUG)
-fw_logger.addHandler(_file_handler)
+#fw_logger = logging.getLogger("faster_whisper")
+#fw_logger.setLevel(logging.DEBUG)
+#fw_logger.addHandler(_file_handler)
 
-
-FFMPEG_BIN = "ffmpeg"
-FFPROBE_BIN = "ffprobe"
-# ffmpeg
-os.environ['PATH'] = ROOT_DIR +os.pathsep+f'{ROOT_DIR}/ffmpeg'+os.pathsep + os.environ.get("PATH", "")
-if sys.platform == 'win32' and IS_FROZEN:
-    os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;'+os.environ['PATH']
-
-os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0" 
-os.environ['QT_API'] = 'pyside6'
-os.environ['SOFT_NAME'] = 'pyvideotrans'
-os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
-os.environ['HF_HOME'] = ROOT_DIR + "/models"
-os.environ['HF_HUB_CACHE'] = ROOT_DIR + "/models"
-os.environ['HF_TOKEN_PATH'] = ROOT_DIR + "/models/hf_token.txt"
-os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
-os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
-os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "3600"
-os.environ["HF_HUB_DISABLE_XET"] = "1"
-
-
-# _env_lang =   
+# _env_lang
 if _env_lang := os.environ.get('PYVIDEOTRANS_LANG'):
     defaulelang = _env_lang
 else:
@@ -107,7 +109,7 @@ else:
     except Exception:
         defaulelang = "zh"
 
-####################################
+
 # 存储已停止/暂停的任务 uuid
 stoped_uuid_set = set()
 # 存储所有任务的进度队列，以uuid为键
@@ -240,6 +242,7 @@ def parse_init(update_data=None):
         "noise_separate_nums":4,
         
         "batch_single":False,
+
         
         # 默认显示模型
         "ai302_models": "deepseek-chat,gemini-2.5-flash",
@@ -271,6 +274,8 @@ def parse_init(update_data=None):
         "max_speech_duration_s": 5,
         "min_silence_duration_ms": 600,
         "no_speech_threshold": 0.5,
+
+        "batch_size":8,
         "merge_short_sub":True,
 
         "trans_thread": 20,
@@ -404,13 +409,8 @@ for it in Path(f'{ROOT_DIR}/videotrans/language').glob('*.json'):
 if defaulelang not in SUPPORT_LANG:
     defaulelang = "en"
 
-
-
-
-
 # 代理地址
 proxy = settings.get('proxy', os.environ.get('HTTPS_PROXY',''))
-
 if proxy:
     os.environ['HTTPS_PROXY']=proxy
     os.environ['HTTP_PROXY']=proxy

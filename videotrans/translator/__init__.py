@@ -670,15 +670,24 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 
 # 针对AI渠道目标语言，返回自然名称
 def get_ai_language_name(show_target=None,translate_type=None):
-    # qwen-mt特殊处理
-    if translate_type is not None and translate_type==QWENMT_INDEX and config.params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
-        return 'auto',target_list[9] if target_list else show_target
+
+
+    target_list=None
     if show_target in LANG_CODE:
-        return LANG_CODE[show_target][7]
-    if show_target in LANGNAME_DICT_REV:
-        return LANG_CODE[LANGNAME_DICT_REV.get(show_target)][7]
-    return None
-        
+        target_list=LANG_CODE[show_target][7]
+    elif show_target in LANGNAME_DICT_REV:
+        target_list=LANG_CODE[LANGNAME_DICT_REV.get(show_target)][7]
+    else:
+        return 'auto',show_target
+
+    if not target_list:
+        return None
+    if translate_type is not None and translate_type==QWENMT_INDEX and config.params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
+        # qwen-mt特殊处理
+        return 'auto',target_list[9] if target_list else show_target
+    return target_list[7],target_list[7]
+
+
 
 # 判断当前翻译通道和目标语言是否允许翻译
 # 比如deepl不允许翻译到某些目标语言，某些通道是否填写api key 等
