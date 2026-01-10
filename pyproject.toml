@@ -252,11 +252,11 @@ dependencies = [
     "edge-tts",
     "piper-tts>=1.3.0",
     "pillow>=12.0.0",
-    "modelscope>=1.33.0",
-    "funasr>=1.2.7",
     "gradio-client>=2.0.1",
     "ten-vad>=1.0.6.8",
     "pyannote-audio==3.4.0",
+    "modelscope>=1.33.0",
+    "funasr>=1.3.0",
 ]
 
 [[tool.uv.index]]

@@ -1,14 +1,12 @@
-import json, re,time,os
+import re, time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Optional, Union
 from tenacity import RetryError
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure.config import tr
 from videotrans.util import tools
-from videotrans.task.vad import get_speech_timestamp
-import numpy as np
+from videotrans.task.vad import get_speech_timestamp, get_speech_timestamp_silero
 from pydub import AudioSegment
 from concurrent.futures import ProcessPoolExecutor
 
@@ -51,9 +49,11 @@ class BaseRecogn(BaseCon):
     jianfan: bool = False
     # 字幕行字符数
     maxlen: int = 20
+    audio_duration:int=0
     max_speakers: int = -1  # 说话人，-1不启用说话人，0=不限制数量，>0 说话人最大数量
     llm_post: bool = False  # 是否进行llm重新断句，如果是，则无需在识别完成后进行简单修正
-    speech_timestamps:List = field(default_factory=list)# vad切割好的数据
+    speech_timestamps: List = field(default_factory=list)  # vad切割好的数据
+    recogn2pass:bool=False
 
     def __post_init__(self):
         super().__post_init__()
@@ -71,6 +71,7 @@ class BaseRecogn(BaseCon):
         self.join_word_flag = " "
         # 中日韩文字
         self.is_cjk = False
+
         if self.detect_language and self.detect_language[:2].lower() in ['zh', 'ja', 'ko', 'yu']:
             self.maxlen = int(float(config.settings.get('cjk_len', 20)))
             self.jianfan = True if self.detect_language[:2] == 'zh' and config.settings.get('zh_hant_s') else False
@@ -81,35 +82,45 @@ class BaseRecogn(BaseCon):
             self.maxlen = int(float(config.settings.get('other_len', 60)))
             self.jianfan = False
 
-    # run->_exec
-    def run(self) -> Union[List[Dict], None]:
-        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
-        # 获取当前主进程的配置，以便传给子进程（防止子进程读不到内存中的配置）
+    def _vad_split(self):
+        _st = time.time()
+        self._signal(text=f'[VAD] processing')
+
         _threshold = float(config.settings.get('threshold', 0.5))
         _min_speech = int(config.settings.get('min_speech_duration_ms', 1000))
-        _max_speech = float(config.settings.get('max_speech_duration_s', 6)) * 1000
+        _max_speech = int(float(config.settings.get('max_speech_duration_s', 6)) * 1000)
         _min_silence = int(config.settings.get('min_silence_duration_ms', 600))
+        # 如果是2次识别，均减半，以便生成简短的字幕
+        if self.recogn2pass:
+            _min_speech=max(500,_min_speech//2)
+            _max_speech=max(min(5000,_max_speech//2),_min_speech+1)
+            _min_silence=max(min(1000,_min_silence//2),140)
 
-        # ==================== 修改开始 ====================
-        # 使用独立进程调用，彻底解决 QThread 慢的问题
-        # max_workers=1 表示只启动一个独立的子进程
-        self._signal(text=f'[VAD] processing')
+        _vad_type = config.settings.get('vad_type', 'tenvad')
+        config.logger.debug(f'[VAD:{_vad_type}]')
         with ProcessPoolExecutor(max_workers=1) as executor:
             # 提交任务，并显式传入参数，确保子进程拿到正确的参数
             future = executor.submit(
-                get_speech_timestamp, 
+                get_speech_timestamp if _vad_type == 'tenvad' else get_speech_timestamp_silero,
                 self.audio_file,
                 threshold=_threshold,
                 min_speech_duration_ms=_min_speech,
                 max_speech_duration_ms=_max_speech,
                 min_silent_duration_ms=_min_silence
             )
-            # .result() 会阻塞当前线程直到子进程计算完毕，并返回结果
             self.speech_timestamps = future.result()
-        # ==================== 修改结束 ====================
-        self._signal(text=f'[VAD] process ended')
+        self._signal(text=f'[VAD] process ended {int(time.time() - _st)}s')
+    
+
+    # run->_exec
+    def run(self) -> Union[List[Dict], None]:
+        _st = time.time()
         
-        _st=time.time()
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        self._signal(text=f"check model")
+        if hasattr(self, '_get_modeldir_download'):
+            self._get_modeldir_download()
+
         try:
             srt_list = []
             for i, it in enumerate(self._exec()):
@@ -125,7 +136,8 @@ class BaseRecogn(BaseCon):
             # 修正时间戳重叠
             for i, it in enumerate(srt_list):
                 if i > 0 and srt_list[i - 1]['end_time'] > it['start_time']:
-                    config.logger.warning(f'修正字幕时间轴重叠：将前面字幕 end_time={srt_list[i - 1]["end_time"]} 改为当前字幕 start_time, {it=}')
+                    config.logger.warning(
+                        f'修正字幕时间轴重叠：将前面字幕 end_time={srt_list[i - 1]["end_time"]} 改为当前字幕 start_time, {it=}')
                     srt_list[i - 1]['end_time'] = it['start_time']
                     srt_list[i - 1]['endraw'] = tools.ms_to_time_string(ms=it['start_time'])
                     srt_list[i - 1]['time'] = f"{srt_list[i - 1]['startraw']} --> {srt_list[i - 1]['endraw']}"
@@ -142,8 +154,9 @@ class BaseRecogn(BaseCon):
         except Exception:
             raise
         finally:
-            config.logger.debug(f'[语音识别]渠道{self.recogn_type},{self.model_name}:共耗时:{int(time.time()-_st)}s')
-        
+            self._signal(text=f'STT ended:{int(time.time() - _st)}s')
+            config.logger.debug(f'[语音识别]渠道{self.recogn_type},{self.model_name}:共耗时:{int(time.time() - _st)}s')
+
     # 未选择LLM重新断句并且选了 合并短字幕，则对识别出的字幕进行简单修正
     def _fix_post(self, srt_list):
         post_srt_raws = []
@@ -171,7 +184,8 @@ class BaseRecogn(BaseCon):
                     post_srt_raws[-1]['time'] = f"{post_srt_raws[-1]['startraw']} --> {post_srt_raws[-1]['endraw']}"
                     post_srt_raws[-1]['text'] += ' ' + it['text']
                 else:
-                    config.logger.warning(f'字幕时长小于{min_speech=}，需要合并进后面字幕,{prev_diff=},{next_diff=}，当前字幕={it},后边字幕={srt_list[idx + 1]}')
+                    config.logger.warning(
+                        f'字幕时长小于{min_speech=}，需要合并进后面字幕,{prev_diff=},{next_diff=}，当前字幕={it},后边字幕={srt_list[idx + 1]}')
                     srt_list[idx + 1]['text'] = it['text'] + ' ' + srt_list[idx + 1]['text']
                     srt_list[idx + 1]['start_time'] = it['start_time']
                     srt_list[idx + 1]['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
@@ -263,17 +277,17 @@ class BaseRecogn(BaseCon):
     def _exec(self) -> Union[List[Dict], None]:
         pass
 
-   
-   
-
     def _padforaudio(self):
         silent_segment = AudioSegment.silent(duration=500)
         silent_segment.set_channels(1).set_frame_rate(16000)
         return silent_segment
+
     def cut_audio(self):
         dir_name = f"{config.TEMP_DIR}/clip_{time.time()}"
         Path(dir_name).mkdir(parents=True, exist_ok=True)
         data = []
+        if not self.speech_timestamps:
+            self._vad_split()
         speech_chunks = self.speech_timestamps
         speech_len = len(speech_chunks)
         audio = AudioSegment.from_wav(self.audio_file)
@@ -319,30 +333,26 @@ class BaseRecogn(BaseCon):
                 config.logger.warning(f'cut_audio 超过30s需要拆分，{diff=}')
         speech_chunks = check_1
         # 两侧填充空白
-        silent_segment=self._padforaudio()
+        silent_segment = self._padforaudio()
         for i, it in enumerate(speech_chunks):
             start_ms, end_ms = it[0], it[1]
-            startraw,endraw=tools.ms_to_time_string(ms=it[0]),tools.ms_to_time_string(ms=it[1])
+            startraw, endraw = tools.ms_to_time_string(ms=it[0]), tools.ms_to_time_string(ms=it[1])
             chunk = audio[start_ms:end_ms]
             file_name = f"{dir_name}/audio_{i}.wav"
-            (silent_segment+chunk+silent_segment).export(file_name, format="wav")
+            (silent_segment + chunk + silent_segment).export(file_name, format="wav")
             data.append({
-                "line": i + 1, 
-                "text": "", 
-                "start_time": start_ms, 
-                "end_time": end_ms, 
-                "startraw":startraw,
-                "endraw":endraw,
-                "time":f'{startraw} --> {endraw}',
+                "line": i + 1,
+                "text": "",
+                "start_time": start_ms,
+                "end_time": end_ms,
+                "startraw": startraw,
+                "endraw": endraw,
+                "time": f'{startraw} --> {endraw}',
                 "file": file_name
             })
 
         return data
 
-
-
-
-    
     # True 退出
     def _exit(self) -> bool:
         if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):

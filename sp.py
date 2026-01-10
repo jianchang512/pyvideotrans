@@ -33,11 +33,8 @@ class AiLoaderThread(QThread):
             _st=time.time()
             # 提前异步加载大型库 import，会写入 sys.modules
             import torch
-            import transformers
             from transformers import pipeline
             import ctranslate2
-            from ten_vad import TenVad
-            import modelscope
             print(f"preload AI models ended: {int(time.time()-_st)}")
         except Exception as e:
             import traceback
@@ -74,8 +71,8 @@ class StartWindow(QWidget):
         self.main_window = None
         self.LoadNotif = None
         self.start_time=time.time()
-        # self.loader = AiLoaderThread()
-        # self.loader.start()
+        self.loader = AiLoaderThread()
+        self.loader.start()
 
         self.resize(560, 350)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
@@ -190,6 +187,7 @@ if __name__ == "__main__":
     # Windows 打包需要
     import multiprocessing
     multiprocessing.freeze_support()
+    multiprocessing.set_start_method('spawn',force=True)
     qInstallMessageHandler(suppress_qt_warnings)
     atexit.register(cleanup)
     if sys.platform != "win32":

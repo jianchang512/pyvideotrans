@@ -150,6 +150,12 @@ class Ui_MainWindow(object):
         self.source_language = QtWidgets.QComboBox(self.layoutWidget)
         self.source_language.setObjectName("source_language")
         
+        self.remove_noise = QtWidgets.QCheckBox()
+        self.remove_noise.setText(tr("Noise reduction"))
+        self.remove_noise.setToolTip(
+            tr("Select to perform noise reduction processing from modelscope.cn, which takes a long time"))
+
+        
 
         self.horizontalLayout_4.addWidget(self.reglabel)
         self.horizontalLayout_4.addWidget(self.recogn_type)
@@ -159,6 +165,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.model_name)
         
         self.horizontalLayout_4.addWidget(self.rephrase)
+        self.horizontalLayout_4.addWidget(self.remove_noise)
         self.horizontalLayout_4.addStretch()
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
@@ -481,33 +488,30 @@ class Ui_MainWindow(object):
 
 
         
-        
-        self.remove_noise = QtWidgets.QCheckBox()
-        self.remove_noise.setText(tr("Noise reduction"))
-        self.remove_noise.setToolTip(
-            tr("Select to perform noise reduction processing from modelscope.cn, which takes a long time"))
-        self.remove_noise.setVisible(False)
-        
-        
-        
-
-        
-
-
         self.enable_diariz = QtWidgets.QCheckBox()
         self.enable_diariz.setToolTip(tr("Speaker classification language"))
         self.enable_diariz.setText(tr("Speaker classification"))
         
+        self.fix_punc = QtWidgets.QCheckBox()
+        self.fix_punc.setToolTip(tr("Restoring punctuation marks when Chinese & English"))
+        self.fix_punc.setText(tr("Restoring punct"))
+
+        self.recogn2pass = QtWidgets.QCheckBox()
+        self.recogn2pass.setToolTip(tr("Secondary speech recognition of dubbing files"))
+        self.recogn2pass.setText(tr("STT again"))
+
         self.nums_diariz = QtWidgets.QComboBox()
         self.nums_diariz.setToolTip(tr("Specifying the number of speakers"))
         self.nums_diariz.addItems([tr("No limit"),"2","3","4","5","6","7","8","9","10"])
 
         
 
-        self.hfaster_layout.addWidget(self.remove_noise)
+        self.hfaster_layout.addWidget(self.fix_punc)
+        self.hfaster_layout.addWidget(self.recogn2pass)
         self.hfaster_layout.addWidget(self.enable_diariz)
         self.hfaster_layout.addWidget(self.nums_diariz)
         self.hfaster_layout.addStretch()
+
         
         # 翻译并发
         self.trans_thread_label = QtWidgets.QLabel(tr("Subtitles lines:"))

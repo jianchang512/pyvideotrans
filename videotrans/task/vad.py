@@ -48,6 +48,43 @@ def _vad_parallel_worker(args):
         
     return segments
 
+def get_speech_timestamp_silero(input_wav,
+                         threshold=None,
+                         min_speech_duration_ms=None,
+                         max_speech_duration_ms=None,
+                         min_silent_duration_ms=None):
+        config.logger.debug(f'[silero-VAD]VAD断句参数：{threshold=},{min_speech_duration_ms=},{max_speech_duration_ms=},{min_silent_duration_ms=}')
+
+        sampling_rate = 16000
+        from faster_whisper.audio import decode_audio
+        from faster_whisper.vad import (
+            VadOptions,
+            get_speech_timestamps
+        )
+        vad_p = {
+            "threshold": threshold,
+            "min_speech_duration_ms": min_speech_duration_ms,
+            "max_speech_duration_s": float(max_speech_duration_ms/1000.0),
+            "min_silence_duration_ms": min_silent_duration_ms,
+        }
+        def convert_to_milliseconds(timestamps):
+            milliseconds_timestamps = []
+            for timestamp in timestamps:
+                milliseconds_timestamps.append(
+                    [
+                       int(round(timestamp["start"] / sampling_rate * 1000)),
+                       int(round(timestamp["end"] / sampling_rate * 1000)),
+                    ]
+                )
+
+            return milliseconds_timestamps
+
+        speech_chunks = get_speech_timestamps(decode_audio(input_wav,
+                                            sampling_rate=sampling_rate),
+                                            vad_options=VadOptions(**vad_p)
+        )
+        return convert_to_milliseconds(speech_chunks)
+
 
 ## 
 # 多进程vad 
@@ -57,7 +94,7 @@ def get_speech_timestamp(input_wav,
                          max_speech_duration_ms=None,
                          min_silent_duration_ms=None):
     
-    config.logger.debug(f'VAD断句参数：{threshold=},{min_speech_duration_ms=},{max_speech_duration_ms=},{min_silent_duration_ms=}')
+    config.logger.debug(f'[Ten-VAD]VAD断句参数：{threshold=},{min_speech_duration_ms=},{max_speech_duration_ms=},{min_silent_duration_ms=}')
     frame_duration_ms = 16
     hop_size = 256
     st_=time.time()
@@ -186,9 +223,6 @@ def get_speech_timestamp(input_wav,
 
         if diff >= min_speech_duration_ms:
             check_1.append(it)
-        elif diff < 200:
-            # 低于200ms的视为噪音，直接丢弃
-            continue
         else:
             # 200-min_speech_duration_ms 之间的语音片段合并到邻近
             # 距离前面空隙
@@ -244,10 +278,6 @@ def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=N
         int16_data = data
 
     num_frames = int16_data.shape[0] // hop_size
-
-    
-    
-    num_frames = data.shape[0] // hop_size
 
     segments = []
     triggered = False

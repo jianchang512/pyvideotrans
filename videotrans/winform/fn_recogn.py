@@ -68,6 +68,7 @@ def openwin():
         winobj.shibie_dropbtn.setDisabled(state)
         winobj.rephrase.setDisabled(state)
         winobj.remove_noise.setDisabled(state)
+        winobj.fix_punc.setDisabled(state)
         winobj.copysrt_rawvideo.setDisabled(state)
         winobj.shibie_stop.setDisabled(not state)
 
@@ -112,10 +113,7 @@ def openwin():
                 deepseek.openwin()
                 return
         enable_diariz_is=winobj.enable_diariz.isChecked()
-        if enable_diariz_is and not Path(f'{config.ROOT_DIR}/models/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx').exists():
-            tools.show_download_tips(winobj,tr('Speaker'))
-            return
-        
+
         toggle_state(True)
         winobj.shibie_startbtn.setText(tr("running"))
         winobj.label_shibie10.setText('')
@@ -131,6 +129,7 @@ def openwin():
             video_list = [tools.format_video(it, None) for it in files]
             uuid_list = [obj['uuid'] for obj in video_list]
             remove_noise_is=winobj.remove_noise.isChecked()
+            fix_punc=winobj.fix_punc.isChecked()
             nums_diariz=winobj.nums_diariz.currentIndex()
             for it in video_list:
                 cfg={
@@ -142,7 +141,8 @@ def openwin():
                     "remove_noise": remove_noise_is,
                     "enable_diariz": enable_diariz_is,
                     "nums_diariz":nums_diariz,
-                    "rephrase":stt_rephrase
+                    "rephrase":stt_rephrase,
+                    "fix_punc":fix_punc
                 }
                 try:
                     trk = SpeechToText(cfg=TaskCfg(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
@@ -162,6 +162,7 @@ def openwin():
             config.params["stt_nums_diariz"] = nums_diariz
             config.params["stt_spk_insert"] = winobj.spk_insert.isChecked()
             config.params["stt_rephrase"] = stt_rephrase
+            config.params["stt_fix_punc"] = fix_punc
             config.getset_params(config.params)
             th.start()
 
@@ -330,6 +331,7 @@ def openwin():
         winobj.copysrt_rawvideo.setChecked(config.params.get('stt_copysrt_rawvideo', False))
         winobj.spk_insert.setChecked(bool(config.params.get('stt_spk_insert', False)))
         winobj.enable_diariz.setChecked(bool(config.params.get('stt_enable_diariz', False)))
+        winobj.fix_punc.setChecked(bool(config.params.get('stt_fix_punc', False)))
 
         winobj.nums_diariz.setCurrentIndex(int(config.params.get("stt_nums_diariz",0)))
         winobj.out_format.setCurrentText(config.params.get('stt_out_format', 'srt'))
@@ -365,7 +367,6 @@ def openwin():
             current_model = config.params.get('stt_model_name')
             winobj.shibie_model.setCurrentText(current_model)
         
-
         
         if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR]:
             winobj.shibie_model.setDisabled(True)

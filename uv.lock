@@ -1079,7 +1079,7 @@ http = [
 
 [[package]]
 name = "funasr"
-version = "1.2.7"
+version = "1.3.0"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
 dependencies = [
     { name = "editdistance" },
@@ -1102,9 +1102,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "umap-learn" },
 ]
-sdist = { url = "https://mirrors.aliyun.com/pypi/packages/4d/ca/0f3e0df85bfea75acd5950a3c8da67c857af700b7e781eaa47322e18e593/funasr-1.2.7.tar.gz", hash = "sha256:fe943487bab0137813b213ffab14e819d8762fe1df6f776bb2db0bf89958d5e2" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/91/bb/fa0cfff7f1eb1dee24d7de9f981ed16f0623a232211f707f161708f51bc3/funasr-1.3.0.tar.gz", hash = "sha256:96d1e16ec183809ad7481cd831a9c1f65ed02759118cafbde5964aaba26ffffb" }
 wheels = [
-    { url = "https://mirrors.aliyun.com/pypi/packages/f7/6f/491bc744f9d23be35d848479dd21ba6576788e4a2cffbdd410725669fe5c/funasr-1.2.7-py3-none-any.whl", hash = "sha256:b53f748e479e5bf6af172407c50eccaa6818ed91bdf8656abcd7ea6c5e3d2b0d" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/7a/de/05c5e04c55d63d59802b9723c3e27b680b5eb809a1ac1746d2f2dd86685f/funasr-1.3.0-py3-none-any.whl", hash = "sha256:b5393f3498b0f6679aa7e2da555be0defafda244562168cdbe0fbe2b1c69cf29" },
 ]
 
 [[package]]
@@ -3652,7 +3652,7 @@ requires-dist = [
     { name = "fonttools", specifier = "==4.43.1" },
     { name = "frozenlist", specifier = "==1.7.0" },
     { name = "fsspec", specifier = "==2024.6.1" },
-    { name = "funasr", specifier = ">=1.2.7" },
+    { name = "funasr", specifier = ">=1.3.0" },
     { name = "future", specifier = "==0.18.3" },
     { name = "gast", specifier = "==0.4.0" },
     { name = "google-api-core", specifier = "==2.28.1" },

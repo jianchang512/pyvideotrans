@@ -11,47 +11,36 @@ from pathlib import Path
 from queue import Queue
 
 IS_FROZEN = True if getattr(sys, 'frozen', False) else False
-FFMPEG_BIN = "ffmpeg"
-FFPROBE_BIN = "ffprobe"
-
-# 获取程序执行目录
-def _get_executable_path():
-    if IS_FROZEN:
-        # 如果程序是被"冻结"打包的，使用这个路径
-        os.environ['TQDM_DISABLE'] = '1'
-        return Path(sys.executable).parent.as_posix()
-    else:
-        return Path(__file__).parent.parent.parent.as_posix()
-
-
-no_proxy=(
+SYS_TMP = Path(tempfile.gettempdir()).as_posix()
+# 程序根目录
+ROOT_DIR = Path(sys.executable).parent.as_posix() if IS_FROZEN else Path(__file__).parent.parent.parent.as_posix()
+no_proxy = (
     "tmt.tencentcloudapi.com,"
     "hf-mirror.com,"
     "api.fanyi.baidu.com,"
     "openspeech.bytedance.com,"
     "api.minimaxi.com,"
     "api.deepseek.com,"
-    "modelscope.cn,"        # 涵盖了 *.modelscope.cn
-    "aliyuncs.com,"         # 涵盖了 dashscope, mt.cn-hangzhou 等所有子域
+    "modelscope.cn,"  # 涵盖了 *.modelscope.cn
+    "aliyuncs.com,"  # 涵盖了 dashscope, mt.cn-hangzhou 等所有子域
     "api.siliconflow.cn,"
-    "ms.show,"              # 涵盖 *.ms.show
+    "ms.show,"  # 涵盖 *.ms.show
     "bigmodel.cn,"
     "localhost,"
     "127.0.0.1"
     "127.0.0.2"
 )
 
-SYS_TMP = Path(tempfile.gettempdir()).as_posix()
-# 程序根目录
-ROOT_DIR = _get_executable_path()
-
+if IS_FROZEN:
+    # 如果程序是被"冻结"打包的，使用这个路径
+    os.environ['TQDM_DISABLE'] = '1'
 os.environ['no_proxy'] = no_proxy
-os.environ['NO_PROXY'] = no_proxy # 某些系统或库可能检查大写
+os.environ['NO_PROXY'] = no_proxy  # 某些系统或库可能检查大写
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0" 
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
 os.environ['QT_API'] = 'pyside6'
 os.environ['SOFT_NAME'] = 'pyvideotrans'
 os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
@@ -63,24 +52,28 @@ os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
 os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "3600"
 os.environ["HF_HUB_DISABLE_XET"] = "1"
 # ffmpeg
-os.environ['PATH'] = ROOT_DIR +os.pathsep+f'{ROOT_DIR}/ffmpeg'+os.pathsep + os.environ.get("PATH", "")
+FFMPEG_BIN = "ffmpeg"
+FFPROBE_BIN = "ffprobe"
+os.environ['PATH'] = ROOT_DIR + os.pathsep + f'{ROOT_DIR}/ffmpeg' + os.pathsep + os.environ.get("PATH", "")
 if sys.platform == 'win32' and IS_FROZEN:
-    os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;'+os.environ['PATH']
-
+    os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;' + os.environ['PATH']
+    if Path(f'{ROOT_DIR}/ffmpeg/ffmpeg.exe').is_file():
+        FFMPEG_BIN = f'{ROOT_DIR}/ffmpeg/ffmpeg.exe'
+    if Path(f'{ROOT_DIR}/ffmpeg/ffprobe.exe').is_file():
+        FFPROBE_BIN = f'{ROOT_DIR}/ffmpeg/ffprobe.exe'
 
 # 程序根下临时目录tmp
-TEMP_ROOT=f'{ROOT_DIR}/tmp'
+TEMP_ROOT = f'{ROOT_DIR}/tmp'
 TEMP_DIR = f'{TEMP_ROOT}/{os.getpid()}'
 # 家目录
 HOME_DIR = ROOT_DIR + "/output"
-
 Path(TEMP_DIR).mkdir(exist_ok=True, parents=True)
 Path(f'{TEMP_ROOT}/translate_cache').mkdir(exist_ok=True, parents=True)
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
 
+# 创建文件处理器，并设置级别G
 logger = logging.getLogger('VideoTrans')
 logger.setLevel(logging.DEBUG)
-# 创建文件处理器，并设置级别G
 _file_handler = logging.FileHandler(f'{ROOT_DIR}/logs/{datetime.datetime.now().strftime("%Y%m%d")}.log',
                                     encoding='utf-8')
 _file_handler.setLevel(logging.DEBUG)
@@ -95,19 +88,12 @@ _console_handler.setFormatter(formatter)
 logger.addHandler(_file_handler)
 logger.addHandler(_console_handler)
 
-#fw_logger = logging.getLogger("faster_whisper")
-#fw_logger.setLevel(logging.DEBUG)
-#fw_logger.addHandler(_file_handler)
-
-# _env_lang
-if _env_lang := os.environ.get('PYVIDEOTRANS_LANG'):
-    defaulelang = _env_lang
-else:
-    try:
-        locale = QLocale.system()  # 获取系统默认语言环境
-        defaulelang = locale.name()[:2].lower()
-    except Exception:
-        defaulelang = "zh"
+logging.getLogger("transformers").setLevel(logging.DEBUG)
+logging.getLogger("filelock").setLevel(logging.DEBUG)
+logging.getLogger("faster_whisper").setLevel(logging.DEBUG)
+# fw_logger = logging.getLogger("faster_whisper")
+# fw_logger.setLevel(logging.DEBUG)
+# fw_logger.addHandler(_file_handler)
 
 
 # 存储已停止/暂停的任务 uuid
@@ -115,20 +101,6 @@ stoped_uuid_set = set()
 # 存储所有任务的进度队列，以uuid为键
 # 根据uuid将日志进度等信息存入队列，如果不存在则创建
 uuid_logs_queue = {}
-
-
-def push_queue(uuid, jsondata):
-    if exit_soft or uuid in stoped_uuid_set:
-        return
-    if uuid not in uuid_logs_queue:
-        uuid_logs_queue[uuid] = Queue(maxsize=0)
-    try:
-        # 暂停时会重设为字符串 stop
-        if isinstance(uuid_logs_queue[uuid], Queue):
-            uuid_logs_queue[uuid].put_nowait(jsondata)
-    except Exception as e:
-        logger.exception(f'push_queue错误：{e}',exc_info=True)
-
 
 # 确保同时只能一个 faster-whisper进程在执行
 model_process = None
@@ -176,7 +148,7 @@ taskdone_queue = Queue(maxsize=0)
 # 执行模式 gui 或 api
 exec_mode = "gui"
 # funasr模型
-FUNASR_MODEL = ['Fun-ASR-Nano-2512','Fun-ASR-MLT-Nano-2512','paraformer-zh', 'SenseVoiceSmall']
+FUNASR_MODEL = ['Fun-ASR-Nano-2512', 'Fun-ASR-MLT-Nano-2512', 'paraformer-zh', 'SenseVoiceSmall']
 
 DEEPGRAM_MODEL = [
     "nova-3",
@@ -191,7 +163,7 @@ DEEPGRAM_MODEL = [
 ]
 
 # 支持的视频格式
-VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts","flv"]
+VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts", "flv"]
 # 支持的音频格式
 AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
 # 设置当前可用视频编码  libx264 h264_qsv h264_nvenc 等
@@ -202,20 +174,19 @@ codec_cache = {}
 # 字幕按行赋予角色
 line_roles = {}
 # 原始语言字幕路径
-onlyone_source_sub=None
+onlyone_source_sub = None
 # 目标语言字幕路径
-onlyone_target_sub=None
+onlyone_target_sub = None
 # 是否需要翻译，仅在需要翻译时，才需传递做参考的对比原始字幕
-onlyone_trans=False
+onlyone_trans = False
 
 # 字幕多角色配音
 dubbing_role = {}
-
-
 #######################################
 DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-3-flash-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
 OPENAITTS_ROLES = "No,alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
 GEMINITTS_ROLES = "No,Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
+
 
 # 设置默认高级参数值
 def parse_init(update_data=None):
@@ -230,20 +201,19 @@ def parse_init(update_data=None):
         "Whisper.cpp": "",
         "Whisper.cpp.models": "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin",
         "crf": 24,
-        "edgetts_max_concurrent_tasks":10,
-        "edgetts_retry_nums":3,
+        "edgetts_max_concurrent_tasks": 10,
+        "edgetts_retry_nums": 3,
         "force_lib": False,
         "preset": "veryfast",
         "ffmpeg_cmd": "",
         "aisendsrt": True,
         "dont_notify": False,
         "video_codec": 265,
-        
-        "noise_separate_nums":4,
-        
-        "batch_single":False,
 
-        
+        "noise_separate_nums": 4,
+
+        "batch_single": False,
+
         # 默认显示模型
         "ai302_models": "deepseek-chat,gemini-2.5-flash",
         'qwenmt_model': "qwen3-max,qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen3-asr-flash",
@@ -258,25 +228,23 @@ def parse_init(update_data=None):
         "openrouter_model": "moonshotai/kimi-k2:free,tngtech/deepseek-r1t2-chimera:free,deepseek/deepseek-r1-0528:free",
         "guiji_model": "Qwen/Qwen3-8B,Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2-7B-Instruct",
         "zijiehuoshan_model": "",
-        
+
         # 默认 faster_whisper和openai-whisper模型
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3.5",
-        
 
+        "max_audio_speed_rate": 100,
+        "max_video_pts_rate": 10,
 
-        "max_audio_speed_rate":100,
-        "max_video_pts_rate":10,
-        
-        
-       
         "threshold": 0.5,
         "min_speech_duration_ms": 1000,
         "max_speech_duration_s": 5,
         "min_silence_duration_ms": 600,
         "no_speech_threshold": 0.5,
 
-        "batch_size":8,
-        "merge_short_sub":True,
+        "batch_size": 8,
+        "merge_short_sub": True,
+
+        "vad_type": "tenvad",  # tenvad silero
 
         "trans_thread": 20,
         "aitrans_thread": 50,
@@ -323,16 +291,13 @@ def parse_init(update_data=None):
         "best_of": 5,
         "condition_on_previous_text": False,
 
-
         "qwentts_role": '',
         "qwentts_models": 'qwen3-tts-flash-2025-11-27,qwen3-tts-flash',
 
+        "show_more_settings": False,
 
-        "show_more_settings":False,
-        
-        "speaker_type":"built",#built 内置 支持中英，pyannote:私库
-        "hf_token":"",# 使用 pyannote需要huggingface.co的token
-
+        "speaker_type": "built",  # built=内置 支持中英，pyannote=私库, ali_CAM=阿里中英, reverb=私库类似pyannote
+        "hf_token": "",  # 使用 pyannote需要huggingface.co的token
 
         "cjk_len": 22,
         "other_len": 46,
@@ -370,22 +335,22 @@ def parse_init(update_data=None):
             elif value:
                 _settings[key] = value
         # 补充新增的模型到 缓存
-        _de=default['model_list'].split(',')
-        _ca=_settings['model_list'].split(',')
-        _new=[it for it in _de if it not in _ca]
+        _de = default['model_list'].split(',')
+        _ca = _settings['model_list'].split(',')
+        _new = [it for it in _de if it not in _ca]
         _ca.extend(_new)
-        _settings['model_list']=",".join(_ca)
+        _settings['model_list'] = ",".join(_ca)
         default.update(_settings)
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(default, ensure_ascii=False))
-        p=Path(ROOT_DIR + "/models/hf_token.txt")
+        p = Path(ROOT_DIR + "/models/hf_token.txt")
         if p.is_file():
-            tk=p.read_text().strip()
+            tk = p.read_text().strip()
             if tk:
-                default['hf_token']=tk
+                default['hf_token'] = tk
             else:
                 p.unlink(missing_ok=True)
-        
+
         if not p.is_file() and default.get('hf_token'):
             p.write_text(default['hf_token'])
         return default
@@ -395,13 +360,15 @@ def parse_init(update_data=None):
 settings = parse_init()
 # 根据已保存的配置更新 HOME_DIR
 HOME_DIR = settings.get('homedir', HOME_DIR)
+Path(HOME_DIR).mkdir(parents=True, exist_ok=True)
 
-Path(HOME_DIR).mkdir(parents=True,exist_ok=True)
+try:
+    defaulelang = os.environ.get('PYVIDEOTRANS_LANG')
+    if not defaulelang:
+        defaulelang = settings.get('lang', QLocale.system().name()[:2].lower())
+except Exception:
+    defaulelang = "zh"
 
-# 获取已有的语言文件
-if not _env_lang:
-    _env_lang= settings.get('lang','').lower().strip()
-defaulelang=_env_lang if _env_lang else defaulelang
 SUPPORT_LANG = {}
 for it in Path(f'{ROOT_DIR}/videotrans/language').glob('*.json'):
     if it.stat().st_size > 0:
@@ -410,10 +377,10 @@ if defaulelang not in SUPPORT_LANG:
     defaulelang = "en"
 
 # 代理地址
-proxy = settings.get('proxy', os.environ.get('HTTPS_PROXY',''))
+proxy = settings.get('proxy', os.environ.get('HTTPS_PROXY', ''))
 if proxy:
-    os.environ['HTTPS_PROXY']=proxy
-    os.environ['HTTP_PROXY']=proxy
+    os.environ['HTTPS_PROXY'] = proxy
+    os.environ['HTTP_PROXY'] = proxy
 
 WHISPER_MODEL_LIST = re.split(r'[,，]', settings.get('model_list', ''))
 ChatTTS_voicelist = re.split(r'[,，]', str(settings.get('chattts_voice', '')))
@@ -428,6 +395,7 @@ _guiji_model_list = str(settings.get('guiji_model', '-')).strip().split(',')
 _deepseek_model_list = str(settings.get('deepseek_model', '-')).strip().split(',')
 _openrouter_model_list = str(settings.get('openrouter_model', '-')).strip().split(',')
 Whisper_CPP_MODEL_LIST = str(settings.get('Whisper.cpp.models', 'ggml-tiny')).strip().split(',')
+
 
 # 设置或获取 config.params
 def getset_params(obj=None):
@@ -452,44 +420,15 @@ def getset_params(obj=None):
         "subtitle_language": "chi",
         "translate_type": 0,
         "subtitle_type": 1,  # embed hard
-        "listen_text_zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
-        "listen_text_zh-tw": "你好啊，我親愛的朋友，希望你的每一天都是美好愉快的！",
-        "listen_text_en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
-        "listen_text_fr": "Bonjour mon cher ami. J'espère que votre quotidien est beau et agréable !",
-        "listen_text_de": "Hallo mein lieber Freund. Ich hoffe, dass Ihr Tag schön und angenehm ist!",
-        "listen_text_ja": "こんにちは私の親愛なる友人。 あなたの毎日が美しく楽しいものでありますように！",
-        "listen_text_ko": "안녕, 내 사랑하는 친구. 당신의 매일이 아름답고 즐겁기를 바랍니다!",
-        "listen_text_ru": "Привет, мой дорогой друг. Желаю, чтобы каждый твой день был прекрасен и приятен!",
-        "listen_text_es": "Hola mi querido amigo. ¡Espero que cada día sea hermoso y agradable!",
-        "listen_text_th": "สวัสดีเพื่อนรัก. ฉันหวังว่าทุกวันของคุณจะสวยงามและสนุกสนาน!",
-        "listen_text_it": "Ciao caro amico mio. Spero che ogni tuo giorno sia bello e divertente!",
-        "listen_text_pt": "Olá meu querido amigo. Espero que todos os seus dias sejam lindos e agradáveis!",
-        "listen_text_vi": "Xin chào người bạn thân yêu của tôi. Tôi hy vọng mỗi ngày của bạn đều đẹp và thú vị!",
-        "listen_text_ar": "مرحبا صديقي العزيز. أتمنى أن يكون كل يوم جميلاً وممتعًا!",
-        "listen_text_tr": "Merhaba sevgili arkadaşım. Umarım her gününüz güzel ve keyifli geçer!",
-        "listen_text_hi": "नमस्ते मेरे प्यारे दोस्त। मुझे आशा है कि आपका हर दिन सुंदर और आनंददायक हो!!",
-        "listen_text_hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
-        "listen_text_uk": "Привіт, мій дорогий друже, сподіваюся, ти щодня прекрасна!",
-        "listen_text_id": "Halo, temanku, semoga kamu cantik setiap hari!",
-        "listen_text_ms": "Helo, sahabat saya, saya harap anda cantik setiap hari!",
-        "listen_text_kk": "Сәлеметсіз бе, менің қымбатты досым, сендер күн сайын әдемісің деп үміттенемін!",
-        "listen_text_cs": "Ahoj, můj drahý příteli, doufám, že jsi každý den krásná!",
-        "listen_text_pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
-        "listen_text_nl": "Hallo mijn lieve vriend, ik hoop dat elke dag goed en fijn voor je is!!",
-        "listen_text_sv": "Hej min kära vän, jag hoppas att varje dag är en bra och trevlig dag för dig!",
-        "listen_text_he": "שלום, ידידי היקר, אני מקווה שכל יום בחייך יהיה נפלא ומאושר!",
-        "listen_text_bn": "হ্যালো, আমার প্রিয় বন্ধু, আমি আশা করি আপনার জীবনের প্রতিটি দিন চমৎকার এবং সুখী হোক!",
-        "listen_text_fil": "Hello, kaibigan ko",
-        "listen_text_fa": "سلام دوستای گلم امیدوارم هر روز از زندگیتون عالی و شاد باشه.",
-        "listen_text_ur": "ہیلو پیارے دوست، مجھے امید ہے کہ آپ آج خوش ہوں گے۔",
-        "listen_text_yue": "你好啊親愛嘅朋友，希望你今日好開心",
         "tts_type": 0,  # 所选的tts顺序
         "model_name": "medium",  # 模型名
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
+        "fix_punc": False,
+        "stt_fix_punc": False,
         "voice_autorate": True,
         "video_autorate": False,
-        
-        "align_sub_audio":True,
+
+        "align_sub_audio": True,
 
         "voice_role": "No",
         "voice_rate": "0",
@@ -528,8 +467,8 @@ def getset_params(obj=None):
         "azure_model": _azure_model_list[0],
         "gemini_key": "",
         "gemini_model": "gemini-2.5-flash",
-        "gemini_maxtoken":18192,
-        "gemini_thinking_budget":24576,
+        "gemini_maxtoken": 18192,
+        "gemini_thinking_budget": 24576,
         "gemini_ttsstyle": "",
         "gemini_ttsmodel": "gemini-2.5-flash-preview-tts",
         "localllm_api": "",
@@ -560,10 +499,10 @@ def getset_params(obj=None):
 
         "ai302_key": "",
         "ai302_model": "",
-        "ai302_model_recogn":"whisper-1",
+        "ai302_model_recogn": "whisper-1",
 
-        "whipserx_api":"http://127.0.0.1:9092",
-        
+        "whipserx_api": "http://127.0.0.1:9092",
+
         "trans_api_url": "",
         "trans_secret": "",
         "coquitts_role": "",
@@ -638,12 +577,12 @@ def getset_params(obj=None):
         "volcenginetts_appid": "",
         "volcenginetts_access": "",
         "volcenginetts_cluster": "",
-        
-        "doubao2_appid":"",
-        "doubao2_access":"",
 
-        "zijierecognmodel_appid":"",
-        "zijierecognmodel_token":"",
+        "doubao2_appid": "",
+        "doubao2_access": "",
+
+        "zijierecognmodel_appid": "",
+        "zijierecognmodel_token": "",
 
         "chattts_api": "",
         "app_mode": "biaozhun",
@@ -684,24 +623,19 @@ def getset_params(obj=None):
 
 
 params = getset_params()
-# 更新 settings配置
-parse_init(settings)
 
-# 硬字幕字幕位置
-POSTION_ASS_KV = {
-    7: "left-top",
-    8: "top",
-    9: "right-top",
-    4: "left-center",
-    5: "center",
-    6: "right-center",
-    1: "left-bottom",
-    2: "bottom",
-    3: "right-bottom"
-}
-POSTION_ASS_INDEX = list(POSTION_ASS_KV.keys())
-POSTION_ASS_VK = {v: k for k, v in POSTION_ASS_KV.items()}
 
+def push_queue(uuid, jsondata):
+    if exit_soft or uuid in stoped_uuid_set:
+        return
+    if uuid not in uuid_logs_queue:
+        uuid_logs_queue[uuid] = Queue(maxsize=0)
+    try:
+        # 暂停时会重设为字符串 stop
+        if isinstance(uuid_logs_queue[uuid], Queue):
+            uuid_logs_queue[uuid].put_nowait(jsondata)
+    except Exception as e:
+        logger.exception(f'push_queue错误：{e}', exc_info=True)
 
 
 ## 翻译,lang_key对应 transobj中键名，kw多个位置参数，对应替换 lang_key中 {}
@@ -713,6 +647,7 @@ except json.JSONDecodeError:
 except OSError as e:
     raise RuntimeError(f'语言文件不存在或不可读:{SUPPORT_LANG[defaulelang]}')
 
+
 def tr(lang_key, *kw):
     lang = transobj.get(lang_key)
     if not lang:
@@ -723,4 +658,3 @@ def tr(lang_key, *kw):
         return lang.format(*kw)
     except IndexError:
         return lang
-

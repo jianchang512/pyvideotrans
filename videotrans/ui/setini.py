@@ -16,7 +16,6 @@ from videotrans.configure.config import tr
 
 class Ui_setini(object):
 
-
     def get_target(self):
         dirname = QFileDialog.getExistingDirectory(self, tr('selectsavedir'), Path.home().as_posix())
         if dirname:
@@ -38,8 +37,8 @@ class Ui_setini(object):
         self.layout = QtWidgets.QVBoxLayout(setini)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setObjectName("layout")
-        
-        action_layout=QtWidgets.QHBoxLayout()
+
+        action_layout = QtWidgets.QHBoxLayout()
 
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -73,7 +72,6 @@ class Ui_setini(object):
                 "video_codec": "采用 libx264 编码或 libx265 编码，264兼容性更好，265压缩比更大清晰度更高"
             },
 
-
             "trans": {
                 "trans_thread": "传统翻译渠道每次发送字幕行数",
                 "aitrans_thread": "AI翻译渠道每次发送字幕行数",
@@ -86,25 +84,29 @@ class Ui_setini(object):
                 "save_segment_audio": "保留每行字幕的配音结果",
                 "azure_lines": "Azure TTS批量配音行数，一次多少行",
                 "chattts_voice": "ChatTTS 音色值",
-                "edgetts_max_concurrent_tasks":"EdgeTTS渠道配音并发数，越大越快，但可能限流失败",
-                "edgetts_retry_nums":"EdgeTTS渠道失败后重试次数,有些失败无论多少次重试也无法恢复，太大只会延长耗时"
+                "edgetts_max_concurrent_tasks": "EdgeTTS渠道配音并发数，越大越快，但可能限流失败",
+                "edgetts_retry_nums": "EdgeTTS渠道失败后重试次数,有些失败无论多少次重试也无法恢复，太大只会延长耗时"
             },
             "justify": {
 
-                "max_audio_speed_rate":"最大音频加速倍数，默认100",
-                "max_video_pts_rate":"视频慢放最大倍数，默认10，不可大于10",
+                "max_audio_speed_rate": "最大音频加速倍数，默认100",
+                "max_video_pts_rate": "视频慢放最大倍数，默认10，不可大于10",
             },
             "whisper": {
                 "threshold": "表示音频片段被认为是语音的最低概率。VAD 会为每个音频片段计算语音概率，超过此阈值的部分被视为语音，反之视为静音或噪音。\n默认0.5，越小越灵敏但可能误将噪声视为语音",
                 "max_speech_duration_s": "限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒，默认8秒",
                 "min_silence_duration_ms": "在语音结束时，需等待的静音时间达到此值后，才会分割出语音片段。填写数字，单位ms，默认500ms\n也就是只在大于此值的静音片段处分割",
                 "min_speech_duration_ms": "如果某条字幕时长小于该值对应ms，则尝试将该字幕合并进相邻字幕中，默认1000ms",
-                "merge_short_sub":"只有选中该项，才会合并短字幕",
-                "no_speech_threshold":"no speech threshold",
-                
-                "speaker_type":"用于说话人分离的模型，默认内置模型支持中英. \n若选 pyannote 必须拥有 https://huggingface.co 上的token，\n并且同意pyannote组织的授权协议\n\n具体请访问URL查看教程:\nhttps://pvt9.com/shuohuaren",
-                "hf_token":"填写你在 huggingface.co 的token，否则无法使用 pyannote，具体查看教程\nhttps://pvt9.com/shuohuaren",
+                "merge_short_sub": "只有选中该项，才会合并短字幕",
 
+                "vad_type":"选择要使用的VAD",
+                "no_speech_threshold": "减小可降低幻觉但可能遗漏文字",
+
+                "batch_size": "faster-whisper模型识别时批次大小，默认8，越大越快但所需显存越多，太大可能爆显存",
+
+
+                "speaker_type": "用于说话人分离的模型，默认内置模型支持中英. \n若选 pyannote 必须拥有 https://huggingface.co 上的token，\n并且同意pyannote组织的授权协议\n\n具体请访问URL查看教程:\nhttps://pvt9.com/shuohuaren",
+                "hf_token": "填写你在 huggingface.co 的token，否则无法使用 pyannote，具体查看教程\nhttps://pvt9.com/shuohuaren",
 
                 "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
                 "Whisper.cpp.models": "whisper.cpp模式下的模型名字列表，英文逗号分隔",
@@ -112,9 +114,9 @@ class Ui_setini(object):
                 "beam_size": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "condition_on_previous_text": "若开启将占用更多GPU，效果也更好，但也容易出现重复或幻觉",
-                
-                "noise_separate_nums":"降噪和人声背景声分离线程数，越大越快但占用资源越多",
-                
+
+                "noise_separate_nums": "降噪和人声背景声分离线程数，越大越快但占用资源越多",
+
                 "zh_hant_s": "强制将识别出的繁体字幕转为简体",
             },
             "prompt_init": {
@@ -153,31 +155,33 @@ class Ui_setini(object):
         }
         # 中文左侧label
         self.titles = {
-            "max_audio_speed_rate":"音频加速最大倍数",
-            "max_video_pts_rate":"视频慢放最大倍数",
+            "max_audio_speed_rate": "音频加速最大倍数",
+            "max_video_pts_rate": "视频慢放最大倍数",
             "batch_single": "批量翻译时强制串行",
             "dont_notify": "禁用桌面通知",
             "llm_ai_type": "LLM重新断句所用AI渠道",
             "prompt_init": "Whisper模型提示词",
             "gemini_recogn_chunk": "Gemini语音识别每批切片数",
             "llm_chunk_size": "LLM重新断句每批字幕行数",
-            
-            "no_speech_threshold":"no speech threshold",
-            
-            "speaker_type":"说话人分离模型",
 
-            "hf_token":"Huggingface的token",
-            
+            "batch_size": "faster-whisper批次大小",
+
+            "no_speech_threshold": "no speech threshold",
+
+            "speaker_type": "说话人分离模型",
+
+            "hf_token": "Huggingface的token",
+
             "show_more_settings": "主界面显示所有参数?",
-            
-            "edgetts_max_concurrent_tasks":"EdgeTTS配音渠道配音并发数",
-            "edgetts_retry_nums":"EdgeTTS配音渠道失败重试次数",
-            
+
+            "edgetts_max_concurrent_tasks": "EdgeTTS配音渠道配音并发数",
+            "edgetts_retry_nums": "EdgeTTS配音渠道失败重试次数",
+
             "ai302_models": "302.AI翻译模型",
             "ai302tts_models": "302.AI-TTS模型",
             "openairecognapi_model": "OpenAI语音识别模型",
             "chatgpt_model": "ChatGPT模型列表",
-            "noise_separate_nums":"降噪/人声背景分离线程数",
+            "noise_separate_nums": "降噪/人声背景分离线程数",
             "openaitts_model": "OpenAI TTS模型列表",
             "azure_model": "Azure模型列表",
             "localllm_model": "本地LLM模型列表",
@@ -197,8 +201,8 @@ class Ui_setini(object):
             "max_speech_duration_s": "最长语音持续秒数",
             "min_silence_duration_ms": "静音分割持续毫秒数",
             "min_speech_duration_ms": "最短字幕时长毫秒",
-            "merge_short_sub":"合并过短字幕到邻近",
-            
+            "merge_short_sub": "合并过短字幕到邻近",
+            "vad_type":"选择VAD",
 
             "trans_thread": "传统翻译渠道每批字幕行数",
             "aitrans_thread": "AI翻译渠道每批字幕行数",
@@ -214,13 +218,11 @@ class Ui_setini(object):
             "best_of": "识别准确度best_of",
             "condition_on_previous_text": "启用上下文感知",
 
-
             "zh_hant_s": "字幕繁体转简体",
             "azure_lines": "AzureTTS批量行数",
             "chattts_voice": "ChatTTS音色值",
-            
-            "gemini_model": "Gemini模型列表",
 
+            "gemini_model": "Gemini模型列表",
 
             "initial_prompt_zh-cn": "whisper模型简体中文提示词",
             "initial_prompt_zh-tw": "whisper模型繁体中文提示词",
@@ -267,199 +269,202 @@ class Ui_setini(object):
         }
         if config.defaulelang != 'zh':
             self.notices = {
-    "common": {
-        "lang": "Set the software's interface language. Requires a restart to take effect.",
-        "countdown_sec": "Countdown in seconds for a single video translation.",
-        "homedir": "Directory to save results (video separation, subtitles, dubbing). Defaults to the 'output' folder.",
-        "llm_chunk_size": "When re-segmenting sentences in the LLM large model, the number of subtitles sent each time is important. A larger value results in better sentence segmentation. Sending all subtitles at once is optimal, but this is limited by the maximum output token and context (max_token). An excessively long input may exceed the AI  limit and fail. The default is 20 subtitles.",
-        "llm_ai_type": "AI provider for LLM re-segmentation, supports 'openai' or 'deepseek'.",
-        "gemini_recogn_chunk": "Number of audio slices per request for Gemini recognition. Larger values improve accuracy but increase failure rate.",
-        "dont_notify": "Disable desktop notifications for task completion or failure.",
-        "batch_single": "Process batch translation sequentially (one by one) instead of in parallel.",
-        "show_more_settings": "To avoid confusion caused by too many parameters, most parameters are hidden by default on the main interface. Selecting this option will switch to displaying all parameters by default.",
-    },
-    "video": {
-        "crf": "Constant Rate Factor (CRF) for video quality. 0=lossless (huge file), 51=low quality (small file). Default: 23 (balanced).",
-        "preset": "Controls the encoding speed vs. quality balance (e.g., ultrafast, medium, slow). Faster means larger files.",
-        "ffmpeg_cmd": "Custom FFmpeg command arguments, added before the output file argument.",
-        "force_lib": "Force software encoding (slower but more compatible). Hardware encoding is preferred by default.",
-        "video_codec": "Video codec: libx264 (better compatibility) or libx265 (higher compression)."
-    },
-    "trans": {
-        "trans_thread": "Number of subtitle lines per request for traditional translation.",
-        "aitrans_thread": "Number of subtitle lines per request for AI translation.",
-        "translation_wait": "Delay (in seconds) between translation requests to prevent rate-limiting.",
-        "aisendsrt": "Send full SRT format content when using AI translation.",
-        "edgetts_max_concurrent_tasks":"The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
-        "edgetts_retry_nums":"Number of retries after EdgeTTS channel failure"
-    },
-    "dubbing": {
-        "dubbing_thread": "Number of concurrent threads for dubbing.",
-        "dubbing_wait": "Delay (in seconds) between dubbing requests to prevent rate-limiting.",
-        "save_segment_audio": "Save the dubbed audio for each individual subtitle line.",
-        "azure_lines": "Number of lines per batch request for Azure TTS.",
-        "chattts_voice": "ChatTTS voice timbre value."
-    },
-    "justify": {
+                "common": {
+                    "lang": "Set the software's interface language. Requires a restart to take effect.",
+                    "countdown_sec": "Countdown in seconds for a single video translation.",
+                    "homedir": "Directory to save results (video separation, subtitles, dubbing). Defaults to the 'output' folder.",
+                    "llm_chunk_size": "When re-segmenting sentences in the LLM large model, the number of subtitles sent each time is important. A larger value results in better sentence segmentation. Sending all subtitles at once is optimal, but this is limited by the maximum output token and context (max_token). An excessively long input may exceed the AI  limit and fail. The default is 20 subtitles.",
+                    "llm_ai_type": "AI provider for LLM re-segmentation, supports 'openai' or 'deepseek'.",
+                    "gemini_recogn_chunk": "Number of audio slices per request for Gemini recognition. Larger values improve accuracy but increase failure rate.",
+                    "dont_notify": "Disable desktop notifications for task completion or failure.",
+                    "batch_single": "Process batch translation sequentially (one by one) instead of in parallel.",
+                    "show_more_settings": "To avoid confusion caused by too many parameters, most parameters are hidden by default on the main interface. Selecting this option will switch to displaying all parameters by default.",
+                },
+                "video": {
+                    "crf": "Constant Rate Factor (CRF) for video quality. 0=lossless (huge file), 51=low quality (small file). Default: 23 (balanced).",
+                    "preset": "Controls the encoding speed vs. quality balance (e.g., ultrafast, medium, slow). Faster means larger files.",
+                    "ffmpeg_cmd": "Custom FFmpeg command arguments, added before the output file argument.",
+                    "force_lib": "Force software encoding (slower but more compatible). Hardware encoding is preferred by default.",
+                    "video_codec": "Video codec: libx264 (better compatibility) or libx265 (higher compression)."
+                },
+                "trans": {
+                    "trans_thread": "Number of subtitle lines per request for traditional translation.",
+                    "aitrans_thread": "Number of subtitle lines per request for AI translation.",
+                    "translation_wait": "Delay (in seconds) between translation requests to prevent rate-limiting.",
+                    "aisendsrt": "Send full SRT format content when using AI translation.",
+                    "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
+                    "edgetts_retry_nums": "Number of retries after EdgeTTS channel failure"
+                },
+                "dubbing": {
+                    "dubbing_thread": "Number of concurrent threads for dubbing.",
+                    "dubbing_wait": "Delay (in seconds) between dubbing requests to prevent rate-limiting.",
+                    "save_segment_audio": "Save the dubbed audio for each individual subtitle line.",
+                    "azure_lines": "Number of lines per batch request for Azure TTS.",
+                    "chattts_voice": "ChatTTS voice timbre value."
+                },
+                "justify": {
 
-        "max_audio_speed_rate": "Maximum audio speed-up rate. Default: 100.",
-        "max_video_pts_rate": "Maximum video slow-down rate. Default: 10 (cannot exceed 10)."
-    },
-    "whisper": {
-        "threshold": "VAD: Minimum probability for an audio chunk to be considered speech. Default: 0.5.",
-        "max_speech_duration_s": "VAD: Maximum duration (s) of a single speech segment before splitting. Default: 8s.",
-        "min_silence_duration_ms": "VAD: Minimum silence duration (ms) to mark the end of a segment. Default: 500ms.",
-        "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle. Default is 1000ms",
-        
-        "no_speech_threshold":"no speech threshold",
-        "merge_short_sub":"Short subtitles will only be merged if this option is selected",
-        
-        "speaker_type":"The model used for speaker separation. The default is the built-in model, supporting both Chinese and English. Pyannote is optional. \nIf selected, you must have a token from \nhttps://huggingface.co \nand agree to the Pyannote licensing agreement. \nFor details, please visit the URL for a tutorial: \nhttps://pvt9.com/shuohuaren",
+                    "max_audio_speed_rate": "Maximum audio speed-up rate. Default: 100.",
+                    "max_video_pts_rate": "Maximum video slow-down rate. Default: 10 (cannot exceed 10)."
+                },
+                "whisper": {
+                    "threshold": "VAD: Minimum probability for an audio chunk to be considered speech. Default: 0.5.",
+                    "max_speech_duration_s": "VAD: Maximum duration (s) of a single speech segment before splitting. Default: 8s.",
+                    "min_silence_duration_ms": "VAD: Minimum silence duration (ms) to mark the end of a segment. Default: 500ms.",
+                    "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle. Default is 1000ms",
 
-        "hf_token":"Enter your token from huggingface.co. Otherwise, you cannot use Pyannote speaker separation. \nFor details, please see the tutorial: \nhttps://pvt9.com/shuohuaren",
-        
-        
-        "model_list": "Comma-separated list of model names for faster-whisper and OpenAI modes.",
-        "Whisper.cpp.models": "Comma-separated list of model names for whisper.cpp mode.",
-        "cuda_com_type": "CUDA compute type for faster-whisper (e.g., int8, float16, float32, default).",
-        "beam_size": "Beam size for transcription (1-5). Higher is more accurate but uses more VRAM.",
-        "best_of": "Best-of for transcription (1-5). Higher is more accurate but uses more VRAM.",
-        "condition_on_previous_text": "Condition on previous text for better context (uses more GPU, may cause repetition).",
-        "noise_separate_nums":"The more threads used for noise reduction and separation of human and background voices, the faster the process, but the more resources it consumes.",
-        
-        "zh_hant_s": "Force conversion of recognized Traditional Chinese to Simplified Chinese."
-    },
-    "prompt_init": {
-        "initial_prompt_zh-cn": "Initial prompt for the Whisper model for Simplified Chinese speech.",
-        "initial_prompt_zh-tw": "Initial prompt for the Whisper model for Traditional Chinese speech.",
-        "initial_prompt_en": "Initial prompt for the Whisper model for English speech.",
-        "initial_prompt_fr": "Initial prompt for the Whisper model for French speech.",
-        "initial_prompt_de": "Initial prompt for the Whisper model for German speech.",
-        "initial_prompt_ja": "Initial prompt for the Whisper model for Japanese speech.",
-        "initial_prompt_ko": "Initial prompt for the Whisper model for Korean speech.",
-        "initial_prompt_ru": "Initial prompt for the Whisper model for Russian speech.",
-        "initial_prompt_es": "Initial prompt for the Whisper model for Spanish speech.",
-        "initial_prompt_th": "Initial prompt for the Whisper model for Thai speech.",
-        "initial_prompt_it": "Initial prompt for the Whisper model for Italian speech.",
-        "initial_prompt_pt": "Initial prompt for the Whisper model for Portuguese speech.",
-        "initial_prompt_vi": "Initial prompt for the Whisper model for Vietnamese speech.",
-        "initial_prompt_ar": "Initial prompt for the Whisper model for Arabic speech.",
-        "initial_prompt_tr": "Initial prompt for the Whisper model for Turkish speech.",
-        "initial_prompt_hi": "Initial prompt for the Whisper model for Hindi speech.",
-        "initial_prompt_hu": "Initial prompt for the Whisper model for Hungarian speech.",
-        "initial_prompt_uk": "Initial prompt for the Whisper model for Ukrainian speech.",
-        "initial_prompt_id": "Initial prompt for the Whisper model for Indonesian speech.",
-        "initial_prompt_ms": "Initial prompt for the Whisper model for Malaysian speech.",
-        "initial_prompt_kk": "Initial prompt for the Whisper model for Kazakh speech.",
-        "initial_prompt_cs": "Initial prompt for the Whisper model for Czech speech.",
-        "initial_prompt_pl": "Initial prompt for the Whisper model for Polish speech.",
-        "initial_prompt_nl": "Initial prompt for the Whisper model for Dutch speech.",
-        "initial_prompt_sv": "Initial prompt for the Whisper model for Swedish speech.",
-        "initial_prompt_he": "Initial prompt for the Whisper model for Hebrew speech.",
-        "initial_prompt_bn": "Initial prompt for the Whisper model for Bengali speech.",
-        "initial_prompt_fa": "Initial prompt for the Whisper model for Persian speech.",
-        "initial_prompt_ur": "Initial prompt for the Whisper model for Urdu speech.",
-        "initial_prompt_yue": "Initial prompt for the Whisper model for Cantonese speech.",
-        "initial_prompt_fil": "Initial prompt for the Whisper model for Filipino speech."
-    }
-}
-            
+                    "no_speech_threshold": "no speech threshold",
+                    "merge_short_sub": "Short subtitles will only be merged if this option is selected",
+                    "batch_size": "Batch size for Faster-Whisper model recognition, default is 8, larger values are faster but require more GPU memory, too large a size may cause GPU memory to be exhausted",
+
+                    "vad_type":"Select VAD",
+                    "speaker_type": "The model used for speaker separation. The default is the built-in model, supporting both Chinese and English. Pyannote is optional. \nIf selected, you must have a token from \nhttps://huggingface.co \nand agree to the Pyannote licensing agreement. \nFor details, please visit the URL for a tutorial: \nhttps://pvt9.com/shuohuaren",
+
+                    "hf_token": "Enter your token from huggingface.co. Otherwise, you cannot use Pyannote speaker separation. \nFor details, please see the tutorial: \nhttps://pvt9.com/shuohuaren",
+
+                    "model_list": "Comma-separated list of model names for faster-whisper and OpenAI modes.",
+                    "Whisper.cpp.models": "Comma-separated list of model names for whisper.cpp mode.",
+                    "cuda_com_type": "CUDA compute type for faster-whisper (e.g., int8, float16, float32, default).",
+                    "beam_size": "Beam size for transcription (1-5). Higher is more accurate but uses more VRAM.",
+                    "best_of": "Best-of for transcription (1-5). Higher is more accurate but uses more VRAM.",
+                    "condition_on_previous_text": "Condition on previous text for better context (uses more GPU, may cause repetition).",
+                    "noise_separate_nums": "The more threads used for noise reduction and separation of human and background voices, the faster the process, but the more resources it consumes.",
+
+                    "zh_hant_s": "Force conversion of recognized Traditional Chinese to Simplified Chinese."
+                },
+                "prompt_init": {
+                    "initial_prompt_zh-cn": "Initial prompt for the Whisper model for Simplified Chinese speech.",
+                    "initial_prompt_zh-tw": "Initial prompt for the Whisper model for Traditional Chinese speech.",
+                    "initial_prompt_en": "Initial prompt for the Whisper model for English speech.",
+                    "initial_prompt_fr": "Initial prompt for the Whisper model for French speech.",
+                    "initial_prompt_de": "Initial prompt for the Whisper model for German speech.",
+                    "initial_prompt_ja": "Initial prompt for the Whisper model for Japanese speech.",
+                    "initial_prompt_ko": "Initial prompt for the Whisper model for Korean speech.",
+                    "initial_prompt_ru": "Initial prompt for the Whisper model for Russian speech.",
+                    "initial_prompt_es": "Initial prompt for the Whisper model for Spanish speech.",
+                    "initial_prompt_th": "Initial prompt for the Whisper model for Thai speech.",
+                    "initial_prompt_it": "Initial prompt for the Whisper model for Italian speech.",
+                    "initial_prompt_pt": "Initial prompt for the Whisper model for Portuguese speech.",
+                    "initial_prompt_vi": "Initial prompt for the Whisper model for Vietnamese speech.",
+                    "initial_prompt_ar": "Initial prompt for the Whisper model for Arabic speech.",
+                    "initial_prompt_tr": "Initial prompt for the Whisper model for Turkish speech.",
+                    "initial_prompt_hi": "Initial prompt for the Whisper model for Hindi speech.",
+                    "initial_prompt_hu": "Initial prompt for the Whisper model for Hungarian speech.",
+                    "initial_prompt_uk": "Initial prompt for the Whisper model for Ukrainian speech.",
+                    "initial_prompt_id": "Initial prompt for the Whisper model for Indonesian speech.",
+                    "initial_prompt_ms": "Initial prompt for the Whisper model for Malaysian speech.",
+                    "initial_prompt_kk": "Initial prompt for the Whisper model for Kazakh speech.",
+                    "initial_prompt_cs": "Initial prompt for the Whisper model for Czech speech.",
+                    "initial_prompt_pl": "Initial prompt for the Whisper model for Polish speech.",
+                    "initial_prompt_nl": "Initial prompt for the Whisper model for Dutch speech.",
+                    "initial_prompt_sv": "Initial prompt for the Whisper model for Swedish speech.",
+                    "initial_prompt_he": "Initial prompt for the Whisper model for Hebrew speech.",
+                    "initial_prompt_bn": "Initial prompt for the Whisper model for Bengali speech.",
+                    "initial_prompt_fa": "Initial prompt for the Whisper model for Persian speech.",
+                    "initial_prompt_ur": "Initial prompt for the Whisper model for Urdu speech.",
+                    "initial_prompt_yue": "Initial prompt for the Whisper model for Cantonese speech.",
+                    "initial_prompt_fil": "Initial prompt for the Whisper model for Filipino speech."
+                }
+            }
+
             self.titles = {
-    "max_audio_speed_rate": "Maximum audio speed-up rate",
-    "max_video_pts_rate": "Maximum video slow-down rate",
-    "batch_single": "Force serial processing for batch translation",
-    "dont_notify": "Disable desktop notifications",
-    "llm_ai_type": "AI provider for LLM re-segmentation",
-    "prompt_init": "Whisper model initial prompt",
-    "gemini_recogn_chunk": "Gemini speech recognition batch slice count",
-    "llm_chunk_size": "LLM re-segmentation How many subtitles are sent each time",
-    "ai302_models": "302.AI translation models",
-    "ai302tts_models": "302.AI-TTS models",
-    "no_speech_threshold":"no speech threshold",
-    
-    
-    "speaker_type":"Model for speaker separation",
+                "max_audio_speed_rate": "Maximum audio speed-up rate",
+                "max_video_pts_rate": "Maximum video slow-down rate",
+                "batch_single": "Force serial processing for batch translation",
+                "dont_notify": "Disable desktop notifications",
+                "llm_ai_type": "AI provider for LLM re-segmentation",
+                "prompt_init": "Whisper model initial prompt",
+                "gemini_recogn_chunk": "Gemini speech recognition batch slice count",
+                "llm_chunk_size": "LLM re-segmentation How many subtitles are sent each time",
+                "ai302_models": "302.AI translation models",
+                "ai302tts_models": "302.AI-TTS models",
+                "no_speech_threshold": "no speech threshold",
 
-    "hf_token":"Your token from huggingface.co",
-    
-    "show_more_settings": "Show all parameters?",
-    
-    "edgetts_max_concurrent_tasks":"The higher concurrent of EdgeTTS",
-    "edgetts_retry_nums":"Retries after EdgeTTS failure",
-    
-    "noise_separate_nums":"Threads nums for noise&separation",
-    "openairecognapi_model": "OpenAI speech recognition model",
-    "chatgpt_model": "ChatGPT model list",
-    "openaitts_model": "OpenAI TTS model list",
-    "azure_model": "Azure model list",
-    "localllm_model": "Local LLM model list",
-    "zijiehuoshan_model": "ByteDance Volcano Engine inference endpoint",
-    "model_list": "faster/whisper models",
-    "Whisper.cpp.models": "whisper.cpp models",
-    "homedir": "Set output directory",
-    "lang": "Software interface language",
-    "save_segment_audio": "Save dubbed audio for each subtitle line",
-    "crf": "Video output quality control (CRF)",
-    "force_lib": "Force software video encoding?",
-    "preset": "Output video compression preset",
-    "ffmpeg_cmd": "Custom FFmpeg command arguments",
-    "video_codec": "H.264/H.265 encoding",
+                "batch_size": "Batch size for Faster-Whisper model recognition",
+                "vad_type":"Select VAD",
 
-    "threshold": "VAD: Speech probability threshold",
-    "max_speech_duration_s": "VAD: Max speech duration(s)",
-    "min_silence_duration_ms": "VAD: Min silence duration for split(ms)",
-    "min_speech_duration_ms": "Merge sub into adjacent sub if less than",
-    "merge_short_sub":"Short sub will be merged if selected",
-    "trans_thread": "Batch size (lines) for traditional translation",
-    "aitrans_thread": "Batch size (lines) for AI translation",
-    "dubbing_thread": "Concurrent dubbing threads",
-    "countdown_sec": "Countdown for single video translation pause",
-    "backaudio_volume": "Background audio volume multiplier",
-    "loop_backaudio": "Loop background audio",
-    "cuda_com_type": "CUDA compute type",
-    "beam_size": "Recognition accuracy (beam_size)",
-    "best_of": "Recognition accuracy (best_of)",
-    "condition_on_previous_text": "Enable context awareness",
-    "zh_hant_s": "Convert Traditional to Simplified Chinese subtitles",
-    "azure_lines": "Azure TTS batch size (lines)",
-    "chattts_voice": "ChatTTS voice timbre value",
-    "translation_wait": "Pause (s) after each translation request",
-    "dubbing_wait": "Pause (s) after each dubbing request",
-    "gemini_model": "Gemini model list",
-    "aisendsrt": "Send full SRT format for AI translation",
-    "initial_prompt_zh-cn": "initial prompt for Simplified Chinese",
-    "initial_prompt_zh-tw": "initial prompt for Traditional Chinese",
-    "initial_prompt_en": "initial prompt for English",
-    "initial_prompt_fr": "initial prompt for French",
-    "initial_prompt_de": "initial prompt for German",
-    "initial_prompt_ja": "initial prompt for Japanese",
-    "initial_prompt_ko": "initial prompt for Korean",
-    "initial_prompt_ru": "initial prompt for Russian",
-    "initial_prompt_es": "initial prompt for Spanish",
-    "initial_prompt_th": "initial prompt for Thai",
-    "initial_prompt_it": "initial prompt for Italian",
-    "initial_prompt_pt": "initial prompt for Portuguese",
-    "initial_prompt_vi": "initial prompt for Vietnamese",
-    "initial_prompt_ar": "initial prompt for Arabic",
-    "initial_prompt_tr": "initial prompt for Turkish",
-    "initial_prompt_hi": "initial prompt for Hindi",
-    "initial_prompt_hu": "initial prompt for Hungarian",
-    "initial_prompt_uk": "initial prompt for Ukrainian",
-    "initial_prompt_id": "initial prompt for Indonesian",
-    "initial_prompt_ms": "initial prompt for Malay",
-    "initial_prompt_kk": "initial prompt for Kazakh",
-    "initial_prompt_cs": "initial prompt for Czech",
-    "initial_prompt_pl": "initial prompt for Polish",
-    "initial_prompt_nl": "initial prompt for Dutch",
-    "initial_prompt_bn": "initial prompt for Bengali",
-    "initial_prompt_he": "initial prompt for Hebrew",
-    "initial_prompt_sv": "initial prompt for Swedish",
-    "initial_prompt_fa": "initial prompt for Persian",
-    "initial_prompt_ur": "initial prompt for Urdu",
-    "initial_prompt_yue": "initial prompt for Cantonese",
-    "initial_prompt_fil": "initial prompt for Filipino"
-}
-            
+                "speaker_type": "Model for speaker separation",
+
+                "hf_token": "Your token from huggingface.co",
+
+                "show_more_settings": "Show all parameters?",
+
+                "edgetts_max_concurrent_tasks": "The higher concurrent of EdgeTTS",
+                "edgetts_retry_nums": "Retries after EdgeTTS failure",
+
+                "noise_separate_nums": "Threads nums for noise&separation",
+                "openairecognapi_model": "OpenAI speech recognition model",
+                "chatgpt_model": "ChatGPT model list",
+                "openaitts_model": "OpenAI TTS model list",
+                "azure_model": "Azure model list",
+                "localllm_model": "Local LLM model list",
+                "zijiehuoshan_model": "ByteDance Volcano Engine inference endpoint",
+                "model_list": "faster/whisper models",
+                "Whisper.cpp.models": "whisper.cpp models",
+                "homedir": "Set output directory",
+                "lang": "Software interface language",
+                "save_segment_audio": "Save dubbed audio for each subtitle line",
+                "crf": "Video output quality control (CRF)",
+                "force_lib": "Force software video encoding?",
+                "preset": "Output video compression preset",
+                "ffmpeg_cmd": "Custom FFmpeg command arguments",
+                "video_codec": "H.264/H.265 encoding",
+
+                "threshold": "VAD: Speech probability threshold",
+                "max_speech_duration_s": "VAD: Max speech duration(s)",
+                "min_silence_duration_ms": "VAD: Min silence duration for split(ms)",
+                "min_speech_duration_ms": "Merge sub into adjacent sub if less than",
+                "merge_short_sub": "Short sub will be merged if selected",
+                "trans_thread": "Batch size (lines) for traditional translation",
+                "aitrans_thread": "Batch size (lines) for AI translation",
+                "dubbing_thread": "Concurrent dubbing threads",
+                "countdown_sec": "Countdown for single video translation pause",
+                "backaudio_volume": "Background audio volume multiplier",
+                "loop_backaudio": "Loop background audio",
+                "cuda_com_type": "CUDA compute type",
+                "beam_size": "Recognition accuracy (beam_size)",
+                "best_of": "Recognition accuracy (best_of)",
+                "condition_on_previous_text": "Enable context awareness",
+                "zh_hant_s": "Convert Traditional to Simplified Chinese subtitles",
+                "azure_lines": "Azure TTS batch size (lines)",
+                "chattts_voice": "ChatTTS voice timbre value",
+                "translation_wait": "Pause (s) after each translation request",
+                "dubbing_wait": "Pause (s) after each dubbing request",
+                "gemini_model": "Gemini model list",
+                "aisendsrt": "Send full SRT format for AI translation",
+                "initial_prompt_zh-cn": "initial prompt for Simplified Chinese",
+                "initial_prompt_zh-tw": "initial prompt for Traditional Chinese",
+                "initial_prompt_en": "initial prompt for English",
+                "initial_prompt_fr": "initial prompt for French",
+                "initial_prompt_de": "initial prompt for German",
+                "initial_prompt_ja": "initial prompt for Japanese",
+                "initial_prompt_ko": "initial prompt for Korean",
+                "initial_prompt_ru": "initial prompt for Russian",
+                "initial_prompt_es": "initial prompt for Spanish",
+                "initial_prompt_th": "initial prompt for Thai",
+                "initial_prompt_it": "initial prompt for Italian",
+                "initial_prompt_pt": "initial prompt for Portuguese",
+                "initial_prompt_vi": "initial prompt for Vietnamese",
+                "initial_prompt_ar": "initial prompt for Arabic",
+                "initial_prompt_tr": "initial prompt for Turkish",
+                "initial_prompt_hi": "initial prompt for Hindi",
+                "initial_prompt_hu": "initial prompt for Hungarian",
+                "initial_prompt_uk": "initial prompt for Ukrainian",
+                "initial_prompt_id": "initial prompt for Indonesian",
+                "initial_prompt_ms": "initial prompt for Malay",
+                "initial_prompt_kk": "initial prompt for Kazakh",
+                "initial_prompt_cs": "initial prompt for Czech",
+                "initial_prompt_pl": "initial prompt for Polish",
+                "initial_prompt_nl": "initial prompt for Dutch",
+                "initial_prompt_bn": "initial prompt for Bengali",
+                "initial_prompt_he": "initial prompt for Hebrew",
+                "initial_prompt_sv": "initial prompt for Swedish",
+                "initial_prompt_fa": "initial prompt for Persian",
+                "initial_prompt_ur": "initial prompt for Urdu",
+                "initial_prompt_yue": "initial prompt for Cantonese",
+                "initial_prompt_fil": "initial prompt for Filipino"
+            }
+
             self.heads = {
                 "common": "Common",
                 "model": "AI Models",
@@ -472,7 +477,6 @@ class Ui_setini(object):
             }
 
         # 界面语言
-
         label_title = QtWidgets.QLabel()
         label_title.setText(
             tr("Clicking  title on the left will show help"))
@@ -483,7 +487,6 @@ class Ui_setini(object):
 
         self.homedir_btn = None
 
-
         h1 = QtWidgets.QHBoxLayout(scroll_content_widget)
         v1 = QtWidgets.QVBoxLayout()
         v2 = QtWidgets.QVBoxLayout()
@@ -492,7 +495,7 @@ class Ui_setini(object):
 
         layout_index = 0
         for headkey, item in self.notices.items():
-            box = QtWidgets.QWidget()  # 创建新的 QWidget，它将承载你的 QHBoxLayouts
+            box = QtWidgets.QWidget()
             box.setLayout(QtWidgets.QVBoxLayout())
             label_title = QtWidgets.QLabel()
             label_title.setText('[' + self.heads[headkey] + "↓]")
@@ -510,74 +513,30 @@ class Ui_setini(object):
                 tmp.addWidget(tmp_0)
 
                 val = str(config.settings.get(key, ""))
+                combobox_data=None
                 # 是 cuda_com_type
                 if key == 'cuda_com_type':
-                    cuda_types = ['default', 'auto', 'float32', 'float16', 'int8', 'int16', 'int8_float16',
+                    combobox_data = ['default', 'auto', 'float32', 'float16', 'int8', 'int16', 'int8_float16',
                                   'int8_float32', 'bfloat16', 'int8_bfloat16']
+                elif key == 'llm_ai_type':
+                    combobox_data = ['openai', 'deepseek']
+                elif key == 'vad_type':
+                    combobox_data = ['tenvad', 'silero']
+                elif key == 'speaker_type':
+                    combobox_data = ['built','ali_CAM', 'pyannote','reverb']
+                elif key == 'video_codec':
+                    combobox_data = ['264', '265']
+
+                elif key == 'preset':
+                    combobox_data = ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower','veryslow']
+                elif key == "lang":
+                    combobox_data=list(config.SUPPORT_LANG.keys())
+
+                if combobox_data and key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset',"lang"]:
                     tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems(cuda_types)
-                    tmp1.setObjectName(key)
-                    tmp1.setToolTip(tips_str)
-                    if val.lower() in cuda_types:
+                    tmp1.addItems(combobox_data)
+                    if val in combobox_data:
                         tmp1.setCurrentText(val)
-                    tmp.addWidget(tmp1)
-                    tmp.addStretch(1)
-                    box.layout().addLayout(tmp)
-                    continue
-                if key == 'llm_ai_type':
-                    ai_types = ['openai', 'deepseek']
-                    tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems(ai_types)
-                    tmp1.setObjectName(key)
-                    tmp1.setToolTip(tips_str)
-                    if val.lower() in ai_types:
-                        tmp1.setCurrentText(val)
-                    tmp.addWidget(tmp1)
-                    tmp.addStretch(1)
-                    box.layout().addLayout(tmp)
-                    continue
-                if key == 'speaker_type':
-                    ai_types = ['built', 'pyannote']
-                    tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems(ai_types)
-                    tmp1.setObjectName(key)
-                    tmp1.setToolTip(tips_str)
-                    if val.lower() in ai_types:
-                        tmp1.setCurrentText(val)
-                    tmp.addWidget(tmp1)
-                    tmp.addStretch(1)
-                    box.layout().addLayout(tmp)
-                    continue
-                if key == 'video_codec':
-                    codecv = ['264', '265']
-                    tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems(codecv)
-                    tmp1.setObjectName(key)
-                    tmp1.setToolTip(tips_str)
-                    if val.lower() in codecv:
-                        tmp1.setCurrentText(val)
-                    tmp.addWidget(tmp1)
-                    tmp.addStretch(1)
-                    box.layout().addLayout(tmp)
-                    continue
-                if key == 'preset':
-                    presets = ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow','slower', 'veryslow']
-                    tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems(presets)
-                    tmp1.setToolTip(tips_str)
-                    if val.lower() in presets:
-                        tmp1.setCurrentText(val)
-                    tmp1.setObjectName(key)
-                    tmp.addWidget(tmp1)
-                    tmp.addStretch(1)
-                    box.layout().addLayout(tmp)
-                    continue
-                
-                if key == "lang":
-                    tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems(list(config.SUPPORT_LANG.keys()))
-                    # val==1 是0位置，代表轮廓风格，val==3 是1位置，代表背景色
-                    tmp1.setCurrentText(config.defaulelang)
                     tmp1.setObjectName(key)
                     tmp1.setToolTip(tips_str)
                     tmp.addWidget(tmp1)
@@ -603,13 +562,14 @@ class Ui_setini(object):
                     tmp_1.setChecked(True if val == 'true' else False)
                     tmp_1.setToolTip(tips_str)
                     tmp_1.setObjectName(key)
-                    
+
                     tmp.addWidget(tmp_1)
                     tmp.addStretch(1)
                     box.layout().addLayout(tmp)
                     continue
+
                 # 是 model_list faster-whisper
-                if key in ['model_list','Whisper.cpp.models']:
+                if key in ['model_list', 'Whisper.cpp.models']:
                     tmp_1 = QtWidgets.QPlainTextEdit()
                     tmp_1.setPlainText(val)
                     tmp_1.setToolTip(tips_str)
@@ -617,8 +577,6 @@ class Ui_setini(object):
                     tmp.addWidget(tmp_1)
                     box.layout().addLayout(tmp)
                     continue
-                
-                
 
                 # 文本框
                 tmp_1 = QtWidgets.QLineEdit()
@@ -630,8 +588,6 @@ class Ui_setini(object):
                 tmp_1.setToolTip(tips_str)
                 tmp_1.setObjectName(key)
                 tmp.addWidget(tmp_1)
-
-                
 
                 box.layout().addLayout(tmp)
             if layout_index % 2 == 0:
@@ -651,42 +607,37 @@ class Ui_setini(object):
         self.set_ok.setObjectName("set_ok")
         self.set_ok.setCursor(Qt.PointingHandCursor)
         self.set_ok.setStyleSheet("""color:#ff0""")
-        
+
         self.help_btn = QtWidgets.QPushButton()
         self.help_btn.setObjectName("help_btn")
         self.help_btn.setMaximumWidth(200)
         self.help_btn.setCursor(Qt.PointingHandCursor)
         self.help_btn.setText(tr("Fill out the tutorial"))
         self.help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/adv'))
-        
-        
+
         action_layout.addWidget(self.set_ok)
         action_layout.addWidget(self.help_btn)
-        
-        
+
         self.layout.addLayout(action_layout)
 
         self.retranslateUi(setini)
         QtCore.QMetaObject.connectSlotsByName(setini)
 
     def update_ui(self):
-        obj=self.findChild(QtWidgets.QComboBox,'lang')
-        current_text=obj.currentText()
-        _support={}
+        obj = self.findChild(QtWidgets.QComboBox, 'lang')
+        current_text = obj.currentText()
+        _support = {}
         for it in Path(f'{config.ROOT_DIR}/videotrans/language').glob('*.json'):
             if it.stat().st_size > 0:
                 _support[it.stem] = it.as_posix()
         # 有变化时
-        if _support and _support.keys()!=config.SUPPORT_LANG.keys():
-            config.SUPPORT_LANG=_support
+        if _support and _support.keys() != config.SUPPORT_LANG.keys():
+            config.SUPPORT_LANG = _support
             obj.clear()
             obj.addItems(list(_support.keys()))
             if current_text in _support:
                 obj.setCurrentText(current_text)
 
-
-
     def retranslateUi(self, setini):
         setini.setWindowTitle(tr("Options"))
         self.set_ok.setText(tr("Save and Close"))
-

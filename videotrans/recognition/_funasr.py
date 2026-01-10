@@ -40,7 +40,7 @@ class FunasrRecogn(BaseRecogn):
         if self._exit():
             return
         if self.model_name == 'paraformer-zh' and self.detect_language[:2].lower() not in ['zh', 'en']:
-            self.model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if self.detect_language[:2] not in ['ja','yu'] else 'FunAudioLLM/Fun-ASR-Nano-2512'
+            self.model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if self.detect_language[:2] not in ['zh','en','ja','yu'] else 'FunAudioLLM/Fun-ASR-Nano-2512'
         elif self.model_name == 'SenseVoiceSmall':
             self.model_name = 'iic/SenseVoiceSmall'
         elif self.model_name == 'Fun-ASR-Nano-2512':

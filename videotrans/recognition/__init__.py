@@ -91,22 +91,26 @@ HUGGINGFACE_ASR_MODELS={
 "biodatlab/whisper-th-large-v3":['th'],
 "openai/whisper-large-v2":[],
 "openai/whisper-large-v3":[],
-"openai/whisper-tiny":[],
-"Systran/faster-whisper-tiny":[]
+#"openai/whisper-tiny":[],
+#"Systran/faster-whisper-tiny":[]
 }
-
+# 判断所用渠道和模型是否支持该语言的语音识别
+# langcode=语言代码，recogn_type=识别渠道,model_name=模型名字
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
-    if langcode!='en' and ( model_name.startswith('distil-')  or model_name.endswith('.en')):
-        return tr('enmodelerror')
-    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL,Whisper_CPP]:
-        return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
-
-    if recogn_type==HUGGINGFACE_ASR and model_name in HUGGINGFACE_ASR_MODELS:
-        if not HUGGINGFACE_ASR_MODELS[model_name]:
-            return True
+    # faster-whisper/openai-whisper支持所有语言
+    if recogn_type in [FASTER_WHISPER,OPENAI_WHISPER,WHISPERX_API,Faster_Whisper_XXL,Whisper_CPP,OPENAI_API,AI_302,GEMINI_SPEECH]:
+        return True
+    # huggingface_asr 渠道里的 openai 和 Systran 模型也支持所有语言
+    if recogn_type == HUGGINGFACE_ASR and not HUGGINGFACE_ASR_MODELS.get(model_name):
+        return True
+    if recogn_type==HUGGINGFACE_ASR and HUGGINGFACE_ASR_MODELS.get(model_name):
         model_lang_support=",".join([ tr(it) for it in HUGGINGFACE_ASR_MODELS[model_name]])
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
             return tr("This model only supports speech transcription of these languages:")+model_lang_support
+        return True
+    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL,Whisper_CPP,WHISPERX_API,AI_302,OPENAI_API]:
+        return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
+
     return True
 
 
@@ -196,7 +200,9 @@ def run(*,
         is_cuda=None,
         subtitle_type=0,
         max_speakers=-1, # -1 不启用说话人识别,0=不限制数量，>0最大数量
-        llm_post=False
+        llm_post=False,
+        recogn2pass=False#二次对配音文件识别，生成简短字幕
+
         ) -> Union[List[Dict], None]:
 
     if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
@@ -211,7 +217,8 @@ def run(*,
         "subtitle_type": subtitle_type,
         "recogn_type":recogn_type,
         "max_speakers":max_speakers,
-        "llm_post":llm_post
+        "llm_post":llm_post,
+        "recogn2pass":recogn2pass
     }
     config.logger.debug(f'[recognition]__init__:{kwargs=}')
 

@@ -16,6 +16,8 @@ from videotrans.configure.config import tr
 from videotrans.util import tools
 from videotrans.util.ListenVoice import ListenVoice
 from videotrans import tts
+from videotrans.util.contants import LISTEN_TEXT
+
 
 @dataclass
 class WinActionSub:
@@ -523,7 +525,7 @@ class WinActionSub:
             return tools.show_error(
                 tr("Please select the target language first"))
 
-        text = config.params.get(f'listen_text_{lang}')
+        text = LISTEN_TEXT(f'listen_text_{lang}')
         if not text:
             return tools.show_error(tr("The voice is not support listen"))
         role = self.main.voice_role.currentText()

@@ -1,6 +1,7 @@
 import re
 
 from videotrans.task.taskcfg import TaskCfg
+from videotrans.util.contants import LISTEN_TEXT
 
 
 def openwin():
@@ -135,7 +136,7 @@ def openwin():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
             return tools.show_error(tr("The voice is not support listen"))
-        text = config.params.get(f'listen_text_{lang}')
+        text = LISTEN_TEXT.get(f'listen_text_{lang}')
         if not text:
             return tools.show_error(tr('The current language does not support audition'))
         role = winobj.hecheng_role.currentText()

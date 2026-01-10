@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import random
@@ -9,13 +8,15 @@ import traceback
 
 import torch
 import torch.nn as nn
-from funasr import AutoModel
+
 from funasr.metrics.compute_acc import compute_accuracy
 from funasr.register import tables
 from funasr.train_utils.device_funcs import force_gatherable, to_device
 from funasr.utils.datadir_writer import DatadirWriter
 from funasr.utils.load_utils import extract_fbank, load_audio_text_image_video
 from transformers import AutoConfig, AutoModelForCausalLM
+
+#from videotrans.codes.ctc import CTC
 
 dtype_map = {"bf16": torch.bfloat16, "fp16": torch.float16, "fp32": torch.float32}
 
@@ -42,6 +43,7 @@ class FunASRNano(nn.Module):
             "activation_checkpoint", False
         )
         if hub == "ms":
+            from funasr import AutoModel
             model = AutoModel(model=audio_encoder, model_revision="master")
             audio_encoder_output_size = (
                 model.model.encoder_output_size
@@ -58,13 +60,13 @@ class FunASRNano(nn.Module):
             audio_encoder = encoder_class(input_size=input_size, **audio_encoder_conf)
             audio_encoder_output_size = audio_encoder.output_size()
         freeze = audio_encoder_conf.get("freeze", True)
-        freeze_layer_num = int(audio_encoder_conf.get("freeze_layer_num", -1))
 
         if freeze:
-            for name, param in audio_encoder.named_parameters():
+            for _, param in audio_encoder.named_parameters():
                 param.requires_grad = False
             audio_encoder.eval()
         self.audio_encoder = audio_encoder
+
         # llm
         self.llm = None
         init_param_path = llm_conf.get("init_param_path", None)
@@ -76,31 +78,9 @@ class FunASRNano(nn.Module):
 
         freeze = llm_conf.get("freeze", True)
         if freeze:
-            for name, param in model.named_parameters():
+            for _, param in model.named_parameters():
                 param.requires_grad = False
             model.eval()
-        logging.info(f"use_lora: {llm_conf.get('use_lora', False)}")
-        if llm_conf.get("use_lora", False):
-            from omegaconf import DictConfig, OmegaConf
-
-            lora_conf = llm_conf.get("lora_conf", {})
-            if isinstance(lora_conf, (OmegaConf, DictConfig)):
-                lora_conf = OmegaConf.to_container(lora_conf, resolve=True)
-            from peft import LoraConfig, PeftModel, get_peft_model
-
-            lora_init_param_path = lora_conf.get("init_param_path", None)
-            if lora_init_param_path is not None:
-                logging.info(f"lora_init_param_path: {lora_init_param_path}")
-                model = PeftModel.from_pretrained(model, lora_init_param_path)
-                for name, param in model.named_parameters():
-                    if not lora_conf.get("freeze_lora", False):
-                        if "lora_" in name:
-                            param.requires_grad = True
-            else:
-                peft_config = LoraConfig(**lora_conf)
-                model = get_peft_model(model, peft_config)
-            model.print_trainable_parameters()
-
         if llm_conf.get("activation_checkpoint", False):
             model.gradient_checkpointing_enable()
 
@@ -118,13 +98,48 @@ class FunASRNano(nn.Module):
         audio_adaptor = adaptor_class(**audio_adaptor_conf)
         freeze = audio_adaptor_conf.get("freeze", False)
         if freeze:
-            for name, param in audio_adaptor.named_parameters():
+            for _, param in audio_adaptor.named_parameters():
                 param.requires_grad = False
             audio_adaptor.eval()
         self.audio_adaptor = audio_adaptor
+        self.use_low_frame_rate = audio_adaptor_conf.get("use_low_frame_rate", False)
+
+        # ctc decoder
+        self.ctc_decoder = None
+        # TODO: fix table name
+        ctc_decoder_class = tables.adaptor_classes.get(kwargs.get("ctc_decoder", None))
+        if ctc_decoder_class is not None:
+            ctc_vocab_size = kwargs.get("ctc_vocab_size", 60515)
+            ctc_decoder_conf = kwargs.get("ctc_decoder_conf", {})
+            if audio_encoder_output_size > 0:
+                ctc_decoder_conf["encoder_dim"] = audio_encoder_output_size
+            self.ctc_decoder = ctc_decoder_class(**ctc_decoder_conf)
+            init_param_path = ctc_decoder_conf.get("init_param_path", None)
+            if init_param_path is not None:
+                src_state = torch.load(init_param_path, map_location="cpu")
+                flag = self.ctc_decoder.load_state_dict(src_state, strict=False)
+                logging.info(
+                    f"Loading ctc_decoder ckpt: {init_param_path}, status: {flag}"
+                )
+            freeze = ctc_decoder_conf.get("freeze", False)
+            if freeze:
+                for _, param in self.ctc_decoder.named_parameters():
+                    param.requires_grad = False
+                self.ctc_decoder.eval()
+
+            ctc_conf = kwargs.get("ctc_conf", {})
+            self.blank_id = ctc_conf.get("blank_id", ctc_vocab_size - 1)
+            self.ctc_weight = kwargs.get("ctc_weight", 0.3)
+            #self.ctc = CTC(
+            #    odim=ctc_vocab_size,
+            #    encoder_output_size=audio_encoder_output_size,
+            #    blank_id=self.blank_id,
+            #    **ctc_conf,
+            #)
+            self.detach_ctc_decoder = kwargs.get("detach_ctc_decoder", True)
+            self.error_calculator = None
 
         self.length_normalized_loss = length_normalized_loss
-        self.feat_permute = audio_encoder_conf.get("feat_permute", True)
         rank = int(os.environ.get("RANK", 0))
         logging.info(f"rank: {rank}, model is builded.")
 
@@ -204,7 +219,9 @@ class FunASRNano(nn.Module):
                 stats["batch_size_x_frames"] - stats["batch_size_real_frames"]
             )
 
-        with torch.cuda.amp.autocast(
+        device_type = next(self.parameters()).device.type
+        with torch.autocast(
+            device_type=device_type if device_type in ["cuda", "xpu", "mps"] else "cpu",
             enabled=True if self.llm_dtype != "fp32" else False,
             dtype=dtype_map[self.llm_dtype],
         ):
@@ -252,12 +269,7 @@ class FunASRNano(nn.Module):
 
     def encode(self, speech, speech_lengths):
         # audio encoder
-        if self.feat_permute:
-            encoder_out, encoder_out_lens = self.audio_encoder(
-                speech.permute(0, 2, 1), speech_lengths
-            )
-        else:
-            encoder_out, encoder_out_lens = self.audio_encoder(speech, speech_lengths)
+        encoder_out, encoder_out_lens = self.audio_encoder(speech, speech_lengths)
 
         return encoder_out, encoder_out_lens
 
@@ -382,12 +394,12 @@ class FunASRNano(nn.Module):
                             / 1000
                         )
 
-                        if self.feat_permute:
-                            speech = speech.permute(0, 2, 1)
-
-                        olens = 1 + (speech_lengths[0].item() - 3 + 2 * 1) // 2
-                        olens = 1 + (olens - 3 + 2 * 1) // 2
-                        fake_token_len_i = (olens - 1) // 2 + 1
+                        if self.use_low_frame_rate:
+                            olens = 1 + (speech_lengths[0].item() - 3 + 2 * 1) // 2
+                            olens = 1 + (olens - 3 + 2 * 1) // 2
+                            fake_token_len_i = (olens - 1) // 2 + 1
+                        else:
+                            fake_token_len_i = speech_lengths[0].item()
                         fake_token = [0] * fake_token_len_i
                         fbank_beg_i = len(source_ids)
                         source_ids += fake_token
@@ -550,14 +562,11 @@ class FunASRNano(nn.Module):
             prompt += f"热词列表：[{hotwords}]\n"
         else:
             prompt = ""
-        language = kwargs.get("language", "auto")
-        if language not in ("auto", "zh", "en", "ja"):
-            language = "auto"
-        if language == "auto":
+        language = kwargs.get("language", None)
+        if language is None:
             prompt += "语音转写"
         else:
-            LANGUAGE_MAP = {"zh": "中文", "en": "英文", "ja": "日文"}
-            prompt += f"语音转写成{LANGUAGE_MAP[language]}"
+            prompt += f"语音转写成{language}"
         itn = kwargs.get("itn", True)
         if not itn:
             prompt += "，不进行文本规整"
@@ -624,8 +633,11 @@ class FunASRNano(nn.Module):
             llm_dtype = "fp16" if kwargs.get("fp16", False) else llm_dtype
             llm_dtype = "bf16" if kwargs.get("bf16", False) else llm_dtype
 
-        with torch.cuda.amp.autocast(
-            enabled=True if llm_dtype != "fp32" else False, dtype=dtype_map[llm_dtype]
+        device_type = torch.device(kwargs.get("device", "cuda")).type
+        with torch.autocast(
+            device_type=device_type if device_type in ["cuda", "xpu", "mps"] else "cpu",
+            enabled=True if llm_dtype != "fp32" else False,
+            dtype=dtype_map[llm_dtype],
         ):
             label = contents["assistant"][-1]
             self.llm = self.llm.to(dtype_map[llm_dtype])
@@ -673,7 +685,7 @@ class FunASRNano(nn.Module):
         response_clean = re.sub(r"[^\w\s\u3000\u4e00-\u9fff]+", "", response)
         result_i = {
             "key": key[0],
-            "text": re.sub(r'\s+', ' ', response.replace("/sil", " ")),
+            "text": re.sub(r"\s+", " ", response.replace("/sil", " ")),
             "text_tn": response_clean,
             "label": label,
         }

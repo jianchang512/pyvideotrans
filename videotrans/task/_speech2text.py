@@ -1,4 +1,5 @@
 import json,os
+import re
 import shutil
 import time
 from dataclasses import dataclass, field
@@ -64,15 +65,17 @@ class SpeechToText(BaseTask):
         try:
             # 需要降噪
             if self.cfg.remove_noise:
-                self._signal(
-                    text=tr(
-                        "Starting to process speech noise reduction, which may take a long time, please be patient"))
-                from ._remove_noise import run_remove
-                self.cfg.shibie_audio = run_remove(
-                    self.cfg.shibie_audio,
-                    f"{self.cfg.cache_folder}/removed_noise_{time.time()}.wav",
-                    int(config.settings.get('noise_separate_nums', 4))
-                )
+                title=tr("Starting to process speech noise reduction, which may take a long time, please be patient")
+                from videotrans.process.prepare_audio import remove_noise
+                kw={
+                    "input_file":self.cfg.shibie_audio,
+                    "output_file":f"{self.cfg.cache_folder}/removed_noise_{time.time()}.wav",
+                    "TEMP_DIR":config.TEMP_DIR,
+                    "is_cuda":self.cfg.cuda
+                }
+                _rs = self._new_process(callback=remove_noise,title=title,kwargs=kw)
+                if _rs:
+                    self.cfg.shibie_audio=_rs
             if self._exit(): return
             # faster_xxl.exe 单独处理
             if self.cfg.recogn_type == Faster_Whisper_XXL:
@@ -160,6 +163,22 @@ class SpeechToText(BaseTask):
                 if not raw_subtitles or len(raw_subtitles) < 1:
                     raise RuntimeError(self.cfg.basename + tr('recogn result is empty'))
             if self._exit() or self.cfg.detect_language == 'auto': return
+            
+            
+            # 中英恢复标点符号
+            if self.cfg.fix_punc and self.cfg.detect_language[:2] in ['zh','en']:
+                text_dict={f'{it["line"]}':re.sub(r'[,.?!，。？！]',' ',it["text"]) for it in self.source_srt_list}
+                from videotrans.process.prepare_audio import fix_punc
+                kw={"text_dict":text_dict,"TEMP_DIR":config.TEMP_DIR,"is_cuda":self.cfg.cuda}
+                _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),kwargs=kw)
+                if _rs:
+                    for it in self.source_srt_list:
+                        it['text']=_rs.get(f'{it["line"]}',it['text'])
+                        if self.cfg.detect_language[:2]=='en':
+                            it['text']=it['text'].replace('，',',').replace('。','. ').replace('？','?').replace('！','!')
+                    self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+            
+            
             # whisperx-api
             # openairecogn并且模型是gpt-4o-transcribe-diarize
             # funasr并且模型是paraformer-zh
@@ -194,45 +213,59 @@ class SpeechToText(BaseTask):
         if self._exit()  or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
             return
             
+        # built pyannote reverb ali_CAM
         speaker_type=config.settings.get('speaker_type','built')
         hf_token= config.settings.get('hf_token')
-        
         if speaker_type=='built' and self.cfg.detect_language[:2] not in ['zh','en']:
             config.logger.error(f'当前选择 built 说话人分离模型，但不支持当前语言:{self.cfg.detect_language}')
             return
-        if speaker_type=='pyannote' and not hf_token:
+        if speaker_type in ['pyannote','reverb'] and not hf_token:
             config.logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
             return
-        
-        if speaker_type=='pyannote':
+        if speaker_type in ['pyannote','reverb']:
             # 判断是否可访问 huggingface.co
             # 先测试能否连接 huggingface.co, 中国大陆地区不可访问，除非使用VPN
             try:
                 import requests
                 requests.head('https://huggingface.co',timeout=5)
             except Exception:
-                config.logger.error(f'当前选择 pyannote 说话人分离模型，但无法连接到 https://huggingface.co')
+                config.logger.error(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败')
 
-
-
-        
         try:
-            self._signal(text=tr('Begin separating the speakers'))
-            from videotrans.diarization import assign_speakers
-            spk_list = assign_speakers(
-                self.cfg.shibie_audio,
-                self.cfg.detect_language,
-                [[it['start_time'], it['end_time']] for it in self.source_srt_list],
-                -1 if self.max_speakers < 1 else self.max_speakers,
-                self.uuid,
-                speaker_type
-            )
-            Path(self.cfg.cache_folder + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
-            config.logger.debug('分离说话人成功完成')
+            self.precent += 3
+            title=tr(f'Begin separating the speakers')+f':{speaker_type=}'
+            spk_list=None
+            kw={
+                    "input_file":self.cfg.shibie_audio,
+                    "subtitles":[ [it['start_time'],it['end_time']] for it in self.source_srt_list],
+                    "num_speakers":self.max_speakers,
+                    "TEMP_DIR":config.TEMP_DIR,
+                    "is_cuda":self.cfg.cuda
+            }
+            if speaker_type=='built':
+                from videotrans.process.prepare_audio import built_speakers as _run_speakers
+                del kw['is_cuda']
+                kw['num_speakers']=-1 if self.max_speakers<1 else self.max_speakers
+                kw['language']=self.cfg.detect_language
+            elif speaker_type=='ali_CAM':
+                from videotrans.process.prepare_audio import cam_speakers as _run_speakers
+            elif speaker_type=='pyannote':
+                from videotrans.process.prepare_audio import pyannote_speakers as _run_speakers
+            elif speaker_type=='reverb':
+                from videotrans.process.prepare_audio import reverb_speakers as _run_speakers
+            else:
+                config.logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
+                return
+            spk_list=self._new_process(callback=_run_speakers,title=title,kwargs=kw)
+
+            if spk_list:
+                Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')
+                config.logger.debug('分离说话人成功完成')
             self._signal(text=tr('separating speakers end'))
         except Exception as e:
-            config.logger.exception(f'分离说话人失败，静默跳过{e}',exc_info=True)
+            config.logger.exception(f'{speaker_type}:分离说话人失败，静默跳过{e}',exc_info=True)
             self._signal(text=tr('Speaker separation failed, silent skip.'))
+
 
     def task_done(self):
         if self._exit(): return

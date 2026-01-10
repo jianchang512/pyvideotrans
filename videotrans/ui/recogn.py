@@ -109,6 +109,10 @@ class Ui_recogn(object):
         self.rephrase = QtWidgets.QComboBox()
         self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase")])
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
+        
+        self.fix_punc = QtWidgets.QCheckBox()
+        self.fix_punc.setToolTip(tr("Restoring punctuation marks when Chinese & English"))
+        self.fix_punc.setText(tr("Restoring punct"))
 
         
 
@@ -125,6 +129,7 @@ class Ui_recogn(object):
         self.h4.addWidget(self.shibie_startbtn)
         self.h4.addWidget(self.shibie_stop)
         self.h4.addWidget(self.rephrase)
+        self.h4.addWidget(self.fix_punc)
         self.h4.addWidget(self.lable_out)
         self.h4.addWidget(self.out_format)
         self.h4.addWidget(self.copysrt_rawvideo)

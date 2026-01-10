@@ -1,5 +1,5 @@
 import base64
-import os
+import os,time
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -8,7 +8,7 @@ from typing import Optional
 from videotrans.configure import config
 from videotrans.configure.config import tr
 from videotrans.util import tools
-
+from concurrent.futures import ProcessPoolExecutor
 
 @dataclass
 class BaseCon:
@@ -21,22 +21,10 @@ class BaseCon:
 
     def __post_init__(self):
         self.no_proxy=config.no_proxy
+        # 获取代理
         self.proxy_str = self._set_proxy(type='set')
-        print(f'{self.proxy_str=},{self.uuid=}')
         config.settings=config.parse_init()
         
-
-
-        if self.proxy_str:
-            os.environ['HTTPS_PROXY'] = self.proxy_str
-            os.environ['HTTP_PROXY'] = self.proxy_str
-            config.proxy = self.proxy_str
-        else:
-            config.proxy = None
-            os.environ.pop('HTTPS_PROXY',None)
-            os.environ.pop('HTTP_PROXY',None)
-
-
 
     # 所有窗口和任务信息通过队列交互
     def _signal(self, **kwargs):
@@ -51,16 +39,13 @@ class BaseCon:
     # 设置、获取代理
     def _set_proxy(self, type='set'):
         if type == 'del':
-            from . import config
             os.environ['bak_proxy'] = config.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
-            config.proxy = None
+            config.proxy = ''
             os.environ.pop('HTTPS_PROXY',None)
             os.environ.pop('HTTP_PROXY',None)
-
             return None
 
         if type == 'set':
-            from . import config
             raw_proxy = config.proxy or os.environ.get('HTTPS_PROXY') or os.environ.get('HTTP_PROXY')
             if raw_proxy:
                 config.proxy=raw_proxy
@@ -70,7 +55,7 @@ class BaseCon:
                 if proxy:
                     os.environ['HTTP_PROXY'] = proxy
                     os.environ['HTTPS_PROXY'] = proxy
-                config.proxy=raw_proxy
+                config.proxy=proxy
                 return proxy
         return None
 
@@ -214,3 +199,19 @@ class BaseCon:
             wav_content = wav_file.read()
             base64_encoded = base64.b64encode(wav_content)
             return base64_encoded.decode("utf-8")
+
+
+    # 使用新进程执行任务
+    def _new_process(self,callback=None,title="",kwargs=None):
+        _st = time.time()
+        self._signal(text=f'[{title}] starting')
+        config.logger.debug(f'[_new_process] {kwargs=}')
+        with ProcessPoolExecutor(max_workers=1) as executor:
+            # 提交任务，并显式传入参数，确保子进程拿到正确的参数
+            future = executor.submit(
+                callback,
+                **kwargs
+            )
+            data = future.result()
+        self._signal(text=f'[{title}] end: {int(time.time() - _st)}s')
+        return data

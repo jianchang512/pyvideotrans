@@ -2,7 +2,6 @@ import re, os, traceback, json
 import shutil
 from pathlib import Path
 
-
 def openai_whisper(
         *,
         prompt=None,
@@ -17,9 +16,13 @@ def openai_whisper(
         speech_timestamps=None,
         audio_file=None,
         TEMP_ROOT=None,
-        jianfan=False
+        jianfan=False,
+        batch_size=1,
+        audio_duration=0
 ):
-    import torch, whisper
+    import torch
+    torch.set_num_threads(1)
+    import  whisper
     from videotrans.util import tools
     import zhconv
 
@@ -31,6 +34,7 @@ def openai_whisper(
     model = None
     raws = []
     try:
+        print(f'{batch_size=}')
         model = whisper.load_model(
             model_name,
             device="cuda" if is_cuda else "cpu",
@@ -39,11 +43,14 @@ def openai_whisper(
         msg = f"Loaded {model_name}"
         Path(logs_file).write_text(json.dumps({"type": "logs", "text": msg}), encoding='utf-8')
 
-        last_end_time = speech_timestamps[-1][1] / 1000.0
+        last_end_time = audio_duration/1000.0 if audio_duration>0 else  speech_timestamps[-1][1] / 1000.0
         speech_timestamps_flat = []
-        for it in speech_timestamps:
-            speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
-
+        if speech_timestamps and batch_size>1:
+            for it in speech_timestamps:
+                speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
+        else:
+            speech_timestamps_flat="0"
+        
         result = model.transcribe(
             audio_file,
             no_speech_threshold=no_speech_threshold,
@@ -114,16 +121,21 @@ def faster_whisper(
         batch_size=8,
         beam_size=5,
         best_of=5,
-        jianfan=False
+        jianfan=False,
+        audio_duration=0
 ):
-    from videotrans.util import tools
     import torch
-    import zhconv
+    torch.set_num_threads(1)
     from faster_whisper import WhisperModel, BatchedInferencePipeline
+    from videotrans.util import tools
+    import zhconv
+    print(f'{batch_size=}')
+
     device_indices = list(range(torch.cuda.device_count())) if is_cuda else 0
     model = None
+    batched_model=None
     raws = []
-    last_end_time = speech_timestamps[-1][1] / 1000.0
+    last_end_time = audio_duration/1000.0 if audio_duration>0 else   speech_timestamps[-1][1] / 1000.0
     try:
         # 1. 加载基础模型
         model = WhisperModel(
@@ -145,31 +157,47 @@ def faster_whisper(
             msg = error
         return msg
 
-    batched_model = BatchedInferencePipeline(model=model)
-
-    # 3. 转换时间戳格式
-    # BatchedInferencePipeline 需要 [{'start': start_sec, 'end': end_sec}, ...]
-    clip_timestamps_dicts = [
-        {"start": it[0] / 1000.0, "end": it[1] / 1000.0}
-        for it in speech_timestamps
-    ]
     try:
-        # 4. 执行批量推理
-        # 使用 batched_model.transcribe
-        segments, info = batched_model.transcribe(
-            audio_file,
-            batch_size=batch_size,  #
-            beam_size=beam_size,
-            best_of=best_of,
-            no_speech_threshold=no_speech_threshold,
-            # vad_filter 必须为 False，否则 clip_timestamps 可能被忽略或产生冲突，
-            vad_filter=False,
-            clip_timestamps=clip_timestamps_dicts,  # 自定义分段
-            condition_on_previous_text=condition_on_previous_text,
-            word_timestamps=False,
-            language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
-            initial_prompt=prompt if prompt else None
-        )
+        if batch_size>1:
+            # 4. 执行批量推理
+            # 使用 batched_model.transcribe
+            batched_model = BatchedInferencePipeline(model=model)
+
+            # 3. 转换时间戳格式
+            # BatchedInferencePipeline 需要 [{'start': start_sec, 'end': end_sec}, ...]
+            clip_timestamps_dicts = [
+                {"start": it[0] / 1000.0, "end": it[1] / 1000.0}
+                for it in speech_timestamps
+            ]
+            segments, info = batched_model.transcribe(
+                audio_file,
+                batch_size=batch_size,  #
+                beam_size=beam_size,
+                best_of=best_of,
+                no_speech_threshold=no_speech_threshold,
+                # vad_filter 必须为 False，否则 clip_timestamps 可能被忽略或产生冲突，
+                vad_filter=False,
+                clip_timestamps=clip_timestamps_dicts,  # 自定义分段
+                condition_on_previous_text=condition_on_previous_text,
+                word_timestamps=False,
+                without_timestamps=True,
+                language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
+                initial_prompt=prompt if prompt else None
+            )
+        else:
+            segments, info = model.transcribe(
+                    audio_file,
+                    beam_size=beam_size,
+                    best_of=best_of,
+                    condition_on_previous_text=condition_on_previous_text,
+                    vad_filter=True,
+                    no_speech_threshold=no_speech_threshold,
+                    clip_timestamps="0",#clip_timestamps,
+                    word_timestamps=False,
+                    without_timestamps=False,
+                    language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
+                    initial_prompt=prompt if prompt else None
+            )
         i = 0
         for segment in segments:
             if segment.end > last_end_time:
@@ -229,6 +257,7 @@ def pipe_asr(
         jianfan=False
 ):
     import torch
+    torch.set_num_threads(1)
     from transformers import pipeline
     import zhconv
 
@@ -363,49 +392,41 @@ def paraformer(
         cache_folder=None
 ):
     import torch
+    torch.set_num_threads(1)
     from videotrans.util import tools
-    from funasr import AutoModel
+    #from funasr import AutoModel
+    from modelscope.pipelines import pipeline
+    from modelscope.utils.constant import Tasks
 
     raw_subtitles = []
-    model_dir = f'{ROOT_DIR}/models/models/iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch'
+    model_dir = f'{ROOT_DIR}/models/models/iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch'
     if not Path(model_dir).exists():
         msg = f'Download {model_name} from modelscope.cn'
     else:
         msg = f'Load {model_name} model'
     Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'{msg}'}), encoding='utf-8')
     model = None
-    try:
-        model = AutoModel(
-            model='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',
-            vad_model="fsmn-vad",
-            punc_model="ct-punc",
-            local_dir=ROOT_DIR + "/models",
-            hub='ms',
-            spk_model="cam++" if max_speakers > -1 else None,
+    device='cuda' if is_cuda else 'cpu'
+    try:     
+        inference_pipeline = pipeline(
+            task=Tasks.auto_speech_recognition,
+            model='iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch', model_revision="v2.0.4",
+            vad_model='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch', vad_model_revision="v2.0.4",
+            punc_model='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch', punc_model_revision="v2.0.3",
+            spk_model="iic/speech_campplus_sv_zh-cn_16k-common",
+            spk_model_revision="v2.0.2",
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
-            device='cuda' if is_cuda else 'cpu'
+            device=device
+            #trust_remote_code=True,
         )
+        
 
         msg = "Model loading is complete, enter recognition"
         Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'{msg}'}), encoding='utf-8')
         num = 0
-
-        def _show_process(ex, dx):
-            nonlocal num
-            num += 1
-            Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'STT {num}'}), encoding='utf-8')
-
-        res = model.generate(
-            input=audio_file,
-            return_raw_text=True,
-            is_final=True,
-            batch_size=64,
-            sentence_timestamp=True,
-            progress_callback=_show_process,
-            disable_pbar=True)
-
+        res = inference_pipeline(audio_file)
         speaker_list = []
         i = 0
         for it in res[0]['sentence_info']:
@@ -466,20 +487,12 @@ def funasr_mlt(
         cache_folder=None
 ):
     import torch
+    torch.set_num_threads(1)
     from funasr import AutoModel
+    from modelscope.pipelines import pipeline
+    from modelscope.utils.constant import Tasks
 
-    if model_name == 'paraformer-zh':
-        model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if detect_language[:2] not in ['ja',
-                                                                                        'yu'] else 'FunAudioLLM/Fun-ASR-Nano-2512'
-    elif model_name == 'SenseVoiceSmall':
-        model_name = 'iic/SenseVoiceSmall'
-    elif model_name == 'Fun-ASR-Nano-2512':
-        if detect_language[:2] not in ['zh', 'en', 'ja', 'yu']:
-            model_name = f'FunAudioLLM/Fun-ASR-MLT-Nano-2512'
-        else:
-            model_name = f'FunAudioLLM/Fun-ASR-Nano-2512'
-    else:
-        model_name = f'FunAudioLLM/Fun-ASR-MLT-Nano-2512'
+
 
     if not Path(f'{ROOT_DIR}/models/models/{model_name}').exists():
         msg = f'Download {model_name} from modelscope.cn'
@@ -490,38 +503,52 @@ def funasr_mlt(
     model = None
     device = "cuda" if is_cuda else "cpu"
     srts = cut_audio_list
+    print(f'{model_name=}')
     try:
-        model = AutoModel(
-            model=model_name,
-            punc_model="ct-punc",
-            device=device,
-            local_dir=ROOT_DIR + "/models",
-            disable_update=True,
-            disable_progress_bar=True,
-            disable_log=True,
-            trust_remote_code=True,
-            remote_code=f"{ROOT_DIR}/videotrans/codes/model.py",
-            hub='ms',
-        )
+        if model_name == 'iic/SenseVoiceSmall':
+            inference_pipeline = pipeline(
+                task=Tasks.auto_speech_recognition,
+                model='iic/SenseVoiceSmall',
+                model_revision="master",
+                disable_update=True,
+                disable_progress_bar=True,
+                disable_log=True,
+                device=device
+                )
 
-        # vad
-        msg = "Recognition may take a while, please be patient"
-        Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'{msg}'}), encoding='utf-8')
-        num = 0
+            res = inference_pipeline([it['file'] for it in cut_audio_list],batch_size=4,disable_pbar=True)
+        else:
+            model = AutoModel(
+                model=model_name,
+                punc_model="ct-punc",
+                device=device,
+                local_dir=ROOT_DIR + "/models",
+                disable_update=True,
+                disable_progress_bar=True,
+                disable_log=True,
+                trust_remote_code=True,
+                remote_code=f"{ROOT_DIR}/videotrans/codes/model.py",
+                hub='ms',
+            )
 
-        def _show_process(ex, dx):
-            nonlocal num
-            num += 1
-            Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'STT {num}'}), encoding='utf-8')
+            # vad
+            msg = "Recognition may take a while, please be patient"
+            Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'{msg}'}), encoding='utf-8')
+            num = 0
 
-        res = model.generate(
-            input=[it['file'] for it in srts],
-            language=detect_language[:2],  # "zh", "en", "yue", "ja", "ko", "nospeech"
-            use_itn=True,
-            batch_size=1,
-            progress_callback=_show_process,
-            disable_pbar=True
-        )
+            def _show_process(ex, dx):
+                nonlocal num
+                num += 1
+                Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'STT {num}'}), encoding='utf-8')
+
+            res = model.generate(
+                input=[it['file'] for it in srts],
+                language=detect_language[:2],  # "zh", "en", "yue", "ja", "ko", "nospeech"
+                use_itn=True,
+                batch_size=1,
+                progress_callback=_show_process,
+                disable_pbar=True
+            )
         for i, it in enumerate(res):
             text = _remove_unwanted_characters(it['text'])
             srts[i]['text'] = text

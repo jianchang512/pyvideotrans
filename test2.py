@@ -1,3 +1,82 @@
+# taken from https://huggingface.co/pyannote/speaker-diarization-3.1 - see for more details
+# instantiate the pipeline
+import os,torch
+from videotrans.configure import config
+os.environ['HTTPS_PROXY']="http://127.0.0.1:10808"
+import pyannote.audio
+torch.serialization.add_safe_globals([
+    torch.torch_version.TorchVersion,
+    pyannote.audio.core.task.Specifications,
+    pyannote.audio.core.task.Problem,
+    pyannote.audio.core.task.Resolution
+])
+from pyannote.audio import Pipeline
+pipeline = Pipeline.from_pretrained(
+  "Revai/reverb-diarization-v1",
+  use_auth_token="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")
+
+# run the pipeline on an audio file
+diarization = pipeline("eng.wav")
+for turn, _, speaker in diarization.itertracks(yield_label=True):
+    print(f'{speaker=}')
+
+
+
+
+exit()
+#!/usr/bin/env python3
+
+"""
+This script shows how to add punctuations to text using sherpa-onnx Python API.
+
+Please download the model from
+https://github.com/k2-fsa/sherpa-onnx/releases/tag/punctuation-models
+
+The following is an example
+
+wget https://github.com/k2-fsa/sherpa-onnx/releases/download/punctuation-models/sherpa-onnx-punct-ct-transformer-zh-en-vocab272727-2024-04-12.tar.bz2
+tar xvf sherpa-onnx-punct-ct-transformer-zh-en-vocab272727-2024-04-12.tar.bz2
+rm sherpa-onnx-punct-ct-transformer-zh-en-vocab272727-2024-04-12.tar.bz2
+"""
+
+from pathlib import Path
+
+import sherpa_onnx
+
+
+def main():
+    model = "./models/puntc/model.onnx"
+    if not Path(model).is_file():
+        raise ValueError(f"{model} does not exist")
+    config = sherpa_onnx.OfflinePunctuationConfig(
+        model=sherpa_onnx.OfflinePunctuationModelConfig(ct_transformer=model),
+    )
+
+    punct = sherpa_onnx.OfflinePunctuation(config)
+
+    text_list = [
+            'Mark how are you feeling about China ', 
+    'Still extremely bullish ', 
+    'I find some of the perspectives today quite bizarre from investors ', 
+    "I thought we'd back out lined it perfectly ", 
+     "Look  we're never going to get the big stimulus menu RSE ", 
+    
+    '在五老星系中發現了有幾分子零第三類接觸還有多人啊微波真是展開拍攝任務已經近滿周年最近也傳過來許多過去難以拍攝到的照片6月初天威學家在自然期看上發表了正常照片在藍色核心外'
+
+    ]
+    for text in text_list:
+        text_with_punct = punct.add_punctuation(text)
+        print("----------")
+        print(f"input: {text}")
+        print(f"output: {text_with_punct}")
+
+    print("----------")
+
+
+if __name__ == "__main__":
+    main()
+
+exit()
 import os
 os.environ['HTTPS_PROXY']='http://127.0.0.1:10808'
 ##

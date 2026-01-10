@@ -75,3 +75,8 @@ class TaskCfg:
     rephrase:int=2 #0 默认断句不处理 1=LLM重新断句 2=自动修正
     # 是否仅仅输出mp4,仅视频翻译使用
     only_out_mp4:bool=False
+    
+    # 是否恢复标点符号
+    fix_punc:bool=False
+    # 对配音音频再次识别
+    recogn2pass:bool=False

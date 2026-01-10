@@ -444,6 +444,7 @@ class WinAction(WinActionSub):
         # 清理缓存
         self.cfg['clear_cache'] = self.main.clear_cache.isChecked()
         self.cfg['only_out_mp4'] = self.main.only_out_mp4.isChecked()
+        self.cfg['fix_punc'] = self.main.fix_punc.isChecked()
 
         # 配音设置
         self.cfg['tts_type'] = self.main.tts_type.currentIndex()
@@ -485,19 +486,9 @@ class WinAction(WinActionSub):
             self.cfg['is_separate'] = False
         self.cfg['back_audio'] = self.main.back_audio.text().strip()
         self.cfg['enable_diariz'] = self.main.enable_diariz.isChecked()
+        self.cfg['recogn2pass'] = self.main.recogn2pass.isChecked()
         self.cfg['nums_diariz'] = self.main.nums_diariz.currentIndex()
         
-        if self.cfg['is_separate'] and not Path(f'{config.ROOT_DIR}/models/onnx/UVR-MDX-NET-Inst_HQ_4.onnx').exists():
-            self.main.startbtn.setDisabled(False)
-            tools.show_download_tips(self.main,tr('Retain original background sound'))
-            return
-
-        if self.cfg['enable_diariz'] and not Path(f'{config.ROOT_DIR}/models/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx').exists():
-            self.main.startbtn.setDisabled(False)
-            tools.show_download_tips(self.main,tr('Speaker'))
-            return
-            
-
 
 
         # 核对识别是否正确
