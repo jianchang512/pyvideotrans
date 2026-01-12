@@ -1,3 +1,4 @@
+# 各种字面常量
 LISTEN_TEXT={
         "zh": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
         "zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
@@ -33,4 +34,58 @@ LISTEN_TEXT={
         "yue": "你好啊親愛嘅朋友，希望你今日好開心",
 
 }
+# 不使用代理的域名
+no_proxy = (
+    "tmt.tencentcloudapi.com,"
+    "hf-mirror.com,"
+    "api.fanyi.baidu.com,"
+    "openspeech.bytedance.com,"
+    "api.minimaxi.com,"
+    "api.deepseek.com,"
+    "modelscope.cn,"  # 涵盖了 *.modelscope.cn
+    "aliyuncs.com,"  # 涵盖了 dashscope, mt.cn-hangzhou 等所有子域
+    "api.siliconflow.cn,"
+    "ms.show,"  # 涵盖 *.ms.show
+    "bigmodel.cn,"
+    "localhost,"
+    "127.0.0.1,"
+    "127.0.0.1:7860,"
+    "localhost:7860,"
+    "127.0.0.1:9880,"
+    "localhost:9880,"
+    "127.0.0.1:8000,"
+    "localhost:8000,"
+    "127.0.0.1:5051,"
+    "127.0.0.1:5052,"
+    "127.0.0.1:5053,"
+    "127.0.0.1:9091,"
+    "127.0.0.1:9092,"
+    "127.0.0.1:9093"
+)
 
+# funasr模型
+FUNASR_MODEL = ['Fun-ASR-Nano-2512', 'Fun-ASR-MLT-Nano-2512', 'paraformer-zh', 'SenseVoiceSmall']
+# deepgram 支持的语音识别模型
+DEEPGRAM_MODEL = [
+    "nova-3",
+    "whisper-large",
+    "whisper-medium",
+    "whisper-small",
+    "whisper-base",
+    "whisper-tiny",
+    "nova-2",
+    "enhanced",
+    "base",
+]
+
+# 支持的视频格式
+VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts", "flv"]
+# 支持的音频格式
+AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
+
+# 缺省 gemini 模型
+DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-3-flash-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
+# openai-tts音色
+OPENAITTS_ROLES = "No,alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
+# gemini-tts 音色
+GEMINITTS_ROLES = "No,Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"

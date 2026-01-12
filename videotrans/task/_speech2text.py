@@ -73,9 +73,13 @@ class SpeechToText(BaseTask):
                     "TEMP_DIR":config.TEMP_DIR,
                     "is_cuda":self.cfg.cuda
                 }
-                _rs = self._new_process(callback=remove_noise,title=title,kwargs=kw)
-                if _rs:
-                    self.cfg.shibie_audio=_rs
+                # 静默失败，不处理
+                try:
+                    _rs = self._new_process(callback=remove_noise,title=title,kwargs=kw)
+                    if _rs:
+                        self.cfg.shibie_audio=_rs
+                except:
+                    pass
             if self._exit(): return
             # faster_xxl.exe 单独处理
             if self.cfg.recogn_type == Faster_Whisper_XXL:
@@ -170,14 +174,17 @@ class SpeechToText(BaseTask):
                 text_dict={f'{it["line"]}':re.sub(r'[,.?!，。？！]',' ',it["text"]) for it in self.source_srt_list}
                 from videotrans.process.prepare_audio import fix_punc
                 kw={"text_dict":text_dict,"TEMP_DIR":config.TEMP_DIR,"is_cuda":self.cfg.cuda}
-                _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),kwargs=kw)
-                if _rs:
-                    for it in self.source_srt_list:
-                        it['text']=_rs.get(f'{it["line"]}',it['text'])
-                        if self.cfg.detect_language[:2]=='en':
-                            it['text']=it['text'].replace('，',',').replace('。','. ').replace('？','?').replace('！','!')
-                    self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-            
+                try:
+                    _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),kwargs=kw)
+                    if _rs:
+                        for it in self.source_srt_list:
+                            it['text']=_rs.get(f'{it["line"]}',it['text'])
+                            if self.cfg.detect_language[:2]=='en':
+                                it['text']=it['text'].replace('，',',').replace('。','. ').replace('？','?').replace('！','!')
+                        self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+                except:
+                    pass
+
             
             # whisperx-api
             # openairecogn并且模型是gpt-4o-transcribe-diarize
@@ -231,40 +238,39 @@ class SpeechToText(BaseTask):
             except Exception:
                 config.logger.error(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败')
 
+        self.precent += 3
+        title=tr(f'Begin separating the speakers')+f':{speaker_type=}'
+        spk_list=None
+        kw={
+                "input_file":self.cfg.shibie_audio,
+                "subtitles":[ [it['start_time'],it['end_time']] for it in self.source_srt_list],
+                "num_speakers":self.max_speakers,
+                "TEMP_DIR":config.TEMP_DIR,
+                "is_cuda":self.cfg.cuda
+        }
+        if speaker_type=='built':
+            from videotrans.process.prepare_audio import built_speakers as _run_speakers
+            del kw['is_cuda']
+            kw['num_speakers']=-1 if self.max_speakers<1 else self.max_speakers
+            kw['language']=self.cfg.detect_language
+        elif speaker_type=='ali_CAM':
+            from videotrans.process.prepare_audio import cam_speakers as _run_speakers
+        elif speaker_type=='pyannote':
+            from videotrans.process.prepare_audio import pyannote_speakers as _run_speakers
+        elif speaker_type=='reverb':
+            from videotrans.process.prepare_audio import reverb_speakers as _run_speakers
+        else:
+            config.logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
+            return
         try:
-            self.precent += 3
-            title=tr(f'Begin separating the speakers')+f':{speaker_type=}'
-            spk_list=None
-            kw={
-                    "input_file":self.cfg.shibie_audio,
-                    "subtitles":[ [it['start_time'],it['end_time']] for it in self.source_srt_list],
-                    "num_speakers":self.max_speakers,
-                    "TEMP_DIR":config.TEMP_DIR,
-                    "is_cuda":self.cfg.cuda
-            }
-            if speaker_type=='built':
-                from videotrans.process.prepare_audio import built_speakers as _run_speakers
-                del kw['is_cuda']
-                kw['num_speakers']=-1 if self.max_speakers<1 else self.max_speakers
-                kw['language']=self.cfg.detect_language
-            elif speaker_type=='ali_CAM':
-                from videotrans.process.prepare_audio import cam_speakers as _run_speakers
-            elif speaker_type=='pyannote':
-                from videotrans.process.prepare_audio import pyannote_speakers as _run_speakers
-            elif speaker_type=='reverb':
-                from videotrans.process.prepare_audio import reverb_speakers as _run_speakers
-            else:
-                config.logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
-                return
             spk_list=self._new_process(callback=_run_speakers,title=title,kwargs=kw)
-
             if spk_list:
                 Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')
                 config.logger.debug('分离说话人成功完成')
-            self._signal(text=tr('separating speakers end'))
-        except Exception as e:
-            config.logger.exception(f'{speaker_type}:分离说话人失败，静默跳过{e}',exc_info=True)
-            self._signal(text=tr('Speaker separation failed, silent skip.'))
+        except:
+            pass
+        self._signal(text=tr('separating speakers end'))
+
 
 
     def task_done(self):

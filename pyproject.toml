@@ -177,7 +177,6 @@ dependencies = [
     "pydantic==2.10.2",
     "pydantic-core==2.27.1",
     "pydub==0.25.1",
-    "pygame==2.5.2",
     "pygments==2.17.2",
     "pyinstaller==6.16.0",
     "pyinstaller-hooks-contrib==2025.8",

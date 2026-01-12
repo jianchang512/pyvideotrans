@@ -69,7 +69,16 @@ class Ui_f5ttsform(object):
 
         h1indextts_url.addWidget(self.index_tts_version)
         h1indextts_url.addWidget(self.indextts_urltest)
+
+        h1indextts_prompt=QtWidgets.QHBoxLayout()
+        h1indextts_prompt.addWidget(QLabel('IndexTTS prompt'))
+        self.indextts_prompt=QLineEdit()
+        self.indextts_prompt.setPlaceholderText('angry happy eg.,')
+        h1indextts_prompt.addWidget(self.indextts_prompt)
+
+
         v1.addLayout(h1indextts_url)
+        v1.addLayout(h1indextts_prompt)
 
         h1diatts_url = QtWidgets.QHBoxLayout()
         self.diatts_urllabel = QLabel('Dia-TTS URL')

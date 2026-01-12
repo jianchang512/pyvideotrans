@@ -84,31 +84,45 @@ class BaseRecogn(BaseCon):
 
     def _vad_split(self):
         _st = time.time()
-        self._signal(text=f'[VAD] processing')
+        _vad_type = config.settings.get('vad_type', 'tenvad')
+        title=f'[VAD:{_vad_type}] split audio...'
+        self._signal(text=title)
+        # 重新拉取最新值
+        settings=config.parse_init()
 
-        _threshold = float(config.settings.get('threshold', 0.5))
-        _min_speech = int(config.settings.get('min_speech_duration_ms', 1000))
-        _max_speech = int(float(config.settings.get('max_speech_duration_s', 6)) * 1000)
-        _min_silence = int(config.settings.get('min_silence_duration_ms', 600))
+        _threshold = float(settings.get('threshold', 0.5))
+        # 不得低于200
+        _min_speech = max(int(settings.get('min_speech_duration_ms', 1000)),200)
+        # 最长不得大于30s
+        _max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000),30000)
+        # 不得低于100ms
+        _min_silence = max(int(settings.get('min_silence_duration_ms', 600)),100)
         # 如果是2次识别，均减半，以便生成简短的字幕
         if self.recogn2pass:
-            _min_speech=max(500,_min_speech//2)
-            _max_speech=max(min(5000,_max_speech//2),_min_speech+1)
-            _min_silence=max(min(1000,_min_silence//2),140)
+            # 不可低于500ms
+            _min_speech=max(200,_min_speech//2)
+            # 不可低于 _min_speech 并且不可大于3000ms
+            _max_speech=max(min(3000,_max_speech//2),_min_speech+1)
+            # 不可大于1000ms，并且不可小于100ms
+            _min_silence=max(min(1000,_min_silence//2),100)
 
-        _vad_type = config.settings.get('vad_type', 'tenvad')
         config.logger.debug(f'[VAD:{_vad_type}]')
-        with ProcessPoolExecutor(max_workers=1) as executor:
-            # 提交任务，并显式传入参数，确保子进程拿到正确的参数
-            future = executor.submit(
-                get_speech_timestamp if _vad_type == 'tenvad' else get_speech_timestamp_silero,
-                self.audio_file,
-                threshold=_threshold,
-                min_speech_duration_ms=_min_speech,
-                max_speech_duration_ms=_max_speech,
-                min_silent_duration_ms=_min_silence
-            )
-            self.speech_timestamps = future.result()
+        kw={
+            "input_wav":self.audio_file,
+            "threshold":_threshold,
+            "min_speech_duration_ms":_min_speech,
+            "max_speech_duration_ms":_max_speech,
+            "min_silent_duration_ms":_min_silence
+        }
+        try:
+            self.speech_timestamps=self._new_process(
+                callback=get_speech_timestamp if _vad_type == 'tenvad' else get_speech_timestamp_silero,
+                title=title,
+                kwargs=kw)
+        except Exception:
+            if not self.recogn2pass:
+                raise
+
         self._signal(text=f'[VAD] process ended {int(time.time() - _st)}s')
     
 
@@ -118,12 +132,13 @@ class BaseRecogn(BaseCon):
         
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         self._signal(text=f"check model")
-        if hasattr(self, '_get_modeldir_download'):
-            self._get_modeldir_download()
+        if hasattr(self, '_download'):
+            self._download()
 
         try:
             srt_list = []
-            for i, it in enumerate(self._exec()):
+            res=self._exec()
+            for i, it in enumerate(res):
                 text = it['text'].strip()
                 # 移除无效字幕行,全部由符号组成的行
                 if text and not re.match(r'^[,.?!;\'"_，。？；‘’“”！~@#￥%…&*（【】）｛｝《、》\$\(\)\[\]\{\}=+\<\>\s-]+$', text):

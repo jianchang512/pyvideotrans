@@ -33,8 +33,8 @@ class AiLoaderThread(QThread):
             _st=time.time()
             # 提前异步加载大型库 import，会写入 sys.modules
             import torch
-            from transformers import pipeline
             import ctranslate2
+            from transformers import pipeline
             print(f"preload AI models ended: {int(time.time()-_st)}")
         except Exception as e:
             import traceback
@@ -71,8 +71,7 @@ class StartWindow(QWidget):
         self.main_window = None
         self.LoadNotif = None
         self.start_time=time.time()
-        self.loader = AiLoaderThread()
-        self.loader.start()
+        self.loader = None
 
         self.resize(560, 350)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
@@ -178,9 +177,9 @@ def initialize_full_app(start_window, app_instance):
         return
 
     if main_window_created and start_window.main_window:
-        
-
         start_window.main_window.show()
+        start_window.loader = AiLoaderThread()
+        start_window.loader.start()
 
 
 if __name__ == "__main__":

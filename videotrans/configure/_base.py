@@ -204,14 +204,21 @@ class BaseCon:
     # 使用新进程执行任务
     def _new_process(self,callback=None,title="",kwargs=None):
         _st = time.time()
-        self._signal(text=f'[{title}] starting')
-        config.logger.debug(f'[_new_process] {kwargs=}')
+        self._signal(text=f'[{title}] starting...')
+        config.logger.debug(f'[新进程执行任务]:{title}\n{kwargs=}')
         with ProcessPoolExecutor(max_workers=1) as executor:
             # 提交任务，并显式传入参数，确保子进程拿到正确的参数
             future = executor.submit(
                 callback,
                 **kwargs
             )
-            data = future.result()
+            _rs = future.result()
+            if isinstance(_rs,tuple) and len(_rs)==2:
+                data,err=_rs
+                if data is False:
+                    raise RuntimeError(err)
+            else:
+                data=_rs
+
         self._signal(text=f'[{title}] end: {int(time.time() - _st)}s')
         return data

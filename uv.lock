@@ -3027,21 +3027,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pygame"
-version = "2.5.2"
-source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
-sdist = { url = "https://mirrors.aliyun.com/pypi/packages/c6/aa/2c0c867d6cff00966cfc2152b25f61599f87e88b239e4dcb8ad5357f0f69/pygame-2.5.2.tar.gz", hash = "sha256:c1b89eb5d539e7ac5cf75513125fb5f2f0a2d918b1fd6e981f23bf0ac1b1c24a" }
-wheels = [
-    { url = "https://mirrors.aliyun.com/pypi/packages/14/54/dc58f8b70e08b6706b158f0c70f86eb1594db6797cb89383f062ad6a304d/pygame-2.5.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:a0769eb628c818761755eb0a0ca8216b95270ea8cbcbc82227e39ac9644643da" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/65/b6/67e33add85b0f7ac901c6fb89a57f97fdfd67c8834f425a97abaf4a60191/pygame-2.5.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:ed9a3d98adafa0805ccbaaff5d2996a2b5795381285d8437a4a5d248dbd12b4a" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/5b/91/09f93d428b483c451eacee9ba1e04a1e9999751c80bf6236b2bdc8e19b1e/pygame-2.5.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f30d1618672a55e8c6669281ba264464b3ab563158e40d89e8c8b3faa0febebd" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/e8/6e/31d7a068edbb029e5a35d8fe4572b67e00705cb8f6dad650397bc417b6b3/pygame-2.5.2-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:39690e9be9baf58b7359d1f3b2336e1fd6f92fedbbce42987be5df27f8d30718" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/c8/c7/0d77e0e327bf09c12f445f92f5bad0b447375d7b836c5bac5255ead8436f/pygame-2.5.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:03879ec299c9f4ba23901b2649a96b2143f0a5d787f0b6c39469989e2320caf1" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/a6/96/0e5150bd79261721a85aab56614a3bddce404c3f19c3b4e17e912dbfb20b/pygame-2.5.2-cp310-cp310-win32.whl", hash = "sha256:74e1d6284100e294f445832e6f6343be4fe4748decc4f8a51131ae197dae8584" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/54/77/235d51462fae6acb3464e86ccc254f860e03567876afb43705b4b2ce1819/pygame-2.5.2-cp310-cp310-win_amd64.whl", hash = "sha256:485239c7d32265fd35b76ae8f64f34b0637ae11e69d76de15710c4b9edcc7c8d" },
-]
-
-[[package]]
 name = "pygments"
 version = "2.17.2"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
@@ -3498,7 +3483,6 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-core" },
     { name = "pydub" },
-    { name = "pygame" },
     { name = "pygments" },
     { name = "pyinstaller" },
     { name = "pyinstaller-hooks-contrib" },
@@ -3761,7 +3745,6 @@ requires-dist = [
     { name = "pydantic", specifier = "==2.10.2" },
     { name = "pydantic-core", specifier = "==2.27.1" },
     { name = "pydub", specifier = "==0.25.1" },
-    { name = "pygame", specifier = "==2.5.2" },
     { name = "pygments", specifier = "==2.17.2" },
     { name = "pyinstaller", specifier = "==6.16.0" },
     { name = "pyinstaller-hooks-contrib", specifier = "==2025.8" },

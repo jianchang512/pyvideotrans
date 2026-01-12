@@ -18,14 +18,11 @@ def openwin(init=False):
         else:
             tools.show_error(d)
 
-
         for it in test_btn.values():
             it.setText(tr('Test'))
 
 
-
     def test(tts_type=tts.F5_TTS):
-        
         index_tts_version = winobj.index_tts_version.currentIndex()
         role = winobj.f5tts_role.toPlainText().strip()
         if not role:
@@ -42,6 +39,7 @@ def openwin(init=False):
         config.params["indextts_url"] = winobj.indextts_url.text()
         config.params["sparktts_url"] = winobj.sparktts_url.text()
         config.params["f5tts_url"] = winobj.f5tts_url.text()
+        config.params["indextts_prompt"] = winobj.indextts_prompt.text()
 
 
 
@@ -49,7 +47,6 @@ def openwin(init=False):
 
         test_btn[tts_type].setText(tr('Testing...'))
         import time
-        print(f'{tts_type}')
         wk = ListenVoice(parent=winobj,
                          queue_tts=[{"text": '你好啊我的朋友,希望你今天开心！', "role": role_test, "filename": config.TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
                          language="zh",
@@ -88,6 +85,7 @@ def openwin(init=False):
         config.params["indextts_url"] = winobj.indextts_url.text()
         config.params["sparktts_url"] = winobj.sparktts_url.text()
         config.params["f5tts_url"] = winobj.f5tts_url.text()
+        config.params["indextts_prompt"] = winobj.indextts_prompt.text()
 
 
         config.getset_params(config.params)
@@ -106,6 +104,7 @@ def openwin(init=False):
     winobj.indextts_url.setText(config.params.get('indextts_url',''))
     winobj.diatts_url.setText(config.params.get('diatts_url',''))
     winobj.voxcpmtts_url.setText(config.params.get('voxcpmtts_url',''))
+    winobj.indextts_prompt.setText(config.params.get('indextts_prompt',''))
 
     winobj.save.clicked.connect(save)
     winobj.f5tts_urltest.clicked.connect(lambda: test(tts.F5_TTS))

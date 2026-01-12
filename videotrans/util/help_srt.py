@@ -304,7 +304,7 @@ def set_ass_font(srtfile: str) -> str:
     """
     
     from . import help_ffmpeg
-    from videotrans.configure import config
+
     if not os.path.exists(srtfile) or os.path.getsize(srtfile) == 0:
         return os.path.basename(srtfile)
 

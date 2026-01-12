@@ -178,10 +178,22 @@ class F5TTS(BaseTTS):
             "text":text,
             "api_name":'/gen_single'
         }
+        # 0=v1 1=v2
         if int(config.params.get('index_tts_version',1))==1:
             kw['emo_ref_path']=handle_file(data['ref_wav'])
-        result = self.client.predict(**kw)
-                
+            if config.params.get('indextts_prompt'):
+                kw['emo_text']=config.params.get('indextts_prompt')
+                kw['emo_control_method']=3
+
+        config.logger.debug(f'post={kw}')
+        try:
+            result = self.client.predict(**kw)
+        except Exception as e:
+            if kw['emo_control_method']==3 and 'is not in the list of choices' in str(e):
+                raise StopRetry('请修改indextts2的webui.py的代码\nEMO_CHOICES_OFFICIAL = EMO_CHOICES_ALL[:-1] \n修改为\nEMO_CHOICES_OFFICIAL = EMO_CHOICES_ALL\n然后重启indextts2,或者删掉菜单TTS设置-F5/Index中的IndexTTS的prompt')
+            raise
+
+
         config.logger.debug(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:

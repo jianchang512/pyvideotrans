@@ -9,28 +9,13 @@ import sys
 import tempfile
 from pathlib import Path
 from queue import Queue
+from videotrans.util.contants import no_proxy, FUNASR_MODEL, DEEPGRAM_MODEL, VIDEO_EXTS, AUDIO_EXITS, \
+    DEFAULT_GEMINI_MODEL, OPENAITTS_ROLES, GEMINITTS_ROLES
 
 IS_FROZEN = True if getattr(sys, 'frozen', False) else False
 SYS_TMP = Path(tempfile.gettempdir()).as_posix()
 # 程序根目录
 ROOT_DIR = Path(sys.executable).parent.as_posix() if IS_FROZEN else Path(__file__).parent.parent.parent.as_posix()
-no_proxy = (
-    "tmt.tencentcloudapi.com,"
-    "hf-mirror.com,"
-    "api.fanyi.baidu.com,"
-    "openspeech.bytedance.com,"
-    "api.minimaxi.com,"
-    "api.deepseek.com,"
-    "modelscope.cn,"  # 涵盖了 *.modelscope.cn
-    "aliyuncs.com,"  # 涵盖了 dashscope, mt.cn-hangzhou 等所有子域
-    "api.siliconflow.cn,"
-    "ms.show,"  # 涵盖 *.ms.show
-    "bigmodel.cn,"
-    "localhost,"
-    "127.0.0.1"
-    "127.0.0.2"
-)
-
 if IS_FROZEN:
     # 如果程序是被"冻结"打包的，使用这个路径
     os.environ['TQDM_DISABLE'] = '1'
@@ -71,7 +56,7 @@ Path(TEMP_DIR).mkdir(exist_ok=True, parents=True)
 Path(f'{TEMP_ROOT}/translate_cache').mkdir(exist_ok=True, parents=True)
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
 
-# 创建文件处理器，并设置级别G
+# 日志
 logger = logging.getLogger('VideoTrans')
 logger.setLevel(logging.DEBUG)
 _file_handler = logging.FileHandler(f'{ROOT_DIR}/logs/{datetime.datetime.now().strftime("%Y%m%d")}.log',
@@ -95,15 +80,12 @@ logging.getLogger("faster_whisper").setLevel(logging.DEBUG)
 # fw_logger.setLevel(logging.DEBUG)
 # fw_logger.addHandler(_file_handler)
 
-
+# 队列
 # 存储已停止/暂停的任务 uuid
 stoped_uuid_set = set()
 # 存储所有任务的进度队列，以uuid为键
 # 根据uuid将日志进度等信息存入队列，如果不存在则创建
 uuid_logs_queue = {}
-
-# 确保同时只能一个 faster-whisper进程在执行
-model_process = None
 
 # 全局消息，不存在uuid，用于控制软件
 global_msg = []
@@ -111,7 +93,7 @@ global_msg = []
 exit_soft = False
 # 所有设置窗口和子窗口
 child_forms = {}
-# info form
+# 存储各个子窗口的唯一实例
 INFO_WIN = {"data": {}, "win": None}
 
 # 存放视频分离为无声视频进度，noextname为key，用于判断某个视频是否是否已预先创建好 novice_mp4, "ing"=需等待，end=成功完成，error=出错了
@@ -127,7 +109,7 @@ box_tts = "stop"
 box_recogn = 'stop'
 # 倒计时数秒
 task_countdown = 0
-#####################################
+
 # 预先处理队列
 prepare_queue = Queue(maxsize=0)
 # 识别队列
@@ -147,30 +129,10 @@ taskdone_queue = Queue(maxsize=0)
 
 # 执行模式 gui 或 api
 exec_mode = "gui"
-# funasr模型
-FUNASR_MODEL = ['Fun-ASR-Nano-2512', 'Fun-ASR-MLT-Nano-2512', 'paraformer-zh', 'SenseVoiceSmall']
-
-DEEPGRAM_MODEL = [
-    "nova-3",
-    "whisper-large",
-    "whisper-medium",
-    "whisper-small",
-    "whisper-base",
-    "whisper-tiny",
-    "nova-2",
-    "enhanced",
-    "base",
-]
-
-# 支持的视频格式
-VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts", "flv"]
-# 支持的音频格式
-AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
 # 设置当前可用视频编码  libx264 h264_qsv h264_nvenc 等
 video_codec = None
 codec_cache = {}
 
-# 单个视频精修模式所需全局变量
 # 字幕按行赋予角色
 line_roles = {}
 # 原始语言字幕路径
@@ -182,11 +144,7 @@ onlyone_trans = False
 
 # 字幕多角色配音
 dubbing_role = {}
-#######################################
-DEFAULT_GEMINI_MODEL = "gemini-3-pro-preview,gemini-3-flash-preview,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
-OPENAITTS_ROLES = "No,alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
-GEMINITTS_ROLES = "No,Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
-
+SUPPORT_LANG = {}
 
 # 设置默认高级参数值
 def parse_init(update_data=None):
@@ -237,7 +195,7 @@ def parse_init(update_data=None):
 
         "threshold": 0.5,
         "min_speech_duration_ms": 1000,
-        "max_speech_duration_s": 5,
+        "max_speech_duration_s": 6,
         "min_silence_duration_ms": 600,
         "no_speech_threshold": 0.5,
 
@@ -252,7 +210,7 @@ def parse_init(update_data=None):
         "dubbing_wait": 1,
         "dubbing_thread": 1,
         "save_segment_audio": False,
-        "countdown_sec": 90,
+        "countdown_sec": 60,
         "backaudio_volume": 0.8,
         "loop_backaudio": True,
         "cuda_com_type": "default",  # int8 int8_float16 int8_float32
@@ -290,6 +248,9 @@ def parse_init(update_data=None):
         "beam_size": 5,
         "best_of": 5,
         "condition_on_previous_text": False,
+        "temperature":"0.0",
+        "repetition_penalty":1.0,
+        "compression_ratio_threshold":2.2,
 
         "qwentts_role": '',
         "qwentts_models": 'qwen3-tts-flash-2025-11-27,qwen3-tts-flash',
@@ -355,13 +316,19 @@ def parse_init(update_data=None):
             p.write_text(default['hf_token'])
         return default
 
-
 # 高级选项信息
 settings = parse_init()
+# 代理地址
+proxy = settings.get('proxy', os.environ.get('HTTPS_PROXY', ''))
+if proxy:
+    os.environ['HTTPS_PROXY'] = proxy
+    os.environ['HTTP_PROXY'] = proxy
+
 # 根据已保存的配置更新 HOME_DIR
 HOME_DIR = settings.get('homedir', HOME_DIR)
 Path(HOME_DIR).mkdir(parents=True, exist_ok=True)
 
+# 语言界面
 try:
     defaulelang = os.environ.get('PYVIDEOTRANS_LANG')
     if not defaulelang:
@@ -369,19 +336,14 @@ try:
 except Exception:
     defaulelang = "zh"
 
-SUPPORT_LANG = {}
+
 for it in Path(f'{ROOT_DIR}/videotrans/language').glob('*.json'):
     if it.stat().st_size > 0:
         SUPPORT_LANG[it.stem] = it.as_posix()
 if defaulelang not in SUPPORT_LANG:
     defaulelang = "en"
 
-# 代理地址
-proxy = settings.get('proxy', os.environ.get('HTTPS_PROXY', ''))
-if proxy:
-    os.environ['HTTPS_PROXY'] = proxy
-    os.environ['HTTP_PROXY'] = proxy
-
+# 任务配置
 WHISPER_MODEL_LIST = re.split(r'[,，]', settings.get('model_list', ''))
 ChatTTS_voicelist = re.split(r'[,，]', str(settings.get('chattts_voice', '')))
 
@@ -637,7 +599,7 @@ def push_queue(uuid, jsondata):
     except Exception as e:
         logger.exception(f'push_queue错误：{e}', exc_info=True)
 
-
+# 翻译
 ## 翻译,lang_key对应 transobj中键名，kw多个位置参数，对应替换 lang_key中 {}
 # tr("xxxxx",root_dir,length)
 try:
@@ -649,6 +611,9 @@ except OSError as e:
 
 
 def tr(lang_key, *kw):
+    if isinstance(lang_key,list):
+        str_list=[t for t in [transobj.get(it) for it in lang_key] if t]
+        return  ",".join(str_list)
     lang = transobj.get(lang_key)
     if not lang:
         return lang_key

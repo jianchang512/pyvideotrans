@@ -91,8 +91,8 @@ HUGGINGFACE_ASR_MODELS={
 "biodatlab/whisper-th-large-v3":['th'],
 "openai/whisper-large-v2":[],
 "openai/whisper-large-v3":[],
-#"openai/whisper-tiny":[],
-#"Systran/faster-whisper-tiny":[]
+"openai/whisper-tiny":[],
+"Systran/faster-whisper-tiny":[]
 }
 # 判断所用渠道和模型是否支持该语言的语音识别
 # langcode=语言代码，recogn_type=识别渠道,model_name=模型名字
@@ -104,9 +104,8 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
     if recogn_type == HUGGINGFACE_ASR and not HUGGINGFACE_ASR_MODELS.get(model_name):
         return True
     if recogn_type==HUGGINGFACE_ASR and HUGGINGFACE_ASR_MODELS.get(model_name):
-        model_lang_support=",".join([ tr(it) for it in HUGGINGFACE_ASR_MODELS[model_name]])
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
-            return tr("This model only supports speech transcription of these languages:")+model_lang_support
+            return _ID_NAME_DICT.get(recogn_type,'')+tr('Speech Recognit')+tr("Only support")+tr(HUGGINGFACE_ASR_MODELS[model_name])
         return True
     if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL,Whisper_CPP,WHISPERX_API,AI_302,OPENAI_API]:
         return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")

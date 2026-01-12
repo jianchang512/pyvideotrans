@@ -114,6 +114,8 @@ class BaseTTS(BaseCon):
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
         _st=time.time()
+        if hasattr(self,'_download'):
+            self._download()
         loop=None
         try:
             # 检查 self._exec 是不是一个异步函数 (coroutine)
@@ -236,6 +238,12 @@ class BaseTTS(BaseCon):
     def _item_task(self, data_item: Union[Dict, List, None]) -> Union[bool, None]:
         pass
 
+    # 返回空白的16000采样率音频
+    def _padforaudio(self,duration=1500):
+        from pydub import AudioSegment
+        silent_segment = AudioSegment.silent(duration=duration)
+        silent_segment.set_channels(1).set_frame_rate(16000)
+        return silent_segment
 
     def _exit(self):
         if config.exit_soft or (config.current_status != 'ing' and config.box_tts != 'ing' and not self.is_test):

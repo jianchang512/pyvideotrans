@@ -248,7 +248,7 @@ def openwin():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
             return tools.show_error(tr("The voice is not support listen"))
-        text = LISTEN_TEXT.get(f'listen_text_{lang}')
+        text = LISTEN_TEXT.get(f'{lang}')
         if not text:
             return tools.show_error(tr('The current language does not support audition'))
         role = winobj.hecheng_role.currentText()
@@ -287,11 +287,9 @@ def openwin():
         if role == 'clone':
             return
         if tts_type==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
-            #tools.show_download_piper(winobj)
             show_downloadmodel('piper')
             return
         if tts_type==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
-            #tools.show_download_tts(winobj)
             show_downloadmodel('vits')
             return
 
@@ -485,65 +483,42 @@ def openwin():
             if tts.is_input_api(tts_type=type) is not True:
                 winobj.tts_type.setCurrentIndex(0)
                 return False
-
+        role_list=['No']
+        winobj.hecheng_role.clear()
+        if change_by_lang(type):
+            return hecheng_language_fun(winobj.hecheng_language.currentText())
         if type == tts.GOOGLE_TTS:
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(['No','gtts'])
+            role_list=['No','gtts']
         elif type == tts.CHATTTS:
-            winobj.hecheng_role.clear()
             config.ChatTTS_voicelist = re.split(r'[,，]', config.settings.get('chattts_voice',''))
-            winobj.hecheng_role.addItems(['No']+list(config.ChatTTS_voicelist))
+            role_list.extend(list(config.ChatTTS_voicelist))
         elif type == tts.OPENAI_TTS:
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(config.OPENAITTS_ROLES.split(','))
+            role_list=config.OPENAITTS_ROLES.split(',')
         elif type == tts.QWEN_TTS:
-            rolelist=tools.get_qwen3tts_rolelist()
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(list(rolelist.keys()))
+            role_list=list(tools.get_qwen3tts_rolelist().keys())
+        elif type == tts.Supertonic_TTS:
+            role_list=list(tools.get_supertonic_rolelist().keys())
         elif type == tts.GLM_TTS:
-            rolelist=tools.get_glmtts_rolelist()
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(list(rolelist.keys()))
+            role_list=list(tools.get_glmtts_rolelist().keys())
         elif type == tts.GEMINI_TTS:
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(config.GEMINITTS_ROLES.split(','))
+            role_list.extend(config.GEMINITTS_ROLES.split(','))
         elif type == tts.ELEVENLABS_TTS:
-            winobj.hecheng_role.clear()
-            rolelist =  tools.get_elevenlabs_role()
-            winobj.hecheng_role.addItems(rolelist)
-        elif change_by_lang(type):
-            hecheng_language_fun(winobj.hecheng_language.currentText())
+            role_list =  tools.get_elevenlabs_role()
         elif type == tts.CLONE_VOICE_TTS:
-            winobj.hecheng_role.clear()
-            rolelist=[it for it in config.params["clone_voicelist"] if it != 'clone']
-            if rolelist[0]!='No':
-                rolelist.insert(0,'No')
-            winobj.hecheng_role.addItems(rolelist)
+            role_list.extend([it for it in config.params["clone_voicelist"] if it != 'clone'])
         elif type == tts.TTS_API:
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(config.params['ttsapi_voice_role'].split(","))
+            role_list=config.params['ttsapi_voice_role'].split(",")
         elif type == tts.GPTSOVITS_TTS:
-            rolelist = tools.get_gptsovits_role()
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(list(rolelist.keys()))
+            role_list = list(tools.get_gptsovits_role().keys())
         elif type == tts.CHATTERBOX_TTS:
-            rolelist = tools.get_chatterbox_role()
-            rolelist.remove('clone')
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(rolelist)
+            role_list = tools.get_chatterbox_role()
         elif type == tts.COSYVOICE_TTS:
-            rolelist = tools.get_cosyvoice_role()
-            del rolelist["clone"]
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(list(rolelist.keys()))
+            role_list = list(tools.get_cosyvoice_role().keys())
         elif type == tts.FISHTTS:
-            rolelist = tools.get_fishtts_role()
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(list(rolelist.keys()))
+            role_list = list(tools.get_fishtts_role().keys())
         elif type in [tts.F5_TTS,tts.INDEX_TTS,tts.SPARK_TTS,tts.VOXCPM_TTS,tts.DIA_TTS]:
-            rolelist = tools.get_f5tts_role()
-            winobj.hecheng_role.clear()
-            winobj.hecheng_role.addItems(list(rolelist.keys()))
+            role_list = list(tools.get_f5tts_role().keys())
+        winobj.hecheng_role.addItems(role_list)
 
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(t):
@@ -652,7 +627,6 @@ def openwin():
             winobj.remove_silent_mid.setVisible(True)
             winobj.remove_silent_mid.setChecked(config.params.get('dubb_remove_silent_mid', False))
 
-        #winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
         winobj.hecheng_stop.clicked.connect(stop_tts)
         winobj.listen_btn.clicked.connect(listen_voice_fun)

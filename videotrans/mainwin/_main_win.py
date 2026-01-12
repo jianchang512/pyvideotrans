@@ -286,7 +286,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_clipvideo.setText(config.tr("Edit video on subtitles"))
         self.action_clipvideo.setToolTip(config.tr("Edit video on subtitles"))
         self.action_realtime_stt.setText(config.tr("Real-time speech-to-text"))
-        self.action_realtime_stt.setToolTip(config.tr("Real-time speech-to-text"))
+        self.action_textmatching.setText(config.tr("Text matching and timing"))
+        self.action_textmatching.setToolTip(config.tr("Text matching and timing"))
 
         self.action_hun.setText(config.tr("Mixing 2 Audio Streams"))
         self.action_hun.setToolTip(config.tr("Mix two audio files into one audio file"))
@@ -590,6 +591,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_hun.triggered.connect(lambda: self._open_winform('fn_hunliu'))
         self.action_yingyinhebing.triggered.connect(lambda: self._open_winform('fn_vas'))
         self.action_clipvideo.triggered.connect(lambda: self._open_winform('clipvideo'))
+        self.action_textmatching.triggered.connect(lambda: self._open_winform('textmatching'))
         self.action_realtime_stt.triggered.connect(lambda: self._open_winform('realtime_stt'))
         self.action_fanyi.triggered.connect(lambda: self._open_winform('fn_fanyisrt'))
         self.action_yuyinshibie.triggered.connect(lambda: self._open_winform('fn_recogn'))
@@ -678,6 +680,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if name == 'clipvideo':
             from videotrans.component.clip_video import ClipVideoWindow
             window = ClipVideoWindow()
+            config.child_forms[name] = window
+            window.show()
+            return
+        if name == 'textmatching':
+            from videotrans.component.textmatching import TextmatchingWindow
+            window = TextmatchingWindow()
             config.child_forms[name] = window
             window.show()
             return

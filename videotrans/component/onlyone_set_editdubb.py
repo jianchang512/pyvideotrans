@@ -603,6 +603,7 @@ class EditDubbingResultDialog(QDialog):
         cancel_button = QPushButton(tr("Terminate this mission"))
         cancel_button.setCursor(Qt.PointingHandCursor)
         cancel_button.setMaximumSize(QSize(200, 30))
+        cancel_button.setStyleSheet("""background-color:transparent""")
         cancel_button.clicked.connect(self.cancel_and_close)
         bottom_layout = QHBoxLayout()
         bottom_layout.addStretch()
@@ -710,7 +711,6 @@ class EditDubbingResultDialog(QDialog):
 
     def listen(self, i):
         self.stop_countdown()
-        print(f'{i=}')
         item = self.queue_tts[i]
         filename = item['filename']
         if not tools.vail_file(filename):

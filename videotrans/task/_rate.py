@@ -99,12 +99,12 @@ def _cut_video_get_duration(i, task,novoice_mp4_original,preset,crf):
     config.logger.debug(flag)
     cmd = [
         '-y',
+        '-i',
+        novoice_mp4_original,
         '-ss',
         tools.ms_to_time_string(ms=task['start'], sepflag='.'),
         '-t',
         duration_s,
-        '-i',
-        novoice_mp4_original,
         '-an',
         '-c:v',
         'libx264', "-g", "1",

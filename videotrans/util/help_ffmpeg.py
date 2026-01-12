@@ -8,9 +8,7 @@ import time
 from pathlib import Path
 from typing import Union,Tuple,List,Dict
 
-
 from videotrans.configure import config
-
 
 def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
     if not stderr_text:
@@ -111,7 +109,7 @@ def _build_hw_command(args: list, hw_codec: str) -> Tuple[List[str], List[str]]:
     此函数是纯粹的，它不修改输入列表，而是返回一个新的列表。
     """
     # 模拟外部 config 对象，防止报错，实际使用时请删除下面这行或保留原本的 import
-    from videotrans.configure import config
+
 
     if not hw_codec or 'libx' in hw_codec or hw_codec == 'copy':
         return list(args), []
@@ -215,7 +213,7 @@ def _build_hw_command(args: list, hw_codec: str) -> Tuple[List[str], List[str]]:
 
 
 def _build_hw_command2(args: list, hw_codec: str):
-    from videotrans.configure import config
+
     """
     根据选择的硬件编码器，构建 ffmpeg 命令参数列表和硬件解码选项
 
@@ -305,7 +303,6 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
         uuid (str, optional): 用于进度更新的 UUID。
         force_cpu (bool): 如果为 True，则强制使用 CPU 编码，不尝试硬件加速。
     """
-    from videotrans.configure import config
     if config.settings.get('force_lib'):
         force_cpu=True
     arg_copy = copy.deepcopy(arg)
@@ -452,7 +449,6 @@ def get_video_codec(compat=None) -> str:
     Returns:
         str: 推荐的 ffmpeg 视频编码器名称 (例如 'h264_nvenc', 'libx264')。
     """
-    from videotrans.configure import config
     _codec_cache = config.codec_cache  # 使用 config 中的缓存
     try:
         if not _codec_cache and Path(f'{config.ROOT_DIR}/videotrans/codec.json').exists():
@@ -582,7 +578,6 @@ class _FFprobeInternalError(Exception):
 
 
 def _run_ffprobe_internal(cmd: list[str]) -> str:
-    from videotrans.configure import config
     """
     (内部函数) 执行 ffprobe 命令并返回其标准输出。
     """
@@ -642,7 +637,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     """
     获取视频信息。
     """
-    from videotrans.configure import config
+
 
     if not Path(mp4_file).exists():
         raise Exception(f'{mp4_file} is not exists')
@@ -799,7 +794,6 @@ def wav2m4a(wavfile, m4afile, extra=None):
 
 
 def create_concat_txt(filelist, concat_txt=None):
-    from videotrans.configure import config
 
     """
     创建供FFmpeg concat使用的连接文件。
@@ -905,16 +899,15 @@ def cut_from_audio(*, ss, to, audio_file, out_file):
         help_srt.format_time(to, '.'),
         "-ar",
         "16000",
+        "-c:a",
+        "pcm_s16le",
         out_file
     ]
     return runffmpeg(cmd)
 
 
 def send_notification(title, message):
-    from videotrans.configure import config
-    if config.exec_mode == 'api' or config.exit_soft:
-        return
-    if config.settings.get('dont_notify',False):
+    if config.exit_soft or config.settings.get('dont_notify',False):
         return
     from plyer import notification
     try:

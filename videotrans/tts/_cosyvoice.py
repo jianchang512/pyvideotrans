@@ -42,7 +42,7 @@ class CosyVoice(BaseTTS):
             speed = 1 + float(self.rate.replace('%', '')) / 100
         except ValueError:
             pass
-        speed=max(0.5,min(2,speed))
+        speed=max(0.5,min(2.0,speed))
         role = data_item['role']
         data = {'ref_wav': '','ref_text':data_item.get('ref_text','')}
         

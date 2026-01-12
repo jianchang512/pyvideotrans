@@ -525,7 +525,7 @@ class WinActionSub:
             return tools.show_error(
                 tr("Please select the target language first"))
 
-        text = LISTEN_TEXT(f'listen_text_{lang}')
+        text = LISTEN_TEXT.get(f'{lang}')
         if not text:
             return tools.show_error(tr("The voice is not support listen"))
         role = self.main.voice_role.currentText()

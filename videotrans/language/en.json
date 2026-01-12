@@ -921,6 +921,11 @@
     "yue": "Cantonese",
 	"Restoring punct":"Restoring punct",
 	"Restoring punctuation marks when Chinese & English":"Restoring punctuation marks when Chinese & English",
-    "Secondary speech recognition of dubbing files": "Subtitles are created again from the voice-over file using speech recognition; this only takes effect when a voice-over has been selected and a single subtitle has been embedded.",
-    "STT again": "STT again"
+    "Secondary speech recognition of dubbing files": "Subtitles are created again from the voice-over file using speech recognition; this only takes effect when a voice-over has been selected and non double subtitles embed.",
+    "STT again": "STT again",
+    "Text matching and timing": "Text matching and timing",
+	"nosaveandstep": "Continue without save",
+	"opendir_button source_sub": "Open subtitle folder",
+	"bubaocunshuoming": "If you have manually or used other tools to modify the\n[{}] subtitle files in the subtitle folder, please click this button.",
+    "Only support": "Only support "
 }

@@ -25,6 +25,8 @@ class HuggingfaceRecogn(BaseRecogn):
         self._signal(text=f"use {self.model_name}")
         self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
 
+    def _download(self):
+        tools.get_modeldir_download(self.model_name,self.model_name,self.local_dir,callback=self._progress_callback)
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
         self._signal(text=f"loading {self.model_name}")
@@ -45,9 +47,10 @@ class HuggingfaceRecogn(BaseRecogn):
     def _pipe_asr(self):
         # 1. 准备数据
         raws = self.cut_audio()
-        self._signal(text=f"load {self.model_name}")
+        title=f"load {self.model_name}"
+        self._signal(text=title)
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/huggingface-pipeasr-{self.detect_language}-{time.time()}.log'
-        kwars = {
+        kwargs = {
             "cut_audio_list": raws,
             "prompt": config.settings.get(
                 f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
@@ -65,23 +68,15 @@ class HuggingfaceRecogn(BaseRecogn):
         }
         # 获取进度
         threading.Thread(target=self._process, args=(logs_file,), daemon=True).start()
-        with ProcessPoolExecutor(max_workers=1) as executor:
-            # 提交任务，并显式传入参数，确保子进程拿到正确的参数
-            future = executor.submit(
-                pipe_asr,
-                **kwars
-            )
-            # .result() 会阻塞当前线程直到子进程计算完毕，并返回结果
-            raws = future.result()
-        if isinstance(raws, str):
-            raise RuntimeError(raws)
+        raws=self._new_process(callback=pipe_asr,title=title,kwargs=kwargs)
         return raws
 
     # JhonVanced/whisper-large-v3-japanese-4k-steps-ct2','zh-plus/faster-whisper-large-v2-japanese-5k-steps
     def _faster(self):
-        self._signal(text=f"load {self.model_name}")
+        title=f"load {self.model_name}"
+        self._signal(text=title)
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/huggingface-faster-{self.detect_language}-{time.time()}.log'
-        kwars = {
+        kwargs = {
             "prompt": config.settings.get(
                 f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
             "detect_language": self.detect_language,
@@ -101,21 +96,16 @@ class HuggingfaceRecogn(BaseRecogn):
             "beam_size": int(config.settings.get('beam_size', 5)),
             "best_of": int(config.settings.get('best_of', 5)),
             "jianfan": self.jianfan,
-            "audio_duration":self.audio_duration
+            "audio_duration":self.audio_duration,
+            "temperature":config.settings.get('temperature'),
+            "hotwords":config.settings.get('hotwords'),
+            "repetition_penalty": float(config.settings.get('repetition_penalty', 1.0)),
+            "compression_ratio_threshold": float(config.settings.get('compression_ratio_threshold', 2.2)),
         }
         # 获取进度
         threading.Thread(target=self._process, args=(logs_file,), daemon=True).start()
-        raws = []
-        with ProcessPoolExecutor(max_workers=1) as executor:
-            # 提交任务，并显式传入参数，确保子进程拿到正确的参数
-            future = executor.submit(
-                faster_whisper,
-                **kwars
-            )
-            # .result() 会阻塞当前线程直到子进程计算完毕，并返回结果
-            raws = future.result()
-        if isinstance(raws, str):
-            raise RuntimeError(raws)
+        raws=self._new_process(callback=faster_whisper,title=title,kwargs=kwargs)
+
         return raws
 
     # 获取进度

@@ -6,8 +6,8 @@ from PySide6.QtWidgets import (
     QPushButton, QScrollArea, QWidget, QGroupBox, QFrame,
     QProgressBar, QApplication, QListView, QStyle, QStyledItemDelegate,QToolTip
 )
-from PySide6.QtGui import QIcon, QPen, QColor, QBrush, QPalette
-from PySide6.QtCore import Qt, QTimer, QSize, QAbstractListModel, QModelIndex, QRect, QEvent
+from PySide6.QtGui import QIcon, QPen, QColor, QBrush, QPalette,QDesktopServices
+from PySide6.QtCore import Qt, QTimer, QSize, QAbstractListModel, QModelIndex, QRect, QEvent,QUrl
 
 from videotrans.configure.config import tr
 from videotrans.util import tools
@@ -251,15 +251,30 @@ class EditRecognResultDialog(QDialog):
         # 底部保存按钮
         self.save_button = QPushButton(tr("nextstep"))
         self.save_button.setCursor(Qt.PointingHandCursor)
-        self.save_button.setMinimumSize(QSize(400, 35))
+        self.save_button.setMinimumSize(QSize(300, 35))
         self.save_button.clicked.connect(self.save_and_close)
+        #不保存并继续，适合已手动改动了文件
+        self.save_button2 = QPushButton(tr("nosaveandstep"))
+        self.save_button2.setCursor(Qt.PointingHandCursor)
+        self.save_button2.setToolTip(tr('bubaocunshuoming',self.source_sub))
+        self.save_button2.setMinimumSize(QSize(200, 35))
+        self.save_button2.clicked.connect(self.save_and_close2)
+        # 打开字幕所在文件夹
+        self.opendir_button = QPushButton(tr("opendir_button source_sub"))
+        self.opendir_button.setCursor(Qt.PointingHandCursor)
+        self.opendir_button.setMaximumSize(QSize(150, 30))
+        self.opendir_button.clicked.connect(self.opendir_sub)
+        
         cancel_button = QPushButton(tr("Terminate this mission"))
         cancel_button.setCursor(Qt.PointingHandCursor)
-        cancel_button.setMaximumSize(QSize(200, 30))
+        cancel_button.setMaximumSize(QSize(150, 30))
+        cancel_button.setStyleSheet("""background-color:transparent""")
         cancel_button.clicked.connect(self.cancel_and_close)
         bottom_layout = QHBoxLayout()
         bottom_layout.addStretch()
         bottom_layout.addWidget(self.save_button)
+        bottom_layout.addWidget(self.save_button2)
+        bottom_layout.addWidget(self.opendir_button)
         bottom_layout.addWidget(cancel_button)
         bottom_layout.addStretch()
 
@@ -356,6 +371,13 @@ class EditRecognResultDialog(QDialog):
             # 强制刷新一下界面
             self.list_view.viewport().update()
 
+    # 只继续不保存
+    def save_and_close2(self):
+        self.accept()
+        
+    def opendir_sub(self):
+        QDesktopServices.openUrl(QUrl.fromLocalFile(Path(self.source_sub).parent.as_posix()))
+    
     def save_and_close(self):
         self.save_button.setDisabled(True)
         # 更新角色

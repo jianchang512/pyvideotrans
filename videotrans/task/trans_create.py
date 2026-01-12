@@ -59,7 +59,6 @@ class TransCreate(BaseTask):
         # 首先，处理本类的默认配置
         super().__post_init__()
         self._signal(text=tr('kaishichuli'))
-        print(f'{self.cfg.recogn2pass=}')
         # -1=不启用说话人，0=启用并且不限制说话人数量，>0+1 为最大说话人数量
         self.max_speakers=self.cfg.nums_diariz if self.cfg.enable_diariz else -1
         if self.max_speakers>0:
@@ -283,10 +282,13 @@ class TransCreate(BaseTask):
                 "TEMP_DIR":config.TEMP_DIR,
                 "is_cuda":self.cfg.cuda
             }
-            _rs = self._new_process(callback=remove_noise,title=title,kwargs=kw)
-            if _rs:
-                self.cfg.source_wav=_rs
-        
+            try:
+                _rs = self._new_process(callback=remove_noise,title=title,kwargs=kw)
+                if _rs:
+                    self.cfg.source_wav=_rs
+            except:
+                pass
+
         self._signal(text=tr("Speech Recognition to Word Processing"))
 
         if self.cfg.recogn_type == Faster_Whisper_XXL:
@@ -376,14 +378,17 @@ class TransCreate(BaseTask):
             # 预先删掉已有的标点
             text_dict={f'{it["line"]}':re.sub(r'[,.?!，。？！]',' ',it["text"]) for it in self.source_srt_list}
             kw={"text_dict":text_dict,"TEMP_DIR":config.TEMP_DIR,"is_cuda":self.cfg.cuda}
-            _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),kwargs=kw)
-            if _rs:
-                for it in self.source_srt_list:
-                    it['text']=_rs.get(f'{it["line"]}',it['text'])
-                    if self.cfg.detect_language[:2]=='en':
-                        it['text']=it['text'].replace('，',',').replace('。','. ').replace('？','?').replace('！','!')
-                self._save_srt_target(self.source_srt_list, self.cfg.source_sub)
-        
+            try:
+                _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),kwargs=kw)
+                if _rs:
+                    for it in self.source_srt_list:
+                        it['text']=_rs.get(f'{it["line"]}',it['text'])
+                        if self.cfg.detect_language[:2]=='en':
+                            it['text']=it['text'].replace('，',',').replace('。','. ').replace('？','?').replace('！','!')
+                    self._save_srt_target(self.source_srt_list, self.cfg.source_sub)
+            except:
+                pass
+
         
         self._signal(text=Path(self.cfg.source_sub).read_text(encoding='utf-8'), type='replace_subtitle')
         # whisperx-api
@@ -435,23 +440,21 @@ class TransCreate(BaseTask):
 
 
     # 配音后再次对配音文件进行识别，以便生成简短的字幕，
-    # 只有选择嵌入字幕才需要再次识别生成，否则无需
     # 开始识别
     def recogn2pass(self) -> None:
         if not self.cfg.recogn2pass or self._exit(): return
         if not self.shoud_dubbing:
             config.logger.debug(f'跳过二次识别, 因未进行配音')
             return
-
-
         # 如果不嵌入字幕，或嵌入双字幕，则跳过
-        if self.cfg.subtitle_type==0 or self.cfg.subtitle_type>2:
-            config.logger.debug(f'跳过二次识别, 因字幕嵌入类型不符合要求，仅在嵌入单字幕时适用：{self.cfg.subtitle_type=}')
+        if self.cfg.subtitle_type>2 and (self.cfg.source_language_code!=self.cfg.target_language_code):
+            config.logger.debug(f'跳过二次识别, 因设置了嵌入双字幕，二次识别后双字幕时间戳将无法保持一致，因此跳过：{self.cfg.subtitle_type=}')
             return
 
         if not tools.vail_file(self.cfg.target_wav):
             config.logger.debug(f'跳过二次识别，因无配音音频文件')
             return
+
         self.precent += 3
         self._signal(text=tr("Secondary speech recognition of dubbing files"))
         shibie_audio=f'{config.TEMP_DIR}/recogn2pass-{time.time()}.wav'
@@ -602,9 +605,8 @@ class TransCreate(BaseTask):
                 config.logger.debug('分离说话人成功完成')
                 shutil.copy2(self.cfg.cache_folder+"/speaker.json",self.cfg.target_dir+"/speaker.json")
             self._signal(text=tr('separating speakers end'))
-        except Exception as e:
-            config.logger.exception(f'{speaker_type}:分离说话人失败，静默跳过{e}',exc_info=True)
-            self._signal(text=tr('Speaker separation failed, silent skip.'))
+        except:
+            pass
 
     # 翻译字幕文件
     def trans(self) -> None:
@@ -670,9 +672,6 @@ class TransCreate(BaseTask):
             self.hasend = True
             raise
         self._signal(text=tr('The dubbing is finished'))
-
-    
-    
 
     # 音画字幕对齐
     def align(self) -> None:
@@ -849,34 +848,35 @@ class TransCreate(BaseTask):
             "pcm_s16le",
             tmpfile
         ])
-        #from videotrans.separate import run_sep
-        vocal_file = self.cfg.cache_folder + '/vocal.wav'
-        if not tools.vail_file(vocal_file):
-            title=config.tr('Separating vocals and background music, which may take a longer time')
-            from videotrans.process.prepare_audio import vocal_bgm
-            # 返回 False None 失败
-            kw={"input_file":tmpfile,"vocal_file":self.cfg.vocal,"instr_file":self.cfg.instrument,"TEMP_DIR":config.TEMP_DIR}
-            if self._new_process(callback=vocal_bgm,title=title,kwargs=kw) and tools.vail_file(self.cfg.vocal):
-                shutil.copy2(self.cfg.vocal,f'{self.cfg.target_dir}/vocal.wav')
+
+        if tools.vail_file(self.cfg.vocal) and tools.vail_file(self.cfg.instrument):
+            return
+        title=config.tr('Separating vocals and background music, which may take a longer time')
+        from videotrans.process.prepare_audio import vocal_bgm
+        # 返回 False None 失败
+        kw={"input_file":tmpfile,"vocal_file":self.cfg.vocal,"instr_file":self.cfg.instrument,"TEMP_DIR":config.TEMP_DIR}
+        try:
+            rs=self._new_process(callback=vocal_bgm,title=title,kwargs=kw)
+            if rs and tools.vail_file(self.cfg.vocal) and tools.vail_file(self.cfg.instrument):
                 cmd = [
                     "-y",
                     "-i",
-                    f'{self.cfg.target_dir}/vocal.wav',
+                    self.cfg.vocal,
                     "-ac",
                     "1",
                     "-ar",
                     "16000",
                     "-c:a",
                     "pcm_s16le",
-                    '-af', 
+                    '-af',
                     "volume=2.0,alimiter=limit=1.0",
                     self.cfg.source_wav
                 ]
                 tools.runffmpeg(cmd)
-                if tools.vail_file(self.cfg.instrument):
-                    shutil.copy2(self.cfg.instrument,f'{self.cfg.target_dir}/instrument.wav')
-
-
+                shutil.copy2(self.cfg.vocal,f'{self.cfg.target_dir}/vocal.wav')
+                shutil.copy2(self.cfg.instrument,f'{self.cfg.target_dir}/instrument.wav')
+        except Exception as e:
+            config.logger.exception(f'人声背景声分离失败：{e}',exc_info=True)
 
     # 配音预处理，去掉无效字符，整理开始时间
     def _tts(self,daz_json=None) -> None:
@@ -948,12 +948,12 @@ class TransCreate(BaseTask):
                 "volume": self.cfg.volume,
                 "pitch": self.cfg.pitch,
                 "tts_type": self.cfg.tts_type,
-                "filename": f"{self.cfg.cache_folder}/dubb-{i}-{time.time()}.wav"
+                "filename": f"{self.cfg.cache_folder}/dubb-{i}.wav"
             }
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆
             if voice == 'clone' and self.cfg.tts_type in [COSYVOICE_TTS, CLONE_VOICE_TTS, F5_TTS,INDEX_TTS,VOXCPM_TTS,SPARK_TTS,DIA_TTS,CHATTERBOX_TTS,GPTSOVITS_TTS]:
-                tmp_dict['ref_wav'] = f"{self.cfg.cache_folder}/clone-{i}-{time.time()}.wav"
+                tmp_dict['ref_wav'] = f"{self.cfg.cache_folder}/clone-{i}.wav"
                 tmp_dict['ref_language']=self.cfg.detect_language[:2]
             queue_tts.append(tmp_dict)
 
@@ -986,18 +986,19 @@ class TransCreate(BaseTask):
     # 多线程实现裁剪参考音频
     def _create_ref_from_vocal(self):
         # 背景分离人声如果失败则直接使用原始音频
-        vocal=self.cfg.vocal if tools.vail_file(self.cfg.vocal) else self.cfg.source_wav
+        vocal=self.cfg.source_wav
         # 裁切对应片段为参考音频
         def _cutaudio_from_vocal(it):
             try:
+                config.logger.debug(f"裁切对应片段为参考音频：{it['startraw']}->{it['endraw']}\n当前{it=}")
                 tools.cut_from_audio(
                     audio_file=vocal,
                     ss=it['startraw'],
                     to=it['endraw'],
                     out_file=it['ref_wav']
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                config.logger.exception(f'裁切参考音频失败:{e}',exc_info=True)
         all_task = []
         from concurrent.futures import ThreadPoolExecutor
         with ThreadPoolExecutor(max_workers=min(12,len(self.queue_tts),os.cpu_count())) as pool:
@@ -1256,7 +1257,7 @@ class TransCreate(BaseTask):
             except Exception:
                 pass
             # 二次识别
-            if self.cfg.recogn2pass and self.shoud_dubbing and self.cfg.subtitle_type in [1,2]:
+            if self.cfg.recogn2pass and self.shoud_dubbing:
                 self.recogn2pass()
             # 添加背景音乐
             self._back_music()

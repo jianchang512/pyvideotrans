@@ -42,6 +42,7 @@ class DubbingSrt(BaseTask):
         self._signal(text=tr("Dubbing from subtitles"))
         config.logger.debug(f'配音 {self.cfg=}')
 
+
     def dubbing(self):
         try:
             self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type="replace")

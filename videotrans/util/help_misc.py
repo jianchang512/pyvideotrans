@@ -4,7 +4,7 @@ import platform
 import subprocess
 import time
 from pathlib import Path
-
+from videotrans.configure import config
 from tqdm import tqdm
 
 
@@ -60,7 +60,7 @@ def show_popup(title, text):
     from PySide6.QtGui import QIcon
     from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QMessageBox
-    from videotrans.configure import config
+
     msg = QMessageBox()
     msg.setWindowTitle(title)
     msg.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
@@ -79,7 +79,7 @@ def show_error(tb_str):
     from PySide6 import QtWidgets
     from PySide6.QtGui import QIcon, QDesktopServices
     from PySide6.QtCore import QUrl, Qt
-    from videotrans.configure import config
+
     
     msg_box = QtWidgets.QMessageBox()
     msg_box.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint)
@@ -218,7 +218,7 @@ def shutdown_system():
 
 # 获取 prompt提示词
 def get_prompt(ainame,aisendsrt=True):
-    from videotrans.configure import config
+
     prompt_file = get_prompt_file(ainame=ainame,aisendsrt=aisendsrt)
     content = Path(prompt_file).read_text(encoding='utf-8',errors="ignore")
     glossary = ''
@@ -232,7 +232,7 @@ def get_prompt(ainame,aisendsrt=True):
 
 
 def qwenmt_glossary():
-    from videotrans.configure import config
+
     if Path(config.ROOT_DIR + '/videotrans/glossary.txt').exists():
         glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8',errors="ignore").strip()
         if glossary:
@@ -246,7 +246,7 @@ def qwenmt_glossary():
 
 # 获取当前需要操作的prompt txt文件
 def get_prompt_file(ainame,aisendsrt=True):
-    from videotrans.configure import config
+
     prompt_path = f'{config.ROOT_DIR}/videotrans/'
     prompt_name = f'{ainame}.txt'
     if aisendsrt:
@@ -262,7 +262,7 @@ def show_glossary_editor(parent):
     from PySide6.QtWidgets import (QVBoxLayout, QTextEdit, QDialog,
                                    QDialogButtonBox)
     from PySide6.QtCore import Qt
-    from videotrans.configure import config
+
 
     dialog = QDialog(parent)
     dialog.setWindowTitle(config.tr('Glossary'))
@@ -310,7 +310,7 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
     # 预先创建好的
     # 判断novoice_mp4是否完成
     t = 0
-    from videotrans.configure import config
+
     if noextname not in config.queue_novice and vail_file(novoice_mp4):
         return True
     if noextname in config.queue_novice and config.queue_novice[noextname] == 'end':
@@ -351,15 +351,11 @@ def get_md5(input_string: str):
 
 def pygameaudio(filepath=None):
     try:
-        import pygame
-        pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
-        if not filepath:
-            return
-        sound = pygame.mixer.Sound(filepath)
-        sound.play()
-        while pygame.mixer.get_busy():
-            pygame.time.Clock().tick(10)
-        pygame.mixer.quit()    
+        import soundfile as sf
+        import sounddevice as sd
+        data, fs = sf.read(filepath)
+        sd.play(data, fs)
+        sd.wait()
     except Exception as e:
         print(e)
 

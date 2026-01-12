@@ -651,7 +651,7 @@
     "must select audio or video file": "必须选择音视频文件",
     "mustberole": "必须选择一个配音角色",
     "newversion": "有新的版本了，点击去下载",
-    "nextstep": "保存并继续下一步",
+    "nextstep": "保存修改并继续下一步",
     "nocuda": "你的设备不满足CUDA加速要求，请确认是NVIDIA显卡，并已配置好CUDA环境，点击菜单栏-帮助支持-CUDA help",
     "nocudnn": "你的设备没有安装配置cuDNN，请安装然后重启软件，或者取消CUDA加速",
     "nojueselist": "未获取到角色列表",
@@ -927,7 +927,11 @@
     "yue": "粤语",
 	"Restoring punct":"恢复标点",
 	"Restoring punctuation marks when Chinese & English":"在中文和英文发音时，可选择是否恢复标点符号",
-    "Secondary speech recognition of dubbing files": "对配音后文件再次语音识别创建字幕,仅在已选配音并嵌入单字幕时生效",
-    "STT again": "二次语音识别"
-	
+    "Secondary speech recognition of dubbing files": "对配音后文件再次语音识别创建字幕\n仅在已选配音并且未嵌入双字幕时生效",
+    "STT again": "二次语音识别",
+    "Text matching and timing": "文稿匹配与打轴",
+	"nosaveandstep":"不保存只继续",
+	"opendir_button source_sub":"打开字幕文件夹",
+	"bubaocunshuoming":"如果你在字幕文件夹内，手动或使用其他工具修改了\n[{}] 字幕文件，请点此按钮",
+    "Only support": "仅支持 "
 }

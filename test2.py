@@ -1,8 +1,348 @@
+import difflib
+import datetime
+from faster_whisper import WhisperModel
+
+def ms_to_srt_time(seconds):
+    """将秒数转换为 SRT 格式 00:00:00,000"""
+    if seconds is None:
+        return "00:00:00,000"
+    td = datetime.timedelta(seconds=seconds)
+    total_seconds = int(td.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    secs = total_seconds % 60
+    millis = int(td.microseconds / 1000)
+    return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
+
+def generate_aligned_srt_with_whisper(audio_file, target_text, model_size="tiny", device="cpu", compute_type="float32"):
+    """
+    使用 faster-whisper 获取时间轴，强制对齐到给定的纯文本中，生成 SRT。
+
+    Args:
+        audio_file (str): 音频文件路径
+        target_text (str): 正确的纯文本内容（包含标点）
+        model_size (str): whisper 模型大小 (base, small, medium, large-v3)
+        device (str): 运行设备 'cuda' 或 'cpu'
+        compute_type (str): 'float16' or 'int8'
+
+    Returns:
+        str: 生成的 SRT 字符串
+    """
+
+    print(f"1. 正在加载 Whisper 模型 ({model_size})...")
+    try:
+        model = WhisperModel("./models/models--Systran--faster-whisper-tiny", device=device, compute_type=compute_type)
+    except Exception:
+        print("警告: CUDA不可用或显存不足，自动切换回 CPU (速度较慢)...")
+        model = WhisperModel(model_size, device="cpu", compute_type="int8")
+
+    print("2. 正在识别音频以获取时间戳...")
+    # 关键：开启 word_timestamps=True
+    segments, info = model.transcribe(audio_file, word_timestamps=True, language="zh")
+
+    # --- 第一步：提取 Whisper 结果为“字符-时间”序列 ---
+    whisper_chars = [] # 存 {'char': '字', 'start': 0.1, 'end': 0.2}
+
+    for segment in segments:
+        for word in segment.words:
+            # Whisper 的 word 可能是 "我们"，我们需要拆成 '我', '们' 并平分时间
+            w_text = word.word.strip()
+            if not w_text: continue
+
+            duration = word.end - word.start
+            char_duration = duration / len(w_text)
+
+            for i, char in enumerate(w_text):
+                whisper_chars.append({
+                    'char': char,
+                    'start': word.start + (i * char_duration),
+                    'end': word.start + ((i + 1) * char_duration)
+                })
+
+    print(f"   Whisper 识别到 {len(whisper_chars)} 个字符。")
+
+    # --- 第二步：准备目标文本序列 ---
+    # 我们构建一个列表，保留原始文本的结构（包含标点），但用于对比时只看汉字/字母
+    target_chars_map = []
+
+    # 常见标点，用于断句
+    punctuations = set(['，', '。', '？', '！', '；', '：', ',', '.', '?', '!', ';', ':'])
+
+    comparison_target = [] # 纯净文本，用于和 Whisper 结果 diff
+
+    for i, char in enumerate(target_text):
+        is_punc = char in punctuations or char.strip() == ""
+        entry = {
+            'original_char': char,
+            'is_punc': is_punc,
+            'start': None,
+            'end': None,
+            'idx': i
+        }
+        target_chars_map.append(entry)
+
+        if not is_punc:
+            comparison_target.append(char)
+
+    # --- 第三步：序列匹配 (核心逻辑) ---
+    print("3. 正在执行文本强制对齐...")
+
+    # 提取 Whisper 的纯字符文本用于对比
+    comparison_whisper = [x['char'] for x in whisper_chars]
+
+    # 使用 difflib 寻找最长公共子序列
+    matcher = difflib.SequenceMatcher(None, comparison_target, comparison_whisper)
+
+    # 用于记录 target 中哪些非标点字符被赋值了时间
+    matched_indices = []
+
+    # 遍历匹配块
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == 'equal':
+            # 这一段文本完全匹配，直接把 Whisper 的时间赋给 Target
+            for k in range(i2 - i1):
+                target_idx = -1
+                # 找到 comparison_target[i1+k] 在 target_chars_map 中的位置
+                #这比较麻烦，我们需要一个映射：comparison_target index -> target_chars_map index
+                pass
+
+    # 优化映射逻辑：
+    # 建立 comparison_target 索引 -> target_chars_map 索引的映射
+    comp_to_orig_map = []
+    for idx, item in enumerate(target_chars_map):
+        if not item['is_punc']:
+            comp_to_orig_map.append(idx)
+
+    # 重新遍历 opcodes 进行赋值
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == 'equal':
+            count = i2 - i1
+            for k in range(count):
+                # 原始文本的索引
+                orig_idx = comp_to_orig_map[i1 + k]
+                # Whisper 的索引
+                whisper_idx = j1 + k
+
+                target_chars_map[orig_idx]['start'] = whisper_chars[whisper_idx]['start']
+                target_chars_map[orig_idx]['end'] = whisper_chars[whisper_idx]['end']
+                matched_indices.append(orig_idx)
+
+    # --- 第四步：时间插值 (填补未匹配的空洞) ---
+    # 如果 Target 有字没匹配上 Whisper (tag != 'equal')，它的时间是 None
+    # 我们需要根据前后已知的时间进行线性插值
+
+    # 提取所有非标点项的索引
+    non_punc_indices = [i for i, x in enumerate(target_chars_map) if not x['is_punc']]
+
+    for i in range(len(non_punc_indices)):
+        curr_real_idx = non_punc_indices[i]
+        curr_item = target_chars_map[curr_real_idx]
+
+        if curr_item['start'] is None:
+            # 向前找最近的有时间的字
+            prev_time = 0.0
+            if i > 0:
+                prev_real_idx = non_punc_indices[i-1]
+                prev_end = target_chars_map[prev_real_idx]['end']
+                if prev_end is not None:
+                    prev_time = prev_end
+
+            # 向后找最近的有时间的字
+            next_time = None
+            dist = 0
+            for j in range(i + 1, len(non_punc_indices)):
+                next_real_idx = non_punc_indices[j]
+                if target_chars_map[next_real_idx]['start'] is not None:
+                    next_time = target_chars_map[next_real_idx]['start']
+                    dist = j - i
+                    break
+
+            if next_time is not None:
+                # 线性插值
+                duration_per_char = (next_time - prev_time) / (dist + 1)
+                curr_item['start'] = prev_time
+                curr_item['end'] = prev_time + duration_per_char
+                # 更新 prev_time 以便下一次循环使用（虽然逻辑上这里只填当前的）
+            else:
+                # 后面没有匹配的字了（比如最后几个字没识别到），简单推算
+                curr_item['start'] = prev_time
+                curr_item['end'] = prev_time + 0.2 # 假设每个字0.2秒
+
+    print("4. 正在生成 SRT 字幕...")
+
+    # --- 第五步：按照标点符号断句并生成 SRT ---
+    srt_parts = []
+    srt_index = 1
+
+    sentence_buffer = []
+    line_start_time = None
+    line_end_time = 0.0
+
+    MAX_CHARS = 25 # 一行最多字数
+
+    for idx, item in enumerate(target_chars_map):
+        char = item['original_char']
+        is_punc = item['is_punc']
+        start = item['start']
+        end = item['end']
+
+        # 如果是空白字符且不是标点，跳过
+        if char.strip() == "" and not is_punc:
+            continue
+
+        # 如果是字的开始
+        if not is_punc and start is not None:
+            if len(sentence_buffer) == 0:
+                line_start_time = start
+            line_end_time = end
+
+        sentence_buffer.append(char)
+
+        # 判断断句条件
+        should_break = False
+        if is_punc:
+            should_break = True # 遇到标点强制换行
+        elif len(sentence_buffer) >= MAX_CHARS:
+            should_break = True # 字数超限换行
+        elif idx == len(target_chars_map) - 1:
+            should_break = True # 文本结束
+
+        if should_break and sentence_buffer:
+            # 过滤掉只有标点的行，或者没有时间的行
+            text_line = "".join(sentence_buffer).strip()
+            if text_line and line_start_time is not None:
+                srt_parts.append(f"{srt_index}")
+                srt_parts.append(f"{ms_to_srt_time(line_start_time)} --> {ms_to_srt_time(line_end_time)}")
+                srt_parts.append(text_line)
+                srt_parts.append("") # 空行
+
+                srt_index += 1
+
+            # 重置
+            sentence_buffer = []
+            line_start_time = None
+
+    return "\n".join(srt_parts)
+
+# ================= 使用示例 =================
+if __name__ == "__main__":
+
+    # 1. 你的音频文件
+    wav_file = "./20.wav"
+
+    # 2. 你的准确文本
+    text_content = "古老星系中发现了有机分子，我们离第三类接触还有多远?韦博正式展开拍摄任务已经届满周年,最近也传来了许多过去难以拍摄到的照片。六月初，天文学家在《自然》期刊上发表了这张照片，在蓝色核心外，环绕着一圈橘黄色的光芒，这是一个星系规模的甜甜圈。"
+
+    if 1: # 切换为True以执行
+        try:
+            srt_output = generate_aligned_srt_with_whisper(
+                audio_file=wav_file,
+                target_text=text_content,
+                model_size="base" # 测试时用 base/small 速度快，正式用 medium/large-v3
+            )
+
+            print("-" * 30)
+            print(srt_output)
+
+            # 保存到文件
+            with open("aligned_whisper.srt", "w", encoding="utf-8") as f:
+                f.write(srt_output)
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"发生错误: {e}")
+exit()
 # taken from https://huggingface.co/pyannote/speaker-diarization-3.1 - see for more details
 # instantiate the pipeline
 import os,torch
 from videotrans.configure import config
-os.environ['HTTPS_PROXY']="http://127.0.0.1:10808"
+os.environ['HF_ENDPOINT']="https://hf-mirror.com"
+from transformers import pipeline
+
+class PunctuationRestorer:
+    def __init__(self):
+        # 初始化模型，建议在程序启动时执行一次，不要每次调用函数都重新加载
+        print("正在加载标点模型，请稍候...")
+        self.pipe = pipeline(
+            "token-classification",
+            model="oliverguhr/fullstop-punctuation-multilang-large",
+            aggregation_strategy="none"  # 必须设为none，我们需要获取每个token的标签
+        )
+        print('加载完毕')
+
+
+    def restore_punctuation(self, input_dict):
+        """
+        输入格式: { "key1": "sentence one", "key2": "sentence two" }
+        输出格式: { "key1": "Sentence one.", "key2": "Sentence two." }
+        """
+        result_dict = {}
+
+        for key, text in input_dict.items():
+            if not text or not isinstance(text, str):
+                result_dict[key] = text
+                continue
+
+            # 调用模型进行预测
+            # distinct_colors=False 只是为了防止某些版本报warning，不影响逻辑
+            predictions = self.pipe(text)
+
+            # --- 核心还原逻辑 ---
+            reconstructed_text = ""
+
+            for item in predictions:
+                print(f'{item=}')
+                word = item['word']
+                entity = item['entity']
+
+                # 1. 处理 Token 本身
+                # XLM-RoBERTa 的 token 通常包含前导空格（表示单词开头）
+                # pipeline 输出时可能会保留特殊的 " " (U+2581) 字符，也可能转为普通空格
+                # 我们将其统一替换为普通空格以防万一
+                word = word.replace(' ', ' ')
+
+                # 2. 处理标点标签
+                # 该模型的标签含义： '0' 表示无标点，其他如 '.' ',' '?' 等表示该 token 后紧跟的标点
+                punctuation = ""
+                if entity != '0':
+                    punctuation = entity
+
+                # 3. 拼接到结果中
+                reconstructed_text += word + punctuation
+
+            # 4. 后处理
+            # 去除首尾空格，并确保首字母大写（可选，视需求而定，这里仅做去空格）
+            final_sentence = reconstructed_text.strip()
+
+            # 可选：简单的首字母大写修正
+            if final_sentence:
+                final_sentence = final_sentence[0].upper() + final_sentence[1:]
+
+            result_dict[key] = final_sentence
+
+        return result_dict
+
+# ================= 使用示例 =================
+
+# 1. 初始化（只做一次）
+restorer = PunctuationRestorer()
+
+# 2. 准备数据
+data = {
+    "id_01": "hello world how are you today i am fine",
+    "id_02": "das ist ein test text ohne satzzeichen",
+    "id_03": "my name is clara and i live in berkeley california"
+}
+
+# 3. 执行处理
+processed_data = restorer.restore_punctuation(data)
+
+for i,it in processed_data.items():
+    processed_data[i]=it.replace("▁",' ')
+
+print(processed_data)
+exit()
 import pyannote.audio
 torch.serialization.add_safe_globals([
     torch.torch_version.TorchVersion,

@@ -101,6 +101,11 @@ class Ui_setini(object):
 
                 "vad_type":"选择要使用的VAD",
                 "no_speech_threshold": "减小可降低幻觉但可能遗漏文字",
+                "temperature":"采样温度",
+                "hotwords":"告诉模型哪些词可能出现，以英文逗号分隔多个",
+
+                "repetition_penalty":"增大该值有利于减少重复",
+                "compression_ratio_threshold":"减小该值有利于减少重复",
 
                 "batch_size": "faster-whisper模型识别时批次大小，默认8，越大越快但所需显存越多，太大可能爆显存",
 
@@ -165,6 +170,9 @@ class Ui_setini(object):
             "llm_chunk_size": "LLM重新断句每批字幕行数",
 
             "batch_size": "faster-whisper批次大小",
+            "temperature":"采样温度",
+            "repetition_penalty":"重复惩罚",
+            "compression_ratio_threshold":"文本压缩率",
 
             "no_speech_threshold": "no speech threshold",
 
@@ -217,6 +225,7 @@ class Ui_setini(object):
             "beam_size": "识别准确度beam_size",
             "best_of": "识别准确度best_of",
             "condition_on_previous_text": "启用上下文感知",
+             "hotwords":"热词",
 
             "zh_hant_s": "字幕繁体转简体",
             "azure_lines": "AzureTTS批量行数",
@@ -261,7 +270,7 @@ class Ui_setini(object):
             "common": "通用设置",
             "model": "AI模型列表",
             "video": "视频输出控制",
-            "whisper": "faster/openai/whisper语音识别调整",
+            "whisper": "语音识别参数调整",
             "justify": "字幕声音画面对齐",
             "trans": "字幕翻译调整",
             "dubbing": "配音调整",
@@ -314,6 +323,13 @@ class Ui_setini(object):
                     "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle. Default is 1000ms",
 
                     "no_speech_threshold": "no speech threshold",
+                    "temperature":"temperature",
+
+                    "repetition_penalty":"Increasing this value helps reduce repetitions",
+                    "compression_ratio_threshold":"Decrease this value helps reduce repetitions",
+
+                    "hotwords":"hotwords",
+
                     "merge_short_sub": "Short subtitles will only be merged if this option is selected",
                     "batch_size": "Batch size for Faster-Whisper model recognition, default is 8, larger values are faster but require more GPU memory, too large a size may cause GPU memory to be exhausted",
 
@@ -379,6 +395,11 @@ class Ui_setini(object):
                 "ai302_models": "302.AI translation models",
                 "ai302tts_models": "302.AI-TTS models",
                 "no_speech_threshold": "no speech threshold",
+                "temperature":"temperature",
+                 "hotwords":"hotwords",
+
+                "repetition_penalty":"repetition penalty",
+                "compression_ratio_threshold":"compression ratio threshold",
 
                 "batch_size": "Batch size for Faster-Whisper model recognition",
                 "vad_type":"Select VAD",

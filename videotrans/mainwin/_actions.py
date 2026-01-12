@@ -180,6 +180,10 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = list(tools.get_qwen3tts_rolelist().keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == tts.Supertonic_TTS:
+            self.main.voice_role.clear()
+            self.main.current_rolelist = list(tools.get_supertonic_rolelist().keys())
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.GLM_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = list(tools.get_glmtts_rolelist().keys())

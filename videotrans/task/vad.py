@@ -1,4 +1,6 @@
 import time,os,shutil
+import traceback
+
 from videotrans.configure import config
 from ten_vad import TenVad
 import scipy.io.wavfile as Wavfile
@@ -45,7 +47,6 @@ def _vad_parallel_worker(args):
                 
     if triggered:
         segments.append([speech_start, num_frames - silence_count])
-        
     return segments
 
 def get_speech_timestamp_silero(input_wav,
@@ -88,7 +89,7 @@ def get_speech_timestamp_silero(input_wav,
 
 ## 
 # 多进程vad 
-def get_speech_timestamp(input_wav,
+def get_speech_timestamp(input_wav=None,
                          threshold=None,
                          min_speech_duration_ms=None,
                          max_speech_duration_ms=None,
@@ -101,11 +102,11 @@ def get_speech_timestamp(input_wav,
     try:
         sr, data = Wavfile.read(input_wav)
     except Exception as e:
-        config.logger.exception(f"Error reading wav file: {e}")
-        return []
+        msg=traceback.format_exc()
+        config.logger.exception(f"Error reading wav file: {msg}",exc_info=True)
+        return False,msg
 
     # --- 策略分支：决定单核还是多核 ---
-    
     total_len_samples = len(data)
     total_duration_minutes = (total_len_samples / sr) / 60.0
     
@@ -125,8 +126,7 @@ def get_speech_timestamp(input_wav,
         initial_segments = _detect_raw_segments(data, threshold, min_sil_frames, max_speech_frames=None)
     
     # Case B: 长音频 -> 走新路 (多核)
-    else:           
-        
+    else:
         config.logger.debug(f"Long Audio Detected ({total_duration_minutes:.2f}m). Using {num_cores} Cores Parallel Processing.")
         
         try:
@@ -166,9 +166,8 @@ def get_speech_timestamp(input_wav,
             initial_segments = _detect_raw_segments(data, threshold, min_sil_frames, max_speech_frames=None)
 
 
-    # --- 第二阶段：细化超长片段 ---
+    # --- 第二阶段：细化超长片段 超过2s---
     refined_segments = []
-    #half_max_frames = (max_speech_duration_ms / 2) / frame_duration_ms
     max_frames_limit = max_speech_duration_ms / frame_duration_ms
     tighter_min_sil_frames = (min_silent_duration_ms / 2) / frame_duration_ms
     _n=0
@@ -176,7 +175,8 @@ def get_speech_timestamp(input_wav,
     for s, e in initial_segments:
         duration = e - s
         _n+=1
-        if duration > (max_frames_limit+62):
+        # 大于 2000ms才需要再次裁切
+        if duration > (max_frames_limit+125):
             # 提取该段音频数据
             sub_data = data[s * hop_size: e * hop_size]
             # 使用减半的静音阈值重新检测，同时带上最大时长限制
@@ -189,7 +189,7 @@ def get_speech_timestamp(input_wav,
             refined_segments.append([s, e])
 
     if not refined_segments:
-        return []
+        return False,'Unknow error'
 
     # --- 第三阶段：毫秒转换 & 强制硬截断保护 ---
     # 即使二次细分，如果有人一口气说了30秒没停顿，仍需硬截断
@@ -207,20 +207,18 @@ def get_speech_timestamp(input_wav,
         if end_ms - curr_s > 0:
             segments_ms.append([curr_s, end_ms])
     
-    config.logger.debug(f'[VAD]切分用时 {int(time.time() - st_)}s')
+    config.logger.debug(f'[Ten-VAD]切分用时 {int(time.time() - st_)}s')
     
     speech_len = len(segments_ms)
     if speech_len <= 1:
-        return segments_ms
+        return segments_ms,None
 
     check_1 = []
 
     # 不允许最小语音片段低于500ms，可能无法有效识别而报错
     min_speech_duration_ms = max(min_speech_duration_ms or 1000, 500)
-    #config.logger.debug(f'get_speech_timestamp合并前\n{segments_ms=}')
     for i, it in enumerate(segments_ms):
         diff = it[1] - it[0]
-
         if diff >= min_speech_duration_ms:
             check_1.append(it)
         else:
@@ -232,32 +230,23 @@ def get_speech_timestamp(input_wav,
             if prev_diff is None and next_diff is not None:
                 # 插入后边
                 segments_ms[i + 1][0] = it[0]
-                #config.logger.warning(             f'get_speech_timestamp 时长小于 {min_speech_duration_ms}ms 需要下个字幕左移开始时间,{diff=},{prev_diff=},{next_diff=}')
             elif prev_diff is not None and next_diff is None:
                 # 前面延长
                 check_1[-1][1] = it[1]
-                #config.logger.warning( f'get_speech_timestamp 时长小于 {min_speech_duration_ms}ms 需要前面字幕右移结束时间,{diff=},{prev_diff=},{next_diff=}')
             elif prev_diff is not None and next_diff is not None:
                 if prev_diff < next_diff:
                     check_1[-1][1] = it[1]
-                    #config.logger.warning( f'get_speech_timestamp 时长小于 {min_speech_duration_ms}ms 需要前面字幕右移结束时间,{diff=},{prev_diff=},{next_diff=}')
                 else:
                     segments_ms[i + 1][0] = it[0]
-                    #config.logger.warning( f'get_speech_timestamp 时长小于 {min_speech_duration_ms}ms 需要下个字幕左移开始时间,{diff=},{prev_diff=},{next_diff=}')
             else:
                 check_1.append(it)
-    config.logger.debug(f'[VAD]切分合并共用时:{int(time.time()-st_)}s')
+    config.logger.debug(f'[Ten-VAD]切分合并共用时:{int(time.time()-st_)}s')
     tmp_dir=f'{config.TEMP_ROOT}/{os.getpid()}'
     try:
         shutil.rmtree(tmp_dir,ignore_errors=True)
     except:
         pass
-    return check_1
-
-
-
-
-
+    return check_1,None
 
 def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=None):
     """

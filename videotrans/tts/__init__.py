@@ -53,14 +53,15 @@ DIA_TTS = 18
 KOKORO_TTS = 19
 CLONE_VOICE_TTS = 20
 FISHTTS = 21
-MINIMAXI_TTS = 22
+Supertonic_TTS=22
+MINIMAXI_TTS = 23
 
-AZURE_TTS = 23
-GOOGLE_TTS = 24
-GEMINI_TTS =25
+AZURE_TTS = 24
+GOOGLE_TTS = 25
+GEMINI_TTS =26
 
-TTS_API = 26
-GOOGLECLOUD_TTS = 27
+TTS_API = 27
+GOOGLECLOUD_TTS = 28
 
 _ID_NAME_DICT = {
     EDGE_TTS:tr("Edge-TTS(free)"),
@@ -77,25 +78,26 @@ _ID_NAME_DICT = {
     AI302_TTS:"302.AI",
     
     
-    GPTSOVITS_TTS:"GPT-SoVITS",
-    COSYVOICE_TTS:'CosyVoice',
-    CHATTERBOX_TTS:"ChatterBox TTS",
-    CHATTTS:"ChatTTS",
+    GPTSOVITS_TTS:f"GPT-SoVITS({tr('Local')})",
+    COSYVOICE_TTS:f"CosyVoice({tr('Local')})",
+    CHATTERBOX_TTS:f"ChatterBox TTS({tr('Local')})",
+    CHATTTS:f"ChatTTS({tr('Local')})",
     
-    F5_TTS:"F5-TTS",
-    INDEX_TTS:"Index TTS",
-    VOXCPM_TTS:"VoxCPM TTS",
-    SPARK_TTS:"Spark TTS",
-    DIA_TTS:"Dia TTS",
+    F5_TTS:f"F5-TTS({tr('Local')})",
+    INDEX_TTS:f"Index TTS({tr('Local')})",
+    VOXCPM_TTS:f"VoxCPM TTS({tr('Local')})",
+    SPARK_TTS:f"Spark TTS({tr('Local')})",
+    DIA_TTS:f"Dia TTS({tr('Local')})",
 
-    KOKORO_TTS:"kokoro TTS",
-    CLONE_VOICE_TTS:'clone-voice',
-    FISHTTS:"Fish TTS",
+    KOKORO_TTS:f"kokoro TTS({tr('Local')})",
+    CLONE_VOICE_TTS:f"clone-voice({tr('Local')})",
+    FISHTTS:f"Fish TTS({tr('Local')})",
+    Supertonic_TTS:f"Supertonic({tr('Local')})",
 
     
     MINIMAXI_TTS:"Minimaxi TTS",
     AZURE_TTS:"Azure-TTS",
-    GOOGLE_TTS:"Google TTS",
+    GOOGLE_TTS:"Google TTS(free)",
     
     GEMINI_TTS:"Gemini TTS",
     TTS_API:tr("Customize API"),
@@ -111,10 +113,12 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     if langcode is None or tts_type is None:
         return True
     if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko', 'en', 'yu']:
-        return tr("GPT-SoVITS only supports Chinese, English, Japanese,ko")
+        return _ID_NAME_DICT.get(tts_type,'')+tr('Dubbing channel')+' '+tr('Only support')+tr(['zh', 'ja', 'ko', 'en', 'yu'])
 
     if tts_type == CHATTTS and langcode[:2] not in ['zh', 'en']:
-        return tr("ChatTTS only supports Chinese, English")
+        return _ID_NAME_DICT.get(tts_type,'')+tr('Dubbing channel')+' '+tr('Only support')+tr(['zh','en'])
+    if tts_type == Supertonic_TTS and langcode[:2] not in ['ko', 'en','es','pt','fr']:
+        return _ID_NAME_DICT.get(tts_type,'')+tr('Dubbing channel')+' '+tr('Only support')+tr(['ko','en','es','pt','fr'])
 
     return True
 
@@ -333,3 +337,6 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
     elif tts_type == GLM_TTS:
         from videotrans.tts._glmtts import GLMTTS
         GLMTTS(**kwargs).run()
+    elif tts_type == Supertonic_TTS:
+        from videotrans.tts._supertonic import SupertonicTTS
+        SupertonicTTS(**kwargs).run()

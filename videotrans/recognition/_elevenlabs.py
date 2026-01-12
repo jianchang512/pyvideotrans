@@ -42,7 +42,7 @@ class ElevenLabsRecogn(BaseRecogn):
         raws = []
         if language_code:
             res = client.speech_to_text.convert(
-                model_id="scribe_v1",
+                model_id="scribe_v2",
                 file=file_object,
                 language_code=language_code,
                 diarize=True

@@ -46,9 +46,7 @@ def openwin():
         if not file or not os.path.exists(file):
             tools.show_error(tr('must select audio or video file'))
             return
-        if not Path(f'{config.ROOT_DIR}/models/onnx/UVR-MDX-NET-Inst_HQ_4.onnx').exists():
-            tools.show_download_tips(winobj,tr('Retain original background sound'))
-            return
+
         uuid = tools.get_md5(file)
         # 已在执行，在此点击停止
         if winobj.has_done:

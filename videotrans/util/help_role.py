@@ -11,7 +11,6 @@ from functools import lru_cache
 
 
 def get_elevenlabs_role(force=False, raise_exception=False):
-    from videotrans.configure import config
     from . import help_misc
     jsonfile = f'{config.ROOT_DIR}/videotrans/voicejson/elevenlabs.json'
     namelist = ["No"]
@@ -128,7 +127,7 @@ def set_proxy(set_val=''):
 
 
 def get_302ai():
-    from videotrans.configure import config
+
     role_dict = get_azure_rolelist()
 
     with open(config.ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
@@ -146,7 +145,7 @@ def get_302ai():
 
 # 字节火山语音合成角色
 def get_doubao_rolelist(role_name=None, langcode="zh"):
-    from videotrans.configure import config
+
     roledata=json.loads(Path(f'{config.ROOT_DIR}/videotrans/voicejson/doubao0.json').read_text(encoding='utf-8'))
     
    
@@ -160,7 +159,7 @@ def get_doubao_rolelist(role_name=None, langcode="zh"):
 
 
 def get_doubao2_rolelist(role_name=None, langcode="zh"):
-    from videotrans.configure import config
+
     roledata=json.loads(Path(f'{config.ROOT_DIR}/videotrans/voicejson/doubao2.json').read_text(encoding='utf-8'))
     
    
@@ -177,7 +176,7 @@ def get_doubao2_rolelist(role_name=None, langcode="zh"):
 #  get role by edge tts
 @lru_cache(maxsize=None)
 def get_edge_rolelist(role_name=None,locale=None):
-    from videotrans.configure import config
+
     from . import help_misc
     voice_list = {}
     voice_file=config.ROOT_DIR + "/videotrans/voicejson/edge_tts.json"
@@ -195,7 +194,7 @@ def get_edge_rolelist(role_name=None,locale=None):
 
 
 def get_azure_rolelist():
-    from videotrans.configure import config
+
     from . import help_misc
     voice_list = {}
     voice_file=config.ROOT_DIR + "/videotrans/voicejson/azure_voice_list.json"
@@ -210,7 +209,7 @@ def get_azure_rolelist():
     return voice_list
 
 def get_minimaxi_rolelist():
-    from videotrans.configure import config
+
     from . import help_misc
     voice_list = {}
     voice_file=config.ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
@@ -230,6 +229,11 @@ def get_minimaxi_rolelist():
 
 def get_qwen3tts_rolelist():
     voices=json.loads(Path(config.ROOT_DIR+"/videotrans/voicejson/qwen3tts.json").read_text(encoding='utf-8'))
+    voices={"No":"No"}|voices
+    return voices
+
+def get_supertonic_rolelist():
+    voices=json.loads(Path(config.ROOT_DIR+"/videotrans/voicejson/supertonic.json").read_text(encoding='utf-8'))
     voices={"No":"No"}|voices
     return voices
 
@@ -288,7 +292,7 @@ def get_kokoro_rolelist():
 
 # 根据 gptsovits config.params['gptsovits_role'] 返回以参考音频为key的dict
 def get_gptsovits_role():
-    from videotrans.configure import config
+
     if not config.params.get('gptsovits_role','').strip():
         return None
     rolelist = {"No":"No","clone":"clone"}
@@ -301,7 +305,7 @@ def get_gptsovits_role():
 
 
 def get_chatterbox_role():
-    from videotrans.configure import config
+
     rolelist = ['No', 'clone']
     if not config.params.get('chatterbox_role','').strip():
         return rolelist
@@ -311,7 +315,7 @@ def get_chatterbox_role():
 
 
 def get_cosyvoice_role():
-    from videotrans.configure import config
+
     rolelist = {
         "No":"No",
         "clone": 'clone'
@@ -326,7 +330,7 @@ def get_cosyvoice_role():
 
 
 def get_fishtts_role():
-    from videotrans.configure import config
+
     if not config.params.get('fishtts_role','').strip():
         return None
     rolelist = {"No":"No"}
@@ -339,7 +343,7 @@ def get_fishtts_role():
 
 
 def get_f5tts_role():
-    from videotrans.configure import config
+
     if not config.params.get('f5tts_role','').strip():
         return
     rolelist = {"No":"No","clone":"clone"}
@@ -353,7 +357,7 @@ def get_f5tts_role():
 
 # 获取clone-voice的角色列表
 def get_clone_role(set_p=False):
-    from videotrans.configure import config
+
     if not config.params.get('clone_api',''):
         if set_p:
             raise Exception(config.tr('bixutianxiecloneapi'))
@@ -373,7 +377,7 @@ def get_clone_role(set_p=False):
 # type=logs|error|subtitle|end|stop|succeed|set_precent|replace_subtitle|.... 末尾显示类型，
 # uuid 任务的唯一id，用于确定插入哪个子队列
 def set_process(*, text="", type="logs", uuid=None):
-    from videotrans.configure import config
+
     if config.exit_soft:
         return
     if uuid and uuid in config.stoped_uuid_set:
