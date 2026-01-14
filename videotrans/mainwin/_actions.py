@@ -501,16 +501,11 @@ class WinAction(WinActionSub):
             return
 
         # 如果需要翻译，再判断是否符合翻译规则
-        if self.shound_translate():
-            if translator.is_allow_translate(
+        if self.shound_translate() and translator.is_allow_translate(
                 translate_type=self.cfg['translate_type'],
                 show_target=self.cfg['target_language_code']) is not True:
-                self.main.startbtn.setDisabled(False)
-                return
-            if self.cfg['translate_type'] == translator.M2M100_INDEX and not Path(f'{config.ROOT_DIR}/models/m2m100_12b/model.bin').exists():
-                self.main.startbtn.setDisabled(False)
-                self.main._open_winform('downmodels','m2m100_12b')
-                return
+            self.main.startbtn.setDisabled(False)
+            return
         # 字幕区文字
         txt = self.main.subtitle_area.toPlainText().strip()
         if self.check_txt(txt) is not True:
@@ -563,19 +558,6 @@ class WinAction(WinActionSub):
                 from videotrans.winform import deepseek
                 deepseek.openwin()
                 return
-
-        if self.main.tts_type.currentIndex()==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
-            #tools.show_download_tts(self.main)
-            self.main.startbtn.setDisabled(False)
-            self.main._open_winform('downmodels','vits')
-            return
-            
-        if self.main.tts_type.currentIndex()==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
-            #tools.show_download_piper(self.main)
-            self.main.startbtn.setDisabled(False)
-            self.main._open_winform('downmodels','piper')
-            return
-
         # 检查输入 输出目录
         if self.check_output() is not True:
             self.main.startbtn.setDisabled(False)
@@ -593,10 +575,7 @@ class WinAction(WinActionSub):
         self.delete_process()
         # 设为开始
         self.update_status('ing')
-        try:
-            Path(config.TEMP_DIR + '/stop_porcess.txt').unlink(missing_ok=True)
-        except:
-            pass
+
 
         if self.main.recogn_type.currentIndex() == recognition.FASTER_WHISPER or self.main.app_mode == 'biaozhun':
             # 背景音量

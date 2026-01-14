@@ -212,13 +212,18 @@ class BaseCon:
                 callback,
                 **kwargs
             )
-            _rs = future.result()
-            if isinstance(_rs,tuple) and len(_rs)==2:
-                data,err=_rs
-                if data is False:
-                    raise RuntimeError(err)
-            else:
-                data=_rs
+            try:
+                _rs = future.result()
+                if isinstance(_rs,tuple) and len(_rs)==2:
+                    data,err=_rs
+                    if data is False:
+                        raise RuntimeError(err)
+                else:
+                    data=_rs
+            except Exception as e:
+                if kwargs.get('batch_size',0)>1 and kwargs.get('model_name','').find('large')>-1:
+                    raise RuntimeError(f'{tr("may be insufficient memory")}\n{e}')
+                raise
 
         self._signal(text=f'[{title}] end: {int(time.time() - _st)}s')
         return data

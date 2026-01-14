@@ -286,13 +286,6 @@ def openwin():
 
         if role == 'clone':
             return
-        if tts_type==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
-            show_downloadmodel('piper')
-            return
-        if tts_type==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
-            show_downloadmodel('vits')
-            return
-
         raw_text=winobj.listen_btn.text()
         def feed(d):
             winobj.listen_btn.setDisabled(False)
@@ -306,21 +299,6 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[obj], language=lang, tts_type=tts_type)
         wk.uito.connect(feed)
         wk.start()
-
-    def show_downloadmodel(tts_name=None):
-        from videotrans.component.downmodels import MainWindow as downwin
-        w = config.child_forms.get('downmodels')
-        if w:
-            w.show()
-            w.activateWindow()
-            if tts_name: w.auto_start(tts_name)
-            return
-        
-        w=downwin()
-        config.child_forms['downmodels']=w
-        w.show()
-        if tts_name: w.auto_start(tts_name)
-
 
     def change_by_lang(type):
         if type in [tts.EDGE_TTS,tts.MINIMAXI_TTS, tts.AZURE_TTS, tts.DOUBAO_TTS,tts.DOUBAO2_TTS,tts.AI302_TTS, tts.KOKORO_TTS,tts.PIPER_TTS,tts.VITSCNEN_TTS]:
@@ -337,16 +315,6 @@ def openwin():
         role = winobj.hecheng_role.currentText()
         rate = int(winobj.hecheng_rate.value())
         tts_type = winobj.tts_type.currentIndex()
-        if tts_type==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
-            #tools.show_download_piper(winobj)
-            show_downloadmodel('piper')
-            return
-        if tts_type==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
-            #tools.show_download_tts(winobj)
-            show_downloadmodel('vits')
-            return
-
-
 
         if language == '-' or role in ['No', '-', '']:
             return tools.show_error(tr('yuyanjuesebixuan'))

@@ -26,80 +26,85 @@ from videotrans.tts._f5tts import F5TTS
 from videotrans.tts._glmtts import GLMTTS
 
 EDGE_TTS = 0
-VITSCNEN_TTS = 1
-PIPER_TTS = 2
+PIPER_TTS = 1
+VITSCNEN_TTS = 2
 
-OPENAI_TTS = 3
-QWEN_TTS = 4
-DOUBAO2_TTS=5
-ELEVENLABS_TTS = 6
-DOUBAO_TTS = 7
-GLM_TTS = 8
-AI302_TTS = 9
+QWEN_TTS = 3
+DOUBAO2_TTS=4
+DOUBAO_TTS = 5
+GLM_TTS = 6
+
+GPTSOVITS_TTS = 7
+F5_TTS = 8
+INDEX_TTS = 9
+COSYVOICE_TTS = 10
+Supertonic_TTS=11
+
+
+MINIMAXI_TTS = 12
+OPENAI_TTS = 13
+AI302_TTS = 14
+ELEVENLABS_TTS = 15
+AZURE_TTS = 16
+GEMINI_TTS =17
 
 
 
 
-GPTSOVITS_TTS = 10
-COSYVOICE_TTS = 11
-CHATTERBOX_TTS = 12
-CHATTTS = 13
+VOXCPM_TTS = 18
+CHATTERBOX_TTS = 19
+CHATTTS = 20
+SPARK_TTS = 21
+DIA_TTS = 22
+KOKORO_TTS = 23
+CLONE_VOICE_TTS = 24
+FISHTTS = 25
 
-F5_TTS = 14
-INDEX_TTS = 15
-VOXCPM_TTS = 16
-SPARK_TTS = 17
-DIA_TTS = 18
-KOKORO_TTS = 19
-CLONE_VOICE_TTS = 20
-FISHTTS = 21
-Supertonic_TTS=22
-MINIMAXI_TTS = 23
-
-AZURE_TTS = 24
-GOOGLE_TTS = 25
-GEMINI_TTS =26
+GOOGLE_TTS = 26
 
 TTS_API = 27
 GOOGLECLOUD_TTS = 28
 
 _ID_NAME_DICT = {
     EDGE_TTS:tr("Edge-TTS(free)"),
-    VITSCNEN_TTS:f'VITS({tr("Local")})',
     PIPER_TTS:f'piper TTS({tr("Local")})',
+    VITSCNEN_TTS:f'VITS({tr("Local")})',
 
-    OPENAI_TTS:"OpenAI TTS",
-    
     QWEN_TTS:"Qwen3 TTS",
     DOUBAO2_TTS:tr("DouBao2"),
-    ELEVENLABS_TTS:"Elevenlabs.io",
     DOUBAO_TTS:tr("VolcEngine TTS"),
     GLM_TTS:f'{tr("Zhipu AI")} GLM-TTS',
-    AI302_TTS:"302.AI",
-    
-    
+
+
     GPTSOVITS_TTS:f"GPT-SoVITS({tr('Local')})",
-    COSYVOICE_TTS:f"CosyVoice({tr('Local')})",
-    CHATTERBOX_TTS:f"ChatterBox TTS({tr('Local')})",
-    CHATTTS:f"ChatTTS({tr('Local')})",
-    
     F5_TTS:f"F5-TTS({tr('Local')})",
     INDEX_TTS:f"Index TTS({tr('Local')})",
+    COSYVOICE_TTS:f"CosyVoice({tr('Local')})",
+    Supertonic_TTS:f"Supertonic({tr('Local')})",
+
+
+    MINIMAXI_TTS:"Minimaxi TTS",
+    OPENAI_TTS:"OpenAI TTS",
+    AI302_TTS:"302.AI",    
+    ELEVENLABS_TTS:"Elevenlabs.io",
+    AZURE_TTS:"Azure-TTS",
+    GEMINI_TTS:"Gemini TTS",
+    
+    
+    
+    
     VOXCPM_TTS:f"VoxCPM TTS({tr('Local')})",
+    CHATTERBOX_TTS:f"ChatterBox TTS({tr('Local')})",
+    CHATTTS:f"ChatTTS({tr('Local')})",
     SPARK_TTS:f"Spark TTS({tr('Local')})",
     DIA_TTS:f"Dia TTS({tr('Local')})",
-
     KOKORO_TTS:f"kokoro TTS({tr('Local')})",
     CLONE_VOICE_TTS:f"clone-voice({tr('Local')})",
     FISHTTS:f"Fish TTS({tr('Local')})",
-    Supertonic_TTS:f"Supertonic({tr('Local')})",
 
     
-    MINIMAXI_TTS:"Minimaxi TTS",
-    AZURE_TTS:"Azure-TTS",
     GOOGLE_TTS:"Google TTS(free)",
     
-    GEMINI_TTS:"Gemini TTS",
     TTS_API:tr("Customize API"),
     
     #GOOGLECLOUD_TTS:"Google Cloud TTS",

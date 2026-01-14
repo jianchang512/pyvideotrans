@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 import ctranslate2
 import sentencepiece as spm
 from typing import List
@@ -18,6 +20,8 @@ import torch
 # Adapted from:
 # https://gist.github.com/ymoslem/a414a0ead0d3e50f4d7ff7110b1d1c0d
 # https://github.com/ymoslem/DesktopTranslator
+from videotrans.util import tools
+
 _LANGUAGE_CODE_MAP = {
         "en": "__en__",
         "zh": "__zh__",
@@ -60,12 +64,15 @@ class M2M100Trans(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.aisendsrt = False
-        'auto' if not self.source_code else self.source_code
         if not self.source_code or self.source_code=='auto':
             self.from_lang='auto'
         else:
             self.from_lang=_LANGUAGE_CODE_MAP.get(self.source_code[:2].lower(),'auto')
         self.to_lang=_LANGUAGE_CODE_MAP.get(self.target_code[:2].lower())
+
+    def _download(self):
+        if not Path(f'{config.ROOT_DIR}/models/m2m100_12b/model.bin').exists():
+            tools.down_zip(f"{config.ROOT_DIR}/models", 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/m2m100_12b_model.zip',self._process_callback)
         self.model = ctranslate2.Translator(
             model_path=f'{config.ROOT_DIR}/models/m2m100_12b',
             device="cpu" if not torch.cuda.is_available() else "cuda",
@@ -73,6 +80,10 @@ class M2M100Trans(BaseTrans):
         )
         self.model.load_model()
         self.sentence_piece_processor = spm.SentencePieceProcessor(model_file=f'{config.ROOT_DIR}/models/m2m100_12b/sentencepiece.model')
+        return True
+
+    def _process_callback(self,msg):
+        self._signal(text=msg)
 
     def _unload(self):
         try:

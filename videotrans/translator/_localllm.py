@@ -47,7 +47,8 @@ class LocalLLM(BaseTrans):
             {'role': 'system',
              'content':'You are a top-tier Subtitle Translation Engine.'},
             {'role': 'user',
-             'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
+             'content':self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+             },
         ]
         config.logger.debug(f"\n[localllm]发送请求数据:{message=}")
 
@@ -55,8 +56,8 @@ class LocalLLM(BaseTrans):
             model=config.params.get('localllm_model',''),
             max_tokens=int(config.params.get('localllm_max_token')) if config.params.get(
                 'localllm_max_token') else 4096,
-            temperature=float(config.params.get('localllm_temperature', 0.7)),
-            top_p=float(config.params.get('localllm_top_p', 1.0)),
+            temperature=float(config.settings.get('aitrans_temperature',0.2)),
+            frequency_penalty=0,
             messages=message
         )
 
@@ -72,8 +73,7 @@ class LocalLLM(BaseTrans):
         if not response.choices[0].message.content:
             raise RuntimeError(f"[LocalLLM] {response.choices[0].finish_reason}:{response}")
         result = response.choices[0].message.content.strip()
-        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
-                          re.sub(r'<think>(.*?)</think>', '', result,flags=re.I | re.S), re.S | re.I)
+        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',re.sub(r'<think>(.*?)</think>', '', result,flags=re.I | re.S))
         if match:
             return match.group(1)
         return result.strip()

@@ -11,6 +11,18 @@ from videotrans.configure.config import tr
 from videotrans.util import tools
 from tenacity import RetryError
 
+_GLOBAL_CONTEXT="""
+# Global Context (Read-Only Reference)
+The user has provided the FULL subtitle file below for context (plot, terms, gender).
+**INSTRUCTIONS for Context:**
+1. Read this to understand the story.
+2. **DO NOT translate this section.**
+3. Use this ONLY to improve the accuracy of the batch translation below.
+
+<FULL_SOURCE_CONTEXT>
+{COMPLETE_SRT_TEXT}
+</FULL_SOURCE_CONTEXT>
+"""
 @dataclass
 class BaseTrans(BaseCon):
     # 翻译渠道
@@ -39,12 +51,17 @@ class BaseTrans(BaseCon):
     wait_sec: float = float(config.settings.get('translation_wait', 0))
     # 以srt格式发送
     aisendsrt: bool = False
+    # 原始完整字幕，当ai翻译时可作为上下文背景信息
+    full_origin_subtitles:str=""
 
     def __post_init__(self):
         super().__post_init__()
         #是AI翻译渠道并且选中了以完整字幕发送
         if config.settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS:
             self.aisendsrt=True
+        if self.aisendsrt and config.settings.get('aitrans_context'):
+            self.full_origin_subtitles=_GLOBAL_CONTEXT.replace('{COMPLETE_SRT_TEXT}',"\n\n".join([f'{it["line"]}\n{it["time"]}\n{it["text"]}' for it in self.text_list]))
+
         if self.translate_type not in translator.AI_TRANS_CHANNELS:
             self.trans_thread = int(config.settings.get('trans_thread', 5))
         else:
@@ -66,6 +83,8 @@ class BaseTrans(BaseCon):
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         _st=time.time()
         self._signal(text="")
+        if hasattr(self,'_download'):
+            self._download()
 
         # 如果是不是以 完整字幕格式发送，则组成字符串列表，否则组成 [dict,dict] 列表，每个dict都是字幕行信息
         if not self.aisendsrt:
@@ -74,6 +93,7 @@ class BaseTrans(BaseCon):
         else:
             # 是srt格式字幕列表 [{text,line,time},...]
             source_text=self.text_list
+
 
         split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(self.text_list), self.trans_thread)]
         

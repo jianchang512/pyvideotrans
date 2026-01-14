@@ -86,8 +86,6 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, TEMP_DIR=None):
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            if Path(f'{cfg.TEMP_ROOT}/{os.getpid()}').exists():
-                shutil.rmtree(f'{cfg.TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except:
             pass
 
@@ -135,8 +133,6 @@ def remove_noise(*, input_file, output_file, TEMP_DIR=None, is_cuda=False):
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            if Path(f'{config.TEMP_ROOT}/{os.getpid()}').exists():
-                shutil.rmtree(f'{config.TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
             Path(tmp_name).unlink(missing_ok=True)
         except Exception:
             pass
@@ -170,7 +166,7 @@ def fix_punc(*, text_dict, TEMP_DIR=None, is_cuda=False):
             device=device
         )
         _str = "\n".join([f'{line}\t{it}' for line, it in text_dict.items()])
-        tmp_name = f'{config.TEMP_ROOT}/fix_flag-{time.time()}.txt'
+        tmp_name = f'{TEMP_DIR}/fix_flag-{time.time()}.txt'
         Path(tmp_name).write_text(_str, encoding='utf-8')
         result = ans(tmp_name, disable_pbar=True)
         for it in result:
@@ -189,8 +185,6 @@ def fix_punc(*, text_dict, TEMP_DIR=None, is_cuda=False):
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            if Path(f'{config.TEMP_ROOT}/{os.getpid()}').exists():
-                shutil.rmtree(f'{config.TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except Exception:
             pass
 
@@ -287,8 +281,6 @@ def cam_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cu
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            if Path(f'{config.TEMP_ROOT}/{os.getpid()}').exists():
-                shutil.rmtree(f'{config.TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except Exception:
             pass
 
@@ -405,8 +397,6 @@ def pyannote_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, 
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            if Path(f'{config.TEMP_ROOT}/{os.getpid()}').exists():
-                shutil.rmtree(f'{config.TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except Exception:
             pass
 
@@ -524,8 +514,6 @@ def reverb_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            if Path(f'{config.TEMP_ROOT}/{os.getpid()}').exists():
-                shutil.rmtree(f'{config.TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except Exception:
             pass
 
@@ -697,7 +685,5 @@ def built_speakers(*, input_file, subtitles, num_speakers=-1, language="zh", TEM
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            if Path(f'{cfg.TEMP_ROOT}/{os.getpid()}').exists():
-                shutil.rmtree(f'{cfg.TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except Exception:
             pass

@@ -86,7 +86,7 @@ class Ui_zijiehuoshanform(object):
         h3.addWidget(self.label_0)
         v1.addLayout(h3)
 
-        self.zijiehuoshan_template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'zijie' if config.defaulelang=='zh' else 'zijie-en')))
+        self.zijiehuoshan_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'zijie', 'zijie'))
         self.retranslateUi(zijiehuoshanform)
         QtCore.QMetaObject.connectSlotsByName(zijiehuoshanform)
 

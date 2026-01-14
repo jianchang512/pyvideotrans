@@ -747,7 +747,7 @@ class SpeedRate:
         tools.set_process(text=f"Concat {len(valid_clips)} video file...", uuid=self.uuid)
 
         self.stop_show_process = False
-        threading.Thread(target=self._hebing_pro, args=(protxt, 'Concat video file')).start()
+        threading.Thread(target=self._hebing_pro, args=(protxt, 'Concat video file'),daemon=True).start()
 
         tools.runffmpeg(concat_cmd, force_cpu=True,cmd_dir=self.cache_folder)
         self.stop_show_process = True
@@ -886,7 +886,7 @@ class SpeedRate:
             outname
         ]
         self.stop_show_process = False
-        threading.Thread(target=self._hebing_pro, args=(protxt, 'concat audio')).start()
+        threading.Thread(target=self._hebing_pro, args=(protxt, 'concat audio'),daemon=True).start()
         tools.runffmpeg(cmd_step1, force_cpu=True,cmd_dir=self.cache_folder)
         self.stop_show_process = True
         config.logger.debug(f'===拼接配音片段后，目标音频{outname}, 真实总时长={len(AudioSegment.from_file(outname, format="wav"))}\n')
@@ -901,7 +901,7 @@ class SpeedRate:
             ]
 
             self.stop_show_process = False
-            threading.Thread(target=self._hebing_pro, args=(protxt, 'conver audio')).start()
+            threading.Thread(target=self._hebing_pro, args=(protxt, 'conver audio'),daemon=True).start()
             tools.runffmpeg(cmd_step2, force_cpu=True)
             self.stop_show_process = True
         if not tools.vail_file(self.target_audio):

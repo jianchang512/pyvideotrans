@@ -76,7 +76,9 @@ class Ui_setini(object):
                 "trans_thread": "传统翻译渠道每次发送字幕行数",
                 "aitrans_thread": "AI翻译渠道每次发送字幕行数",
                 "translation_wait": "每次翻译后暂停秒数,用于限制请求频率",
-                "aisendsrt": "是否在使用AI翻译渠道时发送完整字幕格式内容"
+                "aisendsrt": "是否在使用AI翻译渠道时发送完整字幕格式内容",
+                "aitrans_temperature":"AI翻译模型温度值，默认0.2",
+                "aitrans_context":"附带完整原字幕作为AI上下文信息，翻译质量将更高\n【务必注意】1. 必须使用支持超长上下文的先进模型\2. token消耗量将增加数倍"
             },
             "dubbing": {
                 "dubbing_thread": "同时配音的线程数",
@@ -107,7 +109,7 @@ class Ui_setini(object):
                 "repetition_penalty":"增大该值有利于减少重复",
                 "compression_ratio_threshold":"减小该值有利于减少重复",
 
-                "batch_size": "faster-whisper模型识别时批次大小，默认8，越大越快但所需显存越多，太大可能爆显存",
+                "batch_size": "faster-whisper模型识别时批次大小，越大越快但所需显存越多，太大可能爆显存\n设为1能略微提升准确度",
 
 
                 "speaker_type": "用于说话人分离的模型，默认内置模型支持中英. \n若选 pyannote 必须拥有 https://huggingface.co 上的token，\n并且同意pyannote组织的授权协议\n\n具体请访问URL查看教程:\nhttps://pvt9.com/shuohuaren",
@@ -120,7 +122,7 @@ class Ui_setini(object):
                 "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "condition_on_previous_text": "若开启将占用更多GPU，效果也更好，但也容易出现重复或幻觉",
 
-                "noise_separate_nums": "降噪和人声背景声分离线程数，越大越快但占用资源越多",
+                "noise_separate_nums": "人声背景声分离线程数，越大越快但占用资源越多",
 
                 "zh_hant_s": "强制将识别出的繁体字幕转为简体",
             },
@@ -168,6 +170,8 @@ class Ui_setini(object):
             "prompt_init": "Whisper模型提示词",
             "gemini_recogn_chunk": "Gemini语音识别每批切片数",
             "llm_chunk_size": "LLM重新断句每批字幕行数",
+            "aitrans_temperature":"AI翻译模型温度值",
+            "aitrans_context":"AI翻译附带完整原字幕",
 
             "batch_size": "faster-whisper批次大小",
             "temperature":"采样温度",
@@ -189,7 +193,7 @@ class Ui_setini(object):
             "ai302tts_models": "302.AI-TTS模型",
             "openairecognapi_model": "OpenAI语音识别模型",
             "chatgpt_model": "ChatGPT模型列表",
-            "noise_separate_nums": "降噪/人声背景分离线程数",
+            "noise_separate_nums": "人声背景分离线程数",
             "openaitts_model": "OpenAI TTS模型列表",
             "azure_model": "Azure模型列表",
             "localllm_model": "本地LLM模型列表",
@@ -301,14 +305,16 @@ class Ui_setini(object):
                     "aitrans_thread": "Number of subtitle lines per request for AI translation.",
                     "translation_wait": "Delay (in seconds) between translation requests to prevent rate-limiting.",
                     "aisendsrt": "Send full SRT format content when using AI translation.",
-                    "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
-                    "edgetts_retry_nums": "Number of retries after EdgeTTS channel failure"
+                    "aitrans_temperature":"AI models temperature,default is 0.2",
+                    "aitrans_context":"The inclusion of complete original subtitles as AI context information will result in higher translation quality.\n[Important Note] 1. An advanced model supporting extremely long contexts must be used. \n2. Token consumption will increase several times."
                 },
                 "dubbing": {
                     "dubbing_thread": "Number of concurrent threads for dubbing.",
                     "dubbing_wait": "Delay (in seconds) between dubbing requests to prevent rate-limiting.",
                     "save_segment_audio": "Save the dubbed audio for each individual subtitle line.",
                     "azure_lines": "Number of lines per batch request for Azure TTS.",
+                    "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
+                    "edgetts_retry_nums": "Number of retries after EdgeTTS channel failure",
                     "chattts_voice": "ChatTTS voice timbre value."
                 },
                 "justify": {
@@ -331,7 +337,7 @@ class Ui_setini(object):
                     "hotwords":"hotwords",
 
                     "merge_short_sub": "Short subtitles will only be merged if this option is selected",
-                    "batch_size": "Batch size for Faster-Whisper model recognition, default is 8, larger values are faster but require more GPU memory, too large a size may cause GPU memory to be exhausted",
+                    "batch_size": "Batch size for Faster-Whisper model recognition, larger values are faster but require more GPU memory, too large a size may cause GPU memory to be exhausted",
 
                     "vad_type":"Select VAD",
                     "speaker_type": "The model used for speaker separation. The default is the built-in model, supporting both Chinese and English. Pyannote is optional. \nIf selected, you must have a token from \nhttps://huggingface.co \nand agree to the Pyannote licensing agreement. \nFor details, please visit the URL for a tutorial: \nhttps://pvt9.com/shuohuaren",
@@ -344,7 +350,7 @@ class Ui_setini(object):
                     "beam_size": "Beam size for transcription (1-5). Higher is more accurate but uses more VRAM.",
                     "best_of": "Best-of for transcription (1-5). Higher is more accurate but uses more VRAM.",
                     "condition_on_previous_text": "Condition on previous text for better context (uses more GPU, may cause repetition).",
-                    "noise_separate_nums": "The more threads used for noise reduction and separation of human and background voices, the faster the process, but the more resources it consumes.",
+                    "noise_separate_nums": "The more threads used for separation of human and background voices, the faster the process, but the more resources it consumes.",
 
                     "zh_hant_s": "Force conversion of recognized Traditional Chinese to Simplified Chinese."
                 },
@@ -394,6 +400,8 @@ class Ui_setini(object):
                 "llm_chunk_size": "LLM re-segmentation How many subtitles are sent each time",
                 "ai302_models": "302.AI translation models",
                 "ai302tts_models": "302.AI-TTS models",
+                "aitrans_temperature":"AI temperature for translation subtitles",
+                "aitrans_context":"AI translation with full original subtitles",
                 "no_speech_threshold": "no speech threshold",
                 "temperature":"temperature",
                  "hotwords":"hotwords",
@@ -413,7 +421,7 @@ class Ui_setini(object):
                 "edgetts_max_concurrent_tasks": "The higher concurrent of EdgeTTS",
                 "edgetts_retry_nums": "Retries after EdgeTTS failure",
 
-                "noise_separate_nums": "Threads nums for noise&separation",
+                "noise_separate_nums": "Threads nums for separation",
                 "openairecognapi_model": "OpenAI speech recognition model",
                 "chatgpt_model": "ChatGPT model list",
                 "openaitts_model": "OpenAI TTS model list",
@@ -556,6 +564,7 @@ class Ui_setini(object):
                 if combobox_data and key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset',"lang"]:
                     tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(combobox_data)
+
                     if val in combobox_data:
                         tmp1.setCurrentText(val)
                     tmp1.setObjectName(key)
@@ -580,7 +589,7 @@ class Ui_setini(object):
                 # 是checkbox
                 if val.lower() in ['true', 'false']:
                     tmp_1 = QtWidgets.QCheckBox()
-                    tmp_1.setChecked(True if val == 'true' else False)
+                    tmp_1.setChecked(True if val.lower() == 'true' else False)
                     tmp_1.setToolTip(tips_str)
                     tmp_1.setObjectName(key)
 

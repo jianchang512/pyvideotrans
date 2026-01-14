@@ -19,7 +19,7 @@ class SupertonicTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.model_name='Supertone/supertonic-2'
-        self.local_dir=f'{config.ROOT_DIR}/models/supertone'
+        self.local_dir=f'{config.ROOT_DIR}/models/models--Supertone--supertonic-2'
     def _exec(self):
         self._local_mul_thread()
 
@@ -45,7 +45,7 @@ class SupertonicTTS(BaseTTS):
             current_file_idx = data.get("current")
             total_files = data.get("total")
 
-            self._signal(text=f"{current_file_idx}/{total_files} files")
+            self._signal(text=f"Downloading {current_file_idx}/{total_files} files")
 
 
     def _item_task(self, data_item: dict = None):
@@ -61,10 +61,10 @@ class SupertonicTTS(BaseTTS):
 
         role=data_item.get('role','F1')
         
-        text_to_speech = load_text_to_speech(f"{config.ROOT_DIR}/models/supertone/onnx", False)
+        text_to_speech = load_text_to_speech(f"{self.local_dir}/onnx", False)
 
 
-        style = load_voice_style([f"{config.ROOT_DIR}/models/supertone/voice_styles/{role}.json"], verbose=False)
+        style = load_voice_style([f"{self.local_dir}/voice_styles/{role}.json"], verbose=False)
         wav, duration = text_to_speech(
                        data_item.get('text'), self.language[:2], style, 10, speed
                     )

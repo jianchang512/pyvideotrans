@@ -85,28 +85,29 @@ class BaseRecogn(BaseCon):
     def _vad_split(self):
         _st = time.time()
         _vad_type = config.settings.get('vad_type', 'tenvad')
-        title=f'[VAD:{_vad_type}] split audio...'
+        title=f'VAD:{_vad_type} split audio...'
         self._signal(text=title)
         # 重新拉取最新值
         settings=config.parse_init()
 
         _threshold = float(settings.get('threshold', 0.5))
-        # 不得低于200
-        _min_speech = max(int(settings.get('min_speech_duration_ms', 1000)),200)
-        # 最长不得大于30s
-        _max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000),30000)
-        # 不得低于100ms
-        _min_silence = max(int(settings.get('min_silence_duration_ms', 600)),100)
-        # 如果是2次识别，均减半，以便生成简短的字幕
+        _min_speech = max(int(settings.get('min_speech_duration_ms', 1000)),0)
+        # ten-vad不得低于500ms
+        if _vad_type=='tenvad':
+            _min_speech=max(_min_speech,500)
+        # 最长不得大于30s,并且不得小于 _min_speech
+        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000),30000),_min_speech+1000)
+        # 静音阈值不得低于50ms
+        _min_silence = max(int(settings.get('min_silence_duration_ms', 600)),50)
         if self.recogn2pass:
-            # 不可低于500ms
-            _min_speech=max(200,_min_speech//2)
+            # 2次识别，均减半，以便生成简短的字幕
+            _min_speech=max(0,_min_speech//2)
             # 不可低于 _min_speech 并且不可大于3000ms
-            _max_speech=max(min(3000,_max_speech//2),_min_speech+1)
-            # 不可大于1000ms，并且不可小于100ms
-            _min_silence=max(min(1000,_min_silence//2),100)
+            _max_speech=max(min(3000,_max_speech//2),_min_speech+1000)
+            # 不可大于1000ms，并且不可小于50ms
+            _min_silence=max(min(1000,_min_silence//2),50)
 
-        config.logger.debug(f'[VAD:{_vad_type}]')
+        config.logger.debug(f'[Before VAD {_vad_type}][{self.recogn2pass=}],{_min_speech=}ms,{_max_speech=}ms,{_min_silence=}ms')
         kw={
             "input_wav":self.audio_file,
             "threshold":_threshold,
@@ -138,6 +139,8 @@ class BaseRecogn(BaseCon):
         try:
             srt_list = []
             res=self._exec()
+            if not res:
+                raise RuntimeError('Unknow error')
             for i, it in enumerate(res):
                 text = it['text'].strip()
                 # 移除无效字幕行,全部由符号组成的行

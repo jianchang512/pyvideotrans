@@ -84,24 +84,16 @@ class Ui_MainWindow(object):
         self.only_out_mp4.setToolTip(tr('only_out_mp4'))
         
         self.shutdown = QtWidgets.QCheckBox()
-        
         self.shutdown.setObjectName("shutdown")
         self.shutdown.setToolTip(
             tr("Automatic shutdown after completing all tasks"))
         self.shutdown.setText(tr("Automatic shutdown"))
         self.shutdown.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
-
         self.horizontalLayout_6.addStretch()
-
-
         self.horizontalLayout_6.addWidget(self.btn_save_dir)
         self.horizontalLayout_6.addWidget(self.copysrt_rawvideo)
         self.horizontalLayout_6.addWidget(self.only_out_mp4)
         self.horizontalLayout_6.addWidget(self.shutdown)
-        
-         
-        
-
         self.verticalLayout_3.addLayout(self.horizontalLayout_6)
 
 
@@ -133,10 +125,6 @@ class Ui_MainWindow(object):
         self.model_name.setMaximumWidth(160)
         self.model_name.setObjectName("model_name")
 
-
-
-
-
         self.rephrase = QtWidgets.QComboBox()
         self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase")])
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
@@ -144,28 +132,27 @@ class Ui_MainWindow(object):
        
         
 
-        self.label_2 = QtWidgets.QPushButton(self.layoutWidget)
-        self.label_2.setStyleSheet("""background-color:transparent""")
-        self.label_2.setObjectName("label_2")
-        self.source_language = QtWidgets.QComboBox(self.layoutWidget)
-        self.source_language.setObjectName("source_language")
+
         
         self.remove_noise = QtWidgets.QCheckBox()
         self.remove_noise.setText(tr("Noise reduction"))
         self.remove_noise.setToolTip(
             tr("Select to perform noise reduction processing from modelscope.cn, which takes a long time"))
 
+        self.recogn2pass = QtWidgets.QCheckBox()
+        self.recogn2pass.setToolTip(tr("Secondary speech recognition of dubbing files"))
+        self.recogn2pass.setText(tr("STT again"))
+
         
 
         self.horizontalLayout_4.addWidget(self.reglabel)
         self.horizontalLayout_4.addWidget(self.recogn_type)
-        self.horizontalLayout_4.addWidget(self.label_2)
-        self.horizontalLayout_4.addWidget(self.source_language)
         self.horizontalLayout_4.addWidget(self.model_name_help)
         self.horizontalLayout_4.addWidget(self.model_name)
         
         self.horizontalLayout_4.addWidget(self.rephrase)
         self.horizontalLayout_4.addWidget(self.remove_noise)
+        self.horizontalLayout_4.addWidget(self.recogn2pass)
         self.horizontalLayout_4.addStretch()
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
@@ -196,8 +183,12 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.label_9)
         self.horizontalLayout_5.addWidget(self.translate_type)
 
-        # 原始语言 目标语言 start
 
+        self.label_2 = QtWidgets.QPushButton(self.layoutWidget)
+        self.label_2.setStyleSheet("""background-color:transparent""")
+        self.label_2.setObjectName("label_2")
+        self.source_language = QtWidgets.QComboBox(self.layoutWidget)
+        self.source_language.setObjectName("source_language")
 
         self.label_3 = QtWidgets.QPushButton(self.layoutWidget)
         self.label_3.setMinimumSize(QtCore.QSize(0, 30))
@@ -213,16 +204,16 @@ class Ui_MainWindow(object):
         self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
 
         self.glossary = QtWidgets.QPushButton(self.layoutWidget)
-        self.glossary.setMinimumSize(QtCore.QSize(0, 30))
+        # self.glossary.setMinimumSize(QtCore.QSize(0, 30))
         self.glossary.setObjectName("glossary")
         self.glossary.setText(tr("glossary"))
-        self.glossary.setStyleSheet("""background-color:transparent""")
+        self.glossary.setStyleSheet("""background-color:transparent;border:1px solid #455364""")
         self.glossary.setCursor(Qt.PointingHandCursor)
         self.glossary.setToolTip( tr("Click to set up and modify the glossary"))
         
-        
 
-
+        self.horizontalLayout_5.addWidget(self.label_2)
+        self.horizontalLayout_5.addWidget(self.source_language)
         self.horizontalLayout_5.addWidget(self.label_3)
         self.horizontalLayout_5.addWidget(self.target_language)
         self.horizontalLayout_5.addWidget(self.aisendsrt)
@@ -267,11 +258,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.voice_role)
         self.horizontalLayout.addWidget(self.listen_btn)
         self.horizontalLayout.addStretch()
-            
-
-
-        
-
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
         
@@ -304,12 +290,6 @@ class Ui_MainWindow(object):
         self.subtitle_type.setMinimumSize(QtCore.QSize(150, 30))
         self.subtitle_type.setObjectName("subtitle_type")
 
-        
-
-        
-        
-        
-
         self.align_layout.addWidget(self.align_btn)
         self.align_layout.addWidget(self.voice_autorate)
         self.align_layout.addWidget(self.video_autorate)
@@ -320,7 +300,7 @@ class Ui_MainWindow(object):
         
         
         self.set_adv_status=QtWidgets.QPushButton()
-        self.set_adv_status.setStyleSheet("background-color:transparent;border:0")
+        self.set_adv_status.setStyleSheet("background-color:transparent;border:1px solid #455364")
         self.set_adv_status.setText(tr('More settings'))
         self.set_adv_status.setCursor(Qt.PointingHandCursor)
 
@@ -418,7 +398,7 @@ class Ui_MainWindow(object):
         self.othlinenums.setObjectName("othlinenums")
         self.othlinenums.setValue(int(config.settings.get('other_len', 60)))
         self.set_ass=QtWidgets.QPushButton()
-        self.set_ass.setStyleSheet("background-color:transparent;border:0")
+        self.set_ass.setStyleSheet("background-color:transparent;border:1px solid #455364")
         self.set_ass.setText(tr('Modify hard subtitle style'))
         self.set_ass.setCursor(Qt.PointingHandCursor)
         self.set_ass.setVisible(False)
@@ -434,7 +414,6 @@ class Ui_MainWindow(object):
         
         # 语音识别精细调整行
         self.hfaster_layout = QtWidgets.QHBoxLayout()
-
         self.threshold_label = QtWidgets.QLabel()
         self.threshold_label.setText(tr("threshold"))
         self.threshold_label.setVisible(False)
@@ -496,9 +475,6 @@ class Ui_MainWindow(object):
         self.fix_punc.setToolTip(tr("Restoring punctuation marks when Chinese & English"))
         self.fix_punc.setText(tr("Restoring punct"))
 
-        self.recogn2pass = QtWidgets.QCheckBox()
-        self.recogn2pass.setToolTip(tr("Secondary speech recognition of dubbing files"))
-        self.recogn2pass.setText(tr("STT again"))
 
         self.nums_diariz = QtWidgets.QComboBox()
         self.nums_diariz.setToolTip(tr("Specifying the number of speakers"))
@@ -507,7 +483,6 @@ class Ui_MainWindow(object):
         
 
         self.hfaster_layout.addWidget(self.fix_punc)
-        self.hfaster_layout.addWidget(self.recogn2pass)
         self.hfaster_layout.addWidget(self.enable_diariz)
         self.hfaster_layout.addWidget(self.nums_diariz)
         self.hfaster_layout.addStretch()

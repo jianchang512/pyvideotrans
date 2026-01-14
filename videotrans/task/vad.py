@@ -54,7 +54,11 @@ def get_speech_timestamp_silero(input_wav,
                          min_speech_duration_ms=None,
                          max_speech_duration_ms=None,
                          min_silent_duration_ms=None):
-        config.logger.debug(f'[silero-VAD]VAD断句参数：{threshold=},{min_speech_duration_ms=},{max_speech_duration_ms=},{min_silent_duration_ms=}')
+        # 防止填写错误
+        min_speech_duration_ms=max(min_speech_duration_ms,0)
+        min_silent_duration_ms=max(min_silent_duration_ms,50)
+        max_speech_duration_ms=min(max(max_speech_duration_ms,min_speech_duration_ms+1000),30000)
+        config.logger.debug(f'[silero-VAD]Fix:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
 
         sampling_rate = 16000
         from faster_whisper.audio import decode_audio
@@ -94,8 +98,10 @@ def get_speech_timestamp(input_wav=None,
                          min_speech_duration_ms=None,
                          max_speech_duration_ms=None,
                          min_silent_duration_ms=None):
-    
-    config.logger.debug(f'[Ten-VAD]VAD断句参数：{threshold=},{min_speech_duration_ms=},{max_speech_duration_ms=},{min_silent_duration_ms=}')
+    # 限定范围
+    min_speech_duration_ms=max(250,min_speech_duration_ms)#最短语音时长不得低于250ms
+    min_silent_duration_ms=max(50,min_silent_duration_ms)#切割的静音阈值，不得低于50ms
+    config.logger.debug(f'[Ten-VAD]Fix after:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
     frame_duration_ms = 16
     hop_size = 256
     st_=time.time()
@@ -241,11 +247,6 @@ def get_speech_timestamp(input_wav=None,
             else:
                 check_1.append(it)
     config.logger.debug(f'[Ten-VAD]切分合并共用时:{int(time.time()-st_)}s')
-    tmp_dir=f'{config.TEMP_ROOT}/{os.getpid()}'
-    try:
-        shutil.rmtree(tmp_dir,ignore_errors=True)
-    except:
-        pass
     return check_1,None
 
 def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=None):

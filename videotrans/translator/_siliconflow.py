@@ -42,7 +42,8 @@ class SILICONFLOW(BaseTrans):
                 'content':'You are a top-tier Subtitle Translation Engine.'},
             {
                 'role': 'user',
-                'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
+                'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+            },
         ]
 
         config.logger.debug(f"\n[siliconflow]发送请求数据:{message=}")
@@ -51,7 +52,9 @@ class SILICONFLOW(BaseTrans):
         response = model.chat.completions.create(
             model=self.model_name,
             messages=message,
-            max_tokens=int(config.params.get('guiji_max_tokens',4096))
+            frequency_penalty=0,
+            temperature=float(config.settings.get('aitrans_temperature',0.2)),
+            max_tokens=int(config.params.get('guiji_max_tokens',8192))
         )
 
         config.logger.debug(f'[siliconflow]响应:{response=}')

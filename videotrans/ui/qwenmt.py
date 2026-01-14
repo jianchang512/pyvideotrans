@@ -99,8 +99,7 @@ class Ui_qwenmtform(object):
         self.template = QtWidgets.QPlainTextEdit()
         self.template.setObjectName("template")
         self.template.setReadOnly(True)
-        self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it",
-                                            'bailian' if config.defaulelang == 'zh' else 'bailian-en'))
+        self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'bailian', 'bailian' ))
 
         v1.addWidget(self.template)
 

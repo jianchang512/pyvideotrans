@@ -30,13 +30,9 @@ class DeepSeek(BaseTrans):
         self.model_name = config.params.get('deepseek_model', "deepseek-chat")
         self.api_url = 'https://api.deepseek.com/v1/'
 
-        self.prompt = tools.get_prompt(ainame='deepseek',aisendsrt=self.aisendsrt).replace('{lang}',
-                                                                                      self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='deepseek',aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name)
         self.api_key = config.params.get('deepseek_key', '')
 
-    #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-    #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-    #       after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
@@ -46,7 +42,8 @@ class DeepSeek(BaseTrans):
                 'content': 'You are a top-tier Subtitle Translation Engine.'},
             {
                 'role': 'user',
-                'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
+                'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+            },
         ]
 
         config.logger.debug(f"\n[deepseek]发送请求数据:{message=}")
@@ -55,7 +52,9 @@ class DeepSeek(BaseTrans):
         response = model.chat.completions.create(
             model=self.model_name,
             messages=message,
+            frequency_penalty=0,
             timeout=300,
+            temperature=float(config.settings.get('aitrans_temperature',0.2)),
             max_tokens=8192 if not self.model_name.startswith('deepseek-reasoner') else 65536
         )
 

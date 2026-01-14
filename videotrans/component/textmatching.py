@@ -195,7 +195,7 @@ class AlignmentWorker(QThread):
                             'start': word.start + (i * char_duration),
                             'end': word.start + ((i + 1) * char_duration)
                         })
-            Path("test.ceshi.log").write_text("\n".join(text_list))
+
             self.log_signal.emit(tr("status_extracted", len(whisper_chars)))
 
             target_chars_map = []
@@ -316,6 +316,7 @@ class AlignmentWorker(QThread):
         msg_type = data.get("type")
         percent = data.get("percent")
         filename = data.get("filename")
+        print(f'{data=}')
 
         if msg_type == "file":
             self.log_signal.emit(f"Downloading {filename} {percent:.2f}%")

@@ -45,13 +45,16 @@ class AzureGPT(BaseTrans):
             {'role': 'system',
              'content': 'You are a top-tier Subtitle Translation Engine.'},
             {'role': 'user',
-             'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
+             'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+             },
         ]
 
         config.logger.debug(f"\n[AzureGPT]请求数据:{message=}")
         response = model.chat.completions.create(
             model=config.params.get("azure_model",''),
-            messages=message
+            messages=message,
+            frequency_penalty=0,
+            temperature=float(config.settings.get('aitrans_temperature',0.2)),
         )
         config.logger.debug(f'[AzureGPT]返回响应:{response=}')
         if not hasattr(response,'choices'):

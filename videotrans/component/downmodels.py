@@ -143,8 +143,6 @@ class DownloadWorker(QThread):
         try:
             if config.proxy:
                 os.environ['HTTPS_PROXY']=config.proxy
-            print(os.environ.get('HTTPS_PROXY'))
-            print(os.environ.get('NO_PROXY'))
             import requests
 
             # 1. 解析任务类型
@@ -431,7 +429,7 @@ class TaskWidget(QFrame):
 # ==========================================
 # 3. 主窗口
 # ==========================================
-class MainWindow(QWidget):
+class DownmodelsWindow(QWidget):
     def __init__(self,init_name=None):
         super().__init__()
         self.setWindowTitle(TRANS["app_title"])
@@ -711,42 +709,37 @@ class MainWindow(QWidget):
         self.content_layout = QVBoxLayout(content_widget)
         self.content_layout.setSpacing(5)
 
-        # --- 辅助函数：添加分节标题 ---
-        
-        
-        def add_section_header(text):
-            lbl = QLabel(text)
-            lbl.setWordWrap(True)
-            lbl.setStyleSheet("padding: 8px; font-weight: bold; font-size:14px; color: #fff; margin-top: 10px; border-radius: 4px;")
-            self.content_layout.addWidget(lbl)
 
         # 添加第一组：TTS & ZIP
-        add_section_header(TRANS["section_tts"])
+        self._add_section_header(TRANS["section_tts"])
         for task in self.tasks_zip:
             t=TaskWidget(task)
             self.task_obj[task['zip_folder']]=t
             self.content_layout.addWidget(t)
-        
-        
-        add_section_header(TRANS["section_faster"])
-        '''
-        def _second_init():
-            # 添加第二组：OpenAI Whisper
-            
-            add_section_header(TRANS["section_openai"])
-            for task in self.tasks_openai:
-                t=TaskWidget(task)
-                self.task_obj[task['name']]=t
-                content_layout.addWidget(t)
-        '''
-            
-        
+
+        self._add_section_header(TRANS["section_openai"])
         scroll.setWidget(content_widget)
         outer_layout.addWidget(scroll)
-        #QTimer.singleShot(200,_second_init)
+        self.show()
+        QTimer.singleShot(500,self._second_init)
+
+    def _second_init(self):
+        for task in self.tasks_openai:
+            t=TaskWidget(task)
+            self.task_obj[task['name']]=t
+            self.content_layout.addWidget(t)
+
+        self._add_section_header(TRANS["section_faster"])
+        for task in self.tasks_faster:
+            t=TaskWidget(task)
+            self.task_obj[task['name']]=t
+            self.content_layout.addWidget(t)
+
+            self.content_layout.addStretch() # 底部弹簧
 
     def auto_start(self,zip_folder=None):
         if zip_folder and zip_folder in self.task_obj and hasattr(self.task_obj[zip_folder],'toggle_download'):
+            print(f'{zip_folder=}')
             self.task_obj[zip_folder].toggle_download(True)
     
     def refresh_data(self):
@@ -767,15 +760,7 @@ class MainWindow(QWidget):
         """
         super().showEvent(event)
         
-        if self.show_num==1:        
-            # 添加组：Faster Whisper
-            for task in self.tasks_faster:
-                t=TaskWidget(task)
-                self.task_obj[task['name']]=t
-                self.content_layout.addWidget(t)
-
-            self.content_layout.addStretch() # 底部弹簧
-        else:
+        if self.show_num>1:
             self.refresh_data()
 
     
@@ -787,6 +772,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion") 
 
-    window = MainWindow()
+    window = DownmodelsWindow()
     window.show()
     sys.exit(app.exec())

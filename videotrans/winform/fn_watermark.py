@@ -86,7 +86,7 @@ def openwin():
 
                 position = positions[self.pos]
                 protxt = config.TEMP_DIR + f'/jd{time.time()}.txt'
-                threading.Thread(target=self.hebing_pro,args=(protxt,duration)).start()
+                threading.Thread(target=self.hebing_pro,args=(protxt,duration),daemon=True).start()
 
                 # 构建 FFmpeg 命令
                 ffmpeg_command = [

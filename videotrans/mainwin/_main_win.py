@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication,  Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMessageBox, QMainWindow, QPushButton, QToolBar, QSizePolicy, QApplication
@@ -15,7 +17,7 @@ from videotrans.configure import config
 from videotrans import VERSION
 from videotrans.ui.en import Ui_MainWindow
 from videotrans.translator import TRANSLASTE_NAME_LIST, LANGNAME_DICT
-from videotrans.component.downmodels import MainWindow as downwin
+from videotrans.component.downmodels import DownmodelsWindow
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 
 import huggingface_hub
@@ -97,6 +99,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config.tr('softsubtitle2')
             ])
         self.uito.emit('load subtitles area...')
+        Path(config.HOME_DIR).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(exist_ok=True, parents=True)
         QTimer.singleShot(200, self._set_Ui_Text)
 
     def _set_Ui_Text(self):
@@ -632,12 +636,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(
                 f'Ubuntu: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm')
 
-        QApplication.processEvents()
-        self.uito.emit('preload model window')
-        config.child_forms['downmodels'] = downwin()
-        self.uito.emit('end')
         if config.settings.get('show_more_settings'):
             self.win_action.toggle_adv()
+        QApplication.processEvents()
+        self.uito.emit('end')
 
     # 打开缓慢
     def _open_winform(self, name, extra_name=None):
@@ -671,7 +673,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         if name == 'downmodels':
-            window = downwin()
+            window = DownmodelsWindow()
             config.child_forms[name] = window
             window.show()
             if extra_name:
@@ -820,7 +822,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for thread in self.worker_threads:
             if thread and thread.isRunning():
                 print(f"正在等待线程 {thread.name} 结束...")
-                thread.quit()
+                thread.terminate()
                 thread.wait(5000)
 
         try:

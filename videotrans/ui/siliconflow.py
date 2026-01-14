@@ -108,7 +108,7 @@ class Ui_siliconflowform(object):
         h4.addWidget(self.test)
         h4.addWidget(help_btn)
         v1.addLayout(h4)
-        self.template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'siliconflow' if config.defaulelang=='zh' else 'siliconflow-en')))
+        self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'siliconflow', 'siliconflow'))
 
         self.retranslateUi(siliconflowform)
         QtCore.QMetaObject.connectSlotsByName(siliconflowform)

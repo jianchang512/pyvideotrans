@@ -263,8 +263,7 @@ def openwin():
                         config.settings.get('preset','fast'),
                         self.file
                     ]
-                print(cmd)
-                threading.Thread(target=self.hebing_pro,args=(protxt,self.video_time)).start()
+                threading.Thread(target=self.hebing_pro,args=(protxt,self.video_time),daemon=True).start()
                 tools.runffmpeg(cmd,force_cpu=False)
                 self.post(type='ok', text=self.file)
                 self.is_end=True

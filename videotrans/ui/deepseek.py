@@ -97,7 +97,7 @@ class Ui_deepseekform(object):
         h4.addWidget(self.test)
         h4.addWidget(help_btn)
         v1.addLayout(h4)
-        self.template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'deepseek' if config.defaulelang=='zh' else 'deepseek-en')))
+        self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'deepseek', 'deepseek'))
 
         self.retranslateUi(deepseekform)
         QtCore.QMetaObject.connectSlotsByName(deepseekform)

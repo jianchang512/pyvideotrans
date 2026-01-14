@@ -77,7 +77,7 @@ class Ui_ai302form(object):
         self.ai302_template = QtWidgets.QPlainTextEdit()
         self.ai302_template.setObjectName("ai302_template")
         self.ai302_template.setReadOnly(True)
-        self.ai302_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'ai302' if config.defaulelang=='zh' else 'ai302-en'))
+        self.ai302_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'ai302','ai302'))
         v1.addWidget(self.ai302_template)
 
         h3 = QtWidgets.QHBoxLayout()

@@ -37,12 +37,12 @@ def _convert_to_wav(mp3_file_path, output_wav_file_path):
     return True
 
 #用于多进程
-def _t(it,device='cpu',rate=1.0,language="zh"):
+def _t(it,device='cpu',rate=1.0):
     if not it.get('text','').strip():
         return
     sid=0
     role=it.get('role','')
-    print(f'{role=}')
+    tts_config=None
     if role=='en_female':# matcha english
         tts_config = sherpa_onnx.OfflineTtsConfig(
             model=sherpa_onnx.OfflineTtsModelConfig(
@@ -124,16 +124,12 @@ def _t(it,device='cpu',rate=1.0,language="zh"):
                 rule_fsts=f"{config.ROOT_DIR}/models/vits/zh_aishell/date.fst,{config.ROOT_DIR}/models/vits/zh_aishell/number.fst,{config.ROOT_DIR}/models/vits/zh_aishell/phone.fst,{config.ROOT_DIR}/models/vits/zh_aishell/new_heteronym.fst",
                 max_num_sentences=1,
             )
-    if not tts_config.validate():
+    if not tts_config or not tts_config.validate():
         raise ValueError("Please check your config")
 
     tts = sherpa_onnx.OfflineTts(tts_config)
-
-    start = time.time()
     
-    
-    audio = tts.generate(it['text'], sid=sid, speed=rate)
-
+    audio = tts.generate(it['text'], sid=sid, speed=float(rate))
 
     if len(audio.samples) == 0:
         print("Error in generating audios. Please read previous error messages.")
@@ -156,20 +152,25 @@ def _t(it,device='cpu',rate=1.0,language="zh"):
 class VitsCNEN(BaseTTS):
 
     def __post_init__(self):
-
         super().__post_init__()
         self.rate=1+float(self.rate.replace('%',''))/100
         self.device="cpu" #todo cuda
 
 
-        
-        
+    def _download(self):
+        if not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
+            tools.down_zip(f"{config.ROOT_DIR}/models",'https://modelscope.cn/models/himyworld/videotrans/resolve/master/vits-tts.zip',self._process_callback)
+        return True
+
+    def _process_callback(self,msg):
+        self._signal(text=msg)
+
     def _exec(self):
 
         all_task=[]
         with ProcessPoolExecutor(max_workers=min(max(2,int(config.settings.get('dubbing_thread',1))),len(self.queue_tts),os.cpu_count())) as pool:
             for item in self.queue_tts:
-                all_task.append(pool.submit(_t, item,self.device,self.rate,self.language))
+                all_task.append(pool.submit(_t, item,self.device,self.rate))
             completed_tasks = 0
             for task in all_task:
                 try:

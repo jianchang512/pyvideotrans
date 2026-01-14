@@ -113,7 +113,7 @@ class Ui_azureform(object):
         h5.addWidget(help_btn)
 
         v1.addLayout(h5)
-        self.azure_template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'azure' if config.defaulelang=='zh' else 'azure-en')))
+        self.azure_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'azure', 'azure'))
 
         self.retranslateUi(azureform)
         QtCore.QMetaObject.connectSlotsByName(azureform)

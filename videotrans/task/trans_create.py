@@ -153,7 +153,7 @@ class TransCreate(BaseTask):
                 if self._exit(): return
                 time.sleep(1)
                 self._signal(text=f"{int(time.time() - t)}???{self.precent}", type="set_precent")
-        threading.Thread(target=runing).start()
+        threading.Thread(target=runing,daemon=True).start()
 
     # 1. 预处理，分离音视频、分离人声等
     def prepare(self) -> None:
@@ -1253,7 +1253,7 @@ class TransCreate(BaseTask):
                         pass
                     finally:
                         output_source_output=True
-                threading.Thread(target=_output).start()
+                threading.Thread(target=_output,daemon=True).start()
             except Exception:
                 pass
             # 二次识别
@@ -1264,7 +1264,7 @@ class TransCreate(BaseTask):
             # 重新嵌入分离出的背景音
             self._separate()
             protxt = config.TEMP_DIR + f"/wav-m4a-{time.time()}.txt"
-            threading.Thread(target=self._hebing_pro,args=(protxt,self.video_time)).start()
+            threading.Thread(target=self._hebing_pro,args=(protxt,self.video_time),daemon=True).start()
             tools.runffmpeg([
                 "-y",
                 "-progress",
@@ -1298,7 +1298,7 @@ class TransCreate(BaseTask):
             #先导出到临时目录，防止包含各种奇怪符号的targetdir_mp4导致ffmpeg失败
             tmp_target_mp4=self.cfg.cache_folder+f"/laste_target.mp4"
             protxt = self.cfg.cache_folder + f"/compose{time.time()}.txt"
-            threading.Thread(target=self._hebing_pro,args=(protxt,self.video_time)).start()
+            threading.Thread(target=self._hebing_pro,args=(protxt,self.video_time),daemon=True).start()
             self._signal(text=config.tr("Video + Subtitles + Dubbing in merge"))
             cmd = []
             is_copy_mode = (str(self.video_codec_num) == '264')

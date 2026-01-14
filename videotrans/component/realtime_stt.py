@@ -173,7 +173,7 @@ def create_recognizer():
         tokens=tokens,
         encoder=encoder,
         decoder=decoder,
-        num_threads=2,
+        num_threads=4,
         sample_rate=16000,
         feature_dim=80,
         enable_endpoint_detection=True,
@@ -355,24 +355,14 @@ class RealTimeWindow(QWidget):
         QTimer.singleShot(300, self.populate_mics)
         
     
-    def _show_downloadmodel(self):
-        from videotrans.component.downmodels import MainWindow as downwin
-        w = cfg.child_forms.get('downmodels')
-        if w:
-            w.show()
-            w.activateWindow()
-            w.auto_start('onnx')
-            return
-        
-        w=downwin()
-        cfg.child_forms['downmodels']=w
-        w.show()
-        w.auto_start('onnx')
-    
+
+    def _process_callback(self,msg):
+        self.realtime_text.setPlainText(msg)
+
     def check_model_exist(self):
         if not Path(PAR_ENCODER).exists() or not Path(CTC_MODEL_FILE).exists() or not Path(PAR_DECODER).exists():
-            self._show_downloadmodel()
-            #tools.show_download_tips(self,cfg.tr('Real-time speech-to-text'))
+            import tools
+            tools.down_zip(f"{cfg.ROOT_DIR}/models",'https://modelscope.cn/models/himyworld/videotrans/resolve/master/realtimestt.zip',self._process_callback)
             return False
         return True
         

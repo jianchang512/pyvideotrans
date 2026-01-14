@@ -117,7 +117,7 @@ class Ui_chatgptform(object):
         h4.addWidget(self.test_chatgpt)
         h4.addWidget(help_btn)
         v1.addLayout(h4)
-        self.chatgpt_template.setPlainText((tr("Prompt: Please open the {} file directly to modify it", 'chatgpt' if config.defaulelang=='zh' else 'chatgpt-en')))
+        self.chatgpt_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'chatgpt', 'chatgpt'))
 
         self.retranslateUi(chatgptform)
         QtCore.QMetaObject.connectSlotsByName(chatgptform)

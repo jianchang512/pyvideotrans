@@ -52,9 +52,9 @@ TEMP_ROOT = f'{ROOT_DIR}/tmp'
 TEMP_DIR = f'{TEMP_ROOT}/{os.getpid()}'
 # 家目录
 HOME_DIR = ROOT_DIR + "/output"
-Path(TEMP_DIR).mkdir(exist_ok=True, parents=True)
-Path(f'{TEMP_ROOT}/translate_cache').mkdir(exist_ok=True, parents=True)
+
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
+Path(f'{TEMP_ROOT}/translate_cache').mkdir(exist_ok=True, parents=True)
 
 # 日志
 logger = logging.getLogger('VideoTrans')
@@ -169,6 +169,9 @@ def parse_init(update_data=None):
         "video_codec": 265,
 
         "noise_separate_nums": 4,
+        
+        "aitrans_temperature":0.2,
+        "aitrans_context":False,
 
         "batch_single": False,
 
@@ -199,7 +202,7 @@ def parse_init(update_data=None):
         "min_silence_duration_ms": 600,
         "no_speech_threshold": 0.5,
 
-        "batch_size": 8,
+        "batch_size": 4,
         "merge_short_sub": True,
 
         "vad_type": "tenvad",  # tenvad silero
@@ -326,14 +329,13 @@ if proxy:
 
 # 根据已保存的配置更新 HOME_DIR
 HOME_DIR = settings.get('homedir', HOME_DIR)
-Path(HOME_DIR).mkdir(parents=True, exist_ok=True)
 
 # 语言界面
 try:
-    defaulelang = os.environ.get('PYVIDEOTRANS_LANG')
+    defaulelang = os.environ.get('PYVIDEOTRANS_LANG',settings.get('lang'))
     if not defaulelang:
-        defaulelang = settings.get('lang', QLocale.system().name()[:2].lower())
-except Exception:
+        defaulelang=QLocale.system().name()[:2].lower()
+except:
     defaulelang = "zh"
 
 
@@ -418,8 +420,6 @@ def getset_params(obj=None):
         "chatgpt_key": "",
         "chatgpt_max_token": "8192",
         "chatgpt_model": _chatgpt_model_list[0],
-        "chatgpt_temperature": "1.0",
-        "chatgpt_top_p": "1.0",
         "claude_api": "",
         "claude_key": "",
         "claude_model": _claude_model_list[0],
@@ -437,14 +437,12 @@ def getset_params(obj=None):
         "localllm_key": "",
         "localllm_model": _localllm_model_list[0],
         "localllm_max_token": "4096",
-        "localllm_temperature": "1.0",
-        "localllm_top_p": "1.0",
         "zhipu_key": "",
         "zhipu_model": _zhipuai_model_list[0],
         "zhipu_max_token": "98304",
         "guiji_key": "",
         "guiji_model": _guiji_model_list[0],
-        "guiji_max_token": "4096",
+        "guiji_max_token": "8192",
         "deepseek_key": "",
         "deepseek_model": _deepseek_model_list[0],
         "deepseek_max_token": "8192",
@@ -462,6 +460,8 @@ def getset_params(obj=None):
         "ai302_key": "",
         "ai302_model": "",
         "ai302_model_recogn": "whisper-1",
+        
+        
 
         "whipserx_api": "http://127.0.0.1:9092",
 
@@ -572,6 +572,7 @@ def getset_params(obj=None):
         "dubb_hecheng_rate": 0,
         "dubb_pitch_rate": 0,
         "dubb_volume_rate": 0,
+        "recogn2pass":True
     }
     try:
         if Path(ROOT_DIR + "/videotrans/params.json").exists():
@@ -586,6 +587,10 @@ def getset_params(obj=None):
 
 params = getset_params()
 
+if not settings.get('lang'):
+    settings['lang']=defaulelang
+    settings = parse_init(settings)
+    
 
 def push_queue(uuid, jsondata):
     if exit_soft or uuid in stoped_uuid_set:

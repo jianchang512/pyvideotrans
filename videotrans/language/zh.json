@@ -735,7 +735,7 @@
     "Configure Alibaba Bailian Qwen-MT model or other text models or Qwen3-ASR speech recognition model here": "在这配置阿里百炼的Qwen-MT模型或其他文本模型或 Qwen3-ASR语音识别模型",
     "Selecting an Inference Access Point": "选择推理接入点",
     "Fill in all inference access points, and you can select them above": "填写所有推理接入点，填写后可在上方选择",
-    "Prompt: Please open the {} file directly to modify it": "字幕翻译提示词请直接打开 软件目录/videotrans/prompts 文件夹修改，\n\n【软件目录/videotrans/prompts/srt/】存放的是选中【发送完整字幕】时的提示词，\n【软件目录/videotrans/prompts/text/】存放的是未选中时的提示词\n当前渠道所用提示词文件是:【{}.txt】",
+    "Prompt: Please open the {} file directly to modify it": "选中【发送完整字幕】时的提示词:[软件目录/videotrans/prompts/srt/{}.txt]\n未选中时的提示词:[软件目录/videotrans/prompts/text/{}.txt]",
     "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "将参考音频放在软件根目录下的 chatterbox 文件夹中，填写参考音频名称带后缀，例如 123.mp3,一行一个",
     "Reference audio does not exist: {} Please make sure the audio exists": "参考音频 {} 不存在，请检查",
 	"API minimax":".com国内/.io国际(两者不互通)",
@@ -885,7 +885,7 @@
     "Retry failed": "重试失败",
 	"only_out_mp4":"默认将输出srt/音频等中间素材，选中将仅输出MP4",
 	"Output only mp4":"仅输出mp4",
-	"model is missing. Please download it":"配音模型下载地址已复制到剪贴板内，请到浏览器地址栏中粘贴下载\n\n下载完成后解压，会看到1个文件夹，将他们复制到 【{}】 目录内即可。",
+	"model is missing. Please download it":"模型下载地址已复制到剪贴板内，请到浏览器地址栏中粘贴下载\n\n下载完成后解压，会看到1个文件夹，将他们复制到 【{}】 目录内即可。",
 	"Local":"本地",
 	"Built-in":"内置",
     "win-forbid-name": "Windows系统中，文件名不允许使用这些符号【 {} 】,某些下载工具可能会创建不符合Windows规则的文件名,请修改后重试。",
@@ -933,5 +933,6 @@
 	"nosaveandstep":"不保存只继续",
 	"opendir_button source_sub":"打开字幕文件夹",
 	"bubaocunshuoming":"如果你在字幕文件夹内，手动或使用其他工具修改了\n[{}] 字幕文件，请点此按钮",
-    "Only support": "仅支持 "
+    "Only support": "仅支持 ",
+    "may be insufficient memory": "出错了，可能内存或显存不足，请尝试在高级选项中将 faster-whisper批次大小改为1"
 }

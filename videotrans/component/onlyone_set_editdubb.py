@@ -716,7 +716,7 @@ class EditDubbingResultDialog(QDialog):
         if not tools.vail_file(filename):
             QMessageBox.information(self, tr("The audio file does not exist"), tr("The audio file does not exist"))
             return
-        threading.Thread(target=tools.pygameaudio, args=(filename,)).start()
+        threading.Thread(target=tools.pygameaudio, args=(filename,),daemon=True).start()
 
     def re_dubb(self, i):
         self.stop_countdown()
@@ -751,7 +751,7 @@ class EditDubbingResultDialog(QDialog):
                 item['dubbing_s'] = 0.0
 
             self.model.refresh_item(idx)
-            threading.Thread(target=tools.pygameaudio, args=(item['filename'],)).start()
+            threading.Thread(target=tools.pygameaudio, args=(item['filename'],),daemon=True).start()
         else:
             QMessageBox.information(self, 'Error', msg)
 

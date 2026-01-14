@@ -62,8 +62,10 @@ class ChatGPT(BaseTrans):
 
             response = model.chat.completions.create(
                 model=model_name,
+                frequency_penalty=0,
                 max_completion_tokens=max(int(config.params.get('chatgpt_max_token', 8192)), 8192),
                 messages=message,
+                temperature=float(config.settings.get('aitrans_temperature',0.2)),
                 timeout=300 # 超过5分钟为失败
             )
             if not hasattr(response, 'choices') or not response.choices:
@@ -86,7 +88,6 @@ class ChatGPT(BaseTrans):
 
         new_sublist = []
         for idx in range(0, len(srt_list), chunk_size):
-            print(f'===============重新断句 {self.uuid}')
             self._signal(text=f'[{idx}] {ai_type} '+tr("Re-segmenting..."))
             srt_str = "\n\n".join([f"{line+1}\n{it['time']}\n{it['text']}" for line,it in enumerate(srt_list[idx: idx + chunk_size])])
             new_sublist.append(_send(srt_str))
@@ -127,7 +128,8 @@ class ChatGPT(BaseTrans):
                 'content': 'You are a top-tier Subtitle Translation Engine.'},
             {
                 'role': 'user',
-                'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
+                'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+            },
         ]
 
         config.logger.debug(f"\n[chatGPT]发送请求数据:{message=}")
@@ -136,6 +138,8 @@ class ChatGPT(BaseTrans):
         response = model.chat.completions.create(
             model=config.params.get('chatgpt_model',''),
             timeout=300,
+            frequency_penalty=0,
+            temperature=float(config.settings.get('aitrans_temperature',0.2)),
             max_completion_tokens=int(config.params.get('chatgpt_max_token', 8192)),
             messages=message
         )

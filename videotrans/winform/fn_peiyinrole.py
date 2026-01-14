@@ -117,21 +117,6 @@ def openwin():
             winobj.hecheng_startbtn.setText(tr("zhixingwc"))
             toggle_state(False)
 
-    def show_downloadmodel(tts_name=None):
-        from videotrans.component.downmodels import MainWindow as downwin
-        w = config.child_forms.get('downmodels')
-        if w:
-            w.show()
-            w.activateWindow()
-            if tts_name: w.auto_start(tts_name)
-            return
-        
-        w=downwin()
-        config.child_forms['downmodels']=w
-        w.show()
-        if tts_name: w.auto_start(tts_name)
-
-
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
@@ -173,15 +158,7 @@ def openwin():
 
         if role == 'clone':
             return
-        if tts_type==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
-            #tools.show_download_piper(winobj)
-            show_downloadmodel('piper')
-            return
-        if tts_type==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
-            #tools.show_download_tts(winobj)
-            show_downloadmodel('vits')
-            return
-        
+
         raw_text=winobj.listen_btn.text()
         def feed(d):
             winobj.listen_btn.setDisabled(False)
@@ -212,14 +189,7 @@ def openwin():
         role = winobj.hecheng_role.currentText()  # Default role
         rate = int(winobj.hecheng_rate.value())
         tts_type = winobj.tts_type.currentIndex()
-        if tts_type==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/matcha/zh_en/model.onnx').exists():
-            #tools.show_download_tts(winobj)
-            show_downloadmodel('vits')
-            return
-        if tts_type==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
-            #tools.show_download_piper(winobj)
-            show_downloadmodel('piper')
-            return
+
         if language == '-' or role in ['No', '-', '']:
             return tools.show_error(tr("A default role must be selected"))
 

@@ -52,9 +52,7 @@ class FasterAll(BaseRecogn):
             local_dir += self.model_name.replace('/', '--')
         self.local_dir = local_dir
         self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
-        # 切分
-        if int(config.settings.get('batch_size', 8))>1:
-            self._vad_split()
+
 
     def _exec(self):
         if self._exit():
@@ -66,12 +64,18 @@ class FasterAll(BaseRecogn):
         else:
             raws = self._faster()
         return raws
+
     def _download(self):
-        if self.model_name in _MODELS:
-            repo_id = _MODELS[self.model_name]
-        else:
-            repo_id = self.model_name
-        tools.get_modeldir_download(self.model_name,repo_id,self.local_dir,callback=self._progress_callback)
+        if self.recogn_type == 0 and not tools.file_exists(self.local_dir,'*.bin'):
+            if self.model_name in _MODELS:
+                repo_id = _MODELS[self.model_name]
+            else:
+                repo_id = self.model_name
+            tools.get_modeldir_download(self.model_name,repo_id,self.local_dir,callback=self._progress_callback)
+        # 切分
+        if int(config.settings.get('batch_size', 8))>1:
+            self._vad_split()
+
     def _openai(self):
         title=f'STT use {self.model_name}'
         self._signal(text=title)
@@ -152,7 +156,7 @@ class FasterAll(BaseRecogn):
     # data={type,percent,filename,current,total}
     def _progress_callback(self, data):
         msg_type = data.get("type")
-        percent = data.get("percent")
+        percent = float(data.get("percent",'0'))
         filename = data.get("filename")
 
         if msg_type == "file":
@@ -167,7 +171,7 @@ class FasterAll(BaseRecogn):
             current_file_idx = data.get("current")
             total_files = data.get("total")
 
-            self._signal(text=f"{current_file_idx}/{total_files} files")
+            self._signal(text=f"Downloading {self.model_name} {current_file_idx}/{total_files} files")
 
 
 

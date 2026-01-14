@@ -1,9 +1,4 @@
 # 语音识别，新进程执行
-import re, os, traceback, json,time
-import shutil
-from pathlib import Path
-from videotrans.configure import config
-
 # 返回元组
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
@@ -28,6 +23,10 @@ def openai_whisper(
         temperature=None,
         compression_ratio_threshold=2.2
 ):
+    import re, os, traceback, json,time
+    import shutil
+    from pathlib import Path
+    from videotrans.configure import config
     import torch
     torch.set_num_threads(1)
     import  whisper
@@ -38,7 +37,7 @@ def openai_whisper(
         msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
     else:
         msg = f"load {model_name}"
-    Path(logs_file).write_text(json.dumps({"type": "logs", "text": msg}), encoding='utf-8')
+    _write_log(logs_file,json.dumps({"type": "logs", "text": msg}))
     model = None
     raws = []
     try:
@@ -60,7 +59,7 @@ def openai_whisper(
             download_root=ROOT_DIR + "/models"
         )
         msg = f"Loaded {model_name}"
-        Path(logs_file).write_text(json.dumps({"type": "logs", "text": msg}), encoding='utf-8')
+        _write_log(logs_file,json.dumps({"type": "logs", "text": msg}))
 
         last_end_time = audio_duration/1000.0 if audio_duration>0 else  speech_timestamps[-1][1] / 1000.0
         speech_timestamps_flat = []
@@ -102,7 +101,7 @@ def openai_whisper(
             tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
             raws.append(tmp)
-            Path(logs_file).write_text(json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}), encoding='utf-8')
+            _write_log(logs_file,json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
     except Exception:
         msg=traceback.format_exc()
         config.logger.exception(f'语音识别失败:{model_name=},{msg}',exc_info=True)
@@ -117,7 +116,6 @@ def openai_whisper(
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            shutil.rmtree(f'{TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except Exception:
             pass
 
@@ -148,6 +146,11 @@ def faster_whisper(
         repetition_penalty=1.0,
         compression_ratio_threshold=2.2
 ):
+    import re, os, traceback, json,time
+    import shutil
+    from pathlib import Path
+    from videotrans.configure import config
+
     import torch
     torch.set_num_threads(1)
     from faster_whisper import WhisperModel, BatchedInferencePipeline
@@ -260,7 +263,7 @@ def faster_whisper(
             tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
             raws.append(tmp)
-            Path(logs_file).write_text(json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}), encoding='utf-8')
+            _write_log(logs_file,json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
     except Exception:
         msg=traceback.format_exc()
         config.logger.exception(f'语音识别失败:{model_name=},{msg}',exc_info=True)
@@ -277,7 +280,6 @@ def faster_whisper(
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            shutil.rmtree(f'{TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except Exception:
             pass
 
@@ -297,6 +299,11 @@ def pipe_asr(
         batch_size=8,
         jianfan=False
 ):
+    import re, os, traceback, json,time
+    import shutil
+    from pathlib import Path
+    from videotrans.configure import config
+
     import torch
     torch.set_num_threads(1)
     from transformers import pipeline
@@ -317,7 +324,7 @@ def pipe_asr(
     # 如果是单卡环境，直接传 device=0 效率通常比 device_map="auto" 稍微高一点点
     p = None
     msg = f"Loading pipeline from {local_dir}"
-    Path(logs_file).write_text(json.dumps({"type": "logs", "text": msg}), encoding='utf-8')
+    _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
     try:
         p = pipeline(
             task="automatic-speech-recognition",
@@ -328,7 +335,7 @@ def pipe_asr(
         )
 
         msg = f'Pipeline loaded on device={(p.model.device)}'
-        Path(logs_file).write_text(json.dumps({"type": "logs", "text": msg}), encoding='utf-8')
+        _write_log(logs_file,json.dumps({"type": "logs", "text": msg}))
         # 3. 动态构建 generate_kwargs
         generate_kwargs = {}
 
@@ -381,8 +388,7 @@ def pipe_asr(
         # 注意：这里我们同时遍历 raws 和 results_iterator
         # 因为 inputs_generator 是按顺序 yield 的，results_iterator 也会按顺序输出
         for i, (it, res) in enumerate(zip(raws, results_iterator)):
-            Path(logs_file).write_text(json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}),
-                                       encoding='utf-8')
+            _write_log(logs_file,json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}))
 
             text = res.get('text', '')
 
@@ -398,8 +404,7 @@ def pipe_asr(
                 raws[i]['text'] = cleaned_text
 
                 # 如果 pipeline 返回了时间戳（取决于 chunk_length_s 和 return_timestamps 参数）
-                Path(logs_file).write_text(json.dumps({"type": "subtitles", "text": f'[{i}] {cleaned_text}\n'}),
-                                           encoding='utf-8')
+                _write_log(logs_file,json.dumps({"type": "subtitles", "text": f'[{i}] {cleaned_text}\n'}))
     except Exception:
         msg=traceback.format_exc()
         config.logger.exception(f'语音识别失败:{model_name=},{msg}',exc_info=True)
@@ -412,7 +417,6 @@ def pipe_asr(
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            shutil.rmtree(f'{TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except Exception:
             pass
     return raws,None
@@ -431,6 +435,11 @@ def paraformer(
         max_speakers=-1,
         cache_folder=None
 ):
+    import re, os, traceback, json,time
+    import shutil
+    from pathlib import Path
+    from videotrans.configure import config
+
     import torch
     torch.set_num_threads(1)
     from videotrans.util import tools
@@ -444,7 +453,7 @@ def paraformer(
         msg = f'Download {model_name} from modelscope.cn'
     else:
         msg = f'Load {model_name} model'
-    Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'{msg}'}), encoding='utf-8')
+    _write_log(logs_file,json.dumps({"type": "logs", "text": f'{msg}'}))
     model = None
     device='cuda' if is_cuda else 'cpu'
     try:     
@@ -464,7 +473,7 @@ def paraformer(
         
 
         msg = "Model loading is complete, enter recognition"
-        Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'{msg}'}), encoding='utf-8')
+        _write_log(json.dumps({"type": "logs", "text": f'{msg}'}))
         num = 0
         res = inference_pipeline(audio_file)
         speaker_list = []
@@ -483,8 +492,7 @@ def paraformer(
                 "startraw": f'{tools.ms_to_time_string(ms=it["start"])}',
                 "endraw": f'{tools.ms_to_time_string(ms=it["end"])}'
             }
-            Path(logs_file).write_text(json.dumps({"type": "subtitles", "text": f'[{i}] {it["text"]}\n'}),
-                                       encoding='utf-8')
+            _write_log(json.dumps({"type": "subtitles", "text": f'[{i}] {it["text"]}\n'}))
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
             raw_subtitles.append(tmp)
         if speaker_list:
@@ -501,14 +509,21 @@ def paraformer(
                 del model
             import gc
             gc.collect()
-            shutil.rmtree(f'{TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except Exception:
             pass
 
     return raw_subtitles,None
 
+def _write_log(file,msg):
+    from pathlib import Path
+    from videotrans.configure import config
+    try:
+        Path(file).write_text(msg,encoding='utf-8')
+    except Exception as e:
+        config.logger.exception(f'写入新进程日志时出错',exc_info=True)
 
 def _remove_unwanted_characters(text: str) -> str:
+    import re
     # 保留中文、日文、韩文、英文、数字和常见符号，去除其他字符
     allowed_characters = re.compile(r'<\|\w+\|>')
     return re.sub(allowed_characters, '', text)
@@ -528,6 +543,11 @@ def funasr_mlt(
         max_speakers=-1,
         cache_folder=None
 ):
+    import re, os, traceback, json,time
+    import shutil
+    from pathlib import Path
+    from videotrans.configure import config
+
     import torch
     torch.set_num_threads(1)
     from funasr import AutoModel
@@ -538,7 +558,7 @@ def funasr_mlt(
         msg = f'Download {model_name} from modelscope.cn'
     else:
         msg = f'Load {model_name}'
-    Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'{msg}'}), encoding='utf-8')
+    _write_log(logs_file,json.dumps({"type": "logs", "text": f'{msg}'}))
 
     model = None
     device = "cuda" if is_cuda else "cpu"
@@ -572,13 +592,13 @@ def funasr_mlt(
 
             # vad
             msg = "Recognition may take a while, please be patient"
-            Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'{msg}'}), encoding='utf-8')
+            _write_log(logs_file,json.dumps({"type": "logs", "text": f'{msg}'}))
             num = 0
 
             def _show_process(ex, dx):
                 nonlocal num
                 num += 1
-                Path(logs_file).write_text(json.dumps({"type": "logs", "text": f'STT {num}'}), encoding='utf-8')
+                _write_log(logs_file,json.dumps({"type": "logs", "text": f'STT {num}'}))
 
             res = model.generate(
                 input=[it['file'] for it in srts],
@@ -591,7 +611,7 @@ def funasr_mlt(
         for i, it in enumerate(res):
             text = _remove_unwanted_characters(it['text'])
             srts[i]['text'] = text
-            Path(logs_file).write_text(json.dumps({"type": "subtitles", "text": f'[{i}] {text}\n'}), encoding='utf-8')
+            _write_log(logs_file,json.dumps({"type": "subtitles", "text": f'[{i}] {text}\n'}))
     except Exception:
         msg=traceback.format_exc()
         config.logger.exception(f'语音识别失败:{model_name=},{msg}',exc_info=True)
@@ -604,7 +624,6 @@ def funasr_mlt(
                 del model
             import gc
             gc.collect()
-            shutil.rmtree(f'{TEMP_ROOT}/{os.getpid()}', ignore_errors=True)
         except Exception:
             pass
 

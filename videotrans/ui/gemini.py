@@ -131,7 +131,7 @@ class Ui_geminiform(object):
         h3.addWidget(self.test)
         h3.addWidget(help_btn)
         v1.addLayout(h3)
-        self.gemini_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'gemini'))
+        self.gemini_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'gemini', 'gemini'))
         geminiform.setWindowTitle("Gemini AI")
         self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(geminiform)

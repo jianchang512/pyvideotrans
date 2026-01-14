@@ -21,11 +21,6 @@ def openwin():
             url = 'http://' + url
         model = winobj.localllm_model.currentText()
 
-        temperature = winobj.localllm_temperature.text().strip()
-        top_p = winobj.localllm_top_p.text().strip()
-
-        config.params["localllm_temperature"] = temperature
-        config.params["localllm_top_p"] = top_p
 
         config.params["localllm_max_token"] = max_token
         config.params["localllm_key"] = key
@@ -44,10 +39,6 @@ def openwin():
         model = winobj.localllm_model.currentText()
         max_token = winobj.localllm_max_token.text().strip()
 
-        temperature = winobj.localllm_temperature.text().strip()
-        top_p = winobj.localllm_top_p.text().strip()
-        config.params["localllm_temperature"] = temperature
-        config.params["localllm_top_p"] = top_p
 
         config.params["localllm_key"] = key
         config.params["localllm_api"] = url

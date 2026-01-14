@@ -35,12 +35,15 @@ class AI302(BaseTrans):
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         payload = {
             "model": config.params.get('ai302_model',''),
-            "max_tokens":8192,
+            "max_tokens":65536,
+            "temperature":float(config.settings.get('aitrans_temperature',0.2)),
+            "frequency_penalty":0.0,
             "messages": [
                 {'role': 'system',
                  'content': 'You are a top-tier Subtitle Translation Engine.'},
                 {'role': 'user',
-                 'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
+                 'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+                 },
             ]
         }
         response = requests.post('https://api.302.ai/v1/chat/completions', headers={

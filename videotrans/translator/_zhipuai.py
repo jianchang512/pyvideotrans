@@ -42,7 +42,8 @@ class ZhipuAI(BaseTrans):
                 'content': 'You are a top-tier Subtitle Translation Engine.'},
             {
                 'role': 'user',
-                'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
+                'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+            },
         ]
 
         config.logger.debug(f"\n[zhipuai]发送请求数据:{message=}")
@@ -50,6 +51,8 @@ class ZhipuAI(BaseTrans):
         response = model.chat.completions.create(
             model=self.model_name,
             messages=message,
+            frequency_penalty=0,
+            temperature=float(config.settings.get('aitrans_temperature',0.2)),
             max_tokens=int(config.params.get('zhipu_max_token',4095))
         )
 

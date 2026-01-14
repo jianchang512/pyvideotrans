@@ -26,7 +26,9 @@ class HuggingfaceRecogn(BaseRecogn):
         self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
 
     def _download(self):
-        tools.get_modeldir_download(self.model_name,self.model_name,self.local_dir,callback=self._progress_callback)
+        if not tools.file_exists(self.local_dir,["*.bin","*.safetensors"]):
+            tools.get_modeldir_download(self.model_name,self.model_name,self.local_dir,callback=self._progress_callback)
+
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
         self._signal(text=f"loading {self.model_name}")
@@ -127,14 +129,13 @@ class HuggingfaceRecogn(BaseRecogn):
         在这里将数据压入队列。
         """
         msg_type = data.get("type")
-        percent = data.get("percent")
+        percent = float(data.get("percent",'0'))
         filename = data.get("filename")
 
         if msg_type == "file":
 
             # 标签显示当前文件名
-            self._signal(text=f"{filename} {percent:.2f}%")
-
+            self._signal(text=f"Download {self.model_name} {filename} {percent:.2f}%")
         else:
             # === 情况 B：这是总文件计数 (Fetching 4 files) ===
             # 不要更新进度条！否则会由 100% 突然跳回 25%
@@ -142,66 +143,5 @@ class HuggingfaceRecogn(BaseRecogn):
             current_file_idx = data.get("current")
             total_files = data.get("total")
 
-            self._signal(text=f"{current_file_idx}/{total_files} files")
+            self._signal(text=f"Downloading {self.model_name} {current_file_idx}/{total_files} files")
 
-    def _get_modeldir_download(self):
-        Path(self.local_dir).mkdir(exist_ok=True, parents=True)
-        is_file = False
-        if [it for it in Path(self.local_dir).glob('*.bin')] or [it for it in
-                                                                 Path(self.local_dir).glob('*.safetensors')]:
-            is_file = True
-        if is_file:
-            self._signal(text=f"{self.model_name} has exists")
-            print('已存在模型')
-            return True
-        self._signal(text=f"Downloading {self.model_name} ...")
-        # 先测试能否连接 huggingface.co, 中国大陆地区不可访问，除非使用VPN
-        try:
-            requests.head('https://huggingface.co', timeout=5)
-        except Exception:
-            print('无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
-            endpoint = 'https://hf-mirror.com'
-            os.environ["HF_HUB_DISABLE_XET"] = "1"
-        else:
-            print('可以使用 huggingface.co')
-            endpoint = 'https://huggingface.co'
-            os.environ["HF_HUB_DISABLE_XET"] = "0"
-        try:
-            MyTqdmClass = tools.create_tqdm_class(self._progress_callback)
-            print(f'{self.model_name=}##################')
-            snapshot_download(
-                repo_id=self.model_name,
-                local_dir=self.local_dir,
-                local_dir_use_symlinks=False,
-                endpoint=endpoint,
-                etag_timeout=5,
-                tqdm_class=MyTqdmClass,
-                ignore_patterns=["*.msgpack", "*.h5", ".git*"]
-            )
-            self._signal(text="Downloaded end")
-        except Exception as e:
-            raise RuntimeError(config.tr('downloading all files',
-                                         self.local_dir) + f'\n[https://huggingface.co/{self.model_name}/tree/main]\n\n')
-
-        """删除 huggingface_hub 下载时产生的缓存文件夹"""
-        junk_paths = [
-            ".cache",
-            "blobs",
-            "refs",
-            "snapshots",
-            ".no_exist"
-        ]
-
-        for junk in junk_paths:
-            full_path = Path(self.local_dir) / junk
-            if full_path.exists():
-                try:
-                    if full_path.is_dir():
-                        shutil.rmtree(full_path)  # 强制删除文件夹
-                    else:
-                        os.remove(full_path)  # 删除文件
-                    print(f"已清理: {junk}")
-                except Exception as e:
-                    print(f"清理 {junk} 失败: {e}")
-        self._signal(text=f"Downloaded ")
-        return True
