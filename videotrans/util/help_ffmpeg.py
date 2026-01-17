@@ -348,7 +348,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
 
     if noextname:
         config.queue_novice[noextname] = 'ing'
-
+    config.logger.debug(f'{cmd=}')
 
     try:
         creationflags = 0

@@ -232,6 +232,7 @@ def faster_whisper(
                     best_of=best_of,
                     condition_on_previous_text=condition_on_previous_text,
                     vad_filter=True,
+                    vad_parameters=dict(min_silence_duration_ms=500),
                     no_speech_threshold=no_speech_threshold,
                     clip_timestamps="0",#clip_timestamps,
                     word_timestamps=False,
@@ -460,10 +461,12 @@ def paraformer(
         inference_pipeline = pipeline(
             task=Tasks.auto_speech_recognition,
             model='iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch', model_revision="v2.0.4",
-            vad_model='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch', vad_model_revision="v2.0.4",
-            punc_model='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch', punc_model_revision="v2.0.3",
+            vad_model='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch', 
+            #vad_model_revision="v2.0.4",
+            punc_model='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch', 
+            #punc_model_revision="v2.0.3",
             spk_model="iic/speech_campplus_sv_zh-cn_16k-common",
-            spk_model_revision="v2.0.2",
+            #spk_model_revision="v2.0.2",
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
@@ -473,7 +476,7 @@ def paraformer(
         
 
         msg = "Model loading is complete, enter recognition"
-        _write_log(json.dumps({"type": "logs", "text": f'{msg}'}))
+        _write_log(logs_file,json.dumps({"type": "logs", "text": f'{msg}'}))
         num = 0
         res = inference_pipeline(audio_file)
         speaker_list = []
@@ -492,7 +495,7 @@ def paraformer(
                 "startraw": f'{tools.ms_to_time_string(ms=it["start"])}',
                 "endraw": f'{tools.ms_to_time_string(ms=it["end"])}'
             }
-            _write_log(json.dumps({"type": "subtitles", "text": f'[{i}] {it["text"]}\n'}))
+            _write_log(logs_file,json.dumps({"type": "subtitles", "text": f'[{i}] {it["text"]}\n'}))
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
             raw_subtitles.append(tmp)
         if speaker_list:
@@ -568,7 +571,7 @@ def funasr_mlt(
             inference_pipeline = pipeline(
                 task=Tasks.auto_speech_recognition,
                 model='iic/SenseVoiceSmall',
-                model_revision="master",
+                #model_revision="master",
                 disable_update=True,
                 disable_progress_bar=True,
                 disable_log=True,
@@ -579,7 +582,7 @@ def funasr_mlt(
         else:
             model = AutoModel(
                 model=model_name,
-                punc_model="ct-punc",
+                punc_model="iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch",
                 device=device,
                 local_dir=ROOT_DIR + "/models",
                 disable_update=True,

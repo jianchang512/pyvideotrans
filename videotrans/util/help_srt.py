@@ -309,14 +309,15 @@ def set_ass_font(srtfile: str) -> str:
         return os.path.basename(srtfile)
 
     # 将 text 中的\n替换为\N
-    srt_ass_str=""    
+    srt_str=""    
     for it in get_subtitle_from_srt(srtfile,is_file=True):
         t=re.sub(r'\n|\\n',r'\\N',it['text'])
-        srt_ass_str+=f'{it["line"]}\n{it["startraw"]} --> {it["endraw"]}\n{t}\n\n' 
-    with open(srtfile+".srt",'w',encoding='utf-8') as f:
-        f.write(srt_ass_str.strip())
-    help_ffmpeg.runffmpeg(['-y', '-i', srtfile+".srt", f'{srtfile}.ass'])
-    ass_file_path = f'{srtfile}.ass'
+        srt_str+=f'{it["line"]}\n{it["startraw"]} --> {it["endraw"]}\n{t}\n\n' 
+    edit_srt=srtfile[:-4]+'-edit.srt'
+    with open(edit_srt,'w',encoding='utf-8') as f:
+        f.write(srt_str.strip())
+    ass_file_path = f'{srtfile[:-3]}ass'
+    help_ffmpeg.runffmpeg(['-y', '-i', edit_srt, ass_file_path])
 
     # 1. 验证 ASS 文件是否存在
     if not os.path.exists(ass_file_path):

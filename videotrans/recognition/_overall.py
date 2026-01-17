@@ -66,12 +66,12 @@ class FasterAll(BaseRecogn):
         return raws
 
     def _download(self):
-        if self.recogn_type == 0 and not tools.file_exists(self.local_dir,'*.bin'):
+        if self.recogn_type == 0:
             if self.model_name in _MODELS:
                 repo_id = _MODELS[self.model_name]
             else:
                 repo_id = self.model_name
-            tools.get_modeldir_download(self.model_name,repo_id,self.local_dir,callback=self._progress_callback)
+            tools.check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._progress_callback)
         # 切分
         if int(config.settings.get('batch_size', 8))>1:
             self._vad_split()
@@ -156,13 +156,17 @@ class FasterAll(BaseRecogn):
     # data={type,percent,filename,current,total}
     def _progress_callback(self, data):
         msg_type = data.get("type")
-        percent = float(data.get("percent",'0'))
+        try:
+            percent = float(data.get("percent",'0'))
+        except:
+            percent=1
+            
         filename = data.get("filename")
 
         if msg_type == "file":
 
             # 标签显示当前文件名
-            self._signal(text=f"{filename} {percent:.2f}%")
+            self._signal(text=f"{config.tr('Downloading please wait')} {filename} {percent:.2f}%")
 
         else:
             # === 情况 B：这是总文件计数 (Fetching 4 files) ===
@@ -171,7 +175,7 @@ class FasterAll(BaseRecogn):
             current_file_idx = data.get("current")
             total_files = data.get("total")
 
-            self._signal(text=f"Downloading {self.model_name} {current_file_idx}/{total_files} files")
+            self._signal(text=f"{config.tr('Downloading please wait')}{self.model_name} {current_file_idx}/{total_files}")
 
 
 

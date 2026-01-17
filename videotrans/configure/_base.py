@@ -1,5 +1,5 @@
 import base64
-import os,time
+import os,time,traceback
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -35,7 +35,10 @@ class BaseCon:
         if not config.exit_soft:
             #print(f'{kwargs=}')
             tools.set_process(**kwargs)
-
+    
+    def _process_callback(self,msg):
+        self._signal(text=tr('Downloading please wait')+msg)
+        
     # 设置、获取代理
     def _set_proxy(self, type='set'):
         if type == 'del':
@@ -221,6 +224,8 @@ class BaseCon:
                 else:
                     data=_rs
             except Exception as e:
+                msg=traceback.format_exc()
+                config.logger.exception(f'new process:{msg}',exc_info=True)
                 if kwargs.get('batch_size',0)>1 and kwargs.get('model_name','').find('large')>-1:
                     raise RuntimeError(f'{tr("may be insufficient memory")}\n{e}')
                 raise

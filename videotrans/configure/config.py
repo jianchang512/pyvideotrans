@@ -59,15 +59,15 @@ Path(f'{TEMP_ROOT}/translate_cache').mkdir(exist_ok=True, parents=True)
 # 日志
 logger = logging.getLogger('VideoTrans')
 logger.setLevel(logging.DEBUG)
+# 设置日志格式
+formatter = logging.Formatter('[%(levelname)s] %(message)s')
 _file_handler = logging.FileHandler(f'{ROOT_DIR}/logs/{datetime.datetime.now().strftime("%Y%m%d")}.log',
                                     encoding='utf-8')
 _file_handler.setLevel(logging.DEBUG)
+_file_handler.setFormatter(formatter)
 # 创建控制台处理器，并设置级别
 _console_handler = logging.StreamHandler(sys.stdout)
 _console_handler.setLevel(logging.WARNING)
-# 设置日志格式
-formatter = logging.Formatter('[%(levelname)s] %(message)s')
-_file_handler.setFormatter(formatter)
 _console_handler.setFormatter(formatter)
 # 添加处理器到日志记录器
 logger.addHandler(_file_handler)
@@ -385,7 +385,7 @@ def getset_params(obj=None):
         "translate_type": 0,
         "subtitle_type": 1,  # embed hard
         "tts_type": 0,  # 所选的tts顺序
-        "model_name": "medium",  # 模型名
+        "model_name": "large-v3-turbo",  # 模型名
         "recogn_type": 0,  # 语音识别方式，数字代表显示顺序
         "fix_punc": False,
         "stt_fix_punc": False,

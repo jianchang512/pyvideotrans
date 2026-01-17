@@ -39,8 +39,11 @@ class FunasrRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
+        tools.check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
+
         if self.model_name == 'paraformer-zh' and self.detect_language[:2].lower() not in ['zh', 'en']:
             self.model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if self.detect_language[:2] not in ['zh','en','ja','yu'] else 'FunAudioLLM/Fun-ASR-Nano-2512'
+            tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
         elif self.model_name == 'SenseVoiceSmall':
             self.model_name = 'iic/SenseVoiceSmall'
         elif self.model_name == 'Fun-ASR-Nano-2512':
@@ -51,8 +54,14 @@ class FunasrRecogn(BaseRecogn):
         elif self.model_name != 'paraformer-zh':
             self.model_name = f'FunAudioLLM/Fun-ASR-MLT-Nano-2512'
 
+        if self.model_name == 'paraformer-zh':
+            tools.check_and_down_ms(model_id='iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch',callback=self._process_callback)
+            tools.check_and_down_ms(model_id='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',callback=self._process_callback)
+            tools.check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
+            tools.check_and_down_ms(model_id='iic/speech_campplus_sv_zh-cn_16k-common',callback=self._process_callback)
+        else:
+            tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
         self._signal(text=f"load {self.model_name}")
-
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/funasr-{self.detect_language}-{time.time()}.log'
         kwars = {
             "cut_audio_list": self.cut_audio() if self.model_name != 'paraformer-zh' else None,
@@ -70,14 +79,5 @@ class FunasrRecogn(BaseRecogn):
         }
         # 获取进度
         threading.Thread(target=self._process, args=(logs_file,), daemon=True).start()
-        raws = []
-        with ProcessPoolExecutor(max_workers=1) as executor:
-            # 提交任务，并显式传入参数，确保子进程拿到正确的参数
-            future = executor.submit(
-                paraformer if self.model_name == 'paraformer-zh' else funasr_mlt,
-                **kwars
-            )
-            raws = future.result()
-        if isinstance(raws,str):
-            raise RuntimeError(raws)
+        raws=self._new_process(callback=paraformer if self.model_name == 'paraformer-zh' else funasr_mlt,title=f'STT use {self.model_name}',kwargs=kwars)
         return raws

@@ -72,6 +72,7 @@ class StartWindow(QWidget):
         self.LoadNotif = None
         self.start_time=time.time()
         self.loader = None
+        self.setWindowTitle('pyVideoTrans')
 
         self.resize(560, 350)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)

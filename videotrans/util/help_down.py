@@ -5,25 +5,18 @@ from pathlib import Path
 import shutil, os, requests
 import zipfile
 from huggingface_hub import snapshot_download
+from huggingface_hub.errors import LocalEntryNotFoundError
 
 from videotrans.configure import config
 from .help_misc import create_tqdm_class
 from urllib.parse import urlparse
-def get_filename_from_url(url):
+def get_filename_from_url(url)->str:
     """解析URL获取纯净文件名 (去除 ?query)"""
     parsed = urlparse(url)
     return os.path.basename(parsed.path)
 
 # 从 huggingface 下载单个文件
-"""
-urls_dict={
-            f'{name}.onnx':f'{url}/{name}.onnx?download=true',
-            f'{name}.onnx.json':f'{url}/{name}.onnx.json?download=true',
-        }
-"""
-
-
-def down_file_from_hf(local_dir, urls_dict=None, callback=None) -> bool:
+def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
     try:
         requests.head('https://huggingface.co', timeout=3)
     except Exception:
@@ -32,9 +25,12 @@ def down_file_from_hf(local_dir, urls_dict=None, callback=None) -> bool:
     else:
         print('可以使用 huggingface.co')
         endpoint = 'https://huggingface.co'
-    for filename, url in urls_dict.items():
+    for index, url in enumerate(urls):
         try:
-            with requests.get(f'{endpoint}{url}', stream=True, timeout=60) as response:
+            if not url.startswith('https://'):
+                url=f'{endpoint}{url}'
+            filename=get_filename_from_url(url)
+            with requests.get(f'{url}', stream=True, timeout=60) as response:
                 response.raise_for_status()
                 total_length = response.headers.get('content-length')
 
@@ -44,7 +40,7 @@ def down_file_from_hf(local_dir, urls_dict=None, callback=None) -> bool:
                     if total_length is None:
                         dest_file_obj.write(response.content)
                     else:
-                        total_length = int(total_length)
+                        total_length = max(int(total_length),1)
                         downloaded = 0
                         for chunk in response.iter_content(chunk_size=8192):
                             if chunk:
@@ -55,7 +51,7 @@ def down_file_from_hf(local_dir, urls_dict=None, callback=None) -> bool:
                                 # 单文件进度 0-100
                                 file_percent = (downloaded / total_length)
                                 if callback:
-                                    callback(f'Downloading {filename}:{file_percent * 100:.2f}%')
+                                    callback(f'{filename}:{file_percent * 100:.2f}%')
                 finally:
                     dest_file_obj.close()  # 关闭实体文件句柄
         except Exception as e:
@@ -74,38 +70,55 @@ def file_exists(dirname, glob_patter='*.bin') -> bool:
     return False
 
 
-# 从 huggingface.co 下载模型
-def get_modeldir_download(model_name, repo_id, local_dir, callback=None) -> bool:
-    Path(local_dir).mkdir(exist_ok=True, parents=True)
-    if config.defaulelang == 'zh' and model_name in ['large-v3-turbo', 'turbo']:
+# 从 huggingface.co 下载模型，先本地下载，失败则在线下载
+def check_and_down_hf(model_name, repo_id, local_dir, callback=None) -> bool:
+    if config.defaulelang == 'zh' and model_name in ['large-v3-turbo']:
         try:
             # 针对 large-v3-turbo 模型使用 modelscope.cn 下载,若失败继续从 huggingface下载
-            faster_turbo_from_modelscope(local_dir, callback=callback)
+            down_file_from_ms(local_dir, urls=[
+                'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/config.json',
+                'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/preprocessor_config.json',
+                'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/tokenizer.json',
+                'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/vocabulary.json',
+                'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/model.bin',
+            ],callback=callback)
         except Exception as e:
             config.logger.exception(f'从 modelscope.cn 下载 {model_name} 模型失败', exc_info=True)
         else:
             return True
     try:
-        requests.head('https://huggingface.co', timeout=3)
-    except Exception:
-        print(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com, {model_name=}')
-        endpoint = 'https://hf-mirror.com'
-    else:
-        print('可以使用 huggingface.co')
-        endpoint = 'https://huggingface.co'
+        try:
+            snapshot_download(
+                repo_id=repo_id,
+                local_dir=local_dir,
+                etag_timeout=5,
+                local_files_only=True
+            )
+        except LocalEntryNotFoundError:
+            Path(local_dir).mkdir(exist_ok=True, parents=True)
+            if callback:
+                callback = create_tqdm_class(callback)
+            try:
+                requests.head('https://huggingface.co', timeout=3)
+            except Exception:
+                print(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com, {model_name=}')
+                endpoint = 'https://hf-mirror.com'
+            else:
+                print('可以使用 huggingface.co')
+                endpoint = 'https://huggingface.co'
 
-    try:
-        if callback:
-            callback = create_tqdm_class(callback)
-        snapshot_download(
-            repo_id=repo_id,
-            local_dir=local_dir,
-            local_dir_use_symlinks=False,
-            endpoint=endpoint,
-            etag_timeout=5,
-            tqdm_class=callback,
-            ignore_patterns=["*.msgpack", "*.h5", ".git*", "*.md"]
-        )
+            snapshot_download(
+                repo_id=repo_id,
+                local_dir=local_dir,
+                local_dir_use_symlinks=False,
+                endpoint=endpoint,
+                etag_timeout=5,
+                tqdm_class=callback,
+                local_files_only=False,
+                ignore_patterns=["*.msgpack", "*.h5", ".git*", "*.md"]
+            )
+        else:
+            return True
     except Exception as e:
         msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if config.defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
         raise RuntimeError(f'{msg}\n[https://huggingface.co/{repo_id}/tree/main]\n{e}')
@@ -129,21 +142,18 @@ def get_modeldir_download(model_name, repo_id, local_dir, callback=None) -> bool
                     print(f"clear cache: {junk}")
                 except Exception as e:
                     print(f"{junk} {e}")
-        return True
+    return True
 
 
 # 在下载默认模型 large-v3-turbo时，针对国内无法连接huggingface.co，且镜像站不稳定的情况，使用 modelscope.cn替换
-def faster_turbo_from_modelscope(local_dir, callback=None) -> bool:
-    urls = [
-        'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/config.json',
-        'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/preprocessor_config.json',
-        'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/tokenizer.json',
-        'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/vocabulary.json',
-        'https://modelscope.cn/models/himyworld/videotrans/resolve/master/large-v3-turbo/model.bin',
-    ]
-    try:
-        for index, url in enumerate(urls):
-            filename = os.path.basename(url)
+def down_file_from_ms(local_dir, urls=None,callback=None) -> bool:
+    if Path(f'{local_dir}/model.bin').exists():
+        return True
+    Path(local_dir).mkdir(parents=True,exist_ok=True)
+
+    for index, url in enumerate(urls):
+        filename = get_filename_from_url(url)
+        try:
             with requests.get(url, stream=True, timeout=60) as response:
                 response.raise_for_status()
                 total_length = response.headers.get('content-length')
@@ -152,7 +162,7 @@ def faster_turbo_from_modelscope(local_dir, callback=None) -> bool:
                     if total_length is None:
                         dest_file_obj.write(response.content)
                     else:
-                        total_length = int(total_length)
+                        total_length = max(int(total_length),1)
                         downloaded = 0
                         last_send = time.time()
                         for chunk in response.iter_content(chunk_size=8192):
@@ -164,15 +174,14 @@ def faster_turbo_from_modelscope(local_dir, callback=None) -> bool:
                                     last_send = time.time()
                                 if callback:
                                     callback(
-                                        {"type": "file", "percent": file_percent, "filename": f"Download {filename}",
+                                        {"type": "file", "percent": file_percent, "filename": f"{filename}",
                                          "current": index + 1, "total": 5})
 
                 finally:
                     dest_file_obj.close()
-    except Exception as e:
-        msg = config.tr('downloading all files', local_dir)
-        url = 'https://modelscope.cn/models/himyworld/videotrans/tree/master/large-v3-turbo'
-        raise RuntimeError(f"{msg}\n[{url}]\n{e}")
+        except Exception as e:
+            msg = config.tr('downloading all files', local_dir)
+            raise RuntimeError(f"{msg}\n[{url}]\n{e}")
     return True
 
 
@@ -190,7 +199,7 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
             if total_length is None:
                 dest_file_obj.write(response.content)
             else:
-                total_length = int(total_length)
+                total_length = max(int(total_length),1)
                 downloaded = 0
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
@@ -201,7 +210,7 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
                         # 单文件进度 0-100
                         file_percent = min(99.0, downloaded * 100 / total_length)
                         if callback:
-                            callback(f'Downloading {filename} {file_percent:.2f}%')
+                            callback(f'{filename} {file_percent:.2f}%')
 
             if callback:
                 callback(f'Extracting zip')
@@ -209,9 +218,41 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
             with zipfile.ZipFile(dest_file_obj) as zf:
                 zf.extractall(path=local_dir)
             if callback:
-                callback('Download & extract end')
+                callback('extract end')
             dest_file_obj.close()
     except Exception as e:
         msg = config.tr('model is missing. Please download it', local_dir)
         raise RuntimeError(f"{msg}\n[{zip_url}]\n{e}")
     return True
+
+
+# 从 modelscope.cn 下载模型
+def check_and_down_ms(model_id,callback=None)->bool:
+    from modelscope.hub.callback import ProgressCallback
+    from modelscope.hub.snapshot_download import snapshot_download
+    class Pro(ProgressCallback):
+        def __init__(self,*args):
+            super().__init__(*args)
+        def update(self,size):
+            if callback:
+                per=f'{size*100/self.file_size:.2f}%' if self.file_size>0 else ''
+                callback(f'{self.filename} {per}')
+            else:
+                print(f'{self.filename=},{self.file_size=},{size=}')
+    try:
+        try:
+            # 如果本地加载失败，则在线下载
+            snapshot_download(model_id=model_id,local_files_only=True,progress_callbacks=[Pro])
+            if callback:
+                callback(f'{model_id} exists')
+        except ValueError  as e:
+            if callback:
+                callback(f'{model_id}')
+            snapshot_download(model_id=model_id,progress_callbacks=[Pro])
+        else:
+            return True
+    except Exception as e:
+        local_dir=f'{config.ROOT_DIR}/models/models/{model_id}/'
+        msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if config.defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
+        raise RuntimeError(f'{msg}\n[https://modelscope.cn/models/{model_id}/tree/main]\n{e}')
+    return  True

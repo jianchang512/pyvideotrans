@@ -24,7 +24,7 @@ class SupertonicTTS(BaseTTS):
         self._local_mul_thread()
 
     def _download(self):
-        tools.get_modeldir_download(self.model_name,self.model_name, self.local_dir,
+        tools.check_and_down_hf(self.model_name,self.model_name, self.local_dir,
                                     callback=self._progress_callback)
 
         # data={type,percent,filename,current,total}

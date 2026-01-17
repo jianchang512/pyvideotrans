@@ -961,7 +961,7 @@ wheels = [
 [[package]]
 name = "faster-whisper"
 version = "1.2.1"
-source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+source = { url = "https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz" }
 dependencies = [
     { name = "av" },
     { name = "ctranslate2" },
@@ -970,9 +970,23 @@ dependencies = [
     { name = "tokenizers" },
     { name = "tqdm" },
 ]
-wheels = [
-    { url = "https://mirrors.aliyun.com/pypi/packages/05/99/49ee85903dee060d9f08297b4a342e5e0bcfca2f027a07b4ee0a38ab13f9/faster_whisper-1.2.1-py3-none-any.whl", hash = "sha256:79a66ad50688c0b794dd501dc340a736992a6342f7f95e5811be60b5224a26a7" },
+sdist = { hash = "sha256:16903f749864eb5b040fdf0db70940021168f5603a3408ec74a5ab0805473961" }
+
+[package.metadata]
+requires-dist = [
+    { name = "av", specifier = ">=11" },
+    { name = "black", marker = "extra == 'dev'", specifier = "==23.*" },
+    { name = "ctranslate2", specifier = ">=4.0,<5" },
+    { name = "flake8", marker = "extra == 'dev'", specifier = "==6.*" },
+    { name = "huggingface-hub", specifier = ">=0.23" },
+    { name = "isort", marker = "extra == 'dev'", specifier = "==5.*" },
+    { name = "onnxruntime", specifier = ">=1.14,<2" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = "==7.*" },
+    { name = "tokenizers", specifier = ">=0.13,<1" },
+    { name = "tqdm" },
+    { name = "transformers", extras = ["torch"], marker = "extra == 'conversion'", specifier = ">=4.23" },
 ]
+provides-extras = ["conversion", "dev"]
 
 [[package]]
 name = "ffmpeg-python"
@@ -3628,7 +3642,7 @@ requires-dist = [
     { name = "elevenlabs", specifier = "==2.8.1" },
     { name = "exceptiongroup", specifier = "==1.2.2" },
     { name = "executing", specifier = "==2.0.1" },
-    { name = "faster-whisper" },
+    { name = "faster-whisper", url = "https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz" },
     { name = "ffmpeg-python", specifier = "==0.2.0" },
     { name = "filelock", specifier = "==3.20.0" },
     { name = "flask", specifier = "==3.0.3" },

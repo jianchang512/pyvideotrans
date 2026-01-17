@@ -100,7 +100,7 @@ def _cut_video_get_duration(i, task,novoice_mp4_original,preset,crf):
     cmd = [
         '-y',
         '-i',
-        novoice_mp4_original,
+        os.path.basename(novoice_mp4_original),
         '-ss',
         tools.ms_to_time_string(ms=task['start'], sepflag='.'),
         '-t',
@@ -118,12 +118,13 @@ def _cut_video_get_duration(i, task,novoice_mp4_original,preset,crf):
         cmd_bak.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.2,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s,task['filename']])
     else:
         cmd.extend(['-vf', f'tpad=stop_mode=clone:stop_duration=0.2,setpts=PTS', '-fps_mode', 'vfr','-t',duration_s])
-    cmd.append(task['filename'])
+    cmd.append(os.path.basename(task['filename']))
+    work_dir=Path(novoice_mp4_original).parent.as_posix()
     try:
-        tools.runffmpeg(cmd, force_cpu=True)
+        tools.runffmpeg(cmd, force_cpu=True,cmd_dir=work_dir)
         if (not Path(task['filename']).exists() or Path(task['filename']).stat().st_size < 1024) and task['pts'] > 1:
             config.logger.warning(f"{flag} 中间片段 {Path(task['filename']).name} 生成失败{cmd=}，尝试无PTS参数重试{cmd_bak=}。")
-            tools.runffmpeg(cmd_bak, force_cpu=True)
+            tools.runffmpeg(cmd_bak, force_cpu=True,cmd_dir=work_dir)
         # 仍然有错就放弃了
         if Path(task['filename']).exists() and Path(task['filename']).stat().st_size < 1024:
             config.logger.warning(f"{flag} 中间片段 {Path(task['filename']).name} 生成成功，但尺寸为 < 1024B，无效需删除。{cmd=}")
@@ -599,15 +600,15 @@ class SpeedRate:
 
                     cmd = [
                         '-y',
-                        '-i', it['filename'],
+                        '-i', os.path.basename(it['filename']),
                         '-filter:a', filter_str,
                         '-t', f"{it['target_time']/1000.0:.6f}",  # 强制裁剪到目标时长，防止精度误差
                         '-ar', str(self.AUDIO_SAMPLE_RATE),
                         '-ac', str(self.AUDIO_CHANNELS),
                         '-c:a', 'pcm_s16le',
-                        temp_output_file
+                        os.path.basename(temp_output_file)
                     ]
-                tools.runffmpeg(cmd, force_cpu=True)
+                tools.runffmpeg(cmd, force_cpu=True,cmd_dir=self.cache_folder)
                 after_audio = AudioSegment.from_file(temp_output_file)
                 after_len = len(after_audio)
                 if after_len > it['target_time']:
@@ -740,10 +741,10 @@ class SpeedRate:
         concat_txt_path = Path(f'{self.cache_folder}/concat_list.txt').as_posix()
         tools.create_concat_txt(valid_clips, concat_txt=concat_txt_path)
 
-        protxt = config.TEMP_DIR + f"/rate_video_{time.time()}.txt"
+        protxt = self.cache_folder + f"/rate_video_{time.time()}.txt"
         intermediate_merged_path = Path(f'{self.cache_folder}/intermediate_merged.mp4').as_posix()
-        concat_cmd = ['-y', "-progress", protxt, '-fflags', '+genpts', '-f', 'concat', '-safe', '0', '-i',
-                      concat_txt_path, '-c:v', 'copy', intermediate_merged_path]
+        concat_cmd = ['-y', "-progress", os.path.basename(protxt), '-fflags', '+genpts', '-f', 'concat', '-safe', '0', '-i',
+                      os.path.basename(concat_txt_path), '-c:v', 'copy', os.path.basename(intermediate_merged_path)]
         tools.set_process(text=f"Concat {len(valid_clips)} video file...", uuid=self.uuid)
 
         self.stop_show_process = False
@@ -873,7 +874,7 @@ class SpeedRate:
     def _exec_concat_audio(self, file_list):
         concat_txt_path = Path(f'{self.cache_folder}/audio_concat_list.txt').as_posix()
         tools.create_concat_txt(file_list, concat_txt=concat_txt_path)
-        protxt = config.TEMP_DIR + f"/rate_audio_{time.time()}.txt"
+        protxt = self.cache_folder + f"/rate_audio_{time.time()}.txt"
         ext = Path(self.target_audio).suffix.lower()
         codecs = {".m4a": "aac", ".mp3": "libmp3lame", ".wav": "copy"}
         outname= self.target_audio if ext=='.wav' else f'{self.cache_folder}/endout.wav'
@@ -881,9 +882,9 @@ class SpeedRate:
             "-y",
             "-f", "concat",
             "-safe", "0",
-            "-i", concat_txt_path,
+            "-i", os.path.basename(concat_txt_path),
             "-c:a", 'copy',
-            outname
+            os.path.basename(outname)
         ]
         self.stop_show_process = False
         threading.Thread(target=self._hebing_pro, args=(protxt, 'concat audio'),daemon=True).start()
@@ -894,15 +895,15 @@ class SpeedRate:
         if ext!='.wav':
             cmd_step2 = [
                 "-y",
-                "-progress", protxt,
-                "-i", outname,
+                "-progress", os.path.basename(protxt),
+                "-i", os.path.basename(outname),
                 "-c:a", codecs.get(ext),
-                self.target_audio
+                os.path.basename(self.target_audio)
             ]
 
             self.stop_show_process = False
             threading.Thread(target=self._hebing_pro, args=(protxt, 'conver audio'),daemon=True).start()
-            tools.runffmpeg(cmd_step2, force_cpu=True)
+            tools.runffmpeg(cmd_step2, force_cpu=True,cmd_dir=self.cache_folder)
             self.stop_show_process = True
         if not tools.vail_file(self.target_audio):
             config.logger.warning(f"音频拼接失败， {self.target_audio} 未生成。")

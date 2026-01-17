@@ -65,6 +65,7 @@ class SpeechToText(BaseTask):
         try:
             # 需要降噪
             if self.cfg.remove_noise:
+                tools.check_and_down_ms(model_id='iic/speech_frcrn_ans_cirm_16k',callback=self._process_callback)
                 title=tr("Starting to process speech noise reduction, which may take a long time, please be patient")
                 from videotrans.process.prepare_audio import remove_noise
                 kw={
@@ -171,6 +172,7 @@ class SpeechToText(BaseTask):
             
             # 中英恢复标点符号
             if self.cfg.fix_punc and self.cfg.detect_language[:2] in ['zh','en']:
+                tools.check_and_down_ms(model_id='iic/punc_ct-transformer_cn-en-common-vocab471067-large',callback=self._process_callback)
                 text_dict={f'{it["line"]}':re.sub(r'[,.?!，。？！]',' ',it["text"]) for it in self.source_srt_list}
                 from videotrans.process.prepare_audio import fix_punc
                 kw={"text_dict":text_dict,"TEMP_DIR":config.TEMP_DIR,"is_cuda":self.cfg.cuda}
@@ -254,6 +256,7 @@ class SpeechToText(BaseTask):
             kw['num_speakers']=-1 if self.max_speakers<1 else self.max_speakers
             kw['language']=self.cfg.detect_language
         elif speaker_type=='ali_CAM':
+            tools.check_and_down_ms(model_id='iic/speech_campplus_speaker-diarization_common',callback=self._process_callback)
             from videotrans.process.prepare_audio import cam_speakers as _run_speakers
         elif speaker_type=='pyannote':
             from videotrans.process.prepare_audio import pyannote_speakers as _run_speakers

@@ -26,8 +26,7 @@ class HuggingfaceRecogn(BaseRecogn):
         self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
 
     def _download(self):
-        if not tools.file_exists(self.local_dir,["*.bin","*.safetensors"]):
-            tools.get_modeldir_download(self.model_name,self.model_name,self.local_dir,callback=self._progress_callback)
+        tools.check_and_down_hf(self.model_name,self.model_name,self.local_dir,callback=self._progress_callback)
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
@@ -129,13 +128,16 @@ class HuggingfaceRecogn(BaseRecogn):
         在这里将数据压入队列。
         """
         msg_type = data.get("type")
-        percent = float(data.get("percent",'0'))
+        try:
+            percent = float(data.get("percent",'0'))
+        except:
+            percent=1
         filename = data.get("filename")
 
         if msg_type == "file":
 
             # 标签显示当前文件名
-            self._signal(text=f"Download {self.model_name} {filename} {percent:.2f}%")
+            self._signal(text=f"{config.tr('Downloading please wait')} {filename} {percent:.2f}%")
         else:
             # === 情况 B：这是总文件计数 (Fetching 4 files) ===
             # 不要更新进度条！否则会由 100% 突然跳回 25%
@@ -143,5 +145,5 @@ class HuggingfaceRecogn(BaseRecogn):
             current_file_idx = data.get("current")
             total_files = data.get("total")
 
-            self._signal(text=f"Downloading {self.model_name} {current_file_idx}/{total_files} files")
+            self._signal(text=f"{config.tr('Downloading please wait')} {self.model_name} {current_file_idx}/{total_files}")
 

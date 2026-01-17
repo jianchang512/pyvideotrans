@@ -145,7 +145,7 @@ class AlignmentWorker(QThread):
     def run(self):
         try:
             self.log_signal.emit(tr("status_loading_model", self.model_name, self.device))
-            tools.get_modeldir_download(self.model_name,_MODELS[self.model_name],self.local_dir,callback=self._progress_callback)
+            tools.check_and_down_hf(self.model_name,_MODELS[self.model_name],self.local_dir,callback=self._progress_callback)
             from faster_whisper import WhisperModel
 
             try:

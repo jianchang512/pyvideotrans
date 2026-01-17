@@ -275,6 +275,7 @@ class TransCreate(BaseTask):
         # 若已执行背景声人声分离，则不再进行降噪
         if not self.cfg.is_separate and self.cfg.remove_noise:
             title=tr("Starting to process speech noise reduction, which may take a long time, please be patient")
+            tools.check_and_down_ms(model_id='iic/speech_frcrn_ans_cirm_16k',callback=self._process_callback)
             from videotrans.process.prepare_audio import remove_noise
             kw={
                 "input_file":self.cfg.source_wav,
@@ -374,6 +375,7 @@ class TransCreate(BaseTask):
         
         # 中英恢复标点符号
         if self.cfg.fix_punc and self.cfg.detect_language[:2] in ['zh','en']:
+            tools.check_and_down_ms(model_id='iic/punc_ct-transformer_cn-en-common-vocab471067-large',callback=self._process_callback)
             from videotrans.process.prepare_audio import fix_punc
             # 预先删掉已有的标点
             text_dict={f'{it["line"]}':re.sub(r'[,.?!，。？！]',' ',it["text"]) for it in self.source_srt_list}
@@ -590,6 +592,7 @@ class TransCreate(BaseTask):
                 kw['num_speakers']=-1 if self.max_speakers<1 else self.max_speakers
                 kw['language']=self.cfg.detect_language
             elif speaker_type=='ali_CAM':
+                tools.check_and_down_ms(model_id='iic/speech_campplus_speaker-diarization_common',callback=self._process_callback)
                 from videotrans.process.prepare_audio import cam_speakers as _run_speakers
             elif speaker_type=='pyannote':
                 from videotrans.process.prepare_audio import pyannote_speakers as _run_speakers
@@ -735,7 +738,7 @@ class TransCreate(BaseTask):
                 volume = 1 + float(volume) / 100
                 if volume != 1.0:
                     tmp_name = self.cfg.cache_folder + f'/volume-{volume}-{Path(self.cfg.target_wav).name}'
-                    tools.runffmpeg(['-y', '-i', self.cfg.target_wav, '-af', f"volume={volume}", tmp_name])
+                    tools.runffmpeg(['-y', '-i', os.path.basename(self.cfg.target_wav), '-af', f"volume={volume}", os.path.basename(tmp_name)],cmd_dir=self.cfg.cache_folder)
                     shutil.copy2(tmp_name, self.cfg.target_wav)
             except:
                 pass
@@ -811,8 +814,8 @@ class TransCreate(BaseTask):
         ]
         if not self.is_copy_video:
             cmd += ["-crf", '20','-preset','veryfast']
-        cmd += [self.cfg.novoice_mp4]
-        return tools.runffmpeg(cmd, noextname=self.uuid)
+        cmd += [os.path.basename(self.cfg.novoice_mp4)]
+        return tools.runffmpeg(cmd, noextname=self.uuid,cmd_dir=self.cfg.cache_folder)
 
     # 从原始视频中分离出音频
     def _split_audio_byraw(self, is_separate=False):
@@ -1044,14 +1047,14 @@ class TransCreate(BaseTask):
                  ])
             # 背景音频和配音合并
             cmd = ['-y',
-                   '-i', self.cfg.target_wav,
-                   '-i', self.cfg.cache_folder + f"/bgm_file_extend_volume.wav",
+                   '-i', os.path.basename(self.cfg.target_wav),
+                   '-i', "bgm_file_extend_volume.wav",
                    '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2",
                    '-ac', '2',
                    '-c:a', 'pcm_s16le',
-                   self.cfg.cache_folder + f"/lastend.wav"
+                   "lastend.wav"
                    ]
-            tools.runffmpeg(cmd)
+            tools.runffmpeg(cmd,cmd_dir=self.cfg.cache_folder)
             self.cfg.target_wav = self.cfg.cache_folder + f"/lastend.wav"
         except Exception as e:
             config.logger.exception(f'添加背景音乐失败:{str(e)}', exc_info=True)
@@ -1089,15 +1092,14 @@ class TransCreate(BaseTask):
     def _backandvocal(self, backwav, peiyinm4a):
         import tempfile
         backwav = Path(backwav).as_posix()
-        peiyinm4a = Path(peiyinm4a).as_posix()
-        tmpdir = tempfile.gettempdir()
+        tmpdir = self.cfg.cache_folder
         tmpwav = Path(tmpdir + f'/{time.time()}-1.wav').as_posix()
         tmpm4a = Path(tmpdir + f'/{time.time()}.wav').as_posix()
         # 背景转为m4a文件,音量降低为0.8
         self.convert_to_wav(backwav, tmpm4a, ["-filter:a", f"volume={config.settings.get('backaudio_volume',0.8)}"])
-        tools.runffmpeg(['-y', '-i', peiyinm4a, '-i', tmpm4a, '-filter_complex',
+        tools.runffmpeg(['-y', '-i', os.path.basename(peiyinm4a), '-i', os.path.basename(tmpm4a), '-filter_complex',
                          "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k",
-                         '-c:a', 'pcm_s16le', tmpwav])
+                         '-c:a', 'pcm_s16le', os.path.basename(tmpwav)],cmd_dir=self.cfg.cache_folder)
         shutil.copy2(tmpwav, peiyinm4a)
 
     # 处理所需字幕
@@ -1177,33 +1179,18 @@ class TransCreate(BaseTask):
     def _video_extend(self, duration_ms=1000):
         sec=duration_ms / 1000.0
         final_video_path = Path(f'{self.cfg.cache_folder}/final_video_with_freeze_lastend.mp4').as_posix()
-        cmd = ['-y', '-i', self.cfg.novoice_mp4,
+        cmd = ['-y', '-i', os.path.basename(self.cfg.novoice_mp4),
                '-vf', f'tpad=stop_mode=clone:stop_duration={sec:.3f}',
                '-c:v', 'libx264',
                '-crf', f'{config.settings.get("crf",23)}',
                '-preset', config.settings.get('preset','veryfast'),
-               '-an', final_video_path]
+               '-an', 'final_video_with_freeze_lastend.mp4']
 
-        if tools.runffmpeg(cmd, force_cpu=True) and Path(final_video_path).exists():
+        if tools.runffmpeg(cmd, force_cpu=True,cmd_dir=self.cfg.cache_folder) and Path(final_video_path).exists():
             shutil.copy2(final_video_path, self.cfg.novoice_mp4)
             config.logger.debug(f"视频定格应延长{duration_ms}ms，实际向上取整秒延长{sec}s,操作成功。")
         else:
             config.logger.warning("视频定格延长操作失败！")
-
-    def _audio_extend(self, duration_diff,output_ma4):
-        # 音频末尾添加静音延长
-        padded_audio_path = Path(f'{self.cfg.cache_folder}/last_end_com.m4a').as_posix()
-        pad_dur_sec = duration_diff / 1000.0
-        config.logger.debug(f'音频末尾应增加{duration_diff}ms静音')
-
-        cmd = ['-y', '-i', output_ma4, '-af', f'apad=pad_dur={pad_dur_sec:.4f}',"-c:a", "aac",padded_audio_path]
-
-        if tools.runffmpeg(cmd) and tools.vail_file(padded_audio_path):
-            # Path(output_ma4).unlink(missing_ok=True)
-            shutil.move(padded_audio_path,output_ma4)
-            config.logger.debug("音频补齐静音并重新导出完成。")
-        else:
-            config.logger.warning("使用apad滤镜填充静音失败！")
 
     # 最终合成视频
     def _join_video_audio_srt(self) -> None:
@@ -1263,16 +1250,17 @@ class TransCreate(BaseTask):
             self._back_music()
             # 重新嵌入分离出的背景音
             self._separate()
-            protxt = config.TEMP_DIR + f"/wav-m4a-{time.time()}.txt"
+            protxt = self.cfg.cache_folder + f"/wav-m4a-{time.time()}.txt"
             threading.Thread(target=self._hebing_pro,args=(protxt,self.video_time),daemon=True).start()
             tools.runffmpeg([
                 "-y",
                 "-progress",
-                protxt,
+                os.path.basename(protxt),
                 "-i",
-                self.cfg.target_wav,
-                "-ac","2","-b:a","128k","-c:a","aac",target_m4a
-            ])
+                os.path.basename(self.cfg.target_wav),
+                "-ac","2","-b:a","128k","-c:a","aac",
+                os.path.basename(target_m4a)
+            ],cmd_dir=self.cfg.cache_folder)
 
         self.precent = min(max(95, self.precent), 98)
         shutil.copy2(target_m4a,self.cfg.target_wav_output)
@@ -1282,7 +1270,7 @@ class TransCreate(BaseTask):
             subtitles_file, subtitle_langcode = self._process_subtitles()
 
         # 字幕嵌入时进入视频目录下
-        os.chdir(Path(self.cfg.novoice_mp4).parent.resolve())
+        os.chdir(self.cfg.cache_folder)
 
         # 末尾对齐
         duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
@@ -1298,14 +1286,18 @@ class TransCreate(BaseTask):
             #先导出到临时目录，防止包含各种奇怪符号的targetdir_mp4导致ffmpeg失败
             tmp_target_mp4=self.cfg.cache_folder+f"/laste_target.mp4"
             protxt = self.cfg.cache_folder + f"/compose{time.time()}.txt"
-            threading.Thread(target=self._hebing_pro,args=(protxt,self.video_time),daemon=True).start()
             self._signal(text=config.tr("Video + Subtitles + Dubbing in merge"))
             cmd = []
             is_copy_mode = (str(self.video_codec_num) == '264')
             v_codec = "copy" if is_copy_mode else f'libx{self.video_codec_num}'
 
+            threading.Thread(target=self._hebing_pro,args=(protxt,self.video_time),daemon=True).start()
 
-
+            protxt_basename=os.path.basename(protxt)
+            novoice_mp4_basename=os.path.basename(self.cfg.novoice_mp4)
+            target_m4a_basename=os.path.basename(target_m4a)
+            tmp_target_mp4_basename=os.path.basename(tmp_target_mp4)
+            
             # 有字幕有配音
             if self.cfg.voice_role != 'No' and self.cfg.subtitle_type > 0:
                 # 硬字幕有配音 必须重编码
@@ -1314,11 +1306,11 @@ class TransCreate(BaseTask):
                     cmd = [
                         "-y",
                         "-progress",
-                        protxt,
+                        protxt_basename,
                         "-i",
-                        self.cfg.novoice_mp4,
+                        novoice_mp4_basename,
                         "-i",
-                        target_m4a,
+                        target_m4a_basename,
                         '-map', '0:v',
                         '-map', '1:a',
                         "-c:v",
@@ -1326,7 +1318,7 @@ class TransCreate(BaseTask):
                         "-c:a",
                         "copy",
                         "-vf",
-                        f"subtitles={subtitles_file}",
+                        f"subtitles='{subtitles_file}'",
                         "-movflags",
                         "+faststart",
                         '-crf', str(config.settings.get("crf", 23)),
@@ -1335,18 +1327,18 @@ class TransCreate(BaseTask):
                     if self.cfg.video_autorate:
                         cmd.extend(["-fps_mode", "vfr"])
 
-                    cmd.extend(["-t", str(duration_s),tmp_target_mp4])
+                    cmd.extend(["-t", str(duration_s),tmp_target_mp4_basename])
                 # 软字幕有配音 无需重编码
                 else:
                     self._signal(text=config.tr('peiyin-ruanzimu'))
                     cmd = [
                         "-y",
                         "-progress",
-                        protxt,
+                        protxt_basename,
                         "-i",
-                        self.cfg.novoice_mp4,
+                        novoice_mp4_basename,
                         "-i",
-                        target_m4a,
+                        target_m4a_basename,
                         "-i",
                         subtitles_file,
                         "-map", "0:v",  # 取第1个输入的视频流
@@ -1374,7 +1366,7 @@ class TransCreate(BaseTask):
                         # 处理 VFR (仅在重新编码时有效)
                         if self.cfg.video_autorate:
                             cmd.extend(["-fps_mode", "vfr"])
-                    cmd.extend(["-t",str(duration_s),tmp_target_mp4])
+                    cmd.extend(["-t",str(duration_s),tmp_target_mp4_basename])
 
             # 无字幕有配音 无需重编码
             elif self.cfg.voice_role != 'No':                
@@ -1382,11 +1374,11 @@ class TransCreate(BaseTask):
                 cmd = [
                     "-y",
                     "-progress",
-                    protxt,
+                    protxt_basename,
                     "-i",
-                    self.cfg.novoice_mp4,
+                    novoice_mp4_basename,
                     "-i",
-                    target_m4a,
+                    target_m4a_basename,
                     '-map', '0:v',
                     '-map', '1:a',
                     "-c:v",
@@ -1406,19 +1398,19 @@ class TransCreate(BaseTask):
                     if self.cfg.video_autorate:
                         cmd.extend(["-fps_mode", "vfr"])
 
-                cmd.extend(["-t",str(duration_s), tmp_target_mp4])
+                cmd.extend(["-t",str(duration_s), tmp_target_mp4_basename])
             # 硬字幕无配音  原始 wav 合并  必须重编码
             elif self.cfg.subtitle_type in [1, 3]:
                 self._signal(text=config.tr('onlyyingzimu'))
                 cmd = [
                     "-y",
                     "-progress",
-                    protxt,
+                    protxt_basename,
                     "-i",
-                    self.cfg.novoice_mp4
+                    novoice_mp4_basename
                 ]
                 if tools.vail_file(target_m4a):
-                    cmd.extend(['-i',Path(target_m4a).as_posix(),'-map', '0:v','-map', '1:a'])
+                    cmd.extend(['-i',target_m4a_basename,'-map', '0:v','-map', '1:a'])
 
                 cmd.append('-c:v')
                 cmd.append(f'libx{self.video_codec_num}')
@@ -1427,7 +1419,7 @@ class TransCreate(BaseTask):
                     cmd.append('copy')
                 cmd += [
                     "-vf",
-                    f"subtitles={subtitles_file}",
+                    f"subtitles='{subtitles_file}'",
                     "-movflags",
                     "+faststart",
                     '-crf',
@@ -1437,7 +1429,7 @@ class TransCreate(BaseTask):
                 ]
                 if self.cfg.video_autorate:
                     cmd.extend(["-fps_mode", "vfr"])
-                cmd.extend(["-t",str(duration_s),tmp_target_mp4])
+                cmd.extend(["-t",str(duration_s),tmp_target_mp4_basename])
             # 软字幕无配音 无需重编码
             elif self.cfg.subtitle_type in [2, 4]:
                 self._signal(text=config.tr('onlyruanzimu'))
@@ -1445,13 +1437,13 @@ class TransCreate(BaseTask):
                 cmd = [
                     "-y",
                     "-progress",
-                    protxt,
+                    protxt_basename,
                     "-i",
-                    self.cfg.novoice_mp4
+                    novoice_mp4_basename
                 ]
                 # 原配音流
                 if tools.vail_file(target_m4a):
-                    cmd.extend(['-i',Path(target_m4a).as_posix()])
+                    cmd.extend(['-i',target_m4a_basename])
                 # 目标字幕流
                 cmd += [
                     "-i",
@@ -1488,7 +1480,7 @@ class TransCreate(BaseTask):
                         cmd.extend(["-fps_mode", "vfr"])
                 cmd.extend([
                     "-t",str(duration_s),
-                    tmp_target_mp4
+                    tmp_target_mp4_basename
                 ])
             if cmd:
                 tools.runffmpeg(cmd,cmd_dir=self.cfg.cache_folder,force_cpu=False)

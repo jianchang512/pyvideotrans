@@ -159,7 +159,8 @@ class BaseRecogn(BaseCon):
                     srt_list[i - 1]['end_time'] = it['start_time']
                     srt_list[i - 1]['endraw'] = tools.ms_to_time_string(ms=it['start_time'])
                     srt_list[i - 1]['time'] = f"{srt_list[i - 1]['startraw']} --> {srt_list[i - 1]['endraw']}"
-
+            if self.recogn2pass:
+                return srt_list
             # 合并过短的字幕到邻近字幕，以便符合 min_speech_duration_ms 要求, 第一个和最后一个字幕不合并
             if self.llm_post or not config.settings.get('merge_short_sub', True):
                 if not self.llm_post:

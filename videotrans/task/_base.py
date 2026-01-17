@@ -141,6 +141,7 @@ class BaseTask(BaseCon):
                 target_srt_list.append(tmp)
         return target_srt_list
         
+    
 
 
     async def _edgetts_single(self,target_audio,kwargs):

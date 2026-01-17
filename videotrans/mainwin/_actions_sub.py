@@ -141,6 +141,7 @@ class WinActionSub:
 
         # 翻译
         self.main.label_9.show()
+        self.main.recogn2pass.show()
         self.main.translate_type.show()
         self.main.label_2.show()
         self.main.source_language.show()
@@ -224,6 +225,7 @@ class WinActionSub:
             self.main.proxy.show()
 
         # 配音角色
+        self.main.recogn2pass.hide()
         self.main.only_out_mp4.hide()
         self.main.tts_text.hide()
         self.main.tts_type.hide()

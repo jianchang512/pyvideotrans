@@ -65,15 +65,15 @@ class PiperTTS(BaseTTS):
         # 存放onnx文件的最终文件夹绝对路径
         local_dir=config.ROOT_DIR+'/models/piper/'+name_path
         onnx_file=f'{local_dir}/{name}.onnx'
-        url=f'/rhasspy/piper-voices/resolve/main/{name_path}'
         if Path(onnx_file).exists():
             return onnx_file
-        kws={
-            f'{name}.onnx':f'{url}/{name}.onnx?download=true',
-            f'{name}.onnx.json':f'{url}/{name}.onnx.json?download=true',
-        }
+        url=f'/rhasspy/piper-voices/resolve/main/{name_path}'
+        urls=[
+            f'{url}/{name}.onnx?download=true',
+            f'{url}/{name}.onnx.json?download=true',
+        ]
         Path(local_dir).mkdir(exist_ok=True, parents=True)
-        tools.down_file_from_hf(local_dir,urls_dict=kws,callback=self._process_callback)
+        tools.down_file_from_hf(local_dir,urls=urls,callback=self._process_callback)
         return onnx_file
     
     def _process_callback(self,msg):
