@@ -5,6 +5,7 @@ import shutil
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import List, Optional
 
 from videotrans import tts
 from videotrans.configure import config
@@ -26,6 +27,8 @@ class DubbingSrt(BaseTask):
     # 固定为True
     shoud_dubbing: bool = field(default=True, init=False)
     ignore_align:bool=False
+    # 多角色配音时直接使用该字幕信息
+    subs:List = field(default_factory=list, repr=False)
     def __post_init__(self):
         super().__post_init__()
         # 是否是 字幕多角色配音
@@ -184,6 +187,8 @@ class DubbingSrt(BaseTask):
                         "text": text_str
                 })
             print(subs)
+        elif self.subs:
+            subs=self.subs
         else:
             subs = tools.get_subtitle_from_srt(self.cfg.target_sub)
 

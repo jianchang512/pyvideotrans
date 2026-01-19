@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
-                               QPushButton, QComboBox, QLabel, QScrollArea)
+                               QPushButton, QComboBox, QLabel, QScrollArea, QGridLayout, QFrame)
 
 from videotrans import tts
 from videotrans.configure import config
@@ -22,7 +22,7 @@ class Ui_peiyinrole(object):
             config.dubbing_role = {}
         if not peiyinrole.objectName():
             peiyinrole.setObjectName(u"peiyinrole")
-        peiyinrole.setMinimumSize(950, 650)
+        peiyinrole.setMinimumSize(1000, 750)
 
 
         self.main_layout = QtWidgets.QVBoxLayout(peiyinrole)
@@ -42,8 +42,50 @@ class Ui_peiyinrole(object):
         self.import_layout.addWidget(self.clear_button)
         self.main_layout.addLayout(self.import_layout)
 
+        # 说话人角色区域
+        self.container_frame = QFrame()
+        self.container_frame.setObjectName("container_frame") # 设置对象名方便QSS定位
+        self.container_frame.setMaximumHeight(160)
+        container_layout2 = QVBoxLayout(self.container_frame)
+        container_layout2.setSpacing(2)
+
+        self.subtitle_scroll_area2 = QScrollArea()
+        self.subtitle_scroll_area2.setVisible(False)
+        self.subtitle_scroll_area2.setWidgetResizable(True)
+        self.scroll_area_widget_contents2 = QWidget()
+        self.subtitle_layout2 = QGridLayout(self.scroll_area_widget_contents2)  # 字幕行将被添加到这里
+        self.subtitle_layout2.setAlignment(Qt.AlignTop)
+        self.subtitle_scroll_area2.setWidget(self.scroll_area_widget_contents2)
+        container_layout2.addWidget(self.subtitle_scroll_area2)
+
+        # 2.2 为说话人分配工具栏
+        self.assign_role_label2 = QLabel(tr('Assign roles to speakers'))
+        self.assign_role_label2.setVisible(False)
+        self.tmp_rolelist2 = QComboBox()  # 这个就是新的角色选择框
+        self.tmp_rolelist2.setVisible(False)
+        self.tmp_rolelist2.setMinimumWidth(200)
+        self.assign_role_button2 = QPushButton(tr("Assign"))
+        self.assign_role_button2.setVisible(False)
+        self.assign_role_button2.setCursor(Qt.PointingHandCursor)
+        self.spk_tips=QLabel(tr('conflict with the role specified by row'))
+        self.spk_tips.setVisible(False)
+        self.assign_role_layout2 = QHBoxLayout()
+        self.assign_role_layout2.addWidget(self.assign_role_label2)
+        self.assign_role_layout2.addWidget(self.tmp_rolelist2)
+        self.assign_role_layout2.addWidget(self.assign_role_button2)
+        self.assign_role_layout2.addWidget(self.spk_tips)
+        self.assign_role_layout2.addStretch()
+        container_layout2.addLayout(self.assign_role_layout2)
+        self.main_layout.addWidget(self.container_frame)
+
+
+
         # 2. 字幕显示和分配区域
         # 2.1 字幕滚动区域
+        self.container_frame_subs = QFrame()
+        self.container_frame_subs.setObjectName("container_frame_subs") # 设置对象名方便QSS定位
+        container_layout_subs = QVBoxLayout(self.container_frame_subs)
+        container_layout_subs.setSpacing(2)
         self.subtitle_scroll_area = QScrollArea()
         self.subtitle_scroll_area.setWidgetResizable(True)
         self.subtitle_scroll_area.setMinimumHeight(200)
@@ -51,7 +93,9 @@ class Ui_peiyinrole(object):
         self.subtitle_layout = QVBoxLayout(self.scroll_area_widget_contents)  # 字幕行将被添加到这里
         self.subtitle_layout.setAlignment(Qt.AlignTop)
         self.subtitle_scroll_area.setWidget(self.scroll_area_widget_contents)
-        self.main_layout.addWidget(self.subtitle_scroll_area)
+        container_layout_subs.addWidget(self.subtitle_scroll_area)
+
+
 
         # 2.2 角色分配工具栏
         self.assign_role_layout = QHBoxLayout()
@@ -64,7 +108,16 @@ class Ui_peiyinrole(object):
         self.assign_role_layout.addWidget(self.tmp_rolelist)
         self.assign_role_layout.addWidget(self.assign_role_button)
         self.assign_role_layout.addStretch()
-        self.main_layout.addLayout(self.assign_role_layout)
+        container_layout_subs.addLayout(self.assign_role_layout)
+        self.container_frame_subs.setStyleSheet("""#container_frame_subs{border: 1px solid #54687a}""")
+        self.main_layout.addWidget(self.container_frame_subs)
+
+
+        spk_label=QLabel(tr('will be automatically identified as the speaker'))
+        spk_label.setStyleSheet("""color:#999""")
+        spk_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(spk_label)
+
 
         # 3. TTS 设置区域 (基本保持不变)
         self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
@@ -87,8 +140,8 @@ class Ui_peiyinrole(object):
         self.tts_type.setMinimumSize(QtCore.QSize(0, 30))
         self.tts_type.addItems(tts.TTS_NAME_LIST)
         self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tts_type)
-        self.horizontalLayout_10.addLayout(self.formLayout_7)
         self.horizontalLayout_10.addLayout(self.formLayout_3)
+        self.horizontalLayout_10.addLayout(self.formLayout_7)
 
         self.formLayout_4 = QtWidgets.QFormLayout()
         self.formLayout_4.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
@@ -106,6 +159,8 @@ class Ui_peiyinrole(object):
         self.listen_btn.setText(tr("Trial dubbing"))
         self.horizontalLayout_10.addWidget(self.listen_btn)
         self.main_layout.addLayout(self.horizontalLayout_10)
+
+
 
         # 4. 速率、音量等设置
         self.horizontalLayout_10_1 = QtWidgets.QHBoxLayout()
@@ -148,6 +203,7 @@ class Ui_peiyinrole(object):
         self.edge_volume_layout.addWidget(self.save_to_srt)
         self.horizontalLayout_10_1.addLayout(self.edge_volume_layout)
         self.main_layout.addLayout(self.horizontalLayout_10_1)
+
 
         # 5. 开始/停止按钮和日志
         self.bottom_layout = QtWidgets.QVBoxLayout()

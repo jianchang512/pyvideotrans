@@ -57,7 +57,7 @@ class PeiyinDropButton(QPushButton):
         self.setCursor(Qt.PointingHandCursor)
 
     def get_file(self):
-        fnames, _ = QFileDialog.getOpenFileNames(self, "Select srt", config.params['last_opendir'],
+        fnames, _ = QFileDialog.getOpenFileNames(self, "Select srt/txt", config.params['last_opendir'],
                                                  "Text files(*.srt *.txt)")
         namestr = []
         for (i, it) in enumerate(fnames):

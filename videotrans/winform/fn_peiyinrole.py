@@ -179,6 +179,7 @@ def openwin():
 
     def hecheng_start_fun():
         nonlocal RESULT_DIR,uuid
+
         if not winobj.srt_path:
             return tools.show_error(
                 tr("Please import an SRT subtitle file first."))
@@ -236,9 +237,12 @@ def openwin():
             "tts_type": tts_type,
             "voice_autorate": winobj.voice_autorate.isChecked(),
             "remove_silent_mid": winobj.remove_silent_mid.isChecked(),
-            "align_sub_audio":False
+            "align_sub_audio":False,
+
         }
-        trk = DubbingSrt(cfg=TaskCfg(**cfg | video_obj),is_multi_role=True,out_ext=winobj.out_format.currentText())
+        # print(f'{cfg=}')
+        # return
+        trk = DubbingSrt(cfg=TaskCfg(**cfg | video_obj),subs=winobj.subtitles,is_multi_role=True,out_ext=winobj.out_format.currentText())
         config.dubb_queue.put_nowait(trk)
         from videotrans.task.child_win_sign import SignThread
         th = SignThread(uuid_list=[uuid], parent=winobj)
@@ -275,6 +279,7 @@ def openwin():
         return ['-'] + list(langname_dict.values())
 
     def tts_type_change(type):
+        config.dubbing_role={}
         if change_by_lang(type):
             winobj.volume_rate.setDisabled(False)
             winobj.pitch_rate.setDisabled(False)

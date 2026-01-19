@@ -5,9 +5,19 @@
 
 
 import traceback
+def _write_log(file=None,msg=None,type='logs'):
+    if not file or not msg:
+        return
+    from pathlib import Path
+    import json
+    from videotrans.configure import config
+    try:
+        Path(file).write_text(json.dumps({"text":msg,"type":type}),encoding='utf-8')
+    except Exception as e:
+        config.logger.exception(f'写入新进程日志时出错',exc_info=True)
 
 # 1. 分离背景声和人声 https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html#uvr
-def vocal_bgm(*, input_file, vocal_file, instr_file, TEMP_DIR=None):
+def vocal_bgm(*, input_file, vocal_file, instr_file, TEMP_DIR=None,logs_file=None):
     """
     UVR for source separation.
 
@@ -55,12 +65,12 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, TEMP_DIR=None):
         ), f"Expect np.float32 as dtype. Given: {samples.dtype}"
 
         return samples, sample_rate
-
+    sp=None
     try:
         sp = create_offline_source_separation()
         samples, sample_rate = load_audio(input_file)
         samples = np.ascontiguousarray(samples)
-        cfg.logger.debug("开始人声背景声分离")
+        _write_log(logs_file,"vocals non_vocals...")
         start = time.time()
         output = sp.process(sample_rate=sample_rate, samples=samples)
         end = time.time()
@@ -74,7 +84,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, TEMP_DIR=None):
         sf.write(instr_file, non_vocals, samplerate=output.sample_rate)
 
         elapsed_seconds = end - start
-        cfg.logger.debug(f"人声背景声分离完成：耗时:{elapsed_seconds}s")
+        _write_log(logs_file,f" use time:{elapsed_seconds}s")
         return True,None
     except Exception as e:
         msg=traceback.format_exc()
@@ -82,6 +92,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, TEMP_DIR=None):
         return False,msg
     finally:
         try:
+            del sp
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
             import gc
@@ -91,7 +102,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, TEMP_DIR=None):
 
 
 # 2. 降噪 https://modelscope.cn/models/iic/speech_frcrn_ans_cirm_16k
-def remove_noise(*, input_file, output_file, TEMP_DIR=None, is_cuda=False):
+def remove_noise(*, input_file, output_file, TEMP_DIR=None, is_cuda=False,logs_file=None):
     import torch, os, shutil, time
     from pathlib import Path
     from videotrans.configure import config
@@ -133,13 +144,12 @@ def remove_noise(*, input_file, output_file, TEMP_DIR=None, is_cuda=False):
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-            Path(tmp_name).unlink(missing_ok=True)
         except Exception:
             pass
 
 
 # 3. 恢复标点 https://modelscope.cn/models/iic/punc_ct-transformer_cn-en-common-vocab471067-large
-def fix_punc(*, text_dict, TEMP_DIR=None, is_cuda=False):
+def fix_punc(*, text_dict, TEMP_DIR=None, is_cuda=False,logs_file=None):
     import torch, os, shutil, time
     from pathlib import Path
     from videotrans.configure import config
@@ -190,7 +200,7 @@ def fix_punc(*, text_dict, TEMP_DIR=None, is_cuda=False):
 
 
 # 4. ali_CAM阿里 说话人分离  https://modelscope.cn/models/iic/speech_campplus_speaker-diarization_common/files
-def cam_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False):
+def cam_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False,logs_file=None):
     import torch, os, shutil, time
     from pathlib import Path
     from videotrans.configure import config
@@ -286,7 +296,7 @@ def cam_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cu
 
 
 # 4. 说话人分离，pyannote https://huggingface.co/pyannote/speaker-diarization-3.0
-def pyannote_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False):
+def pyannote_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False,logs_file=None):
     import torch, pyannote.audio, torchaudio, os, shutil,time
     torch.serialization.add_safe_globals([
         torch.torch_version.TorchVersion,
@@ -402,7 +412,7 @@ def pyannote_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, 
 
 
 # 4. 说话人分离 reverb  https://huggingface.co/Revai/reverb-diarization-v1
-def reverb_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False):
+def reverb_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False,logs_file=None):
     import torch, pyannote.audio, torchaudio, os, shutil,time
     torch.serialization.add_safe_globals([
         torch.torch_version.TorchVersion,
@@ -519,7 +529,7 @@ def reverb_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is
 
 
 # 内置中英文说话人分离模型
-def built_speakers(*, input_file, subtitles, num_speakers=-1, language="zh", TEMP_DIR=None):
+def built_speakers(*, input_file, subtitles, num_speakers=-1, language="zh", TEMP_DIR=None,logs_file=None):
     from pathlib import Path
     from videotrans.configure import config as cfg
     import torch

@@ -517,8 +517,8 @@ class TextmatchingWindow(QWidget):
             try:
                 with open(path, 'r', encoding='utf-8') as f:
                     content = f.read()
-                    if not self.text_edit.toPlainText().strip():
-                        self.text_edit.setText(content)
+                    self.text_edit.clear()
+                    self.text_edit.setText(content)
             except Exception as e:
                 QMessageBox.warning(self, tr("msg_warning"), tr("msg_read_txt_fail", str(e)))
 

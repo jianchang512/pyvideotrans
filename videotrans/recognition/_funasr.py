@@ -3,7 +3,6 @@ import json
 import re, os, requests
 import threading
 import time
-from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Union
@@ -22,19 +21,6 @@ class FunasrRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-
-    # 获取进度
-    def _process(self, logs_file):
-        last_mtime = 0
-        while 1:
-            _p = Path(logs_file)
-            if _p.is_file() and _p.stat().st_mtime != last_mtime:
-                last_mtime = _p.stat().st_mtime
-                _tmp = json.loads(_p.read_text(encoding='utf-8'))
-                self._signal(text=_tmp.get('text'), type=_tmp.get('type', 'logs'))
-                if _tmp.get('type', '') == 'error':
-                    return
-            time.sleep(0.5)
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
@@ -77,7 +63,5 @@ class FunasrRecogn(BaseRecogn):
             "cache_folder": self.cache_folder
 
         }
-        # 获取进度
-        threading.Thread(target=self._process, args=(logs_file,), daemon=True).start()
-        raws=self._new_process(callback=paraformer if self.model_name == 'paraformer-zh' else funasr_mlt,title=f'STT use {self.model_name}',kwargs=kwars)
+        raws=self._new_process(callback=paraformer if self.model_name == 'paraformer-zh' else funasr_mlt,title=f'STT use {self.model_name}',is_cuda=self.is_cuda,kwargs=kwars)
         return raws

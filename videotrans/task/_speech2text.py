@@ -79,6 +79,7 @@ class SpeechToText(BaseTask):
                     _rs = self._new_process(callback=remove_noise,title=title,kwargs=kw)
                     if _rs:
                         self.cfg.shibie_audio=_rs
+                        self._signal(text='remove noise end')
                 except:
                     pass
             if self._exit(): return
@@ -241,7 +242,7 @@ class SpeechToText(BaseTask):
                 config.logger.error(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败')
 
         self.precent += 3
-        title=tr(f'Begin separating the speakers')+f':{speaker_type=}'
+        title=tr(f'Begin separating the speakers')+f':{speaker_type}'
         spk_list=None
         kw={
                 "input_file":self.cfg.shibie_audio,
@@ -269,7 +270,6 @@ class SpeechToText(BaseTask):
             spk_list=self._new_process(callback=_run_speakers,title=title,kwargs=kw)
             if spk_list:
                 Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')
-                config.logger.debug('分离说话人成功完成')
         except:
             pass
         self._signal(text=tr('separating speakers end'))

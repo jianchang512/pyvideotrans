@@ -41,16 +41,7 @@ class Ui_peiyin(object):
         self.hecheng_plaintext.setSizePolicy(sizePolicy)
         self.hecheng_plaintext.setMinimumSize(0, 150)
         self.hecheng_plaintext.setPlaceholderText(tr('tuodonghuoshuru'))
-        '''
-        self.hecheng_importbtn = QtWidgets.QPushButton()
-        self.hecheng_importbtn.setObjectName("hecheng_importbtn")
-        self.hecheng_importbtn.setFixedHeight(150)
-        self.hecheng_importbtn.setCursor(Qt.PointingHandCursor)
 
-        self.hecheng_importbtn.setText(tr('Import text to be translated from a file..'))
-
-        self.hecheng_layout.insertWidget(0, self.hecheng_importbtn)
-        '''
         self.hecheng_layout.insertWidget(1, self.hecheng_plaintext)
         self.verticalLayout_4.addLayout(self.hecheng_layout)
 
@@ -224,7 +215,7 @@ class Ui_peiyin(object):
         self.verticalLayout_4.addWidget(self.hecheng_opendir)
         self.horizontalLayout_11.addLayout(self.verticalLayout_4)
 
-        peiyin.setWindowTitle(tr("From  Text  Into  Speech"))
+        peiyin.setWindowTitle(tr("Batch dubbing of SRT or TXT subtitle files"))
         self.retranslateUi()
 
         # tab-4 语音合成

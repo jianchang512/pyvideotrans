@@ -59,9 +59,6 @@ class DoubaoTTS(BaseTTS):
     def _item_task(self, data_item: dict = None):
         if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
             return
-        # @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-        #        wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-        #        after=after_log(config.logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return

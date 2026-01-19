@@ -120,57 +120,10 @@ def get_speech_timestamp(input_wav=None,
     PARALLEL_THRESHOLD_MINUTES = 20 
     
     min_sil_frames = min_silent_duration_ms / frame_duration_ms
-    initial_segments = []
-    num_cores=1
-    if total_duration_minutes > PARALLEL_THRESHOLD_MINUTES:
-        # 每个音频分片>=10分钟
-        num_cores = min((total_duration_minutes//10)+1, os.cpu_count()-1)
 
     # Case A: 短音频 -> 走老路 (单核) 
-    if total_duration_minutes <= PARALLEL_THRESHOLD_MINUTES:
-        config.logger.debug(f"Audio duration {total_duration_minutes:.2f}m,{PARALLEL_THRESHOLD_MINUTES=}m. Using Single Core.")
-        initial_segments = _detect_raw_segments(data, threshold, min_sil_frames, max_speech_frames=None)
-    
-    # Case B: 长音频 -> 走新路 (多核)
-    else:
-        config.logger.debug(f"Long Audio Detected ({total_duration_minutes:.2f}m). Using {num_cores} Cores Parallel Processing.")
-        
-        try:
-            # 1. 分为切片并行处理
-            chunk_len = total_len_samples // num_cores
-            # 强制对齐到 hop_size (防止帧错位)
-            chunk_len = (chunk_len // hop_size) * hop_size
-            
-            tasks = []
-            for i in range(num_cores):
-                start = i * chunk_len
-                # 最后一个核拿走剩下的所有数据
-                end = start + chunk_len if i < num_cores - 1 else total_len_samples
-                
-                sub_data = data[start:end]
-                tasks.append((sub_data, threshold, min_sil_frames, hop_size))
-            
-            # 2. 并行执行
-            # 注意：直接调用外部函数
-            with ProcessPoolExecutor(max_workers=num_cores) as executor:
-                results = list(executor.map(_vad_parallel_worker, tasks))
-            
-            # 3. 合并结果并修正坐标
-            for i, segments in enumerate(results):
-                offset_samples = i * chunk_len
-                offset_frames = offset_samples // hop_size
-                
-                for s, e in segments:
-                    initial_segments.append([s + offset_frames, e + offset_frames])
-            
-            # 排序（以防万一）
-            initial_segments.sort(key=lambda x: x[0])
-            
-        except Exception as e:
-            config.logger.error(f"Parallel processing failed: {e}. Falling back to single core.")
-            # 兜底：万一多进程挂了，切回单核跑
-            initial_segments = _detect_raw_segments(data, threshold, min_sil_frames, max_speech_frames=None)
-
+    config.logger.debug(f"Audio duration {total_duration_minutes:.2f}m,{PARALLEL_THRESHOLD_MINUTES=}m. Using Single Core.")
+    initial_segments = _detect_raw_segments(data, threshold, min_sil_frames, max_speech_frames=None)
 
     # --- 第二阶段：细化超长片段 超过2s---
     refined_segments = []

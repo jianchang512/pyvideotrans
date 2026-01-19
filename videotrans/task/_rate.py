@@ -11,8 +11,8 @@ from pydub import AudioSegment
 
 from videotrans.configure import config
 from videotrans.configure.config import tr
+from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 import soundfile as sf
 import pyrubberband as pyrb
@@ -226,6 +226,12 @@ class SpeedRate:
 
         # 检测并设置可用的音频变速滤镜
         self.audio_speed_rubberband = shutil.which("rubberband")
+        if not self.audio_speed_rubberband:
+            config.logger.warning('不存在 rubberban 库，禁用音频加速处理'                                  
+                                  'For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip'
+                                  'MacOS: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm'
+                                  'Ubuntu: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm')
+            self.shoud_audiorate=False
 
         config.logger.debug(f'允许的最大音频加速倍数={self.max_audio_speed_rate},允许的最大视频慢放倍数={self.max_video_pts_rate}')
         config.logger.debug(f"SpeedRate 初始化。音频加速: {self.shoud_audiorate}, 视频慢速: {self.shoud_videorate}")
@@ -269,8 +275,7 @@ class SpeedRate:
             tools.set_process(text='process dubbing speed', uuid=self.uuid)
             if self.audio_speed_rubberband:
                 self._execute_audio_speedup_rubberband()
-            else:
-                self._execute_audio_speedup()
+
         # 配音文件连接
         tools.set_process(text='concat dubbing', uuid=self.uuid)
         self._concat_audio()
@@ -358,8 +363,6 @@ class SpeedRate:
         音频加速、视频慢速，至少有一项或者2者
         """
         tools.set_process(text="Preparing data...", uuid=self.uuid)
-
-
         # 1. 获取 fps 和 视频信息包括时长等
         if self.shoud_videorate and self.novoice_mp4_original and tools.vail_file(self.novoice_mp4_original):
             try:
@@ -383,7 +386,7 @@ class SpeedRate:
             if i< queue_tts_len-1:
                 it['end_time']=self.queue_tts[i+1]['start_time']
 
-                
+
         # 处理末尾一条字幕
         if  self.raw_total_time and self.raw_total_time > self.queue_tts[-1]['end_time']:
             # 视频时长大于字幕末尾时长,延长末尾字幕结束时间，最多延长10s
@@ -417,9 +420,6 @@ class SpeedRate:
 
             if it['dubb_time']> it['source_duration']:
                 dubb_list.append(it['filename'])
-
-            
-
         config.logger.debug("[end]========在变速前，整理数据，修复错误时间轴 ==============\n")
     
     def _calculate_adjustments_audiorate(self):
@@ -560,87 +560,6 @@ class SpeedRate:
             it['startraw']=tools.ms_to_time_string(ms=it['start_time'])
             it['endraw']=tools.ms_to_time_string(ms=it['end_time'])
         config.logger.debug("[end]================== 计算调整方案 ==================\n")
-    # ffmpeg 处理音频加速
-    def _execute_audio_speedup(self):
-        """
-        使用FFmpeg的`rubberband`或`atempo`滤镜进行高质量音频变速。
-        """
-        tools.set_process(text="Processing audio...", uuid=self.uuid)
-        self.audio_speed_filter = self._check_ffmpeg_filters()
-        config.logger.debug(f"[start]================== ffmpeg 执行音频加速:滤镜 {self.audio_speed_filter=}============")
-        total_tasks = len(self.audio_data)
-
-        def _speedup_set_dubbtime(i, it):
-            if it['dubb_time'] <= it['target_time']:
-                return
-            try:
-                temp_output_file = self.cache_folder + f'/temp-{i}-{time.time()}.wav'
-                if self.audio_speed_filter == 'rubberband':
-                    filter_str = f"rubberband=tempo={it['dubb_time'] / it['target_time']}"
-                    cmd = ['-y', '-i', it['filename'], '-filter:a', filter_str, '-t', f"{it['target_time']/1000.0:.6f}", '-ar',
-                           str(self.AUDIO_SAMPLE_RATE), '-ac', str(self.AUDIO_CHANNELS), '-c:a', 'pcm_s16le',
-                           temp_output_file]
-                else:
-                    # 完成使用 atempo 滤镜加速
-                    # 构造 atempo 滤镜链
-                    # atempo 限制：参数必须在 [0.5, 2.0] 之间
-                    atempo_list = []
-                    speed_factor = it['dubb_time'] / it['target_time']
-
-                    # 处理加速情况 (> 2.0)
-                    while speed_factor > 2.0:
-                        atempo_list.append("atempo=2.0")
-                        speed_factor /= 2.0
-
-                    # 放入剩余的倍率
-                    atempo_list.append(f"atempo={speed_factor}")
-
-                    # 用逗号连接滤镜，形成串联效果，如 "atempo=2.0,atempo=1.5"
-                    filter_str = ",".join(atempo_list)
-
-                    cmd = [
-                        '-y',
-                        '-i', os.path.basename(it['filename']),
-                        '-filter:a', filter_str,
-                        '-t', f"{it['target_time']/1000.0:.6f}",  # 强制裁剪到目标时长，防止精度误差
-                        '-ar', str(self.AUDIO_SAMPLE_RATE),
-                        '-ac', str(self.AUDIO_CHANNELS),
-                        '-c:a', 'pcm_s16le',
-                        os.path.basename(temp_output_file)
-                    ]
-                tools.runffmpeg(cmd, force_cpu=True,cmd_dir=self.cache_folder)
-                after_audio = AudioSegment.from_file(temp_output_file)
-                after_len = len(after_audio)
-                if after_len > it['target_time']:
-                    config.logger.debug(f"变速第{i}个，裁剪后时长{after_len}, 长了 {after_len - it['target_time']}")
-                    after_audio = after_audio[:it['target_time']].set_frame_rate(self.AUDIO_SAMPLE_RATE).set_channels(
-                        self.AUDIO_CHANNELS)
-                    after_audio.export(it['filename'], format="wav")
-                    config.logger.debug(f'变速第{i}个，最后时长={len(after_audio)}')
-                else:
-                    shutil.copy2(temp_output_file, it['filename'])
-                config.logger.debug(f"变速第{i}个完成")
-            except Exception as e:
-                config.logger.warning(f"变速第 {i}个失败 {e}")
-
-        all_task = []
-        with ThreadPoolExecutor(max_workers=min(12, total_tasks, os.cpu_count())) as pool:
-            for i, d in enumerate(self.audio_data):
-                all_task.append(pool.submit(_speedup_set_dubbtime, i, d))
-
-            completed_tasks = 0
-            for task in all_task:
-                try:
-                    task.result()  # 等待任务完成
-                    completed_tasks += 1
-                    tools.set_process(
-                        text=f"audio speedup [{completed_tasks}/{total_tasks}] ...",
-                        uuid=self.uuid)
-                except Exception as e:
-                    config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
-
-        config.logger.debug(f"[end]================ ffmpeg 执行音频加速:滤镜 {self.audio_speed_filter=}========\n")
-
 
     # rubberband 库处理音频加速
     def _execute_audio_speedup_rubberband(self):
@@ -655,20 +574,19 @@ class SpeedRate:
             return
 
         all_task = []
-        with ProcessPoolExecutor(max_workers=min(12, total_tasks, os.cpu_count())) as pool:
-            for i, d in enumerate(self.audio_data):
-                all_task.append(pool.submit(_change_speed_rubberband, d['filename'], d['target_time']))
+        for i, d in enumerate(self.audio_data):
+            kw={"input_path":d['filename'],"target_duration":d['target_time']}
+            all_task.append(GlobalProcessManager.submit_task_cpu(_change_speed_rubberband, **kw))
 
-            completed_tasks = 0
-            for task in all_task:
-                try:
-                    task.result()  # 等待任务完成
-                    completed_tasks += 1
-                    tools.set_process(text=f"audio speedup rubberband [{completed_tasks}/{total_tasks}] ...",
-                                      uuid=self.uuid)
-                except Exception as e:
-                    config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
-
+        completed_tasks = 0
+        for task in all_task:
+            try:
+                task.result()  # 等待任务完成
+                completed_tasks += 1
+                tools.set_process(text=f"audio speedup rubberband [{completed_tasks}/{total_tasks}] ...",
+                                  uuid=self.uuid)
+            except Exception as e:
+                config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
 
         config.logger.debug("[end]======执行音频加速,使用 rubberband lib 库 ==================\n")
     # 视频慢速
@@ -712,20 +630,21 @@ class SpeedRate:
         total_task = len(data)
         config.logger.debug(f'需要处理的视频片段数量={total_task}')
         all_task = []
-        with ProcessPoolExecutor(max_workers=min(12, total_task, os.cpu_count())) as pool:
-            for i, d in enumerate(data):
-                all_task.append(pool.submit(_cut_video_get_duration, i, d,self.novoice_mp4_original,self.preset,self.crf))
-                # 监控进度
-            completed_tasks = 0
-            for t in all_task:
-                try:
-                    t.result()  # 等待任务完成
-                    completed_tasks += 1
-                    tools.set_process(
-                        text=tr("[{}/{}] Processing video & probing real durations...", completed_tasks, total_task),
-                        uuid=self.uuid)
-                except Exception as e:
-                    config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
+        for i, d in enumerate(data):
+            kw={"i":i, "task":d,"novoice_mp4_original":self.novoice_mp4_original,"preset":self.preset,"crf":self.crf}
+            all_task.append(GlobalProcessManager.submit_task_cpu(_cut_video_get_duration,**kw))
+
+        # 监控进度
+        completed_tasks = 0
+        for t in all_task:
+            try:
+                t.result()  # 等待任务完成
+                completed_tasks += 1
+                tools.set_process(
+                    text=tr("[{}/{}] Processing video & probing real durations...", completed_tasks, total_task),
+                    uuid=self.uuid)
+            except Exception as e:
+                config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
 
         
         config.logger.debug(f'[end]=========视频变速处理结束==========\n')
@@ -778,7 +697,7 @@ class SpeedRate:
         for i, it in enumerate(self.queue_tts):
             # 有视频慢速时，使用原始 
             source = it['end_time']-it['start_time'] #if not self.shoud_videorate else it['source_duration']
-            if source <= 0:
+            if source <= 0 or not it['filename'] or not tools.vail_file(it['filename']):
                 it['real_dubb_time']=0
                 continue
             if i==0 and it['start_time']>0:
@@ -878,32 +797,33 @@ class SpeedRate:
         ext = Path(self.target_audio).suffix.lower()
         codecs = {".m4a": "aac", ".mp3": "libmp3lame", ".wav": "copy"}
         outname= self.target_audio if ext=='.wav' else f'{self.cache_folder}/endout.wav'
+        # 可能不在同一目录下
         cmd_step1 = [
             "-y",
             "-f", "concat",
             "-safe", "0",
-            "-i", os.path.basename(concat_txt_path),
+            "-i", concat_txt_path,
             "-c:a", 'copy',
-            os.path.basename(outname)
+            outname
         ]
         self.stop_show_process = False
         threading.Thread(target=self._hebing_pro, args=(protxt, 'concat audio'),daemon=True).start()
-        tools.runffmpeg(cmd_step1, force_cpu=True,cmd_dir=self.cache_folder)
+        tools.runffmpeg(cmd_step1, force_cpu=True)
         self.stop_show_process = True
-        config.logger.debug(f'===拼接配音片段后，目标音频{outname}, 真实总时长={len(AudioSegment.from_file(outname, format="wav"))}\n')
         # 直接连接，如果输出要求不是wav，需要再转码
         if ext!='.wav':
+            # 可能不在同一目录下
             cmd_step2 = [
                 "-y",
-                "-progress", os.path.basename(protxt),
-                "-i", os.path.basename(outname),
+                "-progress", protxt,
+                "-i", outname,
                 "-c:a", codecs.get(ext),
-                os.path.basename(self.target_audio)
+                self.target_audio
             ]
 
             self.stop_show_process = False
             threading.Thread(target=self._hebing_pro, args=(protxt, 'conver audio'),daemon=True).start()
-            tools.runffmpeg(cmd_step2, force_cpu=True,cmd_dir=self.cache_folder)
+            tools.runffmpeg(cmd_step2, force_cpu=True)
             self.stop_show_process = True
         if not tools.vail_file(self.target_audio):
             config.logger.warning(f"音频拼接失败， {self.target_audio} 未生成。")

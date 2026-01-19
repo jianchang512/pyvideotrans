@@ -6,6 +6,7 @@ from PySide6.QtCore import QThread, Signal as pyqtSignal
 from videotrans.configure import config
 
 from videotrans.process.prepare_audio import vocal_bgm
+from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
 import time
 from pathlib import Path
@@ -44,13 +45,11 @@ class SeparateWorker(QThread):
                 self.file = newfile
             tools.set_process(uuid=self.uuid)
             kw={"input_file":self.file,"vocal_file":self.vocal,"instr_file":f"{self.out}/instrument-{p.stem}.wav","TEMP_DIR":config.TEMP_DIR}
-            with ProcessPoolExecutor(max_workers=1) as executor:
-                # 提交任务，并显式传入参数，确保子进程拿到正确的参数
-                future = executor.submit(
-                    vocal_bgm,
-                    **kw
-                )
-                rs,err=future.result()
+            future=GlobalProcessManager.submit_task_cpu(
+                        vocal_bgm,
+                        **kw
+                    )
+            rs,err=future.result()
             if rs is False:
                 self.finish_event.emit(err)
         except Exception as e:

@@ -1,14 +1,18 @@
 import base64
+import json
 import os,time,traceback
 import subprocess
+import threading
 from dataclasses import dataclass, field
+from json import JSONDecodeError
 from pathlib import Path
 from typing import Optional
 
 from videotrans.configure import config
 from videotrans.configure.config import tr
 from videotrans.util import tools
-from concurrent.futures import ProcessPoolExecutor
+from videotrans.process.signelobj import GlobalProcessManager
+
 
 @dataclass
 class BaseCon:
@@ -77,9 +81,9 @@ class BaseCon:
             raise RuntimeError(e.stderr)
 
     # 语音合成后统一转为 wav 音频
-    def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None,remove_silence=True):
+    def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None):
         from . import config
-        if config.exit_soft:
+        if config.exit_soft or not tools.vail_file(mp3_file_path):
             return
         cmd = [
             "-y",
@@ -97,14 +101,13 @@ class BaseCon:
         cmd += [
             output_wav_file_path
         ]
-        if config.exit_soft:
-            return
         try:
             tools.runffmpeg(cmd, force_cpu=True)
             tools.remove_silence_wav(output_wav_file_path)
         except Exception:
             pass
         return True
+
 
     # 判断是否为内网地址
     def _get_internal_host(self, url: str):
@@ -203,32 +206,64 @@ class BaseCon:
             base64_encoded = base64.b64encode(wav_content)
             return base64_encoded.decode("utf-8")
 
+    def _signal_of_process(self, logs_file):
+        last_mtime = 0
+        while 1:
+            _p = Path(logs_file)
+            if last_mtime>0 and not _p.exists():
+                return
+            if _p.is_file() and _p.stat().st_mtime != last_mtime:
+                last_mtime = _p.stat().st_mtime
+                _content=_p.read_text(encoding='utf-8')
+                if not _content:
+                    time.sleep(1)
+                    continue
+                try:
+                    _tmp = json.loads(_content)
+                except JSONDecodeError:
+                    time.sleep(1)
+                    continue
+                self._signal(text=_tmp.get('text'), type=_tmp.get('type', 'logs'))
+                if _tmp.get('type', '') == 'error':
+                    return
+            time.sleep(0.5)
 
     # 使用新进程执行任务
-    def _new_process(self,callback=None,title="",kwargs=None):
+    def _new_process(self,callback=None,title="",is_cuda=False,kwargs=None):
         _st = time.time()
         self._signal(text=f'[{title}] starting...')
-        config.logger.debug(f'[新进程执行任务]:{title}\n{kwargs=}')
-        with ProcessPoolExecutor(max_workers=1) as executor:
-            # 提交任务，并显式传入参数，确保子进程拿到正确的参数
-            future = executor.submit(
+        config.logger.debug(f'[新进程执行任务]:{title}')
+        # 提交任务，并显式传入参数，确保子进程拿到正确的参数
+        logs_file=kwargs.get('logs_file')
+        try:
+            if logs_file:
+                Path(logs_file).touch()
+                threading.Thread(target=self._signal_of_process,args=(logs_file,),daemon=True).start()
+            future = GlobalProcessManager.submit_task_cpu(
+                callback, 
+                **kwargs
+            ) if not is_cuda else GlobalProcessManager.submit_task_gpu(
                 callback,
                 **kwargs
             )
+            _rs = future.result()
+            if isinstance(_rs,tuple) and len(_rs)==2:
+                data,err=_rs
+                if data is False:
+                    raise RuntimeError(err)
+            else:
+                data=_rs
+            self._signal(text=f'[{title}] end: {int(time.time() - _st)}s')
+            return data
+        except Exception as e:
+            msg=traceback.format_exc()
+            config.logger.exception(f'new process:{msg}',exc_info=True)
+            if kwargs.get('batch_size',0)>1 and kwargs.get('model_name','').find('large')>-1:
+                raise RuntimeError(f'{tr("may be insufficient memory")}\n{e}')
+            raise
+        finally:
             try:
-                _rs = future.result()
-                if isinstance(_rs,tuple) and len(_rs)==2:
-                    data,err=_rs
-                    if data is False:
-                        raise RuntimeError(err)
-                else:
-                    data=_rs
-            except Exception as e:
-                msg=traceback.format_exc()
-                config.logger.exception(f'new process:{msg}',exc_info=True)
-                if kwargs.get('batch_size',0)>1 and kwargs.get('model_name','').find('large')>-1:
-                    raise RuntimeError(f'{tr("may be insufficient memory")}\n{e}')
-                raise
+                Path(logs_file).unlink(missing_ok=True)
+            except:
+                pass
 
-        self._signal(text=f'[{title}] end: {int(time.time() - _st)}s')
-        return data

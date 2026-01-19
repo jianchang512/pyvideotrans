@@ -575,7 +575,7 @@ def openwin():
     winobj.show()
     def _bind():
         from videotrans.component.component import PeiyinDropButton
-        winobj.hecheng_importbtn = PeiyinDropButton(tr('xuanzeyinshipin'))
+        winobj.hecheng_importbtn = PeiyinDropButton(tr('Import text to be translated from a file..'))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)

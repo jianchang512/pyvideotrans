@@ -68,7 +68,7 @@ dependencies = [
     "elevenlabs==2.8.1",
     "exceptiongroup==1.2.2",
     "executing==2.0.1",
-    "faster-whisper",
+    "faster-whisper==1.2.1",
     "ffmpeg-python==0.2.0",
     "filelock==3.20.0",
     "flask==3.0.3",

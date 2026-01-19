@@ -215,7 +215,7 @@
     "If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here": "Official OpenAI: Blank. 3rd Party: Fill URL.",
     "Import SRT file...": "Import SRT...",
     "Import original language SRT": "Import Source SRT",
-    "Import text to be translated from a file..": "Import Subs from SRT",
+    "Import text to be translated from a file..": "Import SRT or TXT",
     "In Progress...": "Running...",
     "IndexTTS version?": "Index-TTS Ver?",
     "Indonesian": "Indonesian",
@@ -929,5 +929,9 @@
 	"bubaocunshuoming": "If you have manually or used other tools to modify the\n[{}] subtitle files in the subtitle folder, please click this button.",
     "Only support": "Only support ",
     "may be insufficient memory": "An error has occurred. There may be insufficient memory or video memory. Please try changing the faster-whisper batch size to 1 in the advanced options.",
-	"Downloading please wait":"Downloading please wait "
+	"Downloading please wait":"Downloading please wait ",
+	"Batch dubbing of SRT or TXT subtitle files":"Batch dubbing of SRT or TXT subtitle files",
+    "Select at least one speaker": "Select at least one speaker",
+    "conflict with the role specified by row": "If you want to assign a character to a specific subtitle without being restricted by the speaker's role, please make sure to do this last.",
+    "will be automatically identified as the speaker": "If the subtitle begins with [spk1], it will be automatically identified as the speaker"
 }

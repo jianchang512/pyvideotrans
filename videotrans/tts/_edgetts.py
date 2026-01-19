@@ -1,10 +1,11 @@
 import asyncio
 import os
-from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 import functools
 import aiohttp
+
+from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
 from edge_tts import Communicate
 from edge_tts.exceptions import NoAudioReceived
@@ -229,22 +230,24 @@ class EdgeTTS(BaseTTS):
 
             if ok>0:
                 all_task = []
-                from concurrent.futures import ThreadPoolExecutor
                 self._signal(text=f'convert wav {total_tasks}')
-                with ProcessPoolExecutor(max_workers=min(12,len(self.queue_tts),os.cpu_count())) as pool:
-                    for item in self.queue_tts:
-                        mp3_path = item['filename'] + ".mp3"
-                        if tools.vail_file(mp3_path):
-                            all_task.append(pool.submit(_convert_to_wav, mp3_path,item['filename']))
-                    completed_tasks = 0
-                    for task in all_task:
-                        try:
-                            task.result()  # 等待任务完成
-                            completed_tasks += 1
-                            self._signal( text=f"convert wav [{completed_tasks}/{total_tasks}]" )
-                        except Exception as e:
-                            config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
-                    
+                for item in self.queue_tts:
+                    if not tools.vail_file(item['filename'] + ".mp3"):
+                        continue
+                    kwargs = {"mp3_file_path": item['filename'] + ".mp3", "output_wav_file_path": item['filename']}
+                    all_task.append(GlobalProcessManager.submit_task_cpu(
+                        _convert_to_wav,
+                        **kwargs
+                    ))
+                completed_tasks = 0
+                for task in all_task:
+                    try:
+                        task.result()  # 等待任务完成
+                        completed_tasks += 1
+                        self._signal(text=f"convert wav [{completed_tasks}/{total_tasks}]")
+                    except Exception as e:
+                        config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
+
             if err > 0:
                 msg=f'[{err}] errors, {ok} succeed'
                 self._signal(text=msg)

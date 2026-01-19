@@ -2,7 +2,6 @@
 import re, sys, os
 import threading
 import time
-from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Union
@@ -67,9 +66,7 @@ class HuggingfaceRecogn(BaseRecogn):
             "batch_size": int(config.settings.get('batch_size', 8)),
             "jianfan": self.jianfan
         }
-        # 获取进度
-        threading.Thread(target=self._process, args=(logs_file,), daemon=True).start()
-        raws=self._new_process(callback=pipe_asr,title=title,kwargs=kwargs)
+        raws=self._new_process(callback=pipe_asr,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         return raws
 
     # JhonVanced/whisper-large-v3-japanese-4k-steps-ct2','zh-plus/faster-whisper-large-v2-japanese-5k-steps
@@ -103,24 +100,9 @@ class HuggingfaceRecogn(BaseRecogn):
             "repetition_penalty": float(config.settings.get('repetition_penalty', 1.0)),
             "compression_ratio_threshold": float(config.settings.get('compression_ratio_threshold', 2.2)),
         }
-        # 获取进度
-        threading.Thread(target=self._process, args=(logs_file,), daemon=True).start()
-        raws=self._new_process(callback=faster_whisper,title=title,kwargs=kwargs)
+        raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
 
         return raws
-
-    # 获取进度
-    def _process(self, logs_file):
-        last_mtime = 0
-        while 1:
-            _p = Path(logs_file)
-            if _p.is_file() and _p.stat().st_mtime != last_mtime:
-                last_mtime = _p.stat().st_mtime
-                _tmp = json.loads(_p.read_text(encoding='utf-8'))
-                self._signal(text=_tmp.get('text'), type=_tmp.get('type', 'logs'))
-                if _tmp.get('type', '') == 'error':
-                    return
-            time.sleep(0.5)
 
     def _progress_callback(self, data):
         """

@@ -280,13 +280,14 @@ class TransCreate(BaseTask):
             kw={
                 "input_file":self.cfg.source_wav,
                 "output_file":f"{self.cfg.cache_folder}/remove_noise.wav",
-                "TEMP_DIR":config.TEMP_DIR,
+                "TEMP_DIR":self.cfg.cache_folder,
                 "is_cuda":self.cfg.cuda
             }
             try:
-                _rs = self._new_process(callback=remove_noise,title=title,kwargs=kw)
+                _rs = self._new_process(callback=remove_noise,title=title,is_cuda=self.cfg.cuda,kwargs=kw)
                 if _rs:
                     self.cfg.source_wav=_rs
+                self._signal(text='remove noise end')
             except:
                 pass
 
@@ -379,9 +380,9 @@ class TransCreate(BaseTask):
             from videotrans.process.prepare_audio import fix_punc
             # 预先删掉已有的标点
             text_dict={f'{it["line"]}':re.sub(r'[,.?!，。？！]',' ',it["text"]) for it in self.source_srt_list}
-            kw={"text_dict":text_dict,"TEMP_DIR":config.TEMP_DIR,"is_cuda":self.cfg.cuda}
+            kw={"text_dict":text_dict,"TEMP_DIR":self.cfg.cache_folder,"is_cuda":self.cfg.cuda}
             try:
-                _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),kwargs=kw)
+                _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),is_cuda=self.cfg.cuda,kwargs=kw)
                 if _rs:
                     for it in self.source_srt_list:
                         it['text']=_rs.get(f'{it["line"]}',it['text'])
@@ -459,7 +460,7 @@ class TransCreate(BaseTask):
 
         self.precent += 3
         self._signal(text=tr("Secondary speech recognition of dubbing files"))
-        shibie_audio=f'{config.TEMP_DIR}/recogn2pass-{time.time()}.wav'
+        shibie_audio=f'{self.cfg.cache_folder}/recogn2pass-{time.time()}.wav'
         outsrt_file=f'{self.cfg.cache_folder}/recogn2pass-{time.time()}.srt'
         try:
             tools.conver_to_16k(self.cfg.target_wav,shibie_audio)
@@ -577,13 +578,13 @@ class TransCreate(BaseTask):
 
         try:
             self.precent += 3
-            title=tr(f'Begin separating the speakers')+f':{speaker_type=}'
+            title=tr(f'Begin separating the speakers')+f':{speaker_type}'
             spk_list=None
             kw={
                     "input_file":self.cfg.source_wav,
                     "subtitles":[ [it['start_time'],it['end_time']] for it in self.source_srt_list],
                     "num_speakers":self.max_speakers,
-                    "TEMP_DIR":config.TEMP_DIR,
+                    "TEMP_DIR":self.cfg.cache_folder,
                     "is_cuda":self.cfg.cuda
             }
             if speaker_type=='built':
@@ -601,7 +602,7 @@ class TransCreate(BaseTask):
             else:
                 config.logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
                 return
-            spk_list=self._new_process(callback=_run_speakers,title=title,kwargs=kw)
+            spk_list=self._new_process(callback=_run_speakers,title=title,is_cuda=self.cfg.cuda and speaker_type!='built',kwargs=kw)
 
             if spk_list:
                 Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')
@@ -837,7 +838,7 @@ class TransCreate(BaseTask):
             return rs
 
         # 继续人声分离
-        tmpfile = config.TEMP_DIR + "/441000_ac2_raw.wav"
+        tmpfile = self.cfg.cache_folder + "/441000_ac2_raw.wav"
         tools.runffmpeg([
             "-y",
             "-i",
@@ -857,9 +858,9 @@ class TransCreate(BaseTask):
         title=config.tr('Separating vocals and background music, which may take a longer time')
         from videotrans.process.prepare_audio import vocal_bgm
         # 返回 False None 失败
-        kw={"input_file":tmpfile,"vocal_file":self.cfg.vocal,"instr_file":self.cfg.instrument,"TEMP_DIR":config.TEMP_DIR}
+        kw={"input_file":tmpfile,"vocal_file":self.cfg.vocal,"instr_file":self.cfg.instrument,"TEMP_DIR":self.cfg.cache_folder}
         try:
-            rs=self._new_process(callback=vocal_bgm,title=title,kwargs=kw)
+            rs=self._new_process(callback=vocal_bgm,title=title,is_cuda=False,kwargs=kw)
             if rs and tools.vail_file(self.cfg.vocal) and tools.vail_file(self.cfg.instrument):
                 cmd = [
                     "-y",
@@ -1090,7 +1091,6 @@ class TransCreate(BaseTask):
 
     # 合并后最后文件仍为 人声文件，时长需要等于人声
     def _backandvocal(self, backwav, peiyinm4a):
-        import tempfile
         backwav = Path(backwav).as_posix()
         tmpdir = self.cfg.cache_folder
         tmpwav = Path(tmpdir + f'/{time.time()}-1.wav').as_posix()

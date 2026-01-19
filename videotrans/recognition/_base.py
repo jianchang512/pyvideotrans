@@ -8,7 +8,6 @@ from videotrans.configure._base import BaseCon
 from videotrans.util import tools
 from videotrans.task.vad import get_speech_timestamp, get_speech_timestamp_silero
 from pydub import AudioSegment
-from concurrent.futures import ProcessPoolExecutor
 
 
 @dataclass

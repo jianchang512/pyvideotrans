@@ -1,54 +1,13 @@
-import re,os
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Set
-
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-import time
-
-from concurrent.futures import ProcessPoolExecutor
 import wave
 from piper import PiperVoice,SynthesisConfig
 
 
-# 用于多进程转换
-def _convert_to_wav(mp3_file_path, output_wav_file_path):
-    cmd = [
-        "-y",
-        "-i",
-        mp3_file_path,
-        "-ar",
-        "48000",
-        "-ac",
-        "2",
-        "-c:a",
-        "pcm_s16le",
-        output_wav_file_path
-    ]
-    try:
-        tools.runffmpeg(cmd, force_cpu=True)
-        tools.remove_silence_wav(output_wav_file_path)
-    except Exception:
-        pass
-    return True
-
-#用于多进程
-def _t(it,device='cpu',rate=1.0,model_file=None):
-    if not it.get('text','').strip():
-        return
-    voice = PiperVoice.load(model_file,use_cuda=True if device=='cuda' else False)
-    syn_config = SynthesisConfig(
-        length_scale=float(rate),  # twice as slow
-    )
-
-    with wave.open(it['filename']+'-24k.wav', "wb") as wav_file:
-        voice.synthesize_wav(it.get('text'), wav_file,syn_config=syn_config)
-        
 @dataclass
 class PiperTTS(BaseTTS):
 
@@ -82,54 +41,45 @@ class PiperTTS(BaseTTS):
     def _exec(self):
         # 判断模型是否存在
         role_model={}
+        _model_obj={}
         for it in self.queue_tts:
-            if it['role'] in role_model:
+            if it['role'] in role_model or not it.get('text','').strip():
                 continue
             role_model[it['role']]=self._get_model_from_name(it['role'])
-        all_task=[]
-        with ProcessPoolExecutor(max_workers=min(max(2,int(config.settings.get('dubbing_thread',1))),len(self.queue_tts),os.cpu_count())) as pool:
-            for item in self.queue_tts:
-                all_task.append(pool.submit(_t, item,self.device,self.rate,role_model.get(item['role'])))
-            completed_tasks = 0
-            for task in all_task:
-                try:
-                    task.result()  # 等待任务完成
-                    completed_tasks += 1
-                    self._signal( text=f"tts [{completed_tasks}/{len(self.queue_tts)}]" )
-                except Exception as e:
-                    config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
-        
-        
+
+        syn_config = SynthesisConfig(
+            length_scale=float(self.rate),  # twice as slow
+        )
         ok, err = 0, 0
         for i, item in enumerate(self.queue_tts):
-            if config.exit_soft:
-                return
-            if tools.vail_file(item['filename']+'-24k.wav'):
-                ok += 1
-            else:
-                err += 1
+            if config.exit_soft:return
+            if not item.get('text','').strip():
+                continue
+            try:
+                _model_file=role_model.get(item['role'])
+                voice=_model_obj.get(_model_file)
+                if voice is None:
+                    voice = PiperVoice.load(_model_file,use_cuda=True if self.device=='cuda' else False)
+                    _model_obj[_model_file]=voice
+                with wave.open(item['filename']+'-24k.wav', "wb") as wav_file:
+                    voice.synthesize_wav(item.get('text'), wav_file,syn_config=syn_config)
+                if not tools.vail_file(item['filename']+'-24k.wav'):
+                    err+=1
+                    continue
+                ok+=1
+                self.convert_to_wav(item['filename']+'-24k.wav',item['filename'])
+            except Exception as e:
+                config.logger.exception(f'piper dubbing error:{e}',exc_info=True)
+                err+=1
 
-        if ok>0:
-            all_task = []
-            total_tasks=len(self.queue_tts)
-            
-            self._signal(text=f'convert wav {total_tasks}')
-            with ProcessPoolExecutor(max_workers=min(12,len(self.queue_tts),os.cpu_count())) as pool:
-                for item in self.queue_tts:
-                    if tools.vail_file(item['filename']+'-24k.wav'):
-                        all_task.append(pool.submit(_convert_to_wav, item['filename']+"-24k.wav",item['filename']))
-                completed_tasks = 0
-                for task in all_task:
-                    try:
-                        task.result()  # 等待任务完成
-                        completed_tasks += 1
-                        self._signal( text=f"convert wav [{completed_tasks}/{total_tasks}]" )
-                    except Exception as e:
-                        config.logger.exception(f"Task {completed_tasks + 1} failed with error: {e}", exc_info=True)
-                
         if err > 0:
             msg=f'[{err}] errors, {ok} succeed'
             self._signal(text=msg)
-            config.logger.debug(f'EdgeTTS配音结束：{msg}')
+            config.logger.debug(f'piper配音结束：{msg}')
 
-
+        try:
+            del _model_obj
+            import gc
+            gc.collect()
+        except:
+            pass

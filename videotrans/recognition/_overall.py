@@ -1,7 +1,6 @@
 import threading
 import time, json, shutil
 import os
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from dataclasses import dataclass
 from videotrans.configure import config
@@ -10,7 +9,6 @@ from videotrans.recognition._base import BaseRecogn
 
 import requests
 from videotrans.util import tools
-from huggingface_hub import snapshot_download
 from pydub import AudioSegment
 from videotrans.process import openai_whisper, faster_whisper
 
@@ -101,22 +99,9 @@ class FasterAll(BaseRecogn):
             "temperature":config.settings.get('temperature'),
             "compression_ratio_threshold":float(config.settings.get('compression_ratio_threshold',2.2)),
         }
-        threading.Thread(target=self._process, args=(logs_file,), daemon=True).start()
-        raws=self._new_process(callback=openai_whisper,title=title,kwargs=kwargs)
+        raws=self._new_process(callback=openai_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         return raws
 
-    # 获取进度
-    def _process(self, logs_file):
-        last_mtime = 0
-        while 1:
-            _p = Path(logs_file)
-            if _p.is_file() and _p.stat().st_mtime != last_mtime:
-                last_mtime = _p.stat().st_mtime
-                _tmp = json.loads(_p.read_text(encoding='utf-8'))
-                self._signal(text=_tmp.get('text'), type=_tmp.get('type', 'logs'))
-                if _tmp.get('type', '') == 'error':
-                    return
-            time.sleep(0.5)
 
     def _faster(self):
         title=f"STT use {self.model_name}"
@@ -148,9 +133,8 @@ class FasterAll(BaseRecogn):
             "compression_ratio_threshold":float(config.settings.get('compression_ratio_threshold',2.2)),
 
         }
-        # 获取进度
-        threading.Thread(target=self._process, args=(logs_file,), daemon=True).start()
-        raws=self._new_process(callback=faster_whisper,title=title,kwargs=kwargs)
+
+        raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         return raws
 
     # data={type,percent,filename,current,total}
