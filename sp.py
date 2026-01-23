@@ -90,7 +90,6 @@ class StartWindow(QWidget):
         if self.main_window is None:
             QApplication.instance().quit()
         else:
-            # 主窗口存在，我们不需要退出应用，但需要确保启动画面关闭
             pass
 
         super().closeEvent(event)
