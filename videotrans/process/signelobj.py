@@ -1,14 +1,58 @@
 import multiprocessing,os
 from concurrent.futures import ProcessPoolExecutor, as_completed
-
+from videotrans.configure import config
 
 # ==========================================
 # 全局单例管理器
 # ==========================================
+from videotrans.util.gpus import getset_gpu
+
+
 class GlobalProcessManager:
     _executor_cpu = None
     _executor_gpu = None
 
+
+
+    @classmethod
+    def get_cpu_process_nums(cls):
+        try:
+            man_set=int(float(config.settings.get('process_max',0)))
+        except:
+            man_set=0
+        if man_set>0:
+            return min(man_set,8,os.cpu_count())
+
+        import psutil
+        mem=psutil.virtual_memory()
+        # 最多8个进程,最小2个
+        return max( min( (mem.available/(1024**3))//4 , 8, os.cpu_count() ), 2)
+
+    @classmethod
+    def get_gpu_process_nums(cls):
+        # 手动设置优先，最多8个
+        try:
+            man_set=int(float(config.settings.get('process_max_gpu',0)))
+        except:
+            man_set=0
+        if man_set>0:
+            return min(man_set,8,os.cpu_count())
+        if config.NVIDIA_GPU_NUMS<0:
+            getset_gpu()
+        if config.NVIDIA_GPU_NUMS<=1:
+            return 1
+        return min(config.NVIDIA_GPU_NUMS,8,os.cpu_count())
+
+    @classmethod
+    def get_executor_cpu(cls):
+        """
+        """
+        if cls._executor_cpu is None:
+            ctx = multiprocessing.get_context('spawn')
+            max_workers=cls.get_cpu_process_nums()
+            config.logger.debug(f'CPU进程池:{max_workers=}')
+            cls._executor_cpu = ProcessPoolExecutor(max_workers=max_workers, mp_context=ctx)
+        return cls._executor_cpu
 
     @classmethod
     def get_executor_gpu(cls):
@@ -17,30 +61,20 @@ class GlobalProcessManager:
         """
         if cls._executor_gpu is None:
             ctx = multiprocessing.get_context('spawn')
-            # 设为 1 保证显存绝对安全，任务会排队执行
-            cls._executor_gpu = ProcessPoolExecutor(max_workers=1, mp_context=ctx)
+            max_workers=cls.get_gpu_process_nums()
+            config.logger.debug(f'GPU进程池:{max_workers=}')
+            cls._executor_gpu = ProcessPoolExecutor(max_workers=max_workers, mp_context=ctx)
         return cls._executor_gpu
-
-    @classmethod
-    def get_executor_cpu(cls):
-        """
-        """
-        if cls._executor_cpu is None:
-            ctx = multiprocessing.get_context('spawn')
-            cls._executor_cpu = ProcessPoolExecutor(max_workers=max(2,os.cpu_count()-1), mp_context=ctx)
-        return cls._executor_cpu
-
 
     @classmethod
     def submit_task_cpu(cls, func, **kwargs):
         _executor=cls.get_executor_cpu()
         return _executor.submit(func, **kwargs)
 
+    @classmethod
     def submit_task_gpu(cls, func, **kwargs):
         _executor=cls.get_executor_gpu()
         return _executor.submit(func, **kwargs)
-
-
 
     @classmethod
     def shutdown(cls):

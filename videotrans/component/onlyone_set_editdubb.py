@@ -37,7 +37,6 @@ class ReDubb(QThread):
 
     def run(self):
         try:
-            config.box_tts = 'ing'
             tts.run(
                 queue_tts=[self.tts_dict],
                 language=self.language,

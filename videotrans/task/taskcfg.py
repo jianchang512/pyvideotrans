@@ -25,7 +25,7 @@ class TaskCfg:
     target_wav: str=None  # 目标语言音频，存在于临时文件夹下
     target_wav_output: str=None  # 目标语言音频输出，存在于目标文件夹下
 
-    subtitles: str=None  # 已存在的字幕文本，例如预先导入的
+    subtitles: str=""  # 已存在的字幕文本，例如预先导入的
 
     novoice_mp4: str=None  # 从原始视频分离出的无声视频
     noextname: str=None  # 去掉扩展名的原始视频名

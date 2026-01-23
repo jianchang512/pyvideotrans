@@ -19,12 +19,13 @@ def openwin():
         uito = Signal(str)
 
         def __init__(self, *, parent=None, folder=None,
-                     is_soft=False, language=None, maxlen=30):
+                     is_soft=False, language=None, maxlen=30,remain_hr=False):
             super().__init__(parent=parent)
             self.is_soft = is_soft
             self.language = language
             self.maxlen = maxlen
             self.folder = folder
+            self.remain_hr=remain_hr
 
         def post(self, type='logs', text=""):
             self.uito.emit(json.dumps({"type": type, "text": text}))
@@ -71,8 +72,14 @@ def openwin():
                     sub_list = tools.get_subtitle_from_srt(srt, is_file=True)
                     text = ""
                     for i, it in enumerate(sub_list):
-                        it['text'] = tools.textwrap(it['text'], self.maxlen).strip()
-                        text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
+                        if self.remain_hr:
+                            txt_list = []
+                            for txt_line in it['text'].strip().split("\n"):
+                                txt_list.append(tools.textwrap(txt_line.strip(), self.maxlen))
+                            text+= "\n".join(txt_list)
+                        else:
+                            it['text'] = tools.textwrap(it['text'], self.maxlen).strip()
+                            text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
                     srtfile = config.TEMP_DIR + f"/srt{time.time()}.srt"
                     with Path(srtfile).open('w', encoding='utf-8') as f:
                         f.write(text)
@@ -164,8 +171,9 @@ def openwin():
                           folder=folder,
                           is_soft=is_soft,
                           language=language,
-                          maxlen=maxlen
-                          )
+                          maxlen=maxlen,
+                          remain_hr=winobj.remain_hr.isChecked()
+        )
         task.uito.connect(feed)
         task.start()
 

@@ -18,6 +18,7 @@ def openwin():
     from videotrans.task._translate_srt import TranslateSrt
     RESULT_DIR = config.HOME_DIR + "/translate"
     SOURCE_DIR = RESULT_DIR
+    uuid_list=[]
 
     def toggle_state(state):
         winobj.fanyi_translate_type.setDisabled(state)
@@ -35,7 +36,7 @@ def openwin():
         winobj.fanyi_targettext.setDisabled(state)
 
     def feed(d):
-        if winobj.has_done or config.box_trans != 'ing':
+        if winobj.has_done:
             return
         d = json.loads(d)
         if d['type'] != 'error':
@@ -73,7 +74,6 @@ def openwin():
             winobj.loglabel.setText(tr('quanbuend'))
             winobj.fanyi_start.setText(tr("Ended/Start operate"))
             toggle_state(False)
-            config.box_trans = 'stop'
 
     def fanyi_import_fun():
         fnames, _ = QFileDialog.getOpenFileNames(winobj,
@@ -97,7 +97,8 @@ def openwin():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR if not SOURCE_DIR else SOURCE_DIR))
 
     def fanyi_start_fun():
-        nonlocal SOURCE_DIR
+        nonlocal SOURCE_DIR,uuid_list
+        uuid_list=[]
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         target_language = winobj.fanyi_target.currentText()
@@ -126,7 +127,6 @@ def openwin():
         winobj.fanyi_targettext.clear()
         winobj.loglabel.setText('')
 
-        config.box_trans = 'ing'
         config.settings['aisendsrt'] = winobj.aisendsrt.isChecked()
 
         with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
@@ -137,6 +137,7 @@ def openwin():
         if winobj.save_source.isChecked():
             SOURCE_DIR = Path(video_list[0]['name']).parent.as_posix()
         for it in video_list:
+            uuid_list.append(it['uuid'])
             cfg={
                 "translate_type": translate_type,
                 "target_dir": SOURCE_DIR if SOURCE_DIR else RESULT_DIR,
@@ -241,10 +242,11 @@ def openwin():
         config.getset_params(config.params)
 
     def pause_trans():
-        config.box_trans = 'stop'
         winobj.has_done = True
         winobj.loglabel.setText('Stoped')
         winobj.fanyi_start.setText(tr("Start operate"))
+        for it in uuid_list:
+            config.stoped_uuid_set.add(it)
         toggle_state(False)
 
     def show_detail_error():

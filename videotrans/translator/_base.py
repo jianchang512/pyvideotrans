@@ -73,7 +73,7 @@ class BaseTrans(BaseCon):
         pass
 
     def _exit(self):
-        if config.exit_soft or (config.current_status != 'ing' and config.box_trans != 'ing' and not self.is_test):
+        if config.exit_soft or (self.uuid and self.uuid in config.stoped_uuid_set):
             return True
         return False
 

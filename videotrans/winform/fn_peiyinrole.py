@@ -86,7 +86,7 @@ def openwin():
         winobj.hecheng_stop.setDisabled(not state)
 
     def feed(d):
-        if winobj.has_done or config.box_tts != 'ing':
+        if winobj.has_done:
             return
         if isinstance(d, str):
             d = json.loads(d)
@@ -222,7 +222,6 @@ def openwin():
         if winobj.save_to_srt.isChecked():
             RESULT_DIR = Path(winobj.srt_path).parent.as_posix()
 
-        config.box_tts = 'ing'
         video_obj = tools.format_video(winobj.srt_path, None)
         uuid = video_obj['uuid']
         cfg={
@@ -265,7 +264,6 @@ def openwin():
 
     def stop_tts():
         nonlocal uuid
-        config.box_tts = 'stop'
         winobj.has_done = True
         winobj.loglabel.setText('Stoped')
         winobj.hecheng_startbtn.setText(tr("zhixingwc"))

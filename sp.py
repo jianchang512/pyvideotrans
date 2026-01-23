@@ -14,7 +14,7 @@ License: GPL-V3
 """
 import atexit, sys, os, time
 
-VERSION = "v3.94"
+VERSION = "v3.95"
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
@@ -22,23 +22,10 @@ os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
-from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer, QLocale,QThread
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
+from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer, QLocale
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 
-class AiLoaderThread(QThread):
-    def run(self):
-        print("preload transformers/torch/ctranslate2...")
-        try:
-            _st=time.time()
-            # 提前异步加载大型库 import，会写入 sys.modules
-            import torch
-            import ctranslate2
-            from transformers import pipeline
-            print(f"preload AI models ended: {int(time.time()-_st)}")
-        except Exception as e:
-            import traceback
-            print(traceback.format_exc())
 
 
 # 抑制警告
@@ -179,8 +166,7 @@ def initialize_full_app(start_window, app_instance):
 
     if main_window_created and start_window.main_window:
         start_window.main_window.show()
-        start_window.loader = AiLoaderThread()
-        start_window.loader.start()
+
 
 
 if __name__ == "__main__":
@@ -202,7 +188,6 @@ if __name__ == "__main__":
     # 设置 HighDpi
     try:
         QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-        
     except AttributeError:
         pass
 

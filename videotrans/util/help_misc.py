@@ -2,6 +2,7 @@ import hashlib
 import os,re
 import platform
 import subprocess
+import sys
 import time
 from pathlib import Path
 from videotrans.configure import config
@@ -332,8 +333,7 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
 
         if config.queue_novice[noextname] == 'ing':
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
-            from . import help_role
-            help_role.set_process(
+            set_process(
                 text=f"{noextname} {config.tr('spilt audio and video')} {size}",
                 uuid=uuid)
             time.sleep(1)
@@ -374,3 +374,84 @@ def read_last_n_lines(filename, n=100):
         return []
     except Exception as e:
         return []
+
+
+
+# 综合写入日志，默认sp界面
+# type=logs|error|subtitle|end|stop|succeed|set_precent|replace_subtitle|.... 末尾显示类型，
+# uuid 任务的唯一id，用于确定插入哪个子队列
+def set_process(*, text="", type="logs", uuid=None):
+
+    if config.exit_soft:
+        return
+    if uuid and uuid in config.stoped_uuid_set:
+        return
+    try:
+        if text:
+            text = text.replace('\\n', ' ')
+        if type == 'logs':
+            text = text[:150]
+        if config.exec_mode=='cli':
+            print(text)
+            return
+        log = {"text": text, "type": type, "uuid": uuid}
+        if uuid:
+            config.push_queue(uuid, log)
+        else:
+            config.global_msg.append(log)
+    except Exception as e:
+        config.logger.exception(f'set_process：{e}',exc_info=True)
+
+
+
+def set_proxy(set_val=''):
+
+    if set_val=='del':
+        config.proxy=''
+        if os.environ.get('HTTP_PROXY'):
+            del os.environ['HTTP_PROXY']
+        if os.environ.get('HTTPS_PROXY'):
+            del os.environ['HTTPS_PROXY']
+        return
+
+    if set_val:
+        # 设置代理
+        set_val=set_val.lower()
+        if not set_val.startswith("http") and not set_val.startswith('sock'):
+            set_val = f"http://{set_val}"
+        config.proxy = set_val
+        os.environ['HTTP_PROXY'] = set_val
+        os.environ['HTTPS_PROXY'] = set_val
+        return set_val
+
+
+
+    # 获取代理
+    http_proxy = config.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
+
+    if http_proxy:
+        http_proxy=http_proxy.lower()
+        if not http_proxy.startswith("http") and not http_proxy.startswith('sock'):
+            http_proxy = f"http://{http_proxy}"
+        return http_proxy
+    if sys.platform != 'win32':
+        return None
+    try:
+        import winreg
+        # 打开 Windows 注册表
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                            r'Software\Microsoft\Windows\CurrentVersion\Internet Settings') as key:
+            # 读取代理设置
+            proxy_enable, _ = winreg.QueryValueEx(key, 'ProxyEnable')
+            proxy_server, _ = winreg.QueryValueEx(key, 'ProxyServer')
+            if proxy_enable==1 and proxy_server:
+                # 是否需要设置代理
+                proxy_server=proxy_server.lower()
+                if not proxy_server.startswith("http") and not proxy_server.startswith('sock'):
+                    proxy_server = "http://" + proxy_server
+
+                return proxy_server
+    except Exception:
+        pass
+    return None
+

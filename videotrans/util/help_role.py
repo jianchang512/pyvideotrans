@@ -74,58 +74,6 @@ def get_piper_role():
         Path(file_path).write_text(json.dumps(rolelist,indent=4),encoding='utf-8')
     return rolelist
 
-def set_proxy(set_val=''):
-
-    if set_val=='del':
-        config.proxy=''
-        if os.environ.get('HTTP_PROXY'):
-            del os.environ['HTTP_PROXY']
-        if os.environ.get('HTTPS_PROXY'):
-            del os.environ['HTTPS_PROXY']
-        return
-
-    if set_val:
-        # 设置代理
-        set_val=set_val.lower()
-        if not set_val.startswith("http") and not set_val.startswith('sock'):
-            set_val = f"http://{set_val}"
-        config.proxy = set_val
-        os.environ['HTTP_PROXY'] = set_val
-        os.environ['HTTPS_PROXY'] = set_val
-        return set_val
-    
-        
-    
-    # 获取代理
-    http_proxy = config.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
-
-    if http_proxy:
-        http_proxy=http_proxy.lower()
-        if not http_proxy.startswith("http") and not http_proxy.startswith('sock'):
-            http_proxy = f"http://{http_proxy}"
-        return http_proxy
-    if sys.platform != 'win32':
-        return None
-    try:
-        import winreg
-        # 打开 Windows 注册表
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                            r'Software\Microsoft\Windows\CurrentVersion\Internet Settings') as key:
-            # 读取代理设置
-            proxy_enable, _ = winreg.QueryValueEx(key, 'ProxyEnable')
-            proxy_server, _ = winreg.QueryValueEx(key, 'ProxyServer')
-            if proxy_enable==1 and proxy_server:
-                # 是否需要设置代理
-                proxy_server=proxy_server.lower()
-                if not proxy_server.startswith("http") and not proxy_server.startswith('sock'):
-                    proxy_server = "http://" + proxy_server
-
-                return proxy_server
-    except Exception:
-        pass
-    return None
-
-
 def get_302ai():
 
     role_dict = get_azure_rolelist()
@@ -357,7 +305,7 @@ def get_f5tts_role():
 
 # 获取clone-voice的角色列表
 def get_clone_role(set_p=False):
-
+    from . import help_misc
     if not config.params.get('clone_api',''):
         if set_p:
             raise Exception(config.tr('bixutianxiecloneapi'))
@@ -367,30 +315,8 @@ def get_clone_role(set_p=False):
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
         res.raise_for_status()
         config.params["clone_voicelist"] = ['No',"clone"] + res.json()
-        set_process(type='set_clone_role')
+        help_misc.set_process(type='set_clone_role')
     except Exception as e:
         if set_p: raise
     return False
 
-
-# 综合写入日志，默认sp界面
-# type=logs|error|subtitle|end|stop|succeed|set_precent|replace_subtitle|.... 末尾显示类型，
-# uuid 任务的唯一id，用于确定插入哪个子队列
-def set_process(*, text="", type="logs", uuid=None):
-
-    if config.exit_soft:
-        return
-    if uuid and uuid in config.stoped_uuid_set:
-        return
-    try:
-        if text:
-            text = text.replace('\\n', ' ')
-        if type == 'logs':
-            text = text[:150]
-        log = {"text": text, "type": type, "uuid": uuid}
-        if uuid:
-            config.push_queue(uuid, log)
-        else:
-            config.global_msg.append(log)
-    except Exception as e:
-        config.logger.exception(f'set_process：{e}',exc_info=True)

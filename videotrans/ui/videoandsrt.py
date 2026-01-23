@@ -93,8 +93,16 @@ class Ui_videoandsrt(object):
         self.layout_form.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.languagelabel)
         self.layout_form.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.language)
 
+        self.remain_hr = QtWidgets.QCheckBox()
+        self.remain_hr.setObjectName("remain_hr")
+        self.remain_hr.setChecked(False)
+        self.remain_hr.setText(tr("Preserve line breaks"))
+        self.remain_hr.setToolTip(tr("When embedding bilingual hard subtitles, please select"))
+
+
         self.h7.addWidget(self.set_ass)
         self.h7.addLayout(self.layout_form0)
+        self.h7.addWidget(self.remain_hr)
         self.h7.addStretch()
         self.h7.addWidget(self.issoft)
         self.h7.addLayout(self.layout_form)

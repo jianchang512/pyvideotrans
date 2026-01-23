@@ -14,7 +14,6 @@ class ListenVoice(QThread):
         try:
             from videotrans import tts
             from videotrans.configure import config
-            config.box_tts = 'ing'
             tts.run(
                 queue_tts=self.queue_tts,
                 language=self.language,

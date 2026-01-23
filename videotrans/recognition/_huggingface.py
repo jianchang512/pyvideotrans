@@ -34,7 +34,7 @@ class HuggingfaceRecogn(BaseRecogn):
 
         if self.model_name in ['JhonVanced/whisper-large-v3-japanese-4k-steps-ct2',
                                'zh-plus/faster-whisper-large-v2-japanese-5k-steps', 'Systran/faster-whisper-tiny']:
-            if int(config.settings.get('batch_size', 8))>1:
+            if int(config.settings.get('batch_size', 4))>1:
                 self._vad_split() 
             result = self._faster()
         else:
@@ -46,12 +46,14 @@ class HuggingfaceRecogn(BaseRecogn):
 
     def _pipe_asr(self):
         # 1. 准备数据
-        raws = self.cut_audio()
+
         title=f"load {self.model_name}"
         self._signal(text=title)
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/huggingface-pipeasr-{self.detect_language}-{time.time()}.log'
+        cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
+        Path(cut_audio_list_file).write_text(json.dumps(self.cut_audio()),encoding='utf-8')
         kwargs = {
-            "cut_audio_list": raws,
+            "cut_audio_list": cut_audio_list_file,
             "prompt": config.settings.get(
                 f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
             "detect_language": self.detect_language,
@@ -63,7 +65,7 @@ class HuggingfaceRecogn(BaseRecogn):
             "audio_file": None,
             "TEMP_ROOT": config.TEMP_ROOT,
             "local_dir": self.local_dir,
-            "batch_size": int(config.settings.get('batch_size', 8)),
+            "batch_size": int(config.settings.get('batch_size', 4)),
             "jianfan": self.jianfan
         }
         raws=self._new_process(callback=pipe_asr,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
@@ -74,6 +76,10 @@ class HuggingfaceRecogn(BaseRecogn):
         title=f"load {self.model_name}"
         self._signal(text=title)
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/huggingface-faster-{self.detect_language}-{time.time()}.log'
+        speech_timestamps_file=None
+        if self.speech_timestamps:
+            speech_timestamps_file = f'{config.TEMP_DIR}/{self.uuid}/speech_timestamps_{time.time()}.json'
+            Path(speech_timestamps_file).write_text(json.dumps(self.speech_timestamps),encoding='utf-8')
         kwargs = {
             "prompt": config.settings.get(
                 f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
@@ -85,12 +91,12 @@ class HuggingfaceRecogn(BaseRecogn):
             "is_cuda": self.is_cuda,
             "no_speech_threshold": float(config.settings.get('no_speech_threshold', 0.5)),
             "condition_on_previous_text": config.settings.get('condition_on_previous_text', False),
-            "speech_timestamps": self.speech_timestamps,
+            "speech_timestamps": speech_timestamps_file,
             "audio_file": self.audio_file,
             "TEMP_ROOT": config.TEMP_ROOT,
             "local_dir": self.local_dir,
             "compute_type": config.settings.get('cuda_com_type', 'default'),
-            "batch_size": int(config.settings.get('batch_size', 8)),
+            "batch_size": int(config.settings.get('batch_size', 4)),
             "beam_size": int(config.settings.get('beam_size', 5)),
             "best_of": int(config.settings.get('best_of', 5)),
             "jianfan": self.jianfan,

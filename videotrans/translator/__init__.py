@@ -919,12 +919,12 @@ def run(*, translate_type=0,
         "is_test": is_test,
         "translate_type":translate_type
     }
-    
+
     # 未设置代理并且检测google失败，则使用微软翻译
     if translate_type == GOOGLE_INDEX:
         if config.proxy or _check_google() is True:
             return Google(**kwargs).run()
-        config.logger.info('==未设置代理并且检测google失败，使用微软翻译')
+        config.logger.warning('==未设置代理并且检测google失败，使用微软翻译')
         return Microsoft(**kwargs).run()
         
     if translate_type == MyMemoryAPI_INDEX:

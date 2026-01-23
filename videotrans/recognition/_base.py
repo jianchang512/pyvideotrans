@@ -373,6 +373,6 @@ class BaseRecogn(BaseCon):
 
     # True 退出
     def _exit(self) -> bool:
-        if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
+        if config.exit_soft or (self.uuid and self.uuid in config.stoped_uuid_set):
             return True
         return False

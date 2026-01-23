@@ -1,10 +1,14 @@
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication,  Signal
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication, Signal, QThread
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMessageBox, QMainWindow, QPushButton, QToolBar, QSizePolicy, QApplication
 import asyncio, sys
 import os
+
+# from videotrans.util.checkgpu import AiLoaderThread
+from videotrans.util.req_fac import custom_session_factory
+
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 import shutil
@@ -21,32 +25,9 @@ from videotrans.component.downmodels import DownmodelsWindow
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 
 import huggingface_hub
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util import Retry
+# 将这个工厂函数注册给 huggingface_hub
+huggingface_hub.configure_http_backend(backend_factory=custom_session_factory)
 
-
-# 1. 定义一个工厂函数，返回配置好的 Session
-def _custom_session_factory():
-    sess = requests.Session()
-    # 配置重试策略
-    retries = Retry(
-        total=3,  # 总重试次数 (改为3)
-        connect=2,  # 连接重试次数
-        read=2,  # 读取重试次数
-        backoff_factor=1,  # 重试间隔时间 (秒)，避免瞬间频繁请求
-        status_forcelist=[500, 502, 503, 504]  # 遇到这些状态码才重试
-    )
-
-    # 将重试策略挂载到 http 和 https 协议上
-    adapter = HTTPAdapter(max_retries=retries)
-    sess.mount('http://', adapter)
-    sess.mount('https://', adapter)
-    return sess
-
-
-# 2. 将这个工厂函数注册给 huggingface_hub
-huggingface_hub.configure_http_backend(backend_factory=_custom_session_factory)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -627,7 +608,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.check_update.start()
         self.uuid_signal.start()
-        self.worker_threads = start_thread()
         if not config.IS_FROZEN and not shutil.which("rubberband"):
             print(
                 f'For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip')
@@ -638,8 +618,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if config.settings.get('show_more_settings'):
             self.win_action.toggle_adv()
+        self.worker_threads = start_thread()
         QApplication.processEvents()
         self.uito.emit('end')
+        # try:
+        #     AiLoaderThread(self).start()
+        # except:
+        #     pass
 
     # 打开缓慢
     def _open_winform(self, name, extra_name=None):

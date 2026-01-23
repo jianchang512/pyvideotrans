@@ -49,8 +49,13 @@ class FunasrRecogn(BaseRecogn):
             tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
         self._signal(text=f"load {self.model_name}")
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/funasr-{self.detect_language}-{time.time()}.log'
+        if self.model_name != 'paraformer-zh':
+            cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
+            Path(cut_audio_list_file).write_text(json.dumps(self.cut_audio()),encoding='utf-8')
+        else:
+            cut_audio_list_file=None
         kwars = {
-            "cut_audio_list": self.cut_audio() if self.model_name != 'paraformer-zh' else None,
+            "cut_audio_list":   cut_audio_list_file,
             "detect_language": self.detect_language,
             "model_name": self.model_name,
             "ROOT_DIR": config.ROOT_DIR,

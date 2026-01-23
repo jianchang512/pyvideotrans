@@ -367,8 +367,7 @@ class Ui_MainWindow(object):
         
         self.label_cjklinenums = QtWidgets.QLabel(self.layoutWidget)
         self.label_cjklinenums.setObjectName("label_cjklinenums")
-        self.label_cjklinenums.setText(
-            tr("Line length"))
+        self.label_cjklinenums.setText(tr("Line length"))
         self.label_cjklinenums.setVisible(False)
 
         self.cjklinenums = QtWidgets.QSpinBox(self.layoutWidget)

@@ -186,7 +186,6 @@ class DubbingSrt(BaseTask):
                         "endraw": "00:00:01,000",
                         "text": text_str
                 })
-            print(subs)
         elif self.subs:
             subs=self.subs
         else:
@@ -304,7 +303,7 @@ class DubbingSrt(BaseTask):
         tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")    
 
     def _exit(self):
-        if config.exit_soft or config.box_tts != 'ing':
+        if config.exit_soft:
             self.hasend=True
             return True
         return False

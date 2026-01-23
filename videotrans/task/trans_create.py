@@ -7,8 +7,7 @@ import time
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict
-
+from typing import List, Dict, Union
 
 from videotrans import translator
 from videotrans.configure import config
@@ -1103,10 +1102,11 @@ class TransCreate(BaseTask):
         shutil.copy2(tmpwav, peiyinm4a)
 
     # 处理所需字幕
-    def _process_subtitles(self) -> tuple[str, str]:
+    def _process_subtitles(self) -> Union[tuple[str, str],None]:
         config.logger.debug(f"\n======准备要嵌入的字幕:{self.cfg.subtitle_type=}=====")
         if not Path(self.cfg.target_sub).exists():
-            raise RuntimeError( config.tr("No valid subtitle file exists"))
+            config.logger.error(tr("No valid subtitle file exists"))
+            return
     
         # 如果原始语言和目标语言相同，或不存原始语言字幕，则强制单字幕
         if not Path(self.cfg.source_sub).exists() or (self.cfg.source_language_code == self.cfg.target_language_code) :
@@ -1116,9 +1116,8 @@ class TransCreate(BaseTask):
                 self.cfg.subtitle_type = 2
         
         
-        # 最终处理后需要嵌入视频的字幕
         process_end_subtitle = self.cfg.cache_folder + f'/end.srt'
-        # 硬字幕时单行字符数
+        # 单行字符数
         maxlen = int(
             config.settings.get('cjk_len',15) if self.cfg.target_language_code[:2] in ["zh", "ja", "jp", "ko", 'yu'] else
             config.settings.get('other_len',60))
@@ -1126,45 +1125,34 @@ class TransCreate(BaseTask):
 
         # 双硬 双软字幕组装
         if self.cfg.subtitle_type in [3, 4]:
-            maxlen_source = int(
-                config.settings.get('cjk_len',15) if self.cfg.source_language_code[:2] in ["zh", "ja", "jp", "ko",
-                                                                                       'yu'] else
-                config.settings.get('other_len',60))
             source_sub_list = tools.get_subtitle_from_srt(self.cfg.source_sub)
             source_length = len(source_sub_list)
 
             srt_string = ""
             # 双语字幕，目标字幕在上，原字幕在下
             for i, it in enumerate(target_sub_list):
-                # 硬字幕换行，软字幕无需处理
-                tmp = tools.textwrap(it['text'].strip(), maxlen)
+                # 换行
+                tmp = tools.simple_wrap(it['text'].strip(), maxlen,self.cfg.target_language_code)
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp}"
                 if source_length > 0 and i < source_length:
-                    srt_string += "\n" + tools.textwrap(source_sub_list[i]['text'], maxlen_source).strip()
+                    srt_string += "\n" + tools.simple_wrap(source_sub_list[i]['text'], maxlen,self.cfg.source_language_code)
                 srt_string += "\n\n"
             process_end_subtitle = f"{self.cfg.cache_folder}/shuang.srt"
-            with Path(process_end_subtitle).open('w', encoding='utf-8') as f:
-                f.write(srt_string.strip())
+            Path(process_end_subtitle).write_text(srt_string.strip(), encoding='utf-8')
             shutil.copy2(process_end_subtitle, self.cfg.target_dir + "/shuang.srt")
-        #elif self.cfg.subtitle_type == 1:
+
         else:
             # 单字幕，需处理字符数换行
             srt_string = ""
             for i, it in enumerate(target_sub_list):
-                tmp = tools.textwrap(it['text'].strip(), maxlen)
+                tmp = tools.simple_wrap(it['text'].strip(), maxlen,self.cfg.target_language_code)
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
             with Path(process_end_subtitle).open('w', encoding='utf-8') as f:
                 f.write(srt_string)
-        #else:
-        #    # 单软字幕
-        #    basename = os.path.basename(self.cfg.target_sub)
-        #    process_end_subtitle = self.cfg.cache_folder + f"/{basename}"
-        #    shutil.copy2(self.cfg.target_sub, process_end_subtitle)
 
         # 目标字幕语言
         subtitle_langcode = translator.get_subtitle_code(show_target=self.cfg.target_language)
-
-        config.logger.debug(            f'最终确定字幕嵌入类型:{self.cfg.subtitle_type} ,目标字幕语言:{subtitle_langcode}, 字幕文件:{process_end_subtitle}\n')
+        config.logger.debug(f'最终确定字幕嵌入类型:{self.cfg.subtitle_type} ,目标字幕语言:{subtitle_langcode}, 字幕文件:{process_end_subtitle}\n')
         # 单软 或双软
         if self.cfg.subtitle_type in [2, 4]:
             return os.path.basename(process_end_subtitle), subtitle_langcode
@@ -1173,7 +1161,6 @@ class TransCreate(BaseTask):
         process_end_subtitle_ass = tools.set_ass_font(process_end_subtitle)
         basename = os.path.basename(process_end_subtitle_ass)
         return basename, subtitle_langcode
-
 
     # 视频定格最后一帧
     def _video_extend(self, duration_ms=1000):

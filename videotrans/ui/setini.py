@@ -62,6 +62,9 @@ class Ui_setini(object):
                 "dont_notify": "任务完成或失败后不显示桌面通知",
                 "batch_single": "批量翻译时，默认分为7个阶段同时并行翻译，选中此处，将按顺序一个个翻译",
                 "show_more_settings": "为避免过多参数造成困扰，主界面默认隐藏大部分参数，如果选中这里将切换为默认显示所有参数",
+                "process_max":"最大进程数，越大越快但可能爆内存，最大不应超过cpu核数减一",
+                "process_max_gpu":"GPU任务同时执行数量，除非单卡显存大于20G，否则请设为1\n(修改保存后重启生效)",
+                "multi_gpus":"如果有多张显卡，且显存一致，可启用该项，同时可将上述选项设为2或显卡数\n(修改保存后重启生效)"
             },
 
             "video": {
@@ -93,6 +96,8 @@ class Ui_setini(object):
 
                 "max_audio_speed_rate": "最大音频加速倍数，默认100",
                 "max_video_pts_rate": "视频慢放最大倍数，默认10，不可大于10",
+                "cjk_len":"中日韩字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
+                "other_len":"其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕"
             },
             "whisper": {
                 "threshold": "表示音频片段被认为是语音的最低概率。VAD 会为每个音频片段计算语音概率，超过此阈值的部分被视为语音，反之视为静音或噪音。\n默认0.5，越小越灵敏但可能误将噪声视为语音",
@@ -162,6 +167,11 @@ class Ui_setini(object):
         }
         # 中文左侧label
         self.titles = {
+            "process_max":"最大进程数",
+            "cjk_len":"中日韩字幕单行字符数",
+            "other_len":"其他语言字幕单行字符数",
+            "process_max_gpu":"GPU同时任务数[重启生效]",
+            "multi_gpus":"多显卡模式[重启生效]",
             "max_audio_speed_rate": "音频加速最大倍数",
             "max_video_pts_rate": "视频慢放最大倍数",
             "batch_single": "批量翻译时强制串行",
@@ -292,6 +302,9 @@ class Ui_setini(object):
                     "dont_notify": "Disable desktop notifications for task completion or failure.",
                     "batch_single": "Process batch translation sequentially (one by one) instead of in parallel.",
                     "show_more_settings": "To avoid confusion caused by too many parameters, most parameters are hidden by default on the main interface. Selecting this option will switch to displaying all parameters by default.",
+                    "process_max":"Process Maximum",
+                    "process_max_gpu":"The number of GPU tasks that can be executed simultaneously should be set to 1 unless the video memory is greater than 20GB.",
+                    "multi_gpus":"If you have multiple graphics cards with identical video memory, you can enable this option and set the above option to 2 or the number of graphics cards."
                 },
                 "video": {
                     "crf": "Constant Rate Factor (CRF) for video quality. 0=lossless (huge file), 51=low quality (small file). Default: 23 (balanced).",
@@ -320,7 +333,9 @@ class Ui_setini(object):
                 "justify": {
 
                     "max_audio_speed_rate": "Maximum audio speed-up rate. Default: 100.",
-                    "max_video_pts_rate": "Maximum video slow-down rate. Default: 10 (cannot exceed 10)."
+                    "max_video_pts_rate": "Maximum video slow-down rate. Default: 10 (cannot exceed 10).",
+                    "cjk_len":"Number of characters per line for Chinese, Japanese, and Korean subtitles; more than this will result in a line break",
+                    "other_len":"Number of words per line for subtitles in other languages; more than this will result in a line break"
                 },
                 "whisper": {
                     "threshold": "VAD: Minimum probability for an audio chunk to be considered speech. Default: 0.5.",
@@ -390,6 +405,11 @@ class Ui_setini(object):
             }
 
             self.titles = {
+                "cjk_len":"Number of characters per line for CJK",
+                "other_len":"Number of words per line for Other",
+                "process_max":"Process Maximum",
+                "process_max_gpu":"Number of GPU tasks[restart]",
+                "multi_gpus":"Multi-GPU mode[restart]",
                 "max_audio_speed_rate": "Maximum audio speed-up rate",
                 "max_video_pts_rate": "Maximum video slow-down rate",
                 "batch_single": "Force serial processing for batch translation",

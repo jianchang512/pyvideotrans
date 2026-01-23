@@ -279,7 +279,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
     # 需要并行的数量3
     if len(queue_tts) < 1:
         return
-    if config.exit_soft or (not is_test and config.current_status != 'ing' and config.box_tts != 'ing'):
+    if config.exit_soft or (uuid  and uuid in  config.stoped_uuid_set):
         return
 
 

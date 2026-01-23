@@ -50,7 +50,7 @@ class FasterAll(BaseRecogn):
             local_dir += self.model_name.replace('/', '--')
         self.local_dir = local_dir
         self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
-
+        self.speech_timestamps_file=None
 
     def _exec(self):
         if self._exit():
@@ -70,9 +70,13 @@ class FasterAll(BaseRecogn):
             else:
                 repo_id = self.model_name
             tools.check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._progress_callback)
-        # 切分
-        if int(config.settings.get('batch_size', 8))>1:
+        # 批量时预先vad切分
+        # batch_size==1 时不切分
+        if int(config.settings.get('batch_size', 4))>1:
             self._vad_split()
+            self.speech_timestamps_file=f'{self.cache_folder}/speech_timestamps_{time.time()}.json'
+            Path(self.speech_timestamps_file).write_text(json.dumps(self.speech_timestamps),encoding='utf-8')
+
 
     def _openai(self):
         title=f'STT use {self.model_name}'
@@ -90,7 +94,7 @@ class FasterAll(BaseRecogn):
             "is_cuda": self.is_cuda,
             "no_speech_threshold": float(config.settings.get('no_speech_threshold', 0.5)),
             "condition_on_previous_text": config.settings.get('condition_on_previous_text', False),
-            "speech_timestamps": self.speech_timestamps,
+            "speech_timestamps": self.speech_timestamps_file,
             "audio_file": self.audio_file,
             "TEMP_ROOT": config.TEMP_ROOT,
             "jianfan": self.jianfan,
@@ -107,6 +111,7 @@ class FasterAll(BaseRecogn):
         title=f"STT use {self.model_name}"
         self._signal(text=title)
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/faster-{self.detect_language}-{time.time()}.log'
+
         kwargs = {
             "detect_language": self.detect_language,
             "model_name": self.model_name,
@@ -116,12 +121,12 @@ class FasterAll(BaseRecogn):
             "is_cuda": self.is_cuda,
             "no_speech_threshold": float(config.settings.get('no_speech_threshold', 0.5)),
             "condition_on_previous_text": config.settings.get('condition_on_previous_text', False),
-            "speech_timestamps": self.speech_timestamps,
+            "speech_timestamps": self.speech_timestamps_file,
             "audio_file": self.audio_file,
             "TEMP_ROOT": config.TEMP_ROOT,
             "local_dir": self.local_dir,
             "compute_type": config.settings.get('cuda_com_type', 'default'),
-            "batch_size": int(config.settings.get('batch_size', 8)),
+            "batch_size": int(config.settings.get('batch_size', 4)),
             "jianfan": self.jianfan,
             "audio_duration":self.audio_duration,
             "hotwords":config.settings.get('hotwords'),

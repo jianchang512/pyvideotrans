@@ -157,7 +157,6 @@ def openwin():
                             '2', end_m4a])
                         # 混合后新音频
                         self.audio = end_m4a
-                        print(f'混合后新音频 {self.audio=}')
                         # 混合后音频时长，当大于视频时长，并且 audio_process == 2 需定格视频
                         audio_time = int(tools.get_audio_time(self.audio))
 

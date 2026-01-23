@@ -246,6 +246,6 @@ class BaseTTS(BaseCon):
         return silent_segment
 
     def _exit(self):
-        if config.exit_soft or (config.current_status != 'ing' and config.box_tts != 'ing' and not self.is_test):
+        if config.exit_soft or (self.uuid and self.uuid in config.stoped_uuid_set):
             return True
         return False

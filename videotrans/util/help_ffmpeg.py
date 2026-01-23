@@ -773,7 +773,6 @@ def conver_to_16k(audio, target_audio):
             '-af', "volume=2.0,alimiter=limit=1.0",
             Path(target_audio).as_posix()
     ]
-    print(f'{cmd=}')
     return runffmpeg(cmd)
 
 # wav转为 m4a cuda + h264_cuvid
@@ -907,7 +906,7 @@ def cut_from_audio(*, ss, to, audio_file, out_file):
 
 
 def send_notification(title, message):
-    if config.exit_soft or config.settings.get('dont_notify',False):
+    if config.exec_mode=='cli' or config.exit_soft or config.settings.get('dont_notify',False):
         return
     from plyer import notification
     try:

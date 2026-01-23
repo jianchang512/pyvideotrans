@@ -12,6 +12,9 @@ from videotrans.configure import config
 from videotrans.configure.config import tr
 from videotrans.util import tools
 from videotrans.process.signelobj import GlobalProcessManager
+from concurrent.futures.process import BrokenProcessPool
+
+from videotrans.util.gpus import get_cudaX
 
 
 @dataclass
@@ -214,18 +217,16 @@ class BaseCon:
                 return
             if _p.is_file() and _p.stat().st_mtime != last_mtime:
                 last_mtime = _p.stat().st_mtime
-                _content=_p.read_text(encoding='utf-8')
-                if not _content:
-                    time.sleep(1)
-                    continue
                 try:
-                    _tmp = json.loads(_content)
-                except JSONDecodeError:
+                    _content=_p.read_text(encoding='utf-8')
+                    if _content:
+                        _tmp = json.loads(_content)
+                        if _tmp.get('type', '') == 'error':
+                            return
+                        self._signal(text=_tmp.get('text',''), type=_tmp.get('type', 'logs'))
+                except:
                     time.sleep(1)
                     continue
-                self._signal(text=_tmp.get('text'), type=_tmp.get('type', 'logs'))
-                if _tmp.get('type', '') == 'error':
-                    return
             time.sleep(0.5)
 
     # 使用新进程执行任务
@@ -239,6 +240,17 @@ class BaseCon:
             if logs_file:
                 Path(logs_file).touch()
                 threading.Thread(target=self._signal_of_process,args=(logs_file,),daemon=True).start()
+            # 如果使用gpu，则获取可用 device_index
+            if is_cuda:
+                device_index=0
+                #启用了多显卡模式
+                if config.settings.get('multi_gpus'):
+                    device_index=get_cudaX()
+                if device_index==-1:
+                    is_cuda=False
+                    kwargs['is_cuda']=False
+                    config.logger.error(f'已启用CUDA但未检测到可用显卡，强制使用CPU')
+                kwargs['device_index']=device_index
             future = GlobalProcessManager.submit_task_cpu(
                 callback, 
                 **kwargs
@@ -255,11 +267,11 @@ class BaseCon:
                 data=_rs
             self._signal(text=f'[{title}] end: {int(time.time() - _st)}s')
             return data
+        except BrokenProcessPool as e:
+            raise RuntimeError(f'{tr("may be insufficient memory")}\n{e}')
         except Exception as e:
             msg=traceback.format_exc()
             config.logger.exception(f'new process:{msg}',exc_info=True)
-            if kwargs.get('batch_size',0)>1 and kwargs.get('model_name','').find('large')>-1:
-                raise RuntimeError(f'{tr("may be insufficient memory")}\n{e}')
             raise
         finally:
             try:

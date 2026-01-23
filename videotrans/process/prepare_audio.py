@@ -17,7 +17,8 @@ def _write_log(file=None,msg=None,type='logs'):
         config.logger.exception(f'写入新进程日志时出错',exc_info=True)
 
 # 1. 分离背景声和人声 https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html#uvr
-def vocal_bgm(*, input_file, vocal_file, instr_file, TEMP_DIR=None,logs_file=None):
+# 仅使用cpu，不使用gpu
+def vocal_bgm(*, input_file, vocal_file, instr_file, TEMP_DIR=None,logs_file=None,is_cuda=False):
     """
     UVR for source separation.
 
@@ -102,7 +103,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, TEMP_DIR=None,logs_file=Non
 
 
 # 2. 降噪 https://modelscope.cn/models/iic/speech_frcrn_ans_cirm_16k
-def remove_noise(*, input_file, output_file, TEMP_DIR=None, is_cuda=False,logs_file=None):
+def remove_noise(*, input_file, output_file, TEMP_DIR=None, is_cuda=False,logs_file=None,device_index=0):
     import torch, os, shutil, time
     from pathlib import Path
     from videotrans.configure import config
@@ -113,7 +114,7 @@ def remove_noise(*, input_file, output_file, TEMP_DIR=None, is_cuda=False,logs_f
     if platform.system() == 'Darwin' and torch.backends.mps.is_available():
         device="mps"
     else:
-        device = "cuda" if is_cuda else "cpu"
+        device = f"cuda:{device_index}" if is_cuda else "cpu"
     _st=time.time()
     config.logger.info('开始语音降噪')
     ans = None
@@ -149,7 +150,7 @@ def remove_noise(*, input_file, output_file, TEMP_DIR=None, is_cuda=False,logs_f
 
 
 # 3. 恢复标点 https://modelscope.cn/models/iic/punc_ct-transformer_cn-en-common-vocab471067-large
-def fix_punc(*, text_dict, TEMP_DIR=None, is_cuda=False,logs_file=None):
+def fix_punc(*, text_dict, TEMP_DIR=None, is_cuda=False,logs_file=None,device_index=0):
     import torch, os, shutil, time
     from pathlib import Path
     from videotrans.configure import config
@@ -159,7 +160,7 @@ def fix_punc(*, text_dict, TEMP_DIR=None, is_cuda=False,logs_file=None):
     if platform.system() == 'Darwin' and torch.backends.mps.is_available():
         device="mps"
     else:
-        device = "cuda" if is_cuda else "cpu"
+        device = f"cuda:{device_index}" if is_cuda else "cpu"
     result = None
     ans = None
 
@@ -200,7 +201,7 @@ def fix_punc(*, text_dict, TEMP_DIR=None, is_cuda=False,logs_file=None):
 
 
 # 4. ali_CAM阿里 说话人分离  https://modelscope.cn/models/iic/speech_campplus_speaker-diarization_common/files
-def cam_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False,logs_file=None):
+def cam_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False,logs_file=None,device_index=0):
     import torch, os, shutil, time
     from pathlib import Path
     from videotrans.configure import config
@@ -209,7 +210,7 @@ def cam_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cu
     if platform.system() == 'Darwin' and torch.backends.mps.is_available():
         device="mps"
     else:
-        device = "cuda" if is_cuda else "cpu"
+        device = f"cuda:{device_index}" if is_cuda else "cpu"
     _st=time.time()
     config.logger.debug(f'开始说话人分离:使用阿里cam++模型')
     result = None
@@ -296,7 +297,7 @@ def cam_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cu
 
 
 # 4. 说话人分离，pyannote https://huggingface.co/pyannote/speaker-diarization-3.0
-def pyannote_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False,logs_file=None):
+def pyannote_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False,logs_file=None,device_index=0):
     import torch, pyannote.audio, torchaudio, os, shutil,time
     torch.serialization.add_safe_globals([
         torch.torch_version.TorchVersion,
@@ -313,7 +314,7 @@ def pyannote_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, 
         pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1")
 
         if is_cuda:
-            pipeline.to(torch.device("cuda"))
+            pipeline.to(torch.device(f"cuda:{device_index}"))
 
         # apply pretrained pipeline
         waveform, sample_rate = torchaudio.load(input_file)
@@ -412,7 +413,7 @@ def pyannote_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, 
 
 
 # 4. 说话人分离 reverb  https://huggingface.co/Revai/reverb-diarization-v1
-def reverb_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False,logs_file=None):
+def reverb_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is_cuda=False,logs_file=None,device_index=0):
     import torch, pyannote.audio, torchaudio, os, shutil,time
     torch.serialization.add_safe_globals([
         torch.torch_version.TorchVersion,
@@ -429,7 +430,7 @@ def reverb_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is
         pipeline = Pipeline.from_pretrained("Revai/reverb-diarization-v1")
 
         if is_cuda:
-            pipeline.to(torch.device("cuda"))
+            pipeline.to(torch.device(f"cuda:{device_index}"))
 
         # apply pretrained pipeline
         waveform, sample_rate = torchaudio.load(input_file)
@@ -529,7 +530,8 @@ def reverb_speakers(*, input_file, subtitles, num_speakers=-1, TEMP_DIR=None, is
 
 
 # 内置中英文说话人分离模型
-def built_speakers(*, input_file, subtitles, num_speakers=-1, language="zh", TEMP_DIR=None,logs_file=None):
+# 仅使用cpu，不使用gpu
+def built_speakers(*, input_file, subtitles, num_speakers=-1, language="zh", TEMP_DIR=None,logs_file=None,is_cuda=False):
     from pathlib import Path
     from videotrans.configure import config as cfg
     import torch

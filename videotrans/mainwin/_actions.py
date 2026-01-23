@@ -830,7 +830,8 @@ class WinAction(WinActionSub):
                 # 按钮设为暂停
                 if it['uuid'] in self.processbtns:
                     self.processbtns[it['uuid']].setPause()
-        
+                    config.stoped_uuid_set.add(it['uuid'])
+
         if self.main.app_mode == 'tiqu':
             self.set_tiquzimu()
         self._reset()

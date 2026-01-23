@@ -2,7 +2,7 @@
 # 返回元组
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
-
+from videotrans.util import gpus
 def openai_whisper(
         *,
         prompt=None,
@@ -21,28 +21,33 @@ def openai_whisper(
         batch_size=1,
         audio_duration=0,
         temperature=None,
-        compression_ratio_threshold=2.2
+        compression_ratio_threshold=2.2,
+        device_index=0 # gpu索引
 ):
-    import re, os, traceback, json,time
+    import re, os, traceback, json, time
     import shutil
     from pathlib import Path
     from videotrans.configure import config
     import torch
     torch.set_num_threads(1)
-    import  whisper
+    import whisper
     from videotrans.util import tools
+
     import zhconv
+
 
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
         msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
     else:
         msg = f"load {model_name}"
-    _write_log(logs_file,json.dumps({"type": "logs", "text": msg}))
+    _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
     model = None
     raws = []
     try:
+        if speech_timestamps and isinstance(speech_timestamps, str):
+            speech_timestamps = json.loads(Path(speech_timestamps).read_text(encoding='utf-8'))
         if not temperature:
-            temperature=(
+            temperature = (
                 0.0,
                 0.2,
                 0.4,
@@ -51,24 +56,24 @@ def openai_whisper(
                 1.0,
             )
         elif str(temperature).startswith('['):
-            temperature=tuple(str(temperature)[1:-1].split(','))
-        print(f'{batch_size=}')
+            temperature = tuple(str(temperature)[1:-1].split(','))
+
         model = whisper.load_model(
             model_name,
-            device="cuda" if is_cuda else "cpu",
+            device=f"cuda:{device_index}" if is_cuda else gpus.mps_or_cpu(),
             download_root=ROOT_DIR + "/models"
         )
         msg = f"Loaded {model_name}"
-        _write_log(logs_file,json.dumps({"type": "logs", "text": msg}))
+        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
-        last_end_time = audio_duration/1000.0 if audio_duration>0 else  speech_timestamps[-1][1] / 1000.0
+        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else speech_timestamps[-1][1] / 1000.0
         speech_timestamps_flat = []
-        if speech_timestamps and batch_size>1:
+        if speech_timestamps and batch_size > 1:
             for it in speech_timestamps:
                 speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
         else:
-            speech_timestamps_flat="0"
-        
+            speech_timestamps_flat = "0"
+
         result = model.transcribe(
             audio_file,
             no_speech_threshold=no_speech_threshold,
@@ -101,13 +106,13 @@ def openai_whisper(
             tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
             raws.append(tmp)
-            _write_log(logs_file,json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
+            _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
     except Exception:
-        msg=traceback.format_exc()
-        config.logger.exception(f'语音识别失败:{model_name=},{msg}',exc_info=True)
-        return False,msg
+        msg = traceback.format_exc()
+        config.logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
+        return False, msg
     else:
-        return raws,None
+        return raws, None
     finally:
         try:
             if model:
@@ -144,9 +149,10 @@ def faster_whisper(
         temperature=None,
         hotwords=None,
         repetition_penalty=1.0,
-        compression_ratio_threshold=2.2
+        compression_ratio_threshold=2.2,
+        device_index=0 # gpu索引
 ):
-    import re, os, traceback, json,time
+    import re, os, traceback, json, time
     import shutil
     from pathlib import Path
     from videotrans.configure import config
@@ -159,33 +165,36 @@ def faster_whisper(
 
     device_indices = list(range(torch.cuda.device_count())) if is_cuda else 0
     model = None
-    batched_model=None
+    batched_model = None
     raws = []
-    last_end_time = audio_duration/1000.0 if audio_duration>0 else   speech_timestamps[-1][1] / 1000.0
-    try:
-        # 1. 加载基础模型
-        model = WhisperModel(
-            local_dir,
-            device="cuda" if is_cuda else "auto",
-            device_index=device_indices,
-            compute_type=compute_type
-        )
-    except Exception as e:
-        error = traceback.format_exc()
-        if 'json.exception.parse_error' in error or 'EOF while parsing a value' in error:
-            msg = (
-                f'模型下载不完整，请删除目录 {local_dir}，重新下载' if defaulelang == "zh" else f"The model download may be incomplete, please delete the directory {local_dir} and download it again")
-        elif "CUBLAS_STATUS_NOT_SUPPORTED" in error:
-            msg = f"数据类型不兼容...:{error}"
-        elif "cudaErrorNoKernelImageForDevice" in error:
-            msg = f"pytorch和cuda版本不兼容...:{error}"
-        else:
-            msg = error
-        return False,msg
 
     try:
+        if speech_timestamps and isinstance(speech_timestamps, str):
+            speech_timestamps = json.loads(Path(speech_timestamps).read_text(encoding='utf-8'))
+        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else speech_timestamps[-1][1] / 1000.0
+        try:
+            # 1. 加载基础模型
+            model = WhisperModel(
+                local_dir,
+                device="cuda" if is_cuda else gpus.mps_or_cpu(),
+                device_index=device_indices,
+                compute_type=compute_type
+            )
+        except Exception as e:
+            error = traceback.format_exc()
+            if 'json.exception.parse_error' in error or 'EOF while parsing a value' in error:
+                msg = (
+                    f'模型下载不完整，请删除目录 {local_dir}，重新下载' if defaulelang == "zh" else f"The model download may be incomplete, please delete the directory {local_dir} and download it again")
+            elif "CUBLAS_STATUS_NOT_SUPPORTED" in error:
+                msg = f"数据类型不兼容...:{error}"
+            elif "cudaErrorNoKernelImageForDevice" in error:
+                msg = f"pytorch和cuda版本不兼容...:{error}"
+            else:
+                msg = error
+            return False, msg
+
         if not temperature:
-            temperature=[
+            temperature = [
                 0.0,
                 0.2,
                 0.4,
@@ -194,8 +203,8 @@ def faster_whisper(
                 1.0,
             ]
         elif str(temperature).startswith('['):
-            temperature=str(temperature)[1:-1].split(',')
-        if batch_size>1:
+            temperature = str(temperature)[1:-1].split(',')
+        if batch_size > 1:
             # 4. 执行批量推理
             # 使用 batched_model.transcribe
             batched_model = BatchedInferencePipeline(model=model)
@@ -227,22 +236,22 @@ def faster_whisper(
             )
         else:
             segments, info = model.transcribe(
-                    audio_file,
-                    beam_size=beam_size,
-                    best_of=best_of,
-                    condition_on_previous_text=condition_on_previous_text,
-                    vad_filter=True,
-                    vad_parameters=dict(min_silence_duration_ms=500),
-                    no_speech_threshold=no_speech_threshold,
-                    clip_timestamps="0",#clip_timestamps,
-                    word_timestamps=False,
-                    without_timestamps=False,
-                    temperature=temperature,
-                    hotwords=hotwords,
-                    repetition_penalty=repetition_penalty,
-                    compression_ratio_threshold=compression_ratio_threshold,
-                    language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
-                    initial_prompt=prompt if prompt else None
+                audio_file,
+                beam_size=beam_size,
+                best_of=best_of,
+                condition_on_previous_text=condition_on_previous_text,
+                vad_filter=True,
+                vad_parameters=dict(min_silence_duration_ms=500),
+                no_speech_threshold=no_speech_threshold,
+                clip_timestamps="0",  # clip_timestamps,
+                word_timestamps=False,
+                without_timestamps=False,
+                temperature=temperature,
+                hotwords=hotwords,
+                repetition_penalty=repetition_penalty,
+                compression_ratio_threshold=compression_ratio_threshold,
+                language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
+                initial_prompt=prompt if prompt else None
             )
         i = 0
         for segment in segments:
@@ -264,13 +273,13 @@ def faster_whisper(
             tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
             raws.append(tmp)
-            _write_log(logs_file,json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
+            _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
     except Exception:
-        msg=traceback.format_exc()
-        config.logger.exception(f'语音识别失败:{model_name=},{msg}',exc_info=True)
-        return False,msg
+        msg = traceback.format_exc()
+        config.logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
+        return False, msg
     else:
-        return raws,None
+        return raws, None
     finally:
         try:
             if model:
@@ -298,9 +307,10 @@ def pipe_asr(
         TEMP_ROOT=None,
         local_dir=None,
         batch_size=8,
-        jianfan=False
+        jianfan=False,
+        device_index=0 # gpu索引
 ):
-    import re, os, traceback, json,time
+    import re, os, traceback, json, time
     import shutil
     from pathlib import Path
     from videotrans.configure import config
@@ -310,9 +320,6 @@ def pipe_asr(
     from transformers import pipeline
     import zhconv
 
-    # 1. 准备数据
-    raws = cut_audio_list
-
     # 定义输入生成器，直接把路径或音频数据喂给 pipeline
     def inputs_generator():
         for item in raws:
@@ -320,13 +327,18 @@ def pipe_asr(
 
     # 2. 初始化 Pipeline
     # 使用 device_map="auto" 自动分配，或指定 device
-    device_arg = 0 if is_cuda else -1
+    device_arg = device_index if is_cuda else gpus.mps_or_cpu()
     # 注意：使用 device_map="auto" 时通常不需要传 device 参数，二者选一
     # 如果是单卡环境，直接传 device=0 效率通常比 device_map="auto" 稍微高一点点
     p = None
     msg = f"Loading pipeline from {local_dir}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
     try:
+        if cut_audio_list and isinstance(cut_audio_list, str):
+            cut_audio_list = json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))
+
+        raws = cut_audio_list
+
         p = pipeline(
             task="automatic-speech-recognition",
             model=local_dir,
@@ -336,7 +348,7 @@ def pipe_asr(
         )
 
         msg = f'Pipeline loaded on device={(p.model.device)}'
-        _write_log(logs_file,json.dumps({"type": "logs", "text": msg}))
+        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
         # 3. 动态构建 generate_kwargs
         generate_kwargs = {}
 
@@ -389,7 +401,7 @@ def pipe_asr(
         # 注意：这里我们同时遍历 raws 和 results_iterator
         # 因为 inputs_generator 是按顺序 yield 的，results_iterator 也会按顺序输出
         for i, (it, res) in enumerate(zip(raws, results_iterator)):
-            _write_log(logs_file,json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}))
+            _write_log(logs_file, json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}))
 
             text = res.get('text', '')
 
@@ -405,11 +417,12 @@ def pipe_asr(
                 raws[i]['text'] = cleaned_text
 
                 # 如果 pipeline 返回了时间戳（取决于 chunk_length_s 和 return_timestamps 参数）
-                _write_log(logs_file,json.dumps({"type": "subtitles", "text": f'[{i}] {cleaned_text}\n'}))
+                _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {cleaned_text}\n'}))
+        return raws, None
     except Exception:
-        msg=traceback.format_exc()
-        config.logger.exception(f'语音识别失败:{model_name=},{msg}',exc_info=True)
-        return False,msg
+        msg = traceback.format_exc()
+        config.logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
+        return False, msg
     finally:
         try:
             if p:
@@ -420,7 +433,6 @@ def pipe_asr(
             gc.collect()
         except Exception:
             pass
-    return raws,None
 
 
 def paraformer(
@@ -434,9 +446,10 @@ def paraformer(
         audio_file=None,
         TEMP_ROOT=None,
         max_speakers=-1,
-        cache_folder=None
+        cache_folder=None,
+        device_index=0 # gpu索引
 ):
-    import re, os, traceback, json,time
+    import re, os, traceback, json, time
     import shutil
     from pathlib import Path
     from videotrans.configure import config
@@ -444,7 +457,7 @@ def paraformer(
     import torch
     torch.set_num_threads(1)
     from videotrans.util import tools
-    #from funasr import AutoModel
+    # from funasr import AutoModel
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
 
@@ -454,29 +467,29 @@ def paraformer(
         msg = f'Download {model_name} from modelscope.cn'
     else:
         msg = f'Load {model_name} model'
-    _write_log(logs_file,json.dumps({"type": "logs", "text": f'{msg}'}))
+    _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
     model = None
-    device='cuda' if is_cuda else 'cpu'
-    try:     
+    device = f'cuda:{device_index}' if is_cuda else gpus.mps_or_cpu()
+    try:
         inference_pipeline = pipeline(
             task=Tasks.auto_speech_recognition,
-            model='iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch', model_revision="v2.0.4",
-            vad_model='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch', 
-            #vad_model_revision="v2.0.4",
-            punc_model='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch', 
-            #punc_model_revision="v2.0.3",
+            model='iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch',
+            model_revision="v2.0.4",
+            vad_model='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',
+            # vad_model_revision="v2.0.4",
+            punc_model='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',
+            # punc_model_revision="v2.0.3",
             spk_model="iic/speech_campplus_sv_zh-cn_16k-common",
-            #spk_model_revision="v2.0.2",
+            # spk_model_revision="v2.0.2",
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
             device=device
-            #trust_remote_code=True,
+            # trust_remote_code=True,
         )
-        
 
         msg = "Model loading is complete, enter recognition"
-        _write_log(logs_file,json.dumps({"type": "logs", "text": f'{msg}'}))
+        _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
         num = 0
         res = inference_pipeline(audio_file)
         speaker_list = []
@@ -495,15 +508,15 @@ def paraformer(
                 "startraw": f'{tools.ms_to_time_string(ms=it["start"])}',
                 "endraw": f'{tools.ms_to_time_string(ms=it["end"])}'
             }
-            _write_log(logs_file,json.dumps({"type": "subtitles", "text": f'[{i}] {it["text"]}\n'}))
+            _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {it["text"]}\n'}))
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
             raw_subtitles.append(tmp)
         if speaker_list:
             Path(f'{cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
     except Exception:
-        msg=traceback.format_exc()
-        config.logger.exception(f'语音识别失败:{model_name=},{msg}',exc_info=True)
-        return False,msg
+        msg = traceback.format_exc()
+        config.logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
+        return False, msg
     finally:
         try:
             if torch.cuda.is_available():
@@ -515,15 +528,17 @@ def paraformer(
         except Exception:
             pass
 
-    return raw_subtitles,None
+    return raw_subtitles, None
 
-def _write_log(file,msg):
+
+def _write_log(file, msg):
     from pathlib import Path
     from videotrans.configure import config
     try:
-        Path(file).write_text(msg,encoding='utf-8')
+        Path(file).write_text(msg, encoding='utf-8')
     except Exception as e:
-        config.logger.exception(f'写入新进程日志时出错',exc_info=True)
+        config.logger.exception(f'写入新进程日志时出错', exc_info=True)
+
 
 def _remove_unwanted_characters(text: str) -> str:
     import re
@@ -544,9 +559,10 @@ def funasr_mlt(
         TEMP_ROOT=None,
         jianfan=False,
         max_speakers=-1,
-        cache_folder=None
+        cache_folder=None,
+        device_index=0 # gpu索引
 ):
-    import re, os, traceback, json,time
+    import re, os, traceback, json, time
     import shutil
     from pathlib import Path
     from videotrans.configure import config
@@ -561,24 +577,27 @@ def funasr_mlt(
         msg = f'Download {model_name} from modelscope.cn'
     else:
         msg = f'Load {model_name}'
-    _write_log(logs_file,json.dumps({"type": "logs", "text": f'{msg}'}))
+    _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
 
     model = None
-    device = "cuda" if is_cuda else "cpu"
-    srts = cut_audio_list
+    device = f"cuda:{device_index}" if is_cuda else gpus.mps_or_cpu()
     try:
+        if cut_audio_list and isinstance(cut_audio_list, str):
+            cut_audio_list = json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))
+
+        srts = cut_audio_list
         if model_name == 'iic/SenseVoiceSmall':
             inference_pipeline = pipeline(
                 task=Tasks.auto_speech_recognition,
                 model='iic/SenseVoiceSmall',
-                #model_revision="master",
+                # model_revision="master",
                 disable_update=True,
                 disable_progress_bar=True,
                 disable_log=True,
                 device=device
-                )
+            )
 
-            res = inference_pipeline([it['file'] for it in cut_audio_list],batch_size=4,disable_pbar=True)
+            res = inference_pipeline([it['file'] for it in cut_audio_list], batch_size=4, disable_pbar=True)
         else:
             model = AutoModel(
                 model=model_name,
@@ -595,13 +614,13 @@ def funasr_mlt(
 
             # vad
             msg = "Recognition may take a while, please be patient"
-            _write_log(logs_file,json.dumps({"type": "logs", "text": f'{msg}'}))
+            _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
             num = 0
 
             def _show_process(ex, dx):
                 nonlocal num
                 num += 1
-                _write_log(logs_file,json.dumps({"type": "logs", "text": f'STT {num}'}))
+                _write_log(logs_file, json.dumps({"type": "logs", "text": f'STT {num}'}))
 
             res = model.generate(
                 input=[it['file'] for it in srts],
@@ -614,11 +633,12 @@ def funasr_mlt(
         for i, it in enumerate(res):
             text = _remove_unwanted_characters(it['text'])
             srts[i]['text'] = text
-            _write_log(logs_file,json.dumps({"type": "subtitles", "text": f'[{i}] {text}\n'}))
+            _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {text}\n'}))
+        return srts, None
     except Exception:
-        msg=traceback.format_exc()
-        config.logger.exception(f'语音识别失败:{model_name=},{msg}',exc_info=True)
-        return False,msg
+        msg = traceback.format_exc()
+        config.logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
+        return False, msg
     finally:
         try:
             if torch.cuda.is_available():
@@ -629,5 +649,3 @@ def funasr_mlt(
             gc.collect()
         except Exception:
             pass
-
-    return srts,None

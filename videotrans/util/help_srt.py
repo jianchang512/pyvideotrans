@@ -250,6 +250,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     return result
 
 
+
 # 从 字幕 对象中获取 srt 字幕串
 def get_srt_from_list(srt_list):
     from videotrans.configure.config import tr
@@ -410,6 +411,76 @@ def set_ass_font(srtfile: str) -> str:
 
     return ass_file_path
 
+
+# 简单换行，不保留换行符，用于视频翻译字幕嵌入
+def simple_wrap(text,maxlen=15,language="en"):
+    # 标点和空格列表
+    flag = [
+        ",", ".", "?", "!", ";",
+        "，", "。", "？", "；", "！", " "
+    ]
+    text=re.sub(r"\r?(\n|\\n)",' ',text,flags=re.I).strip()
+    _len=len(text)
+    if _len<maxlen+4:
+        return text
+    #如果是中日韩粤语等无需空格的语言
+    text_lilst=[]
+    current_text=""
+    offset=2 if language[:2] in ['zh','ja','ko','yue'] else 8
+    maxlen=max(3,maxlen)
+    offset=min(offset,maxlen//2)
+
+    i=0
+    while i <_len:
+        current_text=current_text.lstrip()
+        if i>=_len-offset:
+            # 最后不足4个字符，无需区分都给最后一行
+            current_text+=text[i:]
+            # print(f'最后不足4个字符')
+            break
+        if len(current_text)<maxlen-offset:
+            current_text+=text[i]
+            i+=1
+            # print('正常追加')
+            continue
+        #判断 i+1,i+2,i+3,i+4 是否符合标点，
+        if maxlen-offset<=len(current_text)<=maxlen and text[i] in flag:
+            # 当前是标点，可以换行
+            current_text+=text[i]
+            # print(f'在 maxlen-offset 和 maxlen 之间换行 {text[i]=}')
+            i+=1
+            text_lilst.append(current_text)
+            current_text=''
+            continue
+        # 再判断后续4个是否符合换行条件
+        raw_i=i
+        for next_i in range(1,offset+1):
+            if text[i+next_i] in flag:
+                pos_i=i+next_i+1
+                current_text+=text[i:pos_i]
+                # print(f'在后边+offset处换号{next_i=},{pos_i=},{text[i:pos_i]=}')
+                raw_i=pos_i
+
+                text_lilst.append(current_text)
+                current_text=''
+                break
+        if raw_i!=i:
+            i=raw_i
+            continue
+        # 没有找到合适标点换行，强制换行
+        current_text+=text[i]
+        if len(current_text)>=maxlen:
+            # print(f'offset+4处也没找到合适的,强制该处断行,{len(current_text)=} {text[i]=}')
+            text_lilst.append(current_text)
+            current_text=''
+        i+=1
+
+    if current_text and len(current_text)<maxlen/3:
+        text_lilst[-1]+=current_text
+    elif current_text:
+        text_lilst.append(current_text)
+    # print(f'{maxlen=},{offset=}')
+    return "\n".join(text_lilst)
 
 def textwrap(text, maxlen=15):
     """

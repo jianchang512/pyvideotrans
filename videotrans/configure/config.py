@@ -80,6 +80,13 @@ logging.getLogger("faster_whisper").setLevel(logging.DEBUG)
 # fw_logger.setLevel(logging.DEBUG)
 # fw_logger.addHandler(_file_handler)
 
+## nvidia 显卡数量, -1未检测或cpu模式
+## 0=无可用显卡
+## >0显卡数量
+
+NVIDIA_GPU_NUMS=-1
+
+
 # 队列
 # 存储已停止/暂停的任务 uuid
 stoped_uuid_set = set()
@@ -101,12 +108,6 @@ queue_novice = {}
 
 # 主界面完整流程状态标识：开始按钮状态 ing 执行中，stop手动停止 end 正常结束
 current_status = "stop"
-# 工具箱翻译进行状态,ing进行中，其他停止
-box_trans = "stop"
-# 工具箱tts状态
-box_tts = "stop"
-# 工具箱识别状态
-box_recogn = 'stop'
 # 倒计时数秒
 task_countdown = 0
 
@@ -270,6 +271,9 @@ def parse_init(update_data=None):
         "llm_ai_type": "openai",
         "gemini_recogn_chunk": 50,
         "zh_hant_s": True,
+        "process_max":0,
+        "process_max_gpu":0,
+        "multi_gpus":False,# 多显卡模式
         "azure_lines": 1,
         "chattts_voice": "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777",
         "proxy": ""
@@ -628,3 +632,29 @@ def tr(lang_key, *kw):
         return lang.format(*kw)
     except IndexError:
         return lang
+
+def update_logging_level(new_level_str):
+    """
+    动态修改日志等级
+    :param new_level_str: 字符串，例如 "DEBUG", "INFO", "WARNING", "ERROR"
+    """
+    new_level = getattr(logging, new_level_str.upper(), logging.INFO)
+    logger = logging.getLogger('VideoTrans')
+    logger.setLevel(new_level)
+    # 同时修改 Handler 的等级
+    # 如果不修改 Handler，即使 Logger 设为 DEBUG，Handler 如果还是 WARNING，依然不会输出 DEBUG 信息
+    for handler in logger.handlers:
+        # 根据 Handler 类型来决定是否修改
+        if isinstance(handler, logging.StreamHandler): # 控制台
+            handler.setLevel(new_level)
+
+        if isinstance(handler, logging.FileHandler): # 文件
+            handler.setLevel(new_level)
+
+    # 第三方库的等级
+    # third_party_libs = ["transformers", "filelock", "faster_whisper"]
+    # for lib_name in third_party_libs:
+    #     lib_logger = logging.getLogger(lib_name)
+    #     lib_logger.setLevel(new_level)
+
+    print(f"系统日志等级已动态切换为: {new_level_str}")

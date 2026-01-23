@@ -204,7 +204,7 @@ def run(*,
 
         ) -> Union[List[Dict], None]:
 
-    if config.exit_soft or (config.current_status != 'ing' and config.box_recogn != 'ing'):
+    if config.exit_soft or (uuid and uuid in config.stoped_uuid_set):
         return
     kwargs = {
         "detect_language": detect_language,

@@ -207,7 +207,7 @@ def openwin():
         winobj.hecheng_stop.setDisabled(not state)
 
     def feed(d):
-        if winobj.has_done or config.box_tts != 'ing':
+        if winobj.has_done :
             return
         if isinstance(d, str):
             d = json.loads(d)
@@ -365,7 +365,6 @@ def openwin():
                     f.write(txt)
             winobj.hecheng_importbtn.filelist.append(newsrtfile)
 
-        config.box_tts = 'ing'
         video_list = [tools.format_video(it, None) for it in winobj.hecheng_importbtn.filelist]
         uuid_list = [obj['uuid'] for obj in video_list]
         for it in video_list:
@@ -405,7 +404,6 @@ def openwin():
 
     def stop_tts():
         nonlocal uuid_list
-        config.box_tts = 'stop'
         winobj.has_done = True
         winobj.hecheng_importbtn.filelist = []
         winobj.hecheng_importbtn.setText(tr('Import text to be translated from a file..'))

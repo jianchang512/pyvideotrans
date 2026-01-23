@@ -151,6 +151,7 @@ class SpeechToText(BaseTask):
                 self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub, is_file=True)
                 # return
             else:
+                print(f'{self.cfg=}')
                 # 其他识别渠道
                 raw_subtitles = run(
                     recogn_type=self.cfg.recogn_type,
@@ -164,6 +165,7 @@ class SpeechToText(BaseTask):
                     max_speakers=self.max_speakers,
                     llm_post=self.cfg.rephrase == 1
                 )
+                print(f'{raw_subtitles=}')
                 self.source_srt_list = raw_subtitles
                 self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
                 if not raw_subtitles or len(raw_subtitles) < 1:
@@ -267,7 +269,7 @@ class SpeechToText(BaseTask):
             config.logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
             return
         try:
-            spk_list=self._new_process(callback=_run_speakers,title=title,kwargs=kw)
+            spk_list=self._new_process(callback=_run_speakers,title=title,is_cuda=self.cfg.cuda and speaker_type!='built',kwargs=kw)
             if spk_list:
                 Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')
         except:
@@ -278,6 +280,16 @@ class SpeechToText(BaseTask):
 
     def task_done(self):
         if self._exit(): return
+        if self.cfg.detect_language and self.cfg.detect_language !='auto':
+            # 处理换行
+            maxlen = int(
+            config.settings.get('cjk_len',15) if self.cfg.detect_language[:2] in ["zh", "ja", "jp", "ko", 'yu'] else
+            config.settings.get('other_len',60))
+            for i, it in enumerate(self.source_srt_list):
+                it['text']=tools.simple_wrap(it['text'],maxlen,self.cfg.detect_language)
+
+
+
         if self.cfg.enable_diariz and config.params.get("stt_spk_insert") and Path(self.cfg.cache_folder + "/speaker.json").exists():
             speakers = json.loads(Path(self.cfg.cache_folder + "/speaker.json").read_text(encoding='utf-8'))
             if speakers:
@@ -285,16 +297,12 @@ class SpeechToText(BaseTask):
                 for i, it in enumerate(self.source_srt_list):
                     if i < speakers_len and speakers[i]:
                         it['text'] = f'[{speakers[i]}]{it["text"]}'
+        print(f'{self.source_srt_list=}')
         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
         self._signal(text=f"{self.cfg.name}", type='succeed')
         if self.out_format == 'txt':
-            import re
-            content = Path(self.cfg.target_sub).read_text(encoding='utf-8')
-            content = re.sub(r"(\r\n|\r|\n|\s|^)\d+(\r\n|\r|\n)", "\n", content,flags=re.I | re.S)
-            content = re.sub(r'\n\d+:\d+:\d+(\,\d+)\s*-->\s*\d+:\d+:\d+(\,\d+)?\n?', '', content,flags=re.I | re.S)
-            with open(self.cfg.target_sub[:-3] + 'txt', 'w', encoding='utf-8') as f:
-                f.write(content)
             self.cfg.target_sub = self.cfg.target_sub[:-3] + 'txt'
+            Path(self.cfg.target_sub).write_text("\r\n".join([it["text"] for it in self.source_srt_list]),encoding='utf-8')
         elif self.out_format != 'srt':
             tools.runffmpeg(['-y', '-i', self.cfg.target_sub, self.cfg.target_sub[:-3] + self.out_format])
             Path(self.cfg.target_sub).unlink(missing_ok=True)
@@ -314,7 +322,7 @@ class SpeechToText(BaseTask):
         tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
 
     def _exit(self):
-        if config.exit_soft or config.box_recogn != 'ing':
+        if config.exit_soft:
             self.hasend = True
             return True
         return False

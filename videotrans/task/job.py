@@ -3,7 +3,7 @@ from PySide6.QtCore import QThread
 from videotrans.configure import config
 from videotrans.configure.config import tr
 from videotrans.task._base import BaseTask
-from videotrans.util import tools
+from videotrans.util import tools, gpus
 from videotrans.util.tools import set_process
 import traceback
 from queue import  Empty, Full
@@ -52,13 +52,10 @@ class WorkerPrepare(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if  config.prepare_queue.empty() and config.prepare_queue.qsize()<1:
-                time.sleep(0.1)
-                continue
+
             try:
-                trk: BaseTask = config.prepare_queue.get_nowait()
+                trk: BaseTask = config.prepare_queue.get(timeout=1)
             except Empty:
-                print('异常？')
                 continue
             if trk.uuid in config.stoped_uuid_set:
                 continue
@@ -97,12 +94,9 @@ class WorkerRegcon(QThread):
             if config.exit_soft:
                 return
 
-            if config.regcon_queue.empty() and config.regcon_queue.qsize()<1:
-                time.sleep(0.1)
-                continue
-            
+
             try:
-                trk = config.regcon_queue.get_nowait()
+                trk = config.regcon_queue.get(timeout=1)
             except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
@@ -135,12 +129,9 @@ class WorkerDiariz(QThread):
             if config.exit_soft:
                 return
 
-            if config.diariz_queue.empty() and config.diariz_queue.qsize()<1:
-                time.sleep(0.1)
-                continue
-            
+
             try:
-                trk = config.diariz_queue.get_nowait()
+                trk = config.diariz_queue.get(timeout=1)
             except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
@@ -172,11 +163,9 @@ class WorkerTrans(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if  config.trans_queue.empty()  and config.trans_queue.qsize()<1:
-                time.sleep(0.1)
-                continue
-            try:    
-                trk = config.trans_queue.get_nowait()
+
+            try:
+                trk = config.trans_queue.get(timeout=1)
             except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
@@ -213,11 +202,9 @@ class WorkerDubb(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if  config.dubb_queue.empty() and config.dubb_queue.qsize()<1:
-                time.sleep(0.1)
-                continue
+
             try:
-                trk = config.dubb_queue.get_nowait()
+                trk = config.dubb_queue.get(timeout=1)
             except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
@@ -250,11 +237,9 @@ class WorkerAlign(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if config.align_queue.empty() and config.align_queue.qsize()<1:
-                time.sleep(0.1)
-                continue
+
             try:
-                trk = config.align_queue.get_nowait()
+                trk = config.align_queue.get(timeout=1)
             except Empty:
                 continue
             
@@ -293,11 +278,9 @@ class WorkerAssemb(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if config.assemb_queue.empty() and config.assemb_queue.qsize()<1:
-                time.sleep(0.1)
-                continue
+
             try:
-                trk = config.assemb_queue.get_nowait()
+                trk = config.assemb_queue.get(timeout=1)
             except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
@@ -329,11 +312,9 @@ class WorkerTaskDone(QThread):
         while 1:
             if config.exit_soft:
                 return
-            if config.taskdone_queue.empty() and config.taskdone_queue.qsize()<1:
-                time.sleep(0.1)
-                continue
+
             try:
-                trk = config.taskdone_queue.get_nowait()
+                trk = config.taskdone_queue.get(timeout=1)
             except Empty:
                 continue
             if trk.uuid in config.stoped_uuid_set:
@@ -360,18 +341,38 @@ class WorkerTaskDone(QThread):
 
 
 def start_thread():
-    workers = [
-        WorkerPrepare(),
-        WorkerRegcon(),
-        WorkerDiariz(),
-        WorkerTrans(),
-        WorkerDubb(),
-        WorkerAlign(),
-        WorkerAssemb(),
-        WorkerTaskDone(),
-    ]
-    for worker in workers:
-        worker.start()
+    gpus.getset_gpu()
+    task_nums=1
+    if config.settings.get('multi_gpus') and config.NVIDIA_GPU_NUMS>1:
+        task_nums=2 if config.NVIDIA_GPU_NUMS<4 else 4
+    # 定义每个工种需要的线程数量
+    # 想要 WorkerRegcon 并发 3 个，就在这里填 3
+    worker_config = {
+        WorkerPrepare: task_nums,  # 比如准备工作也想并发 2 个
+        WorkerRegcon: task_nums,   # 语音识别最耗时，开 3 个
+        WorkerDiariz: task_nums,
+        WorkerTrans: 1,
+        WorkerDubb: 1,
+        WorkerAlign: 1,
+        WorkerAssemb: task_nums,
+        WorkerTaskDone: 1,
+    }
 
-    # 返回创建的线程列表
+    workers = []
+
+    for worker_cls, count in worker_config.items():
+        for i in range(count):
+            # 实例化
+            worker = worker_cls()
+
+            # 可选：给线程起个不同的名字，方便调试日志区分
+            # 比如：SpeechToText-1, SpeechToText-2
+            if count > 1:
+                worker.name = f"{worker.name}-{i+1}"
+                print(f'{worker.name=}')
+
+            worker.start()
+            workers.append(worker)
+
+    print(f"start {len(workers)} jobs")
     return workers

@@ -14,9 +14,10 @@ def openwin():
     from videotrans import translator, recognition
     RESULT_DIR = config.HOME_DIR + f"/recogn"
     COPYSRT_TO_RAWDIR = RESULT_DIR
+    uuid_list=[]
 
     def feed(d):
-        if winobj.has_done or config.box_recogn != 'ing':
+        if winobj.has_done:
             return
         if isinstance(d, str):
             d = json.loads(d)
@@ -46,7 +47,6 @@ def openwin():
         elif d['type'] in ['jindu', 'succeed']:
             winobj.shibie_startbtn.setText(d['text'])
         elif d['type'] in ['end']:
-            config.box_recogn = 'stop'
             winobj.has_done = True
             toggle_state(False)
             winobj.loglabel.setText(tr('quanbuend'))
@@ -74,7 +74,8 @@ def openwin():
 
 
     def shibie_start_fun():
-        nonlocal COPYSRT_TO_RAWDIR
+        nonlocal COPYSRT_TO_RAWDIR,uuid_list
+        uuid_list=[]
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         model = winobj.shibie_model.currentText()
@@ -125,13 +126,13 @@ def openwin():
         try:
             COPYSRT_TO_RAWDIR = RESULT_DIR if not winobj.copysrt_rawvideo.isChecked() else RESULT_DIR
             winobj.loglabel.setText('')
-            config.box_recogn = 'ing'
             video_list = [tools.format_video(it, None) for it in files]
             uuid_list = [obj['uuid'] for obj in video_list]
             remove_noise_is=winobj.remove_noise.isChecked()
             fix_punc=winobj.fix_punc.isChecked()
             nums_diariz=winobj.nums_diariz.currentIndex()
             for it in video_list:
+                uuid_list.append(it['uuid'])
                 cfg={
                     "recogn_type": recogn_type,
                     "model_name": model,
@@ -282,11 +283,12 @@ def openwin():
             winobj.loglabel.setText('')
 
     def stop_recogn():
-        config.box_recogn = 'stop'
         winobj.has_done = True
         winobj.loglabel.setText('Stoped')
         winobj.shibie_startbtn.setText(tr("zhixingwc"))
         winobj.shibie_dropbtn.setText(tr('xuanzeyinshipin'))
+        for it in uuid_list:
+            config.stoped_uuid_set.add(it)
         toggle_state(False)
 
     def show_detail_error():
