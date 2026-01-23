@@ -1,127 +1,165 @@
-[English](../README.md)
 
-
-> ## Recall.ai - Meeting Transcription API
+> **Recall.ai - Meeting Transcription API**
 >
 > If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more. Recall.ai diarizes by pulling the speaker data and separate audio streams from the meeting platforms, which means 100% accurate speaker diarization with actual speaker names.
 
-## 视频翻译配音工具
 
-这是一款功能强大的**开源视频翻译/语音转录/语音合成软件**，致力于将视频从一种语言，无缝转换到包含另一种语言配音和字幕的视频。
+# pyVideoTrans 
 
+<div align="center">
 
-## 核心功能一览
+**一款强大的开源视频翻译 / 语音转录 / AI配音 / 字幕翻译工具**
 
-*   **全自动视频翻译、音频翻译**：智能识别转录音视频中的说话声，生成源语言字幕文件，再翻译为目标语言字幕文件，接着进行配音，最后将新的音频与字幕合成到原视频中，一气呵成。
-*   **语音转录/音视频转字幕**：批量将视频或音频文件中的人类说话声，精准转录为带时间轴的 SRT 字幕文件。
-*   **语音合成/文字转语音 (TTS)**：利用多种先进的 TTS 渠道，为您的文本或 SRT 字幕文件生成高质量、自然流畅的配音。
-*   **SRT 字幕文件翻译**：支持批量翻译 SRT 字幕文件，保留原有时间码和格式，并提供多种双语字幕样式。
-*   **实时语音转文字**：支持实时监听麦克风，并将说话声转为文字
+[English](../README.md) | [**文档**](https://pyvideotrans.com) | [**在线问答**](https://bbs.pyvideotrans.com)
 
+[![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://www.python.org/) [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
+</div>
 
-##  软件工作原理
+**pyVideoTrans** 致力于无缝地将视频从一种语言转换为另一种语言，包含语音识别、字幕翻译、多角色配音及音画同步等全套流程。支持本地离线部署与多种主流在线 API。
 
-在开始之前，请务必理解本软件的核心工作方式：
-
-**先将音频或视频中的`人类说话声`通过【语音识别渠道】生成字幕文件，然后经【翻译渠道】将该字幕文件翻译为指定的目标语言字幕，接着继续将该字幕使用所选的【配音渠道】生成配音音频，最后将字幕、音频、原视频三者嵌入并对齐，完成视频翻译流程。**
-*   **可以处理**：任何包含人类语音的音视频，无论它有没有内嵌字幕。
-*   **无法处理**：只有背景音乐和硬字幕，但没有任何人说话的视频。本软件也无法直接提取视频画面中的硬字幕。
+![](https://pvtr2.pyvideotrans.com/1769151532418_395-1.png)
 
 
+---
 
-## 预打包版本(仅win10/11可用，MacOS/Linux系统使用源码部署)
+## ✨ 核心功能
 
-> 使用pyinstaller打包，未做免杀和签名，杀软可能报毒，请加入信任名单或使用源码部署
+- **🎥 全自动视频翻译**: 一键完成：语音识别(ASR) -> 字幕翻译 -> 语音合成(TTS) -> 视频合成。
+- **🎙️ 语音转录 / 字幕生成**: 批量将音视频转为 SRT 字幕，支持 **说话人分离**，区分不同角色。
+- **🗣️ 多角色 AI 配音**: 支持根据不同说话人分配不同的 AI 配音角色。
+- **🧬 声音克隆**: 集成 **F5-TTS, CosyVoice, GPT-SoVITS** 等模型，支持零样本声音克隆。
+- **🧠 强大的模型支持**: 
+  - **ASR**: Faster-Whisper (Local), OpenAI Whisper, 阿里 Qwen, 字节火山, Azure, Google 等。
+  - **LLM 翻译**: DeepSeek, ChatGPT, Claude, Gemini, Ollama (Local), 阿里百炼等。
+  - **TTS**: Edge-TTS (免费), OpenAI, Azure, Minimaxi, ChatTTS, ChatterBox 等。
+- **🖥️ 交互式编辑**: 支持在识别、翻译、配音的每个阶段暂停并人工校对，确保精准度。
+- **🛠️ 实用工具集**: 包含人声分离、视频/字幕合并、音画对齐、文稿匹配等辅助工具。
+- **💻 命令行模式 (CLI)**: 支持无头模式运行，方便服务器部署或批处理。
 
-0. [点击去下载预打包版,解压到无空格的英文目录后，双击 sp.exe (https://github.com/jianchang512/pyvideotrans/releases)
+![流程](https://pvtr2.pyvideotrans.com/1764052646165_py-llm.jpg)
 
-1. 解压到英文路径下，并且路径中不含有空格。解压后双击 sp.exe  (若遇到权限问题可右键使用管理员权限打开)
+---
 
-2. 注意：必须解压后使用，不可直接压缩包内双击使用，也不可解压后移动sp.exe文件到其他位置
+## 🚀 快速开始 (Windows 用户)
 
+我们为 Windows 10/11 用户提供了预打包的 `.exe` 版本，无需配置 Python 环境。
 
+1. **下载**: [点击下载最新预打包版本](https://github.com/jianchang512/pyvideotrans/releases)
+2. **解压**: 将压缩包解压到一个 **不包含中文、空格** 的路径下 (例如 `D:\pyVideoTrans`).
+3. **运行**: 双击文件夹内的 `sp.exe` 启动。
 
-## 源码部署
+> **注意**: 
+> *   请勿直接在压缩包内运行。
+> *   如需使用 GPU 加速，请确保安装 **CUDA 12.8** 和 **cuDNN 9.11**。
 
-> [推荐使用 uv 安装，如果还没有 uv，请查看官方安装方法](https://docs.astral.sh/uv/getting-started/installation/)
->
-> [Windows用户也可查看该方法安装 uv 和 ffmpeg](https://pyvideotrans.com/zh/blog/uv-ffmpeg)
+---
 
-                print(f'For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip')
+## 🛠️ 源码部署 (macOS / Linux / Windows 开发者)
 
+推荐使用 **[`uv`](https://docs.astral.sh/uv/)** 进行包管理，速度更快且环境隔离更好。
 
+### 1. 前置准备
 
-1. MacOS/Linux预先安装工具
+*   **Python**: 建议版本 3.10 --> 3.12
+*   **FFmpeg**: 必须安装并配置到环境变量。
+    *   **macOS**: `brew install ffmpeg libsndfile git`
+    *   **Linux (Ubuntu/Debian)**: `sudo apt-get install ffmpeg libsndfile1-dev`
+    *   **Windows**: [下载 FFmpeg](https://ffmpeg.org/download.html) 并配置 Path,或者直接将 ffmpeg.exe和ffprobe.exe放在项目目录下
 
-	MacOS需执行如下命令安装相关库
-    ```
-    brew install libsndfile ffmpeg git rubberband
+### 2. 安装 uv (如果尚未安装)
 
-    ```
-	
-	Linux需安装 `ffmpeg`，命令centos系 `sudo yum install -y ffmpeg rubberband-cli libsndfile1-dev`或 ubuntu系 `apt-get install ffmpeg rubberband-cli libsndfile1-dev`
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-2. 创建不含空格和中文的文件夹，在终端中进入该文件夹，然后终端中执行命令 
-	```
-	git clone https://github.com/jianchang512/pyvideotrans
-	cd pyvideotrans
-	```
-	> 也可直接去 https://github.com/jianchang512/pyvideotrans  该地址点击绿色*Code*按钮下载源码，解压后进入`sp.py`所在目录
-3. 执行命令 `uv sync` 安装模块，根据网络情况，可能需要几分钟到十几分钟，中国大陆用户可使用镜像加速安装，命令：`uv sync --index https://mirrors.aliyun.com/pypi/simple/`
-4. 执行命令 `uv run sp.py` 打开软件界面
-
-
-##  源码部署问题说明
-
-1. 默认使用 ctranslate2的4.x版本，仅支持CUDA12.x版本，如果你的cuda低于12，并且无法升级cuda到12.x，请执行命令卸载ctranslate2然后重新安装
-
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-uv remove ctranslate2
+### 3. 克隆与安装
 
-uv add ctranslate2==3.24.0
+```bash
+# 1. 克隆仓库 (请确保路径无空格/中文)
+git clone https://github.com/jianchang512/pyvideotrans.git
+cd pyvideotrans
 
+# 2. 安装依赖 (使用 uv 自动同步环境)
+uv sync
 ```
 
-2. 建议安装 rubberband 库，音频变速会更自然，音质更佳
+### 4. 启动软件
 
-https://breakfastquay.com/rubberband/
+**启动 GUI 界面**:
+```bash
+uv run sp.py
+```
 
+**使用 CLI 命令行**:
 
+> [详细参数说明查看文档](https://pyvideotrans.com/cli)
 
-## 使用教程和文档
+```bash
+# 视频翻译示例
+uv run cli.py --task vtv --name "./video.mp4" --source_language_code zh --target_language_code en
 
-请查看 https://pyvideotrans.com
+# 语音转字幕示例
+uv run cli.py --task stt --name "./audio.wav" --model_name large-v3
+```
 
+### 5. (可选) GPU 加速配置
 
+如果您拥有 NVIDIA 显卡，请执行以下命令以安装支持 CUDA 的 PyTorch 版本：
 
+```bash
+# 卸载 CPU 版本
+uv remove torch torchaudio
 
-## 软件预览截图
+# 安装 CUDA 版本 (以 CUDA 12.x 为例)
+uv add torch==2.7 torchaudio==2.7 --index-url https://download.pytorch.org/whl/cu128
+uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
+```
 
-<img width="1772" height="972" alt="1" src="https://github.com/user-attachments/assets/0228a914-07a8-4e13-83ca-2fa82b52aee2" />
+---
 
+## 🧩 支持的渠道与模型 (部分)
 
+| 类别 | 渠道/模型 | 说明 |
+| :--- | :--- | :--- |
+| **语音识别 (ASR)** | **Faster-Whisper** (Local) | 推荐，速度快，精度高 |
+| | WhisperX / Parakeet | 支持时间轴对齐与说话人分离 |
+| | 阿里 Qwen3-ASR / 字节火山 | 在线 API，中文效果极佳 |
+| **翻译 (LLM/MT)** | **DeepSeek** / ChatGPT | 支持上下文理解，翻译更自然 |
+| | Google / Microsoft | 传统机器翻译，速度快 |
+| | Ollama / M2M100 | 完全本地离线翻译 |
+| **语音合成 (TTS)** | **Edge-TTS** | 微软免费接口，效果自然 |
+| | **F5-TTS / CosyVoice** | 支持 **声音克隆**，需本地部署 |
+| | GPT-SoVITS / ChatTTS | 高质量开源 TTS |
+| | 302.AI / OpenAI / Azure | 高质量商业 API |
 
-## 致谢
+---
 
-> 本程序主要依赖的部分开源项目
+## 📚 文档与支持
 
-1. [ffmpeg](https://github.com/FFmpeg/FFmpeg)
-2. [PySide6](https://pypi.org/project/PySide6/)
-3. [edge-tts](https://github.com/rany2/edge-tts)
-4. [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
-5. [openai-whisper](https://github.com/openai/whisper)
-6. [pydub](https://github.com/jiaaro/pydub)
-6. [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)
+*   **官方文档**: [https://pyvideotrans.com](https://pyvideotrans.com) (包含详细教程、API配置指南、常见问题)
+*   **在线问答社区**: [https://bbs.pyvideotrans.com](https://bbs.pyvideotrans.com) (提交报错日志，AI 自动分析回答)
 
+## ⚠️ 免责声明
 
+本软件为开源免费非商业项目，使用者需自行承担因使用本软件（包括但不限于调用第三方 API、处理受版权保护的视频内容）所产生的一切法律后果。请遵守当地法律法规及相关服务商的使用协议。
 
+## 🙏 致谢
 
-如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，欢迎捐助
+本项目主要依赖以下开源项目(部分)：
 
-<img width="200" src="https://github.com/user-attachments/assets/5e8688ef-47c3-4a3c-a016-e60f73ccc4dc">
+*   [FFmpeg](https://github.com/FFmpeg/FFmpeg)
+*   [PySide6](https://pypi.org/project/PySide6/)
+*   [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+*   [openai-whisper](https://github.com/openai/whisper)
+*   [edge-tts](https://github.com/rany2/edge-tts)
+*   [F5-TTS](https://github.com/SWivid/F5-TTS)
+*   [CosyVoice](https://github.com/FunAudioLLM/CosyVoice)
 
+---
 
-<img width="200" src="https://github.com/jianchang512/pyvideotrans/assets/3378335/fe1aa29d-c26d-46d3-b7f3-e9c030ef32c7">
-
+*Created by [jianchang512](https://github.com/jianchang512)*

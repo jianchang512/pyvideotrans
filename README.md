@@ -1,116 +1,166 @@
-[简体中文](docs/README_CN.md)
 
-
-> ## Recall.ai - Meeting Transcription API
+> **Recall.ai - Meeting Transcription API**
 >
 > If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more. Recall.ai diarizes by pulling the speaker data and separate audio streams from the meeting platforms, which means 100% accurate speaker diarization with actual speaker names.
 
 
-## Video Translation & Dubbing Tool
-
-This is a powerful **open-source video translation / audio transcription / speech synthesis tool**, dedicated to seamlessly converting videos from one language to another, complete with dubbed audio and subtitles.
 
 
-## Core Features at a Glance
+# pyVideoTrans 
 
-*   **Fully Automatic Video/Audio Translation**: Intelligently recognizes and transcribes voices in audio/video, generates source language subtitles, translates them to the target language, performs dubbing, and finally merges the new audio and subtitles into the original video—all in one go.
-*   **Voice Transcription / Audio & Video to Subtitles**: Batch transcribes human speech from video or audio files into SRT subtitle files with precise time codes.
-*   **Speech Synthesis / Text-to-Speech (TTS)**: Utilizes various advanced TTS channels to generate high-quality, natural-sounding voiceovers for your text or SRT subtitle files.
-*   **SRT Subtitle Translation**: Supports batch translation of SRT subtitle files, preserving original timestamps and formatting, while providing multiple bilingual subtitle styles.
-*   **Real-time Speech-to-Text**: Supports real-time microphone monitoring to convert speech into text.
+<div align="center">
 
+**A Powerful Open Source Video Translation / Audio Transcription / AI Dubbing / Subtitle Translation Tool**
 
+[中文](docs/README_CN.md) | [**Documentation**](https://pyvideotrans.com) | [**Online BBS**](https://bbs.pyvideotrans.com)
 
-## How It Works
+[![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE)   [![Python](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://www.python.org/)   [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
-Before getting started, please ensure you understand the core working mechanism of this software:
+</div>
 
-**First, the `human voice` in the audio or video is converted into a subtitle file via the [Speech Recognition Channel]. Next, this subtitle file is translated into the target language via the [Translation Channel]. Then, the translated subtitles are used to generate audio via the selected [Dubbing Channel]. Finally, the subtitles, audio, and original video are embedded and aligned to complete the video translation process.**
+**pyVideoTrans** is dedicated to seamlessly converting videos from one language to another, offering a complete workflow that includes speech recognition, subtitle translation, multi-role dubbing, and audio-video synchronization. It supports both local offline deployment and a wide variety of mainstream online APIs.
 
-*   **Can Handle**: Any audio or video containing human speech, regardless of whether it has embedded subtitles.
-*   **Cannot Handle**: Videos containing only background music and hardcoded subtitles but no spoken voice. This software also cannot directly extract hardcoded subtitles from video frames.
+<img width="1658" height="935" alt="image" src="https://github.com/user-attachments/assets/c5959e59-6014-480c-9a7d-44c2b1729d36" />
 
+---
 
+## ✨ Core Features
 
-## Pre-packaged Version (Windows 10/11 Only, MacOS/Linux Use Source Code)
+- **🎥 Fully Automatic Video Translation**: One-click workflow: Speech Recognition (ASR) -> Subtitle Translation -> Speech Synthesis (TTS) -> Video Synthesis.
+- **🎙️ Audio Transcription / Subtitle Generation**: Batch convert audio/video to SRT subtitles, supporting **Speaker Diarization** to distinguish between different roles.
+- **🗣️ Multi-Role AI Dubbing**: Assign different AI dubbing voices to different speakers.
+- **🧬 Voice Cloning**: Integrates models like **F5-TTS, CosyVoice, GPT-SoVITS** for zero-shot voice cloning.
+- **🧠 Powerful Model Support**: 
+  - **ASR**: Faster-Whisper (Local), OpenAI Whisper, Alibaba Qwen, ByteDance Volcano, Azure, Google, etc.
+  - **LLM Translation**: DeepSeek, ChatGPT, Claude, Gemini, Ollama (Local), Alibaba Bailian, etc.
+  - **TTS**: Edge-TTS (Free), OpenAI, Azure, Minimaxi, ChatTTS, ChatterBox, etc.
+- **🖥️ Interactive Editing**: Supports pausing and manual proofreading at each stage (recognition, translation, dubbing) to ensure accuracy.
+- **🛠️ Utility Toolkit**: Includes auxiliary tools such as vocal separation, video/subtitle merging, audio-video alignment, and transcript matching.
+- **💻 Command Line Interface (CLI)**: Supports headless operation, convenient for server deployment or batch processing.
 
-> Packed using PyInstaller. No antivirus evasion or signing has been applied; antivirus software may flag it as a virus. Please add it to your trust list or deploy from source.
+<img width="2752" height="1536" alt="unnamed" src="https://github.com/user-attachments/assets/960e9e34-84a4-425d-b582-f726623475a8" />
 
-0. [Click to download the pre-packaged version](https://github.com/jianchang512/pyvideotrans/releases), unzip it to a directory with **no spaces** in the path, and double-click `sp.exe`.
+---
 
-1. Unzip to an English path, ensuring the path contains no spaces. After unzipping, double-click `sp.exe` (If you encounter permission issues, right-click and run as administrator).
+## 🚀 Quick Start (Windows Users)
 
-2. **Note**: You must unzip the file before use. Do not run it directly from inside the compressed archive, and do not move the `sp.exe` file to another location after unzipping.
+We provide a pre-packaged `.exe` version for Windows 10/11 users, requiring no Python environment configuration.
 
+1. **Download**: [Click to download the latest pre-packaged version](https://github.com/jianchang512/pyvideotrans/releases)
+2. **Unzip**: Extract the compressed file to a path (e.g., `D:\pyVideoTrans`).
+3. **Run**: Double-click `sp.exe` inside the folder to launch.
 
+> **Note**: 
+> *   Do not run directly from within the compressed archive.
+> *   To use GPU acceleration, ensure **CUDA 12.8** and **cuDNN 9.11** are installed.
 
-## Source Code Deployment
+---
 
-> [Recommended: Install using `uv`. If you don't have `uv` yet, check the official installation guide.](https://docs.astral.sh/uv/getting-started/installation/)
+## 🛠️ Source Deployment (macOS / Linux / Windows Developers)
 
-1. **Prerequisites for MacOS/Linux**
+We recommend using **[`uv`](https://docs.astral.sh/uv/)** for package management for faster speed and better environment isolation.
 
-	**MacOS**: Execute the following commands to install the required libraries:
-    ```bash
-    brew install libsndfile ffmpeg git rubberband
+### 1. Prerequisites
 
-   
-    ```
-	
-	**Linux**: Install `ffmpeg` using centos like  `sudo yum install -y ffmpeg rubberband-cli libsndfile1-dev` or  ubuntu like `apt-get install ffmpeg rubberband-cli libsndfile1-dev`
+*   **Python**: Recommended version 3.10 --> 3.12
+*   **FFmpeg**: Must be installed and configured in the environment variables.
+    *   **macOS**: `brew install ffmpeg libsndfile git`
+    *   **Linux (Ubuntu/Debian)**: `sudo apt-get install ffmpeg libsndfile1-dev`
+    *   **Windows**: [Download FFmpeg](https://ffmpeg.org/download.html) and configure Path, or place `ffmpeg.exe` and `ffprobe.exe` directly in the project directory.
 
-2. Create a folder with **no spaces** in its name. Open a terminal in that folder and execute:
-	```bash
-	git clone https://github.com/jianchang512/pyvideotrans
-	cd pyvideotrans
-	```
-	> Alternatively, download the source code directly from https://github.com/jianchang512/pyvideotrans by clicking the green *Code* button, unzip it, and navigate to the directory containing `sp.py`.
-
-3. Run `uv sync` to install modules. Depending on your network connection, this may take anywhere from a few minutes to over ten minutes. 
-
-4. Run `uv run sp.py` to launch the software interface.
-
-
-## Source Deployment Troubleshooting
-
-1. By default, the software uses `ctranslate2` version 4.x, which only supports CUDA 12.x. If your CUDA version is lower than 12 and you cannot upgrade, please execute the following commands to uninstall `ctranslate2` and reinstall a compatible version:
+### 2. Install uv (If not installed)
 
 ```bash
-uv remove ctranslate2
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-uv add ctranslate2==3.24.0
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-2. Use a better audio acceleration
+### 3. Clone and Install
 
-https://breakfastquay.com/rubberband/
+```bash
+# 1. Clone the repository (Ensure path has no spaces/Chinese characters)
+git clone https://github.com/jianchang512/pyvideotrans.git
+cd pyvideotrans
 
+# 2. Install dependencies (uv automatically syncs environment)
+uv sync
+```
 
-## Tutorials and Documentation
+### 4. Launch Software
 
-Please visit https://pyvideotrans.com
+**Launch GUI**:
+```bash
+uv run sp.py
+```
 
+**Use CLI**:
 
+> [View documentation for detailed parameters](https://pyvideotrans.com/cli)
 
-## Software Preview
-<img width="1772" height="972" alt="2" src="https://github.com/user-attachments/assets/d03edfd9-8f21-44df-8a74-e9c7a3c48103" />
+```bash
+# Video Translation Example
+uv run cli.py --task vtv --name "./video.mp4" --source_language_code zh --target_language_code en
 
+# Audio to Subtitle Example
+uv run cli.py --task stt --name "./audio.wav" --model_name large-v3
+```
 
+### 5. (Optional) GPU Acceleration Configuration
 
+If you have an NVIDIA graphics card, execute the following commands to install the CUDA-supported PyTorch version:
 
+```bash
+# Uninstall CPU version
+uv remove torch torchaudio
 
+# Install CUDA version (Example for CUDA 12.x)
+uv add torch==2.7 torchaudio==2.7 --index-url https://download.pytorch.org/whl/cu128
+uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
+```
 
-## Acknowledgements
+---
 
-> This program relies primarily on the following open-source projects:
+## 🧩 Supported Channels & Models (Partial)
 
-1. [ffmpeg](https://github.com/FFmpeg/FFmpeg)
-2. [PySide6](https://pypi.org/project/PySide6/)
-3. [edge-tts](https://github.com/rany2/edge-tts)
-4. [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
-5. [openai-whisper](https://github.com/openai/whisper)
-6. [pydub](https://github.com/jiaaro/pydub)
-6. [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)
+| Category | Channel/Model | Description |
+| :--- | :--- | :--- |
+| **ASR (Speech Recognition)** | **Faster-Whisper** (Local) | Recommended, fast speed, high accuracy |
+| | WhisperX / Parakeet | Supports timestamp alignment & speaker diarization |
+| | Alibaba Qwen3-ASR / ByteDance Volcano | Online API, excellent for Chinese |
+| **Translation (LLM/MT)** | **DeepSeek** / ChatGPT | Supports context understanding, more natural translation |
+| | Google / Microsoft | Traditional machine translation, fast speed |
+| | Ollama / M2M100 | Fully local offline translation |
+| **TTS (Speech Synthesis)** | **Edge-TTS** | Microsoft free interface, natural effect |
+| | **F5-TTS / CosyVoice** | Supports **Voice Cloning**, requires local deployment |
+| | GPT-SoVITS / ChatTTS | High-quality open-source TTS |
+| | 302.AI / OpenAI / Azure | High-quality commercial API |
 
+---
 
+## 📚 Documentation & Support
 
+*   **Official Documentation**: [https://pyvideotrans.com](https://pyvideotrans.com) (Includes detailed tutorials, API configuration guides, FAQ)
+*   **Online Q&A Community**: [https://bbs.pyvideotrans.com](https://bbs.pyvideotrans.com) (Submit error logs for automated AI analysis and answers)
+
+## ⚠️ Disclaimer
+
+This software is an open-source, free, non-commercial project. Users are solely responsible for any legal consequences arising from the use of this software (including but not limited to calling third-party APIs or processing copyrighted video content). Please comply with local laws and regulations and the terms of use of relevant service providers.
+
+## 🙏 Acknowledgements
+
+This project mainly relies on the following open-source projects (partial):
+
+*   [FFmpeg](https://github.com/FFmpeg/FFmpeg)
+*   [PySide6](https://pypi.org/project/PySide6/)
+*   [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+*   [openai-whisper](https://github.com/openai/whisper)
+*   [edge-tts](https://github.com/rany2/edge-tts)
+*   [F5-TTS](https://github.com/SWivid/F5-TTS)
+*   [CosyVoice](https://github.com/FunAudioLLM/CosyVoice)
+
+---
+
+*Created by [jianchang512](https://github.com/jianchang512)*
