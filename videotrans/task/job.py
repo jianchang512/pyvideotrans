@@ -52,7 +52,6 @@ class WorkerPrepare(QThread):
         while 1:
             if config.exit_soft:
                 return
-
             try:
                 trk: BaseTask = config.prepare_queue.get(timeout=1)
             except Empty:
@@ -337,19 +336,30 @@ class WorkerTaskDone(QThread):
                 except:
                     pass
                 
-            
-
-
 def start_thread():
     gpus.getset_gpu()
     task_nums=1
-    if config.settings.get('multi_gpus') and config.NVIDIA_GPU_NUMS>1:
-        task_nums=2 if config.NVIDIA_GPU_NUMS<4 else 4
+    print(f'NVIDIA_GPU_NUMS={config.NVIDIA_GPU_NUMS}')
+    # 存在可用显卡时，进一步判断应该启动几个相关线程
+    if config.NVIDIA_GPU_NUMS>0:
+        try:
+            process_max_gpu=int(float(config.settings.get('process_max_gpu',0)))
+        except:
+            process_max_gpu=0
+        # 如果手动设置了gpu进程数量
+        if process_max_gpu>0:
+            task_nums=process_max_gpu
+        elif config.NVIDIA_GPU_NUMS>1 and bool(config.settings.get('multi_gpus')):
+            # 显卡数量真的大于1 并且 启用了多显卡，
+            task_nums=2 if config.NVIDIA_GPU_NUMS<4 else 4
+        print(f'{process_max_gpu=}')
+        print(f'multi_gpus={config.settings.get("multi_gpus")}')
+    print(f'Concurrent {task_nums=}')
+    print(f'process_max={config.settings.get("process_max")}')
     # 定义每个工种需要的线程数量
-    # 想要 WorkerRegcon 并发 3 个，就在这里填 3
     worker_config = {
-        WorkerPrepare: task_nums,  # 比如准备工作也想并发 2 个
-        WorkerRegcon: task_nums,   # 语音识别最耗时，开 3 个
+        WorkerPrepare: task_nums,  # 准备工作
+        WorkerRegcon: task_nums,   # 语音识别
         WorkerDiariz: task_nums,
         WorkerTrans: 1,
         WorkerDubb: 1,
@@ -364,9 +374,6 @@ def start_thread():
         for i in range(count):
             # 实例化
             worker = worker_cls()
-
-            # 可选：给线程起个不同的名字，方便调试日志区分
-            # 比如：SpeechToText-1, SpeechToText-2
             if count > 1:
                 worker.name = f"{worker.name}-{i+1}"
                 print(f'{worker.name=}')

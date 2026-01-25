@@ -80,7 +80,7 @@ def openwin():
     if config.params["cosyvoice_role"]:
         winobj.role.setPlainText(config.params["cosyvoice_role"])
     if config.params.get("cosyvoice_instruct_text"):
-        winobj.instruct_text.setText(config.params.get("instruct_text"))
+        winobj.instruct_text.setText(config.params.get("cosyvoice_instruct_text"))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

@@ -461,6 +461,10 @@ def getset_params(obj=None):
         "qwenmt_model": "qwen-mt-turbo",
         "qwenmt_asr_model": "qwen3-asr-flash",
 
+        "qwenttslocal_refaudio":"",
+        "qwenttslocal_url":"",
+        "qwenttslocal_prompt":"",
+
         "ai302_key": "",
         "ai302_model": "",
         "ai302_model_recogn": "whisper-1",

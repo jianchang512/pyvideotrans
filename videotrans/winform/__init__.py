@@ -48,6 +48,7 @@ _module_map = {
 "parakeet":".parakeet",
 "qwenmt":".qwenmt",
 "qwentts":".qwentts",
+"qwenttslocal":".qwenttslocal",
 "recognapi":".recognapi",
 "setini":".setini",
 "siliconflow":".siliconflow",

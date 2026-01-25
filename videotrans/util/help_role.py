@@ -180,6 +180,30 @@ def get_qwen3tts_rolelist():
     voices={"No":"No"}|voices
     return voices
 
+# 本地qwentts3
+def get_qwenttslocal_rolelist():
+
+    voices={
+        "No":"No",
+        "clone":"clone",
+        "Vivian":"Vivian",
+        "Serena":"Serena",
+        "Uncle_fu":"Uncle_fu",
+        "Dylan":"Dylan",
+        "Eric":"Eric",
+        "Ryan":"Ryan",
+        "Aiden":"Aiden",
+        "Ono_anna":"Ono_anna",
+        "Sohee":"Sohee"
+    }
+    ref_audio=config.params.get('qwenttslocal_refaudio','')
+    if ref_audio:
+        for it in ref_audio.strip().split("\n"):
+            _t=it.split('#')
+            if len(_t)==2:
+                voices[_t[0]]=_t[1]
+    return voices
+
 def get_supertonic_rolelist():
     voices=json.loads(Path(config.ROOT_DIR+"/videotrans/voicejson/supertonic.json").read_text(encoding='utf-8'))
     voices={"No":"No"}|voices

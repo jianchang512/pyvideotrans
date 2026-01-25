@@ -1,7 +1,9 @@
 # zh_recogn 识别
+import json
 import re
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Dict, Union
 
 import requests
@@ -49,17 +51,16 @@ class APIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        api_url = config.params.get('recognapi_url','').strip().rstrip('/').lower()
-
+        api_url = config.params.get('recognapi_url', '').strip().rstrip('/').lower()
 
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
 
         if config.params.get('recognapi_key'):
             if '?' in api_url:
-                api_url += f'&sk={config.params.get("recognapi_key","")}'
+                api_url += f'&sk={config.params.get("recognapi_key", "")}'
             else:
-                api_url += f'?sk={config.params.get("recognapi_key","")}'
+                api_url += f'?sk={config.params.get("recognapi_key", "")}'
 
         self.api_url = api_url
         self._add_internal_host_noproxy(self.api_url)
@@ -71,13 +72,15 @@ class APIRecogn(BaseRecogn):
         if self._exit():  return
         if re.search(r'api\.gladia\.io', self.api_url, re.I):
             return self._whisperzero()
+        if 'vibevoice-asr' in config.params.get('recognapi_key', ''):
+            return self._vibevoice_asr()
         with open(self.audio_file, 'rb') as f:
             chunk = f.read()
         files = {"audio": chunk}
         self._signal(
             text=tr("Recognition may take a while, please be patient"))
 
-        res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files,timeout=600)
+        res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files, timeout=600)
         res.raise_for_status()
         content_type = res.headers.get('Content-Type')
         if 'application/json' in content_type:
@@ -91,7 +94,7 @@ class APIRecogn(BaseRecogn):
                 type='replace_subtitle'
             )
             return res['data']
-        return tools.get_subtitle_from_srt(res.text,is_file=False)
+        return tools.get_subtitle_from_srt(res.text, is_file=False)
 
     def _whisperzero(self):
         api_key = config.params.get("recognapi_key")
@@ -137,13 +140,13 @@ class APIRecogn(BaseRecogn):
 
         # 获取结果
         while 1:
-            if config.exit_soft:return
+            if config.exit_soft: return
             time.sleep(1)
             response = requests.get(f"https://api.gladia.io/v2/pre-recorded/{id}", headers={"x-gladia-key": api_key})
             response.raise_for_status()
             d = response.json()
             if d['status'] == 'error':
-                config.logger.warning( d )
+                config.logger.warning(d)
                 raise StopRetry(f"Error:{d['error_code']}")
             if d['status'] == 'done':
                 config.logger.info(d)
@@ -151,6 +154,152 @@ class APIRecogn(BaseRecogn):
                 raws = tools.get_subtitle_from_srt(sens, is_file=False)
                 if self.detect_language and self.detect_language[:2] in ['zh', 'ja', 'ko']:
                     for i, it in enumerate(raws):
-                        text = re.sub(r'\s+', '', it['text'],flags=re.I | re.S)
+                        text = re.sub(r'\s+', '', it['text'], flags=re.I | re.S)
                         raws[i]['text'] = text
                 return raws
+
+    def _vibevoice_asr(self):
+        from gradio_client import Client, handle_file
+        from pydub import AudioSegment
+        import re
+        import ast
+        import os
+        import math
+        import json
+        from pathlib import Path
+
+        # 定义切片时长 (60分钟 = 60 * 60 * 1000 毫秒)
+        CHUNK_DURATION_MS = 60 * 60 * 1000
+
+        # 初始化客户端
+        client = Client(self.api_url)
+
+        # 内部函数：处理单个片段的返回结果
+        def _process_chunk_result(raw_text, time_offset_ms, start_line_index):
+            # 1. 使用正则表达式找到列表部分
+            match = re.search(r'(\[.*\])', raw_text, re.DOTALL)
+            chunk_raws = []
+            chunk_speaker_raw_list = []  # 仅收集当前片段的原始说话人标记
+
+            if not match:
+                # 如果某个片段没识别出内容（可能是静音），返回空而不是报错
+                config.logger.warning(f"No subtitles found in chunk starting at {time_offset_ms}ms")
+                return [], []
+
+            list_str = match.group(1)
+            try:
+                segments = ast.literal_eval(list_str)
+            except Exception as e:
+                config.logger.error(f"AST eval failed: {e}")
+                return [], []
+
+            # 2. 遍历结果并加上时间偏移
+            for i, seg in enumerate(segments):
+                # 计算加上偏移量后的毫秒数
+                seg_start_ms = int(float(seg['start']) * 1000) + time_offset_ms
+                seg_end_ms = int(float(seg['end']) * 1000) + time_offset_ms
+
+                tmp = {
+                    "line": start_line_index + i + 1,  # 累加行号
+                    "text": seg['text'],
+                    "start_time": seg_start_ms,
+                    "end_time": seg_end_ms,
+                }
+                # 假设 tools 是你类外部或全局可访问的工具
+                tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
+                tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
+                tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
+
+                chunk_raws.append(tmp)
+
+                # 收集原始说话人信息 (例如 "Speaker 1")
+                sp = seg.get("Speaker", '-')
+                chunk_speaker_raw_list.append(sp)
+
+            return chunk_raws, chunk_speaker_raw_list
+
+        # self.audio_file 是 wav 路径
+        print(f"Loading audio: {self.audio_file} ...")
+        audio = AudioSegment.from_wav(self.audio_file)
+        total_duration = len(audio)
+        print(f"Total duration: {total_duration / 1000 / 60:.2f} minutes")
+
+        final_raws = []
+        all_speaker_raw_list = []  # 存储所有片段原本的说话人标记
+        current_line = 0
+
+        for i, start_ms in enumerate(range(0, total_duration, CHUNK_DURATION_MS)):
+            end_ms = min(start_ms + CHUNK_DURATION_MS, total_duration)
+
+            print(f"Processing chunk {i + 1}: {start_ms / 1000}s to {end_ms / 1000}s ...")
+
+            # 切割音频
+            chunk_audio = audio[start_ms:end_ms]
+
+            # 保存临时文件
+            temp_chunk_path = os.path.join(self.cache_folder, f"temp_chunk_{i}.wav")
+            chunk_audio.export(temp_chunk_path, format="wav")
+
+            try:
+                result = client.predict(
+                    audio_input=handle_file(temp_chunk_path),
+                    audio_path_input=None,
+                    start_time_input=None,
+                    end_time_input=None,
+                    max_new_tokens=65536,
+                    temperature=0,
+                    top_p=1,
+                    do_sample=False,
+                    repetition_penalty=1,
+                    context_info="",
+                    api_name="/transcribe_audio"
+                )
+
+                # 处理返回结果，传入当前的 start_ms 作为时间偏移量
+                print(result)
+                chunk_data, chunk_spk = _process_chunk_result(
+                    result[0],
+                    time_offset_ms=start_ms,
+                    start_line_index=current_line
+                )
+
+                final_raws.extend(chunk_data)
+                all_speaker_raw_list.extend(chunk_spk)
+                current_line += len(chunk_data)
+
+            except Exception as e:
+                config.logger.exception(f"Error processing chunk {i}: {e}")
+            finally:
+                # 清理临时文件
+                if os.path.exists(temp_chunk_path):
+                    os.remove(temp_chunk_path)
+
+        # 统一处理说话人逻辑 (合并后的重排序)
+        # 这里是将所有片段的说话人混在一起处理。
+        # 警告：VibeVoice 是分段处理的，Chunk1 的 spk0 和 Chunk2 的 spk0 可能不是同一个人。
+
+        final_speaker_list = []
+        unique_speakers = []
+
+        # 提取不重复的说话人列表保持顺序
+        for sp in all_speaker_raw_list:
+            if sp not in unique_speakers:
+                unique_speakers.append(sp)
+
+        if unique_speakers:
+            try:
+                # 生成最终的 spk0, spk1... 映射
+                for sp in all_speaker_raw_list:
+                    if sp == '-':
+                        # 如果没有识别出，暂定为最后一个新编号
+                        final_speaker_list.append(f'spk{len(unique_speakers)}')
+                    else:
+                        final_speaker_list.append(f'spk{unique_speakers.index(sp)}')
+
+                # 写入最终的 speaker.json
+                if final_speaker_list:
+                    Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(final_speaker_list), encoding='utf-8')
+            except Exception as e:
+                config.logger.exception(f'说话人重排序出错，忽略{e}', exc_info=True)
+
+        return final_raws

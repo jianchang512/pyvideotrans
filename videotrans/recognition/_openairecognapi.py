@@ -29,9 +29,6 @@ class OpenaiAPIRecogn(BaseRecogn):
         self.api_url = self._get_url(config.params.get('openairecognapi_url', ''))
         self._add_internal_host_noproxy(self.api_url)
 
-    # @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-    #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-    #       after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
         model_name = config.params.get("openairecognapi_model", '')

@@ -213,21 +213,32 @@ class BaseCon:
         last_mtime = 0
         while 1:
             _p = Path(logs_file)
+            # 已删掉
             if last_mtime>0 and not _p.exists():
                 return
-            if _p.is_file() and _p.stat().st_mtime != last_mtime:
-                last_mtime = _p.stat().st_mtime
-                try:
-                    _content=_p.read_text(encoding='utf-8')
-                    if _content:
-                        _tmp = json.loads(_content)
-                        if _tmp.get('type', '') == 'error':
-                            return
-                        self._signal(text=_tmp.get('text',''), type=_tmp.get('type', 'logs'))
-                except:
+            try:
+                if not _p.exists():
                     time.sleep(1)
                     continue
-            time.sleep(0.5)
+                # 获取日志文件最后修改时间
+                _mtime = _p.stat().st_mtime
+                if _mtime == last_mtime:
+                    # 自上次未修改过
+                    time.sleep(1)
+                    continue
+                last_mtime=_mtime
+                _content=_p.read_text(encoding='utf-8')
+                if not _content:
+                    time.sleep(1)
+                    continue
+                _tmp = json.loads(_content)
+                if _tmp.get('type', '') == 'error':
+                    return
+                self._signal(text=_tmp.get('text',''), type=_tmp.get('type', 'logs'))
+            except Exception as e:
+                # 可能日志文件读取出错，可忽略
+                config.logger.warning(f'读取进程间日志文件出错，可忽略:{e}')
+            time.sleep(1)
 
     # 使用新进程执行任务
     def _new_process(self,callback=None,title="",is_cuda=False,kwargs=None):

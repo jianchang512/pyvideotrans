@@ -180,6 +180,10 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = list(tools.get_qwen3tts_rolelist().keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == tts.QWEN3LOCAL_TTS:
+            self.main.voice_role.clear()
+            self.main.current_rolelist = list(tools.get_qwenttslocal_rolelist().keys())
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.Supertonic_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = list(tools.get_supertonic_rolelist().keys())
@@ -789,12 +793,7 @@ class WinAction(WinActionSub):
             self.main.startbtn.setText(tr("starting..."))
             self.had_click_btn=False
             return
-        try:
-            Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
-            with open(config.TEMP_DIR + '/stop_porcess.txt', 'w', encoding='utf-8') as f:
-                f.write('stop')
-        except Exception:
-            pass
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         # stop 停止，end=结束
         self.main.subtitle_area.clear()
         self.main.startbtn.setText(tr(type))

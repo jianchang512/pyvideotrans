@@ -30,17 +30,19 @@ class GlobalProcessManager:
 
     @classmethod
     def get_gpu_process_nums(cls):
-        # 手动设置优先，最多8个
         try:
-            man_set=int(float(config.settings.get('process_max_gpu',0)))
+            process_max_gpu=int(float(config.settings.get('process_max_gpu',0)))
         except:
-            man_set=0
-        if man_set>0:
-            return min(man_set,8,os.cpu_count())
+            process_max_gpu=0
+        # 手动设置了gpu进程数量，则优先级最高,例如虽然只有一卡，但显存特别大，可手动设置多个gpu进程
+        if process_max_gpu>0:
+            return min(process_max_gpu,8,os.cpu_count())
         if config.NVIDIA_GPU_NUMS<0:
             getset_gpu()
-        if config.NVIDIA_GPU_NUMS<=1:
+        # 没有显卡 或 没有启用多显卡，则只启动一个gpu进程
+        if  config.NVIDIA_GPU_NUMS<1 or not bool(config.settings.get('multi_gpus',False)):
             return 1
+        
         return min(config.NVIDIA_GPU_NUMS,8,os.cpu_count())
 
     @classmethod

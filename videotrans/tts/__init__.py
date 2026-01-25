@@ -19,6 +19,7 @@ from videotrans.tts._openaitts import OPENAITTS
 from videotrans.tts._elevenlabs import ElevenLabsC
 from videotrans.tts._gtts import GTTS
 from videotrans.tts._geminitts import GEMINITTS
+from videotrans.tts._qwenttslocal import QwenttsLocal
 from videotrans.tts._ttsapi import TTSAPI
 from videotrans.tts._doubao import DoubaoTTS
 from videotrans.tts._doubao2 import Doubao2TTS
@@ -30,47 +31,46 @@ PIPER_TTS = 1
 VITSCNEN_TTS = 2
 
 QWEN_TTS = 3
-DOUBAO2_TTS=4
-DOUBAO_TTS = 5
-GLM_TTS = 6
+QWEN3LOCAL_TTS = 4
+DOUBAO2_TTS=5
+DOUBAO_TTS = 6
+GLM_TTS = 7
 
-GPTSOVITS_TTS = 7
-F5_TTS = 8
-INDEX_TTS = 9
-COSYVOICE_TTS = 10
-Supertonic_TTS=11
-
-
-MINIMAXI_TTS = 12
-OPENAI_TTS = 13
-AI302_TTS = 14
-ELEVENLABS_TTS = 15
-AZURE_TTS = 16
-GEMINI_TTS =17
+GPTSOVITS_TTS = 8
+F5_TTS = 9
+INDEX_TTS = 10
+COSYVOICE_TTS = 11
+Supertonic_TTS=12
 
 
+MINIMAXI_TTS = 13
+OPENAI_TTS = 14
+AI302_TTS = 15
+ELEVENLABS_TTS = 16
+AZURE_TTS = 17
+GEMINI_TTS =18
 
+VOXCPM_TTS = 19
+CHATTERBOX_TTS = 20
+CHATTTS = 21
+SPARK_TTS = 22
+DIA_TTS = 23
+KOKORO_TTS = 24
+CLONE_VOICE_TTS = 25
+FISHTTS = 26
 
-VOXCPM_TTS = 18
-CHATTERBOX_TTS = 19
-CHATTTS = 20
-SPARK_TTS = 21
-DIA_TTS = 22
-KOKORO_TTS = 23
-CLONE_VOICE_TTS = 24
-FISHTTS = 25
+GOOGLE_TTS = 27
 
-GOOGLE_TTS = 26
-
-TTS_API = 27
-GOOGLECLOUD_TTS = 28
+TTS_API = 28
+GOOGLECLOUD_TTS = 29
 
 _ID_NAME_DICT = {
     EDGE_TTS:tr("Edge-TTS(free)"),
     PIPER_TTS:f'piper TTS({tr("Local")})',
     VITSCNEN_TTS:f'VITS({tr("Local")})',
 
-    QWEN_TTS:"Qwen3 TTS",
+    QWEN_TTS:"Qwen3-TTS(BailianAPI)",
+    QWEN3LOCAL_TTS:f"Qwen3-TTS({tr('Local')})",
     DOUBAO2_TTS:tr("DouBao2"),
     DOUBAO_TTS:tr("VolcEngine TTS"),
     GLM_TTS:f'{tr("Zhipu AI")} GLM-TTS',
@@ -85,14 +85,14 @@ _ID_NAME_DICT = {
 
     MINIMAXI_TTS:"Minimaxi TTS",
     OPENAI_TTS:"OpenAI TTS",
-    AI302_TTS:"302.AI",    
+    AI302_TTS:"302.AI",
     ELEVENLABS_TTS:"Elevenlabs.io",
     AZURE_TTS:"Azure-TTS",
     GEMINI_TTS:"Gemini TTS",
-    
-    
-    
-    
+
+
+
+
     VOXCPM_TTS:f"VoxCPM TTS({tr('Local')})",
     CHATTERBOX_TTS:f"ChatterBox TTS({tr('Local')})",
     CHATTTS:f"ChatTTS({tr('Local')})",
@@ -102,11 +102,11 @@ _ID_NAME_DICT = {
     CLONE_VOICE_TTS:f"clone-voice({tr('Local')})",
     FISHTTS:f"Fish TTS({tr('Local')})",
 
-    
+
     GOOGLE_TTS:"Google TTS(free)",
-    
+
     TTS_API:tr("Customize API"),
-    
+
     #GOOGLECLOUD_TTS:"Google Cloud TTS",
 }
 
@@ -119,6 +119,9 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
         return True
     if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko', 'en', 'yu']:
         return _ID_NAME_DICT.get(tts_type,'')+tr('Dubbing channel')+' '+tr('Only support')+tr(['zh', 'ja', 'ko', 'en', 'yu'])
+    # 中文、英文、日文、韩文、德文、法文、俄文、葡萄牙文、西班牙文、意大利文
+    if tts_type == QWEN3LOCAL_TTS and langcode[:2] not in ['zh', 'ja', 'ko', 'en', 'yu','de','fr','ru','pt','es','it']:
+        return _ID_NAME_DICT.get(tts_type,'')+tr('Dubbing channel')+' '+tr('Only support')+tr(['zh', 'ja', 'ko', 'en', 'yu','de','fr','ru','pt','es','it'])
 
     if tts_type == CHATTTS and langcode[:2] not in ['zh', 'en']:
         return _ID_NAME_DICT.get(tts_type,'')+tr('Dubbing channel')+' '+tr('Only support')+tr(['zh','en'])
@@ -142,6 +145,12 @@ def is_input_api(tts_type: int = None, return_str=False):
             return "Please configure the api key information of the Qwen TTS  channel first."
         from videotrans.winform import qwentts as qwentts_win
         qwentts_win.openwin()
+        return False
+    if tts_type == QWEN3LOCAL_TTS and not config.params.get("qwenttslocal_url",''):
+        if return_str:
+            return "Please configure the api url information of the Qwen3 TTS  channel first."
+        from videotrans.winform import qwenttslocal as qwenttslocal_win
+        qwenttslocal_win.openwin()
         return False
     if tts_type == MINIMAXI_TTS and not config.params.get("minimaxi_apikey",''):
         if return_str:
@@ -279,6 +288,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
     # 需要并行的数量3
     if len(queue_tts) < 1:
         return
+    print(f'{config.stoped_uuid_set=}')
     if config.exit_soft or (uuid  and uuid in  config.stoped_uuid_set):
         return
 
@@ -291,6 +301,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         "is_test": is_test,
         "tts_type":tts_type
     }
+    print(kwargs)
     if tts_type == AZURE_TTS:
         AzureTTS(**kwargs).run()
     elif tts_type == EDGE_TTS:
@@ -315,6 +326,8 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         OPENAITTS(**kwargs).run()
     elif tts_type == QWEN_TTS:
         QWENTTS(**kwargs).run()
+    elif tts_type == QWEN3LOCAL_TTS:
+        QwenttsLocal(**kwargs).run()
     elif tts_type == ELEVENLABS_TTS:
         ElevenLabsC(**kwargs).run()
     elif tts_type == GOOGLE_TTS:

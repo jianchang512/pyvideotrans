@@ -47,6 +47,7 @@ from videotrans.ui.parakeet import Ui_parakeetform
 from videotrans.ui.peiyin import Ui_peiyin
 from videotrans.ui.peiyinrole import Ui_peiyinrole
 from videotrans.ui.qwentts import Ui_qwenttsform
+from videotrans.ui.qwenttslocal import Ui_qwenttslocal
 from videotrans.ui.recogn import Ui_recogn
 from videotrans.ui.recognapi import Ui_recognapiform
 from videotrans.ui.separate import Ui_separateform
@@ -203,6 +204,11 @@ class ChatterboxForm(QDialog, Ui_chatterboxform):  # <===
 class CosyVoiceForm(QDialog, Ui_cosyvoiceform):  # <===
     def __init__(self, parent=None):
         super(CosyVoiceForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+class QwenttsLocalForm(QDialog, Ui_qwenttslocal):  # <===
+    def __init__(self, parent=None):
+        super(QwenttsLocalForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

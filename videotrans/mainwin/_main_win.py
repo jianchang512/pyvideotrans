@@ -1,12 +1,12 @@
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication, Signal, QThread
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMessageBox, QMainWindow, QPushButton, QToolBar, QSizePolicy, QApplication
 import asyncio, sys
 import os
-
-# from videotrans.util.checkgpu import AiLoaderThread
+from videotrans.task.job import start_thread
+from videotrans.util.checkgpu import AiLoaderThread
 from videotrans.util.req_fac import custom_session_factory
 
 if sys.platform == "win32":
@@ -201,7 +201,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionopenrouter_key.setText('OpenRouter.ai')
         self.actionlibretranslate_key.setText("LibreTranslate API")
         self.actionopenaitts_key.setText("OpenAI TTS")
-        self.actionqwentts_key.setText("Qwen3 TTS")
+        self.actionqwentts_key.setText("Qwen3 TTS(Bailian)")
         self.actionopenairecognapi_key.setText(
             config.tr("OpenAI Speech to Text API"))
         self.actionparakeet_key.setText('Nvidia parakeet-tdt')
@@ -234,6 +234,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_chatterbox.setText("ChatterBox TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
+        self.actiontts_qwenttslocal.setText(f"Qwen3 TTS({config.tr('Local')})")
         self.actiontts_fishtts.setText("Fish TTS")
         self.actiontts_f5tts.setText("F5-TTS/Index-TTS/VoxCPM/SparK-TTS/Dia-TTS")
         self.actiontts_volcengine.setText(config.tr("VolcEngine TTS"))
@@ -451,7 +452,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _bind_signal(self):
         from videotrans.util import tools
         from videotrans.task.check_update import CheckUpdateWorker
-        from videotrans.task.job import start_thread
+
         from videotrans.mainwin._signal import UUIDSignalThread
         from videotrans import recognition
 
@@ -552,6 +553,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_gptsovits.triggered.connect(lambda: self._open_winform('gptsovits'))
         self.actiontts_chatterbox.triggered.connect(lambda: self._open_winform('chatterbox'))
         self.actiontts_cosyvoice.triggered.connect(lambda: self._open_winform('cosyvoice'))
+        self.actiontts_qwenttslocal.triggered.connect(lambda: self._open_winform('qwenttslocal'))
         self.actionopenaitts_key.triggered.connect(lambda: self._open_winform('openaitts'))
         self.actionqwentts_key.triggered.connect(lambda: self._open_winform('qwentts'))
         self.actionopenairecognapi_key.triggered.connect(lambda: self._open_winform('openairecognapi'))
@@ -618,13 +620,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if config.settings.get('show_more_settings'):
             self.win_action.toggle_adv()
-        self.worker_threads = start_thread()
+        self.uito.emit('Checking GPUs')
+
         QApplication.processEvents()
         self.uito.emit('end')
-        # try:
-        #     AiLoaderThread(self).start()
-        # except:
-        #     pass
+
+        s=AiLoaderThread(self)
+        s.gpu_io.connect(self._start_workers)
+        s.start()
+
+
+    def _start_workers(self,status):
+        if status=='end':
+            print('start workers...')
+            self.worker_threads = start_thread()
+            print('ended workers')
+        else:
+            from videotrans.util import tools
+            tools.show_error(status)
+
 
     # 打开缓慢
     def _open_winform(self, name, extra_name=None):

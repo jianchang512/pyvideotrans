@@ -62,7 +62,7 @@ class Ui_setini(object):
                 "dont_notify": "任务完成或失败后不显示桌面通知",
                 "batch_single": "批量翻译时，默认分为7个阶段同时并行翻译，选中此处，将按顺序一个个翻译",
                 "show_more_settings": "为避免过多参数造成困扰，主界面默认隐藏大部分参数，如果选中这里将切换为默认显示所有参数",
-                "process_max":"最大进程数，越大越快但可能爆内存，最大不应超过cpu核数减一",
+                "process_max":"最大进程数，越大越快但可能爆内存，最大不应超过cpu核数减一\n(修改保存后重启生效)",
                 "process_max_gpu":"GPU任务同时执行数量，除非单卡显存大于20G，否则请设为1\n(修改保存后重启生效)",
                 "multi_gpus":"如果有多张显卡，且显存一致，可启用该项，同时可将上述选项设为2或显卡数\n(修改保存后重启生效)"
             },
@@ -167,7 +167,7 @@ class Ui_setini(object):
         }
         # 中文左侧label
         self.titles = {
-            "process_max":"最大进程数",
+            "process_max":"最大进程数[重启生效]",
             "cjk_len":"中日韩字幕单行字符数",
             "other_len":"其他语言字幕单行字符数",
             "process_max_gpu":"GPU同时任务数[重启生效]",

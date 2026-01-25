@@ -318,6 +318,8 @@ def openwin():
             role_list=config.OPENAITTS_ROLES.split(',')
         elif type == tts.QWEN_TTS:
             role_list=list(tools.get_qwen3tts_rolelist().keys())
+        elif type == tts.QWEN_TTS:
+            role_list=list(tools.get_qwenttslocal_rolelist().keys())
         elif type == tts.Supertonic_TTS:
             role_list=list(tools.get_supertonic_rolelist().keys())
         elif type == tts.GLM_TTS:
@@ -340,6 +342,8 @@ def openwin():
             role_list = list(tools.get_fishtts_role().keys())
         elif type in [tts.F5_TTS,tts.INDEX_TTS,tts.SPARK_TTS,tts.VOXCPM_TTS,tts.DIA_TTS]:
             role_list = list(tools.get_f5tts_role().keys())
+        if 'clone' in role_list:
+            role_list.remove('clone')
         winobj.hecheng_role.addItems(role_list)
 
 
@@ -404,9 +408,12 @@ def openwin():
             tools.show_error(tr('waitrole'))
             return
         if isinstance(show_rolelist[vt],list):
-            winobj.hecheng_role.addItems(show_rolelist[vt])
+            role_list=show_rolelist[vt]
         else:
-            winobj.hecheng_role.addItems(list(show_rolelist[vt].keys()))
+            role_list=list(show_rolelist[vt].keys())
+        if 'clone' in role_list:
+            role_list.remove('clone')
+        winobj.hecheng_role.addItems(role_list)
 
 
     def hecheng_import_fun():

@@ -67,7 +67,7 @@ class Ui_qwenttsform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/qwentts'))
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/qwen-tts'))
 
         h4.addWidget(self.set_qwentts)
         h4.addWidget(self.test_qwentts)
