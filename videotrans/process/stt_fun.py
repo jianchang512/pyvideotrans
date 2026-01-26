@@ -163,7 +163,6 @@ def faster_whisper(
     from videotrans.util import tools
     import zhconv
 
-    device_indices = list(range(torch.cuda.device_count())) if is_cuda else 0
     model = None
     batched_model = None
     raws = []
@@ -176,8 +175,8 @@ def faster_whisper(
             # 1. 加载基础模型
             model = WhisperModel(
                 local_dir,
-                device="cuda" if is_cuda else gpus.mps_or_cpu(),
-                device_index=device_indices,
+                device="cuda" if is_cuda else 'cpu',
+                device_index=device_index if is_cuda 0,
                 compute_type=compute_type
             )
         except Exception as e:
