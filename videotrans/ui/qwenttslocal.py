@@ -94,11 +94,8 @@ class Ui_qwenttslocal(object):
 Qwen3-TTS 项目地址 https://github.com/QwenLM/Qwen3-TTS
 若不会部署，也可使用整合包 https://pyvideotrans.com/qwen-tts
 
-命令1：qwen-tts-demo Qwen/Qwen3-TTS-12Hz-1.7B-Base
-命令2：qwen-tts-demo Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
-
-命令1所用模型可用于视频翻译中的音色克隆，即 clone 音色，也可使用在此处填写的参考音频
-命令2所用模型可用于使用模型内置的音色，例如 Vivian、Sohee等，并可以使用 prompt 对音色进行指导
+如果想在视频翻译中使用 clone 角色复制原视频音色，或者使用你的参考音频，则必须启动 Qwen3-TTS-12Hz-1.7B-Base 模型
+如果想使用qwen-tts模型的内置音色，例如 Vivian、Sohee等(可以填写prompt对音色微调),则必须启动 Qwen3-TTS-12Hz-1.7B-CustomVoice 模型
 
 参考音频填写：
 每行都由#符号分割为两部分，第一部分是wav音频名称，第二部分是该音频对应的文字内容。
@@ -109,30 +106,28 @@ wav音频最佳时长3-10s，音频必须存放在本软件目录下的 f5-tts �
 2.wav#你好啊朋友们
 
 
-# prompt 填写提示词，在使用模型内置的音色时，可作为发音指导词，例如请使用愤怒的声音
+# prompt 填写提示词，在使用模型内置的音色时(Vivian、Sohee等)，可作为发音指导词，例如请使用愤怒的声音
 
 """ if config.defaulelang=='zh' else """
-This is the local version of Qwen3-TTS, which requires deploying the official Qwen3-TTS project and launching the qwen-tts-demo Qwen/model before it can be used
+This is a local version of Qwen3-TTS. You must first deploy the official Qwen3-TTS project and start the `qwen-tts-demo Qwen/model` before you can use it.
+
 Qwen3-TTS Project Address: https://github.com/QwenLM/Qwen3-TTS
-If you are not familiar with deployment, you can also use the integrated package at https://pyvideotrans.com/qwen-tts
 
-Command 1: qwen-tts-demo Qwen/Qwen3-TTS-12Hz-1.7B-Base
-Command 2: qwen-tts-demo Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+If you don't know how to deploy, you can also use the integration package: https://pyvideotrans.com/qwen-tts
 
-The model used in Command 1 can be employed for voice cloning in video translation, i.e., clone voice, and also utilizes the reference audio provided here
-The model used in Command 2 supports built-in vocal styles such as Vivian and Sohee, and allows prompt-based guidance for vocal style customization
+If you want to use the clone role to copy the original video audio in video translation, or use your reference audio, you must start the `Qwen3-TTS-12Hz-1.7B-Base` model.
 
-Reference audio filling:
-Each line is divided into two parts by the # symbol, with the first part being the WAV audio file name and the second part being the corresponding text content.
-The optimal duration for WAV audio is 3-10 seconds. The audio must be stored in the f5-tts folder under this software's directory, and then the file name should be entered here
+If you want to use the built-in audio of the `qwen-tts` model, such as Vivian, Sohee, etc. (you can fill in the prompt to fine-tune the audio), you must start the `Qwen3-TTS-12Hz-1.7B-CustomVoice` model.
 
-Example for filling in based on audio reference:
-Hello, dear friend
-2.wav#Hello, friends
+Reference Audio Input: Each line is separated into two parts by the `#` symbol. The first part is the name of the WAV audio file, and the second part is the corresponding text content.
 
+The optimal length for a WAV audio file is 3-10 seconds. The audio file must be located in the `f5-tts` folder within this software's directory. Enter the file name here.
 
-# prompt Fill in the prompt word, which can serve as pronunciation guidance when using the model's built-in voice tones, such as "Please use an angry tone."
+Sample audio entries:
+1. wav#Hello, dear friend
+2. wav#Hello, friends
 
+# prompt Enter a prompt word. When using the model's built-in voices (Vivian, Sohee, etc.), this can serve as pronunciation guidance. For example, please use an angry voice.
 
 """
 

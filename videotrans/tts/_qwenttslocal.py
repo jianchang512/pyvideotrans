@@ -30,16 +30,7 @@ class QwenttsLocal(BaseTTS):
         self.roledict = tools.get_qwenttslocal_rolelist()
         self.client = Client(self.api_url,httpx_kwargs={"timeout":7200})
 
-        self.custom_voice = ["Vivian",
-                             "Serena",
-                             "Uncle_fu",
-                             "Dylan",
-                             "Eric",
-                             "Ryan",
-                             "Aiden",
-                             "Ono_anna",
-                             "Sohee"
-                             ]
+        self.custom_voice = ["Vivian","Serena","Uncle_fu","Dylan","Eric","Ryan","Aiden","Ono_anna","Sohee"]
         _langnames = translator.LANG_CODE.get(self.language, [])
         if _langnames and len(_langnames) >= 10:
             self.target_language = _langnames[9]

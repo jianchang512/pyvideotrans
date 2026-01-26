@@ -176,7 +176,7 @@ def faster_whisper(
             model = WhisperModel(
                 local_dir,
                 device="cuda" if is_cuda else 'cpu',
-                device_index=device_index if is_cuda 0,
+                device_index=device_index if is_cuda else 0,
                 compute_type=compute_type
             )
         except Exception as e:
