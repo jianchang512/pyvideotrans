@@ -172,12 +172,13 @@ class APIRecogn(BaseRecogn):
         CHUNK_DURATION_MS = 60 * 60 * 1000
 
         # 初始化客户端
-        client = Client(self.api_url)
+        client = Client(self.api_url,httpx_kwargs={"timeout":7200})
 
         # 内部函数：处理单个片段的返回结果
         def _process_chunk_result(raw_text, time_offset_ms, start_line_index):
             # 1. 使用正则表达式找到列表部分
-            match = re.search(r'(\[.*\])', raw_text, re.DOTALL)
+            match = re.search(r'(\[\{.*\}\])', raw_text, re.DOTALL)
+            print(f'{match=}')
             chunk_raws = []
             chunk_speaker_raw_list = []  # 仅收集当前片段的原始说话人标记
 
@@ -196,15 +197,19 @@ class APIRecogn(BaseRecogn):
             # 2. 遍历结果并加上时间偏移
             for i, seg in enumerate(segments):
                 # 计算加上偏移量后的毫秒数
-                seg_start_ms = int(float(seg['start']) * 1000) + time_offset_ms
-                seg_end_ms = int(float(seg['end']) * 1000) + time_offset_ms
+                seg_start_ms = int(float(seg['Start']) * 1000) + time_offset_ms
+                seg_end_ms = int(float(seg['End']) * 1000) + time_offset_ms
 
                 tmp = {
                     "line": start_line_index + i + 1,  # 累加行号
-                    "text": seg['text'],
+                    "text": seg['Content'],
                     "start_time": seg_start_ms,
                     "end_time": seg_end_ms,
                 }
+                # [Noise]之类无有效信息
+                if re.match(r'\[[a-zA-Z0-9\s]+\]',seg['Content'].strip()):
+                    continue
+                
                 # 假设 tools 是你类外部或全局可访问的工具
                 tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
                 tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
@@ -256,7 +261,7 @@ class APIRecogn(BaseRecogn):
                 )
 
                 # 处理返回结果，传入当前的 start_ms 作为时间偏移量
-                print(result)
+                print(f'{result[0]=}')
                 chunk_data, chunk_spk = _process_chunk_result(
                     result[0],
                     time_offset_ms=start_ms,
