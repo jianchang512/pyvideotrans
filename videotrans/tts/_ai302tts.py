@@ -82,6 +82,7 @@ class AI302(BaseTTS):
             payload['model'] = 'gpt-4o-mini-tts'
             payload['voice'] = data['role']
         else:
+            payload['voice'] = tools.get_azure_rolelist(self.language.split('-')[0],data['role'])
             payload['provider'] = 'azure'
         # print(f'{payload=}')
         response = requests.post('https://api.302.ai/302/v2/audio/tts', headers={

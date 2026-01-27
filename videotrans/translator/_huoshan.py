@@ -39,7 +39,8 @@ class HuoShan(BaseTrans):
             {'role': 'system',
              'content':'You are a top-tier Subtitle Translation Engine.'},
             {'role': 'user',
-             'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
+             'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+             },
         ]
         config.logger.debug(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{config.params.get('zijiehuoshan_model','')}")
 

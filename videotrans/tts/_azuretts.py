@@ -54,9 +54,7 @@ class AzureTTS(BaseTTS):
                                         {}
                                         </prosody>
                                     </voice>
-                                    </speak>""".format(self.language, items[0]['role'], self.rate, self.pitch,
-                                                       self.volume,
-                                                       text_xml)
+                                    </speak>""".format(self.language,  tools.get_azure_rolelist(self.language.split('-')[0],items[0]['role']), self.rate, self.pitch, self.volume,text_xml)
             config.logger.debug(f'{ssml=}')
             bookmarks = []
 
@@ -139,7 +137,7 @@ class AzureTTS(BaseTTS):
                                         {}
                                         </prosody>
                                     </voice>
-                                    </speak>""".format(self.language, data_item['role'], self.rate, self.pitch,
+                                    </speak>""".format(self.language, tools.get_azure_rolelist(self.language.split('-')[0],data_item['role']), self.rate, self.pitch,
                                                        self.volume,
                                                        text_xml)
             config.logger.debug(f'{ssml=}')

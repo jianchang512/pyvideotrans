@@ -78,6 +78,7 @@ def get_302ai():
 
     role_dict = get_azure_rolelist()
 
+
     with open(config.ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
         ai302_voice_roles = json.loads(f.read())
         _doubao = ai302_voice_roles.get("AI302_doubao", {})
@@ -85,9 +86,8 @@ def get_302ai():
         _dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
         _doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
     _openai=config.OPENAITTS_ROLES.split(",")
-    role_dict['zh'] = role_dict['zh']+ list(_doubao.keys()) + list(_minimaxi.keys()) + list(
-        _dubbingx.keys()) + _openai
-    role_dict['ja'] += list(_doubao_ja.keys())
+    role_dict['zh'] = role_dict['zh'] | _doubao |_minimaxi|_dubbingx| {k:k for k in _openai}
+    role_dict['ja'] = role_dict['ja'] |_doubao_ja
     return role_dict
 
 
@@ -141,19 +141,24 @@ def get_edge_rolelist(role_name=None,locale=None):
     return voice_list
 
 
-def get_azure_rolelist():
-
-    from . import help_misc
-    voice_list = {}
+def get_azure_rolelist(language=None,role_name=None):
     voice_file=config.ROOT_DIR + "/videotrans/voicejson/azure_voice_list.json"
-    if help_misc.vail_file(voice_file):
-        try:
-            with open(voice_file,'r',encoding='utf-8') as f:
-                voice_list = json.loads(f.read())
-            for it in voice_list.values():
-                it.insert(0,'No')
-        except (OSError,json.JSONDecodeError):
-            pass
+    voice_list=json.loads(Path(voice_file).read_text(encoding='utf-8'))
+    # 根据角色显示名字获取真实角色
+    if language and role_name:
+        return voice_list.get(language,{}).get(role_name)
+    if role_name and (not language or language=='auto'):
+        for it in voice_list.values():
+            for name,ro in it:
+                if name==role_name:
+                    return ro
+        return None
+    try:
+        for k,it in voice_list.items():
+            it['No']='No'
+            voice_list[k]={"No":"No"}|it
+    except (OSError,json.JSONDecodeError):
+        pass
     return voice_list
 
 def get_minimaxi_rolelist():

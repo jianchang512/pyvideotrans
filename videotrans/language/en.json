@@ -933,5 +933,7 @@
 	"Batch dubbing of SRT or TXT subtitle files":"Batch dubbing of SRT or TXT subtitle files",
     "Select at least one speaker": "Select at least one speaker",
     "conflict with the role specified by row": "If you want to assign a character to a specific subtitle without being restricted by the speaker's role, please make sure to do this last.",
-    "will be automatically identified as the speaker": "If the subtitle begins with [spk1], it will be automatically identified as the speaker"
+    "will be automatically identified as the speaker": "If the subtitle begins with [spk1], it will be automatically identified as the speaker",
+	"Azure(free)":"AzureTTS(freeTest)",
+	"The sound cannot be tried.":"The sound cannot be tried."
 }

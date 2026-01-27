@@ -48,6 +48,7 @@ no_proxy = (
     "ms.show,"  # 涵盖 *.ms.show
     "bigmodel.cn,"
     "localhost,"
+    "tts.speech.microsoft.com,"
     "127.0.0.1,"
     "127.0.0.1:7860,"
     "localhost:7860,"

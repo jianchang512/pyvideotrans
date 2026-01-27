@@ -933,5 +933,7 @@
   "Batch dubbing of SRT or TXT subtitle files": "批量为SRT字幕文件或TXT文件配音",
   "Select at least one speaker": "至少选中一个说话人",
   "conflict with the role specified by row": "若想单独为某条字幕指定角色，不受说话人角色限制，请确保放在最后操作",
-  "will be automatically identified as the speaker": "若字幕文本行开头符合[spk1]形式，将自动识别为说话人，可按说话人指定角色，并在配音时去除该标识"
+  "will be automatically identified as the speaker": "若字幕文本行开头符合[spk1]形式，将自动识别为说话人，可按说话人指定角色，并在配音时去除该标识",
+  "Azure(free)":"Azure(免费试用)",
+  "The sound cannot be tried.":"该声音无法试用，请更换其他声音"
 }

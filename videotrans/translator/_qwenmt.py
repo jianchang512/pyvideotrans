@@ -67,7 +67,8 @@ class QwenMT(BaseTrans):
                 'content':'You are a top-tier Subtitle Translation Engine.'},
             {
                 'role': 'user',
-                'content': self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')},
+                'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+                },
         ]
         response = dashscope.Generation.call(
             # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx",

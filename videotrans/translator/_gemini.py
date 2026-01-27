@@ -61,7 +61,7 @@ class Gemini(BaseTrans):
 
             )
             model = config.params.get("gemini_model","gemini-2.5-flash")
-            message=self.prompt.replace('<INPUT></INPUT>', f'<INPUT>{text}</INPUT>')
+            message=self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
             contents = [
                 types.Content(
                     role="user",

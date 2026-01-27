@@ -7,6 +7,7 @@ from videotrans.tts._qwentts import QWENTTS
 
 from videotrans.tts._minimaxi import MinimaxiTTS
 from videotrans.tts._azuretts import AzureTTS
+from videotrans.tts._freeazure import FreeAzureTTS
 from videotrans.tts._cosyvoice import CosyVoice
 from videotrans.tts._ai302tts import AI302
 from videotrans.tts._chattts import ChatTTS
@@ -59,10 +60,12 @@ KOKORO_TTS = 24
 CLONE_VOICE_TTS = 25
 FISHTTS = 26
 
-GOOGLE_TTS = 27
+FreeAzure = 27
 
-TTS_API = 28
-GOOGLECLOUD_TTS = 29
+GOOGLE_TTS = 28
+
+TTS_API = 29
+GOOGLECLOUD_TTS = 30
 
 _ID_NAME_DICT = {
     EDGE_TTS:tr("Edge-TTS(free)"),
@@ -102,8 +105,9 @@ _ID_NAME_DICT = {
     CLONE_VOICE_TTS:f"clone-voice({tr('Local')})",
     FISHTTS:f"Fish TTS({tr('Local')})",
 
+    FreeAzure:tr('Azure(free)'),
 
-    GOOGLE_TTS:"Google TTS(free)",
+    GOOGLE_TTS:"gTTS(free)",
 
     TTS_API:tr("Customize API"),
 
@@ -304,6 +308,8 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
     print(kwargs)
     if tts_type == AZURE_TTS:
         AzureTTS(**kwargs).run()
+    elif tts_type == FreeAzure:
+        FreeAzureTTS(**kwargs).run()
     elif tts_type == EDGE_TTS:
         EdgeTTS(**kwargs).run()
     elif tts_type == AI302_TTS:
