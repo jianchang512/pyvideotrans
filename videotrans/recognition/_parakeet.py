@@ -36,7 +36,8 @@ class ParaketRecogn(BaseRecogn):
                 file=(self.audio_file, file.read()),
                 model='parakeet_srt_words',
                 prompt=self.detect_language[:2].lower(),
-                response_format="srt"
+                response_format="srt",
+                timeout=3600
             )
             if not transcript or not isinstance(transcript, str):
                 raise StopRetry(tr('The returned subtitles have no timestamp and cannot be used'))
