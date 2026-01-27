@@ -101,6 +101,7 @@ class QwenttsLocal(BaseTTS):
             wavfile = f'{config.ROOT_DIR}/f5-tts/{role}'
             ref_text = self.roledict.get(role, '')
         print(f'{self.roledict=}')
+        print(f'{data_item=}')
         if not wavfile or not Path(wavfile).is_file():
             # 仍然不存在，无参考音频不可用
             self.error = f"不存在参考音频，无法克隆:{role=},{wavfile=}"

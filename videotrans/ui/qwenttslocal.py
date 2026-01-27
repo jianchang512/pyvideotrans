@@ -24,7 +24,7 @@ class Ui_qwenttslocal(object):
 
         # 创建一个垂直布局
         v1 = QtWidgets.QVBoxLayout(qwenttslocal)
-        tipslabel=QLabel('Qwen3-TTS(本地)，需部署Qwen3-TTS项目并启动后可用，项目开源地址\n https://github.com/QwenLM/Qwen3-TTS\n如果你不会部署，也可使用整合包: https://pyvideotrans.com/qwen-tts' if config.defaulelang=='zh' else 'Qwen3-TTS(Local), first deploy \nhttps://github.com/QwenLM/Qwen3-TTS\n https://pyvideotrans.com/qwen-tts')
+        tipslabel=QLabel('Qwen3-TTS(本地)，需部署Qwen3-TTS项目并启动后可用，项目开源地址\n https://github.com/QwenLM/Qwen3-TTS\n如果你不会部署，也可使用整合包: https://pyvideotrans.com/qwen-tts' if config.defaulelang=='zh' else 'Qwen3-TTS (local) requires deployment and startup of the Qwen3-TTS project to be available. The project open-source address is:\nhttps://github.com/QwenLM/Qwen3-TTS\nIf you are unsure how to deploy it, you can also use the integration package: \nhttps://pyvideotrans.com/qwen-tts')
         tipslabel.setWordWrap(True)
         v1.addWidget(tipslabel)
         h1 = QtWidgets.QHBoxLayout()
@@ -90,12 +90,8 @@ class Ui_qwenttslocal(object):
 
     def retranslateUi(self, qwenttslocal):
         tips = """
-这是Qwen3-TTS的本地版本，必须先部署 Qwen3-TTS 官方项目,并启动 qwen-tts-demo Qwen/模型 后才可使用
-Qwen3-TTS 项目地址 https://github.com/QwenLM/Qwen3-TTS
-若不会部署，也可使用整合包 https://pyvideotrans.com/qwen-tts
-
-如果想在视频翻译中使用 clone 角色复制原视频音色，或者使用你的参考音频，则必须启动 Qwen3-TTS-12Hz-1.7B-Base 模型
-如果想使用qwen-tts模型的内置音色，例如 Vivian、Sohee等(可以填写prompt对音色微调),则必须启动 Qwen3-TTS-12Hz-1.7B-CustomVoice 模型
+如果想在视频翻译中使用 clone 角色复制原视频音色，或者使用你的参考音频，则必须启动 Qwen3-TTS-12Hz-1.7B-Base 语音克隆模型
+如果想使用qwen-tts模型的内置音色，例如 Vivian、Sohee等(可以填写prompt对音色微调),则必须启动 Qwen3-TTS-12Hz-1.7B-CustomVoice 自定义音色模型
 
 参考音频填写：
 每行都由#符号分割为两部分，第一部分是wav音频名称，第二部分是该音频对应的文字内容。
@@ -105,16 +101,11 @@ wav音频最佳时长3-10s，音频必须存放在本软件目录下的 f5-tts �
 1.wav#你好啊亲爱的朋友
 2.wav#你好啊朋友们
 
+【在本页面点击测试时，如果未填写参考音频，将连接Qwen3-TTS-12Hz-1.7B-Base语音克隆模型，如果有填写，则连接Qwen3-TTS-12Hz-1.7B-CustomVoice自定义音色模型，请根据你的需要进行处理】
 
 # prompt 填写提示词，在使用模型内置的音色时(Vivian、Sohee等)，可作为发音指导词，例如请使用愤怒的声音
 
 """ if config.defaulelang=='zh' else """
-This is a local version of Qwen3-TTS. You must first deploy the official Qwen3-TTS project and start the `qwen-tts-demo Qwen/model` before you can use it.
-
-Qwen3-TTS Project Address: https://github.com/QwenLM/Qwen3-TTS
-
-If you don't know how to deploy, you can also use the integration package: https://pyvideotrans.com/qwen-tts
-
 If you want to use the clone role to copy the original video audio in video translation, or use your reference audio, you must start the `Qwen3-TTS-12Hz-1.7B-Base` model.
 
 If you want to use the built-in audio of the `qwen-tts` model, such as Vivian, Sohee, etc. (you can fill in the prompt to fine-tune the audio), you must start the `Qwen3-TTS-12Hz-1.7B-CustomVoice` model.
