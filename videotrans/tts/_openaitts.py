@@ -10,7 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -68,12 +68,7 @@ class OPENAITTS(BaseTTS):
                 raise
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error = e
+        _run()
 
     def _get_url(self, url=""):
         if not url:

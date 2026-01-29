@@ -24,7 +24,6 @@ class CloneVoice(BaseTTS):
     splits: Set[str] = field(init=False)
 
     def __post_init__(self):
-
         super().__post_init__()
         self.splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…"}
 
@@ -81,9 +80,4 @@ class CloneVoice(BaseTTS):
             time.sleep(1)
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error = e
+        _run()

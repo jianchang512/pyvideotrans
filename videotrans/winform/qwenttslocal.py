@@ -42,12 +42,13 @@ def openwin():
 
         
         
-        winobj.test.setText(tr('Testing...'))
         from videotrans import tts
         import time
+        role=role.split("\n")[0].split('#')[0] if role else 'Vivian'
+        winobj.test.setText(tr('Testing...')+f'  {role}')
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友,希望你的每一天都美好愉快',
-            "role": role.split("\n")[0].split('#')[0] if role else 'Vivian',
+            "role": role,
             "filename": config.TEMP_DIR + f"/{time.time()}-qwenttslocal.wav",
             "tts_type": tts.QWEN3LOCAL_TTS}],
                          language="zh-cn",

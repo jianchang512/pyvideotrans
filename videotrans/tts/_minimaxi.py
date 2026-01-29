@@ -8,7 +8,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log,   RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -27,7 +27,7 @@ class MinimaxiTTS(BaseTTS):
         lang_pre = self.language.split('-')[0].lower()
         rolelist=tools.get_minimaxi_rolelist()
         if lang_pre not in rolelist:
-            raise RuntimeError(f'Dont support language:{self.language}')
+            raise StopRetry(f'Dont support language:{self.language}')
         self.rolelist=rolelist[lang_pre]
     def _exec(self) -> None:
         self._local_mul_thread()
@@ -88,8 +88,8 @@ class MinimaxiTTS(BaseTTS):
             response.raise_for_status()
             res=response.json()
             config.logger.debug(f'返回数据 {res["base_resp"]=}')
-            if res['base_resp']['status_code'] == 1004:
-                self.stop_next_all=True
+            if res['base_resp']['status_code'] in [1004,1008,2042,2049,2056]:
+                raise StopRetry(res['base_resp']['status_msg'])
             if res['base_resp']['status_code'] != 0:
                 raise RuntimeError(res['base_resp']['status_msg'])
 
@@ -104,9 +104,4 @@ class MinimaxiTTS(BaseTTS):
                 raise RuntimeError(f'No valid audio  data returned:{res}')
 
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error = e
+        _run()

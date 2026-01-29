@@ -46,6 +46,7 @@ _module_map = {
 "openrouter":".openrouter",
 "ott":".ott",
 "parakeet":".parakeet",
+"qwenasrlocal":".qwenasrlocal",
 "qwenmt":".qwenmt",
 "qwentts":".qwentts",
 "qwenttslocal":".qwenttslocal",

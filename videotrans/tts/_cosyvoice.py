@@ -155,15 +155,13 @@ class CosyVoice(BaseTTS):
     def _item_task(self, data_item):
         if self._exit() or  not data_item.get('text','').strip():
             return
-        #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)), wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO), after=after_log(config.logger, logging.INFO))
-        def _run():
-            if self._exit() or tools.vail_file(data_item['filename']):
-                return
+        if self._exit() or tools.vail_file(data_item['filename']):
+            return
         
-            # 兼容之前的 cosyvoice-api 接口
-            if ":9233" not in self.api_url:
-                self._item_task_cosyvoice2(data_item)
-            else:
-                self._item_cosyvoice_api(data_item)
-        _run()
+        # 兼容之前的 cosyvoice-api 接口
+        if ":9233" not in self.api_url:
+            self._item_task_cosyvoice2(data_item)
+        else:
+            self._item_cosyvoice_api(data_item)
+
         

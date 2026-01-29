@@ -322,10 +322,5 @@ class F5TTS(BaseTTS):
             else:
                 self._item_task_v1(data_item)
             
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error = e
+        _run()
 

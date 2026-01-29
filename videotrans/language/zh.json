@@ -935,5 +935,7 @@
   "conflict with the role specified by row": "若想单独为某条字幕指定角色，不受说话人角色限制，请确保放在最后操作",
   "will be automatically identified as the speaker": "若字幕文本行开头符合[spk1]形式，将自动识别为说话人，可按说话人指定角色，并在配音时去除该标识",
   "Azure(free)":"Azure(免费试用)",
-  "The sound cannot be tried.":"该声音无法试用，请更换其他声音"
+  "The sound cannot be tried.":"该声音无法试用，请更换其他声音",
+  "Please check the custom voice model CustomeVoice used to launch Qwen-TTS":"当前使用的是内置音色:{},但Qwen-TTS端启动的模型不属于自定义音色模型，请检查启动Qwen-TTS的自定义音色模型CustomeVoice，或者请选择clone角色或使用参考音频进行配音",
+  "Please check the voice clone model Base that launched Qwen-TTS":"当前使用的是音色:{},但Qwen-TTS端启动的模型不属于语音克隆模型，请检查启动Qwen-TTS的语音克隆模型Base，或者请选择内置音色进行配音"
 }

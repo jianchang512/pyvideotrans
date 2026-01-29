@@ -205,6 +205,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionopenairecognapi_key.setText(
             config.tr("OpenAI Speech to Text API"))
         self.actionparakeet_key.setText('Nvidia parakeet-tdt')
+        self.actionqwenasrlocal_key.setText(f'Qwen-ASR({config.tr("Local")})')
         self.actionai302_key.setText(config.tr("302.AI API KEY"))
         self.actionlocalllm_key.setText(config.tr("Local LLM API"))
         self.actionzijiehuoshan_key.setText(config.tr("ByteDance Ark"))
@@ -522,6 +523,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionali_key.triggered.connect(lambda: self._open_winform('ali'))
         self.set_ass.clicked.connect(lambda: self._open_winform('set_ass'))
         self.actionparakeet_key.triggered.connect(lambda: self._open_winform('parakeet'))
+        self.actionqwenasrlocal_key.triggered.connect(lambda: self._open_winform('qwenasrlocal'))
         self.actionsrtmultirole.triggered.connect(lambda: self._open_winform('fn_peiyinrole'))
         self.actionazure_key.triggered.connect(lambda: self._open_winform('azure'))
         self.actionazure_tts.triggered.connect(lambda: self._open_winform('azuretts'))

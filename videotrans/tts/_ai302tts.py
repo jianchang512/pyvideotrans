@@ -44,12 +44,7 @@ class AI302(BaseTTS):
                 return
             self._generate(data=data_item)
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error=e
+        _run()
 
     def _generate(self, data):
         speed = 1.0
@@ -84,7 +79,7 @@ class AI302(BaseTTS):
         else:
             payload['voice'] = tools.get_azure_rolelist(self.language.split('-')[0],data['role'])
             payload['provider'] = 'azure'
-        # print(f'{payload=}')
+
         response = requests.post('https://api.302.ai/302/v2/audio/tts', headers={
             'Authorization': f'Bearer {config.params.get("ai302_key","")}',
             'Content-Type': 'application/json'

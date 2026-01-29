@@ -7,7 +7,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -103,12 +103,7 @@ class AzureTTS(BaseTTS):
                 raise RuntimeError(str(cancellation_details.reason))
             raise RuntimeError('Test Azure')
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error=e.last_attempt.exception()
-        except Exception as e:
-            self.error=e
+        _run()
 
     def _item_task(self, data_item):
         if self._exit() or  not data_item.get('text','').strip():
@@ -156,14 +151,7 @@ class AzureTTS(BaseTTS):
                 raise RuntimeError(cancellation_details.reason)
             raise RuntimeError('Test Azure SK')
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-            print(f'#####{e}')
-        except Exception as e:
-            self.error=e
-            print(f'==={e}')
+        _run()
 
     # 鼠标不重试，直接报错停止
     def _exec(self) -> None:

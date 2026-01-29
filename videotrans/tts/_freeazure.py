@@ -2,7 +2,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -149,13 +149,11 @@ class FreeAzureTTS(BaseTTS):
         except RetryError as e:
             err=str(e.last_attempt.exception())
             if "Unsupported voice" in err:
-                self.error=config.tr("The sound cannot be tried.")
-            else:
-                self.error= err
-            print(f'#####{e}')
-        except Exception as e:
-            self.error=e
-            print(f'==={e}')
+                raise StopRetry(config.tr("The sound cannot be tried."))
+                
+            raise
+        
+        
 
     def _exec(self) -> None:
         self._local_mul_thread()

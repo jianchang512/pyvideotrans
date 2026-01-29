@@ -935,5 +935,7 @@
     "conflict with the role specified by row": "If you want to assign a character to a specific subtitle without being restricted by the speaker's role, please make sure to do this last.",
     "will be automatically identified as the speaker": "If the subtitle begins with [spk1], it will be automatically identified as the speaker",
 	"Azure(free)":"AzureTTS(freeTest)",
-	"The sound cannot be tried.":"The sound cannot be tried."
+	"The sound cannot be tried.":"The sound cannot be tried.",
+	"check the custom voice model CustomeVoice used to launch Qwen-TTS":"The built-in voice is currently being used: {}, but the model launched by Qwen-TTS is not a custom voice model. Please check the custom voice model CustomeVoice used to launch Qwen-TTS, or please select to clone the character or use the reference audio for dubbing.",
+	"Please check the voice clone model Base that launched Qwen-TTS":"The currently used voice is {}, but the model launched by Qwen-TTS is not a voice clone model. Please check the voice clone model Base that launched Qwen-TTS, or please select a built-in voice for dubbing."
 }

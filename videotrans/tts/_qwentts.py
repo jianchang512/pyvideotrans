@@ -6,7 +6,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -31,13 +31,12 @@ class QWENTTS(BaseTTS):
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
         if not config.params.get('qwentts_key',''):
-            raise Exception(
+            raise StopRetry(
                 tr("please input your Qwen TTS  API KEY"))
-        self.stop_next_all=False
         self._local_mul_thread()
 
     def _item_task(self, data_item: dict = None):
-        if self.stop_next_all or  self._exit() or not data_item.get('text','').strip():
+        if self._exit() or not data_item.get('text','').strip():
             return
         # 主循环，用于无限重试连接错误
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
@@ -58,8 +57,7 @@ class QWENTTS(BaseTTS):
                 raise RuntimeError("API call returned None response")
             
             if "Access denied" in response.message:
-                self.stop_next_all=True
-                raise RuntimeError(response.message)
+                raise StopRetry(response.message)
             
             if not hasattr(response, 'output') or response.output is None or not hasattr(response.output, 'audio'):
                 raise RuntimeError( f"{response.message if hasattr(response, 'message') else str(response)}")
@@ -71,9 +69,4 @@ class QWENTTS(BaseTTS):
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error = e
+        _run()

@@ -100,7 +100,7 @@ class BaseRecogn(BaseCon):
         _min_silence = max(int(settings.get('min_silence_duration_ms', 600)),50)
         if self.recogn2pass:
             # 2次识别，均减半，以便生成简短的字幕
-            _min_speech=max(0,_min_speech//2)
+            _min_speech=int(max(0,_min_speech//2))
             # 不可低于 _min_speech 并且不可大于3000ms
             _max_speech=max(min(3000,_max_speech//2),_min_speech+1000)
             # 不可大于1000ms，并且不可小于50ms

@@ -9,7 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -57,16 +57,11 @@ class TTSAPI(BaseTTS):
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
 
-            if '/t2a_v2' in self.api_url and 'minimax' in self.api_url:
-                res = self._302aiMinimax(data_item['text'], role, speed, volume, pitch)
-                config.logger.debug(f'返回数据 {res["base_resp"]=}')
-                if res['base_resp']['status_code'] != 0:
-                    raise RuntimeError(res['base_resp']['status_msg'] )
-            else:
-                res = self._apirequests(data_item['text'], role, speed, volume, pitch)
-                config.logger.debug(f'返回数据 {res["code"]=}')
-                if "code" not in res or "msg" not in res or res['code'] != 0:
-                    raise RuntimeError(f'TTS-API:{res["msg"]}' )
+
+            res = self._apirequests(data_item['text'], role, speed, volume, pitch)
+            config.logger.debug(f'返回数据 {res["code"]=}')
+            if "code" not in res or "msg" not in res or res['code'] != 0:
+                raise RuntimeError(f'TTS-API:{res["msg"]}' )
 
             if 'data' not in res or not res['data']:
                 raise RuntimeError( tr("No valid audio address returned"))
@@ -88,12 +83,7 @@ class TTSAPI(BaseTTS):
                 raise RuntimeError(tr("No valid audio address or base64 audio data returned") )
             self.convert_to_wav(tmp_filename, data_item['filename'])
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error = e
+        _run()
 
     def _apirequests(self, text, role, speed=1.0, volume=1.0, pitch=0):
         data = {"text": text.strip(),
@@ -111,82 +101,4 @@ class TTSAPI(BaseTTS):
         resraw.raise_for_status()
         return resraw.json()
 
-    """
-青涩青年音色:male-qn-qingse,
-精英青年音色:male-qn-jingying,
-霸道青年音色:male-qn-badao,
-青年大学生音色:male-qn-daxuesheng,
-少女音色:female-shaonv,
-御姐音色:female-yujie,
-成熟女性音色:female-chengshu,
-甜美女性音色:female-tianmei,
-男性主持人:presenter_male,
-女性主持人:presenter_female,
-男性有声书1:audiobook_male_1,
-男性有声书2:audiobook_male_2,
-女性有声书1:audiobook_female_1,
-女性有声书2:audiobook_female_2,
-青涩青年音色-beta:male-qn-qingse-jingpin,
-精英青年音色-beta:male-qn-jingying-jingpin,
-霸道青年音色-beta:male-qn-badao-jingpin,
-青年大学生音色-beta:male-qn-daxuesheng-jingpin,
-少女音色-beta:female-shaonv-jingpin,
-御姐音色-beta:female-yujie-jingpin,
-成熟女性音色-beta:female-chengshu-jingpin,
-甜美女性音色-beta:female-tianmei-jingpin,
-聪明男童:clever_boy,
-可爱男童:cute_boy,
-萌萌女童:lovely_girl,
-卡通猪小琪:cartoon_pig,
-病娇弟弟:bingjiao_didi,
-俊朗男友:junlang_nanyou,
-纯真学弟:chunzhen_xuedi,
-冷淡学长:lengdan_xiongzhang,
-霸道少爷:badao_shaoye,
-甜心小玲:tianxin_xiaoling,
-俏皮萌妹:qiaopi_mengmei,
-妩媚御姐:wumei_yujie,
-嗲嗲学妹:diadia_xuemei,
-淡雅学姐:danya_xuejie,
-Santa Claus:Santa_Claus,
-Grinch:Grinch,
-Rudolph:Rudolph,
-Arnold:Arnold,
-Charming Santa:Charming_Santa,
-Charming Lady:Charming_Lady,
-Sweet Girl:Sweet_Girl,
-Cute Elf:Cute_Elf,
-Attractive Girl:Attractive_Girl,
-Serene Woman:Serene_Woman    
-    """
 
-    def _302aiMinimax(self, text, role, speed=1.0, volume=1.0, pitch=0.0):
-        import json
-        payload = json.dumps({
-            "model": "speech-01-turbo",
-            "text": text,
-            "stream": False,
-            "voice_setting": {
-                "voice_id": role.split(':')[-1],
-                "speed": speed,
-                "vol": volume,
-                "pitch": pitch
-            },
-            "emotion": config.params.get('ttsapi_emotion', 'happy'),
-            "language_boost": config.params.get('ttsapi_language_boost', 'auto'),
-            "audio_setting": {
-                "audio_sample_rate": 32000,
-                "bitrate": 128000,
-                "format": "mp3",
-                "channel": 1
-            }
-        }, ensure_ascii=False)
-
-        headers = {
-            'Authorization': f"Bearer {config.params.get('ttsapi_extra','')}",
-            'Content-Type': 'application/json'
-        }
-
-        response = requests.request("POST", self.api_url, headers=headers, data=payload)
-        response.raise_for_status()
-        return response.json()

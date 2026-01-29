@@ -198,7 +198,7 @@ def parse_init(update_data=None):
         "max_video_pts_rate": 10,
 
         "threshold": 0.5,
-        "min_speech_duration_ms": 1000,
+        "min_speech_duration_ms": 2000,
         "max_speech_duration_s": 6,
         "min_silence_duration_ms": 600,
         "no_speech_threshold": 0.5,
@@ -214,7 +214,7 @@ def parse_init(update_data=None):
         "dubbing_wait": 1,
         "dubbing_thread": 1,
         "save_segment_audio": False,
-        "countdown_sec": 60,
+        "countdown_sec": 30,
         "backaudio_volume": 0.8,
         "loop_backaudio": True,
         "cuda_com_type": "default",  # int8 int8_float16 int8_float32

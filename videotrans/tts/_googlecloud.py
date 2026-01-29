@@ -8,7 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, before_log, after_lo
     RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 

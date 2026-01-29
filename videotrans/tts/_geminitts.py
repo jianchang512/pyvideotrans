@@ -9,8 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
-
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -43,20 +42,12 @@ class GEMINITTS(BaseTTS):
                 speed += rate
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            try:
-                self.generate_tts_segment(data_item['text'], role, config.params.get('gemini_ttsmodel',''),
+            self.generate_tts_segment(data_item['text'], role, config.params.get('gemini_ttsmodel',''),
                                           data_item['filename'] + '.wav')
-                self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
+            self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
 
-            except Exception as e:
-                raise
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error = e
+        _run()
 
     def generate_tts_segment(self, text, voice, model, file_name):
         def convert_to_wav(audio_data: bytes, mime_type: str) -> bytes:

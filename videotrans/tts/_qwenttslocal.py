@@ -37,7 +37,6 @@ class QwenttsLocal(BaseTTS):
         else:
             self.target_language = 'Auto'
         self.target_language=self.target_language.capitalize()
-        print(f'{self.target_language=}')
         self._add_internal_host_noproxy(self.api_url)
 
     def _exec(self):
@@ -51,7 +50,6 @@ class QwenttsLocal(BaseTTS):
 
     # 使用预定义角色+prompt
     def _customevoice(self, data_item):
-
         text = data_item['text'].strip()
         if not text:
             return
@@ -62,15 +60,20 @@ class QwenttsLocal(BaseTTS):
             pass
         speed = max(0.5, min(2.0, speed))
         role = data_item['role']
-
-        result = self.client.predict(
-            text=text,
-            lang_disp=self.target_language,
-            spk_disp=role,
-            instruct=self.prompt,
-            #model_size=config.params.get('qwenttslocal_size', '1.7B'),
-            api_name="/run_instruct",
-        )
+        try:
+            result = self.client.predict(
+                text=text,
+                lang_disp=self.target_language,
+                spk_disp=role,
+                instruct=self.prompt,
+                #model_size=config.params.get('qwenttslocal_size', '1.7B'),
+                api_name="/run_instruct",
+            )
+        except Exception as e:
+            if '/run_instruct' in str(e):
+                self.error=StopRetry(tr('Please check the custom voice model CustomeVoice used to launch Qwen-TTS',role))
+                raise self.error
+            raise
         config.logger.debug(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
@@ -100,25 +103,28 @@ class QwenttsLocal(BaseTTS):
             # 使用 f5-tts文件夹内音频
             wavfile = f'{config.ROOT_DIR}/f5-tts/{role}'
             ref_text = self.roledict.get(role, '')
-        print(f'{self.roledict=}')
-        print(f'{data_item=}')
+
         if not wavfile or not Path(wavfile).is_file():
             # 仍然不存在，无参考音频不可用
             self.error = f"不存在参考音频，无法克隆:{role=},{wavfile=}"
             config.logger.error(self.error)
             return
-
-        result = self.client.predict(
-            ref_aud=handle_file(wavfile),
-            ref_txt=ref_text,
-            text=text,
-            lang_disp=self.target_language,
-            use_xvec=False if ref_text else True,            
-            #model_size=config.params.get('qwenttslocal_size', '1.7B'),
-            api_name="/run_voice_clone",
-            
-        )
-
+        try:
+            result = self.client.predict(
+                ref_aud=handle_file(wavfile),
+                ref_txt=ref_text,
+                text=text,
+                lang_disp=self.target_language,
+                use_xvec=False if ref_text else True,            
+                #model_size=config.params.get('qwenttslocal_size', '1.7B'),
+                api_name="/run_voice_clone",
+                
+            )
+        except Exception as e:
+            if '/run_voice_clone' in str(e):
+                self.error=StopRetry(tr('Please check the voice clone model Base that launched Qwen-TTS',role))
+                raise self.error
+            raise
         config.logger.debug(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:

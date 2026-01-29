@@ -44,6 +44,7 @@ from videotrans.ui.openaitts import Ui_openaittsform
 from videotrans.ui.openrouter import Ui_openrouterform
 from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.parakeet import Ui_parakeetform
+from videotrans.ui.qwenasrlocal import Ui_qwenasrlocalform
 from videotrans.ui.peiyin import Ui_peiyin
 from videotrans.ui.peiyinrole import Ui_peiyinrole
 from videotrans.ui.qwentts import Ui_qwenttsform
@@ -304,6 +305,12 @@ class CloneForm(QDialog, Ui_cloneform):  # <===
 class ParakeetForm(QDialog, Ui_parakeetform):  # <===
     def __init__(self, parent=None):
         super(ParakeetForm, self).__init__(parent)
+        self.setupUi(self)
+        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+
+class QwenasrlocalForm(QDialog, Ui_qwenasrlocalform):  # <===
+    def __init__(self, parent=None):
+        super(QwenasrlocalForm, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 

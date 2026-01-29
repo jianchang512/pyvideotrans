@@ -5,49 +5,7 @@ from videotrans.configure import config
 from ten_vad import TenVad
 import scipy.io.wavfile as Wavfile
 import numpy as np
-from concurrent.futures import ProcessPoolExecutor
-# 1. 独立的 Worker 函数
-# =========================================================================
-def _vad_parallel_worker(args):
-    data_chunk, threshold, min_silent_frames, hop_size = args
-    
-    # 在子进程中实例化 VAD，避免跨进程冲突
-    # 假设 TenVad 类在当前文件可见，或已 import
-    vad_instance = TenVad(hop_size, threshold)
-    
-    num_frames = data_chunk.shape[0] // hop_size
-    segments = []
-    
-    triggered = False
-    speech_start = 0
-    silence_count = 0
-    
-    # 这是一个最简化的 detect_raw 逻辑复刻，去掉了 max_speech_frames 的判断
-    # 因为并行处理只是为了第一阶段的大略切分
-    for i in range(num_frames):
-        frame = data_chunk[i*hop_size : (i+1)*hop_size]
-        _, is_speech = vad_instance.process(frame)
-        
-        if triggered:
-            if is_speech == 1:
-                silence_count = 0
-            else:
-                silence_count += 1
-            
-            if silence_count >= min_silent_frames:
-                end_frame = i - silence_count
-                segments.append([speech_start, end_frame])
-                triggered = False
-                silence_count = 0
-        else:
-            if is_speech == 1:
-                triggered = True
-                speech_start = i
-                silence_count = 0
-                
-    if triggered:
-        segments.append([speech_start, num_frames - silence_count])
-    return segments
+
 
 def get_speech_timestamp_silero(input_wav,
                          threshold=None,
@@ -55,9 +13,9 @@ def get_speech_timestamp_silero(input_wav,
                          max_speech_duration_ms=None,
                          min_silent_duration_ms=None):
         # 防止填写错误
-        min_speech_duration_ms=max(min_speech_duration_ms,0)
-        min_silent_duration_ms=max(min_silent_duration_ms,50)
-        max_speech_duration_ms=min(max(max_speech_duration_ms,min_speech_duration_ms+1000),30000)
+        min_speech_duration_ms=int(max(min_speech_duration_ms,0))
+        min_silent_duration_ms=int(max(min_silent_duration_ms,50))
+        max_speech_duration_ms=int(min(max(max_speech_duration_ms,min_speech_duration_ms+1000),30000))
         config.logger.debug(f'[silero-VAD]Fix:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
 
         sampling_rate = 16000
@@ -92,15 +50,18 @@ def get_speech_timestamp_silero(input_wav,
 
 
 ## 
-# 多进程vad 
+# 多进程vad
 def get_speech_timestamp(input_wav=None,
                          threshold=None,
                          min_speech_duration_ms=None,
                          max_speech_duration_ms=None,
                          min_silent_duration_ms=None):
     # 限定范围
-    min_speech_duration_ms=max(250,min_speech_duration_ms)#最短语音时长不得低于250ms
-    min_silent_duration_ms=max(50,min_silent_duration_ms)#切割的静音阈值，不得低于50ms
+    #最短语音时长不得低于250ms
+    min_speech_duration_ms=int(max(250,min_speech_duration_ms))
+    #切割的静音阈值，不得低于50ms
+    min_silent_duration_ms=int(max(50,min_silent_duration_ms))
+
     config.logger.debug(f'[Ten-VAD]Fix after:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
     frame_duration_ms = 16
     hop_size = 256
@@ -112,17 +73,7 @@ def get_speech_timestamp(input_wav=None,
         config.logger.exception(f"Error reading wav file: {msg}",exc_info=True)
         return False,msg
 
-    # --- 策略分支：决定单核还是多核 ---
-    total_len_samples = len(data)
-    total_duration_minutes = (total_len_samples / sr) / 60.0
-    
-    # 阈值：大于20分钟  切分为多片加速执行
-    PARALLEL_THRESHOLD_MINUTES = 20 
-    
     min_sil_frames = min_silent_duration_ms / frame_duration_ms
-
-    # Case A: 短音频 -> 走老路 (单核) 
-    config.logger.debug(f"Audio duration {total_duration_minutes:.2f}m,{PARALLEL_THRESHOLD_MINUTES=}m. Using Single Core.")
     initial_segments = _detect_raw_segments(data, threshold, min_sil_frames, max_speech_frames=None)
 
     # --- 第二阶段：细化超长片段 超过2s---

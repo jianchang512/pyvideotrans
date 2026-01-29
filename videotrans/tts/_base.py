@@ -4,7 +4,7 @@ import copy
 import inspect
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed, CancelledError
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Union
@@ -13,6 +13,7 @@ from tenacity import RetryError
 
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
+from videotrans.configure._except import StopRetry
 from videotrans.configure.config import tr
 
 from videotrans.util import tools
@@ -30,7 +31,7 @@ run->exec->[local_mutli]->item_task
 @dataclass
 class BaseTTS(BaseCon):
     # 配音渠道
-    tts_type:int=0
+    tts_type: int = 0
     # 存放字幕信息队列
     queue_tts: List[Dict[str, Any]] = field(default_factory=list, repr=False)
     # queue_tts 数量
@@ -113,40 +114,32 @@ class BaseTTS(BaseCon):
         if self._exit(): return
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
-        _st=time.time()
-        if hasattr(self,'_download'):
+        _st = time.time()
+        if hasattr(self, '_download'):
             self._download()
-        loop=None
+        loop = None
         try:
             # 检查 self._exec 是不是一个异步函数 (coroutine)
             if inspect.iscoroutinefunction(self._exec):
-                # 如果是异步函数，我们需要一个事件循环来运行它
                 try:
-                    # 尝试获取当前线程正在运行的事件循环
                     loop = asyncio.get_running_loop()
                 except RuntimeError:
-                    # 如果没有，这是最常见的情况：在一个新线程中运行异步代码
-                    # 我们将手动创建并管理循环，以确保优雅关闭
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
-                    
-                    # 运行主任务
                     loop.run_until_complete(self._exec())
                 else:
-                    # 如果有，就在现有循环上运行它并等待完成
                     loop.run_until_complete(self._exec())
             else:
-                # 可能调用多线程，此时无法捕获异常
+                # 可能调用多线程
                 self._exec()
+        except RetryError as e:
+            raise e.last_attempt.exception()
         except RuntimeError as e:
-            # 这个捕获现在更有意义，因为它可能捕获到循环相关的错误
             config.logger.warning(f'TTS 线程运行时发生错误: {e}')
             if 'Event loop' in str(e):
                 config.logger.warning("捕获到 'Event loop is closed' 错误，这通常是关闭时序问题。")
             else:
                 raise
-        except RetryError as e:
-            raise e.last_attempt.exception()
         except Exception:
             raise
         finally:
@@ -154,33 +147,33 @@ class BaseTTS(BaseCon):
             if inspect.iscoroutinefunction(self._exec) and loop and not loop.is_closed():
                 config.logger.debug("开始执行事件循环的关闭流程...")
                 try:
-                    # 步骤 1: 取消所有剩余的任务
+                    # 1: 取消所有剩余的任务
                     tasks = asyncio.all_tasks(loop=loop)
                     for task in tasks:
                         task.cancel()
 
-                    # 步骤 2: 聚合所有任务，等待它们完成取消
+                    # 2: 聚合所有任务，等待它们完成取消
                     group = asyncio.gather(*tasks, return_exceptions=True)
                     loop.run_until_complete(group)
                     import gc
                     gc.collect()
                     loop.run_until_complete(asyncio.sleep(0))
-                    # 步骤 3: 关闭异步生成器
+                    # 3: 关闭异步生成器
                     loop.run_until_complete(loop.shutdown_asyncgens())
                 except Exception as e:
                     config.logger.exception(e, exc_info=True)
                 finally:
-                    # 步骤 4: 最终关闭事件循环
+                    # 4: 最终关闭事件循环
                     config.logger.debug("事件循环已关闭。")
                     loop.close()
-            config.logger.debug(f'[字幕配音]渠道{self.tts_type}:共耗时:{int(time.time()-_st)}s')
-            
+            config.logger.debug(f'[字幕配音]渠道{self.tts_type}:共耗时:{int(time.time() - _st)}s')
+
         # 试听或测试时播放
         if self.play:
             if tools.vail_file(self.queue_tts[0]['filename']):
                 tools.pygameaudio(self.queue_tts[0]['filename'])
                 return
-            raise self.error if isinstance(self.error,Exception)  else RuntimeError(str(self.error))
+            raise self.error if isinstance(self.error, Exception) else RuntimeError(str(self.error))
 
         # 记录成功数量
         succeed_nums = 0
@@ -190,12 +183,11 @@ class BaseTTS(BaseCon):
         # 只有全部配音都失败，才视为失败
         if succeed_nums < 1:
             if config.exit_soft: return
-            if isinstance(self.error,Exception):
+            if isinstance(self.error, Exception):
                 raise self.error
-            raise RuntimeError((tr("Dubbing failed"))+str(self.error))
+            raise RuntimeError((tr("Dubbing failed")) + str(self.error))
 
-        self._signal(text=tr("Dubbing succeeded {}，failed {}",succeed_nums,len(self.queue_tts) - succeed_nums))
-
+        self._signal(text=tr("Dubbing succeeded {}，failed {}", succeed_nums, len(self.queue_tts) - succeed_nums))
 
     # 用于除  edge-tts 之外的渠道，在此进行单或多线程气动。调用 _item_task
     # exec->_local_mul_thread->item_task
@@ -209,27 +201,49 @@ class BaseTTS(BaseCon):
                     continue
                 try:
                     self._item_task(item)
+                except StopRetry:
+                    # 属于致命错误，无需继续下个字幕配音,例如 api地址错误 api_name 不存在等
+                    raise
+                except RetryError as e:
+                    self.error = e.last_attempt.exception()
                 except Exception as e:
                     self.error = e
                 finally:
-                    self._signal(text=f'TTS[{k+1}/{self.len}]')
+                    self._signal(text=f'TTS[{k + 1}/{self.len}]')
                 time.sleep(self.wait_sec)
             return
 
         all_task = []
-        with ThreadPoolExecutor(max_workers=self.dub_nums) as pool:
+        pool = ThreadPoolExecutor(max_workers=self.dub_nums)
+        try:
             for k, item in enumerate(self.queue_tts):
                 if not item.get('text'):
                     continue
-                all_task.append(pool.submit(self._item_task, item))
+                future = pool.submit(self._item_task, item)
+                all_task.append(future)
 
             completed_tasks = 0
-            for task in all_task:
+            for task in as_completed(all_task):
                 try:
-                    task.result()  # 等待任务完成
-                    completed_tasks += 1
+                    task.result()
+                    # 属于致命错误，无需等待其他任务，肯定全部失败,例如 api地址错误 api_name 不存在等
+                except StopRetry:
+                    # wait=False 表示主线程不等待正在运行的线程结束，直接往下走
+                    # 这会将还在排队但没开始运行的任务全部取消
+                    pool.shutdown(wait=False, cancel_futures=True)
+                    raise
+                except Exception as e:
+                    self.error = e
                 finally:
+                    completed_tasks += 1
                     self._signal(text=f"TTS: [{completed_tasks}/{self.len}] ...")
+        except StopRetry:
+            raise
+        finally:
+            # 确保线程池最终被关闭
+            # 只能取消排队的任务，并让主线程不再等待。
+            pool.shutdown(wait=False)
+
     # 实际业务逻辑 子类实现 在此创建线程池，或单线程时直接创建逻辑
     def _exec(self) -> None:
         pass
@@ -239,7 +253,7 @@ class BaseTTS(BaseCon):
         pass
 
     # 返回空白的16000采样率音频
-    def _padforaudio(self,duration=1500):
+    def _padforaudio(self, duration=1500):
         from pydub import AudioSegment
         silent_segment = AudioSegment.silent(duration=duration)
         silent_segment.set_channels(1).set_frame_rate(16000)

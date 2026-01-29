@@ -445,15 +445,31 @@ wheels = [
 
 [[package]]
 name = "azure-cognitiveservices-speech"
-version = "1.37.0"
+version = "1.47.0"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "azure-core" },
+]
 wheels = [
-    { url = "https://mirrors.aliyun.com/pypi/packages/7d/10/8c73a3ec88e87df8ef7b5b87915b355667c8876f4fc7052c6b7e8e35f286/azure_cognitiveservices_speech-1.37.0-py3-none-macosx_10_14_x86_64.whl", hash = "sha256:906d6bf65176e93464e2d763dd074ca00c48cfe1a896371fcdcb155a500910f7" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/e2/64/53be4ec81eaef32a3e1a48cc041dfbf888f57831a550c2870167357ee4f1/azure_cognitiveservices_speech-1.37.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:54ec8dd55d4dbd9058c61909e08485d3761d6d30954da189e1b17d84daf5e2e0" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/d5/16/d576b99c827a91e265352cdf430c4d064678de78761e9abc09227f2dc0bf/azure_cognitiveservices_speech-1.37.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:685424689725d2d4115485998c0888c8b5b502259037ff533e5a834575f80b66" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/d2/3d/3c0a0cb1b1ebb124bf731e27706a3243e4022521e346b96d1f56ff9f6a35/azure_cognitiveservices_speech-1.37.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:384f66786c2335165035270897b34d0b91736a1fdf38f7696e9a227075cb2489" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/3f/e8/3b745d19624ac3a720cd74a5ea4a1a24ac5b22aaeafdf34aa10f20af2229/azure_cognitiveservices_speech-1.37.0-py3-none-win32.whl", hash = "sha256:343d5f449ccd6c9b53cd37dd46a70ece0905243517df7a0c047779e55072254c" },
-    { url = "https://mirrors.aliyun.com/pypi/packages/94/00/829b7f7104d3a7904dea7bacd2cf5716d2b105702c2e2dcf3e51a1971df1/azure_cognitiveservices_speech-1.37.0-py3-none-win_amd64.whl", hash = "sha256:a18fb45490cdcd681407ccaad9560fb14dda1c8276de297e219ea1a880467e28" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/cc/e3/b6a3d1ef4f135f8ef00ed084b9284e65409e9cd52bc96cd0453a5c6637c6/azure_cognitiveservices_speech-1.47.0-py3-none-macosx_10_14_x86_64.whl", hash = "sha256:656577ed01ed4b8cd7c70fab2c921b300181b906f101758a16406bc99b133681" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/82/fa/9cc0c5400e9d433bd98a1239bedf97b34abf410dbc8932a50886ae43e115/azure_cognitiveservices_speech-1.47.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:afd91653ceca482ccea5459eedda1ec9aa95ee07df12a15fc588c42d4f90f0a9" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/6b/d6/b8f55421b8cb40b478f4fb793c52b1bb0ed794263a5475ae2a6490a4cd53/azure_cognitiveservices_speech-1.47.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:577b702ee30d35ecc581e7e2ac23f4387782f93c241d7f8f3c86f72bb883d02d" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/98/91/c36be146824797f57b194128a173baf289a260c2540c86c166f8c7fbebe3/azure_cognitiveservices_speech-1.47.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:ff72c74abe4b4c0f5a527eabf8511a8c0e689d884a95c54a46495b293e302e73" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/fb/19/dd6f08dc623f2b336cc9cd5cf765712df5262fd675583e701922491e455d/azure_cognitiveservices_speech-1.47.0-py3-none-win_amd64.whl", hash = "sha256:ecfce57d66907afe305fb2950cc781ea8f327274facd2db66950e701b6cfd715" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/1b/16/a6d1f7ab7eae21b00da2eee7186a7db9c9a2434e0ef833f071ff686b833f/azure_cognitiveservices_speech-1.47.0-py3-none-win_arm64.whl", hash = "sha256:4351734cf240d11340a057ecb388397e5ecf40e97e4b67a6a990fffe2791b56c" },
+]
+
+[[package]]
+name = "azure-core"
+version = "1.38.0"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "requests" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/dc/1b/e503e08e755ea94e7d3419c9242315f888fc664211c90d032e40479022bf/azure_core-1.38.0.tar.gz", hash = "sha256:8194d2682245a3e4e3151a667c686464c3786fed7918b394d035bdcd61bb5993" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/fc/d8/b8fcba9464f02b121f39de2db2bf57f0b216fe11d014513d666e8634380d/azure_core-1.38.0-py3-none-any.whl", hash = "sha256:ab0c9b2cd71fecb1842d52c965c95285d3cfb38902f6766e4a471f1cd8905335" },
 ]
 
 [[package]]
@@ -3610,7 +3626,7 @@ requires-dist = [
     { name = "attrs", specifier = "==25.3.0" },
     { name = "audioread", specifier = "==3.0.1" },
     { name = "av", specifier = "==16.0.1" },
-    { name = "azure-cognitiveservices-speech", specifier = "==1.37.0" },
+    { name = "azure-cognitiveservices-speech" },
     { name = "blinker", specifier = "==1.8.2" },
     { name = "brotli", specifier = "==1.1.0" },
     { name = "cachetools", specifier = "==5.3.2" },

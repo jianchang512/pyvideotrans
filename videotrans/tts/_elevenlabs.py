@@ -79,15 +79,8 @@ class ElevenLabsC(BaseTTS):
                 raise    
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error = e
+        _run()
 
-    # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
-        #self.dub_nums = 1
         self._local_mul_thread()
 

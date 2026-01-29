@@ -6,7 +6,7 @@ from videotrans.configure import config
 
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 import argparse
 import os
 
@@ -34,14 +34,8 @@ class SupertonicTTS(BaseTTS):
         filename = data.get("filename")
 
         if msg_type == "file":
-
-            # 标签显示当前文件名
             self._signal(text=f"{filename} {percent:.2f}%")
-
         else:
-            # === 情况 B：这是总文件计数 (Fetching 4 files) ===
-            # 不要更新进度条！否则会由 100% 突然跳回 25%
-            # 建议只在某个副标签显示总进度，或者干脆忽略
             current_file_idx = data.get("current")
             total_files = data.get("total")
 

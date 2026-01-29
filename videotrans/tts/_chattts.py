@@ -9,7 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -21,9 +21,7 @@ RETRY_DELAY = 5
 class ChatTTS(BaseTTS):
 
     def __post_init__(self):
-
         super().__post_init__()
-
         # 从配置中读取并处理 API URL
         api_url = config.params.get('chattts_api','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '').replace('/tts', '')
@@ -69,9 +67,4 @@ class ChatTTS(BaseTTS):
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
             return
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error=e
+        _run()

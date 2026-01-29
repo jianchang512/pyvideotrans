@@ -10,42 +10,45 @@ FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
 FUNASR_CN = 2
 HUGGINGFACE_ASR = 3
+QWENASR = 4
 
-OPENAI_API = 4
-GEMINI_SPEECH = 5
-QWEN3ASR = 6
-ZIJIE_RECOGN_MODEL=7
+OPENAI_API = 5
+GEMINI_SPEECH = 6
+QWEN3ASR = 7
+ZIJIE_RECOGN_MODEL=8
 
-ZHIPU_API = 8
-
-
-Deepgram = 9
-DOUBAO_API = 10
+ZHIPU_API = 9
 
 
-PARAKEET = 11
-Whisper_CPP=12
-Faster_Whisper_XXL = 13
-WHISPERX_API = 14
-
-AI_302 = 15
-ElevenLabs = 16
-
-GOOGLE_SPEECH = 17
+Deepgram = 10
+DOUBAO_API = 11
 
 
-STT_API = 18
-CUSTOM_API = 19
+PARAKEET = 12
+Whisper_CPP=13
+Faster_Whisper_XXL = 14
+WHISPERX_API = 15
+
+AI_302 = 16
+ElevenLabs = 17
+
+GOOGLE_SPEECH = 18
+
+
+STT_API = 19
+CUSTOM_API = 20
 
 _ID_NAME_DICT = {
     FASTER_WHISPER:tr("Faster-whisper"),
     OPENAI_WHISPER:tr("OpenAI-whisper"),
     FUNASR_CN:tr("FunASR-Chinese"),
     HUGGINGFACE_ASR:'Huggingface_ASR',
+    QWENASR:f'Qwen-ASR({tr("Local")})',
     
     OPENAI_API:tr("OpenAI Speech to Text"),
     GEMINI_SPEECH:tr("Gemini AI"),
-    QWEN3ASR:tr("Ali Qwen3-ASR"),    
+    
+    QWEN3ASR:tr("Ali Qwen3-ASR"),
     ZIJIE_RECOGN_MODEL:tr("VolcEngine STT"),
     ZHIPU_API:f'{tr("Zhipu AI")} GLM-ASR',
     
@@ -91,8 +94,8 @@ HUGGINGFACE_ASR_MODELS={
 "biodatlab/whisper-th-large-v3":['th'],
 "openai/whisper-large-v2":[],
 "openai/whisper-large-v3":[],
-"openai/whisper-tiny":[],
-"Systran/faster-whisper-tiny":[]
+#"openai/whisper-tiny":[],
+#"Systran/faster-whisper-tiny":[]
 }
 # 判断所用渠道和模型是否支持该语言的语音识别
 # langcode=语言代码，recogn_type=识别渠道,model_name=模型名字
@@ -116,9 +119,7 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None, return_str=False):
-    from videotrans.winform import recognapi as recognapi_win, openairecognapi as openairecognapi_win, \
-        doubao as doubao_win, sttapi as sttapi_win, deepgram as deepgram_win, gemini as gemini_win, ai302, \
-        parakeet as parakeet_win,qwenmt as qwenmt_win,zijierecognmodel as zijierecogn_win
+    from videotrans.winform import recognapi as recognapi_win, openairecognapi as openairecognapi_win,  doubao as doubao_win, sttapi as sttapi_win, deepgram as deepgram_win, gemini as gemini_win, ai302,   parakeet as parakeet_win,qwenmt as qwenmt_win,zijierecognmodel as zijierecogn_win,qwenasrlocal as qwenasrlocal_win
     if recogn_type == STT_API and not config.params.get('stt_url',''):
         if return_str:
             return "Please configure the api and key information of the stt channel first."
@@ -134,6 +135,11 @@ def is_input_api(recogn_type: int = None, return_str=False):
         if return_str:
             return "Please configure the api key ."
         qwenmt_win.openwin()
+        return False
+    if recogn_type == QWENASR and not config.params.get('qwenasrlocal_address',''):
+        if return_str:
+            return "Please configure the api url ."
+        qwenasrlocal_win.openwin()
         return False
 
     if recogn_type == CUSTOM_API and not config.params.get('recognapi_url',''):
@@ -247,6 +253,9 @@ def run(*,
     if recogn_type == QWEN3ASR:
         from videotrans.recognition._qwen3asr import Qwen3ASRRecogn
         return Qwen3ASRRecogn(**kwargs).run()
+    if recogn_type == QWENASR:
+        from videotrans.recognition._qwenasrlocal import QwenasrlocalRecogn
+        return QwenasrlocalRecogn(**kwargs).run()
     if recogn_type == FUNASR_CN:     
         from videotrans.recognition._funasr import FunasrRecogn
         return FunasrRecogn(**kwargs).run()
@@ -266,7 +275,6 @@ def run(*,
         from videotrans.recognition._elevenlabs import ElevenLabsRecogn
         return ElevenLabsRecogn(**kwargs).run()
     if recogn_type == HUGGINGFACE_ASR:
-
         return HuggingfaceRecogn(**kwargs).run()
     if recogn_type == ZHIPU_API:
         from videotrans.recognition._glmasr import GLMASRRecogn

@@ -3,7 +3,7 @@ import re,os
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools

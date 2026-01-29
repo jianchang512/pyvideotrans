@@ -1,6 +1,6 @@
 {
     "en": {
-		"moss_audio_ba0ce915-995c-11f0-8fad-f21e97d55204":"moss_audio_ba0ce915-995c-11f0-8fad-f21e97d55204",
+        "No": "No",
         "Expressive Narrator": "English_expressive_narrator",
         "Radiant Girl": "English_radiant_girl",
         "Magnetic-voiced Male": "English_magnetic_voiced_man",
@@ -48,6 +48,7 @@
         "Kind-Hearted Girl": "English_Kind-heartedGirl"
     },
     "zh": {
+        "No": "No",
         "Reliable Executive": "Chinese (Mandarin)_Reliable_Executive",
         "News Anchor": "Chinese (Mandarin)_News_Anchor",
         "Unrestrained Young Man": "Chinese (Mandarin)_Unrestrained_Young_Man",
@@ -82,6 +83,7 @@
         "Bashful Girl": "Chinese (Mandarin)_BashfulGirl"
     },
     "ja": {
+        "No": "No",
         "Intellectual Senior": "Japanese_IntellectualSenior",
         "Decisive Princess": "Japanese_DecisivePrincess",
         "Loyal Knight": "Japanese_LoyalKnight",
@@ -99,6 +101,7 @@
         "Graceful Maiden": "Japanese_GracefulMaiden"
     },
     "yue": {
+        "No": "No",
         "Professional Female Host": "Cantonese_ProfessionalHost（F)",
         "Gentle Lady": "Cantonese_GentleLady",
         "Professional Male Host": "Cantonese_ProfessionalHost（M)",
@@ -107,6 +110,7 @@
         "Kind Woman": "Cantonese_KindWoman"
     },
     "ko": {
+        "No": "No",
         "Airheaded Girl": "Korean_AirheadedGirl",
         "Athletic Girl": "Korean_AthleticGirl",
         "Athletic Student": "Korean_AthleticStudent",
@@ -158,6 +162,7 @@
         "Wise Teacher": "Korean_WiseTeacher"
     },
     "es": {
+        "No": "No",
         "Serene Woman": "Spanish_SereneWoman",
         "Mature Partner": "Spanish_MaturePartner",
         "Captivating Storyteller": "Spanish_CaptivatingStoryteller",
@@ -207,6 +212,7 @@
         "Thoughtful Lady": "Spanish_ThoughtfulLady"
     },
     "pt": {
+        "No": "No",
         "Sentimental Lady": "Portuguese_SentimentalLady",
         "Bossy Leader": "Portuguese_BossyLeader",
         "Wise lady": "Portuguese_Wiselady",
@@ -282,6 +288,7 @@
         "Determined Manager": "Portuguese_DeterminedManager"
     },
     "fr": {
+        "No": "No",
         "Level-Headed Man": "French_Male_Speech_New",
         "Patient Female Presenter": "French_Female_News Anchor",
         "Casual Man": "French_CasualMan",
@@ -290,6 +297,7 @@
         "Male Narrator": "French_MaleNarrator"
     },
     "id": {
+        "No": "No",
         "Sweet Girl": "Indonesian_SweetGirl",
         "Reserved Young Man": "Indonesian_ReservedYoungMan",
         "Charming Girl": "Indonesian_CharmingGirl",
@@ -301,11 +309,13 @@
         "Gentle Girl": "Indonesian_GentleGirl"
     },
     "de": {
+        "No": "No",
         "Friendly Man": "German_FriendlyMan",
         "Sweet Lady": "German_SweetLady",
         "Playful Man": "German_PlayfulMan"
     },
     "ru": {
+        "No": "No",
         "Handsome Childhood Friend": "Russian_HandsomeChildhoodFriend",
         "Bright Queen": "Russian_BrightHeroine",
         "Ambitious Woman": "Russian_AmbitiousWoman",
@@ -316,43 +326,52 @@
         "Bad-tempered Boy": "Russian_Bad-temperedBoy"
     },
     "it": {
+        "No": "No",
         "Brave Heroine": "Italian_BraveHeroine",
         "Narrator": "Italian_Narrator",
         "Wandering Sorcerer": "Italian_WanderingSorcerer",
         "Diligent Leader": "Italian_DiligentLeader"
     },
     "nl": {
+        "No": "No",
         "Kind-hearted girl": "Dutch_kindhearted_girl",
         "Bossy leader": "Dutch_bossy_leader"
     },
     "vi": {
+        "No": "No",
         "Kind-hearted girl": "Vietnamese_kindhearted_girl"
     },
     "ar": {
+        "No": "No",
         "Calm Woman": "Arabic_CalmWoman",
         "Friendly Guy": "Arabic_FriendlyGuy"
     },
     "tr": {
+        "No": "No",
         "Calm Woman": "Turkish_CalmWoman",
         "Trustworthy man": "Turkish_Trustworthyman"
     },
     "uk": {
+        "No": "No",
         "Calm Woman": "Ukrainian_CalmWoman",
         "Wise Scholar": "Ukrainian_WiseScholar"
     },
     "th": {
+        "No": "No",
         "Serene Man": "Thai_male_1_sample8",
         "Friendly Man": "Thai_male_2_sample2",
         "Confident Woman": "Thai_female_1_sample1",
         "Energetic Woman": "Thai_female_2_sample2"
     },
     "pl": {
+        "No": "No",
         "Male Narrator": "Polish_male_1_sample4",
         "Male Anchor": "Polish_male_2_sample3",
         "Calm Woman": "Polish_female_1_sample1",
         "Casual Woman": "Polish_female_2_sample3"
     },
     "cs": {
+        "No": "No",
         "Assured Presenter": "czech_male_1_v1",
         "Steadfast Narrator": "czech_female_5_v7",
         "Elegant Lady": "czech_female_2_v2"

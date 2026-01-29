@@ -68,9 +68,4 @@ class FishTTS(BaseTTS):
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
 
-        try:
-            _run()
-        except RetryError as e:
-            self.error= e.last_attempt.exception()
-        except Exception as e:
-            self.error = e
+        _run()

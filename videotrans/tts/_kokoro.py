@@ -6,7 +6,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -47,7 +47,4 @@ class KokoroTTS(BaseTTS):
                 f.write(res.content)
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
 
-        try:
-            _run()
-        except Exception as e:
-            self.error = e
+        _run()

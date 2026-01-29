@@ -65,23 +65,22 @@ class SubtitleDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.row_height = 70  # 保持原有高度
+        # 缓存画笔和画刷，避免每次paint时创建
+        self._border_pen = QPen(QColor("#455364"))
+        self._border_pen.setWidth(1)
+
     def helpEvent(self, event, view, option, index):
         """
         处理 ToolTip 事件：
         当鼠标悬停在输入框区域时，显示提示文本。
         """
         if event.type() == QEvent.Type.ToolTip:
-            # 1. 重新计算输入框区域
+            # 检查鼠标位置是否在输入框内 (下半部分)
             rect = option.rect
-            bottom_row_y = rect.top() + 40
-            left_margin = rect.left() + 5
-            # 输入框区域
-            input_rect = QRect(left_margin, bottom_row_y, rect.width() - 10, 30)
+            bottom_row_y = rect.top() + 30  # 与paint中的text_rect一致
+            input_rect = QRect(rect.left() + 5, bottom_row_y, rect.width() - 10, 30)
 
-            # 2. 检查鼠标位置是否在输入框内
-            # event.pos() 是相对于 View 的坐标
             if input_rect.contains(event.pos()):
-                # 显示提示
                 QToolTip.showText(event.globalPos(), tr("Double-click the text box to edit the subtitles"))
                 return True
 
@@ -93,57 +92,50 @@ class SubtitleDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         # 获取数据
         item = index.data(SubtitleModel.RawDataRole)
+        if not item:
+            return
+
         text = item['text']
 
         # 计算时间显示字符串
         duration = (item['end_time'] - item['start_time']) / 1000.0
         time_str = f"[{item['line']}] {item['startraw']}->{item['endraw']}({duration}s) "
 
-        painter.save()
-
         # 绘制背景（如果被选中）
         if option.state & QStyle.State_Selected:
             painter.fillRect(option.rect, option.palette.highlight())
+            text_color = option.palette.highlightedText().color()
+        else:
+            text_color = option.palette.text().color()
 
-        # 定义区域
         rect = option.rect
-        # 上半部分：时间标签区域
+        # 上半部分：时间标签区域 (y=5, height=20)
         time_rect = QRect(rect.left() + 5, rect.top() + 5, rect.width() - 10, 20)
-        # 下半部分：文本编辑框模拟区域
+        # 下半部分：文本编辑框模拟区域 (y=30, height=30)
         text_rect = QRect(rect.left() + 5, rect.top() + 30, rect.width() - 10, 30)
 
         # 1. 绘制时间文本 (模拟 QLabel)
-        # 选中时字体颜色需要适配
-        if option.state & QStyle.State_Selected:
-            painter.setPen(option.palette.highlightedText().color())
-        else:
-            painter.setPen(option.palette.text().color())
-
+        painter.setPen(text_color)
         painter.drawText(time_rect, Qt.AlignLeft | Qt.AlignVCenter, time_str)
 
-        # 2. 绘制“伪”输入框背景 (模拟 QLineEdit)
-        # 我们画一个框框，让用户知道这里是文本
+        # 2. 绘制"伪"输入框背景 (模拟 QLineEdit)
         input_bg_color = option.palette.base().color()
-        border_color = QColor("#455364")
-
-        painter.setBrush(QBrush(input_bg_color))
-        painter.setPen(QPen(border_color))
-        # 圆角
+        painter.fillRect(text_rect, input_bg_color)
+        painter.setPen(self._border_pen)
         painter.drawRoundedRect(text_rect, 4, 4)
 
         # 3. 绘制字幕内容
-        # 输入框内的文字通常是黑色的（除非暗色模式），这里用 WindowText
         painter.setPen(option.palette.windowText().color())
         # 文字稍微缩进一点，不要贴着边框
-        text_draw_rect = text_rect.adjusted(4, 0, -4, 0)
-
-        painter.drawText(text_draw_rect, Qt.AlignLeft | Qt.AlignVCenter, text)
-
-        painter.restore()
+        text_draw_rect = text_rect.adjusted(6, 0, -6, 0)
+        # 使用ElideRight防止文本过长影响性能
+        elided_text = painter.fontMetrics().elidedText(text, Qt.ElideRight, text_draw_rect.width())
+        painter.drawText(text_draw_rect, Qt.AlignLeft | Qt.AlignVCenter, elided_text)
 
     # 创建编辑器时（用户双击或按回车时调用）
     def createEditor(self, parent, option, index):
         editor = QLineEdit(parent)
+        editor.setStyleSheet("padding: 2px 4px;")  # 添加内边距改善外观
         return editor
 
     # 设置编辑器的数据
@@ -155,7 +147,7 @@ class SubtitleDelegate(QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         model.setData(index, editor.text(), Qt.EditRole)
 
-    # 关键：确保编辑器只出现在“下半部分”，覆盖我们画的那个框框
+    # 关键：确保编辑器只出现在"下半部分"，覆盖我们画的那个框框
     def updateEditorGeometry(self, editor, option, index):
         rect = option.rect
         # 编辑器位置与 paint 中的 text_rect 一致
@@ -226,7 +218,7 @@ class EditRecognResultDialog(QDialog):
         search_replace_layout.addStretch()
         main_layout.addLayout(search_replace_layout)
 
-        # Loading 控件 
+        # Loading 控件
         self.loading_widget = QWidget()
         load_layout = QVBoxLayout(self.loading_widget)
         self.loading_label = QLabel(tr('The subtitle editing interface is rendering'), self)
@@ -240,9 +232,15 @@ class EditRecognResultDialog(QDialog):
 
 
         self.list_view = QListView()
-        self.list_view.setUniformItemSizes(True) # 优化性能关键
+        # 性能优化关键设置
+        self.list_view.setUniformItemSizes(True)  # 所有项目相同大小，避免重复计算
+        self.list_view.setLayoutMode(QListView.Batched)  # 批处理模式，避免一次性渲染所有项
+        self.list_view.setBatchSize(50)  # 每批处理50个项，平衡流畅度和加载速度
         self.list_view.setResizeMode(QListView.Adjust)
-        self.list_view.setVisible(False) # 初始隐藏，等待 lazy_load
+        self.list_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 禁用水平滚动条，减少计算
+        self.list_view.setVerticalScrollMode(QListView.ScrollPerItem)  # 按项滚动，比按像素滚动更高效
+        self.list_view.setSelectionMode(QListView.ExtendedSelection)  # 允许多选，但保持高效
+        self.list_view.setVisible(False)  # 初始隐藏，等待 lazy_load
         # 设置按 TAB 键切换到下一行编辑
         self.list_view.setTabKeyNavigation(True)
 
@@ -264,7 +262,7 @@ class EditRecognResultDialog(QDialog):
         self.opendir_button.setCursor(Qt.PointingHandCursor)
         self.opendir_button.setMaximumSize(QSize(150, 30))
         self.opendir_button.clicked.connect(self.opendir_sub)
-        
+
         cancel_button = QPushButton(tr("Terminate this mission"))
         cancel_button.setCursor(Qt.PointingHandCursor)
         cancel_button.setMaximumSize(QSize(150, 30))
@@ -358,26 +356,34 @@ class EditRecognResultDialog(QDialog):
 
         # 批量更新标志
         data_changed = False
+        first_changed = -1
+        last_changed = -1
 
         for i, item in enumerate(source_data):
             if search_text in item['text']:
                 item['text'] = item['text'].replace(search_text, replace_text)
-                # 标记这一行发生了改变
-                index = self.model.index(i)
-                self.model.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
+                # 记录改变的行范围
+                if first_changed == -1:
+                    first_changed = i
+                last_changed = i
                 data_changed = True
 
         if data_changed:
-            # 强制刷新一下界面
-            self.list_view.viewport().update()
+            # 优化：只发送一次dataChanged信号，包含所有改变的行范围
+            # 这比逐行发送信号效率高得多，避免视图多次重绘
+            top_index = self.model.index(first_changed)
+            bottom_index = self.model.index(last_changed)
+            self.model.dataChanged.emit(top_index, bottom_index, [Qt.DisplayRole, Qt.EditRole])
+            # 可选：强制刷新视口
+            # self.list_view.viewport().update()
 
     # 只继续不保存
     def save_and_close2(self):
         self.accept()
-        
+
     def opendir_sub(self):
         QDesktopServices.openUrl(QUrl.fromLocalFile(Path(self.source_sub).parent.as_posix()))
-    
+
     def save_and_close(self):
         self.save_button.setDisabled(True)
         # 更新角色

@@ -37,7 +37,7 @@ dependencies = [
     "attrs==25.3.0",
     "audioread==3.0.1",
     "av==16.0.1",
-    "azure-cognitiveservices-speech==1.37.0",
+    "azure-cognitiveservices-speech",
     "blinker==1.8.2",
     "brotli==1.1.0",
     "cachetools==5.3.2",

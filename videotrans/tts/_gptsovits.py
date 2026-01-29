@@ -10,7 +10,7 @@ import requests
 
 from pydub import AudioSegment
 from videotrans.configure import config
-from videotrans.configure._except import  StopRetry
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools

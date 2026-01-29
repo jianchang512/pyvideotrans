@@ -6,13 +6,13 @@ from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 import wave
 from piper import PiperVoice,SynthesisConfig
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 
 
 @dataclass
 class PiperTTS(BaseTTS):
 
     def __post_init__(self):
-
         super().__post_init__()
         rate=1/(1+float(self.rate.replace('%',''))/100)
         self.rate=round(rate,1)

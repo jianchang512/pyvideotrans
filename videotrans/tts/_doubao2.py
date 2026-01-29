@@ -9,7 +9,7 @@ from typing import Dict, Optional, ClassVar
 import requests
 
 from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -131,56 +131,46 @@ class Doubao2TTS(BaseTTS):
  
         url = "https://openspeech.bytedance.com/api/v3/tts/unidirectional"
         
-        session = requests.Session()
-        response=None
-        try:
-            
-            response = session.post(url, headers=headers, json=payload, stream=True)
-            
-            if response.status_code in [404,402,401,400]:
-                self.stop_next_all=True
-                raise RuntimeError('请检查 appid 和 access token 参数是否正确')
-            if response.status_code == 403:
-                self.stop_next_all=True
-                raise RuntimeError('该角色正式版可能需要在字节后台单独开通购买')
-            
-            
-            
-            response.raise_for_status()
-            config.logger.debug(f"code: {response.status_code} header: {response.headers}")
+        
+        response = requests.post(url, headers=headers, json=payload, stream=True)
+        
+        if response.status_code in [404,402,401,400]:
+            self.stop_next_all=True
+            raise RuntimeError('请检查 appid 和 access token 参数是否正确')
+        if response.status_code == 403:
+            self.stop_next_all=True
+            raise RuntimeError('该角色正式版可能需要在字节后台单独开通购买')
+        
+        
+        
+        response.raise_for_status()
+        config.logger.debug(f"code: {response.status_code} header: {response.headers}")
 
-            # 用于存储音频数据
-            audio_data = bytearray()
-            total_audio_size = 0
-            for chunk in response.iter_lines(decode_unicode=True):
-                if not chunk:
-                    continue
-                data = json.loads(chunk)
+        # 用于存储音频数据
+        audio_data = bytearray()
+        total_audio_size = 0
+        for chunk in response.iter_lines(decode_unicode=True):
+            if not chunk:
+                continue
+            data = json.loads(chunk)
 
-                if data.get("code", 0) == 0 and "data" in data and data["data"]:
-                    chunk_audio = base64.b64decode(data["data"])
-                    audio_size = len(chunk_audio)
-                    total_audio_size += audio_size
-                    audio_data.extend(chunk_audio)
-                    continue
-                if data.get("code", 0) == 0 and "sentence" in data and data["sentence"]:
-                    print("sentence_data:", data)
-                    continue
-                if data.get("code", 0) == 20000000:
-                    break
-                if data.get("code", 0) > 0:
-                    
-                    raise RuntimeError(str(data))
+            if data.get("code", 0) == 0 and "data" in data and data["data"]:
+                chunk_audio = base64.b64decode(data["data"])
+                audio_size = len(chunk_audio)
+                total_audio_size += audio_size
+                audio_data.extend(chunk_audio)
+                continue
+            if data.get("code", 0) == 0 and "sentence" in data and data["sentence"]:
+                print("sentence_data:", data)
+                continue
+            if data.get("code", 0) == 20000000:
+                break
+            if data.get("code", 0) > 0:
+                
+                raise RuntimeError(str(data))
 
-            if audio_data:
-                self._save_pcm_to_wav(audio_data,data_item['filename'])
+        if audio_data:
+            self._save_pcm_to_wav(audio_data,data_item['filename'])
 
-        except Exception as e:
-            config.logger.exception(e,exc_info=True)
-            raise
-        finally:
-            if response:
-                response.close()
-            session.close()
 
 
