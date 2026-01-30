@@ -135,6 +135,7 @@ class BaseRecogn(BaseCon):
         if hasattr(self, '_download'):
             self._download()
 
+        self._signal(text=f"starting transcription")
         try:
             srt_list = []
             res=self._exec()

@@ -8,9 +8,9 @@ from videotrans.recognition._overall import FasterAll
 
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
-FUNASR_CN = 2
-HUGGINGFACE_ASR = 3
-QWENASR = 4
+QWENASR = 2
+FUNASR_CN = 3
+HUGGINGFACE_ASR = 4
 
 OPENAI_API = 5
 GEMINI_SPEECH = 6
@@ -41,9 +41,9 @@ CUSTOM_API = 20
 _ID_NAME_DICT = {
     FASTER_WHISPER:tr("Faster-whisper"),
     OPENAI_WHISPER:tr("OpenAI-whisper"),
+    QWENASR:f'Qwen-ASR({tr("Local")})',
     FUNASR_CN:tr("FunASR-Chinese"),
     HUGGINGFACE_ASR:'Huggingface_ASR',
-    QWENASR:f'Qwen-ASR({tr("Local")})',
     
     OPENAI_API:tr("OpenAI Speech to Text"),
     GEMINI_SPEECH:tr("Gemini AI"),
