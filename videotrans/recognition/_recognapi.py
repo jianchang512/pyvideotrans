@@ -65,9 +65,6 @@ class APIRecogn(BaseRecogn):
         self.api_url = api_url
         self._add_internal_host_noproxy(self.api_url)
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():  return
         if re.search(r'api\.gladia\.io', self.api_url, re.I):
@@ -177,8 +174,7 @@ class APIRecogn(BaseRecogn):
         # 内部函数：处理单个片段的返回结果
         def _process_chunk_result(raw_text, time_offset_ms, start_line_index):
             # 1. 使用正则表达式找到列表部分
-            match = re.search(r'(\[\{.*\}\])', raw_text, re.DOTALL)
-            print(f'{match=}')
+            match = re.search(r'(\[\{.*?\}\])', raw_text, re.DOTALL)
             chunk_raws = []
             chunk_speaker_raw_list = []  # 仅收集当前片段的原始说话人标记
 
@@ -188,11 +184,29 @@ class APIRecogn(BaseRecogn):
                 return [], []
 
             list_str = match.group(1)
+            config.logger.debug(f'match.group(1)={list_str}')
+            list_str=re.sub(r'^.*?\[\{','[{',list_str,flags=re.S)
+            list_str=re.sub(r'\}\].*$','}]',list_str,flags=re.S)
+            list_str=re.sub(r"\n?\n", '',list_str)
+            config.logger.debug(f're.sub after:{list_str=}')
+            segments=None
             try:
-                segments = ast.literal_eval(list_str)
+                segments=json.loads(list_str)
+            except json.JSONDecodeError:
+                try:
+                    segments = ast.literal_eval(list_str)
+                except (ValueError, SyntaxError):
+                    context = {
+                        "null": None, 
+                        "true": True, 
+                        "false": False,
+                        "__builtins__": None
+                    }
+                    segments = eval(list_str, context)
             except Exception as e:
                 config.logger.error(f"AST eval failed: {e}")
-                return [], []
+            if not segments:
+                return [],[]
 
             # 2. 遍历结果并加上时间偏移
             for i, seg in enumerate(segments):
@@ -207,7 +221,7 @@ class APIRecogn(BaseRecogn):
                     "end_time": seg_end_ms,
                 }
                 # [Noise]之类无有效信息
-                if re.match(r'\[[a-zA-Z0-9\s]+\]',seg['Content'].strip()):
+                if re.match(r'^\[[a-zA-Z0-9\s]+\]$',seg['Content'].strip()):
                     continue
                 
                 # 假设 tools 是你类外部或全局可访问的工具
@@ -224,10 +238,8 @@ class APIRecogn(BaseRecogn):
             return chunk_raws, chunk_speaker_raw_list
 
         # self.audio_file 是 wav 路径
-        print(f"Loading audio: {self.audio_file} ...")
         audio = AudioSegment.from_wav(self.audio_file)
         total_duration = len(audio)
-        print(f"Total duration: {total_duration / 1000 / 60:.2f} minutes")
 
         final_raws = []
         all_speaker_raw_list = []  # 存储所有片段原本的说话人标记
@@ -235,8 +247,6 @@ class APIRecogn(BaseRecogn):
 
         for i, start_ms in enumerate(range(0, total_duration, CHUNK_DURATION_MS)):
             end_ms = min(start_ms + CHUNK_DURATION_MS, total_duration)
-
-            print(f"Processing chunk {i + 1}: {start_ms / 1000}s to {end_ms / 1000}s ...")
 
             # 切割音频
             chunk_audio = audio[start_ms:end_ms]
@@ -261,7 +271,7 @@ class APIRecogn(BaseRecogn):
                 )
 
                 # 处理返回结果，传入当前的 start_ms 作为时间偏移量
-                print(f'{result[0]=}')
+                config.logger.debug(f'vibevoice-asr:{result[0]=}')
                 chunk_data, chunk_spk = _process_chunk_result(
                     result[0],
                     time_offset_ms=start_ms,
@@ -278,7 +288,8 @@ class APIRecogn(BaseRecogn):
                 # 清理临时文件
                 if os.path.exists(temp_chunk_path):
                     os.remove(temp_chunk_path)
-
+        if not final_raws:
+            raise RuntimeError(f'VibeVoice:{self.api_url} not return data:{result[0]}')
         # 统一处理说话人逻辑 (合并后的重排序)
         # 这里是将所有片段的说话人混在一起处理。
         # 警告：VibeVoice 是分段处理的，Chunk1 的 spk0 和 Chunk2 的 spk0 可能不是同一个人。

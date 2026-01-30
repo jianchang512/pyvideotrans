@@ -1127,6 +1127,10 @@ class TransCreate(BaseTask):
         if self.cfg.subtitle_type in [3, 4]:
             source_sub_list = tools.get_subtitle_from_srt(self.cfg.source_sub)
             source_length = len(source_sub_list)
+            # 原语言单行字符长度
+            source_maxlen = int(
+            config.settings.get('cjk_len',15) if self.cfg.source_language_code[:2] in ["zh", "ja", "jp", "ko", 'yu'] else
+            config.settings.get('other_len',60))
 
             srt_string = ""
             # 双语字幕，目标字幕在上，原字幕在下
@@ -1135,7 +1139,7 @@ class TransCreate(BaseTask):
                 tmp = tools.simple_wrap(it['text'].strip(), maxlen,self.cfg.target_language_code)
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp}"
                 if source_length > 0 and i < source_length:
-                    srt_string += "\n" + tools.simple_wrap(source_sub_list[i]['text'], maxlen,self.cfg.source_language_code)
+                    srt_string += "\n" + tools.simple_wrap(source_sub_list[i]['text'], source_maxlen,self.cfg.source_language_code)
                 srt_string += "\n\n"
             process_end_subtitle = f"{self.cfg.cache_folder}/shuang.srt"
             Path(process_end_subtitle).write_text(srt_string.strip(), encoding='utf-8')
