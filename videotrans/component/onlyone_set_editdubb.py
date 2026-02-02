@@ -238,7 +238,7 @@ class EditDubbingResultDialog(QDialog):
             elif diff < 0:
                 msg = f'[{dubbing}s]{tr("Shortened")}{abs(diff)}s'
             else:
-                msg = '=='
+                msg = f'{dubbing}s'
             
             item['_duration'] = duration
             item['_msg'] = msg
@@ -273,10 +273,13 @@ class EditDubbingResultDialog(QDialog):
             msg_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             msg_item.setTextAlignment(Qt.AlignCenter)
             dubbing = float(item.get('dubbing_s', 0.0))
+            diff=dubbing - float( item['_duration'])
             if dubbing <= 0:
-                msg_item.setForeground(QColor("#ffaa00"))  # 橙色
-            elif item['_msg'] != 'OK':
-                msg_item.setForeground(QColor("#ff6666"))  # 红色
+                msg_item.setForeground(QColor("#ff4d4d"))  # 橙色
+            elif  diff>0:
+                msg_item.setForeground(QColor("#ff6600"))  # 红色
+            elif  diff<0:
+                msg_item.setForeground(QColor("#ffffff"))  # 白色
             else:
                 msg_item.setForeground(QColor("#66ff66"))  # 绿色
             self.table.setItem(row, 3, msg_item)
@@ -457,15 +460,17 @@ class EditDubbingResultDialog(QDialog):
         elif diff < 0:
             msg = f'[{dubbing}s]{tr("Shortened")}{abs(diff)}s'
         else:
-            msg = '=='
+            msg = f'{dubbing}s'
         
         msg_item = self.table.item(row, 3)
         if msg_item:
             msg_item.setText(msg)
             if dubbing <= 0:
-                msg_item.setForeground(QColor("#ffaa00"))
-            elif msg != 'OK':
-                msg_item.setForeground(QColor("#ff6666"))
+                msg_item.setForeground(QColor("#ff4d4d"))
+            elif diff>0:
+                msg_item.setForeground(QColor("#ff6600"))
+            elif diff<0:
+                msg_item.setForeground(QColor("#ffffff"))
             else:
                 msg_item.setForeground(QColor("#66ff66"))
 
