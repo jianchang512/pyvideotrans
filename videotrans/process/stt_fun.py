@@ -60,7 +60,7 @@ def openai_whisper(
 
         model = whisper.load_model(
             model_name,
-            device=f"cuda:{device_index}" if is_cuda else gpus.mps_or_cpu(),
+            device=f"cuda:{device_index}" if is_cuda else 'cpu',
             download_root=ROOT_DIR + "/models"
         )
         msg = f"Loaded {model_name}"
@@ -73,7 +73,8 @@ def openai_whisper(
                 speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
         else:
             speech_timestamps_flat = "0"
-
+        if detect_language=='fil':
+            detect_language='tl'
         result = model.transcribe(
             audio_file,
             no_speech_threshold=no_speech_threshold,
@@ -166,6 +167,8 @@ def faster_whisper(
     model = None
     batched_model = None
     raws = []
+    if detect_language=='fil':
+        detect_language='tl'
 
     try:
         if speech_timestamps and isinstance(speech_timestamps, str):
@@ -332,6 +335,8 @@ def pipe_asr(
     p = None
     msg = f"Loading pipeline from {local_dir}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+    if detect_language=='fil':
+        detect_language='tl'
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
             cut_audio_list = json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))
@@ -354,7 +359,7 @@ def pipe_asr(
         # 获取模型类型，例如 'whisper', 'wav2vec2', 'huBERT', 'parakeet' 等
         model_type = p.model.config.model_type
         is_whisper = "whisper" in model_type.lower()
-
+        
         if is_whisper:
             # === Whisper 专用参数 ===
             lang = detect_language.split('-')[0] if detect_language != 'auto' else None

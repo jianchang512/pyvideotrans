@@ -200,6 +200,8 @@ class AlignmentWorker(QThread):
 
             target_chars_map = []
             punctuations = set(['，', '。', '？', '！', '；', '：', ',', '.', '?', '!', ';', ':'])
+            #if self.language[:2] in ['zh','ja','ko']:
+            #    punctuations.add(' ')
             comparison_target = []
 
             for i, char in enumerate(self.text_content):
@@ -290,9 +292,37 @@ class AlignmentWorker(QThread):
                 sentence_buffer.append(char)
 
                 should_break = False
+                '''
                 if is_punc: should_break = True
                 elif len(sentence_buffer) >= MAX_CHARS: should_break = True
                 elif idx == len(target_chars_map) - 1: should_break = True
+                '''
+                # --- 修改断句逻辑 ---
+                
+                # 1. 只有当字符是真正的标点符号集合中的一个时，才强制换行
+                if char in punctuations: 
+                    should_break = True
+                    
+                # 2. 处理原文中存在的换行符 (英文文本常见)
+                elif char == '\n':
+                    should_break = True
+                    
+                # 3. 长度限制逻辑优化
+                elif len(sentence_buffer) >= MAX_CHARS:
+                    # 英文：只有当前字符是空格时才断行，避免切断单词 (如 feel|ing)
+                    if char.strip() == "":
+                         should_break = True
+                    # 中文/其他：字符编码大于255通常是CJK字符，不需要空格也能断行
+                    elif ord(char) > 255:
+                         should_break = True
+                    # 兜底：如果一行实在太长了（比如长英文单词一直没空格），强制断行防止显示溢出
+                    elif len(sentence_buffer) >= MAX_CHARS + 20:
+                         should_break = True
+                         
+                # 4. 文件末尾
+                elif idx == len(target_chars_map) - 1: 
+                    should_break = True
+
 
                 if should_break and sentence_buffer:
                     text_line = "".join(sentence_buffer).strip()

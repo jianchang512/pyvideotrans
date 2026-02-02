@@ -12,7 +12,7 @@
 
 **A Powerful Open Source Video Translation / Audio Transcription / AI Dubbing / Subtitle Translation Tool**
 
-[中文](docs/README_CN.md) | [**Documentation**](https://en.pyvideotrans.com) | [**Online Q&A**](https://bbs.pyvideotrans.com)
+[中文](docs/README_CN.md) | [**Documentation**](https://pyvideotrans.com) | [**Online Q&A**](https://bbs.pyvideotrans.com)
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE)   [![Python](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://www.python.org/)   [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 

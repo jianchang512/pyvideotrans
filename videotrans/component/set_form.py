@@ -5,7 +5,7 @@ import os
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QEvent, Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QDialog, QFrame
+from PySide6.QtWidgets import QDialog, QFrame,QTableView, QAbstractItemView, QHeaderView, QCheckBox,QTableWidgetItem
 
 from videotrans.configure import config
 from videotrans.configure.config import tr
@@ -432,66 +432,10 @@ class HebingsrtForm(QtWidgets.QWidget, Ui_srthebing):  # <===
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
-# ==================== 字幕行自定义控件 ====================
-class SubtitleRowWidget(QtWidgets.QWidget):
-    """自定义的单条字幕行控件"""
+## start
 
-    def __init__(self, index, start_time, end_time, text,spk_name=None, duration_s=0, parent=None):
-        super().__init__(parent)
-        self.sub_index = index
-        self.start_time = start_time
-        self.end_time = end_time
-        self.text = text
-        self.spk_name = spk_name
-
-        root_layout = QtWidgets.QVBoxLayout(self)
-        root_layout.setContentsMargins(0, 5, 0, 5) # 设置外边距，让行与行之间有空隙
-
-
-                # 2. 创建 Frame
-        self.frame = QtWidgets.QFrame()
-        self.frame.setObjectName('frame_b')
-        # 或者使用 CSS 风格：
-        self.frame.setStyleSheet("#frame_b:hover { border: 1px solid  #455364; }")
-
-        # 4. 把 frame 加入到最外层布局
-        root_layout.addWidget(self.frame)
-
-
-        self.layout = QtWidgets.QHBoxLayout(self.frame)
-        self.layout.setContentsMargins(5, 5, 5, 5)
-
-        self.index_label = QtWidgets.QLabel(f"{self.sub_index}")
-        self.checkbox = QtWidgets.QCheckBox()
-        self.checkbox.setFixedWidth(30)
-
-        self.role_label = QtWidgets.QLabel(tr('Default Role'))
-        self.role_label.setFixedWidth(120)
-        self.role_label.setObjectName(f"role_label_{index}")
-
-        time_str = f"{duration_s}s  {start_time}-->{end_time}"
-        self.time_label = QtWidgets.QLabel(time_str)
-        self.time_label.setFixedWidth(230)
-
-        self.text_label = QtWidgets.QLabel(text)
-
-        self.text_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
-        self.text_label.setMinimumHeight(self.text_label.sizeHint().height())
-        self.text_label.setWordWrap(True)
-
-
-        self.layout.addWidget(self.index_label)
-        self.layout.addWidget(self.checkbox)
-        self.layout.addWidget(self.time_label)
-        self.layout.addWidget(self.role_label)
-        if self.spk_name:
-            self.spk_name_label = QtWidgets.QLabel(self.spk_name)
-            self.layout.addWidget(self.spk_name_label)
-        self.layout.addWidget(self.text_label)
-
-
+# ==================== 说话人行控件 ====================
 class SpkRowWidget(QtWidgets.QWidget):
-
     def __init__(self, spk_name, parent=None):
         super().__init__(parent)
         self.spk_name = spk_name
@@ -509,20 +453,20 @@ class SpkRowWidget(QtWidgets.QWidget):
     def set_checkbox(self):
         self.checkbox.toggle()
 
+
 class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
     def __init__(self, parent=None):
         super(Peiyinformrole, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.spk_role={}# key=说话人，设置的音色名
-        self.spk_lines={}#key=说话人，value=[]行数
+        self.spk_role={} # key=说话人，设置的音色名
+        self.spk_lines={} # key=说话人，value=[]行数
 
-        # 新增的信号连接
+        # 信号连接
         self.clear_button.clicked.connect(self.clear_all_ui)
         self.assign_role_button.clicked.connect(self.assign_role_to_selected)
         self.assign_role_button2.clicked.connect(self.assign_role_to_spk)
 
-        # 当 hecheng_role 的内容改变时，同步到 tmp_rolelist
         self.hecheng_role.model().rowsInserted.connect(self.sync_roles_to_tmp_list)
         self.hecheng_role.model().rowsRemoved.connect(self.sync_roles_to_tmp_list)
 
@@ -537,11 +481,11 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
 
     def clear_subtitle_area(self):
         """清空字幕显示区域"""
-        while self.subtitle_layout.count():
-            child = self.subtitle_layout.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
-        if self.subtitle_layout2 and self.subtitle_layout2.count()>0:
+        self.subtitle_table.setRowCount(0)
+        self.subtitle_table.clearContents()
+        
+        # 清空说话人区域
+        if self.subtitle_layout2 and self.subtitle_layout2.count() > 0:
             while self.subtitle_layout2.count():
                 child = self.subtitle_layout2.takeAt(0)
                 if child.widget():
@@ -568,54 +512,93 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
     def reset_assigned_roles(self):
         """重置所有字幕行已分配的角色"""
         config.dubbing_role.clear()
-        for i in range(self.subtitle_layout.count()):
-            widget = self.subtitle_layout.itemAt(i).widget()
-            if isinstance(widget, SubtitleRowWidget):
-                widget.role_label.setText(tr('Default Role'))
+        for row in range(self.subtitle_table.rowCount()):
+            # 第3列是角色列
+            self.subtitle_table.item(row, 3).setText(tr('Default Role'))
 
     def parse_and_display_srt(self, srt_path):
-        """解析SRT文件并在UI上显示"""
-        self.clear_all_ui()  # 导入新文件前先清空
+        """解析SRT文件并在UI上显示 (表格优化版)"""
+        self.clear_all_ui()
         self.srt_path = srt_path
 
         try:
             from videotrans.util import tools
             subs = tools.get_subtitle_from_srt(srt_path)
 
-            patter_str=r'(?:\s*?\[?)((?:spk|speaker|说话人|speaker_)\s*?\d+)(?:]?)\s*?[:：]?'
-            for sub in subs:
-                spk_name=None
-                match=re.match(patter_str,sub['text'].strip(),flags=re.I)
+            patter_str=r'(?:\s*?\[)((?:spk|speaker|说话人|speaker_|\w{1,10})\s*?\d*?)(?:\])\s*?[:：]?'
+            
+            # 关闭排序和更新以提高插入速度
+            self.subtitle_table.setSortingEnabled(False)
+            self.subtitle_table.setRowCount(len(subs)) # 预先分配行数
+            
+            # 准备数据，避免在循环中重复计算
+            default_role_text = tr('Default Role')
+            
+            for row_idx, sub in enumerate(subs):
+                spk_name = None
+                match = re.match(patter_str, sub['text'].strip(), flags=re.I)
                 if match:
-                    spk_name=match.group(1)
-                    sub['text']=sub['text'][len(match.group(0)):]
+                    spk_name = match.group(1)
+                    sub['text'] = sub['text'][len(match.group(0)):]
+                
                 if spk_name:
                     if spk_name not in self.spk_role:
-                        self.spk_role[spk_name]=None
+                        self.spk_role[spk_name] = None
                     if spk_name not in self.spk_lines:
-                        self.spk_lines[spk_name]=[]
+                        self.spk_lines[spk_name] = []
                     self.spk_lines[spk_name].append(sub["line"])
+                
+                # 计算时长
+                duration = round((sub['end_time'] - sub['start_time']) / 1000, 2)
+                time_str = f"({duration}s) {sub['startraw']}->{sub['endraw']}"
 
-                row_widget = SubtitleRowWidget(
-                    sub['line'],
-                    sub['startraw'],
-                    sub['endraw'],
-                    sub['text'],
-                    spk_name,
-                    round((sub['end_time'] - sub['start_time']) / 1000, 2),
-                )
-                self.subtitle_layout.addWidget(row_widget)
-            # 存在说话人
+                # 1. ID
+                item_id = QTableWidgetItem(str(sub['line']))
+                item_id.setTextAlignment(Qt.AlignCenter)
+                item_id.setFlags(item_id.flags() & ~Qt.ItemIsEditable) 
+                self.subtitle_table.setItem(row_idx, 0, item_id)
+
+                # 2. Checkbox
+                item_check = QTableWidgetItem()
+                item_check.setCheckState(Qt.Unchecked)
+                self.subtitle_table.setItem(row_idx, 1, item_check)
+
+                # 3. Time
+                item_time = QTableWidgetItem(time_str)
+                item_time.setFlags(item_time.flags() & ~Qt.ItemIsEditable)
+                self.subtitle_table.setItem(row_idx, 2, item_time)
+
+                # 4. Role
+                item_role = QTableWidgetItem(default_role_text)
+                item_role.setFlags(item_role.flags() & ~Qt.ItemIsEditable)
+                self.subtitle_table.setItem(row_idx, 3, item_role)
+
+                # 5. Speaker
+                item_spk = QTableWidgetItem(spk_name if spk_name else "")
+                item_spk.setFlags(item_spk.flags() & ~Qt.ItemIsEditable)
+                self.subtitle_table.setItem(row_idx, 4, item_spk)
+
+                # 6. Text
+                item_text = QTableWidgetItem(sub['text'])
+                item_text.setToolTip(sub['text'])
+                self.subtitle_table.setItem(row_idx, 5, item_text)
+                
+
+            # 调整行高以适应内容
+            self.subtitle_table.resizeRowsToContents()
+            
+            # 处理说话人区域 
             if self.spk_role:
                 self.subtitle_scroll_area2.setVisible(True)
                 self.assign_role_label2.setVisible(True)
                 self.tmp_rolelist2.setVisible(True)
                 self.assign_role_button2.setVisible(True)
                 self.spk_tips.setVisible(True)
-                for ix,spk in enumerate(sorted(self.spk_role.keys())):
-                    spk_widget=SpkRowWidget(spk)
-                    self.subtitle_layout2.addWidget(spk_widget,ix//4,ix%4)
+                for ix, spk in enumerate(self.spk_role.keys()):
+                    spk_widget = SpkRowWidget(spk)
+                    self.subtitle_layout2.addWidget(spk_widget, ix // 6, ix % 6)
                 self.container_frame.setStyleSheet("""QFrame#container_frame{border: 1px solid #455364;}""")
+            
             self.hecheng_importbtn.setText(f"{os.path.basename(srt_path)}")
             self.subtitles = subs
 
@@ -628,42 +611,51 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
         selected_role = self.tmp_rolelist.currentText()
         from videotrans.util import tools
         from videotrans.configure import config
+        
         if not selected_role:
-            tools.show_error(
-                tr("Please select a valid role from the dropdown list."))
+            tools.show_error(tr("Please select a valid role from the dropdown list."))
             return
 
         assigned_count = 0
-        for i in range(self.subtitle_layout.count()):
-            widget = self.subtitle_layout.itemAt(i).widget()
-            if isinstance(widget, SubtitleRowWidget) and widget.checkbox.isChecked():
-                # 更新UI
+        default_role_text = tr('Default Role')
+        
+        # 遍历表格行
+        for row in range(self.subtitle_table.rowCount()):
+            check_item = self.subtitle_table.item(row, 1)
+            if check_item and check_item.checkState() == Qt.Checked:
+                # 获取字幕 Index
+                try:
+                    sub_index = int(self.subtitle_table.item(row, 0).text())
+                except:
+                    continue
+                
+                role_item = self.subtitle_table.item(row, 3)
 
                 # 更新全局配置
                 if selected_role in ['-', 'No']:
-                    widget.role_label.setText(tr('Default Role'))
+                    role_item.setText(default_role_text)
                     try:
-                        del config.dubbing_role[widget.sub_index]
+                        del config.dubbing_role[sub_index]
                     except:
                         pass
                 else:
-                    config.dubbing_role[widget.sub_index]=selected_role
-                    widget.role_label.setText(selected_role)
+                    config.dubbing_role[sub_index] = selected_role
+                    role_item.setText(selected_role)
+                
                 # 分配后取消勾选
-                widget.checkbox.setChecked(False)
+                check_item.setCheckState(Qt.Unchecked)
                 assigned_count += 1
 
         if assigned_count < 1:
             QtWidgets.QMessageBox.information(self, "Error", tr("Choose at least one subtitle"))
 
     def assign_role_to_spk(self):
-        """为选中的行分配角色"""
+        """为选中的说话人分配角色"""
         selected_role = self.tmp_rolelist2.currentText()
         from videotrans.util import tools
         from videotrans.configure import config
         if not selected_role:
-            tools.show_error(
-                tr("Please select a valid role from the dropdown list."))
+            tools.show_error(tr("Please select a valid role from the dropdown list."))
             return
 
         assigned_count = 0
@@ -671,28 +663,44 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
             widget = self.subtitle_layout2.itemAt(i).widget()
             if isinstance(widget, SpkRowWidget) and widget.checkbox.isChecked():
                 # 更新UI
-                _spk=widget.spk_name_label.text()
+                _spk = widget.spk_name_label.text()
                 if selected_role in ['-', 'No']:
-                    self.spk_role[_spk]=None
+                    self.spk_role[_spk] = None
                     widget.spk_name_role.setText('')
                 else:
-                    self.spk_role[_spk]=selected_role
+                    self.spk_role[_spk] = selected_role
                     widget.spk_name_role.setText(selected_role)
+                
                 # 分配后取消勾选
                 widget.checkbox.setChecked(False)
                 assigned_count += 1
-                for line in self.spk_lines.get(_spk,[]):
+                
+                # 更新全局配置中的每一行
+                for line in self.spk_lines.get(_spk, []):
                     if selected_role in ['-', 'No']:
                         try:
                             del config.dubbing_role[line]
                         except:
                             pass
                     else:
-                        config.dubbing_role[line]=selected_role
+                        config.dubbing_role[line] = selected_role
+                    
+                    try:
+                        row_idx = line - 1
+                        if 0 <= row_idx < self.subtitle_table.rowCount():
+                            # 确认一下ID是否匹配
+                            if self.subtitle_table.item(row_idx, 0).text() == str(line):
+                                display_role = tr('Default Role') if selected_role in ['-', 'No'] else selected_role
+                                self.subtitle_table.item(row_idx, 3).setText(display_role)
+                    except:
+                        pass
 
         if assigned_count < 1:
             QtWidgets.QMessageBox.information(self, "Error", tr("Select at least one speaker"))
 
+
+
+## end
 
 
 class SeparateForm(QtWidgets.QWidget, Ui_separateform):  # <===

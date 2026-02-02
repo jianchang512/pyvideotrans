@@ -3,335 +3,22 @@ import sys
 from typing import List, Dict, Optional
 from pathlib import Path
 import re
+import time
 
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QCheckBox,
-    QComboBox, QPushButton, QScrollArea, QWidget, QGroupBox, QSplitter,
-    QPlainTextEdit, QFrame, QMessageBox, QProgressBar, QApplication,
-    QListView, QStyle, QStyledItemDelegate, QStyleOptionButton, QToolTip
+    QComboBox, QPushButton, QWidget, QGroupBox, QPlainTextEdit, 
+    QMessageBox, QProgressBar, QApplication, QTableWidget, QTableWidgetItem,
+    QHeaderView, QAbstractItemView, QGridLayout
 )
-from PySide6.QtGui import QIcon, QPen, QColor, QBrush, QPainter, QDesktopServices, QPixmap, QFontMetrics
-from PySide6.QtCore import Qt, QTimer, QSize, QAbstractListModel, QModelIndex, QRect, QPoint, QEvent, QUrl
+from PySide6.QtGui import QIcon, QDesktopServices, QColor
+from PySide6.QtCore import Qt, QTimer, QSize, QUrl
 
 from videotrans.configure.config import tr
 from videotrans.util import tools
 from videotrans.configure import config
 
 
-# 1. 数据模型
-class SubtitleSpeakerModel(QAbstractListModel):
-    # 定义自定义角色
-    RoleRawData = Qt.UserRole + 1  # 获取原始字典数据
-    RoleChecked = Qt.UserRole + 2  # 获取/设置选中状态
-    RoleRole = Qt.UserRole + 3  # 获取/设置分配的角色
-
-    def __init__(self, subtitles=None, speaker_list_sub=None, speakers=None, parent=None):
-        super().__init__(parent)
-        self._data = subtitles or []
-        self.speaker_list_sub = speaker_list_sub or []
-        self.speakers = speakers or {}  # id -> role map
-
-        # 预计算显示用的数据，避免每次paint都计算
-        self._precompute_data()
-
-    def _precompute_data(self):
-        """预计算显示数据，避免在paint中重复计算"""
-        speaker_keys = list(self.speakers.keys()) if self.speakers else []
-        default_spk = speaker_keys[0] if speaker_keys else ''
-
-        for i, item in enumerate(self._data):
-            if 'checked' not in item:
-                item['checked'] = False
-
-            # 预计算speaker id
-            if self.speakers:
-                if i < len(self.speaker_list_sub):
-                    item['display_spkid'] = self.speaker_list_sub[i]
-                else:
-                    item['display_spkid'] = default_spk
-            else:
-                item['display_spkid'] = ''
-
-            # 预计算时间字符串
-            duration = (item['end_time'] - item['start_time']) / 1000.0
-            item['time_str'] = f"{item['startraw']}->{item['endraw']}({duration}s)"
-
-    def rowCount(self, parent=QModelIndex()):
-        return len(self._data)
-
-    def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid() or index.row() >= len(self._data):
-            return None
-
-        item = self._data[index.row()]
-
-        if role == Qt.DisplayRole or role == Qt.EditRole:
-            return item['text']
-
-        if role == self.RoleRawData:
-            return item
-
-        if role == self.RoleChecked:
-            return item['checked']
-
-        if role == self.RoleRole:
-            return item.get('role', '')
-
-        return None
-
-    def setData(self, index, value, role=Qt.EditRole):
-        if not index.isValid():
-            return False
-
-        row = index.row()
-
-        if role == Qt.EditRole:
-            self._data[row]['text'] = value
-            self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
-            return True
-
-        if role == self.RoleChecked:
-            self._data[row]['checked'] = value
-            self.dataChanged.emit(index, index, [self.RoleChecked])
-            return True
-
-        if role == self.RoleRole:
-            self._data[row]['role'] = value
-            self.dataChanged.emit(index, index, [self.RoleRole])
-            return True
-
-        return False
-
-    def setDataBulk(self, indices, values, role=Qt.EditRole):
-        """批量设置数据，只发射一次信号"""
-        if not indices:
-            return
-
-        for idx, value in zip(indices, values):
-            if not idx.isValid():
-                continue
-            row = idx.row()
-            if role == Qt.EditRole:
-                self._data[row]['text'] = value
-            elif role == self.RoleChecked:
-                self._data[row]['checked'] = value
-            elif role == self.RoleRole:
-                self._data[row]['role'] = value
-
-        # 批量发射信号
-        if indices:
-            self.dataChanged.emit(indices[0], indices[-1], [role])
-
-    def flags(self, index):
-        if not index.isValid():
-            return Qt.NoItemFlags
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
-
-    def get_all_data(self):
-        return self._data
-
-
-# ===========================================================================
-# 2. 定义委托 负责绘制复选框、标签、时间、文本框
-class SubtitleSpeakerDelegate(QStyledItemDelegate):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.row_height = 75  # 行高
-
-        # 缓存复选框pixmap，避免每次重绘都重新绘制
-        self._checkbox_cache = {}
-        self._cached_fm = None
-        self._last_font = None
-
-    def _get_font_metrics(self, painter):
-        """缓存字体度量"""
-        current_font = painter.font()
-        if self._cached_fm is None or self._last_font != current_font:
-            self._cached_fm = QFontMetrics(current_font)
-            self._last_font = current_font
-        return self._cached_fm
-
-    def _get_checkbox_pixmap(self, checked, size=16):
-        """获取缓存的复选框pixmap"""
-        key = (checked, size)
-        if key not in self._checkbox_cache:
-            pixmap = QPixmap(size, size)
-            pixmap.fill(Qt.transparent)
-
-            painter = QPainter(pixmap)
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-            rect = QRect(0, 0, size, size)
-
-            # 定义颜色
-            if checked:
-                bg_color = QColor("#2b79a0")
-                border_color = QColor("#2b79a0")
-                tick_color = QColor("#ffffff")
-            else:
-                bg_color = QColor("#32414B")
-                border_color = QColor("#888888")
-                tick_color = Qt.transparent
-
-            # 绘制方框
-            painter.setBrush(QBrush(bg_color))
-            painter.setPen(QPen(border_color, 1.5))
-            painter.drawRoundedRect(rect, 3, 3)
-
-            # 绘制对号
-            if checked:
-                painter.setPen(QPen(tick_color, 2))
-                p1 = QPoint(int(size * 0.25), int(size * 0.45))
-                p2 = QPoint(int(size * 0.45), int(size * 0.70))
-                p3 = QPoint(int(size * 0.75), int(size * 0.25))
-                painter.drawLine(p1, p2)
-                painter.drawLine(p2, p3)
-
-            painter.end()
-            self._checkbox_cache[key] = pixmap
-
-        return self._checkbox_cache[key]
-
-    def helpEvent(self, event, view, option, index):
-        """处理 ToolTip 事件"""
-        if event.type() == QEvent.Type.ToolTip:
-            rect = option.rect
-            bottom_row_y = rect.top() + 40
-            left_margin = rect.left() + 5
-            input_rect = QRect(left_margin, bottom_row_y, rect.width() - 10, 30)
-
-            if input_rect.contains(event.pos()):
-                QToolTip.showText(event.globalPos(), tr("Double-click the text box to edit the subtitles"))
-                return True
-
-        return super().helpEvent(event, view, option, index)
-
-    def sizeHint(self, option, index):
-        return QSize(option.rect.width(), self.row_height)
-
-    def paint(self, painter, option, index):
-        item = index.data(SubtitleSpeakerModel.RoleRawData)
-
-        # 基础数据
-        text = item['text']
-        spkid = item.get('display_spkid', '')
-        line_idx = item['line']
-        is_checked = item['checked']
-        assigned_role = item.get('role', '')
-        time_str = item.get('time_str', '')
-
-        painter.save()
-
-        # 获取缓存的字体度量
-        fm = self._get_font_metrics(painter)
-
-        # 0. 绘制选中背景
-        if option.state & QStyle.StateFlag.State_Selected:
-            painter.fillRect(option.rect, option.palette.highlight())
-
-        rect = option.rect
-
-        # 布局定义
-        top_y = rect.top() + 8
-        content_x = rect.left() + 10
-
-        # 1. 绘制 "[Index] SpkID"
-        info_text = f"[{line_idx}] {spkid}"
-        if option.state & QStyle.StateFlag.State_Selected:
-            painter.setPen(option.palette.highlightedText().color())
-        else:
-            painter.setPen(option.palette.text().color())
-
-        painter.drawText(content_x, top_y + 12, info_text)
-
-        # 计算文字宽度
-        w_info = fm.horizontalAdvance(info_text)
-        content_x += w_info + 15
-
-        # 2. 绘制复选框 (使用缓存的pixmap)
-        cb_pixmap = self._get_checkbox_pixmap(is_checked, 16)
-        painter.drawPixmap(content_x, top_y, cb_pixmap)
-
-        content_x += 25
-
-        # 3. 绘制分配的角色
-        if assigned_role:
-            if option.state & QStyle.StateFlag.State_Selected:
-                painter.setPen(QColor("#ffcccc"))
-            else:
-                painter.setPen(QColor("#ff0000"))
-            painter.drawText(content_x, top_y + 12, assigned_role)
-            content_x += fm.horizontalAdvance(assigned_role) + 15
-        else:
-            content_x += 5
-
-        # 4. 绘制时间
-        if option.state & QStyle.StateFlag.State_Selected:
-            painter.setPen(option.palette.highlightedText().color())
-        else:
-            painter.setPen(option.palette.text().color())
-        painter.drawText(content_x, top_y + 12, time_str)
-
-        # 5. 绘制下半部分：模拟文本输入框
-        input_rect = QRect(rect.left() + 5, rect.top() + 35, rect.width() - 10, 30)
-
-        input_bg = option.palette.base().color()
-        border_col = QColor("#455364")
-        painter.setBrush(QBrush(input_bg))
-        painter.setPen(QPen(border_col))
-        painter.drawRoundedRect(input_rect, 4, 4)
-
-        # 画文字
-        painter.setPen(option.palette.windowText().color())
-        text_draw_rect = input_rect.adjusted(4, 0, -4, 0)
-        elided_text = fm.elidedText(text, Qt.TextElideMode.ElideRight, text_draw_rect.width())
-        painter.drawText(text_draw_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, elided_text)
-
-        painter.restore()
-
-    def editorEvent(self, event, model, option, index):
-        """处理点击事件"""
-        if event.type() == QEvent.Type.MouseButtonRelease:
-            # 复选框位置计算
-            item = index.data(SubtitleSpeakerModel.RoleRawData)
-            spkid = item.get('display_spkid', '')
-            line_idx = item['line']
-
-            # 使用缓存的字体度量或创建新的
-            fm = QFontMetrics(option.font)
-            info_text = f"[{line_idx}] {spkid}"
-            w_info = fm.horizontalAdvance(info_text)
-
-            content_x = option.rect.left() + 10 + w_info + 15
-            top_y = option.rect.top() + 8
-            cb_rect = QRect(content_x, top_y, 16, 16)
-            click_rect = cb_rect.adjusted(-2, -2, 2, 2)
-
-            if click_rect.contains(event.pos()):
-                current_state = model.data(index, SubtitleSpeakerModel.RoleChecked)
-                model.setData(index, not current_state, SubtitleSpeakerModel.RoleChecked)
-                return True
-
-        return super().editorEvent(event, model, option, index)
-
-    def createEditor(self, parent, option, index):
-        editor = QLineEdit(parent)
-        return editor
-
-    def setEditorData(self, editor, index):
-        text = index.model().data(index, Qt.ItemDataRole.EditRole)
-        editor.setText(text)
-
-    def setModelData(self, editor, model, index):
-        model.setData(index, editor.text(), Qt.ItemDataRole.EditRole)
-
-    def updateEditorGeometry(self, editor, option, index):
-        rect = option.rect
-        editor.setGeometry(rect.left() + 5, rect.top() + 35, rect.width() - 10, 30)
-
-
-# ===========================================================================
-# 3. 主窗口
 class SpeakerAssignmentDialog(QDialog):
     def __init__(
             self,
@@ -354,15 +41,19 @@ class SpeakerAssignmentDialog(QDialog):
         if source_sub:
             sour_pt = Path(source_sub)
             if sour_pt.as_posix() and not sour_pt.samefile(Path(target_sub)):
-                self.source_srtstring = sour_pt.read_text(encoding="utf-8")
+                try:
+                    self.source_srtstring = sour_pt.read_text(encoding="utf-8")
+                except:
+                    self.source_srtstring = ""
 
         self.srt_list_dict = tools.get_subtitle_from_srt(self.target_sub)
 
+        # 说话人数据初始化
         self.speaker_list_sub = []
         self.speakers = {}
         try:
-            _list_sub = [] if not Path(f'{self.cache_folder}/speaker.json').exists() else json.loads(
-                Path(f'{self.cache_folder}/speaker.json').read_text(encoding='utf-8'))
+            spk_json_path = Path(f'{self.cache_folder}/speaker.json')
+            _list_sub = [] if not spk_json_path.exists() else json.loads(spk_json_path.read_text(encoding='utf-8'))
             _set = set(_list_sub) if _list_sub else None
             if _set and len(_set) > 1:
                 self.speaker_list_sub = _list_sub
@@ -374,32 +65,24 @@ class SpeakerAssignmentDialog(QDialog):
 
         self.setWindowTitle(tr("zidonghebingmiaohou"))
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setMinimumWidth(1000)
-        self.setMinimumHeight(600)
-        self.setWindowFlags(Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMaximizeButtonHint)
+        self.setMinimumWidth(int(parent.width*0.95))
+        self.setMinimumHeight(int(parent.height*0.95))
+        self.setWindowFlags(
+        Qt.WindowStaysOnTopHint |       # 2. 始终在最顶层
+            Qt.WindowTitleHint |            # 3. 显示标题栏
+            Qt.CustomizeWindowHint |        # 4. 允许自定义标题栏按钮（否则OS会强制加关闭按钮）
+            Qt.WindowMaximizeButtonHint     # 5. 只加最大化按钮，不加关闭按钮
+        )
 
         main_layout = QVBoxLayout(self)
-        innerc_layout = QHBoxLayout()
-
-        if self.source_srtstring:
-            left_widget = QWidget()
-            left_layout = QVBoxLayout(left_widget)
-            self.raw_srt_edit = QPlainTextEdit()
-            self.raw_srt_edit.setPlainText(self.source_srtstring)
-            self.raw_srt_edit.setReadOnly(True)
-            tiplabel = QLabel(tr("This is the original language subtitles for comparison reference"))
-            tiplabel.setStyleSheet("""color:#aaaaaa""")
-            left_layout.addWidget(tiplabel)
-            left_layout.addWidget(self.raw_srt_edit)
-            innerc_layout.addWidget(left_widget, stretch=2)
-
+        
+        # --- 顶部：倒计时与提示 ---
         self.count_down = int(float(config.settings.get('countdown_sec', 1)))
-
         top_layout = QVBoxLayout()
         hstop = QHBoxLayout()
 
         self.prompt_label = QLabel(tr("This window will automatically close after the countdown ends"))
-        self.prompt_label.setStyleSheet('font-size:14px;text-align:center;color:#aaaaaa')
+        self.prompt_label.setStyleSheet('font-size:14px;color:#aaaaaa')
         self.prompt_label.setWordWrap(True)
         hstop.addWidget(self.prompt_label)
 
@@ -411,26 +94,14 @@ class SpeakerAssignmentDialog(QDialog):
         hstop.addWidget(self.stop_button)
 
         top_layout.addLayout(hstop)
-
         prompt_label2 = QLabel(tr("If you need to delete a line of subtitles, just clear the text in that line"))
         prompt_label2.setAlignment(Qt.AlignCenter)
+        prompt_label2.setStyleSheet("color: #dddddd")
         prompt_label2.setWordWrap(True)
         top_layout.addWidget(prompt_label2)
-
         main_layout.addLayout(top_layout)
 
-        self.loading_widget = QWidget()
-        load_layout = QVBoxLayout(self.loading_widget)
-        self.loading_label = QLabel(tr('The subtitle editing interface is rendering'), self)
-        self.loading_label.setAlignment(Qt.AlignCenter)
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(1)
-
-        load_layout.addWidget(self.loading_label)
-        load_layout.addWidget(self.progress_bar)
-        main_layout.addWidget(self.loading_widget)
-
-        # 查找替换
+        # --- 查找替换区域 ---
         search_replace_layout = QHBoxLayout()
         search_replace_layout.addStretch()
         self.search_input = QLineEdit()
@@ -448,33 +119,53 @@ class SpeakerAssignmentDialog(QDialog):
         replace_button.clicked.connect(self.replace_text)
         search_replace_layout.addWidget(replace_button)
         search_replace_layout.addStretch()
-
         main_layout.addLayout(search_replace_layout)
-        right_widget = QWidget()
-        self.right_layout = QVBoxLayout(right_widget)
 
-        # 初始化 List View
-        self.list_view = QListView()
-        self.list_view.setUniformItemSizes(True)
-        self.list_view.setResizeMode(QListView.ResizeMode.Adjust)
-        self.list_view.setVisible(False)
-        self.list_view.setTabKeyNavigation(True)
-        self.list_view.setSelectionMode(QListView.ExtendedSelection)
+        # --- 中间内容区域 ---
+        content_layout = QHBoxLayout()
+        
+        # 左侧：源字幕参考
+        if self.source_srtstring:
+            left_widget = QWidget()
+            left_layout = QVBoxLayout(left_widget)
+            self.raw_srt_edit = QPlainTextEdit()
+            self.raw_srt_edit.setPlainText(self.source_srtstring)
+            self.raw_srt_edit.setReadOnly(True)
+            self.raw_srt_edit.setStyleSheet("color: #aaaaaa;")
+            tiplabel = QLabel(tr("This is the original language subtitles for comparison reference"))
+            tiplabel.setStyleSheet("color:#aaaaaa")
+            left_layout.addWidget(tiplabel)
+            left_layout.addWidget(self.raw_srt_edit)
+            content_layout.addWidget(left_widget, stretch=2)
 
-        # 设置垂直滚动模式为按像素滚动，更平滑
-        self.list_view.setVerticalScrollMode(QListView.ScrollMode.ScrollPerPixel)
+        # 右侧主区域
+        self.right_widget = QWidget()
+        self.right_layout = QVBoxLayout(self.right_widget)
+        
+        # Loading 区域
+        self.loading_widget = QWidget()
+        load_layout = QVBoxLayout(self.loading_widget)
+        self.loading_label = QLabel(tr('Loading...'), self)
+        self.loading_label.setAlignment(Qt.AlignCenter)
+        load_layout.addWidget(self.loading_label)
+        self.right_layout.addWidget(self.loading_widget)
 
-        # 如果 speakers 不为 None，则右侧分为上下两部分
-        if self.speakers:
-            upper_widget = self.create_speaker_assignment_area()
-            self.right_layout.addWidget(upper_widget)
-            self.right_layout.addWidget(self.list_view)
-        else:
-            self.right_layout.addWidget(self.list_view)
+        # 表格容器
+        self.table_container = QWidget()
+        self.table_container_layout = QVBoxLayout(self.table_container)
+        self.table_container.setVisible(False)
+        self.right_layout.addWidget(self.table_container)
+        
+        # 底部按钮容器
+        self.bottom_button_container = QWidget()
+        self.bottom_button_container_layout = QHBoxLayout(self.bottom_button_container)
+        self.bottom_button_container.setVisible(False)
+        self.right_layout.addWidget(self.bottom_button_container)
 
-        innerc_layout.addWidget(right_widget, stretch=7)
+        content_layout.addWidget(self.right_widget, stretch=7)
+        main_layout.addLayout(content_layout, stretch=1)
 
-        # 底部保存按钮
+        # --- 底部按钮 ---
         self.save_button = QPushButton(tr("nextstep"))
         self.save_button.setCursor(Qt.PointingHandCursor)
         self.save_button.setMinimumSize(QSize(300, 35))
@@ -493,7 +184,7 @@ class SpeakerAssignmentDialog(QDialog):
 
         cancel_button = QPushButton(tr("Terminate this mission"))
         cancel_button.setCursor(Qt.PointingHandCursor)
-        cancel_button.setStyleSheet("""background-color:transparent""")
+        cancel_button.setStyleSheet("background-color:transparent;color:#ff0")
         cancel_button.setMinimumSize(QSize(150, 30))
         cancel_button.clicked.connect(self.cancel_and_close)
 
@@ -505,32 +196,362 @@ class SpeakerAssignmentDialog(QDialog):
         bottom_layout.addWidget(cancel_button)
         bottom_layout.addStretch()
 
-        main_layout.addLayout(innerc_layout)
         main_layout.addLayout(bottom_layout)
 
-        self.setLayout(main_layout)
+        # 延迟加载表格
+        QTimer.singleShot(10, self.load_table)
 
-        # 使用更短的延迟
-        QTimer.singleShot(50, self.lazy_load_interface)
 
-    def lazy_load_interface(self):
-        """延迟加载界面"""
-        # 分批处理，避免阻塞UI
-        self.create_subtitle_assignment_area()
-        QApplication.processEvents()
+    def load_table(self):
+        """极致性能加载表格"""
+        if not self.isVisible():
+            return
 
-        def _finish():
-            self.list_view.setVisible(True)
+        try:
+            # 1. 创建 QTableWidget（比 Model/View 快得多）
+            self.table = QTableWidget()
+            
+            # 2. 【极致性能配置】禁用所有非必要功能
+            self.table.setColumnCount(6)
+            self.table.setHorizontalHeaderLabels(["Sel", tr("Line"), tr('Speaker'), tr("Dubbing role"), tr("Time Axis"), tr("Subtitle Text")])
+            
+            # 禁用所有视觉效果
+            self.table.setAlternatingRowColors(False)
+            self.table.setShowGrid(False)  # 不显示网格线
+            
+            # 禁用选择
+            self.table.setSelectionMode(QAbstractItemView.NoSelection)
+            self.table.setSelectionBehavior(QAbstractItemView.SelectItems)
+            
+            # 禁用焦点
+            self.table.setFocusPolicy(Qt.NoFocus)
+            
+            # 固定行高，避免动态计算
+            self.table.verticalHeader().setDefaultSectionSize(22)
+            self.table.verticalHeader().setVisible(False)
+            
+            # 列宽设置
+            header = self.table.horizontalHeader()
+            header.setSectionResizeMode(0, QHeaderView.Fixed)  # Sel
+            header.setSectionResizeMode(1, QHeaderView.Fixed)  # ID
+            header.setSectionResizeMode(2, QHeaderView.Fixed)  # Spk
+            header.setSectionResizeMode(3, QHeaderView.Fixed)  # Role
+            header.setSectionResizeMode(4, QHeaderView.Fixed)  # Time
+            header.setSectionResizeMode(5, QHeaderView.Stretch)  # Text
+            
+            self.table.setColumnWidth(0, 30)
+            self.table.setColumnWidth(1, 40)
+            self.table.setColumnWidth(2, 50)
+            self.table.setColumnWidth(3, 150)
+            self.table.setColumnWidth(4, 210)
+            
+            # 最小样式
+            self.table.setStyleSheet("""
+                QTableWidget {
+                    color: #eeeeee;
+                    border: none;
+                }
+                QHeaderView::section {
+                    background-color: #2b2b2b;
+                    color: white;
+                    padding: 2px;
+                    border: none;
+                    border-right: 1px solid #3e3e3e;
+                }
+                QTableWidget::item {
+                    padding: 2px;
+                }
+            """)
+            
+            # 3. 预计算所有显示数据
+            speaker_keys = list(self.speakers.keys()) if self.speakers else []
+            default_spk = speaker_keys[0] if speaker_keys else ''
+            
+            self.display_data = []
+            for i, item in enumerate(self.srt_list_dict):
+                # Speaker ID
+                if self.speakers and i < len(self.speaker_list_sub):
+                    spk = self.speaker_list_sub[i]
+                else:
+                    spk = default_spk if self.speakers else ''
+                
+                # 时间字符串
+                duration = (item['end_time'] - item['start_time']) / 1000.0
+                time_str = f"{item['startraw']}->{item['endraw']}({duration:.1f}s)"
+                
+                self.display_data.append({
+                    'line': item['line'],
+                    'spk': spk,
+                    'time_str': time_str,
+                    'text': item['text'],
+                    'startraw': item['startraw'],
+                    'endraw': item['endraw'],
+                    'start_time': item['start_time'],
+                    'end_time': item['end_time'],
+                    'checked': False,
+                    'role': ''
+                })
+            
+            # 4. 设置行数
+            total_rows = len(self.display_data)
+            self.table.setRowCount(total_rows)
+            
+            # 5. 【批量填充数据】一次性创建所有单元格
+            self._batch_fill_table(0, min(total_rows, 100))  # 先填充前100行
+            
+            # 6. 添加到布局
+            self.table_container_layout.addWidget(self.table)
+            
+            # 7. 添加底部按钮
+            self._setup_bottom_buttons()
+            
+            # 8. 显示表格
             self.loading_widget.setVisible(False)
+            self.table_container.setVisible(True)
+            self.bottom_button_container.setVisible(True)
+            
+            # 9. 延迟加载剩余数据
+            if total_rows > 100:
+                QTimer.singleShot(0, lambda: self._load_remaining_rows(100))
+            
+            # 10. 启动倒计时
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.update_countdown)
             self.timer.start(1000)
             self._active()
+            
+        except Exception as e:
+            print(f"Load table failed: {e}")
+            import traceback
+            traceback.print_exc()
+            self.loading_label.setText(f"Error: {e}")
 
-        QTimer.singleShot(30, _finish)
+    def _batch_fill_table(self, start_row, end_row):
+        """批量填充表格数据 - 减少重绘"""
+        for row in range(start_row, end_row):
+            data = self.display_data[row]
+            
+            # 第0列：复选框
+            chk_item = QTableWidgetItem()
+            chk_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
+            chk_item.setCheckState(Qt.Unchecked)
+            self.table.setItem(row, 0, chk_item)
+            
+            # 第1列：ID（只读）
+            id_item = QTableWidgetItem(str(data['line']))
+            id_item.setFlags(Qt.ItemIsEnabled)  # 只读
+            self.table.setItem(row, 1, id_item)
+            
+            # 第2列：Speaker（只读）
+            spk_item = QTableWidgetItem(data['spk'])
+            spk_item.setFlags(Qt.ItemIsEnabled)
+            self.table.setItem(row, 2, spk_item)
+            
+            # 第3列：Role（只读，显示用）
+            role_item = QTableWidgetItem(tr('Default Role'))
+            role_item.setFlags(Qt.ItemIsEnabled)
+            role_item.setForeground(QColor("#ff4d4d"))
+            self.table.setItem(row, 3, role_item)
+            
+            # 第4列：Time（只读）
+            time_item = QTableWidgetItem(data['time_str'])
+            time_item.setFlags(Qt.ItemIsEnabled)
+            self.table.setItem(row, 4, time_item)
+            
+            # 第5列：Text（可编辑）
+            text_item = QTableWidgetItem(data['text'])
+            text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+            self.table.setItem(row, 5, text_item)
+
+    def _load_remaining_rows(self, start_row):
+        """延迟加载剩余行 - 避免界面冻结"""
+        total = len(self.display_data)
+        batch_size = 200  # 每批加载200行
+        
+        end_row = min(start_row + batch_size, total)
+        self._batch_fill_table(start_row, end_row)
+        
+        if end_row < total:
+            # 还有数据，继续加载
+            QTimer.singleShot(0, lambda: self._load_remaining_rows(end_row))
+
+    def _setup_bottom_buttons(self):
+        """设置底部按钮区域"""
+        # 如果有说话人，添加说话人分配区域
+        if self.speakers:
+            speaker_widget = self._create_speaker_assignment_area()
+            # 插入到表格容器之前
+            self.right_layout.insertWidget(0, speaker_widget)
+        
+        # 底部按钮
+        self.subtitle_combo = QComboBox()
+        self.subtitle_combo.addItems(self.all_voices)
+        self.bottom_button_container_layout.addWidget(self.subtitle_combo)
+
+        assign_button = QPushButton(tr("Assign roles to selected subtitles"))
+        assign_button.setCursor(Qt.PointingHandCursor)
+        assign_button.clicked.connect(self.assign_subtitle_roles)
+        assign_button.setMinimumSize(QSize(180, 28))
+        self.bottom_button_container_layout.addWidget(assign_button)
+
+        self.listen_button = QPushButton(tr("Trial dubbing"))
+        self.listen_button.setCursor(Qt.PointingHandCursor)
+        self.listen_button.clicked.connect(self.listen_dubbing)
+        self.bottom_button_container_layout.addWidget(self.listen_button)
+        
+        labe_tips=QLabel(tr('If not specified separately'))
+        
+        self.bottom_button_container_layout.addWidget(labe_tips)
+        self.bottom_button_container_layout.addStretch()
+
+    def _create_speaker_assignment_area(self):
+        """创建说话人分配区域"""
+        group = QGroupBox("")
+        group.setStyleSheet("QGroupBox{border:none;}")
+        layout = QVBoxLayout(group)
+        label_tips = QLabel(tr("Assign a timbre to each speaker"))
+        label_tips.setStyleSheet("color:#aaaaaa")
+        layout.addWidget(label_tips)
+
+        self.speaker_checks = {}
+        self.speaker_labels = {}
+
+        grid_layout = QGridLayout()
+        grid_layout.setContentsMargins(0, 5, 0, 5)
+        grid_layout.setHorizontalSpacing(15)
+        grid_layout.setVerticalSpacing(5)
+
+        for i, spk_id in enumerate(self.speakers):
+            row = i // 3
+            col = (i % 3) * 2
+
+            check = QCheckBox(f'{tr("Speaker")}{spk_id}')
+            check.setStyleSheet("color: #dddddd;")
+            
+            label = QLabel("")
+            label.setMinimumWidth(80)
+            label.setStyleSheet("color: #ffcccc;")
+
+            grid_layout.addWidget(check, row, col)
+            grid_layout.addWidget(label, row, col + 1)
+
+            self.speaker_checks[check] = spk_id
+            self.speaker_labels[check] = label
+
+        layout.addLayout(grid_layout)
+
+        bottom_row = QHBoxLayout()
+        self.speaker_combo = QComboBox()
+        self.speaker_combo.addItems(self.all_voices)
+        
+        lbl = QLabel(tr('Dubbing role'))
+        lbl.setStyleSheet("color: #dddddd;")
+        bottom_row.addWidget(lbl)
+        bottom_row.addWidget(self.speaker_combo)
+
+        assign_button = QPushButton(tr("Assign roles"))
+        assign_button.setCursor(Qt.PointingHandCursor)
+        assign_button.clicked.connect(self.assign_speaker_roles)
+        assign_button.setMinimumSize(QSize(120, 26))
+        bottom_row.addWidget(assign_button)
+        bottom_row.addStretch()
+
+        layout.addLayout(bottom_row)
+        return group
+
+    def assign_speaker_roles(self):
+        """分配角色给说话人"""
+        selected_role = self.speaker_combo.currentText()
+        role_value = None if selected_role == "No" else selected_role
+
+        for check, spk_id in self.speaker_checks.items():
+            if check.isChecked():
+                self.speakers[spk_id] = role_value
+                self.speaker_labels[check].setText(selected_role if role_value else "")
+                check.setChecked(False)
+        
+        # 更新表格中的 Role 列
+        self._update_role_column()
+
+    def _update_role_column(self):
+        """更新 Role 列显示"""
+        for row, data in enumerate(self.display_data):
+            # 优先显示行内角色，否则显示说话人对应的全局角色
+            role = data.get('role', '')
+            if not role and data['spk']:
+                role = self.speakers.get(data['spk'], '')
+            
+            item = self.table.item(row, 3)
+            if item:
+                item.setText(role if role else tr('Default Role'))
+
+    def assign_subtitle_roles(self):
+        """分配角色给选中的行"""
+        selected_role = self.subtitle_combo.currentText()
+        role_value = None if selected_role == "No" else selected_role
+
+        for row in range(self.table.rowCount()):
+            chk_item = self.table.item(row, 0)
+            if chk_item and chk_item.checkState() == Qt.Checked:
+                self.display_data[row]['role'] = role_value
+                chk_item.setCheckState(Qt.Unchecked)
+        
+        self._update_role_column()
+
+    def replace_text(self):
+        """替换文本"""
+        search_text = self.search_input.text()
+        replace_text = self.replace_input.text()
+
+        if not search_text:
+            return
+
+        self.table.setUpdatesEnabled(False)  # 禁用更新，提升性能
+        
+        for row, data in enumerate(self.display_data):
+            if search_text in data['text']:
+                new_text = data['text'].replace(search_text, replace_text)
+                data['text'] = new_text
+                item = self.table.item(row, 5)
+                if item:
+                    item.setText(new_text)
+        
+        self.table.setUpdatesEnabled(True)  # 恢复更新
+
+    def listen_dubbing(self):
+        """试听配音"""
+        selected_role = self.subtitle_combo.currentText()
+        role_value = None if selected_role == "No" else selected_role
+        if not role_value:
+            return
+
+        first_text = self.display_data[0]['text'] if self.display_data else ''
+        if not first_text:
+            return
+
+        from videotrans.util.ListenVoice import ListenVoice
+        
+        def feed(d):
+            self.listen_button.setText(tr("Trial dubbing"))
+            self.listen_button.setDisabled(False)
+            if d != "ok":
+                tools.show_error(d)
+
+        wk = ListenVoice(parent=self, queue_tts=[{
+            "text": first_text,
+            "role": role_value,
+            "filename": config.TEMP_DIR + f"/{time.time()}-onlyone_setrole.wav",
+            "tts_type": self.tts_type}],
+            language=self.target_language,
+            tts_type=self.tts_type)
+        wk.uito.connect(feed)
+        wk.start()
+        self.listen_button.setText('Listening...')
+        self.listen_button.setDisabled(True)
 
     def _active(self):
-        self.parent.activateWindow()
+        if self.parent:
+            self.parent.activateWindow()
 
     def cancel_and_close(self):
         if hasattr(self, 'timer') and self.timer:
@@ -557,238 +578,45 @@ class SpeakerAssignmentDialog(QDialog):
         self.stop_button.deleteLater()
         self.prompt_label.deleteLater()
 
-    def create_speaker_assignment_area(self) -> QWidget:
-        group = QGroupBox("")
-        layout = QVBoxLayout(group)
-        label_tips = QLabel(tr("Assign a timbre to each speaker"))
-        label_tips.setStyleSheet("color:#aaaaaa")
-        layout.addWidget(label_tips)
-
-        self.speaker_checks = {}
-        self.speaker_labels = {}
-
-        # 使用QGridLayout替代多行QHBoxLayout，更高效
-        from PySide6.QtWidgets import QGridLayout
-        grid_layout = QGridLayout()
-        grid_layout.setContentsMargins(0, 5, 0, 5)
-        grid_layout.setHorizontalSpacing(15)
-        grid_layout.setVerticalSpacing(5)
-
-        for i, spk_id in enumerate(self.speakers):
-            row = i // 3
-            col = (i % 3) * 2  # 每列占2个位置（check和label）
-
-            check = QCheckBox(f'{tr("Speaker")}{spk_id}')
-            label = QLabel("")
-            label.setMinimumWidth(100)
-
-            grid_layout.addWidget(check, row, col)
-            grid_layout.addWidget(label, row, col + 1)
-
-            self.speaker_checks[check] = spk_id
-            self.speaker_labels[check] = label
-
-        layout.addLayout(grid_layout)
-
-        # 底部操作行
-        bottom_row = QHBoxLayout()
-        self.speaker_combo = QComboBox()
-
-        for voice in self.all_voices:
-            self.speaker_combo.addItem(voice)
-
-        bottom_row.addWidget(QLabel(tr('Dubbing role')))
-        bottom_row.addWidget(self.speaker_combo)
-
-        assign_button = QPushButton(tr("Assign roles to speakers"))
-        assign_button.setCursor(Qt.PointingHandCursor)
-        assign_button.clicked.connect(self.assign_speaker_roles)
-        assign_button.setMinimumSize(QSize(150, 30))
-        bottom_row.addWidget(assign_button)
-        bottom_row.addStretch()
-
-        layout.addLayout(bottom_row)
-
-        return group
-
-    def assign_speaker_roles(self):
-        selected_role = self.speaker_combo.currentText()
-        role_value = None if selected_role == "No" else selected_role
-
-        for check, spk_id in self.speaker_checks.items():
-            if check.isChecked():
-                self.speakers[spk_id] = role_value
-                label = self.speaker_labels[check]
-                label.setText(selected_role if role_value else "")
-
-        for check in self.speaker_checks:
-            if check.isChecked():
-                check.setChecked(False)
-
-    def create_subtitle_assignment_area(self):
-        # 0. 添加提示 Label
-        label_tips = QLabel(tr('assign a specific voice to a line of subtitles'))
-        label_tips.setWordWrap(True)
-        label_tips.setStyleSheet("color:#aaaaaa")
-
-        idx = self.right_layout.indexOf(self.list_view)
-        if idx != -1:
-            self.right_layout.insertWidget(idx, label_tips)
-
-        # 1. 创建 Model
-        self.model = SubtitleSpeakerModel(
-            subtitles=self.srt_list_dict,
-            speaker_list_sub=self.speaker_list_sub,
-            speakers=self.speakers,
-            parent=self
-        )
-
-        # 2. 创建 Delegate
-        self.delegate = SubtitleSpeakerDelegate(self.list_view)
-
-        # 3. 绑定
-        self.list_view.setModel(self.model)
-        self.list_view.setItemDelegate(self.delegate)
-
-        # 进度条更新
-        self.progress_bar.setValue(100)
-        self.loading_label.setText(tr("Data is ready rendering is in progress"))
-        QApplication.processEvents()
-
-        # 4. 创建底部操作栏
-        bottom_row = QHBoxLayout()
-        self.subtitle_combo = QComboBox()
-        for voice in self.all_voices:
-            self.subtitle_combo.addItem(voice)
-        bottom_row.addWidget(self.subtitle_combo)
-
-        assign_button = QPushButton(tr("Assign roles to selected subtitles"))
-        assign_button.setCursor(Qt.PointingHandCursor)
-        assign_button.clicked.connect(self.assign_subtitle_roles)
-        assign_button.setMinimumSize(QSize(200, 30))
-        bottom_row.addWidget(assign_button)
-
-        self.listen_button = QPushButton(tr("Trial dubbing"))
-        self.listen_button.setCursor(Qt.PointingHandCursor)
-        self.listen_button.clicked.connect(self.listen_dubbing)
-
-        bottom_row.addWidget(self.listen_button)
-        bottom_row.addStretch()
-
-        self.right_layout.addLayout(bottom_row)
-
-    def listen_dubbing(self):
-        selected_role = self.subtitle_combo.currentText()
-        role_value = None if selected_role == "No" else selected_role
-        if not role_value:
-            return
-
-        first_item = self.model.data(self.model.index(0), SubtitleSpeakerModel.RoleRawData)
-        if not first_item:
-            return
-
-        from videotrans.util.ListenVoice import ListenVoice
-        import time
-
-        def feed(d):
-            self.listen_button.setText(tr("Trial dubbing"))
-            self.listen_button.setDisabled(False)
-            if d == "ok":
-                QMessageBox.information(self, "ok", "Test Ok")
-            else:
-                tools.show_error(d)
-
-        wk = ListenVoice(parent=self, queue_tts=[{
-            "text": first_item['text'],
-            "role": role_value,
-            "filename": config.TEMP_DIR + f"/{time.time()}-onlyone_setrole.wav",
-            "tts_type": self.tts_type}],
-            language=self.target_language,
-            tts_type=self.tts_type)
-        wk.uito.connect(feed)
-        wk.start()
-        self.listen_button.setText('Listening...')
-        self.listen_button.setDisabled(True)
-
-    def replace_text(self):
-        """优化的文本替换，使用批量更新"""
-        search_text = self.search_input.text()
-        replace_text = self.replace_input.text()
-
-        if not search_text:
-            return
-
-        source_data = self.model.get_all_data()
-        changed_indices = []
-        changed_values = []
-
-        for i, item in enumerate(source_data):
-            if search_text in item['text']:
-                item['text'] = item['text'].replace(search_text, replace_text)
-                changed_indices.append(self.model.index(i))
-                changed_values.append(item['text'])
-
-        # 批量发射信号，只更新一次视图
-        if changed_indices:
-            self.model.dataChanged.emit(
-                changed_indices[0],
-                changed_indices[-1],
-                [Qt.DisplayRole, Qt.EditRole]
-            )
-
-    def assign_subtitle_roles(self):
-        """优化的角色分配，使用批量更新"""
-        selected_role = self.subtitle_combo.currentText()
-        role_value = None if selected_role == "No" else selected_role
-
-        source_data = self.model.get_all_data()
-        changed_indices = []
-
-        for i, item in enumerate(source_data):
-            if item.get('checked', False):
-                item['role'] = role_value
-                item['checked'] = False
-                changed_indices.append(i)
-
-        # 批量发射信号
-        if changed_indices:
-            first_idx = self.model.index(changed_indices[0])
-            last_idx = self.model.index(changed_indices[-1])
-            self.model.dataChanged.emit(
-                first_idx,
-                last_idx,
-                [SubtitleSpeakerModel.RoleChecked, SubtitleSpeakerModel.RoleRole]
-            )
-
     def save_and_close2(self):
         self.accept()
 
     def opendir_sub(self):
         QDesktopServices.openUrl(QUrl.fromLocalFile(Path(self.target_sub).parent.as_posix()))
 
+
+    def closeEvent(self, event):
+        event.ignore()  # 忽略关闭请求，窗口保持不动
+    
     def save_and_close(self):
         self.save_button.setDisabled(True)
         config.line_roles = {}
         srt_str_list = []
 
-        source_data = self.model.get_all_data()
         speaker_keys = list(self.speakers.keys()) if self.speakers else []
         default_spk = speaker_keys[0] if speaker_keys else ''
 
-        for i, row_item in enumerate(source_data):
-            text = row_item['text'].strip()
-            srt_str_list.append(f'{row_item["line"]}\n{row_item["startraw"]} --> {row_item["endraw"]}\n{text}')
+        for row, data in enumerate(self.display_data):
+            # 获取当前文本（从表格中获取最新值）
+            text_item = self.table.item(row, 5)
+            text = text_item.text().strip() if text_item else data['text'].strip()
+            
+            srt_str_list.append(f'{data["line"]}\n{data["startraw"]} --> {data["endraw"]}\n{text}')
 
-            # 获取角色逻辑
-            role = row_item.get('role')
-            if not role and self.speakers:
-                spk_id = self.speaker_list_sub[i] if i < len(self.speaker_list_sub) else default_spk
-                if spk_id:
-                    role = self.speakers.get(spk_id)
+            # 角色保存逻辑
+            role = data.get('role', '')
+            if not role and self.speakers and data['spk']:
+                role = self.speakers.get(data['spk'], '')
 
             if role:
-                config.line_roles[f'{row_item["line"]}'] = role
+                config.line_roles[str(data["line"])] = role
 
-        Path(self.target_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
+        try:
+            Path(self.target_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
+        except Exception as e:
+            config.logger.error(f"Save subtitle failed: {e}")
+            QMessageBox.critical(self, "Error", f"Save failed: {e}")
+            self.save_button.setDisabled(False)
+            return
 
         self.accept()

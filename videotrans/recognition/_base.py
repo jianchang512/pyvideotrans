@@ -146,6 +146,10 @@ class BaseRecogn(BaseCon):
                 # 移除无效字幕行,全部由符号组成的行
                 if text and not re.match(r'^[,.?!;\'"_，。？；‘’“”！~@#￥%…&*（【】）｛｝《、》\$\(\)\[\]\{\}=+\<\>\s-]+$', text):
                     it['line'] = len(srt_list) + 1
+                    if not it.get('startraw'):
+                        it['startraw']=tools.ms_to_time_string(ms=it['start_time'])
+                        it['endraw']=tools.ms_to_time_string(ms=it['end_time'])
+                        it['time']=f"{it['startraw']} --> {it['endraw']}"
                     srt_list.append(it)
 
             if not srt_list:

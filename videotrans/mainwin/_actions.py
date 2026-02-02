@@ -875,7 +875,9 @@ class WinAction(WinActionSub):
                 cache_folder=cache_folder,
                 language=language,
                 parent=self.main
+                
             )
+            #dialog.showMaximized()
             
             if dialog.exec():
                 self.set_djs_timeout()
@@ -889,6 +891,7 @@ class WinAction(WinActionSub):
                 source_sub=config.onlyone_source_sub,
                 parent=self.main
             )
+            #dialog.showMaximized()
             
             if dialog.exec():
                 self.set_djs_timeout()
@@ -908,6 +911,7 @@ class WinAction(WinActionSub):
                 parent=self.main
                 
             )
+            #dialog.showMaximized()
             if dialog.exec():
                 self.set_djs_timeout()                
             else:

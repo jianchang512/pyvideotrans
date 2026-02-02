@@ -239,8 +239,8 @@ def openwin():
             "align_sub_audio":False,
 
         }
-        # print(f'{cfg=}')
-        # return
+
+
         trk = DubbingSrt(cfg=TaskCfg(**cfg | video_obj),subs=winobj.subtitles,is_multi_role=True,out_ext=winobj.out_format.currentText())
         config.dubb_queue.put_nowait(trk)
         from videotrans.task.child_win_sign import SignThread
