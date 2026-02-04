@@ -85,8 +85,6 @@ HUGGINGFACE_ASR_MODELS={
 "zh-plus/faster-whisper-large-v2-japanese-5k-steps":['ja'],
 "JhonVanced/whisper-large-v3-japanese-4k-steps-ct2":['ja'],
 
-# pipeline whisper
-"suzii/vi-whisper-large-v3-turbo-v1":['vi'],
 
 
 # pipeline whisper

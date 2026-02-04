@@ -170,6 +170,6 @@ class Ui_f5ttsform(object):
 
         f5ttsform.setWindowTitle("F5-TTS/Spart-TTS/index-TTS/Dia-TTS")
         self.f5tts_role.setPlaceholderText(
-            tr("Fill in the reference audio information, format as follows,For example: One line per group,123.wav#Hello, my friend"))
+            tr("Reference Audio#Audio Text"))
         self.tips.setPlainText(tips)
         self.save.setText(tr("Save"))

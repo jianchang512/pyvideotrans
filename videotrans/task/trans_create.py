@@ -900,34 +900,6 @@ class TransCreate(BaseTask):
         line_roles = config.line_roles
         voice_role = self.cfg.voice_role
 
-        # 如果未 音频加速、未视频慢速、未强制对齐、选中了移除字幕间静音，并且音色只有一个，则拼接为纯文本配音
-        # 如果渠道是 edge-tts,并且非多角色配音 
-        _enter_edgetts_single=self.cfg.tts_type == EDGE_TTS and not line_roles
-        if _enter_edgetts_single:
-            if not self.cfg.voice_autorate and not self.cfg.video_autorate and not self.cfg.align_sub_audio and self.cfg.remove_silent_mid:
-                # 或者未自动加速 未视频慢速 未强制对齐  并且移除了字幕间静音
-                _enter_edgetts_single=True
-            else:
-                _enter_edgetts_single=False
-
-        if _enter_edgetts_single:
-            self.ignore_align=True
-            text=""
-            for it in subs:
-                text+=it["text"]+"\n"
-            tmp_name=f'{self.cfg.cache_folder}/edge-tts-single.mp3'
-            asyncio.run(self._edgetts_single(
-                tmp_name,
-                dict(text=text,
-                    voice=tools.get_edge_rolelist(voice_role,locale=self.cfg.target_language_code),
-                    rate=rate,
-                    volume=self.cfg.volume,
-                    pitch=self.cfg.pitch
-                )
-            ))
-            tools.runffmpeg(['-y', '-i', tmp_name, '-b:a', '128k', self.cfg.target_wav])
-            config.logger.debug(f'edge-tts配音，未音频加速，未视频慢速，未强制对齐，已删字幕间静音，使用单独文本配音')
-            return
 
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):

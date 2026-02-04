@@ -567,7 +567,7 @@
   "Watermark width x height": "水印图宽度x高度",
   "What language do you want to translate into": "你希望翻译为哪种语言",
   "When embedding bilingual hard subtitles, please select": "双语硬字幕嵌入时，请选中",
-  "re-segment the sentence.the original segmentation will be used": "LLM重新断句：使用OpenAI或DeepSeek对语音识别后的字幕重新进行断句.\n\n自动修正：使用算法主要基于标点符号重新进行断句，拆分过长字幕或合并过短字幕",
+  "re-segment the sentence.the original segmentation will be used": "LLM重新断句：使用OpenAI或DeepSeek对语音识别后的字幕重新进行断句.\n\n默认断句：语音识别模型基于vad输出的句子",
   "When this item is checked, and the target language is different from the language of the pronunciation will move the translated srt file to the original video location and rename it to the same name as the video.": "选中该项，并且目标语言和发音语言不同时\n将移动翻译后srt文件到原视频位置，并重命名为视频同名",
   "When using AI translation channel, you can translate in srt format, but there may be more empty lines": "当使用AI翻译渠道时，可选以完整srt字幕格式发送请求，效果更好",
   "When using Index-TTS, select v1 or v2.": "当使用Index-TTS时，请选择是v1 还是v2版本",

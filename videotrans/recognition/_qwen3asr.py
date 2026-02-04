@@ -25,9 +25,6 @@ class Qwen3ASRRecogn(BaseRecogn):
         super().__post_init__()
 
 
-    #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-    #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-    #       after=after_log(config.logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
         # 发送请求

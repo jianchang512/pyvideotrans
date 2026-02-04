@@ -30,9 +30,10 @@ def openwin():
         winobj.test_openaitts.setText(tr("Testing..."))
         from videotrans import tts
         import time
+        t = winobj.edit_roles.toPlainText().strip().replace('，', ',').rstrip(',')
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
-            "role": 'alloy',
+            "role": 'alloy' if not t and not t[0].strip() else t[0].strip(),
             "filename": config.TEMP_DIR + f"/{time.time()}-openai.wav",
             "tts_type": tts.OPENAI_TTS}],
                          language="zh",

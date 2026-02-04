@@ -178,7 +178,7 @@ def parse_init(update_data=None):
 
         # 默认显示模型
         "ai302_models": "deepseek-chat,gemini-2.5-flash",
-        'qwenmt_model': "qwen3-max,qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen3-asr-flash",
+        'qwenmt_model': "qwen3-max,qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen3-asr-flash,qwen3-asr-flash-filetrans",
         "openaitts_model": "tts-1,tts-1-hd,gpt-4o-mini-tts",
         "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe,gpt-4o-transcribe-diarize",
         "chatgpt_model": "gpt-5.2,gpt-5.2-pro,gpt-5,gpt-5-mini,gpt-5-nano,gpt-4.1",
