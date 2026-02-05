@@ -83,7 +83,7 @@ class ChatterBoxTTS(BaseTTS):
                 'response_format': 'mp3',
                 'cfg_weight': config.params.get("chatterbox_cfg_weight",'0.3'),
                 'exaggeration': config.params.get("chatterbox_exaggeration",''),
-                'language': self.language
+                'language': self.language.split('-')[0]
             }
             # 发送POST请求，设置合理的超时时间
             response = requests.post(

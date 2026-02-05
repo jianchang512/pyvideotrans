@@ -90,6 +90,7 @@ HUGGINGFACE_ASR_MODELS={
 # pipeline whisper
 "biodatlab/whisper-th-medium":['th'],
 "biodatlab/whisper-th-large-v3":['th'],
+"vinai/Phowhisper-large":['vi'],
 "openai/whisper-large-v2":[],
 "openai/whisper-large-v3":[],
 #"openai/whisper-tiny":[],

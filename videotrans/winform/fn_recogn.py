@@ -164,6 +164,7 @@ def openwin():
             config.params["stt_spk_insert"] = winobj.spk_insert.isChecked()
             config.params["stt_rephrase"] = stt_rephrase
             config.params["stt_fix_punc"] = fix_punc
+            config.params["stt_cuda"] = is_cuda
             config.getset_params(config.params)
             th.start()
 
@@ -327,6 +328,7 @@ def openwin():
         winobj.shibie_startbtn.clicked.connect(shibie_start_fun)
         winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
+        winobj.is_cuda.setChecked(config.params.get("stt_cuda",False))
         winobj.is_cuda.toggled.connect(check_cuda)
         winobj.rephrase.setCurrentIndex(int(config.params.get('stt_rephrase',2)))
         winobj.remove_noise.setChecked(bool(config.params.get('stt_remove_noise')))
