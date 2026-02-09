@@ -1281,7 +1281,7 @@ class TransCreate(BaseTask):
                         "-c:a",
                         "copy",
                         "-vf",
-                        f"subtitles='{subtitles_file}'",
+                        f"subtitles={subtitles_file}",
                         "-movflags",
                         "+faststart",
                         '-crf', str(config.settings.get("crf", 23)),
@@ -1382,7 +1382,7 @@ class TransCreate(BaseTask):
                     cmd.append('copy')
                 cmd += [
                     "-vf",
-                    f"subtitles='{subtitles_file}'",
+                    f"subtitles={subtitles_file}",
                     "-movflags",
                     "+faststart",
                     '-crf',
