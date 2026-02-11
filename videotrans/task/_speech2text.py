@@ -72,7 +72,7 @@ class SpeechToText(BaseTask):
                     "input_file":self.cfg.shibie_audio,
                     "output_file":f"{self.cfg.cache_folder}/removed_noise_{time.time()}.wav",
                     "TEMP_DIR":config.TEMP_DIR,
-                    "is_cuda":self.cfg.cuda
+                    "is_cuda":self.cfg.is_cuda
                 }
                 # 静默失败，不处理
                 try:
@@ -160,7 +160,7 @@ class SpeechToText(BaseTask):
                     audio_file=self.cfg.shibie_audio,
                     detect_language=self.cfg.detect_language,
                     cache_folder=self.cfg.cache_folder,
-                    is_cuda=self.cfg.cuda,
+                    is_cuda=self.cfg.is_cuda,
                     subtitle_type=0,
                     max_speakers=self.max_speakers,
                     llm_post=self.cfg.rephrase == 1
@@ -178,7 +178,7 @@ class SpeechToText(BaseTask):
                 tools.check_and_down_ms(model_id='iic/punc_ct-transformer_cn-en-common-vocab471067-large',callback=self._process_callback)
                 text_dict={f'{it["line"]}':re.sub(r'[,.?!，。？！]',' ',it["text"]) for it in self.source_srt_list}
                 from videotrans.process.prepare_audio import fix_punc
-                kw={"text_dict":text_dict,"TEMP_DIR":config.TEMP_DIR,"is_cuda":self.cfg.cuda}
+                kw={"text_dict":text_dict,"TEMP_DIR":config.TEMP_DIR,"is_cuda":self.cfg.is_cuda}
                 try:
                     _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),kwargs=kw)
                     if _rs:
@@ -251,9 +251,14 @@ class SpeechToText(BaseTask):
                 "subtitles":[ [it['start_time'],it['end_time']] for it in self.source_srt_list],
                 "num_speakers":self.max_speakers,
                 "TEMP_DIR":config.TEMP_DIR,
-                "is_cuda":self.cfg.cuda
+                "is_cuda":self.cfg.is_cuda
         }
         if speaker_type=='built':
+            tools.down_file_from_ms(f'{config.ROOT_DIR}/models/onnx',[
+                "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/seg_model.onnx",
+                "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/nemo_en_titanet_small.onnx",
+                "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"                
+            ],callback=self._process_callback)
             from videotrans.process.prepare_audio import built_speakers as _run_speakers
             del kw['is_cuda']
             kw['num_speakers']=-1 if self.max_speakers<1 else self.max_speakers
@@ -269,7 +274,7 @@ class SpeechToText(BaseTask):
             config.logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
             return
         try:
-            spk_list=self._new_process(callback=_run_speakers,title=title,is_cuda=self.cfg.cuda and speaker_type!='built',kwargs=kw)
+            spk_list=self._new_process(callback=_run_speakers,title=title,is_cuda=self.cfg.is_cuda and speaker_type!='built',kwargs=kw)
             if spk_list:
                 Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')
         except:

@@ -69,7 +69,7 @@ class FasterAll(BaseRecogn):
                 repo_id = _MODELS[self.model_name]
             else:
                 repo_id = self.model_name
-            tools.check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._progress_callback)
+            tools.check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
         # 批量时预先vad切分
         # batch_size==1 时不切分
         if int(config.settings.get('batch_size', 4))>1:
@@ -141,30 +141,5 @@ class FasterAll(BaseRecogn):
 
         raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         return raws
-
-    # data={type,percent,filename,current,total}
-    def _progress_callback(self, data):
-        msg_type = data.get("type")
-        try:
-            percent = float(data.get("percent",'0'))
-        except:
-            percent=1
-            
-        filename = data.get("filename")
-
-        if msg_type == "file":
-
-            # 标签显示当前文件名
-            self._signal(text=f"{config.tr('Downloading please wait')} {filename} {percent:.2f}%")
-
-        else:
-            # === 情况 B：这是总文件计数 (Fetching 4 files) ===
-            # 不要更新进度条！否则会由 100% 突然跳回 25%
-            # 建议只在某个副标签显示总进度，或者干脆忽略
-            current_file_idx = data.get("current")
-            total_files = data.get("total")
-
-            self._signal(text=f"{config.tr('Downloading please wait')}{self.model_name} {current_file_idx}/{total_files}")
-
 
 

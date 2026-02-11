@@ -25,21 +25,8 @@ class SupertonicTTS(BaseTTS):
 
     def _download(self):
         tools.check_and_down_hf(self.model_name,self.model_name, self.local_dir,
-                                    callback=self._progress_callback)
+                                    callback=self._process_callback)
 
-        # data={type,percent,filename,current,total}
-    def _progress_callback(self, data):
-        msg_type = data.get("type")
-        percent = data.get("percent")
-        filename = data.get("filename")
-
-        if msg_type == "file":
-            self._signal(text=f"{filename} {percent:.2f}%")
-        else:
-            current_file_idx = data.get("current")
-            total_files = data.get("total")
-
-            self._signal(text=f"Downloading {current_file_idx}/{total_files} files")
 
 
     def _item_task(self, data_item: dict = None):

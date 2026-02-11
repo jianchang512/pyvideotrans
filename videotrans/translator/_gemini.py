@@ -114,7 +114,7 @@ class Gemini(BaseTrans):
                 contents=contents,
                 config=generate_content_config,
             ):
-                result+=chunk.text
+                result+=chunk.text if chunk.text else ""
                      
             config.logger.debug(f'{result=}')
             if not result:

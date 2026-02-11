@@ -55,9 +55,11 @@ def openai_whisper(
                 0.8,
                 1.0,
             )
-        elif str(temperature).startswith('['):
-            temperature = tuple(str(temperature)[1:-1].split(','))
-
+        elif str(temperature).startswith('[') or  str(temperature).startswith('('):
+            temperature = tuple([float(i) for i in str(temperature)[1:-1].split(',')])
+        else:
+            temperature=float(temperature)
+            
         model = whisper.load_model(
             model_name,
             device=f"cuda:{device_index}" if is_cuda else 'cpu',
@@ -204,8 +206,11 @@ def faster_whisper(
                 0.8,
                 1.0,
             ]
-        elif str(temperature).startswith('['):
-            temperature = str(temperature)[1:-1].split(',')
+        elif str(temperature).startswith('[') or  str(temperature).startswith('('):
+            temperature = [float(i) for i in str(temperature)[1:-1].split(',')]
+        else:
+            temperature=float(temperature)
+            
         if batch_size > 1:
             # 4. 执行批量推理
             # 使用 batched_model.transcribe
@@ -551,6 +556,146 @@ def _remove_unwanted_characters(text: str) -> str:
     return re.sub(allowed_characters, '', text)
 
 
+def qwen3asr_fun0(
+        ROOT_DIR=None,
+        logs_file=None,
+        defaulelang="en",
+        is_cuda=False,
+        audio_file=None,
+        TEMP_ROOT=None,
+        model_name="1.7B",
+        device_index=0 # gpu索引
+):
+
+
+    import torch,json
+    torch.set_num_threads(1)
+    from qwen_asr import Qwen3ASRModel
+    atten=None
+    if is_cuda:
+        device_map = f'cuda:{device_index}'
+        dtype=torch.bfloat16
+        try:
+            import flash_attn
+        except ImportError:
+            pass
+        else:
+            atten='flash_attention_2'
+    else:
+        device_map = 'cpu'
+        dtype=torch.float32
+    model=None
+    try:
+        _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {device_map}'}))
+        model = Qwen3ASRModel.from_pretrained(
+            f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
+            dtype=dtype,
+            device_map=device_map,
+            attn_implementation=atten,
+            max_inference_batch_size=1, # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
+            max_new_tokens=2048, # Maximum number of tokens to generate. Set a larger value for long audio input.
+            forced_aligner=f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B",
+            forced_aligner_kwargs=dict(
+                dtype=dtype,
+                device_map=device_map,
+                attn_implementation=atten
+            ),
+        )
+        results = model.transcribe(
+            audio=[audio_file],
+            language=None, # can also be set to None for automatic language detection
+            return_time_stamps=True,
+        )
+        if not results or not hasattr(results[0],'time_stamps') or not hasattr(results[0].time_stamps,'items'):
+            return False,"No asr results"
+        list_dict=[]
+        _write_log(logs_file, json.dumps({"type": "logs", "text": f"ASR ended,waiting re-segment"}))
+        for it in results[0].time_stamps.items:
+            list_dict.append({
+                 "start_time":it.start_time,
+                 "end_time":it.end_time,
+                 "text":it.text,
+            })
+
+        return list_dict,None
+    except Exception as e:
+        return False,str(e)
+    finally:
+        try:
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            if model:
+                del model
+            import gc
+            gc.collect()
+        except Exception:
+            pass
+
+
+def qwen3asr_fun(
+        cut_audio_list=None,
+        ROOT_DIR=None,
+        logs_file=None,
+        defaulelang="en",
+        is_cuda=False,
+        audio_file=None,
+        TEMP_ROOT=None,
+        model_name="1.7B",
+        device_index=0 # gpu索引
+):
+
+    from pathlib import Path
+    import torch,json
+    torch.set_num_threads(1)
+    from qwen_asr import Qwen3ASRModel
+    if is_cuda:
+        device_map = f'cuda:{device_index}'
+        dtype=torch.float16
+    else:
+        device_map = 'cpu'
+        dtype=torch.float32
+    model=None
+    try:
+        _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {device_map}'}))
+        model = Qwen3ASRModel.from_pretrained(
+            f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
+            dtype=dtype,
+            device_map=device_map,
+            attn_implementation=None,
+            max_inference_batch_size=8, # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
+            max_new_tokens=2048, # Maximum number of tokens to generate. Set a larger value for long audio input.
+        )
+        srts = json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))
+
+        srts_chunk = [srts[i:i + 8] for i in range(0, len(srts), 8)]
+        for i,it_list in enumerate(srts_chunk):
+            results = model.transcribe(
+                audio=[it['file'] for it in it_list],
+                language=[None for it in it_list], # can also be set to None for automatic language detection
+                return_time_stamps=False,
+            )
+            for j,it in enumerate(it_list):
+                it['text']=results[j].text
+            srts_chunk[i]=it_list
+            _write_log(logs_file, json.dumps({"type": "subtitle", "text": "\n".join([it['text'] for it in it_list])}))
+
+
+        return srts,None
+    except Exception as e:
+        return False,str(e)
+    finally:
+        try:
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            if model:
+                del model
+            import gc
+            gc.collect()
+        except Exception:
+            pass
+
+
+
 def funasr_mlt(
         cut_audio_list=None,
         detect_language=None,
@@ -617,7 +762,7 @@ def funasr_mlt(
             )
 
             # vad
-            msg = "Recognition may take a while, please be patient"
+            msg = "Recognition starting"
             _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
             num = 0
 

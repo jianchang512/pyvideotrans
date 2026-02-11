@@ -927,13 +927,12 @@ def send_notification(title, message):
 def remove_silence_wav(audio_file):
     from pydub import AudioSegment
     from pydub.silence import detect_nonsilent
-    audio=AudioSegment.from_file(audio_file,format="wav")
-    # 2. 激进的参数设置
-    # TTS通常比较干净，我们可以把阈值设得离平均音量更近一些
-    # 这里设置为比平均音量低 10dB 即视为静音（非常激进）
+    audio=AudioSegment.from_file(audio_file,format="wav")    
+    # TTS通常比较干净，可以把阈值设得离平均音量更近一些
+    # 这里设置为比平均音量低 10dB 即视为静音/激进
     silence_threshold = audio.dBFS - 20
 
-    # 只要静音持续 10ms 以上就检测出来
+    # 只要静音持续 50ms 以上就检测出来
     min_silence_len = 50
 
     # 3. 检测非静音片段

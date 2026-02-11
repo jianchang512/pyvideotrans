@@ -237,7 +237,7 @@ def openwin():
             "voice_autorate": winobj.voice_autorate.isChecked(),
             "remove_silent_mid": winobj.remove_silent_mid.isChecked(),
             "align_sub_audio":False,
-
+            "is_cuda":winobj.is_cuda.isChecked()
         }
 
 
@@ -255,6 +255,7 @@ def openwin():
         config.params["dubb_out_format"] = winobj.out_format.currentIndex()
         config.params["dubb_voice_autorate"] = winobj.voice_autorate.isChecked()
         config.params["dubb_save_to_srt"] = winobj.save_to_srt.isChecked()
+        config.params["dubb_is_cuda"] = winobj.is_cuda.isChecked()
         config.params["dubb_hecheng_rate"] = int(winobj.hecheng_rate.value())
         config.params["dubb_pitch_rate"] = int(winobj.pitch_rate.value())
         config.params["dubb_volume_rate"] = int(winobj.volume_rate.value())
@@ -284,6 +285,11 @@ def openwin():
         else:
             winobj.volume_rate.setDisabled(True)
             winobj.pitch_rate.setDisabled(True)
+
+        if type == tts.QWEN3LOCAL_TTS:
+            winobj.is_cuda.show()
+        else:
+            winobj.is_cuda.hide()
 
         current_text = winobj.hecheng_language.currentText()
 
@@ -318,7 +324,7 @@ def openwin():
             role_list=config.OPENAITTS_ROLES.split(',')
         elif type == tts.QWEN_TTS:
             role_list=list(tools.get_qwen3tts_rolelist().keys())
-        elif type == tts.QWEN_TTS:
+        elif type == tts.QWEN3LOCAL_TTS:
             role_list=list(tools.get_qwenttslocal_rolelist().keys())
         elif type == tts.Supertonic_TTS:
             role_list=list(tools.get_supertonic_rolelist().keys())
@@ -436,6 +442,16 @@ def openwin():
             tools.show_error(winobj.error_msg)
     def check_voice_autorate(state):
         winobj.remove_silent_mid.setVisible(not state)
+    def check_cuda(state):
+        # 选中如果无效，则取消
+        if state:
+            import torch
+            if not torch.cuda.is_available():
+                tools.show_error(tr('nocuda'))
+                winobj.is_cuda.setChecked(False)
+                winobj.is_cuda.setDisabled(True)
+                return False
+        return True
     
     from videotrans.component.set_form import Peiyinformrole
 
@@ -450,6 +466,8 @@ def openwin():
         winobj.hecheng_rate.setValue(config.params.get('dubb_hecheng_rate', 0))
         winobj.pitch_rate.setValue(config.params.get('dubb_pitch_rate', 0))
         winobj.volume_rate.setValue(config.params.get('dubb_volume_rate', 0))
+        winobj.is_cuda.setChecked(config.params.get('dubb_is_cuda', False))
+        winobj.is_cuda.toggled.connect(check_cuda)
         
         if not config.params.get('dubb_voice_autorate', False):
             winobj.remove_silent_mid.setVisible(True)

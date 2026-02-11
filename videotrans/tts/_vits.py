@@ -120,8 +120,6 @@ class VitsCNEN(BaseTTS):
             tools.down_zip(f"{config.ROOT_DIR}/models",'https://modelscope.cn/models/himyworld/videotrans/resolve/master/vits-tts.zip',self._process_callback)
         return True
 
-    def _process_callback(self,msg):
-        self._signal(text=msg)
 
     def _exec(self):
         _model_obj={}

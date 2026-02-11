@@ -205,7 +205,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionopenairecognapi_key.setText(
             config.tr("OpenAI Speech to Text API"))
         self.actionparakeet_key.setText('Nvidia parakeet-tdt')
-        self.actionqwenasrlocal_key.setText(f'Qwen-ASR({config.tr("Local")})')
         self.actionai302_key.setText(config.tr("302.AI API KEY"))
         self.actionlocalllm_key.setText(config.tr("Local LLM API"))
         self.actionzijiehuoshan_key.setText(config.tr("ByteDance Ark"))
@@ -468,6 +467,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif recogn_type == recognition.Whisper_CPP:
             curr = config.Whisper_CPP_MODEL_LIST
             self.model_name.addItems(config.Whisper_CPP_MODEL_LIST)
+        elif recogn_type == recognition.QWENASR:
+            curr=['1.7B','0.6B']
+            self.model_name.addItems(curr)
         elif recogn_type == recognition.FUNASR_CN:
             self.model_name.addItems(config.FUNASR_MODEL)
             curr = config.FUNASR_MODEL
@@ -481,7 +483,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.model_name.setCurrentText(config.params.get('model_name', ''))
         if recogn_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.Whisper_CPP,
                                recognition.OPENAI_WHISPER, recognition.FUNASR_CN, recognition.Deepgram,
-                               recognition.WHISPERX_API, recognition.HUGGINGFACE_ASR]:
+                               recognition.WHISPERX_API, recognition.HUGGINGFACE_ASR,recognition.QWENASR]:
             self.model_name.setDisabled(True)
         else:
             self.model_name.setDisabled(False)
@@ -523,7 +525,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionali_key.triggered.connect(lambda: self._open_winform('ali'))
         self.set_ass.clicked.connect(lambda: self._open_winform('set_ass'))
         self.actionparakeet_key.triggered.connect(lambda: self._open_winform('parakeet'))
-        self.actionqwenasrlocal_key.triggered.connect(lambda: self._open_winform('qwenasrlocal'))
         self.actionsrtmultirole.triggered.connect(lambda: self._open_winform('fn_peiyinrole'))
         self.actionazure_key.triggered.connect(lambda: self._open_winform('azure'))
         self.actionazure_tts.triggered.connect(lambda: self._open_winform('azuretts'))

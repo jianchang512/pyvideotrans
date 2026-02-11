@@ -1,3 +1,5 @@
+import platform
+
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
@@ -167,13 +169,24 @@ class Ui_peiyinrole(object):
         # 3. TTS 设置区域
         self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
+        
+        
+        self.is_cuda = QtWidgets.QCheckBox()
+        self.is_cuda.setObjectName("is_cuda")
+        self.is_cuda.setText(tr("Enable CUDA?"))
+        # 如果是 MAc系统则隐藏
+        if platform.system() == 'Darwin':
+            self.is_cuda.setVisible(False)
+            self.is_cuda.setChecked(False)
+        self.horizontalLayout_10.addWidget(self.is_cuda)
+        
         self.formLayout_3 = QtWidgets.QFormLayout()
         self.formLayout_3.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.label_10 = QtWidgets.QLabel()
         self.label_10.setMinimumSize(QtCore.QSize(0, 30))
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_10)
         self.hecheng_language = QtWidgets.QComboBox()
-        self.hecheng_language.setMinimumSize(QtCore.QSize(0, 30))
+        self.hecheng_language.setMinimumSize(QtCore.QSize(200, 30))
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_language)
 
         self.formLayout_7 = QtWidgets.QFormLayout()
@@ -182,7 +195,7 @@ class Ui_peiyinrole(object):
         self.label_8.setMinimumSize(QtCore.QSize(0, 30))
         self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_8)
         self.tts_type = QtWidgets.QComboBox()
-        self.tts_type.setMinimumSize(QtCore.QSize(0, 30))
+        self.tts_type.setMinimumSize(QtCore.QSize(200, 30))
         self.tts_type.addItems(tts.TTS_NAME_LIST)
         self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tts_type)
         self.horizontalLayout_10.addLayout(self.formLayout_3)
@@ -194,7 +207,7 @@ class Ui_peiyinrole(object):
         self.label_11.setMinimumSize(QtCore.QSize(0, 30))
         self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_11)
         self.hecheng_role = QtWidgets.QComboBox()
-        self.hecheng_role.setMinimumSize(QtCore.QSize(0, 30))
+        self.hecheng_role.setMinimumSize(QtCore.QSize(200, 30))
         self.hecheng_role.addItems(['No'])
         self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.hecheng_role)
         self.horizontalLayout_10.addLayout(self.formLayout_4)
@@ -203,6 +216,7 @@ class Ui_peiyinrole(object):
         self.listen_btn.setFixedWidth(80)
         self.listen_btn.setText(tr("Trial dubbing"))
         self.horizontalLayout_10.addWidget(self.listen_btn)
+        self.horizontalLayout_10.addStretch()
         self.main_layout.addLayout(self.horizontalLayout_10)
 
         # 4. 速率、音量等设置

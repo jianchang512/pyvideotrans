@@ -35,8 +35,7 @@ class PiperTTS(BaseTTS):
         tools.down_file_from_hf(local_dir,urls=urls,callback=self._process_callback)
         return onnx_file
     
-    def _process_callback(self,msg):
-        self._signal(text=msg)
+
     
     def _exec(self):
         # 判断模型是否存在

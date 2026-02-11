@@ -72,26 +72,15 @@ RECOGN_NAME_LIST=list(_ID_NAME_DICT.values())
 HUGGINGFACE_ASR_MODELS={
 "nvidia/parakeet-ctc-1.1b":['en'],
 
-
 # hub
 "reazon-research/japanese-wav2vec2-large-rs35kh":['ja'],
 # pipeline whisper
 "kotoba-tech/kotoba-whisper-v2.0":['ja'],
 
-# wav2vec2
-"jonatasgrosman/wav2vec2-large-xlsr-53-japanese":['ja'],
-
-# faster
-"zh-plus/faster-whisper-large-v2-japanese-5k-steps":['ja'],
-"JhonVanced/whisper-large-v3-japanese-4k-steps-ct2":['ja'],
-
-
-
 # pipeline whisper
-"biodatlab/whisper-th-medium":['th'],
 "biodatlab/whisper-th-large-v3":['th'],
 "vinai/Phowhisper-large":['vi'],
-"openai/whisper-large-v2":[],
+
 "openai/whisper-large-v3":[],
 #"openai/whisper-tiny":[],
 #"Systran/faster-whisper-tiny":[]
@@ -118,7 +107,7 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
 # 自定义识别、openai-api识别、zh_recogn识别是否填写了相关信息和sk等
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None, return_str=False):
-    from videotrans.winform import recognapi as recognapi_win, openairecognapi as openairecognapi_win,  doubao as doubao_win, sttapi as sttapi_win, deepgram as deepgram_win, gemini as gemini_win, ai302,   parakeet as parakeet_win,qwenmt as qwenmt_win,zijierecognmodel as zijierecogn_win,qwenasrlocal as qwenasrlocal_win
+    from videotrans.winform import recognapi as recognapi_win, openairecognapi as openairecognapi_win,  doubao as doubao_win, sttapi as sttapi_win, deepgram as deepgram_win, gemini as gemini_win, ai302,   parakeet as parakeet_win,qwenmt as qwenmt_win,zijierecognmodel as zijierecogn_win
     if recogn_type == STT_API and not config.params.get('stt_url',''):
         if return_str:
             return "Please configure the api and key information of the stt channel first."
@@ -135,11 +124,7 @@ def is_input_api(recogn_type: int = None, return_str=False):
             return "Please configure the api key ."
         qwenmt_win.openwin()
         return False
-    if recogn_type == QWENASR and not config.params.get('qwenasrlocal_address',''):
-        if return_str:
-            return "Please configure the api url ."
-        qwenasrlocal_win.openwin()
-        return False
+
 
     if recogn_type == CUSTOM_API and not config.params.get('recognapi_url',''):
         if return_str:

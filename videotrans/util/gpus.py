@@ -26,6 +26,8 @@ def getset_gpu(force_cpu=False) -> int:
 # return -1 无可用显卡， 强制调用端使用 cpu 或 mps
 # >=0 为显卡号
 def get_cudaX() -> int:
+    if platform.system() == 'Darwin':
+        return -1
     try:
         # 尚未初始化可用显卡数量
         if config.NVIDIA_GPU_NUMS == -1:

@@ -103,7 +103,7 @@ class WinAction(WinActionSub):
         if recogn_type == recognition.Whisper_CPP and not self.show_cpp_select():
             return
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR]:
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR,recognition.QWENASR]:
             # 禁止模块选择
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)
@@ -118,6 +118,8 @@ class WinAction(WinActionSub):
                 self.main.model_name.addItems(config.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
                 self.main.model_name.addItems(config.Whisper_CPP_MODEL_LIST)
+            elif recogn_type == recognition.QWENASR:
+                self.main.model_name.addItems(['1.7B','0.6B'])
             elif recogn_type==recognition.HUGGINGFACE_ASR:
                 self.main.model_name.addItems(list(recognition.HUGGINGFACE_ASR_MODELS.keys()))                
             else:
@@ -525,7 +527,7 @@ class WinAction(WinActionSub):
         # LLM重新断句
         self.cfg['rephrase'] = self.main.rephrase.currentIndex()
         # 判断CUDA
-        self.cfg['cuda'] = self.main.enable_cuda.isChecked()
+        self.cfg['is_cuda'] = self.main.enable_cuda.isChecked()
         self.cfg['remove_silent_mid'] = False
         self.cfg['align_sub_audio'] = True
         # 只有未启用 音频加速 视频慢速时才起作用

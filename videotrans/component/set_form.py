@@ -44,7 +44,6 @@ from videotrans.ui.openaitts import Ui_openaittsform
 from videotrans.ui.openrouter import Ui_openrouterform
 from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.parakeet import Ui_parakeetform
-from videotrans.ui.qwenasrlocal import Ui_qwenasrlocalform
 from videotrans.ui.peiyin import Ui_peiyin
 from videotrans.ui.peiyinrole import Ui_peiyinrole
 from videotrans.ui.qwentts import Ui_qwenttsform
@@ -308,11 +307,6 @@ class ParakeetForm(QDialog, Ui_parakeetform):  # <===
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
-class QwenasrlocalForm(QDialog, Ui_qwenasrlocalform):  # <===
-    def __init__(self, parent=None):
-        super(QwenasrlocalForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
 
 class KokoroForm(QDialog, Ui_kokoroform):  # <===
@@ -657,44 +651,51 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
         if not selected_role:
             tools.show_error(tr("Please select a valid role from the dropdown list."))
             return
-
+        
+        self.subtitle_table.setUpdatesEnabled(False)
+        self.subtitle_table.blockSignals(True)
         assigned_count = 0
-        for i in range(self.subtitle_layout2.count()):
-            widget = self.subtitle_layout2.itemAt(i).widget()
-            if isinstance(widget, SpkRowWidget) and widget.checkbox.isChecked():
-                # 更新UI
-                _spk = widget.spk_name_label.text()
-                if selected_role in ['-', 'No']:
-                    self.spk_role[_spk] = None
-                    widget.spk_name_role.setText('')
-                else:
-                    self.spk_role[_spk] = selected_role
-                    widget.spk_name_role.setText(selected_role)
-                
-                # 分配后取消勾选
-                widget.checkbox.setChecked(False)
-                assigned_count += 1
-                
-                # 更新全局配置中的每一行
-                for line in self.spk_lines.get(_spk, []):
+        try:
+        
+            for i in range(self.subtitle_layout2.count()):
+                widget = self.subtitle_layout2.itemAt(i).widget()
+                if isinstance(widget, SpkRowWidget) and widget.checkbox.isChecked():
+                    # 更新UI
+                    _spk = widget.spk_name_label.text()
                     if selected_role in ['-', 'No']:
+                        self.spk_role[_spk] = None
+                        widget.spk_name_role.setText('')
+                    else:
+                        self.spk_role[_spk] = selected_role
+                        widget.spk_name_role.setText(selected_role)
+                    
+                    # 分配后取消勾选
+                    widget.checkbox.setChecked(False)
+                    assigned_count += 1
+                    
+                    # 更新全局配置中的每一行
+                    for line in self.spk_lines.get(_spk, []):
+                        if selected_role in ['-', 'No']:
+                            try:
+                                del config.dubbing_role[line]
+                            except:
+                                pass
+                        else:
+                            config.dubbing_role[line] = selected_role
+                        
                         try:
-                            del config.dubbing_role[line]
+                            row_idx = line - 1
+                            if 0 <= row_idx < self.subtitle_table.rowCount():
+                                # 确认一下ID是否匹配
+                                if self.subtitle_table.item(row_idx, 0).text() == str(line):
+                                    display_role = tr('Default Role') if selected_role in ['-', 'No'] else selected_role
+                                    self.subtitle_table.item(row_idx, 3).setText(display_role)
                         except:
                             pass
-                    else:
-                        config.dubbing_role[line] = selected_role
-                    
-                    try:
-                        row_idx = line - 1
-                        if 0 <= row_idx < self.subtitle_table.rowCount():
-                            # 确认一下ID是否匹配
-                            if self.subtitle_table.item(row_idx, 0).text() == str(line):
-                                display_role = tr('Default Role') if selected_role in ['-', 'No'] else selected_role
-                                self.subtitle_table.item(row_idx, 3).setText(display_role)
-                    except:
-                        pass
 
+        finally:
+            self.subtitle_table.blockSignals(False)
+            self.subtitle_table.setUpdatesEnabled(True)
         if assigned_count < 1:
             QtWidgets.QMessageBox.information(self, "Error", tr("Select at least one speaker"))
 

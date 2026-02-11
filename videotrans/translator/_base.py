@@ -60,7 +60,7 @@ class BaseTrans(BaseCon):
         if config.settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS:
             self.aisendsrt=True
         if self.aisendsrt and config.settings.get('aitrans_context'):
-            self.full_origin_subtitles=_GLOBAL_CONTEXT.replace('{COMPLETE_SRT_TEXT}',"\n\n".join([f'{it["line"]}\n{it["time"]}\n{it["text"]}' for it in self.text_list]))
+            self.full_origin_subtitles=_GLOBAL_CONTEXT.replace('{COMPLETE_SRT_TEXT}',"\n".join([it["text"] for it in self.text_list]))
 
         if self.translate_type not in translator.AI_TRANS_CHANNELS:
             self.trans_thread = int(config.settings.get('trans_thread', 5))

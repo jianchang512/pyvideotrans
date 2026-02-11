@@ -66,7 +66,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 prompt=config.params.get('openairecognapi_prompt', ''),
                 language=self.detect_language[:2].lower(),
                 response_format="verbose_json",
-                chunking_strategy='auto',
+                #chunking_strategy='auto',
                 timestamp_granularities=["segment"]
             )
             if not hasattr(transcript, 'segments'):
@@ -119,6 +119,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 file=(self.audio_file, file.read()),
                 model='gpt-4o-transcribe-diarize',
                 language=self.detect_language[:2].lower(),
+                chunking_strategy="auto",
                 response_format="diarized_json"
             )
 

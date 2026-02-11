@@ -136,7 +136,7 @@ def openwin():
                 cfg={
                     "recogn_type": recogn_type,
                     "model_name": model,
-                    "cuda": is_cuda,
+                    "is_cuda": is_cuda,
                     "target_dir": RESULT_DIR,
                     "detect_language": langcode,
                     "remove_noise": remove_noise_is,
@@ -181,16 +181,6 @@ def openwin():
                 winobj.is_cuda.setChecked(False)
                 winobj.is_cuda.setDisabled(True)
                 return False
-            if winobj.shibie_recogn_type.currentIndex() == recognition.OPENAI_WHISPER:
-                return True
-
-            if winobj.shibie_recogn_type.currentIndex() == recognition.FASTER_WHISPER:
-                from torch.backends import cudnn
-                if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
-                    tools.show_error(tr("nocudnn"))
-                    winobj.is_cuda.setChecked(False)
-                    winobj.is_cuda.setDisabled(True)
-                    return False
         return True
 
     def show_xxl_select():
@@ -254,6 +244,7 @@ def openwin():
                                recognition.Deepgram,
                                recognition.WHISPERX_API,
                                recognition.HUGGINGFACE_ASR,
+                               recognition.QWENASR
                                ]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
         else:
@@ -265,6 +256,8 @@ def openwin():
                 winobj.shibie_model.addItems(config.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
                 winobj.shibie_model.addItems(config.Whisper_CPP_MODEL_LIST)
+            elif recogn_type == recognition.QWENASR:
+                winobj.shibie_model.addItems(['1.7B','0.6B'])
             elif recogn_type == recognition.HUGGINGFACE_ASR:
                 winobj.shibie_model.addItems(list(recognition.HUGGINGFACE_ASR_MODELS.keys()))
             else:
@@ -303,7 +296,6 @@ def openwin():
         else:
             tools.hide_show_element(winobj.hfaster_layout, False)
 
-            
 
     from videotrans.component.set_form import Recognform
 
@@ -361,6 +353,9 @@ def openwin():
         elif default_type == recognition.FUNASR_CN:
             curr = config.FUNASR_MODEL
             winobj.shibie_model.addItems(config.FUNASR_MODEL)
+        elif default_type == recognition.QWENASR:
+            curr=['1.7B','0.6B']
+            winobj.shibie_model.addItems(curr)
         elif default_type == recognition.HUGGINGFACE_ASR:
             curr=list(recognition.HUGGINGFACE_ASR_MODELS.keys())
             winobj.shibie_model.addItems(curr)            
@@ -372,7 +367,7 @@ def openwin():
             winobj.shibie_model.setCurrentText(current_model)
         
         
-        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR]:
+        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR,recognition.QWENASR]:
             winobj.shibie_model.setDisabled(True)
         else:
             winobj.shibie_model.setDisabled(False)

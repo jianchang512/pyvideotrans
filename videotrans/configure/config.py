@@ -39,13 +39,16 @@ os.environ["HF_HUB_DISABLE_XET"] = "1"
 # ffmpeg
 FFMPEG_BIN = "ffmpeg"
 FFPROBE_BIN = "ffprobe"
-os.environ['PATH'] = ROOT_DIR + os.pathsep + f'{ROOT_DIR}/ffmpeg' + os.pathsep + os.environ.get("PATH", "")
+# win冻结版本
 if sys.platform == 'win32' and IS_FROZEN:
-    os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;' + os.environ['PATH']
+    os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;' + os.environ.get("PATH", "")
     if Path(f'{ROOT_DIR}/ffmpeg/ffmpeg.exe').is_file():
         FFMPEG_BIN = f'{ROOT_DIR}/ffmpeg/ffmpeg.exe'
     if Path(f'{ROOT_DIR}/ffmpeg/ffprobe.exe').is_file():
         FFPROBE_BIN = f'{ROOT_DIR}/ffmpeg/ffprobe.exe'
+# ffmpeg文件夹和 ffmpeg/sox 设为环境
+os.environ['PATH'] = ROOT_DIR + os.pathsep + f'{ROOT_DIR}/ffmpeg' + os.pathsep + f'{ROOT_DIR}/ffmpeg/sox' +os.pathsep + os.environ.get("PATH", "")
+
 
 # 程序根下临时目录tmp
 TEMP_ROOT = f'{ROOT_DIR}/tmp'
@@ -192,7 +195,7 @@ def parse_init(update_data=None):
         "zijiehuoshan_model": "",
 
         # 默认 faster_whisper和openai-whisper模型
-        "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3.5",
+        "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3,distil-large-v3.5",
 
         "max_audio_speed_rate": 100,
         "max_video_pts_rate": 10,
@@ -213,6 +216,9 @@ def parse_init(update_data=None):
         "translation_wait": 0,
         "dubbing_wait": 1,
         "dubbing_thread": 1,
+        
+        "remove_dubb_silence":True,# 移除配音前后静音缓冲
+        
         "save_segment_audio": False,
         "countdown_sec": 30,
         "backaudio_volume": 0.8,

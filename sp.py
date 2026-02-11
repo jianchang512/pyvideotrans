@@ -14,7 +14,7 @@ License: GPL-V3
 """
 import atexit, sys, os, time
 
-VERSION = "v3.96"
+VERSION = "v3.97"
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"

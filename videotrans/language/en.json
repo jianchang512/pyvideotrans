@@ -134,7 +134,7 @@
     "Download Hard Subtitle Extraction Software": "Get Hard Sub Extractor",
     "Download Models": "Download Models",
     "Dubbing": "Dubbing...",
-    "Dubbing acceler": "Dubbing Speedup",
+    "Dubbing acceler": "Dubbing Speedup+",
     "Dubbing channel": "Dubb Channel",
     "Dubbing failed": "Dubbing Failed",
     "Dubbing from subtitles": "Dubbing from Subs...",
@@ -719,7 +719,7 @@
     "zhixingwc": "Done/Start",
     "zidonghebingmiaohou": "Edit subs & assign roles",
     "zimubianjitishi": "Edit subs here for better accuracy",
-    "{lang} represents the target language name, do not delete it.": "{lang} is target lang name. Keep it.",
+    "{lang} represents the target language name, do not delete it.": "Prompt word file and modification notes",
     "From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. default is to use tiny model, if you want better result, please use bigger model .en suffix model and model starting with distil is only used to recognize English pronunciation video": "Models (Tiny -> Large-v3): Size/Quality increases, Speed decreases. Default: Tiny. Use .en/distil for English only.",
     "Please upload reference audio in wav format": "Upload WAV Ref Audio",
     "Please input reference audio path": "Ref Audio Path Required",
@@ -734,7 +734,7 @@
     "Configure Alibaba Bailian Qwen-MT model or other text models or Qwen3-ASR speech recognition model here": "Config Ali-Bailian Qwen-MT/Qwen3-ASR",
     "Selecting an Inference Access Point": "Select Inference Point",
     "Fill in all inference access points, and you can select them above": "Inference Points (Selectable above)",
-    "Prompt: Please open the {} file directly to modify it": "Send Full Subtitles is selected is: [Software Directory/videotrans/prompts/srt/{}.txt]\nThe prompt message when it is not selected is: [Software Directory/videotrans/prompts/text/{}.txt]",
+    "Prompt: Please open the {} file directly to modify it": "Send Full Subtitles is selected is: [Software Directory/videotrans/prompts/srt/{}.txt]\nThe prompt message when it is not selected is: [Software Directory/videotrans/prompts/text/{}.txt]\n\nTo modify the prompt word, open the txt file and edit it. Curly braces is variables; do not modify or delete them.",
     "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "Place audio in 'chatterbox' folder. Fill filename (e.g. 123.mp3),One per line",
     "Reference audio does not exist: {} Please make sure the audio exists": "Ref Audio {} Missing",
     "API minimax": ".com (CN) / .io (Intl) - Not compatible",
@@ -955,6 +955,7 @@
 	"End -0.1s":"End time decreases by 0.1s.",
 	"End +0.1s":"End time increases by 0.1s.",
 	"Adjust time":"Align time.",
-	"Enter milliseconds (positive or negative):":"Enter positive or negative millisecond values ​​to increase or decrease time; 1 second = 1000 milliseconds."
+	"Enter milliseconds (positive or negative):":"Enter positive or negative millisecond values ​​to increase or decrease time; 1 second = 1000 milliseconds.",
+	"Translation successful but transfer failed.":"The video translation was successful, but moving it to the target folder failed. You can copy it manually. The current video is saved in\n{}"
 
 }

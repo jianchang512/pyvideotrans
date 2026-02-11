@@ -108,7 +108,7 @@ class WinActionSub:
             self.main.enable_cuda.setChecked(False)
             self.main.enable_cuda.setDisabled(True)
             res = False
-        self.cfg['cuda'] = res
+        self.cfg['is_cuda'] = res
 
     def check_voice_autorate(self,state):
         if state:
@@ -417,33 +417,15 @@ class WinActionSub:
     # 如果选中了cuda，判断是否可用
     def cuda_isok(self):
         if not self.main.enable_cuda.isChecked() or platform.system() == 'Darwin':
-            self.cfg['cuda'] = False
+            self.cfg['is_cuda'] = False
             return True
 
         import torch
-        from videotrans import recognition
         if not torch.cuda.is_available():
-            self.cfg['cuda'] = False
+            self.cfg['is_cuda'] = False
             tools.show_error(tr("nocuda"))
             return False
-
-        if self.main.recogn_type.currentIndex() != recognition.FASTER_WHISPER:
-            self.cfg['cuda'] = True
-            return True
-        allow = True
-        try:
-            from torch.backends import cudnn
-            if not cudnn.is_available() or not cudnn.is_acceptable(torch.tensor(1.).cuda()):
-                allow = False
-        except Exception:
-            allow = False
-        finally:
-            if not allow:
-                self.cfg['cuda'] = False
-                self.main.enable_cuda.setChecked(False)
-                tools.show_error(tr("nocudnn"))
-                return False
-        self.cfg['cuda'] = True
+        self.cfg['is_cuda'] = True
         return True
 
     # 检测各个模式下参数是否设置正确

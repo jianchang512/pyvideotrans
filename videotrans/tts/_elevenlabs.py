@@ -62,10 +62,10 @@ class ElevenLabsC(BaseTTS):
                     apply_text_normalization='auto',
                     voice_settings=VoiceSettings(
                         speed=speed,
-                        stability=0,
-                        similarity_boost=0,
+                        stability=0.8,
+                        similarity_boost=1,
                         style=0,
-                        use_speaker_boost=True
+                        use_speaker_boost=False
                     )
                 )
                 with open(data_item['filename'] + ".mp3", 'wb') as f:

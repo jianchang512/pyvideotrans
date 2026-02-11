@@ -86,6 +86,7 @@ class Ui_setini(object):
             "dubbing": {
                 "dubbing_thread": "同时配音的线程数",
                 "dubbing_wait": "每次配音后暂停秒数,用于限制请求频率",
+                "remove_dubb_silence":"移除每条字幕配音前后静音缓冲，利于音画同步，但可能结尾仓促",
                 "save_segment_audio": "保留每行字幕的配音结果",
                 "azure_lines": "Azure TTS批量配音行数，一次多少行",
                 "chattts_voice": "ChatTTS 音色值",
@@ -182,6 +183,7 @@ class Ui_setini(object):
             "llm_chunk_size": "LLM重新断句每批字幕行数",
             "aitrans_temperature":"AI翻译模型温度值",
             "aitrans_context":"AI翻译附带完整原字幕",
+            "remove_dubb_silence":"移除配音前后静音缓冲",
 
             "batch_size": "faster-whisper批次大小",
             "temperature":"采样温度",
@@ -284,10 +286,10 @@ class Ui_setini(object):
             "common": "通用设置",
             "model": "AI模型列表",
             "video": "视频输出控制",
-            "whisper": "语音识别参数调整",
+            "whisper": "语音识别参数",
             "justify": "字幕声音画面对齐",
             "trans": "字幕翻译调整",
-            "dubbing": "配音调整",
+            "dubbing": "字幕配音调整",
             "prompt_init": "Whisper模型提示词"
         }
         if config.defaulelang != 'zh':
@@ -324,6 +326,7 @@ class Ui_setini(object):
                 "dubbing": {
                     "dubbing_thread": "Number of concurrent threads for dubbing.",
                     "dubbing_wait": "Delay (in seconds) between dubbing requests to prevent rate-limiting.",
+                    "remove_dubb_silence":"Remove the mute buffer before and after each subtitle audio. Selecting this option will improve audio-visual synchronization, but may make the ending feel rushed.",
                     "save_segment_audio": "Save the dubbed audio for each individual subtitle line.",
                     "azure_lines": "Number of lines per batch request for Azure TTS.",
                     "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
@@ -425,6 +428,7 @@ class Ui_setini(object):
                 "no_speech_threshold": "no speech threshold",
                 "temperature":"temperature",
                  "hotwords":"hotwords",
+                "remove_dubb_silence":"Remove the mute buffer each subtitle audio",
 
                 "repetition_penalty":"repetition penalty",
                 "compression_ratio_threshold":"compression ratio threshold",

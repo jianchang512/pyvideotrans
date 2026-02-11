@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-import requests
+import requests,json
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
     RetryError
 
@@ -16,120 +16,60 @@ from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-
-RETRY_NUMS = 2
-RETRY_DELAY = 5
-
+from videotrans.process import qwen3tts_fun
 
 @dataclass
 class QwenttsLocal(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = config.params.get('qwenttslocal_url', '').strip().rstrip('/').lower()
-        self.prompt = config.params.get('qwenttslocal_prompt', '')
-        self.roledict = tools.get_qwenttslocal_rolelist()
-        self.client = Client(self.api_url,httpx_kwargs={"timeout":7200})
-
-        self.custom_voice = ["Vivian","Serena","Uncle_fu","Dylan","Eric","Ryan","Aiden","Ono_anna","Sohee"]
+        self.model_name="1.7B"
         _langnames = translator.LANG_CODE.get(self.language, [])
         if _langnames and len(_langnames) >= 10:
             self.target_language = _langnames[9]
         else:
             self.target_language = 'Auto'
         self.target_language=self.target_language.capitalize()
-        self._add_internal_host_noproxy(self.api_url)
+
+    
+    def _download(self):
+        if config.defaulelang == 'zh':
+            tools.check_and_down_ms(f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-Base',callback=self._process_callback,local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-Base')
+            tools.check_and_down_ms(f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',callback=self._process_callback,local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-CustomVoice')
+        else:
+            tools.check_and_down_hf(model_id=f'Qwen3-TTS-12Hz-{self.model_name}-Base',repo_id=f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-Base',local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-Base',callback=self._process_callback)
+            tools.check_and_down_hf(model_id=f'Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',repo_id=f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',callback=self._process_callback)
+
 
     def _exec(self):
-        self._local_mul_thread()
+        Path(f'{config.TEMP_DIR}/{self.uuid}').mkdir(parents=True,exist_ok=True)
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
+        
+        queue_tts_file = f'{config.TEMP_DIR}/{self.uuid}/queuetts-{time.time()}.json'
+        Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
+        title="Qwen3-TTS"
+        kwargs = {            
+            "queue_tts_file":queue_tts_file,
+            "language": self.target_language,
+            "ROOT_DIR": config.ROOT_DIR,
+            "logs_file": logs_file,
+            "defaulelang": config.defaulelang,
+            "is_cuda": self.is_cuda,
+            "model_name":self.model_name,
+            "roledict":tools.get_qwenttslocal_rolelist(),
+            "prompt":config.params.get('qwenttslocal_prompt', '')
+        }
+        self._new_process(callback=qwen3tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+    
+        self._signal(text=f'convert wav')
+        all_task = []
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:
+            for item in self.queue_tts:
+                filename=item.get('filename','')+"-qwen3tts.wav"
+                if tools.vail_file(filename):
+                    all_task.append(pool.submit(self.convert_to_wav, filename,item['filename']))
+            if len(all_task) > 0:
+                _ = [i.result() for i in all_task]
 
     def _item_task(self, data_item):
-
-        if data_item['role'] in self.custom_voice:
-            return self._customevoice(data_item)
-        return self._clone(data_item)
-
-    # 使用预定义角色+prompt
-    def _customevoice(self, data_item):
-        text = data_item['text'].strip()
-        if not text:
-            return
-        speed = 1.0
-        try:
-            speed = 1 + float(self.rate.replace('%', '')) / 100
-        except ValueError:
-            pass
-        speed = max(0.5, min(2.0, speed))
-        role = data_item['role']
-        try:
-            result = self.client.predict(
-                text=text,
-                lang_disp=self.target_language,
-                spk_disp=role,
-                instruct=self.prompt,
-                #model_size=config.params.get('qwenttslocal_size', '1.7B'),
-                api_name="/run_instruct",
-            )
-        except Exception as e:
-            if '/run_instruct' in str(e):
-                self.error=StopRetry(tr('Please check the custom voice model CustomeVoice used to launch Qwen-TTS',role))
-                raise self.error
-            raise
-        config.logger.debug(f'result={result}')
-        wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
-        if isinstance(wav_file, dict) and "value" in wav_file:
-            wav_file = wav_file['value']
-        if isinstance(wav_file, str) and Path(wav_file).is_file():
-            self.convert_to_wav(wav_file, data_item['filename'])
-        else:
-            raise RuntimeError(str(result))
-
-    # 使用视频中原语音或本地参考音频
-    def _clone(self, data_item):
-        text = data_item['text'].strip()
-        if not text:
-            return
-        speed = 1.0
-        try:
-            speed = 1 + float(self.rate.replace('%', '')) / 100
-        except ValueError:
-            pass
-        speed = max(0.5, min(2.0, speed))
-        role = data_item['role']
-        # 视频中语音克隆，存在参考音频
-        if role == 'clone':
-            wavfile = data_item.get('ref_wav', '')
-            ref_text = data_item.get('ref_text', '')
-        else:
-            # 使用 f5-tts文件夹内音频
-            wavfile = f'{config.ROOT_DIR}/f5-tts/{role}'
-            ref_text = self.roledict.get(role, '')
-
-        if not wavfile or not Path(wavfile).is_file():
-            # 仍然不存在，无参考音频不可用
-            self.error = f"不存在参考音频，无法克隆:{role=},{wavfile=}"
-            config.logger.error(self.error)
-            return
-        try:
-            result = self.client.predict(
-                ref_aud=handle_file(wavfile),
-                ref_txt=ref_text,
-                text=text,
-                lang_disp=self.target_language,
-                use_xvec=False if ref_text else True,            
-                #model_size=config.params.get('qwenttslocal_size', '1.7B'),
-                api_name="/run_voice_clone",
-                
-            )
-        except Exception as e:
-            if '/run_voice_clone' in str(e):
-                self.error=StopRetry(tr('Please check the voice clone model Base that launched Qwen-TTS',role))
-                raise self.error
-            raise
-        config.logger.debug(f'result={result}')
-        wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
-        if isinstance(wav_file, dict) and "value" in wav_file:
-            wav_file = wav_file['value']
-        if isinstance(wav_file, str) and Path(wav_file).is_file():
-            self.convert_to_wav(wav_file, data_item['filename'])
-        else:
-            raise RuntimeError(str(result))
+        pass

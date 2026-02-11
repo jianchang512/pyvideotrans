@@ -28,11 +28,11 @@ from videotrans.tts._f5tts import F5TTS
 from videotrans.tts._glmtts import GLMTTS
 
 EDGE_TTS = 0
-PIPER_TTS = 1
-VITSCNEN_TTS = 2
+QWEN3LOCAL_TTS = 1
+PIPER_TTS = 2
+VITSCNEN_TTS = 3
 
-QWEN_TTS = 3
-QWEN3LOCAL_TTS = 4
+QWEN_TTS = 4
 DOUBAO2_TTS = 5
 DOUBAO_TTS = 6
 GLM_TTS = 7
@@ -80,11 +80,11 @@ SUPPORT_CLONE=[
 ]
 _ID_NAME_DICT = {
     EDGE_TTS: tr("Edge-TTS(free)"),
+    QWEN3LOCAL_TTS: f"Qwen3-TTS({tr('Local')})",
     PIPER_TTS: f'piper TTS({tr("Local")})',
     VITSCNEN_TTS: f'VITS({tr("Local")})',
 
     QWEN_TTS: "Qwen3-TTS(BailianAPI)",
-    QWEN3LOCAL_TTS: f"Qwen3-TTS({tr('Local')})",
     DOUBAO2_TTS: tr("DouBao2"),
     DOUBAO_TTS: tr("VolcEngine TTS"),
     GLM_TTS: f'{tr("Zhipu AI")} GLM-TTS',
@@ -161,12 +161,7 @@ def is_input_api(tts_type: int = None, return_str=False):
         from videotrans.winform import qwentts as qwentts_win
         qwentts_win.openwin()
         return False
-    if tts_type == QWEN3LOCAL_TTS and not config.params.get("qwenttslocal_url", ''):
-        if return_str:
-            return "Please configure the api url information of the Qwen3 TTS  channel first."
-        from videotrans.winform import qwenttslocal as qwenttslocal_win
-        qwenttslocal_win.openwin()
-        return False
+
     if tts_type == MINIMAXI_TTS and not config.params.get("minimaxi_apikey", ''):
         if return_str:
             return "Please configure the api key information of the MINIMAXI TTS  channel first."
@@ -302,7 +297,7 @@ def is_input_api(tts_type: int = None, return_str=False):
 
 
 # 统一调用 tts渠道入口，通过 tts_type 调用对应渠道
-def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, tts_type=0) -> None:
+def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, tts_type=0,is_cuda=False) -> None:
     # 需要并行的数量3
     if len(queue_tts) < 1:
         return
@@ -315,7 +310,8 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         "uuid": uuid,
         "play": play,
         "is_test": is_test,
-        "tts_type": tts_type
+        "tts_type": tts_type,
+        "is_cuda":is_cuda
     }
     if tts_type == AZURE_TTS:
         AzureTTS(**kwargs).run()

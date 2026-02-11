@@ -280,10 +280,10 @@ class TransCreate(BaseTask):
                 "input_file":self.cfg.source_wav,
                 "output_file":f"{self.cfg.cache_folder}/remove_noise.wav",
                 "TEMP_DIR":self.cfg.cache_folder,
-                "is_cuda":self.cfg.cuda
+                "is_cuda":self.cfg.is_cuda
             }
             try:
-                _rs = self._new_process(callback=remove_noise,title=title,is_cuda=self.cfg.cuda,kwargs=kw)
+                _rs = self._new_process(callback=remove_noise,title=title,is_cuda=self.cfg.is_cuda,kwargs=kw)
                 if _rs:
                     self.cfg.source_wav=_rs
                 self._signal(text='remove noise end')
@@ -362,7 +362,7 @@ class TransCreate(BaseTask):
                 audio_file=self.cfg.source_wav,
                 detect_language=self.cfg.detect_language,
                 cache_folder=self.cfg.cache_folder,
-                is_cuda=self.cfg.cuda,
+                is_cuda=self.cfg.is_cuda,
                 subtitle_type=self.cfg.subtitle_type,
                 max_speakers=self.max_speakers,
                 llm_post=self.cfg.rephrase == 1
@@ -379,9 +379,9 @@ class TransCreate(BaseTask):
             from videotrans.process.prepare_audio import fix_punc
             # 预先删掉已有的标点
             text_dict={f'{it["line"]}':re.sub(r'[,.?!，。？！]',' ',it["text"]) for it in self.source_srt_list}
-            kw={"text_dict":text_dict,"TEMP_DIR":self.cfg.cache_folder,"is_cuda":self.cfg.cuda}
+            kw={"text_dict":text_dict,"TEMP_DIR":self.cfg.cache_folder,"is_cuda":self.cfg.is_cuda}
             try:
-                _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),is_cuda=self.cfg.cuda,kwargs=kw)
+                _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),is_cuda=self.cfg.is_cuda,kwargs=kw)
                 if _rs:
                     for it in self.source_srt_list:
                         it['text']=_rs.get(f'{it["line"]}',it['text'])
@@ -536,7 +536,7 @@ class TransCreate(BaseTask):
                 audio_file=shibie_audio,
                 detect_language=detect_language,
                 cache_folder=self.cfg.cache_folder,
-                is_cuda=self.cfg.cuda,
+                is_cuda=self.cfg.is_cuda,
                 recogn2pass=True#二次识别
             )
             if self._exit(): return
@@ -584,9 +584,14 @@ class TransCreate(BaseTask):
                     "subtitles":[ [it['start_time'],it['end_time']] for it in self.source_srt_list],
                     "num_speakers":self.max_speakers,
                     "TEMP_DIR":self.cfg.cache_folder,
-                    "is_cuda":self.cfg.cuda
+                    "is_cuda":self.cfg.is_cuda
             }
             if speaker_type=='built':
+                tools.down_file_from_ms(f'{config.ROOT_DIR}/models/onnx',[
+                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/seg_model.onnx",
+                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/nemo_en_titanet_small.onnx",
+                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"                
+                ],callback=self._process_callback)
                 from videotrans.process.prepare_audio import built_speakers as _run_speakers
                 del kw['is_cuda']
                 kw['num_speakers']=-1 if self.max_speakers<1 else self.max_speakers
@@ -601,7 +606,7 @@ class TransCreate(BaseTask):
             else:
                 config.logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
                 return
-            spk_list=self._new_process(callback=_run_speakers,title=title,is_cuda=self.cfg.cuda and speaker_type!='built',kwargs=kw)
+            spk_list=self._new_process(callback=_run_speakers,title=title,is_cuda=self.cfg.is_cuda and speaker_type!='built',kwargs=kw)
 
             if spk_list:
                 Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')
@@ -855,6 +860,9 @@ class TransCreate(BaseTask):
         if tools.vail_file(self.cfg.vocal) and tools.vail_file(self.cfg.instrument):
             return
         title=config.tr('Separating vocals and background music, which may take a longer time')
+        tools.down_file_from_ms(f'{config.ROOT_DIR}/models/onnx',[
+                "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/UVR-MDX-NET-Inst_HQ_4.onnx"                
+        ],callback=self._process_callback)
         from videotrans.process.prepare_audio import vocal_bgm
         # 返回 False None 失败
         kw={"input_file":tmpfile,"vocal_file":self.cfg.vocal,"instr_file":self.cfg.instrument,"TEMP_DIR":self.cfg.cache_folder}
@@ -946,7 +954,8 @@ class TransCreate(BaseTask):
             queue_tts=copy.deepcopy(self.queue_tts),
             language=self.cfg.target_language_code,
             uuid=self.uuid,
-            tts_type=self.cfg.tts_type
+            tts_type=self.cfg.tts_type,
+            is_cuda=self.cfg.is_cuda
         )
         if config.settings.get('save_segment_audio', False):
             outname = self.cfg.target_dir + f'/segment_audio_{self.cfg.noextname}'
@@ -1245,9 +1254,9 @@ class TransCreate(BaseTask):
             duration_s=f'{duration_ms/1000.0:.6f}'
        
 
+        #先导出到临时目录，防止包含各种奇怪符号的targetdir_mp4导致ffmpeg失败
+        tmp_target_mp4=self.cfg.cache_folder+f"/laste_target.mp4"
         try:
-            #先导出到临时目录，防止包含各种奇怪符号的targetdir_mp4导致ffmpeg失败
-            tmp_target_mp4=self.cfg.cache_folder+f"/laste_target.mp4"
             protxt = self.cfg.cache_folder + f"/compose{time.time()}.txt"
             self._signal(text=config.tr("Video + Subtitles + Dubbing in merge"))
             cmd = []
@@ -1447,17 +1456,24 @@ class TransCreate(BaseTask):
                 ])
             if cmd:
                 tools.runffmpeg(cmd,cmd_dir=self.cfg.cache_folder,force_cpu=False)
-            shutil.move(tmp_target_mp4,self.cfg.targetdir_mp4)
+            
             os.chdir(config.ROOT_DIR)
         except Exception as e:
             msg =tr('Error in embedding the final step of the subtitle dubbing')
             raise RuntimeError(msg)
+
         
+        if Path(tmp_target_mp4).exists():
+            try:
+                shutil.copy2(tmp_target_mp4,self.cfg.targetdir_mp4)
+            except Exception as e:
+                raise RuntimeError(tr('Translation successful but transfer failed. ',tmp_target_mp4))
+            else:
+                try:
+                    shutil.rmtree(self.cfg.cache_folder,ignore_errors=True)        
+                except:
+                    pass
         
-        try:
-            shutil.rmtree(self.cfg.cache_folder,ignore_errors=True)        
-        except:
-            pass
         
         self._create_txt()
         self.precent = 100

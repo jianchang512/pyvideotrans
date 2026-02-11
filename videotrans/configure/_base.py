@@ -43,8 +43,22 @@ class BaseCon:
             #print(f'{kwargs=}')
             tools.set_process(**kwargs)
     
-    def _process_callback(self,msg):
-        self._signal(text=tr('Downloading please wait')+msg)
+    def _process_callback(self,data):
+        if isinstance(data,str):
+            return self._signal(text=tr('Downloading please wait')+data)
+        if not isinstance(data,dict):
+            return
+        msg_type = data.get("type")
+        percent = data.get("percent")
+        filename = data.get("filename")
+
+        if msg_type == "file":
+            self._signal(text=f"{tr('Downloading please wait')} {filename} {percent:.2f}%")
+        else:
+            current_file_idx = data.get("current")
+            total_files = data.get("total")
+
+            self._signal(text=f"{tr('Downloading please wait')} {current_file_idx}/{total_files} files")
         
     # 设置、获取代理
     def _set_proxy(self, type='set'):
@@ -106,7 +120,8 @@ class BaseCon:
         ]
         try:
             tools.runffmpeg(cmd, force_cpu=True)
-            tools.remove_silence_wav(output_wav_file_path)
+            if config.settings.get('remove_dubb_silence',True):
+                tools.remove_silence_wav(output_wav_file_path)
         except Exception:
             pass
         return True

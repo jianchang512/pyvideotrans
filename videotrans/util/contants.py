@@ -35,34 +35,45 @@ LISTEN_TEXT={
 
 }
 # 不使用代理的域名
-no_proxy = (
-    "tmt.tencentcloudapi.com,"
-    "hf-mirror.com,"
-    "api.fanyi.baidu.com,"
-    "openspeech.bytedance.com,"
-    "api.minimaxi.com,"
-    "api.deepseek.com,"
-    "modelscope.cn,"  # 涵盖了 *.modelscope.cn
-    "aliyuncs.com,"  # 涵盖了 dashscope, mt.cn-hangzhou 等所有子域
-    "api.siliconflow.cn,"
-    "ms.show,"  # 涵盖 *.ms.show
-    "bigmodel.cn,"
-    "localhost,"
-    "tts.speech.microsoft.com,"
-    "127.0.0.1,"
-    "127.0.0.1:7860,"
-    "localhost:7860,"
-    "127.0.0.1:9880,"
-    "localhost:9880,"
-    "127.0.0.1:8000,"
-    "localhost:8000,"
-    "127.0.0.1:5051,"
-    "127.0.0.1:5052,"
-    "127.0.0.1:5053,"
-    "127.0.0.1:9091,"
-    "127.0.0.1:9092,"
-    "127.0.0.1:9093"
-)
+_no_proxy_list = [
+    # --- 腾讯云 ---
+    "tencentcloudapi.com", ".tencentcloudapi.com",
+    
+    # --- HuggingFace ---
+    "hf-mirror.com", ".hf-mirror.com",
+    
+    # --- 百度 (包含 fanyi.baidu 等所有子域) ---
+    "baidu.com", ".baidu.com",
+    
+    # --- 字节跳动 (包含 openspeech 等所有子域) ---
+    "bytedance.com", ".bytedance.com",
+    
+    # --- MiniMax ---
+    "api.minimaxi.com", ".minimaxi.com",
+
+    # --- DeepSeek ---
+    "api.deepseek.com", ".deepseek.com",
+
+    # --- ModelScope ---
+    "modelscope.cn", ".modelscope.cn",
+
+    # --- 阿里云 (包含 dashscope, aliyuncs 等) ---
+    "aliyuncs.com", ".aliyuncs.com",
+
+    # --- SiliconFlow ---
+    "siliconflow.cn", ".siliconflow.cn",
+
+
+    "ms.show", ".ms.show",
+    "bigmodel.cn", ".bigmodel.cn",
+    #"microsoft.com", ".microsoft.com", # 涵盖 tts.speech.microsoft.com
+
+    # --- 本地回环 (涵盖所有端口：7860, 8000, 9880, 5051等) ---
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+]
+no_proxy = ",".join(_no_proxy_list)
 
 # funasr模型
 FUNASR_MODEL = ['Fun-ASR-Nano-2512', 'Fun-ASR-MLT-Nano-2512', 'paraformer-zh', 'SenseVoiceSmall']

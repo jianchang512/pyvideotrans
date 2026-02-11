@@ -61,6 +61,8 @@ class BaseTTS(BaseCon):
     error: Optional[Any] = None
     # 配音api地址
     api_url: str = field(default='', init=False)
+    # 启用CUDA，仅 qwen3-tts-local 游戏哦啊
+    is_cuda:bool=False
 
     def __post_init__(self):
         super().__post_init__()

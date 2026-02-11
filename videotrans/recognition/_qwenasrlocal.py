@@ -5,42 +5,56 @@ from typing import List, Dict, Union
 
 from gradio_client import Client, handle_file
 
-
-import re
+from pathlib import Path
+import re,time
 
 from videotrans.configure import config
 from videotrans.configure._except import  StopRetry
 from videotrans.configure.config import tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
-
+from videotrans.process import qwen3asr_fun
 
 
 @dataclass
 class QwenasrlocalRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = config.params.get('qwenasrlocal_address','')
-        self._add_internal_host_noproxy(self.api_url)
-        self.client = Client(self.api_url,httpx_kwargs={"timeout":7200})
+
+
+    def _download(self):
+        if config.defaulelang == 'zh':
+            tools.check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}',callback=self._process_callback,local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}')
+            
+            #tools.check_and_down_ms('Qwen/Qwen3-ForcedAligner-0.6B',callback=self._process_callback,local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B')
+        else:
+            tools.check_and_down_hf(model_id=f'Qwen3-ASR-{self.model_name}',repo_id=f'Qwen/Qwen3-ASR-{self.model_name}',local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}',callback=self._process_callback)
+            
+            #tools.check_and_down_hf(model_id='Qwen3-ForcedAligner-0.6B',repo_id='Qwen/Qwen3-ForcedAligner-0.6B',local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B',callback=self._process_callback)
+
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
 
-        # 发送请求
-        result = self.client.predict(
-            audio_upload=handle_file(self.audio_file),
-            lang_disp="Auto",
-            return_ts=True,
-            api_name="/run"
-        )
-        if len(result)<3 or not isinstance(result[2].get('value'),list):
-            raise RuntimeError(f'return error:{result}')
-
-        jsdata=result[2]["value"]
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
+        title="Qwen3-ASR"
+        cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
+        Path(cut_audio_list_file).write_text(json.dumps(self.cut_audio()),encoding='utf-8')
+        kwargs = {     
+            "cut_audio_list":   cut_audio_list_file,
+            "ROOT_DIR": config.ROOT_DIR,
+            "logs_file": logs_file,
+            "defaulelang": config.defaulelang,
+            "is_cuda": self.is_cuda,
+            "audio_file":self.audio_file,
+            "model_name":self.model_name
+        }
+        jsdata=self._new_process(callback=qwen3asr_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        #print(f'{jsdata=}')
         config.logger.debug(f'Qwen-asr返回的字词时间戳数据:{jsdata=}')
-        return self.segmentation_asr_data(jsdata)
+
+        return jsdata#self.segmentation_asr_data(jsdata)
         
     
     def segmentation_asr_data(self,asr_data, 
@@ -168,6 +182,7 @@ class QwenasrlocalRecogn(BaseRecogn):
             if should_split:
                 seg = flush_buffer(current_buffer)
                 if seg: segments.append(seg)
+                self._signal(text=seg.get('text','')+"\n",type='subtitle')
                 current_buffer = []
 
             current_buffer.append(token)
