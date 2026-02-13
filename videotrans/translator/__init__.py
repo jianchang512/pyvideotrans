@@ -178,7 +178,7 @@ LANG_CODE = {
         "zh-Hans",  # 微软翻译
         "Simplified Chinese",  # AI翻译
         "zh",  # 阿里
-        "Chinese", # qwen-mt
+        "Chinese", # qwen-mt qwen-tts qwen-asr
         "zh" # m2m100
     ],
     "ur": [
@@ -687,6 +687,16 @@ def get_ai_language_name(show_target=None,translate_type=None):
         return 'auto',target_list[9] if target_list else show_target
     return target_list[7],target_list[7]
 
+# 单独返回 qwen-mt qwen-tts qwen-asr 所需要的语言名称
+def get_language_qwen(langcode=None):
+    if not langcode:
+        return None
+    if langcode=='zh':
+        langcode='zh-cn'
+    _lang_list=LANG_CODE.get(langcode)
+    if not _lang_list:
+        return None
+    return _lang_list[9]
 
 
 # 判断当前翻译通道和目标语言是否允许翻译

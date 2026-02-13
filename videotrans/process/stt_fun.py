@@ -222,6 +222,7 @@ def faster_whisper(
                 {"start": it[0] / 1000.0, "end": it[1] / 1000.0}
                 for it in speech_timestamps
             ]
+            print(f'{clip_timestamps_dicts=}')
             segments, info = batched_model.transcribe(
                 audio_file,
                 batch_size=batch_size,  #
@@ -248,7 +249,7 @@ def faster_whisper(
                 best_of=best_of,
                 condition_on_previous_text=condition_on_previous_text,
                 vad_filter=True,
-                vad_parameters=dict(min_silence_duration_ms=500),
+                vad_parameters=dict(min_silence_duration_ms=200,min_speech_duration_ms=0,max_speech_duration_s=10),
                 no_speech_threshold=no_speech_threshold,
                 clip_timestamps="0",  # clip_timestamps,
                 word_timestamps=False,
@@ -574,7 +575,7 @@ def qwen3asr_fun0(
     atten=None
     if is_cuda:
         device_map = f'cuda:{device_index}'
-        dtype=torch.bfloat16
+        dtype=torch.float16
         try:
             import flash_attn
         except ImportError:

@@ -11,16 +11,17 @@ def openwin():
             tools.show_error(d)
         else:
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
-        winobj.test_zijiehuoshan.setText('测试')
+        winobj.test_zijiehuoshan.setText('Test')
 
     def test():
         key = winobj.zijiehuoshan_key.text()
         model = winobj.zijiehuoshan_model.currentText()
         if not key or not model.strip():
-            return tools.show_error('必须填写API key和推理接入点')
+            return tools.show_error('API KEY and Model')
 
         config.params["zijiehuoshan_key"] = key
         config.params["zijiehuoshan_model"] = model
+        config.getset_params(config.params)
         winobj.test_zijiehuoshan.setText(tr("Testing..."))
 
         task = TestSrtTrans(parent=winobj, translator_type=translator.ZIJIE_INDEX)

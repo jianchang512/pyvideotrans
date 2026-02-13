@@ -68,7 +68,7 @@ class Ui_setini(object):
             },
 
             "video": {
-                "crf": "视频转码时损失控制，0=无损但视频会超级大，51=质量差文件小，默认23质量和尺寸适中",
+                "crf": "视频转码时损失控制，0=无损但视频会超级大，51=质量差文件小",
                 "preset": "主要调节编码速度和质量的平衡，有 ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
                 "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在倒数第二个位置上,例如  -bf 7 -b_ref_mode middle",
                 "force_lib": "强制软件编码?（速度慢但兼容性好不易出错，默认优选硬件编码）",
@@ -101,10 +101,10 @@ class Ui_setini(object):
                 "other_len":"其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕"
             },
             "whisper": {
-                "threshold": "表示音频片段被认为是语音的最低概率。VAD 会为每个音频片段计算语音概率，超过此阈值的部分被视为语音，反之视为静音或噪音。\n默认0.5，越小越灵敏但可能误将噪声视为语音",
-                "max_speech_duration_s": "限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒，默认8秒",
-                "min_silence_duration_ms": "在语音结束时，需等待的静音时间达到此值后，才会分割出语音片段。填写数字，单位ms，默认500ms\n也就是只在大于此值的静音片段处分割",
-                "min_speech_duration_ms": "如果某条字幕时长小于该值对应ms，则尝试将该字幕合并进相邻字幕中，默认1000ms",
+                "threshold": "表示音频片段被认为是语音的最低概率。VAD 会为每个音频片段计算语音概率，超过此阈值的部分被视为语音，反之视为静音或噪音。越小越灵敏但可能误将噪声视为语音",
+                "max_speech_duration_s": "限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒",
+                "min_silence_duration_ms": "在语音结束时，需等待的静音时间达到此值后，才会分割出语音片段。填写数字，单位ms\n也就是只在大于此值的静音片段处分割",
+                "min_speech_duration_ms": "如果某条字幕时长小于该值对应ms，则尝试将该字幕合并进相邻字幕中",
                 "merge_short_sub": "只有选中该项，才会合并短字幕",
 
                 "vad_type":"选择要使用的VAD",
@@ -309,7 +309,7 @@ class Ui_setini(object):
                     "multi_gpus":"If you have multiple graphics cards with identical video memory, you can enable this option and set the above option to 2 or the number of graphics cards."
                 },
                 "video": {
-                    "crf": "Constant Rate Factor (CRF) for video quality. 0=lossless (huge file), 51=low quality (small file). Default: 23 (balanced).",
+                    "crf": "Constant Rate Factor (CRF) for video quality. 0=lossless (huge file), 51=low quality (small file).",
                     "preset": "Controls the encoding speed vs. quality balance (e.g., ultrafast, medium, slow). Faster means larger files.",
                     "ffmpeg_cmd": "Custom FFmpeg command arguments, added before the output file argument.",
                     "force_lib": "Force software encoding (slower but more compatible). Hardware encoding is preferred by default.",
@@ -341,10 +341,10 @@ class Ui_setini(object):
                     "other_len":"Number of words per line for subtitles in other languages; more than this will result in a line break"
                 },
                 "whisper": {
-                    "threshold": "VAD: Minimum probability for an audio chunk to be considered speech. Default: 0.5.",
-                    "max_speech_duration_s": "VAD: Maximum duration (s) of a single speech segment before splitting. Default: 8s.",
-                    "min_silence_duration_ms": "VAD: Minimum silence duration (ms) to mark the end of a segment. Default: 500ms.",
-                    "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle. Default is 1000ms",
+                    "threshold": "VAD: Minimum probability for an audio chunk to be considered speech.",
+                    "max_speech_duration_s": "VAD: Maximum duration (s) of a single speech segment before splitting.",
+                    "min_silence_duration_ms": "VAD: Minimum silence duration (ms) to mark the end of a segment.",
+                    "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle.",
 
                     "no_speech_threshold": "no speech threshold",
                     "temperature":"temperature",
@@ -364,7 +364,7 @@ class Ui_setini(object):
 
                     "model_list": "Comma-separated list of model names for faster-whisper and OpenAI modes.",
                     "Whisper.cpp.models": "Comma-separated list of model names for whisper.cpp mode.",
-                    "cuda_com_type": "CUDA compute type for faster-whisper (e.g., int8, float16, float32, default).",
+                    "cuda_com_type": "CUDA compute type for faster-whisper (e.g., int8, float16, float32).",
                     "beam_size": "Beam size for transcription (1-5). Higher is more accurate but uses more VRAM.",
                     "best_of": "Best-of for transcription (1-5). Higher is more accurate but uses more VRAM.",
                     "condition_on_previous_text": "Condition on previous text for better context (uses more GPU, may cause repetition).",

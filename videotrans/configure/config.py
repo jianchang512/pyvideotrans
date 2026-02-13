@@ -192,7 +192,7 @@ def parse_init(update_data=None):
         "deepseek_model": "deepseek-chat,deepseek-reasoner",
         "openrouter_model": "moonshotai/kimi-k2:free,tngtech/deepseek-r1t2-chimera:free,deepseek/deepseek-r1-0528:free",
         "guiji_model": "Qwen/Qwen3-8B,Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2-7B-Instruct",
-        "zijiehuoshan_model": "",
+        "zijiehuoshan_model": "doubao-seed-1-8-251228,doubao-seed-1-6-251015,doubao-seed-1-6-lite-251015,doubao-seed-1-6-flash-250828,deepseek-v3-2-251201,glm-4-7-251222,doubao-1-5-pro-32k-250115,kimi-k2-thinking-251104",
 
         # 默认 faster_whisper和openai-whisper模型
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3,distil-large-v3.5",
@@ -200,10 +200,10 @@ def parse_init(update_data=None):
         "max_audio_speed_rate": 100,
         "max_video_pts_rate": 10,
 
-        "threshold": 0.5,
-        "min_speech_duration_ms": 2000,
-        "max_speech_duration_s": 6,
-        "min_silence_duration_ms": 600,
+        "threshold": 0.4,
+        "min_speech_duration_ms": 3000,
+        "max_speech_duration_s": 8,
+        "min_silence_duration_ms": 200,
         "no_speech_threshold": 0.5,
 
         "batch_size": 4,

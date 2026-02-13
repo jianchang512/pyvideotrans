@@ -46,7 +46,7 @@ _no_proxy_list = [
     "baidu.com", ".baidu.com",
     
     # --- 字节跳动 (包含 openspeech 等所有子域) ---
-    "bytedance.com", ".bytedance.com",
+    "bytedance.com", ".bytedance.com",".volces.com","volces.com",
     
     # --- MiniMax ---
     "api.minimaxi.com", ".minimaxi.com",

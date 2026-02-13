@@ -12,6 +12,7 @@ from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
+from openai import OpenAI
 
 RETRY_NUMS = 3
 RETRY_DELAY = 5
@@ -29,9 +30,6 @@ class HuoShan(BaseTrans):
 
         self.prompt = tools.get_prompt(ainame='zijie',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
@@ -42,26 +40,45 @@ class HuoShan(BaseTrans):
              'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
              },
         ]
-        config.logger.debug(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{config.params.get('zijiehuoshan_model','')}")
+        model_name=config.params.get('zijiehuoshan_model','')
+        pre_=model_name.split('-')[0]
+        if pre_ not in['doubao','glm','deepseek','qwen','qwen3','kimi','minimax','minimaxi']:
+            model_name='doubao-seed-1-8-251228'
+        client = OpenAI(
+            base_url='https://ark.cn-beijing.volces.com/api/v3',
+            api_key=config.params.get('zijiehuoshan_key','')
+        )
 
-        req = {
-            "model": config.params.get('zijiehuoshan_model',''),
-            "messages": message
-        }
-        resp = requests.post("https://ark.cn-beijing.volces.com/api/v3/chat/completions", json=req, headers={
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {config.params.get('zijiehuoshan_key','')}"
-            })
-        resp.raise_for_status()
-        config.logger.debug(f'[字节火山引擎]响应:{resp.text=}')
-        data = resp.json()
-        if 'choices' not in data or len(data['choices']) < 1 or not data['choices'][0]['message']['content']:
-            raise RuntimeError(f'字节火山翻译失败:{resp.text=}')
+        config.logger.debug(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{model_name}")
+        response=None
+        try:
+            response = client.responses.create(
+                model=model_name,
+                max_output_tokens=32768,
+                temperature=float(config.settings.get('aitrans_temperature',0.2)),
+                extra_body={
+                    "thinking": {"type": "enabled"},
+                },
+                input=message
+            )
+        except Exception as e:            
+            raise RuntimeError(e.message) if hasattr(e,'message') else e
+        else:
+            config.logger.debug(f'[字节火山引擎]响应:{response=}')
+            result = ""
+            if not response or response.error:
+                raise RuntimeError(response.error)
+            if not response.output or len(response.output)<2:
+                raise RuntimeError(str(response))
+            try:
+                result = response.output[-1].content[0].text.strip()
+            except Exception as e:
+                config.logger.exception(f'[火山引擎]{e}',exc_info=True)
+                raise RuntimeError(str(response.output))
+
+            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',
+                              re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S), flags=re.S | re.I)
+            if match:
+                return match.group(1)
+            return result.strip()
         
-        
-        result = data['choices'][0]['message']['content'].strip()
-        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)
-        if match:
-            return match.group(1)
-        return result.strip()

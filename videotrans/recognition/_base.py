@@ -90,19 +90,20 @@ class BaseRecogn(BaseCon):
         settings=config.parse_init()
 
         _threshold = float(settings.get('threshold', 0.5))
-        _min_speech = max(int(settings.get('min_speech_duration_ms', 1000)),0)
-        # ten-vad不得低于500ms
+        _min_speech = max( int(float(settings.get('min_speech_duration_ms', 1000))),0)
+        # ten-vad 不得低于500ms
         if _vad_type=='tenvad':
             _min_speech=max(_min_speech,500)
+        
         # 最长不得大于30s,并且不得小于 _min_speech
         _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000),30000),_min_speech+1000)
         # 静音阈值不得低于50ms
         _min_silence = max(int(settings.get('min_silence_duration_ms', 600)),50)
         if self.recogn2pass:
             # 2次识别，均减半，以便生成简短的字幕
-            _min_speech=int(max(0,_min_speech//2))
-            # 不可低于 _min_speech 并且不可大于3000ms
-            _max_speech=max(min(3000,_max_speech//2),_min_speech+1000)
+            _min_speech=int(max(500,_min_speech//2))
+            # 不可低于 _min_speech+1000 并且不可大于3000ms
+            _max_speech=int(max(_max_speech//2,_min_speech+1000))
             # 不可大于1000ms，并且不可小于50ms
             _min_silence=max(min(1000,_min_silence//2),50)
 

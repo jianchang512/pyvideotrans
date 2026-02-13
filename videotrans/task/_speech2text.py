@@ -151,7 +151,6 @@ class SpeechToText(BaseTask):
                 self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub, is_file=True)
                 # return
             else:
-                print(f'{self.cfg=}')
                 # 其他识别渠道
                 raw_subtitles = run(
                     recogn_type=self.cfg.recogn_type,
@@ -165,7 +164,6 @@ class SpeechToText(BaseTask):
                     max_speakers=self.max_speakers,
                     llm_post=self.cfg.rephrase == 1
                 )
-                print(f'{raw_subtitles=}')
                 self.source_srt_list = raw_subtitles
                 self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
                 if not raw_subtitles or len(raw_subtitles) < 1:
@@ -302,7 +300,7 @@ class SpeechToText(BaseTask):
                 for i, it in enumerate(self.source_srt_list):
                     if i < speakers_len and speakers[i]:
                         it['text'] = f'[{speakers[i]}]{it["text"]}'
-        print(f'{self.source_srt_list=}')
+
         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
         self._signal(text=f"{self.cfg.name}", type='succeed')
         if self.out_format == 'txt':

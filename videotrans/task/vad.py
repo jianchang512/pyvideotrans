@@ -13,7 +13,7 @@ def get_speech_timestamp_silero(input_wav,
                          max_speech_duration_ms=None,
                          min_silent_duration_ms=None):
         # 防止填写错误
-        min_speech_duration_ms=int(max(min_speech_duration_ms,0))
+        min_speech_duration_ms=0#int(max(min_speech_duration_ms,0))
         min_silent_duration_ms=int(max(min_silent_duration_ms,50))
         max_speech_duration_ms=int(min(max(max_speech_duration_ms,min_speech_duration_ms+1000),30000))
         config.logger.debug(f'[silero-VAD]Fix:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
@@ -49,8 +49,6 @@ def get_speech_timestamp_silero(input_wav,
         return convert_to_milliseconds(speech_chunks)
 
 
-## 
-# 多进程vad
 def get_speech_timestamp(input_wav=None,
                          threshold=None,
                          min_speech_duration_ms=None,
@@ -71,10 +69,21 @@ def get_speech_timestamp(input_wav=None,
     except Exception as e:
         msg=traceback.format_exc()
         config.logger.exception(f"Error reading wav file: {msg}",exc_info=True)
-        return False,msg
+        return False
+
+    # 计算音频能量，用于自适应阈值调整
+    audio_energy = np.mean(np.abs(data)) if len(data) > 0 else 0
+    # 根据音频能量调整阈值，处理噪声过大的情况
+    adjusted_threshold = threshold
+    if audio_energy > 10000:  # 高能量音频（可能噪声大）
+        adjusted_threshold = max(threshold * 1.2, 0.3)  # 提高阈值
+    elif audio_energy < 1000:  # 低能量音频
+        adjusted_threshold = min(threshold * 0.8, 0.2)  # 降低阈值
+
+    config.logger.debug(f'[Ten-VAD]音频能量: {audio_energy}, 调整后阈值: {adjusted_threshold}')
 
     min_sil_frames = min_silent_duration_ms / frame_duration_ms
-    initial_segments = _detect_raw_segments(data, threshold, min_sil_frames, max_speech_frames=None)
+    initial_segments = _detect_raw_segments(data, adjusted_threshold, min_sil_frames, max_speech_frames=None)
 
     # --- 第二阶段：细化超长片段 超过2s---
     refined_segments = []
@@ -90,7 +99,7 @@ def get_speech_timestamp(input_wav=None,
             # 提取该段音频数据
             sub_data = data[s * hop_size: e * hop_size]
             # 使用减半的静音阈值重新检测，同时带上最大时长限制
-            sub_segs = _detect_raw_segments(sub_data, threshold, tighter_min_sil_frames,
+            sub_segs = _detect_raw_segments(sub_data, adjusted_threshold, tighter_min_sil_frames,
                                                  max_speech_frames=max_frames_limit)
 
             for ss, se in sub_segs:
@@ -99,7 +108,7 @@ def get_speech_timestamp(input_wav=None,
             refined_segments.append([s, e])
 
     if not refined_segments:
-        return False,'Unknow error'
+        return False
 
     # --- 第三阶段：毫秒转换 & 强制硬截断保护 ---
     # 即使二次细分，如果有人一口气说了30秒没停顿，仍需硬截断
@@ -111,6 +120,20 @@ def get_speech_timestamp(input_wav=None,
         # 循环确保不超 max_speech_duration_ms
         curr_s = start_ms
         while (end_ms - curr_s) > max_speech_duration_ms:
+            # 尝试在静音处截断，而不是生硬截断
+            # 计算当前块的中间静音区域
+            block_data = data[int(curr_s/1000*sr):int((curr_s + max_speech_duration_ms)/1000*sr)]
+            # 寻找最后一个静音区域
+            block_segments = _detect_raw_segments(block_data, adjusted_threshold, min_sil_frames/2, max_speech_frames=None)
+            if block_segments and len(block_segments) > 1:
+                # 如果有多个段，使用最后一个段的开始作为截断点
+                last_segment_start = block_segments[-2][1] * hop_size / sr * 1000
+                truncate_point = int(curr_s + last_segment_start)
+                if truncate_point > curr_s + max_speech_duration_ms * 0.8:
+                    segments_ms.append([curr_s, truncate_point])
+                    curr_s = truncate_point
+                    continue
+            # 如果没有找到合适的截断点，使用硬截断
             segments_ms.append([curr_s, curr_s + int(max_speech_duration_ms)])
             curr_s += int(max_speech_duration_ms)
 
@@ -121,37 +144,86 @@ def get_speech_timestamp(input_wav=None,
     
     speech_len = len(segments_ms)
     if speech_len <= 1:
-        return segments_ms,None
+        return segments_ms
 
-    check_1 = []
-
+    # --- 优化的片段合并策略 ---
+    merged_segments = []
     # 不允许最小语音片段低于500ms，可能无法有效识别而报错
     min_speech_duration_ms = max(min_speech_duration_ms or 1000, 500)
-    for i, it in enumerate(segments_ms):
-        diff = it[1] - it[0]
-        if diff >= min_speech_duration_ms:
-            check_1.append(it)
-        else:
-            # 200-min_speech_duration_ms 之间的语音片段合并到邻近
-            # 距离前面空隙
-            prev_diff = it[0] - check_1[-1][1] if len(check_1) > 0 else None
-            # 距离下个空隙
-            next_diff = segments_ms[i + 1][0] - it[1] if i < speech_len - 1 else None
-            if prev_diff is None and next_diff is not None:
-                # 插入后边
-                segments_ms[i + 1][0] = it[0]
-            elif prev_diff is not None and next_diff is None:
-                # 前面延长
-                check_1[-1][1] = it[1]
-            elif prev_diff is not None and next_diff is not None:
-                if prev_diff < next_diff:
-                    check_1[-1][1] = it[1]
-                else:
-                    segments_ms[i + 1][0] = it[0]
+    
+    # 第一轮：合并连续的短片段
+    temp_segments = []
+    current_merge = None
+    current_duration = 0
+    
+    for i, segment in enumerate(segments_ms):
+        duration = segment[1] - segment[0]
+        
+        if duration < min_speech_duration_ms:
+            # 短片段，需要合并
+            if current_merge is None:
+                current_merge = segment.copy()
+                current_duration = duration
             else:
-                check_1.append(it)
+                # 计算与当前合并段的间隔
+                gap = segment[0] - current_merge[1]
+                # 如果间隔较小，合并到当前段
+                if gap < min_silent_duration_ms:
+                    current_merge[1] = segment[1]
+                    current_duration += duration + gap
+                else:
+                    # 间隔较大，结束当前合并，开始新的合并
+                    temp_segments.append(current_merge)
+                    current_merge = segment.copy()
+                    current_duration = duration
+        else:
+            # 长片段，检查是否有未完成的合并
+            if current_merge is not None:
+                # 计算与前一个合并段的间隔
+                gap = segment[0] - current_merge[1]
+                # 如果间隔较小，合并到当前长片段
+                if gap < min_silent_duration_ms * 1.5:
+                    segment[0] = current_merge[0]
+                else:
+                    # 否则，添加合并段
+                    temp_segments.append(current_merge)
+                current_merge = None
+                current_duration = 0
+            temp_segments.append(segment)
+    
+    # 处理最后一个合并段
+    if current_merge is not None:
+        temp_segments.append(current_merge)
+    
+    # 第二轮：检查合并后的片段，确保没有过短的片段
+    for i, segment in enumerate(temp_segments):
+        duration = segment[1] - segment[0]
+        
+        if duration >= min_speech_duration_ms:
+            merged_segments.append(segment)
+        else:
+            # 仍然过短，尝试合并到邻近片段
+            if i == 0 and len(temp_segments) > 1:
+                # 第一个片段，合并到下一个
+                temp_segments[i+1][0] = segment[0]
+            elif i == len(temp_segments) - 1 and len(merged_segments) > 0:
+                # 最后一个片段，合并到前一个
+                merged_segments[-1][1] = segment[1]
+            elif len(merged_segments) > 0 and i < len(temp_segments) - 1:
+                # 中间片段，合并到更近的一边
+                prev_gap = segment[0] - merged_segments[-1][1]
+                next_gap = temp_segments[i+1][0] - segment[1]
+                
+                if prev_gap <= next_gap:
+                    merged_segments[-1][1] = segment[1]
+                else:
+                    temp_segments[i+1][0] = segment[0]
+            else:
+                # 无法合并的情况，添加为单独片段
+                merged_segments.append(segment)
+    
     config.logger.debug(f'[Ten-VAD]切分合并共用时:{int(time.time()-st_)}s')
-    return check_1,None
+    return merged_segments
 
 def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=None):
     """
@@ -161,17 +233,12 @@ def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=N
     
     ten_vad_instance = TenVad(hop_size, threshold)
     
-    # ============== 优化开始 ==============
-    # 1. 预先检查并一次性转换数据类型
-    # 避免在循环中重复进行 10万次 的 int16->float32 转换和内存分配
-    if data.dtype != np.int16:
-        # 将 int16 归一化到 -1.0 ~ 1.0 的 float32
-        # 这是 VAD 模型最喜欢的格式，处理速度最快
-        int16_data = data.astype(np.int16) / 32768.0
-    else:
-        int16_data = data
-
-    num_frames = int16_data.shape[0] // hop_size
+    # 确保数据是一维数组
+    if len(data.shape) > 1:
+        data = np.mean(data, axis=1)  # 降维到单声道
+    
+    # 计算有效帧数，确保每帧长度为hop_size
+    num_frames = (data.shape[0] - hop_size) // hop_size + 1
 
     segments = []
     triggered = False
@@ -179,9 +246,17 @@ def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=N
     silence_frame_count = 0
 
     for i in range(num_frames):
-        audio_frame=int16_data[i * hop_size: (i + 1) * hop_size]
+        # 确保每次取的帧长度为hop_size
+        audio_frame = data[i * hop_size: (i + 1) * hop_size]
+        
+        # 确保音频帧长度正确
+        if len(audio_frame) != hop_size:
+            continue
+            
+        # 确保数据类型正确
+        if audio_frame.dtype != np.int16:
+            audio_frame = audio_frame.astype(np.int16)
 
-        #audio_frame = data[i * hop_size: (i + 1) * hop_size]
         _, is_speech = ten_vad_instance.process(audio_frame)
 
         if triggered:
@@ -216,3 +291,4 @@ def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=N
         segments.append([speech_start_frame, end_frame])
 
     return segments
+

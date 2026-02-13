@@ -7,7 +7,7 @@ from typing import List, Union
 
 import httpx
 import json
-from openai import OpenAI
+from openai import OpenAI,LengthFinishReasonError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
@@ -15,7 +15,7 @@ from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
-from openai import LengthFinishReasonError
+
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
