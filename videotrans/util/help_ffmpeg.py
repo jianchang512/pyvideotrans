@@ -83,26 +83,6 @@ def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> Union[i
         return None
     return None
 
-
-def _translate_crf_to_hw_quality2(crf_value: str, encoder_family: str) -> Union[int, None]:
-    """
-    将 CRF 值近似转换为不同硬件编码器的质量值。
-    这是一个经验性转换，并非精确等效。
-    """
-    try:
-        crf = int(crf_value)
-        # 经验范围：CRF 越低，质量越高。
-        # NVENC CQ/QP, QSV global_quality 范围 ~1-51，推荐 20-28，其值与CRF的体感接近。
-        if encoder_family in ['nvenc', 'qsv', 'vaapi']:
-            # 对于这些编码器，质量值与 CRF 值大致在同一数量级
-            # 简单地将值限制在合理范围内
-            return max(1, min(crf, 51))
-        # 其他编码器（如 AMF）的质量参数不同，后续再说
-        # videotoolbox 使用 -q:v 0-100，暂不转换
-    except (ValueError, TypeError):
-        return None
-    return None
-
 def _build_hw_command(args: list, hw_codec: str) -> Tuple[List[str], List[str]]:
     """
     根据选择的硬件编码器，构建 ffmpeg 命令参数列表和硬件解码选项
@@ -203,86 +183,6 @@ def _build_hw_command(args: list, hw_codec: str) -> Tuple[List[str], List[str]]:
             else:
                 # config.logger.warning(f"编码器 {encoder_family} 不支持 CRF 替换，忽略。")
                 pass
-            i += 2
-            continue
-
-        new_args.append(arg)
-        i += 1
-    return new_args
-
-
-
-def _build_hw_command2(args: list, hw_codec: str):
-
-    """
-    根据选择的硬件编码器，构建 ffmpeg 命令参数列表和硬件解码选项
-
-    此函数是纯粹的，它不修改输入列表，而是返回一个新的列表。
-    """
-    if not hw_codec or 'libx' in hw_codec:
-        return args, []
-
-    encoder_family = hw_codec.split('_')[-1]
-
-    # --- 参数映射表 ---
-    PRESET_MAP = {
-        'nvenc': {'fast': 'p1', 'medium': 'p4', 'slow': 'p7'},  # p1-p7: fastest to slowest
-        'qsv': {'fast': 'veryfast', 'medium': 'medium', 'slow': 'veryslow'},
-        'vaapi': {'fast': 'veryfast', 'medium': 'medium', 'slow': 'veryslow'},
-        'amf': {'fast': 'speed', 'medium': 'balanced', 'slow': 'quality'},
-    }
-
-    # 定义硬件质量参数的名称
-    QUALITY_PARAM_MAP = {
-        'nvenc': '-cq',
-        'qsv': '-global_quality',
-        'vaapi': '-global_quality',
-    }
-
-    new_args = []
-    hw_decode_opts = []
-
-    i = 0
-    main_input_file = ""
-    while i < len(args):
-        arg = args[i]
-
-        if arg == '-i' and not main_input_file and i + 1 < len(args):
-            main_input_file = args[i + 1]
-
-        # 1. 替换视频编码器
-        if arg == '-c:v' and i + 1 < len(args):
-            if args[i + 1] != 'copy':
-                new_args.extend(['-c:v', hw_codec])
-            else:
-                new_args.extend(['-c:v', 'copy'])
-            i += 2
-            continue
-
-        # 2. 调整 preset 参数 (使用分类)
-        if arg == '-preset' and i + 1 < len(args):
-            family_presets = PRESET_MAP.get(encoder_family)
-            if family_presets:
-                classification = _get_preset_classification(args[i + 1])
-                new_preset = family_presets.get(classification)
-                if new_preset:
-                    new_args.extend(['-preset', new_preset])
-            i += 2
-            continue
-
-        # 3. 替换 -crf 参数
-        if arg == '-crf' and i + 1 < len(args):
-            hw_quality_param = QUALITY_PARAM_MAP.get(encoder_family)
-            if hw_quality_param:
-                crf_value = args[i + 1]
-                hw_quality_value = _translate_crf_to_hw_quality(crf_value, encoder_family)
-                if hw_quality_value is not None:
-
-                    new_args.extend([hw_quality_param, str(hw_quality_value)])
-                else:
-                    config.logger.warning(f"无法转换 -crf {crf_value} 的值，将忽略此质量参数。")
-            else:
-                config.logger.warning(f"编码器 {encoder_family} 不支持CRF到硬件质量参数的自动替换，将忽略 -crf。")
             i += 2
             continue
 

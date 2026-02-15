@@ -1,6 +1,6 @@
 [project]
 name = "pyVideoTrans"
-version = "3.96"
+version = "3.97"
 requires-python = ">=3.10, <3.11"
 dependencies = [
     "absl-py==2.0.0",
@@ -257,8 +257,6 @@ dependencies = [
     "google-genai",
     "transformers==4.57.6",
     "elevenlabs",
-    "qwen-asr>=0.0.6",
-    "qwen-tts>=0.1.1",
 ]
 
 [tool.uv]
@@ -293,4 +291,3 @@ torchaudio = [
 
 
 faster-whisper = { url = "https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz" }
-

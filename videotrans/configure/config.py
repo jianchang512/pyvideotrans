@@ -180,19 +180,31 @@ def parse_init(update_data=None):
         "batch_single": False,
 
         # 默认显示模型
-        "ai302_models": "deepseek-chat,gemini-2.5-flash",
-        'qwenmt_model': "qwen3-max,qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen3-asr-flash,qwen3-asr-flash-filetrans",
+        "ai302_models": "deepseek-chat",
+        
+        'qwenmt_model': "qwen3-max,qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3-asr-flash,qwen3-asr-flash-filetrans",
+        
         "openaitts_model": "tts-1,tts-1-hd,gpt-4o-mini-tts",
+        
         "openairecognapi_model": "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe,gpt-4o-transcribe-diarize",
+        
         "chatgpt_model": "gpt-5.2,gpt-5.2-pro,gpt-5,gpt-5-mini,gpt-5-nano,gpt-4.1",
-        "claude_model": "claude-sonnet-4-5,claude-haiku-4-5,claude-opus-4-5",
+        
+        
         "azure_model": "gpt-5.2,gpt-5.2-pro,gpt-5,gpt-5-mini,gpt-5-nano,gpt-4.1",
+
         "localllm_model": "qwen:7b,deepseek-chat",
-        "zhipuai_model": "glm-4.5-flash",
+
+        "zhipuai_model": "glm-5, glm-4.7, glm-4.7-flash, glm-4.7-flashx, glm-4.6, glm-4.5-air, glm-4.5-airx, glm-4.5-flash",
+
         "deepseek_model": "deepseek-chat,deepseek-reasoner",
-        "openrouter_model": "moonshotai/kimi-k2:free,tngtech/deepseek-r1t2-chimera:free,deepseek/deepseek-r1-0528:free",
-        "guiji_model": "Qwen/Qwen3-8B,Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2-7B-Instruct",
-        "zijiehuoshan_model": "doubao-seed-1-8-251228,doubao-seed-1-6-251015,doubao-seed-1-6-lite-251015,doubao-seed-1-6-flash-250828,deepseek-v3-2-251201,glm-4-7-251222,doubao-1-5-pro-32k-250115,kimi-k2-thinking-251104",
+
+        "openrouter_model": "minimax/minimax-m2.5,z-ai/glm-5,qwen/qwen3-max-thinking,moonshotai/kimi-k2.5,google/gemini-3-flash-preview",
+
+        "guiji_model": "Pro/zai-org/GLM-5,Pro/moonshotai/Kimi-K2.5,Pro/deepseek-ai/DeepSeek-V3.2,Pro/MiniMaxAI/MiniMax-M2.1,Qwen/Qwen3-235B-A22B-Instruct-2507",
+        
+        "zijiehuoshan_model": 
+        "doubao-seed-2-0-pro-260215,doubao-seed-2-0-lite-260215,doubao-seed-2-0-mini-260215,doubao-seed-1-8-251228,doubao-seed-1-6-251015,doubao-seed-1-6-lite-251015,doubao-seed-1-6-flash-250828,deepseek-v3-2-251201,glm-4-7-251222,doubao-1-5-pro-32k-250115,kimi-k2-thinking-251104,doubao-ceshi",
 
         # 默认 faster_whisper和openai-whisper模型
         "model_list": "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3,distil-large-v3.5",
@@ -206,7 +218,7 @@ def parse_init(update_data=None):
         "min_silence_duration_ms": 200,
         "no_speech_threshold": 0.5,
 
-        "batch_size": 4,
+        "batch_size": 8,
         "merge_short_sub": True,
 
         "vad_type": "tenvad",  # tenvad silero
@@ -309,11 +321,15 @@ def parse_init(update_data=None):
             elif value:
                 _settings[key] = value
         # 补充新增的模型到 缓存
-        _de = default['model_list'].split(',')
-        _ca = _settings['model_list'].split(',')
-        _new = [it for it in _de if it not in _ca]
-        _ca.extend(_new)
-        _settings['model_list'] = ",".join(_ca)
+        _extend_models=['localllm_model','zhipuai_model','deepseek_model','openrouter_model','guiji_model','zijiehuoshan_model','model_list','qwentts_models','gemini_model','chattts_voice']
+        for m in _extend_models:        
+            _de = default[m].split(',')
+            _cache = _settings.get(m,'').split(',')
+            _new = [str(it) for it in _cache if it not in _de]
+            if _new:
+                _de.extend(_new)
+            _settings[m] = ",".join(_de)
+        
         default.update(_settings)
         with open(ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(default, ensure_ascii=False))

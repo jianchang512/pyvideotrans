@@ -39,23 +39,23 @@ def is_connect_hf():
 def check_and_down_hf(model_id, repo_id, local_dir, callback=None) -> bool:
     MODELS_AT_SCOPE=['tiny','tiny.en','base','base.en','small','small.en','medium','medium.en','large-v1','large-v2','large-v3','large-v3-turbo','distil-large-v3','distil-large-v3.5','distil-large-v3.5-ct2','large','turbo']
 
-    if  model_id in MODELS_AT_SCOPE and (config.defaulelang == 'zh' or is_connect_hf() is False):
-        if model_id=='turbo':
-            model_id='large-v3-turbo'
-        elif model_id=='distil-large-v3.5-ct2':
-            model_id='distil-large-v3.5'
-        elif model_id=='large':
-            model_id='large-v3'
-                
-        URL_PRE=f'https://modelscope.cn/models/himyworld/fasterwhisper/resolve/master/{model_id}/'
-        
-        if model_id in ['large-v3','large-v3-turbo','distil-large-v3','distil-large-v3.5']:
-            all_urls=["vocabulary.json","preprocessor_config.json"]
-        else:
-            all_urls=["vocabulary.txt"]
-        all_urls+=["config.json","tokenizer.json","model.bin",]
-        return down_file_from_ms(local_dir, urls=[f'{URL_PRE}{u}' for u in all_urls],callback=callback)
     try:
+        if  model_id in MODELS_AT_SCOPE and (config.defaulelang == 'zh' or is_connect_hf() is False):
+            if model_id=='turbo':
+                model_id='large-v3-turbo'
+            elif model_id=='distil-large-v3.5-ct2':
+                model_id='distil-large-v3.5'
+            elif model_id=='large':
+                model_id='large-v3'
+                    
+            URL_PRE=f'https://modelscope.cn/models/himyworld/fasterwhisper/resolve/master/{model_id}/'
+            
+            if model_id in ['large-v3','large-v3-turbo','distil-large-v3','distil-large-v3.5']:
+                all_urls=["vocabulary.json","preprocessor_config.json"]
+            else:
+                all_urls=["vocabulary.txt"]
+            all_urls+=["config.json","tokenizer.json","model.bin",]
+            return down_file_from_ms(local_dir, urls=[f'{URL_PRE}{u}' for u in all_urls],callback=callback)
         try:
             snapshot_download(
                 repo_id=repo_id,
@@ -191,8 +191,7 @@ def down_file_from_ms(local_dir, urls=None,callback=None) -> bool:
                 finally:
                     dest_file_obj.close()
         except Exception as e:
-            msg = config.tr('downloading all files', local_dir)
-            raise RuntimeError(f"{msg}\n[{url}]\n{e}")
+            raise 
     return True
 
 

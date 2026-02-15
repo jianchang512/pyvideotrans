@@ -53,6 +53,7 @@ class DeepSeek(BaseTrans):
             model=self.model_name,
             messages=message,
             frequency_penalty=0,
+            timeout=300,
             temperature=float(config.settings.get('aitrans_temperature',0.2)),
             max_tokens=8192 if not self.model_name.startswith('deepseek-reasoner') else 65536
         )
