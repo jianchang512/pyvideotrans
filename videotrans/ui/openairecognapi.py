@@ -1,7 +1,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,app_cfg,params,settings,logger
 from videotrans.util import tools
 
 
@@ -92,19 +92,17 @@ class Ui_openairecognapiform(object):
         QtCore.QMetaObject.connectSlotsByName(openairecognapiform)
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('openairecognapi_model','')
-        allmodels = str(config.settings.get('openairecognapi_model','')).split(',')
+        allmodels_str = settings.get('openairecognapi_model','')
+        allmodels = str(settings.get('openairecognapi_model','')).split(',')
         self.openairecognapi_model.clear()
         self.openairecognapi_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.openairecognapi_key.setText(config.params.get("openairecognapi_key",''))
-        self.openairecognapi_prompt.setText(config.params.get("openairecognapi_prompt",''))
-        self.openairecognapi_url.setText(config.params.get("openairecognapi_url",''))
-        if config.params.get('openairecognapi_model','') in allmodels:
-            self.openairecognapi_model.setCurrentText(config.params.get("openairecognapi_model",''))
+        self.openairecognapi_key.setText(params.get("openairecognapi_key",''))
+        self.openairecognapi_prompt.setText(params.get("openairecognapi_prompt",''))
+        self.openairecognapi_url.setText(params.get("openairecognapi_url",''))
+        if params.get('openairecognapi_model','') in allmodels:
+            self.openairecognapi_model.setCurrentText(params.get("openairecognapi_model",''))
 
     def retranslateUi(self, openairecognapiform):
         openairecognapiform.setWindowTitle(

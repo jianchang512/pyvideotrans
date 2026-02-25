@@ -4,8 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -114,16 +113,14 @@ class Ui_siliconflowform(object):
         QtCore.QMetaObject.connectSlotsByName(siliconflowform)
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('guiji_model','')
-        allmodels = str(config.settings.get('guiji_model','')).split(',')
+        allmodels_str = settings.get('guiji_model','')
+        allmodels = str(settings.get('guiji_model','')).split(',')
         self.guiji_model.clear()
         self.guiji_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.guiji_key.setText(config.params.get("guiji_key",''))
-        self.guiji_model.setCurrentText(config.params.get("guiji_model",''))
-        self.max_token.setText(config.params.get("guiji_max_token",''))
+        self.guiji_key.setText(params.get("guiji_key",''))
+        self.guiji_model.setCurrentText(params.get("guiji_model",''))
+        self.max_token.setText(params.get("guiji_max_token",''))
 
     def retranslateUi(self, siliconflowform):
         siliconflowform.setWindowTitle(tr("SiliconFlow"))

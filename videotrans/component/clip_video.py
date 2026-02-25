@@ -13,10 +13,9 @@ from PySide6.QtGui import QDesktopServices, QIcon
 # 全局输出文件夹
 from videotrans.util import tools
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, params, TEMP_DIR, logger, defaulelang, HOME_DIR
 
-
-output_folder = config.HOME_DIR
+output_folder = HOME_DIR
 
 
 
@@ -225,19 +224,19 @@ class ClipVideoWindow(QWidget):
         self.progress_label.setReadOnly(True)
         self.progress_label.setFixedHeight(80)
         layout.addWidget(self.progress_label)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setLayout(layout)
 
     def select_video(self):
-        path, _ = QFileDialog.getOpenFileName(self, tr("selectVideo"), config.settings.get('last_opendir',''), "Video Files (*.mp4 *.avi *.mkv)")
+        path, _ = QFileDialog.getOpenFileName(self, tr("selectVideo"), settings.get('last_opendir',''), "Video Files (*.mp4 *.avi *.mkv)")
         if path:
             self.video_path = path
             self.video_label.setText(os.path.basename(path))
-            config.settings['last_opendir']=Path(path).parent.as_posix()
+            settings['last_opendir']=Path(path).parent.as_posix()
 
     def select_subtitle(self):
         global output_folder
-        path, _ = QFileDialog.getOpenFileName(self, tr("selectSubtitle"), config.settings.get('last_opendir',''), "Subtitle Files (*.srt *.ass *.vtt)")
+        path, _ = QFileDialog.getOpenFileName(self, tr("selectSubtitle"), settings.get('last_opendir',''), "Subtitle Files (*.srt *.ass *.vtt)")
         if path:
             self.progress_label.setPlainText(tr("renderingSubtitles"))
             self.subtitle_list.clear()
@@ -258,7 +257,7 @@ class ClipVideoWindow(QWidget):
             self.select_all_btn.setVisible(True)
             self.deselect_all_btn.setVisible(True)
             self.invert_btn.setVisible(True)
-            config.settings['last_opendir']=Path(self.subtitle_path).parent.as_posix()
+            settings['last_opendir']=Path(self.subtitle_path).parent.as_posix()
 
     @Slot(str)
     def on_load_error(self, error):

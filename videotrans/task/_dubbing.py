@@ -9,9 +9,9 @@ from typing import List, Optional
 
 from videotrans import tts
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, settings, params, app_cfg, logger, HOME_DIR
 from videotrans.task._base import BaseTask
-from videotrans.task._rate import SpeedRate
+from videotrans.task._rate import TtsSpeedRate
 from videotrans.util import tools
 
 """
@@ -34,7 +34,7 @@ class DubbingSrt(BaseTask):
         # 是否是 字幕多角色配音
         # 输出目标位置
         if not self.cfg.target_dir:
-            self.cfg.target_dir = f"{config.HOME_DIR}/tts"
+            self.cfg.target_dir = f"{HOME_DIR}/tts"
         if self.cfg.cache_folder:
             Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
@@ -43,7 +43,7 @@ class DubbingSrt(BaseTask):
         # 配音后音频文件保存为
         self.cfg.target_wav = f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'
         self._signal(text=tr("Dubbing from subtitles"))
-        config.logger.debug(f'配音 {self.cfg=}')
+        logger.debug(f'配音 {self.cfg=}')
 
 
     def dubbing(self):
@@ -150,7 +150,7 @@ class DubbingSrt(BaseTask):
                     pitch=self.cfg.pitch
                 )
             ))
-            config.logger.debug(f'edge-tts配音，未音频加速，未视频慢速，未强制对齐，已删字幕间静音，使用单独文本配音')
+            logger.debug(f'edge-tts配音，未音频加速，未视频慢速，未强制对齐，已删字幕间静音，使用单独文本配音')
             if not self.cfg.target_wav.endswith('.mp3'):
                 tools.runffmpeg(['-y', '-i', tmp_name, '-b:a', '128k', self.cfg.target_wav])
             return
@@ -196,7 +196,7 @@ class DubbingSrt(BaseTask):
             if it['end_time'] <= it['start_time']:
                 continue
             try:
-                spec_role = config.dubbing_role.get(int(it.get('line', 1))) if self.is_multi_role else None
+                spec_role = app_cfg.dubbing_role.get(int(it.get('line', 1))) if self.is_multi_role else None
             except (ValueError,LookupError):
                 spec_role = None
             voice_role = spec_role if spec_role else self.cfg.voice_role
@@ -227,7 +227,7 @@ class DubbingSrt(BaseTask):
             is_cuda=self.cfg.is_cuda
         )
         # 如果需要单独保存每条字幕的配音
-        if config.settings.get('save_segment_audio', False):
+        if settings.get('save_segment_audio', False):
             outname = self.cfg.target_dir + f'/segment_audio_{self.cfg.noextname}'
             Path(outname).mkdir(parents=True, exist_ok=True)
             for it in self.queue_tts:
@@ -261,7 +261,7 @@ class DubbingSrt(BaseTask):
                 self.cfg.target_wav = self.cfg.target_wav[:-4] + f'-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}{target_path.suffix}'
             # txt 配音 不音频加速，移除字幕间静音即有空隙也忽略，直接配音文件相连
             # 单独配音功能不强制对齐
-            rate_inst = SpeedRate(
+            rate_inst = TtsSpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,
                 shoud_audiorate=self.cfg.voice_autorate if not self.cfg.target_sub.endswith('.txt') else False,# txt 配音禁止自动加速，需要移除字幕静音，即直接相连即可
@@ -304,7 +304,7 @@ class DubbingSrt(BaseTask):
         tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")    
 
     def _exit(self):
-        if config.exit_soft:
+        if app_cfg.exit_soft:
             self.hasend=True
             return True
         return False

@@ -13,6 +13,7 @@ from pydub import AudioSegment
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, TEMP_DIR
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
@@ -26,12 +27,12 @@ class OpenaiAPIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = self._get_url(config.params.get('openairecognapi_url', ''))
+        self.api_url = self._get_url(params.get('openairecognapi_url', ''))
         self._add_internal_host_noproxy(self.api_url)
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
-        model_name = config.params.get("openairecognapi_model", '')
+        model_name = params.get("openairecognapi_model", '')
         # 如果是 gpt-4o-transcribe-diarize 说话人识别默认
         if model_name.lower() == 'gpt-4o-transcribe-diarize':
             return self._diarize()
@@ -40,7 +41,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 'gpt-4o-') > -1:
             return self._thrid_api()
 
-        mp3_tmp = config.TEMP_DIR + f'/recogn{time.time()}.mp3'
+        mp3_tmp = TEMP_DIR + f'/recogn{time.time()}.mp3'
         tools.runffmpeg([
             "-y",
             "-i",
@@ -57,13 +58,13 @@ class OpenaiAPIRecogn(BaseRecogn):
             raise StopRetry(f'No {self.audio_file}')
         # 发送请求
         raws = []
-        client = OpenAI(api_key=config.params.get('openairecognapi_key', ''), base_url=self.api_url,
+        client = OpenAI(api_key=params.get('openairecognapi_key', ''), base_url=self.api_url,
                         http_client=httpx.Client(proxy=self.proxy_str))
         with open(self.audio_file, 'rb') as file:
             transcript = client.audio.transcriptions.create(
                 file=(self.audio_file, file.read()),
                 model=model_name,
-                prompt=config.params.get('openairecognapi_prompt', ''),
+                prompt=params.get('openairecognapi_prompt', ''),
                 language=self.detect_language[:2].lower(),
                 response_format="verbose_json",
                 #chunking_strategy='auto',
@@ -86,7 +87,7 @@ class OpenaiAPIRecogn(BaseRecogn):
         # 发送请求
         raws = self.cut_audio()
         client = OpenAI(
-            api_key=config.params.get('openairecognapi_key', ''),
+            api_key=params.get('openairecognapi_key', ''),
             base_url=self.api_url,
             http_client=httpx.Client(proxy=self.proxy_str or None)
         )
@@ -94,8 +95,8 @@ class OpenaiAPIRecogn(BaseRecogn):
             with open(it['file'], 'rb') as file:
                 transcript = client.audio.transcriptions.create(
                     file=(it['file'], file.read()),
-                    model=config.params.get("openairecognapi_model", 'whisper-1'),
-                    prompt=config.params.get('openairecognapi_prompt', ''),
+                    model=params.get("openairecognapi_model", 'whisper-1'),
+                    prompt=params.get('openairecognapi_prompt', ''),
                     # timeout=7200,
                     language=self.detect_language[:2].lower(),
                     response_format="json"
@@ -107,7 +108,7 @@ class OpenaiAPIRecogn(BaseRecogn):
 
     def _diarize(self):
         client = OpenAI(
-            api_key=config.params.get('openairecognapi_key', ''),
+            api_key=params.get('openairecognapi_key', ''),
             base_url=self.api_url,
             http_client=httpx.Client(proxy=self.proxy_str or None)
         )
@@ -152,7 +153,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 if speaker_list:
                     Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
             except Exception as e:
-                config.logger.exception(f'说话人重排序出错，忽略{e}',exc_info=True)
+                logger.exception(f'说话人重排序出错，忽略{e}',exc_info=True)
         return raws
 
     def _get_url(self, url=""):

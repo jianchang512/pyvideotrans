@@ -13,6 +13,7 @@ from pydub import AudioSegment
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
@@ -26,7 +27,7 @@ class WhisperXRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = config.params.get('whisperx_api', 'http://127.0.0.1:9092')
+        self.api_url = params.get('whisperx_api', 'http://127.0.0.1:9092')
         self._add_internal_host_noproxy(self.api_url)
 
 
@@ -40,7 +41,7 @@ class WhisperXRecogn(BaseRecogn):
         raws = []
         speaker_list = []
         speaker_name = []
-        config.logger.debug(f'[whisperx-api]:指定最大说话人：{self.max_speakers=}')
+        logger.debug(f'[whisperx-api]:指定最大说话人：{self.max_speakers=}')
         with open(self.audio_file, 'rb') as file:
 
             transcript = client.audio.transcriptions.create(
@@ -83,7 +84,7 @@ class WhisperXRecogn(BaseRecogn):
                 if speaker_list:
                     Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
             except Exception as e:
-                config.logger.exception(f'说话人重排序出错，忽略{e}',exc_info=True)
+                logger.exception(f'说话人重排序出错，忽略{e}',exc_info=True)
         return raws
 
 

@@ -3,14 +3,14 @@
 def openwin():
     import json
     from pathlib import Path
-    from videotrans.configure.config import tr
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
-    RESULT_DIR = config.HOME_DIR + "/Mergersrt"
+    RESULT_DIR = HOME_DIR + "/Mergersrt"
 
 
     class CompThread(QThread):
@@ -62,7 +62,7 @@ def openwin():
             winobj.resultinput.setPlainText(Path(winobj.resultlabel.text()).read_text(encoding='utf-8'))
 
     def get_file(inputname):
-        fname, _ = QFileDialog.getOpenFileName(winobj, "Select subtitles srt", config.params.get('last_opendir',''),
+        fname, _ = QFileDialog.getOpenFileName(winobj, "Select subtitles srt", params.get('last_opendir',''),
                                                "files(*.srt)")
         if fname:
             if inputname == 1:
@@ -95,7 +95,7 @@ def openwin():
     from videotrans.component.set_form import HebingsrtForm
 
     winobj = HebingsrtForm()
-    config.child_forms['fn_hebingsrt'] = winobj
+    app_cfg.child_forms['fn_hebingsrt'] = winobj
     winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)

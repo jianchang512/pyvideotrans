@@ -2,7 +2,7 @@ import requests
 import sys
 from PySide6.QtCore import QThread
 
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 
 
 class CheckUpdateWorker(QThread):

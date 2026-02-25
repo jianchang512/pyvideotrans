@@ -9,6 +9,7 @@ from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, 
     Timeout, ConnectionError as ReqConnectionError, RetryError, HTTPError
 from deepgram.clients.common.v1.errors import DeepgramApiError
 from videotrans.configure import config
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, defaulelang
 import httpx, httpcore
 from tenacity import RetryError as TenRetryError
 
@@ -232,7 +233,7 @@ def get_msg_from_except(ex):
     if isinstance(ex, VideoTransError):
         return str(ex)
         
-    lang = config.defaulelang
+    lang = defaulelang
     if isinstance(ex, TenRetryError):
         try:
             ex = ex.last_attempt.exception()

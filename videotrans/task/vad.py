@@ -2,6 +2,7 @@ import time,os,shutil
 import traceback
 
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from ten_vad import TenVad
 import scipy.io.wavfile as Wavfile
 import numpy as np
@@ -16,7 +17,7 @@ def get_speech_timestamp_silero(input_wav,
         min_speech_duration_ms=0#int(max(min_speech_duration_ms,0))
         min_silent_duration_ms=int(max(min_silent_duration_ms,50))
         max_speech_duration_ms=int(min(max(max_speech_duration_ms,min_speech_duration_ms+1000),30000))
-        config.logger.debug(f'[silero-VAD]Fix:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
+        logger.debug(f'[silero-VAD]Fix:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
 
         sampling_rate = 16000
         from faster_whisper.audio import decode_audio
@@ -60,7 +61,7 @@ def get_speech_timestamp(input_wav=None,
     #切割的静音阈值，不得低于50ms
     min_silent_duration_ms=int(max(50,min_silent_duration_ms))
 
-    config.logger.debug(f'[Ten-VAD]Fix after:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
+    logger.debug(f'[Ten-VAD]Fix after:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
     frame_duration_ms = 16
     hop_size = 256
     st_=time.time()
@@ -68,7 +69,7 @@ def get_speech_timestamp(input_wav=None,
         sr, data = Wavfile.read(input_wav)
     except Exception as e:
         msg=traceback.format_exc()
-        config.logger.exception(f"Error reading wav file: {msg}",exc_info=True)
+        logger.exception(f"Error reading wav file: {msg}",exc_info=True)
         return False
 
     # 计算音频能量，用于自适应阈值调整
@@ -80,7 +81,7 @@ def get_speech_timestamp(input_wav=None,
     elif audio_energy < 1000:  # 低能量音频
         adjusted_threshold = min(threshold * 0.8, 0.2)  # 降低阈值
 
-    config.logger.debug(f'[Ten-VAD]音频能量: {audio_energy}, 调整后阈值: {adjusted_threshold}')
+    logger.debug(f'[Ten-VAD]音频能量: {audio_energy}, 调整后阈值: {adjusted_threshold}')
 
     min_sil_frames = min_silent_duration_ms / frame_duration_ms
     initial_segments = _detect_raw_segments(data, adjusted_threshold, min_sil_frames, max_speech_frames=None)
@@ -140,7 +141,7 @@ def get_speech_timestamp(input_wav=None,
         if end_ms - curr_s > 0:
             segments_ms.append([curr_s, end_ms])
     
-    config.logger.debug(f'[Ten-VAD]切分用时 {int(time.time() - st_)}s')
+    logger.debug(f'[Ten-VAD]切分用时 {int(time.time() - st_)}s')
     
     speech_len = len(segments_ms)
     if speech_len <= 1:
@@ -222,7 +223,7 @@ def get_speech_timestamp(input_wav=None,
                 # 无法合并的情况，添加为单独片段
                 merged_segments.append(segment)
     
-    config.logger.debug(f'[Ten-VAD]切分合并共用时:{int(time.time()-st_)}s')
+    logger.debug(f'[Ten-VAD]切分合并共用时:{int(time.time()-st_)}s')
     return merged_segments
 
 def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=None):

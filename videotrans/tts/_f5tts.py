@@ -9,8 +9,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans import tts
 from videotrans.configure import config
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from pydub import AudioSegment
@@ -27,15 +27,15 @@ class F5TTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         if self.tts_type==tts.DIA_TTS:
-            api_url=config.params.get('diatts_url', '')
+            api_url=params.get('diatts_url', '')
         elif self.tts_type==tts.INDEX_TTS:
-            api_url=config.params.get('indextts_url', '')
+            api_url=params.get('indextts_url', '')
         elif self.tts_type==tts.VOXCPM_TTS:
-            api_url=config.params.get('voxcpmtts_url', '')
+            api_url=params.get('voxcpmtts_url', '')
         elif self.tts_type==tts.SPARK_TTS:
-            api_url=config.params.get('sparktts_url', '')
+            api_url=params.get('sparktts_url', '')
         else:
-            api_url=config.params.get('f5tts_url', '')
+            api_url=params.get('f5tts_url', '')
         api_url = api_url.strip().rstrip('/').lower()
         self.api_url = f'http://{api_url}' if not api_url.startswith('http') else api_url
         self.v1_local = True
@@ -72,7 +72,7 @@ class F5TTS(BaseTTS):
             roledict = tools.get_f5tts_role()
             if role in roledict:
                 data['ref_text'] = roledict[role]['ref_text']
-                data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
+                data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
 
         if not data.get('ref_wav') or not Path(data.get('ref_wav')).exists():
             raise StopRetry(tr('The role {} does not exist',role))
@@ -98,7 +98,7 @@ class F5TTS(BaseTTS):
             api_name='/basic_tts'
         )
 
-        config.logger.debug(f'result={result}')
+        logger.debug(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -126,7 +126,7 @@ class F5TTS(BaseTTS):
         else:
             roledict = tools.get_f5tts_role()
             if role in roledict:
-                data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
+                data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
                 data['ref_text'] = roledict[role].get('ref_text','')
 
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
@@ -140,7 +140,7 @@ class F5TTS(BaseTTS):
             api_name='/voice_clone'
         )
 
-        config.logger.debug(f'result={result}')
+        logger.debug(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -167,11 +167,11 @@ class F5TTS(BaseTTS):
         else:
             roledict = tools.get_f5tts_role()
             if role in roledict:
-                data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
+                data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
 
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',data['ref_wav']))
-        config.logger.debug(f'index-tts {data=}')
+        logger.debug(f'index-tts {data=}')
 
         kw={
             "prompt":handle_file(data['ref_wav']),
@@ -179,13 +179,13 @@ class F5TTS(BaseTTS):
             "api_name":'/gen_single'
         }
         # 0=v1 1=v2
-        if int(config.params.get('index_tts_version',1))==1:
+        if int(params.get('index_tts_version',1))==1:
             kw['emo_ref_path']=handle_file(data['ref_wav'])
-            if config.params.get('indextts_prompt'):
-                kw['emo_text']=config.params.get('indextts_prompt')
+            if params.get('indextts_prompt'):
+                kw['emo_text']=params.get('indextts_prompt')
                 kw['emo_control_method']=3
 
-        config.logger.debug(f'post={kw}')
+        logger.debug(f'post={kw}')
         try:
             result = self.client.predict(**kw)
         except Exception as e:
@@ -194,7 +194,7 @@ class F5TTS(BaseTTS):
             raise
 
 
-        config.logger.debug(f'result={result}')
+        logger.debug(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -222,12 +222,12 @@ class F5TTS(BaseTTS):
         else:
             roledict = tools.get_f5tts_role()
             if role in roledict:
-                data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
+                data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
                 data['ref_text'] = roledict[role].get('ref_text','')
 
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',role))
-        config.logger.debug(f'voxcpm-tts {data=}')
+        logger.debug(f'voxcpm-tts {data=}')
 
         result = self.client.predict(
             text_input=text,
@@ -240,7 +240,7 @@ class F5TTS(BaseTTS):
 
             api_name='/generate'
         )
-        config.logger.debug(f'result={result}')
+        logger.debug(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -268,7 +268,7 @@ class F5TTS(BaseTTS):
         else:
             roledict = tools.get_f5tts_role()
             if role in roledict:
-                data['ref_wav'] = config.ROOT_DIR + f"/f5-tts/{role}"
+                data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
                 data['ref_text'] = roledict[role].get('ref_text', '')
 
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
@@ -282,7 +282,7 @@ class F5TTS(BaseTTS):
             api_name='/generate_audio'
         )
 
-        config.logger.debug(f'result={result}')
+        logger.debug(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -297,8 +297,8 @@ class F5TTS(BaseTTS):
         # F5_TTS_WINFORM_NAMES=['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS','VoxCPM-TTS']
         # Spark-TTS','Index-TTS Dia-TTS
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
             
             if self._exit():

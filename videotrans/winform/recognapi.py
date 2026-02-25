@@ -1,7 +1,7 @@
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr
     from videotrans.configure import config
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
     from videotrans.util import tools
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
@@ -18,9 +18,9 @@ def openwin():
             url = 'http://' + url
 
         key = winobj.recognapiform_key.text().strip()
-        config.params["recognapi_url"] = url
-        config.params["recognapi_key"] = key
-        config.getset_params(config.params)
+        params["recognapi_url"] = url
+        params["recognapi_key"] = key
+        params.save()
 
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.CUSTOM_API)
@@ -34,16 +34,16 @@ def openwin():
             url = 'http://' + url
         url = url.rstrip('/')
         key = winobj.recognapiform_key.text().strip()
-        config.params["recognapi_url"] = url
-        config.params["recognapi_key"] = key
-        config.getset_params(config.params)
+        params["recognapi_url"] = url
+        params["recognapi_key"] = key
+        params.save()
         winobj.close()
 
     from videotrans.component.set_form import RecognAPIForm
     winobj = RecognAPIForm()
-    config.child_forms['recognapi'] = winobj
-    winobj.recognapiform_address.setText(config.params.get("recognapi_url",''))
-    winobj.recognapiform_key.setText(config.params.get("recognapi_key",''))
+    app_cfg.child_forms['recognapi'] = winobj
+    winobj.recognapiform_address.setText(params.get("recognapi_url",''))
+    winobj.recognapiform_key.setText(params.get("recognapi_key",''))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

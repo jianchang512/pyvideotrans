@@ -1,7 +1,5 @@
-from videotrans.configure import config
-
 # 数字代表界面中的显示顺序
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.tts._edgetts import EdgeTTS
 from videotrans.tts._qwentts import QWENTTS
 
@@ -149,101 +147,101 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 # 判断是否填写了相关配音渠道所需要的信息
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(tts_type: int = None, return_str=False):
-    if tts_type == OPENAI_TTS and not config.params.get("openaitts_key", ''):
+    if tts_type == OPENAI_TTS and not params.get("openaitts_key", ''):
         if return_str:
             return "Please configure the api and key information of the OpenAI API channel first."
         from videotrans.winform import openaitts as openaitts_win
         openaitts_win.openwin()
         return False
-    if tts_type == QWEN_TTS and not config.params.get("qwentts_key", ''):
+    if tts_type == QWEN_TTS and not params.get("qwentts_key", ''):
         if return_str:
             return "Please configure the api key information of the Qwen TTS  channel first."
         from videotrans.winform import qwentts as qwentts_win
         qwentts_win.openwin()
         return False
 
-    if tts_type == MINIMAXI_TTS and not config.params.get("minimaxi_apikey", ''):
+    if tts_type == MINIMAXI_TTS and not params.get("minimaxi_apikey", ''):
         if return_str:
             return "Please configure the api key information of the MINIMAXI TTS  channel first."
         from videotrans.winform import minimaxi as minimaxi_win
         minimaxi_win.openwin()
         return False
-    if tts_type == KOKORO_TTS and not config.params.get("kokoro_api", ''):
+    if tts_type == KOKORO_TTS and not params.get("kokoro_api", ''):
         if return_str:
             return "Please configure the api  information of the kokoro tts channel first."
         from videotrans.winform import kokoro
         kokoro.openwin()
         return False
-    if tts_type == AI302_TTS and not config.params.get("ai302_key", ''):
+    if tts_type == AI302_TTS and not params.get("ai302_key", ''):
         if return_str:
             return "Please configure the api and key information of the 302.AI TTS channel first."
         from videotrans.winform import ai302
         ai302.openwin()
         return False
-    if tts_type == CLONE_VOICE_TTS and not config.params.get("clone_api", ''):
+    if tts_type == CLONE_VOICE_TTS and not params.get("clone_api", ''):
         if return_str:
             return "Please configure the api and key information of the Clone-Voice channel first."
         from videotrans.winform import clone as clone_win
         clone_win.openwin()
         return False
-    if tts_type == ELEVENLABS_TTS and not config.params.get("elevenlabstts_key", ''):
+    if tts_type == ELEVENLABS_TTS and not params.get("elevenlabstts_key", ''):
         if return_str:
             return "Please configure the api and key information of the Elevenlabs.io channel first."
         from videotrans.winform import elevenlabs as elevenlabs_win
         elevenlabs_win.openwin()
         return False
-    if tts_type == TTS_API and not config.params.get('ttsapi_url', ''):
+    if tts_type == TTS_API and not params.get('ttsapi_url', ''):
         if return_str:
             return "Please configure the api and key information of the TTS API channel first."
         from videotrans.winform import ttsapi as ttsapi_win
         ttsapi_win.openwin()
         return False
-    if tts_type == GPTSOVITS_TTS and not config.params.get('gptsovits_url', ''):
+    if tts_type == GPTSOVITS_TTS and not params.get('gptsovits_url', ''):
         if return_str:
             return "Please configure the api and key information of the GPT-SoVITS channel first."
         from videotrans.winform import gptsovits as gptsovits_win
         gptsovits_win.openwin()
         return False
-    if tts_type == CHATTERBOX_TTS and not config.params.get('chatterbox_url', ''):
+    if tts_type == CHATTERBOX_TTS and not params.get('chatterbox_url', ''):
         if return_str:
             return "Please configure the api and key information of the ChatterBox channel first."
         from videotrans.winform import chatterbox as chatterbox_win
         chatterbox_win.openwin()
         return False
-    if tts_type == COSYVOICE_TTS and not config.params.get('cosyvoice_url', ''):
+    if tts_type == COSYVOICE_TTS and not params.get('cosyvoice_url', ''):
         if return_str:
             return "Please configure the api and key information of the CosyVoice channel first."
         from videotrans.winform import cosyvoice as cosyvoice_win
         cosyvoice_win.openwin()
         return False
-    if tts_type == FISHTTS and not config.params.get('fishtts_url', ''):
+    if tts_type == FISHTTS and not params.get('fishtts_url', ''):
         if return_str:
             return "Please configure the api and key information of the FishTTS channel first."
         from videotrans.winform import fishtts as fishtts_win
         fishtts_win.openwin()
         return False
-    if tts_type == CHATTTS and not config.params.get('chattts_api', ''):
+    if tts_type == CHATTTS and not params.get('chattts_api', ''):
         if return_str:
             return "Please configure the api and key information of the ChatTTS channel first."
         from videotrans.winform import chattts as chattts_win
         chattts_win.openwin()
         return False
     if tts_type == AZURE_TTS and (
-            not config.params.get('azure_speech_key', '') or not config.params.get('azure_speech_region', '')):
+            not params.get('azure_speech_key', '') or not params.get('azure_speech_region', '')):
         if return_str:
             return "Please configure the api and key information of the Azure TTS channel first."
         from videotrans.winform import azuretts as azuretts_win
         azuretts_win.openwin()
         return False
-    if tts_type == GEMINI_TTS and not config.params.get('gemini_key', ''):
+    if tts_type == GEMINI_TTS and not params.get('gemini_key', ''):
         if return_str:
             return "Please configure the Gemini key information."
         from videotrans.winform import gemini as gemini_win
         gemini_win.openwin()
         return False
     if tts_type == DOUBAO_TTS and (
-            not config.params.get('volcenginetts_appid', '') or not config.params.get('volcenginetts_access',
-                                                                                      '') or not config.params.get(
+            not params.get('volcenginetts_appid', '') or not params.get('volcenginetts_access',
+                                                                                      '') or not params.get(
         'volcenginetts_cluster', '')):
         if return_str:
             return "Please configure the api and key information of the VolcEngine TTS channel first."
@@ -251,43 +249,43 @@ def is_input_api(tts_type: int = None, return_str=False):
         volcengine_win.openwin()
         return False
     # F5_TTS_WINFORM_NAMES=['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS','VoxCPM-TTS']
-    if tts_type == F5_TTS and not config.params.get('f5tts_url', ''):
+    if tts_type == F5_TTS and not params.get('f5tts_url', ''):
         if return_str:
             return "Please configure the api and key information of the VolcEngine F5-TTS channel first."
         from videotrans.winform import f5tts as f5tts_win
         f5tts_win.openwin()
         return False
-    if tts_type == INDEX_TTS and not config.params.get('indextts_url', ''):
+    if tts_type == INDEX_TTS and not params.get('indextts_url', ''):
         if return_str:
             return "Please configure the api and key information of the VolcEngine Index-TTS channel first."
         from videotrans.winform import f5tts as f5tts_win
         f5tts_win.openwin()
         return False
-    if tts_type == SPARK_TTS and not config.params.get('sparktts_url', ''):
+    if tts_type == SPARK_TTS and not params.get('sparktts_url', ''):
         if return_str:
             return "Please configure the api and key information of the VolcEngine Spark-TTS channel first."
         from videotrans.winform import f5tts as f5tts_win
         f5tts_win.openwin()
         return False
-    if tts_type == VOXCPM_TTS and not config.params.get('voxcpmtts_url', ''):
+    if tts_type == VOXCPM_TTS and not params.get('voxcpmtts_url', ''):
         if return_str:
             return "Please configure the api and key information of the VolcEngine VoxCPM-TTS channel first."
         from videotrans.winform import f5tts as f5tts_win
         f5tts_win.openwin()
         return False
-    if tts_type == DIA_TTS and not config.params.get('diatts_url', ''):
+    if tts_type == DIA_TTS and not params.get('diatts_url', ''):
         if return_str:
             return "Please configure the api and key information of the VolcEngine DIA-TTS channel first."
         from videotrans.winform import f5tts as f5tts_win
         f5tts_win.openwin()
         return False
-    if tts_type == GOOGLECLOUD_TTS and not config.params.get('gcloud_credential_json'):
+    if tts_type == GOOGLECLOUD_TTS and not params.get('gcloud_credential_json'):
         if return_str:
             return "Please configure the Google Cloud credentials first."
         from videotrans.winform import googlecloud as googlecloud_win
         googlecloud_win.openwin()
         return False
-    if tts_type == GLM_TTS and not config.params.get('zhipu_key'):
+    if tts_type == GLM_TTS and not params.get('zhipu_key'):
         if return_str:
             return "Please configure the ZhipuAI credentials first."
         from videotrans.winform import zhipuai as zhipuai_win
@@ -301,7 +299,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
     # 需要并行的数量3
     if len(queue_tts) < 1:
         return
-    if config.exit_soft or (uuid and uuid in config.stoped_uuid_set):
+    if app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set):
         return
 
     kwargs = {

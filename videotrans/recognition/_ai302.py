@@ -9,6 +9,7 @@ import requests,time
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import  NO_RETRY_EXCEPT
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
@@ -24,12 +25,12 @@ class AI302Recogn(BaseRecogn):
         super().__post_init__()
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
         self._signal(text=f"start speech to srt")
-        model_name = config.params.get('ai302_model_recogn','whisper-1')
+        model_name = params.get('ai302_model_recogn','whisper-1')
         print(f'{model_name=}')
         if model_name=='gpt-4o-transcribe-diarize':
             # 说话人识别模型
@@ -40,7 +41,7 @@ class AI302Recogn(BaseRecogn):
         
         # 转为 mp3
 
-        apikey = config.params.get('ai302_key')
+        apikey = params.get('ai302_key')
         langcode = self.detect_language[:2].lower()
         url = "https://api.302.ai/v1/audio/transcriptions"
         headers = {
@@ -48,9 +49,9 @@ class AI302Recogn(BaseRecogn):
             'Authorization': f'Bearer {apikey}',
         }
 
-        prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
+        prompt = settings.get(f'initial_prompt_{self.detect_language}')
 
-        config.logger.debug(f'{prompt=}')
+        logger.debug(f'{prompt=}')
         response = requests.post(url,
                                  files={"file": open(self.audio_file, 'rb')},
                                  data={
@@ -83,17 +84,17 @@ class AI302Recogn(BaseRecogn):
 
     def _thrid_api(self):
         # 发送请求
-        model_name = config.params.get('ai302_model_recogn','whisper-1')
+        model_name = params.get('ai302_model_recogn','whisper-1')
         raws = self.cut_audio()
-        apikey = config.params.get('ai302_key')
+        apikey = params.get('ai302_key')
         langcode = self.detect_language[:2].lower()
         url = "https://api.302.ai/v1/audio/transcriptions"
         headers = {
             'Accept': 'application/json',
             'Authorization': f'Bearer {apikey}',
         }
-        prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
-        config.logger.debug(f'{prompt=}')
+        prompt = settings.get(f'initial_prompt_{self.detect_language}')
+        logger.debug(f'{prompt=}')
         err=''
         ok_nums=0
         for i, it in enumerate(raws):
@@ -113,7 +114,7 @@ class AI302Recogn(BaseRecogn):
             if "text" not in res_json or "error" in res_json:
                 err=f'{res_json}'
                 continue
-            config.logger.debug(f'{res_json=}')
+            logger.debug(f'{res_json=}')
             raws[i]['text'] = res_json['text']
             ok_nums+=1
         if ok_nums<1:
@@ -122,7 +123,7 @@ class AI302Recogn(BaseRecogn):
 
 
     def _diarize(self):
-        apikey = config.params.get('ai302_key')
+        apikey = params.get('ai302_key')
 
         langcode = self.detect_language[:2].lower()
         url = "https://api.302.ai/v1/audio/transcriptions"
@@ -131,7 +132,7 @@ class AI302Recogn(BaseRecogn):
             'Authorization': f'Bearer {apikey}',
         }
 
-        prompt = config.settings.get(f'initial_prompt_{self.detect_language}')
+        prompt = settings.get(f'initial_prompt_{self.detect_language}')
 
 
         response = requests.post(url,

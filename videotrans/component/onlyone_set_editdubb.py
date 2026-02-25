@@ -14,7 +14,7 @@ from PySide6.QtGui import QIcon, QDesktopServices, QColor, QCursor, QFont
 from PySide6.QtCore import Qt, QTimer, QSize, QUrl, QThread, Signal, QRect
 
 from pydub import AudioSegment
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 from videotrans.configure import config
 from videotrans import tts
@@ -58,12 +58,12 @@ class EditDubbingResultDialog(QDialog):
         self.queue_tts = json.loads(Path(f'{cache_folder}/queue_tts.json').read_text(encoding='utf-8'))
 
         self.setWindowTitle(tr("Proofreading and dubbing - Re-dubbing"))
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setMinimumWidth(900)
         self.setMinimumHeight(600)
         self.setWindowFlags(Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMaximizeButtonHint)
 
-        self.count_down = int(float(config.settings.get('countdown_sec', 1)))
+        self.count_down = int(float(settings.get('countdown_sec', 1)))
 
         main_layout = QVBoxLayout(self)
 

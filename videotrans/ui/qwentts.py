@@ -4,8 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -78,15 +77,14 @@ class Ui_qwenttsform(object):
         QtCore.QMetaObject.connectSlotsByName(qwenttsform)
 
     def update_ui(self):
-        from videotrans.configure import config
         self.qwentts_model.clear()
-        self.qwentts_model.addItems(config.settings.get('qwentts_models','').split(','))
+        self.qwentts_model.addItems(settings.get('qwentts_models','').split(','))
 
-        if config.params.get("qwentts_key",''):
-            self.qwentts_key.setText(config.params.get("qwentts_key",''))
-        if config.params.get("qwentts_model",''):
-            self.qwentts_model.setCurrentText(config.params.get("qwentts_model",''))
-        self.qwentts_modellist.setPlainText(config.settings.get('qwentts_models'))
+        if params.get("qwentts_key",''):
+            self.qwentts_key.setText(params.get("qwentts_key",''))
+        if params.get("qwentts_model",''):
+            self.qwentts_model.setCurrentText(params.get("qwentts_model",''))
+        self.qwentts_modellist.setPlainText(settings.get('qwentts_models'))
 
     def retranslateUi(self, qwenttsform):
         qwenttsform.setWindowTitle("Qwen3 TTS")

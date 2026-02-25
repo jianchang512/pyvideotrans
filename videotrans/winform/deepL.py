@@ -1,8 +1,7 @@
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr
-
     from videotrans.configure import config
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
     from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
     def feed(d):
@@ -19,9 +18,9 @@ def openwin():
         if not key:
             return tools.show_error(tr("Please input auth Secret"))
 
-        config.params['deepl_authkey'] = key
-        config.params['deepl_api'] = api
-        config.params['deepl_gid'] = gid
+        params['deepl_authkey'] = key
+        params['deepl_api'] = api
+        params['deepl_gid'] = gid
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.DEEPL_INDEX)
@@ -32,21 +31,21 @@ def openwin():
         key = winobj.deepl_authkey.text()
         api = winobj.deepl_api.text().strip()
         gid = winobj.deepl_gid.text().strip()
-        config.params['deepl_authkey'] = key
-        config.params['deepl_api'] = api
-        config.params['deepl_gid'] = gid
-        config.getset_params(config.params)
+        params['deepl_authkey'] = key
+        params['deepl_api'] = api
+        params['deepl_gid'] = gid
+        params.save()
         winobj.close()
 
     from videotrans.component.set_form import DeepLForm
     winobj = DeepLForm()
-    config.child_forms['deepl'] = winobj
-    if config.params['deepl_authkey']:
-        winobj.deepl_authkey.setText(config.params['deepl_authkey'])
-    if config.params['deepl_api']:
-        winobj.deepl_api.setText(config.params['deepl_api'])
-    if config.params['deepl_gid']:
-        winobj.deepl_gid.setText(config.params['deepl_gid'])
+    app_cfg.child_forms['deepl'] = winobj
+    if params['deepl_authkey']:
+        winobj.deepl_authkey.setText(params['deepl_authkey'])
+    if params['deepl_api']:
+        winobj.deepl_api.setText(params['deepl_api'])
+    if params['deepl_gid']:
+        winobj.deepl_gid.setText(params['deepl_gid'])
     winobj.set_deepl.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

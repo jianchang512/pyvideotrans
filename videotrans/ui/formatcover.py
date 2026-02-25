@@ -4,8 +4,8 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
+from videotrans.util import contants
 
 
 class Ui_formatcover(object):
@@ -55,7 +55,7 @@ class Ui_formatcover(object):
         self.formatlist.setFixedHeight(40)
         self.formatlist.setFixedWidth(320)
         self.formatlist.setObjectName("formatlist")
-        self.formatlist.addItems(config.VIDEO_EXTS + config.AUDIO_EXITS)
+        self.formatlist.addItems(contants.VIDEO_EXTS + contants.AUDIO_EXITS)
 
         self.formLayout_3.addWidget(self.labelformat)
         self.formLayout_3.addStretch()

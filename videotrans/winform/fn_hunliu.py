@@ -1,16 +1,17 @@
 
+
 def openwin():
     import json
     import os
     from pathlib import Path
-    from videotrans.configure.config import tr
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-
+    from videotrans.util import contants
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
-    RESULT_DIR = config.HOME_DIR + "/hunliu"
+    RESULT_DIR = HOME_DIR + "/hunliu"
 
 
     class CompThread(QThread):
@@ -63,8 +64,8 @@ def openwin():
             winobj.hun_opendir.setDisabled(False)
 
     def get_file(num=1):
-        format_str = " ".join(['*.' + f for f in config.AUDIO_EXITS])
-        fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Audio', config.params.get('last_opendir',''),
+        format_str = " ".join(['*.' + f for f in contants.AUDIO_EXITS])
+        fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Audio', params.get('last_opendir',''),
                                                f"Audio files({format_str})")
         if not fname:
             return
@@ -72,7 +73,7 @@ def openwin():
             winobj.hun_file1.setText(fname.replace('\\', '/'))
         else:
             winobj.hun_file2.setText(fname.replace('\\', '/'))
-        config.params['last_opendir'] = os.path.dirname(fname)
+        params['last_opendir'] = os.path.dirname(fname)
 
     def start():
         winobj.has_done = False
@@ -95,7 +96,7 @@ def openwin():
 
     from videotrans.component.set_form import HunliuForm
     winobj = HunliuForm()
-    config.child_forms['fn_hunliu'] = winobj
+    app_cfg.child_forms['fn_hunliu'] = winobj
     winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)

@@ -1,10 +1,9 @@
 def openwin():
     from PySide6 import QtWidgets
     from pathlib import Path
-    from pydub import AudioSegment
-    from videotrans.configure.config import tr
 
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
@@ -17,14 +16,13 @@ def openwin():
     def test():
         role = winobj.role.toPlainText().strip()
         instruct_text = winobj.instruct_text.text()
-        config.params["qwenttslocal_prompt"] = instruct_text
-        config.params["qwenttslocal_refaudio"] = role
-        config.getset_params(config.params)
-        print(f'{role=}')
+        params["qwenttslocal_prompt"] = instruct_text
+        params["qwenttslocal_refaudio"] = role
+        params.save()
         if role:
             for it in role.split("\n"):
                 file=it.split('#')[0]
-                file=config.ROOT_DIR+f'/f5-tts/{file}'
+                file=ROOT_DIR+f'/f5-tts/{file}'
                 if not Path(file).exists():
                     return tools.show_error(tr("No reference audio {} exists",file))
                 if not file.endswith('.wav'):
@@ -40,7 +38,7 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友,希望你的每一天都美好愉快',
             "role": role,
-            "filename": config.TEMP_DIR + f"/{time.time()}-qwenttslocal.wav",
+            "filename": TEMP_DIR + f"/{time.time()}-qwenttslocal.wav",
             "tts_type": tts.QWEN3LOCAL_TTS}],
                          language="zh-cn",
                          tts_type=tts.QWEN3LOCAL_TTS)
@@ -50,19 +48,19 @@ def openwin():
     def save():
         role = winobj.role.toPlainText().strip()
         instruct_text = winobj.instruct_text.text()
-        config.params["qwenttslocal_prompt"] = instruct_text
-        config.params["qwenttslocal_refaudio"] = role
-        config.getset_params(config.params)
+        params["qwenttslocal_prompt"] = instruct_text
+        params["qwenttslocal_refaudio"] = role
+        params.save()
         tools.set_process(text='qwenttslocal', type="refreshtts")
         winobj.close()
 
     from videotrans.component.set_form import QwenttsLocalForm
     winobj = QwenttsLocalForm()
-    config.child_forms['qwenttslocal'] = winobj
-    if config.params["qwenttslocal_refaudio"]:
-        winobj.role.setPlainText(config.params["qwenttslocal_refaudio"])
-    if config.params.get("qwenttslocal_prompt"):
-        winobj.instruct_text.setText(config.params.get("qwenttslocal_prompt"))
+    app_cfg.child_forms['qwenttslocal'] = winobj
+    if params["qwenttslocal_refaudio"]:
+        winobj.role.setPlainText(params["qwenttslocal_refaudio"])
+    if params.get("qwenttslocal_prompt"):
+        winobj.instruct_text.setText(params.get("qwenttslocal_prompt"))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

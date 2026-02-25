@@ -4,12 +4,8 @@ from pathlib import Path
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QMetaObject, Qt
-from PySide6.QtGui import QFont, QColor
-from PySide6.QtWidgets import QHBoxLayout, QFontDialog, QColorDialog
-
-from videotrans.configure import config
-from videotrans.configure.config import tr
-
+from PySide6.QtWidgets import QHBoxLayout
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 
 class Ui_vasrt(object):
     def setupUi(self, vasrt):

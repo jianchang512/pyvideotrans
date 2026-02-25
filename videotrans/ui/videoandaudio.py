@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit,
                                QPushButton,
                                QVBoxLayout, QCheckBox)
 
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,app_cfg,params,settings,logger
 
 
 class Ui_videoandaudio(object):

@@ -2,6 +2,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from videotrans.configure import config
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -82,8 +83,8 @@ class FreeAzureTTS(BaseTTS):
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
     def get_voice(self,data_item):
         global endpoint, expired_at, client_id
 
@@ -149,7 +150,7 @@ class FreeAzureTTS(BaseTTS):
         except RetryError as e:
             err=str(e.last_attempt.exception())
             if "Unsupported voice" in err:
-                raise StopRetry(config.tr("The sound cannot be tried."))
+                raise StopRetry(tr("The sound cannot be tried."))
                 
             raise
         

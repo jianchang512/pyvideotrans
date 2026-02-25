@@ -6,9 +6,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict
 
-from videotrans import recognition
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.recognition import run, Faster_Whisper_XXL, Whisper_CPP
 from videotrans.task._base import BaseTask
 
@@ -38,11 +37,11 @@ class SpeechToText(BaseTask):
             self.max_speakers+=1
         # 存放目标文件夹
         if not self.cfg.target_dir:
-            self.cfg.target_dir = config.HOME_DIR + f"/recogn"
+            self.cfg.target_dir = HOME_DIR + f"/recogn"
         # 转录后的目标字幕文件，先统一转为srt，然后再使用ffmpeg转为其他格式字幕
         self.cfg.target_sub = self.cfg.target_dir + '/' + self.cfg.noextname + '.srt'
         # 临时文件夹
-        self.cfg.cache_folder = config.TEMP_DIR + f'/{self.uuid}'
+        self.cfg.cache_folder = TEMP_DIR + f'/{self.uuid}'
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
         Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
         # 处理为 16k 的wav单通道音频，供模型识别用
@@ -71,7 +70,6 @@ class SpeechToText(BaseTask):
                 kw={
                     "input_file":self.cfg.shibie_audio,
                     "output_file":f"{self.cfg.cache_folder}/removed_noise_{time.time()}.wav",
-                    "TEMP_DIR":config.TEMP_DIR,
                     "is_cuda":self.cfg.is_cuda
                 }
                 # 静默失败，不处理
@@ -86,7 +84,7 @@ class SpeechToText(BaseTask):
             # faster_xxl.exe 单独处理
             if self.cfg.recogn_type == Faster_Whisper_XXL:
                 cmd = [
-                    config.settings.get('Faster_Whisper_XXL', ''),
+                    settings.get('Faster_Whisper_XXL', ''),
                     self.cfg.shibie_audio,
                     "-pp",
                     "-f", "srt"
@@ -96,18 +94,18 @@ class SpeechToText(BaseTask):
 
                 prompt = None
                 if self.cfg.detect_language != 'auto':
-                    prompt = config.settings.get(f'initial_prompt_{self.cfg.detect_language}')
+                    prompt = settings.get(f'initial_prompt_{self.cfg.detect_language}')
                 if prompt:
                     cmd += ['--initial_prompt', prompt]
 
                 cmd.extend(['--model', self.cfg.model_name, '--output_dir', self.cfg.target_dir])
-                txt_file = Path(config.settings.get('Faster_Whisper_XXL', '')).parent.as_posix() + '/pyvideotrans.txt'
+                txt_file = Path(settings.get('Faster_Whisper_XXL', '')).parent.as_posix() + '/pyvideotrans.txt'
                 if Path(txt_file).exists():
                     cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
 
                 outsrt_file = self.cfg.target_dir + '/' + Path(self.cfg.shibie_audio).stem + ".srt"
                 cmdstr = " ".join(cmd)
-                config.logger.debug(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg.target_sub=}')
+                logger.debug(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg.target_sub=}')
 
                 self._external_cmd_with_wrapper(cmd)
 
@@ -119,7 +117,7 @@ class SpeechToText(BaseTask):
                 # return
             elif self.cfg.recogn_type == Whisper_CPP:
 
-                cpp_path = config.settings.get('Whisper.cpp', 'whisper-cli')
+                cpp_path = settings.get('Whisper_cpp', 'whisper-cli')
                 cmd = [
                     cpp_path,
                     "-f",
@@ -130,7 +128,7 @@ class SpeechToText(BaseTask):
                 cmd += ["-l", self.cfg.detect_language.split('-')[0]]
                 prompt = None
                 if self.cfg.detect_language != 'auto':
-                    prompt = config.settings.get(f'initial_prompt_{self.cfg.detect_language}')
+                    prompt = settings.get(f'initial_prompt_{self.cfg.detect_language}')
                 if prompt:
                     cmd += ['--prompt', prompt]
                 cpp_folder = Path(cpp_path).parent.resolve().as_posix()
@@ -144,7 +142,7 @@ class SpeechToText(BaseTask):
 
                 cmd.extend(['-m', f'models/{self.cfg.model_name}', '-of', self.cfg.target_sub[:-4]])
 
-                config.logger.debug(f'Whipser.cpp: {cmd=}')
+                logger.debug(f'Whipser.cpp: {cmd=}')
 
                 self._external_cmd_with_wrapper(cmd)
 
@@ -176,7 +174,7 @@ class SpeechToText(BaseTask):
                 tools.check_and_down_ms(model_id='iic/punc_ct-transformer_cn-en-common-vocab471067-large',callback=self._process_callback)
                 text_dict={f'{it["line"]}':re.sub(r'[,.?!，。？！]',' ',it["text"]) for it in self.source_srt_list}
                 from videotrans.process.prepare_audio import fix_punc
-                kw={"text_dict":text_dict,"TEMP_DIR":config.TEMP_DIR,"is_cuda":self.cfg.is_cuda}
+                kw={"text_dict":text_dict,"is_cuda":self.cfg.is_cuda}
                 try:
                     _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),kwargs=kw)
                     if _rs:
@@ -206,7 +204,7 @@ class SpeechToText(BaseTask):
 
                     ob = ChatGPT(uuid=self.uuid)
                     self._signal(text=tr("Re-segmenting..."))
-                    srt_list = ob.llm_segment(self.source_srt_list, config.settings.get('llm_ai_type', 'openai'))
+                    srt_list = ob.llm_segment(self.source_srt_list, settings.get('llm_ai_type', 'openai'))
                     if srt_list and len(srt_list) > len(self.source_srt_list) / 2:
                         self.source_srt_list = srt_list
                         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
@@ -214,7 +212,7 @@ class SpeechToText(BaseTask):
                         raise
                 except Exception as e:
                     self._signal(text=tr("Re-segmenting Error"))
-                    config.logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
+                    logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
         except Exception:
             raise
 
@@ -224,13 +222,13 @@ class SpeechToText(BaseTask):
             return
             
         # built pyannote reverb ali_CAM
-        speaker_type=config.settings.get('speaker_type','built')
-        hf_token= config.settings.get('hf_token')
+        speaker_type=settings.get('speaker_type','built')
+        hf_token= settings.get('hf_token')
         if speaker_type=='built' and self.cfg.detect_language[:2] not in ['zh','en']:
-            config.logger.error(f'当前选择 built 说话人分离模型，但不支持当前语言:{self.cfg.detect_language}')
+            logger.error(f'当前选择 built 说话人分离模型，但不支持当前语言:{self.cfg.detect_language}')
             return
         if speaker_type in ['pyannote','reverb'] and not hf_token:
-            config.logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
+            logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
             return
         if speaker_type in ['pyannote','reverb']:
             # 判断是否可访问 huggingface.co
@@ -239,7 +237,7 @@ class SpeechToText(BaseTask):
                 import requests
                 requests.head('https://huggingface.co',timeout=5)
             except Exception:
-                config.logger.error(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败')
+                logger.error(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败')
 
         self.precent += 3
         title=tr(f'Begin separating the speakers')+f':{speaker_type}'
@@ -248,11 +246,10 @@ class SpeechToText(BaseTask):
                 "input_file":self.cfg.shibie_audio,
                 "subtitles":[ [it['start_time'],it['end_time']] for it in self.source_srt_list],
                 "num_speakers":self.max_speakers,
-                "TEMP_DIR":config.TEMP_DIR,
                 "is_cuda":self.cfg.is_cuda
         }
         if speaker_type=='built':
-            tools.down_file_from_ms(f'{config.ROOT_DIR}/models/onnx',[
+            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx',[
                 "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/seg_model.onnx",
                 "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/nemo_en_titanet_small.onnx",
                 "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"                
@@ -269,14 +266,22 @@ class SpeechToText(BaseTask):
         elif speaker_type=='reverb':
             from videotrans.process.prepare_audio import reverb_speakers as _run_speakers
         else:
-            config.logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
+            logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
             return
         try:
+            if speaker_type in ['pyannote','reverb']:
+                self._signal(text='Downloading speakers models')
+                from huggingface_hub import snapshot_download
+                print(f'下载 token: {speaker_type},{hf_token=}')
+                snapshot_download(
+                    repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
+                    token=hf_token
+                )
             spk_list=self._new_process(callback=_run_speakers,title=title,is_cuda=self.cfg.is_cuda and speaker_type!='built',kwargs=kw)
             if spk_list:
                 Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')
-        except:
-            pass
+        except Exception as e:
+            logger.exception(e,exc_info=True)
         self._signal(text=tr('separating speakers end'))
 
 
@@ -286,14 +291,14 @@ class SpeechToText(BaseTask):
         if self.cfg.detect_language and self.cfg.detect_language !='auto':
             # 处理换行
             maxlen = int(
-            config.settings.get('cjk_len',15) if self.cfg.detect_language[:2] in ["zh", "ja", "jp", "ko", 'yu'] else
-            config.settings.get('other_len',60))
+            settings.get('cjk_len',15) if self.cfg.detect_language[:2] in ["zh", "ja", "jp", "ko", 'yu'] else
+            settings.get('other_len',60))
             for i, it in enumerate(self.source_srt_list):
                 it['text']=tools.simple_wrap(it['text'],maxlen,self.cfg.detect_language)
 
 
 
-        if self.cfg.enable_diariz and config.params.get("stt_spk_insert") and Path(self.cfg.cache_folder + "/speaker.json").exists():
+        if self.cfg.enable_diariz and params.get("stt_spk_insert") and Path(self.cfg.cache_folder + "/speaker.json").exists():
             speakers = json.loads(Path(self.cfg.cache_folder + "/speaker.json").read_text(encoding='utf-8'))
             if speakers:
                 speakers_len = len(speakers)
@@ -325,7 +330,7 @@ class SpeechToText(BaseTask):
         tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
 
     def _exit(self):
-        if config.exit_soft:
+        if app_cfg.exit_soft:
             self.hasend = True
             return True
         return False

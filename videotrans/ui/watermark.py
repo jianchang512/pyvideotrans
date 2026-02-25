@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit,
                                QVBoxLayout)
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 
 
 class Ui_watermark(object):
@@ -77,7 +77,7 @@ class Ui_watermark(object):
                                  "右下角",
                                  "左下角",
                                  "居 中"
-                             ] if config.defaulelang == 'zh' else [
+                             ] if defaulelang == 'zh' else [
             "Upper left",
             "Upper right",
             "Bottom right",

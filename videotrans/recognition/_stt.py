@@ -7,7 +7,7 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -40,7 +40,7 @@ class SttAPIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        api_url = config.params.get('stt_url', '').strip().rstrip('/').lower()
+        api_url = params.get('stt_url', '').strip().rstrip('/').lower()
         if not api_url:
             raise StopRetry(tr("Custom api address must be filled in"))
 
@@ -50,8 +50,8 @@ class SttAPIRecogn(BaseRecogn):
         self._add_internal_host_noproxy(self.api_url)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
         with open(self.audio_file, 'rb') as f:
@@ -60,11 +60,11 @@ class SttAPIRecogn(BaseRecogn):
         self._signal(
             text=tr("Recognition may take a while, please be patient"))
 
-        data = {"language": self.detect_language[:2], "model": config.params.get('stt_model', 'tiny'),
+        data = {"language": self.detect_language[:2], "model": params.get('stt_model', 'tiny'),
                 "response_format": "srt"}
         res = requests.post(f"{self.api_url}", files=files, data=data, timeout=7200)
         res.raise_for_status()
-        config.logger.debug(f'STT_API:{res=}')
+        logger.debug(f'STT_API:{res=}')
         res = res.json()
         if "code" not in res or res['code'] != 0:
             raise StopRetry(f'{res["msg"]}')

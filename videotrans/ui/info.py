@@ -4,7 +4,7 @@ from PySide6.QtCore import QByteArray, QThread, Signal
 from PySide6.QtGui import Qt, QPixmap
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 
 
@@ -41,7 +41,7 @@ Email: jianchang512@gmail.com
 文档站/下载: pyvideotrans.com
 【软件免费下载使用，不收取任何费用，也未在任何平台销售】
 
-""" if config.defaulelang == 'zh' else """This project is created based on interest, there is no commercial and no charge plan, you can use it for free or fork it and modify it (open source license GPL-v3). 
+""" if defaulelang == 'zh' else """This project is created based on interest, there is no commercial and no charge plan, you can use it for free or fork it and modify it (open source license GPL-v3). 
 All code is open source and can be reviewed.
 As for the maintenance issue, it is all about giving love to the open source, so idle time will spend more time on this, and sometimes just a period of time. 
 Of course, if you think this project is useful to you and want it to be stable and continue to maintain, you are welcome to donate a small amount.
@@ -75,7 +75,7 @@ Documents: pyvideotrans.com"""
         self.v1.addWidget(label)
 
         self.h1 = QtWidgets.QHBoxLayout()
-        if config.defaulelang == 'zh':
+        if defaulelang == 'zh':
             self.wxpay = QtWidgets.QLabel()
             self.alipay = QtWidgets.QLabel()
             self.mp = QtWidgets.QLabel()
@@ -125,7 +125,7 @@ Documents: pyvideotrans.com"""
 
     def showimg(self, name):
         pixmap = QPixmap()
-        pixmap.loadFromData(config.INFO_WIN['data'][name])
+        pixmap.loadFromData(app_cfg.INFO_WIN['data'][name])
         pixmap = pixmap.scaledToHeight(200, Qt.SmoothTransformation)
         if name == 'wxpay':
             self.wxpay.setPixmap(pixmap)
@@ -152,7 +152,7 @@ class DownloadImg(QThread):
         try:
             response = requests.get(self.urls['link'])
             response.raise_for_status()
-            config.INFO_WIN["data"][self.urls['name']] = QByteArray(response.content)
+            app_cfg.INFO_WIN["data"][self.urls['name']] = QByteArray(response.content)
             self.finished.emit(self.urls['name'])
         except Exception:
             pass

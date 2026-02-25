@@ -3,7 +3,7 @@ def openwin():
 
     from videotrans.configure import config
     from videotrans.util import tools
-    from videotrans.configure.config import tr
+    from videotrans.configure.config import tr,settings,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     def feed(d):
@@ -19,8 +19,8 @@ def openwin():
             url = 'http://' + url
         key = winobj.key.text().strip()
 
-        config.params["libre_address"] = url
-        config.params["libre_key"] = key
+        params["libre_address"] = url
+        params["libre_key"] = key
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.LIBRE_INDEX)
         task.uito.connect(feed)
@@ -31,16 +31,16 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         key = winobj.key.text().strip()
-        config.params["libre_address"] = url
-        config.params["libre_key"] = key
-        config.getset_params(config.params)
+        params["libre_address"] = url
+        params["libre_key"] = key
+        params.save()
         winobj.close()
 
     from videotrans.component.set_form import LibreForm
     winobj = LibreForm()
-    config.child_forms['libre'] = winobj
-    winobj.address.setText(config.params.get("libre_address",''))
-    winobj.key.setText(config.params.get("libre_key",''))
+    app_cfg.child_forms['libre'] = winobj
+    winobj.address.setText(params.get("libre_address",''))
+    winobj.key.setText(params.get("libre_key",''))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

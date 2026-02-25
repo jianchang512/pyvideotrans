@@ -1,14 +1,11 @@
 
 
 def openwin():
-    from videotrans.configure.config import tr
-    import json
     import webbrowser
-
     from PySide6 import QtWidgets
-
     from videotrans import translator
-    from videotrans.configure import config
+
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
     from videotrans.util import tools
 
     from videotrans.util.TestSrtTrans import TestSrtTrans
@@ -24,9 +21,9 @@ def openwin():
         model = winobj.ai302_model.currentText()
         model_recogn = winobj.ai302_model_recogn.currentText()
 
-        config.params["ai302_key"] = key
-        config.params["ai302_model"] = model
-        config.params["ai302_model_recogn"] = model_recogn
+        params["ai302_key"] = key
+        params["ai302_model"] = model
+        params["ai302_model_recogn"] = model_recogn
 
         winobj.test_ai302.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.AI302_INDEX)
@@ -38,11 +35,11 @@ def openwin():
         model = winobj.ai302_model.currentText()
         model_recogn = winobj.ai302_model_recogn.currentText()
 
-        config.params["ai302_key"] = key
-        config.params["ai302_model"] = model
-        config.params["ai302_model_recogn"] = model_recogn
+        params["ai302_key"] = key
+        params["ai302_model"] = model
+        params["ai302_model_recogn"] = model_recogn
 
-        config.getset_params(config.params)
+        params.save()
         winobj.close()
 
 
@@ -54,15 +51,15 @@ def openwin():
         winobj.ai302_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
             winobj.ai302_model.setCurrentText(current_text)
-        config.settings['ai302_models'] = t
-        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings, ensure_ascii=False))
+        settings['ai302_models'] = t
+        settings.save()
+
 
     from videotrans.component.set_form import AI302Form
 
 
     winobj = AI302Form()
-    config.child_forms['ai302'] = winobj
+    app_cfg.child_forms['ai302'] = winobj
     winobj.update_ui()
 
     winobj.edit_allmodels.textChanged.connect(setallmodels)

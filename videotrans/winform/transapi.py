@@ -1,7 +1,7 @@
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr
     from videotrans.configure import config
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
     from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
@@ -17,8 +17,8 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         miyue = winobj.miyue.text()
-        config.params["trans_api_url"] = url
-        config.params["trans_secret"] = miyue
+        params["trans_api_url"] = url
+        params["trans_secret"] = miyue
         winobj.test.setText(tr("Testing..."))
 
         task = TestSrtTrans(parent=winobj, translator_type=translator.TRANSAPI_INDEX)
@@ -30,16 +30,16 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         miyue = winobj.miyue.text()
-        config.params["trans_api_url"] = url
-        config.params["trans_secret"] = miyue
-        config.getset_params(config.params)
+        params["trans_api_url"] = url
+        params["trans_secret"] = miyue
+        params.save()
         winobj.close()
 
     from videotrans.component.set_form import TransapiForm
     winobj = TransapiForm()
-    config.child_forms['transapi'] = winobj
-    winobj.api_url.setText(config.params.get("trans_api_url",''))
-    winobj.miyue.setText(config.params.get("trans_secret",''))
+    app_cfg.child_forms['transapi'] = winobj
+    winobj.api_url.setText(params.get("trans_api_url",''))
+    winobj.miyue.setText(params.get("trans_secret",''))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

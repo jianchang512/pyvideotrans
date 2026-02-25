@@ -3,7 +3,7 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,app_cfg,params,settings,logger
 from videotrans.util import tools
 
 
@@ -86,8 +86,8 @@ class Ui_doubao2form(object):
         QtCore.QMetaObject.connectSlotsByName(doubao2form)
     def update_ui(self):
         from videotrans.configure import config
-        self.doubao2_appid.setText(config.params.get("doubao2_appid",''))
-        self.doubao2_access.setText(config.params.get("doubao2_access",''))
+        self.doubao2_appid.setText(params.get("doubao2_appid",''))
+        self.doubao2_access.setText(params.get("doubao2_access",''))
 
     def retranslateUi(self, doubao2form):
         doubao2form.setWindowTitle(tr("DouBao2"))

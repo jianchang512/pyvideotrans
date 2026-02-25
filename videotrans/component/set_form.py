@@ -1,14 +1,12 @@
 import re
-
-import PySide6
 import os
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QEvent, Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QDialog, QFrame,QTableView, QAbstractItemView, QHeaderView, QCheckBox,QTableWidgetItem
+from PySide6.QtWidgets import QDialog, QTableWidgetItem
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.util import tools
 from videotrans.ui.ai302 import Ui_ai302form
 from videotrans.ui.ali import Ui_aliform
 from videotrans.ui.azure import Ui_azureform
@@ -52,7 +50,7 @@ from videotrans.ui.recogn import Ui_recogn
 from videotrans.ui.recognapi import Ui_recognapiform
 from videotrans.ui.separate import Ui_separateform
 from videotrans.ui.setini import Ui_setini
-from videotrans.ui.setlinerole import Ui_setlinerole
+
 from videotrans.ui.siliconflow import Ui_siliconflowform
 from videotrans.ui.srthebing import Ui_srthebing
 from videotrans.ui.stt import Ui_sttform
@@ -72,173 +70,253 @@ from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
 from videotrans.ui.zijierecognmodel import Ui_zijierecognform
 
 
-class SetLineRole(QDialog, Ui_setlinerole):  # <===
+class CommonBaseMixin:
+    def _setup_common_ui(self):
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        if hasattr(self, 'setupUi'):
+            self.setupUi(self)
+
+
+class QDialogBase(QDialog,CommonBaseMixin):
     def __init__(self, parent=None):
-        super(SetLineRole, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-    def closeEvent(self, arg__1: PySide6.QtGui.QCloseEvent) -> None:
-        del config.child_forms['linerolew']
+        super().__init__(parent)
+        self._setup_common_ui()
 
 
-class BaiduForm(QDialog, Ui_baiduform):  # <===
+class QWidgetBase(QtWidgets.QWidget,CommonBaseMixin):
     def __init__(self, parent=None):
-        super(BaiduForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
+        self._setup_common_ui()
 
 
-class OpenrouterForm(QDialog, Ui_openrouterform):  # <===
+class BaiduForm(QDialogBase, Ui_baiduform):  # <===
     def __init__(self, parent=None):
-        super(OpenrouterForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class AliForm(QDialog, Ui_aliform):  # <===
+class OpenrouterForm(QDialogBase, Ui_openrouterform):  # <===
     def __init__(self, parent=None):
-        super(AliForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class TencentForm(QDialog, Ui_tencentform):  # <===
+class AliForm(QDialogBase, Ui_aliform):  # <===
     def __init__(self, parent=None):
-        super(TencentForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class TtsapiForm(QDialog, Ui_ttsapiform):  # <===
+class TencentForm(QDialogBase, Ui_tencentform):  # <===
     def __init__(self, parent=None):
-        super(TtsapiForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class MinimaxiForm(QDialog, Ui_minimaxiform):  # <===
+class TtsapiForm(QDialogBase, Ui_ttsapiform):  # <===
     def __init__(self, parent=None):
-        super(MinimaxiForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class OpenAITTSForm(QDialog, Ui_openaittsform):  # <===
+class MinimaxiForm(QDialogBase, Ui_minimaxiform):  # <===
     def __init__(self, parent=None):
-        super(OpenAITTSForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class QwenTTSForm(QDialog, Ui_qwenttsform):  # <===
+class OpenAITTSForm(QDialogBase, Ui_openaittsform):  # <===
     def __init__(self, parent=None):
-        super(QwenTTSForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class RecognAPIForm(QDialog, Ui_recognapiform):  # <===
+class QwenTTSForm(QDialogBase, Ui_qwenttsform):  # <===
     def __init__(self, parent=None):
-        super(RecognAPIForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class SttAPIForm(QDialog, Ui_sttform):  # <===
+class RecognAPIForm(QDialogBase, Ui_recognapiform):  # <===
     def __init__(self, parent=None):
-        super(SttAPIForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
-class WhisperXAPIForm(QDialog, Ui_whisperx):  # <===
+
+class SttAPIForm(QDialogBase, Ui_sttform):  # <===
     def __init__(self, parent=None):
-        super(WhisperXAPIForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
-
-class DeepgramForm(QDialog, Ui_deepgramform):  # <===
+class WhisperXAPIForm(QDialogBase, Ui_whisperx):  # <===
     def __init__(self, parent=None):
-        super(DeepgramForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class OpenaiRecognAPIForm(QDialog, Ui_openairecognapiform):  # <===
+class DeepgramForm(QDialogBase, Ui_deepgramform):  # <===
     def __init__(self, parent=None):
-        super(OpenaiRecognAPIForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-
-class LibreForm(QDialog, Ui_libretranslateform):  # <===
+class OpenaiRecognAPIForm(QDialogBase, Ui_openairecognapiform):  # <===
     def __init__(self, parent=None):
-        super(LibreForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class TransapiForm(QDialog, Ui_transapiform):  # <===
+
+class LibreForm(QDialogBase, Ui_libretranslateform):  # <===
     def __init__(self, parent=None):
-        super(TransapiForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class GPTSoVITSForm(QDialog, Ui_gptsovitsform):  # <===
+class TransapiForm(QDialogBase, Ui_transapiform):  # <===
     def __init__(self, parent=None):
-        super(GPTSoVITSForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
-
-class ChatterboxForm(QDialog, Ui_chatterboxform):  # <===
+class GPTSoVITSForm(QDialogBase, Ui_gptsovitsform):  # <===
     def __init__(self, parent=None):
-        super(ChatterboxForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class CosyVoiceForm(QDialog, Ui_cosyvoiceform):  # <===
+class ChatterboxForm(QDialogBase, Ui_chatterboxform):  # <===
     def __init__(self, parent=None):
-        super(CosyVoiceForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-class QwenttsLocalForm(QDialog, Ui_qwenttslocal):  # <===
+        super().__init__(parent)
+
+
+class CosyVoiceForm(QDialogBase, Ui_cosyvoiceform):  # <===
     def __init__(self, parent=None):
-        super(QwenttsLocalForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class FishTTSForm(QDialog, Ui_fishttsform):  # <===
+        super().__init__(parent)
+class QwenttsLocalForm(QDialogBase, Ui_qwenttslocal):  # <===
     def __init__(self, parent=None):
-        super(FishTTSForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class F5TTSForm(QDialog, Ui_f5ttsform):  # <===
+class FishTTSForm(QDialogBase, Ui_fishttsform):  # <===
     def __init__(self, parent=None):
-        super(F5TTSForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class AI302Form(QDialog, Ui_ai302form):  # <===
+class F5TTSForm(QDialogBase, Ui_f5ttsform):  # <===
     def __init__(self, parent=None):
-        super(AI302Form, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class SetINIForm(QtWidgets.QWidget, Ui_setini):  # <===
+class AI302Form(QDialogBase, Ui_ai302form):  # <===
     def __init__(self, parent=None):
-        super(SetINIForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
+
+
+class DeepLForm(QDialogBase, Ui_deeplform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class AzurettsForm(QDialogBase, Ui_azurettsform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class ElevenlabsForm(QDialogBase, Ui_elevenlabsform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class InfoForm(QDialogBase, Ui_infoform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+
+class DeepLXForm(QDialogBase, Ui_deeplxform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class OttForm(QDialogBase, Ui_ottform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class CloneForm(QDialogBase, Ui_cloneform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class ParakeetForm(QDialogBase, Ui_parakeetform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+
+class KokoroForm(QDialogBase, Ui_kokoroform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class ChatttsForm(QDialogBase, Ui_chatttsform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class DoubaoForm(QDialogBase, Ui_doubaoform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+# set chatgpt api and key
+class ChatgptForm(QDialogBase, Ui_chatgptform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class LocalLLMForm(QDialogBase, Ui_localllmform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class ZijiehuoshanForm(QDialogBase, Ui_zijiehuoshanform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class GeminiForm(QDialogBase, Ui_geminiform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class ZhipuAIForm(QDialogBase, Ui_zhipuaiform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class DeepseekForm(QDialogBase, Ui_deepseekform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class QwenmtForm(QDialogBase, Ui_qwenmtform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class SiliconflowForm(QDialogBase, Ui_siliconflowform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class AzureForm(QDialogBase, Ui_azureform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class VolcEngineTTSForm(QDialogBase, Ui_volcengineform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+class Doubao2TTSForm(QDialogBase, Ui_doubao2form):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+class ZijierecognmodelForm(QDialogBase, Ui_zijierecognform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+
+
+class SetINIForm(QWidgetBase, Ui_setini):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
     def event(self, event: QtCore.QEvent) -> bool:
         """
         重写 event 方法来捕获窗口事件
@@ -251,185 +329,21 @@ class SetINIForm(QtWidgets.QWidget, Ui_setini):  # <===
         # 对于所有其他事件，必须调用父类的 event() 方法来确保它们被正常处理
         return super().event(event)
 
-class DeepLForm(QDialog, Ui_deeplform):  # <===
+
+class WatermarkForm(QWidgetBase, Ui_watermark):  # <===
     def __init__(self, parent=None):
-        super(DeepLForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class AzurettsForm(QDialog, Ui_azurettsform):  # <===
+class HebingsrtForm(QWidgetBase, Ui_srthebing):  # <===
     def __init__(self, parent=None):
-        super(AzurettsForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class ElevenlabsForm(QDialog, Ui_elevenlabsform):  # <===
-    def __init__(self, parent=None):
-        super(ElevenlabsForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class InfoForm(QDialog, Ui_infoform):  # <===
-    def __init__(self, parent=None):
-        super(InfoForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-
-class DeepLXForm(QDialog, Ui_deeplxform):  # <===
-    def __init__(self, parent=None):
-        super(DeepLXForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class OttForm(QDialog, Ui_ottform):  # <===
-    def __init__(self, parent=None):
-        super(OttForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class CloneForm(QDialog, Ui_cloneform):  # <===
-    def __init__(self, parent=None):
-        super(CloneForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class ParakeetForm(QDialog, Ui_parakeetform):  # <===
-    def __init__(self, parent=None):
-        super(ParakeetForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-
-class KokoroForm(QDialog, Ui_kokoroform):  # <===
-    def __init__(self, parent=None):
-        super(KokoroForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class ChatttsForm(QDialog, Ui_chatttsform):  # <===
-    def __init__(self, parent=None):
-        super(ChatttsForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class DoubaoForm(QDialog, Ui_doubaoform):  # <===
-    def __init__(self, parent=None):
-        super(DoubaoForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-# set chatgpt api and key
-class ChatgptForm(QDialog, Ui_chatgptform):  # <===
-    def __init__(self, parent=None):
-        super(ChatgptForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class LocalLLMForm(QDialog, Ui_localllmform):  # <===
-    def __init__(self, parent=None):
-        super(LocalLLMForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class ZijiehuoshanForm(QDialog, Ui_zijiehuoshanform):  # <===
-    def __init__(self, parent=None):
-        super(ZijiehuoshanForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class GeminiForm(QDialog, Ui_geminiform):  # <===
-    def __init__(self, parent=None):
-        super(GeminiForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class ZhipuAIForm(QDialog, Ui_zhipuaiform):  # <===
-    def __init__(self, parent=None):
-        super(ZhipuAIForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class DeepseekForm(QDialog, Ui_deepseekform):  # <===
-    def __init__(self, parent=None):
-        super(DeepseekForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class QwenmtForm(QDialog, Ui_qwenmtform):  # <===
-    def __init__(self, parent=None):
-        super(QwenmtForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class SiliconflowForm(QDialog, Ui_siliconflowform):  # <===
-    def __init__(self, parent=None):
-        super(SiliconflowForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class AzureForm(QDialog, Ui_azureform):  # <===
-    def __init__(self, parent=None):
-        super(AzureForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class VolcEngineTTSForm(QDialog, Ui_volcengineform):  # <===
-    def __init__(self, parent=None):
-        super(VolcEngineTTSForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-class Doubao2TTSForm(QDialog, Ui_doubao2form):  # <===
-    def __init__(self, parent=None):
-        super(Doubao2TTSForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-class ZijierecognmodelForm(QDialog, Ui_zijierecognform):  # <===
-    def __init__(self, parent=None):
-        super(ZijierecognmodelForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class WatermarkForm(QtWidgets.QWidget, Ui_watermark):  # <===
-    def __init__(self, parent=None):
-        super(WatermarkForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
-
-
-class HebingsrtForm(QtWidgets.QWidget, Ui_srthebing):  # <===
-    def __init__(self, parent=None):
-        super(HebingsrtForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
 ## start
 
 # ==================== 说话人行控件 ====================
-class SpkRowWidget(QtWidgets.QWidget):
+class SpkRowWidget(QWidgetBase):
     def __init__(self, spk_name, parent=None):
         super().__init__(parent)
         self.spk_name = spk_name
@@ -448,11 +362,9 @@ class SpkRowWidget(QtWidgets.QWidget):
         self.checkbox.toggle()
 
 
-class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
+class Peiyinformrole(QWidgetBase, Ui_peiyinrole):
     def __init__(self, parent=None):
-        super(Peiyinformrole, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
         self.spk_role={} # key=说话人，设置的音色名
         self.spk_lines={} # key=说话人，value=[]行数
 
@@ -497,7 +409,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
         self.tmp_rolelist2.setVisible(False)
         self.assign_role_button2.setVisible(False)
         self.subtitles.clear()
-        config.dubbing_role.clear()
+        app_cfg.dubbing_role.clear()
 
         self.clear_subtitle_area()
         self.hecheng_importbtn.setText(tr("Import SRT file..."))
@@ -505,7 +417,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
 
     def reset_assigned_roles(self):
         """重置所有字幕行已分配的角色"""
-        config.dubbing_role.clear()
+        app_cfg.dubbing_role.clear()
         for row in range(self.subtitle_table.rowCount()):
             # 第3列是角色列
             self.subtitle_table.item(row, 3).setText(tr('Default Role'))
@@ -604,8 +516,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
         """为选中的行分配角色"""
         selected_role = self.tmp_rolelist.currentText()
         from videotrans.util import tools
-        from videotrans.configure import config
-        
+
         if not selected_role:
             tools.show_error(tr("Please select a valid role from the dropdown list."))
             return
@@ -629,11 +540,11 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
                 if selected_role in ['-', 'No']:
                     role_item.setText(default_role_text)
                     try:
-                        del config.dubbing_role[sub_index]
+                        del app_cfg.dubbing_role[sub_index]
                     except:
                         pass
                 else:
-                    config.dubbing_role[sub_index] = selected_role
+                    app_cfg.dubbing_role[sub_index] = selected_role
                     role_item.setText(selected_role)
                 
                 # 分配后取消勾选
@@ -646,8 +557,7 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
     def assign_role_to_spk(self):
         """为选中的说话人分配角色"""
         selected_role = self.tmp_rolelist2.currentText()
-        from videotrans.util import tools
-        from videotrans.configure import config
+
         if not selected_role:
             tools.show_error(tr("Please select a valid role from the dropdown list."))
             return
@@ -677,11 +587,11 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
                     for line in self.spk_lines.get(_spk, []):
                         if selected_role in ['-', 'No']:
                             try:
-                                del config.dubbing_role[line]
+                                del app_cfg.dubbing_role[line]
                             except:
                                 pass
                         else:
-                            config.dubbing_role[line] = selected_role
+                            app_cfg.dubbing_role[line] = selected_role
                         
                         try:
                             row_idx = line - 1
@@ -701,18 +611,12 @@ class Peiyinformrole(QtWidgets.QWidget, Ui_peiyinrole):
 
 
 
-## end
-
-
-class SeparateForm(QtWidgets.QWidget, Ui_separateform):  # <===
+class SeparateForm(QWidgetBase, Ui_separateform):  # <===
     def __init__(self, parent=None):
-        super(SeparateForm, self).__init__(parent)
+        super().__init__(parent)
         self.task = None
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
 
     def closeEvent(self, event):
-        config.separate_status = 'stop'
         if self.task:
             self.task.finish_event.emit("end")
             self.task = None
@@ -720,32 +624,24 @@ class SeparateForm(QtWidgets.QWidget, Ui_separateform):  # <===
         event.ignore()
 
 
-class GetaudioForm(QtWidgets.QWidget, Ui_getaudio):  # <===
+class GetaudioForm(QWidgetBase, Ui_getaudio):  # <===
     def __init__(self, parent=None):
-        super(GetaudioForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class HunliuForm(QtWidgets.QWidget, Ui_hunliu):  # <===
+class HunliuForm(QWidgetBase, Ui_hunliu):  # <===
     def __init__(self, parent=None):
-        super(HunliuForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class VASForm(QtWidgets.QWidget, Ui_vasrt):  # <===
+class VASForm(QWidgetBase, Ui_vasrt):  # <===
     def __init__(self, parent=None):
-        super(VASForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class Fanyisrt(QtWidgets.QWidget, Ui_fanyisrt):
+class Fanyisrt(QWidgetBase, Ui_fanyisrt):
     def __init__(self, parent=None):
-        super(Fanyisrt, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
     def changeEvent(self, event):
         """
@@ -754,47 +650,35 @@ class Fanyisrt(QtWidgets.QWidget, Ui_fanyisrt):
         if event.type() == QEvent.ActivationChange:
             if self.isActiveWindow():
                 # 在这里执行窗口激活时需要做的操作
-                self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+                self.aisendsrt.setChecked(settings.get('aisendsrt'))
         super(Fanyisrt, self).changeEvent(event)  # 调用父类的实现，确保默认行为被处理
 
 
-class Recognform(QtWidgets.QWidget, Ui_recogn):  # <===
+class Recognform(QWidgetBase, Ui_recogn):  # <===
     def __init__(self, parent=None):
-        super(Recognform, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class Peiyinform(QtWidgets.QWidget, Ui_peiyin):  # <===
+class Peiyinform(QWidgetBase, Ui_peiyin):  # <===
     def __init__(self, parent=None):
-        super(Peiyinform, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class Videoandaudioform(QtWidgets.QWidget, Ui_videoandaudio):  # <===
+class Videoandaudioform(QWidgetBase, Ui_videoandaudio):  # <===
     def __init__(self, parent=None):
-        super(Videoandaudioform, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class Videoandsrtform(QtWidgets.QWidget, Ui_videoandsrt):  # <===
+class Videoandsrtform(QWidgetBase, Ui_videoandsrt):  # <===
     def __init__(self, parent=None):
-        super(Videoandsrtform, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class FormatcoverForm(QtWidgets.QWidget, Ui_formatcover):  # <===
+class FormatcoverForm(QWidgetBase, Ui_formatcover):  # <===
     def __init__(self, parent=None):
-        super(FormatcoverForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)
 
 
-class SubtitlescoverForm(QtWidgets.QWidget, Ui_subtitlescover):  # <===
+class SubtitlescoverForm(QWidgetBase, Ui_subtitlescover):  # <===
     def __init__(self, parent=None):
-        super(SubtitlescoverForm, self).__init__(parent)
-        self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        super().__init__(parent)

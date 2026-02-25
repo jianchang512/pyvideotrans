@@ -7,6 +7,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
 
@@ -21,7 +22,7 @@ class TransAPI(BaseTrans):
         super().__post_init__()
         self.aisendsrt = False
 
-        url = config.params.get('trans_api_url','').strip().rstrip('/').lower()
+        url = params.get('trans_api_url','').strip().rstrip('/').lower()
         if not url.startswith('http'):
             url = f"http://{url}"
         self.api_url = url + ('&' if '?' in url else '/?')
@@ -30,15 +31,15 @@ class TransAPI(BaseTrans):
 
     # 实际发出请求获取结果
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = quote("\n".join(data))
-        requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code[:2] if self.source_code else ''}&text={text}&secret={config.params.get('trans_secret','')}"
-        config.logger.debug(f'[TransAPI]请求数据：{requrl=}')
+        requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code[:2] if self.source_code else ''}&text={text}&secret={params.get('trans_secret','')}"
+        logger.debug(f'[TransAPI]请求数据：{requrl=}')
         response = requests.get(url=requrl)
-        config.logger.debug(f'[TransAPI]返回:{response.text=}')
+        logger.debug(f'[TransAPI]返回:{response.text=}')
         response.raise_for_status()
         jsdata = response.json()
         if jsdata['code'] != 0:

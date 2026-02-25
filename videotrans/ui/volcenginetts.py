@@ -3,7 +3,7 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -125,10 +125,9 @@ class Ui_volcengineform(object):
         self.retranslateUi(volcengineform)
         QtCore.QMetaObject.connectSlotsByName(volcengineform)
     def update_ui(self):
-        from videotrans.configure import config
-        self.volcenginetts_appid.setText(config.params.get("volcenginetts_appid",''))
-        self.volcenginetts_access.setText(config.params.get("volcenginetts_access",''))
-        self.volcenginetts_cluster.setText(config.params.get("volcenginetts_cluster",''))
+        self.volcenginetts_appid.setText(params.get("volcenginetts_appid",''))
+        self.volcenginetts_access.setText(params.get("volcenginetts_access",''))
+        self.volcenginetts_cluster.setText(params.get("volcenginetts_cluster",''))
     def retranslateUi(self, volcengineform):
         volcengineform.setWindowTitle(tr("Volcengine TTS Setting"))
         self.label.setText("App id")

@@ -3,8 +3,7 @@
 
 from PySide6 import QtCore, QtWidgets
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -91,17 +90,15 @@ class Ui_zijiehuoshanform(object):
         QtCore.QMetaObject.connectSlotsByName(zijiehuoshanform)
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = str(config.settings.get('zijiehuoshan_model',''))
-        allmodels = str(config.settings.get('zijiehuoshan_model','')).split(',')
+        allmodels_str = str(settings.get('zijiehuoshan_model',''))
+        allmodels = str(settings.get('zijiehuoshan_model','')).split(',')
         self.zijiehuoshan_model.clear()
         self.zijiehuoshan_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.zijiehuoshan_key.setText(config.params.get("zijiehuoshan_key",''))
-        if config.params.get("zijiehuoshan_model",'') in allmodels:
-            self.zijiehuoshan_model.setCurrentText(config.params.get("zijiehuoshan_model",''))
+        self.zijiehuoshan_key.setText(params.get("zijiehuoshan_key",''))
+        if params.get("zijiehuoshan_model",'') in allmodels:
+            self.zijiehuoshan_model.setCurrentText(params.get("zijiehuoshan_model",''))
     def retranslateUi(self, zijiehuoshanform):
         zijiehuoshanform.setWindowTitle(tr("ByteDance Ark"))
         self.label_3.setText(tr('Selecting an Inference Access Point'))

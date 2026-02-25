@@ -1,21 +1,17 @@
-import re
-
-from videotrans.task.taskcfg import TaskCfg
-from videotrans.util.contants import LISTEN_TEXT
 
 
 def openwin():
-
-    import copy
+    from videotrans.util import contants
+    from videotrans.task.taskcfg import TaskCfgTTS
+    from videotrans.util.contants import LISTEN_TEXT
     import json
     import os
     from pathlib import Path
-    from videotrans.configure.config import tr
     from PySide6.QtCore import QUrl, Qt,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 
     from videotrans.util import tools
 
@@ -35,7 +31,7 @@ def openwin():
         "sr": "塞尔维亚语", "si": "僧伽罗语", "sk": "斯洛伐克语", "sl": "斯洛文尼亚语", "so": "索马里语", "su": "巽他语", "sw": "斯瓦希里语",
         "ta": "泰米尔语", "te": "泰卢固语", "ur": "乌尔都语", "uz": "乌兹别克语", "cy": "威尔士语", "zu": "祖鲁语"
     }
-    if config.defaulelang != 'zh':
+    if defaulelang != 'zh':
         langname_dict = {
             "zh-cn": "Simplified Chinese", "zh-tw": "Traditional Chinese", "yue": "Cantonese", "en": "English",
             "fr": "French", "de": "German", "ja": "Japanese",
@@ -60,7 +56,7 @@ def openwin():
             "ta": "Tamil", "te": "Telugu", "ur": "Urdu", "uz": "Uzbek", "cy": "Welsh", "zu": "Zulu"
         }
 
-    RESULT_DIR = config.HOME_DIR + "/tts"
+    RESULT_DIR = HOME_DIR + "/tts"
     uuid=None
 
     from videotrans.task._dubbing import DubbingSrt
@@ -127,7 +123,7 @@ def openwin():
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
             return tools.show_error(tr('mustberole'))
-        voice_dir = config.TEMP_DIR + '/listen_voice'
+        voice_dir = TEMP_DIR + '/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
 
@@ -184,7 +180,7 @@ def openwin():
             return tools.show_error(
                 tr("Please import an SRT subtitle file first."))
 
-        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         language = winobj.hecheng_language.currentText()
         role = winobj.hecheng_role.currentText()  # Default role
@@ -226,7 +222,7 @@ def openwin():
         uuid = video_obj['uuid']
         cfg={
             "voice_role": role,  # Default role
-            "cache_folder": config.TEMP_DIR + f'/{uuid}',
+            "cache_folder": TEMP_DIR + f'/{uuid}',
             "target_language_code": langcode,
             "target_dir": RESULT_DIR,
             "voice_rate": rate,
@@ -241,27 +237,27 @@ def openwin():
         }
 
 
-        trk = DubbingSrt(cfg=TaskCfg(**cfg | video_obj),subs=winobj.subtitles,is_multi_role=True,out_ext=winobj.out_format.currentText())
-        config.dubb_queue.put_nowait(trk)
+        trk = DubbingSrt(cfg=TaskCfgTTS(**cfg | video_obj),subs=winobj.subtitles,is_multi_role=True,out_ext=winobj.out_format.currentText())
+        app_cfg.dubb_queue.put_nowait(trk)
         from videotrans.task.child_win_sign import SignThread
         th = SignThread(uuid_list=[uuid], parent=winobj)
         th.uito.connect(feed)
         th.start()
 
         winobj.hecheng_startbtn.setText(tr("running"))
-        config.params["dubb_source_language"] = winobj.hecheng_language.currentIndex()
-        config.params["dubb_tts_type"] = winobj.tts_type.currentIndex()
-        config.params["dubb_role"] = winobj.hecheng_role.currentIndex()
-        config.params["dubb_out_format"] = winobj.out_format.currentIndex()
-        config.params["dubb_voice_autorate"] = winobj.voice_autorate.isChecked()
-        config.params["dubb_save_to_srt"] = winobj.save_to_srt.isChecked()
-        config.params["dubb_is_cuda"] = winobj.is_cuda.isChecked()
-        config.params["dubb_hecheng_rate"] = int(winobj.hecheng_rate.value())
-        config.params["dubb_pitch_rate"] = int(winobj.pitch_rate.value())
-        config.params["dubb_volume_rate"] = int(winobj.volume_rate.value())
-        if not config.params["dubb_voice_autorate"]:
-            config.params['dubb_remove_silent_mid']=winobj.remove_silent_mid.isChecked()
-        config.getset_params(config.params)
+        params["dubb_source_language"] = winobj.hecheng_language.currentIndex()
+        params["dubb_tts_type"] = winobj.tts_type.currentIndex()
+        params["dubb_role"] = winobj.hecheng_role.currentIndex()
+        params["dubb_out_format"] = winobj.out_format.currentIndex()
+        params["dubb_voice_autorate"] = winobj.voice_autorate.isChecked()
+        params["dubb_save_to_srt"] = winobj.save_to_srt.isChecked()
+        params["dubb_is_cuda"] = winobj.is_cuda.isChecked()
+        params["dubb_hecheng_rate"] = int(winobj.hecheng_rate.value())
+        params["dubb_pitch_rate"] = int(winobj.pitch_rate.value())
+        params["dubb_volume_rate"] = int(winobj.volume_rate.value())
+        if not params["dubb_voice_autorate"]:
+            params['dubb_remove_silent_mid']=winobj.remove_silent_mid.isChecked()
+        params.save()
 
     def stop_tts():
         nonlocal uuid
@@ -270,7 +266,7 @@ def openwin():
         winobj.hecheng_startbtn.setText(tr("zhixingwc"))
         toggle_state(False)
         if uuid:
-            config.stoped_uuid_set.add(uuid)
+            app_cfg.stoped_uuid_set.add(uuid)
         uuid = None
     def getlangnamelist(tts_type=0):
         if tts_type != tts.EDGE_TTS:
@@ -278,7 +274,7 @@ def openwin():
         return ['-'] + list(langname_dict.values())
 
     def tts_type_change(type):
-        config.dubbing_role={}
+        app_cfg.dubbing_role={}
         if change_by_lang(type):
             winobj.volume_rate.setDisabled(False)
             winobj.pitch_rate.setDisabled(False)
@@ -318,10 +314,9 @@ def openwin():
         if type == tts.GOOGLE_TTS:
             role_list=['No','gtts']
         elif type == tts.CHATTTS:
-            config.ChatTTS_voicelist = re.split(r'[,，]', config.settings.get('chattts_voice',''))
-            role_list.extend(list(config.ChatTTS_voicelist))
+            role_list.extend(list(settings.ChatTTS_voicelist))
         elif type == tts.OPENAI_TTS:
-            role_list=config.OPENAITTS_ROLES.split(',')
+            role_list=contants.OPENAITTS_ROLES.split(',')
         elif type == tts.QWEN_TTS:
             role_list=list(tools.get_qwen3tts_rolelist().keys())
         elif type == tts.QWEN3LOCAL_TTS:
@@ -331,13 +326,13 @@ def openwin():
         elif type == tts.GLM_TTS:
             role_list=list(tools.get_glmtts_rolelist().keys())
         elif type == tts.GEMINI_TTS:
-            role_list.extend(config.GEMINITTS_ROLES.split(','))
+            role_list.extend(contants.GEMINITTS_ROLES.split(','))
         elif type == tts.ELEVENLABS_TTS:
             role_list =  tools.get_elevenlabs_role()
         elif type == tts.CLONE_VOICE_TTS:
-            role_list.extend([it for it in config.params["clone_voicelist"] if it != 'clone'])
+            role_list.extend([it for it in params["clone_voicelist"] if it != 'clone'])
         elif type == tts.TTS_API:
-            role_list=config.params['ttsapi_voice_role'].split(",")
+            role_list=params['ttsapi_voice_role'].split(",")
         elif type == tts.GPTSOVITS_TTS:
             role_list = list(tools.get_gptsovits_role().keys())
         elif type == tts.CHATTERBOX_TTS:
@@ -423,14 +418,14 @@ def openwin():
 
 
     def hecheng_import_fun():
-        fname, _ = QFileDialog.getOpenFileName(winobj, "SRT", config.params.get('last_opendir', '.'),
+        fname, _ = QFileDialog.getOpenFileName(winobj, "SRT", params.get('last_opendir', '.'),
                                                "SRT files (*.srt)")
         if not fname:
             return
 
         fname = fname.replace('\\', '/')
-        config.params['last_opendir'] = os.path.dirname(fname)
-        config.getset_params(config.params)
+        params['last_opendir'] = os.path.dirname(fname)
+        params.save()
 
         winobj.parse_and_display_srt(fname)
 
@@ -457,21 +452,21 @@ def openwin():
 
 
     winobj = Peiyinformrole()
-    config.child_forms['fn_peiyinrole'] = winobj
+    app_cfg.child_forms['fn_peiyinrole'] = winobj
     winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
-        winobj.voice_autorate.setChecked(config.params.get('dubb_voice_autorate', False))
-        winobj.save_to_srt.setChecked(config.params.get('dubb_save_to_srt', False))
-        winobj.hecheng_rate.setValue(config.params.get('dubb_hecheng_rate', 0))
-        winobj.pitch_rate.setValue(config.params.get('dubb_pitch_rate', 0))
-        winobj.volume_rate.setValue(config.params.get('dubb_volume_rate', 0))
-        winobj.is_cuda.setChecked(config.params.get('dubb_is_cuda', False))
+        winobj.voice_autorate.setChecked(params.get('dubb_voice_autorate', False))
+        winobj.save_to_srt.setChecked(params.get('dubb_save_to_srt', False))
+        winobj.hecheng_rate.setValue(params.get('dubb_hecheng_rate', 0))
+        winobj.pitch_rate.setValue(params.get('dubb_pitch_rate', 0))
+        winobj.volume_rate.setValue(params.get('dubb_volume_rate', 0))
+        winobj.is_cuda.setChecked(params.get('dubb_is_cuda', False))
         winobj.is_cuda.toggled.connect(check_cuda)
         
-        if not config.params.get('dubb_voice_autorate', False):
+        if not params.get('dubb_voice_autorate', False):
             winobj.remove_silent_mid.setVisible(True)
-            winobj.remove_silent_mid.setChecked(config.params.get('dubb_remove_silent_mid', False))
+            winobj.remove_silent_mid.setChecked(params.get('dubb_remove_silent_mid', False))
 
         winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
@@ -483,13 +478,13 @@ def openwin():
         winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)
 
-        last_tts_type = config.params.get("dubb_tts_type", 0)
+        last_tts_type = params.get("dubb_tts_type", 0)
         winobj.tts_type.setCurrentIndex(last_tts_type)
         tts_type_change(last_tts_type)
         
         winobj.voice_autorate.toggled.connect(check_voice_autorate)
-        winobj.hecheng_language.setCurrentIndex(config.params.get("dubb_source_language", 0))
-        winobj.hecheng_role.setCurrentIndex(config.params.get("dubb_role", 0))
-        winobj.out_format.setCurrentIndex(config.params.get("dubb_out_format", 0))
+        winobj.hecheng_language.setCurrentIndex(params.get("dubb_source_language", 0))
+        winobj.hecheng_role.setCurrentIndex(params.get("dubb_role", 0))
+        winobj.out_format.setCurrentIndex(params.get("dubb_out_format", 0))
 
     QTimer.singleShot(10,_bind)

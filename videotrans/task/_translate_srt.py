@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.task._base import BaseTask
 from videotrans.translator import run
 from videotrans.util import tools
@@ -25,7 +25,7 @@ class TranslateSrt(BaseTask):
 
         # 存放目标文件夹
         if not self.cfg.target_dir:
-            self.cfg.target_dir = config.HOME_DIR + f"/translate"
+            self.cfg.target_dir = HOME_DIR + f"/translate"
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
 
         # 生成目标字幕文件
@@ -94,7 +94,7 @@ class TranslateSrt(BaseTask):
         tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")    
 
     def _exit(self):
-        if config.exit_soft:
+        if app_cfg.exit_soft:
             self.hasend=True
             return True
         return False

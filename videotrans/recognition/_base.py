@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Dict, Optional, Union
 from tenacity import RetryError
 from videotrans.configure import config
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, TEMP_DIR
 from videotrans.configure._base import BaseCon
 from videotrans.util import tools
 from videotrans.task.vad import get_speech_timestamp, get_speech_timestamp_silero
@@ -56,7 +57,7 @@ class BaseRecogn(BaseCon):
 
     def __post_init__(self):
         super().__post_init__()
-        config.logger.debug(f'BaseRecogn 初始化')
+        logger.debug(f'BaseRecogn 初始化')
         if not tools.vail_file(self.audio_file):
             raise RuntimeError(f'No {self.audio_file}')
         self.device = 'cuda' if self.is_cuda else 'cpu'
@@ -72,22 +73,21 @@ class BaseRecogn(BaseCon):
         self.is_cjk = False
 
         if self.detect_language and self.detect_language[:2].lower() in ['zh', 'ja', 'ko', 'yu']:
-            self.maxlen = int(float(config.settings.get('cjk_len', 20)))
-            self.jianfan = True if self.detect_language[:2] == 'zh' and config.settings.get('zh_hant_s') else False
+            self.maxlen = int(float(settings.get('cjk_len', 20)))
+            self.jianfan = True if self.detect_language[:2] == 'zh' and settings.get('zh_hant_s') else False
             self.flag.append(" ")
             self.join_word_flag = ""
             self.is_cjk = True
         else:
-            self.maxlen = int(float(config.settings.get('other_len', 60)))
+            self.maxlen = int(float(settings.get('other_len', 60)))
             self.jianfan = False
 
     def _vad_split(self):
         _st = time.time()
-        _vad_type = config.settings.get('vad_type', 'tenvad')
+        _vad_type = settings.get('vad_type', 'tenvad')
         title=f'VAD:{_vad_type} split audio...'
         self._signal(text=title)
         # 重新拉取最新值
-        settings=config.parse_init()
 
         _threshold = float(settings.get('threshold', 0.5))
         _min_speech = max( int(float(settings.get('min_speech_duration_ms', 1000))),0)
@@ -107,7 +107,7 @@ class BaseRecogn(BaseCon):
             # 不可大于1000ms，并且不可小于50ms
             _min_silence=max(min(1000,_min_silence//2),50)
 
-        config.logger.debug(f'[Before VAD {_vad_type}][{self.recogn2pass=}],{_min_speech=}ms,{_max_speech=}ms,{_min_silence=}ms')
+        logger.debug(f'[Before VAD {_vad_type}][{self.recogn2pass=}],{_min_speech=}ms,{_max_speech=}ms,{_min_silence=}ms')
         kw={
             "input_wav":self.audio_file,
             "threshold":_threshold,
@@ -131,7 +131,7 @@ class BaseRecogn(BaseCon):
     def run(self) -> Union[List[Dict], None]:
         _st = time.time()
         
-        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
         self._signal(text=f"check model")
         if hasattr(self, '_download'):
             self._download()
@@ -159,7 +159,7 @@ class BaseRecogn(BaseCon):
             # 修正时间戳重叠
             for i, it in enumerate(srt_list):
                 if i > 0 and srt_list[i - 1]['end_time'] > it['start_time']:
-                    config.logger.warning(
+                    logger.warning(
                         f'修正字幕时间轴重叠：将前面字幕 end_time={srt_list[i - 1]["end_time"]} 改为当前字幕 start_time, {it=}')
                     srt_list[i - 1]['end_time'] = it['start_time']
                     srt_list[i - 1]['endraw'] = tools.ms_to_time_string(ms=it['start_time'])
@@ -167,7 +167,7 @@ class BaseRecogn(BaseCon):
             if self.recogn2pass:
                 return srt_list
             # 合并过短的字幕到邻近字幕，以便符合 min_speech_duration_ms 要求, 第一个和最后一个字幕不合并
-            if self.llm_post or not config.settings.get('merge_short_sub', True):
+            if self.llm_post or not settings.get('merge_short_sub', True):
                 if not self.llm_post:
                     for it in srt_list:
                         it['text'] = it['text'].strip('。').strip()
@@ -179,13 +179,13 @@ class BaseRecogn(BaseCon):
             raise
         finally:
             self._signal(text=f'STT ended:{int(time.time() - _st)}s')
-            config.logger.debug(f'[语音识别]渠道{self.recogn_type},{self.model_name}:共耗时:{int(time.time() - _st)}s')
+            logger.debug(f'[语音识别]渠道{self.recogn_type},{self.model_name}:共耗时:{int(time.time() - _st)}s')
 
     # 未选择LLM重新断句并且选了 合并短字幕，则对识别出的字幕进行简单修正
     def _fix_post(self, srt_list):
         post_srt_raws = []
-        min_speech = max(300, int(float(config.settings.get('min_speech_duration_ms', 1000))))
-        config.logger.debug(f'对识别出的字幕进行简单修正，{min_speech=}')
+        min_speech = max(300, int(float(settings.get('min_speech_duration_ms', 1000))))
+        logger.debug(f'对识别出的字幕进行简单修正，{min_speech=}')
         for idx, it in enumerate(srt_list):
             if not it['text'].strip():
                 continue
@@ -201,14 +201,14 @@ class BaseRecogn(BaseCon):
                 if (post_srt_raws[-1]['text'][-1] not in self.flag and it['text'][-1] in self.flag) or (
                         post_srt_raws[-1]['text'][-1] in self.half_flag and it['text'][
                     -1] in self.end_flag) or prev_diff <= next_diff:
-                    config.logger.warning(
+                    logger.warning(
                         f'字幕时长小于{min_speech=}，需要合并进前面字幕,{prev_diff=},{next_diff=}，当前字幕={it},前面字幕={post_srt_raws[-1]}')
                     post_srt_raws[-1]['end_time'] = it['end_time']
                     post_srt_raws[-1]['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                     post_srt_raws[-1]['time'] = f"{post_srt_raws[-1]['startraw']} --> {post_srt_raws[-1]['endraw']}"
                     post_srt_raws[-1]['text'] += ' ' + it['text']
                 else:
-                    config.logger.warning(
+                    logger.warning(
                         f'字幕时长小于{min_speech=}，需要合并进后面字幕,{prev_diff=},{next_diff=}，当前字幕={it},后边字幕={srt_list[idx + 1]}')
                     srt_list[idx + 1]['text'] = it['text'] + ' ' + srt_list[idx + 1]['text']
                     srt_list[idx + 1]['start_time'] = it['start_time']
@@ -261,9 +261,9 @@ class BaseRecogn(BaseCon):
                 continue
 
             post_srt_raws[i - 1]['text'] += self.join_word_flag + it['text'][:len(t[0]) + 1]
-            config.logger.warning(f'该字幕原始文字={it["text"]}, 合并进前条字幕的文字={it["text"][:len(t[0]) + 1]}')
+            logger.warning(f'该字幕原始文字={it["text"]}, 合并进前条字幕的文字={it["text"][:len(t[0]) + 1]}')
             it['text'] = it["text"][len(t[0]) + 1:]
-            config.logger.warning(f'剩余问文字 {it["text"]}\n')
+            logger.warning(f'剩余问文字 {it["text"]}\n')
 
         # 如果当前字幕中间有标点，且最后一个标点前的字 词小于4，则给后个字幕
         for i, it in enumerate(post_srt_raws):
@@ -289,9 +289,9 @@ class BaseRecogn(BaseCon):
                 continue
 
             post_srt_raws[i + 1]['text'] = it['text'][-len(t[-1]):] + self.join_word_flag + post_srt_raws[i + 1]['text']
-            config.logger.warning(f'该字幕原始文字={it["text"]}, 合并到下条字幕文字={it["text"][-len(t[-1]):]}')
+            logger.warning(f'该字幕原始文字={it["text"]}, 合并到下条字幕文字={it["text"][-len(t[-1]):]}')
             it['text'] = it["text"][:-len(t[-1])]
-            config.logger.warning(f'剩余文字 {it["text"]}\n')
+            logger.warning(f'剩余文字 {it["text"]}\n')
 
         # 移除末尾所有 . 。
         for it in post_srt_raws:
@@ -307,7 +307,7 @@ class BaseRecogn(BaseCon):
         return silent_segment
 
     def cut_audio(self):
-        dir_name = f"{config.TEMP_DIR}/clip_{time.time()}"
+        dir_name = f"{TEMP_DIR}/clip_{time.time()}"
         Path(dir_name).mkdir(parents=True, exist_ok=True)
         data = []
         if not self.speech_timestamps:
@@ -318,7 +318,7 @@ class BaseRecogn(BaseCon):
         # 对大于30s的强制拆分，小于1s的强制合并，防止某些识别引擎不支持而报错
         check_1 = []
         # 裁切出的最小语音时长需符合 min_speech_duration_ms 要求，合并过短的
-        min_speech_duration_ms = min(25000, max(int(config.settings.get('min_speech_duration_ms', 1000)), 1000))
+        min_speech_duration_ms = min(25000, max(int(settings.get('min_speech_duration_ms', 1000)), 1000))
         for i, it in enumerate(speech_chunks):
             diff = it[1] - it[0]
             if diff < min_speech_duration_ms:
@@ -327,23 +327,23 @@ class BaseRecogn(BaseCon):
                 # 距离下个空隙
                 next_diff = speech_chunks[i + 1][0] - it[1] if i < speech_len - 1 else None
                 if prev_diff is None and next_diff is not None:
-                    config.logger.warning(
+                    logger.warning(
                         f'cut_audio 时长小于 {min_speech_duration_ms}ms 需要下个字幕左移开始时间,{diff=},{prev_diff=},{next_diff=}')
                     # 插入后边
                     speech_chunks[i + 1][0] = it[0]
                 elif prev_diff is not None and next_diff is None:
                     # 前面延长
-                    config.logger.warning(
+                    logger.warning(
                         f'cut_audio 时长小于 {min_speech_duration_ms}ms 需要前面字幕延长结束时间,{diff=},{prev_diff=},{next_diff=}')
                     check_1[-1][1] = it[1]
                 elif prev_diff is not None and next_diff is not None:
                     if prev_diff < next_diff:
                         check_1[-1][1] = it[1]
-                        config.logger.warning(
+                        logger.warning(
                             f'cut_audio 时长小于 {min_speech_duration_ms}ms 需要前面字幕延长结束时间,{diff=},{prev_diff=},{next_diff=}')
                     else:
                         speech_chunks[i + 1][0] = it[0]
-                        config.logger.warning(
+                        logger.warning(
                             f'cut_audio 时长小于 {min_speech_duration_ms}ms 需要下个字幕左移开始时间,{diff=},{prev_diff=},{next_diff=}')
                 else:
                     check_1.append(it)
@@ -354,7 +354,7 @@ class BaseRecogn(BaseCon):
                 off = diff // 2
                 check_1.append([it[0], it[0] + off])
                 check_1.append([it[0] + off, it[1]])
-                config.logger.warning(f'cut_audio 超过30s需要拆分，{diff=}')
+                logger.warning(f'cut_audio 超过30s需要拆分，{diff=}')
         speech_chunks = check_1
         # 两侧填充空白
         silent_segment = self._padforaudio()
@@ -379,6 +379,6 @@ class BaseRecogn(BaseCon):
 
     # True 退出
     def _exit(self) -> bool:
-        if config.exit_soft or (self.uuid and self.uuid in config.stoped_uuid_set):
+        if app_cfg.exit_soft or (self.uuid and self.uuid in app_cfg.stoped_uuid_set):
             return True
         return False

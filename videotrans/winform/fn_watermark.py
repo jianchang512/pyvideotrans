@@ -1,4 +1,6 @@
 # 水印
+
+
 def openwin():
 
     import json
@@ -8,11 +10,12 @@ def openwin():
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure.config import tr
+    from videotrans.util import contants
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     # 使用内置的 open 函数
     from videotrans.util import tools
-    RESULT_DIR = config.HOME_DIR + "/watermark"
+    RESULT_DIR = HOME_DIR + "/watermark"
 
 
     class CompThread(QThread):
@@ -36,7 +39,7 @@ def openwin():
         def hebing_pro(self, protxt, video_time=0):
             percent = 0
             while 1:
-                if config.exit_soft:return
+                if app_cfg.exit_soft:return
                 if self.end or percent >= 100:
                     return
                 content = tools.read_last_n_lines(protxt)    
@@ -85,7 +88,7 @@ def openwin():
                 ]
 
                 position = positions[self.pos]
-                protxt = config.TEMP_DIR + f'/jd{time.time()}.txt'
+                protxt = TEMP_DIR + f'/jd{time.time()}.txt'
                 threading.Thread(target=self.hebing_pro,args=(protxt,duration),daemon=True).start()
 
                 # 构建 FFmpeg 命令
@@ -98,8 +101,8 @@ def openwin():
                     "-filter_complex",
                     f"[1:v]scale={self.width}:{self.height}[overlay];[0:v][overlay]overlay={position}:enable='between(t,0,999999)'",
                     "-c:v", "libx265",
-                    "-crf", f"{config.settings.get('crf',26)}",
-                    "-preset", f"{config.settings.get('preset','fast')}",
+                    "-crf", f"{settings.get('crf',26)}",
+                    "-preset", f"{settings.get('preset','fast')}",
                     "-c:a", "aac",
                     "-pix_fmt", "yuv420p",
                     result_file
@@ -138,16 +141,16 @@ def openwin():
 
     def get_file(type):
         if type == 1:
-            format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS])
+            format_str = " ".join(['*.' + f for f in contants.VIDEO_EXTS])
             fname, _ = QFileDialog.getOpenFileNames(winobj, "Select Video",
-                                                    config.params['last_opendir'],
+                                                    params['last_opendir'],
                                                     f"Video files({format_str})")
             if len(fname) > 0:
                 winobj.videourls = [it.replace('file:///', '').replace('\\', '/') for it in fname]
                 winobj.videourl.setText(",".join(winobj.videourls))
         else:
             fname, _ = QFileDialog.getOpenFileName(winobj, "Select Image",
-                                                   config.params['last_opendir'],
+                                                   params['last_opendir'],
                                                    "files(*.png *.jpg *.jpeg *.gif)")
             if fname:
                 winobj.pngurl.setText(fname.replace('file:///', '').replace('\\', '/'))
@@ -191,7 +194,7 @@ def openwin():
 
     from videotrans.component.set_form import WatermarkForm
     winobj = WatermarkForm()
-    config.child_forms['fn_watermak'] = winobj
+    app_cfg.child_forms['fn_watermak'] = winobj
     winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)

@@ -13,6 +13,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -32,8 +33,8 @@ class ElevenLabsC(BaseTTS):
         if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
         
             if self._exit() or tools.vail_file(data_item['filename']):
@@ -44,18 +45,18 @@ class ElevenLabsC(BaseTTS):
             if self.rate and self.rate != '+0%':
                 speed += float(self.rate.replace('%', ''))
 
-            with open(config.ROOT_DIR+'/videotrans/voicejson/elevenlabs.json','r',encoding='utf-8') as f:
+            with open(ROOT_DIR+'/videotrans/voicejson/elevenlabs.json','r',encoding='utf-8') as f:
                 jsondata=json.loads(f.read())
 
             try:
                 client = ElevenLabs(
-                    api_key=config.params.get('elevenlabstts_key',''),
+                    api_key=params.get('elevenlabstts_key',''),
                     httpx_client=httpx.Client(proxy=self.proxy_str)
                 )
                 response = client.text_to_speech.convert(
                     text=data_item['text'],
                     voice_id=jsondata[role]['voice_id'],
-                    model_id=config.params.get("elevenlabstts_models"),
+                    model_id=params.get("elevenlabstts_models"),
 
                     output_format="mp3_44100_128",
 

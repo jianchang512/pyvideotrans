@@ -10,9 +10,8 @@ from PySide6.QtGui import Qt, QFontDatabase, QColor
 from PySide6.QtWidgets import QFileDialog, QFontDialog, QColorDialog
 
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
-from videotrans.configure.config import tr
-
 
 class Ui_setini(object):
 
@@ -20,11 +19,10 @@ class Ui_setini(object):
         dirname = QFileDialog.getExistingDirectory(self, tr('selectsavedir'), Path.home().as_posix())
         if dirname:
             dirpath = Path(dirname)
-            config.HOME_DIR = dirpath.as_posix()
-            config.settings['homedir'] = config.HOME_DIR
-            self.homedir_btn.setText(config.HOME_DIR)
-            with Path(config.ROOT_DIR + "/videotrans/cfg.json").open('w', encoding='utf-8') as f:
-                f.write(json.dumps(config.settings, ensure_ascii=False))
+            HOME_DIR = dirpath.as_posix()
+            settings['homedir'] = HOME_DIR
+            self.homedir_btn.setText(HOME_DIR)
+            settings.save()
 
     def setupUi(self, setini):
         self.centralwidget = QtWidgets.QWidget(setini)
@@ -122,7 +120,7 @@ class Ui_setini(object):
                 "hf_token": "填写你在 huggingface.co 的token，否则无法使用 pyannote，具体查看教程\nhttps://pvt9.com/shuohuaren",
 
                 "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
-                "Whisper.cpp.models": "whisper.cpp模式下的模型名字列表，英文逗号分隔",
+                "Whisper_cpp_models": "whisper.cpp模式下的模型名字列表，英文逗号分隔",
                 "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，float16适合GPU加速。default默认自选",
                 "beam_size": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
@@ -211,7 +209,7 @@ class Ui_setini(object):
             "localllm_model": "本地LLM模型列表",
             "zijiehuoshan_model": "字节火山推理接入点",
             "model_list": "faster/whisper模型",
-            "Whisper.cpp.models": "whisper.cpp模型",
+            "Whisper_cpp_models": "whisper.cpp模型",
             "homedir": "设置输出目录",
             "lang": "软件界面语言",
             "save_segment_audio": "保留每条字幕的配音文件",
@@ -292,7 +290,7 @@ class Ui_setini(object):
             "dubbing": "字幕配音调整",
             "prompt_init": "Whisper模型提示词"
         }
-        if config.defaulelang != 'zh':
+        if defaulelang != 'zh':
             self.notices = {
                 "common": {
                     "lang": "Set the software's interface language. Requires a restart to take effect.",
@@ -363,7 +361,7 @@ class Ui_setini(object):
                     "hf_token": "Enter your token from huggingface.co. Otherwise, you cannot use Pyannote speaker separation. \nFor details, please see the tutorial: \nhttps://pvt9.com/shuohuaren",
 
                     "model_list": "Comma-separated list of model names for faster-whisper and OpenAI modes.",
-                    "Whisper.cpp.models": "Comma-separated list of model names for whisper.cpp mode.",
+                    "Whisper_cpp_models": "Comma-separated list of model names for whisper.cpp mode.",
                     "cuda_com_type": "CUDA compute type for faster-whisper (e.g., int8, float16, float32).",
                     "beam_size": "Beam size for transcription (1-5). Higher is more accurate but uses more VRAM.",
                     "best_of": "Best-of for transcription (1-5). Higher is more accurate but uses more VRAM.",
@@ -453,7 +451,7 @@ class Ui_setini(object):
                 "localllm_model": "Local LLM model list",
                 "zijiehuoshan_model": "ByteDance Volcano Engine inference endpoint",
                 "model_list": "faster/whisper models",
-                "Whisper.cpp.models": "whisper.cpp models",
+                "Whisper_cpp_models": "whisper.cpp models",
                 "homedir": "Set output directory",
                 "lang": "Software interface language",
                 "save_segment_audio": "Save dubbed audio for each subtitle line",
@@ -565,7 +563,7 @@ class Ui_setini(object):
                 tmp_0.setToolTip(tips_str)
                 tmp.addWidget(tmp_0)
 
-                val = str(config.settings.get(key, ""))
+                val = str(settings.get(key, ""))
                 combobox_data=None
                 # 是 cuda_com_type
                 if key == 'cuda_com_type':
@@ -583,7 +581,7 @@ class Ui_setini(object):
                 elif key == 'preset':
                     combobox_data = ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower','veryslow']
                 elif key == "lang":
-                    combobox_data=list(config.SUPPORT_LANG.keys())
+                    combobox_data=list(app_cfg.SUPPORT_LANG.keys())
 
                 if combobox_data and key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset',"lang"]:
                     tmp1 = QtWidgets.QComboBox()
@@ -623,7 +621,7 @@ class Ui_setini(object):
                     continue
 
                 # 是 model_list faster-whisper
-                if key in ['model_list', 'Whisper.cpp.models']:
+                if key in ['model_list', 'Whisper_cpp_models']:
                     tmp_1 = QtWidgets.QPlainTextEdit()
                     tmp_1.setPlainText(val)
                     tmp_1.setToolTip(tips_str)
@@ -681,12 +679,12 @@ class Ui_setini(object):
         obj = self.findChild(QtWidgets.QComboBox, 'lang')
         current_text = obj.currentText()
         _support = {}
-        for it in Path(f'{config.ROOT_DIR}/videotrans/language').glob('*.json'):
+        for it in Path(f'{ROOT_DIR}/videotrans/language').glob('*.json'):
             if it.stat().st_size > 0:
                 _support[it.stem] = it.as_posix()
         # 有变化时
-        if _support and _support.keys() != config.SUPPORT_LANG.keys():
-            config.SUPPORT_LANG = _support
+        if _support and _support.keys() != app_cfg.SUPPORT_LANG.keys():
+            app_cfg.SUPPORT_LANG = _support
             obj.clear()
             obj.addItems(list(_support.keys()))
             if current_text in _support:

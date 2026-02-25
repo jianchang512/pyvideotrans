@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -25,7 +26,7 @@ class OPENAITTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.stop_next_all=False
-        self.api_url = self._get_url(config.params.get('openaitts_api',''))
+        self.api_url = self._get_url(params.get('openaitts_api',''))
         self._add_internal_host_noproxy(self.api_url)
 
 
@@ -36,8 +37,8 @@ class OPENAITTS(BaseTTS):
         if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -50,15 +51,15 @@ class OPENAITTS(BaseTTS):
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
             try:
-                client = OpenAI(api_key=config.params.get('openaitts_key', ''), base_url=self.api_url,
+                client = OpenAI(api_key=params.get('openaitts_key', ''), base_url=self.api_url,
                                 http_client=httpx.Client(proxy=self.proxy_str))
                 with client.audio.speech.with_streaming_response.create(
-                        model=config.params.get('openaitts_model',''),
+                        model=params.get('openaitts_model',''),
                         voice=role,
                         input=data_item['text'],
                         speed=speed,
                         response_format="wav",
-                        instructions=config.params.get('openaitts_instructions', '')
+                        instructions=params.get('openaitts_instructions', '')
                 ) as response:
                     with open(data_item['filename'] + ".wav", 'wb') as f:
                         for chunk in response.iter_bytes():

@@ -8,6 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -31,8 +32,8 @@ class GTTS(BaseTTS):
         if self._exit() or not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return

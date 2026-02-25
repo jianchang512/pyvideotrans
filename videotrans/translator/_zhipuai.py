@@ -9,8 +9,8 @@ from openai import LengthFinishReasonError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -26,11 +26,11 @@ class ZhipuAI(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
 
-        self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.model_name = config.params.get('zhipu_model', "glm-4.5-flash")
+        self.trans_thread = int(settings.get('aitrans_thread', 50))
+        self.model_name = params.get('zhipu_model', "glm-4.5-flash")
         self.api_url = 'https://open.bigmodel.cn/api/paas/v4/'
 
-        self.api_key = config.params.get('zhipu_key', '')
+        self.api_key = params.get('zhipu_key', '')
         self.prompt = tools.get_prompt(ainame='zhipuai',aisendsrt=self.aisendsrt).replace('{lang}',
                                                                                      self.target_language_name)
     def _item_task(self, data: Union[List[str], str]) -> str:
@@ -46,17 +46,17 @@ class ZhipuAI(BaseTrans):
             },
         ]
 
-        config.logger.debug(f"\n[zhipuai]发送请求数据:{message=}")
+        logger.debug(f"\n[zhipuai]发送请求数据:{message=}")
         model = OpenAI(api_key=self.api_key, base_url=self.api_url)
         response = model.chat.completions.create(
             model=self.model_name,
             messages=message,
             frequency_penalty=0,
-            temperature=float(config.settings.get('aitrans_temperature',0.2)),
-            max_tokens=int(config.params.get('zhipu_max_token',4095))
+            temperature=float(settings.get('aitrans_temperature',0.2)),
+            max_tokens=int(params.get('zhipu_max_token',4095))
         )
 
-        config.logger.debug(f'[zhipuai]响应:{response=}')
+        logger.debug(f'[zhipuai]响应:{response=}')
         if not hasattr(response,'choices'):
             raise RuntimeError(str(response))
         result = ""
@@ -65,7 +65,7 @@ class ZhipuAI(BaseTrans):
         if  response.choices[0].message.content:
             result = response.choices[0].message.content.strip()
         else:
-            config.logger.warning(f'[zhipuai]请求失败:{response=}')
+            logger.warning(f'[zhipuai]请求失败:{response=}')
             raise RuntimeError(f"[ZhipuAI] {response.choices[0].finish_reason}:{response}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)

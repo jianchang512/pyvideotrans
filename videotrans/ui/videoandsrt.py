@@ -4,7 +4,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import (QMetaObject, Qt)
 from PySide6.QtGui import (QCursor)
 from PySide6.QtWidgets import (QHBoxLayout, QLabel)
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,app_cfg,params,settings,logger
 
 
 class Ui_videoandsrt(object):

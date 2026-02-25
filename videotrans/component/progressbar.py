@@ -5,7 +5,7 @@ from PySide6.QtCore import QUrl, Qt
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QLabel, QProgressBar, QHBoxLayout
 
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,app_cfg,settings,params,logger
 from videotrans.util import tools
 
 

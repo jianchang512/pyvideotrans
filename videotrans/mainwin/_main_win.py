@@ -1,32 +1,36 @@
-from pathlib import Path
-
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMessageBox, QMainWindow, QPushButton, QToolBar, QSizePolicy, QApplication
 import asyncio, sys
 import os
-from videotrans.task.job import start_thread
-from videotrans.util.checkgpu import AiLoaderThread
-from videotrans.util.req_fac import custom_session_factory
+
+from videotrans.util import contants
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# 将这个工厂函数注册给 huggingface_hub
 import shutil
 import time
 import platform
 import getpass
 import subprocess
 
+from videotrans.util.req_fac import custom_session_factory
+import huggingface_hub
+huggingface_hub.configure_http_backend(backend_factory=custom_session_factory)
+
 from videotrans.configure import config
+config.init_run()
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR, IS_FROZEN, TEMP_DIR
+
 from videotrans import VERSION
+from videotrans.task.job import start_thread
+from videotrans.util.checkgpu import AiLoaderThread
 from videotrans.ui.en import Ui_MainWindow
 from videotrans.translator import TRANSLASTE_NAME_LIST, LANGNAME_DICT
 from videotrans.component.downmodels import DownmodelsWindow
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 
-import huggingface_hub
-# 将这个工厂函数注册给 huggingface_hub
-huggingface_hub.configure_http_backend(backend_factory=custom_session_factory)
 
 
 
@@ -39,6 +43,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.resize(width, height)
         self.setupUi(self)
+
 
         self.worker_threads = []
         self.uuid_signal = None
@@ -57,13 +62,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 当前所有可用角色列表
         self.current_rolelist = []
 
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.languagename = list(LANGNAME_DICT.values())
         self.source_language.addItems(self.languagename)
         self.target_language.addItems(["-"] + self.languagename)
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
 
-        self.rawtitle = f"{config.tr('softname')} {VERSION} {config.tr('Documents')} pyvideotrans.com"
+        self.rawtitle = f"{tr('softname')} {VERSION} {tr('Documents')} pyvideotrans.com"
         self.setWindowTitle(self.rawtitle)
         self.show()
 
@@ -73,15 +78,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         }
         self.subtitle_type.addItems(
             [
-                config.tr('nosubtitle'),
-                config.tr('embedsubtitle'),
-                config.tr('softsubtitle'),
-                config.tr('embedsubtitle2'),
-                config.tr('softsubtitle2')
+                tr('nosubtitle'),
+                tr('embedsubtitle'),
+                tr('softsubtitle'),
+                tr('embedsubtitle2'),
+                tr('softsubtitle2')
             ])
         self.uito.emit('load subtitles area...')
-        Path(config.HOME_DIR).mkdir(parents=True, exist_ok=True)
-        Path(config.TEMP_DIR).mkdir(exist_ok=True, parents=True)
+        # Path(HOME_DIR).mkdir(parents=True, exist_ok=True)
+        # Path(TEMP_DIR).mkdir(exist_ok=True, parents=True)
         QTimer.singleShot(200, self._set_Ui_Text)
 
     def _set_Ui_Text(self):
@@ -92,22 +97,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subtitle_area.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
         self.subtitle_area.setObjectName("subtitle_area")
         self.subtitle_area.setPlaceholderText(
-            f"{config.tr('zimubianjitishi')}\n\n{config.tr('subtitle_tips')}\n\n{config.tr('meitiaozimugeshi')}")
+            f"{tr('zimubianjitishi')}\n\n{tr('subtitle_tips')}\n\n{tr('meitiaozimugeshi')}")
         self.source_area_layout.insertWidget(self.source_area_layout.indexOf(self.subtitle_area_placeholder),
                                              self.subtitle_area)
         self.subtitle_area_placeholder.hide()
         self.subtitle_area_placeholder.deleteLater()
 
         # 底部状态条
-        self.statusLabel = QPushButton(config.tr("Open Documents"))
+        self.statusLabel = QPushButton(tr("Open Documents"))
         self.statusLabel.setStyleSheet("""color:#ffffbb""")
         self.statusBar.addWidget(self.statusLabel)
 
-        self.rightbottom = QPushButton(config.tr('juanzhu'))
+        self.rightbottom = QPushButton(tr('juanzhu'))
 
         self.container = QToolBar()
         self.container.addWidget(self.rightbottom)
-        self.restart_btn = QPushButton(config.tr("Restart"))
+        self.restart_btn = QPushButton(tr("Restart"))
         self.container.addWidget(self.restart_btn)
         self.statusBar.addPermanentWidget(self.container)
 
@@ -118,252 +123,260 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.setStyleSheet("""color:#ffffbb""")
         self.restart_btn.setStyleSheet("""color:#ffffbb""")
         self.restart_btn.setToolTip(
-            config.tr("Click to end all tasks immediately and restart"))
+            tr("Click to end all tasks immediately and restart"))
         self.restart_btn.clicked.connect(self.restart_app)
 
         self.toolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.btn_get_video.setToolTip(
-            config.tr("Multiple MP4 videos can be selected and automatically queued for processing"))
-        self.btn_get_video.setText(config.tr("Select audio & video"))
-        self.btn_save_dir.setToolTip(config.tr("Select where to save the processed output resources"))
-        self.btn_save_dir.setText(config.tr("Save to.."))
+            tr("Multiple MP4 videos can be selected and automatically queued for processing"))
+        self.btn_get_video.setText(tr("Select audio & video"))
+        self.btn_save_dir.setToolTip(tr("Select where to save the processed output resources"))
+        self.btn_save_dir.setText(tr("Save to.."))
 
-        self.label_9.setText(config.tr("Translate channel"))
+        self.label_9.setText(tr("Translate channel"))
         self.label_9.setCursor(Qt.PointingHandCursor)
         self.translate_type.setToolTip(
-            config.tr("Translation channels used in translating subtitle text"))
-        self.label.setText(config.tr("Proxy"))
+            tr("Translation channels used in translating subtitle text"))
+        self.label.setText(tr("Proxy"))
         self.label.setToolTip(
-            config.tr("Click to view the tutorial for filling in the network proxy"))
+            tr("Click to view the tutorial for filling in the network proxy"))
         self.label.setCursor(Qt.PointingHandCursor)
 
-        self.proxy.setPlaceholderText(config.tr("proxy address"))
-        self.listen_btn.setToolTip(config.tr("shuoming01"))
-        self.listen_btn.setText(config.tr("Trial dubbing"))
-        self.label_2.setText(config.tr("Speech language"))
-        self.source_language.setToolTip(config.tr("The language used for the original video pronunciation"))
-        self.label_3.setText(config.tr("Target lang"))
-        self.target_language.setToolTip(config.tr("What language do you want to translate into"))
-        self.tts_text.setText(config.tr("Dubbing channel"))
+        self.proxy.setPlaceholderText(tr("proxy address"))
+        self.listen_btn.setToolTip(tr("shuoming01"))
+        self.listen_btn.setText(tr("Trial dubbing"))
+        self.label_2.setText(tr("Speech language"))
+        self.source_language.setToolTip(tr("The language used for the original video pronunciation"))
+        self.label_3.setText(tr("Target lang"))
+        self.target_language.setToolTip(tr("What language do you want to translate into"))
+        self.tts_text.setText(tr("Dubbing channel"))
         self.tts_text.setCursor(Qt.PointingHandCursor)
-        self.label_4.setText(config.tr("Dubbing role") + " ")
-        self.voice_role.setToolTip(config.tr("No is not dubbing"))
+        self.label_4.setText(tr("Dubbing role") + " ")
+        self.voice_role.setToolTip(tr("No is not dubbing"))
 
-        self.model_name.setToolTip(config.tr(
+        self.model_name.setToolTip(tr(
             "From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower"))
-        self.subtitle_type.setToolTip(config.tr("shuoming02"))
+        self.subtitle_type.setToolTip(tr("shuoming02"))
 
-        self.label_6.setText(config.tr("Dubbing speed"))
-        self.voice_rate.setToolTip(config.tr("Overall acceleration or deceleration of voice over playback"))
-        self.voice_autorate.setText(config.tr("Dubbing acceler"))
-        self.voice_autorate.setToolTip(config.tr("shuoming03"))
-        self.video_autorate.setText(config.tr("Slow video"))
-        self.video_autorate.setToolTip(config.tr("Video Auto Slow"))
+        self.label_6.setText(tr("Dubbing speed"))
+        self.voice_rate.setToolTip(tr("Overall acceleration or deceleration of voice over playback"))
+        self.voice_autorate.setText(tr("Dubbing acceler"))
+        self.voice_autorate.setToolTip(tr("shuoming03"))
+        self.video_autorate.setText(tr("Slow video"))
+        self.video_autorate.setToolTip(tr("Video Auto Slow"))
 
-        self.remove_silent_mid.setText(config.tr("Del inline mute?"))
+        self.remove_silent_mid.setText(tr("Del inline mute?"))
         self.remove_silent_mid.setToolTip(
-            config.tr("Selecting this option will delete the silent intervals between subtitles"))
+            tr("Selecting this option will delete the silent intervals between subtitles"))
 
-        self.align_sub_audio.setText(config.tr("Align subtitles and audio"))
-        self.align_sub_audio.setToolTip(config.tr("If selected, it will force the subtitles and audio to align."))
+        self.align_sub_audio.setText(tr("Align subtitles and audio"))
+        self.align_sub_audio.setToolTip(tr("If selected, it will force the subtitles and audio to align."))
 
-        self.enable_cuda.setText(config.tr("Enable CUDA?"))
-        self.is_separate.setText(config.tr("Retain original background sound"))
+        self.enable_cuda.setText(tr("Enable CUDA?"))
+        self.is_separate.setText(tr("Retain original background sound"))
         self.is_separate.setToolTip(
-            config.tr(
+            tr(
                 "If selected, separate human voice and background sound, and finally output video will embed background sound"))
-        self.startbtn.setText(config.tr("Start"))
-        self.addbackbtn.setText(config.tr("Add background audio"))
+        self.startbtn.setText(tr("Start"))
+        self.addbackbtn.setText(tr("Add background audio"))
         self.addbackbtn.setToolTip(
-            config.tr("Add background audio for output video"))
-        self.back_audio.setPlaceholderText(config.tr("back_audio_place"))
-        self.back_audio.setToolTip(config.tr("back_audio_place"))
+            tr("Add background audio for output video"))
+        self.back_audio.setPlaceholderText(tr("back_audio_place"))
+        self.back_audio.setToolTip(tr("back_audio_place"))
 
-        self.import_sub.setText(config.tr("Import original language SRT"))
+        self.import_sub.setText(tr("Import original language SRT"))
         self.uito.emit('Set menu...')
         QApplication.processEvents()
         # 菜单
-        self.menu_Key.setTitle(config.tr("&Setting"))
-        self.menu_TTS.setTitle(config.tr("&TTSsetting"))
-        self.menu_RECOGN.setTitle(config.tr("&RECOGNsetting"))
-        self.menu.setTitle(config.tr("&Tools"))
-        self.menu_H.setTitle(config.tr("&Help"))
+        self.menu_Key.setTitle(tr("&Setting"))
+        self.menu_TTS.setTitle(tr("&TTSsetting"))
+        self.menu_RECOGN.setTitle(tr("&RECOGNsetting"))
+        self.menu.setTitle(tr("&Tools"))
+        self.menu_H.setTitle(tr("&Help"))
         self.toolBar.setWindowTitle("toolBar")
-        self.actionbaidu_key.setText(config.tr("Baidu Key"))
-        self.actionali_key.setText(config.tr("Alibaba Translation"))
+        self.actionbaidu_key.setText(tr("Baidu Key"))
+        self.actionali_key.setText(tr("Alibaba Translation"))
         self.actionchatgpt_key.setText(
-            config.tr("OpenAI API & Compatible AI"))
-        self.actionzhipuai_key.setText(config.tr("Zhipu AI"))
-        self.actionsiliconflow_key.setText(config.tr("SiliconFlow"))
+            tr("OpenAI API & Compatible AI"))
+        self.actionzhipuai_key.setText(tr("Zhipu AI"))
+        self.actionsiliconflow_key.setText(tr("SiliconFlow"))
         self.actiondeepseek_key.setText('DeepSeek')
-        self.actionqwenmt_key.setText(config.tr('Ali Qwen3-ASR'))
+        self.actionqwenmt_key.setText(tr('Ali Qwen3-ASR'))
         self.actionopenrouter_key.setText('OpenRouter.ai')
         self.actionlibretranslate_key.setText("LibreTranslate API")
         self.actionopenaitts_key.setText("OpenAI TTS")
         self.actionqwentts_key.setText("Qwen3 TTS(Bailian)")
         self.actionopenairecognapi_key.setText(
-            config.tr("OpenAI Speech to Text API"))
+            tr("OpenAI Speech to Text API"))
         self.actionparakeet_key.setText('Nvidia parakeet-tdt')
-        self.actionai302_key.setText(config.tr("302.AI API KEY"))
-        self.actionlocalllm_key.setText(config.tr("Local LLM API"))
-        self.actionzijiehuoshan_key.setText(config.tr("ByteDance Ark"))
+        self.actionai302_key.setText(tr("302.AI API KEY"))
+        self.actionlocalllm_key.setText(tr("Local LLM API"))
+        self.actionzijiehuoshan_key.setText(tr("ByteDance Ark"))
         self.actiondeepL_key.setText("DeepL Key")
 
         self.action_ffmpeg.setText("FFmpeg")
-        self.action_ffmpeg.setToolTip(config.tr("Go FFmpeg website"))
+        self.action_ffmpeg.setToolTip(tr("Go FFmpeg website"))
         self.action_git.setText("Github Repository")
-        self.action_issue.setText(config.tr("Post issue"))
+        self.action_issue.setText(tr("Post issue"))
         self.actiondeepLX_address.setText("DeepLX Api")
-        self.actionott_address.setText(config.tr("OTT Api"))
-        self.actionclone_address.setText(config.tr("Clone-Voice TTS"))
+        self.actionott_address.setText(tr("OTT Api"))
+        self.actionclone_address.setText(tr("Clone-Voice TTS"))
         self.actionkokoro_address.setText("Kokoro TTS")
         self.actionchattts_address.setText("ChatTTS")
-        self.actiontts_api.setText(config.tr("TTS API"))
+        self.actiontts_api.setText(tr("TTS API"))
         self.actionminimaxi_api.setText("Minimaxi TTS API")
-        self.actiontrans_api.setText(config.tr("Transate API"))
-        self.actionrecognapi.setText(config.tr("Custom Speech Recognition API"))
-        self.actionsttapi.setText(config.tr("STT Speech Recognition API"))
+        self.actiontrans_api.setText(tr("Transate API"))
+        self.actionrecognapi.setText(tr("Custom Speech Recognition API"))
+        self.actionsttapi.setText(tr("STT Speech Recognition API"))
         self.actionwhisperx.setText('WhisperX-API')
         self.actiondeepgram.setText(
-            config.tr("Deepgram Speech Recognition API"))
+            tr("Deepgram Speech Recognition API"))
         self.actionxxl.setText('Faster_Whisper_XXL.exe')
         self.actioncpp.setText('Whisper.cpp')
-        self.actiondoubao_api.setText(config.tr("VolcEngine subtitles"))
-        self.actionzijierecognmodel_api.setText(config.tr("VolcEngine STT"))
+        self.actiondoubao_api.setText(tr("VolcEngine subtitles"))
+        self.actionzijierecognmodel_api.setText(tr("VolcEngine STT"))
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_chatterbox.setText("ChatterBox TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
-        self.actiontts_qwenttslocal.setText(f"Qwen3 TTS({config.tr('Local')})")
+        self.actiontts_qwenttslocal.setText(f"Qwen3 TTS({tr('Local')})")
         self.actiontts_fishtts.setText("Fish TTS")
         self.actiontts_f5tts.setText("F5-TTS/Index-TTS/VoxCPM/SparK-TTS/Dia-TTS")
-        self.actiontts_volcengine.setText(config.tr("VolcEngine TTS"))
-        self.actiontts_doubao2.setText(config.tr("DouBao2"))
-        self.action_website.setText(config.tr("Documents"))
-        self.action_discord.setText(config.tr("Solution to model download failure"))
-        self.action_blog.setText(config.tr("Having problems? Ask"))
+        self.actiontts_volcengine.setText(tr("VolcEngine TTS"))
+        self.actiontts_doubao2.setText(tr("DouBao2"))
+        self.action_website.setText(tr("Documents"))
+        self.action_discord.setText(tr("Solution to model download failure"))
+        self.action_blog.setText(tr("Having problems? Ask"))
         self.action_gtrans.setText(
-            config.tr("Download Hard Subtitle Extraction Software"))
+            tr("Download Hard Subtitle Extraction Software"))
         self.action_cuda.setText('CUDA & cuDNN')
-        self.action_online.setText(config.tr("Disclaimer"))
-        self.actiontencent_key.setText(config.tr("Tencent Key"))
-        self.action_about.setText(config.tr("Donating developers"))
+        self.action_online.setText(tr("Disclaimer"))
+        self.actiontencent_key.setText(tr("Tencent Key"))
+        self.action_about.setText(tr("Donating developers"))
 
-        self.action_biaozhun.setText(config.tr("Standard Function Mode"))
+        self.action_biaozhun.setText(tr("Standard Function Mode"))
         self.action_biaozhun.setToolTip(
-            config.tr("Batch audio or video translation with all configuration options customizable on demand"))
-        self.action_yuyinshibie.setText(config.tr("Speech Recognition Text"))
+            tr("Batch audio or video translation with all configuration options customizable on demand"))
+        self.action_yuyinshibie.setText(tr("Speech Recognition Text"))
         self.action_yuyinshibie.setToolTip(
-            config.tr("Batch recognize speech in audio or video as srt subtitles"))
+            tr("Batch recognize speech in audio or video as srt subtitles"))
 
-        self.action_yuyinhecheng.setText(config.tr("From  Text  Into  Speech"))
+        self.action_yuyinhecheng.setText(tr("From  Text  Into  Speech"))
         self.action_yuyinhecheng.setToolTip(
-            config.tr("Batch dubbing based on srt subtitle files"))
+            tr("Batch dubbing based on srt subtitle files"))
 
-        self.action_tiquzimu.setText(config.tr("Extract Srt And Translate"))
+        self.action_tiquzimu.setText(tr("Extract Srt And Translate"))
         self.action_tiquzimu.setToolTip(
-            config.tr("Batch recognize speech in video as srt subtitles"))
+            tr("Batch recognize speech in video as srt subtitles"))
 
-        self.action_yinshipinfenli.setText(config.tr("Separate Video to audio"))
-        self.action_yinshipinfenli.setToolTip(config.tr("Separate audio and silent videos from videos"))
+        self.action_yinshipinfenli.setText(tr("Separate Video to audio"))
+        self.action_yinshipinfenli.setToolTip(tr("Separate audio and silent videos from videos"))
 
-        self.action_yingyinhebing.setText(config.tr("Video Subtitles Merging"))
-        self.action_yingyinhebing.setToolTip(config.tr("Merge audio, video, and subtitles into one file"))
-        self.action_clipvideo.setText(config.tr("Edit video on subtitles"))
-        self.action_clipvideo.setToolTip(config.tr("Edit video on subtitles"))
-        self.action_realtime_stt.setText(config.tr("Real-time speech-to-text"))
-        self.action_textmatching.setText(config.tr("Text matching and timing"))
-        self.action_textmatching.setToolTip(config.tr("Text matching and timing"))
+        self.action_yingyinhebing.setText(tr("Video Subtitles Merging"))
+        self.action_yingyinhebing.setToolTip(tr("Merge audio, video, and subtitles into one file"))
+        self.action_clipvideo.setText(tr("Edit video on subtitles"))
+        self.action_clipvideo.setToolTip(tr("Edit video on subtitles"))
+        self.action_realtime_stt.setText(tr("Real-time speech-to-text"))
+        self.action_textmatching.setText(tr("Text matching and timing"))
+        self.action_textmatching.setToolTip(tr("Text matching and timing"))
 
-        self.action_hun.setText(config.tr("Mixing 2 Audio Streams"))
-        self.action_hun.setToolTip(config.tr("Mix two audio files into one audio file"))
+        self.action_hun.setText(tr("Mixing 2 Audio Streams"))
+        self.action_hun.setToolTip(tr("Mix two audio files into one audio file"))
 
-        self.action_fanyi.setText(config.tr("Text  Or Srt  Translation"))
+        self.action_fanyi.setText(tr("Text  Or Srt  Translation"))
         self.action_fanyi.setToolTip(
-            config.tr("Batch translation of multiple srt subtitle files"))
+            tr("Batch translation of multiple srt subtitle files"))
 
-        self.action_hebingsrt.setText(config.tr("Combine Two Subtitles"))
+        self.action_hebingsrt.setText(tr("Combine Two Subtitles"))
         self.action_hebingsrt.setToolTip(
-            config.tr("Combine 2 subtitle files into one to form bilingual subtitles"))
+            tr("Combine 2 subtitle files into one to form bilingual subtitles"))
 
-        self.action_clearcache.setText(config.tr("Clear Cache"))
-        self.action_downmodels.setText(config.tr("Download Models"))
-        self.action_set_proxy.setText(config.tr("Setting up a network proxy"))
+        self.action_clearcache.setText(tr("Clear Cache"))
+        self.action_downmodels.setText(tr("Download Models"))
+        self.action_set_proxy.setText(tr("Setting up a network proxy"))
 
-        self.actionazure_key.setText(config.tr("AzureOpenAI Translation"))
-        self.actionazure_tts.setText(config.tr("AzureAI TTS"))
+        self.actionazure_key.setText(tr("AzureOpenAI Translation"))
+        self.actionazure_tts.setText(tr("AzureAI TTS"))
         self.actiongemini_key.setText("Gemini AI")
         self.actionElevenlabs_key.setText("ElevenLabs.io")
 
-        self.actionwatermark.setText(config.tr("Add watermark to video"))
-        self.actionsepar.setText(config.tr("Vocal & instrument Separate"))
-        self.actionsetini.setText(config.tr("Options"))
+        self.actionwatermark.setText(tr("Add watermark to video"))
+        self.actionsepar.setText(tr("Vocal & instrument Separate"))
+        self.actionsetini.setText(tr("Options"))
 
-        self.actionvideoandaudio.setText(config.tr("Batch video/audio merger"))
+        self.actionvideoandaudio.setText(tr("Batch video/audio merger"))
         self.actionvideoandaudio.setToolTip(
-            config.tr("Batch merge video and audio one-to-one"))
+            tr("Batch merge video and audio one-to-one"))
 
-        self.actionvideoandsrt.setText(config.tr("Batch Video Srt merger"))
+        self.actionvideoandsrt.setText(tr("Batch Video Srt merger"))
         self.actionvideoandsrt.setToolTip(
-            config.tr("Batch merge video and srt subtitles one by one."))
+            tr("Batch merge video and srt subtitles one by one."))
 
-        self.actionformatcover.setText(config.tr("Batch Audio/Video conver"))
+        self.actionformatcover.setText(tr("Batch Audio/Video conver"))
         self.actionformatcover.setToolTip(
-            config.tr("Batch convert audio and video formats"))
+            tr("Batch convert audio and video formats"))
 
-        self.actionsubtitlescover.setText(config.tr("Conversion Subtitle Format"))
+        self.actionsubtitlescover.setText(tr("Conversion Subtitle Format"))
         self.actionsubtitlescover.setToolTip(
-            config.tr("Batch convert subtitle formats (srt/ass/vtt)"))
+            tr("Batch convert subtitle formats (srt/ass/vtt)"))
 
-        self.actionsrtmultirole.setText(config.tr("Multi voice dubbing for SRT"))
+        self.actionsrtmultirole.setText(tr("Multi voice dubbing for SRT"))
         self.actionsrtmultirole.setToolTip(
-            config.tr("Subtitle multi-role dubbing: assign a voice to each subtitle"))
+            tr("Subtitle multi-role dubbing: assign a voice to each subtitle"))
         # set text end
         QApplication.processEvents()
         self.uito.emit('Set default params')
         QTimer.singleShot(200, self._set_default)
 
     def _set_default(self):
-        config.params['translate_type'] = int(config.params.get('translate_type', 0))
-        config.params['tts_type'] = int(config.params.get('tts_type', 0))
-        config.params['recogn_type'] = int(config.params.get('recogn_type', 0))
-        config.params['fix_punc'] = bool(config.params.get('fix_punc', False))
+        params['translate_type'] = int(params.get('translate_type', 0))
+        params['tts_type'] = int(params.get('tts_type', 0))
+        params['recogn_type'] = int(params.get('recogn_type', 0))
+        params['fix_punc'] = bool(params.get('fix_punc', False))
 
         from videotrans import tts
         self.tts_type.addItems(tts.TTS_NAME_LIST)
-        self.translate_type.setCurrentIndex(config.params.get('translate_type', 0))
-        self.tts_type.setCurrentIndex(config.params.get('tts_type'))
+        self.translate_type.setCurrentIndex(params.get('translate_type', 0))
+        self.tts_type.setCurrentIndex(params.get('tts_type'))
         self.voice_role.clear()
 
-        if config.params.get('source_language', '') and config.params.get('source_language', '') in self.languagename:
-            self.source_language.setCurrentText(config.params.get('source_language', ''))
+        if params.get('source_language', '') and params.get('source_language', '') in self.languagename:
+            self.source_language.setCurrentText(params.get('source_language', ''))
 
-        self.subtitle_type.setCurrentIndex(int(config.params.get('subtitle_type', 0)))
-        self.voice_rate.setValue(int(config.params.get('voice_rate', '0').replace('%', '')))
-        self.volume_rate.setValue(int(config.params.get('volume', '0').replace('%', '')))
-        self.pitch_rate.setValue(int(config.params.get('pitch', '0').replace('Hz', '')))
-        self.voice_autorate.setChecked(bool(config.params.get('voice_autorate', False)))
-        self.video_autorate.setChecked(bool(config.params.get('video_autorate', False)))
-        self.fix_punc.setChecked(bool(config.params.get('fix_punc', False)))
-        self.recogn2pass.setChecked(bool(config.params.get('recogn2pass', False)))
-        self.only_out_mp4.setChecked(bool(config.params.get('only_out_mp4', False)))
-        if not config.params.get('voice_autorate', False) and not config.params.get('video_autorate', False):
+        # 字幕双语类型
+        _subtitle_type=int(params.get('subtitle_type', 0))
+        self.subtitle_type.setCurrentIndex(_subtitle_type)
+        _output_srt=int(params.get('output_srt', 0))
+        if _subtitle_type>2:
+            self.output_srt.setVisible(True)
+            self.output_srt.setCurrentIndex(_output_srt if _output_srt>0 else 2)
+
+        self.voice_rate.setValue(int(params.get('voice_rate', '0').replace('%', '')))
+        self.volume_rate.setValue(int(params.get('volume', '0').replace('%', '')))
+        self.pitch_rate.setValue(int(params.get('pitch', '0').replace('Hz', '')))
+        self.voice_autorate.setChecked(bool(params.get('voice_autorate', False)))
+        self.video_autorate.setChecked(bool(params.get('video_autorate', False)))
+        self.fix_punc.setChecked(bool(params.get('fix_punc', False)))
+        self.recogn2pass.setChecked(bool(params.get('recogn2pass', False)))
+        self.only_out_mp4.setChecked(bool(params.get('only_out_mp4', False)))
+        if not params.get('voice_autorate', False) and not params.get('video_autorate', False):
             self.remove_silent_mid.setVisible(True)
             self.align_sub_audio.setVisible(True)
-        self.remove_silent_mid.setChecked(config.params.get('remove_silent_mid', False))
-        self.align_sub_audio.setChecked(config.params.get('align_sub_audio', False))
-        self.clear_cache.setChecked(bool(config.params.get('clear_cache', False)))
-        self.enable_cuda.setChecked(bool(config.params.get('cuda', False)))
-        self.enable_diariz.setChecked(bool(config.params.get('enable_diariz', False)))
-        self.nums_diariz.setCurrentIndex(int(config.params.get('nums_diariz', 0)))
-        self.is_separate.setChecked(bool(config.params.get('is_separate', False)))
+        self.remove_silent_mid.setChecked(params.get('remove_silent_mid', False))
+        self.align_sub_audio.setChecked(params.get('align_sub_audio', False))
+        self.clear_cache.setChecked(bool(params.get('clear_cache', False)))
+        self.enable_cuda.setChecked(bool(params.get('is_cuda', False)))
+        self.enable_diariz.setChecked(bool(params.get('enable_diariz', False)))
+        self.nums_diariz.setCurrentIndex(int(params.get('nums_diariz', 0)))
+        self.is_separate.setChecked(bool(params.get('is_separate', False)))
 
-        self.rephrase.setCurrentIndex(int(config.params.get('rephrase', 0)))
-        self.remove_noise.setChecked(bool(config.params.get('remove_noise')))
-        self.copysrt_rawvideo.setChecked(bool(config.params.get('copysrt_rawvideo', False)))
+        self.rephrase.setCurrentIndex(int(params.get('rephrase', 0)))
 
-        self.bgmvolume.setText(str(config.settings.get('backaudio_volume', 0.8)))
-        self.is_loop_bgm.setChecked(bool(config.settings.get('loop_backaudio', True)))
+        self.remove_noise.setChecked(bool(params.get('remove_noise')))
+        self.copysrt_rawvideo.setChecked(bool(params.get('copysrt_rawvideo', False)))
+
+        self.bgmvolume.setText(str(settings.get('backaudio_volume', 0.8)))
+        self.is_loop_bgm.setChecked(bool(settings.get('loop_backaudio', True)))
 
         if platform.system() == 'Darwin':
             self.enable_cuda.setChecked(False)
@@ -388,20 +401,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         from videotrans.mainwin._actions import WinAction
         from videotrans.util import tools
         self.win_action = WinAction(self)
-        self.win_action.tts_type_change(config.params.get('tts_type', ''))
+        self.win_action.tts_type_change(params.get('tts_type', ''))
 
-        if not config.proxy:
-            config.proxy = tools.set_proxy() or ''
-        self.proxy.setText(config.proxy)
+        if not app_cfg.proxy:
+            app_cfg.proxy = tools.set_proxy() or ''
+        self.proxy.setText(app_cfg.proxy)
 
-        tts_type = int(config.params.get('tts_type', 0))
+        tts_type = int(params.get('tts_type', 0))
         if tts_type == tts.CLONE_VOICE_TTS:
-            self.voice_role.addItems(config.params.get("clone_voicelist", ''))
+            self.voice_role.addItems(params.get("clone_voicelist", ''))
             run_in_threadpool(tools.get_clone_role)
         elif tts_type == tts.CHATTTS:
-            self.voice_role.addItems(['No'] + list(config.ChatTTS_voicelist))
+            self.voice_role.addItems(['No'] + list(settings.ChatTTS_voicelist))
         elif tts_type == tts.TTS_API:
-            self.voice_role.addItems(config.params.get('ttsapi_voice_role', '').strip().split(','))
+            self.voice_role.addItems(params.get('ttsapi_voice_role', '').strip().split(','))
         elif tts_type == tts.CHATTERBOX_TTS:
             rolelist = tools.get_chatterbox_role()
             self.voice_role.addItems(rolelist if rolelist else ['chatterbox'])
@@ -422,7 +435,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rolelist = tools.get_elevenlabs_role()
             self.voice_role.addItems(['No'] + rolelist)
         elif tts_type == tts.OPENAI_TTS:
-            rolelist = config.params.get('openaitts_role', '')
+            rolelist = params.get('openaitts_role', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
         elif tts_type == tts.QWEN_TTS:
             rolelist = list(tools.get_qwen3tts_rolelist().keys())
@@ -431,15 +444,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             rolelist = list(tools.get_glmtts_rolelist().keys())
             self.voice_role.addItems(rolelist)
         elif tts_type == tts.GEMINI_TTS:
-            rolelist = config.params.get('gemini_ttsrole', '')
+            rolelist = params.get('gemini_ttsrole', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
         elif self.win_action.change_by_lang(tts_type):
             self.voice_role.clear()
 
-        if config.params.get('target_language', '') and config.params.get('target_language', '') in self.languagename:
-            self.target_language.setCurrentText(config.params.get('target_language', ''))
-            self.win_action.set_voice_role(config.params.get('target_language', ''))
-            default_role = config.params.get('voice_role', '')
+        if params.get('target_language', '') and params.get('target_language', '') in self.languagename:
+            self.target_language.setCurrentText(params.get('target_language', ''))
+            self.win_action.set_voice_role(params.get('target_language', ''))
+            default_role = params.get('voice_role', '')
             if default_role != 'No' and self.current_rolelist and default_role in self.current_rolelist:
                 self.voice_role.setCurrentText(default_role)
                 self.win_action.show_listen_btn(default_role)
@@ -456,31 +469,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         from videotrans.mainwin._signal import UUIDSignalThread
         from videotrans import recognition
 
-        recogn_type = int(config.params.get('recogn_type', 0))
+        recogn_type = int(params.get('recogn_type', 0))
         self.model_name.clear()
         self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
         self.recogn_type.setCurrentIndex(recogn_type)
 
         if recogn_type == recognition.Deepgram:
-            self.model_name.addItems(config.DEEPGRAM_MODEL)
-            curr = config.DEEPGRAM_MODEL
+            curr = contants.DEEPGRAM_MODEL
+            self.model_name.addItems(curr)
         elif recogn_type == recognition.Whisper_CPP:
-            curr = config.Whisper_CPP_MODEL_LIST
-            self.model_name.addItems(config.Whisper_CPP_MODEL_LIST)
+            curr = settings.Whisper_CPP_MODEL_LIST
+            self.model_name.addItems(curr)
         elif recogn_type == recognition.QWENASR:
             curr=['1.7B','0.6B']
             self.model_name.addItems(curr)
         elif recogn_type == recognition.FUNASR_CN:
-            self.model_name.addItems(config.FUNASR_MODEL)
-            curr = config.FUNASR_MODEL
+            curr = contants.FUNASR_MODEL
+            self.model_name.addItems(curr)
         elif recogn_type == recognition.HUGGINGFACE_ASR:
             curr = list(recognition.HUGGINGFACE_ASR_MODELS.keys())
             self.model_name.addItems(curr)
         else:
-            self.model_name.addItems(config.WHISPER_MODEL_LIST)
-            curr = config.WHISPER_MODEL_LIST
-        if config.params.get('model_name', '') in curr:
-            self.model_name.setCurrentText(config.params.get('model_name', ''))
+            self.model_name.addItems(settings.WHISPER_MODEL_LIST)
+            curr = settings.WHISPER_MODEL_LIST
+        if params.get('model_name', '') in curr:
+            self.model_name.setCurrentText(params.get('model_name', ''))
         if recogn_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.Whisper_CPP,
                                recognition.OPENAI_WHISPER, recognition.FUNASR_CN, recognition.Deepgram,
                                recognition.WHISPERX_API, recognition.HUGGINGFACE_ASR,recognition.QWENASR]:
@@ -500,6 +513,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.enable_cuda.toggled.connect(self.win_action.check_cuda)
         self.tts_type.currentIndexChanged.connect(self.win_action.tts_type_change)
         self.translate_type.currentIndexChanged.connect(self.win_action.set_translate_type)
+        self.subtitle_type.currentIndexChanged.connect(self.win_action.set_subtitle_type)
         self.voice_role.currentTextChanged.connect(self.win_action.show_listen_btn)
         self.target_language.currentTextChanged.connect(self.win_action.set_voice_role)
 
@@ -613,7 +627,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.check_update.start()
         self.uuid_signal.start()
-        if not config.IS_FROZEN and not shutil.which("rubberband"):
+        if not IS_FROZEN and not shutil.which("rubberband"):
             print(
                 f'For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip')
             print(
@@ -621,7 +635,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(
                 f'Ubuntu: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm')
 
-        if config.settings.get('show_more_settings'):
+        if settings.get('show_more_settings'):
             self.win_action.toggle_adv()
         self.uito.emit('Checking GPUs')
 
@@ -663,7 +677,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             dialog.exec()
             return
 
-        winobj = config.child_forms.get(name)
+        winobj = app_cfg.child_forms.get(name)
         if winobj:
             if hasattr(winobj, 'update_ui'):
                 winobj.update_ui()
@@ -676,7 +690,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if name == 'downmodels':
             window = DownmodelsWindow()
-            config.child_forms[name] = window
+            app_cfg.child_forms[name] = window
             window.show()
             if extra_name:
                 window.auto_start(extra_name)
@@ -684,19 +698,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if name == 'clipvideo':
             from videotrans.component.clip_video import ClipVideoWindow
             window = ClipVideoWindow()
-            config.child_forms[name] = window
+            app_cfg.child_forms[name] = window
             window.show()
             return
         if name == 'textmatching':
             from videotrans.component.textmatching import TextmatchingWindow
             window = TextmatchingWindow()
-            config.child_forms[name] = window
+            app_cfg.child_forms[name] = window
             window.show()
             return
         if name == 'realtime_stt':
             from videotrans.component.realtime_stt import RealTimeWindow
             window = RealTimeWindow()
-            config.child_forms[name] = window
+            app_cfg.child_forms[name] = window
             window.show()
             return
 
@@ -708,8 +722,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         reply = QMessageBox.question(
             self,
-            config.tr("Restart"),
-            config.tr("Are you sure you want to restart the application?"),
+            tr("Restart"),
+            tr("Are you sure you want to restart the application?"),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No
         )
@@ -721,16 +735,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def checkbox_state_changed(self, state):
         """复选框状态发生变化时触发的函数"""
         if state:
-            config.settings['aisendsrt'] = True
+            settings['aisendsrt'] = True
         else:
-            config.settings['aisendsrt'] = False
-        config.settings = config.parse_init(config.settings)
+            settings['aisendsrt'] = False
+        settings.save()
 
     def changeEvent(self, event):
         super().changeEvent(event)
         if event.type() == QEvent.Type.ActivationChange:
             if self.isActiveWindow():
-                self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+                self.aisendsrt.setChecked(settings.get('aisendsrt'))
 
     def kill_ffmpeg_processes(self):
         """ffmpeg进程终止函数"""
@@ -770,16 +784,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(f"Error using pkill: {e}")
 
     def closeEvent(self, event):
-        config.exit_soft = True
-        config.current_status = 'stop'
+        app_cfg.exit_soft = True
+        app_cfg.current_status = 'stop'
         self.hide()
-        os.chdir(config.ROOT_DIR)
+        os.chdir(ROOT_DIR)
         self.cleanup_and_accept()
 
         # 暂停等待可能的 faster-whisper 独立进程退出
         time.sleep(4)
         try:
-            shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
+            shutil.rmtree(TEMP_DIR, ignore_errors=True)
         except OSError:
             pass
         if not self.is_restarting:
@@ -802,11 +816,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         sets = QSettings("pyvideotrans", "settings")
         sets.setValue("windowSize", self.size())
         try:
-            for w in config.child_forms.values():
+            for w in app_cfg.child_forms.values():
                 if w and hasattr(w, 'hide'):
                     w.hide()
-            if config.INFO_WIN['win']:
-                config.INFO_WIN['win'].hide()
+            if app_cfg.INFO_WIN['win']:
+                app_cfg.INFO_WIN['win'].hide()
         except Exception as e:
             print(f'子窗口隐藏中出错 {e}')
 
@@ -828,11 +842,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 thread.wait(5000)
 
         try:
-            for w in config.child_forms.values():
+            for w in app_cfg.child_forms.values():
                 if w and hasattr(w, 'close'):
                     w.close()
-            if config.INFO_WIN['win']:
-                config.INFO_WIN['win'].close()
+            if app_cfg.INFO_WIN['win']:
+                app_cfg.INFO_WIN['win'].close()
         except Exception as e:
             print(f'子窗口关闭中出错')
         QThreadPool.globalInstance().waitForDone(5000)

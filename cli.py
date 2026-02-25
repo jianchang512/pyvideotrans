@@ -1,285 +1,288 @@
+import asyncio
+import multiprocessing
 import sys
 import os
 import re
 import argparse
 from multiprocessing import freeze_support
 from pathlib import Path
-from videotrans import recognition, translator, tts
-from videotrans.task._speech2text import SpeechToText
-from videotrans.task._translate_srt import TranslateSrt
-from videotrans.task.trans_create import TransCreate
-from videotrans.configure import config
-from videotrans.task._dubbing import DubbingSrt
-from videotrans.task.taskcfg import TaskCfg
-from videotrans.util import tools
-from videotrans.util.gpus import getset_gpu
-
-# True 为软件退出，不执行任何动作
-config.exit_soft = False
-
-# 中文为 zh，其他语言为 en
-CURRENT_LANG = config.defaulelang
-
-# ==========================================
-# 翻译字典
-# ==========================================
-TEXT_DB = {
-    # --- 日志与标题 ---
-    "exec_stt_task": {
-        "zh": "[执行任务] 语音转录 (STT)",
-        "en": "[Task] Speech Transcription (STT)"
-    },
-    "exec_tts_task": {
-        "zh": "[执行任务] 语音合成 (TTS)",
-        "en": "[Task] Text-to-Speech (TTS)"
-    },
-    "exec_sts_task": {
-        "zh": "[执行任务] 字幕翻译 (STS)",
-        "en": "[Task] Subtitle Translation (STS)"
-    },
-    "exec_vtv_task": {
-        "zh": "[执行任务] 视频翻译 (VTV)",
-        "en": "[Task] Video Translation (VTV)"
-    },
-    "process_file": {
-        "zh": "[处理文件] {}",
-        "en": "[File] {}"
-    },
-    "param_list": {
-        "zh": "[参数列表] {}",
-        "en": "[Params] {}"
-    },
-
-    # --- Argparse 描述 ---
-    "cli_desc": {
-        "zh": "pyVideoTrans视频翻译功能命令行模式",
-        "en": "pyVideoTrans CLI Mode for Video Translation"
-    },
-    "help_task": {
-        "zh": "任务类型: stt(语音转录), tts(文字配音), sts(字幕翻译), vtv(视频翻译)",
-        "en": "Task type: stt(Speech to Text), tts(Text to Speech), sts(Subtitle Trans), vtv(Video Trans)"
-    },
-    "help_name": {
-        "zh": "待处理文件的绝对路径,请使用英文双引号包含",
-        "en": "Absolute path of the file to process, please wrap in double quotes"
-    },
-
-    # --- STT 参数 ---
-    "group_stt": {
-        "zh": "STT (语音转录) 参数",
-        "en": "STT (Speech Transcription) Parameters"
-    },
-    "help_recogn_type": {
-        "zh": "语音识别渠道",
-        "en": "Speech recognition provider"
-    },
-    "help_detect_lang": {
-        "zh": "音频视频发音语言",
-        "en": "Source language of audio/video"
-    },
-    "help_model_name": {
-        "zh": "语音识别模型名称\nfaster-whisper渠道(0)和openai-whisper渠道(1) 可选模型为 {} ,其他渠道请从软件界面中查看",
-        "en": "ASR Model Name\nFor faster-whisper(0) and openai-whisper(1), available models: {}, others see GUI"
-    },
-    "help_cuda": {
-        "zh": "是否使用CUDA加速",
-        "en": "Enable CUDA acceleration"
-    },
-    "help_remove_noise": {
-        "zh": "是否降噪",
-        "en": "Enable noise reduction"
-    },
-    "help_enable_diariz": {
-        "zh": "是否启用说话人识别",
-        "en": "Enable Speaker Diarization"
-    },
-    "help_nums_diariz": {
-        "zh": "指定说话人数量",
-        "en": "Specify number of speakers"
-    },
-    "help_rephrase": {
-        "zh": "是否重新断句 (0=无特殊, 1=LLM断句)",
-        "en": "Rephrase segmentation (0=None, 1=LLM Split)"
-    },
-    "help_fix_punc": {
-        "zh": "是否恢复标点符号",
-        "en": "Restore punctuation"
-    },
-
-    # --- TTS 参数 ---
-    "group_tts": {
-        "zh": "TTS (文字配音) 参数",
-        "en": "TTS (Text-to-Speech) Parameters"
-    },
-    "help_tts_type": {
-        "zh": "配音渠道",
-        "en": "TTS provider"
-    },
-    "help_voice_role": {
-        "zh": "音色名 (TTS模式必选)，具体音色名称请在软件界面中选中对应配音渠道后查看",
-        "en": "Voice Role (Required for TTS), check GUI for specific names under selected provider"
-    },
-    "help_voice_rate": {
-        "zh": "语速",
-        "en": "Speech rate"
-    },
-    "help_volume": {
-        "zh": "音量",
-        "en": "Volume"
-    },
-    "help_pitch": {
-        "zh": "音调",
-        "en": "Pitch"
-    },
-    "help_voice_autorate": {
-        "zh": "是否自动加速音频以对齐字幕",
-        "en": "Auto-speed audio to match subtitle duration"
-    },
-    "help_align_sub_audio": {
-        "zh": "是否强制修改字幕以便对齐字幕",
-        "en": "Force subtitle adjustment to align with audio"
-    },
-
-    # --- Translation 参数 ---
-    "group_trans": {
-        "zh": "Translation (翻译) 参数",
-        "en": "Translation Parameters"
-    },
-    "help_translate_type": {
-        "zh": "翻译渠道",
-        "en": "Translation provider"
-    },
-    "help_source_lang": {
-        "zh": "原始语言代码 (STS默认auto, VTV必选且不可为auto)",
-        "en": "Source Language Code (STS defaults auto, VTV required & no auto)"
-    },
-    "help_target_lang": {
-        "zh": "目标语言代码 (必选)",
-        "en": "Target Language Code (Required)"
-    },
-
-    # --- VTV 参数 ---
-    "group_vtv": {
-        "zh": "VTV (视频翻译) 额外参数",
-        "en": "VTV (Video Translation) Extra Parameters"
-    },
-    "help_video_autorate": {
-        "zh": "是否自动慢速处理视频以对齐字幕",
-        "en": "Auto-slow video to match subtitle duration"
-    },
-    "help_is_separate": {
-        "zh": "是否分离人声背景声",
-        "en": "Separate vocals and background music"
-    },
-    "help_recogn2pass": {
-        "zh": "是否二次语音识别",
-        "en": "Enable 2-pass speech recognition"
-    },
-    "help_subtitle_type": {
-        "zh": "字幕嵌入类型 (0=无, 1=硬, 2=软,3=硬双，4=软双)",
-        "en": "Subtitle embed type (0=No, 1=Hard, 2=Soft, 3=Hard Dual, 4=Soft Dual)"
-    },
-    "help_clear_cache": {
-        "zh": "是否清理缓存 (默认True)",
-        "en": "Clear cache after finish (Default: True)"
-    },
-    "help_no_clear_cache": {
-        "zh": "不清理缓存",
-        "en": "Do not clear cache"
-    },
-
-    # --- 错误提示 ---
-    "err_missing_task": {
-        "zh": "缺少--task参数，请根据任务类型选择\n视频翻译 --task vtv\n语音转录 --task stt\n文字合成 --task tts\n字幕翻译 --task sts",
-        "en": "Missing --task parameter. Choose from:\nVideo Trans --task vtv\nSpeech Trans --task stt\nText Dubbing --task tts\nSub Trans --task sts"
-    },
-    "err_file_not_found": {
-        "zh": "待处理的文件[ {} ]不存在\n请确保文件存在并输入完整的绝对路径，\n如果路径或名称中带有空格，请使用英文双引号包裹\n例如 \"D:/my videos/001.mp4\"  \"E:/how are you/my 001.srt\"",
-        "en": "File [ {} ] not found.\nPlease ensure the file exists and use absolute path.\nWrap path in double quotes if it contains spaces.\nEx: \"D:/my videos/001.mp4\""
-    },
-    "err_tts_role_required": {
-        "zh": "在 --task tts 文字配音模式下，--voice_role 音色是必选参数。",
-        "en": "In --task tts mode, --voice_role is required."
-    },
-    "err_sts_target_required": {
-        "zh": "在 --task sts 字幕翻译模式下，--target_language_code 目标语言是必选参数。",
-        "en": "In --task sts mode, --target_language_code is required."
-    },
-    "err_vtv_missing": {
-        "zh": "在 --task vtv 视频翻译模式下，以下参数必选: {}",
-        "en": "In --task vtv mode, the following parameters are required: {}"
-    },
-    "miss_source_lang": {
-        "zh": "--source_language_code 发音语言",
-        "en": "--source_language_code"
-    },
-    "miss_target_lang": {
-        "zh": "--target_language_code 目标语言",
-        "en": "--target_language_code"
-    }
-}
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# 将这个工厂函数注册给 huggingface_hub
+from videotrans.util.req_fac import custom_session_factory
+import huggingface_hub
+huggingface_hub.configure_http_backend(backend_factory=custom_session_factory)
 
 
-def tr(key, *args)-> str:
-    """翻译辅助函数"""
-    lang_dict = TEXT_DB.get(key, {})
-    text = lang_dict.get(CURRENT_LANG, key)  # 默认回退到key本身
-    if args:
-        return text.format(*args)
-    return text
 
-
-# 语音转录 speech to text
-def stt_fun(params):
-    print(f"\n{tr('exec_stt_task')}")
-    print(tr('process_file', params.get('name')))
-    print(tr('param_list', params))
-    trk = SpeechToText(cfg=TaskCfg(**params), out_format='srt')
-    trk.prepare()
-    trk.recogn()
-    trk.diariz()
-    trk.task_done()
-
-
-# 语音合成 text to speech
-def tts_fun(params):
-    print(f"\n{tr('exec_tts_task')}")
-    print(tr('process_file', params.get('name')))
-    print(tr('param_list', params))
-    trk = DubbingSrt(cfg=TaskCfg(**params), out_ext='wav')
-    trk.dubbing()
-    trk.align()
-    trk.task_done()
-
-
-# 字幕翻译 subtitles to subtitles
-def sts_fun(params):
-    print(f"\n{tr('exec_sts_task')}")
-    print(tr('process_file', params.get('name')))
-    print(tr('param_list', params))
-    trk = TranslateSrt(cfg=TaskCfg(**params), out_format=0)
-    trk.trans()
-    trk.task_done()
-
-
-# 视频翻译  video to video
-def vtv_fun(params):
-    config.current_status = 'ing'
-    print(f"\n{tr('exec_vtv_task')}")
-    print(tr('process_file', params.get('name')))
-    print(tr('param_list', params))
-    trk = TransCreate(cfg=TaskCfg(**params))
-    trk.prepare()
-    trk.recogn()
-    trk.trans()
-    trk.dubbing()
-    trk.align()
-    trk.assembling()
-    trk.task_done()
-
-
-# 调度函数
+# 调度函数 避免子进程重复执行
 def main():
+    TEXT_DB = {
+        # --- 日志与标题 ---
+        "exec_stt_task": {
+            "zh": "[执行任务] 语音转录 (STT)",
+            "en": "[Task] Speech Transcription (STT)"
+        },
+        "exec_tts_task": {
+            "zh": "[执行任务] 语音合成 (TTS)",
+            "en": "[Task] Text-to-Speech (TTS)"
+        },
+        "exec_sts_task": {
+            "zh": "[执行任务] 字幕翻译 (STS)",
+            "en": "[Task] Subtitle Translation (STS)"
+        },
+        "exec_vtv_task": {
+            "zh": "[执行任务] 视频翻译 (VTV)",
+            "en": "[Task] Video Translation (VTV)"
+        },
+        "process_file": {
+            "zh": "[处理文件] {}",
+            "en": "[File] {}"
+        },
+        "param_list": {
+            "zh": "[参数列表] {}",
+            "en": "[Params] {}"
+        },
+
+        # --- Argparse 描述 ---
+        "cli_desc": {
+            "zh": "pyVideoTrans视频翻译功能命令行模式",
+            "en": "pyVideoTrans CLI Mode for Video Translation"
+        },
+        "help_task": {
+            "zh": "任务类型: stt(语音转录), tts(文字配音), sts(字幕翻译), vtv(视频翻译)",
+            "en": "Task type: stt(Speech to Text), tts(Text to Speech), sts(Subtitle Trans), vtv(Video Trans)"
+        },
+        "help_name": {
+            "zh": "待处理文件的绝对路径,请使用英文双引号包含",
+            "en": "Absolute path of the file to process, please wrap in double quotes"
+        },
+
+        # --- STT 参数 ---
+        "group_stt": {
+            "zh": "STT (语音转录) 参数",
+            "en": "STT (Speech Transcription) Parameters"
+        },
+        "help_recogn_type": {
+            "zh": "语音识别渠道",
+            "en": "Speech recognition provider"
+        },
+        "help_detect_lang": {
+            "zh": "音频视频发音语言",
+            "en": "Source language of audio/video"
+        },
+        "help_model_name": {
+            "zh": "语音识别模型名称\nfaster-whisper渠道(0)和openai-whisper渠道(1) 可选模型为 {} ,其他渠道请从软件界面中查看",
+            "en": "ASR Model Name\nFor faster-whisper(0) and openai-whisper(1), available models: {}, others see GUI"
+        },
+        "help_cuda": {
+            "zh": "是否使用CUDA加速",
+            "en": "Enable CUDA acceleration"
+        },
+        "help_remove_noise": {
+            "zh": "是否降噪",
+            "en": "Enable noise reduction"
+        },
+        "help_enable_diariz": {
+            "zh": "是否启用说话人识别",
+            "en": "Enable Speaker Diarization"
+        },
+        "help_nums_diariz": {
+            "zh": "指定说话人数量",
+            "en": "Specify number of speakers"
+        },
+        "help_rephrase": {
+            "zh": "是否重新断句 (0=无特殊, 1=LLM断句)",
+            "en": "Rephrase segmentation (0=None, 1=LLM Split)"
+        },
+        "help_fix_punc": {
+            "zh": "是否恢复标点符号",
+            "en": "Restore punctuation"
+        },
+
+        # --- TTS 参数 ---
+        "group_tts": {
+            "zh": "TTS (文字配音) 参数",
+            "en": "TTS (Text-to-Speech) Parameters"
+        },
+        "help_tts_type": {
+            "zh": "配音渠道",
+            "en": "TTS provider"
+        },
+        "help_voice_role": {
+            "zh": "音色名 (TTS模式必选)，具体音色名称请在软件界面中选中对应配音渠道后查看",
+            "en": "Voice Role (Required for TTS), check GUI for specific names under selected provider"
+        },
+        "help_voice_rate": {
+            "zh": "语速",
+            "en": "Speech rate"
+        },
+        "help_volume": {
+            "zh": "音量",
+            "en": "Volume"
+        },
+        "help_pitch": {
+            "zh": "音调",
+            "en": "Pitch"
+        },
+        "help_voice_autorate": {
+            "zh": "是否自动加速音频以对齐字幕",
+            "en": "Auto-speed audio to match subtitle duration"
+        },
+        "help_align_sub_audio": {
+            "zh": "是否强制修改字幕以便对齐字幕",
+            "en": "Force subtitle adjustment to align with audio"
+        },
+
+        # --- Translation 参数 ---
+        "group_trans": {
+            "zh": "Translation (翻译) 参数",
+            "en": "Translation Parameters"
+        },
+        "help_translate_type": {
+            "zh": "翻译渠道",
+            "en": "Translation provider"
+        },
+        "help_source_lang": {
+            "zh": "原始语言代码 (STS默认auto, VTV必选且不可为auto)",
+            "en": "Source Language Code (STS defaults auto, VTV required & no auto)"
+        },
+        "help_target_lang": {
+            "zh": "目标语言代码 (必选)",
+            "en": "Target Language Code (Required)"
+        },
+
+        # --- VTV 参数 ---
+        "group_vtv": {
+            "zh": "VTV (视频翻译) 额外参数",
+            "en": "VTV (Video Translation) Extra Parameters"
+        },
+        "help_video_autorate": {
+            "zh": "是否自动慢速处理视频以对齐字幕",
+            "en": "Auto-slow video to match subtitle duration"
+        },
+        "help_is_separate": {
+            "zh": "是否分离人声背景声",
+            "en": "Separate vocals and background music"
+        },
+        "help_recogn2pass": {
+            "zh": "是否二次语音识别",
+            "en": "Enable 2-pass speech recognition"
+        },
+        "help_subtitle_type": {
+            "zh": "字幕嵌入类型 (0=无, 1=硬, 2=软,3=硬双，4=软双)",
+            "en": "Subtitle embed type (0=No, 1=Hard, 2=Soft, 3=Hard Dual, 4=Soft Dual)"
+        },
+        "help_clear_cache": {
+            "zh": "是否清理缓存 (默认True)",
+            "en": "Clear cache after finish (Default: True)"
+        },
+        "help_no_clear_cache": {
+            "zh": "不清理缓存",
+            "en": "Do not clear cache"
+        },
+
+        # --- 错误提示 ---
+        "err_missing_task": {
+            "zh": "缺少--task参数，请根据任务类型选择\n视频翻译 --task vtv\n语音转录 --task stt\n文字合成 --task tts\n字幕翻译 --task sts",
+            "en": "Missing --task parameter. Choose from:\nVideo Trans --task vtv\nSpeech Trans --task stt\nText Dubbing --task tts\nSub Trans --task sts"
+        },
+        "err_file_not_found": {
+            "zh": "待处理的文件[ {} ]不存在\n请确保文件存在并输入完整的绝对路径，\n如果路径或名称中带有空格，请使用英文双引号包裹\n例如 \"D:/my videos/001.mp4\"  \"E:/how are you/my 001.srt\"",
+            "en": "File [ {} ] not found.\nPlease ensure the file exists and use absolute path.\nWrap path in double quotes if it contains spaces.\nEx: \"D:/my videos/001.mp4\""
+        },
+        "err_tts_role_required": {
+            "zh": "在 --task tts 文字配音模式下，--voice_role 音色是必选参数。",
+            "en": "In --task tts mode, --voice_role is required."
+        },
+        "err_sts_target_required": {
+            "zh": "在 --task sts 字幕翻译模式下，--target_language_code 目标语言是必选参数。",
+            "en": "In --task sts mode, --target_language_code is required."
+        },
+        "err_vtv_missing": {
+            "zh": "在 --task vtv 视频翻译模式下，以下参数必选: {}",
+            "en": "In --task vtv mode, the following parameters are required: {}"
+        },
+        "miss_source_lang": {
+            "zh": "--source_language_code 发音语言",
+            "en": "--source_language_code"
+        },
+        "miss_target_lang": {
+            "zh": "--target_language_code 目标语言",
+            "en": "--target_language_code"
+        }
+    }
+    from videotrans.configure import config
+    config.init_run()
+
+    from videotrans import recognition, translator, tts
+    from videotrans.task._speech2text import SpeechToText
+    from videotrans.task._translate_srt import TranslateSrt
+    from videotrans.task.trans_create import TransCreate
+    from videotrans.task._dubbing import DubbingSrt
+    from videotrans.task.taskcfg import TaskCfgSTT, TaskCfgTTS, TaskCfgSTS, TaskCfgVTT
+    from videotrans.util import tools
+    from videotrans.util.gpus import getset_gpu
+
+    def tr(key, *args)-> str:
+        """翻译辅助函数"""
+        lang_dict = TEXT_DB.get(key, {})
+        text = lang_dict.get(config.defaulelang, key)  # 默认回退到key本身
+        if args:
+            return text.format(*args)
+        return text
+
+
+    # 语音转录 speech to text
+    def stt_fun(params):
+        print(f"\n{tr('exec_stt_task')}")
+        print(tr('process_file', params.get('name')))
+        print(tr('param_list', params))
+        trk = SpeechToText(cfg=TaskCfgSTT(**params), out_format='srt')
+        trk.prepare()
+        trk.recogn()
+        trk.diariz()
+        trk.task_done()
+
+
+    # 语音合成 text to speech
+    def tts_fun(params):
+        print(f"\n{tr('exec_tts_task')}")
+        print(tr('process_file', params.get('name')))
+        print(tr('param_list', params))
+        trk = DubbingSrt(cfg=TaskCfgTTS(**params), out_ext='wav')
+        trk.dubbing()
+        trk.align()
+        trk.task_done()
+
+
+    # 字幕翻译 subtitles to subtitles
+    def sts_fun(params):
+        print(f"\n{tr('exec_sts_task')}")
+        print(tr('process_file', params.get('name')))
+        print(tr('param_list', params))
+        trk = TranslateSrt(cfg=TaskCfgSTS(**params), out_format=0)
+        trk.trans()
+        trk.task_done()
+
+
+    # 视频翻译  video to video
+    def vtv_fun(params):
+        config.current_status = 'ing'
+        print(f"\n{tr('exec_vtv_task')}")
+        print(tr('process_file', params.get('name')))
+        print(tr('param_list', params))
+        trk = TransCreate(cfg=TaskCfgVTT(**params))
+        trk.prepare()
+        trk.recogn()
+        trk.trans()
+        trk.dubbing()
+        trk.align()
+        trk.assembling()
+        trk.task_done()
+
+    # True 为软件退出，不执行任何动作
+    config.exit_soft = False
     config.exec_mode = 'cli'
     recogn_help = ", ".join([f'{i}={it}' for i, it in enumerate(recognition.RECOGN_NAME_LIST)])
     trans_help = ", ".join([f'{i}={it}' for i, it in enumerate(translator.TRANSLASTE_NAME_LIST)])
@@ -476,4 +479,9 @@ def main():
 if __name__ == "__main__":
     # window
     freeze_support()
+    try:
+        multiprocessing.set_start_method('spawn',force=True)
+    except RuntimeError:
+        # 有时候环境已经设定好了，再次设定会报错，可以忽略
+        pass
     main()

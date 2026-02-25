@@ -9,6 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -23,7 +24,7 @@ class ChatTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         # 从配置中读取并处理 API URL
-        api_url = config.params.get('chattts_api','').strip().rstrip('/').lower()
+        api_url = params.get('chattts_api','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '').replace('/tts', '')
         self._add_internal_host_noproxy(self.api_url)
 
@@ -35,15 +36,15 @@ class ChatTTS(BaseTTS):
         if self._exit() or  not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT),stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
             data = {"text": data_item['text'], "voice": data_item['role'], 'prompt': '', 'is_split': 1}
             res = requests.post(f"{self.api_url}/tts", data=data,  timeout=3600)
             res.raise_for_status()
-            config.logger.debug(f'chatTTS:{data=}')
+            logger.debug(f'chatTTS:{data=}')
             res = res.json()
             if res is None:
                 raise RuntimeError('ChatTTS端出错，请查看其控制台终端')
@@ -60,7 +61,7 @@ class ChatTTS(BaseTTS):
             resb = requests.get(res['url'])
             resb.raise_for_status()
 
-            config.logger.debug(f'ChatTTS:resb={resb.status_code=}')
+            logger.debug(f'ChatTTS:resb={resb.status_code=}')
             with open(data_item['filename'] + ".wav", 'wb') as f:
                 f.write(resb.content)
             time.sleep(1)

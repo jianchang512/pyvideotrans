@@ -4,6 +4,7 @@ import time
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 
 
 class SignThread(QThread):
@@ -19,21 +20,21 @@ class SignThread(QThread):
     def run(self):
         length = len(self.uuid_list)
         while 1:
-            if config.exit_soft: return
+            if app_cfg.exit_soft: return
             if len(self.uuid_list) == 0:
                 self.post({"type": "end"})
                 time.sleep(0.1)
                 return
 
             for uuid in self.uuid_list:
-                if config.exit_soft: return
-                if uuid in config.stoped_uuid_set:
+                if app_cfg.exit_soft: return
+                if uuid in app_cfg.stoped_uuid_set:
                     try:
                         self.uuid_list.remove(uuid)
                     except ValueError:
                         pass
                     continue
-                q = config.uuid_logs_queue.get(uuid)
+                q = app_cfg.uuid_logs_queue.get(uuid)
                 if not q:
                     continue
                 try:
@@ -48,8 +49,8 @@ class SignThread(QThread):
                         self.uuid_list.remove(uuid)
                         self.post(
                             {"type": "jindu", "text": f'{int((length - len(self.uuid_list)) * 100 / length)}%'})
-                        config.stoped_uuid_set.add(uuid)
-                        config.uuid_logs_queue.pop(uuid,None)
+                        app_cfg.stoped_uuid_set.add(uuid)
+                        app_cfg.uuid_logs_queue.pop(uuid,None)
                     q.task_done()
                 except Exception:
                     pass

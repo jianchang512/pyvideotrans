@@ -6,9 +6,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                                QPushButton, QComboBox, QLabel, QScrollArea, QGridLayout, QFrame,QSplitter,QTableView, QAbstractItemView, QHeaderView, QCheckBox,QTableWidget,QTableWidgetItem)
 
 from videotrans import tts
-from videotrans.configure import config
-from videotrans.configure.config import tr
-
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 class Ui_peiyinrole(object):
     def setupUi(self, peiyinrole):
         self.has_done = False
@@ -16,8 +14,6 @@ class Ui_peiyinrole(object):
         self.srt_path = None
         self.subtitles = []
         self.error_msg = ""
-        if not hasattr(config, 'dubbing_role'):
-            config.dubbing_role = {}
         if not peiyinrole.objectName():
             peiyinrole.setObjectName(u"peiyinrole")
         peiyinrole.setMinimumSize(1000, 750)

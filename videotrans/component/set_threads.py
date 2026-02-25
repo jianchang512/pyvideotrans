@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 )
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 
 
@@ -19,7 +19,7 @@ class SetThreadTransDubb(QDialog):
         # 设置该窗口最小宽高为 400x300
         self.resize(400, 250)
 
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
 
         # 布局
         layout = QVBoxLayout()

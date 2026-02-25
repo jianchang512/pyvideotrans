@@ -1,9 +1,8 @@
 def openwin():
-    import json
     import os
-    from videotrans.configure.config import tr
     from PySide6 import QtWidgets
     from videotrans.configure import config
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
     from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
     def feed(d):
@@ -23,10 +22,10 @@ def openwin():
         model = winobj.chatgpt_model.currentText()
 
         os.environ['OPENAI_API_KEY'] = key
-        config.params["chatgpt_key"] = key
-        config.params["chatgpt_api"] = url
-        config.params["chatgpt_max_token"] = max_token
-        config.params["chatgpt_model"] = model
+        params["chatgpt_key"] = key
+        params["chatgpt_api"] = url
+        params["chatgpt_max_token"] = max_token
+        params["chatgpt_model"] = model
         winobj.test_chatgpt.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.CHATGPT_INDEX)
@@ -42,12 +41,12 @@ def openwin():
             url = 'http://' + url
         model = winobj.chatgpt_model.currentText()
 
-        config.params["chatgpt_max_token"] = max_token
+        params["chatgpt_max_token"] = max_token
         os.environ['OPENAI_API_KEY'] = key
-        config.params["chatgpt_key"] = key
-        config.params["chatgpt_api"] = url
-        config.params["chatgpt_model"] = model
-        config.getset_params(config.params)
+        params["chatgpt_key"] = key
+        params["chatgpt_api"] = url
+        params["chatgpt_model"] = model
+        params.save()
         winobj.close()
 
     def setallmodels():
@@ -57,16 +56,15 @@ def openwin():
         winobj.chatgpt_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
             winobj.chatgpt_model.setCurrentText(current_text)
-        config.settings['chatgpt_model'] = t
-        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings, ensure_ascii=False))
+        settings['chatgpt_model'] = t
+        settings.save()
 
 
 
     from videotrans.component.set_form import ChatgptForm
 
     winobj = ChatgptForm()
-    config.child_forms['chatgpt'] = winobj
+    app_cfg.child_forms['chatgpt'] = winobj
     winobj.update_ui()
     winobj.set_chatgpt.clicked.connect(save_chatgpt)
     winobj.test_chatgpt.clicked.connect(test)

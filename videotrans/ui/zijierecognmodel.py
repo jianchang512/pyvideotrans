@@ -3,7 +3,7 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,app_cfg,params,settings,logger
 from videotrans.util import tools
 
 
@@ -99,8 +99,8 @@ class Ui_zijierecognform(object):
         QtCore.QMetaObject.connectSlotsByName(zijierecognform)
     def update_ui(self):
         from videotrans.configure import config
-        self.zijierecognmodel_appid.setText(config.params.get("zijierecognmodel_appid",''))
-        self.zijierecognmodel_token.setText(config.params.get("zijierecognmodel_token",''))
+        self.zijierecognmodel_appid.setText(params.get("zijierecognmodel_appid",''))
+        self.zijierecognmodel_token.setText(params.get("zijierecognmodel_token",''))
 
     def retranslateUi(self, zijierecognform):
         zijierecognform.setWindowTitle(tr('VolcEngine STT'))

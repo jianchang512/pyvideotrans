@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,app_cfg,params,settings,logger
 from videotrans.util import tools
 
 
@@ -119,24 +119,22 @@ class Ui_openaittsform(object):
         QtCore.QMetaObject.connectSlotsByName(openaittsform)
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('openaitts_model','')
-        allmodels = str(config.settings.get('openaitts_model','')).split(',')
+        allmodels_str = settings.get('openaitts_model','')
+        allmodels = str(settings.get('openaitts_model','')).split(',')
 
         self.openaitts_model.clear()
         self.openaitts_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.edit_roles.setPlainText(config.params.get('openaitts_role',''))
+        self.edit_roles.setPlainText(params.get('openaitts_role',''))
 
-        if config.params.get("openaitts_key",''):
-            self.openaitts_key.setText(config.params.get("openaitts_key",''))
-        if config.params.get("openaitts_instructions",''):
-            self.openaitts_instructions.setText(config.params.get("openaitts_instructions", ''))
-        if config.params.get("openaitts_api",''):
-            self.openaitts_api.setText(config.params.get("openaitts_api",''))
-        if config.params.get("openaitts_model",'') and config.params.get('openaitts_model','') in allmodels:
-            self.openaitts_model.setCurrentText(config.params.get("openaitts_model",''))
+        if params.get("openaitts_key",''):
+            self.openaitts_key.setText(params.get("openaitts_key",''))
+        if params.get("openaitts_instructions",''):
+            self.openaitts_instructions.setText(params.get("openaitts_instructions", ''))
+        if params.get("openaitts_api",''):
+            self.openaitts_api.setText(params.get("openaitts_api",''))
+        if params.get("openaitts_model",'') and params.get('openaitts_model','') in allmodels:
+            self.openaitts_model.setCurrentText(params.get("openaitts_model",''))
     def retranslateUi(self, openaittsform):
         openaittsform.setWindowTitle("OpenAI API TTS")
         self.label_3.setText(tr("Model"))

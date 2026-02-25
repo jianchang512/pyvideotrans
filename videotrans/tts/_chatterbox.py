@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -22,7 +23,7 @@ RETRY_DELAY = 5
 class ChatterBoxTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        api_url = config.params.get('chatterbox_url','').strip().rstrip('/').lower()
+        api_url = params.get('chatterbox_url','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
         self._add_internal_host_noproxy(self.api_url)
 
@@ -33,14 +34,14 @@ class ChatterBoxTTS(BaseTTS):
         if self._exit() or  not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
             role = data_item['role']
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
             if data_item.get('ref_wav') or (
-                    role and role != 'chatterbox' and Path(f'{config.ROOT_DIR}/chatterbox/{role}').exists()):
+                    role and role != 'chatterbox' and Path(f'{ROOT_DIR}/chatterbox/{role}').exists()):
                 # 克隆
                 self._item_task_clone(data_item['text'], role, data_item.get('ref_wav'), data_item['filename'])
                 return
@@ -49,8 +50,8 @@ class ChatterBoxTTS(BaseTTS):
                 model="chatterbox-tts",  # 这是一个兼容性参数
                 voice=self.language.split('-')[0],  # 这也是一个兼容性参数
                 input=data_item['text'],
-                speed=float(config.params.get("chatterbox_cfg_weight",'1.0')),  # 兼容，用于传递 cfg_weight
-                instructions=str(config.params.get("chatterbox_exaggeration",'')),  # 兼容传递 exaggeration
+                speed=float(params.get("chatterbox_cfg_weight",'1.0')),  # 兼容，用于传递 cfg_weight
+                instructions=str(params.get("chatterbox_exaggeration",'')),  # 兼容传递 exaggeration
                 response_format="mp3"  # 请求mp3格式
             )
 
@@ -64,7 +65,7 @@ class ChatterBoxTTS(BaseTTS):
         if ref_wav:
             mime_type = 'audio/wav'
         else:
-            ref_wav = f'{config.ROOT_DIR}/chatterbox/{role}'
+            ref_wav = f'{ROOT_DIR}/chatterbox/{role}'
             mime_type, _ = mimetypes.guess_type(ref_wav)
             # 如果无法根据扩展名猜出类型，则使用通用的二进制流类型作为备用
             if mime_type is None:
@@ -81,8 +82,8 @@ class ChatterBoxTTS(BaseTTS):
             form_data = {
                 'input': text,
                 'response_format': 'mp3',
-                'cfg_weight': config.params.get("chatterbox_cfg_weight",'0.3'),
-                'exaggeration': config.params.get("chatterbox_exaggeration",''),
+                'cfg_weight': params.get("chatterbox_cfg_weight",'0.3'),
+                'exaggeration': params.get("chatterbox_exaggeration",''),
                 'language': self.language.split('-')[0]
             }
             # 发送POST请求，设置合理的超时时间

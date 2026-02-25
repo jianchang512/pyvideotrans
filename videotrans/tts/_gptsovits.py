@@ -11,7 +11,7 @@ import requests
 from pydub import AudioSegment
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -26,7 +26,7 @@ class GPTSoVITS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         # 2. 处理并设置 api_url (同样是覆盖父类的值)
-        api_url = config.params.get('gptsovits_url','').strip().rstrip('/').lower()
+        api_url = params.get('gptsovits_url','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
         self._add_internal_host_noproxy(self.api_url)
         # 3. 初始化本类新增的属性
@@ -43,7 +43,7 @@ class GPTSoVITS(BaseTTS):
         data = {
             "text": data_item['text'],
             "text_language": "zh" if self.language.startswith('zh') else self.language,
-            "extra": config.params.get('gptsovits_extra',''),
+            "extra": params.get('gptsovits_extra',''),
             "ostype": sys.platform,
 
         }
@@ -62,10 +62,10 @@ class GPTSoVITS(BaseTTS):
                 ref_wav_audio=AudioSegment.from_file(ref_wav,format="wav")
                 ms_ref=len(ref_wav_audio)
                 if ms_ref>9950:#大于10s截断
-                    config.logger.warning(f'参考音频大于10s，需截断:{ref_wav=}')
+                    logger.warning(f'参考音频大于10s，需截断:{ref_wav=}')
                     ref_wav_audio[:9950].export(ref_wav,format="wav")
                 elif ms_ref<3000:#大于3s合法
-                    config.logger.warning(f'参考音频小于3s，末尾填空白:{ref_wav=}')
+                    logger.warning(f'参考音频小于3s，末尾填空白:{ref_wav=}')
                     self.pad_audio= self.pad_audio if self.pad_audio else self._padforaudio(3000 if ms_ref<1500 else 1600)
                     (ref_wav_audio+self.pad_audio).export(ref_wav,format="wav")
             elif keys[-1]=='clone':
@@ -78,7 +78,7 @@ class GPTSoVITS(BaseTTS):
         if not data.get('refer_wav_path') and role !='clone':
             raise StopRetry(message=tr("Must pass in the reference audio file path"))
 
-        if config.params.get('gptsovits_isv2',''):
+        if params.get('gptsovits_isv2',''):
             data = {
                 "text": data_item['text'],
                 "text_lang": data.get('text_language', 'zh'),
@@ -93,7 +93,7 @@ class GPTSoVITS(BaseTTS):
                 self.api_url += '/tts'
         else:
             data['speed']=1.0+self.speed
-        config.logger.debug(f'GPT-SoVITS 当前需要发送的配音数据:{data=}\n{self.api_url=}')
+        logger.debug(f'GPT-SoVITS 当前需要发送的配音数据:{data=}\n{self.api_url=}')
         # 克隆声音
         response = requests.post(f"{self.api_url}", json=data,  timeout=3600,proxies={"https":"","http":""})
 
@@ -110,4 +110,4 @@ class GPTSoVITS(BaseTTS):
             except:
                 error_data=response.text
             self.error=RuntimeError(error_data)
-            config.logger.error(f'GPT-SoVITS {ref_wav=}\n返回错误:{error_data=}\n')
+            logger.error(f'GPT-SoVITS {ref_wav=}\n返回错误:{error_data=}\n')

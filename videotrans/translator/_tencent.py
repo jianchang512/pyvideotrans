@@ -11,6 +11,7 @@ from tencentcloud.common.profile.http_profile import HttpProfile
 from tencentcloud.tmt.v20180321 import tmt_client, models
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
 
@@ -29,12 +30,12 @@ class Tencent(BaseTrans):
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
-        cred = credential.Credential(config.params.get('tencent_SecretId', '').strip(),
-                                     config.params.get('tencent_SecretKey',''))
+        cred = credential.Credential(params.get('tencent_SecretId', '').strip(),
+                                     params.get('tencent_SecretKey',''))
         # 实例化一个http选项，可选的，没有特殊需求可以跳过
         httpProfile = HttpProfile(proxy="")
         httpProfile.endpoint = "tmt.tencentcloudapi.com"
@@ -51,12 +52,12 @@ class Tencent(BaseTrans):
             "Target": 'zh' if self.target_code.lower() == 'zh-cn' else self.target_code,
             "ProjectId": 0,
         }
-        if config.params.get('tencent_termlist',''):
-            reqdata['TermRepoIDList'] = config.params.get('tencent_termlist','').split(',')
+        if params.get('tencent_termlist',''):
+            reqdata['TermRepoIDList'] = params.get('tencent_termlist','').split(',')
 
         req = models.TextTranslateRequest()
-        config.logger.debug(f'[腾讯]请求数据:{reqdata=}')
+        logger.debug(f'[腾讯]请求数据:{reqdata=}')
         req.from_json_string(json.dumps(reqdata))
         resp = client.TextTranslate(req)
-        config.logger.debug(f'[腾讯]返回:{resp.TargetText=}')
+        logger.debug(f'[腾讯]返回:{resp.TargetText=}')
         return resp.TargetText.strip()

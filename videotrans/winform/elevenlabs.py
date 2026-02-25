@@ -2,10 +2,10 @@
 
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr
     import json
 
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
@@ -18,26 +18,26 @@ def openwin():
     def save():
         key = winobj.elevenlabstts_key.text()
         model = winobj.elevenlabstts_models.currentText()
-        config.params['elevenlabstts_key'] = key
-        config.params['elevenlabstts_models'] = model
-        config.getset_params(config.params)
+        params['elevenlabstts_key'] = key
+        params['elevenlabstts_models'] = model
+        params.save()
         winobj.close()
 
     def test():
         key = winobj.elevenlabstts_key.text()
-        config.params['elevenlabstts_key'] = key
+        params['elevenlabstts_key'] = key
 
         try:
             from videotrans import tts
             from videotrans.task.simple_runnable_qt import run_in_threadpool     
 
             import time
-            with open(config.ROOT_DIR+'/videotrans/voicejson/elevenlabs.json','r',encoding='utf-8') as f:
+            with open(ROOT_DIR+'/videotrans/voicejson/elevenlabs.json','r',encoding='utf-8') as f:
                 jsondata=json.loads(f.read())
             wk = ListenVoice(parent=winobj, queue_tts=[{
                 "text": 'hello,my friend',
                 "role": list(jsondata.keys())[0],
-                "filename": config.TEMP_DIR + f"/{time.time()}-elevenlabs.wav",
+                "filename": TEMP_DIR + f"/{time.time()}-elevenlabs.wav",
                 "tts_type": tts.ELEVENLABS_TTS}],
                              language="en",
                              tts_type=tts.ELEVENLABS_TTS)
@@ -53,9 +53,9 @@ def openwin():
 
     from videotrans.component.set_form import ElevenlabsForm
     winobj = ElevenlabsForm()
-    config.child_forms['elevenlabs'] = winobj
-    winobj.elevenlabstts_key.setText(config.params.get('elevenlabstts_key',''))
-    winobj.elevenlabstts_models.setCurrentText(config.params.get('elevenlabstts_models',''))
+    app_cfg.child_forms['elevenlabs'] = winobj
+    winobj.elevenlabstts_key.setText(params.get('elevenlabstts_key',''))
+    winobj.elevenlabstts_models.setCurrentText(params.get('elevenlabstts_models',''))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

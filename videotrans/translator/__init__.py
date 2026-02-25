@@ -4,7 +4,7 @@ from typing import Union, List
 
 from videotrans.configure import config
 # 数字代表显示顺序
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger,ROOT_DIR
 from videotrans.util import tools
 from videotrans.translator._google import Google
 from videotrans.translator._microsoft import Microsoft
@@ -158,12 +158,12 @@ LANGNAME_DICT = {
 
 # 如果存在新增
 try:
-    if Path(config.ROOT_DIR+f'/videotrans/newlang.txt').exists():
-        _new_lang=Path(config.ROOT_DIR+f'/videotrans/newlang.txt').read_text().strip().split("\n")
+    if Path(ROOT_DIR+f'/videotrans/newlang.txt').exists():
+        _new_lang=Path(ROOT_DIR+f'/videotrans/newlang.txt').read_text().strip().split("\n")
         for nl in _new_lang:
             LANGNAME_DICT[nl]=nl
 except Exception as e:
-    config.logger.exception(f'读取自定义新增语言代码 newlang.txt 时出错 {e}', exc_info=True)
+    logger.exception(f'读取自定义新增语言代码 newlang.txt 时出错 {e}', exc_info=True)
 # 反向按照显示名字查找语言代码
 LANGNAME_DICT_REV={v:k for k,v in LANGNAME_DICT.items()}
 # 根据语言代码查找各个翻译渠道对应的 代码list
@@ -641,7 +641,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 
     # qwenmt翻译渠道语言代码
     if translate_type == QWENMT_INDEX:
-        if config.params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):        
+        if params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
             return 'auto',target_list[9] if target_list else show_target
         return source_list[7] if source_list else show_source, target_list[7] if target_list else show_target
 
@@ -682,7 +682,7 @@ def get_ai_language_name(show_target=None,translate_type=None):
 
     if not target_list:
         return None
-    if translate_type is not None and translate_type==QWENMT_INDEX and config.params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
+    if translate_type is not None and translate_type==QWENMT_INDEX and params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
         # qwen-mt特殊处理
         return 'auto',target_list[9] if target_list else show_target
     return target_list[7],target_list[7]
@@ -710,79 +710,79 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
     if translate_type in [GOOGLE_INDEX, MyMemoryAPI_INDEX, MICROSOFT_INDEX]:
         return True
 
-    if translate_type == CHATGPT_INDEX and not config.params.get('chatgpt_key',''):
+    if translate_type == CHATGPT_INDEX and not params.get('chatgpt_key',''):
         if return_str:
             return "Please configure the api and key information of the OpenAI ChatGPT channel first."
         from videotrans.winform import chatgpt
         chatgpt.openwin()
         return False
-    if translate_type == ZHIPUAI_INDEX and not config.params.get('zhipu_key',''):
+    if translate_type == ZHIPUAI_INDEX and not params.get('zhipu_key',''):
         if return_str:
             return "请在菜单-智谱AI中填写智谱AI的api key"
         from videotrans.winform import zhipuai
         zhipuai.openwin()
         return False
-    if translate_type == DEEPSEEK_INDEX and not config.params.get('deepseek_key',''):
+    if translate_type == DEEPSEEK_INDEX and not params.get('deepseek_key',''):
         if return_str:
             return "请在菜单-DeepSeek中填写api key"
         from videotrans.winform import deepseek
         deepseek.openwin()
         return False
-    if translate_type == OPENROUTER_INDEX and not config.params.get('openrouter_key',''):
+    if translate_type == OPENROUTER_INDEX and not params.get('openrouter_key',''):
         if return_str:
             return "请在菜单-OpenRouter中填写api key"
         from videotrans.winform import openrouter
         openrouter.openwin()
         return False
 
-    if translate_type == SILICONFLOW_INDEX and not config.params.get('guiji_key',''):
+    if translate_type == SILICONFLOW_INDEX and not params.get('guiji_key',''):
         if return_str:
             return "请在菜单-硅基流动中填写硅基流动的api key"
         from videotrans.winform import siliconflow
         siliconflow.openwin()
         return False
-    if translate_type == AI302_INDEX and not config.params.get('ai302_key',''):
+    if translate_type == AI302_INDEX and not params.get('ai302_key',''):
         if return_str:
             return "Please configure the api and key information of the 302.AI channel first."
         from videotrans.winform import ai302
         ai302.openwin()
         return False
 
-    if translate_type == TRANSAPI_INDEX and not config.params.get('trans_api_url',''):
+    if translate_type == TRANSAPI_INDEX and not params.get('trans_api_url',''):
         if return_str:
             return "Please configure the api and key information of the Trans_API channel first."
         from videotrans.winform import transapi
         transapi.openwin()
         return False
 
-    if translate_type == LOCALLLM_INDEX and not config.params.get('localllm_api',''):
+    if translate_type == LOCALLLM_INDEX and not params.get('localllm_api',''):
         if return_str:
             return "Please configure the api and key information of the LocalLLM channel first."
         from videotrans.winform import localllm
         localllm.openwin()
         return False
     if translate_type == ZIJIE_INDEX and (
-            not config.params.get('zijiehuoshan_model','').strip() or not config.params.get('zijiehuoshan_key','').strip()):
+            not params.get('zijiehuoshan_model','').strip() or not params.get('zijiehuoshan_key','').strip()):
         if return_str:
             return "Please configure the api and key information of the ZiJie channel first."
         from videotrans.winform import zijiehuoshan
         zijiehuoshan.openwin()
         return False
 
-    if translate_type == GEMINI_INDEX and not config.params.get('gemini_key',''):
+    if translate_type == GEMINI_INDEX and not params.get('gemini_key',''):
         if return_str:
             return "Please configure the api and key information of the Gemini channel first."
         from videotrans.winform import gemini
         gemini.openwin()
         return False
-    if translate_type == QWENMT_INDEX and not config.params.get('qwenmt_key',''):
+    if translate_type == QWENMT_INDEX and not params.get('qwenmt_key',''):
         if return_str:
             return "Please configure the api and key information of the QwenMT channel first."
         from videotrans.winform import qwenmt
         qwenmt.openwin()
         return False
     if translate_type == AZUREGPT_INDEX and (
-            not config.params.get('azure_key','') or not config.params.get('azure_api','')):
+            not params.get('azure_key','') or not params.get('azure_api','')):
         if return_str:
             return "Please configure the api and key information of the Azure GPT channel first."
         from videotrans.winform import azure
@@ -790,52 +790,52 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         return False
 
     if translate_type == BAIDU_INDEX and (
-            not config.params.get("baidu_appid",'') or not config.params.get("baidu_miyue",'')):
+            not params.get("baidu_appid",'') or not params.get("baidu_miyue",'')):
         if return_str:
             return "Please configure the api and key information of the Baidu channel first."
         from videotrans.winform import baidu
         baidu.openwin()
         return False
     if translate_type == TENCENT_INDEX and (
-            not config.params.get("tencent_SecretId",'') or not config.params.get("tencent_SecretKey",'')):
+            not params.get("tencent_SecretId",'') or not params.get("tencent_SecretKey",'')):
         if return_str:
             return "Please configure the appid and key information of the Tencent channel first."
         from videotrans.winform import tencent
         tencent.openwin()
         return False
     if translate_type == ALI_INDEX and (
-            not config.params.get("ali_id",'') or not config.params.get("ali_key",'')):
+            not params.get("ali_id",'') or not params.get("ali_key",'')):
         if return_str:
             return "Please configure the appid and key information of the Alibaba translate channel first."
         from videotrans.winform import ali
         ali.openwin()
         return False
-    if translate_type == DEEPL_INDEX and not config.params.get("deepl_authkey",''):
+    if translate_type == DEEPL_INDEX and not params.get("deepl_authkey",''):
         if return_str:
             return "Please configure the api and key information of the DeepL channel first."
         from videotrans.winform import deepL
         deepL.openwin()
         return False
-    if translate_type == DEEPLX_INDEX and not config.params.get("deeplx_address",''):
+    if translate_type == DEEPLX_INDEX and not params.get("deeplx_address",''):
         if return_str:
             return "Please configure the api and key information of the DeepLx channel first."
         from videotrans.winform import deepLX
         deepLX.openwin()
         return False
-    if translate_type == LIBRE_INDEX and not config.params.get("libre_address",''):
+    if translate_type == LIBRE_INDEX and not params.get("libre_address",''):
         if return_str:
             return "Please configure the api and key information of the LibreTranslate channel first."
         from videotrans.winform import libre
         libre.openwin()
         return False
 
-    if translate_type == TRANSAPI_INDEX and not config.params.get("trans_api_url",''):
+    if translate_type == TRANSAPI_INDEX and not params.get("trans_api_url",''):
         if return_str:
             return "Please configure the api and key information of the TransAPI channel first."
         from videotrans.winform import transapi
         transapi.openwin()
         return False
-    if translate_type == OTT_INDEX and not config.params.get("ott_address",''):
+    if translate_type == OTT_INDEX and not params.get("ott_address",''):
         if return_str:
             return "Please configure the api and key information of the OTT channel first."
         from videotrans.winform import ott
@@ -898,7 +898,7 @@ def _check_google():
     try:
         requests.head(f"https://translate.google.com",timeout=5)
     except Exception as e:
-        config.logger.exception(f'检测google翻译失败{e}', exc_info=True)
+        logger.exception(f'检测google翻译失败{e}', exc_info=True)
         return False
     
     return True
@@ -932,9 +932,9 @@ def run(*, translate_type=0,
 
     # 未设置代理并且检测google失败，则使用微软翻译
     if translate_type == GOOGLE_INDEX:
-        if config.proxy or _check_google() is True:
+        if app_cfg.proxy or _check_google() is True:
             return Google(**kwargs).run()
-        config.logger.warning('==未设置代理并且检测google失败，使用微软翻译')
+        logger.warning('==未设置代理并且检测google失败，使用微软翻译')
         return Microsoft(**kwargs).run()
         
     if translate_type == MyMemoryAPI_INDEX:

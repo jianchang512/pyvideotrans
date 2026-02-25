@@ -2,23 +2,19 @@
 # 返回元组
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
-from videotrans.util import gpus
-
-
+from videotrans.configure.config import logger,ROOT_DIR
 
 def _write_log(file, msg):
     from pathlib import Path
-    from videotrans.configure import config
     try:
         Path(file).write_text(msg, encoding='utf-8')
     except Exception as e:
-        config.logger.exception(f'写入新进程日志时出错', exc_info=True)
+        logger.exception(f'写入新进程日志时出错', exc_info=True)
 
 
 def qwen3tts_fun(
         queue_tts_file=None,# 配音数据存在 json文件下，根据文件路径获取
         language='Auto',#语言
-        ROOT_DIR=None,# 判断参考音频在 f5-tts 下
         logs_file=None,
         defaulelang="en",
         is_cuda=False,
@@ -30,7 +26,6 @@ def qwen3tts_fun(
     import re, os, traceback, json, time
     import shutil
     from pathlib import Path
-    from videotrans.configure import config
     from videotrans.util import tools
 
     import torch
@@ -129,7 +124,7 @@ def qwen3tts_fun(
         return True,None
     except Exception:
         msg = traceback.format_exc()
-        config.logger.exception(f'Qwen3-TTS 配音失败:{msg}', exc_info=True)
+        logger.exception(f'Qwen3-TTS 配音失败:{msg}', exc_info=True)
         return False, msg
     finally:
         try:

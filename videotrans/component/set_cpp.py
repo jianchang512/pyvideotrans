@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 )
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 
 
@@ -15,7 +15,7 @@ class SetWhisperCPP(QDialog):
         
         self.resize(800, 250)
 
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
 
         # 布局
         layout = QVBoxLayout()
@@ -26,7 +26,7 @@ class SetWhisperCPP(QDialog):
         self.label = QPushButton(tr("Click on whisper-cli"))
         self.input = QLineEdit()
         self.input.setReadOnly(True)
-        self.input.setText(config.settings.get('Whisper.cpp',''))
+        self.input.setText(settings.get('Whisper_cpp',''))
         self.label.clicked.connect(self.selectcpp)
         
         num_layout = QHBoxLayout()
@@ -62,9 +62,9 @@ class SetWhisperCPP(QDialog):
         from pathlib import Path
         exe, _ = QFileDialog.getOpenFileName(self, tr("Click on whisper-cli"), Path.home().as_posix(), f'Files(*.*)')
         if exe:
-            config.settings['Whisper.cpp'] = Path(exe).as_posix()
-            self.input.setText(config.settings['Whisper.cpp'])
-            config.parse_init(config.settings)
+            settings['Whisper_cpp'] = Path(exe).as_posix()
+            self.input.setText(settings['Whisper_cpp'])
+            settings.save()
 
     def get_values(self):
         return self.input.text().strip()

@@ -12,27 +12,20 @@ License: GPL-V3
 # 没有规范，随便搞搞
 
 """
-import atexit, sys, os, time
-
 VERSION = "v3.97"
 
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-
+import os
+import atexit, sys, time
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
-from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer, QLocale
+from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
-
-
+import argparse
+from PySide6.QtCore import QSize, QSettings
 
 # 抑制警告
 def suppress_qt_warnings(msg_type, context, message):
     if "QThreadStorage" in message:
         return
-
 
 def cleanup():
     """强制清理函数"""
@@ -42,9 +35,6 @@ def cleanup():
             app.deleteLater()
     except:
         pass
-
-
-
 
 def show_global_error_dialog(tb_str):
     from videotrans.util.tools import show_error
@@ -74,7 +64,7 @@ class StartWindow(QWidget):
         # 背景上叠加文字
         v_layout = QVBoxLayout(self)
         v_layout.addStretch(1)
-        self.status_label = QLabel(f"pyVideoTrans {VERSION} {'加载中稍等' if QLocale.system().name().lower().startswith('zh') else 'Loading hold on'}...")
+        self.status_label = QLabel(f"pyVideoTrans {VERSION} Loading...")
         self.status_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.status_label.setStyleSheet("font-size:16px; color:white; background-color:transparent;")
 
@@ -89,8 +79,6 @@ class StartWindow(QWidget):
         # 如果主窗口不存在，则退出应用程序
         if self.main_window is None:
             QApplication.instance().quit()
-        else:
-            pass
 
         super().closeEvent(event)
 
@@ -112,9 +100,7 @@ class StartWindow(QWidget):
 
 # 启动主窗口
 def initialize_full_app(start_window, app_instance):
-    import argparse
     from videotrans.configure._guiexcept import global_exception_hook, exception_handler
-    from PySide6.QtCore import QSize, QSettings
 
     if sys.stdout is None or sys.stderr is None:
         try:
@@ -142,13 +128,11 @@ def initialize_full_app(start_window, app_instance):
     with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
         app_instance.setStyleSheet(f.read())
     import urllib3
-    # 禁用 InsecureRequestWarning 警告
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     from videotrans.mainwin._main_win import MainWindow
 
     main_window_created = False
     try:
-
         screen = QGuiApplication.primaryScreen().geometry()
         sets = QSettings("pyvideotrans", "settings")
         w, h = int(screen.width() * 0.85), int(screen.height() * 0.85)
@@ -183,7 +167,6 @@ if __name__ == "__main__":
         signal.signal(signal.SIGINT, handle_exit)
         signal.signal(signal.SIGTERM, handle_exit)
 
-
     # 设置 HighDpi
     try:
         QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
@@ -205,7 +188,6 @@ if __name__ == "__main__":
         try:
             cleanup()
             import gc
-
             gc.collect()
         except Exception as e:
             print(e)

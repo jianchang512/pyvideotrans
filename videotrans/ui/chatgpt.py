@@ -4,8 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -123,18 +122,17 @@ class Ui_chatgptform(object):
         QtCore.QMetaObject.connectSlotsByName(chatgptform)
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('chatgpt_model','')
-        allmodels = str(config.settings.get('chatgpt_model','')).split(',')
+
+        allmodels_str = settings.get('chatgpt_model','')
+        allmodels = str(settings.get('chatgpt_model','')).split(',')
         self.chatgpt_model.clear()
         self.chatgpt_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.chatgpt_key.setText(config.params.get("chatgpt_key",''))
-        self.chatgpt_api.setText(config.params.get("chatgpt_api",''))
-        self.chatgpt_model.setCurrentText(config.params.get("chatgpt_model",''))
-        self.chatgpt_max_token.setText(str(config.params.get("chatgpt_max_token",'')))
+        self.chatgpt_key.setText(params.get("chatgpt_key",''))
+        self.chatgpt_api.setText(params.get("chatgpt_api",''))
+        self.chatgpt_model.setCurrentText(params.get("chatgpt_model",''))
+        self.chatgpt_max_token.setText(str(params.get("chatgpt_max_token",'')))
     def retranslateUi(self, chatgptform):
         chatgptform.setWindowTitle(tr("OpenAI API & Compatible AI"))
         self.label_3.setText(tr("Model"))

@@ -1,8 +1,8 @@
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr
     from videotrans import recognition
     from videotrans.configure import config
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
     from videotrans.util import tools
     from videotrans.util.TestSTT import TestSTT
     def feed(d):
@@ -18,9 +18,9 @@ def openwin():
         if not apikey:
             tools.show_error(tr("Must fill in the API Key"))
             return
-        config.params["deepgram_apikey"] = apikey
-        config.params["deepgram_utt"] = 200 if utt else 200
-        config.getset_params(config.params)
+        params["deepgram_apikey"] = apikey
+        params["deepgram_utt"] = 200 if utt else 200
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.Deepgram, model_name="whisper-large")
         task.uito.connect(feed)
@@ -33,16 +33,16 @@ def openwin():
             tools.show_error(tr("Must fill in the API Key"))
             return
 
-        config.params["deepgram_apikey"] = apikey
-        config.params["deepgram_utt"] = 200 if utt else 200
-        config.getset_params(config.params)
+        params["deepgram_apikey"] = apikey
+        params["deepgram_utt"] = 200 if utt else 200
+        params.save()
         winobj.close()
 
     from videotrans.component.set_form import DeepgramForm
     winobj = DeepgramForm()
-    config.child_forms['deepgram'] = winobj
-    winobj.apikey.setText(config.params.get("deepgram_apikey",''))
-    winobj.utt.setText(str(config.params.get("deepgram_utt",'')))
+    app_cfg.child_forms['deepgram'] = winobj
+    winobj.apikey.setText(params.get("deepgram_apikey",''))
+    winobj.utt.setText(str(params.get("deepgram_utt",'')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

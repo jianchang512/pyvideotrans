@@ -3,21 +3,19 @@
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 from videotrans.util import gpus
+from videotrans.configure.config import logger,ROOT_DIR,defaulelang
 
 def openai_whisper(
         *,
         prompt=None,
         detect_language=None,
         model_name=None,
-        ROOT_DIR=None,
         logs_file=None,
-        defaulelang="en",
         is_cuda=False,
         no_speech_threshold=0.5,
         condition_on_previous_text=False,
         speech_timestamps=None,
         audio_file=None,
-        TEMP_ROOT=None,
         jianfan=False,
         batch_size=1,
         audio_duration=0,
@@ -28,7 +26,6 @@ def openai_whisper(
     import re, os, traceback, json, time
     import shutil
     from pathlib import Path
-    from videotrans.configure import config
     import torch
     torch.set_num_threads(1)
     import whisper
@@ -113,7 +110,7 @@ def openai_whisper(
             _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
     except Exception:
         msg = traceback.format_exc()
-        config.logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
+        logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
         return False, msg
     else:
         return raws, None
@@ -134,15 +131,12 @@ def faster_whisper(
         prompt=None,
         detect_language=None,
         model_name=None,
-        ROOT_DIR=None,
         logs_file=None,
-        defaulelang="en",
         is_cuda=False,
         no_speech_threshold=0.5,
         condition_on_previous_text=False,
         speech_timestamps=None,
         audio_file=None,
-        TEMP_ROOT=None,
         local_dir=None,
         compute_type="default",
         batch_size=8,
@@ -159,8 +153,6 @@ def faster_whisper(
     import re, os, traceback, json, time
     import shutil
     from pathlib import Path
-    from videotrans.configure import config
-
     import torch
     torch.set_num_threads(1)
     from faster_whisper import WhisperModel, BatchedInferencePipeline
@@ -223,7 +215,6 @@ def faster_whisper(
                 {"start": it[0] / 1000.0, "end": it[1] / 1000.0}
                 for it in speech_timestamps
             ]
-            print(f'{clip_timestamps_dicts=}')
             segments, info = batched_model.transcribe(
                 audio_file,
                 batch_size=batch_size,  #
@@ -285,7 +276,7 @@ def faster_whisper(
             _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
     except Exception:
         msg = traceback.format_exc()
-        config.logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
+        logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
         return False, msg
     else:
         return raws, None
@@ -308,12 +299,9 @@ def pipe_asr(
         cut_audio_list=None,
         detect_language=None,
         model_name=None,
-        ROOT_DIR=None,
         logs_file=None,
-        defaulelang="en",
         is_cuda=False,
         audio_file=None,
-        TEMP_ROOT=None,
         local_dir=None,
         batch_size=8,
         jianfan=False,
@@ -322,8 +310,6 @@ def pipe_asr(
     import re, os, traceback, json, time
     import shutil
     from pathlib import Path
-    from videotrans.configure import config
-
     import torch
     torch.set_num_threads(1)
     from transformers import pipeline
@@ -432,7 +418,7 @@ def pipe_asr(
         return raws, None
     except Exception:
         msg = traceback.format_exc()
-        config.logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
+        logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
         return False, msg
     finally:
         try:
@@ -450,12 +436,9 @@ def paraformer(
         cut_audio_list=None,
         detect_language=None,
         model_name=None,
-        ROOT_DIR=None,
         logs_file=None,
-        defaulelang="en",
         is_cuda=False,
         audio_file=None,
-        TEMP_ROOT=None,
         max_speakers=-1,
         cache_folder=None,
         device_index=0 # gpu索引
@@ -463,8 +446,6 @@ def paraformer(
     import re, os, traceback, json, time
     import shutil
     from pathlib import Path
-    from videotrans.configure import config
-
     import torch
     torch.set_num_threads(1)
     from videotrans.util import tools
@@ -526,7 +507,7 @@ def paraformer(
             Path(f'{cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
     except Exception:
         msg = traceback.format_exc()
-        config.logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
+        logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
         return False, msg
     finally:
         try:
@@ -544,11 +525,11 @@ def paraformer(
 
 def _write_log(file, msg):
     from pathlib import Path
-    from videotrans.configure import config
+
     try:
         Path(file).write_text(msg, encoding='utf-8')
     except Exception as e:
-        config.logger.exception(f'写入新进程日志时出错', exc_info=True)
+        logger.exception(f'写入新进程日志时出错', exc_info=True)
 
 
 def _remove_unwanted_characters(text: str) -> str:
@@ -559,12 +540,9 @@ def _remove_unwanted_characters(text: str) -> str:
 
 
 def qwen3asr_fun0(
-        ROOT_DIR=None,
         logs_file=None,
-        defaulelang="en",
         is_cuda=False,
         audio_file=None,
-        TEMP_ROOT=None,
         model_name="1.7B",
         device_index=0 # gpu索引
 ):
@@ -636,12 +614,9 @@ def qwen3asr_fun0(
 
 def qwen3asr_fun(
         cut_audio_list=None,
-        ROOT_DIR=None,
         logs_file=None,
-        defaulelang="en",
         is_cuda=False,
         audio_file=None,
-        TEMP_ROOT=None,
         model_name="1.7B",
         device_index=0 # gpu索引
 ):
@@ -702,12 +677,9 @@ def funasr_mlt(
         cut_audio_list=None,
         detect_language=None,
         model_name=None,
-        ROOT_DIR=None,
         logs_file=None,
-        defaulelang="en",
         is_cuda=False,
         audio_file=None,
-        TEMP_ROOT=None,
         jianfan=False,
         max_speakers=-1,
         cache_folder=None,
@@ -716,8 +688,6 @@ def funasr_mlt(
     import re, os, traceback, json, time
     import shutil
     from pathlib import Path
-    from videotrans.configure import config
-
     import torch
     torch.set_num_threads(1)
     from funasr import AutoModel
@@ -788,7 +758,7 @@ def funasr_mlt(
         return srts, None
     except Exception:
         msg = traceback.format_exc()
-        config.logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
+        logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
         return False, msg
     finally:
         try:

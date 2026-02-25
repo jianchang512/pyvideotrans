@@ -7,7 +7,7 @@ from typing import List, Optional, Union
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, app_cfg, settings, params, logger, TEMP_DIR, TEMP_ROOT
 from videotrans.util import tools
 from tenacity import RetryError
 
@@ -48,7 +48,7 @@ class BaseTrans(BaseCon):
     # 同时翻译的字幕行数量
     trans_thread: int = 5
     # 翻译后暂停秒
-    wait_sec: float = float(config.settings.get('translation_wait', 0))
+    wait_sec: float = float(settings.get('translation_wait', 0))
     # 以srt格式发送
     aisendsrt: bool = False
     # 原始完整字幕，当ai翻译时可作为上下文背景信息
@@ -57,15 +57,15 @@ class BaseTrans(BaseCon):
     def __post_init__(self):
         super().__post_init__()
         #是AI翻译渠道并且选中了以完整字幕发送
-        if config.settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS:
+        if settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS:
             self.aisendsrt=True
-        if self.aisendsrt and config.settings.get('aitrans_context'):
+        if self.aisendsrt and settings.get('aitrans_context'):
             self.full_origin_subtitles=_GLOBAL_CONTEXT.replace('{COMPLETE_SRT_TEXT}',"\n".join([it["text"] for it in self.text_list]))
 
         if self.translate_type not in translator.AI_TRANS_CHANNELS:
-            self.trans_thread = int(config.settings.get('trans_thread', 5))
+            self.trans_thread = int(settings.get('trans_thread', 5))
         else:
-            self.trans_thread = int(config.settings.get('aitrans_thread', 20))
+            self.trans_thread = int(settings.get('aitrans_thread', 20))
     # 发出请求获取内容 data=[text1,text2,text] | text
     # 按行翻译时，data=[text_str,...]
     # AI发送完整字幕时 data=srt_string
@@ -73,14 +73,14 @@ class BaseTrans(BaseCon):
         pass
 
     def _exit(self):
-        if config.exit_soft or (self.uuid and self.uuid in config.stoped_uuid_set):
+        if app_cfg.exit_soft or (self.uuid and self.uuid in app_cfg.stoped_uuid_set):
             return True
         return False
 
     # 实际操作 run|runsrt -> _item_task
     def run(self) -> Union[List, str, None]:
         # 开始对分割后的每一组进行处理
-        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
         _st=time.time()
         self._signal(text="")
         if hasattr(self,'_download'):
@@ -108,7 +108,7 @@ class BaseTrans(BaseCon):
         finally:
             if hasattr(self,'_unload'):
                 self._unload()
-            config.logger.debug(f'[字幕翻译]渠道{self.translate_type},{self.model_name}:共耗时:{int(time.time()-_st)}s')
+            logger.debug(f'[字幕翻译]渠道{self.translate_type},{self.model_name}:共耗时:{int(time.time()-_st)}s')
             
     def _run_text(self,split_source_text):
         # 传统翻译渠道或AI翻译渠道以按行形式翻译
@@ -139,7 +139,7 @@ class BaseTrans(BaseCon):
             time.sleep(self.wait_sec)
 
         max_i = len(target_list)
-        config.logger.debug(f'以普通文本行按行翻译：原始行数:{len(self.text_list)},翻译后行数:{max_i}')
+        logger.debug(f'以普通文本行按行翻译：原始行数:{len(self.text_list)},翻译后行数:{max_i}')
         for i, it in enumerate(self.text_list):
             if i < max_i:
                 self.text_list[i]['text'] = target_list[i]
@@ -170,11 +170,11 @@ class BaseTrans(BaseCon):
 
             self._signal(text=result, type='subtitle')
             tmp=tools.get_subtitle_from_srt(result, is_file=False)
-            config.logger.debug(f'\n原始待翻译文本:{srt_str=}\n翻译结果:{result=}\n整理后：{tmp=}')
+            logger.debug(f'\n原始待翻译文本:{srt_str=}\n翻译结果:{result=}\n整理后：{tmp=}')
             raws_list.extend(tmp)
             time.sleep(self.wait_sec)
 
-        config.logger.debug(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},整理为list[dict]后的行数:{len(raws_list)}')
+        logger.debug(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},整理为list[dict]后的行数:{len(raws_list)}')
         for i, it in enumerate(raws_list):
             if i>=len(self.text_list):
                 continue
@@ -186,20 +186,20 @@ class BaseTrans(BaseCon):
             return
         key_cache = self._get_key(it)
 
-        file_cache = config.TEMP_ROOT + f'/translate_cache/{key_cache}.txt'
-        if not Path(config.TEMP_ROOT + f'/translate_cache').is_dir():
-            Path(config.TEMP_ROOT + f'/translate_cache').mkdir(parents=True, exist_ok=True)
+        file_cache = TEMP_ROOT + f'/translate_cache/{key_cache}.txt'
+        if not Path(TEMP_ROOT + f'/translate_cache').is_dir():
+            Path(TEMP_ROOT + f'/translate_cache').mkdir(parents=True, exist_ok=True)
         Path(file_cache).write_text(res_str, encoding='utf-8')
 
     def _get_cache(self, it):
         if self.is_test: return None
         key_cache = self._get_key(it)
-        file_cache = config.TEMP_ROOT + f'/translate_cache/{key_cache}.txt'
+        file_cache = TEMP_ROOT + f'/translate_cache/{key_cache}.txt'
         if Path(file_cache).exists():
             return Path(file_cache).read_text(encoding='utf-8')
         return None
 
     def _get_key(self, it):
-        Path(config.TEMP_ROOT + '/translate_cache').mkdir(parents=True, exist_ok=True)
+        Path(TEMP_ROOT + '/translate_cache').mkdir(parents=True, exist_ok=True)
         key_str=f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}'
         return tools.get_md5(key_str)

@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -34,16 +34,16 @@ class Gemini(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-        self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.model_name = config.params.get("gemini_model",'gemini-2.5-flash')
+        self.trans_thread = int(settings.get('aitrans_thread', 50))
+        self.model_name = params.get("gemini_model",'gemini-2.5-flash')
 
         self.prompt = tools.get_prompt(ainame='gemini',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
-        self.api_keys = config.params.get('gemini_key', '').strip().split(',')
+        self.api_keys = params.get('gemini_key', '').strip().split(',')
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
@@ -60,7 +60,7 @@ class Gemini(BaseTrans):
                 )
 
             )
-            model = config.params.get("gemini_model","gemini-2.5-flash")
+            model = params.get("gemini_model","gemini-2.5-flash")
             message=self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
             contents = [
                 types.Content(
@@ -71,7 +71,7 @@ class Gemini(BaseTrans):
                 ),
             ]
             think_cfg=types.ThinkingConfig(
-                    thinking_budget=int(config.params.get('gemini_thinking_budget',24576)),
+                    thinking_budget=int(params.get('gemini_thinking_budget',24576)),
                 )
             if model.startswith('gemini-3'):
                 think_cfg=types.ThinkingConfig(
@@ -79,8 +79,8 @@ class Gemini(BaseTrans):
                 )
                 
             generate_content_config = types.GenerateContentConfig(
-                temperature=float(config.settings.get('aitrans_temperature',0.2)),
-                max_output_tokens=int(config.params.get("gemini_maxtoken",65530)),
+                temperature=float(settings.get('aitrans_temperature',0.2)),
+                max_output_tokens=int(params.get("gemini_maxtoken",65530)),
                 safety_settings=[
                     types.SafetySetting(
                         category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
@@ -107,7 +107,7 @@ class Gemini(BaseTrans):
             )
             if model.startswith('gemini-1.') or model.startswith('gemini-2.0'):            
                 generate_content_config = types.GenerateContentConfig()
-            config.logger.debug(f'[Gemini]请求发送:{message=}')
+            logger.debug(f'[Gemini]请求发送:{message=}')
             result = ""
             for chunk in client.models.generate_content_stream(
                 model=model,
@@ -116,9 +116,9 @@ class Gemini(BaseTrans):
             ):
                 result+=chunk.text if chunk.text else ""
                      
-            config.logger.debug(f'{result=}')
+            logger.debug(f'{result=}')
             if not result:
-                config.logger.warning(f'[gemini]请求失败')
+                logger.warning(f'[gemini]请求失败')
                 raise RuntimeError(f"[Gemini]result is empty")
                 
             match = re.search(r'<TRANSLATE_TEXT>(.*?)(?:</TRANSLATE_TEXT>|$)',
@@ -127,7 +127,7 @@ class Gemini(BaseTrans):
                 return match.group(1)
             raise RuntimeError(f"Gemini result is emtpy")
         except errors.APIError as e:
-            config.logger.warning(f'{e=}')
+            logger.warning(f'{e=}')
             if e.code in [400,403,404,429,500]:
                 raise StopRetry(e.message)
             raise RuntimeError(e.message)

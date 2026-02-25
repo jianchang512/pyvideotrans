@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QIcon, QDesktopServices, QColor
 from PySide6.QtCore import Qt, QTimer, QSize, QUrl
 
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 from videotrans.configure import config
 
@@ -59,12 +59,12 @@ class SpeakerAssignmentDialog(QDialog):
                 self.speaker_list_sub = _list_sub
                 self.speakers = {it: None for it in sorted(list(_set))}
         except Exception as e:
-            config.logger.exception(f'获取说话人id失败:{e}', exc_info=True)
+            logger.exception(f'获取说话人id失败:{e}', exc_info=True)
 
         self.all_voices = all_voices or []
 
         self.setWindowTitle(tr("zidonghebingmiaohou"))
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setMinimumWidth(int(parent.width*0.95))
         self.setMinimumHeight(int(parent.height*0.95))
         self.setWindowFlags(
@@ -77,7 +77,7 @@ class SpeakerAssignmentDialog(QDialog):
         main_layout = QVBoxLayout(self)
         
         # --- 顶部：倒计时与提示 ---
-        self.count_down = int(float(config.settings.get('countdown_sec', 1)))
+        self.count_down = int(float(settings.get('countdown_sec', 1)))
         top_layout = QVBoxLayout()
         hstop = QHBoxLayout()
 
@@ -540,7 +540,7 @@ class SpeakerAssignmentDialog(QDialog):
         wk = ListenVoice(parent=self, queue_tts=[{
             "text": first_text,
             "role": role_value,
-            "filename": config.TEMP_DIR + f"/{time.time()}-onlyone_setrole.wav",
+            "filename": TEMP_DIR + f"/{time.time()}-onlyone_setrole.wav",
             "tts_type": self.tts_type}],
             language=self.target_language,
             tts_type=self.tts_type)
@@ -590,7 +590,7 @@ class SpeakerAssignmentDialog(QDialog):
     
     def save_and_close(self):
         self.save_button.setDisabled(True)
-        config.line_roles = {}
+        app_cfg.line_roles = {}
         srt_str_list = []
 
         speaker_keys = list(self.speakers.keys()) if self.speakers else []
@@ -609,12 +609,12 @@ class SpeakerAssignmentDialog(QDialog):
                 role = self.speakers.get(data['spk'], '')
 
             if role:
-                config.line_roles[str(data["line"])] = role
+                app_cfg.line_roles[str(data["line"])] = role
 
         try:
             Path(self.target_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
         except Exception as e:
-            config.logger.error(f"Save subtitle failed: {e}")
+            logger.error(f"Save subtitle failed: {e}")
             QMessageBox.critical(self, "Error", f"Save failed: {e}")
             self.save_button.setDisabled(False)
             return

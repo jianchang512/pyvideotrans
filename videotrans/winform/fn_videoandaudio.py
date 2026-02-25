@@ -1,20 +1,22 @@
 # 水印
 
+
 def openwin():
 
     import json
     import os
     import time
     from pathlib import Path
-    from videotrans.configure.config import tr
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
 
+    from videotrans.util import contants
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     # 使用内置的 open 函数
     from videotrans.util import tools
-    RESULT_DIR = config.HOME_DIR + "/videoandaudio"
+    RESULT_DIR = HOME_DIR + "/videoandaudio"
 
 
     class CompThread(QThread):
@@ -33,9 +35,9 @@ def openwin():
             for it in Path(self.folder).iterdir():
                 if it.is_file():
                     suffix = it.suffix.lower()[1:]
-                    if suffix in config.VIDEO_EXTS:
+                    if suffix in contants.VIDEO_EXTS:
                         videos[it.stem] = it.resolve().as_posix()
-                    elif suffix in config.AUDIO_EXITS:
+                    elif suffix in contants.AUDIO_EXITS:
                         audios[it.stem] = it.resolve().as_posix()
 
             vailfiles = {}
@@ -53,7 +55,7 @@ def openwin():
         def run(self) -> None:
             os.chdir(RESULT_DIR)
             # 确保临时目录存在
-            os.makedirs(config.TEMP_DIR, exist_ok=True)
+            os.makedirs(TEMP_DIR, exist_ok=True)
 
             vailfiles, length = self.get_list()
             if not vailfiles:
@@ -70,7 +72,7 @@ def openwin():
                     self.post(f'{Path(audio).name} --> {Path(info["video"]).name} ')
                     video_time = tools.get_video_duration(info['video'])
                     audio_time = int(tools.get_audio_time(audio))
-                    tmp_audio = config.TEMP_DIR + f"/{time.time()}-{Path(audio).name}"
+                    tmp_audio = TEMP_DIR + f"/{time.time()}-{Path(audio).name}"
                     if audio_time > video_time and self.audio_process == 0:
                         tools.runffmpeg(
                             ['-y', '-i', audio, '-ss', '00:00:00.000', '-t', str(video_time / 1000), tmp_audio])
@@ -82,7 +84,7 @@ def openwin():
                         # 需要保留原声
                         video_info = tools.get_video_info(info['video'])
                         if video_info['streams_audio']:
-                            tmp_mp4 = config.TEMP_DIR + f"/{name}-{time.time()}.m4a"
+                            tmp_mp4 = TEMP_DIR + f"/{name}-{time.time()}.m4a"
                             # 存在声音，则需要混合
                             tools.runffmpeg([
                                 '-y',
@@ -147,7 +149,7 @@ def openwin():
 
     def get_file():
         dirname = QFileDialog.getExistingDirectory(winobj,tr('selectsavedir'),
-                                                   config.params.get('last_opendir',''))
+                                                   params.get('last_opendir',''))
         winobj.folder.setText(dirname.replace('\\', '/'))
 
     def start():
@@ -176,7 +178,7 @@ def openwin():
     from videotrans.component.set_form import Videoandaudioform
 
     winobj = Videoandaudioform()
-    config.child_forms['fn_videoandaudio'] = winobj
+    app_cfg.child_forms['fn_videoandaudio'] = winobj
     winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)

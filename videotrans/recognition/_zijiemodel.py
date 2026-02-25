@@ -8,7 +8,7 @@ from typing import List, Dict, Union
 import requests
 
 from videotrans.configure import config
-
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -36,10 +36,10 @@ class ZijieRecogn(BaseRecogn):
 
         submit_url = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash"
         task_id = str(uuid.uuid4())
-        appid=config.params.get('zijierecognmodel_appid','')
+        appid=params.get('zijierecognmodel_appid','')
         headers = {
             "X-Api-App-Key": appid,
-            "X-Api-Access-Key": config.params.get('zijierecognmodel_token',''),
+            "X-Api-Access-Key": params.get('zijierecognmodel_token',''),
             "X-Api-Resource-Id": "volc.bigasr.auc_turbo",
             "X-Api-Request-Id": task_id,
             "X-Api-Sequence": "-1"
@@ -64,8 +64,8 @@ class ZijieRecogn(BaseRecogn):
         # print(request)
 
         response = requests.post(submit_url, json=request, headers=headers)
-        config.logger.info(f'{response=}')
-        config.logger.info(f'{response.headers=}')
+        logger.info(f'{response=}')
+        logger.info(f'{response.headers=}')
         response.raise_for_status()
         code = response.headers.get('X-Api-Status-Code')
         if not code:

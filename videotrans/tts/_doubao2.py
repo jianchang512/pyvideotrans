@@ -10,6 +10,7 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
+from videotrans.configure.config import logger, params
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -79,7 +80,7 @@ class Doubao2TTS(BaseTTS):
                 wf.writeframes(audio_data)
 
         except Exception as e:
-            config.logger.exception(f"保存WAV文件时出错: {e}",exc_info=True)
+            logger.exception(f"保存WAV文件时出错: {e}",exc_info=True)
 
     
     def _item_task(self, data_item: dict = None):
@@ -88,8 +89,8 @@ class Doubao2TTS(BaseTTS):
 
         if tools.vail_file(data_item['filename']):
             return
-        appid = config.params.get('doubao2_appid','')
-        access_token = config.params.get('doubao2_access','')
+        appid = params.get('doubao2_appid','')
+        access_token = params.get('doubao2_access','')
         speed = 1.0
         if self.rate:
             speed += float(self.rate.replace('%', '')) / 100
@@ -144,7 +145,7 @@ class Doubao2TTS(BaseTTS):
         
         
         response.raise_for_status()
-        config.logger.debug(f"code: {response.status_code} header: {response.headers}")
+        logger.debug(f"code: {response.status_code} header: {response.headers}")
 
         # 用于存储音频数据
         audio_data = bytearray()

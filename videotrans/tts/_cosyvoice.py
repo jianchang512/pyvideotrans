@@ -12,8 +12,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from gradio_client import Client, handle_file
 
 from videotrans.configure import config
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -26,7 +26,7 @@ RETRY_DELAY = 5
 class CosyVoice(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = config.params.get('cosyvoice_url','').strip().rstrip('/').lower()
+        self.api_url = params.get('cosyvoice_url','').strip().rstrip('/').lower()
         self._add_internal_host_noproxy(self.api_url)
 
     def _exec(self):
@@ -54,13 +54,13 @@ class CosyVoice(BaseTTS):
             data['ref_wav'] = data_item.get('ref_wav','')
             data['ref_text'] = data_item.get('ref_text','')
         else:
-            data['ref_wav'] = config.ROOT_DIR+"/f5-tts/"+rolelist[role].get('reference_audio','')
+            data['ref_wav'] = ROOT_DIR+"/f5-tts/"+rolelist[role].get('reference_audio','')
             data['ref_text'] = rolelist[role].get('reference_text','')
 
         if not Path(data['ref_wav']).exists():
             raise StopRetry(f"{data['ref_wav']} is not exists")
         
-        config.logger.debug(f'cosyvoice-tts {data=}')
+        logger.debug(f'cosyvoice-tts {data=}')
         try:
             client = Client(self.api_url, ssl_verify=False)
         except Exception as e:
@@ -68,7 +68,7 @@ class CosyVoice(BaseTTS):
         # 参考音频对应文本内容
         prompt_text=data.get('ref_text','')
         # 提示词，克隆时放入参考音频文本中
-        instruct_text=config.params.get('cosyvoice_instruct_text','')
+        instruct_text=params.get('cosyvoice_instruct_text','')
         if instruct_text:
             prompt_text=f'You are a helpful assistant.{instruct_text}<|endofprompt|>{prompt_text}'
         result = client.predict(
@@ -86,7 +86,7 @@ class CosyVoice(BaseTTS):
         )
 
 
-        config.logger.debug(f'result={result}')
+        logger.debug(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:
             wav_file = wav_file['value']
@@ -124,7 +124,7 @@ class CosyVoice(BaseTTS):
             data['encode'] = 'base64'
         else:
             role_info = rolelist[role]
-            data['reference_audio'] = config.ROOT_DIR+"/f5-tts/"+role_info.get('reference_audio','')
+            data['reference_audio'] = ROOT_DIR+"/f5-tts/"+role_info.get('reference_audio','')
 
             if not data['reference_audio']:
                 raise StopRetry(tr('Preset role {} is incorrectly configured, missing clone reference audio',role))
@@ -139,7 +139,7 @@ class CosyVoice(BaseTTS):
                 # 仅提供参考音频，使用跨语种克隆
                 api_url += '/clone_mul'
 
-        config.logger.debug(f'请求数据：{api_url=},{data=}')
+        logger.debug(f'请求数据：{api_url=},{data=}')
         # 克隆声音
         response = requests.post(f"{api_url}", data=data,  timeout=3600)
         response.raise_for_status()

@@ -13,7 +13,7 @@ from gradio_client import Client, handle_file, client
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from videotrans.process import qwen3tts_fun
@@ -32,31 +32,30 @@ class QwenttsLocal(BaseTTS):
 
     
     def _download(self):
-        if config.defaulelang == 'zh':
-            tools.check_and_down_ms(f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-Base',callback=self._process_callback,local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-Base')
-            tools.check_and_down_ms(f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',callback=self._process_callback,local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-CustomVoice')
+        if defaulelang == 'zh':
+            tools.check_and_down_ms(f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-Base',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-Base')
+            tools.check_and_down_ms(f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-CustomVoice')
         else:
-            tools.check_and_down_hf(model_id=f'Qwen3-TTS-12Hz-{self.model_name}-Base',repo_id=f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-Base',local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-Base',callback=self._process_callback)
-            tools.check_and_down_hf(model_id=f'Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',repo_id=f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',callback=self._process_callback)
+            tools.check_and_down_hf(model_id=f'Qwen3-TTS-12Hz-{self.model_name}-Base',repo_id=f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-Base',local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-Base',callback=self._process_callback)
+            tools.check_and_down_hf(model_id=f'Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',repo_id=f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-CustomVoice',callback=self._process_callback)
 
 
     def _exec(self):
-        Path(f'{config.TEMP_DIR}/{self.uuid}').mkdir(parents=True,exist_ok=True)
-        logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
+        Path(f'{TEMP_DIR}/{self.uuid}').mkdir(parents=True,exist_ok=True)
+        logs_file = f'{TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
         
-        queue_tts_file = f'{config.TEMP_DIR}/{self.uuid}/queuetts-{time.time()}.json'
+        queue_tts_file = f'{TEMP_DIR}/{self.uuid}/queuetts-{time.time()}.json'
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
         title="Qwen3-TTS"
         kwargs = {            
             "queue_tts_file":queue_tts_file,
             "language": self.target_language,
-            "ROOT_DIR": config.ROOT_DIR,
             "logs_file": logs_file,
-            "defaulelang": config.defaulelang,
+            "defaulelang": defaulelang,
             "is_cuda": self.is_cuda,
             "model_name":self.model_name,
             "roledict":tools.get_qwenttslocal_rolelist(),
-            "prompt":config.params.get('qwenttslocal_prompt', '')
+            "prompt":params.get('qwenttslocal_prompt', '')
         }
         self._new_process(callback=qwen3tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
     

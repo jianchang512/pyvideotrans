@@ -4,15 +4,16 @@ from pathlib import Path
 from typing import List
 
 from videotrans.configure import config
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
 from videotrans.configure._base import BaseCon
-from videotrans.task.taskcfg import TaskCfg
+from videotrans.task.taskcfg import TaskCfgBase
 from videotrans.util import tools
 
 
 @dataclass
 class BaseTask(BaseCon):
     # 各项配置信息，例如 翻译、配音、识别渠道等
-    cfg: TaskCfg = field(default_factory=TaskCfg, repr=False)
+    cfg: TaskCfgBase = field(default_factory=TaskCfgBase, repr=False)
     # 进度记录
     precent: int = 1
     # 需要配音的原始字幕信息 List[dict]
@@ -42,8 +43,7 @@ class BaseTask(BaseCon):
         super().__post_init__()
         if self.cfg.uuid:
             self.uuid = self.cfg.uuid
-        if self.cfg.clear_cache and Path(self.cfg.target_dir).is_dir():
-            shutil.rmtree(self.cfg.target_dir, ignore_errors=True)
+
     # 预先处理，例如从视频中拆分音频、人声背景分离、转码等
     def prepare(self):
         pass
@@ -119,7 +119,7 @@ class BaseTask(BaseCon):
             return target_srt_list[:1]
         source_len = len(source_srt_list)
         target_len = len(target_srt_list)
-        config.logger.debug(f'核对翻译结果前->原始语言字幕行数:{source_len},目标语言字幕行数:{target_len}')
+        logger.debug(f'核对翻译结果前->原始语言字幕行数:{source_len},目标语言字幕行数:{target_len}')
         
         if source_len==target_len:
             for i,it in enumerate(source_srt_list):
@@ -129,11 +129,11 @@ class BaseTask(BaseCon):
             return target_srt_list
 
         if target_len>source_len:
-            config.logger.debug(f'翻译结果行数大于原始字幕行，截取0-{source_len}')
+            logger.debug(f'翻译结果行数大于原始字幕行，截取0-{source_len}')
             return target_srt_list[:source_len]
         
         
-        config.logger.debug(f'翻译结果行数少于原始字幕行，追加')
+        logger.debug(f'翻译结果行数少于原始字幕行，追加')
         for i,it in enumerate(source_srt_list):
             if i>=target_len:
                 tmp=copy.deepcopy(it)
@@ -150,7 +150,7 @@ class BaseTask(BaseCon):
         import aiohttp,asyncio
         from io import BytesIO
         
-        useproxy_initial = None if not self.proxy_str or Path(f'{config.ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
+        useproxy_initial = None if not self.proxy_str or Path(f'{ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
         proxies_to_try = [useproxy_initial]
         if useproxy_initial is not None:
             proxies_to_try.append(None)
@@ -184,7 +184,7 @@ class BaseTask(BaseCon):
         raise last_exception if last_exception else RuntimeError(f'Dubbing error')
     # 完整流程判断是否需退出，子功能需重写
     def _exit(self):
-        if config.exit_soft or config.current_status != 'ing':
+        if app_cfg.exit_soft or app_cfg.current_status != 'ing':
             self.hasend=True
             return True
         return False

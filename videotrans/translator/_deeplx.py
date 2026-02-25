@@ -7,6 +7,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
@@ -22,8 +23,8 @@ class DeepLX(BaseTrans):
         super().__post_init__()
         self.aisendsrt = False
 
-        url = config.params.get('deeplx_address','').strip().rstrip('/')
-        key = config.params.get('deeplx_key','').strip()
+        url = params.get('deeplx_address','').strip().rstrip('/')
+        key = params.get('deeplx_key','').strip()
 
         if "/translate" not in url:
             url += '/translate'
@@ -39,8 +40,8 @@ class DeepLX(BaseTrans):
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         target_code = self.target_code.upper()
@@ -59,10 +60,10 @@ class DeepLX(BaseTrans):
             "source_lang": sourcecode,
             "target_lang": target_code
         }
-        config.logger.debug(f'[DeepLX]发送请求数据,{jsondata=}')
+        logger.debug(f'[DeepLX]发送请求数据,{jsondata=}')
         response = requests.post(url=self.api_url, json=jsondata)
         response.raise_for_status()
-        config.logger.debug(f'[DeepLX]返回响应,{response.text=}')
+        logger.debug(f'[DeepLX]返回响应,{response.text=}')
 
         result = response.json()
         result = tools.cleartext(result['data'])

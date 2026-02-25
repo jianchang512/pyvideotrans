@@ -8,6 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, before_log, after_lo
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -42,10 +43,10 @@ class GoogleCloudTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.cred_path = config.params.get("gcloud_credential_json", "").strip()
-        self.language_code = config.params.get("gcloud_language_code", "en-US")
-        self.voice_name = config.params.get("gcloud_voice_name", "")
-        self.encoding = config.params.get("gcloud_audio_encoding", "MP3")
+        self.cred_path = params.get("gcloud_credential_json", "").strip()
+        self.language_code = params.get("gcloud_language_code", "en-US")
+        self.voice_name = params.get("gcloud_voice_name", "")
+        self.encoding = params.get("gcloud_audio_encoding", "MP3")
         if not self.cred_path or not os.path.isfile(self.cred_path):
             raise RuntimeError("Arquivo de credenciais do Google Cloud TTS não configurado ou não encontrado")
 
@@ -82,8 +83,8 @@ class GoogleCloudTTS(BaseTTS):
             return
 
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
             if self._exit() or not data_item or tools.vail_file(data_item["filename"]):
                 return
@@ -100,14 +101,14 @@ class GoogleCloudTTS(BaseTTS):
             # tenta inferir gênero se precisar
             gender = getattr(
                 SsmlVoiceGender,
-                config.params.get("gcloud_ssml_gender", "SSML_VOICE_GENDER_UNSPECIFIED"),
+                params.get("gcloud_ssml_gender", "SSML_VOICE_GENDER_UNSPECIFIED"),
                 None
             )
 
             # pega a voz (role) que veio do pipeline, ou usa o default do config
             voice_name = data_item.get("role", self.voice_name)
             if not voice_name or voice_name == "No":
-                config.logger.warning("Nenhuma voz selecionada, usando voz padrão")
+                logger.warning("Nenhuma voz selecionada, usando voz padrão")
                 voice_name = self.voice_name
 
             voice_params = texttospeech.VoiceSelectionParams(
@@ -123,7 +124,7 @@ class GoogleCloudTTS(BaseTTS):
             try:
                 rate_val = float(rate_str.replace("%", "").replace("+", ""))
             except ValueError:
-                config.logger.warning(f"Taxa de fala inválida: {rate_str}, usando 0%")
+                logger.warning(f"Taxa de fala inválida: {rate_str}, usando 0%")
                 rate_val = 0.0
             # converte de percentual para fator (ex: "+10%" → 1.10)
             speaking_rate = 1.0 + (rate_val / 100.0)
@@ -135,7 +136,7 @@ class GoogleCloudTTS(BaseTTS):
                 # Remove Hz e converte para float
                 pitch_val = float(pitch_str.replace("Hz", "").replace("+", ""))
             except ValueError:
-                config.logger.warning(f"Tom inválido: {pitch_str}, usando 0Hz")
+                logger.warning(f"Tom inválido: {pitch_str}, usando 0Hz")
                 pitch_val = 0.0
 
             audio_config = texttospeech.AudioConfig(

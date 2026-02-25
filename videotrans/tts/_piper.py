@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 import wave
@@ -22,7 +23,7 @@ class PiperTTS(BaseTTS):
         # 角色名转为 piper文件夹下的子文件夹名
         name_path=name.split('_')[0]+'/'+name.replace('-','/')
         # 存放onnx文件的最终文件夹绝对路径
-        local_dir=config.ROOT_DIR+'/models/piper/'+name_path
+        local_dir=ROOT_DIR+'/models/piper/'+name_path
         onnx_file=f'{local_dir}/{name}.onnx'
         if Path(onnx_file).exists():
             return onnx_file
@@ -51,7 +52,7 @@ class PiperTTS(BaseTTS):
         )
         ok, err = 0, 0
         for i, item in enumerate(self.queue_tts):
-            if config.exit_soft:return
+            if app_cfg.exit_soft:return
             if not item.get('text','').strip():
                 continue
             try:
@@ -68,13 +69,13 @@ class PiperTTS(BaseTTS):
                 ok+=1
                 self.convert_to_wav(item['filename']+'-24k.wav',item['filename'])
             except Exception as e:
-                config.logger.exception(f'piper dubbing error:{e}',exc_info=True)
+                logger.exception(f'piper dubbing error:{e}',exc_info=True)
                 err+=1
 
         if err > 0:
             msg=f'[{err}] errors, {ok} succeed'
             self._signal(text=msg)
-            config.logger.debug(f'piper配音结束：{msg}')
+            logger.debug(f'piper配音结束：{msg}')
 
         try:
             del _model_obj

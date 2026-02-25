@@ -3,7 +3,7 @@ def openwin():
     from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
-    from videotrans.configure.config import tr
+    from videotrans.configure.config import tr,settings,params,app_cfg
     def feed(d):
         if not d.startswith("ok"):
             tools.show_error(d)
@@ -14,9 +14,9 @@ def openwin():
     def save_baidu():
         appid = winobj.baidu_appid.text()
         miyue = winobj.baidu_miyue.text()
-        config.params["baidu_appid"] = appid
-        config.params["baidu_miyue"] = miyue
-        config.getset_params(config.params)
+        params["baidu_appid"] = appid
+        params["baidu_miyue"] = miyue
+        params.save()
         winobj.close()
 
     def test():
@@ -25,8 +25,8 @@ def openwin():
         if not appid or not miyue:
             return tools.show_error(
                 tr("Please input appid and Secret"))
-        config.params["baidu_appid"] = appid
-        config.params["baidu_miyue"] = miyue
+        params["baidu_appid"] = appid
+        params["baidu_miyue"] = miyue
 
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
@@ -37,11 +37,11 @@ def openwin():
     from videotrans.component.set_form import BaiduForm
 
     winobj = BaiduForm()
-    config.child_forms['baidu'] = winobj
-    if config.params.get("baidu_appid",''):
-        winobj.baidu_appid.setText(config.params.get("baidu_appid",''))
-    if config.params.get("baidu_miyue",''):
-        winobj.baidu_miyue.setText(config.params.get("baidu_miyue",''))
+    app_cfg.child_forms['baidu'] = winobj
+    if params.get("baidu_appid",''):
+        winobj.baidu_appid.setText(params.get("baidu_appid",''))
+    if params.get("baidu_miyue",''):
+        winobj.baidu_miyue.setText(params.get("baidu_miyue",''))
     winobj.set_badiu.clicked.connect(save_baidu)
     winobj.test.clicked.connect(test)
     winobj.show()

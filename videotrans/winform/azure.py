@@ -1,6 +1,6 @@
 def openwin():
-    import json
     from videotrans.configure import config
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
 
     def save():
         key = winobj.azure_key.text()
@@ -8,12 +8,12 @@ def openwin():
         model = winobj.azure_model.currentText()
         version = winobj.azure_version.currentText()
 
-        config.params["azure_key"] = key
-        config.params["azure_api"] = api
-        config.params["azure_version"] = version
-        config.params["azure_model"] = model
+        params["azure_key"] = key
+        params["azure_api"] = api
+        params["azure_version"] = version
+        params["azure_model"] = model
 
-        config.getset_params(config.params)
+        params.save()
 
         winobj.close()
 
@@ -25,16 +25,15 @@ def openwin():
         winobj.azure_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
             winobj.azure_model.setCurrentText(current_text)
-        config.settings['azure_model'] = t
-        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings, ensure_ascii=False))
+        settings['azure_model'] = t
+        settings.save()
 
 
 
     from videotrans.component.set_form import AzureForm
 
     winobj = AzureForm()
-    config.child_forms['azure'] = winobj
+    app_cfg.child_forms['azure'] = winobj
     winobj.update_ui()
 
     winobj.edit_allmodels.textChanged.connect(setallmodels)

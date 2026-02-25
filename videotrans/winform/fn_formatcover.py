@@ -1,19 +1,21 @@
 # 音视频格式转换
 
+
 def openwin():
     import json
     import os
     import shutil
     from pathlib import Path
-    from videotrans.configure.config import tr
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
 
+    from videotrans.util import contants
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
 
-    RESULT_DIR = config.HOME_DIR + "/formatcover"
+    RESULT_DIR = HOME_DIR + "/formatcover"
 
 
     class CompThread(QThread):
@@ -69,9 +71,9 @@ def openwin():
             winobj.videourls = []
 
     def get_file():
-        format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in contants.VIDEO_EXTS + contants.AUDIO_EXITS])
         fnames, _ = QFileDialog.getOpenFileNames(winobj, tr('selectmp4'),
-                                                 config.params['last_opendir'],
+                                                 params['last_opendir'],
                                                  f"Video files({format_str})")
         if len(fnames) < 1:
             return
@@ -80,7 +82,7 @@ def openwin():
             winobj.videourls.append(it.replace('\\', '/'))
 
         if len(winobj.videourls) > 0:
-            config.params['last_opendir'] = os.path.dirname(fnames[0])
+            params['last_opendir'] = os.path.dirname(fnames[0])
             winobj.pathdir.setText(",".join(winobj.videourls))
 
     def start():
@@ -103,7 +105,7 @@ def openwin():
 
     from videotrans.component.set_form import FormatcoverForm
     winobj = FormatcoverForm()
-    config.child_forms['fn_formatcover'] = winobj
+    app_cfg.child_forms['fn_formatcover'] = winobj
     winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)

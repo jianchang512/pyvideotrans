@@ -4,8 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -115,16 +114,14 @@ class Ui_zhipuaiform(object):
         QtCore.QMetaObject.connectSlotsByName(zhipuaiform)
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('zhipuai_model','')
-        allmodels = str(config.settings.get('zhipuai_model','')).split(',')
+        allmodels_str = settings.get('zhipuai_model','')
+        allmodels = str(settings.get('zhipuai_model','')).split(',')
         self.zhipu_model.clear()
         self.zhipu_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.zhipu_key.setText(config.params.get("zhipu_key",''))
-        self.zhipu_model.setCurrentText(config.params.get("zhipu_model",''))
-        self.max_token.setText(config.params.get("zhipu_max_token",''))
+        self.zhipu_key.setText(params.get("zhipu_key",''))
+        self.zhipu_model.setCurrentText(params.get("zhipu_model",''))
+        self.max_token.setText(params.get("zhipu_max_token",''))
     def retranslateUi(self, zhipuaiform):
         zhipuaiform.setWindowTitle(tr("Zhipu AI"))
         self.label_2.setText(tr("SK"))

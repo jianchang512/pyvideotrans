@@ -11,6 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import params
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -29,8 +30,8 @@ class Qwen3ASRRecogn(BaseRecogn):
         if self._exit(): return
         # 发送请求
         raws = self.cut_audio()
-        api_key=config.params.get('qwenmt_key','')
-        model=config.params.get('qwenmt_asr_model','qwen3-asr-flash')
+        api_key=params.get('qwenmt_key','')
+        model=params.get('qwenmt_asr_model','qwen3-asr-flash')
         error=""
         ok_nums=0
         for i, it in enumerate(raws):

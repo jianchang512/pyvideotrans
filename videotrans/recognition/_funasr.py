@@ -10,7 +10,7 @@ from typing import List, Dict, Union
 from pydub import AudioSegment
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, TEMP_DIR, ROOT_DIR, defaulelang
 from videotrans.process import paraformer, funasr_mlt
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
@@ -48,9 +48,9 @@ class FunasrRecogn(BaseRecogn):
         else:
             tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
         self._signal(text=f"load {self.model_name}")
-        logs_file = f'{config.TEMP_DIR}/{self.uuid}/funasr-{self.detect_language}-{time.time()}.log'
+        logs_file = f'{TEMP_DIR}/{self.uuid}/funasr-{self.detect_language}-{time.time()}.log'
         if self.model_name != 'paraformer-zh':
-            cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
+            cut_audio_list_file = f'{TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
             Path(cut_audio_list_file).write_text(json.dumps(self.cut_audio()),encoding='utf-8')
         else:
             cut_audio_list_file=None
@@ -58,12 +58,9 @@ class FunasrRecogn(BaseRecogn):
             "cut_audio_list":   cut_audio_list_file,
             "detect_language": self.detect_language,
             "model_name": self.model_name,
-            "ROOT_DIR": config.ROOT_DIR,
             "logs_file": logs_file,
-            "defaulelang": config.defaulelang,
             "is_cuda": self.is_cuda,
             "audio_file": self.audio_file,
-            "TEMP_ROOT": config.TEMP_ROOT,
             "max_speakers": self.max_speakers,
             "cache_folder": self.cache_folder
 

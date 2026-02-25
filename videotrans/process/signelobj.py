@@ -1,11 +1,11 @@
 import multiprocessing,os
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from videotrans.configure import config
+from concurrent.futures import ProcessPoolExecutor
+from videotrans.configure.config import app_cfg,settings,logger
+from videotrans.util.gpus import getset_gpu
 
 # ==========================================
 # 全局单例管理器
 # ==========================================
-from videotrans.util.gpus import getset_gpu
 
 
 class GlobalProcessManager:
@@ -18,7 +18,7 @@ class GlobalProcessManager:
     def get_cpu_process_nums(cls):
         cpu_count=int(os.cpu_count())
         try:
-            man_set=int(float(config.settings.get('process_max',0)))
+            man_set=int(float(settings.get('process_max',0)))
         except:
             man_set=0
         if man_set>0:
@@ -33,19 +33,19 @@ class GlobalProcessManager:
     def get_gpu_process_nums(cls):
         cpu_count=int(os.cpu_count())
         try:
-            process_max_gpu=int(float(config.settings.get('process_max_gpu',0)))
+            process_max_gpu=int(float(settings.get('process_max_gpu',0)))
         except:
             process_max_gpu=0
         # 手动设置了gpu进程数量，则优先级最高,例如虽然只有一卡，但显存特别大，可手动设置多个gpu进程
         if process_max_gpu>0:
             return int(min(process_max_gpu,8,cpu_count))
-        if config.NVIDIA_GPU_NUMS<0:
+        if app_cfg.NVIDIA_GPU_NUMS<0:
             getset_gpu()
         # 没有显卡 或 没有启用多显卡，则只启动一个gpu进程
-        if  config.NVIDIA_GPU_NUMS<1 or not bool(config.settings.get('multi_gpus',False)):
+        if  app_cfg.NVIDIA_GPU_NUMS<1 or not bool(settings.get('multi_gpus',False)):
             return 1
         
-        return int(min(config.NVIDIA_GPU_NUMS,8,cpu_count))
+        return int(min(app_cfg.NVIDIA_GPU_NUMS,8,cpu_count))
 
     @classmethod
     def get_executor_cpu(cls):
@@ -54,7 +54,7 @@ class GlobalProcessManager:
         if cls._executor_cpu is None:
             ctx = multiprocessing.get_context('spawn')
             max_workers=cls.get_cpu_process_nums()
-            config.logger.debug(f'CPU进程池:{max_workers=}')
+            logger.debug(f'CPU进程池:{max_workers=}')
             cls._executor_cpu = ProcessPoolExecutor(max_workers=int(max_workers), mp_context=ctx)
         return cls._executor_cpu
 
@@ -66,7 +66,7 @@ class GlobalProcessManager:
         if cls._executor_gpu is None:
             ctx = multiprocessing.get_context('spawn')
             max_workers=cls.get_gpu_process_nums()
-            config.logger.debug(f'GPU进程池:{max_workers=}')
+            logger.debug(f'GPU进程池:{max_workers=}')
             cls._executor_gpu = ProcessPoolExecutor(max_workers=int(max_workers), mp_context=ctx)
         return cls._executor_gpu
 

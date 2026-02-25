@@ -2,9 +2,7 @@
 
 
 from PySide6 import QtCore, QtWidgets
-
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -104,10 +102,8 @@ class Ui_ai302form(object):
         QtCore.QMetaObject.connectSlotsByName(ai302form)
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('ai302_models','')
-        allmodels = str(config.settings.get('ai302_models','')).split(',')
+        allmodels_str = settings.get('ai302_models','')
+        allmodels = str(settings.get('ai302_models','')).split(',')
 
         self.ai302_model.clear()
         self.ai302_model.addItems(allmodels)
@@ -115,11 +111,11 @@ class Ui_ai302form(object):
         self.ai302_model_recogn.addItems(['whisper-1','gpt-4o-transcribe','gpt-4o-mini-transcribe','gpt-4o-transcribe-diarize'])
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        if config.params.get("ai302_key",''):
-            self.ai302_key.setText(config.params.get("ai302_key",''))
-        if  config.params.get("ai302_model") in allmodels:
-            self.ai302_model.setCurrentText(config.params.get("ai302_model",''))
-        self.ai302_model_recogn.setCurrentText(config.params.get("ai302_model_recogn",''))
+        if params.get("ai302_key",''):
+            self.ai302_key.setText(params.get("ai302_key",''))
+        if  params.get("ai302_model") in allmodels:
+            self.ai302_model.setCurrentText(params.get("ai302_model",''))
+        self.ai302_model_recogn.setCurrentText(params.get("ai302_model_recogn",''))
 
     def retranslateUi(self, ai302form):
         ai302form.setWindowTitle("302.ai"+tr("Access translation and dubbing channel configuration"))

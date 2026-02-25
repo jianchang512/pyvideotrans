@@ -7,6 +7,7 @@ from typing import List, Dict, Union
 import requests
 
 from videotrans.configure import config
+from videotrans.configure.config import params
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -25,8 +26,8 @@ class DoubaoRecogn(BaseRecogn):
             return
 
         base_url = 'https://openspeech.bytedance.com/api/v1/vc'
-        appid = config.params.get('doubao_appid','')
-        access_token = config.params.get('doubao_access','')
+        appid = params.get('doubao_appid','')
+        access_token = params.get('doubao_access','')
 
         # 尺寸大于190MB，转为 mp3
 

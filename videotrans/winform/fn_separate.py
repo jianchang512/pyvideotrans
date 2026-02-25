@@ -2,22 +2,23 @@
 
 def openwin():
     import os
+    from videotrans.util import contants
     from pathlib import Path
-    from videotrans.configure.config import tr
     from PySide6.QtCore import QTimer
 
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     # 分离背景音
     from videotrans.util import tools
 
 
-    outdir = config.HOME_DIR +'/separate'
+    outdir = HOME_DIR +'/separate'
     def get_file():
-        format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in contants.VIDEO_EXTS + contants.AUDIO_EXITS])
         fname, _ = QFileDialog.getOpenFileName(winobj, "Select audio or video",
-                                               config.params.get('last_opendir',''),
+                                               params.get('last_opendir',''),
                                                f"files({format_str})")
         if fname:
             winobj.fromfile.setText(fname.replace('file:///', '').replace('\\', '/'))
@@ -51,12 +52,12 @@ def openwin():
         # 已在执行，在此点击停止
         if winobj.has_done:
             winobj.has_done = False
-            del config.uuid_logs_queue[uuid]
+            del app_cfg.uuid_logs_queue[uuid]
             winobj.set.setText(tr('Start Separate'))
             return
         winobj.has_done = True
-        if uuid in config.uuid_logs_queue:
-            del config.uuid_logs_queue[uuid]
+        if uuid in app_cfg.uuid_logs_queue:
+            del app_cfg.uuid_logs_queue[uuid]
 
         winobj.set.setText(tr('Start Separate...'))
         basename = Path(file).stem
@@ -73,7 +74,7 @@ def openwin():
     from videotrans.component.set_form import SeparateForm
 
     winobj = SeparateForm()
-    config.child_forms['fn_separate'] = winobj
+    app_cfg.child_forms['fn_separate'] = winobj
     winobj.show()
     def _bind():
 

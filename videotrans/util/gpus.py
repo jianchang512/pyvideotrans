@@ -3,6 +3,8 @@
 # 3. MacOSX 是否支持 mps
 import platform
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+
 
 
 # 获取可用的gpu数量 并缓存在 config.NVIDIA_GPU_NUMS 中，0=无可用显卡
@@ -13,13 +15,13 @@ def getset_gpu(force_cpu=False) -> int:
     if force_cpu:
         return 0
     # 尚未获取过时是 -1
-    if config.NVIDIA_GPU_NUMS > -1:
-        return config.NVIDIA_GPU_NUMS
+    if app_cfg.NVIDIA_GPU_NUMS > -1:
+        return app_cfg.NVIDIA_GPU_NUMS
     print('First searching GPU...')
     import torch
     # 无可用显卡
-    config.NVIDIA_GPU_NUMS = 0 if not torch.cuda.is_available() else torch.cuda.device_count()
-    return config.NVIDIA_GPU_NUMS
+    app_cfg.NVIDIA_GPU_NUMS = 0 if not torch.cuda.is_available() else torch.cuda.device_count()
+    return app_cfg.NVIDIA_GPU_NUMS
 
 
 # 获取当前限制可用的cuda显卡索引
@@ -30,14 +32,14 @@ def get_cudaX() -> int:
         return -1
     try:
         # 尚未初始化可用显卡数量
-        if config.NVIDIA_GPU_NUMS == -1:
+        if app_cfg.NVIDIA_GPU_NUMS == -1:
             getset_gpu()
 
-        if config.NVIDIA_GPU_NUMS == 0:
+        if app_cfg.NVIDIA_GPU_NUMS == 0:
             # 无可用显卡
             return -1
 
-        if config.NVIDIA_GPU_NUMS == 1 or not bool(config.settings.get('multi_gpus', False)):
+        if app_cfg.NVIDIA_GPU_NUMS == 1 or not bool(settings.get('multi_gpus', False)):
             # 只有一张卡，无可选 或 有多张但未启用多显卡
             return 0
 
@@ -50,18 +52,18 @@ def get_cudaX() -> int:
             return 0
 
         # 依次返回大于12G可用显存的，若不存在则返回空余显存最大的
-        for i in range(1, config.NVIDIA_GPU_NUMS):
+        for i in range(1, app_cfg.NVIDIA_GPU_NUMS):
             free_bytes, _ = torch.cuda.mem_get_info(i)
             if free_bytes > free_12g:
-                config.logger.debug(f'[使用第{i}块显卡],可用显存为 {free_bytes / (1024 ** 3)}GB')
+                logger.debug(f'[使用第{i}块显卡],可用显存为 {free_bytes / (1024 ** 3)}GB')
                 return i
             if free_bytes > _default_free:
                 _default_free = free_bytes
                 _default_index = i
-        config.logger.debug(f'[使用第{_default_index}块显卡],可用显存为 {_default_free / (1024 ** 3)}GB')
+        logger.debug(f'[使用第{_default_index}块显卡],可用显存为 {_default_free / (1024 ** 3)}GB')
         return _default_index
     except Exception as e:
-        config.logger.exception(f'获取当前可用显卡索引失败,返回第0块显卡:{e}', exc_info=True)
+        logger.exception(f'获取当前可用显卡索引失败,返回第0块显卡:{e}', exc_info=True)
         return 0
 
 

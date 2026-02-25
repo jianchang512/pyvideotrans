@@ -1,10 +1,9 @@
 def openwin():
     from PySide6 import QtWidgets
-
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
     import json
-    from videotrans.configure.config import tr
     from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
         if d == "ok":
@@ -24,24 +23,18 @@ def openwin():
 
 
         emotion = winobj.emotion.currentText()
-        config.params["minimaxi_emotion"] = emotion
-        config.params["minimaxi_apikey"] = apikey
-        config.params["minimaxi_model"] = model
-        config.params["minimaxi_apiurl"] = apiurl
-        config.getset_params(config.params)
-        '''
-        try:
-            updaterole()
-        except Exception as e:
-            return tools.show_error(str(e))
-        '''
+        params["minimaxi_emotion"] = emotion
+        params["minimaxi_apikey"] = apikey
+        params["minimaxi_model"] = model
+        params["minimaxi_apiurl"] = apiurl
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": "青涩青年音色" if "api.minimaxi.com"==apiurl else 'Reliable Executive',
-            "filename": config.TEMP_DIR + f"/{time.time()}-minimaxi.wav",
+            "filename": TEMP_DIR + f"/{time.time()}-minimaxi.wav",
             "tts_type": tts.MINIMAXI_TTS}],
                          language="zh",
                          tts_type=tts.MINIMAXI_TTS)
@@ -54,25 +47,25 @@ def openwin():
         apikey = winobj.apikey.text()
         model = winobj.model.currentText()
         apiurl = winobj.apiurl.currentText()
-        config.params["minimaxi_apiurl"] = apiurl
+        params["minimaxi_apiurl"] = apiurl
 
 
 
         emotion = winobj.emotion.currentText()
-        config.params["minimaxi_emotion"] = emotion
+        params["minimaxi_emotion"] = emotion
 
-        config.params["minimaxi_apikey"] = apikey
-        config.params["minimaxi_model"] = model
-        config.getset_params(config.params)
+        params["minimaxi_apikey"] = apikey
+        params["minimaxi_model"] = model
+        params.save()
         tools.set_process(text='minimaxi', type="refreshtts")
         winobj.close()
 
     def updaterole():
         import requests
-        url = f'https://{config.params.get("minimaxi_apiurl")}/v1/get_voice'
+        url = f'https://{params.get("minimaxi_apiurl")}/v1/get_voice'
         headers = {
             'authority': 'api.minimax.io',
-            'Authorization': f'Bearer {config.params.get("minimaxi_apikey","")}',
+            'Authorization': f'Bearer {params.get("minimaxi_apikey","")}',
             'content-type': 'application/json'
         }
 
@@ -94,9 +87,9 @@ def openwin():
         for k in raws.keys():
             raws[k].update(rolelist)
         try:
-            filejson=config.ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
-            if config.params["minimaxi_apiurl"]=='api.minimax.io':
-                filejson=config.ROOT_DIR + "/videotrans/voicejson/minimaxiio.json"
+            filejson=ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
+            if params["minimaxi_apiurl"]=='api.minimax.io':
+                filejson=ROOT_DIR + "/videotrans/voicejson/minimaxiio.json"
             with open(filejson,'w',encoding='utf-8') as f:
                 f.write(json.dumps(raws,ensure_ascii=False))
             tools.set_process(text='minimaxi', type="refreshtts")
@@ -108,14 +101,14 @@ def openwin():
 
     from videotrans.component.set_form import MinimaxiForm
     winobj = MinimaxiForm()
-    config.child_forms['minimaxi'] = winobj
+    app_cfg.child_forms['minimaxi'] = winobj
 
 
-    winobj.apikey.setText(config.params.get("minimaxi_apikey",''))
-    winobj.apiurl.setCurrentText(config.params.get("minimaxi_apiurl",'api.minimaxi.com'))
+    winobj.apikey.setText(params.get("minimaxi_apikey",''))
+    winobj.apiurl.setCurrentText(params.get("minimaxi_apiurl",'api.minimaxi.com'))
 
-    winobj.emotion.setCurrentText(config.params.get("minimaxi_emotion",''))
-    winobj.model.setCurrentText(config.params.get("minimaxi_model",''))
+    winobj.emotion.setCurrentText(params.get("minimaxi_emotion",''))
+    winobj.model.setCurrentText(params.get("minimaxi_model",''))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

@@ -1,13 +1,13 @@
-from videotrans import recognition
 
 
 def openwin():
     from PySide6 import QtWidgets
     from videotrans.configure import config
+    from videotrans.configure.config import tr,app_cfg,params,settings,logger
+    from videotrans import recognition
     from videotrans.util import tools
     from videotrans.util.TestSTT import TestSTT
 
-    from videotrans.configure.config import tr
     def feed(d):
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
@@ -21,8 +21,8 @@ def openwin():
         access = winobj.zijierecognmodel_token.text().strip()
         if not appid or not access:
             return tools.show_error(tr('Appid access and cluster are required'))
-        config.params["zijierecognmodel_appid"] = appid
-        config.params["zijierecognmodel_token"] = access
+        params["zijierecognmodel_appid"] = appid
+        params["zijierecognmodel_token"] = access
 
         task = TestSTT(parent=winobj, recogn_type=recognition.ZIJIE_RECOGN_MODEL)
         task.uito.connect(feed)
@@ -34,16 +34,16 @@ def openwin():
         appid = winobj.zijierecognmodel_appid.text().strip()
         access = winobj.zijierecognmodel_token.text().strip()
 
-        config.params["zijierecognmodel_appid"] = appid
-        config.params["zijierecognmodel_token"] = access
-        config.getset_params(config.params)
+        params["zijierecognmodel_appid"] = appid
+        params["zijierecognmodel_token"] = access
+        params.save()
         winobj.close()
 
 
 
     from videotrans.component.set_form import ZijierecognmodelForm
     winobj = ZijierecognmodelForm()
-    config.child_forms['zijierecognmodel'] = winobj
+    app_cfg.child_forms['zijierecognmodel'] = winobj
     winobj.update_ui()
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)

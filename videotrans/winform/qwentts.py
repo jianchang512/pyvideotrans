@@ -1,7 +1,7 @@
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
@@ -18,18 +18,18 @@ def openwin():
             return
 
         model = winobj.qwentts_model.currentText()
-        config.params["qwentts_key"] = key
-        config.params["qwentts_model"] = model
-        config.getset_params(config.params)
-        config.settings['qwentts_models']=winobj.qwentts_modellist.toPlainText().strip()
-        config.parse_init(config.settings)
+        params["qwentts_key"] = key
+        params["qwentts_model"] = model
+        params.save()
+        settings['qwentts_models']=winobj.qwentts_modellist.toPlainText().strip()
+        settings.save()
         winobj.test_qwentts.setText(tr("Testing..."))
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
-            "role": config.settings.get('qwentts_role','').split(',')[0],
-            "filename": config.TEMP_DIR + f"/{time.time()}-qwen.wav",
+            "role": settings.get('qwentts_role','').split(',')[0],
+            "filename": TEMP_DIR + f"/{time.time()}-qwen.wav",
             "tts_type": tts.QWEN_TTS}],
                          language="zh",
                          tts_type=tts.QWEN_TTS)
@@ -41,13 +41,13 @@ def openwin():
 
         model = winobj.qwentts_model.currentText()
 
-        config.params["qwentts_key"] = key
-        config.params["qwentts_model"] = model
+        params["qwentts_key"] = key
+        params["qwentts_model"] = model
 
-        config.getset_params(config.params)
+        params.save()
 
-        config.settings['qwentts_models']=winobj.qwentts_modellist.toPlainText().strip()
-        config.parse_init(config.settings)
+        settings['qwentts_models']=winobj.qwentts_modellist.toPlainText().strip()
+        settings.save()
         tools.set_process(text='qwentts', type="refreshtts")
         winobj.close()
 
@@ -58,7 +58,7 @@ def openwin():
 
     from videotrans.component.set_form import QwenTTSForm
     winobj = QwenTTSForm()
-    config.child_forms['qwentts'] = winobj
+    app_cfg.child_forms['qwentts'] = winobj
     winobj.update_ui()
 
     winobj.set_qwentts.clicked.connect(save_qwentts)

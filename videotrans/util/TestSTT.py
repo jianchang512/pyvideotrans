@@ -1,6 +1,5 @@
 from PySide6.QtCore import QThread, Signal
 
-
 class TestSTT(QThread):
     uito = Signal(str)
 
@@ -13,10 +12,11 @@ class TestSTT(QThread):
         try:
             from videotrans import recognition
             from videotrans.configure import config
+            from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
             from videotrans.util import tools
             res = recognition.run(
-                audio_file=config.ROOT_DIR + '/videotrans/styles/no-remove.wav',
-                cache_folder=config.SYS_TMP,
+                audio_file=ROOT_DIR + '/videotrans/styles/no-remove.wav',
+                cache_folder=TEMP_DIR,
                 recogn_type=self.recogn_type,
                 model_name=self.model_name,
                 detect_language="zh-cn"

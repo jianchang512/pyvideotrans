@@ -12,8 +12,8 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer, Qt
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
-from videotrans.util import tools
+from videotrans.configure.config import tr, settings, params, app_cfg, logger, ROOT_DIR, TEMP_DIR, defaulelang
+from videotrans.util import tools, contants
 from videotrans.util.ListenVoice import ListenVoice
 from videotrans import tts
 from videotrans.util.contants import LISTEN_TEXT
@@ -86,24 +86,26 @@ class WinActionSub:
 
     # 关于页面
     def about(self):
-        if config.INFO_WIN['win']:
-            config.INFO_WIN['win'].show()
+        if app_cfg.INFO_WIN['win']:
+            app_cfg.INFO_WIN['win'].show()
             return
 
         def open():
             from videotrans.component.set_form import InfoForm
-            config.INFO_WIN['win'] = InfoForm()
-            config.INFO_WIN['win'].show()
+            app_cfg.INFO_WIN['win'] = InfoForm()
+            app_cfg.INFO_WIN['win'].show()
 
         QTimer.singleShot(50, open)
 
 
     # 选中按钮时判断当前cuda是否可用
     def check_cuda(self, state):
-        import torch
         res = state
+        if platform.system() == 'Darwin':
+            self.cfg['is_cuda']=False
+            return
         # 选中如果无效，则取消
-        if state and not torch.cuda.is_available():
+        if state and app_cfg.NVIDIA_GPU_NUMS==0:
             tools.show_error(tr('nocuda'))
             self.main.enable_cuda.setChecked(False)
             self.main.enable_cuda.setDisabled(True)
@@ -148,7 +150,7 @@ class WinActionSub:
         self.main.label_3.show()
         self.main.target_language.show()
         self.main.label.show()
-        if config.defaulelang=='zh':
+        if defaulelang=='zh':
             self.main.proxy.show()
 
         # 配音角色
@@ -187,6 +189,7 @@ class WinActionSub:
         self.main.set_ass.show()
         self.main.label_othlinenums.show()
         self.main.othlinenums.show()
+        self.main.output_srt_label.hide()
         if platform.system() != 'Darwin':
             self.main.enable_cuda.show()
 
@@ -221,7 +224,7 @@ class WinActionSub:
         self.main.label_3.show()
         self.main.target_language.show()
         self.main.label.show()
-        if config.defaulelang=='zh':
+        if defaulelang=='zh':
             self.main.proxy.show()
 
         # 配音角色
@@ -253,6 +256,8 @@ class WinActionSub:
         self.main.voice_rate.hide()
         self.main.voice_autorate.hide()
         self.main.video_autorate.hide()
+        self.main.output_srt.show()
+        self.main.output_srt_label.show()
 
         self.main.set_ass.hide()
         self.main.remove_silent_mid.hide()
@@ -297,19 +302,19 @@ class WinActionSub:
         question = tools.show_popup(tr('Confirm cleanup?'), tr('After cleaning, you need to restart the software. Only cache and temporary files are cleaned. For configuration information, please directly delete the .json in the videotrans folder.'))
 
         if question == QtWidgets.QMessageBox.Yes:
-            os.chdir(config.ROOT_DIR)
-            config.exit_soft=True
+            os.chdir(ROOT_DIR)
+            app_cfg.exit_soft=True
             QTimer.singleShot(1000,self._clean_dir)
 
     def _clean_dir(self):
-        shutil.rmtree(config.TEMP_DIR, ignore_errors=True)
-        Path(config.ROOT_DIR+"/videotrans/codec.json").unlink(missing_ok=True)
-        Path(config.ROOT_DIR+"/videotrans/ass.json").unlink(missing_ok=True)
+        shutil.rmtree(TEMP_DIR, ignore_errors=True)
+        Path(ROOT_DIR+"/videotrans/codec.json").unlink(missing_ok=True)
+        Path(ROOT_DIR+"/videotrans/ass.json").unlink(missing_ok=True)
         self.main.restart_app()
 
 
     def get_mp4(self):
-        allowed_exts = config.VIDEO_EXTS + config.AUDIO_EXITS
+        allowed_exts = contants.VIDEO_EXTS + contants.AUDIO_EXITS
         format_str = " ".join(['*.' + f for f in allowed_exts])
         mp4_list = []
         if self.main.select_file_type.isChecked():
@@ -317,7 +322,7 @@ class WinActionSub:
             folder_path = QtWidgets.QFileDialog.getExistingDirectory(
                 self.main,
                 tr('Select folder'),
-                config.params.get('last_opendir','')
+                params.get('last_opendir','')
             )
 
             if not folder_path:
@@ -331,20 +336,20 @@ class WinActionSub:
                 if file.is_file() and file.suffix[1:].lower() in allowed_exts
             ]
 
-            config.params['last_opendir'] = p.as_posix()
+            params['last_opendir'] = p.as_posix()
             self.main.target_dir = p.parent.as_posix()+"/_video_out"
             print(f'{self.main.target_dir=}')
             self.main.btn_save_dir.setToolTip(self.main.target_dir)
         else:
             fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(self.main,
                                                                tr("Select one or more files"),
-                                                               config.params.get('last_opendir',''),
+                                                               params.get('last_opendir',''),
                                                                f'Files({format_str})')
             if len(fnames) < 1:
                 return
             for (i, it) in enumerate(fnames):
                 mp4_list.append(Path(it).as_posix())
-            config.params['last_opendir'] = Path(mp4_list[0]).parent.resolve().as_posix()
+            params['last_opendir'] = Path(mp4_list[0]).parent.resolve().as_posix()
 
         if len(mp4_list) > 0:
             self.main.source_mp4.setText(f'{len(mp4_list)} videos')
@@ -353,22 +358,22 @@ class WinActionSub:
     # 保存目录
     def get_save_dir(self):
         dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),
-                                                             config.params.get('last_opendir',''))
+                                                             params.get('last_opendir',''))
         dirname = Path(dirname).as_posix()
         self.main.target_dir = dirname
         self.main.btn_save_dir.setToolTip(self.main.target_dir)
 
     # 设置或删除代理
     def change_proxy(self, p):
-        config.proxy = p.strip()
-        if not config.proxy:
-            config.settings['proxy'] = ''
+        app_cfg.proxy = p.strip()
+        if not app_cfg.proxy:
+            settings['proxy'] = ''
             tools.set_proxy('del')
         else:
-            config.settings['proxy'] = config.proxy
-            tools.set_proxy(config.proxy)
+            settings['proxy'] = app_cfg.proxy
+            tools.set_proxy(app_cfg.proxy)
             
-        config.parse_init(config.settings)
+        settings.save()
 
     
     # 弹出代理设置框
@@ -393,16 +398,16 @@ class WinActionSub:
                     self.update_status('stop')
                     return False
         # 设置或删除代理
-        config.proxy = proxy
-        if config.proxy:
+        app_cfg.proxy = proxy
+        if app_cfg.proxy:
             # 设置代理
-            tools.set_proxy(config.proxy)
-            config.settings['proxy'] = config.proxy
+            tools.set_proxy(app_cfg.proxy)
+            settings['proxy'] = app_cfg.proxy
         else:
             # 删除代理
-            config.settings['proxy'] = ''
+            settings['proxy'] = ''
             tools.set_proxy('del')
-        config.parse_init(config.settings)
+        settings.save()
 
         return True
 
@@ -420,8 +425,7 @@ class WinActionSub:
             self.cfg['is_cuda'] = False
             return True
 
-        import torch
-        if not torch.cuda.is_available():
+        if app_cfg.NVIDIA_GPU_NUMS==0:
             self.cfg['is_cuda'] = False
             tools.show_error(tr("nocuda"))
             return False
@@ -445,8 +449,8 @@ class WinActionSub:
 
     # 导入背景声音
     def get_background(self):
-        format_str = " ".join(['*.' + f for f in config.AUDIO_EXITS])
-        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self.main, 'Background music', config.params.get('last_opendir',''),
+        format_str = " ".join(['*.' + f for f in contants.AUDIO_EXITS])
+        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self.main, 'Background music', params.get('last_opendir',''),
                                                          f"Audio files({format_str})")
         if not fname:
             return
@@ -544,11 +548,11 @@ class WinActionSub:
             tools.show_error(
                 tr("The original sound clone cannot be auditioned"))
             return
-        if obj['tts_type']==tts.PIPER_TTS and not Path(f'{config.ROOT_DIR}/models/piper').exists():
+        if obj['tts_type']==tts.PIPER_TTS and not Path(f'{ROOT_DIR}/models/piper').exists():
             #tools.show_download_piper(self.main)
             self.main._open_winform('downmodels')
             return
-        if obj['tts_type']==tts.VITSCNEN_TTS and not Path(f'{config.ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
+        if obj['tts_type']==tts.VITSCNEN_TTS and not Path(f'{ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
             #tools.show_download_tts(self.main)
             self.main._open_winform('downmodels')
             return
@@ -579,7 +583,7 @@ class WinActionSub:
     def check_name(self):
         if self.main.app_mode != 'tiqu':
             for it in self.queue_mp4:
-                if Path(it).suffix.lower() in config.AUDIO_EXITS:
+                if Path(it).suffix.lower() in contants.AUDIO_EXITS:
                     self.main.app_mode = 'tiqu'
                     self.cfg['is_separate'] = False
                     break

@@ -4,8 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -117,17 +116,15 @@ class Ui_openrouterform(object):
         QtCore.QMetaObject.connectSlotsByName(openrouterform)
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('openrouter_model','')
-        allmodels = str(config.settings.get('openrouter_model','')).split(',')
+        allmodels_str = settings.get('openrouter_model','')
+        allmodels = str(settings.get('openrouter_model','')).split(',')
         self.openrouter_model.clear()
         self.openrouter_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.openrouter_key.setText(config.params.get("openrouter_key",''))
-        self.openrouter_model.setCurrentText(config.params.get("openrouter_model",''))
-        self.max_token.setText(config.params.get("openrouter_max_token",''))
+        self.openrouter_key.setText(params.get("openrouter_key",''))
+        self.openrouter_model.setCurrentText(params.get("openrouter_model",''))
+        self.max_token.setText(params.get("openrouter_max_token",''))
 
     def retranslateUi(self, openrouterform):
         openrouterform.setWindowTitle("OpenRouter")

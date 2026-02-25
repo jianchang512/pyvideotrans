@@ -9,9 +9,9 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QIcon, QDesktopServices
 from PySide6.QtCore import Qt, QTimer, QSize, QUrl
 
-from videotrans.configure.config import tr
 from videotrans.util import tools
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 
 
 class EditRecognResultDialog(QDialog):
@@ -26,7 +26,7 @@ class EditRecognResultDialog(QDialog):
         self.srt_list_dict = tools.get_subtitle_from_srt(self.source_sub)
 
         self.setWindowTitle(tr("zimubianjitishi"))
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setMinimumWidth(int(parent.width*0.95))
         self.setMinimumHeight(int(parent.height*0.95))
         self.setWindowFlags(Qt.Window |         
@@ -36,7 +36,7 @@ class EditRecognResultDialog(QDialog):
             Qt.WindowMaximizeButtonHint     # 5. 只加最大化按钮，不加关闭按钮
         )
 
-        self.count_down = int(float(config.settings.get('countdown_sec', 1)))
+        self.count_down = int(float(settings.get('countdown_sec', 1)))
 
         main_layout = QVBoxLayout(self)
 

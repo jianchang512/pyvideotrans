@@ -12,6 +12,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
+from videotrans.configure.config import params, logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -60,9 +61,9 @@ class DoubaoTTS(BaseTTS):
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            appid = config.params.get('volcenginetts_appid','')
-            access_token = config.params.get('volcenginetts_access','')
-            cluster = config.params.get('volcenginetts_cluster','')
+            appid = params.get('volcenginetts_appid','')
+            access_token = params.get('volcenginetts_access','')
+            cluster = params.get('volcenginetts_cluster','')
             speed = 1.0
             if self.rate:
                 rate = float(self.rate.replace('%', '')) / 100
@@ -112,7 +113,7 @@ class DoubaoTTS(BaseTTS):
 
                 }
             }
-            config.logger.debug(f'字节语音合成:{request_json=}')
+            logger.debug(f'字节语音合成:{request_json=}')
             resp = requests.post(api_url, json.dumps(request_json), headers=header,verify=False)
             resp.raise_for_status()
             resp_json = resp.json()
@@ -127,7 +128,7 @@ class DoubaoTTS(BaseTTS):
                 self.stop_next_all=True
                 raise RuntimeError(resp_json.get('message'))
             if 'code' in resp_json:
-                config.logger.debug(f'字节火山语音合成失败:{resp_json=}')
+                logger.debug(f'字节火山语音合成失败:{resp_json=}')
             raise RuntimeError(self.error_status.get(str(resp_json['code']), resp_json['message']))
 
         _run()

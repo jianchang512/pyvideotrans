@@ -1,7 +1,7 @@
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
 
     from videotrans.util.ListenVoice import ListenVoice
@@ -16,14 +16,14 @@ def openwin():
         url = winobj.api_url.text().strip()
         if not url.startswith('http'):
             url = 'http://' + url
-        config.params["fishtts_url"] = url
+        params["fishtts_url"] = url
         winobj.test.setText('测试中请稍等...')
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": getrole(),
-            "filename": config.TEMP_DIR + f"/{time.time()}-fishtts.wav",
+            "filename": TEMP_DIR + f"/{time.time()}-fishtts.wav",
             "tts_type": tts.FISHTTS}],
                          language="zh",
                          tts_type=tts.FISHTTS)
@@ -43,7 +43,7 @@ def openwin():
                 return
 
             role = s[0]
-        config.params['fishtts_role'] = tmp
+        params['fishtts_role'] = tmp
         return role
 
     def save():
@@ -52,18 +52,18 @@ def openwin():
             url = 'http://' + url
         role = winobj.role.toPlainText().strip()
 
-        config.params["fishtts_url"] = url
-        config.params["fishtts_role"] = role
+        params["fishtts_url"] = url
+        params["fishtts_role"] = role
 
-        config.getset_params(config.params)
+        params.save()
         tools.set_process(text='fishtts', type="refreshtts")
         winobj.close()
 
     from videotrans.component.set_form import FishTTSForm
     winobj = FishTTSForm()
-    config.child_forms['fishtts'] = winobj
-    winobj.api_url.setText(config.params.get("fishtts_url",''))
-    winobj.role.setPlainText(config.params.get("fishtts_role",''))
+    app_cfg.child_forms['fishtts'] = winobj
+    winobj.api_url.setText(params.get("fishtts_url",''))
+    winobj.role.setPlainText(params.get("fishtts_role",''))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

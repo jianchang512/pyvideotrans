@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 )
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 
 
@@ -15,7 +15,7 @@ class SetFasterXXL(QDialog):
         
         self.resize(800, 250)
 
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
 
         # 布局
         layout = QVBoxLayout()
@@ -26,7 +26,7 @@ class SetFasterXXL(QDialog):
         self.label = QPushButton(tr("Click on faster-xxl"))
         self.input = QLineEdit()
         self.input.setReadOnly(True)
-        self.input.setText(config.settings.get('Faster_Whisper_XXL',''))
+        self.input.setText(settings.get('Faster_Whisper_XXL',''))
         self.label.clicked.connect(self.selectxxl)
         
         num_layout = QHBoxLayout()
@@ -62,9 +62,9 @@ class SetFasterXXL(QDialog):
         from pathlib import Path
         exe, _ = QFileDialog.getOpenFileName(self, tr("Select faster-whisper-xxl.exe"), Path.home().as_posix(), f'Files(*.exe)')
         if exe:
-            config.settings['Faster_Whisper_XXL'] = Path(exe).as_posix()
-            self.input.setText(config.settings['Faster_Whisper_XXL'])
-            config.parse_init(config.settings)
+            settings['Faster_Whisper_XXL'] = Path(exe).as_posix()
+            self.input.setText(settings['Faster_Whisper_XXL'])
+            settings.save()
 
     def get_values(self):
         return self.input.text().strip()

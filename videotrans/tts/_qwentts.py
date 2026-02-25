@@ -6,8 +6,8 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
-from videotrans.configure.config import tr
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -22,15 +22,15 @@ class QWENTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.role_dict=tools.get_qwen3tts_rolelist()
-        self.model=config.params.get('qwentts_model', 'qwen3-tts-flash')
-        self.api_key=config.params.get('qwentts_key', '')
+        self.model=params.get('qwentts_model', 'qwen3-tts-flash')
+        self.api_key=params.get('qwentts_key', '')
         if self.model.startswith('qwen-tts'):
             self.model='qwen3-tts-flash'
 
 
     # 强制单个线程执行，防止频繁并发失败
     def _exec(self):
-        if not config.params.get('qwentts_key',''):
+        if not params.get('qwentts_key',''):
             raise StopRetry(
                 tr("please input your Qwen TTS  API KEY"))
         self._local_mul_thread()
@@ -40,8 +40,8 @@ class QWENTTS(BaseTTS):
             return
         # 主循环，用于无限重试连接错误
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return

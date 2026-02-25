@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -78,8 +78,8 @@ class Ui_parakeetform(object):
         QtCore.QMetaObject.connectSlotsByName(parakeet)
 
     def update_ui(self):
-        from videotrans.configure import config
-        self.parakeet_address.setText(config.params.get("parakeet_address",''))
+
+        self.parakeet_address.setText(params.get("parakeet_address",''))
     def retranslateUi(self, parakeet):
         parakeet.setWindowTitle("parakeet-tdt api")
         self.label.setText(tr("parakeet url"))

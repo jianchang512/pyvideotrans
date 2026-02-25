@@ -4,8 +4,8 @@ import os
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QFileDialog, QPushButton, QPlainTextEdit
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
+from videotrans.util import contants
 
 
 class DropButton(QPushButton):
@@ -17,15 +17,15 @@ class DropButton(QPushButton):
         self.setCursor(Qt.PointingHandCursor)
 
     def get_file(self):
-        format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS + config.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in contants.VIDEO_EXTS + contants.AUDIO_EXITS])
         fnames, _ = QFileDialog.getOpenFileNames(self, tr('xuanzeyinpinwenjian'),
-                                                 config.params['last_opendir'],
+                                                 params['last_opendir'],
                                                  filter=f"Video/Audio files({format_str})")
         namestr = []
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/')
             namestr.append(os.path.basename(it))
-            config.params['last_opendir']=os.path.dirname(it)
+            params['last_opendir']=os.path.dirname(it)
         self.filelist = fnames
         self.setText(f'{len(self.filelist)} files \n' + "\n".join(namestr))
 
@@ -33,7 +33,7 @@ class DropButton(QPushButton):
         files = event.mimeData().text().strip().lower()
         allow = True
         for it in files.split("\n"):
-            if it.split('.')[-1] not in config.VIDEO_EXTS + config.AUDIO_EXITS:
+            if it.split('.')[-1] not in contants.VIDEO_EXTS + contants.AUDIO_EXITS:
                 allow = False
                 break
         if allow:
@@ -57,13 +57,13 @@ class PeiyinDropButton(QPushButton):
         self.setCursor(Qt.PointingHandCursor)
 
     def get_file(self):
-        fnames, _ = QFileDialog.getOpenFileNames(self, "Select srt/txt", config.params['last_opendir'],
+        fnames, _ = QFileDialog.getOpenFileNames(self, "Select srt/txt", params['last_opendir'],
                                                  "Text files(*.srt *.txt)")
         namestr = []
         for (i, it) in enumerate(fnames):
             fnames[i] = it.replace('\\', '/')
             namestr.append(os.path.basename(it))
-            config.params['last_opendir']=os.path.dirname(it)
+            params['last_opendir']=os.path.dirname(it)
         self.filelist = fnames
         self.setText(f'{len(self.filelist)} files \n' + "\n".join(namestr))
 
@@ -122,7 +122,7 @@ class TextGetdir(QPlainTextEdit):
         files = event.mimeData().text().split("\n")
         result = []
         for it in files:
-            if it != "" and it.split('.')[-1] in config.VIDEO_EXTS + config.AUDIO_EXITS:
+            if it != "" and it.split('.')[-1] in contants.VIDEO_EXTS + contants.AUDIO_EXITS:
                 result.append(it)
         if len(result) > 0:
             event.acceptProposedAction()
@@ -135,7 +135,7 @@ class TextGetdir(QPlainTextEdit):
         if self.toPlainText().strip():
             result = self.toPlainText().strip().split("\n")
         for it in files:
-            if it != "" and it.split('.')[-1] in config.VIDEO_EXTS + config.AUDIO_EXITS:
+            if it != "" and it.split('.')[-1] in contants.VIDEO_EXTS + contants.AUDIO_EXITS:
                 f = it.replace('file:///', '')
                 if f not in result:
                     result.append(f)

@@ -2,12 +2,8 @@
 import platform
 
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import QTimer
 from PySide6.QtGui import Qt
-
-from videotrans.configure import config
-from videotrans.configure.config import  tr
-
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 
 class Ui_recogn(object):
     def setupUi(self, recogn):
@@ -258,24 +254,24 @@ class Ui_recogn(object):
         self.threshold.setPlaceholderText('200ms')
         self.threshold.setToolTip(
             tr("Threshold for speech detection"))
-        self.threshold.setText(str(config.settings.get('threshold', 0.5)))
+        self.threshold.setText(str(settings.get('threshold', 0.5)))
         self.min_speech_duration_ms_label.setText(
             tr("min_speech_duration_ms"))
-        self.min_speech_duration_ms.setText(str(config.settings.get('min_speech_duration_ms', 0)))
+        self.min_speech_duration_ms.setText(str(settings.get('min_speech_duration_ms', 0)))
         self.min_speech_duration_ms.setToolTip(
             tr("Minimum speech duration (ms)"))
         self.min_silence_duration_ms_label.setText(
             tr("min_silence_duration_ms"))
         self.min_silence_duration_ms.setPlaceholderText('200ms')
-        self.min_silence_duration_ms.setText(str(config.settings.get('min_silence_duration_ms', 2000)))
+        self.min_silence_duration_ms.setText(str(settings.get('min_silence_duration_ms', 2000)))
         self.min_silence_duration_ms.setToolTip(
             tr("Minimum silence duration (ms)"))
-        self.max_speech_duration_s.setText(str(config.settings.get('max_speech_duration_s', 2000)))
+        self.max_speech_duration_s.setText(str(settings.get('max_speech_duration_s', 2000)))
         self.max_speech_duration_s.setToolTip(
             tr("max speech duration (s)"))
         self.speech_pad_ms_label.setText(tr("speech_pad_ms"))
         self.speech_pad_ms.setPlaceholderText('200ms')
-        self.speech_pad_ms.setText(str(config.settings.get('speech_pad_ms', 400)))
+        self.speech_pad_ms.setText(str(settings.get('speech_pad_ms', 400)))
         self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
         self.shibie_opendir.setText(tr("Open output directory"))
 

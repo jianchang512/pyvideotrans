@@ -6,9 +6,9 @@ from typing import List, Dict, Union
 from openai import OpenAI
 
 
-from videotrans.configure import config
+
 from videotrans.configure._except import  StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -20,7 +20,7 @@ RETRY_DELAY = 10
 class ParaketRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = config.params.get('parakeet_address','')
+        self.api_url = params.get('parakeet_address','')
         self._add_internal_host_noproxy(self.api_url)
 
     def _exec(self) -> Union[List[Dict], None]:

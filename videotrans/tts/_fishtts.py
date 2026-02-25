@@ -9,8 +9,9 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -22,7 +23,7 @@ RETRY_DELAY = 5
 class FishTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        api_url = config.params.get('fishtts_url','').strip().rstrip('/').lower()
+        api_url = params.get('fishtts_url','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
         self._add_internal_host_noproxy(self.api_url)
 
@@ -33,8 +34,8 @@ class FishTTS(BaseTTS):
         if self._exit() or not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -48,13 +49,13 @@ class FishTTS(BaseTTS):
                     "references": [{"audio": "", "text": roledict[role]['reference_text']}]}
 
             # 克隆声音
-            audio_path = f'{config.ROOT_DIR}/{roledict[role]["reference_audio"]}'
+            audio_path = f'{ROOT_DIR}/{roledict[role]["reference_audio"]}'
             if os.path.exists(audio_path):
                 data['references'][0]['audio'] = self._audio_to_base64(audio_path)
             else:
                 raise StopRetry(tr('Reference audio does not exist: {} Please make sure the audio exists',audio_path))
 
-            config.logger.debug(f'fishTTS-post:{data=}')
+            logger.debug(f'fishTTS-post:{data=}')
             response = requests.post(f"{self.api_url}", json=data, timeout=3600)
 
             response.raise_for_status()

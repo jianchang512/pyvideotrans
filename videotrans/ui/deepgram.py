@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,app_cfg,params,settings,logger
 from videotrans.util import tools
 
 
@@ -72,29 +72,6 @@ class Ui_deepgramform(object):
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.utt)
 
         self.verticalLayout.addLayout(self.formLayout_3)
-
-        # self.label_model = QtWidgets.QLabel(deepgramform)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.label_model.sizePolicy().hasHeightForWidth())
-        # self.label_model.setSizePolicy(sizePolicy)
-        # self.label_model.setMinimumSize(QtCore.QSize(100, 35))
-        # self.label_model.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
-        # self.label_model.setObjectName("label")
-        # self.label_model.setText('识别模型')
-        #
-        # self.model = QtWidgets.QComboBox(deepgramform)
-        # self.model.addItems(config.DEEPGRAM_MODEL)
-        # self.model.setObjectName("model")
-        # self.formLayout_4 = QtWidgets.QFormLayout()
-        # self.formLayout_4.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        # self.formLayout_4.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
-        # self.formLayout_4.setObjectName("formLayout_4")
-        # self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_model)
-        # self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.model)
-        #
-        # self.verticalLayout.addLayout(self.formLayout_4)
 
         self.set = QtWidgets.QPushButton(deepgramform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))

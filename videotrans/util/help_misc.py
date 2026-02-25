@@ -6,53 +6,18 @@ import sys
 import time
 from pathlib import Path
 from videotrans.configure import config
-from tqdm import tqdm
+from videotrans.configure.config import tr,params,settings,app_cfg,logger,ROOT_DIR,TEMP_DIR,defaulelang
+import tqdm 
 
 
 def create_tqdm_class(callback):
-    class QtAwareTqdm(tqdm):
-        def update(self, n=1):
-            # 执行父类更新
-            displayed = super().update(n)
-            
-            # 2. 区分是“总文件计数”还是“单个文件下载”
-            # HuggingFace 的文件下载进度条 unit 通常是 'B' (字节)
-            # 总文件数进度条 unit 通常是 'it' (个) 或默认值
-            is_bytes = self.unit == 'B' or self.unit_scale is True
-            
-            filename = self.desc if self.desc else "Initializing..."
-            
-            # 过滤逻辑：
-            # 如果你只想在 UI 显示具体文件的下载进度，可以忽略非字节单位的进度条
-            # 这里我把 type 传出去，由你的 UI 决定是否显示
-            
-            if self.total and self.total > 0:
-                percent = (self.n / self.total) * 100
-            else:
-                percent = 0.0
+    class QtAwareTqdm(tqdm.tqdm):   
 
-            progress_data = {
-                "filename": filename,
-                "percent": percent,
-                "current": self.n,
-                "total": self.total,
-                "type": "file" if is_bytes else "summary"  # 增加类型标识
-            }
-            print(f'{progress_data=}')
-
-            if callback:
-                # 只有当它是具体文件下载，或者你确实想看总文件进度时才发送
-                # 建议：如果只想看下载进度，加一个 if is_bytes: 判断
-                callback(progress_data)
-
-            return displayed
         def display(self, msg=None, pos=None):
-            """
-            核心修改：重写 display 方法并留空。
-            tqdm 原本通过此方法打印字符到终端。
-            将其留空后，终端将不会有任何输出，但内部计算依然正常进行。
-            """
-            pass
+            super().display(msg, pos)
+            _str=str(self).split('%')
+            if callback and len(_str)>0 :
+                callback(_str[0]+'%')
 
     return QtAwareTqdm
 
@@ -64,7 +29,7 @@ def show_popup(title, text):
 
     msg = QMessageBox()
     msg.setWindowTitle(title)
-    msg.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+    msg.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
     msg.setText(text)
     msg.addButton(QMessageBox.Yes)
     msg.addButton(QMessageBox.Cancel)
@@ -85,29 +50,29 @@ def show_error(tb_str):
     msg_box = QtWidgets.QMessageBox()
     msg_box.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint)
 
-    icon_path = f"{config.ROOT_DIR}/videotrans/styles/icon.ico"
+    icon_path = f"{ROOT_DIR}/videotrans/styles/icon.ico"
     try:
         msg_box.setWindowIcon(QIcon(icon_path))
     except Exception as e:
         print(f"Warning: Could not load window icon from {icon_path}. Error: {e}")
 
     msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
-    msg_box.setWindowTitle(config.tr('anerror'))
+    msg_box.setWindowTitle(tr('anerror'))
     msg_box.setText(tb_str[:300])
     if len(tb_str) > 300:
         msg_box.setDetailedText(tb_str)
 
     # 添加一个标准的“OK”按钮
     ok_button = msg_box.addButton(QtWidgets.QMessageBox.StandardButton.Ok)
-    if config.defaulelang == 'zh':
+    if defaulelang == 'zh':
         ok_button.setText("知道了")
 
     # 添加自定义的“报告错误”按钮
-    report_button = msg_box.addButton(config.tr("Report Error"),QtWidgets.QMessageBox.ButtonRole.NoRole)
+    report_button = msg_box.addButton(tr("Report Error"),QtWidgets.QMessageBox.ButtonRole.NoRole)
     url_button=None
     urls=re.findall(r'\[(https?:.*?)\]',tb_str)
     if urls:
-        url_button = msg_box.addButton(config.tr("Open")+config.tr('Download URL'),QtWidgets.QMessageBox.ButtonRole.NoRole)
+        url_button = msg_box.addButton(tr("Open")+tr('Download URL'),QtWidgets.QMessageBox.ButtonRole.NoRole)
     
     msg_box.setDefaultButton(ok_button)
 
@@ -135,7 +100,7 @@ def show_error(tb_str):
             from videotrans import VERSION
             # 对全部错误信息进行URL编码
             _isfrozen=getattr(sys, 'frozen', False)
-            _msg=f"{tb_str}\n=====\nsystem:{platform.platform()}\nversion:{VERSION}\nfrozen:{_isfrozen}\nlanguage:{config.defaulelang}\nroot_dir:{config.ROOT_DIR}\n"
+            _msg=f"{tb_str}\n=====\nsystem:{platform.platform()}\nversion:{VERSION}\nfrozen:{_isfrozen}\nlanguage:{defaulelang}\nroot_dir:{ROOT_DIR}\n"
             if not _isfrozen:
                 _msg+=f"Python: {sys.version}\n"
             encoded_content = urllib.parse.quote(_msg)
@@ -223,8 +188,8 @@ def get_prompt(ainame,aisendsrt=True):
     prompt_file = get_prompt_file(ainame=ainame,aisendsrt=aisendsrt)
     content = Path(prompt_file).read_text(encoding='utf-8',errors="ignore")
     glossary = ''
-    if Path(config.ROOT_DIR + '/videotrans/glossary.txt').exists():
-        glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8',errors="ignore").strip()
+    if Path(ROOT_DIR + '/videotrans/glossary.txt').exists():
+        glossary = Path(ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8',errors="ignore").strip()
     if glossary:
         glossary = "\n".join(["|" + it.replace("=", '|') + "|" for it in glossary.split('\n')])
         glossary_prompt = """\n\n# Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n"""
@@ -234,8 +199,8 @@ def get_prompt(ainame,aisendsrt=True):
 
 def qwenmt_glossary():
 
-    if Path(config.ROOT_DIR + '/videotrans/glossary.txt').exists():
-        glossary = Path(config.ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8',errors="ignore").strip()
+    if Path(ROOT_DIR + '/videotrans/glossary.txt').exists():
+        glossary = Path(ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8',errors="ignore").strip()
         if glossary:
             term=[]
             for it in glossary.split('\n'):
@@ -248,7 +213,7 @@ def qwenmt_glossary():
 # 获取当前需要操作的prompt txt文件
 def get_prompt_file(ainame,aisendsrt=True):
 
-    prompt_path = f'{config.ROOT_DIR}/videotrans/'
+    prompt_path = f'{ROOT_DIR}/videotrans/'
     prompt_name = f'{ainame}.txt'
     if aisendsrt:
         prompt_path += 'prompts/srt/'
@@ -266,21 +231,21 @@ def show_glossary_editor(parent):
 
 
     dialog = QDialog(parent)
-    dialog.setWindowTitle(config.tr('Glossary'))
+    dialog.setWindowTitle(tr('Glossary'))
     dialog.setMinimumSize(600, 400)
 
     layout = QVBoxLayout(dialog)
 
     text_edit = QTextEdit()
     text_edit.setPlaceholderText(
-        config.tr("Please fill in one line at a time, following the term on the left and the translation on the right, e.g. ,Ballistic Missile Defense=BMD"))
+        tr("Please fill in one line at a time, following the term on the left and the translation on the right, e.g. ,Ballistic Missile Defense=BMD"))
     layout.addWidget(text_edit)
 
     button_box = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
     layout.addWidget(button_box)
 
     # 读取文件内容，并设置为文本框默认值
-    file_path = config.ROOT_DIR + "/videotrans/glossary.txt"
+    file_path = ROOT_DIR + "/videotrans/glossary.txt"
     try:
         if os.path.exists(file_path):
             with open(file_path, "r", encoding="utf-8",errors="ignore") as f:
@@ -312,13 +277,13 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
     # 判断novoice_mp4是否完成
     t = 0
 
-    if noextname not in config.queue_novice and vail_file(novoice_mp4):
+    if noextname not in app_cfg.queue_novice and vail_file(novoice_mp4):
         return True
-    if noextname in config.queue_novice and config.queue_novice[noextname] == 'end':
+    if noextname in app_cfg.queue_novice and app_cfg.queue_novice[noextname] == 'end':
         return True
     last_size = 0
     while True:
-        if config.current_status != 'ing' or config.exit_soft:
+        if app_cfg.current_status != 'ing' or app_cfg.exit_soft:
             return False
         if vail_file(novoice_mp4):
             current_size = os.path.getsize(novoice_mp4)
@@ -326,15 +291,15 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
                 return True
             last_size = current_size
 
-        if noextname not in config.queue_novice:
+        if noextname not in app_cfg.queue_novice:
             raise RuntimeError(f"{noextname} split no voice videoerror-1")
-        if config.queue_novice[noextname].startswith('error:'):
-            raise RuntimeError(f"{noextname} split no voice {config.queue_novice[noextname]}")
+        if app_cfg.queue_novice[noextname].startswith('error:'):
+            raise RuntimeError(f"{noextname} split no voice {app_cfg.queue_novice[noextname]}")
 
-        if config.queue_novice[noextname] == 'ing':
+        if app_cfg.queue_novice[noextname] == 'ing':
             size = f'{round(last_size / 1024 / 1024, 2)}MB' if last_size > 0 else ""
             set_process(
-                text=f"{noextname} {config.tr('spilt audio and video')} {size}",
+                text=f"{noextname} {tr('spilt audio and video')} {size}",
                 uuid=uuid)
             time.sleep(1)
             t += 1
@@ -382,32 +347,32 @@ def read_last_n_lines(filename, n=100):
 # uuid 任务的唯一id，用于确定插入哪个子队列
 def set_process(*, text="", type="logs", uuid=None):
 
-    if config.exit_soft:
+    if app_cfg.exit_soft:
         return
-    if uuid and uuid in config.stoped_uuid_set:
+    if uuid and uuid in app_cfg.stoped_uuid_set:
         return
     try:
         if text:
             text = text.replace('\\n', ' ')
         if type == 'logs':
             text = text[:150]
-        if config.exec_mode=='cli':
+        if app_cfg.exec_mode=='cli':
             print(text)
             return
         log = {"text": text, "type": type, "uuid": uuid}
         if uuid:
             config.push_queue(uuid, log)
         else:
-            config.global_msg.append(log)
+            app_cfg.global_msg.append(log)
     except Exception as e:
-        config.logger.exception(f'set_process：{e}',exc_info=True)
+        logger.exception(f'set_process：{e}',exc_info=True)
 
 
 
 def set_proxy(set_val=''):
 
     if set_val=='del':
-        config.proxy=''
+        app_cfg.proxy=''
         if os.environ.get('HTTP_PROXY'):
             del os.environ['HTTP_PROXY']
         if os.environ.get('HTTPS_PROXY'):
@@ -419,7 +384,7 @@ def set_proxy(set_val=''):
         set_val=set_val.lower()
         if not set_val.startswith("http") and not set_val.startswith('sock'):
             set_val = f"http://{set_val}"
-        config.proxy = set_val
+        app_cfg.proxy = set_val
         os.environ['HTTP_PROXY'] = set_val
         os.environ['HTTPS_PROXY'] = set_val
         return set_val
@@ -427,7 +392,7 @@ def set_proxy(set_val=''):
 
 
     # 获取代理
-    http_proxy = config.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
+    http_proxy = app_cfg.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
 
     if http_proxy:
         http_proxy=http_proxy.lower()

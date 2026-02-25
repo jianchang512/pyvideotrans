@@ -4,14 +4,14 @@ def openwin():
     import shutil
     import time
     from pathlib import Path
-    from videotrans.configure.config import tr
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
-    RESULT_DIR = config.HOME_DIR + "/subtitlescover"
+    RESULT_DIR = HOME_DIR + "/subtitlescover"
 
 
     class CompThread(QThread):
@@ -37,7 +37,7 @@ def openwin():
                         if raw_path.name.lower().endswith('.srt'):
                             srt_list = tools.get_subtitle_from_srt(v, is_file=True)
                         else:
-                            tmp_srt = config.TEMP_DIR + f'/{time.time()}.srt'
+                            tmp_srt = TEMP_DIR + f'/{time.time()}.srt'
                             tools.runffmpeg([
                                 "-y",
                                 "-i",
@@ -86,7 +86,7 @@ def openwin():
 
     def get_file():
         fnames, _ = QFileDialog.getOpenFileNames(winobj, tr('selectmp4'),
-                                                 config.params.get('last_opendir',''), "Subtitles files(*.srt *.vtt *.ass)")
+                                                 params.get('last_opendir',''), "Subtitles files(*.srt *.vtt *.ass)")
         if len(fnames) < 1:
             return
         winobj.subtitlefiles = []
@@ -94,7 +94,7 @@ def openwin():
             winobj.subtitlefiles.append(it.replace('\\', '/'))
 
         if len(winobj.subtitlefiles) > 0:
-            config.params['last_opendir'] = os.path.dirname(fnames[0])
+            params['last_opendir'] = os.path.dirname(fnames[0])
             winobj.pathdir.setText(",".join(winobj.subtitlefiles))
 
     def start():
@@ -112,21 +112,21 @@ def openwin():
                           target_format=target_format)
         task.uito.connect(feed)
         task.start()
-        config.params['subtitlecover_outformat']=target_format
-        config.getset_params(config.params)
+        params['subtitlecover_outformat']=target_format
+        params.save()
 
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     from videotrans.component.set_form import SubtitlescoverForm
     winobj = SubtitlescoverForm()
-    config.child_forms['fn_subtitlescover'] = winobj
+    app_cfg.child_forms['fn_subtitlescover'] = winobj
     winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.selectbtn.clicked.connect(lambda: get_file())
         winobj.opendir.clicked.connect(opendir)
         winobj.startbtn.clicked.connect(start)
-        winobj.formatlist.setCurrentText(config.params.get('subtitlecover_outformat','srt'))
+        winobj.formatlist.setCurrentText(params.get('subtitlecover_outformat','srt'))
     QTimer.singleShot(10,_bind)
 

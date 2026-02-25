@@ -1,7 +1,7 @@
 import time,shutil
 from PySide6.QtCore import QThread
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.task._base import BaseTask
 from videotrans.util import tools, gpus
 from videotrans.util.tools import set_process
@@ -50,29 +50,29 @@ class WorkerPrepare(QThread):
 
     def run(self) -> None:
         while 1:
-            if config.exit_soft:
+            if app_cfg.exit_soft:
                 return
             try:
-                trk: BaseTask = config.prepare_queue.get(timeout=1)
+                trk: BaseTask = app_cfg.prepare_queue.get(timeout=1)
             except Empty:
                 continue
-            if trk.uuid in config.stoped_uuid_set:
+            if trk.uuid in app_cfg.stoped_uuid_set:
                 continue
             try:
                 trk.prepare()
                 # 如果需要识别，则插入 recogn_queue队列，否则继续判断翻译队列、配音队列，都不吻合则插入最终队列
                 if trk.shoud_recogn:
-                    config.regcon_queue.put_nowait(trk)
+                    app_cfg.regcon_queue.put_nowait(trk)
                 elif trk.shoud_trans:
-                    config.trans_queue.put_nowait(trk)
+                    app_cfg.trans_queue.put_nowait(trk)
                 elif trk.shoud_dubbing:
-                    config.dubb_queue.put_nowait(trk)
+                    app_cfg.dubb_queue.put_nowait(trk)
                 elif trk.shoud_hebing:
-                    config.assemb_queue.put_nowait(trk)
+                    app_cfg.assemb_queue.put_nowait(trk)
                 else:
-                    config.taskdone_queue.put_nowait(trk)
+                    app_cfg.taskdone_queue.put_nowait(trk)
             except Exception as e:
-                config.logger.exception(e, exc_info=True)
+                logger.exception(e, exc_info=True)
                 except_msg = get_msg_from_except(e)
                 detail_back=(traceback.format_exc()).strip()
                 if not except_msg:
@@ -90,23 +90,23 @@ class WorkerRegcon(QThread):
 
     def run(self) -> None:
         while 1:
-            if config.exit_soft:
+            if app_cfg.exit_soft:
                 return
 
 
             try:
-                trk = config.regcon_queue.get(timeout=1)
+                trk = app_cfg.regcon_queue.get(timeout=1)
             except Empty:
                 continue
-            if trk.uuid in config.stoped_uuid_set:
-                config.logger.debug(f'[job] {trk.uuid=}已停止，执行语音识别阶段 {trk.cfg=}')
+            if trk.uuid in app_cfg.stoped_uuid_set:
+                logger.debug(f'[job] {trk.uuid=}已停止，执行语音识别阶段 {trk.cfg=}')
                 continue
             try:
-                config.logger.debug(f'[job] 进入执行语音识别阶段 {trk.cfg=}')
+                logger.debug(f'[job] 进入执行语音识别阶段 {trk.cfg=}')
                 trk.recogn()
-                config.diariz_queue.put_nowait(trk)
+                app_cfg.diariz_queue.put_nowait(trk)
             except Exception as e:
-                config.logger.exception(e, exc_info=True)                
+                logger.exception(e, exc_info=True)                
                 except_msg = get_msg_from_except(e)
                 detail_back=(traceback.format_exc()).strip()
                 if not except_msg:
@@ -125,31 +125,31 @@ class WorkerDiariz(QThread):
 
     def run(self) -> None:
         while 1:
-            if config.exit_soft:
+            if app_cfg.exit_soft:
                 return
 
 
             try:
-                trk = config.diariz_queue.get(timeout=1)
+                trk = app_cfg.diariz_queue.get(timeout=1)
             except Empty:
                 continue
-            if trk.uuid in config.stoped_uuid_set:
+            if trk.uuid in app_cfg.stoped_uuid_set:
                 continue
             try:
                 print(f'进入执行说话人分离阶段')
                 trk.diariz()
             except Exception as e:
-                config.logger.exception(e, exc_info=True)
+                logger.exception(e, exc_info=True)
             finally:
                 # 如果需要识翻译,则插入翻译队列，否则就行判断配音队列，都不吻合则插入最终队列
                 if trk.shoud_trans:
-                    config.trans_queue.put_nowait(trk)
+                    app_cfg.trans_queue.put_nowait(trk)
                 elif trk.shoud_dubbing:
-                    config.dubb_queue.put_nowait(trk)
+                    app_cfg.dubb_queue.put_nowait(trk)
                 elif trk.shoud_hebing:
-                    config.assemb_queue.put_nowait(trk)
+                    app_cfg.assemb_queue.put_nowait(trk)
                 else:
-                    config.taskdone_queue.put_nowait(trk)
+                    app_cfg.taskdone_queue.put_nowait(trk)
 
 
 
@@ -160,27 +160,27 @@ class WorkerTrans(QThread):
 
     def run(self) -> None:
         while 1:
-            if config.exit_soft:
+            if app_cfg.exit_soft:
                 return
 
             try:
-                trk = config.trans_queue.get(timeout=1)
+                trk = app_cfg.trans_queue.get(timeout=1)
             except Empty:
                 continue
-            if trk.uuid in config.stoped_uuid_set:
+            if trk.uuid in app_cfg.stoped_uuid_set:
                 continue
             try:
                 print(f'进入执行字幕翻译阶段')
                 trk.trans()
                 # 如果需要配音，则插入 dubb_queue 队列，否则插入最终队列
                 if trk.shoud_dubbing:
-                    config.dubb_queue.put_nowait(trk)
+                    app_cfg.dubb_queue.put_nowait(trk)
                 elif trk.shoud_hebing:
-                    config.assemb_queue.put_nowait(trk)
+                    app_cfg.assemb_queue.put_nowait(trk)
                 else:
-                    config.taskdone_queue.put_nowait(trk)
+                    app_cfg.taskdone_queue.put_nowait(trk)
             except Exception as e:
-                config.logger.exception(e, exc_info=True)
+                logger.exception(e, exc_info=True)
                 except_msg = get_msg_from_except(e)
                 detail_back=(traceback.format_exc()).strip()
                 if not except_msg:
@@ -199,22 +199,22 @@ class WorkerDubb(QThread):
 
     def run(self) -> None:
         while 1:
-            if config.exit_soft:
+            if app_cfg.exit_soft:
                 return
 
             try:
-                trk = config.dubb_queue.get(timeout=1)
+                trk = app_cfg.dubb_queue.get(timeout=1)
             except Empty:
                 continue
-            if trk.uuid in config.stoped_uuid_set:
+            if trk.uuid in app_cfg.stoped_uuid_set:
                 continue
             try:
                 # 只要配音，就必须进入 同步对齐队列
                 print(f'进入执行配音阶段')
                 trk.dubbing()
-                config.align_queue.put_nowait(trk)
+                app_cfg.align_queue.put_nowait(trk)
             except Exception as e:
-                config.logger.exception(e, exc_info=True)
+                logger.exception(e, exc_info=True)
                 except_msg = get_msg_from_except(e)
                 detail_back=(traceback.format_exc()).strip()
                 if not except_msg:
@@ -234,25 +234,25 @@ class WorkerAlign(QThread):
 
     def run(self) -> None:
         while 1:
-            if config.exit_soft:
+            if app_cfg.exit_soft:
                 return
 
             try:
-                trk = config.align_queue.get(timeout=1)
+                trk = app_cfg.align_queue.get(timeout=1)
             except Empty:
                 continue
             
-            if trk.uuid in config.stoped_uuid_set:
+            if trk.uuid in app_cfg.stoped_uuid_set:
                 continue
             try:
                 print(f'进入执行对齐阶段')
                 trk.align()
                 if trk.shoud_hebing:
-                    config.assemb_queue.put_nowait(trk)
+                    app_cfg.assemb_queue.put_nowait(trk)
                 else:
-                    config.taskdone_queue.put_nowait(trk)
+                    app_cfg.taskdone_queue.put_nowait(trk)
             except Exception as e:
-                config.logger.exception(e, exc_info=True)
+                logger.exception(e, exc_info=True)
                 except_msg = get_msg_from_except(e)
                 detail_back=(traceback.format_exc()).strip()
                 if not except_msg:
@@ -275,21 +275,21 @@ class WorkerAssemb(QThread):
 
     def run(self) -> None:
         while 1:
-            if config.exit_soft:
+            if app_cfg.exit_soft:
                 return
 
             try:
-                trk = config.assemb_queue.get(timeout=1)
+                trk = app_cfg.assemb_queue.get(timeout=1)
             except Empty:
                 continue
-            if trk.uuid in config.stoped_uuid_set:
+            if trk.uuid in app_cfg.stoped_uuid_set:
                 continue
             try:
                 print(f'进入执行合并阶段')
                 trk.assembling()
-                config.taskdone_queue.put_nowait(trk)
+                app_cfg.taskdone_queue.put_nowait(trk)
             except Exception as e:
-                config.logger.exception(e, exc_info=True)
+                logger.exception(e, exc_info=True)
                 except_msg = get_msg_from_except(e)
                 detail_back=(traceback.format_exc()).strip()
                 if not except_msg:
@@ -309,20 +309,20 @@ class WorkerTaskDone(QThread):
 
     def run(self) -> None:
         while 1:
-            if config.exit_soft:
+            if app_cfg.exit_soft:
                 return
 
             try:
-                trk = config.taskdone_queue.get(timeout=1)
+                trk = app_cfg.taskdone_queue.get(timeout=1)
             except Empty:
                 continue
-            if trk.uuid in config.stoped_uuid_set:
+            if trk.uuid in app_cfg.stoped_uuid_set:
                 continue
             try:
                 print(f'进入执行完成阶段')
                 trk.task_done()
             except Exception as e:
-                config.logger.exception(e, exc_info=True)
+                logger.exception(e, exc_info=True)
                 except_msg = get_msg_from_except(e)
                 detail_back=(traceback.format_exc()).strip()
                 if not except_msg:
@@ -339,23 +339,22 @@ class WorkerTaskDone(QThread):
 def start_thread():
     gpus.getset_gpu()
     task_nums=1
-    print(f'NVIDIA_GPU_NUMS={config.NVIDIA_GPU_NUMS}')
     # 存在可用显卡时，进一步判断应该启动几个相关线程
-    if config.NVIDIA_GPU_NUMS>0:
+    if app_cfg.NVIDIA_GPU_NUMS>0:
         try:
-            process_max_gpu=int(float(config.settings.get('process_max_gpu',0)))
+            process_max_gpu=int(float(settings.get('process_max_gpu',0)))
         except:
             process_max_gpu=0
         # 如果手动设置了gpu进程数量
         if process_max_gpu>0:
             task_nums=process_max_gpu
-        elif config.NVIDIA_GPU_NUMS>1 and bool(config.settings.get('multi_gpus')):
+        elif app_cfg.NVIDIA_GPU_NUMS>1 and bool(settings.get('multi_gpus')):
             # 显卡数量真的大于1 并且 启用了多显卡，
-            task_nums=2 if config.NVIDIA_GPU_NUMS<4 else 4
+            task_nums=2 if app_cfg.NVIDIA_GPU_NUMS<4 else 4
         print(f'{process_max_gpu=}')
-        print(f'multi_gpus={config.settings.get("multi_gpus")}')
+        print(f'multi_gpus={settings.get("multi_gpus")}')
     print(f'Concurrent {task_nums=}')
-    print(f'process_max={config.settings.get("process_max")}')
+    print(f'process_max={settings.get("process_max")}')
     # 定义每个工种需要的线程数量
     worker_config = {
         WorkerPrepare: task_nums,  # 准备工作

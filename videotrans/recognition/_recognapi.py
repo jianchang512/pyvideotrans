@@ -10,7 +10,7 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -51,16 +51,16 @@ class APIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        api_url = config.params.get('recognapi_url', '').strip().rstrip('/').lower()
+        api_url = params.get('recognapi_url', '').strip().rstrip('/').lower()
 
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
 
-        if config.params.get('recognapi_key'):
+        if params.get('recognapi_key'):
             if '?' in api_url:
-                api_url += f'&sk={config.params.get("recognapi_key", "")}'
+                api_url += f'&sk={params.get("recognapi_key", "")}'
             else:
-                api_url += f'?sk={config.params.get("recognapi_key", "")}'
+                api_url += f'?sk={params.get("recognapi_key", "")}'
 
         self.api_url = api_url
         self._add_internal_host_noproxy(self.api_url)
@@ -69,7 +69,7 @@ class APIRecogn(BaseRecogn):
         if self._exit():  return
         if re.search(r'api\.gladia\.io', self.api_url, re.I):
             return self._whisperzero()
-        if 'vibevoice-asr' in config.params.get('recognapi_key', ''):
+        if 'vibevoice-asr' in params.get('recognapi_key', ''):
             return self._vibevoice_asr()
         with open(self.audio_file, 'rb') as f:
             chunk = f.read()
@@ -94,7 +94,7 @@ class APIRecogn(BaseRecogn):
         return tools.get_subtitle_from_srt(res.text, is_file=False)
 
     def _whisperzero(self):
-        api_key = config.params.get("recognapi_key")
+        api_key = params.get("recognapi_key")
         if not api_key:
             raise StopRetry(tr("api key must be filled in"))
         # 上传 self.audio_file
@@ -137,16 +137,16 @@ class APIRecogn(BaseRecogn):
 
         # 获取结果
         while 1:
-            if config.exit_soft: return
+            if app_cfg.exit_soft: return
             time.sleep(1)
             response = requests.get(f"https://api.gladia.io/v2/pre-recorded/{id}", headers={"x-gladia-key": api_key})
             response.raise_for_status()
             d = response.json()
             if d['status'] == 'error':
-                config.logger.warning(d)
+                logger.warning(d)
                 raise StopRetry(f"Error:{d['error_code']}")
             if d['status'] == 'done':
-                config.logger.info(d)
+                logger.info(d)
                 sens = d['result']['transcription']['subtitles'][0]['subtitles']
                 raws = tools.get_subtitle_from_srt(sens, is_file=False)
                 if self.detect_language and self.detect_language[:2] in ['zh', 'ja', 'ko']:
@@ -180,15 +180,15 @@ class APIRecogn(BaseRecogn):
 
             if not match:
                 # 如果某个片段没识别出内容（可能是静音），返回空而不是报错
-                config.logger.warning(f"No subtitles found in chunk starting at {time_offset_ms}ms")
+                logger.warning(f"No subtitles found in chunk starting at {time_offset_ms}ms")
                 return [], []
 
             list_str = match.group(1)
-            config.logger.debug(f'match.group(1)={list_str}')
+            logger.debug(f'match.group(1)={list_str}')
             list_str=re.sub(r'^.*?\[\{','[{',list_str,flags=re.S)
             list_str=re.sub(r'\}\].*$','}]',list_str,flags=re.S)
             list_str=re.sub(r"\n?\n", '',list_str)
-            config.logger.debug(f're.sub after:{list_str=}')
+            logger.debug(f're.sub after:{list_str=}')
             segments=None
             try:
                 segments=json.loads(list_str)
@@ -204,7 +204,7 @@ class APIRecogn(BaseRecogn):
                     }
                     segments = eval(list_str, context)
             except Exception as e:
-                config.logger.error(f"AST eval failed: {e}")
+                logger.error(f"AST eval failed: {e}")
             if not segments:
                 return [],[]
 
@@ -271,7 +271,7 @@ class APIRecogn(BaseRecogn):
                 )
 
                 # 处理返回结果，传入当前的 start_ms 作为时间偏移量
-                config.logger.debug(f'vibevoice-asr:{result[0]=}')
+                logger.debug(f'vibevoice-asr:{result[0]=}')
                 chunk_data, chunk_spk = _process_chunk_result(
                     result[0],
                     time_offset_ms=start_ms,
@@ -283,7 +283,7 @@ class APIRecogn(BaseRecogn):
                 current_line += len(chunk_data)
 
             except Exception as e:
-                config.logger.exception(f"Error processing chunk {i}: {e}")
+                logger.exception(f"Error processing chunk {i}: {e}")
             finally:
                 # 清理临时文件
                 if os.path.exists(temp_chunk_path):
@@ -316,6 +316,6 @@ class APIRecogn(BaseRecogn):
                 if final_speaker_list:
                     Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(final_speaker_list), encoding='utf-8')
             except Exception as e:
-                config.logger.exception(f'说话人重排序出错，忽略{e}', exc_info=True)
+                logger.exception(f'说话人重排序出错，忽略{e}', exc_info=True)
 
         return final_raws

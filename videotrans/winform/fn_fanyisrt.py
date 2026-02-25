@@ -1,8 +1,6 @@
 # 字幕批量翻译
 
-
 def openwin():
-    from videotrans.configure.config import tr
     import json
     import os
     from pathlib import Path
@@ -11,12 +9,13 @@ def openwin():
     from PySide6 import QtWidgets
     from PySide6.QtWidgets import QFileDialog, QPlainTextEdit
     from videotrans.configure import config
-    from videotrans.task.taskcfg import TaskCfg
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+    from videotrans.task.taskcfg import TaskCfgSTS
 
     from videotrans.util import tools
     from videotrans import translator
     from videotrans.task._translate_srt import TranslateSrt
-    RESULT_DIR = config.HOME_DIR + "/translate"
+    RESULT_DIR = HOME_DIR + "/translate"
     SOURCE_DIR = RESULT_DIR
     uuid_list=[]
 
@@ -78,7 +77,7 @@ def openwin():
     def fanyi_import_fun():
         fnames, _ = QFileDialog.getOpenFileNames(winobj,
                                                  tr('tuodongfanyi'),
-                                                 config.params['last_opendir'],
+                                                 params['last_opendir'],
                                                  "Subtitles files(*.srt)")
         if len(fnames) < 1:
             return
@@ -88,7 +87,7 @@ def openwin():
             namestr.append(os.path.basename(fnames[i]))
         if fnames:
             winobj.files = fnames
-            config.params['last_opendir'] = os.path.dirname(fnames[0])
+            params['last_opendir'] = os.path.dirname(fnames[0])
             winobj.fanyi_sourcetext.setPlainText(
                 f'{tr("yidaorujigewenjian")}{len(fnames)}\n{",".join(namestr)}')
 
@@ -99,7 +98,7 @@ def openwin():
     def fanyi_start_fun():
         nonlocal SOURCE_DIR,uuid_list
         uuid_list=[]
-        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         target_language = winobj.fanyi_target.currentText()
         translate_type = winobj.fanyi_translate_type.currentIndex()
@@ -114,9 +113,9 @@ def openwin():
         proxy = winobj.fanyi_proxy.text()
 
         if proxy:
-            config.proxy = proxy
+            app_cfg.proxy = proxy
             tools.set_proxy(proxy)
-            config.settings['proxy'] = proxy
+            settings['proxy'] = proxy
 
         rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_code)
         if rs is not True:
@@ -127,10 +126,9 @@ def openwin():
         winobj.fanyi_targettext.clear()
         winobj.loglabel.setText('')
 
-        config.settings['aisendsrt'] = winobj.aisendsrt.isChecked()
+        settings['aisendsrt'] = winobj.aisendsrt.isChecked()
 
-        with open(config.ROOT_DIR + "/videotrans/cfg.json", 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings, ensure_ascii=False))
+        settings.save()
 
         video_list = [tools.format_video(it, None) for it in winobj.files]
         uuid_list = [obj['uuid'] for obj in video_list]
@@ -145,8 +143,8 @@ def openwin():
                 "source_language_code": source_code,
                 "target_language_code": target_code
             }
-            trk = TranslateSrt(cfg=TaskCfg(**cfg|it),out_format=winobj.out_format.currentIndex())
-            config.trans_queue.put_nowait(trk)
+            trk = TranslateSrt(cfg=TaskCfgSTS(**cfg|it),out_format=winobj.out_format.currentIndex())
+            app_cfg.trans_queue.put_nowait(trk)
         from videotrans.task.child_win_sign import SignThread
         th = SignThread(uuid_list=uuid_list, parent=winobj)
         th.uito.connect(feed)
@@ -160,12 +158,12 @@ def openwin():
             winobj.fanyi_targettext.setReadOnly(True)
             winobj.exportsrt.setVisible(False)
 
-        config.params["trans_translate_type"] = winobj.fanyi_translate_type.currentIndex()
-        config.params["trans_source_language"] = winobj.fanyi_source.currentIndex()
-        config.params["trans_target_language"] = winobj.fanyi_target.currentIndex()
-        config.params["trans_out_format"] = winobj.out_format.currentIndex()
-        config.params["trans_save_source"] = winobj.save_source.isChecked()
-        config.getset_params(config.params)
+        params["trans_translate_type"] = winobj.fanyi_translate_type.currentIndex()
+        params["trans_source_language"] = winobj.fanyi_source.currentIndex()
+        params["trans_target_language"] = winobj.fanyi_target.currentIndex()
+        params["trans_out_format"] = winobj.out_format.currentIndex()
+        params["trans_save_source"] = winobj.save_source.isChecked()
+        params.save()
 
         toggle_state(True)
         winobj.fanyi_start.setText(tr("running"))
@@ -187,7 +185,7 @@ def openwin():
         winobj.fanyi_target.addItems(language_namelist)
         if current_target and current_target != '-' and current_target in language_namelist:
             winobj.fanyi_target.setCurrentText(current_target)
-        winobj.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+        winobj.aisendsrt.setChecked(settings.get('aisendsrt'))
 
     # 翻译渠道变化时重新设置目标语言
     def translate_type_change(idx):
@@ -199,20 +197,20 @@ def openwin():
     def show_model_list():
         idx = winobj.fanyi_translate_type.currentIndex()
         if idx == translator.LOCALLLM_INDEX:
-            model_list = config.settings.get('localllm_model','').strip().split(',')
-            current_model = config.params["localllm_model"]
+            model_list = settings.get('localllm_model','').strip().split(',')
+            current_model = params["localllm_model"]
         elif idx == translator.GEMINI_INDEX:
-            model_list = config.settings.get('gemini_model','').strip().split(',')
-            current_model = config.params["gemini_model"]
+            model_list = settings.get('gemini_model','').strip().split(',')
+            current_model = params["gemini_model"]
         elif idx == translator.CHATGPT_INDEX:
-            model_list = config.settings.get('chatgpt_model','').strip().split(',')
-            current_model = config.params["chatgpt_model"]
+            model_list = settings.get('chatgpt_model','').strip().split(',')
+            current_model = params["chatgpt_model"]
         elif idx == translator.AZUREGPT_INDEX:
-            model_list = config.settings.get('azure_model','').strip().split(',')
-            current_model = config.params["azure_model"]
+            model_list = settings.get('azure_model','').strip().split(',')
+            current_model = params["azure_model"]
         elif idx == translator.ZIJIE_INDEX:
-            model_list = config.settings.get('zijiehuoshan_model','').strip().split(',')
-            current_model = config.params["zijiehuoshan_model"]
+            model_list = settings.get('zijiehuoshan_model','').strip().split(',')
+            current_model = params["zijiehuoshan_model"]
 
         else:
             winobj.fanyi_model_list.setVisible(False)
@@ -229,24 +227,24 @@ def openwin():
         idx = winobj.fanyi_translate_type.currentIndex()
         model_name = winobj.fanyi_model_list.currentText()
         if idx == translator.LOCALLLM_INDEX:
-            config.params["localllm_model"] = model_name
+            params["localllm_model"] = model_name
         elif idx == translator.GEMINI_INDEX:
-            config.params["gemini_model"] = model_name
+            params["gemini_model"] = model_name
         elif idx == translator.CHATGPT_INDEX:
-            config.params["chatgpt_model"] = model_name
+            params["chatgpt_model"] = model_name
         elif idx == translator.AZUREGPT_INDEX:
-            config.params["azure_model"] = model_name
+            params["azure_model"] = model_name
         elif idx == translator.ZIJIE_INDEX:
-            config.params["zijiehuoshan_model"] = model_name
+            params["zijiehuoshan_model"] = model_name
 
-        config.getset_params(config.params)
+        params.save()
 
     def pause_trans():
         winobj.has_done = True
         winobj.loglabel.setText('Stoped')
         winobj.fanyi_start.setText(tr("Start operate"))
         for it in uuid_list:
-            config.stoped_uuid_set.add(it)
+            app_cfg.stoped_uuid_set.add(it)
         toggle_state(False)
 
     def show_detail_error():
@@ -277,19 +275,19 @@ def openwin():
     def checkbox_state_changed(state):
         """复选框状态发生变化时触发的函数"""
         if state:
-            config.settings['aisendsrt'] = True
+            settings['aisendsrt'] = True
         else:
-            config.settings['aisendsrt'] = False
+            settings['aisendsrt'] = False
 
     from videotrans.component.set_form import Fanyisrt
 
     winobj = Fanyisrt()
-    config.child_forms['fn_fanyisrt'] = winobj
+    app_cfg.child_forms['fn_fanyisrt'] = winobj
     winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
-        winobj.fanyi_translate_type.setCurrentIndex(int(config.params.get('trans_translate_type', 0)))
+        winobj.fanyi_translate_type.setCurrentIndex(int(params.get('trans_translate_type', 0)))
 
         update_target_language()
         winobj.fanyi_source.addItems(['-'] + list(translator.LANGNAME_DICT.values()))
@@ -297,9 +295,9 @@ def openwin():
         winobj.fanyi_start.clicked.connect(fanyi_start_fun)
         winobj.fanyi_stop.clicked.connect(pause_trans)
 
-        winobj.fanyi_source.setCurrentIndex(config.params.get("trans_source_language", 0))
-        winobj.fanyi_target.setCurrentIndex(config.params.get("trans_target_language", 0))
-        winobj.out_format.setCurrentIndex(config.params.get("trans_out_format", 0))
+        winobj.fanyi_source.setCurrentIndex(params.get("trans_source_language", 0))
+        winobj.fanyi_target.setCurrentIndex(params.get("trans_target_language", 0))
+        winobj.out_format.setCurrentIndex(params.get("trans_out_format", 0))
 
         winobj.fanyi_target.currentTextChanged.connect(target_lang_change)
 
@@ -313,7 +311,7 @@ def openwin():
 
         winobj.fanyi_sourcetext.setSizePolicy(sizePolicy)
         winobj.fanyi_sourcetext.setMinimumSize(300, 0)
-        winobj.fanyi_proxy.setText(config.proxy)
+        winobj.fanyi_proxy.setText(app_cfg.proxy)
 
         winobj.fanyi_sourcetext.setPlaceholderText(tr('tuodongfanyi'))
         winobj.fanyi_sourcetext.setToolTip(tr('tuodongfanyi'))
@@ -326,7 +324,7 @@ def openwin():
         winobj.exportsrt.clicked.connect(export_srt)
         winobj.glossary.clicked.connect(lambda: tools.show_glossary_editor(winobj))
         winobj.aisendsrt.toggled.connect(checkbox_state_changed)
-        winobj.save_source.setChecked(config.params.get("trans_save_source",False))
+        winobj.save_source.setChecked(params.get("trans_save_source",False))
 
     QTimer.singleShot(10,_bind)
 

@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import Optional
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
-from videotrans.util import tools
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, IS_FROZEN
+from videotrans.util import tools, contants
 from videotrans.process.signelobj import GlobalProcessManager
 from concurrent.futures.process import BrokenProcessPool
 
@@ -27,20 +27,16 @@ class BaseCon:
     no_proxy: str = ''
 
     def __post_init__(self):
-        self.no_proxy=config.no_proxy
+        self.no_proxy=contants.no_proxy
         # 获取代理
         self.proxy_str = self._set_proxy(type='set')
-        config.settings=config.parse_init()
-        
+
 
     # 所有窗口和任务信息通过队列交互
     def _signal(self, **kwargs):
-        from . import config
-        #print(f'_signal {self.uuid=}')
         if 'uuid' not in kwargs:
             kwargs['uuid'] = self.uuid
-        if not config.exit_soft:
-            #print(f'{kwargs=}')
+        if not app_cfg.exit_soft:
             tools.set_process(**kwargs)
     
     def _process_callback(self,data):
@@ -63,23 +59,23 @@ class BaseCon:
     # 设置、获取代理
     def _set_proxy(self, type='set'):
         if type == 'del':
-            os.environ['bak_proxy'] = config.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
-            config.proxy = ''
+            os.environ['bak_proxy'] = app_cfg.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
+            app_cfg.proxy = ''
             os.environ.pop('HTTPS_PROXY',None)
             os.environ.pop('HTTP_PROXY',None)
             return None
 
         if type == 'set':
-            raw_proxy = config.proxy or os.environ.get('HTTPS_PROXY') or os.environ.get('HTTP_PROXY')
+            raw_proxy = app_cfg.proxy or os.environ.get('HTTPS_PROXY') or os.environ.get('HTTP_PROXY')
             if raw_proxy:
-                config.proxy=raw_proxy
+                app_cfg.proxy=raw_proxy
                 return raw_proxy
             if not raw_proxy:
                 proxy = tools.set_proxy() or os.environ.get('bak_proxy')
                 if proxy:
                     os.environ['HTTP_PROXY'] = proxy
                     os.environ['HTTPS_PROXY'] = proxy
-                config.proxy=proxy
+                app_cfg.proxy=proxy
                 return proxy
         return None
 
@@ -87,20 +83,17 @@ class BaseCon:
     def _external_cmd_with_wrapper(self, cmd_list=None):
         if not cmd_list:
             raise ValueError("cmd_list is None")
-        from . import config
-
         try:
             subprocess.run(cmd_list, capture_output=True, text=True, check=True, encoding='utf-8', creationflags=0,
                            cwd=os.path.dirname(cmd_list[0]))
         except subprocess.CalledProcessError as e:
-            if os.name == 'nt' and config.IS_FROZEN:
+            if os.name == 'nt' and IS_FROZEN:
                 raise RuntimeError(tr('Currently Faster-Whisper-XXL cannot be used in the packaged version. Please deploy the source code or use Faster-Whisper-XXL transcription separately.'))
             raise RuntimeError(e.stderr)
 
     # 语音合成后统一转为 wav 音频
     def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None):
-        from . import config
-        if config.exit_soft or not tools.vail_file(mp3_file_path):
+        if app_cfg.exit_soft or not tools.vail_file(mp3_file_path):
             return
         cmd = [
             "-y",
@@ -120,7 +113,7 @@ class BaseCon:
         ]
         try:
             tools.runffmpeg(cmd, force_cpu=True)
-            if config.settings.get('remove_dubb_silence',True):
+            if settings.get('remove_dubb_silence',True):
                 tools.remove_silence_wav(output_wav_file_path)
         except Exception:
             pass
@@ -252,31 +245,37 @@ class BaseCon:
                 self._signal(text=_tmp.get('text',''), type=_tmp.get('type', 'logs'))
             except Exception as e:
                 # 可能日志文件读取出错，可忽略
-                config.logger.warning(f'读取进程间日志文件出错，可忽略:{e}')
+                logger.warning(f'读取进程间日志文件出错，可忽略:{e}')
             time.sleep(1)
 
     # 使用新进程执行任务
     def _new_process(self,callback=None,title="",is_cuda=False,kwargs=None):
         _st = time.time()
         self._signal(text=f'[{title}] starting...')
-        config.logger.debug(f'[新进程执行任务]:{title}')
+        logger.debug(f'[新进程执行任务]:{title}')
         # 提交任务，并显式传入参数，确保子进程拿到正确的参数
         logs_file=kwargs.get('logs_file')
         try:
             if logs_file:
                 Path(logs_file).touch()
                 threading.Thread(target=self._signal_of_process,args=(logs_file,),daemon=True).start()
+            # 再次判断cuda是否有效，防止预先获取失败
+            if is_cuda:
+                import torch
+                if not torch.cuda.is_available():
+                    is_cuda=False
+
             # 如果使用gpu，则获取可用 device_index
             if is_cuda:
                 device_index=0
                 #启用了多显卡模式
-                if config.settings.get('multi_gpus'):
+                if settings.get('multi_gpus'):
                     device_index=get_cudaX()
                 if device_index==-1:
                     is_cuda=False
                     kwargs['is_cuda']=False
-                    config.logger.error(f'已启用CUDA但未检测到可用显卡，强制使用CPU')
-                kwargs['device_index']=device_index
+                    logger.error(f'已启用CUDA但未检测到可用显卡，强制使用CPU')
+                kwargs['device_index']=max(device_index,0)
             future = GlobalProcessManager.submit_task_cpu(
                 callback, 
                 **kwargs
@@ -297,7 +296,7 @@ class BaseCon:
             raise RuntimeError(f'{tr("may be insufficient memory")}\n{e}')
         except Exception as e:
             msg=traceback.format_exc()
-            config.logger.exception(f'new process:{msg}',exc_info=True)
+            logger.exception(f'new process:{msg}',exc_info=True)
             raise
         finally:
             try:

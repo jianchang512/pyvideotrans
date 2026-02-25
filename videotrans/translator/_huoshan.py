@@ -8,8 +8,8 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 from openai import OpenAI
@@ -25,8 +25,8 @@ class HuoShan(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
 
-        self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.model_name = config.params.get("zijiehuoshan_model",'')
+        self.trans_thread = int(settings.get('aitrans_thread', 50))
+        self.model_name = params.get("zijiehuoshan_model",'')
 
         self.prompt = tools.get_prompt(ainame='zijie',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
 
@@ -40,22 +40,22 @@ class HuoShan(BaseTrans):
              'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
              },
         ]
-        model_name=config.params.get('zijiehuoshan_model','')
+        model_name=params.get('zijiehuoshan_model','')
         pre_=model_name.split('-')[0]
         if pre_ not in['doubao','glm','deepseek','qwen','qwen3','kimi','minimax','minimaxi']:
             model_name='doubao-seed-1-8-251228'
         client = OpenAI(
             base_url='https://ark.cn-beijing.volces.com/api/v3',
-            api_key=config.params.get('zijiehuoshan_key','')
+            api_key=params.get('zijiehuoshan_key','')
         )
 
-        config.logger.debug(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{model_name}")
+        logger.debug(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{model_name}")
         response=None
         try:
             response = client.responses.create(
                 model=model_name,
                 max_output_tokens=32768,
-                temperature=float(config.settings.get('aitrans_temperature',0.2)),
+                temperature=float(settings.get('aitrans_temperature',0.2)),
                 extra_body={
                     "thinking": {"type": "enabled"},
                 },
@@ -64,7 +64,7 @@ class HuoShan(BaseTrans):
         except Exception as e:            
             raise RuntimeError(e.message) if hasattr(e,'message') else e
         else:
-            config.logger.debug(f'[字节火山引擎]响应:{response=}')
+            logger.debug(f'[字节火山引擎]响应:{response=}')
             result = ""
             if not response or response.error:
                 raise RuntimeError(response.error)
@@ -73,7 +73,7 @@ class HuoShan(BaseTrans):
             try:
                 result = response.output[-1].content[0].text.strip()
             except Exception as e:
-                config.logger.exception(f'[火山引擎]{e}',exc_info=True)
+                logger.exception(f'[火山引擎]{e}',exc_info=True)
                 raise RuntimeError(str(response.output))
 
             match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>',

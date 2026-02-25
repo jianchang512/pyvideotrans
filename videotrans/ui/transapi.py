@@ -4,7 +4,7 @@ from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPushButton, QSizePolicy
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 
 
@@ -79,7 +79,7 @@ class Ui_transapiform(object):
     # setupUi
 
     def retranslateUi(self, transapiform):
-        if config.defaulelang == 'zh':
+        if defaulelang == 'zh':
             tips = """
 将以GET请求向填写的API地址发送application/www-urlencode数据：
 text:需要翻译的文本/字符串

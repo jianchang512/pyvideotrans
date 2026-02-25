@@ -12,7 +12,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -27,8 +27,8 @@ class GoogleRecogn(BaseRecogn):
         super().__post_init__()
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():  return
 
@@ -52,7 +52,7 @@ class GoogleRecogn(BaseRecogn):
             if self._exit(): return
             start_time, end_time, buffered = duration
             if start_time == end_time:
-                end_time += int(config.settings.get('voice_silence',140))
+                end_time += int(settings.get('voice_silence',140))
 
             chunk_filename = tmp_path + f"/c{i}_{start_time // 1000}_{end_time // 1000}.wav"
             audio_chunk = normalized_sound[start_time:end_time]
@@ -93,10 +93,10 @@ class GoogleRecogn(BaseRecogn):
 
     def _shorten_voice_old(self, normalized_sound):
         normalized_sound = self.match_target_amplitude(normalized_sound, -20.0)
-        max_interval = int(config.settings.get('max_speech_duration_s',5)) * 1000
-        buffer = int(config.settings.get('min_silence_duration_ms',140))
+        max_interval = int(settings.get('max_speech_duration_s',5)) * 1000
+        buffer = int(settings.get('min_silence_duration_ms',140))
         nonsilent_data = []
-        audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(config.settings.get('min_silence_duration_ms',140)),
+        audio_chunks = detect_nonsilent(normalized_sound, min_silence_len=int(settings.get('min_silence_duration_ms',140)),
                                         silence_thresh=-20 - 25)
         for i, chunk in enumerate(audio_chunks):
             start_time, end_time = chunk

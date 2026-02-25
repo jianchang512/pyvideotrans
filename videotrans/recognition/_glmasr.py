@@ -7,6 +7,7 @@ from typing import List, Dict, Union
 
 import requests,time
 from videotrans.configure import config
+from videotrans.configure.config import params, logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -25,7 +26,7 @@ class GLMASRRecogn(BaseRecogn):
         if self._exit(): return
         # 发送请求
         raws = self.cut_audio()
-        apikey = config.params.get('zhipu_key')
+        apikey = params.get('zhipu_key')
 
         url = "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions"
         err=''
@@ -59,7 +60,7 @@ class GLMASRRecogn(BaseRecogn):
                 except:
                     raise RuntimeError(response.text)
                 else:
-                    config.logger.error(err_json)
+                    logger.error(err_json)
                     code=str(err_json['error']['code'])
                     if code in ["1302","1303","1214"]:
                         time.sleep(5)

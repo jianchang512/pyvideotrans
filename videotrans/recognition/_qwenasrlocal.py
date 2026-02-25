@@ -9,8 +9,9 @@ from pathlib import Path
 import re,time
 
 from videotrans.configure import config
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, defaulelang, ROOT_DIR, TEMP_DIR
 from videotrans.configure._except import  StopRetry
-from videotrans.configure.config import tr
+
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 from videotrans.process import qwen3asr_fun
@@ -23,36 +24,34 @@ class QwenasrlocalRecogn(BaseRecogn):
 
 
     def _download(self):
-        if config.defaulelang == 'zh':
-            tools.check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}',callback=self._process_callback,local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}')
+        if defaulelang == 'zh':
+            tools.check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}')
             
-            #tools.check_and_down_ms('Qwen/Qwen3-ForcedAligner-0.6B',callback=self._process_callback,local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B')
+            #tools.check_and_down_ms('Qwen/Qwen3-ForcedAligner-0.6B',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B')
         else:
-            tools.check_and_down_hf(model_id=f'Qwen3-ASR-{self.model_name}',repo_id=f'Qwen/Qwen3-ASR-{self.model_name}',local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}',callback=self._process_callback)
+            tools.check_and_down_hf(model_id=f'Qwen3-ASR-{self.model_name}',repo_id=f'Qwen/Qwen3-ASR-{self.model_name}',local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}',callback=self._process_callback)
             
-            #tools.check_and_down_hf(model_id='Qwen3-ForcedAligner-0.6B',repo_id='Qwen/Qwen3-ForcedAligner-0.6B',local_dir=f'{config.ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B',callback=self._process_callback)
+            #tools.check_and_down_hf(model_id='Qwen3-ForcedAligner-0.6B',repo_id='Qwen/Qwen3-ForcedAligner-0.6B',local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B',callback=self._process_callback)
 
 
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
 
-        logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
+        logs_file = f'{TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
         title="Qwen3-ASR"
-        cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
+        cut_audio_list_file = f'{TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
         Path(cut_audio_list_file).write_text(json.dumps(self.cut_audio()),encoding='utf-8')
         kwargs = {     
             "cut_audio_list":   cut_audio_list_file,
-            "ROOT_DIR": config.ROOT_DIR,
             "logs_file": logs_file,
-            "defaulelang": config.defaulelang,
             "is_cuda": self.is_cuda,
             "audio_file":self.audio_file,
             "model_name":self.model_name
         }
         jsdata=self._new_process(callback=qwen3asr_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         #print(f'{jsdata=}')
-        config.logger.debug(f'Qwen-asr返回的字词时间戳数据:{jsdata=}')
+        logger.debug(f'Qwen-asr返回的字词时间戳数据:{jsdata=}')
 
         return jsdata#self.segmentation_asr_data(jsdata)
         

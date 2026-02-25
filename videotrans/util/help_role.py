@@ -6,13 +6,16 @@ import sys
 import requests
 
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from pathlib import Path
 from functools import lru_cache
+
+from videotrans.util import contants
 
 
 def get_elevenlabs_role(force=False, raise_exception=False):
     from . import help_misc
-    jsonfile = f'{config.ROOT_DIR}/videotrans/voicejson/elevenlabs.json'
+    jsonfile = f'{ROOT_DIR}/videotrans/voicejson/elevenlabs.json'
     namelist = ["No"]
     if help_misc.vail_file(jsonfile):
         with open(jsonfile, 'r', encoding='utf-8') as f:
@@ -20,11 +23,11 @@ def get_elevenlabs_role(force=False, raise_exception=False):
             for it in cache.values():
                 namelist.append(it['name'])
     if not force and len(namelist) > 0:
-        config.params['elevenlabstts_role'] = namelist
+        params['elevenlabstts_role'] = namelist
         return namelist
     try:
         from elevenlabs import ElevenLabs
-        client = ElevenLabs(api_key=config.params.get("elevenlabstts_key",''))
+        client = ElevenLabs(api_key=params.get("elevenlabstts_key",''))
         voiceslist = client.voices.get_all()
 
         namelist=['No']
@@ -36,10 +39,10 @@ def get_elevenlabs_role(force=False, raise_exception=False):
 
         with open(jsonfile, 'w', encoding="utf-8") as f:
             f.write(json.dumps(result))
-        config.params['elevenlabstts_role'] = namelist
+        params['elevenlabstts_role'] = namelist
         return namelist
     except Exception as e:
-        config.logger.exception(f'获取 elevenlabs 角色失败:{e}', exc_info=True)
+        logger.exception(f'获取 elevenlabs 角色失败:{e}', exc_info=True)
         if raise_exception:
             raise
     return []
@@ -56,14 +59,14 @@ def get_vits_role():
     return {"zh":{k:k for k in zh},"en":{k:k for k in en}}
 
 def get_piper_role():
-    file_path=f"{config.ROOT_DIR}/videotrans/voicejson/piper.json"
+    file_path=f"{ROOT_DIR}/videotrans/voicejson/piper.json"
     if Path(file_path).exists():
         rolelist=json.loads(Path(file_path).read_text(encoding='utf-8'))
     else:
         rolelist={}
         from videotrans.translator import LANGNAME_DICT
         langkeys=[it.split('-')[0] for it in LANGNAME_DICT.keys()]
-        for it in Path(f'{config.ROOT_DIR}/models/piper').rglob('*.onnx'):
+        for it in Path(f'{ROOT_DIR}/models/piper').rglob('*.onnx'):
             rolename=Path(it).stem
             tmp=rolename.split('_')#tmp[0] 语言代码
             if tmp[0] not in langkeys:
@@ -79,13 +82,13 @@ def get_302ai():
     role_dict = get_azure_rolelist()
 
 
-    with open(config.ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
+    with open(ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
         ai302_voice_roles = json.loads(f.read())
         _doubao = ai302_voice_roles.get("AI302_doubao", {})
         _minimaxi = ai302_voice_roles.get("AI302_minimaxi", {})
         _dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
         _doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
-    _openai=config.OPENAITTS_ROLES.split(",")
+    _openai=contants.OPENAITTS_ROLES.split(",")
     role_dict['zh'] = role_dict['zh'] | _doubao |_minimaxi|_dubbingx| {k:k for k in _openai}
     role_dict['ja'] = role_dict['ja'] |_doubao_ja
     return role_dict
@@ -94,7 +97,7 @@ def get_302ai():
 # 字节火山语音合成角色
 def get_doubao_rolelist(role_name=None, langcode="zh"):
 
-    roledata=json.loads(Path(f'{config.ROOT_DIR}/videotrans/voicejson/doubao0.json').read_text(encoding='utf-8'))
+    roledata=json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/doubao0.json').read_text(encoding='utf-8'))
     
    
     if role_name:
@@ -108,7 +111,7 @@ def get_doubao_rolelist(role_name=None, langcode="zh"):
 
 def get_doubao2_rolelist(role_name=None, langcode="zh"):
 
-    roledata=json.loads(Path(f'{config.ROOT_DIR}/videotrans/voicejson/doubao2.json').read_text(encoding='utf-8'))
+    roledata=json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/doubao2.json').read_text(encoding='utf-8'))
     
    
     if role_name:
@@ -127,7 +130,7 @@ def get_edge_rolelist(role_name=None,locale=None):
 
     from . import help_misc
     voice_list = {}
-    voice_file=config.ROOT_DIR + "/videotrans/voicejson/edge_tts.json"
+    voice_file=ROOT_DIR + "/videotrans/voicejson/edge_tts.json"
     if help_misc.vail_file(voice_file):
         try:
             with open(voice_file,'r',encoding='utf-8') as f:
@@ -142,7 +145,7 @@ def get_edge_rolelist(role_name=None,locale=None):
 
 
 def get_azure_rolelist(language=None,role_name=None):
-    voice_file=config.ROOT_DIR + "/videotrans/voicejson/azure_voice_list.json"
+    voice_file=ROOT_DIR + "/videotrans/voicejson/azure_voice_list.json"
     voice_list=json.loads(Path(voice_file).read_text(encoding='utf-8'))
     # 根据角色显示名字获取真实角色
     if language and role_name:
@@ -165,10 +168,10 @@ def get_minimaxi_rolelist():
 
     from . import help_misc
     voice_list = {}
-    voice_file=config.ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
+    voice_file=ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
 
-    if config.params.get("minimaxi_apiurl",'')=='api.minimax.io':
-        voice_file=config.ROOT_DIR + "/videotrans/voicejson/minimaxiio.json"
+    if params.get("minimaxi_apiurl",'')=='api.minimax.io':
+        voice_file=ROOT_DIR + "/videotrans/voicejson/minimaxiio.json"
     if help_misc.vail_file(voice_file):
         try:
             with open(voice_file,'r',encoding='utf-8') as f:
@@ -181,7 +184,7 @@ def get_minimaxi_rolelist():
 
 
 def get_qwen3tts_rolelist():
-    voices=json.loads(Path(config.ROOT_DIR+"/videotrans/voicejson/qwen3tts.json").read_text(encoding='utf-8'))
+    voices=json.loads(Path(ROOT_DIR+"/videotrans/voicejson/qwen3tts.json").read_text(encoding='utf-8'))
     voices={"No":"No"}|voices
     return voices
 
@@ -201,7 +204,7 @@ def get_qwenttslocal_rolelist():
         "Ono_anna":"Ono_anna",
         "Sohee":"Sohee"
     }
-    ref_audio=config.params.get('qwenttslocal_refaudio','')
+    ref_audio=params.get('qwenttslocal_refaudio','')
     if ref_audio:
         for it in ref_audio.strip().split("\n"):
             _t=it.split('#')
@@ -210,13 +213,13 @@ def get_qwenttslocal_rolelist():
     return voices
 
 def get_supertonic_rolelist():
-    voices=json.loads(Path(config.ROOT_DIR+"/videotrans/voicejson/supertonic.json").read_text(encoding='utf-8'))
+    voices=json.loads(Path(ROOT_DIR+"/videotrans/voicejson/supertonic.json").read_text(encoding='utf-8'))
     voices={"No":"No"}|voices
     return voices
 
 
 def get_glmtts_rolelist():
-    voices=json.loads(Path(config.ROOT_DIR+"/videotrans/voicejson/glmtts.json").read_text(encoding='utf-8'))
+    voices=json.loads(Path(ROOT_DIR+"/videotrans/voicejson/glmtts.json").read_text(encoding='utf-8'))
     voices={"No":"No"}|voices
     return voices
 
@@ -267,13 +270,13 @@ def get_kokoro_rolelist():
     return voice_list
 
 
-# 根据 gptsovits config.params['gptsovits_role'] 返回以参考音频为key的dict
+# 根据 gptsovits params['gptsovits_role'] 返回以参考音频为key的dict
 def get_gptsovits_role():
 
-    if not config.params.get('gptsovits_role','').strip():
+    if not params.get('gptsovits_role','').strip():
         return None
     rolelist = {"No":"No","clone":"clone"}
-    for it in config.params.get('gptsovits_role','').strip().split("\n"):
+    for it in params.get('gptsovits_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 3:
             continue
@@ -284,9 +287,9 @@ def get_gptsovits_role():
 def get_chatterbox_role():
 
     rolelist = ['No', 'clone']
-    if not config.params.get('chatterbox_role','').strip():
+    if not params.get('chatterbox_role','').strip():
         return rolelist
-    for it in config.params.get('chatterbox_role','').strip().split("\n"):
+    for it in params.get('chatterbox_role','').strip().split("\n"):
         rolelist.append(it.strip())
     return rolelist
 
@@ -298,7 +301,7 @@ def get_cosyvoice_role():
         "clone": 'clone'
     }
 
-    for it in config.params.get('cosyvoice_role','').strip().split("\n"):
+    for it in params.get('cosyvoice_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 2:
             continue
@@ -308,10 +311,10 @@ def get_cosyvoice_role():
 
 def get_fishtts_role():
 
-    if not config.params.get('fishtts_role','').strip():
+    if not params.get('fishtts_role','').strip():
         return None
     rolelist = {"No":"No"}
-    for it in config.params.get('fishtts_role','').strip().split("\n"):
+    for it in params.get('fishtts_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 2:
             continue
@@ -321,10 +324,10 @@ def get_fishtts_role():
 
 def get_f5tts_role():
 
-    if not config.params.get('f5tts_role','').strip():
+    if not params.get('f5tts_role','').strip():
         return
     rolelist = {"No":"No","clone":"clone"}
-    for it in config.params.get('f5tts_role','').strip().split("\n"):
+    for it in params.get('f5tts_role','').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 2:
             continue
@@ -335,15 +338,15 @@ def get_f5tts_role():
 # 获取clone-voice的角色列表
 def get_clone_role(set_p=False):
     from . import help_misc
-    if not config.params.get('clone_api',''):
+    if not params.get('clone_api',''):
         if set_p:
-            raise Exception(config.tr('bixutianxiecloneapi'))
+            raise Exception(tr('bixutianxiecloneapi'))
         return False
     try:
-        url = config.params.get('clone_api','').strip().rstrip('/') + "/init"
+        url = params.get('clone_api','').strip().rstrip('/') + "/init"
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
         res.raise_for_status()
-        config.params["clone_voicelist"] = ['No',"clone"] + res.json()
+        params["clone_voicelist"] = ['No',"clone"] + res.json()
         help_misc.set_process(type='set_clone_role')
     except Exception as e:
         if set_p: raise

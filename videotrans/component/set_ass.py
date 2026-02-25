@@ -10,12 +10,12 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QColor, QPixmap, QFont, QPen, QBrush, QPainterPath, QTransform, QPainterPathStroker,QIcon
 from PySide6.QtCore import Qt, Signal,QSize
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 
 from pathlib import Path
 
-JSON_FILE = f'{config.ROOT_DIR}/videotrans/ass.json'
-PREVIEW_IMAGE = f'{config.ROOT_DIR}/videotrans/styles/preview.png'
+JSON_FILE = f'{ROOT_DIR}/videotrans/ass.json'
+PREVIEW_IMAGE = f'{ROOT_DIR}/videotrans/styles/preview.png'
 
 
 
@@ -128,7 +128,7 @@ class PreviewWidget(QGraphicsView):
     def update_preview(self, style):
         self.clear_items()
 
-        text =  '你好啊，亲爱的朋友们！' if config.defaulelang=='zh' else  'Hello, my dear friend. hope your every day beautiful'
+        text =  '你好啊，亲爱的朋友们！' if defaulelang=='zh' else  'Hello, my dear friend. hope your every day beautiful'
 
         font = QFont(style['Fontname'], style['Fontsize'])
         font.setBold(bool(style['Bold']))
@@ -276,7 +276,7 @@ class ASSStyleDialog(QDialog):
         self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
         self.resize(1000, 600)
         self.setModal(True)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
 
         self.main_layout = QVBoxLayout(self)
 

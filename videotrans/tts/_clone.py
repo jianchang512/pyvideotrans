@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -27,7 +27,7 @@ class CloneVoice(BaseTTS):
         super().__post_init__()
         self.splits = {"，", "。", "？", "！", ",", ".", "?", "!", "~", ":", "：", "—", "…"}
 
-        api_url = config.params.get('clone_api', '').strip().rstrip('/').lower()
+        api_url = params.get('clone_api', '').strip().rstrip('/').lower()
         # 确保即使 api_url 为空也不会出错
         if api_url:
             self.api_url = 'http://' + api_url.replace('http://', '')
@@ -40,8 +40,8 @@ class CloneVoice(BaseTTS):
         if self._exit() or  not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
             if data_item['text'][-1] not in self.splits:
                 data_item['text'] += '.'
@@ -62,7 +62,7 @@ class CloneVoice(BaseTTS):
                     res = requests.post(f"{self.api_url}/apitts", data=data, files=files,  timeout=3600)
 
             res.raise_for_status()
-            config.logger.info(f'clone-voice:{data=},{res.text=}')
+            logger.info(f'clone-voice:{data=},{res.text=}')
             res = res.json()
             if "code" not in res or res['code'] != 0:
                 if "msg" in res and res['msg'].find("non-empty") > 0:

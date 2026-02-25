@@ -6,9 +6,10 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr, settings, params, app_cfg, logger, ROOT_DIR
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
+from videotrans.util import tools, contants
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -22,13 +23,13 @@ class AI302(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.stop_next_all=False
-        with open(config.ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
+        with open(ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
             ai302_voice_roles = json.loads(f.read())
             self.AI302_doubao = ai302_voice_roles.get("AI302_doubao", {})
             self.AI302_minimaxi = ai302_voice_roles.get("AI302_minimaxi", {})
             self.AI302_dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
             self.AI302_doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
-        self.AI302_openai=config.OPENAITTS_ROLES.split(",")
+        self.AI302_openai=contants.OPENAITTS_ROLES.split(",")
 
     def _exec(self):
         self._local_mul_thread()
@@ -37,8 +38,8 @@ class AI302(BaseTTS):
         if self.stop_next_all or self._exit() or  not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-               after=after_log(config.logger, logging.INFO))
+               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -81,7 +82,7 @@ class AI302(BaseTTS):
             payload['provider'] = 'azure'
 
         response = requests.post('https://api.302.ai/302/v2/audio/tts', headers={
-            'Authorization': f'Bearer {config.params.get("ai302_key","")}',
+            'Authorization': f'Bearer {params.get("ai302_key","")}',
             'Content-Type': 'application/json'
         }, data=json.dumps(payload), verify=False)
         if response.status_code in [401,403,402,404]:

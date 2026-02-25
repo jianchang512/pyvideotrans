@@ -14,6 +14,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import ROOT_DIR
 from videotrans.translator._base import BaseTrans
 import torch
 
@@ -71,15 +72,15 @@ class M2M100Trans(BaseTrans):
         self.to_lang=_LANGUAGE_CODE_MAP.get(self.target_code[:2].lower())
 
     def _download(self):
-        if not Path(f'{config.ROOT_DIR}/models/m2m100_12b/model.bin').exists():
-            tools.down_zip(f"{config.ROOT_DIR}/models", 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/m2m100_12b_model.zip',self._process_callback)
+        if not Path(f'{ROOT_DIR}/models/m2m100_12b/model.bin').exists():
+            tools.down_zip(f"{ROOT_DIR}/models", 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/m2m100_12b_model.zip',self._process_callback)
         self.model = ctranslate2.Translator(
-            model_path=f'{config.ROOT_DIR}/models/m2m100_12b',
+            model_path=f'{ROOT_DIR}/models/m2m100_12b',
             device="cpu" if not torch.cuda.is_available() else "cuda",
             device_index=0,
         )
         self.model.load_model()
-        self.sentence_piece_processor = spm.SentencePieceProcessor(model_file=f'{config.ROOT_DIR}/models/m2m100_12b/sentencepiece.model')
+        self.sentence_piece_processor = spm.SentencePieceProcessor(model_file=f'{ROOT_DIR}/models/m2m100_12b/sentencepiece.model')
         return True
 
     def _process_callback(self,msg):

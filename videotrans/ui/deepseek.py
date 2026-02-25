@@ -4,8 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,logger,app_cfg
 from videotrans.util import tools
 
 
@@ -104,16 +103,14 @@ class Ui_deepseekform(object):
 
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('deepseek_model','')
-        allmodels = str(config.settings.get('deepseek_model','')).split(',')
+        allmodels_str = settings.get('deepseek_model','')
+        allmodels = str(settings.get('deepseek_model','')).split(',')
         self.deepseek_model.clear()
         self.deepseek_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.deepseek_key.setText(config.params.get("deepseek_key",''))
-        self.deepseek_model.setCurrentText(config.params.get("deepseek_model",''))
+        self.deepseek_key.setText(params.get("deepseek_key",''))
+        self.deepseek_model.setCurrentText(params.get("deepseek_model",''))
 
     def retranslateUi(self, deepseekform):
         deepseekform.setWindowTitle("DeepSeek AI")

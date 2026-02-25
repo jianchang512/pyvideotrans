@@ -3,8 +3,7 @@ from PySide6.QtWidgets import (
     QDialog, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton
 )
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 
 
 class SubtitleSettingsDialog(QDialog):
@@ -16,7 +15,7 @@ class SubtitleSettingsDialog(QDialog):
 
         # 设置对话框标题
         self.setWindowTitle(tr("Set Subtitle Length"))
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
 
         # 创建标签和输入框
         self.cjk_label = QLabel(tr("CJK Subtitle Length:"))

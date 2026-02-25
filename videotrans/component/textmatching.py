@@ -16,6 +16,7 @@ from PySide6.QtCore import Qt, QThread, Signal, Slot, QSettings, QUrl
 from huggingface_hub import snapshot_download
 
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 
 # ==========================================
@@ -23,7 +24,7 @@ from videotrans.util import tools
 # ==========================================
 
 # 可选: 'zh' (中文) | 'en' (English)
-CURRENT_LANG = config.defaulelang
+CURRENT_LANG = defaulelang
 
 TEXT_DB = {
     # 窗口与标题
@@ -129,7 +130,7 @@ class AlignmentWorker(QThread):
         self.model_name=model_name
         self.compute_type = compute_type
         self.language =None if language=='auto' else  language
-        self.local_dir = f'{config.ROOT_DIR}/models/models--' + _MODELS[model_name].replace('/', '--')
+        self.local_dir = f'{ROOT_DIR}/models/models--' + _MODELS[model_name].replace('/', '--')
 
     def ms_to_srt_time(self, seconds):
         if seconds is None:
@@ -158,7 +159,7 @@ class AlignmentWorker(QThread):
                     raise e
 
             self.log_signal.emit(tr("status_transcribing"))
-            tempfile=f'{config.TEMP_DIR}/textmatching-{time.time()}.wav'
+            tempfile=f'{TEMP_DIR}/textmatching-{time.time()}.wav'
             tools.conver_to_16k(self.audio_path,tempfile)
             segments, info = model.transcribe(
                   tempfile,
@@ -167,11 +168,11 @@ class AlignmentWorker(QThread):
                   word_timestamps=True,
                   language=self.language,
                   temperature=0.0,
-                  initial_prompt=config.settings.get(f'initial_prompt_{self.language}') if self.language != 'auto' else None,
-                beam_size=int(config.settings.get('beam_size', 5)),
-                best_of=int(config.settings.get('best_of', 5)),
-                repetition_penalty=float(config.settings.get('repetition_penalty', 1.0)),
-                compression_ratio_threshold=float(config.settings.get('compression_ratio_threshold', 2.2)),
+                  initial_prompt=settings.get(f'initial_prompt_{self.language}') if self.language != 'auto' else None,
+                beam_size=int(settings.get('beam_size', 5)),
+                best_of=int(settings.get('best_of', 5)),
+                repetition_penalty=float(settings.get('repetition_penalty', 1.0)),
+                compression_ratio_threshold=float(settings.get('compression_ratio_threshold', 2.2)),
                 )
 
             whisper_chars = []
@@ -376,7 +377,7 @@ class TextmatchingWindow(QWidget):
         self.load_settings()
 
     def init_ui(self):
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         main_layout = QVBoxLayout()
         main_layout.setSpacing(10)
         self.setLayout(main_layout)

@@ -3,8 +3,9 @@ from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
 
-from videotrans.configure.config import tr
+
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 
 
@@ -27,7 +28,7 @@ class Ui_qwenttslocal(object):
 
         h1_prompt = QtWidgets.QHBoxLayout()
         self.instruct_text = QLineEdit()
-        h1_prompt.addWidget(QLabel('自定义音色提示词' if config.defaulelang=='zh' else 'Custom Voice Prompt'))
+        h1_prompt.addWidget(QLabel('自定义音色提示词' if defaulelang=='zh' else 'Custom Voice Prompt'))
         h1_prompt.addWidget(self.instruct_text)
         v1.addLayout(h1_prompt)
         
@@ -86,7 +87,7 @@ wav音频最佳时长3-10s，音频必须存放在本软件目录下的 f5-tts �
 
 # prompt 填写提示词，在使用模型内置的音色时(Vivian、Sohee等)，可作为发音指导词，例如请使用愤怒的声音
 
-""" if config.defaulelang=='zh' else """
+""" if defaulelang=='zh' else """
 Reference Audio Input: Each line is separated into two parts by the `#` symbol. The first part is the name of the WAV audio file, and the second part is the corresponding text content.
 
 The optimal length for a WAV audio file is 3-10 seconds. The audio file must be located in the `f5-tts` folder within this software's directory. Enter the file name here.

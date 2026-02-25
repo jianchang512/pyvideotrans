@@ -14,6 +14,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import params, logger, ROOT_DIR, settings
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -28,11 +29,11 @@ class GeminiRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
 
-        self.api_keys = config.params.get('gemini_key', '').strip().split(',')
+        self.api_keys = params.get('gemini_key', '').strip().split(',')
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _req(self,seg_group,api_key,prompt):
         res_text = ""
         try:
@@ -53,7 +54,7 @@ class GeminiRecogn(BaseRecogn):
                 )
             parts.append(types.Part.from_text(text=prompt))
 
-            config.logger.debug(f'发送音频到Gemini:prompt={prompt},{seg_group=}')
+            logger.debug(f'发送音频到Gemini:prompt={prompt},{seg_group=}')
             generate_content_config = types.GenerateContentConfig(
                 max_output_tokens=65536,
                 thinking_config=types.ThinkingConfig(
@@ -103,11 +104,11 @@ class GeminiRecogn(BaseRecogn):
         seg_list = self.cut_audio()
         if len(seg_list) < 1:
             raise RuntimeError(f'VAD error')
-        nums = int(config.settings.get('gemini_recogn_chunk', 50))
+        nums = int(settings.get('gemini_recogn_chunk', 50))
         seg_list = [seg_list[i:i + nums] for i in range(0, len(seg_list), nums)]
         srt_str_list = []
 
-        prompt = Path(config.ROOT_DIR+'/videotrans/prompts/recogn/gemini_recogn.txt').read_text(encoding='utf-8')
+        prompt = Path(ROOT_DIR+'/videotrans/prompts/recogn/gemini_recogn.txt').read_text(encoding='utf-8')
         # 保存说话人
         speaker_list=[]
         for seg_group in seg_list:
@@ -115,7 +116,7 @@ class GeminiRecogn(BaseRecogn):
             self.api_keys.append(api_key)
             
             res_text=self._req(seg_group,api_key,prompt)
-            config.logger.debug(f'gemini返回结果:{res_text=}')
+            logger.debug(f'gemini返回结果:{res_text=}')
             m = re.findall(r'<audio_text[^\>]*?>(.*?)<\/audio_text>', res_text.strip(), re.I | re.S)
             if len(m) < 1:
                 continue

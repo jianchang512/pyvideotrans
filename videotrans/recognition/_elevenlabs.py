@@ -8,6 +8,7 @@ from elevenlabs import ElevenLabs
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
@@ -23,8 +24,8 @@ class ElevenLabsRecogn(BaseRecogn):
         super().__post_init__()
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
 
@@ -32,12 +33,12 @@ class ElevenLabsRecogn(BaseRecogn):
             file_object = file.read()
         
         client = ElevenLabs(
-            api_key=config.params.get('elevenlabstts_key',''),
+            api_key=params.get('elevenlabstts_key',''),
             httpx_client=httpx.Client(proxy=self.proxy_str)
         )
 
         language_code = self.detect_language[:2] if self.detect_language and self.detect_language != 'auto' else ''
-        config.logger.debug(f'{language_code=}')
+        logger.debug(f'{language_code=}')
 
         raws = []
         if language_code:
@@ -54,7 +55,7 @@ class ElevenLabsRecogn(BaseRecogn):
                 diarize=True
             )
         last_tmp = None
-        config.logger.debug(f'elevenlabs{res=}\n')
+        logger.debug(f'elevenlabs{res=}\n')
         for it in res.words:
             if it.type=='audio_event':
                 continue
@@ -81,14 +82,14 @@ class ElevenLabsRecogn(BaseRecogn):
             diff_prev=st - last_tmp['end_time']
             segment_time=last_tmp['end_time'] - last_tmp['start_time']
             
-            config.logger.debug(f'\n{text=},{isflag=},{spk=},{diff_prev=},{segment_time=}\n')
+            logger.debug(f'\n{text=},{isflag=},{spk=},{diff_prev=},{segment_time=}\n')
             
             # 不同说话人，强制断句
             
             if spk != last_tmp['spk']:
                 last_tmp['time'] = tools.ms_to_time_string(
                     ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=last_tmp['end_time'])
-                config.logger.debug(f'segments-spk:{last_tmp=}')
+                logger.debug(f'segments-spk:{last_tmp=}')
                 if last_tmp['text'].strip():
                     raws.append(last_tmp)
                 last_tmp = {
@@ -106,7 +107,7 @@ class ElevenLabsRecogn(BaseRecogn):
                     last_tmp['text']+=text[0]
                     last_tmp['time'] = tools.ms_to_time_string(
                     ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=last_tmp['end_time'])
-                    config.logger.debug(f'segments-flag0:{last_tmp=}')
+                    logger.debug(f'segments-flag0:{last_tmp=}')
                     if last_tmp['text'].strip():
                         raws.append(last_tmp)
                     last_tmp = {
@@ -122,7 +123,7 @@ class ElevenLabsRecogn(BaseRecogn):
                 last_tmp['text'] += text
                 last_tmp['time'] = tools.ms_to_time_string(
                     ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(ms=end)
-                config.logger.debug(f'segments-flag1:{last_tmp=}')
+                logger.debug(f'segments-flag1:{last_tmp=}')
                 if last_tmp['text'].strip():
                     raws.append(last_tmp)
                 last_tmp = None
@@ -133,7 +134,7 @@ class ElevenLabsRecogn(BaseRecogn):
         if last_tmp and last_tmp['text'].strip():
             last_tmp['time'] = tools.ms_to_time_string(ms=last_tmp['start_time']) + ' --> ' + tools.ms_to_time_string(
                 ms=last_tmp['end_time'])
-            config.logger.debug(f'segments:{last_tmp=}')
+            logger.debug(f'segments:{last_tmp=}')
             
             raws.append(last_tmp)
         return raws

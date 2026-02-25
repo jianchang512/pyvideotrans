@@ -20,7 +20,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -36,8 +36,8 @@ class DeepgramRecogn(BaseRecogn):
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
@@ -53,7 +53,7 @@ class DeepgramRecogn(BaseRecogn):
 
         httpx.HTTPTransport(proxy=self.proxy_str)
 
-        deepgram = DeepgramClient(config.params.get('deepgram_apikey'))
+        deepgram = DeepgramClient(params.get('deepgram_apikey'))
         payload: FileSource = {
             "buffer": buffer_data,
         }
@@ -69,7 +69,7 @@ class DeepgramRecogn(BaseRecogn):
             utterances=True,
             diarize=diarize,
 
-            utt_split=int(config.settings.get('min_silence_duration_ms', 140)) / 1000,
+            utt_split=int(settings.get('min_silence_duration_ms', 140)) / 1000,
         )
 
         res = deepgram.listen.rest.v("1").transcribe_file(payload, options, timeout=600)
@@ -77,7 +77,7 @@ class DeepgramRecogn(BaseRecogn):
         raws = []
         if diarize:
             speaker_list=[]
-            config.logger.debug(f"{res['results']['utterances']=}")
+            logger.debug(f"{res['results']['utterances']=}")
             for it in res['results']['utterances']:
                 if not it.transcript.strip():
                     continue
@@ -98,7 +98,7 @@ class DeepgramRecogn(BaseRecogn):
         else:
             transcription = DeepgramConverter(res)
             srt_str = srt(transcription,
-                          line_length=config.settings.get('cjk_len') if self.detect_language[:2] in ['zh', 'ja','ko'] else config.settings.get('other_len'))
+                          line_length=settings.get('cjk_len') if self.detect_language[:2] in ['zh', 'ja','ko'] else settings.get('other_len'))
             raws = tools.get_subtitle_from_srt(srt_str, is_file=False)
             if self.detect_language[:2] in ['zh', 'ja', 'ko']:
                 for i, it in enumerate(raws):

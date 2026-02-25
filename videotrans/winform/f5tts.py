@@ -1,8 +1,8 @@
 
 
 def openwin(init=False):
-    from videotrans.configure.config import tr
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from pathlib import Path
 
     from PySide6 import QtWidgets
@@ -32,23 +32,23 @@ def openwin(init=False):
         if not role_test:
             return
         # 通用
-        config.params["index_tts_version"] = index_tts_version
-        config.params["f5tts_role"] = role
-        config.params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
-        config.params["diatts_url"] = winobj.diatts_url.text()
-        config.params["indextts_url"] = winobj.indextts_url.text()
-        config.params["sparktts_url"] = winobj.sparktts_url.text()
-        config.params["f5tts_url"] = winobj.f5tts_url.text()
-        config.params["indextts_prompt"] = winobj.indextts_prompt.text()
+        params["index_tts_version"] = index_tts_version
+        params["f5tts_role"] = role
+        params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
+        params["diatts_url"] = winobj.diatts_url.text()
+        params["indextts_url"] = winobj.indextts_url.text()
+        params["sparktts_url"] = winobj.sparktts_url.text()
+        params["f5tts_url"] = winobj.f5tts_url.text()
+        params["indextts_prompt"] = winobj.indextts_prompt.text()
 
 
 
-        config.getset_params(config.params)
+        params.save()
 
         test_btn[tts_type].setText(tr('Testing...'))
         import time
         wk = ListenVoice(parent=winobj,
-                         queue_tts=[{"text": '你好啊我的朋友,希望你今天开心！', "role": role_test, "filename": config.TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
+                         queue_tts=[{"text": '你好啊我的朋友,希望你今天开心！', "role": role_test, "filename": TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
                          language="zh",
                          tts_type=tts_type)
         wk.uito.connect(feed)
@@ -65,11 +65,11 @@ def openwin(init=False):
             if len(s) != 2:
                 tools.show_error(tr("Each line must be split into two parts with #, in the format of audio name.wav#audio text content"))
                 return
-            elif not Path(config.ROOT_DIR + f'/f5-tts/{s[0]}').is_file():
-                tools.show_error(tr("Please save the audio file in the {}/f5-tts directory",config.ROOT_DIR))
+            elif not Path(ROOT_DIR + f'/f5-tts/{s[0]}').is_file():
+                tools.show_error(tr("Please save the audio file in the {}/f5-tts directory",ROOT_DIR))
                 return
             role = s[0]
-        config.params['f5tts_role'] = tmp
+        params['f5tts_role'] = tmp
         return role
 
     def save():
@@ -77,34 +77,34 @@ def openwin(init=False):
         index_tts_version = winobj.index_tts_version.currentIndex()
         role = winobj.f5tts_role.toPlainText().strip()
 
-        config.params["f5tts_role"] = role
-        config.params["index_tts_version"] = index_tts_version
+        params["f5tts_role"] = role
+        params["index_tts_version"] = index_tts_version
         
-        config.params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
-        config.params["diatts_url"] = winobj.diatts_url.text()
-        config.params["indextts_url"] = winobj.indextts_url.text()
-        config.params["sparktts_url"] = winobj.sparktts_url.text()
-        config.params["f5tts_url"] = winobj.f5tts_url.text()
-        config.params["indextts_prompt"] = winobj.indextts_prompt.text()
+        params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
+        params["diatts_url"] = winobj.diatts_url.text()
+        params["indextts_url"] = winobj.indextts_url.text()
+        params["sparktts_url"] = winobj.sparktts_url.text()
+        params["f5tts_url"] = winobj.f5tts_url.text()
+        params["indextts_prompt"] = winobj.indextts_prompt.text()
 
 
-        config.getset_params(config.params)
+        params.save()
         tools.set_process(text='f5tts', type="refreshtts")
         winobj.close()
 
     from videotrans.component.set_form import F5TTSForm
-    Path(config.ROOT_DIR + "/f5-tts").mkdir(exist_ok=True)
+    Path(ROOT_DIR + "/f5-tts").mkdir(exist_ok=True)
     winobj = F5TTSForm()
-    config.child_forms['f5tts'] = winobj
-    winobj.f5tts_role.setPlainText(config.params.get("f5tts_role",''))
-    winobj.index_tts_version.setCurrentIndex(int(config.params.get('index_tts_version',0)))
+    app_cfg.child_forms['f5tts'] = winobj
+    winobj.f5tts_role.setPlainText(params.get("f5tts_role",''))
+    winobj.index_tts_version.setCurrentIndex(int(params.get('index_tts_version',0)))
     
-    winobj.f5tts_url.setText(config.params.get('f5tts_url',''))
-    winobj.sparktts_url.setText(config.params.get('sparktts_url',''))
-    winobj.indextts_url.setText(config.params.get('indextts_url',''))
-    winobj.diatts_url.setText(config.params.get('diatts_url',''))
-    winobj.voxcpmtts_url.setText(config.params.get('voxcpmtts_url',''))
-    winobj.indextts_prompt.setText(config.params.get('indextts_prompt',''))
+    winobj.f5tts_url.setText(params.get('f5tts_url',''))
+    winobj.sparktts_url.setText(params.get('sparktts_url',''))
+    winobj.indextts_url.setText(params.get('indextts_url',''))
+    winobj.diatts_url.setText(params.get('diatts_url',''))
+    winobj.voxcpmtts_url.setText(params.get('voxcpmtts_url',''))
+    winobj.indextts_prompt.setText(params.get('indextts_prompt',''))
 
     winobj.save.clicked.connect(save)
     winobj.f5tts_urltest.clicked.connect(lambda: test(tts.F5_TTS))

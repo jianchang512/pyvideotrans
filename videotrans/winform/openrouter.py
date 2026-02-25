@@ -1,8 +1,7 @@
 def openwin():
-    import json
-    from videotrans.configure.config import tr
     from PySide6 import QtWidgets
     from videotrans.configure import config
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
     from videotrans.util import tools
 
     from videotrans.util.TestSrtTrans import TestSrtTrans
@@ -22,11 +21,11 @@ def openwin():
         model = winobj.openrouter_model.currentText()
 
         max_token= winobj.max_token.text().strip()
-        config.params["openrouter_max_token"] = max_token
+        params["openrouter_max_token"] = max_token
 
-        config.params["openrouter_key"] = key
+        params["openrouter_key"] = key
 
-        config.params["openrouter_model"] = model
+        params["openrouter_model"] = model
         winobj.test.setText(tr("Testing..."))
 
         task = TestSrtTrans(parent=winobj, translator_type=translator.OPENROUTER_INDEX)
@@ -37,11 +36,11 @@ def openwin():
         openrouter_key = winobj.openrouter_key.text()
         model = winobj.openrouter_model.currentText()
         max_token= winobj.max_token.text().strip()
-        config.params["openrouter_max_token"] = max_token
+        params["openrouter_max_token"] = max_token
 
-        config.params["openrouter_key"] = openrouter_key
-        config.params["openrouter_model"] = model
-        config.getset_params(config.params)
+        params["openrouter_key"] = openrouter_key
+        params["openrouter_model"] = model
+        params.save()
         winobj.close()
 
     def setallmodels():
@@ -51,15 +50,14 @@ def openwin():
         winobj.openrouter_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
             winobj.openrouter_model.setCurrentText(current_text)
-        config.settings['openrouter_model'] = t
-        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings, ensure_ascii=False))
+        settings['openrouter_model'] = t
+        settings.save()
 
 
 
     from videotrans.component.set_form import OpenrouterForm
     winobj = OpenrouterForm()
-    config.child_forms['openrouter'] = winobj
+    app_cfg.child_forms['openrouter'] = winobj
     winobj.update_ui()
     winobj.set.clicked.connect(save)
     winobj.edit_allmodels.textChanged.connect(setallmodels)

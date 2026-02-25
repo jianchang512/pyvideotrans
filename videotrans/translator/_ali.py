@@ -9,6 +9,7 @@ from alibabacloud_tea_util import models as util_models
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
 
@@ -31,16 +32,16 @@ class Ali(BaseTrans):
         @throws Exception
         """
         cf = open_api_models.Config(
-            access_key_id=config.params.get('ali_id',''),
-            access_key_secret=config.params.get('ali_key','')
+            access_key_id=params.get('ali_id',''),
+            access_key_secret=params.get('ali_key','')
         )
         # Endpoint 请参考 https://api.aliyun.com/product/alimt
         cf.endpoint = f'mt.cn-hangzhou.aliyuncs.com'
         return alimt20181012Client(cf)
 
     #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-    #       wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-    #       after=after_log(config.logger, logging.INFO))
+    #       wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+    #       after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         client = self.create_client()

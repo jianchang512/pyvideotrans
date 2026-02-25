@@ -3,9 +3,7 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -130,20 +128,18 @@ class Ui_qwenmtform(object):
         QtCore.QMetaObject.connectSlotsByName(qwenmtform)
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('qwenmt_model','')
-        allmodels = str(config.settings.get('qwenmt_model','')).split(',')
+        allmodels_str = settings.get('qwenmt_model','')
+        allmodels = str(settings.get('qwenmt_model','')).split(',')
         self.qwenmt_model.clear()
         self.qwenmt_asr_model.clear()
         self.qwenmt_model.addItems([ it  for it in allmodels if not it.startswith('qwen3-asr')])
         self.qwenmt_asr_model.addItems([ it  for it in allmodels if it.startswith('qwen3-asr')])
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.qwenmt_key.setText(config.params.get("qwenmt_key",''))
-        self.qwenmt_domains.setText(config.params.get("qwenmt_domains",''))
-        self.qwenmt_model.setCurrentText(config.params.get("qwenmt_model",''))
-        self.qwenmt_asr_model.setCurrentText(config.params.get("qwenmt_asr_model",''))
+        self.qwenmt_key.setText(params.get("qwenmt_key",''))
+        self.qwenmt_domains.setText(params.get("qwenmt_domains",''))
+        self.qwenmt_model.setCurrentText(params.get("qwenmt_model",''))
+        self.qwenmt_asr_model.setCurrentText(params.get("qwenmt_asr_model",''))
 
     def retranslateUi(self, qwenmtform):
         qwenmtform.setWindowTitle(tr("Ali-BaiLian API/Qwen3-ASR AI"))

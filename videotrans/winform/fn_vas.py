@@ -1,51 +1,52 @@
 
 
-def format_milliseconds(milliseconds):
-    """
-    将毫秒数转换为 HH:mm:ss.zz 格式的字符串。
-
-    Args:
-        milliseconds (int): 毫秒数。
-
-    Returns:
-        str: 格式化后的字符串，格式为 HH:mm:ss.zz。
-    """
-    if not isinstance(milliseconds, int):
-        raise TypeError("毫秒数必须是整数")
-    if milliseconds < 0:
-        raise ValueError("毫秒数必须是非负整数")
-
-    seconds = milliseconds / 1000
-
-    minutes, seconds = divmod(seconds, 60)
-    hours, minutes = divmod(minutes, 60)
-    milliseconds_part = int((seconds * 1000) % 1000) // 10  # 保留两位
-
-    # 格式化为两位数字字符串
-    formatted_hours = f"{int(hours):02}"
-    formatted_minutes = f"{int(minutes):02}"
-    formatted_seconds = f"{int(seconds):02}"
-    formatted_milliseconds = f"{milliseconds_part:02}"
-
-    return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
 
 
 # 视频 字幕 音频 合并
 def openwin():
+    def format_milliseconds(milliseconds):
+        """
+        将毫秒数转换为 HH:mm:ss.zz 格式的字符串。
+
+        Args:
+            milliseconds (int): 毫秒数。
+
+        Returns:
+            str: 格式化后的字符串，格式为 HH:mm:ss.zz。
+        """
+        if not isinstance(milliseconds, int):
+            raise TypeError("毫秒数必须是整数")
+        if milliseconds < 0:
+            raise ValueError("毫秒数必须是非负整数")
+
+        seconds = milliseconds / 1000
+
+        minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        milliseconds_part = int((seconds * 1000) % 1000) // 10  # 保留两位
+
+        # 格式化为两位数字字符串
+        formatted_hours = f"{int(hours):02}"
+        formatted_minutes = f"{int(minutes):02}"
+        formatted_seconds = f"{int(seconds):02}"
+        formatted_milliseconds = f"{milliseconds_part:02}"
+
+        return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
+    from videotrans.util import contants
     from PySide6.QtWidgets import QWidget, QLineEdit, QComboBox, QCheckBox,QFileDialog
     import shutil,threading
     import json
     import os
-    from videotrans.configure.config import tr
     import time
     from pathlib import Path
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
 
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
 
-    RESULT_DIR = config.HOME_DIR + "/vas"
+    RESULT_DIR = HOME_DIR + "/vas"
 
     from videotrans.translator import LANGNAME_DICT,get_subtitle_code
 
@@ -107,7 +108,7 @@ def openwin():
                     ext = self.audio.split('.')[-1].lower()
                     audio_time = int(tools.get_audio_time(self.audio))
 
-                    tmp_audio = config.TEMP_DIR + f"/{time.time()}-{Path(self.audio).name}"
+                    tmp_audio = TEMP_DIR + f"/{time.time()}-{Path(self.audio).name}"
                     # 如果音频时长小于视频，则音频直接添加末尾静音
                     if audio_time<self.video_time:
                         audio_data = AudioSegment.from_file(self.audio,format='mp4' if ext=='m4a' else ext)+AudioSegment.silent(duration=self.video_time-audio_time)
@@ -124,8 +125,8 @@ def openwin():
 
                     # 需要保留原视频中声音，则需要混合 self.audio 和视频声音
                     if self.saveraw and  self.video_info['streams_audio']:
-                        tmp_mp4a = config.TEMP_DIR + f"/{time.time()}-fromvideo.wav"
-                        end_m4a = config.TEMP_DIR + f"/{time.time()}.m4a"
+                        tmp_mp4a = TEMP_DIR + f"/{time.time()}-fromvideo.wav"
+                        end_m4a = TEMP_DIR + f"/{time.time()}.m4a"
                         # 先取出来视频中的音频为 wav
                         tools.runffmpeg([
                             '-y',
@@ -168,7 +169,7 @@ def openwin():
                             '-i',
                             self.video
                     ]
-                    novoice_mp4 = config.TEMP_DIR + f"/{time.time()}-novice.mp4"
+                    novoice_mp4 = TEMP_DIR + f"/{time.time()}-novice.mp4"
                     if self.audio_process == 2 and  audio_time >self.video_time:
                         # 如果定格视频并且音频时长大于视频时长
                         sec = max((audio_time - self.video_time) / 1000,1)
@@ -179,14 +180,14 @@ def openwin():
                     cmd+=[
                         "-an",
                         '-c:v',
-                        f'libx{config.settings.get("video_codec", 264)}',
+                        f'libx{settings.get("video_codec", 264)}',
                         novoice_mp4
                     ]
 
                     tools.runffmpeg(cmd)
 
                     # 视频音频合并
-                    audiovideoend_mp4 = config.TEMP_DIR + f"/{time.time()}-audiovideoend.mp4"
+                    audiovideoend_mp4 = TEMP_DIR + f"/{time.time()}-audiovideoend.mp4"
                     tools.runffmpeg([
                         '-y',
                         '-i',
@@ -209,7 +210,7 @@ def openwin():
                     self.video=audiovideoend_mp4
                 # 软字幕
                 os.chdir(os.path.dirname(self.srt))
-                protxt = config.TEMP_DIR + f'/jd{time.time()}.txt'
+                protxt = TEMP_DIR + f'/jd{time.time()}.txt'
                 cmd = [
                     '-y',
                     "-progress",
@@ -230,10 +231,10 @@ def openwin():
                     else:
                         tmp = tools.textwrap(it['text'].strip(), self.maxlen)
                     srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
-                tmpsrt = config.TEMP_DIR + f"/vas-{time.time()}.srt"
+                tmpsrt = TEMP_DIR + f"/vas-{time.time()}.srt"
                 with Path(tmpsrt).open('w', encoding='utf-8') as f:
                     f.write(srt_string.strip())
-                os.chdir(config.TEMP_DIR)
+                os.chdir(TEMP_DIR)
                 if self.is_soft and self.language:
                     # 软字幕
                     subtitle_language = get_subtitle_code( show_target=self.language)
@@ -253,13 +254,13 @@ def openwin():
                     
                     cmd += [
                         '-c:v',
-                        f'libx{config.settings.get("video_codec", 264)}',
+                        f'libx{settings.get("video_codec", 264)}',
                         '-vf',
                         f"subtitles={os.path.basename(assfile)}:charenc=utf-8",
                         '-crf',
-                        f'{config.settings.get("crf",23)}',
+                        f'{settings.get("crf",23)}',
                         '-preset',
-                        config.settings.get('preset','fast'),
+                        settings.get('preset','fast'),
                         self.file
                     ]
                 threading.Thread(target=self.hebing_pro,args=(protxt,self.video_time),daemon=True).start()
@@ -295,15 +296,15 @@ def openwin():
     def get_file(type='video'):
         fname = None
         if type == 'video':
-            format_str = " ".join(['*.' + f for f in config.VIDEO_EXTS])
-            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Video', config.params.get('last_opendir',''),
+            format_str = " ".join(['*.' + f for f in contants.VIDEO_EXTS])
+            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Video', params.get('last_opendir',''),
                                                    f"Video files({format_str})")
         elif type == 'wav':
-            format_str = " ".join(['*.' + f for f in config.AUDIO_EXITS])
-            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Audio', config.params.get('last_opendir',''),
+            format_str = " ".join(['*.' + f for f in contants.AUDIO_EXITS])
+            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Audio', params.get('last_opendir',''),
                                                    f"Audio files({format_str})")
         elif type == 'srt':
-            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select SRT', config.params.get('last_opendir',''),
+            fname, _ = QFileDialog.getOpenFileName(winobj, 'Select SRT', params.get('last_opendir',''),
                                                    "Srt files(*.srt)")
 
         if not fname:
@@ -315,8 +316,8 @@ def openwin():
             winobj.ysphb_wavinput.setText(fname.replace('\\', '/'))
         if type == 'srt':
             winobj.ysphb_srtinput.setText(fname.replace('\\', '/'))
-        config.params['last_opendir'] = os.path.dirname(fname)
-        config.getset_params(config.params)
+        params['last_opendir'] = os.path.dirname(fname)
+        params.save()
 
     def start():
         winobj.has_done = False
@@ -374,7 +375,7 @@ def openwin():
 
 
     winobj = VASForm()
-    config.child_forms['fn_vas'] = winobj
+    app_cfg.child_forms['fn_vas'] = winobj
     winobj.show()
     def _init_ui():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)

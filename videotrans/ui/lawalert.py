@@ -6,7 +6,7 @@ from PySide6.QtCore import QByteArray, QThread, Signal
 from PySide6.QtGui import Qt, QPixmap, QIcon
 
 from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 
 
@@ -15,7 +15,7 @@ class Ui_lawalert(QtWidgets.QWidget):
         super().__init__()
         self.main=parent
         self.setupUi(self)
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
 
     def setupUi(self, lawalert):
 
@@ -144,12 +144,12 @@ class Ui_lawalert(QtWidgets.QWidget):
 
     def _close(self,res=True):
         if res:
-            Path(config.ROOT_DIR+"/.agree.txt").write_text("Yes,I Agree and Continue ")
+            Path(ROOT_DIR+"/.agree.txt").write_text("Yes,I Agree and Continue ")
             self.close()
         else:
             self.hide()
             self.main.close()
-            Path(config.ROOT_DIR+"/.agree.txt").unlink(missing_ok=True)
+            Path(ROOT_DIR+"/.agree.txt").unlink(missing_ok=True)
             self.close()
 
 

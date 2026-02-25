@@ -8,6 +8,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
 
@@ -23,8 +24,8 @@ class MyMemory(BaseTrans):
         self.aisendsrt = False
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         headers = {
@@ -32,9 +33,9 @@ class MyMemory(BaseTrans):
         }
         text = "\n".join(data)
         url = f"https://api.mymemory.translated.net/get?q={quote(text)}&langpair={self.source_code}|{self.target_code}"
-        config.logger.debug(f'[mymemory]请求数据:{url=}')
+        logger.debug(f'[mymemory]请求数据:{url=}')
         response = requests.get(url,  headers=headers, verify=False, timeout=300)
-        config.logger.debug(f'[mymemory]返回:{response.text=}')
+        logger.debug(f'[mymemory]返回:{response.text=}')
         response.raise_for_status()
 
         re_result = response.json()

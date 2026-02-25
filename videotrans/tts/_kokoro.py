@@ -6,6 +6,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
     RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -19,7 +20,7 @@ class KokoroTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
 
-        api_url = config.params.get('kokoro_api','').strip().rstrip('/').lower()
+        api_url = params.get('kokoro_api','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
 
         if not self.api_url.endswith('/v1/audio/speech'):

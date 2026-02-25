@@ -1,8 +1,6 @@
 from typing import Union, List, Dict
-from videotrans import translator
 from videotrans.configure import config
-import time
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.recognition._huggingface import HuggingfaceRecogn
 from videotrans.recognition._overall import FasterAll
 
@@ -108,68 +106,68 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None, return_str=False):
     from videotrans.winform import recognapi as recognapi_win, openairecognapi as openairecognapi_win,  doubao as doubao_win, sttapi as sttapi_win, deepgram as deepgram_win, gemini as gemini_win, ai302,   parakeet as parakeet_win,qwenmt as qwenmt_win,zijierecognmodel as zijierecogn_win
-    if recogn_type == STT_API and not config.params.get('stt_url',''):
+    if recogn_type == STT_API and not params.get('stt_url',''):
         if return_str:
             return "Please configure the api and key information of the stt channel first."
         sttapi_win.openwin()
         return False
 
-    if recogn_type == PARAKEET and not config.params.get('parakeet_address',''):
+    if recogn_type == PARAKEET and not params.get('parakeet_address',''):
         if return_str:
             return "Please configure the url address."
         parakeet_win.openwin()
         return False
-    if recogn_type == QWEN3ASR and not config.params.get('qwenmt_key',''):
+    if recogn_type == QWEN3ASR and not params.get('qwenmt_key',''):
         if return_str:
             return "Please configure the api key ."
         qwenmt_win.openwin()
         return False
 
 
-    if recogn_type == CUSTOM_API and not config.params.get('recognapi_url',''):
+    if recogn_type == CUSTOM_API and not params.get('recognapi_url',''):
         if return_str:
             return "Please configure the api and key information of the CUSTOM_API channel first."
         recognapi_win.openwin()
         return False
 
-    if recogn_type == OPENAI_API and not config.params.get('openairecognapi_key',''):
+    if recogn_type == OPENAI_API and not params.get('openairecognapi_key',''):
         if return_str:
             return "Please configure the api and key information of the OPENAI_API channel first."
         openairecognapi_win.openwin()
         return False
-    if recogn_type == DOUBAO_API and not config.params.get('doubao_appid',''):
+    if recogn_type == DOUBAO_API and not params.get('doubao_appid',''):
         if return_str:
             return "Please configure the api and key information of the DOUBAO_API channel first."
         doubao_win.openwin()
         return False
-    if recogn_type == ZIJIE_RECOGN_MODEL and not config.params.get('zijierecognmodel_appid',''):
+    if recogn_type == ZIJIE_RECOGN_MODEL and not params.get('zijierecognmodel_appid',''):
         if return_str:
             return "Please configure the api and key information of the Volcengine channel first."
         zijierecogn_win.openwin()
         return False
-    if recogn_type == Deepgram and not config.params.get('deepgram_apikey',''):
+    if recogn_type == Deepgram and not params.get('deepgram_apikey',''):
         if return_str:
             return "Please configure the API Key information of the Deepgram channel first."
         deepgram_win.openwin()
         return False
-    if recogn_type == GEMINI_SPEECH and not config.params.get('gemini_key',''):
+    if recogn_type == GEMINI_SPEECH and not params.get('gemini_key',''):
         if return_str:
             return "Please configure the API Key information of the Gemini channel first."
         gemini_win.openwin()
         return False
-    if recogn_type == AI_302 and not config.params.get('ai302_key',''):
+    if recogn_type == AI_302 and not params.get('ai302_key',''):
         if return_str:
             return "Please configure the API Key information of the Gemini channel first."
         ai302.openwin()
         return False
     # ElevenLabs
-    if recogn_type == ElevenLabs and not config.params.get('elevenlabstts_key',''):
+    if recogn_type == ElevenLabs and not params.get('elevenlabstts_key',''):
         if return_str:
             return "Please configure the API Key information of the ElevenLabs channel first."
         from videotrans.winform import elevenlabs as elevenlabs_win
         elevenlabs_win.openwin()
         return False
-    if recogn_type == ZHIPU_API and not config.params.get('zhipu_key',''):
+    if recogn_type == ZHIPU_API and not params.get('zhipu_key',''):
         if return_str:
             return "Please configure the API Key information of the Zhipu AI channel first."
         from videotrans.winform import zhipuai as zhipuai_win
@@ -194,7 +192,7 @@ def run(*,
 
         ) -> Union[List[Dict], None]:
 
-    if config.exit_soft or (uuid and uuid in config.stoped_uuid_set):
+    if app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set):
         return
     kwargs = {
         "detect_language": detect_language,
@@ -209,7 +207,7 @@ def run(*,
         "llm_post":llm_post,
         "recogn2pass":recogn2pass
     }
-    config.logger.debug(f'[recognition]__init__:{kwargs=}')
+    logger.debug(f'[recognition]__init__:{kwargs=}')
 
     if recogn_type == GOOGLE_SPEECH:
         from videotrans.recognition._google import GoogleRecogn

@@ -1,9 +1,7 @@
 def openwin():
-    import json
-
-    from videotrans.configure.config import tr
     from PySide6 import QtWidgets
     from videotrans.configure import config
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
     from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
     def feed(d):
@@ -22,11 +20,11 @@ def openwin():
         asr_model = winobj.qwenmt_asr_model.currentText()
 
 
-        config.params["qwenmt_key"] = key
+        params["qwenmt_key"] = key
 
-        config.params["qwenmt_model"] = model
-        config.params["qwenmt_asr_model"] = asr_model
-        config.params["qwenmt_domains"]=winobj.qwenmt_domains.text()
+        params["qwenmt_model"] = model
+        params["qwenmt_asr_model"] = asr_model
+        params["qwenmt_domains"]=winobj.qwenmt_domains.text()
 
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
@@ -38,11 +36,11 @@ def openwin():
         qwenmt_key = winobj.qwenmt_key.text()
         model = winobj.qwenmt_model.currentText()
         asr_model = winobj.qwenmt_asr_model.currentText()
-        config.params["qwenmt_domains"]=winobj.qwenmt_domains.text()
-        config.params["qwenmt_key"] = qwenmt_key
-        config.params["qwenmt_model"] = model
-        config.params["qwenmt_asr_model"] = asr_model
-        config.getset_params(config.params)
+        params["qwenmt_domains"]=winobj.qwenmt_domains.text()
+        params["qwenmt_key"] = qwenmt_key
+        params["qwenmt_model"] = model
+        params["qwenmt_asr_model"] = asr_model
+        params.save()
         winobj.close()
 
     def setallmodels():
@@ -52,15 +50,14 @@ def openwin():
         winobj.qwenmt_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
             winobj.qwenmt_model.setCurrentText(current_text)
-        config.settings['qwenmt_model'] = t
-        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings, ensure_ascii=False))
+        settings['qwenmt_model'] = t
+        settings.save()
 
 
 
     from videotrans.component.set_form import QwenmtForm
     winobj = QwenmtForm()
-    config.child_forms['qwenmt'] = winobj
+    app_cfg.child_forms['qwenmt'] = winobj
     winobj.update_ui()
     winobj.set.clicked.connect(save)
     winobj.edit_allmodels.textChanged.connect(setallmodels)

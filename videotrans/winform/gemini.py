@@ -1,13 +1,10 @@
 def openwin():
-    import json
     import os
-    from pathlib import Path
-
     from PySide6 import QtWidgets
 
     from videotrans.configure import config
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
     from videotrans.util import tools
-    from videotrans.configure.config import tr
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     def feed(d):
@@ -22,16 +19,16 @@ def openwin():
         model = winobj.model.currentText()
         gemini_maxtoken = winobj.gemini_maxtoken.text()
         thinking_budget = winobj.thinking_budget.text()
-        config.params["gemini_maxtoken"] = gemini_maxtoken
+        params["gemini_maxtoken"] = gemini_maxtoken
         os.environ['GOOGLE_API_KEY'] = key
-        config.params["gemini_model"] = model
-        config.params["gemini_key"] = key
-        config.params["gemini_thinking_budget"] = thinking_budget
+        params["gemini_model"] = model
+        params["gemini_key"] = key
+        params["gemini_thinking_budget"] = thinking_budget
 
         ttsmodel = winobj.ttsmodel.currentText()
-        config.params["gemini_ttsmodel"] = ttsmodel
+        params["gemini_ttsmodel"] = ttsmodel
 
-        config.getset_params(config.params)
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.GEMINI_INDEX)
         task.uito.connect(feed)
@@ -44,18 +41,18 @@ def openwin():
         
         gemini_maxtoken = winobj.gemini_maxtoken.text()
         thinking_budget = winobj.thinking_budget.text()
-        config.params["gemini_maxtoken"] = gemini_maxtoken
-        config.params["gemini_thinking_budget"] = thinking_budget
+        params["gemini_maxtoken"] = gemini_maxtoken
+        params["gemini_thinking_budget"] = thinking_budget
 
-        config.params["gemini_model"] = model
-        config.params["gemini_key"] = key
+        params["gemini_model"] = model
+        params["gemini_key"] = key
 
         ttsmodel = winobj.ttsmodel.currentText()
-        config.params["gemini_ttsmodel"] = ttsmodel
+        params["gemini_ttsmodel"] = ttsmodel
 
 
 
-        config.getset_params(config.params)
+        params.save()
         winobj.close()
 
     def setallmodels():
@@ -65,16 +62,15 @@ def openwin():
         winobj.model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
             winobj.model.setCurrentText(current_text)
-        config.settings['gemini_model'] = t
-        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings, ensure_ascii=False))
+        settings['gemini_model'] = t
+        settings.save()
 
 
 
     from videotrans.component.set_form import GeminiForm
 
     winobj = GeminiForm()
-    config.child_forms['gemini'] = winobj
+    app_cfg.child_forms['gemini'] = winobj
     winobj.update_ui()
     winobj.set_gemini.clicked.connect(save)
     winobj.test.clicked.connect(test)

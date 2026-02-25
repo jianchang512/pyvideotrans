@@ -1,10 +1,7 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QSizePolicy
-
-from videotrans.configure import config
-from videotrans.configure.config import tr
-
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -78,6 +75,10 @@ class Ui_MainWindow(object):
         self.copysrt_rawvideo.setText(tr("Moving subtitle"))
         self.copysrt_rawvideo.setToolTip(
             tr("When this item is checked, and the target language is different from the language of the pronunciation will move the translated srt file to the original video location and rename it to the same name as the video."))
+
+
+
+
 
         self.only_out_mp4 = QtWidgets.QCheckBox()
         self.only_out_mp4.setText(tr('Output only mp4'))
@@ -157,11 +158,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
-        
-        
-        
-        
-        
         # 翻译渠道行
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -201,10 +197,9 @@ class Ui_MainWindow(object):
         self.aisendsrt.setText(tr("Send SRT"))
         self.aisendsrt.setToolTip(
             tr("When using AI translation channel, you can translate in srt format, but there may be more empty lines"))
-        self.aisendsrt.setChecked(config.settings.get('aisendsrt'))
+        self.aisendsrt.setChecked(settings.get('aisendsrt'))
 
         self.glossary = QtWidgets.QPushButton(self.layoutWidget)
-        # self.glossary.setMinimumSize(QtCore.QSize(0, 30))
         self.glossary.setObjectName("glossary")
         self.glossary.setText(tr("glossary"))
         self.glossary.setStyleSheet("""background-color:transparent;border:1px solid #455364""")
@@ -313,6 +308,18 @@ class Ui_MainWindow(object):
         self.proxy.setMinimumSize(QtCore.QSize(200, 30))
         self.proxy.setObjectName("proxy")
 
+        self.output_srt_label=QtWidgets.QLabel(tr('Output')+tr('Subtitles'))
+        self.output_srt=QtWidgets.QComboBox()
+        self.output_srt.addItems([
+            tr('default'),
+            tr('Target language under(Bilingual)'),
+            tr('Target language up(Bilingual)'),
+        ])
+        self.output_srt.setVisible(False)
+        self.output_srt_label.setVisible(False)
+
+        self.align_layout.addWidget(self.output_srt_label)
+        self.align_layout.addWidget(self.output_srt)
         self.align_layout.addStretch()
         self.align_layout.addWidget(self.label)
         self.align_layout.addWidget(self.proxy)
@@ -379,7 +386,7 @@ class Ui_MainWindow(object):
         self.cjklinenums.setToolTip(
             tr("Chinese/Japanese/Korean line length"))
         self.cjklinenums.setObjectName("cjklinenums")
-        self.cjklinenums.setValue(int(config.settings.get('cjk_len', 20)))
+        self.cjklinenums.setValue(int(settings.get('cjk_len', 20)))
 
         self.label_othlinenums = QtWidgets.QLabel(self.layoutWidget)
         self.label_othlinenums.setVisible(False)
@@ -395,7 +402,7 @@ class Ui_MainWindow(object):
         self.othlinenums.setToolTip(
             tr("Number of characters per line for subtitles in other languages"))
         self.othlinenums.setObjectName("othlinenums")
-        self.othlinenums.setValue(int(config.settings.get('other_len', 60)))
+        self.othlinenums.setValue(int(settings.get('other_len', 60)))
         self.set_ass=QtWidgets.QPushButton()
         self.set_ass.setStyleSheet("background-color:transparent;border:1px solid #455364")
         self.set_ass.setText(tr('Modify hard subtitle style'))
@@ -421,7 +428,7 @@ class Ui_MainWindow(object):
         self.threshold.setVisible(False)
         self.threshold.setToolTip(
             tr("Threshold for speech detection"))
-        self.threshold.setText(str(config.settings.get('threshold', 0.5)))
+        self.threshold.setText(str(settings.get('threshold', 0.5)))
         self.hfaster_layout.addWidget(self.threshold_label)
         self.hfaster_layout.addWidget(self.threshold)
 
@@ -433,7 +440,7 @@ class Ui_MainWindow(object):
         self.min_speech_duration_ms.setVisible(False)
         self.min_speech_duration_ms.setPlaceholderText('200ms')
         self.min_speech_duration_ms.setMaximumWidth(80)
-        self.min_speech_duration_ms.setText(str(config.settings.get('min_speech_duration_ms', 1000)))
+        self.min_speech_duration_ms.setText(str(settings.get('min_speech_duration_ms', 1000)))
         self.min_speech_duration_ms.setToolTip(
             tr("Minimum speech duration (ms)"))
         self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
@@ -446,7 +453,7 @@ class Ui_MainWindow(object):
         self.min_silence_duration_ms = QtWidgets.QLineEdit()
         self.min_silence_duration_ms.setVisible(False)
         self.min_silence_duration_ms.setMaximumWidth(80)
-        self.min_silence_duration_ms.setText(str(config.settings.get('min_silence_duration_ms', 250)))
+        self.min_silence_duration_ms.setText(str(settings.get('min_silence_duration_ms', 250)))
         self.min_silence_duration_ms.setToolTip(
             tr("Minimum silence duration (ms)"))
 
@@ -456,7 +463,7 @@ class Ui_MainWindow(object):
         self.max_speech_duration_s = QtWidgets.QLineEdit()
         self.max_speech_duration_s.setVisible(False)
         self.max_speech_duration_s.setMaximumWidth(80)
-        self.max_speech_duration_s.setText(str(config.settings.get('max_speech_duration_s', 8)))
+        self.max_speech_duration_s.setText(str(settings.get('max_speech_duration_s', 8)))
         self.max_speech_duration_s.setToolTip(
             tr("max speech duration (s)"))
         self.hfaster_layout.addWidget(self.max_speech_duration_s_label)
@@ -492,21 +499,21 @@ class Ui_MainWindow(object):
         self.trans_thread_label.setVisible(False)
         self.trans_thread = QtWidgets.QLineEdit()
         self.trans_thread.setVisible(False)
-        self.trans_thread.setText(str(config.settings.get('trans_thread', 5)))
+        self.trans_thread.setText(str(settings.get('trans_thread', 5)))
         self.trans_thread.setToolTip(tr('Set dubbing threads'))
         
         self.aitrans_thread_label = QtWidgets.QLabel(tr("Number subtitle lines AI translation"))
         self.aitrans_thread_label.setVisible(False)
         self.aitrans_thread = QtWidgets.QLineEdit()
         self.aitrans_thread.setVisible(False)
-        self.aitrans_thread.setText(str(config.settings.get('aitrans_thread', 100)))
+        self.aitrans_thread.setText(str(settings.get('aitrans_thread', 100)))
         self.aitrans_thread.setToolTip(tr('Set dubbing threads'))
         
         self.translation_wait_label = QtWidgets.QLabel(tr("Wait/s:"))
         self.translation_wait_label.setVisible(False)
         self.translation_wait = QtWidgets.QLineEdit()
         self.translation_wait.setVisible(False)
-        self.translation_wait.setText(str(config.settings.get('translation_wait', 0)))
+        self.translation_wait.setText(str(settings.get('translation_wait', 0)))
         self.translation_wait.setToolTip(tr('The number of seconds to pause and wait after each completed request'))
         
         
@@ -531,7 +538,7 @@ class Ui_MainWindow(object):
         self.dubbing_wait_label.setVisible(False)
         self.dubbing_wait = QtWidgets.QLineEdit()
         self.dubbing_wait.setVisible(False)
-        self.dubbing_wait.setText(str(config.settings.get('dubbing_wait', 0)))
+        self.dubbing_wait.setText(str(settings.get('dubbing_wait', 0)))
         self.dubbing_wait.setToolTip(tr('The number of seconds to pause and wait after each completed request'))
         
         self.label_6 = QtWidgets.QLabel(self.layoutWidget)

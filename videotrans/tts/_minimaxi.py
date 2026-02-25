@@ -8,6 +8,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log,   RetryError
 
 from videotrans.configure import config
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -22,7 +23,7 @@ class MinimaxiTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.stop_next_all=False
-        self.api_url='https://'+config.params.get('minimaxi_apiurl','api.minimaxi.com')+'/v1/t2a_v2'
+        self.api_url='https://'+params.get('minimaxi_apiurl','api.minimaxi.com')+'/v1/t2a_v2'
         self.rolelist = {}
         lang_pre = self.language.split('-')[0].lower()
         rolelist=tools.get_minimaxi_rolelist()
@@ -37,8 +38,8 @@ class MinimaxiTTS(BaseTTS):
             return
 
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-                wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-                after=after_log(config.logger, logging.INFO))
+                wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+                after=after_log(logger, logging.INFO))
         def _run():
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
@@ -60,7 +61,7 @@ class MinimaxiTTS(BaseTTS):
             voice_id = self.rolelist.get(role, 'male-qn-qingse')
 
             payload = json.dumps({
-                "model": config.params.get('minimaxi_model'),
+                "model": params.get('minimaxi_model'),
                 "text": data_item.get('text'),
                 "stream": False,
                 "voice_setting": {
@@ -68,7 +69,7 @@ class MinimaxiTTS(BaseTTS):
                     "speed": speed,
                     "vol": volume,
                     "pitch": pitch,
-                    "emotion": config.params.get('minimaxi_emotion', 'happy'),
+                    "emotion": params.get('minimaxi_emotion', 'happy'),
                     "text_normalization": True,
                 },
                 "language_boost": 'auto' if self.language!='yue' else 'Chinese,Yue',
@@ -80,14 +81,14 @@ class MinimaxiTTS(BaseTTS):
             }, ensure_ascii=False)
 
             headers = {
-                'Authorization': f"Bearer {config.params.get('minimaxi_apikey','')}",
+                'Authorization': f"Bearer {params.get('minimaxi_apikey','')}",
                 'Content-Type': 'application/json'
             }
 
             response = requests.request("POST", self.api_url, headers=headers, data=payload)
             response.raise_for_status()
             res=response.json()
-            config.logger.debug(f'返回数据 {res["base_resp"]=}')
+            logger.debug(f'返回数据 {res["base_resp"]=}')
             if res['base_resp']['status_code'] in [1004,1008,2042,2049,2056]:
                 raise StopRetry(res['base_resp']['status_msg'])
             if res['base_resp']['status_code'] != 0:

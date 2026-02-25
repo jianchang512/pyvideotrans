@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,app_cfg,settings,params,logger
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -28,17 +28,17 @@ class OpenRouter(BaseTrans):
 
         super().__post_init__()
 
-        self.trans_thread = int(config.settings.get('aitrans_thread', 50))
-        self.model_name = config.params.get('openrouter_model', "")
+        self.trans_thread = int(settings.get('aitrans_thread', 50))
+        self.model_name = params.get('openrouter_model', "")
         self.api_url = 'https://openrouter.ai/api/v1'
 
         self.prompt = tools.get_prompt(ainame='openrouter',aisendsrt=self.aisendsrt).replace('{lang}',
                                                                                         self.target_language_name)
-        self.api_key = config.params.get('openrouter_key', '')
+        self.api_key = params.get('openrouter_key', '')
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(config.logger, logging.INFO),
-           after=after_log(config.logger, logging.INFO))
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
@@ -52,15 +52,15 @@ class OpenRouter(BaseTrans):
             },
         ]
 
-        config.logger.debug(f"\n[openrouter]发送请求数据:{message=}")
+        logger.debug(f"\n[openrouter]发送请求数据:{message=}")
 
         model = OpenAI(api_key=self.api_key, base_url=self.api_url, http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         response = model.chat.completions.create(
             model=self.model_name,
             messages=message,
             frequency_penalty=0,
-            temperature=float(config.settings.get('aitrans_temperature',0.2)),
-            max_tokens=int(config.params.get('openrouter_max_tokens',8192))
+            temperature=float(settings.get('aitrans_temperature',0.2)),
+            max_tokens=int(params.get('openrouter_max_tokens',8192))
         )
         if not hasattr(response,'choices'):
             raise RuntimeError(str(response))
@@ -70,7 +70,7 @@ class OpenRouter(BaseTrans):
         if response.choices[0].message.content:
             result = response.choices[0].message.content.strip()
         else:
-            config.logger.warning(f'[openrouter]请求失败:{response=}')
+            logger.warning(f'[openrouter]请求失败:{response=}')
             raise RuntimeError(f"[OpenRouter] {response.choices[0].finish_reason}:{response}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)

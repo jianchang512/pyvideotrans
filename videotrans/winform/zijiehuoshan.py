@@ -1,9 +1,8 @@
 def openwin():
-    import json
     from PySide6 import QtWidgets
     from videotrans.configure import config
+    from videotrans.configure.config import tr,params,settings,app_cfg,logger
     from videotrans.util import tools
-    from videotrans.configure.config import tr
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     def feed(d):
@@ -19,9 +18,9 @@ def openwin():
         if not key or not model.strip():
             return tools.show_error('API KEY and Model')
 
-        config.params["zijiehuoshan_key"] = key
-        config.params["zijiehuoshan_model"] = model
-        config.getset_params(config.params)
+        params["zijiehuoshan_key"] = key
+        params["zijiehuoshan_model"] = model
+        params.save()
         winobj.test_zijiehuoshan.setText(tr("Testing..."))
 
         task = TestSrtTrans(parent=winobj, translator_type=translator.ZIJIE_INDEX)
@@ -33,10 +32,10 @@ def openwin():
 
         model = winobj.zijiehuoshan_model.currentText()
 
-        config.params["zijiehuoshan_key"] = key
-        config.params["zijiehuoshan_model"] = model
+        params["zijiehuoshan_key"] = key
+        params["zijiehuoshan_model"] = model
 
-        config.getset_params(config.params)
+        params.save()
         winobj.close()
 
     def setallmodels():
@@ -47,15 +46,14 @@ def openwin():
         winobj.zijiehuoshan_model.addItems(t_list)
         if current_text:
             winobj.zijiehuoshan_model.setCurrentText(current_text)
-        config.settings['zijiehuoshan_model'] = t
-        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings, ensure_ascii=False))
+        settings['zijiehuoshan_model'] = t
+        settings.save()
 
 
 
     from videotrans.component.set_form import ZijiehuoshanForm
     winobj = ZijiehuoshanForm()
-    config.child_forms['zijie'] = winobj
+    app_cfg.child_forms['zijie'] = winobj
     winobj.update_ui()
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.set_zijiehuoshan.clicked.connect(save_zijiehuoshan)

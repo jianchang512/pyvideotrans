@@ -4,8 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -118,18 +117,17 @@ class Ui_azureform(object):
         self.retranslateUi(azureform)
         QtCore.QMetaObject.connectSlotsByName(azureform)
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('azure_model','')
-        allmodels = str(config.settings.get('azure_model','')).split(',')
+
+        allmodels_str = settings.get('azure_model','')
+        allmodels = str(settings.get('azure_model','')).split(',')
         self.azure_model.clear()
         self.azure_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.azure_key.setText(config.params.get("azure_key",''))
-        self.azure_api.setText(config.params.get("azure_api",''))
-        self.azure_version.setCurrentText(config.params.get("azure_version",''))
-        if config.params.get('azure_model','') in allmodels:
-            self.azure_model.setCurrentText(config.params.get("azure_model",''))
+        self.azure_key.setText(params.get("azure_key",''))
+        self.azure_api.setText(params.get("azure_api",''))
+        self.azure_version.setCurrentText(params.get("azure_version",''))
+        if params.get('azure_model','') in allmodels:
+            self.azure_model.setCurrentText(params.get("azure_model",''))
     def retranslateUi(self, azureform):
         azureform.setWindowTitle("AzureGPT")
         self.label_3.setText(tr("Model"))

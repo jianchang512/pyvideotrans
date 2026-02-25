@@ -8,7 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans import translator
 from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -24,7 +24,7 @@ class QwenMT(BaseTrans):
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
-        model_name=config.params.get('qwenmt_model', 'qwen-mt-turbo')
+        model_name=params.get('qwenmt_model', 'qwen-mt-turbo')
         if model_name=='qwen-turbo':
             model_name='qwen-mt-turbo'
         if model_name.startswith('qwen-mt'):
@@ -44,13 +44,13 @@ class QwenMT(BaseTrans):
             term=tools.qwenmt_glossary()
             if term:
                 translation_options['terms']=term
-            if config.params.get("qwenmt_domains"):
-                translation_options['domains']=config.params.get("qwenmt_domains")
+            if params.get("qwenmt_domains"):
+                translation_options['domains']=params.get("qwenmt_domains")
 
 
             response = dashscope.Generation.call(
                 # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
-                api_key=config.params.get('qwenmt_key',''),
+                api_key=params.get('qwenmt_key',''),
                 model=model_name,
                 messages=messages,
                 result_format='message',
@@ -72,7 +72,7 @@ class QwenMT(BaseTrans):
         ]
         response = dashscope.Generation.call(
             # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx",
-            api_key=config.params.get('qwenmt_key',''),
+            api_key=params.get('qwenmt_key',''),
             model=model_name,
             # 此处以qwen-plus为例，可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
             messages=message,

@@ -1,7 +1,8 @@
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 import os
-if config.proxy:
-    os.environ['HTTPS_PROXY']=config.proxy
+if app_cfg.proxy:
+    os.environ['HTTPS_PROXY']=app_cfg.proxy
 import sys
 import tempfile
 import zipfile
@@ -16,7 +17,7 @@ from PySide6.QtGui import QIcon,QShowEvent
 import platform
 from urllib.parse import urlparse
 
-MODEL_DIR=f'{config.ROOT_DIR}/models/'
+MODEL_DIR=f'{ROOT_DIR}/models/'
 
 
 
@@ -117,7 +118,7 @@ EN_LANGDICT = {
     "pt_xiazaishibai_shoudong":"Download failed. Please manually open the following URL (already copied to clipboard)\n{}\nCopy the downloaded [{}] file to the directory:\n{} "
 }
 
-LANG_CODE = config.defaulelang 
+LANG_CODE = defaulelang 
 TRANS = CN_LANGDICT if LANG_CODE == 'zh' else EN_LANGDICT
 
 # ==========================================
@@ -141,8 +142,8 @@ class DownloadWorker(QThread):
 
     def run(self):
         try:
-            if config.proxy:
-                os.environ['HTTPS_PROXY']=config.proxy
+            if app_cfg.proxy:
+                os.environ['HTTPS_PROXY']=app_cfg.proxy
             import requests
 
             # 1. 解析任务类型
@@ -434,7 +435,7 @@ class DownmodelsWindow(QWidget):
         super().__init__()
         self.setWindowTitle(TRANS["app_title"])
         self.resize(550, 650) # 增加高度
-        self.setWindowIcon(QIcon(f"{config.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.task_obj={}
         self.show_num=0
         # 数据定义

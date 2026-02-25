@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List, Dict, Union
 
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR, logger, settings, TEMP_DIR, defaulelang
 from videotrans.process import faster_whisper, pipe_asr
 from videotrans.util import tools
 from videotrans.recognition._base import BaseRecogn
@@ -20,7 +21,7 @@ class HuggingfaceRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        self.local_dir = f'{config.ROOT_DIR}/models/models--' + self.model_name.replace('/', '--')
+        self.local_dir = f'{ROOT_DIR}/models/models--' + self.model_name.replace('/', '--')
         self._signal(text=f"use {self.model_name}")
         self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
 
@@ -30,11 +31,11 @@ class HuggingfaceRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
         self._signal(text=f"loading {self.model_name}")
-        config.logger.debug(f'[HuggingfaceRecogn]_exec:{self.model_name=}')
+        logger.debug(f'[HuggingfaceRecogn]_exec:{self.model_name=}')
 
         if self.model_name in ['JhonVanced/whisper-large-v3-japanese-4k-steps-ct2',
                                'zh-plus/faster-whisper-large-v2-japanese-5k-steps', 'Systran/faster-whisper-tiny']:
-            if int(config.settings.get('batch_size', 4))>1:
+            if int(settings.get('batch_size', 4))>1:
                 self._vad_split() 
             result = self._faster()
         else:
@@ -49,23 +50,20 @@ class HuggingfaceRecogn(BaseRecogn):
 
         title=f"load {self.model_name}"
         self._signal(text=title)
-        logs_file = f'{config.TEMP_DIR}/{self.uuid}/huggingface-pipeasr-{self.detect_language}-{time.time()}.log'
-        cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
+        logs_file = f'{TEMP_DIR}/{self.uuid}/huggingface-pipeasr-{self.detect_language}-{time.time()}.log'
+        cut_audio_list_file = f'{TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
         Path(cut_audio_list_file).write_text(json.dumps(self.cut_audio()),encoding='utf-8')
         kwargs = {
             "cut_audio_list": cut_audio_list_file,
-            "prompt": config.settings.get(
+            "prompt": settings.get(
                 f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
             "detect_language": self.detect_language,
             "model_name": self.model_name,
-            "ROOT_DIR": config.ROOT_DIR,
             "logs_file": logs_file,
-            "defaulelang": config.defaulelang,
             "is_cuda": self.is_cuda,
             "audio_file": None,
-            "TEMP_ROOT": config.TEMP_ROOT,
             "local_dir": self.local_dir,
-            "batch_size": int(config.settings.get('batch_size', 4)),
+            "batch_size": int(settings.get('batch_size', 4)),
             "jianfan": self.jianfan
         }
         raws=self._new_process(callback=pipe_asr,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
@@ -75,36 +73,33 @@ class HuggingfaceRecogn(BaseRecogn):
     def _faster(self):
         title=f"load {self.model_name}"
         self._signal(text=title)
-        logs_file = f'{config.TEMP_DIR}/{self.uuid}/huggingface-faster-{self.detect_language}-{time.time()}.log'
+        logs_file = f'{TEMP_DIR}/{self.uuid}/huggingface-faster-{self.detect_language}-{time.time()}.log'
         speech_timestamps_file=None
         if self.speech_timestamps:
-            speech_timestamps_file = f'{config.TEMP_DIR}/{self.uuid}/speech_timestamps_{time.time()}.json'
+            speech_timestamps_file = f'{TEMP_DIR}/{self.uuid}/speech_timestamps_{time.time()}.json'
             Path(speech_timestamps_file).write_text(json.dumps(self.speech_timestamps),encoding='utf-8')
         kwargs = {
-            "prompt": config.settings.get(
+            "prompt": settings.get(
                 f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
             "detect_language": self.detect_language,
             "model_name": self.model_name,
-            "ROOT_DIR": config.ROOT_DIR,
             "logs_file": logs_file,
-            "defaulelang": config.defaulelang,
             "is_cuda": self.is_cuda,
-            "no_speech_threshold": float(config.settings.get('no_speech_threshold', 0.5)),
-            "condition_on_previous_text": config.settings.get('condition_on_previous_text', False),
+            "no_speech_threshold": float(settings.get('no_speech_threshold', 0.5)),
+            "condition_on_previous_text": settings.get('condition_on_previous_text', False),
             "speech_timestamps": speech_timestamps_file,
             "audio_file": self.audio_file,
-            "TEMP_ROOT": config.TEMP_ROOT,
             "local_dir": self.local_dir,
-            "compute_type": config.settings.get('cuda_com_type', 'default'),
-            "batch_size": int(config.settings.get('batch_size', 4)),
-            "beam_size": int(config.settings.get('beam_size', 5)),
-            "best_of": int(config.settings.get('best_of', 5)),
+            "compute_type": settings.get('cuda_com_type', 'default'),
+            "batch_size": int(settings.get('batch_size', 4)),
+            "beam_size": int(settings.get('beam_size', 5)),
+            "best_of": int(settings.get('best_of', 5)),
             "jianfan": self.jianfan,
             "audio_duration":self.audio_duration,
-            "temperature":config.settings.get('temperature'),
-            "hotwords":config.settings.get('hotwords'),
-            "repetition_penalty": float(config.settings.get('repetition_penalty', 1.0)),
-            "compression_ratio_threshold": float(config.settings.get('compression_ratio_threshold', 2.2)),
+            "temperature":settings.get('temperature'),
+            "hotwords":settings.get('hotwords'),
+            "repetition_penalty": float(settings.get('repetition_penalty', 1.0)),
+            "compression_ratio_threshold": float(settings.get('compression_ratio_threshold', 2.2)),
         }
         raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
 

@@ -14,7 +14,7 @@ from tenacity import RetryError
 from videotrans.configure import config
 from videotrans.configure._base import BaseCon
 from videotrans.configure._except import StopRetry
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, settings, params, app_cfg, logger, TEMP_DIR
 
 from videotrans.util import tools
 
@@ -54,9 +54,9 @@ class BaseTTS(BaseCon):
     has_done: int = field(default=0, init=False)
 
     # 每次任务后暂停时间
-    wait_sec: float = float(config.settings.get('dubbing_wait', 0))
+    wait_sec: float = float(settings.get('dubbing_wait', 0))
     # 并发线程数量
-    dub_nums: int = int(float(config.settings.get('dubbing_thread', 1)))
+    dub_nums: int = int(float(settings.get('dubbing_thread', 1)))
     # 存放消息
     error: Optional[Any] = None
     # 配音api地址
@@ -84,7 +84,10 @@ class BaseTTS(BaseCon):
         for i, it in enumerate(self.queue_tts):
             text = it.get('text', '').strip()
             if text and normalizer:
-                self.queue_tts[i]['text'] = normalizer(text)
+                try:
+                    self.queue_tts[i]['text'] = normalizer(text)
+                except:
+                    self.queue_tts[i]['text'] = text
 
         if "volume" in self.queue_tts[0]:
             self.volume = self.queue_tts[0]['volume']
@@ -114,7 +117,7 @@ class BaseTTS(BaseCon):
     # run->exec->item_task
     def run(self) -> None:
         if self._exit(): return
-        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
         self._signal(text="")
         _st = time.time()
         if hasattr(self, '_download'):
@@ -137,9 +140,9 @@ class BaseTTS(BaseCon):
         except RetryError as e:
             raise e.last_attempt.exception()
         except RuntimeError as e:
-            config.logger.warning(f'TTS 线程运行时发生错误: {e}')
+            logger.warning(f'TTS 线程运行时发生错误: {e}')
             if 'Event loop' in str(e):
-                config.logger.warning("捕获到 'Event loop is closed' 错误，这通常是关闭时序问题。")
+                logger.warning("捕获到 'Event loop is closed' 错误，这通常是关闭时序问题。")
             else:
                 raise
         except Exception:
@@ -147,7 +150,7 @@ class BaseTTS(BaseCon):
         finally:
             # 只有当 self._exec 是异步函数时，才需要处理事件循环
             if inspect.iscoroutinefunction(self._exec) and loop and not loop.is_closed():
-                config.logger.debug("开始执行事件循环的关闭流程...")
+                logger.debug("开始执行事件循环的关闭流程...")
                 try:
                     # 1: 取消所有剩余的任务
                     tasks = asyncio.all_tasks(loop=loop)
@@ -163,12 +166,12 @@ class BaseTTS(BaseCon):
                     # 3: 关闭异步生成器
                     loop.run_until_complete(loop.shutdown_asyncgens())
                 except Exception as e:
-                    config.logger.exception(e, exc_info=True)
+                    logger.exception(e, exc_info=True)
                 finally:
                     # 4: 最终关闭事件循环
-                    config.logger.debug("事件循环已关闭。")
+                    logger.debug("事件循环已关闭。")
                     loop.close()
-            config.logger.debug(f'[字幕配音]渠道{self.tts_type}:共耗时:{int(time.time() - _st)}s')
+            logger.debug(f'[字幕配音]渠道{self.tts_type}:共耗时:{int(time.time() - _st)}s')
 
         # 试听或测试时播放
         if self.play:
@@ -184,7 +187,7 @@ class BaseTTS(BaseCon):
                 succeed_nums += 1
         # 只有全部配音都失败，才视为失败
         if succeed_nums < 1:
-            if config.exit_soft: return
+            if app_cfg.exit_soft: return
             if isinstance(self.error, Exception):
                 raise self.error
             raise RuntimeError((tr("Dubbing failed")) + str(self.error))
@@ -262,6 +265,6 @@ class BaseTTS(BaseCon):
         return silent_segment
 
     def _exit(self):
-        if config.exit_soft or (self.uuid and self.uuid in config.stoped_uuid_set):
+        if app_cfg.exit_soft or (self.uuid and self.uuid in app_cfg.stoped_uuid_set):
             return True
         return False

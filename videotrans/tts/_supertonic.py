@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 
 from videotrans.configure import config
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
 
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -19,7 +20,7 @@ class SupertonicTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.model_name='Supertone/supertonic-2'
-        self.local_dir=f'{config.ROOT_DIR}/models/models--Supertone--supertonic-2'
+        self.local_dir=f'{ROOT_DIR}/models/models--Supertone--supertonic-2'
     def _exec(self):
         self._local_mul_thread()
 

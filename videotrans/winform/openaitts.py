@@ -1,8 +1,7 @@
 def openwin():
-    import json
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr
     from videotrans.configure import config
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
@@ -21,12 +20,12 @@ def openwin():
             url = 'http://' + url
         model = winobj.openaitts_model.currentText()
         intru = winobj.openaitts_instructions.text()
-        config.params["openaitts_instructions"] = intru
+        params["openaitts_instructions"] = intru
 
-        config.params["openaitts_key"] = key
-        config.params["openaitts_api"] = url
-        config.params["openaitts_model"] = model
-        config.getset_params(config.params)
+        params["openaitts_key"] = key
+        params["openaitts_api"] = url
+        params["openaitts_model"] = model
+        params.save()
         winobj.test_openaitts.setText(tr("Testing..."))
         from videotrans import tts
         import time
@@ -34,7 +33,7 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": 'alloy' if not t and not t[0].strip() else t[0].strip(),
-            "filename": config.TEMP_DIR + f"/{time.time()}-openai.wav",
+            "filename": TEMP_DIR + f"/{time.time()}-openai.wav",
             "tts_type": tts.OPENAI_TTS}],
                          language="zh",
                          tts_type=tts.OPENAI_TTS)
@@ -50,12 +49,12 @@ def openwin():
 
         model = winobj.openaitts_model.currentText()
         intru = winobj.openaitts_instructions.text()
-        config.params["openaitts_instructions"] = intru
+        params["openaitts_instructions"] = intru
 
-        config.params["openaitts_key"] = key
-        config.params["openaitts_api"] = url
-        config.params["openaitts_model"] = model
-        config.getset_params(config.params)
+        params["openaitts_key"] = key
+        params["openaitts_api"] = url
+        params["openaitts_model"] = model
+        params.save()
         tools.set_process(text='openaitts', type="refreshtts")
         winobj.close()
 
@@ -66,20 +65,19 @@ def openwin():
         winobj.openaitts_model.addItems([x for x in t.split(',') if x.strip()])
         if current_text:
             winobj.openaitts_model.setCurrentText(current_text)
-        config.settings['openaitts_model'] = t
-        with open(config.ROOT_DIR + '/videotrans/cfg.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(config.settings, ensure_ascii=False))
+        settings['openaitts_model'] = t
+        settings.save()
 
     def setedit_roles():
         t = winobj.edit_roles.toPlainText().strip().replace('，', ',').rstrip(',')
-        config.params['openaitts_role'] = t
-        config.getset_params(config.params)
+        params['openaitts_role'] = t
+        params.save()
 
 
 
     from videotrans.component.set_form import OpenAITTSForm
     winobj = OpenAITTSForm()
-    config.child_forms['openaitts'] = winobj
+    app_cfg.child_forms['openaitts'] = winobj
     winobj.update_ui()
 
     winobj.set_openaitts.clicked.connect(save_openaitts)

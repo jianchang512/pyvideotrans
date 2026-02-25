@@ -4,8 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure import config
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.util import tools
 
 
@@ -123,17 +122,15 @@ class Ui_localllmform(object):
         QtCore.QMetaObject.connectSlotsByName(localllmform)
 
     def update_ui(self):
-        from videotrans.configure import config
-        config.settings = config.parse_init()
-        allmodels_str = config.settings.get('localllm_model','')
-        allmodels = str(config.settings.get('localllm_model','')).split(',')
+        allmodels_str = settings.get('localllm_model','')
+        allmodels = str(settings.get('localllm_model','')).split(',')
         self.localllm_model.clear()
         self.localllm_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.localllm_key.setText(config.params.get("localllm_key",''))
-        self.localllm_api.setText(config.params.get("localllm_api",''))
-        self.localllm_model.setCurrentText(config.params.get("localllm_model",''))
-        self.localllm_max_token.setText(str(config.params.get("localllm_max_token",'')))
+        self.localllm_key.setText(params.get("localllm_key",''))
+        self.localllm_api.setText(params.get("localllm_api",''))
+        self.localllm_model.setCurrentText(params.get("localllm_model",''))
+        self.localllm_max_token.setText(str(params.get("localllm_max_token",'')))
 
     def retranslateUi(self, localllmform):
         localllmform.setWindowTitle(tr("Local LLM API"))
