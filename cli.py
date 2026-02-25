@@ -406,6 +406,7 @@ def main():
             "voice_role": args.voice_role,
             "voice_rate": args.voice_rate,
             "volume": args.volume,
+            "is_cuda":args.cuda,
             "pitch": args.pitch,
             "voice_autorate": args.voice_autorate,
             "align_sub_audio": args.align_sub_audio,
