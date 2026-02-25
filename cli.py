@@ -384,7 +384,7 @@ def main():
             "recogn_type": args.recogn_type,
             "detect_language": args.detect_language,
             "model_name": args.model_name,
-            "cuda": args.cuda,
+            "is_cuda": args.cuda,
             "remove_noise": args.remove_noise,
             "enable_diariz": args.enable_diariz,
             "nums_diariz": args.nums_diariz,
@@ -449,7 +449,7 @@ def main():
             # STT 部分
             "recogn_type": args.recogn_type,
             "model_name": args.model_name,
-            "cuda": args.cuda,
+            "is_cuda": args.cuda,
             "remove_noise": args.remove_noise,
             "enable_diariz": args.enable_diariz,
             "nums_diariz": args.nums_diariz,
