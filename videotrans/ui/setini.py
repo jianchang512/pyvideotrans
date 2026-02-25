@@ -70,6 +70,7 @@ class Ui_setini(object):
                 "preset": "主要调节编码速度和质量的平衡，有 ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
                 "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在倒数第二个位置上,例如  -bf 7 -b_ref_mode middle",
                 "force_lib": "强制软件编码?（速度慢但兼容性好不易出错，默认优选硬件编码）",
+                "first_hw":"视频合成时优先尝试硬编码，速度快但可能出错",
                 "video_codec": "采用 libx264 编码或 libx265 编码，264兼容性更好，265压缩比更大清晰度更高"
             },
 
@@ -182,6 +183,7 @@ class Ui_setini(object):
             "aitrans_temperature":"AI翻译模型温度值",
             "aitrans_context":"AI翻译附带完整原字幕",
             "remove_dubb_silence":"移除配音前后静音缓冲",
+            "first_hw":"视频合成优先硬编码",
 
             "batch_size": "faster-whisper批次大小",
             "temperature":"采样温度",
@@ -311,6 +313,7 @@ class Ui_setini(object):
                     "preset": "Controls the encoding speed vs. quality balance (e.g., ultrafast, medium, slow). Faster means larger files.",
                     "ffmpeg_cmd": "Custom FFmpeg command arguments, added before the output file argument.",
                     "force_lib": "Force software encoding (slower but more compatible). Hardware encoding is preferred by default.",
+                    "first_hw":"When compositing videos, prioritize hard encoding; it's fast but prone to errors.",
                     "video_codec": "Video codec: libx264 (better compatibility) or libx265 (higher compression)."
                 },
                 "trans": {
@@ -459,8 +462,8 @@ class Ui_setini(object):
                 "force_lib": "Force software video encoding?",
                 "preset": "Output video compression preset",
                 "ffmpeg_cmd": "Custom FFmpeg command arguments",
+                "first_hw":"When compositing videos prioritize hard", 
                 "video_codec": "H.264/H.265 encoding",
-
                 "threshold": "VAD: Speech probability threshold",
                 "max_speech_duration_s": "VAD: Max speech duration(s)",
                 "min_silence_duration_ms": "VAD: Min silence duration for split(ms)",
