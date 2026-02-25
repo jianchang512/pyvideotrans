@@ -94,7 +94,7 @@ def openwin():
                             '-c:v',
                             'libx265',
                             '-vf',
-                            f"subtitles={os.path.basename(assfile)}",
+                            f"subtitles=filename={os.path.basename(assfile)}",
                             '-crf',
                             f'{settings.get("crf",26)}',
                             '-preset',
