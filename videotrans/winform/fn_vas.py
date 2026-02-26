@@ -256,7 +256,7 @@ def openwin():
                         '-c:v',
                         f'libx{settings.get("video_codec", 264)}',
                         '-vf',
-                        f"subtitles=filename={os.path.basename(assfile)}",
+                        f"subtitles=filename='{os.path.basename(assfile)}'",
                         '-crf',
                         f'{settings.get("crf",23)}',
                         '-preset',
