@@ -42,7 +42,7 @@ class SeparateWorker(QThread):
                 tools.runffmpeg(cmd)
                 self.file = newfile
             tools.set_process(uuid=self.uuid)
-            kw={"input_file":self.file,"vocal_file":self.vocal,"instr_file":f"{self.out}/instrument-{p.stem}.wav","TEMP_DIR":TEMP_DIR}
+            kw={"input_file":self.file,"vocal_file":self.vocal,"instr_file":f"{self.out}/instrument-{p.stem}.wav"}
             future=GlobalProcessManager.submit_task_cpu(
                         vocal_bgm,
                         **kw
