@@ -8,8 +8,6 @@ import aiohttp
 from videotrans.util import tools
 from edge_tts import Communicate
 from edge_tts.exceptions import NoAudioReceived
-from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
-from videotrans.configure import config
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
 from videotrans.tts._base import BaseTTS
 

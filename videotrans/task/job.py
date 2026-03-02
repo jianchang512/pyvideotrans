@@ -1,6 +1,5 @@
-import time,shutil
+import shutil
 from PySide6.QtCore import QThread
-from videotrans.configure import config
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.task._base import BaseTask
 from videotrans.util import tools, gpus

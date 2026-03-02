@@ -7,7 +7,6 @@ def openwin():
     from PySide6.QtCore import QUrl,QTimer
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
     from videotrans.util import contants
-    from videotrans.configure import config
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
     from videotrans.task._speech2text import SpeechToText

@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import List, Optional
 
 from videotrans import tts
-from videotrans.configure import config
 from videotrans.configure.config import tr, settings, params, app_cfg, logger, HOME_DIR
 from videotrans.task._base import BaseTask
 from videotrans.task._rate import TtsSpeedRate

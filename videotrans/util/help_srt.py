@@ -1,12 +1,8 @@
 # 将普通文本转为合法的srt字符串
 import copy
 import os,json,re
-import math
-from collections import deque
 from datetime import timedelta
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
-from typing import List, Dict
 
 def clean_text_for_srtdict(text: str) -> str:
     if not text:

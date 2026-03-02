@@ -5,7 +5,6 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPlainTextEdit
 
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 

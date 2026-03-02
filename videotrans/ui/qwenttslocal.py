@@ -3,8 +3,6 @@ from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy
 
-
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 

@@ -1,15 +1,4 @@
-import base64
-import datetime
-import json
-import logging
-import time
-from dataclasses import dataclass, field
-from typing import Dict, Optional, ClassVar
-
-import requests
-
-from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
+from dataclasses import dataclass
 from videotrans.configure.config import logger, params
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -18,7 +7,6 @@ from videotrans.util import tools
 import requests
 import json
 import base64
-import os
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5

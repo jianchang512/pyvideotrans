@@ -611,7 +611,8 @@ class Ui_MainWindow(object):
         
         
         # 简短提示行
-        self.show_tips = QtWidgets.QPushButton(self.layoutWidget)
+        self.show_tips = QtWidgets.QLabel(self.layoutWidget)
+        self.show_tips.setWordWrap(True)
         self.show_tips.setStyleSheet(
             """background-color:transparent;border-color:transparent;color:#aaaaaa;text-align:left""")
         self.show_tips.setObjectName("show_tips")

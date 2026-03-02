@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Optional, Union
 from tenacity import RetryError
-from videotrans.configure import config
+
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, TEMP_DIR
 from videotrans.configure._base import BaseCon
 from videotrans.util import tools
@@ -49,11 +49,11 @@ class BaseRecogn(BaseCon):
     jianfan: bool = False
     # 字幕行字符数
     maxlen: int = 20
-    audio_duration:int=0
+    audio_duration: int = 0
     max_speakers: int = -1  # 说话人，-1不启用说话人，0=不限制数量，>0 说话人最大数量
     llm_post: bool = False  # 是否进行llm重新断句，如果是，则无需在识别完成后进行简单修正
     speech_timestamps: List = field(default_factory=list)  # vad切割好的数据
-    recogn2pass:bool=False
+    recogn2pass: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -82,41 +82,43 @@ class BaseRecogn(BaseCon):
             self.maxlen = int(float(settings.get('other_len', 60)))
             self.jianfan = False
 
+    # 有些识别渠道需要预先使用VAD切割为合适时长的音频片段，然后再对片段识别，每个识别结果即为一条字幕
+    # whisper模型并且没有选中预先分割，无需切割
     def _vad_split(self):
         _st = time.time()
         _vad_type = settings.get('vad_type', 'tenvad')
-        title=f'VAD:{_vad_type} split audio...'
+        title = f'VAD:{_vad_type} split audio...'
         self._signal(text=title)
-        # 重新拉取最新值
 
         _threshold = float(settings.get('threshold', 0.5))
-        _min_speech = max( int(float(settings.get('min_speech_duration_ms', 1000))),0)
+        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 0)
         # ten-vad 不得低于500ms
-        if _vad_type=='tenvad':
-            _min_speech=max(_min_speech,500)
-        
+        if _vad_type == 'tenvad':
+            _min_speech = max(_min_speech, 500)
+
         # 最长不得大于30s,并且不得小于 _min_speech
-        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000),30000),_min_speech+1000)
+        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 30000), _min_speech + 1000)
         # 静音阈值不得低于50ms
-        _min_silence = max(int(settings.get('min_silence_duration_ms', 600)),50)
+        _min_silence = max(int(settings.get('min_silence_duration_ms', 600)), 50)
         if self.recogn2pass:
             # 2次识别，均减半，以便生成简短的字幕
-            _min_speech=int(max(500,_min_speech//2))
+            _min_speech = int(max(500, _min_speech // 2))
             # 不可低于 _min_speech+1000 并且不可大于3000ms
-            _max_speech=int(max(_max_speech//2,_min_speech+1000))
+            _max_speech = int(max(_max_speech // 2, _min_speech + 1000))
             # 不可大于1000ms，并且不可小于50ms
-            _min_silence=max(min(1000,_min_silence//2),50)
+            _min_silence = max(min(1000, _min_silence // 2), 50)
 
-        logger.debug(f'[Before VAD {_vad_type}][{self.recogn2pass=}],{_min_speech=}ms,{_max_speech=}ms,{_min_silence=}ms')
-        kw={
-            "input_wav":self.audio_file,
-            "threshold":_threshold,
-            "min_speech_duration_ms":_min_speech,
-            "max_speech_duration_ms":_max_speech,
-            "min_silent_duration_ms":_min_silence
+        logger.debug(
+            f'[Before VAD {_vad_type}][{self.recogn2pass=}],{_min_speech=}ms,{_max_speech=}ms,{_min_silence=}ms')
+        kw = {
+            "input_wav": self.audio_file,
+            "threshold": _threshold,
+            "min_speech_duration_ms": _min_speech,
+            "max_speech_duration_ms": _max_speech,
+            "min_silent_duration_ms": _min_silence
         }
         try:
-            self.speech_timestamps=self._new_process(
+            self.speech_timestamps = self._new_process(
                 callback=get_speech_timestamp if _vad_type == 'tenvad' else get_speech_timestamp_silero,
                 title=title,
                 kwargs=kw)
@@ -125,21 +127,20 @@ class BaseRecogn(BaseCon):
                 raise
 
         self._signal(text=f'[VAD] process ended {int(time.time() - _st)}s')
-    
 
     # run->_exec
     def run(self) -> Union[List[Dict], None]:
         _st = time.time()
-        
         Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
         self._signal(text=f"check model")
+
         if hasattr(self, '_download'):
             self._download()
 
         self._signal(text=f"starting transcription")
         try:
             srt_list = []
-            res=self._exec()
+            res = self._exec()
             if not res:
                 raise RuntimeError('Unknow error')
             for i, it in enumerate(res):
@@ -148,9 +149,9 @@ class BaseRecogn(BaseCon):
                 if text and not re.match(r'^[,.?!;\'"_，。？；‘’“”！~@#￥%…&*（【】）｛｝《、》\$\(\)\[\]\{\}=+\<\>\s-]+$', text):
                     it['line'] = len(srt_list) + 1
                     if not it.get('startraw'):
-                        it['startraw']=tools.ms_to_time_string(ms=it['start_time'])
-                        it['endraw']=tools.ms_to_time_string(ms=it['end_time'])
-                        it['time']=f"{it['startraw']} --> {it['endraw']}"
+                        it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
+                        it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
+                        it['time'] = f"{it['startraw']} --> {it['endraw']}"
                     srt_list.append(it)
 
             if not srt_list:
@@ -166,12 +167,14 @@ class BaseRecogn(BaseCon):
                     srt_list[i - 1]['time'] = f"{srt_list[i - 1]['startraw']} --> {srt_list[i - 1]['endraw']}"
             if self.recogn2pass:
                 return srt_list
-            # 合并过短的字幕到邻近字幕，以便符合 min_speech_duration_ms 要求, 第一个和最后一个字幕不合并
-            if self.llm_post or not settings.get('merge_short_sub', True):
+            # LLM重新断句，未选中合并过短字幕、whisper模型且没有预先分割，这3种情况直接返回
+            if self.llm_post or not settings.get('merge_short_sub', True) or (
+                    self.recogn_type < 2 and not settings.get('whisper_prepare')):
                 if not self.llm_post:
                     for it in srt_list:
                         it['text'] = it['text'].strip('。').strip()
                 return srt_list
+            # 合并过短的字幕到邻近字幕，以便符合 min_speech_duration_ms 要求, 第一个和最后一个字幕不合并
             return self._fix_post(srt_list)
         except RetryError as e:
             raise e.last_attempt.exception()

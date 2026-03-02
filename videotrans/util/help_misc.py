@@ -5,7 +5,9 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+
 from videotrans.configure import config
+
 from videotrans.configure.config import tr,params,settings,app_cfg,logger,ROOT_DIR,TEMP_DIR,defaulelang
 import tqdm 
 

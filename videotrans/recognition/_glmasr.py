@@ -1,15 +1,10 @@
-# zh_recogn 识别
-import json
-import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Union
 
 import requests,time
-from videotrans.configure import config
 from videotrans.configure.config import params, logger
 from videotrans.recognition._base import BaseRecogn
-from videotrans.util import tools
 
 RETRY_NUMS = 2
 RETRY_DELAY = 10

@@ -5,10 +5,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Union
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
-    RetryError
-
-from videotrans.configure import config
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 

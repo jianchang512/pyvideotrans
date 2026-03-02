@@ -318,7 +318,7 @@ class AppSettings:
             "max_speech_duration_s": 8,
             "min_silence_duration_ms": 200,
             "no_speech_threshold": 0.5,
-            "batch_size": 8,
+            "whisper_prepare":False,
             "merge_short_sub": True,
             "vad_type": "tenvad",
             "trans_thread": 20,

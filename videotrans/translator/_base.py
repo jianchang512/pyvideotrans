@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 from videotrans import translator
-from videotrans.configure import config
 from videotrans.configure._base import BaseCon
 from videotrans.configure.config import tr, app_cfg, settings, params, logger, TEMP_DIR, TEMP_ROOT
 from videotrans.util import tools

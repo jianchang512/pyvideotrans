@@ -13,7 +13,6 @@ def openwin():
     from PySide6.QtCore import QUrl,  Qt,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6 import QtWidgets
-    from videotrans.configure import config
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
     from videotrans.task.taskcfg import TaskCfgTTS

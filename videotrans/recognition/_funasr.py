@@ -6,10 +6,6 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Union
-
-from pydub import AudioSegment
-
-from videotrans.configure import config
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, TEMP_DIR, ROOT_DIR, defaulelang
 from videotrans.process import paraformer, funasr_mlt
 from videotrans.recognition._base import BaseRecogn

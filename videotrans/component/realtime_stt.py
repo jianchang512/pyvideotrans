@@ -1,24 +1,23 @@
-import sys,json
+import json
 import time
-import threading
 from pathlib import Path
 import sherpa_onnx
 import onnxruntime
 import numpy as np
 import wave
 
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout,QMessageBox, QHBoxLayout, QComboBox, QPushButton, QPlainTextEdit, QFileDialog,QLabel
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QPlainTextEdit, QFileDialog
 from PySide6.QtCore import QThread, Signal,Qt,QUrl,QTimer
 from PySide6.QtGui import QIcon, QCloseEvent,QDesktopServices
 
-from videotrans.configure import config as cfg
+from videotrans.configure.config import ROOT_DIR,HOME_DIR,tr
 import sounddevice as sd
 
 
-CTC_MODEL_FILE=f"{cfg.ROOT_DIR}/models/onnx/ctc.model.onnx"
-PAR_ENCODER = f"{cfg.ROOT_DIR}/models/onnx/encoder.onnx"
-PAR_DECODER = f"{cfg.ROOT_DIR}/models/onnx/decoder.onnx"
-PAR_TOKENS = f"{cfg.ROOT_DIR}/models/onnx/tokens.txt"
+CTC_MODEL_FILE=f"{ROOT_DIR}/models/onnx/ctc.model.onnx"
+PAR_ENCODER = f"{ROOT_DIR}/models/onnx/encoder.onnx"
+PAR_DECODER = f"{ROOT_DIR}/models/onnx/decoder.onnx"
+PAR_TOKENS = f"{ROOT_DIR}/models/onnx/tokens.txt"
 
 
 
@@ -214,7 +213,7 @@ class Worker(QThread):
             samplerate=self.sample_rate
         )
         mic_stream.start()
-        wav_path=cfg.HOME_DIR+"/realtime_stt"
+        wav_path=HOME_DIR+"/realtime_stt"
         Path(wav_path).mkdir(parents=True,exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H-%M-%S")
         txt_file = open(f"{wav_path}/{timestamp}.txt", 'a')
@@ -283,8 +282,8 @@ class RealTimeWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setMinimumSize(1000, 500)
-        self.setWindowTitle(cfg.tr("Real-time speech-to-text") +" " + cfg.tr("Only supports Chinese and English language recognition"))
-        self.setWindowIcon(QIcon(f"{cfg.ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setWindowTitle(tr("Real-time speech-to-text") +" " + tr("Only supports Chinese and English language recognition"))
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.layout = QVBoxLayout(self)
 
         # Microphone selection
@@ -294,13 +293,13 @@ class RealTimeWindow(QWidget):
         self.combo.setMinimumWidth(250)
         
         self.checkbtn=QPushButton()
-        self.checkbtn.setText(cfg.tr('Detection microphone'))
+        self.checkbtn.setText(tr('Detection microphone'))
         self.checkbtn.clicked.connect(self.populate_mics)
         
         self.mic_layout.addWidget(self.combo)
         self.mic_layout.addWidget(self.checkbtn)
 
-        self.start_button = QPushButton(cfg.tr("Initiating real-time transcription"))
+        self.start_button = QPushButton(tr("Initiating real-time transcription"))
         self.start_button.setCursor(Qt.PointingHandCursor)
         self.start_button.setMinimumHeight(30)
         self.start_button.setMinimumWidth(150)
@@ -325,26 +324,26 @@ class RealTimeWindow(QWidget):
 
         # Buttons layout
         self.button_layout = QHBoxLayout()
-        self.export_button = QPushButton(cfg.tr("Export to TXT"))
+        self.export_button = QPushButton(tr("Export to TXT"))
         self.export_button.clicked.connect(self.export_txt)
         self.export_button.setCursor(Qt.PointingHandCursor)
         self.export_button.setMinimumHeight(35)
         self.button_layout.addWidget(self.export_button)
 
-        self.copy_button = QPushButton(cfg.tr("Copy"))
+        self.copy_button = QPushButton(tr("Copy"))
         self.copy_button.setMinimumHeight(35)
         self.copy_button.setCursor(Qt.PointingHandCursor)
         self.copy_button.clicked.connect(self.copy_textedit)
         self.button_layout.addWidget(self.copy_button)
 
-        self.clear_button = QPushButton(cfg.tr("Clear"))
+        self.clear_button = QPushButton(tr("Clear"))
         self.clear_button.setMinimumHeight(35)
         self.clear_button.setCursor(Qt.PointingHandCursor)
         self.clear_button.clicked.connect(self.clear_textedit)
         self.button_layout.addWidget(self.clear_button)
 
         self.layout.addLayout(self.button_layout)
-        self.btn_opendir=QPushButton(f"{cfg.tr('Recording files are stored in')}: {cfg.HOME_DIR}/realtime_stt")
+        self.btn_opendir=QPushButton(f"{tr('Recording files are stored in')}: {HOME_DIR}/realtime_stt")
         self.btn_opendir.setStyleSheet("background-color:transparent;border:0;color:#ddd")
         self.btn_opendir.clicked.connect(self.open_dir)
         self.layout.addWidget(self.btn_opendir)
@@ -362,16 +361,16 @@ class RealTimeWindow(QWidget):
     def check_model_exist(self):
         if not Path(PAR_ENCODER).exists() or not Path(CTC_MODEL_FILE).exists() or not Path(PAR_DECODER).exists():
             import tools
-            tools.down_zip(f"{cfg.ROOT_DIR}/models",'https://modelscope.cn/models/himyworld/videotrans/resolve/master/realtimestt.zip',self._process_callback)
+            tools.down_zip(f"{ROOT_DIR}/models",'https://modelscope.cn/models/himyworld/videotrans/resolve/master/realtimestt.zip',self._process_callback)
             return False
         return True
         
         
 
     def open_dir(self):
-        if not Path(f'{cfg.HOME_DIR}/realtime_stt').exists():
-            Path(f'{cfg.HOME_DIR}/realtime_stt').mkdir(exist_ok=True)
-        QDesktopServices.openUrl(QUrl.fromLocalFile(f'{cfg.HOME_DIR}/realtime_stt'))
+        if not Path(f'{HOME_DIR}/realtime_stt').exists():
+            Path(f'{HOME_DIR}/realtime_stt').mkdir(exist_ok=True)
+        QDesktopServices.openUrl(QUrl.fromLocalFile(f'{HOME_DIR}/realtime_stt'))
         
         
 
@@ -379,7 +378,7 @@ class RealTimeWindow(QWidget):
         def _get_dev(data):
             self.checkbtn.setDisabled(False)
             if data=='No':
-                self.checkbtn.setText(cfg.tr('No valid microphone exists'))
+                self.checkbtn.setText(tr('No valid microphone exists'))
                 return
             data=json.loads(data)
             for i, d in enumerate(data['devices']):
@@ -397,21 +396,21 @@ class RealTimeWindow(QWidget):
         if self.check_model_exist() is not True:
             return
         if not self.transcribing:
-            self.realtime_text.setPlainText(cfg.tr("Please wait"))
+            self.realtime_text.setPlainText(tr("Please wait"))
             device_idx = self.combo.currentData()
             self.worker = Worker(device_idx)
             self.worker.new_word.connect(self.update_realtime)
             self.worker.new_segment.connect(self.append_segment)
             self.worker.ready.connect(self.update_realtime_ready)
             self.worker.start()
-            self.start_button.setText(cfg.tr("Real-time transcription"))
+            self.start_button.setText(tr("Real-time transcription"))
             self.transcribing = True
         else:
             if self.worker:
                 self.worker.running = False
                 self.worker.wait()
                 self.worker = None
-            self.start_button.setText(cfg.tr("Initiating real-time transcription"))
+            self.start_button.setText(tr("Initiating real-time transcription"))
             self.transcribing = False
             remaining_text = self.realtime_text.toPlainText().strip()
             if remaining_text:
@@ -426,7 +425,7 @@ class RealTimeWindow(QWidget):
         scrollbar.setValue(scrollbar.maximum())
 
     def update_realtime_ready(self):
-        self.realtime_text.setPlainText(cfg.tr("Please speak"))
+        self.realtime_text.setPlainText(tr("Please speak"))
 
     def append_segment(self, text):
         self.textedit.appendPlainText(text)

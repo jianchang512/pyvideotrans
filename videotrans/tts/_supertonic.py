@@ -1,15 +1,9 @@
-import logging
 from dataclasses import dataclass
 
-
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
 
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
-import argparse
-import os
 
 import soundfile as sf
 from videotrans.util.helper_supertonic import load_text_to_speech, sanitize_filename, load_voice_style

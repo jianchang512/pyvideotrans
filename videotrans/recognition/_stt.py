@@ -5,7 +5,6 @@ from typing import List, Dict, Union
 
 import requests
 
-from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.recognition._base import BaseRecogn

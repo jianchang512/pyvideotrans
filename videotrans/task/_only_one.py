@@ -1,12 +1,12 @@
 # 执行单个视频翻译任务时 暂停等待
-import json,os
+import json
 import time
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from pydub import AudioSegment
 from PySide6.QtCore import QThread, Signal, QObject
 
-from videotrans.configure import config
+from videotrans.configure._except import get_msg_from_except
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.task.taskcfg import TaskCfgVTT
 
@@ -118,9 +118,7 @@ class Worker(QThread):
             if not self._exit():
                 trk.task_done()
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            self._post(text=str(e), type='error')
+            self._post(text=get_msg_from_except(e), type='error')
 
     def _post(self, text='', type='logs'):
         try:

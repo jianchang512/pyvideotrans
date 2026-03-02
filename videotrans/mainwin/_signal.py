@@ -1,11 +1,9 @@
 import json
-import queue
 import shutil
 import time
 
 from PySide6.QtCore import QThread, Signal
 
-from videotrans.configure import config
 from videotrans.configure.config import tr,settings,params,app_cfg
 
 # 循环从日志队列中取出消息

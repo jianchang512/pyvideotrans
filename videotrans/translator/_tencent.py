@@ -10,7 +10,6 @@ from tencentcloud.common.profile.client_profile import ClientProfile
 from tencentcloud.common.profile.http_profile import HttpProfile
 from tencentcloud.tmt.v20180321 import tmt_client, models
 
-from videotrans.configure import config
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans

@@ -1,11 +1,6 @@
 import json
-import os
 import re
-import sys
-
 import requests
-
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from pathlib import Path
 from functools import lru_cache

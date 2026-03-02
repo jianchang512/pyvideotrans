@@ -2,7 +2,6 @@
 from pathlib import Path
 from typing import Union, List
 
-from videotrans.configure import config
 # 数字代表显示顺序
 from videotrans.configure.config import tr,settings,params,app_cfg,logger,ROOT_DIR
 from videotrans.util import tools

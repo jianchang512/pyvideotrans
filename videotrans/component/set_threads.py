@@ -3,8 +3,6 @@ from PySide6.QtGui import QIcon, Qt
 from PySide6.QtWidgets import (
     QDialog, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton
 )
-
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
 

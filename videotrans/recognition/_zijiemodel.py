@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import List, Dict, Union
 
 import requests
-
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools

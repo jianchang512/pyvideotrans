@@ -1,23 +1,19 @@
-import shutil
+
 import sys
 import os
 import difflib
 import datetime
 import traceback
 import time
-from pathlib import Path
-
-import requests
 from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                                QLabel, QPushButton, QTextEdit, QFileDialog,
-                               QComboBox, QCheckBox, QGroupBox, QMessageBox)
+                               QComboBox, QCheckBox,  QMessageBox)
 from PySide6.QtCore import Qt, QThread, Signal, Slot, QSettings, QUrl
-from huggingface_hub import snapshot_download
 
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import tools
+from videotrans.util.contants import FASTER_MODELS_DICT
 
 # ==========================================
 # 1. 多语言配置区域
@@ -83,27 +79,7 @@ TEXT_DB = {
     "msg_success_detail": {"zh": "SRT 字幕生成成功！\n文件已保存为:\n{}", "en": "SRT generated successfully!\nFile saved as:\n{}"}
 }
 
-_MODELS= {
-    "tiny.en": "Systran/faster-whisper-tiny.en",
-    "tiny": "Systran/faster-whisper-tiny",
-    "base.en": "Systran/faster-whisper-base.en",
-    "base": "Systran/faster-whisper-base",
-    "small.en": "Systran/faster-whisper-small.en",
-    "small": "Systran/faster-whisper-small",
-    "medium.en": "Systran/faster-whisper-medium.en",
-    "medium": "Systran/faster-whisper-medium",
-    "large-v1": "Systran/faster-whisper-large-v1",
-    "large-v2": "Systran/faster-whisper-large-v2",
-    "large-v3": "Systran/faster-whisper-large-v3",
-    "large": "Systran/faster-whisper-large-v3",
-    "distil-large-v2": "Systran/faster-distil-whisper-large-v2",
-    "distil-medium.en": "Systran/faster-distil-whisper-medium.en",
-    "distil-small.en": "Systran/faster-distil-whisper-small.en",
-    "distil-large-v3": "Systran/faster-distil-whisper-large-v3",
-    "distil-large-v3.5": "distil-whisper/distil-large-v3.5-ct2",
-    "large-v3-turbo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
-    "turbo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
-}
+
 
 def tr(key, *args):
     """翻译辅助函数"""
@@ -130,7 +106,7 @@ class AlignmentWorker(QThread):
         self.model_name=model_name
         self.compute_type = compute_type
         self.language =None if language=='auto' else  language
-        self.local_dir = f'{ROOT_DIR}/models/models--' + _MODELS[model_name].replace('/', '--')
+        self.local_dir = f'{ROOT_DIR}/models/models--' + FASTER_MODELS_DICT[model_name].replace('/', '--')
 
     def ms_to_srt_time(self, seconds):
         if seconds is None:
@@ -146,7 +122,7 @@ class AlignmentWorker(QThread):
     def run(self):
         try:
             self.log_signal.emit(tr("status_loading_model", self.model_name, self.device))
-            tools.check_and_down_hf(self.model_name,_MODELS[self.model_name],self.local_dir,callback=self._progress_callback)
+            tools.check_and_down_hf(self.model_name,FASTER_MODELS_DICT[self.model_name],self.local_dir,callback=self._progress_callback)
             from faster_whisper import WhisperModel
 
             try:

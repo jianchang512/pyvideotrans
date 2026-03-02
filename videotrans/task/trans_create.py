@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import List, Dict, Union
 
 from videotrans import translator
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.recognition import run as run_recogn, Faster_Whisper_XXL, Whisper_CPP, \
     is_allow_lang as recogn_allow_lang, FASTER_WHISPER

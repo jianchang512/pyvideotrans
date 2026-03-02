@@ -85,7 +85,6 @@ class Ui_doubao2form(object):
         self.retranslateUi(doubao2form)
         QtCore.QMetaObject.connectSlotsByName(doubao2form)
     def update_ui(self):
-        from videotrans.configure import config
         self.doubao2_appid.setText(params.get("doubao2_appid",''))
         self.doubao2_access.setText(params.get("doubao2_access",''))
 

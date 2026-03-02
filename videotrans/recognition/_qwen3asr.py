@@ -1,19 +1,10 @@
 # zh_recogn 识别
-import logging
-import time
 from dataclasses import dataclass
-from pathlib import Path
 from typing import List, Dict, Union
 
 import dashscope
-from pydub import AudioSegment
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-
-from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.configure.config import params
 from videotrans.recognition._base import BaseRecogn
-from videotrans.util import tools
 
 RETRY_NUMS = 2
 RETRY_DELAY = 10

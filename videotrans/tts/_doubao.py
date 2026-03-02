@@ -1,17 +1,11 @@
 import base64
 import datetime
 import json
-import logging
 import time
 from dataclasses import dataclass, field
 from typing import Dict, Optional, ClassVar
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
-    RetryError
-
-from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.configure.config import params, logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools

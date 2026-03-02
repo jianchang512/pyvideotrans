@@ -2,7 +2,6 @@
 # 2. 获取可用 cuda 号
 # 3. MacOSX 是否支持 mps
 import platform
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 
 

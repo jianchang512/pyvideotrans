@@ -17,8 +17,6 @@ from deepgram import (
 )
 from deepgram_captions import DeepgramConverter, srt
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-
-from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.recognition._base import BaseRecogn

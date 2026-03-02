@@ -1,6 +1,6 @@
 import copy
 import json
-import os,re
+import re
 import platform
 import subprocess
 import sys
@@ -8,7 +8,6 @@ import time
 from pathlib import Path
 from typing import Union,Tuple,List,Dict
 
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.util import contants
 
