@@ -11,7 +11,6 @@ def openwin():
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
     from videotrans.util import contants
-    from videotrans.configure import config
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     # 使用内置的 open 函数
     from videotrans.util import tools

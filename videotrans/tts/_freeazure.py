@@ -1,17 +1,15 @@
 import logging
 import time
-from dataclasses import dataclass, field
-from videotrans.configure import config
+from dataclasses import dataclass
 from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
-from tenacity import retry, wait_exponential, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log,  RetryError
+from tenacity import retry,  stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log,  RetryError
 import base64
 import hashlib
 import hmac
-import html
 import json
 import uuid
 from datetime import datetime

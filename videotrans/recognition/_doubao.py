@@ -6,7 +6,6 @@ from typing import List, Dict, Union
 
 import requests
 
-from videotrans.configure import config
 from videotrans.configure.config import params
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools

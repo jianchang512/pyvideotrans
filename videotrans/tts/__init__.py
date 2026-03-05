@@ -294,6 +294,11 @@ def is_input_api(tts_type: int = None, return_str=False):
     return True
 
 
+def clone_tips(tts_type,role:str='No',recogn_type=9):
+    if tts_type in SUPPORT_CLONE and role=='clone':
+        return tr('clone_dubb_tips1')+ ( tr('clone_dubb_tips2') if recogn_type <2 else '')
+    return
+
 # 统一调用 tts渠道入口，通过 tts_type 调用对应渠道
 def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, tts_type=0,is_cuda=False) -> None:
     # 需要并行的数量3

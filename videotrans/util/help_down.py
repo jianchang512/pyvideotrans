@@ -4,26 +4,28 @@ import time
 from pathlib import Path
 import shutil, os, requests
 import zipfile
-
-
-from videotrans.configure import config
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, params, TEMP_DIR, logger, defaulelang, HOME_DIR
+from videotrans.util.contants import FASTER_MODELS_DICT
 from .help_misc import create_tqdm_class
 from urllib.parse import urlparse
 
 """解析URL获取纯净文件名 (去除 ?query)"""
-def get_filename_from_url(url)->str:
+
+
+def get_filename_from_url(url) -> str:
     parsed = urlparse(url)
     return os.path.basename(parsed.path)
 
+
 # 用于判断某个目录内是否存在指定类型的文件，存在则视为已存在
 def file_exists(dirname, glob_patter='*.bin') -> bool:
-    if isinstance(glob_patter,str):
-        glob_patter=[glob_patter]
+    if isinstance(glob_patter, str):
+        glob_patter = [glob_patter]
     for pat in glob_patter:
         for it in Path(dirname).glob(pat):
             return True
     return False
+
 
 def is_connect_hf():
     try:
@@ -34,28 +36,27 @@ def is_connect_hf():
     else:
         print('可以使用 huggingface.co')
         return True
-    
+
+
 # 从 huggingface.co 下载完整模型，先本地下载，失败则在线下载
 def check_and_down_hf(model_id, repo_id, local_dir, callback=None) -> bool:
-    MODELS_AT_SCOPE=['tiny','tiny.en','base','base.en','small','small.en','medium','medium.en','large-v1','large-v2','large-v3','large-v3-turbo','distil-large-v3','distil-large-v3.5','distil-large-v3.5-ct2','large','turbo']
-
     try:
-        if  model_id in MODELS_AT_SCOPE and (defaulelang == 'zh' or is_connect_hf() is False):
-            if model_id=='turbo':
-                model_id='large-v3-turbo'
-            elif model_id=='distil-large-v3.5-ct2':
-                model_id='distil-large-v3.5'
-            elif model_id=='large':
-                model_id='large-v3'
-                    
-            URL_PRE=f'https://modelscope.cn/models/himyworld/fasterwhisper/resolve/master/{model_id}/'
-            
-            if model_id in ['large-v3','large-v3-turbo','distil-large-v3','distil-large-v3.5']:
-                all_urls=["vocabulary.json","preprocessor_config.json"]
+        if model_id in FASTER_MODELS_DICT and (defaulelang == 'zh' or is_connect_hf() is False):
+            if model_id == 'turbo':
+                model_id = 'large-v3-turbo'
+            elif model_id == 'distil-large-v3.5-ct2':
+                model_id = 'distil-large-v3.5'
+            elif model_id == 'large':
+                model_id = 'large-v3'
+
+            URL_PRE = f'https://modelscope.cn/models/himyworld/fasterwhisper/resolve/master/{model_id}/'
+
+            if model_id in ['large-v3', 'large-v3-turbo', 'distil-large-v3', 'distil-large-v3.5']:
+                all_urls = ["vocabulary.json", "preprocessor_config.json"]
             else:
-                all_urls=["vocabulary.txt"]
-            all_urls+=["config.json","tokenizer.json","model.bin",]
-            return down_file_from_ms(local_dir, urls=[f'{URL_PRE}{u}' for u in all_urls],callback=callback)
+                all_urls = ["vocabulary.txt"]
+            all_urls += ["config.json", "tokenizer.json", "model.bin", ]
+            return down_file_from_ms(local_dir, urls=[f'{URL_PRE}{u}' for u in all_urls], callback=callback)
         import huggingface_hub
         from huggingface_hub.errors import LocalEntryNotFoundError
         try:
@@ -67,7 +68,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None) -> bool:
             )
         except LocalEntryNotFoundError:
             Path(local_dir).mkdir(exist_ok=True, parents=True)
-            MyTqdmClass=None
+            MyTqdmClass = None
             if callback:
                 MyTqdmClass = create_tqdm_class(callback)
 
@@ -117,7 +118,6 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None) -> bool:
     return True
 
 
-
 # 从 huggingface 下载单个文件
 def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
     if is_connect_hf() is False:
@@ -129,8 +129,8 @@ def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
     for index, url in enumerate(urls):
         try:
             if not url.startswith('https://'):
-                url=f'{endpoint}{url}'
-            filename=get_filename_from_url(url)
+                url = f'{endpoint}{url}'
+            filename = get_filename_from_url(url)
             with requests.get(f'{url}', stream=True, timeout=60) as response:
                 response.raise_for_status()
                 total_length = response.headers.get('content-length')
@@ -141,9 +141,9 @@ def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
                     if total_length is None:
                         dest_file_obj.write(response.content)
                     else:
-                        total_length = max(int(total_length),1)
+                        total_length = max(int(total_length), 1)
                         downloaded = 0
-                        for chunk in response.iter_content(chunk_size=1024*1024):
+                        for chunk in response.iter_content(chunk_size=1024 * 1024):
                             if chunk:
                                 dest_file_obj.write(chunk)
                                 downloaded += len(chunk)
@@ -162,11 +162,11 @@ def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
 
 
 # 从 modelscope.cn 下载单个文件
-def down_file_from_ms(local_dir, urls=None,callback=None) -> bool:
-    Path(local_dir).mkdir(parents=True,exist_ok=True)
+def down_file_from_ms(local_dir, urls=None, callback=None) -> bool:
+    Path(local_dir).mkdir(parents=True, exist_ok=True)
     for index, url in enumerate(urls):
         filename = get_filename_from_url(url)
-        file_abso_path=f'{local_dir}/{filename}'
+        file_abso_path = f'{local_dir}/{filename}'
         if Path(file_abso_path).exists():
             continue
         try:
@@ -178,10 +178,10 @@ def down_file_from_ms(local_dir, urls=None,callback=None) -> bool:
                     if total_length is None:
                         dest_file_obj.write(response.content)
                     else:
-                        total_length = max(int(total_length),1)
+                        total_length = max(int(total_length), 1)
                         downloaded = 0
                         last_send = time.time()
-                        for chunk in response.iter_content(chunk_size=1024*1024):
+                        for chunk in response.iter_content(chunk_size=1024 * 1024):
                             if chunk:
                                 dest_file_obj.write(chunk)
                                 downloaded += len(chunk)
@@ -196,14 +196,14 @@ def down_file_from_ms(local_dir, urls=None,callback=None) -> bool:
                 finally:
                     dest_file_obj.close()
         except Exception as e:
-            raise 
+            raise
     return True
 
 
 # 下载zip并解压 到指定目录
 def down_zip(local_dir, zip_url, callback=None) -> bool:
     try:
-        filename=get_filename_from_url(zip_url)
+        filename = get_filename_from_url(zip_url)
         with requests.get(zip_url, stream=True, timeout=60) as response:
             response.raise_for_status()
             total_length = response.headers.get('content-length')
@@ -214,7 +214,7 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
             if total_length is None:
                 dest_file_obj.write(response.content)
             else:
-                total_length = max(int(total_length),1)
+                total_length = max(int(total_length), 1)
                 downloaded = 0
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
@@ -242,18 +242,17 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
 
 
 # 从 modelscope.cn 下载完整模型
-def check_and_down_ms(model_id,callback=None,local_dir=None)->bool:
-    from modelscope.hub.callback import ProgressCallback,TqdmCallback
+def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
+    from modelscope.hub.callback import ProgressCallback, TqdmCallback
     from modelscope.hub.snapshot_download import snapshot_download
     class Pro(TqdmCallback):
-        def __init__(self,*args):
+        def __init__(self, *args):
             super().__init__(*args)
-            
-            
-        def update(self,size):
+
+        def update(self, size):
             super().update(size)
             try:
-                _str=str(self.progress).split('%')[0]+'%'
+                _str = str(self.progress).split('%')[0] + '%'
                 callback(_str)
             except:
                 pass
@@ -264,22 +263,21 @@ def check_and_down_ms(model_id,callback=None,local_dir=None)->bool:
             else:
                 print(f'{self.filename=},{self.file_size=},{size=}')
             '''
-        
 
     try:
         try:
             # 如果本地加载失败，则在线下载
-            snapshot_download(model_id=model_id,local_files_only=True,progress_callbacks=[Pro],local_dir=local_dir)
+            snapshot_download(model_id=model_id, local_files_only=True, progress_callbacks=[Pro], local_dir=local_dir)
             if callback:
                 callback(f'{model_id} exists')
         except ValueError  as e:
             if callback:
                 callback(f'{model_id}')
-            snapshot_download(model_id=model_id,progress_callbacks=[Pro],local_dir=local_dir,max_workers=1)
+            snapshot_download(model_id=model_id, progress_callbacks=[Pro], local_dir=local_dir, max_workers=1)
         else:
             return True
     except Exception as e:
-        local_dir=f'{ROOT_DIR}/models/models/{model_id}/' if not local_dir else local_dir
+        local_dir = f'{ROOT_DIR}/models/models/{model_id}/' if not local_dir else local_dir
         msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
         raise RuntimeError(f'{msg}\n[https://modelscope.cn/models/{model_id}/tree/main]\n{e}')
-    return  True
+    return True

@@ -11,7 +11,6 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog
 from videotrans import translator, recognition, tts
-from videotrans.configure import config
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, TEMP_DIR
 from videotrans.mainwin._actions_sub import WinActionSub
 from videotrans.task.simple_runnable_qt import run_in_threadpool
@@ -252,7 +251,7 @@ class WinAction(WinActionSub):
             self.main.current_rolelist = list(rolelist.keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
 
-    # 目标语言改变时设置配音角色
+    # 设置配音角色
     # t 语言显示文字
     def set_voice_role(self, t):
 

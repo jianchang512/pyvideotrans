@@ -4,19 +4,11 @@ import logging
 import re
 from dataclasses import dataclass, field
 from typing import List, Union
-
-import httpx
-from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-
-from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
 from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
-
-from openai import LengthFinishReasonError
-
 from google import genai
 from google.genai import types,errors
 

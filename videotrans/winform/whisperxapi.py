@@ -1,6 +1,5 @@
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure import config
     from videotrans.configure.config import tr,app_cfg,params,settings,logger
     from videotrans.util import tools
     from videotrans import recognition

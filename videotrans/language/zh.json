@@ -956,5 +956,9 @@
   "End +0.1s":"结束时间增大0.1s",
   "Adjust time":"对齐时间",
   "Enter milliseconds (positive or negative):":"输入正负毫秒值，用于增加或减小时间，1秒=1000毫秒",
-  "Translation successful but transfer failed.":"视频翻译成功，但移动到目标文件夹时失败，你可手动复制，当前视频保存在:\n{}"
+  "Translation successful but transfer failed.":"视频翻译成功，但移动到目标文件夹时失败，你可手动复制，当前视频保存在:\n{}",
+
+  "clone_dubb_tips1": "使用clone角色进行语音克隆配音时，建议在菜单-工具-高级选项-语音识别参数区域，将最短语音持续时长设为3000，最长语音时长秒设为10,避免因时长问题出错.",
+  "clone_dubb_tips2": "同时选中 Whisper预分割音频."
+
 }

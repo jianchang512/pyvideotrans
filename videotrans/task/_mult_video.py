@@ -3,7 +3,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread,Signal
 
-from videotrans.configure import config
+from videotrans.configure._except import get_msg_from_except
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.task.taskcfg import TaskCfgVTT
 from videotrans.task.trans_create import TransCreate
@@ -45,8 +45,9 @@ class MultVideo(QThread):
                     # 压入识别队列开始执行
                     app_cfg.prepare_queue.put_nowait(trk)
             except Exception as e:
+                _msg=get_msg_from_except(e)
                 if self.batch_single:
-                    self.uito.emit(json.dumps({"text": str(e), "type": "error", 'uuid': it['uuid']}))
+                    self.uito.emit(json.dumps({"text": _msg, "type": "error", 'uuid': it['uuid']}))
                 else:
-                    tools.set_process(text=str(e),type="error",uuid=it['uuid'])
+                    tools.set_process(text=_msg,type="error",uuid=it['uuid'])
 

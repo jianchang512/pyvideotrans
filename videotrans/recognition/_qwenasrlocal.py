@@ -3,14 +3,10 @@ import json
 from dataclasses import dataclass
 from typing import List, Dict, Union
 
-from gradio_client import Client, handle_file
-
 from pathlib import Path
 import re,time
 
-from videotrans.configure import config
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, defaulelang, ROOT_DIR, TEMP_DIR
-from videotrans.configure._except import  StopRetry
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools

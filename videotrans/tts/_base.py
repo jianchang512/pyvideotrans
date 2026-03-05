@@ -1,17 +1,14 @@
 import asyncio
-import base64
 import copy
 import inspect
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed, CancelledError
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Union
 
 from tenacity import RetryError
-
-from videotrans.configure import config
 from videotrans.configure._base import BaseCon
 from videotrans.configure._except import StopRetry
 from videotrans.configure.config import tr, settings, params, app_cfg, logger, TEMP_DIR

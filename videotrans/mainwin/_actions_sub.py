@@ -1,4 +1,3 @@
-import json
 import os
 import platform
 import re
@@ -11,7 +10,6 @@ from typing import Optional, Dict, List, Any
 from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer, Qt
 
-from videotrans.configure import config
 from videotrans.configure.config import tr, settings, params, app_cfg, logger, ROOT_DIR, TEMP_DIR, defaulelang
 from videotrans.util import tools, contants
 from videotrans.util.ListenVoice import ListenVoice
@@ -571,6 +569,9 @@ class WinActionSub:
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):
         voice_role = self.main.voice_role.currentText()
+        _tip=tts.clone_tips(self.main.tts_type.currentIndex(),voice_role,self.main.recogn_type.currentIndex())
+        if _tip:
+            self.main.show_tips.setText(_tip)
         if role == 'No' or voice_role == 'clone':
             self.main.listen_btn.hide()
             return

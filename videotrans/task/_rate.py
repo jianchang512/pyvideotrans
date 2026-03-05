@@ -66,16 +66,10 @@
 
 """
 
-import math
-import json
 import os
 import shutil
 import time
-import re
-import subprocess
-import random
 from pathlib import Path
-import threading
 
 # 引入 soundfile 和 audio 处理
 import soundfile as sf
@@ -89,7 +83,6 @@ try:
 except ImportError:
     HAS_RUBBERBAND = False
 
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
 from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
@@ -398,12 +391,10 @@ class SpeedRate:
             if not current.get('filename') or not Path(current['filename']).exists():
                 # 生成占位静音
                 dummy_wav = Path(self.cache_folder, f'silent_place_{i}.wav').as_posix()
-                # 时长至少100ms，或者等于 source_duration 以防太短
-                dur = max(50, current['source_duration'])
-                AudioSegment.silent(duration=dur).export(dummy_wav, format="wav")
+                AudioSegment.silent(duration=current['source_duration']).export(dummy_wav, format="wav")
                 current['filename'] = dummy_wav
-                current['dubb_time'] = dur
-                logger.debug(f"[Prepare] 字幕[{current['line']}] 无配音，生成 {dur}ms 静音占位")
+                current['dubb_time'] = current['source_duration']
+                logger.debug(f"[Prepare] 字幕[{current['line']}] 无配音，生成 {current['source_duration']}ms 静音占位")
             else:
                 current['dubb_time'] = len(AudioSegment.from_file(current['filename']))
 
@@ -784,7 +775,6 @@ class TtsSpeedRate(SpeedRate):
             if not current.get('filename') or not Path(current['filename']).exists():
                 # 生成占位静音
                 dummy_wav = Path(self.cache_folder, f'silent_place_{i}.wav').as_posix()
-                # 时长至少100ms，或者等于 source_duration 以防太短
                 AudioSegment.silent(duration=current['source_duration']).export(dummy_wav, format="wav")
                 current['filename'] = dummy_wav
                 current['dubb_time'] = current['source_duration']

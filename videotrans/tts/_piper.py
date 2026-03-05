@@ -1,14 +1,11 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 import wave
 from piper import PiperVoice,SynthesisConfig
-from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
-
 
 @dataclass
 class PiperTTS(BaseTTS):

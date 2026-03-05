@@ -2,8 +2,11 @@
 # 返回元组
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
+import re
+
 from videotrans.util import gpus
-from videotrans.configure.config import logger,ROOT_DIR,defaulelang
+from videotrans.configure.config import logger, ROOT_DIR, defaulelang
+
 
 def openai_whisper(
         *,
@@ -17,11 +20,11 @@ def openai_whisper(
         speech_timestamps=None,
         audio_file=None,
         jianfan=False,
-        batch_size=1,
         audio_duration=0,
         temperature=None,
         compression_ratio_threshold=2.2,
-        device_index=0 # gpu索引
+        device_index=0,  # gpu索引
+        max_speech_ms=6000
 ):
     import re, os, traceback, json, time
     import shutil
@@ -32,7 +35,6 @@ def openai_whisper(
     from videotrans.util import tools
 
     import zhconv
-
 
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
         msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
@@ -53,11 +55,11 @@ def openai_whisper(
                 0.8,
                 1.0,
             )
-        elif str(temperature).startswith('[') or  str(temperature).startswith('('):
+        elif str(temperature).startswith('[') or str(temperature).startswith('('):
             temperature = tuple([float(i) for i in str(temperature)[1:-1].split(',')])
         else:
-            temperature=float(temperature)
-            
+            temperature = float(temperature)
+
         model = whisper.load_model(
             model_name,
             device=f"cuda:{device_index}" if is_cuda else 'cpu',
@@ -68,46 +70,69 @@ def openai_whisper(
 
         last_end_time = audio_duration / 1000.0 if audio_duration > 0 else speech_timestamps[-1][1] / 1000.0
         speech_timestamps_flat = []
-        if speech_timestamps and batch_size > 1:
+        if detect_language == 'fil':
+            detect_language = 'tl'
+        if speech_timestamps:
             for it in speech_timestamps:
                 speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
+            result = model.transcribe(
+                audio_file,
+                no_speech_threshold=no_speech_threshold,
+                language=detect_language.split('-')[0] if detect_language != 'auto' else None,
+                clip_timestamps=speech_timestamps_flat,
+                initial_prompt=prompt if prompt else None,
+                temperature=temperature,
+                compression_ratio_threshold=compression_ratio_threshold,
+                condition_on_previous_text=condition_on_previous_text
+            )
+            i = 0
+            for segment in result['segments']:
+                # 时间戳大于总时长，出错跳过
+                if segment['end'] > last_end_time:
+                    continue
+                text = segment['text']
+                if not text.strip():
+                    continue
+                i += 1
+                if jianfan:
+                    text = zhconv.convert(text, 'zh-hans')
+                s, e = int(segment['start'] * 1000), int(segment['end'] * 1000)
+                tmp = {
+                    'text': text,
+                    'start_time': s,
+                    'end_time': e
+                }
+                tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
+                tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
+                tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
+                raws.append(tmp)
+                _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
+            logger.debug(f'openai-whisper模式下，预先使用VAD分割音频，直接使用{model_name}模型返回的各个片段音频的文字结果')
         else:
-            speech_timestamps_flat = "0"
-        if detect_language=='fil':
-            detect_language='tl'
-        result = model.transcribe(
-            audio_file,
-            no_speech_threshold=no_speech_threshold,
-            language=detect_language.split('-')[0] if detect_language != 'auto' else None,
-            clip_timestamps=speech_timestamps_flat,
-            initial_prompt=prompt if prompt else None,
-            temperature=temperature,
-            compression_ratio_threshold=compression_ratio_threshold,
-            condition_on_previous_text=condition_on_previous_text
-        )
-
-        i = 0
-        for segment in result['segments']:
-            # 时间戳大于总时长，出错跳过
-            if segment['end'] > last_end_time:
-                continue
-            text = segment['text']
-            if not text.strip():
-                continue
-            i += 1
-            if jianfan:
-                text = zhconv.convert(text, 'zh-hans')
-            s, e = int(segment['start'] * 1000), int(segment['end'] * 1000)
-            tmp = {
-                'text': text,
-                'start_time': s,
-                'end_time': e
-            }
-            tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-            tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
-            tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-            raws.append(tmp)
-            _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
+            segments = model.transcribe(
+                audio_file,
+                no_speech_threshold=no_speech_threshold,
+                language=detect_language.split('-')[0] if detect_language != 'auto' else None,
+                # clip_timestamps=speech_timestamps_flat,
+                initial_prompt=prompt if prompt else None,
+                temperature=temperature,
+                word_timestamps=True,
+                compression_ratio_threshold=compression_ratio_threshold,
+                condition_on_previous_text=condition_on_previous_text
+            )
+            logger.debug(f'openai-whisper模式下，对{model_name}模型返回的断句结果重新后修正')
+            texts = []
+            for segment in segments['segments']:
+                texts.append({
+                    "text": segment['text'],
+                    "start": segment['start'],
+                    "end": segment['end'],
+                    "words": [{'word': it['word'], 'start': it['start'], 'end': it['end']} for it in segment['words']]
+                })
+            raws = _resegment(texts, segments['language'], max_speech_ms)
+            if jianfan and raws:
+                for it in raws:
+                    it['text'] = zhconv.convert(it['text'], 'zh-hans')
     except Exception:
         msg = traceback.format_exc()
         logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
@@ -126,6 +151,153 @@ def openai_whisper(
             pass
 
 
+def _resegment(texts, language, max_speech_ms):
+    """
+    仅针对过长的 Whisper 识别结果重新断句，并格式化为 SRT 字幕格式。
+    保留 Whisper 原本正常的短句，不对其进行全局拉平。
+    """
+
+    # --- 辅助函数：将毫秒转换为 SRT 标准时间格式 HH:MM:SS,mmm ---
+    def format_srt_time(ms_time):
+        ms_time = int(ms_time)
+        seconds, milliseconds = divmod(ms_time, 1000)
+        minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
+
+    # --- 语言连接规则与标点判定 ---
+    # 东方中日韩等语言通常无需空格，其他字母系语言需空格
+    no_space_langs = {'zh', 'ja', 'th', 'yue', 'ko'}
+    use_space = language.lower() not in no_space_langs
+
+    end_punc = set('.?!。？！\n')
+    comma_punc = set(',;:，；：、')
+
+    def has_punc(text, punc_set):
+        if not text:
+            return False
+        return text[-1] in punc_set
+
+    def build_text(chunk_words):
+        if use_space:
+            text_str = " ".join(chunk_words)
+            # 修复字母语言由于空格连接导致的标点前导空格问题 (如 "Hello , world" -> "Hello, world")
+            text_str = re.sub(r'\s+([.,?!:;])', r'\1', text_str)
+        else:
+            text_str = "".join(chunk_words)
+        return text_str.strip()
+
+    # --- 核心逻辑 ---
+    final_segments = []
+
+    for segment in texts:
+        seg_start_ms = float(segment.get('start', 0)) * 1000
+        seg_end_ms = float(segment.get('end', 0)) * 1000
+        seg_duration = seg_end_ms - seg_start_ms
+        words = segment.get('words', [])
+
+        # 1. 如果该句话时长未超过 max_speech_ms，或者没有 words 数据可供细分
+        # 直接原样保留该句，不破坏 Whisper 原有断句结构
+        if seg_duration <= max_speech_ms or not words:
+            final_segments.append({
+                'text': segment.get('text', '').strip(),
+                'start': seg_start_ms,
+                'end': seg_end_ms
+            })
+            continue
+
+        # 2. 如果该句话超长，则必须进入其内部使用 words 进行重新局部切分
+        current_chunk = []
+        chunk_start_ms = None
+        prev_word_end_ms = None
+        prev_word_text = ""
+
+        for w in words:
+            w_text = w.get('word', '').strip()
+            if not w_text:
+                continue
+
+            w_start_ms = float(w.get('start', 0)) * 1000
+            w_end_ms = float(w.get('end', 0)) * 1000
+
+            if chunk_start_ms is None:
+                chunk_start_ms = w_start_ms
+
+            # 预测：如果把当前词加入，当前子句的时长会是多少？
+            future_duration = w_end_ms - chunk_start_ms
+
+            # --- 判定是否需要切断 ---
+            should_split = False
+
+            # 强制切断：如果不切，加上这个词就会直接超时 (确保绝对 <= max_speech_ms)
+            if future_duration > max_speech_ms and len(current_chunk) > 0:
+                should_split = True
+            else:
+                # 弹性切断：在不超时的前提下，寻找标点或明显的语音停顿
+                pause_ms = w_start_ms - prev_word_end_ms if prev_word_end_ms is not None else 0
+                current_duration = prev_word_end_ms - chunk_start_ms if prev_word_end_ms else 0
+
+                if len(current_chunk) > 0:
+                    # 遇到强标点结束
+                    if has_punc(prev_word_text, end_punc):
+                        should_split = True
+                    # 遇到明显的长静音停顿 (>= 800ms)
+                    elif pause_ms >= 800:
+                        should_split = True
+                    # 遇到短停顿 (>= 300ms) 且伴随逗号等弱标点
+                    elif has_punc(prev_word_text, comma_punc) and pause_ms >= 300:
+                        should_split = True
+                    # 为了防止有些长句既没标点也没大停顿，如果时长已经过半，遇到个中等停顿(>=400ms)也果断切
+                    elif current_duration > (max_speech_ms * 0.5) and pause_ms >= 400:
+                        should_split = True
+
+            if should_split:
+                # 结算当前子句
+                final_segments.append({
+                    'text': build_text(current_chunk),
+                    'start': chunk_start_ms,
+                    'end': prev_word_end_ms
+                })
+                # 将当前词作为下一个新子句的开头
+                current_chunk = [w_text]
+                chunk_start_ms = w_start_ms
+            else:
+                # 不切断，把词吸纳进当前子句
+                current_chunk.append(w_text)
+
+            prev_word_end_ms = w_end_ms
+            prev_word_text = w_text
+
+        # 遍历完该句的所有 words 后，将残存的词组收尾
+        if current_chunk:
+            final_segments.append({
+                'text': build_text(current_chunk),
+                'start': chunk_start_ms,
+                'end': prev_word_end_ms
+            })
+
+    # --- 3. 组装输出：封装为指定的 SRT 字典列表格式 ---
+    srt_output = []
+    for idx, seg in enumerate(final_segments):
+        start_ms = int(seg['start'])
+        end_ms = int(seg['end'])
+
+        start_raw = format_srt_time(start_ms)
+        end_raw = format_srt_time(end_ms)
+
+        srt_output.append({
+            "line": idx + 1,
+            "text": seg['text'],
+            "start_time": start_ms,
+            "end_time": end_ms,
+            "startraw": start_raw,
+            "endraw": end_raw,
+            "time": f"{start_raw} --> {end_raw}"
+        })
+
+    return srt_output
+
+
 def faster_whisper(
         *,
         prompt=None,
@@ -139,7 +311,6 @@ def faster_whisper(
         audio_file=None,
         local_dir=None,
         compute_type="default",
-        batch_size=8,
         beam_size=5,
         best_of=5,
         jianfan=False,
@@ -148,7 +319,8 @@ def faster_whisper(
         hotwords=None,
         repetition_penalty=1.0,
         compression_ratio_threshold=2.2,
-        device_index=0 # gpu索引
+        device_index=0,  # gpu索引
+        max_speech_ms=6000
 ):
     import re, os, traceback, json, time
     import shutil
@@ -162,8 +334,8 @@ def faster_whisper(
     model = None
     batched_model = None
     raws = []
-    if detect_language=='fil':
-        detect_language='tl'
+    if detect_language == 'fil':
+        detect_language = 'tl'
 
     try:
         if speech_timestamps and isinstance(speech_timestamps, str):
@@ -199,12 +371,12 @@ def faster_whisper(
                 0.8,
                 1.0,
             ]
-        elif str(temperature).startswith('[') or  str(temperature).startswith('('):
+        elif str(temperature).startswith('[') or str(temperature).startswith('('):
             temperature = [float(i) for i in str(temperature)[1:-1].split(',')]
         else:
-            temperature=float(temperature)
-            
-        if batch_size > 1:
+            temperature = float(temperature)
+
+        if speech_timestamps:
             # 4. 执行批量推理
             # 使用 batched_model.transcribe
             batched_model = BatchedInferencePipeline(model=model)
@@ -217,7 +389,7 @@ def faster_whisper(
             ]
             segments, info = batched_model.transcribe(
                 audio_file,
-                batch_size=batch_size,  #
+                batch_size=4,  #
                 beam_size=beam_size,
                 best_of=best_of,
                 no_speech_threshold=no_speech_threshold,
@@ -234,6 +406,28 @@ def faster_whisper(
                 language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
                 initial_prompt=prompt if prompt else None
             )
+            i = 0
+            logger.debug(f'faster-whisper模式下，预先使用VAD分割音频，对{model_name}模型返回的文字结果直接使用')
+            for segment in segments:
+                if segment.end > last_end_time:
+                    continue
+                text = segment.text
+                if not text.strip():
+                    continue
+                i += 1
+                s, e = int(segment.start * 1000), int(segment.end * 1000)
+                if jianfan:
+                    text = zhconv.convert(text, 'zh-hans')
+                tmp = {
+                    'text': text,
+                    'start_time': s,
+                    'end_time': e
+                }
+                tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
+                tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
+                tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
+                raws.append(tmp)
+                _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
         else:
             segments, info = model.transcribe(
                 audio_file,
@@ -241,11 +435,11 @@ def faster_whisper(
                 best_of=best_of,
                 condition_on_previous_text=condition_on_previous_text,
                 vad_filter=True,
-                vad_parameters=dict(min_silence_duration_ms=200,min_speech_duration_ms=0,max_speech_duration_s=10),
+                vad_parameters=dict(min_silence_duration_ms=140,min_speech_duration_ms=0),
                 no_speech_threshold=no_speech_threshold,
-                clip_timestamps="0",  # clip_timestamps,
-                word_timestamps=False,
-                without_timestamps=False,
+                # clip_timestamps="0",  # clip_timestamps,
+                word_timestamps=True,
+                # without_timestamps=False,
                 temperature=temperature,
                 hotwords=hotwords,
                 repetition_penalty=repetition_penalty,
@@ -253,27 +447,19 @@ def faster_whisper(
                 language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
                 initial_prompt=prompt if prompt else None
             )
-        i = 0
-        for segment in segments:
-            if segment.end > last_end_time:
-                continue
-            text = segment.text
-            if not text.strip():
-                continue
-            i += 1
-            s, e = int(segment.start * 1000), int(segment.end * 1000)
-            if jianfan:
-                text = zhconv.convert(text, 'zh-hans')
-            tmp = {
-                'text': text,
-                'start_time': s,
-                'end_time': e
-            }
-            tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-            tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
-            tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-            raws.append(tmp)
-            _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
+            logger.debug(f'faster-whisper模式下，对{model_name}模型返回的断句结果重新修正')
+            texts = []
+            for segment in segments:
+                texts.append({
+                    "text": segment.text,
+                    "start": segment.start,
+                    "end": segment.end,
+                    "words": [{'word': it.word, 'start': it.start, 'end': it.end} for it in segment.words]
+                })
+            raws = _resegment(texts, info.language, max_speech_ms)
+            if jianfan and raws:
+                for it in raws:
+                    it['text'] = zhconv.convert(it['text'], 'zh-hans')
     except Exception:
         msg = traceback.format_exc()
         logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
@@ -303,9 +489,8 @@ def pipe_asr(
         is_cuda=False,
         audio_file=None,
         local_dir=None,
-        batch_size=8,
         jianfan=False,
-        device_index=0 # gpu索引
+        device_index=0  # gpu索引
 ):
     import re, os, traceback, json, time
     import shutil
@@ -328,8 +513,8 @@ def pipe_asr(
     p = None
     msg = f"Loading pipeline from {local_dir}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
-    if detect_language=='fil':
-        detect_language='tl'
+    if detect_language == 'fil':
+        detect_language = 'tl'
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
             cut_audio_list = json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))
@@ -339,7 +524,7 @@ def pipe_asr(
         p = pipeline(
             task="automatic-speech-recognition",
             model=local_dir,
-            batch_size=batch_size,
+            batch_size=4,
             device=device_arg,
             dtype=torch.float16 if is_cuda else torch.float32,
         )
@@ -352,7 +537,7 @@ def pipe_asr(
         # 获取模型类型，例如 'whisper', 'wav2vec2', 'huBERT', 'parakeet' 等
         model_type = p.model.config.model_type
         is_whisper = "whisper" in model_type.lower()
-        
+
         if is_whisper:
             # === Whisper 专用参数 ===
             lang = detect_language.split('-')[0] if detect_language != 'auto' else None
@@ -441,7 +626,7 @@ def paraformer(
         audio_file=None,
         max_speakers=-1,
         cache_folder=None,
-        device_index=0 # gpu索引
+        device_index=0  # gpu索引
 ):
     import re, os, traceback, json, time
     import shutil
@@ -452,18 +637,14 @@ def paraformer(
     # from funasr import AutoModel
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
+    msg = f'Load {model_name}'
+    _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
 
     raw_subtitles = []
-    model_dir = f'{ROOT_DIR}/models/models/iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch'
-    if not Path(model_dir).exists():
-        msg = f'Download {model_name} from modelscope.cn'
-    else:
-        msg = f'Load {model_name} model'
-    _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
     model = None
     device = f'cuda:{device_index}' if is_cuda else gpus.mps_or_cpu()
     try:
-        inference_pipeline = pipeline(
+        model = pipeline(
             task=Tasks.auto_speech_recognition,
             model='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',
             # model_revision="v2.0.4",
@@ -483,7 +664,7 @@ def paraformer(
         msg = "Model loading is complete, enter recognition"
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
         num = 0
-        res = inference_pipeline(audio_file)
+        res = model(audio_file)
         speaker_list = []
         i = 0
         for it in res[0]['sentence_info']:
@@ -544,27 +725,25 @@ def qwen3asr_fun0(
         is_cuda=False,
         audio_file=None,
         model_name="1.7B",
-        device_index=0 # gpu索引
+        device_index=0  # gpu索引
 ):
-
-
-    import torch,json
+    import torch, json
     torch.set_num_threads(1)
     from qwen_asr import Qwen3ASRModel
-    atten=None
+    atten = None
     if is_cuda:
         device_map = f'cuda:{device_index}'
-        dtype=torch.float16
+        dtype = torch.float16
         try:
             import flash_attn
         except ImportError:
             pass
         else:
-            atten='flash_attention_2'
+            atten = 'flash_attention_2'
     else:
         device_map = 'cpu'
-        dtype=torch.float32
-    model=None
+        dtype = torch.float32
+    model = None
     try:
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {device_map}'}))
         model = Qwen3ASRModel.from_pretrained(
@@ -572,8 +751,9 @@ def qwen3asr_fun0(
             dtype=dtype,
             device_map=device_map,
             attn_implementation=atten,
-            max_inference_batch_size=1, # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
-            max_new_tokens=2048, # Maximum number of tokens to generate. Set a larger value for long audio input.
+            max_inference_batch_size=1,
+            # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
+            max_new_tokens=2048,  # Maximum number of tokens to generate. Set a larger value for long audio input.
             forced_aligner=f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B",
             forced_aligner_kwargs=dict(
                 dtype=dtype,
@@ -583,23 +763,23 @@ def qwen3asr_fun0(
         )
         results = model.transcribe(
             audio=[audio_file],
-            language=None, # can also be set to None for automatic language detection
+            language=None,  # can also be set to None for automatic language detection
             return_time_stamps=True,
         )
-        if not results or not hasattr(results[0],'time_stamps') or not hasattr(results[0].time_stamps,'items'):
-            return False,"No asr results"
-        list_dict=[]
+        if not results or not hasattr(results[0], 'time_stamps') or not hasattr(results[0].time_stamps, 'items'):
+            return False, "No asr results"
+        list_dict = []
         _write_log(logs_file, json.dumps({"type": "logs", "text": f"ASR ended,waiting re-segment"}))
         for it in results[0].time_stamps.items:
             list_dict.append({
-                 "start_time":it.start_time,
-                 "end_time":it.end_time,
-                 "text":it.text,
+                "start_time": it.start_time,
+                "end_time": it.end_time,
+                "text": it.text,
             })
 
-        return list_dict,None
+        return list_dict, None
     except Exception as e:
-        return False,str(e)
+        return False, str(e)
     finally:
         try:
             if torch.cuda.is_available():
@@ -618,20 +798,19 @@ def qwen3asr_fun(
         is_cuda=False,
         audio_file=None,
         model_name="1.7B",
-        device_index=0 # gpu索引
+        device_index=0  # gpu索引
 ):
-
     from pathlib import Path
-    import torch,json
+    import torch, json
     torch.set_num_threads(1)
     from qwen_asr import Qwen3ASRModel
     if is_cuda:
         device_map = f'cuda:{device_index}'
-        dtype=torch.float16
+        dtype = torch.float16
     else:
         device_map = 'cpu'
-        dtype=torch.float32
-    model=None
+        dtype = torch.float32
+    model = None
     try:
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {device_map}'}))
         model = Qwen3ASRModel.from_pretrained(
@@ -639,27 +818,27 @@ def qwen3asr_fun(
             dtype=dtype,
             device_map=device_map,
             attn_implementation=None,
-            max_inference_batch_size=8, # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
-            max_new_tokens=2048, # Maximum number of tokens to generate. Set a larger value for long audio input.
+            max_inference_batch_size=8,
+            # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
+            max_new_tokens=2048,  # Maximum number of tokens to generate. Set a larger value for long audio input.
         )
         srts = json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))
 
         srts_chunk = [srts[i:i + 8] for i in range(0, len(srts), 8)]
-        for i,it_list in enumerate(srts_chunk):
+        for i, it_list in enumerate(srts_chunk):
             results = model.transcribe(
                 audio=[it['file'] for it in it_list],
-                language=[None for it in it_list], # can also be set to None for automatic language detection
+                language=[None for it in it_list],  # can also be set to None for automatic language detection
                 return_time_stamps=False,
             )
-            for j,it in enumerate(it_list):
-                it['text']=results[j].text
-            srts_chunk[i]=it_list
+            for j, it in enumerate(it_list):
+                it['text'] = results[j].text
+            srts_chunk[i] = it_list
             _write_log(logs_file, json.dumps({"type": "subtitle", "text": "\n".join([it['text'] for it in it_list])}))
 
-
-        return srts,None
+        return srts, None
     except Exception as e:
-        return False,str(e)
+        return False, str(e)
     finally:
         try:
             if torch.cuda.is_available():
@@ -672,7 +851,6 @@ def qwen3asr_fun(
             pass
 
 
-
 def funasr_mlt(
         cut_audio_list=None,
         detect_language=None,
@@ -683,7 +861,7 @@ def funasr_mlt(
         jianfan=False,
         max_speakers=-1,
         cache_folder=None,
-        device_index=0 # gpu索引
+        device_index=0  # gpu索引
 ):
     import re, os, traceback, json, time
     import shutil
@@ -694,10 +872,7 @@ def funasr_mlt(
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
 
-    if not Path(f'{ROOT_DIR}/models/models/{model_name}').exists():
-        msg = f'Download {model_name} from modelscope.cn'
-    else:
-        msg = f'Load {model_name}'
+    msg = f'Load {model_name}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
 
     model = None
@@ -708,7 +883,7 @@ def funasr_mlt(
 
         srts = cut_audio_list
         if model_name == 'iic/SenseVoiceSmall':
-            inference_pipeline = pipeline(
+            model = pipeline(
                 task=Tasks.auto_speech_recognition,
                 model='iic/SenseVoiceSmall',
                 # model_revision="master",
@@ -718,7 +893,7 @@ def funasr_mlt(
                 device=device
             )
 
-            res = inference_pipeline([it['file'] for it in cut_audio_list], batch_size=4, disable_pbar=True)
+            res = model([it['file'] for it in cut_audio_list], batch_size=4, disable_pbar=True)
         else:
             model = AutoModel(
                 model=model_name,

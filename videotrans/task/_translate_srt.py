@@ -3,7 +3,6 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.task._base import BaseTask
 from videotrans.translator import run

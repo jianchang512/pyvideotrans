@@ -1,9 +1,8 @@
-import shutil
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-from videotrans.configure import config
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
 from videotrans.configure._base import BaseCon
 from videotrans.task.taskcfg import TaskCfgBase

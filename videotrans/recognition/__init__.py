@@ -1,5 +1,4 @@
 from typing import Union, List, Dict
-from videotrans.configure import config
 from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.recognition._huggingface import HuggingfaceRecogn
 from videotrans.recognition._overall import FasterAll

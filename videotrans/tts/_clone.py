@@ -6,10 +6,8 @@ from pathlib import Path
 from typing import Set
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log, \
-    RetryError
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
-from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.configure.config import tr,settings,params,app_cfg,logger
 from videotrans.tts._base import BaseTTS

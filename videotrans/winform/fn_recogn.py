@@ -7,7 +7,6 @@ def openwin():
     from PySide6.QtCore import QUrl,QTimer
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
     from videotrans.util import contants
-    from videotrans.configure import config
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
     from videotrans.task._speech2text import SpeechToText
@@ -302,7 +301,7 @@ def openwin():
 
     winobj = Recognform()
     app_cfg.child_forms['fn_recogn'] = winobj
-    winobj.show()
+    #winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(exist_ok=True,parents=True)
         from videotrans.component.component import DropButton
@@ -376,4 +375,5 @@ def openwin():
         winobj.shibie_model.currentIndexChanged.connect(model_type_change)
 
 
-    QTimer.singleShot(10,_bind)
+    _bind()
+    return winobj

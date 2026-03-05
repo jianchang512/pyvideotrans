@@ -2,17 +2,14 @@
 import json
 import logging
 import re
-import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
 from google import genai
 from google.genai import types,errors
-from pydub import AudioSegment
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
-from videotrans.configure import config
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
 from videotrans.configure.config import params, logger, ROOT_DIR, settings
 from videotrans.recognition._base import BaseRecogn

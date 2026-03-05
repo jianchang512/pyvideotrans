@@ -956,6 +956,8 @@
 	"End +0.1s":"End time increases by 0.1s.",
 	"Adjust time":"Align time.",
 	"Enter milliseconds (positive or negative):":"Enter positive or negative millisecond values ​​to increase or decrease time; 1 second = 1000 milliseconds.",
-	"Translation successful but transfer failed.":"The video translation was successful, but moving it to the target folder failed. You can copy it manually. The current video is saved in\n{}"
+	"Translation successful but transfer failed.":"The video translation was successful, but moving it to the target folder failed. You can copy it manually. The current video is saved in\n{}",
+    "clone_dubb_tips1": "When using a cloned character for voice cloning, it is recommended to set the minimum voice duration to 3000 and the maximum voice duration to 10 seconds in the menu - Tools - Advanced Options - Voice Recognition Parameters area to avoid errors due to duration issues.",
+    "clone_dubb_tips2": "Also select Whisper pre-segmented audio."
 
 }

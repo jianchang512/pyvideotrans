@@ -4,11 +4,9 @@ import os,time,traceback
 import subprocess
 import threading
 from dataclasses import dataclass, field
-from json import JSONDecodeError
 from pathlib import Path
 from typing import Optional
 
-from videotrans.configure import config
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, IS_FROZEN
 from videotrans.util import tools, contants
 from videotrans.process.signelobj import GlobalProcessManager

@@ -1,19 +1,14 @@
-# zh_recogn 识别
-import re, sys, os
-import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Union
 
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR, logger, settings, TEMP_DIR, defaulelang
 from videotrans.process import faster_whisper, pipe_asr
 from videotrans.util import tools
 from videotrans.recognition._base import BaseRecogn
 from pydub import AudioSegment
-import json, shutil, requests
-from huggingface_hub import snapshot_download
+import json
 
 
 @dataclass
@@ -35,7 +30,7 @@ class HuggingfaceRecogn(BaseRecogn):
 
         if self.model_name in ['JhonVanced/whisper-large-v3-japanese-4k-steps-ct2',
                                'zh-plus/faster-whisper-large-v2-japanese-5k-steps', 'Systran/faster-whisper-tiny']:
-            if int(settings.get('batch_size', 4))>1:
+            if settings.get('whisper_prepare'):
                 self._vad_split() 
             result = self._faster()
         else:
@@ -63,7 +58,6 @@ class HuggingfaceRecogn(BaseRecogn):
             "is_cuda": self.is_cuda,
             "audio_file": None,
             "local_dir": self.local_dir,
-            "batch_size": int(settings.get('batch_size', 4)),
             "jianfan": self.jianfan
         }
         raws=self._new_process(callback=pipe_asr,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
@@ -91,7 +85,6 @@ class HuggingfaceRecogn(BaseRecogn):
             "audio_file": self.audio_file,
             "local_dir": self.local_dir,
             "compute_type": settings.get('cuda_com_type', 'default'),
-            "batch_size": int(settings.get('batch_size', 4)),
             "beam_size": int(settings.get('beam_size', 5)),
             "best_of": int(settings.get('best_of', 5)),
             "jianfan": self.jianfan,
@@ -100,6 +93,7 @@ class HuggingfaceRecogn(BaseRecogn):
             "hotwords":settings.get('hotwords'),
             "repetition_penalty": float(settings.get('repetition_penalty', 1.0)),
             "compression_ratio_threshold": float(settings.get('compression_ratio_threshold', 2.2)),
+            "max_speech_ms":int(float(settings.get('max_speech_duration_s', 6)) * 1000)
         }
         raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
 

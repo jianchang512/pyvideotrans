@@ -1,5 +1,4 @@
 def openwin():
-    from videotrans.configure import config
     from videotrans.configure.config import tr,params,settings,app_cfg,logger
 
     def save():

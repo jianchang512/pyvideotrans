@@ -4,12 +4,11 @@ import os
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFormLayout,
     QFontComboBox, QSpinBox,QDoubleSpinBox, QCheckBox, QComboBox, QColorDialog, QGridLayout,
-    QGroupBox, QApplication, QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
-    QGraphicsTextItem, QGraphicsRectItem, QGraphicsPathItem,QSpacerItem,QSizePolicy
+    QGroupBox,  QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
+     QGraphicsRectItem, QGraphicsPathItem
 )
 from PySide6.QtGui import QColor, QPixmap, QFont, QPen, QBrush, QPainterPath, QTransform, QPainterPathStroker,QIcon
 from PySide6.QtCore import Qt, Signal,QSize
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 
 from pathlib import Path

@@ -5,10 +5,7 @@ def openwin():
     from videotrans.util import contants
     from pathlib import Path
     from PySide6.QtCore import QTimer
-
     from PySide6.QtWidgets import QFileDialog
-
-    from videotrans.configure import config
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     # 分离背景音
     from videotrans.util import tools

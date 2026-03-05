@@ -13,7 +13,6 @@ def openwin():
     from PySide6.QtCore import QUrl,  Qt,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6 import QtWidgets
-    from videotrans.configure import config
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
     from videotrans.util import tools
     from videotrans.task.taskcfg import TaskCfgTTS
@@ -592,7 +591,7 @@ def openwin():
     from videotrans.component.set_form import Peiyinform
     winobj = Peiyinform()
     app_cfg.child_forms['fn_peiyin'] = winobj
-    winobj.show()
+    #winobj.show()
     def _bind():
         from videotrans.component.component import PeiyinDropButton
         winobj.hecheng_importbtn = PeiyinDropButton(tr('Import text to be translated from a file..'))
@@ -638,4 +637,5 @@ def openwin():
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.is_cuda.toggled.connect(check_cuda)
 
-    QTimer.singleShot(10,_bind)
+    _bind()
+    return winobj

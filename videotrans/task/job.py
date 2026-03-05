@@ -1,6 +1,5 @@
-import time,shutil
+import shutil
 from PySide6.QtCore import QThread
-from videotrans.configure import config
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.task._base import BaseTask
 from videotrans.util import tools, gpus
@@ -330,11 +329,6 @@ class WorkerTaskDone(QThread):
                 msg = f'{except_msg}\n{detail_back}\n{trk.cfg}'
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-            finally:
-                try:
-                    shutil.rmtree(trk.cfg.cache_folder)
-                except:
-                    pass
                 
 def start_thread():
     gpus.getset_gpu()

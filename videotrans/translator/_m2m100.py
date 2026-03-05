@@ -1,19 +1,10 @@
-import os
 from pathlib import Path
 
 import ctranslate2
 import sentencepiece as spm
-from typing import List
-
-import logging
 from dataclasses import dataclass
 from typing import List, Union
 
-import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-
-from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT
 from videotrans.configure.config import ROOT_DIR
 from videotrans.translator._base import BaseTrans
 import torch

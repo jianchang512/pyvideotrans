@@ -98,7 +98,6 @@ class Ui_zijierecognform(object):
         self.retranslateUi(zijierecognform)
         QtCore.QMetaObject.connectSlotsByName(zijierecognform)
     def update_ui(self):
-        from videotrans.configure import config
         self.zijierecognmodel_appid.setText(params.get("zijierecognmodel_appid",''))
         self.zijierecognmodel_token.setText(params.get("zijierecognmodel_token",''))
 

@@ -1,12 +1,11 @@
-import json,os
+import json
 import re
 import shutil
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict
+from typing import List
 
-from videotrans.configure import config
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 from videotrans.recognition import run, Faster_Whisper_XXL, Whisper_CPP
 from videotrans.task._base import BaseTask

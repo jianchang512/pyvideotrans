@@ -1,4 +1,3 @@
-import os
 import sys
 import time
 from dataclasses import dataclass, field
@@ -9,8 +8,7 @@ from typing import Union, Set
 import requests
 
 from pydub import AudioSegment
-from videotrans.configure import config
-from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
+from videotrans.configure._except import StopRetry
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools

@@ -8,7 +8,6 @@ from openai import AuthenticationError, PermissionDeniedError, NotFoundError, Ba
 from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, \
     Timeout, ConnectionError as ReqConnectionError, RetryError, HTTPError
 from deepgram.clients.common.v1.errors import DeepgramApiError
-from videotrans.configure import config
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, defaulelang
 import httpx, httpcore
 from tenacity import RetryError as TenRetryError
