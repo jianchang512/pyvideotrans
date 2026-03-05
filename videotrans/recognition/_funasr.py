@@ -25,7 +25,7 @@ class FunasrRecogn(BaseRecogn):
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit():
             return
-        tools.check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
+        tools.check_and_down_ms(model_id='damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
 
         if self.model_name == 'paraformer-zh' and self.detect_language[:2].lower() not in ['zh', 'en']:
             self.model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if self.detect_language[:2] not in ['zh','en','ja','yu'] else 'FunAudioLLM/Fun-ASR-Nano-2512'
@@ -41,10 +41,10 @@ class FunasrRecogn(BaseRecogn):
             self.model_name = f'FunAudioLLM/Fun-ASR-MLT-Nano-2512'
 
         if self.model_name == 'paraformer-zh':
-            tools.check_and_down_ms(model_id='iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch',callback=self._process_callback)
-            tools.check_and_down_ms(model_id='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',callback=self._process_callback)
-            tools.check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
-            tools.check_and_down_ms(model_id='iic/speech_campplus_sv_zh-cn_16k-common',callback=self._process_callback)
+            tools.check_and_down_ms(model_id='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',callback=self._process_callback)
+            tools.check_and_down_ms(model_id='damo/speech_fsmn_vad_zh-cn-16k-common-pytorch',callback=self._process_callback)
+            tools.check_and_down_ms(model_id='damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
+            tools.check_and_down_ms(model_id='damo/speech_campplus_sv_zh-cn_16k-common',callback=self._process_callback)
         else:
             tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
         self._signal(text=f"load {self.model_name}")
