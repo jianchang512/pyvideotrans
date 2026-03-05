@@ -329,11 +329,6 @@ class WorkerTaskDone(QThread):
                 msg = f'{except_msg}\n{detail_back}\n{trk.cfg}'
                 set_process(text=msg, type='error', uuid=trk.uuid)
                 tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-            finally:
-                try:
-                    shutil.rmtree(trk.cfg.cache_folder)
-                except:
-                    pass
                 
 def start_thread():
     gpus.getset_gpu()

@@ -40,7 +40,7 @@ class DubbingSrt(BaseTask):
         # 需要配音的字幕文件
         self.cfg.target_sub = self.cfg.name
         # 配音后音频文件保存为
-        self.cfg.target_wav = f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'
+        self.cfg.target_wav = f'{self.cfg.target_dir}/{self.cfg.noextname}.wav'
         self._signal(text=tr("Dubbing from subtitles"))
         logger.debug(f'配音 {self.cfg=}')
 
@@ -291,11 +291,15 @@ class DubbingSrt(BaseTask):
             return
         self.hasend = True
         self.precent = 100
-        if Path(self.cfg.target_wav).is_file():
-            # 移除末尾静音
-            tools.remove_silence_from_end(self.cfg.target_wav, is_start=False)
-            self._signal(text=f"{self.cfg.name}", type='succeed')
+            
         try:
+            if Path(self.cfg.target_wav).is_file():
+                # 移除末尾静音
+                tools.remove_silence_from_end(self.cfg.target_wav, is_start=False)
+                self._signal(text=f"{self.cfg.name}", type='succeed')
+                if self.out_ext.lower()!='wav':
+                    tools.runffmpeg(['-y', '-i', self.cfg.target_wav, f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'])
+                    Path(self.cfg.target_wav).unlink(missing_ok=True)
             if self.cfg.shound_del_name:
                 Path(self.cfg.shound_del_name).unlink(missing_ok=True)
         except OSError:

@@ -30,7 +30,7 @@ from videotrans.ui.en import Ui_MainWindow
 from videotrans.translator import TRANSLASTE_NAME_LIST, LANGNAME_DICT
 from videotrans.component.downmodels import DownmodelsWindow
 from videotrans.task.simple_runnable_qt import run_in_threadpool
-
+from videotrans import winform
 
 
 
@@ -326,6 +326,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # set text end
         QApplication.processEvents()
         self.uito.emit('Set default params')
+        s=AiLoaderThread(self)
+        s.gpu_io.connect(self._start_workers)
+        s.start()
         QTimer.singleShot(200, self._set_default)
 
     def _set_default(self):
@@ -457,6 +460,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.voice_role.setCurrentText(default_role)
                 self.win_action.show_listen_btn(default_role)
 
+        
+        
         QApplication.processEvents()
         self.uito.emit('Bind signal...')
         run_in_threadpool(tools.check_hw_on_start)
@@ -637,14 +642,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if settings.get('show_more_settings'):
             self.win_action.toggle_adv()
-        self.uito.emit('Checking GPUs')
-
+        
+        
+        
+        # 预先加载 配音/语音转录/字幕翻译窗口 等常用功能面板，
+        self._open_winform('fn_peiyin')
+        self._open_winform('fn_recogn')
+        self._open_winform('fn_fanyisrt')
         QApplication.processEvents()
         self.uito.emit('end')
-
-        s=AiLoaderThread(self)
-        s.gpu_io.connect(self._start_workers)
-        s.start()
 
 
     def _start_workers(self,status):
@@ -714,8 +720,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             window.show()
             return
 
-        from videotrans import winform
-        QTimer.singleShot(0, winform.get_win(name).openwin)
+        return winform.get_win(name).openwin()
 
     def restart_app(self):
         # 创建确认对话框

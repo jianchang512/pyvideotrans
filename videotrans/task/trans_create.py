@@ -146,8 +146,8 @@ class TransCreate(BaseTask):
                 if self._exit(): return
                 time.sleep(1)
                 self._signal(text=f"{int(time.time() - t)}???{self.precent}", type="set_precent")
-
-        threading.Thread(target=runing, daemon=True).start()
+        if app_cfg.exec_mode != 'cli':
+            threading.Thread(target=runing, daemon=True).start()
 
     # 1. 预处理，分离音视频、分离人声等
     def prepare(self) -> None:
@@ -806,25 +806,27 @@ class TransCreate(BaseTask):
                     missing_ok=True)
             except:
                 pass  # 忽略删除失败
+        else:    
+            if self.is_audio_trans and tools.vail_file(self.cfg.target_wav):
+                try:
+                    shutil.copy2(self.cfg.target_wav, f"{self.cfg.target_dir}/{self.cfg.target_language_code}-{self.cfg.noextname}.wav")
+                except shutil.SameFileError:
+                    pass
 
+            try:
+                if self.cfg.shound_del_name:
+                    Path(self.cfg.shound_del_name).unlink(missing_ok=True)
+                if self.cfg.only_out_mp4:
+                    shutil.move(self.cfg.targetdir_mp4, Path(self.cfg.target_dir).parent / f'{self.cfg.noextname}.mp4')
+                    shutil.rmtree(self.cfg.target_dir, ignore_errors=True)
+            except Exception as e:
+                logger.exception(e, exc_info=True)
         self.hasend = True
         self.precent = 100
-
-        if self.is_audio_trans and tools.vail_file(self.cfg.target_wav):
-            try:
-                shutil.copy2(self.cfg.target_wav,
-                             f"{self.cfg.target_dir}/{self.cfg.target_language_code}-{self.cfg.noextname}.wav")
-            except shutil.SameFileError:
-                pass
-
         try:
-            if self.cfg.shound_del_name:
-                Path(self.cfg.shound_del_name).unlink(missing_ok=True)
-            if self.cfg.only_out_mp4:
-                shutil.move(self.cfg.targetdir_mp4, Path(self.cfg.target_dir).parent / f'{self.cfg.noextname}.mp4')
-                shutil.rmtree(self.cfg.target_dir, ignore_errors=True)
-        except Exception as e:
-            logger.exception(e, exc_info=True)
+            shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
+        except:
+            pass
         self._signal(text=f"{self.cfg.name}", type='succeed')
         tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
 
@@ -1521,16 +1523,9 @@ class TransCreate(BaseTask):
                 shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4)
             except Exception as e:
                 raise RuntimeError(tr('Translation successful but transfer failed. ', tmp_target_mp4))
-            else:
-                try:
-                    shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
-                except:
-                    pass
 
         self._create_txt()
-        self.precent = 100
         time.sleep(1)
-        self.hasend = True
         # 有可能输出原始音频到目标文件夹的程序仍在执行，但不影响
         while output_source_output is not True:
             print(f'{output_source_output=}')

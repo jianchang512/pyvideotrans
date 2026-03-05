@@ -282,7 +282,7 @@ def openwin():
 
     winobj = Fanyisrt()
     app_cfg.child_forms['fn_fanyisrt'] = winobj
-    winobj.show()
+    #winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
@@ -325,5 +325,6 @@ def openwin():
         winobj.aisendsrt.toggled.connect(checkbox_state_changed)
         winobj.save_source.setChecked(params.get("trans_save_source",False))
 
-    QTimer.singleShot(10,_bind)
+    _bind()
+    return winobj
 

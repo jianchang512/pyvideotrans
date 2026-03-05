@@ -807,7 +807,9 @@ def cut_from_audio(*, ss, to, audio_file, out_file):
 
 
 def send_notification(title, message):
-    if app_cfg.exec_mode=='cli' or app_cfg.exit_soft or settings.get('dont_notify',False):
+    if app_cfg.exec_mode=='cli':
+        print(f'\n*****[{title}]: {message}*****\n')
+    if app_cfg.exit_soft or settings.get('dont_notify',False):
         return
     from plyer import notification
     try:
