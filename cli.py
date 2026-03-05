@@ -212,8 +212,10 @@ def main():
             "en": "--target_language_code"
         }
     }
-    from videotrans.configure import config
+    from videotrans.configure import config    
     config.init_run()
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,TEMP_DIR,logger,defaulelang,HOME_DIR
+
 
     from videotrans import recognition, translator, tts
     from videotrans.task._speech2text import SpeechToText
@@ -227,7 +229,7 @@ def main():
     def tr(key, *args)-> str:
         """翻译辅助函数"""
         lang_dict = TEXT_DB.get(key, {})
-        text = lang_dict.get(config.defaulelang, key)  # 默认回退到key本身
+        text = lang_dict.get(defaulelang, key)  # 默认回退到key本身
         if args:
             return text.format(*args)
         return text
@@ -268,7 +270,7 @@ def main():
 
     # 视频翻译  video to video
     def vtv_fun(params):
-        config.current_status = 'ing'
+        app_cfg.current_status = 'ing'
         print(f"\n{tr('exec_vtv_task')}")
         print(tr('process_file', params.get('name')))
         print(tr('param_list', params))
@@ -282,8 +284,8 @@ def main():
         trk.task_done()
 
     # True 为软件退出，不执行任何动作
-    config.exit_soft = False
-    config.exec_mode = 'cli'
+    app_cfg.exit_soft = False
+    app_cfg.exec_mode = 'cli'
     recogn_help = ", ".join([f'{i}={it}' for i, it in enumerate(recognition.RECOGN_NAME_LIST)])
     trans_help = ", ".join([f'{i}={it}' for i, it in enumerate(translator.TRANSLASTE_NAME_LIST)])
     tts_help = ", ".join([f'{i}={it}' for i, it in enumerate(tts.TTS_NAME_LIST)])
@@ -366,10 +368,10 @@ def main():
         return
     # 公共参数
 
-    _file_obj = tools.format_video(args.name)
+    _file_obj = tools.format_video(Path(args.name).absolute().as_posix())
     _nospacebasename = re.sub(r'[\s\. #*?!:"]', '-', _file_obj["basename"])
-    _cache_folder = f'{config.TEMP_DIR}/{_file_obj["uuid"]}'
-    _target_dir = f'{config.ROOT_DIR}/output/{_nospacebasename}'
+    _cache_folder = f'{TEMP_DIR}/{_file_obj["uuid"]}'
+    _target_dir = f'{ROOT_DIR}/output/{_nospacebasename}'
     common_params = {'name': args.name, "cache_folder": _cache_folder, "target_dir": _target_dir}
     common_params.update(_file_obj)
     Path(_cache_folder).mkdir(parents=True, exist_ok=True)
