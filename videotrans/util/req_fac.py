@@ -11,7 +11,7 @@ def custom_session_factory():
         total=3,  # 总重试次数 (改为3)
         connect=2,  # 连接重试次数
         read=2,  # 读取重试次数
-        backoff_factor=1,  # 重试间隔时间 (秒)，避免瞬间频繁请求
+        backoff_factor=2,  # 重试间隔时间 (秒)，避免瞬间频繁请求
         status_forcelist=[500, 502, 503, 504]  # 遇到这些状态码才重试
     )
 

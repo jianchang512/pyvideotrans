@@ -601,7 +601,7 @@ class AppParams:
             "recognapi_url": "",
             "recognapi_key": "",
             "stt_url": "",
-            "stt_model": "tiny",
+            "stt_model": "large-v3-turbo",
             "sense_url": "",
             "ttsapi_url": "",
             "ttsapi_voice_role": "",
@@ -808,3 +808,4 @@ def init_run():
     Path(f'{TEMP_ROOT}/translate_cache').mkdir(exist_ok=True, parents=True)
     Path(f'{ROOT_DIR}/models').mkdir(exist_ok=True, parents=True)
     Path(f'{ROOT_DIR}/f5-tts').mkdir(exist_ok=True, parents=True)
+    

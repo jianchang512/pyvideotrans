@@ -12,15 +12,18 @@ License: GPL-V3
 # 没有规范，随便搞搞
 
 """
-VERSION = "v3.97"
+VERSION = "v3.98"
 
 import os
 import atexit, sys, time
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout,QMessageBox
 from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 import argparse
+import tempfile
+from pathlib import Path
 from PySide6.QtCore import QSize, QSettings
+import traceback
 
 # 抑制警告
 def suppress_qt_warnings(msg_type, context, message):
@@ -36,9 +39,10 @@ def cleanup():
     except:
         pass
 
-def show_global_error_dialog(tb_str):
-    from videotrans.util.tools import show_error
-    show_error(tb_str)
+def show_global_error_dialog(exctype, value, tb):
+    tb_str = "".join(traceback.format_exception(exctype, value, tb))
+    QMessageBox.critical(None, 'Error', tb_str)
+
 
 
 # 启动画面
@@ -100,7 +104,7 @@ class StartWindow(QWidget):
 
 # 启动主窗口
 def initialize_full_app(start_window, app_instance):
-    from videotrans.configure._guiexcept import global_exception_hook, exception_handler
+    #from videotrans.configure._guiexcept import global_exception_hook,
 
     if sys.stdout is None or sys.stderr is None:
         try:
@@ -114,7 +118,7 @@ def initialize_full_app(start_window, app_instance):
         except Exception as e:
             print(e)
 
-    sys.excepthook = global_exception_hook
+    sys.excepthook = show_global_error_dialog
 
     # 命令行参数
     parser = argparse.ArgumentParser()
@@ -140,10 +144,10 @@ def initialize_full_app(start_window, app_instance):
         w, h = size.width(), size.height()
         start_window.main_window = MainWindow(width=w, height=h)
         start_window.main_window.uito.connect(start_window.update_lable)
-        exception_handler.show_exception_signal.connect(show_global_error_dialog)
+        #exception_handler.show_exception_signal.connect(show_global_error_dialog)
         main_window_created = True
     except Exception as e:
-        sys.excepthook(type(e), e, e.__traceback__)
+        show_global_error_dialog(type(e), e, e.__traceback__)
         app_instance.quit()
         return
 
@@ -174,22 +178,31 @@ if __name__ == "__main__":
         pass
 
     app = QApplication(sys.argv)
-    splash = StartWindow()
-    splash.setWindowIcon(QIcon("./videotrans/styles/icon.ico"))
-    splash.center()
-    splash.show()
-
-    QTimer.singleShot(50, lambda: initialize_full_app(splash, app))
     res = 0
-    try:
-        res = app.exec()
-        res = 0 if res is None else res
-    finally:
+    if getattr(sys, 'frozen', False) and (Path(sys.executable).parent.as_posix()).startswith(Path(tempfile.gettempdir()).as_posix()):
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Critical)
+        msg_box.setWindowTitle('Error')
+        msg_box.setText('请解压后再双击 sp.exe，不可直接压缩包内使用')
+        msg_box.setWindowFlags(msg_box.windowFlags() | Qt.WindowStaysOnTopHint)
+        msg_box.exec()
+        app.quit()
+    else:
+        splash = StartWindow()
+        splash.setWindowIcon(QIcon("./videotrans/styles/icon.ico"))
+        splash.center()
+        splash.show()
+
+        QTimer.singleShot(50, lambda: initialize_full_app(splash, app))
         try:
-            cleanup()
-            import gc
-            gc.collect()
-        except Exception as e:
-            print(e)
+            res = app.exec()
+            res = 0 if res is None else res
+        finally:
+            try:
+                cleanup()
+                import gc
+                gc.collect()
+            except Exception as e:
+                print(e)
 
     sys.exit(res if isinstance(res, int) else 0)
