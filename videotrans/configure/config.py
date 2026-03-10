@@ -652,7 +652,7 @@ class AppParams:
             "app_mode": "biaozhun",
             "stt_source_language": 0,
             "stt_recogn_type": 0,
-            "stt_model_name": "",
+            "stt_model_name": "large-v3-turbo",
             "stt_cuda": False,
             "stt_remove_noise": False,
             "stt_enable_diariz": False,
