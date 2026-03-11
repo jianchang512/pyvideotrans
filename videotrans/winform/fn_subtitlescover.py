@@ -73,14 +73,18 @@ def openwin():
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.opendir.setDisabled(False)
+            winobj.logs.setText(d['text'])
+            winobj.logs.setStyleSheet("""color:#ff0000""")
         elif d['type'] == 'jd' or d['type'] == 'logs':
-            winobj.startbtn.setText(d['text'])
+            winobj.logs.setText(d['text'])
         else:
             winobj.has_done = True
             winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
+            winobj.logs.setText(tr('quanbuend'))
             winobj.opendir.setDisabled(False)
             winobj.subtitlefiles = []
+            winobj.pathdir.setText('')
 
     def get_file():
         fnames, _ = QFileDialog.getOpenFileNames(winobj, tr('selectmp4'),
@@ -100,6 +104,8 @@ def openwin():
             tools.show_error(tr("Must select subtitles"))
             return
         winobj.has_done = False
+        winobj.logs.setStyleSheet("""color:#dddddd;text-align:center""")
+        winobj.logs.setText("")
 
         winobj.startbtn.setText(
             tr("under implementation in progress..."))

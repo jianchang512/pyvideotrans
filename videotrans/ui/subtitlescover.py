@@ -35,16 +35,15 @@ class Ui_subtitlescover(object):
 
         # sk
         self.formLayout_3 = QtWidgets.QHBoxLayout()
-        self.formLayout_3.setAlignment(QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
 
         self.labelformat = QtWidgets.QLabel()
-        self.labelformat.setMinimumSize(QtCore.QSize(0, 35))
-        self.labelformat.setObjectName("label")
+        self.labelformat.setMinimumSize(QtCore.QSize(150,35))
+        self.logs = QtWidgets.QLabel()
+        self.logs.setObjectName("logs")
 
         self.formatlist = QtWidgets.QComboBox()
-        self.formatlist.setFixedHeight(40)
-        self.formatlist.setFixedWidth(320)
+        self.formatlist.setMinimumSize(QtCore.QSize(200,35))
         self.formatlist.setObjectName("formatlist")
         self.formatlist.addItems([
             "srt",
@@ -54,8 +53,8 @@ class Ui_subtitlescover(object):
         ])
 
         self.formLayout_3.addWidget(self.labelformat)
-        self.formLayout_3.addStretch()
         self.formLayout_3.addWidget(self.formatlist)
+        self.formLayout_3.addStretch()
         v1.addLayout(self.formLayout_3)
 
         self.startbtn = QtWidgets.QPushButton()
@@ -82,6 +81,7 @@ class Ui_subtitlescover(object):
         self.opendir_layout.addStretch()
 
         v1.addLayout(self.layout_btn)
+        v1.addWidget(self.logs)
         v1.addStretch()
         v1.addLayout(self.opendir_layout)
 
