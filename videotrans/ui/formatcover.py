@@ -10,7 +10,7 @@ from videotrans.util import contants
 
 class Ui_formatcover(object):
     def setupUi(self, formatcover):
-        self.videofiles = []
+        self.videourls = []
         self.has_done = False
 
         formatcover.setObjectName("formatcover")
