@@ -255,6 +255,8 @@ def openwin():
                 winobj.shibie_model.addItems(contants.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
                 winobj.shibie_model.addItems(settings.Whisper_CPP_MODEL_LIST)
+            elif recogn_type == recognition.WHISPER_NET:
+                winobj.shibie_model.addItems(settings.Whisper_NET_MODEL_LIST)
             elif recogn_type == recognition.QWENASR:
                 winobj.shibie_model.addItems(['1.7B','0.6B'])
             elif recogn_type == recognition.HUGGINGFACE_ASR:
@@ -348,6 +350,9 @@ def openwin():
             winobj.shibie_model.addItems(curr)
         elif default_type == recognition.Whisper_CPP:
             curr = settings.Whisper_CPP_MODEL_LIST
+            winobj.shibie_model.addItems(curr)
+        elif default_type == recognition.WHISPER_NET:
+            curr = settings.Whisper_NET_MODEL_LIST
             winobj.shibie_model.addItems(curr)
         elif default_type == recognition.FUNASR_CN:
             curr = contants.FUNASR_MODEL

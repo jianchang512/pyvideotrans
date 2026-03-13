@@ -29,11 +29,13 @@ WHISPERX_API = 15
 AI_302 = 16
 ElevenLabs = 17
 
+
 GOOGLE_SPEECH = 18
 
 
 STT_API = 19
 CUSTOM_API = 20
+WHISPER_NET = 21
 
 _ID_NAME_DICT = {
     FASTER_WHISPER:tr("Faster-whisper"),
@@ -63,6 +65,7 @@ _ID_NAME_DICT = {
     GOOGLE_SPEECH:tr("Google Speech to Text"),
     STT_API:tr("STT Speech API"),
     CUSTOM_API:tr("Custom API"),
+    WHISPER_NET:"Whisper.NET",
 }
 RECOGN_NAME_LIST=list(_ID_NAME_DICT.values())
 
@@ -79,14 +82,15 @@ HUGGINGFACE_ASR_MODELS={
 "vinai/Phowhisper-large":['vi'],
 
 "openai/whisper-large-v3":[],
-#"openai/whisper-tiny":[],
-#"Systran/faster-whisper-tiny":[]
+# "openai/whisper-tiny":[],
+# "Systran/faster-whisper-tiny":[]
+
 }
 # 判断所用渠道和模型是否支持该语言的语音识别
 # langcode=语言代码，recogn_type=识别渠道,model_name=模型名字
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
     # faster-whisper/openai-whisper支持所有语言
-    if recogn_type in [FASTER_WHISPER,OPENAI_WHISPER,WHISPERX_API,Faster_Whisper_XXL,Whisper_CPP,OPENAI_API,AI_302,GEMINI_SPEECH]:
+    if recogn_type in [FASTER_WHISPER,OPENAI_WHISPER,WHISPERX_API,Faster_Whisper_XXL,Whisper_CPP,OPENAI_API,AI_302,GEMINI_SPEECH,WHISPER_NET]:
         return True
     # huggingface_asr 渠道里的 openai 和 Systran 模型也支持所有语言
     if recogn_type == HUGGINGFACE_ASR and not HUGGINGFACE_ASR_MODELS.get(model_name):
@@ -95,7 +99,7 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
             return _ID_NAME_DICT.get(recogn_type,'')+tr('Speech Recognit')+tr("Only support")+tr(HUGGINGFACE_ASR_MODELS[model_name])
         return True
-    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL,Whisper_CPP,WHISPERX_API,AI_302,OPENAI_API]:
+    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL,Whisper_CPP,WHISPERX_API,AI_302,OPENAI_API,WHISPER_NET]:
         return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
 
     return True
@@ -261,6 +265,8 @@ def run(*,
         from videotrans.recognition._glmasr import GLMASRRecogn
         return GLMASRRecogn(**kwargs).run()
     
+    if recogn_type == WHISPER_NET:
+        from videotrans.recognition._whispernet import WhisperNetRecogn
+        return WhisperNetRecogn(**kwargs).run()
 
     return FasterAll(**kwargs).run()
-

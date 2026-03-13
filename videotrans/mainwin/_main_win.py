@@ -485,6 +485,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif recogn_type == recognition.Whisper_CPP:
             curr = settings.Whisper_CPP_MODEL_LIST
             self.model_name.addItems(curr)
+        elif recogn_type == recognition.WHISPER_NET:
+            curr = settings.Whisper_NET_MODEL_LIST
+            self.model_name.addItems(curr)
         elif recogn_type == recognition.QWENASR:
             curr=['1.7B','0.6B']
             self.model_name.addItems(curr)
@@ -501,7 +504,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.model_name.setCurrentText(params.get('model_name', ''))
         if recogn_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.Whisper_CPP,
                                recognition.OPENAI_WHISPER, recognition.FUNASR_CN, recognition.Deepgram,
-                               recognition.WHISPERX_API, recognition.HUGGINGFACE_ASR,recognition.QWENASR]:
+                               recognition.WHISPERX_API, recognition.HUGGINGFACE_ASR, recognition.QWENASR, recognition.WHISPER_NET]:
             self.model_name.setDisabled(True)
         else:
             self.model_name.setDisabled(False)
