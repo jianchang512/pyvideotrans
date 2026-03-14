@@ -101,7 +101,8 @@ pyvideotrans/
 
 ## 第四步：开始使用
 
-1. 打开 pyVideoTrans
+0. 源码部署本项目，运行`uv sync --all-extras`，如果已安装，请单独执行`uv sync --extra dotnet` 安装 `pythonnet` 模块
+1. 执行`uv run sp.py` 打开软件
 2. 在"语音识别"下拉框选择 **"Whisper.NET"**
 3. 选择你下载的模型文件
 4. 点击开始
