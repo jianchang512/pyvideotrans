@@ -263,6 +263,13 @@ dependencies = [
 dotnet = [
     "pythonnet>=3.0.1",
 ]
+qwen-tts = [
+    "qwen-tts",
+]
+qwen-asr = [
+    "qwen-asr",
+]
+
 
 [tool.uv]
 override-dependencies = [
