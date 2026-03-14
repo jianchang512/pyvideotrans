@@ -185,6 +185,7 @@ class AppSettings:
     WHISPER_MODEL_LIST:List=field(default_factory=list,repr=False)
     ChatTTS_voicelist:List=field(default_factory=list,repr=False)
     Whisper_CPP_MODEL_LIST:List=field(default_factory=list,repr=False)
+    Whisper_NET_MODEL_LIST:List=field(default_factory=list,repr=False)
 
     def __post_init__(self):
         self.parse_init()
@@ -266,6 +267,7 @@ class AppSettings:
         self.WHISPER_MODEL_LIST = re.split(r'[,，]', default.get('model_list', ''))
         self.ChatTTS_voicelist = re.split(r'[,，]', str(default.get('chattts_voice', '')))
         self.Whisper_CPP_MODEL_LIST = str(default.get('Whisper_cpp_models', 'ggml-tiny')).strip().split(',')
+        self.Whisper_NET_MODEL_LIST = str(default.get('Whisper_net_models', 'ggml-tiny.bin')).strip().split(',')
         
         self._apply_dict(default)
 
@@ -284,6 +286,7 @@ class AppSettings:
             "Faster_Whisper_XXL": "",
             "Whisper_cpp": "",
             "Whisper_cpp_models": Whisper_cpp_models,
+            "Whisper_net_models": Whisper_cpp_models,
             "crf": 24,
             "edgetts_max_concurrent_tasks": 10,
             "edgetts_retry_nums": 3,

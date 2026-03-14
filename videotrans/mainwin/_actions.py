@@ -109,7 +109,8 @@ class WinAction(WinActionSub):
         if recogn_type == recognition.Whisper_CPP and not self.show_cpp_select():
             return
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR,recognition.QWENASR]:
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.FUNASR_CN,recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR,recognition.QWENASR,recognition.WHISPER_NET]:
+
             # 禁止模块选择
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)
@@ -124,6 +125,9 @@ class WinAction(WinActionSub):
                 self.main.model_name.addItems(contants.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
                 self.main.model_name.addItems(settings.Whisper_CPP_MODEL_LIST)
+            elif recogn_type == recognition.WHISPER_NET:
+                self.main.model_name.addItems(settings.Whisper_NET_MODEL_LIST)
+
             elif recogn_type == recognition.QWENASR:
                 self.main.model_name.addItems(['1.7B','0.6B'])
             elif recogn_type==recognition.HUGGINGFACE_ASR:
