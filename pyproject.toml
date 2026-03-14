@@ -256,7 +256,11 @@ dependencies = [
     "faster-whisper",
     "google-genai",
     "transformers==4.57.6",
-    "elevenlabs",
+    "elevenlabs"
+]
+
+[project.optional-dependencies]
+dotnet = [
     "pythonnet>=3.0.1",
 ]
 

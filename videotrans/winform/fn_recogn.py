@@ -243,7 +243,8 @@ def openwin():
                                recognition.Deepgram,
                                recognition.WHISPERX_API,
                                recognition.HUGGINGFACE_ASR,
-                               recognition.QWENASR
+                               recognition.QWENASR,
+                               recognition.WHISPER_NET
                                ]:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
         else:
