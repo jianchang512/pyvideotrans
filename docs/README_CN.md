@@ -109,7 +109,7 @@ uv run cli.py --task stt --name "./audio.wav" --model_name large-v3
 
 ### 5. (可选) GPU 加速配置
 
-如果您拥有 NVIDIA 显卡，请执行以下命令以安装支持 CUDA 的 PyTorch 版本：
+1. 如果您拥有 NVIDIA 显卡，请执行以下命令以安装支持 CUDA 的 PyTorch 版本：
 
 ```bash
 # 卸载 CPU 版本
@@ -119,6 +119,8 @@ uv remove torch torchaudio
 uv add torch==2.7 torchaudio==2.7 --index-url https://download.pytorch.org/whl/cu128
 uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 ```
+
+2. [如果你使用AMD显卡，可查看该文档尝试加速](whisper_net_setup.md)
 
 ---
 
