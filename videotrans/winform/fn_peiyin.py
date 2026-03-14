@@ -306,6 +306,7 @@ def openwin():
     # tab-4 语音合成
     def hecheng_start_fun():
         nonlocal RESULT_DIR,uuid_list
+        winobj.hecheng_importbtn.filelist=[]
         Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         txt = winobj.hecheng_plaintext.toPlainText().strip()
@@ -357,6 +358,7 @@ def openwin():
             if not is_srt:
                 newsrtfile += 'txt'
                 Path(newsrtfile).write_text(txt, encoding='utf-8')
+                print(newsrtfile)
             else:
                 newsrtfile += 'srt'
                 with open(newsrtfile, "w", encoding="utf-8") as f:

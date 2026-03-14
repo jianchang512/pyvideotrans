@@ -351,7 +351,7 @@ def faster_whisper(
             )
         except Exception as e:
             error = traceback.format_exc()
-            if 'json.exception.parse_error' in error or 'EOF while parsing a value' in error:
+            if 'model.bin is incomplete' in error or 'json.exception.parse_error' in error or 'EOF while parsing a value' in error:
                 msg = (
                     f'模型下载不完整，请删除目录 {local_dir}，重新下载' if defaulelang == "zh" else f"The model download may be incomplete, please delete the directory {local_dir} and download it again")
             elif "CUBLAS_STATUS_NOT_SUPPORTED" in error:

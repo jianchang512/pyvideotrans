@@ -159,31 +159,19 @@ class DubbingSrt(BaseTask):
             text = Path(self.cfg.target_sub).read_text(encoding='utf-8').strip()
             text = re.sub(r"(\s*?\r?\n\s*?){2,}", "\n", text,flags=re.I | re.S)
             text = re.sub(r"(\s*?\r?\n\s*?)", "\n", text,flags=re.I | re.S)
-            text_list=re.findall(r'.*?(?:[?，。？！,?!\n]|\. )',text)
-            text_str=""
+
+            text_list=re.split(r'(\r?\n)+?',text)
             subs=[]
             for i,it in enumerate(text_list):
                 if not it.strip():
                     continue
-                text_str+=it
-                if len(text_str)>=100:
-                    subs.append({
-                        "line": i+1,
-                        "start_time": i*1000,
-                        "end_time": i*1000+1000,
-                        "startraw": f"00:00:00,000",
-                        "endraw": "00:00:01,000",
-                        "text": text_str
-                    })
-                    text_str=''
-            if text_str:
                 subs.append({
-                        "line": len(subs)+1,
-                        "start_time": len(subs)*1000,
-                        "end_time": len(subs)*1000+1000,
-                        "startraw": f"00:00:00,000",
-                        "endraw": "00:00:01,000",
-                        "text": text_str
+                    "line": i+1,
+                    "start_time": i*1000,
+                    "end_time": i*1000+1000,
+                    "startraw": f"00:00:00,000",
+                    "endraw": "00:00:01,000",
+                    "text": it
                 })
         elif self.subs:
             subs=self.subs
@@ -216,7 +204,7 @@ class DubbingSrt(BaseTask):
         self.queue_tts = queue_tts
 
         if not self.queue_tts or len(self.queue_tts) < 1:
-            raise RuntimeError(f'Queue tts length is 0')
+            raise RuntimeError(tr('No subtitles required'))
         # 具体配音操作
         tts.run(
             queue_tts=copy.deepcopy(self.queue_tts),

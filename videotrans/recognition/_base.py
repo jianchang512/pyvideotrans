@@ -142,7 +142,7 @@ class BaseRecogn(BaseCon):
             srt_list = []
             res = self._exec()
             if not res:
-                raise RuntimeError('Unknow error')
+                raise RuntimeError(tr('No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.'))
             for i, it in enumerate(res):
                 text = it['text'].strip()
                 # 移除无效字幕行,全部由符号组成的行
