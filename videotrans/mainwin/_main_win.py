@@ -43,6 +43,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.resize(width, height)
         self.setupUi(self)
+        s=AiLoaderThread(self)
+        s.gpu_io.connect(self._start_workers)
+        s.start()
 
 
         self.worker_threads = []
@@ -85,11 +88,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 tr('softsubtitle2')
             ])
         self.uito.emit('load subtitles area...')
-        s=AiLoaderThread(self)
-        s.gpu_io.connect(self._start_workers)
-        s.start()
-        # Path(HOME_DIR).mkdir(parents=True, exist_ok=True)
-        # Path(TEMP_DIR).mkdir(exist_ok=True, parents=True)
+        
         QTimer.singleShot(200, self._set_Ui_Text)
 
     def _set_Ui_Text(self):

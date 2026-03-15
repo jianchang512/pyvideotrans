@@ -20,6 +20,7 @@ def getset_gpu(force_cpu=False) -> int:
     import torch
     # 无可用显卡
     app_cfg.NVIDIA_GPU_NUMS = 0 if not torch.cuda.is_available() else torch.cuda.device_count()
+    print(f'NVIDIA_GPU_NUMS={app_cfg.NVIDIA_GPU_NUMS}')
     return app_cfg.NVIDIA_GPU_NUMS
 
 
@@ -43,17 +44,17 @@ def get_cudaX() -> int:
             return 0
 
         import torch
-        # 存在可用显存大于12G的可直接返回使用
-        free_12g = (1024 ** 3) * 12
+        # 存在可用显存大于24G的可直接返回使用
+        free_g = (1024 ** 3) * 24
         _default_index = 0
         _default_free, _ = torch.cuda.mem_get_info(_default_index)
-        if _default_free > free_12g:
+        if _default_free > free_g:
             return 0
 
-        # 依次返回大于12G可用显存的，若不存在则返回空余显存最大的
+        # 依次返回大于24G可用显存的，若不存在则返回空余显存最大的
         for i in range(1, app_cfg.NVIDIA_GPU_NUMS):
             free_bytes, _ = torch.cuda.mem_get_info(i)
-            if free_bytes > free_12g:
+            if free_bytes > free_g:
                 logger.debug(f'[使用第{i}块显卡],可用显存为 {free_bytes / (1024 ** 3)}GB')
                 return i
             if free_bytes > _default_free:

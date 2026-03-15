@@ -253,6 +253,7 @@ class BaseCon:
         logger.debug(f'[新进程执行任务]:{title}')
         # 提交任务，并显式传入参数，确保子进程拿到正确的参数
         logs_file=kwargs.get('logs_file')
+        device_index=0
         try:
             if logs_file:
                 Path(logs_file).touch()
@@ -265,7 +266,7 @@ class BaseCon:
 
             # 如果使用gpu，则获取可用 device_index
             if is_cuda:
-                device_index=0
+                
                 #启用了多显卡模式
                 if settings.get('multi_gpus'):
                     device_index=get_cudaX()
@@ -292,8 +293,10 @@ class BaseCon:
             return data
         except BrokenProcessPool as e:
             msg=traceback.format_exc()
+            if is_cuda and device_index>-1:
+                msg=f"[GPU{device_index}]\n{msg}"
             logger.exception(f'new process:{msg}',exc_info=True)
-            raise RuntimeError(f'{tr("may be insufficient memory")}\n{msg}')
+            raise RuntimeError(f'{tr("may be insufficient memory")} {msg}')
         except Exception as e:
             msg=traceback.format_exc()
             logger.exception(f'new process:{msg}',exc_info=True)
