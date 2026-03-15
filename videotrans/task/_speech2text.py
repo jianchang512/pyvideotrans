@@ -1,4 +1,4 @@
-import json
+import json,os
 import re
 import shutil
 import time
@@ -63,22 +63,29 @@ class SpeechToText(BaseTask):
         try:
             # 需要降噪
             if self.cfg.remove_noise:
-                tools.check_and_down_ms(model_id='iic/speech_frcrn_ans_cirm_16k',callback=self._process_callback)
                 title=tr("Starting to process speech noise reduction, which may take a long time, please be patient")
-                from videotrans.process.prepare_audio import remove_noise
-                kw={
-                    "input_file":self.cfg.shibie_audio,
-                    "output_file":f"{self.cfg.cache_folder}/removed_noise_{time.time()}.wav",
-                    "is_cuda":self.cfg.is_cuda
-                }
-                # 静默失败，不处理
-                try:
-                    _rs = self._new_process(callback=remove_noise,title=title,kwargs=kw)
-                    if _rs:
-                        self.cfg.shibie_audio=_rs
-                        self._signal(text='remove noise end')
-                except:
-                    pass
+                _remove_noise_wav=f"{self.cfg.cache_folder}/remove_noise.wav"
+                _cache_noise_wav=f"{TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
+                if not Path(_cache_noise_wav).exists():
+                    tools.check_and_down_ms(model_id='iic/speech_frcrn_ans_cirm_16k',callback=self._process_callback)
+                    from videotrans.process.prepare_audio import remove_noise
+                    kw={
+                        "input_file":self.cfg.shibie_audio,
+                        "output_file":_remove_noise_wav,
+                        "is_cuda":self.cfg.is_cuda
+                    }
+                    # 静默失败，不处理
+                    try:
+                        _rs = self._new_process(callback=remove_noise,title=title,kwargs=kw)
+                        if _rs:
+                            self.cfg.shibie_audio=_rs
+                            shutil.copy2(_rs,_cache_noise_wav)
+                            self._signal(text='remove noise end')
+                    except:
+                        pass
+                else:
+                    shutil.copy2(_cache_noise_wav,_remove_noise_wav)
+                    self.cfg.shibie_audio=_remove_noise_wav
             if self._exit(): return
             # faster_xxl.exe 单独处理
             if self.cfg.recogn_type == Faster_Whisper_XXL:
@@ -324,6 +331,7 @@ class SpeechToText(BaseTask):
         try:
             if self.cfg.shound_del_name:
                 Path(self.cfg.shound_del_name).unlink(missing_ok=True)
+            shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
         except Exception:
             pass
         tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")

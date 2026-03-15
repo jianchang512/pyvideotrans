@@ -476,7 +476,7 @@ def faster_whisper(
                 torch.cuda.empty_cache()
             import gc
             gc.collect()
-        except Exception:
+        except:
             pass
 
 

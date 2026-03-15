@@ -291,7 +291,9 @@ class BaseCon:
             self._signal(text=f'[{title}] end: {int(time.time() - _st)}s')
             return data
         except BrokenProcessPool as e:
-            raise RuntimeError(f'{tr("may be insufficient memory")}\n{e}')
+            msg=traceback.format_exc()
+            logger.exception(f'new process:{msg}',exc_info=True)
+            raise RuntimeError(f'{tr("may be insufficient memory")}\n{msg}')
         except Exception as e:
             msg=traceback.format_exc()
             logger.exception(f'new process:{msg}',exc_info=True)

@@ -1,7 +1,6 @@
 import multiprocessing,os
 from concurrent.futures import ProcessPoolExecutor
 from videotrans.configure.config import app_cfg,settings,logger
-from videotrans.util.gpus import getset_gpu
 
 # ==========================================
 # 全局单例管理器
@@ -40,7 +39,7 @@ class GlobalProcessManager:
         if process_max_gpu>0:
             return int(min(process_max_gpu,8,cpu_count))
         if app_cfg.NVIDIA_GPU_NUMS<0:
-            getset_gpu()
+            return 1
         # 没有显卡 或 没有启用多显卡，则只启动一个gpu进程
         if  app_cfg.NVIDIA_GPU_NUMS<1 or not bool(settings.get('multi_gpus',False)):
             return 1

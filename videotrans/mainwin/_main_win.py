@@ -85,6 +85,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 tr('softsubtitle2')
             ])
         self.uito.emit('load subtitles area...')
+        s=AiLoaderThread(self)
+        s.gpu_io.connect(self._start_workers)
+        s.start()
         # Path(HOME_DIR).mkdir(parents=True, exist_ok=True)
         # Path(TEMP_DIR).mkdir(exist_ok=True, parents=True)
         QTimer.singleShot(200, self._set_Ui_Text)
@@ -326,9 +329,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # set text end
         QApplication.processEvents()
         self.uito.emit('Set default params')
-        s=AiLoaderThread(self)
-        s.gpu_io.connect(self._start_workers)
-        s.start()
+        
         QTimer.singleShot(200, self._set_default)
 
     def _set_default(self):

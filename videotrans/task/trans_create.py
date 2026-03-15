@@ -269,20 +269,27 @@ class TransCreate(BaseTask):
         # 若已执行背景声人声分离，则不再进行降噪
         if not self.cfg.is_separate and self.cfg.remove_noise:
             title = tr("Starting to process speech noise reduction, which may take a long time, please be patient")
-            tools.check_and_down_ms(model_id='iic/speech_frcrn_ans_cirm_16k', callback=self._process_callback)
-            from videotrans.process.prepare_audio import remove_noise
-            kw = {
-                "input_file": self.cfg.source_wav,
-                "output_file": f"{self.cfg.cache_folder}/remove_noise.wav",
-                "is_cuda": self.cfg.is_cuda
-            }
-            try:
-                _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
-                if _rs:
-                    self.cfg.source_wav = _rs
-                self._signal(text='remove noise end')
-            except:
-                pass
+            _remove_noise_wav=f"{self.cfg.cache_folder}/remove_noise.wav"
+            _cache_noise_wav=f"{self.cfg.target_dir}/removed_noise.wav"
+            if not Path(_cache_noise_wav).exists():
+                tools.check_and_down_ms(model_id='iic/speech_frcrn_ans_cirm_16k', callback=self._process_callback)
+                from videotrans.process.prepare_audio import remove_noise
+                kw = {
+                    "input_file": self.cfg.source_wav,
+                    "output_file": _remove_noise_wav,
+                    "is_cuda": self.cfg.is_cuda
+                }
+                try:
+                    _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
+                    if _rs:
+                        self.cfg.source_wav = _rs
+                        shutil.copy2(_rs,_cache_noise_wav)
+                    self._signal(text='remove noise end')
+                except:
+                    pass
+            else:
+                shutil.copy2(_cache_noise_wav,_remove_noise_wav)
+                self.cfg.source_wav = _remove_noise_wav
 
         self._signal(text=tr("Speech Recognition to Word Processing"))
 
@@ -1583,6 +1590,7 @@ class TransCreate(BaseTask):
         *.mp4 = 最终完成的目标视频文件
         {self.cfg.source_language_code}.m4a = 原始视频中的音频文件
         {self.cfg.target_language_code}.m4a = 配音后的音频文件
+        removed_noise.wav = 降噪后的原始音频文件
         {self.cfg.source_language_code}.srt = 原始视频中根据声音识别出的字幕文件
         {self.cfg.target_language_code}.srt = 翻译为目标语言后字幕文件
         speaker.json = 说话人标志
@@ -1602,6 +1610,7 @@ class TransCreate(BaseTask):
         *.mp4 = The final completed target video file
         {self.cfg.source_language_code}.m4a = The audio file in the original video
         {self.cfg.target_language_code}.m4a = dubbing audio
+        removed_noise.wav = original video after removed noise
         {self.cfg.source_language_code}.srt = Subtitles recognized in the original video
         {self.cfg.target_language_code}.srt = Subtitles translated into the target language
         shuang.srt = Source language and target language subtitles srt 
