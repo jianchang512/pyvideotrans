@@ -58,7 +58,7 @@ class EditDubbingResultDialog(QDialog):
 
         self.setWindowTitle(tr("Proofreading and dubbing - Re-dubbing"))
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setMinimumWidth(900)
+        self.setMinimumWidth(1000)
         self.setMinimumHeight(600)
         self.setWindowFlags(Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMaximizeButtonHint)
 
@@ -133,7 +133,7 @@ class EditDubbingResultDialog(QDialog):
             # 列：Line | Start | End | Status | Text
             self.table.setColumnCount(5)
             self.table.setHorizontalHeaderLabels([
-                tr("Line"), tr("Start Time"), tr("End Time"), tr("Dubbed Status"), tr("Subtitle Text")
+                tr("Line"), tr('Subtitles')+tr("Start Time"), tr('Subtitles')+tr("End Time"), tr("Dubbed Status"), tr("Subtitle Text")
             ])
             
             # 2.
@@ -381,7 +381,7 @@ class EditDubbingResultDialog(QDialog):
         prev_item = self.queue_tts[row - 1] if row > 0 else None
         next_item = self.queue_tts[row + 1] if row < len(self.queue_tts) - 1 else None
 
-        buffer = 10
+        buffer = 0
 
         if mode == 'start':
             new_start = item['start_time'] + offset_ms
