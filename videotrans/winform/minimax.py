@@ -16,14 +16,17 @@ def openwin():
             return tools.show_error(
                 tr("Please input Secret"))
         model = winobj.minimax_model.currentText()
+        max_token = winobj.max_token.text()
 
 
         params["minimax_key"] = key
+        params["minimax_max_tokens"] = max_token
         api = winobj.minimax_api.text().strip()
         if api:
             params["minimax_api"] = api
 
         params["minimax_model"] = model
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.MINIMAX_INDEX)
@@ -34,9 +37,11 @@ def openwin():
         minimax_key = winobj.minimax_key.text()
         model = winobj.minimax_model.currentText()
         api = winobj.minimax_api.text().strip()
+        max_token = winobj.max_token.text()
 
         params["minimax_key"] = minimax_key
         params["minimax_model"] = model
+        params["minimax_max_tokens"] = max_token
         if api:
             params["minimax_api"] = api
         params.save()

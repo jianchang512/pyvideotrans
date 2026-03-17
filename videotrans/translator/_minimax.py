@@ -22,8 +22,13 @@ class MiniMax(BaseTrans):
 
         self.trans_thread = int(settings.get('aitrans_thread', 50))
         self.model_name = params.get('minimax_model', 'MiniMax-M2.5')
-        self.api_url = 'https://' + params.get('minimax_api', 'api.minimax.io') + '/v1'
-
+        self.api_url = params.get('minimax_api', 'api.minimax.io') 
+        #  user input  api.minimax.io/v1 or https://api.minimax.io/v1 
+        if not self.api_url.startswith('https'):
+            self.api_url = 'https://' +self.api_url
+        if not self.api_url.endswith('/v1'):
+            self.api_url = self.api_url.strip('/')+"/v1"
+            
         self.prompt = tools.get_prompt(ainame='minimax', aisendsrt=self.aisendsrt).replace('{lang}',
                                                                                            self.target_language_name)
         self.api_key = params.get('minimax_key', '')
@@ -57,7 +62,7 @@ class MiniMax(BaseTrans):
             frequency_penalty=0,
             timeout=300,
             temperature=temperature,
-            max_tokens=8192
+            max_tokens=int(params.get('minimax_max_tokens',8192))
         )
 
         logger.debug(f'[minimax]响应:{response=}')
@@ -70,7 +75,7 @@ class MiniMax(BaseTrans):
             result = response.choices[0].message.content.strip()
         else:
             logger.warning(f'[minimax]请求失败:{response=}')
-            raise RuntimeError(f"[MiniMax] {response.choices[0].finish_reason}:{response}")
+            raise# RuntimeError(f"[MiniMax] {response.choices[0].finish_reason}:{response}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)
         if match:

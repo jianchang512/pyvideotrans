@@ -59,13 +59,25 @@ class Ui_minimaxform(object):
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
-        self.label_selectmodel.setText("选择使用模型")
+        self.label_selectmodel.setText("Model")
         self.minimax_model = QtWidgets.QComboBox()
         self.minimax_model.setMinimumSize(QtCore.QSize(0, 35))
         self.minimax_model.setObjectName("minimax_model")
         h_model.addWidget(self.label_selectmodel)
         h_model.addWidget(self.minimax_model)
         v1.addLayout(h_model)
+        h_token = QtWidgets.QHBoxLayout()
+
+        label_token = QtWidgets.QLabel()
+        label_token.setObjectName("label_token")
+        label_token.setText(tr("Maximum output token"))
+        self.max_token = QtWidgets.QLineEdit()
+        self.max_token.setMinimumSize(QtCore.QSize(0, 35))
+        self.max_token.setObjectName("max_token")
+
+        h_token.addWidget(label_token)
+        h_token.addWidget(self.max_token)
+        v1.addLayout(h_token)
 
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
@@ -101,7 +113,7 @@ class Ui_minimaxform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://platform.minimax.io'))
+        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/minimaxi'))
 
         h4.addWidget(self.set)
         h4.addWidget(self.test)
@@ -124,6 +136,7 @@ class Ui_minimaxform(object):
 
         self.minimax_key.setText(params.get("minimax_key",''))
         self.minimax_api.setText(params.get("minimax_api",''))
+        self.max_token.setText(str(params.get("minimax_max_tokens",'8192')))
         self.minimax_model.setCurrentText(params.get("minimax_model",''))
 
     def retranslateUi(self, minimaxform):
