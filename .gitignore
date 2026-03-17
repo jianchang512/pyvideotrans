@@ -35,7 +35,8 @@ dist
 source
 build
 ceshi*
-test.*
+test*.py
+test*.json
 !tests
 302.py
 ffmpeg/ffmpeg.exe
