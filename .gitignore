@@ -36,6 +36,7 @@ source
 build
 ceshi*
 test*.py
+test*.m*
 test*.json
 !tests
 302.py
