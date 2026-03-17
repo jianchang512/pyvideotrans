@@ -40,7 +40,8 @@ _module_map = {
 "kokoro":".kokoro",
 "libre":".libre",
 "localllm":".localllm",
-"minimaxi":".minimaxi",
+"minimaxi":".minimaxi",#tts
+"minimax":".minimax",#翻译
 "openairecognapi":".openairecognapi",
 "openaitts":".openaitts",
 "openrouter":".openrouter",

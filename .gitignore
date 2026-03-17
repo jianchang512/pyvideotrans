@@ -35,7 +35,10 @@ dist
 source
 build
 ceshi*
-test*
+test*.py
+test*.m*
+test*.json
+!tests
 302.py
 ffmpeg/ffmpeg.exe
 ffmpeg/ffprobe.exe

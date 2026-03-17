@@ -615,6 +615,12 @@ class AppParams:
             "minimaxi_emotion": "",
             "minimaxi_apiurl": "api.minimaxi.com",
             "minimaxi_model": "speech-02-turbo",
+            
+            "minimax_key":"",
+            "minimax_model":"MiniMax-M2.5",
+            "minimax_max_tokens":8192,
+            "minimax_api":"https://api.minimaxi.com/v1",
+            
             "ai302tts_key": "",
             "ai302tts_model": "",
             "ai302tts_role": OPENAITTS_ROLES,

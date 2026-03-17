@@ -32,7 +32,7 @@
 - **🧬 Voice Cloning**: Integrates models like **F5-TTS, CosyVoice, GPT-SoVITS** for zero-shot voice cloning.
 - **🧠 Powerful Model Support**: 
   - **ASR**: Faster-Whisper (Local), OpenAI Whisper, Alibaba Qwen, ByteDance Volcano, Azure, Google, etc.
-  - **LLM Translation**: DeepSeek, ChatGPT, Claude, Gemini, Ollama (Local), Alibaba Bailian, etc.
+  - **LLM Translation**: DeepSeek, ChatGPT, Claude, Gemini, MiniMax, Ollama (Local), Alibaba Bailian, etc.
   - **TTS**: Edge-TTS (Free), OpenAI, Azure, Minimaxi, ChatTTS, ChatterBox, etc.
 - **🖥️ Interactive Editing**: Supports pausing and manual proofreading at each stage (recognition, translation, dubbing) to ensure accuracy.
 - **🛠️ Utility Toolkit**: Includes auxiliary tools such as vocal separation, video/subtitle merging, audio-video alignment, and transcript matching.
@@ -131,6 +131,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | WhisperX / Parakeet | Supports timestamp alignment & speaker diarization |
 | | Alibaba Qwen3-ASR / ByteDance Volcano | Online API, excellent for Chinese |
 | **Translation (LLM/MT)** | **DeepSeek** / ChatGPT | Supports context understanding, more natural translation |
+| | MiniMax AI | MiniMax M2.5 LLM, 204K context window, OpenAI-compatible |
 | | Google / Microsoft | Traditional machine translation, fast speed |
 | | Ollama / M2M100 | Fully local offline translation |
 | **TTS (Speech Synthesis)** | **Edge-TTS** | Microsoft free interface, natural effect |

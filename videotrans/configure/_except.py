@@ -243,42 +243,25 @@ def get_msg_from_except(ex):
     exception_handlers = {
         # === 认证和权限问题 ===
         AuthenticationError: lambda e: (
-            f"API密钥错误，请检查密钥是否正确 {e.message}" if lang == 'zh'
-            else f"API key error, please check if the key is correct {e.message}"
+            f"API密钥错误，请检查密钥是否正确 {e.body.get('message')}" if lang == 'zh'
+            else  e.body.get('message')
         ),
 
         PermissionDeniedError: lambda e: (
-            f"当前密钥没有访问权限，请检查权限设置 {e.message}" if lang == 'zh'
-            else f"No access permission with current API key {e.message}"
+            f"当前密钥没有访问权限，请检查权限设置 {e.body.get('message')}" if lang == 'zh'
+            else  e.message
         ),
 
         # === 频率限制 ===
         RateLimitError: lambda e: (
-            f"请求过于频繁，请稍后重试或调大暂停时间 {e.message}" if lang == 'zh'
-            else f"Too many requests, please try again later or adjust settings {e.message}"
+            f"请求过于频繁或余额不足：{e.body.get('message')}" if lang == 'zh'
+            else e.body.get('message')
         ),
-        InternalServerError: lambda e: (
-            f'{e.status_code} 错误: API服务端内部错误 {e.message}' if lang == 'zh' else f'{e.status_code}: {e.message}'),
-
         # === 资源不存在问题 ===
-        NotFoundError: lambda e: (
-            f"请求的资源不存在，请检查模型名称或API地址 {e.message}" if lang == 'zh'
-            else f"Requested resource not found, check model name or API address {e.message}"
-        ),
-
         # === 请求参数问题 ===
-        BadRequestError: lambda e: (
-            f"请求参数不正确:{e.message}" if lang == 'zh'
-            else f"Request parameters incorrect, check input or settings {e.message}"
-        ),
-
-        APIConnectionError: lambda e: (
-            _handle_connection_error_detail(e, lang)
-        ),
-
-
         # === 服务端问题 ===
-        APIError: lambda e: _handle_api_error_detail(e, lang),
+        (InternalServerError,NotFoundError,BadRequestError,APIConnectionError,APIError): lambda e: (e.body.get('message')),
+
 
         LengthFinishReasonError: lambda e: (
             f'内容太长超出最大允许Token，请减小内容或增大max_token,或者降低每次发送字幕行数\n{e}' if lang == 'zh' else f'{e}'),

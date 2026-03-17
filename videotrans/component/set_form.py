@@ -37,6 +37,7 @@ from videotrans.ui.info import Ui_infoform
 from videotrans.ui.kokoro import Ui_kokoroform
 from videotrans.ui.libretranslate import Ui_libretranslateform
 from videotrans.ui.localllm import Ui_localllmform
+from videotrans.ui.minimax import Ui_minimaxform
 from videotrans.ui.openairecognapi import Ui_openairecognapiform
 from videotrans.ui.openaitts import Ui_openaittsform
 from videotrans.ui.openrouter import Ui_openrouterform
@@ -280,6 +281,11 @@ class ZhipuAIForm(QDialogBase, Ui_zhipuaiform):  # <===
 
 
 class DeepseekForm(QDialogBase, Ui_deepseekform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
+class MiniMaxForm(QDialogBase, Ui_minimaxform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
 

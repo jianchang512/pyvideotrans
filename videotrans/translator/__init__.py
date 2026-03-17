@@ -28,6 +28,7 @@ from videotrans.translator._microsoft import Microsoft
 from videotrans.translator._baidu import Baidu
 from videotrans.translator._ott import OTT
 from videotrans.translator._transapi import TransAPI
+from videotrans.translator._minimax import MiniMax
 
 
 GOOGLE_INDEX = 0
@@ -62,6 +63,7 @@ LIBRE_INDEX = 20
 
 MyMemoryAPI_INDEX = 21
 TRANSAPI_INDEX = 22
+MINIMAX_INDEX = 23
 
 
 
@@ -77,7 +79,8 @@ AI_TRANS_CHANNELS=[
     ZHIPUAI_INDEX,
     SILICONFLOW_INDEX,
     DEEPSEEK_INDEX,
-    OPENROUTER_INDEX
+    OPENROUTER_INDEX,
+    MINIMAX_INDEX
 ]
 # 翻译通道名字列表，显示在界面
 _ID_NAME_DICT = {
@@ -110,6 +113,7 @@ _ID_NAME_DICT = {
     LIBRE_INDEX:tr('LibreTranslate'),
     MyMemoryAPI_INDEX:tr('MyMemoryAPI'),
     TRANSAPI_INDEX:tr('Customized API'),
+    MINIMAX_INDEX:"MiniMax AI",
 }
 TRANSLASTE_NAME_LIST=list(_ID_NAME_DICT.values())
 
@@ -828,6 +832,12 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         libre.openwin()
         return False
 
+    if translate_type == MINIMAX_INDEX and not params.get('minimax_key',''):
+        if return_str:
+            return "Please configure the api and key information of the MiniMax channel first."
+        from videotrans.winform import minimax
+        minimax.openwin()
+        return False
     if translate_type == TRANSAPI_INDEX and not params.get("trans_api_url",''):
         if return_str:
             return "Please configure the api and key information of the TransAPI channel first."
@@ -992,6 +1002,8 @@ def run(*, translate_type=0,
         return Libre(**kwargs).run()
     if translate_type == ALI_INDEX:
         return Ali(**kwargs).run()
+    if translate_type == MINIMAX_INDEX:
+        return MiniMax(**kwargs).run()
     if translate_type == M2M100_INDEX:
         from videotrans.translator._m2m100 import M2M100Trans 
         return M2M100Trans(**kwargs).run()
