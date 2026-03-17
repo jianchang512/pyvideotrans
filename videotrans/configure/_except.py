@@ -112,8 +112,6 @@ def _extract_api_url_from_error(error):
 
 
 """处理连接错误的详细信息"""
-
-
 def _handle_connection_error_detail(error, lang):
     error_str = str(error).lower()
 
@@ -195,35 +193,6 @@ def _handle_connection_error_detail(error, lang):
     return base_message
 
 
-"""处理API错误的详细信息"""
-
-
-def _handle_api_error_detail(error, lang):
-    message = ""
-
-    # 尝试从各种API错误格式中提取消息
-    if hasattr(error, 'body') and isinstance(error.body, dict):
-        message = error.body.get('message') or error.body.get('error', {}).get('message', '')
-    elif hasattr(error, 'message'):
-        message = str(error.message)
-    elif hasattr(error, 'detail'):
-        if isinstance(error.detail, dict):
-            message = error.detail.get('message') or error.detail.get('error', {}).get('message', '')
-        else:
-            message = str(error.detail)
-    if _is_local_address(message):
-        message = f'{"请确认本地服务已启动 " if lang == "zh" else "please ensure local service is properly started"} {message}'
-    if message:
-
-        return (
-            f"服务返回错误：{message}" if lang == 'zh'
-            else f"Service returned error: {message}"
-        )
-    else:
-        return (
-            "服务暂时不可用，请稍后重试" if lang == 'zh'
-            else "Service temporarily unavailable, please try again later"
-        )
 
 
 
@@ -260,7 +229,7 @@ def get_msg_from_except(ex):
         # === 资源不存在问题 ===
         # === 请求参数问题 ===
         # === 服务端问题 ===
-        (InternalServerError,NotFoundError,BadRequestError,APIConnectionError,APIError): lambda e: (e.body.get('message')),
+        (InternalServerError,NotFoundError,BadRequestError,APIConnectionError,APIError): lambda e: e.body.get('message') if hasattr(e,'body') else str(e),
 
 
         LengthFinishReasonError: lambda e: (
@@ -301,9 +270,9 @@ def get_msg_from_except(ex):
         ),
 
 
-        DeepgramApiError: lambda e: _handle_api_error_detail(e, lang),
+        DeepgramApiError: lambda e: e.message if hasattr(e,'message') else str(e),
 
-        ApiError_11: lambda e: e.body.get('detail',{}).get('message',e.body),
+        ApiError_11: lambda e: e.body.get('detail',{}).get('message',e.body) if hasattr(e,'body') else str(e),
 
 
         ConnectionRefusedError: lambda e: (

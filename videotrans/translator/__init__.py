@@ -671,25 +671,6 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return source_list[10] if source_list else show_source, target_list[10] if target_list else show_target
     return show_source,show_target
 
-# 针对AI渠道目标语言，返回自然名称
-def get_ai_language_name(show_target=None,translate_type=None):
-
-
-    target_list=None
-    if show_target in LANG_CODE:
-        target_list=LANG_CODE[show_target][7]
-    elif show_target in LANGNAME_DICT_REV:
-        target_list=LANG_CODE[LANGNAME_DICT_REV.get(show_target)][7]
-    else:
-        return 'auto',show_target
-
-    if not target_list:
-        return None
-    if translate_type is not None and translate_type==QWENMT_INDEX and params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
-        # qwen-mt特殊处理
-        return 'auto',target_list[9] if target_list else show_target
-    return target_list[7],target_list[7]
-
 # 单独返回 qwen-mt qwen-tts qwen-asr 所需要的语言名称
 def get_language_qwen(langcode=None):
     if not langcode:
