@@ -31,7 +31,7 @@
 - **🧬 声音克隆**: 集成 **F5-TTS, CosyVoice, GPT-SoVITS** 等模型，支持零样本声音克隆。
 - **🧠 强大的模型支持**: 
   - **ASR**: Faster-Whisper (Local), OpenAI Whisper, 阿里 Qwen, 字节火山, Azure, Google 等。
-  - **LLM 翻译**: DeepSeek, ChatGPT, Claude, Gemini, Ollama (Local), 阿里百炼等。
+  - **LLM 翻译**: DeepSeek, ChatGPT, Claude, Gemini, MiniMax, Ollama (Local), 阿里百炼等。
   - **TTS**: Edge-TTS (免费), OpenAI, Azure, Minimaxi, ChatTTS, ChatterBox 等。
 - **🖥️ 交互式编辑**: 支持在识别、翻译、配音的每个阶段暂停并人工校对，确保精准度。
 - **🛠️ 实用工具集**: 包含人声分离、视频/字幕合并、音画对齐、文稿匹配等辅助工具。
@@ -132,6 +132,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | WhisperX / Parakeet | 支持时间轴对齐与说话人分离 |
 | | 阿里 Qwen3-ASR / 字节火山 | 在线 API，中文效果极佳 |
 | **翻译 (LLM/MT)** | **DeepSeek** / ChatGPT | 支持上下文理解，翻译更自然 |
+| | MiniMax AI | MiniMax M2.5 大模型，204K上下文，OpenAI兼容接口 |
 | | Google / Microsoft | 传统机器翻译，速度快 |
 | | Ollama / M2M100 | 完全本地离线翻译 |
 | **语音合成 (TTS)** | **Edge-TTS** | 微软免费接口，效果自然 |
