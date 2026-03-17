@@ -240,6 +240,7 @@ def openwin():
             winobj.hecheng_startbtn.setText(tr("zhixingwc"))
             toggle_state(False)
             winobj.hecheng_plaintext.clear()
+            winobj.hecheng_importbtn.filelist=[]
 
     # 试听配音
     def listen_voice_fun():
@@ -306,7 +307,7 @@ def openwin():
     # tab-4 语音合成
     def hecheng_start_fun():
         nonlocal RESULT_DIR,uuid_list
-        winobj.hecheng_importbtn.filelist=[]
+        
         Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         txt = winobj.hecheng_plaintext.toPlainText().strip()
