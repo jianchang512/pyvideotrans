@@ -125,4 +125,8 @@ class DoubaoTTS(BaseTTS):
                 logger.debug(f'字节火山语音合成失败:{resp_json=}')
             raise RuntimeError(self.error_status.get(str(resp_json['code']), resp_json['message']))
 
-        _run()
+        try:
+            _run()
+        except Exception as e:
+            self.error=e
+            raise

@@ -104,4 +104,8 @@ class MinimaxiTTS(BaseTTS):
                 raise RuntimeError(f'No valid audio  data returned:{res}')
 
 
-        _run()
+        try:
+            _run()
+        except Exception as e:
+            self.error=e
+            raise

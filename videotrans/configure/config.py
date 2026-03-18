@@ -588,6 +588,10 @@ class AppParams:
             "openaitts_api": "",
             "openaitts_key": "",
             "openaitts_model": "tts-1",
+            "openaitts_role":"",
+            
+            "xaitts_key":"",
+
             "openaitts_instructions": "",
             "qwentts_key": "",
             "qwentts_model": "qwen-tts-latest",

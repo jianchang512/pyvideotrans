@@ -149,7 +149,11 @@ class AzureTTS(BaseTTS):
                 raise RuntimeError(cancellation_details.reason)
             raise RuntimeError('Test Azure SK')
 
-        _run()
+        try:
+            _run()
+        except Exception as e:
+            self.error=e
+            raise
 
     # 鼠标不重试，直接报错停止
     def _exec(self) -> None:

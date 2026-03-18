@@ -42,4 +42,8 @@ class KokoroTTS(BaseTTS):
                 f.write(res.content)
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
 
-        _run()
+        try:
+            _run()
+        except Exception as e:
+            self.error=e
+            raise

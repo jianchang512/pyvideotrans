@@ -75,7 +75,11 @@ class ElevenLabsC(BaseTTS):
                 raise    
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
 
-        _run()
+        try:
+            _run()
+        except Exception as e:
+            self.error=e
+            raise
 
     def _exec(self):
         self._local_mul_thread()

@@ -175,6 +175,8 @@ class BaseTTS(BaseCon):
             if tools.vail_file(self.queue_tts[0]['filename']):
                 tools.pygameaudio(self.queue_tts[0]['filename'])
                 return
+            if isinstance(self.error, RetryError):
+                raise self.error.last_attempt.exception()
             raise self.error if isinstance(self.error, Exception) else RuntimeError(str(self.error))
 
         # 记录成功数量
@@ -185,8 +187,10 @@ class BaseTTS(BaseCon):
         # 只有全部配音都失败，才视为失败
         if succeed_nums < 1:
             if app_cfg.exit_soft: return
+            
             if isinstance(self.error, Exception):
-                raise self.error
+                raise self.error if not isinstance(self.error,RetryError) else self.error.last_attempt.exception()
+            
             raise RuntimeError((tr("Dubbing failed")) + str(self.error))
 
         self._signal(text=tr("Dubbing succeeded {}，failed {}", succeed_nums, len(self.queue_tts) - succeed_nums))

@@ -25,29 +25,33 @@ class SupertonicTTS(BaseTTS):
 
 
     def _item_task(self, data_item: dict = None):
-        if self._exit() or not data_item.get('text','').strip():
-            return
+        try:
+            if self._exit() or not data_item.get('text','').strip():
+                return
 
-        if self._exit() or tools.vail_file(data_item['filename']):
-            return
-        speed = 1.0
-        if self.rate:
-            rate = float(self.rate.replace('%', '')) / 100
-            speed += rate
+            if self._exit() or tools.vail_file(data_item['filename']):
+                return
+            speed = 1.0
+            if self.rate:
+                rate = float(self.rate.replace('%', '')) / 100
+                speed += rate
 
-        role=data_item.get('role','F1')
+            role=data_item.get('role','F1')
+            
+            text_to_speech = load_text_to_speech(f"{self.local_dir}/onnx", False)
+
+
+            style = load_voice_style([f"{self.local_dir}/voice_styles/{role}.json"], verbose=False)
+            wav, duration = text_to_speech(
+                           data_item.get('text'), self.language[:2], style, 10, speed
+                        )
+                        
+            w = wav[0, : int(text_to_speech.sample_rate * duration.item())]  # [T_trim]
+            sf.write(data_item['filename']+'-tmp.wav', w, text_to_speech.sample_rate)
+            
+            
+            self.convert_to_wav(data_item['filename'] +'-tmp.wav', data_item['filename'])
+        except Exception as e:
+            self.error=e
+            raise
         
-        text_to_speech = load_text_to_speech(f"{self.local_dir}/onnx", False)
-
-
-        style = load_voice_style([f"{self.local_dir}/voice_styles/{role}.json"], verbose=False)
-        wav, duration = text_to_speech(
-                       data_item.get('text'), self.language[:2], style, 10, speed
-                    )
-                    
-        w = wav[0, : int(text_to_speech.sample_rate * duration.item())]  # [T_trim]
-        sf.write(data_item['filename']+'-tmp.wav', w, text_to_speech.sample_rate)
-        
-        
-        self.convert_to_wav(data_item['filename'] +'-tmp.wav', data_item['filename'])
-

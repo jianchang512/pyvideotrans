@@ -152,6 +152,7 @@ class VitsCNEN(BaseTTS):
                 err+=1
 
         if err > 0:
+            self.error=err
             msg=f'[{err}] errors, {ok} succeed'
             self._signal(text=msg)
             logger.debug(f'vits配音结束：{msg}')

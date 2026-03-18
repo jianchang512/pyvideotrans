@@ -63,6 +63,7 @@ _module_map = {
 "zijiehuoshan":".zijiehuoshan",
 "zijierecognmodel":".zijierecognmodel",
 "whisperxapi":".whisperxapi",
+"xaitts":".xaitts",
 }
 
 _loaded_modules = {}  # 用于缓存已经加载过的模块

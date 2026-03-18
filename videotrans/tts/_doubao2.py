@@ -72,94 +72,97 @@ class Doubao2TTS(BaseTTS):
 
     
     def _item_task(self, data_item: dict = None):
-        if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
-            return
+        try:
+            if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
+                return
 
-        if tools.vail_file(data_item['filename']):
-            return
-        appid = params.get('doubao2_appid','')
-        access_token = params.get('doubao2_access','')
-        speed = 1.0
-        if self.rate:
-            speed += float(self.rate.replace('%', '')) / 100
-        speed=max(-50,min(100,100*(speed-1.0)))
-        volume = 1.0
-        if self.volume:
-            volume += float(self.volume.replace('%', '')) / 100
-        volume=max(-50,min(100,100*(volume-1.0)))
+            if tools.vail_file(data_item['filename']):
+                return
+            appid = params.get('doubao2_appid','')
+            access_token = params.get('doubao2_access','')
+            speed = 1.0
+            if self.rate:
+                speed += float(self.rate.replace('%', '')) / 100
+            speed=max(-50,min(100,100*(speed-1.0)))
+            volume = 1.0
+            if self.volume:
+                volume += float(self.volume.replace('%', '')) / 100
+            volume=max(-50,min(100,100*(volume-1.0)))
 
-        # 角色为实际名字
-        role = data_item['role']
-        role=tools.get_doubao2_rolelist(role_name=role,langcode=self.language[:2])
-        headers = {
-            "X-Api-App-Id": appid,
-            "X-Api-Access-Key": access_token,
-            "X-Api-Resource-Id": 'seed-tts-2.0' if role in self.model2 else 'seed-tts-1.0',
-            "Content-Type": "application/json",
-            "Connection": "keep-alive"
-        }
-
-        payload = {
-            "user": {
-                "uid": "123123"
-            },
-            "req_params":{
-                "text": data_item.get('text',''),
-                "speaker": role,
-                "model":"seed-tts-1.1",
-                "audio_params": {
-                    "format": "pcm",
-                    "sample_rate": 48000,
-                    "enable_timestamp": True,
-                    "speech_rate":int(speed),
-                    "loudness_rate":int(volume)
-                },
-                "additions": "{\"explicit_language\":\"crosslingual\",\"enable_language_detector\":\"true\",\"disable_markdown_filter\":true}\"}"
+            # 角色为实际名字
+            role = data_item['role']
+            role=tools.get_doubao2_rolelist(role_name=role,langcode=self.language[:2])
+            headers = {
+                "X-Api-App-Id": appid,
+                "X-Api-Access-Key": access_token,
+                "X-Api-Resource-Id": 'seed-tts-2.0' if role in self.model2 else 'seed-tts-1.0',
+                "Content-Type": "application/json",
+                "Connection": "keep-alive"
             }
-        }
- 
-        url = "https://openspeech.bytedance.com/api/v3/tts/unidirectional"
-        
-        
-        response = requests.post(url, headers=headers, json=payload, stream=True)
-        
-        if response.status_code in [404,402,401,400]:
-            self.stop_next_all=True
-            raise RuntimeError('请检查 appid 和 access token 参数是否正确')
-        if response.status_code == 403:
-            self.stop_next_all=True
-            raise RuntimeError('该角色正式版可能需要在字节后台单独开通购买')
-        
-        
-        
-        response.raise_for_status()
-        logger.debug(f"code: {response.status_code} header: {response.headers}")
 
-        # 用于存储音频数据
-        audio_data = bytearray()
-        total_audio_size = 0
-        for chunk in response.iter_lines(decode_unicode=True):
-            if not chunk:
-                continue
-            data = json.loads(chunk)
+            payload = {
+                "user": {
+                    "uid": "123123"
+                },
+                "req_params":{
+                    "text": data_item.get('text',''),
+                    "speaker": role,
+                    "model":"seed-tts-1.1",
+                    "audio_params": {
+                        "format": "pcm",
+                        "sample_rate": 48000,
+                        "enable_timestamp": True,
+                        "speech_rate":int(speed),
+                        "loudness_rate":int(volume)
+                    },
+                    "additions": "{\"explicit_language\":\"crosslingual\",\"enable_language_detector\":\"true\",\"disable_markdown_filter\":true}\"}"
+                }
+            }
+     
+            url = "https://openspeech.bytedance.com/api/v3/tts/unidirectional"
+            
+            
+            response = requests.post(url, headers=headers, json=payload, stream=True)
+            
+            if response.status_code in [404,402,401,400]:
+                self.stop_next_all=True
+                raise RuntimeError('请检查 appid 和 access token 参数是否正确')
+            if response.status_code == 403:
+                self.stop_next_all=True
+                raise RuntimeError('该角色正式版可能需要在字节后台单独开通购买')
+            
+            
+            
+            response.raise_for_status()
+            logger.debug(f"code: {response.status_code} header: {response.headers}")
 
-            if data.get("code", 0) == 0 and "data" in data and data["data"]:
-                chunk_audio = base64.b64decode(data["data"])
-                audio_size = len(chunk_audio)
-                total_audio_size += audio_size
-                audio_data.extend(chunk_audio)
-                continue
-            if data.get("code", 0) == 0 and "sentence" in data and data["sentence"]:
-                print("sentence_data:", data)
-                continue
-            if data.get("code", 0) == 20000000:
-                break
-            if data.get("code", 0) > 0:
-                
-                raise RuntimeError(str(data))
+            # 用于存储音频数据
+            audio_data = bytearray()
+            total_audio_size = 0
+            for chunk in response.iter_lines(decode_unicode=True):
+                if not chunk:
+                    continue
+                data = json.loads(chunk)
 
-        if audio_data:
-            self._save_pcm_to_wav(audio_data,data_item['filename'])
+                if data.get("code", 0) == 0 and "data" in data and data["data"]:
+                    chunk_audio = base64.b64decode(data["data"])
+                    audio_size = len(chunk_audio)
+                    total_audio_size += audio_size
+                    audio_data.extend(chunk_audio)
+                    continue
+                if data.get("code", 0) == 0 and "sentence" in data and data["sentence"]:
+                    print("sentence_data:", data)
+                    continue
+                if data.get("code", 0) == 20000000:
+                    break
+                if data.get("code", 0) > 0:
+                    
+                    raise RuntimeError(str(data))
 
+            if audio_data:
+                self._save_pcm_to_wav(audio_data,data_item['filename'])
+        except Exception as e:
+            self.error=e
+            raise
 
 

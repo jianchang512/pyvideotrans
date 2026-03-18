@@ -320,5 +320,9 @@ class F5TTS(BaseTTS):
             else:
                 self._item_task_v1(data_item)
             
-        _run()
+        try:
+            _run()
+        except Exception as e:
+            self.error=e
+            raise
 

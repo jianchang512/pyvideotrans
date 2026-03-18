@@ -186,7 +186,11 @@ class WinAction(WinActionSub):
             self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.OPENAI_TTS:
             self.main.voice_role.clear()
-            self.main.current_rolelist = contants.OPENAITTS_ROLES.split(',')
+            self.main.current_rolelist =  ['No']+params.get('openaitts_role',contants.OPENAITTS_ROLES).split(',')
+            self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == tts.XAI_TTS:
+            self.main.voice_role.clear()
+            self.main.current_rolelist = ['No']+contants.XAITTS_ROLES.split(',')
             self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.QWEN_TTS:
             self.main.voice_role.clear()

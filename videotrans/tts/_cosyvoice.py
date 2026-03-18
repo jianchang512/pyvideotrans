@@ -152,9 +152,12 @@ class CosyVoice(BaseTTS):
             return
         
         # 兼容之前的 cosyvoice-api 接口
-        if ":9233" not in self.api_url:
-            self._item_task_cosyvoice2(data_item)
-        else:
-            self._item_cosyvoice_api(data_item)
+        try:
+            if ":9233" not in self.api_url:
+                self._item_task_cosyvoice2(data_item)
+            else:
+                self._item_cosyvoice_api(data_item)
 
-        
+        except Exception as e:
+            self.error=e
+            raise

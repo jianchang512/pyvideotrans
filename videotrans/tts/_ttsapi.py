@@ -80,7 +80,11 @@ class TTSAPI(BaseTTS):
                 raise RuntimeError(tr("No valid audio address or base64 audio data returned") )
             self.convert_to_wav(tmp_filename, data_item['filename'])
 
-        _run()
+        try:
+            _run()
+        except Exception as e:
+            self.error=e
+            raise
 
     def _apirequests(self, text, role, speed=1.0, volume=1.0, pitch=0):
         data = {"text": text.strip(),

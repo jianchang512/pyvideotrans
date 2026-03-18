@@ -147,6 +147,7 @@ class FreeAzureTTS(BaseTTS):
             self.get_voice(data_item)
         except RetryError as e:
             err=str(e.last_attempt.exception())
+            self.error=err
             if "Unsupported voice" in err:
                 raise StopRetry(tr("The sound cannot be tried."))
                 

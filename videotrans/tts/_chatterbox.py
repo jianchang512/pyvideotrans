@@ -55,7 +55,11 @@ class ChatterBoxTTS(BaseTTS):
             response.stream_to_file(data_item['filename'] + ".mp3")
             self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
 
-        _run()
+        try:
+            _run()
+        except Exception as e:
+            self.error=e
+            raise
 
     def _item_task_clone(self, text, role, ref_wav=None, filename=None):
         import mimetypes

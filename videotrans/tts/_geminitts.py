@@ -45,7 +45,11 @@ class GEMINITTS(BaseTTS):
             self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
 
 
-        _run()
+        try:
+            _run()
+        except Exception as e:
+            self.error=e
+            raise
 
     def generate_tts_segment(self, text, voice, model, file_name):
         def convert_to_wav(audio_data: bytes, mime_type: str) -> bytes:

@@ -73,6 +73,7 @@ class PiperTTS(BaseTTS):
             msg=f'[{err}] errors, {ok} succeed'
             self._signal(text=msg)
             logger.debug(f'piper配音结束：{msg}')
+            self.error=e
 
         try:
             del _model_obj

@@ -466,7 +466,9 @@ def openwin():
         elif type == tts.CHATTTS:
             role_list.extend(list(settings.ChatTTS_voicelist))
         elif type == tts.OPENAI_TTS:
-            role_list=contants.OPENAITTS_ROLES.split(',')
+            role_list=['No']+params.get('openaitts_role',contants.OPENAITTS_ROLES).split(',')
+        elif type == tts.XAI_TTS:
+            role_list=['No']+contants.XAITTS_ROLES.split(',')
         elif type == tts.QWEN_TTS:
             role_list=list(tools.get_qwen3tts_rolelist().keys())
         elif type == tts.QWEN3LOCAL_TTS:
