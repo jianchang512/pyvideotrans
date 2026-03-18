@@ -131,7 +131,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | WhisperX / Parakeet | Supports timestamp alignment & speaker diarization |
 | | Alibaba Qwen3-ASR / ByteDance Volcano | Online API, excellent for Chinese |
 | **Translation (LLM/MT)** | **DeepSeek** / ChatGPT | Supports context understanding, more natural translation |
-| | MiniMax AI | MiniMax M2.5 LLM, 204K context window, OpenAI-compatible |
+| | MiniMax AI | MiniMax M2.7 LLM, latest flagship model, OpenAI-compatible |
 | | Google / Microsoft | Traditional machine translation, fast speed |
 | | Ollama / M2M100 | Fully local offline translation |
 | **TTS (Speech Synthesis)** | **Edge-TTS** | Microsoft free interface, natural effect |

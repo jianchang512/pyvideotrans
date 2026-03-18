@@ -17,8 +17,60 @@ MINIMAX_API_KEY = os.environ.get('MINIMAX_API_KEY', '')
 class TestMiniMaxIntegration(unittest.TestCase):
     """Integration tests using real MiniMax API."""
 
-    def test_chat_completion_m25(self):
-        """Test basic chat completion with MiniMax-M2.5."""
+    def test_chat_completion_m27(self):
+        """Test basic chat completion with MiniMax-M2.7 (new default)."""
+        from openai import OpenAI
+
+        client = OpenAI(
+            api_key=MINIMAX_API_KEY,
+            base_url='https://api.minimax.io/v1'
+        )
+
+        response = client.chat.completions.create(
+            model='MiniMax-M2.7',
+            messages=[
+                {'role': 'system', 'content': 'You are a subtitle translator.'},
+                {'role': 'user', 'content': 'Translate to Chinese: Hello world'}
+            ],
+            temperature=0.5,
+            max_tokens=100
+        )
+
+        self.assertIsNotNone(response.choices)
+        self.assertGreater(len(response.choices), 0)
+        content = response.choices[0].message.content
+        self.assertIsNotNone(content)
+        self.assertGreater(len(content.strip()), 0)
+        print(f"  MiniMax-M2.7 response: {content.strip()}")
+
+    def test_chat_completion_m27_highspeed(self):
+        """Test chat completion with MiniMax-M2.7-highspeed."""
+        from openai import OpenAI
+
+        client = OpenAI(
+            api_key=MINIMAX_API_KEY,
+            base_url='https://api.minimax.io/v1'
+        )
+
+        response = client.chat.completions.create(
+            model='MiniMax-M2.7-highspeed',
+            messages=[
+                {'role': 'system', 'content': 'You are a subtitle translator.'},
+                {'role': 'user', 'content': 'Translate to Japanese: Good morning'}
+            ],
+            temperature=0.5,
+            max_tokens=100
+        )
+
+        self.assertIsNotNone(response.choices)
+        self.assertGreater(len(response.choices), 0)
+        content = response.choices[0].message.content
+        self.assertIsNotNone(content)
+        self.assertGreater(len(content.strip()), 0)
+        print(f"  MiniMax-M2.7-highspeed response: {content.strip()}")
+
+    def test_chat_completion_m25_still_works(self):
+        """Test that MiniMax-M2.5 still works as an alternative."""
         from openai import OpenAI
 
         client = OpenAI(
@@ -43,32 +95,6 @@ class TestMiniMaxIntegration(unittest.TestCase):
         self.assertGreater(len(content.strip()), 0)
         print(f"  MiniMax-M2.5 response: {content.strip()}")
 
-    def test_chat_completion_highspeed(self):
-        """Test chat completion with MiniMax-M2.5-highspeed."""
-        from openai import OpenAI
-
-        client = OpenAI(
-            api_key=MINIMAX_API_KEY,
-            base_url='https://api.minimax.io/v1'
-        )
-
-        response = client.chat.completions.create(
-            model='MiniMax-M2.5-highspeed',
-            messages=[
-                {'role': 'system', 'content': 'You are a subtitle translator.'},
-                {'role': 'user', 'content': 'Translate to Japanese: Good morning'}
-            ],
-            temperature=0.5,
-            max_tokens=100
-        )
-
-        self.assertIsNotNone(response.choices)
-        self.assertGreater(len(response.choices), 0)
-        content = response.choices[0].message.content
-        self.assertIsNotNone(content)
-        self.assertGreater(len(content.strip()), 0)
-        print(f"  MiniMax-M2.5-highspeed response: {content.strip()}")
-
     def test_temperature_boundary(self):
         """Test that temperature=0.01 (near zero) works."""
         from openai import OpenAI
@@ -79,7 +105,7 @@ class TestMiniMaxIntegration(unittest.TestCase):
         )
 
         response = client.chat.completions.create(
-            model='MiniMax-M2.5-highspeed',
+            model='MiniMax-M2.7-highspeed',
             messages=[
                 {'role': 'user', 'content': 'Say "OK"'}
             ],
@@ -110,7 +136,7 @@ Hello, how are you?
 I'm fine, thank you."""
 
         response = client.chat.completions.create(
-            model='MiniMax-M2.5-highspeed',
+            model='MiniMax-M2.7',
             messages=[
                 {'role': 'system', 'content': 'You are a subtitle translator. Translate SRT subtitles keeping the format.'},
                 {'role': 'user', 'content': f'Translate to Chinese:\n\n{srt_input}'}

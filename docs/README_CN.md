@@ -132,7 +132,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | WhisperX / Parakeet | 支持时间轴对齐与说话人分离 |
 | | 阿里 Qwen3-ASR / 字节火山 | 在线 API，中文效果极佳 |
 | **翻译 (LLM/MT)** | **DeepSeek** / ChatGPT | 支持上下文理解，翻译更自然 |
-| | MiniMax AI | MiniMax M2.5 大模型，204K上下文，OpenAI兼容接口 |
+| | MiniMax AI | MiniMax M2.7 大模型，最新旗舰模型，OpenAI兼容接口 |
 | | Google / Microsoft | 传统机器翻译，速度快 |
 | | Ollama / M2M100 | 完全本地离线翻译 |
 | **语音合成 (TTS)** | **Edge-TTS** | 微软免费接口，效果自然 |
