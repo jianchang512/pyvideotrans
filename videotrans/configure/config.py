@@ -617,7 +617,7 @@ class AppParams:
             "minimaxi_model": "speech-02-turbo",
             
             "minimax_key":"",
-            "minimax_model":"MiniMax-M2.5",
+            "minimax_model":"MiniMax-M2.7",
             "minimax_max_tokens":8192,
             "minimax_api":"https://api.minimaxi.com/v1",
             

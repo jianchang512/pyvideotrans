@@ -128,7 +128,7 @@ class Ui_minimaxform(object):
     def update_ui(self):
         allmodels_str = settings.get('minimax_model','')
         if not allmodels_str:
-            allmodels_str = 'MiniMax-M2.5,MiniMax-M2.5-highspeed'
+            allmodels_str = 'MiniMax-M2.7,MiniMax-M2.7-highspeed,MiniMax-M2.5,MiniMax-M2.5-highspeed'
         allmodels = str(allmodels_str).split(',')
         self.minimax_model.clear()
         self.minimax_model.addItems(allmodels)

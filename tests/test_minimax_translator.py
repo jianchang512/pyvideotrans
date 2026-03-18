@@ -34,7 +34,7 @@ mock_config = types.ModuleType('videotrans.configure.config')
 mock_config.tr = lambda *a, **kw: a[0] if a else ''
 mock_config.params = {
     'minimax_key': 'test-key',
-    'minimax_model': 'MiniMax-M2.5',
+    'minimax_model': 'MiniMax-M2.7',
     'minimax_api': 'api.minimax.io',
 }
 mock_config.settings = {
@@ -125,19 +125,19 @@ class TestMiniMaxTranslatorInit(unittest.TestCase):
 
     def test_default_model(self):
         t = self._make_translator()
-        self.assertEqual(t.model_name, 'MiniMax-M2.5')
+        self.assertEqual(t.model_name, 'MiniMax-M2.7')
 
     def test_default_api_url(self):
         t = self._make_translator()
         self.assertEqual(t.api_url, 'https://api.minimax.io/v1')
 
     def test_custom_model(self):
-        mock_config.params['minimax_model'] = 'MiniMax-M2.5-highspeed'
+        mock_config.params['minimax_model'] = 'MiniMax-M2.7-highspeed'
         try:
             t = self._make_translator()
-            self.assertEqual(t.model_name, 'MiniMax-M2.5-highspeed')
+            self.assertEqual(t.model_name, 'MiniMax-M2.7-highspeed')
         finally:
-            mock_config.params['minimax_model'] = 'MiniMax-M2.5'
+            mock_config.params['minimax_model'] = 'MiniMax-M2.7'
 
     def test_custom_api_url(self):
         mock_config.params['minimax_api'] = 'api.minimaxi.com'
@@ -214,7 +214,7 @@ class TestMiniMaxTranslatorTask(unittest.TestCase):
         t = self._make_translator()
         t._item_task(['test'])
         call_kwargs = mock_client.chat.completions.create.call_args
-        self.assertEqual(call_kwargs.kwargs['model'], 'MiniMax-M2.5')
+        self.assertEqual(call_kwargs.kwargs['model'], 'MiniMax-M2.7')
 
     @patch.object(_minimax_module, 'OpenAI')
     def test_temperature_clamping(self, mock_openai_cls):
