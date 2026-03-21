@@ -292,11 +292,15 @@ class BaseCon:
             self._signal(text=f'[{title}] end: {int(time.time() - _st)}s')
             return data
         except BrokenProcessPool as e:
-            msg=traceback.format_exc()
+            err=traceback.format_exc()
+            _model=''
+            _cuda=''
+            if kwargs.get('model_name'):
+                _model=' Model:'+kwargs.get('model_name')
             if is_cuda and device_index>-1:
-                msg=f"[GPU{device_index}]\n{msg}"
-            logger.exception(f'new process:{msg}',exc_info=True)
-            raise RuntimeError(f'{tr("may be insufficient memory")} {msg}')
+                _cuda=f" GPU{device_index}"
+            logger.exception(f'{_model}{_cuda}:{msg}',exc_info=True)
+            raise RuntimeError(f'{tr("may be insufficient memory")}{_model}{_cuda}\n{msg}')
         except Exception as e:
             msg=traceback.format_exc()
             logger.exception(f'new process:{msg}',exc_info=True)
