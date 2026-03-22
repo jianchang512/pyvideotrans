@@ -87,6 +87,9 @@ cd pyvideotrans
 
 # 2. Install dependencies (uv automatically syncs environment)
 uv sync
+
+# If you need local channels for qwen-tts and qwen-asr, please execute `uv sync --extra qwen-tts --extra qwen-asr`
+
 ```
 
 ### 4. Launch Software

@@ -555,6 +555,7 @@ class TransCreate(BaseTask):
             # 覆盖
             shutil.copy2(outsrt_file, self.cfg.target_sub)
             self._signal(text='STT 2 pass end')
+            logger.debug('二次识别成功完成')
         
         except Exception as e:
             logger.exception(f'二次识别配音音频生成字幕时，预处理音频失败，静默跳过:{e}', exc_info=True)
