@@ -246,7 +246,10 @@ class WorkerAlign(QThread):
             try:
                 print(f'进入执行对齐阶段')
                 trk.align()
-                if trk.shoud_hebing:
+                # 存在二次识别
+                if hasattr(trk,'recogn2pass'):
+                    app_cfg.regcon2_queue.put_nowait(trk)
+                elif trk.shoud_hebing:
                     app_cfg.assemb_queue.put_nowait(trk)
                 else:
                     app_cfg.taskdone_queue.put_nowait(trk)
@@ -263,6 +266,39 @@ class WorkerAlign(QThread):
                     shutil.rmtree(trk.cfg.cache_folder, ignore_errors=True)
                 except Exception:
                     pass
+
+class WorkerRegcon2Pass(QThread):
+    def __init__(self):
+        super().__init__()
+        self.name = "SpeechToText2"
+
+    def run(self) -> None:
+        while 1:
+            if app_cfg.exit_soft:
+                return
+
+            try:
+                trk = app_cfg.regcon2_queue.get(timeout=1)
+            except Empty:
+                continue
+            if trk.uuid in app_cfg.stoped_uuid_set:
+                continue
+            try:
+                print(f'进入二次识别阶段')
+                trk.recogn2pass()
+                if trk.shoud_hebing:
+                    app_cfg.assemb_queue.put_nowait(trk)
+                else:
+                    app_cfg.taskdone_queue.put_nowait(trk)
+            except Exception as e:
+                logger.exception(e, exc_info=True)
+                except_msg = get_msg_from_except(e)
+                detail_back=(traceback.format_exc()).strip()
+                if not except_msg:
+                    except_msg=detail_back.split("\n")[-1]
+                msg = f'{tr("Secondary speech recognition of dubbing files")} {except_msg}\n{detail_back}\n{trk.cfg}'
+                set_process(text=msg, type='error', uuid=trk.uuid)
+                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
 
 
 
@@ -338,7 +374,7 @@ def start_thread():
         try:
             process_max_gpu=int(float(settings.get('process_max_gpu',0)))
         except:
-            process_max_gpu=0
+            process_max_gpu=1
         # 如果手动设置了gpu进程数量
         if process_max_gpu>0:
             task_nums=process_max_gpu
@@ -356,6 +392,7 @@ def start_thread():
         WorkerDiariz: task_nums,
         WorkerTrans: 1,
         WorkerDubb: 1,
+        WorkerRegcon2Pass: 1,
         WorkerAlign: 1,
         WorkerAssemb: task_nums,
         WorkerTaskDone: 1,

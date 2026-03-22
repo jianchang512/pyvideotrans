@@ -148,6 +148,7 @@ class AppCfg:
     trans_queue: Queue = field(default_factory=lambda: Queue(maxsize=0))
     dubb_queue: Queue = field(default_factory=lambda: Queue(maxsize=0))
     align_queue: Queue = field(default_factory=lambda: Queue(maxsize=0))
+    regcon2_queue: Queue = field(default_factory=lambda: Queue(maxsize=0))
     assemb_queue: Queue = field(default_factory=lambda: Queue(maxsize=0))
     taskdone_queue: Queue = field(default_factory=lambda: Queue(maxsize=0))
 
@@ -317,7 +318,7 @@ class AppSettings:
             "max_audio_speed_rate": 100,
             "max_video_pts_rate": 10,
             "threshold": 0.5,
-            "min_speech_duration_ms": 3000,
+            "min_speech_duration_ms": 1000,
             "max_speech_duration_s": 6,
             "min_silence_duration_ms": 200,
             "no_speech_threshold": 0.5,
@@ -384,8 +385,8 @@ class AppSettings:
             "llm_ai_type": "openai",
             "gemini_recogn_chunk": 50,
             "zh_hant_s": True,
-            "process_max": 0,
-            "process_max_gpu": 0,
+            "process_max": 1,
+            "process_max_gpu": 1,
             "multi_gpus": False,
             "azure_lines": 1,
             "chattts_voice": ChatTTS_VOICE,

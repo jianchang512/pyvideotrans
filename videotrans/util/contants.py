@@ -115,7 +115,7 @@ DEEPGRAM_MODEL = [
 # 支持的视频格式
 VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts", "flv"]
 # 支持的音频格式
-AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a"]
+AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a","ogg"]
 
 ChatTTS_VOICE="11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
 # 缺省 gemini 模型

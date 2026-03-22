@@ -113,6 +113,9 @@ class Worker(QThread):
                 trk.align()
             
             if not self._exit():
+                trk.recogn2pass()
+                
+            if not self._exit():
                 trk.assembling()
             
             if not self._exit():

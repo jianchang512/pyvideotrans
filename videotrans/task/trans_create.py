@@ -446,10 +446,7 @@ class TransCreate(BaseTask):
     # 配音后再次对配音文件进行识别，以便生成简短的字幕，
     # 开始识别
     def recogn2pass(self) -> None:
-        logger.debug(f'进入二次识别')
-        if not self.cfg.recogn2pass or self._exit(): return
-        if not self.shoud_dubbing:
-            logger.debug(f'跳过二次识别, 因未进行配音')
+        if not self.shoud_dubbing or not self.cfg.recogn2pass or self._exit(): 
             return
         # 如果不嵌入字幕，或嵌入双字幕，则跳过
         if self.cfg.subtitle_type > 2 and (self.cfg.source_language_code != self.cfg.target_language_code):
@@ -459,9 +456,11 @@ class TransCreate(BaseTask):
         if not tools.vail_file(self.cfg.target_wav):
             logger.debug(f'跳过二次识别，因无配音音频文件')
             return
-
+            
         self.precent += 3
         self._signal(text=tr("Secondary speech recognition of dubbing files"))
+        logger.debug(f'进入二次识别')
+
         shibie_audio = f'{self.cfg.cache_folder}/recogn2pass-{time.time()}.wav'
         outsrt_file = f'{self.cfg.cache_folder}/recogn2pass-{time.time()}.srt'
         try:
@@ -473,88 +472,94 @@ class TransCreate(BaseTask):
             if not tools.vail_file(shibie_audio):
                 logger.exception(f'二次识别配音音频生成字幕时，预处理音频失败，静默跳过:{e}', exc_info=True)
                 return
+        
+        try:
+            # 判断原渠道是否支持目标语言的识别 self.cfg.target_language_code
+            recogn_type = self.cfg.recogn_type
+            model_name = self.cfg.model_name
+            detect_language = self.cfg.target_language_code.split('-')[0]
 
-        # 判断原渠道是否支持目标语言的识别 self.cfg.target_language_code
-        recogn_type = self.cfg.recogn_type
-        model_name = self.cfg.model_name
-        detect_language = self.cfg.target_language_code.split('-')[0]
+            if recogn_allow_lang(langcode=self.cfg.target_language_code, recogn_type=recogn_type,
+                                 model_name=model_name) is not True:
+                recogn_type = FASTER_WHISPER
+                model_name = 'large-v3-turbo'
 
-        if recogn_allow_lang(langcode=self.cfg.target_language_code, recogn_type=recogn_type,
-                             model_name=model_name) is not True:
-            recogn_type = FASTER_WHISPER
-            model_name = 'large-v3-turbo'
+            if recogn_type == Faster_Whisper_XXL:
+                xxl_path = settings.get('Faster_Whisper_XXL', 'Faster_Whisper_XXL.exe')
+                cmd = [
+                    xxl_path,
+                    shibie_audio,
+                    "-pp",
+                    "-f", "srt"
+                ]
+                cmd.extend(['-l', detect_language.split('-')[0]])
+                prompt = settings.get(f'initial_prompt_{detect_language}')
+                if prompt:
+                    cmd += ['--initial_prompt', prompt]
+                cmd.extend(['--model', model_name, '--output_dir', self.cfg.cache_folder])
 
-        if recogn_type == Faster_Whisper_XXL:
-            xxl_path = settings.get('Faster_Whisper_XXL', 'Faster_Whisper_XXL.exe')
-            cmd = [
-                xxl_path,
-                shibie_audio,
-                "-pp",
-                "-f", "srt"
-            ]
-            cmd.extend(['-l', detect_language.split('-')[0]])
-            prompt = settings.get(f'initial_prompt_{detect_language}')
-            if prompt:
-                cmd += ['--initial_prompt', prompt]
-            cmd.extend(['--model', model_name, '--output_dir', self.cfg.cache_folder])
+                txt_file = Path(xxl_path).parent.resolve().as_posix() + '/pyvideotrans.txt'
 
-            txt_file = Path(xxl_path).parent.resolve().as_posix() + '/pyvideotrans.txt'
+                if Path(txt_file).exists():
+                    cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
 
-            if Path(txt_file).exists():
-                cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
+                cmdstr = " ".join(cmd)
+                logger.debug(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}')
+                self._external_cmd_with_wrapper(cmd)
+            elif recogn_type == Whisper_CPP:
+                cpp_path = settings.get('Whisper_cpp', 'whisper-cli')
+                cmd = [
+                    cpp_path,
+                    "-f",
+                    shibie_audio,
+                    "-osrt",
+                    "-np"
 
-            cmdstr = " ".join(cmd)
-            logger.debug(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}')
-            self._external_cmd_with_wrapper(cmd)
-        elif recogn_type == Whisper_CPP:
-            cpp_path = settings.get('Whisper_cpp', 'whisper-cli')
-            cmd = [
-                cpp_path,
-                "-f",
-                shibie_audio,
-                "-osrt",
-                "-np"
+                ]
+                cmd += ["-l", detect_language]
+                prompt = settings.get(f'initial_prompt_{detect_language}')
+                if prompt:
+                    cmd += ['--prompt', prompt]
+                cpp_folder = Path(cpp_path).parent.resolve().as_posix()
+                if not Path(f'{cpp_folder}/models/{model_name}').is_file():
+                    logger.error(tr('The model does not exist. Please download the model to the {} directory first.',
+                                           f'{cpp_folder}/models'))
+                    return
+                txt_file = cpp_folder + '/pyvideotrans.txt'
+                if Path(txt_file).exists():
+                    cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
+                cmd.extend(['-m', f'models/{model_name}', '-of', outsrt_file[:-4]])
+                logger.debug(f'Whisper.cpp: {cmd=}')
+                self._external_cmd_with_wrapper(cmd)
+            else:
+                # -1不启用，0不限制数量，>0加1为指定的说话人数量
+                logger.debug(f'[trans_create]:二次识别')
+                raw_subtitles = run_recogn(
+                    recogn_type=recogn_type,
+                    uuid=self.uuid,
+                    model_name=model_name,
+                    audio_file=shibie_audio,
+                    detect_language=detect_language,
+                    cache_folder=self.cfg.cache_folder,
+                    is_cuda=self.cfg.is_cuda,
+                    recogn2pass=True  # 二次识别
+                )
+                if self._exit(): return
+                if not raw_subtitles:
+                    logger.error('二次识别出错：' + tr('recogn result is empty'))
+                self._save_srt_target(raw_subtitles, outsrt_file)
 
-            ]
-            cmd += ["-l", detect_language]
-            prompt = settings.get(f'initial_prompt_{detect_language}')
-            if prompt:
-                cmd += ['--prompt', prompt]
-            cpp_folder = Path(cpp_path).parent.resolve().as_posix()
-            if not Path(f'{cpp_folder}/models/{model_name}').is_file():
-                logger.error(tr('The model does not exist. Please download the model to the {} directory first.',
-                                       f'{cpp_folder}/models'))
+            if not tools.vail_file(outsrt_file):
+                logger.error(f'二次识别配音文件失败，原因未知')
                 return
-            txt_file = cpp_folder + '/pyvideotrans.txt'
-            if Path(txt_file).exists():
-                cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
-            cmd.extend(['-m', f'models/{model_name}', '-of', outsrt_file[:-4]])
-            logger.debug(f'Whisper.cpp: {cmd=}')
-            self._external_cmd_with_wrapper(cmd)
-        else:
-            # -1不启用，0不限制数量，>0加1为指定的说话人数量
-            logger.debug(f'[trans_create]:二次识别')
-            raw_subtitles = run_recogn(
-                recogn_type=recogn_type,
-                uuid=self.uuid,
-                model_name=model_name,
-                audio_file=shibie_audio,
-                detect_language=detect_language,
-                cache_folder=self.cfg.cache_folder,
-                is_cuda=self.cfg.is_cuda,
-                recogn2pass=True  # 二次识别
-            )
-            if self._exit(): return
-            if not raw_subtitles:
-                logger.error('二次识别出错：' + tr('recogn result is empty'))
-            self._save_srt_target(raw_subtitles, outsrt_file)
-
-        if not tools.vail_file(outsrt_file):
-            logger.error(f'二次识别配音文件失败，原因未知')
+            # 覆盖
+            shutil.copy2(outsrt_file, self.cfg.target_sub)
+            self._signal(text='STT 2 pass end')
+        
+        except Exception as e:
+            logger.exception(f'二次识别配音音频生成字幕时，预处理音频失败，静默跳过:{e}', exc_info=True)
             return
-        # 覆盖
-        shutil.copy2(outsrt_file, self.cfg.target_sub)
-        self._signal(text='STT 2 pass end')
+
         return True
 
     def diariz(self):
@@ -1253,9 +1258,7 @@ class TransCreate(BaseTask):
                 threading.Thread(target=_output, daemon=True).start()
             except Exception:
                 pass
-            # 二次识别
-            if self.cfg.recogn2pass and self.shoud_dubbing:
-                self.recogn2pass()
+
             # 添加背景音乐
             self._back_music()
             # 重新嵌入分离出的背景音
