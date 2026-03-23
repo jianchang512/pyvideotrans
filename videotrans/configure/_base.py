@@ -299,8 +299,8 @@ class BaseCon:
                 _model=' Model:'+kwargs.get('model_name')
             if is_cuda and device_index>-1:
                 _cuda=f" GPU{device_index}"
-            logger.exception(f'{_model}{_cuda}:{msg}',exc_info=True)
-            raise RuntimeError(f'{tr("may be insufficient memory")}{_model}{_cuda}\n{msg}')
+            logger.exception(f'{_model}{_cuda}',exc_info=True)
+            raise RuntimeError(f'{tr("may be insufficient memory")}{_model}{_cuda}\n{err}')
         except Exception as e:
             msg=traceback.format_exc()
             logger.exception(f'new process:{msg}',exc_info=True)
