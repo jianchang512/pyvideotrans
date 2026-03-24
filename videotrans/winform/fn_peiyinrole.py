@@ -216,7 +216,8 @@ def openwin():
 
         if winobj.save_to_srt.isChecked():
             RESULT_DIR = Path(winobj.srt_path).parent.as_posix()
-
+        else:
+            RESULT_DIR=HOME_DIR+'/tts'
         video_obj = tools.format_video(winobj.srt_path, None)
         uuid = video_obj['uuid']
         cfg={
