@@ -351,7 +351,9 @@ def openwin():
         toggle_state(True)
         if len(winobj.hecheng_importbtn.filelist) > 0 and winobj.save_to_srt.isChecked():
             RESULT_DIR = Path(winobj.hecheng_importbtn.filelist[0]).parent.as_posix()
-
+        else:
+            RESULT_DIR=HOME_DIR + "/tts"
+            
         if txt:
             newsrtfile = TEMP_DIR + f"/{datetime.now().strftime('%Y%m%d-%H%M%S')}."
             is_srt = re.match(

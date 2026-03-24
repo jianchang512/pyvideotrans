@@ -72,12 +72,14 @@ class BaseTTS(BaseCon):
 
     def _cleantts(self):
         normalizer = None
-        if self.language[:2] == 'zh':
-            from videotrans.util.cn_tn import TextNorm
-            normalizer = TextNorm(to_banjiao=True)
-        elif self.language[:2] == 'en':
-            from videotrans.util.en_tn import EnglishNormalizer
-            normalizer = EnglishNormalizer()
+        if settings.get('normal_text'):
+            if self.language[:2] == 'zh':
+                from videotrans.util.cn_tn import TextNorm
+                normalizer = TextNorm(to_banjiao=True)
+            elif self.language[:2] == 'en':
+                from videotrans.util.en_tn import EnglishNormalizer
+                normalizer = EnglishNormalizer()
+        
         for i, it in enumerate(self.queue_tts):
             text = it.get('text', '').strip()
             if text and normalizer:

@@ -83,6 +83,7 @@ class Ui_setini(object):
                 "dubbing_wait": "每次配音后暂停秒数,用于限制请求频率",
                 "remove_dubb_silence":"移除每条字幕配音前后静音缓冲，利于音画同步，但可能结尾仓促",
                 "save_segment_audio": "保留每行字幕的配音结果",
+                "normal_text":"配音前对文本规范化处理",
                 "azure_lines": "Azure TTS批量配音行数，一次多少行",
                 "chattts_voice": "ChatTTS 音色值",
                 "edgetts_max_concurrent_tasks": "EdgeTTS渠道配音并发数，越大越快，但可能限流失败",
@@ -180,6 +181,7 @@ class Ui_setini(object):
             "aitrans_context":"AI翻译附带完整原字幕",
             "remove_dubb_silence":"移除配音前后静音缓冲",
             "first_hw":"视频合成优先硬编码",
+            "normal_text":"文本规范化",
 
             "whisper_prepare": "Whisper预分割音频?",
             "temperature":"采样温度",
@@ -325,6 +327,7 @@ class Ui_setini(object):
                     "dubbing_wait": "Delay (in seconds) between dubbing requests to prevent rate-limiting.",
                     "remove_dubb_silence":"Remove the mute buffer before and after each subtitle audio. Selecting this option will improve audio-visual synchronization, but may make the ending feel rushed.",
                     "save_segment_audio": "Save the dubbed audio for each individual subtitle line.",
+                    "normal_text":"Text normalization before dubbing",
                     "azure_lines": "Number of lines per batch request for Azure TTS.",
                     "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
                     "edgetts_retry_nums": "Number of retries after EdgeTTS channel failure",
@@ -426,6 +429,7 @@ class Ui_setini(object):
                 "temperature":"temperature",
                  "hotwords":"hotwords",
                 "remove_dubb_silence":"Remove the mute buffer each subtitle audio",
+                "normal_text":"Text Text normalization",
 
                 "repetition_penalty":"repetition penalty",
                 "compression_ratio_threshold":"compression ratio threshold",
