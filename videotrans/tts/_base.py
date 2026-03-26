@@ -197,7 +197,7 @@ class BaseTTS(BaseCon):
 
         self._signal(text=tr("Dubbing succeeded {}，failed {}", succeed_nums, len(self.queue_tts) - succeed_nums))
 
-    # 用于除  edge-tts 之外的渠道，在此进行单或多线程气动。调用 _item_task
+    # 用于除  edge-tts 之外的渠道，在此进行单或多线程。调用 _item_task
     # exec->_local_mul_thread->item_task
     def _local_mul_thread(self) -> None:
         if self._exit(): return

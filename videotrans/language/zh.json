@@ -959,6 +959,8 @@
   "Translation successful but transfer failed.":"视频翻译成功，但移动到目标文件夹时失败，你可手动复制，当前视频保存在:\n{}",
 
   "clone_dubb_tips1": "使用clone角色进行语音克隆配音时，建议在菜单-工具-高级选项-语音识别参数区域，将最短语音持续时长设为3000，最长语音时长秒设为10,避免因时长问题出错.",
-  "clone_dubb_tips2": "同时选中 Whisper预分割音频."
+  "clone_dubb_tips2": "同时选中 Whisper预分割音频.",
+  "The filename is too long":"文件名或路径可能太长了！",
+  "Filename length check":"文件名的“总长度”较长，在后续复杂处理时可能超过系统限制而出错。\n当前文件名：{} 个字, 路径加文件共：{} 个字\n\n为避免后续出错，建议：改短文件名，缩短文件夹的名字，将文件移动到更外层更简短的文件夹中。\n\n点击 Yes 忽略该警告继续执行， 点击 No 暂停后去修改"
 
 }

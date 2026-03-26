@@ -427,6 +427,29 @@ class WinAction(WinActionSub):
                 return True
         return True
 
+
+    def check_name_length(self):
+        if sys.platform != 'win32':
+            return True
+        from PySide6.QtWidgets import QMessageBox
+        for it in self.queue_mp4:
+            _itlen=len(it)
+            _namelen=len(Path(it).name)
+            if  _itlen>=170 or _namelen>=90:
+                reply = QMessageBox.question(
+                    self.main,
+                    tr("The filename is too long"),
+                    tr("Filename length check",_namelen,_itlen)+f"\n\n{it}",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    QMessageBox.StandardButton.No
+                )
+
+                if reply != QMessageBox.StandardButton.Yes:
+                    return False
+                return True
+        return True
+
+
     # 检测开始状态并启动
     def check_start(self):
         # 已在执行中，则停止
@@ -577,6 +600,9 @@ class WinAction(WinActionSub):
                 deepseek.openwin()
                 return
         # 检查输入 输出目录
+        if self.check_name_length() is not True:
+            self.main.startbtn.setDisabled(False)
+            return
         if self.check_output() is not True:
             self.main.startbtn.setDisabled(False)
             return
