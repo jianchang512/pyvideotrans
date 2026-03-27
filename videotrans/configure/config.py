@@ -593,6 +593,7 @@ class AppParams:
             "openaitts_role":"",
             
             "xaitts_key":"",
+            "mitts_key":"",
 
             "openaitts_instructions": "",
             "qwentts_key": "",

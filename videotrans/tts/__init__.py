@@ -25,6 +25,7 @@ from videotrans.tts._doubao2 import Doubao2TTS
 from videotrans.tts._f5tts import F5TTS
 from videotrans.tts._glmtts import GLMTTS
 from videotrans.tts._xaitts import XAITTS
+from videotrans.tts._mitts import MITTS
 
 EDGE_TTS = 0
 QWEN3LOCAL_TTS = 1
@@ -63,8 +64,9 @@ FreeAzure = 27
 GOOGLE_TTS = 28
 
 XAI_TTS = 29
-TTS_API = 30
-GOOGLECLOUD_TTS = 31
+XIAOMI_TTS = 30
+TTS_API = 31
+GOOGLECLOUD_TTS = 32
 
 # 支持克隆的渠道
 SUPPORT_CLONE=[
@@ -116,6 +118,7 @@ _ID_NAME_DICT = {
     GOOGLE_TTS: "gTTS(free)",
 
     XAI_TTS: 'X.AI TTS',
+    XIAOMI_TTS:'xiaomi TTS',
     TTS_API: tr("Customize API"),
 
     # GOOGLECLOUD_TTS:"Google Cloud TTS",
@@ -168,6 +171,12 @@ def is_input_api(tts_type: int = None, return_str=False):
             return "Please configure the api key information of the X.AI TTS  channel first."
         from videotrans.winform import xaitts as xaitts_win
         xaitts_win.openwin()
+        return False
+    if tts_type == XIAOMI_TTS and not params.get("mitts_key", ''):
+        if return_str:
+            return "Please configure the api key information of the xiaomi TTS  channel first."
+        from videotrans.winform import mitts as mitts_win
+        mitts_win.openwin()
         return False
 
     
@@ -385,3 +394,5 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         SupertonicTTS(**kwargs).run()
     elif tts_type == XAI_TTS:
         XAITTS(**kwargs).run()
+    elif tts_type == XIAOMI_TTS:
+        MITTS(**kwargs).run()

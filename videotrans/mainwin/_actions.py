@@ -192,6 +192,10 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = ['No']+contants.XAITTS_ROLES.split(',')
             self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == tts.XIAOMI_TTS:
+            self.main.voice_role.clear()
+            self.main.current_rolelist = ['No']+contants.MITTS_ROLES.split(',')
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.QWEN_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = list(tools.get_qwen3tts_rolelist().keys())
@@ -315,7 +319,6 @@ class WinAction(WinActionSub):
             show_rolelist = tools.get_doubao_rolelist()
         elif tts_type == tts.MINIMAXI_TTS:
             show_rolelist = tools.get_minimaxi_rolelist()
-
         else:
             # AzureTTS
             show_rolelist = tools.get_azure_rolelist()

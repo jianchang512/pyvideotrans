@@ -471,6 +471,8 @@ def openwin():
             role_list=['No']+params.get('openaitts_role',contants.OPENAITTS_ROLES).split(',')
         elif type == tts.XAI_TTS:
             role_list=['No']+contants.XAITTS_ROLES.split(',')
+        elif type == tts.XIAOMI_TTS:
+            role_list=['No']+contants.MITTS_ROLES.split(',')
         elif type == tts.QWEN_TTS:
             role_list=list(tools.get_qwen3tts_rolelist().keys())
         elif type == tts.QWEN3LOCAL_TTS:
