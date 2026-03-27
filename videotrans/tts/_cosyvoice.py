@@ -145,7 +145,7 @@ class CosyVoice(BaseTTS):
             raise RuntimeError(tr('CosyVoice synthesis failed -2'))
         self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
 
-    def _item_task(self, data_item):
+    def _item_task(self, data_item,idx:int=-1):
         if self._exit() or  not data_item.get('text','').strip():
             return
         if self._exit() or tools.vail_file(data_item['filename']):

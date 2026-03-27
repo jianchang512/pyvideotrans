@@ -24,7 +24,7 @@ class SupertonicTTS(BaseTTS):
 
 
 
-    def _item_task(self, data_item: dict = None):
+    def _item_task(self, data_item: dict = None,idx:int=-1):
         try:
             if self._exit() or not data_item.get('text','').strip():
                 return

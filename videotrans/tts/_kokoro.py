@@ -24,7 +24,7 @@ class KokoroTTS(BaseTTS):
     def _exec(self):
         self._local_mul_thread()
 
-    def _item_task(self, data_item: dict = None):
+    def _item_task(self, data_item: dict = None,idx:int=-1):
         if self._exit() or not data_item.get('text','').strip():
             return
         def _run():

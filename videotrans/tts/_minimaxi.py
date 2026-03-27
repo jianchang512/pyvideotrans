@@ -32,7 +32,7 @@ class MinimaxiTTS(BaseTTS):
     def _exec(self) -> None:
         self._local_mul_thread()
 
-    def _item_task(self, data_item: Union[Dict, List, None]):
+    def _item_task(self, data_item: Union[Dict, List, None],idx:int=-1):
         if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
             return
 

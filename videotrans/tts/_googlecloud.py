@@ -64,7 +64,7 @@ class GoogleCloudTTS(BaseTTS):
         """Dispara threads conforme BaseTTS."""
         self._local_mul_thread()
 
-    def _item_task(self, data_item: dict):
+    def _item_task(self, data_item: dict,idx:int=-1):
         """
         Executa síntese para cada segmento de texto.
         

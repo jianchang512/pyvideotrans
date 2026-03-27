@@ -289,7 +289,7 @@ class F5TTS(BaseTTS):
         else:
             raise RuntimeError(str(result))
 
-    def _item_task(self, data_item: Union[Dict, List, None]):
+    def _item_task(self, data_item: Union[Dict, List, None],idx:int=-1):
         if self._exit() or  not data_item.get('text','').strip():
             return
         # F5_TTS_WINFORM_NAMES=['F5-TTS', 'Spark-TTS', 'Index-TTS', 'Dia-TTS','VoxCPM-TTS']

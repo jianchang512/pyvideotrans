@@ -49,7 +49,7 @@ class DoubaoTTS(BaseTTS):
         # 并发限制为1，防止限流
         self._local_mul_thread()
 
-    def _item_task(self, data_item: dict = None):
+    def _item_task(self, data_item: dict = None,idx:int=-1):
         if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
             return
         def _run():

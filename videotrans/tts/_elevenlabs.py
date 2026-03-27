@@ -24,7 +24,7 @@ class ElevenLabsC(BaseTTS):
         # 是否终止所有配音，当出现401 403 授权错误 等不论多少次尝试注定失败的错误，提前终止
         self.stop_next_all=False
 
-    def _item_task(self, data_item: dict = None):
+    def _item_task(self, data_item: dict = None,idx:int=-1):
         if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),

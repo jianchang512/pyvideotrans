@@ -34,7 +34,7 @@ class GPTSoVITS(BaseTTS):
     def _exec(self):
         self._local_mul_thread()
 
-    def _item_task(self, data_item: Union[Dict, List, None]):
+    def _item_task(self, data_item: Union[Dict, List, None],idx:int=-1):
         try:
             if self._exit() or  not data_item.get('text','').strip()  or tools.vail_file(data_item['filename']):
                 return

@@ -63,5 +63,4 @@ class QwenttsLocal(BaseTTS):
             if len(all_task) > 0:
                 _ = [i.result() for i in all_task]
 
-    def _item_task(self, data_item):
-        pass
+

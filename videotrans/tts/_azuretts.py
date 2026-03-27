@@ -103,7 +103,7 @@ class AzureTTS(BaseTTS):
 
         _run()
 
-    def _item_task(self, data_item):
+    def _item_task(self, data_item,idx:int=-1):
         if self._exit() or  not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),

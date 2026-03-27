@@ -30,7 +30,7 @@ class TTSAPI(BaseTTS):
     def _exec(self) -> None:
         self._local_mul_thread()
 
-    def _item_task(self, data_item: Union[Dict, List, None]):
+    def _item_task(self, data_item: Union[Dict, List, None],idx:int=-1):
         if self._exit() or not data_item.get('text','').strip():
             return
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),

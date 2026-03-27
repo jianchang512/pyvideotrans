@@ -139,7 +139,7 @@ class FreeAzureTTS(BaseTTS):
         """
 
 
-    def _item_task(self, data_item):
+    def _item_task(self, data_item,idx:int=-1):
         if self._exit() or  not data_item.get('text','').strip():
             return
         

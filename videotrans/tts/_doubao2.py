@@ -71,7 +71,7 @@ class Doubao2TTS(BaseTTS):
             logger.exception(f"保存WAV文件时出错: {e}",exc_info=True)
 
     
-    def _item_task(self, data_item: dict = None):
+    def _item_task(self, data_item: dict = None,idx:int=-1):
         try:
             if self.stop_next_all or self._exit() or not data_item.get('text','').strip():
                 return

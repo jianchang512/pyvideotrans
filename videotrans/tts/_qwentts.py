@@ -33,7 +33,7 @@ class QWENTTS(BaseTTS):
                 tr("please input your Qwen TTS  API KEY"))
         self._local_mul_thread()
 
-    def _item_task(self, data_item: dict = None):
+    def _item_task(self, data_item: dict = None,idx:int=-1):
         if self._exit() or not data_item.get('text','').strip():
             return
         # 主循环，用于无限重试连接错误
