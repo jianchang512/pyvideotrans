@@ -66,8 +66,8 @@ class BaseTTS(BaseCon):
         if not self.queue_tts:
             raise RuntimeError(tr("No subtitles required"))
 
-        self.len = len(self.queue_tts)
         self.queue_tts = copy.deepcopy(self.queue_tts)
+        self.len = len(self.queue_tts)
         self._cleantts()
 
     def _cleantts(self):
@@ -81,12 +81,11 @@ class BaseTTS(BaseCon):
                 normalizer = EnglishNormalizer()
         
         for i, it in enumerate(self.queue_tts):
-            text = it.get('text', '').strip()
-            if text and normalizer:
+            if it['text'].strip() and normalizer:
                 try:
-                    self.queue_tts[i]['text'] = normalizer(text)
+                    self.queue_tts[i]['text'] = normalizer(it['text'])
                 except:
-                    self.queue_tts[i]['text'] = text
+                    pass
 
         if "volume" in self.queue_tts[0]:
             self.volume = self.queue_tts[0]['volume']

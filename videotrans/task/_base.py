@@ -118,7 +118,6 @@ class BaseTask(BaseCon):
             return target_srt_list[:1]
         source_len = len(source_srt_list)
         target_len = len(target_srt_list)
-        logger.debug(f'核对翻译结果前->原始语言字幕行数:{source_len},目标语言字幕行数:{target_len}')
         
         if source_len==target_len:
             for i,it in enumerate(source_srt_list):

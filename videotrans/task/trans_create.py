@@ -948,7 +948,7 @@ class TransCreate(BaseTask):
 
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
-            if it['end_time'] <= it['start_time'] or not it['text'].strip():
+            if it['end_time'] < it['start_time'] or not it['text'].strip():
                 continue
             # 判断是否存在单独设置的行角色，如果不存在则使用全局
             voice = line_roles.get(f'{it["line"]}', voice_role)
@@ -990,7 +990,7 @@ class TransCreate(BaseTask):
 
         # 具体配音操作
         run_tts(
-            queue_tts=copy.deepcopy(self.queue_tts),
+            queue_tts=self.queue_tts,
             language=self.cfg.target_language_code,
             uuid=self.uuid,
             tts_type=self.cfg.tts_type,

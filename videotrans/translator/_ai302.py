@@ -21,7 +21,6 @@ class AI302(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-        self.trans_thread = int(settings.get('aitrans_thread', 500))
         self.model_name = params.get('ai302_model','')
         self.prompt = tools.get_prompt(ainame='ai302',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
 

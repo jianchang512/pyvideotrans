@@ -20,8 +20,6 @@ class DeepSeek(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-
-        self.trans_thread = int(settings.get('aitrans_thread', 50))
         self.model_name = params.get('deepseek_model', "deepseek-chat")
         self.api_url = 'https://api.deepseek.com/v1/'
 
@@ -30,7 +28,12 @@ class DeepSeek(BaseTrans):
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
-        text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
+        
+        if isinstance(data, list):
+            text = "\n".join([i.strip() for i in data])
+        else:
+            text=data
+        
         message = [
             {
                 'role': 'system',

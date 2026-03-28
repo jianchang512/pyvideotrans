@@ -1,4 +1,6 @@
 # 数字代表界面中的显示顺序
+import copy
+
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.tts._edgetts import EdgeTTS
 from videotrans.tts._qwentts import QWENTTS
@@ -328,7 +330,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         return
 
     kwargs = {
-        "queue_tts": queue_tts,
+        "queue_tts": copy.deepcopy(queue_tts),
         "language": language,
         "uuid": uuid,
         "play": play,

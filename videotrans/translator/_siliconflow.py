@@ -19,7 +19,6 @@ class SILICONFLOW(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-        self.trans_thread = int(settings.get('aitrans_thread', 50))
         self.model_name = params.get('guiji_model', '')
         self.api_url = "https://api.siliconflow.cn/v1"
 

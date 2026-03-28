@@ -180,7 +180,7 @@ class DubbingSrt(BaseTask):
 
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
-            if it['end_time'] <= it['start_time']:
+            if it['end_time'] < it['start_time'] or not it['text'].strip():
                 continue
             try:
                 spec_role = app_cfg.dubbing_role.get(int(it.get('line', 1))) if self.is_multi_role else None
@@ -207,7 +207,7 @@ class DubbingSrt(BaseTask):
             raise RuntimeError(tr('No subtitles required'))
         # 具体配音操作
         tts.run(
-            queue_tts=copy.deepcopy(self.queue_tts),
+            queue_tts=self.queue_tts,
             language=self.cfg.target_language_code,
             uuid=self.uuid,
             tts_type=self.cfg.tts_type,

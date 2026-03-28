@@ -369,15 +369,11 @@ class SpeedRate:
         for i in range(len(self.queue_tts)):
             current = self.queue_tts[i]
 
-            #current['original_start'] = current['start_time']
-            #current['original_end'] = current['end_time']
             # 字幕开始点，用于切分 视频 和 变速
             current['start_time_source']=current['start_time']
             # 有视频慢速并且小于100ms，置为 从0开始，防止短视频片段出错
             if self.shoud_videorate and i == 0 and current['start_time']<100:
                 current['start_time_source'] = 0
-                #else:
-                #    current['start_time_source'] = self.queue_tts[i-1]['end_time_source']
             
             # 填补空隙，将字幕结束时间变为下个开始时间，增大变速区间，以减小变速幅度
             # 开始时间点除了第0条，其他不变，只移动结束点
@@ -581,26 +577,8 @@ class SpeedRate:
                 logger.warning(f"[Audio-Sync] 字幕[{it['line']}] 视频槽时长为0，回退使用原始时长: {it['source_duration']}ms")
                 slot_duration = max(1, it['source_duration'])
 
-            #slot_audio_parts = []
             current_slot_audio_len = 0
             
-            # 1. 前导静音处理
-            """
-            original_offset = it['original_start'] - it['start_time_source']
-            if original_offset > 0:
-                # 按视频变速比例缩放前导静音
-                if it['source_duration'] > 0 and self.shoud_videorate:
-                    pts = slot_duration / it['source_duration']
-                    # 【修正】只允许延长 (pts >= 1)，避免因为压缩过大导致静音消失
-                    pts = max(1.0, pts)
-                    offset_scaled = int(original_offset * pts)
-                else:
-                    offset_scaled = original_offset
-                
-                if offset_scaled > 0:
-                    slot_audio_parts.append(self._create_silen_file(f"pre_{i}", offset_scaled))
-                    current_slot_audio_len += offset_scaled
-            """
             # 2. 配音文件
             audio_file = it['filename']
             if Path(audio_file).exists():
@@ -610,7 +588,6 @@ class SpeedRate:
                         seg = seg.set_channels(self.AUDIO_CHANNELS)
                         seg.export(audio_file, format='wav')
                     
-                    #slot_audio_parts.append(audio_file)
                     current_slot_audio_len += len(seg)
                 except Exception as e:
                     logger.error(f"[Audio-Sync] 读取配音失败 {audio_file}: {e}")
@@ -622,7 +599,6 @@ class SpeedRate:
             if current_slot_audio_len > slot_duration:
                 # 配音长度大于视频片段或字幕区间片段，有视频慢速时，最终生成的视频(slot_duration)可能比理论需要的短几十ms
                 log_flag = f"音频溢出截断 {current_slot_audio_len}->{slot_duration}"
-                #combined_path = self._merge_audio_parts(slot_audio_parts, f"temp_slot_{i}")
                 
                 try:
                     # 有视频慢速时强制阶段音频
@@ -655,22 +631,6 @@ class SpeedRate:
 
         self._exec_concat_audio(audio_list)
     
-    """
-    def _merge_audio_parts(self, file_list, name):
-        #临时合并
-        if len(file_list) == 1:
-            return file_list[0]
-        
-        output = Path(self.cache_folder, f"{name}.wav").as_posix()
-        combined = AudioSegment.empty()
-        for f in file_list:
-            combined += AudioSegment.from_file(f)
-        combined.export(output, format="wav")
-        
-        # 【修正】清理可能的临时文件（如果是 pre_ 或 tail_ 生成的）
-        # 这里逻辑较复杂，暂时只清理 file_list 中明显带有 temp 标记的，或者依赖 cache 统一清理
-        return output
-    """
     def _run_no_rate_change_mode(self):
         # 不变速时直接拼接
         tools.set_process(text=tr("Merging audio (No Speed Change)..."), uuid=self.uuid)
@@ -827,21 +787,10 @@ class TtsSpeedRate(SpeedRate):
         total_audio_duration = 0
 
         # 恢复原始时间轴
-        """
-        for it in self.queue_tts:
-            it['start_time']=it['original_start']
-            it['end_time']=it['original_end']
-            it['source_duration']=it['end_time']-it['start_time']
-        """
         for i, it in enumerate(self.queue_tts):
-            #prev_end = 0 if i == 0 else self.queue_tts[i-1].get('end_pos_for_concat', 0)
-            #start_time = it['start_time']
-            #gap = start_time - prev_end
-
             # 添加前导静音
             if i == 0 and it['start_time']>0:
                 audio_concat_list.append(self._create_silen_file(f"gap_{i}", it['start_time']))
-                #total_audio_duration += gap
 
             # 真实配音时长
             if it.get('filename') and Path(it['filename']).exists():
@@ -853,15 +802,5 @@ class TtsSpeedRate(SpeedRate):
             # 如果真实配音短于字幕区间，末尾添加静音
             if dubb_len<it['source_duration']:
                 audio_concat_list.append(self._create_silen_file(f"end_{i}", it['source_duration']-dubb_len))
-                #dubb_len=it['source_duration']
-
-
-            #total_audio_duration += dubb_len
-            #it['end_pos_for_concat'] = total_audio_duration
-
-
-        #if self.raw_total_time > total_audio_duration:
-        #    audio_concat_list.append(self._create_silen_file("tail_end", self.raw_total_time - total_audio_duration))
-
         self._exec_concat_audio(audio_concat_list)
 

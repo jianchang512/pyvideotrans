@@ -325,7 +325,7 @@ class AppSettings:
             "whisper_prepare":False,
             "merge_short_sub": True,
             "vad_type": "tenvad",
-            "trans_thread": 20,
+            "trans_thread": 10,
             "aitrans_thread": 50,
             "translation_wait": 0,
             "dubbing_wait": 1,

@@ -23,8 +23,6 @@ class LocalLLM(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-
-        self.trans_thread = int(settings.get('aitrans_thread', 50))
         self.api_url = params.get('localllm_api','')
         self._add_internal_host_noproxy(self.api_url)
         self.model_name = params.get("localllm_model",'')

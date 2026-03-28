@@ -195,7 +195,7 @@ def get_prompt(ainame,aisendsrt=True):
     if glossary:
         glossary = "\n".join(["|" + it.replace("=", '|') + "|" for it in glossary.split('\n')])
         glossary_prompt = """\n\n# Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n"""
-        content = content.replace('# Actual Task', f"""{glossary_prompt}{glossary}\n\n# Actual Task""")
+        content = content.replace('# ACTUAL TASK', f"""{glossary_prompt}{glossary}\n\n# ACTUAL TASK""")
     return content
 
 

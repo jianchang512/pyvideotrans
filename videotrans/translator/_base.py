@@ -11,16 +11,12 @@ from videotrans.util import tools
 from tenacity import RetryError
 
 _GLOBAL_CONTEXT="""
-# Global Context (Read-Only Reference)
-The user has provided the FULL subtitle file below for context (plot, terms, gender).
-**INSTRUCTIONS for Context:**
-1. Read this to understand the story.
-2. **DO NOT translate this section.**
-3. Use this ONLY to improve the accuracy of the batch translation below.
-
-<FULL_SOURCE_CONTEXT>
+# GLOBAL CONTEXT (Background Info)
+<GLOBAL_CONTEXT>
 {COMPLETE_SRT_TEXT}
-</FULL_SOURCE_CONTEXT>
+</GLOBAL_CONTEXT>
+**[CRITICAL WARNING]:** The `<GLOBAL_CONTEXT>` above is strictly for your reading to understand the plot, character relationships, gender, tone, and overall flow. **NEVER TRANSLATE THE GLOBAL CONTEXT.** 
+
 """
 @dataclass
 class BaseTrans(BaseCon):
@@ -61,7 +57,7 @@ class BaseTrans(BaseCon):
         if self.aisendsrt and settings.get('aitrans_context'):
             self.full_origin_subtitles=_GLOBAL_CONTEXT.replace('{COMPLETE_SRT_TEXT}',"\n".join([it["text"] for it in self.text_list]))
 
-        if self.translate_type not in translator.AI_TRANS_CHANNELS:
+        if not self.aisendsrt:
             self.trans_thread = int(settings.get('trans_thread', 5))
         else:
             self.trans_thread = int(settings.get('aitrans_thread', 20))
@@ -88,14 +84,14 @@ class BaseTrans(BaseCon):
         # 如果是不是以 完整字幕格式发送，则组成字符串列表，否则组成 [dict,dict] 列表，每个dict都是字幕行信息
         if not self.aisendsrt:
             # 是文字列表  [text_str,...]
-            source_text = [t['text'] for t in self.text_list]
+            source_text = [t['text'].replace("\n"," ") for t in self.text_list]
         else:
             # 是srt格式字幕列表 [{text,line,time},...]
             source_text=self.text_list
 
 
-        split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(self.text_list), self.trans_thread)]
-        
+        split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(source_text), self.trans_thread)]
+        print(f'{self.trans_thread=}')
         try:
             if self.aisendsrt:
                 return self._run_srt(split_source_text)
@@ -132,6 +128,7 @@ class BaseTrans(BaseCon):
                     self._signal(text=result_item + "\n",type='subtitle')
             # 行数不匹配填充空行
             if len(sep_res) < len(it):
+                print(f'行数不匹配，原始：{len(it)}, 结果：{len(sep_res)}\n{it=}\n{sep_res=}')
                 tmp = ["" for x in range(len(it) - len(sep_res))]
                 target_list += tmp
 
@@ -200,5 +197,5 @@ class BaseTrans(BaseCon):
 
     def _get_key(self, it):
         Path(TEMP_ROOT + '/translate_cache').mkdir(parents=True, exist_ok=True)
-        key_str=f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it if isinstance(it, str) else json.dumps(it)}'
+        key_str=f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-'+(it if isinstance(it, str) else json.dumps(it))
         return tools.get_md5(key_str)

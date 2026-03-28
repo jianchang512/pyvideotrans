@@ -187,8 +187,6 @@ def srt_str_to_listdict(srt_string):
             it['endraw'] = ms_to_time_string(ms=it['end_time'])
             it["time"] = f"{it['startraw']} --> {it['endraw']}"
             srt_list.append(it)
-
-
         else:
             i += 1  # 跳过非时间行
 
@@ -256,8 +254,8 @@ def get_srt_from_list(srt_list):
     # 开始和结束时间戳  it['startraw']=00:00:01,123  it['endraw']=00:00:12,345
     # 开始和结束毫秒数值  it['start_time']=126 it['end_time']=678
     for it in srt_list:
-        if not it.get('text','').strip():
-            continue
+        #if not it.get('text','').strip():
+        #    continue
         line += 1
         if "startraw" not in it:
             # 存在完整开始和结束时间戳字符串 时:分:秒,毫秒 --> 时:分:秒,毫秒

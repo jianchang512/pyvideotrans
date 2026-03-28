@@ -26,7 +26,6 @@ class OpenRouter(BaseTrans):
 
         super().__post_init__()
 
-        self.trans_thread = int(settings.get('aitrans_thread', 50))
         self.model_name = params.get('openrouter_model', "")
         self.api_url = 'https://openrouter.ai/api/v1'
 

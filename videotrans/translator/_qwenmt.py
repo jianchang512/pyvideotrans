@@ -29,6 +29,7 @@ class QwenMT(BaseTrans):
                     "content":text
                 }
             ]
+            logger.debug(f'qwen-mt请求:{messages}')
 
             translation_options = {
                 "source_lang": "auto",
@@ -52,6 +53,7 @@ class QwenMT(BaseTrans):
             )
             if response.code or not response.output:
                 raise RuntimeError(response.message)
+            logger.debug(f'qwen-mt返回响应:{response.output.choices[0].message.content}')
             return self.clean_srt(response.output.choices[0].message.content)
 
         self.prompt = tools.get_prompt(ainame='bailian',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
@@ -64,6 +66,7 @@ class QwenMT(BaseTrans):
                 'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
                 },
         ]
+        logger.debug(f'阿里百炼 AI:{messages}')
         response = dashscope.Generation.call(
             # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx",
             api_key=params.get('qwenmt_key',''),
@@ -75,6 +78,7 @@ class QwenMT(BaseTrans):
 
         if response.code or not response.output:
             raise RuntimeError(response.message)
+        logger.debug(f'阿里百炼 AI响应:{response.output.choices[0].message.content}')
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', response.output.choices[0].message.content, re.S)
         if match:
             return match.group(1)

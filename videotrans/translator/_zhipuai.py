@@ -19,8 +19,6 @@ class ZhipuAI(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-
-        self.trans_thread = int(settings.get('aitrans_thread', 50))
         self.model_name = params.get('zhipu_model', "glm-4.5-flash")
         self.api_url = 'https://open.bigmodel.cn/api/paas/v4/'
 
