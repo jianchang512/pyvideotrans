@@ -6,7 +6,6 @@ from videotrans.tts._edgetts import EdgeTTS
 from videotrans.tts._qwentts import QWENTTS
 
 from videotrans.tts._minimaxi import MinimaxiTTS
-from videotrans.tts._azuretts import AzureTTS
 from videotrans.tts._freeazure import FreeAzureTTS
 from videotrans.tts._cosyvoice import CosyVoice
 from videotrans.tts._ai302tts import AI302
@@ -339,6 +338,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         "is_cuda":is_cuda
     }
     if tts_type == AZURE_TTS:
+        from videotrans.tts._azuretts import AzureTTS
         AzureTTS(**kwargs).run()
     elif tts_type == FreeAzure:
         FreeAzureTTS(**kwargs).run()

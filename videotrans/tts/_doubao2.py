@@ -41,7 +41,7 @@ class Doubao2TTS(BaseTTS):
     
 
     def _save_pcm_to_wav(self,audio_data, output_filename: str, 
-                        channels: int = 2, sample_rate: int = 48000, sample_width: int = 2):
+                        channels: int = 1, sample_rate: int = 48000, sample_width: int = 2):
         import wave
         import struct
         import math
@@ -80,14 +80,14 @@ class Doubao2TTS(BaseTTS):
                 return
             appid = params.get('doubao2_appid','')
             access_token = params.get('doubao2_access','')
-            speed = 1.0
+            speed = 0
             if self.rate:
-                speed += float(self.rate.replace('%', '')) / 100
-            speed=max(-50,min(100,100*(speed-1.0)))
-            volume = 1.0
+                speed = int(float(self.rate.replace('%', '')))
+                speed=min(max(-50,speed),100)
+            volume = 0
             if self.volume:
-                volume += float(self.volume.replace('%', '')) / 100
-            volume=max(-50,min(100,100*(volume-1.0)))
+                volume = int(float(self.volume.replace('%', '')))
+                volume=min(max(-50,volume),100)
 
             # 角色为实际名字
             role = data_item['role']
@@ -118,6 +118,7 @@ class Doubao2TTS(BaseTTS):
                     "additions": "{\"explicit_language\":\"crosslingual\",\"enable_language_detector\":\"true\",\"disable_markdown_filter\":true}\"}"
                 }
             }
+            
      
             url = "https://openspeech.bytedance.com/api/v3/tts/unidirectional"
             
