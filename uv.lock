@@ -543,6 +543,22 @@ wheels = [
 ]
 
 [[package]]
+name = "camb-sdk"
+version = "1.5.10"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+    { name = "websocket-client" },
+    { name = "websockets" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/50/38/31fcc633963804a150175078c167f237bbd56dedba9903e4800a630ab944/camb_sdk-1.5.10.tar.gz", hash = "sha256:e1d23cbccea5aef5944612740b5c2e109a3c3ce778caa9664678a23b3a254419" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/94/12/f294bf4f343b663dced6d8ea840985d58b0afd66cd40e221fc19dc6639f4/camb_sdk-1.5.10-py3-none-any.whl", hash = "sha256:5ec6014af18cf108041c921f743fbcabc17015df2fc4b7a17793ef17d0fe593a" },
+]
+
+[[package]]
 name = "certifi"
 version = "2025.10.5"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
@@ -3574,6 +3590,7 @@ dependencies = [
     { name = "blinker" },
     { name = "brotli" },
     { name = "cachetools" },
+    { name = "camb-sdk" },
     { name = "certifi" },
     { name = "cffi" },
     { name = "chardet" },
@@ -3848,6 +3865,7 @@ requires-dist = [
     { name = "blinker", specifier = "==1.8.2" },
     { name = "brotli", specifier = "==1.1.0" },
     { name = "cachetools", specifier = "==5.3.2" },
+    { name = "camb-sdk" },
     { name = "certifi", specifier = "==2025.10.5" },
     { name = "cffi", specifier = "==1.17.1" },
     { name = "chardet", specifier = "==3.0.4" },

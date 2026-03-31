@@ -62,7 +62,7 @@ def refresh_camb_languages():
 class CambTranslator(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
-        self.aisendsrt = False
+        self.aisendsrt = True
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
@@ -70,11 +70,11 @@ class CambTranslator(BaseTrans):
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit():
             return
-        text = ("\n".join(data)).strip()
-        if not text or re.match(
-                r'^[\s ~`!@#$%^&*()_+\-=\[\]{}\\|;,./?><:"\'，。、；''""：《》？【】｛｝（）—！·￥…ー]+$', text):
-            return text
-
+        if isinstance(data, list):
+            text = "\n".join([i.strip() for i in data])
+        else:
+            text=data
+        
         source_id = _get_camb_lang_id(self.source_code)
         target_id = _get_camb_lang_id(self.target_code)
 

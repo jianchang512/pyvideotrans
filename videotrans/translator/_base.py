@@ -91,7 +91,7 @@ class BaseTrans(BaseCon):
 
 
         split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(source_text), self.trans_thread)]
-        print(f'{self.trans_thread=}')
+        print(f'{self.trans_thread=},{self.aisendsrt=},{self.translate_type=}')
         try:
             if self.aisendsrt:
                 return self._run_srt(split_source_text)

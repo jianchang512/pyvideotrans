@@ -181,7 +181,7 @@ def is_input_api(recogn_type: int = None, return_str=False):
     if recogn_type == CAMB_ASR and not params.get('camb_api_key',''):
         if return_str:
             return "Please configure the API Key information of the CAMB AI channel first."
-        from videotrans.winform import cambasr as cambasr_win
+        from videotrans.winform import cambtts as cambasr_win
         cambasr_win.openwin()
         return False
     return True

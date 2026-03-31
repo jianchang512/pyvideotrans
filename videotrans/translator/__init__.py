@@ -82,7 +82,8 @@ AI_TRANS_CHANNELS=[
     SILICONFLOW_INDEX,
     DEEPSEEK_INDEX,
     OPENROUTER_INDEX,
-    MINIMAX_INDEX
+    MINIMAX_INDEX,
+    CAMB_INDEX
 ]
 # 翻译通道名字列表，显示在界面
 _ID_NAME_DICT = {
@@ -642,7 +643,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return show_source,show_target#返回原始输入
 
     # 未设置渠道则使用 Google
-    if not translate_type or translate_type in [GOOGLE_INDEX,MyMemoryAPI_INDEX, TRANSAPI_INDEX]:
+    if not translate_type or translate_type in [GOOGLE_INDEX,MyMemoryAPI_INDEX, TRANSAPI_INDEX,CAMB_INDEX]:
         return source_list[0] if source_list else show_source, target_list[0] if target_list else show_target
 
     # qwenmt翻译渠道语言代码
@@ -825,8 +826,8 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
     if translate_type == CAMB_INDEX and not params.get('camb_api_key',''):
         if return_str:
             return "Please configure the API key information of the CAMB AI channel first."
-        from videotrans.winform import cambtrans
-        cambtrans.openwin()
+        from videotrans.winform import cambtts
+        cambtts.openwin()
         return False
     if translate_type == TRANSAPI_INDEX and not params.get("trans_api_url",''):
         if return_str:

@@ -62,11 +62,12 @@ class CambRecogn(BaseRecogn):
                 api_key=params.get('camb_api_key', '') or os.environ.get('CAMB_API_KEY', ''),
                 httpx_client=httpx.Client(proxy=self.proxy_str) if self.proxy_str else None
             )
+            print(f'{self.audio_file=}')
 
             # Submit transcription job
             create_result = client.transcription.create_transcription(
                 language=lang_id,
-                media_file=self.audio_file,
+                media_file=open(self.audio_file,'rb'),
             )
 
             task_id = create_result.task_id
