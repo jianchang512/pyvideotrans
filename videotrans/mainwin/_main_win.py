@@ -303,6 +303,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionazure_key.setText(tr("AzureOpenAI Translation"))
         self.actionazure_tts.setText(tr("AzureAI TTS"))
         self.actiongemini_key.setText("Gemini AI")
+        self.actioncamb_key.setText("CAMB AI")
         self.actionElevenlabs_key.setText("ElevenLabs.io")
 
         self.actionwatermark.setText(tr("Add watermark to video"))
@@ -440,6 +441,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif tts_type == tts.ELEVENLABS_TTS:
             rolelist = tools.get_elevenlabs_role()
             self.voice_role.addItems(['No'] + rolelist)
+        elif tts_type == tts.CAMB_TTS:
+            rolelist = tools.get_camb_role()
+            self.voice_role.addItems(rolelist)
         elif tts_type == tts.OPENAI_TTS:
             rolelist = params.get('openaitts_role', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
@@ -558,6 +562,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionazure_key.triggered.connect(lambda: self._open_winform('azure'))
         self.actionazure_tts.triggered.connect(lambda: self._open_winform('azuretts'))
         self.actiongemini_key.triggered.connect(lambda: self._open_winform('gemini'))
+        self.actioncamb_key.triggered.connect(lambda: self._open_winform('cambtts'))
         self.actiontencent_key.triggered.connect(lambda: self._open_winform('tencent'))
         self.actionchatgpt_key.triggered.connect(lambda: self._open_winform('chatgpt'))
         self.actionlibretranslate_key.triggered.connect(lambda: self._open_winform('libre'))

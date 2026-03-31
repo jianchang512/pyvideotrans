@@ -6,6 +6,7 @@ _module_map = {
 "azure":".azure",
 "azuretts":".azuretts",
 "baidu":".baidu",
+"cambtts":".cambtts",
 "chatgpt":".chatgpt",
 "chatterbox":".chatterbox",
 "chattts":".chattts",
