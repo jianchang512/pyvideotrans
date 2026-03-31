@@ -440,6 +440,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif tts_type == tts.ELEVENLABS_TTS:
             rolelist = tools.get_elevenlabs_role()
             self.voice_role.addItems(['No'] + rolelist)
+        elif tts_type == tts.CAMB_TTS:
+            rolelist = tools.get_camb_role()
+            self.voice_role.addItems(rolelist)
         elif tts_type == tts.OPENAI_TTS:
             rolelist = params.get('openaitts_role', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))

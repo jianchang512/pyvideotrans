@@ -27,6 +27,7 @@ from videotrans.tts._f5tts import F5TTS
 from videotrans.tts._glmtts import GLMTTS
 from videotrans.tts._xaitts import XAITTS
 from videotrans.tts._mitts import MITTS
+from videotrans.tts._cambtts import CambTTS
 
 EDGE_TTS = 0
 QWEN3LOCAL_TTS = 1
@@ -67,7 +68,8 @@ GOOGLE_TTS = 28
 XAI_TTS = 29
 XIAOMI_TTS = 30
 TTS_API = 31
-GOOGLECLOUD_TTS = 32
+CAMB_TTS = 32
+GOOGLECLOUD_TTS = 33
 
 # 支持克隆的渠道
 SUPPORT_CLONE=[
@@ -79,7 +81,8 @@ SUPPORT_CLONE=[
     DIA_TTS,
     CHATTERBOX_TTS,
     GPTSOVITS_TTS,
-    QWEN3LOCAL_TTS
+    QWEN3LOCAL_TTS,
+    CAMB_TTS
 ]
 _ID_NAME_DICT = {
     EDGE_TTS: tr("Edge-TTS(free)"),
@@ -123,6 +126,7 @@ _ID_NAME_DICT = {
     TTS_API: tr("Customize API"),
 
     # GOOGLECLOUD_TTS:"Google Cloud TTS",
+    CAMB_TTS: "CAMB AI TTS",
 }
 
 TTS_NAME_LIST = list(_ID_NAME_DICT.values())
@@ -300,6 +304,12 @@ def is_input_api(tts_type: int = None, return_str=False):
         from videotrans.winform import f5tts as f5tts_win
         f5tts_win.openwin()
         return False
+    if tts_type == CAMB_TTS and not params.get('camb_api_key', ''):
+        if return_str:
+            return "Please configure the API key information of the CAMB AI TTS channel first."
+        from videotrans.winform import cambtts as cambtts_win
+        cambtts_win.openwin()
+        return False
     if tts_type == GOOGLECLOUD_TTS and not params.get('gcloud_credential_json'):
         if return_str:
             return "Please configure the Google Cloud credentials first."
@@ -398,3 +408,5 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         XAITTS(**kwargs).run()
     elif tts_type == XIAOMI_TTS:
         MITTS(**kwargs).run()
+    elif tts_type == CAMB_TTS:
+        CambTTS(**kwargs).run()

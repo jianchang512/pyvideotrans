@@ -36,6 +36,7 @@ GOOGLE_SPEECH = 18
 STT_API = 19
 CUSTOM_API = 20
 WHISPER_NET = 21
+CAMB_ASR = 22
 
 _ID_NAME_DICT = {
     FASTER_WHISPER:tr("Faster-whisper"),
@@ -66,6 +67,7 @@ _ID_NAME_DICT = {
     STT_API:tr("STT Speech API"),
     CUSTOM_API:tr("Custom API"),
     WHISPER_NET:"Whisper.NET",
+    CAMB_ASR:"CAMB AI",
 }
 RECOGN_NAME_LIST=list(_ID_NAME_DICT.values())
 
@@ -176,6 +178,12 @@ def is_input_api(recogn_type: int = None, return_str=False):
         from videotrans.winform import zhipuai as zhipuai_win
         zhipuai_win.openwin()
         return False
+    if recogn_type == CAMB_ASR and not params.get('camb_api_key',''):
+        if return_str:
+            return "Please configure the API Key information of the CAMB AI channel first."
+        from videotrans.winform import cambasr as cambasr_win
+        cambasr_win.openwin()
+        return False
     return True
 
 
@@ -268,5 +276,9 @@ def run(*,
     if recogn_type == WHISPER_NET:
         from videotrans.recognition._whispernet import WhisperNetRecogn
         return WhisperNetRecogn(**kwargs).run()
+
+    if recogn_type == CAMB_ASR:
+        from videotrans.recognition._camb import CambRecogn
+        return CambRecogn(**kwargs).run()
 
     return FasterAll(**kwargs).run()

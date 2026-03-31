@@ -333,6 +333,8 @@ def openwin():
             role_list.extend(contants.GEMINITTS_ROLES.split(','))
         elif type == tts.ELEVENLABS_TTS:
             role_list =  tools.get_elevenlabs_role()
+        elif type == tts.CAMB_TTS:
+            role_list = tools.get_camb_role()
         elif type == tts.CLONE_VOICE_TTS:
             role_list.extend([it for it in params["clone_voicelist"] if it != 'clone'])
         elif type == tts.TTS_API:
