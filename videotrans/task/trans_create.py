@@ -1143,7 +1143,10 @@ class TransCreate(BaseTask):
                                                                                         'yu'] else
             settings.get('other_len', 60))
         target_sub_list = tools.get_subtitle_from_srt(self.cfg.target_sub)
-
+        
+        srt_string = ""
+        # 双硬字幕时的两种语言字幕分割符，用于定义不同样式
+        _join_flag=''
         # 双硬 双软字幕组装
         if self.cfg.subtitle_type in [3, 4]:
             source_sub_list = tools.get_subtitle_from_srt(self.cfg.source_sub)
@@ -1154,7 +1157,6 @@ class TransCreate(BaseTask):
                                                                                             'yu'] else
                 settings.get('other_len', 60))
 
-            srt_string = ""
             # 双语字幕
             # 判断 双硬字幕 and 存在 ass.json 文件 and  (Bottom_Fontsize != Fontsize or PrimaryColour!=Bottom_PrimaryColour) 需要 对双语字幕的第2行设置不同颜色和尺寸
             _join_flag=self._get_join_flag()
@@ -1165,15 +1167,14 @@ class TransCreate(BaseTask):
                 srt_string += f"{it['line']}\n{it['time']}\n"
                 if source_length > 0 and i < source_length:
                     _text_source=tools.simple_wrap(source_sub_list[i]['text'], source_maxlen, self.cfg.source_language_code)
-                    _text=f'{_text_source}\n{_jo}{_text}' if self.cfg.output_srt==1 else f'{_text}\n{_join_flag}{_text_source}'
+                    _text=f'{_text_source}\n{_join_flag}{_text}' if self.cfg.output_srt==1 else f'{_text}\n{_join_flag}{_text_source}'
                 srt_string += f"{_text}\n\n"
+            srt_string=srt_string.strip()
             process_end_subtitle = f"{self.cfg.cache_folder}/shuang.srt"
-            Path(process_end_subtitle).write_text(srt_string.strip(), encoding='utf-8')
-            shutil.copy2(process_end_subtitle, self.cfg.target_dir + "/shuang.srt")
-
+            Path(process_end_subtitle).write_text(srt_string, encoding='utf-8')
+            Path(self.cfg.target_dir + "/shuang.srt").write_text(srt_string.replace('###','') if _join_flag=='###' else srt_string, encoding='utf-8')
         else:
             # 单字幕，需处理字符数换行
-            srt_string = ""
             for i, it in enumerate(target_sub_list):
                 tmp = tools.simple_wrap(it['text'].strip(), maxlen, self.cfg.target_language_code)
                 srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
