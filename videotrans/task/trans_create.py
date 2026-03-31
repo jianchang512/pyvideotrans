@@ -1156,13 +1156,16 @@ class TransCreate(BaseTask):
 
             srt_string = ""
             # 双语字幕
+            # 判断 双硬字幕 and 存在 ass.json 文件 and  (Bottom_Fontsize != Fontsize or PrimaryColour!=Bottom_PrimaryColour) 需要 对双语字幕的第2行设置不同颜色和尺寸
+            _join_flag=self._get_join_flag()
+                    
             for i, it in enumerate(target_sub_list):
                 # 换行
                 _text = tools.simple_wrap(it['text'].strip(), maxlen, self.cfg.target_language_code)
                 srt_string += f"{it['line']}\n{it['time']}\n"
                 if source_length > 0 and i < source_length:
                     _text_source=tools.simple_wrap(source_sub_list[i]['text'], source_maxlen, self.cfg.source_language_code)
-                    _text=f'{_text_source}\n{_text}' if self.cfg.output_srt==1 else f'{_text}\n{_text_source}'
+                    _text=f'{_text_source}\n{_jo}{_text}' if self.cfg.output_srt==1 else f'{_text}\n{_join_flag}{_text_source}'
                 srt_string += f"{_text}\n\n"
             process_end_subtitle = f"{self.cfg.cache_folder}/shuang.srt"
             Path(process_end_subtitle).write_text(srt_string.strip(), encoding='utf-8')
@@ -1189,6 +1192,25 @@ class TransCreate(BaseTask):
         process_end_subtitle_ass = tools.set_ass_font(process_end_subtitle)
         basename = os.path.basename(process_end_subtitle_ass)
         return basename, subtitle_langcode
+
+
+    def _get_join_flag(self):
+        _join_flag=""
+        if self.cfg.subtitle_type!=3 or not Path(f'{ROOT_DIR}/videotrans/ass.json').exists():
+            return _join_flag
+        try:
+            assjson=json.loads(Path(f'{ROOT_DIR}/videotrans/ass.json').read_text(encoding='utf-8'))
+        except Exception as e:
+            logger.debug(f'读取 ass.json 错误，忽略:{e}')
+            return _join_flag
+        else:
+            for k,v in assjson.items():
+                if k.startswith('Bottom_') and v!= assjson.get(k[7:]):
+                    _join_flag='###'
+                    break
+        return _join_flag
+
+
 
     # 视频定格最后一帧
     def _video_extend(self, duration_ms=1000):
@@ -1528,7 +1550,6 @@ class TransCreate(BaseTask):
             raise RuntimeError(msg)
 
         os.chdir(ROOT_DIR)
-        print(f'{tmp_target_mp4=},{self.cfg.targetdir_mp4=}')
         if Path(tmp_target_mp4).exists():
             try:
                 shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4)

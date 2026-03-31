@@ -280,6 +280,189 @@ def get_srt_from_list(srt_list):
 
 
 def set_ass_font(srtfile: str) -> str:
+    from . import help_ffmpeg
+    """
+    将 SRT 转换为 ASS，并自定义样式：
+    - 全局使用主样式（Default）
+    - 若字幕文本包含 '###'，则 '###' 后的文本使用副样式（Bottom）
+    - 删除 '###'
+    """
+    if not os.path.exists(srtfile) or os.path.getsize(srtfile) == 0:
+        return os.path.basename(srtfile)
+
+    # ---------- 1. 将 SRT 转为临时 SRT（替换换行符）并调用 ffmpeg 生成 ASS ----------
+    srt_str = ""
+    for it in get_subtitle_from_srt(srtfile, is_file=True):
+        t = re.sub(r'\n|\\n', r'\\N', it['text'])
+        srt_str += f'{it["line"]}\n{it["startraw"]} --> {it["endraw"]}\n{t}\n\n'
+    edit_srt = srtfile[:-4] + '-edit.srt'
+    with open(edit_srt, 'w', encoding='utf-8') as f:
+        f.write(srt_str.strip())
+    ass_file_path = f'{srtfile[:-3]}ass'
+    help_ffmpeg.runffmpeg(['-y', '-i', edit_srt, ass_file_path])
+
+    # ---------- 2. 读取 JSON 样式配置 ----------
+    JSON_FILE = f'{ROOT_DIR}/videotrans/ass.json'
+    if not os.path.exists(JSON_FILE):
+        logger.debug(f"[set_ass_font] 警告：JSON 配置文件不存在: {JSON_FILE}，跳过样式替换")
+        return ass_file_path
+
+    try:
+        with open(JSON_FILE, 'r', encoding='utf-8') as f:
+            style = json.load(f)
+    except Exception as e:
+        logger.exception(f"[set_ass_font] 错误：无法读取或解析 JSON 文件 {JSON_FILE}: {e}", exc_info=True)
+        return ass_file_path
+
+    # ---------- 3. 构建两个 Style 行：Default（主样式）和 Bottom（副样式）----------
+    # 主样式属性（保持原有逻辑）
+    default_style = (
+        f"Style: {style.get('Name', 'Default')},"
+        f"{style.get('Fontname', 'Arial')},"
+        f"{style.get('Fontsize', 16)},"
+        f"{style.get('PrimaryColour', '&H00FFFFFF&')},"
+        f"{style.get('SecondaryColour', '&H00FFFFFF&')},"
+        f"{style.get('OutlineColour', '&H00000000&')},"
+        f"{style.get('BackColour', '&H00000000&')},"
+        f"{style.get('Bold', 0)},"
+        f"{style.get('Italic', 0)},"
+        f"{style.get('Underline', 0)},"
+        f"{style.get('StrikeOut', 0)},"
+        f"{style.get('ScaleX', 100)},"
+        f"{style.get('ScaleY', 100)},"
+        f"{style.get('Spacing', 0)},"
+        f"{style.get('Angle', 0)},"
+        f"{style.get('BorderStyle', 1)},"
+        f"{style.get('Outline', 1)},"
+        f"{style.get('Shadow', 0)},"
+        f"{style.get('Alignment', 2)},"
+        f"{style.get('MarginL', 10)},"
+        f"{style.get('MarginR', 10)},"
+        f"{style.get('MarginV', 10)},"
+        f"{style.get('Encoding', 1)}\n"
+    )
+
+    # 副样式：继承主样式，但 Fontsize 和 PrimaryColour 使用底部专用值
+    bottom_fontsize = style.get('Bottom_Fontsize', 14)          # 默认 14
+    bottom_color = style.get('Bottom_PrimaryColour', '&H0000FFFF&')  # 默认黄色
+    
+    bottom_bold = style.get('Bottom_Bold', 0)  # 粗体
+    bottom_italic = style.get('Bottom_Italic', 0)  # 是否斜体
+    
+    bottom_secondarycolour=style.get('Bottom_SecondaryColour', '&H00FFFFFF&')
+    bottom_outlinecolour=style.get('Bottom_OutlineColour', '&H00000000&')
+    bottom_backcolour=style.get('Bottom_BackColour', '&H00000000&')
+    
+    bottom_style = (
+        f"Style: Bottom,"                               # 固定名称 "Bottom"
+        f"{style.get('Fontname', 'Arial')},"
+        f"{bottom_fontsize},"
+        f"{bottom_color},"
+        f"{bottom_secondarycolour},"
+        f"{bottom_outlinecolour},"
+        f"{bottom_backcolour},"
+        f"{bottom_bold},"
+        f"{bottom_italic},"
+        f"{style.get('Underline', 0)},"
+        f"{style.get('StrikeOut', 0)},"
+        f"{style.get('ScaleX', 100)},"
+        f"{style.get('ScaleY', 100)},"
+        f"{style.get('Spacing', 0)},"
+        f"{style.get('Angle', 0)},"
+        f"{style.get('BorderStyle', 1)},"
+        f"{style.get('Outline', 1)},"
+        f"{style.get('Shadow', 0)},"
+        f"{style.get('Alignment', 2)},"
+        f"{style.get('MarginL', 10)},"
+        f"{style.get('MarginR', 10)},"
+        f"{style.get('MarginV', 10)},"
+        f"{style.get('Encoding', 1)}\n"
+    )
+
+    # ---------- 4. 读取 ASS 文件并替换 [V4+ Styles] 区块 ----------
+    try:
+        with open(ass_file_path, 'r', encoding='utf-8-sig') as f:
+            content = f.read()
+    except Exception as e:
+        logger.exception(f"[set_ass_font] 错误：无法读取 ASS 文件: {e}", exc_info=True)
+        return ass_file_path
+
+    # 匹配 [V4+ Styles] 区块，保留 Format 行，替换为两个 Style 行
+    pattern = r'(^\[V4\+ Styles\]\s*\r?\n' \
+              r'Format:[^\r\n]*\r?\n' \
+              r'(?:Style:[^\r\n]*\r?\n)*)' \
+              r'(?=\[|$)'
+
+    def replacer(match):
+        # 提取原有的 Format 行（如果没有则使用默认格式）
+        format_line = None
+        for line in match.group(0).splitlines():
+            if line.strip().startswith("Format:"):
+                format_line = line.strip() + "\n"
+                break
+        if not format_line:
+            format_line = "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
+        # 返回完整的 [V4+ Styles] 区块，包含 Default 和 Bottom 两个样式
+        return f"[V4+ Styles]\n{format_line}{default_style}{bottom_style}"
+
+    try:
+        new_content, _ = re.subn(pattern, replacer, content, flags=re.MULTILINE)
+    except Exception as e:
+        logger.exception(f"[set_ass_font] 错误：正则替换样式失败: {e}", exc_info=True)
+        return ass_file_path
+
+    # ---------- 5. 处理 [Events] 中的每一条 Dialogue，对包含 '###' 的行应用副样式 ----------
+    lines = new_content.splitlines(keepends=True)
+    processed_lines = []
+    inside_events = False
+    dialogue_pattern = re.compile(r'^(Dialogue:.*?,.*?,.*?,.*?,.*?,.*?,.*?,.*?,.*?,)(.*)$')
+
+    for line in lines:
+        # 检测是否进入 [Events] 区域
+        if line.strip().startswith('[Events]'):
+            inside_events = True
+        elif line.strip().startswith('[') and inside_events:
+            inside_events = False  # 遇到下一个节则退出
+
+        if inside_events and line.startswith('Dialogue:'):
+            match = dialogue_pattern.match(line.rstrip('\r\n'))
+            if match:
+                prefix = match.group(1)      # 前面固定字段
+                text = match.group(2)        # 字幕文本内容
+                # 检查是否包含 '###'
+                if '###' in text:
+                    # 分割成两部分：左（主语言）和右（副语言）
+                    # 注意：文本中可能含有 \N 换行符，但 ### 通常不会跨行
+                    parts = text.split('###', 1)
+                    left = parts[0]
+                    right = parts[1] if len(parts) > 1 else ''
+                    # 构建新文本：左部分 + 副样式开关 + 右部分 + 恢复主样式
+                    # 注意：如果左部分为空，直接以副样式开头；如果右部分为空，则不添加样式（但理论上 ### 后应有内容）
+                    new_text = ''
+                    if left:
+                        new_text += left
+                    if right:
+                        # 使用 {\rBottom} 切换到副样式，结束后用 {\r} 恢复为 Default
+                        new_text += f'{{\\rBottom}}{right}{{\\r}}'
+                    # 替换原行
+                    line = f'{prefix}{new_text}\n'
+            else:
+                # 非标准格式，保留原样
+                pass
+        processed_lines.append(line)
+
+    # 写回 ASS 文件
+    try:
+        with open(ass_file_path, 'w', encoding='utf-8-sig', newline='') as f:
+            f.writelines(processed_lines)
+    except Exception as e:
+        logger.exception(f"[set_ass_font] 错误：无法写入 ASS 文件: {e}", exc_info=True)
+
+    return ass_file_path
+    
+    
+
+def set_ass_font_0331(srtfile: str) -> str:
     """
     将 JSON_FILE 中的样式覆盖到指定 ASS 文件的 [V4+ Styles] 区域，并保存回原文件。
     

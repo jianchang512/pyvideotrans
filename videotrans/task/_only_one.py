@@ -1,5 +1,6 @@
 # 执行单个视频翻译任务时 暂停等待
 import json
+import traceback
 import time
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -121,7 +122,8 @@ class Worker(QThread):
             if not self._exit():
                 trk.task_done()
         except Exception as e:
-            self._post(text=get_msg_from_except(e), type='error')
+            detail_back=(traceback.format_exc()).strip()
+            self._post(text=get_msg_from_except(e)+f"\n{detail_back}", type='error')
 
     def _post(self, text='', type='logs'):
         try:

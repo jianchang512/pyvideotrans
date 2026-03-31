@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFormLayout,
     QFontComboBox, QSpinBox,QDoubleSpinBox, QCheckBox, QComboBox, QColorDialog, QGridLayout,
     QGroupBox,  QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
-     QGraphicsRectItem, QGraphicsPathItem
+     QGraphicsRectItem, QGraphicsPathItem,QScrollArea   
 )
 from PySide6.QtGui import QColor, QPixmap, QFont, QPen, QBrush, QPainterPath, QTransform, QPainterPathStroker,QIcon
 from PySide6.QtCore import Qt, Signal,QSize
@@ -21,13 +21,21 @@ PREVIEW_IMAGE = f'{ROOT_DIR}/videotrans/styles/preview.png'
 DEFAULT_STYLE = {
     'Name': 'Default',
     'Fontname': 'Arial',
+    'Bottom_Fontname': 'Arial',
     'Fontsize': 16,
+    'Bottom_Fontsize': 16,
     'PrimaryColour': '&H00FFFFFF&',
+    'Bottom_PrimaryColour': '&H00FFFFFF&',
     'SecondaryColour': '&H00FFFFFF&',
     'OutlineColour': '&H00000000&',
     'BackColour': '&H00000000&',
     'Bold': 0,
     'Italic': 0,
+    'Bottom_SecondaryColour': '&H00FFFFFF&',
+    'Bottom_OutlineColour': '&H00000000&',
+    'Bottom_BackColour': '&H00000000&',
+    'Bottom_Bold': 0,
+    'Bottom_Italic': 0,
     'Underline': 0,
     'StrikeOut': 0,
     'ScaleX': 100,
@@ -281,6 +289,12 @@ class ASSStyleDialog(QDialog):
 
 
         content_layout = QHBoxLayout()
+        
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)   # 让内容自适应宽度，高度不够时出现滚动条
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
 
 
         self.form_group = QGroupBox('')
@@ -290,38 +304,62 @@ class ASSStyleDialog(QDialog):
         self.font_combo = QFontComboBox()
         self.font_combo.currentFontChanged.connect(self.update_preview)
         self.form_layout.addRow(tr("font"), self.font_combo)
+        self.bottom_font_combo = QFontComboBox()
+        self.form_layout.addRow(tr("bottom_font"), self.bottom_font_combo)
 
         # Font size
         self.font_size_spin = QSpinBox()
         self.font_size_spin.setRange(1, 200)
         self.font_size_spin.valueChanged.connect(self.update_preview)
         self.form_layout.addRow(tr("font_size"), self.font_size_spin)
+        # 第二个字体尺寸
+        self.bottom_font_size_spin = QSpinBox()
+        self.bottom_font_size_spin.setRange(1, 200)
+        self.form_layout.addRow(tr("bottom_font_size"), self.bottom_font_size_spin)
 
         # Colors
         self.primary_color_picker = ColorPicker(DEFAULT_STYLE['PrimaryColour'])
         self.primary_color_picker.colorChanged.connect(self.update_preview)
         self.form_layout.addRow(tr("primary_color"), self.primary_color_picker)
+        # 第2个颜色
+        self.bottom_primary_color_picker = ColorPicker(DEFAULT_STYLE['Bottom_PrimaryColour'])
+        self.form_layout.addRow(tr("bottom_primary_color"), self.bottom_primary_color_picker)
 
         self.secondary_color_picker = ColorPicker(DEFAULT_STYLE['SecondaryColour'])
         self.secondary_color_picker.colorChanged.connect(self.update_preview)
         self.form_layout.addRow(tr("secondary_color"), self.secondary_color_picker)
+        #第2个
+        self.bottom_secondary_color_picker = ColorPicker(DEFAULT_STYLE['Bottom_SecondaryColour'])
+        self.form_layout.addRow(tr("bottom_secondary_color"), self.bottom_secondary_color_picker)
 
         self.outline_color_picker = ColorPicker(DEFAULT_STYLE['OutlineColour'])
         self.outline_color_picker.colorChanged.connect(self.update_preview)
         self.form_layout.addRow(tr("outline_color"), self.outline_color_picker)
+        #第二个
+        self.bottom_outline_color_picker = ColorPicker(DEFAULT_STYLE['Bottom_OutlineColour'])
+        self.form_layout.addRow(tr("bottom_outline_color"), self.bottom_outline_color_picker)
 
         self.back_color_picker = ColorPicker(DEFAULT_STYLE['BackColour'])
         self.back_color_picker.colorChanged.connect(self.update_preview)
         self.form_layout.addRow(tr("back_color"), self.back_color_picker)
+        #第2个
+        self.bottom_back_color_picker = ColorPicker(DEFAULT_STYLE['Bottom_BackColour'])
+        self.form_layout.addRow(tr("bottom_back_color"), self.bottom_back_color_picker)
 
         # Bold, Italic, Underline, StrikeOut
         self.bold_check = QCheckBox()
         self.bold_check.stateChanged.connect(self.update_preview)
         self.form_layout.addRow(tr("bold"), self.bold_check)
+        #第二个
+        self.bottom_bold_check = QCheckBox()
+        self.form_layout.addRow(tr("bottom_bold"), self.bottom_bold_check)
 
         self.italic_check = QCheckBox()
         self.italic_check.stateChanged.connect(self.update_preview)
         self.form_layout.addRow(tr("italic"), self.italic_check)
+        #第二个
+        self.bottom_italic_check = QCheckBox()
+        self.form_layout.addRow(tr("bottom_italic"), self.bottom_italic_check)
 
         self.underline_check = QCheckBox()
         self.underline_check.stateChanged.connect(self.update_preview)
@@ -423,7 +461,10 @@ class ASSStyleDialog(QDialog):
         self.form_layout.addRow(tr("margin_vertical"), self.margin_v_spin)
 
         self.form_group.setLayout(self.form_layout)
-        content_layout.addWidget(self.form_group)
+        self.scroll_area.setWidget(self.form_group)
+
+        content_layout.addWidget(self.scroll_area)
+        #content_layout.addWidget(self.form_group)
 
         # Preview
         self.preview_group = QGroupBox('')
@@ -480,9 +521,14 @@ class ASSStyleDialog(QDialog):
                 style = DEFAULT_STYLE
 
             self.font_combo.setCurrentFont(style.get('Fontname', 'Arial'))
+            self.bottom_font_combo.setCurrentFont(style.get('Bottom_Fontname', 'Arial'))
             self.font_size_spin.setValue(style.get('Fontsize', 16))
+            self.bottom_font_size_spin.setValue(style.get('Bottom_Fontsize', 16))
             self.primary_color_picker.color = ColorPicker.parse_color(style.get('PrimaryColour', '&H00FFFFFF&'))
             self.primary_color_picker.update_swatch()
+            self.bottom_primary_color_picker.color = ColorPicker.parse_color(style.get('Bottom_PrimaryColour', '&H00FFFFFF&'))
+            self.bottom_primary_color_picker.update_swatch()
+            
             self.secondary_color_picker.color = ColorPicker.parse_color(style.get('SecondaryColour', '&H00FFFFFF&'))
             self.secondary_color_picker.update_swatch()
             self.outline_color_picker.color = ColorPicker.parse_color(style.get('OutlineColour', '&H00000000&'))
@@ -491,6 +537,16 @@ class ASSStyleDialog(QDialog):
             self.back_color_picker.update_swatch()
             self.bold_check.setChecked(bool(style.get('Bold', 0)))
             self.italic_check.setChecked(bool(style.get('Italic', 0)))  # 修复：使用 .get()
+            #第二个
+            self.bottom_secondary_color_picker.color = ColorPicker.parse_color(style.get('Bottom_SecondaryColour', '&H00FFFFFF&'))
+            self.bottom_secondary_color_picker.update_swatch()
+            self.bottom_outline_color_picker.color = ColorPicker.parse_color(style.get('Bottom_OutlineColour', '&H00000000&'))
+            self.bottom_outline_color_picker.update_swatch()
+            self.bottom_back_color_picker.color = ColorPicker.parse_color(style.get('Bottom_BackColour', '&H00000000&'))
+            self.bottom_back_color_picker.update_swatch()
+            self.bottom_bold_check.setChecked(bool(style.get('Bottom_Bold', 0)))
+            self.bottom_italic_check.setChecked(bool(style.get('Bottom_Italic', 0)))  # 修复：使用 .get()
+            
             self.underline_check.setChecked(bool(style.get('Underline', 0)))
             self.strikeout_check.setChecked(bool(style.get('StrikeOut', 0)))
             self.scale_x_spin.setValue(style.get('ScaleX', 100))
@@ -517,9 +573,14 @@ class ASSStyleDialog(QDialog):
         self.blockSignals(True)
         try:
             self.font_combo.setCurrentFont(style['Fontname'])
+            self.Bottom_font_combo.setCurrentFont(style['Bottom_Fontname'])
             self.font_size_spin.setValue(style['Fontsize'])
+            self.bottom_font_size_spin.setValue(style['Bottom_Fontsize'])
             self.primary_color_picker.color = ColorPicker.parse_color(style['PrimaryColour'])
             self.primary_color_picker.update_swatch()
+            self.bottom_primary_color_picker.color = ColorPicker.parse_color(style['Bottom_PrimaryColour'])
+            self.bottom_primary_color_picker.update_swatch()
+            
             self.secondary_color_picker.color = ColorPicker.parse_color(style['SecondaryColour'])
             self.secondary_color_picker.update_swatch()
             self.outline_color_picker.color = ColorPicker.parse_color(style['OutlineColour'])
@@ -528,6 +589,17 @@ class ASSStyleDialog(QDialog):
             self.back_color_picker.update_swatch()
             self.bold_check.setChecked(bool(style['Bold']))
             self.italic_check.setChecked(bool(style['Italic']))
+            #第二个
+            self.bottom_secondary_color_picker.color = ColorPicker.parse_color(style['Bottom_SecondaryColour'])
+            self.bottom_secondary_color_picker.update_swatch()
+            self.bottom_outline_color_picker.color = ColorPicker.parse_color(style['Bottom_OutlineColour'])
+            self.bottom_outline_color_picker.update_swatch()
+            self.bottom_back_color_picker.color = ColorPicker.parse_color(style['Bottom_BackColour'])
+            self.bottom_back_color_picker.update_swatch()
+            self.bottom_bold_check.setChecked(bool(style['Bottom_Bold']))
+            self.bottom_italic_check.setChecked(bool(style['Bottom_Italic']))
+            
+            
             self.underline_check.setChecked(bool(style['Underline']))
             self.strikeout_check.setChecked(bool(style['StrikeOut']))
             self.scale_x_spin.setValue(style['ScaleX'])
@@ -552,13 +624,25 @@ class ASSStyleDialog(QDialog):
         style = {
             'Name': 'Default',
             'Fontname': self.font_combo.currentText(),
+            'Bottom_Fontname': self.bottom_font_combo.currentText(),
             'Fontsize': self.font_size_spin.value(),
+            'Bottom_Fontsize': self.bottom_font_size_spin.value(),
             'PrimaryColour': self.primary_color_picker.to_ass_color(),
+            'Bottom_PrimaryColour': self.bottom_primary_color_picker.to_ass_color(),
+            
             'SecondaryColour': self.secondary_color_picker.to_ass_color(),
             'OutlineColour': self.outline_color_picker.to_ass_color(),
             'BackColour': self.back_color_picker.to_ass_color(),
             'Bold': 1 if self.bold_check.isChecked() else 0,
             'Italic': 1 if self.italic_check.isChecked() else 0,
+            
+            'Bottom_SecondaryColour': self.bottom_secondary_color_picker.to_ass_color(),
+            'Bottom_OutlineColour': self.bottom_outline_color_picker.to_ass_color(),
+            'Bottom_BackColour': self.bottom_back_color_picker.to_ass_color(),
+            'Bottom_Bold': 1 if self.bottom_bold_check.isChecked() else 0,
+            'Bottom_Italic': 1 if self.bottom_italic_check.isChecked() else 0,
+            
+            
             'Underline': 1 if self.underline_check.isChecked() else 0,
             'StrikeOut': 1 if self.strikeout_check.isChecked() else 0,
             'ScaleX': self.scale_x_spin.value(),

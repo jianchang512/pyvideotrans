@@ -404,7 +404,7 @@ class Ui_MainWindow(object):
         self.othlinenums.setObjectName("othlinenums")
         self.othlinenums.setValue(int(settings.get('other_len', 60)))
         self.set_ass=QtWidgets.QPushButton()
-        self.set_ass.setStyleSheet("background-color:transparent;border:1px solid #455364")
+        #self.set_ass.setStyleSheet("background-color:transparent;border:1px solid #455364")
         self.set_ass.setText(tr('Modify hard subtitle style'))
         self.set_ass.setCursor(Qt.PointingHandCursor)
         self.set_ass.setVisible(False)
