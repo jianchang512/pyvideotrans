@@ -71,6 +71,9 @@ from videotrans.ui.watermark import Ui_watermark
 from videotrans.ui.zhipuai import Ui_zhipuaiform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
 from videotrans.ui.zijierecognmodel import Ui_zijierecognform
+from videotrans.ui.cambtts import Ui_cambttsform
+from videotrans.ui.cambtrans import Ui_cambtransform
+from videotrans.ui.cambasr import Ui_cambasrform
 
 
 class CommonBaseMixin:
@@ -322,6 +325,18 @@ class Doubao2TTSForm(QDialogBase, Ui_doubao2form):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
 class ZijierecognmodelForm(QDialogBase, Ui_zijierecognform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+class CambTTSForm(QDialogBase, Ui_cambttsform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+class CambTransForm(QDialogBase, Ui_cambtransform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+class CambASRForm(QDialogBase, Ui_cambasrform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
 

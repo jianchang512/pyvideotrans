@@ -29,6 +29,7 @@ from videotrans.translator._baidu import Baidu
 from videotrans.translator._ott import OTT
 from videotrans.translator._transapi import TransAPI
 from videotrans.translator._minimax import MiniMax
+from videotrans.translator._camb import CambTranslator
 
 
 GOOGLE_INDEX = 0
@@ -64,6 +65,7 @@ LIBRE_INDEX = 20
 MyMemoryAPI_INDEX = 21
 TRANSAPI_INDEX = 22
 MINIMAX_INDEX = 23
+CAMB_INDEX = 24
 
 
 
@@ -114,6 +116,7 @@ _ID_NAME_DICT = {
     MyMemoryAPI_INDEX:tr('MyMemoryAPI'),
     TRANSAPI_INDEX:tr('Customized API'),
     MINIMAX_INDEX:"MiniMax AI",
+    CAMB_INDEX:"CAMB AI",
 }
 TRANSLASTE_NAME_LIST=list(_ID_NAME_DICT.values())
 
@@ -819,6 +822,12 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         from videotrans.winform import minimax
         minimax.openwin()
         return False
+    if translate_type == CAMB_INDEX and not params.get('camb_api_key',''):
+        if return_str:
+            return "Please configure the API key information of the CAMB AI channel first."
+        from videotrans.winform import cambtrans
+        cambtrans.openwin()
+        return False
     if translate_type == TRANSAPI_INDEX and not params.get("trans_api_url",''):
         if return_str:
             return "Please configure the api and key information of the TransAPI channel first."
@@ -986,7 +995,9 @@ def run(*, translate_type=0,
     if translate_type == MINIMAX_INDEX:
         return MiniMax(**kwargs).run()
     if translate_type == M2M100_INDEX:
-        from videotrans.translator._m2m100 import M2M100Trans 
+        from videotrans.translator._m2m100 import M2M100Trans
         return M2M100Trans(**kwargs).run()
+    if translate_type == CAMB_INDEX:
+        return CambTranslator(**kwargs).run()
 
     raise RuntimeError('未选中任何翻译渠道')

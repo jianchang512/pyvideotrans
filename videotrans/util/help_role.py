@@ -8,6 +8,47 @@ from functools import lru_cache
 from videotrans.util import contants
 
 
+def get_camb_role(force=False, raise_exception=False):
+    from . import help_misc
+    jsonfile = f'{ROOT_DIR}/videotrans/voicejson/camb.json'
+    namelist = ["No", "clone"]
+    if help_misc.vail_file(jsonfile):
+        with open(jsonfile, 'r', encoding='utf-8') as f:
+            cache = json.loads(f.read())
+            for it in cache.values():
+                name = it.get('voice_name', it.get('name', ''))
+                if name:
+                    namelist.append(name)
+    if not force and len(namelist) > 2:
+        params['camb_role'] = namelist
+        return namelist
+    try:
+        from camb.client import CambAI
+        import os
+        client = CambAI(api_key=params.get("camb_api_key", '') or os.environ.get('CAMB_API_KEY', ''))
+        voiceslist = client.voice_cloning.list_voices()
+
+        namelist = ['No', 'clone']
+        result = {}
+        for it in voiceslist:
+            voice_id = it.id if hasattr(it, 'id') else it.get('id')
+            voice_name = it.voice_name if hasattr(it, 'voice_name') else it.get('voice_name', '')
+            n = re.sub(r'[^a-zA-Z0-9_ -]+', '', voice_name, flags=re.I | re.S).strip()
+            if n:
+                result[n] = {"name": n, "voice_name": n, "id": voice_id}
+                namelist.append(n)
+
+        with open(jsonfile, 'w', encoding="utf-8") as f:
+            f.write(json.dumps(result))
+        params['camb_role'] = namelist
+        return namelist
+    except Exception as e:
+        logger.exception(f'Failed to get CAMB AI voices: {e}', exc_info=True)
+        if raise_exception:
+            raise
+    return []
+
+
 def get_elevenlabs_role(force=False, raise_exception=False):
     from . import help_misc
     jsonfile = f'{ROOT_DIR}/videotrans/voicejson/elevenlabs.json'

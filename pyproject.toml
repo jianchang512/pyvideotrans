@@ -256,7 +256,8 @@ dependencies = [
     "faster-whisper",
     "google-genai",
     "transformers==4.57.6",
-    "elevenlabs"
+    "elevenlabs",
+    "camb-sdk",
 ]
 
 [project.optional-dependencies]
