@@ -117,8 +117,8 @@ class Ui_setini(object):
                 "speaker_type": "用于说话人分离的模型，默认内置模型支持中英. \n若选 pyannote 必须拥有 https://huggingface.co 上的token，\n并且同意pyannote组织的授权协议\n\n具体请访问URL查看教程:\nhttps://pvt9.com/shuohuaren",
                 "hf_token": "填写你在 huggingface.co 的token，否则无法使用 pyannote，具体查看教程\nhttps://pvt9.com/shuohuaren",
 
-                "model_list": "faster模式和openai模式下的模型名字列表，英文逗号分隔",
-                "Whisper_cpp_models": "whisper.cpp模式下的模型名字列表，英文逗号分隔",
+                "model_list": "faster-whipser的模型列表，英文逗号分隔",
+                "Whisper_cpp_models": "whisper.cpp的模型名字列表，英文逗号分隔",
                 "cuda_com_type": "faster模式时cuda数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，float16适合GPU加速。default默认自选",
                 "beam_size": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
@@ -208,7 +208,7 @@ class Ui_setini(object):
             "azure_model": "Azure模型列表",
             "localllm_model": "本地LLM模型列表",
             "zijiehuoshan_model": "字节火山推理接入点",
-            "model_list": "faster/whisper模型",
+            "model_list": "faster-whisper模型",
             "Whisper_cpp_models": "whisper.cpp模型",
             "homedir": "设置输出目录",
             "lang": "软件界面语言",
@@ -362,7 +362,7 @@ class Ui_setini(object):
 
                     "hf_token": "Enter your token from huggingface.co. Otherwise, you cannot use Pyannote speaker separation. \nFor details, please see the tutorial: \nhttps://pvt9.com/shuohuaren",
 
-                    "model_list": "Comma-separated list of model names for faster-whisper and OpenAI modes.",
+                    "model_list": "Comma-separated list of model names for faster-whisper modes.",
                     "Whisper_cpp_models": "Comma-separated list of model names for whisper.cpp mode.",
                     "cuda_com_type": "CUDA compute type for faster-whisper (e.g., int8, float16, float32).",
                     "beam_size": "Beam size for transcription (1-5). Higher is more accurate but uses more VRAM.",
@@ -453,7 +453,7 @@ class Ui_setini(object):
                 "azure_model": "Azure model list",
                 "localllm_model": "Local LLM model list",
                 "zijiehuoshan_model": "ByteDance Volcano Engine inference endpoint",
-                "model_list": "faster/whisper models",
+                "model_list": "faster-whisper models",
                 "Whisper_cpp_models": "whisper.cpp models",
                 "homedir": "Set output directory",
                 "lang": "Software interface language",

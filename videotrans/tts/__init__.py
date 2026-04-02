@@ -69,7 +69,6 @@ XAI_TTS = 29
 XIAOMI_TTS = 30
 TTS_API = 31
 CAMB_TTS = 32
-GOOGLECLOUD_TTS = 33
 
 # 支持克隆的渠道
 SUPPORT_CLONE=[
@@ -125,7 +124,6 @@ _ID_NAME_DICT = {
     XIAOMI_TTS:'xiaomi TTS',
     TTS_API: tr("Customize API"),
 
-    # GOOGLECLOUD_TTS:"Google Cloud TTS",
     CAMB_TTS: "CAMB AI TTS",
 }
 
@@ -309,12 +307,6 @@ def is_input_api(tts_type: int = None, return_str=False):
             return "Please configure the API key information of the CAMB AI TTS channel first."
         from videotrans.winform import cambtts as cambtts_win
         cambtts_win.openwin()
-        return False
-    if tts_type == GOOGLECLOUD_TTS and not params.get('gcloud_credential_json'):
-        if return_str:
-            return "Please configure the Google Cloud credentials first."
-        from videotrans.winform import googlecloud as googlecloud_win
-        googlecloud_win.openwin()
         return False
     if tts_type == GLM_TTS and not params.get('zhipu_key'):
         if return_str:

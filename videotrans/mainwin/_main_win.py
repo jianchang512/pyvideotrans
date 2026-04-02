@@ -508,6 +508,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif recogn_type == recognition.HUGGINGFACE_ASR:
             curr = list(recognition.HUGGINGFACE_ASR_MODELS.keys())
             self.model_name.addItems(curr)
+        elif recogn_type == recognition.OPENAI_WHISPER:
+            self.model_name.addItems(contants.Openai_Whisper_Models)
+            curr = contants.Openai_Whisper_Models
         else:
             self.model_name.addItems(settings.WHISPER_MODEL_LIST)
             curr = settings.WHISPER_MODEL_LIST

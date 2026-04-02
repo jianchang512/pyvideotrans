@@ -146,3 +146,4 @@ Guiji_Model="Pro/zai-org/GLM-5,Pro/moonshotai/Kimi-K2.5,Pro/deepseek-ai/DeepSeek
 Ai302_Models="deepseek-chat"
 Zijiehuoshan_Model="doubao-seed-2-0-pro-260215,doubao-seed-2-0-lite-260215,doubao-seed-2-0-mini-260215,doubao-seed-1-8-251228,doubao-seed-1-6-251015,doubao-seed-1-6-lite-251015,doubao-seed-1-6-flash-250828,deepseek-v3-2-251201,glm-4-7-251222,doubao-1-5-pro-32k-250115,kimi-k2-thinking-251104,doubao-ceshi"
 Whisper_Models="tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3,distil-large-v3.5"
+Openai_Whisper_Models=["tiny","tiny.en","base","base.en","small","small.en","medium","medium.en","large-v3-turbo","large-v1","large-v2","large-v3"]

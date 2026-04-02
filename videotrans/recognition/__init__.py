@@ -1,5 +1,6 @@
 from typing import Union, List, Dict
-from videotrans.configure.config import tr,settings,params,app_cfg,logger
+from pathlib import Path
+from videotrans.configure.config import tr,settings,params,app_cfg,logger,ROOT_DIR
 from videotrans.recognition._huggingface import HuggingfaceRecogn
 from videotrans.recognition._overall import FasterAll
 
@@ -88,6 +89,13 @@ HUGGINGFACE_ASR_MODELS={
 # "Systran/faster-whisper-tiny":[]
 
 }
+try:
+    if Path(f'{ROOT_DIR}/huggingface_models.txt').exists():
+        for it in Path(f'{ROOT_DIR}/huggingface_models.txt').read_text(encoding='utf-8').strip().split("\n"):
+            HUGGINGFACE_ASR_MODELS[it]=[]
+except Exception as e:
+    logger.waring(f'添加自定义 Huggingface_ASR 模型失败:{e}')
+
 # 判断所用渠道和模型是否支持该语言的语音识别
 # langcode=语言代码，recogn_type=识别渠道,model_name=模型名字
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
@@ -99,7 +107,7 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
         return True
     if recogn_type==HUGGINGFACE_ASR and HUGGINGFACE_ASR_MODELS.get(model_name):
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
-            return _ID_NAME_DICT.get(recogn_type,'')+tr('Speech Recognit')+tr("Only support")+tr(HUGGINGFACE_ASR_MODELS[model_name])
+            return tr("Only support")+tr(HUGGINGFACE_ASR_MODELS[model_name])
         return True
     if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs,Faster_Whisper_XXL,Whisper_CPP,WHISPERX_API,AI_302,OPENAI_API,WHISPER_NET]:
         return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")

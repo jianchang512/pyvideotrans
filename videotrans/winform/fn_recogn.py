@@ -251,7 +251,7 @@ def openwin():
             winobj.shibie_model.setDisabled(False)
             winobj.shibie_model.clear()
             if recogn_type in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.WHISPERX_API]:
-                winobj.shibie_model.addItems(settings.WHISPER_MODEL_LIST)
+                winobj.shibie_model.addItems(settings.WHISPER_MODEL_LIST if recogn_type != recognition.OPENAI_WHISPER else contants.Openai_Whisper_Models)
             elif recogn_type == recognition.Deepgram:
                 winobj.shibie_model.addItems(contants.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
@@ -364,9 +364,13 @@ def openwin():
         elif default_type == recognition.HUGGINGFACE_ASR:
             curr=list(recognition.HUGGINGFACE_ASR_MODELS.keys())
             winobj.shibie_model.addItems(curr)            
+        elif default_type == recognition.OPENAI_WHISPER:
+            curr = contants.Openai_Whisper_Models
+            winobj.shibie_model.addItems(curr)
+            
         else:
             curr = settings.WHISPER_MODEL_LIST
-            winobj.shibie_model.addItems(settings.WHISPER_MODEL_LIST)
+            winobj.shibie_model.addItems(curr)
         if params.get('stt_model_name') in curr:
             current_model = params.get('stt_model_name')
             winobj.shibie_model.setCurrentText(current_model)

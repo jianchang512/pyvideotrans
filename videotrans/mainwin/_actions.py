@@ -120,7 +120,7 @@ class WinAction(WinActionSub):
             self.main.model_name.setDisabled(False)
             self.main.model_name.clear()
             if recogn_type in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,recognition.WHISPERX_API]:
-                self.main.model_name.addItems(settings.WHISPER_MODEL_LIST)
+                self.main.model_name.addItems(settings.WHISPER_MODEL_LIST if recogn_type != recognition.OPENAI_WHISPER else contants.Openai_Whisper_Models)
             elif recogn_type == recognition.Deepgram:
                 self.main.model_name.addItems(contants.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
@@ -987,7 +987,7 @@ class WinAction(WinActionSub):
                 self.main.tts_type.setCurrentIndex(0)
                 QTimer.singleShot(100,lambda: self.main.tts_type.setCurrentIndex(currentIndex))
         elif d['type'] == 'refreshmodel_list':
-            if self.main.recogn_type.currentIndex() in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER,recognition.Faster_Whisper_XXL,recognition.Whisper_CPP]:
+            if self.main.recogn_type.currentIndex() in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL,recognition.Whisper_CPP]:
                 current_model_name = self.main.model_name.currentText()
                 self.main.model_name.clear()
                 self.main.model_name.addItems(settings.Whisper_CPP_MODEL_LIST if self.main.recogn_type.currentIndex()==recognition.Whisper_CPP else settings.WHISPER_MODEL_LIST)
