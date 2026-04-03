@@ -12,6 +12,7 @@ _module_map = {
 "chattts":".chattts",
 "clone":".clone",
 "cosyvoice":".cosyvoice",
+"omnivoice":".omnivoice",
 "deepgram":".deepgram",
 "deepL":".deepL",
 "deepLX":".deepLX",

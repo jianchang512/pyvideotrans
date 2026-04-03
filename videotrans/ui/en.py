@@ -827,6 +827,8 @@ class Ui_MainWindow(object):
 
         self.actiontts_cosyvoice = QtGui.QAction(MainWindow)
         self.actiontts_cosyvoice.setObjectName("actiontts_cosyvoice")
+        self.actiontts_omnivoice = QtGui.QAction(MainWindow)
+        self.actiontts_omnivoice.setObjectName("actiontts_omnivoice")
         self.actiontts_qwenttslocal = QtGui.QAction(MainWindow)
         self.actiontts_qwenttslocal.setObjectName("actiontts_qwenttslocal")
         self.actiontts_fishtts = QtGui.QAction(MainWindow)
@@ -983,6 +985,8 @@ class Ui_MainWindow(object):
         self.menu_TTS.addAction(self.actionchattts_address)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actiontts_gptsovits)
+        self.menu_TTS.addSeparator()
+        self.menu_TTS.addAction(self.actiontts_omnivoice)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actiontts_cosyvoice)
         self.menu_TTS.addSeparator()

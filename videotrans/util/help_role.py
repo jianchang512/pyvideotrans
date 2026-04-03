@@ -344,6 +344,20 @@ def get_cosyvoice_role():
         rolelist[tmp[0]] = {"reference_audio": tmp[0], "reference_text": tmp[1]}
     return rolelist
 
+def get_omnivoice_role():
+
+    rolelist = {
+        "No":"No",
+        "clone": 'clone'
+    }
+
+    for it in params.get('omnivoice_role','').strip().split("\n"):
+        tmp = it.strip().split('#')
+        if len(tmp) != 2:
+            continue
+        rolelist[tmp[0]] = {"reference_audio": tmp[0], "reference_text": tmp[1]}
+    return rolelist
+
 
 def get_fishtts_role():
 

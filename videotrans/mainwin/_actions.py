@@ -256,6 +256,11 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == tts.OMNIVOICE_TTS:
+            rolelist = tools.get_omnivoice_role()
+            self.main.voice_role.clear()
+            self.main.current_rolelist = list(rolelist.keys())
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.FISHTTS:
             rolelist = tools.get_fishtts_role()
             self.main.voice_role.clear()

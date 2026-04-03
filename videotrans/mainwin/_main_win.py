@@ -244,6 +244,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_chatterbox.setText("ChatterBox TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
+        self.actiontts_omnivoice.setText("OmniVoice TTS")
         self.actiontts_qwenttslocal.setText(f"Qwen3 TTS({tr('Local')})")
         self.actiontts_fishtts.setText("Fish TTS")
         self.actiontts_f5tts.setText("F5-TTS/Index-TTS/VoxCPM/SparK-TTS/Dia-TTS")
@@ -431,6 +432,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif tts_type == tts.COSYVOICE_TTS:
             rolelist = tools.get_cosyvoice_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['clone'])
+        elif tts_type == tts.OMNIVOICE_TTS:
+            rolelist = tools.get_omnivoice_role()
+            self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['clone'])
         elif tts_type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,
                           tts.DIA_TTS]:
             rolelist = tools.get_f5tts_role()
@@ -593,6 +597,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_gptsovits.triggered.connect(lambda: self._open_winform('gptsovits'))
         self.actiontts_chatterbox.triggered.connect(lambda: self._open_winform('chatterbox'))
         self.actiontts_cosyvoice.triggered.connect(lambda: self._open_winform('cosyvoice'))
+        self.actiontts_omnivoice.triggered.connect(lambda: self._open_winform('omnivoice'))
         self.actiontts_qwenttslocal.triggered.connect(lambda: self._open_winform('qwenttslocal'))
         self.actionopenaitts_key.triggered.connect(lambda: self._open_winform('openaitts'))
         self.actionxaitts_key.triggered.connect(lambda: self._open_winform('xaitts'))

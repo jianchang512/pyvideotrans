@@ -643,6 +643,8 @@ class AppParams:
             "gptsovits_extra": "pyvideotrans",
             "cosyvoice_url": "",
             "cosyvoice_role": "",
+            "omnivoice_url": "",
+            "omnivoice_role": "",
             "fishtts_url": "",
             "fishtts_role": "",
             "f5tts_url": "",

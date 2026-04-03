@@ -497,6 +497,8 @@ def openwin():
             role_list = tools.get_chatterbox_role()
         elif type == tts.COSYVOICE_TTS:
             role_list = list(tools.get_cosyvoice_role().keys())
+        elif type == tts.OMNIVOICE_TTS:
+            role_list = list(tools.get_omnivoice_role().keys())
         elif type == tts.FISHTTS:
             role_list = list(tools.get_fishtts_role().keys())
         elif type in [tts.F5_TTS,tts.INDEX_TTS,tts.SPARK_TTS,tts.VOXCPM_TTS,tts.DIA_TTS]:

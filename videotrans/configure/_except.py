@@ -229,7 +229,7 @@ def get_msg_from_except(ex):
         # === 资源不存在问题 ===
         # === 请求参数问题 ===
         # === 服务端问题 ===
-        (InternalServerError,NotFoundError,BadRequestError,APIConnectionError,APIError): lambda e: e.body.get('message') if hasattr(e,'body') else str(e),
+        (InternalServerError,NotFoundError,BadRequestError,APIConnectionError,APIError): lambda e: e.body.get('message') if hasattr(e,'body') and hasattr(e.body,'get') else str(e),
 
 
         LengthFinishReasonError: lambda e: (

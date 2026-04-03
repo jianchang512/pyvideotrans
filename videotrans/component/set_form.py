@@ -18,6 +18,7 @@ from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.doubao2 import Ui_doubao2form
 from videotrans.ui.clone import Ui_cloneform
 from videotrans.ui.cosyvoice import Ui_cosyvoiceform
+from videotrans.ui.omnivoice import Ui_omnivoiceform
 from videotrans.ui.deepgram import Ui_deepgramform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
@@ -187,6 +188,9 @@ class ChatterboxForm(QDialogBase, Ui_chatterboxform):  # <===
 
 
 class CosyVoiceForm(QDialogBase, Ui_cosyvoiceform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+class OmniVoiceForm(QDialogBase, Ui_omnivoiceform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
 class QwenttsLocalForm(QDialogBase, Ui_qwenttslocal):  # <===
