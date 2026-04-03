@@ -59,10 +59,10 @@ class OmniVoice(BaseTTS):
             client = Client(self.api_url, ssl_verify=False)
         except Exception as e:
             raise StopRetry(str(e))
-
+        lang=self.language.split('-')[0]
         result = client.predict(
             text=text,
-            lang="Auto",
+            lang='Auto',
             ref_aud=handle_file(ref_aud),
             ref_text=ref_text,
             ns=32,
