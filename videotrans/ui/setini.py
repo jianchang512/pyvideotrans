@@ -58,7 +58,8 @@ class Ui_setini(object):
                 "show_more_settings": "为避免过多参数造成困扰，主界面默认隐藏大部分参数，如果选中这里将切换为默认显示所有参数",
                 "process_max":"最大进程数，越大越快但可能爆内存，最大不应超过cpu核数减一\n(修改保存后重启生效)",
                 "process_max_gpu":"GPU任务同时执行数量，除非单卡显存大于20G，否则请设为1\n(修改保存后重启生效)",
-                "multi_gpus":"如果有多张显卡，且显存一致，可启用该项，同时可将上述选项设为2或显卡数\n(修改保存后重启生效)"
+                "multi_gpus":"如果有多张显卡，且显存一致，可启用该项，同时可将上述选项设为2或显卡数\n(修改保存后重启生效)",
+                "uvr_models":"选择分离背景声时所用模型"
             },
 
             "video": {
@@ -182,6 +183,7 @@ class Ui_setini(object):
             "remove_dubb_silence":"移除配音前后静音缓冲",
             "first_hw":"视频合成优先硬编码",
             "normal_text":"文本规范化",
+            "uvr_models":"分离背景声模型",
 
             "whisper_prepare": "Whisper预分割音频?",
             "temperature":"采样温度",
@@ -304,7 +306,9 @@ class Ui_setini(object):
                     "show_more_settings": "To avoid confusion caused by too many parameters, most parameters are hidden by default on the main interface. Selecting this option will switch to displaying all parameters by default.",
                     "process_max":"Process Maximum",
                     "process_max_gpu":"The number of GPU tasks that can be executed simultaneously should be set to 1 unless the video memory is greater than 20GB.",
-                    "multi_gpus":"If you have multiple graphics cards with identical video memory, you can enable this option and set the above option to 2 or the number of graphics cards."
+                    "multi_gpus":"If you have multiple graphics cards with identical video memory, you can enable this option and set the above option to 2 or the number of graphics cards.",
+                    "uvr_models":"Select the model used when separating background noise."
+                    
                 },
                 "video": {
                     "crf": "Constant Rate Factor (CRF) for video quality. 0=lossless (huge file), 51=low quality (small file).",
@@ -430,6 +434,7 @@ class Ui_setini(object):
                  "hotwords":"hotwords",
                 "remove_dubb_silence":"Remove the mute buffer each subtitle audio",
                 "normal_text":"Text Text normalization",
+                "uvr_models":"BGM separation model",
 
                 "repetition_penalty":"repetition penalty",
                 "compression_ratio_threshold":"compression ratio threshold",
@@ -585,8 +590,20 @@ class Ui_setini(object):
                     combobox_data = ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower','veryslow']
                 elif key == "lang":
                     combobox_data=list(app_cfg.SUPPORT_LANG.keys())
+                elif key=='uvr_models':
+                    combobox_data=[
+                    'UVR-MDX-NET-Inst_HQ_4',
+                    'UVR-MDX-NET-Inst_HQ_1',
+                    'UVR-MDX-NET-Inst_HQ_2',
+                    'UVR-MDX-NET-Inst_HQ_3',
+                    'UVR-MDX-NET-Inst_HQ_5',
+                    'UVR-MDX-NET-Inst_Main',
+                    'UVR-MDX-NET-Inst_1',
+                    'UVR-MDX-NET-Inst_2',
+                    'UVR-MDX-NET-Inst_3'
+                    ]
 
-                if combobox_data and key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset',"lang"]:
+                if combobox_data and key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset',"lang",'uvr_models']:
                     tmp1 = QtWidgets.QComboBox()
                     tmp1.addItems(combobox_data)
 

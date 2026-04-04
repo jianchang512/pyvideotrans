@@ -19,7 +19,7 @@ def _write_log(file=None, msg=None, type='logs'):
 
 # 1. 分离背景声和人声 https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html#uvr
 # 仅使用cpu，不使用gpu
-def vocal_bgm(*, input_file, vocal_file, instr_file,  logs_file=None, is_cuda=False):
+def vocal_bgm(*, input_file, vocal_file, instr_file,  logs_file=None, is_cuda=False,uvr_models="UVR-MDX-NET-Inst_HQ_4"):
     """
     UVR for source separation.
 
@@ -34,7 +34,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file,  logs_file=None, is_cuda=Fa
     import soundfile as sf
 
     def create_offline_source_separation():
-        model = f"{ROOT_DIR}/models/onnx/UVR-MDX-NET-Inst_HQ_4.onnx"
+        model = f"{ROOT_DIR}/models/onnx/{uvr_models}.onnx"
 
         if not Path(model).is_file():
             raise ValueError(f"{model} does not exist.")

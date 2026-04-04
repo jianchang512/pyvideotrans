@@ -639,7 +639,8 @@
     "kokoro api": "Kokoro URL",
     "llmduanju": "LLM Resegment: Set OpenAI Model/Key in Settings.",
     "llmduanjudp": "LLM Resegment: Set DeepSeek Model/Key in Settings.",
-    "loop the BGM": "Loop BGM",
+    "loop the BGM": "BGM loops for a short time",
+	"The bgm briefly lengthens": "The bgm briefly lengthens",
     "max speech duration (s)": "Max Speech Len (sec)",
     "max_speech_duration_s": "Max Speech Duration (s)",
     "meitiaozimugeshi": "SRT Format:\n1\n00:00:01,000 --> 00:00:04,000\nText\n...",
@@ -968,6 +969,7 @@
     "clone_dubb_tips1": "When using a cloned character for voice cloning, it is recommended to set the minimum voice duration to 3000 and the maximum voice duration to 10 seconds in the menu - Tools - Advanced Options - Voice Recognition Parameters area to avoid errors due to duration issues.",
     "clone_dubb_tips2": "Also select Whisper pre-segmented audio.",
 	"The filename is too long":"The filename is too long.",
-  "Filename length check":"The total length of the filename is too long and may exceed system limits during subsequent complex processing, causing errors.\n\nCurrent filename: {} characters, Path plus file: {} characters\n\nTo avoid subsequent errors, it is recommended to: shorten filenames, shorten folder names, and move files to a shorter, outermost folder.\n\nClick Yes to ignore the warning and continue, or click No to make the changes."
+  "Filename length check":"The total length of the filename is too long and may exceed system limits during subsequent complex processing, causing errors.\n\nCurrent filename: {} characters, Path plus file: {} characters\n\nTo avoid subsequent errors, it is recommended to: shorten filenames, shorten folder names, and move files to a shorter, outermost folder.\n\nClick Yes to ignore the warning and continue, or click No to make the changes.",
+  "embed_bgm":"Re-embed BGM"
 
 }

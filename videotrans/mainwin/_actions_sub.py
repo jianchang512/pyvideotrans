@@ -488,7 +488,8 @@ class WinActionSub:
         self.main.bgmvolume.setDisabled(type)
         self.main.set_adv_status.setDisabled(type)
         self.main.select_file_type.setDisabled(type)
-        self.main.is_separate.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
+        self.main.is_separate.setDisabled(type)
+        self.main.embed_bgm.setDisabled(type)
         self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
         self.main.back_audio.setReadOnly(True if self.main.app_mode in ['tiqu'] else type)
 
@@ -586,7 +587,6 @@ class WinActionSub:
             for it in self.queue_mp4:
                 if Path(it).suffix.lower() in contants.AUDIO_EXITS:
                     self.main.app_mode = 'tiqu'
-                    self.cfg['is_separate'] = False
                     break
         return True
 

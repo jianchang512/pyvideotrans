@@ -118,7 +118,7 @@ class TransCreate(BaseTask):
         # 判断如果是音频，则到生成音频结束，无需合并，并且无需分离视频、无需背景音处理
         if self.cfg.ext in contants.AUDIO_EXITS:
             self.is_audio_trans = True
-            self.cfg.is_separate = False
+            #self.cfg.is_separate = False
             self.shoud_hebing = False
 
         # 没有设置目标语言，不配音不翻译
@@ -130,7 +130,7 @@ class TransCreate(BaseTask):
             self.shoud_dubbing = False
 
         if self.cfg.app_mode == 'tiqu':
-            self.cfg.is_separate = False
+            #self.cfg.is_separate = False
             self.cfg.enable_diariz = False
             self.shoud_dubbing = False
 
@@ -898,12 +898,13 @@ class TransCreate(BaseTask):
         if tools.vail_file(self.cfg.vocal) and tools.vail_file(self.cfg.instrument):
             return
         title = tr('Separating vocals and background music, which may take a longer time')
+        uvr_models=settings.get('uvr_models')
         tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-            "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/UVR-MDX-NET-Inst_HQ_4.onnx"
+            f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/{uvr_models}.onnx"
         ], callback=self._process_callback)
         from videotrans.process.prepare_audio import vocal_bgm
         # 返回 False None 失败
-        kw = {"input_file": tmpfile, "vocal_file": self.cfg.vocal, "instr_file": self.cfg.instrument}
+        kw = {"input_file": tmpfile, "vocal_file": self.cfg.vocal, "instr_file": self.cfg.instrument,"uvr_models":uvr_models}
         try:
             rs = self._new_process(callback=vocal_bgm, title=title, is_cuda=False, kwargs=kw)
             if rs and tools.vail_file(self.cfg.vocal) and tools.vail_file(self.cfg.instrument):
@@ -1081,7 +1082,7 @@ class TransCreate(BaseTask):
             logger.exception(f'添加背景音乐失败:{str(e)}', exc_info=True)
 
     def _separate(self) -> None:
-        if self._exit() or not self.shoud_separate:
+        if self._exit() or not self.shoud_separate or not self.cfg.embed_bgm:
             return
         # 如果背景音频分离失败，则静默返回
         if not tools.vail_file(self.cfg.instrument):
@@ -1096,14 +1097,18 @@ class TransCreate(BaseTask):
 
             instrument_file = self.cfg.instrument
             logger.debug(f'合并背景音 {beishu=},{atime=},{vtime=}')
-            if settings.get('loop_backaudio') and atime + 1000 < vtime:
-                # 背景音连接延长片段
-                file_list = [instrument_file for n in range(beishu + 1)]
-                concat_txt = self.cfg.cache_folder + f'/{time.time()}.txt'
-                tools.create_concat_txt(file_list, concat_txt=concat_txt)
-                tools.concat_multi_audio(concat_txt=concat_txt,
-                                         out=self.cfg.cache_folder + "/instrument-concat.wav")
-                instrument_file = self.cfg.cache_folder + f"/instrument-concat.wav"
+            if atime + 1000 < vtime:
+                if int(settings.get('loop_backaudio'))==1:
+                    # 背景音连接延长片段
+                    file_list = [instrument_file for n in range(beishu + 1)]
+                    concat_txt = self.cfg.cache_folder + f'/{time.time()}.txt'
+                    tools.create_concat_txt(file_list, concat_txt=concat_txt)
+                    tools.concat_multi_audio(concat_txt=concat_txt,
+                                             out=self.cfg.cache_folder + "/instrument-concat.wav")
+                    instrument_file = self.cfg.cache_folder + f"/instrument-concat.wav"
+                else:
+                    # 延长背景音
+                    tools.change_speed_rubberband(instr_file, self.cfg.cache_folder + f"/instrument-concat.wav", vtime)
             # 背景音合并配音
             self._backandvocal(self.cfg.instrument, self.cfg.target_wav)
         except Exception as e:

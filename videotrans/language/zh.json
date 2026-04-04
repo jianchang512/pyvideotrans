@@ -317,7 +317,7 @@
   "Output": "输出",
   "Output directory": "输出目录",
   "Overall acceleration or deceleration of voice over playback": "对配音语速整体加速或降速播放，正数加速，负数减速",
-  "Overall recognition is suitable for videos with or without background music and noticeable silence": "整体识别适合有无背景音乐，有明显静音的视频。",
+  "Overall recognition is suitable for videos with or without background music and noticeable silence": "整体识别适合有无背景音，有明显静音的视频。",
   "Parakeet-tdt  models only support English & Ja speech recognition": "Parakeet-tdt 仅支持英语和日语识别",
   "Password/Token": "密钥密码等",
   "Pause": "点击暂停",
@@ -419,8 +419,8 @@
   "Separate Video to audio": "批量从视频中分离音频",
   "Separate audio and silent videos from videos": "将视频分离为音频文件和无声mp4视频文件",
   "Separating audio from video": "批量从视频中分离出音频",
-  "Separating background music": "正在分离背景音乐",
-  "Separating vocals and background music, which may take a longer time": "正在分离人声和背景音乐，可能耗时较久",
+  "Separating background music": "正在分离背景音",
+  "Separating vocals and background music, which may take a longer time": "正在分离人声和背景音，可能耗时较久",
   "Separte vocal and instrument": "分离人声和背景音",
   "Set Subtitle Length": "设置硬字幕行字符数",
   "Set Translation subtitles rows": "设置同时翻译的字幕条数和暂停秒",
@@ -595,7 +595,7 @@
   "anerror": "出错了",
   "api key must be filled in": "必须填写Api Key",
   "audio_concat": "连接音频片段",
-  "back_audio_place": "背景音乐的完整路径，删除则不添加",
+  "back_audio_place": "背景音的完整路径，删除则不添加",
   "bixutianxie": "必须填写",
   "bixutianxiecloneapi": "TTS类型如何选择 clone-voice ,就必须先部署clone-voice, 并在 菜单栏-设置-原音色克隆api 中填写API地址",
   "bixuyinshipin": "必须选择有效的音视频文件",
@@ -639,7 +639,8 @@
   "kokoro api": "kokoro的http地址",
   "llmduanju": "选择LLM重新断句，必须先在菜单--翻译设置--OpenAI API中设置可用模型和密钥信息,可在高级选项中切换使用DeepSeek断句",
   "llmduanjudp": "选择LLM重新断句，必须在菜单--翻译设置--DeepSeek API中设置可用模型和密钥信息,可在高级选项中切换使用OpenAI断句",
-  "loop the BGM": "循环背景音",
+  "loop the BGM": "背景音短时循环",
+  "The bgm briefly lengthens": "背景音短时拉长",
   "max speech duration (s)": "限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒，默认5秒",
   "max_speech_duration_s": "最长语音持续秒数",
   "meitiaozimugeshi": "每条字幕格式如下：\n\n行号数字\n开始小时:分钟:秒,毫秒 --> 结束小时:分钟:秒,毫秒\n字幕内容\n\n例如：\n\n1\n00:01:10,000 --> 00:01:20,150\n我是字幕文字哦，上面一行是本条字幕开始时间到结束时间，再上一行是行号数字1",
@@ -969,6 +970,7 @@
   "clone_dubb_tips1": "使用clone角色进行语音克隆配音时，建议在菜单-工具-高级选项-语音识别参数区域，将最短语音持续时长设为3000，最长语音时长秒设为10,避免因时长问题出错.",
   "clone_dubb_tips2": "同时选中 Whisper预分割音频.",
   "The filename is too long":"文件名或路径可能太长了！",
-  "Filename length check":"文件名的“总长度”较长，在后续复杂处理时可能超过系统限制而出错。\n当前文件名：{} 个字, 路径加文件共：{} 个字\n\n为避免后续出错，建议：改短文件名，缩短文件夹的名字，将文件移动到更外层更简短的文件夹中。\n\n点击 Yes 忽略该警告继续执行， 点击 No 暂停后去修改"
+  "Filename length check":"文件名的“总长度”较长，在后续复杂处理时可能超过系统限制而出错。\n当前文件名：{} 个字, 路径加文件共：{} 个字\n\n为避免后续出错，建议：改短文件名，缩短文件夹的名字，将文件移动到更外层更简短的文件夹中。\n\n点击 Yes 忽略该警告继续执行， 点击 No 暂停后去修改",
+  "embed_bgm":"重新嵌入背景声"
 
 }

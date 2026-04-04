@@ -71,6 +71,7 @@ class TaskCfgVTT(TaskCfgSTT,TaskCfgTTS,TaskCfgSTS):
     targetdir_mp4: str=None  # 最终输出合成后的mp4
     novoice_mp4: str=None  # 从原始视频分离出的无声视频
     is_separate: bool=False  # 是否进行人声、背景音分离
+    embed_bgm: bool=True  # 是否需要重新嵌入背景音
     instrument: str=None  # 分离出的背景音频
     vocal: str=None  # 分离出的人声音频
     back_audio: str=None  # 手动添加的原始背景音音频

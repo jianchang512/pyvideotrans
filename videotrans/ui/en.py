@@ -295,7 +295,7 @@ class Ui_MainWindow(object):
         
         
         self.set_adv_status=QtWidgets.QPushButton()
-        self.set_adv_status.setStyleSheet("background-color:transparent;border:1px solid #455364")
+        #self.set_adv_status.setStyleSheet("background-color:transparent;border:1px solid #455364")
         self.set_adv_status.setText(tr('More settings'))
         self.set_adv_status.setCursor(Qt.PointingHandCursor)
 
@@ -334,6 +334,11 @@ class Ui_MainWindow(object):
         self.is_separate.setMinimumSize(QtCore.QSize(0, 30))
         self.is_separate.setObjectName("is_separate")
         self.is_separate.setVisible(False)
+        self.embed_bgm = QtWidgets.QCheckBox(self.layoutWidget)
+        self.embed_bgm.setMinimumSize(QtCore.QSize(0, 30))
+        self.embed_bgm.setObjectName("embed_bgm")
+        self.embed_bgm.setChecked(True)
+        self.embed_bgm.setVisible(False)
 
         self.addbackbtn = QtWidgets.QPushButton(self.layoutWidget)
         self.addbackbtn.setObjectName("addbackbtn")
@@ -345,12 +350,9 @@ class Ui_MainWindow(object):
         self.back_audio.setVisible(False)
 
         # 是否循环播放背景
-        self.is_loop_bgm = QtWidgets.QCheckBox(self.layoutWidget)
-        self.is_loop_bgm.setChecked(True)
+        self.is_loop_bgm = QtWidgets.QComboBox(self.layoutWidget)
+        self.is_loop_bgm.addItems([tr('The bgm briefly lengthens'),tr('loop the BGM')])
         self.is_loop_bgm.setVisible(False)
-        self.is_loop_bgm.setText(tr("loop the BGM"))
-        self.is_loop_bgm.setToolTip(
-            tr("Whether to loop the background music when the duration is insufficient"))
 
         self.bgmvolume_label = QtWidgets.QLabel()
         self.bgmvolume_label.setText(tr("Volume BGM"))
@@ -363,6 +365,7 @@ class Ui_MainWindow(object):
             tr("BGM volume is a multiple of the original volume, greater than 1 increases, less than decreases"))
 
         self.bgm_layout.addWidget(self.is_separate)
+        self.bgm_layout.addWidget(self.embed_bgm)
         self.bgm_layout.addWidget(self.is_loop_bgm)
         self.bgm_layout.addWidget(self.bgmvolume_label)
         self.bgm_layout.addWidget(self.bgmvolume)

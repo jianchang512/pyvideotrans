@@ -62,12 +62,13 @@ def openwin():
         # 创建文件夹
         Path(outdir).mkdir(parents=True,exist_ok=True)
         winobj.url.setText(outdir)
+        
         # 开始分离
         from videotrans.task.separate_worker import SeparateWorker
         winobj.task = SeparateWorker(parent=winobj, file=file, out=outdir, uuid=uuid)
         winobj.task.finish_event.connect(update)
         winobj.task.start()
-
+    
     from videotrans.component.set_form import SeparateForm
 
     winobj = SeparateForm()

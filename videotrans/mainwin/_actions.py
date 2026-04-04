@@ -539,8 +539,9 @@ class WinAction(WinActionSub):
 
         # 人声背景音分离 添加背景音频
         self.cfg['is_separate'] = self.main.is_separate.isChecked()
-        if self.cfg['voice_role'] == 'No':
-            self.cfg['is_separate'] = False
+        self.cfg['embed_bgm'] = self.main.embed_bgm.isChecked()
+        #if self.cfg['voice_role'] == 'No':
+        #    self.cfg['is_separate'] = False
         self.cfg['back_audio'] = self.main.back_audio.text().strip()
         self.cfg['enable_diariz'] = self.main.enable_diariz.isChecked()
         self.cfg['recogn2pass'] = self.main.recogn2pass.isChecked()
@@ -637,7 +638,7 @@ class WinAction(WinActionSub):
 
         if self.main.recogn_type.currentIndex() == recognition.FASTER_WHISPER or self.main.app_mode == 'biaozhun':
             # 背景音量
-            settings['loop_backaudio'] = self.main.is_loop_bgm.isChecked()
+            settings['loop_backaudio'] = self.main.is_loop_bgm.currentIndex()
             try:
                 settings['backaudio_volume'] = float(self.main.bgmvolume.text())
             except ValueError:

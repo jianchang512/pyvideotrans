@@ -176,9 +176,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.align_sub_audio.setToolTip(tr("If selected, it will force the subtitles and audio to align."))
 
         self.enable_cuda.setText(tr("Enable CUDA?"))
+        self.embed_bgm.setText(tr("embed_bgm"))
         self.is_separate.setText(tr("Retain original background sound"))
-        self.is_separate.setToolTip(
-            tr(
+        self.is_separate.setToolTip(tr(
                 "If selected, separate human voice and background sound, and finally output video will embed background sound"))
         self.startbtn.setText(tr("Start"))
         self.addbackbtn.setText(tr("Add background audio"))
@@ -377,6 +377,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.enable_diariz.setChecked(bool(params.get('enable_diariz', False)))
         self.nums_diariz.setCurrentIndex(int(params.get('nums_diariz', 0)))
         self.is_separate.setChecked(bool(params.get('is_separate', False)))
+        self.embed_bgm.setChecked(bool(params.get('embed_bgm', True)))
 
         self.rephrase.setCurrentIndex(int(params.get('rephrase', 0)))
 
@@ -384,7 +385,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.copysrt_rawvideo.setChecked(bool(params.get('copysrt_rawvideo', False)))
 
         self.bgmvolume.setText(str(settings.get('backaudio_volume', 0.8)))
-        self.is_loop_bgm.setChecked(bool(settings.get('loop_backaudio', True)))
+        self.is_loop_bgm.setCurrentIndex(int(settings.get('loop_backaudio', 0)))
 
         if platform.system() == 'Darwin':
             self.enable_cuda.setChecked(False)

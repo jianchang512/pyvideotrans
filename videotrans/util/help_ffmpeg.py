@@ -731,6 +731,60 @@ def concat_multi_audio(*, out=None, concat_txt=None):
     return True
 
 
+# 目前仅用于 视频翻译后，延长背景音
+def change_speed_rubberband(input_path,out_file, target_duration):
+    """
+    使用 Rubber Band 进行音频变速
+    """
+    try:
+        import pyrubberband as pyrb
+    except Exception as e:
+        logger.warning('进行音频变速时失败，因为安装  rubberband 库')
+        return
+        
+    import soundfile as sf
+    import numpy as np  # 新增 numpy 用于声道处理
+    from pydub import AudioSegment
+    try:
+        y, sr = sf.read(input_path)
+        if len(y) == 0:
+            logger.warning(f"[Audio-RB] 空音频文件: {input_path}")
+            return
+            
+        current_duration = int((len(y) / sr) * 1000)
+        
+        if target_duration <= 0: target_duration = 1
+        
+        # 【逻辑优化】如果目标时长比当前还长，说明需要音频慢放。
+        # 但在当前的对齐策略中，音频通常只压缩（加速）。
+        # 如果确实发生了 target > current，通常意味着我们应该填充静音而不是拉伸音频。
+        # 这里为了安全，如果差异过大，不做处理。
+        #if target_duration > current_duration:
+        #     # 允许微小的误差，或者由后续静音填充处理
+        #     logger.debug(f"[Audio-RB] 目标时长({target_duration}) > 当前时长({current_duration})，跳过变速，交由静音填充。")
+        #     return
+
+        time_stretch_rate = current_duration / target_duration
+        
+        # 限制范围
+        time_stretch_rate = max(0.2, min(time_stretch_rate, 50.0))
+        
+        logger.debug(f"[Audio-RB] {input_path} 原长:{current_duration}ms -> 目标:{target_duration}ms 倍率:{time_stretch_rate:.2f}")
+
+        y_stretched = pyrb.time_stretch(y, sr, time_stretch_rate)
+        
+        # 【关键修正】确保输出是 Stereo (2通道)，防止后续 ffmpeg concat 报错
+        # 如果是单声道 (ndim=1)，复制为双声道
+        if y_stretched.ndim == 1:
+            y_stretched = np.column_stack((y_stretched, y_stretched))
+        
+        sf.write(out_file, y_stretched, sr)
+        
+    except Exception as e:
+        logger.error(f"[Audio-RB] 音频处理失败 {input_path}: {e}")
+        return
+
+
 def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None):
     from pydub import AudioSegment
     ext = file_path[-3:].lower()
@@ -834,7 +888,7 @@ def remove_silence_wav(audio_file):
     audio=AudioSegment.from_file(audio_file,format="wav")    
     # TTS通常比较干净，可以把阈值设得离平均音量更近一些
     # 这里设置为比平均音量低 10dB 即视为静音/激进
-    silence_threshold = audio.dBFS - 20
+    silence_threshold = audio.dBFS - 30
 
     # 只要静音持续 50ms 以上就检测出来
     min_silence_len = 50
