@@ -379,7 +379,7 @@ class SpeedRate:
             # 开始时间点除了第0条，其他不变，只移动结束点
             if i < len(self.queue_tts) - 1:
                 next_sub = self.queue_tts[i+1]
-                current['end_time_source'] = next_sub['start_time']
+                current['end_time_source'] = next_sub['end_time']
                 current['end_time'] = next_sub['start_time']
             else:
                 current['end_time_source'] = self.raw_total_time
@@ -566,6 +566,8 @@ class SpeedRate:
         logger.debug("[Audio] 开始对齐拼接...")
         audio_list = []
         current_timeline = self.queue_tts[0]['start_time']
+        if current_timeline>0:
+            audio_list.append(self._create_silen_file("head_0", current_timeline))
         
         for i, it in enumerate(self.queue_tts):
             # 有视频慢速时，使用视频片段实际时长，否则使用字幕区间时长
@@ -594,8 +596,7 @@ class SpeedRate:
             
             # 3. 长度对其
             log_flag = ""
-
-            
+                        
             if current_slot_audio_len > slot_duration:
                 # 配音长度大于视频片段或字幕区间片段，有视频慢速时，最终生成的视频(slot_duration)可能比理论需要的短几十ms
                 log_flag = f"音频溢出截断 {current_slot_audio_len}->{slot_duration}"
