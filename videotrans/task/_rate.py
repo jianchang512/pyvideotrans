@@ -379,7 +379,7 @@ class SpeedRate:
             # 开始时间点除了第0条，其他不变，只移动结束点
             if i < len(self.queue_tts) - 1:
                 next_sub = self.queue_tts[i+1]
-                current['end_time_source'] = next_sub['end_time']
+                current['end_time_source'] = next_sub['start_time']
                 current['end_time'] = next_sub['start_time']
             else:
                 current['end_time_source'] = self.raw_total_time
@@ -431,7 +431,7 @@ class SpeedRate:
                 continue
 
             video_target = source_dur
-            audio_target = dubb_dur
+            audio_target = source_dur
             
             mode_log = ""
             # 仅音频加速
