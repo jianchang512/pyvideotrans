@@ -212,20 +212,21 @@ class F5TTS(BaseTTS):
 
         text = data_item['text'].strip()
         role = data_item['role']
-        data = {'ref_wav': '','ref_text':''}
+        ref_wav=''
+        ref_text=''
 
         if role == 'clone':
-            data['ref_wav'] = data_item.get('ref_wav','')
-            data['ref_text'] = data_item.get('ref_text','')
+            ref_wav = data_item.get('ref_wav','')
+            ref_text = data_item.get('ref_text','')
         else:
             roledict = tools.get_f5tts_role()
             if role in roledict:
-                data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
-                data['ref_text'] = roledict[role].get('ref_text','')
+                ref_wav = ROOT_DIR + f"/f5-tts/{role}"
+                ref_text = roledict[role].get('ref_text','')
 
-        if not data['ref_wav'] or not Path(data['ref_wav']).exists():
+        if not ref_wav or not Path(ref_wav).exists():
             raise StopRetry(tr('The role {} does not exist',role))
-        logger.debug(f'voxcpm-tts {data=}')
+
         params_version={            
             "do_normalize":True,
             "denoise":True,
@@ -234,25 +235,27 @@ class F5TTS(BaseTTS):
         _version=params.get('voxcpmtts_version','v2')
         if _version=='v2':
             params_version['text']=text
-            params_version['use_prompt_text']=True
-            params_version['ref_wav']=handle_file(data['ref_wav'])
+            params_version['control_instruction']=''            
+            params_version['use_prompt_text']=True if ref_text else False
+            params_version['ref_wav']=handle_file(ref_wav)
             params_version['dit_steps']=10
             params_version["cfg_value"]=2
-            params_version["prompt_text_value"]=data.get('ref_text','')
+            params_version["prompt_text_value"]=ref_text
         elif _version=='hf':
             params_version['text_input']=text
-            params_version['use_prompt_text']=True
-            params_version['reference_wav_path_input']=handle_file(data['ref_wav'])
-            params_version['inference_timesteps']=10
+            params_version['control_instruction']=''            
+            params_version['use_prompt_text']=True if ref_text else False
+            params_version['reference_wav_path_input']=handle_file(ref_wav)
+            #params_version['inference_timesteps']=10
             params_version["cfg_value_input"]=2
-            params_version["prompt_text_input"]=data.get('ref_text','')
+            params_version["prompt_text_input"]=ref_text
             
         else:
             params_version['text_input']=text
-            params_version['prompt_wav_path_input']=handle_file(data['ref_wav'])
+            params_version['prompt_wav_path_input']=handle_file(ref_wav)
             params_version['inference_timesteps_input']=10
             params_version["cfg_value_input"]=2
-            params_version["prompt_text_input"]=data.get('ref_text','')
+            params_version["prompt_text_input"]=ref_text
             
         result = self.client.predict(**params_version)
         logger.debug(f'result={result}')
