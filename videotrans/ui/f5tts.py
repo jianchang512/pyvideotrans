@@ -100,8 +100,15 @@ class Ui_f5ttsform(object):
         self.voxcpmtts_url.setPlaceholderText('URL ')
         self.voxcpmtts_url.setObjectName("voxcpmtts_url")
         self.voxcpmtts_url.setMinimumSize(QSize(0, 35))        
+        self.voxcpmtts_version = QtWidgets.QComboBox()
+        # hf 是  voxcpm 官方在huggingface.co 上的示例中所需参数，和官方代码库中v2版的demo参数不一致
+        self.voxcpmtts_version.addItems(['v2','v1','hf'])
+
         h1voxcpmtts_url.addWidget(self.voxcpmtts_urllabel)
         h1voxcpmtts_url.addWidget(self.voxcpmtts_url)
+        h1voxcpmtts_url.addWidget(self.voxcpmtts_version)       
+        
+        
         self.voxcpmtts_urltest = QPushButton(tr("Test"))        
         h1voxcpmtts_url.addWidget(self.voxcpmtts_urltest)
         v1.addLayout(h1voxcpmtts_url) 

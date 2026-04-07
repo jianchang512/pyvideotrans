@@ -226,18 +226,35 @@ class F5TTS(BaseTTS):
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',role))
         logger.debug(f'voxcpm-tts {data=}')
-
-        result = self.client.predict(
-            text_input=text,
-            prompt_wav_path_input=handle_file(data['ref_wav']),
-            prompt_text_input=data.get('ref_text',''),
-            cfg_value_input=2,
-            inference_timesteps_input=10,
-            do_normalize=True,
-            denoise=True,
-
-            api_name='/generate'
-        )
+        params_version={            
+            "do_normalize":True,
+            "denoise":True,
+            "api_name":'/generate'
+        }
+        _version=params.get('voxcpmtts_version','v2')
+        if _version=='v2':
+            params_version['text']=text
+            params_version['use_prompt_text']=True
+            params_version['ref_wav']=handle_file(data['ref_wav'])
+            params_version['dit_steps']=10
+            params_version["cfg_value"]=2
+            params_version["prompt_text_value"]=data.get('ref_text','')
+        elif _version=='hf':
+            params_version['text_input']=text
+            params_version['use_prompt_text']=True
+            params_version['reference_wav_path_input']=handle_file(data['ref_wav'])
+            params_version['inference_timesteps']=10
+            params_version["cfg_value_input"]=2
+            params_version["prompt_text_input"]=data.get('ref_text','')
+            
+        else:
+            params_version['text_input']=text
+            params_version['prompt_wav_path_input']=handle_file(data['ref_wav'])
+            params_version['inference_timesteps_input']=10
+            params_version["cfg_value_input"]=2
+            params_version["prompt_text_input"]=data.get('ref_text','')
+            
+        result = self.client.predict(**params_version)
         logger.debug(f'result={result}')
         wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
         if isinstance(wav_file, dict) and "value" in wav_file:

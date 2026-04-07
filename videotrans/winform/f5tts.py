@@ -32,6 +32,7 @@ def openwin(init=False):
             return
         # 通用
         params["index_tts_version"] = index_tts_version
+        params["voxcpmtts_version"] = winobj.voxcpmtts_version.currentText()
         params["f5tts_role"] = role
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
         params["diatts_url"] = winobj.diatts_url.text()
@@ -78,6 +79,7 @@ def openwin(init=False):
 
         params["f5tts_role"] = role
         params["index_tts_version"] = index_tts_version
+        params["voxcpmtts_version"] = winobj.voxcpmtts_version.currentText()
         
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
         params["diatts_url"] = winobj.diatts_url.text()
@@ -97,6 +99,7 @@ def openwin(init=False):
     app_cfg.child_forms['f5tts'] = winobj
     winobj.f5tts_role.setPlainText(params.get("f5tts_role",''))
     winobj.index_tts_version.setCurrentIndex(int(params.get('index_tts_version',0)))
+    winobj.voxcpmtts_version.setCurrentText(params.get('voxcpmtts_version','v2'))
     
     winobj.f5tts_url.setText(params.get('f5tts_url',''))
     winobj.sparktts_url.setText(params.get('sparktts_url',''))

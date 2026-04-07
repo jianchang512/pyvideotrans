@@ -106,8 +106,7 @@ class Worker(QThread):
                         # 倒计时中
                         app_cfg.task_countdown -= 1
 
-                    # 重新整理赋值给 trk.queue_tts
-                    trk.queue_tts=json.loads(Path(f'{trk.cfg.cache_folder}/queue_tts.json').read_text(encoding='utf-8'))
+                    # 不需要更新 trk.queue_tts，以便在最后一步使用各种配音渠道支持的控制符号重新配音，而不将该控制符号写入字幕。                    #trk.queue_tts=json.loads(Path(f'{trk.cfg.cache_folder}/queue_tts.json').read_text(encoding='utf-8'))
 
 
             if not self._exit():
