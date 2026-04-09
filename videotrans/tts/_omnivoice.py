@@ -65,7 +65,7 @@ class OmniVoice(BaseTTS):
             lang='Auto',
             ref_aud=handle_file(ref_aud),
             ref_text=ref_text,
-            instruct=ref_text,
+            instruct='',
             ns=32,
             gs=2.0,
             dn=True,
