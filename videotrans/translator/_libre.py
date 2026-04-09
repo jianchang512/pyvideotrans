@@ -45,8 +45,6 @@ class Libre(BaseTrans):
             "api_key": params.get('libre_key', ''),
             "target": self.target_code[:2]
         }
-        logger.info(f'[Libre]发送请求数据,{jsondata=}')
-
         response = requests.post(url=self.api_url, json=jsondata)
         response.raise_for_status()
         result = response.json()

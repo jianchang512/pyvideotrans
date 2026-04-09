@@ -41,10 +41,9 @@ class Microsoft(BaseTrans):
             tocode = 'zh-Hant'
         url = f"https://api-edge.cognitive.microsofttranslator.com/translate?from=&to={tocode}&api-version=3.0&includeSentenceLength=true"
         headers['Authorization'] = f"Bearer {auth.text}"
-        logger.debug(f'[Mircosoft]请求数据:{url=},{auth.text=}')
         response = requests.post(url, json=[{"Text": "\n".join(data)}], headers=headers,
                                  verify=False, timeout=300)
-        logger.debug(f'[Mircosoft]返回:{response.text=}')
+        logger.debug(f'[Mircosoft]返回:{response=}')
         response.raise_for_status()
         re_result = response.json()
         if len(re_result) == 0 or len(re_result[0]['translations']) == 0:

@@ -23,8 +23,7 @@ class SILICONFLOW(BaseTrans):
         self.api_url = "https://api.siliconflow.cn/v1"
 
         self.api_key = params.get('guiji_key', '')
-        self.prompt = tools.get_prompt(ainame='siliconflow',aisendsrt=self.aisendsrt).replace('{lang}',
-                                                                                         self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='siliconflow',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
 
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
@@ -39,7 +38,6 @@ class SILICONFLOW(BaseTrans):
             },
         ]
 
-        logger.debug(f"\n[siliconflow]发送请求数据:{message=}")
         model = OpenAI(api_key=self.api_key, base_url=self.api_url)
 
         response = model.chat.completions.create(

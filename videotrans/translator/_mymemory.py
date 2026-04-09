@@ -32,9 +32,9 @@ class MyMemory(BaseTrans):
         }
         text = "\n".join(data)
         url = f"https://api.mymemory.translated.net/get?q={quote(text)}&langpair={self.source_code}|{self.target_code}"
-        logger.debug(f'[mymemory]请求数据:{url=}')
+
         response = requests.get(url,  headers=headers, verify=False, timeout=300)
-        logger.debug(f'[mymemory]返回:{response.text=}')
+        logger.debug(f'[mymemory]返回:{response=}')
         response.raise_for_status()
 
         re_result = response.json()

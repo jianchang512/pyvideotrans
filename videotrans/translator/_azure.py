@@ -46,7 +46,6 @@ class AzureGPT(BaseTrans):
              },
         ]
 
-        logger.debug(f"\n[AzureGPT]请求数据:{message=}")
         response = model.chat.completions.create(
             model=params.get("azure_model",''),
             messages=message,

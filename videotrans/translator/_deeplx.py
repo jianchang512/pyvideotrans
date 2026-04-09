@@ -58,10 +58,10 @@ class DeepLX(BaseTrans):
             "source_lang": sourcecode,
             "target_lang": target_code
         }
-        logger.debug(f'[DeepLX]发送请求数据,{jsondata=}')
+
         response = requests.post(url=self.api_url, json=jsondata)
         response.raise_for_status()
-        logger.debug(f'[DeepLX]返回响应,{response.text=}')
+        logger.debug(f'[DeepLX]返回响应,{response=}')
 
         result = response.json()
         result = tools.cleartext(result['data'])

@@ -27,8 +27,7 @@ class MiniMax(BaseTrans):
         if not self.api_url.endswith('/v1'):
             self.api_url = self.api_url.strip('/')+"/v1"
             
-        self.prompt = tools.get_prompt(ainame='minimax', aisendsrt=self.aisendsrt).replace('{lang}',
-                                                                                           self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='minimax', aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
         self.api_key = params.get('minimax_key', '')
 
     def _item_task(self, data: Union[List[str], str]) -> str:
@@ -45,7 +44,6 @@ class MiniMax(BaseTrans):
             },
         ]
 
-        logger.debug(f"\n[minimax]发送请求数据:{message=}")
 
         # MiniMax temperature must be in (0.0, 1.0], clamp accordingly
         temperature = float(settings.get('aitrans_temperature', 0.2))

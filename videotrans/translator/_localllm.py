@@ -27,8 +27,7 @@ class LocalLLM(BaseTrans):
         self._add_internal_host_noproxy(self.api_url)
         self.model_name = params.get("localllm_model",'')
 
-        self.prompt = tools.get_prompt(ainame='localllm',aisendsrt=self.aisendsrt).replace('{lang}',
-                                                                                      self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='localllm',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
@@ -46,7 +45,6 @@ class LocalLLM(BaseTrans):
              'content':self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
              },
         ]
-        logger.debug(f"\n[localllm]发送请求数据:{message=}")
 
         response = model.chat.completions.create(
             model=params.get('localllm_model',''),

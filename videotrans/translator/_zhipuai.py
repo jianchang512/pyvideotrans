@@ -23,8 +23,7 @@ class ZhipuAI(BaseTrans):
         self.api_url = 'https://open.bigmodel.cn/api/paas/v4/'
 
         self.api_key = params.get('zhipu_key', '')
-        self.prompt = tools.get_prompt(ainame='zhipuai',aisendsrt=self.aisendsrt).replace('{lang}',
-                                                                                     self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='zhipuai',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
@@ -38,7 +37,6 @@ class ZhipuAI(BaseTrans):
             },
         ]
 
-        logger.debug(f"\n[zhipuai]发送请求数据:{message=}")
         model = OpenAI(api_key=self.api_key, base_url=self.api_url)
         response = model.chat.completions.create(
             model=self.model_name,

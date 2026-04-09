@@ -40,7 +40,6 @@ class HuoShan(BaseTrans):
             api_key=params.get('zijiehuoshan_key','')
         )
 
-        logger.debug(f"\n[字节火山引擎]发送请求数据:{message=}\n接入点名称:{model_name}")
         response=None
         try:
             response = client.responses.create(

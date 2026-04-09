@@ -129,7 +129,6 @@ class ChatGPT(BaseTrans):
             },
         ]
 
-        logger.debug(f"\n[chatGPT]发送请求数据:{message=}")
         model = OpenAI(api_key=params.get('chatgpt_key',''), base_url=self.api_url,
                        http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         response = model.chat.completions.create(

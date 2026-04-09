@@ -66,7 +66,6 @@ class QwenMT(BaseTrans):
                 'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
                 },
         ]
-        logger.debug(f'阿里百炼 AI:{messages}')
         response = dashscope.Generation.call(
             # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx",
             api_key=params.get('qwenmt_key',''),

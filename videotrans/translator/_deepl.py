@@ -35,7 +35,7 @@ class DeepL(BaseTrans):
             return text
 
         deepltranslator = deepl.Translator(params.get('deepl_authkey',''), server_url=self.api_url)
-        logger.debug(f'[DeepL]请求数据:{text=}')
+
         target_code = self.target_code.upper()
         if target_code == 'EN':
             target_code = 'EN-US'

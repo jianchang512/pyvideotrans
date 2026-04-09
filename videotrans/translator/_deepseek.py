@@ -44,7 +44,6 @@ class DeepSeek(BaseTrans):
             },
         ]
 
-        logger.debug(f"\n[deepseek]发送请求数据:{message=}")
         model = OpenAI(api_key=self.api_key, base_url=self.api_url)
 
         response = model.chat.completions.create(

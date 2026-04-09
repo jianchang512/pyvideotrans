@@ -55,8 +55,8 @@ class Tencent(BaseTrans):
             reqdata['TermRepoIDList'] = params.get('tencent_termlist','').split(',')
 
         req = models.TextTranslateRequest()
-        logger.debug(f'[腾讯]请求数据:{reqdata=}')
+
         req.from_json_string(json.dumps(reqdata))
         resp = client.TextTranslate(req)
-        logger.debug(f'[腾讯]返回:{resp.TargetText=}')
+        logger.debug(f'[腾讯]返回:{resp=}')
         return resp.TargetText.strip()

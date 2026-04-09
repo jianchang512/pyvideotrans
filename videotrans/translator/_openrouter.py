@@ -29,8 +29,7 @@ class OpenRouter(BaseTrans):
         self.model_name = params.get('openrouter_model', "")
         self.api_url = 'https://openrouter.ai/api/v1'
 
-        self.prompt = tools.get_prompt(ainame='openrouter',aisendsrt=self.aisendsrt).replace('{lang}',
-                                                                                        self.target_language_name)
+        self.prompt = tools.get_prompt(ainame='openrouter',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
         self.api_key = params.get('openrouter_key', '')
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
@@ -48,8 +47,6 @@ class OpenRouter(BaseTrans):
                 'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
             },
         ]
-
-        logger.debug(f"\n[openrouter]发送请求数据:{message=}")
 
         model = OpenAI(api_key=self.api_key, base_url=self.api_url, http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
         response = model.chat.completions.create(

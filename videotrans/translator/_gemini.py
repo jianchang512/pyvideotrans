@@ -64,7 +64,7 @@ class Gemini(BaseTrans):
             think_cfg=types.ThinkingConfig(
                     thinking_budget=int(params.get('gemini_thinking_budget',24576)),
                 )
-            if model.startswith('gemini-3'):
+            if model.startswith('gemini-3') or model.startswith('gemma-'):
                 think_cfg=types.ThinkingConfig(
                         thinking_level="HIGH",
                 )
@@ -98,7 +98,7 @@ class Gemini(BaseTrans):
             )
             if model.startswith('gemini-1.') or model.startswith('gemini-2.0'):            
                 generate_content_config = types.GenerateContentConfig()
-            logger.debug(f'[Gemini]请求发送:{message=}')
+
             result = ""
             for chunk in client.models.generate_content_stream(
                 model=model,
