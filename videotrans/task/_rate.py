@@ -131,8 +131,8 @@ def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf):
     ]
 
     filter_complex = []
-    if abs(pts_factor - 1.0) >= 0.01:
-        filter_complex.append(f"setpts={pts_factor}*PTS")
+    if abs(pts_factor - 1.0) >= 0.001:
+        filter_complex.append(f"setpts={pts_factor+0.005}*PTS")
     else:
         filter_complex.append("setpts=PTS")
 

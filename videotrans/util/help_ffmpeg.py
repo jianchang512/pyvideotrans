@@ -42,16 +42,6 @@ def _get_preset_classification(preset: str) -> str:
     return SOFTWARE_PRESET_CLASSIFICATION.get(p, 'medium')
 
 
-def _get_preset_classification2(preset: str) -> str:
-    """将 libx264/x265 的 preset 归类为 'fast', 'medium', 'slow'。"""
-    SOFTWARE_PRESET_CLASSIFICATION = {
-        'ultrafast': 'fast', 'superfast': 'fast', 'veryfast': 'fast',
-        'faster': 'fast', 'fast': 'fast',
-        'medium': 'medium',
-        'slow': 'slow', 'slower': 'slow', 'veryslow': 'slow',
-    }
-    return SOFTWARE_PRESET_CLASSIFICATION.get(preset, 'medium')  # 默认为 medium
-
 
 def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> Union[int, None]:
     """
@@ -74,7 +64,7 @@ def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> Union[i
         # CRF 51 (最差) ~ 对应 q:v 1
         # 简单的线性映射公式：Quality = 100 - (CRF * 1.8) 
         if encoder_family == 'videotoolbox':
-            quality = 100 - (crf * 1.8)
+            quality = 100 - (crf * 1.4)
             return int(max(1, min(quality, 100)))
 
         # 3. AMF (AMD)
@@ -104,33 +94,30 @@ def _build_hw_command(args: list, hw_codec: str) -> Tuple[List[str], List[str]]:
         # NVENC: p1 (最快) - p7 (最慢/质量最好)
         'nvenc': {'fast': 'p2', 'medium': 'p4', 'slow': 'p7'}, 
         # QSV: veryfast, faster, fast, medium, slow, slower, veryslow
-        'qsv': {'fast': 'faster', 'medium': 'medium', 'slow': 'slower'},
+        'qsv': {'fast': 'fast', 'medium': 'medium', 'slow': 'slow'},
         # AMF: speed, balanced, quality
         'amf': {'fast': 'speed', 'medium': 'balanced', 'slow': 'quality'},
         # VAAPI: 通常也接受 standard presets
-        'vaapi': {'fast': 'veryfast', 'medium': 'medium', 'slow': 'veryslow'},
+        'vaapi': {'fast': 'fast', 'medium': 'medium', 'slow': 'slow'},
         # VideoToolbox: 通常不支持 -preset 参数，留空以跳过处理
         'videotoolbox': None 
     }
 
     # 定义硬件质量参数的名称
     QUALITY_PARAM_MAP = {
-        'nvenc': '-cq',             # 还需要配合自动添加 -rc:v vbr 逻辑吗？通常 -cq 足够触发 VBR 模式
+        'nvenc': '-cq',             # 通常 -cq 足够触发 VBR 模式
         'qsv': '-global_quality',   # ICQ 模式
         'vaapi': '-global_quality',
         'videotoolbox': '-q:v',     # 苹果硬编质量参数
     }
 
     new_args = []
-    hw_decode_opts = []
 
     i = 0
     main_input_file = ""
     
     # 预扫描：检查是否包含字幕流或滤镜，用于后续决定是否开启硬件解码
     has_subtitles = "-c:s" in args
-    # 检查所有形式的滤镜参数
-    has_filters = any(x in args for x in ["-vf", "-filter_complex", "-lavfi"])
     
     while i < len(args):
         arg = args[i]
@@ -209,10 +196,9 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
         force_cpu=True
     arg_copy = copy.deepcopy(arg)
 
-    default_codec = f"libx{settings.get('video_codec', '265')}"
+    default_codec = f"libx{settings.get('video_codec', '264')}"
 
     final_args = arg
-    #hw_decode_opts = []
 
     # 如果 crf < 10 则直接强制使用软编码
     if "-crf" in final_args and final_args[-1].endswith(".mp4"):
@@ -230,6 +216,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
     if not force_cpu:
         if not app_cfg.video_codec:
             app_cfg.video_codec = get_video_codec()
+        # 将废弃，硬件兼容性是大坑，考虑仅针对最终视频字幕音频合成阶段做硬件加速处理
         if app_cfg.video_codec and 'libx' not in app_cfg.video_codec:
             logger.debug(f"检测到硬件编码器 {app_cfg.video_codec}，正在调整参数...")
             final_args = _build_hw_command(arg, app_cfg.video_codec)
@@ -238,7 +225,6 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
     cmd = ['ffmpeg', "-hide_banner", "-ignore_unknown",'-threads','0']
     if "-y" not in final_args:
         cmd.append("-y")
-    #cmd.extend(hw_decode_opts)
     cmd.extend(final_args)
 
     if cmd and Path(cmd[-1]).suffix:
@@ -258,6 +244,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
             creationflags = subprocess.CREATE_NO_WINDOW
         if app_cfg.exit_soft:
             return
+        logger.debug(f'[FFMPEG-CMD]:\n{" ".join(cmd)}\n')
         subprocess.run(
             cmd,
             stdout=subprocess.PIPE,

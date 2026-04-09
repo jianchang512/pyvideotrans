@@ -65,10 +65,10 @@ class Ui_setini(object):
             "video": {
                 "crf": "视频转码时损失控制，0=无损但视频会超级大，51=质量差文件小",
                 "preset": "主要调节编码速度和质量的平衡，有 ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
+                "video_codec": "采用 libx264 编码或 libx265 编码，264兼容性更好，265压缩比更大清晰度更高",
+                "force_lib": "强制ffmpeg使用软编解码?（速度慢但兼容性好不易出错，默认优选硬件编码）",
+                "hw_decode":"最后一步视频合成时，强制使用cuda解码视频，更快但易出错",
                 "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在倒数第二个位置上,例如  -bf 7 -b_ref_mode middle",
-                "force_lib": "强制软件编码?（速度慢但兼容性好不易出错，默认优选硬件编码）",
-                "first_hw":"视频合成时优先尝试硬编码，速度快但可能出错",
-                "video_codec": "采用 libx264 编码或 libx265 编码，264兼容性更好，265压缩比更大清晰度更高"
             },
 
             "trans": {
@@ -181,7 +181,7 @@ class Ui_setini(object):
             "aitrans_temperature":"AI翻译模型温度值",
             "aitrans_context":"AI翻译附带完整原字幕",
             "remove_dubb_silence":"移除配音前后静音缓冲",
-            "first_hw":"视频合成优先硬编码",
+            "hw_decode":"视频合成cuda硬解码",
             "normal_text":"文本规范化",
             "uvr_models":"分离背景声模型",
 
@@ -313,10 +313,10 @@ class Ui_setini(object):
                 "video": {
                     "crf": "Constant Rate Factor (CRF) for video quality. 0=lossless (huge file), 51=low quality (small file).",
                     "preset": "Controls the encoding speed vs. quality balance (e.g., ultrafast, medium, slow). Faster means larger files.",
-                    "ffmpeg_cmd": "Custom FFmpeg command arguments, added before the output file argument.",
+                    "video_codec": "Video codec: libx264 (better compatibility) or libx265 (higher compression).",
                     "force_lib": "Force software encoding (slower but more compatible). Hardware encoding is preferred by default.",
-                    "first_hw":"When compositing videos, prioritize hard encoding; it's fast but prone to errors.",
-                    "video_codec": "Video codec: libx264 (better compatibility) or libx265 (higher compression)."
+                    "hw_decode":"When compositing videos, prioritize hard decoding; it's fast but prone to errors.",
+                    "ffmpeg_cmd": "Custom FFmpeg command arguments, added before the output file argument.",
                 },
                 "trans": {
                     "trans_thread": "Number of subtitle lines per request for traditional translation.",
@@ -425,6 +425,7 @@ class Ui_setini(object):
                 "prompt_init": "Whisper model initial prompt",
                 "gemini_recogn_chunk": "Gemini speech recognition batch slice count",
                 "llm_chunk_size": "LLM re-segmentation How many subtitles are sent each time",
+                "hw_decode":"ffmpeg decode video use cuda",
                 "ai302_models": "302.AI translation models",
                 "ai302tts_models": "302.AI-TTS models",
                 "aitrans_temperature":"AI temperature for translation subtitles",
@@ -467,7 +468,6 @@ class Ui_setini(object):
                 "force_lib": "Force software video encoding?",
                 "preset": "Output video compression preset",
                 "ffmpeg_cmd": "Custom FFmpeg command arguments",
-                "first_hw":"When compositing videos prioritize hard", 
                 "video_codec": "H.264/H.265 encoding",
                 "threshold": "VAD: Speech probability threshold",
                 "max_speech_duration_s": "VAD: Max speech duration(s)",

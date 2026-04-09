@@ -292,8 +292,8 @@ class AppSettings:
             "edgetts_max_concurrent_tasks": 10,
             "edgetts_retry_nums": 3,
             "force_lib": False,
-            "first_hw":True,# 硬字幕合成时优先尝试硬编码
-            "preset": "veryfast",
+            "hw_decode":False,# ffmpeg尝试硬件解码视频
+            "preset": "medium",
             "ffmpeg_cmd": "",
             "aisendsrt": True,
             "dont_notify": False,

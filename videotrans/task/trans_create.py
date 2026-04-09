@@ -1,6 +1,6 @@
 import copy, json, threading
 import subprocess
-import platform
+import platform,glob,sys
 import math
 import os
 import re
@@ -43,8 +43,8 @@ class TransCreate(BaseTask):
     video_info: Dict = field(default_factory=dict, repr=False)
     # 对视频是否执行 c:v copy 操作
     is_copy_video: bool = False
-    # mp4编码类型 264 265
-    video_codec_num: int = 265
+    # 需要输出的mp4编码类型 264 265
+    video_codec_num: int = 264
     # 是否忽略音频和视频对齐
     ignore_align: bool = False
 
@@ -855,10 +855,32 @@ class TransCreate(BaseTask):
             "-c:v",
             "copy" if self.is_copy_video else f"libx264"
         ]
-        if not self.is_copy_video:
-            cmd += ["-crf", '20', '-preset', 'veryfast']
-        cmd += [os.path.basename(self.cfg.novoice_mp4)]
-        return tools.runffmpeg(cmd, noextname=self.uuid, cmd_dir=self.cfg.cache_folder)
+        _name=os.path.basename(self.cfg.novoice_mp4)
+        enc_qua=[] if self.is_copy_video else ['-crf','18']
+        if self.is_copy_video or settings.get('force_lib'):            
+            return tools.runffmpeg(cmd+enc_qua+[_name], noextname=self.uuid, cmd_dir=self.cfg.cache_folder)
+        
+        try:
+            hw_decode_args,_,vcodec,enc_args=self._get_hard_cfg(codec="264")
+            cmd = [
+                "-y",
+                "-fflags",
+                "+genpts",
+                "-i",
+            ]
+            cmd+=hw_decode_args
+            
+            cmd+=[
+                self.cfg.name,
+                "-an",
+                "-c:v",
+                vcodec,
+                _name
+            ]
+            self._subprocess(cmd)
+        except:
+            return tools.runffmpeg(cmd+enc_qua+[_name], noextname=self.uuid, cmd_dir=self.cfg.cache_folder)
+            
 
     # 从原始视频中分离出音频
     def _split_audio_byraw(self, is_separate=False):
@@ -1242,22 +1264,23 @@ class TransCreate(BaseTask):
         if not self.shoud_hebing:
             return True
 
-        # 判断novoice_mp4是否完成
+        # 判断 novoice_mp4 是否完成
         tools.is_novoice_mp4(self.cfg.novoice_mp4, self.uuid)
         if not Path(self.cfg.novoice_mp4).exists():
             raise RuntimeError(f'{self.cfg.novoice_mp4} 不存在')
+        
         # 需要配音但没有配音文件
         if self.shoud_dubbing and not tools.vail_file(self.cfg.target_wav):
             raise RuntimeError(f"{tr('Dubbing')}{tr('anerror')}:{self.cfg.target_wav}")
 
         self.precent = min(max(90, self.precent), 95)
 
-        # 无配音且不嵌入字幕，是仅提取模式，进行不到这里
-        # 无配音但嵌入字幕，使用原始音频
+
         target_m4a = self.cfg.cache_folder + "/origin_audio.m4a"
         # 用于判断输出原始音频是否结束，is True是结束，
         output_source_output = True
         if not self.shoud_dubbing:
+            # 无配音的使用原始音频
             self._get_origin_audio(target_m4a)
             shutil.copy2(target_m4a, self.cfg.source_wav_output)
         else:
@@ -1283,7 +1306,6 @@ class TransCreate(BaseTask):
                         pass
                     finally:
                         output_source_output = True
-
                 threading.Thread(target=_output, daemon=True).start()
             except Exception:
                 pass
@@ -1292,12 +1314,9 @@ class TransCreate(BaseTask):
             self._back_music()
             # 重新嵌入分离出的背景音
             self._separate()
-            protxt = self.cfg.cache_folder + f"/wav-m4a-{time.time()}.txt"
-            threading.Thread(target=self._hebing_pro, args=(protxt, self.video_time), daemon=True).start()
+            
             tools.runffmpeg([
                 "-y",
-                "-progress",
-                os.path.basename(protxt),
                 "-i",
                 os.path.basename(self.cfg.target_wav),
                 "-ac", "2", "-b:a", "128k", "-c:a", "aac",
@@ -1306,6 +1325,8 @@ class TransCreate(BaseTask):
             shutil.copy2(target_m4a, self.cfg.target_wav_output)
 
         self.precent = min(max(95, self.precent), 98)
+        
+        
         # 处理所需字幕
         subtitles_file, subtitle_langcode = None, None
         if self.cfg.subtitle_type > 0:
@@ -1323,234 +1344,132 @@ class TransCreate(BaseTask):
             duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
             duration_s = f'{duration_ms / 1000.0:.6f}'
 
-        # 先导出到临时目录，防止包含各种奇怪符号的targetdir_mp4导致ffmpeg失败
+        # 将生成的视频先导出到临时目录，防止包含各种奇怪符号的targetdir_mp4导致ffmpeg失败
         tmp_target_mp4 = self.cfg.cache_folder + f"/laste_target.mp4"
+        self._signal(text=tr("Video + Subtitles + Dubbing in merge"))
+
         try:
             protxt = self.cfg.cache_folder + f"/compose{time.time()}.txt"
-            self._signal(text=tr("Video + Subtitles + Dubbing in merge"))
-            cmd = []
-            is_copy_mode = (str(self.video_codec_num) == '264')
-            v_codec = "copy" if is_copy_mode else f'libx{self.video_codec_num}'
-
-            threading.Thread(target=self._hebing_pro, args=(protxt, self.video_time), daemon=True).start()
-
             protxt_basename = os.path.basename(protxt)
+            threading.Thread(target=self._hebing_pro, args=(protxt, self.video_time), daemon=True).start()
+            
+            # 如果需要输出的视频是 264 编码，因开始和中间编码均为264，可以考虑使用copy (如果无硬字幕嵌入的话)
+            is_copy_mode = (str(self.video_codec_num) == '264')
+            # 无音频视频流
             novoice_mp4_basename = os.path.basename(self.cfg.novoice_mp4)
+            # 需要嵌入的音频
             target_m4a_basename = os.path.basename(target_m4a)
+            # 合成后的结果视频
             tmp_target_mp4_basename = os.path.basename(tmp_target_mp4)
 
-            # 有硬字幕并且优先硬件编码时使用硬件合成
-            _hw_subtitle_cmd={}
-            _end=False
-            if self.cfg.subtitle_type in [1, 3] and not settings.get('force_lib') and settings.get('first_hw'):
-                if not app_cfg.video_codec:
-                    app_cfg.video_codec = tools.get_video_codec()
-                if not app_cfg.video_codec.startswith('libx'):
-                    _hw_subtitle_cmd['hw_type']=app_cfg.video_codec
-                    _hw_subtitle_cmd['codec']=f'{self.video_codec_num}'
-                    _hw_subtitle_cmd['video_in']=novoice_mp4_basename
-                    _hw_subtitle_cmd['audio_in']=target_m4a_basename
-                    _hw_subtitle_cmd['subtitles_file']=subtitles_file
-                    _hw_subtitle_cmd['output_file']=tmp_target_mp4_basename
-                    _hw_subtitle_cmd['progress']=protxt_basename
-                    _hw_subtitle_cmd['duration_s']=str(duration_s)
+            # 获取可用的硬件
+            if not app_cfg.video_codec:
+                app_cfg.video_codec = tools.get_video_codec()                        
+
+
+            cmd0 = [
+                "-y",
+                "-progress",
+                protxt_basename
+            ]
             
-                    try:
-                        self._hard_subtitle_use_hw(**_hw_subtitle_cmd)
-                    except Exception as e:
-                        logger.exception(f'有字幕合成时，优先硬件编码失败{_hw_subtitle_cmd=},回退:{e}',exc_info=True)
-                    else:
-                        logger.debug('合成硬字幕时，优先硬件编码成功')
-                        _end=False
-                        
-            if not _end:
-                if self.cfg.voice_role != 'No' and self.cfg.subtitle_type > 0:
-                    # 硬字幕有配音 必须重编码
-                    if self.cfg.subtitle_type in [1, 3]:
-                        self._signal(text=tr('peiyin-yingzimu'))
-                        cmd = [
-                            "-y",
-                            "-progress",
-                            protxt_basename,
-                            "-i",
-                            novoice_mp4_basename,
-                            "-i",
-                            target_m4a_basename,
-                            '-map', '0:v',
-                            '-map', '1:a',
-                            "-c:v",
-                            f'libx{self.video_codec_num}',
-                            "-c:a",
-                            "copy",
-                            "-vf",
-                            f"subtitles=filename='{subtitles_file}'",
-                            "-movflags",
-                            "+faststart",
-                            '-crf', str(settings.get("crf", 23)),
-                            '-preset', settings.get('preset', 'fast')
-                        ]
-                        if self.cfg.video_autorate:
-                            cmd.extend(["-fps_mode", "vfr"])
-
-                        cmd.extend(["-t", str(duration_s), tmp_target_mp4_basename])
-                    # 软字幕有配音 无需重编码
-                    else:
-                        self._signal(text=tr('peiyin-ruanzimu'))
-                        cmd = [
-                            "-y",
-                            "-progress",
-                            protxt_basename,
-                            "-i",
-                            novoice_mp4_basename,
-                            "-i",
-                            target_m4a_basename,
-                            "-i",
-                            subtitles_file,
-                            "-map", "0:v",  # 取第1个输入的视频流
-                            "-map", "1:a",  # 取第2个输入的音频流
-                            "-map", "2:s",  # 取第3个输入的字幕流
-
-                            "-c:v",
-                            v_codec,
-                            "-c:a",
-                            "copy",
-                            "-c:s",
-                            "mov_text",
-                            "-metadata:s:s:0",
-                            f"language={subtitle_langcode}",
-                            "-movflags",
-                            "+faststart"
-                        ]
-                        if not is_copy_mode:
-                            cmd.extend([
-                                '-crf',
-                                f'{settings.get("crf", 23)}',
-                                '-preset',
-                                settings.get('preset', 'fast')
-                            ])
-                            # 处理 VFR (仅在重新编码时有效)
-                            if self.cfg.video_autorate:
-                                cmd.extend(["-fps_mode", "vfr"])
-                        cmd.extend(["-t", str(duration_s), tmp_target_mp4_basename])
-
-                # 无字幕有配音 无需重编码
-                elif self.cfg.voice_role != 'No':
-                    self._signal(text=tr('onlypeiyin'))
-                    cmd = [
-                        "-y",
-                        "-progress",
-                        protxt_basename,
-                        "-i",
-                        novoice_mp4_basename,
-                        "-i",
-                        target_m4a_basename,
-                        '-map', '0:v',
-                        '-map', '1:a',
-                        "-c:v",
-                        v_codec,
-                        "-c:a",
-                        "copy",
-                        "-movflags",
-                        "+faststart"
-                    ]
-                    if not is_copy_mode:
-                        cmd.extend([
-                            '-crf',
-                            f'{settings.get("crf", 23)}',
-                            '-preset',
-                            settings.get('preset', 'fast')
-                        ])
-                        if self.cfg.video_autorate:
-                            cmd.extend(["-fps_mode", "vfr"])
-
-                    cmd.extend(["-t", str(duration_s), tmp_target_mp4_basename])
-                # 硬字幕无配音  原始 wav 合并  必须重编码
-                elif self.cfg.subtitle_type in [1, 3]:
-                    self._signal(text=tr('onlyyingzimu'))
-                    cmd = [
-                        "-y",
-                        "-progress",
-                        protxt_basename,
-                        "-i",
-                        novoice_mp4_basename
-                    ]
-                    if tools.vail_file(target_m4a):
-                        cmd.extend(['-i', target_m4a_basename, '-map', '0:v', '-map', '1:a'])
-
-                    cmd.append('-c:v')
-                    cmd.append(f'libx{self.video_codec_num}')
-                    if tools.vail_file(target_m4a):
-                        cmd.append('-c:a')
-                        cmd.append('copy')
-                    cmd += [
-                        "-vf",
-                        f"subtitles=filename='{subtitles_file}'",
-                        "-movflags",
-                        "+faststart",
-                        '-crf',
-                        f'{settings.get("crf", 23)}',
-                        '-preset',
-                        settings.get('preset', 'fast')
-                    ]
-                    if self.cfg.video_autorate:
-                        cmd.extend(["-fps_mode", "vfr"])
-                    cmd.extend(["-t", str(duration_s), tmp_target_mp4_basename])
-                # 软字幕无配音 无需重编码
-                elif self.cfg.subtitle_type in [2, 4]:
-                    self._signal(text=tr('onlyruanzimu'))
-                    # 原视频
-                    cmd = [
-                        "-y",
-                        "-progress",
-                        protxt_basename,
-                        "-i",
-                        novoice_mp4_basename
-                    ]
-                    # 原配音流
-                    if tools.vail_file(target_m4a):
-                        cmd.extend(['-i', target_m4a_basename])
-                    # 目标字幕流
-                    cmd += [
-                        "-i",
-                        subtitles_file,
-                    ]
-                    if tools.vail_file(target_m4a):
-                        cmd.extend(['-map', '0:v', '-map', '1:a', '-map', '2:s'])
-                    else:
-                        cmd.extend(['-map', '0:v', '-map', '1:s', ])
-
-                    cmd += [
-                        "-c:v",
-                        v_codec
-                    ]
-                    if tools.vail_file(target_m4a):
-                        cmd.append('-c:a')
-                        cmd.append('copy')
-                    cmd += [
+            cmd1=[
+                "-i",
+                novoice_mp4_basename,
+                "-i",
+                target_m4a_basename
+            ]
+            enc_qua=['-crf', f'{settings.get("crf", 23)}','-preset', settings.get('preset','medium')]
+            
+            # 无字幕 或 软字幕
+            if self.cfg.subtitle_type not in [1,3]:               
+                #软字幕
+                if self.cfg.subtitle_type in [2, 4]:
+                    cmd1.extend(["-i",subtitles_file])               
+                cmd1.extend([
+                    '-map', 
+                    '0:v',
+                    '-map', 
+                    '1:a'
+                ])
+                if self.cfg.subtitle_type in [2, 4]:
+                    cmd1.extend(['-map', '2:s'])
+                
+                cmd1.extend([
+                    "-c:v",
+                    f"libx{self.video_codec_num}",
+                    "-c:a",
+                    "copy",
+                ])
+                if self.cfg.subtitle_type in [2, 4]:
+                    cmd1.extend([
                         "-c:s",
                         "mov_text",
                         "-metadata:s:s:0",
-                        f"language={subtitle_langcode}",
-                        "-movflags",
-                        "+faststart"
-                    ]
-                    if not is_copy_mode:
-                        cmd.extend([
-                            '-crf',
-                            f'{settings.get("crf", 23)}',
-                            '-preset',
-                            settings.get('preset', 'fast')
-                        ])
-                        if self.cfg.video_autorate:
-                            cmd.extend(["-fps_mode", "vfr"])
-                    cmd.extend([
-                        "-t", str(duration_s),
-                        tmp_target_mp4_basename
+                        f"language={subtitle_langcode}"
                     ])
                 
-                if cmd:
-                    os.chdir(self.cfg.cache_folder)
-                    tools.runffmpeg(cmd, cmd_dir=self.cfg.cache_folder, force_cpu=False)
+                cmd2=[
+                    "-movflags",
+                    "+faststart",
+                ]
+                if self.cfg.video_autorate:
+                    cmd2.extend(["-fps_mode", "vfr"])
+                
+                cmd2.extend(["-t", str(duration_s),  tmp_target_mp4_basename])
+                if is_copy_mode:
+                    cmd1[cmd1.index('-c:v')+1]='copy'
+                    logger.debug(f'[最终视频合成]copy模式，无需重新编码:\n{cmd0+cmd1+cmd2}')
+                    tools.runffmpeg(cmd0+cmd1+cmd2, cmd_dir=self.cfg.cache_folder, force_cpu=True)
+                elif app_cfg.video_codec.startswith('libx') or settings.get('force_lib'):
+                    # 不支持硬件编码的就无需尝试硬件了
+                    logger.debug(f'[最终视频合成]不支持硬件编码或指定了强制软编解码:\n{cmd0+cmd1+cmd2}')
+                    tools.runffmpeg(cmd0+cmd1+enc_qua+cmd2, cmd_dir=self.cfg.cache_folder, force_cpu=True)                    
+                else:
+                    # 尝试使用硬件编解码
+                    hw_decode_args,_,vcodec,enc_args=self._get_hard_cfg()
+                    cmd1[cmd1.index('-c:v')+1]=vcodec
+                    # 如果硬件处理失败，回退软编
+                    try:
+                        self._subprocess(cmd0+hw_decode_args+cmd1+enc_args+cmd2)
+                    except:
+                        cmd1[cmd1.index('-c:v')+1]=f'libx{self.video_codec_num}'
+                        logger.warning(f'硬件处理视频合成失败，回退软编')
+                        tools.runffmpeg(cmd0+cmd1+enc_qua+cmd2, cmd_dir=self.cfg.cache_folder, force_cpu=True)
+                   
+            # 硬字幕
+            else:
+                cmd1.append('-filter_complex')          
+                subtitle_filter=[f"[0:v]subtitles=filename='{subtitles_file}'[v_out]"]
+                cmd2=[
+                    "-map", 
+                    "[v_out]",
+                    "-map", 
+                    "1:a",
+                    "-c:v",
+                    f'libx{self.video_codec_num}',
+                    '-c:a',
+                    'copy',
+                ]                 
+                cmd3=["-movflags", "+faststart"]
+                
+                if self.cfg.video_autorate:
+                    cmd3.extend(["-fps_mode", "vfr"])
+                    
+                cmd3.extend(["-t", str(duration_s), tmp_target_mp4_basename])
+                if app_cfg.video_codec.startswith('libx')  or settings.get('force_lib'):
+                    logger.debug(f'[最终视频合成]不支持硬件编解码或指定了强制软编解码:\n{cmd0+cmd1+cmd2}')
+                    tools.runffmpeg(cmd0+cmd1+subtitle_filter+cmd2+enc_qua+cmd3, cmd_dir=self.cfg.cache_folder, force_cpu=True)
+                else:
+                    # 如果硬件处理失败，回退软编
+                    try:
+                        hw_decode_args,vf_string,vcodec,enc_args=self._get_hard_cfg(subtitles_file)
+                        cmd2[cmd2.index('-c:v')+1]=vcodec
+                        self._subprocess(cmd0+hw_decode_args+cmd1+[vf_string]+cmd2+enc_args+cmd3)
+                    except:
+                        cmd2[cmd2.index('-c:v')+1]=f'libx{self.video_codec_num}'
+                        logger.warning(f'硬件处理视频合成失败，回退软编')
+                        tools.runffmpeg(cmd0+cmd1+subtitle_filter+cmd2+enc_qua+cmd3, cmd_dir=self.cfg.cache_folder, force_cpu=True)
         except Exception as e:
             msg = tr('Error in embedding the final step of the subtitle dubbing')
             raise RuntimeError(msg)
@@ -1663,26 +1582,177 @@ class TransCreate(BaseTask):
             pass
 
 
+
+
+
+    # 视频合成时，返回可用的硬件解码参数、字幕嵌入参数、视频编码参数、质量相关参数
+    def _get_hard_cfg(self, subtitles_file=None,codec=None):
+        os_name = platform.system()
+        # 仅用于确定编码器部分，具体 264或265由 codec 决定
+        hw_type=app_cfg.video_codec
+        logger.debug(f'原始{hw_type=}')
+        
+        if '_' in hw_type:
+            _hw_type_list = hw_type.lower().split('_')
+            if _hw_type_list[0]=='vaapi':
+                hw_type='vaapi'
+            else:
+                hw_type=_hw_type_list[1]
+        
+        
+        logger.debug(f'整理后{hw_type=}')
+        
+        
+        # 硬字幕由于是软过滤，必须先在内存中压制。
+        # 不同的硬件编码器可能需要在软过滤后，将画面重新上传到显存（hwupload）
+        
+        # 默认回退为软编码
+        codec=f'{self.video_codec_num}' if not codec else codec
+        vcodec = f"libx{codec}"
+        _crf=f'{settings.get("crf", 23)}'
+
+        # 全局参数，硬件解码相关
+        global_args = []
+        # 硬字幕嵌入参数，软字幕忽略
+        vf_string = f"[0:v]subtitles=filename='{subtitles_file}'[v_out]"
+        
+        # 硬件兼容有限，防止出错
+        _preset=settings.get('preset','medium')
+        if 'fast' in _preset:
+            _preset='fast'
+        elif 'slow' in _preset:
+            _preset='slow'
+        
+        if _preset not in ['fast','slow','medium']:
+            _preset='medium'
+        enc_args = ['-crf', _crf,'-preset', _preset]
+        
+        
+        # --- 参数映射表 ---
+        PRESET_MAP = {
+            # NVENC: p1 (最快) - p7 (最慢/质量最好)
+            'nvenc': {'fast': 'p2', 'medium': 'p4', 'slow': 'p7'}, 
+            # QSV: veryfast, faster, fast, medium, slow, slower, veryslow
+            'qsv': {'fast': 'fast', 'medium': 'medium', 'slow': 'slow'},
+            # AMF: speed, balanced, quality
+            'amf': {'fast': 'speed', 'medium': 'balanced', 'slow': 'quality'},
+            # VAAPI: 通常也接受 standard presets
+            'vaapi': {'fast': 'fast', 'medium': 'medium', 'slow': 'slow'},
+            # VideoToolbox: 通常不支持 -preset 参数，留空以跳过处理
+            'videotoolbox': None 
+        }
+        
+        # --- Nvidia (NVENC) ---
+        if hw_type in ['nvenc']:
+            vcodec = "h264_nvenc" if codec == '264' else "hevc_nvenc"
+            # nvenc 使用 -cq (Constant Quality) 替代 crf，p4 预设在速度和质量间平衡较好
+            enc_args = ['-cq', _crf, '-preset', PRESET_MAP.get('nvenc').get(_preset,'p4')]
+            # 优先硬件解码
+            if settings.get('hw_decode'):
+                global_args=['-hwaccel','cuda','-hwaccel_output_format', 'cuda']
+                vf_string = f"[0:v]hwdownload,format=nv12,subtitles=filename='{subtitles_file}',hwupload_cuda[v_out]"
+            else:
+                vf_string = f"[0:v]subtitles=filename='{subtitles_file}'[v_out]"
+
+            return global_args,vf_string,vcodec,enc_args
+        # --- Mac (VideoToolbox) ---
+        if hw_type in ['videotoolbox']:
+            vcodec = "h264_videotoolbox" if codec == '264' else "hevc_videotoolbox"
+            # videotoolbox 质量控制，通常用 -q:v (范围约在 40-60 之间视觉无损)
+            quality = 100 - (int(_crf) * 1.4)
+            enc_args = ['-q:v', f'{int(max(1, min(quality, 100)))}']
+            return global_args,vf_string,vcodec,enc_args
+            
+
+        # --- Intel (QSV) & AMD (AMF) ---
+        if hw_type in ['qsv', 'amf', 'vaapi']:
+            if os_name == 'Linux':
+                # 【Linux 特殊处理】
+                # 在 Linux 下，Intel 和 AMD 开源驱动通常统一走 VAAPI 接口
+                devices = glob.glob('/dev/dri/renderD*')
+                device= devices[0] if devices else '/dev/dri/renderD128'
+                if settings.get('hw_decode'):
+                    global_args = ['-hwaccel', 'vaapi', '-hwaccel_device', device, '-hwaccel_output_format', 'vaapi']
+                    vf_string = f"[0:v]hwdownload,format=nv12,subtitles=filename='{subtitles_file}',format=nv12,hwupload[v_out]"                
+                else:
+                    global_args = [
+                        '-init_hw_device', f'vaapi=vaapi:{device}'
+                    ]
+                    vf_string = f"[0:v]subtitles=filename='{subtitles_file}',format=nv12,hwupload[v_out]"                
+                vcodec = "h264_vaapi" if codec == '264' else "hevc_vaapi"
+                enc_args = ['-qp', _crf,'-preset', PRESET_MAP.get('vaapi').get(_preset,'medium')]
+                return global_args,vf_string,vcodec,enc_args
+                # VAAPI 要求在软滤镜（字幕）处理完后，转换像素格式并上传到显存
+            
+            # Windows 环境
+            if hw_type in ['qsv']:
+                vcodec = "h264_qsv" if codec == '264' else "hevc_qsv"
+                # QSV 使用 ICQ 模式 (Intelligent Constant Quality)
+                enc_args = ['-global_quality', _crf, '-preset', PRESET_MAP.get('qsv').get(_preset,'medium')]
+            else:
+                vcodec = "h264_amf" if codec == '264' else "hevc_amf"
+                # AMF 使用恒定质量参数 (CQP)
+                enc_args = ['-rc', 'cqp', '-qp_p', _crf, '-qp_i', _crf, '-quality', PRESET_MAP.get('amf').get(_preset,'balanced')]
+            return global_args,vf_string,vcodec,enc_args
+        
+        return global_args,vf_string,vcodec,enc_args
+
+    
+    def _subprocess(self,cmd):
+        logger.debug(f'[尝试硬件编解码执行命令]\n{" ".join(cmd)}\n')
+        try:
+            creationflags = 0
+            if sys.platform == 'win32':
+                creationflags = subprocess.CREATE_NO_WINDOW
+            if app_cfg.exit_soft:
+                return
+            cmd.insert(0,"ffmpeg")
+            subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                errors='replace',
+                check=True,
+                text=True,
+                creationflags=creationflags,
+                cwd=self.cfg.cache_folder
+            )
+            return True
+        except subprocess.CalledProcessError as e:
+            error_message = e.stderr or ""
+            logger.error(f"尝试使用硬件执行命令出错[CalledProcessError]:{error_message}")
+            raise
+        except Exception as e:
+            logger.error(f"尝试使用硬件执行命令出错[Exception]:{e}")
+            raise
+
+
+
+
     # todo 尝试在有硬字幕参与时，强制使用指定的硬件加速
     def _hard_subtitle_use_hw(self,hw_type: str, codec: str, video_in: str, audio_in: str, subtitles_file: str, output_file: str,progress:str,duration_s:str):
         
 
         """
         生成兼容多硬件编码的 FFmpeg 命令
-        :param hw_type: 编码类型，可选值: 'nvenc'(Nvidia), 'qsv'(Intel), 'amf'(AMD), 'videotoolbox'(Mac), 'software'(软编)
+        :param hw_type: 编码类型，可选值: 为具体的编码器名称， h264_nvenc等 'nvenc'(Nvidia), 'qsv'(Intel), 'amf'(AMD), 'videotoolbox'(Mac), 'software'(软编)
         :param codec: 编码格式，可选值: '264', '265'
         :param video_in: 无声视频路径
         :param audio_in: 音频路径
         :param subtitles_file: 字幕文件路径
         :param output_file: 输出文件路径
         """
+        import glob
         os_name = platform.system()
-        _hw_type_list = hw_type.lower().split('_')
         logger.debug(f'原始{hw_type=}')
-        if _hw_type_list[0]=='vaapi':
-            hw_type='vaapi'
-        else:
-            hw_type=_hw_type_list[1]
+        if '_' in hw_type:
+            _hw_type_list = hw_type.lower().split('_')
+            if _hw_type_list[0]=='vaapi':
+                hw_type='vaapi'
+            else:
+                hw_type=_hw_type_list[1]
+
         
         logger.debug(f'整理后{hw_type=}')
         # 基础命令（全局参数，例如硬件设备初始化）
@@ -1691,28 +1761,32 @@ class TransCreate(BaseTask):
         # 基础输入和映射参数
         base_cmd = [
             "-y",
-            "-progress", f"{progress}",
+            "-progress", 
+            f"{progress}",
             "-i", video_in,
             "-i", audio_in,
-            "-map", "0:v",
-            "-map", "1:a",
-            "-c:a", "copy"
         ]
         
         # 字幕由于是软过滤，必须先在内存中压制。
         # 不同的硬件编码器可能需要在软过滤后，将画面重新上传到显存（hwupload）
-        vf_string = f"subtitles=filename='{subtitles_file}'"
+        vf_string = f"[0:v]subtitles=filename='{subtitles_file}'[v_out]"
         
         # 默认回退为软编码
         vcodec = f"libx{codec}"
         _crf=f'{settings.get("crf", 23)}'
-        enc_args = ['-crf', _crf,'-preset', 'faster']
-
+        enc_args = ['-crf', _crf,'-preset', 'fast']
+        # 组合最终命令
+        final_cmd = ['ffmpeg',"-hide_banner", "-ignore_unknown"]
         # --- Nvidia (NVENC) ---
         if hw_type in ['nvenc']:
             vcodec = "h264_nvenc" if codec == '264' else "hevc_nvenc"
             # nvenc 使用 -cq (Constant Quality) 替代 crf，p4 预设在速度和质量间平衡较好
             enc_args = ['-cq', _crf, '-preset', 'p4']
+            # 优先硬件解码
+            if settings.get('hw_decode'):
+                global_args=['-hwaccel','cuda','-hwaccel_output_format', 'cuda']
+            vf_string = f"[0:v]format=nv12,subtitles=filename='{subtitles_file}',hwupload_cuda[v_out]"
+
 
         # --- Mac (VideoToolbox) ---
         elif hw_type in ['videotoolbox']:
@@ -1723,26 +1797,28 @@ class TransCreate(BaseTask):
         # --- Intel (QSV) & AMD (AMF) ---
         elif hw_type in ['qsv', 'amf', 'vaapi']:
             if os_name == 'Linux':
+
                 # 【Linux 特殊处理】
                 # 在 Linux 下，Intel 和 AMD 开源驱动通常统一走 VAAPI 接口
-                global_args = ["-vaapi_device", "/dev/dri/renderD128"]
+                if settings.get('hw_decode'):
+                    devices = glob.glob('/dev/dri/renderD*')
+                    device= devices[0] if devices else '/dev/dri/renderD128'
+                    global_args = ['-hwaccel', 'vaapi', '-hwaccel_device', device, '-hwaccel_output_format', 'vaapi']
+                vf_string = f"[0:v]subtitles=filename='{subtitles_file}',format=nv12,hwupload[v_out]"                
                 vcodec = "h264_vaapi" if codec == '264' else "hevc_vaapi"
                 enc_args = ['-qp', _crf]
                 # VAAPI 要求在软滤镜（字幕）处理完后，转换像素格式并上传到显存
-                vf_string += ",format=nv12,hwupload"
-                
             else: # Windows 环境
                 if hw_type in ['qsv']:
                     vcodec = "h264_qsv" if codec == '264' else "hevc_qsv"
                     # QSV 使用 ICQ 模式 (Intelligent Constant Quality)
-                    enc_args = ['-global_quality', _crf, '-preset', 'faster']
+                    enc_args = ['-global_quality', _crf, '-preset', 'fast']
                 else:
                     vcodec = "h264_amf" if codec == '264' else "hevc_amf"
                     # AMF 使用恒定质量参数 (CQP)
                     enc_args = ['-rc', 'cqp', '-qp_p', _crf, '-qp_i', _crf, '-quality', 'balanced']
 
-        # 组合最终命令
-        final_cmd = ['ffmpeg',"-hide_banner", "-ignore_unknown"]
+
         
         # 全局参数必须在输入文件 -i 之前
         if global_args:
@@ -1751,9 +1827,12 @@ class TransCreate(BaseTask):
         final_cmd.extend(base_cmd)
         
         # 视频过滤器和编码器
+        final_cmd.extend(["-filter_complex", vf_string])
+        final_cmd.extend(["-map", "[v_out]","-map", "1:a"])
+        
         final_cmd.extend([
-            "-vf", vf_string,
-            "-c:v", vcodec
+            "-c:v", vcodec,
+            '-c:a','copy'
         ])
         
         # 编码器特定参数
@@ -1761,8 +1840,10 @@ class TransCreate(BaseTask):
         
         # 结尾参数
         final_cmd.extend([
-            "-movflags", "+faststart",
-            "-fps_mode", "vfr",
+            "-movflags", 
+            "+faststart",
+            "-fps_mode", 
+            "vfr",
             "-t",f'{duration_s}',
             output_file
         ])
@@ -1770,7 +1851,8 @@ class TransCreate(BaseTask):
         creationflags = 0
         if os_name == 'Windows':
             creationflags = subprocess.CREATE_NO_WINDOW
-
+        
+        print(f'{final_cmd=}')
         subprocess.run(
             final_cmd,
             stdout=subprocess.PIPE,

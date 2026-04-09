@@ -166,7 +166,7 @@ class BaseTrans(BaseCon):
 
             self._signal(text=result, type='subtitle')
             tmp=tools.get_subtitle_from_srt(result, is_file=False)
-            logger.debug(f'\n原始待翻译文本:{srt_str=}\n翻译结果:{result=}\n整理后：{tmp=}')
+            #logger.debug(f'\n原始待翻译文本:{srt_str=}\n翻译结果:{result=}\n整理后：{tmp=}')
             raws_list.extend(tmp)
             time.sleep(self.wait_sec)
 
