@@ -657,7 +657,7 @@ def simple_wrap(text,maxlen=15,language="en"):
     elif current_text:
         text_lilst.append(current_text)
     # print(f'{maxlen=},{offset=}')
-    return "\n".join(text_lilst)
+    return ("\n".join(text_lilst)).strip()
 
 def textwrap(text, maxlen=15):
     """

@@ -941,7 +941,7 @@ class TransCreate(BaseTask):
                     "-c:a",
                     "pcm_s16le",
                     '-af',
-                    "volume=2.0,alimiter=limit=1.0",
+                    "volume=1.5",
                     self.cfg.source_wav
                 ]
                 tools.runffmpeg(cmd)
@@ -1127,12 +1127,12 @@ class TransCreate(BaseTask):
                     tools.create_concat_txt(file_list, concat_txt=concat_txt)
                     tools.concat_multi_audio(concat_txt=concat_txt,
                                              out=self.cfg.cache_folder + "/instrument-concat.wav")
-                    instrument_file = self.cfg.cache_folder + f"/instrument-concat.wav"
                 else:
                     # 延长背景音
-                    tools.change_speed_rubberband(instr_file, self.cfg.cache_folder + f"/instrument-concat.wav", vtime)
+                    tools.change_speed_rubberband(instrument_file, self.cfg.cache_folder + f"/instrument-concat.wav", vtime)
+                instrument_file=self.cfg.cache_folder + f"/instrument-concat.wav"
             # 背景音合并配音
-            self._backandvocal(self.cfg.instrument, self.cfg.target_wav)
+            self._backandvocal(instrument_file, self.cfg.target_wav)
         except Exception as e:
             logger.exception(e, exc_info=True)
 

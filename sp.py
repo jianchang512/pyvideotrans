@@ -12,7 +12,7 @@ License: GPL-V3
 # 没有规范，随便搞搞
 
 """
-VERSION = "v3.98"
+VERSION = "v3.99"
 
 import os
 import atexit, sys, time

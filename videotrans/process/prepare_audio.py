@@ -130,7 +130,7 @@ def remove_noise(*, input_file, output_file,  is_cuda=False, logs_file=None, dev
             device=device
         )
         result = ans(input_file, output_path=tmp_name, disable_pbar=True)
-        tools.runffmpeg(['-y', '-i', tmp_name, '-af', "volume=2.0,alimiter=limit=1.0", output_file])
+        tools.runffmpeg(['-y', '-i', tmp_name, '-af', "volume=1.5", output_file])
         logger.info(f'降噪成功完成，耗时:{int(time.time() - _st)}s')
         return output_file, None
     except Exception as e:

@@ -285,7 +285,7 @@ class APIRecogn(BaseRecogn):
                 if os.path.exists(temp_chunk_path):
                     os.remove(temp_chunk_path)
         if not final_raws:
-            raise RuntimeError(f'VibeVoice:{self.api_url} not return data:{result[0]}')
+            raise RuntimeError(f'VibeVoice:{self.api_url} not return data')
         # 统一处理说话人逻辑 (合并后的重排序)
         # 这里是将所有片段的说话人混在一起处理。
         # 警告：VibeVoice 是分段处理的，Chunk1 的 spk0 和 Chunk2 的 spk0 可能不是同一个人。
