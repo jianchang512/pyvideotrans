@@ -293,8 +293,9 @@ def set_ass_font(srtfile: str) -> str:
     # ---------- 1. 将 SRT 转为临时 SRT（替换换行符）并调用 ffmpeg 生成 ASS ----------
     srt_str = ""
     for it in get_subtitle_from_srt(srtfile, is_file=True):
-        t = re.sub(r'\n|\\n', r'\\N', it['text'])
-        srt_str += f'{it["line"]}\n{it["startraw"]} --> {it["endraw"]}\n{t}\n\n'
+        t = re.sub(r'\n|\\n', r'\\N', it['text'].strip())
+        if t:
+            srt_str += f'{it["line"]}\n{it["startraw"]} --> {it["endraw"]}\n{t}\n\n'
     edit_srt = srtfile[:-4] + '-edit.srt'
     with open(edit_srt, 'w', encoding='utf-8') as f:
         f.write(srt_str.strip())
@@ -460,134 +461,6 @@ def set_ass_font(srtfile: str) -> str:
 
     return ass_file_path
     
-    
-
-def set_ass_font_0331(srtfile: str) -> str:
-    """
-    将 JSON_FILE 中的样式覆盖到指定 ASS 文件的 [V4+ Styles] 区域，并保存回原文件。
-    
-    Args:
-        ass_file_path: ASS 文件的完整绝对路径（字符串）
-    
-    Returns:
-        ass_file_path: 传入的 ASS 文件路径（无论成功或失败都返回）
-    
-    行为：
-        - 读取 JSON_FILE 获取最新样式
-        - 读取 ass_file_path 内容
-        - 替换 [V4+ Styles] 区块（保留 Format 行，替换 Style 行）
-        - 若 JSON_FILE 不存在或解析失败，静默打印原因
-        - 若 ASS 文件不存在或写入失败，静默打印原因
-        - 最后始终返回 ass_file_path
-    """
-    
-    from . import help_ffmpeg
-
-    if not os.path.exists(srtfile) or os.path.getsize(srtfile) == 0:
-        return os.path.basename(srtfile)
-
-    # 将 text 中的\n替换为\N
-    srt_str=""    
-    for it in get_subtitle_from_srt(srtfile,is_file=True):
-        t=re.sub(r'\n|\\n',r'\\N',it['text'])
-        srt_str+=f'{it["line"]}\n{it["startraw"]} --> {it["endraw"]}\n{t}\n\n' 
-    edit_srt=srtfile[:-4]+'-edit.srt'
-    with open(edit_srt,'w',encoding='utf-8') as f:
-        f.write(srt_str.strip())
-    ass_file_path = f'{srtfile[:-3]}ass'
-    help_ffmpeg.runffmpeg(['-y', '-i', edit_srt, ass_file_path])
-
-    # 1. 验证 ASS 文件是否存在
-    if not os.path.exists(ass_file_path):
-        logger.warning(f"[export_style] 错误：ASS 文件不存在: {ass_file_path}")
-        return ass_file_path
-
-    # 2. 读取 JSON 样式
-    JSON_FILE=f'{ROOT_DIR}/videotrans/ass.json'
-    if not os.path.exists(JSON_FILE):
-        logger.debug(f"[export_style] 警告：JSON 配置文件不存在: {JSON_FILE}，跳过样式替换")
-        return ass_file_path
-
-    try:
-        with open(JSON_FILE, 'r', encoding='utf-8') as f:
-            style = json.load(f)
-    except Exception as e:
-        logger.exception(f"[export_style] 错误：无法读取或解析 JSON 文件 {JSON_FILE}: {e}",exc_info=True)
-        return ass_file_path
-
-    # 3. 构建新的 Style 行
-    try:
-        new_style_line = (
-            f"Style: {style.get('Name', 'Default')},"
-            f"{style.get('Fontname', 'Arial')},"
-            f"{style.get('Fontsize', 16)},"
-            f"{style.get('PrimaryColour', '&H00FFFFFF&')},"
-            f"{style.get('SecondaryColour', '&H00FFFFFF&')},"
-            f"{style.get('OutlineColour', '&H00000000&')},"
-            f"{style.get('BackColour', '&H00000000&')},"
-            f"{style.get('Bold', 0)},"
-            f"{style.get('Italic', 0)},"
-            f"{style.get('Underline', 0)},"
-            f"{style.get('StrikeOut', 0)},"
-            f"{style.get('ScaleX', 100)},"
-            f"{style.get('ScaleY', 100)},"
-            f"{style.get('Spacing', 0)},"
-            f"{style.get('Angle', 0)},"
-            f"{style.get('BorderStyle', 1)},"
-            f"{style.get('Outline', 1)},"
-            f"{style.get('Shadow', 0)},"
-            f"{style.get('Alignment', 2)},"
-            f"{style.get('MarginL', 10)},"
-            f"{style.get('MarginR', 10)},"
-            f"{style.get('MarginV', 10)},"
-            f"{style.get('Encoding', 1)}\n"
-        )
-    except Exception as e:
-        logger.exception(f"[export_style] 错误：构建 Style 行失败: {e}",exc_info=True)
-        return ass_file_path
-
-    # 4. 读取 ASS 文件内容
-    try:
-        with open(ass_file_path, 'r', encoding='utf-8-sig') as f:
-            content = f.read()
-    except Exception as e:
-        logger.exception(f"[export_style] 错误：无法读取 ASS 文件: {e}",exc_info=True)
-        return ass_file_path
-
-    # 5. 正则替换 [V4+ Styles] 区块
-    # 匹配 [V4+ Styles] 开始，到下一个 [ 或文件结尾，中间包含 Format 和 Style 行
-    pattern = r'(^\[V4\+ Styles\]\s*\r?\n' \
-              r'Format:[^\r\n]*\r?\n' \
-              r'(?:Style:[^\r\n]*\r?\n)*)' \
-              r'(?=\[|$)'
-
-    def replacer(match):
-        format_line = None
-        for line in match.group(0).splitlines():
-            if line.strip().startswith("Format:"):
-                format_line = line.strip() + "\n"
-                break
-        if not format_line:
-            format_line = "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
-        
-        return f"[V4+ Styles]\n{format_line}{new_style_line}"
-
-    try:
-        new_content, count = re.subn(pattern, replacer, content, flags=re.MULTILINE)
-    except Exception as e:
-        logger.exception(f"[export_style] 错误：正则替换失败: {e}",exc_info=True)
-        return ass_file_path
-
-    # 6. 写回文件
-    try:
-        with open(ass_file_path, 'w', encoding='utf-8-sig', newline='') as f:
-            f.write(new_content)
-    except Exception as e:
-        logger.exception(f"[export_style] 错误：无法写入 ASS 文件: {e}",exc_info=True)
-
-
-    return ass_file_path
-
 
 # 简单换行，不保留换行符，用于视频翻译字幕嵌入
 def simple_wrap(text,maxlen=15,language="en"):
