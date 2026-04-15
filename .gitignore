@@ -51,7 +51,7 @@ models
 dev
 venv
 chatterbox
-f5-tts
+!f5-tts/nverguo.wav
 apidata
 dist
 source
