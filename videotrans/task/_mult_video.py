@@ -51,5 +51,5 @@ class MultVideo(QThread):
                 if self.batch_single:
                     self.uito.emit(json.dumps({"text": _msg+f"\n{detail_back}", "type": "error", 'uuid': it['uuid']}))
                 else:
-                    tools.set_process(text=_msg+f"\n{deta}",type="error",uuid=it['uuid'])
+                    tools.set_process(text=_msg+f"\n{detail_back}",type="error",uuid=it['uuid'])
 

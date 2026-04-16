@@ -38,7 +38,7 @@ class ChatterBoxTTS(BaseTTS):
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
             if data_item.get('ref_wav') or (
-                    role and role != 'chatterbox' and Path(f'{ROOT_DIR}/chatterbox/{role}').exists()):
+                    role and role != 'chatterbox' and Path(f'{ROOT_DIR}/f5-tts/{role}').exists()):
                 # 克隆
                 self._item_task_clone(data_item['text'], role, data_item.get('ref_wav'), data_item['filename'])
                 return
@@ -66,7 +66,7 @@ class ChatterBoxTTS(BaseTTS):
         if ref_wav:
             mime_type = 'audio/wav'
         else:
-            ref_wav = f'{ROOT_DIR}/chatterbox/{role}'
+            ref_wav = f'{ROOT_DIR}/f5-tts/{role}'
             mime_type, _ = mimetypes.guess_type(ref_wav)
             # 如果无法根据扩展名猜出类型，则使用通用的二进制流类型作为备用
             if mime_type is None:

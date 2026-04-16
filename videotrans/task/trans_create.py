@@ -19,7 +19,8 @@ from videotrans.tts import run as run_tts, EDGE_TTS, AZURE_TTS, SUPPORT_CLONE
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util import tools, contants
 from ._base import BaseTask
-
+from videotrans.util.help_ffmpeg import get_video_codec
+from videotrans.task._rate import SpeedRate
 
 @dataclass
 class TransCreate(BaseTask):
@@ -738,7 +739,7 @@ class TransCreate(BaseTask):
             if tools.vail_file(self.cfg.novoice_mp4):
                 self.video_time = tools.get_video_duration(self.cfg.novoice_mp4)
 
-            from videotrans.task._rate import SpeedRate
+            print(f'speedrate===')
             rate_inst = SpeedRate(
                 queue_tts=self.queue_tts,
                 uuid=self.uuid,
@@ -857,7 +858,7 @@ class TransCreate(BaseTask):
         ]
         _name=os.path.basename(self.cfg.novoice_mp4)
         enc_qua=[] if self.is_copy_video else ['-crf','18']
-        if self.is_copy_video or settings.get('force_lib'):            
+        if self.is_copy_video or settings.get('force_lib'):
             return tools.runffmpeg(cmd+enc_qua+[_name], noextname=self.uuid, cmd_dir=self.cfg.cache_folder)
         
         try:
@@ -866,11 +867,11 @@ class TransCreate(BaseTask):
                 "-y",
                 "-fflags",
                 "+genpts",
-                "-i",
             ]
             cmd+=hw_decode_args
-            
+
             cmd+=[
+                "-i",
                 self.cfg.name,
                 "-an",
                 "-c:v",
@@ -878,8 +879,20 @@ class TransCreate(BaseTask):
                 _name
             ]
             self._subprocess(cmd)
-        except:
-            return tools.runffmpeg(cmd+enc_qua+[_name], noextname=self.uuid, cmd_dir=self.cfg.cache_folder)
+            app_cfg.queue_novice[self.uuid] = 'end'
+        except Exception as e:
+            logger.exception(f'硬件分离无声视频失败:{e}',exc_info=True)
+            return tools.runffmpeg([
+                "-y",
+                "-fflags",
+                "+genpts",
+                "-i",
+                self.cfg.name,
+                "-an",
+                "-c:v",
+                "libx264",
+                _name
+            ], noextname=self.uuid, cmd_dir=self.cfg.cache_folder,force_cpu=True)
             
 
     # 从原始视频中分离出音频
@@ -1469,7 +1482,7 @@ class TransCreate(BaseTask):
                     except:
                         cmd2[cmd2.index('-c:v')+1]=f'libx{self.video_codec_num}'
                         logger.warning(f'硬件处理视频合成失败，回退软编')
-                        tools.runffmpeg(cmd0+cmd1+subtitle_filter+cmd2+enc_qua+cmd3, cmd_dir=self.cfg.cache_folder, force_cpu=True)
+                        tools.runffmpeg(cmd0+cmd1+subtitle_filter+cmd2+enc_qua+cmd3,  cmd_dir=self.cfg.cache_folder, force_cpu=True)
         except Exception as e:
             msg = tr('Error in embedding the final step of the subtitle dubbing')
             raise RuntimeError(msg)
@@ -1588,6 +1601,8 @@ class TransCreate(BaseTask):
     # 视频合成时，返回可用的硬件解码参数、字幕嵌入参数、视频编码参数、质量相关参数
     def _get_hard_cfg(self, subtitles_file=None,codec=None):
         os_name = platform.system()
+        if not app_cfg.video_codec:
+            app_cfg.video_codec = get_video_codec()
         # 仅用于确定编码器部分，具体 264或265由 codec 决定
         hw_type=app_cfg.video_codec
         logger.debug(f'原始{hw_type=}')
@@ -1726,143 +1741,3 @@ class TransCreate(BaseTask):
         except Exception as e:
             logger.error(f"尝试使用硬件执行命令出错[Exception]:{e}")
             raise
-
-
-
-
-    # todo 尝试在有硬字幕参与时，强制使用指定的硬件加速
-    def _hard_subtitle_use_hw(self,hw_type: str, codec: str, video_in: str, audio_in: str, subtitles_file: str, output_file: str,progress:str,duration_s:str):
-        
-
-        """
-        生成兼容多硬件编码的 FFmpeg 命令
-        :param hw_type: 编码类型，可选值: 为具体的编码器名称， h264_nvenc等 'nvenc'(Nvidia), 'qsv'(Intel), 'amf'(AMD), 'videotoolbox'(Mac), 'software'(软编)
-        :param codec: 编码格式，可选值: '264', '265'
-        :param video_in: 无声视频路径
-        :param audio_in: 音频路径
-        :param subtitles_file: 字幕文件路径
-        :param output_file: 输出文件路径
-        """
-        import glob
-        os_name = platform.system()
-        logger.debug(f'原始{hw_type=}')
-        if '_' in hw_type:
-            _hw_type_list = hw_type.lower().split('_')
-            if _hw_type_list[0]=='vaapi':
-                hw_type='vaapi'
-            else:
-                hw_type=_hw_type_list[1]
-
-        
-        logger.debug(f'整理后{hw_type=}')
-        # 基础命令（全局参数，例如硬件设备初始化）
-        global_args = []
-        
-        # 基础输入和映射参数
-        base_cmd = [
-            "-y",
-            "-progress", 
-            f"{progress}",
-            "-i", video_in,
-            "-i", audio_in,
-        ]
-        
-        # 字幕由于是软过滤，必须先在内存中压制。
-        # 不同的硬件编码器可能需要在软过滤后，将画面重新上传到显存（hwupload）
-        vf_string = f"[0:v]subtitles=filename='{subtitles_file}'[v_out]"
-        
-        # 默认回退为软编码
-        vcodec = f"libx{codec}"
-        _crf=f'{settings.get("crf", 23)}'
-        enc_args = ['-crf', _crf,'-preset', 'fast']
-        # 组合最终命令
-        final_cmd = ['ffmpeg',"-hide_banner", "-ignore_unknown"]
-        # --- Nvidia (NVENC) ---
-        if hw_type in ['nvenc']:
-            vcodec = "h264_nvenc" if codec == '264' else "hevc_nvenc"
-            # nvenc 使用 -cq (Constant Quality) 替代 crf，p4 预设在速度和质量间平衡较好
-            enc_args = ['-cq', _crf, '-preset', 'p4']
-            # 优先硬件解码
-            if settings.get('hw_decode'):
-                global_args=['-hwaccel','cuda','-hwaccel_output_format', 'cuda']
-            vf_string = f"[0:v]format=nv12,subtitles=filename='{subtitles_file}',hwupload_cuda[v_out]"
-
-
-        # --- Mac (VideoToolbox) ---
-        elif hw_type in ['videotoolbox']:
-            vcodec = "h264_videotoolbox" if codec == '264' else "hevc_videotoolbox"
-            # videotoolbox 质量控制，通常用 -q:v (范围约在 40-60 之间视觉无损)
-            enc_args = ['-q:v', '50']
-
-        # --- Intel (QSV) & AMD (AMF) ---
-        elif hw_type in ['qsv', 'amf', 'vaapi']:
-            if os_name == 'Linux':
-
-                # 【Linux 特殊处理】
-                # 在 Linux 下，Intel 和 AMD 开源驱动通常统一走 VAAPI 接口
-                if settings.get('hw_decode'):
-                    devices = glob.glob('/dev/dri/renderD*')
-                    device= devices[0] if devices else '/dev/dri/renderD128'
-                    global_args = ['-hwaccel', 'vaapi', '-hwaccel_device', device, '-hwaccel_output_format', 'vaapi']
-                vf_string = f"[0:v]subtitles=filename='{subtitles_file}',format=nv12,hwupload[v_out]"                
-                vcodec = "h264_vaapi" if codec == '264' else "hevc_vaapi"
-                enc_args = ['-qp', _crf]
-                # VAAPI 要求在软滤镜（字幕）处理完后，转换像素格式并上传到显存
-            else: # Windows 环境
-                if hw_type in ['qsv']:
-                    vcodec = "h264_qsv" if codec == '264' else "hevc_qsv"
-                    # QSV 使用 ICQ 模式 (Intelligent Constant Quality)
-                    enc_args = ['-global_quality', _crf, '-preset', 'fast']
-                else:
-                    vcodec = "h264_amf" if codec == '264' else "hevc_amf"
-                    # AMF 使用恒定质量参数 (CQP)
-                    enc_args = ['-rc', 'cqp', '-qp_p', _crf, '-qp_i', _crf, '-quality', 'balanced']
-
-
-        
-        # 全局参数必须在输入文件 -i 之前
-        if global_args:
-            final_cmd.extend(global_args)
-            
-        final_cmd.extend(base_cmd)
-        
-        # 视频过滤器和编码器
-        final_cmd.extend(["-filter_complex", vf_string])
-        final_cmd.extend(["-map", "[v_out]","-map", "1:a"])
-        
-        final_cmd.extend([
-            "-c:v", vcodec,
-            '-c:a','copy'
-        ])
-        
-        # 编码器特定参数
-        final_cmd.extend(enc_args)
-        
-        # 结尾参数
-        final_cmd.extend([
-            "-movflags", 
-            "+faststart",
-            "-fps_mode", 
-            "vfr",
-            "-t",f'{duration_s}',
-            output_file
-        ])
-        logger.debug(f'硬字幕合成时，优先硬件编码命令:{final_cmd}')
-        creationflags = 0
-        if os_name == 'Windows':
-            creationflags = subprocess.CREATE_NO_WINDOW
-        
-        print(f'{final_cmd=}')
-        subprocess.run(
-            final_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            encoding="utf-8",
-            errors='replace',
-            check=True,
-            text=True,
-            creationflags=creationflags,
-            cwd=self.cfg.cache_folder
-        )
-        
-        return True

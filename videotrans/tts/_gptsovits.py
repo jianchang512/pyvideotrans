@@ -60,12 +60,13 @@ class GPTSoVITS(BaseTTS):
                     data['refer_wav_path'] = ref_wav
                     ref_wav_audio=AudioSegment.from_file(ref_wav,format="wav")
                     ms_ref=len(ref_wav_audio)
-                    if ms_ref>9950:#大于10s截断
+                    if ms_ref>9990:#大于10s截断
                         logger.warning(f'参考音频大于10s，需截断:{ref_wav=}')
-                        ref_wav_audio[:9950].export(ref_wav,format="wav")
+                        ref_wav_audio[:9990].export(ref_wav,format="wav")
                     elif ms_ref<3000:#大于3s合法
                         logger.warning(f'参考音频小于3s，末尾填空白:{ref_wav=}')
                         self.pad_audio= self.pad_audio if self.pad_audio else self._padforaudio(3000 if ms_ref<1500 else 1600)
+                        
                         (ref_wav_audio+self.pad_audio).export(ref_wav,format="wav")
                 elif keys[-1]=='clone':
                     # 无自定义参考音频，clone原音频时长不符合，失败

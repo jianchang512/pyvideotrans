@@ -503,6 +503,7 @@ def openwin():
             role_list = list(tools.get_fishtts_role().keys())
         elif type in [tts.F5_TTS,tts.INDEX_TTS,tts.SPARK_TTS,tts.VOXCPM_TTS,tts.DIA_TTS]:
             role_list = list(tools.get_f5tts_role().keys())
+
         if "clone" in role_list:
             role_list.remove('clone')
         winobj.hecheng_role.addItems(role_list)

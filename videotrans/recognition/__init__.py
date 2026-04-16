@@ -1,8 +1,8 @@
 from typing import Union, List, Dict
 from pathlib import Path
 from videotrans.configure.config import tr,settings,params,app_cfg,logger,ROOT_DIR
-from videotrans.recognition._huggingface import HuggingfaceRecogn
 from videotrans.recognition._overall import FasterAll
+
 
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
@@ -257,7 +257,7 @@ def run(*,
     if recogn_type == QWENASR:
         from videotrans.recognition._qwenasrlocal import QwenasrlocalRecogn
         return QwenasrlocalRecogn(**kwargs).run()
-    if recogn_type == FUNASR_CN:     
+    if recogn_type == FUNASR_CN:
         from videotrans.recognition._funasr import FunasrRecogn
         return FunasrRecogn(**kwargs).run()
     if recogn_type == Deepgram:
@@ -276,11 +276,12 @@ def run(*,
         from videotrans.recognition._elevenlabs import ElevenLabsRecogn
         return ElevenLabsRecogn(**kwargs).run()
     if recogn_type == HUGGINGFACE_ASR:
+        from videotrans.recognition._huggingface import HuggingfaceRecogn
         return HuggingfaceRecogn(**kwargs).run()
     if recogn_type == ZHIPU_API:
         from videotrans.recognition._glmasr import GLMASRRecogn
         return GLMASRRecogn(**kwargs).run()
-    
+
     if recogn_type == WHISPER_NET:
         from videotrans.recognition._whispernet import WhisperNetRecogn
         return WhisperNetRecogn(**kwargs).run()

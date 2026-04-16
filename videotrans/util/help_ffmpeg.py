@@ -6,9 +6,8 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Union,Tuple,List,Dict
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,TEMP_DIR,logger
 from videotrans.util import contants
 
 
@@ -25,178 +24,13 @@ def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
         return " ".join(lines[-10:])
     return " ".join(result)
 
-
-def _get_preset_classification(preset: str) -> str:
-    """将 libx264/x265 的 preset 归类为 'fast', 'medium', 'slow'。"""
-    if not preset:
-        return 'medium'
-    
-    p = preset.lower()
-    SOFTWARE_PRESET_CLASSIFICATION = {
-        'ultrafast': 'fast', 'superfast': 'fast', 'veryfast': 'fast',
-        'faster': 'fast', 'fast': 'fast',
-        'medium': 'medium',
-        'slow': 'slow', 'slower': 'slow', 'veryslow': 'slow',
-        'placebo': 'slow'
-    }
-    return SOFTWARE_PRESET_CLASSIFICATION.get(p, 'medium')
-
-
-
-def _translate_crf_to_hw_quality(crf_value: str, encoder_family: str) -> Union[int, None]:
-    """
-    将 CRF 值近似转换为不同硬件编码器的质量值。
-    """
-    try:
-        crf = float(crf_value) # 使用 float 兼容性更好
-        crf_int = int(crf)
-
-        # 1. NVENC (CQ), QSV (Global Quality), VAAPI
-        # 范围 1-51，越小质量越高。与 CRF 逻辑一致。
-        if encoder_family in ['nvenc', 'qsv', 'vaapi']:
-            return max(1, min(crf_int, 51))
-        
-        # 2. VideoToolbox (macOS)
-        # 使用 -q:v，范围 1-100。
-        # 注意：VideoToolbox 的 scale 是反的（或者说是正向的品质），100 是最高质量，1 是最低。
-        # CRF 0 (无损) ~ 对应 q:v 100
-        # CRF 23 (默认) ~ 对应 q:v 60-70 左右
-        # CRF 51 (最差) ~ 对应 q:v 1
-        # 简单的线性映射公式：Quality = 100 - (CRF * 1.8) 
-        if encoder_family == 'videotoolbox':
-            quality = 100 - (crf * 1.4)
-            return int(max(1, min(quality, 100)))
-
-        # 3. AMF (AMD)
-        # AMF 比较复杂，通常用 -qp_i / -qp_p，但也支持 -quality。
-        # 简单的 CRF 映射很难精准，暂不处理以免画质崩坏。
-        
-    except (ValueError, TypeError):
-        return None
-    return None
-
-def _build_hw_command(args: list, hw_codec: str) -> Tuple[List[str], List[str]]:
-    """
-    根据选择的硬件编码器，构建 ffmpeg 命令参数列表和硬件解码选项
-    此函数是纯粹的，它不修改输入列表，而是返回一个新的列表。
-    """
-    # 模拟外部 config 对象，防止报错，实际使用时请删除下面这行或保留原本的 import
-
-
-    if not hw_codec or 'libx' in hw_codec or hw_codec == 'copy':
-        return list(args), []
-
-    # 更加健壮的 encoder_family 提取 (全小写)
-    encoder_family = hw_codec.split('_')[-1].lower()
-
-    # --- 参数映射表 ---
-    PRESET_MAP = {
-        # NVENC: p1 (最快) - p7 (最慢/质量最好)
-        'nvenc': {'fast': 'p2', 'medium': 'p4', 'slow': 'p7'}, 
-        # QSV: veryfast, faster, fast, medium, slow, slower, veryslow
-        'qsv': {'fast': 'fast', 'medium': 'medium', 'slow': 'slow'},
-        # AMF: speed, balanced, quality
-        'amf': {'fast': 'speed', 'medium': 'balanced', 'slow': 'quality'},
-        # VAAPI: 通常也接受 standard presets
-        'vaapi': {'fast': 'fast', 'medium': 'medium', 'slow': 'slow'},
-        # VideoToolbox: 通常不支持 -preset 参数，留空以跳过处理
-        'videotoolbox': None 
-    }
-
-    # 定义硬件质量参数的名称
-    QUALITY_PARAM_MAP = {
-        'nvenc': '-cq',             # 通常 -cq 足够触发 VBR 模式
-        'qsv': '-global_quality',   # ICQ 模式
-        'vaapi': '-global_quality',
-        'videotoolbox': '-q:v',     # 苹果硬编质量参数
-    }
-
-    new_args = []
-
-    i = 0
-    main_input_file = ""
-    
-    # 预扫描：检查是否包含字幕流或滤镜，用于后续决定是否开启硬件解码
-    has_subtitles = "-c:s" in args
-    
-    while i < len(args):
-        arg = args[i]
-        
-        # 记录主输入文件 (通常是第一个 -i 后的参数)
-        if arg == '-i' and not main_input_file and i + 1 < len(args):
-            main_input_file = args[i + 1]
-
-        # 1. 替换视频编码器
-        if arg == '-c:v' and i + 1 < len(args):
-            # 确保 copy 模式不被覆盖
-            if args[i + 1] == 'copy':
-                new_args.extend(['-c:v', 'copy'])
-            else:
-                new_args.extend(['-c:v', hw_codec])
-            i += 2
-            continue
-
-        # 2. 调整 preset 参数
-        if arg == '-preset' and i + 1 < len(args):
-            family_presets = PRESET_MAP.get(encoder_family)
-            # 如果该家族有定义的 preset 映射，则替换；
-            # 如果 family_presets 为 None (如 videotoolbox)，则直接丢弃原 preset 参数
-            if family_presets:
-                classification = _get_preset_classification(args[i + 1])
-                new_preset = family_presets.get(classification)
-                if new_preset:
-                    new_args.extend(['-preset', new_preset])
-            # 如果是 videotoolbox，直接跳过 '-preset' 和它的值，因为不支持
-            i += 2
-            continue
-
-        # 3. 替换 -crf 参数
-        if arg == '-crf' and i + 1 < len(args):
-            hw_quality_param = QUALITY_PARAM_MAP.get(encoder_family)
-            if hw_quality_param:
-                crf_value = args[i + 1]
-                hw_quality_value = _translate_crf_to_hw_quality(crf_value, encoder_family)
-                
-                if hw_quality_value is not None:
-                    new_args.extend([hw_quality_param, str(hw_quality_value)])
-                    
-                    # 【NVENC 特殊处理】
-                    # 使用 -cq 时，如果不指定 -rc，默认为 constant QP 还是 VBR 取决于驱动。
-                    # 为了体感接近 CRF，强制指定 VBR 可能是个好选择，但为了保持函数纯洁性，
-                    # 这里仅做参数替换。如需更稳定，可取消下面注释：
-                    # if encoder_family == 'nvenc' and '-rc' not in args and '-rc:v' not in args:
-                    #     new_args.extend(['-rc:v', 'vbr'])
-                else:
-                    # logger.warning(f"无法转换 -crf {crf_value}，忽略。")
-                    pass
-            else:
-                # logger.warning(f"编码器 {encoder_family} 不支持 CRF 替换，忽略。")
-                pass
-            i += 2
-            continue
-
-        new_args.append(arg)
-        i += 1
-    return new_args
-
-
+# 移除硬件支持，避免复杂性和兼容性错误，仅在最终合并阶段支持硬件加速，在 trans_create.py 中单独实现
 def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
     """
-    执行 ffmpeg 命令，智能应用硬件加速并处理平台兼容性。
-
-    如果硬件加速失败，会自动回退到 CPU 编码重试。
-
-    Args:
-        arg (list): ffmpeg 参数列表。
-        noextname (str, optional): 用于任务队列跟踪的标识符。
-        uuid (str, optional): 用于进度更新的 UUID。
-        force_cpu (bool): 如果为 True，则强制使用 CPU 编码，不尝试硬件加速。
+    执行 ffmpeg 命令
     """
     if settings.get('force_lib'):
         force_cpu=True
-    arg_copy = copy.deepcopy(arg)
-
-    default_codec = f"libx{settings.get('video_codec', '264')}"
 
     final_args = arg
 
@@ -212,16 +46,6 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
                 final_args.insert(-1, "-preset")
                 final_args.insert(-1, "ultrafast")
 
-    # 尝试硬件编码
-    if not force_cpu:
-        if not app_cfg.video_codec:
-            app_cfg.video_codec = get_video_codec()
-        # 将废弃，硬件兼容性是大坑，考虑仅针对最终视频字幕音频合成阶段做硬件加速处理
-        if app_cfg.video_codec and 'libx' not in app_cfg.video_codec:
-            logger.debug(f"检测到硬件编码器 {app_cfg.video_codec}，正在调整参数...")
-            final_args = _build_hw_command(arg, app_cfg.video_codec)
-
-
     cmd = ['ffmpeg', "-hide_banner", "-ignore_unknown",'-threads','0']
     if "-y" not in final_args:
         cmd.append("-y")
@@ -234,17 +58,14 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
         custom_params = [p for p in settings.get('ffmpeg_cmd','').split(' ') if p]
         cmd = cmd[:-1] + custom_params + cmd[-1:]
 
-    if noextname:
-        app_cfg.queue_novice[noextname] = 'ing'
-
-
     try:
         creationflags = 0
         if sys.platform == 'win32':
             creationflags = subprocess.CREATE_NO_WINDOW
         if app_cfg.exit_soft:
             return
-        logger.debug(f'[FFMPEG-CMD]:\n{" ".join(cmd)}\n')
+        if cmd[-1].lower().endswith('.mp4'):
+            logger.debug(f'[FFMPEG-CMD]:\n{" ".join(cmd)}\n')
         subprocess.run(
             cmd,
             stdout=subprocess.PIPE,
@@ -259,48 +80,26 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
         if noextname:
             app_cfg.queue_novice[noextname] = "end"
         return True
-
     except FileNotFoundError as e:
         logger.warning(f"命令未找到: {cmd[0]}。请确保 ffmpeg 已安装并在系统 PATH 中。")
         if noextname:
             app_cfg.queue_novice[noextname] = f"error:{e}"
         raise
-
     except subprocess.CalledProcessError as e:
-        if app_cfg.exit_soft:
-            return
         error_message = e.stderr or ""
         logger.warning(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message}")
-
-        is_video_output = cmd[-1].lower().endswith('.mp4')
-        if not force_cpu and is_video_output:
-            logger.warning("回退： 硬件加速失败，将自动回退到 CPU 编码重试...")
-
-            fallback_args = []
-            i = 0
-            while i < len(arg_copy):
-                if arg_copy[i] == '-c:v' and i + 1 < len(arg_copy) and arg_copy[i + 1] != 'copy':
-                    fallback_args.extend(['-c:v', default_codec])
-                    i += 2
-                else:
-                    fallback_args.append(arg_copy[i])
-                    i += 1
-
-            return runffmpeg(fallback_args, noextname=noextname, uuid=uuid, force_cpu=True,cmd_dir=cmd_dir)
-
         err=extract_concise_error(e.stderr)
         if noextname:
             app_cfg.queue_novice[noextname] = f"error:{err}"
-        raise RuntimeError(err)
-
-    except Exception as e:
-        if noextname: app_cfg.queue_novice[noextname] = f"error:{e}"
-        logger.debug(f"执行 ffmpeg 时发生未知错误 (force_cpu={force_cpu})。")
         # 针对win上路径和名称问题单独提示
         if sys.platform=='win32' and 'No such file or directory' in str(e):
-            err=get_filepath_from_cmd(cmd)
-            if err:
-                raise RuntimeError(err)
+            _err=get_filepath_from_cmd(cmd)
+            err=_err or err
+        raise RuntimeError(err)
+    except Exception as e:
+        if noextname:
+            app_cfg.queue_novice[noextname] = f"error:{e}"
+        logger.debug(f"执行 ffmpeg 时发生未知错误:{e}")
         raise
 
 # 从 cmd 列表中获取 -i 之后的路径和 最后一个路径，以判断文件名是否规则，
@@ -331,12 +130,11 @@ def get_video_codec(compat=None) -> str:
     依赖 'config' 模块获取设置和路径。假设 'ffmpeg' 在系统 PATH 中，
     测试输入文件存在，并且 TEMP_DIR 可写。
 
-    Args:
-        force_test (bool): 如果为 True，则忽略缓存并重新运行测试。默认为 False。
 
     Returns:
         str: 推荐的 ffmpeg 视频编码器名称 (例如 'h264_nvenc', 'libx264')。
     """
+    import torch
     _codec_cache = app_cfg.codec_cache  # 使用 config 中的缓存
     try:
         if not _codec_cache and Path(f'{ROOT_DIR}/videotrans/codec.json').exists():
@@ -431,7 +229,6 @@ def get_video_codec(compat=None) -> str:
             for encoder_suffix in encoders_to_test:
                 if encoder_suffix == 'nvenc':
                     try:
-                        import torch
                         if not torch.cuda.is_available():
                             logger.debug("CUDA 不可用，跳过 nvenc 测试。")
                             continue  # 跳过当前循环，测试下一个编码器
@@ -731,7 +528,6 @@ def change_speed_rubberband(input_path,out_file, target_duration):
         
     import soundfile as sf
     import numpy as np  # 新增 numpy 用于声道处理
-    from pydub import AudioSegment
     try:
         y, sr = sf.read(input_path)
         if len(y) == 0:

@@ -640,7 +640,7 @@ class AppParams:
             "chatterbox_cfg_weight": 0.5,
             "chatterbox_exaggeration": 0.5,
             "gptsovits_url": "",
-            "gptsovits_role": "nverguo.wav#你说四大皆空，却为何，紧闭双眼，若你睁开眼睛看看我，我不相信你，两眼空空。#zh",
+            "gptsovits_role": "",
             "gptsovits_isv2": True,
             "gptsovits_extra": "pyvideotrans",
             "cosyvoice_url": "",

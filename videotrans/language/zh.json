@@ -736,7 +736,7 @@
   "Selecting an Inference Access Point": "选择推理接入点",
   "Fill in all inference access points, and you can select them above": "填写所有推理接入点，填写后可在上方选择",
   "Prompt: Please open the {} file directly to modify it": "【发送完整字幕】选中时的提示词文件:[软件目录/videotrans/prompts/srt/{}.txt]\n未选中时的提示词文件:[软件目录/videotrans/prompts/text/{}.txt]\n\n若需修改提示词，打开该txt文件修改即可，花括号内容是变量，勿修改或删除",
-  "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "将参考音频放在软件根目录下的 chatterbox 文件夹中，填写参考音频名称带后缀，例如 123.mp3,一行一个",
+  "Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3": "将参考音频放在软件根目录下的 f5-tts 文件夹中，填写参考音频名称带后缀，例如 123.mp3,一行一个",
   "Reference audio does not exist: {} Please make sure the audio exists": "参考音频 {} 不存在，请检查",
   "API minimax": ".com国内/.io国际(两者不互通)",
   "elevenlabs toggle role": "如果界面中配音渠道里当前所选是Elevenlabs.io，你需要先切换到其他渠道，然后再切换回来，才能看到新角色",

@@ -12,7 +12,6 @@ License: GPL-V3
 # 没有规范，随便搞搞
 
 """
-VERSION = "v3.99"
 
 import os
 import atexit, sys, time
@@ -24,6 +23,7 @@ import tempfile
 from pathlib import Path
 from PySide6.QtCore import QSize, QSettings
 import traceback
+from videotrans import VERSION
 
 # 抑制警告
 def suppress_qt_warnings(msg_type, context, message):

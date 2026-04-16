@@ -41,7 +41,7 @@ def openwin():
 
         for it in tmp.split("\n"):
             s = it.strip()
-            if not Path(ROOT_DIR + f"/chatterbox/{s}").exists():
+            if not Path(ROOT_DIR + f"/f5-tts/{s}").exists():
                 tools.show_error(tr('Please make sure that the audio file {} exists in the chatterbox folder',s))
                 return
 
