@@ -72,7 +72,7 @@ class OmniVoice(BaseTTS):
             sp=speed,
             du=0,
             pp=True,
-            po=True,
+            po=False,
             api_name="/_clone_fn",
         )
 
