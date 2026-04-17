@@ -24,7 +24,7 @@ def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
         return " ".join(lines[-10:])
     return " ".join(result)
 
-# 移除硬件支持，避免复杂性和兼容性错误，仅在最终合并阶段支持硬件加速，在 trans_create.py 中单独实现
+# 简化函数移除硬件支持，避免复杂性和兼容性错误，仅在最终合并阶段支持硬件加速，在 trans_create.py 中单独实现
 def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
     """
     执行 ffmpeg 命令
@@ -33,18 +33,6 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
         force_cpu=True
 
     final_args = arg
-
-    # 如果 crf < 10 则直接强制使用软编码
-    if "-crf" in final_args and final_args[-1].endswith(".mp4"):
-        crf_index = final_args.index("-crf")
-        if int(final_args[crf_index + 1]) <= 10:
-            force_cpu = True
-            if "-preset" in final_args:
-                preset_index = final_args.index("-preset")
-                final_args[preset_index + 1] = 'ultrafast'
-            else:
-                final_args.insert(-1, "-preset")
-                final_args.insert(-1, "ultrafast")
 
     cmd = ['ffmpeg', "-hide_banner", "-ignore_unknown",'-threads','0']
     if "-y" not in final_args:
