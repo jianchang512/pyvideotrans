@@ -21,6 +21,41 @@ class OmniVoice(BaseTTS):
         super().__post_init__()
         self.api_url = params.get('omnivoice_url','').strip().rstrip('/').lower()
         self._add_internal_host_noproxy(self.api_url)
+        # 语言代码 对应语言名称
+        self.lang_code={
+            "en": "English",
+            "zh-cn": "Chinese",
+            "zh": "Chinese",
+            "zh-tw": "Min Nan Chinese",
+            "fr": "French",
+            "de": "German",
+            "ja": "Japanese",
+            "ko": "Korean",
+            "ru": "Russian",
+            "es": "Spanish",
+            "th": "Thai",
+            "it": "Italian",
+            "pt": "Portuguese",
+            "vi": "Vietnamese",
+            "ar": "Standard Arabic",
+            "tr": "Turkish",
+            "hi": "Hindi",
+            "hu": "Hungarian",
+            "uk": "Ukrainian",
+            "id": "Indonesian",
+            "ms": "Malay",
+            "kk": "Kazakh",
+            "cs": "Czech",
+            "pl": "Polish",
+            "nl": "Dutch",
+            "sv": "Swedish",
+            "he": "Hebrew",
+            "bn": "Bengali",
+            "fa": "Persian",
+            "fil": "Filipino",
+            "ur": "Urdu",
+            "yue": "Cantonese"
+        }
 
     def _exec(self):
         self._local_mul_thread()
@@ -59,10 +94,9 @@ class OmniVoice(BaseTTS):
             client = Client(self.api_url, ssl_verify=False)
         except Exception as e:
             raise StopRetry(str(e))
-        lang=self.language.split('-')[0]
         result = client.predict(
             text=text,
-            lang='Auto',
+            lang= self.lang_code.get(self.language,'Auto') if self.language else 'Auto',
             ref_aud=handle_file(ref_aud),
             ref_text=ref_text,
             instruct='',

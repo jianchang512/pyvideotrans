@@ -165,6 +165,19 @@ LANG_CODE = {
         "Chinese", # qwen-mt qwen-tts qwen-asr
         "zh" # m2m100
     ],
+    "zh-tw": [
+        "zh-tw",
+        "chi",
+        "cht",
+        "ZH-HANT",
+        "zh-TW",
+        "zt",
+        "zh-Hant",
+        "Traditional Chinese",
+        "zh-tw",
+        "Traditional Chinese",
+        "zh" # m2m100
+    ],
     "ur": [
         "ur",  # google通道
         "urd",  # 字幕嵌入语言
@@ -207,19 +220,7 @@ LANG_CODE = {
     ],
     
 
-    "zh-tw": [
-        "zh-tw",
-        "chi",
-        "cht",
-        "ZH-HANT",
-        "zh-TW",
-        "zt",
-        "zh-Hant",
-        "Traditional Chinese",
-        "zh-tw",
-        "Traditional Chinese",
-        "zh" # m2m100
-    ],
+    
     "en": [
         "en",
         "eng",

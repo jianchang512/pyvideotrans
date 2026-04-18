@@ -131,7 +131,7 @@ def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
             if not url.startswith('https://'):
                 url = f'{endpoint}{url}'
             filename = get_filename_from_url(url)
-            with requests.get(f'{url}', stream=True, timeout=(10, 300)) as response:
+            with requests.get(f'{url}', stream=True, timeout=(30, 600)) as response:
                 response.raise_for_status()
                 total_length = response.headers.get('content-length')
 
@@ -170,7 +170,7 @@ def down_file_from_ms(local_dir, urls=None, callback=None) -> bool:
         if Path(file_abso_path).exists():
             continue
         try:
-            with requests.get(url, stream=True, timeout=(10, 300)) as response:
+            with requests.get(url, stream=True, timeout=(30, 600)) as response:
                 response.raise_for_status()
                 total_length = response.headers.get('content-length')
                 dest_file_obj = open(file_abso_path, 'wb')
@@ -204,7 +204,7 @@ def down_file_from_ms(local_dir, urls=None, callback=None) -> bool:
 def down_zip(local_dir, zip_url, callback=None) -> bool:
     try:
         filename = get_filename_from_url(zip_url)
-        with requests.get(zip_url, stream=True, timeout=(10, 300)) as response:
+        with requests.get(zip_url, stream=True, timeout=(30, 600)) as response:
             response.raise_for_status()
             total_length = response.headers.get('content-length')
 
