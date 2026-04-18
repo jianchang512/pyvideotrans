@@ -276,7 +276,7 @@ def cam_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False, logs
                 else:
                     output.append("spk0")
 
-        logger.debug(f'说话人分离成功结束,识别出个 {len(set(output))} 说话人,耗时:{int(time.time() - _st)}s')
+        logger.debug(f'说话人分离成功结束,识别出 {len(set(output))} 个说话人,耗时:{int(time.time() - _st)}s')
         return output, None
     except Exception as e:
         msg = traceback.format_exc()
