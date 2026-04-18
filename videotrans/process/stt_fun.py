@@ -39,7 +39,7 @@ def openai_whisper(
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
         msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
     else:
-        msg = f"load {model_name}"
+        msg = f"loading {model_name}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
     model = None
     raws = []
@@ -73,6 +73,7 @@ def openai_whisper(
         if detect_language == 'fil':
             detect_language = 'tl'
         if speech_timestamps:
+            _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe batch...'}))
             for it in speech_timestamps:
                 speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
             result = model.transcribe(
@@ -109,6 +110,7 @@ def openai_whisper(
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
             logger.debug(f'openai-whisper模式下，预先使用VAD分割音频，直接使用{model_name}模型返回的各个片段音频的文字结果')
         else:
+            _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word_timestamps'}))
             segments = model.transcribe(
                 audio_file,
                 no_speech_threshold=no_speech_threshold,
@@ -122,13 +124,16 @@ def openai_whisper(
             )
             logger.debug(f'openai-whisper模式下，对{model_name}模型返回的断句结果重新后修正')
             texts = []
+            i=0
             for segment in segments['segments']:
+                i+=1
                 texts.append({
                     "text": segment['text'],
                     "start": segment['start'],
                     "end": segment['end'],
                     "words": [{'word': it['word'], 'start': it['start'], 'end': it['end']} for it in segment['words']]
                 })
+                _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment["text"]}\n'}))
             raws = _resegment(texts, segments['language'], max_speech_ms)
             if jianfan and raws:
                 for it in raws:
@@ -343,6 +348,7 @@ def faster_whisper(
         last_end_time = audio_duration / 1000.0 if audio_duration > 0 else speech_timestamps[-1][1] / 1000.0
         try:
             # 1. 加载基础模型
+            _write_log(logs_file, json.dumps({"type": "logs", "text": 'loading model'}))
             model = WhisperModel(
                 local_dir,
                 device="cuda" if is_cuda else 'cpu',
@@ -377,6 +383,7 @@ def faster_whisper(
             temperature = float(temperature)
 
         if speech_timestamps:
+            _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe batch...'}))
             # 4. 执行批量推理
             # 使用 batched_model.transcribe
             batched_model = BatchedInferencePipeline(model=model)
@@ -429,6 +436,7 @@ def faster_whisper(
                 raws.append(tmp)
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
         else:
+            _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word_timestamps'}))
             segments, info = model.transcribe(
                 audio_file,
                 beam_size=beam_size,
@@ -449,13 +457,16 @@ def faster_whisper(
             )
             logger.debug(f'faster-whisper模式下，对{model_name}模型返回的断句结果重新修正')
             texts = []
+            i=0
             for segment in segments:
+                i+=1
                 texts.append({
                     "text": segment.text,
                     "start": segment.start,
                     "end": segment.end,
                     "words": [{'word': it.word, 'start': it.start, 'end': it.end} for it in segment.words]
                 })
+                _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment.text}\n'}))
             raws = _resegment(texts, info.language, max_speech_ms)
             if jianfan and raws:
                 for it in raws:

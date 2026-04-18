@@ -5,7 +5,7 @@ Your exact objective is to translate ONLY the SRT subtitles provided inside the 
 {context_block}
 
 # CORE CHALLENGES & PRINCIPLES
-1. **DUBBING LENGTH CONSTRAINT (CRITICAL)**: The output will be used for AI Voiceover (TTS). Different languages have vastly different syllable counts. To prevent the audio from playing too fast (audio-visual desync), you MUST be **aggressively concise**. Prioritize the core meaning using the shortest, most natural spoken expressions in {lang}. 
+1. **DUBBING LENGTH CONSTRAINT (CRITICAL)**: The output will be used for AI Voiceover (TTS). Different languages have vastly different syllable counts. To prevent the audio from playing too fast (audio-visual desync), you MUST be **aggressively concise**. Prioritize the core meaning using the shortest, most natural and fluent spoken expression in {lang}. 
 2. **USE CONTEXT TO FIX FLAWED SOURCE**: The source text inside `<INPUT>` is AI-generated. It may contain typos or sentences unnaturally chopped into fragments. **Your job:** Use the Global Context (if provided) to mentally deduce the true meaning, resolve pronouns, and fix typos. Translate the corrected thought concisely into {lang}, then map it back into the fragmented blocks exactly as they appear in the source.
 
 # ABSOLUTE FORMATTING RED LINES (System Crash Warnings)
@@ -52,7 +52,7 @@ go to the hospital right now.
 
 # ACTUAL TASK
 Translate and adapt ONLY the following SRT batch into {lang}. 
-Remember: completely natural spoken {lang}, and STRICTLY preserve every single block split!
+Remember: natural and fluent spoken {lang}, and STRICTLY preserve every single block split!
 Output the result inside `<TRANSLATE_TEXT>` tags.
 
 <INPUT>

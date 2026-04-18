@@ -652,20 +652,19 @@ def send_notification(title, message):
 
 
 
-
 def remove_silence_wav(audio_file):
     from pydub import AudioSegment
     from pydub.silence import detect_nonsilent
-    audio=AudioSegment.from_file(audio_file,format="wav")    
-    # TTS通常比较干净，可以把阈值设得离平均音量更近一些
-    # 这里设置为比平均音量低 10dB 即视为静音/激进
-    silence_threshold = audio.dBFS - 30
-
-    # 只要静音持续 50ms 以上就检测出来
+    
+    audio = AudioSegment.from_file(audio_file, format="wav")    
+    
+    # TTS的静音通常非常干净 如果背景仍有细微底噪，可调高
+    silence_threshold = -40
+    
+    # 只要静音持续 50ms 以上就检测出来 
     min_silence_len = 50
 
     # 3. 检测非静音片段
-    # seek_step=1 保证毫秒级的精度
     nonsilent_chunks = detect_nonsilent(
         audio,
         min_silence_len=min_silence_len,
@@ -675,14 +674,25 @@ def remove_silence_wav(audio_file):
 
     # 4. 处理剪切逻辑
     if len(nonsilent_chunks) > 0:
+        # 在检测到的非静音首尾，额外保留 100 毫秒的声音，防止吞掉弱辅音或尾音
+        head_padding_ms = 80   # 头部保留80毫秒
+        tail_padding_ms = 180  # 尾音通常拖得比较长，保留180毫秒
+        
         # 获取第一个非静音块的开始时间
-        start_trim = nonsilent_chunks[0][0]
+        raw_start = nonsilent_chunks[0][0]
         # 获取最后一个非静音块的结束时间
-        end_trim = nonsilent_chunks[-1][1]
+        raw_end = nonsilent_chunks[-1][1]
+        
+        # 计算最终裁剪位置，使用 max 和 min 防止索引超出音频总长度
+        start_trim = max(0, raw_start - head_padding_ms)
+        end_trim = min(len(audio), raw_end + tail_padding_ms)
+        
         # 裁剪音频
         trimmed_audio = audio[start_trim:end_trim]
-        trimmed_audio.export(audio_file,format="wav")
-    return True
+        trimmed_audio.export(audio_file, format="wav")
+        return True
+    
+    return False # 如果全是静音，返回False
 
 
 # input_file_path 可能是字符串：文件路径，也可能是音频数据

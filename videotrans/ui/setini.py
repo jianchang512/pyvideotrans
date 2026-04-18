@@ -59,7 +59,7 @@ class Ui_setini(object):
                 "process_max":"最大进程数，越大越快但可能爆内存，最大不应超过cpu核数减一\n(修改保存后重启生效)",
                 "process_max_gpu":"GPU任务同时执行数量，除非单卡显存大于20G，否则请设为1\n(修改保存后重启生效)",
                 "multi_gpus":"如果有多张显卡，且显存一致，可启用该项，同时可将上述选项设为2或显卡数\n(修改保存后重启生效)",
-                "uvr_models":"选择分离背景声时所用模型"
+                
             },
 
             "video": {
@@ -69,33 +69,6 @@ class Ui_setini(object):
                 "force_lib": "强制ffmpeg使用软编解码?（速度慢但兼容性好不易出错，默认优选硬件编码）",
                 "hw_decode":"最后一步视频合成时，强制使用cuda解码视频，更快但易出错",
                 "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在倒数第二个位置上,例如  -bf 7 -b_ref_mode middle",
-            },
-
-            "trans": {
-                "trans_thread": "传统翻译渠道每次发送字幕行数",
-                "aitrans_thread": "AI翻译渠道每次发送字幕行数",
-                "translation_wait": "每次翻译后暂停秒数,用于限制请求频率",
-                "aisendsrt": "是否在使用AI翻译渠道时发送完整字幕格式内容",
-                "aitrans_temperature":"AI翻译模型温度值，默认0.2",
-                "aitrans_context":"附带完整原字幕作为AI上下文信息，翻译质量将更高\n【务必注意】1. 必须使用支持超长上下文的先进模型\2. token消耗量将增加数倍"
-            },
-            "dubbing": {
-                "dubbing_thread": "同时配音的线程数",
-                "dubbing_wait": "每次配音后暂停秒数,用于限制请求频率",
-                "remove_dubb_silence":"移除每条字幕配音前后静音缓冲，利于音画同步，但可能结尾仓促",
-                "save_segment_audio": "保留每行字幕的配音结果",
-                "normal_text":"配音前对文本规范化处理",
-                "azure_lines": "Azure TTS批量配音行数，一次多少行",
-                "chattts_voice": "ChatTTS 音色值",
-                "edgetts_max_concurrent_tasks": "EdgeTTS渠道配音并发数，越大越快，但可能限流失败",
-                "edgetts_retry_nums": "EdgeTTS渠道失败后重试次数,有些失败无论多少次重试也无法恢复，太大只会延长耗时"
-            },
-            "justify": {
-
-                "max_audio_speed_rate": "最大音频加速倍数，默认100",
-                "max_video_pts_rate": "视频慢放最大倍数，默认10，不可大于10",
-                "cjk_len":"中日韩字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
-                "other_len":"其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕"
             },
             "whisper": {
                 "threshold": "表示音频片段被认为是语音的最低概率。VAD 会为每个音频片段计算语音概率，超过此阈值的部分被视为语音，反之视为静音或噪音。越小越灵敏但可能误将噪声视为语音",
@@ -125,10 +98,39 @@ class Ui_setini(object):
                 "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "condition_on_previous_text": "若开启将占用更多GPU，效果也更好，但也容易出现重复或幻觉",
 
-                "noise_separate_nums": "人声背景声分离线程数，越大越快但占用资源越多",
-
                 "zh_hant_s": "强制将识别出的繁体字幕转为简体",
+                "noise_separate_nums": "人声背景声分离线程数，越大越快但占用资源越多",
+                "uvr_models":"选择分离背景声时所用模型"
+
             },
+
+            "trans": {
+                "trans_thread": "传统翻译渠道每次发送字幕行数",
+                "aitrans_thread": "AI翻译渠道每次发送字幕行数",
+                "translation_wait": "每次翻译后暂停秒数,用于限制请求频率",
+                "aisendsrt": "是否在使用AI翻译渠道时发送完整字幕格式内容",
+                "aitrans_temperature":"AI翻译模型温度值，默认0.2",
+                "aitrans_context":"附带完整原字幕作为AI上下文信息，翻译质量将更高\n【务必注意】1. 必须使用支持超长上下文的先进模型\2. token消耗量将增加数倍"
+            },
+            "dubbing": {
+                "dubbing_thread": "同时配音的线程数",
+                "dubbing_wait": "每次配音后暂停秒数,用于限制请求频率",
+                "remove_dubb_silence":"移除每条字幕配音前后静音缓冲，利于音画同步，但可能结尾仓促",
+                "save_segment_audio": "保留每行字幕的配音结果",
+                "normal_text":"配音前对文本规范化处理",
+                "azure_lines": "Azure TTS批量配音行数，一次多少行",
+                "chattts_voice": "ChatTTS 音色值",
+                "edgetts_max_concurrent_tasks": "EdgeTTS渠道配音并发数，越大越快，但可能限流失败",
+                "edgetts_retry_nums": "EdgeTTS渠道失败后重试次数,有些失败无论多少次重试也无法恢复，太大只会延长耗时"
+            },
+            "justify": {
+
+                "max_audio_speed_rate": "最大音频加速倍数，默认100",
+                "max_video_pts_rate": "视频慢放最大倍数，默认10，不可大于10",
+                "cjk_len":"中日韩字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
+                "other_len":"其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕"
+            },
+            
             "prompt_init": {
                 "initial_prompt_zh-cn": "发音语言为简体中文时发送给whisper模型的提示词",
                 "initial_prompt_zh-tw": "发音语言为繁体中文时发送给whisper模型的提示词",
@@ -307,7 +309,7 @@ class Ui_setini(object):
                     "process_max":"Process Maximum",
                     "process_max_gpu":"The number of GPU tasks that can be executed simultaneously should be set to 1 unless the video memory is greater than 20GB.",
                     "multi_gpus":"If you have multiple graphics cards with identical video memory, you can enable this option and set the above option to 2 or the number of graphics cards.",
-                    "uvr_models":"Select the model used when separating background noise."
+                    
                     
                 },
                 "video": {
@@ -317,32 +319,6 @@ class Ui_setini(object):
                     "force_lib": "Force software encoding (slower but more compatible). Hardware encoding is preferred by default.",
                     "hw_decode":"When compositing videos, prioritize hard decoding; it's fast but prone to errors.",
                     "ffmpeg_cmd": "Custom FFmpeg command arguments, added before the output file argument.",
-                },
-                "trans": {
-                    "trans_thread": "Number of subtitle lines per request for traditional translation.",
-                    "aitrans_thread": "Number of subtitle lines per request for AI translation.",
-                    "translation_wait": "Delay (in seconds) between translation requests to prevent rate-limiting.",
-                    "aisendsrt": "Send full SRT format content when using AI translation.",
-                    "aitrans_temperature":"AI models temperature,default is 0.2",
-                    "aitrans_context":"The inclusion of complete original subtitles as AI context information will result in higher translation quality.\n[Important Note] 1. An advanced model supporting extremely long contexts must be used. \n2. Token consumption will increase several times."
-                },
-                "dubbing": {
-                    "dubbing_thread": "Number of concurrent threads for dubbing.",
-                    "dubbing_wait": "Delay (in seconds) between dubbing requests to prevent rate-limiting.",
-                    "remove_dubb_silence":"Remove the mute buffer before and after each subtitle audio. Selecting this option will improve audio-visual synchronization, but may make the ending feel rushed.",
-                    "save_segment_audio": "Save the dubbed audio for each individual subtitle line.",
-                    "normal_text":"Text normalization before dubbing",
-                    "azure_lines": "Number of lines per batch request for Azure TTS.",
-                    "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
-                    "edgetts_retry_nums": "Number of retries after EdgeTTS channel failure",
-                    "chattts_voice": "ChatTTS voice timbre value."
-                },
-                "justify": {
-
-                    "max_audio_speed_rate": "Maximum audio speed-up rate. Default: 100.",
-                    "max_video_pts_rate": "Maximum video slow-down rate. Default: 10 (cannot exceed 10).",
-                    "cjk_len":"Number of characters per line for Chinese, Japanese, and Korean subtitles; more than this will result in a line break",
-                    "other_len":"Number of words per line for subtitles in other languages; more than this will result in a line break"
                 },
                 "whisper": {
                     "threshold": "VAD: Minimum probability for an audio chunk to be considered speech.",
@@ -372,10 +348,37 @@ class Ui_setini(object):
                     "beam_size": "Beam size for transcription (1-5). Higher is more accurate but uses more VRAM.",
                     "best_of": "Best-of for transcription (1-5). Higher is more accurate but uses more VRAM.",
                     "condition_on_previous_text": "Condition on previous text for better context (uses more GPU, may cause repetition).",
+                    "zh_hant_s": "Force conversion of recognized Traditional Chinese to Simplified Chinese.",
                     "noise_separate_nums": "The more threads used for separation of human and background voices, the faster the process, but the more resources it consumes.",
-
-                    "zh_hant_s": "Force conversion of recognized Traditional Chinese to Simplified Chinese."
+                    "uvr_models":"Select the model used when separating background noise."
                 },
+                "trans": {
+                    "trans_thread": "Number of subtitle lines per request for traditional translation.",
+                    "aitrans_thread": "Number of subtitle lines per request for AI translation.",
+                    "translation_wait": "Delay (in seconds) between translation requests to prevent rate-limiting.",
+                    "aisendsrt": "Send full SRT format content when using AI translation.",
+                    "aitrans_temperature":"AI models temperature,default is 0.2",
+                    "aitrans_context":"The inclusion of complete original subtitles as AI context information will result in higher translation quality.\n[Important Note] 1. An advanced model supporting extremely long contexts must be used. \n2. Token consumption will increase several times."
+                },
+                "dubbing": {
+                    "dubbing_thread": "Number of concurrent threads for dubbing.",
+                    "dubbing_wait": "Delay (in seconds) between dubbing requests to prevent rate-limiting.",
+                    "remove_dubb_silence":"Remove the mute buffer before and after each subtitle audio. Selecting this option will improve audio-visual synchronization, but may make the ending feel rushed.",
+                    "save_segment_audio": "Save the dubbed audio for each individual subtitle line.",
+                    "normal_text":"Text normalization before dubbing",
+                    "azure_lines": "Number of lines per batch request for Azure TTS.",
+                    "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
+                    "edgetts_retry_nums": "Number of retries after EdgeTTS channel failure",
+                    "chattts_voice": "ChatTTS voice timbre value."
+                },
+                "justify": {
+
+                    "max_audio_speed_rate": "Maximum audio speed-up rate. Default: 100.",
+                    "max_video_pts_rate": "Maximum video slow-down rate. Default: 10 (cannot exceed 10).",
+                    "cjk_len":"Number of characters per line for Chinese, Japanese, and Korean subtitles; more than this will result in a line break",
+                    "other_len":"Number of words per line for subtitles in other languages; more than this will result in a line break"
+                },
+                
                 "prompt_init": {
                     "initial_prompt_zh-cn": "Initial prompt for the Whisper model for Simplified Chinese speech.",
                     "initial_prompt_zh-tw": "Initial prompt for the Whisper model for Traditional Chinese speech.",
@@ -662,7 +665,7 @@ class Ui_setini(object):
                 tmp.addWidget(tmp_1)
 
                 box.layout().addLayout(tmp)
-            if layout_index % 2 == 0:
+            if headkey in ['common','video','prompt_init']:
                 v1.addWidget(box)
             else:
                 v2.addWidget(box)
