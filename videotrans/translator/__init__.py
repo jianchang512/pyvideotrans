@@ -691,7 +691,7 @@ def get_language_qwen(langcode=None):
         langcode='zh-cn'
     _lang_list=LANG_CODE.get(langcode)
     if not _lang_list:
-        return None
+        return langcode
     return _lang_list[9]
 
 
@@ -895,10 +895,13 @@ def get_audio_code(*, show_source=None):
 
 # 获取嵌入软字幕的3位字母语言代码，根据目标语言确定
 def get_subtitle_code(*, show_target=None):
-    if show_target in LANG_CODE:
-        return LANG_CODE[show_target][1]
-    if show_target in LANGNAME_DICT_REV:
-        return LANG_CODE[LANGNAME_DICT_REV[show_target]][1]
+    try:
+        if show_target in LANG_CODE:
+            return LANG_CODE[show_target][1]
+        if show_target in LANGNAME_DICT_REV:
+            return LANG_CODE[LANGNAME_DICT_REV[show_target]][1]
+    except Exception as e:
+        logger.error(f'获取字幕嵌入3为语言代码错误:{e}')
     return 'eng'
 
 def _check_google():
