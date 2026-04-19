@@ -972,6 +972,7 @@
     "clone_dubb_tips2": "Also select Whisper pre-segmented audio.",
 	"The filename is too long":"The filename is too long.",
   "Filename length check":"The total length of the filename is too long and may exceed system limits during subsequent complex processing, causing errors.\n\nCurrent filename: {} characters, Path plus file: {} characters\n\nTo avoid subsequent errors, it is recommended to: shorten filenames, shorten folder names, and move files to a shorter, outermost folder.\n\nClick Yes to ignore the warning and continue, or click No to make the changes.",
-  "embed_bgm":"Re-embed BGM"
+  "embed_bgm":"Re-embed BGM",
+  "Norway":"Norwegian Bokmal"
 
 }

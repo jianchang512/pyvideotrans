@@ -144,6 +144,7 @@ class Ui_setini(object):
                 "initial_prompt_th": "发音语言为泰国语时发送给whisper模型的提示词",
                 "initial_prompt_it": "发音语言为意大利语时发送给whisper模型的提示词",
                 "initial_prompt_el": "发音语言为希腊语时发送给whisper模型的提示词",
+                "initial_prompt_nb": "发音语言为挪威语时发送给whisper模型的提示词",
                 "initial_prompt_pt": "发音语言为葡萄牙语时发送给whisper模型的提示词",
                 "initial_prompt_vi": "发音语言为越南语时发送给whisper模型的提示词",
                 "initial_prompt_ar": "发音语言为阿拉伯语时发送给whisper模型的提示词",
@@ -273,6 +274,8 @@ class Ui_setini(object):
             "initial_prompt_id": "whisper模型印尼语提示词",
             "initial_prompt_ms": "whisper模型马来语提示词",
             "initial_prompt_kk": "whisper模型哈萨克语提示词",
+            "initial_prompt_nb": "whisper模型挪威语提示词",
+            "initial_prompt_el": "whisper模型希腊语提示词",
             "initial_prompt_cs": "whisper模型捷克语提示词",
             "initial_prompt_pl": "whisper模型波兰语提示词",
             "initial_prompt_nl": "whisper模型荷兰语提示词",
@@ -411,6 +414,8 @@ class Ui_setini(object):
                     "initial_prompt_fa": "Initial prompt for the Whisper model for Persian speech.",
                     "initial_prompt_ur": "Initial prompt for the Whisper model for Urdu speech.",
                     "initial_prompt_yue": "Initial prompt for the Whisper model for Cantonese speech.",
+                    "initial_prompt_nb": "Initial prompt for the Whisper model for Norwegian speech.",
+                    "initial_prompt_el": "Initial prompt for the Whisper model for Greek speech.",
                     "initial_prompt_fil": "Initial prompt for the Whisper model for Filipino speech."
                 }
             }
@@ -520,6 +525,8 @@ class Ui_setini(object):
                 "initial_prompt_pl": "initial prompt for Polish",
                 "initial_prompt_nl": "initial prompt for Dutch",
                 "initial_prompt_bn": "initial prompt for Bengali",
+                "initial_prompt_nb": "initial prompt for Norwegian",
+                "initial_prompt_el": "initial prompt for Greek",
                 "initial_prompt_he": "initial prompt for Hebrew",
                 "initial_prompt_sv": "initial prompt for Swedish",
                 "initial_prompt_fa": "initial prompt for Persian",

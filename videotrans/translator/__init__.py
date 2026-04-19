@@ -105,7 +105,9 @@ TRANSLASTE_NAME_LIST=list(_ID_NAME_DICT.values())
 # 百度翻译 https://fanyi.baidu.com/
 # deepl  https://deepl.com/
 # microsoft https://www.bing.com/translator?mkt=zh-CN
-# 阿里 https://help.aliyun.com/zh/machine-translation/developer-reference/machine-translation-language-code-list?spm=a2c4g.11186623.help-menu-30396.d_4_4.4bda2b009oye8y
+# 阿里 机器翻译https://help.aliyun.com/zh/machine-translation/developer-reference/machine-translation-language-code-list?spm=a2c4g.11186623.help-menu-30396.d_4_4.4bda2b009oye8y
+# qwen-mt https://help.aliyun.com/zh/model-studio/machine-translation?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.69bf2f3dfuEVHs&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2860790._.ID_help@@%E6%96%87%E6%A1%A3@@2860790-RL_qwen~DAS~mt-LOC_2024SPHelpResult-OR_ser-PAR1_0bc3b4ad17766086921897050e02b4-V_4-PAR3_o-RE_new5-P0_0-P1_0#038d2865bbydc
+# m2m100  https://github.com/ymoslem/DesktopTranslator/blob/main/utils/m2m_languages.json
 LANGNAME_DICT = {
     "en": tr("English"),
     "zh-cn": tr("Simplified Chinese"),
@@ -138,6 +140,7 @@ LANGNAME_DICT = {
     "fa": tr("Persian"),
     "fil": tr("Filipino"),
     "ur": tr("Urdu"),
+    "nb": tr("Norway"),# 书面挪威语
     "yue": tr("Cantonese")
 }
 
@@ -351,6 +354,19 @@ LANG_CODE = {
         "el",          # alibaba
         "Greek",       # qwen-mt / qwen-tts / qwen-asr
         "el"           # m2m100
+    ],
+    "nb": [
+        "no",          # google
+        "nob",         # subtitle embed (ISO 639-2/B)
+        "nob",          # baidu
+        "NB",          # deepl / deeplx
+        "No",          # tencent 不支持
+        "No",          # OTT 不支持
+        "nb",          # microsoft / bing
+        "Norwegian Bokmål",       # AI (LLM) 书面挪威语
+        "no",          # alibaba
+        "Norwegian Bokmål",       # qwen-mt / qwen-tts / qwen-asr
+        "no"           # m2m100
     ],
     "pt": [
         "pt",  # pt-PT
@@ -860,7 +876,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         elif show_target=='zh':
             # 特殊兼容zh
             target_list=LANG_CODE['zh-cn']
-        if target_list and target_list[index].lower() == 'no':
+        if target_list and target_list[index] == 'No':
             if return_str:
                 return tr('deepl_nosupport') + f':{show_target}'
             tools.show_error(tr('deepl_nosupport') + f':{show_target}')

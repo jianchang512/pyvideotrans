@@ -43,9 +43,10 @@ _LANGUAGE_CODE_MAP = {
         "he": "__he__",
         "bn": "__bn__",
         "fa": "__fa__",
-        "fi": "__tl__",
+        "fi": "__tl__",# 菲律宾语
         "ur": "__ur__",
-        "yu": "__zh__"
+        "yu": "__zh__",
+        "nb": "__no__"
 }
 
 # Refer to https://github.com/ymoslem/DesktopTranslator/blob/main/utils/m2m_languages.json
