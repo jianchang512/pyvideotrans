@@ -34,7 +34,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
 
     final_args = arg
 
-    cmd = ['ffmpeg', "-hide_banner", "-ignore_unknown",'-threads','0']
+    cmd = ['ffmpeg', "-hide_banner", "-nostdin","-ignore_unknown",'-threads','0']
     if "-y" not in final_args:
         cmd.append("-y")
     cmd.extend(final_args)
@@ -75,7 +75,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
         raise
     except subprocess.CalledProcessError as e:
         error_message = e.stderr or ""
-        logger.warning(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message}")
+        logger.warning(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message} {e.stdout}")
         err=extract_concise_error(e.stderr)
         if noextname:
             app_cfg.queue_novice[noextname] = f"error:{err}"

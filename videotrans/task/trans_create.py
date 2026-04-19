@@ -1740,22 +1740,23 @@ class TransCreate(BaseTask):
                 creationflags = subprocess.CREATE_NO_WINDOW
             if app_cfg.exit_soft:
                 return
-            cmd.insert(0,"ffmpeg")
+            cmd=["ffmpeg",'-nostdin']+cmd
             subprocess.run(
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                #stdout=subprocess.PIPE,
+                #stderr=subprocess.PIPE,
                 encoding="utf-8",
-                errors='replace',
+                errors='ignore',
                 check=True,
                 text=True,
+                capture_output=True,
                 creationflags=creationflags,
                 cwd=self.cfg.cache_folder
             )
             return True
         except subprocess.CalledProcessError as e:
             error_message = e.stderr or ""
-            logger.error(f"尝试使用硬件执行命令出错[CalledProcessError]:{error_message}")
+            logger.error(f"尝试使用硬件执行命令出错[CalledProcessError]:{error_message}\n{e.stdout}")
             raise
         except Exception as e:
             logger.error(f"尝试使用硬件执行命令出错[Exception]:{e}")
