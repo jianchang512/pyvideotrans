@@ -938,7 +938,7 @@
 	"opendir_button source_sub": "Open subtitle folder",
 	"bubaocunshuoming": "If you have manually or used other tools to modify the\n[{}] subtitle files in the subtitle folder, please click this button.",
     "Only support": "Only support ",
-    "may be insufficient memory": "An error has occurred. There may be insufficient memory or video memory.",
+    "may be insufficient memory": "An error has occurred. There may be insufficient memory or video memory. Try using a smaller model or selecting [Menu - Tools/Options - Advanced Options - Speech Recognition Parameters - Whisper Pre-segmentation Audio] to reduce video memory usage.",
 	"Downloading please wait":"Downloading please wait ",
 	"Batch dubbing of SRT or TXT subtitle files":"Batch dubbing of SRT or TXT subtitle files",
     "Select at least one speaker": "Select at least one speaker",

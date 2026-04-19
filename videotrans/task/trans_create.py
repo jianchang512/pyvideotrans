@@ -200,21 +200,20 @@ class TransCreate(BaseTask):
                 f.write(txt)
             self.shoud_recogn = False
 
+        # 判断是否已存在人声文件，只要存在， 即使用此文件作为语音识别原料
+        self.cfg.vocal = f"{self.cfg.cache_folder}/vocal.wav"
+        raw_vocal = f"{self.cfg.target_dir}/vocal.wav"
+
+        if tools.vail_file(raw_vocal):
+            shutil.copy2(raw_vocal, self.cfg.vocal)
+        
         # 需要背景音分离
         if self.cfg.is_separate:
-            self.cfg.vocal = f"{self.cfg.cache_folder}/vocal.wav"
-            self.cfg.instrument = f"{self.cfg.cache_folder}/instrument.wav"
-            self._unlink_size0(self.cfg.instrument)
-            self._unlink_size0(self.cfg.vocal)
-
-            # 判断是否已存在
             raw_instrument = f"{self.cfg.target_dir}/instrument.wav"
-            raw_vocal = f"{self.cfg.target_dir}/vocal.wav"
+            self.cfg.instrument = f"{self.cfg.cache_folder}/instrument.wav"
+            
             if tools.vail_file(raw_instrument):
                 shutil.copy2(raw_instrument, self.cfg.instrument)
-
-            if tools.vail_file(raw_vocal):
-                shutil.copy2(raw_vocal, self.cfg.vocal)
             self.shoud_separate = True
 
         # 将原始视频分离为无声视频
@@ -262,7 +261,7 @@ class TransCreate(BaseTask):
                 tools.runffmpeg(cmd)
             except Exception as e:
                 logger.error(f'将 人声文件 转为 16000 source_wav 时失败:{e}')
-                
+
         # 如果还不存在原音频 self.cfg.source_wav,说明失败，强制从原视频中提取 
         if audio_stream_len > 0 and not tools.vail_file(self.cfg.source_wav):
             self._split_audio_byraw()

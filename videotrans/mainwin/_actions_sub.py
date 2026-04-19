@@ -356,8 +356,7 @@ class WinActionSub:
 
     # 保存目录
     def get_save_dir(self):
-        dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),
-                                                             params.get('last_opendir',''))
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),params.get('last_opendir',''))
         dirname = Path(dirname).as_posix()
         self.main.target_dir = dirname
         self.main.btn_save_dir.setToolTip(self.main.target_dir)

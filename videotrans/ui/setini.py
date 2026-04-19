@@ -48,7 +48,7 @@ class Ui_setini(object):
         self.notices = {
             "common": {
                 "lang": "设置软件界面语言，修改后需要重启软件",
-                "countdown_sec": "当单个视频翻译时，暂停倒计时秒数",
+                "countdown_sec": "当单视频交互翻译时，暂停倒计时秒数(设为0将跳过编辑窗口)",
                 "homedir": "用于保存视频分离、字幕配音、字幕翻译等结果的位置，默认软件安装目录下output文件夹",
                 "llm_chunk_size": "LLM大模型重新断句时，每次发送多少条字幕，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于最大输出token和上下文(max_token)，过长输入可能导致超出AI限制而失败，默认20条字幕",
                 "llm_ai_type": "LLM重新断句时使用的AI渠道，目前支持openai或deepseek渠道",
@@ -236,7 +236,7 @@ class Ui_setini(object):
             "translation_wait": "翻译后暂停秒",
             "dubbing_wait": "配音后暂停秒",
             "dubbing_thread": "并发配音线程数",
-            "countdown_sec": "单视频翻译暂停倒计时",
+            "countdown_sec": "单视频交互翻译暂停倒计时",
             "backaudio_volume": "背景音量变化倍数",
             "loop_backaudio": "循环播放背景音",
             "cuda_com_type": "CUDA数据类型",
