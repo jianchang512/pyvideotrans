@@ -85,7 +85,6 @@ def openwin():
                     srtfile = TEMP_DIR + f"/srt{time.time()}.srt"
                     with Path(srtfile).open('w', encoding='utf-8') as f:
                         f.write(text)
-                    os.chdir(TEMP_DIR)
                     if not self.is_soft or not self.language:
                         # 硬字幕
                         assfile = tools.set_ass_font(srtfile)
@@ -93,7 +92,7 @@ def openwin():
                             '-c:v',
                             'libx265',
                             '-vf',
-                            f"subtitles=filename='{os.path.basename(assfile)}'",
+                            f"subtitles=filename='{assfile}'",
                             '-crf',
                             f'{settings.get("crf",26)}',
                             '-preset',

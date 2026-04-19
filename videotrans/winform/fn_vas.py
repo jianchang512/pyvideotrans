@@ -207,7 +207,6 @@ def openwin():
                         return
                     self.video=audiovideoend_mp4
                 # 软字幕
-                os.chdir(os.path.dirname(self.srt))
                 protxt = TEMP_DIR + f'/jd{time.time()}.txt'
                 cmd = [
                     '-y',
@@ -232,7 +231,6 @@ def openwin():
                 tmpsrt = TEMP_DIR + f"/vas-{time.time()}.srt"
                 with Path(tmpsrt).open('w', encoding='utf-8') as f:
                     f.write(srt_string.strip())
-                os.chdir(TEMP_DIR)
                 if self.is_soft and self.language:
                     # 软字幕
                     subtitle_language = get_subtitle_code( show_target=self.language)
@@ -249,12 +247,12 @@ def openwin():
                     ]
                 else:
                     assfile=tools.set_ass_font(tmpsrt)
-                    
+
                     cmd += [
                         '-c:v',
                         f'libx{settings.get("video_codec", 264)}',
                         '-vf',
-                        f"subtitles=filename='{os.path.basename(assfile)}'",
+                        f"subtitles=filename='{assfile}'",
                         '-crf',
                         f'{settings.get("crf",23)}',
                         '-preset',
