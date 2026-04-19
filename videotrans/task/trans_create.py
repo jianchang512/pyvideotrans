@@ -200,7 +200,7 @@ class TransCreate(BaseTask):
                 f.write(txt)
             self.shoud_recogn = False
 
-        # 是否需要背景音分离
+        # 需要背景音分离
         if self.cfg.is_separate:
             self.cfg.vocal = f"{self.cfg.cache_folder}/vocal.wav"
             self.cfg.instrument = f"{self.cfg.cache_folder}/instrument.wav"
@@ -210,12 +210,11 @@ class TransCreate(BaseTask):
             # 判断是否已存在
             raw_instrument = f"{self.cfg.target_dir}/instrument.wav"
             raw_vocal = f"{self.cfg.target_dir}/vocal.wav"
-            if tools.vail_file(raw_instrument) and tools.vail_file(raw_vocal):
-                try:
-                    shutil.copy2(raw_instrument, self.cfg.instrument)
-                    shutil.copy2(raw_vocal, self.cfg.vocal)
-                except shutil.SameFileError:
-                    pass
+            if tools.vail_file(raw_instrument):
+                shutil.copy2(raw_instrument, self.cfg.instrument)
+
+            if tools.vail_file(raw_vocal):
+                shutil.copy2(raw_vocal, self.cfg.vocal)
             self.shoud_separate = True
 
         # 将原始视频分离为无声视频
@@ -228,22 +227,43 @@ class TransCreate(BaseTask):
             app_cfg.queue_novice[self.uuid] = 'end'
 
         # 需要人声背景声分离，并且不存在已分离好的文件
-        if audio_stream_len > 0 and self.cfg.is_separate and (
-                not tools.vail_file(self.cfg.vocal) or not tools.vail_file(self.cfg.instrument)):
-            self._signal(text=tr('Separating background music'))
-            try:
-                self._split_audio_byraw(True)
-            except Exception as e:
-                logger.exception(f'分离人声背景声失败', exc_info=True)
-            finally:
-                if not tools.vail_file(self.cfg.vocal) or not tools.vail_file(self.cfg.instrument):
-                    # 分离失败
-                    self.cfg.instrument = None
-                    self.cfg.vocal = None
-                    self.cfg.is_separate = False
-                    self.shoud_separate = False
+        if audio_stream_len > 0 and self.cfg.is_separate and (not tools.vail_file(self.cfg.vocal) or not tools.vail_file(self.cfg.instrument)):
+                self._signal(text=tr('Separating background music'))
+                try:
+                    self._split_audio_byraw(True)
+                except Exception as e:
+                    logger.exception(f'分离人声背景声失败', exc_info=True)
+                finally:
+                    if not tools.vail_file(self.cfg.vocal) or not tools.vail_file(self.cfg.instrument):
+                        # 分离失败
+                        self.cfg.instrument = None
+                        self.cfg.vocal = None
+                        self.cfg.is_separate = False
+                        self.shoud_separate = False
+            
+        
 
-        # 如果还不存在原音频 self.cfg.source_wav,可能原因上一步分离人声背景声失败
+        if audio_stream_len > 0 and not tools.vail_file(self.cfg.source_wav) and tools.vail_file(self.cfg.vocal):
+            # 如果存在人声文件(可能仅仅分离成功人声，或者单独将其他工具分离出的人声放入目标文件夹)，则使用该文件作为语音识别文件
+            cmd = [
+                "-y",
+                "-i",
+                self.cfg.vocal,
+                "-ac",
+                "1",
+                "-ar",
+                "16000",
+                "-c:a",
+                "pcm_s16le",
+                self.cfg.source_wav
+            ]
+            try:
+                logger.debug(f'存在单独的人声文件 vocal.wav, 使用此作为语音识别原始音频')
+                tools.runffmpeg(cmd)
+            except Exception as e:
+                logger.error(f'将 人声文件 转为 16000 source_wav 时失败:{e}')
+                
+        # 如果还不存在原音频 self.cfg.source_wav,说明失败，强制从原视频中提取 
         if audio_stream_len > 0 and not tools.vail_file(self.cfg.source_wav):
             self._split_audio_byraw()
 

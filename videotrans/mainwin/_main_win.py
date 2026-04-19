@@ -21,7 +21,7 @@ huggingface_hub.configure_http_backend(backend_factory=custom_session_factory)
 
 from videotrans.configure import config
 config.init_run()
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR, IS_FROZEN, TEMP_DIR
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR, IS_FROZEN, TEMP_DIR,TEMP_ROOT
 
 from videotrans import VERSION
 from videotrans.task.job import start_thread
@@ -825,7 +825,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 暂停等待可能的 faster-whisper 独立进程退出
         time.sleep(4)
         try:
-            shutil.rmtree(TEMP_DIR, ignore_errors=True)
+            shutil.rmtree(TEMP_ROOT, ignore_errors=True)
         except OSError:
             pass
         if not self.is_restarting:
@@ -843,7 +843,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         os._exit(0)  # 立即退出进程，避免 Qt 清理错误
 
     def cleanup_and_accept(self):
-
         QCoreApplication.processEvents()
         sets = QSettings("pyvideotrans", "settings")
         sets.setValue("windowSize", self.size())

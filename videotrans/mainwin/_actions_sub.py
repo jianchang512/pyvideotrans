@@ -10,7 +10,7 @@ from typing import Optional, Dict, List, Any
 from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer, Qt
 
-from videotrans.configure.config import tr, settings, params, app_cfg, logger, ROOT_DIR, TEMP_DIR, defaulelang
+from videotrans.configure.config import tr, settings, params, app_cfg, logger, ROOT_DIR, TEMP_DIR, defaulelang,TEMP_ROOT
 from videotrans.util import tools, contants
 from videotrans.util.ListenVoice import ListenVoice
 from videotrans import tts
@@ -299,17 +299,18 @@ class WinActionSub:
     def clearcache(self):
         question = tools.show_popup(tr('Confirm cleanup?'), tr('After cleaning, you need to restart the software. Only cache and temporary files are cleaned. For configuration information, please directly delete the .json in the videotrans folder.'))
 
-        if question == QtWidgets.QMessageBox.Yes:
+        if int(question) == int(QtWidgets.QMessageBox.Yes):
             os.chdir(ROOT_DIR)
-            app_cfg.exit_soft=True
-            QTimer.singleShot(1000,self._clean_dir)
+            self._clean_dir()
 
     def _clean_dir(self):
-        shutil.rmtree(TEMP_DIR, ignore_errors=True)
+        # 挨个删除子文件夹，避免因某个被占用导致全部删除失败
+        for it in Path(TEMP_ROOT).iterdir():
+            shutil.rmtree(it, ignore_errors=True)
+            
         Path(ROOT_DIR+"/videotrans/codec.json").unlink(missing_ok=True)
         Path(ROOT_DIR+"/videotrans/ass.json").unlink(missing_ok=True)
         self.main.restart_app()
-
 
     def get_mp4(self):
         allowed_exts = contants.VIDEO_EXTS + contants.AUDIO_EXITS

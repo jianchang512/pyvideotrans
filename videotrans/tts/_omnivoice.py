@@ -94,9 +94,11 @@ class OmniVoice(BaseTTS):
             client = Client(self.api_url, ssl_verify=False)
         except Exception as e:
             raise StopRetry(str(e))
+        lang=self.lang_code.get(self.language,'Auto') if self.language else 'Auto'
+        print(f'{lang=}')
         result = client.predict(
             text=text,
-            lang= self.lang_code.get(self.language,'Auto') if self.language else 'Auto',
+            lang=lang,
             ref_aud=handle_file(ref_aud),
             ref_text=ref_text,
             instruct='',
