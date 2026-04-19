@@ -85,14 +85,16 @@ def openwin():
                     srtfile = TEMP_DIR + f"/srt{time.time()}.srt"
                     with Path(srtfile).open('w', encoding='utf-8') as f:
                         f.write(text)
+                    cmd_dir = None
                     if not self.is_soft or not self.language:
                         # 硬字幕
                         assfile = tools.set_ass_font(srtfile)
+                        cmd_dir = os.path.dirname(assfile)
                         cmd += [
                             '-c:v',
                             'libx265',
                             '-vf',
-                            f"subtitles=filename='{assfile}'",
+                            f"subtitles=filename='{os.path.basename(assfile)}'",
                             '-crf',
                             f'{settings.get("crf",26)}',
                             '-preset',
@@ -113,7 +115,7 @@ def openwin():
                             f"language={subtitle_language}"
                         ]
                     cmd.append(result_file)
-                    tools.runffmpeg(cmd,force_cpu=False)
+                    tools.runffmpeg(cmd,force_cpu=False,cmd_dir=cmd_dir)
                 except Exception as e:
                     print(e)
                     self.post(type='error', text=str(e))

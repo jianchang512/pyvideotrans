@@ -252,7 +252,7 @@ def openwin():
                         '-c:v',
                         f'libx{settings.get("video_codec", 264)}',
                         '-vf',
-                        f"subtitles=filename='{assfile}'",
+                        f"subtitles=filename='{os.path.basename(assfile)}'",
                         '-crf',
                         f'{settings.get("crf",23)}',
                         '-preset',
@@ -260,7 +260,7 @@ def openwin():
                         self.file
                     ]
                 threading.Thread(target=self.hebing_pro,args=(protxt,self.video_time),daemon=True).start()
-                tools.runffmpeg(cmd,force_cpu=False)
+                tools.runffmpeg(cmd,force_cpu=False,cmd_dir=os.path.dirname(assfile) if not self.is_soft else None)
                 self.post(type='ok', text=self.file)
                 self.is_end=True
             except Exception as e:
