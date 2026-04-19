@@ -348,6 +348,7 @@ class AppSettings:
             "initial_prompt_es": "",
             "initial_prompt_th": "",
             "initial_prompt_it": "",
+            "initial_prompt_el": "",
             "initial_prompt_pt": "",
             "initial_prompt_vi": "",
             "initial_prompt_ar": "",

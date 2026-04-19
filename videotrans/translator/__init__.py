@@ -118,6 +118,7 @@ LANGNAME_DICT = {
     "es": tr("Spanish"),
     "th": tr("Thai"),
     "it": tr("Italian"),
+    "el": tr("Greek"),
     "pt": tr("Portuguese"),
     "vi": tr("Vietnamese"),
     "ar": tr("Arabic"),
@@ -337,6 +338,19 @@ LANG_CODE = {
         "it",
         "Italian",
         "it" # m2m100
+    ],
+    "el": [
+        "el",          # google
+        "gre",         # subtitle embed (ISO 639-2/B)
+        "el",          # baidu
+        "EL",          # deepl / deeplx
+        "el",          # tencent
+        "el",          # OTT
+        "el",          # microsoft / bing
+        "Greek",       # AI (LLM)
+        "el",          # alibaba
+        "Greek",       # qwen-mt / qwen-tts / qwen-asr
+        "el"           # m2m100
     ],
     "pt": [
         "pt",  # pt-PT
