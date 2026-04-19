@@ -25,6 +25,7 @@ _LANGUAGE_CODE_MAP = {
         "es": "__es__",
         "th": "__th__",
         "it": "__it__",
+        "el": "__el__",
         "pt": "__pt__",
         "vi": "__vi__",
         "ar": "__ar__",

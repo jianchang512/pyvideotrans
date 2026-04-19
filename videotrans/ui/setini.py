@@ -143,6 +143,7 @@ class Ui_setini(object):
                 "initial_prompt_es": "发音语言为西班牙语时发送给whisper模型的提示词",
                 "initial_prompt_th": "发音语言为泰国语时发送给whisper模型的提示词",
                 "initial_prompt_it": "发音语言为意大利语时发送给whisper模型的提示词",
+                "initial_prompt_el": "发音语言为希腊语时发送给whisper模型的提示词",
                 "initial_prompt_pt": "发音语言为葡萄牙语时发送给whisper模型的提示词",
                 "initial_prompt_vi": "发音语言为越南语时发送给whisper模型的提示词",
                 "initial_prompt_ar": "发音语言为阿拉伯语时发送给whisper模型的提示词",

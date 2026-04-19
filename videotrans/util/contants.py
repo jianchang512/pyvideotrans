@@ -12,6 +12,7 @@ LISTEN_TEXT={
         "es": "Hola mi querido amigo. ¡Espero que cada día sea hermoso y agradable!",
         "th": "สวัสดีเพื่อนรัก. ฉันหวังว่าทุกวันของคุณจะสวยงามและสนุกสนาน!",
         "it": "Ciao caro amico mio. Spero che ogni tuo giorno sia bello e divertente!",
+        "el": "Γεια σου, αγαπητέ μου φίλε. Εύχομαι κάθε σου μέρα να είναι όμορφη και ευχάριστη!",
         "pt": "Olá meu querido amigo. Espero que todos os seus dias sejam lindos e agradáveis!",
         "vi": "Xin chào người bạn thân yêu của tôi. Tôi hy vọng mỗi ngày của bạn đều đẹp và thú vị!",
         "ar": "مرحبا صديقي العزيز. أتمنى أن يكون كل يوم جميلاً وممتعًا!",
