@@ -138,22 +138,14 @@ def openai_whisper(
             if jianfan and raws:
                 for it in raws:
                     it['text'] = zhconv.convert(it['text'], 'zh-hans')
-    except Exception:
+    except BaseException:
         msg = traceback.format_exc()
         logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
         return False, msg
     else:
         return raws, None
-    finally:
-        try:
-            if model:
-                del model
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            import gc
-            gc.collect()
-        except Exception:
-            pass
+
+
 
 
 def _resegment(texts, language, max_speech_ms):
@@ -471,24 +463,14 @@ def faster_whisper(
             if jianfan and raws:
                 for it in raws:
                     it['text'] = zhconv.convert(it['text'], 'zh-hans')
-    except Exception:
+    except BaseException:
         msg = traceback.format_exc()
         logger.exception(f'语音识别失败:{model_name=},{msg}', exc_info=True)
         return False, msg
     else:
         return raws, None
-    finally:
-        try:
-            if model:
-                del model
-            if batched_model:
-                del batched_model
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            import gc
-            gc.collect()
-        except:
-            pass
+
+
 
 
 def pipe_asr(
