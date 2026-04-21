@@ -518,6 +518,8 @@ class WinActionSub:
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
             return tools.show_error(tr('mustberole'))
+        if self.main.tts_type.currentIndex() == tts.MOSS_TTS:
+            text = tools.get_mosstts_role_test_text(role, text)
         voice_dir = tempfile.gettempdir() + '/pyvideotrans'
         if not Path(voice_dir).exists():
             Path(voice_dir).mkdir(parents=True, exist_ok=True)

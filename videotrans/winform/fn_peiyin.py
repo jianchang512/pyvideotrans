@@ -259,6 +259,8 @@ def openwin():
 
         rate = int(winobj.hecheng_rate.value())
         tts_type = winobj.tts_type.currentIndex()
+        if tts_type == tts.MOSS_TTS:
+            text = tools.get_mosstts_role_test_text(role, text)
 
         if rate >= 0:
             rate = f"+{rate}%"
@@ -487,6 +489,8 @@ def openwin():
             role_list =  tools.get_elevenlabs_role()
         elif type == tts.CAMB_TTS:
             role_list = tools.get_camb_role()
+        elif type == tts.MOSS_TTS:
+            role_list = tools.get_mosstts_role()
         elif type == tts.CLONE_VOICE_TTS:
             role_list.extend([it for it in params["clone_voicelist"] if it != 'clone'])
         elif type == tts.TTS_API:
