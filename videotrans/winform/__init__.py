@@ -44,6 +44,7 @@ _module_map = {
 "localllm":".localllm",
 "minimaxi":".minimaxi",#tts
 "minimax":".minimax",#翻译
+"mosstts":".mosstts",
 "openairecognapi":".openairecognapi",
 "openaitts":".openaitts",
 "openrouter":".openrouter",
