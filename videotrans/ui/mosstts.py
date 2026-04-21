@@ -2,7 +2,7 @@
 
 
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt,QSize
 
 from videotrans.configure.config import tr,app_cfg,params,settings,logger,ROOT_DIR
 from videotrans.util import tools
@@ -13,12 +13,13 @@ class Ui_mossttsform(object):
         self.has_done = False
         clone.setObjectName("clone")
         clone.setWindowModality(QtCore.Qt.NonModal)
-        clone.resize(500, 223)
+        clone.resize(800, 300)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(clone.sizePolicy().hasHeightForWidth())
         clone.setSizePolicy(sizePolicy)
+        clone.setMaximumSize(QSize(800, 300))
 
 
         self.verticalLayout = QtWidgets.QVBoxLayout(clone)
@@ -71,16 +72,10 @@ class Ui_mossttsform(object):
 
 
 
-        local_test_wrap = QtWidgets.QHBoxLayout()
-        local_test_label = QtWidgets.QLabel(tr('Local role'))
         self.local_role_combo = QtWidgets.QComboBox()
         self.local_role_combo.setMinimumHeight(35)
-        self.local_test_btn = QtWidgets.QPushButton(tr('Test local role'))
+        self.local_test_btn = QtWidgets.QPushButton(tr('Test'))
         self.local_test_btn.setMinimumHeight(35)
-        local_test_wrap.addWidget(local_test_label)
-        local_test_wrap.addWidget(self.local_role_combo)
-        local_test_wrap.addWidget(self.local_test_btn)
-        self.verticalLayout.insertLayout(6, local_test_wrap)
 
         # add end
 
@@ -100,6 +95,8 @@ class Ui_mossttsform(object):
         self.layout_btn.setObjectName("layout_btn")
 
         self.layout_btn.addWidget(self.set_clone)
+        self.layout_btn.addWidget(self.local_role_combo)
+        self.layout_btn.addWidget(self.local_test_btn)
         self.layout_btn.addWidget(help_btn)
 
         self.verticalLayout.addLayout(self.layout_btn)
