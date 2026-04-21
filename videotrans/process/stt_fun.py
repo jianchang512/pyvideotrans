@@ -338,22 +338,45 @@ def faster_whisper(
         if speech_timestamps and isinstance(speech_timestamps, str):
             speech_timestamps = json.loads(Path(speech_timestamps).read_text(encoding='utf-8'))
         last_end_time = audio_duration / 1000.0 if audio_duration > 0 else speech_timestamps[-1][1] / 1000.0
+        
+        # 未强制指定时，cuda下优先 int8_float16,cpu int8
+        # 50x系列显卡会报错，回退使用 float16
+        if compute_type in ['auto','default']:
+            logger.debug(f'[faster_whisper][{is_cuda=}]原始auto|default默认精度:{compute_type}')
+            compute_type= 'int8_float16' if is_cuda else 'int8'
+        logger.debug(f'[faster_whisper][{is_cuda=}]实际使用计算精度:{compute_type}')
         try:
             # 1. 加载基础模型
             _write_log(logs_file, json.dumps({"type": "logs", "text": 'loading model'}))
-            model = WhisperModel(
-                local_dir,
-                device="cuda" if is_cuda else 'cpu',
-                device_index=device_index if is_cuda else 0,
-                compute_type=compute_type
-            )
+            try:
+                model = WhisperModel(
+                    local_dir,
+                    device="cuda" if is_cuda else 'cpu',
+                    device_index=device_index if is_cuda else 0,
+                    compute_type=compute_type
+                )
+            except Exception as e:
+                # 数据类型不兼容，回退
+                if "the target device or backend do not support efficient" in str(e):
+                    compute_type='float16' if is_cuda else ('float32' if compute_type=='int8' else 'int8')
+                    logger.debug(f'[faster_whisper][{is_cuda=}]实际使用计算精度失败，回退到:{compute_type}')
+                    model = WhisperModel(
+                        local_dir,
+                        device="cuda" if is_cuda else 'cpu',
+                        device_index=device_index if is_cuda else 0,
+                        # cuda下指定使用float16重试，cpu下若原本int8报错，回退float32，否则int8
+                        compute_type=compute_type
+                    )
+                else:
+                    raise
         except Exception as e:
             error = traceback.format_exc()
+            logger.error(f'[faster_whisper][{is_cuda=}][{compute_type=}]语音转录失败:{local_dir=}\n{error}')
             if 'model.bin is incomplete' in error or 'json.exception.parse_error' in error or 'EOF while parsing a value' in error:
                 msg = (
                     f'模型下载不完整，请删除目录 {local_dir}，重新下载' if defaulelang == "zh" else f"The model download may be incomplete, please delete the directory {local_dir} and download it again")
             elif "CUBLAS_STATUS_NOT_SUPPORTED" in error:
-                msg = f"数据类型不兼容...:{error}"
+                msg = f"数据类型 {compute_type} 不兼容...:{error}"
             elif "cudaErrorNoKernelImageForDevice" in error:
                 msg = f"pytorch和cuda版本不兼容...:{error}"
             else:
