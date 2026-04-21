@@ -17,6 +17,7 @@ from videotrans.ui.chatterbox import Ui_chatterboxform
 from videotrans.ui.chattts import Ui_chatttsform
 from videotrans.ui.doubao2 import Ui_doubao2form
 from videotrans.ui.clone import Ui_cloneform
+from videotrans.ui.mosstts import Ui_mossttsform
 from videotrans.ui.cosyvoice import Ui_cosyvoiceform
 from videotrans.ui.omnivoice import Ui_omnivoiceform
 from videotrans.ui.deepgram import Ui_deepgramform
@@ -245,6 +246,10 @@ class OttForm(QDialogBase, Ui_ottform):  # <===
 
 
 class CloneForm(QDialogBase, Ui_cloneform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+class MossTTSForm(QDialogBase, Ui_mossttsform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
 

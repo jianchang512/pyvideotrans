@@ -16,7 +16,6 @@ def openwin():
             QtWidgets.QMessageBox.information(winobj, title, message)
         else:
             tools.show_error(d)
-        winobj.test.setText(tr("Test"))
         winobj.local_test_btn.setText(tr("Test local role"))
 
     def _refresh_local_role_combo():
@@ -59,9 +58,12 @@ def openwin():
         return '\n'.join([f'{name}#{text}' if text else name for name, text in rows])
 
     def _sync_params(force_refresh_roles: bool = False):
-        url = _normalize_url(winobj.clone_address.text().strip())
+        url=winobj.clone_address.text().strip()
+        if not url:
+            return tools.show_error('The API URL is required.')
+        url = _normalize_url(url)
         local_role_text = _normalize_local_role_text(winobj.local_role.toPlainText().strip(), need_raise=True)
-        preset_test_text = winobj.preset_test_text_input.text().strip() if hasattr(winobj, 'preset_test_text_input') else ''
+        preset_test_text = winobj.preset_test_text_input.text().strip()
         params['moss_tts_url'] = url
         params['moss_tts_local_role'] = local_role_text
         params['moss_tts_preset_test_text'] = preset_test_text
@@ -85,34 +87,17 @@ def openwin():
         tools.set_process(text='mosstts', type='refreshtts')
         winobj.close()
 
-    def test():
-        url, _ = _sync_params(force_refresh_roles=False)
-        _check_service_health(url)
-        demo_role_map = tools.get_mosstts_demo_map(force=True, raise_exception=True)
-        test_role = next(iter(demo_role_map.keys()), '')
-        if not test_role:
-            return tools.show_error('MOSS-TTS-Nano remote roles not found. Please check the API address and service status.')
-        tools.get_mosstts_role(force=True)
-        test_text = tools.get_mosstts_role_test_text(test_role, '你好啊我的朋友,希望你今天开心！')
-        winobj.test.setText(tr('Testing...'))
-        from videotrans import tts
-        import time
-        wk = ListenVoice(parent=winobj, queue_tts=[{
-            "text": test_text,
-            "role": test_role,
-            "filename": TEMP_DIR + f"/{time.time()}-mosstts.wav",
-            "tts_type": tts.MOSS_TTS,
-        }], language="zh", tts_type=tts.MOSS_TTS)
-        wk.uito.connect(lambda d, role_name=test_role: feed(d, role_name))
-        wk.start()
+
 
     def test_local_role():
-        _sync_params(force_refresh_roles=False)
+        _sync_params(force_refresh_roles=True)
         _refresh_local_role_combo()
         role_name = winobj.local_role_combo.currentText().strip()
         if not role_name:
             return tools.show_error('No local role available for testing.')
-        test_text = tools.get_mosstts_role_test_text(role_name, '你好啊我的朋友,希望你今天开心！')
+        print(f'{role_name=}')
+        test_text = params['moss_tts_preset_test_text'] or tools.get_mosstts_role_test_text(role_name, '你好啊，我的朋友们！')
+        print(f'{test_text=}')
         winobj.local_test_btn.setText(tr('Testing...'))
         from videotrans import tts
         import time
@@ -125,8 +110,8 @@ def openwin():
         wk.uito.connect(lambda d, role_name=role_name: feed(d, role_name))
         wk.start()
 
-    from videotrans.component.set_form import CloneForm
-    winobj = CloneForm()
+    from videotrans.component.set_form import MossTTSForm
+    winobj = MossTTSForm()
     app_cfg.child_forms['mosstts'] = winobj
     winobj.setWindowTitle('MOSS-TTS-Nano')
     winobj.resize(760, 520)
@@ -138,7 +123,7 @@ def openwin():
         winobj.set_clone.setText(tr('Save'))
     except Exception:
         pass
-
+    """
     local_role_label = QtWidgets.QLabel(tr('Reference Audio#Audio Text'))
     local_role_tip = QtWidgets.QLabel(tr('Audio must be stored in {}/f5-tts. One role per line. Example: demo.wav#你好，我是本地角色', ROOT_DIR))
     local_role_tip.setStyleSheet('color:#999')
@@ -177,7 +162,7 @@ def openwin():
     winobj.verticalLayout.insertLayout(6, local_test_wrap)
     winobj.local_role_combo = local_role_combo
     winobj.local_test_btn = local_test_btn
-
+    """
     if params.get('moss_tts_url', ''):
         winobj.clone_address.setText(params.get('moss_tts_url', ''))
     if params.get('moss_tts_local_role', ''):
@@ -187,6 +172,5 @@ def openwin():
     _refresh_local_role_combo()
     winobj.local_role.textChanged.connect(_refresh_local_role_combo)
     winobj.set_clone.clicked.connect(save)
-    winobj.test.clicked.connect(test)
     winobj.local_test_btn.clicked.connect(test_local_role)
     winobj.show()
