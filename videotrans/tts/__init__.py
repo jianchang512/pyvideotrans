@@ -3,6 +3,31 @@ import copy
 
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 
+from videotrans.tts._minimaxi import MinimaxiTTS
+from videotrans.tts._freeazure import FreeAzureTTS
+from videotrans.tts._cosyvoice import CosyVoice
+from videotrans.tts._omnivoice import OmniVoice
+from videotrans.tts._ai302tts import AI302
+from videotrans.tts._chattts import ChatTTS
+from videotrans.tts._fishtts import FishTTS
+from videotrans.tts._kokoro import KokoroTTS
+from videotrans.tts._gptsovits import GPTSoVITS
+from videotrans.tts._chatterbox import ChatterBoxTTS
+from videotrans.tts._clone import CloneVoice
+from videotrans.tts._openaitts import OPENAITTS
+from videotrans.tts._elevenlabs import ElevenLabsC
+from videotrans.tts._gtts import GTTS
+from videotrans.tts._geminitts import GEMINITTS
+from videotrans.tts._qwenttslocal import QwenttsLocal
+from videotrans.tts._ttsapi import TTSAPI
+from videotrans.tts._doubao import DoubaoTTS
+from videotrans.tts._doubao2 import Doubao2TTS
+from videotrans.tts._f5tts import F5TTS
+from videotrans.tts._glmtts import GLMTTS
+from videotrans.tts._xaitts import XAITTS
+from videotrans.tts._mitts import MITTS
+from videotrans.tts._cambtts import CambTTS
+from videotrans.tts._mosstts import MossTTS
 
 EDGE_TTS = 0
 QWEN3LOCAL_TTS = 1
@@ -45,6 +70,7 @@ XAI_TTS = 30
 XIAOMI_TTS = 31
 TTS_API = 32
 CAMB_TTS = 33
+MOSS_TTS = 34
 
 
 # 支持克隆的渠道
@@ -59,7 +85,8 @@ SUPPORT_CLONE=[
     GPTSOVITS_TTS,
     QWEN3LOCAL_TTS,
     CAMB_TTS,
-    OMNIVOICE_TTS
+    OMNIVOICE_TTS,
+    MOSS_TTS
 ]
 _ID_NAME_DICT = {
     EDGE_TTS: tr("Edge-TTS(free)"),
@@ -104,6 +131,7 @@ _ID_NAME_DICT = {
     TTS_API: tr("Customize API"),
 
     CAMB_TTS: "CAMB AI TTS",
+    MOSS_TTS: "MOSS-TTS-Nano",
 }
 
 TTS_NAME_LIST = list(_ID_NAME_DICT.values())
@@ -292,6 +320,12 @@ def is_input_api(tts_type: int = None, return_str=False):
         from videotrans.winform import cambtts as cambtts_win
         cambtts_win.openwin()
         return False
+    if tts_type == MOSS_TTS and not params.get('moss_tts_url', ''):
+        if return_str:
+            return "Please configure the API address of the MOSS-TTS-Nano channel first."
+        from videotrans.winform import mosstts as mosstts_win
+        mosstts_win.openwin()
+        return False
     if tts_type == GLM_TTS and not params.get('zhipu_key'):
         if return_str:
             return "Please configure the ZhipuAI credentials first."
@@ -415,3 +449,5 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
     elif tts_type == OMNIVOICE_TTS:
         from videotrans.tts._omnivoice import OmniVoice
         OmniVoice(**kwargs).run()
+    elif tts_type == MOSS_TTS:
+        MossTTS(**kwargs).run()

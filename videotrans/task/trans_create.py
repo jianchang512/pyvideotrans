@@ -1000,13 +1000,14 @@ class TransCreate(BaseTask):
         # 取出设置的每行角色
         line_roles = app_cfg.line_roles
         voice_role = self.cfg.voice_role
+        force_clone = str(voice_role).strip().lower() == 'clone' and self.cfg.tts_type in SUPPORT_CLONE
 
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
             if it['end_time'] < it['start_time'] or not it['text'].strip():
                 continue
             # 判断是否存在单独设置的行角色，如果不存在则使用全局
-            voice = line_roles.get(f'{it["line"]}', voice_role)
+            voice = 'clone' if force_clone else line_roles.get(f'{it["line"]}', voice_role)
 
             tmp_dict = {
                 "text": it['text'],
@@ -1029,7 +1030,7 @@ class TransCreate(BaseTask):
             }
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆
-            if voice == 'clone' and self.cfg.tts_type in SUPPORT_CLONE:
+            if str(voice).strip().lower() == 'clone' and self.cfg.tts_type in SUPPORT_CLONE:
                 tmp_dict['ref_wav'] = f"{self.cfg.cache_folder}/clone-{i}.wav"
                 tmp_dict['ref_language'] = self.cfg.detect_language[:2]
             queue_tts.append(tmp_dict)

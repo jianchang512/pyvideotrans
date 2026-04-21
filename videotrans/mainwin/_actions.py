@@ -224,6 +224,10 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = tools.get_camb_role()
             self.main.voice_role.addItems(self.main.current_rolelist)
+        elif type == tts.MOSS_TTS:
+            self.main.voice_role.clear()
+            self.main.current_rolelist = tools.get_mosstts_role()
+            self.main.voice_role.addItems(self.main.current_rolelist)
         elif self.change_by_lang(type):
             self.set_voice_role(self.main.target_language.currentText())
         elif type == tts.CLONE_VOICE_TTS:

@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication, Signal
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QMessageBox, QMainWindow, QPushButton, QToolBar, QSizePolicy, QApplication
 import asyncio, sys
 import os
@@ -43,6 +43,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.resize(width, height)
         self.setupUi(self)
+        self.actionmosstts = QAction(self)
+        self.menu_TTS.addAction(self.actionmosstts)
+        self.menu_TTS.addSeparator()
         s=AiLoaderThread(self)
         s.gpu_io.connect(self._start_workers)
         s.start()
@@ -306,6 +309,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiongemini_key.setText("Gemini AI")
         self.actioncamb_key.setText("CAMB AI")
         self.actionElevenlabs_key.setText("ElevenLabs.io")
+        self.actionmosstts.setText("MOSS-TTS-Nano")
 
         self.actionwatermark.setText(tr("Add watermark to video"))
         self.actionsepar.setText(tr("Vocal & instrument Separate"))
@@ -417,6 +421,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.proxy.setText(app_cfg.proxy)
 
         tts_type = int(params.get('tts_type', 0))
+        self.voice_role.clear()
         if tts_type == tts.CLONE_VOICE_TTS:
             self.voice_role.addItems(params.get("clone_voicelist", ''))
             run_in_threadpool(tools.get_clone_role)
@@ -449,6 +454,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif tts_type == tts.CAMB_TTS:
             rolelist = tools.get_camb_role()
             self.voice_role.addItems(rolelist)
+        elif tts_type == tts.MOSS_TTS:
+            rolelist = tools.get_mosstts_role()
+            self.voice_role.addItems(list(dict.fromkeys(rolelist)))
         elif tts_type == tts.OPENAI_TTS:
             rolelist = params.get('openaitts_role', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
@@ -582,6 +590,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondeepLX_address.triggered.connect(lambda: self._open_winform('deepLX'))
         self.actionott_address.triggered.connect(lambda: self._open_winform('ott'))
         self.actionclone_address.triggered.connect(lambda: self._open_winform('clone'))
+        self.actionmosstts.triggered.connect(lambda: self._open_winform('mosstts'))
         self.actionkokoro_address.triggered.connect(lambda: self._open_winform('kokoro'))
         self.actionchattts_address.triggered.connect(lambda: self._open_winform('chattts'))
         self.actiontts_api.triggered.connect(lambda: self._open_winform('ttsapi'))
