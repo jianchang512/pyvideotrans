@@ -16,7 +16,7 @@ def openwin():
             QtWidgets.QMessageBox.information(winobj, title, message)
         else:
             tools.show_error(d)
-        winobj.local_test_btn.setText(tr("Test local role"))
+        winobj.local_test_btn.setText(tr("Test"))
 
     def _refresh_local_role_combo():
         current_text = winobj.local_role_combo.currentText() if hasattr(winobj, 'local_role_combo') else ''
@@ -82,23 +82,24 @@ def openwin():
         return service_urls
 
     def save():
+        winobj.hide()
         _sync_params(force_refresh_roles=True)
         params.save()
         tools.set_process(text='mosstts', type='refreshtts')
         winobj.close()
 
 
-
     def test_local_role():
+        winobj.local_test_btn.setText(tr('Testing...'))
         _sync_params(force_refresh_roles=True)
         _refresh_local_role_combo()
         role_name = winobj.local_role_combo.currentText().strip()
         if not role_name:
+            winobj.local_test_btn.setText(tr('Test'))
             return tools.show_error('No local role available for testing.')
         print(f'{role_name=}')
         test_text = params['moss_tts_preset_test_text'] or tools.get_mosstts_role_test_text(role_name, '你好啊，我的朋友们！')
         print(f'{test_text=}')
-        winobj.local_test_btn.setText(tr('Testing...'))
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
@@ -113,56 +114,8 @@ def openwin():
     from videotrans.component.set_form import MossTTSForm
     winobj = MossTTSForm()
     app_cfg.child_forms['mosstts'] = winobj
-    winobj.setWindowTitle('MOSS-TTS-Nano')
-    winobj.resize(760, 520)
-    try:
-        winobj.label.setText('MOSS-TTS-Nano API URL')
-    except Exception:
-        pass
-    try:
-        winobj.set_clone.setText(tr('Save'))
-    except Exception:
-        pass
-    """
-    local_role_label = QtWidgets.QLabel(tr('Reference Audio#Audio Text'))
-    local_role_tip = QtWidgets.QLabel(tr('Audio must be stored in {}/f5-tts. One role per line. Example: demo.wav#你好，我是本地角色', ROOT_DIR))
-    local_role_tip.setStyleSheet('color:#999')
-    local_role_tip.setWordWrap(True)
-    local_role_editor = QtWidgets.QPlainTextEdit()
-    local_role_editor.setPlaceholderText(tr('Reference Audio#Audio Text'))
-    local_role_editor.setMinimumHeight(120)
-    winobj.local_role = local_role_editor
 
-    preset_text_label = QtWidgets.QLabel('预制角色试听文案')
-    preset_text_input = QtWidgets.QLineEdit()
-    preset_text_input.setPlaceholderText('留空则使用预制角色默认文案')
-    preset_text_input.setMinimumHeight(35)
-    winobj.preset_test_text_input = preset_text_input
 
-    winobj.verticalLayout.insertWidget(1, local_role_label)
-    winobj.verticalLayout.insertWidget(2, local_role_tip)
-    winobj.verticalLayout.insertWidget(3, local_role_editor)
-    winobj.verticalLayout.insertWidget(4, preset_text_label)
-    winobj.verticalLayout.insertWidget(5, preset_text_input)
-
-    if winobj.layout_btn.count() > 2:
-        help_item = winobj.layout_btn.takeAt(2)
-        if help_item and help_item.widget():
-            help_item.widget().deleteLater()
-
-    local_test_wrap = QtWidgets.QHBoxLayout()
-    local_test_label = QtWidgets.QLabel(tr('Local role'))
-    local_role_combo = QtWidgets.QComboBox()
-    local_role_combo.setMinimumHeight(35)
-    local_test_btn = QtWidgets.QPushButton(tr('Test local role'))
-    local_test_btn.setMinimumHeight(35)
-    local_test_wrap.addWidget(local_test_label)
-    local_test_wrap.addWidget(local_role_combo)
-    local_test_wrap.addWidget(local_test_btn)
-    winobj.verticalLayout.insertLayout(6, local_test_wrap)
-    winobj.local_role_combo = local_role_combo
-    winobj.local_test_btn = local_test_btn
-    """
     if params.get('moss_tts_url', ''):
         winobj.clone_address.setText(params.get('moss_tts_url', ''))
     if params.get('moss_tts_local_role', ''):
