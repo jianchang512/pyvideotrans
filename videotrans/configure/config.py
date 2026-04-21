@@ -614,6 +614,7 @@ class AppParams:
             "moss_tts_url": "",
             "moss_tts_role": ["No", "clone"],
             "moss_tts_local_role": "",
+            "moss_tts_preset_test_text": "",
             "zh_recogn_api": "",
             "recognapi_url": "",
             "recognapi_key": "",

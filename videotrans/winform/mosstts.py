@@ -61,8 +61,10 @@ def openwin():
     def _sync_params(force_refresh_roles: bool = False):
         url = _normalize_url(winobj.clone_address.text().strip())
         local_role_text = _normalize_local_role_text(winobj.local_role.toPlainText().strip(), need_raise=True)
+        preset_test_text = winobj.preset_test_text_input.text().strip() if hasattr(winobj, 'preset_test_text_input') else ''
         params['moss_tts_url'] = url
         params['moss_tts_local_role'] = local_role_text
+        params['moss_tts_preset_test_text'] = preset_test_text
         if force_refresh_roles:
             tools.get_mosstts_role(force=True)
         return url, local_role_text
@@ -146,9 +148,17 @@ def openwin():
     local_role_editor.setMinimumHeight(120)
     winobj.local_role = local_role_editor
 
+    preset_text_label = QtWidgets.QLabel('预制角色试听文案')
+    preset_text_input = QtWidgets.QLineEdit()
+    preset_text_input.setPlaceholderText('留空则使用预制角色默认文案')
+    preset_text_input.setMinimumHeight(35)
+    winobj.preset_test_text_input = preset_text_input
+
     winobj.verticalLayout.insertWidget(1, local_role_label)
     winobj.verticalLayout.insertWidget(2, local_role_tip)
     winobj.verticalLayout.insertWidget(3, local_role_editor)
+    winobj.verticalLayout.insertWidget(4, preset_text_label)
+    winobj.verticalLayout.insertWidget(5, preset_text_input)
 
     if winobj.layout_btn.count() > 2:
         help_item = winobj.layout_btn.takeAt(2)
@@ -164,7 +174,7 @@ def openwin():
     local_test_wrap.addWidget(local_test_label)
     local_test_wrap.addWidget(local_role_combo)
     local_test_wrap.addWidget(local_test_btn)
-    winobj.verticalLayout.insertLayout(4, local_test_wrap)
+    winobj.verticalLayout.insertLayout(6, local_test_wrap)
     winobj.local_role_combo = local_role_combo
     winobj.local_test_btn = local_test_btn
 
@@ -172,6 +182,8 @@ def openwin():
         winobj.clone_address.setText(params.get('moss_tts_url', ''))
     if params.get('moss_tts_local_role', ''):
         winobj.local_role.setPlainText(params.get('moss_tts_local_role', ''))
+    if params.get('moss_tts_preset_test_text', ''):
+        winobj.preset_test_text_input.setText(params.get('moss_tts_preset_test_text', ''))
     _refresh_local_role_combo()
     winobj.local_role.textChanged.connect(_refresh_local_role_combo)
     winobj.set_clone.clicked.connect(save)

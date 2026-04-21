@@ -159,6 +159,9 @@ def get_mosstts_role_test_text(role_name: str, default_text: str = ''):
 
     demo_role_map = get_mosstts_demo_map()
     if role in demo_role_map:
+        preset_test_text = str(params.get('moss_tts_preset_test_text', '') or '').strip()
+        if preset_test_text:
+            return preset_test_text
         return demo_role_map[role].get('text') or default_text
 
     return default_text
