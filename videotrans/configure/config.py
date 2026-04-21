@@ -40,6 +40,7 @@ def _set_env():
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
+    os.environ["CT2_VERBOSE"] = "1"
     os.environ["OMP_NUM_THREADS"] = "1"
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
@@ -497,7 +498,7 @@ class AppParams:
             "is_cuda": False,
             "line_roles": {},
             "rephrase": 0,
-            "is_separate": True,
+            "is_separate": False,
             "embed_bgm": True,
             "remove_noise": False,
             "enable_diariz": False,

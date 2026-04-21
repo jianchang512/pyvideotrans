@@ -60,6 +60,7 @@ class CosyVoice(BaseTTS):
             raise StopRetry(str(e))
         # 参考音频对应文本内容
         prompt_text=data.get('ref_text','')
+        print(f"{data['ref_wav']=}")
         # 提示词，克隆时放入参考音频文本中
         instruct_text=params.get('cosyvoice_instruct_text','')
         if instruct_text:

@@ -586,8 +586,18 @@ class Ui_setini(object):
                 combobox_data=None
                 # 是 cuda_com_type
                 if key == 'cuda_com_type':
-                    combobox_data = ['default', 'auto', 'float32', 'float16', 'int8', 'int16', 'int8_float16',
-                                  'int8_float32', 'bfloat16', 'int8_bfloat16']
+                    combobox_data = [
+                        'default', 
+                        'auto', 
+                        'int8', 
+                        'int16', 
+                        'float16', 
+                        'float32', 
+                        'bfloat16', 
+                        'int8_float16',                                  
+                        'int8_float32', 
+                        'int8_bfloat16'
+                    ]
                 elif key == 'llm_ai_type':
                     combobox_data = ['openai', 'deepseek']
                 elif key == 'vad_type':
