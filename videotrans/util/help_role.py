@@ -52,7 +52,7 @@ def _load_mosstts_cache():
     try:
         return json.loads(cache_file.read_text(encoding='utf-8'))
     except Exception:
-        logger.exception('加载 MOSS TTS 角色缓存失败', exc_info=True)
+        logger.exception('加载 MOSS-TTS-Nano 角色缓存失败', exc_info=True)
         return {}
 
 
