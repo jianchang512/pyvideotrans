@@ -78,7 +78,7 @@ def openwin():
                             txt_list = []
                             for txt_line in it['text'].strip().split("\n"):
                                 txt_list.append(tools.textwrap(txt_line.strip(), self.maxlen))
-                            text+= "\n".join(txt_list)
+                            text += f"{it['line']}\n{it['time']}\n{chr(10).join(txt_list)}\n\n"
                         else:
                             it['text'] = tools.textwrap(it['text'], self.maxlen).strip()
                             text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
