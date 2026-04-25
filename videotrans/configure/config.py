@@ -17,7 +17,7 @@ from videotrans.util.contants import (
     no_proxy, DEFAULT_GEMINI_MODEL, OPENAITTS_ROLES, ChatTTS_VOICE, Qwentts_Models,
     Whisper_Models, Zijiehuoshan_Model, Zhipuai_Model, Localllm_Model, Azure_Model,
     Chatgpt_Model, Openairecognapi_Model, Qpenaitts_Model, Qwenmt_Model, Ai302_Models,
-    Whisper_cpp_models, Deepseek_Model, Openrouter_Model, Guiji_Model,MINIMAX_MODELS
+    Whisper_cpp_models, Deepseek_Model, Openrouter_Model, Guiji_Model,MINIMAX_MODELS,ELEVENLABS_TTS_MODELS,MINIMAX_TTS_MODELS,GEMINITTS_ROLES,GEMINI_TTS_MODELS
 )
 
 IS_FROZEN = True if getattr(sys, 'frozen', False) else False
@@ -552,11 +552,11 @@ class AppParams:
             "azure_version": "2025-04-01-preview",
             "azure_model": str(settings.get('azure_model', '-')).strip().split(',')[0],
             "gemini_key": "",
-            "gemini_model": "gemini-flash-latest",
+            "gemini_model": DEFAULT_GEMINI_MODEL.split(',')[0],
             "gemini_maxtoken": 18192,
             "gemini_thinking_budget": 24576,
             "gemini_ttsstyle": "",
-            "gemini_ttsmodel": "gemini-3.1-flash-tts-preview",
+            "gemini_ttsmodel": GEMINI_TTS_MODELS[0],
             "localllm_api": "",
             "localllm_key": "",
             "localllm_model": str(settings.get('localllm_model', '-')).strip().split(',')[0],
@@ -592,7 +592,7 @@ class AppParams:
             "coquitts_key": "",
             "elevenlabstts_role": [],
             "elevenlabstts_key": "",
-            "elevenlabstts_models": "eleven_flash_v2_5",
+            "elevenlabstts_models": ELEVENLABS_TTS_MODELS.split(',')[0],
             "openaitts_api": "",
             "openaitts_key": "",
             "openaitts_model": "tts-1",
@@ -631,10 +631,10 @@ class AppParams:
             "minimaxi_apikey": "",
             "minimaxi_emotion": "",
             "minimaxi_apiurl": "api.minimaxi.com",
-            "minimaxi_model": "speech-2.8-turbo",
+            "minimaxi_model":MINIMAX_TTS_MODELS[0],
             
             "minimax_key":"",
-            "minimax_model":"MiniMax-M2.7",
+            "minimax_model": MINIMAX_MODELS.split(',')[0],
             "minimax_max_tokens":8192,
             "minimax_api":"https://api.minimaxi.com/v1",
             

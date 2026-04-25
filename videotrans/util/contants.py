@@ -120,14 +120,16 @@ VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts", "f
 AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a","ogg"]
 
 ChatTTS_VOICE="11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
-# 缺省 gemini 模型
-DEFAULT_GEMINI_MODEL = "gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash"
 # openai-tts音色
 OPENAITTS_ROLES = "No,alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
 XAITTS_ROLES='eve,ara,rex,sal,leo'
 MITTS_ROLES='mimo_default,default_zh,default_en'
+# 缺省 gemini 模型
+DEFAULT_GEMINI_MODEL = "gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash"
 # gemini-tts 音色
 GEMINITTS_ROLES = "No,Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
+
+GEMINI_TTS_MODELS=[ "gemini-3.1-flash-tts-preview","gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts" ]
 
 Whisper_cpp_models="ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
 Whisper_net_models=Whisper_cpp_models
@@ -151,3 +153,6 @@ Whisper_Models="tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-
 Openai_Whisper_Models=["tiny","tiny.en","base","base.en","small","small.en","medium","medium.en","large-v3-turbo","large-v1","large-v2","large-v3"]
 MINIMAX_MODELS="MiniMax-M2.7,MiniMax-M2.7-highspeed,MiniMax-M2.5,MiniMax-M2.5-highspeed"
 MINIMAX_TTS_MODELS=["speech-2.8-hd","speech-2.8-turbo","speech-2.6-hd","speech-2.6-turbo","speech-02-hd","speech-02-turbo"]
+
+
+ELEVENLABS_TTS_MODELS="eleven_v3,eleven_flash_v2_5,eleven_flash_v2,eleven_multilingual_v2,eleven_multilingual_v1"

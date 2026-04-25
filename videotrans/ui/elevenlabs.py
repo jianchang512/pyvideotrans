@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt
 
 from videotrans.configure.config import tr,app_cfg,params,settings,logger
 from videotrans.util import tools
+from videotrans.util.contants import ELEVENLABS_TTS_MODELS
 
 
 class Ui_elevenlabsform(object):
@@ -45,7 +46,7 @@ class Ui_elevenlabsform(object):
         self.elevenlabstts_models = QtWidgets.QComboBox()
         self.elevenlabstts_models.setMinimumSize(QtCore.QSize(210, 35))
         self.elevenlabstts_models.setObjectName("elevenlabstts_models")
-        self.elevenlabstts_models.addItems(['eleven_v3','eleven_ttv_v3','eleven_flash_v2_5', 'eleven_turbo_v2_5','eleven_multilingual_ttv_v2'])
+        self.elevenlabstts_models.addItems(ELEVENLABS_TTS_MODELS.split(','))
 
         self.formLayout_3.addWidget(self.label2)
         self.formLayout_3.addWidget(self.elevenlabstts_models)

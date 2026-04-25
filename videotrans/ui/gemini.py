@@ -3,6 +3,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 from videotrans.configure.config import tr,ROOT_DIR,app_cfg,params,settings,logger
 from videotrans.util import tools
+from videotrans.util.contants import GEMINI_TTS_MODELS
 
 
 class Ui_geminiform(object):
@@ -102,7 +103,7 @@ class Ui_geminiform(object):
         self.ttsmodel = QtWidgets.QComboBox()
         self.ttsmodel.setMinimumSize(QtCore.QSize(0, 35))
         self.ttsmodel.setObjectName("ttsmodel")
-        self.ttsmodel.addItems(["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"])
+        self.ttsmodel.addItems(GEMINI_TTS_MODELS)
         h2ttsmodel.addWidget(self.label_ttsmodel)
         h2ttsmodel.addWidget(self.ttsmodel)
         v1.addLayout(h2ttsmodel)
