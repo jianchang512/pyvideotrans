@@ -16,11 +16,13 @@ def openwin():
             return tools.show_error(
                 tr("Please input Secret"))
         model = winobj.deepseek_model.currentText()
+        deepseek_max_token = winobj.deepseek_max_token.text()
 
 
         params["deepseek_key"] = key
 
         params["deepseek_model"] = model
+        params["deepseek_max_token"] = deepseek_max_token
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.DEEPSEEK_INDEX)
@@ -30,9 +32,11 @@ def openwin():
     def save():
         deepseek_key = winobj.deepseek_key.text()
         model = winobj.deepseek_model.currentText()
+        deepseek_max_token = winobj.deepseek_max_token.text()
 
         params["deepseek_key"] = deepseek_key
         params["deepseek_model"] = model
+        params["deepseek_max_token"] = deepseek_max_token
         params.save()
         winobj.close()
 
@@ -52,6 +56,7 @@ def openwin():
     winobj = DeepseekForm()
     app_cfg.child_forms['deepseek'] = winobj
     winobj.update_ui()
+        
     winobj.set.clicked.connect(save)
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.test.clicked.connect(test)

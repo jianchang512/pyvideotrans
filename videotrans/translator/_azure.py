@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import List, Union
 
 import httpx
-from openai import AzureOpenAI
+from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure._except import NO_RETRY_EXCEPT
@@ -31,10 +31,9 @@ class AzureGPT(BaseTrans):
            after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
-        model = AzureOpenAI(
+        model = OpenAI(
             api_key=params.get("azure_key",''),
-            api_version=params.get('azure_version',''),
-            azure_endpoint=params.get("azure_api",''),
+            base_url=params.get("azure_api",''),
             http_client=httpx.Client(proxy=self.proxy_str)
         )
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data

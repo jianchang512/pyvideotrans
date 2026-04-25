@@ -48,13 +48,26 @@ class Ui_deepseekform(object):
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
-        self.label_selectmodel.setText("选择使用模型")
+        self.label_selectmodel.setText("Model")
         self.deepseek_model = QtWidgets.QComboBox()
         self.deepseek_model.setMinimumSize(QtCore.QSize(0, 35))
         self.deepseek_model.setObjectName("deepseek_model")
         h_model.addWidget(self.label_selectmodel)
         h_model.addWidget(self.deepseek_model)
         v1.addLayout(h_model)
+        
+        h_deepseek_max_token = QtWidgets.QHBoxLayout()
+        label_deepseek_max_token = QtWidgets.QLabel()
+        label_deepseek_max_token.setObjectName("label_deepseek_max_token")
+        label_deepseek_max_token.setText("Max token")
+        self.deepseek_max_token = QtWidgets.QLineEdit()
+        self.deepseek_max_token.setMinimumSize(QtCore.QSize(0, 35))
+        self.deepseek_max_token.setObjectName("deepseek_max_token")
+        
+        h_deepseek_max_token.addWidget(label_deepseek_max_token)
+        h_deepseek_max_token.addWidget(self.deepseek_max_token)
+        
+        v1.addLayout(h_deepseek_max_token)
 
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
@@ -108,6 +121,7 @@ class Ui_deepseekform(object):
         self.deepseek_model.clear()
         self.deepseek_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
+        self.deepseek_max_token.setText(str(params.get('deepseek_max_token',40960)))
 
         self.deepseek_key.setText(params.get("deepseek_key",''))
         self.deepseek_model.setCurrentText(params.get("deepseek_model",''))

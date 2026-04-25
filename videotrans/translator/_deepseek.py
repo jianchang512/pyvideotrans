@@ -52,7 +52,7 @@ class DeepSeek(BaseTrans):
             frequency_penalty=0,
             timeout=300,
             temperature=float(settings.get('aitrans_temperature',0.2)),
-            max_tokens=8192 if not self.model_name.startswith('deepseek-reasoner') else 65536
+            max_tokens=int(params.get('deepseek_max_token', 40960)),
         )
 
         logger.debug(f'[deepseek]响应:{response=}')
