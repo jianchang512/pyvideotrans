@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QLabel, QLineEdit,  QPushButton, QSizePolicy
 
 from videotrans.configure.config import tr,app_cfg,params,settings,logger
 from videotrans.util import tools
+from videotrans.util.contants import MINIMAX_TTS_MODELS
 
 
 class Ui_minimaxiform(object):
@@ -58,14 +59,7 @@ class Ui_minimaxiform(object):
         label_6 = QLabel()
         label_6.setText(tr("Model"))
         self.model = QtWidgets.QComboBox()
-        self.model.addItems([
-            "speech-2.8-turbo",
-            "speech-2.8-hd",
-            "speech-2.6-hd",
-            "speech-2.6-turbo",
-            "speech-02-hd",
-            "speech-02-turbo"
-        ])
+        self.model.addItems(MINIMAX_TTS_MODELS)
 
         hmodel.addWidget(label_6)
         hmodel.addWidget(self.model)

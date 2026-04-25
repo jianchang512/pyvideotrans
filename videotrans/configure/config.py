@@ -17,7 +17,7 @@ from videotrans.util.contants import (
     no_proxy, DEFAULT_GEMINI_MODEL, OPENAITTS_ROLES, ChatTTS_VOICE, Qwentts_Models,
     Whisper_Models, Zijiehuoshan_Model, Zhipuai_Model, Localllm_Model, Azure_Model,
     Chatgpt_Model, Openairecognapi_Model, Qpenaitts_Model, Qwenmt_Model, Ai302_Models,
-    Whisper_cpp_models, Deepseek_Model, Openrouter_Model, Guiji_Model
+    Whisper_cpp_models, Deepseek_Model, Openrouter_Model, Guiji_Model,MINIMAX_MODELS
 )
 
 IS_FROZEN = True if getattr(sys, 'frozen', False) else False
@@ -373,6 +373,7 @@ class AppSettings:
             "initial_prompt_yue": "",
             "beam_size": 5,
             "best_of": 5,
+            "minimax_model":MINIMAX_MODELS,
             "uvr_models":"UVR-MDX-NET-Inst_HQ_4",
             "condition_on_previous_text": False,
             "temperature": "0.0",
@@ -630,7 +631,7 @@ class AppParams:
             "minimaxi_apikey": "",
             "minimaxi_emotion": "",
             "minimaxi_apiurl": "api.minimaxi.com",
-            "minimaxi_model": "speech-02-turbo",
+            "minimaxi_model": "speech-2.8-turbo",
             
             "minimax_key":"",
             "minimax_model":"MiniMax-M2.7",
