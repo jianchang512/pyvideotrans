@@ -41,6 +41,8 @@ it doesn't mean it's over.
 
 ---
 
+{GLOSSARY_DICT}
+
 # ACTUAL TASK
 Translate and adapt these lines into {lang}.
 Remember: COUNT THE LINES! Grammar perfection is secondary to line count. If input is N lines, output MUST be exactly N lines!

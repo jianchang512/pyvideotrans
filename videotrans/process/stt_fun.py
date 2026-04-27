@@ -48,12 +48,7 @@ def openai_whisper(
             speech_timestamps = json.loads(Path(speech_timestamps).read_text(encoding='utf-8'))
         if not temperature:
             temperature = (
-                0.0,
-                0.2,
-                0.4,
-                0.6,
-                0.8,
-                1.0,
+                0.0, 0.2, 0.4, 0.6, 0.8, 1.0
             )
         elif str(temperature).startswith('[') or str(temperature).startswith('('):
             temperature = tuple([float(i) for i in str(temperature)[1:-1].split(',')])

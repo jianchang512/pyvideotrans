@@ -17,6 +17,7 @@ def openwin():
     RESULT_DIR = HOME_DIR + "/translate"
     SOURCE_DIR = RESULT_DIR
     uuid_list=[]
+    language_namelist = ["-"] + list(translator.LANGNAME_DICT.values())
 
     def toggle_state(state):
         winobj.fanyi_translate_type.setDisabled(state)
@@ -170,7 +171,7 @@ def openwin():
 
     # 翻译目标语言变化时
     def target_lang_change(t):
-        if t in ['-', 'No']:
+        if not t or t in ['-', 'No']:
             return
         # 判断翻译渠道是否支持翻译到该目标语言
         if translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=t) is not True:
@@ -178,19 +179,14 @@ def openwin():
 
 
     # 更新目标语言列表
-    def update_target_language():
-        current_target = winobj.fanyi_target.currentText()
-        language_namelist = ["-"] + list(translator.LANGNAME_DICT.values())
+    def update_target_language():        
         winobj.fanyi_target.clear()
         winobj.fanyi_target.addItems(language_namelist)
-        if current_target and current_target != '-' and current_target in language_namelist:
-            winobj.fanyi_target.setCurrentText(current_target)
         winobj.aisendsrt.setChecked(settings.get('aisendsrt'))
 
     # 翻译渠道变化时重新设置目标语言
     def translate_type_change(idx):
-        update_target_language()
-        target_lang_change(winobj.fanyi_target.currentText())
+        translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=winobj.fanyi_target.currentText())
         show_model_list()
 
     # 显示模型列表

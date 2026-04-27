@@ -852,6 +852,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
     # 如果只需要判断是否填写了 api key 等信息，到此返回
     if only_key:
         return True
+
     # 再判断是否为No，即不支持
     index = 0
     if translate_type == BAIDU_INDEX:
@@ -882,6 +883,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
             tools.show_error(tr('deepl_nosupport') + f':{show_target}')
             return False
     return True
+
 
 
 # 获取用于进行语音识别的预设语言，比如语音是英文发音、中文发音

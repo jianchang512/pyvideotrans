@@ -1503,6 +1503,8 @@ class TransCreate(BaseTask):
                         cmd2[cmd2.index('-c:v')+1]=f'libx{self.video_codec_num}'
                         logger.warning(f'硬件处理视频合成失败，回退软编')
                         tools.runffmpeg(cmd0+cmd1+subtitle_filter+cmd2+enc_qua+cmd3,  cmd_dir=self.cfg.cache_folder, force_cpu=True)
+                # 复制ass硬字幕到目标文件夹下
+                shutil.copy2(f'{self.cfg.cache_folder}/{subtitles_file}',f'{self.cfg.target_dir}/{subtitles_file}')
         except Exception as e:
             msg = tr('Error in embedding the final step of the subtitle dubbing')
             raise RuntimeError(msg)
@@ -1512,7 +1514,7 @@ class TransCreate(BaseTask):
             try:
                 shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4)
             except Exception as e:
-                raise RuntimeError(tr('Translation successful but transfer failed. ', tmp_target_mp4))
+                raise RuntimeError(tr('Translation successful but transfer failed.', tmp_target_mp4))
 
         self._create_txt()
         time.sleep(1)

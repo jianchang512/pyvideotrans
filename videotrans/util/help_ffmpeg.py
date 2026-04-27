@@ -351,6 +351,8 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         if result['time']<=0:
             result['time']=int(float(out['format']['duration'])*1000)
     except:
+        if out.get('format',{}).get('duration',)<=0:
+            raise RuntimeError(f'Failed to retrieve audio/video duration. Please check if the file [{mp4_file}] is valid.\n{out}')
         result['time']=int(float(out['format']['duration'])*1000)
     
         

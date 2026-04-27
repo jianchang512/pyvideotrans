@@ -192,10 +192,10 @@ def get_prompt(ainame,aisendsrt=True):
     glossary = ''
     if Path(ROOT_DIR + '/videotrans/glossary.txt').exists():
         glossary = Path(ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8',errors="ignore").strip()
-    if glossary:
-        glossary = "\n".join(["|" + it.replace("=", '|') + "|" for it in glossary.split('\n')])
-        glossary_prompt = """\n\n# Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n"""
-        content = content.replace('# ACTUAL TASK', f"""{glossary_prompt}{glossary}\n\n# ACTUAL TASK""")
+        if glossary:
+            glossary = "\n".join(["|" + it.replace("=", '|') + "|" for it in glossary.split('\n')])
+            glossary = f"\n\n# Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n{glossary}\n\n"
+    content = content.replace('{GLOSSARY_DICT}', glossary)
     return content
 
 

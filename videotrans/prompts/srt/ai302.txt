@@ -50,6 +50,8 @@ go to the hospital right now.
 
 ---
 
+{GLOSSARY_DICT}
+
 # ACTUAL TASK
 Translate and adapt ONLY the following SRT batch into {lang}. 
 Remember: natural and fluent spoken {lang}, and STRICTLY preserve every single block split!

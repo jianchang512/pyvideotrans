@@ -60,15 +60,15 @@ class FasterAll(BaseRecogn):
             "model_name": self.model_name,
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
-            "no_speech_threshold": float(settings.get('no_speech_threshold', 0.5)),
+            "no_speech_threshold": float(settings.get('no_speech_threshold', 0.6)),
             "condition_on_previous_text": settings.get('condition_on_previous_text', False),
             "speech_timestamps": self.speech_timestamps_file,
             "audio_file": self.audio_file,
             "jianfan": self.jianfan,
             "audio_duration":self.audio_duration,
             "temperature":settings.get('temperature'),
-            "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.2)),
-            "max_speech_ms":int(float(settings.get('max_speech_duration_s', 6)) * 1000)
+            "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.4)),
+            "max_speech_ms":int(float(settings.get('max_speech_duration_s', 5)) * 1000)
         }
         raws=self._new_process(callback=openai_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         return raws
@@ -84,7 +84,7 @@ class FasterAll(BaseRecogn):
             "model_name": self.model_name,
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
-            "no_speech_threshold": float(settings.get('no_speech_threshold', 0.5)),
+            "no_speech_threshold": float(settings.get('no_speech_threshold', 0.6)),
             "condition_on_previous_text": settings.get('condition_on_previous_text', False),
             "speech_timestamps": self.speech_timestamps_file,
             "audio_file": self.audio_file,
@@ -99,7 +99,7 @@ class FasterAll(BaseRecogn):
             "temperature":settings.get('temperature'),
             "repetition_penalty":float(settings.get('repetition_penalty',1.0)),
             "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.2)),
-            "max_speech_ms":int(float(settings.get('max_speech_duration_s', 6)) * 1000)
+            "max_speech_ms":int(float(settings.get('max_speech_duration_s', 5)) * 1000)
         }
 
         raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
