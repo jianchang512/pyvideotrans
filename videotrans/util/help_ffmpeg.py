@@ -346,16 +346,31 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "color": "yuv420p"
     }
     try:
+        logger.debug(f'The file information: {out}')
         # 以第一个流中duration为准，但可能某些格式，例如mkv第一个流中无duration字段或始终为0
-        result['time']=int(float(out['streams'][0]['duration'])*1000)#第一个流的长度为准
-        if result['time']<=0:
+        _duration=out['streams'][0].get('duration','DURATION')
+        # mp4 是  \d.\d 秒形式
+        if  re.match(r'^\d+(\.\d+)?$',_duration):
+            result['time']=int(float(_duration)*1000)#第一个流的长度为准
+        elif re.match(r'^\d+\:',_duration):
+            # 其他视频格式可能是 00:01:00.445
+            _t=_duration.split('.')
+            _s=float(f'0.{_t[1]}' if len(_t)>=2 else 0)
+            _tstr=_t[0].split(':')
+            _s+=float(_tstr[-1])
+            if len(_tstr)>=2:
+                _s+=float(_tstr[-2])*60
+            if len(_tstr)>=3:
+                _s+=float(_tstr[-3])*3600
+            
+            result['time']=int(_s*1000)
+        else:
             result['time']=int(float(out['format']['duration'])*1000)
-    except:
-        if out.get('format',{}).get('duration',)<=0:
-            raise RuntimeError(f'Failed to retrieve audio/video duration. Please check if the file [{mp4_file}] is valid.\n{out}')
+    except Exception as e:        
         result['time']=int(float(out['format']['duration'])*1000)
+        logger.exception(e,exc_info=True)
     
-        
+    
 
     video_stream = next((s for s in out['streams'] if s.get('codec_type') == 'video'), None)
     audio_streams = [s for s in out['streams'] if s.get('codec_type') == 'audio']
@@ -390,7 +405,8 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
 
         result['video_fps'] = fps_avg if 1 <= fps_avg <= 120 else 30
         result['r_frame_rate'] = video_stream.get('r_frame_rate',result['video_fps'])
-
+    
+    logger.debug(f'The file info after process:{result=}')
     # 确保向后兼容
     if video_time:
         return result['time']
