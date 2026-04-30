@@ -4,15 +4,15 @@ from pathlib import Path
 import sherpa_onnx
 import onnxruntime
 import numpy as np
-import wave
+import wave,threading
 
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QPlainTextEdit, QFileDialog
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QPlainTextEdit, QFileDialog,QMessageBox
 from PySide6.QtCore import QThread, Signal,Qt,QUrl,QTimer
 from PySide6.QtGui import QIcon, QCloseEvent,QDesktopServices
 
 from videotrans.configure.config import ROOT_DIR,HOME_DIR,tr
 import sounddevice as sd
-
+from videotrans.util import tools
 
 CTC_MODEL_FILE=f"{ROOT_DIR}/models/onnx/ctc.model.onnx"
 PAR_ENCODER = f"{ROOT_DIR}/models/onnx/encoder.onnx"
@@ -254,6 +254,17 @@ class Worker(QThread):
         wav_file.close()
         txt_file.close()
 
+class DownloadModel(QThread):
+    down = Signal(str)
+    def __init__(self,parent=None):
+        super().__init__(parent)
+    
+    
+    def run(self):
+        tools.down_zip(f"{ROOT_DIR}/models",'https://modelscope.cn/models/himyworld/videotrans/resolve/master/realtimestt.zip',self._process_callback)
+    def _process_callback(self,msg):
+        self.down.emit(msg)
+
 class CheckMics(QThread):
     devices = Signal(str)
     def __init__(self,parent=None):
@@ -285,6 +296,8 @@ class RealTimeWindow(QWidget):
         self.setWindowTitle(tr("Real-time speech-to-text") +" " + tr("Only supports Chinese and English language recognition"))
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.layout = QVBoxLayout(self)
+
+        self.downloading=False
 
         # Microphone selection
        
@@ -351,21 +364,18 @@ class RealTimeWindow(QWidget):
         self.worker = None
         self.transcribing = False
         
-        QTimer.singleShot(300, self.populate_mics)
+        QTimer.singleShot(500, self.populate_mics)
         
     
 
     def _process_callback(self,msg):
-        self.realtime_text.setPlainText(msg)
-
-    def check_model_exist(self):
-        if not Path(PAR_ENCODER).exists() or not Path(CTC_MODEL_FILE).exists() or not Path(PAR_DECODER).exists():
-            import tools
-            tools.down_zip(f"{ROOT_DIR}/models",'https://modelscope.cn/models/himyworld/videotrans/resolve/master/realtimestt.zip',self._process_callback)
-            return False
-        return True
-        
-        
+        self.realtime_text.setPlainText(msg)        
+        if msg.startswith('Error:') or msg.endswith(' end'):
+            self.start_button.setDisabled(False)
+        if msg.startswith('Error:'):
+            QMessageBox.critical(self, "Error",msg)
+            
+       
 
     def open_dir(self):
         if not Path(f'{HOME_DIR}/realtime_stt').exists():
@@ -388,12 +398,23 @@ class RealTimeWindow(QWidget):
         task=CheckMics(self)
         task.devices.connect(_get_dev)
         task.start()
-    
+        self._down()
         
+
+    def _down(self):
+        if not Path(PAR_ENCODER).exists() or not Path(CTC_MODEL_FILE).exists() or not Path(PAR_DECODER).exists():
+            # 开始下载模型
+            self.start_button.setDisabled(True)
+            d=DownloadModel(self)
+            d.down.connect(self._process_callback)
+            d.start()
+        else:
+            self.start_button.setDisabled(False)
         
 
     def toggle_transcription(self):
-        if self.check_model_exist() is not True:
+        if not Path(PAR_ENCODER).exists() or not Path(CTC_MODEL_FILE).exists() or not Path(PAR_DECODER).exists():
+            self._down()
             return
         if not self.transcribing:
             self.realtime_text.setPlainText(tr("Please wait"))

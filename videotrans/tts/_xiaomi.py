@@ -21,13 +21,13 @@ from dataclasses import dataclass
 
 
 @dataclass
-class MITTS(BaseTTS):
+class XiaoMiTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
         self.stop_next_all=False
         self.client = OpenAI(
-            api_key=params.get("mitts_key",''),
+            api_key=params.get("xiaomi_key",''),
             base_url="https://api.xiaomimimo.com/v1"
         )
         
@@ -60,7 +60,7 @@ class MITTS(BaseTTS):
 
             try:
                 completion = self.client.chat.completions.create(
-                    model="mimo-v2-tts",
+                    model=params.get("xiaomi_ttsmodel"),
                     messages=post_message,
                     audio={
                         "format": "wav",

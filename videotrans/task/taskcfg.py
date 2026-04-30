@@ -82,3 +82,5 @@ class TaskCfgVTT(TaskCfgSTT,TaskCfgTTS,TaskCfgSTS):
     recogn2pass:bool=False# 对配音音频再次识别
     output_srt:int=0# 转录并翻译 模式输出字幕类似，0=单字幕，1=目标语言在线双字幕，2=目标语言在上双字幕
     copysrt_rawvideo:bool=False# 是否将生成的字幕复制到视频目录下
+    loop_backaudio:int=0# 循环背景音 或 延长拉伸背景音
+    backaudio_volume:float=0.8#背景音量

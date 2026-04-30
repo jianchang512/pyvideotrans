@@ -213,7 +213,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionlibretranslate_key.setText("LibreTranslate API")
         self.actionopenaitts_key.setText("OpenAI TTS")
         self.actionxaitts_key.setText("X.AI TTS")
-        self.actionmitts_key.setText("xiaomi TTS")
+        self.actionxiaomi_key.setText("XiaoMi AI")
         self.actionqwentts_key.setText("Qwen3 TTS(Bailian)")
         self.actionopenairecognapi_key.setText(
             tr("OpenAI Speech to Text API"))
@@ -611,7 +611,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_qwenttslocal.triggered.connect(lambda: self._open_winform('qwenttslocal'))
         self.actionopenaitts_key.triggered.connect(lambda: self._open_winform('openaitts'))
         self.actionxaitts_key.triggered.connect(lambda: self._open_winform('xaitts'))
-        self.actionmitts_key.triggered.connect(lambda: self._open_winform('mitts'))
+        self.actionxiaomi_key.triggered.connect(lambda: self._open_winform('xiaomi'))
         self.actionqwentts_key.triggered.connect(lambda: self._open_winform('qwentts'))
         self.actionopenairecognapi_key.triggered.connect(lambda: self._open_winform('openairecognapi'))
         self.actiontts_fishtts.triggered.connect(lambda: self._open_winform('fishtts'))

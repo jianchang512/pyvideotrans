@@ -16,6 +16,7 @@ _module_map = {
 "deepgram":".deepgram",
 "deepL":".deepL",
 "deepLX":".deepLX",
+"xiaomi":".xiaomi",
 "deepseek":".deepseek",
 "doubao":".doubao",
 "doubao2":".doubao2",

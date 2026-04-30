@@ -632,40 +632,25 @@ class WinAction(WinActionSub):
 
 
 
-        params.getset_params(self.cfg)
-        params.save()
-
-        self.delete_process()
-        # 设为开始
-        self.update_status('ing')
 
 
         if self.main.recogn_type.currentIndex() == recognition.FASTER_WHISPER or self.main.app_mode == 'biaozhun':
             # 背景音量
-            settings['loop_backaudio'] = self.main.is_loop_bgm.currentIndex()
+            self.cfg['loop_backaudio'] = self.main.is_loop_bgm.currentIndex()
             try:
-                settings['backaudio_volume'] = float(self.main.bgmvolume.text())
+                self.cfg['backaudio_volume'] = float(self.main.bgmvolume.text())
             except ValueError:
                 pass
 
-            # VAD参数
-            settings["threshold"] = min(
-                0.9,
-                max(float(self.main.threshold.text().strip()), 0.1)
-            )
-            settings["min_speech_duration_ms"] = int(self.main.min_speech_duration_ms.text())
-            settings["min_silence_duration_ms"] = int(self.main.min_silence_duration_ms.text())
-            settings["max_speech_duration_s"] = int(self.main.max_speech_duration_s.text())
-        
-        settings['dubbing_wait'] = self.main.dubbing_wait.text()
-        settings['trans_thread'] = self.main.trans_thread.text()
-        settings['aitrans_thread'] = self.main.aitrans_thread.text()
-        settings['translation_wait'] = self.main.translation_wait.text()
+        params.getset_params(self.cfg)
+        params.save()
 
-        # 中日韩硬字幕单行字符
-        settings['cjk_len'] = self.main.cjklinenums.value()
-        # 其他语言硬字幕单行字符
-        settings['other_len'] = self.main.othlinenums.value()
+        self.delete_process()
+        
+        # 设为开始
+        self.update_status('ing')
+        
+
         # AI翻译发送完整字幕
         settings['aisendsrt']=self.main.aisendsrt.isChecked()
         settings.save()

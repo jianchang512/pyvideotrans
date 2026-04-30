@@ -123,7 +123,7 @@ ChatTTS_VOICE="11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,555
 # openai-tts音色
 OPENAITTS_ROLES = "No,alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
 XAITTS_ROLES='eve,ara,rex,sal,leo'
-MITTS_ROLES='mimo_default,default_zh,default_en'
+MITTS_ROLES='mimo_default,default_zh,冰糖,茉莉,苏打,白桦,Mia,Milo,Dean,Chloe,default_en'
 # 缺省 gemini 模型
 DEFAULT_GEMINI_MODEL = "gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash"
 # gemini-tts 音色
@@ -156,3 +156,7 @@ MINIMAX_TTS_MODELS=["speech-2.8-hd","speech-2.8-turbo","speech-2.6-hd","speech-2
 
 
 ELEVENLABS_TTS_MODELS="eleven_v3,eleven_flash_v2_5,eleven_flash_v2,eleven_multilingual_v2,eleven_multilingual_v1"
+
+
+XIAOMI_MODELS='mimo-v2.5-pro,mimo-v2.5,mimo-v2.5-flash,mimo-v2-pro,mimo-v2-omni'
+XIAOMI_TTS_MODELS='mimo-v2.5-tts,mimo-v2-tts'

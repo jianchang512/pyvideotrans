@@ -225,18 +225,20 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
                         # 单文件进度 0-100
                         file_percent = min(99.0, downloaded * 100 / total_length)
                         if callback:
-                            callback(f'{filename} {file_percent:.2f}%')
+                            callback(f'{tr("Download Models")} {filename} {file_percent:.2f}%')
 
             if callback:
-                callback(f'Extracting zip')
+                callback(f'Extracting zip...')
             dest_file_obj.seek(0)  # 回到文件头
             with zipfile.ZipFile(dest_file_obj) as zf:
                 zf.extractall(path=local_dir)
             if callback:
-                callback('extract end')
+                callback('Downloaded end')
             dest_file_obj.close()
     except Exception as e:
         msg = tr('model is missing. Please download it', local_dir)
+        if callback:
+            callback(f'Error:{msg}')
         raise RuntimeError(f"{msg}\n[{zip_url}]\n{e}")
     return True
 

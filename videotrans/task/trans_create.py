@@ -1105,7 +1105,7 @@ class TransCreate(BaseTask):
             self.convert_to_wav(self.cfg.background_music, bgm_file)
             self.cfg.background_music = bgm_file
             beishu = math.ceil(vtime / atime)
-            if settings.get('loop_backaudio') and beishu > 1 and vtime - 1000 > atime:
+            if self.cfg.loop_backaudio and beishu > 1 and vtime - 1000 > atime:
                 # 获取延长片段
                 file_list = [self.cfg.background_music for n in range(beishu + 1)]
                 concat_txt = self.cfg.cache_folder + f'/{time.time()}.txt'
@@ -1118,7 +1118,7 @@ class TransCreate(BaseTask):
             tools.runffmpeg(
                 ['-y',
                  '-i', self.cfg.background_music,
-                 "-filter:a", f"volume={settings.get('backaudio_volume', 0.8)}",
+                 "-filter:a", f"volume={self.cfg.backaudio_volume}",
                  '-c:a', 'pcm_s16le',
                  self.cfg.cache_folder + f"/bgm_file_extend_volume.wav"
                  ])
@@ -1153,7 +1153,7 @@ class TransCreate(BaseTask):
             instrument_file = self.cfg.instrument
             logger.debug(f'合并背景音 {beishu=},{atime=},{vtime=}')
             if atime + 1000 < vtime:
-                if int(settings.get('loop_backaudio'))==1:
+                if int(self.cfg.loop_backaudio)==1:
                     # 背景音连接延长片段
                     file_list = [instrument_file for n in range(beishu + 1)]
                     concat_txt = self.cfg.cache_folder + f'/{time.time()}.txt'
@@ -1176,7 +1176,7 @@ class TransCreate(BaseTask):
         tmpwav = Path(tmpdir + f'/{time.time()}-1.wav').as_posix()
         tmpm4a = Path(tmpdir + f'/{time.time()}.wav').as_posix()
         # 背景转为m4a文件,音量降低为0.8
-        self.convert_to_wav(backwav, tmpm4a, ["-filter:a", f"volume={settings.get('backaudio_volume', 0.8)}"])
+        self.convert_to_wav(backwav, tmpm4a, ["-filter:a", f"volume={self.cfg.backaudio_volume}"])
         tools.runffmpeg(['-y', '-i', os.path.basename(peiyinm4a), '-i', os.path.basename(tmpm4a), '-filter_complex',
                          "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k",
                          '-c:a', 'pcm_s16le', os.path.basename(tmpwav)], cmd_dir=self.cfg.cache_folder)

@@ -174,7 +174,7 @@ class WinActionSub:
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.subtitle_type.show()
         self.main.rephrase.show()
-        self.main.remove_noise.show()
+
 
         # 字幕对齐行
         self.main.align_btn.show()
@@ -182,11 +182,7 @@ class WinActionSub:
         self.main.label_6.show()
         self.main.voice_autorate.show()
         self.main.video_autorate.show()
-        self.main.label_cjklinenums.show()
-        self.main.cjklinenums.show()
-        self.main.set_ass.show()
-        self.main.label_othlinenums.show()
-        self.main.othlinenums.show()
+
         self.main.output_srt_label.hide()
         if platform.system() != 'Darwin':
             self.main.enable_cuda.show()
@@ -246,7 +242,7 @@ class WinActionSub:
         self.main.subtitle_type.setCurrentIndex(1)
         self.main.subtitle_type.hide()
         self.main.rephrase.show()
-        self.main.remove_noise.show()
+
 
         # 字幕对齐行
         self.main.align_btn.hide()
@@ -257,7 +253,7 @@ class WinActionSub:
         self.main.output_srt.show()
         self.main.output_srt_label.show()
 
-        self.main.set_ass.hide()
+
         self.main.remove_silent_mid.hide()
         self.main.align_sub_audio.hide()
         if platform.system() != 'Darwin':
@@ -270,10 +266,7 @@ class WinActionSub:
     # 显示或隐藏高级选项
     def toggle_adv(self):
         self.show_adv_status=not self.show_adv_status
-        self.hide_show_element(self.main.hfaster_layout,self.show_adv_status)
-        self.hide_show_element(self.main.adv_layout,self.show_adv_status)
         self.hide_show_element(self.main.bgm_layout,self.show_adv_status)
-        self.hide_show_element(self.main.trans_thread_layout,self.show_adv_status)
         self.hide_show_element(self.main.dubb_thread_layout,self.show_adv_status)
         self.main.advcontainer.setVisible(self.show_adv_status)
 
@@ -327,6 +320,7 @@ class WinActionSub:
             if not folder_path:
                 return
             p = Path(folder_path)
+            p_out=p.parent/'_video_out'/p.name
 
             # 使用列表推导式一行完成
             mp4_list = [
@@ -336,7 +330,7 @@ class WinActionSub:
             ]
 
             params['last_opendir'] = p.as_posix()
-            self.main.target_dir = p.parent.as_posix()+"/_video_out"
+            self.main.target_dir = p_out.as_posix()
             print(f'{self.main.target_dir=}')
             self.main.btn_save_dir.setToolTip(self.main.target_dir)
         else:
@@ -483,8 +477,7 @@ class WinActionSub:
         self.main.remove_silent_mid.setDisabled(type)
         self.main.align_sub_audio.setDisabled(type)
         self.main.remove_noise.setDisabled(type)
-        self.main.cjklinenums.setDisabled(type)
-        self.main.othlinenums.setDisabled(type)
+
         self.main.bgmvolume.setDisabled(type)
         self.main.set_adv_status.setDisabled(type)
         self.main.select_file_type.setDisabled(type)

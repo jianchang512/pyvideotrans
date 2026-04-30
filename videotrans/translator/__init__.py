@@ -42,7 +42,8 @@ LIBRE_INDEX = 20
 MyMemoryAPI_INDEX = 21
 TRANSAPI_INDEX = 22
 MINIMAX_INDEX = 23
-CAMB_INDEX = 24
+XIAOMI_INDEX = 24
+CAMB_INDEX = 25
 
 
 
@@ -60,6 +61,7 @@ AI_TRANS_CHANNELS=[
     DEEPSEEK_INDEX,
     OPENROUTER_INDEX,
     MINIMAX_INDEX,
+    XIAOMI_INDEX,
     CAMB_INDEX
 ]
 # 翻译通道名字列表，显示在界面
@@ -94,6 +96,7 @@ _ID_NAME_DICT = {
     MyMemoryAPI_INDEX:tr('MyMemoryAPI'),
     TRANSAPI_INDEX:tr('Customized API'),
     MINIMAX_INDEX:"MiniMax AI",
+    XIAOMI_INDEX:"XiaoMi AI",
     CAMB_INDEX:"CAMB AI",
 }
 TRANSLASTE_NAME_LIST=list(_ID_NAME_DICT.values())
@@ -724,6 +727,12 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         from videotrans.winform import deepseek
         deepseek.openwin()
         return False
+    if translate_type == XIAOMI_INDEX and not params.get('xiaomi_key',''):
+        if return_str:
+            return "请在菜单-Xiaomi中填写api key"
+        from videotrans.winform import xiaomi
+        xiaomi.openwin()
+        return False
     if translate_type == OPENROUTER_INDEX and not params.get('openrouter_key',''):
         if return_str:
             return "请在菜单-OpenRouter中填写api key"
@@ -1015,6 +1024,9 @@ def run(*, translate_type=0,
     if translate_type == DEEPSEEK_INDEX:
         from videotrans.translator._deepseek import DeepSeek
         return DeepSeek(**kwargs).run()
+    if translate_type == XIAOMI_INDEX:
+        from videotrans.translator._xiaomi import XiaoMi
+        return XiaoMi(**kwargs).run()
 
     if translate_type == SILICONFLOW_INDEX:
         from videotrans.translator._siliconflow import SILICONFLOW

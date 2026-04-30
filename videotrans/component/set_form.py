@@ -43,7 +43,7 @@ from videotrans.ui.minimax import Ui_minimaxform
 from videotrans.ui.openairecognapi import Ui_openairecognapiform
 from videotrans.ui.openaitts import Ui_openaittsform
 from videotrans.ui.xaitts import Ui_xaittsform
-from videotrans.ui.mitts import Ui_mittsform
+from videotrans.ui.xiaomi import Ui_xiaomiform
 from videotrans.ui.openrouter import Ui_openrouterform
 from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.parakeet import Ui_parakeetform
@@ -134,7 +134,7 @@ class OpenAITTSForm(QDialogBase, Ui_openaittsform):  # <===
 class XAITTSForm(QDialogBase, Ui_xaittsform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
-class MITTSForm(QDialogBase, Ui_mittsform):  # <===
+class XiaomiForm(QDialogBase, Ui_xiaomiform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
 

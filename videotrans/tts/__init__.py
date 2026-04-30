@@ -3,31 +3,6 @@ import copy
 
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 
-from videotrans.tts._minimaxi import MinimaxiTTS
-from videotrans.tts._freeazure import FreeAzureTTS
-from videotrans.tts._cosyvoice import CosyVoice
-from videotrans.tts._omnivoice import OmniVoice
-from videotrans.tts._ai302tts import AI302
-from videotrans.tts._chattts import ChatTTS
-from videotrans.tts._fishtts import FishTTS
-from videotrans.tts._kokoro import KokoroTTS
-from videotrans.tts._gptsovits import GPTSoVITS
-from videotrans.tts._chatterbox import ChatterBoxTTS
-from videotrans.tts._clone import CloneVoice
-from videotrans.tts._openaitts import OPENAITTS
-from videotrans.tts._elevenlabs import ElevenLabsC
-from videotrans.tts._gtts import GTTS
-from videotrans.tts._geminitts import GEMINITTS
-from videotrans.tts._qwenttslocal import QwenttsLocal
-from videotrans.tts._ttsapi import TTSAPI
-from videotrans.tts._doubao import DoubaoTTS
-from videotrans.tts._doubao2 import Doubao2TTS
-from videotrans.tts._f5tts import F5TTS
-from videotrans.tts._glmtts import GLMTTS
-from videotrans.tts._xaitts import XAITTS
-from videotrans.tts._mitts import MITTS
-from videotrans.tts._cambtts import CambTTS
-from videotrans.tts._mosstts import MossTTS
 
 EDGE_TTS = 0
 QWEN3LOCAL_TTS = 1
@@ -127,7 +102,7 @@ _ID_NAME_DICT = {
     GOOGLE_TTS: "gTTS(free)",
 
     XAI_TTS: 'X.AI TTS',
-    XIAOMI_TTS:'xiaomi TTS',
+    XIAOMI_TTS:'XiaoMi TTS',
     TTS_API: tr("Customize API"),
 
     CAMB_TTS: "CAMB AI TTS",
@@ -182,10 +157,10 @@ def is_input_api(tts_type: int = None, return_str=False):
         from videotrans.winform import xaitts as xaitts_win
         xaitts_win.openwin()
         return False
-    if tts_type == XIAOMI_TTS and not params.get("mitts_key", ''):
+    if tts_type == XIAOMI_TTS and not params.get("xiaomi_key", ''):
         if return_str:
             return "Please configure the api key information of the xiaomi TTS  channel first."
-        from videotrans.winform import mitts as mitts_win
+        from videotrans.winform import xiaomi as mitts_win
         mitts_win.openwin()
         return False
     
@@ -441,8 +416,8 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         from videotrans.tts._xaitts import XAITTS
         XAITTS(**kwargs).run()
     elif tts_type == XIAOMI_TTS:
-        from videotrans.tts._mitts import MITTS
-        MITTS(**kwargs).run()
+        from videotrans.tts._xiaomi import XiaoMiTTS
+        XiaoMiTTS(**kwargs).run()
     elif tts_type == CAMB_TTS:
         from videotrans.tts._cambtts import CambTTS
         CambTTS(**kwargs).run()
