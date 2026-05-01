@@ -338,6 +338,7 @@ class AppSettings:
             "countdown_sec": 30,
             "backaudio_volume": 0.8,
             "loop_backaudio": 1,
+            "pseudo_original":False,
             "cuda_com_type": "default",
             "initial_prompt_zh-cn": "",  # 注意：在对象中会映射为 _zh_cn
             "initial_prompt_zh-tw": "",

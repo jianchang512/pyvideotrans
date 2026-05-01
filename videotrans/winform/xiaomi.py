@@ -19,6 +19,8 @@ def openwin():
         params["xiaomi_maxtoken"] = xiaomi_maxtoken
         params["xiaomi_model"] = model
         params["xiaomi_key"] = key
+        
+        params["xiaomi_thinking"] = winobj.xiaomi_thinking.isChecked()
 
         ttsmodel = winobj.ttsmodel.currentText()
         params["xiaomi_ttsmodel"] = ttsmodel
@@ -39,6 +41,7 @@ def openwin():
 
         params["xiaomi_model"] = model
         params["xiaomi_key"] = key
+        params["xiaomi_thinking"] = winobj.xiaomi_thinking.isChecked()
 
         ttsmodel = winobj.ttsmodel.currentText()
         params["xiaomi_ttsmodel"] = ttsmodel

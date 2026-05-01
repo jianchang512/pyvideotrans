@@ -67,12 +67,12 @@ class BaseRecogn(BaseCon):
         self.half_flag = [",", "，", "-", "、", ":", "："]
         # 句子终止标点
         self.end_flag = [".", "。", "?", "？", "!", "！"]
-        # 连接字符 中日韩粤语 直接连接，无需空格，其他语言空格连接
+        # 连接字符 中日韩粤语高棉语泰国语 直接连接，无需空格，其他语言空格连接
         self.join_word_flag = " "
         # 中日韩文字
         self.is_cjk = False
 
-        if self.detect_language and self.detect_language[:2].lower() in ['zh', 'ja', 'ko', 'yu']:
+        if self.detect_language and self.detect_language[:2].lower() in ['zh', 'ja', 'ko', 'yu','th','km']:
             self.maxlen = int(float(settings.get('cjk_len', 20)))
             self.jianfan = True if self.detect_language[:2] == 'zh' and settings.get('zh_hant_s') else False
             self.flag.append(" ")

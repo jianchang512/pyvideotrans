@@ -3,6 +3,7 @@ LISTEN_TEXT={
         "zh": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
         "zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
         "zh-tw": "你好啊，我親愛的朋友，希望你的每一天都是美好愉快的！",
+        "km": "សួស្តីមិត្តជាទីស្រឡាញ់របស់ខ្ញុំ ខ្ញុំសង្ឃឹមថារាល់ថ្ងៃរបស់អ្នកគឺអស្ចារ្យ និងរីករាយ។!",
         "nb": "Hallo, min kjære venn, jeg håper hver dag din er fantastisk og gledelig.",
         "en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
         "fr": "Bonjour mon cher ami. J'espère que votre quotidien est beau et agréable !",
@@ -158,5 +159,5 @@ MINIMAX_TTS_MODELS=["speech-2.8-hd","speech-2.8-turbo","speech-2.6-hd","speech-2
 ELEVENLABS_TTS_MODELS="eleven_v3,eleven_flash_v2_5,eleven_flash_v2,eleven_multilingual_v2,eleven_multilingual_v1"
 
 
-XIAOMI_MODELS='mimo-v2.5-pro,mimo-v2.5,mimo-v2.5-flash,mimo-v2-pro,mimo-v2-omni'
+XIAOMI_MODELS='mimo-v2.5-pro,mimo-v2.5,mimo-v2-pro,mimo-v2-omni'
 XIAOMI_TTS_MODELS='mimo-v2.5-tts,mimo-v2-tts'

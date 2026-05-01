@@ -98,9 +98,9 @@ class Ui_setini(object):
                 "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
                 "condition_on_previous_text": "若开启将占用更多GPU，效果也更好，但也容易出现重复或幻觉",
 
-                "zh_hant_s": "强制将识别出的繁体字幕转为简体",
-                "noise_separate_nums": "人声背景声分离线程数，越大越快但占用资源越多",
-                "uvr_models":"选择分离背景声时所用模型"
+                "zh_hant_s": "强制将识别出的繁体字幕转为简体"
+                
+                
 
             },
 
@@ -121,7 +121,10 @@ class Ui_setini(object):
                 "azure_lines": "Azure TTS批量配音行数，一次多少行",
                 "chattts_voice": "ChatTTS 音色值",
                 "edgetts_max_concurrent_tasks": "EdgeTTS渠道配音并发数，越大越快，但可能限流失败",
-                "edgetts_retry_nums": "EdgeTTS渠道失败后重试次数,有些失败无论多少次重试也无法恢复，太大只会延长耗时"
+                "edgetts_retry_nums": "EdgeTTS渠道失败后重试次数,有些失败无论多少次重试也无法恢复，太大只会延长耗时",
+                "noise_separate_nums": "人声背景声分离线程数，越大越快但占用资源越多",
+                "uvr_models":"选择分离背景声时所用模型",
+                "pseudo_original":"对背景音乐伪原创处理，只有选中了分离人声背景或添加了额外背景音频时生效"
             },
             "justify": {
 
@@ -188,6 +191,7 @@ class Ui_setini(object):
             "hw_decode":"视频合成cuda硬解码",
             "normal_text":"文本规范化",
             "uvr_models":"分离背景声模型",
+            "pseudo_original":"背景音伪原创处理",
 
             "whisper_prepare": "Whisper预分割音频?",
             "temperature":"采样温度",
@@ -352,9 +356,8 @@ class Ui_setini(object):
                     "beam_size": "Beam size for transcription (1-5). Higher is more accurate but uses more VRAM.",
                     "best_of": "Best-of for transcription (1-5). Higher is more accurate but uses more VRAM.",
                     "condition_on_previous_text": "Condition on previous text for better context (uses more GPU, may cause repetition).",
-                    "zh_hant_s": "Force conversion of recognized Traditional Chinese to Simplified Chinese.",
-                    "noise_separate_nums": "The more threads used for separation of human and background voices, the faster the process, but the more resources it consumes.",
-                    "uvr_models":"Select the model used when separating background noise."
+                    "zh_hant_s": "Force conversion of recognized Traditional Chinese to Simplified Chinese."
+                    
                 },
                 "trans": {
                     "trans_thread": "Number of subtitle lines per request for traditional translation.",
@@ -373,7 +376,10 @@ class Ui_setini(object):
                     "azure_lines": "Number of lines per batch request for Azure TTS.",
                     "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
                     "edgetts_retry_nums": "Number of retries after EdgeTTS channel failure",
-                    "chattts_voice": "ChatTTS voice timbre value."
+                    "chattts_voice": "ChatTTS voice timbre value.",
+                    "noise_separate_nums": "The more threads used for separation of human and background voices, the faster the process, but the more resources it consumes.",
+                    "uvr_models":"Select the model used when separating background noise.",
+                    "pseudo_original":"Pseudo-original processing of background music"
                 },
                 "justify": {
 
@@ -445,6 +451,7 @@ class Ui_setini(object):
                 "remove_dubb_silence":"Remove the mute buffer each subtitle audio",
                 "normal_text":"Text Text normalization",
                 "uvr_models":"BGM separation model",
+                "pseudo_original":"Pseudo-original for BGM",
 
                 "repetition_penalty":"repetition penalty",
                 "compression_ratio_threshold":"compression ratio threshold",

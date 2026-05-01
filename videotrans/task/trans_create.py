@@ -1088,7 +1088,7 @@ class TransCreate(BaseTask):
             if len(all_task) > 0:
                 _ = [i.result() for i in all_task]
 
-    # 添加背景音乐
+    # 添加手动上传的额外背景音乐
     def _back_music(self) -> None:
         if self._exit() or not self.shoud_dubbing:
             return
@@ -1115,17 +1115,14 @@ class TransCreate(BaseTask):
                     out=self.cfg.cache_folder + "/bgm_file_extend.wav")
                 self.cfg.background_music = self.cfg.cache_folder + "/bgm_file_extend.wav"
             # 背景音频降低音量
-            tools.runffmpeg(
-                ['-y',
-                 '-i', self.cfg.background_music,
-                 "-filter:a", f"volume={self.cfg.backaudio_volume}",
-                 '-c:a', 'pcm_s16le',
-                 self.cfg.cache_folder + f"/bgm_file_extend_volume.wav"
-                 ])
+            if settings.get('pseudo_original'):
+                # 背景音进行伪原创处理
+                self.cfg.background_music=self._pseudo_original(self.cfg.background_music)
+
             # 背景音频和配音合并
             cmd = ['-y',
                    '-i', os.path.basename(self.cfg.target_wav),
-                   '-i', "bgm_file_extend_volume.wav",
+                   '-i', self.cfg.background_music,
                    '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2",
                    '-ac', '2',
                    '-c:a', 'pcm_s16le',
@@ -1165,11 +1162,27 @@ class TransCreate(BaseTask):
                     tools.change_speed_rubberband(instrument_file, self.cfg.cache_folder + f"/instrument-concat.wav", vtime)
                 instrument_file=self.cfg.cache_folder + f"/instrument-concat.wav"
             # 背景音合并配音
+            if settings.get('pseudo_original'):
+                # 背景音进行伪原创处理
+                instrument_file=self._pseudo_original(instrument_file)
             self._backandvocal(instrument_file, self.cfg.target_wav)
         except Exception as e:
             logger.exception(e, exc_info=True)
 
-    # 合并后最后文件仍为 人声文件，时长需要等于人声
+    def _pseudo_original(self,input_audio):
+        from . import pseudo
+        out_file=f'{input_audio}-pseudo.wav'
+        try:
+            self.precent+=1
+            self._signal(text='Pseudo-original processing of background music...')
+            logger.debug(f'[对背景音进行伪原创处理]{input_audio=}')
+            pseudo.process_audio(input_audio,out_file)
+        except Exception as e:
+            logger.exception(e,exc_info=True)
+            return input_audio
+        return out_file
+
+    # 合并分离出的背景音和人声文件，时长需要等于人声
     def _backandvocal(self, backwav, peiyinm4a):
         backwav = Path(backwav).as_posix()
         tmpdir = self.cfg.cache_folder
@@ -1343,7 +1356,7 @@ class TransCreate(BaseTask):
             except Exception:
                 pass
 
-            # 添加背景音乐
+            # 手动添加的背景音乐嵌入
             self._back_music()
             # 重新嵌入分离出的背景音
             self._separate()

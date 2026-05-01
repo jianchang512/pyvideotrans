@@ -641,8 +641,9 @@ class WinAction(WinActionSub):
                 self.cfg['backaudio_volume'] = float(self.main.bgmvolume.text())
             except ValueError:
                 pass
-
-        params.getset_params(self.cfg)
+        
+        
+        params.getset_params(self.cfg | {"select_file_type":self.main.select_file_type.isChecked()})
         params.save()
 
         self.delete_process()

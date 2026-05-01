@@ -53,6 +53,9 @@ class DeepSeek(BaseTrans):
             timeout=300,
             temperature=float(settings.get('aitrans_temperature',0.2)),
             max_tokens=int(params.get('deepseek_max_token', 40960)),
+            reasoning_effort="high" if params.get('deepseek_thinking') else None,
+            extra_body={"thinking": {"type": "enabled" if params.get('deepseek_thinking') else "disabled" }}
+
         )
 
         logger.debug(f'[deepseek]响应:{response=}')

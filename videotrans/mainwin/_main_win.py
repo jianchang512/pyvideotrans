@@ -362,7 +362,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if _subtitle_type>2:
             self.output_srt.setVisible(True)
             self.output_srt.setCurrentIndex(_output_srt if _output_srt>0 else 2)
-
+        
+        self.select_file_type.setChecked(bool(params.get('select_file_type',False)))
         self.voice_rate.setValue(int(params.get('voice_rate', '0').replace('%', '')))
         self.volume_rate.setValue(int(params.get('volume', '0').replace('%', '')))
         self.pitch_rate.setValue(int(params.get('pitch', '0').replace('Hz', '')))

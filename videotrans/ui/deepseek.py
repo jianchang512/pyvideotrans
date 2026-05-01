@@ -64,8 +64,14 @@ class Ui_deepseekform(object):
         self.deepseek_max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.deepseek_max_token.setObjectName("deepseek_max_token")
         
+
+        self.deepseek_thinking = QtWidgets.QCheckBox()
+        self.deepseek_thinking.setObjectName("deepseek_thinking")
+        self.deepseek_thinking.setText("Thinking")
+        
         h_deepseek_max_token.addWidget(label_deepseek_max_token)
         h_deepseek_max_token.addWidget(self.deepseek_max_token)
+        h_deepseek_max_token.addWidget(self.deepseek_thinking)
         
         v1.addLayout(h_deepseek_max_token)
 
@@ -123,6 +129,7 @@ class Ui_deepseekform(object):
         self.edit_allmodels.setPlainText(allmodels_str)
         self.deepseek_max_token.setText(str(params.get('deepseek_max_token',40960)))
 
+        self.deepseek_thinking.setChecked(bool(params.get("deepseek_thinking",False)))
         self.deepseek_key.setText(params.get("deepseek_key",''))
         self.deepseek_model.setCurrentText(params.get("deepseek_model",''))
 

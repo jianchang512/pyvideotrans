@@ -53,6 +53,10 @@ class XiaoMi(BaseTrans):
             timeout=300,
             temperature=float(settings.get('aitrans_temperature',0.2)),
             max_tokens=int(params.get('xiaomi_maxtoken', 40960)),
+            extra_body={
+                "thinking": {"type": "disabled" if params.get('xiaomi_thinking') else 'disabled'}
+            }
+
         )
 
         logger.debug(f'[xiaomi]响应:{response=}')

@@ -159,7 +159,7 @@ def _resegment(texts, language, max_speech_ms):
 
     # --- 语言连接规则与标点判定 ---
     # 东方中日韩等语言通常无需空格，其他字母系语言需空格
-    no_space_langs = {'zh', 'ja', 'th', 'yue', 'ko'}
+    no_space_langs = {'zh', 'ja', 'th', 'yue', 'ko','km'}
     use_space = language.lower() not in no_space_langs
 
     end_punc = set('.?!。？！\n')

@@ -51,8 +51,14 @@ class Ui_xiaomiform(object):
         self.xiaomi_maxtoken = QtWidgets.QLineEdit()
         self.xiaomi_maxtoken.setObjectName("xiaomi_maxtoken")
         
+        self.xiaomi_thinking = QtWidgets.QCheckBox()
+        self.xiaomi_thinking.setText('Thinking')
+        
         h_token.addWidget(label_token)
         h_token.addWidget(self.xiaomi_maxtoken)
+        h_token.addWidget(self.xiaomi_thinking)
+        
+        
         v1.addLayout(h_token)
         
 
@@ -124,6 +130,7 @@ class Ui_xiaomiform(object):
         self.edit_allmodels.setPlainText(allmodels_str)
         self.xiaomi_key.setText(params.get("xiaomi_key",''))
         self.model.setCurrentText(params.get("xiaomi_model",''))
+        self.xiaomi_thinking.setChecked(bool(params.get("xiaomi_thinking",False)))
         
         self.xiaomi_maxtoken.setText(str(params.get("xiaomi_maxtoken",'18192')))
 

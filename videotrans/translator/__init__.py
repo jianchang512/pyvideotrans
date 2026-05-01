@@ -144,7 +144,8 @@ LANGNAME_DICT = {
     "fil": tr("Filipino"),
     "ur": tr("Urdu"),
     "nb": tr("Norway"),# 书面挪威语
-    "yue": tr("Cantonese")
+    "yue": tr("Cantonese"),
+    "km": tr("Khmer"),# 高棉
 }
 
 # 如果存在新增
@@ -197,6 +198,19 @@ LANG_CODE = {
         "ur",  # 阿里
         "Urdu",
         "ur" # m2m100
+    ],
+    "km": [
+        "km",  # google通道
+        "khm",  # 字幕嵌入语言
+        "km",  # 百度通道
+        "No",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "km",  # 微软翻译
+        "Khmer",  # AI翻译
+        "km",  # 阿里
+        "Khmer",
+        "km" # m2m100
     ],
     "yue": [
         "yue",  # google通道
