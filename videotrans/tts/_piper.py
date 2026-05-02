@@ -65,15 +65,17 @@ class PiperTTS(BaseTTS):
                     continue
                 ok+=1
                 self.convert_to_wav(item['filename']+'-24k.wav',item['filename'])
+                self.error=''
             except Exception as e:
                 logger.exception(f'piper dubbing error:{e}',exc_info=True)
                 err+=1
+                self.error=e
 
         if err > 0:
             msg=f'[{err}] errors, {ok} succeed'
             self._signal(text=msg)
             logger.debug(f'piper配音结束：{msg}')
-            self.error=e
+            
 
         try:
             del _model_obj

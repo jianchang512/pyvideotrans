@@ -1,143 +1,80 @@
-"""
-音频处理脚本 - 保留人声、音效、环境音，降低/移除背景音乐
-用于规避 YouTube 原创检测
-"""
-
-import os
-import sys
 import numpy as np
 import librosa
 import soundfile as sf
-import argparse
-import subprocess
-import shutil
-from pathlib import Path
+import random
 
-
-
-class Config:
-    # 处理强度 0.0-1.0，越高降得越多（但可能影响人声）
-    # 推荐: 0.6-0.85，太高可能影响人声
-    INTENSITY = 1.0
-
-    # 保留音乐比例 0.0-1.0，设为0则完全移除背景音乐
-    # 推荐: 0.0 完全移除 / 0.2-0.3 保留一点音乐感
-    KEEP_MUSIC_RATIO = 0.9
-
-    # 是否保留环境音（低于80Hz的风声、雷声等）
-    KEEP_AMBIENT = True
-
-    # 人声增强（略微增强人声让对话更清晰）
-    VOICE_BOOST = 1.0
-
-    # 输出格式: 'video' 输出处理后的视频, 'audio' 只输出音频
-    OUTPUT_MODE = 'audio'
-
-    # 音频采样率
-    SAMPLE_RATE = 48000
-
-
-def spectral_subtraction(y, sr, intensity=1.0):
+def process_audio(
+    input_wav,
+    output_wav,
+    pitch_cents_range=(-20, 20),   # 随机音高偏移范围（音分）
+    noise_level_db=-70,            # 噪声电平（dB，满幅参考）
+    seed=None
+):
     """
-    谱减法 - 降低背景音乐成分
+    对音频进行不可感知的处理，改变声学指纹，但保持：
+      - 采样率不变
+      - 声道数不变
+      - 时长完全不变
+      - 听感与原版几乎无差异
+
+    参数
+    ----
+    input_wav : str  输入 WAV 路径
+    output_wav : str 输出 WAV 路径
+    pitch_cents_range : tuple  音高随机偏移范围，单位为音分（默认 ±20）
+    noise_level_db : float   叠加白噪声的 RMS 电平（默认 -70 dB，完全不可闻）
+    seed : int               随机种子，用于结果可复现
     """
-    y_mono = librosa.to_mono(y)
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
 
-    stft = librosa.stft(y_mono, n_fft=2048, hop_length=512)
-    magnitude = np.abs(stft)
-    phase = np.angle(stft)
-    freqs = librosa.fft_frequencies(sr=sr, n_fft=2048)
+    # 读取原始音频（保持原始采样率，单/立体声自适应）
+    y, sr = librosa.load(input_wav, sr=None, mono=False)
 
-    mask = np.ones_like(magnitude)
-
-    # 背景音乐主要频段 50-400Hz（连续低频）
-    music_band = (freqs >= 50) & (freqs <= 400)
-    mask[music_band, :] *= (1.0 - intensity * 0.75)
-
-    # 降低 400-800Hz（音乐中频）
-    mid_band = (freqs > 400) & (freqs <= 800)
-    mask[mid_band, :] *= (1.0 - intensity * 0.5)
-
-    magnitude_processed = magnitude * mask
-    stft_processed = magnitude_processed * np.exp(1j * phase)
-    y_processed = librosa.istft(stft_processed, hop_length=512)
-
-    return y_processed
-
-
-def preserve_voice_and_ambient(y, sr, keep_ambient=True, voice_boost=1.0):
-    """
-    保护人声和环境音
-    """
-    stft = librosa.stft(y, n_fft=2048, hop_length=512)
-    magnitude = np.abs(stft)
-    phase = np.angle(stft)
-    freqs = librosa.fft_frequencies(sr=sr, n_fft=2048)
-
-    mask = np.ones_like(magnitude)
-
-    # 核心人声基频 (80-280Hz)
-    fundamental = (freqs >= 80) & (freqs <= 280)
-    mask[fundamental, :] = voice_boost
-
-    # 人声泛音 (280Hz - 4kHz)
-    harmonics = (freqs > 280) & (freqs <= 4000)
-    mask[harmonics, :] = 0.9 * voice_boost
-
-    # 环境音保护 (<80Hz)
-    if keep_ambient:
-        ambient_low = freqs < 80
-        mask[ambient_low, :] = 1.0
-
-    # 高频音效 (>6kHz)
-    ambient_high = freqs > 6000
-    mask[ambient_high, :] = 0.7
-
-    # 保留瞬态峰值（音效）
-    transient_threshold = np.percentile(magnitude, 90)
-    is_transient = magnitude > transient_threshold
-    mask[is_transient] = 1.0
-
-    magnitude_protected = magnitude * mask
-    stft_protected = magnitude_protected * np.exp(1j * phase)
-    y_protected = librosa.istft(stft_protected, hop_length=512)
-
-    return y_protected
-
-
-def process_audio(audio_path, output_path=None):
-    """
-    处理音频文件
-    """
-    config = Config()
-    #print("  📂 加载音频...")
-    y, sr = librosa.load(audio_path, sr=config.SAMPLE_RATE, mono=False)
-
+    # 统一为 (channels, samples) 格式
     if y.ndim == 1:
-        y = np.array([y, y])
+        y = y[np.newaxis, :]      # 单声道 -> (1, n)
 
-    duration = y.shape[-1] / sr
-    #print(f"    时长: {duration:.1f}秒 | 采样率: {sr}Hz")
+    original_length = y.shape[1]  # 记录原始样本数
 
-    # 步骤1: 谱减法降低音乐
-    #print("  🔊 降低背景音乐...")
-    y1 = spectral_subtraction(y, sr, intensity=config.INTENSITY)
+    # -------------------- 1. 微音高偏移（时长不变）--------------------
+    n_steps = random.uniform(*pitch_cents_range) / 100.0   # 音分 → 半音数
+    if abs(n_steps) > 1e-6:
+        for ch in range(y.shape[0]):
+            # pitch_shift 内部保证输出长度与输入一致
+            y[ch] = librosa.effects.pitch_shift(
+                y[ch], sr=sr, n_steps=n_steps
+            )
 
-    # 步骤2: 保护人声和环境音
-    #print("  🎤 保护人声和环境音...")
-    y2 = preserve_voice_and_ambient(y1, sr, keep_ambient=config.KEEP_AMBIENT, voice_boost=config.VOICE_BOOST)
+    # -------------------- 2. 叠加极低电平白噪声 --------------------
+    if noise_level_db > -120:
+        noise_rms = 10 ** (noise_level_db / 20.0)   # 线性 RMS 值
+        noise = np.random.randn(*y.shape).astype(np.float32)
+        # 将噪声 RMS 调整到目标电平
+        noise *= noise_rms / (np.sqrt(np.mean(noise ** 2)) + 1e-10)
+        y = y + noise
 
-    # 步骤3: 进一步清理
-    #print("  ✨ 最终处理...")
-    y_final = spectral_subtraction(y2, sr, intensity=config.INTENSITY * 0.5)
+    # 再次确认长度不变（理论上 pitch_shift 不会改变长度，此处做保护）
+    assert y.shape[1] == original_length, "时长意外改变！"
 
-    # 归一化
-    y_final = y_final / (np.max(np.abs(y_final)) + 1e-10) * 0.95
+    # -------------------- 3. 防止削波 --------------------
+    max_val = np.max(np.abs(y))
+    if max_val > 1.0:
+        y = y / max_val * 0.99
 
+    # -------------------- 4. 保存为 16-bit WAV --------------------
+    if y.shape[0] > 1:
+        y_out = y.T          # soundfile 需要 (samples, channels)
+    else:
+        y_out = y[0]         # 单声道用 1D
 
+    sf.write(output_wav, y_out, sr, subtype='PCM_16')
 
-    sf.write(output_path, y_final.T, sr)
-
-    return output_path
-
+    print(
+        f"处理完成：音高偏移 {n_steps*100:.1f} 音分，"
+        f"噪声电平 {noise_level_db} dB，"
+        f"输出采样率 {sr} Hz，时长 {original_length/sr:.3f} 秒（不变）"
+    )
+    return output_wav
 
