@@ -45,7 +45,7 @@ def qwen3tts_fun(
         dtype=torch.float16
         try:
             import flash_attn
-        except ImportError:
+        except Exception:
             pass
         else:
             atten='flash_attention_2'
@@ -118,23 +118,11 @@ def qwen3tts_fun(
                 kw['x_vector_only_mode']=True
             else:
                 kw['ref_text']=ref_text
-            print(f'{kw=}')
             wavs, sr = BASE_OBJ.generate_voice_clone(**kw)
             sf.write(filename, wavs[0], sr)
         return True,None
-    except Exception:
+    except Exception as e:
         msg = traceback.format_exc()
         logger.exception(f'Qwen3-TTS 配音失败:{msg}', exc_info=True)
         return False, msg
-    finally:
-        try:
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            if CUSTOM_OBJ:
-                del CUSTOM_OBJ
-            if BASE_OBJ:
-                del BASE_OBJ
-            import gc
-            gc.collect()
-        except Exception:
-            pass
+

@@ -24,8 +24,8 @@ class OmniVoice(BaseTTS):
         # 语言代码 对应语言名称
         self.lang_code={
             "en": "English",
-            "zh-cn": "Chinese",
             "zh": "Chinese",
+            "zh-cn": "Chinese",
             "zh-tw": "Min Nan Chinese",
             "fr": "French",
             "de": "German",
@@ -33,6 +33,9 @@ class OmniVoice(BaseTTS):
             "ko": "Korean",
             "ru": "Russian",
             "es": "Spanish",
+            "el": "Greek",
+            "nb": "Norwegian Bokmål",
+            "km": "Khmer",
             "th": "Thai",
             "it": "Italian",
             "pt": "Portuguese",
@@ -104,7 +107,7 @@ class OmniVoice(BaseTTS):
             instruct='',
             ns=32,
             gs=2.0,
-            dn=True,
+            dn=False,
             sp=speed,
             du=0,
             pp=True,

@@ -1,5 +1,0 @@
-windows上下载ffmpeg后，将bin目录下的 ffmpeg.exe和ffprobe.exe 文件复制到当前目录下的 ffmpeg 文件夹内
-
-下载地址
-
-https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2023-11-30-12-55/ffmpeg-n6.0.1-win64-gpl-6.0.zip

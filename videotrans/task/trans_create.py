@@ -52,6 +52,7 @@ class TransCreate(BaseTask):
     # 是否是音频翻译任务，如果是，则到配音完毕即结束，无需合并
     is_audio_trans: bool = False
     queue_tts: List = field(default_factory=list, repr=False)
+    clone_ref:str=""
 
     def __post_init__(self):
         # 首先，处理本类的默认配置
@@ -244,6 +245,7 @@ class TransCreate(BaseTask):
 
         if audio_stream_len > 0 and not tools.vail_file(self.cfg.source_wav) and tools.vail_file(self.cfg.vocal):
             # 如果存在人声文件(可能仅仅分离成功人声，或者单独将其他工具分离出的人声放入目标文件夹)，则使用该文件作为语音识别文件
+            self.clone_ref=self.cfg.vocal
             cmd = [
                 "-y",
                 "-i",
@@ -303,6 +305,7 @@ class TransCreate(BaseTask):
                 _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                 if _rs:
                     self.cfg.source_wav = _remove_noise_wav
+                    self.clone_ref=_remove_noise_wav
                 self._signal(text='remove noise end')
             except Exception as e:
                 logger.exception(f'降噪静默失败{e}',exc_info=True)
@@ -1068,7 +1071,7 @@ class TransCreate(BaseTask):
     # 多线程实现裁剪参考音频
     def _create_ref_from_vocal(self):
         # 背景分离人声如果失败则直接使用原始音频
-        vocal = self.cfg.source_wav
+        vocal = self.cfg.source_wav if not self.clone_ref or not Path(self.clone_ref).exists() else self.clone_ref
 
         # 裁切对应片段为参考音频
         def _cutaudio_from_vocal(it):
