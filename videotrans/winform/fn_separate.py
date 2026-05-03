@@ -24,7 +24,7 @@ def openwin():
         # 更新
         if d == 'succeed':
             winobj.set.setText(tr('Separate End/Restart'))
-            winobj.fromfile.setText('')
+            winobj.logs.setText('Succeed ended')
         elif d == 'end':
             winobj.set.setText(tr('Start Separate'))
             winobj.logs.setText('')

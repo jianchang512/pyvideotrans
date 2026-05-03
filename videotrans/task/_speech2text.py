@@ -63,29 +63,59 @@ class SpeechToText(BaseTask):
         try:
             # 需要降噪
             if self.cfg.remove_noise:
-                title=tr("Starting to process speech noise reduction, which may take a long time, please be patient")
-                _remove_noise_wav=f"{self.cfg.cache_folder}/remove_noise.wav"
-                _cache_noise_wav=f"{TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
-                if not Path(_cache_noise_wav).exists():
-                    tools.check_and_down_ms(model_id='iic/speech_frcrn_ans_cirm_16k',callback=self._process_callback)
-                    from videotrans.process.prepare_audio import remove_noise
-                    kw={
-                        "input_file":self.cfg.shibie_audio,
-                        "output_file":_remove_noise_wav,
-                        "is_cuda":self.cfg.is_cuda
-                    }
-                    # 静默失败，不处理
-                    try:
-                        _rs = self._new_process(callback=remove_noise,title=title,kwargs=kw)
-                        if _rs:
-                            self.cfg.shibie_audio=_rs
-                            shutil.copy2(_rs,_cache_noise_wav)
-                            self._signal(text='remove noise end')
-                    except:
-                        pass
-                else:
-                    shutil.copy2(_cache_noise_wav,_remove_noise_wav)
-                    self.cfg.shibie_audio=_remove_noise_wav
+                title=tr('Starting to process speech noise reduction, which may take a long time, please be patient')
+                
+                tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
+                    f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/vocals.fp16.onnx",
+                    f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/accompaniment.fp16.onnx"
+                ], callback=self._process_callback)
+                
+                _44100_ac2=f"{self.cfg.cache_folder}/44100-ac2.wav"
+                _noise_wav=f"{TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
+                tools.runffmpeg([
+                            "-y",
+                            "-i",
+                            self.cfg.name,
+                            "-ac",
+                            "2",
+                            "-ar",
+                            "44100",
+                            "-c:a",
+                            "pcm_s16le",
+                            _44100_ac2
+                ])
+                
+
+                from videotrans.process.prepare_audio import vocal_bgm_spleeter
+                kw = {
+                    "input_file": _44100_ac2, 
+                    "vocal_file": _noise_wav, 
+                    "instr_file": f"{self.cfg.cache_folder}/remove_noise.wav"
+                }
+                # 静默失败，不处理
+                try:
+                    rs = self._new_process(callback=vocal_bgm_spleeter, title=title, is_cuda=False, kwargs=kw)
+                    if rs and tools.vail_file(_noise_wav):
+                        cmd = [
+                            "-y",
+                            "-i",
+                            _noise_wav,
+                            "-ac",
+                            "1",
+                            "-ar",
+                            "16000",
+                            "-c:a",
+                            "pcm_s16le",
+                            '-af',
+                            "volume=1.5",
+                            self.cfg.shibie_audio
+                        ]
+                        tools.runffmpeg(cmd)
+                        self._signal(text='remove noise end')
+                    logger.debug('降噪结束：批量语音转录使用分离人声替代降噪操作')
+                except Exception as e:
+                    logger.exception(f'降噪静默失败{e}',exc_info=True)
+
             if self._exit(): return
             # faster_xxl.exe 单独处理
             if self.cfg.recogn_type == Faster_Whisper_XXL:

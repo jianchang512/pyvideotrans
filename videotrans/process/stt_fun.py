@@ -117,7 +117,6 @@ def openai_whisper(
                 compression_ratio_threshold=compression_ratio_threshold,
                 condition_on_previous_text=condition_on_previous_text
             )
-            logger.debug(f'openai-whisper模式下，对{model_name}模型返回的断句结果重新后修正')
             texts = []
             i=0
             for segment in segments['segments']:
@@ -129,7 +128,9 @@ def openai_whisper(
                     "words": [{'word': it['word'], 'start': it['start'], 'end': it['end']} for it in segment['words']]
                 })
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment["text"]}\n'}))
-            raws = _resegment(texts, segments['language'], max_speech_ms)
+            logger.debug(f'openai-whisper模式下，对{model_name}模型返回的断句结果重新后修正')
+            raws = _resegment(texts, segments['language'], max_speech_ms,logs_file)
+            logger.debug(f'断句结果重新修正结束')
             if jianfan and raws:
                 for it in raws:
                     it['text'] = zhconv.convert(it['text'], 'zh-hans')
@@ -143,11 +144,12 @@ def openai_whisper(
 
 
 
-def _resegment(texts, language, max_speech_ms):
+def _resegment(texts, language, max_speech_ms,logs_file=None):
     """
     仅针对过长的 Whisper 识别结果重新断句，并格式化为 SRT 字幕格式。
     保留 Whisper 原本正常的短句，不对其进行全局拉平。
     """
+    import json
 
     # --- 辅助函数：将毫秒转换为 SRT 标准时间格式 HH:MM:SS,mmm ---
     def format_srt_time(ms_time):
@@ -181,12 +183,16 @@ def _resegment(texts, language, max_speech_ms):
 
     # --- 核心逻辑 ---
     final_segments = []
-
-    for segment in texts:
+    
+    _len=len(texts)
+    _block=100/_len
+    for seg_idx,segment in enumerate(texts):
         seg_start_ms = float(segment.get('start', 0)) * 1000
         seg_end_ms = float(segment.get('end', 0)) * 1000
         seg_duration = seg_end_ms - seg_start_ms
         words = segment.get('words', [])
+        _c_percent=seg_idx*_block
+        _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:{_c_percent:.2f}%'}))
 
         # 1. 如果该句话时长未超过 max_speech_ms，或者没有 words 数据可供细分
         # 直接原样保留该句，不破坏 Whisper 原有断句结构
@@ -203,8 +209,11 @@ def _resegment(texts, language, max_speech_ms):
         chunk_start_ms = None
         prev_word_end_ms = None
         prev_word_text = ""
-
-        for w in words:
+        
+        
+        for w_idx,w in enumerate(words):
+            _c_percent+=w_idx*(_block/len(words))
+            _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:{_c_percent:.2f}%'}))
             w_text = w.get('word', '').strip()
             if not w_text:
                 continue
@@ -465,7 +474,6 @@ def faster_whisper(
                 language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
                 initial_prompt=prompt if prompt else None
             )
-            logger.debug(f'faster-whisper模式下，对{model_name}模型返回的断句结果重新修正')
             texts = []
             i=0
             for segment in segments:
@@ -477,7 +485,9 @@ def faster_whisper(
                     "words": [{'word': it.word, 'start': it.start, 'end': it.end} for it in segment.words]
                 })
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment.text}\n'}))
-            raws = _resegment(texts, info.language, max_speech_ms)
+            logger.debug(f'faster-whisper模式下，对{model_name}模型返回的断句结果重新修正')
+            raws = _resegment(texts, info.language, max_speech_ms, logs_file)
+            logger.debug('断句结果重新修正完毕')
             if jianfan and raws:
                 for it in raws:
                     it['text'] = zhconv.convert(it['text'], 'zh-hans')

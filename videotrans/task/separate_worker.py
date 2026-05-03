@@ -40,15 +40,21 @@ class SeparateWorker(QThread):
         try:
             
             uvr_models=settings.get('uvr_models')
-            
-            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/{uvr_models}.onnx"
-            ], callback=self._process_callback)
+            if uvr_models.startswith('spleeter'):
+                tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
+                    f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/vocals.fp16.onnx",
+                    f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/accompaniment.fp16.onnx"
+                ], callback=self._process_callback)
+            else:
+                tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
+                    f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/{uvr_models}.onnx"
+                ], callback=self._process_callback)
 
         
             p=Path(self.file)
             self.vocal=f"{self.out}/vocal-{p.stem}.wav"
             # 如果不是wav，需要先转为wav
+            self.finish_event.emit('logs:Separating vocals from the background ...')
             if  p.suffix.lower()!= '.wav':
                 newfile = TEMP_DIR + f'/sep-{time.time()}.wav'
                 cmd = [
@@ -57,7 +63,7 @@ class SeparateWorker(QThread):
                     self.file,
                     "-vn",
                     "-ac",
-                    "1",
+                    "2",
                     "-ar",
                     "44100",
                     newfile

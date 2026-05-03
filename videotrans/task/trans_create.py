@@ -290,26 +290,22 @@ class TransCreate(BaseTask):
         if not self.cfg.is_separate and self.cfg.remove_noise:
             title = tr("Starting to process speech noise reduction, which may take a long time, please be patient")
             _remove_noise_wav=f"{self.cfg.cache_folder}/remove_noise.wav"
-            _cache_noise_wav=f"{self.cfg.target_dir}/removed_noise.wav"
-            if not Path(_cache_noise_wav).exists():
-                tools.check_and_down_ms(model_id='iic/speech_frcrn_ans_cirm_16k', callback=self._process_callback)
-                from videotrans.process.prepare_audio import remove_noise
-                kw = {
-                    "input_file": self.cfg.source_wav,
-                    "output_file": _remove_noise_wav,
-                    "is_cuda": self.cfg.is_cuda
-                }
-                try:
-                    _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
-                    if _rs:
-                        self.cfg.source_wav = _rs
-                        shutil.copy2(_rs,_cache_noise_wav)
-                    self._signal(text='remove noise end')
-                except:
-                    pass
-            else:
-                shutil.copy2(_cache_noise_wav,_remove_noise_wav)
-                self.cfg.source_wav = _remove_noise_wav
+
+            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', urls=['https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet4.onnx'], callback=self._process_callback)
+            from videotrans.process.prepare_audio import remove_noise
+            kw = {
+                "input_file": self.cfg.source_wav,
+                "output_file": _remove_noise_wav,
+                "is_cuda": self.cfg.is_cuda
+            }
+            try:
+                _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
+                if _rs:
+                    self.cfg.source_wav = _remove_noise_wav
+                self._signal(text='remove noise end')
+            except Exception as e:
+                logger.exception(f'降噪静默失败{e}',exc_info=True)
+
 
         self._signal(text=tr("Speech Recognition to Word Processing"))
 
@@ -953,9 +949,16 @@ class TransCreate(BaseTask):
             return
         title = tr('Separating vocals and background music, which may take a longer time')
         uvr_models=settings.get('uvr_models')
-        tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-            f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/{uvr_models}.onnx"
-        ], callback=self._process_callback)
+        if uvr_models.startswith('spleeter'):
+            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
+                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/vocals.fp16.onnx",
+                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/accompaniment.fp16.onnx"
+            ], callback=self._process_callback)
+
+        else:
+            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
+                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/{uvr_models}.onnx"
+            ], callback=self._process_callback)
         from videotrans.process.prepare_audio import vocal_bgm
         # 返回 False None 失败
         kw = {"input_file": tmpfile, "vocal_file": self.cfg.vocal, "instr_file": self.cfg.instrument,"uvr_models":uvr_models}

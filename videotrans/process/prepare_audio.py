@@ -4,7 +4,7 @@
 # 成功，第一个返回数据，不需要数据时返回True，第二个值为None
 
 import traceback
-from videotrans.configure.config import ROOT_DIR,logger,TEMP_ROOT
+from videotrans.configure.config import ROOT_DIR,logger,TEMP_ROOT,settings
 
 def _write_log(file=None, msg=None, type='logs'):
     if not file or not msg:
@@ -20,6 +20,8 @@ def _write_log(file=None, msg=None, type='logs'):
 # 1. 分离背景声和人声 https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html#uvr
 # 仅使用cpu，不使用gpu
 def vocal_bgm(*, input_file, vocal_file, instr_file,  logs_file=None, is_cuda=False,uvr_models="UVR-MDX-NET-Inst_HQ_4"):
+    if uvr_models.startswith('spleeter'):
+        return vocal_bgm_spleeter(input_file=input_file, vocal_file=vocal_file, instr_file=instr_file,  logs_file=logs_file)
     """
     UVR for source separation.
 
@@ -44,7 +46,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file,  logs_file=None, is_cuda=Fa
                 uvr=sherpa_onnx.OfflineSourceSeparationUvrModelConfig(
                     model=model,
                 ),
-                num_threads=4,
+                num_threads=int(settings.get('noise_separate_nums',4)),
                 debug=False,
                 provider="cpu",
             )
@@ -87,49 +89,138 @@ def vocal_bgm(*, input_file, vocal_file, instr_file,  logs_file=None, is_cuda=Fa
 
         elapsed_seconds = end - start
         _write_log(logs_file, f" use time:{elapsed_seconds}s")
+        logger.debug('分离背景声和人声成功')
         return True, None
     except Exception as e:
         msg = traceback.format_exc()
         logger.exception(f"人声背景声分离失败:{msg}", exc_info=True)
         return False, msg
-    finally:
-        try:
-            del sp
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            import gc
-            gc.collect()
-        except:
-            pass
 
+
+
+def vocal_bgm_spleeter(*,input_file, vocal_file, instr_file,  logs_file=None):
+    import time
+    from pathlib import Path
+
+    import numpy as np
+    import sherpa_onnx
+    import soundfile as sf
+
+
+    def create_offline_source_separation():
+        # Please read the help message at the beginning of this file
+        # to download model files
+        vocals = f"{ROOT_DIR}/models/onnx/vocals.fp16.onnx"
+        accompaniment = f"{ROOT_DIR}/models/onnx/accompaniment.fp16.onnx"
+        config = sherpa_onnx.OfflineSourceSeparationConfig(
+            model=sherpa_onnx.OfflineSourceSeparationModelConfig(
+                spleeter=sherpa_onnx.OfflineSourceSeparationSpleeterModelConfig(
+                    vocals=vocals,
+                    accompaniment=accompaniment,
+                ),
+                num_threads=int(settings.get('noise_separate_nums',4)),
+                debug=False,
+                provider="cpu",
+            )
+        )
+        if not config.validate():
+            raise ValueError("Please check your config.")
+
+        return sherpa_onnx.OfflineSourceSeparation(config)
+
+
+    def load_audio(wav_file):
+
+        samples, sample_rate = sf.read(wav_file, dtype="float32", always_2d=True)
+        samples = np.transpose(samples)
+        # now samples is of shape (num_channels, num_samples)
+        assert (
+            samples.shape[1] > samples.shape[0]
+        ), f"You should use (num_channels, num_samples). {samples.shape}"
+
+        assert (
+            samples.dtype == np.float32
+        ), f"Expect np.float32 as dtype. Given: {samples.dtype}"
+
+        return samples, sample_rate
+
+
+    try:
+        sp = create_offline_source_separation()
+        samples, sample_rate = load_audio(input_file)
+        samples = np.ascontiguousarray(samples)
+
+        start = time.time()
+        output = sp.process(sample_rate=sample_rate, samples=samples)
+        end = time.time()
+
+
+        assert len(output.stems) == 2, len(output.stems)
+
+        vocals = output.stems[0].data
+        non_vocals = output.stems[1].data
+        # vocals.shape (num_channels, num_samples)
+
+        vocals = np.transpose(vocals)
+        non_vocals = np.transpose(non_vocals)
+
+        # vocals.shape (num_samples,num_channels)
+
+        sf.write(vocal_file, vocals, samplerate=output.sample_rate)
+        sf.write(instr_file, non_vocals, samplerate=output.sample_rate)
+
+        elapsed_seconds = end - start
+        audio_duration = samples.shape[1] / sample_rate
+        real_time_factor = elapsed_seconds / audio_duration
+
+        logger.debug(f"Elapsed seconds: {elapsed_seconds:.3f}")
+        logger.debug(f"Audio duration in seconds: {audio_duration:.3f}")
+        logger.debug(f"RTF: {elapsed_seconds:.3f}/{audio_duration:.3f} = {real_time_factor:.3f}")
+        _write_log(logs_file, f" use time:{elapsed_seconds}s")
+        logger.debug('分离背景声和人声成功')
+        return True, None
+    except Exception as e:
+        msg = traceback.format_exc()
+        logger.exception(f"人声背景声分离失败:{msg}", exc_info=True)
+        return False, msg
 
 # 2. 降噪 https://modelscope.cn/models/iic/speech_frcrn_ans_cirm_16k
 def remove_noise(*, input_file, output_file,  is_cuda=False, logs_file=None, device_index=0):
-    import torch, os, shutil, time
-    from pathlib import Path
+    import numpy as np
+    import sherpa_onnx,time,json
+    import soundfile as sf
     from videotrans.util import tools
-    from modelscope.pipelines import pipeline
-    from modelscope.utils.constant import Tasks
-    import platform
-    if platform.system() == 'Darwin' and torch.backends.mps.is_available():
-        device = "mps"
-    else:
-        device = f"cuda:{device_index}" if is_cuda else "cpu"
+    from pathlib import Path
+
     _st = time.time()
-    logger.info('开始语音降噪')
-    ans = None
-    result = None
-    tmp_name = Path(output_file).parent.as_posix() + f'/noise-{time.time()}.wav'
-    try:
-        ans = pipeline(
-            Tasks.acoustic_noise_suppression,
-            model='iic/speech_frcrn_ans_cirm_16k',
-            disable_update=True,
-            disable_progress_bar=True,
-            disable_log=True,
-            device=device
+    def load_audio(filename: str):
+        samples, sample_rate = sf.read(
+            filename,
+            always_2d=True,
+            dtype="float32",
         )
-        result = ans(input_file, output_path=tmp_name, disable_pbar=True)
+        samples = np.ascontiguousarray(samples[:, 0])
+        return samples, sample_rate
+
+    try:
+        config = sherpa_onnx.OfflineSpeechDenoiserConfig(
+            model=sherpa_onnx.OfflineSpeechDenoiserModelConfig(
+                dpdfnet=sherpa_onnx.OfflineSpeechDenoiserDpdfNetModelConfig(
+                    model=f"{ROOT_DIR}/models/onnx/dpdfnet4.onnx",
+                ),
+                num_threads=int(settings.get('noise_separate_nums',4)),
+                debug=False,
+                provider="cpu",
+            )
+        )
+
+        assert config.validate(), config
+
+        denoiser = sherpa_onnx.OfflineSpeechDenoiser(config)
+        samples, sample_rate = load_audio(input_file)
+        denoised = denoiser.run(samples, sample_rate)
+        tmp_name = Path(output_file).parent.as_posix() + f'/noise-{time.time()}.wav'
+        sf.write(tmp_name, denoised.samples, denoised.sample_rate)
         tools.runffmpeg(['-y', '-i', tmp_name, '-af', "volume=1.5", output_file])
         logger.info(f'降噪成功完成，耗时:{int(time.time() - _st)}s')
         return output_file, None
@@ -137,18 +228,7 @@ def remove_noise(*, input_file, output_file,  is_cuda=False, logs_file=None, dev
         msg = traceback.format_exc()
         logger.exception(f'降噪失败:{msg}', exc_info=True)
         return False, msg
-    finally:
-        try:
-            del ans
-            del result
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            import gc
-            gc.collect()
-        except Exception:
-            pass
-
-
+    
 # 3. 恢复标点 https://modelscope.cn/models/iic/punc_ct-transformer_cn-en-common-vocab471067-large
 def fix_punc(*, text_dict,  is_cuda=False, logs_file=None, device_index=0):
     import torch, os, shutil, time

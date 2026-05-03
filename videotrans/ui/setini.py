@@ -620,6 +620,7 @@ class Ui_setini(object):
                     combobox_data=list(app_cfg.SUPPORT_LANG.keys())
                 elif key=='uvr_models':
                     combobox_data=[
+                    'spleeter',
                     'UVR-MDX-NET-Inst_HQ_4',
                     'UVR-MDX-NET-Inst_HQ_1',
                     'UVR-MDX-NET-Inst_HQ_2',

@@ -461,7 +461,6 @@ def conver_to_16k(audio, target_audio):
             "16000",
             "-c:a",
             "pcm_s16le",
-            '-af', "volume=2.0,alimiter=limit=1.0",
             Path(target_audio).as_posix()
     ]
     return runffmpeg(cmd)
