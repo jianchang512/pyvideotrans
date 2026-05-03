@@ -287,7 +287,8 @@ class TransCreate(BaseTask):
             raise RuntimeError(error)
 
         # 若已执行背景声人声分离，则不再进行降噪
-        if not self.cfg.is_separate and self.cfg.remove_noise:
+        #if not self.cfg.is_separate and self.cfg.remove_noise:
+        if self.cfg.remove_noise:
             title = tr("Starting to process speech noise reduction, which may take a long time, please be patient")
             _remove_noise_wav=f"{self.cfg.cache_folder}/remove_noise.wav"
 
