@@ -89,7 +89,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file,  logs_file=None, is_cuda=Fa
 
         elapsed_seconds = end - start
         _write_log(logs_file, f" use time:{elapsed_seconds}s")
-        logger.debug('分离背景声和人声成功')
+        logger.debug(f'分离背景声和人声成功[{uvr_models}]')
         return True, None
     except Exception as e:
         msg = traceback.format_exc()
@@ -177,7 +177,7 @@ def vocal_bgm_spleeter(*,input_file, vocal_file, instr_file,  logs_file=None):
         logger.debug(f"Audio duration in seconds: {audio_duration:.3f}")
         logger.debug(f"RTF: {elapsed_seconds:.3f}/{audio_duration:.3f} = {real_time_factor:.3f}")
         _write_log(logs_file, f" use time:{elapsed_seconds}s")
-        logger.debug('分离背景声和人声成功')
+        logger.debug('分离背景声和人声成功[spleeter]')
         return True, None
     except Exception as e:
         msg = traceback.format_exc()
