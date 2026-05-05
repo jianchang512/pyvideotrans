@@ -22,9 +22,9 @@ nolang.txt
 edgetts.txt
 debug*.py
 test*.py
-ceshi*
 test*.m*
 test*.json
+ceshi*
 
 
 ffmpeg/ffmpeg.exe

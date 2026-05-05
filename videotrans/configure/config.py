@@ -501,7 +501,7 @@ class AppParams:
             "is_cuda": False,
             "line_roles": {},
             "rephrase": 0,
-            "is_separate": True,
+            "is_separate": False,
             "clear_cache":True,
             "embed_bgm": True,
             "remove_noise": False,
