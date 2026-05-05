@@ -123,7 +123,8 @@ class SpeechToText(BaseTask):
                     settings.get('Faster_Whisper_XXL', ''),
                     self.cfg.shibie_audio,
                     "-pp",
-                    "-f", "srt"
+                    "-f", "srt",
+                    "-ct",settings.get('cuda_com_type', 'int8')
                 ]
                 if self.cfg.detect_language != 'auto':
                     cmd.extend(['-l', self.cfg.detect_language.split('-')[0]])

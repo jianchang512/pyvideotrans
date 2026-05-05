@@ -319,7 +319,8 @@ class TransCreate(BaseTask):
                 xxl_path,
                 self.cfg.source_wav,
                 "-pp",
-                "-f", "srt"
+                "-f", "srt",
+                "-ct",settings.get('cuda_com_type', 'int8')
             ]
             cmd.extend(['-l', self.cfg.detect_language.split('-')[0]])
             prompt = None
@@ -510,7 +511,8 @@ class TransCreate(BaseTask):
                     xxl_path,
                     shibie_audio,
                     "-pp",
-                    "-f", "srt"
+                    "-f", "srt",
+                    "-ct",settings.get('cuda_com_type', 'int8')
                 ]
                 cmd.extend(['-l', detect_language.split('-')[0]])
                 prompt = settings.get(f'initial_prompt_{detect_language}')

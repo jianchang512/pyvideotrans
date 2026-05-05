@@ -65,6 +65,7 @@ class FasterAll(BaseRecogn):
             "speech_timestamps": self.speech_timestamps_file,
             "audio_file": self.audio_file,
             "jianfan": self.jianfan,
+            
             "audio_duration":self.audio_duration,
             "temperature":settings.get('temperature'),
             "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.4)),
@@ -89,7 +90,7 @@ class FasterAll(BaseRecogn):
             "speech_timestamps": self.speech_timestamps_file,
             "audio_file": self.audio_file,
             "local_dir": self.local_dir,
-            "compute_type": settings.get('cuda_com_type', 'default'),
+            "compute_type": settings.get('cuda_com_type', 'int8'),
             "jianfan": self.jianfan,
             "audio_duration":self.audio_duration,
             "hotwords":settings.get('hotwords'),
