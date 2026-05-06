@@ -325,8 +325,6 @@ def openwin():
             role_list=['No']+contants.MITTS_ROLES.split(',')
         elif type == tts.QWEN_TTS:
             role_list=list(tools.get_qwen3tts_rolelist().keys())
-        elif type == tts.QWEN3LOCAL_TTS:
-            role_list=list(tools.get_qwenttslocal_rolelist().keys())
         elif type == tts.Supertonic_TTS:
             role_list=list(tools.get_supertonic_rolelist().keys())
         elif type == tts.GLM_TTS:
@@ -337,23 +335,14 @@ def openwin():
             role_list =  tools.get_elevenlabs_role()
         elif type == tts.CAMB_TTS:
             role_list = tools.get_camb_role()
-        elif type == tts.MOSS_TTS:
-            role_list = tools.get_mosstts_role()
         elif type == tts.CLONE_VOICE_TTS:
             role_list.extend([it for it in params["clone_voicelist"] if it != 'clone'])
         elif type == tts.TTS_API:
             role_list=params['ttsapi_voice_role'].split(",")
         elif type == tts.GPTSOVITS_TTS:
             role_list = list(tools.get_gptsovits_role().keys())
-        elif type == tts.CHATTERBOX_TTS:
-            role_list = tools.get_chatterbox_role()
-        elif type == tts.COSYVOICE_TTS:
-            role_list = list(tools.get_cosyvoice_role().keys())
-        elif type == tts.OMNIVOICE_TTS:
-            role_list = list(tools.get_omnivoice_role().keys())
-        elif type == tts.FISHTTS:
-            role_list = list(tools.get_fishtts_role().keys())
-        elif type in [tts.F5_TTS,tts.INDEX_TTS,tts.SPARK_TTS,tts.VOXCPM_TTS,tts.DIA_TTS]:
+        elif type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,
+                          tts.DIA_TTS,tts.OMNIVOICE_TTS,tts.COSYVOICE_TTS,tts.CHATTERBOX_TTS,tts.FISHTTS,tts.MOSS_TTS,tts.QWEN3LOCAL_TTS]:
             role_list = list(tools.get_f5tts_role().keys())
         if 'clone' in role_list:
             role_list.remove('clone')

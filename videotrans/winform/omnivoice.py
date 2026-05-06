@@ -16,24 +16,20 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         
-        role = winobj.role.toPlainText().strip()
-        if not role:
-            return tools.show_error(tr('"The reference audio path name and the text corresponding to the reference audio must be filled in the settings"'))
         
         params["omnivoice_url"] = url
 
-        params["omnivoice_role"] = role
         
         params.save()
-        
-        for it in role.split("\n"):
-            file=it.split('#')[0]
-            file=ROOT_DIR+f'/f5-tts/{file}'
-            if not Path(file).exists():
-                return tools.show_error(tr("No reference audio {} exists",file))
-            if not file.endswith('.wav'):
-                return tools.show_error(tr('Please upload reference audio in wav format'))
 
+        _rolename = next(reversed(tools.get_f5tts_role().values()))
+        if not isinstance(_rolename, dict):
+            return tools.show_error(tr("No reference audio {} exists",_rolename))
+        rolename = _rolename.get('ref_audio')
+        file = ROOT_DIR + f'/f5-tts/{rolename}'
+        if not Path(file).exists():
+            return tools.show_error(tr("No reference audio {} exists", file))
+        
         
         
         winobj.test.setText(tr('Testing...'))
@@ -41,7 +37,7 @@ def openwin():
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友,希望你的每一天都美好愉快',
-            "role": role.split("\n")[0].split('#')[0],
+            "role":rolename,
             "filename": TEMP_DIR + f"/{time.time()}-omnivoice.wav",
             "tts_type": tts.OMNIVOICE_TTS}],
                          language="Auto",
@@ -53,13 +49,9 @@ def openwin():
         url = winobj.api_url.text().strip()
         if not url.startswith('http'):
             url = 'http://' + url
-        role = winobj.role.toPlainText().strip()
-        if not role:
-            return tools.show_error(tr("Please upload reference audio in wav format"))
 
         params["omnivoice_url"] = url
 
-        params["omnivoice_role"] = role
         params.save()
         tools.set_process(text='omnivoice', type="refreshtts")
 
@@ -70,8 +62,6 @@ def openwin():
     app_cfg.child_forms['omnivoice'] = winobj
     if params["omnivoice_url"]:
         winobj.api_url.setText(params["omnivoice_url"])
-    if params["omnivoice_role"]:
-        winobj.role.setPlainText(params["omnivoice_role"])
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

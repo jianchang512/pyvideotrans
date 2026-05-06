@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QMessageBox, QMainWindow, QPushButton, QToolBar, Q
 import asyncio, sys
 import os
 
-from videotrans.util import contants
+from videotrans.util import contants, tools
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -251,6 +251,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiontts_qwenttslocal.setText(f"Qwen3 TTS({tr('Local')})")
         self.actiontts_fishtts.setText("Fish TTS")
         self.actiontts_f5tts.setText("F5-TTS/Index-TTS/VoxCPM/SparK-TTS/Dia-TTS")
+        self.actiontts_refaudio.setText(tr("Set reference audio"))
         self.actiontts_volcengine.setText(tr("VolcEngine TTS"))
         self.actiontts_doubao2.setText(tr("DouBao2"))
         self.action_website.setText(tr("Documents"))
@@ -430,34 +431,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(['No'] + list(settings.ChatTTS_voicelist))
         elif tts_type == tts.TTS_API:
             self.voice_role.addItems(params.get('ttsapi_voice_role', '').strip().split(','))
-        elif tts_type == tts.CHATTERBOX_TTS:
-            rolelist = tools.get_chatterbox_role()
-            self.voice_role.addItems(rolelist if rolelist else ['chatterbox'])
         elif tts_type == tts.GPTSOVITS_TTS:
             rolelist = tools.get_gptsovits_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
-        elif tts_type == tts.COSYVOICE_TTS:
-            rolelist = tools.get_cosyvoice_role()
-            self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['clone'])
-        elif tts_type == tts.OMNIVOICE_TTS:
-            rolelist = tools.get_omnivoice_role()
-            self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['clone'])
         elif tts_type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,
-                          tts.DIA_TTS]:
+                          tts.DIA_TTS,tts.OMNIVOICE_TTS,tts.COSYVOICE_TTS,tts.CHATTERBOX_TTS,tts.FISHTTS,tts.MOSS_TTS,tts.QWEN3LOCAL_TTS]:
             rolelist = tools.get_f5tts_role()
             self.voice_role.addItems(['clone'] + list(rolelist.keys()) if rolelist else ['clone'])
-        elif tts_type == tts.FISHTTS:
-            rolelist = tools.get_fishtts_role()
-            self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['No'])
         elif tts_type == tts.ELEVENLABS_TTS:
             rolelist = tools.get_elevenlabs_role()
             self.voice_role.addItems(['No'] + rolelist)
         elif tts_type == tts.CAMB_TTS:
             rolelist = tools.get_camb_role()
             self.voice_role.addItems(rolelist)
-        elif tts_type == tts.MOSS_TTS:
-            rolelist = tools.get_mosstts_role()
-            self.voice_role.addItems(list(dict.fromkeys(rolelist)))
         elif tts_type == tts.OPENAI_TTS:
             rolelist = params.get('openaitts_role', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
@@ -617,6 +603,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionopenairecognapi_key.triggered.connect(lambda: self._open_winform('openairecognapi'))
         self.actiontts_fishtts.triggered.connect(lambda: self._open_winform('fishtts'))
         self.actiontts_f5tts.triggered.connect(lambda: self._open_winform('f5tts'))
+        self.actiontts_refaudio.triggered.connect(lambda: self._open_winform('refaudio'))
         self.actiontts_volcengine.triggered.connect(lambda: self._open_winform('volcenginetts'))
         self.actiontts_doubao2.triggered.connect(lambda: self._open_winform('doubao2'))
         self.actionzhipuai_key.triggered.connect(lambda: self._open_winform('zhipuai'))
@@ -707,6 +694,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             from videotrans.component.set_ass import ASSStyleDialog
             dialog = ASSStyleDialog()
             dialog.exec()
+            return
+        if name == 'refaudio':
+            tools.show_refaudio_win()
             return
         if name == 'xxl':
             from videotrans.component.set_xxl import SetFasterXXL

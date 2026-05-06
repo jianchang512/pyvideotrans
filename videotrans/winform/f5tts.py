@@ -23,61 +23,37 @@ def openwin(init=False):
 
     def test(tts_type=tts.F5_TTS):
         index_tts_version = winobj.index_tts_version.currentIndex()
-        role = winobj.f5tts_role.toPlainText().strip()
-        if not role:
-            tools.show_error(tr('Please input reference audio path'))
-            return
-        role_test = getrole()
-        if not role_test:
-            return
         # 通用
         params["index_tts_version"] = index_tts_version
         params["voxcpmtts_version"] = winobj.voxcpmtts_version.currentText()
-        params["f5tts_role"] = role
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
         params["diatts_url"] = winobj.diatts_url.text()
         params["indextts_url"] = winobj.indextts_url.text()
         params["sparktts_url"] = winobj.sparktts_url.text()
         params["f5tts_url"] = winobj.f5tts_url.text()
         params["indextts_prompt"] = winobj.indextts_prompt.text()
-
-
-
         params.save()
+        
+        _rolename = next(reversed(tools.get_f5tts_role().values()))
+        if not isinstance(_rolename,dict):
+            return tools.show_error(tr("No reference audio {} exists",_rolename))
+        rolename=_rolename.get('ref_audio')
+        file=ROOT_DIR+f'/f5-tts/{rolename}'
+        if not Path(file).exists():
+            return tools.show_error(tr("No reference audio {} exists",file))
 
         test_btn[tts_type].setText(tr('Testing...'))
         import time
         wk = ListenVoice(parent=winobj,
-                         queue_tts=[{"text": '你好啊我的朋友,希望你今天开心！', "role": role_test, "filename": TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
+                         queue_tts=[{"text": '你好啊我的朋友,希望你今天开心！', "role": rolename, "filename": TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
                          language="zh",
                          tts_type=tts_type)
         wk.uito.connect(feed)
         wk.start()
 
-    def getrole():
-        tmp = winobj.f5tts_role.toPlainText().strip()
-        role = None
-        if not tmp:
-            return role
-
-        for it in tmp.split("\n"):
-            s = it.strip().split('#')
-            if len(s) != 2:
-                tools.show_error(tr("Each line must be split into two parts with #, in the format of audio name.wav#audio text content"))
-                return
-            elif not Path(ROOT_DIR + f'/f5-tts/{s[0]}').is_file():
-                tools.show_error(tr("Please save the audio file in the {}/f5-tts directory",ROOT_DIR))
-                return
-            role = s[0]
-        params['f5tts_role'] = tmp
-        return role
-
     def save():
 
         index_tts_version = winobj.index_tts_version.currentIndex()
-        role = winobj.f5tts_role.toPlainText().strip()
-
-        params["f5tts_role"] = role
         params["index_tts_version"] = index_tts_version
         params["voxcpmtts_version"] = winobj.voxcpmtts_version.currentText()
         
@@ -97,7 +73,6 @@ def openwin(init=False):
     Path(ROOT_DIR + "/f5-tts").mkdir(exist_ok=True)
     winobj = F5TTSForm()
     app_cfg.child_forms['f5tts'] = winobj
-    winobj.f5tts_role.setPlainText(params.get("f5tts_role",''))
     winobj.index_tts_version.setCurrentIndex(int(params.get('index_tts_version',0)))
     winobj.voxcpmtts_version.setCurrentText(params.get('voxcpmtts_version','v2'))
     

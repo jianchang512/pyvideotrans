@@ -23,6 +23,7 @@ class FishTTS(BaseTTS):
         api_url = params.get('fishtts_url','').strip().rstrip('/').lower()
         self.api_url = 'http://' + api_url.replace('http://', '')
         self._add_internal_host_noproxy(self.api_url)
+        self.roledict = tools.get_f5tts_role()
 
     def _exec(self):
         self._local_mul_thread()
@@ -37,16 +38,16 @@ class FishTTS(BaseTTS):
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
             role = data_item['role']
-            roledict = tools.get_fishtts_role()
-            if not role or not roledict.get(role):
+
+            if not role or not self.roledict.get(role):
                 raise StopRetry(tr('The reference audio path name and the text corresponding to the reference audio must be filled in the settings'))
 
 
             data = {"text": data_item['text'],
-                    "references": [{"audio": "", "text": roledict[role]['reference_text']}]}
+                    "references": [{"audio": "", "text": self.roledict[role]['ref_text']}]}
 
             # 克隆声音
-            audio_path = f'{ROOT_DIR}/{roledict[role]["reference_audio"]}'
+            audio_path = f'{ROOT_DIR}/{self.roledict[role]["ref_audio"]}'
             if os.path.exists(audio_path):
                 data['references'][0]['audio'] = self._audio_to_base64(audio_path)
             else:

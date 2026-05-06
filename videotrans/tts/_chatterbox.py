@@ -37,8 +37,7 @@ class ChatterBoxTTS(BaseTTS):
             role = data_item['role']
             if self._exit() or tools.vail_file(data_item['filename']):
                 return
-            if data_item.get('ref_wav') or (
-                    role and role != 'chatterbox' and Path(f'{ROOT_DIR}/f5-tts/{role}').exists()):
+            if data_item.get('ref_wav') or (  role and role != 'chatterbox' and Path(f'{ROOT_DIR}/f5-tts/{role}').exists()):
                 # 克隆
                 self._item_task_clone(data_item['text'], role, data_item.get('ref_wav'), data_item['filename'])
                 return

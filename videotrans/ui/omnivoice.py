@@ -13,13 +13,13 @@ class Ui_omnivoiceform(object):
         if not omnivoiceform.objectName():
             omnivoiceform.setObjectName("omnivoiceform")
         omnivoiceform.setWindowModality(Qt.NonModal)
-        omnivoiceform.resize(600, 500)
+        omnivoiceform.resize(600, 250)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(omnivoiceform.sizePolicy().hasHeightForWidth())
         omnivoiceform.setSizePolicy(sizePolicy)
-        omnivoiceform.setMaximumSize(QSize(600, 500))
+        omnivoiceform.setMaximumSize(QSize(600, 250))
 
         # 创建一个垂直布局
         v1 = QtWidgets.QVBoxLayout(omnivoiceform)
@@ -36,18 +36,6 @@ class Ui_omnivoiceform(object):
 
 
         
-        self.label_4 = QLabel()
-        self.label_4.setObjectName("label_4")
-        self.label_4.setText(tr('Reference Audio#Audio Text'))
-        v1.addWidget(self.label_4)
-        
-
-
-        self.role = QPlainTextEdit()
-        self.role.setObjectName("role")
-        self.role.setMinimumHeight(100)
-        self.role.setReadOnly(False)
-        v1.addWidget(self.role)
 
 
         h2 = QtWidgets.QHBoxLayout()
@@ -69,6 +57,11 @@ class Ui_omnivoiceform(object):
 
         h2.addWidget(self.save)
         h2.addWidget(self.test)
+
+        ref_btn = QtWidgets.QPushButton()
+        ref_btn.setText(tr("Set reference audio"))
+        ref_btn.clicked.connect(tools.show_refaudio_win)
+        h2.addWidget(ref_btn)
         h2.addWidget(help_btn)
 
         v1.addLayout(h2)
@@ -97,8 +90,6 @@ wav音频最佳时长3-10s，音频必须存放在本软件目录下的 f5-tts �
 """
 
         omnivoiceform.setWindowTitle("Omnivoice")
-
-        self.role.setPlaceholderText(tips)
 
         self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText("URL http://127.0.0.1:8081")

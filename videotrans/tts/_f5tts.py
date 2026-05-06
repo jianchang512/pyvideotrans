@@ -45,6 +45,7 @@ class F5TTS(BaseTTS):
         if self.proxy_str and self._get_internal_host is not False:
             self.proxy_str=None
         self.client=None
+        self.roledict = tools.get_f5tts_role()
 
 
     def _exec(self):
@@ -67,11 +68,13 @@ class F5TTS(BaseTTS):
             data['ref_wav'] = data_item.get('ref_wav','')
             data['ref_text'] = data_item.get('ref_text').strip()
         else:
-            roledict = tools.get_f5tts_role()
-            if role in roledict:
-                data['ref_text'] = roledict[role]['ref_text']
+
+            if role in self.roledict:
+                data['ref_text'] = self.roledict[role]['ref_text']
                 data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
 
+        print(f'{role=}')
+        print(f"{data['ref_wav']=}")
         if not data.get('ref_wav') or not Path(data.get('ref_wav')).exists():
             raise StopRetry(tr('The role {} does not exist',role))
         ref_wav_audio=AudioSegment.from_file(data.get('ref_wav'))
@@ -80,6 +83,7 @@ class F5TTS(BaseTTS):
         
         if data['ref_text'] and len(data['ref_text']) < 10:
             speed = 0.5
+        
 
         result = self.client.predict(
             ref_audio_input=handle_file(data['ref_wav']),
@@ -122,10 +126,9 @@ class F5TTS(BaseTTS):
             data['ref_wav'] = data_item.get('ref_wav','')
             data['ref_text'] = data_item.get('ref_text', '')
         else:
-            roledict = tools.get_f5tts_role()
-            if role in roledict:
+            if role in self.roledict:
                 data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
-                data['ref_text'] = roledict[role].get('ref_text','')
+                data['ref_text'] = self.roledict[role].get('ref_text','')
 
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',role))
@@ -163,13 +166,14 @@ class F5TTS(BaseTTS):
         if role == 'clone':
             data['ref_wav'] = data_item.get('ref_wav','')
         else:
-            roledict = tools.get_f5tts_role()
-            if role in roledict:
+            if role in self.roledict:
                 data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
 
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',data['ref_wav']))
         logger.debug(f'index-tts {data=}')
+        print(f'{role=}')
+        print(f"{data['ref_wav']=}")
 
         kw={
             "prompt":handle_file(data['ref_wav']),
@@ -219,10 +223,9 @@ class F5TTS(BaseTTS):
             ref_wav = data_item.get('ref_wav','')
             ref_text = data_item.get('ref_text','')
         else:
-            roledict = tools.get_f5tts_role()
-            if role in roledict:
+            if role in self.roledict:
                 ref_wav = ROOT_DIR + f"/f5-tts/{role}"
-                ref_text = roledict[role].get('ref_text','')
+                ref_text = self.roledict[role].get('ref_text','')
 
         if not ref_wav or not Path(ref_wav).exists():
             raise StopRetry(tr('The role {} does not exist',role))
@@ -284,10 +287,9 @@ class F5TTS(BaseTTS):
         if role == 'clone':
             data['ref_wav'] = data_item.get('ref_wav','')
         else:
-            roledict = tools.get_f5tts_role()
-            if role in roledict:
+            if role in self.roledict:
                 data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
-                data['ref_text'] = roledict[role].get('ref_text', '')
+                data['ref_text'] = self.roledict[role].get('ref_text', '')
 
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             self.error =tr('The role {} does not exist',role)

@@ -19,35 +19,30 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         params["chatterbox_url"] = url
-        params["chatterbox_role"] = winobj.role.toPlainText().strip()
         params["chatterbox_cfg_weight"] = min(max(float(winobj.cfg_weight.text()), 0.0), 1.0)
         params["chatterbox_exaggeration"] = min(max(float(winobj.exaggeration.text()), 0.25), 2.0)
-
+        params.save()
+        
+        _rolename = next(reversed(tools.get_f5tts_role().values()))
+        if not isinstance(_rolename,dict):
+            return tools.show_error(tr("No reference audio {} exists",_rolename))
+        rolename=_rolename.get('ref_audio')
+        file=ROOT_DIR+f'/f5-tts/{rolename}'
+        if not Path(file).exists():
+            return tools.show_error(tr("No reference audio {} exists",file))
+        
+    
         winobj.test.setText(tr('Testing...'))
         from videotrans import tts
-        wk = ListenVoice(parent=winobj, queue_tts=[{"text": 'Hello,my friend,welcom to China', "role": getrole(),
-                                                    "filename": TEMP_DIR + f"/test-chatterbox.wav",
-                                                    "tts_type": tts.CHATTERBOX_TTS}], language="en",
-                         tts_type=tts.CHATTERBOX_TTS)
+        wk = ListenVoice(parent=winobj, queue_tts=[{
+            "text": 'Hello,my friend,welcom to China', 
+            "role": rolename,
+            "filename": TEMP_DIR + f"/test-chatterbox.wav",
+            "tts_type": tts.CHATTERBOX_TTS}], language="en",
+            tts_type=tts.CHATTERBOX_TTS)
         wk.uito.connect(feed)
         wk.start()
-        params.save()
 
-    def getrole():
-        tmp = winobj.role.toPlainText().strip()
-        role = None
-        if not tmp:
-            return role
-
-        for it in tmp.split("\n"):
-            s = it.strip()
-            if not Path(ROOT_DIR + f"/f5-tts/{s}").exists():
-                tools.show_error(tr('Please make sure that the audio file {} exists in the chatterbox folder',s))
-                return
-
-            role = s
-
-        return role
 
     def save():
         url = winobj.api_url.text().strip()
@@ -55,10 +50,8 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
 
-        role = winobj.role.toPlainText().strip()
 
         params["chatterbox_url"] = url
-        params["chatterbox_role"] = role
 
         params["chatterbox_cfg_weight"] = min(max(float(winobj.cfg_weight.text()), 0.0), 1.0)
         params["chatterbox_exaggeration"] = min(max(float(winobj.exaggeration.text()), 0.25), 2.0)
@@ -72,7 +65,6 @@ def openwin():
     winobj = ChatterboxForm()
     app_cfg.child_forms['chatterbox'] = winobj
     winobj.api_url.setText(params.get("chatterbox_url",''))
-    winobj.role.setPlainText(params.get("chatterbox_role",''))
     winobj.cfg_weight.setText(str(params.get("chatterbox_cfg_weight",'')))
     winobj.exaggeration.setText(str(params.get("chatterbox_exaggeration",'')))
 

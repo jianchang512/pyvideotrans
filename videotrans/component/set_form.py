@@ -76,6 +76,7 @@ from videotrans.ui.zijierecognmodel import Ui_zijierecognform
 from videotrans.ui.cambtts import Ui_cambttsform
 from videotrans.ui.cambtrans import Ui_cambtransform
 from videotrans.ui.cambasr import Ui_cambasrform
+from videotrans.ui.refaudio import Ui_refform
 
 
 class CommonBaseMixin:
@@ -100,6 +101,11 @@ class QWidgetBase(QtWidgets.QWidget,CommonBaseMixin):
 class BaiduForm(QDialogBase, Ui_baiduform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
+
+class RefaudioForm(QDialogBase, Ui_refform):  # <===
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
 
 
 class OpenrouterForm(QDialogBase, Ui_openrouterform):  # <===

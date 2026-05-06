@@ -13,13 +13,13 @@ class Ui_qwenttslocal(object):
         if not qwenttslocal.objectName():
             qwenttslocal.setObjectName("qwenttslocal")
         qwenttslocal.setWindowModality(Qt.NonModal)
-        qwenttslocal.resize(1000, 500)
+        qwenttslocal.resize(1000, 300)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(qwenttslocal.sizePolicy().hasHeightForWidth())
         qwenttslocal.setSizePolicy(sizePolicy)
-        qwenttslocal.setMaximumSize(QSize(1000, 500))
+        qwenttslocal.setMaximumSize(QSize(1000, 300))
 
         # 创建一个垂直布局
         v1 = QtWidgets.QVBoxLayout(qwenttslocal)
@@ -30,18 +30,6 @@ class Ui_qwenttslocal(object):
         h1_prompt.addWidget(self.instruct_text)
         v1.addLayout(h1_prompt)
         
-        self.label_4 = QLabel()
-        self.label_4.setObjectName("label_4")
-        self.label_4.setText(tr('Reference Audio#Audio Text'))
-        v1.addWidget(self.label_4)
-        
-
-
-        self.role = QPlainTextEdit()
-        self.role.setObjectName("role")
-        self.role.setMinimumHeight(100)
-        self.role.setReadOnly(False)
-        v1.addWidget(self.role)
 
 
         h2 = QtWidgets.QHBoxLayout()
@@ -63,6 +51,11 @@ class Ui_qwenttslocal(object):
 
         h2.addWidget(self.save)
         h2.addWidget(self.test)
+
+        ref_btn = QtWidgets.QPushButton()
+        ref_btn.setText(tr("Set reference audio"))
+        ref_btn.clicked.connect(tools.show_refaudio_win)
+        h2.addWidget(ref_btn)
         h2.addWidget(help_btn)
 
         v1.addLayout(h2)
@@ -99,8 +92,6 @@ Sample audio entries:
 """
 
         qwenttslocal.setWindowTitle(f"Qwen3-TTS {tr('Local')}")
-
-        self.role.setPlaceholderText(tips)
 
         self.save.setText(tr("Save"))
         self.test.setText(tr("Test"))

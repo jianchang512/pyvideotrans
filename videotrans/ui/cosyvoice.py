@@ -13,13 +13,13 @@ class Ui_cosyvoiceform(object):
         if not cosyvoiceform.objectName():
             cosyvoiceform.setObjectName("cosyvoiceform")
         cosyvoiceform.setWindowModality(Qt.NonModal)
-        cosyvoiceform.resize(600, 500)
+        cosyvoiceform.resize(600, 250)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(cosyvoiceform.sizePolicy().hasHeightForWidth())
         cosyvoiceform.setSizePolicy(sizePolicy)
-        cosyvoiceform.setMaximumSize(QSize(600, 500))
+        cosyvoiceform.setMaximumSize(QSize(600, 250))
 
         # 创建一个垂直布局
         v1 = QtWidgets.QVBoxLayout(cosyvoiceform)
@@ -44,18 +44,6 @@ class Ui_cosyvoiceform(object):
         h1_prompt.addWidget(self.instruct_text)
         v1.addLayout(h1_prompt)
         
-        self.label_4 = QLabel()
-        self.label_4.setObjectName("label_4")
-        self.label_4.setText(tr('Reference Audio#Audio Text'))
-        v1.addWidget(self.label_4)
-        
-
-
-        self.role = QPlainTextEdit()
-        self.role.setObjectName("role")
-        self.role.setMinimumHeight(100)
-        self.role.setReadOnly(False)
-        v1.addWidget(self.role)
 
 
         h2 = QtWidgets.QHBoxLayout()
@@ -77,6 +65,11 @@ class Ui_cosyvoiceform(object):
 
         h2.addWidget(self.save)
         h2.addWidget(self.test)
+
+        ref_btn = QtWidgets.QPushButton()
+        ref_btn.setText(tr("Set reference audio"))
+        ref_btn.clicked.connect(tools.show_refaudio_win)
+        h2.addWidget(ref_btn)
         h2.addWidget(help_btn)
 
         v1.addLayout(h2)
@@ -85,32 +78,10 @@ class Ui_cosyvoiceform(object):
 
         QMetaObject.connectSlotsByName(cosyvoiceform)
 
-    # setupUi
-
+    
+    
     def retranslateUi(self, cosyvoiceform):
-        tips = """
-# 需要预先部署CosyVoice2/3官方项目,然后启动 webui.py
-# cosyvoice3无法直接使用官方webui.py对接本软件，点击填写教程按钮，查看解决办法
-
-# CosyVoice项目地址 https://github.com/FunAudioLLM/CosyVoice
-
-参考音频填写：
-每行都由#符号分割为两部分，第一部分是wav音频路径，第二部分是该音频对应的文字内容，可填写多行。
-wav音频最佳时长3-10s，音频必须存放在本软件目录下的 f5-tts 文件夹内，然后在此填写文件名称
-
-参考音频填写示例：
-1.wav#你好啊亲爱的朋友
-2.wav#你好啊朋友们
-
-
-# instruct text 填写提示词，例如请使用愤怒的声音
-
-"""
-
         cosyvoiceform.setWindowTitle("CosyVoice2/3")
-
-        self.role.setPlaceholderText(tips)
-
         self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText("webui url http://127.0.0.1:8000")
         self.label.setText("WebUI url")

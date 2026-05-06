@@ -13,13 +13,13 @@ class Ui_chatterboxform(object):
         if not chatterboxform.objectName():
             chatterboxform.setObjectName("chatterboxform")
         chatterboxform.setWindowModality(Qt.NonModal)
-        chatterboxform.resize(600, 500)
+        chatterboxform.resize(600, 250)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(chatterboxform.sizePolicy().hasHeightForWidth())
         chatterboxform.setSizePolicy(sizePolicy)
-        chatterboxform.setMaximumSize(QSize(600, 500))
+        chatterboxform.setMaximumSize(QSize(600, 250))
 
         self.wrap_h = QHBoxLayout(chatterboxform)
         self.wrap_h.setObjectName(u"wrap_h")
@@ -66,13 +66,6 @@ class Ui_chatterboxform(object):
         exaggeration_h.addWidget(self.exaggeration)
         self.inner_v.addLayout(exaggeration_h)
 
-        self.role = QPlainTextEdit()
-        self.role.setObjectName("role")
-        self.role.setMinimumSize(QSize(571, 100))
-        self.role.setReadOnly(False)
-        self.role.setPlaceholderText(
-            tr("Place the reference audio in the chatterbox folder under the root directory of the software, and fill in the reference audio name with the suffix, for example 123.mp3"))
-        self.inner_v.addWidget(self.role)
 
         h4 = QHBoxLayout()
 
@@ -92,7 +85,13 @@ class Ui_chatterboxform(object):
         help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/chatterbox'))
         h4.addWidget(self.save)
         h4.addWidget(self.test)
+
+        ref_btn = QtWidgets.QPushButton()
+        ref_btn.setText(tr("Set reference audio"))
+        ref_btn.clicked.connect(tools.show_refaudio_win)
+        h4.addWidget(ref_btn)
         h4.addWidget(help_btn)
+
         self.inner_v.addLayout(h4)
 
         # end

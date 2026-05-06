@@ -59,6 +59,7 @@ class OmniVoice(BaseTTS):
             "ur": "Urdu",
             "yue": "Cantonese"
         }
+        self.rolelist = tools.get_f5tts_role()
 
     def _exec(self):
         self._local_mul_thread()
@@ -78,16 +79,16 @@ class OmniVoice(BaseTTS):
         ref_aud=''
         ref_text=data_item.get('ref_text','')
         
-        rolelist = tools.get_omnivoice_role()
 
-        if role not in rolelist:
+
+        if role not in self.rolelist:
             raise StopRetry(tr('The role {} does not exist',role))
         if role == 'clone':
             ref_aud = data_item.get('ref_wav','')
             ref_text = data_item.get('ref_text','')
         else:
-            ref_aud = ROOT_DIR+"/f5-tts/"+rolelist[role].get('reference_audio','')
-            ref_text = rolelist[role].get('reference_text','')
+            ref_aud = ROOT_DIR+"/f5-tts/"+self.rolelist[role].get('ref_audio','')
+            ref_text = self.rolelist[role].get('ref_text','')
 
         if not Path(ref_aud).exists():
             raise StopRetry(f"{ref_aud} is not exists")

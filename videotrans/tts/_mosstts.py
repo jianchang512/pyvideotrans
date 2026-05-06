@@ -7,7 +7,7 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr, params, logger
+from videotrans.configure.config import tr, params, logger, ROOT_DIR
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -26,6 +26,7 @@ class MossTTS(BaseTTS):
         self.api_url = service_urls['generate_url']
         self.service_root = service_urls['service_root']
         self._add_internal_host_noproxy(self.service_root or self.api_url)
+        self.role_map = tools.get_f5tts_role()
 
     def _exec(self):
         self._local_mul_thread()
@@ -36,11 +37,6 @@ class MossTTS(BaseTTS):
             return role_map[role_name].get('demo_id')
         return None
 
-    def _get_local_ref_wav(self, role_name: str):
-        role_map = tools.get_mosstts_local_role_map()
-        if role_name in role_map:
-            return role_map[role_name].get('audio_path')
-        return None
 
     def _write_response_audio(self, audio_base64: str, out_file: str):
         temp_file = f'{out_file}.moss.wav'
@@ -68,10 +64,11 @@ class MossTTS(BaseTTS):
                 'enable_text_normalization': '1',
             }
             role = str(data_item.get('role', 'No') or 'No').strip()
-            role_lower = role.lower()
+            if role == 'No':
+                raise StopRetry('Please select role for TTS')
             response = None
 
-            if role_lower == 'clone':
+            if role == 'clone':
                 ref_wav = data_item.get('ref_wav')
                 if not ref_wav or not Path(ref_wav).is_file():
                     raise StopRetry(tr("No reference audio exists and cannot use clone function"))
@@ -83,9 +80,10 @@ class MossTTS(BaseTTS):
                         timeout=3600,
                     )
             else:
-                local_ref_wav = self._get_local_ref_wav(role)
-                if local_ref_wav and Path(local_ref_wav).is_file():
-                    with open(local_ref_wav, 'rb') as file_obj:
+                local_ref_wav = self.role_map.get(role,{}).get('ref_audio')
+                print(f'{local_ref_wav=}')
+                if local_ref_wav and Path(f'{ROOT_DIR}/f5-tts/{local_ref_wav}').is_file():
+                    with open(f'{ROOT_DIR}/f5-tts/{local_ref_wav}', 'rb') as file_obj:
                         response = requests.post(
                             self.api_url,
                             data=payload,

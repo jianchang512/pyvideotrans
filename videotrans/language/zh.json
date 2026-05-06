@@ -359,7 +359,7 @@
   "Recognition may take a while, please be patient": "识别可能较久，请耐心等待",
   "Recognition result is empty": "识别结果为空",
   "Reference Audio#Audio Text": "参考音频#音频文字内容",
-  "Reference audio needs to be in wav format, with a duration of no more than 12 seconds, and stored in the /f5-tts directory of this software": "参考音频需要wav格式，时长12s内，发音清晰无背景噪声，存放到本软件/f5-tts目录下",
+  "Reference audio needs to be in wav format": "参考音频需wav格式，时长10s内，发音清晰，存放到本软件/f5-tts目录下,在此填写音频名(含扩展名wav，例如 1.wav)\nCosyVoice渠道参考音频时长需大于3s",
   "Rephrase Local": "本地重新断句",
   "Replace": "替换",
   "Report Error": "报告错误",
@@ -975,5 +975,6 @@
   "Filename length check":"文件名的“总长度”较长，在后续复杂处理时可能超过系统限制而出错。\n当前文件名：{} 个字, 路径加文件共：{} 个字\n\n为避免后续出错，建议：改短文件名，缩短文件夹的名字，将文件移动到更外层更简短的文件夹中。\n\n点击 Yes 忽略该警告继续执行， 点击 No 暂停后去修改",
   "embed_bgm":"重新嵌入背景声",
   "Norway":"书面挪威语",
-  "Khmer":"高棉语"
+  "Khmer":"高棉语",
+  "Set reference audio":"设置参考音频"
 }

@@ -690,6 +690,8 @@ class Ui_MainWindow(object):
         self.actiontts_fishtts.setObjectName("actiontts_fishtts")
         self.actiontts_f5tts = QtGui.QAction(MainWindow)
         self.actiontts_f5tts.setObjectName("actiontts_f5tts")
+        self.actiontts_refaudio = QtGui.QAction(MainWindow)
+        self.actiontts_refaudio.setObjectName("actiontts_refaudio")
         self.actiontts_volcengine = QtGui.QAction(MainWindow)
         self.actiontts_volcengine.setObjectName("actiontts_volcengine")
         self.actiontts_doubao2 = QtGui.QAction(MainWindow)
@@ -835,6 +837,8 @@ class Ui_MainWindow(object):
 
         self.menu_Key.addSeparator()
 
+        self.menu_TTS.addAction(self.actiontts_refaudio)
+        self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actionclone_address)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actionkokoro_address)

@@ -200,10 +200,6 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = list(tools.get_qwen3tts_rolelist().keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.QWEN3LOCAL_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = list(tools.get_qwenttslocal_rolelist().keys())
-            self.main.voice_role.addItems(self.main.current_rolelist)
         elif type == tts.Supertonic_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = list(tools.get_supertonic_rolelist().keys())
@@ -223,10 +219,6 @@ class WinAction(WinActionSub):
         elif type == tts.CAMB_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = tools.get_camb_role()
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.MOSS_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = tools.get_mosstts_role()
             self.main.voice_role.addItems(self.main.current_rolelist)
         elif self.change_by_lang(type):
             self.set_voice_role(self.main.target_language.currentText())
@@ -250,27 +242,8 @@ class WinAction(WinActionSub):
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys())
             self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.CHATTERBOX_TTS:
-            rolelist = tools.get_chatterbox_role()
-            self.main.voice_role.clear()
-            self.main.current_rolelist = rolelist
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.COSYVOICE_TTS:
-            rolelist = tools.get_cosyvoice_role()
-            self.main.voice_role.clear()
-            self.main.current_rolelist = list(rolelist.keys())
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.OMNIVOICE_TTS:
-            rolelist = tools.get_omnivoice_role()
-            self.main.voice_role.clear()
-            self.main.current_rolelist = list(rolelist.keys())
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.FISHTTS:
-            rolelist = tools.get_fishtts_role()
-            self.main.voice_role.clear()
-            self.main.current_rolelist = list(rolelist.keys())
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type in [tts.F5_TTS,tts.VOXCPM_TTS,tts.SPARK_TTS,tts.INDEX_TTS,tts.DIA_TTS]:
+        elif type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,
+                          tts.DIA_TTS,tts.OMNIVOICE_TTS,tts.COSYVOICE_TTS,tts.CHATTERBOX_TTS,tts.FISHTTS,tts.MOSS_TTS,tts.QWEN3LOCAL_TTS]:
             rolelist = tools.get_f5tts_role()
             self.main.voice_role.clear()
             self.main.current_rolelist = list(rolelist.keys())

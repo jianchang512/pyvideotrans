@@ -9,16 +9,10 @@ from functools import lru_cache
 from videotrans.util import contants
 
 
-def _normalize_http_url(url: str | None):
-    url = str(url or '').strip().rstrip('/')
-    if not url:
-        return ''
-    return url if url.startswith('http') else f'http://{url}'
 
 
 def get_mosstts_service_urls(url: str | None):
-    normalized = _normalize_http_url(url)
-    if not normalized:
+    if not url:
         return {
             'service_root': '',
             'homepage_url': '',
@@ -26,7 +20,7 @@ def get_mosstts_service_urls(url: str | None):
             'generate_url': '',
         }
 
-    parsed = urlsplit(normalized)
+    parsed = urlsplit(url)
     path = (parsed.path or '').rstrip('/')
     if path.endswith('/api/generate'):
         service_path = path[:-len('/api/generate')]
@@ -106,7 +100,7 @@ def get_mosstts_demo_map(force=False, raise_exception=False):
 def get_mosstts_role(force=False, raise_exception=False):
     role_map = get_mosstts_demo_map(force=force, raise_exception=raise_exception)
     role_list = ['No', 'clone']
-    local_role_map = get_mosstts_local_role_map()
+    local_role_map = get_f5tts_role()
     if local_role_map:
         role_list.extend(list(local_role_map.keys()))
     if role_map:
@@ -114,57 +108,6 @@ def get_mosstts_role(force=False, raise_exception=False):
     role_list = [it for it in dict.fromkeys(role_list) if str(it).strip()]
     params['moss_tts_role'] = role_list
     return role_list
-
-
-def get_mosstts_local_role_map():
-    role_map = {}
-    raw_roles = str(params.get('moss_tts_local_role', '') or '').strip()
-    if not raw_roles:
-        return role_map
-
-    for line in raw_roles.splitlines():
-        row = line.strip()
-        if not row:
-            continue
-
-        if '#' in row:
-            audio_name, ref_text = row.split('#', 1)
-        else:
-            audio_name, ref_text = row, ''
-        audio_name = audio_name.strip()
-        ref_text = ref_text.strip()
-        if not audio_name:
-            continue
-
-        audio_path = Path(f'{ROOT_DIR}/f5-tts/{audio_name}')
-        if not audio_path.is_file():
-            continue
-
-        role_map[audio_name] = {
-            'role_name': audio_name,
-            'audio_path': audio_path.as_posix(),
-            'ref_text': ref_text,
-        }
-    return role_map
-
-
-def get_mosstts_role_test_text(role_name: str, default_text: str = ''):
-    role = str(role_name or '').strip()
-    if not role or role in {'No', 'clone'}:
-        return default_text
-
-    local_role_map = get_mosstts_local_role_map()
-    if role in local_role_map:
-        return local_role_map[role].get('ref_text') or default_text
-
-    demo_role_map = get_mosstts_demo_map()
-    if role in demo_role_map:
-        preset_test_text = str(params.get('moss_tts_preset_test_text', '') or '').strip()
-        if preset_test_text:
-            return preset_test_text
-        return demo_role_map[role].get('text') or default_text
-
-    return default_text
 
 
 def get_camb_role(force=False, raise_exception=False):
@@ -387,8 +330,6 @@ def get_qwen3tts_rolelist():
 def get_qwenttslocal_rolelist():
 
     voices={
-        "No":"No",
-        "clone":"clone",
         "Vivian":"Vivian",
         "Serena":"Serena",
         "Uncle_fu":"Uncle_fu",
@@ -399,13 +340,8 @@ def get_qwenttslocal_rolelist():
         "Ono_anna":"Ono_anna",
         "Sohee":"Sohee"
     }
-    ref_audio=params.get('qwenttslocal_refaudio','')
-    if ref_audio:
-        for it in ref_audio.strip().split("\n"):
-            _t=it.split('#')
-            if len(_t)==2:
-                voices[_t[0]]=_t[1]
-    return voices
+    return get_f5tts_role()|voices
+    
 
 def get_supertonic_rolelist():
     voices=json.loads(Path(ROOT_DIR+"/videotrans/voicejson/supertonic.json").read_text(encoding='utf-8'))
@@ -479,58 +415,6 @@ def get_gptsovits_role():
     return rolelist
 
 
-def get_chatterbox_role():
-
-    rolelist = ['No', 'clone']
-    if not params.get('chatterbox_role','').strip():
-        return rolelist
-    for it in params.get('chatterbox_role','').strip().split("\n"):
-        rolelist.append(it.strip())
-    return rolelist
-
-
-def get_cosyvoice_role():
-
-    rolelist = {
-        "No":"No",
-        "clone": 'clone'
-    }
-
-    for it in params.get('cosyvoice_role','').strip().split("\n"):
-        tmp = it.strip().split('#')
-        if len(tmp) != 2:
-            continue
-        rolelist[tmp[0]] = {"reference_audio": tmp[0], "reference_text": tmp[1]}
-    return rolelist
-
-def get_omnivoice_role():
-
-    rolelist = {
-        "No":"No",
-        "clone": 'clone'
-    }
-
-    for it in params.get('omnivoice_role','').strip().split("\n"):
-        tmp = it.strip().split('#')
-        if len(tmp) != 2:
-            continue
-        rolelist[tmp[0]] = {"reference_audio": tmp[0], "reference_text": tmp[1]}
-    return rolelist
-
-
-def get_fishtts_role():
-
-    if not params.get('fishtts_role','').strip():
-        return None
-    rolelist = {"No":"No"}
-    for it in params.get('fishtts_role','').strip().split("\n"):
-        tmp = it.strip().split('#')
-        if len(tmp) != 2:
-            continue
-        rolelist[tmp[0]] = {"reference_audio": tmp[0], "reference_text": tmp[1]}
-    return rolelist
-
-
 def get_f5tts_role():
 
     if not params.get('f5tts_role','').strip():
@@ -561,3 +445,11 @@ def get_clone_role(set_p=False):
         if set_p: raise
     return False
 
+
+
+
+def show_refaudio_win():
+    from videotrans.component.set_form import RefaudioForm
+    dialog = RefaudioForm()
+    dialog.exec()
+    return

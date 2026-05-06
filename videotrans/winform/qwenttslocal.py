@@ -12,30 +12,24 @@ def openwin():
         winobj.test.setText(tr('Test'))
 
     def test():
-        role = winobj.role.toPlainText().strip()
         instruct_text = winobj.instruct_text.text()
         params["qwenttslocal_prompt"] = instruct_text
-        params["qwenttslocal_refaudio"] = role
         params.save()
-        if role:
-            for it in role.split("\n"):
-                file=it.split('#')[0]
-                file=ROOT_DIR+f'/f5-tts/{file}'
-                if not Path(file).exists():
-                    return tools.show_error(tr("No reference audio {} exists",file))
-                if not file.endswith('.wav'):
-                    return tools.show_error(tr('Please upload reference audio in wav format'))
+        _rolename = next(reversed(tools.get_f5tts_role().values()))
+        if not isinstance(_rolename,dict):
+            return tools.show_error(tr("No reference audio {} exists",_rolename))
+        rolename=_rolename.get('ref_audio')
+        file=ROOT_DIR+f'/f5-tts/{rolename}'
+        if not Path(file).exists():
+            return tools.show_error(tr("No reference audio {} exists",file))
 
-        
-        
         from videotrans import tts
         import time
-        role=role.split("\n")[0].split('#')[0] if role else 'Vivian'
-        
-        winobj.test.setText(tr('Testing...')+f'  {role}')
+
+        winobj.test.setText(tr('Testing...')+f'  {rolename}')
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友,希望你的每一天都美好愉快',
-            "role": role,
+            "role": rolename,
             "filename": TEMP_DIR + f"/{time.time()}-qwenttslocal.wav",
             "tts_type": tts.QWEN3LOCAL_TTS}],
                          language="zh-cn",
@@ -44,10 +38,8 @@ def openwin():
         wk.start()
 
     def save():
-        role = winobj.role.toPlainText().strip()
         instruct_text = winobj.instruct_text.text()
         params["qwenttslocal_prompt"] = instruct_text
-        params["qwenttslocal_refaudio"] = role
         params.save()
         tools.set_process(text='qwenttslocal', type="refreshtts")
         winobj.close()
@@ -55,8 +47,6 @@ def openwin():
     from videotrans.component.set_form import QwenttsLocalForm
     winobj = QwenttsLocalForm()
     app_cfg.child_forms['qwenttslocal'] = winobj
-    if params["qwenttslocal_refaudio"]:
-        winobj.role.setPlainText(params["qwenttslocal_refaudio"])
     if params.get("qwenttslocal_prompt"):
         winobj.instruct_text.setText(params.get("qwenttslocal_prompt"))
 

@@ -13,13 +13,13 @@ class Ui_fishttsform(object):
         if not fishttsform.objectName():
             fishttsform.setObjectName("fishttsform")
         fishttsform.setWindowModality(Qt.NonModal)
-        fishttsform.resize(600, 500)
+        fishttsform.resize(600, 250)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(fishttsform.sizePolicy().hasHeightForWidth())
         fishttsform.setSizePolicy(sizePolicy)
-        fishttsform.setMaximumSize(QSize(600, 500))
+        fishttsform.setMaximumSize(QSize(600, 250))
 
         v1 = QtWidgets.QVBoxLayout(fishttsform)
 
@@ -34,16 +34,6 @@ class Ui_fishttsform(object):
         h1.addWidget(self.api_url)
         v1.addLayout(h1)
 
-        self.label_4 = QLabel(fishttsform)
-        self.label_4.setObjectName("label_4")
-        self.label_4.setText('参考音频路径名称#音频对应文字内容  一行一组')
-        v1.addWidget(self.label_4)
-
-        self.role = QPlainTextEdit(fishttsform)
-        self.role.setObjectName("role")
-        self.role.setMinimumHeight(100)
-        self.role.setReadOnly(False)
-        v1.addWidget(self.role)
 
         self.label_5 = QLabel(fishttsform)
         self.label_5.setObjectName("label_5")
@@ -78,6 +68,11 @@ class Ui_fishttsform(object):
 
         h2.addWidget(self.save)
         h2.addWidget(self.test)
+
+        ref_btn = QtWidgets.QPushButton()
+        ref_btn.setText(tr("Set reference audio"))
+        ref_btn.clicked.connect(tools.show_refaudio_win)
+        h2.addWidget(ref_btn)
         h2.addWidget(help_btn)
         v1.addLayout(h2)
 
@@ -108,10 +103,8 @@ references[0][text]:参考音频中的语音文本
 """
 
         fishttsform.setWindowTitle("Fish-speech API/fish-speech >=1.5.0")
-        self.role.setPlaceholderText("在此填写参考音频信息,格式如下\n例如：一行一组\n123.wav#你好啊我的朋友")
         self.tips.setPlainText(tips)
         self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText("填写http开头的API,Fish-speech 1.5.0默认 http://127.0.0.1:8080/v1/tts")
         self.label.setText("Fish-speech API")
         self.test.setText(tr("Test"))
-    # retranslateUi

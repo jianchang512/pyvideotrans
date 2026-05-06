@@ -2,7 +2,7 @@
 import copy
 
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
-
+from videotrans.tts._mosstts import MossTTS
 
 EDGE_TTS = 0
 QWEN3LOCAL_TTS = 1
@@ -65,44 +65,44 @@ SUPPORT_CLONE=[
 ]
 _ID_NAME_DICT = {
     EDGE_TTS: tr("Edge-TTS(free)"),
-    QWEN3LOCAL_TTS: f"Qwen3-TTS({tr('Local')})",
-    OMNIVOICE_TTS: "OmniVoice",
-    PIPER_TTS: f'piper TTS({tr("Local")})',
-    VITSCNEN_TTS: f'VITS({tr("Local")})',
+    QWEN3LOCAL_TTS: f"Qwen3-TTS({tr('Local')}{tr('Built-in')})",
+    OMNIVOICE_TTS: f"OmniVoice({tr('Local')}API)",
+    PIPER_TTS: f"Piper({tr('Local')}{tr('Built-in')})",
+    VITSCNEN_TTS: f"VITS({tr('Local')}{tr('Built-in')})",
 
-    QWEN_TTS: "Qwen3-TTS(BailianAPI)",
+    QWEN_TTS: "Qwen3-TTS",
     DOUBAO2_TTS: tr("DouBao2"),
     DOUBAO_TTS: tr("VolcEngine TTS"),
-    GLM_TTS: f'{tr("Zhipu AI")} GLM-TTS',
+    GLM_TTS: f'GLM-TTS {tr("Zhipu AI")}',
 
-    GPTSOVITS_TTS: f"GPT-SoVITS({tr('Local')})",
-    F5_TTS: f"F5-TTS({tr('Local')})",
-    INDEX_TTS: f"Index TTS({tr('Local')})",
-    COSYVOICE_TTS: f"CosyVoice({tr('Local')})",
-    Supertonic_TTS: f"Supertonic({tr('Local')})",
+    GPTSOVITS_TTS: f"GPT-SoVITS({tr('Local')}API)",
+    F5_TTS: f"F5-TTS({tr('Local')}API)",
+    INDEX_TTS: f"Index-TTS({tr('Local')}API)",
+    COSYVOICE_TTS: f"CosyVoice({tr('Local')}API)",
+    Supertonic_TTS: f"Supertonic({tr('Local')}{tr('Built-in')})",
 
-    MINIMAXI_TTS: "Minimaxi TTS",
-    OPENAI_TTS: "OpenAI TTS",
+    MINIMAXI_TTS: "Minimaxi-TTS",
+    OPENAI_TTS: "OpenAI-TTS",
     AI302_TTS: "302.AI",
     ELEVENLABS_TTS: "Elevenlabs.io",
     AZURE_TTS: "Azure-TTS",
     GEMINI_TTS: "Gemini TTS",
 
-    VOXCPM_TTS: f"VoxCPM TTS({tr('Local')})",
-    CHATTERBOX_TTS: f"ChatterBox TTS({tr('Local')})",
-    CHATTTS: f"ChatTTS({tr('Local')})",
-    SPARK_TTS: f"Spark TTS({tr('Local')})",
-    DIA_TTS: f"Dia TTS({tr('Local')})",
-    KOKORO_TTS: f"kokoro TTS({tr('Local')})",
-    CLONE_VOICE_TTS: f"clone-voice({tr('Local')})",
-    FISHTTS: f"Fish TTS({tr('Local')})",
+    VOXCPM_TTS: f"VoxCPM({tr('Local')}API)",
+    CHATTERBOX_TTS: f"ChatterBox({tr('Local')}API)",
+    CHATTTS: f"ChatTTS({tr('Local')}API)",
+    SPARK_TTS: f"Spark-TTS({tr('Local')}API)",
+    DIA_TTS: f"Dia-TTS({tr('Local')}API)",
+    KOKORO_TTS: f"kokoro-TTS({tr('Local')}API)",
+    CLONE_VOICE_TTS: f"clone-voice({tr('Local')}API)",
+    FISHTTS: f"Fish-TTS({tr('Local')}API)",
 
     FreeAzure: tr('Azure(free)'),
 
     GOOGLE_TTS: "gTTS(free)",
 
     XAI_TTS: 'X.AI TTS',
-    XIAOMI_TTS:'XiaoMi TTS',
+    XIAOMI_TTS:'XiaoMi-TTS',
     TTS_API: tr("Customize API"),
 
     CAMB_TTS: "CAMB AI TTS",

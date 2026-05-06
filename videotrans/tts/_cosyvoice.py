@@ -21,6 +21,7 @@ class CosyVoice(BaseTTS):
         super().__post_init__()
         self.api_url = params.get('cosyvoice_url','').strip().rstrip('/').lower()
         self._add_internal_host_noproxy(self.api_url)
+        self.rolelist = tools.get_f5tts_role()
 
     def _exec(self):
         self._local_mul_thread()
@@ -39,16 +40,16 @@ class CosyVoice(BaseTTS):
         role = data_item['role']
         data = {'ref_wav': '','ref_text':data_item.get('ref_text','')}
         
-        rolelist = tools.get_cosyvoice_role()
 
-        if role not in rolelist:
+
+        if role not in self.rolelist:
             raise StopRetry(tr('The role {} does not exist',role))
         if role == 'clone':
             data['ref_wav'] = data_item.get('ref_wav','')
             data['ref_text'] = data_item.get('ref_text','')
         else:
-            data['ref_wav'] = ROOT_DIR+"/f5-tts/"+rolelist[role].get('reference_audio','')
-            data['ref_text'] = rolelist[role].get('reference_text','')
+            data['ref_wav'] = ROOT_DIR+"/f5-tts/"+self.rolelist[role].get('ref_audio','')
+            data['ref_text'] = self.rolelist[role].get('ref_text','')
 
         if not Path(data['ref_wav']).exists():
             raise StopRetry(f"{data['ref_wav']} is not exists")
@@ -102,8 +103,7 @@ class CosyVoice(BaseTTS):
             "lang": "zh" if self.language.startswith('zh') else self.language,
             "speed": 1 + rate
         }
-        rolelist = tools.get_cosyvoice_role()
-        if role not in rolelist:
+        if role not in self.rolelist:
             raise StopRetry(tr('The preset role {} was not found in the configuration',role))
         if role == 'clone':
             # 克隆音色
@@ -117,14 +117,14 @@ class CosyVoice(BaseTTS):
             api_url += '/clone_eq'
             data['encode'] = 'base64'
         else:
-            role_info = rolelist[role]
-            data['reference_audio'] = ROOT_DIR+"/f5-tts/"+role_info.get('reference_audio','')
+            role_info = self.rolelist[role]
+            data['reference_audio'] = ROOT_DIR+"/f5-tts/"+role_info.get('ref_audio','')
 
             if not data['reference_audio']:
                 raise StopRetry(tr('Preset role {} is incorrectly configured, missing clone reference audio',role))
 
             # 检查是否存在参考文本，以决定使用哪个克隆接口
-            reference_text = role_info.get('reference_text', '').strip()
+            reference_text = role_info.get('ref_text', '').strip()
             if reference_text:
                 # 同时提供参考音频和文本，使用高质量同语种克隆
                 data['reference_text'] = reference_text

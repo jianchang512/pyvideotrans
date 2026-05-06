@@ -359,7 +359,7 @@
     "Recognition may take a while, please be patient": "Recognizing... Please wait.",
     "Recognition result is empty": "Result Empty",
     "Reference Audio#Audio Text": "Ref Audio#Text",
-    "Reference audio needs to be in wav format, with a duration of no more than 12 seconds, and stored in the /f5-tts directory of this software": "Ref Audio: WAV, <12s, in /f5-tts folder",
+    "Reference audio needs to be in wav format": "Reference audio must be in WAV format, under 10 seconds in length, with clear pronunciation, and saved in the `/f5-tts` directory of this software. Please enter the audio name (including the WAV extension, e.g., 1.wav) here. Reference audio for CosyVoice channels must be longer than 3 seconds.",
     "Rephrase Local": "Local Resegment",
     "Replace": "Replace",
     "Report Error": "Report Error",
@@ -974,6 +974,7 @@
   "Filename length check":"The total length of the filename is too long and may exceed system limits during subsequent complex processing, causing errors.\n\nCurrent filename: {} characters, Path plus file: {} characters\n\nTo avoid subsequent errors, it is recommended to: shorten filenames, shorten folder names, and move files to a shorter, outermost folder.\n\nClick Yes to ignore the warning and continue, or click No to make the changes.",
   "embed_bgm":"Re-embed BGM",
   "Norway":"Norwegian Bokmal",
-  "Khmer":"Khmer"
+  "Khmer":"Khmer",
+  "Set reference audio":"Set reference audio"
 
 }
