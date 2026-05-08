@@ -293,9 +293,12 @@ def set_ass_font(srtfile: str) -> str:
     # ---------- 1. 将 SRT 转为临时 SRT（替换换行符）并调用 ffmpeg 生成 ASS ----------
     srt_str = ""
     for it in get_subtitle_from_srt(srtfile, is_file=True):
-        t = re.sub(r'\n|\\n', r'\\N', it['text'].strip())
-        if t:
-            srt_str += f'{it["line"]}\n{it["startraw"]} --> {it["endraw"]}\n{t}\n\n'
+        text = re.sub(r'\n|\\n', r'\\N', it['text'].strip())
+        if text:
+            # 舍弃 srt时间格式毫秒中第三位，防止转为ass时四舍五入不一致问题
+            _time=f'{it["startraw"]} --> {it["endraw"]}'
+            _time=re.sub(r'(\d{2}:\d{2}:\d{2}),(\d{2})\d?', r'\1,\g<2>0', _time)
+            srt_str += f'{it["line"]}\n{_time}\n{text}\n\n'
     edit_srt = srtfile[:-4] + '-edit.srt'
     with open(edit_srt, 'w', encoding='utf-8') as f:
         f.write(srt_str.strip())
@@ -305,7 +308,7 @@ def set_ass_font(srtfile: str) -> str:
     # ---------- 2. 读取 JSON 样式配置 ----------
     JSON_FILE = f'{ROOT_DIR}/videotrans/ass.json'
     if not os.path.exists(JSON_FILE):
-        logger.debug(f"[set_ass_font] 警告：JSON 配置文件不存在: {JSON_FILE}，跳过样式替换")
+        logger.debug(f"[set_ass_font] 未修改硬字幕样式，跳过样式替换")
         return ass_file_path
 
     try:

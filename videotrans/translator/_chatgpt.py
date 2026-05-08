@@ -60,7 +60,7 @@ class ChatGPT(BaseTrans):
             response = model.chat.completions.create(
                 model=model_name,
                 frequency_penalty=0,
-                max_completion_tokens=max(int(params.get('chatgpt_max_token', 8192)), 8192),
+                max_completion_tokens=max(int(params.get('chatgpt_max_token', 65536)), 65536),
                 messages=message,
                 temperature=float(settings.get('aitrans_temperature',0.2)),
                 timeout=300 # 超过5分钟为失败
@@ -89,7 +89,23 @@ class ChatGPT(BaseTrans):
             srt_str = "\n\n".join([f"{line+1}\n{it['time']}\n{it['text']}" for line,it in enumerate(srt_list[idx: idx + chunk_size])])
             new_sublist.append(_send(srt_str))
 
-        return tools.get_subtitle_from_srt("\n\n".join(new_sublist),is_file=False)
+        _srtlist=tools.get_subtitle_from_srt("\n\n".join(new_sublist),is_file=False)
+        # 修正可能存在的时间戳错误
+        _len=len(_srtlist)
+        for i,it in enumerate(_srtlist):
+            _had_edit=False
+            if i<_len-1 and it['end_time']>_srtlist[i+1]['start_time']:
+                it['end_time']=_srtlist[i+1]['start_time']
+                _had_edit=True
+            if it['start_time']>it['end_time']:
+                it['start_time']=it['end_time']
+                _had_edit=True
+            if _had_edit:
+                it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
+                it["time"] = f"{it['startraw']} --> {it['endraw']}"
+        return _srtlist
+        
 
 
     def _get_url(self, url=""):

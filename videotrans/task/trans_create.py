@@ -1233,6 +1233,8 @@ class TransCreate(BaseTask):
             settings.get('other_len', 60))
         target_sub_list = tools.get_subtitle_from_srt(self.cfg.target_sub)
         
+        
+        
         srt_string = ""
         # 双硬字幕时的两种语言字幕分割符，用于定义不同样式
         _join_flag=''
