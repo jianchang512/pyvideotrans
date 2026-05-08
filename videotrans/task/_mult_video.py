@@ -26,9 +26,12 @@ class MultVideo(QThread):
     def run(self):
         for it in self.obj_list:
             if app_cfg.exit_soft:return
-            if self.cfg['clear_cache'] and Path(it['target_dir']).is_dir():
-                shutil.rmtree(it['target_dir'], ignore_errors=True)
-            Path(it['target_dir']).mkdir(parents=True, exist_ok=True)
+            # 从停止队列中移出，以便重新开始            
+            try:
+                app_cfg.stoped_uuid_set.remove(it['uuid'])
+            except KeyError:
+                pass
+
             try:
                 trk = TransCreate(cfg=TaskCfgVTT(**self.cfg|it))
                 if self.batch_single:

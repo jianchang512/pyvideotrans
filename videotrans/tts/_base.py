@@ -200,11 +200,12 @@ class BaseTTS(BaseCon):
     # exec->_local_mul_thread->item_task
     def _local_mul_thread(self) -> None:
         if self._exit(): return
+        
 
         # 单个字幕行，无需多线程
         if len(self.queue_tts) == 1 or self.dub_nums == 1:
             for k, item in enumerate(self.queue_tts):
-                if not item.get('text'):
+                if not item.get('text') or tools.vail_file(item['filename']):
                     continue
                 try:
                     self._item_task(item,k)
@@ -218,32 +219,37 @@ class BaseTTS(BaseCon):
                 finally:
                     self._signal(text=f'TTS[{k + 1}/{self.len}]')
                 time.sleep(self.wait_sec)
+            self._signal(text=f'TTS ended')
+            
             return
 
         all_task = []
-        pool = ThreadPoolExecutor(max_workers=self.dub_nums)
+        pool = ThreadPoolExecutor(max_workers=min(self.dub_nums,len(self.queue_tts)))
         try:
+            completed_tasks = 0
             for k, item in enumerate(self.queue_tts):
-                if not item.get('text'):
+                if not item.get('text') or tools.vail_file(item['filename']):
+                    completed_tasks+=1
                     continue
                 future = pool.submit(self._item_task, item,k)
                 all_task.append(future)
-
-            completed_tasks = 0
-            for task in as_completed(all_task):
-                try:
-                    task.result()
-                    # 属于致命错误，无需等待其他任务，肯定全部失败,例如 api地址错误 api_name 不存在等
-                except StopRetry:
-                    # wait=False 表示主线程不等待正在运行的线程结束，直接往下走
-                    # 这会将还在排队但没开始运行的任务全部取消
-                    pool.shutdown(wait=False, cancel_futures=True)
-                    raise
-                except Exception as e:
-                    self.error = e
-                finally:
-                    completed_tasks += 1
-                    self._signal(text=f"TTS: [{completed_tasks}/{self.len}] ...")
+            
+            if all_task:
+                for task in as_completed(all_task):
+                    try:
+                        task.result()
+                        # 属于致命错误，无需等待其他任务，肯定全部失败,例如 api地址错误 api_name 不存在等
+                    except StopRetry:
+                        # wait=False 表示主线程不等待正在运行的线程结束，直接往下走
+                        # 这会将还在排队但没开始运行的任务全部取消
+                        pool.shutdown(wait=False, cancel_futures=True)
+                        raise
+                    except Exception as e:
+                        self.error = e
+                    finally:
+                        completed_tasks += 1
+                        self._signal(text=f"TTS: [{completed_tasks}/{self.len}] ...")
+            self._signal(text=f"TTS ended ...")
         except StopRetry:
             raise
         finally:

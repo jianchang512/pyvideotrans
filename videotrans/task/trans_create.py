@@ -57,8 +57,16 @@ class TransCreate(BaseTask):
     def __post_init__(self):
         # 首先，处理本类的默认配置
         super().__post_init__()
-        if self.cfg.clear_cache and Path(self.cfg.target_dir).is_dir():
-            shutil.rmtree(self.cfg.target_dir, ignore_errors=True)
+        # 临时文件夹
+        if not self.cfg.cache_folder:
+            self.cfg.cache_folder = f"{TEMP_DIR}/{self.uuid}"
+        # 清理缓存
+        if self.cfg.clear_cache:
+            if Path(self.cfg.target_dir).is_dir():
+                shutil.rmtree(self.cfg.target_dir, ignore_errors=True)
+            if Path(self.cfg.cache_folder).is_dir():
+                shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
+            
         self._signal(text=tr('kaishichuli'))
         # -1=不启用说话人，0=启用并且不限制说话人数量，>0+1 为最大说话人数量
         self.max_speakers = self.cfg.nums_diariz if self.cfg.enable_diariz else -1
@@ -71,9 +79,6 @@ class TransCreate(BaseTask):
         if tools.vail_file(self.cfg.back_audio):
             self.cfg.background_music = Path(self.cfg.back_audio).as_posix()
 
-        # 临时文件夹
-        if not self.cfg.cache_folder:
-            self.cfg.cache_folder = f"{TEMP_DIR}/{self.uuid}"
         # 输出文件夹，去掉可能存在的双斜线
         self.cfg.target_dir = re.sub(r'/{2,}', '/', self.cfg.target_dir, flags=re.I | re.S)
         # 检测字幕原始语言
@@ -858,10 +863,10 @@ class TransCreate(BaseTask):
                 logger.exception(e, exc_info=True)
         self.hasend = True
         self.precent = 100
-        try:
-            shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
-        except:
-            pass
+        #try:
+        #    shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
+        #except:
+        #    pass
         self._signal(text=f"{self.cfg.name}", type='succeed')
         tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
 
@@ -1017,6 +1022,8 @@ class TransCreate(BaseTask):
                 continue
             # 判断是否存在单独设置的行角色，如果不存在则使用全局
             voice = 'clone' if force_clone else line_roles.get(f'{it["line"]}', voice_role)
+            
+            _key=tools.get_md5(f"{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}")
 
             tmp_dict = {
                 "text": it['text'],
@@ -1035,7 +1042,7 @@ class TransCreate(BaseTask):
                 "volume": self.cfg.volume,
                 "pitch": self.cfg.pitch,
                 "tts_type": self.cfg.tts_type,
-                "filename": f"{self.cfg.cache_folder}/dubb-{i}.wav"
+                "filename": f"{self.cfg.cache_folder}/dubb-{i}-{_key}.wav"
             }
             # 如果是clone-voice类型， 需要截取对应片段
             # 是克隆

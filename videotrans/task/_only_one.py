@@ -30,7 +30,13 @@ class Worker(QThread):
     # 使用冗余的 if self._exit(): return 来处理倒计时延迟问题
     def run(self) -> None:
         obj=self.obj_list[0]
+        # 从停止队列中移出，以便重新开始            
         try:
+            app_cfg.stoped_uuid_set.remove(obj['uuid'])
+        except KeyError:
+            pass
+        try:
+            
             self.uuid = obj['uuid']
             trk = TransCreate(cfg=TaskCfgVTT(**self.cfg|obj))
             # 原始语言字幕文件

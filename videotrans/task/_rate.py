@@ -539,7 +539,7 @@ class SpeedRate:
         valid_cnt = 0
         for clip in processed_clips:
             if clip.get('actual_duration', 0) > 0 and Path(clip['filename']).exists():
-                path = clip['filename'].replace("\\", "/")
+                path = Path(clip['filename']).as_posix()
                 txt_content.append(f"file '{path}'")
                 valid_cnt += 1
             else:
@@ -561,6 +561,25 @@ class SpeedRate:
 
         if Path(output_path).exists():
             shutil.move(output_path, self.novoice_mp4)
+            # 删除片段
+            self._del_mp4_clip()
+            
+    def _del_mp4_clip(self):
+
+        # 计数器（可选）
+        deleted_count = 0
+        # 使用 os.scandir() 创建迭代器
+        with os.scandir(self.cache_folder) as entries:
+            for entry in entries:
+                # 判断：是文件 + 名字以 clip_ 开头 + 以 .mp4 结尾
+                if entry.is_file() and entry.name.startswith('clip_') and entry.name.endswith('.mp4'):
+                    try:
+                        os.remove(entry.path)
+                        deleted_count += 1
+                    except Exception as e:
+                        print(f"无法删除文件 {entry.name}: {e}")
+
+        logger.debug(f"清理视频慢速中生成的视频片段，共删除了 {deleted_count} 个文件。")
 
     def _concat_audio_aligned(self):
         logger.debug("[Audio] 开始对齐拼接...")

@@ -142,7 +142,6 @@ class EdgeTTS(BaseTTS):
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
         for it in self.queue_tts:
             it['role']=tools.get_edge_rolelist(it['role'],self.language)
-            #print(f'{it["role"]=}')
 
         worker_tasks = [
             asyncio.create_task(
@@ -206,17 +205,14 @@ class EdgeTTS(BaseTTS):
                 all_task = []
                 from concurrent.futures import ThreadPoolExecutor
                 self._signal(text=f'convert wav {total_tasks}')
-                with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count() or 1)) as pool:
+                with ThreadPoolExecutor(max_workers=min(1,len(self.queue_tts),os.cpu_count() or 1)) as pool:
                     for item in self.queue_tts:
                         mp3_path = item['filename'] + ".mp3"
-                        if tools.vail_file(mp3_path):
+                        if not tools.vail_file(item['filename']) and tools.vail_file(mp3_path):
                             all_task.append(pool.submit(self.convert_to_wav, mp3_path,item['filename']))
                     if len(all_task) > 0:
                         _ = [i.result() for i in all_task]
 
-            if err > 0:
-                msg=f'[{err}] errors, {ok} succeed'
-                self._signal(text=msg)
-                logger.debug(f'EdgeTTS配音结束：{msg}')
+            self._signal(text=f'[{err}] errors, {ok} succeed')
         finally:
             await asyncio.sleep(0.1)

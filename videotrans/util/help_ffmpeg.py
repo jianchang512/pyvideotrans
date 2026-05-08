@@ -792,8 +792,9 @@ def format_video(name, target_dir=None):
     # 如果存在目标文件夹，则在其之下生成 以无后缀的基本名的子文件夹
     if target_dir:
         obj['target_dir'] = Path(f'{target_dir}/{raw_noextname}-{ext}').as_posix()
-    # 唯一id标识 改为使用 名字和尺寸，以便使用缓存 例如降噪前判断是否已存在
-    obj['uuid'] = help_misc.get_md5(f'{name}-{time.time()}')[:10]
+    # 唯一id标识 改为使用 名字和尺寸 和 mtime，以便使用缓存 
+    _stat=raw_pathlib.stat()
+    obj['uuid'] = help_misc.get_md5(f'{name}-{_stat.st_size}-{_stat.st_mtime}')[:10]
     return obj
 
 
