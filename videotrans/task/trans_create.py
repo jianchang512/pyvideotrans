@@ -296,24 +296,28 @@ class TransCreate(BaseTask):
         # 若已执行背景声人声分离，则不再进行降噪
         #if not self.cfg.is_separate and self.cfg.remove_noise:
         if self.cfg.remove_noise:
-            title = tr("Starting to process speech noise reduction, which may take a long time, please be patient")
             _remove_noise_wav=f"{self.cfg.cache_folder}/remove_noise.wav"
-
-            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', urls=['https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet4.onnx'], callback=self._process_callback)
-            from videotrans.process.prepare_audio import remove_noise
-            kw = {
-                "input_file": self.cfg.source_wav,
-                "output_file": _remove_noise_wav,
-                "is_cuda": self.cfg.is_cuda
-            }
-            try:
-                _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
-                if _rs:
-                    self.cfg.source_wav = _remove_noise_wav
-                    self.clone_ref=_remove_noise_wav
-                self._signal(text='remove noise end')
-            except Exception as e:
-                logger.exception(f'降噪静默失败{e}',exc_info=True)
+            if tools.vail_file(_remove_noise_wav):
+                self.cfg.source_wav = _remove_noise_wav
+                self.clone_ref=_remove_noise_wav
+                logger.debug(f'复用已存在的降噪缓存文件')
+            else:
+                title = tr("Starting to process speech noise reduction, which may take a long time, please be patient")
+                tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', urls=['https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet4.onnx'], callback=self._process_callback)
+                from videotrans.process.prepare_audio import remove_noise
+                kw = {
+                    "input_file": self.cfg.source_wav,
+                    "output_file": _remove_noise_wav,
+                    "is_cuda": self.cfg.is_cuda
+                }
+                try:
+                    _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
+                    if _rs:
+                        self.cfg.source_wav = _remove_noise_wav
+                        self.clone_ref=_remove_noise_wav
+                    self._signal(text='remove noise end')
+                except Exception as e:
+                    logger.exception(f'降噪静默失败{e}',exc_info=True)
 
 
         self._signal(text=tr("Speech Recognition to Word Processing"))

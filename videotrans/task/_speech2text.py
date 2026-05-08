@@ -63,6 +63,7 @@ class SpeechToText(BaseTask):
         try:
             # 需要降噪
             if self.cfg.remove_noise:
+                logger.debug('开始降噪，实际使用人声分离操作替换降噪，速度更快')
                 title=tr('Starting to process speech noise reduction, which may take a long time, please be patient')
                 
                 tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
