@@ -33,7 +33,7 @@ class TranslateSrt(BaseTask):
         # 如果原始和结果文件相同，为避免覆盖，提前复制
         if self.cfg.name == self.cfg.target_sub:
             shutil.copy2(self.cfg.source_sub, f"{self.cfg.source_sub}-OriginalSubtitles.srt")
-        self._signal(text=tr("Transation subtitles"))
+        self.signal(text=tr("Transation subtitles"))
 
 
 
@@ -58,7 +58,7 @@ class TranslateSrt(BaseTask):
             # 单语字幕
             if self.out_format == 0:
                 self._save_srt_target(raw_subtitles, self.cfg.target_sub)
-                self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace')
+                self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace')
                 return
 
             target_length = len(raw_subtitles)
@@ -75,7 +75,7 @@ class TranslateSrt(BaseTask):
             self.cfg.target_sub = self.cfg.target_sub[:-4] + f'-{self.out_format}.srt'
             with Path(self.cfg.target_sub).open('w', encoding='utf-8') as f:
                 f.write(srt_string)
-            self._signal(text=srt_string, type='replace')
+            self.signal(text=srt_string, type='replace')
         except Exception as e:
             raise
 
@@ -84,7 +84,7 @@ class TranslateSrt(BaseTask):
         self.hasend = True
         self.precent = 100
         if Path(self.cfg.target_sub).is_file():
-            self._signal(text=f"{self.cfg.name}", type='succeed')
+            self.signal(text=f"{self.cfg.name}", type='succeed')
         try:
             if self.cfg.shound_del_name:
                 Path(self.cfg.shound_del_name).unlink(missing_ok=True)

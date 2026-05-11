@@ -1,22 +1,22 @@
-
-
 def openwin():
     import json
     from pathlib import Path
     from PySide6 import QtWidgets
-    from PySide6.QtCore import QUrl,QTimer
+    from PySide6.QtCore import QUrl, QTimer
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
     from videotrans.util import contants
-    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+    from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, params, TEMP_DIR, logger, defaulelang, \
+        HOME_DIR
     from videotrans.util import tools
     from videotrans.task._speech2text import SpeechToText
     from videotrans.task.taskcfg import TaskCfgSTT
     from videotrans import translator, recognition
     RESULT_DIR = HOME_DIR + f"/recogn"
     COPYSRT_TO_RAWDIR = RESULT_DIR
-    uuid_list=[]
-
+    uuid_list = []
+    percent=""
     def feed(d):
+        nonlocal percent
         if winobj.has_done:
             return
         if isinstance(d, str):
@@ -26,7 +26,7 @@ def openwin():
             winobj.loglabel.setStyleSheet("""color:#148cd2;background-color:transparent""")
             winobj.error_msg = ""
             winobj.loglabel.setToolTip('')
-        
+
         if d['type'] in ['replace', 'replace_subtitle']:
             winobj.shibie_text.clear()
             winobj.shibie_text.insertPlainText(d["text"])
@@ -43,10 +43,11 @@ def openwin():
             winobj.loglabel.setStyleSheet("""color:#ff0000;background-color:transparent""")
             winobj.shibie_startbtn.setText(tr("Start"))
         elif d['type'] == 'logs' and d['text']:
-            winobj.loglabel.setText(d['text'] + ' ... ')
-        elif d['type'] in ['jindu', 'succeed']:
-            winobj.shibie_startbtn.setText(d['text'])
+            winobj.loglabel.setText(f"{percent} {d['text']}...")
+        elif d['type'] == 'jindu':
+            percent=d['text']
         elif d['type'] in ['end']:
+            percent=''
             winobj.has_done = True
             toggle_state(False)
             winobj.loglabel.setText(tr('quanbuend'))
@@ -55,7 +56,6 @@ def openwin():
 
     def opendir_fn():
         QDesktopServices.openUrl(QUrl.fromLocalFile(COPYSRT_TO_RAWDIR))
-
 
     def toggle_state(state):
         winobj.shibie_language.setDisabled(state)
@@ -72,10 +72,9 @@ def openwin():
         winobj.copysrt_rawvideo.setDisabled(state)
         winobj.shibie_stop.setDisabled(not state)
 
-
     def shibie_start_fun():
-        nonlocal COPYSRT_TO_RAWDIR,uuid_list
-        uuid_list=[]
+        nonlocal COPYSRT_TO_RAWDIR, uuid_list
+        uuid_list = []
         Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         model = winobj.shibie_model.currentText()
@@ -101,7 +100,7 @@ def openwin():
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
 
-        if winobj.rephrase.currentIndex()==1:
+        if winobj.rephrase.currentIndex() == 1:
             ai_type = settings.get('llm_ai_type', 'openai')
             if ai_type == 'openai' and not params.get('chatgpt_key'):
                 tools.show_error(tr('llmduanju'))
@@ -113,13 +112,13 @@ def openwin():
                 from videotrans.winform import deepseek
                 deepseek.openwin()
                 return
-        enable_diariz_is=winobj.enable_diariz.isChecked()
+        enable_diariz_is = winobj.enable_diariz.isChecked()
 
         toggle_state(True)
         winobj.shibie_startbtn.setText(tr("running"))
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()
-        stt_rephrase= int(winobj.rephrase.currentIndex())
+        stt_rephrase = int(winobj.rephrase.currentIndex())
         settings.save()
 
         try:
@@ -127,12 +126,12 @@ def openwin():
             winobj.loglabel.setText('')
             video_list = [tools.format_video(it, None) for it in files]
             uuid_list = [obj['uuid'] for obj in video_list]
-            remove_noise_is=winobj.remove_noise.isChecked()
-            fix_punc=winobj.fix_punc.isChecked()
-            nums_diariz=winobj.nums_diariz.currentIndex()
+            remove_noise_is = winobj.remove_noise.isChecked()
+            fix_punc = winobj.fix_punc.isChecked()
+            nums_diariz = winobj.nums_diariz.currentIndex()
             for it in video_list:
-                uuid_list.append(it['uuid'])
-                cfg={
+                app_cfg.rm_uuid(it['uuid'])
+                cfg = {
                     "recogn_type": recogn_type,
                     "model_name": model,
                     "is_cuda": is_cuda,
@@ -140,12 +139,13 @@ def openwin():
                     "detect_language": langcode,
                     "remove_noise": remove_noise_is,
                     "enable_diariz": enable_diariz_is,
-                    "nums_diariz":nums_diariz,
-                    "rephrase":stt_rephrase,
-                    "fix_punc":fix_punc
+                    "nums_diariz": nums_diariz,
+                    "rephrase": stt_rephrase,
+                    "fix_punc": fix_punc
                 }
                 try:
-                    trk = SpeechToText(cfg=TaskCfgSTT(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
+                    trk = SpeechToText(cfg=TaskCfgSTT(**cfg | it), out_format=winobj.out_format.currentText(),
+                                       copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
                     app_cfg.prepare_queue.put_nowait(trk)
                 except Exception as e:
                     print(e)
@@ -199,10 +199,10 @@ def openwin():
                 return True
             return False
         return True
-    
+
     def show_cpp_select():
         import sys
-        cpp_path=settings.get('Whisper_cpp', '')
+        cpp_path = settings.get('Whisper_cpp', '')
         if not cpp_path or not Path(cpp_path).exists():
             from videotrans.component.set_cpp import SetWhisperCPP
             dialog = SetWhisperCPP()
@@ -213,18 +213,20 @@ def openwin():
             tools.show_error(
                 tr("Must be selected, otherwise it cannot be used"))
             return False
-        return True    
+        return True
 
-    # 识别类型改变时
+        # 识别类型改变时
+
     def model_type_change():
         lang = translator.get_code(show_text=winobj.shibie_language.currentText())
         recogn_type = winobj.shibie_recogn_type.currentIndex()
-        is_allow_lang=recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type, model_name=winobj.shibie_model.currentText())
+        is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
+                                                  model_name=winobj.shibie_model.currentText())
         if is_allow_lang is not True:
             winobj.loglabel.setText(is_allow_lang)
         else:
             winobj.loglabel.setText('')
-    
+
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
         if recogn_type == recognition.Faster_Whisper_XXL and not show_xxl_select():
@@ -232,7 +234,7 @@ def openwin():
         if recogn_type == recognition.Whisper_CPP and not show_cpp_select():
             return
         # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
-        if recogn_type not in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:  # openai-whisper
+        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER]:  # openai-whisper
             tools.hide_show_element(winobj.hfaster_layout, False)
 
         if recogn_type not in [recognition.FASTER_WHISPER,
@@ -250,8 +252,10 @@ def openwin():
         else:
             winobj.shibie_model.setDisabled(False)
             winobj.shibie_model.clear()
-            if recogn_type in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.WHISPERX_API]:
-                winobj.shibie_model.addItems(settings.WHISPER_MODEL_LIST if recogn_type != recognition.OPENAI_WHISPER else contants.Openai_Whisper_Models)
+            if recogn_type in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,
+                               recognition.WHISPERX_API]:
+                winobj.shibie_model.addItems(
+                    settings.WHISPER_MODEL_LIST if recogn_type != recognition.OPENAI_WHISPER else contants.Openai_Whisper_Models)
             elif recogn_type == recognition.Deepgram:
                 winobj.shibie_model.addItems(contants.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
@@ -259,14 +263,12 @@ def openwin():
             elif recogn_type == recognition.WHISPER_NET:
                 winobj.shibie_model.addItems(settings.Whisper_NET_MODEL_LIST)
             elif recogn_type == recognition.QWENASR:
-                winobj.shibie_model.addItems(['1.7B','0.6B'])
+                winobj.shibie_model.addItems(['1.7B', '0.6B'])
             elif recogn_type == recognition.HUGGINGFACE_ASR:
                 winobj.shibie_model.addItems(list(recognition.HUGGINGFACE_ASR_MODELS.keys()))
             else:
                 winobj.shibie_model.addItems(contants.FUNASR_MODEL)
-        
 
-            
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
 
@@ -293,20 +295,19 @@ def openwin():
 
     # 点击语音识别，显示隐藏faster时的详情设置
     def click_reglabel():
-        if winobj.shibie_recogn_type.currentIndex() in [recognition.FASTER_WHISPER,recognition.OPENAI_WHISPER]:
+        if winobj.shibie_recogn_type.currentIndex() in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER]:
             tools.hide_show_element(winobj.hfaster_layout, not winobj.threshold.isVisible())
         else:
             tools.hide_show_element(winobj.hfaster_layout, False)
 
-
     from videotrans.component.set_form import Recognform
-
 
     winobj = Recognform()
     app_cfg.child_forms['fn_recogn'] = winobj
-    #winobj.show()
+
+    # winobj.show()
     def _bind():
-        Path(RESULT_DIR).mkdir(exist_ok=True,parents=True)
+        Path(RESULT_DIR).mkdir(exist_ok=True, parents=True)
         from videotrans.component.component import DropButton
         winobj.shibie_dropbtn = DropButton(tr('xuanzeyinshipin'))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
@@ -316,22 +317,22 @@ def openwin():
         winobj.shibie_dropbtn.setSizePolicy(sizePolicy)
         winobj.shibie_dropbtn.setMinimumSize(0, 150)
         winobj.shibie_widget.insertWidget(0, winobj.shibie_dropbtn)
-        winobj.shibie_language.addItems(list(translator.LANGNAME_DICT.values())+['auto'])
+        winobj.shibie_language.addItems(list(translator.LANGNAME_DICT.values()) + ['auto'])
         winobj.shibie_label.clicked.connect(click_reglabel)
 
         winobj.shibie_startbtn.clicked.connect(shibie_start_fun)
         winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
-        winobj.is_cuda.setChecked(params.get("stt_cuda",False))
+        winobj.is_cuda.setChecked(params.get("stt_cuda", False))
         winobj.is_cuda.toggled.connect(check_cuda)
-        winobj.rephrase.setCurrentIndex(int(params.get('stt_rephrase',2)))
+        winobj.rephrase.setCurrentIndex(int(params.get('stt_rephrase', 2)))
         winobj.remove_noise.setChecked(bool(params.get('stt_remove_noise')))
         winobj.copysrt_rawvideo.setChecked(params.get('stt_copysrt_rawvideo', False))
         winobj.spk_insert.setChecked(bool(params.get('stt_spk_insert', False)))
         winobj.enable_diariz.setChecked(bool(params.get('stt_enable_diariz', False)))
         winobj.fix_punc.setChecked(bool(params.get('stt_fix_punc', False)))
 
-        winobj.nums_diariz.setCurrentIndex(int(params.get("stt_nums_diariz",0)))
+        winobj.nums_diariz.setCurrentIndex(int(params.get("stt_nums_diariz", 0)))
         winobj.out_format.setCurrentText(params.get('stt_out_format', 'srt'))
 
         default_lang = int(params.get('stt_source_language', 0))
@@ -359,31 +360,32 @@ def openwin():
             curr = contants.FUNASR_MODEL
             winobj.shibie_model.addItems(curr)
         elif default_type == recognition.QWENASR:
-            curr=['1.7B','0.6B']
+            curr = ['1.7B', '0.6B']
             winobj.shibie_model.addItems(curr)
         elif default_type == recognition.HUGGINGFACE_ASR:
-            curr=list(recognition.HUGGINGFACE_ASR_MODELS.keys())
-            winobj.shibie_model.addItems(curr)            
+            curr = list(recognition.HUGGINGFACE_ASR_MODELS.keys())
+            winobj.shibie_model.addItems(curr)
         elif default_type == recognition.OPENAI_WHISPER:
             curr = contants.Openai_Whisper_Models
             winobj.shibie_model.addItems(curr)
-            
+
         else:
             curr = settings.WHISPER_MODEL_LIST
             winobj.shibie_model.addItems(curr)
         if params.get('stt_model_name') in curr:
             current_model = params.get('stt_model_name')
             winobj.shibie_model.setCurrentText(current_model)
-        
-        
-        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,recognition.FUNASR_CN, recognition.Deepgram,recognition.Whisper_CPP,recognition.WHISPERX_API,recognition.HUGGINGFACE_ASR,recognition.QWENASR,recognition.WHISPER_NET]:
+
+        if default_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.OPENAI_WHISPER,
+                                recognition.FUNASR_CN, recognition.Deepgram, recognition.Whisper_CPP,
+                                recognition.WHISPERX_API, recognition.HUGGINGFACE_ASR, recognition.QWENASR,
+                                recognition.WHISPER_NET]:
             winobj.shibie_model.setDisabled(True)
         else:
             winobj.shibie_model.setDisabled(False)
 
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.shibie_model.currentIndexChanged.connect(model_type_change)
-
 
     _bind()
     return winobj

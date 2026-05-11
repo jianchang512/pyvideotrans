@@ -41,13 +41,13 @@ class DubbingSrt(BaseTask):
         self.cfg.target_sub = self.cfg.name
         # 配音后音频文件保存为
         self.cfg.target_wav = f'{self.cfg.target_dir}/{self.cfg.noextname}.wav'
-        self._signal(text=tr("Dubbing from subtitles"))
+        self.signal(text=tr("Dubbing from subtitles"))
         logger.debug(f'配音 {self.cfg=}')
 
 
     def dubbing(self):
         try:
-            self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type="replace")
+            self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type="replace")
             self._tts()
         except Exception as e:
             self.hasend = True
@@ -240,7 +240,7 @@ class DubbingSrt(BaseTask):
             return
 
         if self.cfg.voice_autorate:
-            self._signal(text=tr("Sound speed alignment stage"))
+            self.signal(text=tr("Sound speed alignment stage"))
         try:
             target_path = Path(self.cfg.target_wav)
             # 目前文件夹内存在同名，则添加时间后缀
@@ -283,8 +283,8 @@ class DubbingSrt(BaseTask):
         try:
             if Path(self.cfg.target_wav).is_file():
                 # 移除末尾静音
-                tools.remove_silence_from_end(self.cfg.target_wav, is_start=False)
-                self._signal(text=f"{self.cfg.name}", type='succeed')
+                tools.remove_silence_wav(self.cfg.target_wav, rm_start=False)
+                self.signal(text=f"{self.cfg.name}", type='succeed')
                 if self.out_ext.lower()!='wav':
                     tools.runffmpeg(['-y', '-i', self.cfg.target_wav, f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'])
                     Path(self.cfg.target_wav).unlink(missing_ok=True)

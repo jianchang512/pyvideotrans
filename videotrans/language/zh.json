@@ -976,5 +976,6 @@
   "embed_bgm":"重新嵌入背景声",
   "Norway":"书面挪威语",
   "Khmer":"高棉语",
-  "Set reference audio":"设置参考音频"
+  "Set reference audio":"设置参考音频",
+  "Creating progress bar, please wait": "正在创建进度条，请稍等..."
 }

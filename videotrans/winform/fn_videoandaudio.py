@@ -77,7 +77,7 @@ def openwin():
                             ['-y', '-i', audio, '-ss', '00:00:00.000', '-t', str(video_time / 1000), tmp_audio])
                         audio = tmp_audio
                     elif audio_time > video_time and self.audio_process == 1:
-                        tools.precise_speed_up_audio(file_path=audio, out=tmp_audio, target_duration_ms=video_time)
+                        tools.change_speed_rubberband(audio, tmp_audio, video_time)
                         audio = tmp_audio
                     if self.remain:
                         # 需要保留原声

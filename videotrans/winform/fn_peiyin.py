@@ -183,6 +183,7 @@ def openwin():
         }
     RESULT_DIR = HOME_DIR + "/tts"
     uuid_list=list()
+    percent=""
 
     from videotrans.task._dubbing import DubbingSrt
 
@@ -205,6 +206,7 @@ def openwin():
         winobj.hecheng_stop.setDisabled(not state)
 
     def feed(d):
+        nonlocal percent
         if winobj.has_done :
             return
         if isinstance(d, str):
@@ -227,12 +229,12 @@ def openwin():
             winobj.loglabel.setCursor(Qt.PointingHandCursor)
             if len(winobj.hecheng_importbtn.filelist) > 0:
                 winobj.hecheng_plaintext.clear()
-        elif d['type'] in ['logs', 'succeed']:
-            if d['text']:
-                winobj.loglabel.setText(d['text'])
+        elif d['type'] in ['logs']:
+            winobj.loglabel.setText(f"{percent} {d['text']}")
         elif d['type'] == 'jindu':
-            winobj.hecheng_startbtn.setText(d['text'])
+            percent=d['text']
         elif d['type'] == 'end':
+            percent=''
             winobj.has_done = True
             winobj.hecheng_importbtn.filelist = []
             winobj.hecheng_importbtn.setText(tr('Import text to be translated from a file..'))
@@ -302,7 +304,7 @@ def openwin():
         wk.start()
 
     def change_by_lang(type):
-        if type in [tts.EDGE_TTS,tts.MINIMAXI_TTS, tts.AZURE_TTS, tts.DOUBAO_TTS,tts.DOUBAO2_TTS,tts.AI302_TTS, tts.KOKORO_TTS,tts.PIPER_TTS,tts.VITSCNEN_TTS,tts.FreeAzure]:
+        if type in [tts.EDGE_TTS,tts.MINIMAXI_TTS, tts.AZURE_TTS, tts.DOUBAO2_TTS,tts.AI302_TTS, tts.KOKORO_TTS,tts.PIPER_TTS,tts.VITSCNEN_TTS,tts.FreeAzure]:
             return True
         return False
 
@@ -363,7 +365,6 @@ def openwin():
             if not is_srt:
                 newsrtfile += 'txt'
                 Path(newsrtfile).write_text(txt, encoding='utf-8')
-                print(newsrtfile)
             else:
                 newsrtfile += 'srt'
                 with open(newsrtfile, "w", encoding="utf-8") as f:
@@ -373,6 +374,7 @@ def openwin():
         video_list = [tools.format_video(it, None) for it in winobj.hecheng_importbtn.filelist]
         uuid_list = [obj['uuid'] for obj in video_list]
         for it in video_list:
+            app_cfg.rm_uuid(it['uuid'])
             cfg={
                 "voice_role": role,
                 "cache_folder": TEMP_DIR + f'/{it["uuid"]}',
@@ -459,7 +461,6 @@ def openwin():
             else:
                 winobj.loglabel.setText('')
             if tts.is_input_api(tts_type=type) is not True:
-                winobj.tts_type.setCurrentIndex(0)
                 return False
         role_list=['No']
         winobj.hecheng_role.clear()
@@ -543,8 +544,6 @@ def openwin():
             show_rolelist = tools.get_302ai()
         elif tts_type == tts.DOUBAO2_TTS:
             show_rolelist = tools.get_doubao2_rolelist()
-        elif tts_type == tts.DOUBAO_TTS:
-            show_rolelist = tools.get_doubao_rolelist()
         elif tts_type == tts.MINIMAXI_TTS:
             show_rolelist = tools.get_minimaxi_rolelist()
         else:

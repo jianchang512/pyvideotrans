@@ -6,9 +6,7 @@ import sys
 import time
 from pathlib import Path
 
-from videotrans.configure import config
-
-from videotrans.configure.config import tr,params,settings,app_cfg,logger,ROOT_DIR,TEMP_DIR,defaulelang
+from videotrans.configure.config import tr,  app_cfg, logger, ROOT_DIR,  defaulelang,  push_queue
 import tqdm 
 
 
@@ -56,7 +54,7 @@ def show_error(tb_str):
     try:
         msg_box.setWindowIcon(QIcon(icon_path))
     except Exception as e:
-        print(f"Warning: Could not load window icon from {icon_path}. Error: {e}")
+        logger.exception(f"Warning: Could not load window icon from {icon_path}. Error: {e}",exc_info=True)
 
     msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
     msg_box.setWindowTitle(tr('anerror'))
@@ -181,7 +179,7 @@ def shutdown_system():
         # macOS 下的关机命令
         subprocess.call("sudo shutdown -h now", shell=True)
     else:
-        print(f"Unsupported system: {system}")
+        logger.error(f"Unsupported system: {system}")
 
 
 # 获取 prompt提示词
@@ -254,7 +252,7 @@ def show_glossary_editor(parent):
                 content = f.read()
                 text_edit.setText(content)
     except Exception as e:
-        print(f"读取文件失败: {e}")
+        logger.exception(f"读取术语表文件失败: {e}",exc_info=True)
 
     def save_text():
         """
@@ -265,7 +263,7 @@ def show_glossary_editor(parent):
                 f.write(text_edit.toPlainText())  # toPlainText 获取纯文本
             dialog.accept()
         except Exception as e:
-            print(f"写入文件失败: {e}")
+            logger.exception(f"写入术语表文件失败: {e}",exc_info=True)
 
     button_box.accepted.connect(save_text)
     button_box.rejected.connect(dialog.reject)
@@ -324,7 +322,7 @@ def pygameaudio(filepath=None):
         sd.play(data, fs)
         sd.wait()
     except Exception as e:
-        print(e)
+        logger.exception(f'播放试听声音失败:{e}')
 
 
 
@@ -351,8 +349,7 @@ def set_process(*, text="", type="logs", uuid=None):
 
     if app_cfg.exit_soft:
         return
-    if uuid and uuid in app_cfg.stoped_uuid_set:
-        return
+
     try:
         if text:
             text = text.replace('\\n', ' ')
@@ -362,10 +359,7 @@ def set_process(*, text="", type="logs", uuid=None):
             print(text)
             return
         log = {"text": text, "type": type, "uuid": uuid}
-        if uuid:
-            config.push_queue(uuid, log)
-        else:
-            app_cfg.global_msg.append(log)
+        push_queue(uuid or "", log)
     except Exception as e:
         logger.exception(f'set_process：{e}',exc_info=True)
 

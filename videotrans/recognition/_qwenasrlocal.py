@@ -22,12 +22,9 @@ class QwenasrlocalRecogn(BaseRecogn):
     def _download(self):
         if defaulelang == 'zh':
             tools.check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}')
-            
-            #tools.check_and_down_ms('Qwen/Qwen3-ForcedAligner-0.6B',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B')
         else:
             tools.check_and_down_hf(model_id=f'Qwen3-ASR-{self.model_name}',repo_id=f'Qwen/Qwen3-ASR-{self.model_name}',local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}',callback=self._process_callback)
             
-            #tools.check_and_down_hf(model_id='Qwen3-ForcedAligner-0.6B',repo_id='Qwen/Qwen3-ForcedAligner-0.6B',local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B',callback=self._process_callback)
 
 
     def _exec(self) -> Union[List[Dict], None]:
@@ -46,10 +43,8 @@ class QwenasrlocalRecogn(BaseRecogn):
             "model_name":self.model_name
         }
         jsdata=self._new_process(callback=qwen3asr_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
-        #print(f'{jsdata=}')
         logger.debug(f'Qwen-asr返回的字词时间戳数据:{jsdata=}')
-
-        return jsdata#self.segmentation_asr_data(jsdata)
+        return jsdata
         
     
     def segmentation_asr_data(self,asr_data, 
@@ -177,7 +172,7 @@ class QwenasrlocalRecogn(BaseRecogn):
             if should_split:
                 seg = flush_buffer(current_buffer)
                 if seg: segments.append(seg)
-                self._signal(text=seg.get('text','')+"\n",type='subtitle')
+                self.signal(text=seg.get('text','')+"\n",type='subtitle')
                 current_buffer = []
 
             current_buffer.append(token)

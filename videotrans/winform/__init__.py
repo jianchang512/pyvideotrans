@@ -18,8 +18,7 @@ _module_map = {
 "deepLX":".deepLX",
 "xiaomi":".xiaomi",
 "deepseek":".deepseek",
-"doubao":".doubao",
-"doubao2":".doubao2",
+"doubao2":".doubao2",# 豆包语音合成2.0
 "elevenlabs":".elevenlabs",
 "f5tts":".f5tts",
 "fishtts":".fishtts",
@@ -62,10 +61,9 @@ _module_map = {
 "tencent":".tencent",
 "transapi":".transapi",
 "ttsapi":".ttsapi",
-"volcenginetts":".volcenginetts",
 "zhipuai":".zhipuai",
-"zijiehuoshan":".zijiehuoshan",
-"zijierecognmodel":".zijierecognmodel",
+"zijiehuoshan":".zijiehuoshan",#字节火山大模型翻译
+"zijierecognmodel":".zijierecognmodel",#字节语音识别大模型极速版
 "whisperxapi":".whisperxapi",
 "xaitts":".xaitts",
 "mitts":".mitts",

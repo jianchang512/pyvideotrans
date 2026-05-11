@@ -52,7 +52,7 @@ class Gemini(BaseTrans):
 
             )
             model = params.get("gemini_model","gemini-2.5-flash")
-            message=self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+            message=self.prompt.replace('{batch_input}', f'{text}')
             contents = [
                 types.Content(
                     role="user",

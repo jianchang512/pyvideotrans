@@ -10,14 +10,7 @@ from videotrans.configure.config import tr, app_cfg, settings, params, logger, T
 from videotrans.util import tools
 from tenacity import RetryError
 
-_GLOBAL_CONTEXT="""
-# GLOBAL CONTEXT (Background Info)
-<GLOBAL_CONTEXT>
-{COMPLETE_SRT_TEXT}
-</GLOBAL_CONTEXT>
-**[CRITICAL WARNING]:** The `<GLOBAL_CONTEXT>` above is strictly for your reading to understand the plot, character relationships, gender, tone, and overall flow. **NEVER TRANSLATE THE GLOBAL CONTEXT.** 
 
-"""
 @dataclass
 class BaseTrans(BaseCon):
     # 翻译渠道
@@ -46,38 +39,30 @@ class BaseTrans(BaseCon):
     wait_sec: float = float(settings.get('translation_wait', 0))
     # 以srt格式发送
     aisendsrt: bool = False
-    # 原始完整字幕，当ai翻译时可作为上下文背景信息
-    full_origin_subtitles:str=""
 
     def __post_init__(self):
         super().__post_init__()
         #是AI翻译渠道并且选中了以完整字幕发送
         if settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS:
             self.aisendsrt=True
-        if self.aisendsrt and settings.get('aitrans_context'):
-            self.full_origin_subtitles=_GLOBAL_CONTEXT.replace('{COMPLETE_SRT_TEXT}',"\n".join([it["text"] for it in self.text_list]))
 
         if not self.aisendsrt:
             self.trans_thread = int(settings.get('trans_thread', 5))
         else:
-            self.trans_thread = int(settings.get('aitrans_thread', 20))
+            self.trans_thread = int(settings.get('aitrans_thread', 20)) if not settings.get('aitrans_context') else len(self.text_list)
     # 发出请求获取内容 data=[text1,text2,text] | text
     # 按行翻译时，data=[text_str,...]
     # AI发送完整字幕时 data=srt_string
     def _item_task(self, data: Union[List[str], str]) -> str:
         pass
 
-    def _exit(self):
-        if app_cfg.exit_soft or (self.uuid and self.uuid in app_cfg.stoped_uuid_set):
-            return True
-        return False
 
     # 实际操作 run|runsrt -> _item_task
     def run(self) -> Union[List, str, None]:
         # 开始对分割后的每一组进行处理
         Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
         _st=time.time()
-        self._signal(text="")
+        self.signal(text="")
         if hasattr(self,'_download'):
             self._download()
 
@@ -91,7 +76,6 @@ class BaseTrans(BaseCon):
 
 
         split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(source_text), self.trans_thread)]
-        print(f'{self.trans_thread=},{self.aisendsrt=},{self.translate_type=}')
         try:
             if self.aisendsrt:
                 return self._run_srt(split_source_text)
@@ -113,7 +97,7 @@ class BaseTrans(BaseCon):
                 此时 _item_task 接收的是 list[str]
             """
             if self._exit(): return
-            self._signal(text=tr('starttrans') + f' {i} ')
+            self.signal(text=tr('starttrans') + f' {i} ')
             result = self._get_cache(it)
             if not result:
                 result = tools.cleartext(self._item_task(it))
@@ -125,10 +109,10 @@ class BaseTrans(BaseCon):
             for x, result_item in enumerate(sep_res):
                 if x < len(it):
                     target_list.append(result_item.strip())
-                    self._signal(text=result_item + "\n",type='subtitle')
+                    self.signal(text=result_item + "\n",type='subtitle')
             # 行数不匹配填充空行
             if len(sep_res) < len(it):
-                print(f'行数不匹配，原始：{len(it)}, 结果：{len(sep_res)}\n{it=}\n{sep_res=}')
+                logger.debug(f'行数不匹配，原始：{len(it)}, 结果：{len(sep_res)}\n{it=}\n{sep_res=}')
                 tmp = ["" for x in range(len(it) - len(sep_res))]
                 target_list += tmp
 
@@ -150,7 +134,7 @@ class BaseTrans(BaseCon):
         for i, it in enumerate(split_source_text):
             # 是字幕类表，此时 it=[{text,line,time}]
             if self._exit(): return
-            self._signal(text=tr('starttrans') + f' {i} ')
+            self.signal(text=tr('starttrans') + f' {i} ')
             for j, srt in enumerate(it):
                 it[j]['text'] = srt['text'].strip().replace("\n", " ")
             # 组成合法的srt格式字符串
@@ -164,7 +148,7 @@ class BaseTrans(BaseCon):
                 self._set_cache(it, result)
 
 
-            self._signal(text=result, type='subtitle')
+            self.signal(text=result, type='subtitle')
             tmp=tools.get_subtitle_from_srt(result, is_file=False)
             #logger.debug(f'\n原始待翻译文本:{srt_str=}\n翻译结果:{result=}\n整理后：{tmp=}')
             raws_list.extend(tmp)

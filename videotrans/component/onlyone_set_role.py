@@ -319,7 +319,6 @@ class SpeakerAssignmentDialog(QDialog):
             self._active()
             
         except Exception as e:
-            print(f"Load table failed: {e}")
             import traceback
             traceback.print_exc()
             self.loading_label.setText(f"Error: {e}")

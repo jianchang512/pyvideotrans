@@ -269,11 +269,6 @@ class AlignmentWorker(QThread):
                 sentence_buffer.append(char)
 
                 should_break = False
-                '''
-                if is_punc: should_break = True
-                elif len(sentence_buffer) >= MAX_CHARS: should_break = True
-                elif idx == len(target_chars_map) - 1: should_break = True
-                '''
                 # --- 修改断句逻辑 ---
                 
                 # 1. 只有当字符是真正的标点符号集合中的一个时，才强制换行
@@ -323,7 +318,6 @@ class AlignmentWorker(QThread):
         msg_type = data.get("type")
         percent = data.get("percent")
         filename = data.get("filename")
-        print(f'{data=}')
 
         if msg_type == "file":
             self.log_signal.emit(f"Downloading {filename} {percent:.2f}%")
@@ -583,7 +577,6 @@ class TextmatchingWindow(QWidget):
         audio_path = self.audio_label.text()
         base_name = os.path.splitext(audio_path)[0]
         srt_path = f"{base_name}.srt"
-        print(f'{audio_path=},{base_name=},{srt_path=}')
 
         try:
             with open(srt_path, 'w', encoding='utf-8') as f:

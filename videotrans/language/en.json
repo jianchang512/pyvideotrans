@@ -975,6 +975,7 @@
   "embed_bgm":"Re-embed BGM",
   "Norway":"Norwegian Bokmal",
   "Khmer":"Khmer",
-  "Set reference audio":"Set reference audio"
+  "Set reference audio":"Set reference audio",
+  "Creating progress bar, please wait": "Creating progress bar, please wait..."
 
 }

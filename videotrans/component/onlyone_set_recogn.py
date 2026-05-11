@@ -204,7 +204,6 @@ class EditRecognResultDialog(QDialog):
                 self.parent.activateWindow()
                 
         except Exception as e:
-            print(f"Load table failed: {e}")
             import traceback
             traceback.print_exc()
             self.loading_label.setText(f"Error: {e}")
@@ -311,6 +310,6 @@ class EditRecognResultDialog(QDialog):
         try:
             Path(self.source_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
         except Exception as e:
-            print(f"Save error: {e}")
+            logger.exception(f"Save error: {e}",exc_info=True)
         
         self.accept()

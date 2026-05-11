@@ -99,7 +99,6 @@ class OmniVoice(BaseTTS):
         except Exception as e:
             raise StopRetry(str(e))
         lang=self.lang_code.get(self.language,'Auto') if self.language else 'Auto'
-        print(f'{lang=}')
         result = client.predict(
             text=text,
             lang=lang,

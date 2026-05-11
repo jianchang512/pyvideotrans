@@ -249,7 +249,7 @@ class WhisperNetRecogn(BaseRecogn):
                         "text": text,
                         "time": tools.ms_to_time_string(ms=int(start * 1000)) + ' --> ' + tools.ms_to_time_string(ms=int(end * 1000)),
                     })
-                    self._signal(text=f"Processing: {len(segments)}")
+                    self.signal(text=f"Processing: {len(segments)}")
 
             # 添加事件处理器
             try:

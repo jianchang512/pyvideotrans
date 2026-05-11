@@ -116,7 +116,7 @@ class BaseTTS(BaseCon):
     def run(self) -> None:
         if self._exit(): return
         Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
-        self._signal(text="")
+        self.signal(text="")
         _st = time.time()
         if hasattr(self, '_download'):
             self._download()
@@ -194,7 +194,7 @@ class BaseTTS(BaseCon):
             
             raise RuntimeError((tr("Dubbing failed")) + str(self.error))
 
-        self._signal(text=tr("Dubbing succeeded {}，failed {}", succeed_nums, len(self.queue_tts) - succeed_nums))
+        self.signal(text=tr("Dubbing succeeded {}，failed {}", succeed_nums, len(self.queue_tts) - succeed_nums))
 
     # 用于除  edge-tts 之外的渠道，在此进行单或多线程。调用 _item_task
     # exec->_local_mul_thread->item_task
@@ -217,9 +217,9 @@ class BaseTTS(BaseCon):
                 except Exception as e:
                     self.error = e
                 finally:
-                    self._signal(text=f'TTS[{k + 1}/{self.len}]')
+                    self.signal(text=f'TTS[{k + 1}/{self.len}]')
                 time.sleep(self.wait_sec)
-            self._signal(text=f'TTS ended')
+            self.signal(text=f'TTS ended')
             
             return
 
@@ -248,8 +248,8 @@ class BaseTTS(BaseCon):
                         self.error = e
                     finally:
                         completed_tasks += 1
-                        self._signal(text=f"TTS: [{completed_tasks}/{self.len}] ...")
-            self._signal(text=f"TTS ended ...")
+                        self.signal(text=f"TTS: [{completed_tasks}/{self.len}] ...")
+            self.signal(text=f"TTS ended ...")
         except StopRetry:
             raise
         finally:
@@ -271,8 +271,3 @@ class BaseTTS(BaseCon):
         silent_segment = AudioSegment.silent(duration=duration)
         silent_segment.set_channels(1).set_frame_rate(16000)
         return silent_segment
-
-    def _exit(self):
-        if app_cfg.exit_soft or (self.uuid and self.uuid in app_cfg.stoped_uuid_set):
-            return True
-        return False

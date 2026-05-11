@@ -129,6 +129,8 @@ def openai_whisper(
                 })
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment["text"]}\n'}))
             logger.debug(f'openai-whisper模式下，对{model_name}模型返回的断句结果重新后修正')
+            if not texts:
+                return False,"No transcription results returned. Please check the original audio/video or model and try again."
             raws = _resegment(texts, segments['language'], max_speech_ms,logs_file)
             logger.debug(f'断句结果重新修正结束')
             if jianfan and raws:
@@ -295,7 +297,7 @@ def _resegment(texts, language, max_speech_ms,logs_file=None):
             "endraw": end_raw,
             "time": f"{start_raw} --> {end_raw}"
         })
-
+    _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:ended'}))
     return srt_output
 
 
@@ -485,7 +487,10 @@ def faster_whisper(
                     "words": [{'word': it.word, 'start': it.start, 'end': it.end} for it in segment.words]
                 })
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment.text}\n'}))
+
             logger.debug(f'faster-whisper模式下，对{model_name}模型返回的断句结果重新修正')
+            if not texts:
+                return False,"No transcription results returned. Please check the original audio/video or model and try again."
             raws = _resegment(texts, info.language, max_speech_ms, logs_file)
             logger.debug('断句结果重新修正完毕')
             if jianfan and raws:

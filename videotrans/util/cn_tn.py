@@ -517,19 +517,6 @@ class MathSymbol(object):
             yield v
 
 
-# class OtherSymbol(object):
-#     """
-#     其他符号
-#     """
-#
-#     def __init__(self, sil):
-#         self.sil = sil
-#
-#     def __iter__(self):
-#         for v in self.__dict__.values():
-#             yield v
-
-
 # ================================================================================ #
 #                                    basic utils
 # ================================================================================ #
@@ -949,7 +936,6 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"\D+((([089]\d|(19|20)\d{2})年)?(\d{1,2}月(\d{1,2}[日号])?)?)")
     matchers = pattern.findall(text)
     if matchers:
-        # print('date')
         for matcher in matchers:
             text = text.replace(matcher[0], Date(date=matcher[0]).date2chntext(), 1)
 

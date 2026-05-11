@@ -17,8 +17,7 @@ from tenacity import RetryError as TenRetryError
 class VideoTransError(Exception):
     def __init__(self, message=''):
         super().__init__(message)
-        self.message=message
-        
+        self.message = message
 
     def __str__(self):
         return str(self.message)
@@ -38,8 +37,6 @@ class SpeechToTextError(VideoTransError):
 
 class StopRetry(VideoTransError):
     pass
-
-
 
 
 # 无需继续重试的异常
@@ -112,6 +109,8 @@ def _extract_api_url_from_error(error):
 
 
 """处理连接错误的详细信息"""
+
+
 def _handle_connection_error_detail(error, lang):
     error_str = str(error).lower()
 
@@ -193,14 +192,11 @@ def _handle_connection_error_detail(error, lang):
     return base_message
 
 
-
-
-
 # 根据异常类型，返回整理后的可读性错误消息
 def get_msg_from_except(ex):
     if isinstance(ex, VideoTransError):
         return str(ex)
-        
+
     lang = defaulelang
     if isinstance(ex, TenRetryError):
         try:
@@ -213,12 +209,12 @@ def get_msg_from_except(ex):
         # === 认证和权限问题 ===
         AuthenticationError: lambda e: (
             f"API密钥错误，请检查密钥是否正确 {e.body.get('message')}" if lang == 'zh'
-            else  e.body.get('message')
+            else e.body.get('message')
         ),
 
         PermissionDeniedError: lambda e: (
             f"当前密钥没有访问权限，请检查权限设置 {e.body.get('message')}" if lang == 'zh'
-            else  e.message
+            else e.message
         ),
 
         # === 频率限制 ===
@@ -229,15 +225,13 @@ def get_msg_from_except(ex):
         # === 资源不存在问题 ===
         # === 请求参数问题 ===
         # === 服务端问题 ===
-        (InternalServerError,NotFoundError,BadRequestError,APIConnectionError,APIError): lambda e: e.body.get('message') if hasattr(e,'body') and hasattr(e.body,'get') else str(e),
-
+        (InternalServerError, NotFoundError, BadRequestError, APIConnectionError, APIError): lambda e: e.body.get(
+            'message') if hasattr(e, 'body') and hasattr(e.body, 'get') else str(e),
 
         LengthFinishReasonError: lambda e: (
             f'内容太长超出最大允许Token，请减小内容或增大max_token,或者降低每次发送字幕行数\n{e}' if lang == 'zh' else f'{e}'),
         ContentFilterFinishReasonError: lambda
             e: f"内容触发AI风控被过滤 {e}" if lang == 'zh' else f'Content triggers AI risk control and is filtered\n{e}',
-
-
 
         # === 配置和地址问题 ===
         (TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL): lambda e: (
@@ -269,11 +263,9 @@ def get_msg_from_except(ex):
             _handle_connection_error_detail(e, lang)
         ),
 
+        DeepgramApiError: lambda e: e.message if hasattr(e, 'message') else str(e),
 
-        DeepgramApiError: lambda e: e.message if hasattr(e,'message') else str(e),
-
-        ApiError_11: lambda e: e.body.get('detail',{}).get('message',e.body) if hasattr(e,'body') else str(e),
-
+        ApiError_11: lambda e: e.body.get('detail', {}).get('message', e.body) if hasattr(e, 'body') else str(e),
 
         ConnectionRefusedError: lambda e: (
             _handle_connection_error_detail(e, lang)
@@ -290,9 +282,9 @@ def get_msg_from_except(ex):
         (ReqConnectionError, ConnectionError): lambda e: (
             _handle_connection_error_detail(e, lang)
         ),
-        requests.exceptions.RequestException:lambda e:f'{e}',
+        requests.exceptions.RequestException: lambda e: f'{e}',
 
-        RuntimeError: lambda e: (f"{e}" if lang == 'zh' else f"{e}" ),
+        RuntimeError: lambda e: (f"{e}" if lang == 'zh' else f"{e}"),
 
         FileNotFoundError: lambda e: (
             f"文件不存在：{getattr(e, 'filename', '')}" if lang == 'zh'
@@ -386,7 +378,7 @@ def get_msg_from_except(ex):
     error_str = str(ex)
     if any(keyword in error_str.lower() for keyword in [
         'connection', 'connect', 'refused', 'reset', 'timeout', 'retries',
-        '连接', '拒绝', '重置', '超时', '重试', 'host', 'port', 'http', 'tcp','ProxyError'
+        '连接', '拒绝', '重置', '超时', '重试', 'host', 'port', 'http', 'tcp', 'ProxyError'
     ]):
         return _handle_connection_error_detail(ex, lang)
 

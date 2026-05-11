@@ -172,7 +172,7 @@ def openwin():
         
 
     def change_by_lang(type):
-        return type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.DOUBAO_TTS,tts.DOUBAO2_TTS,tts.AI302_TTS, tts.KOKORO_TTS,tts.PIPER_TTS,tts.VITSCNEN_TTS,tts.FreeAzure]
+        return type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.DOUBAO2_TTS,tts.AI302_TTS, tts.KOKORO_TTS,tts.PIPER_TTS,tts.VITSCNEN_TTS,tts.FreeAzure]
 
     def hecheng_start_fun():
         nonlocal RESULT_DIR,uuid
@@ -222,6 +222,7 @@ def openwin():
             RESULT_DIR=HOME_DIR+'/tts'
         video_obj = tools.format_video(winobj.srt_path, None)
         uuid = video_obj['uuid']
+        app_cfg.rm_uuid(uuid)
         cfg={
             "voice_role": role,  # Default role
             "cache_folder": TEMP_DIR + f'/{uuid}',
@@ -306,7 +307,6 @@ def openwin():
             else:
                 winobj.loglabel.setText('')
             if tts.is_input_api(tts_type=type) is not True:
-                winobj.tts_type.setCurrentIndex(0)
                 return False
 
         role_list=['No']
@@ -388,8 +388,6 @@ def openwin():
             show_rolelist = tools.get_302ai()
         elif tts_type == tts.DOUBAO2_TTS:
             show_rolelist = tools.get_doubao2_rolelist()
-        elif tts_type == tts.DOUBAO_TTS:
-            show_rolelist = tools.get_doubao_rolelist()
         elif tts_type == tts.MINIMAXI_TTS:
             show_rolelist = tools.get_minimaxi_rolelist()
         else:  # AzureTTS

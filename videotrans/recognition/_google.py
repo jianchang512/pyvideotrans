@@ -81,8 +81,8 @@ class GoogleRecogn(BaseRecogn):
                 "endraw": end
             }
             self.raws.append(srt_line)
-            self._signal(text=f"{tr('yuyinshibiejindu')} {srt_line['line']}/{total_length}")
-            self._signal(text=f"{srt_line['text']}\n", type='subtitle')
+            self.signal(text=f"{tr('yuyinshibiejindu')} {srt_line['line']}/{total_length}")
+            self.signal(text=f"{srt_line['text']}\n", type='subtitle')
         return self.raws
 
     def match_target_amplitude(self, sound, target_dBFS):

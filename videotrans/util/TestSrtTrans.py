@@ -22,7 +22,6 @@ class TestSrtTrans(QThread):
                                   source_code="zh-cn",
                                   is_test=True
                                   )
-            print(f'{text=}')
             self.uito.emit(f"ok:{raw}\n{text[0]['text']}")
         except Exception as e:
             from videotrans.configure._except import get_msg_from_except

@@ -73,8 +73,6 @@ class F5TTS(BaseTTS):
                 data['ref_text'] = self.roledict[role]['ref_text']
                 data['ref_wav'] = ROOT_DIR + f"/f5-tts/{role}"
 
-        print(f'{role=}')
-        print(f"{data['ref_wav']=}")
         if not data.get('ref_wav') or not Path(data.get('ref_wav')).exists():
             raise StopRetry(tr('The role {} does not exist',role))
         ref_wav_audio=AudioSegment.from_file(data.get('ref_wav'))
@@ -172,8 +170,6 @@ class F5TTS(BaseTTS):
         if not data['ref_wav'] or not Path(data['ref_wav']).exists():
             raise StopRetry(tr('The role {} does not exist',data['ref_wav']))
         logger.debug(f'index-tts {data=}')
-        print(f'{role=}')
-        print(f"{data['ref_wav']=}")
 
         kw={
             "prompt":handle_file(data['ref_wav']),

@@ -7,15 +7,24 @@ Documents: https://pyvideotrans.com
 Discuss: https://bbs.pyvideotrans.com
 License: GPL-V3
 
-# 代码是一坨屎，但又不是不能跑 O(∩_∩)O~ 别在意那些细节
-# 写的这么烂，一看就不是AI写的
-# 没有规范，随便搞搞
+码不在雅，能跑则灵。
+型不在秀，兼容就行。
+斯是烂码，自得其乐。
+全局变量乱如麻，if分支叠成塔。
+线程队列八九个，传参全靠大字典。
+可以塞硬件，怼系统。
+无单元之测试，无类型之规整。
+启动加载三百秒，界面丑陋乱糟糟。
+前有Whisper卡进程，后有FF爆乱码。
+三大平台皆可跑，上万星友亦成行。
+AI嘲: 码之烂平生仅见
+作者云：又不是不能跑。
 
 """
 
 import os
 import atexit, sys, time
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout,QMessageBox
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QMessageBox
 from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 import argparse
@@ -24,11 +33,16 @@ from pathlib import Path
 from PySide6.QtCore import QSize, QSettings
 import traceback
 from videotrans import VERSION
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 # 抑制警告
 def suppress_qt_warnings(msg_type, context, message):
     if "QThreadStorage" in message:
         return
+
 
 def cleanup():
     """强制清理函数"""
@@ -39,10 +53,10 @@ def cleanup():
     except:
         pass
 
+
 def show_global_error_dialog(exctype, value, tb):
     tb_str = "".join(traceback.format_exception(exctype, value, tb))
     QMessageBox.critical(None, 'Error', tb_str)
-
 
 
 # 启动画面
@@ -51,7 +65,7 @@ class StartWindow(QWidget):
         super().__init__()
         self.main_window = None
         self.LoadNotif = None
-        self.start_time=time.time()
+        self.start_time = time.time()
         self.loader = None
         self.setWindowTitle('pyVideoTrans')
 
@@ -86,14 +100,13 @@ class StartWindow(QWidget):
 
         super().closeEvent(event)
 
-    def update_lable(self,t):
-        if t=='end':
-            self.status_label.setText(f'Total time {int(time.time()-self.start_time)}s')
-            QApplication.processEvents()
+    def update_lable(self, t):
+        QApplication.processEvents()
+        if t == 'end':
+            self.status_label.setText(f'Total time {int(time.time() - self.start_time)}s')
             QTimer.singleShot(1000, lambda: self.close())
         else:
-            self.status_label.setText(f'{t}  {int(time.time()-self.start_time)}s')
-            QApplication.processEvents()
+            self.status_label.setText(f'{t}  {int(time.time() - self.start_time)}s')
 
     def center(self):
         screen = QGuiApplication.primaryScreen()
@@ -104,8 +117,6 @@ class StartWindow(QWidget):
 
 # 启动主窗口
 def initialize_full_app(start_window, app_instance):
-    #from videotrans.configure._guiexcept import global_exception_hook,
-
     if sys.stdout is None or sys.stderr is None:
         try:
             log_dir = os.path.join(os.getcwd(), "logs")
@@ -131,8 +142,7 @@ def initialize_full_app(start_window, app_instance):
     import videotrans.ui.dark.darkstyle_rc
     with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
         app_instance.setStyleSheet(f.read())
-    import urllib3
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
     from videotrans.mainwin._main_win import MainWindow
 
     main_window_created = False
@@ -144,7 +154,6 @@ def initialize_full_app(start_window, app_instance):
         w, h = size.width(), size.height()
         start_window.main_window = MainWindow(width=w, height=h)
         start_window.main_window.uito.connect(start_window.update_lable)
-        #exception_handler.show_exception_signal.connect(show_global_error_dialog)
         main_window_created = True
     except Exception as e:
         show_global_error_dialog(type(e), e, e.__traceback__)
@@ -155,19 +164,23 @@ def initialize_full_app(start_window, app_instance):
         start_window.main_window.show()
 
 
-
 if __name__ == "__main__":
     # Windows 打包需要
     import multiprocessing
+
     multiprocessing.freeze_support()
-    multiprocessing.set_start_method('spawn',force=True)
+    multiprocessing.set_start_method('spawn', force=True)
     qInstallMessageHandler(suppress_qt_warnings)
     atexit.register(cleanup)
     if sys.platform != "win32":
         import signal
+
+
         def handle_exit(signum, frame):
             cleanup()
             sys.exit(0)
+
+
         signal.signal(signal.SIGINT, handle_exit)
         signal.signal(signal.SIGTERM, handle_exit)
 
@@ -179,7 +192,8 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     res = 0
-    if getattr(sys, 'frozen', False) and (Path(sys.executable).parent.as_posix()).startswith(Path(tempfile.gettempdir()).as_posix()):
+    if getattr(sys, 'frozen', False) and (Path(sys.executable).parent.as_posix()).startswith(
+            Path(tempfile.gettempdir()).as_posix()):
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Critical)
         msg_box.setWindowTitle('Error')
@@ -193,7 +207,7 @@ if __name__ == "__main__":
         splash.center()
         splash.show()
 
-        QTimer.singleShot(50, lambda: initialize_full_app(splash, app))
+        QTimer.singleShot(100, lambda: initialize_full_app(splash, app))
         try:
             res = app.exec()
             res = 0 if res is None else res
@@ -201,6 +215,7 @@ if __name__ == "__main__":
             try:
                 cleanup()
                 import gc
+
                 gc.collect()
             except Exception as e:
                 print(e)

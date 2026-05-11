@@ -85,7 +85,7 @@ class ChatGPT(BaseTrans):
 
         new_sublist = []
         for idx in range(0, len(srt_list), chunk_size):
-            self._signal(text=f'[{idx}] {ai_type} '+tr("Re-segmenting..."))
+            self.signal(text=f'[{idx}] {ai_type} '+tr("Re-segmenting..."))
             srt_str = "\n\n".join([f"{line+1}\n{it['time']}\n{it['text']}" for line,it in enumerate(srt_list[idx: idx + chunk_size])])
             new_sublist.append(_send(srt_str))
 
@@ -141,7 +141,7 @@ class ChatGPT(BaseTrans):
                 'content': 'You are a top-tier Subtitle Translation Engine.'},
             {
                 'role': 'user',
-                'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+                'content': self.prompt.replace('{batch_input}', f'{text}')
             },
         ]
 

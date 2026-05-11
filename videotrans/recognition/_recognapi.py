@@ -70,7 +70,7 @@ class APIRecogn(BaseRecogn):
         with open(self.audio_file, 'rb') as f:
             chunk = f.read()
         files = {"audio": chunk}
-        self._signal(
+        self.signal(
             text=tr("Recognition may take a while, please be patient"))
 
         res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files, timeout=600)
@@ -82,7 +82,7 @@ class APIRecogn(BaseRecogn):
                 raise RuntimeError(f'{res["msg"]}')
             if "data" not in res or len(res['data']) < 1:
                 raise RuntimeError(f'识别出错{res=}')
-            self._signal(
+            self.signal(
                 text=tools.get_srt_from_list(res['data']),
                 type='replace_subtitle'
             )

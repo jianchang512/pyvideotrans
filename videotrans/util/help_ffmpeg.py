@@ -9,6 +9,7 @@ from pathlib import Path
 
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,TEMP_DIR,logger
 from videotrans.util import contants
+from videotrans.util.contants import INSTALL_RUBBERBAND_TIPS
 
 
 def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
@@ -260,7 +261,6 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
 
     command = ['ffprobe'] + [str(arg) for arg in cmd]
     creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
-    # print(command)
     try:
         p = subprocess.run(
             command,
@@ -310,8 +310,6 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     """
     获取视频信息。
     """
-
-
     if not Path(mp4_file).exists():
         raise Exception(f'{mp4_file} is not exists')
     try:
@@ -401,8 +399,6 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         else:
             fps_avg = fps1
 
-
-
         result['video_fps'] = fps_avg if 1 <= fps_avg <= 120 else 30
         result['r_frame_rate'] = video_stream.get('r_frame_rate',result['video_fps'])
     
@@ -448,8 +444,6 @@ def get_video_duration(file_path):
 def get_audio_time(audio_file):
     return _get_ms_from_media(audio_file)
 
-
-
 def conver_to_16k(audio, target_audio):
     cmd=[
             "-y",
@@ -464,23 +458,6 @@ def conver_to_16k(audio, target_audio):
             Path(target_audio).as_posix()
     ]
     return runffmpeg(cmd)
-
-# wav转为 m4a cuda + h264_cuvid
-def wav2m4a(wavfile, m4afile, extra=None):
-    cmd = [
-        "-y",
-        "-i",
-        Path(wavfile).as_posix(),
-        "-c:a",
-        "aac",
-        "-b:a",
-        "128k",
-        Path(m4afile).as_posix()
-    ]
-    if extra:
-        cmd = cmd[:3] + extra + cmd[3:]
-    return runffmpeg(cmd)
-
 
 def create_concat_txt(filelist, concat_txt=None):
 
@@ -528,9 +505,9 @@ def change_speed_rubberband(input_path,out_file, target_duration):
     try:
         import pyrubberband as pyrb
     except Exception as e:
-        logger.warning('进行音频变速时失败，因为安装  rubberband 库')
-        return
-        
+        logger.warning(f'进行音频变速时失败，因为未安装  rubberband 库，使用 ffmpeg 进行变速处理\n{INSTALL_RUBBERBAND_TIPS}')
+        return precise_speed_up_audio(file_path=input_path, out=out_file, target_duration_ms=target_duration)
+
     import soundfile as sf
     import numpy as np  # 新增 numpy 用于声道处理
     try:
@@ -543,15 +520,6 @@ def change_speed_rubberband(input_path,out_file, target_duration):
         
         if target_duration <= 0: target_duration = 1
         
-        # 【逻辑优化】如果目标时长比当前还长，说明需要音频慢放。
-        # 但在当前的对齐策略中，音频通常只压缩（加速）。
-        # 如果确实发生了 target > current，通常意味着我们应该填充静音而不是拉伸音频。
-        # 这里为了安全，如果差异过大，不做处理。
-        #if target_duration > current_duration:
-        #     # 允许微小的误差，或者由后续静音填充处理
-        #     logger.debug(f"[Audio-RB] 目标时长({target_duration}) > 当前时长({current_duration})，跳过变速，交由静音填充。")
-        #     return
-
         time_stretch_rate = current_duration / target_duration
         
         # 限制范围
@@ -561,7 +529,6 @@ def change_speed_rubberband(input_path,out_file, target_duration):
 
         y_stretched = pyrb.time_stretch(y, sr, time_stretch_rate)
         
-        # 【关键修正】确保输出是 Stereo (2通道)，防止后续 ffmpeg concat 报错
         # 如果是单声道 (ndim=1)，复制为双声道
         if y_stretched.ndim == 1:
             y_stretched = np.column_stack((y_stretched, y_stretched))
@@ -600,7 +567,6 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None)
 
     # 用逗号连接滤镜，形成串联效果，如 "atempo=2.0,atempo=1.5"
     filter_str = ",".join(atempo_list)
-    rubberband_filter_str = f"rubberband=tempo={current_duration_ms / target_duration_ms}"
     if not out:
         Path(file_path).rename(file_path+f".{ext}")
         file_path=file_path+f".{ext}"
@@ -610,7 +576,7 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None)
         '-i',
         file_path,
         '-filter:a',
-        rubberband_filter_str,
+        filter_str,
         '-t', f"{target_duration_ms/1000.0}",  # 强制裁剪到目标时长，防止精度误差
         '-ar', "48000",
         '-ac', "2",
@@ -620,8 +586,7 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None)
     try:
         runffmpeg(cmd, force_cpu=True)
     except Exception as e:
-        cmd[4]=filter_str
-        runffmpeg(cmd, force_cpu=True)
+        logger.exception(f'音频加速失败:{e}')
 
 
 # 从音频中截取一个片段
@@ -667,9 +632,8 @@ def send_notification(title, message):
     except Exception:
         pass
 
-
-
-def remove_silence_wav(audio_file):
+# rm_start 是否也移除开头的静音片段
+def remove_silence_wav(audio_file, rm_start=True):
     from pydub import AudioSegment
     from pydub.silence import detect_nonsilent
     
@@ -701,7 +665,7 @@ def remove_silence_wav(audio_file):
         raw_end = nonsilent_chunks[-1][1]
         
         # 计算最终裁剪位置，使用 max 和 min 防止索引超出音频总长度
-        start_trim = max(0, raw_start - head_padding_ms)
+        start_trim = max(0, raw_start - head_padding_ms) if rm_start else 0
         end_trim = min(len(audio), raw_end + tail_padding_ms)
         
         # 裁剪音频
@@ -710,57 +674,6 @@ def remove_silence_wav(audio_file):
         return True
     
     return False # 如果全是静音，返回False
-
-
-# input_file_path 可能是字符串：文件路径，也可能是音频数据
-def remove_silence_from_end(input_file_path,is_start=True):
-    from pydub import AudioSegment
-    from pydub.silence import detect_nonsilent
-
-    # Load the audio file
-    format = "wav"
-    if isinstance(input_file_path, str):
-        format = input_file_path.split('.')[-1].lower()
-        if format in ['wav', 'mp3', 'm4a']:
-            audio = AudioSegment.from_file(input_file_path, format=format if format in ['wav', 'mp3'] else 'mp4')
-        else:
-            # 转为mp3
-            try:
-                runffmpeg(['-y', '-i', input_file_path, input_file_path + ".mp3"])
-                audio = AudioSegment.from_file(input_file_path + ".mp3", format="mp3")
-            except Exception:
-                return input_file_path
-
-    else:
-        audio = input_file_path
-
-    # Detect non-silent chunks
-    nonsilent_chunks = detect_nonsilent(
-        audio,
-        min_silence_len=10,
-        silence_thresh=audio.dBFS - 20
-    )
-
-    # If we have nonsilent chunks, get the start and end of the last nonsilent chunk
-    if nonsilent_chunks:
-        start_index, end_index = nonsilent_chunks[-1]
-    else:
-        # If the whole audio is silent, just return it as is
-        return input_file_path
-
-    # Remove the silence from the end by slicing the audio segment
-    trimmed_audio = audio[:end_index]
-    if isinstance(input_file_path, str):
-        if format in ['wav', 'mp3', 'm4a']:
-            trimmed_audio.export(input_file_path, format=format if format in ['wav', 'mp3'] else 'mp4')
-            return input_file_path
-        try:
-            trimmed_audio.export(input_file_path + ".mp3", format="mp3")
-            runffmpeg(['-y', '-i', input_file_path + ".mp3", input_file_path])
-        except Exception:
-            pass
-        return input_file_path
-    return trimmed_audio
 
 
 def format_video(name, target_dir=None):
@@ -796,49 +709,3 @@ def format_video(name, target_dir=None):
     _stat=raw_pathlib.stat()
     obj['uuid'] = help_misc.get_md5(f'{name}-{_stat.st_size}-{_stat.st_mtime}')[:10]
     return obj
-
-
-# 导出可能较大的 wav 文件时，使用该函数，避免 大于4G 的音频出错
-def large_wav_export_with_soundfile(audio_segment, output_path: str):
-    import numpy as np
-    import soundfile as sf
-
-    # audio_segment = AudioSegment.from_file(...)
-    """
-    使用 soundfile 模块导出 pydub 的 AudioSegment 对象，以支持大文件。
-    
-    :param audio_segment: pydub 的音频对象
-    :param output_path: 输出的 .wav 文件路径
-    """
-
-    # 1. 从 pydub 获取原始 PCM 数据（bytes）
-    raw_data = audio_segment.raw_data
-
-    # 2. 将原始数据转换为 NumPy 数组，这是 soundfile 的标准输入格式
-    #    需要确定正确的数据类型 (dtype)
-    sample_width = audio_segment.sample_width
-    if sample_width == 1:
-        dtype = np.int8  # 8-bit PCM
-    elif sample_width == 2:
-        dtype = np.int16  # 16-bit PCM
-    elif sample_width == 4:
-        dtype = np.int32  # 32-bit PCM
-    else:
-        raise ValueError(f"不支持的采样位宽: {sample_width}")
-
-    # frombuffer 从字节串创建数组，'C' 表示按C语言顺序
-    numpy_array = np.frombuffer(raw_data, dtype=dtype)
-
-    # 3. 如果是多声道，需要将一维数组重塑为 (n_frames, n_channels)
-    num_channels = audio_segment.channels
-    if num_channels > 1:
-        numpy_array = numpy_array.reshape((-1, num_channels))
-
-    # 4. 使用 soundfile 写入文件
-    #    soundfile 会自动处理文件大小，在需要时切换到 RF64
-    sf.write(
-        output_path,
-        numpy_array,
-        audio_segment.frame_rate,
-        subtype='PCM_16' if sample_width == 2 else ('PCM_24' if sample_width == 3 else 'PCM_32')  # 根据需要选择子类型
-    )

@@ -622,9 +622,7 @@ def built_speakers(*, input_file, subtitles, num_speakers=-1, language="zh",  lo
         Resample audio to target sample rate using librosa
         """
         if sample_rate != target_sample_rate:
-            print(f"Resampling audio from {sample_rate}Hz to {target_sample_rate}Hz...")
             audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=target_sample_rate)
-            print(f"Resampling completed. New audio shape: {audio.shape}")
             return audio, target_sample_rate
         return audio, sample_rate
 

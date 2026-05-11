@@ -108,7 +108,7 @@ class BaseTask(BaseCon):
                 f.write(txt)
         except Exception:
             raise
-        self._signal(text=Path(file).read_text(encoding='utf-8',errors="ignore"), type='replace_subtitle')
+        self.signal(text=Path(file).read_text(encoding='utf-8',errors="ignore"), type='replace_subtitle')
         return True
 
     def _check_target_sub(self, source_srt_list, target_srt_list):
@@ -139,8 +139,10 @@ class BaseTask(BaseCon):
                 target_srt_list.append(tmp)
         return target_srt_list
         
-    
 
+    # 手动调用设为结束，成功完成或出错时
+    def set_end(self):
+        self.hasend=True
 
     async def _edgetts_single(self,target_audio,kwargs):
         from edge_tts import Communicate
@@ -168,7 +170,7 @@ class BaseTask(BaseCon):
                 async for chunk in communicate_task.stream():
                     if chunk["type"] == "audio":
                         audio_buffer.write(chunk["data"])
-                        self._signal(text=f'{idx} segment')
+                        self.signal(text=f'{idx} segment')
                         idx+=1
                 audio_buffer.seek(0)        
                 from pydub import AudioSegment
@@ -180,9 +182,4 @@ class BaseTask(BaseCon):
             except Exception:
                 raise
         raise last_exception if last_exception else RuntimeError(f'Dubbing error')
-    # 完整流程判断是否需退出，子功能需重写
-    def _exit(self):
-        if app_cfg.exit_soft or app_cfg.current_status != 'ing':
-            self.hasend=True
-            return True
-        return False
+

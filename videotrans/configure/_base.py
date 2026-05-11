@@ -1,13 +1,13 @@
 import base64
 import json
-import os,time,traceback
+import os, time, traceback
 import subprocess
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, IS_FROZEN
+from videotrans.configure.config import tr,  settings, app_cfg, logger, IS_FROZEN,push_queue
 from videotrans.util import tools, contants
 from videotrans.process.signelobj import GlobalProcessManager
 from concurrent.futures.process import BrokenProcessPool
@@ -21,59 +21,66 @@ class BaseCon:
     uuid: Optional[str] = field(default=None, init=False)
     # 用于其他需要直接代理字符串
     proxy_str: str = ''
-    # 不需要代理的host
-    no_proxy: str = ''
 
     def __post_init__(self):
-        self.no_proxy=contants.no_proxy
         # 获取代理
         self.proxy_str = self._set_proxy(type='set')
 
-
+    def _exit(self) -> bool:
+        if app_cfg.exit_soft or (self.uuid and self.uuid in app_cfg.stoped_uuid_set):
+            if hasattr(self,'hasend'):
+                self.hasend=True
+            return True
+        return False
     # 所有窗口和任务信息通过队列交互
-    def _signal(self, **kwargs):
+    def signal(self, **kwargs):
+        if app_cfg.exit_soft: return
+        if app_cfg.exec_mode=='cli':
+            print(kwargs.get('text'))
+            return
         if 'uuid' not in kwargs:
             kwargs['uuid'] = self.uuid
-        if not app_cfg.exit_soft:
-            tools.set_process(**kwargs)
-    
-    def _process_callback(self,data):
-        if isinstance(data,str):
-            return self._signal(text=tr('Downloading please wait')+data)
-        if not isinstance(data,dict):
+        if 'type' not in kwargs:
+            kwargs['type']='logs'
+        push_queue(kwargs.get('uuid') or "", kwargs)
+
+    def _process_callback(self, data):
+        if isinstance(data, str):
+            return self.signal(text=tr('Downloading please wait') + data)
+        if not isinstance(data, dict):
             return
         msg_type = data.get("type")
         percent = data.get("percent")
         filename = data.get("filename")
 
         if msg_type == "file":
-            self._signal(text=f"{tr('Downloading please wait')} {filename} {percent:.2f}%")
+            self.signal(text=f"{tr('Downloading please wait')} {filename} {percent:.2f}%")
         else:
             current_file_idx = data.get("current")
             total_files = data.get("total")
 
-            self._signal(text=f"{tr('Downloading please wait')} {current_file_idx}/{total_files} files")
-        
+            self.signal(text=f"{tr('Downloading please wait')} {current_file_idx}/{total_files} files")
+
     # 设置、获取代理
     def _set_proxy(self, type='set'):
         if type == 'del':
             os.environ['bak_proxy'] = app_cfg.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
             app_cfg.proxy = ''
-            os.environ.pop('HTTPS_PROXY',None)
-            os.environ.pop('HTTP_PROXY',None)
+            os.environ.pop('HTTPS_PROXY', None)
+            os.environ.pop('HTTP_PROXY', None)
             return None
 
         if type == 'set':
             raw_proxy = app_cfg.proxy or os.environ.get('HTTPS_PROXY') or os.environ.get('HTTP_PROXY')
             if raw_proxy:
-                app_cfg.proxy=raw_proxy
+                app_cfg.proxy = raw_proxy
                 return raw_proxy
             if not raw_proxy:
                 proxy = tools.set_proxy() or os.environ.get('bak_proxy')
                 if proxy:
                     os.environ['HTTP_PROXY'] = proxy
                     os.environ['HTTPS_PROXY'] = proxy
-                app_cfg.proxy=proxy
+                app_cfg.proxy = proxy
                 return proxy
         return None
 
@@ -86,7 +93,8 @@ class BaseCon:
                            cwd=os.path.dirname(cmd_list[0]))
         except subprocess.CalledProcessError as e:
             if os.name == 'nt' and IS_FROZEN:
-                raise RuntimeError(tr('Currently Faster-Whisper-XXL cannot be used in the packaged version. Please deploy the source code or use Faster-Whisper-XXL transcription separately.'))
+                raise RuntimeError(
+                    tr('Currently Faster-Whisper-XXL cannot be used in the packaged version. Please deploy the source code or use Faster-Whisper-XXL transcription separately.'))
             raise RuntimeError(e.stderr)
 
     # 语音合成后统一转为 wav 音频
@@ -111,12 +119,11 @@ class BaseCon:
         ]
         try:
             tools.runffmpeg(cmd, force_cpu=True)
-            if settings.get('remove_dubb_silence',True):
+            if settings.get('remove_dubb_silence', True):
                 tools.remove_silence_wav(output_wav_file_path)
         except Exception:
             pass
         return True
-
 
     # 判断是否为内网地址
     def _get_internal_host(self, url: str):
@@ -170,8 +177,7 @@ class BaseCon:
     def _add_internal_host_noproxy(self, api_url=''):
         host = self._get_internal_host(api_url)
         if host is not False:
-            self.no_proxy += f',{host}'
-            os.environ['no_proxy'] = self.no_proxy
+            os.environ['no_proxy'] = f'{contants.no_proxy},{host}'
 
     def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:
         if not encoded_str:
@@ -220,7 +226,7 @@ class BaseCon:
         while 1:
             _p = Path(logs_file)
             # 已删掉
-            if last_mtime>0 and not _p.exists():
+            if last_mtime > 0 and not _p.exists():
                 return
             try:
                 if not _p.exists():
@@ -232,82 +238,81 @@ class BaseCon:
                     # 自上次未修改过
                     time.sleep(1)
                     continue
-                last_mtime=_mtime
-                _content=_p.read_text(encoding='utf-8')
+                last_mtime = _mtime
+                _content = _p.read_text(encoding='utf-8')
                 if not _content:
                     time.sleep(1)
                     continue
                 _tmp = json.loads(_content)
                 if _tmp.get('type', '') == 'error':
                     return
-                self._signal(text=_tmp.get('text',''), type=_tmp.get('type', 'logs'))
+                self.signal(text=_tmp.get('text', ''), type=_tmp.get('type', 'logs'))
             except Exception as e:
                 # 可能日志文件读取出错，可忽略
                 logger.warning(f'读取进程间日志文件出错，可忽略:{e}')
             time.sleep(1)
 
     # 使用新进程执行任务
-    def _new_process(self,callback=None,title="",is_cuda=False,kwargs=None):
+    def _new_process(self, callback=None, title="", is_cuda=False, kwargs=None):
         _st = time.time()
-        self._signal(text=f'[{title}] starting...')
+        self.signal(text=f'[{title}] starting...')
         logger.debug(f'[新进程执行任务]:{title}')
         # 提交任务，并显式传入参数，确保子进程拿到正确的参数
-        logs_file=kwargs.get('logs_file')
-        device_index=0
+        logs_file = kwargs.get('logs_file')
+        device_index = 0
         try:
             if logs_file:
                 Path(logs_file).touch()
-                threading.Thread(target=self._signal_of_process,args=(logs_file,),daemon=True).start()
+                threading.Thread(target=self._signal_of_process, args=(logs_file,), daemon=True).start()
             # 再次判断cuda是否有效，防止预先获取失败
             if is_cuda:
                 import torch
                 if not torch.cuda.is_available():
-                    is_cuda=False
+                    is_cuda = False
 
             # 如果使用gpu，则获取可用 device_index
             if is_cuda:
-                
-                #启用了多显卡模式
+
+                # 启用了多显卡模式
                 if settings.get('multi_gpus'):
-                    device_index=get_cudaX()
-                if device_index==-1:
-                    is_cuda=False
-                    kwargs['is_cuda']=False
+                    device_index = get_cudaX()
+                if device_index == -1:
+                    is_cuda = False
+                    kwargs['is_cuda'] = False
                     logger.error(f'已启用CUDA但未检测到可用显卡，强制使用CPU')
-                kwargs['device_index']=max(device_index,0)
+                kwargs['device_index'] = max(device_index, 0)
             future = GlobalProcessManager.submit_task_cpu(
-                callback, 
+                callback,
                 **kwargs
             ) if not is_cuda else GlobalProcessManager.submit_task_gpu(
                 callback,
                 **kwargs
             )
             _rs = future.result()
-            if isinstance(_rs,tuple) and len(_rs)==2:
-                data,err=_rs
+            if isinstance(_rs, tuple) and len(_rs) == 2:
+                data, err = _rs
                 if data is False:
                     raise RuntimeError(err)
             else:
-                data=_rs
-            self._signal(text=f'[{title}] end: {int(time.time() - _st)}s')
+                data = _rs
+            self.signal(text=f'[{title}] end: {int(time.time() - _st)}s')
             return data
         except BrokenProcessPool as e:
-            err=traceback.format_exc()
-            _model=''
-            _cuda=''
+            err = traceback.format_exc()
+            _model = ''
+            _cuda = ''
             if kwargs.get('model_name'):
-                _model=' Model:'+kwargs.get('model_name')
-            if is_cuda and device_index>-1:
-                _cuda=f" GPU{device_index} \n{tr('may be insufficient memory')}"
-            logger.exception(f'{_model}{_cuda}',exc_info=True)
+                _model = ' Model:' + kwargs.get('model_name')
+            if is_cuda and device_index > -1:
+                _cuda = f" GPU{device_index} \n{tr('may be insufficient memory')}"
+            logger.exception(f'{_model}{_cuda}', exc_info=True)
             raise RuntimeError(f'{_model}{_cuda}\n{err}')
         except Exception as e:
-            msg=traceback.format_exc()
-            logger.exception(f'new process:{msg}',exc_info=True)
+            msg = traceback.format_exc()
+            logger.exception(f'new process:{msg}', exc_info=True)
             raise
         finally:
             try:
                 Path(logs_file).unlink(missing_ok=True)
             except:
                 pass
-

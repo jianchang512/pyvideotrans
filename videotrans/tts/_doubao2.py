@@ -152,7 +152,6 @@ class Doubao2TTS(BaseTTS):
                     audio_data.extend(chunk_audio)
                     continue
                 if data.get("code", 0) == 0 and "sentence" in data and data["sentence"]:
-                    print("sentence_data:", data)
                     continue
                 if data.get("code", 0) == 20000000:
                     break

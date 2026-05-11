@@ -88,7 +88,7 @@ class BaseRecogn(BaseCon):
         _st = time.time()
         _vad_type = settings.get('vad_type', 'tenvad')
         title = f'VAD:{_vad_type} split audio...'
-        self._signal(text=title)
+        self.signal(text=title)
 
         _threshold = float(settings.get('threshold', 0.5))
         _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 0)
@@ -126,18 +126,18 @@ class BaseRecogn(BaseCon):
             if not self.recogn2pass:
                 raise
 
-        self._signal(text=f'[VAD] process ended {int(time.time() - _st)}s')
+        self.signal(text=f'[VAD] process ended {int(time.time() - _st)}s')
 
     # run->_exec
     def run(self) -> Union[List[Dict], None]:
         _st = time.time()
         Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
-        self._signal(text=f"check model")
+        self.signal(text=f"check model")
 
         if hasattr(self, '_download'):
             self._download()
 
-        self._signal(text=f"starting transcription")
+        self.signal(text=f"starting transcription")
         try:
             srt_list = []
             res = self._exec()
@@ -181,7 +181,7 @@ class BaseRecogn(BaseCon):
         except Exception:
             raise
         finally:
-            self._signal(text=f'STT ended:{int(time.time() - _st)}s')
+            self.signal(text=f'STT ended:{int(time.time() - _st)}s')
             logger.debug(f'[语音识别]渠道{self.recogn_type},{self.model_name}:共耗时:{int(time.time() - _st)}s')
 
     # 未选择LLM重新断句并且选了 合并短字幕，则对识别出的字幕进行简单修正
@@ -380,8 +380,4 @@ class BaseRecogn(BaseCon):
 
         return data
 
-    # True 退出
-    def _exit(self) -> bool:
-        if app_cfg.exit_soft or (self.uuid and self.uuid in app_cfg.stoped_uuid_set):
-            return True
-        return False
+

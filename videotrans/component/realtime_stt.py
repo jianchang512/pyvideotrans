@@ -200,7 +200,6 @@ class Worker(QThread):
         if len(devices) == 0:
             return
 
-        print(f'使用麦克风: {devices[self.device_idx]["name"]}')
         PUNCT_MODEL = OnnxModel()
         recognizer = create_recognizer()
 

@@ -161,3 +161,8 @@ ELEVENLABS_TTS_MODELS="eleven_v3,eleven_flash_v2_5,eleven_flash_v2,eleven_multil
 
 XIAOMI_MODELS='mimo-v2.5-pro,mimo-v2.5,mimo-v2-pro,mimo-v2-omni'
 XIAOMI_TTS_MODELS='mimo-v2.5-tts,mimo-v2-tts'
+
+
+INSTALL_RUBBERBAND_TIPS="""Windows: For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip
+Darwin: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm
+Linux: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm"""

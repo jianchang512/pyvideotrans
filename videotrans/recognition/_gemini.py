@@ -140,7 +140,7 @@ class GeminiRecogn(BaseRecogn):
                     }
                     srt_str_list.append(srt)
                     str_s.append(f'{srt["line"]}\n{startraw} --> {endraw}\n{srt["text"]}')
-            self._signal(
+            self.signal(
                 text=('\n\n'.join(str_s)) + "\n\n",
                 type='subtitle'
             )

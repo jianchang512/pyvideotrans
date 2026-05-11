@@ -28,9 +28,8 @@ class AI302Recogn(BaseRecogn):
            after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[Dict], None]:
         if self._exit(): return
-        self._signal(text=f"start speech to srt")
+        self.signal(text=f"start speech to srt")
         model_name = params.get('ai302_model_recogn','whisper-1')
-        print(f'{model_name=}')
         if model_name=='gpt-4o-transcribe-diarize':
             # 说话人识别模型
             return self._diarize()
@@ -74,7 +73,7 @@ class AI302Recogn(BaseRecogn):
             srt["endraw"] = tools.ms_to_time_string(ms=srt["end_time"])
             srt["startraw"] = tools.ms_to_time_string(ms=srt["start_time"])
             srt['time'] = f'{srt["startraw"]} --> {srt["endraw"]}'
-            self._signal(
+            self.signal(
                 text=f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n',
                 type='subtitle'
             )

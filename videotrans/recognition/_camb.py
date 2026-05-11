@@ -54,7 +54,7 @@ class CambRecogn(BaseRecogn):
         if not lang_id:
             lang_id = 1  # Default to English
 
-        self._signal(text=tr("Recognition may take a while, please be patient"))
+        self.signal(text=tr("Recognition may take a while, please be patient"))
 
         try:
             from camb.client import CambAI
@@ -62,7 +62,6 @@ class CambRecogn(BaseRecogn):
                 api_key=params.get('camb_api_key', '') or os.environ.get('CAMB_API_KEY', ''),
                 httpx_client=httpx.Client(proxy=self.proxy_str) if self.proxy_str else None
             )
-            print(f'{self.audio_file=}')
 
             # Submit transcription job
             create_result = client.transcription.create_transcription(
@@ -91,7 +90,7 @@ class CambRecogn(BaseRecogn):
 
                 time.sleep(poll_interval)
                 elapsed += poll_interval
-                self._signal(text=f"Transcribing... ({elapsed}s)")
+                self.signal(text=f"Transcribing... ({elapsed}s)")
 
             if elapsed >= max_wait:
                 raise RuntimeError("CAMB AI transcription timed out")

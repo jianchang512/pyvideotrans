@@ -113,7 +113,6 @@ class FreeAzureTTS(BaseTTS):
         }
 
         ssml = self.get_ssml(data_item.get('text'), voice_name, rate, pitch, style,self.volume)
-        print(f'{url=}')
 
         response = requests.post(url, headers=headers, data=ssml.encode(),proxies=None)
         response.raise_for_status()

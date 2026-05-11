@@ -63,7 +63,7 @@ class QwenMT(BaseTrans):
                 'content':'You are a top-tier Subtitle Translation Engine.'},
             {
                 'role': 'user',
-                'content': self.prompt.replace('{batch_input}', f'{text}').replace('{context_block}',self.full_origin_subtitles)
+                'content': self.prompt.replace('{batch_input}', f'{text}')
                 },
         ]
         response = dashscope.Generation.call(

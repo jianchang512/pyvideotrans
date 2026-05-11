@@ -77,15 +77,19 @@ import numpy as np  # 新增 numpy 用于声道处理
 from pydub import AudioSegment
 
 # 尝试导入 pyrubberband
+from videotrans.util.contants import INSTALL_RUBBERBAND_TIPS
+
 try:
     import pyrubberband as pyrb
     HAS_RUBBERBAND = True
 except ImportError:
     HAS_RUBBERBAND = False
 
+
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
 from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
+
 
 
 def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf):
@@ -202,10 +206,6 @@ def _change_speed_rubberband(input_path, target_duration):
     """
     使用 Rubber Band 进行音频变速
     """
-    if not HAS_RUBBERBAND:
-        logger.warning(f"[Audio-RB] Rubberband 未安装，跳过: {input_path}")
-        return
-
     try:
         y, sr = sf.read(input_path)
         if len(y) == 0:
@@ -216,10 +216,6 @@ def _change_speed_rubberband(input_path, target_duration):
         
         if target_duration <= 0: target_duration = 1
         
-        # 【逻辑优化】如果目标时长比当前还长，说明需要音频慢放。
-        # 但在当前的对齐策略中，音频通常只压缩（加速）。
-        # 如果确实发生了 target > current，通常意味着我们应该填充静音而不是拉伸音频。
-        # 这里为了安全，如果差异过大，不做处理。
         if target_duration > current_duration:
              # 允许微小的误差，或者由后续静音填充处理
              logger.debug(f"[Audio-RB] 目标时长({target_duration}) > 当前时长({current_duration})，跳过变速，交由静音填充。")
@@ -234,7 +230,6 @@ def _change_speed_rubberband(input_path, target_duration):
 
         y_stretched = pyrb.time_stretch(y, sr, time_stretch_rate)
         
-        # 【关键修正】确保输出是 Stereo (2通道)，防止后续 ffmpeg concat 报错
         # 如果是单声道 (ndim=1)，复制为双声道
         if y_stretched.ndim == 1:
             y_stretched = np.column_stack((y_stretched, y_stretched))
@@ -243,6 +238,47 @@ def _change_speed_rubberband(input_path, target_duration):
         
     except Exception as e:
         logger.error(f"[Audio-RB] 音频处理失败 {input_path}: {e}")
+
+
+def _precise_speed_up_audio(input_path=None,  target_duration=None):
+    audio = AudioSegment.from_file(input_path, format='wav')
+    current_duration_ms = len(audio)
+
+    # 完成使用 atempo 滤镜加速
+    # 构造 atempo 滤镜链
+    # atempo 限制：参数必须在 [0.5, 2.0] 之间
+    atempo_list = []
+    speed_factor = current_duration_ms / target_duration
+
+    # 处理加速情况 (> 2.0)
+    while speed_factor > 2.0:
+        atempo_list.append("atempo=2.0")
+        speed_factor /= 2.0
+
+    # 放入剩余的倍率
+    atempo_list.append(f"atempo={speed_factor}")
+
+    # 用逗号连接滤镜，形成串联效果，如 "atempo=2.0,atempo=1.5"
+    filter_str = ",".join(atempo_list)
+
+    cmd = [
+        '-y',
+        '-i',
+        input_path,
+        '-filter:a',
+        filter_str,
+        '-t', f"{target_duration/1000.0}",  # 强制裁剪到目标时长，防止精度误差
+        '-ar', "48000",
+        '-ac', "2",
+        '-c:a', 'pcm_s16le',
+        f'{input_path}-after.wav'
+    ]
+    try:
+        tools.runffmpeg(cmd)
+        shutil.copy2(f'{input_path}-after.wav',input_path)
+    except Exception as e:
+        logger.exception(f'音频加速失败:{e}')
+
 
 
 class SpeedRate:
@@ -302,6 +338,8 @@ class SpeedRate:
 
         self.audio_speed_rubberband = shutil.which("rubberband")
         logger.debug(f"[SpeedRate] Init. AudioRate={self.shoud_audiorate}, VideoRate={self.shoud_videorate}, Rubberband={bool(self.audio_speed_rubberband)}")
+        if not HAS_RUBBERBAND or not self.audio_speed_rubberband:
+            logger.warning(f"[SpeedRate] Rubberband 不可用，将使用pydub+ffmpeg处理音频加速。\n建议安装，加速效果更佳\n{INSTALL_RUBBERBAND_TIPS}")
 
     def run(self):
         if not self.shoud_audiorate and not self.shoud_videorate:
@@ -320,11 +358,8 @@ class SpeedRate:
         # 3. 音频变速
         if self.audio_data:
             tools.set_process(text='Processing audio speed...', uuid=self.uuid)
-            if HAS_RUBBERBAND and self.audio_speed_rubberband:
-                self._execute_audio_speedup_rubberband()
-            else:
-                 logger.warning("[SpeedRate] Rubberband 不可用，跳过音频物理变速。")
-        
+            self._execute_audio_speedup_rubberband()
+
         # 4. 视频变速
         if self.shoud_videorate and self.video_for_clips:
             tools.set_process(text='Processing video speed...', uuid=self.uuid)
@@ -496,7 +531,7 @@ class SpeedRate:
         all_task = []
         for d in self.audio_data:
             all_task.append(GlobalProcessManager.submit_task_cpu(
-                _change_speed_rubberband, 
+                _change_speed_rubberband if HAS_RUBBERBAND and self.audio_speed_rubberband else _precise_speed_up_audio,
                 input_path=d['filename'], 
                 target_duration=d['target_time']
             ))
@@ -576,8 +611,8 @@ class SpeedRate:
                     try:
                         os.remove(entry.path)
                         deleted_count += 1
-                    except Exception as e:
-                        print(f"无法删除文件 {entry.name}: {e}")
+                    except OSError as e:
+                        logger.exception(f"无法删除文件 {entry.name}: {e}",exc_info=True)
 
         logger.debug(f"清理视频慢速中生成的视频片段，共删除了 {deleted_count} 个文件。")
 
@@ -744,10 +779,8 @@ class TtsSpeedRate(SpeedRate):
         # 3. 音频变速
         if self.audio_data:
             tools.set_process(text='Processing audio speed...', uuid=self.uuid)
-            if HAS_RUBBERBAND and self.audio_speed_rubberband:
-                self._execute_audio_speedup_rubberband()
-            else:
-                 logger.warning("[SpeedRate] Rubberband 不可用，跳过音频物理变速。")
+            self._execute_audio_speedup_rubberband()
+
 
         tools.set_process(text='Concatenating final audio...', uuid=self.uuid)
         self._concat_audio_aligned()

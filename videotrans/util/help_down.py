@@ -31,10 +31,10 @@ def is_connect_hf():
     try:
         requests.head('https://huggingface.co', timeout=3)
     except Exception as e:
-        print(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com\n{e}')
+        logger.warning(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com\n{e}')
         return False
     else:
-        print('可以使用 huggingface.co')
+        logger.info('可以使用 huggingface.co')
         return True
 
 
@@ -73,10 +73,10 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None) -> bool:
                 MyTqdmClass = create_tqdm_class(callback)
 
             if is_connect_hf() is False:
-                print(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com, {model_id=}')
+                logger.warning(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com, {model_id=}')
                 endpoint = 'https://hf-mirror.com'
             else:
-                print('可以使用 huggingface.co')
+                logger.info('可以使用 huggingface.co')
                 endpoint = 'https://huggingface.co'
 
             huggingface_hub.snapshot_download(
@@ -112,19 +112,18 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None) -> bool:
                         shutil.rmtree(full_path)
                     else:
                         os.remove(full_path)
-                    print(f"clear cache: {junk}")
-                except Exception as e:
-                    print(f"{junk} {e}")
+                except OSError as e:
+                    logger.exception(f"清理临时文件失败：{junk} {e}",exc_info=True)
     return True
 
 
 # 从 huggingface 下载单个文件
 def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
     if is_connect_hf() is False:
-        print(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
+        logger.warning(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
         endpoint = 'https://hf-mirror.com'
     else:
-        print('可以使用 huggingface.co')
+        logger.info('可以使用 huggingface.co')
         endpoint = 'https://huggingface.co'
     for index, url in enumerate(urls):
         try:
@@ -258,13 +257,6 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
                 callback(_str)
             except:
                 pass
-            '''
-            if callback:
-                per=f'{size*100/self.file_size:.2f}%' if self.file_size>0 else ''
-                callback(f'{self.filename} {per}')
-            else:
-                print(f'{self.filename=},{self.file_size=},{size=}')
-            '''
 
     try:
         try:

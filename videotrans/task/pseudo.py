@@ -3,6 +3,9 @@ import librosa
 import soundfile as sf
 import random
 
+from videotrans.configure.config import logger
+
+
 def process_audio(
     input_wav,
     output_wav,
@@ -25,6 +28,7 @@ def process_audio(
     noise_level_db : float   叠加白噪声的 RMS 电平（默认 -70 dB，完全不可闻）
     seed : int               随机种子，用于结果可复现
     """
+    logger.debug('开始尝试对音频伪原创，可能非常慢')
     if seed is not None:
         random.seed(seed)
         np.random.seed(seed)

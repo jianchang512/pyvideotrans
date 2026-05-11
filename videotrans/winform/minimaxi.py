@@ -74,7 +74,7 @@ def openwin():
 
         response = requests.post(url, headers=headers, json=data)
         role=response.json()
-        print(role)
+
         if 'voice_cloning' not in role:
             raise RuntimeError(role)
         if not role['voice_cloning']:
@@ -95,9 +95,6 @@ def openwin():
         except (OSError,json.JSONDecodeError):
             pass
             
-        
-
-
     from videotrans.component.set_form import MinimaxiForm
     winobj = MinimaxiForm()
     app_cfg.child_forms['minimaxi'] = winobj

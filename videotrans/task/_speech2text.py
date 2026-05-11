@@ -1,4 +1,4 @@
-import json,os
+import json, os
 import re
 import shutil
 import time
@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, params, TEMP_DIR, logger, defaulelang, HOME_DIR
 from videotrans.recognition import run, Faster_Whisper_XXL, Whisper_CPP
 from videotrans.task._base import BaseTask
 
@@ -31,9 +31,9 @@ class SpeechToText(BaseTask):
     def __post_init__(self):
         super().__post_init__()
         # -1=不启用说话人，0=启用并且不限制说话人数量，>0+1是最大说话人数量
-        self.max_speakers=self.cfg.nums_diariz if self.cfg.enable_diariz else -1
-        if self.max_speakers>0:
-            self.max_speakers+=1
+        self.max_speakers = self.cfg.nums_diariz if self.cfg.enable_diariz else -1
+        if self.max_speakers > 0:
+            self.max_speakers += 1
         # 存放目标文件夹
         if not self.cfg.target_dir:
             self.cfg.target_dir = HOME_DIR + f"/recogn"
@@ -45,7 +45,7 @@ class SpeechToText(BaseTask):
         Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
         # 处理为 16k 的wav单通道音频，供模型识别用
         self.cfg.shibie_audio = self.cfg.cache_folder + f'/{self.cfg.noextname}-{time.time()}.wav'
-        self._signal(text=tr("Speech Recognition to Word Processing"))
+        self.signal(text=tr("Speech Recognition to Word Processing"))
 
     # 预先处理
     def prepare(self):
@@ -64,33 +64,32 @@ class SpeechToText(BaseTask):
             # 需要降噪
             if self.cfg.remove_noise:
                 logger.debug('开始降噪，实际使用人声分离操作替换降噪，速度更快')
-                title=tr('Starting to process speech noise reduction, which may take a long time, please be patient')
-                
+                title = tr('Starting to process speech noise reduction, which may take a long time, please be patient')
+
                 tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
                     f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/vocals.fp16.onnx",
                     f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/accompaniment.fp16.onnx"
                 ], callback=self._process_callback)
-                
-                _44100_ac2=f"{self.cfg.cache_folder}/44100-ac2.wav"
-                _noise_wav=f"{TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
+
+                _44100_ac2 = f"{self.cfg.cache_folder}/44100-ac2.wav"
+                _noise_wav = f"{TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
                 tools.runffmpeg([
-                            "-y",
-                            "-i",
-                            self.cfg.name,
-                            "-ac",
-                            "2",
-                            "-ar",
-                            "44100",
-                            "-c:a",
-                            "pcm_s16le",
-                            _44100_ac2
+                    "-y",
+                    "-i",
+                    self.cfg.name,
+                    "-ac",
+                    "2",
+                    "-ar",
+                    "44100",
+                    "-c:a",
+                    "pcm_s16le",
+                    _44100_ac2
                 ])
-                
 
                 from videotrans.process.prepare_audio import vocal_bgm_spleeter
                 kw = {
-                    "input_file": _44100_ac2, 
-                    "vocal_file": _noise_wav, 
+                    "input_file": _44100_ac2,
+                    "vocal_file": _noise_wav,
                     "instr_file": f"{self.cfg.cache_folder}/remove_noise.wav"
                 }
                 # 静默失败，不处理
@@ -112,128 +111,58 @@ class SpeechToText(BaseTask):
                             self.cfg.shibie_audio
                         ]
                         tools.runffmpeg(cmd)
-                        self._signal(text='remove noise end')
+                        self.signal(text='remove noise end')
                     logger.debug('降噪结束：批量语音转录使用分离人声替代降噪操作')
                 except Exception as e:
-                    logger.exception(f'降噪静默失败{e}',exc_info=True)
+                    logger.exception(f'降噪静默失败{e}', exc_info=True)
 
             if self._exit(): return
-            # faster_xxl.exe 单独处理
-            if self.cfg.recogn_type == Faster_Whisper_XXL:
-                cmd = [
-                    settings.get('Faster_Whisper_XXL', ''),
-                    self.cfg.shibie_audio,
-                    "-pp",
-                    "-f", "srt",
-                    "-ct",settings.get('cuda_com_type', 'int8')
-                ]
-                if self.cfg.detect_language != 'auto':
-                    cmd.extend(['-l', self.cfg.detect_language.split('-')[0]])
-
-                prompt = None
-                if self.cfg.detect_language != 'auto':
-                    prompt = settings.get(f'initial_prompt_{self.cfg.detect_language}')
-                if prompt:
-                    cmd += ['--initial_prompt', prompt]
-
-                cmd.extend(['--model', self.cfg.model_name, '--output_dir', self.cfg.target_dir])
-                txt_file = Path(settings.get('Faster_Whisper_XXL', '')).parent.as_posix() + '/pyvideotrans.txt'
-                if Path(txt_file).exists():
-                    cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
-
-                outsrt_file = self.cfg.target_dir + '/' + Path(self.cfg.shibie_audio).stem + ".srt"
-                cmdstr = " ".join(cmd)
-                logger.debug(f'Faster_Whisper_XXL: {cmdstr=}\n{outsrt_file=}\n{self.cfg.target_sub=}')
-
-                self._external_cmd_with_wrapper(cmd)
-
-                try:
-                    shutil.copy2(outsrt_file, self.cfg.target_sub)
-                except shutil.SameFileError:
-                    pass
-                self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub, is_file=True)
-                # return
-            elif self.cfg.recogn_type == Whisper_CPP:
-
-                cpp_path = settings.get('Whisper_cpp', 'whisper-cli')
-                cmd = [
-                    cpp_path,
-                    "-f",
-                    self.cfg.shibie_audio,
-                    "-osrt",
-                    "-np"
-                ]
-                cmd += ["-l", self.cfg.detect_language.split('-')[0]]
-                prompt = None
-                if self.cfg.detect_language != 'auto':
-                    prompt = settings.get(f'initial_prompt_{self.cfg.detect_language}')
-                if prompt:
-                    cmd += ['--prompt', prompt]
-                cpp_folder = Path(cpp_path).parent.resolve().as_posix()
-                if not Path(f'{cpp_folder}/models/{self.cfg.model_name}').is_file():
-                    raise RuntimeError(
-                        tr('The model does not exist. Please download the model to the {} directory first.',
-                           f'{cpp_folder}/models'))
-                txt_file = cpp_folder + '/pyvideotrans.txt'
-                if Path(txt_file).exists():
-                    cmd.extend(Path(txt_file).read_text(encoding='utf-8').strip().split(' '))
-
-                cmd.extend(['-m', f'models/{self.cfg.model_name}', '-of', self.cfg.target_sub[:-4]])
-
-                logger.debug(f'Whipser.cpp: {cmd=}')
-
-                self._external_cmd_with_wrapper(cmd)
-
-                self.source_srt_list = tools.get_subtitle_from_srt(self.cfg.target_sub, is_file=True)
-                # return
-            else:
-                # 其他识别渠道
-                raw_subtitles = run(
-                    recogn_type=self.cfg.recogn_type,
-                    uuid=self.uuid,
-                    model_name=self.cfg.model_name,
-                    audio_file=self.cfg.shibie_audio,
-                    detect_language=self.cfg.detect_language,
-                    cache_folder=self.cfg.cache_folder,
-                    is_cuda=self.cfg.is_cuda,
-                    subtitle_type=0,
-                    max_speakers=self.max_speakers,
-                    llm_post=self.cfg.rephrase == 1
-                )
-                self.source_srt_list = raw_subtitles
-                self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-                if not raw_subtitles or len(raw_subtitles) < 1:
-                    raise RuntimeError(self.cfg.basename + tr('recogn result is empty'))
+             # 其他识别渠道
+            raw_subtitles = run(
+                recogn_type=self.cfg.recogn_type,
+                uuid=self.uuid,
+                model_name=self.cfg.model_name,
+                audio_file=self.cfg.shibie_audio,
+                detect_language=self.cfg.detect_language,
+                cache_folder=self.cfg.cache_folder,
+                is_cuda=self.cfg.is_cuda,
+                subtitle_type=0,
+                max_speakers=self.max_speakers,
+                llm_post=self.cfg.rephrase == 1
+            )
+            self.source_srt_list = raw_subtitles
+            self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+            if not raw_subtitles or len(raw_subtitles) < 1:
+                raise RuntimeError(self.cfg.basename + tr('recogn result is empty'))
             if self._exit() or self.cfg.detect_language == 'auto': return
-            
-            
+
             # 中英恢复标点符号
-            if self.cfg.fix_punc and self.cfg.detect_language[:2] in ['zh','en']:
-                tools.check_and_down_ms(model_id='iic/punc_ct-transformer_cn-en-common-vocab471067-large',callback=self._process_callback)
-                text_dict={f'{it["line"]}':re.sub(r'[,.?!，。？！]',' ',it["text"]) for it in self.source_srt_list}
+            if self.cfg.fix_punc and self.cfg.detect_language[:2] in ['zh', 'en']:
+                tools.check_and_down_ms(model_id='iic/punc_ct-transformer_cn-en-common-vocab471067-large',
+                                        callback=self._process_callback)
+                text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
                 from videotrans.process.prepare_audio import fix_punc
-                kw={"text_dict":text_dict,"is_cuda":self.cfg.is_cuda}
+                kw = {"text_dict": text_dict, "is_cuda": self.cfg.is_cuda}
                 try:
-                    _rs=self._new_process(callback=fix_punc,title=tr("Restoring punct"),kwargs=kw)
+                    _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
                     if _rs:
                         for it in self.source_srt_list:
-                            it['text']=_rs.get(f'{it["line"]}',it['text'])
-                            if self.cfg.detect_language[:2]=='en':
-                                it['text']=it['text'].replace('，',',').replace('。','. ').replace('？','?').replace('！','!')
+                            it['text'] = _rs.get(f'{it["line"]}', it['text'])
+                            if self.cfg.detect_language[:2] == 'en':
+                                it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace(
+                                    '！', '!')
                         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
                 except:
                     pass
 
-            
             # whisperx-api
             # openairecogn并且模型是gpt-4o-transcribe-diarize
             # funasr并且模型是paraformer-zh
             # deepgram
             # 以上这些本身已有说话人识别，如果以有说话人，就不再重新断句
-            self._signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
-            if Path(self.cfg.cache_folder+"/speaker.json").exists():
+            self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+            if Path(self.cfg.cache_folder + "/speaker.json").exists():
                 return
-
 
             if self.cfg.rephrase == 1:
                 # LLM重新断句
@@ -241,7 +170,7 @@ class SpeechToText(BaseTask):
                     from videotrans.translator._chatgpt import ChatGPT
 
                     ob = ChatGPT(uuid=self.uuid)
-                    self._signal(text=tr("Re-segmenting..."))
+                    self.signal(text=tr("Re-segmenting..."))
                     srt_list = ob.llm_segment(self.source_srt_list, settings.get('llm_ai_type', 'openai'))
                     if srt_list and len(srt_list) > len(self.source_srt_list) / 2:
                         self.source_srt_list = srt_list
@@ -249,94 +178,91 @@ class SpeechToText(BaseTask):
                     else:
                         raise
                 except Exception as e:
-                    self._signal(text=tr("Re-segmenting Error"))
+                    self.signal(text=tr("Re-segmenting Error"))
                     logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
         except Exception:
             raise
 
-
     def diariz(self):
-        if self._exit()  or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
+        if self._exit() or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
             return
-            
+
         # built pyannote reverb ali_CAM
-        speaker_type=settings.get('speaker_type','built')
-        hf_token= settings.get('hf_token')
-        if speaker_type=='built' and self.cfg.detect_language[:2] not in ['zh','en']:
+        speaker_type = settings.get('speaker_type', 'built')
+        hf_token = settings.get('hf_token')
+        if speaker_type == 'built' and self.cfg.detect_language[:2] not in ['zh', 'en']:
             logger.error(f'当前选择 built 说话人分离模型，但不支持当前语言:{self.cfg.detect_language}')
             return
-        if speaker_type in ['pyannote','reverb'] and not hf_token:
+        if speaker_type in ['pyannote', 'reverb'] and not hf_token:
             logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
             return
-        if speaker_type in ['pyannote','reverb']:
+        if speaker_type in ['pyannote', 'reverb']:
             # 判断是否可访问 huggingface.co
             # 先测试能否连接 huggingface.co, 中国大陆地区不可访问，除非使用VPN
             try:
                 import requests
-                requests.head('https://huggingface.co',timeout=5)
+                requests.head('https://huggingface.co', timeout=5)
             except Exception:
                 logger.error(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败')
 
         self.precent += 3
-        title=tr(f'Begin separating the speakers')+f':{speaker_type}'
-        spk_list=None
-        kw={
-                "input_file":self.cfg.shibie_audio,
-                "subtitles":[ [it['start_time'],it['end_time']] for it in self.source_srt_list],
-                "num_speakers":self.max_speakers,
-                "is_cuda":self.cfg.is_cuda
+        title = tr(f'Begin separating the speakers') + f':{speaker_type}'
+        spk_list = None
+        kw = {
+            "input_file": self.cfg.shibie_audio,
+            "subtitles": [[it['start_time'], it['end_time']] for it in self.source_srt_list],
+            "num_speakers": self.max_speakers,
+            "is_cuda": self.cfg.is_cuda
         }
-        if speaker_type=='built':
-            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx',[
+        if speaker_type == 'built':
+            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
                 "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/seg_model.onnx",
                 "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/nemo_en_titanet_small.onnx",
-                "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"                
-            ],callback=self._process_callback)
+                "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"
+            ], callback=self._process_callback)
             from videotrans.process.prepare_audio import built_speakers as _run_speakers
             del kw['is_cuda']
-            kw['num_speakers']=-1 if self.max_speakers<1 else self.max_speakers
-            kw['language']=self.cfg.detect_language
-        elif speaker_type=='ali_CAM':
-            tools.check_and_down_ms(model_id='iic/speech_campplus_speaker-diarization_common',callback=self._process_callback)
+            kw['num_speakers'] = -1 if self.max_speakers < 1 else self.max_speakers
+            kw['language'] = self.cfg.detect_language
+        elif speaker_type == 'ali_CAM':
+            tools.check_and_down_ms(model_id='iic/speech_campplus_speaker-diarization_common',
+                                    callback=self._process_callback)
             from videotrans.process.prepare_audio import cam_speakers as _run_speakers
-        elif speaker_type=='pyannote':
+        elif speaker_type == 'pyannote':
             from videotrans.process.prepare_audio import pyannote_speakers as _run_speakers
-        elif speaker_type=='reverb':
+        elif speaker_type == 'reverb':
             from videotrans.process.prepare_audio import reverb_speakers as _run_speakers
         else:
             logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
             return
         try:
-            if speaker_type in ['pyannote','reverb']:
-                self._signal(text='Downloading speakers models')
+            if speaker_type in ['pyannote', 'reverb']:
+                self.signal(text='Downloading speakers models')
                 from huggingface_hub import snapshot_download
-                print(f'下载 token: {speaker_type},{hf_token=}')
                 snapshot_download(
                     repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
                     token=hf_token
                 )
-            spk_list=self._new_process(callback=_run_speakers,title=title,is_cuda=self.cfg.is_cuda and speaker_type!='built',kwargs=kw)
+            spk_list = self._new_process(callback=_run_speakers, title=title,
+                                         is_cuda=self.cfg.is_cuda and speaker_type != 'built', kwargs=kw)
             if spk_list:
-                Path(self.cfg.cache_folder+"/speaker.json").write_text(json.dumps(spk_list),encoding='utf-8')
+                Path(self.cfg.cache_folder + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
         except Exception as e:
-            logger.exception(e,exc_info=True)
-        self._signal(text=tr('separating speakers end'))
-
-
+            logger.exception(e, exc_info=True)
+        self.signal(text=tr('separating speakers end'))
 
     def task_done(self):
         if self._exit(): return
-        if self.cfg.detect_language and self.cfg.detect_language !='auto':
+        if self.cfg.detect_language and self.cfg.detect_language != 'auto':
             # 处理换行
             maxlen = int(
-            settings.get('cjk_len',15) if self.cfg.detect_language[:2] in ["zh", "ja", "jp", "ko", 'yu'] else
-            settings.get('other_len',60))
+                settings.get('cjk_len', 15) if self.cfg.detect_language[:2] in ["zh", "ja", "jp", "ko", 'yu'] else
+                settings.get('other_len', 60))
             for i, it in enumerate(self.source_srt_list):
-                it['text']=tools.simple_wrap(it['text'],maxlen,self.cfg.detect_language)
+                it['text'] = tools.simple_wrap(it['text'], maxlen, self.cfg.detect_language)
 
-
-
-        if self.cfg.enable_diariz and params.get("stt_spk_insert") and Path(self.cfg.cache_folder + "/speaker.json").exists():
+        if self.cfg.enable_diariz and params.get("stt_spk_insert") and Path(
+                self.cfg.cache_folder + "/speaker.json").exists():
             speakers = json.loads(Path(self.cfg.cache_folder + "/speaker.json").read_text(encoding='utf-8'))
             if speakers:
                 speakers_len = len(speakers)
@@ -345,10 +271,11 @@ class SpeechToText(BaseTask):
                         it['text'] = f'[{speakers[i]}]{it["text"]}'
 
         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-        self._signal(text=f"{self.cfg.name}", type='succeed')
+        self.signal(text=f"{self.cfg.name}", type='succeed')
         if self.out_format == 'txt':
             self.cfg.target_sub = self.cfg.target_sub[:-3] + 'txt'
-            Path(self.cfg.target_sub).write_text("\r\n".join([it["text"] for it in self.source_srt_list]),encoding='utf-8')
+            Path(self.cfg.target_sub).write_text("\r\n".join([it["text"] for it in self.source_srt_list]),
+                                                 encoding='utf-8')
         elif self.out_format != 'srt':
             tools.runffmpeg(['-y', '-i', self.cfg.target_sub, self.cfg.target_sub[:-3] + self.out_format])
             Path(self.cfg.target_sub).unlink(missing_ok=True)
@@ -367,9 +294,3 @@ class SpeechToText(BaseTask):
         except Exception:
             pass
         tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
-
-    def _exit(self):
-        if app_cfg.exit_soft:
-            self.hasend = True
-            return True
-        return False

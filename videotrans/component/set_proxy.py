@@ -71,5 +71,4 @@ class SetThreadProxy(QDialog):
 
     def get_values(self):
         proxy = self.input.text().strip()
-        print(f'{proxy=}')
         return proxy

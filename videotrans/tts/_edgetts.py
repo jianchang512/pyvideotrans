@@ -72,7 +72,7 @@ class EdgeTTS(BaseTTS):
                         if self._stop_event.is_set(): return
                         loop = asyncio.get_running_loop()
                         signal_with_args = functools.partial(
-                            self._signal, 
+                            self.signal, 
                             text=f'{tr("kaishipeiyin")} {msg}[{self.ends_counter + 1}/{total_tasks}]'
                         )
                         
@@ -87,7 +87,6 @@ class EdgeTTS(BaseTTS):
                         return
 
                     except asyncio.TimeoutError as e:
-                        #print(f'{e}')
                         if attempt < RETRY_NUMS:
                             await asyncio.sleep(RETRY_DELAY)
                         else:
@@ -96,7 +95,6 @@ class EdgeTTS(BaseTTS):
                             # 失败也是一种完成，直接返回
                             return
                     except (NoAudioReceived, aiohttp.ClientError) as e:
-                        #print(f'{e}')
                         self.error=e if not self.useproxy else f'proxy={self.useproxy}, {tr("Please turn off the clear proxy and try again")}:{e}'
                         # 强制禁用代理重试
                         self.useproxy=None
@@ -204,7 +202,7 @@ class EdgeTTS(BaseTTS):
             if ok>0:
                 all_task = []
                 from concurrent.futures import ThreadPoolExecutor
-                self._signal(text=f'convert wav {total_tasks}')
+                self.signal(text=f'convert wav {total_tasks}')
                 with ThreadPoolExecutor(max_workers=min(1,len(self.queue_tts),os.cpu_count() or 1)) as pool:
                     for item in self.queue_tts:
                         mp3_path = item['filename'] + ".mp3"
@@ -213,6 +211,6 @@ class EdgeTTS(BaseTTS):
                     if len(all_task) > 0:
                         _ = [i.result() for i in all_task]
 
-            self._signal(text=f'[{err}] errors, {ok} succeed')
+            self.signal(text=f'[{err}] errors, {ok} succeed')
         finally:
             await asyncio.sleep(0.1)

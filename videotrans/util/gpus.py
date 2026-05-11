@@ -16,11 +16,11 @@ def getset_gpu(force_cpu=False) -> int:
     # 尚未获取过时是 -1
     if app_cfg.NVIDIA_GPU_NUMS > -1:
         return app_cfg.NVIDIA_GPU_NUMS
-    print('First searching GPU...')
+    logger.debug('First searching GPU...')
     import torch
     # 无可用显卡
     app_cfg.NVIDIA_GPU_NUMS = 0 if not torch.cuda.is_available() else torch.cuda.device_count()
-    print(f'NVIDIA_GPU_NUMS={app_cfg.NVIDIA_GPU_NUMS}')
+    logger.debug(f'NVIDIA_GPU_NUMS={app_cfg.NVIDIA_GPU_NUMS}')
     return app_cfg.NVIDIA_GPU_NUMS
 
 

@@ -17,6 +17,7 @@ def openwin():
     RESULT_DIR = HOME_DIR + "/translate"
     SOURCE_DIR = RESULT_DIR
     uuid_list=[]
+    percent=""
     language_namelist = ["-"] + list(translator.LANGNAME_DICT.values())
 
     def toggle_state(state):
@@ -35,9 +36,10 @@ def openwin():
         winobj.fanyi_targettext.setDisabled(state)
 
     def feed(d):
+        nonlocal percent
         if winobj.has_done:
             return
-        d = json.loads(d)
+        d = json.loads(d) if isinstance(d,str) else d
         if d['type'] != 'error':
             winobj.loglabel.setStyleSheet("""color:#148cd2;background-color:transparent""")
             winobj.error_msg = ""
@@ -65,13 +67,16 @@ def openwin():
         elif d['type'] == 'set_source':
             winobj.fanyi_sourcetext.clear()
             winobj.fanyi_sourcetext.setPlainText(d['text'])
-        elif d['type'] in ['logs', 'succeed']:
-            if d['text']:
-                winobj.loglabel.setText(d["text"])
+        elif d['type'] == 'jindu':
+            percent=d['text']
+        elif d['type'] in ['logs']:
+            winobj.loglabel.setText(f'{percent} {d["text"]}')
         elif d['type'] in ['stop', 'end']:
+            percent=''
             winobj.has_done = True
             winobj.loglabel.setText(tr('quanbuend'))
             winobj.fanyi_start.setText(tr("Ended/Start operate"))
+            winobj.fanyi_sourcetext.setPlainText(tr('quanbuend'))
             toggle_state(False)
 
     def fanyi_import_fun():
@@ -106,7 +111,6 @@ def openwin():
                                                                      show_target=target_language,
                                                                      translate_type=translate_type)
        
-        print(f'{source_code=},{target_code=}')
         if target_language == '-':
             return tools.show_error(tr("fanyimoshi1"))
         
@@ -136,7 +140,7 @@ def openwin():
         if winobj.save_source.isChecked():
             SOURCE_DIR = Path(video_list[0]['name']).parent.as_posix()
         for it in video_list:
-            uuid_list.append(it['uuid'])
+            app_cfg.rm_uuid(it['uuid'])
             cfg={
                 "translate_type": translate_type,
                 "target_dir": SOURCE_DIR if SOURCE_DIR else RESULT_DIR,
@@ -146,6 +150,8 @@ def openwin():
             }
             trk = TranslateSrt(cfg=TaskCfgSTS(**cfg|it),out_format=winobj.out_format.currentIndex())
             app_cfg.trans_queue.put_nowait(trk)
+
+
         from videotrans.task.child_win_sign import SignThread
         th = SignThread(uuid_list=uuid_list, parent=winobj)
         th.uito.connect(feed)

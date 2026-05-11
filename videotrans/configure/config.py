@@ -19,6 +19,8 @@ from videotrans.util.contants import (
     Chatgpt_Model, Openairecognapi_Model, Qpenaitts_Model, Qwenmt_Model, Ai302_Models,
     Whisper_cpp_models, Deepseek_Model, Openrouter_Model, Guiji_Model,MINIMAX_MODELS,ELEVENLABS_TTS_MODELS,MINIMAX_TTS_MODELS,GEMINITTS_ROLES,GEMINI_TTS_MODELS,XIAOMI_MODELS,XIAOMI_TTS_MODELS
 )
+from videotrans.configure.signal_hub import SignalHub
+
 
 IS_FROZEN = True if getattr(sys, 'frozen', False) else False
 SYS_TMP = Path(tempfile.gettempdir()).as_posix()
@@ -127,9 +129,10 @@ class AppCfg:
     # 显卡相关
     NVIDIA_GPU_NUMS: int = -1
 
-    # 队列与控制
+    # 队列与控制,用于跨不同事务，例如 转录、翻译、TTS、信号队列
     stoped_uuid_set: set = field(default_factory=set)
-    uuid_logs_queue: Dict = field(default_factory=dict)
+    # 存放消息日志
+    # uuid_logs_queue: Dict = field(default_factory=dict)
     global_msg: List = field(default_factory=list)
     exit_soft: bool = False
 
@@ -167,6 +170,19 @@ class AppCfg:
 
     def __post_init__(self):
         self.SUPPORT_LANG=_get_langjson_list()
+
+    # 设置倒计时，用于单视频交互
+    def set_countdown(self,sec=86400):
+        self.task_countdown=sec
+
+    #从 stoped_uuid_set 中移出uuid，用于重复执行同个文件
+    def rm_uuid(self,uuid=None):
+        if not uuid:
+            return
+        try:
+            self.stoped_uuid_set.remove(uuid)
+        except KeyError:
+            pass
 
 
 @dataclass
@@ -302,7 +318,7 @@ class AppSettings:
             "noise_separate_nums": 4,
             "aitrans_temperature": 0.2,
             "aitrans_context": False,
-            "batch_single": False,
+            "batch_nums": 0,#0 并发，1=串行翻译,>1 每批同时多少个
             "ai302_models": Ai302_Models,
             'qwenmt_model': Qwenmt_Model,
             "openaitts_model": Qpenaitts_Model,
@@ -349,6 +365,7 @@ class AppSettings:
             "initial_prompt_ko": "",
             "initial_prompt_ru": "",
             "initial_prompt_es": "",
+            "initial_prompt_km": "",
             "initial_prompt_th": "",
             "initial_prompt_it": "",
             "initial_prompt_el": "",
@@ -676,11 +693,6 @@ class AppParams:
             "voxcpmtts_version": "v2",
             "sparktts_url": "",
             "diatts_url": "",
-            "doubao_appid": "",
-            "doubao_access": "",
-            "volcenginetts_appid": "",
-            "volcenginetts_access": "",
-            "volcenginetts_cluster": "",
             "doubao2_appid": "",
             "doubao2_access": "",
             "zijierecognmodel_appid": "",
@@ -760,14 +772,19 @@ def tr(lang_key, *kw):
 def push_queue(uuid, jsondata):
     """兼容旧的 push_queue"""
     if app_cfg.exit_soft or uuid in app_cfg.stoped_uuid_set:
+        # app_cfg.uuid_logs_queue.pop(uuid,None)
         return
-    if uuid not in app_cfg.uuid_logs_queue:
-        app_cfg.uuid_logs_queue[uuid] = Queue(maxsize=0)
+
+    # if uuid not in app_cfg.uuid_logs_queue:
+    #     app_cfg.uuid_logs_queue[uuid] = Queue(maxsize=0)
+    # try:
+    #     app_cfg.uuid_logs_queue[uuid].put_nowait(jsondata)
+    # except Exception as e:
+    #     logger.exception(f'push_queue错误：{e}', exc_info=True)
     try:
-        if isinstance(app_cfg.uuid_logs_queue[uuid], Queue):
-            app_cfg.uuid_logs_queue[uuid].put_nowait(jsondata)
+        SignalHub.instance().post(uuid, jsondata)
     except Exception as e:
-        logger.exception(f'push_queue错误：{e}', exc_info=True)
+        logger.exception(f'push_queue 信号发送错误：{e}', exc_info=True)
 
 
 def update_logging_level(new_level_str):
@@ -778,43 +795,6 @@ def update_logging_level(new_level_str):
     for handler in _logger.handlers:
         if isinstance(handler, (logging.StreamHandler, logging.FileHandler)):
             handler.setLevel(new_level)
-    print(f"系统日志等级已动态切换为: {new_level_str}")
-
-@lru_cache()
-def __getattr__(name):
-    """
-    实现 config.xxx 的兼容性。
-    查找顺序:
-    1. 当前模块 (已由Python默认处理)
-    2. app_cfg (原全局变量)
-    3. settings (原 settings 字典中的键)
-    4. params (原 params 字典中的键)
-    """
-
-    # 2. 尝试从 settings 获取
-    # 注意：settings 有很多属性，这里利用 getattr 不抛错
-    if name == 'settings':
-        return settings
-    if name == 'params':
-        return params
-    if name.startswith('settings.'):
-        try:
-            return getattr(settings, name)
-        except AttributeError:
-            pass
-    if name.startswith('params.'):
-        # 3. 尝试从 params 获取
-        try:
-            return getattr(params, name)
-        except AttributeError:
-            pass
-
-    # 1. 尝试从 AppCfg 获取 (原全局变量)
-    if hasattr(app_cfg, name):
-        return getattr(app_cfg, name)
-
-    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
-
 
 _set_env()
 

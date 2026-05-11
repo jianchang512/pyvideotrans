@@ -43,7 +43,7 @@ class FunasrRecogn(BaseRecogn):
             tools.check_and_down_ms(model_id='damo/speech_campplus_sv_zh-cn_16k-common',callback=self._process_callback)
         else:
             tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
-        self._signal(text=f"load {self.model_name}")
+        self.signal(text=f"load {self.model_name}")
         logs_file = f'{TEMP_DIR}/{self.uuid}/funasr-{self.detect_language}-{time.time()}.log'
         if self.model_name != 'paraformer-zh':
             cut_audio_list_file = f'{TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'

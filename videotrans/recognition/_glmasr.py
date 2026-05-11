@@ -43,8 +43,8 @@ class GLMASRRecogn(BaseRecogn):
                 if response.status_code==200:                    
                     it['text']=response.json()['text'].strip()
                     ok_nums+=1
-                    self._signal(text=f"{i+1}/{len(raws)}")
-                    self._signal(
+                    self.signal(text=f"{i+1}/{len(raws)}")
+                    self.signal(
                         text=f'{it["text"]}\n',
                         type='subtitle'
                     )

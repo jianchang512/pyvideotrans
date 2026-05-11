@@ -232,20 +232,6 @@ def get_302ai():
     return role_dict
 
 
-# 字节火山语音合成角色
-def get_doubao_rolelist(role_name=None, langcode="zh"):
-
-    roledata=json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/doubao0.json').read_text(encoding='utf-8'))
-    
-   
-    if role_name:
-        current_d=roledata.get(langcode[:2])
-        if not current_d:
-            return 'No'
-        return current_d.get(role_name)
-    
-    return { key:['No']+list(item.keys())  for key,item in roledata.items()}
-
 
 def get_doubao2_rolelist(role_name=None, langcode="zh"):
 

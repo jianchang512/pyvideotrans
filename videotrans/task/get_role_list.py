@@ -1,6 +1,7 @@
 # 从日志队列获取日志
 from PySide6.QtCore import QThread
 
+from videotrans.configure.config import logger
 
 
 class GetRoleWorker(QThread):
@@ -13,4 +14,4 @@ class GetRoleWorker(QThread):
             from videotrans.util.tools import get_elevenlabs_role
             get_elevenlabs_role()
         except Exception as e:
-            print(e)
+            logger.exception(e,exc_info=True)

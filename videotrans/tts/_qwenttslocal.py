@@ -52,7 +52,7 @@ class QwenttsLocal(BaseTTS):
         }
         self._new_process(callback=qwen3tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
     
-        self._signal(text=f'convert wav')
+        self.signal(text=f'convert wav')
         all_task = []
         from concurrent.futures import ThreadPoolExecutor
         with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:

@@ -46,7 +46,7 @@ class DeepgramRecogn(BaseRecogn):
             self.audio_file = self.cache_folder + '/deepgram-tmp.mp3'
         with open(self.audio_file, "rb") as file:
             buffer_data = file.read()
-        self._signal(
+        self.signal(
             text=tr("Recognition may take a while, please be patient"))
 
         httpx.HTTPTransport(proxy=self.proxy_str)
@@ -96,7 +96,7 @@ class DeepgramRecogn(BaseRecogn):
         else:
             transcription = DeepgramConverter(res)
             srt_str = srt(transcription,
-                          line_length=settings.get('cjk_len') if self.detect_language[:2] in ['zh', 'ja','ko'] else settings.get('other_len'))
+                          line_length=int(settings.get('cjk_len') if self.detect_language[:2] in ['zh', 'ja','ko'] else settings.get('other_len')))
             raws = tools.get_subtitle_from_srt(srt_str, is_file=False)
             if self.detect_language[:2] in ['zh', 'ja', 'ko']:
                 for i, it in enumerate(raws):

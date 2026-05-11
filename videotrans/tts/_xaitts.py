@@ -59,7 +59,7 @@ class XAITTS(BaseTTS):
                 if response.status_code not in [429]:
                     self.stop_next_all=True
                 else:
-                    self._signal(text=f'retry 429 Error: Too Many Requests  ...')
+                    self.signal(text=f'retry 429 Error: Too Many Requests  ...')
                 response.raise_for_status()
             with open(data_item['filename']+'-tmp.wav', "wb") as f:
                 f.write(response.content)

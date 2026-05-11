@@ -22,8 +22,6 @@ class WinActionSub:
     main: Optional[Any]=None
     law:Optional[Any]=None
 
-    update_btn: Optional[Any] = field(default=None, init=False)
-
     is_render: bool = field(default=False, init=False)
     is_batch: bool = field(default=True, init=False)
     had_click_btn: bool = field(default=False, init=False)
@@ -72,15 +70,6 @@ class WinActionSub:
         # 检查哪个按钮被点击
         if msg_box.clickedButton() == tutorial_button:
             tools.open_url("https://pyvideotrans.com/selectmodel")  # 调用模型选择教程的函数
-
-    def update_tips(self, text):
-        if not self.update_btn:
-            self.update_btn = QtWidgets.QPushButton()
-            self.update_btn.setStyleSheet('color:#ffff00;border:0')
-            self.update_btn.setCursor(Qt.PointingHandCursor)
-            self.update_btn.clicked.connect(lambda: self.open_url('download'))
-            self.main.container.addWidget(self.update_btn)
-        self.update_btn.setText(text)
 
     # 关于页面
     def about(self):
@@ -331,7 +320,6 @@ class WinActionSub:
 
             params['last_opendir'] = p.as_posix()
             self.main.target_dir = p_out.as_posix()
-            print(f'{self.main.target_dir=}')
             self.main.btn_save_dir.setToolTip(self.main.target_dir)
         else:
             fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(self.main,

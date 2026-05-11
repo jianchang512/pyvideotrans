@@ -489,12 +489,10 @@ def simple_wrap(text,maxlen=15,language="en"):
         if i>=_len-offset:
             # 最后不足4个字符，无需区分都给最后一行
             current_text+=text[i:]
-            # print(f'最后不足4个字符')
             break
         if len(current_text)<maxlen-offset:
             current_text+=text[i]
             i+=1
-            # print('正常追加')
             continue
         #判断 i+1,i+2,i+3,i+4 是否符合标点，
         if maxlen-offset<=len(current_text)<=maxlen and text[i] in flag:

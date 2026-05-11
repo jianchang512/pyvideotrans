@@ -56,7 +56,7 @@ class SttAPIRecogn(BaseRecogn):
         with open(self.audio_file, 'rb') as f:
             chunk = f.read()
         files = {"file": (os.path.basename(self.audio_file), chunk)}
-        self._signal(
+        self.signal(
             text=tr("Recognition may take a while, please be patient"))
 
         data = {"language": self.detect_language[:2], "model": params.get('stt_model', 'tiny'),
@@ -69,7 +69,7 @@ class SttAPIRecogn(BaseRecogn):
             raise StopRetry(f'{res["msg"]}')
         if "data" not in res or len(res['data']) < 1:
             raise StopRetry(f'{res=}')
-        self._signal(
+        self.signal(
             text=res['data'],
             type='replace_subtitle'
         )

@@ -1,4 +1,4 @@
-# 对应 豆包语音大模型合成2
+# 对应 豆包语音合成大模型2.0
 
 def openwin():
     from PySide6 import QtWidgets

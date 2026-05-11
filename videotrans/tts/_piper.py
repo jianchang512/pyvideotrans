@@ -73,7 +73,7 @@ class PiperTTS(BaseTTS):
 
         if err > 0:
             msg=f'[{err}] errors, {ok} succeed'
-            self._signal(text=msg)
+            self.signal(text=msg)
             logger.debug(f'piper配音结束：{msg}')
             
 

@@ -77,7 +77,7 @@ class M2M100Trans(BaseTrans):
         return True
 
     def _process_callback(self,msg):
-        self._signal(text=msg)
+        self.signal(text=msg)
 
     def _unload(self):
         try:

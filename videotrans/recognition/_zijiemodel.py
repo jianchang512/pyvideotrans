@@ -59,8 +59,6 @@ class ZijieRecogn(BaseRecogn):
                 "enable_speaker_info": True
             }
         }
-        # print(request)
-
         response = requests.post(submit_url, json=request, headers=headers)
         logger.info(f'{response=}')
         logger.info(f'{response.headers=}')
@@ -97,7 +95,7 @@ class ZijieRecogn(BaseRecogn):
             srt_list.append(tmp)
             srt_strings+=f"{tmp['line']}\n{startraw} --> {endraw}\n{tmp['text']}\n\n"
 
-        self._signal(
+        self.signal(
             text=srt_strings,
             type='replace_subtitle'
         )
