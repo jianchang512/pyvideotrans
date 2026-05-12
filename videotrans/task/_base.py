@@ -141,8 +141,13 @@ class BaseTask(BaseCon):
         
 
     # 手动调用设为结束，成功完成或出错时
-    def set_end(self):
+    def set_end(self,succeed=False):
         self.hasend=True
+        if succeed:
+            self.precent = 100
+            self.signal(text=f"{self.cfg.name}", type='succeed')
+            tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
+        app_cfg.stoped_uuid_set.add(self.uuid)
 
     async def _edgetts_single(self,target_audio,kwargs):
         from edge_tts import Communicate

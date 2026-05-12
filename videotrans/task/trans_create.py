@@ -726,7 +726,7 @@ class TransCreate(BaseTask):
                     missing_ok=True)
                 Path(f"{self.cfg.target_dir}/{self.cfg.target_language_code}.srt").unlink(
                     missing_ok=True)
-            except:
+            except OSError:
                 pass  # 忽略删除失败
         else:
             if self.is_audio_trans and tools.vail_file(self.cfg.target_wav):
@@ -742,12 +742,11 @@ class TransCreate(BaseTask):
                 if self.cfg.only_out_mp4:
                     shutil.move(self.cfg.targetdir_mp4, Path(self.cfg.target_dir).parent / f'{self.cfg.noextname}.mp4')
                     shutil.rmtree(self.cfg.target_dir, ignore_errors=True)
-            except Exception as e:
+            except OSError as e:
                 logger.exception(e, exc_info=True)
-        self.set_end()
-        self.precent = 100
-        self.signal(text=f"{self.cfg.name}", type='succeed')
-        tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
+
+        self.set_end(True)
+
 
     # 从原始视频分离出 无声视频
     def _split_novoice_byraw(self):

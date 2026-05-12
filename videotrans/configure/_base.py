@@ -40,6 +40,8 @@ class BaseCon:
             return
         if 'uuid' not in kwargs:
             kwargs['uuid'] = self.uuid
+        if kwargs.get('uuid') in app_cfg.stoped_uuid_set:
+            return
         if 'type' not in kwargs:
             kwargs['type']='logs'
         push_queue(kwargs.get('uuid') or "", kwargs)

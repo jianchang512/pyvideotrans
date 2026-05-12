@@ -1,69 +1,14 @@
-# -*- coding: utf-8 -*-
-import logging
-import re
-from dataclasses import dataclass, field
-from typing import List, Union
-
-import httpx
-from openai import OpenAI
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import tr,params,settings,app_cfg,logger
-from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.translator._base import BaseTrans
-from videotrans.util import tools
-from openai import LengthFinishReasonError
-
-RETRY_NUMS = 3
-RETRY_DELAY = 5
-
+from dataclasses import dataclass
+from videotrans.configure.config import params
+from videotrans.translator._openaicompat import OpenAICampat
 
 @dataclass
-class AzureGPT(BaseTrans):
-    prompt: str = field(init=False)
+class AzureGPT(OpenAICampat):
 
     def __post_init__(self):
-        super().__post_init__()
+        self.ainame="azure"
+        self.api_key=params.get("azure_key",'')
+        self.api_url=params.get("azure_api",'')
         self.model_name = params.get("azure_model",'')
-        self.prompt = tools.get_prompt(ainame='azure',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
+        super().__post_init__()
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
-    def _item_task(self, data: Union[List[str], str]) -> str:
-        if self._exit(): return
-        model = OpenAI(
-            api_key=params.get("azure_key",''),
-            base_url=params.get("azure_api",''),
-            http_client=httpx.Client(proxy=self.proxy_str)
-        )
-        text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
-        message = [
-            {'role': 'system',
-             'content': 'You are a top-tier Subtitle Translation Engine.'},
-            {'role': 'user',
-             'content': self.prompt.replace('{batch_input}', f'{text}')
-             },
-        ]
-
-        response = model.chat.completions.create(
-            model=params.get("azure_model",''),
-            messages=message,
-            frequency_penalty=0,
-            temperature=float(settings.get('aitrans_temperature',0.2)),
-        )
-        logger.debug(f'[AzureGPT]返回响应:{response=}')
-        if not hasattr(response,'choices'):
-            raise RuntimeError(str(response))
-        
-        if response.choices[0].finish_reason=='length':
-            raise LengthFinishReasonError(completion=response)
-        if response.choices[0].message.content:
-            result = response.choices[0].message.content.strip()
-        else:
-            logger.warning(f'[AzureGPT]请求失败:{response=}'  )
-            raise RuntimeError(f"[Azure] {response.choices[0].finish_reason}: {response=}")
-
-        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)
-        if match:
-            return match.group(1)
-        return result.strip()

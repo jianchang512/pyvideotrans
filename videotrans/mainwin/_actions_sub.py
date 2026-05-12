@@ -320,7 +320,6 @@ class WinActionSub:
 
             params['last_opendir'] = p.as_posix()
             self.main.target_dir = p_out.as_posix()
-            self.main.btn_save_dir.setToolTip(self.main.target_dir)
         else:
             fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(self.main,
                                                                tr("Select one or more files"),
@@ -341,7 +340,10 @@ class WinActionSub:
         dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),params.get('last_opendir',''))
         dirname = Path(dirname).as_posix()
         self.main.target_dir = dirname
-        self.main.btn_save_dir.setToolTip(self.main.target_dir)
+        self.main.btn_save_dir.setToolTip(dirname)
+        self.main.output_dir.setText(tr('Translation results saved to:')+dirname)
+        params['output_dir']=dirname
+        params.save()
 
     # 设置或删除代理
     def change_proxy(self, p):
@@ -443,6 +445,7 @@ class WinActionSub:
         self.main.volume_rate.setDisabled(type)
         self.main.pitch_rate.setDisabled(type)
         self.main.only_out_mp4.setDisabled(type)
+        self.main.recogn2pass.setDisabled(type)
         self.main.import_sub.setDisabled(type)
         self.main.btn_get_video.setDisabled(type)
         self.main.btn_save_dir.setDisabled(type)

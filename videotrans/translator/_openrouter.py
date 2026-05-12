@@ -1,73 +1,18 @@
-# -*- coding: utf-8 -*-
-import logging
-import re
-from dataclasses import dataclass, field
-from typing import List, Union
 
-import httpx
-from openai import OpenAI
-from openai import LengthFinishReasonError
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr,app_cfg,settings,params,logger
-from videotrans.translator._base import BaseTrans
-from videotrans.util import tools
-
-RETRY_NUMS = 3
-RETRY_DELAY = 5
-
+from dataclasses import dataclass
+from videotrans.configure.config import params
+from videotrans.translator._openaicompat import OpenAICampat
 
 @dataclass
-class OpenRouter(BaseTrans):
-    prompt: str = field(init=False)
-    api_key: str = field(init=False)
+class OpenRouter(OpenAICampat):
 
     def __post_init__(self):
-
-        super().__post_init__()
+        self.ainame ='openrouter'
+        self.max_tokens =int(params.get('openrouter_max_tokens',8192))
 
         self.model_name = params.get('openrouter_model', "")
         self.api_url = 'https://openrouter.ai/api/v1'
 
-        self.prompt = tools.get_prompt(ainame='openrouter',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
         self.api_key = params.get('openrouter_key', '')
+        super().__post_init__()
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
-    def _item_task(self, data: Union[List[str], str]) -> str:
-        if self._exit(): return
-        text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
-        message = [
-            {
-                'role': 'system',
-                'content': 'You are a top-tier Subtitle Translation Engine.'},
-            {
-                'role': 'user',
-                'content': self.prompt.replace('{batch_input}', f'{text}')
-            },
-        ]
-
-        model = OpenAI(api_key=self.api_key, base_url=self.api_url, http_client=httpx.Client(proxy=self.proxy_str, timeout=7200))
-        response = model.chat.completions.create(
-            model=self.model_name,
-            messages=message,
-            frequency_penalty=0,
-            temperature=float(settings.get('aitrans_temperature',0.2)),
-            max_tokens=int(params.get('openrouter_max_tokens',8192))
-        )
-        if not hasattr(response,'choices'):
-            raise RuntimeError(str(response))
-        if response.choices[0].finish_reason=='length':
-            raise LengthFinishReasonError(completion=response)
-        result = ""
-        if response.choices[0].message.content:
-            result = response.choices[0].message.content.strip()
-        else:
-            logger.warning(f'[openrouter]请求失败:{response=}')
-            raise RuntimeError(f"[OpenRouter] {response.choices[0].finish_reason}:{response}")
-
-        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)
-        if match:
-            return match.group(1)
-        return result.strip()

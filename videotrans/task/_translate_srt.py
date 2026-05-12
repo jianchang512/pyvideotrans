@@ -81,19 +81,12 @@ class TranslateSrt(BaseTask):
 
     def task_done(self):
         if self._exit(): return
-        self.hasend = True
         self.precent = 100
-        if Path(self.cfg.target_sub).is_file():
-            self.signal(text=f"{self.cfg.name}", type='succeed')
         try:
             if self.cfg.shound_del_name:
                 Path(self.cfg.shound_del_name).unlink(missing_ok=True)
         except OSError:
             pass
-        tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")    
+        self.set_end(True)
 
-    def _exit(self):
-        if app_cfg.exit_soft:
-            self.hasend=True
-            return True
-        return False
+

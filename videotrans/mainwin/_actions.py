@@ -380,17 +380,15 @@ class WinAction(WinActionSub):
     def check_output(self):
         from PySide6.QtWidgets import QMessageBox
         input_folder = Path(self.queue_mp4[0]).parent
-        if not self.main.target_dir:
-            self.main.target_dir = (input_folder / '_video_out').as_posix()
-        output_folder = Path(self.main.target_dir)
+        output_folder = input_folder / '_video_out' if not self.main.target_dir else Path(self.main.target_dir)
         # 输出文件夹尚不存在
         if not output_folder.exists():
             return True
 
         # 输入输出是同个文件夹，
-        if input_folder.samefile(output_folder):
+        if self.main.only_out_mp4.isChecked() and input_folder.samefile(output_folder):
             tools.show_error(
-                tr("The output directory is not allowed to point to the input directory. Please use the default or create an empty folder as the output"))
+                tr("The output directory is not allowed to point to the input directory"))
             return False
 
         # 输出目录是空的
@@ -660,8 +658,7 @@ class WinAction(WinActionSub):
         self.main.show_tips.show()
         self.main.show_tips.setText(tr('Creating progress bar, please wait'))
         # 输出目录，此时该目录是 视频名子文件夹的父级
-        target_dir = self.main.target_dir
-        self.main.btn_save_dir.setToolTip(target_dir)
+        target_dir = (Path(self.queue_mp4[0]).parent / '_video_out').as_posix() if not self.main.target_dir else self.main.target_dir
         # 待翻译的文件列表
         self.obj_list = []
 
@@ -787,8 +784,6 @@ class WinAction(WinActionSub):
         self._disabled_button(False)
         for it in self.obj_list:
             app_cfg.stoped_uuid_set.add(it['uuid'])
-            # if it['uuid'] in app_cfg.uuid_logs_queue:
-            #     app_cfg.uuid_logs_queue.pop(it['uuid'], None)
 
         if type == 'end':
             # 成功完成
@@ -801,10 +796,8 @@ class WinAction(WinActionSub):
                     tools.shutdown_system()
                 except Exception as e:
                     tools.show_error(tr('shutdownerror') + str(e))
-            self.main.target_dir = None
-            self.main.btn_save_dir.setToolTip('')
         else:
-            # 手动暂停
+            # 手动暂停 stop
             app_cfg.set_countdown(-1)
             self.set_djs_timeout()
             # 任务队列中设为停止并删除队列，防止后续到来的日志继续显示
@@ -821,9 +814,6 @@ class WinAction(WinActionSub):
     # 更新 UI
     def update_data(self, uuid:Union[str,None]="",json_str:Union[object,None]=""):
         d = json.loads(json_str) if isinstance(json_str, str) else json_str
-        # if d['type'] not in ['error', 'succeed']:
-        #     return
-
         if d['type'] in ['logs', 'error', 'succeed', 'set_precent']:
             self.set_process_btn_text(d)
             if uuid and d['type'] in ['error', 'succeed']:

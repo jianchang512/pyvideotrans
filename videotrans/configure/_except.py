@@ -218,10 +218,7 @@ def get_msg_from_except(ex):
         ),
 
         # === 频率限制 ===
-        RateLimitError: lambda e: (
-            f"请求过于频繁或余额不足：{e.body.get('message')}" if lang == 'zh'
-            else e.body.get('message')
-        ),
+        RateLimitError: lambda e: e.body.get('message'),
         # === 资源不存在问题 ===
         # === 请求参数问题 ===
         # === 服务端问题 ===

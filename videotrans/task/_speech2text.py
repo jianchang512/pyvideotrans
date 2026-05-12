@@ -60,128 +60,126 @@ class SpeechToText(BaseTask):
             if Path(self.cfg.shibie_audio).exists():
                 break
             time.sleep(0.5)
-        try:
-            # 需要降噪
-            if self.cfg.remove_noise:
-                logger.debug('开始降噪，实际使用人声分离操作替换降噪，速度更快')
-                title = tr('Starting to process speech noise reduction, which may take a long time, please be patient')
 
-                tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                    f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/vocals.fp16.onnx",
-                    f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/accompaniment.fp16.onnx"
-                ], callback=self._process_callback)
+        # 需要降噪
+        if self.cfg.remove_noise:
+            logger.debug('开始降噪，实际使用人声分离操作替换降噪，速度更快')
+            title = tr('Starting to process speech noise reduction, which may take a long time, please be patient')
 
-                _44100_ac2 = f"{self.cfg.cache_folder}/44100-ac2.wav"
-                _noise_wav = f"{TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
-                tools.runffmpeg([
-                    "-y",
-                    "-i",
-                    self.cfg.name,
-                    "-ac",
-                    "2",
-                    "-ar",
-                    "44100",
-                    "-c:a",
-                    "pcm_s16le",
-                    _44100_ac2
-                ])
+            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
+                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/vocals.fp16.onnx",
+                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/accompaniment.fp16.onnx"
+            ], callback=self._process_callback)
 
-                from videotrans.process.prepare_audio import vocal_bgm_spleeter
-                kw = {
-                    "input_file": _44100_ac2,
-                    "vocal_file": _noise_wav,
-                    "instr_file": f"{self.cfg.cache_folder}/remove_noise.wav"
-                }
-                # 静默失败，不处理
-                try:
-                    rs = self._new_process(callback=vocal_bgm_spleeter, title=title, is_cuda=False, kwargs=kw)
-                    if rs and tools.vail_file(_noise_wav):
-                        cmd = [
-                            "-y",
-                            "-i",
-                            _noise_wav,
-                            "-ac",
-                            "1",
-                            "-ar",
-                            "16000",
-                            "-c:a",
-                            "pcm_s16le",
-                            '-af',
-                            "volume=1.5",
-                            self.cfg.shibie_audio
-                        ]
-                        tools.runffmpeg(cmd)
-                        self.signal(text='remove noise end')
-                    logger.debug('降噪结束：批量语音转录使用分离人声替代降噪操作')
-                except Exception as e:
-                    logger.exception(f'降噪静默失败{e}', exc_info=True)
+            _44100_ac2 = f"{self.cfg.cache_folder}/44100-ac2.wav"
+            _noise_wav = f"{TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
+            tools.runffmpeg([
+                "-y",
+                "-i",
+                self.cfg.name,
+                "-ac",
+                "2",
+                "-ar",
+                "44100",
+                "-c:a",
+                "pcm_s16le",
+                _44100_ac2
+            ])
 
-            if self._exit(): return
-             # 其他识别渠道
-            raw_subtitles = run(
-                recogn_type=self.cfg.recogn_type,
-                uuid=self.uuid,
-                model_name=self.cfg.model_name,
-                audio_file=self.cfg.shibie_audio,
-                detect_language=self.cfg.detect_language,
-                cache_folder=self.cfg.cache_folder,
-                is_cuda=self.cfg.is_cuda,
-                subtitle_type=0,
-                max_speakers=self.max_speakers,
-                llm_post=self.cfg.rephrase == 1
-            )
-            self.source_srt_list = raw_subtitles
-            self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-            if not raw_subtitles or len(raw_subtitles) < 1:
-                raise RuntimeError(self.cfg.basename + tr('recogn result is empty'))
-            if self._exit() or self.cfg.detect_language == 'auto': return
+            from videotrans.process.prepare_audio import vocal_bgm_spleeter
+            kw = {
+                "input_file": _44100_ac2,
+                "vocal_file": _noise_wav,
+                "instr_file": f"{self.cfg.cache_folder}/remove_noise.wav"
+            }
+            # 静默失败，不处理
+            try:
+                rs = self._new_process(callback=vocal_bgm_spleeter, title=title, is_cuda=False, kwargs=kw)
+                if rs and tools.vail_file(_noise_wav):
+                    cmd = [
+                        "-y",
+                        "-i",
+                        _noise_wav,
+                        "-ac",
+                        "1",
+                        "-ar",
+                        "16000",
+                        "-c:a",
+                        "pcm_s16le",
+                        '-af',
+                        "volume=1.5",
+                        self.cfg.shibie_audio
+                    ]
+                    tools.runffmpeg(cmd)
+                    self.signal(text='remove noise end')
+                logger.debug('降噪结束：批量语音转录使用分离人声替代降噪操作')
+            except Exception as e:
+                logger.exception(f'降噪静默失败{e}', exc_info=True)
 
-            # 中英恢复标点符号
-            if self.cfg.fix_punc and self.cfg.detect_language[:2] in ['zh', 'en']:
-                tools.check_and_down_ms(model_id='iic/punc_ct-transformer_cn-en-common-vocab471067-large',
-                                        callback=self._process_callback)
-                text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
-                from videotrans.process.prepare_audio import fix_punc
-                kw = {"text_dict": text_dict, "is_cuda": self.cfg.is_cuda}
-                try:
-                    _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
-                    if _rs:
-                        for it in self.source_srt_list:
-                            it['text'] = _rs.get(f'{it["line"]}', it['text'])
-                            if self.cfg.detect_language[:2] == 'en':
-                                it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace(
-                                    '！', '!')
-                        self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-                except:
-                    pass
+        if self._exit(): return
+         # 其他识别渠道
+        raw_subtitles = run(
+            recogn_type=self.cfg.recogn_type,
+            uuid=self.uuid,
+            model_name=self.cfg.model_name,
+            audio_file=self.cfg.shibie_audio,
+            detect_language=self.cfg.detect_language,
+            cache_folder=self.cfg.cache_folder,
+            is_cuda=self.cfg.is_cuda,
+            subtitle_type=0,
+            max_speakers=self.max_speakers,
+            llm_post=self.cfg.rephrase == 1
+        )
+        self.source_srt_list = raw_subtitles
+        self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+        if not raw_subtitles or len(raw_subtitles) < 1:
+            raise RuntimeError(self.cfg.basename + tr('recogn result is empty'))
+        if self._exit() or self.cfg.detect_language == 'auto': return
 
-            # whisperx-api
-            # openairecogn并且模型是gpt-4o-transcribe-diarize
-            # funasr并且模型是paraformer-zh
-            # deepgram
-            # 以上这些本身已有说话人识别，如果以有说话人，就不再重新断句
-            self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
-            if Path(self.cfg.cache_folder + "/speaker.json").exists():
-                return
+        # 中英恢复标点符号
+        if self.cfg.fix_punc and self.cfg.detect_language[:2] in ['zh', 'en']:
+            tools.check_and_down_ms(model_id='iic/punc_ct-transformer_cn-en-common-vocab471067-large',
+                                    callback=self._process_callback)
+            text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
+            from videotrans.process.prepare_audio import fix_punc
+            kw = {"text_dict": text_dict, "is_cuda": self.cfg.is_cuda}
+            try:
+                _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
+                if _rs:
+                    for it in self.source_srt_list:
+                        it['text'] = _rs.get(f'{it["line"]}', it['text'])
+                        if self.cfg.detect_language[:2] == 'en':
+                            it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace(
+                                '！', '!')
+                    self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+            except:
+                pass
 
-            if self.cfg.rephrase == 1:
-                # LLM重新断句
-                try:
+        # 本身已有说话人识别的，就不再重新断句
+        self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+        if Path(self.cfg.cache_folder + "/speaker.json").exists():
+            return
+
+        if self.cfg.rephrase == 1:
+            # LLM重新断句
+            try:
+                if settings.get('llm_ai_type', 'openai')=='openai':
                     from videotrans.translator._chatgpt import ChatGPT
-
                     ob = ChatGPT(uuid=self.uuid)
-                    self.signal(text=tr("Re-segmenting..."))
-                    srt_list = ob.llm_segment(self.source_srt_list, settings.get('llm_ai_type', 'openai'))
-                    if srt_list and len(srt_list) > len(self.source_srt_list) / 2:
-                        self.source_srt_list = srt_list
-                        self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-                    else:
-                        raise
-                except Exception as e:
-                    self.signal(text=tr("Re-segmenting Error"))
-                    logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
-        except Exception:
-            raise
+                else:
+                    from videotrans.translator._deepseek import DeepSeek
+                    ob = DeepSeek(uuid=self.uuid)
+
+                self.signal(text=tr("Re-segmenting..."))
+                srt_list = ob.llm_segment(self.source_srt_list)
+                if srt_list and len(srt_list) > len(self.source_srt_list) / 2:
+                    self.source_srt_list = srt_list
+                    self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+                else:
+                    raise
+            except Exception as e:
+                self.signal(text=tr("Re-segmenting Error"))
+                logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
 
     def diariz(self):
         if self._exit() or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
@@ -271,7 +269,6 @@ class SpeechToText(BaseTask):
                         it['text'] = f'[{speakers[i]}]{it["text"]}'
 
         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-        self.signal(text=f"{self.cfg.name}", type='succeed')
         if self.out_format == 'txt':
             self.cfg.target_sub = self.cfg.target_sub[:-3] + 'txt'
             Path(self.cfg.target_sub).write_text("\r\n".join([it["text"] for it in self.source_srt_list]),
@@ -293,4 +290,4 @@ class SpeechToText(BaseTask):
             shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
         except Exception:
             pass
-        tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
+        self.set_end(True)

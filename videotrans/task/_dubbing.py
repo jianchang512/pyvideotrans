@@ -50,7 +50,6 @@ class DubbingSrt(BaseTask):
             self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type="replace")
             self._tts()
         except Exception as e:
-            self.hasend = True
             raise
 
     # 字幕可能是gbk gb2312 等编码，需转为 utf-8
@@ -271,31 +270,23 @@ class DubbingSrt(BaseTask):
                 except Exception:
                     pass
         except Exception as e:
-            self.hasend = True
             raise
 
     def task_done(self):
         if self._exit():
             return
-        self.hasend = True
         self.precent = 100
-            
+
+        if Path(self.cfg.target_wav).is_file():
+            # 移除末尾静音
+            tools.remove_silence_wav(self.cfg.target_wav, rm_start=False)
+            if self.out_ext.lower()!='wav':
+                tools.runffmpeg(['-y', '-i', self.cfg.target_wav, f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'])
+                Path(self.cfg.target_wav).unlink(missing_ok=True)
+
         try:
-            if Path(self.cfg.target_wav).is_file():
-                # 移除末尾静音
-                tools.remove_silence_wav(self.cfg.target_wav, rm_start=False)
-                self.signal(text=f"{self.cfg.name}", type='succeed')
-                if self.out_ext.lower()!='wav':
-                    tools.runffmpeg(['-y', '-i', self.cfg.target_wav, f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'])
-                    Path(self.cfg.target_wav).unlink(missing_ok=True)
             if self.cfg.shound_del_name:
                 Path(self.cfg.shound_del_name).unlink(missing_ok=True)
         except OSError:
             pass
-        tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")    
-
-    def _exit(self):
-        if app_cfg.exit_soft:
-            self.hasend=True
-            return True
-        return False
+        self.set_end(True)

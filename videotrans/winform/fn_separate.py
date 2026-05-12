@@ -49,15 +49,11 @@ def openwin():
         # 已在执行，在此点击停止
         if winobj.has_done:
             winobj.has_done = False
-            # del app_cfg.uuid_logs_queue[uuid]
             winobj.set.setText(tr('Start Separate'))
             return
         winobj.has_done = True
-        # if uuid in app_cfg.uuid_logs_queue:
-        #     del app_cfg.uuid_logs_queue[uuid]
 
         winobj.set.setText(tr('Start Separate...'))
-        basename = Path(file).stem
         # 判断名称是否正常
         # 创建文件夹
         Path(outdir).mkdir(parents=True,exist_ok=True)

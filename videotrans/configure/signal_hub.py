@@ -1,18 +1,14 @@
-import json
 from typing import Union
-
 from PySide6.QtCore import QObject, Signal, Slot
 
 class SignalHub(QObject):
     """单例信号中心，跨线程消息传递的核心桥梁。
-
-    - 必须由 QApplication 所在的线程（主线程）创建实例
     - 任意线程可调用 post()，消息自动排队到主线程处理
     """
 
     _instance = None
 
-    # 信号: new_message(uuid: str, json_string: str)
+    # 信号: new_message(uuid: str, json_string: object)
     new_message = Signal(str, object)
 
     def __init__(self, parent=None):

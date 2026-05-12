@@ -747,7 +747,7 @@
     "Disagree": "Disagree & Exit",
     "Are you sure the cleanup has been output?": "Confirm Cleanup? (Irreversible)",
     "If you confirm to clean up, all files in the output directory will be deleted. If you manually specify the output directory, please make sure there are no important files in the directory and back it up in advance to avoid data loss.": "Warning: Deletes matching folders in Output Dir. Ensure no important data in [{}] before proceeding.",
-    "The output directory is not allowed to point to the input directory. Please use the default or create an empty folder as the output": "Output Dir cannot be Input Dir. Use default or new folder.",
+    "The output directory is not allowed to point to the input directory": "Output Dir cannot be Input Dir. Use a new folder.",
     "Setting up a network proxy": "Setup Proxy",
     "Click on faster-xxl": "Select Faster_Whisper_XXL.exe",
     "Click on whisper-cli": "Select whisper-cli",
@@ -976,6 +976,7 @@
   "Norway":"Norwegian Bokmal",
   "Khmer":"Khmer",
   "Set reference audio":"Set reference audio",
-  "Creating progress bar, please wait": "Creating progress bar, please wait..."
+  "Creating progress bar, please wait": "Creating progress bar, please wait...",
+  "Translation results saved to:": "Translation results saved to: "
 
 }

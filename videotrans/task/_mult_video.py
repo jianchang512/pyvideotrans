@@ -48,7 +48,7 @@ class MultVideo(QThread):
                 time.sleep(1)
                 _this_batch_end=True
                 for _trk in trk_list:
-                    if not _trk.hasend:
+                    if not _trk.hasend and _trk.uuid not in app_cfg.stoped_uuid_set:
                         _this_batch_end=False
                         break
                 if _this_batch_end:

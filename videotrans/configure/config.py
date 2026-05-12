@@ -132,7 +132,6 @@ class AppCfg:
     # 队列与控制,用于跨不同事务，例如 转录、翻译、TTS、信号队列
     stoped_uuid_set: set = field(default_factory=set)
     # 存放消息日志
-    # uuid_logs_queue: Dict = field(default_factory=dict)
     global_msg: List = field(default_factory=list)
     exit_soft: bool = False
 
@@ -515,6 +514,7 @@ class AppParams:
         # 依赖 settings 中的值
         return {
             "last_opendir": os.path.expanduser("~"),
+            "output_dir":"",# 视频翻译结果保存到的目录，默认原始视频所在文件夹 _video_out
             "is_cuda": False,
             "line_roles": {},
             "rephrase": 0,
@@ -772,15 +772,7 @@ def tr(lang_key, *kw):
 def push_queue(uuid, jsondata):
     """兼容旧的 push_queue"""
     if app_cfg.exit_soft or uuid in app_cfg.stoped_uuid_set:
-        # app_cfg.uuid_logs_queue.pop(uuid,None)
         return
-
-    # if uuid not in app_cfg.uuid_logs_queue:
-    #     app_cfg.uuid_logs_queue[uuid] = Queue(maxsize=0)
-    # try:
-    #     app_cfg.uuid_logs_queue[uuid].put_nowait(jsondata)
-    # except Exception as e:
-    #     logger.exception(f'push_queue错误：{e}', exc_info=True)
     try:
         SignalHub.instance().post(uuid, jsondata)
     except Exception as e:

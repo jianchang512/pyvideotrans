@@ -14,8 +14,8 @@ License: GPL-V3
 线程队列八九个，传参全靠大字典。
 可以塞硬件，怼系统。
 无单元之测试，无类型之规整。
-启动加载三百秒，界面丑陋乱糟糟。
-前有Whisper卡进程，后有FF爆乱码。
+启动加载三百秒，界面UI丑到爆。
+前有Whisper卡进程，后有FF猛报错。
 三大平台皆可跑，上万星友亦成行。
 AI嘲: 码之烂平生仅见
 作者云：又不是不能跑。
@@ -144,7 +144,6 @@ def initialize_full_app(start_window, app_instance):
         app_instance.setStyleSheet(f.read())
 
     from videotrans.mainwin._main_win import MainWindow
-
     main_window_created = False
     try:
         screen = QGuiApplication.primaryScreen().geometry()
@@ -219,5 +218,4 @@ if __name__ == "__main__":
                 gc.collect()
             except Exception as e:
                 print(e)
-
     sys.exit(res if isinstance(res, int) else 0)

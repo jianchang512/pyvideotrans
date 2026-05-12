@@ -66,7 +66,7 @@ class BaseWorker(QThread):
 
     def handle_error(self, e, trk):
         """统一的错误处理逻辑"""
-        trk.set_end()
+
         logger.exception(e, exc_info=True)
         except_msg = get_msg_from_except(e)
         detail_back = traceback.format_exc().strip()
@@ -81,16 +81,13 @@ class BaseWorker(QThread):
         msg = f'{except_msg}\n{detail_back}\n{trk.cfg}'
         trk.signal(text=msg, type='error', uuid=trk.uuid)
         tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
-
-        # 允许子类在出错时进行额外的清理工作
+        trk.set_end()
         self.cleanup_on_error(trk)
 
     def get_error_prefix(self, trk) -> str:
-        """默认没有错误前缀，子类可按需覆盖"""
         return ""
 
     def cleanup_on_error(self, trk):
-        """默认无清理动作，子类可按需覆盖"""
         pass
 
 

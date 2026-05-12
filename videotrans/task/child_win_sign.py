@@ -1,9 +1,7 @@
 import json
-import time
-
 from PySide6.QtCore import QThread, Signal
 
-from videotrans.configure.config import tr,params,settings,app_cfg,logger
+from videotrans.configure.config import app_cfg
 from videotrans.configure.signal_hub import SignalHub
 
 
@@ -30,7 +28,6 @@ class SignThread(QThread):
                 "text": f'{int((self.total - len(self.uuid_list)) * 100 / self.total)}%'
             })
             app_cfg.stoped_uuid_set.add(uuid)
-            # app_cfg.uuid_logs_queue.pop(uuid, None)
             if not self.uuid_list:
                 self.uito.emit({"type": "end"})
 

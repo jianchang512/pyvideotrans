@@ -3,6 +3,8 @@ import time
 
 from PySide6.QtCore import QThread, Signal
 
+from videotrans.configure.config import logger
+
 
 class AiLoaderThread(QThread):
     gpu_io = Signal(str)
@@ -12,7 +14,7 @@ class AiLoaderThread(QThread):
             _st = time.time()
             from . import gpus
             _count = gpus.getset_gpu()
-            print(f"Found {_count} GPUs, cost={int(time.time() - _st)}s")
+            logger.debug(f"Found {_count} GPUs, cost={int(time.time() - _st)}s")
             self.gpu_io.emit("end")
         except Exception:
             import traceback

@@ -1,0 +1,159 @@
+# -*- coding: utf-8 -*-
+import logging
+import re
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import List, Union
+
+from openai import OpenAI
+from tenacity import before_log, retry_if_not_exception_type, wait_fixed, stop_after_attempt, after_log, retry
+
+from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import logger, settings, params, ROOT_DIR, tr
+from videotrans.translator._base import BaseTrans
+from openai import LengthFinishReasonError
+
+from videotrans.util import tools
+
+
+@dataclass
+class OpenAICampat(BaseTrans):
+    ainame:str=None
+    prompt: str = field(init=False)
+    api_key: str = field(init=False)
+    api_url: str = field(init=False)
+    temperature:float=0.0
+    max_tokens:int=8192
+    reasoning_effort:str=None
+    extra_body:Union[dict,None]=None
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.temperature=float(settings.get('aitrans_temperature', 0.2))
+        self.prompt = tools.get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name)
+        print(f'{self.api_url=},{self.ainame=}')
+
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(2)),
+           wait=wait_fixed(5), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.DEBUG))
+    def _item_task(self, data: Union[List[str], str]) -> str:
+        if self._exit(): return
+        
+        if isinstance(data, list):
+            text = "\n".join([i.strip() for i in data])
+        else:
+            text=data
+        
+        message = [
+            {
+                'role': 'system',
+                'content': 'You are a top-tier Subtitle Translation Engine.'},
+            {
+                'role': 'user',
+                'content': self.prompt.replace('{batch_input}', f'{text}')
+            },
+        ]
+
+        model = OpenAI(api_key=self.api_key, base_url=self.api_url)
+
+        kwargs={
+            "model":self.model_name,
+            "messages":message,
+            "frequency_penalty":0,
+            "timeout":300,
+            # 针对 openai 官方或 GPT模型，使用 max_completion_tokens参数，其他第三方使用 max_tokens 参数
+            "max_completion_tokens":int(self.max_tokens),
+            "max_tokens":int(self.max_tokens),
+            "temperature":float(self.temperature),
+            "reasoning_effort":self.reasoning_effort,
+            "extra_body":self.extra_body
+        }
+
+        response = model.chat.completions.create(**kwargs)
+
+        logger.debug(f'[{self.ainame}]响应:{response=}')
+        result = ""
+        if not hasattr(response,'choices'):
+            raise RuntimeError(str(response))
+        if response.choices[0].finish_reason=='length':
+            raise LengthFinishReasonError(completion=response)
+        if response.choices[0].message.content:
+            result = response.choices[0].message.content.strip()
+        else:
+            logger.warning(f'[{self.ainame}]请求失败:{response=}')
+            raise RuntimeError(f"[{self.ainame}] {response.choices[0].finish_reason}:{response}")
+
+        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>', '',result), re.S)
+        if match:
+            return match.group(1)
+        return result.strip()
+
+
+    def llm_segment(self, srt_list):
+        prompts_template = Path(ROOT_DIR + '/videotrans/prompts/recharge/recharge-llm.txt').read_text(encoding='utf-8')
+        prompts_template = prompts_template.replace('{max_speech_s}', str(settings.get('max_speech_duration_s', 6)))
+        chunk_size = int(settings.get('llm_chunk_size', 20))
+
+        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(2)),
+               wait=wait_fixed(5), before=before_log(logger, logging.INFO),
+               after=after_log(logger, logging.INFO))
+        def _send(srt):
+            message = [
+                {"role": "system", "content": prompts_template},
+                {
+                    'role': 'user',
+                    'content': f"""```srt\n{srt}\n```"""
+                }
+            ]
+            logger.debug(f'需要断句的:{message=}')
+            model = OpenAI(api_key=self.api_key, base_url=self.api_url)
+
+            response = model.chat.completions.create(
+                model=self.model_name,
+                frequency_penalty=0,
+                max_completion_tokens=65536,
+                messages=message,
+                temperature=0.2,
+                timeout=300  # 超过5分钟为失败
+            )
+            if not hasattr(response, 'choices') or not response.choices:
+                logger.warning(f'[LLM re-segments]重新断句失败:{response=}')
+                raise RuntimeError(f"{response}")
+
+            if response.choices[0].finish_reason == 'length':
+                raise RuntimeError(f"Please increase max_token")
+            if not response.choices[0].message.content:
+                logger.warning(f'[LLM re-segments]重新断句失败:{response=}')
+                raise RuntimeError(f"{response}")
+
+            result = response.choices[0].message.content
+            match = re.search(r'<SRT>(.*?)</SRT>', re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S),
+                              re.S | re.I)
+            logger.warning(f'[LLM re-segments]重新断句结果:{result=}')
+            if match:
+                return match.group(1)
+            return result.strip()
+
+        new_sublist = []
+        for idx in range(0, len(srt_list), chunk_size):
+            self.signal(text=f'[{idx}] {self.ainame} ' + tr("Re-segmenting..."))
+            srt_str = "\n\n".join(
+                [f"{line + 1}\n{it['time']}\n{it['text']}" for line, it in enumerate(srt_list[idx: idx + chunk_size])])
+            new_sublist.append(_send(srt_str))
+
+        _srtlist = tools.get_subtitle_from_srt("\n\n".join(new_sublist), is_file=False)
+        # 修正可能存在的时间戳错误
+        _len = len(_srtlist)
+        for i, it in enumerate(_srtlist):
+            _had_edit = False
+            if i < _len - 1 and it['end_time'] > _srtlist[i + 1]['start_time']:
+                it['end_time'] = _srtlist[i + 1]['start_time']
+                _had_edit = True
+            if it['start_time'] > it['end_time']:
+                it['start_time'] = it['end_time']
+                _had_edit = True
+            if _had_edit:
+                it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
+                it["time"] = f"{it['startraw']} --> {it['endraw']}"
+        return _srtlist

@@ -270,7 +270,6 @@ class Ui_MainWindow(object):
         self.align_layout.addWidget(self.subtitle_type)
 
         self.set_adv_status = QtWidgets.QPushButton()
-        # self.set_adv_status.setStyleSheet("background-color:transparent;border:1px solid #455364")
         self.set_adv_status.setText(tr('More settings'))
         self.set_adv_status.setCursor(Qt.PointingHandCursor)
 
@@ -435,7 +434,14 @@ class Ui_MainWindow(object):
         self.show_tips.setStyleSheet(
             """background-color:transparent;border-color:transparent;color:#aaaaaa;text-align:left""")
         self.show_tips.setObjectName("show_tips")
+        self.output_dir = QtWidgets.QLabel(self.layoutWidget)
+        self.output_dir.setWordWrap(True)
+        self.output_dir.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.output_dir.setStyleSheet(
+            """background-color:transparent;border-color:transparent;color:#929ca7;text-align:center""")
+        self.output_dir.setObjectName("output_dir")
         self.verticalLayout_3.addWidget(self.show_tips)
+
 
         # 启动按钮行
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
@@ -461,6 +467,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addWidget(self.retrybtn)
         self.horizontalLayout_3.addStretch(1)
         self.verticalLayout_3.addLayout(self.horizontalLayout_3)
+        self.verticalLayout_3.addWidget(self.output_dir)
 
         self.scroll_area = QtWidgets.QScrollArea(self.layoutWidget)
         self.scroll_area.setStyleSheet("border-color:#32414B")
@@ -711,8 +718,6 @@ class Ui_MainWindow(object):
 
         self.action_clearcache = QtGui.QAction(MainWindow)
         self.action_clearcache.setObjectName("action_clearcache")
-        self.action_downmodels = QtGui.QAction(MainWindow)
-        self.action_downmodels.setObjectName("action_downmodels")
         self.action_set_proxy = QtGui.QAction(MainWindow)
         self.action_set_proxy.setObjectName("action_set_proxy")
 
@@ -859,7 +864,7 @@ class Ui_MainWindow(object):
 
         self.menu.addAction(self.actionsetini)
         self.menu.addSeparator()
-        self.menu.addAction(self.action_downmodels)
+        self.menu.addAction(self.action_clipvideo)
         self.menu.addSeparator()
         self.menu.addAction(self.actionwatermark)
         self.menu.addSeparator()
@@ -937,7 +942,6 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionsrtmultirole)
 
         self.toolBar.addAction(self.action_yingyinhebing)
-        self.toolBar.addAction(self.action_clipvideo)
         self.toolBar.addAction(self.action_textmatching)
 
         self._set_Ui_Text()
@@ -1143,7 +1147,6 @@ class Ui_MainWindow(object):
             tr("Combine 2 subtitle files into one to form bilingual subtitles"))
 
         self.action_clearcache.setText(tr("Clear Cache"))
-        self.action_downmodels.setText(tr("Download Models"))
         self.action_set_proxy.setText(tr("Setting up a network proxy"))
 
         self.actionazure_key.setText(tr("AzureOpenAI Translation"))

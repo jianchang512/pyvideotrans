@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication, Signal
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QMessageBox, QMainWindow, QPushButton, QToolBar, QSizePolicy, QApplication
@@ -40,11 +42,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     uito = Signal(str)
 
     def __init__(self, parent=None, width=1200, height=650):
-
         super(MainWindow, self).__init__(parent)
+        QApplication.processEvents()
         self.uito.emit('loading GUI...')
         self.resize(width, height)
         self.setupUi(self)
+        QApplication.processEvents()
+        self.uito.emit('checking GPU...')
 
         s = AiLoaderThread(self)
         s.gpu_io.connect(self._start_workers)
@@ -57,7 +61,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 实际行为实例
         self.win_action = None
 
-        # 功能模式 dict{str,instance}
         self.moshi = None
         # 当前目标文件夹
         self.target_dir = None
@@ -103,6 +106,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.translate_type.setCurrentIndex(params.get('translate_type', 0))
         self.tts_type.setCurrentIndex(params.get('tts_type'))
         self.voice_role.clear()
+        if params['output_dir'].strip():
+            Path(params['output_dir']).mkdir(parents=True,exist_ok=True)
+            self.output_dir.setText(tr('Translation results saved to:')+params['output_dir'])
+            self.target_dir=params['output_dir']
 
         if params.get('source_language', '') and params.get('source_language', '') in self.languagename:
             self.source_language.setCurrentText(params.get('source_language', ''))
@@ -390,7 +397,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_issue.triggered.connect(lambda: self.win_action.open_url('issue'))
         self.action_about.triggered.connect(self.win_action.about)
         self.action_clearcache.triggered.connect(self.win_action.clearcache)
-        self.action_downmodels.triggered.connect(lambda: self._open_winform('downmodels'))
         self.action_set_proxy.triggered.connect(self.win_action.proxy_alert)
         self.aisendsrt.toggled.connect(self.checkbox_state_changed)
         self.rightbottom.clicked.connect(self.win_action.about)
