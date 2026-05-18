@@ -23,7 +23,7 @@ class FunasrRecogn(BaseRecogn):
             return
         tools.check_and_down_ms(model_id='damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
 
-        if self.model_name == 'paraformer-zh' and self.detect_language[:2].lower() not in ['zh', 'en']:
+        if self.model_name == 'paraformer-zh' and self.detect_language != 'auto' and self.detect_language[:2].lower() not in ['zh', 'en']:
             self.model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if self.detect_language[:2] not in ['zh','en','ja','yu'] else 'FunAudioLLM/Fun-ASR-Nano-2512'
             tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
         elif self.model_name == 'SenseVoiceSmall':
