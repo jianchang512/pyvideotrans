@@ -35,6 +35,7 @@ def openwin():
             url = 'http://' + url
         params["kokoro_api"] = url
         params.save()
+        tools.set_process(text='', type="refreshtts")
         winobj.close()
 
     from videotrans.component.set_form import KokoroForm

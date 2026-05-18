@@ -1,13 +1,16 @@
-import time, json, shutil
+import time, json
 from pathlib import Path
 from dataclasses import dataclass
+from typing import Union, List
+
 from videotrans.configure.config import  settings, ROOT_DIR, TEMP_DIR
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 
 from videotrans.util import tools
 from pydub import AudioSegment
 from videotrans.process import openai_whisper, faster_whisper
-from videotrans.util.contants import FASTER_MODELS_DICT
+from videotrans.configure.contants import FASTER_MODELS_DICT
 
 @dataclass
 class FasterAll(BaseRecogn):
@@ -22,9 +25,8 @@ class FasterAll(BaseRecogn):
         self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
         self.speech_timestamps_file=None
 
-    def _exec(self):
-        if self._exit():
-            return
+    def _exec(self)->Union[List[SrtItem], None]:
+        if self._exit(): return
         self.error = ''
         self.signal(text="STT starting, hold on...")
         if self.recogn_type == 1:  # openai-whisper
@@ -48,7 +50,7 @@ class FasterAll(BaseRecogn):
             Path(self.speech_timestamps_file).write_text(json.dumps(self.speech_timestamps),encoding='utf-8')
 
 
-    def _openai(self):
+    def _openai(self)->Union[List[SrtItem], None]:
         title=f'STT use {self.model_name}'
         self.signal(text=title)
         # 起一个进程
@@ -75,7 +77,7 @@ class FasterAll(BaseRecogn):
         return raws
 
 
-    def _faster(self):
+    def _faster(self)->Union[List[SrtItem], None]:
         title=f"STT use {self.model_name}"
         self.signal(text=title)
         logs_file = f'{TEMP_DIR}/{self.uuid}/faster-{self.detect_language}-{time.time()}.log'

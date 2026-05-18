@@ -4,9 +4,9 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
-from videotrans.configure.config import tr,app_cfg,params,settings,logger
+from videotrans.configure.config import tr
 from videotrans.util import tools
-from videotrans.util.contants import ELEVENLABS_TTS_MODELS
+from videotrans.configure.contants import ELEVENLABS_TTS_MODELS
 
 
 class Ui_elevenlabsform(object):

@@ -12,11 +12,7 @@ def openwin():
 
     def test():
         key = winobj.openaitts_key.text()
-        url = winobj.openaitts_api.text().strip()
-        url = url if url else 'https://api.openai.com/v1'
-
-        if not url.startswith('http'):
-            url = 'http://' + url
+        url = tools.process_openai_api(winobj.openaitts_api.text().strip())
         model = winobj.openaitts_model.currentText()
         intru = winobj.openaitts_instructions.text()
         params["openaitts_instructions"] = intru
@@ -39,12 +35,9 @@ def openwin():
         wk.uito.connect(feed)
         wk.start()
 
-    def save_openaitts():
+    def save():
         key = winobj.openaitts_key.text()
-        url = winobj.openaitts_api.text().strip()
-        url = url if url else 'https://api.openai.com/v1'
-        if not url.startswith('http'):
-            url = 'http://' + url
+        url = tools.process_openai_api(winobj.openaitts_api.text().strip())
 
         model = winobj.openaitts_model.currentText()
         intru = winobj.openaitts_instructions.text()
@@ -54,7 +47,7 @@ def openwin():
         params["openaitts_api"] = url
         params["openaitts_model"] = model
         params.save()
-        tools.set_process(text='openaitts', type="refreshtts")
+        tools.set_process(text='', type="refreshtts")
         winobj.close()
 
     def setallmodels():
@@ -79,7 +72,7 @@ def openwin():
     app_cfg.child_forms['openaitts'] = winobj
     winobj.update_ui()
 
-    winobj.set_openaitts.clicked.connect(save_openaitts)
+    winobj.set_openaitts.clicked.connect(save)
     winobj.test_openaitts.clicked.connect(test)
     winobj.edit_allmodels.textChanged.connect(setallmodels)
     winobj.edit_roles.textChanged.connect(setedit_roles)

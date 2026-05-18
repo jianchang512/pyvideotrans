@@ -6,11 +6,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, params, TEMP_DIR, logger, defaulelang, HOME_DIR
-from videotrans.recognition import run, Faster_Whisper_XXL, Whisper_CPP
+from videotrans.configure.config import ROOT_DIR, tr, settings, params, TEMP_DIR, logger, HOME_DIR
+from videotrans.recognition import run
 from videotrans.task._base import BaseTask
+from videotrans.task.taskcfg import TaskCfgSTT
 
 from videotrans.util import tools
+from videotrans.configure import contants
 
 """
 仅语音识别
@@ -19,14 +21,17 @@ from videotrans.util import tools
 
 @dataclass
 class SpeechToText(BaseTask):
+    cfg: TaskCfgSTT = field(default_factory=TaskCfgSTT, repr=False)
     # 识别后输出的字幕格式，srt txt 等
     out_format: str = field(init=True, default='srt')
     # 在这个子类中，shoud_recogn 总是 True。
-    shoud_recogn: bool = field(default=True, init=False)
+    shoud_recogn: bool = True
     # 是否需要将生成的字幕复制到原始视频所在目录下，并重命名为视频同名，以方便视频自动加载软字幕
     copysrt_rawvideo: bool = field(default=False, init=True)
     # 存放原始语言字幕
     source_srt_list: List = field(default_factory=list)
+    # 插入说话人到字幕开头
+    spk_insert:bool=False
 
     def __post_init__(self):
         super().__post_init__()
@@ -41,16 +46,15 @@ class SpeechToText(BaseTask):
         self.cfg.target_sub = self.cfg.target_dir + '/' + self.cfg.noextname + '.srt'
         # 临时文件夹
         self.cfg.cache_folder = TEMP_DIR + f'/{self.uuid}'
-        Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
-        Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
         # 处理为 16k 的wav单通道音频，供模型识别用
         self.cfg.shibie_audio = self.cfg.cache_folder + f'/{self.cfg.noextname}-{time.time()}.wav'
         self.signal(text=tr("Speech Recognition to Word Processing"))
 
     # 预先处理
     def prepare(self):
-        if self._exit():
-            return
+        if self._exit(): return
+        Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
+        Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
         tools.conver_to_16k(self.cfg.name, self.cfg.shibie_audio)
 
     def recogn(self):
@@ -114,10 +118,9 @@ class SpeechToText(BaseTask):
                     self.signal(text='remove noise end')
                 logger.debug('降噪结束：批量语音转录使用分离人声替代降噪操作')
             except Exception as e:
-                logger.exception(f'降噪静默失败{e}', exc_info=True)
+                logger.exception(f'降噪静默失败 {e}', exc_info=True)
 
         if self._exit(): return
-         # 其他识别渠道
         raw_subtitles = run(
             recogn_type=self.cfg.recogn_type,
             uuid=self.uuid,
@@ -130,10 +133,10 @@ class SpeechToText(BaseTask):
             max_speakers=self.max_speakers,
             llm_post=self.cfg.rephrase == 1
         )
-        self.source_srt_list = raw_subtitles
-        self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
         if not raw_subtitles or len(raw_subtitles) < 1:
             raise RuntimeError(self.cfg.basename + tr('recogn result is empty'))
+        self.source_srt_list = raw_subtitles
+        self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
         if self._exit() or self.cfg.detect_language == 'auto': return
 
         # 中英恢复标点符号
@@ -152,40 +155,35 @@ class SpeechToText(BaseTask):
                             it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace(
                                 '！', '!')
                     self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-            except:
-                pass
+            except Exception as e:
+                logger.exception(f'恢复标点出错，跳过{e}', exc_info=True)
 
         # 本身已有说话人识别的，就不再重新断句
         self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
-        if Path(self.cfg.cache_folder + "/speaker.json").exists():
-            return
+        if Path(self.cfg.cache_folder + "/speaker.json").exists(): return
 
         if self.cfg.rephrase == 1:
             # LLM重新断句
             try:
-                if settings.get('llm_ai_type', 'openai')=='openai':
-                    from videotrans.translator._chatgpt import ChatGPT
-                    ob = ChatGPT(uuid=self.uuid)
-                else:
-                    from videotrans.translator._deepseek import DeepSeek
-                    ob = DeepSeek(uuid=self.uuid)
-
+                from videotrans.translator._openaicompat import OpenAICampat
+                ob = OpenAICampat(
+                    ainame='chatgpt' if settings.get('llm_ai_type', 'chatgpt') != 'deepseek' else 'deepseek',
+                    uuid=self.uuid)
                 self.signal(text=tr("Re-segmenting..."))
                 srt_list = ob.llm_segment(self.source_srt_list)
                 if srt_list and len(srt_list) > len(self.source_srt_list) / 2:
                     self.source_srt_list = srt_list
                     self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
                 else:
-                    raise
+                    logger.warning(f"重新断句失败已恢复原样")
             except Exception as e:
                 self.signal(text=tr("Re-segmenting Error"))
-                logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
+                logger.exception(f"重新断句失败已恢复原样 {e}", exc_info=True)
 
     def diariz(self):
         if self._exit() or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
             return
 
-        # built pyannote reverb ali_CAM
         speaker_type = settings.get('speaker_type', 'built')
         hf_token = settings.get('hf_token')
         if speaker_type == 'built' and self.cfg.detect_language[:2] not in ['zh', 'en']:
@@ -194,18 +192,18 @@ class SpeechToText(BaseTask):
         if speaker_type in ['pyannote', 'reverb'] and not hf_token:
             logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
             return
+        hf_endpoit="https://huggingface.co"
         if speaker_type in ['pyannote', 'reverb']:
-            # 判断是否可访问 huggingface.co
-            # 先测试能否连接 huggingface.co, 中国大陆地区不可访问，除非使用VPN
             try:
                 import requests
                 requests.head('https://huggingface.co', timeout=5)
             except Exception:
-                logger.error(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败')
+                logger.exception(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败', exc_info=True)
+                hf_endpoit="https://hf-mirror.com"
 
         self.precent += 3
         title = tr(f'Begin separating the speakers') + f':{speaker_type}'
-        spk_list = None
+
         kw = {
             "input_file": self.cfg.shibie_audio,
             "subtitles": [[it['start_time'], it['end_time']] for it in self.source_srt_list],
@@ -239,14 +237,15 @@ class SpeechToText(BaseTask):
                 from huggingface_hub import snapshot_download
                 snapshot_download(
                     repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
-                    token=hf_token
+                    token=hf_token,
+                    endpoint=hf_endpoit
                 )
             spk_list = self._new_process(callback=_run_speakers, title=title,
                                          is_cuda=self.cfg.is_cuda and speaker_type != 'built', kwargs=kw)
             if spk_list:
                 Path(self.cfg.cache_folder + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
         except Exception as e:
-            logger.exception(e, exc_info=True)
+            logger.exception(f'说话人分离失败，跳过 {e}', exc_info=True)
         self.signal(text=tr('separating speakers end'))
 
     def task_done(self):
@@ -254,12 +253,12 @@ class SpeechToText(BaseTask):
         if self.cfg.detect_language and self.cfg.detect_language != 'auto':
             # 处理换行
             maxlen = int(
-                settings.get('cjk_len', 15) if self.cfg.detect_language[:2] in ["zh", "ja", "jp", "ko", 'yu'] else
+                settings.get('cjk_len', 15) if self.cfg.detect_language[:2] in contants.CJK_LANG else
                 settings.get('other_len', 60))
             for i, it in enumerate(self.source_srt_list):
                 it['text'] = tools.simple_wrap(it['text'], maxlen, self.cfg.detect_language)
 
-        if self.cfg.enable_diariz and params.get("stt_spk_insert") and Path(
+        if self.cfg.enable_diariz and self.spk_insert and Path(
                 self.cfg.cache_folder + "/speaker.json").exists():
             speakers = json.loads(Path(self.cfg.cache_folder + "/speaker.json").read_text(encoding='utf-8'))
             if speakers:
@@ -284,10 +283,4 @@ class SpeechToText(BaseTask):
                 shutil.copy2(self.cfg.target_sub, f'{p.parent.as_posix()}/{p.stem}.{self.out_format}')
             except shutil.SameFileError:
                 pass
-        try:
-            if self.cfg.shound_del_name:
-                Path(self.cfg.shound_del_name).unlink(missing_ok=True)
-            shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
-        except Exception:
-            pass
         self.set_end(True)

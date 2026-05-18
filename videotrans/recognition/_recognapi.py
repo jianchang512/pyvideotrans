@@ -1,14 +1,15 @@
-# zh_recogn 识别
 import re
 import time
 from dataclasses import dataclass
-from typing import List, Dict, Union
+from typing import List, Union
 
 import requests
-from videotrans.configure._except import  StopRetry
-from videotrans.configure.config import tr,settings,params,app_cfg,logger
+from videotrans.configure.excepts import StopRetry, SpeechToTextError
+from videotrans.configure.config import tr, params, app_cfg, logger
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
+from videotrans.configure import contants
 
 """
             请求发送：以二进制形式发送键名为 audio 的wav格式音频数据，采样率为16k、通道为1
@@ -35,8 +36,6 @@ from videotrans.util import tools
                 ]
             }
 """
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-import logging
 
 RETRY_NUMS = 2
 RETRY_DELAY = 10
@@ -59,9 +58,8 @@ class APIRecogn(BaseRecogn):
                 api_url += f'?sk={params.get("recognapi_key", "")}'
 
         self.api_url = api_url
-        self._add_internal_host_noproxy(self.api_url)
 
-    def _exec(self) -> Union[List[Dict], None]:
+    def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit():  return
         if re.search(r'api\.gladia\.io', self.api_url, re.I):
             return self._whisperzero()
@@ -79,9 +77,9 @@ class APIRecogn(BaseRecogn):
         if 'application/json' in content_type:
             res = res.json()
             if "code" not in res or res['code'] != 0:
-                raise RuntimeError(f'{res["msg"]}')
+                raise SpeechToTextError(f'{res["msg"]}')
             if "data" not in res or len(res['data']) < 1:
-                raise RuntimeError(f'识别出错{res=}')
+                raise SpeechToTextError(f'识别出错{res=}')
             self.signal(
                 text=tools.get_srt_from_list(res['data']),
                 type='replace_subtitle'
@@ -89,10 +87,10 @@ class APIRecogn(BaseRecogn):
             return res['data']
         return tools.get_subtitle_from_srt(res.text, is_file=False)
 
-    def _whisperzero(self):
+    def _whisperzero(self)->Union[List[SrtItem], None]:
         api_key = params.get("recognapi_key")
         if not api_key:
-            raise StopRetry(tr("api key must be filled in"))
+            raise SpeechToTextError(tr("api key must be filled in"))
         # 上传 self.audio_file
         with open(self.audio_file, "rb") as f:
             audio_file = f.read()
@@ -145,19 +143,18 @@ class APIRecogn(BaseRecogn):
                 logger.info(d)
                 sens = d['result']['transcription']['subtitles'][0]['subtitles']
                 raws = tools.get_subtitle_from_srt(sens, is_file=False)
-                if self.detect_language and self.detect_language[:2] in ['zh', 'ja', 'ko']:
+                if self.detect_language and self.detect_language[:2] in contants.CJK_LANG:
                     for i, it in enumerate(raws):
                         text = re.sub(r'\s+', '', it['text'], flags=re.I | re.S)
                         raws[i]['text'] = text
                 return raws
 
-    def _vibevoice_asr(self):
+    def _vibevoice_asr(self)->Union[List[SrtItem], None]:
         from gradio_client import Client, handle_file
         from pydub import AudioSegment
         import re
         import ast
         import os
-        import math
         import json
         from pathlib import Path
 
@@ -165,7 +162,7 @@ class APIRecogn(BaseRecogn):
         CHUNK_DURATION_MS = 60 * 60 * 1000
 
         # 初始化客户端
-        client = Client(self.api_url,httpx_kwargs={"timeout":7200})
+        client = Client(self.api_url, httpx_kwargs={"timeout": 7200})
 
         # 内部函数：处理单个片段的返回结果
         def _process_chunk_result(raw_text, time_offset_ms, start_line_index):
@@ -181,20 +178,20 @@ class APIRecogn(BaseRecogn):
 
             list_str = match.group(1)
             logger.debug(f'match.group(1)={list_str}')
-            list_str=re.sub(r'^.*?\[\{','[{',list_str,flags=re.S)
-            list_str=re.sub(r'\}\].*$','}]',list_str,flags=re.S)
-            list_str=re.sub(r"\n?\n", '',list_str)
+            list_str = re.sub(r'^.*?\[\{', '[{', list_str, flags=re.S)
+            list_str = re.sub(r'\}\].*$', '}]', list_str, flags=re.S)
+            list_str = re.sub(r"\n?\n", '', list_str)
             logger.debug(f're.sub after:{list_str=}')
-            segments=None
+            segments = None
             try:
-                segments=json.loads(list_str)
+                segments = json.loads(list_str)
             except json.JSONDecodeError:
                 try:
                     segments = ast.literal_eval(list_str)
                 except (ValueError, SyntaxError):
                     context = {
-                        "null": None, 
-                        "true": True, 
+                        "null": None,
+                        "true": True,
                         "false": False,
                         "__builtins__": None
                     }
@@ -202,7 +199,7 @@ class APIRecogn(BaseRecogn):
             except Exception as e:
                 logger.error(f"AST eval failed: {e}")
             if not segments:
-                return [],[]
+                return [], []
 
             # 2. 遍历结果并加上时间偏移
             for i, seg in enumerate(segments):
@@ -217,9 +214,9 @@ class APIRecogn(BaseRecogn):
                     "end_time": seg_end_ms,
                 }
                 # [Noise]之类无有效信息
-                if re.match(r'^\[[a-zA-Z0-9\s]+\]$',seg['Content'].strip()):
+                if re.match(r'^\[[a-zA-Z0-9\s]+\]$', seg['Content'].strip()):
                     continue
-                
+
                 # 假设 tools 是你类外部或全局可访问的工具
                 tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
                 tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
@@ -285,7 +282,7 @@ class APIRecogn(BaseRecogn):
                 if os.path.exists(temp_chunk_path):
                     os.remove(temp_chunk_path)
         if not final_raws:
-            raise RuntimeError(f'VibeVoice:{self.api_url} not return data')
+            raise SpeechToTextError(f'VibeVoice:{self.api_url} not return data')
         # 统一处理说话人逻辑 (合并后的重排序)
         # 这里是将所有片段的说话人混在一起处理。
         # 警告：VibeVoice 是分段处理的，Chunk1 的 spk0 和 Chunk2 的 spk0 可能不是同一个人。
@@ -310,7 +307,8 @@ class APIRecogn(BaseRecogn):
 
                 # 写入最终的 speaker.json
                 if final_speaker_list:
-                    Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(final_speaker_list), encoding='utf-8')
+                    Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(final_speaker_list),
+                                                                         encoding='utf-8')
             except Exception as e:
                 logger.exception(f'说话人重排序出错，忽略{e}', exc_info=True)
 

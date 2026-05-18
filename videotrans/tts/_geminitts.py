@@ -2,66 +2,32 @@ import logging
 import mimetypes
 import struct
 from dataclasses import dataclass
+from typing import Union, Dict, List
 
 from google import genai
+from google.api_core.exceptions import Unauthorized
 from google.genai import types
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import tr,params,settings,app_cfg,logger
-from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
+from videotrans.configure.config import params, logger, settings
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
-
-RETRY_NUMS = 2
-RETRY_DELAY = 10
 
 
 @dataclass
 class GEMINITTS(BaseTTS):
 
-    def __post_init__(self):
-        super().__post_init__()
-
-    def _exec(self):
-        self._local_mul_thread()
-
-    def _item_task(self, data_item: dict = None,idx:int=-1):
-        if self._exit() or not data_item.get('text','').strip():
-            return
-        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-               after=after_log(logger, logging.INFO))
-        def _run():
-            if self._exit() or tools.vail_file(data_item['filename']):
-                return
-            role = data_item['role']
-            speed = 1.0
-            if self.rate:
-                rate = float(self.rate.replace('%', '')) / 100
-                speed += rate
-            if self._exit() or tools.vail_file(data_item['filename']):
-                return
-            self.generate_tts_segment(data_item['text'], role, params.get('gemini_ttsmodel',''),
-                                          data_item['filename'] + '.wav')
-            self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
-
-
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
+    def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        role = data_item['role']
         try:
-            _run()
-        except Exception as e:
-            self.error=e
-            raise
+            self.generate_tts_segment(data_item['text'], role, params.get('gemini_ttsmodel',''),
+                                      data_item['filename'] + '.wav')
+        except Unauthorized as e:
+            raise StopTask(e.message)
+        self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
 
     def generate_tts_segment(self, text, voice, model, file_name):
         def convert_to_wav(audio_data: bytes, mime_type: str) -> bytes:
-            """Generates a WAV file header for the given audio data and parameters.
-
-            Args:
-                audio_data: The raw audio data as a bytes object.
-                mime_type: Mime type of the audio data.
-
-            Returns:
-                A bytes object representing the WAV file header.
-            """
             parameters = parse_audio_mime_type(mime_type)
             bits_per_sample = parameters["bits_per_sample"]
             sample_rate = parameters["rate"]

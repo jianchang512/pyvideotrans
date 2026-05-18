@@ -90,7 +90,7 @@ mock_base_trans_mod = types.ModuleType('videotrans.translator._base')
 # Load BaseTrans from the real file using importlib
 _base_spec = importlib.util.spec_from_file_location(
     'videotrans.translator._base',
-    os.path.join(PROJECT_ROOT, 'videotrans', 'translator', '_base.py')
+    os.path.join(PROJECT_ROOT, 'videotrans', 'translator', 'base.py')
 )
 _base_module = importlib.util.module_from_spec(_base_spec)
 sys.modules['videotrans.translator._base'] = _base_module

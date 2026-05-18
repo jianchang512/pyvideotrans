@@ -35,7 +35,7 @@ def openwin():
         wk.uito.connect(feed)
         wk.start()
 
-    def save_qwentts():
+    def save():
         key = winobj.qwentts_key.text()
 
         model = winobj.qwentts_model.currentText()
@@ -47,7 +47,7 @@ def openwin():
 
         settings['qwentts_models']=winobj.qwentts_modellist.toPlainText().strip()
         settings.save()
-        tools.set_process(text='qwentts', type="refreshtts")
+        tools.set_process(text='', type="refreshtts")
         winobj.close()
 
 
@@ -60,6 +60,6 @@ def openwin():
     app_cfg.child_forms['qwentts'] = winobj
     winobj.update_ui()
 
-    winobj.set_qwentts.clicked.connect(save_qwentts)
+    winobj.set_qwentts.clicked.connect(save)
     winobj.test_qwentts.clicked.connect(test)
     winobj.show()

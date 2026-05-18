@@ -13,11 +13,14 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, List
 
 from PySide6.QtCore import QLocale
-from videotrans.util.contants import (
+
+from videotrans.task.taskcfg import SignMsg
+from videotrans.configure.contants import (
     no_proxy, DEFAULT_GEMINI_MODEL, OPENAITTS_ROLES, ChatTTS_VOICE, Qwentts_Models,
     Whisper_Models, Zijiehuoshan_Model, Zhipuai_Model, Localllm_Model, Azure_Model,
     Chatgpt_Model, Openairecognapi_Model, Qpenaitts_Model, Qwenmt_Model, Ai302_Models,
-    Whisper_cpp_models, Deepseek_Model, Openrouter_Model, Guiji_Model,MINIMAX_MODELS,ELEVENLABS_TTS_MODELS,MINIMAX_TTS_MODELS,GEMINITTS_ROLES,GEMINI_TTS_MODELS,XIAOMI_MODELS,XIAOMI_TTS_MODELS
+    Whisper_cpp_models, Deepseek_Model, Openrouter_Model, Guiji_Model, MINIMAX_MODELS, ELEVENLABS_TTS_MODELS, MINIMAX_TTS_MODELS,
+    GEMINI_TTS_MODELS, XIAOMI_MODELS, XIAOMI_TTS_MODELS
 )
 from videotrans.configure.signal_hub import SignalHub
 
@@ -29,9 +32,10 @@ ROOT_DIR = Path(sys.executable).parent.as_posix() if IS_FROZEN else Path(__file_
 TEMP_ROOT = f'{ROOT_DIR}/tmp'
 LOGS_DIR = f'{ROOT_DIR}/logs'
 TEMP_DIR= f'{TEMP_ROOT}/_temp'
+TRANSLATE_CACHE= f'{TEMP_ROOT}/translate_cache'
 
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
-Path(f"{TEMP_ROOT}").mkdir(parents=True, exist_ok=True)
+Path(f"{TRANSLATE_CACHE}").mkdir(parents=True, exist_ok=True)
 
 def _set_env():
     # 环境变量设置
@@ -353,7 +357,6 @@ class AppSettings:
             "countdown_sec": 30,
             "backaudio_volume": 0.8,
             "loop_backaudio": 1,
-            "pseudo_original":False,
             "cuda_com_type": "default",
             "initial_prompt_zh-cn": "",  # 注意：在对象中会映射为 _zh_cn
             "initial_prompt_zh-tw": "",
@@ -406,13 +409,13 @@ class AppSettings:
             "other_len": 46,
             "gemini_model": DEFAULT_GEMINI_MODEL,
             "llm_chunk_size": 50,
-            "llm_ai_type": "openai",
+            "llm_ai_type": "chatgpt",
             "gemini_recogn_chunk": 50,
             "zh_hant_s": True,
             "process_max": 1,
             "process_max_gpu": 1,
             "multi_gpus": False,
-            "azure_lines": 1,
+            "retry_nums":1,
             "chattts_voice": ChatTTS_VOICE,
             "proxy": ""
         }
@@ -467,9 +470,67 @@ class AppSettings:
         setattr(self, attr, value)
 
     def get(self, key, default=None):
+
+        float_type=[
+                "aitrans_temperature",
+                "threshold",
+                "no_speech_threshold",
+                "backaudio_volume",
+                "repetition_penalty",
+                "compression_ratio_threshold",
+            ]
+        # 对数字类型进行处理
+        int_type=[
+                "crf",
+                "edgetts_max_concurrent_tasks",
+                "edgetts_retry_nums",
+                "video_codec",
+                "noise_separate_nums",
+                "batch_nums",
+                "max_audio_speed_rate",
+                "max_video_pts_rate",
+                "min_speech_duration_ms",
+                "max_speech_duration_s",
+                "min_silence_duration_ms",
+                "trans_thread",
+                "aitrans_thread",
+                "translation_wait",
+                "dubbing_wait",
+                "dubbing_thread",
+                "countdown_sec",
+                "loop_backaudio",
+                "beam_size",
+                "best_of",
+                "cjk_len",
+                "other_len",
+                "llm_chunk_size",
+                "gemini_recogn_chunk",
+                "process_max",
+                "process_max_gpu",
+                "retry_nums",
+            ]
         try:
-            return self[key]
-        except AttributeError:
+            if key in int_type:
+                try:
+                    return int(self[key])
+                except ValueError:
+                    default = self._get_defaults()
+                    return int(default[key])
+            elif key in float_type:
+                try:
+                    return float(self[key])
+                except ValueError:
+                    default = self._get_defaults()
+                    return float(default[key])
+
+            vl=self[key]
+
+            if vl is False or  key.lower()=='false':
+                return False
+            if vl is True or key.lower()=='true':
+                return True
+            return str(self[key])
+        except (AttributeError,ValueError):
             return default
 
 
@@ -576,7 +637,7 @@ class AppParams:
             "gemini_maxtoken": 18192,
             "gemini_thinking_budget": 24576,
             "gemini_ttsstyle": "",
-            "gemini_ttsmodel": GEMINI_TTS_MODELS[0],
+            "gemini_ttsmodel": GEMINI_TTS_MODELS.split(',')[0],
             "localllm_api": "",
             "localllm_key": "",
             "localllm_model": str(settings.get('localllm_model', '-')).strip().split(',')[0],
@@ -656,7 +717,7 @@ class AppParams:
             "minimaxi_apikey": "",
             "minimaxi_emotion": "",
             "minimaxi_apiurl": "api.minimaxi.com",
-            "minimaxi_model":MINIMAX_TTS_MODELS[0],
+            "minimaxi_model":MINIMAX_TTS_MODELS.split(',')[0],
             
             "minimax_key":"",
             "minimax_model": MINIMAX_MODELS.split(',')[0],
@@ -769,12 +830,12 @@ def tr(lang_key, *kw):
         return lang
 
 
-def push_queue(uuid, jsondata):
+def push_queue(uuid:str, msg:SignMsg):
     """兼容旧的 push_queue"""
     if app_cfg.exit_soft or uuid in app_cfg.stoped_uuid_set:
         return
     try:
-        SignalHub.instance().post(uuid, jsondata)
+        SignalHub.instance().post(uuid, msg)
     except Exception as e:
         logger.exception(f'push_queue 信号发送错误：{e}', exc_info=True)
 

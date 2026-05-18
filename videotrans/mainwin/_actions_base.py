@@ -1,26 +1,29 @@
 import os
 import platform
 import re
-import shutil,time
+import shutil, time
 
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Dict, List, Any
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import QTimer, Qt
+from PySide6.QtCore import QTimer
 
-from videotrans.configure.config import tr, settings, params, app_cfg, logger, ROOT_DIR, TEMP_DIR, defaulelang,TEMP_ROOT
-from videotrans.util import tools, contants
+from videotrans.configure.config import tr, settings, params, app_cfg,  ROOT_DIR,  defaulelang, TEMP_ROOT
+from .main_win import MainWindow
+from videotrans.task.taskcfg import InputFile
+from videotrans.util import tools
+from videotrans.configure import contants
 from videotrans.util.ListenVoice import ListenVoice
 from videotrans import tts
-from videotrans.util.contants import LISTEN_TEXT
+from videotrans.configure.contants import LISTEN_TEXT
 
 
 @dataclass
-class WinActionSub:
-    main: Optional[Any]=None
-    law:Optional[Any]=None
+class WinActionBase:
+    main: MainWindow = field(default_factory=MainWindow, repr=False)
+    law: Optional[Any] = None
 
     is_render: bool = field(default=False, init=False)
     is_batch: bool = field(default=True, init=False)
@@ -34,21 +37,19 @@ class WinActionSub:
 
     # -- 数据容器 (使用 default_factory 处理可变类型) --
     processbtns: Dict = field(default_factory=dict, init=False)
-    obj_list: List[Dict] = field(default_factory=list, init=False)
+    obj_list: List[InputFile] = field(default_factory=list, init=False)
     cfg: Dict = field(default_factory=dict, init=False)
     queue_mp4: List[str] = field(default_factory=list, init=False)
-    show_adv_status:bool=False # 高级选项当前显示状态，默认不显示
+    show_adv_status: bool = False  # 高级选项当前显示状态，默认不显示
     # 存储失败重试的信息
-    retry_queue_mp4: List[Dict] = field(default_factory=list, init=False)
+    retry_queue_mp4: List[InputFile] = field(default_factory=list, init=False)
     # 保存原始的 uuid:mp4 信息，用于出错重试
     uuid_queue_mp4: Dict = field(default_factory=dict, init=False)
 
-
-
-
     def show_model_help(self):
 
-        msg = tr('From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. default is to use tiny model, if you want better result, please use bigger model .en suffix model and model starting with distil is only used to recognize English pronunciation video')
+        msg = tr(
+            'From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. default is to use tiny model, if you want better result, please use bigger model .en suffix model and model starting with distil is only used to recognize English pronunciation video')
 
         # 创建 QMessageBox
         msg_box = QtWidgets.QMessageBox(self.main)
@@ -73,47 +74,46 @@ class WinActionSub:
 
     # 关于页面
     def about(self):
-        if app_cfg.INFO_WIN['win']:
-            app_cfg.INFO_WIN['win'].show()
+        if app_cfg.child_forms.get('infomation'):
+            app_cfg.child_forms.get('infomation').show()
             return
 
+        from videotrans.component.set_form import InfoForm
         def open():
-            from videotrans.component.set_form import InfoForm
-            app_cfg.INFO_WIN['win'] = InfoForm()
-            app_cfg.INFO_WIN['win'].show()
+            app_cfg.child_forms['information'] = InfoForm()
+            app_cfg.child_forms['infomation'].show()
 
-        QTimer.singleShot(50, open)
-
+        QTimer.singleShot(200, open)
 
     # 选中按钮时判断当前cuda是否可用
     def check_cuda(self, state):
         res = state
         if platform.system() == 'Darwin':
-            self.cfg['is_cuda']=False
+            self.cfg['is_cuda'] = False
             return
         # 选中如果无效，则取消
-        if state and app_cfg.NVIDIA_GPU_NUMS==0:
+        if state and app_cfg.NVIDIA_GPU_NUMS == 0:
             tools.show_error(tr('nocuda'))
             self.main.enable_cuda.setChecked(False)
             self.main.enable_cuda.setDisabled(True)
             res = False
         self.cfg['is_cuda'] = res
 
-    def check_voice_autorate(self,state):
+    def check_voice_autorate(self, state):
         if state:
             self.main.remove_silent_mid.setVisible(False)
             self.main.align_sub_audio.setVisible(False)
         elif not self.main.video_autorate.isChecked():
             self.main.remove_silent_mid.setVisible(True)
             self.main.align_sub_audio.setVisible(True)
-    def check_video_autorate(self,state):
+
+    def check_video_autorate(self, state):
         if state:
             self.main.remove_silent_mid.setVisible(False)
             self.main.align_sub_audio.setVisible(False)
         elif not self.main.voice_autorate.isChecked():
             self.main.remove_silent_mid.setVisible(True)
             self.main.align_sub_audio.setVisible(True)
-
 
     # 启用标准模式
     def set_biaozhun(self):
@@ -137,7 +137,7 @@ class WinActionSub:
         self.main.label_3.show()
         self.main.target_language.show()
         self.main.label.show()
-        if defaulelang=='zh':
+        if defaulelang == 'zh':
             self.main.proxy.show()
 
         # 配音角色
@@ -164,7 +164,6 @@ class WinActionSub:
         self.main.subtitle_type.show()
         self.main.rephrase.show()
 
-
         # 字幕对齐行
         self.main.align_btn.show()
         self.main.voice_rate.show()
@@ -182,9 +181,9 @@ class WinActionSub:
         else:
             self.main.remove_silent_mid.setVisible(False)
             self.main.align_sub_audio.setVisible(False)
-        
+
         # 高级        
-        self.show_adv_status=True
+        self.show_adv_status = True
         self.toggle_adv()
 
     # 视频提取字幕并翻译，无需配音
@@ -207,7 +206,7 @@ class WinActionSub:
         self.main.label_3.show()
         self.main.target_language.show()
         self.main.label.show()
-        if defaulelang=='zh':
+        if defaulelang == 'zh':
             self.main.proxy.show()
 
         # 配音角色
@@ -232,7 +231,6 @@ class WinActionSub:
         self.main.subtitle_type.hide()
         self.main.rephrase.show()
 
-
         # 字幕对齐行
         self.main.align_btn.hide()
         self.main.label_6.hide()
@@ -242,21 +240,19 @@ class WinActionSub:
         self.main.output_srt.show()
         self.main.output_srt_label.show()
 
-
         self.main.remove_silent_mid.hide()
         self.main.align_sub_audio.hide()
         if platform.system() != 'Darwin':
             self.main.enable_cuda.show()
-        
-        self.show_adv_status=True
-        self.toggle_adv()
 
+        self.show_adv_status = True
+        self.toggle_adv()
 
     # 显示或隐藏高级选项
     def toggle_adv(self):
-        self.show_adv_status=not self.show_adv_status
-        self.hide_show_element(self.main.bgm_layout,self.show_adv_status)
-        self.hide_show_element(self.main.dubb_thread_layout,self.show_adv_status)
+        self.show_adv_status = not self.show_adv_status
+        self.hide_show_element(self.main.bgm_layout, self.show_adv_status)
+        self.hide_show_element(self.main.dubb_thread_layout, self.show_adv_status)
         self.main.advcontainer.setVisible(self.show_adv_status)
 
     # 隐藏布局及其元素
@@ -277,9 +273,9 @@ class WinActionSub:
     def open_url(self, title):
         tools.open_url(title)
 
-
     def clearcache(self):
-        question = tools.show_popup(tr('Confirm cleanup?'), tr('After cleaning, you need to restart the software. Only cache and temporary files are cleaned. For configuration information, please directly delete the .json in the videotrans folder.'))
+        question = tools.show_popup(tr('Confirm cleanup?'),
+                                    tr('After cleaning, you need to restart the software. Only cache and temporary files are cleaned. For configuration information, please directly delete the .json in the videotrans folder.'))
 
         if int(question) == int(QtWidgets.QMessageBox.Yes):
             os.chdir(ROOT_DIR)
@@ -289,9 +285,9 @@ class WinActionSub:
         # 挨个删除子文件夹，避免因某个被占用导致全部删除失败
         for it in Path(TEMP_ROOT).iterdir():
             shutil.rmtree(it, ignore_errors=True)
-            
-        Path(ROOT_DIR+"/videotrans/codec.json").unlink(missing_ok=True)
-        Path(ROOT_DIR+"/videotrans/ass.json").unlink(missing_ok=True)
+
+        Path(ROOT_DIR + "/videotrans/codec.json").unlink(missing_ok=True)
+        Path(ROOT_DIR + "/videotrans/ass.json").unlink(missing_ok=True)
         self.main.restart_app()
 
     def get_mp4(self):
@@ -303,13 +299,13 @@ class WinActionSub:
             folder_path = QtWidgets.QFileDialog.getExistingDirectory(
                 self.main,
                 tr('Select folder'),
-                params.get('last_opendir','')
+                params.get('last_opendir', '')
             )
 
             if not folder_path:
                 return
             p = Path(folder_path)
-            p_out=p.parent/'_video_out'/p.name
+            p_out = p.parent / '_video_out' / p.name
 
             # 使用列表推导式一行完成
             mp4_list = [
@@ -323,7 +319,7 @@ class WinActionSub:
         else:
             fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(self.main,
                                                                tr("Select one or more files"),
-                                                               params.get('last_opendir',''),
+                                                               params.get('last_opendir', ''),
                                                                f'Files({format_str})')
             if len(fnames) < 1:
                 return
@@ -337,12 +333,13 @@ class WinActionSub:
 
     # 保存目录
     def get_save_dir(self):
-        dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),params.get('last_opendir',''))
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),
+                                                             params.get('last_opendir', ''))
         dirname = Path(dirname).as_posix()
         self.main.target_dir = dirname
         self.main.btn_save_dir.setToolTip(dirname)
-        self.main.output_dir.setText(tr('Translation results saved to:')+dirname)
-        params['output_dir']=dirname
+        self.main.output_dir.setText(tr('Translation results saved to:') + dirname)
+        params['output_dir'] = dirname
         params.save()
 
     # 设置或删除代理
@@ -354,18 +351,16 @@ class WinActionSub:
         else:
             settings['proxy'] = app_cfg.proxy
             tools.set_proxy(app_cfg.proxy)
-            
+
         settings.save()
 
-    
     # 弹出代理设置框
-    def proxy_alert(self):        
+    def proxy_alert(self):
         from videotrans.component.set_proxy import SetThreadProxy
         dialog = SetThreadProxy()
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
             proxy = dialog.get_values()
             self.main.proxy.setText(proxy)
-    
 
     # 核对代理填写
     def check_proxy(self):
@@ -375,7 +370,8 @@ class WinActionSub:
                 proxy = f'http://{proxy}'
             if not re.match(r'^(http|sock)(s|5)?://(\d+\.){3}\d+:\d+', proxy, re.I):
                 question = tools.show_popup(
-                    tr("Please make sure the proxy address is correct"), tr('The network proxy address you fill in seems to be incorrect, the general proxy/vpn format is http://127.0.0.1:port, if you do not know what is the proxy please do not fill in arbitrarily, ChatGPT and other api address please fill in the menu - settings - corresponding configuration. If you confirm that the proxy address is correct, please click Yes to continue.'))
+                    tr("Please make sure the proxy address is correct"),
+                    tr('The network proxy address you fill in seems to be incorrect, the general proxy/vpn format is http://127.0.0.1:port, if you do not know what is the proxy please do not fill in arbitrarily, ChatGPT and other api address please fill in the menu - settings - corresponding configuration. If you confirm that the proxy address is correct, please click Yes to continue.'))
                 if question != QtWidgets.QMessageBox.Yes:
                     self.update_status('stop')
                     return False
@@ -407,7 +403,7 @@ class WinActionSub:
             self.cfg['is_cuda'] = False
             return True
 
-        if app_cfg.NVIDIA_GPU_NUMS==0:
+        if app_cfg.NVIDIA_GPU_NUMS == 0:
             self.cfg['is_cuda'] = False
             tools.show_error(tr("nocuda"))
             return False
@@ -432,7 +428,7 @@ class WinActionSub:
     # 导入背景声音
     def get_background(self):
         format_str = " ".join(['*.' + f for f in contants.AUDIO_EXITS])
-        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self.main, 'Background music', params.get('last_opendir',''),
+        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self.main, 'Background music', params.get('last_opendir', ''),
                                                          f"Audio files({format_str})")
         if not fname:
             return
@@ -470,6 +466,10 @@ class WinActionSub:
         self.main.remove_noise.setDisabled(type)
 
         self.main.bgmvolume.setDisabled(type)
+        self.main.fix_punc.setDisabled(type)
+        self.main.enable_diariz.setDisabled(type)
+        self.main.nums_diariz.setDisabled(type)
+
         self.main.set_adv_status.setDisabled(type)
         self.main.select_file_type.setDisabled(type)
         self.main.is_separate.setDisabled(type)
@@ -477,8 +477,16 @@ class WinActionSub:
         self.main.addbackbtn.setDisabled(True if self.main.app_mode in ['tiqu'] else type)
         self.main.back_audio.setReadOnly(True if self.main.app_mode in ['tiqu'] else type)
 
-
-
+    # 启动时禁用相关模式按钮，停止时重新启用
+    def _disabled_button(self, disabled=True):
+        for k, v in self.main.moshi.items():
+            if k != self.main.app_mode:
+                # 非当前模式
+                v.setDisabled(disabled)
+                v.setChecked(False)
+            else:
+                v.setDisabled(False)
+                v.setChecked(True)
 
     def lawalert(self):
         from videotrans.ui.lawalert import Ui_lawalert
@@ -533,20 +541,22 @@ class WinActionSub:
             tools.show_error(
                 tr("The original sound clone cannot be auditioned"))
             return
-        if obj['tts_type']==tts.PIPER_TTS and not Path(f'{ROOT_DIR}/models/piper').exists():
-            #tools.show_download_piper(self.main)
+        if obj['tts_type'] == tts.PIPER_TTS and not Path(f'{ROOT_DIR}/models/piper').exists():
+            # tools.show_download_piper(self.main)
             self.main._open_winform('downmodels')
             return
-        if obj['tts_type']==tts.VITSCNEN_TTS and not Path(f'{ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
-            #tools.show_download_tts(self.main)
+        if obj['tts_type'] == tts.VITSCNEN_TTS and not Path(f'{ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
+            # tools.show_download_tts(self.main)
             self.main._open_winform('downmodels')
             return
-        raw_text=self.main.listen_btn.text()
+        raw_text = self.main.listen_btn.text()
+
         def feed(d):
             self.main.listen_btn.setDisabled(False)
             self.main.listen_btn.setText(raw_text)
             if d != "ok":
                 tools.show_error(d)
+
         self.main.listen_btn.setDisabled(True)
         self.main.listen_btn.setText('load...')
         wk = ListenVoice(parent=self.main, queue_tts=[obj], language=lang, tts_type=obj['tts_type'])
@@ -556,7 +566,7 @@ class WinActionSub:
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):
         voice_role = self.main.voice_role.currentText()
-        _tip=tts.clone_tips(self.main.tts_type.currentIndex(),voice_role,self.main.recogn_type.currentIndex())
+        _tip = tts.clone_tips(self.main.tts_type.currentIndex(), voice_role, self.main.recogn_type.currentIndex())
         if _tip:
             self.main.show_tips.setText(_tip)
         if role == 'No' or voice_role == 'clone':
@@ -566,7 +576,6 @@ class WinActionSub:
             self.main.listen_btn.show()
             self.main.listen_btn.setDisabled(False)
 
-
     # 如果存在音频则设为提取
     def check_name(self):
         if self.main.app_mode != 'tiqu':
@@ -575,5 +584,3 @@ class WinActionSub:
                     self.main.app_mode = 'tiqu'
                     break
         return True
-
-

@@ -1,12 +1,10 @@
 from pathlib import Path
-
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication, Signal
-from PySide6.QtGui import QIcon, QAction
-from PySide6.QtWidgets import QMessageBox, QMainWindow, QPushButton, QToolBar, QSizePolicy, QApplication
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QMessageBox, QMainWindow, QApplication
 import asyncio, sys
 import os
-
-from videotrans.util import contants, tools
+from videotrans.util import tools
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -16,27 +14,24 @@ import time
 import platform
 import getpass
 import subprocess
-
 from videotrans.util.req_fac import custom_session_factory
 import huggingface_hub
 
 huggingface_hub.configure_http_backend(backend_factory=custom_session_factory)
-
 from videotrans.configure import config
 
 config.init_run()
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR, IS_FROZEN, TEMP_DIR, TEMP_ROOT
-
-from videotrans import VERSION
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR, TEMP_ROOT
+from videotrans import VERSION, translator, tts, recognition
 from videotrans.task.job import start_thread
 from videotrans.util.checkgpu import AiLoaderThread
 from videotrans.ui.en import Ui_MainWindow
 from videotrans.translator import TRANSLASTE_NAME_LIST, LANGNAME_DICT
-from videotrans.component.downmodels import DownmodelsWindow
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans import winform
+from videotrans.configure.signal_hub import SignalHub
 
-system_platform = platform.system()
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     uito = Signal(str)
@@ -47,6 +42,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.uito.emit('loading GUI...')
         self.resize(width, height)
         self.setupUi(self)
+
         QApplication.processEvents()
         self.uito.emit('checking GPU...')
 
@@ -60,7 +56,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.is_restarting = False
         # 实际行为实例
         self.win_action = None
-
         self.moshi = None
         # 当前目标文件夹
         self.target_dir = None
@@ -71,9 +66,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.languagename = list(LANGNAME_DICT.values())
-        self.source_language.addItems(self.languagename)
-        self.target_language.addItems(["-"] + self.languagename)
+        # 填充字幕翻译渠道列表
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
+        # 原始语言渠道
+        self.source_language.addItems(self.languagename)
+        # 目标语言渠道
+        self.target_language.addItems(["-"] + self.languagename)
+        # 填充配音渠道列表
+        self.tts_type.addItems(tts.TTS_NAME_LIST)
+        # 填充语音识别渠道
+        self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
 
         self.rawtitle = f"{tr('softname')} {VERSION} {tr('Documents')} pyvideotrans.com"
         self.setWindowTitle(self.rawtitle)
@@ -93,35 +95,58 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ])
 
         QTimer.singleShot(200, self._set_default)
+        run_in_threadpool(tools.check_hw_on_start)
 
     def _set_default(self):
 
-        params['translate_type'] = int(params.get('translate_type', 0))
-        params['tts_type'] = int(params.get('tts_type', 0))
-        params['recogn_type'] = int(params.get('recogn_type', 0))
-        params['fix_punc'] = bool(params.get('fix_punc', False))
-
-        from videotrans import tts
-        self.tts_type.addItems(tts.TTS_NAME_LIST)
-        self.translate_type.setCurrentIndex(params.get('translate_type', 0))
-        self.tts_type.setCurrentIndex(params.get('tts_type'))
-        self.voice_role.clear()
-        if params['output_dir'].strip():
-            Path(params['output_dir']).mkdir(parents=True,exist_ok=True)
-            self.output_dir.setText(tr('Translation results saved to:')+params['output_dir'])
-            self.target_dir=params['output_dir']
-
-        if params.get('source_language', '') and params.get('source_language', '') in self.languagename:
-            self.source_language.setCurrentText(params.get('source_language', ''))
-
-        # 字幕双语类型
+        _translate_type = int(params.get('translate_type', 0))
+        _tts_type = int(params.get('tts_type', 0))
+        _recogn_type = int(params.get('recogn_type', 0))
+        _target_language = params.get('target_language')
+        _source_language = params.get('source_language')
         _subtitle_type = int(params.get('subtitle_type', 0))
-        self.subtitle_type.setCurrentIndex(_subtitle_type)
         _output_srt = int(params.get('output_srt', 0))
+        _role = params.get('voice_role') or 'No'
+        _model_name = params.get('model_name')
+
+        # 设置默认渠道配置
+        self.translate_type.setCurrentIndex(_translate_type)
+        self.tts_type.setCurrentIndex(_tts_type)
+        self.recogn_type.setCurrentIndex(_recogn_type)
+        # 清空配音角色类别
+        self.voice_role.clear()
+        # 清空语音模型列表
+        self.model_name.clear()
+        # 获取语音识别模型列表
+        curr = recognition.get_model_by_type(_recogn_type)
+        self.model_name.addItems(curr)
+        if _model_name in curr:
+            self.model_name.setCurrentText(_model_name)
+        self.model_name.setDisabled(True if _recogn_type not in recognition.ALLOW_CHANGE_MODEL else False)
+
+        # 设置默认原始语言
+        if _source_language and _source_language in self.languagename:
+            self.source_language.setCurrentText(_source_language)
+
+        # 设置字幕嵌入类型
+        self.subtitle_type.setCurrentIndex(_subtitle_type)
         if _subtitle_type > 2:
             self.output_srt.setVisible(True)
             self.output_srt.setCurrentIndex(_output_srt if _output_srt > 0 else 2)
 
+        # 设置输出目录
+        if params['output_dir'].strip():
+            Path(params['output_dir']).mkdir(parents=True, exist_ok=True)
+            self.output_dir.setText(tr('Translation results saved to:') + params['output_dir'])
+            self.target_dir = params['output_dir']
+
+        # 默认代理
+        if not app_cfg.proxy:
+            app_cfg.proxy = tools.set_proxy() or ''
+        self.proxy.setText(app_cfg.proxy)
+        if not params.get('voice_autorate') and not params.get('video_autorate'):
+            self.remove_silent_mid.setVisible(True)
+            self.align_sub_audio.setVisible(True)
         self.select_file_type.setChecked(bool(params.get('select_file_type', False)))
         self.voice_rate.setValue(int(params.get('voice_rate', '0').replace('%', '')))
         self.volume_rate.setValue(int(params.get('volume', '0').replace('%', '')))
@@ -131,166 +156,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fix_punc.setChecked(bool(params.get('fix_punc', False)))
         self.recogn2pass.setChecked(bool(params.get('recogn2pass', False)))
         self.only_out_mp4.setChecked(bool(params.get('only_out_mp4', False)))
-        if not params.get('voice_autorate', False) and not params.get('video_autorate', False):
-            self.remove_silent_mid.setVisible(True)
-            self.align_sub_audio.setVisible(True)
-        self.remove_silent_mid.setChecked(params.get('remove_silent_mid', False))
-        self.align_sub_audio.setChecked(params.get('align_sub_audio', False))
+        self.remove_silent_mid.setChecked(bool(params.get('remove_silent_mid', False)))
+        self.align_sub_audio.setChecked(bool(params.get('align_sub_audio', False)))
         self.clear_cache.setChecked(bool(params.get('clear_cache', False)))
         self.enable_cuda.setChecked(bool(params.get('is_cuda', False)))
         self.enable_diariz.setChecked(bool(params.get('enable_diariz', False)))
         self.nums_diariz.setCurrentIndex(int(params.get('nums_diariz', 0)))
         self.is_separate.setChecked(bool(params.get('is_separate', False)))
         self.embed_bgm.setChecked(bool(params.get('embed_bgm', True)))
-
         self.rephrase.setCurrentIndex(int(params.get('rephrase', 0)))
-
         self.remove_noise.setChecked(bool(params.get('remove_noise')))
         self.copysrt_rawvideo.setChecked(bool(params.get('copysrt_rawvideo', False)))
-
         self.bgmvolume.setText(str(settings.get('backaudio_volume', 0.8)))
         self.is_loop_bgm.setCurrentIndex(int(settings.get('loop_backaudio', 0)))
 
-        if system_platform == 'Darwin':
-            self.enable_cuda.setChecked(False)
-            self.enable_cuda.hide()
-
-        QApplication.processEvents()
-        self.uito.emit('set cursor...')
-
-        self.import_sub.setCursor(Qt.PointingHandCursor)
-        self.model_name_help.setCursor(Qt.PointingHandCursor)
-        self.startbtn.setCursor(Qt.PointingHandCursor)
-        self.btn_get_video.setCursor(Qt.PointingHandCursor)
-        self.btn_save_dir.setCursor(Qt.PointingHandCursor)
-        self.listen_btn.setCursor(Qt.PointingHandCursor)
-        self.statusLabel.setCursor(Qt.PointingHandCursor)
-        self.rightbottom.setCursor(Qt.PointingHandCursor)
-        self.restart_btn.setCursor(Qt.PointingHandCursor)
-
+        # 初始化主控制器
         QApplication.processEvents()
         self.uito.emit('import action')
-
         from videotrans.mainwin._actions import WinAction
-        from videotrans.util import tools
         self.win_action = WinAction(self)
-        self.win_action.tts_type_change(params.get('tts_type', ''))
-
-        if not app_cfg.proxy:
-            app_cfg.proxy = tools.set_proxy() or ''
-        self.proxy.setText(app_cfg.proxy)
-
-        tts_type = int(params.get('tts_type', 0))
-        self.voice_role.clear()
-        if tts_type == tts.CLONE_VOICE_TTS:
-            self.voice_role.addItems(params.get("clone_voicelist", ''))
-            run_in_threadpool(tools.get_clone_role)
-        elif tts_type == tts.CHATTTS:
-            self.voice_role.addItems(['No'] + list(settings.ChatTTS_voicelist))
-        elif tts_type == tts.TTS_API:
-            self.voice_role.addItems(params.get('ttsapi_voice_role', '').strip().split(','))
-        elif tts_type == tts.GPTSOVITS_TTS:
-            rolelist = tools.get_gptsovits_role()
-            self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
-        elif tts_type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,
-                          tts.DIA_TTS, tts.OMNIVOICE_TTS, tts.COSYVOICE_TTS, tts.CHATTERBOX_TTS, tts.FISHTTS,
-                          tts.MOSS_TTS, tts.QWEN3LOCAL_TTS]:
-            rolelist = tools.get_f5tts_role()
-            self.voice_role.addItems(['clone'] + list(rolelist.keys()) if rolelist else ['clone'])
-        elif tts_type == tts.ELEVENLABS_TTS:
-            rolelist = tools.get_elevenlabs_role()
-            self.voice_role.addItems(['No'] + rolelist)
-        elif tts_type == tts.CAMB_TTS:
-            rolelist = tools.get_camb_role()
-            self.voice_role.addItems(rolelist)
-        elif tts_type == tts.OPENAI_TTS:
-            rolelist = params.get('openaitts_role', '')
-            self.voice_role.addItems(['No'] + rolelist.split(','))
-        elif tts_type == tts.XAI_TTS:
-            self.voice_role.addItems(['No'] + contants.XAITTS_ROLES.split(','))
-        elif tts_type == tts.XIAOMI_TTS:
-            self.voice_role.addItems(['No'] + contants.MITTS_ROLES.split(','))
-        elif tts_type == tts.QWEN_TTS:
-            rolelist = list(tools.get_qwen3tts_rolelist().keys())
-            self.voice_role.addItems(rolelist)
-        elif tts_type == tts.GLM_TTS:
-            rolelist = list(tools.get_glmtts_rolelist().keys())
-            self.voice_role.addItems(rolelist)
-        elif tts_type == tts.GEMINI_TTS:
-            rolelist = params.get('gemini_ttsrole', '')
-            self.voice_role.addItems(['No'] + rolelist.split(','))
-        elif self.win_action.change_by_lang(tts_type):
-            self.voice_role.clear()
-
-        if params.get('target_language', '') and params.get('target_language', '') in self.languagename:
-            self.target_language.setCurrentText(params.get('target_language', ''))
-            self.win_action.set_voice_role(params.get('target_language', ''))
-            default_role = params.get('voice_role', '')
-            if default_role != 'No' and self.current_rolelist and default_role in self.current_rolelist:
-                self.voice_role.setCurrentText(default_role)
-                self.win_action.show_listen_btn(default_role)
-
-        QApplication.processEvents()
-        self.uito.emit('Bind signal...')
-        run_in_threadpool(tools.check_hw_on_start)
-        self._bind_signal()
-
-    def _bind_signal(self):
-        from videotrans.util import tools
-        from videotrans.configure.signal_hub import SignalHub
-        from videotrans import recognition
-        self.restart_btn.clicked.connect(self.restart_app)
-
-        recogn_type = int(params.get('recogn_type', 0))
-        self.model_name.clear()
-        self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
-        self.recogn_type.setCurrentIndex(recogn_type)
-
-        if recogn_type == recognition.Deepgram:
-            curr = contants.DEEPGRAM_MODEL
-            self.model_name.addItems(curr)
-        elif recogn_type == recognition.Whisper_CPP:
-            curr = settings.Whisper_CPP_MODEL_LIST
-            self.model_name.addItems(curr)
-        elif recogn_type == recognition.WHISPER_NET:
-            curr = settings.Whisper_NET_MODEL_LIST
-            self.model_name.addItems(curr)
-        elif recogn_type == recognition.QWENASR:
-            curr = ['1.7B', '0.6B']
-            self.model_name.addItems(curr)
-        elif recogn_type == recognition.FUNASR_CN:
-            curr = contants.FUNASR_MODEL
-            self.model_name.addItems(curr)
-        elif recogn_type == recognition.HUGGINGFACE_ASR:
-            curr = list(recognition.HUGGINGFACE_ASR_MODELS.keys())
-            self.model_name.addItems(curr)
-        elif recogn_type == recognition.OPENAI_WHISPER:
-            self.model_name.addItems(contants.Openai_Whisper_Models)
-            curr = contants.Openai_Whisper_Models
-        else:
-            self.model_name.addItems(settings.WHISPER_MODEL_LIST)
-            curr = settings.WHISPER_MODEL_LIST
-        if params.get('model_name', '') in curr:
-            self.model_name.setCurrentText(params.get('model_name', ''))
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.Whisper_CPP,
-                               recognition.OPENAI_WHISPER, recognition.FUNASR_CN, recognition.Deepgram,
-                               recognition.WHISPERX_API, recognition.HUGGINGFACE_ASR, recognition.QWENASR,
-                               recognition.WHISPER_NET]:
-            self.model_name.setDisabled(True)
-        else:
-            self.model_name.setDisabled(False)
-
-        if recogn_type > 1:
+        if _recogn_type > 1:
             self.model_name_help.setVisible(False)
         else:
             self.model_name_help.clicked.connect(self.win_action.show_model_help)
 
+        # 填充配音角色列表
+        _langcode = None
+        if _target_language and _target_language in self.languagename:
+            _langcode = translator.get_code(show_text=_target_language)
+        _rolelist = tools.role_menu(_tts_type, _langcode)
+        # 填充配音角色
+        self.voice_role.addItems(_rolelist)
+        self.current_rolelist = _rolelist
+
+        if _langcode:
+            # 如果存在上次缓存角色
+            self.target_language.setCurrentText(_target_language)
+            if _role in _rolelist:
+                self.voice_role.setCurrentText(_role)
+        self._bind_signal()
+
+    def _bind_signal(self):
+        QApplication.processEvents()
+        self.uito.emit('Bind signal...')
+        self.restart_btn.clicked.connect(self.restart_app)
         # 绑定行为
         self.addbackbtn.clicked.connect(self.win_action.get_background)
         self.voice_autorate.toggled.connect(self.win_action.check_voice_autorate)
         self.video_autorate.toggled.connect(self.win_action.check_video_autorate)
         self.enable_cuda.toggled.connect(self.win_action.check_cuda)
         self.tts_type.currentIndexChanged.connect(self.win_action.tts_type_change)
+
         self.translate_type.currentIndexChanged.connect(self.win_action.set_translate_type)
         self.subtitle_type.currentIndexChanged.connect(self.win_action.set_subtitle_type)
         self.voice_role.currentTextChanged.connect(self.win_action.show_listen_btn)
@@ -402,15 +318,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
 
-        SignalHub.instance().new_message.connect(self.win_action.update_data)
+        QApplication.processEvents()
+        self.uito.emit('set cursor...')
 
+        self.import_sub.setCursor(Qt.PointingHandCursor)
+        self.model_name_help.setCursor(Qt.PointingHandCursor)
+        self.startbtn.setCursor(Qt.PointingHandCursor)
+        self.btn_get_video.setCursor(Qt.PointingHandCursor)
+        self.btn_save_dir.setCursor(Qt.PointingHandCursor)
+        self.listen_btn.setCursor(Qt.PointingHandCursor)
+        self.statusLabel.setCursor(Qt.PointingHandCursor)
+        self.rightbottom.setCursor(Qt.PointingHandCursor)
+        self.restart_btn.setCursor(Qt.PointingHandCursor)
+
+        SignalHub.instance().new_message.connect(self.win_action.update_data)
         if settings.get('show_more_settings'):
             self.win_action.toggle_adv()
+
+        # 自动根据 目标语言+配音渠道 更新配音角色列表
+        self.win_action.tts_type_change(self.tts_type.currentIndex())
+        _role = params.get('voice_role') or 'No'
+        if _role in self.current_rolelist:
+            self.voice_role.setCurrentText(_role)
 
         # 预先加载 配音/语音转录/字幕翻译窗口 等常用功能面板，
         self._open_winform('fn_peiyin')
         self._open_winform('fn_recogn')
         self._open_winform('fn_fanyisrt')
+
         QApplication.processEvents()
         self.uito.emit('end')
 
@@ -418,7 +353,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if status == 'end':
             self.worker_threads = start_thread()
         else:
-            from videotrans.util import tools
             tools.show_error(status)
 
     # 打开缓慢
@@ -451,17 +385,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             winobj.show()
             winobj.activateWindow()
-            if name == 'downmodels' and extra_name:
-                winobj.auto_start(extra_name)
             return
 
-        if name == 'downmodels':
-            window = DownmodelsWindow()
-            app_cfg.child_forms[name] = window
-            window.show()
-            if extra_name:
-                window.auto_start(extra_name)
-            return
         if name == 'clipvideo':
             from videotrans.component.clip_video import ClipVideoWindow
             window = ClipVideoWindow()
@@ -514,11 +439,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def kill_ffmpeg_processes(self):
         """ffmpeg进程终止函数"""
-
-
         current_user = getpass.getuser()
-
-        if system_platform == "Windows":
+        if platform.system() == "Windows":
             # Windows平台 - 使用taskkill
             try:
                 result = subprocess.run(
@@ -530,7 +452,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if result.returncode != 0:
                     logger.warning(f"taskkill returned: {result.returncode}, output: {result.stdout}")
             except Exception as e:
-                logger.exception(f"Error using taskkill: {e}",exc_info=True)
+                logger.exception(f"Error using taskkill: {e}", exc_info=True)
 
             return
 
@@ -541,9 +463,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 text=True
             )
             if result.returncode != 0:
-                logger.warning(f"pkill returned: {result.returncode}",exc_info=True)
+                logger.warning(f"pkill returned: {result.returncode}", exc_info=True)
         except Exception as e:
-            logger.exception(f"Error using pkill: {e}",exc_info=True)
+            logger.exception(f"Error using pkill: {e}", exc_info=True)
 
     def closeEvent(self, event):
         app_cfg.exit_soft = True
@@ -580,11 +502,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for w in app_cfg.child_forms.values():
                 if w and hasattr(w, 'hide'):
                     w.hide()
-            if app_cfg.INFO_WIN['win']:
-                app_cfg.INFO_WIN['win'].hide()
         except Exception as e:
-            logger.exception(f'子窗口隐藏中出错 {e}',exc_info=True)
-
+            logger.exception(f'子窗口隐藏中出错 {e}', exc_info=True)
 
         # 遍历所有工作线程，等待结束
         for thread in self.worker_threads:
@@ -596,10 +515,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for w in app_cfg.child_forms.values():
                 if w and hasattr(w, 'close'):
                     w.close()
-            if app_cfg.INFO_WIN['win']:
-                app_cfg.INFO_WIN['win'].close()
         except Exception as e:
-            logger.exception(f'子窗口关闭中出错',exc_info=True)
+            logger.exception(f'子窗口关闭中出错{e}', exc_info=True)
+
         QThreadPool.globalInstance().waitForDone(5000)
         # 最后再kill ffmpeg，避免占用
         self.kill_ffmpeg_processes()

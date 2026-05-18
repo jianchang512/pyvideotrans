@@ -39,7 +39,7 @@ def openwin():
                     f.flush()
                 self.post(type='ok', text=self.result_file)
             except Exception as e:
-                from videotrans.configure._except import get_msg_from_except
+                from videotrans.configure.excepts import get_msg_from_except
                 self.post(type='error', text=get_msg_from_except(e))
 
     def feed(d):

@@ -1,8 +1,3 @@
-# 语音识别前进行各项处理，单独进程实现
-# 返回元组
-# 失败：第一个值为 False，第二个值存储失败原因
-# 成功，第一个返回数据，不需要数据时返回True，第二个值为None
-
 import traceback
 from videotrans.configure.config import ROOT_DIR,logger,TEMP_ROOT,settings
 
@@ -14,7 +9,7 @@ def _write_log(file=None, msg=None, type='logs'):
     try:
         Path(file).write_text(json.dumps({"text": msg, "type": type}), encoding='utf-8')
     except Exception as e:
-        logger.exception(f'写入新进程日志时出错', exc_info=True)
+        logger.exception(f'写入新进程日志时出错{e}', exc_info=True)
 
 
 # 1. 分离背景声和人声 https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html#uvr
@@ -29,7 +24,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file,  logs_file=None, is_cuda=Fa
     https://github.com/k2-fsa/sherpa-onnx/releases/tag/source-separation-models
 
     """
-    import time, torch, shutil, os
+    import time
     from pathlib import Path
     import numpy as np
     import sherpa_onnx
@@ -69,7 +64,6 @@ def vocal_bgm(*, input_file, vocal_file, instr_file,  logs_file=None, is_cuda=Fa
 
         return samples, sample_rate
 
-    sp = None
     try:
         sp = create_offline_source_separation()
         samples, sample_rate = load_audio(input_file)
@@ -93,15 +87,13 @@ def vocal_bgm(*, input_file, vocal_file, instr_file,  logs_file=None, is_cuda=Fa
         return True, None
     except Exception as e:
         msg = traceback.format_exc()
-        logger.exception(f"人声背景声分离失败:{msg}", exc_info=True)
-        return False, msg
+        logger.exception(f"人声背景声分离失败{e}:{msg}", exc_info=True)
+        return False, f'{e}{msg}'
 
 
 
 def vocal_bgm_spleeter(*,input_file, vocal_file, instr_file,  logs_file=None):
     import time
-    from pathlib import Path
-
     import numpy as np
     import sherpa_onnx
     import soundfile as sf
@@ -159,13 +151,8 @@ def vocal_bgm_spleeter(*,input_file, vocal_file, instr_file,  logs_file=None):
 
         vocals = output.stems[0].data
         non_vocals = output.stems[1].data
-        # vocals.shape (num_channels, num_samples)
-
         vocals = np.transpose(vocals)
         non_vocals = np.transpose(non_vocals)
-
-        # vocals.shape (num_samples,num_channels)
-
         sf.write(vocal_file, vocals, samplerate=output.sample_rate)
         sf.write(instr_file, non_vocals, samplerate=output.sample_rate)
 
@@ -181,13 +168,13 @@ def vocal_bgm_spleeter(*,input_file, vocal_file, instr_file,  logs_file=None):
         return True, None
     except Exception as e:
         msg = traceback.format_exc()
-        logger.exception(f"人声背景声分离失败:{msg}", exc_info=True)
-        return False, msg
+        logger.exception(f"人声背景声分离失败{e}:{msg}", exc_info=True)
+        return False, f'{e}{msg}'
 
 # 2. 降噪 https://modelscope.cn/models/iic/speech_frcrn_ans_cirm_16k
 def remove_noise(*, input_file, output_file,  is_cuda=False, logs_file=None, device_index=0):
     import numpy as np
-    import sherpa_onnx,time,json
+    import sherpa_onnx,time
     import soundfile as sf
     from videotrans.util import tools
     from pathlib import Path
@@ -226,12 +213,12 @@ def remove_noise(*, input_file, output_file,  is_cuda=False, logs_file=None, dev
         return output_file, None
     except Exception as e:
         msg = traceback.format_exc()
-        logger.exception(f'降噪失败:{msg}', exc_info=True)
-        return False, msg
+        logger.exception(f'降噪失败{e}:{msg}', exc_info=True)
+        return False, f'{e}{msg}'
     
 # 3. 恢复标点 https://modelscope.cn/models/iic/punc_ct-transformer_cn-en-common-vocab471067-large
 def fix_punc(*, text_dict,  is_cuda=False, logs_file=None, device_index=0):
-    import torch, os, shutil, time
+    import torch,  time
     from pathlib import Path
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
@@ -240,8 +227,6 @@ def fix_punc(*, text_dict,  is_cuda=False, logs_file=None, device_index=0):
         device = "mps"
     else:
         device = f"cuda:{device_index}" if is_cuda else "cpu"
-    result = None
-    ans = None
 
     try:
         _st = time.time()
@@ -265,24 +250,14 @@ def fix_punc(*, text_dict,  is_cuda=False, logs_file=None, device_index=0):
         return text_dict, None
     except Exception as e:
         msg = traceback.format_exc()
-        logger.exception(f'恢复标点失败:{msg}', exc_info=True)
-        return False, msg
-    finally:
-        try:
-            del ans
-            del result
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            import gc
-            gc.collect()
-        except Exception:
-            pass
+        logger.exception(f'恢复标点失败{e}:{msg}', exc_info=True)
+        return False, f'{e}{msg}'
 
 
 # 4. ali_CAM阿里 说话人分离  https://modelscope.cn/models/iic/speech_campplus_speaker-diarization_common/files
 def cam_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False, logs_file=None,
                  device_index=0):
-    import torch, os, shutil, time
+    import torch,  time
     from modelscope.pipelines import pipeline
     import platform
     if platform.system() == 'Darwin' and torch.backends.mps.is_available():
@@ -291,8 +266,7 @@ def cam_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False, logs
         device = f"cuda:{device_index}" if is_cuda else "cpu"
     _st = time.time()
     logger.debug(f'开始说话人分离:使用阿里cam++模型')
-    result = None
-    ans = None
+
     try:
         ans = pipeline(
             task='speaker-diarization',
@@ -360,24 +334,14 @@ def cam_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False, logs
         return output, None
     except Exception as e:
         msg = traceback.format_exc()
-        logger.exception(f'说话人分离失败:{msg}', exc_info=True)
-        return False, msg
-    finally:
-        try:
-            del ans
-            del result
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            import gc
-            gc.collect()
-        except Exception:
-            pass
+        logger.exception(f'说话人分离失败{e}:{msg}', exc_info=True)
+        return False, f'{e}{msg}'
 
 
 # 4. 说话人分离，pyannote https://huggingface.co/pyannote/speaker-diarization-3.0
 def pyannote_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False, logs_file=None,
                       device_index=0):
-    import torch, pyannote.audio, torchaudio, os, shutil, time
+    import torch, pyannote.audio, torchaudio, time
     torch.serialization.add_safe_globals([
         torch.torch_version.TorchVersion,
         pyannote.audio.core.task.Specifications,
@@ -385,7 +349,6 @@ def pyannote_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False,
         pyannote.audio.core.task.Resolution
     ])
     from pyannote.audio import Pipeline
-    from pathlib import Path
 
     def _get_diariz():
         # pyannote-audio==3.4.0
@@ -478,22 +441,14 @@ def pyannote_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False,
         return output, None
     except Exception as e:
         msg = traceback.format_exc()
-        logger.exception(f'说话人分离出错:{msg}', exc_info=True)
-        return False, msg
-    finally:
-        try:
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            import gc
-            gc.collect()
-        except Exception:
-            pass
+        logger.exception(f'说话人分离出错{e}:{msg}', exc_info=True)
+        return False, f'{e}{msg}'
 
 
 # 4. 说话人分离 reverb  https://huggingface.co/Revai/reverb-diarization-v1
 def reverb_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False, logs_file=None,
                     device_index=0):
-    import torch, pyannote.audio, torchaudio, os, shutil, time
+    import torch, pyannote.audio, torchaudio, time
     torch.serialization.add_safe_globals([
         torch.torch_version.TorchVersion,
         pyannote.audio.core.task.Specifications,
@@ -501,7 +456,6 @@ def reverb_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False, l
         pyannote.audio.core.task.Resolution
     ])
     from pyannote.audio import Pipeline
-    from pathlib import Path
 
     def _get_diariz():
         # pyannote-audio==3.4.0
@@ -595,16 +549,8 @@ def reverb_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False, l
         return output, None
     except Exception as e:
         msg = traceback.format_exc()
-        logger.exception(f'说话人分离出错:{msg}', exc_info=True)
-        return False, msg
-    finally:
-        try:
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            import gc
-            gc.collect()
-        except Exception:
-            pass
+        logger.exception(f'说话人分离出错{e}:{msg}', exc_info=True)
+        return False, f'{e}{msg}'
 
 
 # 内置中英文说话人分离模型
@@ -612,8 +558,7 @@ def reverb_speakers(*, input_file, subtitles, num_speakers=-1,  is_cuda=False, l
 def built_speakers(*, input_file, subtitles, num_speakers=-1, language="zh",  logs_file=None,
                    is_cuda=False):
     from pathlib import Path
-    import torch
-    import os, shutil, time
+    import time
     import librosa
     import soundfile as sf
 
@@ -765,12 +710,4 @@ def built_speakers(*, input_file, subtitles, num_speakers=-1, language="zh",  lo
     except Exception as e:
         msg = traceback.format_exc()
         logger.exception(f'分离说话人失败:{e}', exc_info=True)
-        return False, msg
-    finally:
-        try:
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            import gc
-            gc.collect()
-        except Exception:
-            pass
+        return False, f'{e}{msg}'

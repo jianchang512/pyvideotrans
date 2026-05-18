@@ -1,23 +1,14 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import re
 from dataclasses import dataclass, field
 from typing import List, Union
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
-from videotrans.configure.config import tr,settings,params,app_cfg,logger
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError, StopTask
+from videotrans.configure.config import settings,params,logger
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 from google import genai
 from google.genai import types,errors
-
-
-
-
-RETRY_NUMS = 2
-RETRY_DELAY = 5
-
 
 @dataclass
 class Gemini(BaseTrans):
@@ -27,19 +18,14 @@ class Gemini(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.model_name = params.get("gemini_model",'gemini-2.5-flash')
-
         self.prompt = tools.get_prompt(ainame='gemini',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
         self.api_keys = params.get('gemini_key', '').strip().split(',')
 
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
-
-
         api_key = self.api_keys.pop(0)
         self.api_keys.append(api_key)
         try:
@@ -110,16 +96,16 @@ class Gemini(BaseTrans):
             logger.debug(f'{result=}')
             if not result:
                 logger.warning(f'[gemini]请求失败')
-                raise RuntimeError(f"[Gemini]result is empty")
+                raise TranslateSrtError(f"[Gemini]result is empty")
                 
             match = re.search(r'<TRANSLATE_TEXT>(.*?)(?:</TRANSLATE_TEXT>|$)',
                               re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S), re.S | re.I)
             if match:
                 return match.group(1)
-            raise RuntimeError(f"Gemini result is emtpy")
+            raise TranslateSrtError(f"Gemini result is emtpy")
         except errors.APIError as e:
             logger.warning(f'{e=}')
             if e.code in [400,403,404,429,500]:
-                raise StopRetry(e.message)
-            raise RuntimeError(e.message)
+                raise StopTask(e.message)
+            raise TranslateSrtError(e.message)
 

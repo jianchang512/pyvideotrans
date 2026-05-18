@@ -77,7 +77,7 @@ import numpy as np  # 新增 numpy 用于声道处理
 from pydub import AudioSegment
 
 # 尝试导入 pyrubberband
-from videotrans.util.contants import INSTALL_RUBBERBAND_TIPS
+from videotrans.configure.contants import INSTALL_RUBBERBAND_TIPS
 
 try:
     import pyrubberband as pyrb
@@ -86,7 +86,7 @@ except ImportError:
     HAS_RUBBERBAND = False
 
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
+from videotrans.configure.config import ROOT_DIR,tr, settings, TEMP_DIR,logger
 from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
 

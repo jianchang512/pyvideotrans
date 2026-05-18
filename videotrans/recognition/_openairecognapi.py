@@ -1,31 +1,29 @@
 # zh_recogn 识别
 import json
+import os
 import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import List,  Union
 
 import httpx
 from openai import OpenAI
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, TEMP_DIR
-from videotrans.configure._except import  StopRetry
+from videotrans.configure.config import params,  logger, TEMP_DIR
+from videotrans.configure.excepts import SpeechToTextError, StopTask
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
-
-RETRY_NUMS = 2
-RETRY_DELAY = 10
-
 
 @dataclass
 class OpenaiAPIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = self._get_url(params.get('openairecognapi_url', ''))
-        self._add_internal_host_noproxy(self.api_url)
+        self.api_url = params.get('openairecognapi_url', '')
 
-    def _exec(self) -> Union[List[Dict], None]:
+
+    def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
         model_name = params.get("openairecognapi_model", '')
         # 如果是 gpt-4o-transcribe-diarize 说话人识别默认
@@ -50,14 +48,14 @@ class OpenaiAPIRecogn(BaseRecogn):
 
         self.audio_file = mp3_tmp
         if not Path(self.audio_file).is_file():
-            raise StopRetry(f'No {self.audio_file}')
+            raise SpeechToTextError(f'No {self.audio_file}')
         # 发送请求
         raws = []
         client = OpenAI(api_key=params.get('openairecognapi_key', ''), base_url=self.api_url,
                         http_client=httpx.Client(proxy=self.proxy_str))
         with open(self.audio_file, 'rb') as file:
             transcript = client.audio.transcriptions.create(
-                file=(self.audio_file, file.read()),
+                file=(os.path.basename(self.audio_file), file.read()),
                 model=model_name,
                 prompt=params.get('openairecognapi_prompt', ''),
                 language=self.detect_language[:2].lower(),
@@ -66,19 +64,19 @@ class OpenaiAPIRecogn(BaseRecogn):
                 timestamp_granularities=["segment"]
             )
             if not hasattr(transcript, 'segments'):
-                return self._thrid_api() #RuntimeError(f'返回字幕无时间戳，无法使用')
+                return self._thrid_api()
             for i, it in enumerate(transcript.segments):
-                raws.append({
-                    "line": len(raws) + 1,
-                    "start_time": it.start * 1000,
-                    "end_time": it.end * 1000,
-                    "text": it.text,
-                    "time": tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
+                raws.append(SrtItem(
+                    line=len(raws) + 1,
+                    start_time=it.start * 1000,
+                    end_time=it.end * 1000,
+                    text=it.text,
+                    time=tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
                         ms=it.end * 1000),
-                })
+                ))
         return raws
 
-    def _thrid_api(self):
+    def _thrid_api(self)->Union[List[SrtItem], None]:
         # 发送请求
         raws = self.cut_audio()
         client = OpenAI(
@@ -87,9 +85,9 @@ class OpenaiAPIRecogn(BaseRecogn):
             http_client=httpx.Client(proxy=self.proxy_str or None)
         )
         for i, it in enumerate(raws):
-            with open(it['file'], 'rb') as file:
+            with open(it['filename'], 'rb') as file:
                 transcript = client.audio.transcriptions.create(
-                    file=(it['file'], file.read()),
+                    file=(os.path.basename(it['filename']), file.read()),
                     model=params.get("openairecognapi_model", 'whisper-1'),
                     prompt=params.get('openairecognapi_prompt', ''),
                     # timeout=7200,
@@ -101,18 +99,17 @@ class OpenaiAPIRecogn(BaseRecogn):
                 raws[i]['text'] = transcript.text
         return raws
 
-    def _diarize(self):
+    def _diarize(self)->Union[List[SrtItem], None]:
         client = OpenAI(
             api_key=params.get('openairecognapi_key', ''),
-            base_url=self.api_url,
-            http_client=httpx.Client(proxy=self.proxy_str or None)
+            base_url=self.api_url
         )
         raws = []
         speaker_list = []
         speaker_name = []
         with open(self.audio_file, 'rb') as file:
             transcript = client.audio.transcriptions.create(
-                file=(self.audio_file, file.read()),
+                file=(os.path.basename(self.audio_file), file.read()),
                 model='gpt-4o-transcribe-diarize',
                 language=self.detect_language[:2].lower(),
                 chunking_strategy="auto",
@@ -120,16 +117,16 @@ class OpenaiAPIRecogn(BaseRecogn):
             )
 
             if not hasattr(transcript, 'segments') or not transcript.segments:
-                raise RuntimeError('No support gpt-4o-transcribe-diarize')
+                raise StopTask('No support gpt-4o-transcribe-diarize')
             for it in transcript.segments:
-                raws.append({
-                    "line": len(raws) + 1,
-                    "start_time": it.start * 1000,
-                    "end_time": it.end * 1000,
-                    "text": it.text,
-                    "time": tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
+                raws.append(SrtItem(
+                    line=len(raws) + 1,
+                    start_time=it.start * 1000,
+                    end_time=it.end * 1000,
+                    text=it.text,
+                    time=tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
                         ms=it.end * 1000),
-                })
+                ))
                 if self.max_speakers>-1:
                     sp = getattr(it,"speaker",'-')
                     speaker_list.append(sp)
@@ -150,24 +147,3 @@ class OpenaiAPIRecogn(BaseRecogn):
             except Exception as e:
                 logger.exception(f'说话人重排序出错，忽略{e}',exc_info=True)
         return raws
-
-    def _get_url(self, url=""):
-        if not url:
-            return "https://api.openai.com/v1"
-        if not url.startswith('http'):
-            url = 'http://' + url
-            # 删除末尾 /
-        url = url.rstrip('/').lower()
-        if url.find(".openai.com") > -1:
-            return "https://api.openai.com/v1"
-
-        if url.endswith('/v1'):
-            return url
-        # 存在 /v1/xx的，改为 /v1
-        if url.find('/v1/chat/') > -1:
-            return re.sub(r'/v1.*$', '/v1', url,flags=re.I | re.S)
-
-        if re.match(r'^https?://[a-zA-Z0-9_\.-]+$', url):
-            return url + "/v1"
-
-        return url

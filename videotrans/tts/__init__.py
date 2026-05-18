@@ -52,8 +52,7 @@ GOOGLE_TTS = 29
 CAMB_TTS = 30
 MOSS_TTS = 31
 
-FreeAzure = 32
-TTS_API = 33
+TTS_API = 32
 
 # 支持克隆的渠道
 SUPPORT_CLONE = [
@@ -70,6 +69,9 @@ SUPPORT_CLONE = [
     OMNIVOICE_TTS,
     MOSS_TTS
 ]
+# 配音角色根据语言不同而变化的渠道
+CHANGE_BY_LANGUAGE=[EDGE_TTS, MINIMAXI_TTS, AZURE_TTS, DOUBAO2_TTS, AI302_TTS, KOKORO_TTS,
+                    PIPER_TTS, VITSCNEN_TTS]
 
 _ID_NAME_DICT = {
     EDGE_TTS: ChannelProvider(tr("Edge-TTS(free)"), "._edgetts"),
@@ -82,11 +84,10 @@ _ID_NAME_DICT = {
     GPTSOVITS_TTS: ChannelProvider(f"GPT-SoVITS({tr('Local')}API)", "._gptsovits", key_name="gptsovits_url",
                                    win="gptsovits"),
     F5_TTS: ChannelProvider(f"F5-TTS({tr('Local')}API)", "._f5tts", key_name="f5tts_url", win="f5tts"),
-    INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)", "._f5tts", key_name="indextts_url", win="f5tts"),
-    COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)", "._cosyvoice", key_name="cosyvoice_url",
-                                   win="cosyvoice"),
+    INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)", "._index", key_name="indextts_url", win="f5tts"),
+    COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)", "._cosyvoice", key_name="cosyvoice_url", win="cosyvoice"),
     Supertonic_TTS: ChannelProvider(f"Supertonic({tr('Local')}{tr('Built-in')})", "._supertonic"),
-    VOXCPM_TTS: ChannelProvider(f"VoxCPM({tr('Local')}API)", "._f5tts", key_name="voxcpmtts_url", win="f5tts"),
+    VOXCPM_TTS: ChannelProvider(f"VoxCPM({tr('Local')}API)", "._voxcpm", key_name="voxcpmtts_url", win="f5tts"),
     CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}API)", "._chatterbox", key_name="chatterbox_url",
                                     win="chatterbox"),
     DOUBAO2_TTS: ChannelProvider(tr("DouBao2"), "._doubao2", key_name="doubao2_access", win="doubao2"),
@@ -103,8 +104,8 @@ _ID_NAME_DICT = {
     AI302_TTS: ChannelProvider("302.AI", "._ai302tts", key_name="ai302_key", win="ai302"),
 
     CHATTTS: ChannelProvider(f"ChatTTS({tr('Local')}API)", "._chattts", key_name="chattts_api", win="chattts"),
-    SPARK_TTS: ChannelProvider(f"Spark-TTS({tr('Local')}API)", "._f5tts", key_name="sparktts_url", win="f5tts"),
-    DIA_TTS: ChannelProvider(f"Dia-TTS({tr('Local')}API)", "._f5tts", key_name="diatts_url", win="f5tts"),
+    SPARK_TTS: ChannelProvider(f"Spark-TTS({tr('Local')}API)", "._spark", key_name="sparktts_url", win="f5tts"),
+    DIA_TTS: ChannelProvider(f"Dia-TTS({tr('Local')}API)", "._dia", key_name="diatts_url", win="f5tts"),
     KOKORO_TTS: ChannelProvider(f"kokoro-TTS({tr('Local')}API)", "._kokoro", key_name="kokoro_api", win="kokoro"),
     CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)", "._clone", key_name="clone_api", win="clone"),
     FISHTTS: ChannelProvider(f"Fish-TTS({tr('Local')}API)", "._fishtts", key_name="fishtts_url", win="fishtts"),
@@ -113,7 +114,6 @@ _ID_NAME_DICT = {
     CAMB_TTS: ChannelProvider("CAMB AI TTS", "._cambtts", key_name="camb_api_key", win="cambtts"),
     MOSS_TTS: ChannelProvider("MOSS-TTS-Nano", "._mosstts", key_name="moss_tts_url", win="mosstts"),
 
-    FreeAzure: ChannelProvider(tr('Azure(free)'), "._freeazure"),
     TTS_API: ChannelProvider(tr("Customize API"), "._ttsapi", key_name="ttsapi_url", win="ttsapi")
 }
 
@@ -160,6 +160,8 @@ def clone_tips(tts_type, role: str = 'No', recogn_type=9):
     return
 
 
+
+
 # 统一调用 tts渠道入口，通过 tts_type 调用对应渠道
 def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, tts_type=0, is_cuda=False) -> None:
     # 需要并行的数量3
@@ -169,7 +171,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         return
 
     kwargs = {
-        "queue_tts": copy.deepcopy(queue_tts),
+        "queue_tts": queue_tts,
         "language": language,
         "uuid": uuid,
         "play": play,

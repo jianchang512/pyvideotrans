@@ -3,6 +3,7 @@ from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure.config import app_cfg
 from videotrans.configure.signal_hub import SignalHub
+from videotrans.task.taskcfg import SignMsg
 
 
 class SignThread(QThread):
@@ -12,24 +13,24 @@ class SignThread(QThread):
         super().__init__(parent=parent)
         self.uuid_list = uuid_list
 
-    def post(self, jsondata):
+    def post(self, jsondata:SignMsg):
         self.uito.emit(jsondata)
 
-
-    def _on_message(self, uuid, json_str):
-        if uuid not in self.uuid_list:
-            return
-        d = json.loads(json_str) if isinstance(json_str,str) else json_str
+    def _on_message(self, uuid, d:SignMsg):
+        if uuid not in self.uuid_list : return
+        print(f'{d=}')
+        # or uuid in app_cfg.stoped_uuid_set
+        # d = json.loads(json_str) if isinstance(json_str, str) else json_str
         self.uito.emit(d)
         if d['type'] in ['error', 'succeed']:
             self.uuid_list.remove(uuid)
-            self.uito.emit({
+            self.uito.emit(SignMsg(**{
                 "type": "jindu",
                 "text": f'{int((self.total - len(self.uuid_list)) * 100 / self.total)}%'
-            })
+            }))
             app_cfg.stoped_uuid_set.add(uuid)
             if not self.uuid_list:
-                self.uito.emit({"type": "end"})
+                self.uito.emit(SignMsg(**{"type": "end"}))
 
     def run(self):
         self.total = len(self.uuid_list)

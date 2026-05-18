@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
 from videotrans.configure.config import params
-from videotrans.translator._base import BaseTrans
+from videotrans.translator._openaicompat import OpenAICampat
+
 
 @dataclass
 class AI302(OpenAICampat):

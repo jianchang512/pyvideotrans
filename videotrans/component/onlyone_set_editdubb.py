@@ -37,7 +37,7 @@ class ReDubb(QThread):
             )
             self.uito.emit(f"ok:{self.idx}")
         except Exception as e:
-            from videotrans.configure._except import get_msg_from_except
+            from videotrans.configure.excepts import get_msg_from_except
             except_msg = get_msg_from_except(e)
             msg = f'{except_msg}:\n' + traceback.format_exc()
             self.uito.emit(msg)
@@ -590,19 +590,9 @@ class EditDubbingResultDialog(QDialog):
             # 不修改文本，以便可以单独使用 各种配音渠道支持的控制符号进行声音微调
             text_item = self.table.item(i, 4)
             text = text_item.text().strip() if text_item else item['text'].strip()
-            #item['text'] = text
-            
+
             # 删除空文本对应的音频文件
             if not text:
                 Path(item['filename']).unlink(missing_ok=True)
-            
-            # 清理临时字段
-            #for key in ['_duration', '_msg', '_time_str']:
-            #    item.pop(key, None)
-        
-        #try:
-        #    #Path(f'{self.cache_folder}/queue_tts.json').write_text(json.dumps(self.queue_tts), encoding="utf-8")
-        #except Exception:
-        #    pass
-        
+
         self.accept()

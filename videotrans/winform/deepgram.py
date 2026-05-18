@@ -35,6 +35,7 @@ def openwin():
         params["deepgram_apikey"] = apikey
         params["deepgram_utt"] = 200 if utt else 200
         params.save()
+        tools.set_process(text='', type="refreshmodel_list")
         winobj.close()
 
     from videotrans.component.set_form import DeepgramForm

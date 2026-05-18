@@ -1,12 +1,13 @@
 import json
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict, is_dataclass
 from pathlib import Path
 from typing import List, Optional, Union
-
 from videotrans import translator
-from videotrans.configure._base import BaseCon
-from videotrans.configure.config import tr, app_cfg, settings, params, logger, TEMP_DIR, TEMP_ROOT
+from videotrans.configure.base import BaseCon
+from videotrans.configure.excepts import TranslateSrtError
+from videotrans.configure.config import tr, settings, logger, TEMP_ROOT
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
 from tenacity import RetryError
 
@@ -14,16 +15,16 @@ from tenacity import RetryError
 @dataclass
 class BaseTrans(BaseCon):
     # 翻译渠道
-    translate_type:int=0
-    # 存放待翻译的字幕列表字典,{text,time,line}
-    text_list: List[dict] = field(default_factory=list)
+    translate_type: int = 0
+    # 存放待翻译的字幕列表字典
+    text_list: List[SrtItem] = None
     # 唯一任务id
     uuid: Optional[str] = None
     # 测试时不使用缓存
     is_test: bool = False
     # 原始语言代码
     source_code: str = ""
-    #目标语言代码
+    # 目标语言代码
     target_code: str = ""
     # 对于AI渠道，这是目标语言的自然语言表达，其他渠道等于 target_code
     target_language_name: str = ""
@@ -32,111 +33,106 @@ class BaseTrans(BaseCon):
     api_url: str = field(default="", init=False)
     # 模型名
     model_name: str = field(default="", init=False)
-
     # 同时翻译的字幕行数量
     trans_thread: int = 5
     # 翻译后暂停秒
     wait_sec: float = float(settings.get('translation_wait', 0))
-    # 以srt格式发送
+
+
+    #  是AI翻译渠道并且选中了以完整srt格式字幕发送
     aisendsrt: bool = False
 
     def __post_init__(self):
         super().__post_init__()
-        #是AI翻译渠道并且选中了以完整字幕发送
-        if settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS:
-            self.aisendsrt=True
 
-        if not self.aisendsrt:
-            self.trans_thread = int(settings.get('trans_thread', 5))
-        else:
+
+        Path(TEMP_ROOT + f'/translate_cache').mkdir(parents=True, exist_ok=True)
+        self.aisendsrt = settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS
+        if self.aisendsrt:
             self.trans_thread = int(settings.get('aitrans_thread', 20)) if not settings.get('aitrans_context') else len(self.text_list)
-    # 发出请求获取内容 data=[text1,text2,text] | text
-    # 按行翻译时，data=[text_str,...]
-    # AI发送完整字幕时 data=srt_string
-    def _item_task(self, data: Union[List[str], str]) -> str:
-        pass
-
-
-    # 实际操作 run|runsrt -> _item_task
-    def run(self) -> Union[List, str, None]:
-        # 开始对分割后的每一组进行处理
-        Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
-        _st=time.time()
-        self.signal(text="")
-        if hasattr(self,'_download'):
-            self._download()
-
-        # 如果是不是以 完整字幕格式发送，则组成字符串列表，否则组成 [dict,dict] 列表，每个dict都是字幕行信息
-        if not self.aisendsrt:
-            # 是文字列表  [text_str,...]
-            source_text = [t['text'].replace("\n"," ") for t in self.text_list]
         else:
-            # 是srt格式字幕列表 [{text,line,time},...]
-            source_text=self.text_list
+            self.trans_thread = int(settings.get('trans_thread', 5))
 
+    def _item_task(self, data: Union[List[str], str]):
+        raise NotImplemented()
 
-        split_source_text = [source_text[i:i + self.trans_thread] for i in range(0, len(source_text), self.trans_thread)]
+    # 实际操作 run  -> run_text|run_srt -> _item_task
+    def run(self) -> List[SrtItem]:
+        _st = time.time()
+        if hasattr(self, '_download'):
+            self._download()
         try:
-            if self.aisendsrt:
-                return self._run_srt(split_source_text)
-            return self._run_text(split_source_text)
+            if not self.aisendsrt:
+                # 是文字列表  [str,...]
+                source_text = [t['text'].replace("\n", " ") for t in self.text_list]
+                return self._run_text(
+                    [source_text[i:i + self.trans_thread] for i in range(0, len(source_text), self.trans_thread)])
+            # 是srt格式字幕列表 [SrtItem,...]
+            return self._run_srt(
+                    [self.text_list[i:i + self.trans_thread] for i in range(0, len(self.text_list), self.trans_thread)])
         except RetryError as e:
             raise e.last_attempt.exception()
-        except Exception as e:
-            raise
         finally:
-            if hasattr(self,'_unload'):
+            if hasattr(self, '_unload'):
                 self._unload()
-            logger.debug(f'[字幕翻译]渠道{self.translate_type},{self.model_name}:共耗时:{int(time.time()-_st)}s')
-            
-    def _run_text(self,split_source_text):
+            logger.debug(f'[字幕翻译]渠道{self.translate_type},{self.model_name}:共耗时:{int(time.time() - _st)}s')
+
+    def _run_text(self, split_source_text: List[List[str]]):
         # 传统翻译渠道或AI翻译渠道以按行形式翻译
-        target_list=[]
+        """
+        split_source_text=[
+            ["字幕文本1","字幕文本2",...],
+            ["字幕文本1","字幕文本2",...],
+            ["字幕文本1","字幕文本2",...],
+            ...
+        ]
+        """
+        target_list = []
         for i, it in enumerate(split_source_text):
-            """ it=['你好啊我的朋友','第二行'] 
-                此时 _item_task 接收的是 list[str]
-            """
+            """ it=['你好啊我的朋友','第二行']  此时 _item_task 接收的是 list[str] """
             if self._exit(): return
             self.signal(text=tr('starttrans') + f' {i} ')
             result = self._get_cache(it)
             if not result:
                 result = tools.cleartext(self._item_task(it))
                 self._set_cache(it, result)
-
-
             sep_res = result.split("\n")
-
             for x, result_item in enumerate(sep_res):
                 if x < len(it):
                     target_list.append(result_item.strip())
-                    self.signal(text=result_item + "\n",type='subtitle')
+                    self.signal(text=result_item + "\n", type='subtitle')
             # 行数不匹配填充空行
             if len(sep_res) < len(it):
                 logger.debug(f'行数不匹配，原始：{len(it)}, 结果：{len(sep_res)}\n{it=}\n{sep_res=}')
                 tmp = ["" for x in range(len(it) - len(sep_res))]
                 target_list += tmp
-
             time.sleep(self.wait_sec)
-
         max_i = len(target_list)
         logger.debug(f'以普通文本行按行翻译：原始行数:{len(self.text_list)},翻译后行数:{max_i}')
+        _empty_line = 0
         for i, it in enumerate(self.text_list):
-            if i < max_i:
-                self.text_list[i]['text'] = target_list[i]
-            else:
-                self.text_list[i]['text'] = ""
+            text = target_list[i].strip() if i < max_i else ""
+            if not text:
+                _empty_line += 1
+            self.text_list[i]['text'] = text
+
+        if _empty_line >= len(self.text_list):
+            raise TranslateSrtError(tr("Translate result is empty"))
         return self.text_list
 
     # 发送完整字幕格式内容进行翻译
-    # 此时 _item_task 接收的是 srt格式的字符串
-    def _run_srt(self,split_source_text):
-        raws_list=[]
+    # 此时 _item_task 接收的是 srt 格式的字符串
+    def _run_srt(self, split_source_text: List[List[SrtItem]]):
+        """
+        split_source_text=[
+            [{text:"",start_time:"",line:""},{...},...]
+            ...
+        ]
+        """
+        raws_list = []
         for i, it in enumerate(split_source_text):
-            # 是字幕类表，此时 it=[{text,line,time}]
             if self._exit(): return
             self.signal(text=tr('starttrans') + f' {i} ')
-            for j, srt in enumerate(it):
-                it[j]['text'] = srt['text'].strip().replace("\n", " ")
             # 组成合法的srt格式字符串
             srt_str = "\n\n".join(
                 [f"{srt_dict['line']}\n{srt_dict['time']}\n{srt_dict['text'].strip()}" for srt_dict in it])
@@ -147,39 +143,32 @@ class BaseTrans(BaseCon):
                     raise RuntimeError(tr("Translate result is empty"))
                 self._set_cache(it, result)
 
-
             self.signal(text=result, type='subtitle')
-            tmp=tools.get_subtitle_from_srt(result, is_file=False)
-            #logger.debug(f'\n原始待翻译文本:{srt_str=}\n翻译结果:{result=}\n整理后：{tmp=}')
-            raws_list.extend(tmp)
+            raws_list.extend(tools.get_subtitle_from_srt(result, is_file=False))
             time.sleep(self.wait_sec)
 
+        _empty_line = 0
+        for it in raws_list:
+            if not it['text'].strip():
+                _empty_line += 1
+        if _empty_line >= len(raws_list):
+            raise TranslateSrtError(tr("Translate result is empty"))
         logger.debug(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},整理为list[dict]后的行数:{len(raws_list)}')
-        for i, it in enumerate(raws_list):
-            if i>=len(self.text_list):
-                continue
-            it['text']=it['text'].strip()
         return raws_list
 
     def _set_cache(self, it, res_str):
-        if not res_str.strip():
-            return
-        key_cache = self._get_key(it)
-
-        file_cache = TEMP_ROOT + f'/translate_cache/{key_cache}.txt'
-        if not Path(TEMP_ROOT + f'/translate_cache').is_dir():
-            Path(TEMP_ROOT + f'/translate_cache').mkdir(parents=True, exist_ok=True)
+        if not res_str.strip(): return
+        file_cache = TEMP_ROOT + f'/translate_cache/{self._get_key(it)}.txt'
         Path(file_cache).write_text(res_str, encoding='utf-8')
 
-    def _get_cache(self, it):
-        if self.is_test: return None
-        key_cache = self._get_key(it)
-        file_cache = TEMP_ROOT + f'/translate_cache/{key_cache}.txt'
+    def _get_cache(self, it) -> str:
+        if self.is_test: return
+        file_cache = TEMP_ROOT + f'/translate_cache/{self._get_key(it)}.txt'
         if Path(file_cache).exists():
             return Path(file_cache).read_text(encoding='utf-8')
-        return None
+        return
 
-    def _get_key(self, it):
-        Path(TEMP_ROOT + '/translate_cache').mkdir(parents=True, exist_ok=True)
-        key_str=f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-'+(it if isinstance(it, str) else json.dumps(it))
+    def _get_key(self, it) -> str:
+        it=tools.serial(it)
+        key_str = f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}'
         return tools.get_md5(key_str)

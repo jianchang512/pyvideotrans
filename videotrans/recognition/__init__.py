@@ -1,10 +1,9 @@
-import importlib
-import inspect
 from typing import Union, List, Dict
 from pathlib import Path
-from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR
+from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR, settings
 from videotrans.recognition._base import BaseRecogn
 from videotrans import winform, ChannelProvider, get_instance
+from videotrans.configure import contants
 
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
@@ -35,6 +34,12 @@ STT_API = 18
 WHISPER_NET = 19
 CAMB_ASR = 20
 CUSTOM_API = 21
+
+# 允许切换不同模型的渠道
+ALLOW_CHANGE_MODEL = [FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
+                      OPENAI_WHISPER, FUNASR_CN, Deepgram,
+                      WHISPERX_API, HUGGINGFACE_ASR, QWENASR,
+                      WHISPER_NET]
 
 # 渠道id对应的设置窗口和sk键名, key_name: 存储SK或api url的键，(app_cfg.params),win:对应winform中的映射
 _ID_NAME_DICT = {
@@ -84,9 +89,6 @@ HUGGINGFACE_ASR_MODELS = {
     "vinai/Phowhisper-large": ['vi'],
 
     "openai/whisper-large-v3": [],
-    # "openai/whisper-tiny":[],
-    # "Systran/faster-whisper-tiny":[]
-
 }
 try:
     if Path(f'{ROOT_DIR}/huggingface_models.txt').exists():
@@ -95,6 +97,24 @@ try:
 except Exception as e:
     logger.waring(f'添加自定义 Huggingface_ASR 模型失败:{e}')
 
+
+def get_model_by_type(recogn_type:int)->List[str]:
+    if recogn_type == Deepgram:
+        return contants.DEEPGRAM_MODEL
+    if recogn_type == Whisper_CPP:
+        return settings.Whisper_CPP_MODEL_LIST
+    if recogn_type == WHISPER_NET:
+        return settings.Whisper_NET_MODEL_LIST
+    if recogn_type == QWENASR:
+        return ['1.7B', '0.6B']
+    if recogn_type == FUNASR_CN:
+        return contants.FUNASR_MODEL
+    if recogn_type == HUGGINGFACE_ASR:
+        return list(HUGGINGFACE_ASR_MODELS.keys())
+    if recogn_type == OPENAI_WHISPER:
+        return contants.Openai_Whisper_Models.split(',')
+
+    return settings.WHISPER_MODEL_LIST
 
 
 # 判断所用渠道和模型是否支持该语言的语音识别
@@ -123,11 +143,9 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None, return_str=False):
     _cls = _ID_NAME_DICT.get(recogn_type)
-    if not _cls:
-        return True
+    if not _cls:return True
     if _cls.key_name and not params.get(_cls.key_name):
-        return "Please configure the API Key information of the Deepgram channel first." if return_str else winform.get_win(
-            _cls.win).openwin()
+        return "Please configure the API Key information of the Deepgram channel first." if return_str else winform.get_win(_cls.win).openwin()
     return True
 
 
@@ -146,8 +164,7 @@ def run(*,
         recogn2pass=False  # 二次对配音文件识别，生成简短字幕
 
         ) -> Union[List[Dict], None]:
-    if app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set):
-        return
+    if app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set): return
     kwargs = {
         "detect_language": detect_language,
         "audio_file": audio_file,
@@ -163,7 +180,7 @@ def run(*,
     }
     logger.debug(f'[recognition]__init__:{kwargs=}')
 
-    _cls: Union[BaseRecogn, None] = get_instance(recogn_type,"recognition",_ID_NAME_DICT)
+    _cls: Union[BaseRecogn, None] = get_instance(recogn_type, "recognition", _ID_NAME_DICT)
     if not _cls:
         raise RuntimeError(f'No this Recognition Channel:{recogn_type=}')
 

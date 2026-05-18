@@ -1,15 +1,11 @@
-# stt项目识别接口
 import logging
 import os
 import re
 from dataclasses import dataclass
-from typing import List, Dict,  Union
-
+from typing import List, Union
 from pathlib import Path
 import json
-
 import httpx
-
 from deepgram import (
     DeepgramClient,
     PrerecordedOptions,
@@ -17,28 +13,20 @@ from deepgram import (
 )
 from deepgram_captions import DeepgramConverter, srt
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure._except import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr,params,settings,app_cfg,logger
+from videotrans.configure.excepts import NO_RETRY_EXCEPT
+from videotrans.configure.config import tr,params,settings,logger
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
-
-RETRY_NUMS = 2
-RETRY_DELAY = 10
+from videotrans.configure import contants
 
 
 @dataclass
 class DeepgramRecogn(BaseRecogn):
 
-    def __post_init__(self):
-        super().__post_init__()
-
-
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
-    def _exec(self) -> Union[List[Dict], None]:
-        if self._exit():
-            return
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
+    def _exec(self) -> Union[List[SrtItem], None]:
+        if self._exit(): return
         import zhconv    
         if os.path.getsize(self.audio_file) > 52428800:
             tools.runffmpeg(
@@ -86,7 +74,7 @@ class DeepgramRecogn(BaseRecogn):
                     "end_time": int(it.end * 1000),
                     "text": it.transcript
                 }
-                if self.detect_language[:2] in ['zh', 'ja', 'ko']:
+                if self.detect_language[:2] in contants.CJK_LANG:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'],flags=re.I | re.S)
                 tmp['time'] = tools.ms_to_time_string(ms=tmp['start_time']) + ' --> ' + tools.ms_to_time_string(
                     ms=tmp['end_time'])
@@ -98,7 +86,7 @@ class DeepgramRecogn(BaseRecogn):
             srt_str = srt(transcription,
                           line_length=int(settings.get('cjk_len') if self.detect_language[:2] in ['zh', 'ja','ko'] else settings.get('other_len')))
             raws = tools.get_subtitle_from_srt(srt_str, is_file=False)
-            if self.detect_language[:2] in ['zh', 'ja', 'ko']:
+            if self.detect_language[:2] in contants.CJK_LANG:
                 for i, it in enumerate(raws):
                     if self.detect_language[:2] == 'zh':
                         it['text'] = zhconv.convert(it['text'], 'zh-hans')

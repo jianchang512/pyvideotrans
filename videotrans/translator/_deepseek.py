@@ -8,7 +8,7 @@ class DeepSeek(OpenAICampat):
 
     def __post_init__(self):
         self.ainame="deepseek"
-        self.model_name = params.get('deepseek_model', "deepseek-chat")
+        self.model_name = params.get('deepseek_model', "deepseek-v4-flash")
         self.api_url = 'https://api.deepseek.com/v1/'
         self.api_key = params.get('deepseek_key', '')
         self.max_tokens=int(params.get('deepseek_max_token', 40960))

@@ -23,7 +23,7 @@ class ListenVoice(QThread):
             )
             self.uito.emit("ok")
         except Exception as e:
-            from videotrans.configure._except import get_msg_from_except
+            from videotrans.configure.excepts import get_msg_from_except
             import traceback
             except_msg=get_msg_from_except(e)
             msg = f'{except_msg}:\n' + traceback.format_exc()

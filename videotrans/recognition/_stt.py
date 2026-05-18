@@ -1,13 +1,14 @@
 # stt项目识别接口
 import os
 from dataclasses import dataclass
-from typing import List, Dict, Union
+from typing import List, Union
 
 import requests
 
-from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr,settings,params,app_cfg,logger
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTextError
+from videotrans.configure.config import tr, params, logger, settings
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
 
 """
@@ -30,9 +31,6 @@ from videotrans.util import tools
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 import logging
 
-RETRY_NUMS = 2
-RETRY_DELAY = 10
-
 
 @dataclass
 class SttAPIRecogn(BaseRecogn):
@@ -41,17 +39,14 @@ class SttAPIRecogn(BaseRecogn):
         super().__post_init__()
         api_url = params.get('stt_url', '').strip().rstrip('/').lower()
         if not api_url:
-            raise StopRetry(tr("Custom api address must be filled in"))
+            raise SpeechToTextError(tr("Custom api address must be filled in"))
 
         if not api_url.startswith('http'):
             api_url = f'http://{api_url}'
         self.api_url = f'{api_url}/api' if not api_url.endswith('/api') else api_url
-        self._add_internal_host_noproxy(self.api_url)
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
-    def _exec(self) -> Union[List[Dict], None]:
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
+    def _exec(self) -> Union[List[SrtItem],None]:
         if self._exit(): return
         with open(self.audio_file, 'rb') as f:
             chunk = f.read()

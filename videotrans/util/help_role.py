@@ -1,14 +1,16 @@
 import json
 import re
+from typing import List
+
 import requests
 from urllib.parse import urlsplit, urlunsplit
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+
+
+from videotrans.configure.config import ROOT_DIR, tr, settings, params, logger
 from pathlib import Path
 from functools import lru_cache
 
-from videotrans.util import contants
-
-
+from videotrans.configure import contants
 
 
 def get_mosstts_service_urls(url: str | None):
@@ -45,8 +47,8 @@ def _load_mosstts_cache():
         return {}
     try:
         return json.loads(cache_file.read_text(encoding='utf-8'))
-    except Exception:
-        logger.exception('加载 MOSS-TTS-Nano 角色缓存失败', exc_info=True)
+    except Exception as e:
+        logger.exception(f'加载 MOSS-TTS-Nano 角色缓存失败 {e}', exc_info=True)
         return {}
 
 
@@ -165,13 +167,13 @@ def get_elevenlabs_role(force=False, raise_exception=False):
         return namelist
     try:
         from elevenlabs import ElevenLabs
-        client = ElevenLabs(api_key=params.get("elevenlabstts_key",''))
+        client = ElevenLabs(api_key=params.get("elevenlabstts_key", ''))
         voiceslist = client.voices.get_all()
 
-        namelist=['No']
+        namelist = ['No']
         result = {}
         for it in voiceslist.voices:
-            n = re.sub(r'[^a-zA-Z0-9_ -]+', '', it.name,flags=re.I | re.S).strip()
+            n = re.sub(r'[^a-zA-Z0-9_ -]+', '', it.name, flags=re.I | re.S).strip()
             result[n] = {"name": n, "voice_id": it.voice_id}
             namelist.append(n)
 
@@ -187,38 +189,38 @@ def get_elevenlabs_role(force=False, raise_exception=False):
 
 
 def get_vits_role():
-    zh=['No',"zh_female"]
-    en=['No',"en_female"]
+    zh = ['No', "zh_female"]
+    en = ['No', "en_female"]
     for i in range(109):
         en.append(f'en_{i}')
     for i in range(174):
         zh.append(f'zh_{i}')
-    
-    return {"zh":{k:k for k in zh},"en":{k:k for k in en}}
+
+    return {"zh": {k: k for k in zh}, "en": {k: k for k in en}}
+
 
 def get_piper_role():
-    file_path=f"{ROOT_DIR}/videotrans/voicejson/piper.json"
+    file_path = f"{ROOT_DIR}/videotrans/voicejson/piper.json"
     if Path(file_path).exists():
-        rolelist=json.loads(Path(file_path).read_text(encoding='utf-8'))
+        rolelist = json.loads(Path(file_path).read_text(encoding='utf-8'))
     else:
-        rolelist={}
+        rolelist = {}
         from videotrans.translator import LANGNAME_DICT
-        langkeys=[it.split('-')[0] for it in LANGNAME_DICT.keys()]
+        langkeys = [it.split('-')[0] for it in LANGNAME_DICT.keys()]
         for it in Path(f'{ROOT_DIR}/models/piper').rglob('*.onnx'):
-            rolename=Path(it).stem
-            tmp=rolename.split('_')#tmp[0] 语言代码
+            rolename = Path(it).stem
+            tmp = rolename.split('_')  # tmp[0] 语言代码
             if tmp[0] not in langkeys:
                 continue
             if tmp[0] not in rolelist:
-                rolelist[tmp[0]]={"No":"No"}
-            rolelist[tmp[0]][rolename]=rolename
-        Path(file_path).write_text(json.dumps(rolelist,indent=4),encoding='utf-8')
+                rolelist[tmp[0]] = {"No": "No"}
+            rolelist[tmp[0]][rolename] = rolename
+        Path(file_path).write_text(json.dumps(rolelist, indent=4), encoding='utf-8')
     return rolelist
 
+
 def get_302ai():
-
     role_dict = get_azure_rolelist()
-
 
     with open(ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
         ai302_voice_roles = json.loads(f.read())
@@ -226,120 +228,114 @@ def get_302ai():
         _minimaxi = ai302_voice_roles.get("AI302_minimaxi", {})
         _dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
         _doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
-    _openai=contants.OPENAITTS_ROLES.split(",")
-    role_dict['zh'] = role_dict['zh'] | _doubao |_minimaxi|_dubbingx| {k:k for k in _openai}
-    role_dict['ja'] = role_dict['ja'] |_doubao_ja
+    _openai = contants.OPENAITTS_ROLES.split(",")
+    role_dict['zh'] = role_dict['zh'] | _doubao | _minimaxi | _dubbingx | {k: k for k in _openai}
+    role_dict['ja'] = role_dict['ja'] | _doubao_ja
     return role_dict
 
 
-
 def get_doubao2_rolelist(role_name=None, langcode="zh"):
+    roledata = json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/doubao2.json').read_text(encoding='utf-8'))
 
-    roledata=json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/doubao2.json').read_text(encoding='utf-8'))
-    
-   
     if role_name:
-        current_d=roledata.get(langcode[:2])
+        current_d = roledata.get(langcode[:2])
         if not current_d:
             return 'No'
         return current_d.get(role_name)
-    
-    return { key:['No']+list(item.keys())  for key,item in roledata.items()}
 
+    return {key: ['No'] + list(item.keys()) for key, item in roledata.items()}
 
 
 #  get role by edge tts
 @lru_cache(maxsize=None)
-def get_edge_rolelist(role_name=None,locale=None):
-
+def get_edge_rolelist(role_name=None, locale=None):
     from . import help_misc
     voice_list = {}
-    voice_file=ROOT_DIR + "/videotrans/voicejson/edge_tts.json"
+    voice_file = ROOT_DIR + "/videotrans/voicejson/edge_tts.json"
     if help_misc.vail_file(voice_file):
         try:
-            with open(voice_file,'r',encoding='utf-8') as f:
+            with open(voice_file, 'r', encoding='utf-8') as f:
                 voice_list = json.loads(f.read())
-            for i,it in voice_list.items():
-                voice_list[i]={"No":"No"}|it
-        except (OSError,json.JSONDecodeError):
+            for i, it in voice_list.items():
+                voice_list[i] = {"No": "No"} | it
+        except (OSError, json.JSONDecodeError):
             pass
     if role_name and locale:
-        return voice_list.get(locale.split('-')[0],{}).get(role_name)
+        return voice_list.get(locale.split('-')[0], {}).get(role_name)
     return voice_list
 
 
-def get_azure_rolelist(language=None,role_name=None):
-    voice_file=ROOT_DIR + "/videotrans/voicejson/azure_voice_list.json"
-    voice_list=json.loads(Path(voice_file).read_text(encoding='utf-8'))
+def get_azure_rolelist(language=None, role_name=None):
+    voice_file = ROOT_DIR + "/videotrans/voicejson/azure_voice_list.json"
+    voice_list = json.loads(Path(voice_file).read_text(encoding='utf-8'))
     # 根据角色显示名字获取真实角色
     if language and role_name:
-        return voice_list.get(language,{}).get(role_name)
-    if role_name and (not language or language=='auto'):
+        return voice_list.get(language, {}).get(role_name)
+    if role_name and (not language or language == 'auto'):
         for it in voice_list.values():
-            for name,ro in it:
-                if name==role_name:
+            for name, ro in it:
+                if name == role_name:
                     return ro
         return None
     try:
-        for k,it in voice_list.items():
-            it['No']='No'
-            voice_list[k]={"No":"No"}|it
-    except (OSError,json.JSONDecodeError):
+        for k, it in voice_list.items():
+            it['No'] = 'No'
+            voice_list[k] = {"No": "No"} | it
+    except (OSError, json.JSONDecodeError):
         pass
     return voice_list
 
-def get_minimaxi_rolelist():
 
+def get_minimaxi_rolelist():
     from . import help_misc
     voice_list = {}
-    voice_file=ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
+    voice_file = ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
 
-    if params.get("minimaxi_apiurl",'')=='api.minimax.io':
-        voice_file=ROOT_DIR + "/videotrans/voicejson/minimaxiio.json"
+    if params.get("minimaxi_apiurl", '') == 'api.minimax.io':
+        voice_file = ROOT_DIR + "/videotrans/voicejson/minimaxiio.json"
     if help_misc.vail_file(voice_file):
         try:
-            with open(voice_file,'r',encoding='utf-8') as f:
+            with open(voice_file, 'r', encoding='utf-8') as f:
                 voice_list = json.loads(f.read())
-            for i,it in voice_list.items():
-                voice_list[i]={"No":"No"}|it
-        except (OSError,json.JSONDecodeError):
+            for i, it in voice_list.items():
+                voice_list[i] = {"No": "No"} | it
+        except (OSError, json.JSONDecodeError):
             pass
     return voice_list
 
 
 def get_qwen3tts_rolelist():
-    voices=json.loads(Path(ROOT_DIR+"/videotrans/voicejson/qwen3tts.json").read_text(encoding='utf-8'))
-    voices={"No":"No"}|voices
+    voices = json.loads(Path(ROOT_DIR + "/videotrans/voicejson/qwen3tts.json").read_text(encoding='utf-8'))
+    voices = {"No": "No"} | voices
     return voices
+
 
 # 本地qwentts3
 def get_qwenttslocal_rolelist():
-
-    voices={
-        "Vivian":"Vivian",
-        "Serena":"Serena",
-        "Uncle_fu":"Uncle_fu",
-        "Dylan":"Dylan",
-        "Eric":"Eric",
-        "Ryan":"Ryan",
-        "Aiden":"Aiden",
-        "Ono_anna":"Ono_anna",
-        "Sohee":"Sohee"
+    voices = {
+        "Vivian": "Vivian",
+        "Serena": "Serena",
+        "Uncle_fu": "Uncle_fu",
+        "Dylan": "Dylan",
+        "Eric": "Eric",
+        "Ryan": "Ryan",
+        "Aiden": "Aiden",
+        "Ono_anna": "Ono_anna",
+        "Sohee": "Sohee"
     }
-    return get_f5tts_role()|voices
-    
+    return get_f5tts_role() | voices
+
 
 def get_supertonic_rolelist():
-    voices=json.loads(Path(ROOT_DIR+"/videotrans/voicejson/supertonic.json").read_text(encoding='utf-8'))
-    voices={"No":"No"}|voices
+    voices = json.loads(Path(ROOT_DIR + "/videotrans/voicejson/supertonic.json").read_text(encoding='utf-8'))
+    voices = {"No": "No"} | voices
     return voices
 
 
 def get_glmtts_rolelist():
-    voices=json.loads(Path(ROOT_DIR+"/videotrans/voicejson/glmtts.json").read_text(encoding='utf-8'))
-    voices={"No":"No"}|voices
+    voices = json.loads(Path(ROOT_DIR + "/videotrans/voicejson/glmtts.json").read_text(encoding='utf-8'))
+    voices = {"No": "No"} | voices
     return voices
-
 
 
 def get_kokoro_rolelist():
@@ -389,11 +385,10 @@ def get_kokoro_rolelist():
 
 # 根据 gptsovits params['gptsovits_role'] 返回以参考音频为key的dict
 def get_gptsovits_role():
-
-    if not params.get('gptsovits_role','').strip():
+    if not params.get('gptsovits_role', '').strip():
         return None
-    rolelist = {"No":"No","clone":"clone"}
-    for it in params.get('gptsovits_role','').strip().split("\n"):
+    rolelist = {"No": "No", "clone": "clone"}
+    for it in params.get('gptsovits_role', '').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 3:
             continue
@@ -402,36 +397,117 @@ def get_gptsovits_role():
 
 
 def get_f5tts_role():
-
-    if not params.get('f5tts_role','').strip():
+    if not params.get('f5tts_role', '').strip():
         return
-    rolelist = {"No":"No","clone":"clone"}
-    for it in params.get('f5tts_role','').strip().split("\n"):
+    rolelist = {"No": "No", "clone": "clone"}
+    for it in params.get('f5tts_role', '').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 2:
             continue
-        rolelist[tmp[0]] = {"ref_audio": tmp[0], "ref_text": tmp[1]}
+        rolelist[tmp[0]] = {"ref_wav": tmp[0], "ref_text": tmp[1]}
     return rolelist
 
 
 # 获取clone-voice的角色列表
 def get_clone_role(set_p=False):
     from . import help_misc
-    if not params.get('clone_api',''):
+    if not params.get('clone_api', ''):
         if set_p:
             raise Exception(tr('bixutianxiecloneapi'))
         return False
     try:
-        url = params.get('clone_api','').strip().rstrip('/') + "/init"
+        url = params.get('clone_api', '').strip().rstrip('/') + "/init"
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
         res.raise_for_status()
-        params["clone_voicelist"] = ['No',"clone"] + res.json()
-        help_misc.set_process(type='set_clone_role')
+        params["clone_voicelist"] = ['No', "clone"] + res.json()
+        help_misc.set_process(type='refreshtts')
     except Exception as e:
         if set_p: raise
     return False
 
 
+# 根据渠道返回角色列表 供下拉菜单使用
+def role_menu(tts_type, langcode=None) -> List:
+    from videotrans import tts
+    if tts_type == tts.GOOGLE_TTS:
+        return ['No', "gtts"]
+
+    if tts_type == tts.OPENAI_TTS:
+        return ['No'] + (params.get('openaitts_role') or contants.OPENAITTS_ROLES).split(',')
+
+    if tts_type == tts.XAI_TTS:
+        return ['No'] + contants.XAITTS_ROLES.split(',')
+
+    if tts_type == tts.XIAOMI_TTS:
+        return ['No'] + contants.MITTS_ROLES.split(',')
+
+    if tts_type == tts.QWEN_TTS:
+        return list(get_qwen3tts_rolelist().keys())
+
+    if tts_type == tts.Supertonic_TTS:
+        return list(get_supertonic_rolelist().keys())
+
+    if tts_type == tts.GLM_TTS:
+        return list(get_glmtts_rolelist().keys())
+
+    if tts_type == tts.GEMINI_TTS:
+        return contants.GEMINITTS_ROLES.split(',')
+
+    if tts_type == tts.ELEVENLABS_TTS:
+        return get_elevenlabs_role()
+
+    if tts_type == tts.CAMB_TTS:
+        return get_camb_role()
+
+    if tts_type == tts.CLONE_VOICE_TTS:
+        _list = params.get("clone_voicelist")
+        return ['No'] if not isinstance(_list, list) else _list
+
+    if tts_type == tts.CHATTTS:
+        return ['No'] + list(settings.ChatTTS_voicelist)
+
+    if tts_type == tts.TTS_API:
+        return ['No'] + params.get('ttsapi_voice_role', '').strip().split(',')
+
+    if tts_type == tts.GPTSOVITS_TTS:
+        return list(get_gptsovits_role().keys())
+
+    if tts_type == tts.QWEN3LOCAL_TTS:
+        return list(get_qwenttslocal_rolelist().keys())
+
+    if tts_type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS, tts.DIA_TTS, tts.OMNIVOICE_TTS,
+                    tts.COSYVOICE_TTS, tts.CHATTERBOX_TTS, tts.FISHTTS, tts.MOSS_TTS]:
+        return list(get_f5tts_role().keys())
+    # 语言无关角色一致的到此结束
+    # 以下均根据语言代码返回对应角色
+    if not langcode:
+        return ['No']
+
+    _roledict = None
+    if tts_type == tts.EDGE_TTS:
+        _roledict = get_edge_rolelist()
+    elif tts_type == tts.KOKORO_TTS:
+        _roledict = get_kokoro_rolelist()
+    elif tts_type == tts.PIPER_TTS:
+        _roledict = get_piper_role()
+    elif tts_type == tts.VITSCNEN_TTS:
+        _roledict = get_vits_role()
+    elif tts_type == tts.AI302_TTS:
+        _roledict = get_302ai()
+    elif tts_type == tts.DOUBAO2_TTS:
+        _roledict = get_doubao2_rolelist()
+    elif tts_type == tts.MINIMAXI_TTS:
+        _roledict = get_minimaxi_rolelist()
+    else:
+        # AzureTTS
+        _roledict = get_azure_rolelist()
+
+    if not _roledict:
+        return ['No']
+    _roles=_roledict.get(langcode) or _roledict.get(langcode.split('-')[0])
+    if not _roles:
+        return ['No']
+    return _roles if isinstance(_roles, list) else list(_roles.keys())
 
 
 def show_refaudio_win():

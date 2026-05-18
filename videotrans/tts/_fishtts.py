@@ -1,74 +1,40 @@
-import logging
 import os
 import time
 from dataclasses import dataclass
 from typing import List, Dict, Union
-
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
-from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-
+from videotrans.configure.config import params, logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-
-RETRY_NUMS = 2
-RETRY_DELAY = 5
-
 
 @dataclass
 class FishTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        api_url = params.get('fishtts_url','').strip().rstrip('/').lower()
-        self.api_url = 'http://' + api_url.replace('http://', '')
-        self._add_internal_host_noproxy(self.api_url)
+        self.api_url = 'http://' +params.get('fishtts_url', '').strip().rstrip('/').lower().replace('http://', '')
         self.roledict = tools.get_f5tts_role()
 
-    def _exec(self):
-        self._local_mul_thread()
+    def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        ref_wav, ref_text = self.get_ref_wav(data_item)
+        data = {
+            "text": data_item['text'],
+            "references": [{
+                "audio": "",
+                "text": ref_text
+            }]
+        }
 
-    def _item_task(self, data_item: Union[Dict, List, None],idx:int=-1):
-        if self._exit() or not data_item.get('text','').strip():
-            return
-        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-               after=after_log(logger, logging.INFO))
-        def _run():
-            if self._exit() or tools.vail_file(data_item['filename']):
-                return
-            role = data_item['role']
+        # 克隆声音
+        data['references'][0]['audio'] = self._audio_to_base64(ref_wav)
 
-            if not role or not self.roledict.get(role):
-                raise StopRetry(tr('The reference audio path name and the text corresponding to the reference audio must be filled in the settings'))
+        logger.debug(f'fishTTS-post:{data=}')
+        response = requests.post(f"{self.api_url}", json=data, timeout=3600)
+        response.raise_for_status()
 
-
-            data = {"text": data_item['text'],
-                    "references": [{"audio": "", "text": self.roledict[role]['ref_text']}]}
-
-            # 克隆声音
-            audio_path = f'{ROOT_DIR}/{self.roledict[role]["ref_audio"]}'
-            if os.path.exists(audio_path):
-                data['references'][0]['audio'] = self._audio_to_base64(audio_path)
-            else:
-                raise StopRetry(tr('Reference audio does not exist: {} Please make sure the audio exists',audio_path))
-
-            logger.debug(f'fishTTS-post:{data=}')
-            response = requests.post(f"{self.api_url}", json=data, timeout=3600)
-
-            response.raise_for_status()
-
-            # 如果是WAV音频流，获取原始音频数据
-            with open(data_item['filename'] + ".wav", 'wb') as f:
-                f.write(response.content)
-            time.sleep(1)
-            if not os.path.exists(data_item['filename'] + ".wav"):
-                raise RuntimeError(f'FishTTS dubbing error -2')
-            self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
-
-
-        try:
-            _run()
-        except Exception as e:
-            self.error=e
-            raise
+        # 如果是WAV音频流，获取原始音频数据
+        with open(data_item['filename'] + ".wav", 'wb') as f:
+            f.write(response.content)
+        time.sleep(1)
+        if not os.path.exists(data_item['filename'] + ".wav"):
+            return f'FishTTS dubbing error -2'
+        self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])

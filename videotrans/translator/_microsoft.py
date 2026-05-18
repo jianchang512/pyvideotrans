@@ -6,24 +6,16 @@ from typing import List, Union
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
-from videotrans.configure.config import tr,params,settings,app_cfg,logger
-from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr, logger, settings
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, TranslateSrtError
 from videotrans.translator._base import BaseTrans
 
-RETRY_NUMS = 3
-RETRY_DELAY = 5
 
 
 @dataclass
 class Microsoft(BaseTrans):
 
-    def __post_init__(self):
-        super().__post_init__()
-        self.aisendsrt = False
-
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         headers = {
@@ -47,5 +39,5 @@ class Microsoft(BaseTrans):
         response.raise_for_status()
         re_result = response.json()
         if len(re_result) == 0 or len(re_result[0]['translations']) == 0:
-            raise RuntimeError(f'no result:{re_result=}')
+            raise TranslateSrtError(f'no result:{re_result=}')
         return re_result[0]['translations'][0]['text'].strip()

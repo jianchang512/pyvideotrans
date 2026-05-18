@@ -1,21 +1,21 @@
+from videotrans.task.taskcfg import InputFile
 
 
 def openwin():
-    from videotrans.util import contants
     from videotrans.task.taskcfg import TaskCfgTTS
-    from videotrans.util.contants import LISTEN_TEXT
+    from videotrans.configure.contants import LISTEN_TEXT
     import json
     import os
     from pathlib import Path
-    from PySide6.QtCore import QUrl, Qt,QTimer
+    from PySide6.QtCore import QUrl, Qt, QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
-
+    from videotrans.configure.config import tr, app_cfg, params, TEMP_DIR, defaulelang, HOME_DIR
     from videotrans.util import tools
+    from videotrans.task.dubbing import DubbingSrt
+    from videotrans import translator, tts
+    from videotrans.component.set_form import Peiyinformrole
 
-
-    # ==================== 语言字典 (完整版) ====================
     langname_dict = {
         "zh-cn": "简体中文", "zh-tw": "繁体中文", "yue": "粤语", "en": "英语", "fr": "法语", "de": "德语", "ja": "日语", "ko": "韩语",
         "ru": "俄语", "es": "西班牙语",
@@ -56,10 +56,8 @@ def openwin():
         }
 
     RESULT_DIR = HOME_DIR + "/tts"
-    uuid=None
-
-    from videotrans.task._dubbing import DubbingSrt
-    from videotrans import translator, tts
+    Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
+    uuid = None
 
     def toggle_state(state):
         winobj.hecheng_importbtn.setDisabled(state)
@@ -89,10 +87,8 @@ def openwin():
             winobj.loglabel.setStyleSheet("""color:#148cd2;background-color:transparent""")
             winobj.error_msg = ""
             winobj.loglabel.setToolTip('')
-        if d['type'] == 'replace':
-            # This logic is no longer used as we don't have the hecheng_plaintext
-            pass
-        elif d['type'] == 'error':
+
+        if d['type'] == 'error':
             winobj.error_msg = d['text']
             winobj.loglabel.setToolTip(tr("View details error"))
             winobj.has_done = True
@@ -128,13 +124,7 @@ def openwin():
 
         rate = int(winobj.hecheng_rate.value())
         tts_type = winobj.tts_type.currentIndex()
-        if tts_type == tts.MOSS_TTS:
-            text = tools.get_mosstts_role_test_text(role, text)
-
-        if rate >= 0:
-            rate = f"+{rate}%"
-        else:
-            rate = f"{rate}%"
+        rate = f"+{rate}%" if rate >= 0 else f"{rate}%"
         volume = int(winobj.volume_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = int(winobj.pitch_rate.value())
@@ -143,39 +133,36 @@ def openwin():
         voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.wav"
 
         obj = {
-            "text": text, 
-            "rate": rate, 
-            "role": role, 
-            "filename": voice_file, 
+            "text": text,
+            "rate": rate,
+            "role": role,
+            "filename": voice_file,
             "tts_type": tts_type,
-            "language": lang, 
-            "volume": volume, 
+            "language": lang,
+            "volume": volume,
             "pitch": pitch,
         }
 
         if role == 'clone':
             return
 
-        raw_text=winobj.listen_btn.text()
+        raw_text = winobj.listen_btn.text()
+
         def feed(d):
             winobj.listen_btn.setDisabled(False)
             winobj.listen_btn.setText(raw_text)
             if d != "ok":
                 tools.show_error(d)
+
         winobj.listen_btn.setDisabled(True)
         winobj.listen_btn.setText('load...')
         from videotrans.util.ListenVoice import ListenVoice
         wk = ListenVoice(parent=winobj, queue_tts=[obj], language=lang, tts_type=tts_type)
         wk.uito.connect(feed)
         wk.start()
-        
-        
-
-    def change_by_lang(type):
-        return type in [tts.EDGE_TTS, tts.MINIMAXI_TTS,tts.AZURE_TTS, tts.DOUBAO2_TTS,tts.AI302_TTS, tts.KOKORO_TTS,tts.PIPER_TTS,tts.VITSCNEN_TTS,tts.FreeAzure]
 
     def hecheng_start_fun():
-        nonlocal RESULT_DIR,uuid
+        nonlocal RESULT_DIR, uuid
 
         if not winobj.srt_path:
             return tools.show_error(
@@ -219,11 +206,11 @@ def openwin():
         if winobj.save_to_srt.isChecked():
             RESULT_DIR = Path(winobj.srt_path).parent.as_posix()
         else:
-            RESULT_DIR=HOME_DIR+'/tts'
-        video_obj = tools.format_video(winobj.srt_path, None)
+            RESULT_DIR = HOME_DIR + '/tts'
+        video_obj:InputFile = tools.format_video(winobj.srt_path, None)
         uuid = video_obj['uuid']
         app_cfg.rm_uuid(uuid)
-        cfg={
+        cfg = {
             "voice_role": role,  # Default role
             "cache_folder": TEMP_DIR + f'/{uuid}',
             "target_language_code": langcode,
@@ -235,12 +222,12 @@ def openwin():
             "tts_type": tts_type,
             "voice_autorate": winobj.voice_autorate.isChecked(),
             "remove_silent_mid": winobj.remove_silent_mid.isChecked(),
-            "align_sub_audio":False,
-            "is_cuda":winobj.is_cuda.isChecked()
+            "align_sub_audio": False,
+            "is_cuda": winobj.is_cuda.isChecked()
         }
 
-
-        trk = DubbingSrt(cfg=TaskCfgTTS(**cfg | video_obj),subs=winobj.subtitles,is_multi_role=True,out_ext=winobj.out_format.currentText())
+        trk = DubbingSrt(cfg=TaskCfgTTS(**cfg | video_obj), subs=winobj.subtitles, is_multi_role=True,
+                         out_ext=winobj.out_format.currentText())
         app_cfg.dubb_queue.put_nowait(trk)
         from videotrans.task.child_win_sign import SignThread
         th = SignThread(uuid_list=[uuid], parent=winobj)
@@ -259,7 +246,7 @@ def openwin():
         params["dubb_pitch_rate"] = int(winobj.pitch_rate.value())
         params["dubb_volume_rate"] = int(winobj.volume_rate.value())
         if not params["dubb_voice_autorate"]:
-            params['dubb_remove_silent_mid']=winobj.remove_silent_mid.isChecked()
+            params['dubb_remove_silent_mid'] = winobj.remove_silent_mid.isChecked()
         params.save()
 
     def stop_tts():
@@ -271,83 +258,42 @@ def openwin():
         if uuid:
             app_cfg.stoped_uuid_set.add(uuid)
         uuid = None
+
     def getlangnamelist(tts_type=0):
         if tts_type != tts.EDGE_TTS:
             return ['-'] + list(translator.LANGNAME_DICT.values())
         return ['-'] + list(langname_dict.values())
 
     def tts_type_change(type):
-        app_cfg.dubbing_role={}
-        if change_by_lang(type):
+        app_cfg.dubbing_role = {}
+        if type in tts.CHANGE_BY_LANGUAGE:
             winobj.volume_rate.setDisabled(False)
             winobj.pitch_rate.setDisabled(False)
         else:
             winobj.volume_rate.setDisabled(True)
             winobj.pitch_rate.setDisabled(True)
 
-        if type == tts.QWEN3LOCAL_TTS:
-            winobj.is_cuda.show()
-        else:
-            winobj.is_cuda.hide()
+        winobj.is_cuda.setVisible(True if type == tts.QWEN3LOCAL_TTS else False)
 
         current_text = winobj.hecheng_language.currentText()
-
-        winobj.hecheng_language.clear()
         langnamelist = getlangnamelist(type)
-
+        winobj.hecheng_language.clear()
         winobj.hecheng_language.addItems(langnamelist)
         if current_text in langnamelist:
             winobj.hecheng_language.setCurrentText(current_text)
+        code = translator.get_code(show_text=current_text)
 
         if type != tts.EDGE_TTS:
-            code = translator.get_code(show_text=current_text)
             is_allow_lang_res = tts.is_allow_lang(langcode=code, tts_type=type)
-            if is_allow_lang_res is not True:
-                winobj.loglabel.setText(is_allow_lang_res)
-            else:
-                winobj.loglabel.setText('')
+            winobj.loglabel.setText(is_allow_lang_res if is_allow_lang_res is not True else '')
             if tts.is_input_api(tts_type=type) is not True:
                 return False
 
-        role_list=['No']
+        role_list = tools.role_menu(type, code)
         winobj.hecheng_role.clear()
-        if change_by_lang(type):
-            return hecheng_language_fun(winobj.hecheng_language.currentText())
-        if type == tts.GOOGLE_TTS:
-            role_list=['No','gtts']
-        elif type == tts.CHATTTS:
-            role_list.extend(list(settings.ChatTTS_voicelist))
-        elif type == tts.OPENAI_TTS:
-            role_list=['No']+params.get('openaitts_role',contants.OPENAITTS_ROLES).split(',')
-        elif type == tts.XAI_TTS:
-            role_list=['No']+contants.XAITTS_ROLES.split(',')
-        elif type == tts.XIAOMI_TTS:
-            role_list=['No']+contants.MITTS_ROLES.split(',')
-        elif type == tts.QWEN_TTS:
-            role_list=list(tools.get_qwen3tts_rolelist().keys())
-        elif type == tts.Supertonic_TTS:
-            role_list=list(tools.get_supertonic_rolelist().keys())
-        elif type == tts.GLM_TTS:
-            role_list=list(tools.get_glmtts_rolelist().keys())
-        elif type == tts.GEMINI_TTS:
-            role_list.extend(contants.GEMINITTS_ROLES.split(','))
-        elif type == tts.ELEVENLABS_TTS:
-            role_list =  tools.get_elevenlabs_role()
-        elif type == tts.CAMB_TTS:
-            role_list = tools.get_camb_role()
-        elif type == tts.CLONE_VOICE_TTS:
-            role_list.extend([it for it in params["clone_voicelist"] if it != 'clone'])
-        elif type == tts.TTS_API:
-            role_list=params['ttsapi_voice_role'].split(",")
-        elif type == tts.GPTSOVITS_TTS:
-            role_list = list(tools.get_gptsovits_role().keys())
-        elif type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,
-                          tts.DIA_TTS,tts.OMNIVOICE_TTS,tts.COSYVOICE_TTS,tts.CHATTERBOX_TTS,tts.FISHTTS,tts.MOSS_TTS,tts.QWEN3LOCAL_TTS]:
-            role_list = list(tools.get_f5tts_role().keys())
         if 'clone' in role_list:
             role_list.remove('clone')
         winobj.hecheng_role.addItems(role_list)
-
 
     def hecheng_language_fun(t):
         tts_type = winobj.tts_type.currentIndex()
@@ -358,63 +304,20 @@ def openwin():
             code = translator.get_code(show_text=t)
             if code and code != '-':
                 is_allow_lang_reg = tts.is_allow_lang(langcode=code, tts_type=tts_type)
-                if is_allow_lang_reg is not True:
-                    winobj.loglabel.setText(is_allow_lang_reg)
-                else:
-                    winobj.loglabel.setText('')
+                winobj.loglabel.setText(is_allow_lang_reg if is_allow_lang_reg is not True else '')
 
-        if not change_by_lang(tts_type):
+        # 角色不随语言变化
+        if tts_type not in tts.CHANGE_BY_LANGUAGE:
             return
 
         winobj.hecheng_role.clear()
-        if t == '-':
+        if t == '-' or not code:
             winobj.hecheng_role.addItems(['No'])
-            return
-        if not code:
-            winobj.hecheng_role.addItems(['No'])
-            return
-        vt = code.split('-')[0] #if code != 'yue' else "zh"
 
-        show_rolelist = {}
-        if tts_type == tts.EDGE_TTS:
-            show_rolelist = tools.get_edge_rolelist()
-        elif tts_type == tts.KOKORO_TTS:
-            show_rolelist = tools.get_kokoro_rolelist()
-        elif tts_type == tts.PIPER_TTS:
-            show_rolelist = tools.get_piper_role()
-        elif tts_type == tts.VITSCNEN_TTS:
-            show_rolelist = tools.get_vits_role()
-        elif tts_type == tts.AI302_TTS:
-            show_rolelist = tools.get_302ai()
-        elif tts_type == tts.DOUBAO2_TTS:
-            show_rolelist = tools.get_doubao2_rolelist()
-        elif tts_type == tts.MINIMAXI_TTS:
-            show_rolelist = tools.get_minimaxi_rolelist()
-        else:  # AzureTTS
-            show_rolelist = tools.get_azure_rolelist()
-
-        if not show_rolelist:
-            winobj.hecheng_language.setCurrentText('-')
-            tools.show_error(tr('nojueselist'))
-            return
-        if vt not in show_rolelist:
-            winobj.hecheng_role.addItems(['No'])
-            return
-        if tts_type == tts.MINIMAXI_TTS:
-            winobj.hecheng_role.addItems(list(show_rolelist[vt].keys()))
-            return
-        if len(show_rolelist[vt]) < 1:
-            winobj.hecheng_language.setCurrentText('-')
-            tools.show_error(tr('waitrole'))
-            return
-        if isinstance(show_rolelist[vt],list):
-            role_list=show_rolelist[vt]
-        else:
-            role_list=list(show_rolelist[vt].keys())
+        role_list = tools.role_menu(tts_type, code)
         if 'clone' in role_list:
             role_list.remove('clone')
         winobj.hecheng_role.addItems(role_list)
-
 
     def hecheng_import_fun():
         fname, _ = QFileDialog.getOpenFileName(winobj, "SRT", params.get('last_opendir', '.'),
@@ -434,8 +337,10 @@ def openwin():
     def show_detail_error():
         if winobj.error_msg:
             tools.show_error(winobj.error_msg)
+
     def check_voice_autorate(state):
         winobj.remove_silent_mid.setVisible(not state)
+
     def check_cuda(state):
         # 选中如果无效，则取消
         if state:
@@ -446,27 +351,31 @@ def openwin():
                 winobj.is_cuda.setDisabled(True)
                 return False
         return True
-    
-    from videotrans.component.set_form import Peiyinformrole
-
 
     winobj = Peiyinformrole()
     app_cfg.child_forms['fn_peiyinrole'] = winobj
     winobj.show()
+
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
-        winobj.voice_autorate.setChecked(params.get('dubb_voice_autorate', False))
-        winobj.save_to_srt.setChecked(params.get('dubb_save_to_srt', False))
-        winobj.hecheng_rate.setValue(params.get('dubb_hecheng_rate', 0))
-        winobj.pitch_rate.setValue(params.get('dubb_pitch_rate', 0))
-        winobj.volume_rate.setValue(params.get('dubb_volume_rate', 0))
-        winobj.is_cuda.setChecked(params.get('dubb_is_cuda', False))
-        winobj.is_cuda.toggled.connect(check_cuda)
-        
+        Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
         if not params.get('dubb_voice_autorate', False):
             winobj.remove_silent_mid.setVisible(True)
-            winobj.remove_silent_mid.setChecked(params.get('dubb_remove_silent_mid', False))
+            winobj.remove_silent_mid.setChecked(bool(params.get('dubb_remove_silent_mid', False)))
 
+        winobj.voice_autorate.setChecked(bool(params.get('dubb_voice_autorate', False)))
+        winobj.save_to_srt.setChecked(bool(params.get('dubb_save_to_srt', False)))
+        winobj.is_cuda.setChecked(bool(params.get('dubb_is_cuda', False)))
+        winobj.hecheng_rate.setValue(int(params.get('dubb_hecheng_rate', 0)))
+        winobj.pitch_rate.setValue(int(params.get('dubb_pitch_rate', 0)))
+        winobj.volume_rate.setValue(int(params.get('dubb_volume_rate', 0)))
+
+        last_tts_type = int(params.get("dubb_tts_type", 0))
+        winobj.tts_type.setCurrentIndex(last_tts_type)
+        winobj.hecheng_language.setCurrentIndex(int(params.get("dubb_source_language", 0)))
+
+        winobj.out_format.setCurrentIndex(int(params.get("dubb_out_format", 0)))
+
+        winobj.is_cuda.toggled.connect(check_cuda)
         winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
         winobj.hecheng_stop.clicked.connect(stop_tts)
@@ -476,14 +385,8 @@ def openwin():
 
         winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)
-
-        last_tts_type = params.get("dubb_tts_type", 0)
-        winobj.tts_type.setCurrentIndex(last_tts_type)
-        tts_type_change(last_tts_type)
-        
         winobj.voice_autorate.toggled.connect(check_voice_autorate)
-        winobj.hecheng_language.setCurrentIndex(params.get("dubb_source_language", 0))
-        winobj.hecheng_role.setCurrentIndex(params.get("dubb_role", 0))
-        winobj.out_format.setCurrentIndex(params.get("dubb_out_format", 0))
+        tts_type_change(last_tts_type)
+        winobj.hecheng_role.setCurrentIndex(int(params.get("dubb_role", 0)))
 
-    QTimer.singleShot(10,_bind)
+    QTimer.singleShot(10, _bind)

@@ -1,4 +1,7 @@
 # 视频 字幕 音频 合并
+from videotrans.task.taskcfg import SignMsg
+
+
 def openwin():
     def format_milliseconds(milliseconds):
         if not isinstance(milliseconds, int):
@@ -20,17 +23,15 @@ def openwin():
 
         return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
 
-    from videotrans.util import contants
-    from PySide6.QtWidgets import QWidget, QLineEdit, QComboBox, QCheckBox, QFileDialog
+    from videotrans.configure import contants
+    from PySide6.QtWidgets import QFileDialog
     import shutil, threading
-    import json
     import os
     import time
     from pathlib import Path
     from PySide6.QtCore import QThread, Signal, QUrl, QTimer
     from PySide6.QtGui import QDesktopServices
-    from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, params, TEMP_DIR, logger, defaulelang, \
-        HOME_DIR
+    from videotrans.configure.config import tr, app_cfg, settings, params, TEMP_DIR, logger, HOME_DIR
     from videotrans.util import tools
 
     RESULT_DIR = HOME_DIR + "/vas"
@@ -38,7 +39,7 @@ def openwin():
     from videotrans.translator import LANGNAME_DICT, get_subtitle_code
 
     class CompThread(QThread):
-        uito = Signal(str)
+        uito = Signal(object)
 
         def __init__(self, *, parent=None, video=None, audio=None, srt=None, saveraw=True, is_soft=False, language=None,
                      maxlen=30, audio_process=0, remain_hr=False):
@@ -59,7 +60,7 @@ def openwin():
             self.is_end = False
 
         def post(self, type='logs', text=''):
-            self.uito.emit(json.dumps({"type": type, "text": text}))
+            self.uito.emit(SignMsg(**{"type": type, "text": text}))
 
         #
         def hebing_pro(self, protxt, video_time=0):
@@ -237,10 +238,10 @@ def openwin():
                     if self.remain_hr:
                         txt_list = []
                         for txt_line in it['text'].strip().split("\n"):
-                            txt_list.append(tools.textwrap(txt_line.strip(), self.maxlen))
+                            txt_list.append(tools.simple_wrap(txt_line.strip(), self.maxlen,self.language))
                         tmp = "\n".join(txt_list)
                     else:
-                        tmp = tools.textwrap(it['text'].strip(), self.maxlen)
+                        tmp = tools.simple_wrap(it['text'].strip(), self.maxlen,self.language)
                     srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
                 tmpsrt = TEMP_DIR + f"/vas-{time.time()}.srt"
                 with Path(tmpsrt).open('w', encoding='utf-8') as f:
@@ -278,13 +279,13 @@ def openwin():
                 self.post(type='ok', text=self.file)
                 self.is_end = True
             except Exception as e:
-                from videotrans.configure._except import get_msg_from_except
+                from videotrans.configure.excepts import get_msg_from_except
                 self.post(type='error', text=get_msg_from_except(e))
 
     def feed(d):
         if winobj.has_done:
             return
-        d = json.loads(d)
+
         if d['type'] == "error":
             winobj.has_done = True
             tools.show_error(d['text'])

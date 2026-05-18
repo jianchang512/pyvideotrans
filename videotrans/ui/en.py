@@ -1,3 +1,5 @@
+import platform
+
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QSizePolicy
@@ -872,6 +874,8 @@ class Ui_MainWindow(object):
         self.menu.addSeparator()
         self.menu.addAction(self.action_textmatching)
         self.menu.addSeparator()
+        self.menu.addAction(self.action_yingyinhebing)
+        self.menu.addSeparator()
         self.menu.addAction(self.actionvideoandaudio)
         self.menu.addSeparator()
         self.menu.addAction(self.actionvideoandsrt)
@@ -942,8 +946,12 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionsrtmultirole)
 
         self.toolBar.addAction(self.action_yingyinhebing)
-        self.toolBar.addAction(self.action_textmatching)
 
+
+
+        if platform.system() == 'Darwin':
+            self.enable_cuda.setChecked(False)
+            self.enable_cuda.hide()
         self._set_Ui_Text()
 
     def _set_Ui_Text(self):

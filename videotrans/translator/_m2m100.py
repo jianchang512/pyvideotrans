@@ -4,7 +4,6 @@ import ctranslate2
 import sentencepiece as spm
 from dataclasses import dataclass
 from typing import List, Union
-
 from videotrans.configure.config import ROOT_DIR
 from videotrans.translator._base import BaseTrans
 import torch
@@ -57,7 +56,6 @@ class M2M100Trans(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-        self.aisendsrt = False
         if not self.source_code or self.source_code=='auto':
             self.from_lang='auto'
         else:
@@ -75,9 +73,6 @@ class M2M100Trans(BaseTrans):
         self.model.load_model()
         self.sentence_piece_processor = spm.SentencePieceProcessor(model_file=f'{ROOT_DIR}/models/m2m100_12b/sentencepiece.model')
         return True
-
-    def _process_callback(self,msg):
-        self.signal(text=msg)
 
     def _unload(self):
         try:
@@ -102,7 +97,6 @@ class M2M100Trans(BaseTrans):
             repetition_penalty=3,
         )
         translated = self.detokenize(list(map(lambda t: t[0]['tokens'], translated_tokenized)), self.to_lang)
-        print(f'{translated=}')
         return "\n".join([it.strip() for it in translated])
 
     def tokenize(self, queries, lang):

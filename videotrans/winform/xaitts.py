@@ -29,7 +29,6 @@ def openwin():
 
     def save():
         key = winobj.xaitts_key.text()
-
         params["xaitts_key"] = key
         params.save()
         winobj.close()

@@ -3,21 +3,15 @@ from pathlib import Path
 from typing import List, Dict, Union
 
 import requests,time
-from videotrans.configure.config import params, logger
+
+from videotrans.configure.excepts import SpeechToTextError, StopTask
+from videotrans.configure.config import params, logger, settings
 from videotrans.recognition._base import BaseRecogn
-
-RETRY_NUMS = 2
-RETRY_DELAY = 10
-
+from videotrans.task.taskcfg import SrtItem
 
 @dataclass
 class GLMASRRecogn(BaseRecogn):
-
-    def __post_init__(self):
-        super().__post_init__()
-
-
-    def _exec(self) -> Union[List[Dict], None]:
+    def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
         # 发送请求
         raws = self.cut_audio()
@@ -27,7 +21,7 @@ class GLMASRRecogn(BaseRecogn):
         err=''
         ok_nums=0
         for i, it in enumerate(raws):
-            files = { "file": (Path(it['file']).name, open(it['file'], "rb")) }
+            files = { "file": (Path(it['filename']).name, open(it['filename'], "rb")) }
             payload = {
                 "model": "glm-asr-2512",
                 "stream": "false"
@@ -35,10 +29,12 @@ class GLMASRRecogn(BaseRecogn):
             headers = {"Authorization": f"Bearer {apikey}"}
             retry=0
             while 1:
-                if retry>=RETRY_NUMS:
+                if retry>=settings.get('retry_nums'):
                     it['text']=''
                     break
                 response = requests.post(url, data=payload, files=files, headers=headers)
+                if response.status_code in [401,403,404,422]:
+                    raise StopTask(response.text)
                 retry+=1
                 if response.status_code==200:                    
                     it['text']=response.json()['text'].strip()
@@ -53,15 +49,15 @@ class GLMASRRecogn(BaseRecogn):
                 try:
                     err_json=response.json()
                 except:
-                    raise RuntimeError(response.text)
+                    raise SpeechToTextError(response.text)
                 else:
                     logger.error(err_json)
                     code=str(err_json['error']['code'])
                     if code in ["1302","1303","1214"]:
                         time.sleep(5)
                         continue
-                    raise RuntimeError(err_json['error']['message'])                    
+                    raise SpeechToTextError(err_json['error']['message'])
 
         if ok_nums<1:
-            raise RuntimeError(err)
+            raise SpeechToTextError(err)
         return raws

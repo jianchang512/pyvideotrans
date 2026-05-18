@@ -2,7 +2,7 @@ import multiprocessing,os
 from videotrans.configure.config import app_cfg,settings,logger
 
 # ==========================================
-# 增加一个包装类：用来兼容调用方对 Future 对象的习惯 (.result())
+# 包装类：用来兼容调用方对 Future 对象的习惯 (.result())
 # ==========================================
 class AsyncResultFutureWrapper:
     def __init__(self, async_result):
@@ -47,7 +47,7 @@ class GlobalProcessManager:
         cpu_count=int(os.cpu_count())
         try:
             process_max_gpu=int(float(settings.get('process_max_gpu',0)))
-        except:
+        except ValueError:
             process_max_gpu=0
         # 手动设置了gpu进程数量，则优先级最高,例如虽然只有一卡，但显存特别大，可手动设置多个gpu进程
         if process_max_gpu>0:
@@ -62,13 +62,10 @@ class GlobalProcessManager:
 
     @classmethod
     def get_executor_cpu(cls):
-        """
-        """
         if cls._executor_cpu is None:
             ctx = multiprocessing.get_context('spawn')
             max_workers=cls.get_cpu_process_nums()
             logger.debug(f'CPU进程池:{max_workers=}')
-            #cls._executor_cpu = ProcessPoolExecutor(max_workers=int(max_workers), mp_context=ctx)
             cls._executor_cpu = ctx.Pool(
                 processes=int(max_workers), 
                 maxtasksperchild=1  # <--- CPU 也让它跑完就死，彻底释放物理内存
@@ -84,7 +81,6 @@ class GlobalProcessManager:
             ctx = multiprocessing.get_context('spawn')
             max_workers=cls.get_gpu_process_nums()
             logger.debug(f'GPU进程池:{max_workers=}')
-            #cls._executor_gpu = ProcessPoolExecutor(max_workers=int(max_workers), mp_context=ctx)
             cls._executor_gpu = ctx.Pool(
                 processes=int(max_workers), 
                 maxtasksperchild=1
@@ -97,16 +93,13 @@ class GlobalProcessManager:
         _executor=cls.get_executor_cpu()
         async_result = _executor.apply_async(func, kwds=kwargs)
         return AsyncResultFutureWrapper(async_result)
-        #return _executor.submit(func, **kwargs)
 
     @classmethod
     def submit_task_gpu(cls, func, **kwargs):
         _executor=cls.get_executor_gpu()
         # Pool 提交任务的方法是 apply_async，且需要指定 kwds 关键字参数
         async_result = _executor.apply_async(func, kwds=kwargs)
-        # 返回我们写的包装类，这样主逻辑拿到后依然可以写 future.result()
         return AsyncResultFutureWrapper(async_result)
-        #return _executor.submit(func, **kwargs)
 
     @classmethod
     def shutdown(cls):
@@ -114,10 +107,8 @@ class GlobalProcessManager:
             cls._executor_cpu.close()
             cls._executor_cpu.join()
             cls._executor_cpu = None
-            #cls._executor_cpu.shutdown(wait=True)
         if cls._executor_gpu:
             cls._executor_gpu.close()
             cls._executor_gpu.join()
             cls._executor_gpu = None
-            #cls._executor_gpu.shutdown(wait=True)
 

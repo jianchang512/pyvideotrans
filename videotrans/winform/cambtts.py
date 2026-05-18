@@ -20,6 +20,7 @@ def openwin():
         params['camb_api_key'] = key
         params['camb_speech_model'] = model
         params.save()
+        tools.set_process(text='', type="refreshtts")
         winobj.close()
 
     def test():
@@ -54,7 +55,7 @@ def openwin():
             winobj.test.setText(tr("Testing..."))
 
         except Exception as e:
-            from videotrans.configure._except import get_msg_from_except
+            from videotrans.configure.excepts import get_msg_from_except
             tools.show_error(get_msg_from_except(e))
 
     from videotrans.component.set_form import CambTTSForm

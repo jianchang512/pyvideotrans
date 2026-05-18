@@ -2,7 +2,6 @@
 import json
 import logging
 import os
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Union
@@ -10,12 +9,9 @@ from typing import List, Union
 import httpx
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
-from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import params, logger, ROOT_DIR, settings
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, StopTask
 from videotrans.translator._base import BaseTrans
-
-RETRY_NUMS = 3
-RETRY_DELAY = 5
 
 
 def _get_camb_lang_id(langcode):
@@ -60,21 +56,13 @@ def refresh_camb_languages():
 
 @dataclass
 class CambTranslator(BaseTrans):
-    def __post_init__(self):
-        super().__post_init__()
-        self.aisendsrt = True
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit():
             return
-        if isinstance(data, list):
-            text = "\n".join([i.strip() for i in data])
-        else:
-            text=data
-        
+
+        text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         source_id = _get_camb_lang_id(self.source_code)
         target_id = _get_camb_lang_id(self.target_code)
 
@@ -124,5 +112,5 @@ class CambTranslator(BaseTrans):
         except Exception as e:
             err_str = str(e)
             if '401' in err_str or '403' in err_str or 'Unauthorized' in err_str:
-                raise StopRetry(err_str)
+                raise StopTask(err_str)
             raise

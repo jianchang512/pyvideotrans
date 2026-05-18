@@ -39,7 +39,7 @@ def openwin():
                          tts_type=tts.MINIMAXI_TTS)
         wk.uito.connect(feed)
         wk.start()
-        tools.set_process(text='minimaxi', type="refreshtts")
+        tools.set_process(text='', type="refreshtts")
 
     def save():
 
@@ -56,7 +56,7 @@ def openwin():
         params["minimaxi_apikey"] = apikey
         params["minimaxi_model"] = model
         params.save()
-        tools.set_process(text='minimaxi', type="refreshtts")
+        tools.set_process(text='', type="refreshtts")
         winobj.close()
 
     def updaterole():
@@ -91,7 +91,7 @@ def openwin():
                 filejson=ROOT_DIR + "/videotrans/voicejson/minimaxiio.json"
             with open(filejson,'w',encoding='utf-8') as f:
                 f.write(json.dumps(raws,ensure_ascii=False))
-            tools.set_process(text='minimaxi', type="refreshtts")
+            tools.set_process(text='', type="refreshtts")
         except (OSError,json.JSONDecodeError):
             pass
             

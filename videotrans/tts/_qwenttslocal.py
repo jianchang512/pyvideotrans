@@ -1,12 +1,11 @@
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-
 import json
-
 from videotrans import translator
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
+from videotrans.configure.config import ROOT_DIR,params,TEMP_DIR,defaulelang
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from videotrans.process import qwen3tts_fun
@@ -17,11 +16,7 @@ class QwenttsLocal(BaseTTS):
         super().__post_init__()
         self.model_name="1.7B"
         _langnames = translator.LANG_CODE.get(self.language, [])
-        if _langnames and len(_langnames) >= 10:
-            self.target_language = _langnames[9]
-        else:
-            self.target_language = 'Auto'
-        self.target_language=self.target_language.capitalize()
+        self.target_language = _langnames[9].capitalize() if _langnames and len(_langnames) >= 10 else 'Auto'
 
     
     def _download(self):
@@ -34,9 +29,7 @@ class QwenttsLocal(BaseTTS):
 
 
     def _exec(self):
-        Path(f'{TEMP_DIR}/{self.uuid}').mkdir(parents=True,exist_ok=True)
         logs_file = f'{TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
-        
         queue_tts_file = f'{TEMP_DIR}/{self.uuid}/queuetts-{time.time()}.json'
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
         title="Qwen3-TTS"
@@ -51,10 +44,10 @@ class QwenttsLocal(BaseTTS):
             "prompt":params.get('qwenttslocal_prompt', '')
         }
         self._new_process(callback=qwen3tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
-    
+
         self.signal(text=f'convert wav')
         all_task = []
-        from concurrent.futures import ThreadPoolExecutor
+
         with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:
             for item in self.queue_tts:
                 filename=item.get('filename','')+"-qwen3tts.wav"

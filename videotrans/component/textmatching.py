@@ -11,9 +11,9 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                                QComboBox, QCheckBox,  QMessageBox)
 from PySide6.QtCore import Qt, QThread, Signal, Slot, QSettings, QUrl
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.configure.config import ROOT_DIR, settings, TEMP_DIR, defaulelang
 from videotrans.util import tools
-from videotrans.util.contants import FASTER_MODELS_DICT
+from videotrans.configure.contants import FASTER_MODELS_DICT
 
 # ==========================================
 # 1. 多语言配置区域

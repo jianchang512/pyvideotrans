@@ -58,6 +58,15 @@ FASTER_MODELS_DICT= {
     "large-v3-turbo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
     "turbo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
 }
+# 中日韩 泰国语 高棉语 粤语 不使用空格
+CJK_LANG=["zh","ja","ko","yu","th","km","yue"]
+# 常见标点
+PUNC_FLAGS = [",", ".", "?", "!", ";", "，", "。", "？", "；", "！"]
+# 逗号等软性标点
+PUNC_FLAGS_HALF = [",", "，", "-", "、", ":", "："]
+# 句子终止标点
+PUNC_FLAGS_END = [".", "。", "?", "？", "!", "！"]
+NON_WORD = r"""^[,.?!;'"_，。？；‘’“”！~@#￥%…&*（【】）｛｝《、》$()\[\]{}=+<>\s-]+$"""
 
 # 不使用代理的域名
 _no_proxy_list = [
@@ -96,6 +105,7 @@ _no_proxy_list = [
     # --- 本地回环 (涵盖所有端口：7860, 8000, 9880, 5051等) ---
     "localhost",
     "127.0.0.1",
+    "127.0.0.2",
     "0.0.0.0",
 ]
 no_proxy = ",".join(_no_proxy_list)
@@ -122,15 +132,15 @@ AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a","ogg"]
 
 ChatTTS_VOICE="11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
 # openai-tts音色
-OPENAITTS_ROLES = "No,alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
+OPENAITTS_ROLES = "alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
 XAITTS_ROLES='eve,ara,rex,sal,leo'
 MITTS_ROLES='mimo_default,default_zh,冰糖,茉莉,苏打,白桦,Mia,Milo,Dean,Chloe,default_en'
 # 缺省 gemini 模型
 DEFAULT_GEMINI_MODEL = "gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash"
 # gemini-tts 音色
-GEMINITTS_ROLES = "No,Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
+GEMINITTS_ROLES = "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
 
-GEMINI_TTS_MODELS=[ "gemini-3.1-flash-tts-preview","gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts" ]
+GEMINI_TTS_MODELS="gemini-3.1-flash-tts-preview,gemini-2.5-flash-preview-tts,gemini-2.5-pro-preview-tts"
 
 Whisper_cpp_models="ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
 Whisper_net_models=Whisper_cpp_models
@@ -150,10 +160,12 @@ Openrouter_Model="minimax/minimax-m2.7,z-ai/glm-5,qwen/qwen3-max-thinking,moonsh
 Guiji_Model="Pro/zai-org/GLM-5.1,Pro/zai-org/GLM-5,Pro/moonshotai/Kimi-K2.6,Qwen/Qwen3.6-35B-A3B,MiniMaxAI/MiniMax-M2.5"
 Ai302_Models="deepseek-v4-pro,deepseek-v4-flash"
 Zijiehuoshan_Model="doubao-seed-2-0-pro-260215,doubao-seed-2-0-lite-260215,doubao-seed-2-0-mini-260215"
+
 Whisper_Models="tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3,distil-large-v3.5"
-Openai_Whisper_Models=["tiny","tiny.en","base","base.en","small","small.en","medium","medium.en","large-v3-turbo","large-v1","large-v2","large-v3"]
+Openai_Whisper_Models="tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3"
+
 MINIMAX_MODELS="MiniMax-M2.7,MiniMax-M2.7-highspeed,MiniMax-M2.5,MiniMax-M2.5-highspeed"
-MINIMAX_TTS_MODELS=["speech-2.8-hd","speech-2.8-turbo","speech-2.6-hd","speech-2.6-turbo","speech-02-hd","speech-02-turbo"]
+MINIMAX_TTS_MODELS="speech-2.8-hd,speech-2.8-turbo,speech-2.6-hd,speech-2.6-turbo,speech-02-hd,speech-02-turbo"
 
 
 ELEVENLABS_TTS_MODELS="eleven_v3,eleven_flash_v2_5,eleven_flash_v2,eleven_multilingual_v2,eleven_multilingual_v1"
@@ -166,3 +178,10 @@ XIAOMI_TTS_MODELS='mimo-v2.5-tts,mimo-v2-tts'
 INSTALL_RUBBERBAND_TIPS="""Windows: For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip
 Darwin: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm
 Linux: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm"""
+
+
+END_STATUS="end"
+ERROR_STATUS="error"
+SUCCEED_STATUS="succeed"
+STOP_STATUS="stop"
+ING_STATUS="ing"

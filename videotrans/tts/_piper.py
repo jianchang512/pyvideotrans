@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger
+from videotrans.configure.excepts import DubbingSrtError
+from videotrans.configure.config import ROOT_DIR,app_cfg,logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 import wave
@@ -12,8 +13,7 @@ class PiperTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        rate=1/(1+float(self.rate.replace('%',''))/100)
-        self.rate=round(rate,1)
+        self.speed=self.get_speed()
         self.device="cpu"# todo cuda
         
     def _get_model_from_name(self,name):
@@ -45,9 +45,10 @@ class PiperTTS(BaseTTS):
             role_model[it['role']]=self._get_model_from_name(it['role'])
 
         syn_config = SynthesisConfig(
-            length_scale=float(self.rate),  # twice as slow
+            length_scale=self.speed,  # twice as slow
         )
         ok, err = 0, 0
+        _except=None
         for i, item in enumerate(self.queue_tts):
             if app_cfg.exit_soft:return
             if not item.get('text','').strip():
@@ -65,17 +66,11 @@ class PiperTTS(BaseTTS):
                     continue
                 ok+=1
                 self.convert_to_wav(item['filename']+'-24k.wav',item['filename'])
-                self.error=''
+                self.signal(text=f"Dubbing {ok}")
             except Exception as e:
-                logger.exception(f'piper dubbing error:{e}',exc_info=True)
+                logger.exception(f'piper dubbing error',exc_info=True)
                 err+=1
-                self.error=e
-
-        if err > 0:
-            msg=f'[{err}] errors, {ok} succeed'
-            self.signal(text=msg)
-            logger.debug(f'piper配音结束：{msg}')
-            
+                _except=e
 
         try:
             del _model_obj
@@ -83,3 +78,15 @@ class PiperTTS(BaseTTS):
             gc.collect()
         except:
             pass
+
+        if ok==0:
+            raise _except if _except else DubbingSrtError('piper dubbing error')
+
+        msg="Dubbing ended"
+        if err > 0 and ok>0:
+            msg=f'[{err}] errors, {ok} succeed'
+
+        self.signal(text=msg)
+        logger.debug(f'piper配音结束：{msg}')
+
+

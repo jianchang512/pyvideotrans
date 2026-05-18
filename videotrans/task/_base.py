@@ -1,11 +1,12 @@
-
+import copy
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
-
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
-from videotrans.configure._base import BaseCon
-from videotrans.task.taskcfg import TaskCfgBase
+from typing import List, Union
+from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR
+from videotrans.configure.base import BaseCon
+from videotrans.configure.excepts import DubbingSrtError, VideoTransError
+from videotrans.task.taskcfg import TaskCfgBase, SrtItem
 from videotrans.util import tools
 
 
@@ -19,22 +20,14 @@ class BaseTask(BaseCon):
     queue_tts: List = field(default_factory=list, repr=False)
     # 是否已结束
     hasend: bool = False
-
-    # 名字规范化处理后，应该删除的文件名字
-    shound_del_name: str = None
-
     # 是否需要语音识别
     shoud_recogn: bool = False
-
     # 是否需要字幕翻译
     shoud_trans: bool = False
-
     # 是否需要配音
     shoud_dubbing: bool = False
-
     # 是否需要人声分离
     shoud_separate: bool = False
-
     # 是否需要嵌入配音或字幕
     shoud_hebing: bool = False
 
@@ -50,7 +43,7 @@ class BaseTask(BaseCon):
     # 语音识别创建原始语言字幕
     def recogn(self):
         pass
-    
+
     # 说话人识别，Funasr/豆包语音识别大模型 /Deepgram 除外，再判断是否已有说话人，Gemini/openai gpt4-dia 会生成说话人
     def diariz(self):
         pass
@@ -75,116 +68,104 @@ class BaseTask(BaseCon):
     def task_done(self):
         pass
 
-    # 字幕是否存在并且有效
-    def _srt_vail(self, file):
-        if not file:
-            return False
-        if not tools.vail_file(file):
-            return False
-        try:
-            tools.get_subtitle_from_srt(file)
-        except Exception:
-            try:
-                Path(file).unlink(missing_ok=True)
-            except OSError:
-                pass
-            return False
-        return True
-
     # 删掉尺寸为0的无效文件
-    def _unlink_size0(self, file):
-        if not file:
-            return
-        p = Path(file)
-        if p.exists() and p.stat().st_size == 0:
-            p.unlink(missing_ok=True)
+    def _unlink_size0(self, file: Union[str, List[str]]):
+        if not file: return
+        files = [file] if isinstance(file, str) else file
+        for f in files:
+            p = Path(f)
+            if p.exists() and p.stat().st_size == 0:
+                p.unlink(missing_ok=True)
 
     # 保存字幕文件 到目标文件夹
-    def _save_srt_target(self, srtstr, file):
-        # 是字幕列表形式，重新组装
+    def _save_srt_target(self, srtstr: List[SrtItem], file: str):
         try:
             txt = tools.get_srt_from_list(srtstr)
-            with open(file, "w", encoding="utf-8",errors="ignore") as f:
+            with open(file, "w", encoding="utf-8", errors="ignore") as f:
                 f.write(txt)
-        except Exception:
-            raise
-        self.signal(text=Path(file).read_text(encoding='utf-8',errors="ignore"), type='replace_subtitle')
+        except Exception as e:
+            raise VideoTransError(f'保存字幕前格式化srt失败:{file=}') from e
+
+        self.signal(text=Path(file).read_text(encoding='utf-8', errors="ignore"), type='replace_subtitle')
         return True
 
-    def _check_target_sub(self, source_srt_list, target_srt_list):
-        import re, copy
+    def check_target_sub(self, source_srt_list: List[SrtItem], target_srt_list: List[SrtItem]) -> List[SrtItem]:
         if len(source_srt_list) == 1 or len(target_srt_list) == 1:
             target_srt_list[0]['line'] = 1
             return target_srt_list[:1]
         source_len = len(source_srt_list)
         target_len = len(target_srt_list)
-        
-        if source_len==target_len:
-            for i,it in enumerate(source_srt_list):
+
+        if source_len == target_len:
+            for i, it in enumerate(source_srt_list):
                 tmp = copy.deepcopy(it)
-                tmp['text']=target_srt_list[i]['text']
-                target_srt_list[i]=tmp
+                tmp['text'] = target_srt_list[i]['text']
+                target_srt_list[i] = tmp
             return target_srt_list
 
-        if target_len>source_len:
+        if target_len > source_len:
             logger.debug(f'翻译结果行数大于原始字幕行，截取0-{source_len}')
             return target_srt_list[:source_len]
-        
-        
+
         logger.debug(f'翻译结果行数少于原始字幕行，追加')
-        for i,it in enumerate(source_srt_list):
-            if i>=target_len:
-                tmp=copy.deepcopy(it)
-                tmp['text']=' '
+        for i, it in enumerate(source_srt_list):
+            if i >= target_len:
+                tmp = copy.deepcopy(it)
+                tmp['text'] = ' '
                 target_srt_list.append(tmp)
         return target_srt_list
-        
 
     # 手动调用设为结束，成功完成或出错时
-    def set_end(self,succeed=False):
-        self.hasend=True
+    def set_end(self, succeed=False):
+        self.hasend = True
         if succeed:
             self.precent = 100
+            if self.uuid in app_cfg.stoped_uuid_set:
+                return
             self.signal(text=f"{self.cfg.name}", type='succeed')
-            tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
+            if app_cfg.exec_mode=="cli":
+                print(f'Save to:[ {self.cfg.target_dir} ]')
+            else:
+                tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
+            # 清理临时文件
+            try:
+                shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
+            except Exception as e:
+                logger.exception(f'任务结束后清理临时文件失败，跳过,{e}:{self.cfg.cache_folder=}', exc_info=True)
         app_cfg.stoped_uuid_set.add(self.uuid)
 
-    async def _edgetts_single(self,target_audio,kwargs):
+    async def _edgetts_single(self, target_audio, kwargs):
         from edge_tts import Communicate
-        from edge_tts.exceptions import NoAudioReceived
-        import aiohttp,asyncio
         from io import BytesIO
-        
-        useproxy_initial = None if not self.proxy_str or Path(f'{ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
+
+        useproxy_initial = None if not self.proxy_str or Path(
+            f'{ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
         proxies_to_try = [useproxy_initial]
         if useproxy_initial is not None:
             proxies_to_try.append(None)
-        last_exception = None
+
         for proxy in proxies_to_try:
             try:
                 audio_buffer = BytesIO()
                 communicate_task = Communicate(
-                            text=kwargs['text'],
-                            voice=kwargs['voice'],
-                            rate=kwargs['rate'],
-                            volume=kwargs['volume'],
-                            proxy=proxy,
-                            pitch=kwargs['pitch']
-                        )
-                idx=0
+                    text=kwargs['text'],
+                    voice=kwargs['voice'],
+                    rate=kwargs['rate'],
+                    volume=kwargs['volume'],
+                    proxy=proxy,
+                    pitch=kwargs['pitch']
+                )
+                idx = 0
                 async for chunk in communicate_task.stream():
                     if chunk["type"] == "audio":
                         audio_buffer.write(chunk["data"])
                         self.signal(text=f'{idx} segment')
-                        idx+=1
-                audio_buffer.seek(0)        
+                        idx += 1
+                audio_buffer.seek(0)
                 from pydub import AudioSegment
-                au=AudioSegment.from_file(audio_buffer,format="mp3")
-                au.export(target_audio,format='mp3')
+                au = AudioSegment.from_file(audio_buffer, format="mp3")
+                au.export(target_audio, format='mp3')
                 return
-            except (NoAudioReceived, aiohttp.ClientError) as e:
-                last_exception = e
-            except Exception:
-                raise
-        raise last_exception if last_exception else RuntimeError(f'Dubbing error')
-
+            except Exception as e:
+                raise DubbingSrtError(f'edge-tts error:{target_audio=}') from e
+        raise DubbingSrtError(f'Dubbing error')

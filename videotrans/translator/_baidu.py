@@ -7,26 +7,16 @@ from typing import List, Union
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import tr,settings,params,app_cfg,logger
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import settings,params,logger
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError, StopTask
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
-
-RETRY_NUMS = 3
-RETRY_DELAY = 5
 
 
 @dataclass
 class Baidu(BaseTrans):
 
-    def __post_init__(self):
-        super().__post_init__()
-        self.aisendsrt = False
-
-
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join(data)
@@ -50,9 +40,9 @@ class Baidu(BaseTrans):
 
         if "error_code" in res or "trans_result" not in res or len(res['trans_result']) < 1:
             logger.debug(f'Baidu 返回响应:{resraw}')
-            raise RuntimeError('请检查appid是否正确，或是否已开通对应服务服务是否开通' if int(res.get('error_code',0))==52003 else res['error_msg'])
+            raise StopTask('请检查appid是否正确，或是否已开通对应服务服务是否开通' if int(res.get('error_code',0))==52003 else res['error_msg'])
 
         result = [tools.cleartext(tres['dst']) for tres in res['trans_result']]
         if not result or len(result) < 1:
-            raise RuntimeError(f'no result:{res=}')
+            raise TranslateSrtError(f'no result:{res=}')
         return "\n".join(result)

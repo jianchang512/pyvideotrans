@@ -18,7 +18,7 @@ def openwin():
         _rolename = next(reversed(tools.get_f5tts_role().values()))
         if not isinstance(_rolename,dict):
             return tools.show_error(tr("No reference audio {} exists",_rolename))
-        rolename=_rolename.get('ref_audio')
+        rolename=_rolename.get('ref_wav')
         file=ROOT_DIR+f'/f5-tts/{rolename}'
         if not Path(file).exists():
             return tools.show_error(tr("No reference audio {} exists",file))
@@ -45,7 +45,7 @@ def openwin():
         params["fishtts_url"] = url
 
         params.save()
-        tools.set_process(text='fishtts', type="refreshtts")
+        tools.set_process(text='', type="refreshtts")
         winobj.close()
 
     from videotrans.component.set_form import FishTTSForm

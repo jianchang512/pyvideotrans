@@ -1,14 +1,16 @@
 import re
+from typing import Union
 
 import aiohttp
 import requests
 from elevenlabs.core import ApiError as ApiError_11
 from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
-    APIConnectionError, APIError, ContentFilterFinishReasonError, InternalServerError, LengthFinishReasonError
+    APIConnectionError, APIError, ContentFilterFinishReasonError, InternalServerError, LengthFinishReasonError, \
+    UnprocessableEntityError
 from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, \
     Timeout, ConnectionError as ReqConnectionError, RetryError, HTTPError
 from deepgram.clients.common.v1.errors import DeepgramApiError
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, defaulelang
+from videotrans.configure.config import defaulelang
 import httpx, httpcore
 from tenacity import RetryError as TenRetryError
 
@@ -27,7 +29,7 @@ class TranslateSrtError(VideoTransError):
     pass
 
 
-class DubbSrtError(VideoTransError):
+class DubbingSrtError(VideoTransError):
     pass
 
 
@@ -35,43 +37,54 @@ class SpeechToTextError(VideoTransError):
     pass
 
 
+class LLMSegmentError(VideoTransError):
+    pass
+
+class FFmpegError(VideoTransError):
+    pass
+
+
+# 出现该类异常时，需要立即停止任务
+class StopTask(VideoTransError):
+    pass
+
+
 class StopRetry(VideoTransError):
     pass
 
 
-# 无需继续重试的异常
+# 不可恢复，无需继续重试的异常
 NO_RETRY_EXCEPT = (
-    TooManyRedirects,  # 重定向次数过多
-    MissingSchema,  # URL 缺少协议 (如 "http://")
-    InvalidSchema,  # URL 协议无效
-    InvalidURL,  # URL 格式无效
-    SSLError,  # SSL 证书验证失败
-
-    # 连接问题，检查网络或尝试设置代理
-    RetryError,
-    ReqConnectionError,
     ConnectionError,
-    ConnectionRefusedError,  # 连接被拒绝
-    ConnectionResetError,  # 连接被重置
-    ConnectionAbortedError,  #
 
-    httpx.ConnectError,
-    httpx.ReadError,
-
+    TooManyRedirects,  # 重定向次数过多
+    InvalidURL,  # URL 格式无效
     # 代理错误
     ProxyError,
+    MissingSchema,
+    InvalidSchema,
+    SSLError,
+    ReqConnectionError,
+
+    httpx.ProxyError,
+    httpx.ConnectError,
+    httpx.InvalidURL,
+    httpx.LocalProtocolError,
+    httpx.ProtocolError,
+    httpx.TooManyRedirects,
+    httpx.UnsupportedProtocol,
 
     # openai 库的永久性错误 (通常是 4xx 状态码)
     AuthenticationError,  # 401 认证失败 (API Key 错误)
     PermissionDeniedError,  # 403 无权限访问该模型
     NotFoundError,  # 404 找不到资源 (例如模型名称错误)
     BadRequestError,  # 400 错误请求 (例如输入内容过长、参数无效等)
-
+    UnprocessableEntityError,#422
     LengthFinishReasonError,
-    RateLimitError,
 
     DeepgramApiError,
-    StopRetry
+    StopRetry,
+    StopTask
 )
 
 """检查错误信息中是否包含本地地址"""
@@ -193,7 +206,7 @@ def _handle_connection_error_detail(error, lang):
 
 
 # 根据异常类型，返回整理后的可读性错误消息
-def get_msg_from_except(ex):
+def get_msg_from_except(ex:Exception)->str:
     if isinstance(ex, VideoTransError):
         return str(ex)
 
@@ -245,43 +258,17 @@ def get_msg_from_except(ex):
             else "Secure connection failed, check system time or network settings"
         ),
 
-        Timeout: lambda e: (
-            _handle_connection_error_detail(e, lang)
-        ),
-
-        HTTPError: lambda e: f'{e}',
-
-        RetryError: lambda e: (
-            "重试多次后仍然失败，请检查网络连接或服务状态" if lang == 'zh'
-            else "Failed after multiple retries, check network connection or service status"
-        ),
-        # === 网络连接问题 ===
-        (httpcore.ConnectTimeout, httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadError): lambda e: (
-            _handle_connection_error_detail(e, lang)
-        ),
+        (HTTPError, RetryError): lambda e: f'{e}',
 
         DeepgramApiError: lambda e: e.message if hasattr(e, 'message') else str(e),
-
         ApiError_11: lambda e: e.body.get('detail', {}).get('message', e.body) if hasattr(e, 'body') else str(e),
-
-        ConnectionRefusedError: lambda e: (
+        # === 网络连接问题 ===
+        (ReqConnectionError, ConnectionError, ConnectionResetError, ConnectionRefusedError, ConnectionAbortedError,
+         httpcore.ConnectTimeout, httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadError, Timeout): lambda e: (
             _handle_connection_error_detail(e, lang)
         ),
 
-        ConnectionResetError: lambda e: (
-            _handle_connection_error_detail(e, lang)
-        ),
-
-        ConnectionAbortedError: lambda e: (
-            "连接意外中断，请检查网络稳定性" if lang == 'zh'
-            else "Connection aborted unexpectedly, check network stability"
-        ),
-        (ReqConnectionError, ConnectionError): lambda e: (
-            _handle_connection_error_detail(e, lang)
-        ),
-        requests.exceptions.RequestException: lambda e: f'{e}',
-
-        RuntimeError: lambda e: (f"{e}" if lang == 'zh' else f"{e}"),
+        (RuntimeError, ValueError, requests.exceptions.RequestException): lambda e: f"{e}",
 
         FileNotFoundError: lambda e: (
             f"文件不存在：{getattr(e, 'filename', '')}" if lang == 'zh'
@@ -323,11 +310,6 @@ def get_msg_from_except(ex):
         UnicodeDecodeError: lambda e: (
             f"文件或数据解码失败，编码格式错误：{e.reason}" if lang == 'zh'
             else f" {e.reason}"
-        ),
-
-        ValueError: lambda e: (
-            f"无效的值或参数：{e}" if lang == 'zh'
-            else f"{e}"
         ),
 
         # === 程序内部错误 ===
@@ -379,43 +361,21 @@ def get_msg_from_except(ex):
     ]):
         return _handle_connection_error_detail(ex, lang)
 
-    # 尝试从异常对象中提取更具体的信息
-    if hasattr(ex, 'error') and ex.error:
-        if isinstance(ex.error, dict):
-            error_msg = str(ex.error.get('message', ex.error))
-        else:
-            error_msg = str(ex.error)
-        return (
-            f"错误详情：{error_msg}" if lang == 'zh'
-            else f"Error details: {error_msg}"
-        )
-
-    if hasattr(ex, 'message') and ex.message:
-        return str(ex.message)
-
+    _msg = None
     if hasattr(ex, 'detail') and ex.detail:
-        if isinstance(ex.detail, dict):
-            message = ex.detail.get('message')
-            if message:
-                return str(message)
-            error_info = ex.detail.get('error')
-            if error_info:
-                if isinstance(error_info, dict):
-                    return str(error_info.get('message', error_info))
-                return str(error_info)
-        return str(ex.detail)
+        _msg = ex.detail
+    elif hasattr(ex, 'body') and ex.body:
+        _msg = ex.body
+    elif hasattr(ex, 'error'):
+        _msg = ex.error
 
-    if hasattr(ex, 'body') and ex.body:
-        if isinstance(ex.body, dict):
-            message = ex.body.get('message')
-            if message:
-                return str(message)
-            error_info = ex.body.get('error')
-            if error_info:
-                if isinstance(error_info, dict):
-                    return str(error_info.get('message', error_info))
-                return str(error_info)
-        return str(ex.body)
-
+    if _msg and isinstance(_msg, dict):
+        if message := _msg.get('message'):
+            return str(message)
+        if error_info := _msg.get('error'):
+            if isinstance(error_info, dict):
+                return str(error_info.get('message', error_info))
+            return str(error_info)
+        return str(_msg)
     # 默认错误消息
     return ''

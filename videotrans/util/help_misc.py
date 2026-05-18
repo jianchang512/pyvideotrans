@@ -1,13 +1,17 @@
 import hashlib
+import json
 import os,re
 import platform
 import subprocess
 import sys
 import time
+from dataclasses import is_dataclass, asdict
 from pathlib import Path
 
 from videotrans.configure.config import tr,  app_cfg, logger, ROOT_DIR,  defaulelang,  push_queue
-import tqdm 
+import tqdm
+
+from videotrans.task.taskcfg import SignMsg
 
 
 def create_tqdm_class(callback):
@@ -346,19 +350,16 @@ def read_last_n_lines(filename, n=100):
 # type=logs|error|subtitle|end|stop|succeed|set_precent|replace_subtitle|.... 末尾显示类型，
 # uuid 任务的唯一id，用于确定插入哪个子队列
 def set_process(*, text="", type="logs", uuid=None):
-
     if app_cfg.exit_soft:
         return
-
     try:
         if text:
             text = text.replace('\\n', ' ')
-        if type == 'logs':
-            text = text[:150]
+
         if app_cfg.exec_mode=='cli':
             print(text)
             return
-        log = {"text": text, "type": type, "uuid": uuid}
+        log = SignMsg(**{"text": text, "type": type, "uuid": uuid})
         push_queue(uuid or "", log)
     except Exception as e:
         logger.exception(f'set_process：{e}',exc_info=True)
@@ -415,4 +416,36 @@ def set_proxy(set_val=''):
     except Exception:
         pass
     return None
+
+
+def process_openai_api(url=""):
+    if not url:
+        return "https://api.openai.com/v1"
+    if not url.startswith('http'):
+        url = 'http://' + url
+
+    # 删除末尾 /
+    url = url.rstrip('/').lower()
+    if url.find(".openai.com") > -1:
+        return "https://api.openai.com/v1"
+
+    if url.endswith('/v1'):
+        return url
+
+    # 存在 /v1/xx的，改为 /v1
+    if url.find('/v1/chat/') > -1:
+        return re.sub(r'/v1.*$', '/v1', url, flags=re.I | re.S)
+
+    return url
+
+
+# 序列化
+
+def serial(data:object)->str:
+    if not isinstance(data,list):
+        return json.dumps(asdict(data) if is_dataclass(data) else data)
+    _newlist=[]
+    for it in data:
+        _newlist.append(asdict(it) if is_dataclass(it) else it)
+    return json.dumps(_newlist)
 

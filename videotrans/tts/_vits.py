@@ -1,22 +1,25 @@
-
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
+
+from videotrans.configure.excepts import DubbingSrtError
+from videotrans.configure.config import ROOT_DIR, app_cfg, logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 import sherpa_onnx
 import soundfile as sf
 
-_model_obj={}
-#用于多进程
-def _t(role,device='cpu'):
-    sid=0
-    tts_config=None
-    if role=='en_female':# matcha english
+_model_obj = {}
+
+
+# 用于多进程
+def _t(role, device='cpu'):
+    sid = 0
+    tts_config = None
+    if role == 'en_female':  # matcha english
         tts_config = sherpa_onnx.OfflineTtsConfig(
             model=sherpa_onnx.OfflineTtsModelConfig(
-               matcha=sherpa_onnx.OfflineTtsMatchaModelConfig(
-                    acoustic_model=f'{ROOT_DIR}/models/vits/{role}/model.onnx' ,
+                matcha=sherpa_onnx.OfflineTtsMatchaModelConfig(
+                    acoustic_model=f'{ROOT_DIR}/models/vits/{role}/model.onnx',
                     vocoder=f'{ROOT_DIR}/models/vits/{role}/vocos-22khz-univ.onnx',
                     tokens=f'{ROOT_DIR}/models/vits/{role}/tokens.txt',
                     data_dir=f'{ROOT_DIR}/models/vits/{role}/espeak-ng-data',
@@ -28,10 +31,10 @@ def _t(role,device='cpu'):
             rule_fsts="",
             max_num_sentences=1,
         )
-    elif role=='zh_female': # matcha chinese
+    elif role == 'zh_female':  # matcha chinese
         tts_config = sherpa_onnx.OfflineTtsConfig(
             model=sherpa_onnx.OfflineTtsModelConfig(
-               matcha=sherpa_onnx.OfflineTtsMatchaModelConfig(
+                matcha=sherpa_onnx.OfflineTtsMatchaModelConfig(
                     acoustic_model=f'{ROOT_DIR}/models/vits/{role}/model.onnx',
                     vocoder=f'{ROOT_DIR}/models/vits/{role}/vocos-22khz-univ.onnx',
                     lexicon=f'{ROOT_DIR}/models/vits/{role}/lexicon.txt',
@@ -44,28 +47,28 @@ def _t(role,device='cpu'):
             rule_fsts=f"{ROOT_DIR}/models/vits/{role}/date.fst,{ROOT_DIR}/models/vits/{role}/number.fst,{ROOT_DIR}/models/vits/{role}/phone.fst",
             max_num_sentences=1,
         )
-    elif role=='zh_en':#zh+en vits
-        sid=0
+    elif role == 'zh_en':  # zh+en vits
+        sid = 0
         tts_config = sherpa_onnx.OfflineTtsConfig(
             model=sherpa_onnx.OfflineTtsModelConfig(
-                   vits=sherpa_onnx.OfflineTtsVitsModelConfig(
-                        model= f'{ROOT_DIR}/models/vits/{role}/model.onnx',
-                        tokens=f'{ROOT_DIR}/models/vits/{role}/tokens.txt',
-                        lexicon=f'{ROOT_DIR}/models/vits/{role}/lexicon.txt',
-                    ),
-                    provider=device,
-                    debug=False,
-                    num_threads=2,
+                vits=sherpa_onnx.OfflineTtsVitsModelConfig(
+                    model=f'{ROOT_DIR}/models/vits/{role}/model.onnx',
+                    tokens=f'{ROOT_DIR}/models/vits/{role}/tokens.txt',
+                    lexicon=f'{ROOT_DIR}/models/vits/{role}/lexicon.txt',
                 ),
+                provider=device,
+                debug=False,
+                num_threads=2,
+            ),
             rule_fsts=f"{ROOT_DIR}/models/vits/{role}/date.fst,{ROOT_DIR}/models/vits/{role}/number.fst,{ROOT_DIR}/models/vits/{role}/phone.fst,{ROOT_DIR}/models/vits/{role}/new_heteronym.fst",
             max_num_sentences=1,
         )
-    elif role.startswith('en_'):#en vits 109 speakers
-        sid=int(role.split('_')[-1])
+    elif role.startswith('en_'):  # en vits 109 speakers
+        sid = int(role.split('_')[-1])
         tts_config = sherpa_onnx.OfflineTtsConfig(
             model=sherpa_onnx.OfflineTtsModelConfig(
-               vits=sherpa_onnx.OfflineTtsVitsModelConfig(
-                    model= f'{ROOT_DIR}/models/vits/en_vctk/model.onnx',
+                vits=sherpa_onnx.OfflineTtsVitsModelConfig(
+                    model=f'{ROOT_DIR}/models/vits/en_vctk/model.onnx',
                     tokens=f'{ROOT_DIR}/models/vits/en_vctk/tokens.txt',
                     lexicon=f'{ROOT_DIR}/models/vits/en_vctk/lexicon.txt',
                 ),
@@ -77,30 +80,27 @@ def _t(role,device='cpu'):
             max_num_sentences=1,
         )
 
-    elif role.startswith('zh_'):#zh vits   174 speakers
-        sid=int(role.split('_')[-1])        
+    elif role.startswith('zh_'):  # zh vits   174 speakers
+        sid = int(role.split('_')[-1])
         tts_config = sherpa_onnx.OfflineTtsConfig(
-                model=sherpa_onnx.OfflineTtsModelConfig(
-                   vits=sherpa_onnx.OfflineTtsVitsModelConfig(
-                        model= f'{ROOT_DIR}/models/vits/zh_aishell/model.onnx',
-                        tokens=f'{ROOT_DIR}/models/vits/zh_aishell/tokens.txt',
-                        lexicon=f'{ROOT_DIR}/models/vits/zh_aishell/lexicon.txt',
-                    ),
-                    provider=device,
-                    debug=False,
-                    num_threads=2,
+            model=sherpa_onnx.OfflineTtsModelConfig(
+                vits=sherpa_onnx.OfflineTtsVitsModelConfig(
+                    model=f'{ROOT_DIR}/models/vits/zh_aishell/model.onnx',
+                    tokens=f'{ROOT_DIR}/models/vits/zh_aishell/tokens.txt',
+                    lexicon=f'{ROOT_DIR}/models/vits/zh_aishell/lexicon.txt',
                 ),
-                rule_fsts=f"{ROOT_DIR}/models/vits/zh_aishell/date.fst,{ROOT_DIR}/models/vits/zh_aishell/number.fst,{ROOT_DIR}/models/vits/zh_aishell/phone.fst,{ROOT_DIR}/models/vits/zh_aishell/new_heteronym.fst",
-                max_num_sentences=1,
-            )
+                provider=device,
+                debug=False,
+                num_threads=2,
+            ),
+            rule_fsts=f"{ROOT_DIR}/models/vits/zh_aishell/date.fst,{ROOT_DIR}/models/vits/zh_aishell/number.fst,{ROOT_DIR}/models/vits/zh_aishell/phone.fst,{ROOT_DIR}/models/vits/zh_aishell/new_heteronym.fst",
+            max_num_sentences=1,
+        )
     if not tts_config or not tts_config.validate():
         raise ValueError("Please check your config")
 
     tts = sherpa_onnx.OfflineTts(tts_config)
-    return tts,sid
-
-
-
+    return tts, sid
 
 
 @dataclass
@@ -108,54 +108,51 @@ class VitsCNEN(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.rate=1+float(self.rate.replace('%',''))/100
-        self.device="cpu" #todo cuda
-
+        self.speed = self.get_speed()
+        self.device = "cpu"  # todo cuda
 
     def _download(self):
         if not Path(f'{ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
-            tools.down_zip(f"{ROOT_DIR}/models",'https://modelscope.cn/models/himyworld/videotrans/resolve/master/vits-tts.zip',self._process_callback)
+            tools.down_zip(f"{ROOT_DIR}/models",
+                           'https://modelscope.cn/models/himyworld/videotrans/resolve/master/vits-tts.zip',
+                           self._process_callback)
         return True
 
-
     def _exec(self):
-        _model_obj={}
+        _model_obj = {}
         ok, err = 0, 0
+        _except = None
         for item in self.queue_tts:
-            if app_cfg.exit_soft:return
+            if app_cfg.exit_soft: return
             try:
-                _key=f'{item["role"]}-{self.device}'
+                _key = f'{item["role"]}-{self.device}'
                 if _key in _model_obj:
-                    _tts,sid=_model_obj.get(_key)
+                    _tts, sid = _model_obj.get(_key)
                 else:
-                    _tts,sid=_t(item['role'],self.device)
-                    _model_obj[_key]=(_tts,sid)
+                    _tts, sid = _t(item['role'], self.device)
+                    _model_obj[_key] = (_tts, sid)
 
-                audio = _tts.generate(item['text'], sid=sid, speed=float(self.rate))
+                audio = _tts.generate(item['text'], sid=sid, speed=self.speed)
                 if len(audio.samples) == 0:
                     logger.error("Error in generating audios. Please read previous error messages.")
-                    err+=1
+                    err += 1
                     continue
                 sf.write(
-                    item['filename']+"-24k.wav",
+                    item['filename'] + "-24k.wav",
                     audio.samples,
                     samplerate=audio.sample_rate,
                     subtype="PCM_16",
                 )
-                if not tools.vail_file(item['filename']+'-24k.wav'):
-                    err+=1
+                if not tools.vail_file(item['filename'] + '-24k.wav'):
+                    err += 1
                     continue
-                ok+=1
-                self.convert_to_wav(item['filename']+'-24k.wav',item['filename'])
+                ok += 1
+                self.convert_to_wav(item['filename'] + '-24k.wav', item['filename'])
+                self.signal(text=f"Dubbing {ok}")
             except Exception as e:
-                logger.exception(f'vits dubbing error:{e}',exc_info=True)
-                err+=1
-
-        if err > 0:
-            self.error=err
-            msg=f'[{err}] errors, {ok} succeed'
-            self.signal(text=msg)
-            logger.debug(f'vits配音结束：{msg}')
+                _except = e
+                logger.exception(f'vits dubbing error:{e}', exc_info=True)
+                err += 1
 
         try:
             del _model_obj
@@ -163,3 +160,13 @@ class VitsCNEN(BaseTTS):
             gc.collect()
         except:
             pass
+        if ok == 0:
+            raise _except if _except else DubbingSrtError('vits dubbing error')
+
+        msg = "dubbing ended"
+        if err > 0 and ok > 0:
+            msg = f'[{err}] errors, {ok} succeed'
+
+
+        self.signal(text=msg)
+        logger.debug(f'vits配音结束：{msg}')

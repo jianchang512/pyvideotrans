@@ -1,21 +1,19 @@
-# ToDo 将 Faster_Whisper_XXL 移动到此
-import json
 import os
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Union
-
-from openai import OpenAI
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
+from typing import List,  Union
+from videotrans.configure.excepts import SpeechToTextError
+from videotrans.configure.config import settings,logger
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
 
 
 @dataclass
 class XXLRecogn(BaseRecogn):
-    def _exec(self):
+    def _exec(self)->Union[List[SrtItem], None]:
         xxl_path = settings.get('Faster_Whisper_XXL', 'Faster_Whisper_XXL.exe')
         cmd = [
             xxl_path,
@@ -25,7 +23,7 @@ class XXLRecogn(BaseRecogn):
             "-ct",settings.get('cuda_com_type', 'int8')
         ]
         cmd.extend(['-l', self.detect_language.split('-')[0]])
-        prompt = None
+
         prompt = settings.get(f'initial_prompt_{self.detect_language}')
         if prompt:
             cmd += ['--initial_prompt', prompt]
@@ -44,5 +42,5 @@ class XXLRecogn(BaseRecogn):
             subprocess.run(cmd, capture_output=True, text=True, check=True, encoding='utf-8', errors='replace', creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0, cwd=os.path.dirname(xxl_path))
             return tools.get_subtitle_from_srt(outsrt_file, is_file=True)
         except subprocess.CalledProcessError as e:
-            raise RuntimeError(e.stderr+f"\n{e.stdout}")
+            raise SpeechToTextError(e.stderr+f"\n{e.stdout}")
 

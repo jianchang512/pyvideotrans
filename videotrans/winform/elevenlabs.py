@@ -19,6 +19,8 @@ def openwin():
         params['elevenlabstts_key'] = key
         params['elevenlabstts_models'] = model
         params.save()
+        tools.set_process(text='', type="refreshtts")
+        tools.set_process(text='', type="refreshmodel_list")
         winobj.close()
 
     def test():
@@ -46,7 +48,7 @@ def openwin():
             run_in_threadpool(tools.get_elevenlabs_role,True)
             
         except Exception as e:
-            from videotrans.configure._except import get_msg_from_except
+            from videotrans.configure.excepts import get_msg_from_except
             tools.show_error(get_msg_from_except(e))
 
     from videotrans.component.set_form import ElevenlabsForm

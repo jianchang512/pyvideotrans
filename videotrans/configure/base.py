@@ -7,8 +7,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-from videotrans.configure.config import tr,  settings, app_cfg, logger, IS_FROZEN,push_queue
-from videotrans.util import tools, contants
+from videotrans.configure.excepts import VideoTransError
+from videotrans.configure.config import tr, settings, app_cfg, logger, IS_FROZEN, push_queue, TEMP_ROOT
+from videotrans.task.taskcfg import SignMsg
+from videotrans.util import tools
+from videotrans.configure import contants
 from videotrans.process.signelobj import GlobalProcessManager
 from concurrent.futures.process import BrokenProcessPool
 
@@ -28,8 +31,6 @@ class BaseCon:
 
     def _exit(self) -> bool:
         if app_cfg.exit_soft or (self.uuid and self.uuid in app_cfg.stoped_uuid_set):
-            if hasattr(self,'hasend'):
-                self.hasend=True
             return True
         return False
     # 所有窗口和任务信息通过队列交互
@@ -38,13 +39,15 @@ class BaseCon:
         if app_cfg.exec_mode=='cli':
             print(kwargs.get('text'))
             return
-        if 'uuid' not in kwargs:
+        if 'uuid' not in kwargs or not kwargs.get('uuid'):
             kwargs['uuid'] = self.uuid
+        # 已停止，则不再发送消息
         if kwargs.get('uuid') in app_cfg.stoped_uuid_set:
             return
-        if 'type' not in kwargs:
+        if 'type' not in kwargs or not kwargs.get('type'):
             kwargs['type']='logs'
-        push_queue(kwargs.get('uuid') or "", kwargs)
+
+        push_queue(kwargs.get('uuid') or "", SignMsg(**kwargs))
 
     def _process_callback(self, data):
         if isinstance(data, str):
@@ -86,18 +89,6 @@ class BaseCon:
                 return proxy
         return None
 
-    # 调用 faster-xxl.exe
-    def _external_cmd_with_wrapper(self, cmd_list=None):
-        if not cmd_list:
-            raise ValueError("cmd_list is None")
-        try:
-            subprocess.run(cmd_list, capture_output=True, text=True, check=True, encoding='utf-8', creationflags=0,
-                           cwd=os.path.dirname(cmd_list[0]))
-        except subprocess.CalledProcessError as e:
-            if os.name == 'nt' and IS_FROZEN:
-                raise RuntimeError(
-                    tr('Currently Faster-Whisper-XXL cannot be used in the packaged version. Please deploy the source code or use Faster-Whisper-XXL transcription separately.'))
-            raise RuntimeError(e.stderr)
 
     # 语音合成后统一转为 wav 音频
     def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None):
@@ -123,63 +114,10 @@ class BaseCon:
             tools.runffmpeg(cmd, force_cpu=True)
             if settings.get('remove_dubb_silence', True):
                 tools.remove_silence_wav(output_wav_file_path)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception(f'转为 48k wav时失败，跳过{e}',exc_info=True)
         return True
 
-    # 判断是否为内网地址
-    def _get_internal_host(self, url: str):
-        from urllib.parse import urlparse
-        import ipaddress
-        """
-        检查 URL 的主机是否为内网地址。
-    
-        - 如果是内网地址（私有、环回、未指定），则返回其 "host:port" 字符串。
-        - 如果是 'localhost'，同样返回 "localhost:port" 字符串。
-        - 如果不是内网地址或 URL 无效，则返回 False。
-    
-        Args:
-            url: 需要检查的 URL 字符串。
-    
-        Returns:
-            str | bool: 如果是内网地址则返回其网络位置 (netloc)，否则返回 False。
-        """
-        try:
-            parsed_url = urlparse(url)
-            hostname = parsed_url.hostname
-
-            # 如果 URL 中没有主机名 (例如 "path/only")，则直接返回 False
-            if not hostname:
-                return False
-
-            # 1. 优先处理 'localhost' 字符串
-            if hostname.lower() == 'localhost':
-                return parsed_url.netloc  # 返回 'localhost:port'
-
-            # 2. 尝试将主机名解析为 IP 地址
-            ip_addr = ipaddress.ip_address(hostname)
-
-            # 3. 判断 IP 地址类型
-            # is_private: 10/8, 172.16/12, 192.168/16
-            # is_loopback: 127/8
-            # is_unspecified: 0.0.0.0
-            if ip_addr.is_private or ip_addr.is_loopback or ip_addr.is_unspecified:
-                return parsed_url.netloc  # 返回 'ip:port'
-
-        except ValueError:
-            # 如果 hostname 是一个域名 (如 www.google.com) 而不是 IP，
-            # ipaddress.ip_address(hostname) 会抛出 ValueError。
-            # 这种情况我们认为它不是内网地址。
-            return False
-
-        # 如果是公网 IP (如 8.8.8.8)，不满足任何条件，最终返回 False
-        return False
-
-    # 判断 api_url 如果是内网地址，则将 host 加入 no_proxy,避免 requests 使用代理访问
-    def _add_internal_host_noproxy(self, api_url=''):
-        host = self._get_internal_host(api_url)
-        if host is not False:
-            os.environ['no_proxy'] = f'{contants.no_proxy},{host}'
 
     def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:
         if not encoded_str:
@@ -260,12 +198,11 @@ class BaseCon:
         self.signal(text=f'[{title}] starting...')
         logger.debug(f'[新进程执行任务]:{title}')
         # 提交任务，并显式传入参数，确保子进程拿到正确的参数
-        logs_file = kwargs.get('logs_file')
+        logs_file = kwargs.get('logs_file',f'{TEMP_ROOT}/{_st}.log')
         device_index = 0
         try:
-            if logs_file:
-                Path(logs_file).touch()
-                threading.Thread(target=self._signal_of_process, args=(logs_file,), daemon=True).start()
+            Path(logs_file).touch()
+            threading.Thread(target=self._signal_of_process, args=(logs_file,), daemon=True).start()
             # 再次判断cuda是否有效，防止预先获取失败
             if is_cuda:
                 import torch
@@ -274,7 +211,6 @@ class BaseCon:
 
             # 如果使用gpu，则获取可用 device_index
             if is_cuda:
-
                 # 启用了多显卡模式
                 if settings.get('multi_gpus'):
                     device_index = get_cudaX()
@@ -290,31 +226,27 @@ class BaseCon:
                 callback,
                 **kwargs
             )
-            _rs = future.result()
-            if isinstance(_rs, tuple) and len(_rs) == 2:
-                data, err = _rs
-                if data is False:
-                    raise RuntimeError(err)
-            else:
-                data = _rs
+            # return Tuple[bool or result , None or error]
+            data,err = future.result()
+            if err or not data:
+                raise VideoTransError(err)
+
             self.signal(text=f'[{title}] end: {int(time.time() - _st)}s')
             return data
         except BrokenProcessPool as e:
-            err = traceback.format_exc()
             _model = ''
             _cuda = ''
             if kwargs.get('model_name'):
                 _model = ' Model:' + kwargs.get('model_name')
             if is_cuda and device_index > -1:
-                _cuda = f" GPU{device_index} \n{tr('may be insufficient memory')}"
-            logger.exception(f'{_model}{_cuda}', exc_info=True)
-            raise RuntimeError(f'{_model}{_cuda}\n{err}')
-        except Exception as e:
-            msg = traceback.format_exc()
-            logger.exception(f'new process:{msg}', exc_info=True)
+                _cuda = f" GPU{device_index}"
+            logger.exception(f'{title}: {_model}{_cuda}, {kwargs=},{e}', exc_info=True)
+            raise VideoTransError(f'{_model}{_cuda} {e}')
+        except BaseException as e:
+            logger.exception(f'{title},{e}', exc_info=True)
             raise
         finally:
             try:
                 Path(logs_file).unlink(missing_ok=True)
-            except:
+            except Exception:
                 pass

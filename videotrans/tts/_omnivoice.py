@@ -1,28 +1,20 @@
-import os
-import time
+import logging
 from dataclasses import dataclass
-from pathlib import Path
+from typing import Union, Dict, List
 
-import requests
-from gradio_client import Client, handle_file
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
-from videotrans.configure._except import  StopRetry
-from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
+from gradio_client import handle_file
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
-
-RETRY_NUMS = 2
-RETRY_DELAY = 5
-
+from videotrans.configure.config import settings, logger
+from videotrans.configure.excepts import NO_RETRY_EXCEPT
+from videotrans.tts._gradio import GradioBase
 
 @dataclass
-class OmniVoice(BaseTTS):
+class OmniVoice(GradioBase):
     def __post_init__(self):
-        super().__post_init__()
-        self.api_url = params.get('omnivoice_url','').strip().rstrip('/').lower()
-        self._add_internal_host_noproxy(self.api_url)
+        self.ainame="omnivoice"
         # 语言代码 对应语言名称
-        self.lang_code={
+        lang_code={
             "en": "English",
             "zh": "Chinese",
             "zh-cn": "Chinese",
@@ -59,71 +51,27 @@ class OmniVoice(BaseTTS):
             "ur": "Urdu",
             "yue": "Cantonese"
         }
-        self.rolelist = tools.get_f5tts_role()
-
-    def _exec(self):
-        self._local_mul_thread()
-
-    def _item_task(self, data_item,idx:int=-1):
-        text = data_item['text'].strip()
-        if self._exit() or  not text or tools.vail_file(data_item['filename']):
-            return
-
-        speed = 1.0
-        try:
-            speed = 1 + float(self.rate.replace('%', '')) / 100
-        except ValueError:
-            pass
-
-        role = data_item['role']
-        ref_aud=''
-        ref_text=data_item.get('ref_text','')
-        
+        self.lang=lang_code.get(self.language,'Auto') if self.language else 'Auto'
+        super().__post_init__()
 
 
-        if role not in self.rolelist:
-            raise StopRetry(tr('The role {} does not exist',role))
-        if role == 'clone':
-            ref_aud = data_item.get('ref_wav','')
-            ref_text = data_item.get('ref_text','')
-        else:
-            ref_aud = ROOT_DIR+"/f5-tts/"+self.rolelist[role].get('ref_audio','')
-            ref_text = self.rolelist[role].get('ref_text','')
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
+    def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
 
-        if not Path(ref_aud).exists():
-            raise StopRetry(f"{ref_aud} is not exists")
-        
-        logger.debug(f'omnivoice-tts {ref_aud=},{ref_text=}')
-        try:
-            client = Client(self.api_url, ssl_verify=False)
-        except Exception as e:
-            raise StopRetry(str(e))
-        lang=self.lang_code.get(self.language,'Auto') if self.language else 'Auto'
-        result = client.predict(
-            text=text,
-            lang=lang,
-            ref_aud=handle_file(ref_aud),
-            ref_text=ref_text,
-            instruct='',
-            ns=32,
-            gs=2.0,
-            dn=False,
-            sp=speed,
-            du=0,
-            pp=True,
-            po=False,
-            api_name="/_clone_fn",
-        )
-
-
-        logger.debug(f'result={result}')
-        wav_file = result[0] if isinstance(result, (list, tuple)) and result else result
-        if isinstance(wav_file, dict) and "value" in wav_file:
-            wav_file = wav_file['value']
-        if isinstance(wav_file, str) and Path(wav_file).is_file():
-            self.convert_to_wav(wav_file, data_item['filename'])
-        else:
-            raise RuntimeError(str(result))
-
-
-
+        ref_wav,ref_text = self.get_ref_wav(data_item)
+        kwargs = {
+            "text":data_item.get('text',''),
+            "lang":self.lang,
+            "ref_aud":handle_file(ref_wav),
+            "ref_text":ref_text,
+            "instruct":'',
+            "ns":32,
+            "gs":2.0,
+            "dn":False,
+            "sp":self.get_speed(),
+            "du":0,
+            "pp":True,
+            "po":False,
+            "api_name":"/_clone_fn",
+        }
+        return self._send(kwargs, data_item)

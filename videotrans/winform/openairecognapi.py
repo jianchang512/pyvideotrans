@@ -16,10 +16,8 @@ def openwin():
     def test():
         key = winobj.openairecognapi_key.text()
         prompt = winobj.openairecognapi_prompt.text()
-        url = winobj.openairecognapi_url.text().strip()
-        url = url if url else 'https://api.openai.com/v1'
-        if not url.startswith('http'):
-            url = 'http://' + url
+        url = tools.process_openai_api(winobj.openairecognapi_url.text().strip())
+
         model = winobj.openairecognapi_model.currentText()
 
         params["openairecognapi_key"] = key
@@ -34,10 +32,7 @@ def openwin():
     def save_openairecognapi():
         key = winobj.openairecognapi_key.text()
         prompt = winobj.openairecognapi_prompt.text()
-        url = winobj.openairecognapi_url.text().strip()
-        url = url if url else 'https://api.openai.com/v1'
-        if not url.startswith('http'):
-            url = 'http://' + url
+        url = tools.process_openai_api(winobj.openairecognapi_url.text().strip())
 
         model = winobj.openairecognapi_model.currentText()
 

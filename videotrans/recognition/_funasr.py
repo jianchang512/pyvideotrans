@@ -1,24 +1,19 @@
-# stt项目识别接口
 import json
-import re, os, requests
-import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import List, Dict, Union
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, TEMP_DIR, ROOT_DIR, defaulelang
+from typing import List,  Union
+from videotrans.configure.config import TEMP_DIR
 from videotrans.process import paraformer, funasr_mlt
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
 
 
 @dataclass
 class FunasrRecogn(BaseRecogn):
 
-    def __post_init__(self):
-        super().__post_init__()
-
-    def _exec(self) -> Union[List[Dict], None]:
+    def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit():
             return
         tools.check_and_down_ms(model_id='damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
@@ -47,7 +42,7 @@ class FunasrRecogn(BaseRecogn):
         logs_file = f'{TEMP_DIR}/{self.uuid}/funasr-{self.detect_language}-{time.time()}.log'
         if self.model_name != 'paraformer-zh':
             cut_audio_list_file = f'{TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
-            Path(cut_audio_list_file).write_text(json.dumps(self.cut_audio()),encoding='utf-8')
+            Path(cut_audio_list_file).write_text( json.dumps( [ asdict(item) for item in self.cut_audio() ] ),encoding='utf-8')
         else:
             cut_audio_list_file=None
         kwars = {

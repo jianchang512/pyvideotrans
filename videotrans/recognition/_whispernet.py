@@ -1,29 +1,28 @@
 # Whisper.net 识别
-import json
-import logging
 import os
 import sys
 import ctypes
 from dataclasses import dataclass
-from pathlib import Path
-from typing import List, Dict, Union
+from typing import List,  Union
 
-from videotrans.configure import config
-from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, params, TEMP_DIR, logger, defaulelang
+from videotrans.configure.excepts import SpeechToTextError
+from videotrans.configure.config import ROOT_DIR,  settings,  logger
 from videotrans.configure.whispernet_config import whispernet_config
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
 
 # 模块级别的初始化状态
 _initialized = False
 _clr = None
 
+
 def _init_pythonnet():
     """初始化pythonnet和CLR"""
     global _initialized, _clr
     if _initialized:
         return _clr
-    
+
     try:
         import pythonnet
         pythonnet.load("coreclr")
@@ -35,7 +34,7 @@ def _init_pythonnet():
         _clr = None
     finally:
         _initialized = True
-    
+
     return _clr
 
 
@@ -43,7 +42,7 @@ def _init_pythonnet():
 class WhisperNetRecogn(BaseRecogn):
     # 类级别的DLL目录句柄
     _dll_dir_handles: list = None
-    
+
     def __post_init__(self):
         super().__post_init__()
         self.whisper_factory = None
@@ -73,29 +72,28 @@ class WhisperNetRecogn(BaseRecogn):
                     return
                 except OSError as exc:
                     logger.warning(f"Failed to load {lib_path}: {exc}")
-        
+
         raise FileNotFoundError(f"No native whisper DLL found in {native_dir}")
 
-    def _exec(self) -> Union[List[Dict], None]:
-        if self._exit(): 
-            return
-        
+    def _exec(self) -> Union[List[SrtItem], None]:
+        if self._exit(): return
+
         # 验证Whisper.NET设置
         is_valid, error_msg = whispernet_config.validate_setup()
         if not is_valid:
-            raise RuntimeError(f"Whisper.NET setup invalid: {error_msg}")
-        
+            raise SpeechToTextError(f"Whisper.NET setup invalid: {error_msg}")
+
         # 初始化pythonnet
         clr = _init_pythonnet()
         if clr is None:
-            raise RuntimeError("Failed to initialize pythonnet")
-        
+            raise SpeechToTextError("Failed to initialize pythonnet")
+
         try:
             # 设置依赖目录
             deps_dir = os.path.join(ROOT_DIR, "deps")
             whisper_dll = os.path.join(deps_dir, "Whisper.net.dll")
             native_dir = os.path.join(deps_dir, "native")
-            
+
             if not os.path.isfile(whisper_dll):
                 raise FileNotFoundError(f"Whisper.net.dll not found at {whisper_dll}")
             if not os.path.isdir(native_dir):
@@ -103,10 +101,10 @@ class WhisperNetRecogn(BaseRecogn):
 
             # 添加DLL搜索路径
             self._add_dll_search_dir(native_dir)
-            
+
             # 预加载native库
             self._preload_native_library(native_dir)
-            
+
             # 添加Managed依赖
             managed_deps = [
                 os.path.join(deps_dir, "Microsoft.Extensions.AI.Abstractions.dll"),
@@ -122,22 +120,22 @@ class WhisperNetRecogn(BaseRecogn):
                         clr.AddReference(dll)
                     except Exception as e:
                         logger.warning(f"Could not add managed dependency {dll}: {e}")
-            
+
             # 添加Whisper.net.dll引用
             clr.AddReference(whisper_dll)
-            
+
             # 配置Whisper.NET运行时选项 - 直接使用类属性
             try:
                 from Whisper.net.LibraryLoader import RuntimeOptions, RuntimeLibrary
                 from System.Collections.Generic import List
-                
+
                 # 设置库路径
                 try:
                     RuntimeOptions.LibraryPath = native_dir
                     logger.info(f"RuntimeOptions.LibraryPath={RuntimeOptions.LibraryPath}")
                 except Exception as e:
                     logger.warning(f"Failed to set LibraryPath: {e}")
-                
+
                 # 设置运行库顺序
                 try:
                     order = List[RuntimeLibrary]()
@@ -146,7 +144,7 @@ class WhisperNetRecogn(BaseRecogn):
                     RuntimeOptions.RuntimeLibraryOrder = order
                 except Exception as e:
                     logger.warning(f"Failed to set RuntimeLibraryOrder: {e}")
-                
+
                 # 强制设置已加载库
                 try:
                     RuntimeOptions.LoadedLibrary = RuntimeLibrary.Vulkan
@@ -156,14 +154,14 @@ class WhisperNetRecogn(BaseRecogn):
                         RuntimeOptions.LoadedLibrary = RuntimeLibrary.Cpu
                     except Exception as e:
                         logger.warning(f"Failed to set LoadedLibrary: {e}")
-                
+
 
 
             except ImportError:
                 logger.warning("Runtime options not available")
             except Exception as e:
                 logger.warning(f"Could not configure runtime options: {e}")
-            
+
             # 导入Whisper.NET类
             from Whisper.net import WhisperFactoryOptions, WhisperFactory
 
@@ -172,7 +170,6 @@ class WhisperNetRecogn(BaseRecogn):
             # 注意：Vulkan也需要UseGpu=True，不只是CUDA
             # 对于AMD显卡，通过Vulkan后端使用GPU
             factory_options.UseGpu = True  # 强制启用GPU
-
 
             factory_options.GpuDevice = 0
             factory_options.DelayInitialization = False
@@ -189,12 +186,12 @@ class WhisperNetRecogn(BaseRecogn):
                 model_path = whispernet_config.get_model_path(f"ggml-{self.model_name}.bin")
             if model_path is None:
                 raise FileNotFoundError(f"Model not found: {self.model_name}")
-            
+
             model_path_str = str(model_path.absolute())
             logger.info(f"Using model: {model_path_str}")
 
             factory = WhisperFactory.FromPath(model_path_str, factory_options)
-            
+
             # 记录运行时信息
             try:
                 runtime_info = factory.GetRuntimeInfo()
@@ -219,7 +216,7 @@ class WhisperNetRecogn(BaseRecogn):
 
             # 设置进度回调
             segments = []
-            
+
             def on_segment(segment):
                 # 处理TimeSpan类型
                 start = getattr(segment, "Start", None)
@@ -230,7 +227,7 @@ class WhisperNetRecogn(BaseRecogn):
                         start = float(start)
                 else:
                     start = 0.0
-                
+
                 end = getattr(segment, "End", None)
                 if end is not None:
                     if hasattr(end, 'TotalSeconds'):
@@ -239,16 +236,17 @@ class WhisperNetRecogn(BaseRecogn):
                         end = float(end)
                 else:
                     end = 0.0
-                    
+
                 text = str(getattr(segment, "Text", "")).strip()
                 if text:
-                    segments.append({
-                        "line": len(segments) + 1,
-                        "start_time": int(start * 1000),
-                        "end_time": int(end * 1000),
-                        "text": text,
-                        "time": tools.ms_to_time_string(ms=int(start * 1000)) + ' --> ' + tools.ms_to_time_string(ms=int(end * 1000)),
-                    })
+                    segments.append(SrtItem(
+                        line=len(segments) + 1,
+                        start_time=int(start * 1000),
+                        end_time=int(end * 1000),
+                        text=text,
+                        time=tools.ms_to_time_string(ms=int(start * 1000)) + ' --> ' + tools.ms_to_time_string(
+                            ms=int(end * 1000)),
+                    ))
                     self.signal(text=f"Processing: {len(segments)}")
 
             # 添加事件处理器
@@ -259,7 +257,7 @@ class WhisperNetRecogn(BaseRecogn):
                 from System import Action
                 from Whisper.net import SegmentData
                 handler = Action[SegmentData](on_segment)
-                
+
             builder = builder.WithSegmentEventHandler(handler)
 
             processor = builder.Build()
@@ -281,7 +279,7 @@ class WhisperNetRecogn(BaseRecogn):
         except ImportError as e:
             error_msg = f"Whisper.net not properly installed: {str(e)}"
             logger.exception(error_msg)
-            raise RuntimeError(error_msg)
+            raise SpeechToTextError(error_msg)
         except Exception as e:
             logger.exception(f"Whisper.net recognition failed: {str(e)}")
-            raise RuntimeError(f"Whisper.net recognition failed: {str(e)}")
+            raise SpeechToTextError(f"Whisper.net recognition failed: {str(e)}")

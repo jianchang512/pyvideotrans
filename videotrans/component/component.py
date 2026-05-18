@@ -4,8 +4,8 @@ import os
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QFileDialog, QPushButton, QPlainTextEdit
 
-from videotrans.configure.config import tr,settings,params,app_cfg,logger
-from videotrans.util import contants
+from videotrans.configure.config import tr, params
+from videotrans.configure import contants
 
 
 class DropButton(QPushButton):

@@ -1,52 +1,54 @@
 import time
 import traceback
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, params, TEMP_DIR, logger, defaulelang, HOME_DIR
 from ten_vad import TenVad
 import scipy.io.wavfile as Wavfile
 import numpy as np
 
 
 def get_speech_timestamp_silero(input_wav,
-                         threshold=None,
-                         min_speech_duration_ms=None,
-                         max_speech_duration_ms=None,
-                         min_silent_duration_ms=None):
-        # 防止填写错误
-        min_speech_duration_ms=0#int(max(min_speech_duration_ms,0))
-        min_silent_duration_ms=int(max(min_silent_duration_ms,50))
-        max_speech_duration_ms=int(min(max(max_speech_duration_ms,min_speech_duration_ms+1000),30000))
-        logger.debug(f'[silero-VAD]Fix:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
+                                threshold=None,
+                                min_speech_duration_ms=None,
+                                max_speech_duration_ms=None,
+                                min_silent_duration_ms=None):
+    # 防止填写错误
+    min_speech_duration_ms = 0  # int(max(min_speech_duration_ms,0))
+    min_silent_duration_ms = int(max(min_silent_duration_ms, 50))
+    max_speech_duration_ms = int(min(max(max_speech_duration_ms, min_speech_duration_ms + 1000), 30000))
+    logger.debug(
+        f'[silero-VAD]Fix:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
 
-        sampling_rate = 16000
-        from faster_whisper.audio import decode_audio
-        from faster_whisper.vad import (
-            VadOptions,
-            get_speech_timestamps
-        )
-        vad_p = {
-            "threshold": threshold,
-            "min_speech_duration_ms": min_speech_duration_ms,
-            "max_speech_duration_s": float(max_speech_duration_ms/1000.0),
-            "min_silence_duration_ms": min_silent_duration_ms,
-        }
-        def convert_to_milliseconds(timestamps):
-            milliseconds_timestamps = []
-            for timestamp in timestamps:
-                milliseconds_timestamps.append(
-                    [
-                       int(round(timestamp["start"] / sampling_rate * 1000)),
-                       int(round(timestamp["end"] / sampling_rate * 1000)),
-                    ]
-                )
+    sampling_rate = 16000
+    from faster_whisper.audio import decode_audio
+    from faster_whisper.vad import (
+        VadOptions,
+        get_speech_timestamps
+    )
+    vad_p = {
+        "threshold": threshold,
+        "min_speech_duration_ms": min_speech_duration_ms,
+        "max_speech_duration_s": float(max_speech_duration_ms / 1000.0),
+        "min_silence_duration_ms": min_silent_duration_ms,
+    }
 
-            return milliseconds_timestamps
+    def convert_to_milliseconds(timestamps):
+        milliseconds_timestamps = []
+        for timestamp in timestamps:
+            milliseconds_timestamps.append(
+                [
+                    int(round(timestamp["start"] / sampling_rate * 1000)),
+                    int(round(timestamp["end"] / sampling_rate * 1000)),
+                ]
+            )
 
-        speech_chunks = get_speech_timestamps(decode_audio(input_wav,
-                                            sampling_rate=sampling_rate),
-                                            vad_options=VadOptions(**vad_p)
-        )
-        return convert_to_milliseconds(speech_chunks)
+        return milliseconds_timestamps
+
+    speech_chunks = get_speech_timestamps(decode_audio(input_wav,
+                                                       sampling_rate=sampling_rate),
+                                          vad_options=VadOptions(**vad_p)
+                                          )
+    return convert_to_milliseconds(speech_chunks),None
 
 
 def get_speech_timestamp(input_wav=None,
@@ -55,21 +57,21 @@ def get_speech_timestamp(input_wav=None,
                          max_speech_duration_ms=None,
                          min_silent_duration_ms=None):
     # 限定范围
-    #最短语音时长不得低于250ms
-    min_speech_duration_ms=int(max(250,min_speech_duration_ms))
-    #切割的静音阈值，不得低于50ms
-    min_silent_duration_ms=int(max(50,min_silent_duration_ms))
+    # 最短语音时长不得低于250ms
+    min_speech_duration_ms = int(max(250, min_speech_duration_ms))
+    # 切割的静音阈值，不得低于50ms
+    min_silent_duration_ms = int(max(50, min_silent_duration_ms))
 
-    logger.debug(f'[Ten-VAD]Fix after:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
+    logger.debug(
+        f'[Ten-VAD]Fix after:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
     frame_duration_ms = 16
     hop_size = 256
-    st_=time.time()
+    st_ = time.time()
     try:
         sr, data = Wavfile.read(input_wav)
     except Exception as e:
-        msg=traceback.format_exc()
-        logger.exception(f"Error reading wav file: {msg}",exc_info=True)
-        return False
+        msg = traceback.format_exc()
+        return False,f'{e} {msg}'
 
     # 计算音频能量，用于自适应阈值调整
     audio_energy = np.mean(np.abs(data)) if len(data) > 0 else 0
@@ -89,18 +91,18 @@ def get_speech_timestamp(input_wav=None,
     refined_segments = []
     max_frames_limit = max_speech_duration_ms / frame_duration_ms
     tighter_min_sil_frames = (min_silent_duration_ms / 2) / frame_duration_ms
-    _n=0
-    _len=len(initial_segments)
+    _n = 0
+    _len = len(initial_segments)
     for s, e in initial_segments:
         duration = e - s
-        _n+=1
+        _n += 1
         # 大于 2000ms才需要再次裁切
-        if duration > (max_frames_limit+125):
+        if duration > (max_frames_limit + 125):
             # 提取该段音频数据
             sub_data = data[s * hop_size: e * hop_size]
             # 使用减半的静音阈值重新检测，同时带上最大时长限制
             sub_segs = _detect_raw_segments(sub_data, adjusted_threshold, tighter_min_sil_frames,
-                                                 max_speech_frames=max_frames_limit)
+                                            max_speech_frames=max_frames_limit)
 
             for ss, se in sub_segs:
                 refined_segments.append([s + ss, s + se])
@@ -122,9 +124,10 @@ def get_speech_timestamp(input_wav=None,
         while (end_ms - curr_s) > max_speech_duration_ms:
             # 尝试在静音处截断，而不是生硬截断
             # 计算当前块的中间静音区域
-            block_data = data[int(curr_s/1000*sr):int((curr_s + max_speech_duration_ms)/1000*sr)]
+            block_data = data[int(curr_s / 1000 * sr):int((curr_s + max_speech_duration_ms) / 1000 * sr)]
             # 寻找最后一个静音区域
-            block_segments = _detect_raw_segments(block_data, adjusted_threshold, min_sil_frames/2, max_speech_frames=None)
+            block_segments = _detect_raw_segments(block_data, adjusted_threshold, min_sil_frames / 2,
+                                                  max_speech_frames=None)
             if block_segments and len(block_segments) > 1:
                 # 如果有多个段，使用最后一个段的开始作为截断点
                 last_segment_start = block_segments[-2][1] * hop_size / sr * 1000
@@ -139,26 +142,26 @@ def get_speech_timestamp(input_wav=None,
 
         if end_ms - curr_s > 0:
             segments_ms.append([curr_s, end_ms])
-    
+
     logger.debug(f'[Ten-VAD]切分用时 {int(time.time() - st_)}s')
-    
+
     speech_len = len(segments_ms)
     if speech_len <= 1:
-        return segments_ms
+        return segments_ms,None
 
     # --- 优化的片段合并策略 ---
     merged_segments = []
     # 不允许最小语音片段低于500ms，可能无法有效识别而报错
     min_speech_duration_ms = max(min_speech_duration_ms or 1000, 500)
-    
+
     # 第一轮：合并连续的短片段
     temp_segments = []
     current_merge = None
     current_duration = 0
-    
+
     for i, segment in enumerate(segments_ms):
         duration = segment[1] - segment[0]
-        
+
         if duration < min_speech_duration_ms:
             # 短片段，需要合并
             if current_merge is None:
@@ -190,53 +193,54 @@ def get_speech_timestamp(input_wav=None,
                 current_merge = None
                 current_duration = 0
             temp_segments.append(segment)
-    
+
     # 处理最后一个合并段
     if current_merge is not None:
         temp_segments.append(current_merge)
-    
+
     # 第二轮：检查合并后的片段，确保没有过短的片段
     for i, segment in enumerate(temp_segments):
         duration = segment[1] - segment[0]
-        
+
         if duration >= min_speech_duration_ms:
             merged_segments.append(segment)
         else:
             # 仍然过短，尝试合并到邻近片段
             if i == 0 and len(temp_segments) > 1:
                 # 第一个片段，合并到下一个
-                temp_segments[i+1][0] = segment[0]
+                temp_segments[i + 1][0] = segment[0]
             elif i == len(temp_segments) - 1 and len(merged_segments) > 0:
                 # 最后一个片段，合并到前一个
                 merged_segments[-1][1] = segment[1]
             elif len(merged_segments) > 0 and i < len(temp_segments) - 1:
                 # 中间片段，合并到更近的一边
                 prev_gap = segment[0] - merged_segments[-1][1]
-                next_gap = temp_segments[i+1][0] - segment[1]
-                
+                next_gap = temp_segments[i + 1][0] - segment[1]
+
                 if prev_gap <= next_gap:
                     merged_segments[-1][1] = segment[1]
                 else:
-                    temp_segments[i+1][0] = segment[0]
+                    temp_segments[i + 1][0] = segment[0]
             else:
                 # 无法合并的情况，添加为单独片段
                 merged_segments.append(segment)
-    
-    logger.debug(f'[Ten-VAD]切分合并共用时:{int(time.time()-st_)}s')
-    return merged_segments
+
+    logger.debug(f'[Ten-VAD]切分合并共用时:{int(time.time() - st_)}s')
+    return merged_segments,None
+
 
 def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=None):
     """
     内部辅助函数：根据给定的静音阈值和最大长度检测语音片段。
     """
     hop_size = 256
-    
+
     ten_vad_instance = TenVad(hop_size, threshold)
-    
+
     # 确保数据是一维数组
     if len(data.shape) > 1:
         data = np.mean(data, axis=1)  # 降维到单声道
-    
+
     # 计算有效帧数，确保每帧长度为hop_size
     num_frames = (data.shape[0] - hop_size) // hop_size + 1
 
@@ -248,11 +252,11 @@ def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=N
     for i in range(num_frames):
         # 确保每次取的帧长度为hop_size
         audio_frame = data[i * hop_size: (i + 1) * hop_size]
-        
+
         # 确保音频帧长度正确
         if len(audio_frame) != hop_size:
             continue
-            
+
         # 确保数据类型正确
         if audio_frame.dtype != np.int16:
             audio_frame = audio_frame.astype(np.int16)
@@ -285,10 +289,8 @@ def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=N
                 speech_start_frame = i
                 silence_frame_count = 0
 
-
     if triggered:
         end_frame = num_frames - silence_frame_count
         segments.append([speech_start_frame, end_frame])
 
     return segments
-

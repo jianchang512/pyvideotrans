@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 from dataclasses import dataclass
 from typing import List, Union
 
@@ -10,27 +9,15 @@ from tencentcloud.common.profile.client_profile import ClientProfile
 from tencentcloud.common.profile.http_profile import HttpProfile
 from tencentcloud.tmt.v20180321 import tmt_client, models
 
-from videotrans.configure.config import tr,params,settings,app_cfg,logger
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import params, logger, settings
+from videotrans.configure.excepts import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
-
-RETRY_NUMS = 3
-RETRY_DELAY = 5
 
 
 @dataclass
 class Tencent(BaseTrans):
 
-    def __post_init__(self):
-        super().__post_init__()
-        self.aisendsrt = False
-        # 腾讯禁止国外ip
-        os.environ["NO_PROXY"]="tmt.tencentcloudapi.com"
-
-
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         cred = credential.Credential(params.get('tencent_SecretId', '').strip(),

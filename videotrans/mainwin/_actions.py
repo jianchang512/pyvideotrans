@@ -1,9 +1,7 @@
 import copy
 import json
-import os
 import re
 import sys
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Union
@@ -12,14 +10,16 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog
 from videotrans import translator, recognition, tts
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, TEMP_DIR
-from videotrans.mainwin._actions_sub import WinActionSub
-from videotrans.task.simple_runnable_qt import run_in_threadpool
-from videotrans.util import tools, contants
+from videotrans.configure.config import tr, params, settings, app_cfg
+from videotrans.mainwin._actions_base import WinActionBase
+from videotrans.task.taskcfg import InputFile, SignMsg
+from videotrans.util import tools
+from videotrans.configure import contants
+from videotrans.component.progressbar import ClickableProgressBar
 
 
 @dataclass
-class WinAction(WinActionSub):
+class WinAction(WinActionBase):
 
     def _reset(self):
         # 存放需要处理的视频dict信息，包括uuid
@@ -84,7 +84,6 @@ class WinAction(WinActionSub):
         return True
 
     def show_cpp_select(self):
-        import sys
         cpp_path = settings.get('Whisper_cpp', '')
         if not cpp_path or not Path(cpp_path).exists():
             from videotrans.component.set_cpp import SetWhisperCPP
@@ -122,7 +121,7 @@ class WinAction(WinActionSub):
             if recogn_type in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,
                                recognition.WHISPERX_API]:
                 self.main.model_name.addItems(
-                    settings.WHISPER_MODEL_LIST if recogn_type != recognition.OPENAI_WHISPER else contants.Openai_Whisper_Models)
+                    settings.WHISPER_MODEL_LIST if recogn_type != recognition.OPENAI_WHISPER else contants.Openai_Whisper_Models.split(','))
             elif recogn_type == recognition.Deepgram:
                 self.main.model_name.addItems(contants.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
@@ -159,14 +158,7 @@ class WinAction(WinActionSub):
         else:
             self.main.show_tips.setText('')
 
-    # 是否属于 配音角色 随所选目标语言变化的配音渠道 是 edgeTTS AzureTTS 或 302.ai同时 ai302tts_model=azure
-    def change_by_lang(self, type):
-        if type in [tts.EDGE_TTS, tts.MINIMAXI_TTS, tts.AZURE_TTS, tts.DOUBAO2_TTS, tts.AI302_TTS, tts.KOKORO_TTS,
-                    tts.PIPER_TTS, tts.VITSCNEN_TTS, tts.FreeAzure]:
-            return True
-        return False
-
-    # tts类型改变
+    # tts类型改变时
     def tts_type_change(self, type):
         if tts.is_input_api(tts_type=type) is not True:
             return
@@ -174,101 +166,27 @@ class WinAction(WinActionSub):
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if lang and lang != '-':
             is_allow_lang = tts.is_allow_lang(langcode=lang, tts_type=type)
-            if is_allow_lang is not True:
-                self.main.show_tips.setText(is_allow_lang)
-            else:
-                self.main.show_tips.setText('')
+            self.main.show_tips.setText(is_allow_lang if is_allow_lang is not True else '')
 
         app_cfg.line_roles = {}
-        if type == tts.GOOGLE_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = ['No', "gtts"]
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.OPENAI_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = ['No'] + params.get('openaitts_role', contants.OPENAITTS_ROLES).split(',')
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.XAI_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = ['No'] + contants.XAITTS_ROLES.split(',')
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.XIAOMI_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = ['No'] + contants.MITTS_ROLES.split(',')
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.QWEN_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = list(tools.get_qwen3tts_rolelist().keys())
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.Supertonic_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = list(tools.get_supertonic_rolelist().keys())
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.GLM_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = list(tools.get_glmtts_rolelist().keys())
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.GEMINI_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = contants.GEMINITTS_ROLES.split(',')
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.ELEVENLABS_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = tools.get_elevenlabs_role()
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type == tts.CAMB_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = tools.get_camb_role()
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif self.change_by_lang(type):
-            self.set_voice_role(self.main.target_language.currentText())
-        elif type == tts.CLONE_VOICE_TTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = params.get("clone_voicelist", '')
-            if self.main.current_rolelist[0] != 'No':
-                self.main.current_rolelist.insert(0, 'No')
-            self.main.voice_role.addItems(self.main.current_rolelist)
-            run_in_threadpool(tools.get_clone_role)
-        elif type == tts.CHATTTS:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = list(settings.ChatTTS_voicelist)
-            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
-        elif type == tts.TTS_API:
-            self.main.voice_role.clear()
-            self.main.current_rolelist = params.get('ttsapi_voice_role', '').strip().split(',')
-            self.main.voice_role.addItems(['No'] + self.main.current_rolelist)
-        elif type == tts.GPTSOVITS_TTS:
-            rolelist = tools.get_gptsovits_role()
-            self.main.voice_role.clear()
-            self.main.current_rolelist = list(rolelist.keys())
-            self.main.voice_role.addItems(self.main.current_rolelist)
-        elif type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,
-                      tts.DIA_TTS, tts.OMNIVOICE_TTS, tts.COSYVOICE_TTS, tts.CHATTERBOX_TTS, tts.FISHTTS, tts.MOSS_TTS,
-                      tts.QWEN3LOCAL_TTS]:
-            rolelist = tools.get_f5tts_role()
-            self.main.voice_role.clear()
-            self.main.current_rolelist = list(rolelist.keys())
-            self.main.voice_role.addItems(self.main.current_rolelist)
+        _role_list = tools.role_menu(type, lang if lang and lang != '-' else None)
+        self.main.voice_role.clear()
+        self.main.current_rolelist = _role_list
+        self.main.voice_role.addItems(self.main.current_rolelist)
 
-    # 设置配音角色
-    # t 语言显示文字
+    # 语言选择变化时
     def set_voice_role(self, t):
-
         role = self.main.voice_role.currentText()
         code = translator.get_code(show_text=t)
-
         if code and code != '-':
             is_allow_lang = tts.is_allow_lang(langcode=code, tts_type=self.main.tts_type.currentIndex())
-            if is_allow_lang is not True:
-                self.main.show_tips.setText(is_allow_lang)
-            else:
-                self.main.show_tips.setText('')
+            self.main.show_tips.setText(is_allow_lang if is_allow_lang is not True else '')
             # 判断翻译渠道是否支持翻译到该目标语言
             if translator.is_allow_translate(translate_type=self.main.translate_type.currentIndex(),
                                              show_target=t) is not True:
                 return
-
-        if not self.change_by_lang(self.main.tts_type.currentIndex()):
+        # 如果不是需要跟随语言变化角色渠道，到此结束
+        if self.main.tts_type.currentIndex() not in tts.CHANGE_BY_LANGUAGE:
             if role != 'No' and self.main.app_mode in ['biaozhun']:
                 self.main.listen_btn.show()
                 self.main.listen_btn.setDisabled(False)
@@ -276,77 +194,32 @@ class WinAction(WinActionSub):
                 self.main.listen_btn.hide()
             return
 
-        self.main.listen_btn.hide()
+        # 只有当前配音渠道角色跟随语言选择变化，才继续向下执行
         self.main.voice_role.clear()
-        # 未设置目标语言，则清空 edgeTTS角色
-        if t == '-':
+        if t == '-' or not code:
             self.main.voice_role.addItems(['No'])
             return
 
-        if not code:
-            self.main.voice_role.addItems(['No'])
-        vt = code.split('-')[0]  # if code != 'yue' else "zh"
-        tts_type = self.main.tts_type.currentIndex()
-
-        if tts_type == tts.EDGE_TTS:
-            show_rolelist = tools.get_edge_rolelist()
-
-        elif tts_type == tts.KOKORO_TTS:
-            show_rolelist = tools.get_kokoro_rolelist()
-        elif tts_type == tts.PIPER_TTS:
-            show_rolelist = tools.get_piper_role()
-        elif tts_type == tts.VITSCNEN_TTS:
-            show_rolelist = tools.get_vits_role()
-        elif tts_type == tts.AI302_TTS:
-            show_rolelist = tools.get_302ai()
-        elif tts_type == tts.DOUBAO2_TTS:
-            show_rolelist = tools.get_doubao2_rolelist()
-        elif tts_type == tts.MINIMAXI_TTS:
-            show_rolelist = tools.get_minimaxi_rolelist()
-        else:
-            # AzureTTS
-            show_rolelist = tools.get_azure_rolelist()
-
-        if not show_rolelist:
-            self.main.target_language.setCurrentText('-')
-            tools.show_error(tr('waitrole'))
-            return
-
-        if vt not in show_rolelist:
-            self.main.voice_role.addItems(['No'])
-            return
-        if tts_type == tts.MINIMAXI_TTS:
-            show_rolelist = list(show_rolelist[vt].keys())
-            self.main.current_rolelist = show_rolelist
-            self.main.voice_role.addItems(show_rolelist)
-            return
-        if len(show_rolelist[vt]) < 1:
-            self.main.target_language.setCurrentText('-')
-            tools.show_error(tr('waitrole'))
-            return
-        if isinstance(show_rolelist[vt], list):
-            self.main.current_rolelist = show_rolelist[vt]
-            self.main.voice_role.addItems(show_rolelist[vt])
-        else:
-            self.main.current_rolelist = list(show_rolelist[vt].keys())
-            self.main.voice_role.addItems(self.main.current_rolelist)
+        _role_list = tools.role_menu(self.main.tts_type.currentIndex(), code.split('-')[0])
+        self.main.current_rolelist = _role_list
+        self.main.voice_role.addItems(_role_list)
 
     # 从本地导入字幕文件
     def import_sub_fun(self):
         fname, _ = QFileDialog.getOpenFileName(self.main, tr('selectmp4'), params.get('last_opendir', ''),
                                                "Srt files(*.srt *.txt)")
-        if fname:
-            content = ""
-            try:
-                content = Path(fname).read_text(encoding='utf-8')
-            except UnicodeError:
-                content = Path(fname).read_text(encoding='gbk')
-            finally:
-                if content:
-                    self.main.subtitle_area.clear()
-                    self.main.subtitle_area.insertPlainText(content.strip())
-                else:
-                    return tools.show_error(tr('import src error'))
+        if not fname:return
+        content = ""
+        try:
+            content = Path(fname).read_text(encoding='utf-8')
+        except UnicodeError:
+            content = Path(fname).read_text(encoding='gbk')
+        finally:
+            if content:
+                self.main.subtitle_area.clear()
+                self.main.subtitle_area.insertPlainText(content.strip())
+            else:
+                return tools.show_error(tr('import src error'))
 
     # 判断是否需要翻译
     def shound_translate(self):
@@ -634,7 +507,7 @@ class WinAction(WinActionSub):
 
         cfg = copy.deepcopy(self.cfg)
         for v in self.retry_queue_mp4:
-            obj = tools.format_video(v.get('file'), v.get('target_dir'))
+            obj:InputFile = tools.format_video(v.get('name'), v.get('target_dir'))
             app_cfg.rm_uuid(obj['uuid'])
             self.obj_list.append(obj)
             self.add_process_btn(
@@ -645,8 +518,7 @@ class WinAction(WinActionSub):
 
         cfg['clear_cache'] = False
 
-
-        from videotrans.task._mult_video import MultVideo
+        from videotrans.task.mult_video import MultVideo
         task = MultVideo(parent=self.main, cfg=cfg, obj_list=self.obj_list)
         task.start()
         self.main.startbtn.setDisabled(False)
@@ -658,14 +530,15 @@ class WinAction(WinActionSub):
         self.main.show_tips.show()
         self.main.show_tips.setText(tr('Creating progress bar, please wait'))
         # 输出目录，此时该目录是 视频名子文件夹的父级
-        target_dir = (Path(self.queue_mp4[0]).parent / '_video_out').as_posix() if not self.main.target_dir else self.main.target_dir
+        target_dir = (Path(
+            self.queue_mp4[0]).parent / '_video_out').as_posix() if not self.main.target_dir else self.main.target_dir
         # 待翻译的文件列表
         self.obj_list = []
 
         # 判断非法文件名
         forbid_names = []
         for video_path in self.queue_mp4:
-            obj = tools.format_video(video_path, target_dir)
+            obj:InputFile = tools.format_video(video_path, target_dir)
             if sys.platform == "win32" and re.search(r'[?:<>*|/"]', obj['basename']):
                 forbid_names.append(obj['basename'])
                 continue
@@ -692,7 +565,7 @@ class WinAction(WinActionSub):
         self.main.show_tips.setText('')
         # 单个视频处理模式
         if self.main.app_mode not in ['tiqu'] and len(self.obj_list) == 1:
-            from videotrans.task._only_one import Worker
+            from videotrans.task.only_one import Worker
             task = Worker(
                 parent=self.main,
                 obj_list=self.obj_list,
@@ -702,25 +575,14 @@ class WinAction(WinActionSub):
             task.start()
             return
 
-        from videotrans.task._mult_video import MultVideo
+        from videotrans.task.mult_video import MultVideo
         task = MultVideo(parent=self.main, cfg=cfg, obj_list=self.obj_list)
         task.start()
-
-    # 启动时禁用相关模式按钮，停止时重新启用
-    def _disabled_button(self, disabled=True):
-        for k, v in self.main.moshi.items():
-            if k != self.main.app_mode:
-                # 非当前模式
-                v.setDisabled(disabled)
-                v.setChecked(False)
-            else:
-                v.setDisabled(False)
-                v.setChecked(True)
 
 
     # 添加进度条
     def add_process_btn(self, *, target_dir: str = None, name: str = None, uuid=None):
-        from videotrans.component.progressbar import ClickableProgressBar
+
         clickable_progress_bar = ClickableProgressBar(self)
         clickable_progress_bar.progress_bar.setValue(0)  # 设置当前进度值
         clickable_progress_bar.setText(tr("waitforstart"))
@@ -741,8 +603,6 @@ class WinAction(WinActionSub):
 
     # 设置按钮上的日志信息
     def set_process_btn_text(self, d):
-        if isinstance(d, str):
-            d = json.loads(d)
         text, uuid, _type = d['text'], d.get('uuid', ''), d.get('type', 'logs')
         if not uuid or uuid not in self.processbtns:
             return
@@ -764,8 +624,7 @@ class WinAction(WinActionSub):
 
     # 更新执行状态
     def update_status(self, type):
-        if self.had_click_btn:
-            return
+        if self.had_click_btn: return
         self.had_click_btn = True
         app_cfg.current_status = type
         if type == 'ing':
@@ -786,7 +645,7 @@ class WinAction(WinActionSub):
             app_cfg.stoped_uuid_set.add(it['uuid'])
 
         if type == 'end':
-            # 成功完成
+            # 全部完成
             self.main.subtitle_area.clear()
             for prb in self.processbtns.values():
                 prb.setEnd()
@@ -812,8 +671,33 @@ class WinAction(WinActionSub):
         self.had_click_btn = False
 
     # 更新 UI
-    def update_data(self, uuid:Union[str,None]="",json_str:Union[object,None]=""):
-        d = json.loads(json_str) if isinstance(json_str, str) else json_str
+    def update_data(self, uuid: Union[str, None] = "", d: Union[SignMsg, None] = None):
+        if d['type'] == 'ffmpeg':
+            self.main.startbtn.setText(d['text'])
+            self.main.startbtn.setDisabled(True)
+            self.main.startbtn.setStyleSheet("""color:#ff0000""")
+            return
+        if d['type'] == 'refreshtts':
+            currentIndex = self.main.tts_type.currentIndex()
+            if currentIndex > 0:
+                self.main.tts_type.setCurrentIndex(0)
+                QTimer.singleShot(100, lambda: self.main.tts_type.setCurrentIndex(currentIndex))
+            return
+        if d['type'] == 'refreshmodel_list' and self.main.recogn_type.currentIndex() in [recognition.FASTER_WHISPER,
+                                                                                         recognition.Faster_Whisper_XXL,
+                                                                                         recognition.Whisper_CPP]:
+            current_model_name = self.main.model_name.currentText()
+            self.main.model_name.clear()
+            self.main.model_name.addItems(
+                settings.Whisper_CPP_MODEL_LIST if self.main.recogn_type.currentIndex() == recognition.Whisper_CPP else settings.WHISPER_MODEL_LIST)
+            self.main.model_name.setCurrentText(current_model_name)
+            return
+        # 任务开始执行，初始化按钮等
+        if d['type'] == 'shitingerror':
+            tools.show_error(d['text'])
+            return
+
+
         if d['type'] in ['logs', 'error', 'succeed', 'set_precent']:
             self.set_process_btn_text(d)
             if uuid and d['type'] in ['error', 'succeed']:
@@ -821,27 +705,18 @@ class WinAction(WinActionSub):
                 self._check_all_done()
 
             if not uuid or d['type'] != 'error': return
-
+            #将出错的加入重试队列
             vdata = self.uuid_queue_mp4.get(uuid)
             if not vdata: return
-            self.retry_queue_mp4.append({"file": vdata[0], "target_dir": vdata[1]})
+            self.retry_queue_mp4.append( InputFile(name=vdata[0], target_dir=vdata[1]) )
             return
 
-        if d['type'] in ['end']:
+        if d['type'] == 'end':
             # 任务全部完成时出现 end
             self.update_status('end')
             self.main.retrybtn.setVisible(True if self.retry_queue_mp4 else False)
             return
 
-        # 任务开始执行，初始化按钮等
-        if d['type'] == 'shitingerror':
-            tools.show_error(d['text'])
-            return
-        # 一行一行插入字幕到字幕编辑区
-        if d['type'] == "subtitle" and app_cfg.current_status == 'ing':
-            self.main.subtitle_area.moveCursor(QTextCursor.End)
-            self.main.subtitle_area.insertPlainText(d['text'])
-            return
         if d['type'] == 'edit_dubbing':
             # 显示编辑翻译框
             from videotrans.component.onlyone_set_editdubb import EditDubbingResultDialog
@@ -891,39 +766,17 @@ class WinAction(WinActionSub):
             else:
                 self.update_status('stop')
             return
+        # 一行一行插入字幕到字幕编辑区
+        if d['type'] == "subtitle" and app_cfg.current_status == 'ing':
+            self.main.subtitle_area.moveCursor(QTextCursor.End)
+            self.main.subtitle_area.insertPlainText(d['text'])
+            return
         if d['type'] == 'replace_subtitle':
             # 完全替换字幕区
             self.main.subtitle_area.clear()
             self.main.subtitle_area.insertPlainText(d['text'])
             return
-        if d['type'] == 'set_clone_role' and self.main.tts_type.currentText() == 'clone-voice':
-            if app_cfg.current_status == 'ing':
-                return
-            current = self.main.voice_role.currentText()
-            self.main.voice_role.clear()
-            self.main.voice_role.addItems(params.get("clone_voicelist", ''))
-            self.main.voice_role.setCurrentText(current)
-            return
 
-        if d['type'] == 'ffmpeg':
-            self.main.startbtn.setText(d['text'])
-            self.main.startbtn.setDisabled(True)
-            self.main.startbtn.setStyleSheet("""color:#ff0000""")
-            return
-        if d['type'] == 'refreshtts':
-            currentIndex = self.main.tts_type.currentIndex()
-            if currentIndex > 0:
-                self.main.tts_type.setCurrentIndex(0)
-                QTimer.singleShot(100, lambda: self.main.tts_type.setCurrentIndex(currentIndex))
-            return
-        if d['type'] == 'refreshmodel_list' and self.main.recogn_type.currentIndex() in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL,
-                                                        recognition.Whisper_CPP]:
-            current_model_name = self.main.model_name.currentText()
-            self.main.model_name.clear()
-            self.main.model_name.addItems(
-                settings.Whisper_CPP_MODEL_LIST if self.main.recogn_type.currentIndex() == recognition.Whisper_CPP else settings.WHISPER_MODEL_LIST)
-            self.main.model_name.setCurrentText(current_model_name)
-            return
 
     def _check_all_done(self):
         active = [obj for obj in self.obj_list if obj['uuid'] not in app_cfg.stoped_uuid_set]

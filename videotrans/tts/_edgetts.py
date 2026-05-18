@@ -5,6 +5,7 @@ from pathlib import Path
 import functools
 import aiohttp
 
+from videotrans.configure.excepts import DubbingSrtError
 from videotrans.util import tools
 from edge_tts import Communicate
 from edge_tts.exceptions import NoAudioReceived
@@ -40,7 +41,7 @@ class EdgeTTS(BaseTTS):
     async def _create_audio_with_retry(self, item, index, total_tasks, semaphore):
         # 根据角色名获取真实 配音所需的角色
         task_id = f" [{index + 1}/{total_tasks}]"
-        if not item.get('text','').strip() or tools.vail_file(item['filename']):
+        if self._exit() or not item.get('text','').strip() or tools.vail_file(item['filename']):
             await self.increment_counter()
             return
         
@@ -130,10 +131,6 @@ class EdgeTTS(BaseTTS):
             self._stop_event.set()
     
     async def _exec(self) -> None:
-
-        if not self.queue_tts:
-            return
-        
         logger.debug(f'本次EdgeTTS配音：重试延迟:{RETRY_DELAY},出错将重试:{RETRY_NUMS},并发:{MAX_CONCURRENT_TASKS}')
         self._stop_event.clear()
         total_tasks = len(self.queue_tts)
@@ -198,6 +195,8 @@ class EdgeTTS(BaseTTS):
                     ok += 1
                 else:
                     err += 1
+            if ok==0:
+                raise DubbingSrtError(f'All error for edge-tts ')
 
             if ok>0:
                 all_task = []

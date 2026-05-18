@@ -1,20 +1,19 @@
+import logging
 import re
 from dataclasses import dataclass
 from typing import List, Union
 import dashscope
-from videotrans.configure.config import tr,settings,params,app_cfg,logger
+from tenacity import retry, retry_if_not_exception_type, wait_fixed, stop_after_attempt, before_log, after_log
+from videotrans.configure.excepts import TranslateSrtError, NO_RETRY_EXCEPT
+from videotrans.configure.config import params, logger, settings
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
-
-RETRY_NUMS = 3
-RETRY_DELAY = 5
 
 
 @dataclass
 class QwenMT(BaseTrans):
-    def __post_init__(self):
-        super().__post_init__()
 
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
@@ -22,7 +21,6 @@ class QwenMT(BaseTrans):
         if model_name=='qwen-turbo':
             model_name='qwen-mt-turbo'
         if model_name.startswith('qwen-mt'):
-
             messages = [
                 {
                     "role": "user",
@@ -52,7 +50,7 @@ class QwenMT(BaseTrans):
                 translation_options=translation_options
             )
             if response.code or not response.output:
-                raise RuntimeError(response.message)
+                raise TranslateSrtError(response.message)
             logger.debug(f'qwen-mt返回响应:{response.output.choices[0].message.content}')
             return self.clean_srt(response.output.choices[0].message.content)
 
@@ -76,7 +74,7 @@ class QwenMT(BaseTrans):
         )
 
         if response.code or not response.output:
-            raise RuntimeError(response.message)
+            raise TranslateSrtError(response.message)
         logger.debug(f'阿里百炼 AI响应:{response.output.choices[0].message.content}')
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', response.output.choices[0].message.content, re.S)
         if match:

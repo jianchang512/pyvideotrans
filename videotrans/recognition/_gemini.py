@@ -1,22 +1,19 @@
-# zh_recogn 识别
 import json
 import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 from google import genai
 from google.genai import types,errors
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
-from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTextError
 from videotrans.configure.config import params, logger, ROOT_DIR, settings
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
-
-RETRY_NUMS = 2
-RETRY_DELAY = 10
 
 
 @dataclass
@@ -25,12 +22,9 @@ class GeminiRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-
         self.api_keys = params.get('gemini_key', '').strip().split(',')
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _req(self,seg_group,api_key,prompt):
         res_text = ""
         try:
@@ -46,7 +40,7 @@ class GeminiRecogn(BaseRecogn):
                 parts.append(
                     types.Part.from_bytes(
                         mime_type="audio/wav",
-                        data=Path(f['file']).read_bytes()
+                        data=Path(f['filename']).read_bytes()
                     )
                 )
             parts.append(types.Part.from_text(text=prompt))
@@ -97,10 +91,10 @@ class GeminiRecogn(BaseRecogn):
             if e.code in [400,403,404,429,500]:
                 raise StopRetry(e.message)
             return ''
-    def _exec(self):
+    def _exec(self)->Union[List[SrtItem], None]:
         seg_list = self.cut_audio()
         if len(seg_list) < 1:
-            raise RuntimeError(f'VAD error')
+            raise SpeechToTextError(f'VAD error')
         nums = int(settings.get('gemini_recogn_chunk', 50))
         seg_list = [seg_list[i:i + nums] for i in range(0, len(seg_list), nums)]
         srt_str_list = []
@@ -130,14 +124,14 @@ class GeminiRecogn(BaseRecogn):
                     if mt:
                         speaker_list.append(mt.group(1))
                         text = re.sub(r'^\[spk\d+\]', '', text,flags=re.I | re.S)
-                    srt = {
-                        "line": len(srt_str_list) + 1,
-                        "start_time": f['start_time'],
-                        "end_time": f['end_time'],
-                        "startraw": startraw,
-                        "endraw": endraw,
-                        "text": text  
-                    }
+                    srt = SrtItem(
+                        line=len(srt_str_list) + 1,
+                        start_time=f['start_time'],
+                        end_time=f['end_time'],
+                        startraw=startraw,
+                        endraw=endraw,
+                        text=text
+                    )
                     srt_str_list.append(srt)
                     str_s.append(f'{srt["line"]}\n{startraw} --> {endraw}\n{srt["text"]}')
             self.signal(
@@ -146,7 +140,7 @@ class GeminiRecogn(BaseRecogn):
             )
 
         if len(srt_str_list) < 1:
-            raise RuntimeError('No result:The return format may not meet the requirements')
+            raise SpeechToTextError('No result:The return format may not meet the requirements')
         if speaker_list:
             Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
         return srt_str_list

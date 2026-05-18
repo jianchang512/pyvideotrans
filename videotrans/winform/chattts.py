@@ -37,7 +37,7 @@ def openwin():
         settings['chattts_voice'] = voice
         settings.save()
 
-        tools.set_process(text='chattts', type="refreshtts")
+        tools.set_process(text='', type="refreshtts")
         winobj.close()
 
     from videotrans.component.set_form import ChatttsForm

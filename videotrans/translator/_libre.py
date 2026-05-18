@@ -5,20 +5,17 @@ from typing import List, Union
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import tr,params,settings,app_cfg,logger
-from videotrans.configure._except import NO_RETRY_EXCEPT
+from videotrans.configure.config import params,settings,logger
+from videotrans.configure.excepts import NO_RETRY_EXCEPT
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
-RETRY_NUMS = 3
-RETRY_DELAY = 5
 
 
 @dataclass
 class Libre(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
-        self.aisendsrt = False
 
         url = params.get('libre_address','').strip().rstrip('/')
         key = params.get('libre_key','').strip()  # Retained for logical equivalence
@@ -32,11 +29,8 @@ class Libre(BaseTrans):
                 self.api_url += f"&key={key}"
             else:
                 self.api_url += f"?key={key}"
-        self._add_internal_host_noproxy(self.api_url)
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         jsondata = {

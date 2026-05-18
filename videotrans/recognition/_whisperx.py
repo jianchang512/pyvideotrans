@@ -1,30 +1,24 @@
-# zh_recogn 识别
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Union
-
+from typing import List,  Union
 from openai import OpenAI
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
+from videotrans.configure.excepts import SpeechToTextError
+from videotrans.configure.config import params,logger
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
-
-RETRY_NUMS = 2
-RETRY_DELAY = 10
-
 
 @dataclass
 class WhisperXRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = params.get('whisperx_api', 'http://127.0.0.1:9092')
-        self._add_internal_host_noproxy(self.api_url)
+        self.api_url = params.get('whisperx_api')
 
 
-    def _exec(self) -> Union[List[Dict], None]:
+    def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
-        # self.model_name
         client = OpenAI(
             api_key='123456',
             base_url=self.api_url.rstrip('/')+"/v1"
@@ -34,7 +28,6 @@ class WhisperXRecogn(BaseRecogn):
         speaker_name = []
         logger.debug(f'[whisperx-api]:指定最大说话人：{self.max_speakers=}')
         with open(self.audio_file, 'rb') as file:
-
             transcript = client.audio.transcriptions.create(
                 file=(self.audio_file, file.read()),
                 model=self.model_name,
@@ -46,17 +39,16 @@ class WhisperXRecogn(BaseRecogn):
             )
 
             if not hasattr(transcript, 'segments') or not transcript.segments:
-                raise RuntimeError('No support gpt-4o-transcribe-diarize')
+                raise SpeechToTextError('No support')
             for it in transcript.segments:
-                raws.append({
-                    "line": len(raws) + 1,
-                    "start_time": it.start * 1000,
-                    "end_time": it.end * 1000,
-                    "text": it.text,
-                    "time": tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
-                        ms=it.end * 1000),
-
-                })
+                raws.append(SrtItem(
+                    line=len(raws) + 1,
+                    start_time=it.start * 1000,
+                    end_time=it.end * 1000,
+                    text=it.text,
+                    time=tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
+                        ms=it.end * 1000)
+                ))
                 if self.max_speakers>-1:
                     sp = getattr(it,"speaker",'-')
                     speaker_list.append(sp)

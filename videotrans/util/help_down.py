@@ -4,8 +4,8 @@ import time
 from pathlib import Path
 import shutil, os, requests
 import zipfile
-from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, params, TEMP_DIR, logger, defaulelang, HOME_DIR
-from videotrans.util.contants import FASTER_MODELS_DICT
+from videotrans.configure.config import ROOT_DIR, tr, logger, defaulelang
+from videotrans.configure.contants import FASTER_MODELS_DICT
 from .help_misc import create_tqdm_class
 from urllib.parse import urlparse
 
@@ -244,7 +244,7 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
 
 # 从 modelscope.cn 下载完整模型
 def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
-    from modelscope.hub.callback import ProgressCallback, TqdmCallback
+    from modelscope.hub.callback import TqdmCallback
     from modelscope.hub.snapshot_download import snapshot_download
     class Pro(TqdmCallback):
         def __init__(self, *args):

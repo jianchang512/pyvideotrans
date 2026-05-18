@@ -5,8 +5,8 @@ def openwin():
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.util import contants
-    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+    from videotrans.configure import contants
+    from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
     from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/audiofromvideo"
 
@@ -52,7 +52,7 @@ def openwin():
                     jd = round((i + 1) * 100 / len(self.videourls), 2)
                     self.post(type='jd', text=f'{jd}%')
             except Exception as e:
-                from videotrans.configure._except import get_msg_from_except
+                from videotrans.configure.excepts import get_msg_from_except
                 self.post(type='error', text=get_msg_from_except(e))
             else:
                 self.post(type="ok", text='Ended')

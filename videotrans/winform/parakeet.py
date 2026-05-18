@@ -28,7 +28,7 @@ def openwin():
         task.uito.connect(feed)
         task.start()
 
-    def save_openairecognapi():
+    def save():
         url = winobj.parakeet_address.text().strip()
         if not url:
             return
@@ -40,6 +40,7 @@ def openwin():
 
         params["parakeet_address"] = url
         params.save()
+        tools.set_process(text='', type="refreshtts")
         winobj.close()
 
 
@@ -48,6 +49,6 @@ def openwin():
     winobj = ParakeetForm()
     app_cfg.child_forms['parakeet'] = winobj
     winobj.update_ui()
-    winobj.set_btn.clicked.connect(save_openairecognapi)
+    winobj.set_btn.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

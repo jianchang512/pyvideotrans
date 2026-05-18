@@ -24,7 +24,7 @@ class TestSrtTrans(QThread):
                                   )
             self.uito.emit(f"ok:{raw}\n{text[0]['text']}")
         except Exception as e:
-            from videotrans.configure._except import get_msg_from_except
+            from videotrans.configure.excepts import get_msg_from_except
             import traceback
             except_msg=get_msg_from_except(e)
             msg = f'{except_msg}:' + traceback.format_exc()

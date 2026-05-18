@@ -1,15 +1,18 @@
-# 语音识别，新进程执行
+# 语音合成，新进程执行
 # 返回元组
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
+from pathlib import Path
+import traceback, json
+from typing import Tuple, Union
 from videotrans.configure.config import logger,ROOT_DIR
+import soundfile as sf
 
 def _write_log(file, msg):
-    from pathlib import Path
     try:
         Path(file).write_text(msg, encoding='utf-8')
     except Exception as e:
-        logger.exception(f'写入新进程日志时出错', exc_info=True)
+        logger.exception(f'写入新进程日志时出错{e}', exc_info=True)
 
 
 def qwen3tts_fun(
@@ -22,15 +25,8 @@ def qwen3tts_fun(
         model_name='1.7B',
         roledict=None,
         device_index=0 # gpu索引
-):
-    import re, os, traceback, json, time
-    import shutil
-    from pathlib import Path
-    from videotrans.util import tools
-
+)->Tuple[bool,Union[str,None]]:
     import torch
-    torch.set_num_threads(1)
-    import soundfile as sf
     from qwen_tts import Qwen3TTSModel
 
     
@@ -76,7 +72,6 @@ def qwen3tts_fun(
         )
 
     try:
-
         _len=len(queue_tts)
         for i,it in enumerate(queue_tts):
             text=it.get('text')
@@ -123,6 +118,4 @@ def qwen3tts_fun(
         return True,None
     except Exception as e:
         msg = traceback.format_exc()
-        logger.exception(f'Qwen3-TTS 配音失败:{msg}', exc_info=True)
-        return False, msg
-
+        return False, f'{e},{msg}'

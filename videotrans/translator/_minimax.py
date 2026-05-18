@@ -12,9 +12,10 @@ class MiniMax(OpenAICampat):
         self.max_tokens =int(params.get('minimax_max_tokens',8192))
         self.model_name =params.get('minimax_model', 'MiniMax-M2.7')
         api_url = params.get('minimax_api', 'api.minimax.io')
-        if not self.api_url.startswith('https'):
-            self.api_url = 'https://' +api_url
-        if not self.api_url.endswith('/v1'):
-            self.api_url = api_url.strip('/')+"/v1"
+        if not api_url.startswith('https'):
+            api_url = 'https://' +api_url
+        if not api_url.endswith('/v1'):
+            api_url = api_url.strip('/')+"/v1"
+        self.api_url=api_url
         super().__post_init__()
 

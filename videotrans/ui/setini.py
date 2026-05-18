@@ -18,12 +18,17 @@ notices = {
         "lang": "设置软件界面语言，修改后需要重启软件",
         "countdown_sec": "当单视频交互翻译时，暂停倒计时秒数(设为0将跳过编辑窗口)",
         "homedir": "用于设置 批量语音转录 / 批量为字幕配音 / 批量翻译srt字幕 等功能的输出结果位置，非视频翻译结果保存位置，默认软件安装目录下output文件夹",
+
+        "retry_nums":"失败后重试次数(针对重试可能恢复的错误，在此设定重试次数)",
+
         "llm_chunk_size": "LLM大模型重新断句时，每次发送多少条字幕，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于最大输出token和上下文(max_token)，过长输入可能导致超出AI限制而失败，默认20条字幕",
-        "llm_ai_type": "LLM重新断句时使用的AI渠道，目前支持openai或deepseek渠道",
+        "llm_ai_type": "LLM重新断句时使用的AI渠道，目前支持 OpenAI-ChatGPT 或 DeepSeek 渠道",
 
         "dont_notify": "任务完成或失败后不显示桌面通知",
         "batch_nums": "批量翻译视频时，在此设置每批次同时翻译几个，默认0即不限制",
         "show_more_settings": "为避免过多参数造成困扰，主界面默认隐藏大部分参数，如果选中这里将切换为默认显示所有参数",
+
+
         "process_max": "最大进程数，越大越快但可能爆内存，最大不应超过cpu核数减一\n(修改保存后重启生效)",
         "process_max_gpu": "GPU任务同时执行数量，除非单卡显存大于20G，否则请设为1\n(修改保存后重启生效)",
         "multi_gpus": "如果有多张显卡，且显存一致，可启用该项，同时可将上述选项设为2或显卡数\n(修改保存后重启生效)",
@@ -85,13 +90,11 @@ notices = {
         "remove_dubb_silence": "移除每条字幕配音前后静音缓冲，利于音画同步，但可能结尾仓促",
         "save_segment_audio": "保留每行字幕的配音结果",
         "normal_text": "配音前对文本规范化处理",
-        "azure_lines": "Azure TTS批量配音行数，一次多少行",
         "chattts_voice": "ChatTTS 音色值",
         "edgetts_max_concurrent_tasks": "EdgeTTS渠道配音并发数，越大越快，但可能限流失败",
         "edgetts_retry_nums": "EdgeTTS渠道失败后重试次数,有些失败无论多少次重试也无法恢复，太大只会延长耗时",
         "noise_separate_nums": "人声背景声分离线程数，越大越快但占用资源越多",
         "uvr_models": "选择分离背景声时所用模型",
-        "pseudo_original": "对背景音乐伪原创处理，只有选中了分离人声背景或添加了额外背景音频时生效"
     },
     "justify": {
 
@@ -159,7 +162,8 @@ titles = {
     "hw_decode": "视频合成cuda硬解码",
     "normal_text": "文本规范化",
     "uvr_models": "分离背景声模型",
-    "pseudo_original": "背景音伪原创处理",
+
+    "retry_nums":"失败后重试次数",
 
     "whisper_prepare": "Whisper预分割音频?",
     "temperature": "采样温度",
@@ -220,7 +224,6 @@ titles = {
     "hotwords": "热词",
 
     "zh_hant_s": "字幕繁体转简体",
-    "azure_lines": "AzureTTS批量行数",
     "chattts_voice": "ChatTTS音色值",
 
     "gemini_model": "Gemini模型列表",
@@ -276,12 +279,17 @@ if defaulelang != 'zh':
             "lang": "Set the software's interface language. Requires a restart to take effect.",
             "countdown_sec": "Countdown in seconds for a single video translation.",
             "homedir": "Directory to save results (STT, TTS, TransSubtitles). Defaults to the 'output' folder.",
+
+            "retry_nums":"Number of retries after failure",
+
             "llm_chunk_size": "When re-segmenting sentences in the LLM large model, the number of subtitles sent each time is important. A larger value results in better sentence segmentation. Sending all subtitles at once is optimal, but this is limited by the maximum output token and context (max_token). An excessively long input may exceed the AI  limit and fail. The default is 20 subtitles.",
-            "llm_ai_type": "AI provider for LLM re-segmentation, supports 'openai' or 'deepseek'.",
+            "llm_ai_type": "AI provider for LLM re-segmentation, supports 'OpenAI ChatGPT' or 'DeepSeek'.",
 
             "dont_notify": "Disable desktop notifications for task completion or failure.",
+
             "batch_nums": "When translating in batches, set the number of lines to translate simultaneously in each batch here.",
             "show_more_settings": "To avoid confusion caused by too many parameters, most parameters are hidden by default on the main interface. Selecting this option will switch to displaying all parameters by default.",
+
             "process_max": "Process Maximum",
             "process_max_gpu": "The number of GPU tasks that can be executed simultaneously should be set to 1 unless the video memory is greater than 20GB.",
             "multi_gpus": "If you have multiple graphics cards with identical video memory, you can enable this option and set the above option to 2 or the number of graphics cards.",
@@ -342,13 +350,11 @@ if defaulelang != 'zh':
             "remove_dubb_silence": "Remove the mute buffer before and after each subtitle audio. Selecting this option will improve audio-visual synchronization, but may make the ending feel rushed.",
             "save_segment_audio": "Save the dubbed audio for each individual subtitle line.",
             "normal_text": "Text normalization before dubbing",
-            "azure_lines": "Number of lines per batch request for Azure TTS.",
             "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
             "edgetts_retry_nums": "Number of retries after EdgeTTS channel failure",
             "chattts_voice": "ChatTTS voice timbre value.",
             "noise_separate_nums": "The more threads used for separation of human and background voices, the faster the process, but the more resources it consumes.",
             "uvr_models": "Select the model used when separating background noise.",
-            "pseudo_original": "Pseudo-original processing of background music"
         },
         "justify": {
 
@@ -421,7 +427,8 @@ if defaulelang != 'zh':
         "remove_dubb_silence": "Remove the mute buffer each subtitle audio",
         "normal_text": "Text Text normalization",
         "uvr_models": "BGM separation model",
-        "pseudo_original": "Pseudo-original for BGM",
+
+        "retry_nums":"Number of retries after failure",
 
         "repetition_penalty": "repetition penalty",
         "compression_ratio_threshold": "compression ratio threshold",
@@ -471,7 +478,6 @@ if defaulelang != 'zh':
         "best_of": "Recognition accuracy (best_of)",
         "condition_on_previous_text": "Enable context awareness",
         "zh_hant_s": "Convert Traditional to Simplified Chinese subtitles",
-        "azure_lines": "Azure TTS batch size (lines)",
         "chattts_voice": "ChatTTS voice timbre value",
         "translation_wait": "Pause (s) after each translation request",
         "dubbing_wait": "Pause (s) after each dubbing request",
@@ -609,7 +615,7 @@ class Ui_setini(object):
                         'int8_bfloat16'
                     ]
                 elif key == 'llm_ai_type':
-                    combobox_data = ['openai', 'deepseek']
+                    combobox_data = ['chatgpt', 'deepseek']
                 elif key == 'vad_type':
                     combobox_data = ['tenvad', 'silero']
                 elif key == 'speaker_type':

@@ -3,9 +3,9 @@ from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit,  QPushButton, QSizePolicy
 
-from videotrans.configure.config import tr,app_cfg,params,settings,logger
+from videotrans.configure.config import tr
 from videotrans.util import tools
-from videotrans.util.contants import MINIMAX_TTS_MODELS
+from videotrans.configure.contants import MINIMAX_TTS_MODELS
 
 
 class Ui_minimaxiform(object):
@@ -59,7 +59,7 @@ class Ui_minimaxiform(object):
         label_6 = QLabel()
         label_6.setText(tr("Model"))
         self.model = QtWidgets.QComboBox()
-        self.model.addItems(MINIMAX_TTS_MODELS)
+        self.model.addItems(MINIMAX_TTS_MODELS.split(','))
 
         hmodel.addWidget(label_6)
         hmodel.addWidget(self.model)

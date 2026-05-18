@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import List, Dict, Union
 
 from openai import OpenAI
+
+from videotrans.configure.excepts import SpeechToTextError
 from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
@@ -48,4 +50,4 @@ class CPPRecogn(BaseRecogn):
             subprocess.run(cmd, capture_output=True, text=True, check=True, encoding='utf-8', errors='replace', creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0, cwd=os.path.dirname(cpp_path))
             return tools.get_subtitle_from_srt(_sub+".srt", is_file=True)
         except subprocess.CalledProcessError as e:
-            raise RuntimeError(e.stderr+f"\n{e.stdout}")
+            raise SpeechToTextError(e.stderr+f"\n{e.stdout}")

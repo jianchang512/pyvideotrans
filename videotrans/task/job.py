@@ -1,12 +1,13 @@
 import shutil
 from PySide6.QtCore import QThread
-from videotrans.configure.config import tr, params, settings, app_cfg, logger
-from videotrans.task._base import BaseTask
+from videotrans.configure.config import tr, settings, app_cfg, logger
 from videotrans.util import tools, gpus
-from videotrans.util.tools import set_process
 import traceback
-from queue import Empty, Full
-from videotrans.configure._except import get_msg_from_except
+from queue import Empty
+from videotrans.configure.excepts import get_msg_from_except
+from videotrans.recognition import RECOGN_NAME_LIST
+from videotrans.translator import TRANSLASTE_NAME_LIST
+from videotrans.tts import TTS_NAME_LIST
 
 
 def _get_type_name(type_index, name_list):
@@ -16,17 +17,14 @@ def _get_type_name(type_index, name_list):
 
 
 def get_recogn_type(type_index=None):
-    from videotrans.recognition import RECOGN_NAME_LIST
     return _get_type_name(type_index, RECOGN_NAME_LIST)
 
 
 def get_tanslate_type(type_index=None):
-    from videotrans.translator import TRANSLASTE_NAME_LIST
     return _get_type_name(type_index, TRANSLASTE_NAME_LIST)
 
 
 def get_tts_type(type_index=None):
-    from videotrans.tts import TTS_NAME_LIST
     return _get_type_name(type_index, TTS_NAME_LIST)
 
 
@@ -42,18 +40,14 @@ class BaseWorker(QThread):
 
     def run(self) -> None:
         while True:
-            if app_cfg.exit_soft:
-                return
-
+            if app_cfg.exit_soft: return
             try:
                 trk = self.queue.get(timeout=1)
             except Empty:
                 continue
-
             if trk.uuid in app_cfg.stoped_uuid_set:
                 logger.debug(f'[job] {trk.uuid=}已停止，跳过阶段 {self.name} {trk.cfg=}')
                 continue
-
             try:
                 # 执行具体的业务逻辑和队列路由
                 self.process_task(trk)
@@ -61,15 +55,15 @@ class BaseWorker(QThread):
                 self.handle_error(e, trk)
 
     def process_task(self, trk):
-        """子类必须实现：具体的执行逻辑和下一步队列路由"""
         raise NotImplementedError
 
     def handle_error(self, e, trk):
         """统一的错误处理逻辑"""
-
         logger.exception(e, exc_info=True)
+        # 简单的错误消息
         except_msg = get_msg_from_except(e)
-        detail_back = traceback.format_exc().strip()
+        # 错误堆栈
+        detail_back = "\n".join(traceback.format_exception(e)).strip()
         if not except_msg:
             except_msg = detail_back.split("\n")[-1]
 
@@ -77,10 +71,9 @@ class BaseWorker(QThread):
         prefix = self.get_error_prefix(trk)
         if prefix:
             except_msg = f"{prefix} {except_msg}"
-
-        msg = f'{except_msg}\n{detail_back}\n{trk.cfg}'
-        trk.signal(text=msg, type='error', uuid=trk.uuid)
-        tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+        if trk.uuid not in app_cfg.stoped_uuid_set:
+            trk.signal(text=f'{except_msg}\n{detail_back}\n{trk.cfg}', type='error', uuid=trk.uuid)
+            tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
         trk.set_end()
         self.cleanup_on_error(trk)
 
@@ -194,13 +187,6 @@ class WorkerAlign(BaseWorker):
         else:
             app_cfg.taskdone_queue.put_nowait(trk)
 
-    def cleanup_on_error(self, trk):
-        # 对齐失败时的专属清理逻辑
-        try:
-            shutil.rmtree(trk.cfg.cache_folder, ignore_errors=True)
-        except Exception:
-            pass
-
 
 class WorkerRegcon2Pass(BaseWorker):
     def __init__(self):
@@ -236,7 +222,6 @@ class WorkerTaskDone(BaseWorker):
     def process_task(self, trk):
         trk.task_done()
 
-
 def start_thread():
     gpus.getset_gpu()
     task_nums = 1
@@ -244,7 +229,7 @@ def start_thread():
     if app_cfg.NVIDIA_GPU_NUMS > 0:
         try:
             process_max_gpu = int(float(settings.get('process_max_gpu', 0)))
-        except:
+        except ValueError:
             process_max_gpu = 1
         # 如果手动设置了gpu进程数量
         if process_max_gpu > 0:
@@ -252,11 +237,8 @@ def start_thread():
         elif app_cfg.NVIDIA_GPU_NUMS > 1 and bool(settings.get('multi_gpus')):
             # 显卡数量真的大于1 并且 启用了多显卡，
             task_nums = 2 if app_cfg.NVIDIA_GPU_NUMS < 4 else 4
-        logger.debug(f'{process_max_gpu=}')
-        logger.debug(f'is_multi_gpus={settings.get("multi_gpus")}')
-    logger.debug(f'Concurrent {task_nums=}')
-    logger.debug(f'process_max={settings.get("process_max")}')
-    # 定义每个工种需要的线程数量
+        logger.debug(f'{process_max_gpu=},is_multi_gpus={settings.get("multi_gpus")}')
+    logger.debug(f'Concurrent {task_nums=}, process_max_cpu={settings.get("process_max")}')
     worker_config = {
         WorkerPrepare: task_nums,  # 准备工作
         WorkerRegcon: task_nums,  # 语音识别
@@ -273,13 +255,10 @@ def start_thread():
 
     for worker_cls, count in worker_config.items():
         for i in range(count):
-            # 实例化
             worker = worker_cls()
             if count > 1:
                 worker.name = f"{worker.name}-{i + 1}"
-
             worker.start()
             workers.append(worker)
-
     logger.debug(f"start {len(workers)} jobs")
     return workers

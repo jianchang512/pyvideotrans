@@ -1,4 +1,3 @@
-import copy
 import json
 import re
 import platform
@@ -6,36 +5,39 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Union
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,TEMP_DIR,logger
-from videotrans.util import contants
-from videotrans.util.contants import INSTALL_RUBBERBAND_TIPS
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, TEMP_DIR, logger
+from videotrans.configure.excepts import FFmpegError, VideoTransError
+from videotrans.task.taskcfg import InputFile
+from videotrans.configure import contants
+from videotrans.configure.contants import INSTALL_RUBBERBAND_TIPS
 
 
-def extract_concise_error(stderr_text: str, max_lines=3, max_length=250) -> str:
+def extract_concise_error(stderr_text: str) -> str:
     if not stderr_text:
         return "Unknown error (empty stderr)"
 
     lines = stderr_text.strip().splitlines()
     if not lines:
         return "Unknown error (empty stderr lines)"
-    
-    result=re.findall(r'Error\s(.*?)\n',stderr_text)
+
+    result = re.findall(r'Error\s(.*?)\n', stderr_text)
     if not result:
         return " ".join(lines[-10:])
     return " ".join(result)
 
-# 简化函数移除硬件支持，避免复杂性和兼容性错误，仅在最终合并阶段支持硬件加速，在 trans_create.py 中单独实现
-def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
+
+def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
     """
     执行 ffmpeg 命令
     """
     if settings.get('force_lib'):
-        force_cpu=True
+        force_cpu = True
 
     final_args = arg
 
-    cmd = ['ffmpeg', "-hide_banner", "-nostdin","-ignore_unknown",'-threads','0']
+    cmd = ['ffmpeg', "-hide_banner", "-nostdin", "-ignore_unknown", '-threads', '0']
     if "-y" not in final_args:
         cmd.append("-y")
     cmd.extend(final_args)
@@ -44,13 +46,10 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
         cmd[-1] = Path(cmd[-1]).as_posix()
 
     if settings.get('ffmpeg_cmd'):
-        custom_params = [p for p in settings.get('ffmpeg_cmd','').split(' ') if p]
+        custom_params = [p for p in settings.get('ffmpeg_cmd', '').split(' ') if p]
         cmd = cmd[:-1] + custom_params + cmd[-1:]
 
     try:
-        creationflags = 0
-        if sys.platform == 'win32':
-            creationflags = subprocess.CREATE_NO_WINDOW
         if app_cfg.exit_soft:
             return
         if cmd[-1].lower().endswith('.mp4'):
@@ -63,7 +62,7 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
             errors='replace',
             check=True,
             text=True,
-            creationflags=creationflags,
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
             cwd=cmd_dir
         )
         if noextname:
@@ -77,37 +76,44 @@ def runffmpeg(arg, *, noextname=None, uuid=None, force_cpu=True,cmd_dir=None):
     except subprocess.CalledProcessError as e:
         error_message = e.stderr or ""
         logger.warning(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message} {e.stdout}")
-        err=extract_concise_error(e.stderr)
+        err = extract_concise_error(e.stderr)
         if noextname:
             app_cfg.queue_novice[noextname] = f"error:{err}"
         # 针对win上路径和名称问题单独提示
-        if sys.platform=='win32' and 'No such file or directory' in str(e):
-            _err=get_filepath_from_cmd(cmd)
-            err=_err or err
-        raise RuntimeError(err)
+        if sys.platform == 'win32' and 'No such file or directory' in str(e):
+            _err = get_filepath_from_cmd(cmd)
+            err = _err or err
+        raise FFmpegError(err) from e
     except Exception as e:
         if noextname:
             app_cfg.queue_novice[noextname] = f"error:{e}"
         logger.debug(f"执行 ffmpeg 时发生未知错误:{e}")
         raise
 
+
 # 从 cmd 列表中获取 -i 之后的路径和 最后一个路径，以判断文件名是否规则，
 
-def get_filepath_from_cmd(cmd:list):
-    file_list=[cmd[i+1] for i,param in enumerate(cmd) if param=='-i']
+def get_filepath_from_cmd(cmd: list):
+    file_list = [cmd[i + 1] for i, param in enumerate(cmd) if param == '-i']
     file_list.append(cmd[-1])
-    special=['"',"'","`","*","?",":",">","<","|","\n","\r"]
+    special = ['"', "'", "`", "*", "?", ":", ">", "<", "|", "\n", "\r"]
     for file in file_list:
-        if len(file)>=255:
-            return  tr('The file path and file name may be too long. Please move the file to a flat and short directory and rename the file to a shorter name, ensuring that the length from the drive letter to the end of the file name does not exceed 255 characters: {},For example D:/videotrans/1.mp4 D:/videotrans/2.wav',file)
+        if len(file) >= 255:
+            return tr(
+                'The file path and file name may be too long. Please move the file to a flat and short directory and rename the file to a shorter name, ensuring that the length from the drive letter to the end of the file name does not exceed 255 characters: {},For example D:/videotrans/1.mp4 D:/videotrans/2.wav',
+                file)
         for flag in special:
             if flag in file:
-                return tr('There may be special characters in the file name or path. Please move the file to a simple directory consisting of English and numerical characters, rename the file to a simple name, and try again to avoid errors: {},For example D:/videotrans/1.mp4 D:/videotrans/2.wav',file)
+                return tr(
+                    'There may be special characters in the file name or path. Please move the file to a simple directory consisting of English and numerical characters, rename the file to a simple name, and try again to avoid errors: {},For example D:/videotrans/1.mp4 D:/videotrans/2.wav',
+                    file)
     return None
+
 
 def check_hw_on_start(_compat=None):
     get_video_codec(264)
     get_video_codec(265)
+
 
 def get_video_codec(compat=None) -> str:
     """
@@ -127,14 +133,13 @@ def get_video_codec(compat=None) -> str:
     _codec_cache = app_cfg.codec_cache  # 使用 config 中的缓存
     try:
         if not _codec_cache and Path(f'{ROOT_DIR}/videotrans/codec.json').exists():
-            _codec_cache=json.loads(Path(f'{ROOT_DIR}/videotrans/codec.json').read_text(encoding='utf-8'))
+            _codec_cache = json.loads(Path(f'{ROOT_DIR}/videotrans/codec.json').read_text(encoding='utf-8'))
     except Exception as e:
         logger.debug(f'parse codec.json error:{e}')
-        
-    
+
     plat = platform.system()
-    if compat and compat in [264,265]:
-        video_codec_pref=compat
+    if compat and compat in [264, 265]:
+        video_codec_pref = compat
     else:
         try:
             video_codec_pref = int(settings.get('video_codec', 264))
@@ -241,14 +246,9 @@ def get_video_codec(compat=None) -> str:
             selected_codec = default_codec
     # 
     _codec_cache[cache_key] = selected_codec
-    
+
     logger.debug(f"最终确定使用的编码器: {selected_codec}")
     return selected_codec
-
-
-class _FFprobeInternalError(Exception):
-    """用于内部错误传递的自定义异常。"""
-    pass
 
 
 def _run_ffprobe_internal(cmd: list[str]) -> str:
@@ -260,7 +260,6 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
         cmd[-1] = Path(cmd[-1]).as_posix()
 
     command = ['ffprobe'] + [str(arg) for arg in cmd]
-    creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
     try:
         p = subprocess.run(
             command,
@@ -269,41 +268,25 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
             encoding="utf-8",
             errors='replace',
             check=True,
-            creationflags=creationflags
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
         )
         return p.stdout.strip()
     except FileNotFoundError as e:
-        msg = f"Command not found: ffmpeg. Ensure FFmpeg is installed and in your PATH."
-        logger.warning(msg)
-        raise _FFprobeInternalError(msg) from e
+        raise FFmpegError("Command not found: ffmpeg. Ensure FFmpeg is installed and in your PATH.") from e
     except subprocess.CalledProcessError as e:
         concise_error = extract_concise_error(e.stderr)
         logger.exception(f"ffprobe command failed: {concise_error}", exc_info=True)
-        raise _FFprobeInternalError(concise_error) from e
+        raise FFmpegError(concise_error) from e
     except (PermissionError, OSError) as e:
         logger.exception(e, exc_info=True)
-        raise _FFprobeInternalError(e) from e
+        raise FFmpegError(e) from e
 
 
 def runffprobe(cmd):
-    try:
-        stdout_result = _run_ffprobe_internal(cmd)
-        if stdout_result:
-            return stdout_result
-
-        # 如果 stdout 为空，但进程没有出错（不常见），则模拟旧的错误路径
-        #  _run_ffprobe_internal 中，如果 stderr 有内容且返回码非0，
-        # 会直接抛出异常，所以这段逻辑主要为了覆盖极端的边缘情况。
-        logger.warning("ffprobe ran successfully but produced no output.")
-        raise Exception("ffprobe ran successfully but produced no output.")
-
-    except _FFprobeInternalError as e:
-        raise
-    except Exception as e:
-        # 捕获其他意料之外的错误并重新引发，保持行为一致
-        logger.exception(e, exc_info=True)
-        raise
-
+    stdout_result = _run_ffprobe_internal(cmd)
+    if stdout_result:
+        return stdout_result
+    raise FFmpegError("ffprobe ran successfully but produced no output.")
 
 
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
@@ -312,27 +295,27 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     """
     if not Path(mp4_file).exists():
         raise Exception(f'{mp4_file} is not exists')
-    try:
-        out_json = runffprobe(
-            ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file]
-        )
-        if not out_json:
-            raise RuntimeError(tr('Failed to parse {} information, please confirm that the file can be played normally',mp4_file))
-    except Exception as e:
-        raise
+    out_json = runffprobe(
+        ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4_file]
+    )
+    if not out_json:
+        raise FFmpegError(
+            tr('Failed to parse {} information, please confirm that the file can be played normally', mp4_file))
 
     try:
         out = json.loads(out_json)
-    except json.JSONDecodeError:
-        raise RuntimeError(tr('Failed to parse {} information, please confirm that the file can be played normally',mp4_file))
-
+    except json.JSONDecodeError as e:
+        raise FFmpegError(
+            tr('Failed to parse {} information, please confirm that the file can be played normally', mp4_file)) from e
 
     if "streams" not in out or not out["streams"]:
-        raise RuntimeError(tr('The original file {} does not contain any audio or video data. The file may be damaged. Please confirm that the file can be played.',mp4_file))
+        raise FFmpegError(
+            tr('The original file {} does not contain any audio or video data. The file may be damaged. Please confirm that the file can be played.',
+               mp4_file))
 
     result = {
         "video_fps": 30,
-        "r_frame_rate":30,
+        "r_frame_rate": 30,
         "video_codec_name": "",
         "audio_codec_name": "",
         "width": 0,
@@ -340,35 +323,33 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "time": 0,
         "streams_len": len(out['streams']),
         "streams_audio": 0,
-        "video_streams":0,
+        "video_streams": 0,
         "color": "yuv420p"
     }
     try:
         logger.debug(f'The file information: {out}')
         # 以第一个流中duration为准，但可能某些格式，例如mkv第一个流中无duration字段或始终为0
-        _duration=out['streams'][0].get('duration','DURATION')
+        _duration = out['streams'][0].get('duration', 'DURATION')
         # mp4 是  \d.\d 秒形式
-        if  re.match(r'^\d+(\.\d+)?$',_duration):
-            result['time']=int(float(_duration)*1000)#第一个流的长度为准
-        elif re.match(r'^\d+\:',_duration):
+        if re.match(r'^\d+(\.\d+)?$', _duration):
+            result['time'] = int(float(_duration) * 1000)  # 第一个流的长度为准
+        elif re.match(r'^\d+\:', _duration):
             # 其他视频格式可能是 00:01:00.445
-            _t=_duration.split('.')
-            _s=float(f'0.{_t[1]}' if len(_t)>=2 else 0)
-            _tstr=_t[0].split(':')
-            _s+=float(_tstr[-1])
-            if len(_tstr)>=2:
-                _s+=float(_tstr[-2])*60
-            if len(_tstr)>=3:
-                _s+=float(_tstr[-3])*3600
-            
-            result['time']=int(_s*1000)
+            _t = _duration.split('.')
+            _s = float(f'0.{_t[1]}' if len(_t) >= 2 else 0)
+            _tstr = _t[0].split(':')
+            _s += float(_tstr[-1])
+            if len(_tstr) >= 2:
+                _s += float(_tstr[-2]) * 60
+            if len(_tstr) >= 3:
+                _s += float(_tstr[-3]) * 3600
+
+            result['time'] = int(_s * 1000)
         else:
-            result['time']=int(float(out['format']['duration'])*1000)
-    except Exception as e:        
-        result['time']=int(float(out['format']['duration'])*1000)
-        logger.exception(e,exc_info=True)
-    
-    
+            result['time'] = int(float(out['format']['duration']) * 1000)
+    except Exception as e:
+        result['time'] = int(float(out['format']['duration']) * 1000)
+        logger.exception(e, exc_info=True)
 
     video_stream = next((s for s in out['streams'] if s.get('codec_type') == 'video'), None)
     audio_streams = [s for s in out['streams'] if s.get('codec_type') == 'audio']
@@ -378,7 +359,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         result['audio_codec_name'] = audio_streams[0].get('codec_name', "")
 
     if video_stream:
-        result['video_streams']=1
+        result['video_streams'] = 1
         result['video_codec_name'] = video_stream.get('codec_name', "")
         result['width'] = int(video_stream.get('width', 0))
         result['height'] = int(video_stream.get('height', 0))
@@ -389,19 +370,19 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
             try:
                 num, den = map(int, rate_str.split('/'))
                 return num / den if den != 0 else 0
-            except:
+            except ValueError:
                 return 0
 
         fps1 = parse_fps(video_stream.get('r_frame_rate'))
-        
-        if not fps1 or fps1<1:
-            fps_avg=parse_fps(video_stream.get('avg_frame_rate'))
+
+        if not fps1 or fps1 < 1:
+            fps_avg = parse_fps(video_stream.get('avg_frame_rate'))
         else:
             fps_avg = fps1
 
         result['video_fps'] = fps_avg if 1 <= fps_avg <= 120 else 30
-        result['r_frame_rate'] = video_stream.get('r_frame_rate',result['video_fps'])
-    
+        result['r_frame_rate'] = video_stream.get('r_frame_rate', result['video_fps'])
+
     logger.debug(f'The file info after process:{result=}')
     # 确保向后兼容
     if video_time:
@@ -417,18 +398,23 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
 
 
 def _get_ms_from_media(file):
-    ms=0
-    ext=Path(file).suffix.lower()[1:]
+    ms = 0
+    ext = Path(file).suffix.lower()[1:]
     try:
         if ext in contants.VIDEO_EXTS:
-            ms=int(float(runffprobe(['-v','error','-select_streams','v:0','-show_entries','stream=duration','-of','default=noprint_wrappers=1:nokey=1',file]))*1000)
+            ms = int(float(runffprobe(
+                ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=duration', '-of',
+                 'default=noprint_wrappers=1:nokey=1', file])) * 1000)
         elif ext in contants.AUDIO_EXITS:
-            ms=int(float(runffprobe(['-v','error','-select_streams','a:0','-show_entries','stream=duration','-of','default=noprint_wrappers=1:nokey=1',file]))*1000)
-    except Exception:
+            ms = int(float(runffprobe(
+                ['-v', 'error', '-select_streams', 'a:0', '-show_entries', 'stream=duration', '-of',
+                 'default=noprint_wrappers=1:nokey=1', file])) * 1000)
+    except Exception as e:
         # mkv 等其他格式可能无法从流中读取 duration
-        pass
-    if ms==0:
-        ms=int(float(runffprobe(['-v','error','-show_entries','format=duration','-of','default=noprint_wrappers=1:nokey=1',file])))
+        logger.exception(f'无法从视频或音频流中获取时长:{file=},{e}', exc_info=True)
+    if ms == 0:
+        ms = int(float(runffprobe(
+            ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', file])))
     return ms
 
 
@@ -440,27 +426,30 @@ def get_video_ms_noaudio(mp4):
 # 获取某个视频的时长 ms
 def get_video_duration(file_path):
     return _get_ms_from_media(file_path)
+
+
 # 获取音频时长 返回ms
 def get_audio_time(audio_file):
     return _get_ms_from_media(audio_file)
 
+
 def conver_to_16k(audio, target_audio):
-    cmd=[
-            "-y",
-            "-i",
-            Path(audio).as_posix(),
-            "-ac",
-            "1",
-            "-ar",
-            "16000",
-            "-c:a",
-            "pcm_s16le",
-            Path(target_audio).as_posix()
+    cmd = [
+        "-y",
+        "-i",
+        Path(audio).as_posix(),
+        "-ac",
+        "1",
+        "-ar",
+        "16000",
+        "-c:a",
+        "pcm_s16le",
+        Path(target_audio).as_posix()
     ]
     return runffmpeg(cmd)
 
-def create_concat_txt(filelist, concat_txt=None):
 
+def create_concat_txt(filelist, concat_txt=None):
     """
     创建供FFmpeg concat使用的连接文件。
     确保写入的是绝对路径，以避免FFmpeg因工作目录问题找不到文件。
@@ -474,7 +463,7 @@ def create_concat_txt(filelist, concat_txt=None):
         txt.append(f"file '{path_obj.name}'")
     if not txt:
         # 如果没有有效文件，创建一个空的concat文件可能导致错误，不如直接抛出异常
-        raise ValueError("Cannot create concat txt from an empty or invalid file list.")
+        raise VideoTransError("Cannot create concat txt from an empty or invalid file list.")
 
     logger.debug(f'{concat_txt=},{filelist[0]=}')
     with open(concat_txt, 'w', encoding='utf-8') as f:
@@ -483,22 +472,21 @@ def create_concat_txt(filelist, concat_txt=None):
 
 
 # 多个音频片段连接
-def concat_multi_audio(*, out=None, concat_txt=None):
+def concat_multi_audio(*, out:str=None, concat_txt:str=None)->bool:
     if out:
         out = Path(out).as_posix()
-
 
     cmd = ['-y', '-f', 'concat', '-safe', '0', '-i', concat_txt, "-b:a", "128k"]
     if out.endswith('.m4a'):
         cmd += ['-c:a', 'aac']
     elif out.endswith('.wav'):
         cmd += ['-c:a', 'pcm_s16le']
-    runffmpeg(cmd + [out],cmd_dir=Path(concat_txt).parent.as_posix())
+    runffmpeg(cmd + [out], cmd_dir=Path(concat_txt).parent.as_posix())
     return True
 
 
 # 目前仅用于 视频翻译后，延长背景音
-def change_speed_rubberband(input_path,out_file, target_duration):
+def change_speed_rubberband(input_path:str, out_file:str, target_duration:Union[float,int]):
     """
     使用 Rubber Band 进行音频变速
     """
@@ -515,37 +503,38 @@ def change_speed_rubberband(input_path,out_file, target_duration):
         if len(y) == 0:
             logger.warning(f"[Audio-RB] 空音频文件: {input_path}")
             return
-            
+
         current_duration = int((len(y) / sr) * 1000)
-        
+
         if target_duration <= 0: target_duration = 1
-        
+
         time_stretch_rate = current_duration / target_duration
-        
+
         # 限制范围
         time_stretch_rate = max(0.2, min(time_stretch_rate, 50.0))
-        
-        logger.debug(f"[Audio-RB] {input_path} 原长:{current_duration}ms -> 目标:{target_duration}ms 倍率:{time_stretch_rate:.2f}")
+
+        logger.debug(
+            f"[Audio-RB] {input_path} 原长:{current_duration}ms -> 目标:{target_duration}ms 倍率:{time_stretch_rate:.2f}")
 
         y_stretched = pyrb.time_stretch(y, sr, time_stretch_rate)
-        
+
         # 如果是单声道 (ndim=1)，复制为双声道
         if y_stretched.ndim == 1:
             y_stretched = np.column_stack((y_stretched, y_stretched))
-        
+
         sf.write(out_file, y_stretched, sr)
-        
+
     except Exception as e:
         logger.error(f"[Audio-RB] 音频处理失败 {input_path}: {e}")
         return
 
 
-def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None):
+def precise_speed_up_audio(*, file_path:str=None, out:str=None, target_duration_ms:Union[float,int]):
     from pydub import AudioSegment
     ext = file_path[-3:].lower()
-    out_ext=ext
+    out_ext = ext
     if out:
-        out_ext=out[-3:].lower()
+        out_ext = out[-3:].lower()
     codecs = {"m4a": "aac", "mp3": "libmp3lame", "wav": "pcm_s16le"}
     audio = AudioSegment.from_file(file_path, format='mp4' if ext == 'm4a' else ext)
 
@@ -568,19 +557,19 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None)
     # 用逗号连接滤镜，形成串联效果，如 "atempo=2.0,atempo=1.5"
     filter_str = ",".join(atempo_list)
     if not out:
-        Path(file_path).rename(file_path+f".{ext}")
-        file_path=file_path+f".{ext}"
-        out=file_path
+        Path(file_path).rename(file_path + f".{ext}")
+        file_path = file_path + f".{ext}"
+        out = file_path
     cmd = [
         '-y',
         '-i',
         file_path,
         '-filter:a',
         filter_str,
-        '-t', f"{target_duration_ms/1000.0}",  # 强制裁剪到目标时长，防止精度误差
+        '-t', f"{target_duration_ms / 1000.0}",  # 强制裁剪到目标时长，防止精度误差
         '-ar', "48000",
         '-ac', "2",
-        '-c:a', codecs.get(out_ext,'pcm_s16le'),
+        '-c:a', codecs.get(out_ext, 'pcm_s16le'),
         out
     ]
     try:
@@ -590,12 +579,11 @@ def precise_speed_up_audio(*, file_path=None, out=None, target_duration_ms=None)
 
 
 # 从音频中截取一个片段
-def cut_from_audio(*, ss, to, audio_file, out_file):
+def cut_from_audio(*, ss, to, audio_file, out_file)->bool:
     from . import help_srt
-    from pathlib import Path
     if not Path(audio_file).exists():
         return False
-    Path(out_file).parent.mkdir(exist_ok=True,parents=True)
+    Path(out_file).parent.mkdir(exist_ok=True, parents=True)
     cmd = [
         "-y",
         "-i",
@@ -614,10 +602,10 @@ def cut_from_audio(*, ss, to, audio_file, out_file):
 
 
 def send_notification(title, message):
-    if app_cfg.exec_mode=='cli':
+    if app_cfg.exec_mode == 'cli':
         print(f'\n*****[{title}]: {message}*****\n')
         return
-    if app_cfg.exit_soft or settings.get('dont_notify',False):
+    if app_cfg.exit_soft or settings.get('dont_notify', False):
         return
     from plyer import notification
     try:
@@ -632,16 +620,17 @@ def send_notification(title, message):
     except Exception:
         pass
 
+
 # rm_start 是否也移除开头的静音片段
-def remove_silence_wav(audio_file, rm_start=True):
+def remove_silence_wav(audio_file:str, rm_start=True)->bool:
     from pydub import AudioSegment
     from pydub.silence import detect_nonsilent
-    
-    audio = AudioSegment.from_file(audio_file, format="wav")    
-    
+
+    audio = AudioSegment.from_file(audio_file, format="wav")
+
     # TTS的静音通常非常干净 如果背景仍有细微底噪，可调高
     silence_threshold = -40
-    
+
     # 只要静音持续 50ms 以上就检测出来 
     min_silence_len = 50
 
@@ -656,27 +645,27 @@ def remove_silence_wav(audio_file, rm_start=True):
     # 4. 处理剪切逻辑
     if len(nonsilent_chunks) > 0:
         # 在检测到的非静音首尾，额外保留 100 毫秒的声音，防止吞掉弱辅音或尾音
-        head_padding_ms = 80   # 头部保留80毫秒
+        head_padding_ms = 80  # 头部保留80毫秒
         tail_padding_ms = 180  # 尾音通常拖得比较长，保留180毫秒
-        
+
         # 获取第一个非静音块的开始时间
         raw_start = nonsilent_chunks[0][0]
         # 获取最后一个非静音块的结束时间
         raw_end = nonsilent_chunks[-1][1]
-        
+
         # 计算最终裁剪位置，使用 max 和 min 防止索引超出音频总长度
         start_trim = max(0, raw_start - head_padding_ms) if rm_start else 0
         end_trim = min(len(audio), raw_end + tail_padding_ms)
-        
+
         # 裁剪音频
         trimmed_audio = audio[start_trim:end_trim]
         trimmed_audio.export(audio_file, format="wav")
         return True
-    
-    return False # 如果全是静音，返回False
+
+    return False  # 如果全是静音，返回False
 
 
-def format_video(name, target_dir=None):
+def format_video(name:str, target_dir:str=None)->InputFile:
     from . import help_misc
     raw_pathlib = Path(name)
     # 原始基本名字,例如 `1.mp4`
@@ -688,24 +677,24 @@ def format_video(name, target_dir=None):
     # 所在目录
     raw_dirname = raw_pathlib.parent.resolve().as_posix()
 
-    obj = {
+    obj = InputFile(
         # 原始文件名含完整路径，如 F:/python/1.mp4
-        "name": name,
+        name=name,
         # 原始所在目录 如 F:/python
-        "dirname": raw_dirname,
+        dirname=raw_dirname,
         # 基本名带后缀 如 1.mp4
-        "basename": raw_basename,
+        basename=raw_basename,
         # 基本名不带后缀,如 1
-        "noextname": raw_noextname,
+        noextname=raw_noextname,
         # 扩展名去掉点.  如 mp4
-        "ext": ext
+        ext=ext
         # 最终存放目标位置，直接存到这里
-    }
+    )
 
     # 如果存在目标文件夹，则在其之下生成 以无后缀的基本名的子文件夹
     if target_dir:
-        obj['target_dir'] = Path(f'{target_dir}/{raw_noextname}-{ext}').as_posix()
+        obj.target_dir = Path(f'{target_dir}/{raw_noextname}-{ext}').as_posix()
     # 唯一id标识 改为使用 名字和尺寸 和 mtime，以便使用缓存 
-    _stat=raw_pathlib.stat()
-    obj['uuid'] = help_misc.get_md5(f'{name}-{_stat.st_size}-{_stat.st_mtime}')[:10]
+    _stat = raw_pathlib.stat()
+    obj.uuid = help_misc.get_md5(f'{name}-{_stat.st_size}-{_stat.st_mtime}')[:10]
     return obj

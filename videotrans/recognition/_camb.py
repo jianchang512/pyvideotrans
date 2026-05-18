@@ -5,18 +5,17 @@ import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import List,  Union
 
 import httpx
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
-from videotrans.configure._except import NO_RETRY_EXCEPT, StopRetry
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry
+from videotrans.configure.config import tr, params, settings,  logger, ROOT_DIR
 from videotrans.recognition._base import BaseRecogn
+from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
-
-RETRY_NUMS = 2
-RETRY_DELAY = 10
+from videotrans.configure import contants
 
 
 def _get_camb_lang_id(langcode):
@@ -35,13 +34,8 @@ def _get_camb_lang_id(langcode):
 @dataclass
 class CambRecogn(BaseRecogn):
 
-    def __post_init__(self):
-        super().__post_init__()
-
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-           after=after_log(logger, logging.INFO))
-    def _exec(self) -> Union[List[Dict], None]:
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
+    def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit():
             return
 
@@ -66,7 +60,7 @@ class CambRecogn(BaseRecogn):
             # Submit transcription job
             create_result = client.transcription.create_transcription(
                 language=lang_id,
-                media_file=open(self.audio_file,'rb'),
+                media_file=open(self.audio_file, 'rb'),
             )
 
             task_id = create_result.task_id
@@ -82,7 +76,9 @@ class CambRecogn(BaseRecogn):
                 if status == 'SUCCESS':
                     break
                 elif status == 'ERROR':
-                    err_msg = status_result.exception_reason if hasattr(status_result, 'exception_reason') else status_result.get('exception_reason', 'Unknown error')
+                    err_msg = status_result.exception_reason if hasattr(status_result,
+                                                                        'exception_reason') else status_result.get(
+                        'exception_reason', 'Unknown error')
                     raise RuntimeError(f"CAMB AI transcription failed: {err_msg}")
 
                 if self._exit():
@@ -100,7 +96,9 @@ class CambRecogn(BaseRecogn):
             transcription_result = client.transcription.get_transcription_result(run_id)
 
             # Parse transcript entries
-            transcript = transcription_result.transcript if hasattr(transcription_result, 'transcript') else transcription_result.get('transcript', [])
+            transcript = transcription_result.transcript if hasattr(transcription_result,
+                                                                    'transcript') else transcription_result.get(
+                'transcript', [])
 
             raws = []
             speaker_list = []
@@ -125,7 +123,7 @@ class CambRecogn(BaseRecogn):
                     "text": text.strip()
                 }
 
-                if self.detect_language and self.detect_language[:2] in ['zh', 'ja', 'ko']:
+                if self.detect_language and self.detect_language[:2] in contants.CJK_LANG:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'], flags=re.I | re.S)
 
                 tmp['time'] = tools.ms_to_time_string(ms=start_ms) + ' --> ' + tools.ms_to_time_string(ms=end_ms)

@@ -2,31 +2,33 @@ import copy
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import List
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.configure.config import tr, logger, HOME_DIR
+from videotrans.configure.excepts import TranslateSrtError
 from videotrans.task._base import BaseTask
+from videotrans.task.taskcfg import TaskCfgSTS, SrtItem
 from videotrans.translator import run
 from videotrans.util import tools
 
 """
-仅字幕翻译
+批量翻译srt字幕面板
 """
 
 
 @dataclass
 class TranslateSrt(BaseTask):
+    cfg: TaskCfgSTS = field(default_factory=TaskCfgSTS, repr=False)
     # 输出格式，例如单语字幕 双语字幕等。
-    out_format: int = field(init=True,default=0)
+    out_format: int = field(init=True, default=0)
     # 固定应该翻译
-    shoud_trans: bool = field(default=True, init=False)
+    shoud_trans: bool = True
+
     def __post_init__(self):
         super().__post_init__()
-
         # 存放目标文件夹
         if not self.cfg.target_dir:
             self.cfg.target_dir = HOME_DIR + f"/translate"
-        Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
-
         # 生成目标字幕文件
         self.cfg.target_sub = self.cfg.target_dir + '/' + self.cfg.noextname + f'.{self.cfg.target_language_code}.srt'
         self.cfg.source_sub = self.cfg.name
@@ -35,12 +37,14 @@ class TranslateSrt(BaseTask):
             shutil.copy2(self.cfg.source_sub, f"{self.cfg.source_sub}-OriginalSubtitles.srt")
         self.signal(text=tr("Transation subtitles"))
 
-
+    def prepare(self):
+        Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
+        Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
 
     def trans(self):
         if self._exit(): return
         try:
-            source_sub_list = tools.get_subtitle_from_srt(self.cfg.source_sub)
+            source_sub_list: List[SrtItem] = tools.get_subtitle_from_srt(self.cfg.source_sub)
             raw_subtitles = run(
                 translate_type=self.cfg.translate_type,
                 text_list=copy.deepcopy(source_sub_list),
@@ -48,13 +52,11 @@ class TranslateSrt(BaseTask):
                 source_code=self.cfg.source_language_code,
                 target_code=self.cfg.target_language_code,
             )
+            if not raw_subtitles or len(raw_subtitles) < 1:
+                raise TranslateSrtError(tr("Translation subtitles result is empty"))
 
             if self._exit(): return
-            if not raw_subtitles or len(raw_subtitles) < 1:
-                raise RuntimeError(tr("Translation subtitles result is empty"))
-
-            raw_subtitles = self._check_target_sub(source_sub_list, raw_subtitles)
-
+            raw_subtitles = self.check_target_sub(source_sub_list, raw_subtitles)
             # 单语字幕
             if self.out_format == 0:
                 self._save_srt_target(raw_subtitles, self.cfg.target_sub)
@@ -77,16 +79,8 @@ class TranslateSrt(BaseTask):
                 f.write(srt_string)
             self.signal(text=srt_string, type='replace')
         except Exception as e:
-            raise
+            logger.exception(f'翻译字幕失败 {e}', exc_info=True)
 
     def task_done(self):
         if self._exit(): return
-        self.precent = 100
-        try:
-            if self.cfg.shound_del_name:
-                Path(self.cfg.shound_del_name).unlink(missing_ok=True)
-        except OSError:
-            pass
         self.set_end(True)
-
-

@@ -1,16 +1,13 @@
 import logging
 import os
 from dataclasses import dataclass
-from pathlib import Path
 from typing import List, Dict, Union
-
 import requests
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
-from videotrans.configure._except import NO_RETRY_EXCEPT,StopRetry
+from videotrans.configure.config import params, logger, settings
+from videotrans.configure.excepts import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -20,57 +17,34 @@ RETRY_DELAY = 5
 class ChatterBoxTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        api_url = params.get('chatterbox_url','').strip().rstrip('/').lower()
-        self.api_url = 'http://' + api_url.replace('http://', '')
-        self._add_internal_host_noproxy(self.api_url)
+        self.api_url = 'http://' +params.get('chatterbox_url','').strip().rstrip('/').lower().replace('http://', '')
 
-    def _exec(self):
-        self._local_mul_thread()
 
-    def _item_task(self, data_item: Union[Dict, List, None],idx:int=-1):
-        if self._exit() or  not data_item.get('text','').strip():
-            return
-        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-               after=after_log(logger, logging.INFO))
-        def _run():
-            role = data_item['role']
-            if self._exit() or tools.vail_file(data_item['filename']):
-                return
-            if data_item.get('ref_wav') or (  role and role != 'chatterbox' and Path(f'{ROOT_DIR}/f5-tts/{role}').exists()):
-                # 克隆
-                self._item_task_clone(data_item['text'], role, data_item.get('ref_wav'), data_item['filename'])
-                return
-            client = OpenAI(api_key='123456', base_url=self.api_url + '/v1')
-            response = client.audio.speech.create(
-                model="chatterbox-tts",  # 这是一个兼容性参数
-                voice=self.language.split('-')[0],  # 这也是一个兼容性参数
-                input=data_item['text'],
-                speed=float(params.get("chatterbox_cfg_weight",'1.0')),  # 兼容，用于传递 cfg_weight
-                instructions=str(params.get("chatterbox_exaggeration",'')),  # 兼容传递 exaggeration
-                response_format="mp3"  # 请求mp3格式
-            )
-
-            response.stream_to_file(data_item['filename'] + ".mp3")
-            self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
-
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
+    def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         try:
-            _run()
-        except Exception as e:
-            self.error=e
-            raise
-
-    def _item_task_clone(self, text, role, ref_wav=None, filename=None):
-        import mimetypes
-        if ref_wav:
-            mime_type = 'audio/wav'
+            ref_wav,_=self.get_ref_wav(data_item)
+        except Exception:
+            logger.debug('无参考音频，使用内置音色')
         else:
-            ref_wav = f'{ROOT_DIR}/f5-tts/{role}'
-            mime_type, _ = mimetypes.guess_type(ref_wav)
-            # 如果无法根据扩展名猜出类型，则使用通用的二进制流类型作为备用
-            if mime_type is None:
-                mime_type = 'application/octet-stream'
+            return self._clone(data_item['text'], ref_wav, data_item['filename'])
 
+        client = OpenAI(api_key='123456', base_url=self.api_url + '/v1')
+        response = client.audio.speech.create(
+            model="chatterbox-tts",  # 这是一个兼容性参数
+            voice=self.language.split('-')[0],  # 这也是一个兼容性参数
+            input=data_item['text'],
+            speed=float(params.get("chatterbox_cfg_weight",'1.0')),  # 兼容，用于传递 cfg_weight
+            instructions=str(params.get("chatterbox_exaggeration",'')),  # 兼容传递 exaggeration
+            response_format="mp3"  # 请求mp3格式
+        )
+
+        response.stream_to_file(data_item['filename'] + ".mp3")
+        self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
+
+
+    def _clone(self, text, ref_wav=None, filename=None):
+        mime_type = 'audio/wav'
         with open(ref_wav, 'rb') as audio_file:
             # 定义form-data中的文件部分
             # key 'audio_prompt' 必须与 Flask 服务器端 `request.files['audio_prompt']` 匹配

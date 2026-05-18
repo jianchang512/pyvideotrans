@@ -1,4 +1,8 @@
 # 字幕批量翻译
+from typing import List
+
+from videotrans.task.taskcfg import InputFile
+
 
 def openwin():
     import json
@@ -13,7 +17,7 @@ def openwin():
 
     from videotrans.util import tools
     from videotrans import translator
-    from videotrans.task._translate_srt import TranslateSrt
+    from videotrans.task.translate_srt import TranslateSrt
     RESULT_DIR = HOME_DIR + "/translate"
     SOURCE_DIR = RESULT_DIR
     uuid_list=[]
@@ -135,7 +139,7 @@ def openwin():
 
         settings.save()
 
-        video_list = [tools.format_video(it, None) for it in winobj.files]
+        video_list:List[InputFile] = [tools.format_video(it, None) for it in winobj.files]
         uuid_list = [obj['uuid'] for obj in video_list]
         if winobj.save_source.isChecked():
             SOURCE_DIR = Path(video_list[0]['name']).parent.as_posix()

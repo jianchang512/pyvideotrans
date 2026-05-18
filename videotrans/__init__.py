@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
 import importlib
 import inspect
 from dataclasses import dataclass
 from typing import Optional
-
 from videotrans.configure.config import logger
-VERSION = "v3.99"
-VERSION_NUM = 120399
-_loaded_modules={}
+
+VERSION = "v4.00"
+VERSION_NUM = 120400
+_loaded_modules = {}
 
 @dataclass
 class ChannelProvider:
@@ -17,12 +16,10 @@ class ChannelProvider:
     win: Optional[str] = None
 
 
-
-
 # provider_type: TTS|STT|STS 配音，转录，翻译字幕
 # _ID_NAME_DICT 渠道配置信息
-def get_instance(channel_id: int = 0, provider_type=None,_ID_NAME_DICT=None):
-    _key=f'{provider_type}-{channel_id}'
+def get_instance(channel_id: int = 0, provider_type=None, _ID_NAME_DICT=None):
+    _key = f'{provider_type}-{channel_id}'
     if _key in _loaded_modules:
         return _loaded_modules[_key]
     try:
@@ -36,4 +33,3 @@ def get_instance(channel_id: int = 0, provider_type=None,_ID_NAME_DICT=None):
     except Exception as e:
         logger.exception(f'懒加载渠道{provider_type}:{channel_id=}失败:{e}', exc_info=True)
         raise
-
