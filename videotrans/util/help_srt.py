@@ -508,6 +508,8 @@ def simple_wrap(text,maxlen=15,language="en"):
         # 再判断后续4个是否符合换行条件
         raw_i=i
         for next_i in range(1,offset+1):
+            if i+next_i>=_len:
+                break
             if text[i+next_i] in flag:
                 pos_i=i+next_i+1
                 current_text+=text[i:pos_i]
@@ -528,7 +530,7 @@ def simple_wrap(text,maxlen=15,language="en"):
             current_text=''
         i+=1
 
-    if current_text and len(current_text)<maxlen/3:
+    if current_text and len(current_text)<maxlen/3 and text_lilst:
         text_lilst[-1]+=current_text
     elif current_text:
         text_lilst.append(current_text)
