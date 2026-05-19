@@ -216,7 +216,7 @@ class Worker(QThread):
         wav_path=HOME_DIR+"/realtime_stt"
         Path(wav_path).mkdir(parents=True,exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H-%M-%S")
-        txt_file = open(f"{wav_path}/{timestamp}.txt", 'a')
+        txt_file = open(f"{wav_path}/{timestamp}.txt", 'a', encoding='utf-8')
         wav_file = wave.open(f"{wav_path}/{timestamp}.wav", 'wb')
         wav_file.setnchannels(1)
         wav_file.setsampwidth(2)  # int16
