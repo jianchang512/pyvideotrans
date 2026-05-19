@@ -498,10 +498,9 @@ class TransCreate(BaseTask):
         except Exception as e:
             logger.exception(f'二次识别配音音频生成字幕时，预处理音频失败，静默跳过:{e}', exc_info=True)
             return
-        finally:
-            if not tools.vail_file(shibie_audio):
-                logger.exception(f'二次识别配音音频生成字幕时，预处理音频失败，静默跳过:{e}', exc_info=True)
-                return
+        if not tools.vail_file(shibie_audio):
+            logger.error(f'二次识别配音音频生成字幕时，预处理音频失败，文件无效，静默跳过')
+            return
         
         try:
             # 判断原渠道是否支持目标语言的识别 self.cfg.target_language_code
