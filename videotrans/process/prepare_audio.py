@@ -220,8 +220,11 @@ def remove_noise(*, input_file, output_file,  is_cuda=False, logs_file=None, dev
         samples, sample_rate = load_audio(input_file)
         denoised = denoiser.run(samples, sample_rate)
         tmp_name = Path(output_file).parent.as_posix() + f'/noise-{time.time()}.wav'
-        sf.write(tmp_name, denoised.samples, denoised.sample_rate)
-        tools.runffmpeg(['-y', '-i', tmp_name, '-af', "volume=1.5", output_file])
+        try:
+            sf.write(tmp_name, denoised.samples, denoised.sample_rate)
+            tools.runffmpeg(['-y', '-i', tmp_name, '-af', "volume=1.5", output_file])
+        finally:
+            Path(tmp_name).unlink(missing_ok=True)
         logger.info(f'降噪成功完成，耗时:{int(time.time() - _st)}s')
         return output_file, None
     except Exception as e:
