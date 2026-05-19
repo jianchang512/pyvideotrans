@@ -146,6 +146,7 @@ LANGNAME_DICT = {
     "nb": tr("Norway"),# 书面挪威语
     "yue": tr("Cantonese"),
     "km": tr("Khmer"),# 高棉
+    "ro": tr("Romanian"),
 }
 
 # 如果存在新增
@@ -605,6 +606,19 @@ LANG_CODE = {
         "fa",  # 阿里
         "Western Persian",
         "fa" # m2m100
+    ],
+    "ro": [
+        "ro",  # google通道
+        "rum",  # 字幕嵌入语言
+        "rom",  # 百度通道
+        "RO",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "ro",  # 微软翻译
+        "Romanian",  # AI翻译
+        "ro",  # 阿里
+        "Romanian",
+        "ro" # m2m100
     ],
     "auto": [
         "auto",
