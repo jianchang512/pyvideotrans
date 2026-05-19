@@ -665,8 +665,8 @@ class TransCreate(BaseTask):
                 logger.debug('分离说话人成功完成')
                 shutil.copy2(self.cfg.cache_folder + "/speaker.json", self.cfg.target_dir + "/speaker.json")
             self._signal(text=tr('separating speakers end'))
-        except:
-            pass
+        except Exception as e:
+            logger.warning(f'Speaker diarization failed, skipping: {e}')
 
     # 翻译字幕文件
     def trans(self) -> None:
@@ -815,8 +815,9 @@ class TransCreate(BaseTask):
                     tools.runffmpeg(['-y', '-i', os.path.basename(self.cfg.target_wav), '-af', f"volume={volume}",
                                      os.path.basename(tmp_name)], cmd_dir=self.cfg.cache_folder)
                     shutil.copy2(tmp_name, self.cfg.target_wav)
-            except:
-                pass
+                    Path(tmp_name).unlink(missing_ok=True)
+            except Exception as e:
+                logger.warning(f'Volume adjustment failed: {e}')
 
         self._signal(text=tr('Alignment phase complete, awaiting the next step'))
 
