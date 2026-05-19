@@ -75,7 +75,7 @@ class APIRecogn(BaseRecogn):
 
         res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files, timeout=600)
         res.raise_for_status()
-        content_type = res.headers.get('Content-Type')
+        content_type = res.headers.get('Content-Type', '')
         if 'application/json' in content_type:
             res = res.json()
             if "code" not in res or res['code'] != 0:
