@@ -51,8 +51,8 @@ mock_config.TEMP_ROOT = '/tmp/pyvt_test'
 mock_config.HOME_DIR = '/tmp'
 mock_config.defaulelang = 'en'
 
-sys.modules['videotrans'] = types.ModuleType('videotrans')
-sys.modules['videotrans.configure'] = types.ModuleType('videotrans.configure')
+# Only mock specific submodules, NOT parent packages
+# Replacing sys.modules['videotrans'] breaks subpackage imports for other tests
 sys.modules['videotrans.configure.config'] = mock_config
 sys.modules['videotrans.configure._except'] = types.ModuleType('videotrans.configure._except')
 sys.modules['videotrans.configure._except'].NO_RETRY_EXCEPT = (Exception,)
@@ -66,9 +66,8 @@ mock_base_con.BaseCon = type('BaseCon', (), {
 })
 sys.modules['videotrans.configure._base'] = mock_base_con
 
-mock_tools = types.ModuleType('videotrans.util')
-sys.modules['videotrans.util'] = mock_tools
-
+# Only mock videotrans.util.tools, not the parent package
+# (replacing sys.modules['videotrans.util'] breaks submodule imports for other tests)
 mock_tools_mod = types.ModuleType('videotrans.util.tools')
 mock_tools_mod.get_prompt = lambda ainame, aisendsrt=True: 'Translate into {lang}:\n{batch_input}\n{context_block}'
 mock_tools_mod.get_md5 = lambda s: 'mock_md5'
@@ -76,7 +75,6 @@ mock_tools_mod.cleartext = lambda s: s
 mock_tools_mod.show_error = lambda s: None
 mock_tools_mod.open_url = lambda url: None
 sys.modules['videotrans.util.tools'] = mock_tools_mod
-mock_tools.tools = mock_tools_mod
 
 # Mock translator package - set up as a package with __path__
 mock_translator = types.ModuleType('videotrans.translator')
