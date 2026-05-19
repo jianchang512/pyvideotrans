@@ -515,8 +515,11 @@ class ASSStyleDialog(QDialog):
         self.blockSignals(True)
         try:
             if Path(JSON_FILE).exists():
-                with open(JSON_FILE, 'r') as f:
-                    style = json.load(f)
+                try:
+                    with open(JSON_FILE, 'r') as f:
+                        style = json.load(f)
+                except (json.JSONDecodeError, OSError):
+                    style = DEFAULT_STYLE
             else:
                 style = DEFAULT_STYLE
 
