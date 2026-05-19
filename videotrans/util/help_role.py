@@ -168,12 +168,11 @@ def get_elevenlabs_role(force=False, raise_exception=False):
         client = ElevenLabs(api_key=params.get("elevenlabstts_key",''))
         voiceslist = client.voices.get_all()
 
-        namelist=['No']
         result = {}
         for it in voiceslist.voices:
             n = re.sub(r'[^a-zA-Z0-9_ -]+', '', it.name,flags=re.I | re.S).strip()
             result[n] = {"name": n, "voice_id": it.voice_id}
-            namelist.append(n)
+        namelist = ['No'] + list(result.keys())
 
         with open(jsonfile, 'w', encoding="utf-8") as f:
             f.write(json.dumps(result))
