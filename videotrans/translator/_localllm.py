@@ -60,7 +60,7 @@ class LocalLLM(BaseTrans):
         if isinstance(response, str):
             raise RuntimeError(f'{response=}')
         
-        if not hasattr(response,'choices'):
+        if not hasattr(response,'choices') or not response.choices:
             raise RuntimeError(str(response))
         if response.choices[0].finish_reason=='length':
             raise LengthFinishReasonError(completion=response)    

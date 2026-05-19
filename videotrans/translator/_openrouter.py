@@ -56,7 +56,7 @@ class OpenRouter(BaseTrans):
             temperature=float(settings.get('aitrans_temperature',0.2)),
             max_tokens=int(params.get('openrouter_max_tokens',8192))
         )
-        if not hasattr(response,'choices'):
+        if not hasattr(response,'choices') or not response.choices:
             raise RuntimeError(str(response))
         if response.choices[0].finish_reason=='length':
             raise LengthFinishReasonError(completion=response)
