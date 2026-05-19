@@ -52,9 +52,9 @@ class AzureGPT(BaseTrans):
             temperature=float(settings.get('aitrans_temperature',0.2)),
         )
         logger.debug(f'[AzureGPT]返回响应:{response=}')
-        if not hasattr(response,'choices'):
+        if not hasattr(response,'choices') or not response.choices:
             raise RuntimeError(str(response))
-        
+
         if response.choices[0].finish_reason=='length':
             raise LengthFinishReasonError(completion=response)
         if response.choices[0].message.content:
