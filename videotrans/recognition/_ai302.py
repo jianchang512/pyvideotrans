@@ -51,14 +51,15 @@ class AI302Recogn(BaseRecogn):
         prompt = settings.get(f'initial_prompt_{self.detect_language}')
 
         logger.debug(f'{prompt=}')
-        response = requests.post(url,
-                                 files={"file": open(self.audio_file, 'rb')},
-                                 data={
-                                     "model": model_name,
-                                     'response_format': 'verbose_json',
-                                     'prompt': prompt,
-                                     'language': langcode},
-                                 headers=headers)
+        with open(self.audio_file, 'rb') as f:
+            response = requests.post(url,
+                                     files={"file": f},
+                                     data={
+                                         "model": model_name,
+                                         'response_format': 'verbose_json',
+                                         'prompt': prompt,
+                                         'language': langcode},
+                                     headers=headers)
         if response.status_code!=200:
              raise RuntimeError(response.text)
 
@@ -97,14 +98,15 @@ class AI302Recogn(BaseRecogn):
         err=''
         ok_nums=0
         for i, it in enumerate(raws):
-            response = requests.post(url,
-                 files={"file": open(it['file'], 'rb')},
-                 data={
-                     "model": model_name,
-                     'response_format': 'json',
-                     'prompt': prompt,
-                     'language': langcode},
-                headers=headers)
+            with open(it['file'], 'rb') as f:
+                response = requests.post(url,
+                     files={"file": f},
+                     data={
+                         "model": model_name,
+                         'response_format': 'json',
+                         'prompt': prompt,
+                         'language': langcode},
+                    headers=headers)
                 
             if response.status_code!=200:
                 err=response.text
@@ -134,14 +136,15 @@ class AI302Recogn(BaseRecogn):
         prompt = settings.get(f'initial_prompt_{self.detect_language}')
 
 
-        response = requests.post(url,
-             files={"file":open(self.audio_file, 'rb')},
-             data={
-                 "model": 'gpt-4o-transcribe-diarize',
-                 'response_format': 'diarized_json',
-                 # 'prompt': prompt,
-                 'language': langcode},
-             headers=headers)
+        with open(self.audio_file, 'rb') as f:
+            response = requests.post(url,
+                 files={"file": f},
+                 data={
+                     "model": 'gpt-4o-transcribe-diarize',
+                     'response_format': 'diarized_json',
+                     # 'prompt': prompt,
+                     'language': langcode},
+                 headers=headers)
         # print(f'{prompt=},{headers=},{langcode=},{self.audio_file=}')
         if response.status_code!=200:
             raise RuntimeError(response.text)
