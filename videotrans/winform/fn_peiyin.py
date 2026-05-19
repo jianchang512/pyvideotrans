@@ -363,7 +363,7 @@ def openwin():
             if not is_srt:
                 newsrtfile += 'txt'
                 Path(newsrtfile).write_text(txt, encoding='utf-8')
-                print(newsrtfile)
+                logger.debug(f'saved subtitle file: {newsrtfile}')
             else:
                 newsrtfile += 'srt'
                 with open(newsrtfile, "w", encoding="utf-8") as f:

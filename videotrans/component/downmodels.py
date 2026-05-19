@@ -160,11 +160,11 @@ class DownloadWorker(QThread):
                     try:
                         requests.head('https://huggingface.co',timeout=5)
                     except Exception:
-                        print(f'无法联通 huggingface.co, 使用镜像 hf-mirror.com 替换')
+                        logger.info('无法联通 huggingface.co, 使用镜像 hf-mirror.com 替换')
                         self.status_signal.emit(f"use hf-mirror.com")
                         hf_mirror=True
                     else:
-                        print('可以使用 huggingface.co')
+                        logger.debug('可以使用 huggingface.co')
                         
                 for url in self.task["urls"]:
                     if hf_mirror:
@@ -739,7 +739,7 @@ class DownmodelsWindow(QWidget):
 
     def auto_start(self,zip_folder=None):
         if zip_folder and zip_folder in self.task_obj and hasattr(self.task_obj[zip_folder],'toggle_download'):
-            print(f'{zip_folder=}')
+            logger.debug(f'auto_start download: {zip_folder=}')
             self.task_obj[zip_folder].toggle_download(True)
     
     def refresh_data(self):

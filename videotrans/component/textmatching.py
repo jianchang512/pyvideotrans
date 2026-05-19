@@ -323,7 +323,7 @@ class AlignmentWorker(QThread):
         msg_type = data.get("type")
         percent = data.get("percent")
         filename = data.get("filename")
-        print(f'{data=}')
+        logger.debug(f'download progress: {data=}')
 
         if msg_type == "file":
             self.log_signal.emit(f"Downloading {filename} {percent:.2f}%")
@@ -583,7 +583,7 @@ class TextmatchingWindow(QWidget):
         audio_path = self.audio_label.text()
         base_name = os.path.splitext(audio_path)[0]
         srt_path = f"{base_name}.srt"
-        print(f'{audio_path=},{base_name=},{srt_path=}')
+        logger.debug(f'text matching: {audio_path=},{base_name=},{srt_path=}')
 
         try:
             with open(srt_path, 'w', encoding='utf-8') as f:

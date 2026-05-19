@@ -74,7 +74,7 @@ def openwin():
 
         response = requests.post(url, headers=headers, json=data)
         role=response.json()
-        print(role)
+        logger.debug(f'minimaxi voice cloning response: {role}')
         if 'voice_cloning' not in role:
             raise RuntimeError(role)
         if not role['voice_cloning']:

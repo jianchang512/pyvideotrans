@@ -204,9 +204,7 @@ class EditRecognResultDialog(QDialog):
                 self.parent.activateWindow()
                 
         except Exception as e:
-            print(f"Load table failed: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.error(f'Load table failed: {e}', exc_info=True)
             self.loading_label.setText(f"Error: {e}")
 
     def _batch_fill(self, start_row, end_row):
@@ -311,6 +309,6 @@ class EditRecognResultDialog(QDialog):
         try:
             Path(self.source_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
         except Exception as e:
-            print(f"Save error: {e}")
+            logger.error(f'Save subtitle error: {e}')
         
         self.accept()

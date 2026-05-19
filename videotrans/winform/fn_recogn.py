@@ -148,7 +148,7 @@ def openwin():
                     trk = SpeechToText(cfg=TaskCfgSTT(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
                     app_cfg.prepare_queue.put_nowait(trk)
                 except Exception as e:
-                    print(e)
+                    logger.warning(f'recogn prepare error: {e}')
             from videotrans.task.child_win_sign import SignThread
             th = SignThread(uuid_list=uuid_list, parent=winobj)
             th.uito.connect(feed)

@@ -117,7 +117,7 @@ def openwin():
                     cmd.append(result_file)
                     tools.runffmpeg(cmd,force_cpu=False,cmd_dir=cmd_dir)
                 except Exception as e:
-                    print(e)
+                    logger.error(f'video+srt merge failed: {e}')
                     self.post(type='error', text=str(e))
                     return
                 finally:

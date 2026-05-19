@@ -577,7 +577,7 @@ class SpeedRate:
                         os.remove(entry.path)
                         deleted_count += 1
                     except Exception as e:
-                        print(f"无法删除文件 {entry.name}: {e}")
+                        logger.warning(f"无法删除文件 {entry.name}: {e}")
 
         logger.debug(f"清理视频慢速中生成的视频片段，共删除了 {deleted_count} 个文件。")
 

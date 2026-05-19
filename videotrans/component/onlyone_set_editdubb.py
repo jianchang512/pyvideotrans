@@ -218,9 +218,7 @@ class EditDubbingResultDialog(QDialog):
                 self.parent.activateWindow()
                 
         except Exception as e:
-            print(f"Load table failed: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.error(f'Load table failed: {e}', exc_info=True)
             self.loading_label.setText(f"Error: {e}")
 
     def _precompute_data(self):
@@ -493,7 +491,7 @@ class EditDubbingResultDialog(QDialog):
         try:
             Path(self.queue_tts[row]['filename']).unlink(missing_ok=True)
         except Exception as e:
-            print(f"删除文件失败: {e}")
+            logger.warning(f'删除配音文件失败: {e}')
         
         # 重置时长
         self.queue_tts[row]['dubbing_s'] = 0.0
@@ -514,7 +512,7 @@ class EditDubbingResultDialog(QDialog):
 
     def _on_redub_finished(self, msg):
         """重配音完成回调"""
-        print(f'{msg=}')
+        logger.debug(f'redub finished: {msg=}')
         if msg.startswith("ok:"):
             idx = int(msg[3:])
             item = self.queue_tts[idx]
