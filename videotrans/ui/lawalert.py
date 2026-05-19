@@ -140,7 +140,7 @@ class Ui_lawalert(QtWidgets.QWidget):
 
     def _close(self,res=True):
         if res:
-            Path(ROOT_DIR+"/.agree.txt").write_text("Yes,I Agree and Continue ")
+            Path(ROOT_DIR+"/.agree.txt").write_text("Yes,I Agree and Continue ", encoding='utf-8')
             self.close()
         else:
             self.hide()

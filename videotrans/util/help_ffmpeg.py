@@ -233,7 +233,7 @@ def get_video_codec(compat=None) -> str:
 
             _codec_cache[cache_key] = selected_codec
             # 保存缓存到本地
-            Path(f"{ROOT_DIR}/videotrans/codec.json").write_text(json.dumps(_codec_cache))
+            Path(f"{ROOT_DIR}/videotrans/codec.json").write_text(json.dumps(_codec_cache), encoding='utf-8')
         except Exception as e:
             # 发生异常不缓存
             logger.exception(f"在编码器测试期间发生意外，将使用软件编码: {e}", exc_info=True)

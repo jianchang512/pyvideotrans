@@ -20,7 +20,7 @@ def openwin():
                 # 将objectName作为key，text作为value添加到字典中
                 settings[name] = line_edit.text()
                 if name=='hf_token':
-                    Path(ROOT_DIR + "/models/hf_token.txt").write_text(line_edit.text().strip())
+                    Path(ROOT_DIR + "/models/hf_token.txt").write_text(line_edit.text().strip(), encoding='utf-8')
         for line_edit in winobj.findChildren(QPlainTextEdit):
             # 检查QLineEdit是否有objectName
             if hasattr(line_edit, 'objectName') and line_edit.objectName():

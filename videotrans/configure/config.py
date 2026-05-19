@@ -429,13 +429,13 @@ class AppSettings:
     def _handle_hf_token(self):
         p = Path(ROOT_DIR + "/models/hf_token.txt")
         if p.is_file():
-            tk = p.read_text().strip()
+            tk = p.read_text(encoding='utf-8').strip()
             if tk:
                 self.hf_token = tk
             else:
                 p.unlink(missing_ok=True)
         if not p.is_file() and self.hf_token:
-            p.write_text(self.hf_token)
+            p.write_text(self.hf_token, encoding='utf-8')
 
     # 兼容 settings['key'] 访问
     def __getitem__(self, key):

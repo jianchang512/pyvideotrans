@@ -151,7 +151,7 @@ LANGNAME_DICT = {
 # 如果存在新增
 try:
     if Path(ROOT_DIR+f'/videotrans/newlang.txt').exists():
-        _new_lang=Path(ROOT_DIR+f'/videotrans/newlang.txt').read_text().strip().split("\n")
+        _new_lang=Path(ROOT_DIR+f'/videotrans/newlang.txt').read_text(encoding='utf-8').strip().split("\n")
         for nl in _new_lang:
             LANGNAME_DICT[nl]=nl
 except Exception as e:

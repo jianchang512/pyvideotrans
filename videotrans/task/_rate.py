@@ -292,9 +292,9 @@ class SpeedRate:
         
         try:
             if Path(ROOT_DIR + "/crf.txt").exists():
-                self.crf = str(int(Path(ROOT_DIR + "/crf.txt").read_text()))
+                self.crf = str(int(Path(ROOT_DIR + "/crf.txt").read_text(encoding='utf-8')))
             if Path(ROOT_DIR + "/preset.txt").exists():
-                preset_tmp = str(Path(ROOT_DIR + "/preset.txt").read_text().strip())
+                preset_tmp = str(Path(ROOT_DIR + "/preset.txt").read_text(encoding='utf-8').strip())
                 if preset_tmp in ['ultrafast', 'veryfast', 'medium', 'slow']:
                     self.preset = preset_tmp
         except:
