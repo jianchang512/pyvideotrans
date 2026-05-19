@@ -152,6 +152,7 @@ class DubbingSrt(BaseTask):
             logger.debug(f'edge-tts配音，未音频加速，未视频慢速，未强制对齐，已删字幕间静音，使用单独文本配音')
             if not self.cfg.target_wav.endswith('.mp3'):
                 tools.runffmpeg(['-y', '-i', tmp_name, '-b:a', '128k', self.cfg.target_wav])
+                Path(tmp_name).unlink(missing_ok=True)
             return
         
         # 如果配音文件是txt，则转为单条字幕形式，以便统一处理
@@ -265,7 +266,7 @@ class DubbingSrt(BaseTask):
 
             if volume != '+0%':
                 try:
-                    volume = 1 + float(volume) / 100
+                    volume = 1 + float(volume.replace('%', '')) / 100
                     tmp_name = self.cfg.cache_folder + f'/volume-{volume}-{Path(self.cfg.target_wav).name}'
                     tools.runffmpeg(['-y', '-i', self.cfg.target_wav, '-af', f"volume={volume}", tmp_name])
                 except Exception:
