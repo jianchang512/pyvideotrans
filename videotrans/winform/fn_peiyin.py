@@ -269,7 +269,7 @@ def openwin():
         volume = int(winobj.volume_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = int(winobj.pitch_rate.value())
-        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
+        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
 
         voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.wav"
 
@@ -345,7 +345,7 @@ def openwin():
         volume = int(winobj.volume_rate.value())
         pitch = int(winobj.pitch_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
-        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
+        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
 
         if len(winobj.hecheng_importbtn.filelist) < 1 and not txt:
             return tools.show_error(
@@ -587,7 +587,13 @@ def openwin():
     def check_cuda(state):
         # 选中如果无效，则取消
         if state:
-            import torch
+            try:
+                import torch
+            except ImportError:
+                tools.show_error(tr('nocuda'))
+                winobj.is_cuda.setChecked(False)
+                winobj.is_cuda.setDisabled(True)
+                return False
             if not torch.cuda.is_available():
                 tools.show_error(tr('nocuda'))
                 winobj.is_cuda.setChecked(False)
