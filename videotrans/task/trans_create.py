@@ -423,8 +423,8 @@ class TransCreate(BaseTask):
                             it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace('！',
                                                                                                                    '!')
                     self._save_srt_target(self.source_srt_list, self.cfg.source_sub)
-            except:
-                pass
+            except Exception as e:
+                logger.warning(f'Punctuation restoration failed, skipping: {e}')
 
         self._signal(text=Path(self.cfg.source_sub).read_text(encoding='utf-8'), type='replace_subtitle')
         # whisperx-api
