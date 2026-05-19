@@ -450,7 +450,7 @@ class TransCreate(BaseTask):
                     shutil.copy2(self.cfg.source_sub, f'{self.cfg.source_sub}-No-{tr("LLM Rephrase")}.srt')
                     self._save_srt_target(self.source_srt_list, self.cfg.source_sub)
                 else:
-                    raise
+                    raise RuntimeError('LLM re-segment result too short or empty')
             except Exception as e:
                 self._signal(text=tr("Re-segmenting Error"))
                 logger.warning(f"重新断句失败[except]，已恢复原样 {e}")
