@@ -43,7 +43,7 @@ class Qwen3ASRRecogn(BaseRecogn):
                     "enable_itn": True
                 }
             )
-            if not hasattr(response, 'output') or not hasattr(response.output, 'choices'):
+            if not hasattr(response, 'output') or not hasattr(response.output, 'choices') or not response.output.choices:
                 error=f'{response.code}:{response.message}'
                 continue
                 

@@ -58,6 +58,8 @@ class ElevenLabsRecogn(BaseRecogn):
             if it.type=='audio_event':
                 continue
             text = it.text
+            if not text:
+                continue
             isflag=text[0] in self.flag or text[-1] in self.flag
             spk = it.speaker_id.replace('speaker_', '')
             
