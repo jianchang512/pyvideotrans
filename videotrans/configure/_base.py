@@ -113,8 +113,9 @@ class BaseCon:
             tools.runffmpeg(cmd, force_cpu=True)
             if settings.get('remove_dubb_silence',True):
                 tools.remove_silence_wav(output_wav_file_path)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f'convert_to_wav failed: {e}')
+            return False
         return True
 
 
@@ -191,15 +192,16 @@ class BaseCon:
             base64data_ext = support_format.get(audio_format, "")
             if base64data_ext and base64data_ext != output_ext:
                 # 格式不同需要转换格式
-                # 将base64编码的字符串解码为字节
                 wav_bytes = base64.b64decode(encoded_str)
-                # 将解码后的字节写入文件
-                with open(output_path + f'.{base64data_ext}', "wb") as wav_file:
-                    wav_file.write(wav_bytes)
-
-                tools.runffmpeg([
-                    "-y", "-i", output_path + f'.{base64data_ext}', "-b:a", "128k", output_path
-                ])
+                tmp_path = output_path + f'.{base64data_ext}'
+                try:
+                    with open(tmp_path, "wb") as wav_file:
+                        wav_file.write(wav_bytes)
+                    tools.runffmpeg([
+                        "-y", "-i", tmp_path, "-b:a", "128k", output_path
+                    ])
+                finally:
+                    Path(tmp_path).unlink(missing_ok=True)
                 return
         # 将base64编码的字符串解码为字节
         wav_bytes = base64.b64decode(encoded_str)
@@ -217,7 +219,14 @@ class BaseCon:
 
     def _signal_of_process(self, logs_file):
         last_mtime = 0
+        timeout = 0
         while 1:
+            if app_cfg.exit_soft:
+                return
+            timeout += 1
+            if timeout > 7200:
+                logger.warning(f'_signal_of_process timed out after 2 hours: {logs_file}')
+                return
             _p = Path(logs_file)
             # 已删掉
             if last_mtime>0 and not _p.exists():
@@ -233,6 +242,7 @@ class BaseCon:
                     time.sleep(1)
                     continue
                 last_mtime=_mtime
+                timeout = 0
                 _content=_p.read_text(encoding='utf-8')
                 if not _content:
                     time.sleep(1)
@@ -248,6 +258,7 @@ class BaseCon:
 
     # 使用新进程执行任务
     def _new_process(self,callback=None,title="",is_cuda=False,kwargs=None):
+        kwargs = kwargs or {}
         _st = time.time()
         self._signal(text=f'[{title}] starting...')
         logger.debug(f'[新进程执行任务]:{title}')
