@@ -5,7 +5,7 @@ import sentencepiece as spm
 from dataclasses import dataclass
 from typing import List, Union
 
-from videotrans.configure.config import ROOT_DIR
+from videotrans.configure.config import ROOT_DIR, logger
 from videotrans.translator._base import BaseTrans
 import torch
 
@@ -84,8 +84,8 @@ class M2M100Trans(BaseTrans):
             self.model.unload_model()
             del self.model
             del self.sentence_piece_processor
-        except:
-            pass
+        except Exception as e:
+            logger.warning(f'm2m100 unload error: {e}')
 
     def _item_task(self, data: Union[List[str], str]):
         queries = data if isinstance(data, list) else [data]
