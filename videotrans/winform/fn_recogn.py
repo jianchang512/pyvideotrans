@@ -129,9 +129,9 @@ def openwin():
             uuid_list = [obj['uuid'] for obj in video_list]
             remove_noise_is=winobj.remove_noise.isChecked()
             fix_punc=winobj.fix_punc.isChecked()
-            nums_diariz=winobj.nums_diariz.currentIndex()
+            nums_diariz_text=winobj.nums_diariz.currentText()
+            nums_diariz=0 if nums_diariz_text==tr("No limit") else int(nums_diariz_text)
             for it in video_list:
-                uuid_list.append(it['uuid'])
                 cfg={
                     "recogn_type": recogn_type,
                     "model_name": model,
@@ -148,7 +148,7 @@ def openwin():
                     trk = SpeechToText(cfg=TaskCfgSTT(**cfg|it),out_format=winobj.out_format.currentText(),copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked())
                     app_cfg.prepare_queue.put_nowait(trk)
                 except Exception as e:
-                    print(e)
+                    logger.error(f'SpeechToText create failed: {e}')
             from videotrans.task.child_win_sign import SignThread
             th = SignThread(uuid_list=uuid_list, parent=winobj)
             th.uito.connect(feed)
@@ -174,7 +174,13 @@ def openwin():
     def check_cuda(state):
         # 选中如果无效，则取消
         if state:
-            import torch
+            try:
+                import torch
+            except ImportError:
+                tools.show_error(tr('nocuda'))
+                winobj.is_cuda.setChecked(False)
+                winobj.is_cuda.setDisabled(True)
+                return False
             if not torch.cuda.is_available():
                 tools.show_error(tr('nocuda'))
                 winobj.is_cuda.setChecked(False)
