@@ -56,6 +56,8 @@ class SpeechToText(BaseTask):
     def recogn(self):
         if self._exit(): return
         while 1:
+            if self._exit():
+                return
             # 尚未生成
             if Path(self.cfg.shibie_audio).exists():
                 break
