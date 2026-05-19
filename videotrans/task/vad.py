@@ -194,30 +194,31 @@ def get_speech_timestamp(input_wav=None,
     # 处理最后一个合并段
     if current_merge is not None:
         temp_segments.append(current_merge)
-    
+
     # 第二轮：检查合并后的片段，确保没有过短的片段
-    for i, segment in enumerate(temp_segments):
+    seg_copy = [s[:] for s in temp_segments]
+    for i, segment in enumerate(seg_copy):
         duration = segment[1] - segment[0]
-        
+
         if duration >= min_speech_duration_ms:
             merged_segments.append(segment)
         else:
             # 仍然过短，尝试合并到邻近片段
-            if i == 0 and len(temp_segments) > 1:
+            if i == 0 and len(seg_copy) > 1:
                 # 第一个片段，合并到下一个
-                temp_segments[i+1][0] = segment[0]
-            elif i == len(temp_segments) - 1 and len(merged_segments) > 0:
+                seg_copy[i+1][0] = segment[0]
+            elif i == len(seg_copy) - 1 and len(merged_segments) > 0:
                 # 最后一个片段，合并到前一个
                 merged_segments[-1][1] = segment[1]
-            elif len(merged_segments) > 0 and i < len(temp_segments) - 1:
+            elif len(merged_segments) > 0 and i < len(seg_copy) - 1:
                 # 中间片段，合并到更近的一边
                 prev_gap = segment[0] - merged_segments[-1][1]
-                next_gap = temp_segments[i+1][0] - segment[1]
-                
+                next_gap = seg_copy[i+1][0] - segment[1]
+
                 if prev_gap <= next_gap:
                     merged_segments[-1][1] = segment[1]
                 else:
-                    temp_segments[i+1][0] = segment[0]
+                    seg_copy[i+1][0] = segment[0]
             else:
                 # 无法合并的情况，添加为单独片段
                 merged_segments.append(segment)
