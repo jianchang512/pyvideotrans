@@ -63,7 +63,7 @@ def openai_whisper(
         msg = f"Loaded {model_name}"
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
-        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else speech_timestamps[-1][1] / 1000.0
+        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else (speech_timestamps[-1][1] / 1000.0 if speech_timestamps else 0)
         speech_timestamps_flat = []
         if detect_language == 'fil':
             detect_language = 'tl'
@@ -341,7 +341,7 @@ def faster_whisper(
     try:
         if speech_timestamps and isinstance(speech_timestamps, str):
             speech_timestamps = json.loads(Path(speech_timestamps).read_text(encoding='utf-8'))
-        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else speech_timestamps[-1][1] / 1000.0
+        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else (speech_timestamps[-1][1] / 1000.0 if speech_timestamps else 0)
         
         # 未强制指定时，cuda下优先 int8_float16,cpu int8
         # 50x系列显卡会报错，回退使用 float16
