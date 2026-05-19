@@ -460,6 +460,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif tts_type == tts.GEMINI_TTS:
             rolelist = params.get('gemini_ttsrole', '')
             self.voice_role.addItems(['No'] + rolelist.split(','))
+        elif tts_type == tts.GOOGLE_TTS:
+            self.voice_role.addItems(['No', 'gtts'])
+        elif tts_type == tts.Supertonic_TTS:
+            rolelist = list(tools.get_supertonic_rolelist().keys())
+            self.voice_role.addItems(rolelist)
         elif self.win_action.change_by_lang(tts_type):
             self.voice_role.clear()
 
