@@ -141,7 +141,9 @@ class EdgeTTS(BaseTTS):
         total_tasks = len(self.queue_tts)
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
         for it in self.queue_tts:
-            it['role']=tools.get_edge_rolelist(it['role'],self.language)
+            role = tools.get_edge_rolelist(it['role'],self.language)
+            if role:
+                it['role'] = role
 
         worker_tasks = [
             asyncio.create_task(

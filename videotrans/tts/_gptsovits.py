@@ -68,12 +68,14 @@ class GPTSoVITS(BaseTTS):
                         self.pad_audio= self.pad_audio if self.pad_audio else self._padforaudio(3000 if ms_ref<1500 else 1600)
                         
                         (ref_wav_audio+self.pad_audio).export(ref_wav,format="wav")
-                elif keys[-1]=='clone':
+                elif keys and keys[-1]=='clone':
                     # 无自定义参考音频，clone原音频时长不符合，失败
                     raise RuntimeError('No refer audio and origin audio duration not between 3-10s')
-                else:
+                elif keys:
                     # 克隆原音频失败，使用最后一个参考音频
                     data.update(roledict[keys[-1]])
+                else:
+                    raise RuntimeError('No reference audio available for voice cloning')
 
             if not data.get('refer_wav_path') and role !='clone':
                 raise StopRetry(message=tr("Must pass in the reference audio file path"))
