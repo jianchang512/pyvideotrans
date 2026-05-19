@@ -233,9 +233,9 @@ class DubbingSrt(BaseTask):
         # txt配音并且是 edgetts，已结束
         if self.ignore_align:
             return
-        # 只有一行
-        if len(self.queue_tts) == 1:
-            if self.cfg.tts_type != tts.EDGE_TTS:
+        # 无配音数据或只有一行
+        if len(self.queue_tts) < 2:
+            if len(self.queue_tts) == 1 and self.cfg.tts_type != tts.EDGE_TTS:
                 tools.runffmpeg(['-y', '-i', self.queue_tts[0]['filename'], '-b:a', '128k', self.cfg.target_wav])
             return
 
