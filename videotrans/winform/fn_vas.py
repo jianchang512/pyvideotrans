@@ -75,10 +75,14 @@ def openwin():
         #
         def hebing_pro(self, protxt, video_time=0):
             percent = 0
+            timeout = 0
             while 1:
                 if percent >= 100 or self.is_end:
                     return
-                content = tools.read_last_n_lines(protxt)    
+                timeout += 1
+                if timeout > 3600:
+                    return
+                content = tools.read_last_n_lines(protxt)
                 if not content:
                     time.sleep(1)
                     continue
@@ -264,6 +268,7 @@ def openwin():
                 self.post(type='ok', text=self.file)
                 self.is_end=True
             except Exception as e:
+                self.is_end = True
                 from videotrans.configure._except import get_msg_from_except
                 self.post(type='error', text=get_msg_from_except(e))
 
