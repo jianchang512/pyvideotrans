@@ -218,6 +218,8 @@ class BaseCon:
     def _signal_of_process(self, logs_file):
         last_mtime = 0
         while 1:
+            if app_cfg.exit_soft:
+                return
             _p = Path(logs_file)
             # 已删掉
             if last_mtime>0 and not _p.exists():
