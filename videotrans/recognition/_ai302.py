@@ -51,8 +51,10 @@ class AI302Recogn(BaseRecogn):
         prompt = settings.get(f'initial_prompt_{self.detect_language}')
 
         logger.debug(f'{prompt=}')
+        with open(self.audio_file, 'rb') as f:
+            audio_data = f.read()
         response = requests.post(url,
-                                 files={"file": open(self.audio_file, 'rb')},
+                                 files={"file": (Path(self.audio_file).name, audio_data)},
                                  data={
                                      "model": model_name,
                                      'response_format': 'verbose_json',
@@ -97,8 +99,10 @@ class AI302Recogn(BaseRecogn):
         err=''
         ok_nums=0
         for i, it in enumerate(raws):
+            with open(it['file'], 'rb') as f:
+                audio_chunk = f.read()
             response = requests.post(url,
-                 files={"file": open(it['file'], 'rb')},
+                 files={"file": (Path(it['file']).name, audio_chunk)},
                  data={
                      "model": model_name,
                      'response_format': 'json',
@@ -134,8 +138,10 @@ class AI302Recogn(BaseRecogn):
         prompt = settings.get(f'initial_prompt_{self.detect_language}')
 
 
+        with open(self.audio_file, 'rb') as f:
+            audio_data = f.read()
         response = requests.post(url,
-             files={"file":open(self.audio_file, 'rb')},
+             files={"file": (Path(self.audio_file).name, audio_data)},
              data={
                  "model": 'gpt-4o-transcribe-diarize',
                  'response_format': 'diarized_json',

@@ -402,7 +402,7 @@ class SpeedRate:
         """计算策略"""
         tools.set_process(text="Calculating sync adjustments...", uuid=self.uuid)
         # 视频慢速，第0条字幕之前可能有无声音视频
-        if self.shoud_videorate and self.queue_tts[0]['start_time_source']>0:
+        if self.shoud_videorate and self.queue_tts and self.queue_tts[0]['start_time_source']>0:
             self.video_for_clips.append({
                     "start": 0,
                     "end": self.queue_tts[0]['start_time_source'],
@@ -584,6 +584,8 @@ class SpeedRate:
     def _concat_audio_aligned(self):
         logger.debug("[Audio] 开始对齐拼接...")
         audio_list = []
+        if not self.queue_tts:
+            return
         current_timeline = self.queue_tts[0]['start_time']
         if current_timeline>0:
             audio_list.append(self._create_silen_file("head_0", current_timeline))

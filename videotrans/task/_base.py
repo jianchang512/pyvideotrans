@@ -113,7 +113,7 @@ class BaseTask(BaseCon):
 
     def _check_target_sub(self, source_srt_list, target_srt_list):
         import re, copy
-        if len(source_srt_list) == 1 or len(target_srt_list) == 1:
+        if len(source_srt_list) == 1 and len(target_srt_list) == 1:
             target_srt_list[0]['line'] = 1
             return target_srt_list[:1]
         source_len = len(source_srt_list)
