@@ -140,6 +140,7 @@ class DownloadWorker(QThread):
         return os.path.basename(parsed.path)
 
     def run(self):
+        urls_to_process = []
         try:
             if app_cfg.proxy:
                 os.environ['HTTPS_PROXY']=app_cfg.proxy
@@ -148,8 +149,6 @@ class DownloadWorker(QThread):
             # 1. 解析任务类型
             target_dir = Path(self.task["dir"])
             target_dir.mkdir(parents=True, exist_ok=True)
-
-            urls_to_process = [] # List of (url, save_path, is_archive)
 
             # 情况 A: Faster Whisper (多个 URL)
             if "urls" in self.task:
@@ -280,19 +279,20 @@ class DownloadWorker(QThread):
             self.finished_signal.emit(False, "STOPPED")
         except Exception as e:
             msg=str(e)
-            # faster-whisper 模型 多个文件
-            if 'hf-mirror.com' in urls_to_process[0]['url'] or 'huggingface.co' in urls_to_process[0]['url']:
-                downurl=urls_to_process[0]['url'].split('/resolve/main')[0]+"/tree/main"
-                msg=f'{TRANS["xiazaishibai_shoudong"].format(downurl,self.task["dir"])}\n\n{msg}'
-                QApplication.clipboard().setText(downurl)
-            elif urls_to_process[0]['url'].endswith('.zip'):
-                # zip 文件
-                msg=TRANS['zip_xiazaishibai_shoudong'].format(urls_to_process[0]['url'],self.task.get('zip_folder',''),self.task['dir'])
-                QApplication.clipboard().setText(urls_to_process[0]['url'])
-            else:
-                # openai-whisper 模型，单个pt文件
-                msg=TRANS['pt_xiazaishibai_shoudong'].format(urls_to_process[0]['url'],self.task['name'],self.task['dir'])
-                QApplication.clipboard().setText(urls_to_process[0]['url'])
+            if urls_to_process:
+                # faster-whisper 模型 多个文件
+                if 'hf-mirror.com' in urls_to_process[0]['url'] or 'huggingface.co' in urls_to_process[0]['url']:
+                    downurl=urls_to_process[0]['url'].split('/resolve/main')[0]+"/tree/main"
+                    msg=f'{TRANS["xiazaishibai_shoudong"].format(downurl,self.task["dir"])}\n\n{msg}'
+                    QApplication.clipboard().setText(downurl)
+                elif urls_to_process[0]['url'].endswith('.zip'):
+                    # zip 文件
+                    msg=TRANS['zip_xiazaishibai_shoudong'].format(urls_to_process[0]['url'],self.task.get('zip_folder',''),self.task['dir'])
+                    QApplication.clipboard().setText(urls_to_process[0]['url'])
+                else:
+                    # openai-whisper 模型，单个pt文件
+                    msg=TRANS['pt_xiazaishibai_shoudong'].format(urls_to_process[0]['url'],self.task['name'],self.task['dir'])
+                    QApplication.clipboard().setText(urls_to_process[0]['url'])
             
             self.finished_signal.emit(False, msg)
 

@@ -192,7 +192,7 @@ def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf):
         try:
             if Path(task['filename']).exists():
                 Path(task['filename']).unlink()
-        except:
+        except Exception:
             pass
             
     return task
@@ -297,7 +297,7 @@ class SpeedRate:
                 preset_tmp = str(Path(ROOT_DIR + "/preset.txt").read_text().strip())
                 if preset_tmp in ['ultrafast', 'veryfast', 'medium', 'slow']:
                     self.preset = preset_tmp
-        except:
+        except Exception:
             pass
 
         self.audio_speed_rubberband = shutil.which("rubberband")
