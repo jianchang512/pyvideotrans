@@ -39,7 +39,7 @@ class SeparateWorker(QThread):
     def run(self):
         try:
             
-            uvr_models=settings.get('uvr_models')
+            uvr_models=settings.get('uvr_models') or 'spleeter'
             if uvr_models.startswith('spleeter'):
                 tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
                     f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/vocals.fp16.onnx",
