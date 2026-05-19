@@ -448,6 +448,22 @@ def get_clone_role(set_p=False):
 
 
 
+def get_mosstts_role_test_text(role_name: str, default_text: str = ''):
+    role = str(role_name or '').strip()
+    if not role or role in {'No', 'clone'}:
+        return default_text
+    local_role_map = get_f5tts_role()
+    if role in local_role_map:
+        return local_role_map[role].get('ref_text') or default_text
+    demo_role_map = get_mosstts_demo_map()
+    if role in demo_role_map:
+        preset_test_text = str(params.get('moss_tts_preset_test_text', '') or '').strip()
+        if preset_test_text:
+            return preset_test_text
+        return demo_role_map[role].get('text') or default_text
+    return default_text
+
+
 def show_refaudio_win():
     from videotrans.component.set_form import RefaudioForm
     dialog = RefaudioForm()
