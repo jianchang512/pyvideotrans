@@ -130,7 +130,6 @@ def get_camb_role(force=False, raise_exception=False):
         client = CambAI(api_key=params.get("camb_api_key", '') or os.environ.get('CAMB_API_KEY', ''))
         voiceslist = client.voice_cloning.list_voices()
 
-        namelist = ['No', 'clone']
         result = {}
         for it in voiceslist:
             voice_id = it.id if hasattr(it, 'id') else it.get('id')
@@ -138,7 +137,7 @@ def get_camb_role(force=False, raise_exception=False):
             n = re.sub(r'[^a-zA-Z0-9_ -]+', '', voice_name, flags=re.I | re.S).strip()
             if n:
                 result[n] = {"name": n, "voice_name": n, "id": voice_id}
-                namelist.append(n)
+        namelist = ['No', 'clone'] + list(result.keys())
 
         with open(jsonfile, 'w', encoding="utf-8") as f:
             f.write(json.dumps(result))
