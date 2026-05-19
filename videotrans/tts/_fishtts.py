@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Union
 import requests
 from videotrans.configure.config import params, logger
+from videotrans.configure.excepts import StopTask
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -12,6 +13,8 @@ class FishTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.api_url = 'http://' +params.get('fishtts_url', '').strip().rstrip('/').lower().replace('http://', '')
+        if len(self.api_url)<10:
+            raise StopTask(f'API URL is error: {self.api_url}')
         self.roledict = tools.get_f5tts_role()
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:

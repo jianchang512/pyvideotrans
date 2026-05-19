@@ -9,7 +9,7 @@ from pydub import AudioSegment
 from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, after_log, before_log, wait_fixed
 
 from videotrans.configure.config import tr, params, logger, settings
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 
@@ -21,6 +21,8 @@ class GPTSoVITS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.api_url = 'http://' + params.get('gptsovits_url','').strip().rstrip('/').lower().replace('http://', '')
+        if len(self.api_url)<10:
+            raise StopTask(f'API URL is error: {self.api_url}')
         self.speed = self.get_speed()
         self.roledict = tools.get_gptsovits_role()
 
@@ -30,9 +32,6 @@ class GPTSoVITS(BaseTTS):
         data = {
             "text": data_item['text'],
             "text_language": "zh" if self.language.startswith('zh') else self.language,
-            "extra": params.get('gptsovits_extra',''),
-            "ostype": sys.platform,
-
         }
         keys=list(self.roledict.keys())
         ref_wav=data_item.get('ref_wav','')
@@ -72,7 +71,7 @@ class GPTSoVITS(BaseTTS):
                 "prompt_text": data.get('prompt_text', ''),
                 "prompt_lang": data.get('prompt_language', ''),
                 "speed_factor": self.speed,
-                "text_split_method":"cut0"
+                "text_split_method":"cut5"
             }
 
             if not self.api_url.endswith('/tts'):

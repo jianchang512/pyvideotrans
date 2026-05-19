@@ -7,7 +7,7 @@ from typing import Union, List, Dict
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.configure.config import tr, params, logger, ROOT_DIR, settings
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -21,6 +21,8 @@ class MossTTS(BaseTTS):
         super().__post_init__()
         service_urls = tools.get_mosstts_service_urls(params.get('moss_tts_url', ''))
         self.api_url = service_urls['generate_url']
+        if len(self.api_url)<10:
+            raise StopTask(f'API URL is error: {self.api_url}')
         self.service_root = service_urls['service_root']
         self.roledict = tools.get_f5tts_role()
 

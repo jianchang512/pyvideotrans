@@ -93,9 +93,8 @@ class GEMINITTS(BaseTTS):
             return {"bits_per_sample": bits_per_sample, "rate": rate}
 
         def save_binary_file(file_name, data):
-            f = open(file_name, "wb")
-            f.write(data)
-            f.close()
+            with open(file_name, "wb") as f:
+                f.write(data)
 
         client = genai.Client(
             api_key=params.get('gemini_key', ''),

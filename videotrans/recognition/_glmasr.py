@@ -21,7 +21,9 @@ class GLMASRRecogn(BaseRecogn):
         err=''
         ok_nums=0
         for i, it in enumerate(raws):
-            files = { "file": (Path(it['filename']).name, open(it['filename'], "rb")) }
+            with open(it['filename'], "rb") as f:
+                file_data = f.read()
+            files = { "file":   (Path(it['filename']).name, file_data) }
             payload = {
                 "model": "glm-asr-2512",
                 "stream": "false"

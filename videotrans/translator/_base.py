@@ -140,7 +140,7 @@ class BaseTrans(BaseCon):
             if not result:
                 result = self._item_task(srt_str)
                 if not result.strip():
-                    raise RuntimeError(tr("Translate result is empty"))
+                    raise TranslateSrtError(tr("Translate result is empty"))
                 self._set_cache(it, result)
 
             self.signal(text=result, type='subtitle')
@@ -153,7 +153,7 @@ class BaseTrans(BaseCon):
                 _empty_line += 1
         if _empty_line >= len(raws_list):
             raise TranslateSrtError(tr("Translate result is empty"))
-        logger.debug(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},整理为list[dict]后的行数:{len(raws_list)}')
+        logger.debug(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},翻译后行数:{len(raws_list)}')
         return raws_list
 
     def _set_cache(self, it, res_str):

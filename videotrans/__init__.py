@@ -18,7 +18,7 @@ class ChannelProvider:
 
 # provider_type: TTS|STT|STS 配音，转录，翻译字幕
 # _ID_NAME_DICT 渠道配置信息
-def get_instance(channel_id: int = 0, provider_type=None, _ID_NAME_DICT=None):
+def get_class(channel_id: int = 0, provider_type=None, _ID_NAME_DICT=None):
     _key = f'{provider_type}-{channel_id}'
     if _key in _loaded_modules:
         return _loaded_modules[_key]

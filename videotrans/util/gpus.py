@@ -2,7 +2,7 @@
 # 2. 获取可用 cuda 号
 # 3. MacOSX 是否支持 mps
 import platform
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.configure.config import app_cfg,settings,logger
 
 
 
@@ -16,7 +16,6 @@ def getset_gpu(force_cpu=False) -> int:
     # 尚未获取过时是 -1
     if app_cfg.NVIDIA_GPU_NUMS > -1:
         return app_cfg.NVIDIA_GPU_NUMS
-    logger.debug('First searching GPU...')
     import torch
     # 无可用显卡
     app_cfg.NVIDIA_GPU_NUMS = 0 if not torch.cuda.is_available() else torch.cuda.device_count()

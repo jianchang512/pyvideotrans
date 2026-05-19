@@ -1,11 +1,8 @@
-# 数字代表界面中的显示顺序
-import copy
-from typing import Union, Optional
-import inspect
-import importlib
-from videotrans.configure.config import tr, params, app_cfg, logger
+from typing import Union, Type
+from videotrans.configure.config import tr, params, app_cfg
+from videotrans.configure.excepts import DubbingSrtError
 from videotrans.tts._base import BaseTTS
-from videotrans import winform, ChannelProvider, get_instance
+from videotrans import winform, ChannelProvider, get_class
 
 # 推荐
 EDGE_TTS = 0
@@ -70,8 +67,8 @@ SUPPORT_CLONE = [
     MOSS_TTS
 ]
 # 配音角色根据语言不同而变化的渠道
-CHANGE_BY_LANGUAGE=[EDGE_TTS, MINIMAXI_TTS, AZURE_TTS, DOUBAO2_TTS, AI302_TTS, KOKORO_TTS,
-                    PIPER_TTS, VITSCNEN_TTS]
+CHANGE_BY_LANGUAGE = [EDGE_TTS, MINIMAXI_TTS, AZURE_TTS, DOUBAO2_TTS, AI302_TTS, KOKORO_TTS,
+                      PIPER_TTS, VITSCNEN_TTS]
 
 _ID_NAME_DICT = {
     EDGE_TTS: ChannelProvider(tr("Edge-TTS(free)"), "._edgetts"),
@@ -85,7 +82,8 @@ _ID_NAME_DICT = {
                                    win="gptsovits"),
     F5_TTS: ChannelProvider(f"F5-TTS({tr('Local')}API)", "._f5tts", key_name="f5tts_url", win="f5tts"),
     INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)", "._index", key_name="indextts_url", win="f5tts"),
-    COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)", "._cosyvoice", key_name="cosyvoice_url", win="cosyvoice"),
+    COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)", "._cosyvoice", key_name="cosyvoice_url",
+                                   win="cosyvoice"),
     Supertonic_TTS: ChannelProvider(f"Supertonic({tr('Local')}{tr('Built-in')})", "._supertonic"),
     VOXCPM_TTS: ChannelProvider(f"VoxCPM({tr('Local')}API)", "._voxcpm", key_name="voxcpmtts_url", win="f5tts"),
     CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}API)", "._chatterbox", key_name="chatterbox_url",
@@ -119,6 +117,7 @@ _ID_NAME_DICT = {
 
 TTS_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
+
 # 检查当前配音渠道是否支持所选配音语言
 # 返回True为支持，其他为不支持并返回错误字符串
 def is_allow_lang(langcode: str = None, tts_type: int = None):
@@ -150,7 +149,8 @@ def is_input_api(tts_type: int = None, return_str=False):
     if not _cls:
         return True
     if _cls.key_name and not params.get(_cls.key_name):
-        return "Please configure the SK or API information of the channel first." if return_str else winform.get_win(_cls.win).openwin()
+        return "Please configure the SK or API information of the channel first." if return_str else winform.get_win(
+            _cls.win).openwin()
     return True
 
 
@@ -160,15 +160,10 @@ def clone_tips(tts_type, role: str = 'No', recogn_type=9):
     return
 
 
-
-
 # 统一调用 tts渠道入口，通过 tts_type 调用对应渠道
 def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, tts_type=0, is_cuda=False) -> None:
     # 需要并行的数量3
-    if len(queue_tts) < 1:
-        return
-    if app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set):
-        return
+    if len(queue_tts) < 1 or app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set): return
 
     kwargs = {
         "queue_tts": queue_tts,
@@ -180,8 +175,8 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         "is_cuda": is_cuda
     }
 
-    _cls: Union[BaseTTS, None] = get_instance(tts_type,"tts",_ID_NAME_DICT)
+    _cls: Union[Type[BaseTTS], None] = get_class(tts_type, "tts", _ID_NAME_DICT)
     if not _cls:
-        raise RuntimeError(f'No this TTS Channel:{tts_type=}')
+        raise DubbingSrtError(f'No this TTS Channel:{tts_type=}')
 
-    return _cls(**kwargs).run()
+    return _cls(**kwargs).run()  # type:ignore

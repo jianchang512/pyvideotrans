@@ -6,7 +6,7 @@ import requests
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 from videotrans.configure.config import params, logger, settings
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 
 RETRY_NUMS = 2
@@ -18,6 +18,8 @@ class ChatterBoxTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.api_url = 'http://' +params.get('chatterbox_url','').strip().rstrip('/').lower().replace('http://', '')
+        if len(self.api_url)<10:
+            raise StopTask(f'API URL is error: {self.api_url}')
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))

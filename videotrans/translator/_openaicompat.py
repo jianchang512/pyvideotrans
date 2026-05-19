@@ -33,9 +33,12 @@ class OpenAICampat(BaseTrans):
         self.prompt = tools.get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name)
         logger.debug(f'当前字幕翻译渠道:{self.ainame=},{self.api_url=}')
 
+
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
+        if len(self.api_url)<10:
+            raise StopTask(f'API URL is error: {self.api_url}')
         
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         
@@ -71,7 +74,7 @@ class OpenAICampat(BaseTrans):
 
         logger.debug(f'[{self.ainame}]响应:{response=}')
         result = ""
-        if not hasattr(response,'choices'):
+        if not hasattr(response,'choices') or not response.choices:
             raise TranslateSrtError(str(response))
         if response.choices[0].finish_reason=='length':
             raise LengthFinishReasonError(completion=response)
@@ -92,9 +95,11 @@ class OpenAICampat(BaseTrans):
         prompts_template = prompts_template.replace('{max_speech_s}', str(settings.get('max_speech_duration_s', 6)))
         chunk_size = int(settings.get('llm_chunk_size', 20))
         model_name=params.get(f'{self.ainame}_model')
+        max_tokens=max(65536,int(  float(params.get(f'{self.ainame}_max_token', 40960)) ))
         api_key=params.get(f'{self.ainame}_key')
         api_url=params.get('chatgpt_api') if self.ainame!='deepseek' else 'https://api.deepseek.com/v1/'
-
+        if len(api_url)<10:
+            raise StopTask(f'API URL is error: {api_url}')
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(2)),
                wait=wait_fixed(5), before=before_log(logger, logging.INFO),
                after=after_log(logger, logging.INFO))
@@ -106,13 +111,11 @@ class OpenAICampat(BaseTrans):
                     'content': f"""```srt\n{srt}\n```"""
                 }
             ]
-            logger.debug(f'需要断句的:{message=}')
             model = OpenAI(api_key=api_key, base_url=api_url)
-
             response = model.chat.completions.create(
                 model=model_name,
                 frequency_penalty=0,
-                max_completion_tokens=65536,
+                max_completion_tokens=max_tokens,
                 messages=message,
                 temperature=0.2,
                 timeout=300  # 超过5分钟为失败
@@ -130,7 +133,6 @@ class OpenAICampat(BaseTrans):
             result = response.choices[0].message.content
             match = re.search(r'<SRT>(.*?)</SRT>', re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S),
                               re.S | re.I)
-            logger.warning(f'[LLM re-segments]重新断句结果:{result=}')
             if match:
                 return match.group(1)
             return result.strip()

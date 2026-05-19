@@ -45,6 +45,7 @@ _LANGUAGE_CODE_MAP = {
         "fi": "__tl__",# 菲律宾语
         "ur": "__ur__",
         "yu": "__zh__",
+        "ro": "__ro__",
         "nb": "__no__"
 }
 

@@ -40,7 +40,6 @@ def openwin():
         model = winobj.chatgpt_model.currentText()
 
         params["chatgpt_max_token"] = max_token
-        os.environ['OPENAI_API_KEY'] = key
         params["chatgpt_key"] = key
         params["chatgpt_api"] = url
         params["chatgpt_model"] = model

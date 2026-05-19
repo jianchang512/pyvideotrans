@@ -50,7 +50,7 @@ class Qwen3ASRRecogn(BaseRecogn):
             except AuthenticationError as e:
                 raise StopTask(str(e))
 
-            if not hasattr(response, 'output') or not hasattr(response.output, 'choices'):
+            if not hasattr(response, 'output') or not hasattr(response.output, 'choices') or not response.output.choices:
                 error=f'{response.code}:{response.message}'
                 continue
                 

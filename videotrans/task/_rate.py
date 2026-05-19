@@ -342,6 +342,8 @@ class SpeedRate:
             logger.warning(f"[SpeedRate] Rubberband 不可用，将使用pydub+ffmpeg处理音频加速。\n建议安装，加速效果更佳\n{INSTALL_RUBBERBAND_TIPS}")
 
     def run(self):
+        if not self.queue_tts:
+            return []
         if not self.shoud_audiorate and not self.shoud_videorate:
             logger.debug("[SpeedRate] 未启用变速，进入普通拼接模式。")
             self._run_no_rate_change_mode()

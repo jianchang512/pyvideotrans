@@ -115,7 +115,6 @@ class WorkerRegcon(BaseWorker):
         return tr('shibiechucuo')
 
     def process_task(self, trk):
-        logger.debug(f'[job] 进入执行语音识别阶段 {trk.cfg=}')
         trk.recogn()
         app_cfg.diariz_queue.put_nowait(trk)
 

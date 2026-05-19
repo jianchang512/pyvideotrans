@@ -381,7 +381,7 @@ def openwin():
             trk = DubbingSrt(cfg=TaskCfgTTS(**cfg | it), out_ext=winobj.out_format.currentText())
             app_cfg.dubb_queue.put_nowait(trk)
             winobj.hecheng_plaintext.clear()
-            winobj.hecheng_plaintext.insertPlainText(Path(it['name']).read_text(encoding='utf-8',errors="ingore"))
+            winobj.hecheng_plaintext.insertPlainText(Path(it['name']).read_text(encoding='utf-8-sig',errors="ingore"))
         from videotrans.task.child_win_sign import SignThread
         th = SignThread(uuid_list=uuid_list, parent=winobj)
         th.uito.connect(feed)

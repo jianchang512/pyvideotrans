@@ -8,7 +8,7 @@ from typing import Union, List, Dict
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 from videotrans.configure.config import params, logger, settings
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 
 @dataclass
@@ -18,6 +18,8 @@ class ChatTTS(BaseTTS):
         super().__post_init__()
         # 从配置中读取并处理 API URL
         self.api_url = 'http://' + params.get('chattts_api','').strip().rstrip('/').lower().replace('http://', '').replace('/tts', '')
+        if len(self.api_url)<10:
+            raise StopTask(f'API URL is error: {self.api_url}')
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:

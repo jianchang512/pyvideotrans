@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
-import importlib
-import inspect
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Type
 
 # 数字代表显示顺序
 from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR
 from videotrans.translator._base import BaseTrans
 from videotrans.translator._google import Google
 from videotrans.util import tools
-from videotrans import winform, ChannelProvider, get_instance
+from videotrans import winform, ChannelProvider, get_class
 
 GOOGLE_INDEX = 0
 MICROSOFT_INDEX = 1
@@ -97,14 +94,15 @@ _ID_NAME_DICT = {
 }
 TRANSLASTE_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
-# subtitles language code https://zh.wikipedia.org/wiki/ISO_639-2%E4%BB%A3%E7%A0%81%E5%88%97%E8%A1%A8
-#  https://www.loc.gov/standards/iso639-2/php/code_list.php
+# subtitles language code  https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
+#  MP4视频   使用3位 T格式(ISO-639-2/T)，  MKV使用使用 3位B格式 ISO 639-2/B
 # 腾讯翻译 https://cloud.tencent.com/document/api/551/15619
 # google翻译 https://translate.google.com/
 # 百度翻译 https://fanyi.baidu.com/
 # deepl  https://deepl.com/
 # microsoft https://www.bing.com/translator?mkt=zh-CN
-# 阿里 机器翻译https://help.aliyun.com/zh/machine-translation/developer-reference/machine-translation-language-code-list?spm=a2c4g.11186623.help-menu-30396.d_4_4.4bda2b009oye8y
+# 阿里机器翻译
+# https://help.aliyun.com/zh/machine-translation/developer-reference/machine-translation-language-code-list?spm=a2c4g.11186623.help-menu-30396.d_4_4.4bda2b009oye8y
 # qwen-mt https://help.aliyun.com/zh/model-studio/machine-translation?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.69bf2f3dfuEVHs&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2860790._.ID_help@@%E6%96%87%E6%A1%A3@@2860790-RL_qwen~DAS~mt-LOC_2024SPHelpResult-OR_ser-PAR1_0bc3b4ad17766086921897050e02b4-V_4-PAR3_o-RE_new5-P0_0-P1_0#038d2865bbydc
 # m2m100  https://github.com/ymoslem/DesktopTranslator/blob/main/utils/m2m_languages.json
 LANGNAME_DICT = {
@@ -142,6 +140,7 @@ LANGNAME_DICT = {
     "nb": tr("Norway"),  # 书面挪威语
     "yue": tr("Cantonese"),
     "km": tr("Khmer"),  # 高棉
+    "ro": tr("Romanian"),  # 罗马尼亚
 }
 
 # 如果存在新增
@@ -156,10 +155,11 @@ except Exception as e:
 # 反向按照显示名字查找语言代码
 LANGNAME_DICT_REV = {v: k for k, v in LANGNAME_DICT.items()}
 # 根据语言代码查找各个翻译渠道对应的 代码list
+# 字幕嵌入代码默认使用  ISO 639-2/T(mp4所需)，MKV视频需使用 ISO 639-2/B 格式
 LANG_CODE = {
     "zh-cn": [
         "zh-cn",  # google通道
-        "chi",  # 字幕嵌入语言
+        "zho",  # 字幕嵌入语言
         "zh",  # 百度通道
         "ZH-HANS",  # deepl deeplx通道
         "zh",  # 腾讯通道
@@ -172,7 +172,7 @@ LANG_CODE = {
     ],
     "zh-tw": [
         "zh-tw",
-        "chi",
+        "zho",
         "cht",
         "ZH-HANT",
         "zh-TW",
@@ -195,6 +195,19 @@ LANG_CODE = {
         "ur",  # 阿里
         "Urdu",
         "ur"  # m2m100
+    ],
+    "ro": [
+        "ro",  # google通道
+        "ron",  # 字幕嵌入语言
+        "rom",  # 百度通道
+        "RO",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "ro",  # 微软翻译
+        "Romanian",  # AI翻译
+        "ro",  # 阿里
+        "Romanian",# qwen-mt
+        "ro"  # m2m100
     ],
     "km": [
         "km",  # google通道
@@ -252,7 +265,7 @@ LANG_CODE = {
     ],
     "fr": [
         "fr",
-        "fre",
+        "fra",
         "fra",
         "FR",
         "fr",
@@ -265,7 +278,7 @@ LANG_CODE = {
     ],
     "de": [
         "de",
-        "ger",
+        "deu",
         "de",
         "DE",
         "de",
@@ -356,7 +369,7 @@ LANG_CODE = {
     ],
     "el": [
         "el",  # google
-        "gre",  # subtitle embed (ISO 639-2/B)
+        "ell",  # subtitle embed (ISO 639-2/T)
         "el",  # baidu
         "EL",  # deepl / deeplx
         "el",  # tencent
@@ -486,7 +499,7 @@ LANG_CODE = {
     ],
     "ms": [
         "ms",
-        "may",
+        "msa",
         "may",
         "No",
         "ms",
@@ -538,7 +551,7 @@ LANG_CODE = {
     ],
     "nl": [
         "nl",  # google通道
-        "dut",  # 字幕嵌入语言
+        "nld",  # 字幕嵌入语言
         "nl",  # 百度通道
         "NL",  # deepl deeplx通道
         "No",  # 腾讯通道
@@ -590,7 +603,7 @@ LANG_CODE = {
     ],
     "fa": [
         "fa",  # google通道
-        "per",  # 字幕嵌入语言
+        "fas",  # 字幕嵌入语言
         "per",  # 百度通道
         "No",  # deepl deeplx通道
         "No",  # 腾讯通道
@@ -767,7 +780,8 @@ def get_audio_code(*, show_source=None):
     return source_list[0] if source_list else "auto"
 
 
-# 获取嵌入软字幕的3位字母语言代码，根据目标语言确定
+# 获取嵌入MP4视频嵌入软字幕的3位字母语言代码 ISO 639-2/T ，根据目标语言确定
+# mkv视频需根据此返回的代码再调用 get_mkv_code 获取 ISO 639-2/B
 def get_subtitle_code(*, show_target=None):
     try:
         if show_target in LANG_CODE:
@@ -778,6 +792,21 @@ def get_subtitle_code(*, show_target=None):
         logger.error(f'获取字幕嵌入3为语言代码错误:{e}')
     return 'eng'
 
+# 如果是 mkv 软字幕，根据mp4所需code换算为  B 标准代码 ISO 639-2/B
+def get_mkv_code(code):
+    #  ISO 639-2/T :ISO 639-2/B
+    langcode={
+        "fra":"fre",
+        "deu":"ger",
+        "zho":"chi",
+        "ces":"cze",
+        "ell":"gre",
+        "fas":"per",
+        "msa":"may",
+        "nld":"dut",
+        "ron":"rum",
+    }
+    return langcode.get(code,code)
 
 def _check_google():
     import requests
@@ -822,8 +851,8 @@ def run(*, translate_type=0,
         logger.warning('==未设置代理并且检测google失败，使用微软翻译')
         translate_type = MICROSOFT_INDEX
 
-    _cls: Union[BaseTrans, None] = get_instance(translate_type,"translator",_ID_NAME_DICT)
+    _cls: Union[Type[BaseTrans], None] = get_class(translate_type,"translator",_ID_NAME_DICT)
     if _cls is None:
         raise RuntimeError(f'No this Translation Channel:{translate_type}')
 
-    return _cls(**kwargs).run()
+    return _cls(**kwargs).run()#type:ignore

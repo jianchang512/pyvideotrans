@@ -109,11 +109,9 @@ class BaseRecogn(BaseCon):
             # 移除无效字幕行,全部由符号组成的行
             if text and not re.match(contants.NON_WORD, text):
                 it['line'] = len(srt_list) + 1
-                if not it.get('startraw'):
-                    it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
-                    it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
-                    it['time'] = f"{it['startraw']} --> {it['endraw']}"
                 srt_list.append(it)
+            else:
+                logger.warning(f'移除无效字幕行,全部由符号组成的行：{i=},{text=}')
 
         if not srt_list:
             return []
@@ -131,8 +129,10 @@ class BaseRecogn(BaseCon):
         # LLM重新断句，未选中合并过短字幕、whisper模型且没有预先分割，这3种情况直接返回
         if self.llm_post or not settings.get('merge_short_sub', True) or (
                 self.recogn_type < 2 and not settings.get('whisper_prepare')):
-            if not self.llm_post:
+            if settings.get('del_end_punc'):
+                logger.debug(f'开始移除每条字幕末尾标点')
                 for it in srt_list:
+                    # 移除末尾标点
                     it['text'] = it['text'].strip('。，,.').strip()
             return srt_list
         # 合并过短的字幕到邻近字幕，以便符合 min_speech_duration_ms 要求, 第一个和最后一个字幕不合并
@@ -268,7 +268,7 @@ class BaseRecogn(BaseCon):
         """合并过短字幕，按标点重分配片段"""
         post_srt_raws = []
         min_speech = max(300, int(float(settings.get('min_speech_duration_ms', 1000))))
-        logger.debug(f'对识别出的字幕进行简单修正，{min_speech=}')
+        logger.debug(f'对识别出的字幕进行简单合并与修正，{min_speech=}')
 
         # 阶段 1：遍历合并过短项
         post_srt_raws = self._phase1_merge_short(srt_list, min_speech, post_srt_raws)
@@ -292,8 +292,10 @@ class BaseRecogn(BaseCon):
         post_srt_raws = self._phase4_redistribute_by_punct(post_srt_raws, forward=False)
 
         # 阶段 6：清理尾部标点，剔除空白字幕
-        for it in post_srt_raws:
-            it['text'] = it['text'].strip('。,.').strip()
+        if settings.get('del_end_punc'):
+            for it in post_srt_raws:
+                # 删除尾部标点
+                it['text'] = it['text'].strip('。,.').strip()
         return [it for it in post_srt_raws if it['text'].strip()]
 
     def _phase1_merge_short(self, srt_list, min_speech, post_srt_raws):

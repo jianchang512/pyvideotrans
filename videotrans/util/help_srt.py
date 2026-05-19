@@ -182,7 +182,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True) -> List[SrtItem]:
     def _readfile(file):
         content = ""
         try:
-            with open(file, 'r', encoding='utf-8') as f:
+            with open(file, 'r', encoding='utf-8-sig') as f:
                 content = f.read().strip()
         except UnicodeDecodeError as e:
             try:
@@ -286,7 +286,7 @@ def set_ass_font(srtfile: str) -> str:
         return ass_file_path
 
     try:
-        with open(JSON_FILE, 'r', encoding='utf-8') as f:
+        with open(JSON_FILE, 'r', encoding='utf-8-sig') as f:
             style = json.load(f)
     except Exception as e:
         logger.exception(f"[set_ass_font] 错误：无法读取或解析 JSON 文件 {JSON_FILE}: {e}", exc_info=True)
@@ -431,7 +431,7 @@ def set_ass_font(srtfile: str) -> str:
 
     # 写回 ASS 文件
     try:
-        with open(ass_file_path, 'w', encoding='utf-8-sig', newline='') as f:
+        with open(ass_file_path, 'w', encoding='utf-8', newline='') as f:
             f.writelines(processed_lines)
     except Exception as e:
         logger.exception(f"[set_ass_font] 错误：无法写入 ASS 文件: {e}", exc_info=True)
@@ -479,6 +479,8 @@ def simple_wrap(text:str, maxlen:int=15, language:str="en")->str:
         # 再判断后续4个是否符合换行条件
         raw_i = i
         for next_i in range(1, offset + 1):
+            if i+next_i>=_len:
+                break
             if text[i + next_i] in flag:
                 pos_i = i + next_i + 1
                 current_text += text[i:pos_i]
@@ -497,7 +499,7 @@ def simple_wrap(text:str, maxlen:int=15, language:str="en")->str:
             current_text = ''
         i += 1
 
-    if current_text and len(current_text) < maxlen / 3:
+    if current_text and len(current_text) < maxlen / 3 and text_lilst:
         text_lilst[-1] += current_text
     elif current_text:
         text_lilst.append(current_text)

@@ -23,7 +23,7 @@ from ._base import BaseTask
 from videotrans.util.help_ffmpeg import get_video_codec
 from videotrans.task._rate import SpeedRate
 from .taskcfg import TaskCfgVTT
-from ..configure.excepts import VideoTransError, FFmpegError
+from ..configure.excepts import VideoTransError, FFmpegError, SpeechToTextError
 
 
 @dataclass
@@ -144,7 +144,7 @@ class TransCreate(BaseTask):
             self.shoud_dubbing = False
 
         # 记录最终使用的配置信息
-        logger.debug(f"最终配置信息：{self.cfg=}")
+        logger.debug(f"最终配置信息：{self=},{self.cfg=}")
         # 禁止修改字幕
         self.signal(text="forbid", type="disabled_edit")
 
@@ -177,12 +177,12 @@ class TransCreate(BaseTask):
 
         # 无视频流，不是音频，并且不是提取，报错
         if self.video_info.get('video_streams', 0) < 1 and not self.is_audio_trans and self.cfg.app_mode != 'tiqu':
-            raise RuntimeError(
+            raise VideoTransError(
                 tr('The video file {} does not contain valid video data and cannot be processed.', self.cfg.name))
 
         # 无音频流，不存在原语言字幕，报错。存在则是无声视频流
         if audio_stream_len < 1 and not tools.vail_file(self.cfg.source_sub):
-            raise RuntimeError(
+            raise VideoTransError(
                 tr('There is no valid audio in the file {} and it cannot be processed. Please play it manually to confirm that there is sound.',
                    self.cfg.name))
 
@@ -280,7 +280,7 @@ class TransCreate(BaseTask):
             return
 
         if not tools.vail_file(self.cfg.source_wav):
-            raise RuntimeError(tr("Failed to separate audio, please check the log or retry"))
+            raise SpeechToTextError(tr("Failed to separate audio, please check the log or retry"))
 
         # 若已执行背景声人声分离，则不再进行降噪
         if self.cfg.remove_noise:
@@ -310,7 +310,6 @@ class TransCreate(BaseTask):
                     logger.exception(f'降噪失败，跳过 {e}', exc_info=True)
 
         self.signal(text=tr("Speech Recognition to Word Processing"))
-        logger.debug(f'[trans_create]:run_recogn() {time.time()=}')
         raw_subtitles = run_recogn(
             recogn_type=self.cfg.recogn_type,
             uuid=self.uuid,
@@ -321,11 +320,11 @@ class TransCreate(BaseTask):
             is_cuda=self.cfg.is_cuda,
             subtitle_type=self.cfg.subtitle_type,
             max_speakers=self.max_speakers,
-            llm_post=self.cfg.rephrase == 1
+            llm_post=self.cfg.rephrase==1
         )
         if self._exit(): return
         if not raw_subtitles:
-            raise RuntimeError(self.cfg.basename + tr('recogn result is empty'))
+            raise SpeechToTextError(self.cfg.basename + tr('recogn result is empty'))
 
         self._save_srt_target(raw_subtitles, self.cfg.source_sub)
         self.source_srt_list = raw_subtitles
@@ -362,7 +361,7 @@ class TransCreate(BaseTask):
             self.signal(text=tr('endtiquzimu'))
             return
 
-        if self.cfg.rephrase == 1:
+        if self.cfg.rephrase==1:
             # LLM重新断句
             try:
                 from videotrans.translator._openaicompat import OpenAICampat
@@ -1194,11 +1193,15 @@ class TransCreate(BaseTask):
 
         shutil.copy2(target_m4a, self.cfg.target_wav_output)
         self.precent = min(max(95, self.precent), 98)
-
+        # 输出视频格式
+        _video_output_ext = settings.get('out_video_ext', '.mp4')
         # 处理所需字幕
         subtitles_file, subtitle_langcode = None, None
         if self.cfg.subtitle_type > 0:
             subtitles_file, subtitle_langcode = self._process_subtitles()
+
+        if _video_output_ext!='.mp4':
+            subtitle_langcode=translator.get_mkv_code(subtitle_langcode)
 
         # 字幕嵌入时进入视频目录下
         os.chdir(self.cfg.cache_folder)
@@ -1216,8 +1219,9 @@ class TransCreate(BaseTask):
             except Exception as e:
                 logger.exception(f'定格视频最后一帧时失败，跳过 {e}', exc_info=True)
 
+
         # 将生成的视频先导出到临时目录，防止包含各种奇怪符号的targetdir_mp4导致ffmpeg失败
-        tmp_target_mp4 = self.cfg.cache_folder + f"/laste_target.mp4"
+        tmp_target_mp4 = self.cfg.cache_folder + f"/laste_target{_video_output_ext}"
         self.signal(text=tr("Video + Subtitles + Dubbing in merge"))
 
         try:
@@ -1275,7 +1279,7 @@ class TransCreate(BaseTask):
                 if self.cfg.subtitle_type in [2, 4]:
                     cmd1.extend([
                         "-c:s",
-                        "mov_text",
+                        "mov_text" if _video_output_ext == '.mp4' else 'srt',
                         "-metadata:s:s:0",
                         f"language={subtitle_langcode}"
                     ])
@@ -1346,24 +1350,24 @@ class TransCreate(BaseTask):
                 # 复制ass硬字幕到目标文件夹下
                 shutil.copy2(f'{self.cfg.cache_folder}/{subtitles_file}', f'{self.cfg.target_dir}/{subtitles_file}')
         except Exception as e:
-            raise VideoTransError(tr('Error in embedding the final step of the subtitle dubbing')) from e
-
-
-        os.chdir(ROOT_DIR)
+            raise VideoTransError(tr('Error in embedding the final step of the subtitle dubbing')+str(e)) from e
+        finally:
+            os.chdir(ROOT_DIR)
         # 复制到目标文件夹
         if Path(tmp_target_mp4).exists():
             try:
-                shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4)
+                shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4[:-4]+_video_output_ext)
             except Exception as e:
-                # 如果移动失败，则尝试直接复制为 0.mp4
+                # 如果移动失败，则尝试直接复制为 0.mp4 or 0.mkv
                 try:
-                    shutil.copy2(tmp_target_mp4, f'{self.cfg.target_dir}/0.mp4')
+                    shutil.copy2(tmp_target_mp4, f'{self.cfg.target_dir}/0{_video_output_ext}')
                 except Exception as e:
-                    logger.exception(f'再次复制到目标文件夹内 0.mp4也失败 {e}', exc_info=True)
+                    logger.exception(f'再次复制到目标文件夹内 0{_video_output_ext}也失败 {e}', exc_info=True)
                     raise VideoTransError(tr('Translation successful but transfer failed.', tmp_target_mp4)) from e
 
         # 有可能输出原始音频到目标文件夹的程序仍在执行，但不影响
         while output_source_output is not True:
+            if app_cfg.exit_soft:return
             time.sleep(1)
         return
 

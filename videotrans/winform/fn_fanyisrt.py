@@ -161,7 +161,7 @@ def openwin():
         th.uito.connect(feed)
         th.start()
         if len(video_list) == 1:
-            winobj.fanyi_sourcetext.setPlainText(Path(video_list[0]['name']).read_text(encoding='utf-8'))
+            winobj.fanyi_sourcetext.setPlainText(Path(video_list[0]['name']).read_text(encoding='utf-8-sig'))
             winobj.exportsrt.setVisible(True)
             winobj.fanyi_targettext.setReadOnly(False)
         else:

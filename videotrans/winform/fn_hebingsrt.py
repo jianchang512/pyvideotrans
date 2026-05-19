@@ -57,7 +57,7 @@ def openwin():
             winobj.startbtn.setDisabled(False)
             winobj.resultlabel.setText(d['text'])
             winobj.resultbtn.setDisabled(False)
-            winobj.resultinput.setPlainText(Path(winobj.resultlabel.text()).read_text(encoding='utf-8'))
+            winobj.resultinput.setPlainText(Path(winobj.resultlabel.text()).read_text(encoding='utf-8-sig'))
 
     def get_file(inputname):
         fname, _ = QFileDialog.getOpenFileName(winobj, "Select subtitles srt", params.get('last_opendir',''),

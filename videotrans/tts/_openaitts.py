@@ -17,6 +17,8 @@ class OPENAITTS(BaseTTS):
         super().__post_init__()
         self.stop_next_all=False
         self.api_url = params.get('openaitts_api','')
+        if len(self.api_url)<10:
+            raise StopTask(f'API URL is error: {self.api_url}')
         self.speed=self.get_speed()
 
 

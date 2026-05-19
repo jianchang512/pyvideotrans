@@ -23,6 +23,8 @@ class GradioBase(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         api_url = params.get(f'{self.ainame}_url', '').strip().rstrip('/').lower()
+        if len(api_url)<4:
+            raise StopTask(f'API URL is error: {api_url}')
         self.api_url = f'http://{api_url}' if not api_url.startswith('http') else api_url
         self.roledict = tools.get_f5tts_role()
 

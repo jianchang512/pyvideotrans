@@ -4,7 +4,7 @@ from typing import List, Union
 from urllib.parse import quote
 import requests
 from tenacity import retry, retry_if_not_exception_type, wait_fixed, stop_after_attempt, before_log, after_log
-from videotrans.configure.excepts import TranslateSrtError, NO_RETRY_EXCEPT
+from videotrans.configure.excepts import TranslateSrtError, NO_RETRY_EXCEPT, StopTask
 from videotrans.configure.config import params, logger, settings
 from videotrans.translator._base import BaseTrans
 
@@ -16,6 +16,8 @@ class TransAPI(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         url = params.get('trans_api_url','').strip().rstrip('/').lower()
+        if len(url)<4:
+            raise StopTask(f'API URL is error: {url}')
         if not url.startswith('http'):
             url = f"http://{url}"
         self.api_url = url + ('&' if '?' in url else '/?')

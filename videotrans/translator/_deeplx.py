@@ -6,7 +6,7 @@ from typing import List, Union
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 from videotrans.configure.config import params,settings,logger
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 
@@ -17,6 +17,8 @@ class DeepLX(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         url = params.get('deeplx_address','').strip().rstrip('/')
+        if len(url)<4:
+            raise StopTask(f'API URL is error: {url}')
         key = params.get('deeplx_key','').strip()
 
         if "/translate" not in url:

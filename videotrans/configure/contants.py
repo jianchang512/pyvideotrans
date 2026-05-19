@@ -3,6 +3,7 @@ LISTEN_TEXT={
         "zh": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
         "zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
         "zh-tw": "你好啊，我親愛的朋友，希望你的每一天都是美好愉快的！",
+        "ro": "Bună, draga mea prietenă, sper ca fiecare zi a ta să fie minunată și plină de bucurie!",
         "km": "សួស្តីមិត្តជាទីស្រឡាញ់របស់ខ្ញុំ ខ្ញុំសង្ឃឹមថារាល់ថ្ងៃរបស់អ្នកគឺអស្ចារ្យ និងរីករាយ។!",
         "nb": "Hallo, min kjære venn, jeg håper hver dag din er fantastisk og gledelig.",
         "en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",

@@ -250,7 +250,7 @@ class AppSettings:
             # 如果不在默认值里且不是特殊key，跳过
             if key not in default and py_key not in default:
                 continue
-
+            # 防止填写格式错误，先格式化为字符串，再简单判断类型
             value = str(val).strip()
             if re.match(r'^\d+$', value):
                 merged_settings[py_key] = int(value)
@@ -311,6 +311,7 @@ class AppSettings:
             "crf": 23,
             "edgetts_max_concurrent_tasks": 10,
             "edgetts_retry_nums": 3,
+            "del_end_punc":True,#删除每条字幕末尾的标点
             "force_lib": False,
             "hw_decode":False,# ffmpeg尝试硬件解码视频
             "preset": "medium",
@@ -318,6 +319,7 @@ class AppSettings:
             "aisendsrt": True,
             "dont_notify": False,
             "video_codec": 264,
+            "out_video_ext":".mp4",# [.mp4,.mkv]
             "noise_separate_nums": 4,
             "aitrans_temperature": 0.2,
             "aitrans_context": False,

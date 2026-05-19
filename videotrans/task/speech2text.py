@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List
 
 from videotrans.configure.config import ROOT_DIR, tr, settings, params, TEMP_DIR, logger, HOME_DIR
+from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
@@ -31,7 +32,7 @@ class SpeechToText(BaseTask):
     # 存放原始语言字幕
     source_srt_list: List = field(default_factory=list)
     # 插入说话人到字幕开头
-    spk_insert:bool=False
+    spk_insert: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -58,8 +59,8 @@ class SpeechToText(BaseTask):
         tools.conver_to_16k(self.cfg.name, self.cfg.shibie_audio)
 
     def recogn(self):
-        if self._exit(): return
         while 1:
+            if self._exit(): return
             # 尚未生成
             if Path(self.cfg.shibie_audio).exists():
                 break
@@ -134,7 +135,7 @@ class SpeechToText(BaseTask):
             llm_post=self.cfg.rephrase == 1
         )
         if not raw_subtitles or len(raw_subtitles) < 1:
-            raise RuntimeError(self.cfg.basename + tr('recogn result is empty'))
+            raise SpeechToTextError(self.cfg.basename + tr('recogn result is empty'))
         self.source_srt_list = raw_subtitles
         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
         if self._exit() or self.cfg.detect_language == 'auto': return
@@ -148,7 +149,9 @@ class SpeechToText(BaseTask):
             kw = {"text_dict": text_dict, "is_cuda": self.cfg.is_cuda}
             try:
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
-                if _rs:
+                if not _rs:
+                    logger.error('标点恢复出错')
+                else:
                     for it in self.source_srt_list:
                         it['text'] = _rs.get(f'{it["line"]}', it['text'])
                         if self.cfg.detect_language[:2] == 'en':
@@ -192,14 +195,14 @@ class SpeechToText(BaseTask):
         if speaker_type in ['pyannote', 'reverb'] and not hf_token:
             logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
             return
-        hf_endpoit="https://huggingface.co"
+        hf_endpoit = "https://huggingface.co"
         if speaker_type in ['pyannote', 'reverb']:
             try:
                 import requests
                 requests.head('https://huggingface.co', timeout=5)
             except Exception:
                 logger.exception(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败', exc_info=True)
-                hf_endpoit="https://hf-mirror.com"
+                hf_endpoit = "https://hf-mirror.com"
 
         self.precent += 3
         title = tr(f'Begin separating the speakers') + f':{speaker_type}'

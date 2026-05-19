@@ -133,7 +133,7 @@ def get_video_codec(compat=None) -> str:
     _codec_cache = app_cfg.codec_cache  # 使用 config 中的缓存
     try:
         if not _codec_cache and Path(f'{ROOT_DIR}/videotrans/codec.json').exists():
-            _codec_cache = json.loads(Path(f'{ROOT_DIR}/videotrans/codec.json').read_text(encoding='utf-8'))
+            _codec_cache = json.loads(Path(f'{ROOT_DIR}/videotrans/codec.json').read_text(encoding='utf-8-sig'))
     except Exception as e:
         logger.debug(f'parse codec.json error:{e}')
 
@@ -327,7 +327,6 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "color": "yuv420p"
     }
     try:
-        logger.debug(f'The file information: {out}')
         # 以第一个流中duration为准，但可能某些格式，例如mkv第一个流中无duration字段或始终为0
         _duration = out['streams'][0].get('duration', 'DURATION')
         # mp4 是  \d.\d 秒形式
@@ -412,9 +411,13 @@ def _get_ms_from_media(file):
     except Exception as e:
         # mkv 等其他格式可能无法从流中读取 duration
         logger.exception(f'无法从视频或音频流中获取时长:{file=},{e}', exc_info=True)
+
     if ms == 0:
-        ms = int(float(runffprobe(
-            ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', file])))
+        try:
+            ms = int(float(runffprobe(
+            ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', file]))*1000)
+        except Exception as e:
+            logger.debug(f'再次从 format=duration 中读取失败 {e}')
     return ms
 
 

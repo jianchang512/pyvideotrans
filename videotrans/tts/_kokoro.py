@@ -4,7 +4,7 @@ from typing import Union, Dict, List
 
 import requests
 from videotrans.configure.config import params, settings, logger
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
@@ -15,6 +15,8 @@ class KokoroTTS(BaseTTS):
         super().__post_init__()
 
         api_url = 'http://' + params.get('kokoro_api','').strip().rstrip('/').lower().replace('http://', '')
+        if len(api_url)<10:
+            raise StopTask(f'API URL is error: {api_url}')
 
         if not api_url.endswith('/v1/audio/speech'):
             api_url += '/v1/audio/speech'

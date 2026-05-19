@@ -19,6 +19,8 @@ class TTSAPI(BaseTTS):
         self.speed=self.get_speed()
 
         api_url = params.get('ttsapi_url','').strip().rstrip('/').lower()
+        if len(api_url)<4:
+            raise StopTask(f'API URL is error: {api_url}')
         if not api_url.startswith('http'):
             self.api_url = 'http://' + api_url
         else:

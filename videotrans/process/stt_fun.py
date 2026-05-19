@@ -56,7 +56,7 @@ def openai_whisper(
         msg = f"Loaded {model_name}"
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
-        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else speech_timestamps[-1][1] / 1000.0
+        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else (speech_timestamps[-1][1] / 1000.0 if speech_timestamps else 0)
         speech_timestamps_flat = []
         if detect_language == 'fil':
             detect_language = 'tl'
@@ -200,7 +200,7 @@ def faster_whisper(
     try:
         if speech_timestamps and isinstance(speech_timestamps, str):
             speech_timestamps = json.loads(Path(speech_timestamps).read_text(encoding='utf-8'))
-        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else speech_timestamps[-1][1] / 1000.0
+        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else (speech_timestamps[-1][1] / 1000.0 if speech_timestamps else 0)
 
         try:
             # 1. 加载基础模型
@@ -463,7 +463,7 @@ def paraformer(
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
 
     raw_subtitles = []
-    device = f'cuda:{device_index}' if is_cuda else gpus.mps_or_cpu()
+    device = f'cuda:{device_index}' if is_cuda else 'cpu'
     try:
         model = pipeline(
             task=Tasks.auto_speech_recognition,
@@ -581,7 +581,7 @@ def funasr_mlt(
     msg = f'Load {model_name}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
 
-    device = f"cuda:{device_index}" if is_cuda else gpus.mps_or_cpu()
+    device = f"cuda:{device_index}" if is_cuda else 'cpu'
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
             cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in

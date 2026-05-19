@@ -89,31 +89,25 @@ class BaseTask(BaseCon):
         self.signal(text=Path(file).read_text(encoding='utf-8', errors="ignore"), type='replace_subtitle')
         return True
 
+    # 如果启用了 LLM重新断句，则跳过该步骤，LLM断句后时间轴发生变更，无法和原始字幕对齐
     def check_target_sub(self, source_srt_list: List[SrtItem], target_srt_list: List[SrtItem]) -> List[SrtItem]:
-        if len(source_srt_list) == 1 or len(target_srt_list) == 1:
-            target_srt_list[0]['line'] = 1
-            return target_srt_list[:1]
         source_len = len(source_srt_list)
         target_len = len(target_srt_list)
-
         if source_len == target_len:
-            for i, it in enumerate(source_srt_list):
-                tmp = copy.deepcopy(it)
-                tmp['text'] = target_srt_list[i]['text']
-                target_srt_list[i] = tmp
+            logger.debug(f'原始语言字幕和目标语言字幕行数一致，均为 {source_len=}')
             return target_srt_list
 
-        if target_len > source_len:
-            logger.debug(f'翻译结果行数大于原始字幕行，截取0-{source_len}')
-            return target_srt_list[:source_len]
+        logger.warning(f'翻译结果行数{target_len}，原始字幕行数{source_len}，不一致,根据原始字幕时间轴获取对应目标字幕文本')
+        # 根据原始字幕的时间轴，到目标字幕内寻找同样时间轴的字幕文本，更准确
+        _time2srt={}
+        for it in target_srt_list:
+            _time2srt[it['time']]=it['text']
 
-        logger.debug(f'翻译结果行数少于原始字幕行，追加')
-        for i, it in enumerate(source_srt_list):
-            if i >= target_len:
-                tmp = copy.deepcopy(it)
-                tmp['text'] = ' '
-                target_srt_list.append(tmp)
-        return target_srt_list
+        logger.debug(f'翻译结果行数{target_len} > 原始字幕行{source_len}，根据原始字幕的时间轴，到目标字幕内寻找同样时间轴的字幕文本')
+        _source=copy.deepcopy(source_srt_list)
+        for it in _source:
+            it['text']=_time2srt.get(it['time'],'')
+            return _source
 
     # 手动调用设为结束，成功完成或出错时
     def set_end(self, succeed=False):

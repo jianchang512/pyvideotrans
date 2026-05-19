@@ -1,9 +1,10 @@
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Type
 from pathlib import Path
 from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR, settings
 from videotrans.recognition._base import BaseRecogn
-from videotrans import winform, ChannelProvider, get_instance
+from videotrans import winform, ChannelProvider, get_class
 from videotrans.configure import contants
+from videotrans.task.taskcfg import SrtItem
 
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
@@ -98,7 +99,7 @@ except Exception as e:
     logger.waring(f'添加自定义 Huggingface_ASR 模型失败:{e}')
 
 
-def get_model_by_type(recogn_type:int)->List[str]:
+def get_model_by_type(recogn_type: int) -> List[str]:
     if recogn_type == Deepgram:
         return contants.DEEPGRAM_MODEL
     if recogn_type == Whisper_CPP:
@@ -143,9 +144,10 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
 # 正确返回True，失败返回False，并弹窗
 def is_input_api(recogn_type: int = None, return_str=False):
     _cls = _ID_NAME_DICT.get(recogn_type)
-    if not _cls:return True
+    if not _cls: return True
     if _cls.key_name and not params.get(_cls.key_name):
-        return "Please configure the API Key information of the Deepgram channel first." if return_str else winform.get_win(_cls.win).openwin()
+        return "Please configure the API Key information of the Deepgram channel first." if return_str else winform.get_win(
+            _cls.win).openwin()
     return True
 
 
@@ -163,7 +165,7 @@ def run(*,
         llm_post=False,
         recogn2pass=False  # 二次对配音文件识别，生成简短字幕
 
-        ) -> Union[List[Dict], None]:
+        ) -> Union[List[SrtItem], None]:
     if app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set): return
     kwargs = {
         "detect_language": detect_language,
@@ -178,10 +180,8 @@ def run(*,
         "llm_post": llm_post,
         "recogn2pass": recogn2pass
     }
-    logger.debug(f'[recognition]__init__:{kwargs=}')
-
-    _cls: Union[BaseRecogn, None] = get_instance(recogn_type, "recognition", _ID_NAME_DICT)
+    _cls: Union[Type[BaseRecogn], None] = get_class(recogn_type, "recognition", _ID_NAME_DICT)
     if not _cls:
         raise RuntimeError(f'No this Recognition Channel:{recogn_type=}')
 
-    return _cls(**kwargs).run()
+    return _cls(**kwargs).run()  # type:ignore
