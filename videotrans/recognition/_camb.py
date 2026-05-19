@@ -65,10 +65,11 @@ class CambRecogn(BaseRecogn):
             print(f'{self.audio_file=}')
 
             # Submit transcription job
-            create_result = client.transcription.create_transcription(
-                language=lang_id,
-                media_file=open(self.audio_file,'rb'),
-            )
+            with open(self.audio_file, 'rb') as f:
+                create_result = client.transcription.create_transcription(
+                    language=lang_id,
+                    media_file=f,
+                )
 
             task_id = create_result.task_id
 
