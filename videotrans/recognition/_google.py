@@ -37,10 +37,11 @@ class GoogleRecogn(BaseRecogn):
         normalized_sound = AudioSegment.from_wav(self.audio_file)  # -20.0
         nonslient_file = f'{tmp_path}/detected_voice.json'
         if tools.vail_file(nonslient_file):
-            nonsilent_data = json.load(open(nonslient_file, 'r'))
+            with open(nonslient_file, 'r', encoding='utf-8') as f:
+                nonsilent_data = json.load(f)
         else:
             nonsilent_data = self._shorten_voice_old(normalized_sound)
-            with open(nonslient_file, 'w') as f:
+            with open(nonslient_file, 'w', encoding='utf-8') as f:
                 f.write(json.dumps(nonsilent_data))
 
         total_length = len(nonsilent_data)

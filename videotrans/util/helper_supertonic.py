@@ -15,7 +15,7 @@ AVAILABLE_LANGS = ["en", "ko", "es", "pt", "fr"]
 
 class UnicodeProcessor:
     def __init__(self, unicode_indexer_path: str):
-        with open(unicode_indexer_path, "r") as f:
+        with open(unicode_indexer_path, "r", encoding="utf-8") as f:
             self.indexer = json.load(f)
 
     def _preprocess_text(self, text: str, lang: str) -> str:
@@ -308,7 +308,7 @@ def load_onnx_all(
 
 def load_cfgs(onnx_dir: str) -> dict:
     cfg_path = os.path.join(onnx_dir, "tts.json")
-    with open(cfg_path, "r") as f:
+    with open(cfg_path, "r", encoding="utf-8") as f:
         cfgs = json.load(f)
     return cfgs
 
@@ -340,7 +340,7 @@ def load_voice_style(voice_style_paths: list[str], verbose: bool = False) -> Sty
     bsz = len(voice_style_paths)
 
     # Read first file to get dimensions
-    with open(voice_style_paths[0], "r") as f:
+    with open(voice_style_paths[0], "r", encoding="utf-8") as f:
         first_style = json.load(f)
     ttl_dims = first_style["style_ttl"]["dims"]
     dp_dims = first_style["style_dp"]["dims"]
@@ -351,7 +351,7 @@ def load_voice_style(voice_style_paths: list[str], verbose: bool = False) -> Sty
 
     # Fill in the data
     for i, voice_style_path in enumerate(voice_style_paths):
-        with open(voice_style_path, "r") as f:
+        with open(voice_style_path, "r", encoding="utf-8") as f:
             voice_style = json.load(f)
 
         ttl_data = np.array(
