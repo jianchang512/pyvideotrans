@@ -351,7 +351,9 @@ class WinActionSub:
     # 保存目录
     def get_save_dir(self):
         dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),params.get('last_opendir',''))
-        dirname = Path(dirname).as_posix()
+        dirname = Path(dirname).as_posix() if dirname else ''
+        if not dirname:
+            return
         self.main.target_dir = dirname
         self.main.btn_save_dir.setToolTip(self.main.target_dir)
 
@@ -525,7 +527,7 @@ class WinActionSub:
         volume = int(self.main.volume_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = int(self.main.pitch_rate.value())
-        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
+        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
 
         voice_file = f"{voice_dir}/{time.time()}.wav"
         obj = {

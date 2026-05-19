@@ -405,7 +405,7 @@ def get_kokoro_rolelist():
 def get_gptsovits_role():
 
     if not params.get('gptsovits_role','').strip():
-        return None
+        return {}
     rolelist = {"No":"No","clone":"clone"}
     for it in params.get('gptsovits_role','').strip().split("\n"):
         tmp = it.strip().split('#')

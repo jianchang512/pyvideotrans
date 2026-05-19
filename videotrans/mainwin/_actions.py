@@ -752,7 +752,7 @@ class WinAction(WinActionSub):
             try:
                 if v['uuid'] in app_cfg.uuid_logs_queue:
                     del app_cfg.uuid_logs_queue[v['uuid']]
-            except ValueError:
+            except KeyError:
                 pass
 
     # 添加进度条
