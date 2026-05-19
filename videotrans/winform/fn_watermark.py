@@ -179,7 +179,7 @@ def openwin():
         try:
             tmp_w = winobj.linew.text().strip().split('x')
             w, h = int(tmp_w[0]), int(tmp_w[1])
-        except (ValueError,AttributeError):
+        except (ValueError,AttributeError,IndexError):
             pass
 
         task = CompThread(parent=winobj, png=png, x=max(x, 0), y=max(y, 0),
