@@ -525,7 +525,7 @@ class WinActionSub:
         volume = int(self.main.volume_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = int(self.main.pitch_rate.value())
-        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
+        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
 
         voice_file = f"{voice_dir}/{time.time()}.wav"
         obj = {
