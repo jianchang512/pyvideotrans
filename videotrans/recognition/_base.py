@@ -196,6 +196,9 @@ class BaseRecogn(BaseCon):
                 post_srt_raws.append(it)
             else:
                 # 小于1s
+                if not post_srt_raws:
+                    post_srt_raws.append(it)
+                    continue
                 prev_diff = it['start_time'] - post_srt_raws[-1]['end_time']
                 next_diff = srt_list[idx + 1]['start_time'] - it['end_time']
                 # 前面不是标点结束，而当前是标点结束
@@ -258,7 +261,7 @@ class BaseRecogn(BaseCon):
                 continue
 
             # 上个字幕末尾有标点
-            if post_srt_raws[i - 1]['text'][-1] in self.flag:
+            if not post_srt_raws[i - 1]['text'] or post_srt_raws[i - 1]['text'][-1] in self.flag:
                 continue
             if not self.is_cjk and len(t[0].strip().split(' ')) > 3:
                 continue
