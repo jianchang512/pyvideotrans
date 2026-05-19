@@ -663,7 +663,8 @@ def paraformer(
 
     raw_subtitles = []
     model = None
-    device = f'cuda:{device_index}' if is_cuda else gpus.mps_or_cpu()
+    # ModelScope pipeline only accepts cpu/cuda/gpu, not mps
+    device = f'cuda:{device_index}' if is_cuda else 'cpu'
     try:
         model = pipeline(
             task=Tasks.auto_speech_recognition,
@@ -897,7 +898,8 @@ def funasr_mlt(
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
 
     model = None
-    device = f"cuda:{device_index}" if is_cuda else gpus.mps_or_cpu()
+    # ModelScope pipeline only accepts cpu/cuda/gpu, not mps
+    device = f"cuda:{device_index}" if is_cuda else 'cpu'
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
             cut_audio_list = json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))
