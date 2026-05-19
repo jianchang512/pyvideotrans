@@ -29,7 +29,7 @@ def openwin():
                     raw_path = Path(v)
                     # 格式不变直接复制
                     if raw_path.suffix.lower() == self.target_format:
-                        shutil.copy2(self.subtitlefiles, RESULT_DIR + f'/{raw_path.name}')
+                        shutil.copy2(v, RESULT_DIR + f'/{raw_path.name}')
                         continue
                     if self.target_format == 'txt':
                         if raw_path.name.lower().endswith('.srt'):
