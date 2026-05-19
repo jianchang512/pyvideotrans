@@ -34,7 +34,7 @@ def openwin():
                     raw_path = Path(v)
                     # 格式不变直接复制
                     if raw_path.suffix.lower() == self.target_format:
-                        shutil.copy2(self.videourls, RESULT_DIR + f'/{raw_path.name}')
+                        shutil.copy2(v, RESULT_DIR + f'/{raw_path.name}')
                         continue
                     tools.runffmpeg([
                         "-y",
