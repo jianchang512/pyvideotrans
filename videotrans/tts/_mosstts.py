@@ -81,7 +81,7 @@ class MossTTS(BaseTTS):
                     )
             else:
                 local_ref_wav = self.role_map.get(role,{}).get('ref_audio')
-                print(f'{local_ref_wav=}')
+                logger.debug(f'MossTTS {local_ref_wav=}')
                 if local_ref_wav and Path(f'{ROOT_DIR}/f5-tts/{local_ref_wav}').is_file():
                     with open(f'{ROOT_DIR}/f5-tts/{local_ref_wav}', 'rb') as file_obj:
                         response = requests.post(
