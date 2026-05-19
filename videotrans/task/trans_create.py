@@ -1543,8 +1543,9 @@ class TransCreate(BaseTask):
         except Exception as e:
             msg = tr('Error in embedding the final step of the subtitle dubbing')
             raise RuntimeError(msg)
+        finally:
+            os.chdir(ROOT_DIR)
 
-        os.chdir(ROOT_DIR)
         if Path(tmp_target_mp4).exists():
             try:
                 shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4)
@@ -1555,7 +1556,7 @@ class TransCreate(BaseTask):
         time.sleep(1)
         # 有可能输出原始音频到目标文件夹的程序仍在执行，但不影响
         while output_source_output is not True:
-            print(f'{output_source_output=}')
+            if self._exit(): return
             time.sleep(1)
         return True
 
