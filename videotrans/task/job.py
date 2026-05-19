@@ -139,16 +139,24 @@ class WorkerDiariz(QThread):
                 trk.diariz()
             except Exception as e:
                 logger.exception(e, exc_info=True)
-            finally:
-                # 如果需要识翻译,则插入翻译队列，否则就行判断配音队列，都不吻合则插入最终队列
-                if trk.shoud_trans:
-                    app_cfg.trans_queue.put_nowait(trk)
-                elif trk.shoud_dubbing:
-                    app_cfg.dubb_queue.put_nowait(trk)
-                elif trk.shoud_hebing:
-                    app_cfg.assemb_queue.put_nowait(trk)
-                else:
-                    app_cfg.taskdone_queue.put_nowait(trk)
+                except_msg = get_msg_from_except(e)
+                detail_back = (traceback.format_exc()).strip()
+                if not except_msg:
+                    except_msg = detail_back.split("\n")[-1]
+                msg = f'{tr("yuchulichucuo")} {except_msg}\n{detail_back}\n{trk.cfg}'
+                set_process(text=msg, type='error', uuid=trk.uuid)
+                tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+                app_cfg.taskdone_queue.put_nowait(trk)
+                continue
+            # 如果需要识翻译,则插入翻译队列，否则就行判断配音队列，都不吻合则插入最终队列
+            if trk.shoud_trans:
+                app_cfg.trans_queue.put_nowait(trk)
+            elif trk.shoud_dubbing:
+                app_cfg.dubb_queue.put_nowait(trk)
+            elif trk.shoud_hebing:
+                app_cfg.assemb_queue.put_nowait(trk)
+            else:
+                app_cfg.taskdone_queue.put_nowait(trk)
 
 
 
