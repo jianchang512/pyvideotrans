@@ -336,9 +336,10 @@ def openwin():
         elif type == tts.CAMB_TTS:
             role_list = tools.get_camb_role()
         elif type == tts.CLONE_VOICE_TTS:
-            role_list.extend([it for it in params["clone_voicelist"] if it != 'clone'])
+            role_list.extend([it for it in params.get("clone_voicelist", []) if it != 'clone'])
         elif type == tts.TTS_API:
-            role_list=params['ttsapi_voice_role'].split(",")
+            ttsapi_role = params.get('ttsapi_voice_role', '')
+            role_list = ttsapi_role.split(",") if ttsapi_role else []
         elif type == tts.GPTSOVITS_TTS:
             role_list = list(tools.get_gptsovits_role().keys())
         elif type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,
@@ -441,7 +442,13 @@ def openwin():
     def check_cuda(state):
         # 选中如果无效，则取消
         if state:
-            import torch
+            try:
+                import torch
+            except ImportError:
+                tools.show_error(tr('nocuda'))
+                winobj.is_cuda.setChecked(False)
+                winobj.is_cuda.setDisabled(True)
+                return False
             if not torch.cuda.is_available():
                 tools.show_error(tr('nocuda'))
                 winobj.is_cuda.setChecked(False)
