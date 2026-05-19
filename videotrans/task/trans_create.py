@@ -1121,6 +1121,8 @@ class TransCreate(BaseTask):
             vtime = tools.get_audio_time(self.cfg.target_wav)
             # 获取背景音频长度
             atime = tools.get_audio_time(self.cfg.background_music)
+            if atime < 1:
+                return
             bgm_file = self.cfg.cache_folder + f'/bgm_file.wav'
             self.convert_to_wav(self.cfg.background_music, bgm_file)
             self.cfg.background_music = bgm_file
@@ -1165,6 +1167,8 @@ class TransCreate(BaseTask):
             self._signal(text=tr("Re-embedded background sounds"))
             vtime = tools.get_audio_time(self.cfg.target_wav)
             atime = tools.get_audio_time(self.cfg.instrument)
+            if atime < 1:
+                return
             beishu = math.ceil(vtime / atime)
 
             instrument_file = self.cfg.instrument
