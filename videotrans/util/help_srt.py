@@ -28,8 +28,8 @@ def process_text_to_srt_str(input_text: str):
     text_str_list = []
     for line in text_lines:
         if len(line) > 50:
-            # 按标点符号分割为多个字符串
-            split_lines = re.split(r'[,.，。]', line)
+            # 按标点符号分割为多个字符串，保留标点
+            split_lines = re.split(r'(?<=[,.，。])', line)
             text_str_list.extend([l.strip() for l in split_lines if l.strip()])
         else:
             text_str_list.append(line)
