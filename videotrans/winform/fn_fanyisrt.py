@@ -136,7 +136,6 @@ def openwin():
         if winobj.save_source.isChecked():
             SOURCE_DIR = Path(video_list[0]['name']).parent.as_posix()
         for it in video_list:
-            uuid_list.append(it['uuid'])
             cfg={
                 "translate_type": translate_type,
                 "target_dir": SOURCE_DIR if SOURCE_DIR else RESULT_DIR,
