@@ -210,31 +210,32 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
 
             # 决定写入目标：如果是需要解压的，写入临时文件；否则直接写入目标文件
             dest_file_obj = tempfile.TemporaryFile()  # 内存/临时磁盘，自动删除
+            try:
+                if total_length is None:
+                    dest_file_obj.write(response.content)
+                else:
+                    total_length = max(int(total_length), 1)
+                    downloaded = 0
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            dest_file_obj.write(chunk)
+                            downloaded += len(chunk)
 
-            if total_length is None:
-                dest_file_obj.write(response.content)
-            else:
-                total_length = max(int(total_length), 1)
-                downloaded = 0
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        dest_file_obj.write(chunk)
-                        downloaded += len(chunk)
+                            # 计算进度
+                            # 单文件进度 0-100
+                            file_percent = min(99.0, downloaded * 100 / total_length)
+                            if callback:
+                                callback(f'{tr("Download Models")} {filename} {file_percent:.2f}%')
 
-                        # 计算进度
-                        # 单文件进度 0-100
-                        file_percent = min(99.0, downloaded * 100 / total_length)
-                        if callback:
-                            callback(f'{tr("Download Models")} {filename} {file_percent:.2f}%')
-
-            if callback:
-                callback(f'Extracting zip...')
-            dest_file_obj.seek(0)  # 回到文件头
-            with zipfile.ZipFile(dest_file_obj) as zf:
-                zf.extractall(path=local_dir)
-            if callback:
-                callback('Downloaded end')
-            dest_file_obj.close()
+                if callback:
+                    callback(f'Extracting zip...')
+                dest_file_obj.seek(0)  # 回到文件头
+                with zipfile.ZipFile(dest_file_obj) as zf:
+                    zf.extractall(path=local_dir)
+                if callback:
+                    callback('Downloaded end')
+            finally:
+                dest_file_obj.close()
     except Exception as e:
         msg = tr('model is missing. Please download it', local_dir)
         if callback:
@@ -255,8 +256,9 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
             super().update(size)
             try:
                 _str = str(self.progress).split('%')[0] + '%'
-                callback(_str)
-            except:
+                if callback:
+                    callback(_str)
+            except Exception:
                 pass
             '''
             if callback:
