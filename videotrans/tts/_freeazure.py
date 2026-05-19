@@ -84,7 +84,7 @@ class FreeAzureTTS(BaseTTS):
                wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
                after=after_log(logger, logging.INFO))
     def get_voice(self,data_item):
-        global endpoint, expired_at, client_id
+        global endpoint, expired_at
 
         current_time = int(time.time())
         if not expired_at or current_time > expired_at - 60:
@@ -93,7 +93,6 @@ class FreeAzureTTS(BaseTTS):
             decoded_jwt = json.loads(base64.b64decode(jwt + '==').decode('utf-8'))
             expired_at = decoded_jwt['exp']
             seconds_left = expired_at - current_time
-            client_id = str(uuid.uuid4())
         else:
             seconds_left = expired_at - current_time
 
@@ -102,8 +101,6 @@ class FreeAzureTTS(BaseTTS):
         pitch = self.pitch
         output_format = DEFAULT_OUTPUT_FORMAT
         style = DEFAULT_STYLE
-
-        endpoint = self.get_endpoint()
 
         url = f"https://{endpoint['r']}.tts.speech.microsoft.com/cognitiveservices/v1"
         headers = {
