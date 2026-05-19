@@ -382,12 +382,15 @@ class Worker(QThread):
         self.mode=mode
 
     def run(self):
-        video_info=tools.get_video_info(self.parent.video_path)
-        if video_info['streams_audio']==0 and self.mode == 2:
-            self.uito.emit(f"Error:{tr('errorNoAudioTrackForAudioOnly')}")
-            return
-        for line_num in self.parent.selected_lines:
-            sub = self.parent.subtitles[line_num - 1]
-            task = ClipTask(self.parent.video_path, sub, line_num, self.parent.subtitle_name, self.parent.signals, self.mode,video_info)
-            self.parent.thread_pool.start(task)
+        try:
+            video_info=tools.get_video_info(self.parent.video_path)
+            if video_info['streams_audio']==0 and self.mode == 2:
+                self.uito.emit(f"Error:{tr('errorNoAudioTrackForAudioOnly')}")
+                return
+            for line_num in self.parent.selected_lines:
+                sub = self.parent.subtitles[line_num - 1]
+                task = ClipTask(self.parent.video_path, sub, line_num, self.parent.subtitle_name, self.parent.signals, self.mode,video_info)
+                self.parent.thread_pool.start(task)
+        except Exception as e:
+            self.uito.emit(f"Error:{e}")
 

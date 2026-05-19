@@ -199,6 +199,8 @@ class Worker(QThread):
         devices = sd.query_devices()
         if len(devices) == 0:
             return
+        if self.device_idx is None or self.device_idx >= len(devices):
+            return
 
         print(f'使用麦克风: {devices[self.device_idx]["name"]}')
         PUNCT_MODEL = OnnxModel()
@@ -212,47 +214,46 @@ class Worker(QThread):
             dtype="float32",
             samplerate=self.sample_rate
         )
-        mic_stream.start()
         wav_path=HOME_DIR+"/realtime_stt"
         Path(wav_path).mkdir(parents=True,exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H-%M-%S")
-        txt_file = open(f"{wav_path}/{timestamp}.txt", 'a')
-        wav_file = wave.open(f"{wav_path}/{timestamp}.wav", 'wb')
-        wav_file.setnchannels(1)
-        wav_file.setsampwidth(2)  # int16
-        wav_file.setframerate(self.sample_rate)
+        try:
+            mic_stream.start()
+            with open(f"{wav_path}/{timestamp}.txt", 'a') as txt_file, \
+                 wave.open(f"{wav_path}/{timestamp}.wav", 'wb') as wav_file:
+                wav_file.setnchannels(1)
+                wav_file.setsampwidth(2)  # int16
+                wav_file.setframerate(self.sample_rate)
 
-        self.ready.emit()  # Emit ready signal after initialization
+                self.ready.emit()  # Emit ready signal after initialization
 
-        self.running = True
-        last_result = ""
-        while self.running:
-            samples, _ = mic_stream.read(self.samples_per_read)
-            samples_int16 = (samples * 32767).astype(np.int16)
-            wav_file.writeframes(samples_int16.tobytes())
+                self.running = True
+                last_result = ""
+                while self.running:
+                    samples, _ = mic_stream.read(self.samples_per_read)
+                    samples_int16 = (samples * 32767).astype(np.int16)
+                    wav_file.writeframes(samples_int16.tobytes())
 
-            samples = samples.reshape(-1)
-            stream.accept_waveform(self.sample_rate, samples)
-            while recognizer.is_ready(stream):
-                recognizer.decode_stream(stream)
+                    samples = samples.reshape(-1)
+                    stream.accept_waveform(self.sample_rate, samples)
+                    while recognizer.is_ready(stream):
+                        recognizer.decode_stream(stream)
 
-            is_endpoint = recognizer.is_endpoint(stream)
-            result = recognizer.get_result(stream)
+                    is_endpoint = recognizer.is_endpoint(stream)
+                    result = recognizer.get_result(stream)
 
-            if result != last_result:
-                self.new_word.emit(result)
-                last_result = result
+                    if result != last_result:
+                        self.new_word.emit(result)
+                        last_result = result
 
-            if is_endpoint:
-                if result:
-                    punctuated = PUNCT_MODEL(result)
-                    txt_file.write(punctuated)
-                    self.new_segment.emit(punctuated)
-                recognizer.reset(stream)
-
-        mic_stream.stop()
-        wav_file.close()
-        txt_file.close()
+                    if is_endpoint:
+                        if result:
+                            punctuated = PUNCT_MODEL(result)
+                            txt_file.write(punctuated)
+                            self.new_segment.emit(punctuated)
+                        recognizer.reset(stream)
+        finally:
+            mic_stream.stop()
 
 class DownloadModel(QThread):
     down = Signal(str)
