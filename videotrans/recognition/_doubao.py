@@ -73,6 +73,8 @@ class DoubaoRecogn(BaseRecogn):
             if self._exit():
                 return
             delay += 1
+            if delay > 3600:
+                raise RuntimeError('Doubao ASR task timed out after 1 hour')
             # 获取进度
             response = requests.get(
                 '{base_url}/query'.format(base_url=base_url),
