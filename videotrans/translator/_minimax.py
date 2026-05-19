@@ -71,7 +71,7 @@ class MiniMax(BaseTrans):
             result = response.choices[0].message.content.strip()
         else:
             logger.warning(f'[minimax]请求失败:{response=}')
-            raise# RuntimeError(f"[MiniMax] {response.choices[0].finish_reason}:{response}")
+            raise RuntimeError(f"[MiniMax] {response.choices[0].finish_reason}:{response}")
 
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)
         if match:
