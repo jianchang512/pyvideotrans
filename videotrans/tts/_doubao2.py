@@ -115,7 +115,7 @@ class Doubao2TTS(BaseTTS):
                         "speech_rate":int(speed),
                         "loudness_rate":int(volume)
                     },
-                    "additions": "{\"explicit_language\":\"crosslingual\",\"enable_language_detector\":\"true\",\"disable_markdown_filter\":true}\"}"
+                    "additions": "{\"explicit_language\":\"crosslingual\",\"enable_language_detector\":\"true\",\"disable_markdown_filter\":true}"
                 }
             }
             
