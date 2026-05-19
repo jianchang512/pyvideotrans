@@ -239,11 +239,15 @@ class TransCreate(BaseTask):
                 except Exception as e:
                     logger.exception(f'分离人声背景声失败', exc_info=True)
                 finally:
-                    if not tools.vail_file(self.cfg.vocal) or not tools.vail_file(self.cfg.instrument):
+                    if not tools.vail_file(self.cfg.vocal) and not tools.vail_file(self.cfg.instrument):
                         # 分离失败
                         self.cfg.instrument = None
                         self.cfg.vocal = None
                         self.cfg.is_separate = False
+                        self.shoud_separate = False
+                    elif not tools.vail_file(self.cfg.instrument):
+                        # vocal 存在但 instrument 不存在，跳过背景音混合
+                        self.cfg.instrument = None
                         self.shoud_separate = False
             
         
