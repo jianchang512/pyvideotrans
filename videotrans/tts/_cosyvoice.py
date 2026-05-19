@@ -21,7 +21,7 @@ class CosyVoice(BaseTTS):
         super().__post_init__()
         self.api_url = params.get('cosyvoice_url','').strip().rstrip('/').lower()
         self._add_internal_host_noproxy(self.api_url)
-        self.rolelist = tools.get_f5tts_role()
+        self.rolelist = tools.get_f5tts_role() or {}
 
     def _exec(self):
         self._local_mul_thread()

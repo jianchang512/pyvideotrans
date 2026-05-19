@@ -59,7 +59,7 @@ class OmniVoice(BaseTTS):
             "ur": "Urdu",
             "yue": "Cantonese"
         }
-        self.rolelist = tools.get_f5tts_role()
+        self.rolelist = tools.get_f5tts_role() or {}
 
     def _exec(self):
         self._local_mul_thread()
