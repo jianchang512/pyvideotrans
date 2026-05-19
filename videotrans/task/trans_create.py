@@ -1543,8 +1543,8 @@ class TransCreate(BaseTask):
         except Exception as e:
             msg = tr('Error in embedding the final step of the subtitle dubbing')
             raise RuntimeError(msg)
-
-        os.chdir(ROOT_DIR)
+        finally:
+            os.chdir(ROOT_DIR)
         if Path(tmp_target_mp4).exists():
             try:
                 shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4)
