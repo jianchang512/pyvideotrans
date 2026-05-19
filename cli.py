@@ -277,9 +277,11 @@ def main():
         trk = TransCreate(cfg=TaskCfgVTT(**params))
         trk.prepare()
         trk.recogn()
+        trk.diariz()
         trk.trans()
         trk.dubbing()
         trk.align()
+        trk.recogn2pass()
         trk.assembling()
         trk.task_done()
 
