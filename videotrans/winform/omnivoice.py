@@ -22,7 +22,10 @@ def openwin():
         
         params.save()
 
-        _rolename = next(reversed(tools.get_f5tts_role().values()))
+        _f5roles = tools.get_f5tts_role()
+        if not _f5roles:
+            return tools.show_error(tr("Please set reference audio first"))
+        _rolename = next(reversed(_f5roles.values()))
         if not isinstance(_rolename, dict):
             return tools.show_error(tr("No reference audio {} exists",_rolename))
         rolename = _rolename.get('ref_audio')

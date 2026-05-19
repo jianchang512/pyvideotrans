@@ -340,7 +340,7 @@ def get_qwenttslocal_rolelist():
         "Ono_anna":"Ono_anna",
         "Sohee":"Sohee"
     }
-    return get_f5tts_role()|voices
+    return (get_f5tts_role() or {})|voices
     
 
 def get_supertonic_rolelist():
@@ -418,7 +418,7 @@ def get_gptsovits_role():
 def get_f5tts_role():
 
     if not params.get('f5tts_role','').strip():
-        return
+        return {}
     rolelist = {"No":"No","clone":"clone"}
     for it in params.get('f5tts_role','').strip().split("\n"):
         tmp = it.strip().split('#')
