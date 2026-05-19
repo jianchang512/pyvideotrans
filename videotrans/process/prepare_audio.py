@@ -222,6 +222,7 @@ def remove_noise(*, input_file, output_file,  is_cuda=False, logs_file=None, dev
         tmp_name = Path(output_file).parent.as_posix() + f'/noise-{time.time()}.wav'
         sf.write(tmp_name, denoised.samples, denoised.sample_rate)
         tools.runffmpeg(['-y', '-i', tmp_name, '-af', "volume=1.5", output_file])
+        Path(tmp_name).unlink(missing_ok=True)
         logger.info(f'降噪成功完成，耗时:{int(time.time() - _st)}s')
         return output_file, None
     except Exception as e:
@@ -660,7 +661,7 @@ def built_speakers(*, input_file, subtitles, num_speakers=-1, language="zh",  lo
         return sherpa_onnx.OfflineSpeakerDiarization(_cf)
 
     def _progress_callback(num_processed_chunk: int, num_total_chunks: int) -> int:
-        progress = num_processed_chunk / num_total_chunks * 100
+        progress = num_processed_chunk / num_total_chunks * 100 if num_total_chunks > 0 else 0
         return 0
 
     def _get_diariz():

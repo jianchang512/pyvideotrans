@@ -425,12 +425,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         tts_type = int(params.get('tts_type', 0))
         self.voice_role.clear()
         if tts_type == tts.CLONE_VOICE_TTS:
-            self.voice_role.addItems(params.get("clone_voicelist", ''))
+            self.voice_role.addItems(params.get("clone_voicelist", ["clone"]))
             run_in_threadpool(tools.get_clone_role)
         elif tts_type == tts.CHATTTS:
             self.voice_role.addItems(['No'] + list(settings.ChatTTS_voicelist))
         elif tts_type == tts.TTS_API:
-            self.voice_role.addItems(params.get('ttsapi_voice_role', '').strip().split(','))
+            rolelist = params.get('ttsapi_voice_role', '').strip()
+            self.voice_role.addItems(rolelist.split(',') if rolelist else [])
         elif tts_type == tts.GPTSOVITS_TTS:
             rolelist = tools.get_gptsovits_role()
             self.voice_role.addItems(list(rolelist.keys()) if rolelist else ['GPT-SoVITS'])
@@ -446,7 +447,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(rolelist)
         elif tts_type == tts.OPENAI_TTS:
             rolelist = params.get('openaitts_role', '')
-            self.voice_role.addItems(['No'] + rolelist.split(','))
+            self.voice_role.addItems(['No'] + (rolelist.split(',') if rolelist else []))
         elif tts_type == tts.XAI_TTS:
             self.voice_role.addItems(['No'] + contants.XAITTS_ROLES.split(','))
         elif tts_type == tts.XIAOMI_TTS:
@@ -459,7 +460,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.voice_role.addItems(rolelist)
         elif tts_type == tts.GEMINI_TTS:
             rolelist = params.get('gemini_ttsrole', '')
-            self.voice_role.addItems(['No'] + rolelist.split(','))
+            self.voice_role.addItems(['No'] + (rolelist.split(',') if rolelist else []))
         elif self.win_action.change_by_lang(tts_type):
             self.voice_role.clear()
 
