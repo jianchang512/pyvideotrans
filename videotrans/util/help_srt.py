@@ -209,7 +209,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True):
     def _readfile(file):
         content = ""
         try:
-            with open(file, 'r', encoding='utf-8') as f:
+            with open(file, 'r', encoding='utf-8-sig') as f:
                 content = f.read().strip()
         except UnicodeDecodeError as e:
             try:
