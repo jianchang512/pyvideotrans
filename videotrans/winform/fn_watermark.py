@@ -193,7 +193,7 @@ def openwin():
 
     from videotrans.component.set_form import WatermarkForm
     winobj = WatermarkForm()
-    app_cfg.child_forms['fn_watermak'] = winobj
+    app_cfg.child_forms['fn_watermark'] = winobj
     winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
