@@ -19,10 +19,16 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
         params["chatterbox_url"] = url
-        params["chatterbox_cfg_weight"] = min(max(float(winobj.cfg_weight.text()), 0.0), 1.0)
-        params["chatterbox_exaggeration"] = min(max(float(winobj.exaggeration.text()), 0.25), 2.0)
+        try:
+            params["chatterbox_cfg_weight"] = min(max(float(winobj.cfg_weight.text()), 0.0), 1.0)
+        except (ValueError, TypeError):
+            return tools.show_error("cfg_weight must be a number")
+        try:
+            params["chatterbox_exaggeration"] = min(max(float(winobj.exaggeration.text()), 0.25), 2.0)
+        except (ValueError, TypeError):
+            return tools.show_error("exaggeration must be a number")
         params.save()
-        
+
         _rolename = next(reversed(tools.get_f5tts_role().values()))
         if not isinstance(_rolename,dict):
             return tools.show_error(tr("No reference audio {} exists",_rolename))
@@ -53,8 +59,14 @@ def openwin():
 
         params["chatterbox_url"] = url
 
-        params["chatterbox_cfg_weight"] = min(max(float(winobj.cfg_weight.text()), 0.0), 1.0)
-        params["chatterbox_exaggeration"] = min(max(float(winobj.exaggeration.text()), 0.25), 2.0)
+        try:
+            params["chatterbox_cfg_weight"] = min(max(float(winobj.cfg_weight.text()), 0.0), 1.0)
+        except (ValueError, TypeError):
+            return tools.show_error("cfg_weight must be a number")
+        try:
+            params["chatterbox_exaggeration"] = min(max(float(winobj.exaggeration.text()), 0.25), 2.0)
+        except (ValueError, TypeError):
+            return tools.show_error("exaggeration must be a number")
 
         params.save()
         tools.set_process(text='chatterbox', type="refreshtts")
