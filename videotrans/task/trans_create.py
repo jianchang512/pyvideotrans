@@ -1009,7 +1009,7 @@ class TransCreate(BaseTask):
             raise RuntimeError(f"SRT file error:{self.cfg.target_sub}")
         try:
             rate = int(str(self.cfg.voice_rate).replace('%', ''))
-        except:
+        except (ValueError, TypeError):
             rate = 0
         if rate >= 0:
             rate = f"+{rate}%"
