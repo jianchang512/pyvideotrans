@@ -76,7 +76,7 @@ class SeparateWorker(QThread):
                         vocal_bgm,
                         **kw
                     )
-            rs,err=future.result()
+            rs,err=future.result(timeout=3600)
             if rs is False:
                 self.finish_event.emit(err)
         except Exception as e:

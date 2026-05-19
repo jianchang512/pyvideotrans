@@ -225,8 +225,10 @@ class WinAction(WinActionSub):
         elif type == tts.CLONE_VOICE_TTS:
             self.main.voice_role.clear()
             self.main.current_rolelist = params.get("clone_voicelist",'')
-            if self.main.current_rolelist[0]!='No':
+            if self.main.current_rolelist and self.main.current_rolelist[0]!='No':
                 self.main.current_rolelist.insert(0,'No')
+            elif not self.main.current_rolelist:
+                self.main.current_rolelist = ['No']
             self.main.voice_role.addItems(self.main.current_rolelist)
             run_in_threadpool(tools.get_clone_role)
         elif type == tts.CHATTTS:
@@ -343,12 +345,11 @@ class WinAction(WinActionSub):
                 content = Path(fname).read_text(encoding='utf-8')
             except UnicodeError:
                 content = Path(fname).read_text(encoding='gbk')
-            finally:
-                if content:
-                    self.main.subtitle_area.clear()
-                    self.main.subtitle_area.insertPlainText(content.strip())
-                else:
-                    return tools.show_error(tr('import src error'))
+            if content:
+                self.main.subtitle_area.clear()
+                self.main.subtitle_area.insertPlainText(content.strip())
+            else:
+                return tools.show_error(tr('import src error'))
 
     # 判断是否需要翻译
     def shound_translate(self):
