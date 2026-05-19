@@ -53,6 +53,8 @@ class QwenMT(BaseTrans):
             )
             if response.code or not response.output:
                 raise RuntimeError(response.message)
+            if not response.output.choices:
+                raise RuntimeError(f'qwen-mt returned empty choices')
             logger.debug(f'qwen-mt返回响应:{response.output.choices[0].message.content}')
             return self.clean_srt(response.output.choices[0].message.content)
 
@@ -77,6 +79,8 @@ class QwenMT(BaseTrans):
 
         if response.code or not response.output:
             raise RuntimeError(response.message)
+        if not response.output.choices:
+            raise RuntimeError(f'qwen returned empty choices')
         logger.debug(f'阿里百炼 AI响应:{response.output.choices[0].message.content}')
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', response.output.choices[0].message.content, re.S)
         if match:
