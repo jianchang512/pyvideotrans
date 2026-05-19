@@ -515,7 +515,7 @@ class ASSStyleDialog(QDialog):
         self.blockSignals(True)
         try:
             if Path(JSON_FILE).exists():
-                with open(JSON_FILE, 'r') as f:
+                with open(JSON_FILE, 'r', encoding='utf-8') as f:
                     style = json.load(f)
             else:
                 style = DEFAULT_STYLE
@@ -565,7 +565,7 @@ class ASSStyleDialog(QDialog):
 
     def save_settings(self):
         style = self.get_current_style()
-        with open(JSON_FILE, 'w') as f:
+        with open(JSON_FILE, 'w', encoding='utf-8') as f:
             json.dump(style, f, indent=4)
         self.close()
     def restore_defaults(self):
@@ -617,7 +617,7 @@ class ASSStyleDialog(QDialog):
             self.blockSignals(False)
         
         self.update_preview()
-        with open(JSON_FILE, 'w') as f:
+        with open(JSON_FILE, 'w', encoding='utf-8') as f:
             json.dump(style, f, indent=4)
 
     def get_current_style(self):
