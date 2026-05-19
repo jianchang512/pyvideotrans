@@ -212,19 +212,19 @@ def get_msg_from_except(ex):
     exception_handlers = {
         # === 认证和权限问题 ===
         AuthenticationError: lambda e: (
-            f"API密钥错误，请检查密钥是否正确 {e.body.get('message')}" if lang == 'zh'
-            else  e.body.get('message')
+            f"API密钥错误，请检查密钥是否正确 {e.body.get('message') if hasattr(e.body, 'get') else str(e)}" if lang == 'zh'
+            else  e.body.get('message') if hasattr(e.body, 'get') else str(e)
         ),
 
         PermissionDeniedError: lambda e: (
-            f"当前密钥没有访问权限，请检查权限设置 {e.body.get('message')}" if lang == 'zh'
-            else  e.message
+            f"当前密钥没有访问权限，请检查权限设置 {e.body.get('message') if hasattr(e.body, 'get') else str(e)}" if lang == 'zh'
+            else  e.message if hasattr(e, 'message') else str(e)
         ),
 
         # === 频率限制 ===
         RateLimitError: lambda e: (
-            f"请求过于频繁或余额不足：{e.body.get('message')}" if lang == 'zh'
-            else e.body.get('message')
+            f"请求过于频繁或余额不足：{e.body.get('message') if hasattr(e.body, 'get') else str(e)}" if lang == 'zh'
+            else e.body.get('message') if hasattr(e.body, 'get') else str(e)
         ),
         # === 资源不存在问题 ===
         # === 请求参数问题 ===
