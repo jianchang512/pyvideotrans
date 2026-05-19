@@ -221,8 +221,8 @@ class SpeechToText(BaseTask):
                             if self.cfg.detect_language[:2]=='en':
                                 it['text']=it['text'].replace('，',',').replace('。','. ').replace('？','?').replace('！','!')
                         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-                except:
-                    pass
+                except Exception:
+                    logger.exception('Punctuation restoration failed', exc_info=True)
 
             
             # whisperx-api

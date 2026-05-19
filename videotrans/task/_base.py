@@ -128,6 +128,10 @@ class BaseTask(BaseCon):
 
         if target_len>source_len:
             logger.debug(f'翻译结果行数大于原始字幕行，截取0-{source_len}')
+            for i,it in enumerate(source_srt_list):
+                tmp = copy.deepcopy(it)
+                tmp['text'] = target_srt_list[i]['text']
+                target_srt_list[i] = tmp
             return target_srt_list[:source_len]
         
         

@@ -41,7 +41,8 @@ class SpeakerAssignmentDialog(QDialog):
             if sour_pt.as_posix() and not sour_pt.samefile(Path(target_sub)):
                 try:
                     self.source_srtstring = sour_pt.read_text(encoding="utf-8")
-                except:
+                except Exception:
+                    logger.exception(f'Failed to read source subtitle: {source_sub}', exc_info=True)
                     self.source_srtstring = ""
 
         self.srt_list_dict = tools.get_subtitle_from_srt(self.target_sub)
