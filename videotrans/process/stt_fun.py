@@ -415,6 +415,7 @@ def faster_whisper(
             ]
             segments, info = batched_model.transcribe(
                 audio_file,
+                task="transcribe",
                 batch_size=4,  #
                 beam_size=beam_size,
                 best_of=best_of,
@@ -458,6 +459,7 @@ def faster_whisper(
             _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word_timestamps'}))
             segments, info = model.transcribe(
                 audio_file,
+                task="transcribe",
                 beam_size=beam_size,
                 best_of=best_of,
                 condition_on_previous_text=condition_on_previous_text,
