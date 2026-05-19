@@ -73,6 +73,7 @@ def openai_whisper(
                 speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
             result = model.transcribe(
                 audio_file,
+                task="transcribe",
                 no_speech_threshold=no_speech_threshold,
                 language=detect_language.split('-')[0] if detect_language != 'auto' else None,
                 clip_timestamps=speech_timestamps_flat,
@@ -108,6 +109,7 @@ def openai_whisper(
             _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word_timestamps'}))
             segments = model.transcribe(
                 audio_file,
+                task="transcribe",
                 no_speech_threshold=no_speech_threshold,
                 language=detect_language.split('-')[0] if detect_language != 'auto' else None,
                 # clip_timestamps=speech_timestamps_flat,
