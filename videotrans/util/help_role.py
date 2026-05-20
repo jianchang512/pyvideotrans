@@ -290,7 +290,7 @@ def get_azure_rolelist(language=None,role_name=None):
         return voice_list.get(language,{}).get(role_name)
     if role_name and (not language or language=='auto'):
         for it in voice_list.values():
-            for name,ro in it:
+            for name,ro in it.items():
                 if name==role_name:
                     return ro
         return None
