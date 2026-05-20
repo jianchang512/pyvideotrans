@@ -32,7 +32,6 @@ from videotrans import winform
 from videotrans.configure.signal_hub import SignalHub
 
 
-
 class MainWindow(QMainWindow, Ui_MainWindow):
     uito = Signal(str)
 
@@ -95,8 +94,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ])
 
         QTimer.singleShot(200, self._set_default)
+        # 查询GPU
         run_in_threadpool(tools.check_hw_on_start)
-        run_in_threadpool(tools.check_new_version)
 
     def _set_default(self):
 
@@ -349,6 +348,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         QApplication.processEvents()
         self.uito.emit('end')
+        run_in_threadpool(tools.check_new_version)
 
     def _start_workers(self, status):
         if status == 'end':

@@ -25,8 +25,8 @@ class SpeechToText(BaseTask):
     cfg: TaskCfgSTT = field(default_factory=TaskCfgSTT, repr=False)
     # 识别后输出的字幕格式，srt txt 等
     out_format: str = field(init=True, default='srt')
-    # 在这个子类中，shoud_recogn 总是 True。
-    shoud_recogn: bool = True
+    # 在这个子类中，should_recogn 总是 True。
+    should_recogn: bool = True
     # 是否需要将生成的字幕复制到原始视频所在目录下，并重命名为视频同名，以方便视频自动加载软字幕
     copysrt_rawvideo: bool = field(default=False, init=True)
     # 存放原始语言字幕

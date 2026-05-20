@@ -58,7 +58,7 @@ class Worker(QThread):
                     app_cfg.set_countdown(app_cfg.task_countdown - 1)
                     if self._exit(): return
 
-            if trk.shoud_trans:
+            if trk.should_trans:
                 app_cfg.onlyone_trans = True
                 if tools.vail_file(trk.cfg.target_sub):
                     self._post(text="已存在翻译文件，跳过")
@@ -68,7 +68,7 @@ class Worker(QThread):
             if self._exit(): return
 
             # 需要配音时
-            if trk.shoud_dubbing:
+            if trk.should_dubbing:
                 self._post(text=Path(trk.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
                 if float(settings.get('countdown_sec', 0)) > 0:
                     app_cfg.set_countdown(86400)

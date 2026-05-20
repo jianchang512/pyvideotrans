@@ -94,13 +94,13 @@ class WorkerPrepare(BaseWorker):
 
     def process_task(self, trk):
         trk.prepare()
-        if trk.shoud_recogn:
+        if trk.should_recogn:
             app_cfg.regcon_queue.put_nowait(trk)
-        elif trk.shoud_trans:
+        elif trk.should_trans:
             app_cfg.trans_queue.put_nowait(trk)
-        elif trk.shoud_dubbing:
+        elif trk.should_dubbing:
             app_cfg.dubb_queue.put_nowait(trk)
-        elif trk.shoud_hebing:
+        elif trk.should_hebing:
             app_cfg.assemb_queue.put_nowait(trk)
         else:
             app_cfg.taskdone_queue.put_nowait(trk)
@@ -131,11 +131,11 @@ class WorkerDiariz(BaseWorker):
         except Exception as e:
             logger.exception(e, exc_info=True)
 
-        if trk.shoud_trans:
+        if trk.should_trans:
             app_cfg.trans_queue.put_nowait(trk)
-        elif trk.shoud_dubbing:
+        elif trk.should_dubbing:
             app_cfg.dubb_queue.put_nowait(trk)
-        elif trk.shoud_hebing:
+        elif trk.should_hebing:
             app_cfg.assemb_queue.put_nowait(trk)
         else:
             app_cfg.taskdone_queue.put_nowait(trk)
@@ -152,9 +152,9 @@ class WorkerTrans(BaseWorker):
 
     def process_task(self, trk):
         trk.trans()
-        if trk.shoud_dubbing:
+        if trk.should_dubbing:
             app_cfg.dubb_queue.put_nowait(trk)
-        elif trk.shoud_hebing:
+        elif trk.should_hebing:
             app_cfg.assemb_queue.put_nowait(trk)
         else:
             app_cfg.taskdone_queue.put_nowait(trk)
@@ -182,7 +182,7 @@ class WorkerAlign(BaseWorker):
         trk.align()
         if hasattr(trk, 'recogn2pass'):
             app_cfg.regcon2_queue.put_nowait(trk)
-        elif trk.shoud_hebing:
+        elif trk.should_hebing:
             app_cfg.assemb_queue.put_nowait(trk)
         else:
             app_cfg.taskdone_queue.put_nowait(trk)
@@ -197,7 +197,7 @@ class WorkerRegcon2Pass(BaseWorker):
 
     def process_task(self, trk):
         trk.recogn2pass()
-        if trk.shoud_hebing:
+        if trk.should_hebing:
             app_cfg.assemb_queue.put_nowait(trk)
         else:
             app_cfg.taskdone_queue.put_nowait(trk)

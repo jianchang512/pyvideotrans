@@ -21,15 +21,15 @@ class BaseTask(BaseCon):
     # 是否已结束
     hasend: bool = False
     # 是否需要语音识别
-    shoud_recogn: bool = False
+    should_recogn: bool = False
     # 是否需要字幕翻译
-    shoud_trans: bool = False
+    should_trans: bool = False
     # 是否需要配音
-    shoud_dubbing: bool = False
+    should_dubbing: bool = False
     # 是否需要人声分离
-    shoud_separate: bool = False
+    should_separate: bool = False
     # 是否需要嵌入配音或字幕
-    shoud_hebing: bool = False
+    should_hebing: bool = False
 
     def __post_init__(self):
         super().__post_init__()

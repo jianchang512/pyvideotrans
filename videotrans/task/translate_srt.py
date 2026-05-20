@@ -22,7 +22,7 @@ class TranslateSrt(BaseTask):
     # 输出格式，例如单语字幕 双语字幕等。
     out_format: int = field(init=True, default=0)
     # 固定应该翻译
-    shoud_trans: bool = True
+    should_trans: bool = True
 
     def __post_init__(self):
         super().__post_init__()

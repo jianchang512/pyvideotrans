@@ -77,7 +77,7 @@ class TransCreate(BaseTask):
         self.max_speakers = self.cfg.nums_diariz if self.cfg.enable_diariz else -1
         if self.max_speakers > 0:
             self.max_speakers += 1
-        self.shoud_recogn = True
+        self.should_recogn = True
         # 输出编码，  264 或 265
         self.video_codec_num = int(settings.get('video_codec', 264))
 
@@ -109,39 +109,39 @@ class TransCreate(BaseTask):
 
         # 如果配音角色不是No 则需要配音
         if self.cfg.voice_role and self.cfg.voice_role != 'No' and self.cfg.target_language_code:
-            self.shoud_dubbing = True
+            self.should_dubbing = True
 
         # 如果不是 tiqu，则均需要合并视频音频字幕
-        if self.cfg.app_mode != 'tiqu' and (self.shoud_dubbing or self.cfg.subtitle_type > 0):
-            self.shoud_hebing = True
+        if self.cfg.app_mode != 'tiqu' and (self.should_dubbing or self.cfg.subtitle_type > 0):
+            self.should_hebing = True
 
         # 是否需要翻译:存在目标语言代码并且不等于原始语言，则需要翻译
         if self.cfg.target_language_code and self.cfg.target_language_code != self.cfg.source_language_code:
-            self.shoud_trans = True
+            self.should_trans = True
 
         # 如果原语言和目标语言相等，并且存在配音角色，则替换配音
         if self.cfg.voice_role and self.cfg.voice_role != 'No' and self.cfg.source_language_code == self.cfg.target_language_code:
             self.cfg.target_wav_output = f"{self.cfg.target_dir}/{self.cfg.target_language_code}-dubbing.m4a"
             self.cfg.target_wav = f"{self.cfg.cache_folder}/target-dubbing.wav"
-            self.shoud_dubbing = True
+            self.should_dubbing = True
 
         # 判断如果是音频，则到生成音频结束，无需合并，并且无需分离视频、无需背景音处理
         if self.cfg.ext in contants.AUDIO_EXITS:
             self.is_audio_trans = True
             # self.cfg.is_separate = False
-            self.shoud_hebing = False
+            self.should_hebing = False
 
         # 没有设置目标语言，不配音不翻译
         if not self.cfg.target_language_code:
-            self.shoud_dubbing = False
-            self.shoud_trans = False
+            self.should_dubbing = False
+            self.should_trans = False
 
         if self.cfg.voice_role == 'No':
-            self.shoud_dubbing = False
+            self.should_dubbing = False
 
         if self.cfg.app_mode == 'tiqu':
             self.cfg.enable_diariz = False
-            self.shoud_dubbing = False
+            self.should_dubbing = False
 
         # 记录最终使用的配置信息
         logger.debug(f"[TransCreate]最终配置信息：{self=}\n{self.cfg=}")
@@ -197,7 +197,7 @@ class TransCreate(BaseTask):
                 txt = re.sub(r':\d+\.\d+', lambda m: m.group().replace('.', ','),
                              self.cfg.subtitles.strip(), flags=re.I | re.S)
                 f.write(txt)
-            self.shoud_recogn = False
+            self.should_recogn = False
 
         # 判断是否已存在人声文件，只要存在， 即使用此文件作为语音识别原料
         self.cfg.vocal = f"{self.cfg.cache_folder}/vocal.wav"
@@ -213,7 +213,7 @@ class TransCreate(BaseTask):
 
             if tools.vail_file(raw_instrument):
                 shutil.copy2(raw_instrument, self.cfg.instrument)
-            self.shoud_separate = True
+            self.should_separate = True
 
         # 将原始视频分离为无声视频
         if not self.is_audio_trans and self.cfg.app_mode != 'tiqu':
@@ -238,7 +238,7 @@ class TransCreate(BaseTask):
                     self.cfg.instrument = None
                     self.cfg.vocal = None
                     self.cfg.is_separate = False
-                    self.shoud_separate = False
+                    self.should_separate = False
 
         if audio_stream_len > 0 and not tools.vail_file(self.cfg.source_wav) and tools.vail_file(self.cfg.vocal):
             # 如果存在人声文件(可能仅仅分离成功人声，或者单独将其他工具分离出的人声放入目标文件夹)，则使用该文件作为语音识别文件
@@ -272,7 +272,7 @@ class TransCreate(BaseTask):
     def recogn(self) -> None:
         _st=time.time()
         if self._exit(): return
-        if not self.shoud_recogn: return
+        if not self.should_recogn: return
         self.precent += 3
         self.signal(text=tr("kaishishibie"))
         if tools.vail_file(self.cfg.source_sub):
@@ -397,7 +397,7 @@ class TransCreate(BaseTask):
         self.precent += 5
         if self.cfg.app_mode == 'tiqu':
             dest_name = f"{self.cfg.target_dir}/{self.cfg.noextname}"
-            if not self.shoud_trans:
+            if not self.should_trans:
                 dest_name += '.srt'
                 shutil.copy2(self.cfg.source_sub, dest_name)
                 Path(self.cfg.source_sub).unlink(missing_ok=True)
@@ -409,7 +409,7 @@ class TransCreate(BaseTask):
     # 配音后再次对配音文件进行识别，以便生成简短的字幕，
     def recogn2pass(self) -> None:
         _st=time.time()
-        if not self.shoud_dubbing or not self.cfg.recogn2pass or self._exit():
+        if not self.should_dubbing or not self.cfg.recogn2pass or self._exit():
             return
         # 如果不嵌入字幕，或嵌入双字幕，则跳过
         if self.cfg.subtitle_type > 2 and (self.cfg.source_language_code != self.cfg.target_language_code):
@@ -561,7 +561,7 @@ class TransCreate(BaseTask):
     # 翻译字幕文件
     def trans(self) -> None:
         _st=time.time()
-        if self._exit() or not self.shoud_trans: return
+        if self._exit() or not self.should_trans: return
 
         self.precent += 3
         self.signal(text=tr('starttrans'))
@@ -620,7 +620,7 @@ class TransCreate(BaseTask):
     # 对字幕进行配音
     def dubbing(self) -> None:
         _st=time.time()
-        if self._exit() or self.cfg.app_mode == 'tiqu' or not self.shoud_dubbing:
+        if self._exit() or self.cfg.app_mode == 'tiqu' or not self.should_dubbing:
             return
         self.signal(text=tr('kaishipeiyin'))
         self.precent += 3
@@ -631,7 +631,7 @@ class TransCreate(BaseTask):
     # 音画字幕对齐
     def align(self) -> None:
         _st=time.time()
-        if self._exit() or self.cfg.app_mode == 'tiqu' or not self.shoud_dubbing or self.ignore_align:
+        if self._exit() or self.cfg.app_mode == 'tiqu' or not self.should_dubbing or self.ignore_align:
             return
 
         self.signal(text=tr('duiqicaozuo'))
@@ -649,9 +649,9 @@ class TransCreate(BaseTask):
         rate_inst = SpeedRate(
             queue_tts=self.queue_tts,
             uuid=self.uuid,
-            shoud_audiorate=self.cfg.voice_autorate,
+            should_audiorate=self.cfg.voice_autorate,
             # 视频是否需慢速，需要时对 novoice_mp4进行处理
-            shoud_videorate=self.cfg.video_autorate if not self.is_audio_trans else False,
+            should_videorate=self.cfg.video_autorate if not self.is_audio_trans else False,
             novoice_mp4=self.cfg.novoice_mp4 if not self.is_audio_trans else None,
             # 原始总时长
             raw_total_time=self.video_time,
@@ -697,7 +697,7 @@ class TransCreate(BaseTask):
     # 将 视频、音频、字幕合成
     def assembling(self) -> None:
         _st=time.time()
-        if self._exit() or self.is_audio_trans or self.cfg.app_mode == 'tiqu' or not self.shoud_hebing:
+        if self._exit() or self.is_audio_trans or self.cfg.app_mode == 'tiqu' or not self.should_hebing:
             return
         self.precent = self.precent + 3 if self.precent < 95 else self.precent
         self.signal(text=tr('kaishihebing'))
@@ -970,7 +970,7 @@ class TransCreate(BaseTask):
 
     # 添加手动上传的额外背景音乐
     def _back_music(self) -> None:
-        if self._exit() or not self.shoud_dubbing or not tools.vail_file(self.cfg.target_wav) or not tools.vail_file( self.cfg.background_music):
+        if self._exit() or not self.should_dubbing or not tools.vail_file(self.cfg.target_wav) or not tools.vail_file( self.cfg.background_music):
             return
         try:
             self.signal(text=tr("Adding background audio"))
@@ -1010,7 +1010,7 @@ class TransCreate(BaseTask):
 
     # 重新嵌回分离出的背景声音
     def _separate(self) -> None:
-        if self._exit() or not self.shoud_separate or not self.cfg.embed_bgm:
+        if self._exit() or not self.should_separate or not self.cfg.embed_bgm:
             return
         # 如果背景音频分离失败，则静默返回
         if not tools.vail_file(self.cfg.instrument) or not tools.vail_file(self.cfg.target_wav):
@@ -1160,7 +1160,7 @@ class TransCreate(BaseTask):
 
     # 最终合成视频
     def _join_video_audio_srt(self) -> None:
-        if self._exit() or not self.shoud_hebing:
+        if self._exit() or not self.should_hebing:
             return
 
         # 判断 novoice_mp4 是否完成
@@ -1169,7 +1169,7 @@ class TransCreate(BaseTask):
             raise RuntimeError(f'{self.cfg.novoice_mp4} 不存在')
 
         # 需要配音但没有配音文件
-        if self.shoud_dubbing and not tools.vail_file(self.cfg.target_wav):
+        if self.should_dubbing and not tools.vail_file(self.cfg.target_wav):
             raise RuntimeError(f"{tr('Dubbing')}{tr('anerror')}:{self.cfg.target_wav}")
 
         self.precent = min(max(90, self.precent), 98)
@@ -1178,7 +1178,7 @@ class TransCreate(BaseTask):
         target_m4a = self.cfg.cache_folder + "/origin_audio.m4a"
         # 用于判断输出原始音频是否结束，is True是结束，
         output_source_output = True
-        if not self.shoud_dubbing:
+        if not self.should_dubbing:
             # 无配音的使用原始音频
             self._get_origin_audio(target_m4a)
         else:

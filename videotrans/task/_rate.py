@@ -289,8 +289,8 @@ class SpeedRate:
     def __init__(self,
                  *,
                  queue_tts=None,
-                 shoud_videorate=False,
-                 shoud_audiorate=False,
+                 should_videorate=False,
+                 should_audiorate=False,
                  uuid=None,
                  novoice_mp4=None,
                  raw_total_time=0,
@@ -304,8 +304,8 @@ class SpeedRate:
         self.remove_silent_mid = remove_silent_mid
         self.queue_tts = queue_tts
         self.len_queue = len(queue_tts)
-        self.shoud_videorate = shoud_videorate
-        self.shoud_audiorate = shoud_audiorate
+        self.should_videorate = should_videorate
+        self.should_audiorate = should_audiorate
         self.uuid = uuid
         self.novoice_mp4_original = novoice_mp4
         self.novoice_mp4 = novoice_mp4
@@ -337,14 +337,14 @@ class SpeedRate:
             pass
 
         self.audio_speed_rubberband = shutil.which("rubberband")
-        logger.debug(f"[SpeedRate] Init. AudioRate={self.shoud_audiorate}, VideoRate={self.shoud_videorate}, Rubberband={bool(self.audio_speed_rubberband)}")
+        logger.debug(f"[SpeedRate] Init. AudioRate={self.should_audiorate}, VideoRate={self.should_videorate}, Rubberband={bool(self.audio_speed_rubberband)}")
         if not HAS_RUBBERBAND or not self.audio_speed_rubberband:
             logger.warning(f"[SpeedRate] Rubberband 不可用，将使用pydub+ffmpeg处理音频加速。\n建议安装，加速效果更佳\n{INSTALL_RUBBERBAND_TIPS}")
 
     def run(self):
         if not self.queue_tts:
             return []
-        if not self.shoud_audiorate and not self.shoud_videorate:
+        if not self.should_audiorate and not self.should_videorate:
             logger.debug("[SpeedRate] 未启用变速，进入普通拼接模式。")
             self._run_no_rate_change_mode()
             return self.queue_tts
@@ -363,7 +363,7 @@ class SpeedRate:
             self._execute_audio_speedup_rubberband()
 
         # 4. 视频变速
-        if self.shoud_videorate and self.video_for_clips:
+        if self.should_videorate and self.video_for_clips:
             tools.set_process(text='Processing video speed...', uuid=self.uuid)
             processed_video_clips = self._video_speeddown()
             
@@ -410,7 +410,7 @@ class SpeedRate:
             # 字幕开始点，用于切分 视频 和 变速
             current['start_time_source']=current['start_time']
             # 有视频慢速并且小于100ms，置为 从0开始，防止短视频片段出错
-            if self.shoud_videorate and i == 0 and current['start_time']<100:
+            if self.should_videorate and i == 0 and current['start_time']<100:
                 current['start_time_source'] = 0
             
             # 填补空隙，将字幕结束时间变为下个开始时间，增大变速区间，以减小变速幅度
@@ -440,7 +440,7 @@ class SpeedRate:
         """计算策略"""
         tools.set_process(text="Calculating sync adjustments...", uuid=self.uuid)
         # 视频慢速，第0条字幕之前可能有无声音视频
-        if self.shoud_videorate and self.queue_tts[0]['start_time_source']>0:
+        if self.should_videorate and self.queue_tts[0]['start_time_source']>0:
             self.video_for_clips.append({
                     "start": 0,
                     "end": self.queue_tts[0]['start_time_source'],
@@ -455,7 +455,7 @@ class SpeedRate:
             source_dur = it['source_duration']
             dubb_dur = it['dubb_time']
             
-            if self.shoud_videorate and source_dur <= 0:
+            if self.should_videorate and source_dur <= 0:
                 logger.warning(f"[Calc] 字幕[{it['line']}] 视频槽位<=0，跳过")
                 self.video_for_clips.append({
                     "start": 0, 
@@ -473,7 +473,7 @@ class SpeedRate:
             
             mode_log = ""
             # 仅音频加速
-            if self.shoud_audiorate and not self.shoud_videorate:
+            if self.should_audiorate and not self.should_videorate:
                 mode_log = "Only Audio"
                 if dubb_dur > source_dur:
                     ratio = dubb_dur / source_dur
@@ -482,7 +482,7 @@ class SpeedRate:
                     else:
                         audio_target = source_dur
 
-            elif not self.shoud_audiorate and self.shoud_videorate:
+            elif not self.should_audiorate and self.should_videorate:
                 mode_log = "Only Video"
                 if dubb_dur > source_dur:
                     video_target = dubb_dur
@@ -490,7 +490,7 @@ class SpeedRate:
                     if pts > self.max_video_pts_rate:
                         video_target = int(source_dur * self.max_video_pts_rate)
 
-            elif self.shoud_audiorate and self.shoud_videorate:
+            elif self.should_audiorate and self.should_videorate:
                 mode_log = "Both"
                 if dubb_dur > source_dur:
                     ratio = dubb_dur / source_dur
@@ -506,14 +506,14 @@ class SpeedRate:
 
 
             # 注册任务
-            if self.shoud_audiorate and audio_target < dubb_dur:
+            if self.should_audiorate and audio_target < dubb_dur:
                 self.audio_data.append({
                     "filename": it['filename'],
                     "dubb_time": dubb_dur,
                     "target_time": audio_target
                 })
             
-            if self.shoud_videorate:
+            if self.should_videorate:
                 pts = video_target / source_dur if source_dur > 0 else 1.0
                 self.video_for_clips.append({
                     "start": it['start_time_source'],
@@ -661,7 +661,7 @@ class SpeedRate:
                 
                 try:
                     # 有视频慢速时强制阶段音频
-                    if self.shoud_videorate:
+                    if self.should_videorate:
                         cut_seg = AudioSegment.from_file(audio_file)[:slot_duration]
                         final_slot_path = Path(self.cache_folder, f"final_slot_cut_{i}.wav").as_posix()
                         cut_seg.export(final_slot_path, format='wav')
@@ -760,12 +760,12 @@ class SpeedRate:
 class TtsSpeedRate(SpeedRate):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
-        self.shoud_videorate=False
+        self.should_videorate=False
         self.max_audio_speed_rate=100
 
 
     def run(self):
-        if not self.shoud_audiorate:
+        if not self.should_audiorate:
             logger.debug("[SpeedRate] 未启用变速，进入普通拼接模式。")
             self._run_no_rate_change_mode()
             return self.queue_tts

@@ -27,7 +27,7 @@ class DubbingSrt(BaseTask):
     # 是否是 字幕多角色配音 功能
     is_multi_role: bool = field(init=True, default=False)
     # 固定为True
-    shoud_dubbing: bool = True
+    should_dubbing: bool = True
     ignore_align: bool = False
     # 多角色配音时直接使用该字幕信息
     subs: List = field(default_factory=list, repr=False)
@@ -241,7 +241,7 @@ class DubbingSrt(BaseTask):
         rate_inst = TtsSpeedRate(
             queue_tts=self.queue_tts,
             uuid=self.uuid,
-            shoud_audiorate=self.cfg.voice_autorate if not self.cfg.target_sub.endswith('.txt') else False,
+            should_audiorate=self.cfg.voice_autorate if not self.cfg.target_sub.endswith('.txt') else False,
             raw_total_time=self.queue_tts[-1]['end_time'],
             target_audio=self.cfg.target_wav,
             cache_folder=self.cfg.cache_folder,
