@@ -127,9 +127,8 @@ class GEMINITTS(BaseTTS):
             return {"bits_per_sample": bits_per_sample, "rate": rate}
 
         def save_binary_file(file_name, data):
-            f = open(file_name, "wb")
-            f.write(data)
-            f.close()
+            with open(file_name, "wb") as f:
+                f.write(data)
 
         client = genai.Client(
             api_key=params.get('gemini_key', ''),
@@ -157,6 +156,8 @@ class GEMINITTS(BaseTTS):
             ),
         )
 
+        audio_chunks = []
+        mime_type = None
         for chunk in client.models.generate_content_stream(
                 model=model,
                 contents=contents,
@@ -170,8 +171,12 @@ class GEMINITTS(BaseTTS):
                 continue
             if chunk.candidates[0].content.parts[0].inline_data:
                 inline_data = chunk.candidates[0].content.parts[0].inline_data
-                data_buffer = inline_data.data
-                file_extension = mimetypes.guess_extension(inline_data.mime_type)
-                if file_extension is None:
-                    data_buffer = convert_to_wav(inline_data.data, inline_data.mime_type)
-                save_binary_file(file_name, data_buffer)
+                mime_type = inline_data.mime_type
+                audio_chunks.append(inline_data.data)
+
+        if audio_chunks:
+            audio_data = b''.join(audio_chunks)
+            file_extension = mimetypes.guess_extension(mime_type) if mime_type else None
+            if file_extension is None:
+                audio_data = convert_to_wav(audio_data, mime_type or 'audio/L16;rate=24000')
+            save_binary_file(file_name, audio_data)
