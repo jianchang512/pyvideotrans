@@ -78,10 +78,11 @@ class QwenMT(BaseTrans):
         if response.code or not response.output:
             raise RuntimeError(response.message)
         logger.debug(f'阿里百炼 AI响应:{response.output.choices[0].message.content}')
-        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', response.output.choices[0].message.content, re.S)
+        result = response.output.choices[0].message.content
+        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, re.S)
         if match:
             return match.group(1)
-        return ''
+        return result.strip()
 
 
 
@@ -92,7 +93,7 @@ class QwenMT(BaseTrans):
         srt = re.sub(r'([：:])\s*', ':', srt,flags=re.I | re.S)
         # ,， 换成 ,
         srt = re.sub(r'([,，])\s*', ',', srt,flags=re.I | re.S)
-        srt = re.sub(r'([`’\'\"])\s*', '', srt,flags=re.I | re.S)
+        srt = re.sub(r'([`’\"])\s*', '', srt,flags=re.I | re.S)
 
         # 秒和毫秒间的.换成,
         srt = re.sub(r'(:\d+)\.\s*?(\d+)', r'\1,\2', srt,flags=re.I | re.S)
@@ -100,8 +101,8 @@ class QwenMT(BaseTrans):
         time_line = r'(\s?\d+:\d+:\d+(?:,\d+)?)\s*?-->\s*?(\d+:\d+:\d+(?:,\d+)?\s?)'
         srt = re.sub(time_line, r"\n\1 --> \2\n", srt,flags=re.I | re.S)
         # twenty one\n00:01:18,560 --> 00:01:22,000\n
-        srt = re.sub(r'\s?[a-zA-Z ]{3,}\s*?\n?(\d{2}:\d{2}:\d{2}\,\d{3}\s*?\-\->\s*?\d{2}:\d{2}:\d{2}\,\d{3})\s?\n?',
-                     "\n" + r'1\n\1\n', srt,flags=re.I | re.S)
+        srt = re.sub(r'\s?([a-zA-Z ]{3,})\s*?\n?(\d{2}:\d{2}:\d{2}\,\d{3}\s*?\-\->\s*?\d{2}:\d{2}:\d{2}\,\d{3})\s?\n?',
+                     r'\n1\n\2\n\1', srt,flags=re.I | re.S)
         # 去除多余的空行
         srt = "\n".join([it.strip() for it in srt.splitlines() if it.strip()])
 
@@ -123,4 +124,4 @@ class QwenMT(BaseTrans):
 
         # 行号前添加换行符
         srt = re.sub(r'\s?(\d+)\s+?(\d+:\d+:\d+)', r"\n\n\1\n\2", srt,flags=re.I | re.S)
-        return srt.strip().replace('&#39;', '"').replace('&quot;', "'")
+        return srt.strip().replace('&#39;', "'").replace('&quot;', '"')

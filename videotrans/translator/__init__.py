@@ -978,6 +978,7 @@ def run(*, translate_type=0,
             return Google(**kwargs).run()
         logger.warning('==未设置代理并且检测google失败，使用微软翻译')
         translate_type = MICROSOFT_INDEX
+        kwargs['translate_type'] = translate_type
         
     if translate_type == MyMemoryAPI_INDEX:
         from videotrans.translator._mymemory import MyMemory
