@@ -1,7 +1,7 @@
 
 
-def openwin(init=False):
-    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+def openwin():
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg, params,TEMP_DIR
     from pathlib import Path
 
     from PySide6 import QtWidgets

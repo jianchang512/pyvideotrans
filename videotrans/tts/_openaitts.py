@@ -1,11 +1,10 @@
 import logging
-import re
 from dataclasses import dataclass
 from typing import Union, Dict, List
-import httpx
-from openai import OpenAI,AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError
 
+from openai import OpenAI, AuthenticationError, PermissionDeniedError, NotFoundError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+
 from videotrans.configure.config import params, logger, settings
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS

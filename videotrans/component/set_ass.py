@@ -1,17 +1,16 @@
-import sys
 import json
-import os
+from pathlib import Path
+
+from PySide6.QtCore import Qt, Signal, QSize
+from PySide6.QtGui import QColor, QPixmap, QFont, QBrush, QPainterPath, QTransform, QPainterPathStroker, QIcon
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFormLayout,
-    QFontComboBox, QSpinBox,QDoubleSpinBox, QCheckBox, QComboBox, QColorDialog, QGridLayout,
-    QGroupBox,  QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
-     QGraphicsRectItem, QGraphicsPathItem,QScrollArea   
+    QFontComboBox, QSpinBox, QDoubleSpinBox, QCheckBox, QComboBox, QColorDialog, QGridLayout,
+    QGroupBox, QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
+    QGraphicsRectItem, QGraphicsPathItem, QScrollArea
 )
-from PySide6.QtGui import QColor, QPixmap, QFont, QPen, QBrush, QPainterPath, QTransform, QPainterPathStroker,QIcon
-from PySide6.QtCore import Qt, Signal,QSize
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 
-from pathlib import Path
+from videotrans.configure.config import ROOT_DIR, tr, defaulelang
 
 JSON_FILE = f'{ROOT_DIR}/videotrans/ass.json'
 PREVIEW_IMAGE = f'{ROOT_DIR}/videotrans/styles/preview.png'
@@ -515,7 +514,7 @@ class ASSStyleDialog(QDialog):
         self.blockSignals(True)
         try:
             if Path(JSON_FILE).exists():
-                with open(JSON_FILE, 'r') as f:
+                with open(JSON_FILE, 'r',encoding='utf-8') as f:
                     style = json.load(f)
             else:
                 style = DEFAULT_STYLE
@@ -565,7 +564,7 @@ class ASSStyleDialog(QDialog):
 
     def save_settings(self):
         style = self.get_current_style()
-        with open(JSON_FILE, 'w') as f:
+        with open(JSON_FILE, 'w',encoding='utf-8') as f:
             json.dump(style, f, indent=4)
         self.close()
     def restore_defaults(self):
@@ -617,7 +616,7 @@ class ASSStyleDialog(QDialog):
             self.blockSignals(False)
         
         self.update_preview()
-        with open(JSON_FILE, 'w') as f:
+        with open(JSON_FILE, 'w',encoding='utf-8') as f:
             json.dump(style, f, indent=4)
 
     def get_current_style(self):

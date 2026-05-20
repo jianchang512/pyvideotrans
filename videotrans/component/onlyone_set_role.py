@@ -1,21 +1,20 @@
 import json
-import sys
-from typing import List, Dict, Optional
-from pathlib import Path
-import re
 import time
+from pathlib import Path
+from typing import List, Optional
 
+from PySide6.QtCore import Qt, QTimer, QSize, QUrl
+from PySide6.QtGui import QIcon, QDesktopServices, QColor
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QCheckBox,
-    QComboBox, QPushButton, QWidget, QGroupBox, QPlainTextEdit, 
-    QMessageBox, QProgressBar, QApplication, QTableWidget, QTableWidgetItem,
+    QComboBox, QPushButton, QWidget, QGroupBox, QPlainTextEdit,
+    QMessageBox, QTableWidget, QTableWidgetItem,
     QHeaderView, QAbstractItemView, QGridLayout
 )
-from PySide6.QtGui import QIcon, QDesktopServices, QColor
-from PySide6.QtCore import Qt, QTimer, QSize, QUrl
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, TEMP_DIR, logger
 from videotrans.util import tools
+
 
 class SpeakerAssignmentDialog(QDialog):
     def __init__(
@@ -40,8 +39,8 @@ class SpeakerAssignmentDialog(QDialog):
             sour_pt = Path(source_sub)
             if sour_pt.as_posix() and not sour_pt.samefile(Path(target_sub)):
                 try:
-                    self.source_srtstring = sour_pt.read_text(encoding="utf-8")
-                except:
+                    self.source_srtstring = sour_pt.read_text(encoding="utf-8-sig")
+                except Exception:
                     self.source_srtstring = ""
 
         self.srt_list_dict = tools.get_subtitle_from_srt(self.target_sub)
@@ -591,8 +590,6 @@ class SpeakerAssignmentDialog(QDialog):
         srt_str_list = []
 
         speaker_keys = list(self.speakers.keys()) if self.speakers else []
-        default_spk = speaker_keys[0] if speaker_keys else ''
-
         for row, data in enumerate(self.display_data):
             # 获取当前文本（从表格中获取最新值）
             text_item = self.table.item(row, 5)

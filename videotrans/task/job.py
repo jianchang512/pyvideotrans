@@ -1,13 +1,14 @@
-import shutil
-from PySide6.QtCore import QThread
-from videotrans.configure.config import tr, settings, app_cfg, logger
-from videotrans.util import tools, gpus
 import traceback
 from queue import Empty
+
+from PySide6.QtCore import QThread
+
+from videotrans.configure.config import tr, settings, app_cfg, logger
 from videotrans.configure.excepts import get_msg_from_except
 from videotrans.recognition import RECOGN_NAME_LIST
 from videotrans.translator import TRANSLASTE_NAME_LIST
 from videotrans.tts import TTS_NAME_LIST
+from videotrans.util import tools, gpus
 
 
 def _get_type_name(type_index, name_list):
@@ -228,7 +229,7 @@ def start_thread():
     if app_cfg.NVIDIA_GPU_NUMS > 0:
         try:
             process_max_gpu = int(float(settings.get('process_max_gpu', 0)))
-        except ValueError:
+        except (TypeError,ValueError):
             process_max_gpu = 1
         # 如果手动设置了gpu进程数量
         if process_max_gpu > 0:

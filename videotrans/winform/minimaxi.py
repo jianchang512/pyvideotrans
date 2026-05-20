@@ -1,6 +1,6 @@
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg, params,TEMP_DIR
     from videotrans.util import tools
     import json
     from videotrans.util.ListenVoice import ListenVoice
@@ -59,42 +59,7 @@ def openwin():
         tools.set_process(text='', type="refreshtts")
         winobj.close()
 
-    def updaterole():
-        import requests
-        url = f'https://{params.get("minimaxi_apiurl")}/v1/get_voice'
-        headers = {
-            'authority': 'api.minimax.io',
-            'Authorization': f'Bearer {params.get("minimaxi_apikey","")}',
-            'content-type': 'application/json'
-        }
 
-        data = {
-            'voice_type': 'voice_cloning'
-        }
-
-        response = requests.post(url, headers=headers, json=data)
-        role=response.json()
-
-        if 'voice_cloning' not in role:
-            raise RuntimeError(role)
-        if not role['voice_cloning']:
-            raise RuntimeError('No voice id for clone')
-        rolelist={}
-        for it in role['voice_cloning']:
-            rolelist[it['voice_name'] if it['voice_name'] else it['voice_id']]=it['voice_id']
-        raws=tools.get_minimaxi_rolelist()
-        for k in raws.keys():
-            raws[k].update(rolelist)
-        try:
-            filejson=ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
-            if params["minimaxi_apiurl"]=='api.minimax.io':
-                filejson=ROOT_DIR + "/videotrans/voicejson/minimaxiio.json"
-            with open(filejson,'w',encoding='utf-8') as f:
-                f.write(json.dumps(raws,ensure_ascii=False))
-            tools.set_process(text='', type="refreshtts")
-        except (OSError,json.JSONDecodeError):
-            pass
-            
     from videotrans.component.set_form import MinimaxiForm
     winobj = MinimaxiForm()
     app_cfg.child_forms['minimaxi'] = winobj

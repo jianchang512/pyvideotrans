@@ -1,16 +1,12 @@
 # ToDo 将 whisper.cpp 移动到此
-import json
 import os
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Union
 
-from openai import OpenAI
-
+from videotrans.configure.config import tr, settings, logger
 from videotrans.configure.excepts import SpeechToTextError
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
 
@@ -29,7 +25,6 @@ class CPPRecogn(BaseRecogn):
 
         ]
         cmd += ["-l", self.detect_language.split('-')[0]]
-        prompt = None
         prompt = settings.get(f'initial_prompt_{self.detect_language}')
         if prompt:
             cmd += ['--prompt', prompt]

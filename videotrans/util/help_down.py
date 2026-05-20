@@ -168,34 +168,31 @@ def down_file_from_ms(local_dir, urls=None, callback=None) -> bool:
         file_abso_path = f'{local_dir}/{filename}'
         if Path(file_abso_path).exists():
             continue
-        try:
-            with requests.get(url, stream=True, timeout=(30, 600)) as response:
-                response.raise_for_status()
-                total_length = response.headers.get('content-length')
-                dest_file_obj = open(file_abso_path, 'wb')
-                try:
-                    if total_length is None:
-                        dest_file_obj.write(response.content)
-                    else:
-                        total_length = max(int(total_length), 1)
-                        downloaded = 0
-                        last_send = time.time()
-                        for chunk in response.iter_content(chunk_size=1024 * 1024):
-                            if chunk:
-                                dest_file_obj.write(chunk)
-                                downloaded += len(chunk)
-                                file_percent = min((downloaded / total_length) * 100, 100)
-                                if time.time() - last_send > 3:
-                                    last_send = time.time()
-                                if callback:
-                                    callback(
-                                        {"type": "file", "percent": file_percent, "filename": f"{filename}",
-                                         "current": index + 1, "total": 5})
+        with requests.get(url, stream=True, timeout=(30, 600)) as response:
+            response.raise_for_status()
+            total_length = response.headers.get('content-length')
+            dest_file_obj = open(file_abso_path, 'wb')
+            try:
+                if total_length is None:
+                    dest_file_obj.write(response.content)
+                else:
+                    total_length = max(int(total_length), 1)
+                    downloaded = 0
+                    last_send = time.time()
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            dest_file_obj.write(chunk)
+                            downloaded += len(chunk)
+                            file_percent = min((downloaded / total_length) * 100, 100)
+                            if time.time() - last_send > 3:
+                                last_send = time.time()
+                            if callback:
+                                callback(
+                                    {"type": "file", "percent": file_percent, "filename": f"{filename}",
+                                     "current": index + 1, "total": 5})
 
-                finally:
-                    dest_file_obj.close()
-        except Exception as e:
-            raise
+            finally:
+                dest_file_obj.close()
     return True
 
 
@@ -209,31 +206,31 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
 
             # 决定写入目标：如果是需要解压的，写入临时文件；否则直接写入目标文件
             dest_file_obj = tempfile.TemporaryFile()  # 内存/临时磁盘，自动删除
+            try:
+                if total_length is None:
+                    dest_file_obj.write(response.content)
+                else:
+                    total_length = max(int(total_length), 1)
+                    downloaded = 0
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            dest_file_obj.write(chunk)
+                            downloaded += len(chunk)
 
-            if total_length is None:
-                dest_file_obj.write(response.content)
-            else:
-                total_length = max(int(total_length), 1)
-                downloaded = 0
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        dest_file_obj.write(chunk)
-                        downloaded += len(chunk)
-
-                        # 计算进度
-                        # 单文件进度 0-100
-                        file_percent = min(99.0, downloaded * 100 / total_length)
-                        if callback:
-                            callback(f'{tr("Download Models")} {filename} {file_percent:.2f}%')
-
-            if callback:
-                callback(f'Extracting zip...')
-            dest_file_obj.seek(0)  # 回到文件头
-            with zipfile.ZipFile(dest_file_obj) as zf:
-                zf.extractall(path=local_dir)
-            if callback:
-                callback('Downloaded end')
-            dest_file_obj.close()
+                            # 计算进度
+                            # 单文件进度 0-100
+                            file_percent = min(99.0, downloaded * 100 / total_length)
+                            if callback:
+                                callback(f'{tr("Download Models")} {filename} {file_percent:.2f}%')
+                if callback:
+                    callback(f'Extracting zip...')
+                dest_file_obj.seek(0)  # 回到文件头
+                with zipfile.ZipFile(dest_file_obj) as zf:
+                    zf.extractall(path=local_dir)
+                if callback:
+                    callback('Downloaded end')
+            finally:
+                dest_file_obj.close()
     except Exception as e:
         msg = tr('model is missing. Please download it', local_dir)
         if callback:
@@ -254,8 +251,9 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
             super().update(size)
             try:
                 _str = str(self.progress).split('%')[0] + '%'
-                callback(_str)
-            except:
+                if callback:
+                    callback(_str)
+            except Exception:
                 pass
 
     try:
@@ -264,7 +262,7 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
             snapshot_download(model_id=model_id, local_files_only=True, progress_callbacks=[Pro], local_dir=local_dir)
             if callback:
                 callback(f'{model_id} exists')
-        except ValueError  as e:
+        except ValueError:
             if callback:
                 callback(f'{model_id}')
             snapshot_download(model_id=model_id, progress_callbacks=[Pro], local_dir=local_dir, max_workers=1)

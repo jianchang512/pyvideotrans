@@ -5,7 +5,7 @@ def openwin():
     from PySide6 import QtWidgets
     from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
-    from videotrans.configure.config import tr,params,settings,app_cfg,logger
+    from videotrans.configure.config import tr,params, app_cfg
     def feed(d):
         if not d.startswith("ok"):
             tools.show_error(d)

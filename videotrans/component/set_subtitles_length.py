@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QDialog, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton
 )
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.configure.config import ROOT_DIR, tr
 
 
 class SubtitleSettingsDialog(QDialog):
@@ -56,7 +56,7 @@ class SubtitleSettingsDialog(QDialog):
         try:
             cjk_len = int(cjk_len) if cjk_len else 24
             other_len = int(other_len) if other_len else 66
-        except ValueError:
+        except (ValueError,TypeError):
             cjk_len = 24
             other_len = 66
         return cjk_len, other_len

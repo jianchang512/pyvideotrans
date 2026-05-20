@@ -1,17 +1,18 @@
 import json
 import time
+import wave
 from pathlib import Path
-import sherpa_onnx
-import onnxruntime
+
 import numpy as np
-import wave,threading
-
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QPlainTextEdit, QFileDialog,QMessageBox
-from PySide6.QtCore import QThread, Signal,Qt,QUrl,QTimer
-from PySide6.QtGui import QIcon, QCloseEvent,QDesktopServices
-
-from videotrans.configure.config import ROOT_DIR,HOME_DIR,tr
+import onnxruntime
+import sherpa_onnx
 import sounddevice as sd
+from PySide6.QtCore import QThread, Signal, Qt, QUrl, QTimer
+from PySide6.QtGui import QIcon, QCloseEvent, QDesktopServices
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QPlainTextEdit, \
+    QFileDialog, QMessageBox
+
+from videotrans.configure.config import ROOT_DIR, HOME_DIR, tr
 from videotrans.util import tools
 
 CTC_MODEL_FILE=f"{ROOT_DIR}/models/onnx/ctc.model.onnx"
@@ -188,7 +189,7 @@ class Worker(QThread):
     new_segment = Signal(str)
     ready = Signal()
 
-    def __init__(self, device_idx, parent=None):
+    def __init__(self, device_idx=None, parent=None):
         super().__init__(parent)
         self.device_idx = device_idx
         self.running = False
@@ -198,6 +199,8 @@ class Worker(QThread):
     def run(self):
         devices = sd.query_devices()
         if len(devices) == 0:
+            return
+        if self.device_idx is None or self.device_idx >= len(devices):
             return
 
         PUNCT_MODEL = OnnxModel()
@@ -215,7 +218,8 @@ class Worker(QThread):
         wav_path=HOME_DIR+"/realtime_stt"
         Path(wav_path).mkdir(parents=True,exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H-%M-%S")
-        txt_file = open(f"{wav_path}/{timestamp}.txt", 'a')
+
+        txt_file = open(f"{wav_path}/{timestamp}.txt", 'a',encoding='utf-8')
         wav_file = wave.open(f"{wav_path}/{timestamp}.wav", 'wb')
         wav_file.setnchannels(1)
         wav_file.setsampwidth(2)  # int16
@@ -225,33 +229,34 @@ class Worker(QThread):
 
         self.running = True
         last_result = ""
-        while self.running:
-            samples, _ = mic_stream.read(self.samples_per_read)
-            samples_int16 = (samples * 32767).astype(np.int16)
-            wav_file.writeframes(samples_int16.tobytes())
+        try:
+            while self.running:
+                samples, _ = mic_stream.read(self.samples_per_read)
+                samples_int16 = (samples * 32767).astype(np.int16)
+                wav_file.writeframes(samples_int16.tobytes())
 
-            samples = samples.reshape(-1)
-            stream.accept_waveform(self.sample_rate, samples)
-            while recognizer.is_ready(stream):
-                recognizer.decode_stream(stream)
+                samples = samples.reshape(-1)
+                stream.accept_waveform(self.sample_rate, samples)
+                while recognizer.is_ready(stream):
+                    recognizer.decode_stream(stream)
 
-            is_endpoint = recognizer.is_endpoint(stream)
-            result = recognizer.get_result(stream)
+                is_endpoint = recognizer.is_endpoint(stream)
+                result = recognizer.get_result(stream)
 
-            if result != last_result:
-                self.new_word.emit(result)
-                last_result = result
+                if result != last_result:
+                    self.new_word.emit(result)
+                    last_result = result
 
-            if is_endpoint:
-                if result:
-                    punctuated = PUNCT_MODEL(result)
-                    txt_file.write(punctuated)
-                    self.new_segment.emit(punctuated)
-                recognizer.reset(stream)
-
-        mic_stream.stop()
-        wav_file.close()
-        txt_file.close()
+                if is_endpoint:
+                    if result:
+                        punctuated = PUNCT_MODEL(result)
+                        txt_file.write(punctuated)
+                        self.new_segment.emit(punctuated)
+                    recognizer.reset(stream)
+        finally:
+            wav_file.close()
+            txt_file.close()
+            mic_stream.stop()
 
 class DownloadModel(QThread):
     down = Signal(str)

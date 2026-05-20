@@ -1,7 +1,7 @@
 def openwin():
     from PySide6 import QtWidgets
     from pathlib import Path
-    from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg, params,TEMP_DIR
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     def feed(d):

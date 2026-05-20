@@ -1,16 +1,17 @@
+import json
 import time
 from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import List, Union
 
-from videotrans.configure.excepts import SpeechToTextError
+from pydub import AudioSegment
+
 from videotrans.configure.config import ROOT_DIR, logger, settings, TEMP_DIR
+from videotrans.configure.excepts import SpeechToTextError
 from videotrans.process import faster_whisper, pipe_asr
+from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
-from videotrans.recognition._base import BaseRecogn
-from pydub import AudioSegment
-import json
 
 
 @dataclass

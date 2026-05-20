@@ -1,4 +1,5 @@
-import json, os
+import json
+import os
 import re
 import shutil
 import time
@@ -6,14 +7,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-from videotrans.configure.config import ROOT_DIR, tr, settings, params, TEMP_DIR, logger, HOME_DIR
+from videotrans.configure import contants
+from videotrans.configure.config import ROOT_DIR, tr, settings, TEMP_DIR, logger, HOME_DIR
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
-
 from videotrans.util import tools
-from videotrans.configure import contants
 
 """
 仅语音识别
@@ -145,19 +145,25 @@ class SpeechToText(BaseTask):
             tools.check_and_down_ms(model_id='iic/punc_ct-transformer_cn-en-common-vocab471067-large',
                                     callback=self._process_callback)
             text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
+            # 序列化后传递文件路径
+            text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
+            Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
+            kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
+
             from videotrans.process.prepare_audio import fix_punc
-            kw = {"text_dict": text_dict, "is_cuda": self.cfg.is_cuda}
+
             try:
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
-                if not _rs:
-                    logger.error('标点恢复出错')
-                else:
+                if _rs:
+                    text_dict_obj=json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
                     for it in self.source_srt_list:
-                        it['text'] = _rs.get(f'{it["line"]}', it['text'])
+                        it['text'] = text_dict_obj.get(f'{it["line"]}', it['text'])
                         if self.cfg.detect_language[:2] == 'en':
                             it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace(
                                 '！', '!')
                     self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
+                else:
+                    logger.error('标点恢复出错')
             except Exception as e:
                 logger.exception(f'恢复标点出错，跳过{e}', exc_info=True)
 
@@ -206,10 +212,12 @@ class SpeechToText(BaseTask):
 
         self.precent += 3
         title = tr(f'Begin separating the speakers') + f':{speaker_type}'
-
+        subtitles_file=f'{self.cfg.cache_folder}/diariz-{time.time()}.json'
+        Path(subtitles_file).write_text(json.dumps([[it['start_time'], it['end_time']] for it in self.source_srt_list]),encoding='utf-8')
         kw = {
             "input_file": self.cfg.shibie_audio,
-            "subtitles": [[it['start_time'], it['end_time']] for it in self.source_srt_list],
+            "subtitles_file": subtitles_file,
+            "speak_file":self.cfg.cache_folder + "/speaker.json",
             "num_speakers": self.max_speakers,
             "is_cuda": self.cfg.is_cuda
         }
@@ -243,10 +251,11 @@ class SpeechToText(BaseTask):
                     token=hf_token,
                     endpoint=hf_endpoit
                 )
-            spk_list = self._new_process(callback=_run_speakers, title=title,
+            _rs = self._new_process(callback=_run_speakers, title=title,
                                          is_cuda=self.cfg.is_cuda and speaker_type != 'built', kwargs=kw)
-            if spk_list:
-                Path(self.cfg.cache_folder + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
+
+            logger.debug('分离说话人成功完成' if _rs else '分离失败说话人失败')
+            self.signal(text=tr('separating speakers end'))
         except Exception as e:
             logger.exception(f'说话人分离失败，跳过 {e}', exc_info=True)
         self.signal(text=tr('separating speakers end'))

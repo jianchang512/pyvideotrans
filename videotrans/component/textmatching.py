@@ -5,6 +5,8 @@ import difflib
 import datetime
 import traceback
 import time
+from pathlib import Path
+
 from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                                QLabel, QPushButton, QTextEdit, QFileDialog,
@@ -136,21 +138,23 @@ class AlignmentWorker(QThread):
 
             self.log_signal.emit(tr("status_transcribing"))
             tempfile=f'{TEMP_DIR}/textmatching-{time.time()}.wav'
-            tools.conver_to_16k(self.audio_path,tempfile)
-            segments, info = model.transcribe(
-                  tempfile,
-                  vad_filter=True,
-                  condition_on_previous_text=False,
-                  word_timestamps=True,
-                  language=self.language,
-                  temperature=0.0,
-                  initial_prompt=settings.get(f'initial_prompt_{self.language}') if self.language != 'auto' else None,
-                beam_size=int(settings.get('beam_size', 5)),
-                best_of=int(settings.get('best_of', 5)),
-                repetition_penalty=float(settings.get('repetition_penalty', 1.0)),
-                compression_ratio_threshold=float(settings.get('compression_ratio_threshold', 2.2)),
-                )
-
+            try:
+                tools.conver_to_16k(self.audio_path,tempfile)
+                segments, info = model.transcribe(
+                      tempfile,
+                      vad_filter=True,
+                      condition_on_previous_text=False,
+                      word_timestamps=True,
+                      language=self.language,
+                      temperature=0.0,
+                      initial_prompt=settings.get(f'initial_prompt_{self.language}') if self.language != 'auto' else None,
+                    beam_size=int(settings.get('beam_size', 5)),
+                    best_of=int(settings.get('best_of', 5)),
+                    repetition_penalty=float(settings.get('repetition_penalty', 1.0)),
+                    compression_ratio_threshold=float(settings.get('compression_ratio_threshold', 2.2)),
+                    )
+            finally:
+                Path(tempfile).unlink(missing_ok=True)
             whisper_chars = []
             seg_count = 0
             text_list=[]
@@ -176,7 +180,7 @@ class AlignmentWorker(QThread):
             self.log_signal.emit(tr("status_extracted", len(whisper_chars)))
 
             target_chars_map = []
-            punctuations = set(['，', '。', '？', '！', '；', '：', ',', '.', '?', '!', ';', ':'])
+            punctuations = {'，', '。', '？', '！', '；', '：', ',', '.', '?', '!', ';', ':'}
             #if self.language[:2] in ['zh','ja','ko']:
             #    punctuations.add(' ')
             comparison_target = []

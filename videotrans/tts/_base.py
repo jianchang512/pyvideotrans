@@ -69,7 +69,8 @@ class BaseTTS(BaseCon):
     # 子类重写  _exec()方法 run() -> _exec()
     def run(self) -> None:
         if self._exit(): return
-        _st = time.time()
+
+        logger.debug(f'开始语音合成:渠道{self.tts_type}')
         if hasattr(self, '_download'):
             self._download()
         loop = None
@@ -119,7 +120,7 @@ class BaseTTS(BaseCon):
                     # 4: 最终关闭事件循环
                     logger.debug("事件循环已关闭。")
                     loop.close()
-            logger.debug(f'[字幕配音]渠道{self.tts_type}:共耗时:{int(time.time() - _st)}s')
+
 
         # 试听或测试时播放
         if self.play:
@@ -256,7 +257,7 @@ class BaseTTS(BaseCon):
         speed = 1.0
         try:
             speed = round(1 + float(self.rate.replace('%', '')) / 100, 1)
-        except ValueError:
+        except (TypeError,ValueError):
             pass
         return speed
 
@@ -264,7 +265,7 @@ class BaseTTS(BaseCon):
         volume = 1.0
         try:
             volume = round(1 + float(self.volume.replace('%', '')) / 100, 1)
-        except ValueError:
+        except (TypeError,ValueError):
             pass
         return volume
 
@@ -272,7 +273,7 @@ class BaseTTS(BaseCon):
         pitch = 1.0
         try:
             pitch = round(float(re.sub(r'[hz%]', '', self.pitch)), 1)
-        except ValueError:
+        except (TypeError,ValueError):
             pass
         return pitch
 

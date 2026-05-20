@@ -1,16 +1,14 @@
-import math
 from pathlib import Path
 
+from PySide6.QtCore import Qt, QTimer, QSize, QUrl
+from PySide6.QtGui import QIcon, QDesktopServices
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
-    QPushButton, QWidget, QProgressBar, QApplication, 
-    QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView
+    QPushButton, QWidget, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView
 )
-from PySide6.QtGui import QIcon, QDesktopServices
-from PySide6.QtCore import Qt, QTimer, QSize, QUrl
 
+from videotrans.configure.config import ROOT_DIR, tr, settings, logger
 from videotrans.util import tools
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
 
 
 class EditRecognResultDialog(QDialog):

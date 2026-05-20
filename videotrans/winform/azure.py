@@ -1,5 +1,5 @@
 def openwin():
-    from videotrans.configure.config import tr,params,settings,app_cfg,logger
+    from videotrans.configure.config import params,settings,app_cfg
 
     def save():
         key = winobj.azure_key.text()

@@ -108,7 +108,7 @@ class GeminiRecogn(BaseRecogn):
             
             res_text=self._req(seg_group,api_key,prompt)
             logger.debug(f'gemini返回结果:{res_text=}')
-            m = re.findall(r'<audio_text[^\>]*?>(.*?)<\/audio_text>', res_text.strip(), re.I | re.S)
+            m = re.findall(r'<audio_text[^>]*?>(.*?)</audio_text>', res_text.strip(), re.I | re.S)
             if len(m) < 1:
                 continue
             str_s = []
@@ -119,11 +119,11 @@ class GeminiRecogn(BaseRecogn):
                     text = m[i].strip()
                     if not text:
                         continue
-                    mt=re.match(r'^\[(spk\d+)\]',text,re.I)
+                    mt=re.match(r'^\[(spk\d+)]',text,re.I)
 
                     if mt:
                         speaker_list.append(mt.group(1))
-                        text = re.sub(r'^\[spk\d+\]', '', text,flags=re.I | re.S)
+                        text = re.sub(r'^\[spk\d+]', '', text,flags=re.I | re.S)
                     srt = SrtItem(
                         line=len(srt_str_list) + 1,
                         start_time=f['start_time'],

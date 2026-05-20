@@ -74,14 +74,14 @@ class WinActionBase:
 
     # 关于页面
     def about(self):
-        if app_cfg.child_forms.get('infomation'):
-            app_cfg.child_forms.get('infomation').show()
+        if app_cfg.child_forms.get('information'):
+            app_cfg.child_forms.get('information').show()
             return
 
         from videotrans.component.set_form import InfoForm
         def open():
             app_cfg.child_forms['information'] = InfoForm()
-            app_cfg.child_forms['infomation'].show()
+            app_cfg.child_forms['information'].show()
 
         QTimer.singleShot(200, open)
 
@@ -422,7 +422,6 @@ class WinActionBase:
             self.cfg['voice_role'] = 'No'
             self.cfg['voice_rate'] = '+0%'
             self.cfg['voice_autorate'] = False
-            self.cfg['back_audio'] = ''
             self.cfg['copysrt_rawvideo'] = self.main.copysrt_rawvideo.isChecked()
 
     # 导入背景声音
@@ -542,11 +541,11 @@ class WinActionBase:
             return
         if obj['tts_type'] == tts.PIPER_TTS and not Path(f'{ROOT_DIR}/models/piper').exists():
             # tools.show_download_piper(self.main)
-            self.main._open_winform('downmodels')
+            self.main.open_winform('downmodels')
             return
         if obj['tts_type'] == tts.VITSCNEN_TTS and not Path(f'{ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
             # tools.show_download_tts(self.main)
-            self.main._open_winform('downmodels')
+            self.main.open_winform('downmodels')
             return
         raw_text = self.main.listen_btn.text()
 

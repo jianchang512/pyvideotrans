@@ -943,7 +943,6 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"\D+((\d+(\.\d+)?)[多余几]?" + CURRENCY_UNITS + r"(\d" + CURRENCY_UNITS + r"?)?)")
     matchers = pattern.findall(text)
     if matchers:
-        # print('money')
         for matcher in matchers:
             text = text.replace(matcher[0], Money(money=matcher[0]).money2chntext(), 1)
 

@@ -1,9 +1,10 @@
-from typing import Union, List, Dict, Type
 from pathlib import Path
-from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR, settings
-from videotrans.recognition._base import BaseRecogn
+from typing import Union, List, Type
+
 from videotrans import winform, ChannelProvider, get_class
 from videotrans.configure import contants
+from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR, settings
+from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 
 FASTER_WHISPER = 0

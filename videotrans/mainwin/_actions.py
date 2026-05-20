@@ -1,5 +1,4 @@
 import copy
-import json
 import re
 import sys
 from dataclasses import dataclass
@@ -9,13 +8,14 @@ from typing import Union
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog
+
 from videotrans import translator, recognition, tts
+from videotrans.component.progressbar import ClickableProgressBar
+from videotrans.configure import contants
 from videotrans.configure.config import tr, params, settings, app_cfg
 from videotrans.mainwin._actions_base import WinActionBase
 from videotrans.task.taskcfg import InputFile, SignMsg
 from videotrans.util import tools
-from videotrans.configure import contants
-from videotrans.component.progressbar import ClickableProgressBar
 
 
 @dataclass
@@ -214,12 +214,12 @@ class WinAction(WinActionBase):
             content = Path(fname).read_text(encoding='utf-8')
         except UnicodeError:
             content = Path(fname).read_text(encoding='gbk')
-        finally:
-            if content:
-                self.main.subtitle_area.clear()
-                self.main.subtitle_area.insertPlainText(content.strip())
-            else:
-                return tools.show_error(tr('import src error'))
+
+        if content:
+            self.main.subtitle_area.clear()
+            self.main.subtitle_area.insertPlainText(content.strip())
+        else:
+            return tools.show_error(tr('import src error'))
 
     # 判断是否需要翻译
     def shound_translate(self):
@@ -351,7 +351,7 @@ class WinAction(WinActionBase):
         try:
             volume = int(self.main.volume_rate.value())
             pitch = int(self.main.pitch_rate.value())
-        except ValueError:
+        except (ValueError,TypeError):
             volume = 0
             pitch = 0
         self.cfg['volume'] = f'+{volume}%' if volume >= 0 else f'{volume}%'
@@ -373,7 +373,7 @@ class WinAction(WinActionBase):
         self.cfg['voice_rate'] = self.main.voice_rate.value()
         try:
             voice_rate = int(self.main.voice_rate.value())
-        except ValueError:
+        except (TypeError,ValueError):
             voice_rate = 0
         self.cfg['voice_rate'] = f"+{voice_rate}%" if voice_rate >= 0 else f"{voice_rate}%"
         self.cfg['voice_autorate'] = self.main.voice_autorate.isChecked()
@@ -382,7 +382,7 @@ class WinAction(WinActionBase):
         # 人声背景音分离 添加背景音频
         self.cfg['is_separate'] = self.main.is_separate.isChecked()
         self.cfg['embed_bgm'] = self.main.embed_bgm.isChecked()
-        self.cfg['back_audio'] = self.main.back_audio.text().strip()
+        self.cfg['background_music'] = self.main.back_audio.text().strip()
         self.cfg['enable_diariz'] = self.main.enable_diariz.isChecked()
         self.cfg['recogn2pass'] = self.main.recogn2pass.isChecked()
         self.cfg['nums_diariz'] = self.main.nums_diariz.currentIndex()
@@ -437,8 +437,8 @@ class WinAction(WinActionBase):
 
         # LLM 重新断句时，需判断 deepseek或openai chatgpt填写了信息
         if self.main.rephrase.currentIndex() == 1:
-            ai_type = settings.get('llm_ai_type', 'openai')
-            if ai_type == 'openai' and not params.get('chatgpt_key'):
+            ai_type = settings.get('llm_ai_type', 'chatgpt')
+            if ai_type == 'chatgpt' and not params.get('chatgpt_key'):
                 self.main.startbtn.setDisabled(False)
                 tools.show_error(tr('llmduanju'))
                 from videotrans.winform import chatgpt
@@ -468,7 +468,7 @@ class WinAction(WinActionBase):
             self.cfg['loop_backaudio'] = self.main.is_loop_bgm.currentIndex()
             try:
                 self.cfg['backaudio_volume'] = float(self.main.bgmvolume.text())
-            except ValueError:
+            except (TypeError,ValueError):
                 pass
 
         params.getset_params(self.cfg | {"select_file_type": self.main.select_file_type.isChecked()})

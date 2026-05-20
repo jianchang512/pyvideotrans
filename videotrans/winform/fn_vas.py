@@ -3,26 +3,6 @@ from videotrans.task.taskcfg import SignMsg
 
 
 def openwin():
-    def format_milliseconds(milliseconds):
-        if not isinstance(milliseconds, int):
-            raise TypeError("毫秒数必须是整数")
-        if milliseconds < 0:
-            raise ValueError("毫秒数必须是非负整数")
-
-        seconds = milliseconds / 1000
-
-        minutes, seconds = divmod(seconds, 60)
-        hours, minutes = divmod(minutes, 60)
-        milliseconds_part = int((seconds * 1000) % 1000) // 10  # 保留两位
-
-        # 格式化为两位数字字符串
-        formatted_hours = f"{int(hours):02}"
-        formatted_minutes = f"{int(minutes):02}"
-        formatted_seconds = f"{int(seconds):02}"
-        formatted_milliseconds = f"{milliseconds_part:02}"
-
-        return f"{formatted_hours}:{formatted_minutes}:{formatted_seconds}.{formatted_milliseconds}"
-
     from videotrans.configure import contants
     from PySide6.QtWidgets import QFileDialog
     import shutil, threading
@@ -63,10 +43,14 @@ def openwin():
             self.uito.emit(SignMsg(**{"type": type, "text": text}))
 
         #
-        def hebing_pro(self, protxt, video_time=0):
+        def hebing_pro(self, protxt):
             percent = 0
+            timeout = 0
             while 1:
                 if percent >= 100 or self.is_end:
+                    return
+                timeout += 1
+                if timeout > 1200:
                     return
                 content = tools.read_last_n_lines(protxt)
                 if not content:
@@ -274,13 +258,14 @@ def openwin():
                         settings.get('preset', 'fast'),
                         self.file
                     ]
-                threading.Thread(target=self.hebing_pro, args=(protxt, self.video_time), daemon=True).start()
+                threading.Thread(target=self.hebing_pro, args=(protxt, ), daemon=True).start()
                 tools.runffmpeg(cmd, cmd_dir=TEMP_DIR)
                 self.post(type='ok', text=self.file)
-                self.is_end = True
             except Exception as e:
                 from videotrans.configure.excepts import get_msg_from_except
                 self.post(type='error', text=get_msg_from_except(e))
+            finally:
+                self.is_end = True
 
     def feed(d):
         if winobj.has_done:
@@ -341,7 +326,7 @@ def openwin():
         maxlen = 20
         try:
             maxlen = int(winobj.ysphb_maxlen.text())
-        except ValueError:
+        except (TypeError,ValueError):
             pass
         if not video:
             tools.show_error(tr("Video must be selected"))

@@ -1,4 +1,3 @@
-import json
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure.config import app_cfg
@@ -18,9 +17,6 @@ class SignThread(QThread):
 
     def _on_message(self, uuid, d:SignMsg):
         if uuid not in self.uuid_list : return
-        print(f'{d=}')
-        # or uuid in app_cfg.stoped_uuid_set
-        # d = json.loads(json_str) if isinstance(json_str, str) else json_str
         self.uito.emit(d)
         if d['type'] in ['error', 'succeed']:
             self.uuid_list.remove(uuid)

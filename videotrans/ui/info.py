@@ -2,7 +2,9 @@ import requests
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QByteArray, QThread, Signal
 from PySide6.QtGui import Qt, QPixmap
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+
+from videotrans import VERSION
+from videotrans.configure.config import tr, app_cfg, defaulelang
 from videotrans.util import tools
 
 
@@ -10,12 +12,12 @@ class Ui_infoform(object):
     def setupUi(self, infoform):
         infoform.setObjectName("infoform")
         infoform.setWindowModality(QtCore.Qt.NonModal)
-        infoform.resize(950, 600)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(infoform.sizePolicy().hasHeightForWidth())
-        infoform.setSizePolicy(sizePolicy)
+        infoform.resize(1000, 650)
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(infoform.sizePolicy().hasHeightForWidth())
+        # infoform.setSizePolicy(sizePolicy)
         self.v1 = QtWidgets.QVBoxLayout(infoform)
         # 将 v1 设为垂直顶部对齐
         self.v1.setAlignment(Qt.AlignTop)
@@ -29,23 +31,34 @@ class Ui_infoform(object):
         self.text1 = QtWidgets.QPlainTextEdit(infoform)
         self.text1.setObjectName("text1")
         self.text1.setReadOnly(True)
-        self.text1.setMaximumHeight(180)
-        self.text1.setPlainText("""本项目基于兴趣创建，无商业和收费计划，你可以一直免费使用，或者fork后自己修改(开源协议GPL-v3)。
-所有代码均开源可审查。
+        self.text1.setMaximumHeight(500)
+
+        version_info=f'当前版本: {VERSION}\n最新版本: {app_cfg.new_version_pvt}'
+        en_version_info=f'Current version: {VERSION}\nLatest version: {app_cfg.new_version_pvt}'
+
+        self.text1.setPlainText(f"""
+{version_info}
+
+本项目基于兴趣创建，无商业和收费计划，你可以一直免费使用，或者fork后自己修改(开源协议GPL-v3)。
 至于维护问题呢，开源嘛都是用爱发电，闲时就多花些精力在这上面，忙时可能就一段时间顾不上。
 当然了，如果觉得该项目对你有价值，并希望该项目能一直稳定持续维护，也欢迎小额捐助。
 
 Email: jianchang512@gmail.com
 文档站/下载: pyvideotrans.com
+GitHub: https://github.com/jianchang512/pyvideotrans
 【软件免费下载使用，不收取任何费用，也未在任何平台销售】
 
-""" if defaulelang == 'zh' else """This project is created based on interest, there is no commercial and no charge plan, you can use it for free or fork it and modify it (open source license GPL-v3). 
-All code is open source and can be reviewed.
+""" if defaulelang == 'zh' else f"""
+{en_version_info}
+
+This project is created based on interest, there is no commercial and no charge plan, you can use it for free or fork it and modify it (open source license GPL-v3). 
 As for the maintenance issue, it is all about giving love to the open source, so idle time will spend more time on this, and sometimes just a period of time. 
 Of course, if you think this project is useful to you and want it to be stable and continue to maintain, you are welcome to donate a small amount.
 
 Email: jianchang512@gmail.com
-Documents: pyvideotrans.com"""
+Docs/Download: pyvideotrans.com
+GitHub: https://github.com/jianchang512/pyvideotrans
+"""
                                 )
         # text1的边框合为0
         self.text1.setFrameStyle(QtWidgets.QFrame.NoFrame)
@@ -54,22 +67,14 @@ Documents: pyvideotrans.com"""
         """)
         self.v1.addWidget(self.text1)
 
-        self.link = QtWidgets.QPushButton(infoform)
+        self.link = QtWidgets.QLabel(infoform)
         self.link.setText(
             tr("Thank all donators, Click to view the list of donators"))
-        # 设置高度35px，最大宽度300
-        self.link.setFixedHeight(35)
-        self.link.setStyleSheet("""background-color:transparent""")
-        self.link.setCursor(Qt.PointingHandCursor)
-        self.link.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/about.html'))
 
         label = QtWidgets.QLabel(infoform)
         label.setText(
             tr("You can scan the QR code or click the above button to donate via the web"))
-        h2 = QtWidgets.QHBoxLayout()
-        h2.addWidget(self.link)
-        h2.addStretch()
-        self.v1.addLayout(h2)
+        self.v1.addWidget(self.link)
         self.v1.addWidget(label)
 
         self.h1 = QtWidgets.QHBoxLayout()
@@ -104,6 +109,7 @@ Documents: pyvideotrans.com"""
             link2.setText("Or Donate via https://ko-fi.com/jianchang512")
             link2.setFixedHeight(35)
             link2.setStyleSheet("""background-color:transparent;text-align:left""")
+
             link2.setCursor(Qt.PointingHandCursor)
             link2.clicked.connect(lambda: tools.open_url('https://ko-fi.com/jianchang512'))
             self.v1.addWidget(link2)
@@ -111,7 +117,7 @@ Documents: pyvideotrans.com"""
         lawbtn = QtWidgets.QPushButton()
         lawbtn.setFixedHeight(35)
         lawbtn.setMaximumWidth(300)
-        lawbtn.setStyleSheet("background-color:rgba(255,255,255,0);text-align:left""")
+        # lawbtn.setStyleSheet("background-color:rgba(255,255,255,0);text-align:left""")
         lawbtn.setCursor(Qt.PointingHandCursor)
         lawbtn.setText(tr("Software License Agreement"))
         lawbtn.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/law.html'))

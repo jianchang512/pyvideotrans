@@ -156,9 +156,7 @@ class VitsCNEN(BaseTTS):
 
         try:
             del _model_obj
-            import gc
-            gc.collect()
-        except:
+        except Exception:
             pass
         if ok == 0:
             raise _except if _except else DubbingSrtError('vits dubbing error')

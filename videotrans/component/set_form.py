@@ -1,31 +1,31 @@
-import re
 import os
+import re
+
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QEvent, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog, QTableWidgetItem
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
-from videotrans.util import tools
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings
 from videotrans.ui.ai302 import Ui_ai302form
 from videotrans.ui.ali import Ui_aliform
 from videotrans.ui.azure import Ui_azureform
 from videotrans.ui.azuretts import Ui_azurettsform
 from videotrans.ui.baidu import Ui_baiduform
+from videotrans.ui.cambasr import Ui_cambasrform
+from videotrans.ui.cambtrans import Ui_cambtransform
+from videotrans.ui.cambtts import Ui_cambttsform
 from videotrans.ui.chatgpt import Ui_chatgptform
 from videotrans.ui.chatterbox import Ui_chatterboxform
 from videotrans.ui.chattts import Ui_chatttsform
-from videotrans.ui.doubao2 import Ui_doubao2form
 from videotrans.ui.clone import Ui_cloneform
-from videotrans.ui.mosstts import Ui_mossttsform
 from videotrans.ui.cosyvoice import Ui_cosyvoiceform
-from videotrans.ui.omnivoice import Ui_omnivoiceform
 from videotrans.ui.deepgram import Ui_deepgramform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.deepseek import Ui_deepseekform
-from videotrans.ui.qwenmt import Ui_qwenmtform
 from videotrans.ui.doubao import Ui_doubaoform
+from videotrans.ui.doubao2 import Ui_doubao2form
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
 from videotrans.ui.f5tts import Ui_f5ttsform
 from videotrans.ui.fanyi import Ui_fanyisrt
@@ -40,43 +40,43 @@ from videotrans.ui.kokoro import Ui_kokoroform
 from videotrans.ui.libretranslate import Ui_libretranslateform
 from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.minimax import Ui_minimaxform
+from videotrans.ui.minimaxi import Ui_minimaxiform
+from videotrans.ui.mosstts import Ui_mossttsform
+from videotrans.ui.omnivoice import Ui_omnivoiceform
 from videotrans.ui.openairecognapi import Ui_openairecognapiform
 from videotrans.ui.openaitts import Ui_openaittsform
-from videotrans.ui.xaitts import Ui_xaittsform
-from videotrans.ui.xiaomi import Ui_xiaomiform
 from videotrans.ui.openrouter import Ui_openrouterform
 from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.parakeet import Ui_parakeetform
 from videotrans.ui.peiyin import Ui_peiyin
 from videotrans.ui.peiyinrole import Ui_peiyinrole
+from videotrans.ui.qwenmt import Ui_qwenmtform
 from videotrans.ui.qwentts import Ui_qwenttsform
 from videotrans.ui.qwenttslocal import Ui_qwenttslocal
 from videotrans.ui.recogn import Ui_recogn
 from videotrans.ui.recognapi import Ui_recognapiform
+from videotrans.ui.refaudio import Ui_refform
 from videotrans.ui.separate import Ui_separateform
 from videotrans.ui.setini import Ui_setini
-
 from videotrans.ui.siliconflow import Ui_siliconflowform
 from videotrans.ui.srthebing import Ui_srthebing
 from videotrans.ui.stt import Ui_sttform
-from videotrans.ui.whisperx import Ui_whisperx
 from videotrans.ui.subtitlescover import Ui_subtitlescover
 from videotrans.ui.tencent import Ui_tencentform
 from videotrans.ui.transapi import Ui_transapiform
 from videotrans.ui.ttsapi import Ui_ttsapiform
-from videotrans.ui.minimaxi import Ui_minimaxiform
 from videotrans.ui.vasrt import Ui_vasrt
 from videotrans.ui.videoandaudio import Ui_videoandaudio
 from videotrans.ui.videoandsrt import Ui_videoandsrt
 from videotrans.ui.volcenginetts import Ui_volcengineform
 from videotrans.ui.watermark import Ui_watermark
+from videotrans.ui.whisperx import Ui_whisperx
+from videotrans.ui.xaitts import Ui_xaittsform
+from videotrans.ui.xiaomi import Ui_xiaomiform
 from videotrans.ui.zhipuai import Ui_zhipuaiform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
 from videotrans.ui.zijierecognmodel import Ui_zijierecognform
-from videotrans.ui.cambtts import Ui_cambttsform
-from videotrans.ui.cambtrans import Ui_cambtransform
-from videotrans.ui.cambasr import Ui_cambasrform
-from videotrans.ui.refaudio import Ui_refform
+from videotrans.util import tools
 
 
 class CommonBaseMixin:
@@ -576,7 +576,7 @@ class Peiyinformrole(QWidgetBase, Ui_peiyinrole):
                 # 获取字幕 Index
                 try:
                     sub_index = int(self.subtitle_table.item(row, 0).text())
-                except:
+                except Exception:
                     continue
                 
                 role_item = self.subtitle_table.item(row, 3)
@@ -586,7 +586,7 @@ class Peiyinformrole(QWidgetBase, Ui_peiyinrole):
                     role_item.setText(default_role_text)
                     try:
                         del app_cfg.dubbing_role[sub_index]
-                    except:
+                    except Exception:
                         pass
                 else:
                     app_cfg.dubbing_role[sub_index] = selected_role
@@ -633,7 +633,7 @@ class Peiyinformrole(QWidgetBase, Ui_peiyinrole):
                         if selected_role in ['-', 'No']:
                             try:
                                 del app_cfg.dubbing_role[line]
-                            except:
+                            except Exception:
                                 pass
                         else:
                             app_cfg.dubbing_role[line] = selected_role
@@ -645,7 +645,7 @@ class Peiyinformrole(QWidgetBase, Ui_peiyinrole):
                                 if self.subtitle_table.item(row_idx, 0).text() == str(line):
                                     display_role = tr('Default Role') if selected_role in ['-', 'No'] else selected_role
                                     self.subtitle_table.item(row_idx, 3).setText(display_role)
-                        except:
+                        except Exception:
                             pass
 
         finally:

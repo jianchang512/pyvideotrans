@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import platform
 import subprocess
@@ -192,7 +193,7 @@ def get_video_codec(compat=None) -> str:
         except FileNotFoundError:
             logger.debug("'ffmpeg' 命令在 PATH 中未找到。无法进行编码器测试。")
             raise  # 重新抛出异常，让上层逻辑捕获并终止测试
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             logger.debug(f"硬件编码器 '{encoder_to_test}' 不可用")
             raise
         except PermissionError:
@@ -332,7 +333,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         # mp4 是  \d.\d 秒形式
         if re.match(r'^\d+(\.\d+)?$', _duration):
             result['time'] = int(float(_duration) * 1000)  # 第一个流的长度为准
-        elif re.match(r'^\d+\:', _duration):
+        elif re.match(r'^\d+:', _duration):
             # 其他视频格式可能是 00:01:00.445
             _t = _duration.split('.')
             _s = float(f'0.{_t[1]}' if len(_t) >= 2 else 0)
@@ -369,7 +370,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
             try:
                 num, den = map(int, rate_str.split('/'))
                 return num / den if den != 0 else 0
-            except ValueError:
+            except (TypeError,ValueError):
                 return 0
 
         fps1 = parse_fps(video_stream.get('r_frame_rate'))
@@ -495,7 +496,7 @@ def change_speed_rubberband(input_path:str, out_file:str, target_duration:Union[
     """
     try:
         import pyrubberband as pyrb
-    except Exception as e:
+    except Exception:
         logger.warning(f'进行音频变速时失败，因为未安装  rubberband 库，使用 ffmpeg 进行变速处理\n{INSTALL_RUBBERBAND_TIPS}')
         return precise_speed_up_audio(file_path=input_path, out=out_file, target_duration_ms=target_duration)
 
@@ -632,24 +633,24 @@ def remove_silence_wav(audio_file:str, rm_start=True)->bool:
     audio = AudioSegment.from_file(audio_file, format="wav")
 
     # TTS的静音通常非常干净 如果背景仍有细微底噪，可调高
-    silence_threshold = -40
+    silence_threshold = audio.dBFS - 20
 
-    # 只要静音持续 50ms 以上就检测出来 
-    min_silence_len = 50
+    # 只要静音持续 100ms 以上就检测出来
+    min_silence_len = 100
 
     # 3. 检测非静音片段
     nonsilent_chunks = detect_nonsilent(
         audio,
         min_silence_len=min_silence_len,
         silence_thresh=silence_threshold,
-        seek_step=1
+        seek_step=10
     )
 
     # 4. 处理剪切逻辑
     if len(nonsilent_chunks) > 0:
         # 在检测到的非静音首尾，额外保留 100 毫秒的声音，防止吞掉弱辅音或尾音
         head_padding_ms = 80  # 头部保留80毫秒
-        tail_padding_ms = 180  # 尾音通常拖得比较长，保留180毫秒
+        tail_padding_ms = 200  # 尾音通常拖得比较长，保留200毫秒
 
         # 获取第一个非静音块的开始时间
         raw_start = nonsilent_chunks[0][0]
@@ -668,7 +669,7 @@ def remove_silence_wav(audio_file:str, rm_start=True)->bool:
     return False  # 如果全是静音，返回False
 
 
-def format_video(name:str, target_dir:str=None)->InputFile:
+def format_video(name:Union[str,os.PathLike], target_dir:str=None)->InputFile:
     from . import help_misc
     raw_pathlib = Path(name)
     # 原始基本名字,例如 `1.mp4`

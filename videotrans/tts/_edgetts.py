@@ -1,16 +1,17 @@
 import asyncio
+import functools
 import os
 from dataclasses import dataclass
 from pathlib import Path
-import functools
-import aiohttp
 
-from videotrans.configure.excepts import DubbingSrtError
-from videotrans.util import tools
+import aiohttp
 from edge_tts import Communicate
 from edge_tts.exceptions import NoAudioReceived
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
+
+from videotrans.configure.config import tr, settings, app_cfg, logger, ROOT_DIR
+from videotrans.configure.excepts import DubbingSrtError
 from videotrans.tts._base import BaseTTS
+from videotrans.util import tools
 
 # edge-tts 限流，可能产生大量超时、401等错误
 

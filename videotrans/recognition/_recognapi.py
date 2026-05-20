@@ -73,7 +73,7 @@ class APIRecogn(BaseRecogn):
 
         res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files, timeout=600)
         res.raise_for_status()
-        content_type = res.headers.get('Content-Type')
+        content_type = res.headers.get('Content-Type','')
         if 'application/json' in content_type:
             res = res.json()
             if "code" not in res or res['code'] != 0:
@@ -167,7 +167,7 @@ class APIRecogn(BaseRecogn):
         # 内部函数：处理单个片段的返回结果
         def _process_chunk_result(raw_text, time_offset_ms, start_line_index):
             # 1. 使用正则表达式找到列表部分
-            match = re.search(r'(\[\{.*?\}\])', raw_text, re.DOTALL)
+            match = re.search(r'(\[{.*?}])', raw_text, re.DOTALL)
             chunk_raws = []
             chunk_speaker_raw_list = []  # 仅收集当前片段的原始说话人标记
 
@@ -178,8 +178,8 @@ class APIRecogn(BaseRecogn):
 
             list_str = match.group(1)
             logger.debug(f'match.group(1)={list_str}')
-            list_str = re.sub(r'^.*?\[\{', '[{', list_str, flags=re.S)
-            list_str = re.sub(r'\}\].*$', '}]', list_str, flags=re.S)
+            list_str = re.sub(r'^.*?\[{', '[{', list_str, flags=re.S)
+            list_str = re.sub(r'}].*$', '}]', list_str, flags=re.S)
             list_str = re.sub(r"\n?\n", '', list_str)
             logger.debug(f're.sub after:{list_str=}')
             segments = None
@@ -214,7 +214,7 @@ class APIRecogn(BaseRecogn):
                     "end_time": seg_end_ms,
                 }
                 # [Noise]之类无有效信息
-                if re.match(r'^\[[a-zA-Z0-9\s]+\]$', seg['Content'].strip()):
+                if re.match(r'^\[[a-zA-Z0-9\s]+]$', seg['Content'].strip()):
                     continue
 
                 # 假设 tools 是你类外部或全局可访问的工具

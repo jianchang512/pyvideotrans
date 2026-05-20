@@ -196,7 +196,7 @@ def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf):
         try:
             if Path(task['filename']).exists():
                 Path(task['filename']).unlink()
-        except:
+        except OSError:
             pass
             
     return task
@@ -333,7 +333,7 @@ class SpeedRate:
                 preset_tmp = str(Path(ROOT_DIR + "/preset.txt").read_text().strip())
                 if preset_tmp in ['ultrafast', 'veryfast', 'medium', 'slow']:
                     self.preset = preset_tmp
-        except:
+        except Exception:
             pass
 
         self.audio_speed_rubberband = shutil.which("rubberband")
@@ -384,7 +384,8 @@ class SpeedRate:
                 try:
                     self.raw_total_time = tools.get_video_duration(self.novoice_mp4)
                     logger.debug(f"[SpeedRate] 新视频生成完毕，总时长: {self.raw_total_time}ms")
-                except: pass
+                except Exception:
+                    pass
         else:
             # 不变视频，时长为原槽位时长
             for it in self.queue_tts:
@@ -539,7 +540,8 @@ class SpeedRate:
             ))
         for task in all_task:
             try: task.result()
-            except: pass
+            except Exception:
+                pass
 
     def _video_speeddown(self):
         data = []
@@ -839,7 +841,6 @@ class TtsSpeedRate(SpeedRate):
         logger.debug("[Audio] 开始对齐拼接...")
 
         audio_concat_list = []
-        total_audio_duration = 0
 
         # 恢复原始时间轴
         for i, it in enumerate(self.queue_tts):

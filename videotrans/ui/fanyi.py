@@ -2,7 +2,9 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import (QMetaObject, Qt)
-from videotrans.configure.config import tr,params,settings,app_cfg,logger
+
+from videotrans.configure.config import tr, settings
+
 
 class Ui_fanyisrt(object):
     def setupUi(self, fanyisrt):

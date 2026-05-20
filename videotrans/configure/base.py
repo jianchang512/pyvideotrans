@@ -1,20 +1,18 @@
 import base64
 import json
-import os, time, traceback
-import subprocess
+import os
 import threading
+import time
+from concurrent.futures.process import BrokenProcessPool
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
+from videotrans.configure.config import tr, settings, app_cfg, logger, push_queue, TEMP_ROOT
 from videotrans.configure.excepts import VideoTransError
-from videotrans.configure.config import tr, settings, app_cfg, logger, IS_FROZEN, push_queue, TEMP_ROOT
+from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.task.taskcfg import SignMsg
 from videotrans.util import tools
-from videotrans.configure import contants
-from videotrans.process.signelobj import GlobalProcessManager
-from concurrent.futures.process import BrokenProcessPool
-
 from videotrans.util.gpus import get_cudaX
 
 
@@ -163,8 +161,13 @@ class BaseCon:
 
     def _signal_of_process(self, logs_file):
         last_mtime = 0
+        timeout = 0
         while 1:
             if app_cfg.exit_soft: return
+            timeout += 1
+            if timeout > 3600:
+                logger.warning(f'_signal_of_process timed out after 1 hours: {logs_file}')
+                return
             _p = Path(logs_file)
             # 已删掉
             if last_mtime > 0 and not _p.exists():
@@ -180,6 +183,7 @@ class BaseCon:
                     time.sleep(1)
                     continue
                 last_mtime = _mtime
+                timeout=0
                 _content = _p.read_text(encoding='utf-8')
                 if not _content:
                     time.sleep(1)
@@ -196,8 +200,10 @@ class BaseCon:
     # 使用新进程执行任务
     def _new_process(self, callback=None, title="", is_cuda=False, kwargs=None):
         _st = time.time()
+        kwargs = kwargs or {}
         self.signal(text=f'[{title}] starting...')
-        logger.debug(f'[新进程执行任务]:{title}')
+        logger.debug(f'[新进程任务 开始:{title}]')
+
         # 提交任务，并显式传入参数，确保子进程拿到正确的参数
         logs_file = kwargs.get('logs_file',f'{TEMP_ROOT}/{_st}.log')
         device_index = 0
@@ -220,6 +226,7 @@ class BaseCon:
                     kwargs['is_cuda'] = False
                     logger.error(f'已启用CUDA但未检测到可用显卡，强制使用CPU')
                 kwargs['device_index'] = max(device_index, 0)
+            logger.debug(f'任务参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,
                 **kwargs
@@ -231,7 +238,6 @@ class BaseCon:
             data,err = future.result()
             if err or not data:
                 raise VideoTransError(err)
-
             self.signal(text=f'[{title}] end: {int(time.time() - _st)}s')
             return data
         except BrokenProcessPool as e:
@@ -243,11 +249,13 @@ class BaseCon:
                 _cuda = f" GPU{device_index}"
             logger.exception(f'{title}: {_model}{_cuda}, {kwargs=},{e}', exc_info=True)
             raise VideoTransError(f'{_model}{_cuda} {e}')
-        except BaseException as e:
+        except Exception as e:
             logger.exception(f'{title},{e}', exc_info=True)
             raise
         finally:
             try:
-                Path(logs_file).unlink(missing_ok=True)
-            except Exception:
+                logger.debug(f'[新进程任务 结束:{title}]，耗时{time.time()-_st}s')
+                if logs_file:
+                    Path(logs_file).unlink(missing_ok=True)
+            except OSError:
                 pass

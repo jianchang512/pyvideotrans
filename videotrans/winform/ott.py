@@ -1,5 +1,5 @@
 def openwin():
-    from videotrans.configure.config import tr,params,settings,app_cfg,logger
+    from videotrans.configure.config import params, app_cfg
     def save():
         url = winobj.ott_address.text().strip()
         if not url.startswith('http'):

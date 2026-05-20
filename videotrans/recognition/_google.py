@@ -3,14 +3,15 @@ import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import List, Union
 
 import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+
+from videotrans.configure.config import tr, settings, logger
 from videotrans.configure.excepts import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr,settings,logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
@@ -56,7 +57,7 @@ class GoogleRecogn(BaseRecogn):
                     text = recognizer.recognize_google(audio_data, language=self.detect_language)
                 except sr.UnknownValueError:
                     text = ""
-                except sr.RequestError as e:
+                except sr.RequestError:
                     raise
 
             text = re.sub(r'&#\d+;', '', f"{text.capitalize()}. ".replace('&#39;', "'"),flags=re.I | re.S).strip()

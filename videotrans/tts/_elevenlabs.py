@@ -3,13 +3,12 @@ import logging
 from dataclasses import dataclass
 from typing import Union, Dict, List
 
-import httpx
 from elevenlabs import ElevenLabs, VoiceSettings, UnauthorizedError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+
 from videotrans.configure.config import params, logger, ROOT_DIR, settings
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
-
 
 
 @dataclass

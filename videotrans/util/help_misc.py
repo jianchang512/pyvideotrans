@@ -1,6 +1,6 @@
 import hashlib
 import json
-import os,re
+import os, re
 import platform
 import subprocess
 import sys
@@ -8,20 +8,21 @@ import time
 from dataclasses import is_dataclass, asdict
 from pathlib import Path
 
-from videotrans.configure.config import tr,  app_cfg, logger, ROOT_DIR,  defaulelang,  push_queue
+from videotrans import VERSION
+from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulelang, push_queue
 import tqdm
 
 from videotrans.task.taskcfg import SignMsg
 
 
 def create_tqdm_class(callback):
-    class QtAwareTqdm(tqdm.tqdm):   
+    class QtAwareTqdm(tqdm.tqdm):
 
         def display(self, msg=None, pos=None):
             super().display(msg, pos)
-            _str=str(self).split('%')
-            if callback and len(_str)>0 :
-                callback(_str[0]+'%')
+            _str = str(self).split('%')
+            if callback and len(_str) > 0:
+                callback(_str[0] + '%')
 
     return QtAwareTqdm
 
@@ -50,7 +51,6 @@ def show_error(tb_str):
     from PySide6.QtGui import QIcon, QDesktopServices
     from PySide6.QtCore import QUrl, Qt
 
-    
     msg_box = QtWidgets.QMessageBox()
     msg_box.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint)
 
@@ -58,7 +58,7 @@ def show_error(tb_str):
     try:
         msg_box.setWindowIcon(QIcon(icon_path))
     except Exception as e:
-        logger.exception(f"Warning: Could not load window icon from {icon_path}. Error: {e}",exc_info=True)
+        logger.exception(f"Warning: Could not load window icon from {icon_path}. Error: {e}", exc_info=True)
 
     msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
     msg_box.setWindowTitle(tr('anerror'))
@@ -72,12 +72,12 @@ def show_error(tb_str):
         ok_button.setText("知道了")
 
     # 添加自定义的“报告错误”按钮
-    report_button = msg_box.addButton(tr("Report Error"),QtWidgets.QMessageBox.ButtonRole.NoRole)
-    url_button=None
-    urls=re.findall(r'\[(https?:.*?)\]',tb_str)
+    report_button = msg_box.addButton(tr("Report Error"), QtWidgets.QMessageBox.ButtonRole.NoRole)
+    url_button = None
+    urls = re.findall(r'\[(https?:.*?)]', tb_str)
     if urls:
-        url_button = msg_box.addButton(tr("Open")+tr('Download URL'),QtWidgets.QMessageBox.ButtonRole.NoRole)
-    
+        url_button = msg_box.addButton(tr("Open") + tr('Download URL'), QtWidgets.QMessageBox.ButtonRole.NoRole)
+
     msg_box.setDefaultButton(ok_button)
 
     msg_box.setStyleSheet("""
@@ -89,6 +89,7 @@ def show_error(tb_str):
             }
         """)
     clicked_button_storage = None
+
     def record_clicked_button(button):
         nonlocal clicked_button_storage
         clicked_button_storage = button
@@ -96,26 +97,26 @@ def show_error(tb_str):
     msg_box.buttonClicked.connect(record_clicked_button)
     msg_box.exec()
     # if report and clicked_button_storage == report_button:
-    full_url=None
+    full_url = None
     if clicked_button_storage == report_button:
         if msg_box.clickedButton() == report_button:
             import urllib.parse
             import os, platform, sys
             from videotrans import VERSION
             # 对全部错误信息进行URL编码
-            _isfrozen=getattr(sys, 'frozen', False)
-            _msg=f"{tb_str}\n=====\nsystem:{platform.platform()}\nversion:{VERSION}\nfrozen:{_isfrozen}\nlanguage:{defaulelang}\nroot_dir:{ROOT_DIR}\n"
+            _isfrozen = getattr(sys, 'frozen', False)
+            _msg = f"{tb_str}\n=====\nsystem:{platform.platform()}\nversion:{VERSION}\nfrozen:{_isfrozen}\nlanguage:{defaulelang}\nroot_dir:{ROOT_DIR}\n"
             if not _isfrozen:
-                _msg+=f"Python: {sys.version}\n"
+                _msg += f"Python: {sys.version}\n"
             encoded_content = urllib.parse.quote(_msg)
             full_url = f"https://bbs.pyvideotrans.com/?type=post&content={encoded_content}"
     elif url_button and clicked_button_storage == url_button:
         if msg_box.clickedButton() == url_button:
-            full_url=urls[0]
+            full_url = urls[0]
     # 调用系统默认浏览器打开链接
     if full_url:
         QDesktopServices.openUrl(QUrl(full_url))
-    
+
 
 def open_url(url: str = None):
     import webbrowser
@@ -187,13 +188,12 @@ def shutdown_system():
 
 
 # 获取 prompt提示词
-def get_prompt(ainame,aisendsrt=True):
-
-    prompt_file = get_prompt_file(ainame=ainame,aisendsrt=aisendsrt)
-    content = Path(prompt_file).read_text(encoding='utf-8-sig',errors="ignore")
+def get_prompt(ainame, aisendsrt=True):
+    prompt_file = get_prompt_file(ainame=ainame, aisendsrt=aisendsrt)
+    content = Path(prompt_file).read_text(encoding='utf-8-sig', errors="ignore")
     glossary = ''
     if Path(ROOT_DIR + '/videotrans/glossary.txt').exists():
-        glossary = Path(ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8-sig',errors="ignore").strip()
+        glossary = Path(ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8-sig', errors="ignore").strip()
         if glossary:
             glossary = "\n".join(["|" + it.replace("=", '|') + "|" for it in glossary.split('\n')])
             glossary = f"\n\n# Glossary of terms\nTranslations are made strictly according to the following glossary. If a term appears in a sentence, the corresponding translation must be used, not a free translation:\n| Glossary | Translation |\n| --------- | ----- |\n{glossary}\n\n"
@@ -202,21 +202,20 @@ def get_prompt(ainame,aisendsrt=True):
 
 
 def qwenmt_glossary():
-
     if Path(ROOT_DIR + '/videotrans/glossary.txt').exists():
-        glossary = Path(ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8-sig',errors="ignore").strip()
+        glossary = Path(ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8-sig', errors="ignore").strip()
         if glossary:
-            term=[]
+            term = []
             for it in glossary.split('\n'):
-                tmp=it.split("=")
-                if len(tmp)==2:
-                    term.append({"source":tmp[0],"target":tmp[1]})
-            return term if len(term)>0 else None
+                tmp = it.split("=")
+                if len(tmp) == 2:
+                    term.append({"source": tmp[0], "target": tmp[1]})
+            return term if len(term) > 0 else None
     return None
 
-# 获取当前需要操作的prompt txt文件
-def get_prompt_file(ainame,aisendsrt=True):
 
+# 获取当前需要操作的prompt txt文件
+def get_prompt_file(ainame, aisendsrt=True):
     prompt_path = f'{ROOT_DIR}/videotrans/'
     prompt_name = f'{ainame}.txt'
     if aisendsrt:
@@ -226,13 +225,10 @@ def get_prompt_file(ainame,aisendsrt=True):
     return f'{prompt_path}{prompt_name}'
 
 
-
-
 def show_glossary_editor(parent):
     from PySide6.QtWidgets import (QVBoxLayout, QTextEdit, QDialog,
                                    QDialogButtonBox)
     from PySide6.QtCore import Qt
-
 
     dialog = QDialog(parent)
     dialog.setWindowTitle(tr('Glossary'))
@@ -252,22 +248,22 @@ def show_glossary_editor(parent):
     file_path = ROOT_DIR + "/videotrans/glossary.txt"
     try:
         if os.path.exists(file_path):
-            with open(file_path, "r", encoding="utf-8-sig",errors="ignore") as f:
+            with open(file_path, "r", encoding="utf-8-sig", errors="ignore") as f:
                 content = f.read()
                 text_edit.setText(content)
     except Exception as e:
-        logger.exception(f"读取术语表文件失败: {e}",exc_info=True)
+        logger.exception(f"读取术语表文件失败: {e}", exc_info=True)
 
     def save_text():
         """
         点击保存按钮，将文本框内容写回文件。
         """
         try:
-            with open(file_path, "w", encoding="utf-8",errors="ignore") as f:
+            with open(file_path, "w", encoding="utf-8", errors="ignore") as f:
                 f.write(text_edit.toPlainText())  # toPlainText 获取纯文本
             dialog.accept()
         except Exception as e:
-            logger.exception(f"写入术语表文件失败: {e}",exc_info=True)
+            logger.exception(f"写入术语表文件失败: {e}", exc_info=True)
 
     button_box.accepted.connect(save_text)
     button_box.rejected.connect(dialog.reject)
@@ -329,7 +325,6 @@ def pygameaudio(filepath=None):
         logger.exception(f'播放试听声音失败:{e}')
 
 
-
 def read_last_n_lines(filename, n=100):
     if not Path(filename).exists():
         return []
@@ -341,9 +336,8 @@ def read_last_n_lines(filename, n=100):
         return list(last_lines)  # 返回列表形式
     except FileNotFoundError:
         return []
-    except Exception as e:
+    except Exception:
         return []
-
 
 
 # 综合写入日志，默认sp界面
@@ -356,20 +350,18 @@ def set_process(*, text="", type="logs", uuid=None):
         if text:
             text = text.replace('\\n', ' ')
 
-        if app_cfg.exec_mode=='cli':
+        if app_cfg.exec_mode == 'cli':
             print(text)
             return
         log = SignMsg(**{"text": text, "type": type, "uuid": uuid})
         push_queue(uuid or "", log)
     except Exception as e:
-        logger.exception(f'set_process：{e}',exc_info=True)
-
+        logger.exception(f'set_process：{e}', exc_info=True)
 
 
 def set_proxy(set_val=''):
-
-    if set_val=='del':
-        app_cfg.proxy=''
+    if set_val == 'del':
+        app_cfg.proxy = ''
         if os.environ.get('HTTP_PROXY'):
             del os.environ['HTTP_PROXY']
         if os.environ.get('HTTPS_PROXY'):
@@ -378,7 +370,7 @@ def set_proxy(set_val=''):
 
     if set_val:
         # 设置代理
-        set_val=set_val.lower()
+        set_val = set_val.lower()
         if not set_val.startswith("http") and not set_val.startswith('sock'):
             set_val = f"http://{set_val}"
         app_cfg.proxy = set_val
@@ -386,13 +378,11 @@ def set_proxy(set_val=''):
         os.environ['HTTPS_PROXY'] = set_val
         return set_val
 
-
-
     # 获取代理
     http_proxy = app_cfg.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
 
     if http_proxy:
-        http_proxy=http_proxy.lower()
+        http_proxy = http_proxy.lower()
         if not http_proxy.startswith("http") and not http_proxy.startswith('sock'):
             http_proxy = f"http://{http_proxy}"
         return http_proxy
@@ -406,9 +396,9 @@ def set_proxy(set_val=''):
             # 读取代理设置
             proxy_enable, _ = winreg.QueryValueEx(key, 'ProxyEnable')
             proxy_server, _ = winreg.QueryValueEx(key, 'ProxyServer')
-            if proxy_enable==1 and proxy_server:
+            if proxy_enable == 1 and proxy_server:
                 # 是否需要设置代理
-                proxy_server=proxy_server.lower()
+                proxy_server = proxy_server.lower()
                 if not proxy_server.startswith("http") and not proxy_server.startswith('sock'):
                     proxy_server = "http://" + proxy_server
 
@@ -441,11 +431,26 @@ def process_openai_api(url=""):
 
 # 序列化
 
-def serial(data:object)->str:
-    if not isinstance(data,list):
+def serial(data: object) -> str:
+    if not isinstance(data, list):
         return json.dumps(asdict(data) if is_dataclass(data) else data)
-    _newlist=[]
+    _newlist = []
     for it in data:
         _newlist.append(asdict(it) if is_dataclass(it) else it)
     return json.dumps(_newlist)
 
+
+def check_new_version():
+    # 查看当前最新版本信息
+    try:
+
+        import requests
+        # 纯静态文件，仅返回版本信息字符串
+        # 只获取当前软件版本号数字和操作系统类型(win32/macos/linux)
+        url = f"https://pyvideotrans.com/version.json?version={VERSION}&os={sys.platform}"
+        res = requests.get(url)
+        res.raise_for_status()
+        d = res.json()
+        app_cfg.new_version_pvt = d['version']
+    except Exception as e:
+        logger.exception(f'获取最新版本信息失败{e}', exc_info=True)

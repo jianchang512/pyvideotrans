@@ -118,12 +118,12 @@ class CambRecogn(BaseRecogn):
                 start_ms = int(start * 1000)
                 end_ms = int(end * 1000)
 
-                tmp = {
+                tmp = SrtItem(**{
                     "line": len(raws) + 1,
                     "start_time": start_ms,
                     "end_time": end_ms,
                     "text": text.strip()
-                }
+                })
 
                 if self.detect_language and self.detect_language[:2] in contants.CJK_LANG:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'], flags=re.I | re.S)

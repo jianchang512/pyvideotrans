@@ -1,9 +1,9 @@
 import logging
-import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict,Union
+from typing import List, Dict, Union
+
 import requests
 from pydub import AudioSegment
 from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, after_log, before_log, wait_fixed
@@ -12,7 +12,6 @@ from videotrans.configure.config import tr, params, logger, settings
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-
 
 
 @dataclass
@@ -50,15 +49,17 @@ class GPTSoVITS(BaseTTS):
                     ref_wav_audio[:9990].export(ref_wav,format="wav")
                 elif ms_ref<3000:#大于3s合法
                     logger.warning(f'参考音频小于3s，末尾填空白:{ref_wav=}')
-                    silent_segment = AudioSegment.silent(duration=3000 if ms_ref<1500 else 1600)
-                    silent_segment.set_channels(1).set_frame_rate(16000)
+                    silent_segment = AudioSegment.silent(duration=3000 if ms_ref<1500 else 1600).set_channels(1).set_frame_rate(16000)
+
                     (ref_wav_audio+silent_segment).export(ref_wav,format="wav")
-            elif keys[-1]=='clone':
+            elif keys and keys[-1]=='clone':
                 # 无自定义参考音频，clone原音频时长不符合，失败
                 return 'No refer audio and origin audio duration not between 3-10s'
-            else:
+            elif keys:
                 # 克隆原音频失败，使用最后一个参考音频
                 data.update(self.roledict[keys[-1]])
+            else:
+                raise StopTask('No reference audio available for voice cloning')
 
         if not data.get('refer_wav_path') and role !='clone':
             return tr("Must pass in the reference audio file path")

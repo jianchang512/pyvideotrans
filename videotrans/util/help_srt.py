@@ -10,13 +10,14 @@ def process_text_to_srt_str(input_text: str)->str:
     if is_srt_string(input_text):
         return input_text
     # 将文本按换行符切割成列表
-    text_lines = [line.strip() for line in input_text.replace("\n", "").splitlines() if line.strip()]
+    text_lines = [line.strip() for line in input_text.splitlines() if line.strip()]
     # 分割大于50个字符的行
     text_str_list = []
     for line in text_lines:
         if len(line) > 50:
             # 按标点符号分割为多个字符串
-            split_lines = re.split(r'[,.，。]', line)
+            # split_lines = re.split(r'[,.，。]', line)
+            split_lines = re.split(r'(?<=[,.，。])', line)
             text_str_list.extend([l.strip() for l in split_lines if l.strip()])
         else:
             text_str_list.append(line)
@@ -41,7 +42,7 @@ def is_srt_string(input_text:str)->bool:
         return False
 
     # 将文本按换行符切割成列表
-    text_lines = input_text.replace("\n", "").splitlines()
+    text_lines = input_text.splitlines()
     if len(text_lines) < 3:
         return False
 
@@ -184,7 +185,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True) -> List[SrtItem]:
         try:
             with open(file, 'r', encoding='utf-8-sig') as f:
                 content = f.read().strip()
-        except UnicodeDecodeError as e:
+        except UnicodeDecodeError:
             try:
                 with open(file, 'r', encoding='gbk') as f:
                     content = f.read().strip()

@@ -6,8 +6,7 @@ from PySide6.QtCore import Qt, QMetaObject
 
 from videotrans import tts
 from videotrans.component.component import Textedit
-
-from videotrans.configure.config import  tr,app_cfg,params,settings,logger
+from videotrans.configure.config import tr
 
 
 class Ui_peiyin(object):

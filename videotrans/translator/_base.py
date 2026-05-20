@@ -1,15 +1,16 @@
-import json
 import time
-from dataclasses import dataclass, field, asdict, is_dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Union
+
+from tenacity import RetryError
+
 from videotrans import translator
 from videotrans.configure.base import BaseCon
-from videotrans.configure.excepts import TranslateSrtError
 from videotrans.configure.config import tr, settings, logger, TEMP_ROOT
+from videotrans.configure.excepts import TranslateSrtError
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
-from tenacity import RetryError
 
 
 @dataclass
@@ -58,7 +59,7 @@ class BaseTrans(BaseCon):
 
     # 实际操作 run  -> run_text|run_srt -> _item_task
     def run(self) -> List[SrtItem]:
-        _st = time.time()
+        logger.debug(f'开始字幕翻译: 渠道{self.translate_type}')
         if hasattr(self, '_download'):
             self._download()
         try:
@@ -75,7 +76,7 @@ class BaseTrans(BaseCon):
         finally:
             if hasattr(self, '_unload'):
                 self._unload()
-            logger.debug(f'[字幕翻译]渠道{self.translate_type},{self.model_name}:共耗时:{int(time.time() - _st)}s')
+
 
     def _run_text(self, split_source_text: List[List[str]]):
         # 传统翻译渠道或AI翻译渠道以按行形式翻译
@@ -153,7 +154,7 @@ class BaseTrans(BaseCon):
                 _empty_line += 1
         if _empty_line >= len(raws_list):
             raise TranslateSrtError(tr("Translate result is empty"))
-        logger.debug(f'按SRT格式翻译，原始字幕行数：{len(self.text_list)},翻译后行数:{len(raws_list)}')
+        logger.debug(f'以SRT格式翻译，原始字幕行数：{len(self.text_list)},翻译后行数:{len(raws_list)}')
         return raws_list
 
     def _set_cache(self, it, res_str):
@@ -161,7 +162,7 @@ class BaseTrans(BaseCon):
         file_cache = TEMP_ROOT + f'/translate_cache/{self._get_key(it)}.txt'
         Path(file_cache).write_text(res_str, encoding='utf-8')
 
-    def _get_cache(self, it) -> str:
+    def _get_cache(self, it) -> Union[str,None]:
         if self.is_test: return
         file_cache = TEMP_ROOT + f'/translate_cache/{self._get_key(it)}.txt'
         if Path(file_cache).exists():

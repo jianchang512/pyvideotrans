@@ -18,7 +18,7 @@ class MultVideo(QThread):
         self.batch_nums = 0
         try:
             self.batch_nums = int(float(settings.get('batch_nums', 0)))
-        except ValueError:
+        except (ValueError,TypeError):
             pass
 
     def run(self):

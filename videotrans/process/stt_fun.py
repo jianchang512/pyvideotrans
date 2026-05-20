@@ -369,7 +369,7 @@ def pipe_asr(
             dtype=torch.float16 if is_cuda else torch.float32,
         )
 
-        msg = f'Pipeline loaded on device={(p.model.device)}'
+        msg = f'Pipeline loaded on device={p.model.device}'
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
         # 3. 动态构建 generate_kwargs
         generate_kwargs = {}

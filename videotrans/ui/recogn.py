@@ -3,7 +3,9 @@ import platform
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import Qt
-from videotrans.configure.config import tr,params,settings,app_cfg,logger
+
+from videotrans.configure.config import tr, settings
+
 
 class Ui_recogn(object):
     def setupUi(self, recogn):

@@ -3,7 +3,8 @@ from PySide6.QtGui import QIcon, Qt
 from PySide6.QtWidgets import (
     QDialog, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton
 )
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+
+from videotrans.configure.config import ROOT_DIR, tr
 from videotrans.util import tools
 
 
@@ -95,7 +96,7 @@ class SetThreadTransDubb(QDialog):
             ainum = int(self.aiinput.text().strip())
         try:
             num, wait = max(int(num), 1), max(round(float(wait), 1), 0)
-        except ValueError:
+        except (TypeError,ValueError):
             num = 5
             wait = 0
         return num, wait, ainum

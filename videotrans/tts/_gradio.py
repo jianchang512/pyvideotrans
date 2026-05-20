@@ -57,7 +57,7 @@ class GradioBase(BaseTTS):
                 self.convert_to_wav(wav_file, data_item['filename'])
             else:
                 return str(result)
-        except ValueError as e:
+        except (TypeError,ValueError,IndexError,AttributeError) as e:
             err=str(e)
             _quit_errors=[
                 "Unknown protocol",

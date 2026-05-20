@@ -130,7 +130,7 @@
   "Do not include files with the same name but different extensions, this can lead to confusion, please modify {}": "不可含有名字相同但后缀不同的文件，会导致混淆，请修改 {}",
   "Documents": "使用文档",
   "Donate to help the software to keep on maintaining": "捐助该软件以帮助持续维护",
-  "Donating developers": "小额捐赠/联系开发者",
+  "Donating developers": "关于 / 联系 / 捐赠",
   "Download Hard Subtitle Extraction Software": "下载硬字幕提取软件",
   "Download Models": "下载模型",
   "Dubbing": "配音中",

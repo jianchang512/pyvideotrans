@@ -32,7 +32,7 @@ class GlobalProcessManager:
         cpu_count=int(os.cpu_count())
         try:
             man_set=int(float(settings.get('process_max',0)))
-        except:
+        except (ValueError,TypeError):
             man_set=0
         if man_set>0:
             return int(min(man_set,8,cpu_count))
@@ -47,7 +47,7 @@ class GlobalProcessManager:
         cpu_count=int(os.cpu_count())
         try:
             process_max_gpu=int(float(settings.get('process_max_gpu',0)))
-        except ValueError:
+        except (TypeError,ValueError):
             process_max_gpu=0
         # 手动设置了gpu进程数量，则优先级最高,例如虽然只有一卡，但显存特别大，可手动设置多个gpu进程
         if process_max_gpu>0:

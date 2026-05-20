@@ -1,18 +1,20 @@
-import sys
 import os
 from pathlib import Path
+import os
 import subprocess
-from PySide6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QFileDialog, QListWidget, QListWidgetItem, QCheckBox,
-    QComboBox, QScrollArea, QPlainTextEdit, QScroller
-)
+from pathlib import Path
+
 from PySide6.QtCore import Qt, QThreadPool, QRunnable, Signal, QObject, QUrl, Slot, QSize, QThread
 from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
+    QLabel, QFileDialog, QListWidget, QListWidgetItem, QCheckBox,
+    QComboBox, QPlainTextEdit, QScroller
+)
 
+from videotrans.configure.config import ROOT_DIR, tr, settings, HOME_DIR
 # 全局输出文件夹
 from videotrans.util import tools
-from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, params, TEMP_DIR, logger, defaulelang, HOME_DIR
 
 output_folder = HOME_DIR
 
@@ -382,12 +384,15 @@ class Worker(QThread):
         self.mode=mode
 
     def run(self):
-        video_info=tools.get_video_info(self.parent.video_path)
-        if video_info['streams_audio']==0 and self.mode == 2:
-            self.uito.emit(f"Error:{tr('errorNoAudioTrackForAudioOnly')}")
-            return
-        for line_num in self.parent.selected_lines:
-            sub = self.parent.subtitles[line_num - 1]
-            task = ClipTask(self.parent.video_path, sub, line_num, self.parent.subtitle_name, self.parent.signals, self.mode,video_info)
-            self.parent.thread_pool.start(task)
+        try:
+            video_info=tools.get_video_info(self.parent.video_path)
+            if video_info['streams_audio']==0 and self.mode == 2:
+                self.uito.emit(f"Error:{tr('errorNoAudioTrackForAudioOnly')}")
+                return
+            for line_num in self.parent.selected_lines:
+                sub = self.parent.subtitles[line_num - 1]
+                task = ClipTask(self.parent.video_path, sub, line_num, self.parent.subtitle_name, self.parent.signals, self.mode,video_info)
+                self.parent.thread_pool.start(task)
 
+        except Exception as e:
+            self.uito.emit(f"Error:{e}")

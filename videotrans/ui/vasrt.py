@@ -5,7 +5,9 @@ from pathlib import Path
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QMetaObject, Qt
 from PySide6.QtWidgets import QHBoxLayout
-from videotrans.configure.config import tr,settings,params,app_cfg,logger
+
+from videotrans.configure.config import tr
+
 
 class Ui_vasrt(object):
     def setupUi(self, vasrt):

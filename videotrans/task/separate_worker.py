@@ -1,12 +1,13 @@
 # 从日志队列获取日志
+import time
+from pathlib import Path
+
 from PySide6.QtCore import QThread, Signal as pyqtSignal
 
-from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,TEMP_DIR,logger,defaulelang,HOME_DIR
+from videotrans.configure.config import ROOT_DIR, tr, settings, TEMP_DIR, logger
 from videotrans.process.prepare_audio import vocal_bgm
 from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
-import time
-from pathlib import Path
 
 
 class SeparateWorker(QThread):
@@ -70,13 +71,13 @@ class SeparateWorker(QThread):
                 ]
                 tools.runffmpeg(cmd)
                 self.file = newfile
-            tools.set_process('start separate...',uuid=self.uuid)
+            tools.set_process(text='start separate...',uuid=self.uuid)
             kw={"input_file":self.file,"vocal_file":self.vocal,"instr_file":f"{self.out}/instrument-{p.stem}.wav","uvr_models":uvr_models}
             future=GlobalProcessManager.submit_task_cpu(
                         vocal_bgm,
                         **kw
                     )
-            rs,err=future.result()
+            rs,err=future.result(timeout=3600)
             if rs is False:
                 self.finish_event.emit(err)
         except Exception as e:

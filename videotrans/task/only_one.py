@@ -1,16 +1,15 @@
 # 执行单个视频翻译任务时 暂停等待
 import json
-import traceback
 import time
+import traceback
 from pathlib import Path
 from typing import Optional, List, Dict, Any
-from pydub import AudioSegment
+
 from PySide6.QtCore import QThread, Signal, QObject
+from pydub import AudioSegment
 
-from videotrans.configure.excepts import get_msg_from_except
 from videotrans.configure.config import tr, settings, app_cfg, logger
-from videotrans.task.taskcfg import TaskCfgVTT, SignMsg
-
+from videotrans.task.taskcfg import TaskCfgVTT, SignMsg, InputFile
 from videotrans.task.trans_create import TransCreate
 from videotrans.util import tools
 
@@ -20,7 +19,7 @@ class Worker(QThread):
 
     def __init__(self, *,
                  parent: Optional[QObject] = None,
-                 obj_list: Optional[List[Dict[str, Any]]] = None,
+                 obj_list: Optional[List[InputFile]] = None,
                  cfg: Optional[Dict[str, Any]] = None):
         super().__init__(parent=parent)
         self.cfg = cfg
@@ -32,6 +31,7 @@ class Worker(QThread):
         obj = self.obj_list[0]
         # 从停止队列中移出，以便重新开始
         app_cfg.rm_uuid(obj['uuid'])
+        logger.debug(f'[单视频翻译模式]:{obj.name}')
         try:
             self.uuid = obj['uuid']
             trk = TransCreate(cfg=TaskCfgVTT(**self.cfg | obj))
@@ -123,7 +123,7 @@ class Worker(QThread):
         try:
             if self.uuid in app_cfg.stoped_uuid_set: return
             self.uito.emit(self.uuid, SignMsg(**{"text": text, "type": type, 'uuid': self.uuid}))
-        except TypeError:
+        except (ValueError,IndexError,TypeError):
             pass
 
     def _exit(self):

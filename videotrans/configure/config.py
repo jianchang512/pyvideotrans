@@ -105,7 +105,7 @@ def _init_language():
         _defaulelang = os.environ.get('PYVIDEOTRANS_LANG', settings.lang)
         if not _defaulelang:
             _defaulelang = QLocale.system().name()[:2].lower()
-    except:
+    except Exception:
         _defaulelang = "en"
 
     if _defaulelang not in SUPPORT_LANG:
@@ -170,7 +170,7 @@ class AppCfg:
     dubbing_role: Dict = field(default_factory=dict)
     SUPPORT_LANG: Dict = field(default_factory=dict)
     proxy: str = ''
-
+    new_version_pvt = ""
     def __post_init__(self):
         self.SUPPORT_LANG=_get_langjson_list()
 
@@ -515,13 +515,13 @@ class AppSettings:
             if key in int_type:
                 try:
                     return int(self[key])
-                except ValueError:
+                except (ValueError,TypeError,IndexError):
                     default = self._get_defaults()
                     return int(default[key])
             elif key in float_type:
                 try:
                     return float(self[key])
-                except ValueError:
+                except (ValueError,TypeError,IndexError):
                     default = self._get_defaults()
                     return float(default[key])
 
@@ -532,7 +532,7 @@ class AppSettings:
             if vl is True or key.lower()=='true':
                 return True
             return str(self[key])
-        except (AttributeError,ValueError):
+        except (AttributeError,ValueError,IndexError,TypeError):
             return default
 
 

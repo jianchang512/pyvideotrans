@@ -850,6 +850,7 @@ def run(*, translate_type=0,
             return Google(**kwargs).run()
         logger.warning('==未设置代理并且检测google失败，使用微软翻译')
         translate_type = MICROSOFT_INDEX
+        kwargs['translate_type']=translate_type
 
     _cls: Union[Type[BaseTrans], None] = get_class(translate_type,"translator",_ID_NAME_DICT)
     if _cls is None:

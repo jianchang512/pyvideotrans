@@ -3,8 +3,9 @@ import platform
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QSizePolicy
-from videotrans.configure.config import tr, settings, params, app_cfg, logger
+
 from videotrans.component.controlobj import TextGetdir
+from videotrans.configure.config import tr, settings
 
 
 class Ui_MainWindow(object):
@@ -909,8 +910,7 @@ class Ui_MainWindow(object):
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_discord)
 
-        self.menu_H.addSeparator()
-        self.menu_H.addAction(self.action_about)
+
 
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_gtrans)
@@ -929,6 +929,8 @@ class Ui_MainWindow(object):
 
         self.menu_H.addSeparator()
         self.menu_H.addAction(self.action_online)
+        self.menu_H.addSeparator()
+        self.menu_H.addAction(self.action_about)
         self.menu_H.addSeparator()
 
         self.menuBar.addAction(self.menu_Key.menuAction())

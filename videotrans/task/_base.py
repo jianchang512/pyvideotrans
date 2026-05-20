@@ -123,7 +123,8 @@ class BaseTask(BaseCon):
                 tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
             # 清理临时文件
             try:
-                shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
+                if self.cfg.cache_folder:
+                    shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
             except Exception as e:
                 logger.exception(f'任务结束后清理临时文件失败，跳过,{e}:{self.cfg.cache_folder=}', exc_info=True)
         app_cfg.stoped_uuid_set.add(self.uuid)

@@ -58,9 +58,11 @@ class TransCreate(BaseTask):
     is_audio_trans: bool = False
     queue_tts: List = field(default_factory=list, repr=False)
     clone_ref: str = ""
+    cost_duration:float=0.0
 
     def __post_init__(self):
         super().__post_init__()
+        self.cost_duration=time.time()
         if not self.cfg.cache_folder:
             self.cfg.cache_folder = f"{TEMP_DIR}/{self.uuid}"
         # 清理缓存
@@ -78,9 +80,7 @@ class TransCreate(BaseTask):
         self.shoud_recogn = True
         # 输出编码，  264 或 265
         self.video_codec_num = int(settings.get('video_codec', 264))
-        # 是否存在手动添加的背景音频
-        if tools.vail_file(self.cfg.back_audio):
-            self.cfg.background_music = Path(self.cfg.back_audio).as_posix()
+
 
         # 输出文件夹，去掉可能存在的双斜线
         self.cfg.target_dir = re.sub(r'/{2,}', '/', self.cfg.target_dir, flags=re.I | re.S)
@@ -144,7 +144,7 @@ class TransCreate(BaseTask):
             self.shoud_dubbing = False
 
         # 记录最终使用的配置信息
-        logger.debug(f"最终配置信息：{self=},{self.cfg=}")
+        logger.debug(f"[TransCreate]最终配置信息：{self=}\n{self.cfg=}")
         # 禁止修改字幕
         self.signal(text="forbid", type="disabled_edit")
 
@@ -161,6 +161,7 @@ class TransCreate(BaseTask):
 
     # 1. 预处理，分离音视频、分离人声等
     def prepare(self) -> None:
+        _st=time.time()
         if self._exit(): return
         self.signal(text=tr("Hold on a monment..."))
         Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
@@ -265,9 +266,11 @@ class TransCreate(BaseTask):
             self._split_audio_byraw()
 
         self.signal(text=tr('endfenliyinpin'))
+        logger.debug(f'[预处理阶段结束耗时]:{time.time()-_st}s')
 
     # 开始识别
     def recogn(self) -> None:
+        _st=time.time()
         if self._exit(): return
         if not self.shoud_recogn: return
         self.precent += 3
@@ -336,17 +339,22 @@ class TransCreate(BaseTask):
             from videotrans.process.prepare_audio import fix_punc
             # 预先删掉已有的标点
             text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
-            kw = {"text_dict": text_dict, "is_cuda": self.cfg.is_cuda}
+            # 序列化后传递文件路径
+            text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
+            Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
+            kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
             try:
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), is_cuda=self.cfg.is_cuda,
                                         kwargs=kw)
                 if _rs:
+                    text_dict_obj=json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
                     for it in self.source_srt_list:
-                        it['text'] = _rs.get(f'{it["line"]}', it['text'])
+                        it['text'] = text_dict_obj.get(f'{it["line"]}', it['text'])
                         if self.cfg.detect_language[:2] == 'en':
-                            it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace('！',
-                                                                                                                   '!')
+                            it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace('！','!')
                     self._save_srt_target(self.source_srt_list, self.cfg.source_sub)
+                else:
+                    logger.error('标点恢复出错了，跳过')
             except Exception as e:
                 logger.exception(f'标点恢复失败，跳过 {e}', exc_info=True)
 
@@ -383,6 +391,7 @@ class TransCreate(BaseTask):
 
         self._recogn_succeed()
         self.signal(text=tr('endtiquzimu'))
+        logger.debug(f'[语音识别阶段结束耗时]:{time.time()-_st}s')
 
     def _recogn_succeed(self) -> None:
         self.precent += 5
@@ -399,6 +408,7 @@ class TransCreate(BaseTask):
 
     # 配音后再次对配音文件进行识别，以便生成简短的字幕，
     def recogn2pass(self) -> None:
+        _st=time.time()
         if not self.shoud_dubbing or not self.cfg.recogn2pass or self._exit():
             return
         # 如果不嵌入字幕，或嵌入双字幕，则跳过
@@ -464,8 +474,10 @@ class TransCreate(BaseTask):
         except Exception as e:
             logger.exception(f'二次识别配音音频生成字幕时失败，静默跳过 {e}', exc_info=True)
             return
+        logger.debug(f'[二次识别阶段结束耗时]:{time.time()-_st}s')
 
     def diariz(self):
+        _st=time.time()
         # 说话人设为1，不进行分离
         if self._exit() or not self.cfg.enable_diariz or self.max_speakers == 1 or Path(
                 self.cfg.cache_folder + "/speaker.json").exists():
@@ -493,10 +505,12 @@ class TransCreate(BaseTask):
         try:
             self.precent += 3
             title = tr(f'Begin separating the speakers') + f':{speaker_type}'
-            spk_list = None
+            subtitles_file=f'{self.cfg.cache_folder}/diariz-{time.time()}.json'
+            Path(subtitles_file).write_text(json.dumps([[it['start_time'], it['end_time']] for it in self.source_srt_list]),encoding='utf-8')
             kw = {
                 "input_file": self.cfg.source_wav,
-                "subtitles": [[it['start_time'], it['end_time']] for it in self.source_srt_list],
+                "subtitles_file": subtitles_file,
+                "speak_file":self.cfg.cache_folder + "/speaker.json",
                 "num_speakers": self.max_speakers,
                 "is_cuda": self.cfg.is_cuda
             }
@@ -530,19 +544,23 @@ class TransCreate(BaseTask):
                     endpoint=hf_endpoit
                 )
 
-            spk_list = self._new_process(callback=_run_speakers, title=title,
+            _rs = self._new_process(callback=_run_speakers, title=title,
                                          is_cuda=self.cfg.is_cuda and speaker_type != 'built', kwargs=kw)
 
-            if spk_list:
-                Path(self.cfg.cache_folder + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
+            if _rs:
                 logger.debug('分离说话人成功完成')
                 shutil.copy2(self.cfg.cache_folder + "/speaker.json", self.cfg.target_dir + "/speaker.json")
+            else:
+                logger.error('分离失败说话人失败')
             self.signal(text=tr('separating speakers end'))
         except Exception as e:
             logger.exception(f'说话人分离失败，跳过 {e}', exc_info=True)
 
+        logger.debug(f'[说话人分离阶段结束耗时]:{time.time()-_st}s')
+
     # 翻译字幕文件
     def trans(self) -> None:
+        _st=time.time()
         if self._exit() or not self.shoud_trans: return
 
         self.precent += 3
@@ -597,18 +615,22 @@ class TransCreate(BaseTask):
                     logger.debug('仅提取模式下，保存到原位置后，删除临时文件失败，跳过')
 
         self.signal(text=tr('endtrans'))
+        logger.debug(f'[字幕翻译阶段结束耗时]:{time.time()-_st}s')
 
     # 对字幕进行配音
     def dubbing(self) -> None:
+        _st=time.time()
         if self._exit() or self.cfg.app_mode == 'tiqu' or not self.shoud_dubbing:
             return
         self.signal(text=tr('kaishipeiyin'))
         self.precent += 3
         self._tts()
         self.signal(text=tr('The dubbing is finished'))
+        logger.debug(f'[语音合成阶段结束耗时]:{time.time()-_st}s')
 
     # 音画字幕对齐
     def align(self) -> None:
+        _st=time.time()
         if self._exit() or self.cfg.app_mode == 'tiqu' or not self.shoud_dubbing or self.ignore_align:
             return
 
@@ -670,14 +692,17 @@ class TransCreate(BaseTask):
                 logger.exception(f'配音后调节音量失败，静默跳过 {e}', exc_info=True)
 
         self.signal(text=tr('Alignment phase complete, awaiting the next step'))
+        logger.debug(f'[声画字幕对齐阶段结束耗时]:{time.time()-_st}s')
 
     # 将 视频、音频、字幕合成
     def assembling(self) -> None:
+        _st=time.time()
         if self._exit() or self.is_audio_trans or self.cfg.app_mode == 'tiqu' or not self.shoud_hebing:
             return
         self.precent = self.precent + 3 if self.precent < 95 else self.precent
         self.signal(text=tr('kaishihebing'))
         self._join_video_audio_srt()
+        logger.debug(f'[音频+字幕+画面合成阶段结束耗时]:{time.time()-_st}s')
 
     def task_done(self) -> None:
         if self._exit(): return
@@ -709,6 +734,7 @@ class TransCreate(BaseTask):
             logger.exception(f'仅输出mp4时清理临时文件移动视频位置出错，跳过 {e}', exc_info=True)
 
         self.set_end(True)
+        logger.debug(f'[{self.cfg.name}视频翻译任务结束，总耗时]:{time.time()-self.cost_duration}s')
 
     # 从原始视频分离出 无声视频
     def _split_novoice_byraw(self):
@@ -845,7 +871,7 @@ class TransCreate(BaseTask):
             raise RuntimeError(f"SRT file error:{self.cfg.target_sub}")
         try:
             rate = int(str(self.cfg.voice_rate).replace('%', ''))
-        except ValueError:
+        except (ValueError,TypeError):
             rate = 0
 
         rate = f"+{rate}%" if rate >= 0 else f"{rate}%"
@@ -911,7 +937,7 @@ class TransCreate(BaseTask):
             outname = self.cfg.target_dir + f'/segment_audio_{self.cfg.noextname}'
             Path(outname).mkdir(parents=True, exist_ok=True)
             for it in self.queue_tts:
-                text = re.sub(r'["\'*?\\/\|:<>\r\n\t]+', '', it['text'], flags=re.I | re.S)
+                text = re.sub(r'["\'*?\\/|:<>\r\n\t]+', '', it['text'], flags=re.I | re.S)
                 name = f'{outname}/{it["line"]}-{text[:60]}.wav'
                 if Path(it['filename']).exists():
                     shutil.copy2(it['filename'], name)
@@ -944,8 +970,7 @@ class TransCreate(BaseTask):
 
     # 添加手动上传的额外背景音乐
     def _back_music(self) -> None:
-        if self._exit() or not self.shoud_dubbing or not tools.vail_file(self.cfg.target_wav) or not tools.vail_file(
-                self.cfg.background_music):
+        if self._exit() or not self.shoud_dubbing or not tools.vail_file(self.cfg.target_wav) or not tools.vail_file( self.cfg.background_music):
             return
         try:
             self.signal(text=tr("Adding background audio"))
@@ -953,6 +978,8 @@ class TransCreate(BaseTask):
             vtime = tools.get_audio_time(self.cfg.target_wav)
             # 获取背景音频长度
             atime = tools.get_audio_time(self.cfg.background_music)
+            if atime < 1:
+                return
             bgm_file = self.cfg.cache_folder + f'/bgm_file.wav'
             self.convert_to_wav(self.cfg.background_music, bgm_file)
             self.cfg.background_music = bgm_file
@@ -992,6 +1019,8 @@ class TransCreate(BaseTask):
             self.signal(text=tr("Re-embedded background sounds"))
             vtime = tools.get_audio_time(self.cfg.target_wav)
             atime = tools.get_audio_time(self.cfg.instrument)
+            if atime < 1:
+                return
             beishu = math.ceil(vtime / atime)
 
             instrument_file = self.cfg.instrument
@@ -1357,7 +1386,7 @@ class TransCreate(BaseTask):
         if Path(tmp_target_mp4).exists():
             try:
                 shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4[:-4]+_video_output_ext)
-            except Exception as e:
+            except Exception:
                 # 如果移动失败，则尝试直接复制为 0.mp4 or 0.mkv
                 try:
                     shutil.copy2(tmp_target_mp4, f'{self.cfg.target_dir}/0{_video_output_ext}')

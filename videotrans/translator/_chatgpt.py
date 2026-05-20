@@ -1,7 +1,11 @@
-import re
 from dataclasses import dataclass
 from videotrans.configure.config import  params
 from videotrans.translator._openaicompat import OpenAICampat
+from dataclasses import dataclass
+
+from videotrans.configure.config import params
+from videotrans.translator._openaicompat import OpenAICampat
+
 
 @dataclass
 class ChatGPT(OpenAICampat):

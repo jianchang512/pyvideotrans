@@ -3,10 +3,13 @@ import platform
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
-                               QPushButton, QComboBox, QLabel, QScrollArea, QGridLayout, QFrame,QSplitter,QTableView, QAbstractItemView, QHeaderView, QCheckBox,QTableWidget,QTableWidgetItem)
+                               QPushButton, QComboBox, QLabel, QScrollArea, QGridLayout, QFrame, QSplitter,
+                               QAbstractItemView, QHeaderView, QTableWidget)
 
 from videotrans import tts
-from videotrans.configure.config import tr,settings,params,app_cfg,logger
+from videotrans.configure.config import tr
+
+
 class Ui_peiyinrole(object):
     def setupUi(self, peiyinrole):
         self.has_done = False

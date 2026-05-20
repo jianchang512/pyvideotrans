@@ -1,10 +1,11 @@
+import os
 from dataclasses import dataclass, asdict
-from typing import Optional, List, Union
+from typing import Optional, Union
 
 @dataclass
 class InputFile:
-    name:str=None
-    dirname:str=None
+    name: Union[os.PathLike,str]=None
+    dirname:Union[os.PathLike,str]=None
     basename:str=None
     noextname:str=None
     ext:str=None
@@ -28,6 +29,10 @@ class InputFile:
         if isinstance(other, dict):
             return other | asdict(self)
         return NotImplemented
+
+    def get(self, key,default=None):
+        return getattr(self,key,default)
+
 
 @dataclass
 class SignMsg:
@@ -88,8 +93,8 @@ class TaskCfgBase:
     # 通用区域
     uuid: str = None  # 默认唯一任务id
 
-    name: str = None  # 规范化处理的原始文件绝对路径 D:/XXX/1.MP4
-    dirname: str = None  # 原始文件所在目录 D:/XXX
+    name: Union[os.PathLike,str]=None  # 规范化处理的原始文件绝对路径 D:/XXX/1.MP4
+    dirname: Union[os.PathLike,str]=None  # 原始文件所在目录 D:/XXX
     noextname: str = None  # 去掉扩展名的原始视频名
     basename: str = None  # noextname + ext 名 1.mp4
     ext: str = None  # 扩展名 mp4
@@ -102,15 +107,15 @@ class TaskCfgBase:
 
     source_language: str = None  # 原始语言名称或代码
     source_language_code: str = None  # 原始语言代码
-    source_sub: str = None  # 原始字幕文件绝对路径
-    source_wav: str = None  # 原始语言音频，存在于临时文件夹下
-    source_wav_output: str = None  # 原始语言音频输出，存在于目标文件夹下
+    source_sub: Union[os.PathLike,str]=None  # 原始字幕文件绝对路径
+    source_wav: Union[os.PathLike,str]=None  # 原始语言音频，存在于临时文件夹下
+    source_wav_output: Union[os.PathLike,str]=None  # 原始语言音频输出，存在于目标文件夹下
 
     target_language: str = None  # 目标语言名称或代码
     target_language_code: str = None  # 目标语言代码
-    target_sub: str = None  # 目标字幕文件绝对路径
-    target_wav: str = None  # 目标语言音频，存在于临时文件夹下
-    target_wav_output: str = None  # 目标语言音频输出，存在于目标文件夹下
+    target_sub: Union[os.PathLike,str]=None  # 目标字幕文件绝对路径
+    target_wav: Union[os.PathLike,str]=None  # 目标语言音频，存在于临时文件夹下
+    target_wav_output: Union[os.PathLike,str]=None  # 目标语言音频输出，存在于目标文件夹下
 
 
 # 语音识别
@@ -120,7 +125,7 @@ class TaskCfgSTT(TaskCfgBase):
     detect_language: str = None  # 字幕检测语言代码
     recogn_type: int = None  # 语音识别渠道
     model_name: str = None  # 模型名字
-    shibie_audio: str = None  # 转为 pcm_s16le  16k 作为语音识别的音频文件
+    shibie_audio: Union[os.PathLike,str]=None  # 转为 pcm_s16le  16k 作为语音识别的音频文件
     remove_noise: bool = False  # 是否移除噪声
     enable_diariz: bool = False  # 是否进行说话人识别
     nums_diariz: int = 0  # 是否进行说话人识别
@@ -157,15 +162,14 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
     subtitle_language: str = None  # 软字幕嵌入语言代码，3位
     app_mode: str = "biaozhun"  # 工作模式 biaohzun tiqu
     subtitles: str = ""  # 已存在的字幕文本，例如预先导入的
-    targetdir_mp4: str = None  # 最终输出合成后的mp4
-    novoice_mp4: str = None  # 从原始视频分离出的无声视频
+    targetdir_mp4: Union[os.PathLike,str]=None  # 最终输出合成后的mp4
+    novoice_mp4: Union[os.PathLike,str]=None  # 从原始视频分离出的无声视频
     is_separate: bool = False  # 是否进行人声、背景音分离
     embed_bgm: bool = True  # 是否需要重新嵌入背景音
-    instrument: str = None  # 分离出的背景音频
-    vocal: str = None  # 分离出的人声音频
-    back_audio: str = None  # 手动添加的原始背景音音频
+    instrument: Union[os.PathLike,str]=None  # 分离出的背景音频
+    vocal: Union[os.PathLike,str]=None  # 分离出的人声音频
     clear_cache: bool = False  # 是否清理已存在的文件
-    background_music: str = None  # 手动添加的背景音频，整理后的完整路径
+    background_music: Union[os.PathLike,str]=None  # 手动添加的背景音频，整理后的完整路径
     subtitle_type: int = 0  # 软硬字幕嵌入类型 0=不嵌入，1=硬字幕，2=软字幕，3=双硬，4=双软
     only_out_mp4: bool = False  # 是否仅仅输出mp4,仅视频翻译使用
     recogn2pass: bool = False  # 对配音音频再次识别

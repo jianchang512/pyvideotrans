@@ -10,7 +10,7 @@ def openwin():
     from PySide6 import QtWidgets
     from PySide6.QtCore import QUrl
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
-    from videotrans.configure.config import tr, app_cfg, settings, params, TEMP_DIR, HOME_DIR
+    from videotrans.configure.config import tr, app_cfg, settings, params, TEMP_DIR, HOME_DIR,logger
     from videotrans.util import tools
     from videotrans.task.speech2text import SpeechToText
     from videotrans.task.taskcfg import TaskCfgSTT
@@ -154,15 +154,13 @@ def openwin():
                     "rephrase": stt_rephrase,
                     "fix_punc": fix_punc
                 }
-                try:
-                    trk = SpeechToText(cfg=TaskCfgSTT(**cfg | it),
+                trk = SpeechToText(cfg=TaskCfgSTT(**cfg | it),
                                        out_format=winobj.out_format.currentText(),
                                        copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked(),
                                        spk_insert=spk_insert
                                        )
-                    app_cfg.prepare_queue.put_nowait(trk)
-                except Exception as e:
-                    print(e)
+                app_cfg.prepare_queue.put_nowait(trk)
+
             from videotrans.task.child_win_sign import SignThread
             th = SignThread(uuid_list=uuid_list, parent=winobj)
             th.uito.connect(feed)
@@ -315,7 +313,7 @@ def openwin():
         winobj.shibie_language.setCurrentIndex(default_lang)
         try:
             default_type = int(params.get('stt_recogn_type', 0))
-        except ValueError:
+        except (ValueError,TypeError):
             default_type = 0
         winobj.shibie_recogn_type.clear()
         winobj.shibie_recogn_type.addItems(recognition.RECOGN_NAME_LIST)

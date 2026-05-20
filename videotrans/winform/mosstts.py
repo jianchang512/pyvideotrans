@@ -1,7 +1,6 @@
 def openwin():
     from pathlib import Path
-    from PySide6 import QtWidgets, QtCore
-    import requests
+    from PySide6 import QtWidgets
 
     from videotrans.configure.config import tr, app_cfg, params, TEMP_DIR, ROOT_DIR
     from videotrans.util import tools
@@ -20,7 +19,7 @@ def openwin():
 
 
 
-    def _sync_params(force_refresh_roles: bool = False):
+    def _sync_params():
         url=winobj.clone_address.text().strip()
         if not url:
             return tools.show_error('The API URL is required.')
@@ -29,7 +28,7 @@ def openwin():
 
     def save():
         winobj.hide()
-        _sync_params(force_refresh_roles=True)
+        _sync_params()
         params.save()
         tools.set_process(text='', type='refreshtts')
         winobj.close()
@@ -37,7 +36,7 @@ def openwin():
 
     def test_local_role():
         winobj.local_test_btn.setText(tr('Testing...'))
-        _sync_params(force_refresh_roles=True)
+        _sync_params()
 
         _rolename = next(reversed(tools.get_f5tts_role().values()))
         if not isinstance(_rolename,dict):

@@ -1,7 +1,7 @@
 def openwin():
     from PySide6 import QtWidgets
     from videotrans.util import tools
-    from videotrans.configure.config import tr,settings,params,app_cfg
+    from videotrans.configure.config import tr, params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     def feed(d):

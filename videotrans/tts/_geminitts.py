@@ -81,13 +81,13 @@ class GEMINITTS(BaseTTS):
                     try:
                         rate_str = param.split("=", 1)[1]
                         rate = int(rate_str)
-                    except (ValueError, IndexError):
+                    except (ValueError, IndexError,TypeError):
                         # Handle cases like "rate=" with no value or non-integer value
                         pass  # Keep rate as default
                 elif param.startswith("audio/L"):
                     try:
                         bits_per_sample = int(param.split("L", 1)[1])
-                    except (ValueError, IndexError):
+                    except (ValueError, IndexError,TypeError):
                         pass  # Keep bits_per_sample as default if conversion fails
 
             return {"bits_per_sample": bits_per_sample, "rate": rate}
@@ -121,7 +121,8 @@ class GEMINITTS(BaseTTS):
                 )
             ),
         )
-
+        audio_chunks = []
+        mime_type = None
         for chunk in client.models.generate_content_stream(
                 model=model,
                 contents=contents,
@@ -135,8 +136,18 @@ class GEMINITTS(BaseTTS):
                 continue
             if chunk.candidates[0].content.parts[0].inline_data:
                 inline_data = chunk.candidates[0].content.parts[0].inline_data
-                data_buffer = inline_data.data
-                file_extension = mimetypes.guess_extension(inline_data.mime_type)
-                if file_extension is None:
-                    data_buffer = convert_to_wav(inline_data.data, inline_data.mime_type)
-                save_binary_file(file_name, data_buffer)
+
+                # data_buffer = inline_data.data
+                # file_extension = mimetypes.guess_extension(inline_data.mime_type)
+                # if file_extension is None:
+                #     data_buffer = convert_to_wav(inline_data.data, inline_data.mime_type)
+                # save_binary_file(file_name, data_buffer)
+                mime_type = inline_data.mime_type
+                audio_chunks.append(inline_data.data)
+
+        if audio_chunks:
+            audio_data = b''.join(audio_chunks)
+            file_extension = mimetypes.guess_extension(mime_type) if mime_type else None
+            if file_extension is None:
+                audio_data = convert_to_wav(audio_data, mime_type or 'audio/L16;rate=24000')
+            save_binary_file(file_name, audio_data)

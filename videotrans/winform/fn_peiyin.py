@@ -218,7 +218,6 @@ def openwin():
             winobj.loglabel.setToolTip('')
 
         if d['type'] == 'error':
-            print(f'{d=}')
             winobj.error_msg = d['text']
             winobj.loglabel.setToolTip(tr("View  details error"))
             winobj.has_done = True
@@ -265,7 +264,7 @@ def openwin():
         volume = int(winobj.volume_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = int(winobj.pitch_rate.value())
-        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
+        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
 
         voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.wav"
 
@@ -335,7 +334,7 @@ def openwin():
         volume = int(winobj.volume_rate.value())
         pitch = int(winobj.pitch_rate.value())
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
-        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{volume}Hz'
+        pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
 
         if len(winobj.hecheng_importbtn.filelist) < 1 and not txt:
             return tools.show_error(
@@ -349,7 +348,7 @@ def openwin():
         if txt:
             newsrtfile = TEMP_DIR + f"/{datetime.now().strftime('%Y%m%d-%H%M%S')}."
             is_srt = re.match(
-                r'^1\s*[\r\n]+\s*\d{1,2}:\d{1,2}:\d{1,2}(\,\d{1,3})?\s*-->\s*\d{1,2}:\d{1,2}:\d{1,2}(\,\d{1,3})?', txt)
+                r'^1\s*[\r\n]+\s*\d{1,2}:\d{1,2}:\d{1,2}(,\d{1,3})?\s*-->\s*\d{1,2}:\d{1,2}:\d{1,2}(,\d{1,3})?', txt)
             if not is_srt:
                 newsrtfile += 'txt'
                 Path(newsrtfile).write_text(txt, encoding='utf-8')

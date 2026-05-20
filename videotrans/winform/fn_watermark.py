@@ -169,17 +169,17 @@ def openwin():
         x, y = 10, 10
         try:
             x = int(winobj.linex.text())
-        except ValueError:
+        except (TypeError,ValueError):
             pass
         try:
             y = int(winobj.liney.text())
-        except ValueError:
+        except (TypeError,ValueError):
             pass
         w, h = 50, 50
         try:
             tmp_w = winobj.linew.text().strip().split('x')
             w, h = int(tmp_w[0]), int(tmp_w[1])
-        except (ValueError,AttributeError):
+        except (ValueError,AttributeError,IndexError,TypeError):
             pass
 
         task = CompThread(parent=winobj, png=png, x=max(x, 0), y=max(y, 0),
@@ -193,7 +193,7 @@ def openwin():
 
     from videotrans.component.set_form import WatermarkForm
     winobj = WatermarkForm()
-    app_cfg.child_forms['fn_watermak'] = winobj
+    app_cfg.child_forms['fn_watermark'] = winobj
     winobj.show()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)

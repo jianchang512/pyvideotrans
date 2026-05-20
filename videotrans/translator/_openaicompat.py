@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import re
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Union
@@ -31,8 +32,6 @@ class OpenAICampat(BaseTrans):
         super().__post_init__()
         self.temperature=float(settings.get('aitrans_temperature', 0.2))
         self.prompt = tools.get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name)
-        logger.debug(f'当前字幕翻译渠道:{self.ainame=},{self.api_url=}')
-
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
@@ -72,7 +71,7 @@ class OpenAICampat(BaseTrans):
         except (NotFoundError,AuthenticationError,PermissionDeniedError) as e:
             raise StopTask(e.message) from e
 
-        logger.debug(f'[{self.ainame}]响应:{response=}')
+        logger.debug(f'字幕翻译:[{self.ainame},{self.model_name},{self.api_url}]')
         result = ""
         if not hasattr(response,'choices') or not response.choices:
             raise TranslateSrtError(str(response))
@@ -91,6 +90,7 @@ class OpenAICampat(BaseTrans):
 
 
     def llm_segment(self, srt_list)->List[SrtItem]:
+        _st=time.time()
         prompts_template = Path(ROOT_DIR + '/videotrans/prompts/recharge/recharge-llm.txt').read_text(encoding='utf-8')
         prompts_template = prompts_template.replace('{max_speech_s}', str(settings.get('max_speech_duration_s', 6)))
         chunk_size = int(settings.get('llm_chunk_size', 20))
@@ -121,13 +121,13 @@ class OpenAICampat(BaseTrans):
                 timeout=300  # 超过5分钟为失败
             )
             if not hasattr(response, 'choices') or not response.choices:
-                logger.warning(f'[LLM re-segments]重新断句失败:{response=}')
+                logger.warning(f'[{self.ainame}]重新断句失败:{response=}')
                 raise LLMSegmentError(f"{response}")
 
             if response.choices[0].finish_reason == 'length':
                 raise LLMSegmentError(f"Please increase max_token")
             if not response.choices[0].message.content:
-                logger.warning(f'[LLM re-segments]重新断句失败:{response=}')
+                logger.warning(f'[{self.ainame}]重新断句失败:{response=}')
                 raise LLMSegmentError(f"{response}")
 
             result = response.choices[0].message.content
@@ -137,6 +137,7 @@ class OpenAICampat(BaseTrans):
                 return match.group(1)
             return result.strip()
 
+        logger.debug(f'LLM重新断句:{self.ainame},{model_name},{api_url}')
         new_sublist = []
         for idx in range(0, len(srt_list), chunk_size):
             self.signal(text=f'[{idx}] {self.ainame} ' + tr("Re-segmenting..."))
@@ -159,4 +160,5 @@ class OpenAICampat(BaseTrans):
                 it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                 it["time"] = f"{it['startraw']} --> {it['endraw']}"
+        logger.debug(f'LLM重新断句完成,用时:{time.time()-_st}s')
         return _srtlist

@@ -74,7 +74,7 @@ def get_mosstts_demo_map(force=False, raise_exception=False):
     try:
         response = requests.get(api_url, timeout=30, proxies=proxies)
         response.raise_for_status()
-        matched = re.search(r'const\s+DEMOS\s*=\s*(\[.*?\])\s*;\s*const\s+DEFAULT_DEMO_ID', response.text, re.S)
+        matched = re.search(r'const\s+DEMOS\s*=\s*(\[.*?])\s*;\s*const\s+DEFAULT_DEMO_ID', response.text, re.S)
         if not matched:
             raise RuntimeError('Unable to parse DEMOS metadata from MOSS-TTS-Nano homepage')
         demos = json.loads(matched.group(1))
@@ -271,7 +271,7 @@ def get_azure_rolelist(language=None, role_name=None):
         return voice_list.get(language, {}).get(role_name)
     if role_name and (not language or language == 'auto'):
         for it in voice_list.values():
-            for name, ro in it:
+            for name, ro in it.items():
                 if name == role_name:
                     return ro
         return None
@@ -419,7 +419,7 @@ def get_clone_role(set_p=False):
         res.raise_for_status()
         params["clone_voicelist"] = ['No', "clone"] + res.json()
         help_misc.set_process(type='refreshtts')
-    except Exception as e:
+    except Exception:
         if set_p: raise
     return False
 

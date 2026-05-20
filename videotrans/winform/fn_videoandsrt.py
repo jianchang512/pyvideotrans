@@ -163,7 +163,7 @@ def openwin():
         maxlen = 30
         try:
             maxlen = int(winobj.maxlen.text())
-        except ValueError:
+        except (TypeError,ValueError):
             pass
 
         winobj.startbtn.setText(

@@ -84,7 +84,7 @@ class BaseRecogn(BaseCon):
 
     # run->_exec
     def run(self) -> Union[List[SrtItem], None]:
-        _st = time.time()
+        logger.debug(f'开始语音识别:渠道{self.recogn_type}')
         self.signal(text=f"check model")
         if hasattr(self, '_download'):
             self._download()
@@ -98,8 +98,8 @@ class BaseRecogn(BaseCon):
         except RetryError as e:
             raise e.last_attempt.exception()
         finally:
-            self.signal(text=f'STT ended:{int(time.time() - _st)}s')
-            logger.debug(f'[语音识别]渠道{self.recogn_type},{self.model_name}:共耗时:{int(time.time() - _st)}s')
+            self.signal(text=f'STT ended')
+
 
     # 对转录结果进行简单后处理
     def _post_fix(self, res: List[SrtItem]) -> List[SrtItem]:
@@ -199,7 +199,6 @@ class BaseRecogn(BaseCon):
         new_chunk=[]
         speech_chunks = self.speech_timestamps
         speech_len = len(speech_chunks)
-        print(f'原始{speech_chunks=}')
         for i, it in enumerate(speech_chunks):
             diff = it[1] - it[0]
             if diff>=min_speech_duration_ms:
@@ -226,7 +225,6 @@ class BaseRecogn(BaseCon):
                 speech_chunks[i + 1][0] = it[0]
                 logger.debug(f'[{i=}]:距离右侧距离短，当前片段开始时间给下个片段开始时间, {msg}')
             speech_chunks[i][0]=-1
-        print(f'结束{speech_chunks=}')
         for it in speech_chunks:
             if it[0]==-1:
                 continue
@@ -240,10 +238,8 @@ class BaseRecogn(BaseCon):
             logger.warning(f'cut_audio 超过30s需要拆分，{diff=}')
 
         speech_chunks=new_chunk
-        print(f'新的{speech_chunks=}')
         # 两侧填充空白
-        silent_segment = AudioSegment.silent(duration=500)
-        silent_segment.set_channels(1).set_frame_rate(16000)
+        silent_segment = AudioSegment.silent(duration=500).set_channels(1).set_frame_rate(16000)
         data=[]
         for i, it in enumerate(speech_chunks):
             start_ms, end_ms = it[0], it[1]

@@ -1,18 +1,19 @@
 import re
-from typing import Union
 
 import aiohttp
+import httpcore
+import httpx
 import requests
+from deepgram.clients.common.v1.errors import DeepgramApiError
 from elevenlabs.core import ApiError as ApiError_11
 from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
     APIConnectionError, APIError, ContentFilterFinishReasonError, InternalServerError, LengthFinishReasonError, \
     UnprocessableEntityError
 from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, \
     Timeout, ConnectionError as ReqConnectionError, RetryError, HTTPError
-from deepgram.clients.common.v1.errors import DeepgramApiError
-from videotrans.configure.config import defaulelang
-import httpx, httpcore
 from tenacity import RetryError as TenRetryError
+
+from videotrans.configure.config import defaulelang
 
 
 # 内部已整理好错误提示消息的异常，将ex=None,message='{错误消息}'
