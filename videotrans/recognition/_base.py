@@ -305,9 +305,7 @@ class BaseRecogn(BaseCon):
         pass
 
     def _padforaudio(self):
-        silent_segment = AudioSegment.silent(duration=500)
-        silent_segment.set_channels(1).set_frame_rate(16000)
-        return silent_segment
+        return AudioSegment.silent(duration=500).set_channels(1).set_frame_rate(16000)
 
     def cut_audio(self):
         dir_name = f"{TEMP_DIR}/clip_{time.time()}"

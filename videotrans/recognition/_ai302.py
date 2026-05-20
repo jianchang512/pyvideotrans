@@ -164,11 +164,11 @@ class AI302Recogn(BaseRecogn):
 
             sp=it.get('speaker')
             if not sp:
-                speaker_list.append(f'spk{len(speaker_list)}')
+                speaker_list.append('-')
             elif sp in speaker_name:
                 speaker_list.append(f'spk{speaker_name.index(sp)}')
             else:
-                speaker_list.append(f'spk{len(speaker_list)}')
+                speaker_list.append(f'spk{len(speaker_name)}')
                 speaker_name.append(sp)
 
         if speaker_list:
