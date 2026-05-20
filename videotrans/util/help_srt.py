@@ -22,7 +22,7 @@ def process_text_to_srt_str(input_text: str):
         return input_text
 
     # 将文本按换行符切割成列表
-    text_lines = [line.strip() for line in input_text.replace("\n", "").splitlines() if line.strip()]
+    text_lines = [line.strip() for line in input_text.splitlines() if line.strip()]
 
     # 分割大于50个字符的行
     text_str_list = []
@@ -57,7 +57,7 @@ def is_srt_string(input_text):
         return False
 
     # 将文本按换行符切割成列表
-    text_lines = input_text.replace("\n", "").splitlines()
+    text_lines = input_text.splitlines()
     if len(text_lines) < 3:
         return False
 
