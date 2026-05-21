@@ -41,8 +41,8 @@ def main():
 
         # --- Argparse 描述 ---
         "cli_desc": {
-            "zh": "pyVideoTrans视频翻译功能命令行模式",
-            "en": "pyVideoTrans CLI Mode for Video Translation"
+            "zh": "pyVideoTrans 命令行模式,文档[https://pyvideotrans.com/cli]",
+            "en": "pyVideoTrans CLI Mode,Docs[https://pyvideotrans.com/cli]"
         },
         "help_task": {
             "zh": "任务类型: stt(语音转录), tts(文字配音), sts(字幕翻译), vtv(视频翻译)",
@@ -474,6 +474,25 @@ def main():
         }
         vtv_fun({**common_params, **vtv_params})
 
+
+"""
+#语音转录 STT
+uv run cli.py --task stt --name "D:/videos/demo.mp4" --recogn_type 0 --model_name tiny
+
+
+# 字幕翻译 STS
+uv run cli.py --task sts --name "D:/subs/source.srt" --target_language_code en --translate_type 0
+
+
+# 语音合成 TTS
+uv run cli.py --task tts --name "C:/subs/movie.srt" --tts_type 0 --voice_role "zh-CN-YunyangNeural" --target_language_code zh-cn
+
+
+# 视频翻译 VTT
+uv run cli.py --task vtv --name "E:/movies/clip.mp4" --source_language_code zh-cn --target_language_code en --voice_role "en-US-GuyNeural" --is_separate --cuda --subtitle_type 1
+
+
+"""
 
 if __name__ == "__main__":
     freeze_support()
