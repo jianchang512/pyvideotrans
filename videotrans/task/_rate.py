@@ -538,8 +538,10 @@ class SpeedRate:
                 input_path=d['filename'], 
                 target_duration=d['target_time']
             ))
-        for task in all_task:
-            try: task.result()
+        for i,task in enumerate(all_task):
+            try:
+                tools.set_process(text=f'audio speedup {i}/{len(all_task)}',uuid=self.uuid)
+                task.result()
             except Exception:
                 pass
 
@@ -563,8 +565,9 @@ class SpeedRate:
             all_task.append(GlobalProcessManager.submit_task_cpu(_cut_video_get_duration, **kw))
 
         processed_clips = []
-        for task in all_task:
+        for i,task in enumerate(all_task):
             try:
+                tools.set_process(text=f'video speed down {i}/{len(all_task)}',uuid=self.uuid)
                 res = task.result()
                 if res: processed_clips.append(res)
             except Exception as e:

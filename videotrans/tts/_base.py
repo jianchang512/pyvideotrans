@@ -69,8 +69,8 @@ class BaseTTS(BaseCon):
     # 子类重写  _exec()方法 run() -> _exec()
     def run(self) -> None:
         if self._exit(): return
-
         logger.debug(f'开始语音合成:渠道{self.tts_type}')
+        self.signal(text=f"TTS starting: [{self.len}]")
         if hasattr(self, '_download'):
             self._download()
         loop = None

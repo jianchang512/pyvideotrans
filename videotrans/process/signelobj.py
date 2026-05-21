@@ -49,11 +49,11 @@ class GlobalProcessManager:
             process_max_gpu=int(float(settings.get('process_max_gpu',0)))
         except (TypeError,ValueError):
             process_max_gpu=0
+
         # 手动设置了gpu进程数量，则优先级最高,例如虽然只有一卡，但显存特别大，可手动设置多个gpu进程
         if process_max_gpu>0:
             return int(min(process_max_gpu,8,cpu_count))
-        if app_cfg.NVIDIA_GPU_NUMS<0:
-            return 1
+
         # 没有显卡 或 没有启用多显卡，则只启动一个gpu进程
         if  app_cfg.NVIDIA_GPU_NUMS<1 or not bool(settings.get('multi_gpus',False)):
             return 1

@@ -9,6 +9,7 @@ from typing import List
 
 from videotrans import tts
 from videotrans.configure.config import tr, settings, app_cfg, logger, HOME_DIR
+from videotrans.configure.excepts import DubbingSrtError
 from videotrans.task._base import BaseTask
 from videotrans.task._rate import TtsSpeedRate
 from videotrans.task.taskcfg import TaskCfgTTS, SrtItem
@@ -195,7 +196,7 @@ class DubbingSrt(BaseTask):
             queue_tts.append(tmp_dict)
 
         if not queue_tts or len(queue_tts) < 1:
-            raise RuntimeError(tr('No subtitles required'))
+            raise DubbingSrtError(tr('No subtitles required'))
         self.queue_tts = queue_tts
 
         # 调用配音渠道操作

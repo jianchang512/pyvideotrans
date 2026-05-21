@@ -438,18 +438,13 @@ class WinAction(WinActionBase):
         # LLM 重新断句时，需判断 deepseek或openai chatgpt填写了信息
         if self.main.rephrase.currentIndex() == 1:
             ai_type = settings.get('llm_ai_type', 'chatgpt')
-            if ai_type == 'chatgpt' and not params.get('chatgpt_key'):
+            if (ai_type in ['chatgpt','openai'] and not params.get('chatgpt_key')) or (ai_type == 'deepseek' and not params.get('deepseek_key')):
                 self.main.startbtn.setDisabled(False)
                 tools.show_error(tr('llmduanju'))
-                from videotrans.winform import chatgpt
-                chatgpt.openwin()
+                from videotrans.winform import get_win
+                get_win('deepseek' if ai_type == 'deepseek' else  'chatgpt').openwin()
                 return
-            if ai_type == 'deepseek' and not params.get('deepseek_key'):
-                self.main.startbtn.setDisabled(False)
-                tools.show_error(tr('llmduanjudp'))
-                from videotrans.winform import deepseek
-                deepseek.openwin()
-                return
+
         # 检查输入 输出目录
         if self.check_name_length() is not True:
             self.main.startbtn.setDisabled(False)

@@ -140,7 +140,7 @@
   "Dubbing from subtitles": "字幕配音处理中",
   "Dubbing role": "配音角色",
   "Dubbing speed": "配音语速+%",
-  "Dubbing succeeded {}，failed {}": "配音成功{}个，失败 {}个",
+  "Dubbing succeeded {}，failed {}": "配音成功{}，失败 {}",
   "Duration of each segment/second": "批量推理模式时,每段秒数",
   "Dutch": "荷兰语",
   "Edge-TTS(free)": "Edge-TTS(免费)",

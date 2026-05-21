@@ -29,9 +29,9 @@ notices = {
         "batch_nums": "批量翻译视频时，在此设置每批次同时翻译几个，默认0即不限制",
         "show_more_settings": "为避免过多参数造成困扰，主界面默认隐藏大部分参数，如果选中这里将切换为默认显示所有参数",
 
-        "process_max": "最大进程数，越大越快但可能爆内存，最大不应超过cpu核数减一\n(修改保存后重启生效)",
-        "process_max_gpu": "GPU任务同时执行数量，除非单卡显存大于20G，否则请设为1\n(修改保存后重启生效)",
-        "multi_gpus": "如果有多张显卡，且显存一致，可启用该项，同时可将上述选项设为2或显卡数\n(修改保存后重启生效)",
+        "process_max": "最大CPU同时任务数，越大越快但可能爆内存，最大不应超过cpu核数\n(修改保存后重启生效)",
+        "process_max_gpu": "GPU任务同时执行数量，除非多卡或单卡显存大于24G，否则请设为1\n(修改保存后重启生效)",
+        "multi_gpus": "如果有多张显卡，可启用该项，同时可将上述选项设为2或显卡数\n(修改保存后重启生效)",
 
     },
 
@@ -144,10 +144,10 @@ notices = {
 }
 # 中文左侧label
 titles = {
-    "process_max": "最大进程数[重启生效]",
+    "process_max": "CPU同时任务数[重启生效]",
+    "process_max_gpu": "GPU同时任务数[重启生效]",
     "cjk_len": "中日韩字幕单行字符数",
     "other_len": "其他语言字幕单行字符数",
-    "process_max_gpu": "GPU同时任务数[重启生效]",
     "multi_gpus": "多显卡模式[重启生效]",
     "max_audio_speed_rate": "音频加速最大倍数",
     "max_video_pts_rate": "视频慢放最大倍数",
@@ -294,8 +294,8 @@ if defaulelang != 'zh':
             "batch_nums": "When translating in batches, set the number of lines to translate simultaneously in each batch here.",
             "show_more_settings": "To avoid confusion caused by too many parameters, most parameters are hidden by default on the main interface. Selecting this option will switch to displaying all parameters by default.",
 
-            "process_max": "Process Maximum",
-            "process_max_gpu": "The number of GPU tasks that can be executed simultaneously should be set to 1 unless the video memory is greater than 20GB.",
+            "process_max": "Process Maximum for CPU",
+            "process_max_gpu": "The number of GPU tasks that can be executed simultaneously should be set to 1 unless the video memory is greater than 24GB.",
             "multi_gpus": "If you have multiple graphics cards with identical video memory, you can enable this option and set the above option to 2 or the number of graphics cards.",
 
         },
@@ -407,7 +407,7 @@ if defaulelang != 'zh':
     titles = {
         "cjk_len": "Number of characters per line for CJK",
         "other_len": "Number of words per line for Other",
-        "process_max": "Process Maximum",
+        "process_max": "Number of CPU tasks[restart]",
         "process_max_gpu": "Number of GPU tasks[restart]",
         "multi_gpus": "Multi-GPU mode[restart]",
         "max_audio_speed_rate": "Maximum audio speed-up rate",

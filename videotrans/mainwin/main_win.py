@@ -106,6 +106,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         _role = params.get('voice_role') or 'No'
         _model_name = params.get('model_name')
 
+
+
         # 设置默认渠道配置
         self.translate_type.setCurrentIndex(_translate_type)
         self.tts_type.setCurrentIndex(_tts_type)
@@ -177,7 +179,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 填充配音角色
         self.voice_role.addItems(_rolelist)
         self.current_rolelist = _rolelist
-
+        logger.debug(f'上次缓存的角色:{_role},字幕嵌入类型:{_subtitle_type},发音语言:{_source_language},目标语言:{_target_language}，目标语言代码:{_langcode},模型:{_model_name},TTS渠道[{_tts_type}]')
         if _langcode:
             # 如果存在上次缓存角色
             self.target_language.setCurrentText(_target_language)
@@ -191,7 +193,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 初始化主控制器
         from videotrans.mainwin._actions import WinAction
         self.win_action = WinAction(self)
-
         self.restart_btn.clicked.connect(self.restart_app)
         # 绑定行为
         self.addbackbtn.clicked.connect(self.win_action.get_background)

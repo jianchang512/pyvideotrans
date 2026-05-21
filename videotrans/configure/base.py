@@ -88,7 +88,7 @@ class BaseCon:
         return None
 
 
-    # 语音合成后统一转为 wav 音频
+    # 语音合成后统一转为 wav 音频,方便后续变速等处理
     def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None):
         if app_cfg.exit_soft or not tools.vail_file(mp3_file_path):
             return
