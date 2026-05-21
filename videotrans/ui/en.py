@@ -1,16 +1,18 @@
 import platform
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QSizePolicy
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QSizePolicy, QApplication
 
 from videotrans.component.controlobj import TextGetdir
 from videotrans.configure.config import tr, settings
 
 
 class Ui_MainWindow(object):
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
+
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.centralwidget.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
@@ -110,15 +112,11 @@ class Ui_MainWindow(object):
 
         self.recogn_type.setToolTip(tr('model_type_tips'))
 
-        self.model_name_help = QtWidgets.QPushButton(self.layoutWidget)
-        self.model_name_help.setStyleSheet("""background-color:transparent""")
-        self.model_name_help.setText(tr("Model"))
-        self.model_name_help.setToolTip(tr("Click for model description"))
-        self.model_name_help.setMinimumSize(QtCore.QSize(0, 30))
+        self.model_name_help = QtWidgets.QLabel(self.layoutWidget)
+        self.model_name_help.setText(tr("ASRModel"))
 
         self.model_name = QtWidgets.QComboBox(self.layoutWidget)
-        self.model_name.setMinimumSize(QtCore.QSize(330, 30))
-        self.model_name.setMaximumWidth(160)
+        self.model_name.setMinimumWidth(320)
         self.model_name.setObjectName("model_name")
 
         self.rephrase = QtWidgets.QComboBox()
@@ -151,7 +149,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
 
         self.label_9 = QtWidgets.QPushButton(self.layoutWidget)
-        self.label_9.setMinimumSize(QtCore.QSize(0, 30))
         self.label_9.setObjectName("label_9")
         self.label_9.setStyleSheet("""background-color:transparent""")
         self.label_9.setToolTip(
@@ -171,13 +168,14 @@ class Ui_MainWindow(object):
         self.label_2.setObjectName("label_2")
         self.source_language = QtWidgets.QComboBox(self.layoutWidget)
         self.source_language.setObjectName("source_language")
+        self.source_language.setMinimumWidth(130)
 
         self.label_3 = QtWidgets.QPushButton(self.layoutWidget)
-        self.label_3.setMinimumSize(QtCore.QSize(0, 30))
         self.label_3.setObjectName("label_3")
         self.label_3.setStyleSheet("""background-color:transparent""")
         self.target_language = QtWidgets.QComboBox(self.layoutWidget)
         self.target_language.setObjectName("target_language")
+        self.target_language.setMinimumWidth(130)
 
         self.aisendsrt = QtWidgets.QCheckBox()
         self.aisendsrt.setText(tr("Send SRT"))
@@ -211,7 +209,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.tts_text = QtWidgets.QPushButton(self.layoutWidget)
         self.tts_text.setObjectName("tts_text")
-        self.tts_text.setMinimumSize(QtCore.QSize(0, 30))
         self.tts_text.setStyleSheet("""background-color:transparent""")
         self.tts_text.setToolTip(
             tr("Click to set the number of threads to be used for dubbing"))
@@ -224,12 +221,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.tts_type)
 
         self.label_4 = QtWidgets.QPushButton(self.layoutWidget)
-        self.label_4.setMinimumSize(QtCore.QSize(0, 30))
         self.label_4.setObjectName("label_4")
         self.label_4.setStyleSheet("background-color:transparent")
         self.voice_role = QtWidgets.QComboBox(self.layoutWidget)
-        self.voice_role.setMinimumSize(QtCore.QSize(160, 30))
-        self.voice_role.setMaximumWidth(160)
+        self.voice_role.setMinimumWidth(200)
         self.voice_role.setObjectName("voice_role")
 
         self.horizontalLayout.addWidget(self.label_4)
@@ -755,6 +750,8 @@ class Ui_MainWindow(object):
 
         self.action_yinshipinfenli = QtGui.QAction(MainWindow)
         self.action_yinshipinfenli.setObjectName("action_yinshipinfenli")
+        QApplication.processEvents()
+        self.uito.emit('Add Menu bar...')
 
         self.menu_Key.addAction(self.actionbaidu_key)
         self.menu_Key.addSeparator()
@@ -954,12 +951,11 @@ class Ui_MainWindow(object):
         if platform.system() == 'Darwin':
             self.enable_cuda.setChecked(False)
             self.enable_cuda.hide()
+
+
         self._set_Ui_Text()
 
     def _set_Ui_Text(self):
-        # 字幕显示区域
-        # set text start
-
         self.subtitle_area = TextGetdir(self)
         self.subtitle_area.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
         self.subtitle_area.setObjectName("subtitle_area")

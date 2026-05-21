@@ -256,6 +256,7 @@
     "Mix two audio files into one audio file": "Mix 2 Audio Files into 1",
     "Mixing 2 Audio Streams": "Mixing 2 Streams",
     "Model": "Model",
+    "ASRModel": "ASR Model",
     "Model Selection Tutorial": "Model Selection Guide",
     "Model loading is complete, enter recognition": "Model Loaded. Starting Recognition.",
     "Models ending in .en may not be used for automated detection": ".en models cannot use Auto Detect",

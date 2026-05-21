@@ -14,10 +14,10 @@ import time
 import platform
 import getpass
 import subprocess
-from videotrans.util.req_fac import custom_session_factory
-import huggingface_hub
+# from videotrans.util.req_fac import custom_session_factory
+# import huggingface_hub
 
-huggingface_hub.configure_http_backend(backend_factory=custom_session_factory)
+# huggingface_hub.configure_http_backend(backend_factory=custom_session_factory)
 from videotrans.configure import config
 
 config.init_run()
@@ -36,18 +36,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     uito = Signal(str)
 
     def __init__(self, parent=None, width=1200, height=650):
-        super(MainWindow, self).__init__(parent)
-        QApplication.processEvents()
-        self.uito.emit('loading GUI...')
+        super().__init__(parent)
         self.resize(width, height)
         self.setupUi(self)
-
-        QApplication.processEvents()
-        self.uito.emit('checking GPU...')
-
-        s = AiLoaderThread(self)
-        s.gpu_io.connect(self._start_workers)
-        s.start()
 
         self.worker_threads = []
         self.width = width
@@ -62,9 +53,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.app_mode = "biaozhun"
         # 当前所有可用角色列表
         self.current_rolelist = []
-
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.languagename = list(LANGNAME_DICT.values())
+        self.rawtitle = f"{tr('softname')} {VERSION} {tr('Documents')} pyvideotrans.com"
+        self.setWindowTitle(self.rawtitle)
+        self.show()
+
+        self.moshi = {
+            "biaozhun": self.action_biaozhun,
+            "tiqu": self.action_tiquzimu
+        }
+
+        QTimer.singleShot(200, self._set_default)
+        # 查询GPU
+        run_in_threadpool(tools.check_hw_on_start)
+
+    def _set_default(self):
+        QApplication.processEvents()
+        self.uito.emit('Set default ...')
+
+        s = AiLoaderThread(self)
+        s.gpu_io.connect(self._start_workers)
+        s.start()
+
         # 填充字幕翻译渠道列表
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
         # 原始语言渠道
@@ -76,14 +87,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 填充语音识别渠道
         self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
 
-        self.rawtitle = f"{tr('softname')} {VERSION} {tr('Documents')} pyvideotrans.com"
-        self.setWindowTitle(self.rawtitle)
-        self.show()
-
-        self.moshi = {
-            "biaozhun": self.action_biaozhun,
-            "tiqu": self.action_tiquzimu
-        }
         self.subtitle_type.addItems(
             [
                 tr('nosubtitle'),
@@ -92,12 +95,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 tr('embedsubtitle2'),
                 tr('softsubtitle2')
             ])
-
-        QTimer.singleShot(200, self._set_default)
-        # 查询GPU
-        run_in_threadpool(tools.check_hw_on_start)
-
-    def _set_default(self):
 
         _translate_type = int(params.get('translate_type', 0))
         _tts_type = int(params.get('tts_type', 0))
@@ -170,15 +167,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.bgmvolume.setText(str(settings.get('backaudio_volume', 0.8)))
         self.is_loop_bgm.setCurrentIndex(int(settings.get('loop_backaudio', 0)))
 
-        # 初始化主控制器
-        QApplication.processEvents()
-        self.uito.emit('import action')
-        from videotrans.mainwin._actions import WinAction
-        self.win_action = WinAction(self)
-        if _recogn_type > 1:
-            self.model_name_help.setVisible(False)
-        else:
-            self.model_name_help.clicked.connect(self.win_action.show_model_help)
+
 
         # 填充配音角色列表
         _langcode = None
@@ -199,6 +188,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _bind_signal(self):
         QApplication.processEvents()
         self.uito.emit('Bind signal...')
+        # 初始化主控制器
+        from videotrans.mainwin._actions import WinAction
+        self.win_action = WinAction(self)
+
         self.restart_btn.clicked.connect(self.restart_app)
         # 绑定行为
         self.addbackbtn.clicked.connect(self.win_action.get_background)
@@ -322,7 +315,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.uito.emit('set cursor...')
 
         self.import_sub.setCursor(Qt.PointingHandCursor)
-        self.model_name_help.setCursor(Qt.PointingHandCursor)
         self.startbtn.setCursor(Qt.PointingHandCursor)
         self.btn_get_video.setCursor(Qt.PointingHandCursor)
         self.btn_save_dir.setCursor(Qt.PointingHandCursor)

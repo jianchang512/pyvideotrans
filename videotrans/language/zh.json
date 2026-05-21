@@ -256,6 +256,7 @@
   "Mix two audio files into one audio file": "将两个音频文件混流为一个音频文件",
   "Mixing 2 Audio Streams": "两个音频混流",
   "Model": "模型",
+  "ASRModel": "识别模型",
   "Model Selection Tutorial": "点击查看模型选择教程",
   "Model loading is complete, enter recognition": "模型加载完毕，进入识别",
   "Models ending in .en may not be used for automated detection": ".en结尾的模型不可用于自动检测",
