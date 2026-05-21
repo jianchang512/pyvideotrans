@@ -272,7 +272,7 @@ class BaseTTS(BaseCon):
     def get_pitch(self) -> float:
         pitch = 1.0
         try:
-            pitch = round(float(re.sub(r'[hz%]', '', self.pitch)), 1)
+            pitch = round(float(re.sub(r'[hz%]', '', self.pitch,flags=re.I)), 1)
         except (TypeError,ValueError):
             pass
         return pitch

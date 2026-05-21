@@ -271,6 +271,14 @@ qwen-asr = [
     "qwen-asr",
 ]
 
+[dependency-groups]
+dev = [
+  "pytest",
+]
+lint = [
+  "ruff",
+]
+
 
 [tool.uv]
 override-dependencies = [
