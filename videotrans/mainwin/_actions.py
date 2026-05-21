@@ -568,7 +568,7 @@ class WinAction(WinActionBase):
             from videotrans.task.only_one import Worker
             task = Worker(
                 parent=self.main,
-                obj_list=self.obj_list,
+                file=self.obj_list[0],
                 cfg=cfg
             )
             task.uito.connect(self.update_data)
@@ -576,7 +576,7 @@ class WinAction(WinActionBase):
             return
 
         from videotrans.task.mult_video import MultVideo
-        task = MultVideo(parent=self.main, cfg=cfg, obj_list=self.obj_list)
+        task = MultVideo(parent=self.main, cfg=cfg, input_file_list=self.obj_list)
         task.start()
 
 

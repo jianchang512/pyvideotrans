@@ -9,12 +9,6 @@ from pathlib import Path
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-# 将这个工厂函数注册给 huggingface_hub
-from videotrans.util.req_fac import custom_session_factory
-import huggingface_hub
-
-huggingface_hub.configure_http_backend(backend_factory=custom_session_factory)
-
 
 # 调度函数 避免子进程重复执行
 def main():
@@ -370,10 +364,11 @@ def main():
     # 公共参数
 
     _file_obj = tools.format_video(Path(args.name).absolute().as_posix())
-    _nospacebasename = re.sub(r'[\s\. #*?!:"]', '-', _file_obj["basename"])
+    _nospacebasename = re.sub(r'[\s. #*?!:"]', '-', _file_obj["basename"])
     _cache_folder = f'{TEMP_DIR}/{_file_obj["uuid"]}'
     _target_dir = f'{ROOT_DIR}/output/{_nospacebasename}'
     _file_obj['target_dir']=_target_dir
+
     common_params = {'name': args.name, "cache_folder": _cache_folder}
     common_params.update(asdict(_file_obj))
 
@@ -409,12 +404,11 @@ def main():
             "voice_role": args.voice_role,
             "voice_rate": args.voice_rate,
             "volume": args.volume,
-            "is_cuda": args.cuda,
             "pitch": args.pitch,
+            "is_cuda": args.cuda,
             "voice_autorate": args.voice_autorate,
             "align_sub_audio": args.align_sub_audio,
             "target_language_code": args.target_language_code
-
         }
         tts_fun({**common_params, **tts_params})
 
@@ -472,6 +466,7 @@ def main():
 
             # 翻译与通用部分
             "translate_type": args.translate_type,
+
             "is_separate": args.is_separate,
             "recogn2pass": args.recogn2pass,
             "subtitle_type": args.subtitle_type,
@@ -485,6 +480,5 @@ if __name__ == "__main__":
     try:
         multiprocessing.set_start_method('spawn', force=True)
     except RuntimeError:
-        # 有时候环境已经设定好了，再次设定会报错，可以忽略
         pass
     main()

@@ -19,22 +19,22 @@ class Worker(QThread):
 
     def __init__(self, *,
                  parent: Optional[QObject] = None,
-                 obj_list: Optional[List[InputFile]] = None,
+                 file: InputFile = None,
                  cfg: Optional[Dict[str, Any]] = None):
         super().__init__(parent=parent)
         self.cfg = cfg
         # 存放处理好的 视频路径等信息
-        self.obj_list = obj_list
+        self.file = file
         self.uuid = None
 
     def run(self) -> None:
-        obj = self.obj_list[0]
+
         # 从停止队列中移出，以便重新开始
-        app_cfg.rm_uuid(obj['uuid'])
-        logger.debug(f'[单视频翻译模式]:{obj.name}')
+        app_cfg.rm_uuid(self.file['uuid'])
+        logger.debug(f'[单视频翻译模式]:{self.file.name}')
         try:
-            self.uuid = obj['uuid']
-            trk = TransCreate(cfg=TaskCfgVTT(**self.cfg | obj))
+            self.uuid = self.file['uuid']
+            trk = TransCreate(cfg=TaskCfgVTT(**self.cfg | self.file))
             # 原始语言字幕文件
             app_cfg.onlyone_source_sub = trk.cfg.source_sub
             # 目标语言字幕文件
