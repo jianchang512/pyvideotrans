@@ -26,6 +26,8 @@
 
 ## ✨ Core Features
 
+> [Technical Architecture and Principles](docs/architecture.md)
+
 - **🎥 Fully Automatic Video Translation**: One-click workflow: Speech Recognition (ASR) -> Subtitle Translation -> Speech Synthesis (TTS) -> Video Synthesis.
 - **🎙️ Audio Transcription / Subtitle Generation**: Batch convert audio/video to SRT subtitles, supporting **Speaker Diarization** to distinguish between different roles.
 - **🗣️ Multi-Role AI Dubbing**: Assign different AI dubbing voices to different speakers.
