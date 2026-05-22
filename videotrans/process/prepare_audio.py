@@ -214,8 +214,41 @@ def remove_noise(*, input_file, output_file,  is_cuda=False, logs_file=None, dev
         logger.exception(f'降噪失败{e}:{msg}', exc_info=True)
         return False, f'{e}{msg}'
     
-# 3. 恢复标点 https://modelscope.cn/models/iic/punc_ct-transformer_cn-en-common-vocab471067-large
 def fix_punc(*, text_dict_file:str,  is_cuda=False, logs_file=None, device_index=0):
+    import sherpa_onnx
+    model = f"{ROOT_DIR}/models/puntc/model.onnx"
+    try:
+        if not Path(model).is_file():
+            raise ValueError(f"{model} does not exist")
+        _st = time.time()
+        logger.debug(f'开始标点恢复')
+        # 反序列化 text_dict
+        text_dict_obj=json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
+
+        config = sherpa_onnx.OfflinePunctuationConfig(
+            model=sherpa_onnx.OfflinePunctuationModelConfig(ct_transformer=model),
+        )
+
+
+        punct = sherpa_onnx.OfflinePunctuation(config)
+
+
+        _text_dict_obj={}
+        for line,text in text_dict_obj.items():
+            text_with_punct = punct.add_punctuation(text)
+            _text_dict_obj[line]=text_with_punct
+        # 写回该文件
+        Path(text_dict_file).write_text(json.dumps(_text_dict_obj),encoding="utf-8")
+        logger.debug(f'标点恢复完成，耗时:{int(time.time() - _st)}s')
+        return True, None
+    except Exception as e:
+        msg = traceback.format_exc()
+        logger.exception(f'恢复标点失败{e}:{msg}', exc_info=True)
+        return False, f'{e}{msg}'
+
+
+# 3. 恢复标点 https://modelscope.cn/models/iic/punc_ct-transformer_cn-en-common-vocab471067-large
+def fix_punc0(*, text_dict_file:str,  is_cuda=False, logs_file=None, device_index=0):
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
     device = f"cuda:{device_index}" if is_cuda else "cpu"

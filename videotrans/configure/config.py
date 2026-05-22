@@ -323,7 +323,7 @@ class AppSettings:
             "noise_separate_nums": 4,
             "aitrans_temperature": 0.2,
             "aitrans_context": False,
-            "batch_nums": 0,#0 并发，1=串行翻译,>1 每批同时多少个
+            "batch_nums": 0,# 0=并发，1=串行翻译,>1 每批同时多少个
             "ai302_models": Ai302_Models,
             'qwenmt_model': Qwenmt_Model,
             "openaitts_model": Qpenaitts_Model,
@@ -410,8 +410,8 @@ class AppSettings:
             "show_more_settings": False,
             "speaker_type": "built",
             "hf_token": "",
-            "cjk_len": 22,
-            "other_len": 46,
+            "cjk_len": 20,
+            "other_len": 48,
             "gemini_model": DEFAULT_GEMINI_MODEL,
             "llm_chunk_size": 50,
             "llm_ai_type": "chatgpt",
@@ -628,7 +628,7 @@ class AppParams:
             "baidu_miyue": "",
             "chatgpt_api": "",
             "chatgpt_key": "",
-            "chatgpt_max_token": "8192",
+            "chatgpt_max_token": 8192,
             "chatgpt_model": str(settings.get('chatgpt_model', '-')).strip().split(',')[0],
             "claude_api": "",
             "claude_key": "",
@@ -671,7 +671,7 @@ class AppParams:
             "ai302_key": "",
             "ai302_model": "",
             "ai302_model_recogn": "whisper-1",
-            "whipserx_api": "http://127.0.0.1:9092",
+            "whipserx_api": "",
             "trans_api_url": "",
             "trans_secret": "",
             "coquitts_role": "",
@@ -787,7 +787,7 @@ class AppParams:
             "dubb_hecheng_rate": 0,
             "dubb_pitch_rate": 0,
             "dubb_volume_rate": 0,
-            "recogn2pass": True
+            "recogn2pass": False
         }
 
     def _apply_dict(self, data: Dict):

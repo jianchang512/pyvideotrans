@@ -334,8 +334,11 @@ class TransCreate(BaseTask):
 
         # 中英恢复标点符号
         if self.cfg.fix_punc and self.cfg.detect_language[:2] in ['zh', 'en']:
-            tools.check_and_down_ms(model_id='iic/punc_ct-transformer_cn-en-common-vocab471067-large',
-                                    callback=self._process_callback)
+            tools.down_file_from_ms(f'{ROOT_DIR}/models/puntc', [
+                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/model.onnx",
+                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/config.yaml",
+                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/tokens.json",
+            ], callback=self._process_callback)
             from videotrans.process.prepare_audio import fix_punc
             # 预先删掉已有的标点
             text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
