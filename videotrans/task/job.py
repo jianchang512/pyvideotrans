@@ -73,7 +73,7 @@ class BaseWorker(QThread):
         if prefix:
             except_msg = f"{prefix} {except_msg}"
         if trk.uuid not in app_cfg.stoped_uuid_set:
-            trk.signal(text=f'{except_msg}\n{detail_back}\n{trk.cfg}', type='error', uuid=trk.uuid)
+            trk.signal(text=f'{except_msg}\n{detail_back}\n{trk}\{trk.cfg}', type='error', uuid=trk.uuid)
             tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
         trk.set_end()
         self.cleanup_on_error(trk)
