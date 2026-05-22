@@ -84,7 +84,7 @@ _ID_NAME_DICT = {
     INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)", "._index", key_name="indextts_url", win="f5tts"),
     COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)", "._cosyvoice", key_name="cosyvoice_url",
                                    win="cosyvoice"),
-    Supertonic_TTS: ChannelProvider(f"Supertonic({tr('Local')}{tr('Built-in')})", "._supertonic"),
+    Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Local')}{tr('Built-in')})", "._supertonic"),
     VOXCPM_TTS: ChannelProvider(f"VoxCPM({tr('Local')}API)", "._voxcpm", key_name="voxcpmtts_url", win="f5tts"),
     CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}API)", "._chatterbox", key_name="chatterbox_url",
                                     win="chatterbox"),
@@ -135,10 +135,6 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 
     if tts_type == CHATTTS and langcode[:2] not in ['zh', 'en']:
         return name + tr('Dubbing channel') + ' ' + tr('Only support') + tr(['zh', 'en'])
-    if tts_type == Supertonic_TTS and langcode[:2] not in ['ko', 'en', 'es', 'pt', 'fr']:
-        return name + tr('Dubbing channel') + ' ' + tr('Only support') + tr(
-            ['ko', 'en', 'es', 'pt', 'fr'])
-
     return True
 
 

@@ -16,6 +16,7 @@
 .github
 .idea
 .venv
+.pytest_cache
 AGENTS.md
 err.txt
 nolang.txt

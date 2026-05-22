@@ -10,7 +10,7 @@ import onnxruntime as ort
 
 import re
 
-AVAILABLE_LANGS = ["en", "ko", "es", "pt", "fr"]
+AVAILABLE_LANGS = ["en", "ko", "ja", "ar", "bg", "cs", "da", "de", "el", "es", "et", "fi", "fr", "hi", "hr", "hu", "id", "it", "lt", "lv", "nl", "pl", "pt", "ro", "ru", "sk", "sl", "sv", "tr", "uk", "vi", "na"]
 
 
 class UnicodeProcessor:
@@ -226,7 +226,7 @@ class TextToSpeech:
         assert (
             style.ttl.shape[0] == 1
         ), "Single speaker text to speech only supports single style"
-        max_len = 120 if lang == "ko" else 300
+        max_len = 120 if lang in ("ko", "ja") else 300
         text_list = chunk_text(text, max_len=max_len)
         wav_cat = None
         dur_cat = None

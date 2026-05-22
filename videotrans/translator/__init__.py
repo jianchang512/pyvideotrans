@@ -62,23 +62,19 @@ _ID_NAME_DICT = {
     MICROSOFT_INDEX: ChannelProvider(tr('Microsoft'), imp="._microsoft"),
     M2M100_INDEX: ChannelProvider(f'M2M100({tr("Local")})', imp="._m2m100"),
 
-    CHATGPT_INDEX: ChannelProvider(tr('OpenAI ChatGPT'),
-                                   key_name="chatgpt_key", win="chatgpt", imp="._chatgpt"),
+    CHATGPT_INDEX: ChannelProvider(tr('OpenAI ChatGPT'),  key_name="chatgpt_key", win="chatgpt", imp="._chatgpt"),
     DEEPSEEK_INDEX: ChannelProvider("DeepSeek", key_name="deepseek_key", win="deepseek", imp="._deepseek"),
     GEMINI_INDEX: ChannelProvider("Gemini AI", key_name="gemini_key", win="gemini", imp="._gemini"),
     ZHIPUAI_INDEX: ChannelProvider(tr('Zhipu AI'), key_name="zhipu_key", win="zhipuai", imp="._zhipuai"),
     AZUREGPT_INDEX: ChannelProvider("AzureGPT AI", key_name="azure_key", win="azure", imp="._azure"),
     LOCALLLM_INDEX: ChannelProvider(tr('Local LLM'), key_name="localllm_api", win="localllm", imp="._localllm"),
 
-    OPENROUTER_INDEX: ChannelProvider("OpenRouter",
-                                      key_name="openrouter_key", win="openrouter", imp="._openrouter"),
-    SILICONFLOW_INDEX: ChannelProvider(tr('SiliconFlow'), key_name="guiji_key", win="siliconflow",
-                                       imp="._siliconflow"),
+    OPENROUTER_INDEX: ChannelProvider("OpenRouter",  key_name="openrouter_key", win="openrouter", imp="._openrouter"),
+    SILICONFLOW_INDEX: ChannelProvider(tr('SiliconFlow'), key_name="guiji_key", win="siliconflow",  imp="._siliconflow"),
     AI302_INDEX: ChannelProvider("302.AI", key_name="ai302_key", win="ai302", imp="._ai302"),
 
     QWENMT_INDEX: ChannelProvider(tr('Ali-Bailian'), key_name="qwenmt_key", win="qwenmt", imp="._qwenmt"),
-    ZIJIE_INDEX: ChannelProvider(tr('VolcEngine LLM'), key_name="zijiehuoshan_key", win="zijiehuoshan",
-                                 imp="._huoshan"),
+    ZIJIE_INDEX: ChannelProvider(tr('VolcEngine LLM'), key_name="zijiehuoshan_key", win="zijiehuoshan",  imp="._huoshan"),
 
     TENCENT_INDEX: ChannelProvider(tr('Tencent'), key_name="tencent_SecretKey", win="tencent", imp="._tencent"),
     BAIDU_INDEX: ChannelProvider(tr('Baidu'), key_name="baidu_miyue", win="baidu", imp="._baidu"),

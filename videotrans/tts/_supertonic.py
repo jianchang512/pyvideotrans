@@ -14,8 +14,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 class SupertonicTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        self.model_name='Supertone/supertonic-2'
-        self.local_dir=f'{ROOT_DIR}/models/models--Supertone--supertonic-2'
+        self.model_name='Supertone/supertonic-3'
+        self.local_dir=f'{ROOT_DIR}/models/models--Supertone--supertonic-3'
         self.speed=self.get_speed()
 
     def _download(self):
