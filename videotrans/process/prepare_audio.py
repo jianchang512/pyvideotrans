@@ -246,44 +246,6 @@ def fix_punc(*, text_dict_file:str,  is_cuda=False, logs_file=None, device_index
         logger.exception(f'恢复标点失败{e}:{msg}', exc_info=True)
         return False, f'{e}{msg}'
 
-
-# 3. 恢复标点 https://modelscope.cn/models/iic/punc_ct-transformer_cn-en-common-vocab471067-large
-def fix_punc0(*, text_dict_file:str,  is_cuda=False, logs_file=None, device_index=0):
-    from modelscope.pipelines import pipeline
-    from modelscope.utils.constant import Tasks
-    device = f"cuda:{device_index}" if is_cuda else "cpu"
-
-    _st = time.time()
-    try:
-        logger.debug(f'开始标点恢复[iic/punc_ct-transformer_cn-en-common-vocab471067-large]')
-        # 反序列化 text_dict
-        text_dict_obj=json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
-
-        ans = pipeline(
-            task=Tasks.punctuation,
-            model='iic/punc_ct-transformer_cn-en-common-vocab471067-large',
-            model_revision="v2.0.4",
-            disable_update=True,
-            disable_progress_bar=True,
-            disable_log=True,
-            device=device
-        )
-        _str = "\n".join([f'{line}\t{it}' for line, it in text_dict_obj.items()])
-        tmp_name = f'{TEMP_ROOT}/fix_flag-{time.time()}.txt'
-        Path(tmp_name).write_text(_str, encoding='utf-8')
-        result = ans(tmp_name, disable_pbar=True)
-        for it in result:
-            text_dict_obj[it["key"]] = it['text']
-        # 写回该文件
-        Path(text_dict_file).write_text(json.dumps(text_dict_obj),encoding="utf-8")
-        logger.debug(f'标点恢复完成，耗时:{int(time.time() - _st)}s')
-        return True, None
-    except Exception as e:
-        msg = traceback.format_exc()
-        logger.exception(f'恢复标点失败{e}:{msg}', exc_info=True)
-        return False, f'{e}{msg}'
-
-
 # 4. ali_CAM阿里 说话人分离  https://modelscope.cn/models/iic/speech_campplus_speaker-diarization_common/files
 def cam_speakers(*, input_file, subtitles_file:str,speak_file:str, num_speakers=-1,  is_cuda=False, logs_file=None,
                  device_index=0):
