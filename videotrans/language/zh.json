@@ -510,6 +510,7 @@
   "The role {} does not exist": "{} 角色不存在",
   "The target language code is not set correctly and cannot be translated": "未正确设置目标语言代码，无法翻译",
   "The tutorial": "查看教程",
+
   "The video file {} does not contain valid video data and cannot be processed.": "该视频文件 {} 中不存在有效视频画面数据，无法处理",
   "The voice is not support listen": "该角色不支持试听",
   "There are {} sets of videos with the same name and audio that need to be merged.": "有{}组同名视频和音频需合并",
@@ -980,5 +981,6 @@
   "Set reference audio":"设置参考音频",
   "Creating progress bar, please wait": "正在创建进度条，请稍等...",
   "Translation results saved to:": "翻译结果保存到: ",
-  "Romanian": "罗马尼亚语"
+  "Romanian": "罗马尼亚语",
+  "may not support": "可能不支持"
 }

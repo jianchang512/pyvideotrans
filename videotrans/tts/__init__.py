@@ -135,6 +135,9 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 
     if tts_type == CHATTTS and langcode[:2] not in ['zh', 'en']:
         return name + tr('Dubbing channel') + ' ' + tr('Only support') + tr(['zh', 'en'])
+    if tts_type == Supertonic_TTS and langcode[:2] not in ['ar','cs','nl','en','fr','de','el','hi','hu','id','it','ja','ko','pl','pt','ro','ru','es','sv','tr','uk','vi']:
+        return name + tr('Dubbing channel') + tr('may not support') + tr(langcode[:2])
+
     return True
 
 
