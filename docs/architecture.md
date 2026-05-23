@@ -604,7 +604,7 @@ Worker.run()
 
 ![](https://pvtr2.pyvideotrans.com/1760192881455_image.png)
 ![](https://pvtr2.pyvideotrans.com/1760192930833_image.png)
-![](https://pvtr2.pyvideotrans.com/1760191980439_image.png)
+
 
 ---
 
@@ -892,7 +892,7 @@ VideoTransError (基类)
     │   ├── srt/                # SRT 格式翻译 prompt（chatgpt.txt, deepseek.txt 等 13 个）
     │   ├── text/               # 纯文本翻译 prompt（同 13 个）
     │   ├── recogn/             # 语音识别 prompt（gemini_recogn.txt）
-    │   └── recharge/           # 充值引导 prompt（recharge-llm.txt）
+    │   └── recharge/           # LLM重新断句 prompt（recharge-llm.txt）
     │
     └── voicejson/              # TTS 音色配置文件（14 个 JSON）
         ├── edge_tts.json       # Edge-TTS 各语言音色列表
