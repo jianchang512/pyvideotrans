@@ -118,7 +118,7 @@ class Worker(QThread):
         except Exception as e:
             logger.exception(f'单视频模式翻译失败{e}',exc_info=True)
             detail_back = (traceback.format_exc()).strip()
-            self._post(text=str(e) + f"\n{detail_back}\n{trk}\n{trk.cfg if trk else ''}", type='error')
+            self._post(text=str(e) + f"\n{detail_back}\n{trk.cfg if trk else ''}", type='error')
 
     def _post(self, text='', type='logs'):
         try:
