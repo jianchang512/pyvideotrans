@@ -39,7 +39,7 @@ dependencies = [
     "av==16.0.1",
     "azure-cognitiveservices-speech",
     "blinker==1.8.2",
-    "brotli==1.1.0",
+    "brotli==1.2.*",
     "cachetools==5.3.2",
     "certifi==2025.10.5",
     "cffi==1.17.1",
