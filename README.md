@@ -20,7 +20,8 @@
 
 **pyVideoTrans** is dedicated to seamlessly converting videos from one language to another, offering a complete workflow that includes speech recognition, subtitle translation, multi-role dubbing, and audio-video synchronization. It supports both local offline deployment and a wide variety of mainstream online APIs.
 
-<img width="1658" height="935" alt="image" src="https://github.com/user-attachments/assets/c5959e59-6014-480c-9a7d-44c2b1729d36" />
+<img width="1566" height="912" alt="image" src="https://github.com/user-attachments/assets/7410b17d-9903-4919-954a-31764e246c15" />
+
 
 ---
 
