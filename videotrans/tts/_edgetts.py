@@ -197,7 +197,7 @@ class EdgeTTS(BaseTTS):
                 else:
                     err += 1
             if ok==0:
-                raise DubbingSrtError(f'All error for edge-tts ')
+                raise DubbingSrtError(f'All error for edge-tts  {self.error}')
 
             if ok>0:
                 all_task = []
