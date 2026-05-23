@@ -1,7 +1,3 @@
-from videotrans.configure.excepts import VideoTransError
+from modelscope.hub.snapshot_download import snapshot_download
 
-try:
-    if 1:
-        raise VideoTransError('测试')
-except Exception as e:
-    print(f'被抛出的{e}')
+model_dir = snapshot_download('himyworld/videotrans',allow_patterns=['onnx/seg_model.onnx','onnx/vocals.fp16.onnx'],local_dir='./dev')
