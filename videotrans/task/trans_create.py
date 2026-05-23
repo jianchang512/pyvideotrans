@@ -285,7 +285,7 @@ class TransCreate(BaseTask):
         if not tools.vail_file(self.cfg.source_wav):
             raise SpeechToTextError(tr("Failed to separate audio, please check the log or retry"))
 
-        # 若已执行背景声人声分离，则不再进行降噪
+        # 进行降噪
         if self.cfg.remove_noise:
             _remove_noise_wav = f"{self.cfg.cache_folder}/remove_noise.wav"
             if tools.vail_file(_remove_noise_wav):
