@@ -427,9 +427,6 @@ def pipe_asr(
 
             text = res.get('text', '')
 
-            # 清理文件路径引用（如果需要）
-            if 'filename' in it:
-                del it['filename']
 
             if text:
                 # 清理特殊标记
