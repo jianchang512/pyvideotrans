@@ -39,7 +39,6 @@ dependencies = [
     "av==16.0.1",
     "azure-cognitiveservices-speech",
     "blinker==1.8.2",
-    "brotli==1.2.*",
     "cachetools==5.3.2",
     "certifi==2025.10.5",
     "cffi==1.17.1",
@@ -258,6 +257,7 @@ dependencies = [
     "transformers==4.57.6",
     "elevenlabs",
     "camb-sdk",
+    "brotli>=1.2.0",
 ]
 
 [project.optional-dependencies]

@@ -3901,7 +3901,7 @@ requires-dist = [
     { name = "av", specifier = "==16.0.1" },
     { name = "azure-cognitiveservices-speech" },
     { name = "blinker", specifier = "==1.8.2" },
-    { name = "brotli", specifier = "==1.2.*" },
+    { name = "brotli", specifier = ">=1.2.0" },
     { name = "cachetools", specifier = "==5.3.2" },
     { name = "camb-sdk" },
     { name = "certifi", specifier = "==2025.10.5" },
