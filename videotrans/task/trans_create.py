@@ -59,6 +59,7 @@ class TransCreate(BaseTask):
     queue_tts: List = field(default_factory=list, repr=False)
     clone_ref: str = ""
     cost_duration:float=0.0
+    should_recogn2:bool=False
 
     def __post_init__(self):
         super().__post_init__()
@@ -143,6 +144,9 @@ class TransCreate(BaseTask):
             self.cfg.enable_diariz = False
             self.should_dubbing = False
 
+        # 是否需要二次识别
+        # 选中二次识别 and 有配音 and 非嵌入双字幕 and 有翻译即原始和目标语言非同一个
+        self.should_recogn2 = self.cfg.recogn2pass and self.should_dubbing and self.cfg.subtitle_type<3 and (self.cfg.source_language_code != self.cfg.target_language_code)
         # 记录最终使用的配置信息
         logger.debug(f"[TransCreate]最终配置信息：{self=}\n{self.cfg=}")
         # 禁止修改字幕
@@ -412,13 +416,9 @@ class TransCreate(BaseTask):
     # 配音后再次对配音文件进行识别，以便生成简短的字幕，
     def recogn2pass(self) -> None:
         _st=time.time()
-        if not self.should_dubbing or not self.cfg.recogn2pass or self._exit():
+        if not self.should_recogn2 or self._exit():
+            logger.debug(f'跳过二次识别')
             return
-        # 如果不嵌入字幕，或嵌入双字幕，则跳过
-        if self.cfg.subtitle_type > 2 and (self.cfg.source_language_code != self.cfg.target_language_code):
-            logger.debug(f'跳过二次识别, 因设置了嵌入双字幕，二次识别后双字幕时间戳将无法保持一致，因此跳过：{self.cfg.subtitle_type=}')
-            return
-
         if not tools.vail_file(self.cfg.target_wav):
             logger.debug(f'跳过二次识别，因无配音音频文件')
             return

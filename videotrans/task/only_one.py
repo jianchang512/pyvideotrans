@@ -52,7 +52,8 @@ class Worker(QThread):
 
             if float(settings.get('countdown_sec', 0)) > 0:
                 app_cfg.set_countdown(86400)
-                self._post(text='', type='edit_subtitle_source')
+                # 等待修改识别出的字幕
+                self._post(text=trk.cfg.source_sub, type='edit_subtitle_source')
                 self._post(tr('The subtitle editing interface is rendering'))
                 while app_cfg.task_countdown > 0:
                     time.sleep(1)
@@ -70,10 +71,11 @@ class Worker(QThread):
 
             # 需要配音时
             if trk.should_dubbing:
+
                 self._post(text=Path(trk.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
                 if float(settings.get('countdown_sec', 0)) > 0:
                     app_cfg.set_countdown(86400)
-                    # 传递过去临时目录，用于获取 speaker.json
+                    # 传递过去临时目录，用于获取 speaker.json，等待修改待配音的字幕
                     self._post(text=f'{trk.cfg.cache_folder}<|>{trk.cfg.target_language_code}<|>{trk.cfg.tts_type}', type="edit_subtitle_target")
                     self._post(tr('The subtitle editing interface is rendering'))
                     while app_cfg.task_countdown > 0:
@@ -96,6 +98,7 @@ class Worker(QThread):
                         json.dumps(trk.queue_tts, ensure_ascii=False), encoding='utf-8')
 
                     app_cfg.set_countdown(86400)
+                    # 等待修改配音结果或重新配音
                     self._post(text=f"{trk.cfg.cache_folder}<|>{trk.cfg.target_language_code}", type='edit_dubbing')
                     self._post(text=tr('The subtitle editing interface is rendering'))
                     while app_cfg.task_countdown > 0:
@@ -103,11 +106,23 @@ class Worker(QThread):
                         time.sleep(1)
                         app_cfg.set_countdown(app_cfg.task_countdown - 1)
 
+
+
             if not self._exit():
                 trk.align()
 
             if not self._exit():
                 trk.recogn2pass()
+            if trk.should_recogn2:
+                app_cfg.set_countdown(86400)
+                # 等待修改二次识别出的字幕
+                self._post(text=f'{trk.cfg.source_sub}', type="edit_recogn2_subtitle")
+                self._post(text=tr('The subtitle editing interface is rendering'))
+                while app_cfg.task_countdown > 0:
+                    if self._exit(): return
+                    time.sleep(1)
+                    app_cfg.set_countdown(app_cfg.task_countdown - 1)
+
 
             if not self._exit():
                 trk.assembling()

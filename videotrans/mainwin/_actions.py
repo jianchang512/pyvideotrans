@@ -742,6 +742,20 @@ class WinAction(WinActionBase):
             else:
                 self.update_status('stop')
             return
+        if d['type'] == 'edit_recogn2_subtitle':
+            # 显示编辑翻译框
+            from videotrans.component.onlyone_set_recogn2 import EditRecognResultDialog2
+
+            dialog = EditRecognResultDialog2(
+                target_sub=app_cfg.onlyone_target_sub,
+                parent=self.main
+            )
+
+            if dialog.exec():
+                self.set_djs_timeout()
+            else:
+                self.update_status('stop')
+            return
         if d['type'] == 'edit_subtitle_target':
             # 弹出编辑配音字幕
             from videotrans.component.onlyone_set_role import SpeakerAssignmentDialog
