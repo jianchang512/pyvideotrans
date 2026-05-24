@@ -22,7 +22,7 @@ class EditRecognResultDialog2(QDialog):
         self.target_sub = target_sub
         self.srt_list_dict = tools.get_subtitle_from_srt(self.target_sub)
 
-        self.setWindowTitle( f'[{tr("STT again")}] {tr("zimubianjitishi")}' )
+        self.setWindowTitle( tr("Modify secondary recognition results") )
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setMinimumWidth(int(parent.width*0.95))
         self.setMinimumHeight(int(parent.height*0.95))

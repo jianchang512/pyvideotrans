@@ -722,7 +722,7 @@
   "yuyinshibiejindu": "语音识别进度",
   "zhixingwc": "执行完成/点击开始",
   "zidonghebingmiaohou": "修改待配音的字幕并指定发音角色",
-  "zimubianjitishi": "在此修改语音识别出的字幕",
+  "zimubianjitishi": "在此修改语音识别出的字幕，以便后续处理更准确",
   "{lang} represents the target language name, do not delete it.": "提示词文件和修改说明",
   "From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. default is to use tiny model, if you want better result, please use bigger model .en suffix model and model starting with distil is only used to recognize English pronunciation video": "从tiny模型到base到small到medium到large-v3模型，识别效果越来越好，但是模型规模越来越大，识别速度越来越慢，而且需要更多的CPU/memory/GPU资源。默认使用tiny模型，如果想要更好的效果，请使用更大的模型。en后缀的模型和distil开头的模型只用于识别英文发音视频",
   "Please upload reference audio in wav format": "请上传wav格式的参考音频",
@@ -982,5 +982,6 @@
   "Creating progress bar, please wait": "正在创建进度条，请稍等...",
   "Translation results saved to:": "翻译结果保存到: ",
   "Romanian": "罗马尼亚语",
-  "may not support": "可能不支持"
+  "may not support": "可能不支持",
+  "Modify secondary recognition results": "在此修改 二次识别 出的字幕"
 }
