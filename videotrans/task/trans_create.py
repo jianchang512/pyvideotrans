@@ -1057,7 +1057,7 @@ class TransCreate(BaseTask):
     # 处理所需字幕
     def _process_subtitles(self) -> Union[tuple[str, str], None]:
         logger.debug(f"\n======准备要嵌入的字幕:{self.cfg.subtitle_type=}=====")
-        if not Path(self.cfg.target_sub).exists():
+        if not Path(self.cfg.target_sub).exists() :
             logger.error(tr("No valid subtitle file exists"))
             return
 
@@ -1379,12 +1379,18 @@ class TransCreate(BaseTask):
                         logger.exception(f'硬件处理视频合成失败，回退软编 {e}', exc_info=True)
                         tools.runffmpeg(cmd0 + cmd1 + subtitle_filter + cmd2 + enc_qua + cmd3,
                                         cmd_dir=self.cfg.cache_folder, force_cpu=True)
-                # 复制ass硬字幕到目标文件夹下
-                shutil.copy2(f'{self.cfg.cache_folder}/{subtitles_file}', f'{self.cfg.target_dir}/{subtitles_file}')
         except Exception as e:
             raise VideoTransError(tr('Error in embedding the final step of the subtitle dubbing')+str(e)) from e
         finally:
             os.chdir(ROOT_DIR)
+
+        if subtitles_file:
+            try:
+                # 复制ass硬字幕到目标文件夹下
+                shutil.copy2(f'{self.cfg.cache_folder}/{subtitles_file}', f'{self.cfg.target_dir}/{subtitles_file}')
+            except Exception as e:
+                logger.exception(f'复制ass字幕到目标文件夹失败:{e}',exc_info=True)
+
         # 复制到目标文件夹
         if Path(tmp_target_mp4).exists():
             try:

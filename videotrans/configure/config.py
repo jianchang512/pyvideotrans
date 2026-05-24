@@ -48,7 +48,7 @@ def _set_env():
     os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
     os.environ["CT2_VERBOSE"] = "1"
     os.environ["OMP_NUM_THREADS"] = "1"
-    os.environ["TOKENIZERS_PARALLELISM"] = "false"
+    #os.environ["TOKENIZERS_PARALLELISM"] = "false"
     os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
     os.environ['QT_API'] = 'pyside6'
     os.environ['SOFT_NAME'] = 'pyvideotrans'
