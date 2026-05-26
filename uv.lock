@@ -1779,6 +1779,15 @@ wheels = [
 ]
 
 [[package]]
+name = "importlib-resources"
+version = "7.1.0"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/e4/06/b56dfa750b44e86157093bc8fca0ab81dccbf5260510de4eaf1cb69b5b99/importlib_resources-7.1.0.tar.gz", hash = "sha256:0722d4c6212489c530f2a145a34c0a7a3b4721bc96a15fada5930e2a0b760708" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/8a/db/55a262f3606bebcae07cc14095338471ad7c0bbcaa37707e6f0ee49725b7/importlib_resources-7.1.0-py3-none-any.whl", hash = "sha256:1bd7b48b4088eddb2cd16382150bb515af0bd2c70128194392725f82ad2c96a1" },
+]
+
+[[package]]
 name = "inflate64"
 version = "1.0.0"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
@@ -3320,6 +3329,16 @@ wheels = [
 ]
 
 [[package]]
+name = "pynini"
+version = "2.1.6"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/9b/69/4b59968b0fd351a153d7a3c2feaa6e7514c903c063bbd7f7e1e3f1c079b0/pynini-2.1.6.tar.gz", hash = "sha256:b09b6dda73608cedf962dbfbcfa5826b0984d1b43a8f995761972e6e032921c6" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/56/81/4bb768d67943088a0bc12d9f3581e7edc9addf4b29b91f65b4ed733c0a0f/pynini-2.1.6-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:d04d3000cda1cd006c791d8c08ecf9472e3710430024b3130eac3fad26afee60" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/f3/25/e5c69822c420a9fbde5f76df6e482e370d24bcebd6cacd9e12c829aaabaf/pynini-2.1.6-pp310-pypy310_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:bb6bef42826b015d778ae6874e3972e8d06417c7f48c7d7635a2bef7d13eb840" },
+]
+
+[[package]]
 name = "pynndescent"
 version = "0.5.13"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
@@ -3848,6 +3867,11 @@ dependencies = [
 dotnet = [
     { name = "pythonnet" },
 ]
+mosstts = [
+    { name = "importlib-resources" },
+    { name = "pynini" },
+    { name = "wetextprocessing" },
+]
 qwen-asr = [
     { name = "qwen-asr" },
 ]
@@ -3975,6 +3999,7 @@ requires-dist = [
     { name = "imageio", specifier = "==2.31.4" },
     { name = "imageio-ffmpeg", specifier = "==0.4.9" },
     { name = "importlib-metadata", specifier = "==8.7.0" },
+    { name = "importlib-resources", marker = "extra == 'mosstts'" },
     { name = "inflate64", specifier = "==1.0.0" },
     { name = "ipython", specifier = "==8.23.0" },
     { name = "iso639-lang", specifier = "==2.2.3" },
@@ -4052,6 +4077,7 @@ requires-dist = [
     { name = "pygments", specifier = "==2.17.2" },
     { name = "pyinstaller", specifier = "==6.16.0" },
     { name = "pyinstaller-hooks-contrib", specifier = "==2025.8" },
+    { name = "pynini", marker = "extra == 'mosstts'" },
     { name = "pynndescent", specifier = "==0.5.13" },
     { name = "pyparsing", specifier = "==3.1.1" },
     { name = "pyppmd", specifier = "==1.1.0" },
@@ -4122,13 +4148,14 @@ requires-dist = [
     { name = "urllib3", specifier = "==2.5.0" },
     { name = "websocket-client", specifier = "==1.8.0" },
     { name = "websockets", specifier = "==13.1" },
+    { name = "wetextprocessing", marker = "extra == 'mosstts'" },
     { name = "wheel", specifier = "==0.45.1" },
     { name = "wrapt", specifier = "==1.15.0" },
     { name = "xxhash", specifier = "==3.5.0" },
     { name = "yarl", specifier = "==1.20.1" },
     { name = "zhconv", specifier = "==1.4.3" },
 ]
-provides-extras = ["dotnet", "qwen-tts", "qwen-asr"]
+provides-extras = ["dotnet", "qwen-tts", "qwen-asr", "mosstts"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest" }]
@@ -5433,6 +5460,19 @@ dependencies = [
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/61/f1/ee81806690a87dab5f5653c1f146c92bc066d7f4cebc603ef88eb9e13957/werkzeug-3.1.6.tar.gz", hash = "sha256:210c6bede5a420a913956b4791a7f4d6843a43b6fcee4dfa08a65e93007d0d25" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/4d/ec/d58832f89ede95652fd01f4f24236af7d32b70cab2196dfcc2d2fd13c5c2/werkzeug-3.1.6-py3-none-any.whl", hash = "sha256:7ddf3357bb9564e407607f988f683d72038551200c704012bb9a4c523d42f131" },
+]
+
+[[package]]
+name = "wetextprocessing"
+version = "1.0.4.1"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "importlib-resources" },
+    { name = "pynini" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/0f/94/25f1ec447bbe801de9dfb5c9e35775709d551c0d2364b83c2c1bf08eede5/WeTextProcessing-1.0.4.1.tar.gz", hash = "sha256:95eabf1b1c4c102e886b234ee70b13e11ff19ac57ea18d6581aae0cc814f7801" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/c2/e3/19e847398a2863d8c72a1f4f0082fa2a614a7b654d5bad161f03134e5fb7/WeTextProcessing-1.0.4.1-py3-none-any.whl", hash = "sha256:2080c4788ae9de4e8cda07a9cd100003e951b8f2ecee64ad14afa34a79b0dfb4" },
 ]
 
 [[package]]

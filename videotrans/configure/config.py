@@ -34,6 +34,7 @@ LOGS_DIR = f'{ROOT_DIR}/logs'
 TEMP_DIR= f'{TEMP_ROOT}/_temp'
 TRANSLATE_CACHE= f'{TEMP_ROOT}/translate_cache'
 
+Path(f"{ROOT_DIR}/models").mkdir(parents=True, exist_ok=True)
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
 Path(f"{TRANSLATE_CACHE}").mkdir(parents=True, exist_ok=True)
 
