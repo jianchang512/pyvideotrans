@@ -727,8 +727,6 @@ class Ui_MainWindow(object):
         self.actioncamb_key.setObjectName("actioncamb_key")
         self.actionElevenlabs_key = QtGui.QAction(MainWindow)
         self.actionElevenlabs_key.setObjectName("actionElevenlabs_key")
-        self.actionmosstts = QtGui.QAction(self)
-        self.actionmosstts.setObjectName("actionmosstts")
         self.actionwatermark = QtGui.QAction(MainWindow)
         self.actionwatermark.setObjectName("actionwatermark")
         self.actionsepar = QtGui.QAction(MainWindow)
@@ -838,8 +836,6 @@ class Ui_MainWindow(object):
         self.menu_TTS.addAction(self.actiontts_api)
         self.menu_TTS.addSeparator()
         self.menu_TTS.addAction(self.actiontts_chatterbox)
-        self.menu_TTS.addSeparator()
-        self.menu_TTS.addAction(self.actionmosstts)
         self.menu_TTS.addSeparator()
 
         self.menu_RECOGN.addAction(self.actionzijierecognmodel_api)
@@ -1160,7 +1156,6 @@ class Ui_MainWindow(object):
         self.actiongemini_key.setText("Gemini AI")
         self.actioncamb_key.setText("CAMB AI")
         self.actionElevenlabs_key.setText("ElevenLabs.io")
-        self.actionmosstts.setText("MOSS-TTS-Nano")
 
         self.actionwatermark.setText(tr("Add watermark to video"))
         self.actionsepar.setText(tr("Vocal & instrument Separate"))

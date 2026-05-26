@@ -22,6 +22,7 @@ class BaseCon:
     uuid: Optional[str] = field(default=None, init=False)
     # 用于其他需要直接代理字符串
     proxy_str: str = ''
+    last_down_time:int=0
 
     def __post_init__(self):
         # 获取代理
@@ -48,6 +49,11 @@ class BaseCon:
         push_queue(kwargs.get('uuid') or "", SignMsg(**kwargs))
 
     def _process_callback(self, data):
+        _t=time.time()
+        if _t-self.last_down_time<1:
+            return
+        self.last_down_time=_t
+        
         if isinstance(data, str):
             return self.signal(text=tr('Downloading please wait') + data)
         if not isinstance(data, dict):

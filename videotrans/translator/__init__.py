@@ -88,6 +88,9 @@ _ID_NAME_DICT = {
     CAMB_INDEX: ChannelProvider("CAMB AI", key_name="camb_api_key", win="cambtts", imp="._camb"),
     TRANSAPI_INDEX: ChannelProvider(tr('Customized API'), key_name="trans_api_url", win="transapi", imp="._transapi"),
 }
+
+# 强制保持按照每个常量值大小排序
+_ID_NAME_DICT=dict(sorted(_ID_NAME_DICT.items(),key=lambda item:item[0]))
 TRANSLASTE_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
 # subtitles language code  https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes

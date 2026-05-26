@@ -1379,11 +1379,6 @@ class TransCreate(BaseTask):
                         logger.exception(f'硬件处理视频合成失败，回退软编 {e}', exc_info=True)
                         tools.runffmpeg(cmd0 + cmd1 + subtitle_filter + cmd2 + enc_qua + cmd3,
                                         cmd_dir=self.cfg.cache_folder, force_cpu=True)
-                try:
-                    # 复制ass硬字幕到目标文件夹下
-                    shutil.copy2(f'{self.cfg.cache_folder}/{subtitles_file}', f'{self.cfg.target_dir}/{subtitles_file}')
-                except Exception as e:
-                    logger.exception(f'复制ass字幕到目标文件夹失败:{e}',exc_info=True)
         except Exception as e:
             raise VideoTransError(tr('Error in embedding the final step of the subtitle dubbing')+str(e)) from e
         finally:

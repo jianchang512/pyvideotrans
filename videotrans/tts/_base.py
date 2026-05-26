@@ -209,7 +209,7 @@ class BaseTTS(BaseCon):
             return
         # 有些不可恢复的错误，例如 404 sk错误 无权访问等，直接发送 error 信号，无需继续多线程
         try:
-            self.signal(text=f'Dubbing {idx}')
+            self.signal(text=f'Dubbing {idx}/{self.len}')
             return self._run(data_item)
         except RetryError as e:
             logger.exception(f'配音失败:\n字幕内容:{data_item}\n{e}', exc_info=True)

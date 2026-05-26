@@ -41,7 +41,6 @@ from videotrans.ui.libretranslate import Ui_libretranslateform
 from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.minimax import Ui_minimaxform
 from videotrans.ui.minimaxi import Ui_minimaxiform
-from videotrans.ui.mosstts import Ui_mossttsform
 from videotrans.ui.omnivoice import Ui_omnivoiceform
 from videotrans.ui.openairecognapi import Ui_openairecognapiform
 from videotrans.ui.openaitts import Ui_openaittsform
@@ -254,10 +253,7 @@ class OttForm(QDialogBase, Ui_ottform):  # <===
 class CloneForm(QDialogBase, Ui_cloneform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
-        
-class MossTTSForm(QDialogBase, Ui_mossttsform):  # <===
-    def __init__(self, parent=None):
-        super().__init__(parent)
+
 
 
 class ParakeetForm(QDialogBase, Ui_parakeetform):  # <===

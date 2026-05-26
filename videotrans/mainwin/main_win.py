@@ -244,7 +244,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondeepLX_address.triggered.connect(lambda: self.open_winform('deepLX'))
         self.actionott_address.triggered.connect(lambda: self.open_winform('ott'))
         self.actionclone_address.triggered.connect(lambda: self.open_winform('clone'))
-        self.actionmosstts.triggered.connect(lambda: self.open_winform('mosstts'))
         self.actionkokoro_address.triggered.connect(lambda: self.open_winform('kokoro'))
         self.actionchattts_address.triggered.connect(lambda: self.open_winform('chattts'))
         self.actiontts_api.triggered.connect(lambda: self.open_winform('ttsapi'))

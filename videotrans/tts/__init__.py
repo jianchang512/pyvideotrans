@@ -8,48 +8,46 @@ from videotrans import winform, ChannelProvider, get_class
 EDGE_TTS = 0
 QWEN3LOCAL_TTS = 1
 OMNIVOICE_TTS = 2
-PIPER_TTS = 3
-VITSCNEN_TTS = 4
+MOSS_TTS = 3
+PIPER_TTS = 4
+VITSCNEN_TTS = 5
+Supertonic_TTS = 6
 
 # 本地
-GPTSOVITS_TTS = 5
-F5_TTS = 6
-INDEX_TTS = 7
-COSYVOICE_TTS = 8
-Supertonic_TTS = 9
-VOXCPM_TTS = 10
-CHATTERBOX_TTS = 11
+GPTSOVITS_TTS = 7
+F5_TTS = 8
+INDEX_TTS = 9
+COSYVOICE_TTS = 10
+VOXCPM_TTS = 11
+CHATTERBOX_TTS = 12
 
 # 云api
-DOUBAO2_TTS = 12
-QWEN_TTS = 13
-XIAOMI_TTS = 14
-GLM_TTS = 15
-MINIMAXI_TTS = 16
+DOUBAO2_TTS = 13
+QWEN_TTS = 14
+XIAOMI_TTS = 15
+GLM_TTS = 16
+MINIMAXI_TTS = 17
 
 # 海外
-OPENAI_TTS = 17
-GEMINI_TTS = 18
-ELEVENLABS_TTS = 19
-XAI_TTS = 20
-AZURE_TTS = 21
-
-AI302_TTS = 22
+OPENAI_TTS = 18
+GEMINI_TTS = 19
+ELEVENLABS_TTS = 20
+XAI_TTS = 21
 
 # 本地
-CHATTTS = 23
-SPARK_TTS = 24
-DIA_TTS = 25
-KOKORO_TTS = 26
-CLONE_VOICE_TTS = 27
-FISHTTS = 28
+CHATTTS = 22
+SPARK_TTS = 23
+DIA_TTS = 24
+KOKORO_TTS = 25
+CLONE_VOICE_TTS = 26
+FISHTTS = 27
 
-#
-GOOGLE_TTS = 29
-CAMB_TTS = 30
-MOSS_TTS = 31
-
+AZURE_TTS = 28
+AI302_TTS = 29
+GOOGLE_TTS = 30
+CAMB_TTS = 31
 TTS_API = 32
+
 
 # 支持克隆的渠道
 SUPPORT_CLONE = [
@@ -66,6 +64,8 @@ SUPPORT_CLONE = [
     OMNIVOICE_TTS,
     MOSS_TTS
 ]
+
+
 # 配音角色根据语言不同而变化的渠道
 CHANGE_BY_LANGUAGE = [EDGE_TTS, MINIMAXI_TTS, AZURE_TTS, DOUBAO2_TTS, AI302_TTS, KOKORO_TTS,
                       PIPER_TTS, VITSCNEN_TTS]
@@ -73,33 +73,30 @@ CHANGE_BY_LANGUAGE = [EDGE_TTS, MINIMAXI_TTS, AZURE_TTS, DOUBAO2_TTS, AI302_TTS,
 _ID_NAME_DICT = {
     EDGE_TTS: ChannelProvider(tr("Edge-TTS(free)"), "._edgetts"),
     QWEN3LOCAL_TTS: ChannelProvider(f"Qwen3-TTS({tr('Local')}{tr('Built-in')})", "._qwenttslocal"),
-    OMNIVOICE_TTS: ChannelProvider(f"OmniVoice({tr('Local')}API)", "._omnivoice", key_name="omnivoice_url",
-                                   win="omnivoice"),
+    OMNIVOICE_TTS: ChannelProvider(f"OmniVoice({tr('Local')}API)", "._omnivoice", key_name="omnivoice_url",   win="omnivoice"),
+    MOSS_TTS: ChannelProvider(f"MOSS-TTS-Nano({tr('Local')}{tr('Built-in')})", "._mosstts"),
     PIPER_TTS: ChannelProvider(f"Piper({tr('Local')}{tr('Built-in')})", "._piper"),
     VITSCNEN_TTS: ChannelProvider(f"VITS({tr('Local')}{tr('Built-in')})", "._vits"),
+    Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Local')}{tr('Built-in')})", "._supertonic"),
 
-    GPTSOVITS_TTS: ChannelProvider(f"GPT-SoVITS({tr('Local')}API)", "._gptsovits", key_name="gptsovits_url",
-                                   win="gptsovits"),
+    GPTSOVITS_TTS: ChannelProvider(f"GPT-SoVITS({tr('Local')}API)", "._gptsovits", key_name="gptsovits_url", win="gptsovits"),
     F5_TTS: ChannelProvider(f"F5-TTS({tr('Local')}API)", "._f5tts", key_name="f5tts_url", win="f5tts"),
     INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)", "._index", key_name="indextts_url", win="f5tts"),
-    COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)", "._cosyvoice", key_name="cosyvoice_url",
-                                   win="cosyvoice"),
-    Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Local')}{tr('Built-in')})", "._supertonic"),
+    COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)", "._cosyvoice", key_name="cosyvoice_url",  win="cosyvoice"),
     VOXCPM_TTS: ChannelProvider(f"VoxCPM({tr('Local')}API)", "._voxcpm", key_name="voxcpmtts_url", win="f5tts"),
-    CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}API)", "._chatterbox", key_name="chatterbox_url",
-                                    win="chatterbox"),
+    CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}API)", "._chatterbox", key_name="chatterbox_url",  win="chatterbox"),
+
     DOUBAO2_TTS: ChannelProvider(tr("DouBao2"), "._doubao2", key_name="doubao2_access", win="doubao2"),
     QWEN_TTS: ChannelProvider("Qwen3-TTS", "._qwentts", key_name="qwentts_key", win="qwentts"),
     XIAOMI_TTS: ChannelProvider('XiaoMi-TTS', "._xiaomi", key_name="xiaomi_key", win="mitts"),
     GLM_TTS: ChannelProvider(f'GLM-TTS {tr("Zhipu AI")}', "._glmtts", key_name="zhipu_key", win="zhipuai"),
     MINIMAXI_TTS: ChannelProvider("Minimaxi-TTS", "._minimaxi", key_name="minimaxi_apikey", win="minimaxi"),
+
     OPENAI_TTS: ChannelProvider("OpenAI-TTS", "._openaitts", key_name="openaitts_key", win="openaitts"),
     GEMINI_TTS: ChannelProvider("Gemini TTS", "._geminitts", key_name="gemini_key", win="gemini"),
     ELEVENLABS_TTS: ChannelProvider("Elevenlabs.io", "._elevenlabs", key_name="elevenlabstts_key", win="elevenlabs"),
     XAI_TTS: ChannelProvider('X.AI TTS', "._xaitts", key_name="xaitts_key", win="xaitts"),
-    AZURE_TTS: ChannelProvider("Azure-TTS", "._azuretts", key_name="azure_speech_key", win="azuretts"),
 
-    AI302_TTS: ChannelProvider("302.AI", "._ai302tts", key_name="ai302_key", win="ai302"),
 
     CHATTTS: ChannelProvider(f"ChatTTS({tr('Local')}API)", "._chattts", key_name="chattts_api", win="chattts"),
     SPARK_TTS: ChannelProvider(f"Spark-TTS({tr('Local')}API)", "._spark", key_name="sparktts_url", win="f5tts"),
@@ -108,12 +105,14 @@ _ID_NAME_DICT = {
     CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)", "._clone", key_name="clone_api", win="clone"),
     FISHTTS: ChannelProvider(f"Fish-TTS({tr('Local')}API)", "._fishtts", key_name="fishtts_url", win="fishtts"),
 
+    AZURE_TTS: ChannelProvider("Azure-TTS", "._azuretts", key_name="azure_speech_key", win="azuretts"),
+    AI302_TTS: ChannelProvider("302.AI", "._ai302tts", key_name="ai302_key", win="ai302"),
     GOOGLE_TTS: ChannelProvider("gTTS(free)", "._gtts"),
     CAMB_TTS: ChannelProvider("CAMB AI TTS", "._cambtts", key_name="camb_api_key", win="cambtts"),
-    MOSS_TTS: ChannelProvider("MOSS-TTS-Nano", "._mosstts", key_name="moss_tts_url", win="mosstts"),
-
     TTS_API: ChannelProvider(tr("Customize API"), "._ttsapi", key_name="ttsapi_url", win="ttsapi")
 }
+# 强制保持按照每个常量值大小排序
+_ID_NAME_DICT=dict(sorted(_ID_NAME_DICT.items(),key=lambda item:item[0]))
 
 TTS_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
@@ -136,8 +135,11 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     if tts_type == CHATTTS and langcode[:2] not in ['zh', 'en']:
         return name + tr('Dubbing channel') + ' ' + tr('Only support') + tr(['zh', 'en'])
     if tts_type == Supertonic_TTS and langcode[:2] not in ['ar','cs','nl','en','fr','de','el','hi','hu','id','it','ja','ko','pl','pt','ro','ru','es','sv','tr','uk','vi']:
-        return name + tr('Dubbing channel') + tr('may not support') + tr(langcode[:2])
+        return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
 
+    # moss-tts ["zh","en","ja"]
+    if tts_type==MOSS_TTS and langcode[:2] not in ["zh","yu","en","de","es","fr","ja","it","hu","ko","ru","fa","ar","pl","pt","cs","sv","el","tr","da"]:
+        return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
     return True
 
 

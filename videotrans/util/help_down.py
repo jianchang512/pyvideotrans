@@ -39,7 +39,7 @@ def is_connect_hf():
 
 
 # 从 huggingface.co 下载完整模型，先本地下载，失败则在线下载
-def check_and_down_hf(model_id, repo_id, local_dir, callback=None) -> bool:
+def check_and_down_hf(model_id, repo_id, local_dir, callback=None,check_connect=True) -> bool:
     try:
         if model_id in FASTER_MODELS_DICT and (defaulelang == 'zh' or is_connect_hf() is False):
             if model_id == 'turbo':
@@ -72,19 +72,17 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None) -> bool:
             if callback:
                 MyTqdmClass = create_tqdm_class(callback)
 
-            if is_connect_hf() is False:
+            endpoint = 'https://huggingface.co'
+            if check_connect and is_connect_hf() is False:
                 logger.warning(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com, {model_id=}')
                 endpoint = 'https://hf-mirror.com'
-            else:
-                logger.info('可以使用 huggingface.co')
-                endpoint = 'https://huggingface.co'
 
             huggingface_hub.snapshot_download(
                 repo_id=repo_id,
                 local_dir=local_dir,
                 local_dir_use_symlinks=False,
                 endpoint=endpoint,
-                etag_timeout=5,
+                etag_timeout=10,
                 tqdm_class=MyTqdmClass,
                 local_files_only=False,
                 max_workers=1,

@@ -37,14 +37,12 @@ _module_map = {
 "fn_videoandsrt":".fn_videoandsrt",
 "fn_watermark":".fn_watermark",
 "gemini":".gemini",
-#"googlecloud":".googlecloud",
 "gptsovits":".gptsovits",
 "kokoro":".kokoro",
 "libre":".libre",
 "localllm":".localllm",
 "minimaxi":".minimaxi",#tts
 "minimax":".minimax",#翻译
-"mosstts":".mosstts",
 "openairecognapi":".openairecognapi",
 "openaitts":".openaitts",
 "openrouter":".openrouter",

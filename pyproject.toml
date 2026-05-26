@@ -270,6 +270,13 @@ qwen-tts = [
 qwen-asr = [
     "qwen-asr",
 ]
+#https://github.com/OpenMOSS/MOSS-TTS-Nano/issues/6
+mosstts = [
+    "pynini",
+	"importlib-resources",
+	"WeTextProcessing",
+	"importlib-resources"	
+]
 
 [dependency-groups]
 dev = [
