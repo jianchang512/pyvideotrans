@@ -64,6 +64,9 @@ class OpenAICampat(BaseTrans):
             "reasoning_effort":self.reasoning_effort,
             "extra_body":self.extra_body
         }
+        # openai 推理模型不可传递 max_tokens
+        if self.model_name.lower().startswith("gpt"):
+            del kwargs['max_tokens']
 
         try:
             model = OpenAI(api_key=self.api_key, base_url=self.api_url)

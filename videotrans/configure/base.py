@@ -165,11 +165,14 @@ class BaseCon:
             base64_encoded = base64.b64encode(wav_content)
             return base64_encoded.decode("utf-8")
 
-    def _signal_of_process(self, logs_file):
+    def _signal_of_process(self, logs_file,status_dict=None):
         last_mtime = 0
         timeout = 0
         while 1:
             if app_cfg.exit_soft: return
+            if status_dict and status_dict['is_end']:
+                logger.debug(f'新进程执行结束结束{timeout=}')
+                return
             timeout += 1
             if timeout > 3600:
                 logger.warning(f'_signal_of_process timed out after 1 hours: {logs_file}')
@@ -213,9 +216,10 @@ class BaseCon:
         # 提交任务，并显式传入参数，确保子进程拿到正确的参数
         logs_file = kwargs.get('logs_file',f'{TEMP_ROOT}/{_st}.log')
         device_index = 0
+        status_dict={"is_end":False}
         try:
             Path(logs_file).touch()
-            threading.Thread(target=self._signal_of_process, args=(logs_file,), daemon=True).start()
+            threading.Thread(target=self._signal_of_process, args=(logs_file,status_dict), daemon=True).start()
             # 再次判断cuda是否有效，防止预先获取失败
             if is_cuda:
                 import torch
@@ -242,6 +246,7 @@ class BaseCon:
             )
             # return Tuple[bool or result , None or error]
             data,err = future.result()
+            status_dict['is_end']=True
             if err or not data:
                 raise VideoTransError(err)
             self.signal(text=f'[{title}] end: {int(time.time() - _st)}s')
@@ -255,10 +260,11 @@ class BaseCon:
                 _cuda = f" GPU{device_index}"
             logger.exception(f'{title}: {_model}{_cuda}, {kwargs=},{e}', exc_info=True)
             raise VideoTransError(f'{_model}{_cuda} {e}')
-        except Exception as e:
+        except BaseException as e:
             logger.exception(f'{title},{e}', exc_info=True)
             raise
         finally:
+            status_dict['is_end']=True
             try:
                 logger.debug(f'[新进程任务 结束:{title}]，耗时{time.time()-_st}s')
                 if logs_file:

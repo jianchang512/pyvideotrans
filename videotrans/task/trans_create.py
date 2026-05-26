@@ -1058,8 +1058,7 @@ class TransCreate(BaseTask):
     def _process_subtitles(self) -> Union[tuple[str, str], None]:
         logger.debug(f"\n======准备要嵌入的字幕:{self.cfg.subtitle_type=}=====")
         if not Path(self.cfg.target_sub).exists() :
-            logger.error(tr("No valid subtitle file exists"))
-            return
+            raise VideoTransError(tr("No valid subtitle file exists")+self.cfg.target_sub)
 
         # 如果原始语言和目标语言相同，或不存原始语言字幕，则强制单字幕
         if not Path(self.cfg.source_sub).exists() or (self.cfg.source_language_code == self.cfg.target_language_code):
@@ -1169,11 +1168,11 @@ class TransCreate(BaseTask):
         # 判断 novoice_mp4 是否完成
         tools.is_novoice_mp4(self.cfg.novoice_mp4, self.uuid)
         if not Path(self.cfg.novoice_mp4).exists():
-            raise RuntimeError(f'{self.cfg.novoice_mp4} 不存在')
+            raise VideoTransError(f'{self.cfg.novoice_mp4} 不存在')
 
         # 需要配音但没有配音文件
         if self.should_dubbing and not tools.vail_file(self.cfg.target_wav):
-            raise RuntimeError(f"{tr('Dubbing')}{tr('anerror')}:{self.cfg.target_wav}")
+            raise VideoTransError(f"{tr('Dubbing')}{tr('anerror')}:{self.cfg.target_wav}")
 
         self.precent = min(max(90, self.precent), 98)
 
