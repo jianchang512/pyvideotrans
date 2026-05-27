@@ -52,7 +52,7 @@ class GLMASRRecogn(BaseRecogn):
                 
                 try:
                     err_json=response.json()
-                except:
+                except (ValueError, KeyError):
                     raise SpeechToTextError(response.text)
                 else:
                     logger.error(err_json)
