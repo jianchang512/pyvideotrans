@@ -114,6 +114,7 @@ class BaseCon:
                 tools.remove_silence_wav(output_wav_file_path)
         except Exception as e:
             logger.exception(f'转为 48k wav时失败，跳过{e}',exc_info=True)
+            return False
         return True
 
 
