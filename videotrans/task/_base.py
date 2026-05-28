@@ -107,7 +107,7 @@ class BaseTask(BaseCon):
         _source=copy.deepcopy(source_srt_list)
         for it in _source:
             it['text']=_time2srt.get(it['time'],'')
-            return _source
+        return _source
 
     # 手动调用设为结束，成功完成或出错时
     def set_end(self, succeed=False):
