@@ -76,7 +76,7 @@ class PiperTTS(BaseTTS):
             del _model_obj
             import gc
             gc.collect()
-        except:
+        except Exception:
             pass
 
         if ok==0:

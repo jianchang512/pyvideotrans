@@ -253,7 +253,7 @@ class WhisperNetRecogn(BaseRecogn):
             try:
                 from Whisper.net import OnSegmentEventHandler
                 handler = OnSegmentEventHandler(on_segment)
-            except:
+            except (ImportError, AttributeError):
                 from System import Action
                 from Whisper.net import SegmentData
                 handler = Action[SegmentData](on_segment)
