@@ -12,6 +12,10 @@ class Ui_MainWindow(object):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
+        # 语音识别渠道、翻译渠道、配音渠道 label和下拉框宽度
+        _channel_label=80
+        _channel_com=200
+        
 
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -99,24 +103,24 @@ class Ui_MainWindow(object):
         # 语音识别渠道行
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.reglabel = QtWidgets.QPushButton(self.layoutWidget)
+        self.reglabel = QtWidgets.QLabel(self.layoutWidget)
         self.reglabel.setStyleSheet("""background-color:transparent""")
 
         self.reglabel.setText(tr("Speech Recognit"))
-        self.reglabel.setCursor(Qt.PointingHandCursor)
         self.reglabel.setToolTip(
             tr("Click to set detailed recognition parameters when using faster-whisper"))
+        #self.reglabel.setMinimumWidth(_channel_label)
         self.recogn_type = QtWidgets.QComboBox(self.layoutWidget)
-        self.recogn_type.setMinimumSize(QtCore.QSize(160, 30))
+        self.recogn_type.setMinimumSize(QtCore.QSize(_channel_com, 30))
         self.recogn_type.setObjectName("label_5")
-
         self.recogn_type.setToolTip(tr('model_type_tips'))
 
         self.model_name_help = QtWidgets.QLabel(self.layoutWidget)
         self.model_name_help.setText(tr("ASRModel"))
+        #self.model_name_help.setMinimumWidth(_channel_label)
 
         self.model_name = QtWidgets.QComboBox(self.layoutWidget)
-        self.model_name.setMinimumWidth(320)
+        self.model_name.setMinimumWidth(250)
         self.model_name.setObjectName("model_name")
 
         self.rephrase = QtWidgets.QComboBox()
@@ -148,14 +152,14 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
 
-        self.label_9 = QtWidgets.QPushButton(self.layoutWidget)
+        self.label_9 = QtWidgets.QLabel(self.layoutWidget)
         self.label_9.setObjectName("label_9")
         self.label_9.setStyleSheet("""background-color:transparent""")
         self.label_9.setToolTip(
             tr("Click to set the number of subtitles to be translated at the same time"))
-
+        #self.label_9.setMinimumWidth(_channel_label)
         self.translate_type = QtWidgets.QComboBox(self.layoutWidget)
-        self.translate_type.setMinimumSize(QtCore.QSize(160, 30))
+        self.translate_type.setMinimumSize(QtCore.QSize(_channel_com, 30))
         self.translate_type.setObjectName("translate_type")
         self.translate_type.setToolTip(
             tr("Select the channel used to translate text"))
@@ -173,6 +177,7 @@ class Ui_MainWindow(object):
         self.label_3 = QtWidgets.QPushButton(self.layoutWidget)
         self.label_3.setObjectName("label_3")
         self.label_3.setStyleSheet("""background-color:transparent""")
+        #self.label_3.setMinimumWidth(_channel_label)
         self.target_language = QtWidgets.QComboBox(self.layoutWidget)
         self.target_language.setObjectName("target_language")
         self.target_language.setMinimumWidth(130)
@@ -198,35 +203,39 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.glossary)
         self.horizontalLayout_5.addStretch()
 
-        self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
-        self.listen_btn.setEnabled(False)
-        self.listen_btn.setStyleSheet("""background-color:transparent""")
         self.verticalLayout_3.addLayout(self.horizontalLayout_5)
 
         # 配音渠道行
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.tts_text = QtWidgets.QPushButton(self.layoutWidget)
+        self.tts_text = QtWidgets.QLabel(self.layoutWidget)
         self.tts_text.setObjectName("tts_text")
         self.tts_text.setStyleSheet("""background-color:transparent""")
         self.tts_text.setToolTip(
             tr("Click to set the number of threads to be used for dubbing"))
+        
+        #self.tts_text.setMinimumWidth(_channel_label)
         self.tts_type = QtWidgets.QComboBox(self.layoutWidget)
-        self.tts_type.setMinimumSize(QtCore.QSize(160, 30))
+        self.tts_type.setMinimumSize(QtCore.QSize(_channel_com, 30))
         self.tts_type.setObjectName("tts_type")
 
         self.tts_type.setToolTip(tr("Select the channel used to dub"))
-        self.horizontalLayout.addWidget(self.tts_text)
-        self.horizontalLayout.addWidget(self.tts_type)
 
         self.label_4 = QtWidgets.QPushButton(self.layoutWidget)
         self.label_4.setObjectName("label_4")
         self.label_4.setStyleSheet("background-color:transparent")
+        #self.label_4.setMinimumWidth(_channel_label)
         self.voice_role = QtWidgets.QComboBox(self.layoutWidget)
         self.voice_role.setMinimumWidth(200)
         self.voice_role.setObjectName("voice_role")
 
+        self.listen_btn = QtWidgets.QPushButton(self.layoutWidget)
+        self.listen_btn.setEnabled(False)
+        self.listen_btn.setStyleSheet("""background-color:transparent""")
+
+        self.horizontalLayout.addWidget(self.tts_text)
+        self.horizontalLayout.addWidget(self.tts_type)
         self.horizontalLayout.addWidget(self.label_4)
         self.horizontalLayout.addWidget(self.voice_role)
         self.horizontalLayout.addWidget(self.listen_btn)
@@ -235,11 +244,11 @@ class Ui_MainWindow(object):
 
         # 对齐行
         self.align_layout = QtWidgets.QHBoxLayout()
-        self.align_btn = QtWidgets.QPushButton()
+        self.align_btn = QtWidgets.QLabel()
 
         self.align_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         self.align_btn.setObjectName("align_btn")
-        self.align_btn.setCursor(Qt.PointingHandCursor)
+        #self.align_btn.setMinimumWidth(_channel_label)
         self.align_btn.setText(tr("Alignment control"))
         self.align_btn.setToolTip(tr("View alignment tutorial"))
 
@@ -964,7 +973,7 @@ class Ui_MainWindow(object):
 
         # 底部状态条
         self.statusLabel = QtWidgets.QPushButton(tr("Open Documents"))
-        self.statusLabel.setStyleSheet("""color:#ffffbb""")
+        self.statusLabel.setStyleSheet("""color:#ffff66""")
         self.statusBar.addWidget(self.statusLabel)
 
         self.rightbottom = QtWidgets.QPushButton(tr('juanzhu'))
@@ -976,7 +985,7 @@ class Ui_MainWindow(object):
         self.statusBar.addPermanentWidget(self.container)
 
         # 设置显示文字和样式
-        self.rightbottom.setStyleSheet("""color:#ffffbb""")
+        self.rightbottom.setStyleSheet("""color:#ffff66""")
         self.restart_btn.setStyleSheet("""color:#ffffbb""")
         self.restart_btn.setToolTip(
             tr("Click to end all tasks immediately and restart"))
@@ -990,7 +999,6 @@ class Ui_MainWindow(object):
         self.btn_save_dir.setText(tr("Save to.."))
 
         self.label_9.setText(tr("Translate channel"))
-        self.label_9.setCursor(Qt.PointingHandCursor)
         self.translate_type.setToolTip(
             tr("Translation channels used in translating subtitle text"))
         self.label.setText(tr("Proxy"))
@@ -1006,7 +1014,6 @@ class Ui_MainWindow(object):
         self.label_3.setText(tr("Target lang"))
         self.target_language.setToolTip(tr("What language do you want to translate into"))
         self.tts_text.setText(tr("Dubbing channel"))
-        self.tts_text.setCursor(Qt.PointingHandCursor)
         self.label_4.setText(tr("Dubbing role") + " ")
         self.voice_role.setToolTip(tr("No is not dubbing"))
 
