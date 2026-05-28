@@ -23,10 +23,8 @@ class IndexTTS(GradioBase):
         }
         # 0=v1 1=v2
         if int(params.get('index_tts_version', 1)) == 1:
+            kwargs['emo_control_method'] = 'Same as the voice reference'
             kwargs['emo_ref_path'] = handle_file(ref_wav)
-            if params.get('indextts_prompt'):
-                kwargs['emo_text'] = params.get('indextts_prompt')
-                kwargs['emo_control_method'] = 3
         return self._send(kwargs, data_item)
 
 
