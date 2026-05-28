@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from videotrans.configure.config import ROOT_DIR
+from videotrans.configure.config import ROOT_DIR,settings
 
 
 @dataclass
@@ -14,7 +14,7 @@ class Args:
     sample_mode='fixed'
     do_sample=1
     realtime_streaming_decode=0
-    cpu_threads=4
+    cpu_threads=int(float(settings.get('noise_separate_nums',4)))
     execution_provider='cpu'
     max_new_frames=375
     voice_clone_max_text_tokens=75

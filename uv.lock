@@ -3872,10 +3872,10 @@ mosstts = [
     { name = "pynini" },
     { name = "wetextprocessing" },
 ]
-qwen-asr = [
+qwenasr = [
     { name = "qwen-asr" },
 ]
-qwen-tts = [
+qwentts = [
     { name = "qwen-tts" },
 ]
 
@@ -4094,8 +4094,8 @@ requires-dist = [
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "pyzstd", specifier = "==0.16.1" },
     { name = "qdarkstyle", specifier = "==3.2.3" },
-    { name = "qwen-asr", marker = "extra == 'qwen-asr'" },
-    { name = "qwen-tts", marker = "extra == 'qwen-tts'" },
+    { name = "qwen-asr", marker = "extra == 'qwenasr'" },
+    { name = "qwen-tts", marker = "extra == 'qwentts'" },
     { name = "regex", specifier = "==2023.10.3" },
     { name = "requests", specifier = "==2.32.5" },
     { name = "requests-oauthlib", specifier = "==1.3.1" },
@@ -4155,7 +4155,7 @@ requires-dist = [
     { name = "yarl", specifier = "==1.20.1" },
     { name = "zhconv", specifier = "==1.4.3" },
 ]
-provides-extras = ["dotnet", "qwen-tts", "qwen-asr", "mosstts"]
+provides-extras = ["dotnet", "qwentts", "qwenasr", "mosstts"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest" }]
