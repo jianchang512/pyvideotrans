@@ -23,7 +23,7 @@ class GPTSoVITS(BaseTTS):
         if len(self.api_url)<10:
             raise StopTask(f'API URL is error: {self.api_url}')
         self.speed = self.get_speed()
-        self.roledict = tools.get_gptsovits_role()
+        self.roledict = tools.get_gptsovits_role() or {}
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
