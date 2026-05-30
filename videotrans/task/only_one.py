@@ -11,7 +11,7 @@ from pydub import AudioSegment
 from videotrans.configure.config import tr, settings, app_cfg, logger
 from videotrans.task.taskcfg import TaskCfgVTT, SignMsg, InputFile
 from videotrans.task.trans_create import TransCreate
-from videotrans.util import tools
+from videotrans.util.tools import get_recogn_type,get_tanslate_type,get_tts_type,send_notification,vail_file
 
 
 class Worker(QThread):
@@ -62,7 +62,7 @@ class Worker(QThread):
 
             if trk.should_trans:
                 app_cfg.onlyone_trans = True
-                if tools.vail_file(trk.cfg.target_sub):
+                if vail_file(trk.cfg.target_sub):
                     self._post(text="已存在翻译文件，跳过")
                 else:
                     trk.trans()
@@ -90,7 +90,7 @@ class Worker(QThread):
                     for it in trk.queue_tts:
                         if self._exit(): return
                         # 当前配音时长,0=不存在配音文件
-                        it['dubbing_s'] = (len(AudioSegment.from_file(it['filename'])) if tools.vail_file(
+                        it['dubbing_s'] = (len(AudioSegment.from_file(it['filename'])) if vail_file(
                             it['filename']) else 0) / 1000.0
 
                     # 存入临时目录
@@ -133,7 +133,8 @@ class Worker(QThread):
         except Exception as e:
             logger.exception(f'单视频模式翻译失败{e}',exc_info=True)
             detail_back = (traceback.format_exc()).strip()
-            self._post(text=str(e) + f"\n{detail_back}\n{trk.cfg if trk else ''}", type='error')
+            channel=f"{tr('shibiechucuo')}:{get_recogn_type(trk.cfg.recogn_type)}, {tr('fanyichucuo')}: {get_tanslate_type(trk.cfg.translate_type)}, {tr('peiyinchucuo')}:{get_tts_type(trk.cfg.tts_type)}"
+            self._post(text=str(e) + f"{channel}\n{detail_back}\n{trk.cfg if trk else ''}", type='error')
 
     def _post(self, text='', type='logs'):
         try:

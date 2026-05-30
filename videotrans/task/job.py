@@ -5,28 +5,9 @@ from PySide6.QtCore import QThread
 
 from videotrans.configure.config import tr, settings, app_cfg, logger
 from videotrans.configure.excepts import get_msg_from_except
-from videotrans.recognition import RECOGN_NAME_LIST
-from videotrans.translator import TRANSLASTE_NAME_LIST
-from videotrans.tts import TTS_NAME_LIST
-from videotrans.util import tools, gpus
 
-
-def _get_type_name(type_index, name_list):
-    if type_index is None or type_index >= len(name_list):
-        return '-'
-    return name_list[type_index]
-
-
-def get_recogn_type(type_index=None):
-    return _get_type_name(type_index, RECOGN_NAME_LIST)
-
-
-def get_tanslate_type(type_index=None):
-    return _get_type_name(type_index, TRANSLASTE_NAME_LIST)
-
-
-def get_tts_type(type_index=None):
-    return _get_type_name(type_index, TTS_NAME_LIST)
+from videotrans.util import gpus
+from videotrans.util.tools import get_recogn_type,get_tanslate_type,get_tts_type,send_notification
 
 
 class BaseWorker(QThread):
@@ -74,7 +55,7 @@ class BaseWorker(QThread):
             except_msg = f"{prefix} {except_msg}"
         if trk.uuid not in app_cfg.stoped_uuid_set:
             trk.signal(text=f'{except_msg}\n{detail_back}\n{trk.cfg}', type='error', uuid=trk.uuid)
-            tools.send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+            send_notification(f'Error:{e}', f'{trk.cfg.basename}')
         trk.set_end()
         self.cleanup_on_error(trk)
 

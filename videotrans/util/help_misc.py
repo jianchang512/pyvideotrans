@@ -13,6 +13,9 @@ from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulela
 import tqdm
 
 from videotrans.task.taskcfg import SignMsg
+from videotrans.recognition import RECOGN_NAME_LIST
+from videotrans.translator import TRANSLASTE_NAME_LIST
+from videotrans.tts import TTS_NAME_LIST
 
 
 def create_tqdm_class(callback):
@@ -455,3 +458,24 @@ def check_new_version():
     except Exception as e:
         #logger.exception(f'获取最新版本信息失败{e}', exc_info=True)
         pass
+
+
+
+
+def _get_type_name(type_index, name_list):
+    if type_index is None or type_index >= len(name_list):
+        return '-'
+    return name_list[type_index]
+
+
+def get_recogn_type(type_index=None):
+    return _get_type_name(type_index, RECOGN_NAME_LIST)
+
+
+def get_tanslate_type(type_index=None):
+    return _get_type_name(type_index, TRANSLASTE_NAME_LIST)
+
+
+def get_tts_type(type_index=None):
+    return _get_type_name(type_index, TTS_NAME_LIST)
+
