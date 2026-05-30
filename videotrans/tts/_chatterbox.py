@@ -1,14 +1,21 @@
 import logging
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Dict, Union
 import requests
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import params, logger, settings
-from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
+from videotrans.configure.config import params, logger, settings, app_cfg, ROOT_DIR
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask, DubbingSrtError
 from videotrans.tts._base import BaseTTS
+from videotrans.util import tools
+try:
+    from chatterbox.mtl_tts import ChatterboxMultilingualTTS as ChatterboxTTS
+except ImportError:
+    logger.critical('please run  uv sync --extra chatterbox ')
 
+import soundfile as sf
 RETRY_NUMS = 2
 RETRY_DELAY = 5
 
@@ -17,13 +24,65 @@ RETRY_DELAY = 5
 class ChatterBoxTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = 'http://' +params.get('chatterbox_url','').strip().rstrip('/').lower().replace('http://', '')
-        if len(self.api_url)<10:
-            raise StopTask(f'API URL is error: {self.api_url}')
+        self.roledict=tools.get_chatterbox_role()
 
+    def _download(self):
+            if not Path(f'{ROOT_DIR}/models/chatterbox/ve.pt').exists():
+                tools.check_and_down_hf("", 'resembleAI/chatterbox', f'{ROOT_DIR}/models/chatterbox', callback=self._process_callback,allow_list=['ve.pt','s3gen.pt','conds.pt','t3_cfg.pt','t3_mtl23ls_v2.safetensors','Cangjie5_TC.json','grapheme_mtl_merged_expanded_v1.json','mtl_tokenizer.json','tokenizer.json'])
+            return True
+
+    def _exec(self):
+        model = ChatterboxTTS.from_local(f'{ROOT_DIR}/models/chatterbox',device='cpu' if not self.is_cuda else 'cuda')
+
+        ok, err = 0, 0
+        _except = None
+        cfg_weight=float(params.get("chatterbox_cfg_weight",'0.5'))
+        exaggeration=float(params.get("chatterbox_exaggeration",'0.5'))
+        lang=self.language.split('-')[0]
+        for item in self.queue_tts:
+            if app_cfg.exit_soft: return
+            ref_wav=None
+            try:
+                ref_wav,_=self.get_ref_wav(item)
+            except Exception:
+                logger.debug('无参考音频，使用内置音色')
+            try:
+                wav_tensor = model.generate(item['text'],exaggeration=exaggeration,cfg_weight=cfg_weight,language_id=lang,audio_prompt_path=ref_wav)
+                wav_tensor = wav_tensor.detach().cpu()
+                if wav_tensor.ndim == 2:
+                    wav_np = wav_tensor.transpose(0, 1).numpy()
+                else:
+                    wav_np = wav_tensor.numpy()
+                 # 写入 WAV 格式到内存
+                sf.write(item['filename'] + "-24k.wav", wav_np, model.sr, format='wav')
+                if not tools.vail_file(item['filename'] + '-24k.wav'):
+                    err += 1
+                    continue
+                ok += 1
+                self.convert_to_wav(item['filename'] + '-24k.wav', item['filename'])
+                self.signal(text=f"Dubbing {ok}")
+            except Exception as e:
+                _except = e
+                logger.exception(f'vits dubbing error:{e}', exc_info=True)
+                err += 1
+
+        try:
+            del model
+        except Exception:
+            pass
+        if ok == 0:
+            raise _except if _except else DubbingSrtError('ChatterBox-TTS dubbing error')
+
+        msg = "dubbing ended"
+        if err > 0 and ok > 0:
+            msg = f'[{err}] errors, {ok} succeed'
+
+
+        self.signal(text=msg)
+        logger.debug(f'ChatterBox 配音结束：{msg}')
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
-    def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+    def _run00(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         try:
             ref_wav,_=self.get_ref_wav(data_item)
         except Exception:

@@ -421,12 +421,7 @@ def openwin():
 
     # tts类型改变
     def tts_type_change(type):
-
-        if type == tts.QWEN3LOCAL_TTS:
-            winobj.is_cuda.show()
-        else:
-            winobj.is_cuda.hide()
-
+        winobj.is_cuda.setVisible(type  in [tts.QWEN3LOCAL_TTS,tts.CHATTERBOX_TTS])
         current_text = winobj.hecheng_language.currentText()
 
         winobj.hecheng_language.clear()

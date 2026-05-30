@@ -520,7 +520,10 @@ def qwen3asr_fun(
         device_index=0  # gpu索引
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import torch
-    from qwen_asr import Qwen3ASRModel
+    try:
+        from qwen_asr import Qwen3ASRModel
+    except ImportError:
+        logger.critical('please run  uv sync --extra qwenasr ')
     if is_cuda:
         device_map = f'cuda:{device_index}'
         dtype = torch.float16

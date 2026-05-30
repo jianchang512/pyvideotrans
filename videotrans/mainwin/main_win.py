@@ -340,6 +340,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         QApplication.processEvents()
         self.uito.emit('end')
+        run_in_threadpool(tools.is_connect_hf)
         run_in_threadpool(tools.check_new_version)
 
     def _start_workers(self, status):
@@ -514,3 +515,4 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QThreadPool.globalInstance().waitForDone(5000)
         # 最后再kill ffmpeg，避免占用
         self.kill_ffmpeg_processes()
+

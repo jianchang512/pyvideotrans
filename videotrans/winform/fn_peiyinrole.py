@@ -273,7 +273,7 @@ def openwin():
             winobj.volume_rate.setDisabled(True)
             winobj.pitch_rate.setDisabled(True)
 
-        winobj.is_cuda.setVisible(True if type == tts.QWEN3LOCAL_TTS else False)
+        winobj.is_cuda.setVisible(type  in [tts.QWEN3LOCAL_TTS,tts.CHATTERBOX_TTS])
 
         current_text = winobj.hecheng_language.currentText()
         langnamelist = getlangnamelist(type)

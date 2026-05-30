@@ -28,18 +28,22 @@ def file_exists(dirname, glob_patter='*.bin') -> bool:
 
 
 def is_connect_hf():
+    if os.environ.get('HF_ENDPOINT')=='https://hf-mirror.com':
+        return False
     try:
         requests.head('https://huggingface.co', timeout=3)
     except Exception as e:
         logger.warning(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com\n{e}')
+        os.environ['HF_ENDPOINT']='https://hf-mirror.com'
         return False
     else:
         logger.info('可以使用 huggingface.co')
+        os.environ['HF_ENDPOINT']='https://huggingface.co'
         return True
 
 
 # 从 huggingface.co 下载完整模型，先本地下载，失败则在线下载
-def check_and_down_hf(model_id, repo_id, local_dir, callback=None,check_connect=True) -> bool:
+def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=None) -> bool:
     try:
         if model_id in FASTER_MODELS_DICT and (defaulelang == 'zh' or is_connect_hf() is False):
             if model_id == 'turbo':
@@ -72,21 +76,18 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,check_connect=
             if callback:
                 MyTqdmClass = create_tqdm_class(callback)
 
-            endpoint = 'https://huggingface.co'
-            if check_connect and is_connect_hf() is False:
-                logger.warning(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com, {model_id=}')
-                endpoint = 'https://hf-mirror.com'
-
+            is_connect_hf()
             huggingface_hub.snapshot_download(
                 repo_id=repo_id,
                 local_dir=local_dir,
                 local_dir_use_symlinks=False,
-                endpoint=endpoint,
+                endpoint=os.environ.get('HF_ENDPOINT'),
                 etag_timeout=10,
                 tqdm_class=MyTqdmClass,
                 local_files_only=False,
                 max_workers=1,
-                ignore_patterns=["*.msgpack", "*.h5", ".git*", "*.md"]
+                ignore_patterns=["*.msgpack", "*.h5", ".git*", "*.md"],
+                allow_patterns=allow_list
             )
         else:
             return True
@@ -117,12 +118,8 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,check_connect=
 
 # 从 huggingface 下载单个文件
 def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
-    if is_connect_hf() is False:
-        logger.warning(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
-        endpoint = 'https://hf-mirror.com'
-    else:
-        logger.info('可以使用 huggingface.co')
-        endpoint = 'https://huggingface.co'
+    is_connect_hf()
+    endpoint = os.environ.get('HF_ENDPOINT')
     for index, url in enumerate(urls):
         try:
             if not url.startswith('https://'):

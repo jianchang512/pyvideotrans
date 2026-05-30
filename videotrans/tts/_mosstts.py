@@ -9,7 +9,10 @@ from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from videotrans.mosstts.onnx_tts_runtime import    OnnxTtsRuntime
 
-
+try:
+    import WeTextProcessing
+except ImportError:
+    logger.critical('please run  uv sync --extra mosstts ')
 
 
 @dataclass

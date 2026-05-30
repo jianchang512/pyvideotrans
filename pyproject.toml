@@ -277,6 +277,9 @@ mosstts = [
 	"WeTextProcessing",
 	"importlib-resources"	
 ]
+chatterbox=[
+    "chatterbox-tts"
+]
 
 [dependency-groups]
 dev = [

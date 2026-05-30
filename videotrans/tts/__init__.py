@@ -12,14 +12,14 @@ MOSS_TTS = 3
 PIPER_TTS = 4
 VITSCNEN_TTS = 5
 Supertonic_TTS = 6
+CHATTERBOX_TTS = 7
 
 # 本地
-GPTSOVITS_TTS = 7
 F5_TTS = 8
 INDEX_TTS = 9
-COSYVOICE_TTS = 10
-VOXCPM_TTS = 11
-CHATTERBOX_TTS = 12
+GPTSOVITS_TTS = 10
+COSYVOICE_TTS = 11
+VOXCPM_TTS = 12
 
 # 云api
 DOUBAO2_TTS = 13
@@ -44,9 +44,8 @@ FISHTTS = 27
 
 AZURE_TTS = 28
 AI302_TTS = 29
-GOOGLE_TTS = 30
-CAMB_TTS = 31
-TTS_API = 32
+CAMB_TTS = 30
+TTS_API = 31
 
 
 # 支持克隆的渠道
@@ -78,13 +77,13 @@ _ID_NAME_DICT = {
     PIPER_TTS: ChannelProvider(f"Piper({tr('Local')}{tr('Built-in')})", "._piper"),
     VITSCNEN_TTS: ChannelProvider(f"VITS({tr('Local')}{tr('Built-in')})", "._vits"),
     Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Local')}{tr('Built-in')})", "._supertonic"),
+    CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}{tr('Built-in')})", "._chatterbox",  win="chatterbox"),
 
     GPTSOVITS_TTS: ChannelProvider(f"GPT-SoVITS({tr('Local')}API)", "._gptsovits", key_name="gptsovits_url", win="gptsovits"),
     F5_TTS: ChannelProvider(f"F5-TTS({tr('Local')}API)", "._f5tts", key_name="f5tts_url", win="f5tts"),
     INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)", "._index", key_name="indextts_url", win="f5tts"),
     COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)", "._cosyvoice", key_name="cosyvoice_url",  win="cosyvoice"),
     VOXCPM_TTS: ChannelProvider(f"VoxCPM({tr('Local')}API)", "._voxcpm", key_name="voxcpmtts_url", win="f5tts"),
-    CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}API)", "._chatterbox", key_name="chatterbox_url",  win="chatterbox"),
 
     DOUBAO2_TTS: ChannelProvider(tr("DouBao2"), "._doubao2", key_name="doubao2_access", win="doubao2"),
     QWEN_TTS: ChannelProvider("Qwen3-TTS", "._qwentts", key_name="qwentts_key", win="qwentts"),
@@ -107,7 +106,6 @@ _ID_NAME_DICT = {
 
     AZURE_TTS: ChannelProvider("Azure-TTS", "._azuretts", key_name="azure_speech_key", win="azuretts"),
     AI302_TTS: ChannelProvider("302.AI", "._ai302tts", key_name="ai302_key", win="ai302"),
-    GOOGLE_TTS: ChannelProvider("gTTS(free)", "._gtts"),
     CAMB_TTS: ChannelProvider("CAMB AI TTS", "._cambtts", key_name="camb_api_key", win="cambtts"),
     TTS_API: ChannelProvider(tr("Customize API"), "._ttsapi", key_name="ttsapi_url", win="ttsapi")
 }
@@ -139,6 +137,9 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 
     # moss-tts ["zh","en","ja"]
     if tts_type==MOSS_TTS and langcode[:2] not in ["zh","yu","en","de","es","fr","ja","it","hu","ko","ru","fa","ar","pl","pt","cs","sv","el","tr","da"]:
+        return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
+    #Arabic, Danish, German, Greek, English, Spanish, Finnish, French, Hebrew, Hindi, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese, Russian, Swedish, Swahili, Turkish, Chinese
+    if tts_type==CHATTERBOX_TTS and langcode[:2] not in ["zh","yu","en","de","es","fr","ja","it","ko","ru","ar","pl","pt","sv","el","tr","da","he",'hi',"ms","nl","nb"]:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
     return True
 

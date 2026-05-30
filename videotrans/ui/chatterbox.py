@@ -25,23 +25,6 @@ class Ui_chatterboxform(object):
         self.wrap_h.setObjectName(u"wrap_h")
         self.inner_v = QVBoxLayout()
 
-        label_github = QLabel()
-        label_github.setText(
-            tr("You need to install and start https://github.com/jianchang512/chatterbox-api before you can use it"))
-
-        self.inner_v.addWidget(label_github)
-
-        h1 = QHBoxLayout()
-        self.label = QLabel()
-        self.label.setObjectName("label")
-        self.label.setMinimumSize(QSize(0, 35))
-        self.api_url = QLineEdit()
-        self.api_url.setObjectName("api_url")
-        self.api_url.setMinimumSize(QSize(0, 35))
-        h1.addWidget(self.label)
-        h1.addWidget(self.api_url)
-        self.inner_v.addLayout(h1)
-
         cfg_h = QHBoxLayout()
         cfg_label = QLabel()
         cfg_label.setObjectName("cfg_label")
@@ -76,13 +59,6 @@ class Ui_chatterboxform(object):
         self.test = QPushButton()
         self.test.setObjectName("test")
         self.test.setMinimumSize(QSize(0, 35))
-        help_btn = QtWidgets.QPushButton()
-        help_btn.setMinimumSize(QtCore.QSize(0, 35))
-        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
-        help_btn.setObjectName("help_btn")
-        help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/chatterbox'))
         h4.addWidget(self.save)
         h4.addWidget(self.test)
 
@@ -90,22 +66,17 @@ class Ui_chatterboxform(object):
         ref_btn.setText(tr("Set reference audio"))
         ref_btn.clicked.connect(tools.show_refaudio_win)
         h4.addWidget(ref_btn)
-        h4.addWidget(help_btn)
 
         self.inner_v.addLayout(h4)
-
         # end
         self.wrap_h.addLayout(self.inner_v)
 
         self.retranslateUi(chatterboxform)
-
         QMetaObject.connectSlotsByName(chatterboxform)
 
     # setupUi
 
     def retranslateUi(self, chatterboxform):
-        chatterboxform.setWindowTitle("Chatterbox-TTS API")
+        chatterboxform.setWindowTitle("Chatterbox-TTS")
         self.save.setText(tr("Save"))
-        self.label.setText("Chatterbox TTS API")
-
         self.test.setText(tr("Test"))

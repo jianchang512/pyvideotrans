@@ -296,6 +296,12 @@ def get_gptsovits_role():
     return rolelist
 
 
+def get_chatterbox_role():
+
+    rolelist=get_f5tts_role()
+    rolelist["default"]='default'
+    return rolelist
+
 def get_f5tts_role():
     rolelist = {"No": "No", "clone": "clone"}
     if not params.get('f5tts_role', '').strip():
@@ -329,8 +335,6 @@ def get_clone_role(set_p=False):
 # 根据渠道返回角色列表 供下拉菜单使用
 def role_menu(tts_type, langcode=None) -> List:
     from videotrans import tts
-    if tts_type == tts.GOOGLE_TTS:
-        return ['No', "gtts"]
 
     if tts_type == tts.OPENAI_TTS:
         return ['No'] + (params.get('openaitts_role') or contants.OPENAITTS_ROLES).split(',')
@@ -376,8 +380,11 @@ def role_menu(tts_type, langcode=None) -> List:
         return list(get_qwenttslocal_rolelist().keys())
 
     if tts_type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS, tts.DIA_TTS, tts.OMNIVOICE_TTS,
-                    tts.COSYVOICE_TTS, tts.CHATTERBOX_TTS, tts.FISHTTS, tts.MOSS_TTS]:
+                    tts.COSYVOICE_TTS, tts.FISHTTS, tts.MOSS_TTS]:
         return list(get_f5tts_role().keys())
+
+    if tts_type == tts.CHATTERBOX_TTS:
+        return list(get_chatterbox_role().keys())
     # 语言无关角色一致的到此结束
     # 以下均根据语言代码返回对应角色
     if not langcode:

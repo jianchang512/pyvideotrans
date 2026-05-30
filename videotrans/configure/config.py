@@ -139,6 +139,8 @@ class AppCfg:
     # 存放消息日志
     global_msg: List = field(default_factory=list)
     exit_soft: bool = False
+    # 用于经 webui 交互确定的默认音色克隆方式，与webui语言界面相关
+    indextts_default_choice:str='Same as the voice reference'
 
     # 窗口与UI
     child_forms: Dict = field(default_factory=dict)
@@ -720,7 +722,6 @@ class AppParams:
             "ai302tts_role": OPENAITTS_ROLES,
             "azure_speech_region": "",
             "azure_speech_key": "",
-            "chatterbox_url": "",
             "chatterbox_cfg_weight": 0.5,
             "chatterbox_exaggeration": 0.5,
             "gptsovits_url": "",

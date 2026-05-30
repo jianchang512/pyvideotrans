@@ -572,7 +572,7 @@ class ASSStyleDialog(QDialog):
         self.blockSignals(True)
         try:
             self.font_combo.setCurrentFont(style['Fontname'])
-            self.Bottom_font_combo.setCurrentFont(style['Bottom_Fontname'])
+            self.bottom_font_combo.setCurrentFont(style['Bottom_Fontname'])
             self.font_size_spin.setValue(style['Fontsize'])
             self.bottom_font_size_spin.setValue(style['Bottom_Fontsize'])
             self.primary_color_picker.color = ColorPicker.parse_color(style['PrimaryColour'])

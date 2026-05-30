@@ -285,6 +285,8 @@ class BaseTTS(BaseCon):
             ref_wav = item.get('ref_wav', '')
             ref_text = item.get('ref_text').strip()
         elif role in self.roledict:
+            if not isinstance(self.roledict[role],dict):
+                return ref_wav,ref_text
             ref_text = self.roledict[role]['ref_text']
             ref_wav = ROOT_DIR + f"/f5-tts/{role}"
 

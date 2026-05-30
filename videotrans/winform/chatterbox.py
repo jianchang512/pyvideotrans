@@ -14,11 +14,6 @@ def openwin():
         winobj.test.setText(tr('Test'))
 
     def test():
-        url = winobj.api_url.text().strip()
-
-        if not url.startswith('http'):
-            url = 'http://' + url
-        params["chatterbox_url"] = url
         try:
             params["chatterbox_cfg_weight"] = min(max(float(winobj.cfg_weight.text()), 0.0), 1.0)
         except (ValueError, TypeError):
@@ -51,14 +46,6 @@ def openwin():
 
 
     def save():
-        url = winobj.api_url.text().strip()
-
-        if not url.startswith('http'):
-            url = 'http://' + url
-
-
-        params["chatterbox_url"] = url
-
         try:
             params["chatterbox_cfg_weight"] = min(max(float(winobj.cfg_weight.text()), 0.0), 1.0)
         except (ValueError, TypeError):
@@ -76,10 +63,8 @@ def openwin():
     from videotrans.component.set_form import ChatterboxForm
     winobj = ChatterboxForm()
     app_cfg.child_forms['chatterbox'] = winobj
-    winobj.api_url.setText(params.get("chatterbox_url",''))
     winobj.cfg_weight.setText(str(params.get("chatterbox_cfg_weight",'')))
     winobj.exaggeration.setText(str(params.get("chatterbox_exaggeration",'')))
-
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

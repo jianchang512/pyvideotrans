@@ -27,7 +27,10 @@ def qwen3tts_fun(
         device_index=0 # gpu索引
 )->Tuple[bool,Union[str,None]]:
     import torch
-    from qwen_tts import Qwen3TTSModel
+    try:
+        from qwen_tts import Qwen3TTSModel
+    except ImportError:
+        logger.critical('please run  uv sync --extra qwentts ')
 
     
     CUSTOM_VOICE= {"Vivian", "Serena", "Uncle_fu", "Dylan", "Eric", "Ryan", "Aiden", "Ono_anna", "Sohee"}
