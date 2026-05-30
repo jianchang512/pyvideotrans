@@ -72,6 +72,7 @@ class BaseTTS(BaseCon):
         logger.debug(f'开始语音合成:渠道{self.tts_type}')
         self.signal(text=f"TTS starting: [{self.len}]")
         if hasattr(self, '_download'):
+            self.signal(text=f"Check and downloading models...")
             self._download()
         loop = None
         try:

@@ -44,10 +44,9 @@ class DubbingSrt(BaseTask):
         self.cfg.target_wav = f'{self.cfg.target_dir}/{self.cfg.noextname}.wav'
         self.signal(text=tr("Dubbing from subtitles"))
         logger.debug(f'配音 {self.cfg=}')
-
-    def prepare(self):
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
         Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
+
 
 
     def dubbing(self):

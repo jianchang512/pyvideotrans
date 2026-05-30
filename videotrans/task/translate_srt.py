@@ -36,10 +36,9 @@ class TranslateSrt(BaseTask):
         if self.cfg.name == self.cfg.target_sub:
             shutil.copy2(self.cfg.source_sub, f"{self.cfg.source_sub}-OriginalSubtitles.srt")
         self.signal(text=tr("Transation subtitles"))
-
-    def prepare(self):
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
         Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
+
 
     def trans(self):
         if self._exit(): return
