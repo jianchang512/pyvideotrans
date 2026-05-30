@@ -1,0 +1,61 @@
+name: Auto Close Inactive Issues
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  close-inactive-issues:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Close issues inactive for 30 days
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = 'jianchang512';
+            const repo = 'pyvideotrans';
+            const commentBody = 'Automatically closed after 30 days.';
+            const now = new Date();
+            const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            console.log(`Cutoff date: ${cutoff.toISOString()}`);
+
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner,
+                repo,
+                state: 'open',
+                per_page: 100
+              }
+            );
+
+            const inactiveIssues = issues.filter(issue => {
+              if (issue.pull_request) return false;
+              return new Date(issue.updated_at) < cutoff;
+            });
+
+            console.log(`Found ${inactiveIssues.length} inactive open issues older than 30 days.`);
+
+            for (const issue of inactiveIssues) {
+              console.log(`Commenting on and closing #${issue.number}: ${issue.title}`);
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: commentBody
+              });
+
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+            }
