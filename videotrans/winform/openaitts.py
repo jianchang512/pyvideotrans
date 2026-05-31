@@ -1,6 +1,7 @@
 def openwin():
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr,app_cfg,settings,params,TEMP_DIR
+    from videotrans.configure.config import tr,app_cfg,settings,params
+    from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
@@ -28,7 +29,7 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": 'alloy' if not t and not t[0].strip() else t[0].strip(),
-            "filename": TEMP_DIR + f"/{time.time()}-openai.wav",
+            "filename": config.TEMP_DIR + f"/{time.time()}-openai.wav",
             "tts_type": tts.OPENAI_TTS}],
                          language="zh",
                          tts_type=tts.OPENAI_TTS)

@@ -39,7 +39,7 @@ class ChatterBoxTTS(BaseTTS):
         cfg_weight = float(params.get("chatterbox_cfg_weight", '0.5'))
         exaggeration = float(params.get("chatterbox_exaggeration", '0.5'))
         lang = self.language.split('-')[0]
-        for item in self.queue_tts:
+        for i,item in enumerate(self.queue_tts):
             if app_cfg.exit_soft: return
             ref_wav = None
             try:
@@ -47,6 +47,7 @@ class ChatterBoxTTS(BaseTTS):
             except Exception:
                 logger.debug('无参考音频，使用内置音色')
             try:
+                self.signal(text=f'starting {i}/{self.len}')
                 wav_tensor = model.generate(item['text'], exaggeration=exaggeration, cfg_weight=cfg_weight,
                                             language_id=lang, audio_prompt_path=ref_wav)
                 wav_tensor = wav_tensor.detach().cpu()
@@ -61,10 +62,10 @@ class ChatterBoxTTS(BaseTTS):
                     continue
                 ok += 1
                 self.convert_to_wav(item['filename'] + '-24k.wav', item['filename'])
-                self.signal(text=f"Dubbing {ok}")
+                self.signal(text=f"Dubbinged {i}/{self.len}")
             except Exception as e:
                 _except = e
-                logger.exception(f'vits dubbing error:{e}', exc_info=True)
+                logger.exception(f'chatterbox dubbing error:{e}', exc_info=True)
                 err += 1
 
         try:

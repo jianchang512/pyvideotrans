@@ -11,7 +11,8 @@ def openwin():
     from pathlib import Path
     from PySide6.QtCore import QThread, Signal, QUrl, QTimer
     from PySide6.QtGui import QDesktopServices
-    from videotrans.configure.config import tr, app_cfg, settings, params, TEMP_DIR, logger, HOME_DIR
+    from videotrans.configure.config import tr, app_cfg, settings, params, logger, HOME_DIR
+    from videotrans.configure import config
     from videotrans.util import tools
 
     RESULT_DIR = HOME_DIR + "/vas"
@@ -77,7 +78,7 @@ def openwin():
                     ext = self.audio.split('.')[-1].lower()
                     # 先转为 wav，方便 soundfile 处理
                     if ext != 'wav':
-                        _audio = f'{TEMP_DIR}/vas-audio-{time.time()}.wav'
+                        _audio = f'{config.TEMP_DIR}/vas-audio-{time.time()}.wav'
                         tools.runffmpeg([
                             "-y",
                             "-i",
@@ -93,7 +94,7 @@ def openwin():
                         self.audio = _audio
                     audio_time = int(tools.get_audio_time(self.audio))
 
-                    tmp_audio = TEMP_DIR + f"/vas-tmp_audio-{time.time()}.wav"
+                    tmp_audio = config.TEMP_DIR + f"/vas-tmp_audio-{time.time()}.wav"
                     # 如果音频时长小于视频，则音频直接添加末尾静音
                     if audio_time < self.video_time:
                         audio_data = AudioSegment.from_file(self.audio, format='wav') + AudioSegment.silent(
@@ -112,8 +113,8 @@ def openwin():
 
                     # 需要保留原视频中声音，则需要混合 self.audio 和视频声音
                     if self.saveraw and self.video_info['streams_audio']:
-                        tmp_mp4a = TEMP_DIR + f"/vas-fromvideotowav-{time.time()}.wav"
-                        end_m4a = TEMP_DIR + f"/vas-fromvideotowav2uploadwav-{time.time()}.m4a"
+                        tmp_mp4a = config.TEMP_DIR + f"/vas-fromvideotowav-{time.time()}.wav"
+                        end_m4a = config.TEMP_DIR + f"/vas-fromvideotowav2uploadwav-{time.time()}.m4a"
                         # 先取出来视频中的音频为 wav
                         tools.runffmpeg([
                             '-y',
@@ -153,7 +154,7 @@ def openwin():
                     # audio_process=0截断 1=音频加速 2=视频定格
                     # 如果存在 self.audio ，则无论是否保留原视频中声音，此时都已处理好，直接替换 视频中声音
                     # 分离出无声视频进行定格操作
-                    novoice_mp4 = TEMP_DIR + f"/vas-novoice-{time.time()}.mp4"
+                    novoice_mp4 = config.TEMP_DIR + f"/vas-novoice-{time.time()}.mp4"
                     cmd = [
                         '-y',
                         '-i',
@@ -184,7 +185,7 @@ def openwin():
                             logger.exception(f'VAS合并期间，延长视频末端失败，将保持原样:{e}')
 
                     # 视频音频合并
-                    audiovideoend_mp4 = TEMP_DIR + f"/vad-end-{time.time()}.mp4"
+                    audiovideoend_mp4 = config.TEMP_DIR + f"/vad-end-{time.time()}.mp4"
                     tools.runffmpeg([
                         '-y',
                         '-i',
@@ -206,7 +207,7 @@ def openwin():
                         return
                     self.video = audiovideoend_mp4
                 # 软字幕
-                protxt = TEMP_DIR + f'/vas-jd{time.time()}.txt'
+                protxt = config.TEMP_DIR + f'/vas-jd{time.time()}.txt'
                 cmd = [
                     '-y',
                     "-progress",
@@ -227,7 +228,7 @@ def openwin():
                     else:
                         tmp = tools.simple_wrap(it['text'].strip(), self.maxlen,self.language)
                     srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
-                tmpsrt = TEMP_DIR + f"/vas-{time.time()}.srt"
+                tmpsrt = config.TEMP_DIR + f"/vas-{time.time()}.srt"
                 with Path(tmpsrt).open('w', encoding='utf-8') as f:
                     f.write(srt_string.strip())
                 if self.is_soft and self.language:
@@ -259,7 +260,7 @@ def openwin():
                         self.file
                     ]
                 threading.Thread(target=self.hebing_pro, args=(protxt, ), daemon=True).start()
-                tools.runffmpeg(cmd, cmd_dir=TEMP_DIR)
+                tools.runffmpeg(cmd, cmd_dir=config.TEMP_DIR)
                 self.post(type='ok', text=self.file)
             except Exception as e:
                 from videotrans.configure.excepts import get_msg_from_except

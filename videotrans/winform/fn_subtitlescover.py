@@ -7,7 +7,8 @@ def openwin():
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure.config import tr,app_cfg, params,TEMP_DIR, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
+    from videotrans.configure import config
     from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/subtitlescover"
 
@@ -35,7 +36,7 @@ def openwin():
                         if raw_path.name.lower().endswith('.srt'):
                             srt_list = tools.get_subtitle_from_srt(v, is_file=True)
                         else:
-                            tmp_srt = TEMP_DIR + f'/{time.time()}.srt'
+                            tmp_srt = config.TEMP_DIR + f'/{time.time()}.srt'
                             tools.runffmpeg([
                                 "-y",
                                 "-i",

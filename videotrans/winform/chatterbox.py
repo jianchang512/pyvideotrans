@@ -2,7 +2,8 @@
 def openwin():
     from pathlib import Path
     from PySide6 import QtWidgets
-    from videotrans.configure.config import ROOT_DIR,tr,app_cfg, params,TEMP_DIR
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg, params
+    from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     def feed(d):
@@ -38,7 +39,7 @@ def openwin():
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": 'Hello,my friend,welcom to China', 
             "role": rolename,
-            "filename": TEMP_DIR + f"/test-chatterbox.wav",
+            "filename": config.TEMP_DIR + f"/test-chatterbox.wav",
             "tts_type": tts.CHATTERBOX_TTS}], language="en",
             tts_type=tts.CHATTERBOX_TTS)
         wk.uito.connect(feed)

@@ -514,7 +514,7 @@ class WinAction(WinActionBase):
         cfg['clear_cache'] = False
 
         from videotrans.task.mult_video import MultVideo
-        task = MultVideo(parent=self.main, cfg=cfg, obj_list=self.obj_list)
+        task = MultVideo(parent=self.main, cfg=cfg, input_file_list=self.obj_list)
         task.start()
         self.main.startbtn.setDisabled(False)
         # 不再重试

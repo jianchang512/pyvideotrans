@@ -46,12 +46,12 @@ class MossTTS(BaseTTS):
             tools.check_and_down_hf("",
                                     "OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX",
                                     local_dir="./models/MOSS-TTS-Nano-100M-ONNX",
-                                    callback=self._process_callback, check_connect=False)
+                                    callback=self._process_callback)
             tools.check_and_down_hf("",
                                     "OpenMOSS-Team/MOSS-Audio-Tokenizer-Nano-ONNX",
                                     local_dir="./models/MOSS-Audio-Tokenizer-Nano-ONNX",
-                                    callback=self._process_callback,
-                                    check_connect=False)
+                                    callback=self._process_callback
+                                    )
 
     def _exec(self):
         ok, err = 0, 0
@@ -81,7 +81,7 @@ class MossTTS(BaseTTS):
             if app_cfg.exit_soft: return
             try:
                 ref_wav,_=self.get_ref_wav(item)
-                result = runtime.synthesize(
+                runtime.synthesize(
                     text=item['text'],
                     voice=args.voice,
                     prompt_audio_path=ref_wav,

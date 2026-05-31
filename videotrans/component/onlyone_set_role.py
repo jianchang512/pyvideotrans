@@ -12,7 +12,8 @@ from PySide6.QtWidgets import (
     QHeaderView, QAbstractItemView, QGridLayout
 )
 
-from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, TEMP_DIR, logger
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings,  logger
+from videotrans.configure import config
 from videotrans.util import tools
 
 
@@ -536,7 +537,7 @@ class SpeakerAssignmentDialog(QDialog):
         wk = ListenVoice(parent=self, queue_tts=[{
             "text": first_text,
             "role": role_value,
-            "filename": TEMP_DIR + f"/{time.time()}-onlyone_setrole.wav",
+            "filename": config.TEMP_DIR + f"/{time.time()}-onlyone_setrole.wav",
             "tts_type": self.tts_type}],
             language=self.target_language,
             tts_type=self.tts_type)

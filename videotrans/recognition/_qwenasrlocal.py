@@ -5,7 +5,8 @@ from typing import List,  Union
 from pathlib import Path
 import  time
 
-from videotrans.configure.config import  logger, defaulelang, ROOT_DIR, TEMP_DIR
+from videotrans.configure.config import  logger, defaulelang, ROOT_DIR
+from videotrans.configure import config
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -29,9 +30,9 @@ class QwenasrlocalRecogn(BaseRecogn):
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
 
-        logs_file = f'{TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
         title = "Qwen3-ASR"
-        cut_audio_list_file = f'{TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
+        cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
         Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]), encoding='utf-8')
         kwargs = {
             "cut_audio_list": cut_audio_list_file,

@@ -4,7 +4,8 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal as pyqtSignal
 
-from videotrans.configure.config import ROOT_DIR, tr, settings, TEMP_DIR, logger
+from videotrans.configure.config import ROOT_DIR, tr, settings, logger
+from videotrans.configure import config
 from videotrans.process.prepare_audio import vocal_bgm
 from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
@@ -57,7 +58,7 @@ class SeparateWorker(QThread):
             self.finish_event.emit('logs:Separating vocals from the background ...')
             # 如果不是wav，需要先转为wav
             if  p.suffix.lower()!= '.wav':
-                newfile = TEMP_DIR + f'/sep-{time.time()}.wav'
+                newfile = config.TEMP_DIR + f'/sep-{time.time()}.wav'
                 cmd = [
                     "-y",
                     "-i",

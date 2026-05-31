@@ -6,7 +6,8 @@ from typing import List, Union
 
 from pydub import AudioSegment
 
-from videotrans.configure.config import ROOT_DIR, logger, settings, TEMP_DIR
+from videotrans.configure.config import ROOT_DIR, logger, settings
+from videotrans.configure import config
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.process import faster_whisper, pipe_asr
 from videotrans.recognition._base import BaseRecogn
@@ -47,8 +48,8 @@ class HuggingfaceRecogn(BaseRecogn):
         # 1. 准备数据
         title=f"load {self.model_name}"
         self.signal(text=title)
-        logs_file = f'{TEMP_DIR}/{self.uuid}/huggingface-pipeasr-{self.detect_language}-{time.time()}.log'
-        cut_audio_list_file = f'{TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/huggingface-pipeasr-{self.detect_language}-{time.time()}.log'
+        cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
         Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]),encoding='utf-8')
         kwargs = {
             "cut_audio_list": cut_audio_list_file,
@@ -69,10 +70,10 @@ class HuggingfaceRecogn(BaseRecogn):
     def _faster(self)->Union[List[SrtItem], None]:
         title=f"load {self.model_name}"
         self.signal(text=title)
-        logs_file = f'{TEMP_DIR}/{self.uuid}/huggingface-faster-{self.detect_language}-{time.time()}.log'
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/huggingface-faster-{self.detect_language}-{time.time()}.log'
         speech_timestamps_file=None
         if self.speech_timestamps:
-            speech_timestamps_file = f'{TEMP_DIR}/{self.uuid}/speech_timestamps_{time.time()}.json'
+            speech_timestamps_file = f'{config.TEMP_DIR}/{self.uuid}/speech_timestamps_{time.time()}.json'
             Path(speech_timestamps_file).write_text(json.dumps(self.speech_timestamps),encoding='utf-8')
         kwargs = {
             "prompt": settings.get(

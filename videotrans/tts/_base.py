@@ -10,7 +10,8 @@ from typing import List, Dict, Any, Optional, Union, Tuple
 from tenacity import RetryError
 from videotrans.configure.base import BaseCon
 from videotrans.configure.excepts import DubbingSrtError, StopTask
-from videotrans.configure.config import tr, settings, logger, ROOT_DIR, TEMP_DIR
+from videotrans.configure.config import tr, settings, logger, ROOT_DIR
+from videotrans.configure import config
 from videotrans.util import tools
 
 """
@@ -60,7 +61,8 @@ class BaseTTS(BaseCon):
 
     def __post_init__(self):
         super().__post_init__()
-        Path(f'{TEMP_DIR}/{self.uuid}').mkdir(parents=True, exist_ok=True)
+        print(f'进步BaseTTS={config.TEMP_DIR=}/{self.uuid=}')
+        Path(f'{config.TEMP_DIR}/{self.uuid}').mkdir(parents=True, exist_ok=True)
         self.queue_tts = copy.deepcopy(self.queue_tts)
         self.len = len(self.queue_tts)
         self._cleantts()
@@ -139,7 +141,7 @@ class BaseTTS(BaseCon):
                 succeed_nums += 1
         # 只有全部配音都失败，才视为失败
         if succeed_nums < 1:
-            if self._exec(): return
+            if self._exit(): return
             if isinstance(self.error, Exception):
                 raise self.error.last_attempt.exception() if isinstance(self.error, RetryError) else self.error
 

@@ -13,7 +13,8 @@ def openwin():
     from PySide6.QtCore import QUrl, Qt
     from PySide6.QtGui import QDesktopServices
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr, app_cfg, params, TEMP_DIR, defaulelang,   HOME_DIR
+    from videotrans.configure.config import tr, app_cfg, params, defaulelang,   HOME_DIR
+    from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.task.taskcfg import TaskCfgTTS
     from videotrans.task.dubbing import DubbingSrt
@@ -254,7 +255,7 @@ def openwin():
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
             return tools.show_error(tr('mustberole'))
-        voice_dir = TEMP_DIR + '/listen_voice'
+        voice_dir = config.TEMP_DIR + '/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
         tts_type = winobj.tts_type.currentIndex()
@@ -301,7 +302,7 @@ def openwin():
     def hecheng_start_fun():
         nonlocal RESULT_DIR, uuid_list
 
-        Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         txt = winobj.hecheng_plaintext.toPlainText().strip()
         language = winobj.hecheng_language.currentText()
@@ -346,7 +347,7 @@ def openwin():
             RESULT_DIR = HOME_DIR + "/tts"
 
         if txt:
-            newsrtfile = TEMP_DIR + f"/{datetime.now().strftime('%Y%m%d-%H%M%S')}."
+            newsrtfile = config.TEMP_DIR + f"/{datetime.now().strftime('%Y%m%d-%H%M%S')}."
             is_srt = re.match(
                 r'^1\s*[\r\n]+\s*\d{1,2}:\d{1,2}:\d{1,2}(,\d{1,3})?\s*-->\s*\d{1,2}:\d{1,2}:\d{1,2}(,\d{1,3})?', txt)
             if not is_srt:
@@ -364,7 +365,7 @@ def openwin():
             app_cfg.rm_uuid(it['uuid'])
             cfg = {
                 "voice_role": role,
-                "cache_folder": TEMP_DIR + f'/{it["uuid"]}',
+                "cache_folder": config.TEMP_DIR + f'/{it["uuid"]}',
                 "target_language_code": langcode,
                 "target_dir": RESULT_DIR,
                 "voice_rate": rate,

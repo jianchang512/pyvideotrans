@@ -31,7 +31,8 @@ SYS_TMP = Path(tempfile.gettempdir()).as_posix()
 ROOT_DIR = Path(sys.executable).parent.as_posix() if IS_FROZEN else Path(__file__).parent.parent.parent.as_posix()
 TEMP_ROOT = f'{ROOT_DIR}/tmp'
 LOGS_DIR = f'{ROOT_DIR}/logs'
-TEMP_DIR= f'{TEMP_ROOT}/_temp'
+# 会变化，应该通过 config.TEMP_DIR 获取
+TEMP_DIR= f'{TEMP_ROOT}/None'
 TRANSLATE_CACHE= f'{TEMP_ROOT}/translate_cache'
 
 Path(f"{ROOT_DIR}/models").mkdir(parents=True, exist_ok=True)

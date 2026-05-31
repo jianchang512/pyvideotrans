@@ -19,7 +19,6 @@ class ListenVoice(QThread):
                 play=True,
                 is_test=True,
                 tts_type=self.tts_type
-
             )
             self.uito.emit("ok")
         except Exception as e:

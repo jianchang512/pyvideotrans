@@ -12,7 +12,8 @@ from pathlib import Path
 from typing import List, Dict, Union
 
 from videotrans import translator
-from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, TEMP_DIR, logger
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
+from videotrans.configure import config
 from videotrans.recognition import run as run_recogn, is_allow_lang as recogn_allow_lang, FASTER_WHISPER
 from videotrans.translator import run as run_trans, get_audio_code
 from videotrans.tts import run as run_tts, EDGE_TTS, AZURE_TTS, SUPPORT_CLONE
@@ -65,7 +66,7 @@ class TransCreate(BaseTask):
         super().__post_init__()
         self.cost_duration=time.time()
         if not self.cfg.cache_folder:
-            self.cfg.cache_folder = f"{TEMP_DIR}/{self.uuid}"
+            self.cfg.cache_folder = f"{config.TEMP_DIR}/{self.uuid}"
         # 清理缓存
         if self.cfg.clear_cache:
             if self.cfg.target_dir and Path(self.cfg.target_dir).is_dir():

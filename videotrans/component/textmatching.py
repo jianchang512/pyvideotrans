@@ -13,7 +13,8 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                                QComboBox, QCheckBox,  QMessageBox)
 from PySide6.QtCore import Qt, QThread, Signal, Slot, QSettings, QUrl
 
-from videotrans.configure.config import ROOT_DIR, settings, TEMP_DIR, defaulelang
+from videotrans.configure.config import ROOT_DIR, settings,  defaulelang
+from videotrans.configure import config
 from videotrans.util import tools
 from videotrans.configure.contants import FASTER_MODELS_DICT
 
@@ -137,7 +138,7 @@ class AlignmentWorker(QThread):
                     raise e
 
             self.log_signal.emit(tr("status_transcribing"))
-            tempfile=f'{TEMP_DIR}/textmatching-{time.time()}.wav'
+            tempfile=f'{config.TEMP_DIR}/textmatching-{time.time()}.wav'
             try:
                 tools.conver_to_16k(self.audio_path,tempfile)
                 segments, info = model.transcribe(

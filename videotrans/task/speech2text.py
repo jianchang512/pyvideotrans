@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import List
 
 from videotrans.configure import contants
-from videotrans.configure.config import ROOT_DIR, tr, settings, TEMP_DIR, logger, HOME_DIR
+from videotrans.configure.config import ROOT_DIR, tr, settings, logger, HOME_DIR
+from videotrans.configure import config
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
@@ -46,7 +47,7 @@ class SpeechToText(BaseTask):
         # 转录后的目标字幕文件，先统一转为srt，然后再使用ffmpeg转为其他格式字幕
         self.cfg.target_sub = self.cfg.target_dir + '/' + self.cfg.noextname + '.srt'
         # 临时文件夹
-        self.cfg.cache_folder = TEMP_DIR + f'/{self.uuid}'
+        self.cfg.cache_folder = config.TEMP_DIR + f'/{self.uuid}'
         # 处理为 16k 的wav单通道音频，供模型识别用
         self.cfg.shibie_audio = self.cfg.cache_folder + f'/{self.cfg.noextname}-{time.time()}.wav'
         self.signal(text=tr("Speech Recognition to Word Processing"))
@@ -77,7 +78,7 @@ class SpeechToText(BaseTask):
             ], callback=self._process_callback)
 
             _44100_ac2 = f"{self.cfg.cache_folder}/44100-ac2.wav"
-            _noise_wav = f"{TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
+            _noise_wav = f"{config.TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
             tools.runffmpeg([
                 "-y",
                 "-i",

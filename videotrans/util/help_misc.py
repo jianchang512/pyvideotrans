@@ -455,7 +455,7 @@ def check_new_version():
         res.raise_for_status()
         d = res.json()
         app_cfg.new_version_pvt = d['version']
-    except Exception as e:
+    except Exception:
         #logger.exception(f'获取最新版本信息失败{e}', exc_info=True)
         pass
 

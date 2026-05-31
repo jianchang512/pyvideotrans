@@ -3,7 +3,8 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Union, List
 
-from videotrans.configure.config import  settings, ROOT_DIR, TEMP_DIR
+from videotrans.configure.config import  settings, ROOT_DIR
+from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 
@@ -54,7 +55,7 @@ class FasterAll(BaseRecogn):
         title=f'STT use {self.model_name}'
         self.signal(text=title)
         # 起一个进程
-        logs_file = f'{TEMP_DIR}/{self.uuid}/openai-{self.detect_language}-{time.time()}.log'
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/openai-{self.detect_language}-{time.time()}.log'
         kwargs = {
             "prompt": settings.get(
                 f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
@@ -80,7 +81,7 @@ class FasterAll(BaseRecogn):
     def _faster(self)->Union[List[SrtItem], None]:
         title=f"STT use {self.model_name}"
         self.signal(text=title)
-        logs_file = f'{TEMP_DIR}/{self.uuid}/faster-{self.detect_language}-{time.time()}.log'
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/faster-{self.detect_language}-{time.time()}.log'
 
         kwargs = {
             "detect_language": self.detect_language,

@@ -11,7 +11,8 @@ def openwin():
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure import contants
-    from videotrans.configure.config import tr,app_cfg,settings,params,TEMP_DIR, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR
+    from videotrans.configure import config
     # 使用内置的 open 函数
     from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/watermark"
@@ -87,7 +88,7 @@ def openwin():
                 ]
 
                 position = positions[self.pos]
-                protxt = TEMP_DIR + f'/jd{time.time()}.txt'
+                protxt = config.TEMP_DIR + f'/jd{time.time()}.txt'
                 threading.Thread(target=self.hebing_pro,args=(protxt,duration),daemon=True).start()
 
                 # 构建 FFmpeg 命令

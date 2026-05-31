@@ -5,7 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 import json
 from videotrans import translator
-from videotrans.configure.config import ROOT_DIR,params,TEMP_DIR,defaulelang
+from videotrans.configure.config import ROOT_DIR,params,defaulelang
+from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from videotrans.process import qwen3tts_fun
@@ -13,7 +14,9 @@ from videotrans.process import qwen3tts_fun
 @dataclass
 class QwenttsLocal(BaseTTS):
     def __post_init__(self):
+        print(f'进步 QwenttsLocal 1 {config.TEMP_DIR=}')
         super().__post_init__()
+        print(f'进步 QwenttsLocal 2 {config.TEMP_DIR=}')
         self.model_name="1.7B"
         _langnames = translator.LANG_CODE.get(self.language, [])
         self.target_language = _langnames[9].capitalize() if _langnames and len(_langnames) >= 10 else 'Auto'
@@ -29,8 +32,9 @@ class QwenttsLocal(BaseTTS):
 
 
     def _exec(self):
-        logs_file = f'{TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
-        queue_tts_file = f'{TEMP_DIR}/{self.uuid}/queuetts-{time.time()}.json'
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
+        queue_tts_file = f'{config.TEMP_DIR}/{self.uuid}/queuetts-{time.time()}.json'
+        print(f'QwenttsLocal _exec')
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
         title="Qwen3-TTS"
         kwargs = {            
@@ -55,5 +59,7 @@ class QwenttsLocal(BaseTTS):
                     all_task.append(pool.submit(self.convert_to_wav, filename,item['filename']))
             if len(all_task) > 0:
                 _ = [i.result() for i in all_task]
+            else:
+                self.error="No dubbing audio generate, view logs"
 
 

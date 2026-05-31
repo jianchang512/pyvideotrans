@@ -3,7 +3,7 @@ import time
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import List,  Union
-from videotrans.configure.config import TEMP_DIR
+from videotrans.configure import config
 from videotrans.process import paraformer, funasr_mlt
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -39,9 +39,9 @@ class FunasrRecogn(BaseRecogn):
         else:
             tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
         self.signal(text=f"load {self.model_name}")
-        logs_file = f'{TEMP_DIR}/{self.uuid}/funasr-{self.detect_language}-{time.time()}.log'
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/funasr-{self.detect_language}-{time.time()}.log'
         if self.model_name != 'paraformer-zh':
-            cut_audio_list_file = f'{TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
+            cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
             Path(cut_audio_list_file).write_text( json.dumps( [ asdict(item) for item in self.cut_audio() ] ),encoding='utf-8')
         else:
             cut_audio_list_file=None

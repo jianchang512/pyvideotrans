@@ -6,7 +6,7 @@ import time
 from concurrent.futures.process import BrokenProcessPool
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Optional,Union
 
 from videotrans.configure.config import tr, settings, app_cfg, logger, push_queue, TEMP_ROOT
 from videotrans.configure.excepts import VideoTransError
@@ -23,6 +23,7 @@ class BaseCon:
     # 用于其他需要直接代理字符串
     proxy_str: str = ''
     last_down_time:int=0
+
 
     def __post_init__(self):
         # 获取代理

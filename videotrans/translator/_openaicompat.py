@@ -80,12 +80,10 @@ class OpenAICampat(BaseTrans):
             raise TranslateSrtError(str(response))
         if response.choices[0].finish_reason=='length':
             raise LengthFinishReasonError(completion=response)
-        if response.choices[0].message.content:
-            result = response.choices[0].message.content.strip()
-        else:
+        if not response.choices[0].message.content:
             logger.warning(f'[{self.ainame}]请求失败:{response=}')
             raise TranslateSrtError(f"[{self.ainame}] {response.choices[0].finish_reason}:{response}")
-
+        result = response.choices[0].message.content.strip()
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>', '',result), re.S)
         if match:
             return match.group(1)

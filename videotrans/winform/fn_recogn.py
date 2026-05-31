@@ -10,7 +10,8 @@ def openwin():
     from PySide6 import QtWidgets
     from PySide6.QtCore import QUrl
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
-    from videotrans.configure.config import tr, app_cfg, settings, params, TEMP_DIR, HOME_DIR,logger
+    from videotrans.configure.config import tr, app_cfg, settings, params, HOME_DIR,logger
+    from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.task.speech2text import SpeechToText
     from videotrans.task.taskcfg import TaskCfgSTT
@@ -87,7 +88,7 @@ def openwin():
     def shibie_start_fun():
         nonlocal COPYSRT_TO_RAWDIR, uuid_list
         uuid_list = []
-        Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         model = winobj.shibie_model.currentText()
         recogn_type = winobj.shibie_recogn_type.currentIndex()

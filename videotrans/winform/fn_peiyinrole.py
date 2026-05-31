@@ -10,7 +10,8 @@ def openwin():
     from PySide6.QtCore import QUrl, Qt, QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure.config import tr, app_cfg, params, TEMP_DIR, defaulelang, HOME_DIR
+    from videotrans.configure.config import tr, app_cfg, params, defaulelang, HOME_DIR
+    from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.task.dubbing import DubbingSrt
     from videotrans import translator, tts
@@ -118,7 +119,7 @@ def openwin():
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
             return tools.show_error(tr('mustberole'))
-        voice_dir = TEMP_DIR + '/listen_voice'
+        voice_dir = config.TEMP_DIR + '/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
 
@@ -168,7 +169,7 @@ def openwin():
             return tools.show_error(
                 tr("Please import an SRT subtitle file first."))
 
-        Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         language = winobj.hecheng_language.currentText()
         role = winobj.hecheng_role.currentText()  # Default role
@@ -212,7 +213,7 @@ def openwin():
         app_cfg.rm_uuid(uuid)
         cfg = {
             "voice_role": role,  # Default role
-            "cache_folder": TEMP_DIR + f'/{uuid}',
+            "cache_folder": config.TEMP_DIR + f'/{uuid}',
             "target_language_code": langcode,
             "target_dir": RESULT_DIR,
             "voice_rate": rate,

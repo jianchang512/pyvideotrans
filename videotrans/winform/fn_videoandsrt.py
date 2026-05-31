@@ -11,7 +11,8 @@ def openwin():
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import contants
-    from videotrans.configure.config import tr,app_cfg,settings,params,TEMP_DIR,logger, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg,settings,params,logger, HOME_DIR
+    from videotrans.configure import config
     from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/videoandsrt"
 
@@ -82,7 +83,7 @@ def openwin():
                         else:
                             it['text'] = tools.simple_wrap(it['text'], self.maxlen,self.language).strip()
                             text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
-                    srtfile = TEMP_DIR + f"/srt{time.time()}.srt"
+                    srtfile = config.TEMP_DIR + f"/srt{time.time()}.srt"
                     with Path(srtfile).open('w', encoding='utf-8') as f:
                         f.write(text)
                     cmd_dir = None

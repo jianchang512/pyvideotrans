@@ -12,7 +12,8 @@ def openwin():
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import contants
-    from videotrans.configure.config import tr,app_cfg, params,TEMP_DIR, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
+    from videotrans.configure import config
     # 使用内置的 open 函数
     from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/videoandaudio"
@@ -54,7 +55,7 @@ def openwin():
         def run(self) -> None:
             os.chdir(RESULT_DIR)
             # 确保临时目录存在
-            os.makedirs(TEMP_DIR, exist_ok=True)
+            os.makedirs(config.TEMP_DIR, exist_ok=True)
 
             vailfiles, length = self.get_list()
             if not vailfiles:
@@ -71,7 +72,7 @@ def openwin():
                     self.post(f'{Path(audio).name} --> {Path(info["video"]).name} ')
                     video_time = tools.get_video_duration(info['video'])
                     audio_time = int(tools.get_audio_time(audio))
-                    tmp_audio = TEMP_DIR + f"/{time.time()}-{Path(audio).name}"
+                    tmp_audio = config.TEMP_DIR + f"/{time.time()}-{Path(audio).name}"
                     if audio_time > video_time and self.audio_process == 0:
                         tools.runffmpeg(
                             ['-y', '-i', audio, '-ss', '00:00:00.000', '-t', str(video_time / 1000), tmp_audio])
@@ -83,7 +84,7 @@ def openwin():
                         # 需要保留原声
                         video_info = tools.get_video_info(info['video'])
                         if video_info['streams_audio']:
-                            tmp_mp4 = TEMP_DIR + f"/{name}-{time.time()}.m4a"
+                            tmp_mp4 = config.TEMP_DIR + f"/{name}-{time.time()}.m4a"
                             # 存在声音，则需要混合
                             tools.runffmpeg([
                                 '-y',

@@ -8,7 +8,8 @@ import time
 from pathlib import Path
 from typing import Union
 
-from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, TEMP_DIR, logger
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
+from videotrans.configure import config
 from videotrans.configure.excepts import FFmpegError, VideoTransError
 from videotrans.task.taskcfg import InputFile
 from videotrans.configure import contants
@@ -165,7 +166,7 @@ def get_video_codec(compat=None) -> str:
 
     try:
         test_input_file = Path(ROOT_DIR) / "videotrans/styles/no-remove.mp4"
-        temp_dir = Path(TEMP_DIR)
+        temp_dir = Path(config.TEMP_DIR)
     except Exception as e:
         logger.warning(f"准备测试硬件编码器时出错: {e}。将使用软件编码 {default_codec}。")
         _codec_cache[cache_key] = default_codec

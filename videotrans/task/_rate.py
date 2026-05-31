@@ -86,7 +86,8 @@ except ImportError:
     HAS_RUBBERBAND = False
 
 
-from videotrans.configure.config import ROOT_DIR,tr, settings, TEMP_DIR,logger
+from videotrans.configure.config import ROOT_DIR,tr, settings, logger
+from videotrans.configure import config
 from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
 
@@ -310,7 +311,7 @@ class SpeedRate:
         self.novoice_mp4_original = novoice_mp4
         self.novoice_mp4 = novoice_mp4
         self.cache_folder = cache_folder if cache_folder else Path(
-            f'{TEMP_DIR}/{str(uuid if uuid else time.time())}').as_posix()
+            f'{config.TEMP_DIR}/{str(uuid if uuid else time.time())}').as_posix()
         Path(self.cache_folder).mkdir(parents=True, exist_ok=True)
 
         self.stop_show_process = False

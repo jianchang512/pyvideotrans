@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import List, Optional, Union
 from tenacity import RetryError
 from videotrans.configure.excepts import SpeechToTextError
-from videotrans.configure.config import tr, settings, logger, TEMP_DIR
+from videotrans.configure.config import tr, settings, logger
+from videotrans.configure import config
 from videotrans.configure.base import BaseCon
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
@@ -188,7 +189,7 @@ class BaseRecogn(BaseCon):
         self.signal(text=f'[VAD] process ended {int(time.time() - _st)}s')
 
     def cut_audio(self) -> List[SrtItem]:
-        dir_name = f"{TEMP_DIR}/clip_{time.time()}"
+        dir_name = f"{config.TEMP_DIR}/clip_{time.time()}"
         Path(dir_name).mkdir(parents=True, exist_ok=True)
         if not self.speech_timestamps:
             self._vad_split()

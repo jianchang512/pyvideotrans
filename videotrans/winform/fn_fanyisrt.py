@@ -12,7 +12,8 @@ def openwin():
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
     from PySide6 import QtWidgets
     from PySide6.QtWidgets import QFileDialog, QPlainTextEdit
-    from videotrans.configure.config import tr,app_cfg,settings,params,TEMP_DIR, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR
+    from videotrans.configure import config
     from videotrans.task.taskcfg import TaskCfgSTS
 
     from videotrans.util import tools
@@ -107,7 +108,7 @@ def openwin():
     def fanyi_start_fun():
         nonlocal SOURCE_DIR,uuid_list
         uuid_list=[]
-        Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
+        Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         target_language = winobj.fanyi_target.currentText()
         translate_type = winobj.fanyi_translate_type.currentIndex()

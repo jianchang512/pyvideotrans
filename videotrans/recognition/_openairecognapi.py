@@ -9,7 +9,8 @@ from typing import List,  Union
 
 import httpx
 from openai import OpenAI
-from videotrans.configure.config import params,  logger, TEMP_DIR
+from videotrans.configure.config import params,  logger
+from videotrans.configure import config
 from videotrans.configure.excepts import SpeechToTextError, StopTask
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -34,7 +35,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 'gpt-4o-') > -1:
             return self._thrid_api()
 
-        mp3_tmp = TEMP_DIR + f'/recogn{time.time()}.mp3'
+        mp3_tmp = config.TEMP_DIR + f'/recogn{time.time()}.mp3'
         tools.runffmpeg([
             "-y",
             "-i",

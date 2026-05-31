@@ -1,7 +1,8 @@
 
 
 def openwin():
-    from videotrans.configure.config import ROOT_DIR,tr,app_cfg, params,TEMP_DIR
+    from videotrans.configure.config import ROOT_DIR,tr,app_cfg, params
+    from videotrans.configure import config
     from pathlib import Path
 
     from PySide6 import QtWidgets
@@ -44,7 +45,7 @@ def openwin():
         test_btn[tts_type].setText(tr('Testing...'))
         import time
         wk = ListenVoice(parent=winobj,
-                         queue_tts=[{"text": '你好啊我的朋友,希望你今天开心！', "role": rolename, "filename": TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
+                         queue_tts=[{"text": '你好啊我的朋友,希望你今天开心！', "role": rolename, "filename": config.TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
                          language="zh",
                          tts_type=tts_type)
         wk.uito.connect(feed)
