@@ -65,7 +65,7 @@ class OpenAICampat(BaseTrans):
             "extra_body":self.extra_body
         }
         # openai 推理模型不可传递 max_tokens
-        if self.model_name.lower().startswith("gpt"):
+        if re.match(r'^gpt|o\d',self.model_name.lower(),flags=re.I):
             del kwargs['max_tokens']
 
         try:

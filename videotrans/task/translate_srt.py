@@ -37,48 +37,47 @@ class TranslateSrt(BaseTask):
             shutil.copy2(self.cfg.source_sub, f"{self.cfg.source_sub}-OriginalSubtitles.srt")
         self.signal(text=tr("Transation subtitles"))
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
-        Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
+        if self.cfg.cache_folder:
+            Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
 
 
     def trans(self):
         if self._exit(): return
-        try:
-            source_sub_list: List[SrtItem] = tools.get_subtitle_from_srt(self.cfg.source_sub)
-            raw_subtitles = run(
-                translate_type=self.cfg.translate_type,
-                text_list=copy.deepcopy(source_sub_list),
-                uuid=self.uuid,
-                source_code=self.cfg.source_language_code,
-                target_code=self.cfg.target_language_code,
-            )
-            if not raw_subtitles or len(raw_subtitles) < 1:
-                raise TranslateSrtError(tr("Translation subtitles result is empty"))
 
-            if self._exit(): return
-            raw_subtitles = self.check_target_sub(source_sub_list, raw_subtitles)
-            # 单语字幕
-            if self.out_format == 0:
-                self._save_srt_target(raw_subtitles, self.cfg.target_sub)
-                self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace')
-                return
+        source_sub_list: List[SrtItem] = tools.get_subtitle_from_srt(self.cfg.source_sub)
+        raw_subtitles = run(
+            translate_type=self.cfg.translate_type,
+            text_list=copy.deepcopy(source_sub_list),
+            uuid=self.uuid,
+            source_code=self.cfg.source_language_code,
+            target_code=self.cfg.target_language_code,
+        )
+        if not raw_subtitles or len(raw_subtitles) < 1:
+            raise TranslateSrtError(tr("Translation subtitles result is empty"))
 
-            target_length = len(raw_subtitles)
-            srt_string = ""
-            # 双语字幕
-            for i, it in enumerate(source_sub_list):
-                if self.out_format == 1:
-                    tmp_text = f"{raw_subtitles[i]['text'].strip()}\n" if i < target_length else ''
-                    tmp_text += it["text"].strip()
-                else:
-                    tmp_text = f"{raw_subtitles[i]['text'].strip()}" if i < target_length else ''
-                    tmp_text = f"{it['text'].strip()}\n{tmp_text}"
-                srt_string += f"{it['line']}\n{it['time']}\n{tmp_text.strip()}\n\n"
-            self.cfg.target_sub = self.cfg.target_sub[:-4] + f'-{self.out_format}.srt'
-            with Path(self.cfg.target_sub).open('w', encoding='utf-8') as f:
-                f.write(srt_string)
-            self.signal(text=srt_string, type='replace')
-        except Exception as e:
-            logger.exception(f'翻译字幕失败 {e}', exc_info=True)
+        if self._exit(): return
+        raw_subtitles = self.check_target_sub(source_sub_list, raw_subtitles)
+        # 单语字幕
+        if self.out_format == 0:
+            self._save_srt_target(raw_subtitles, self.cfg.target_sub)
+            self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace')
+            return
+
+        target_length = len(raw_subtitles)
+        srt_string = ""
+        # 双语字幕
+        for i, it in enumerate(source_sub_list):
+            if self.out_format == 1:
+                tmp_text = f"{raw_subtitles[i]['text'].strip()}\n" if i < target_length else ''
+                tmp_text += it["text"].strip()
+            else:
+                tmp_text = f"{raw_subtitles[i]['text'].strip()}" if i < target_length else ''
+                tmp_text = f"{it['text'].strip()}\n{tmp_text}"
+            srt_string += f"{it['line']}\n{it['time']}\n{tmp_text.strip()}\n\n"
+        self.cfg.target_sub = self.cfg.target_sub[:-4] + f'-{self.out_format}.srt'
+        with Path(self.cfg.target_sub).open('w', encoding='utf-8') as f:
+            f.write(srt_string)
+        self.signal(text=srt_string, type='replace')
 
     def task_done(self):
         if self._exit(): return
