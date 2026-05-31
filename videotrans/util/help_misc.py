@@ -13,9 +13,6 @@ from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulela
 import tqdm
 
 from videotrans.task.taskcfg import SignMsg
-from videotrans.recognition import RECOGN_NAME_LIST
-from videotrans.translator import TRANSLASTE_NAME_LIST
-from videotrans.tts import TTS_NAME_LIST
 
 
 def create_tqdm_class(callback):
@@ -469,13 +466,15 @@ def _get_type_name(type_index, name_list):
 
 
 def get_recogn_type(type_index=None):
+    from videotrans.recognition import RECOGN_NAME_LIST
     return _get_type_name(type_index, RECOGN_NAME_LIST)
 
 
 def get_tanslate_type(type_index=None):
+    from videotrans.translator import TRANSLASTE_NAME_LIST
     return _get_type_name(type_index, TRANSLASTE_NAME_LIST)
 
 
 def get_tts_type(type_index=None):
+    from videotrans.tts import TTS_NAME_LIST
     return _get_type_name(type_index, TTS_NAME_LIST)
-
