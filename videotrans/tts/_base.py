@@ -61,7 +61,6 @@ class BaseTTS(BaseCon):
 
     def __post_init__(self):
         super().__post_init__()
-        print(f'进步BaseTTS={config.TEMP_DIR=}/{self.uuid=}')
         Path(f'{config.TEMP_DIR}/{self.uuid}').mkdir(parents=True, exist_ok=True)
         self.queue_tts = copy.deepcopy(self.queue_tts)
         self.len = len(self.queue_tts)
