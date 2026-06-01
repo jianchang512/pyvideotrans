@@ -247,7 +247,7 @@ class TransCreate(BaseTask):
 
         if audio_stream_len > 0 and not tools.vail_file(self.cfg.source_wav) and tools.vail_file(self.cfg.vocal):
             # 如果存在人声文件(可能仅仅分离成功人声，或者单独将其他工具分离出的人声放入目标文件夹)，则使用该文件作为语音识别文件
-            self.clone_ref = self.cfg.vocal
+            
             cmd = [
                 "-y",
                 "-i",
@@ -269,7 +269,9 @@ class TransCreate(BaseTask):
         # 如果还不存在原音频 self.cfg.source_wav,说明失败，强制从原视频中提取 
         if audio_stream_len > 0 and not tools.vail_file(self.cfg.source_wav):
             self._split_audio_byraw()
-
+        # 将分离后人声设为语音克隆参考音频
+        if self.cfg.vocal and Path(self.cfg.vocal).exists():
+            self.clone_ref = self.cfg.vocal
         self.signal(text=tr('endfenliyinpin'))
         logger.debug(f'[预处理阶段结束耗时]:{time.time()-_st}s')
 
@@ -290,7 +292,7 @@ class TransCreate(BaseTask):
         if not tools.vail_file(self.cfg.source_wav):
             raise SpeechToTextError(tr("Failed to separate audio, please check the log or retry"))
 
-        # 进行降噪
+        # 进行降噪，结果为 16k采样
         if self.cfg.remove_noise:
             _remove_noise_wav = f"{self.cfg.cache_folder}/remove_noise.wav"
             if tools.vail_file(_remove_noise_wav):
@@ -322,7 +324,7 @@ class TransCreate(BaseTask):
             recogn_type=self.cfg.recogn_type,
             uuid=self.uuid,
             model_name=self.cfg.model_name,
-            audio_file=self.cfg.source_wav,
+            audio_file=self.cfg.source_wav,# 必选 16000 采样
             detect_language=self.cfg.detect_language,
             cache_folder=self.cfg.cache_folder,
             is_cuda=self.cfg.is_cuda,
@@ -863,6 +865,7 @@ class TransCreate(BaseTask):
                 tools.runffmpeg(cmd)
                 shutil.copy2(self.cfg.vocal, f'{self.cfg.target_dir}/vocal.wav')
                 shutil.copy2(self.cfg.instrument, f'{self.cfg.target_dir}/instrument.wav')
+                
         except Exception as e:
             logger.exception(f'人声背景声分离失败，静默跳过 {e}', exc_info=True)
 
@@ -948,9 +951,33 @@ class TransCreate(BaseTask):
 
     # 多线程实现裁剪参考音频
     def _create_ref_from_vocal(self):
-        # 背景分离人声如果失败则直接使用原始音频
-        vocal = self.cfg.source_wav if not self.clone_ref or not Path(self.clone_ref).exists() else self.clone_ref
-
+        # 保底原始音频用于克隆时参考音频
+        vocal = self.cfg.source_wav
+        if self.clone_ref and Path(self.clone_ref).exists():
+            # 人声背景声分离 出来的人声音频，44.1k，如果有降噪，则为 16000 
+            vocal=self.clone_ref
+        else:
+            # 无则从原始视频中提取44.1k音频作为参考音频
+            try:
+                tmpfile = self.cfg.cache_folder + "/clone_ref_44100.wav"
+                tools.runffmpeg([
+                    "-y",
+                    "-i",
+                    self.cfg.name,
+                    "-vn",
+                    "-ac",
+                    "1",
+                    "-ar",
+                    "44100",
+                    "-c:a",
+                    "pcm_s16le",
+                    tmpfile
+                ])
+                vocal=tmpfile
+            except Exception as e:
+                logger.exception(f'克隆语音前分离出 44.1k 的原始音频失败',exc_info=True)
+            
+        logger.debug(f'语音克隆模式下，所用参考音频为:{vocal}')
         # 裁切对应片段为参考音频
         def _cutaudio_from_vocal(it):
             try:
