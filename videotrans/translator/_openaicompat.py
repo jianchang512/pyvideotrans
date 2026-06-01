@@ -5,7 +5,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Union
-from openai import OpenAI, NotFoundError, AuthenticationError, PermissionDeniedError
+from openai import OpenAI, NotFoundError, AuthenticationError, PermissionDeniedError,BadRequestError
 from tenacity import before_log, retry_if_not_exception_type, wait_fixed, stop_after_attempt, after_log, retry
 
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError, LLMSegmentError, StopTask
@@ -71,8 +71,9 @@ class OpenAICampat(BaseTrans):
         try:
             model = OpenAI(api_key=self.api_key, base_url=self.api_url)
             response = model.chat.completions.create(**kwargs)
-        except (NotFoundError,AuthenticationError,PermissionDeniedError) as e:
-            raise StopTask(e.message) from e
+        except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
+            del kwargs['messages']
+            raise StopTask(e.message+f'\n{kwargs}') from e
 
         logger.debug(f'字幕翻译:[{self.ainame},{self.model_name},{self.api_url}]')
         result = ""
