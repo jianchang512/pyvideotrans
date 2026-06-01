@@ -1178,7 +1178,7 @@ class TransCreate(BaseTask):
         self.precent = min(max(90, self.precent), 98)
 
         # 最终需嵌入视频的音频，可能是配音后文件，也可能是原始音频(未配音)
-        target_m4a = self.cfg.cache_folder + "/origin_audio.m4a"
+        target_m4a = self.cfg.cache_folder + "/will_embed.m4a"
         # 用于判断输出原始音频是否结束，is True是结束，
         output_source_output = True
         if not self.should_dubbing:
