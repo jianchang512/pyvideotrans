@@ -306,15 +306,14 @@ class TransCreate(BaseTask):
                                         callback=self._process_callback)
                 from videotrans.process.prepare_audio import remove_noise
                 kw = {
-                    "input_file": self.cfg.source_wav,
+                    "input_file": self.cfg.source_wav if not Path(self.cfg.vocal).exists() else self.cfg.vocal,
                     "output_file": _remove_noise_wav,
                     "is_cuda": self.cfg.is_cuda
                 }
                 try:
                     _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                     if _rs:
-                        self.cfg.source_wav = _remove_noise_wav
-                        self.clone_ref = _remove_noise_wav
+                        self.clone_ref = self.cfg.source_wav = _remove_noise_wav
                     self.signal(text='remove noise end')
                 except Exception as e:
                     logger.exception(f'降噪失败，跳过 {e}', exc_info=True)
