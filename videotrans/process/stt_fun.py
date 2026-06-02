@@ -522,8 +522,9 @@ def qwen3asr_fun(
     import torch
     try:
         from qwen_asr import Qwen3ASRModel
-    except ImportError:
+    except ImportError as e:
         logger.critical('please run  uv sync --extra qwenasr ')
+        return False, f'{e}'
     if is_cuda:
         device_map = f'cuda:{device_index}'
         dtype = torch.float16
@@ -537,7 +538,6 @@ def qwen3asr_fun(
             f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
             dtype=dtype,
             device_map=device_map,
-            attn_implementation=None,
             max_inference_batch_size=8,
             # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
             max_new_tokens=2048,  # Maximum number of tokens to generate. Set a larger value for long audio input.

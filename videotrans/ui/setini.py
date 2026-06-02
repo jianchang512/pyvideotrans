@@ -82,7 +82,7 @@ notices = {
         "aitrans_context": "AI翻译渠道一次性翻译字幕所有行，翻译质量最佳\n【务必注意】1. 必须使用支持超长上下文的先进模型(在线AI旗舰模型)\n2. 需要将对应AI渠道设置界面中的max token设为较大值，否则长篇输出可能被截断而报错\n3. 可能反馈较慢，表现为迟迟未返回数据",
         "translation_wait": "每次翻译后暂停秒数,用于限制请求频率",
         "aisendsrt": "是否在使用AI翻译渠道时发送完整字幕格式内容",
-        "aitrans_temperature": "AI翻译模型温度值，默认0.2",
+        "aitrans_temperature": "AI翻译模型温度值，默认1.0",
     },
     "dubbing": {
         "dubbing_thread": "同时配音的线程数",
@@ -342,7 +342,7 @@ if defaulelang != 'zh':
             "aitrans_thread": "Number of subtitle lines per request for AI translation.",
             "translation_wait": "Delay (in seconds) between translation requests to prevent rate-limiting.",
             "aisendsrt": "Send full SRT format content when using AI translation.",
-            "aitrans_temperature": "AI models temperature,default is 0.2",
+            "aitrans_temperature": "AI models temperature,default is 1.0",
             "aitrans_context": "AI translation channel translates all lines of subtitles in one go, providing the best translation quality. \n[Important Note] \n1. Must use an advanced model that supports extremely long context (online AI flagship model). \n2. Feedback may be slow, manifesting as a delay in data return.."
         },
         "dubbing": {

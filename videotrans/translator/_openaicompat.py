@@ -23,14 +23,14 @@ class OpenAICampat(BaseTrans):
     prompt: str = field(init=False)
     api_key: str = field(init=False)
     api_url: str = field(init=False)
-    temperature:float=0.0
+    temperature:float=1.0
     max_tokens:int=8192
     reasoning_effort:str=None
     extra_body:Union[dict,None]=None
 
     def __post_init__(self):
         super().__post_init__()
-        self.temperature=float(settings.get('aitrans_temperature', 0.2))
+        self.temperature=float(settings.get('aitrans_temperature', 1.0))
         self.prompt = tools.get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
@@ -55,7 +55,6 @@ class OpenAICampat(BaseTrans):
         kwargs={
             "model":self.model_name,
             "messages":message,
-            "frequency_penalty":0,
             "timeout":300,
             # 针对 openai 官方或 GPT模型，使用 max_completion_tokens参数，其他第三方使用 max_tokens 参数
             "max_completion_tokens":int(self.max_tokens),
@@ -100,6 +99,7 @@ class OpenAICampat(BaseTrans):
         chunk_size = int(settings.get('llm_chunk_size', 20))
         model_name=params.get(f'{self.ainame}_model')
         max_tokens=max(65536,int(float(params.get(f'{self.ainame}_max_token', 40960)) ))
+        temperature=float(settings.get('aitrans_temperature', 1.0))
         api_key=params.get(f'{self.ainame}_key')
         api_url=params.get('chatgpt_api') if self.ainame!='deepseek' else 'https://api.deepseek.com/v1/'
         if len(api_url)<10:
@@ -118,10 +118,9 @@ class OpenAICampat(BaseTrans):
             model = OpenAI(api_key=api_key, base_url=api_url)
             kwargs={
                     "model":model_name,
-                    "frequency_penalty":0,
                     "max_completion_tokens":max_tokens,
                     "messages":message,
-                    "temperature":0.2,
+                    "temperature":temperature,
                     "timeout":300,  # 超过5分钟为失败           
             }
             if self.ainame=='deepseek':

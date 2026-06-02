@@ -348,7 +348,7 @@ class AppSettings:
             "video_codec": 264,
             "out_video_ext":".mp4",# [.mp4,.mkv]
             "noise_separate_nums": 4,
-            "aitrans_temperature": 0.2,
+            "aitrans_temperature": 1.0,
             "aitrans_context": False,
             "batch_nums": 0,# 0=并发，1=串行翻译,>1 每批同时多少个
             "ai302_models": Ai302_Models,

@@ -248,6 +248,7 @@ class BaseCon:
             )
             # return Tuple[bool or result , None or error]
             data,err = future.result()
+            logger.debug(f'[新进程任务 {title}], return')
             status_dict['is_end']=True
             if err or not data:
                 raise VideoTransError(err)
