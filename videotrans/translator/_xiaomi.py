@@ -13,5 +13,5 @@ class XiaoMi(OpenAICampat):
         self.api_key = params.get('xiaomi_key', '')
         self.extra_body={
                 "thinking": {"type": "disabled" if params.get('xiaomi_thinking') else 'disabled'}
-            }
+        }
         super().__post_init__()

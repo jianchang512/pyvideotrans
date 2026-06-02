@@ -6,6 +6,8 @@ import os
 import re
 import sys
 import tempfile
+import time
+import random
 from functools import lru_cache
 from pathlib import Path
 from queue import Queue
@@ -126,6 +128,27 @@ def _get_transobj(lang):
     except (json.JSONDecodeError, OSError, TypeError):
         _transobj = None
     return _transobj
+
+
+
+
+def _write_with_retry(file_path, content, max_retries=2):
+    for attempt in range(max_retries):
+        try:
+            # 尝试写入文件
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            return True # 写入成功，退出函数
+        except PermissionError as e: # Windows 下文件被占用通常报此错
+            if attempt == max_retries - 1:
+                logger.exception(f'写入文件失败:{file_path}\n{e}',exc_info=True)
+                return # 达到最大重试次数，抛出异常
+            # 随机等待一小段时间（退避算法），避免多个线程同时再次尝试
+            time.sleep(random.uniform(0.05, 0.2))
+        except Exception:
+            logger.exception(f'写入文件失败:{file_path}\n{e}',exc_info=True)
+            return
+            
 
 @dataclass
 class AppCfg:
@@ -449,8 +472,7 @@ class AppSettings:
 
     def _save_to_disk(self):
         try:
-            with open(self._json_path, 'w', encoding='utf-8') as f:
-                f.write(json.dumps(self.to_dict(), ensure_ascii=False))
+            _write_with_retry(self._json_path,json.dumps(self.to_dict(), ensure_ascii=False))
         except Exception as e:
             logger.exception(f'保存settings到本地失败：{e}',exc_info=True)
 
@@ -783,8 +805,7 @@ class AppParams:
 
     def _save_to_disk(self):
         try:
-            with open(self._json_path, 'w', encoding='utf-8') as f:
-                f.write(json.dumps(self.to_dict(), ensure_ascii=False))
+            _write_with_retry(self._json_path,json.dumps(self.to_dict(), ensure_ascii=False))
         except Exception as e:
             logger.exception(f'保存 params 到本地失败：{e}',exc_info=True)
     # 兼容 params['key']

@@ -25,7 +25,6 @@ class GPTSoVITS(BaseTTS):
         self.speed = self.get_speed()
         self.roledict = tools.get_gptsovits_role() or {}
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         role = data_item['role']
         data = {
@@ -38,7 +37,7 @@ class GPTSoVITS(BaseTTS):
         if role !='clone' and self.roledict and role in self.roledict:
             data.update(self.roledict[role])
         elif role == 'clone':#克隆原音频片段
-            if ref_wav and Path(ref_wav).exists():
+            if ref_wav:
                 data['prompt_text'] = data_item.get('ref_text').strip()
                 data['prompt_language'] = data_item.get('ref_language','')
                 data['refer_wav_path'] = ref_wav
@@ -52,16 +51,14 @@ class GPTSoVITS(BaseTTS):
                     silent_segment = AudioSegment.silent(duration=3000 if ms_ref<1500 else 1600).set_channels(1).set_frame_rate(16000)
 
                     (ref_wav_audio+silent_segment).export(ref_wav,format="wav")
-            elif keys and keys[-1]=='clone':
-                # 无自定义参考音频，clone原音频时长不符合，失败
-                return 'No refer audio and origin audio duration not between 3-10s'
-            elif keys:
+            elif keys and keys[-1]!='clone':
                 # 克隆原音频失败，使用最后一个参考音频
                 data.update(self.roledict[keys[-1]])
             else:
-                raise StopTask('No reference audio available for voice cloning')
-
-        if not data.get('refer_wav_path') and role !='clone':
+                return 'No reference audio available for voice cloning'
+                
+        
+        if not data.get('refer_wav_path'):
             return tr("Must pass in the reference audio file path")
 
         if params.get('gptsovits_isv2',''):

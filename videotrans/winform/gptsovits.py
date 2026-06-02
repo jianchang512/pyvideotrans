@@ -27,6 +27,7 @@ def openwin():
         params["gptsovits_url"] = url
         params["gptsovits_isv2"] = winobj.is_v2.isChecked()
         params["gptsovits_extra"] = extra
+        params["gptsovits_role"] = winobj.role.toPlainText().strip()
         params.save()
 
         wk = ListenVoice(parent=winobj, queue_tts=[{

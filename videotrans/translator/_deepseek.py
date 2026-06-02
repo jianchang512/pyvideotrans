@@ -11,7 +11,7 @@ class DeepSeek(OpenAICampat):
         self.model_name = params.get('deepseek_model', "deepseek-v4-flash")
         self.api_url = 'https://api.deepseek.com/v1/'
         self.api_key = params.get('deepseek_key', '')
-        self.max_tokens=int(params.get('deepseek_max_token', 40960))
+        self.max_tokens=int(params.get('deepseek_max_token', 65536))
         self.reasoning_effort="high" if params.get('deepseek_thinking') else None
         self.extra_body={"thinking": {"type": "enabled" if params.get('deepseek_thinking') else "disabled"}}
         super().__post_init__()
