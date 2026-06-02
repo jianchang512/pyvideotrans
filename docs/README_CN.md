@@ -90,7 +90,7 @@ cd pyvideotrans
 # 2. 安装依赖 (使用 uv 自动同步环境)
 uv sync
 
-# 如果需要 qwen-tts qwen-asr 本地渠道，请执行 `uv sync --extra qwen-tts --extra qwen-asr`
+# 默认不安装 qwen-tts、 qwen-asr 、moss-tts 、chatterbox 本地渠道，若需要请执行 `uv sync --all-extra `
 
 ```
 
