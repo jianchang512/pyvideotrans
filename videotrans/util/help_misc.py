@@ -322,6 +322,17 @@ def pygameaudio(filepath=None):
         import soundfile as sf
         import sounddevice as sd
         data, fs = sf.read(filepath)
+        channels = 1 if data.ndim == 1 else data.shape[1]
+        try:
+            device_info = sd.query_devices(kind='output')
+            max_channels = int(device_info.get('max_output_channels') or channels)
+        except Exception:
+            max_channels = channels
+
+        if channels == 1 and max_channels >= 2:
+            data = data.reshape(-1, 1).repeat(2, axis=1)
+        elif channels > max_channels > 0:
+            data = data[:, :max_channels]
         sd.play(data, fs)
         sd.wait()
     except Exception as e:
@@ -478,4 +489,3 @@ def get_tanslate_type(type_index=None):
 
 def get_tts_type(type_index=None):
     return _get_type_name(type_index, TTS_NAME_LIST)
-

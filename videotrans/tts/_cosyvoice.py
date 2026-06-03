@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from typing import Union, Dict, List
+from pathlib import Path
+import wave
 
 from gradio_client import handle_file
 from videotrans.configure.config import params
@@ -16,10 +18,14 @@ class CosyVoice(GradioBase):
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1)->Union[str, None]:
         ref_wav,prompt_text = self.get_ref_wav(data_item)
-        # 参考音频对应文本内容
-        # 提示词，克隆时放入参考音频文本中
-        #instruct_text = params.get('cosyvoice_instruct_text', '')
-        prompt_text = f'You are a helpful assistant.<|endofprompt|>{prompt_text}'
+        if not ref_wav or not Path(ref_wav).exists() or Path(ref_wav).stat().st_size == 0:
+            raise RuntimeError(f"CosyVoice reference audio is empty or missing: {ref_wav}")
+        with wave.open(ref_wav, "rb") as wav_file:
+            if wav_file.getnframes() == 0:
+                raise RuntimeError(f"CosyVoice reference audio has no frames: {ref_wav}")
+        prompt_text = (prompt_text or "").strip()
+        if "<|endofprompt|>" not in prompt_text:
+            prompt_text = f"You are a helpful assistant.<|endofprompt|>{prompt_text}"
         kwargs = {
             "tts_text": data_item.get('text', '').strip(),
             "mode_checkbox_group": "3s极速复刻",
@@ -34,4 +40,3 @@ class CosyVoice(GradioBase):
 
         }
         return self._send(kwargs, data_item)
-
