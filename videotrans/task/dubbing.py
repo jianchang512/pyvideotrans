@@ -175,8 +175,9 @@ class DubbingSrt(BaseTask):
                 continue
             try:
                 spec_role = app_cfg.dubbing_role.get(int(it.get('line', 1))) if self.is_multi_role else None
-            except Exception:
+            except Exception as e:
                 # 每条字幕的单独角色，错误可忽略
+                logger.exception(f'每条字幕的单独角色:{e}',exc_info=True)
                 spec_role = None
             voice_role = spec_role if spec_role else self.cfg.voice_role
             _key = tools.get_md5(

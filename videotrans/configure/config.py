@@ -482,8 +482,6 @@ class AppSettings:
             tk = p.read_text().strip()
             if tk:
                 self.hf_token = tk
-            else:
-                p.unlink(missing_ok=True)
         if not p.is_file() and self.hf_token:
             p.write_text(self.hf_token)
 

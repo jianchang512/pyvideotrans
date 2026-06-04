@@ -226,7 +226,6 @@ def openwin():
             "align_sub_audio": False,
             "is_cuda": winobj.is_cuda.isChecked()
         }
-
         trk = DubbingSrt(cfg=TaskCfgTTS(**cfg | video_obj), subs=winobj.subtitles, is_multi_role=True,
                          out_ext=winobj.out_format.currentText())
         app_cfg.dubb_queue.put_nowait(trk)
