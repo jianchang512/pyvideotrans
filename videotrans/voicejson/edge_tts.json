@@ -87,6 +87,11 @@
         "HiuMaan(Female/HK)": "zh-HK-HiuMaanNeural",
         "HiuGaai(Female/HK)": "zh-HK-HiuGaaiNeural"
     },
+	"yue":{
+		"HiuMaan(Female/HK)": "zh-HK-HiuMaanNeural",
+        "HiuGaai(Female/HK)": "zh-HK-HiuGaaiNeural",
+		"WanLung(Male/HK)": "zh-HK-WanLungNeural"
+	},
     "hr": {
         "Srecko(Male/HR)": "hr-HR-SreckoNeural",
         "Gabrijela(Female/HR)": "hr-HR-GabrijelaNeural"

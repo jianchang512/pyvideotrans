@@ -25,7 +25,9 @@ def openwin():
         params["openrouter_key"] = key
 
         params["openrouter_model"] = model
+        params["openrouter_reasoning_effort"] = winobj.reasoning_effort.currentText()
         winobj.test.setText(tr("Testing..."))
+        params.save()
 
         task = TestSrtTrans(parent=winobj, translator_type=translator.OPENROUTER_INDEX)
         task.uito.connect(feed)
@@ -39,6 +41,7 @@ def openwin():
 
         params["openrouter_key"] = openrouter_key
         params["openrouter_model"] = model
+        params["openro_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.close()
 

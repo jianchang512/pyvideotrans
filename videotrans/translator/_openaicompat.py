@@ -64,11 +64,7 @@ class OpenAICampat(BaseTrans):
         if self.reasoning_effort:
             kwargs["reasoning_effort"]=self.reasoning_effort
             
-        # openai 推理模型不可传递 max_tokens
-        #if re.match(r'^gpt|o\d',self.model_name.lower(),flags=re.I):
-        #    del kwargs['max_tokens']
-
-        logger.debug(f'字幕翻译:[{self.ainame=},{self.model_name=},{self.api_url=},{self.reasoning_effort=}]')
+        logger.debug(f'字幕翻译:[{self.ainame=},{self.model_name=},{self.api_url=},{self.reasoning_effort=},{self.extra_body=}]')
         try:
             model = OpenAI(api_key=self.api_key, base_url=self.api_url)
             response = model.chat.completions.create(**kwargs, extra_body=self.extra_body)
@@ -85,7 +81,6 @@ class OpenAICampat(BaseTrans):
             logger.warning(f'[{self.ainame}]请求失败:{response=}')
             raise TranslateSrtError(f"[{self.ainame}] {response.choices[0].finish_reason}:{response}")
         result = response.choices[0].message.content.strip()
-        #logger.debug(response)
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>', '',result), re.S)
         if match:
             return match.group(1)
@@ -94,20 +89,28 @@ class OpenAICampat(BaseTrans):
 
     def llm_segment(self, srt_list)->List[SrtItem]:
         _st=time.time()
+        api_url=params.get('chatgpt_api') if self.ainame!='deepseek' else 'https://api.deepseek.com/v1/'
+        if len(api_url)<10:
+            raise StopTask(f'API URL is error: {api_url}')
+
         prompts_template = Path(ROOT_DIR + '/videotrans/prompts/recharge/recharge-llm.txt').read_text(encoding='utf-8')
         prompts_template = prompts_template.replace('{max_speech_s}', str(settings.get('max_speech_duration_s', 6)))
         chunk_size = int(settings.get('llm_chunk_size', 20))
         model_name=params.get(f'{self.ainame}_model')
         max_tokens=max(65536,int(float(params.get(f'{self.ainame}_max_token', 40960)) ))
         temperature=float(settings.get('aitrans_temperature', 1.0))
-        api_key=params.get(f'{self.ainame}_key')
-        api_url=params.get('chatgpt_api') if self.ainame!='deepseek' else 'https://api.deepseek.com/v1/'
-        if len(api_url)<10:
-            raise StopTask(f'API URL is error: {api_url}')
+        api_key=params.get(f'{self.ainame}_key')           
+        reasoning_effort='high' if self.ainame=='deepseek' else None
+        
+        if reasoning_effort is None:
+            _reason=params.get('chatgpt_reasoning_effort')
+            reasoning_effort=None if not _reason or _reason=='No' else _reason
+        
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(2)),
                wait=wait_fixed(5), before=before_log(logger, logging.INFO),
                after=after_log(logger, logging.INFO))
         def _send(srt):
+            nonlocal reasoning_effort
             message = [
                 {"role": "system", "content": prompts_template},
                 {
@@ -123,10 +126,9 @@ class OpenAICampat(BaseTrans):
                     "temperature":temperature,
                     "timeout":300,  # 超过5分钟为失败           
             }
-            if self.ainame=='deepseek':
-                kwargs["reasoning_effort"]='high'
-
-            # 其他渠道无法确定所用模型是否支持推理
+            if reasoning_effort:
+                kwargs['reasoning_effort']=reasoning_effort
+            logger.debug(f'LLM Re-segmenting:{self.ainame=},{reasoning_effort=}')
             response = model.chat.completions.create(
                     **kwargs,
                     extra_body={"thinking": {"type": "enabled"}} if self.ainame=='deepseek' else None
@@ -142,7 +144,6 @@ class OpenAICampat(BaseTrans):
                 raise LLMSegmentError(f"{response}")
 
             result = response.choices[0].message.content
-            #logger.debug(response)
             match = re.search(r'<SRT>(.*?)</SRT>', re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S), re.S | re.I)
             if match:
                 return match.group(1)
@@ -171,5 +172,5 @@ class OpenAICampat(BaseTrans):
                 it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                 it["time"] = f"{it['startraw']} --> {it['endraw']}"
-        logger.debug(f'LLM重新断句完成,用时:{time.time()-_st}s')
+        logger.debug(f'LLM重新断句完成,原始字幕行:{len(srt_list)}, 新字幕行:{len(_srtlist)}, 用时:{time.time()-_st}s')
         return _srtlist

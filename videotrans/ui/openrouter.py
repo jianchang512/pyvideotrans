@@ -58,6 +58,14 @@ class Ui_openrouterform(object):
         h_token.addWidget(label_token)
         h_token.addWidget(self.max_token)
         v1.addLayout(h_token)
+        
+        
+        hreason = QtWidgets.QHBoxLayout()
+        hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
+        self.reasoning_effort=QtWidgets.QComboBox()
+        self.reasoning_effort.addItems(['No','low','medium','high'])
+        hreason.addWidget(self.reasoning_effort)
+        v1.addLayout(hreason)
 
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
@@ -125,6 +133,7 @@ class Ui_openrouterform(object):
         self.openrouter_key.setText(params.get("openrouter_key",''))
         self.openrouter_model.setCurrentText(params.get("openrouter_model",''))
         self.max_token.setText(params.get("openrouter_max_token",''))
+        self.reasoning_effort.setCurrentText(params.get("openrouter_reasoning_effort","No"))
 
     def retranslateUi(self, openrouterform):
         openrouterform.setWindowTitle("OpenRouter")

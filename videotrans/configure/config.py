@@ -650,6 +650,7 @@ class AppParams:
             "baidu_miyue": "",
             "chatgpt_api": "",
             "chatgpt_key": "",
+            "chatgpt_reasoning_effort": "No",
             "chatgpt_max_token": 8192,
             "chatgpt_model": str(settings.get('chatgpt_model', '-')).strip().split(',')[0],
 
@@ -677,6 +678,7 @@ class AppParams:
             "deepseek_model": str(settings.get('deepseek_model', '-')).strip().split(',')[0],
             "deepseek_max_token": "40960",
             "openrouter_key": "",
+            "openrouter_reasoning_effort": "No",
             "openrouter_model": str(settings.get('openrouter_model', '-')).strip().split(',')[0],
             "openrouter_max_token": "8192",
             "zijiehuoshan_key": "",

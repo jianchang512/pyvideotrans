@@ -667,6 +667,9 @@ class WinAction(WinActionBase):
 
     # 更新 UI
     def update_data(self, uuid: Union[str, None] = "", d: Union[SignMsg, None] = None):
+        if uuid and uuid not in [it['uuid'] for it in self.obj_list]:
+            return
+        
         if d['type'] == 'ffmpeg':
             self.main.startbtn.setText(d['text'])
             self.main.startbtn.setDisabled(True)

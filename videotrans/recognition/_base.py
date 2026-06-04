@@ -128,8 +128,7 @@ class BaseRecogn(BaseCon):
         if self.recogn2pass:
             return srt_list
         # LLM重新断句，未选中合并过短字幕、whisper模型且没有预先分割，这3种情况直接返回
-        if self.llm_post or not settings.get('merge_short_sub', True) or (
-                self.recogn_type < 2 and not settings.get('whisper_prepare')):
+        if self.llm_post or not settings.get('merge_short_sub', True):
             if settings.get('del_end_punc'):
                 logger.debug(f'开始移除每条字幕末尾标点')
                 for it in srt_list:
@@ -265,10 +264,11 @@ class BaseRecogn(BaseCon):
         """合并过短字幕，按标点重分配片段"""
         post_srt_raws = []
         min_speech = max(300, int(float(settings.get('min_speech_duration_ms', 1000))))
+        max_speech = int(1000*float(settings.get('max_speech_duration_s', 5)))
         logger.debug(f'对识别出的字幕进行简单合并与修正，{min_speech=}')
 
         # 阶段 1：遍历合并过短项
-        post_srt_raws = self._phase1_merge_short(srt_list, min_speech, post_srt_raws)
+        post_srt_raws = self._phase1_merge_short(srt_list, min_speech, post_srt_raws,max_speech)
 
         if len(post_srt_raws) < 2:
             return post_srt_raws
@@ -295,12 +295,12 @@ class BaseRecogn(BaseCon):
                 it['text'] = it['text'].strip('。,.').strip()
         return [it for it in post_srt_raws if it['text'].strip()]
 
-    def _phase1_merge_short(self, srt_list, min_speech, post_srt_raws):
+    def _phase1_merge_short(self, srt_list, min_speech, post_srt_raws,max_speech=5000):
         """遍历原始列表，短字幕合并到前后邻项"""
         for idx, it in enumerate(srt_list):
             if not it['text'].strip():
                 continue
-            if idx == 0 or idx == len(srt_list) - 1 or it['end_time'] - it['start_time'] >= min_speech:
+            if  idx == 0 or idx == len(srt_list) - 1 or (it['end_time'] - it['start_time'] >= min_speech and len(it['text'].strip())>1 ):
                 post_srt_raws.append(it)
                 continue
 
@@ -311,6 +311,11 @@ class BaseRecogn(BaseCon):
                     or (post_srt_raws[-1]['text'][-1] in self.half_flag and it['text'][-1] in self.end_flag)
                     or prev_diff <= next_diff
             )
+            # 如果需要合并到前面，并且 prev_diff == next_diff, 并且前面的长度已超过最大允许允许时长，则合并到后边
+            if merge_forward and prev_diff==next_diff and (post_srt_raws[-1]['end_time']-post_srt_raws[-1]['start_time'] >max_speech):
+                merge_forward=False
+                logger.debug(f'应合并到前边字幕，但已过长，因此强制合并进后个字幕')
+            
             if merge_forward:
                 self._log_merge('前', it, post_srt_raws[-1], prev_diff, next_diff)
                 post_srt_raws[-1]['end_time'] = it['end_time']
@@ -328,7 +333,7 @@ class BaseRecogn(BaseCon):
     def _phase2_merge_first(self, post_srt_raws, min_speech):
         """首条时长不足 min_speech 且与次条间隙 < 2s → 合并"""
         if (post_srt_raws[0]['end_time'] - post_srt_raws[0]['start_time'] < min_speech
-                and post_srt_raws[1]['start_time'] - post_srt_raws[0]['end_time'] < 2000):
+                and post_srt_raws[1]['start_time'] - post_srt_raws[0]['end_time'] < 2000) or len(post_srt_raws[0]['text'].strip())<2:
             post_srt_raws[1]['start_time'] = post_srt_raws[0]['start_time']
             post_srt_raws[1]['text'] = post_srt_raws[0]['text'] + self.join_word_flag + post_srt_raws[1]['text']
             post_srt_raws.pop(0)
@@ -337,7 +342,7 @@ class BaseRecogn(BaseCon):
     def _phase3_merge_last(self, post_srt_raws, min_speech):
         """末条时长不足 min_speech 且与前条间隙 < 2s → 合并"""
         if (post_srt_raws[-1]['end_time'] - post_srt_raws[-1]['start_time'] < min_speech
-                and post_srt_raws[-1]['start_time'] - post_srt_raws[-2]['end_time'] < 2000):
+                and post_srt_raws[-1]['start_time'] - post_srt_raws[-2]['end_time'] < 2000) or len(post_srt_raws[-1]['text'].strip())<2:
             post_srt_raws[-2]['end_time'] = post_srt_raws[-1]['end_time']
             post_srt_raws[-2]['text'] += self.join_word_flag + post_srt_raws[-1]['text']
             post_srt_raws.pop(-1)
@@ -391,4 +396,4 @@ class BaseRecogn(BaseCon):
     @staticmethod
     def _log_merge(direction, current, neighbour, prev_diff, next_diff):
         logger.warning(
-            f'字幕时长过短，合并进{direction}面字幕,{prev_diff=},{next_diff=}，当前字幕={current},邻项字幕={neighbour}')
+            f'字幕时长过短，合并进 [{direction}面] 字幕,{prev_diff=},{next_diff=}，当前被合并字幕={current},合并进字幕={neighbour}')

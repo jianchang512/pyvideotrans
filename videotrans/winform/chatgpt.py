@@ -24,6 +24,8 @@ def openwin():
         params["chatgpt_api"] = url
         params["chatgpt_max_token"] = max_token
         params["chatgpt_model"] = model
+        params["chatgpt_reasoning_effort"] = winobj.reasoning_effort.currentText()
+        params.save()
         winobj.test_chatgpt.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.CHATGPT_INDEX)
@@ -40,6 +42,7 @@ def openwin():
         params["chatgpt_key"] = key
         params["chatgpt_api"] = url
         params["chatgpt_model"] = model
+        params["chatgpt_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.close()
 

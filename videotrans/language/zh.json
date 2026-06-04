@@ -971,8 +971,8 @@
   "Enter milliseconds (positive or negative):":"输入正负毫秒值，用于增加或减小时间，1秒=1000毫秒",
   "Translation successful but transfer failed.":"视频翻译成功，但移动到目标文件夹时失败，你可手动复制，当前视频保存在:\n{}",
 
-  "clone_dubb_tips1": "使用clone角色进行语音克隆配音时，建议在菜单-工具-高级选项-语音识别参数区域，将最短语音持续时长设为3000，最长语音时长秒设为10,避免因时长问题出错.",
-  "clone_dubb_tips2": "同时选中 Whisper预分割音频.",
+  "clone_dubb_tips1": "使用clone角色语音克隆时，推荐菜单-工具-高级选项-语音识别参数区域，最短语音持续毫秒大于等于3000，最长语音时长秒大于5,选中合并过短字幕到邻近，避免因时长出错. ",
+  "clone_dubb_tips2": "同时选中分离人声背景声，并且不要使用LLM重新断句.",
   "The filename is too long":"文件名或路径可能太长了！",
   "Filename length check":"文件名的“总长度”较长，在后续复杂处理时可能超过系统限制而出错。\n当前文件名：{} 个字, 路径加文件共：{} 个字\n\n为避免后续出错，建议：改短文件名，缩短文件夹的名字，将文件移动到更外层更简短的文件夹中。\n\n点击 Yes 忽略该警告继续执行， 点击 No 暂停后去修改",
   "embed_bgm":"重新嵌入背景声",
@@ -983,5 +983,6 @@
   "Translation results saved to:": "翻译结果保存到: ",
   "Romanian": "罗马尼亚语",
   "may not support": "可能不支持",
-  "Modify secondary recognition results": "在此修改 二次识别 出的字幕"
+  "Modify secondary recognition results": "在此修改 二次识别 出的字幕",
+  "Reasoning Effort":"推理深度"
 }

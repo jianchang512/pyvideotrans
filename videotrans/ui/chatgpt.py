@@ -26,6 +26,7 @@ class Ui_chatgptform(object):
         h2 = QtWidgets.QHBoxLayout()
         h3 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
+        
 
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -68,6 +69,14 @@ class Ui_chatgptform(object):
 
         v1.addLayout(h2)
         v1.addLayout(h_token)
+        
+        hreason = QtWidgets.QHBoxLayout()
+        hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
+        self.reasoning_effort=QtWidgets.QComboBox()
+        self.reasoning_effort.addItems(['No','low','medium','high'])
+        hreason.addWidget(self.reasoning_effort)
+        v1.addLayout(hreason)
+        
 
         self.label_3 = QtWidgets.QLabel(chatgptform)
         self.label_3.setObjectName("label_3")
@@ -133,6 +142,8 @@ class Ui_chatgptform(object):
         self.chatgpt_api.setText(params.get("chatgpt_api",''))
         self.chatgpt_model.setCurrentText(params.get("chatgpt_model",''))
         self.chatgpt_max_token.setText(str(params.get("chatgpt_max_token",'')))
+        self.reasoning_effort.setCurrentText(params.get("chatgpt_reasoning_effort","No"))
+        
     def retranslateUi(self, chatgptform):
         chatgptform.setWindowTitle(tr("OpenAI API & Compatible AI"))
         self.label_3.setText(tr("Model"))

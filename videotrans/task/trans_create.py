@@ -387,13 +387,13 @@ class TransCreate(BaseTask):
                     uuid=self.uuid)
 
                 self.signal(text=tr("Re-segmenting..."))
-                srt_list = ob.llm_segment(self.source_srt_list, )
+                srt_list = ob.llm_segment(self.source_srt_list )
                 if srt_list and len(srt_list) > len(self.source_srt_list) / 2:
                     self.source_srt_list = srt_list
                     shutil.copy2(self.cfg.source_sub, f'{self.cfg.source_sub}-No-{tr("LLM Rephrase")}.srt')
                     self._save_srt_target(self.source_srt_list, self.cfg.source_sub)
                 else:
-                    logger.error('重新断句失败，已恢复原样')
+                    logger.error(f'重新断句失败，已恢复原样,原始字幕行:{len(self.source_srt_list)}, 重新断句后字幕行:{len(srt_list)}\n断句结果:\n{srt_list=}')
             except Exception as e:
                 self.signal(text=tr("Re-segmenting Error"))
                 logger.exception(f"重新断句失败，已恢复原样 {e}", exc_info=True)
