@@ -114,16 +114,7 @@ class Ui_recognapiform(object):
         成功时返回
         res={
             "code":0,
-            "data":[
-                {
-                    "text":"字幕文字",
-                    "time":'00:00:01,000 --> 00:00:06,500'
-                },
-                {
-                    "text":"字幕文字",
-                    "time":'00:00:06,900 --> 00:00:12,200'
-                },
-            ]
+            "data":"1\n00:00:01,000 --> 00:00:06,500\n字幕文字\n\n2\n00:00:06,900 --> 00:00:12,200\n字幕文字"
         }
         """
         if defaulelang != 'zh':
@@ -143,20 +134,11 @@ class Ui_recognapiform(object):
         
         Returns on success
         res={
-            “code":0,
-            “data":[
-                {
-                    “text": ‘Subtitle Text’,
-                    “time":‘00:00:01,000 --> 00:00:06,500’
-                },
-                {
-                    “text": ‘Subtitle text’,
-                    “time":‘00:00:06,900 --> 00:00:12,200’
-                }, }
-            ]
+            "code":0,
+            "data":""1\n00:00:01,000 --> 00:00:06,500\n字幕文字\n\n2\n00:00:06,900 --> 00:00:12,200\n字幕文字""
         }
             '''
         self.ask.setPlainText(tips)
-        self.recognapiform_address.setPlaceholderText('http api')
+        self.recognapiform_address.setPlaceholderText('')
         self.set.setText(tr("Save"))
         self.test.setText(tr("Test"))

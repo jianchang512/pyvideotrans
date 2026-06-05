@@ -27,10 +27,12 @@ class TranslateSrt(BaseTask):
     def __post_init__(self):
         super().__post_init__()
         # 存放目标文件夹
+        print(f'{self.cfg.target_dir=}')
         if not self.cfg.target_dir:
             self.cfg.target_dir = HOME_DIR + f"/translate"
         # 生成目标字幕文件
         self.cfg.target_sub = self.cfg.target_dir + '/' + self.cfg.noextname + f'.{self.cfg.target_language_code}.srt'
+        print(f'{self.cfg.target_sub=}')
         self.cfg.source_sub = self.cfg.name
         # 如果原始和结果文件相同，为避免覆盖，提前复制
         if self.cfg.name == self.cfg.target_sub:

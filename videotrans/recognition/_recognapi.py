@@ -24,16 +24,7 @@ from videotrans.configure import contants
             成功时返回
             res={
                 "code":0,
-                "data":[
-                    {
-                        "text":"字幕文字",
-                        "time":'00:00:01,000 --> 00:00:06,500'
-                    },
-                    {
-                        "text":"字幕文字",
-                        "time":'00:00:06,900 --> 00:00:12,200'
-                    },
-                ]
+                "data":srt格式字符串
             }
 """
 
@@ -71,21 +62,30 @@ class APIRecogn(BaseRecogn):
         self.signal(
             text=tr("Recognition may take a while, please be patient"))
 
-        res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files, timeout=600)
+        res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files, timeout=1200)
         res.raise_for_status()
         content_type = res.headers.get('Content-Type','')
-        if 'application/json' in content_type:
-            res = res.json()
-            if "code" not in res or res['code'] != 0:
-                raise SpeechToTextError(f'{res["msg"]}')
-            if "data" not in res or len(res['data']) < 1:
-                raise SpeechToTextError(f'识别出错{res=}')
-            self.signal(
-                text=tools.get_srt_from_list(res['data']),
-                type='replace_subtitle'
-            )
-            return res['data']
-        return tools.get_subtitle_from_srt(res.text, is_file=False)
+        if 'application/json' not in content_type:
+            raise SpeechToTextError(res.text or res)
+            
+
+        res = res.json()
+        if "code" not in res or res['code'] != 0:
+            raise SpeechToTextError(f'{res["msg"]}')
+        if "data" not in res or len(res['data']) < 1:
+            testdata={
+                "code":0,
+                "data":"SRT格式字符串"
+            }
+            testdata=json.dumps(testdata,ensure_ascii=False)
+            raise SpeechToTextError(f'识别出错,应返回类似数据:\n{testdata}\n\n但实际返回: {res}')
+        self.signal(
+            text=tools.get_srt_from_list(res['data']),
+            type='replace_subtitle'
+        )
+        
+        return tools.get_subtitle_from_srt(res['data'], is_file=False)
+        
 
     def _whisperzero(self)->Union[List[SrtItem], None]:
         api_key = params.get("recognapi_key")

@@ -363,11 +363,11 @@ def openwin():
         uuid_list = [obj['uuid'] for obj in video_list]
         for it in video_list:
             app_cfg.rm_uuid(it['uuid'])
+            it['target_dir']=RESULT_DIR
             cfg = {
                 "voice_role": role,
                 "cache_folder": config.TEMP_DIR + f'/{it["uuid"]}',
                 "target_language_code": langcode,
-                "target_dir": RESULT_DIR,
                 "voice_rate": rate,
                 "volume": volume,
                 "uuid": it['uuid'],

@@ -146,9 +146,9 @@ def openwin():
             SOURCE_DIR = Path(video_list[0]['name']).parent.as_posix()
         for it in video_list:
             app_cfg.rm_uuid(it['uuid'])
+            it['target_dir']=SOURCE_DIR if SOURCE_DIR else RESULT_DIR
             cfg={
                 "translate_type": translate_type,
-                "target_dir": SOURCE_DIR if SOURCE_DIR else RESULT_DIR,
                 "uuid": it['uuid'],
                 "source_language_code": source_code,
                 "target_language_code": target_code
