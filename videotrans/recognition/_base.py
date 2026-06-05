@@ -311,8 +311,8 @@ class BaseRecogn(BaseCon):
                     or (post_srt_raws[-1]['text'][-1] in self.half_flag and it['text'][-1] in self.end_flag)
                     or prev_diff <= next_diff
             )
-            # 如果需要合并到前面，并且 prev_diff == next_diff, 并且前面的长度已超过最大允许允许时长，则合并到后边
-            if merge_forward and prev_diff==next_diff and (post_srt_raws[-1]['end_time']-post_srt_raws[-1]['start_time'] >max_speech):
+            # 如果需要合并到前面，并且 prev_diff == next_diff, 并且前面的长度已超过最大允许允许时长，并且差距不超过2s，否则仍合并到前面,则合并到后边
+            if merge_forward and (prev_diff+2000>next_diff) and (post_srt_raws[-1]['end_time']-post_srt_raws[-1]['start_time'] >max_speech):
                 merge_forward=False
                 logger.debug(f'应合并到前边字幕，但已过长，因此强制合并进后个字幕')
             
@@ -396,4 +396,4 @@ class BaseRecogn(BaseCon):
     @staticmethod
     def _log_merge(direction, current, neighbour, prev_diff, next_diff):
         logger.warning(
-            f'字幕时长过短，合并进 [{direction}面] 字幕,{prev_diff=},{next_diff=}，当前被合并字幕={current},合并进字幕={neighbour}')
+            f'\n[P]字幕时长过短，合并进 [{direction}面] 字幕,{prev_diff=},{next_diff=}\n当前被合并字幕={current}\n合并到的字幕={neighbour}')

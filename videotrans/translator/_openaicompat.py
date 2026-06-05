@@ -97,7 +97,7 @@ class OpenAICampat(BaseTrans):
         prompts_template = prompts_template.replace('{max_speech_s}', str(settings.get('max_speech_duration_s', 6)))
         chunk_size = int(settings.get('llm_chunk_size', 20))
         model_name=params.get(f'{self.ainame}_model')
-        max_tokens=max(65536,int(float(params.get(f'{self.ainame}_max_token', 40960)) ))
+        max_tokens=max(8192,int( float(params.get(f'{self.ainame}_max_token', 8192)) ))
         temperature=float(settings.get('aitrans_temperature', 1.0))
         api_key=params.get(f'{self.ainame}_key')           
         reasoning_effort='high' if self.ainame=='deepseek' else None

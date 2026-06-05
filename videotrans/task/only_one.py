@@ -133,7 +133,7 @@ class Worker(QThread):
         except Exception as e:
             logger.exception(f'单视频模式翻译失败{e}',exc_info=True)
             detail_back = (traceback.format_exc()).strip()
-            channel=f"{tr('shibiechucuo')}:{get_recogn_type(trk.cfg.recogn_type)}, {tr('fanyichucuo')}: {get_tanslate_type(trk.cfg.translate_type)}, {tr('peiyinchucuo')}:{get_tts_type(trk.cfg.tts_type)}"
+            channel=f"[{get_recogn_type(trk.cfg.recogn_type)},  {get_tanslate_type(trk.cfg.translate_type)}, {get_tts_type(trk.cfg.tts_type)}]"
             self._post(text=str(e) + f"{channel}\n{detail_back}\n{trk.cfg if trk else ''}", type='error')
 
     def _post(self, text='', type='logs'):

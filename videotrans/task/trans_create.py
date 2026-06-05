@@ -687,7 +687,7 @@ class TransCreate(BaseTask):
             for (idx, it) in enumerate(self.queue_tts):
                 startraw = tools.ms_to_time_string(ms=it['start_time'])
                 endraw = tools.ms_to_time_string(ms=it['end_time'])
-                srt += f"{idx + 1}\n{startraw} --> {endraw}\n{it['text']}\n\n"
+                srt += f"{idx + 1}\n{startraw} --> {endraw}\n{it['text'].strip('...')}\n\n"
             # 字幕保存到目标文件夹
             with  Path(self.cfg.target_sub).open('w', encoding="utf-8") as f:
                 f.write(srt.strip())
