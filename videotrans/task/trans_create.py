@@ -591,19 +591,23 @@ class TransCreate(BaseTask):
         )
         if self._exit():  return
 
-        # 一一核对每条字幕
+        # 一一核对每条字幕,翻译可能导致每条字幕开头结尾出现3个 . 符号，配音后和无需配音时，需清理
         target_srt = self.check_target_sub(rawsrt, target_srt)
-
+        if not self.should_dubbing:
+            for it in target_srt:
+                it['text']=it['text'].strip('...')
         # 仅提取，并且双语输出
         if self.cfg.app_mode == 'tiqu' and self.cfg.output_srt > 0 and self.cfg.source_language_code != self.cfg.target_language_code:
             _source_srt_len = len(rawsrt)
             for i, it in enumerate(target_srt):
+                
                 if i < _source_srt_len and self.cfg.output_srt == 1:
                     # 目标语言在下
                     it['text'] = ("\n".join([rawsrt[i]['text'].strip(), it['text'].strip()])).strip()
                 elif i < _source_srt_len and self.cfg.output_srt == 2:
                     it['text'] = ("\n".join([it['text'].strip(), rawsrt[i]['text'].strip()])).strip()
-
+                
+                
         self._save_srt_target(target_srt, self.cfg.target_sub)
 
         if self.cfg.app_mode == 'tiqu':
@@ -630,6 +634,12 @@ class TransCreate(BaseTask):
         self.signal(text=tr('kaishipeiyin'))
         self.precent += 3
         self._tts()
+        # 配音完毕后，需更新 目标字幕，移除前后3个点
+        if Path(self.cfg.target_sub).exists():
+            subs = tools.get_subtitle_from_srt(self.cfg.target_sub)
+            for it in subs:
+                it['text']=it['text'].strip('...')
+            self._save_srt_target(subs, self.cfg.target_sub)
         self.signal(text=tr('The dubbing is finished'))
         logger.debug(f'[语音合成阶段结束耗时]:{time.time()-_st}s')
 
