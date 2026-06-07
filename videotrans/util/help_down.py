@@ -31,10 +31,10 @@ def is_connect_hf():
     if os.environ.get('HF_ENDPOINT')=='https://hf-mirror.com':
         return False
     try:
-        requests.head('https://huggingface.co', timeout=3)
+        requests.head('https://huggingface.co', timeout=5)
     except Exception as e:
         os.environ['HF_ENDPOINT']='https://hf-mirror.com'
-        logger.warning(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
+        logger.debug(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
         return False
     else:
         os.environ['HF_ENDPOINT']='https://huggingface.co'

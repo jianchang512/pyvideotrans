@@ -8,16 +8,11 @@ from videotrans.util import tools
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-# 将这个工厂函数注册给 huggingface_hub
 import shutil
 import time
 import platform
 import getpass
 import subprocess
-# from videotrans.util.req_fac import custom_session_factory
-# import huggingface_hub
-
-# huggingface_hub.configure_http_backend(backend_factory=custom_session_factory)
 from videotrans.configure import config
 
 config.init_run()
@@ -142,6 +137,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 默认代理
         if not app_cfg.proxy:
             app_cfg.proxy = tools.set_proxy() or ''
+            if app_cfg.proxy:
+                os.environ['HTTP_PROXY'] = app_cfg.proxy
+                os.environ['HTTPS_PROXY'] = app_cfg.proxy
         self.proxy.setText(app_cfg.proxy)
         if not params.get('voice_autorate') and not params.get('video_autorate'):
             self.remove_silent_mid.setVisible(True)
@@ -340,8 +338,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         QApplication.processEvents()
         self.uito.emit('end')
-        run_in_threadpool(tools.is_connect_hf)
+        
         run_in_threadpool(tools.check_new_version)
+        QTimer.singleShot(2000, self._check_huggingface)
+        
+    def _check_huggingface(self):
+        run_in_threadpool(tools.is_connect_hf)
 
     def _start_workers(self, status):
         if status == 'end':

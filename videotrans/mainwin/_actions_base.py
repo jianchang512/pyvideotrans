@@ -344,13 +344,15 @@ class WinActionBase:
 
     # 设置或删除代理
     def change_proxy(self, p):
-        app_cfg.proxy = p.strip()
-        if not app_cfg.proxy:
+        proxy = p.strip()
+        if not proxy:
             settings['proxy'] = ''
+            app_cfg.proxy=''
             tools.set_proxy('del')
         else:
-            settings['proxy'] = app_cfg.proxy
-            tools.set_proxy(app_cfg.proxy)
+            settings['proxy'] = proxy
+            tools.set_proxy(proxy)
+            app_cfg.proxy=proxy
 
         settings.save()
 
@@ -376,14 +378,15 @@ class WinActionBase:
                     self.update_status('stop')
                     return False
         # 设置或删除代理
-        app_cfg.proxy = proxy
-        if app_cfg.proxy:
+        if proxy:
             # 设置代理
-            tools.set_proxy(app_cfg.proxy)
-            settings['proxy'] = app_cfg.proxy
+            tools.set_proxy(proxy)
+            settings['proxy'] = proxy
+            app_cfg.proxy=proxy
         else:
             # 删除代理
             settings['proxy'] = ''
+            app_cfg.proxy=''
             tools.set_proxy('del')
         settings.save()
 

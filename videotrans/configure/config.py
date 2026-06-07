@@ -877,9 +877,11 @@ defaulelang,_transobj=_init_language()
 
 _proxy = settings.proxy or os.environ.get('HTTPS_PROXY', '')
 if _proxy:
+    os.environ['HTTPS_PROXY'] = _proxy
+    os.environ['HTTP_PROXY'] = _proxy
     app_cfg.proxy=_proxy
-    os.environ['HTTPS_PROXY'] = app_cfg.proxy
-    os.environ['HTTP_PROXY'] = app_cfg.proxy
+    if not settings.proxy:
+        settings['proxy'] = _proxy
 
 
 # 主进程执行
