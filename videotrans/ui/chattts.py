@@ -86,7 +86,6 @@ class Ui_chatttsform(object):
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
-        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
@@ -105,7 +104,7 @@ class Ui_chatttsform(object):
         QtCore.QMetaObject.connectSlotsByName(chattts)
 
     def retranslateUi(self, chattts):
-        chattts.setWindowTitle("ChatTTS API")
+        chattts.setWindowTitle("ChatTTS API "+tr('This channel needs deployed and started before available'))
         self.label.setText(tr("ChatTTS URL"))
         self.label3.setText(tr("ChatTTS Voice"))
         self.chattts_address.setPlaceholderText(

@@ -57,7 +57,6 @@ class Ui_cosyvoiceform(object):
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
-        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
@@ -81,8 +80,8 @@ class Ui_cosyvoiceform(object):
     
     
     def retranslateUi(self, cosyvoiceform):
-        cosyvoiceform.setWindowTitle("CosyVoice2/3")
+        cosyvoiceform.setWindowTitle("CosyVoice2/3" +tr('This channel needs deployed and started before available'))
         self.save.setText(tr("Save"))
-        self.api_url.setPlaceholderText("webui url http://127.0.0.1:8000")
+        self.api_url.setPlaceholderText("webui url")
         self.label.setText("WebUI url")
         self.test.setText(tr("Test"))

@@ -60,7 +60,6 @@ class Ui_fishttsform(object):
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
-        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
@@ -102,7 +101,7 @@ references[0][text]:参考音频中的语音文本
 请求成功时返回音频流
 """
 
-        fishttsform.setWindowTitle("Fish-speech API/fish-speech >=1.5.0")
+        fishttsform.setWindowTitle("Fish-speech API " +tr('This channel needs deployed and started before available'))
         self.tips.setPlainText(tips)
         self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText("填写http开头的API,Fish-speech 1.5.0默认 http://127.0.0.1:8080/v1/tts")

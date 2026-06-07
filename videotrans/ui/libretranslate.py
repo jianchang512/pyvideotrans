@@ -64,7 +64,6 @@ class Ui_libretranslateform(object):
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
-        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
@@ -81,7 +80,7 @@ class Ui_libretranslateform(object):
         QtCore.QMetaObject.connectSlotsByName(libretranslateform)
 
     def retranslateUi(self, libretranslateform):
-        libretranslateform.setWindowTitle("LibreTranslate")
+        libretranslateform.setWindowTitle("LibreTranslate"+tr('This channel needs deployed and started before available'))
         self.label.setText(tr("API URL"))
         self.label2.setText(tr('SK'))
         self.key.setPlaceholderText(tr("Input your libretranslate key"))

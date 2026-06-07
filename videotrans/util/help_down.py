@@ -33,12 +33,12 @@ def is_connect_hf():
     try:
         requests.head('https://huggingface.co', timeout=3)
     except Exception as e:
-        logger.warning(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com\n{e}')
         os.environ['HF_ENDPOINT']='https://hf-mirror.com'
+        logger.warning(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
         return False
     else:
-        logger.info('可以使用 huggingface.co')
         os.environ['HF_ENDPOINT']='https://huggingface.co'
+        logger.info('可以使用 huggingface.co')
         return True
 
 

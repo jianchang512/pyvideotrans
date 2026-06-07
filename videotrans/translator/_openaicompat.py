@@ -70,7 +70,7 @@ class OpenAICampat(BaseTrans):
             response = model.chat.completions.create(**kwargs, extra_body=self.extra_body)
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
             del kwargs['messages']
-            raise StopTask(e.message+f'\n{kwargs}') from e
+            raise StopTask(e.message+f'\n{self.api_url}\n{kwargs}') from e
 
         result = ""
         if not hasattr(response,'choices') or not response.choices:
@@ -79,7 +79,7 @@ class OpenAICampat(BaseTrans):
             raise LengthFinishReasonError(completion=response)
         if not response.choices[0].message.content:
             logger.warning(f'[{self.ainame}]请求失败:{response=}')
-            raise TranslateSrtError(f"[{self.ainame}] {response.choices[0].finish_reason}:{response}")
+            raise TranslateSrtError(f"[{self.ainame}] {self.api_url} {response.choices[0].finish_reason}:{response}")
         result = response.choices[0].message.content.strip()
         match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>', '',result), re.S)
         if match:
@@ -135,13 +135,13 @@ class OpenAICampat(BaseTrans):
             )
             if not hasattr(response, 'choices') or not response.choices:
                 logger.warning(f'[{self.ainame}]重新断句失败:{response=}')
-                raise LLMSegmentError(f"{response}")
+                raise LLMSegmentError(f"[{self.ainame}]{response}")
 
             if response.choices[0].finish_reason == 'length':
-                raise LLMSegmentError(f"Please increase max_token")
+                raise LLMSegmentError(f"[{self.ainame}] Please increase max_token")
             if not response.choices[0].message.content:
                 logger.warning(f'[{self.ainame}]重新断句失败:{response=}')
-                raise LLMSegmentError(f"{response}")
+                raise LLMSegmentError(f"[{self.ainame}] {response}")
 
             result = response.choices[0].message.content
             match = re.search(r'<SRT>(.*?)</SRT>', re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S), re.S | re.I)

@@ -118,7 +118,7 @@ class BaseTrans(BaseCon):
             self.text_list[i]['text'] = text
 
         if _empty_line >= len(self.text_list):
-            raise TranslateSrtError(tr("Translate result is empty"))
+            raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
         return self.text_list
 
     # 发送完整字幕格式内容进行翻译
@@ -141,7 +141,7 @@ class BaseTrans(BaseCon):
             if not result:
                 result = self._item_task(srt_str)
                 if not result.strip():
-                    raise TranslateSrtError(tr("Translate result is empty"))
+                    raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
                 self._set_cache(it, result)
 
             self.signal(text=result, type='subtitle')
@@ -153,7 +153,7 @@ class BaseTrans(BaseCon):
             if not it['text'].strip():
                 _empty_line += 1
         if _empty_line >= len(raws_list):
-            raise TranslateSrtError(tr("Translate result is empty"))
+            raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
         logger.debug(f'以SRT格式翻译，原始字幕行数：{len(self.text_list)},翻译后行数:{len(raws_list)}')
         return raws_list
 

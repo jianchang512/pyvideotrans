@@ -985,6 +985,7 @@
   "Romanian": "Romanian",
   "may not support": " may not support ",
   "Modify secondary recognition results": "Modify secondary recognition results",
-  "Reasoning Effort":"Reasoning Effort"
+  "Reasoning Effort":"Reasoning Effort",
+  "This channel needs deployed and started before available":"This channel needs deployed and started before available"
 	
 }

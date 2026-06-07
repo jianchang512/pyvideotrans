@@ -24,7 +24,6 @@ from videotrans.ui.deepgram import Ui_deepgramform
 from videotrans.ui.deepl import Ui_deeplform
 from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.deepseek import Ui_deepseekform
-from videotrans.ui.doubao import Ui_doubaoform
 from videotrans.ui.doubao2 import Ui_doubao2form
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
 from videotrans.ui.f5tts import Ui_f5ttsform
@@ -45,7 +44,6 @@ from videotrans.ui.omnivoice import Ui_omnivoiceform
 from videotrans.ui.openairecognapi import Ui_openairecognapiform
 from videotrans.ui.openaitts import Ui_openaittsform
 from videotrans.ui.openrouter import Ui_openrouterform
-from videotrans.ui.ott import Ui_ottform
 from videotrans.ui.parakeet import Ui_parakeetform
 from videotrans.ui.peiyin import Ui_peiyin
 from videotrans.ui.peiyinrole import Ui_peiyinrole
@@ -245,10 +243,6 @@ class DeepLXForm(QDialogBase, Ui_deeplxform):  # <===
         super().__init__(parent)
 
 
-class OttForm(QDialogBase, Ui_ottform):  # <===
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
 
 class CloneForm(QDialogBase, Ui_cloneform):  # <===
     def __init__(self, parent=None):
@@ -268,11 +262,6 @@ class KokoroForm(QDialogBase, Ui_kokoroform):  # <===
 
 
 class ChatttsForm(QDialogBase, Ui_chatttsform):  # <===
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-
-class DoubaoForm(QDialogBase, Ui_doubaoform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
 

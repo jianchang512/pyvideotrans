@@ -369,8 +369,12 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         # FPS 计算逻辑
         def parse_fps(rate_str):
             try:
-                num, den = map(int, rate_str.split('/'))
-                return num / den if den != 0 else 0
+                _fps_split=str(rate_str).split('/')
+                if len(_fps_split)==2:
+                    num, den = map(int, _fps_split)
+                    return num / den if den != 0 else 0
+                
+                return float(rate_str)
             except (TypeError,ValueError):
                 return 0
 
@@ -381,8 +385,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         else:
             fps_avg = fps1
 
-        result['video_fps'] = fps_avg if 1 <= fps_avg <= 120 else 30
-        result['r_frame_rate'] = video_stream.get('r_frame_rate', result['video_fps'])
+        result['r_frame_rate']=result['video_fps'] = fps_avg if 1 <= fps_avg <= 120 else 30
 
     logger.debug(f'The file info after process:{result=}')
     # 确保向后兼容

@@ -16,12 +16,10 @@ def openwin():
         key = winobj.gemini_key.text()
         model = winobj.model.currentText()
         gemini_maxtoken = winobj.gemini_maxtoken.text()
-        thinking_budget = winobj.thinking_budget.text()
         params["gemini_maxtoken"] = gemini_maxtoken
         os.environ['GOOGLE_API_KEY'] = key
         params["gemini_model"] = model
         params["gemini_key"] = key
-        params["gemini_thinking_budget"] = thinking_budget
 
         ttsmodel = winobj.ttsmodel.currentText()
         params["gemini_ttsmodel"] = ttsmodel
@@ -38,9 +36,7 @@ def openwin():
 
         
         gemini_maxtoken = winobj.gemini_maxtoken.text()
-        thinking_budget = winobj.thinking_budget.text()
         params["gemini_maxtoken"] = gemini_maxtoken
-        params["gemini_thinking_budget"] = thinking_budget
 
         params["gemini_model"] = model
         params["gemini_key"] = key

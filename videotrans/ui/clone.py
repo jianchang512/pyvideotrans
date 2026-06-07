@@ -59,7 +59,6 @@ class Ui_cloneform(object):
         self.test.setObjectName("test")
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
-        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
@@ -78,7 +77,7 @@ class Ui_cloneform(object):
         QtCore.QMetaObject.connectSlotsByName(clone)
 
     def retranslateUi(self, clone):
-        clone.setWindowTitle("clone-voice")
+        clone.setWindowTitle("clone-voice "+tr('This channel needs deployed and started before available'))
         self.label.setText(tr("clone-voice url"))
         self.clone_address.setPlaceholderText(
             tr("Fill in the HTTP address after the clone voice program starts"))

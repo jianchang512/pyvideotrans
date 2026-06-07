@@ -49,7 +49,7 @@ class Ui_omnivoiceform(object):
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
-        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
+
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
@@ -73,7 +73,7 @@ class Ui_omnivoiceform(object):
     # setupUi
 
     def retranslateUi(self, omnivoiceform):
-        omnivoiceform.setWindowTitle("Omnivoice")
+        omnivoiceform.setWindowTitle("Omnivoice"+tr('This channel needs deployed and started before available'))
 
         self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText("URL http://127.0.0.1:8081")

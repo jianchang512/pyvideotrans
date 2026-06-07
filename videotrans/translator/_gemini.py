@@ -48,15 +48,15 @@ class Gemini(BaseTrans):
                 ),
             ]
             think_cfg=types.ThinkingConfig(
-                    thinking_budget=int(params.get('gemini_thinking_budget',24576)),
-                )
-            if model.startswith('gemini-3') or model.startswith('gemma-'):
-                think_cfg=types.ThinkingConfig(
                         thinking_level="HIGH",
                 )
+            if model.lower().startswith('gemini-2'):
+                think_cfg=types.ThinkingConfig(
+                        thinking_budget=24576,
+                    )
                 
             generate_content_config = types.GenerateContentConfig(
-                temperature=float(settings.get('aitrans_temperature',0.2)),
+                temperature=float(settings.get('aitrans_temperature',0.1)),
                 max_output_tokens=int(params.get("gemini_maxtoken",65530)),
                 safety_settings=[
                     types.SafetySetting(

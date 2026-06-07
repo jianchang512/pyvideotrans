@@ -59,7 +59,6 @@ class Ui_parakeetform(object):
         self.test.setObjectName("test")
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
-        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("The tutorial"))
@@ -78,10 +77,9 @@ class Ui_parakeetform(object):
         QtCore.QMetaObject.connectSlotsByName(parakeet)
 
     def update_ui(self):
-
         self.parakeet_address.setText(params.get("parakeet_address",''))
     def retranslateUi(self, parakeet):
-        parakeet.setWindowTitle("parakeet-tdt api")
+        parakeet.setWindowTitle("parakeet-tdt "+tr('This channel needs deployed and started before available'))
         self.label.setText(tr("parakeet url"))
         self.set_btn.setText(tr("Save"))
         self.test.setText(tr("Test"))

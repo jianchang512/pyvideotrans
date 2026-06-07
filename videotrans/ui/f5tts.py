@@ -128,7 +128,6 @@ class Ui_f5ttsform(object):
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
-        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
@@ -151,6 +150,6 @@ class Ui_f5ttsform(object):
     def retranslateUi(self, f5ttsform):
         tips = tr("Starting from version 3.68 of this software, only the official webui is supported (F5-TTS/Spart-TTS/index-TTS/Dia-TTS/VoxCPM), and third-party integration packages and APIs are no longer supported.")
 
-        f5ttsform.setWindowTitle("F5-TTS/Spart-TTS/index-TTS/Dia-TTS")
+        f5ttsform.setWindowTitle("F5-TTS/Spark/index-TTS/Dia" +tr('This channel needs deployed and started before available'))
         self.tips.setPlainText(tips)
         self.save.setText(tr("Save"))

@@ -65,7 +65,8 @@ class Ui_localllmform(object):
         self.localllm_max_token.setObjectName("localllm_max_token")
 
 
-
+        h_token.addWidget(label_token)
+        h_token.addWidget(self.localllm_max_token)
 
         v1.addLayout(h2)
         v1.addLayout(h_token)
@@ -107,7 +108,6 @@ class Ui_localllmform(object):
         self.test_localllm.setObjectName("test_localllm")
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
-        help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
@@ -133,7 +133,7 @@ class Ui_localllmform(object):
         self.localllm_max_token.setText(str(params.get("localllm_max_token",'')))
 
     def retranslateUi(self, localllmform):
-        localllmform.setWindowTitle(tr("Local LLM API"))
+        localllmform.setWindowTitle(tr("Local LLM API")+tr('This channel needs deployed and started before available'))
         self.label_3.setText(tr("Model"))
         self.label_4.setText(
             tr("{lang} represents the target language name, do not delete it."))

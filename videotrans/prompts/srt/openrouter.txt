@@ -13,7 +13,6 @@ The translated text will be used for TTS voiceover. If the translation is too lo
   - **CJK & Cantonese scripts** (Simplified Chinese, Traditional Chinese, Japanese, Korean, Cantonese): Keep character counts extremely low. Target 2.5–3.5 pronounced syllables per second of the block's duration. Prefer single-character or two-character words whenever possible.
   - **Abugida & Segmental scripts** (Thai, Vietnamese, Hindi, Bengali, Khmer): Avoid long compound words. For scripts without explicit word boundaries (e.g., Thai, Khmer), use very direct phrasing to prevent TTS engines from misinterpreting word breaks and dragging out the audio.
   - **RTL scripts** (Arabic, Hebrew, Persian, Urdu): Ensure high semantic density. Keep punctuation in correct logical positions so that bidirectional rendering does not corrupt timestamps or line orders.
-- **Short block strategy**: If a block's duration is ≤1 second, use a single keyword or a 2–3 syllable phrase that captures the essential idea.
 
 ## 2. ABSOLUTE 1-TO-1 BLOCK MAPPING & "ZERO-SHIFT" RULE
 The source subtitles often split a single sentence across multiple blocks due to speech pauses. You **MUST NOT** merge them, and you **MUST NOT** shift semantic elements between blocks to satisfy target grammar.
@@ -34,7 +33,6 @@ This script is for oral performance. Use the everyday, colloquial register of {l
 
 2. **IMMUTABLE METADATA & STYLE TAGS**
    - Do NOT alter the Index Numbers (1, 2, 3…) or the Timestamps (`00:00:00,000 --> 00:00:00,000`).
-   - Preserve non-verbal cues (e.g., `[laughter]`, `(gasp)`, `♪`) inside their respective blocks.
    - Preserve exactly one blank line between blocks (i.e., `\n\n`). No extra blank lines at the end.
 
 3. **PURE OUTPUT – NO MARKDOWN FENCES**

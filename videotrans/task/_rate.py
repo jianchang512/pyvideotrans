@@ -93,7 +93,7 @@ from videotrans.util import tools
 
 
 
-def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf):
+def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf,fps_mode):
     """
     裁切视频片段，并根据需要进行慢速（PTS）处理。
     """
@@ -142,7 +142,8 @@ def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf):
         filter_complex.append("setpts=PTS")
 
     cmd.extend(['-vf', ",".join(filter_complex)])
-    cmd.extend(['-fps_mode', 'vfr']) # 关键修正
+    #cmd.extend(['-fps_mode', 'vfr']) # 关键修正
+    cmd.extend(fps_mode) # 关键修正
     cmd.extend(['-t', f'{target_duration_s:.6f}']) # 强制限制输出时长
     
     cmd.append(os.path.basename(task['filename']))
@@ -173,9 +174,11 @@ def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf):
                 '-crf', crf,
                 '-pix_fmt', 'yuv420p',
                 '-vf', 'setpts=PTS',  # 显式添加
-                '-fps_mode', 'vfr',   # 显式添加
+            ]+fps_mode
+
+            cmd_backup+[
                 os.path.basename(task['filename'])
-            ]
+                ]
             tools.runffmpeg(cmd_backup, force_cpu=True, cmd_dir=work_dir)
 
         # 再次检查
@@ -315,7 +318,15 @@ class SpeedRate:
         Path(self.cache_folder).mkdir(parents=True, exist_ok=True)
 
         self.stop_show_process = False
-        self.video_info = {}
+
+        self.fps_mode=["-fps_mode","vfr"]
+        ## 是否使用固定帧率        
+        if settings.get('fps_mode')=='cfr':
+            video_fps=tools.get_video_info(novoice_mp4,video_fps=True) if novoice_mp4 and Path(novoice_mp4).exists() else 30
+            self.fps_mode=["-r",f"{video_fps}","-fps_mode","cfr"]
+            
+        logger.debug(f'{self.fps_mode=}')
+            
         self.target_audio = target_audio
 
         self.max_audio_speed_rate = float(settings.get('max_audio_speed_rate', 100))
@@ -554,14 +565,15 @@ class SpeedRate:
             data.append(clip_info)
             
         all_task = []
-        logger.debug(f"[Video] 提交 {len(data)} 个视频处理任务")
+        logger.debug(f"[Video] 提交 {len(data)} 个视频片段处理慢速任务")
         for i, d in enumerate(data):
             kw = {
                 "i": i, 
                 "task": d, 
                 "novoice_mp4_original": self.novoice_mp4_original, 
                 "preset": self.preset, 
-                "crf": self.crf
+                "crf": self.crf,
+                "fps_mode":self.fps_mode
             }
             all_task.append(GlobalProcessManager.submit_task_cpu(_cut_video_get_duration, **kw))
 

@@ -1183,12 +1183,14 @@ class TransCreate(BaseTask):
     def _video_extend(self, duration_ms=1000):
         sec = duration_ms / 1000.0
         final_video_path = Path(f'{self.cfg.cache_folder}/final_video_with_freeze_lastend.mp4').as_posix()
+               
         cmd = ['-y', '-i', os.path.basename(self.cfg.novoice_mp4),
                '-vf', f'tpad=stop_mode=clone:stop_duration={sec:.3f}',
                '-c:v', 'libx264',
                '-crf', f'{settings.get("crf", 23)}',
                '-preset', settings.get('preset', 'veryfast'),
-               '-an', 'final_video_with_freeze_lastend.mp4']
+               '-an', 'final_video_with_freeze_lastend.mp4'
+        ]
         try:
             tools.runffmpeg(cmd, force_cpu=True, cmd_dir=self.cfg.cache_folder)
             if Path(final_video_path).exists():
@@ -1323,7 +1325,14 @@ class TransCreate(BaseTask):
                 target_m4a_basename
             ]
             enc_qua = ['-crf', f'{settings.get("crf", 23)}', '-preset', settings.get('preset', 'medium')]
-
+            
+            # 若选 cfr，无论是否有视频慢速，均固定帧率输出
+            # 若选vfr仅在有视频慢速时使用，其他使用ffmpeg默认auto
+            fps_mode=None
+            if settings.get('fps_mode')=='cfr':
+                fps_mode=["-r",f"{self.video_info['video_fps']}","-fps_mode","cfr"]
+            elif self.cfg.video_autorate:
+                fps_mode=["-fps_mode","vfr"]
             # 无字幕 或 软字幕
             if self.cfg.subtitle_type not in [1, 3]:
                 # 软字幕
@@ -1356,8 +1365,9 @@ class TransCreate(BaseTask):
                     "-movflags",
                     "+faststart",
                 ]
-                if self.cfg.video_autorate:
-                    cmd2.extend(["-fps_mode", "vfr"])
+                if fps_mode:
+                    cmd2.extend(fps_mode)
+                
 
                 cmd2.extend(["-t", str(duration_s), tmp_target_mp4_basename])
                 if is_copy_mode:
@@ -1396,8 +1406,8 @@ class TransCreate(BaseTask):
                 ]
                 cmd3 = ["-movflags", "+faststart"]
 
-                if self.cfg.video_autorate:
-                    cmd3.extend(["-fps_mode", "vfr"])
+                if fps_mode:
+                    cmd3.extend(fps_mode)
 
                 cmd3.extend(["-t", str(duration_s), tmp_target_mp4_basename])
                 if app_cfg.video_codec.startswith('libx') or settings.get('force_lib'):

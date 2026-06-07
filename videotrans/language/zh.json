@@ -984,5 +984,6 @@
   "Romanian": "罗马尼亚语",
   "may not support": "可能不支持",
   "Modify secondary recognition results": "在此修改 二次识别 出的字幕",
-  "Reasoning Effort":"推理深度"
+  "Reasoning Effort":"推理深度",
+  "This channel needs deployed and started before available":"该渠道需另行部署并启动后可用"
 }

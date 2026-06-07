@@ -137,7 +137,7 @@ OPENAITTS_ROLES = "alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,vers
 XAITTS_ROLES='eve,ara,rex,sal,leo'
 MITTS_ROLES='mimo_default,default_zh,冰糖,茉莉,苏打,白桦,Mia,Milo,Dean,Chloe,default_en'
 # 缺省 gemini 模型
-DEFAULT_GEMINI_MODEL = "gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash"
 # gemini-tts 音色
 GEMINITTS_ROLES = "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
 

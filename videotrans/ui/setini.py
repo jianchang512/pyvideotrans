@@ -40,6 +40,7 @@ notices = {
         "preset": "主要调节编码速度和质量的平衡，有 ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
         "video_codec": "采用 libx264 编码或 libx265 编码，264兼容性更好，265压缩比更大清晰度更高",
         "out_video_ext": "输出视频格式(mp4/mkv)",
+        "fps_mode":"有视频慢速处理时，可变帧率vrf效果更好，固定帧率cfr兼容性更佳",
         "force_lib": "强制ffmpeg使用软编解码?（速度慢但兼容性好不易出错，默认优选硬件编码）",
         "hw_decode": "最后一步视频合成时，强制使用cuda解码视频，更快但易出错",
         "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在输出文件之前的位置,例如  -bf 7 -b_ref_mode middle",
@@ -167,6 +168,8 @@ titles = {
     "out_video_ext": "输出视频格式(mp4/mkv)",
 
     "retry_nums": "失败后重试次数",
+    
+    "fps_mode":"可变帧率vfr/固定帧率cfr",
 
     "whisper_prepare": "Whisper预分割音频?",
     "temperature": "采样温度",
@@ -304,6 +307,8 @@ if defaulelang != 'zh':
             "preset": "Controls the encoding speed vs. quality balance (e.g., ultrafast, medium, slow). Faster means larger files.",
             "video_codec": "Video codec: libx264 (better compatibility) or libx265 (higher compression).",
             "out_video_ext": "Output video format (mp4/mkv)",
+            "fps_mode": "When there is slow-motion video processing, variable frame rate (VRF) works better, while fixed frame rate (CFR) has better compatibility.",
+            
             "force_lib": "Force software encoding (slower but more compatible). Hardware encoding is preferred by default.",
             "hw_decode": "When compositing videos, prioritize hard decoding; it's fast but prone to errors.",
             "ffmpeg_cmd": "Custom FFmpeg command arguments, added before the output file argument.",
@@ -433,6 +438,7 @@ if defaulelang != 'zh':
         "out_video_ext": "Output video format (mp4/mkv)",
 
         "retry_nums": "Number of retries after failure",
+        "fps_mode": "Variable frame rate (vfr)/fixed frame rate (cfr)",
 
         "repetition_penalty": "repetition penalty",
         "compression_ratio_threshold": "compression ratio threshold",
@@ -547,7 +553,7 @@ class Ui_setini(object):
             settings.save()
 
     def _is_comboBox(self,key):
-        return key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset','lang','uvr_models','out_video_ext']
+        return key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset','lang','uvr_models','out_video_ext',"fps_mode"]
 
     def _get_comboBox(self, key) -> List[str]:
         data = {
@@ -563,6 +569,7 @@ class Ui_setini(object):
                 'int8_float32',
                 'int8_bfloat16'
             ],
+            "fps_mode":["vfr","cfr"],
             "llm_ai_type": ['chatgpt', 'deepseek'],
             "vad_type": ['tenvad', 'silero'],
             "speaker_type": ['built', 'ali_CAM', 'pyannote', 'reverb'],

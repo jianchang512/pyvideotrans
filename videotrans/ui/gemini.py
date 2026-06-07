@@ -51,12 +51,8 @@ class Ui_geminiform(object):
         self.gemini_maxtoken = QtWidgets.QLineEdit()
         self.gemini_maxtoken.setObjectName("gemini_maxtoken")
         
-        self.thinking_budget = QtWidgets.QLineEdit()
-        self.thinking_budget.setObjectName("thinking_budget")
         h_token.addWidget(label_token)
         h_token.addWidget(self.gemini_maxtoken)
-        h_token.addWidget(QtWidgets.QLabel('Thinking budget'))
-        h_token.addWidget(self.thinking_budget)
         v1.addLayout(h_token)
         
 
@@ -143,8 +139,7 @@ class Ui_geminiform(object):
         self.gemini_key.setText(params.get("gemini_key",''))
         self.model.setCurrentText(params.get("gemini_model",''))
         
-        self.gemini_maxtoken.setText(str(params.get("gemini_maxtoken",'18192')))
-        self.thinking_budget.setText(str(params.get("thinking_budget",'24576')))
+        self.gemini_maxtoken.setText(str(params.get("gemini_maxtoken",'16384')))
 
         self.ttsmodel.setCurrentText(params.get("gemini_ttsmodel",''))
 
