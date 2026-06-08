@@ -61,7 +61,7 @@ def _set_env():
     os.environ['HF_HUB_CACHE'] = ROOT_DIR + "/models"
     os.environ['HF_TOKEN_PATH'] = ROOT_DIR + "/models/hf_token.txt"
     os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
-    os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
+    #os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
     os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "3600"
     os.environ["HF_HUB_DISABLE_XET"] = "1"
 

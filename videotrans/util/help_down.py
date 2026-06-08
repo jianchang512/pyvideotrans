@@ -7,8 +7,11 @@ import zipfile
 from videotrans.configure.config import ROOT_DIR, tr, logger, defaulelang
 from videotrans.configure.contants import FASTER_MODELS_DICT
 from videotrans.configure.excepts import DownloadModelsError
-from .help_misc import create_tqdm_class
+#from .help_misc import create_tqdm_class
 from urllib.parse import urlparse
+import tqdm
+
+
 
 """解析URL获取纯净文件名 (去除 ?query)"""
 def get_filename_from_url(url) -> str:
@@ -28,7 +31,6 @@ def file_exists(dirname, glob_patter='*.bin') -> bool:
 
 def is_connect_hf():
     try:
-        print(f'{os.environ.get("HTTPS_PROXY")=}')
         import requests
         requests.head('https://huggingface.co', timeout=5)
     except Exception as e:
@@ -56,6 +58,20 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=Non
 
         import huggingface_hub
         from huggingface_hub.errors import LocalEntryNotFoundError
+
+        class QtAwareTqdm(tqdm.tqdm):
+
+            def display(self, msg=None, pos=None):
+                super().display(msg, pos)
+                _str = str(self).split('%')
+                logger.debug(f'Download {_str=}')
+                if callback and (msg or len(_str)>0):
+                    callback(f'{_str[0]}%' if len(_str) > 0 else msg)
+        
+
+
+        
+        
         try:
             huggingface_hub.snapshot_download(
                 repo_id=repo_id,
@@ -67,7 +83,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=Non
             Path(local_dir).mkdir(exist_ok=True, parents=True)
             MyTqdmClass = None
             if callback:
-                MyTqdmClass = create_tqdm_class(callback)
+                MyTqdmClass = QtAwareTqdm#create_tqdm_class(callback)
                 callback(tr('Downloading please wait'))
 
             is_connect_hf()

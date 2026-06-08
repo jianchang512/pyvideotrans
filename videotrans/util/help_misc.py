@@ -13,7 +13,6 @@ from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulela
 import tqdm
 
 from videotrans.task.taskcfg import SignMsg
-from PySide6.QtWidgets import QApplication
 
 def create_tqdm_class(callback):
     class QtAwareTqdm(tqdm.tqdm):
@@ -21,10 +20,9 @@ def create_tqdm_class(callback):
         def display(self, msg=None, pos=None):
             super().display(msg, pos)
             _str = str(self).split('%')
-            print(f'{_str=}')
-            QApplication.processEvents()
-            if callback and len(_str) > 0:
-                callback(_str[0] + '%')
+            logger.debug(f'Download {_str=}')
+            if callback and (msg or len(_str)>0):
+                callback(f'{_str[0]}%' if len(_str) > 0 else msg)
 
     return QtAwareTqdm
 
