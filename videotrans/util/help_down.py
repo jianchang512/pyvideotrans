@@ -2,7 +2,7 @@
 import tempfile
 import time
 from pathlib import Path
-import shutil, os, requests
+import shutil, os
 import zipfile
 from videotrans.configure.config import ROOT_DIR, tr, logger, defaulelang
 from videotrans.configure.contants import FASTER_MODELS_DICT
@@ -27,9 +27,9 @@ def file_exists(dirname, glob_patter='*.bin') -> bool:
 
 
 def is_connect_hf():
-    if os.environ.get('HF_ENDPOINT')=='https://hf-mirror.com':
-        return False
     try:
+        print(f'{os.environ.get("HTTPS_PROXY")=}')
+        import requests
         requests.head('https://huggingface.co', timeout=5)
     except Exception as e:
         os.environ['HF_ENDPOINT']='https://hf-mirror.com'
@@ -112,6 +112,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=Non
 # 从 huggingface.co 下载单个文件
 def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
     is_connect_hf()
+    import requests
     endpoint = os.environ.get('HF_ENDPOINT')
     for index, url in enumerate(urls):
         try:
@@ -151,6 +152,7 @@ def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
 # 从 modelscope.cn 下载单个文件
 def down_file_from_ms(local_dir, urls=None, callback=None) -> bool:
     Path(local_dir).mkdir(parents=True, exist_ok=True)
+    import requests
     for index, url in enumerate(urls):
         filename = get_filename_from_url(url)
         file_abso_path = f'{local_dir}/{filename}'
@@ -186,6 +188,7 @@ def down_file_from_ms(local_dir, urls=None, callback=None) -> bool:
 
 # 从 modelscope.cn下载zip并解压 到指定目录
 def down_zip(local_dir, zip_url, callback=None) -> bool:
+    import requests
     try:
         filename = get_filename_from_url(zip_url)
         with requests.get(zip_url, stream=True, timeout=(30, 600)) as response:
