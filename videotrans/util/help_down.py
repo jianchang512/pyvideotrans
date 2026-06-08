@@ -6,12 +6,11 @@ import shutil, os, requests
 import zipfile
 from videotrans.configure.config import ROOT_DIR, tr, logger, defaulelang
 from videotrans.configure.contants import FASTER_MODELS_DICT
+from videotrans.configure.excepts import DownloadModelsError
 from .help_misc import create_tqdm_class
 from urllib.parse import urlparse
 
 """解析URL获取纯净文件名 (去除 ?query)"""
-
-
 def get_filename_from_url(url) -> str:
     parsed = urlparse(url)
     return os.path.basename(parsed.path)
@@ -40,11 +39,21 @@ def is_connect_hf():
         os.environ['HF_ENDPOINT']='https://huggingface.co'
         logger.info('可以使用 huggingface.co')
         return True
+    return False
 
 
-# 从 huggingface.co 下载完整模型，先本地下载，失败则在线下载
+"""
+若无法连接 huggingface.co
+    针对 faster-whisper 系列模型， 使用 modelscope.cn 下载[https://modelscope.cn/collections/himyworld/faster-whisper]，速度更快，其他模型使用国内镜像 https://hf-mirror.com 下载(慢易报错429)
+    
+若可连接 huggingface.co ，则始终使用
+"""
 def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=None) -> bool:
-    try:        
+    try:
+        if model_id in FASTER_MODELS_DICT and is_connect_hf() is False:
+            logger.debug(f'从 modelscope.cn 下载模型 {model_id=}')
+            return check_and_down_ms(FASTER_MODELS_DICT[model_id] if model_id !='distil-large-v3.5' else 'iBoostAI/distil-whisper-distil-large-v3.5-ct2', callback=callback, local_dir=local_dir)
+
         import huggingface_hub
         from huggingface_hub.errors import LocalEntryNotFoundError
         try:
@@ -77,7 +86,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=Non
             return True
     except Exception as e:
         msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
-        raise RuntimeError(f'{msg}\n[https://huggingface.co/{repo_id}/tree/main]\n{e}')
+        raise DownloadModelsError(f'{msg}\n[https://huggingface.co/{repo_id}/tree/main]\n{e}')
     else:
         junk_paths = [
             ".cache",
@@ -100,7 +109,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=Non
     return True
 
 
-# 从 huggingface 下载单个文件
+# 从 huggingface.co 下载单个文件
 def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
     is_connect_hf()
     endpoint = os.environ.get('HF_ENDPOINT')
@@ -134,7 +143,7 @@ def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
                 finally:
                     dest_file_obj.close()  # 关闭实体文件句柄
         except Exception as e:
-            raise RuntimeError(
+            raise DownloadModelsError(
                 tr("downloading all files", local_dir) + f'\n[https://huggingface.co{url}]\n\n{e}')
     return True
 
@@ -175,7 +184,7 @@ def down_file_from_ms(local_dir, urls=None, callback=None) -> bool:
     return True
 
 
-# 下载zip并解压 到指定目录
+# 从 modelscope.cn下载zip并解压 到指定目录
 def down_zip(local_dir, zip_url, callback=None) -> bool:
     try:
         filename = get_filename_from_url(zip_url)
@@ -214,11 +223,12 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
         msg = tr('model is missing. Please download it', local_dir)
         if callback:
             callback(f'Error:{msg}')
-        raise RuntimeError(f"{msg}\n[{zip_url}]\n{e}")
+        raise DownloadModelsError(f"{msg}\n[{zip_url}]\n{e}")
     return True
 
 
 # 从 modelscope.cn 下载完整模型
+# 优先加载本地模型，失败则在线下载
 def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
     from modelscope.hub.callback import TqdmCallback
     from modelscope.hub.snapshot_download import snapshot_download
@@ -244,11 +254,11 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
         except ValueError:
             if callback:
                 callback(f'{model_id}')
-            snapshot_download(model_id=model_id, progress_callbacks=[Pro], local_dir=local_dir, max_workers=1)
+            snapshot_download(model_id=model_id, progress_callbacks=[Pro], local_dir=local_dir)
         else:
             return True
     except Exception as e:
         local_dir = f'{ROOT_DIR}/models/models/{model_id}/' if not local_dir else local_dir
         msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
-        raise RuntimeError(f'{msg}\n[https://modelscope.cn/models/{model_id}/tree/main]\n{e}')
+        raise DownloadModelsError(f'{msg}\n[https://modelscope.cn/models/{model_id}/tree/main]\n{e}')
     return True

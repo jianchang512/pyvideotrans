@@ -44,6 +44,9 @@ class LLMSegmentError(VideoTransError):
 class FFmpegError(VideoTransError):
     pass
 
+class DownloadModelsError(VideoTransError):
+    pass
+
 
 # 出现该类异常时，需要立即停止任务
 class StopTask(VideoTransError):
