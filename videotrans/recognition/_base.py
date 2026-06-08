@@ -86,8 +86,8 @@ class BaseRecogn(BaseCon):
     # run->_exec
     def run(self) -> Union[List[SrtItem], None]:
         logger.debug(f'开始语音识别:渠道{self.recogn_type}')
-        self.signal(text=f"check model")
         if hasattr(self, '_download'):
+            self.signal(text=f"check or download models")
             self._download()
         self.signal(text=f"starting transcription")
         try:

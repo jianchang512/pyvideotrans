@@ -68,6 +68,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=Non
             MyTqdmClass = None
             if callback:
                 MyTqdmClass = create_tqdm_class(callback)
+                callback(tr('Downloading please wait'))
 
             is_connect_hf()
             huggingface_hub.snapshot_download(
@@ -256,7 +257,7 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
                 callback(f'{model_id} exists')
         except ValueError:
             if callback:
-                callback(f'{model_id}')
+                callback(tr('Downloading please wait'))
             snapshot_download(model_id=model_id, progress_callbacks=[Pro], local_dir=local_dir)
         else:
             return True

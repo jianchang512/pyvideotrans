@@ -56,7 +56,7 @@ class BaseCon:
         self.last_down_time=_t
         
         if isinstance(data, str):
-            return self.signal(text=tr('Downloading please wait') + data)
+            return self.signal(text=tr('Downloading please wait') +": "+ data)
         if not isinstance(data, dict):
             return
         msg_type = data.get("type")
