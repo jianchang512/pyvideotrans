@@ -83,17 +83,21 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 ### 3. Clone and Install
 
-```bash
-# 1. Clone the repository (Ensure path has no spaces/Chinese characters)
-git clone https://github.com/jianchang512/pyvideotrans.git
-cd pyvideotrans
+1. Clone the repository (Ensure path has no spaces/Chinese characters)
 
-# 2. Install dependencies (uv automatically syncs environment)
-uv sync
+`git clone https://github.com/jianchang512/pyvideotrans.git`
+`cd pyvideotrans`
 
-# If you need local channels for qwen-tts and qwen-asr and chatterbox and moss-tts, please execute `uv sync --all-extras`
+2. Install dependencies (uv automatically syncs environment)
+`uv sync`
 
-```
+> By default, `qwen-tts`, `qwen-asr`, `moss-tts`, and `chatterbox` are not installed locally. To install all of them, execute `uv sync --all-extra`.
+> - To install `qwen-tts` alone, execute `uv sync --extra qwentts`.
+> - To install `qwen-asr` alone, execute `uv sync --extra qwenasr`.
+> - To install `moss-tts` alone, execute `uv sync --extra mosstts`.
+> - To install `chatterbox` alone, execute `uv sync --extra chatterbox`.
+
+
 
 ### 4. Launch Software
 

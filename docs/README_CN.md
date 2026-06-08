@@ -82,17 +82,19 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 ### 3. 克隆与安装
 
-```bash
-# 1. 克隆仓库 (请确保路径无空格/中文)
-git clone https://github.com/jianchang512/pyvideotrans.git
-cd pyvideotrans
+1. 克隆仓库 (请确保路径无空格/中文)
+`git clone https://github.com/jianchang512/pyvideotrans.git`
+`cd pyvideotrans`
 
-# 2. 安装依赖 (使用 uv 自动同步环境)
-uv sync
+2. 安装依赖 (使用 uv 自动同步环境)
+`uv sync`
 
-# 默认不安装 qwen-tts、 qwen-asr 、moss-tts 、chatterbox 本地渠道，若需要请执行 `uv sync --all-extra `
+> 默认不安装 `qwen-tts`、 `qwen-asr` 、`moss-tts` 、`chatterbox` 本地渠道，若需要全部安装请执行 `uv sync --all-extra `
+> - 单独安装 `qwen-tts`,执行  `uv sync --extra qwentts`
+> - 单独安装 `qwen-asr`,执行  `uv sync --extra qwenasr`
+> - 单独安装 `moss-tts`,执行  `uv sync --extra mosstts`
+> - 单独安装 `chatterbox`,执行  `uv sync --extra chatterbox`
 
-```
 
 ### 4. 启动软件
 
