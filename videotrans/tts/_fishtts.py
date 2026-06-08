@@ -39,5 +39,5 @@ class FishTTS(BaseTTS):
             f.write(response.content)
         time.sleep(1)
         if not os.path.exists(data_item['filename'] + ".wav"):
-            return f'FishTTS dubbing error -2'
+            return f'FishTTS dubbing error -2'+f"\n{self.api_url=}"
         self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])

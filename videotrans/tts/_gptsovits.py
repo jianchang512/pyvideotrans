@@ -55,11 +55,11 @@ class GPTSoVITS(BaseTTS):
                 # 克隆原音频失败，使用最后一个参考音频
                 data.update(self.roledict[keys[-1]])
             else:
-                return 'No reference audio available for voice cloning'
+                return 'No reference audio available for voice cloning'+f"\n{self.api_url=}"
                 
         
         if not data.get('refer_wav_path'):
-            return tr("Must pass in the reference audio file path")
+            return tr("Must pass in the reference audio file path")+f"\n{self.api_url=}"
 
         if params.get('gptsovits_isv2',''):
             data = {
@@ -87,6 +87,6 @@ class GPTSoVITS(BaseTTS):
             time.sleep(1)
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
         else:
-            error_data=response.text
+            error_data=response.text+f"\n{self.api_url=}"
             logger.error(f'GPT-SoVITS {ref_wav=}\n返回错误:{error_data=}\n')
             return error_data

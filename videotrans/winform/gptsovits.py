@@ -19,14 +19,12 @@ def openwin():
             url = 'http://' + url
 
 
-        extra = winobj.extra.text()
         role = getrole()
         if not role:return
 
         winobj.test.setText(tr('Testing...'))
         params["gptsovits_url"] = url
         params["gptsovits_isv2"] = winobj.is_v2.isChecked()
-        params["gptsovits_extra"] = extra
         params["gptsovits_role"] = winobj.role.toPlainText().strip()
         params.save()
 
@@ -63,11 +61,9 @@ def openwin():
         if not url.startswith('http'):
             url = 'http://' + url
 
-        extra = winobj.extra.text()
         role = winobj.role.toPlainText().strip()
 
         params["gptsovits_url"] = url
-        params["gptsovits_extra"] = extra
         params["gptsovits_role"] = role
         params["gptsovits_isv2"] = winobj.is_v2.isChecked()
         params.save()
@@ -80,7 +76,6 @@ def openwin():
     winobj = GPTSoVITSForm()
     app_cfg.child_forms['gptsovits'] = winobj
     winobj.api_url.setText(params.get("gptsovits_url",''))
-    winobj.extra.setText(params.get("gptsovits_extra",''))
     winobj.role.setPlainText(params.get("gptsovits_role",''))
     winobj.is_v2.setChecked(params.get("gptsovits_isv2",''))
 

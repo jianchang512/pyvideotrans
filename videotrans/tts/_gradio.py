@@ -55,12 +55,12 @@ class GradioBase(BaseTTS):
                 wav_file = wav_file['value']
             
             if not isinstance(wav_file, str) or not Path(wav_file).is_file():
-                return str(result)
+                return str(result)+f"\n{self.api_url=}"
             if self.ainame=='cosyvoice' and str(result).endswith('playlist.m3u8'):
                 raise StopTask('请修改 CosyVoice3 的官方 webui.py 文件，搜索代码 streaming=True ，改为 streaming=False  然后保存重启 CosyVoice3\n\nPlease modify the official webui.py file for CosyVoice3, search for the line streaming=True , change it to  streaming=False , then save and restart CosyVoice3.\n详见 https://pyvideotrans.com/cosyvoice')
             self.convert_to_wav(wav_file, data_item['filename'])
         except (TypeError,ValueError,IndexError,AttributeError) as e:
-            err=str(e)
+            err=str(e)+f"\n{self.api_url=}"
             _quit_errors=[
                 "Unknown protocol",
                 "Could not fetch config for",
@@ -75,10 +75,10 @@ class GradioBase(BaseTTS):
             # 清理当前线程的客户端缓存，防止下次复用一个已损坏的连接
             if hasattr(thread_local, "client"):
                 del thread_local.client
-            return str(e)
+            return str(e)+f"\n{self.api_url=}"
         except Exception as e:
             print(e)
-            return str(e)
+            return str(e)+f"\n{self.api_url=}"
         return
 
 

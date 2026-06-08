@@ -29,12 +29,12 @@ class ChatTTS(BaseTTS):
         logger.debug(f'chatTTS:{data=}')
         res = res.json()
         if res is None:
-            return 'ChatTTS端出错，请查看其控制台终端'
+            return 'ChatTTS端出错，请查看其控制台终端'+f"\n{self.api_url=}"
 
         if "code" not in res or res['code'] != 0:
             if "msg" in res:
                 Path(data_item['filename']).unlink(missing_ok=True)
-            return f'{res}'
+            return f'{res}'+f"\n{self.api_url=}"
 
         if self.api_url.find('127.0.0.1') > -1 or self.api_url.find('localhost') > -1:
             self.convert_to_wav(re.sub(r'\\+', '/', res['filename'],flags=re.I | re.S), data_item['filename'])

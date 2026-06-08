@@ -753,7 +753,6 @@ class AppParams:
             "gptsovits_url": "http://127.0.0.1:9880",
             "gptsovits_role": "",
             "gptsovits_isv2": True,
-            "gptsovits_extra": "pyvideotrans",
             "cosyvoice_url": "http://127.0.0.1:8000",
             "omnivoice_url": "http://127.0.0.1:7860",
             "fishtts_url": "http://127.0.0.1:8080/v1/tts",
