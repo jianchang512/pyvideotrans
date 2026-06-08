@@ -33,8 +33,8 @@ def find_unused_keys(directory_path, large_dict):
     # 2. 第一层循环：遍历字典的所有 key
     for key,value in large_dict.items():
         # 构造需要匹配的字符串格式
-        target_single = f"tr('{key}')"
-        target_double = f'tr("{key}")'
+        target_single = "tr('"+key+"'"
+        target_double = 'tr("'+key+'"'
         
         found = False
         
