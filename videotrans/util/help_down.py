@@ -44,23 +44,7 @@ def is_connect_hf():
 
 # 从 huggingface.co 下载完整模型，先本地下载，失败则在线下载
 def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=None) -> bool:
-    try:
-        if model_id in FASTER_MODELS_DICT and (defaulelang == 'zh' or is_connect_hf() is False):
-            if model_id == 'turbo':
-                model_id = 'large-v3-turbo'
-            elif model_id == 'distil-large-v3.5-ct2':
-                model_id = 'distil-large-v3.5'
-            elif model_id == 'large':
-                model_id = 'large-v3'
-
-            URL_PRE = f'https://modelscope.cn/models/himyworld/fasterwhisper/resolve/master/{model_id}/'
-
-            if model_id in ['large-v3', 'large-v3-turbo', 'distil-large-v3', 'distil-large-v3.5']:
-                all_urls = ["vocabulary.json", "preprocessor_config.json"]
-            else:
-                all_urls = ["vocabulary.txt"]
-            all_urls += ["config.json", "tokenizer.json", "model.bin", ]
-            return down_file_from_ms(local_dir, urls=[f'{URL_PRE}{u}' for u in all_urls], callback=callback)
+    try:        
         import huggingface_hub
         from huggingface_hub.errors import LocalEntryNotFoundError
         try:
