@@ -847,7 +847,7 @@ def run(*, translate_type=0,
     if translate_type == GOOGLE_INDEX:
         if app_cfg.proxy or _check_google() is True:
             return Google(**kwargs).run()
-        logger.warning('==未设置代理并且检测google失败，使用微软翻译')
+        logger.error('==未设置代理并且检测google失败，使用微软翻译')
         translate_type = MICROSOFT_INDEX
         kwargs['translate_type']=translate_type
 

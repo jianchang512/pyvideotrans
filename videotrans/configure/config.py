@@ -79,11 +79,13 @@ def _set_logs():
                                         encoding='utf-8')
     _file_handler.setLevel(logging.DEBUG)
     _file_handler.setFormatter(formatter)
-    _console_handler = logging.StreamHandler(sys.stdout)
-    _console_handler.setLevel(logging.WARNING)
-    _console_handler.setFormatter(formatter)
     logger.addHandler(_file_handler)
-    logger.addHandler(_console_handler)
+
+    if sys.stdout is not None:
+        _console_handler = logging.StreamHandler(sys.stdout)
+        _console_handler.setLevel(logging.WARNING)
+        _console_handler.setFormatter(formatter)
+        logger.addHandler(_console_handler)
 
     logging.getLogger("transformers").setLevel(logging.DEBUG)
     logging.getLogger("filelock").setLevel(logging.DEBUG)
