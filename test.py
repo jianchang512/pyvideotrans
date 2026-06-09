@@ -1,4 +1,12 @@
-from modelscope.hub.callback import TqdmCallback
-from modelscope.hub.snapshot_download import snapshot_download
-model_id="mobiuslabsgmbh/faster-whisper-large-v3-turbo"
-snapshot_download(model_id=model_id, local_dir=f"./models/"+model_id.replace('/','--'))
+from videotrans.task.taskcfg import SrtItem
+
+
+a=SrtItem(
+                line=1,
+                start_time=0,
+                end_time=2000,
+                endraw="00:00:02,000",
+                time="00:00:00,000 --> 00:00:02,000",
+                text="\n"
+            )
+print("startraw" in a)

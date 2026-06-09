@@ -232,7 +232,7 @@ def get_srt_from_list(srt_list: List[SrtItem]) -> str:
     # 开始和结束毫秒数值  it['start_time']=126 it['end_time']=678
     for it in srt_list:
         line += 1
-        if "startraw" not in it:
+        if "startraw" not in it or not it['startraw']:
             # 存在完整开始和结束时间戳字符串 时:分:秒,毫秒 --> 时:分:秒,毫秒
             if 'time' in it:
                 startraw, endraw = it['time'].strip().split(" --> ")
