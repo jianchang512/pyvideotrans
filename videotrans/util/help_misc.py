@@ -10,21 +10,8 @@ from pathlib import Path
 
 from videotrans import VERSION
 from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulelang, push_queue
-import tqdm
-
 from videotrans.task.taskcfg import SignMsg
 
-def create_tqdm_class(callback):
-    class QtAwareTqdm(tqdm.tqdm):
-
-        def display(self, msg=None, pos=None):
-            super().display(msg, pos)
-            _str = str(self).split('%')
-            logger.debug(f'Download {_str=}')
-            if callback and (msg or len(_str)>0):
-                callback(f'{_str[0]}%' if len(_str) > 0 else msg)
-
-    return QtAwareTqdm
 
 
 def show_popup(title, text):

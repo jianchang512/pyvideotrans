@@ -1,15 +1,18 @@
-# 下载模型，首先测试 huggingface.co 连通性，不可用则回退镜像 hf-mirror.com
 import tempfile
 import time
 from pathlib import Path
 import shutil, os
 import zipfile
-from videotrans.configure.config import ROOT_DIR, tr, logger, defaulelang
+from videotrans.configure.config import ROOT_DIR, tr, logger, defaulelang,app_cfg
 from videotrans.configure.contants import FASTER_MODELS_DICT
 from videotrans.configure.excepts import DownloadModelsError
-#from .help_misc import create_tqdm_class
 from urllib.parse import urlparse
 import tqdm
+import huggingface_hub.file_download as hf_fd
+# ── 补丁 http_get: 注入 _ChunkTracker 绕过 tqdm ──
+_original_http_get = hf_fd.http_get
+import modelscope.hub.snapshot_download as ms_sd
+_orig_download_file_lists = ms_sd._download_file_lists
 
 
 
@@ -29,16 +32,20 @@ def file_exists(dirname, glob_patter='*.bin') -> bool:
     return False
 
 
-def is_connect_hf():
+def is_connect_hf()->bool:
     try:
         import requests
-        requests.head('https://huggingface.co', timeout=5)
+        logger.debug(f'{app_cfg.proxy=}')
+        if app_cfg.proxy:
+            requests.head('https://huggingface.co', timeout=5,proxies={"http":app_cfg.proxy,"https":app_cfg.proxy})
+        else:
+            requests.head('https://huggingface.co', timeout=5)
     except Exception as e:
-        os.environ['HF_ENDPOINT']='https://hf-mirror.com'
+        os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
         logger.debug(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
         return False
     else:
-        os.environ['HF_ENDPOINT']='https://huggingface.co'
+        os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
         logger.info('可以使用 huggingface.co')
         return True
     return False
@@ -50,28 +57,79 @@ def is_connect_hf():
     
 若可连接 huggingface.co ，则始终使用
 """
-def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=None) -> bool:
+
+
+def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=None) -> bool:
+    if model_id in FASTER_MODELS_DICT and is_connect_hf() is False:
+        logger.debug(f'从 modelscope.cn 下载模型 {model_id=}')
+        return check_and_down_ms(FASTER_MODELS_DICT[
+                                     model_id] if model_id != 'distil-large-v3.5' else 'iBoostAI/distil-whisper-distil-large-v3.5-ct2',
+                                 callback=callback, local_dir=local_dir)
+
+    import huggingface_hub
+    from huggingface_hub.errors import LocalEntryNotFoundError
+
+
+    _state = {"completed": 0, "total_files": 0}
+    # ── 总进度 ──
+    class QtAwareTqdm(tqdm.tqdm):
+        def update(self, n=1):
+            super().update(n)
+            if not callback or not self.total or self.total <= 0:
+                return
+            _state["completed"] += n
+            if _state["total_files"] == 0:
+                _state["total_files"] = int(self.total)
+            callback({"type": "batch", "current": int(self.n), "total": int(self.total)})
+
+
+
+    def _patched_http_get(url, temp_file, *,
+                          proxies=None, resume_size=0, headers=None,
+                          expected_size=None, displayed_filename=None,
+                          _nb_retries=5, _tqdm_bar=None):
+        if expected_size is None:
+            return _original_http_get(url, temp_file, proxies=proxies,
+                                      resume_size=resume_size, headers=headers,
+                                      expected_size=expected_size,
+                                      displayed_filename=displayed_filename,
+                                      _nb_retries=_nb_retries, _tqdm_bar=_tqdm_bar)
+
+        class _ChunkTracker:
+            def __init__(self):
+                self.downloaded = resume_size
+
+            def update(self, n):
+                self.downloaded += n
+                if callback:
+                    pct = min(self.downloaded / expected_size * 100, 99.9)
+                    name = displayed_filename or url.rsplit('/', 1)[-1].split('?')[0]
+                    # 综合进度
+                    completed = _state.get("completed", 0)
+                    total = _state.get("total_files", 0)
+                    # 单文件进度
+                    callback({"type": "file", "percent": pct,
+                              "filename": f'[{completed + 1}/{total}](hf) {name}' if total > 0 else name})
+                    if total > 0:
+                        smooth = (completed + pct / 100) / total * 100
+                        callback({
+                            "type": "batch",
+                            "current": completed + 1,
+                            "total": total,
+                            "percent": min(smooth, 99.9),
+                        })
+
+        return _original_http_get(url, temp_file, proxies=proxies,
+                                  resume_size=resume_size, headers=headers,
+                                  expected_size=expected_size,
+                                  displayed_filename=displayed_filename,
+                                  _nb_retries=_nb_retries,
+                                  _tqdm_bar=_ChunkTracker())
+
+    hf_fd.http_get = _patched_http_get
+
     try:
-        if model_id in FASTER_MODELS_DICT and is_connect_hf() is False:
-            logger.debug(f'从 modelscope.cn 下载模型 {model_id=}')
-            return check_and_down_ms(FASTER_MODELS_DICT[model_id] if model_id !='distil-large-v3.5' else 'iBoostAI/distil-whisper-distil-large-v3.5-ct2', callback=callback, local_dir=local_dir)
 
-        import huggingface_hub
-        from huggingface_hub.errors import LocalEntryNotFoundError
-
-        class QtAwareTqdm(tqdm.tqdm):
-
-            def display(self, msg=None, pos=None):
-                super().display(msg, pos)
-                _str = str(self).split('%')
-                logger.debug(f'Download {_str=}')
-                if callback and (msg or len(_str)>0):
-                    callback(f'{_str[0]}%' if len(_str) > 0 else msg)
-        
-
-
-        
-        
         try:
             huggingface_hub.snapshot_download(
                 repo_id=repo_id,
@@ -81,11 +139,6 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=Non
             )
         except LocalEntryNotFoundError:
             Path(local_dir).mkdir(exist_ok=True, parents=True)
-            MyTqdmClass = None
-            if callback:
-                MyTqdmClass = QtAwareTqdm#create_tqdm_class(callback)
-                callback(tr('Downloading please wait'))
-
             is_connect_hf()
             huggingface_hub.snapshot_download(
                 repo_id=repo_id,
@@ -93,18 +146,13 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=Non
                 local_dir_use_symlinks=False,
                 endpoint=os.environ.get('HF_ENDPOINT'),
                 etag_timeout=10,
-                tqdm_class=MyTqdmClass,
+                tqdm_class=QtAwareTqdm if callback else None,
                 local_files_only=False,
                 max_workers=1,
                 ignore_patterns=["*.msgpack", "*.h5", ".git*", "*.md"],
                 allow_patterns=allow_list
             )
-        else:
-            return True
-    except Exception as e:
-        msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
-        raise DownloadModelsError(f'{msg}\n[https://huggingface.co/{repo_id}/tree/main]\n{e}')
-    else:
+
         junk_paths = [
             ".cache",
             "blobs",
@@ -122,7 +170,12 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None,allow_list=Non
                     else:
                         os.remove(full_path)
                 except OSError as e:
-                    logger.exception(f"清理临时文件失败：{junk} {e}",exc_info=True)
+                    logger.exception(f"清理临时文件失败：{junk} {e}", exc_info=True)
+    except Exception as e:
+        msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
+        raise DownloadModelsError(f'{msg}\n[https://huggingface.co/{repo_id}/tree/main]\n{e}')
+    finally:
+        hf_fd.http_get = _original_http_get
     return True
 
 
@@ -252,18 +305,44 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
 def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
     from modelscope.hub.callback import TqdmCallback
     from modelscope.hub.snapshot_download import snapshot_download
+
+    _state = {"completed": 0, "total_files": 0}
+
+
+    def _patched_dfl(repo_files, *args, **kwargs):
+        # 简单统计非 tree 条目数
+        _state["total_files"] = sum(1 for f in repo_files if f.get('Type') != 'tree')
+        return _orig_download_file_lists(repo_files, *args, **kwargs)
+
+    ms_sd._download_file_lists = _patched_dfl
+
+    # 回调类：追踪字节，不依赖 str(tqdm)
     class Pro(TqdmCallback):
         def __init__(self, *args):
             super().__init__(*args)
+            self._downloaded = 0
 
         def update(self, size):
             super().update(size)
+            self._downloaded += size
+            if not callback:
+                return
             try:
-                _str = str(self.progress).split('%')[0] + '%'
-                if callback:
-                    callback(_str)
+                pct = min(self._downloaded / max(self.file_size, 1) * 100, 99.9)
+                # 格式: "[已下载数/总数] 文件名 进度%"
+                callback(
+                    f"[{_state['completed'] + 1}/"
+                    f"{max(_state['total_files'], 1)}](ms) "
+                    f"{self.filename} {pct:.1f}%"
+                )
             except Exception:
                 pass
+
+        def end(self):
+            _state["completed"] += 1
+            super().end()
+
+
 
     try:
         try:
@@ -273,7 +352,7 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
                 callback(f'{model_id} exists')
         except ValueError:
             if callback:
-                callback(tr('Downloading please wait'))
+                callback(' 0%')
             snapshot_download(model_id=model_id, progress_callbacks=[Pro], local_dir=local_dir)
         else:
             return True
@@ -281,4 +360,6 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
         local_dir = f'{ROOT_DIR}/models/models/{model_id}/' if not local_dir else local_dir
         msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
         raise DownloadModelsError(f'{msg}\n[https://modelscope.cn/models/{model_id}/tree/main]\n{e}')
+    finally:
+        ms_sd._download_file_lists = _orig_download_file_lists
     return True

@@ -56,7 +56,7 @@ class BaseCon:
         self.last_down_time=_t
         
         if isinstance(data, str):
-            return self.signal(text=tr('Downloading please wait') +": "+ data)
+            return self.signal(text=tr('Downloading please wait') + data)
         if not isinstance(data, dict):
             return
         msg_type = data.get("type")
@@ -69,7 +69,7 @@ class BaseCon:
             current_file_idx = data.get("current")
             total_files = data.get("total")
 
-            self.signal(text=f" {filename} {tr('Downloading please wait')} {current_file_idx}/{total_files} files")
+            self.signal(text=f" {tr('Downloading please wait')} {current_file_idx}/{total_files} files")
 
     # 设置、获取代理
     def _set_proxy(self, type='set'):
