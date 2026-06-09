@@ -7,12 +7,16 @@ from videotrans.configure.config import ROOT_DIR, tr, logger, defaulelang,app_cf
 from videotrans.configure.contants import FASTER_MODELS_DICT
 from videotrans.configure.excepts import DownloadModelsError
 from urllib.parse import urlparse
+import threading
+
 import tqdm
 import huggingface_hub.file_download as hf_fd
 # ── 补丁 http_get: 注入 _ChunkTracker 绕过 tqdm ──
 _original_http_get = hf_fd.http_get
 import modelscope.hub.snapshot_download as ms_sd
 _orig_download_file_lists = ms_sd._download_file_lists
+# 全局锁对象防止同时下载模型，避免文件冲突或限流
+download_lock = threading.Lock()
 
 
 
@@ -140,18 +144,25 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
         except LocalEntryNotFoundError:
             Path(local_dir).mkdir(exist_ok=True, parents=True)
             is_connect_hf()
-            huggingface_hub.snapshot_download(
-                repo_id=repo_id,
-                local_dir=local_dir,
-                local_dir_use_symlinks=False,
-                endpoint=os.environ.get('HF_ENDPOINT'),
-                etag_timeout=10,
-                tqdm_class=QtAwareTqdm if callback else None,
-                local_files_only=False,
-                max_workers=1,
-                ignore_patterns=["*.msgpack", "*.h5", ".git*", "*.md"],
-                allow_patterns=allow_list
-            )
+            # 线程锁，避免同时多个下载或其他线程也在下载
+            if callback:
+                callback(' wait get download lock...')
+            with download_lock:
+                if callback:
+                    callback('starting downloading...')
+                logger.debug(f'获取到下载锁，开始从 hf下载 {repo_id}')
+                huggingface_hub.snapshot_download(
+                    repo_id=repo_id,
+                    local_dir=local_dir,
+                    local_dir_use_symlinks=False,
+                    endpoint=os.environ.get('HF_ENDPOINT'),
+                    etag_timeout=10,
+                    tqdm_class=QtAwareTqdm if callback else None,
+                    local_files_only=False,
+                    max_workers=1,
+                    ignore_patterns=["*.msgpack", "*.h5", ".git*", "*.md"],
+                    allow_patterns=allow_list
+                )
 
         junk_paths = [
             ".cache",
@@ -351,8 +362,13 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
             if callback:
                 callback(f'{model_id} exists')
         except ValueError:
+            # 线程锁，避免同时多个下载或其他线程也在下载
             if callback:
-                callback(' 0%')
+                callback('wait get download lock...')
+            with download_lock:
+                if callback:
+                    callback('starting downloading...')
+                logger.debug(f'获取到下载锁，开始从 ms 下载 {model_id}')
             snapshot_download(model_id=model_id, progress_callbacks=[Pro], local_dir=local_dir)
         else:
             return True
