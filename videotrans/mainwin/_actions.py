@@ -343,7 +343,7 @@ class WinAction(WinActionBase):
         # 清理缓存
         self.cfg['clear_cache'] = self.main.clear_cache.isChecked()
         self.cfg['only_out_mp4'] = self.main.only_out_mp4.isChecked()
-        self.cfg['fix_punc'] = self.main.fix_punc.isChecked()
+        self.cfg['fix_punc'] = self.main.fix_punc.currentIndex()
 
         # 配音设置
         self.cfg['tts_type'] = self.main.tts_type.currentIndex()

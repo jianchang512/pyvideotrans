@@ -130,7 +130,7 @@ class TaskCfgSTT(TaskCfgBase):
     enable_diariz: bool = False  # 是否进行说话人识别
     nums_diariz: int = 0  # 是否进行说话人识别
     rephrase: int = 2  # 0 默认断句不处理 1=LLM重新断句 2=自动修正
-    fix_punc: bool = False  # 是否恢复标点符号
+    fix_punc: int = 0  # 0=默认，1=恢复标点符号，2=移除所有标点
 
 
 # 配音

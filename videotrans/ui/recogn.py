@@ -13,7 +13,7 @@ class Ui_recogn(object):
         self.error_msg = ""
         self.shibie_out_path = None
         recogn.setObjectName("recogn")
-        recogn.setMinimumSize(1100, 500)
+        recogn.setMinimumSize(1150, 500)
 
 
         # 语音识别
@@ -50,7 +50,7 @@ class Ui_recogn(object):
         self.label_model = QtWidgets.QLabel()
 
         self.shibie_model = QtWidgets.QComboBox()
-        self.shibie_model.setMinimumSize(QtCore.QSize(350, 30))
+        self.shibie_model.setMinimumSize(QtCore.QSize(300, 30))
         self.shibie_model.setObjectName("shibie_model")
         
         
@@ -97,6 +97,8 @@ class Ui_recogn(object):
         self.horizontalLayout.addWidget(self.shibie_recogn_type)
         self.horizontalLayout.addWidget(self.label_model)
         self.horizontalLayout.addWidget(self.shibie_model)
+        self.horizontalLayout.addWidget(self.lable_out)
+        self.horizontalLayout.addWidget(self.out_format)
         self.horizontalLayout.addStretch()
         
 
@@ -108,9 +110,13 @@ class Ui_recogn(object):
         self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase")])
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
         
-        self.fix_punc = QtWidgets.QCheckBox()
+        self.fix_punc = QtWidgets.QComboBox()
         self.fix_punc.setToolTip(tr("Restoring punctuation marks when Chinese & English"))
-        self.fix_punc.setText(tr("Restoring punct"))
+        self.fix_punc.addItems([
+            tr("Default punctuation"),
+            tr("Restore punctuation"),
+            tr("Delete punctuation")
+        ])
 
         
 
@@ -128,8 +134,7 @@ class Ui_recogn(object):
         self.h4.addWidget(self.shibie_stop)
         self.h4.addWidget(self.rephrase)
         self.h4.addWidget(self.fix_punc)
-        self.h4.addWidget(self.lable_out)
-        self.h4.addWidget(self.out_format)
+
         self.h4.addWidget(self.copysrt_rawvideo)
         
         self.h4.addWidget(self.enable_diariz)

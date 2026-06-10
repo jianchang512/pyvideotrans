@@ -67,6 +67,19 @@ def cleartext(text: str)->str:
     return res_text
 
 
+# 删掉常见标点符号
+def delete_punc(text):
+    # 1. 保护小数点：只匹配那些左右不全是数字的句号
+    # 2. 匹配通用的常见标点：, ? / ; : ! 等（包括中英文及多语言）
+
+    pattern = r'[,?/;\':，。？、：；！!“”‘’"()（）]+|(?<!\d)\.|\.(?!\d)'
+    # 执行替换
+    res = re.sub(pattern, ' ', text)
+
+    # 最后处理一下多余的空格
+    return re.sub(r'\s+', ' ', res).strip()
+
+
 def ms_to_time_string(*, ms:Union[int,float]=0, seconds:Union[int,None]=None, sepflag:str=',')->str:
     # 计算小时、分钟、秒和毫秒
     if seconds is None:

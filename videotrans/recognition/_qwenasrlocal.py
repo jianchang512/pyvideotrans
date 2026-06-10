@@ -5,7 +5,7 @@ from typing import List,  Union
 from pathlib import Path
 import  time
 
-from videotrans.configure.config import  logger, defaulelang, ROOT_DIR
+from videotrans.configure.config import logger, defaulelang, ROOT_DIR, settings
 from videotrans.configure import config
 
 from videotrans.recognition._base import BaseRecogn
@@ -39,7 +39,8 @@ class QwenasrlocalRecogn(BaseRecogn):
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
             "audio_file": self.audio_file,
-            "model_name": self.model_name
+            "model_name": self.model_name,
+            "hotword":settings.get('hotwords'),
         }
         jsdata = self._new_process(callback=qwen3asr_fun, title=title, is_cuda=self.is_cuda, kwargs=kwargs)
         logger.debug(f'Qwen-asr返回的字词时间戳数据:{jsdata=}')

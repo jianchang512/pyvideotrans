@@ -138,7 +138,7 @@ def openwin():
             video_list:List[InputFile] = [tools.format_video(it, None) for it in files]
             uuid_list = [obj['uuid'] for obj in video_list]
             remove_noise_is = winobj.remove_noise.isChecked()
-            fix_punc = winobj.fix_punc.isChecked()
+            fix_punc = winobj.fix_punc.currentIndex()
             nums_diariz = winobj.nums_diariz.currentIndex()
             spk_insert=winobj.spk_insert.isChecked()
             for it in video_list:
@@ -300,7 +300,7 @@ def openwin():
         winobj.copysrt_rawvideo.setChecked(params.get('stt_copysrt_rawvideo', False))
         winobj.spk_insert.setChecked(bool(params.get('stt_spk_insert', False)))
         winobj.enable_diariz.setChecked(bool(params.get('stt_enable_diariz', False)))
-        winobj.fix_punc.setChecked(bool(params.get('stt_fix_punc', False)))
+        winobj.fix_punc.setCurrentIndex(int(params.get('stt_fix_punc', 0)))
         winobj.nums_diariz.setCurrentIndex(int(params.get("stt_nums_diariz", 0)))
         winobj.out_format.setCurrentText(params.get('stt_out_format', 'srt'))
 

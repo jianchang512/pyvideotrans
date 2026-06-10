@@ -339,6 +339,7 @@ class AppSettings:
             "Whisper_net_models": Whisper_cpp_models,
             "crf": 23,
             "fps_mode":"vfr",
+            "hotwords":"",
             "edgetts_max_concurrent_tasks": 10,
             "edgetts_retry_nums": 3,
             "del_end_punc":True,#删除每条字幕末尾的标点
@@ -626,8 +627,8 @@ class AppParams:
             "tts_type": 0,
             "model_name": "large-v3-turbo",
             "recogn_type": 0,
-            "fix_punc": False,
-            "stt_fix_punc": False,
+            "fix_punc": 0,
+            "stt_fix_punc": 0,
             "voice_autorate": True,
             "video_autorate": False,
             "align_sub_audio": True,

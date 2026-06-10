@@ -14,7 +14,7 @@ class WhisperXRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = params.get('whisperx_api')
+        self.api_url = params.get('whisperx_api','http://127.0.0.1:9092')
 
 
     def _exec(self) -> Union[List[SrtItem], None]:

@@ -247,7 +247,11 @@ class BaseCon:
                 **kwargs
             )
             # return Tuple[bool or result , None or error]
-            data,err = future.result()
+            while not future.done():
+                if app_cfg.exit_soft:
+                    return None
+                time.sleep(1)
+            data,err = future.result(timeout=10)
             logger.debug(f'[新进程任务 {title}], return')
             status_dict['is_end']=True
             if err or not data:

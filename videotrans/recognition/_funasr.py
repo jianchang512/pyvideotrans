@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import List,  Union
 from videotrans.configure import config
+from videotrans.configure.config import settings
 from videotrans.process import paraformer, funasr_mlt
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -16,9 +17,9 @@ class FunasrRecogn(BaseRecogn):
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit():
             return
-        tools.check_and_down_ms(model_id='damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
+        tools.check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
 
-        if self.model_name == 'paraformer-zh' and self.detect_language[:2].lower() not in ['zh', 'en']:
+        if self.model_name == 'paraformer-zh' and self.detect_language[:2].lower() !='zh':
             self.model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if self.detect_language[:2] not in ['zh','en','ja','yu'] else 'FunAudioLLM/Fun-ASR-Nano-2512'
             tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
         elif self.model_name == 'SenseVoiceSmall':
@@ -32,9 +33,9 @@ class FunasrRecogn(BaseRecogn):
             self.model_name = f'FunAudioLLM/Fun-ASR-MLT-Nano-2512'
 
         if self.model_name == 'paraformer-zh':
+            tools.check_and_down_ms(model_id='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',callback=self._process_callback)
+            tools.check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
             tools.check_and_down_ms(model_id='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',callback=self._process_callback)
-            tools.check_and_down_ms(model_id='damo/speech_fsmn_vad_zh-cn-16k-common-pytorch',callback=self._process_callback)
-            tools.check_and_down_ms(model_id='damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
             tools.check_and_down_ms(model_id='damo/speech_campplus_sv_zh-cn_16k-common',callback=self._process_callback)
         else:
             tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
@@ -53,7 +54,8 @@ class FunasrRecogn(BaseRecogn):
             "is_cuda": self.is_cuda,
             "audio_file": self.audio_file,
             "max_speakers": self.max_speakers,
-            "cache_folder": self.cache_folder
+            "cache_folder": self.cache_folder,
+            "hotword":settings.get('hotwords'),
 
         }
         raws=self._new_process(callback=paraformer if self.model_name == 'paraformer-zh' else funasr_mlt,title=f'STT use {self.model_name}',is_cuda=self.is_cuda,kwargs=kwars)

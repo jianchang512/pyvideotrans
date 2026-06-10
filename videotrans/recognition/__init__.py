@@ -45,11 +45,11 @@ ALLOW_CHANGE_MODEL = [FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
 
 # 渠道id对应的设置窗口和sk键名, key_name: 存储SK或api url的键，(app_cfg.params),win:对应winform中的映射
 _ID_NAME_DICT = {
-    FASTER_WHISPER: ChannelProvider(tr("Faster-whisper"), imp="._whisper"),
-    OPENAI_WHISPER: ChannelProvider(tr("OpenAI-whisper"), imp="._whisper"),
-    QWENASR: ChannelProvider(f'Qwen-ASR({tr("Local")})', imp="._qwenasrlocal"),
-    FUNASR_CN: ChannelProvider(tr("FunASR-Chinese"), imp="._funasr"),
-    HUGGINGFACE_ASR: ChannelProvider('Huggingface_ASR', imp="._huggingface"),
+    FASTER_WHISPER: ChannelProvider(f"faster-whisper({tr('Local')}{tr('Built-in')})", imp="._whisper"),
+    OPENAI_WHISPER: ChannelProvider(f"openai-whisper({tr('Local')}{tr('Built-in')})", imp="._whisper"),
+    QWENASR: ChannelProvider(f"Qwen-ASR({tr('Local')}{tr('Built-in')})", imp="._qwenasrlocal"),
+    FUNASR_CN: ChannelProvider(tr("FunASR-Chinese")+f"({tr('Local')}{tr('Built-in')})", imp="._funasr"),
+    HUGGINGFACE_ASR: ChannelProvider(f"Huggingface_ASR({tr('Local')}{tr('Built-in')})", imp="._huggingface"),
 
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"), key_name="openairecognapi_key", win="openairecognapi",
                                 imp="._openairecognapi"),
@@ -62,16 +62,16 @@ _ID_NAME_DICT = {
 
     Deepgram: ChannelProvider("Deepgram.com", key_name="deepgram_apikey", win="deepgram", imp="._deepgram"),
 
-    PARAKEET: ChannelProvider("Parakeet-tdt", key_name="parakeet_address", win="parakeet", imp="._parakeet"),
+    PARAKEET: ChannelProvider(f"Parakeet-tdt({tr('Local')}API)", key_name="parakeet_address", win="parakeet", imp="._parakeet"),
 
     Whisper_CPP: ChannelProvider("Whisper.cpp", imp="._cpp"),
     Faster_Whisper_XXL: ChannelProvider("Faster-Whisper-XXL.exe", imp="._xxl"),
-    WHISPERX_API: ChannelProvider("WhisperX", imp="._whisperx"),
+    WHISPERX_API: ChannelProvider(f"WhisperX({tr('Local')}API)", imp="._whisperx"),
 
     AI_302: ChannelProvider("302.AI", key_name="ai302_key", win="ai302", imp="._ai302"),
     ElevenLabs: ChannelProvider("ElevenLabs.io", key_name="elevenlabstts_key", win="elevenlabs", imp="._elevenlabs"),
     GOOGLE_SPEECH: ChannelProvider(tr("Google Speech to Text"), imp="._google"),
-    STT_API: ChannelProvider(tr("STT Speech API"), key_name="stt_url", win="sttapi", imp="._stt"),
+    STT_API: ChannelProvider(f"STT({tr('Local')}API)", key_name="stt_url", win="sttapi", imp="._stt"),
     WHISPER_NET: ChannelProvider("Whisper.NET", imp="._whispernet"),
     CAMB_ASR: ChannelProvider("CAMB AI", key_name="camb_api_key", win="cambtts", imp="._camb"),
     CUSTOM_API: ChannelProvider(tr("Custom API"), key_name="recognapi_url", win="recognapi", imp="._recognapi"),

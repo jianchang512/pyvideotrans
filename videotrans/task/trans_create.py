@@ -24,7 +24,7 @@ from ._base import BaseTask
 from videotrans.util.help_ffmpeg import get_video_codec
 from videotrans.task._rate import SpeedRate
 from .taskcfg import TaskCfgVTT
-from ..configure.excepts import VideoTransError, FFmpegError, SpeechToTextError
+from ..configure.excepts import VideoTransError, FFmpegError, SpeechToTextError, DubbingSrtError
 
 
 @dataclass
@@ -335,11 +335,17 @@ class TransCreate(BaseTask):
         if not raw_subtitles:
             raise SpeechToTextError(self.cfg.basename + tr('recogn result is empty'))
 
+        # 如果是 tiqu，并且不需要翻译，并且需要移除标点
+        if self.cfg.app_mode=='tiqu' and not self.should_trans and self.cfg.fix_punc==2:
+            logger.debug('仅提取不翻译模式下，移除所有标点')
+            for it in raw_subtitles:
+                it['text'] = tools.delete_punc(it['text'])
+
         self._save_srt_target(raw_subtitles, self.cfg.source_sub)
         self.source_srt_list = raw_subtitles
 
         # 中英恢复标点符号
-        if self.cfg.fix_punc and self.cfg.detect_language[:2] in ['zh', 'en']:
+        if self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
             tools.down_file_from_ms(f'{ROOT_DIR}/models/puntc', [
                     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/model.onnx",
                     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/config.yaml",
@@ -366,6 +372,9 @@ class TransCreate(BaseTask):
                     logger.error('标点恢复出错了，跳过')
             except Exception as e:
                 logger.exception(f'标点恢复失败，跳过 {e}', exc_info=True)
+
+
+
 
         self.signal(text=Path(self.cfg.source_sub).read_text(encoding='utf-8'), type='replace_subtitle')
         # whisperx-api
@@ -404,15 +413,8 @@ class TransCreate(BaseTask):
 
     def _recogn_succeed(self) -> None:
         self.precent += 5
-        if self.cfg.app_mode == 'tiqu':
-            dest_name = f"{self.cfg.target_dir}/{self.cfg.noextname}"
-            if not self.should_trans:
-                dest_name += '.srt'
-                shutil.copy2(self.cfg.source_sub, dest_name)
-                Path(self.cfg.source_sub).unlink(missing_ok=True)
-            else:
-                dest_name += f"-{self.cfg.source_language_code}.srt"
-                shutil.copy2(self.cfg.source_sub, dest_name)
+        if self.cfg.app_mode == 'tiqu' and not self.should_trans:
+            shutil.copy2(self.cfg.source_sub,  f"{self.cfg.target_dir}/{self.cfg.noextname}.srt")
         self.signal(text=tr('endtiquzimu'))
 
     # 配音后再次对配音文件进行识别，以便生成简短的字幕，
@@ -467,6 +469,11 @@ class TransCreate(BaseTask):
             if self._exit(): return
             if not raw_subtitles:
                 logger.error('二次识别出错：' + tr('recogn result is empty'))
+
+            if self.cfg.fix_punc==2:
+                logger.debug('二次识别后，移除所有标点')
+                for it in raw_subtitles:
+                    it['text']=tools.delete_punc(it['text'])
             self._save_srt_target(raw_subtitles, outsrt_file)
 
             if not tools.vail_file(outsrt_file):
@@ -596,18 +603,29 @@ class TransCreate(BaseTask):
         if not self.should_dubbing:
             for it in target_srt:
                 it['text']=it['text'].strip('...')
-        # 仅提取，并且双语输出
-        if self.cfg.app_mode == 'tiqu' and self.cfg.output_srt > 0 and self.cfg.source_language_code != self.cfg.target_language_code:
-            _source_srt_len = len(rawsrt)
-            for i, it in enumerate(target_srt):
+
+        # 如果仅提取
+        if self.cfg.app_mode=='tiqu':
+            # 移除标点
+            if self.cfg.fix_punc==2:
+                logger.debug('仅提取模式下，移除所有标点')
+                for it in rawsrt:
+                    it['text']=tools.delete_punc(it['text'])
+                for it in target_srt:
+                    it['text']=tools.delete_punc(it['text'])
+            # 保存翻译前的字幕
+            self._save_srt_target(rawsrt, f"{self.cfg.target_dir}/{self.cfg.noextname}-{self.cfg.source_language_code}.srt")
+            # 双语输出
+            if self.cfg.output_srt > 0 and self.cfg.source_language_code != self.cfg.target_language_code:
+                _source_srt_len = len(rawsrt)
+                for i, it in enumerate(target_srt):
+                    if i < _source_srt_len and self.cfg.output_srt == 1:
+                        # 目标语言在下
+                        it['text'] = ("\n".join([rawsrt[i]['text'].strip(), it['text'].strip()])).strip()
+                    elif i < _source_srt_len and self.cfg.output_srt == 2:
+                        it['text'] = ("\n".join([it['text'].strip(), rawsrt[i]['text'].strip()])).strip()
                 
-                if i < _source_srt_len and self.cfg.output_srt == 1:
-                    # 目标语言在下
-                    it['text'] = ("\n".join([rawsrt[i]['text'].strip(), it['text'].strip()])).strip()
-                elif i < _source_srt_len and self.cfg.output_srt == 2:
-                    it['text'] = ("\n".join([it['text'].strip(), rawsrt[i]['text'].strip()])).strip()
-                
-                
+        # 翻译后的字幕
         self._save_srt_target(target_srt, self.cfg.target_sub)
 
         if self.cfg.app_mode == 'tiqu':
@@ -615,13 +633,8 @@ class TransCreate(BaseTask):
             if self.cfg.copysrt_rawvideo:
                 p = Path(self.cfg.name)
                 _output_file = f'{p.parent.as_posix()}/{p.stem}.srt'
-            if not Path(_output_file).exists() or not Path(_output_file).samefile(Path(self.cfg.target_sub)):
+            if not Path(_output_file).exists():
                 shutil.copy2(self.cfg.target_sub, _output_file)
-                try:
-                    Path(self.cfg.source_sub).unlink(missing_ok=True)
-                    Path(self.cfg.target_sub).unlink(missing_ok=True)
-                except OSError:
-                    logger.debug('仅提取模式下，保存到原位置后，删除临时文件失败，跳过')
 
         self.signal(text=tr('endtrans'))
         logger.debug(f'[字幕翻译阶段结束耗时]:{time.time()-_st}s')
@@ -629,19 +642,32 @@ class TransCreate(BaseTask):
     # 对字幕进行配音
     def dubbing(self) -> None:
         _st=time.time()
-        if self._exit() or self.cfg.app_mode == 'tiqu' or not self.should_dubbing:
+        if self._exit() or self.cfg.app_mode == 'tiqu':
             return
-        self.signal(text=tr('kaishipeiyin'))
+        if self.should_dubbing:
+            self.signal(text=tr('kaishipeiyin'))
         self.precent += 3
+        # 内部判断，如果不需要配音则直接跳过，然后进行后续移除标点和3个点操作，不可本方法开头跳过
         self._tts()
         # 配音完毕后，需更新 目标字幕，移除前后3个点
         if Path(self.cfg.target_sub).exists():
             subs = tools.get_subtitle_from_srt(self.cfg.target_sub)
+            if self.cfg.fix_punc==2:
+                logger.debug('配音结束后，移除目标字幕中所有标点')
             for it in subs:
                 it['text']=it['text'].strip('...')
-            self._save_srt_target(subs, self.cfg.target_sub)
-        self.signal(text=tr('The dubbing is finished'))
-        logger.debug(f'[语音合成阶段结束耗时]:{time.time()-_st}s')
+                if self.cfg.fix_punc==2:
+                    it['text']=tools.delete_punc(it['text'])
+
+        if  self.cfg.fix_punc==2 and Path(self.cfg.source_sub).exists():
+            logger.debug('配音结束后，移除原始字幕中所有标点')
+            subs = tools.get_subtitle_from_srt(self.cfg.source_sub)
+            for it in subs:
+                it['text']=tools.delete_punc(it['text'])
+            self._save_srt_target(subs, self.cfg.source_sub)
+        if self.should_dubbing:
+            self.signal(text=tr('The dubbing is finished'))
+            logger.debug(f'[语音合成阶段结束耗时]:{time.time()-_st}s')
 
     # 音画字幕对齐
     def align(self) -> None:
@@ -880,11 +906,14 @@ class TransCreate(BaseTask):
 
     # 配音预处理，去掉无效字符，整理开始时间
     def _tts(self) -> None:
+        if not self.should_dubbing:
+            self.signal(text='Skip tts')
+            return
         queue_tts = []
         subs = tools.get_subtitle_from_srt(self.cfg.target_sub)
         source_subs = tools.get_subtitle_from_srt(self.cfg.source_sub)
         if len(subs) < 1:
-            raise RuntimeError(f"SRT file error:{self.cfg.target_sub}")
+            raise DubbingSrtError(f"SRT file error:{self.cfg.target_sub}")
         try:
             rate = int(str(self.cfg.voice_rate).replace('%', ''))
         except (ValueError,TypeError):

@@ -150,7 +150,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pitch_rate.setValue(int(params.get('pitch', '0').replace('Hz', '')))
         self.voice_autorate.setChecked(bool(params.get('voice_autorate', False)))
         self.video_autorate.setChecked(bool(params.get('video_autorate', False)))
-        self.fix_punc.setChecked(bool(params.get('fix_punc', False)))
+        self.fix_punc.setCurrentIndex(int(params.get('fix_punc', 0)))
         self.recogn2pass.setChecked(bool(params.get('recogn2pass', False)))
         self.only_out_mp4.setChecked(bool(params.get('only_out_mp4', False)))
         self.remove_silent_mid.setChecked(bool(params.get('remove_silent_mid', False)))

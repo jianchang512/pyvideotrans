@@ -142,7 +142,7 @@ class SpeechToText(BaseTask):
         if self._exit() or self.cfg.detect_language == 'auto': return
 
         # 中英恢复标点符号
-        if self.cfg.fix_punc and self.cfg.detect_language[:2] in ['zh', 'en']:
+        if self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
             tools.down_file_from_ms(f'{ROOT_DIR}/models/puntc', [
                     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/model.onnx",
                     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/config.yaml",
@@ -273,6 +273,12 @@ class SpeechToText(BaseTask):
                 settings.get('other_len', 60))
             for i, it in enumerate(self.source_srt_list):
                 it['text'] = tools.simple_wrap(it['text'], maxlen, self.cfg.detect_language)
+
+        # 移除标点符号
+        if self.cfg.fix_punc==2:
+            for i, it in enumerate(self.source_srt_list):
+                it['text'] = tools.delete_punc(it['text'])
+
 
         if self.cfg.enable_diariz and self.spk_insert and Path(
                 self.cfg.cache_folder + "/speaker.json").exists():

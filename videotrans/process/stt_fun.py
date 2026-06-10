@@ -161,7 +161,7 @@ def faster_whisper(
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import zhconv
     from faster_whisper import WhisperModel, BatchedInferencePipeline
-
+    print(f'{hotwords=}')
     raws = []
     if detect_language == 'fil':
         detect_language = 'tl'
@@ -442,7 +442,7 @@ def pipe_asr(
         msg = traceback.format_exc()
         return False, f'{e}:{msg}'
 
-
+# 支持热词
 def paraformer(
         cut_audio_list=None,
         detect_language=None,
@@ -452,10 +452,12 @@ def paraformer(
         audio_file=None,
         max_speakers=-1,
         cache_folder=None,
-        device_index=0  # gpu索引
+        device_index=0,  # gpu索引
+        hotword=None
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
+    from funasr import AutoModel
     msg = f'Load {model_name}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
 
@@ -466,23 +468,24 @@ def paraformer(
             task=Tasks.auto_speech_recognition,
             model='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',
             # model_revision="v2.0.4",
-            vad_model='damo/speech_fsmn_vad_zh-cn-16k-common-pytorch',
+            vad_model='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',
             # vad_model_revision="v2.0.4",
-            punc_model='damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',
+            punc_model='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',
             # punc_model_revision="v2.0.3",
             spk_model="damo/speech_campplus_sv_zh-cn_16k-common",
             # spk_model_revision="v2.0.2",
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
-            device=device
+            device=device,
+
             # trust_remote_code=True,
         )
 
         msg = "Model loading is complete, enter recognition"
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
 
-        res = model(audio_file)
+        res = model(audio_file,hotword=hotword.replace(',',' '))
         speaker_list = []
         i = 0
         for it in res[0]['sentence_info']:
@@ -510,14 +513,15 @@ def paraformer(
 
     return raw_subtitles, None
 
-
+#支持热词
 def qwen3asr_fun(
         cut_audio_list=None,
         logs_file=None,
         is_cuda=False,
         audio_file=None,
         model_name="1.7B",
-        device_index=0  # gpu索引
+        device_index=0,  # gpu索引
+        hotword=None
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import torch
     try:
@@ -550,6 +554,7 @@ def qwen3asr_fun(
                 audio=[it['filename'] for it in it_list],
                 language=[None for it in it_list],  # can also be set to None for automatic language detection
                 return_time_stamps=False,
+                context=hotword.split(',') if hotword else None
             )
             for j, it in enumerate(it_list):
                 it['text'] = results[j].text
@@ -572,7 +577,8 @@ def funasr_mlt(
         jianfan=False,
         max_speakers=-1,
         cache_folder=None,
-        device_index=0  # gpu索引
+        device_index=0,  # gpu索引
+        hotword=None
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     from funasr import AutoModel
     from modelscope.pipelines import pipeline
@@ -596,14 +602,13 @@ def funasr_mlt(
                 disable_update=True,
                 disable_progress_bar=True,
                 disable_log=True,
-                device=device
+                device=device,
             )
-
-            res = model([it['filename'] for it in cut_audio_list], batch_size=4, disable_pbar=True)
+            res = model([it['filename'] for it in cut_audio_list], batch_size=4, disable_pbar=True,hotword=hotword.replace(',',' '))
         else:
             model = AutoModel(
                 model=model_name,
-                punc_model="damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch",
+                punc_model="iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch",
                 device=device,
                 local_dir=ROOT_DIR + "/models",
                 disable_update=True,
@@ -628,9 +633,10 @@ def funasr_mlt(
                 input=[it['filename'] for it in srts],
                 language=detect_language[:2],  # "zh", "en", "yue", "ja", "ko", "nospeech"
                 use_itn=True,
-                batch_size=1,
+                # batch_size=4,
                 progress_callback=_show_process,
-                disable_pbar=True
+                disable_pbar=True,
+                hotwords=hotword.split(',') if hotword else None
             )
         for i, it in enumerate(res):
             text = _remove_unwanted_characters(it['text'])

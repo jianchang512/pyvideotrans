@@ -363,9 +363,13 @@ class Ui_MainWindow(object):
         self.enable_diariz.setToolTip(tr("Speaker classification language"))
         self.enable_diariz.setText(tr("Speaker classification"))
 
-        self.fix_punc = QtWidgets.QCheckBox()
+        self.fix_punc = QtWidgets.QComboBox()
         self.fix_punc.setToolTip(tr("Restoring punctuation marks when Chinese & English"))
-        self.fix_punc.setText(tr("Restoring punct"))
+        self.fix_punc.addItems([
+            tr("Default punctuation"),
+            tr("Restore punctuation"),
+            tr("Delete punctuation")
+        ])
 
         self.nums_diariz = QtWidgets.QComboBox()
         self.nums_diariz.setToolTip(tr("Specifying the number of speakers"))

@@ -1,17 +1,62 @@
 import multiprocessing,os
+import time
+
 from videotrans.configure.config import app_cfg,settings,logger
 
-# ==========================================
-# 包装类：用来兼容调用方对 Future 对象的习惯 (.result())
-# ==========================================
+
+def _task_worker_wrapper(func, kwargs):
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["MKL_NUM_THREADS"] = "1"
+    # 这里执行真正的任务
+    return func(**kwargs)
+
 class AsyncResultFutureWrapper:
-    def __init__(self, async_result):
+    def __init__(self, async_result, pool_executor):
         self.async_result = async_result
+        self._pool = pool_executor # 持有对进程池的引用，用于检查健康状态
 
     def result(self, timeout=None):
-        # 把 Pool 独有的 .get() 伪装成 Future 的 .result()
-        return self.async_result.get(timeout=timeout)
-        
+        # 默认总超时 1 小时，或者自定义
+        start_time = time.time()
+        actual_timeout = timeout if timeout is not None else 3600
+
+        while True:
+            # 1. 检查是否已经完成（正常结束或捕获了 Python 异常）
+            if self.async_result.ready():
+                try:
+                    return self.async_result.get(timeout=1)
+                except Exception as e:
+                    return None, f"Subprocess Error: {str(e)}"
+
+            # 2. 检查进程池是否还健康
+            # 如果进程池里所有的工作进程都消失了，或者池被关闭了
+            if not self._is_pool_healthy():
+                return None, "Subprocess crashed hard (Segmentation Fault/OOM)"
+
+            # 3. 检查是否超时
+            if (time.time() - start_time) > actual_timeout:
+                return None, "Task timeout (Possible deadlock in C++ layer)"
+
+            # 4. 检查外部退出信号
+            if app_cfg.exit_soft:
+                return None, "Task interrupted by user"
+
+            # 5. 短暂休眠，防止 CPU 空转
+            time.sleep(0.5)
+
+    def _is_pool_healthy(self):
+        """检查进程池中的工作进程是否还在存活"""
+        try:
+            # Pool 的私有属性 _pool 包含了所有工作进程对象 (Process)
+            # 虽然访问私有属性略有风险，但在 Python 3.10 中这是检测 Pool 健康最直接的方法
+            workers = getattr(self._pool, '_pool', [])
+            if not workers:
+                return False
+            # 只要有一个工作进程是存活的，就认为池还在工作
+            return any(w.is_alive() for w in workers)
+        except:
+            return False
+
     def done(self):
         return self.async_result.ready()
 
@@ -20,12 +65,9 @@ class AsyncResultFutureWrapper:
 # 全局单例管理器
 # ==========================================
 
-
 class GlobalProcessManager:
     _executor_cpu = None
     _executor_gpu = None
-
-
 
     @classmethod
     def get_cpu_process_nums(cls):
@@ -91,15 +133,24 @@ class GlobalProcessManager:
     @classmethod
     def submit_task_cpu(cls, func, **kwargs):
         _executor=cls.get_executor_cpu()
-        async_result = _executor.apply_async(func, kwds=kwargs)
-        return AsyncResultFutureWrapper(async_result)
+        # 使用 error_callback 记录错误日志
+        async_result = _executor.apply_async(
+            _task_worker_wrapper,
+            args=(func, kwargs),
+            error_callback=lambda e: logger.error(f"CPU进程池回调异常: {e}")
+        )
+        return AsyncResultFutureWrapper(async_result,_executor)
 
     @classmethod
     def submit_task_gpu(cls, func, **kwargs):
         _executor=cls.get_executor_gpu()
-        # Pool 提交任务的方法是 apply_async，且需要指定 kwds 关键字参数
-        async_result = _executor.apply_async(func, kwds=kwargs)
-        return AsyncResultFutureWrapper(async_result)
+        async_result = _executor.apply_async(
+            _task_worker_wrapper,
+            args=(func, kwargs),
+            error_callback=lambda e: logger.error(f"GPU进程池回调异常: {e}")
+        )
+
+        return AsyncResultFutureWrapper(async_result,_executor)
 
     @classmethod
     def shutdown(cls):
