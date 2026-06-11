@@ -172,6 +172,7 @@ class WinActionBase:
         self.main.video_autorate.show()
 
         self.main.output_srt_label.hide()
+        self.main.output_srt.hide()
         if platform.system() != 'Darwin':
             self.main.enable_cuda.show()
 

@@ -116,7 +116,7 @@ class Worker(QThread):
             if trk.should_recogn2:
                 app_cfg.set_countdown(86400)
                 # 等待修改二次识别出的字幕
-                self._post(text=f'{trk.cfg.source_sub}', type="edit_recogn2_subtitle")
+                self._post(text=f'{trk.cfg.target_sub}', type="edit_recogn2_subtitle")
                 self._post(text=tr('The subtitle editing interface is rendering'))
                 while app_cfg.task_countdown > 0:
                     if self._exit(): return

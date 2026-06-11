@@ -159,15 +159,11 @@ class BaseRecogn(BaseCon):
         # 静音阈值不得低于50ms
         _min_silence = max(int(settings.get('min_silence_duration_ms', 600)), 50)
         if self.recogn2pass:
-            # 2次识别，均减半，以便生成简短的字幕
-            _min_speech = int(max(500, _min_speech // 2))
-            # 不可低于 _min_speech+1000 并且不可大于3000ms
-            _max_speech = int(max(_max_speech // 2, _min_speech + 1000))
-            # 不可大于1000ms，并且不可小于50ms
-            _min_silence = max(min(1000, _min_silence // 2), 50)
+            # 2次识别， 生成简短的字幕, 最短持续时长>=500ms，最长持续时长>短+500 and <4000ms
+            _min_speech = max( int(float(settings.get('min_speech_duration_ms2', 1000))), 500)
+            _max_speech = max( min( int(float(settings.get('max_speech_duration_s2', 2)) * 1000), 4000), _min_speech + 500)
+            logger.debug(f'[二次识别参数]{_vad_type},{_min_speech=}ms,{_max_speech=}ms,{_min_silence=}ms')
 
-        logger.debug(
-            f'[Before VAD {_vad_type}][{self.recogn2pass=}],{_min_speech=}ms,{_max_speech=}ms,{_min_silence=}ms')
         kw = {
             "input_wav": self.audio_file,
             "threshold": _threshold,

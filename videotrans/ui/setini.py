@@ -49,8 +49,10 @@ notices = {
         "vad_type": "选择要使用的VAD",
         "threshold": "表示音频片段被认为是语音的最低概率。VAD 会为每个音频片段计算语音概率，超过此阈值的部分被视为语音，反之视为静音或噪音。越小越灵敏但可能误将噪声视为语音",
         "no_speech_threshold": "减小可降低幻觉但可能遗漏文字",
-        "max_speech_duration_s": "限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒",
-        "min_speech_duration_ms": "最短语音持续的时长，如果某条字幕时长小于该值对应ms，则尝试将该字幕合并进相邻字幕中，单位是毫秒",
+        "max_speech_duration_s": "最长语音持续时长(秒),限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒",
+        "min_speech_duration_ms": "最短语音持续时长(毫秒)，如果某条字幕时长小于该ms，则尝试将该字幕合并进相邻字幕中，单位是毫秒",
+        "max_speech_duration_s2": "二次识别最长语音持续时长(秒),限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒",
+        "min_speech_duration_ms2": "二次识别最短语音持续时长(毫秒)，如果某条字幕时长小于该ms，则尝试将该字幕合并进相邻字幕中，单位是毫秒",
         "min_silence_duration_ms": "在语音结束时，需等待的静音时间达到此值后，才会分割出语音片段。填写数字，单位ms\n也就是只在大于此值的静音片段处分割",
 
         "merge_short_sub": "只有选中该项，才会合并短字幕",
@@ -208,8 +210,13 @@ titles = {
     "video_codec": "264/265编码",
 
     "threshold": "语音阈值",
-    "max_speech_duration_s": "最长语音持续秒数",
-    "min_speech_duration_ms": "最短语音持续毫秒",
+    "max_speech_duration_s": "最长语音持续(秒)",
+    "min_speech_duration_ms": "最短语音持续(毫秒)",
+
+    "max_speech_duration_s2": "二次识别最长语音持续(秒)",
+    "min_speech_duration_ms2": "二次识别最短语音持续(毫秒)",
+
+
     "min_silence_duration_ms": "静音分割持续毫秒",
     "merge_short_sub": "合并过短字幕到邻近",
     "vad_type": "选择VAD",
@@ -319,6 +326,11 @@ if defaulelang != 'zh':
             "no_speech_threshold": "no speech threshold",
             "max_speech_duration_s": "VAD: Maximum duration (s) of a single speech segment before splitting.",
             "min_silence_duration_ms": "VAD: Minimum silence duration (ms) to mark the end of a segment.",
+
+
+            "max_speech_duration_s2": "Maximum speech duration (seconds) during secondary recognition. Limits the maximum length of a single speech segment. Forced segmentation occurs if this length is exceeded. Enter a number in seconds.",
+            "min_speech_duration_ms2": "Shortest speech duration (milliseconds) during secondary recognition. If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle. Unit: milliseconds.",
+
             "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle.",
 
             "merge_short_sub": "Short subtitles will only be merged if this option is selected",
@@ -475,6 +487,10 @@ if defaulelang != 'zh':
         "threshold": "VAD: Speech probability threshold",
         "max_speech_duration_s": "VAD:max speech duration(s)",
         "min_speech_duration_ms": "VAD:min speech duration(ms)",
+
+        "max_speech_duration_s2": "Recognition(2): max duration(s)",
+        "min_speech_duration_ms2": "Recognition(2): min duration(ms)",
+
         "min_silence_duration_ms": "VAD:Min silence duration for split(ms)",
         "merge_short_sub": "Short sub will be merged",
         "trans_thread": "Batch size (lines) for traditional translation",

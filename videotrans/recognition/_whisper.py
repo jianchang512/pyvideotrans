@@ -26,6 +26,7 @@ class FasterAll(BaseRecogn):
         self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
         self.speech_timestamps_file=None
 
+
     def _exec(self)->Union[List[SrtItem], None]:
         if self._exit(): return
         self.error = ''
@@ -45,6 +46,7 @@ class FasterAll(BaseRecogn):
             tools.check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
         # 批量时预先vad切分
         # 否则后断句处理
+
         if settings.get('whisper_prepare'):
             self._vad_split()
             self.speech_timestamps_file=f'{self.cache_folder}/speech_timestamps_{time.time()}.json'
@@ -56,6 +58,11 @@ class FasterAll(BaseRecogn):
         self.signal(text=title)
         # 起一个进程
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/openai-{self.detect_language}-{time.time()}.log'
+        # 最长持续时长>2000ms
+        _max_speech=max(int(float(settings.get('max_speech_duration_s', 5)) * 1000),2000)
+        if self.recogn2pass:
+            # 2次识别， 生成简短的字幕,  最长持续时长>500ms
+            _max_speech = max(int(float(settings.get('max_speech_duration_s2', 2)) * 1000),500)
         kwargs = {
             "prompt": settings.get(
                 f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
@@ -72,7 +79,7 @@ class FasterAll(BaseRecogn):
             "audio_duration":self.audio_duration,
             "temperature":settings.get('temperature'),
             "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.4)),
-            "max_speech_ms":int(float(settings.get('max_speech_duration_s', 5)) * 1000)
+            "max_speech_ms":_max_speech
         }
         raws=self._new_process(callback=openai_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         return raws
@@ -82,6 +89,10 @@ class FasterAll(BaseRecogn):
         title=f"STT use {self.model_name}"
         self.signal(text=title)
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/faster-{self.detect_language}-{time.time()}.log'
+        _max_speech=max(int(float(settings.get('max_speech_duration_s', 5)) * 1000),2000)
+        if self.recogn2pass:
+            # 2次识别， 生成简短的字幕
+            _max_speech = max(int(float(settings.get('max_speech_duration_s2', 2)) * 1000),500)
 
         kwargs = {
             "detect_language": self.detect_language,
@@ -103,7 +114,7 @@ class FasterAll(BaseRecogn):
             "temperature":settings.get('temperature'),
             "repetition_penalty":float(settings.get('repetition_penalty',1.0)),
             "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.2)),
-            "max_speech_ms":int(float(settings.get('max_speech_duration_s', 5)) * 1000)
+            "max_speech_ms":_max_speech
         }
 
         raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
