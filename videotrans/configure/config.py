@@ -374,7 +374,7 @@ class AppSettings:
             "threshold": 0.5,
             "min_speech_duration_ms": 2000,
             "max_speech_duration_s": 5,
-            "min_speech_duration_ms2": 600,
+            "min_speech_duration_ms2": 1000,
             "max_speech_duration_s2": 2,
             "min_silence_duration_ms": 140,
             "no_speech_threshold": 0.6,
