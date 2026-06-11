@@ -30,7 +30,7 @@ class IndexTTS(GradioBase):
         except Exception as e:
             if app_cfg.indextts_default_choice=='Same as the voice reference' and 'is not in the list of choices' in str(e):
                 app_cfg.indextts_default_choice='与音色参考音频相同'
-kwargs['emo_control_method'] = app_cfg.indextts_default_choice
+                kwargs['emo_control_method'] = app_cfg.indextts_default_choice
                 return self._send(kwargs,data_item)
             raise
         
