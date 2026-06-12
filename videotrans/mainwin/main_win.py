@@ -28,12 +28,15 @@ from videotrans.configure.signal_hub import SignalHub
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    uito = Signal(str)
+    
 
     def __init__(self, parent=None, width=1200, height=650):
         super().__init__(parent)
+        
         self.resize(width, height)
         self.setupUi(self)
+       
+        
 
         self.worker_threads = []
         self.width = width

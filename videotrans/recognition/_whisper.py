@@ -1,4 +1,4 @@
-import time, json
+import time, json,datetime
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Union, List
@@ -12,6 +12,7 @@ from videotrans.util import tools
 from pydub import AudioSegment
 from videotrans.process import openai_whisper, faster_whisper
 from videotrans.configure.contants import FASTER_MODELS_DICT
+from videotrans.configure.excepts import SttTimeoutError
 
 @dataclass
 class FasterAll(BaseRecogn):
@@ -93,7 +94,9 @@ class FasterAll(BaseRecogn):
         if self.recogn2pass:
             # 2次识别， 生成简短的字幕
             _max_speech = max(int(float(settings.get('max_speech_duration_s2', 2)) * 1000),500)
-
+        
+        
+        subtitle_srt=f'{config.TEMP_ROOT}/faster-{datetime.datetime.now().strftime("%Y%m%d-%H_%M_%S")}.srt'
         kwargs = {
             "detect_language": self.detect_language,
             "model_name": self.model_name,
@@ -114,10 +117,12 @@ class FasterAll(BaseRecogn):
             "temperature":settings.get('temperature'),
             "repetition_penalty":float(settings.get('repetition_penalty',1.0)),
             "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.2)),
-            "max_speech_ms":_max_speech
+            "max_speech_ms":_max_speech,
+            "subtitle_srt":subtitle_srt
         }
-
-        raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
-        return raws
-
-
+        try:
+            raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+            return raws
+        except SttTimeoutError:
+            logger.debug('捕获到强制抛出的 SttTimeoutError, 使用已识别的文件 {subtitle_srt}')
+            return tools.get_subtitle_from_srt(subtitle_srt, is_file=True)

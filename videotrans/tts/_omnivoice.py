@@ -57,7 +57,8 @@ class OmniVoice(GradioBase):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
-
+        if self.api_url.ends(':3900'):#OmniVoice-studio
+            return self._omnivoice_studio(data_item)
         ref_wav,ref_text = self.get_ref_wav(data_item)
         kwargs = {
             "text":data_item.get('text',''),
@@ -75,3 +76,43 @@ class OmniVoice(GradioBase):
             "api_name":"/_clone_fn",
         }
         return self._send(kwargs, data_item)
+    
+    
+    def _omnivoice_studio(self,data_item):
+        ref_wav,ref_text = self.get_ref_wav(data_item)
+        data = {
+            "text": data_item.get('text', ''),
+            "language": self.lang,
+            "num_step": 32,
+            "guidance_scale": 2.0,
+            "speed": self.get_speed(),
+            "denoise": "false",
+            "postprocess_output": "true",
+        }
+        files = None
+        if ref_wav:
+            files = {"ref_audio": open(ref_wav, 'rb')}
+            if ref_text:
+                data["ref_text"] = ref_text
+
+        logger.debug(f'OmniVoice request: {self.api_url=}/generate {data=}')
+        try:
+            response = requests.post(
+                f"{self.api_url}/generate",
+                data=data,
+                files=files,
+                timeout=3600,
+                proxies={"https": "", "http": ""},
+            )
+        finally:
+            if files:
+                files["ref_audio"].close()
+
+        if not response.ok:
+            error_data = response.text + f"\n{self.api_url=}"
+            logger.error(f'OmniVoice returned error: {error_data=}')
+            return error_data
+
+        with open(data_item['filename'] + ".wav", 'wb') as f:
+            f.write(response.content)
+        self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])

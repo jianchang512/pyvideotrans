@@ -1,7 +1,7 @@
 import platform
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal,QTimer
 from PySide6.QtWidgets import QSizePolicy, QApplication
 
 from videotrans.component.controlobj import TextGetdir
@@ -9,9 +9,11 @@ from videotrans.configure.config import tr, settings
 
 
 class Ui_MainWindow(object):
-
+    uito = Signal(str)
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
+        QApplication.processEvents()
+        QTimer.singleShot(100, lambda:self.uito.emit('Init UI...'))
         # 语音识别渠道、翻译渠道、配音渠道 label和下拉框宽度
         _channel_label=80
         _channel_com=200
@@ -204,6 +206,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addStretch()
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_5)
+        QApplication.processEvents()
+        QTimer.singleShot(150, lambda:self.uito.emit('Init ing ...'))
 
         # 配音渠道行
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -559,7 +563,9 @@ class Ui_MainWindow(object):
         text-align: center; 
     }
 """)
-
+        
+        QApplication.processEvents()
+        QTimer.singleShot(100, lambda:self.uito.emit('Add bar ...'))
         MainWindow.addToolBar(QtCore.Qt.LeftToolBarArea, self.toolBar)
 
         self.actionbaidu_key = QtGui.QAction(MainWindow)
@@ -762,7 +768,7 @@ class Ui_MainWindow(object):
         self.action_yinshipinfenli = QtGui.QAction(MainWindow)
         self.action_yinshipinfenli.setObjectName("action_yinshipinfenli")
         QApplication.processEvents()
-        self.uito.emit('Add Menu bar...')
+        QTimer.singleShot(150, lambda:self.uito.emit('Add MenuBar ...'))
 
         self.menu_Key.addAction(self.actionbaidu_key)
         self.menu_Key.addSeparator()
@@ -961,7 +967,8 @@ class Ui_MainWindow(object):
             self.enable_cuda.setChecked(False)
             self.enable_cuda.hide()
 
-
+        QApplication.processEvents()
+        QTimer.singleShot(200, lambda:self.uito.emit('Set UI Text ...'))
         self._set_Ui_Text()
 
     def _set_Ui_Text(self):

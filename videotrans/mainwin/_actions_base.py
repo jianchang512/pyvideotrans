@@ -316,7 +316,8 @@ class WinActionBase:
             ]
 
             params['last_opendir'] = p.as_posix()
-            self.main.target_dir = p_out.as_posix()
+            if not self.main.target_dir:
+                self.main.target_dir = p_out.as_posix()
         else:
             fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(self.main,
                                                                tr("Select one or more files"),

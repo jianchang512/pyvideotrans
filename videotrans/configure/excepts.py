@@ -48,6 +48,12 @@ class DownloadModelsError(VideoTransError):
     pass
 
 
+class SttTimeoutError(VideoTransError):
+    pass
+
+
+
+
 # 出现该类异常时，需要立即停止任务
 class StopTask(VideoTransError):
     pass

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional,Union
 
 from videotrans.configure.config import tr, settings, app_cfg, logger, push_queue, TEMP_ROOT
-from videotrans.configure.excepts import VideoTransError
+from videotrans.configure.excepts import VideoTransError,SttTimeoutError
 from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.task.taskcfg import SignMsg
 from videotrans.util import tools
@@ -247,9 +247,19 @@ class BaseCon:
                 **kwargs
             )
             # return Tuple[bool or result , None or error]
+            _timeout=0
             while not future.done():
                 if app_cfg.exit_soft:
                     return None
+                # faster-whisper 在工作完成后退出时，偶发可能静默崩溃，主进程无法捕获，导致永久等待
+                # 在退出前预先将识别结果保存到 subtitle_srt 文件中，再返回，此处通过检测文件存在确保崩溃后仍能继续运行
+                if kwargs.get('subtitle_srt') and Path(kwargs.get('subtitle_srt')).exists():
+                    # 已返回10s仍在循环，子进程可能已崩溃
+                    if _timeout>20:
+                        status_dict['is_end']=True
+                        logger.debug(f'faster已生成识别字幕超过 {_timeout}s 仍在循环，子进程可能已崩溃，强制抛出 SttTimeoutError')
+                        raise SttTimeoutError("STT timeout")
+                    _timeout+=1
                 time.sleep(1)
             data,err = future.result(timeout=10)
             logger.debug(f'[新进程任务 {title}], return')
@@ -258,6 +268,9 @@ class BaseCon:
                 raise VideoTransError(err)
             self.signal(text=f'[{title}] end: {int(time.time() - _st)}s')
             return data
+        except SttTimeoutError:
+            
+            raise
         except BrokenProcessPool as e:
             _model = ''
             _cuda = ''

@@ -157,11 +157,12 @@ def faster_whisper(
         repetition_penalty=1.0,
         compression_ratio_threshold=2.2,
         device_index=0,  # gpu索引
-        max_speech_ms=6000
+        max_speech_ms=6000,
+        subtitle_srt=None
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import zhconv
     from faster_whisper import WhisperModel, BatchedInferencePipeline
-    print(f'{hotwords=}')
+
     raws = []
     if detect_language == 'fil':
         detect_language = 'tl'
@@ -318,6 +319,11 @@ def faster_whisper(
                 for it in raws:
                     it['text'] = zhconv.convert(it['text'], 'zh-hans')
             logger.debug('返回识别结果')
+        # 保存识别结果到临时目录下，防止进程崩溃后永久等待
+        if subtitle_srt:
+            Path(subtitle_srt).write_text("\n\n".join([f'{i+1}\n{it.startraw} --> {it.endraw}\n{it.text}' for i,it in enumerate(raws)]),encoding="utf-8")
+            logger.debug(f'faster-whisper下已临时保存识别结果到 {subtitle_srt}，防止进程崩溃后永久等待')
+        
         return raws,None
     except BaseException as e:
         msg = traceback.format_exc()
