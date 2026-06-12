@@ -10,7 +10,6 @@
 *.pyi
 *.mp4
 *副本.py
-test.py
 .agree.txt
 .git
 .github
@@ -69,3 +68,4 @@ runtime
 ehthumbs.db
 Thumbs.db
 
+test.py
