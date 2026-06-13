@@ -2,10 +2,10 @@ import logging
 from dataclasses import dataclass
 from typing import Union, Dict, List
 
-from openai import OpenAI, AuthenticationError, PermissionDeniedError, NotFoundError
+from openai import OpenAI, AuthenticationError, PermissionDeniedError, NotFoundError,APIConnectionError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
-from videotrans.configure.config import params, logger, settings
+from videotrans.configure.config import tr,params, logger, settings
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 
@@ -37,6 +37,7 @@ class OPENAITTS(BaseTTS):
                     for chunk in response.iter_bytes():
                         f.write(chunk)
             self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
-
+        except APIConnectionError as e:
+            raise StopTask(f'[OpenAITTS] {tr("Unable to connect to API",self.api_url)}\n{e}') from e
         except (NotFoundError,AuthenticationError, PermissionDeniedError) as e:
             raise StopTask(e.message)

@@ -2,7 +2,7 @@ import logging
 from typing import Union, Dict, List
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import  settings, params, logger
+from videotrans.configure.config import  tr,settings, params, logger
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 from dataclasses import dataclass
@@ -32,13 +32,16 @@ class XAITTS(BaseTTS):
               },
             "language": self.xai_language
         }
-        response = requests.post('https://api.x.ai/v1/tts', headers={
+        try:
+            response = requests.post('https://api.x.ai/v1/tts', headers={
             'Authorization': f'Bearer {params.get("xaitts_key","")}',
             'Content-Type': 'application/json'
-        }, json=payload, verify=False)
-        if response.status_code in [401,403,404,405,415,422]:
-            raise StopTask(response.text)
-
+            }, json=payload, verify=False)
+        
+            if response.status_code in [401,403,404,405,415,422]:
+                raise StopTask(response.text)
+        except requests.exceptions.ConnectionError as e:
+            raise StopTask(f"[XAITTS] {tr('Unable to connect to remote API','X.AI')}") from e
         response.raise_for_status()
         with open(data_item['filename']+'-tmp.wav', "wb") as f:
             f.write(response.content)

@@ -7,7 +7,7 @@ from typing import Union, List, Dict
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import params, logger, settings
+from videotrans.configure.config import params, logger, settings,tr
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 
@@ -24,8 +24,11 @@ class ChatTTS(BaseTTS):
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         data = {"text": data_item['text'], "voice": data_item['role'], 'prompt': '', 'is_split': 1}
-        res = requests.post(f"{self.api_url}/tts", data=data,  timeout=3600)
-        res.raise_for_status()
+        try:
+            res = requests.post(f"{self.api_url}/tts", data=data,  timeout=3600)
+        except requests.exceptions.ConnectionError as e:
+            if "Failed to establish a new connection" in str(e):
+                raise StopTask(f"[ChatTTS] {tr('This channel needs deployed and started before available')}") from e
         logger.debug(f'chatTTS:{data=}')
         res = res.json()
         if res is None:

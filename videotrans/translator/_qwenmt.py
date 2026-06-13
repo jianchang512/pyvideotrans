@@ -76,6 +76,8 @@ class QwenMT(BaseTrans):
         )
 
         if response.code or not response.output:
+            if "url error" in response.message:
+                raise TranslateSrtError(f'需要纯文本模型，但 {model_name} 可能是多模态模型')
             raise TranslateSrtError(response.message)
         if not response.output.choices:
             raise TranslateSrtError(f'qwen-mt returned empty choices')

@@ -1,6 +1,6 @@
 import json
 import logging
-import re
+import re,httpx
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Union
@@ -9,8 +9,8 @@ from google import genai
 from google.genai import types,errors
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
-from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTextError
-from videotrans.configure.config import params, logger, ROOT_DIR, settings
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTextError,StopTask
+from videotrans.configure.config import params, logger, ROOT_DIR, settings,tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
@@ -78,7 +78,7 @@ class GeminiRecogn(BaseRecogn):
             ]
             
             for chunk in client.models.generate_content_stream(
-                    model='gemini-2.5-flash',
+                    model='gemini-flash-latest',
                     contents=contents,
                     config=generate_content_config,
 
@@ -87,6 +87,8 @@ class GeminiRecogn(BaseRecogn):
                     continue
                 res_text += chunk.text
             return res_text
+        except httpx.ConnectTimeout as e:
+            raise StopTask(f' {tr("Unable to connect to remote API","Gemini AI")}\n{e}') from e
         except errors.APIError as e:
             if e.code in [400,403,404,429,500]:
                 raise StopRetry(e.message)

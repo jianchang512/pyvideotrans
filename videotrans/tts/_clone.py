@@ -27,14 +27,20 @@ class CloneVoice(BaseTTS):
         role = data_item['role']
         if role=='clone'  and (not data_item.get('ref_wav') or not Path(data_item.get('ref_wav')).exists()):
             return tr("No reference audio exists and cannot use clone function")
-        if role != 'clone':
-            # 不是克隆，使用已有声音
-            data['voice'] = role
-            res = requests.post(f"{self.api_url}/apitts", data=data,timeout=3600)
-        else:
-            with open(data_item['ref_wav'], 'rb') as f:
-                files = {"audio": f}
-                res = requests.post(f"{self.api_url}/apitts", data=data, files=files,  timeout=3600)
+        
+        
+        try:
+            if role != 'clone':
+                # 不是克隆，使用已有声音
+                data['voice'] = role
+                res = requests.post(f"{self.api_url}/apitts", data=data,timeout=3600)
+            else:
+                with open(data_item['ref_wav'], 'rb') as f:
+                    files = {"audio": f}
+                    res = requests.post(f"{self.api_url}/apitts", data=data, files=files,  timeout=3600)
+        except requests.exceptions.ConnectionError as e:
+            if "Failed to establish a new connection" in str(e):
+                raise StopTask(f"[Clone-Voice] {tr('This channel needs deployed and started before available')}") from e
 
         res.raise_for_status()
         logger.debug(f'clone-voice:{data=},{res.text=}')

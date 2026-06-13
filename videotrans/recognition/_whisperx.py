@@ -2,9 +2,9 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List,  Union
-from openai import OpenAI
-from videotrans.configure.excepts import SpeechToTextError
-from videotrans.configure.config import params,logger
+from openai import OpenAI,APIConnectionError
+from videotrans.configure.excepts import SpeechToTextError,StopTask
+from videotrans.configure.config import params,logger,tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
@@ -27,34 +27,37 @@ class WhisperXRecogn(BaseRecogn):
         speaker_list = []
         speaker_name = []
         logger.debug(f'[whisperx-api]:指定最大说话人：{self.max_speakers=}')
-        with open(self.audio_file, 'rb') as file:
-            transcript = client.audio.transcriptions.create(
-                file=(self.audio_file, file.read()),
-                model=self.model_name,
-                language=self.detect_language[:2].lower(),
-                response_format="diarized_json",
-                extra_body={
-                  "max_speakers": self.max_speakers #-1不启用，0=不限制数量，>0 最大数量
-                },
-            )
+        try:
+            with open(self.audio_file, 'rb') as file:
+                transcript = client.audio.transcriptions.create(
+                    file=(self.audio_file, file.read()),
+                    model=self.model_name,
+                    language=self.detect_language[:2].lower(),
+                    response_format="diarized_json",
+                    extra_body={
+                      "max_speakers": self.max_speakers #-1不启用，0=不限制数量，>0 最大数量
+                    },
+                )
 
-            if not hasattr(transcript, 'segments') or not transcript.segments:
-                raise SpeechToTextError('No support')
-            for it in transcript.segments:
-                raws.append(SrtItem(
-                    line=len(raws) + 1,
-                    start_time=it.start * 1000,
-                    end_time=it.end * 1000,
-                    text=it.text,
-                    time=tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
-                        ms=it.end * 1000)
-                ))
-                if self.max_speakers>-1:
-                    sp = getattr(it,"speaker",'-')
-                    speaker_list.append(sp)
-                    if sp not in speaker_name:
-                        speaker_name.append(sp)
+                if not hasattr(transcript, 'segments') or not transcript.segments:
+                    raise SpeechToTextError('No support')
+                for it in transcript.segments:
+                    raws.append(SrtItem(
+                        line=len(raws) + 1,
+                        start_time=it.start * 1000,
+                        end_time=it.end * 1000,
+                        text=it.text,
+                        time=tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
+                            ms=it.end * 1000)
+                    ))
+                    if self.max_speakers>-1:
+                        sp = getattr(it,"speaker",'-')
+                        speaker_list.append(sp)
+                        if sp not in speaker_name:
+                            speaker_name.append(sp)
 
+        except APIConnectionError as e:
+            raise StopTask(f'[WhisperX] {tr("This channel needs deployed and started before available")}\n{e}') from e
         if speaker_name:
             try:
                 #默认未识别出后的回退说话人

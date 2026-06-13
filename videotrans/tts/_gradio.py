@@ -7,10 +7,11 @@ from typing import Union
 from gradio_client import Client
 from tenacity import wait_fixed, before_log, after_log, stop_after_attempt, retry_if_not_exception_type, retry
 
-from videotrans.configure.config import params, logger, settings
+from videotrans.configure.config import params, logger, settings,tr
 from videotrans.configure.excepts import StopTask, NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
+import urllib3,httpx
 
 
 thread_local = threading.local()
@@ -55,20 +56,22 @@ class GradioBase(BaseTTS):
                 wav_file = wav_file['value']
             
             if not isinstance(wav_file, str) or not Path(wav_file).is_file():
-                return str(result)+f"\n{self.api_url=}"
+                return str(result)+f"\n{self.api_name=} {self.api_url=}"
             if self.ainame=='cosyvoice' and str(result).endswith('playlist.m3u8'):
                 raise StopTask('请修改 CosyVoice3 的官方 webui.py 文件，搜索代码 streaming=True ，改为 streaming=False  然后保存重启 CosyVoice3\n\nPlease modify the official webui.py file for CosyVoice3, search for the line streaming=True , change it to  streaming=False , then save and restart CosyVoice3.\n详见 https://pyvideotrans.com/cosyvoice')
             self.convert_to_wav(wav_file, data_item['filename'])
-        except (TypeError,ValueError,IndexError,AttributeError) as e:
-            err=str(e)+f"\n{self.api_url=}"
+        except (TypeError,ValueError,IndexError,AttributeError,urllib3.exceptions.NewConnectionError,httpx.ConnectError) as e:
             _quit_errors=[
                 "Unknown protocol",
+                "WinError 10061",
                 "Could not fetch config for",
-                "Could not get Gradio config from"
+                "Could not get Gradio config from",
+                "Failed to establish a new connection"
             ]
+            err=str(e)
             for _title in  _quit_errors:
                 if _title in err :
-                    raise StopTask(err) from e
+                    raise StopTask(f"{self.ainame} {tr('This channel needs deployed and started before available')}\n{self.api_url=}\n{err}") from e
             return err
         except concurrent.futures.CancelledError as e:
             logger.exception(f'配音失败:{self.ainame}',exc_info=True)
@@ -77,8 +80,7 @@ class GradioBase(BaseTTS):
                 del thread_local.client
             return str(e)+f"\n{self.api_url=}"
         except Exception as e:
-            print(e)
-            return str(e)+f"\n{self.api_url=}"
+            return +f"{self.api_name} {self.api_url} \n{str(e)}"
         return
 
 

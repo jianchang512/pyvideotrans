@@ -78,8 +78,12 @@ class GPTSoVITS(BaseTTS):
             data['speed']=1.0+self.speed
         logger.debug(f'GPT-SoVITS 当前需要发送的配音数据:{data=}\n{self.api_url=}')
         # 克隆声音
-        response = requests.post(f"{self.api_url}", json=data,  timeout=3600,proxies={"https":"","http":""})
-
+        try:
+            response = requests.post(f"{self.api_url}", json=data,  timeout=3600,proxies={"https":"","http":""})
+        except requests.exceptions.ConnectionError as e:
+            if "Failed to establish a new connection" in str(e):
+                raise StopTask(f"[GPT-SoVITS] {tr('This channel needs deployed and started before available')}") from e
+        
         if response.ok:
             # 如果是WAV音频流，获取原始音频数据
             with open(data_item['filename'] + ".wav", 'wb') as f:

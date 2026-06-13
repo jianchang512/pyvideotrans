@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 import logging,json
 import re
-import time
+import time,httpcore,httpx
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Union
-from openai import OpenAI, NotFoundError, AuthenticationError, PermissionDeniedError,BadRequestError
+from openai import OpenAI, LengthFinishReasonError,NotFoundError, AuthenticationError, PermissionDeniedError,BadRequestError,APIConnectionError
 from tenacity import before_log, retry_if_not_exception_type, wait_fixed, stop_after_attempt, after_log, retry
 
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError, LLMSegmentError, StopTask
 from videotrans.configure.config import logger, settings, params, ROOT_DIR, tr
 from videotrans.task.taskcfg import SrtItem
 from videotrans.translator._base import BaseTrans
-from openai import LengthFinishReasonError
 
 from videotrans.util import tools
 
@@ -68,6 +67,8 @@ class OpenAICampat(BaseTrans):
         try:
             model = OpenAI(api_key=self.api_key, base_url=self.api_url)
             response = model.chat.completions.create(**kwargs, extra_body=self.extra_body)
+        except APIConnectionError as e:
+            raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e}') from e
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
             del kwargs['messages']
             raise StopTask(e.message+f'\n{self.api_url}\n{kwargs}') from e

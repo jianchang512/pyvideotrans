@@ -752,5 +752,7 @@
     "This channel needs deployed and started before available": "该渠道需另行部署并启动后可用",
     "Default punctuation": "默认标点",
     "Restore punctuation":"恢复标点(cn/en)",
-    "Delete punctuation": "删除标点"
+    "Delete punctuation": "删除标点",
+	"Unable to connect to API":"无法连接到 {}，可能当前网络不可访问该API, 若是本地服务,请确认已部署并启动",
+	"Unable to connect to remote API":"无法连接到 {}，可能当前网络不可访问该API"
 }

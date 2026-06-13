@@ -5,7 +5,7 @@ from typing import List, Union
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import params,settings,logger
+from videotrans.configure.config import tr,params,settings,logger
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
@@ -41,7 +41,10 @@ class Libre(BaseTrans):
             "api_key": params.get('libre_key', ''),
             "target": self.target_code[:2]
         }
-        response = requests.post(url=self.api_url, json=jsondata)
+        try:
+            response = requests.post(url=self.api_url, json=jsondata)
+        except requests.exceptions.ConnectionError as e:
+            raise StopTask(f"[Libre] {tr('This channel needs deployed and started before available')}") from e
         response.raise_for_status()
         result = response.json()
         result = tools.cleartext(result['translatedText'])

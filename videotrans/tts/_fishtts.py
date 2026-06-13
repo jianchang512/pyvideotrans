@@ -3,7 +3,7 @@ import time
 from dataclasses import dataclass
 from typing import List, Dict, Union
 import requests
-from videotrans.configure.config import params, logger
+from videotrans.configure.config import params, logger,tr
 from videotrans.configure.excepts import StopTask
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
@@ -31,7 +31,11 @@ class FishTTS(BaseTTS):
         data['references'][0]['audio'] = self._audio_to_base64(ref_wav)
 
         logger.debug(f'fishTTS-post:{data=}')
-        response = requests.post(f"{self.api_url}", json=data, timeout=3600)
+        try:
+            response = requests.post(f"{self.api_url}", json=data, timeout=3600)
+        except requests.exceptions.ConnectionError as e:
+            if "Failed to establish a new connection" in str(e):
+                raise StopTask(f"[FishTTS] {tr('This channel needs deployed and started before available')}") from e
         response.raise_for_status()
 
         # 如果是WAV音频流，获取原始音频数据

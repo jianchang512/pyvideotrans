@@ -1,10 +1,10 @@
 import logging
-import re
+import re,httpx
 from dataclasses import dataclass, field
 from typing import List, Union
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError, StopTask
-from videotrans.configure.config import settings,params,logger
+from videotrans.configure.config import tr,settings,params,logger
 from videotrans.translator._base import BaseTrans
 from videotrans.util import tools
 from google import genai
@@ -103,6 +103,8 @@ class Gemini(BaseTrans):
             if match:
                 return match.group(1)
             raise TranslateSrtError(f"Gemini result is emtpy")
+        except httpx.ConnectTimeout as e:
+            raise StopTask(f' {tr("Unable to connect to remote API","Gemini AI")}\n{e}') from e
         except errors.APIError as e:
             logger.warning(f'{e=}')
             if e.code in [400,403,404,429,500]:

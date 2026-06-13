@@ -5,7 +5,7 @@ from typing import List, Union
 
 import requests
 
-from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTextError
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTextError,StopTask
 from videotrans.configure.config import tr, params, logger, settings
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -56,7 +56,10 @@ class SttAPIRecogn(BaseRecogn):
 
         data = {"language": self.detect_language[:2], "model": params.get('stt_model', 'tiny'),
                 "response_format": "srt"}
-        res = requests.post(f"{self.api_url}", files=files, data=data, timeout=7200)
+        try:
+            res = requests.post(f"{self.api_url}", files=files, data=data, timeout=7200)
+        except requests.exceptions.ConnectionError as e:
+            raise StopTask(f"[STT] {tr('This channel needs deployed and started before available')}") from e
         res.raise_for_status()
         logger.debug(f'STT_API:{res=}')
         res = res.json()

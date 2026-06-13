@@ -752,6 +752,8 @@
     "This channel needs deployed and started before available": "This channel needs deployed and started before available",
     "Default punctuation": "Default punctuation",
     "Restore punctuation":"Restore punctuation(cn/en)",
-    "Delete punctuation": "Delete punctuation"
+    "Delete punctuation": "Delete punctuation",
+	"Unable to connect to API":"Unable to connect to {}. This may be because the API is currently inaccessible on the network. If it's a local service, please ensure it's deployed and running.",
+	"Unable to connect to remote API":"Unable to connect to {}, the API may be inaccessible on the current network."
 
 }
