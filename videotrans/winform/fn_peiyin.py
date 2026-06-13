@@ -317,7 +317,7 @@ def openwin():
             return False
 
         # 语言是否支持
-        if tts_type != tts.EDGE_TTS:
+        if tts_type not in  [tts.EDGE_TTS,tts.OMNIVOICE_TTS]:
             langcode = translator.get_code(show_text=language)
             is_allow_lang_res = tts.is_allow_lang(langcode=langcode, tts_type=tts_type)
             if is_allow_lang_res is not True:
@@ -415,7 +415,7 @@ def openwin():
         uuid_list = list()
 
     def getlangnamelist(tts_type=0):
-        if tts_type != tts.EDGE_TTS:
+        if tts_type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS]:
             return ['-'] + list(translator.LANGNAME_DICT.values())
 
         return ['-'] + list(langname_dict.values())
@@ -450,7 +450,7 @@ def openwin():
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(t):
         tts_type = winobj.tts_type.currentIndex()
-        if tts_type == tts.EDGE_TTS:
+        if tts_type in [tts.EDGE_TTS,tts.OMNIVOICE_TTS]:
             code_list = [key for key, value in langname_dict.items() if value == t]
             if not code_list:
                 code = None

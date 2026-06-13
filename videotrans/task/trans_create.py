@@ -148,6 +148,10 @@ class TransCreate(BaseTask):
         # 是否需要二次识别
         # 选中二次识别 and 有配音 and 非嵌入双字幕 and 有翻译即原始和目标语言非同一个
         self.should_recogn2 = self.cfg.recogn2pass and self.should_dubbing and self.cfg.subtitle_type<3 and (self.cfg.source_language_code != self.cfg.target_language_code)
+        
+        self.cfg.vocal = f"{self.cfg.cache_folder}/vocal.wav"
+        self.cfg.instrument = f"{self.cfg.cache_folder}/instrument.wav"
+        
         # 记录最终使用的配置信息
         logger.debug(f"[TransCreate]最终配置信息：{self=}\n{self.cfg=}")
         # 禁止修改字幕
@@ -205,7 +209,7 @@ class TransCreate(BaseTask):
             self.should_recogn = False
 
         # 判断是否已存在人声文件，只要存在， 即使用此文件作为语音识别原料
-        self.cfg.vocal = f"{self.cfg.cache_folder}/vocal.wav"
+        
         raw_vocal = f"{self.cfg.target_dir}/vocal.wav"
 
         if tools.vail_file(raw_vocal):
@@ -214,7 +218,7 @@ class TransCreate(BaseTask):
         # 需要背景音分离
         if self.cfg.is_separate:
             raw_instrument = f"{self.cfg.target_dir}/instrument.wav"
-            self.cfg.instrument = f"{self.cfg.cache_folder}/instrument.wav"
+            
 
             if tools.vail_file(raw_instrument):
                 shutil.copy2(raw_instrument, self.cfg.instrument)
@@ -240,8 +244,6 @@ class TransCreate(BaseTask):
             finally:
                 if not tools.vail_file(self.cfg.vocal) or not tools.vail_file(self.cfg.instrument):
                     # 分离失败
-                    self.cfg.instrument = None
-                    self.cfg.vocal = None
                     self.cfg.is_separate = False
                     self.should_separate = False
 
@@ -306,7 +308,7 @@ class TransCreate(BaseTask):
                                         callback=self._process_callback)
                 from videotrans.process.prepare_audio import remove_noise
                 kw = {
-                    "input_file": self.cfg.source_wav if not Path(self.cfg.vocal).exists() else self.cfg.vocal,
+                    "input_file": self.cfg.source_wav if not self.cfg.vocal or not Path(self.cfg.vocal).exists() else self.cfg.vocal,
                     "output_file": _remove_noise_wav,
                     "is_cuda": self.cfg.is_cuda
                 }
@@ -469,7 +471,30 @@ class TransCreate(BaseTask):
             if self._exit(): return
             if not raw_subtitles:
                 logger.error('二次识别出错：' + tr('recogn result is empty'))
+                return
+            
+            
+            # LLM重新断句 start
+            if self.cfg.rephrase==1:
+                try:
+                    from videotrans.translator._openaicompat import OpenAICampat
+                    ob = OpenAICampat(
+                        ainame='chatgpt' if settings.get('llm_ai_type', 'chatgpt') != 'deepseek' else 'deepseek',
+                        uuid=self.uuid)
 
+                    self.signal(text=tr("Re-segmenting..."))
+                    srt_list = ob.llm_segment(raw_subtitles )
+                    if srt_list and len(srt_list) > len(raw_subtitles) / 2:
+                        raw_subtitles = srt_list
+                    else:
+                        logger.error(f'二次识别后LLM重新断句失败，已恢复原样,原始字幕行:{len(raw_subtitles)}, 重新断句后字幕行:{len(srt_list)}\n断句结果:\n{srt_list=}')
+                except Exception as e:
+                    self.signal(text=tr("Re-segmenting Error"))
+                    logger.exception(f"二次识别后重新断句失败，已恢复原样 {e}", exc_info=True)
+
+            # LLM重新断句 end
+            
+            
             if self.cfg.fix_punc==2:
                 logger.debug('二次识别后，移除所有标点')
                 for it in raw_subtitles:

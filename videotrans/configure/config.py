@@ -447,7 +447,7 @@ class AppSettings:
             "other_len": 40,
             "gemini_model": DEFAULT_GEMINI_MODEL,
             "llm_chunk_size": 50,
-            "llm_ai_type": "chatgpt",
+            "llm_ai_type": "deepseek",
             "gemini_recogn_chunk": 50,
             "zh_hant_s": True,
             "process_max": 0,
