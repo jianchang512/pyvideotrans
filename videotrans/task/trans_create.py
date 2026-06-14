@@ -401,7 +401,8 @@ class TransCreate(BaseTask):
                 srt_list = ob.llm_segment(self.source_srt_list )
                 if srt_list and len(srt_list) > len(self.source_srt_list) / 2:
                     self.source_srt_list = srt_list
-                    shutil.copy2(self.cfg.source_sub, f'{self.cfg.source_sub}-No-{tr("LLM Rephrase")}.srt')
+                    # 保留原始字幕LLM重新断句之前的文件
+                    #shutil.copy2(self.cfg.source_sub, f'{self.cfg.source_sub[:-4]}-origin_without_LLM.srt')
                     self._save_srt_target(self.source_srt_list, self.cfg.source_sub)
                 else:
                     logger.error(f'重新断句失败，已恢复原样,原始字幕行:{len(self.source_srt_list)}, 重新断句后字幕行:{len(srt_list)}\n断句结果:\n{srt_list=}')
@@ -474,8 +475,8 @@ class TransCreate(BaseTask):
                 return
             
             
-            # LLM重新断句 start
-            if self.cfg.rephrase==1:
+            # LLM重新断句 start 或者存在 recogn2-llm-resegment.txt 文件，则始终在二次识别后断句，适合 clone 角色时，关闭第一次识别后的重新断句，而单独启用二次识别后的断句，因第一次识别后如果重新断句会导致参考音频裁切不准确
+            if self.cfg.rephrase==1 or Path(f'{ROOT_DIR}/recogn2-llm-resegment.txt').exists():
                 try:
                     from videotrans.translator._openaicompat import OpenAICampat
                     ob = OpenAICampat(
@@ -483,8 +484,11 @@ class TransCreate(BaseTask):
                         uuid=self.uuid)
 
                     self.signal(text=tr("Re-segmenting..."))
-                    srt_list = ob.llm_segment(raw_subtitles )
+                    srt_list = ob.llm_segment(raw_subtitles,step="2")
                     if srt_list and len(srt_list) > len(raw_subtitles) / 2:
+                        # 目标语言代码-recogn2_without_LLM.srt 配音文件二次识别后生成的字幕，未被LLM重新断句之前的文件
+                        # 原始语言代码-origin_without_LLM.srt 原始音视频文件语音识别后生成的字幕，未被LLM重新断句之前的文件
+                        #self._save_srt_target(raw_subtitles, f'{self.cfg.target_sub[:-4]}-recogn2_without_LLM.srt')
                         raw_subtitles = srt_list
                     else:
                         logger.error(f'二次识别后LLM重新断句失败，已恢复原样,原始字幕行:{len(raw_subtitles)}, 重新断句后字幕行:{len(srt_list)}\n断句结果:\n{srt_list=}')
@@ -492,8 +496,7 @@ class TransCreate(BaseTask):
                     self.signal(text=tr("Re-segmenting Error"))
                     logger.exception(f"二次识别后重新断句失败，已恢复原样 {e}", exc_info=True)
 
-            # LLM重新断句 end
-            
+            # LLM重新断句 end           
             
             if self.cfg.fix_punc==2:
                 logger.debug('二次识别后，移除所有标点')
@@ -1254,6 +1257,9 @@ class TransCreate(BaseTask):
             logger.exception(f"视频定格延长操作失败,跳过 {e}", exc_info=True)
 
     # 最终合成视频
+    # 各个播放器对长短不一的音视频流处理态度截然不同
+    # 为了保证任何平台都能100% 正常播放，先对音频或视频末尾做添加静音或定格预先对齐，再用 -shortest 明确砍齐
+    # 无损输出时不对齐流，直接 -shortest 砍掉，防止重新编码导致有损
     def _join_video_audio_srt(self) -> None:
         if self._exit() or not self.should_hebing:
             return
@@ -1273,9 +1279,13 @@ class TransCreate(BaseTask):
         target_m4a = self.cfg.cache_folder + "/will_embed.m4a"
         # 用于判断输出原始音频是否结束，is True是结束，
         output_source_output = True
+        # 视频时长
+        duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
+        duration_s = f'{duration_ms / 1000.0:.6f}'
+        # 如果视频时长大于音频时长，音频末尾加静音
         if not self.should_dubbing:
             # 无配音的使用原始音频
-            self._get_origin_audio(target_m4a)
+            self._get_origin_audio(target_m4a,duration_ms)
         else:
             # 单独输出一个高质量 原始音频输出到目标目录，单独线程执行，不影响继续运行
             output_source_output = False
@@ -1306,14 +1316,23 @@ class TransCreate(BaseTask):
             # 重新嵌入分离出的背景音
             self._separate()
 
-            # 将配音文件转为双通道、128k的音频
-            tools.runffmpeg([
+            # 获取音频时长
+            audio_ms = tools.get_audio_time(self.cfg.target_wav)
+            _cmd=[
                 "-y",
                 "-i",
-                os.path.basename(self.cfg.target_wav),
+                os.path.basename(self.cfg.target_wav)
+            ]
+            v_a_offset=duration_ms-audio_ms
+            # 视频时长大于音频超100ms，加静音
+            if v_a_offset>100:
+                logger.debug(f'视频时长{duration_ms}ms-音频时长{audio_ms}ms={v_a_offset}ms,需延长音频')
+                _cmd.extend(['-af', f'apad=pad_dur={v_a_offset/1000.0}'])
+            _cmd.extend([
                 "-ac", "2", "-b:a", "128k", "-c:a", "aac",
                 os.path.basename(target_m4a)
-            ], cmd_dir=self.cfg.cache_folder)
+            ])
+            tools.runffmpeg(_cmd, cmd_dir=self.cfg.cache_folder)
 
         shutil.copy2(target_m4a, self.cfg.target_wav_output)
         self.precent = min(max(95, self.precent), 98)
@@ -1330,14 +1349,24 @@ class TransCreate(BaseTask):
         # 字幕嵌入时进入视频目录下
         os.chdir(self.cfg.cache_folder)
 
-        # 末尾对齐
-        duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
-        duration_s = f'{duration_ms / 1000.0:.6f}'
+        
+        # 再次获取处理好末尾的音频真实时长
         audio_ms = tools.get_audio_time(target_m4a)
-        # 视频定个延长
-        if duration_ms < audio_ms:
+        # 音频时长 - 视频时长差值 >0 则需要定格视频末尾
+        a_v_offset=audio_ms-duration_ms
+
+        
+        # 如果需要输出的视频是 264 编码，则使用 -c:v copy,因开始和中间编码均为264，可以考虑使用copy (如果无硬字幕嵌入的话)
+        is_copy_mode = str(self.video_codec_num) == '264'
+        # 如果原始视频是标准264,需要输出也是264，未视频慢速，未嵌入硬字幕，则放弃视频末尾定格处理，以便实现无损输出
+        is_lossless=self.is_copy_video and is_copy_mode and not self.cfg.video_autorate and self.cfg.subtitle_type not in [1, 3]
+        if is_lossless:
+            logger.debug(f'当前原始视频是标准264,输出也是264，未视频慢速，未嵌入硬字幕，放弃视频末尾处理，实现无损输出。音频时长-视频时长={a_v_offset}ms'+('，\n音频时长大于视频时长{a_v_offset}ms，理论上视频末尾应定格等待音频播放完毕，但不同播放器可能有不同处理方式，如音频截断，视频末尾黑屏等' if a_v_offset>0 else ''))
+        
+        # 音频长于视频>500ms才开始末尾定格
+        elif a_v_offset > 500:
             try:
-                self._video_extend(audio_ms - duration_ms)
+                self._video_extend(a_v_offset)
                 duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
                 duration_s = f'{duration_ms / 1000.0:.6f}'
             except Exception as e:
@@ -1353,13 +1382,8 @@ class TransCreate(BaseTask):
             protxt_basename = os.path.basename(protxt)
             threading.Thread(target=self._hebing_pro, args=(protxt,), daemon=True).start()
 
-            # 如果需要输出的视频是 264 编码，因开始和中间编码均为264，可以考虑使用copy (如果无硬字幕嵌入的话)
-            is_copy_mode = (str(self.video_codec_num) == '264')
-            # 无音频视频流
             novoice_mp4_basename = os.path.basename(self.cfg.novoice_mp4)
-            # 需要嵌入的音频
             target_m4a_basename = os.path.basename(target_m4a)
-            # 合成后的结果视频
             tmp_target_mp4_basename = os.path.basename(tmp_target_mp4)
 
             # 获取可用的硬件
@@ -1403,7 +1427,7 @@ class TransCreate(BaseTask):
 
                 cmd1.extend([
                     "-c:v",
-                    f"libx{self.video_codec_num}",
+                    "copy"  if is_copy_mode else f"libx{self.video_codec_num}",
                     "-c:a",
                     "copy",
                 ])
@@ -1422,10 +1446,9 @@ class TransCreate(BaseTask):
                 if fps_mode:
                     cmd2.extend(fps_mode)
                 
-
-                cmd2.extend(["-t", str(duration_s), tmp_target_mp4_basename])
+                #"-t", str(duration_s),
+                cmd2.extend(['-shortest',tmp_target_mp4_basename])
                 if is_copy_mode:
-                    cmd1[cmd1.index('-c:v') + 1] = 'copy'
                     logger.debug(f'[最终视频合成]copy模式，无需重新编码:\n{cmd0 + cmd1 + cmd2}')
                     tools.runffmpeg(cmd0 + cmd1 + cmd2, cmd_dir=self.cfg.cache_folder, force_cpu=True)
                 elif app_cfg.video_codec.startswith('libx') or settings.get('force_lib'):
@@ -1462,8 +1485,8 @@ class TransCreate(BaseTask):
 
                 if fps_mode:
                     cmd3.extend(fps_mode)
-
-                cmd3.extend(["-t", str(duration_s), tmp_target_mp4_basename])
+                #"-t", str(duration_s),
+                cmd3.extend(['-shortest', tmp_target_mp4_basename])
                 if app_cfg.video_codec.startswith('libx') or settings.get('force_lib'):
                     logger.debug(f'[最终视频合成]不支持硬件编解码或指定了强制软编解码:\n{cmd0 + cmd1 + cmd2}')
                     tools.runffmpeg(cmd0 + cmd1 + subtitle_filter + cmd2 + enc_qua + cmd3,
@@ -1502,7 +1525,7 @@ class TransCreate(BaseTask):
             time.sleep(1)
         return
 
-    def _get_origin_audio(self, output):
+    def _get_origin_audio(self, output,duration_ms=0):
         # 无需配音的场景下取出原始音频
         if self.video_info.get('streams_audio', 0) == 0:
             # 无音频流
@@ -1513,10 +1536,12 @@ class TransCreate(BaseTask):
             self.cfg.name,
             "-vn"
         ]
-        if self.video_info['audio_codec_name'] == 'aac':
-            cmd.extend(['-c:a', 'copy'])
-        else:
-            cmd.extend(['-c:a', 'aac', '-b:a', '128k'])
+        # 如果视频时长大于音频 100ms，需延长
+        v_a_offset=int(self.video_info['time'])-duration_ms
+        if duration_ms>0 and v_a_offset>100:
+            _cmd.extend(['-af', f'apad=pad_dur={v_a_offset/1000.0}'])
+            
+        cmd.extend(['-c:a', 'aac', '-b:a', '128k'])
         cmd.append(output)
         return tools.runffmpeg(cmd)
 

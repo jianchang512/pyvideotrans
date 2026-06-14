@@ -88,13 +88,13 @@ class OpenAICampat(BaseTrans):
         return result.strip()
 
 
-    def llm_segment(self, srt_list)->List[SrtItem]:
+    def llm_segment(self, srt_list,step='')->List[SrtItem]:
         _st=time.time()
         api_url=params.get('chatgpt_api') if self.ainame!='deepseek' else 'https://api.deepseek.com/v1/'
         if len(api_url)<10:
             raise StopTask(f'API URL is error: {api_url}')
 
-        prompts_template = Path(ROOT_DIR + '/videotrans/prompts/recharge/recharge-llm.txt').read_text(encoding='utf-8')
+        prompts_template = Path(f'{ROOT_DIR}/videotrans/prompts/recharge/recharge-llm{step}.txt').read_text(encoding='utf-8')
         prompts_template = prompts_template.replace('{max_speech_s}', str(settings.get('max_speech_duration_s', 6)))
         chunk_size = int(settings.get('llm_chunk_size', 20))
         model_name=params.get(f'{self.ainame}_model')
@@ -149,8 +149,8 @@ class OpenAICampat(BaseTrans):
             if match:
                 return match.group(1)
             return result.strip()
-
-        logger.debug(f'LLM重新断句:{self.ainame=},{model_name=},{api_url=}')
+        
+        logger.debug(f'LLM断句:{self.ainame=},{model_name=},{api_url=}')
         new_sublist = []
         for idx in range(0, len(srt_list), chunk_size):
             self.signal(text=f'[{idx}] {self.ainame} ' + tr("Re-segmenting..."))
@@ -173,5 +173,5 @@ class OpenAICampat(BaseTrans):
                 it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
                 it["time"] = f"{it['startraw']} --> {it['endraw']}"
-        logger.debug(f'LLM重新断句完成,原始字幕行:{len(srt_list)}, 新字幕行:{len(_srtlist)}, 用时:{time.time()-_st}s')
+        logger.debug(f'{"【二次识别后】"  if step else ""}LLM重新断句完成,原始字幕行:{len(srt_list)}, 新字幕行:{len(_srtlist)}, 用时:{time.time()-_st}s')
         return _srtlist

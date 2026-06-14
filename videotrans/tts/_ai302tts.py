@@ -58,7 +58,7 @@ class AI302(BaseTTS):
         response = requests.post('https://api.302.ai/302/v2/audio/tts', headers={
             'Authorization': f'Bearer {params.get("ai302_key","")}',
             'Content-Type': 'application/json'
-        }, data_item=json.dumps(payload), verify=False)
+        }, data=json.dumps(payload), verify=False)
         if response.status_code in [401,403,402,404]:
             raise StopTask(response.text)
         response.raise_for_status()

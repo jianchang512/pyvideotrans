@@ -84,8 +84,14 @@ class APIRecogn(BaseRecogn):
             text=tools.get_srt_from_list(res['data']),
             type='replace_subtitle'
         )
+
+        if isinstance(res['data'],list):
+            data=[f'{i+1}\n{it["time"]}\n{it["text"]}' for i,it in enumerate(res['data'])]
+            data="\n\n".join(data)
+        else:
+            data=res['data']
         
-        return tools.get_subtitle_from_srt(res['data'], is_file=False)
+        return tools.get_subtitle_from_srt(data, is_file=False)
         
 
     def _whisperzero(self)->Union[List[SrtItem], None]:
