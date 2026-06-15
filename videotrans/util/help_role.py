@@ -359,7 +359,9 @@ def role_menu(tts_type, langcode=None) -> List:
 
     if tts_type == tts.ELEVENLABS_TTS:
         return get_elevenlabs_role()
-
+    if tts_type == tts.G_TTS:
+        return ['No','gtts']
+    
     if tts_type == tts.CAMB_TTS:
         return get_camb_role()
 

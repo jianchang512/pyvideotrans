@@ -41,7 +41,7 @@ def openwin():
     from videotrans.component.set_form import DeepgramForm
     winobj = DeepgramForm()
     app_cfg.child_forms['deepgram'] = winobj
-    winobj.apikey.setText(params.get("deepgram_apikey",''))
+    winobj.apikey.setText(str(params.get("deepgram_apikey",'')))
     winobj.utt.setText(str(params.get("deepgram_utt",'')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)

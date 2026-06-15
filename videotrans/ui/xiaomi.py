@@ -128,7 +128,7 @@ class Ui_xiaomiform(object):
         self.model.clear()
         self.model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.xiaomi_key.setText(params.get("xiaomi_key",''))
+        self.xiaomi_key.setText(str(params.get("xiaomi_key",'')))
         self.model.setCurrentText(params.get("xiaomi_model",''))
         self.xiaomi_thinking.setChecked(bool(params.get("xiaomi_thinking",False)))
         

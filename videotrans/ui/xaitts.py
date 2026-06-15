@@ -67,7 +67,7 @@ class Ui_xaittsform(object):
     def update_ui(self):
 
         if params.get("xaitts_key",''):
-            self.xaitts_key.setText(params.get("xaitts_key",''))
+            self.xaitts_key.setText(str(params.get("xaitts_key",'')))
 
     def retranslateUi(self, xaittsform):
         xaittsform.setWindowTitle("XAI TTS")

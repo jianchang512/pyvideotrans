@@ -144,7 +144,7 @@ class TransCreate(BaseTask):
         if self.cfg.app_mode == 'tiqu':
             self.cfg.enable_diariz = False
             self.should_dubbing = False
-
+        self.should_separate = self.cfg.is_separate
         # 是否需要二次识别
         # 选中二次识别 and 有配音 and 非嵌入双字幕 and 有翻译即原始和目标语言非同一个
         self.should_recogn2 = self.cfg.recogn2pass and self.should_dubbing and self.cfg.subtitle_type<3 and (self.cfg.source_language_code != self.cfg.target_language_code)
@@ -209,20 +209,13 @@ class TransCreate(BaseTask):
             self.should_recogn = False
 
         # 判断是否已存在人声文件，只要存在， 即使用此文件作为语音识别原料
-        
         raw_vocal = f"{self.cfg.target_dir}/vocal.wav"
-
         if tools.vail_file(raw_vocal):
             shutil.copy2(raw_vocal, self.cfg.vocal)
 
-        # 需要背景音分离
-        if self.cfg.is_separate:
-            raw_instrument = f"{self.cfg.target_dir}/instrument.wav"
-            
-
-            if tools.vail_file(raw_instrument):
-                shutil.copy2(raw_instrument, self.cfg.instrument)
-            self.should_separate = True
+        raw_instrument = f"{self.cfg.target_dir}/instrument.wav"
+        if tools.vail_file(raw_instrument):
+            shutil.copy2(raw_instrument, self.cfg.instrument)
 
         # 将原始视频分离为无声视频
         if not self.is_audio_trans and self.cfg.app_mode != 'tiqu':
@@ -244,8 +237,7 @@ class TransCreate(BaseTask):
             finally:
                 if not tools.vail_file(self.cfg.vocal) or not tools.vail_file(self.cfg.instrument):
                     # 分离失败
-                    self.cfg.is_separate = False
-                    self.should_separate = False
+                    self.cfg.is_separate = self.should_separate = False
 
         if audio_stream_len > 0 and not tools.vail_file(self.cfg.source_wav) and tools.vail_file(self.cfg.vocal):
             # 如果存在人声文件(可能仅仅分离成功人声，或者单独将其他工具分离出的人声放入目标文件夹)，则使用该文件作为语音识别文件
@@ -315,7 +307,8 @@ class TransCreate(BaseTask):
                 try:
                     _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                     if _rs:
-                        self.clone_ref = self.cfg.source_wav = _remove_noise_wav
+                        self.clone_ref = self.cfg.vocal if self.cfg.vocal and Path(self.cfg.vocal).exists() else _remove_noise_wav
+                        self.cfg.source_wav = _remove_noise_wav
                     self.signal(text='remove noise end')
                 except Exception as e:
                     logger.exception(f'降噪失败，跳过 {e}', exc_info=True)
@@ -375,9 +368,6 @@ class TransCreate(BaseTask):
             except Exception as e:
                 logger.exception(f'标点恢复失败，跳过 {e}', exc_info=True)
 
-
-
-
         self.signal(text=Path(self.cfg.source_sub).read_text(encoding='utf-8'), type='replace_subtitle')
         # whisperx-api
         # openairecogn并且模型是gpt-4o-transcribe-diarize
@@ -409,7 +399,6 @@ class TransCreate(BaseTask):
             except Exception as e:
                 self.signal(text=tr("Re-segmenting Error"))
                 logger.exception(f"重新断句失败，已恢复原样 {e}", exc_info=True)
-
         self._recogn_succeed()
         self.signal(text=tr('endtiquzimu'))
         logger.debug(f'[语音识别阶段结束耗时]:{time.time()-_st}s')
@@ -928,7 +917,6 @@ class TransCreate(BaseTask):
                 tools.runffmpeg(cmd)
                 shutil.copy2(self.cfg.vocal, f'{self.cfg.target_dir}/vocal.wav')
                 shutil.copy2(self.cfg.instrument, f'{self.cfg.target_dir}/instrument.wav')
-                
         except Exception as e:
             logger.exception(f'人声背景声分离失败，静默跳过 {e}', exc_info=True)
 
@@ -1107,10 +1095,8 @@ class TransCreate(BaseTask):
 
     # 重新嵌回分离出的背景声音
     def _separate(self) -> None:
-        if self._exit() or not self.should_separate or not self.cfg.embed_bgm:
-            return
         # 如果背景音频分离失败，则静默返回
-        if not tools.vail_file(self.cfg.instrument) or not tools.vail_file(self.cfg.target_wav):
+        if self._exit() or not self.cfg.embed_bgm or not tools.vail_file(self.cfg.instrument) or not tools.vail_file(self.cfg.target_wav):
             return
         try:
             self.signal(text=tr("Re-embedded background sounds"))
@@ -1281,7 +1267,6 @@ class TransCreate(BaseTask):
         output_source_output = True
         # 视频时长
         duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
-        duration_s = f'{duration_ms / 1000.0:.6f}'
         # 如果视频时长大于音频时长，音频末尾加静音
         if not self.should_dubbing:
             # 无配音的使用原始音频
@@ -1367,11 +1352,9 @@ class TransCreate(BaseTask):
         elif a_v_offset > 500:
             try:
                 self._video_extend(a_v_offset)
-                duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
-                duration_s = f'{duration_ms / 1000.0:.6f}'
+                # duration_ms = int(tools.get_video_duration(self.cfg.novoice_mp4))
             except Exception as e:
                 logger.exception(f'定格视频最后一帧时失败，跳过 {e}', exc_info=True)
-
 
         # 将生成的视频先导出到临时目录，防止包含各种奇怪符号的targetdir_mp4导致ffmpeg失败
         tmp_target_mp4 = self.cfg.cache_folder + f"/laste_target{_video_output_ext}"
@@ -1539,10 +1522,9 @@ class TransCreate(BaseTask):
         # 如果视频时长大于音频 100ms，需延长
         v_a_offset=int(self.video_info['time'])-duration_ms
         if duration_ms>0 and v_a_offset>100:
-            _cmd.extend(['-af', f'apad=pad_dur={v_a_offset/1000.0}'])
+            cmd.extend(['-af', f'apad=pad_dur={v_a_offset/1000.0}'])
             
-        cmd.extend(['-c:a', 'aac', '-b:a', '128k'])
-        cmd.append(output)
+        cmd.extend(['-c:a', 'aac', '-b:a', '128k',output])
         return tools.runffmpeg(cmd)
 
     # ffmpeg进度日志

@@ -137,7 +137,7 @@ class Ui_qwenmtform(object):
         self.qwenmt_asr_model.addItems([ it  for it in allmodels if it.startswith('qwen3-asr')])
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.qwenmt_key.setText(params.get("qwenmt_key",''))
+        self.qwenmt_key.setText(str(params.get("qwenmt_key",'')))
         self.qwenmt_domains.setText(params.get("qwenmt_domains",''))
         self.qwenmt_model.setCurrentText(params.get("qwenmt_model",''))
         self.qwenmt_asr_model.setCurrentText(params.get("qwenmt_asr_model",''))

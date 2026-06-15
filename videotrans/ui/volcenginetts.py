@@ -126,9 +126,9 @@ class Ui_volcengineform(object):
         self.retranslateUi(volcengineform)
         QtCore.QMetaObject.connectSlotsByName(volcengineform)
     def update_ui(self):
-        self.volcenginetts_appid.setText(params.get("volcenginetts_appid",''))
-        self.volcenginetts_access.setText(params.get("volcenginetts_access",''))
-        self.volcenginetts_cluster.setText(params.get("volcenginetts_cluster",''))
+        self.volcenginetts_appid.setText(str(params.get("volcenginetts_appid",'')))
+        self.volcenginetts_access.setText(str(params.get("volcenginetts_access",'')))
+        self.volcenginetts_cluster.setText(str(params.get("volcenginetts_cluster",'')))
     def retranslateUi(self, volcengineform):
         volcengineform.setWindowTitle(tr("Volcengine TTS Setting"))
         self.label.setText("App id")

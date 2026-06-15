@@ -123,9 +123,9 @@ class Ui_azureform(object):
         self.azure_model.clear()
         self.azure_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.azure_key.setText(params.get("azure_key",''))
+        self.azure_key.setText(str(params.get("azure_key",'')))
         self.azure_api.setText(params.get("azure_api",''))
-        self.azure_version.setCurrentText(params.get("azure_version",''))
+        self.azure_version.setCurrentText(str(params.get("azure_version",'')))
         if params.get('azure_model','') in allmodels:
             self.azure_model.setCurrentText(params.get("azure_model",''))
     def retranslateUi(self, azureform):

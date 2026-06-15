@@ -81,7 +81,7 @@ class Ui_qwenttsform(object):
         self.qwentts_model.addItems(settings.get('qwentts_models','').split(','))
 
         if params.get("qwentts_key",''):
-            self.qwentts_key.setText(params.get("qwentts_key",''))
+            self.qwentts_key.setText(str(params.get("qwentts_key",'')))
         if params.get("qwentts_model",''):
             self.qwentts_model.setCurrentText(params.get("qwentts_model",''))
         self.qwentts_modellist.setPlainText(settings.get('qwentts_models'))

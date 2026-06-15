@@ -51,7 +51,7 @@ def openwin():
     else:
         winobj.azuretts_area.setCurrentText(params.get('azure_speech_region',''))
     if params.get('azure_speech_key',''):
-        winobj.speech_key.setText(params.get('azure_speech_key',''))
+        winobj.speech_key.setText(str(params.get('azure_speech_key','')))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

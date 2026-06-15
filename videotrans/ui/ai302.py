@@ -113,7 +113,7 @@ class Ui_ai302form(object):
         self.edit_allmodels.setPlainText(allmodels_str)
 
         if params.get("ai302_key",''):
-            self.ai302_key.setText(params.get("ai302_key",''))
+            self.ai302_key.setText(str(params.get("ai302_key",'')))
         if  params.get("ai302_model") in allmodels:
             self.ai302_model.setCurrentText(params.get("ai302_model",''))
         self.ai302_model_recogn.setCurrentText(params.get("ai302_model_recogn",''))

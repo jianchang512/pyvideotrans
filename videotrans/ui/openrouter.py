@@ -130,9 +130,9 @@ class Ui_openrouterform(object):
         self.openrouter_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.openrouter_key.setText(params.get("openrouter_key",''))
+        self.openrouter_key.setText(str(params.get("openrouter_key",'')))
         self.openrouter_model.setCurrentText(params.get("openrouter_model",''))
-        self.max_token.setText(params.get("openrouter_max_token",''))
+        self.max_token.setText(str(params.get("openrouter_max_token",'')))
         self.reasoning_effort.setCurrentText(params.get("openrouter_reasoning_effort","No"))
 
     def retranslateUi(self, openrouterform):

@@ -132,7 +132,7 @@ class Ui_minimaxform(object):
         self.minimax_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.minimax_key.setText(params.get("minimax_key",''))
+        self.minimax_key.setText(str(params.get("minimax_key",'')))
         self.minimax_api.setText(params.get("minimax_api",''))
         self.max_token.setText(str(params.get("minimax_max_tokens",'8192')))
         self.minimax_model.setCurrentText(params.get("minimax_model",''))

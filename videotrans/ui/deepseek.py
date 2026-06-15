@@ -130,7 +130,7 @@ class Ui_deepseekform(object):
         self.deepseek_max_token.setText(str(params.get('deepseek_max_token',40960)))
 
         self.deepseek_thinking.setChecked(bool(params.get("deepseek_thinking",False)))
-        self.deepseek_key.setText(params.get("deepseek_key",''))
+        self.deepseek_key.setText(str(params.get("deepseek_key",'')))
         self.deepseek_model.setCurrentText(params.get("deepseek_model",''))
 
     def retranslateUi(self, deepseekform):

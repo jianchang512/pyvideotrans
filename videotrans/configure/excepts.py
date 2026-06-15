@@ -1,18 +1,11 @@
 import re
-
 import aiohttp
-import httpcore
-import httpx
 import requests
-from deepgram.clients.common.v1.errors import DeepgramApiError
 from elevenlabs.core import ApiError as ApiError_11
-from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
-    APIConnectionError, APIError, ContentFilterFinishReasonError, InternalServerError, LengthFinishReasonError, \
-    UnprocessableEntityError
 from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, \
     Timeout, ConnectionError as ReqConnectionError, RetryError, HTTPError
 from tenacity import RetryError as TenRetryError
-
+import httpx
 from videotrans.configure.config import defaulelang
 
 
@@ -84,15 +77,6 @@ NO_RETRY_EXCEPT = (
     httpx.TooManyRedirects,
     httpx.UnsupportedProtocol,
 
-    # openai 库的永久性错误 (通常是 4xx 状态码)
-    AuthenticationError,  # 401 认证失败 (API Key 错误)
-    PermissionDeniedError,  # 403 无权限访问该模型
-    NotFoundError,  # 404 找不到资源 (例如模型名称错误)
-    BadRequestError,  # 400 错误请求 (例如输入内容过长、参数无效等)
-    UnprocessableEntityError,#422
-    LengthFinishReasonError,
-
-    DeepgramApiError,
     StopRetry,
     StopTask
 )
@@ -226,7 +210,10 @@ def get_msg_from_except(ex:Exception)->str:
             ex = ex.last_attempt.exception()
         except AttributeError:
             pass
-
+    import httpcore
+    from deepgram.clients.common.v1.errors import DeepgramApiError
+    from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
+    APIConnectionError, APIError, ContentFilterFinishReasonError, InternalServerError, LengthFinishReasonError
     # 异常处理映射
     exception_handlers = {
         # === 认证和权限问题 ===

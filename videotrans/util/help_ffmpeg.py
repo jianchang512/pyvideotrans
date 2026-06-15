@@ -10,7 +10,7 @@ from typing import Union
 
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
 from videotrans.configure import config
-from videotrans.configure.excepts import FFmpegError, VideoTransError
+
 from videotrans.task.taskcfg import InputFile
 from videotrans.configure import contants
 from videotrans.configure.contants import INSTALL_RUBBERBAND_TIPS
@@ -85,6 +85,7 @@ def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
         if sys.platform == 'win32' and 'No such file or directory' in str(e):
             _err = get_filepath_from_cmd(cmd)
             err = _err or err
+        from videotrans.configure.excepts import FFmpegError
         raise FFmpegError(err) from e
     except Exception as e:
         if noextname:
@@ -258,6 +259,7 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
     (内部函数) 执行 ffprobe 命令并返回其标准输出。
     """
     # 确保文件路径参数已转换为 POSIX 风格字符串，以获得更好的兼容性
+    from videotrans.configure.excepts import FFmpegError
     if Path(cmd[-1]).is_file():
         cmd[-1] = Path(cmd[-1]).as_posix()
 
@@ -288,6 +290,7 @@ def runffprobe(cmd):
     stdout_result = _run_ffprobe_internal(cmd)
     if stdout_result:
         return stdout_result
+    from videotrans.configure.excepts import FFmpegError
     raise FFmpegError("ffprobe ran successfully but produced no output.")
 
 
@@ -295,6 +298,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
     """
     获取视频信息。
     """
+    from videotrans.configure.excepts import FFmpegError
     if not Path(mp4_file).exists():
         raise Exception(f'{mp4_file} is not exists')
     out_json = runffprobe(
@@ -471,7 +475,7 @@ def create_concat_txt(filelist, concat_txt=None):
         txt.append(f"file '{path_obj.name}'")
     if not txt:
         # 如果没有有效文件，创建一个空的concat文件可能导致错误，不如直接抛出异常
-        raise VideoTransError("Cannot create concat txt from an empty or invalid file list.")
+        raise RuntimeError("Cannot create concat txt from an empty or invalid file list.")
 
     logger.debug(f'{concat_txt=},{filelist[0]=}')
     with open(concat_txt, 'w', encoding='utf-8') as f:

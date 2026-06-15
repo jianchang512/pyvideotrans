@@ -136,7 +136,7 @@ class Ui_geminiform(object):
         self.model.clear()
         self.model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.gemini_key.setText(params.get("gemini_key",''))
+        self.gemini_key.setText(str(params.get("gemini_key",'')))
         self.model.setCurrentText(params.get("gemini_model",''))
         
         self.gemini_maxtoken.setText(str(params.get("gemini_maxtoken",'16384')))

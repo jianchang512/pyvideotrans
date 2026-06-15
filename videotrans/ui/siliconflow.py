@@ -118,9 +118,9 @@ class Ui_siliconflowform(object):
         self.guiji_model.clear()
         self.guiji_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.guiji_key.setText(params.get("guiji_key",''))
+        self.guiji_key.setText(str(params.get("guiji_key",'')))
         self.guiji_model.setCurrentText(params.get("guiji_model",''))
-        self.max_token.setText(params.get("guiji_max_token",''))
+        self.max_token.setText(str(params.get("guiji_max_token",'')))
 
     def retranslateUi(self, siliconflowform):
         siliconflowform.setWindowTitle(tr("SiliconFlow"))

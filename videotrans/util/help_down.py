@@ -5,20 +5,12 @@ import shutil, os
 import zipfile
 from videotrans.configure.config import ROOT_DIR, tr, logger, defaulelang,app_cfg
 from videotrans.configure.contants import FASTER_MODELS_DICT
-from videotrans.configure.excepts import DownloadModelsError
 from urllib.parse import urlparse
 import threading
-
 import tqdm
-import huggingface_hub.file_download as hf_fd
-# ── 补丁 http_get: 注入 _ChunkTracker 绕过 tqdm ──
-_original_http_get = hf_fd.http_get
-import modelscope.hub.snapshot_download as ms_sd
-_orig_download_file_lists = ms_sd._download_file_lists
+
 # 全局锁对象防止同时下载模型，避免文件冲突或限流
 download_lock = threading.Lock()
-
-
 
 """解析URL获取纯净文件名 (去除 ?query)"""
 def get_filename_from_url(url) -> str:
@@ -62,17 +54,21 @@ def is_connect_hf()->bool:
 若可连接 huggingface.co ，则始终使用
 """
 
-
+_original_http_get=None
 def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=None) -> bool:
+    global _original_http_get
     if model_id in FASTER_MODELS_DICT and is_connect_hf() is False:
         logger.debug(f'从 modelscope.cn 下载模型 {model_id=}')
         return check_and_down_ms(FASTER_MODELS_DICT[
                                      model_id] if model_id != 'distil-large-v3.5' else 'iBoostAI/distil-whisper-distil-large-v3.5-ct2',
                                  callback=callback, local_dir=local_dir)
 
+    import huggingface_hub.file_download as hf_fd
+    if not _original_http_get:
+        # ── 补丁 http_get: 注入 _ChunkTracker 绕过 tqdm ──
+        _original_http_get = hf_fd.http_get
     import huggingface_hub
     from huggingface_hub.errors import LocalEntryNotFoundError
-
 
     _state = {"completed": 0, "total_files": 0}
     # ── 总进度 ──
@@ -184,6 +180,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
                     logger.exception(f"清理临时文件失败：{junk} {e}", exc_info=True)
     except Exception as e:
         msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
+        from videotrans.configure.excepts import DownloadModelsError
         raise DownloadModelsError(f'{msg}\n[https://huggingface.co/{repo_id}/tree/main]\n{e}')
     finally:
         hf_fd.http_get = _original_http_get
@@ -225,6 +222,7 @@ def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
                 finally:
                     dest_file_obj.close()  # 关闭实体文件句柄
         except Exception as e:
+            from videotrans.configure.excepts import DownloadModelsError
             raise DownloadModelsError(
                 tr("downloading all files", local_dir) + f'\n[https://huggingface.co{url}]\n\n{e}')
     return True
@@ -307,13 +305,19 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
         msg = tr('model is missing. Please download it', local_dir)
         if callback:
             callback(f'Error:{msg}')
+        from videotrans.configure.excepts import DownloadModelsError
         raise DownloadModelsError(f"{msg}\n[{zip_url}]\n{e}")
     return True
 
 
 # 从 modelscope.cn 下载完整模型
 # 优先加载本地模型，失败则在线下载
+_orig_download_file_lists=None
 def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
+    global _orig_download_file_lists
+    import modelscope.hub.snapshot_download as ms_sd
+    if not _orig_download_file_lists:
+        _orig_download_file_lists = ms_sd._download_file_lists
     from modelscope.hub.callback import TqdmCallback
     from modelscope.hub.snapshot_download import snapshot_download
 
@@ -375,6 +379,7 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
     except Exception as e:
         local_dir = f'{ROOT_DIR}/models/models/{model_id}/' if not local_dir else local_dir
         msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
+        from videotrans.configure.excepts import DownloadModelsError
         raise DownloadModelsError(f'{msg}\n[https://modelscope.cn/models/{model_id}/tree/main]\n{e}')
     finally:
         ms_sd._download_file_lists = _orig_download_file_lists

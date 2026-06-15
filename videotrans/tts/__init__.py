@@ -45,7 +45,8 @@ FISHTTS = 27
 AZURE_TTS = 28
 AI302_TTS = 29
 CAMB_TTS = 30
-TTS_API = 31
+G_TTS = 31
+TTS_API = 32
 
 
 # 支持克隆的渠道
@@ -107,6 +108,7 @@ _ID_NAME_DICT = {
     AZURE_TTS: ChannelProvider("Azure-TTS", "._azuretts", key_name="azure_speech_key", win="azuretts"),
     AI302_TTS: ChannelProvider("302.AI", "._ai302tts", key_name="ai302_key", win="ai302"),
     CAMB_TTS: ChannelProvider("CAMB AI TTS", "._cambtts", key_name="camb_api_key", win="cambtts"),
+    G_TTS: ChannelProvider("gTTS", "._gtts"),
     TTS_API: ChannelProvider(tr("Customize API"), "._ttsapi", key_name="ttsapi_url", win="ttsapi")
 }
 # 强制保持按照每个常量值大小排序

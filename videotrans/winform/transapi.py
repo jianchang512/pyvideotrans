@@ -38,7 +38,7 @@ def openwin():
     winobj = TransapiForm()
     app_cfg.child_forms['transapi'] = winobj
     winobj.api_url.setText(params.get("trans_api_url",''))
-    winobj.miyue.setText(params.get("trans_secret",''))
+    winobj.miyue.setText(str(params.get("trans_secret",'')))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

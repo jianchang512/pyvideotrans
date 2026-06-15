@@ -38,7 +38,7 @@ def openwin():
     winobj = LibreForm()
     app_cfg.child_forms['libre'] = winobj
     winobj.address.setText(params.get("libre_address",''))
-    winobj.key.setText(params.get("libre_key",''))
+    winobj.key.setText(str(params.get("libre_key",'')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

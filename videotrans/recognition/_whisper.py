@@ -3,7 +3,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Union, List
 
-from videotrans.configure.config import  settings, ROOT_DIR
+from videotrans.configure.config import settings, ROOT_DIR, logger
 from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -124,5 +124,5 @@ class FasterAll(BaseRecogn):
             raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
             return raws
         except SttTimeoutError:
-            logger.debug('捕获到强制抛出的 SttTimeoutError, 使用已识别的文件 {subtitle_srt}')
+            logger.debug(f'捕获到强制抛出的 SttTimeoutError, 使用已识别的文件 {subtitle_srt}')
             return tools.get_subtitle_from_srt(subtitle_srt, is_file=True)

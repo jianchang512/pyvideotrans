@@ -61,7 +61,7 @@ def openwin():
     if params["ttsapi_voice_role"]:
         winobj.voice_role.setPlainText(params["ttsapi_voice_role"])
     if params["ttsapi_extra"]:
-        winobj.extra.setText(params["ttsapi_extra"])
+        winobj.extra.setText(str(params["ttsapi_extra"]))
 
     if params["ttsapi_language_boost"]:
         winobj.language_boost.setCurrentText(params["ttsapi_language_boost"])

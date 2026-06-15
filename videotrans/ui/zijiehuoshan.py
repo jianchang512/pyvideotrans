@@ -96,7 +96,7 @@ class Ui_zijiehuoshanform(object):
         self.zijiehuoshan_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.zijiehuoshan_key.setText(params.get("zijiehuoshan_key",''))
+        self.zijiehuoshan_key.setText(str(params.get("zijiehuoshan_key",'')))
         if params.get("zijiehuoshan_model",'') in allmodels:
             self.zijiehuoshan_model.setCurrentText(params.get("zijiehuoshan_model",''))
     def retranslateUi(self, zijiehuoshanform):

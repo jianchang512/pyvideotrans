@@ -61,7 +61,7 @@ def openwin():
     from videotrans.component.set_form import CambTTSForm
     winobj = CambTTSForm()
     app_cfg.child_forms['cambtts'] = winobj
-    winobj.camb_api_key.setText(params.get('camb_api_key', ''))
+    winobj.camb_api_key.setText(str(params.get('camb_api_key', '')))
     winobj.camb_speech_model.setCurrentText(params.get('camb_speech_model', 'mars-flash'))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)

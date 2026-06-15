@@ -138,7 +138,7 @@ class Ui_chatgptform(object):
         self.chatgpt_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.chatgpt_key.setText(params.get("chatgpt_key",''))
+        self.chatgpt_key.setText(str(params.get("chatgpt_key",'')))
         self.chatgpt_api.setText(params.get("chatgpt_api",''))
         self.chatgpt_model.setCurrentText(params.get("chatgpt_model",''))
         self.chatgpt_max_token.setText(str(params.get("chatgpt_max_token",'')))

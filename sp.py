@@ -101,13 +101,13 @@ class StartWindow(QWidget):
         super().closeEvent(event)
 
     def update_lable(self, t):
-        QApplication.processEvents()
         print(f'{t=}')
         if t == 'end':
             self.status_label.setText(f'Total time {int(time.time() - self.start_time)}s')
             QTimer.singleShot(1000, lambda: self.close())
         else:
             self.status_label.setText(f'{t}  {int(time.time() - self.start_time)}s')
+        QApplication.processEvents()
 
     def center(self):
         screen = QGuiApplication.primaryScreen()
@@ -138,11 +138,14 @@ def initialize_full_app(start_window, app_instance):
     cli_args, unknown = parser.parse_known_args()
     if cli_args.lang:
         os.environ['PYVIDEOTRANS_LANG'] = cli_args.lang.lower()
-
+    start_window.update_lable('Loading resources...')
+    QApplication.processEvents()
     # 导入qss image 资源
     import videotrans.ui.dark.darkstyle_rc
     with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
         app_instance.setStyleSheet(f.read())
+    start_window.update_lable('Loading main window...')
+    QApplication.processEvents()
 
     from videotrans.mainwin.main_win import MainWindow
     main_window_created = False
@@ -152,16 +155,17 @@ def initialize_full_app(start_window, app_instance):
         w, h = int(screen.width() * 0.85), int(screen.height() * 0.85)
         size = sets.value("windowSize", QSize(w, h))
         w, h = size.width(), size.height()
-        start_window.main_window = MainWindow(width=w, height=h)
-        start_window.main_window.uito.connect(start_window.update_lable)
+        start_window.update_lable('Initializing UI...')
+        QApplication.processEvents()
+        start_window.main_window = MainWindow(width=w, height=h,callback=start_window.update_lable)
         main_window_created = True
     except Exception as e:
         show_global_error_dialog(type(e), e, e.__traceback__)
         app_instance.quit()
         return
 
-    if main_window_created and start_window.main_window:
-        start_window.main_window.show()
+    #if main_window_created and start_window.main_window:
+    #    start_window.main_window.show()
 
 
 if __name__ == "__main__":
@@ -206,8 +210,10 @@ if __name__ == "__main__":
         splash.setWindowIcon(QIcon("./videotrans/styles/icon.ico"))
         splash.center()
         splash.show()
+        app.processEvents()
 
         QTimer.singleShot(100, lambda: initialize_full_app(splash, app))
+        #initialize_full_app(splash, app)
         try:
             res = app.exec()
             res = 0 if res is None else res

@@ -119,9 +119,9 @@ class Ui_zhipuaiform(object):
         self.zhipu_model.clear()
         self.zhipu_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.zhipu_key.setText(params.get("zhipu_key",''))
+        self.zhipu_key.setText(str(params.get("zhipu_key",'')))
         self.zhipu_model.setCurrentText(params.get("zhipu_model",''))
-        self.max_token.setText(params.get("zhipu_max_token",''))
+        self.max_token.setText(str(params.get("zhipu_max_token",'')))
     def retranslateUi(self, zhipuaiform):
         zhipuaiform.setWindowTitle(tr("Zhipu AI"))
         self.label_2.setText(tr("SK"))

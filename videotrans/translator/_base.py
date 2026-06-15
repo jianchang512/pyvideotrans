@@ -10,7 +10,7 @@ from videotrans.configure.base import BaseCon
 from videotrans.configure.config import tr, settings, logger, TEMP_ROOT
 from videotrans.configure.excepts import TranslateSrtError
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+
 
 
 @dataclass
@@ -89,6 +89,7 @@ class BaseTrans(BaseCon):
         ]
         """
         target_list = []
+        from videotrans.util import tools
         for i, it in enumerate(split_source_text):
             """ it=['你好啊我的朋友','第二行']  此时 _item_task 接收的是 list[str] """
             if self._exit(): return
@@ -124,6 +125,7 @@ class BaseTrans(BaseCon):
     # 发送完整字幕格式内容进行翻译
     # 此时 _item_task 接收的是 srt 格式的字符串
     def _run_srt(self, split_source_text: List[List[SrtItem]]):
+        from videotrans.util import tools
         """
         split_source_text=[
             [{text:"",start_time:"",line:""},{...},...]
@@ -170,6 +172,7 @@ class BaseTrans(BaseCon):
         return
 
     def _get_key(self, it) -> str:
+        from videotrans.util import tools
         it=tools.serial(it)
         key_str = f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}'
         return tools.get_md5(key_str)

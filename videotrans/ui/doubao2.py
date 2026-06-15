@@ -86,8 +86,8 @@ class Ui_doubao2form(object):
         self.retranslateUi(doubao2form)
         QtCore.QMetaObject.connectSlotsByName(doubao2form)
     def update_ui(self):
-        self.doubao2_appid.setText(params.get("doubao2_appid",''))
-        self.doubao2_access.setText(params.get("doubao2_access",''))
+        self.doubao2_appid.setText(str(params.get("doubao2_appid",'')))
+        self.doubao2_access.setText(str(params.get("doubao2_access",'')))
 
     def retranslateUi(self, doubao2form):
         doubao2form.setWindowTitle(tr("DouBao2"))

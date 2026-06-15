@@ -128,7 +128,7 @@ class Ui_openaittsform(object):
         self.edit_roles.setPlainText(params.get('openaitts_role',''))
 
         if params.get("openaitts_key",''):
-            self.openaitts_key.setText(params.get("openaitts_key",''))
+            self.openaitts_key.setText(str(params.get("openaitts_key",'')))
         if params.get("openaitts_instructions",''):
             self.openaitts_instructions.setText(params.get("openaitts_instructions", ''))
         if params.get("openaitts_api",''):

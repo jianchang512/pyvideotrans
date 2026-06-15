@@ -44,7 +44,7 @@ def openwin():
     if params['deepl_api']:
         winobj.deepl_api.setText(params['deepl_api'])
     if params['deepl_gid']:
-        winobj.deepl_gid.setText(params['deepl_gid'])
+        winobj.deepl_gid.setText(str(params['deepl_gid']))
     winobj.set_deepl.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

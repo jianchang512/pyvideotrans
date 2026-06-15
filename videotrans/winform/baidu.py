@@ -38,9 +38,9 @@ def openwin():
     winobj = BaiduForm()
     app_cfg.child_forms['baidu'] = winobj
     if params.get("baidu_appid",''):
-        winobj.baidu_appid.setText(params.get("baidu_appid",''))
+        winobj.baidu_appid.setText(str(params.get("baidu_appid",'')))
     if params.get("baidu_miyue",''):
-        winobj.baidu_miyue.setText(params.get("baidu_miyue",''))
+        winobj.baidu_miyue.setText(str(params.get("baidu_miyue",'')))
     winobj.set_badiu.clicked.connect(save_baidu)
     winobj.test.clicked.connect(test)
     winobj.show()

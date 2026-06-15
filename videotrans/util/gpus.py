@@ -18,7 +18,7 @@ def getset_gpu(force_cpu=False) -> int:
         return app_cfg.NVIDIA_GPU_NUMS
     import torch
     # 无可用显卡
-    app_cfg.NVIDIA_GPU_NUMS = 0 if not torch.cuda.is_available() else torch.cuda.device_count()
+    app_cfg.NVIDIA_GPU_NUMS = 0 if platform.system() == 'Darwin' or  not torch.cuda.is_available() else torch.cuda.device_count()
     logger.debug(f'NVIDIA_GPU_NUMS={app_cfg.NVIDIA_GPU_NUMS}')
     return app_cfg.NVIDIA_GPU_NUMS
 

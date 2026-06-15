@@ -65,7 +65,7 @@ def openwin():
     app_cfg.child_forms['minimaxi'] = winobj
 
 
-    winobj.apikey.setText(params.get("minimaxi_apikey",''))
+    winobj.apikey.setText(str(params.get("minimaxi_apikey",'')))
     winobj.apiurl.setCurrentText(params.get("minimaxi_apiurl",'api.minimaxi.com'))
 
     winobj.emotion.setCurrentText(params.get("minimaxi_emotion",''))

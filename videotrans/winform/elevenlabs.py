@@ -55,7 +55,7 @@ def openwin():
     from videotrans.component.set_form import ElevenlabsForm
     winobj = ElevenlabsForm()
     app_cfg.child_forms['elevenlabs'] = winobj
-    winobj.elevenlabstts_key.setText(params.get('elevenlabstts_key',''))
+    winobj.elevenlabstts_key.setText(str(params.get('elevenlabstts_key','')))
     winobj.elevenlabstts_models.setCurrentText(params.get('elevenlabstts_models',''))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)

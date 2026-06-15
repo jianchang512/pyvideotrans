@@ -127,7 +127,7 @@ class Ui_localllmform(object):
         self.localllm_model.clear()
         self.localllm_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.localllm_key.setText(params.get("localllm_key",''))
+        self.localllm_key.setText(str(params.get("localllm_key",'')))
         self.localllm_api.setText(params.get("localllm_api",''))
         self.localllm_model.setCurrentText(params.get("localllm_model",''))
         self.localllm_max_token.setText(str(params.get("localllm_max_token",'')))

@@ -42,7 +42,7 @@ def openwin():
     winobj = RecognAPIForm()
     app_cfg.child_forms['recognapi'] = winobj
     winobj.recognapiform_address.setText(params.get("recognapi_url",''))
-    winobj.recognapiform_key.setText(params.get("recognapi_key",''))
+    winobj.recognapiform_key.setText(str(params.get("recognapi_key",'')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

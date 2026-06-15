@@ -1,10 +1,9 @@
 from pathlib import Path
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication, Signal
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QMessageBox, QMainWindow, QApplication
+from PySide6.QtWidgets import QMessageBox, QMainWindow
 import asyncio, sys
 import os
-from videotrans.util import tools
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -14,29 +13,30 @@ import platform
 import getpass
 import subprocess
 from videotrans.configure import config
-
 config.init_run()
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR, TEMP_ROOT
-from videotrans import VERSION, translator, tts, recognition
-from videotrans.task.job import start_thread
+from videotrans import VERSION
 from videotrans.util.checkgpu import AiLoaderThread
 from videotrans.ui.en import Ui_MainWindow
-from videotrans.translator import TRANSLASTE_NAME_LIST, LANGNAME_DICT
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans import winform
 from videotrans.configure.signal_hub import SignalHub
+from videotrans.util import tools
+
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    
 
-    def __init__(self, parent=None, width=1200, height=650):
+
+    def __init__(self, parent=None, width=1200, height=650,callback=None):
         super().__init__(parent)
-        
+        self.callback=callback
+        if callback:
+            callback("Init ing...")
         self.resize(width, height)
         self.setupUi(self)
-       
-        
+        if callback:
+            callback("SetupUI end...")
 
         self.worker_threads = []
         self.width = width
@@ -52,28 +52,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 当前所有可用角色列表
         self.current_rolelist = []
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.languagename = list(LANGNAME_DICT.values())
         self.rawtitle = f"{tr('softname')} {VERSION} {tr('Documents')} pyvideotrans.com"
         self.setWindowTitle(self.rawtitle)
-        self.show()
 
         self.moshi = {
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
-
-        QTimer.singleShot(200, self._set_default)
-        # 查询GPU
-        run_in_threadpool(tools.check_hw_on_start)
-
-    def _set_default(self):
-        QApplication.processEvents()
-        self.uito.emit('Set default ...')
-
+        # 检测GPU
         s = AiLoaderThread(self)
         s.gpu_io.connect(self._start_workers)
         s.start()
 
+        self._set_default()
+        # 查询GPU
+
+    def _set_default(self):
+        if self.callback:
+            self.callback('Set default ...')
+        from videotrans import recognition,tts
+        from videotrans.translator import TRANSLASTE_NAME_LIST,LANGNAME_DICT,get_code
+        self.languagename = list(LANGNAME_DICT.values())
         # 填充字幕翻译渠道列表
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
         # 原始语言渠道
@@ -81,6 +80,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 目标语言渠道
         self.target_language.addItems(["-"] + self.languagename)
         # 填充配音渠道列表
+
         self.tts_type.addItems(tts.TTS_NAME_LIST)
         # 填充语音识别渠道
         self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
@@ -103,8 +103,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         _output_srt = int(params.get('output_srt', 0))
         _role = params.get('voice_role') or 'No'
         _model_name = params.get('model_name')
-
-
 
         # 设置默认渠道配置
         self.translate_type.setCurrentIndex(_translate_type)
@@ -175,7 +173,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 填充配音角色列表
         _langcode = None
         if _target_language and _target_language in self.languagename:
-            _langcode = translator.get_code(show_text=_target_language)
+            _langcode = get_code(show_text=_target_language)
         _rolelist = tools.role_menu(_tts_type, _langcode)
         # 填充配音角色
         self.voice_role.addItems(_rolelist)
@@ -186,11 +184,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.target_language.setCurrentText(_target_language)
             if _role in _rolelist:
                 self.voice_role.setCurrentText(_role)
+        self.show()
+        # 核对硬件编码
+        run_in_threadpool(tools.check_hw_on_start)
+        # 核对 huggingface.co 连通性
+        run_in_threadpool(tools.is_connect_hf)
+        # 核对最新版本号
+        run_in_threadpool(tools.check_new_version)
         self._bind_signal()
 
     def _bind_signal(self):
-        QApplication.processEvents()
-        self.uito.emit('Bind signal...')
+        if self.callback:
+            self.callback('Bind signal...')
         # 初始化主控制器
         from videotrans.mainwin._actions import WinAction
         self.win_action = WinAction(self)
@@ -312,8 +317,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
 
-        QApplication.processEvents()
-        self.uito.emit('set cursor...')
+        if self.callback:
+            self.callback('set cursor...')
 
         self.import_sub.setCursor(Qt.PointingHandCursor)
         self.startbtn.setCursor(Qt.PointingHandCursor)
@@ -334,29 +339,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if _role in self.current_rolelist:
             self.voice_role.setCurrentText(_role)
 
+        if self.callback:
+            self.callback('preload win...')
         # 预先加载 配音/语音转录/字幕翻译窗口 等常用功能面板，
         self.open_winform('fn_peiyin')
         self.open_winform('fn_recogn')
         self.open_winform('fn_fanyisrt')
 
-        QApplication.processEvents()
-        self.uito.emit('end')
-        
-        run_in_threadpool(tools.check_new_version)
-        QTimer.singleShot(2000, self._check_huggingface)
-        
-    def _check_huggingface(self):
-        run_in_threadpool(tools.is_connect_hf)
-
+        if self.callback:
+            self.callback('end')
+    # 检测GPU完成后，启动子线程
     def _start_workers(self, status):
         if status == 'end':
+            from videotrans.task.job import start_thread
             self.worker_threads = start_thread()
         else:
             tools.show_error(status)
 
     # 打开缓慢
     def open_winform(self, name):
-
         if name == 'set_ass':
             from videotrans.component.set_ass import ASSStyleDialog
             dialog = ASSStyleDialog()

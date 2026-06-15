@@ -98,7 +98,7 @@ class Ui_openairecognapiform(object):
         self.openairecognapi_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
 
-        self.openairecognapi_key.setText(params.get("openairecognapi_key",''))
+        self.openairecognapi_key.setText(str(params.get("openairecognapi_key",'')))
         self.openairecognapi_prompt.setText(params.get("openairecognapi_prompt",''))
         self.openairecognapi_url.setText(params.get("openairecognapi_url",''))
         if params.get('openairecognapi_model','') in allmodels:

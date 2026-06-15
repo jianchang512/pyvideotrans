@@ -41,11 +41,11 @@ def openwin():
     winobj = TencentForm()
     app_cfg.child_forms['tencent'] = winobj
     if params["tencent_SecretId"]:
-        winobj.tencent_SecretId.setText(params["tencent_SecretId"])
+        winobj.tencent_SecretId.setText(str(params["tencent_SecretId"]))
     if params["tencent_SecretKey"]:
-        winobj.tencent_SecretKey.setText(params["tencent_SecretKey"])
+        winobj.tencent_SecretKey.setText(str(params["tencent_SecretKey"]))
     if params["tencent_termlist"]:
-        winobj.tencent_term.setText(params["tencent_termlist"])
+        winobj.tencent_term.setText(str(params["tencent_termlist"]))
     winobj.set_tencent.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

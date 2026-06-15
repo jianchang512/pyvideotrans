@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Union, Dict, List
 
+import requests
 from gradio_client import handle_file
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 

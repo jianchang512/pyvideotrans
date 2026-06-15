@@ -41,9 +41,9 @@ def openwin():
     winobj = AliForm()
     app_cfg.child_forms['ali'] = winobj
     if params.get("ali_id"):
-        winobj.ali_id.setText(params.get("ali_id"))
+        winobj.ali_id.setText(str(params.get("ali_id")))
     if params.get("ali_key"):
-        winobj.ali_key.setText(params.get("ali_key"))
+        winobj.ali_key.setText(str(params.get("ali_key")))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()
