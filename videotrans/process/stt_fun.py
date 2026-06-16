@@ -560,7 +560,7 @@ def qwen3asr_fun(
                 audio=[it['filename'] for it in it_list],
                 language=[None for it in it_list],  # can also be set to None for automatic language detection
                 return_time_stamps=False,
-                context=hotword.split(',') if hotword else None
+                context=hotword.split(',') if hotword else []
             )
             for j, it in enumerate(it_list):
                 it['text'] = results[j].text
@@ -642,7 +642,7 @@ def funasr_mlt(
                 # batch_size=4,
                 progress_callback=_show_process,
                 disable_pbar=True,
-                hotwords=hotword.split(',') if hotword else None
+                hotwords=hotword.split(',') if hotword else []
             )
         for i, it in enumerate(res):
             text = _remove_unwanted_characters(it['text'])

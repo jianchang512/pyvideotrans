@@ -3,15 +3,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Union
 from tenacity import RetryError
-from videotrans.configure.excepts import SpeechToTextError
+
 from videotrans.configure.config import tr, settings, logger
 from videotrans.configure import config
 from videotrans.configure.base import BaseCon
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
 from videotrans.configure import contants
-from videotrans.process.vad import get_speech_timestamp, get_speech_timestamp_silero
-from pydub import AudioSegment
+
+
 
 
 @dataclass
@@ -94,6 +94,7 @@ class BaseRecogn(BaseCon):
             res = self._exec()
             if res:
                 return self._post_fix(res)
+            from videotrans.configure.excepts import SpeechToTextError
             raise SpeechToTextError(
                 tr('No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.'))
         except RetryError as e:
@@ -172,6 +173,7 @@ class BaseRecogn(BaseCon):
             "min_silent_duration_ms": _min_silence
         }
         try:
+            from videotrans.process.vad import get_speech_timestamp, get_speech_timestamp_silero
             self.speech_timestamps = self._new_process(
                 callback=get_speech_timestamp if _vad_type == 'tenvad' else get_speech_timestamp_silero,
                 title=title,
@@ -183,6 +185,7 @@ class BaseRecogn(BaseCon):
         self.signal(text=f'[VAD] process ended {int(time.time() - _st)}s')
 
     def cut_audio(self) -> List[SrtItem]:
+        from pydub import AudioSegment
         dir_name = f"{config.TEMP_DIR}/clip_{time.time()}"
         Path(dir_name).mkdir(parents=True, exist_ok=True)
         if not self.speech_timestamps:

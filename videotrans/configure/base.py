@@ -205,7 +205,7 @@ class BaseCon:
                 self.signal(text=_tmp.get('text', ''), type=_tmp.get('type', 'logs'))
             except Exception as e:
                 # 可能日志文件读取出错，可忽略
-                logger.warning(f'读取进程间日志文件出错，可忽略:{e}')
+                logger.warning(f'读取进程间临时文件出错，可能已清理，可忽略:{logs_file}')
             time.sleep(1)
 
     # 使用新进程执行任务

@@ -11,13 +11,9 @@ from videotrans.configure.config import tr, settings
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        if self.callback:
-            self.callback('Init UI...')
-        QApplication.processEvents()
         # 语音识别渠道、翻译渠道、配音渠道 label和下拉框宽度
         _channel_label=80
-        _channel_com=200
-        
+        _channel_com=200       
 
         self.centralwidget = QtWidgets.QWidget()
         self.centralwidget.setObjectName("centralwidget")
@@ -206,9 +202,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addStretch()
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_5)
-        if self.callback:
-            self.callback('Init ing ...')
-        QApplication.processEvents()
 
         # 配音渠道行
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -564,8 +557,6 @@ class Ui_MainWindow(object):
         text-align: center; 
     }
 """)
-        if self.callback:
-            self.callback('Add bar ...')
         MainWindow.addToolBar(QtCore.Qt.LeftToolBarArea, self.toolBar)
 
         self.actionbaidu_key = QtGui.QAction()
@@ -767,9 +758,6 @@ class Ui_MainWindow(object):
 
         self.action_yinshipinfenli = QtGui.QAction()
         self.action_yinshipinfenli.setObjectName("action_yinshipinfenli")
-        if self.callback:
-            self.callback('Add MenuBar ...')
-        QApplication.processEvents()
 
         self.menu_Key.addAction(self.actionbaidu_key)
         self.menu_Key.addSeparator()
@@ -968,8 +956,6 @@ class Ui_MainWindow(object):
             self.enable_cuda.setChecked(False)
             self.enable_cuda.hide()
 
-        if self.callback:
-            self.callback('Set UI Text ...')
         self._set_Ui_Text()
 
     def _set_Ui_Text(self):

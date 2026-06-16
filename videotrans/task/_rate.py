@@ -88,8 +88,8 @@ except ImportError:
 
 from videotrans.configure.config import ROOT_DIR,tr, settings, logger
 from videotrans.configure import config
-from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 
 
@@ -214,7 +214,7 @@ def _change_speed_rubberband(input_path, target_duration):
         y, sr = sf.read(input_path)
         if len(y) == 0:
             logger.warning(f"[Audio-RB] 空音频文件: {input_path}")
-            return
+            return False
             
         current_duration = int((len(y) / sr) * 1000)
         
@@ -223,7 +223,7 @@ def _change_speed_rubberband(input_path, target_duration):
         if target_duration > current_duration:
              # 允许微小的误差，或者由后续静音填充处理
              logger.debug(f"[Audio-RB] 目标时长({target_duration}) > 当前时长({current_duration})，跳过变速，交由静音填充。")
-             return
+             return False
 
         time_stretch_rate = current_duration / target_duration
         
@@ -242,7 +242,8 @@ def _change_speed_rubberband(input_path, target_duration):
         
     except Exception as e:
         logger.error(f"[Audio-RB] 音频处理失败 {input_path}: {e}")
-
+        return False
+    return True
 
 def _precise_speed_up_audio(input_path=None,  target_duration=None):
     audio = AudioSegment.from_file(input_path, format='wav')
@@ -282,7 +283,8 @@ def _precise_speed_up_audio(input_path=None,  target_duration=None):
         shutil.copy2(f'{input_path}-after.wav',input_path)
     except Exception as e:
         logger.exception(f'音频加速失败:{e}')
-
+        return False
+    return True
 
 
 class SpeedRate:
@@ -544,16 +546,17 @@ class SpeedRate:
     def _execute_audio_speedup_rubberband(self):
         logger.debug(f"[Audio] 开始处理 {len(self.audio_data)} 个音频变速任务")
         all_task = []
-        for d in self.audio_data:
-            all_task.append(GlobalProcessManager.submit_task_cpu(
-                _change_speed_rubberband if HAS_RUBBERBAND and self.audio_speed_rubberband else _precise_speed_up_audio,
-                input_path=d['filename'], 
-                target_duration=d['target_time']
-            ))
+        
+        _wok=min(12, len(self.audio_data), max(os.cpu_count()-1,1))
+        logger.debug(f'使用{_wok}个进程处理音频加速')
+        with ProcessPoolExecutor(max_workers=_wok) as pool:
+            for i, d in enumerate(self.audio_data):
+                all_task.append(pool.submit(_change_speed_rubberband if HAS_RUBBERBAND and self.audio_speed_rubberband else _precise_speed_up_audio,d['filename'], d['target_time'] ))
+        
         for i,task in enumerate(all_task):
             try:
                 tools.set_process(text=f'audio speedup {i}/{len(all_task)}',uuid=self.uuid)
-                task.result()
+                res=task.result()
             except Exception:
                 pass
 
@@ -566,23 +569,19 @@ class SpeedRate:
             
         all_task = []
         logger.debug(f"[Video] 提交 {len(data)} 个视频片段处理慢速任务")
-        for i, d in enumerate(data):
-            kw = {
-                "i": i, 
-                "task": d, 
-                "novoice_mp4_original": self.novoice_mp4_original, 
-                "preset": self.preset, 
-                "crf": self.crf,
-                "fps_mode":self.fps_mode
-            }
-            all_task.append(GlobalProcessManager.submit_task_cpu(_cut_video_get_duration, **kw))
-
+        _wok=min(12, len(self.audio_data), max(os.cpu_count()-1,1))
+        logger.debug(f'使用{_wok}个进程处理视频慢速')
+        with ProcessPoolExecutor(max_workers=_wok) as pool:
+            for i, d in enumerate(data):
+                all_task.append(pool.submit(_cut_video_get_duration,i, d, self.novoice_mp4_original, self.preset, self.crf,self.fps_mode  ))
+          
         processed_clips = []
         for i,task in enumerate(all_task):
             try:
                 tools.set_process(text=f'video speed down {i}/{len(all_task)}',uuid=self.uuid)
                 res = task.result()
-                if res: processed_clips.append(res)
+                if res: 
+                    processed_clips.append(res)
             except Exception as e:
                 logger.error(f"[Video] 任务异常: {e}")
         

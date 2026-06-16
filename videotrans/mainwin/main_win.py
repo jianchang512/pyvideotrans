@@ -31,12 +31,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=650,callback=None):
         super().__init__(parent)
         self.callback=callback
-        if callback:
-            callback("Init ing...")
+        self.callback("Init UI...")
         self.resize(width, height)
         self.setupUi(self)
-        if callback:
-            callback("SetupUI end...")
+        self.callback("SetupUI end...")
 
         self.worker_threads = []
         self.width = width
@@ -62,16 +60,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 检测GPU
         s = AiLoaderThread(self)
         s.gpu_io.connect(self._start_workers)
+        self.startbtn.setDisabled(True)
         s.start()
-
         self._set_default()
-        # 查询GPU
 
     def _set_default(self):
-        if self.callback:
-            self.callback('Set default ...')
+        self.callback('import recognition ...')
         from videotrans import recognition,tts
+        self.callback('import translate ...')
         from videotrans.translator import TRANSLASTE_NAME_LIST,LANGNAME_DICT,get_code
+        self.callback('Set default param ...')
         self.languagename = list(LANGNAME_DICT.values())
         # 填充字幕翻译渠道列表
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
@@ -194,8 +192,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._bind_signal()
 
     def _bind_signal(self):
-        if self.callback:
-            self.callback('Bind signal...')
+        self.callback('Bind signal...')
         # 初始化主控制器
         from videotrans.mainwin._actions import WinAction
         self.win_action = WinAction(self)
@@ -317,8 +314,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
 
-        if self.callback:
-            self.callback('set cursor...')
+        self.callback('set cursor...')
 
         self.import_sub.setCursor(Qt.PointingHandCursor)
         self.startbtn.setCursor(Qt.PointingHandCursor)
@@ -339,20 +335,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if _role in self.current_rolelist:
             self.voice_role.setCurrentText(_role)
 
-        if self.callback:
-            self.callback('preload win...')
+        self.callback('preload win...')
         # 预先加载 配音/语音转录/字幕翻译窗口 等常用功能面板，
         self.open_winform('fn_peiyin')
         self.open_winform('fn_recogn')
         self.open_winform('fn_fanyisrt')
 
-        if self.callback:
-            self.callback('end')
+        self.callback('end')
     # 检测GPU完成后，启动子线程
     def _start_workers(self, status):
         if status == 'end':
             from videotrans.task.job import start_thread
             self.worker_threads = start_thread()
+            self.startbtn.setDisabled(False)
         else:
             tools.show_error(status)
 
