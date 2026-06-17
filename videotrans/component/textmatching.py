@@ -320,6 +320,10 @@ class AlignmentWorker(QThread):
 
 
     def _progress_callback(self, data):
+        if not data:
+            return
+        if isinstance(data,str):
+            return self.log_signal.emit(data)
         msg_type = data.get("type")
         percent = data.get("percent")
         filename = data.get("filename")

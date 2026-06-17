@@ -1,6 +1,5 @@
 from typing import Union, Type
 from videotrans.configure.config import tr, params, app_cfg
-from videotrans.configure.excepts import DubbingSrtError
 from videotrans.tts._base import BaseTTS
 from videotrans import winform, ChannelProvider, get_class
 
@@ -113,7 +112,6 @@ _ID_NAME_DICT = {
 }
 # 强制保持按照每个常量值大小排序
 _ID_NAME_DICT=dict(sorted(_ID_NAME_DICT.items(),key=lambda item:item[0]))
-
 TTS_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
 
@@ -181,6 +179,7 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
 
     _cls: Union[Type[BaseTTS], None] = get_class(tts_type, "tts", _ID_NAME_DICT)
     if not _cls:
+        from videotrans.configure.excepts import DubbingSrtError
         raise DubbingSrtError(f'No this TTS Channel:{tts_type=}')
 
     return _cls(**kwargs).run()  # type:ignore

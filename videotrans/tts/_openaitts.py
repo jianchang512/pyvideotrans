@@ -1,8 +1,8 @@
-import logging
+import logging,re
 from dataclasses import dataclass
 from typing import Union, Dict, List
 
-from openai import OpenAI, AuthenticationError, PermissionDeniedError, NotFoundError,APIConnectionError
+from openai import OpenAI, AuthenticationError, PermissionDeniedError, NotFoundError,APIConnectionError,APIError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure.config import tr,params, logger, settings
@@ -41,3 +41,7 @@ class OPENAITTS(BaseTTS):
             raise StopTask(f'[OpenAITTS] {tr("Unable to connect to API",self.api_url)}\n{e}') from e
         except (NotFoundError,AuthenticationError, PermissionDeniedError) as e:
             raise StopTask(e.message)
+        except APIError as e: 
+            if re.search(r"insufficient.*?balance",e.message,flags=re.I):
+                raise StopTask(tr('The server returned an error message: Insufficient balance',tr('OpenAI-TTS'),self.api_url))
+            raise

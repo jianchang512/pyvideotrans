@@ -756,5 +756,6 @@
 	"Unable to connect to API":"无法连接到 {}，可能当前网络不可访问该API, 若是本地服务,请确认已部署并启动",
 	"Unable to connect to remote API":"无法连接到 {}，可能当前网络不可访问该API",
 	"end":"任务已完成",
-	"stop":"任务已暂停"
+	"stop":"任务已暂停",
+	"The server returned an error message: Insufficient balance":"[{}] 渠道服务端返回错误消息:余额不足。\n请登录该平台查看余额信息，当前API: {}\n"
 }

@@ -1,10 +1,13 @@
+import time
 from pathlib import Path
 from typing import Union, List, Type
 
 from videotrans import winform, ChannelProvider, get_class
 from videotrans.configure import contants
 from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR, settings
+print(f'sss={time.time()}')
 from videotrans.recognition._base import BaseRecogn
+print(f'end={time.time()}')
 from videotrans.task.taskcfg import SrtItem
 
 FASTER_WHISPER = 0

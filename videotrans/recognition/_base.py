@@ -2,16 +2,13 @@ import re, time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Union
-from tenacity import RetryError
 
 from videotrans.configure.config import tr, settings, logger
 from videotrans.configure import config
 from videotrans.configure.base import BaseCon
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
 from videotrans.configure import contants
-
-
+from videotrans.util.help_srt import ms_to_time_string
 
 
 @dataclass
@@ -60,7 +57,6 @@ class BaseRecogn(BaseCon):
 
     def __post_init__(self):
         super().__post_init__()
-
         self.device = 'cuda' if self.is_cuda else 'cpu'
         # 常见标点
         self.flag = contants.PUNC_FLAGS
@@ -85,11 +81,11 @@ class BaseRecogn(BaseCon):
 
     # run->_exec
     def run(self) -> Union[List[SrtItem], None]:
-        logger.debug(f'开始语音识别:渠道{self.recogn_type}')
         if hasattr(self, '_download'):
             self.signal(text=f"check or download models")
             self._download()
         self.signal(text=f"starting transcription")
+        from tenacity import RetryError
         try:
             res = self._exec()
             if res:
@@ -106,6 +102,7 @@ class BaseRecogn(BaseCon):
     # 对转录结果进行简单后处理
     def _post_fix(self, res: List[SrtItem]) -> List[SrtItem]:
         srt_list = []
+        logger.debug('移除无效字幕行')
         for i, it in enumerate(res):
             text = it['text'].strip()
             # 移除无效字幕行,全部由符号组成的行
@@ -119,16 +116,18 @@ class BaseRecogn(BaseCon):
             return []
 
         # 修正时间戳重叠
+        logger.debug('修正重叠时间轴')
         for i, it in enumerate(srt_list):
             if i > 0 and srt_list[i - 1]['end_time'] > it['start_time']:
                 logger.warning(
                     f'修正字幕时间轴重叠：将前面字幕 end_time={srt_list[i - 1]["end_time"]} 改为当前字幕 start_time, {it=}')
                 srt_list[i - 1]['end_time'] = it['start_time']
-                srt_list[i - 1]['endraw'] = tools.ms_to_time_string(ms=it['start_time'])
+                srt_list[i - 1]['endraw'] = ms_to_time_string(ms=it['start_time'])
                 srt_list[i - 1]['time'] = f"{srt_list[i - 1]['startraw']} --> {srt_list[i - 1]['endraw']}"
 
         # 不是LLM重新断句，并且选中合并过短字幕, 进行合并
         if not self.recogn2pass and not self.llm_post and settings.get('merge_short_sub', True):
+            logger.debug('开始合并邻近短字幕')
             srt_list=self._merge_sub(srt_list)
 
         if settings.get('del_end_punc'):
@@ -148,6 +147,7 @@ class BaseRecogn(BaseCon):
         _vad_type = settings.get('vad_type', 'tenvad')
         title = f'VAD:{_vad_type} split audio...'
         self.signal(text=title)
+        logger.debug(f'开始使用 [{_vad_type}] VAD处理')
 
         _threshold = float(settings.get('threshold', 0.5))
         _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 0)
@@ -163,8 +163,9 @@ class BaseRecogn(BaseCon):
             # 2次识别， 生成简短的字幕, 最短持续时长>=500ms，最长持续时长>短+500 and <4000ms
             _min_speech = max( int(float(settings.get('min_speech_duration_ms2', 1000))), 500)
             _max_speech = max( min( int(float(settings.get('max_speech_duration_s2', 2)) * 1000), 4000), _min_speech + 500)
-            logger.debug(f'[二次识别参数]{_vad_type},{_min_speech=}ms,{_max_speech=}ms,{_min_silence=}ms')
+            logger.debug(f'[当前是二次语音识别]{_vad_type},{_min_speech=}ms,{_max_speech=}ms,{_min_silence=}ms')
 
+        logger.debug(f'[{_vad_type}语音识别参数],min_speech_duration_ms:{_min_speech}ms,max_speech_duration_ms:{_max_speech=}ms,min_silent_duration_ms:{_min_silence}ms, threshold:{_threshold}')
         kw = {
             "input_wav": self.audio_file,
             "threshold": _threshold,
@@ -172,6 +173,7 @@ class BaseRecogn(BaseCon):
             "max_speech_duration_ms": _max_speech,
             "min_silent_duration_ms": _min_silence
         }
+
         try:
             from videotrans.process.vad import get_speech_timestamp, get_speech_timestamp_silero
             self.speech_timestamps = self._new_process(
@@ -179,10 +181,10 @@ class BaseRecogn(BaseCon):
                 title=title,
                 kwargs=kw)
         except Exception as e:
-            logger.exception(f'VAD分割时失败 {e}', exc_info=True)
+            logger.exception(f'VAD 处理失败 {e}', exc_info=True)
             if not self.recogn2pass:
                 raise
-        self.signal(text=f'[VAD] process ended {int(time.time() - _st)}s')
+        self.signal(text=f'[VAD] ended {int(time.time() - _st)}s')
 
     def cut_audio(self) -> List[SrtItem]:
         from pydub import AudioSegment
@@ -190,6 +192,7 @@ class BaseRecogn(BaseCon):
         Path(dir_name).mkdir(parents=True, exist_ok=True)
         if not self.speech_timestamps:
             self._vad_split()
+        logger.debug('根据VAD结果切分音频')
         audio = AudioSegment.from_wav(self.audio_file)
         # 裁切出的最小语音时长需符合 min_speech_duration_ms 要求，合并过短的
         min_speech_duration_ms = min(25000, max(int(settings.get('min_speech_duration_ms', 1000)), 1000))
@@ -241,7 +244,7 @@ class BaseRecogn(BaseCon):
         data=[]
         for i, it in enumerate(speech_chunks):
             start_ms, end_ms = it[0], it[1]
-            startraw, endraw = tools.ms_to_time_string(ms=it[0]), tools.ms_to_time_string(ms=it[1])
+            startraw, endraw = ms_to_time_string(ms=it[0]), ms_to_time_string(ms=it[1])
             chunk = audio[start_ms:end_ms]
             file_name = f"{dir_name}/audio_{i}.wav"
             (silent_segment + chunk + silent_segment).export(file_name, format="wav")
@@ -255,7 +258,7 @@ class BaseRecogn(BaseCon):
                 time=f'{startraw} --> {endraw}',
                 filename=file_name
             ))
-
+        logger.debug(f'切分为 {len(data)} 个音频片段')
         return data
 
     def _merge_sub(self, srt_list: List[SrtItem]) -> List[SrtItem]:
@@ -263,7 +266,7 @@ class BaseRecogn(BaseCon):
         post_srt_raws = []
         min_speech = max(300, int(float(settings.get('min_speech_duration_ms', 1000))))
         max_speech = int(1000*float(settings.get('max_speech_duration_s', 5)))
-        logger.debug(f'对识别出的字幕进行简单合并与修正，{min_speech=}')
+        logger.debug(f'对识别出的字幕进行简单合并与修正，{min_speech=}ms,{max_speech=}ms')
 
         # 阶段 1：遍历合并过短项
         post_srt_raws = self._phase1_merge_short(srt_list, min_speech, post_srt_raws,max_speech)
@@ -312,19 +315,19 @@ class BaseRecogn(BaseCon):
             # 如果需要合并到前面，并且 prev_diff == next_diff, 并且前面的长度已超过最大允许允许时长，并且差距不超过2s，否则仍合并到前面,则合并到后边
             if merge_forward and (prev_diff+2000>next_diff) and (post_srt_raws[-1]['end_time']-post_srt_raws[-1]['start_time'] >max_speech):
                 merge_forward=False
-                logger.debug(f'应合并到前边字幕，但已过长，因此强制合并进后个字幕')
+                logger.warning(f'应合并到前边字幕，但已过长，因此强制合并进后个字幕')
             
             if merge_forward:
                 self._log_merge('前', it, post_srt_raws[-1], prev_diff, next_diff)
                 post_srt_raws[-1]['end_time'] = it['end_time']
-                post_srt_raws[-1]['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
+                post_srt_raws[-1]['endraw'] = ms_to_time_string(ms=it['end_time'])
                 post_srt_raws[-1]['time'] = f"{post_srt_raws[-1]['startraw']} --> {post_srt_raws[-1]['endraw']}"
                 post_srt_raws[-1]['text'] += ' ' + it['text']
             else:
                 self._log_merge('后', it, srt_list[idx + 1], prev_diff, next_diff)
                 srt_list[idx + 1]['text'] = it['text'] + ' ' + srt_list[idx + 1]['text']
                 srt_list[idx + 1]['start_time'] = it['start_time']
-                srt_list[idx + 1]['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
+                srt_list[idx + 1]['startraw'] = ms_to_time_string(ms=it['start_time'])
                 srt_list[idx + 1]['time'] = f"{srt_list[idx + 1]['startraw']} --> {srt_list[idx + 1]['endraw']}"
         return post_srt_raws
 

@@ -2,10 +2,10 @@ from pathlib import Path
 from typing import Union, List, Type
 
 # 数字代表显示顺序
-from videotrans.util import tools
+from videotrans.util.help_misc import show_error
 from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR
 from videotrans.translator._base import BaseTrans
-from videotrans.translator._google import Google
+
 from videotrans import winform, ChannelProvider, get_class
 
 GOOGLE_INDEX = 0
@@ -765,7 +765,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
 
         if target_list and target_list[index] == 'No':
 
-            return tr('deepl_nosupport') + f':{show_target}' if return_str else tools.show_error(
+            return tr('deepl_nosupport') + f':{show_target}' if return_str else show_error(
                 tr('deepl_nosupport') + f':{show_target}')
     return True
 
@@ -847,9 +847,9 @@ def run(*, translate_type=0,
     # 未设置代理并且检测google失败，则使用微软翻译
     if translate_type == GOOGLE_INDEX:
         if app_cfg.proxy or _check_google() is True:
-
+            from videotrans.translator._google import Google
             return Google(**kwargs).run()
-        logger.error('==未设置代理并且检测google失败，使用微软翻译')
+        logger.warning('未设置代理并且检测google失败，改为使用微软翻译')
         translate_type = MICROSOFT_INDEX
         kwargs['translate_type']=translate_type
 

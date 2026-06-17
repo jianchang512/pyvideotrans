@@ -5,12 +5,12 @@ import platform
 import subprocess
 import sys
 import time
+from functools import lru_cache
 from pathlib import Path
 from typing import Union
 
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
 from videotrans.configure import config
-
 from videotrans.task.taskcfg import InputFile
 from videotrans.configure import contants
 from videotrans.configure.contants import INSTALL_RUBBERBAND_TIPS
@@ -54,8 +54,6 @@ def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
     try:
         if app_cfg.exit_soft:
             return
-        if cmd[-1].lower().endswith('.mp4'):
-            logger.debug(f'[FFMPEG-CMD]:\n{" ".join(cmd)}\n')
         subprocess.run(
             cmd,
             stdout=subprocess.PIPE,
@@ -71,13 +69,13 @@ def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
             app_cfg.queue_novice[noextname] = "end"
         return True
     except FileNotFoundError as e:
-        logger.warning(f"命令未找到: {cmd[0]}。请确保 ffmpeg 已安装并在系统 PATH 中。")
+        logger.error(f"命令未找到: {cmd[0]}。请确保 ffmpeg 已安装并在系统 PATH 中。")
         if noextname:
             app_cfg.queue_novice[noextname] = f"error:{e}"
         raise
     except subprocess.CalledProcessError as e:
         error_message = e.stderr or ""
-        logger.warning(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message} {e.stdout}")
+        logger.error(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message} {e.stdout}")
         err = extract_concise_error(e.stderr)
         if noextname:
             app_cfg.queue_novice[noextname] = f"error:{err}"
@@ -90,7 +88,7 @@ def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
     except Exception as e:
         if noextname:
             app_cfg.queue_novice[noextname] = f"error:{e}"
-        logger.debug(f"执行 ffmpeg 时发生未知错误:{e}")
+        logger.error(f"执行 ffmpeg 时发生未知错误,{cmd=}:\n{e}")
         raise
 
 
@@ -138,7 +136,7 @@ def get_video_codec(compat=None) -> str:
         if not _codec_cache and Path(f'{ROOT_DIR}/videotrans/codec.json').exists():
             _codec_cache = json.loads(Path(f'{ROOT_DIR}/videotrans/codec.json').read_text(encoding='utf-8-sig'))
     except Exception as e:
-        logger.debug(f'parse codec.json error:{e}')
+        logger.error(f'parse codec.json error:{e}')
 
     plat = platform.system()
     if compat and compat in [264, 265]:
@@ -193,19 +191,19 @@ def get_video_codec(compat=None) -> str:
             logger.debug(f"硬件编码器 '{encoder_to_test}' 可用。")
             success = True
         except FileNotFoundError:
-            logger.debug("'ffmpeg' 命令在 PATH 中未找到。无法进行编码器测试。")
+            logger.error("'ffmpeg' 命令在 PATH 中未找到。无法进行编码器测试。")
             raise  # 重新抛出异常，让上层逻辑捕获并终止测试
         except subprocess.CalledProcessError:
-            logger.debug(f"硬件编码器 '{encoder_to_test}' 不可用")
+            logger.warning(f"硬件编码器 '{encoder_to_test}' 不可用")
             raise
         except PermissionError:
-            logger.debug(f"测试硬件编码器时失败:写入 {output_file} 时权限被拒绝。 {command=}")
+            logger.warning(f"测试硬件编码器时失败:写入 {output_file} 时权限被拒绝。 {command=}")
             raise
         except subprocess.TimeoutExpired:
-            logger.debug(f"硬件编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。{command=}")
+            logger.warning(f"硬件编码器 '{encoder_to_test}' 测试在 {timeout} 秒后超时。{command=}")
             raise
         except Exception as e:
-            logger.debug(f"测试硬件编码器 {encoder_to_test} 时发生意外错误: {e} {command=}")
+            logger.warning(f"测试硬件编码器 {encoder_to_test} 时发生意外错误: {e} {command=}")
             raise
         finally:
             try:
@@ -230,7 +228,7 @@ def get_video_codec(compat=None) -> str:
                             logger.debug("CUDA 不可用，跳过 nvenc 测试。")
                             continue  # 跳过当前循环，测试下一个编码器
                     except ImportError:
-                        logger.debug("未找到 torch 模块，将直接尝试 nvenc 测试。")
+                        logger.error("未找到 torch 模块，将直接尝试 nvenc 测试。")
 
                 full_encoder_name = f"{h_prefix}_{encoder_suffix}"
                 if test_encoder_internal(full_encoder_name):
@@ -291,7 +289,7 @@ def runffprobe(cmd):
     if stdout_result:
         return stdout_result
     from videotrans.configure.excepts import FFmpegError
-    raise FFmpegError("ffprobe ran successfully but produced no output.")
+    raise FFmpegError(f"ffprobe ran successfully but produced no output. {cmd=}")
 
 
 def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=False, get_codec=False):
@@ -426,7 +424,7 @@ def _get_ms_from_media(file):
             ms = int(float(runffprobe(
             ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', file]))*1000)
         except Exception as e:
-            logger.debug(f'再次从 format=duration 中读取失败 {e}')
+            logger.error(f'再次从 format=duration 中读取失败 {e}')
     return ms
 
 
@@ -477,7 +475,6 @@ def create_concat_txt(filelist, concat_txt=None):
         # 如果没有有效文件，创建一个空的concat文件可能导致错误，不如直接抛出异常
         raise RuntimeError("Cannot create concat txt from an empty or invalid file list.")
 
-    logger.debug(f'{concat_txt=},{filelist[0]=}')
     with open(concat_txt, 'w', encoding='utf-8') as f:
         f.write("\n".join(txt))
     return concat_txt
@@ -677,6 +674,7 @@ def remove_silence_wav(audio_file:str, rm_start=True)->bool:
     return False  # 如果全是静音，返回False
 
 
+@lru_cache
 def format_video(name:Union[str,os.PathLike], target_dir:str=None)->InputFile:
     from . import help_misc
     raw_pathlib = Path(name)

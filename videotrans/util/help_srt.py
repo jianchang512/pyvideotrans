@@ -1,11 +1,12 @@
 import os, json, re
 from datetime import timedelta
+from functools import lru_cache
 from typing import List, Union
 from videotrans.configure.config import ROOT_DIR, tr, logger
 from videotrans.task.taskcfg import SrtItem
 from videotrans.configure import contants
 
-
+@lru_cache
 def process_text_to_srt_str(input_text: str)->str:
     if is_srt_string(input_text):
         return input_text
@@ -36,6 +37,7 @@ def process_text_to_srt_str(input_text: str)->str:
 
 
 # 判断是否是srt字符串
+@lru_cache
 def is_srt_string(input_text:str)->bool:
     input_text = input_text.strip()
     if not input_text:
@@ -60,6 +62,7 @@ def is_srt_string(input_text:str)->bool:
 
 
 # 删除翻译结果的特殊字符
+@lru_cache
 def cleartext(text: str)->str:
     res_text = text.replace('&#39;', "").replace('&quot;', '').replace("\u200b", " ").strip()
     # 删掉连续的多个标点符号，只保留一个
@@ -79,7 +82,7 @@ def delete_punc(text):
     # 最后处理一下多余的空格
     return re.sub(r'\s+', ' ', res).strip()
 
-
+@lru_cache
 def ms_to_time_string(*, ms:Union[int,float]=0, seconds:Union[int,None]=None, sepflag:str=',')->str:
     # 计算小时、分钟、秒和毫秒
     if seconds is None:
@@ -95,6 +98,7 @@ def ms_to_time_string(*, ms:Union[int,float]=0, seconds:Union[int,None]=None, se
 
 # 将不规范的 时:分:秒,|.毫秒格式为  aa:bb:cc,ddd形式
 # eg  001:01:2,4500  01:54,14 等做处理
+@lru_cache
 def format_time(s_time="", separate=',')->str:
     if not s_time.strip():
         return f'00:00:00{separate}000'
@@ -454,6 +458,7 @@ def set_ass_font(srtfile: str) -> str:
 
 
 # 简单换行，不保留换行符，用于视频翻译字幕嵌入
+@lru_cache
 def simple_wrap(text:str, maxlen:int=15, language:str="en")->str:
     # 标点和空格列表
     flag = [

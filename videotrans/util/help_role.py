@@ -1,19 +1,14 @@
 import json
 import re
 from typing import List
-
 import requests
-from urllib.parse import urlsplit, urlunsplit
-
-
 from videotrans.configure.config import ROOT_DIR, tr, settings, params, logger
 from pathlib import Path
 from functools import lru_cache
 
 from videotrans.configure import contants
 
-
-
+@lru_cache
 def get_camb_role(force=False, raise_exception=False):
     from . import help_misc
     jsonfile = f'{ROOT_DIR}/videotrans/voicejson/camb.json'
@@ -52,7 +47,7 @@ def get_camb_role(force=False, raise_exception=False):
             raise
     return []
 
-
+@lru_cache
 def get_elevenlabs_role(force=False, raise_exception=False):
     from . import help_misc
     jsonfile = f'{ROOT_DIR}/videotrans/voicejson/elevenlabs.json'
@@ -87,7 +82,7 @@ def get_elevenlabs_role(force=False, raise_exception=False):
             raise
     return []
 
-
+@lru_cache
 def get_vits_role():
     zh = ['No', "zh_female"]
     en = ['No', "en_female"]
@@ -98,7 +93,7 @@ def get_vits_role():
 
     return {"zh": {k: k for k in zh}, "en": {k: k for k in en}}
 
-
+@lru_cache
 def get_piper_role():
     file_path = f"{ROOT_DIR}/videotrans/voicejson/piper.json"
     if Path(file_path).exists():
@@ -118,7 +113,7 @@ def get_piper_role():
         Path(file_path).write_text(json.dumps(rolelist, indent=4), encoding='utf-8')
     return rolelist
 
-
+@lru_cache
 def get_302ai():
     role_dict = get_azure_rolelist()
 
@@ -133,7 +128,7 @@ def get_302ai():
     role_dict['ja'] = role_dict['ja'] | _doubao_ja
     return role_dict
 
-
+@lru_cache
 def get_doubao2_rolelist(role_name=None, langcode="zh"):
     roledata = json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/doubao2.json').read_text(encoding='utf-8-sig'))
 
@@ -164,7 +159,7 @@ def get_edge_rolelist(role_name=None, locale=None):
         return voice_list.get(locale.split('-')[0], {}).get(role_name)
     return voice_list
 
-
+@lru_cache
 def get_azure_rolelist(language=None, role_name=None):
     voice_file = ROOT_DIR + "/videotrans/voicejson/azure_voice_list.json"
     voice_list = json.loads(Path(voice_file).read_text(encoding='utf-8-sig'))
@@ -185,7 +180,7 @@ def get_azure_rolelist(language=None, role_name=None):
         pass
     return voice_list
 
-
+@lru_cache
 def get_minimaxi_rolelist():
     from . import help_misc
     voice_list = {}
@@ -203,7 +198,7 @@ def get_minimaxi_rolelist():
             pass
     return voice_list
 
-
+@lru_cache
 def get_qwen3tts_rolelist():
     voices = json.loads(Path(ROOT_DIR + "/videotrans/voicejson/qwen3tts.json").read_text(encoding='utf-8-sig'))
     voices = {"No": "No"} | voices
@@ -225,19 +220,19 @@ def get_qwenttslocal_rolelist():
     }
     return get_f5tts_role() | voices
 
-
+@lru_cache
 def get_supertonic_rolelist():
     voices = json.loads(Path(ROOT_DIR + "/videotrans/voicejson/supertonic.json").read_text(encoding='utf-8-sig'))
     voices = {"No": "No"} | voices
     return voices
 
-
+@lru_cache
 def get_glmtts_rolelist():
     voices = json.loads(Path(ROOT_DIR + "/videotrans/voicejson/glmtts.json").read_text(encoding='utf-8-sig'))
     voices = {"No": "No"} | voices
     return voices
 
-
+@lru_cache
 def get_kokoro_rolelist():
     voice_list = {
         "en": [
@@ -419,8 +414,3 @@ def role_menu(tts_type, langcode=None) -> List:
     return _roles if isinstance(_roles, list) else list(_roles.keys())
 
 
-def show_refaudio_win():
-    from videotrans.component.set_form import RefaudioForm
-    dialog = RefaudioForm()
-    dialog.exec()
-    return

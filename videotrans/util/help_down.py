@@ -28,24 +28,6 @@ def file_exists(dirname, glob_patter='*.bin') -> bool:
     return False
 
 
-def is_connect_hf()->bool:
-    try:
-        import requests
-        logger.debug(f'{app_cfg.proxy=}')
-        if app_cfg.proxy:
-            requests.head('https://huggingface.co', timeout=5,proxies={"http":app_cfg.proxy,"https":app_cfg.proxy})
-        else:
-            requests.head('https://huggingface.co', timeout=5)
-    except Exception as e:
-        os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
-        logger.debug(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
-        return False
-    else:
-        os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
-        logger.info('可以使用 huggingface.co')
-        return True
-    return False
-
 
 """
 若无法连接 huggingface.co
@@ -57,6 +39,7 @@ def is_connect_hf()->bool:
 _original_http_get=None
 def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=None) -> bool:
     global _original_http_get
+    from .help_misc import is_connect_hf
     if model_id in FASTER_MODELS_DICT and is_connect_hf() is False:
         logger.debug(f'从 modelscope.cn 下载模型 {model_id=}')
         return check_and_down_ms(FASTER_MODELS_DICT[
@@ -189,6 +172,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
 
 # 从 huggingface.co 下载单个文件
 def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
+    from .help_misc import is_connect_hf
     is_connect_hf()
     import requests
     endpoint = os.environ.get('HF_ENDPOINT')

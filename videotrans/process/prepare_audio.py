@@ -648,7 +648,7 @@ def built_speakers(*, input_file, subtitles_file:str,speak_file:str, num_speaker
 
     try:
         _st = time.time()
-        logger.info(f'开始说话人分离,使用内置模型 {language=},{num_speakers=}')
+        logger.debug(f'开始说话人分离,使用内置模型 {language=},{num_speakers=}')
         # 从文件中读取所需要的字幕时间戳数据
         subtitles=json.loads(Path(subtitles_file).read_text(encoding='utf-8'))
         # 根据选择使用内置或 pyannote 方式

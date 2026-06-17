@@ -29,7 +29,6 @@ class ChatTTS(BaseTTS):
         except requests.exceptions.ConnectionError as e:
             if "Failed to establish a new connection" in str(e):
                 raise StopTask(f"[ChatTTS] {tr('This channel needs deployed and started before available')}") from e
-        logger.debug(f'chatTTS:{data=}')
         res = res.json()
         if res is None:
             return 'ChatTTS端出错，请查看其控制台终端'+f"\n{self.api_url=}"

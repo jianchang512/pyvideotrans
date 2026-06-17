@@ -147,7 +147,6 @@ class APIRecogn(BaseRecogn):
                 logger.warning(d)
                 raise StopRetry(f"Error:{d['error_code']}")
             if d['status'] == 'done':
-                logger.info(d)
                 sens = d['result']['transcription']['subtitles'][0]['subtitles']
                 raws = tools.get_subtitle_from_srt(sens, is_file=False)
                 if self.detect_language and self.detect_language[:2] in contants.CJK_LANG:
@@ -184,11 +183,9 @@ class APIRecogn(BaseRecogn):
                 return [], []
 
             list_str = match.group(1)
-            logger.debug(f'match.group(1)={list_str}')
             list_str = re.sub(r'^.*?\[{', '[{', list_str, flags=re.S)
             list_str = re.sub(r'}].*$', '}]', list_str, flags=re.S)
             list_str = re.sub(r"\n?\n", '', list_str)
-            logger.debug(f're.sub after:{list_str=}')
             segments = None
             try:
                 segments = json.loads(list_str)
@@ -271,7 +268,6 @@ class APIRecogn(BaseRecogn):
                 )
 
                 # 处理返回结果，传入当前的 start_ms 作为时间偏移量
-                logger.debug(f'vibevoice-asr:{result[0]=}')
                 chunk_data, chunk_spk = _process_chunk_result(
                     result[0],
                     time_offset_ms=start_ms,

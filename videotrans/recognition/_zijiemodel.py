@@ -57,7 +57,6 @@ class ZijieRecogn(BaseRecogn):
             }
         }
         response = requests.post(submit_url, json=request, headers=headers)
-        logger.info(f'{response.headers=}')
         response.raise_for_status()
         code = response.headers.get('X-Api-Status-Code')
         if not code:

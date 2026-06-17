@@ -3,18 +3,16 @@ import json
 import os
 import threading
 import time
-from concurrent.futures.process import BrokenProcessPool
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional,Union
-
+from typing import Optional
 from videotrans.configure.config import tr, settings, app_cfg, logger, push_queue, TEMP_ROOT
-from videotrans.configure.excepts import VideoTransError,SttTimeoutError
-from videotrans.process.signelobj import GlobalProcessManager
-from videotrans.task.taskcfg import SignMsg
-from videotrans.util import tools
-from videotrans.util.gpus import get_cudaX
 
+
+
+from videotrans.task.taskcfg import SignMsg
+
+from videotrans.util.help_misc import set_proxy,vail_file
 
 @dataclass
 class BaseCon:
@@ -86,7 +84,8 @@ class BaseCon:
                 app_cfg.proxy = raw_proxy
                 return raw_proxy
             if not raw_proxy:
-                proxy = tools.set_proxy() or os.environ.get('bak_proxy')
+
+                proxy = set_proxy() or os.environ.get('bak_proxy')
                 if proxy:
                     os.environ['HTTP_PROXY'] = proxy
                     os.environ['HTTPS_PROXY'] = proxy
@@ -97,7 +96,7 @@ class BaseCon:
 
     # 语音合成后统一转为 wav 音频,方便后续变速等处理
     def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None):
-        if app_cfg.exit_soft or not tools.vail_file(mp3_file_path):
+        if app_cfg.exit_soft or not vail_file(mp3_file_path):
             return
         cmd = [
             "-y",
@@ -116,9 +115,10 @@ class BaseCon:
             output_wav_file_path
         ]
         try:
-            tools.runffmpeg(cmd, force_cpu=True)
+            from videotrans.util.help_ffmpeg import runffmpeg,remove_silence_wav
+            runffmpeg(cmd, force_cpu=True)
             if settings.get('remove_dubb_silence', True):
-                tools.remove_silence_wav(output_wav_file_path)
+                remove_silence_wav(output_wav_file_path)
         except Exception as e:
             logger.exception(f'转为 48k wav时失败，跳过{e}',exc_info=True)
             return False
@@ -128,6 +128,7 @@ class BaseCon:
     def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:
         if not encoded_str:
             raise ValueError("Base64 encoded string is empty.")
+        from videotrans.util.help_ffmpeg import runffmpeg
         # 如果存在data前缀，则按照前缀中包含的音频格式保存为转换格式
         if encoded_str.startswith('data:audio/'):
             output_ext = Path(output_path).suffix.lower()[1:]
@@ -149,7 +150,7 @@ class BaseCon:
                 with open(output_path + f'.{base64data_ext}', "wb") as wav_file:
                     wav_file.write(wav_bytes)
 
-                tools.runffmpeg([
+                runffmpeg([
                     "-y", "-i", output_path + f'.{base64data_ext}', "-b:a", "128k", output_path
                 ])
                 return
@@ -173,11 +174,10 @@ class BaseCon:
         while 1:
             if app_cfg.exit_soft: return
             if status_dict and status_dict['is_end']:
-                logger.debug(f'新进程执行结束结束{timeout=}')
                 return
             timeout += 1
             if timeout > 3600:
-                logger.warning(f'_signal_of_process timed out after 1 hours: {logs_file}')
+                logger.warning(f'新进程已执行3600s仍未终止，可能已出错: {logs_file}')
                 return
             _p = Path(logs_file)
             # 已删掉
@@ -203,7 +203,7 @@ class BaseCon:
                 if _tmp.get('type', '') == 'error':
                     return
                 self.signal(text=_tmp.get('text', ''), type=_tmp.get('type', 'logs'))
-            except Exception as e:
+            except Exception:
                 # 可能日志文件读取出错，可忽略
                 logger.warning(f'读取进程间临时文件出错，可能已清理，可忽略:{logs_file}')
             time.sleep(1)
@@ -211,9 +211,12 @@ class BaseCon:
     # 使用新进程执行任务
     def _new_process(self, callback=None, title="", is_cuda=False, kwargs=None):
         _st = time.time()
+        from .excepts import VideoTransError,SttTimeoutError
+        from concurrent.futures.process import BrokenProcessPool
+        from videotrans.process.signelobj import GlobalProcessManager
         kwargs = kwargs or {}
         self.signal(text=f'[{title}] starting...')
-        logger.debug(f'[新进程任务 开始:{title}]')
+        logger.debug(f'[新进程任务 开始:{title=}]')
 
         # 提交任务，并显式传入参数，确保子进程拿到正确的参数
         logs_file = kwargs.get('logs_file',f'{TEMP_ROOT}/{_st}.log')
@@ -232,13 +235,14 @@ class BaseCon:
             if is_cuda:
                 # 启用了多显卡模式
                 if settings.get('multi_gpus'):
+                    from videotrans.util.gpus import get_cudaX
                     device_index = get_cudaX()
                 if device_index == -1:
                     is_cuda = False
                     kwargs['is_cuda'] = False
                     logger.error(f'已启用CUDA但未检测到可用显卡，强制使用CPU')
                 kwargs['device_index'] = max(device_index, 0)
-            logger.debug(f'任务参数:{kwargs=}')
+            logger.debug(f'新进程任务 参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,
                 **kwargs
@@ -246,7 +250,7 @@ class BaseCon:
                 callback,
                 **kwargs
             )
-            # return Tuple[bool or result , None or error]
+
             _timeout=0
             while not future.done():
                 if app_cfg.exit_soft:
@@ -257,19 +261,18 @@ class BaseCon:
                     # 已返回10s仍在循环，子进程可能已崩溃
                     if _timeout>20:
                         status_dict['is_end']=True
-                        logger.debug(f'faster已生成识别字幕超过 {_timeout}s 仍在循环，子进程可能已崩溃，强制抛出 SttTimeoutError')
+                        logger.warning(f'faster-whisper 已生成字幕超过 {_timeout}s, 仍在循环，子进程可能已崩溃，强制抛出 SttTimeoutError')
                         raise SttTimeoutError("STT timeout")
                     _timeout+=1
                 time.sleep(1)
             data,err = future.result(timeout=10)
-            logger.debug(f'[新进程任务 {title}], return')
+            logger.debug(f'[新进程任务 {title=}] 已返回')
             status_dict['is_end']=True
             if err or not data:
                 raise VideoTransError(err)
             self.signal(text=f'[{title}] end: {int(time.time() - _st)}s')
             return data
         except SttTimeoutError:
-            
             raise
         except BrokenProcessPool as e:
             _model = ''
@@ -286,7 +289,7 @@ class BaseCon:
         finally:
             status_dict['is_end']=True
             try:
-                logger.debug(f'[新进程任务 结束:{title}]，耗时{time.time()-_st}s')
+                logger.debug(f'[新进程任务 结束:{title=}]，耗时{time.time()-_st}s')
                 if logs_file:
                     Path(logs_file).unlink(missing_ok=True)
             except OSError:

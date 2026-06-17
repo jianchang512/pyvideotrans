@@ -25,7 +25,7 @@ def openwin():
         winobj.test_openaitts.setText(tr("Testing..."))
         from videotrans import tts
         import time
-        t = winobj.edit_roles.toPlainText().strip().replace('，', ',').rstrip(',')
+        t = winobj.edit_roles.toPlainText().strip().replace('，', ',').rstrip(',').split(',')
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text": '你好啊我的朋友',
             "role": 'alloy' if not t or not t[0].strip() else t[0].strip(),

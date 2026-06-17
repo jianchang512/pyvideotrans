@@ -1,5 +1,5 @@
 from pathlib import Path
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QThreadPool, QCoreApplication
+from PySide6.QtCore import Qt,  QSettings, QEvent, QThreadPool, QCoreApplication
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMessageBox, QMainWindow
 import asyncio, sys
@@ -21,7 +21,10 @@ from videotrans.ui.en import Ui_MainWindow
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans import winform
 from videotrans.configure.signal_hub import SignalHub
-from videotrans.util import tools
+from videotrans.util.help_misc import set_proxy,is_connect_hf,check_new_version,open_url,show_glossary_editor,show_error,show_refaudio_win
+
+
+
 
 
 
@@ -57,16 +60,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
+
         # 检测GPU
         s = AiLoaderThread(self)
         s.gpu_io.connect(self._start_workers)
         self.startbtn.setDisabled(True)
+        self.startbtn.setText('Checking GPUs...')
         s.start()
         self._set_default()
 
     def _set_default(self):
         self.callback('import recognition ...')
-        from videotrans import recognition,tts
+        from videotrans import recognition
+        self.callback('import tts ...')
+        from videotrans import tts
         self.callback('import translate ...')
         from videotrans.translator import TRANSLASTE_NAME_LIST,LANGNAME_DICT,get_code
         self.callback('Set default param ...')
@@ -135,7 +142,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 默认代理
         if not app_cfg.proxy:
-            app_cfg.proxy = tools.set_proxy() or ''
+            app_cfg.proxy = set_proxy() or ''
             if app_cfg.proxy:
                 os.environ['HTTP_PROXY'] = app_cfg.proxy
                 os.environ['HTTPS_PROXY'] = app_cfg.proxy
@@ -172,7 +179,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         _langcode = None
         if _target_language and _target_language in self.languagename:
             _langcode = get_code(show_text=_target_language)
-        _rolelist = tools.role_menu(_tts_type, _langcode)
+        from videotrans.util.help_role import role_menu
+
+        _rolelist = role_menu(_tts_type, _langcode)
         # 填充配音角色
         self.voice_role.addItems(_rolelist)
         self.current_rolelist = _rolelist
@@ -184,11 +193,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.voice_role.setCurrentText(_role)
         self.show()
         # 核对硬件编码
-        run_in_threadpool(tools.check_hw_on_start)
         # 核对 huggingface.co 连通性
-        run_in_threadpool(tools.is_connect_hf)
+        run_in_threadpool(is_connect_hf)
         # 核对最新版本号
-        run_in_threadpool(tools.check_new_version)
+        run_in_threadpool(check_new_version)
+        from videotrans.util.help_ffmpeg import check_hw_on_start
+        run_in_threadpool(check_hw_on_start)
         self._bind_signal()
 
     def _bind_signal(self):
@@ -221,9 +231,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.recogn_type.currentIndexChanged.connect(self.win_action.recogn_type_change)
         self.model_name.currentIndexChanged.connect(self.win_action.model_type_change)
 
-        self.label.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/proxy'))
+        self.label.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/proxy'))
 
-        self.glossary.clicked.connect(lambda: tools.show_glossary_editor(self))
+        self.glossary.clicked.connect(lambda: show_glossary_editor(self))
         self.action_biaozhun.triggered.connect(self.win_action.set_biaozhun)
         self.action_tiquzimu.triggered.connect(self.win_action.set_tiquzimu)
 
@@ -348,8 +358,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             from videotrans.task.job import start_thread
             self.worker_threads = start_thread()
             self.startbtn.setDisabled(False)
+            self.startbtn.setText(tr("Start"))
         else:
-            tools.show_error(status)
+            show_error(status)
 
     # 打开缓慢
     def open_winform(self, name):
@@ -359,7 +370,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             dialog.exec()
             return
         if name == 'refaudio':
-            tools.show_refaudio_win()
+            show_refaudio_win()
             return
         if name == 'xxl':
             from videotrans.component.set_xxl import SetFasterXXL

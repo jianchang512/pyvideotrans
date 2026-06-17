@@ -38,7 +38,6 @@ class AI302Recogn(BaseRecogn):
 
         prompt = settings.get(f'initial_prompt_{self.detect_language}')
 
-        logger.debug(f'{prompt=}')
         with open(self.audio_file, 'rb') as f:
             audio_data = f.read()
         response = requests.post(url,
@@ -82,7 +81,6 @@ class AI302Recogn(BaseRecogn):
             'Authorization': f'Bearer {apikey}',
         }
         prompt = settings.get(f'initial_prompt_{self.detect_language}')
-        logger.debug(f'{prompt=}')
         err=''
         ok_nums=0
         for i, it in enumerate(raws):
@@ -102,7 +100,6 @@ class AI302Recogn(BaseRecogn):
             if "text" not in res_json or "error" in res_json:
                 err=f'{res_json}'
                 continue
-            logger.debug(f'{res_json=}')
             raws[i]['text'] = res_json['text']
             ok_nums+=1
         if ok_nums<1:

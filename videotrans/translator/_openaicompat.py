@@ -5,7 +5,7 @@ import time,httpcore,httpx
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Union
-from openai import OpenAI, LengthFinishReasonError,NotFoundError, AuthenticationError, PermissionDeniedError,BadRequestError,APIConnectionError
+from openai import OpenAI, LengthFinishReasonError,NotFoundError, AuthenticationError, PermissionDeniedError,BadRequestError,APIConnectionError,APIError
 from tenacity import before_log, retry_if_not_exception_type, wait_fixed, stop_after_attempt, after_log, retry
 
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError, LLMSegmentError, StopTask
@@ -68,11 +68,15 @@ class OpenAICampat(BaseTrans):
             model = OpenAI(api_key=self.api_key, base_url=self.api_url)
             response = model.chat.completions.create(**kwargs, extra_body=self.extra_body)
         except APIConnectionError as e:
-            raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e}') from e
+            raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e.message}') from e
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
             del kwargs['messages']
             raise StopTask(e.message+f'\n{self.api_url}\n{kwargs}') from e
-
+        except APIError as e: 
+            if re.search(r"insufficient.*?balance",e.message,flags=re.I):
+                raise StopTask(tr('The server returned an error message: Insufficient balance',tools.get_tanslate_type(self.translate_type),self.api_url))
+            raise
+            
         result = ""
         if not hasattr(response,'choices') or not response.choices:
             raise TranslateSrtError(str(response))

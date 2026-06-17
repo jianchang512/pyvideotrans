@@ -1,11 +1,11 @@
-import logging
+import logging,re
 from typing import Union, Dict, List
 
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import params, logger, settings
+from videotrans.configure.config import params, logger, settings,tr
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
-from openai import OpenAI,AuthenticationError, PermissionDeniedError, NotFoundError
+from openai import OpenAI,AuthenticationError, PermissionDeniedError, NotFoundError, APIError
 import base64
 from dataclasses import dataclass
 
@@ -15,7 +15,7 @@ class XiaoMiTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.stop_next_all=False
+        self.api_url="https://api.xiaomimimo.com/v1"
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
@@ -36,7 +36,7 @@ class XiaoMiTTS(BaseTTS):
         try:
             self.client = OpenAI(
                 api_key=params.get("xiaomi_key",''),
-                base_url="https://api.xiaomimimo.com/v1"
+                base_url=self.api_url
             )
             completion = self.client.chat.completions.create(
                 model=params.get("xiaomi_ttsmodel"),
@@ -55,3 +55,7 @@ class XiaoMiTTS(BaseTTS):
 
         except (NotFoundError,AuthenticationError, PermissionDeniedError) as e:
             raise StopTask(e.message)
+        except APIError as e: 
+            if re.search(r"insufficient.*?balance",e.message,flags=re.I):
+                raise StopTask(tr('The server returned an error message: Insufficient balance',tr('XiaoMi-TTS'),self.api_url))
+            raise

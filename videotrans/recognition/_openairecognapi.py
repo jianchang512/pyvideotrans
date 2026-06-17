@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List,  Union
 
 import httpx
-from openai import OpenAI,APIConnectionError
+from openai import OpenAI,APIConnectionError,APIError
 from videotrans.configure.config import params,  logger,tr
 from videotrans.configure import config
 from videotrans.configure.excepts import SpeechToTextError, StopTask
@@ -78,6 +78,10 @@ class OpenaiAPIRecogn(BaseRecogn):
                     ))
         except APIConnectionError as e:
             raise StopTask(f' {tr("Unable to connect to API",self.api_url)}\n{e}') from e
+        except APIError as e: 
+            if re.search(r"insufficient.*?balance",e.message,flags=re.I):
+                raise StopTask(tr('The server returned an error message: Insufficient balance',tr("OpenAI Speech to Text"),self.api_url))
+            raise
         return raws
 
     def _thrid_api(self)->Union[List[SrtItem], None]:

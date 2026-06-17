@@ -6,6 +6,7 @@ import subprocess
 import sys
 import time
 from dataclasses import is_dataclass, asdict
+from functools import lru_cache
 from pathlib import Path
 
 from videotrans import VERSION
@@ -202,6 +203,7 @@ def qwenmt_glossary():
 
 
 # 获取当前需要操作的prompt txt文件
+@lru_cache
 def get_prompt_file(ainame, aisendsrt=True):
     prompt_path = f'{ROOT_DIR}/videotrans/'
     prompt_name = f'{ainame}.txt'
@@ -295,6 +297,7 @@ def is_novoice_mp4(novoice_mp4, noextname, uuid=None):
 
 
 # 将字符串做 md5 hash处理
+@lru_cache
 def get_md5(input_string: str):
     md5 = hashlib.md5()
     md5.update(input_string.encode('utf-8'))
@@ -405,7 +408,7 @@ def set_proxy(set_val=''):
         pass
     return None
 
-
+@lru_cache
 def process_openai_api(url=""):
     if not url:
         return "https://api.openai.com/v1"
@@ -456,23 +459,48 @@ def check_new_version():
 
 
 
-
 def _get_type_name(type_index, name_list):
     if type_index is None or type_index >= len(name_list):
         return '-'
     return name_list[type_index]
 
-
+@lru_cache
 def get_recogn_type(type_index=None):
     from videotrans.recognition import RECOGN_NAME_LIST
     return _get_type_name(type_index, RECOGN_NAME_LIST)
 
-
+@lru_cache
 def get_tanslate_type(type_index=None):
     from videotrans.translator import TRANSLASTE_NAME_LIST
     return _get_type_name(type_index, TRANSLASTE_NAME_LIST)
 
-
+@lru_cache
 def get_tts_type(type_index=None):
     from videotrans.tts import TTS_NAME_LIST
     return _get_type_name(type_index, TTS_NAME_LIST)
+
+
+def is_connect_hf()->bool:
+    try:
+        import requests
+        logger.debug(f'{app_cfg.proxy=}')
+        if app_cfg.proxy:
+            requests.head('https://huggingface.co', timeout=5,proxies={"http":app_cfg.proxy,"https":app_cfg.proxy})
+        else:
+            requests.head('https://huggingface.co', timeout=5)
+    except Exception as e:
+        os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+        logger.debug(f'无法连接 huggingface.co, 使用镜像替换: hf-mirror.com')
+        return False
+    else:
+        os.environ['HF_ENDPOINT'] = 'https://huggingface.co'
+        logger.debug('可以使用 huggingface.co')
+        return True
+    return False
+
+
+def show_refaudio_win():
+    from videotrans.component.set_form import RefaudioForm
+    dialog = RefaudioForm()
+    dialog.exec()
+    return

@@ -756,6 +756,7 @@
 	"Unable to connect to API":"Unable to connect to {}. This may be because the API is currently inaccessible on the network. If it's a local service, please ensure it's deployed and running.",
 	"Unable to connect to remote API":"Unable to connect to {}, the API may be inaccessible on the current network.",
 	"end":"Ended",
-	"stop":"Paused"
+	"stop":"Paused",
+	"The server returned an error message: Insufficient balance":"The server [{}] returned an error message: Insufficient balance. \nPlease log in to the platform to view your balance information. Current API: {}\n"
 
 }

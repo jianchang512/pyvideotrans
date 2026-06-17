@@ -45,7 +45,7 @@ class ChatterBoxTTS(BaseTTS):
             try:
                 ref_wav, _ = self.get_ref_wav(item)
             except Exception:
-                logger.debug('无参考音频，使用内置音色')
+                logger.warn('无参考音频，使用内置音色')
             try:
                 self.signal(text=f'starting {i}/{self.len}')
                 wav_tensor = model.generate(item['text'], exaggeration=exaggeration, cfg_weight=cfg_weight,

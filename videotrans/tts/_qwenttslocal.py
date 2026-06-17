@@ -14,9 +14,7 @@ from videotrans.process import qwen3tts_fun
 @dataclass
 class QwenttsLocal(BaseTTS):
     def __post_init__(self):
-        print(f'进步 QwenttsLocal 1 {config.TEMP_DIR=}')
         super().__post_init__()
-        print(f'进步 QwenttsLocal 2 {config.TEMP_DIR=}')
         self.model_name="1.7B"
         _langnames = translator.LANG_CODE.get(self.language, [])
         self.target_language = _langnames[9].capitalize() if _langnames and len(_langnames) >= 10 else 'Auto'
@@ -34,7 +32,6 @@ class QwenttsLocal(BaseTTS):
     def _exec(self):
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
         queue_tts_file = f'{config.TEMP_DIR}/{self.uuid}/queuetts-{time.time()}.json'
-        print(f'QwenttsLocal _exec')
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
         title="Qwen3-TTS"
         kwargs = {            

@@ -3,15 +3,16 @@ import json
 import time
 import traceback
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional,  Dict, Any
 
 from PySide6.QtCore import QThread, Signal, QObject
 from pydub import AudioSegment
 
 from videotrans.configure.config import tr, settings, app_cfg, logger
+
 from videotrans.task.taskcfg import TaskCfgVTT, SignMsg, InputFile
 from videotrans.task.trans_create import TransCreate
-from videotrans.util.tools import get_recogn_type,get_tanslate_type,get_tts_type,send_notification,vail_file
+from videotrans.util.tools import vail_file
 
 
 class Worker(QThread):
@@ -28,10 +29,8 @@ class Worker(QThread):
         self.uuid = None
 
     def run(self) -> None:
-
         # 从停止队列中移出，以便重新开始
         app_cfg.rm_uuid(self.file['uuid'])
-        logger.debug(f'[单视频翻译模式]:{self.file.name}')
         trk=None
         try:
             self.uuid = self.file['uuid']
@@ -83,8 +82,8 @@ class Worker(QThread):
                         time.sleep(1)
                         app_cfg.set_countdown(app_cfg.task_countdown - 1)
 
-                if not self._exit():
-                    trk.dubbing()
+                if self._exit(): return
+                trk.dubbing()
 
                 if not trk.ignore_align and float(settings.get('countdown_sec', 0)) > 0:
                     for it in trk.queue_tts:
@@ -106,13 +105,11 @@ class Worker(QThread):
                         time.sleep(1)
                         app_cfg.set_countdown(app_cfg.task_countdown - 1)
 
+            if self._exit(): return
+            trk.align()
 
-
-            if not self._exit():
-                trk.align()
-
-            if not self._exit():
-                trk.recogn2pass()
+            if self._exit(): return
+            trk.recogn2pass()
             if trk.should_recogn2:
                 app_cfg.set_countdown(86400)
                 # 等待修改二次识别出的字幕
@@ -123,18 +120,20 @@ class Worker(QThread):
                     time.sleep(1)
                     app_cfg.set_countdown(app_cfg.task_countdown - 1)
 
+            if self._exit(): return
+            trk.assembling()
 
-            if not self._exit():
-                trk.assembling()
-
-            if not self._exit():
-                trk.task_done()
+            if self._exit(): return
+            trk.task_done()
             self._post(text="", type='end')
         except Exception as e:
+            from videotrans.configure.excepts import get_msg_from_except
             logger.exception(f'单视频模式翻译失败{e}',exc_info=True)
-            detail_back = (traceback.format_exc()).strip()
-            channel=f"[{get_recogn_type(trk.cfg.recogn_type)},  {get_tanslate_type(trk.cfg.translate_type)}, {get_tts_type(trk.cfg.tts_type)}]"
-            self._post(text=str(e) + f"{channel}\n{detail_back}\n{trk.cfg if trk else ''}", type='error')
+            except_msg = get_msg_from_except(e)
+            msg=f"{except_msg}\n{traceback.format_exc()}\n"
+            if trk:
+                msg+=f'cfg={trk.cfg}'
+            self._post(text=msg, type='error')
 
     def _post(self, text='', type='logs'):
         try:

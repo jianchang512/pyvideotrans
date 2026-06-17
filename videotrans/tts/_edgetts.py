@@ -32,7 +32,6 @@ class EdgeTTS(BaseTTS):
         self.lock = asyncio.Lock()
         # 默认跟随设置使用代理，如果不想使用，单独根目录下创建 edgetts-noproxy.txt 文件
         self.useproxy=None if not self.proxy_str or Path(f'{ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
-        
 
 
     async def increment_counter(self):
@@ -132,7 +131,7 @@ class EdgeTTS(BaseTTS):
             self._stop_event.set()
     
     async def _exec(self) -> None:
-        logger.debug(f'本次EdgeTTS配音：重试延迟:{RETRY_DELAY},出错将重试:{RETRY_NUMS},并发:{MAX_CONCURRENT_TASKS}')
+        logger.debug(f'本次EdgeTTS配音：重试延迟:{RETRY_DELAY},出错将重试:{RETRY_NUMS},并发:{MAX_CONCURRENT_TASKS}, 代理:{self.useproxy}')
         self._stop_event.clear()
         total_tasks = len(self.queue_tts)
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
@@ -168,7 +167,7 @@ class EdgeTTS(BaseTTS):
         
         try:
             if monitor_task not in done:
-                logger.debug("执行流程：所有配音任务结束。")
+                logger.debug("所有配音任务结束。")
                 monitor_task.cancel()
 
             watchdog_task.cancel()
@@ -197,6 +196,7 @@ class EdgeTTS(BaseTTS):
                 else:
                     err += 1
             if ok==0:
+                logger.debug('本次配音全部失败')
                 raise DubbingSrtError(f'All error for edge-tts  {self.error}')
 
             if ok>0:
@@ -210,7 +210,7 @@ class EdgeTTS(BaseTTS):
                             all_task.append(pool.submit(self.convert_to_wav, mp3_path,item['filename']))
                     if len(all_task) > 0:
                         _ = [i.result() for i in all_task]
-
+            logger.debug(f'本次配音 {ok} 个成功， {err} 个失败')
             self.signal(text=f'[{err}] errors, {ok} succeed')
         finally:
             await asyncio.sleep(0.1)

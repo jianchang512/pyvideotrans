@@ -468,6 +468,7 @@ class WinActionBase:
         self.main.remove_silent_mid.setDisabled(type)
         self.main.align_sub_audio.setDisabled(type)
         self.main.remove_noise.setDisabled(type)
+        self.main.output_srt.setDisabled(type)
 
         self.main.bgmvolume.setDisabled(type)
         self.main.fix_punc.setDisabled(type)

@@ -413,7 +413,6 @@ class TransCreate(BaseTask):
     def recogn2pass(self) -> None:
         _st=time.time()
         if not self.should_recogn2 or self._exit():
-            logger.debug(f'跳过二次识别')
             return
         if not tools.vail_file(self.cfg.target_wav):
             logger.debug(f'跳过二次识别，因无配音音频文件')
@@ -421,7 +420,6 @@ class TransCreate(BaseTask):
 
         self.precent += 3
         self.signal(text=tr("Secondary speech recognition of dubbing files"))
-        logger.debug(f'进入二次识别')
 
         shibie_audio = f'{self.cfg.cache_folder}/recogn2pass-{time.time()}.wav'
         outsrt_file = f'{self.cfg.cache_folder}/recogn2pass-{time.time()}.srt'
@@ -447,7 +445,6 @@ class TransCreate(BaseTask):
                 recogn_type = FASTER_WHISPER
                 model_name = 'large-v3-turbo'
 
-            logger.debug(f'[trans_create]:二次识别')
             raw_subtitles = run_recogn(
                 recogn_type=recogn_type,
                 uuid=self.uuid,

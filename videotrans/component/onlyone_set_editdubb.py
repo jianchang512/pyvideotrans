@@ -496,7 +496,7 @@ class EditDubbingResultDialog(QDialog):
         try:
             Path(self.queue_tts[row]['filename']).unlink(missing_ok=True)
         except OSError as e:
-            logger.exception(e,exc_info=True)
+            logger.warning(e)
         
         # 重置时长
         self.queue_tts[row]['dubbing_s'] = 0.0

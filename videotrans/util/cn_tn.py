@@ -955,7 +955,6 @@ def normalize_nsw(raw_text):
     pattern = re.compile(r"\D((\+?86 ?)?1([38]\d|5[0-35-9]|7[678]|9[89])\d{8})\D")
     matchers = pattern.findall(text)
     if matchers:
-        # print('telephone')
         for matcher in matchers:
             text = text.replace(matcher[0], TelePhone(telephone=matcher[0]).telephone2chntext(), 1)
     # 固话

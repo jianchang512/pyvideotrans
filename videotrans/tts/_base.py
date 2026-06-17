@@ -9,10 +9,10 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Union, Tuple
 from tenacity import RetryError
 from videotrans.configure.base import BaseCon
-from videotrans.configure.excepts import DubbingSrtError, StopTask
+
 from videotrans.configure.config import tr, settings, logger, ROOT_DIR
 from videotrans.configure import config
-from videotrans.util import tools
+from videotrans.util.help_misc import vail_file,pygameaudio,get_tts_type
 
 """
 edge-tts 当前线程中async异步任务
@@ -70,8 +70,10 @@ class BaseTTS(BaseCon):
     # 子类重写  _exec()方法 run() -> _exec()
     def run(self) -> None:
         if self._exit(): return
-        logger.debug(f'开始语音合成:渠道{self.tts_type}')
-        self.signal(text=f"TTS starting: [len={self.len}]")
+        from videotrans.configure.excepts import DubbingSrtError
+        _tts_name=get_tts_type(self.tts_type)
+        logger.debug(f'当前使用配音渠道：{_tts_name}')
+        self.signal(text=f"{_tts_name} starting: [len={self.len}]")
         if hasattr(self, '_download'):
             self.signal(text=f"Check and downloading models...")
             self._download()
@@ -101,7 +103,6 @@ class BaseTTS(BaseCon):
         finally:
             # edge-tts:只有当 self._exec 是异步函数时，才需要处理事件循环
             if inspect.iscoroutinefunction(self._exec) and loop and not loop.is_closed():
-                logger.debug("开始执行事件循环的关闭流程...")
                 try:
                     # 1: 取消所有剩余的任务
                     tasks = asyncio.all_tasks(loop=loop)
@@ -120,15 +121,14 @@ class BaseTTS(BaseCon):
                     logger.exception(f'结束 edge-tts 时失败，忽略 {e}', exc_info=True)
                 finally:
                     # 4: 最终关闭事件循环
-                    logger.debug("事件循环已关闭。")
                     loop.close()
-
 
         # 试听或测试时播放
         if self.play:
-            if tools.vail_file(self.queue_tts[0]['filename']):
-                return tools.pygameaudio(self.queue_tts[0]['filename'])
+            if vail_file(self.queue_tts[0]['filename']):
+                return pygameaudio(self.queue_tts[0]['filename'])
 
+            logger.error(f'试听配音时发生错误{self.error}')
             if isinstance(self.error, RetryError):
                 raise self.error.last_attempt.exception()
             raise self.error if isinstance(self.error, Exception) else DubbingSrtError(str(self.error))
@@ -136,26 +136,30 @@ class BaseTTS(BaseCon):
         # 记录成功数量
         succeed_nums = 0
         for it in self.queue_tts:
-            if not it['text'].strip() or tools.vail_file(it['filename']):
+            if not it['text'].strip() or vail_file(it['filename']):
                 succeed_nums += 1
         # 只有全部配音都失败，才视为失败
         if succeed_nums < 1:
             if self._exit(): return
+            logger.error(f'本次配音全部失败：{self.error}')
             if isinstance(self.error, Exception):
                 raise self.error.last_attempt.exception() if isinstance(self.error, RetryError) else self.error
 
             raise DubbingSrtError(tr("Dubbing failed") + str(self.error))
-        self.signal(text=tr("Dubbing succeeded {}，failed {}", succeed_nums, len(self.queue_tts) - succeed_nums))
+        logger.debug(f'本次 {_tts_name} 配音成功 {succeed_nums} 个，失败 {self.len - succeed_nums} 个')
+        self.signal(text=tr("Dubbing succeeded {}，failed {}", succeed_nums, self.len - succeed_nums))
 
     # 若子类未重写  _exec(), 则默认调用该方法
     # 此方法内判断返回的错误是否 StopTask 类型，若是则直接终止任务
     def _local_mul_thread(self) -> None:
         if self._exit(): return
+        from videotrans.configure.excepts import StopTask
         # 单个字幕行，无需多线程
         if len(self.queue_tts) == 1 or self.dub_nums == 1:
+            logger.debug(f'设定最大配音线程: {self.dub_nums},实际 单线程配音, 待配音字幕长度: {self.len}, 配音后暂停{self.wait_sec}s')
             for k, item in enumerate(self.queue_tts):
                 if self._exit(): return
-                if not item.get('text').strip() or tools.vail_file(item['filename']):
+                if not item.get('text').strip() or vail_file(item['filename']):
                     continue
                 # 只记录最后一个错误
                 error = self._item_task(item, k)
@@ -170,12 +174,14 @@ class BaseTTS(BaseCon):
             return
 
         all_task = []
-        pool = ThreadPoolExecutor(max_workers=min(self.dub_nums, len(self.queue_tts)))
+        _wok=max(min(self.dub_nums, len(self.queue_tts)),2)
+        pool = ThreadPoolExecutor(max_workers=_wok)
+        logger.debug(f'设定配音最大线程数: {self.dub_nums},实际 {_wok} 线程配音, 待配音字幕长度: {self.len}')
         try:
             completed_tasks = 0
             for k, item in enumerate(self.queue_tts):
                 if self._exit(): return
-                if not item.get('text').strip() or tools.vail_file(item['filename']):
+                if not item.get('text').strip() or vail_file(item['filename']):
                     completed_tasks += 1
                     continue
                 future = pool.submit(self._item_task, item, k)
@@ -207,17 +213,17 @@ class BaseTTS(BaseCon):
     # 子类若没有覆写 _exec() 方法，则必须实现 _run() 方法
     # return 返回为None为成功，失败返回错误消息 或 抛出异常
     def _item_task(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, Exception, None]:
-        if self._exit() or not data_item.get('text', '').strip() or tools.vail_file(data_item.get('filename')):
+        if self._exit() or not data_item.get('text', '').strip() or vail_file(data_item.get('filename')):
             return
         # 有些不可恢复的错误，例如 404 sk错误 无权访问等，直接发送 error 信号，无需继续多线程
         try:
             self.signal(text=f'Dubbing {idx}/{self.len}')
-            return self._run(data_item)
+            return self._run(data_item,idx)
         except RetryError as e:
-            logger.exception(f'配音失败:\n字幕内容:{data_item}\n{e}', exc_info=True)
+            logger.exception(f'\n第{idx}条字幕配音失败,字幕文本:{data_item}\n{e}', exc_info=True)
             return e.last_attempt.exception()
         except Exception as e:
-            logger.exception(f'配音失败:\n字幕内容:{data_item}\n{e}', exc_info=True)
+            logger.exception(f'\n第{idx}条字幕配音失败,字幕文本:{data_item}\n{e}', exc_info=True)
             return e
 
     # 子类未重写 _exec 方法时，则必须实现该方法
@@ -253,6 +259,8 @@ class BaseTTS(BaseCon):
         pitch = self.queue_tts[0].get('pitch', '+0Hz').replace('hz', 'Hz')
         pitch = f'+{pitch}' if re.match(r'^\d+(\.\d+)?Hz$', pitch, re.I) else pitch
         self.pitch = '+0Hz' if not re.match(r'^[+-]\d+(\.\d+)?Hz$', pitch, flags=re.I) else pitch
+
+        logger.debug(f'{self.volume=}, {self.rate=}, {self.pitch=}')
 
     # 将 百分比音量改为 小数形式
     def get_speed(self) -> float:

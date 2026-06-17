@@ -1,7 +1,7 @@
 import re
 import aiohttp
 import requests
-from elevenlabs.core import ApiError as ApiError_11
+
 from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, \
     Timeout, ConnectionError as ReqConnectionError, RetryError, HTTPError
 from tenacity import RetryError as TenRetryError
@@ -82,8 +82,6 @@ NO_RETRY_EXCEPT = (
 )
 
 """检查错误信息中是否包含本地地址"""
-
-
 def _is_local_address(url_or_message):
     if not url_or_message:
         return False
@@ -210,6 +208,7 @@ def get_msg_from_except(ex:Exception)->str:
             ex = ex.last_attempt.exception()
         except AttributeError:
             pass
+    from elevenlabs.core import ApiError as ApiError_11
     import httpcore
     from deepgram.clients.common.v1.errors import DeepgramApiError
     from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \

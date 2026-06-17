@@ -12,7 +12,7 @@ def _write_log(file, msg):
     try:
         Path(file).write_text(msg, encoding='utf-8')
     except Exception as e:
-        logger.exception(f'写入新进程日志时出错{e}', exc_info=True)
+        logger.warning(f'写入新进程日志时出错{e}')
 
 
 def qwen3tts_fun(
@@ -30,7 +30,7 @@ def qwen3tts_fun(
     try:
         from qwen_tts import Qwen3TTSModel
     except ImportError:
-        logger.critical('please run  uv sync --extra qwentts ')
+        logger.error('please run  uv sync --extra qwentts ')
         return False, 'please run  uv sync --extra qwentts '
 
     

@@ -119,7 +119,6 @@ def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf,fps_mode)
     pts_factor = task.get('pts', 1.0)
     
     flag = f'[Video-Cut] 片段{i} [原:{task["start"]}-{task["end"]}ms] [目标:{target_duration_ms}ms] [PTS:{pts_factor:.4f}]'
-    logger.debug(f"{flag} 准备开始处理...")
 
     # 主命令构建
     cmd = [
@@ -326,8 +325,6 @@ class SpeedRate:
         if settings.get('fps_mode')=='cfr':
             video_fps=tools.get_video_info(novoice_mp4,video_fps=True) if novoice_mp4 and Path(novoice_mp4).exists() else 30
             self.fps_mode=["-r",f"{video_fps}","-fps_mode","cfr"]
-            
-        logger.debug(f'{self.fps_mode=}')
             
         self.target_audio = target_audio
 

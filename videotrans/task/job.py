@@ -54,7 +54,7 @@ class BaseWorker(QThread):
         if prefix:
             except_msg = f"{prefix} {except_msg}"
         if trk.uuid not in app_cfg.stoped_uuid_set:
-            trk.signal(text=f'{except_msg}\n{detail_back}\n{trk.cfg}', type='error', uuid=trk.uuid)
+            trk.signal(text=f'{except_msg}\n{detail_back}\ncfg={trk.cfg}', type='error', uuid=trk.uuid)
             send_notification(f'Error:{e}', f'{trk.cfg.basename}')
         trk.set_end()
         self.cleanup_on_error(trk)
@@ -218,8 +218,8 @@ def start_thread():
         elif app_cfg.NVIDIA_GPU_NUMS > 1 and bool(settings.get('multi_gpus')):
             # 显卡数量真的大于1 并且 启用了多显卡，
             task_nums = 2 if app_cfg.NVIDIA_GPU_NUMS < 4 else 4
-        logger.debug(f'{process_max_gpu=},is_multi_gpus={settings.get("multi_gpus")}')
-    logger.debug(f'Concurrent {task_nums=}, process_max_cpu={settings.get("process_max")}')
+        logger.debug(f'最大GPU进程:{process_max_gpu}, 是否多显卡模式:{settings.get("multi_gpus")}, {task_nums=} ')
+    logger.debug(f'最大CPU进程: {settings.get("process_max")}, {task_nums=}')
     worker_config = {
         WorkerPrepare: task_nums,  # 准备工作
         WorkerRegcon: task_nums,  # 语音识别

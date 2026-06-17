@@ -8,10 +8,9 @@ from tenacity import RetryError
 from videotrans import translator
 from videotrans.configure.base import BaseCon
 from videotrans.configure.config import tr, settings, logger, TEMP_ROOT
-from videotrans.configure.excepts import TranslateSrtError
 from videotrans.task.taskcfg import SrtItem
-
-
+from videotrans.util.help_srt import get_subtitle_from_srt,cleartext
+from videotrans.util.help_misc import get_md5,serial
 
 @dataclass
 class BaseTrans(BaseCon):
@@ -45,8 +44,6 @@ class BaseTrans(BaseCon):
 
     def __post_init__(self):
         super().__post_init__()
-
-
         Path(TEMP_ROOT + f'/translate_cache').mkdir(parents=True, exist_ok=True)
         self.aisendsrt = settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS
         if self.aisendsrt:
@@ -59,7 +56,6 @@ class BaseTrans(BaseCon):
 
     # 实际操作 run  -> run_text|run_srt -> _item_task
     def run(self) -> List[SrtItem]:
-        logger.debug(f'开始字幕翻译: 渠道{self.translate_type}')
         if hasattr(self, '_download'):
             self._download()
         try:
@@ -89,14 +85,14 @@ class BaseTrans(BaseCon):
         ]
         """
         target_list = []
-        from videotrans.util import tools
+        logger.debug(f'以纯文本行形式翻译，每次翻译{self.trans_thread}行，翻译后暂停{self.wait_sec}s')
         for i, it in enumerate(split_source_text):
             """ it=['你好啊我的朋友','第二行']  此时 _item_task 接收的是 list[str] """
             if self._exit(): return
             self.signal(text=tr('starttrans') + f' {i} ')
             result = self._get_cache(it)
             if not result:
-                result = tools.cleartext(self._item_task(it))
+                result = cleartext(self._item_task(it))
                 self._set_cache(it, result)
             sep_res = result.split("\n")
             for x, result_item in enumerate(sep_res):
@@ -110,7 +106,7 @@ class BaseTrans(BaseCon):
                 target_list += tmp
             time.sleep(self.wait_sec)
         max_i = len(target_list)
-        logger.debug(f'以普通文本行按行翻译：原始行数:{len(self.text_list)},翻译后行数:{max_i}')
+        logger.debug(f'原始行数:{len(self.text_list)},翻译后行数:{max_i}')
         _empty_line = 0
         for i, it in enumerate(self.text_list):
             text = target_list[i].strip() if i < max_i else ""
@@ -119,19 +115,21 @@ class BaseTrans(BaseCon):
             self.text_list[i]['text'] = text
 
         if _empty_line >= len(self.text_list):
+            from videotrans.configure.excepts import TranslateSrtError
             raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
         return self.text_list
 
     # 发送完整字幕格式内容进行翻译
     # 此时 _item_task 接收的是 srt 格式的字符串
     def _run_srt(self, split_source_text: List[List[SrtItem]]):
-        from videotrans.util import tools
         """
         split_source_text=[
             [{text:"",start_time:"",line:""},{...},...]
             ...
         ]
         """
+        logger.debug(f'以SRT字幕块翻译，每次翻译 {self.trans_thread} 条字幕块，翻译后暂停{self.wait_sec}s')
+        from videotrans.configure.excepts import TranslateSrtError
         raws_list = []
         for i, it in enumerate(split_source_text):
             if self._exit(): return
@@ -147,7 +145,7 @@ class BaseTrans(BaseCon):
                 self._set_cache(it, result)
 
             self.signal(text=result, type='subtitle')
-            raws_list.extend(tools.get_subtitle_from_srt(result, is_file=False))
+            raws_list.extend(get_subtitle_from_srt(result, is_file=False))
             time.sleep(self.wait_sec)
 
         _empty_line = 0
@@ -156,7 +154,7 @@ class BaseTrans(BaseCon):
                 _empty_line += 1
         if _empty_line >= len(raws_list):
             raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
-        logger.debug(f'以SRT格式翻译，原始字幕行数：{len(self.text_list)},翻译后行数:{len(raws_list)}')
+        logger.debug(f'原始字幕行数：{len(self.text_list)}, 翻译后行数:{len(raws_list)}')
         return raws_list
 
     def _set_cache(self, it, res_str):
@@ -168,11 +166,11 @@ class BaseTrans(BaseCon):
         if self.is_test: return
         file_cache = TEMP_ROOT + f'/translate_cache/{self._get_key(it)}.txt'
         if Path(file_cache).exists():
+            logger.debug(f'本次跳过翻译，使用缓存')
             return Path(file_cache).read_text(encoding='utf-8')
         return
 
     def _get_key(self, it) -> str:
-        from videotrans.util import tools
-        it=tools.serial(it)
+        it=serial(it)
         key_str = f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}'
-        return tools.get_md5(key_str)
+        return get_md5(key_str)

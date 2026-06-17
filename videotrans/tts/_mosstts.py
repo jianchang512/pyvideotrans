@@ -35,7 +35,7 @@ class MossTTS(BaseTTS):
             import requests
             requests.head('https://huggingface.co', timeout=5)
         except Exception:
-            print(f'当前无法连接到 https://huggingface.co,从 modelscope.cn')
+            logger.warning(f'当前无法连接到 https://huggingface.co,从 modelscope.cn下载')
             tools.check_and_down_ms("openmoss/MOSS-TTS-Nano-100M-ONNX",
                                     callback=self._process_callback,
                                     local_dir="./models/MOSS-TTS-Nano-100M-ONNX")

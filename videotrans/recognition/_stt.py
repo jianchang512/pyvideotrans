@@ -61,7 +61,6 @@ class SttAPIRecogn(BaseRecogn):
         except requests.exceptions.ConnectionError as e:
             raise StopTask(f"[STT] {tr('This channel needs deployed and started before available')}") from e
         res.raise_for_status()
-        logger.debug(f'STT_API:{res=}')
         res = res.json()
         if "code" not in res or res['code'] != 0:
             raise StopRetry(f'{res["msg"]}')

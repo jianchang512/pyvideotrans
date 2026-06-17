@@ -101,7 +101,7 @@ class StartWindow(QWidget):
         super().closeEvent(event)
 
     def update_lable(self, t):
-        print(f'{t=}')
+        print(f'{int(time.time())}:{t}')
         if t == 'end':
             self.status_label.setText(f'Total time {int(time.time() - self.start_time)}s')
             QTimer.singleShot(1000, lambda: self.close())
@@ -148,7 +148,6 @@ def initialize_full_app(start_window, app_instance):
     QApplication.processEvents()
 
     from videotrans.mainwin.main_win import MainWindow
-    main_window_created = False
     try:
         screen = QGuiApplication.primaryScreen().geometry()
         sets = QSettings("pyvideotrans", "settings")
@@ -158,14 +157,10 @@ def initialize_full_app(start_window, app_instance):
         start_window.update_lable('Initializing UI...')
         QApplication.processEvents()
         start_window.main_window = MainWindow(width=w, height=h,callback=start_window.update_lable)
-        main_window_created = True
     except Exception as e:
         show_global_error_dialog(type(e), e, e.__traceback__)
         app_instance.quit()
         return
-
-    #if main_window_created and start_window.main_window:
-    #    start_window.main_window.show()
 
 
 if __name__ == "__main__":
@@ -210,10 +205,8 @@ if __name__ == "__main__":
         splash.setWindowIcon(QIcon("./videotrans/styles/icon.ico"))
         splash.center()
         splash.show()
-        app.processEvents()
 
         QTimer.singleShot(100, lambda: initialize_full_app(splash, app))
-        #initialize_full_app(splash, app)
         try:
             res = app.exec()
             res = 0 if res is None else res
