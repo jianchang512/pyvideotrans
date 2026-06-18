@@ -3,9 +3,9 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QPlainTextEdit, QPushButton, QSizePolicy
 
-from videotrans.configure.config import tr, params
+from videotrans.configure.config import tr, params,ROOT_DIR
 from videotrans.util.help_misc import show_error, set_process
-
+from pathlib import Path
 
 class Ui_refform(object):
     def setupUi(self, refform):
@@ -51,8 +51,21 @@ class Ui_refform(object):
         role = self.roles.toPlainText().strip()
         if not role:
             return show_error(tr("Please upload reference audio in wav format"))
-
-
+        
+        role_list=role.split("\n")
+        for i,it in enumerate(role_list):
+            _tmp=it.split('#')
+            if len(_tmp)!=2:
+                return show_error(tr('ensure that each line is separated into two parts using',{it}))
+            
+            if Path(f'{ROOT_DIR}/f5-tts/{_tmp[0]}').exists():
+                continue
+            if Path(f'{ROOT_DIR}/f5-tts/{_tmp[0]}.wav').exists():
+                role_list[i]=f'{_tmp[0]}.wav#{_tmp[1]}'
+                continue
+            return show_error(tr('ensure that the reference audio is in wav format and saved',_tmp[0],f'{ROOT_DIR}/f5-tts'))
+        
+        role="\n".join(role_list)
         params["f5tts_role"] = role
         params.save()
         set_process(text='', type="refreshtts")

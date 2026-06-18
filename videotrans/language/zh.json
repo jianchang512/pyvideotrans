@@ -757,5 +757,7 @@
 	"Unable to connect to remote API":"无法连接到 {}，可能当前网络不可访问该API",
 	"end":"任务已完成",
 	"stop":"任务已暂停",
-	"The server returned an error message: Insufficient balance":"[{}] 渠道服务端返回错误消息:余额不足。\n请登录该平台查看余额信息，当前API: {}\n"
+	"The server returned an error message: Insufficient balance":"[{}] 渠道服务端返回错误消息:余额不足。\n请登录该平台查看余额信息，当前API: {}\n",
+	"ensure that each line is separated into two parts using":"请确保每行使用 # 号分割为 参考音频名称#参考音频文本内容 两部分\n当前行不符合要求: {}",
+	"ensure that the reference audio is in wav format and saved":"参考音频: {} 不在 {} 文件夹内,请确保参考音频为 wav格式并保存到该文件夹内"
 }
