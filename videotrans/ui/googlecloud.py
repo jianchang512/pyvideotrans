@@ -1,8 +1,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-
 from videotrans.configure.config import tr
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class Ui_googlecloudform(object):
@@ -124,7 +123,7 @@ class Ui_googlecloudform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/googlecloudtts'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/googlecloudtts'))
         self.horizontalLayout.addWidget(help_btn)
 
         self.verticalLayout.addLayout(self.horizontalLayout)

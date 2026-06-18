@@ -6,14 +6,14 @@ from typing import List
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QFileDialog
-
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, defaulelang
-from videotrans.util import tools
 
 # ultrafast 、 superfast 、 veryfast 、 faster 、 fast 、 medium （默认）、 slow和veryslow
 # 处理速度越来越慢，输出视频压缩率和质量越来越高，视频尺寸也将变小
 
 # 中文注释 界面ui控制
+from videotrans.util.help_misc import open_url
+
 notices = {
     "common": {
         "lang": "设置软件界面语言，修改后需要重启软件",
@@ -750,7 +750,7 @@ class Ui_setini(object):
         self.help_btn.setMaximumWidth(200)
         self.help_btn.setCursor(Qt.PointingHandCursor)
         self.help_btn.setText(tr("Fill out the tutorial"))
-        self.help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/adv'))
+        self.help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/adv'))
 
         action_layout.addWidget(self.set_ok)
         action_layout.addWidget(self.help_btn)

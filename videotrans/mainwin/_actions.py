@@ -15,7 +15,8 @@ from videotrans.configure import contants
 from videotrans.configure.config import tr, params, settings, app_cfg
 from videotrans.mainwin._actions_base import WinActionBase
 from videotrans.task.taskcfg import InputFile, SignMsg
-from videotrans.util import tools
+from videotrans.util.help_misc import show_error, shutdown_system
+from videotrans.util.help_role import role_menu
 
 
 @dataclass
@@ -55,7 +56,7 @@ class WinAction(WinActionBase):
                 if rs is not True:
                     return False
         except Exception as e:
-            tools.show_error(str(e))
+            show_error(str(e))
 
     def set_subtitle_type(self, idx):
         if idx < 3:
@@ -67,7 +68,7 @@ class WinAction(WinActionBase):
     def show_xxl_select(self):
         import sys
         if sys.platform != 'win32':
-            tools.show_error(
+            show_error(
                 tr("faster-whisper-xxl.exe is only available on Windows"))
             return False
         xxl_path = settings.get('Faster_Whisper_XXL', '')
@@ -78,7 +79,7 @@ class WinAction(WinActionBase):
                 xxl_path = dialog.get_values()
                 if xxl_path and Path(xxl_path).is_file():
                     return True
-            tools.show_error(
+            show_error(
                 tr("Must be selected, otherwise it cannot be used"))
             return False
         return True
@@ -92,7 +93,7 @@ class WinAction(WinActionBase):
                 cpp_path = dialog.get_values()
                 if cpp_path and Path(cpp_path).is_file():
                     return True
-            tools.show_error(
+            show_error(
                 tr("Must be selected, otherwise it cannot be used"))
             return False
         return True
@@ -169,7 +170,7 @@ class WinAction(WinActionBase):
             self.main.show_tips.setText(is_allow_lang if is_allow_lang is not True else '')
 
         app_cfg.line_roles = {}
-        _role_list = tools.role_menu(type, lang if lang and lang != '-' else None)
+        _role_list = role_menu(type, lang if lang and lang != '-' else None)
         self.main.voice_role.clear()
         self.main.current_rolelist = _role_list
         self.main.voice_role.addItems(self.main.current_rolelist)
@@ -200,7 +201,7 @@ class WinAction(WinActionBase):
             self.main.voice_role.addItems(['No'])
             return
 
-        _role_list = tools.role_menu(self.main.tts_type.currentIndex(), code.split('-')[0])
+        _role_list = role_menu(self.main.tts_type.currentIndex(), code.split('-')[0])
         self.main.current_rolelist = _role_list
         self.main.voice_role.addItems(_role_list)
 
@@ -219,7 +220,7 @@ class WinAction(WinActionBase):
             self.main.subtitle_area.clear()
             self.main.subtitle_area.insertPlainText(content.strip())
         else:
-            return tools.show_error(tr('import src error'))
+            return show_error(tr('import src error'))
 
     # 判断是否需要翻译
     def shound_translate(self):
@@ -235,7 +236,7 @@ class WinAction(WinActionBase):
             return False
         # 如果没有选择目标语言，但是选择了配音角色，无法配音
         if self.main.target_language.currentText() == '-' and self.main.voice_role.currentText() not in ['No', '', ' ']:
-            tools.show_error(tr('wufapeiyin'))
+            show_error(tr('wufapeiyin'))
             return False
         return True
 
@@ -260,7 +261,7 @@ class WinAction(WinActionBase):
 
         # 输入输出是同个文件夹，
         if self.main.only_out_mp4.isChecked() and input_folder.samefile(output_folder):
-            tools.show_error(
+            show_error(
                 tr("The output directory is not allowed to point to the input directory"))
             return False
 
@@ -323,7 +324,7 @@ class WinAction(WinActionBase):
 
         # 无视频选择 ，也无导入字幕，无法处理
         if len(self.queue_mp4) < 1:
-            tools.show_error(tr("Video file must be selected"))
+            show_error(tr("Video file must be selected"))
             self.main.startbtn.setDisabled(False)
             return
         # 核对代理
@@ -427,7 +428,7 @@ class WinAction(WinActionBase):
         # 未设置目标语言，不允许嵌入字幕
         if not self.cfg.get('target_language_code') and self.cfg['subtitle_type'] > 0:
             self.main.startbtn.setDisabled(False)
-            return tools.show_error(
+            return show_error(
                 tr("Target language must be selected to embed subtitles"))
 
         # 核对是否存在名字相同后缀不同的文件，以及若存在音频则强制为tiqu模式
@@ -440,7 +441,7 @@ class WinAction(WinActionBase):
             ai_type = settings.get('llm_ai_type', 'chatgpt')
             if (ai_type in ['chatgpt','openai'] and not params.get('chatgpt_key')) or (ai_type == 'deepseek' and not params.get('deepseek_key')):
                 self.main.startbtn.setDisabled(False)
-                tools.show_error(tr('llmduanju'))
+                show_error(tr('llmduanju'))
                 from videotrans.winform import get_win
                 get_win('deepseek' if ai_type == 'deepseek' else  'chatgpt').openwin()
                 return
@@ -490,7 +491,7 @@ class WinAction(WinActionBase):
         if not self.retry_queue_mp4:
             self.main.retrybtn.setVisible(False)
             return
-
+        from videotrans.util.help_ffmpeg import format_video
         self._disabled_button(True)
         self.main.retrybtn.setVisible(False)
         self.main.subtitle_area.setReadOnly(True)
@@ -502,7 +503,7 @@ class WinAction(WinActionBase):
 
         cfg = copy.deepcopy(self.cfg)
         for v in self.retry_queue_mp4:
-            obj:InputFile = tools.format_video(v.get('name'), v.get('target_dir'))
+            obj:InputFile = format_video(v.get('name'), v.get('target_dir'))
             app_cfg.rm_uuid(obj['uuid'])
             self.obj_list.append(obj)
             self.add_process_btn(
@@ -512,7 +513,6 @@ class WinAction(WinActionBase):
                 uuid=obj['uuid'])
 
         cfg['clear_cache'] = False
-
         from videotrans.task.mult_video import MultVideo
         task = MultVideo(parent=self.main, cfg=cfg, input_file_list=self.obj_list)
         task.start()
@@ -522,6 +522,7 @@ class WinAction(WinActionBase):
 
     # 创建进度按钮
     def create_btns(self):
+        from videotrans.util.help_ffmpeg import format_video
         self.main.show_tips.show()
         self.main.show_tips.setText(tr('Creating progress bar, please wait'))
         # 输出目录，此时该目录是 视频名子文件夹的父级
@@ -533,7 +534,7 @@ class WinAction(WinActionBase):
         # 判断非法文件名
         forbid_names = []
         for video_path in self.queue_mp4:
-            obj:InputFile = tools.format_video(video_path, target_dir)
+            obj:InputFile = format_video(video_path, target_dir)
             if sys.platform == "win32" and re.search(r'[?:<>*|/"]', obj['basename']):
                 forbid_names.append(obj['basename'])
                 continue
@@ -541,7 +542,7 @@ class WinAction(WinActionBase):
 
         if forbid_names:
             self.update_status("stop")
-            tools.show_error(tr('win-forbid-name', '?:<>*|/"') + "\n" + ("\n".join(forbid_names)))
+            show_error(tr('win-forbid-name', '?:<>*|/"') + "\n" + ("\n".join(forbid_names)))
             return
 
         txt = self.main.subtitle_area.toPlainText().strip()
@@ -647,9 +648,9 @@ class WinAction(WinActionBase):
             # 关机
             if self.main.shutdown.isChecked():
                 try:
-                    tools.shutdown_system()
+                    shutdown_system()
                 except Exception as e:
-                    tools.show_error(tr('shutdownerror') + str(e))
+                    show_error(tr('shutdownerror') + str(e))
         else:
             # 手动暂停 stop
             app_cfg.set_countdown(-1)
@@ -692,7 +693,7 @@ class WinAction(WinActionBase):
             return
         # 任务开始执行，初始化按钮等
         if d['type'] == 'shitingerror':
-            tools.show_error(d['text'])
+            show_error(d['text'])
             return
 
 

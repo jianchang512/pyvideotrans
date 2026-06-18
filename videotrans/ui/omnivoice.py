@@ -4,7 +4,7 @@ from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPushButton, QSizePolicy
 
 from videotrans.configure.config import tr
-from videotrans.util import tools
+from videotrans.util.help_misc import show_refaudio_win, open_url
 
 
 class Ui_omnivoiceform(object):
@@ -53,14 +53,14 @@ class Ui_omnivoiceform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/omnivoice'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/omnivoice'))
 
         h2.addWidget(self.save)
         h2.addWidget(self.test)
 
         ref_btn = QtWidgets.QPushButton()
         ref_btn.setText(tr("Set reference audio"))
-        ref_btn.clicked.connect(tools.show_refaudio_win)
+        ref_btn.clicked.connect(show_refaudio_win)
         h2.addWidget(ref_btn)
         h2.addWidget(help_btn)
 

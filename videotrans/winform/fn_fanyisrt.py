@@ -1,10 +1,11 @@
 # 字幕批量翻译
-from typing import List
-
-from videotrans.task.taskcfg import InputFile
 
 
 def openwin():
+
+    from videotrans.util.help_misc import show_glossary_editor, show_error, set_proxy
+    from typing import List
+    from videotrans.task.taskcfg import InputFile
     import json
     import os
     from pathlib import Path
@@ -15,10 +16,8 @@ def openwin():
     from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR
     from videotrans.configure import config
     from videotrans.task.taskcfg import TaskCfgSTS
-
-    from videotrans.util import tools
     from videotrans import translator
-    from videotrans.task.translate_srt import TranslateSrt
+
     RESULT_DIR = HOME_DIR + "/translate"
     SOURCE_DIR = RESULT_DIR
     uuid_list=[]
@@ -117,21 +116,21 @@ def openwin():
                                                                      translate_type=translate_type)
        
         if target_language == '-':
-            return tools.show_error(tr("fanyimoshi1"))
+            return show_error(tr("fanyimoshi1"))
         
 
         proxy = winobj.fanyi_proxy.text()
 
         if proxy:
             app_cfg.proxy = proxy
-            tools.set_proxy(proxy)
+            set_proxy(proxy)
             settings['proxy'] = proxy
 
         rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_code)
         if rs is not True:
             return False
         if len(winobj.files) < 1:
-            return tools.show_error(tr("Must import srt subtitle files"))
+            return show_error(tr("Must import srt subtitle files"))
         winobj.fanyi_sourcetext.clear()
         winobj.fanyi_targettext.clear()
         winobj.loglabel.setText('')
@@ -139,8 +138,8 @@ def openwin():
         settings['aisendsrt'] = winobj.aisendsrt.isChecked()
 
         settings.save()
-
-        video_list:List[InputFile] = [tools.format_video(it, None) for it in winobj.files]
+        from videotrans.util.help_ffmpeg import format_video
+        video_list:List[InputFile] = [format_video(it, None) for it in winobj.files]
         uuid_list = [obj['uuid'] for obj in video_list]
         if winobj.save_source.isChecked():
             SOURCE_DIR = Path(video_list[0]['name']).parent.as_posix()
@@ -153,6 +152,7 @@ def openwin():
                 "source_language_code": source_code,
                 "target_language_code": target_code
             }
+            from videotrans.task.translate_srt import TranslateSrt
             trk = TranslateSrt(cfg=TaskCfgSTS(**cfg|it),out_format=winobj.out_format.currentIndex())
             app_cfg.trans_queue.put_nowait(trk)
 
@@ -256,12 +256,12 @@ def openwin():
 
     def show_detail_error():
         if winobj.error_msg:
-            tools.show_error(winobj.error_msg)
+            show_error(winobj.error_msg)
 
     def export_srt():
         srt_string = winobj.fanyi_targettext.toPlainText().strip()
         if not srt_string:
-            return tools.show_error(tr("No result, no need to save"))
+            return show_error(tr("No result, no need to save"))
         dialog = QFileDialog()
         dialog.setWindowTitle(tr('savesrtto'))
         dialog.setNameFilters(["subtitle files (*.srt)"])
@@ -329,7 +329,7 @@ def openwin():
         winobj.fanyi_model_list.currentTextChanged.connect(model_change)
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.exportsrt.clicked.connect(export_srt)
-        winobj.glossary.clicked.connect(lambda: tools.show_glossary_editor(winobj))
+        winobj.glossary.clicked.connect(lambda: show_glossary_editor(winobj))
         winobj.aisendsrt.toggled.connect(checkbox_state_changed)
         winobj.save_source.setChecked(params.get("trans_save_source",False))
 

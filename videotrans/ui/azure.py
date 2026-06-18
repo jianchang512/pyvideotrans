@@ -5,7 +5,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 from videotrans.configure.config import tr, params, settings
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class Ui_azureform(object):
@@ -105,7 +105,7 @@ class Ui_azureform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/azure'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/azure'))
 
         h5 = QtWidgets.QHBoxLayout()
         h5.addWidget(self.set_azure)

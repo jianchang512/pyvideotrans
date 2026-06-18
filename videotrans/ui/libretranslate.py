@@ -2,9 +2,8 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-
 from videotrans.configure.config import tr
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class Ui_libretranslateform(object):
@@ -67,7 +66,7 @@ class Ui_libretranslateform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/libretranslate'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/libretranslate'))
 
         h1 = QtWidgets.QHBoxLayout()
         h1.addWidget(self.set)

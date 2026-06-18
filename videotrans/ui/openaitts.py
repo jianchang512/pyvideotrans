@@ -5,7 +5,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 from videotrans.configure.config import tr, params, settings
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class Ui_openaittsform(object):
@@ -108,7 +108,7 @@ class Ui_openaittsform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/openaitts'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/openaitts'))
 
         h4.addWidget(self.set_openaitts)
         h4.addWidget(self.test_openaitts)

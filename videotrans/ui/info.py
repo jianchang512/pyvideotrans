@@ -5,7 +5,7 @@ from PySide6.QtGui import Qt, QPixmap
 
 from videotrans import VERSION
 from videotrans.configure.config import tr, app_cfg, defaulelang
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class Ui_infoform(object):
@@ -111,7 +111,7 @@ GitHub: https://github.com/jianchang512/pyvideotrans
             link2.setStyleSheet("""background-color:transparent;text-align:left""")
 
             link2.setCursor(Qt.PointingHandCursor)
-            link2.clicked.connect(lambda: tools.open_url('https://ko-fi.com/jianchang512'))
+            link2.clicked.connect(lambda: open_url('https://ko-fi.com/jianchang512'))
             self.v1.addWidget(link2)
 
         lawbtn = QtWidgets.QPushButton()
@@ -120,7 +120,7 @@ GitHub: https://github.com/jianchang512/pyvideotrans
         # lawbtn.setStyleSheet("background-color:rgba(255,255,255,0);text-align:left""")
         lawbtn.setCursor(Qt.PointingHandCursor)
         lawbtn.setText(tr("Software License Agreement"))
-        lawbtn.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/law.html'))
+        lawbtn.clicked.connect(lambda: open_url('https://pyvideotrans.com/law.html'))
         self.v1.addWidget(lawbtn)
         self.v1.addStretch()
         infoform.setWindowTitle(

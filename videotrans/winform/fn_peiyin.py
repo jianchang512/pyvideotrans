@@ -1,10 +1,12 @@
 # 合成配音
-from typing import List
-
-from videotrans.task.taskcfg import InputFile
 
 
 def openwin():
+
+    from videotrans.util.help_misc import show_error
+    from videotrans.util.help_role import role_menu
+    from typing import List
+    from videotrans.task.taskcfg import InputFile
     from datetime import datetime
     from videotrans.configure.contants import LISTEN_TEXT
     import re
@@ -15,12 +17,10 @@ def openwin():
     from PySide6 import QtWidgets
     from videotrans.configure.config import tr, app_cfg, params, defaulelang,   HOME_DIR
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.task.taskcfg import TaskCfgTTS
-    from videotrans.task.dubbing import DubbingSrt
     from videotrans import translator, tts
     from videotrans.component.set_form import Peiyinform
-    from videotrans.component.component import PeiyinDropButton
+
 
     langname_dict = {
         "zh-cn": "简体中文",
@@ -248,13 +248,13 @@ def openwin():
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
-            return tools.show_error(tr("The voice is not support listen"))
+            return show_error(tr("The voice is not support listen"))
         text = LISTEN_TEXT.get(f'{lang}')
         if not text:
-            return tools.show_error(tr('The current language does not support audition'))
+            return show_error(tr('The current language does not support audition'))
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
-            return tools.show_error(tr('mustberole'))
+            return show_error(tr('mustberole'))
         voice_dir = config.TEMP_DIR + '/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
@@ -288,7 +288,7 @@ def openwin():
             winobj.listen_btn.setDisabled(False)
             winobj.listen_btn.setText(raw_text)
             if d != "ok":
-                tools.show_error(d)
+                show_error(d)
 
         winobj.listen_btn.setDisabled(True)
         winobj.listen_btn.setText('load...')
@@ -311,7 +311,7 @@ def openwin():
         tts_type = winobj.tts_type.currentIndex()
 
         if language == '-' or role in ['No', '-', '']:
-            return tools.show_error(tr('yuyanjuesebixuan'))
+            return show_error(tr('yuyanjuesebixuan'))
 
         if tts.is_input_api(tts_type=tts_type) is not True:
             return False
@@ -327,7 +327,7 @@ def openwin():
         else:
             code_list = [key for key, value in langname_dict.items() if value == language]
             if not code_list:
-                return tools.show_error(f'{language} is not support -1')
+                return show_error(f'{language} is not support -1')
             langcode = code_list[0]
 
 
@@ -338,7 +338,7 @@ def openwin():
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
 
         if len(winobj.hecheng_importbtn.filelist) < 1 and not txt:
-            return tools.show_error(
+            return show_error(
                 tr("Must import srt file or fill in text box with text"))
         toggle_state(True)
         if len(winobj.hecheng_importbtn.filelist) > 0 and winobj.save_to_srt.isChecked():
@@ -358,8 +358,8 @@ def openwin():
                 with open(newsrtfile, "w", encoding="utf-8") as f:
                     f.write(txt)
             winobj.hecheng_importbtn.filelist.append(newsrtfile)
-
-        video_list:List[InputFile] = [tools.format_video(it, None) for it in winobj.hecheng_importbtn.filelist]
+        from videotrans.util.help_ffmpeg import format_video
+        video_list:List[InputFile] = [format_video(it, None) for it in winobj.hecheng_importbtn.filelist]
         uuid_list = [obj['uuid'] for obj in video_list]
         for it in video_list:
             app_cfg.rm_uuid(it['uuid'])
@@ -378,6 +378,7 @@ def openwin():
                 "align_sub_audio": False,
                 "is_cuda": winobj.is_cuda.isChecked()
             }
+            from videotrans.task.dubbing import DubbingSrt
             trk = DubbingSrt(cfg=TaskCfgTTS(**cfg | it), out_ext=winobj.out_format.currentText())
             app_cfg.dubb_queue.put_nowait(trk)
             winobj.hecheng_plaintext.clear()
@@ -441,7 +442,7 @@ def openwin():
                 winobj.loglabel.setText('')
             if tts.is_input_api(tts_type=type) is not True:
                 return False
-        role_list = tools.role_menu(type, code)
+        role_list = role_menu(type, code)
         winobj.hecheng_role.clear()
         if "clone" in role_list:
             role_list.remove('clone')
@@ -472,7 +473,7 @@ def openwin():
         if t == '-' or not code:
             winobj.hecheng_role.addItems(['No'])
             return
-        role_list = tools.role_menu(tts_type, code)
+        role_list = role_menu(tts_type, code)
         if 'clone' in role_list:
             role_list.remove('clone')
         winobj.hecheng_role.addItems(role_list)
@@ -482,7 +483,7 @@ def openwin():
 
     def show_detail_error():
         if winobj.error_msg:
-            tools.show_error(winobj.error_msg)
+            show_error(winobj.error_msg)
 
     def check_voice_autorate(state):
         winobj.remove_silent_mid.setVisible(not state)
@@ -492,7 +493,7 @@ def openwin():
         if state:
             import torch
             if not torch.cuda.is_available():
-                tools.show_error(tr('nocuda'))
+                show_error(tr('nocuda'))
                 winobj.is_cuda.setChecked(False)
                 winobj.is_cuda.setDisabled(True)
                 return False
@@ -503,6 +504,7 @@ def openwin():
     app_cfg.child_forms['fn_peiyin'] = winobj
 
     def _bind():
+        from videotrans.component.component import PeiyinDropButton
         winobj.hecheng_importbtn = PeiyinDropButton(tr('Import text to be translated from a file..'))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)

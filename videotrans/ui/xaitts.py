@@ -3,9 +3,9 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
+from videotrans.util.help_misc import open_url
 
 from videotrans.configure.config import tr, params
-from videotrans.util import tools
 
 
 class Ui_xaittsform(object):
@@ -54,7 +54,7 @@ class Ui_xaittsform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/xaitts'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/xaitts'))
 
         h4.addWidget(self.set_xaitts)
         h4.addWidget(self.test_xaitts)

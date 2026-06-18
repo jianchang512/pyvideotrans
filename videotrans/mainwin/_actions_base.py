@@ -13,11 +13,10 @@ from PySide6.QtCore import QTimer
 from videotrans.configure.config import tr, settings, params, app_cfg,  ROOT_DIR,  defaulelang, TEMP_ROOT
 from .main_win import MainWindow
 from videotrans.task.taskcfg import InputFile
-from videotrans.util import tools
 from videotrans.configure import contants
 from videotrans.util.ListenVoice import ListenVoice
-from videotrans import tts
 from videotrans.configure.contants import LISTEN_TEXT
+from videotrans.util.help_misc import open_url, show_popup, set_proxy, show_error
 
 
 @dataclass
@@ -70,7 +69,7 @@ class WinActionBase:
 
         # 检查哪个按钮被点击
         if msg_box.clickedButton() == tutorial_button:
-            tools.open_url("https://pyvideotrans.com/selectmodel")  # 调用模型选择教程的函数
+            open_url("https://pyvideotrans.com/selectmodel")  # 调用模型选择教程的函数
 
     # 关于页面
     def about(self):
@@ -93,7 +92,7 @@ class WinActionBase:
             return
         # 选中如果无效，则取消
         if state and app_cfg.NVIDIA_GPU_NUMS == 0:
-            tools.show_error(tr('nocuda'))
+            show_error(tr('nocuda'))
             self.main.enable_cuda.setChecked(False)
             self.main.enable_cuda.setDisabled(True)
             res = False
@@ -272,10 +271,10 @@ class WinActionBase:
         hide_recursive(wrap_layout, show_status)
 
     def open_url(self, title):
-        tools.open_url(title)
+        open_url(title)
 
     def clearcache(self):
-        question = tools.show_popup(tr('Confirm cleanup?'),
+        question = show_popup(tr('Confirm cleanup?'),
                                     tr('After cleaning, you need to restart the software. Only cache and temporary files are cleaned. For configuration information, please directly delete the .json in the videotrans folder.'))
 
         if int(question) == int(QtWidgets.QMessageBox.Yes):
@@ -350,10 +349,10 @@ class WinActionBase:
         if not proxy:
             settings['proxy'] = ''
             app_cfg.proxy=''
-            tools.set_proxy('del')
+            set_proxy('del')
         else:
             settings['proxy'] = proxy
-            tools.set_proxy(proxy)
+            set_proxy(proxy)
             app_cfg.proxy=proxy
 
         settings.save()
@@ -373,7 +372,7 @@ class WinActionBase:
             if not re.match(r'^(http|sock)', proxy, re.I):
                 proxy = f'http://{proxy}'
             if not re.match(r'^(http|sock)(s|5)?://(\d+\.){3}\d+:\d+', proxy, re.I):
-                question = tools.show_popup(
+                question = show_popup(
                     tr("Please make sure the proxy address is correct"),
                     tr('The network proxy address you fill in seems to be incorrect, the general proxy/vpn format is http://127.0.0.1:port, if you do not know what is the proxy please do not fill in arbitrarily, ChatGPT and other api address please fill in the menu - settings - corresponding configuration. If you confirm that the proxy address is correct, please click Yes to continue.'))
                 if question != QtWidgets.QMessageBox.Yes:
@@ -382,14 +381,14 @@ class WinActionBase:
         # 设置或删除代理
         if proxy:
             # 设置代理
-            tools.set_proxy(proxy)
+            set_proxy(proxy)
             settings['proxy'] = proxy
             app_cfg.proxy=proxy
         else:
             # 删除代理
             settings['proxy'] = ''
             app_cfg.proxy=''
-            tools.set_proxy('del')
+            set_proxy('del')
         settings.save()
 
         return True
@@ -397,7 +396,7 @@ class WinActionBase:
     # 核对字幕
     def check_txt(self, txt=''):
         if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?', txt):
-            tools.show_error(
+            show_error(
                 tr("Subtitle format is not correct, please re-import the subtitle or delete the imported subtitle."))
             return False
         return True
@@ -410,7 +409,7 @@ class WinActionBase:
 
         if app_cfg.NVIDIA_GPU_NUMS == 0:
             self.cfg['is_cuda'] = False
-            tools.show_error(tr("nocuda"))
+            show_error(tr("nocuda"))
             return False
         self.cfg['is_cuda'] = True
         return True
@@ -503,18 +502,18 @@ class WinActionBase:
     # 试听配音
     def listen_voice_fun(self):
         import tempfile
-        from videotrans import translator
+        from videotrans import translator,tts
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if not lang:
-            return tools.show_error(
+            return show_error(
                 tr("Please select the target language first"))
 
         text = LISTEN_TEXT.get(f'{lang}')
         if not text:
-            return tools.show_error(tr("The voice is not support listen"))
+            return show_error(tr("The voice is not support listen"))
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
-            return tools.show_error(tr('mustberole'))
+            return show_error(tr('mustberole'))
 
         voice_dir = tempfile.gettempdir() + '/pyvideotrans'
         if not Path(voice_dir).exists():
@@ -542,7 +541,7 @@ class WinActionBase:
             "pitch": pitch,
         }
         if role == 'clone':
-            tools.show_error(
+            show_error(
                 tr("The original sound clone cannot be auditioned"))
             return
         if obj['tts_type'] == tts.PIPER_TTS and not Path(f'{ROOT_DIR}/models/piper').exists():
@@ -559,7 +558,7 @@ class WinActionBase:
             self.main.listen_btn.setDisabled(False)
             self.main.listen_btn.setText(raw_text)
             if d != "ok":
-                tools.show_error(d)
+                show_error(d)
 
         self.main.listen_btn.setDisabled(True)
         self.main.listen_btn.setText('load...')
@@ -570,6 +569,7 @@ class WinActionBase:
     # 角色改变时 显示试听按钮
     def show_listen_btn(self, role):
         voice_role = self.main.voice_role.currentText()
+        from videotrans import tts
         _tip = tts.clone_tips(self.main.tts_type.currentIndex(), voice_role, self.main.recogn_type.currentIndex())
         if _tip:
             self.main.show_tips.setText(_tip)

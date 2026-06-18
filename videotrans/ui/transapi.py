@@ -2,9 +2,8 @@
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPushButton, QSizePolicy
-
 from videotrans.configure.config import tr, defaulelang
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class Ui_transapiform(object):
@@ -64,7 +63,7 @@ class Ui_transapiform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/transapi'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/transapi'))
         h3.addWidget(self.save)
         h3.addWidget(self.test)
         h3.addWidget(help_btn)

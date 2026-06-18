@@ -1,7 +1,7 @@
-import multiprocessing,os
+import multiprocessing, os
 import time
 
-from videotrans.configure.config import app_cfg,settings,logger
+from videotrans.configure.config import app_cfg, settings, logger
 
 
 def _task_worker_wrapper(func, kwargs):
@@ -10,10 +10,11 @@ def _task_worker_wrapper(func, kwargs):
     # 这里执行真正的任务
     return func(**kwargs)
 
+
 class AsyncResultFutureWrapper:
     def __init__(self, async_result, pool_executor):
         self.async_result = async_result
-        self._pool = pool_executor # 持有对进程池的引用，用于检查健康状态
+        self._pool = pool_executor  # 持有对进程池的引用，用于检查健康状态
 
     def result(self, timeout=None):
         # 默认总超时 1 小时，或者自定义
@@ -71,45 +72,47 @@ class GlobalProcessManager:
 
     @classmethod
     def get_cpu_process_nums(cls):
-        cpu_count=int(os.cpu_count())
+        cpu_count = int(os.cpu_count())
         try:
-            man_set=int(float(settings.get('process_max',0)))
-        except (ValueError,TypeError):
-            man_set=0
-        if man_set>0:
-            return int(min(man_set,8,cpu_count))
+            man_set = int(float(settings.get('process_max', 0)))
+        except (ValueError, TypeError):
+            man_set = 0
+        if man_set > 0:
+            # 最小1个
+            return int(max(min(man_set, 8, cpu_count), 1))
 
         import psutil
-        mem=psutil.virtual_memory()
-        # 最多8个进程,最小2个
-        return int(max( min( (mem.available/(1024**3))//4 , 8, cpu_count ), 2))
+        mem = psutil.virtual_memory()
+        # 最多8个进程,最小1个
+        return int(max(min((int(mem.available / (1024 ** 3)) // 4), 8, cpu_count), 1))
 
     @classmethod
     def get_gpu_process_nums(cls):
-        cpu_count=int(os.cpu_count())
+        cpu_count = int(os.cpu_count())
         try:
-            process_max_gpu=int(float(settings.get('process_max_gpu',0)))
-        except (TypeError,ValueError):
-            process_max_gpu=0
+            process_max_gpu = int(float(settings.get('process_max_gpu', 0)))
+        except (TypeError, ValueError):
+            process_max_gpu = 0
 
         # 手动设置了gpu进程数量，则优先级最高,例如虽然只有一卡，但显存特别大，可手动设置多个gpu进程
-        if process_max_gpu>0:
-            return int(min(process_max_gpu,8,cpu_count))
+        if process_max_gpu > 0:
+            # 最小1个
+            return int(max(min(process_max_gpu, 8, cpu_count), 1))
 
         # 没有显卡 或 没有启用多显卡，则只启动一个gpu进程
-        if  app_cfg.NVIDIA_GPU_NUMS<1 or not bool(settings.get('multi_gpus',False)):
+        if app_cfg.NVIDIA_GPU_NUMS < 1 or not bool(settings.get('multi_gpus', False)):
             return 1
-        
-        return int(min(app_cfg.NVIDIA_GPU_NUMS,8,cpu_count))
+        # 最小1个
+        return int(max(min(app_cfg.NVIDIA_GPU_NUMS, 8, cpu_count), 1))
 
     @classmethod
     def get_executor_cpu(cls):
         if cls._executor_cpu is None:
             ctx = multiprocessing.get_context('spawn')
-            max_workers=cls.get_cpu_process_nums()
+            max_workers = cls.get_cpu_process_nums()
             logger.debug(f'CPU进程池:{max_workers=}')
             cls._executor_cpu = ctx.Pool(
-                processes=int(max_workers), 
+                processes=int(max_workers),
                 maxtasksperchild=1  # <--- CPU 也让它跑完就死，彻底释放物理内存
             )
         return cls._executor_cpu
@@ -121,10 +124,10 @@ class GlobalProcessManager:
         """
         if cls._executor_gpu is None:
             ctx = multiprocessing.get_context('spawn')
-            max_workers=cls.get_gpu_process_nums()
+            max_workers = cls.get_gpu_process_nums()
             logger.debug(f'GPU进程池:{max_workers=}')
             cls._executor_gpu = ctx.Pool(
-                processes=int(max_workers), 
+                processes=int(max_workers),
                 maxtasksperchild=1
             )
 
@@ -132,25 +135,25 @@ class GlobalProcessManager:
 
     @classmethod
     def submit_task_cpu(cls, func, **kwargs):
-        _executor=cls.get_executor_cpu()
+        _executor = cls.get_executor_cpu()
         # 使用 error_callback 记录错误日志
         async_result = _executor.apply_async(
             _task_worker_wrapper,
             args=(func, kwargs),
             error_callback=lambda e: logger.error(f"CPU进程池回调异常: {e}")
         )
-        return AsyncResultFutureWrapper(async_result,_executor)
+        return AsyncResultFutureWrapper(async_result, _executor)
 
     @classmethod
     def submit_task_gpu(cls, func, **kwargs):
-        _executor=cls.get_executor_gpu()
+        _executor = cls.get_executor_gpu()
         async_result = _executor.apply_async(
             _task_worker_wrapper,
             args=(func, kwargs),
             error_callback=lambda e: logger.error(f"GPU进程池回调异常: {e}")
         )
 
-        return AsyncResultFutureWrapper(async_result,_executor)
+        return AsyncResultFutureWrapper(async_result, _executor)
 
     @classmethod
     def shutdown(cls):
@@ -162,4 +165,3 @@ class GlobalProcessManager:
             cls._executor_gpu.close()
             cls._executor_gpu.join()
             cls._executor_gpu = None
-

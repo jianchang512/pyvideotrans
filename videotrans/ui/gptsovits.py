@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QLabel, QLineEdit, QPlainTextEdit, QPushButton, QS
     QCheckBox
 
 from videotrans.configure.config import tr
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class Ui_gptsovitsform(object):
@@ -67,7 +67,7 @@ class Ui_gptsovitsform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/gptsovits'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/gptsovits'))
 
         h3.addWidget(self.test)
         h3.addWidget(help_btn)

@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 
 from videotrans.configure.config import tr, params, settings
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class Ui_zijiehuoshanform(object):
@@ -78,7 +78,7 @@ class Ui_zijiehuoshanform(object):
         self.label_0 = QtWidgets.QPushButton(zijiehuoshanform)
         self.label_0.setText(tr('Click to open help page'))
         self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.clicked.connect(lambda: tools.open_url('https://pyvideotrans.com/zijiehuoshan'))
+        self.label_0.clicked.connect(lambda: open_url('https://pyvideotrans.com/zijiehuoshan'))
         self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
         h3.addWidget(self.set_zijiehuoshan)
         h3.addWidget(self.test_zijiehuoshan)

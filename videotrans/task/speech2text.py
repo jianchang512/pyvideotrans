@@ -10,11 +10,11 @@ from typing import List
 from videotrans.configure import contants
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger, HOME_DIR
 from videotrans.configure import config
-from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
-from videotrans.util import tools
+
+
 
 """
 仅语音识别
@@ -57,7 +57,8 @@ class SpeechToText(BaseTask):
         if self._exit(): return
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
         Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
-        tools.conver_to_16k(self.cfg.name, self.cfg.shibie_audio)
+        from videotrans.util.help_ffmpeg import conver_to_16k
+        conver_to_16k(self.cfg.name, self.cfg.shibie_audio)
 
     def recogn(self):
         while 1:
@@ -67,60 +68,30 @@ class SpeechToText(BaseTask):
                 break
             time.sleep(0.5)
 
+        from videotrans.util.help_down import down_file_from_ms
+        from videotrans.configure.excepts import SpeechToTextError
+
         # 需要降噪
         if self.cfg.remove_noise:
-            logger.debug('开始降噪，实际使用人声分离操作替换降噪，速度更快')
+            logger.debug('开始降噪')
+            from videotrans.process.prepare_audio import remove_noise
             title = tr('Starting to process speech noise reduction, which may take a long time, please be patient')
-
-            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/vocals.fp16.onnx",
-                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/accompaniment.fp16.onnx"
-            ], callback=self._process_callback)
-
-            _44100_ac2 = f"{self.cfg.cache_folder}/44100-ac2.wav"
+            down_file_from_ms(f'{ROOT_DIR}/models/onnx', urls=[
+                    'https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet4.onnx'],
+                                        callback=self._process_callback)
             _noise_wav = f"{config.TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
-            tools.runffmpeg([
-                "-y",
-                "-i",
-                self.cfg.name,
-                "-ac",
-                "2",
-                "-ar",
-                "44100",
-                "-c:a",
-                "pcm_s16le",
-                _44100_ac2
-            ])
-
-            from videotrans.process.prepare_audio import vocal_bgm_spleeter
             kw = {
-                "input_file": _44100_ac2,
-                "vocal_file": _noise_wav,
-                "instr_file": f"{self.cfg.cache_folder}/remove_noise.wav"
-            }
-            # 静默失败，不处理
+                    "input_file": self.cfg.shibie_audio,
+                    "output_file": _noise_wav,
+                    "is_cuda": self.cfg.is_cuda
+                }
             try:
-                rs = self._new_process(callback=vocal_bgm_spleeter, title=title, is_cuda=False, kwargs=kw)
-                if rs and tools.vail_file(_noise_wav):
-                    cmd = [
-                        "-y",
-                        "-i",
-                        _noise_wav,
-                        "-ac",
-                        "1",
-                        "-ar",
-                        "16000",
-                        "-c:a",
-                        "pcm_s16le",
-                        '-af',
-                        "volume=1.5",
-                        self.cfg.shibie_audio
-                    ]
-                    tools.runffmpeg(cmd)
-                    self.signal(text='remove noise end')
-                logger.debug('降噪结束：批量语音转录使用分离人声替代降噪操作')
+                _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
+                if _rs:
+                    self.cfg.shibie_audio = _noise_wav
+                self.signal(text='remove noise end')
             except Exception as e:
-                logger.exception(f'降噪静默失败 {e}', exc_info=True)
+                logger.exception(f'降噪失败，跳过 {e}', exc_info=True)
 
         if self._exit(): return
         raw_subtitles = run(
@@ -143,7 +114,8 @@ class SpeechToText(BaseTask):
 
         # 中英恢复标点符号
         if self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
-            tools.down_file_from_ms(f'{ROOT_DIR}/models/puntc', [
+            from videotrans.process.prepare_audio import fix_punc
+            down_file_from_ms(f'{ROOT_DIR}/models/puntc', [
                     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/model.onnx",
                     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/config.yaml",
                     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/tokens.json",
@@ -154,7 +126,7 @@ class SpeechToText(BaseTask):
             Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
             kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
 
-            from videotrans.process.prepare_audio import fix_punc
+
 
             try:
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
@@ -196,7 +168,7 @@ class SpeechToText(BaseTask):
     def diariz(self):
         if self._exit() or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
             return
-
+        from videotrans.util.help_down import down_file_from_ms, check_and_down_ms
         speaker_type = settings.get('speaker_type', 'built')
         hf_token = settings.get('hf_token')
         if speaker_type == 'built' and self.cfg.detect_language[:2] not in ['zh', 'en']:
@@ -226,7 +198,7 @@ class SpeechToText(BaseTask):
             "is_cuda": self.cfg.is_cuda
         }
         if speaker_type == 'built':
-            tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
+            down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
                 "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/seg_model.onnx",
                 "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/nemo_en_titanet_small.onnx",
                 "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"
@@ -236,7 +208,7 @@ class SpeechToText(BaseTask):
             kw['num_speakers'] = -1 if self.max_speakers < 1 else self.max_speakers
             kw['language'] = self.cfg.detect_language
         elif speaker_type == 'ali_CAM':
-            tools.check_and_down_ms(model_id='iic/speech_campplus_speaker-diarization_common',
+            check_and_down_ms(model_id='iic/speech_campplus_speaker-diarization_common',
                                     callback=self._process_callback)
             from videotrans.process.prepare_audio import cam_speakers as _run_speakers
         elif speaker_type == 'pyannote':
@@ -266,18 +238,20 @@ class SpeechToText(BaseTask):
 
     def task_done(self):
         if self._exit(): return
+        from videotrans.util.help_srt import simple_wrap
         if self.cfg.detect_language and self.cfg.detect_language != 'auto':
             # 处理换行
             maxlen = int(
                 settings.get('cjk_len', 15) if self.cfg.detect_language[:2] in contants.CJK_LANG else
                 settings.get('other_len', 60))
             for i, it in enumerate(self.source_srt_list):
-                it['text'] = tools.simple_wrap(it['text'], maxlen, self.cfg.detect_language)
+                it['text'] = simple_wrap(it['text'], maxlen, self.cfg.detect_language)
 
         # 移除标点符号
         if self.cfg.fix_punc==2:
+            from videotrans.util.help_srt import delete_punc
             for i, it in enumerate(self.source_srt_list):
-                it['text'] = tools.delete_punc(it['text'])
+                it['text'] = delete_punc(it['text'])
 
 
         if self.cfg.enable_diariz and self.spk_insert and Path(
@@ -295,7 +269,8 @@ class SpeechToText(BaseTask):
             Path(self.cfg.target_sub).write_text("\r\n".join([it["text"] for it in self.source_srt_list]),
                                                  encoding='utf-8')
         elif self.out_format != 'srt':
-            tools.runffmpeg(['-y', '-i', self.cfg.target_sub, self.cfg.target_sub[:-3] + self.out_format])
+            from videotrans.util.help_ffmpeg import runffmpeg
+            runffmpeg(['-y', '-i', self.cfg.target_sub, self.cfg.target_sub[:-3] + self.out_format])
             Path(self.cfg.target_sub).unlink(missing_ok=True)
             self.cfg.target_sub = self.cfg.target_sub[:-3] + self.out_format
 

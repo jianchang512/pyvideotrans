@@ -52,7 +52,7 @@ def qwen3tts_fun(
     
 
     all_roles={ r.get('role') for r in queue_tts}
-
+    logger.debug(f'Qwen-TTS本地内置渠道使用 {model_name} 模型，{device_map=}')
     try:
         if all_roles & CUSTOM_VOICE:
             # 存在自定义音色
@@ -62,6 +62,7 @@ def qwen3tts_fun(
                 dtype=dtype,
                 attn_implementation=atten
             )
+            logger.debug(f'存在内置自定义音色，加载 {model_name} 模型')
         if "clone" in all_roles or all_roles-CUSTOM_VOICE:
             # 存在克隆音色
             BASE_OBJ=Qwen3TTSModel.from_pretrained(
@@ -70,6 +71,8 @@ def qwen3tts_fun(
                 dtype=dtype,
                 attn_implementation=atten
             )
+            logger.debug(f'需要克隆音色，加载 {model_name} 模型')
+
         _len=len(queue_tts)
         ok,err=0,0
         last_error=''
@@ -125,8 +128,9 @@ def qwen3tts_fun(
             sf.write(filename, wavs[0], sr)
             ok+=1
         if ok<1:
-            logger.error(last_error)
+            logger.error(f'配音全部失败：{last_error}')
             return False,"Dubbing failed"+last_error
+        logger.error(f'配音成功{ok}个，失败{err}个')
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'{ok=},{err=} {last_error}'}))
         return True,None
     except BaseException as e:

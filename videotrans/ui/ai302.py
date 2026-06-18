@@ -4,7 +4,7 @@
 from PySide6 import QtCore, QtWidgets
 
 from videotrans.configure.config import tr, params, settings
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class Ui_ai302form(object):
@@ -92,7 +92,7 @@ class Ui_ai302form(object):
         self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
         self.label_0.setStyleSheet("""text-align:left;background-color:transparent""")
         self.label_0.setText(tr('Fill out the tutorial'))
-        self.label_0.clicked.connect(lambda: tools.open_url("https://pyvideotrans.com/302ai"))
+        self.label_0.clicked.connect(lambda: open_url("https://pyvideotrans.com/302ai"))
 
         h3.addWidget(self.set_ai302)
         h3.addWidget(self.test_ai302)

@@ -2,8 +2,8 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 from videotrans.configure.config import tr, params,settings
-from videotrans.util import tools
 from videotrans.configure import contants
+from videotrans.util.help_misc import open_url
 
 
 class Ui_xiaomiform(object):
@@ -110,7 +110,7 @@ class Ui_xiaomiform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/xiaomi'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/xiaomi'))
 
         h3.addWidget(self.set_xiaomi)
         h3.addWidget(self.test)

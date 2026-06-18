@@ -1,23 +1,22 @@
-from typing import List
-
-from videotrans.task.taskcfg import InputFile
 
 
 def openwin():
+
+    from videotrans.util.help_misc import hide_show_element, show_error
+    from typing import List
+    from videotrans.task.taskcfg import InputFile
     import sys
     import json
     from pathlib import Path
     from PySide6 import QtWidgets
     from PySide6.QtCore import QUrl
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
-    from videotrans.configure.config import tr, app_cfg, settings, params, HOME_DIR,logger
+    from videotrans.configure.config import tr, app_cfg, settings, params, HOME_DIR
     from videotrans.configure import config
-    from videotrans.util import tools
-    from videotrans.task.speech2text import SpeechToText
     from videotrans.task.taskcfg import TaskCfgSTT
     from videotrans import translator, recognition
     from videotrans.component.set_form import Recognform
-    from videotrans.component.component import DropButton
+
 
     RESULT_DIR = HOME_DIR + f"/recogn"
     Path(RESULT_DIR).mkdir(exist_ok=True, parents=True)
@@ -98,11 +97,11 @@ def openwin():
         langcode = translator.get_audio_code(show_source=winobj.shibie_language.currentText())
         is_cuda = winobj.is_cuda.isChecked()
         if is_cuda and check_cuda(is_cuda) is not True:
-            return tools.show_error(tr("nocudnn"))
+            return show_error(tr("nocudnn"))
         # 待识别音视频文件列表
         files = winobj.shibie_dropbtn.filelist
         if not files or len(files) < 1:
-            return tools.show_error(tr('bixuyinshipin'))
+            return show_error(tr('bixuyinshipin'))
 
         is_allow_lang_res = recognition.is_allow_lang(langcode=langcode, recogn_type=recogn_type, model_name=model)
 
@@ -114,12 +113,12 @@ def openwin():
         if winobj.rephrase.currentIndex() == 1:
             ai_type = settings.get('llm_ai_type', 'openai')
             if ai_type in ['openai','chatgpt'] and not params.get('chatgpt_key'):
-                tools.show_error(tr('llmduanju'))
+                show_error(tr('llmduanju'))
                 from videotrans.winform import chatgpt
                 chatgpt.openwin()
                 return
             if ai_type == 'deepseek' and not params.get('deepseek_key'):
-                tools.show_error(tr('llmduanjudp'))
+                show_error(tr('llmduanjudp'))
                 from videotrans.winform import deepseek
                 deepseek.openwin()
                 return
@@ -131,11 +130,11 @@ def openwin():
         winobj.shibie_text.clear()
         stt_rephrase = int(winobj.rephrase.currentIndex())
         settings.save()
-
+        from videotrans.util.help_ffmpeg import format_video
         try:
             COPYSRT_TO_RAWDIR = RESULT_DIR if not winobj.copysrt_rawvideo.isChecked() else RESULT_DIR
             winobj.loglabel.setText('')
-            video_list:List[InputFile] = [tools.format_video(it, None) for it in files]
+            video_list:List[InputFile] = [format_video(it, None) for it in files]
             uuid_list = [obj['uuid'] for obj in video_list]
             remove_noise_is = winobj.remove_noise.isChecked()
             fix_punc = winobj.fix_punc.currentIndex()
@@ -155,6 +154,7 @@ def openwin():
                     "rephrase": stt_rephrase,
                     "fix_punc": fix_punc
                 }
+                from videotrans.task.speech2text import SpeechToText
                 trk = SpeechToText(cfg=TaskCfgSTT(**cfg | it),
                                        out_format=winobj.out_format.currentText(),
                                        copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked(),
@@ -182,14 +182,14 @@ def openwin():
 
         except Exception as e:
             from videotrans.configure.excepts import get_msg_from_except
-            tools.show_error(get_msg_from_except(e))
+            show_error(get_msg_from_except(e))
 
     def check_cuda(state):
         # 选中如果无效，则取消
         if state:
             import torch
             if not torch.cuda.is_available():
-                tools.show_error(tr('nocuda'))
+                show_error(tr('nocuda'))
                 winobj.is_cuda.setChecked(False)
                 winobj.is_cuda.setDisabled(True)
                 return False
@@ -197,7 +197,7 @@ def openwin():
 
     def show_xxl_select():
         if sys.platform != 'win32':
-            tools.show_error(
+            show_error(
                 tr("faster-whisper-xxl.exe is only available on Windows"))
             return False
         if not settings.get('Faster_Whisper_XXL') or not Path(
@@ -221,7 +221,7 @@ def openwin():
                 cpp_path = dialog.get_values()
                 if cpp_path and Path(cpp_path).is_file():
                     return True
-            tools.show_error(
+            show_error(
                 tr("Must be selected, otherwise it cannot be used"))
             return False
         return True
@@ -243,7 +243,7 @@ def openwin():
             return
         # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
         if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER]:  # openai-whisper
-            tools.hide_show_element(winobj.hfaster_layout, False)
+            hide_show_element(winobj.hfaster_layout, False)
 
         if recogn_type not in recognition.ALLOW_CHANGE_MODEL:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
@@ -271,19 +271,20 @@ def openwin():
 
     def show_detail_error():
         if winobj.error_msg:
-            tools.show_error(winobj.error_msg)
+            show_error(winobj.error_msg)
 
     # 点击语音识别，显示隐藏faster时的详情设置
     def click_reglabel():
         if winobj.shibie_recogn_type.currentIndex() in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER]:
-            tools.hide_show_element(winobj.hfaster_layout, not winobj.threshold.isVisible())
+            hide_show_element(winobj.hfaster_layout, not winobj.threshold.isVisible())
         else:
-            tools.hide_show_element(winobj.hfaster_layout, False)
+            hide_show_element(winobj.hfaster_layout, False)
 
     winobj = Recognform()
     app_cfg.child_forms['fn_recogn'] = winobj
 
     def _bind():
+        from videotrans.component.component import DropButton
         winobj.shibie_dropbtn = DropButton(tr('xuanzeyinshipin'))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)

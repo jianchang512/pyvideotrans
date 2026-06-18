@@ -5,10 +5,7 @@ from pathlib import Path
 from typing import List, Union
 from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR
 from videotrans.configure.base import BaseCon
-from videotrans.configure.excepts import DubbingSrtError, VideoTransError
 from videotrans.task.taskcfg import TaskCfgBase, SrtItem
-from videotrans.util import tools
-
 
 @dataclass
 class BaseTask(BaseCon):
@@ -79,11 +76,13 @@ class BaseTask(BaseCon):
 
     # 保存字幕文件 到目标文件夹
     def _save_srt_target(self, srtstr: List[SrtItem], file: str):
+        from videotrans.util.help_srt import get_srt_from_list
         try:
-            txt = tools.get_srt_from_list(srtstr)
+            txt = get_srt_from_list(srtstr)
             with open(file, "w", encoding="utf-8", errors="ignore") as f:
                 f.write(txt)
         except Exception as e:
+            from videotrans.configure.excepts import VideoTransError
             raise VideoTransError(f'保存字幕前格式化srt失败:{file=}') from e
 
         self.signal(text=Path(file).read_text(encoding='utf-8', errors="ignore"), type='replace_subtitle')
@@ -120,7 +119,8 @@ class BaseTask(BaseCon):
             if app_cfg.exec_mode=="cli":
                 print(f'Save to:[ {self.cfg.target_dir} ]')
             else:
-                tools.send_notification(tr('Succeed'), f"{self.cfg.basename}")
+                from videotrans.util.help_ffmpeg import send_notification
+                send_notification(tr('Succeed'), f"{self.cfg.basename}")
             # 清理临时文件
             try:
                 if self.cfg.cache_folder:
@@ -132,6 +132,7 @@ class BaseTask(BaseCon):
     async def _edgetts_single(self, target_audio, kwargs):
         from edge_tts import Communicate
         from io import BytesIO
+        from videotrans.configure.excepts import DubbingSrtError
 
         useproxy_initial = None if not self.proxy_str or Path(
             f'{ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str

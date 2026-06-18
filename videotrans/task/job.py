@@ -218,8 +218,8 @@ def start_thread():
         elif app_cfg.NVIDIA_GPU_NUMS > 1 and bool(settings.get('multi_gpus')):
             # 显卡数量真的大于1 并且 启用了多显卡，
             task_nums = 2 if app_cfg.NVIDIA_GPU_NUMS < 4 else 4
-        logger.debug(f'最大GPU进程:{process_max_gpu}, 是否多显卡模式:{settings.get("multi_gpus")}, {task_nums=} ')
-    logger.debug(f'最大CPU进程: {settings.get("process_max")}, {task_nums=}')
+        logger.debug(f'最大允许GPU进程[0为不限制]:{process_max_gpu}, 是否多显卡模式:{settings.get("multi_gpus")}, {task_nums=} ')
+    logger.debug(f'最大允许CPU进程[0为不限制]: {settings.get("process_max")}, {task_nums=}')
     worker_config = {
         WorkerPrepare: task_nums,  # 准备工作
         WorkerRegcon: task_nums,  # 语音识别

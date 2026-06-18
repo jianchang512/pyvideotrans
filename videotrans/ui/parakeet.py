@@ -3,9 +3,8 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-
 from videotrans.configure.config import tr, params
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class Ui_parakeetform(object):
@@ -62,7 +61,7 @@ class Ui_parakeetform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("The tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/parakeet'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/parakeet'))
 
         self.layout_btn = QtWidgets.QHBoxLayout()
         self.layout_btn.setObjectName("layout_btn")

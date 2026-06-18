@@ -121,14 +121,15 @@ def openai_whisper(
                     "words": [{'word': it['word'], 'start': it['start'], 'end': it['end']} for it in segment['words']]
                 })
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment["text"]}\n'}))
-            logger.debug(f'openai-whisper模式下，对{model_name}模型返回的断句结果重新后修正')
+            logger.debug(f'openai-whisper模式下，传递完整音频由模型{model_name} 输出字级时间戳')
             if not texts:
                 return False, "No transcription results returned. Please check the original audio/video or model and try again."
+            logger.debug(f'对字级时间戳进行组合断句')
             raws = _resegment(texts, segments['language'], max_speech_ms, logs_file)
-            logger.debug(f'断句结果重新修正结束')
             if jianfan and raws:
                 for it in raws:
                     it['text'] = zhconv.convert(it['text'], 'zh-hans')
+            logger.debug('断句完毕，返回结果')
         return raws, None
     except BaseException as e:
         msg = traceback.format_exc()
@@ -169,7 +170,7 @@ def faster_whisper(
 
     def _create_model(_compute_type):
         try:
-            logger.debug(f'[faster_whisper]加载模型:当前 {is_cuda=},{_compute_type=}')
+            logger.debug(f'[faster_whisper]加载模型{model_name}: {is_cuda=},{_compute_type=}')
             model = WhisperModel(
                 local_dir,
                 device="cuda" if is_cuda else 'cpu',
@@ -179,17 +180,15 @@ def faster_whisper(
             return model
         except Exception as e:
             # 对数据类型问题引发的错误重试
-            _is_compute_type = "the target device or backend do not support efficient" in str(e)
-            if not _is_compute_type or _compute_type == 'float32':
-                logger.exception(f'faster-whisper加载模型失败:{is_cuda=}, {_compute_type=},{e}', exc_info=True)
-                raise
             # cuda下先尝试使用 float16
             if is_cuda and _compute_type != 'float16':
-                logger.warning(f'faster-whisper CUDA下 加载模型失败，更改为 [float16] 类型后重试')
+                logger.warning(f'faster-whisper CUDA下 加载模型失败，更改为 [float16] 类型后重试{e}')
                 return _create_model('float16')
+
+
             # 如果cpu并且非 int8,先尝试 int8
             if not is_cuda and _compute_type != 'int8':
-                logger.warning(f'faster-whisper CPU下 加载模型失败，更改为 [int8] 类型后重试')
+                logger.warning(f'faster-whisper CPU下 加载模型失败，更改为 [int8] 类型后重试{e}')
                 return _create_model('int8')
             # 保底 float32
             if _compute_type != 'float32':
@@ -205,10 +204,11 @@ def faster_whisper(
         try:
             # 1. 加载基础模型
             _write_log(logs_file, json.dumps({"type": "logs", "text": 'loading model'}))
+            logger.debug(f'开始加载 faster-whisper模型{model_name},数据类型:{compute_type}')
             model = _create_model(compute_type)
         except Exception as e:
             error = traceback.format_exc()
-            logger.error(f'[faster_whisper][{is_cuda=}]语音转录失败:{local_dir=}\n{error}')
+            logger.error(f'[faster_whisper][{is_cuda=}]语音转录加载模型失败:{local_dir=}\n{error}')
             return False, f'{e},{error}'
 
         if not temperature:
@@ -226,7 +226,9 @@ def faster_whisper(
             temperature = float(temperature)
 
         if speech_timestamps:
+
             _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe batch...'}))
+            logger.debug(f'预先VAD处理后，将断句时间数据传给 BatchedInferencePipeline 批量识别,batch_size=4')
             # 4. 执行批量推理
             # 使用 batched_model.transcribe
             batched_model = BatchedInferencePipeline(model=model)
@@ -279,6 +281,7 @@ def faster_whisper(
                 raws.append(tmp)
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
         else:
+            logger.debug(f'直接传递完整音频，由faster-whisper内部VAD处理，返回字级时间戳数据')
             _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word_timestamps'}))
             segments, info = model.transcribe(
                 audio_file,
@@ -310,15 +313,14 @@ def faster_whisper(
                 })
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment.text}\n'}))
 
-            logger.debug(f'faster-whisper模式下，对{model_name}模型返回的断句结果重新修正')
+            logger.debug(f'faster-whisper模式下，对{model_name}模型返回的字级时间戳进行断句')
             if not texts:
                 return False, "No transcription results returned. Please check the original audio/video or model and try again."
             raws = _resegment(texts, info.language, max_speech_ms, logs_file)
-            logger.debug('断句结果重新修正完毕')
             if jianfan and raws:
                 for it in raws:
                     it['text'] = zhconv.convert(it['text'], 'zh-hans')
-            logger.debug('返回识别结果')
+            logger.debug('断句完毕返回结果')
         # 保存识别结果到临时目录下，防止进程崩溃后永久等待
         if subtitle_srt:
             Path(subtitle_srt).write_text("\n\n".join([f'{i+1}\n{it.startraw} --> {it.endraw}\n{it.text}' for i,it in enumerate(raws)]),encoding="utf-8")
@@ -327,6 +329,7 @@ def faster_whisper(
         return raws,None
     except BaseException as e:
         msg = traceback.format_exc()
+        logger.exception(e,exc_info=True)
         return False, f'{e}:{msg}'
 
 
@@ -359,7 +362,7 @@ def pipe_asr(
 
     msg = f"Loading pipeline from {local_dir}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
-
+    logger.debug(f'huggingface_asr渠道使用模型: {local_dir}')
     detect_language = 'tl' if detect_language == 'fil' else detect_language
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
@@ -411,10 +414,6 @@ def pipe_asr(
                 # 安全起见，转为 tensor 传入通常是支持的，或者转为 list: prompt_ids.tolist()[0]
                 generate_kwargs["prompt_ids"] = prompt_ids
 
-        else:
-            # === 其他架构 (如 Parakeet, Wav2Vec2) ===
-            # 这些模型通常不需要 language 参数（或者是预定义好的），也不支持 prompt_ids
-            pass
 
         # 4. 执行批量推理
         # 这里的 p(...) 返回的是一个迭代器，它会在后台进行 batch 处理
@@ -430,10 +429,7 @@ def pipe_asr(
         # 因为 inputs_generator 是按顺序 yield 的，results_iterator 也会按顺序输出
         for i, (it, res) in enumerate(zip(raws, results_iterator)):
             _write_log(logs_file, json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}))
-
             text = res.get('text', '')
-
-
             if text:
                 # 清理特殊标记
                 cleaned_text = re.sub(r'<unk>|</unk>', '', text).strip()
@@ -463,12 +459,12 @@ def paraformer(
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
-    from funasr import AutoModel
+
     msg = f'Load {model_name}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
-
     raw_subtitles = []
     device = f'cuda:{device_index}' if is_cuda else 'cpu'
+    logger.debug(f'阿里FunASR渠道使用 {model_name} 模型，{device=}')
     try:
         model = pipeline(
             task=Tasks.auto_speech_recognition,
@@ -513,11 +509,11 @@ def paraformer(
             raw_subtitles.append(tmp)
         if speaker_list:
             Path(f'{cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
-    except Exception as e:
+        return raw_subtitles, None
+    except BaseException as e:
         msg = traceback.format_exc()
         return False, f'{e}:{msg}'
 
-    return raw_subtitles, None
 
 #支持热词
 def qwen3asr_fun(
@@ -542,6 +538,7 @@ def qwen3asr_fun(
         device_map = 'cpu'
         dtype = torch.float32
 
+    logger.debug(f'QwenASR本地渠道 {model_name} 模型，{device_map=}')
     try:
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {device_map}'}))
         model = Qwen3ASRModel.from_pretrained(
@@ -560,7 +557,7 @@ def qwen3asr_fun(
                 audio=[it['filename'] for it in it_list],
                 language=[None for it in it_list],  # can also be set to None for automatic language detection
                 return_time_stamps=False,
-                context=hotword.split(',') if hotword else []
+                # context=hotword.split(',') if hotword else []
             )
             for j, it in enumerate(it_list):
                 it['text'] = results[j].text
@@ -568,7 +565,7 @@ def qwen3asr_fun(
             _write_log(logs_file, json.dumps({"type": "subtitle", "text": "\n".join([it['text'] for it in it_list])}))
 
         return srts, None
-    except Exception as e:
+    except BaseException as e:
         msg = traceback.format_exc()
         return False, f'{e}:{msg}'
 
@@ -594,6 +591,7 @@ def funasr_mlt(
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
 
     device = f"cuda:{device_index}" if is_cuda else 'cpu'
+    logger.debug(f'阿里FunASR渠道使用 {model_name} 模型，{device=}')
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
             cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in
@@ -659,7 +657,6 @@ def _write_log(file, msg):
         Path(file).write_text(msg, encoding='utf-8')
     except Exception as e:
         logger.exception(f'写入新进程日志时出错{e}', exc_info=True)
-
 
 def _remove_unwanted_characters(text: str) -> str:
     # 保留中文、日文、韩文、英文、数字和常见符号，去除其他字符

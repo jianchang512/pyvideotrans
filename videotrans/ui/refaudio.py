@@ -4,7 +4,7 @@ from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QPlainTextEdit, QPushButton, QSizePolicy
 
 from videotrans.configure.config import tr, params
-from videotrans.util import tools
+from videotrans.util.help_misc import show_error, set_process
 
 
 class Ui_refform(object):
@@ -50,12 +50,12 @@ class Ui_refform(object):
     def _save(self):
         role = self.roles.toPlainText().strip()
         if not role:
-            return tools.show_error(tr("Please upload reference audio in wav format"))
+            return show_error(tr("Please upload reference audio in wav format"))
 
 
         params["f5tts_role"] = role
         params.save()
-        tools.set_process(text='', type="refreshtts")
+        set_process(text='', type="refreshtts")
         self.close()
 
     def retranslateUi(self, refform):

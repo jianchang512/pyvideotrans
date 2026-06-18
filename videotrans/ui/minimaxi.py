@@ -4,8 +4,8 @@ from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit,  QPushButton, QSizePolicy
 
 from videotrans.configure.config import tr
-from videotrans.util import tools
 from videotrans.configure.contants import MINIMAX_TTS_MODELS
+from videotrans.util.help_misc import open_url
 
 
 class Ui_minimaxiform(object):
@@ -86,7 +86,7 @@ class Ui_minimaxiform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/minimaxi'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/minimaxi'))
 
         h4.addWidget(self.save)
         h4.addWidget(self.test)

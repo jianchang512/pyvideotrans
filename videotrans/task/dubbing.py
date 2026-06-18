@@ -6,15 +6,12 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
-
 from videotrans import tts
 from videotrans.configure.config import tr, settings, app_cfg, logger, HOME_DIR
-from videotrans.configure.excepts import DubbingSrtError
 from videotrans.task._base import BaseTask
-from videotrans.task._rate import TtsSpeedRate
 from videotrans.task.taskcfg import TaskCfgTTS, SrtItem
-from videotrans.util import tools
 import asyncio
+
 
 """
 仅配音任务：对应 批量为字幕配音 面板
@@ -97,6 +94,8 @@ class DubbingSrt(BaseTask):
             raise
 
     def _tts(self) -> None:
+        from videotrans.util.help_srt import get_subtitle_from_srt
+        from videotrans.util.help_ffmpeg import runffmpeg
         queue_tts = []
         # 获取字幕
         try:
@@ -125,15 +124,15 @@ class DubbingSrt(BaseTask):
                 text = Path(self.cfg.target_sub).read_text(encoding='utf-8')
             else:
                 text = ""
-                self.queue_tts = tools.get_subtitle_from_srt(self.cfg.target_sub)
+                self.queue_tts = get_subtitle_from_srt(self.cfg.target_sub)
                 for it in self.queue_tts:
                     text += it["text"] + "\n"
                 self.queue_tts = self.queue_tts[:1]
-
+            from videotrans.util.help_role import get_edge_rolelist
             asyncio.run(self._edgetts_single(
                 tmp_name,
                 dict(text=text,
-                     voice=tools.get_edge_rolelist(self.cfg.voice_role, locale=self.cfg.target_language_code),
+                     voice=get_edge_rolelist(self.cfg.voice_role, locale=self.cfg.target_language_code),
                      rate=rate,
                      volume=self.cfg.volume,
                      pitch=self.cfg.pitch
@@ -141,7 +140,7 @@ class DubbingSrt(BaseTask):
             ))
             logger.debug(f'edge-tts配音，未音频加速，未视频慢速，未强制对齐，已删字幕间静音，使用单独文本配音')
             if not self.cfg.target_wav.endswith('.mp3'):
-                tools.runffmpeg(['-y', '-i', tmp_name, '-b:a', '128k', self.cfg.target_wav])
+                runffmpeg(['-y', '-i', tmp_name, '-b:a', '128k', self.cfg.target_wav])
                 Path(tmp_name).unlink(missing_ok=True)
             return
 
@@ -167,7 +166,7 @@ class DubbingSrt(BaseTask):
         elif self.subs:
             subs = self.subs
         else:
-            subs = tools.get_subtitle_from_srt(self.cfg.target_sub)
+            subs = get_subtitle_from_srt(self.cfg.target_sub)
 
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
@@ -180,8 +179,9 @@ class DubbingSrt(BaseTask):
                 logger.exception(f'每条字幕的单独角色:{e}',exc_info=True)
                 spec_role = None
             voice_role = spec_role if spec_role else self.cfg.voice_role
-            _key = tools.get_md5(
-                f"{it['text']}-{voice_role}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}")
+            from videotrans.util.help_misc import get_md5
+            _key = get_md5(
+                f"{self.cfg.target_language_code}-{it['text']}-{voice_role}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}")
             tmp_dict = {
                 "line": it['line'],
                 "text": it['text'],
@@ -196,6 +196,7 @@ class DubbingSrt(BaseTask):
             queue_tts.append(tmp_dict)
 
         if not queue_tts or len(queue_tts) < 1:
+            from videotrans.configure.excepts import DubbingSrtError
             raise DubbingSrtError(tr('No subtitles required'))
         self.queue_tts = queue_tts
 
@@ -225,10 +226,11 @@ class DubbingSrt(BaseTask):
     def align(self) -> None:
         # txt配音并且是 edgetts，已结束
         if self.ignore_align: return
+        from videotrans.util.help_ffmpeg import runffmpeg
         # 只有一行
         if len(self.queue_tts) < 2:
             if len(self.queue_tts) == 1 and self.cfg.tts_type != tts.EDGE_TTS:
-                tools.runffmpeg(['-y', '-i', self.queue_tts[0]['filename'], '-b:a', '128k', self.cfg.target_wav])
+                runffmpeg(['-y', '-i', self.queue_tts[0]['filename'], '-b:a', '128k', self.cfg.target_wav])
             return
 
         if self.cfg.voice_autorate:
@@ -239,6 +241,7 @@ class DubbingSrt(BaseTask):
         if target_path.is_file() and target_path.stat().st_size > 0:
             self.cfg.target_wav = self.cfg.target_wav[
                                   :-4] + f'-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}{target_path.suffix}'
+        from videotrans.task._rate import TtsSpeedRate
         rate_inst = TtsSpeedRate(
             queue_tts=self.queue_tts,
             uuid=self.uuid,
@@ -256,17 +259,18 @@ class DubbingSrt(BaseTask):
             try:
                 volume = 1 + float(volume.replace('%', '')) / 100
                 tmp_name = self.cfg.cache_folder + f'/volume-{volume}-{Path(self.cfg.target_wav).name}'
-                tools.runffmpeg(['-y', '-i', self.cfg.target_wav, '-af', f"volume={volume}", tmp_name])
+                runffmpeg(['-y', '-i', self.cfg.target_wav, '-af', f"volume={volume}", tmp_name])
             except Exception as e:
                 logger.exception(f'配音完毕后调节音量失败 {e}', exc_info=True)
 
     def task_done(self):
         if self._exit(): return
+        from videotrans.util.help_ffmpeg import runffmpeg, remove_silence_wav
         if Path(self.cfg.target_wav).is_file():
             # 移除末尾静音
-            tools.remove_silence_wav(self.cfg.target_wav, rm_start=False)
+            remove_silence_wav(self.cfg.target_wav, rm_start=False)
             if self.out_ext.lower() != 'wav':
-                tools.runffmpeg(
+                runffmpeg(
                     ['-y', '-i', self.cfg.target_wav, f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'])
                 try:
                     Path(self.cfg.target_wav).unlink(missing_ok=True)

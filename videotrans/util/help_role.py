@@ -1,11 +1,9 @@
 import json
 import re
 from typing import List
-import requests
 from videotrans.configure.config import ROOT_DIR, tr, settings, params, logger
 from pathlib import Path
 from functools import lru_cache
-
 from videotrans.configure import contants
 
 @lru_cache
@@ -317,6 +315,7 @@ def get_clone_role(set_p=False):
             raise Exception(tr('bixutianxiecloneapi'))
         return False
     try:
+        import requests
         url = params.get('clone_api', '').strip().rstrip('/') + "/init"
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
         res.raise_for_status()

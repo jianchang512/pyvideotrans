@@ -18,7 +18,7 @@ def get_speech_timestamp_silero(input_wav,
     min_silent_duration_ms = int(max(min_silent_duration_ms, 50))
     max_speech_duration_ms = int(min(max(max_speech_duration_ms, min_speech_duration_ms + 1000), 30000))
     logger.debug(
-        f'[silero-VAD]Fix:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
+        f'[silero-VAD]:断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
 
     sampling_rate = 16000
     from faster_whisper.audio import decode_audio
@@ -64,7 +64,7 @@ def get_speech_timestamp(input_wav=None,
     min_silent_duration_ms = int(max(50, min_silent_duration_ms))
 
     logger.debug(
-        f'[Ten-VAD]Fix after:VAD断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
+        f'[Ten-VAD]:断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
     frame_duration_ms = 16
     hop_size = 256
     st_ = time.time()

@@ -19,13 +19,8 @@ from videotrans import VERSION
 from videotrans.util.checkgpu import AiLoaderThread
 from videotrans.ui.en import Ui_MainWindow
 from videotrans.task.simple_runnable_qt import run_in_threadpool
-from videotrans import winform
 from videotrans.configure.signal_hub import SignalHub
 from videotrans.util.help_misc import set_proxy,is_connect_hf,check_new_version,open_url,show_glossary_editor,show_error,show_refaudio_win
-
-
-
-
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -34,7 +29,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1200, height=650,callback=None):
         super().__init__(parent)
         self.callback=callback
-        self.callback("Init UI...")
         self.resize(width, height)
         self.setupUi(self)
         self.callback("SetupUI end...")
@@ -76,7 +70,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         from videotrans import tts
         self.callback('import translate ...')
         from videotrans.translator import TRANSLASTE_NAME_LIST,LANGNAME_DICT,get_code
-        self.callback('Set default param ...')
+        self.callback('Get cache  ...')
         self.languagename = list(LANGNAME_DICT.values())
         # 填充字幕翻译渠道列表
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
@@ -150,6 +144,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not params.get('voice_autorate') and not params.get('video_autorate'):
             self.remove_silent_mid.setVisible(True)
             self.align_sub_audio.setVisible(True)
+        self.callback('Set default value ...')
         self.select_file_type.setChecked(bool(params.get('select_file_type', False)))
         self.voice_rate.setValue(int(params.get('voice_rate', '0').replace('%', '')))
         self.volume_rate.setValue(int(params.get('volume', '0').replace('%', '')))
@@ -173,14 +168,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.bgmvolume.setText(str(settings.get('backaudio_volume', 0.8)))
         self.is_loop_bgm.setCurrentIndex(int(settings.get('loop_backaudio', 0)))
 
-
-
         # 填充配音角色列表
         _langcode = None
         if _target_language and _target_language in self.languagename:
             _langcode = get_code(show_text=_target_language)
+        self.callback('import voices list ...')
         from videotrans.util.help_role import role_menu
-
+        self.callback('Set tts voice ...')
         _rolelist = role_menu(_tts_type, _langcode)
         # 填充配音角色
         self.voice_role.addItems(_rolelist)
@@ -191,15 +185,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.target_language.setCurrentText(_target_language)
             if _role in _rolelist:
                 self.voice_role.setCurrentText(_role)
+        self.callback('show main window ...')
         self.show()
+        run_in_threadpool(self._daemon)
+        self._bind_signal()
+
+    def _daemon(self):
         # 核对硬件编码
         # 核对 huggingface.co 连通性
-        run_in_threadpool(is_connect_hf)
-        # 核对最新版本号
-        run_in_threadpool(check_new_version)
         from videotrans.util.help_ffmpeg import check_hw_on_start
-        run_in_threadpool(check_hw_on_start)
-        self._bind_signal()
+        check_hw_on_start()
+        check_new_version()
+        is_connect_hf()
 
     def _bind_signal(self):
         self.callback('Bind signal...')
@@ -345,12 +342,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if _role in self.current_rolelist:
             self.voice_role.setCurrentText(_role)
 
-        self.callback('preload win...')
+        self.callback('preload TTS win...')
         # 预先加载 配音/语音转录/字幕翻译窗口 等常用功能面板，
         self.open_winform('fn_peiyin')
+        self.callback('preload STT win...')
         self.open_winform('fn_recogn')
+        self.callback('preload translate srt win...')
         self.open_winform('fn_fanyisrt')
-
         self.callback('end')
     # 检测GPU完成后，启动子线程
     def _start_workers(self, status):
@@ -411,7 +409,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             app_cfg.child_forms[name] = window
             window.show()
             return
-
+        from videotrans import winform
         return winform.get_win(name).openwin()
 
     def restart_app(self):

@@ -1,7 +1,7 @@
 from typing import Union, Type
 from videotrans.configure.config import tr, params, app_cfg
 from videotrans.tts._base import BaseTTS
-from videotrans import winform, ChannelProvider, get_class
+from videotrans import ChannelProvider, get_class
 
 # 推荐
 EDGE_TTS = 0
@@ -151,8 +151,8 @@ def is_input_api(tts_type: int = None, return_str=False):
     if not _cls:
         return True
     if _cls.key_name and not params.get(_cls.key_name):
-        return "Please configure the SK or API information of the channel first." if return_str else winform.get_win(
-            _cls.win).openwin()
+        from videotrans import winform
+        return "Please configure the SK or API information of the channel first." if return_str else winform.get_win(_cls.win).openwin()
     return True
 
 

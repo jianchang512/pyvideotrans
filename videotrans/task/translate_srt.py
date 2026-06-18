@@ -4,12 +4,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-from videotrans.configure.config import tr, logger, HOME_DIR
-from videotrans.configure.excepts import TranslateSrtError
+from videotrans.configure.config import tr, HOME_DIR
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTS, SrtItem
 from videotrans.translator import run
-from videotrans.util import tools
+
 
 """
 批量翻译srt字幕面板
@@ -43,8 +42,8 @@ class TranslateSrt(BaseTask):
 
     def trans(self):
         if self._exit(): return
-
-        source_sub_list: List[SrtItem] = tools.get_subtitle_from_srt(self.cfg.source_sub)
+        from videotrans.util.help_srt import get_subtitle_from_srt
+        source_sub_list: List[SrtItem] = get_subtitle_from_srt(self.cfg.source_sub)
         raw_subtitles = run(
             translate_type=self.cfg.translate_type,
             text_list=copy.deepcopy(source_sub_list),
@@ -53,6 +52,7 @@ class TranslateSrt(BaseTask):
             target_code=self.cfg.target_language_code,
         )
         if not raw_subtitles or len(raw_subtitles) < 1:
+            from videotrans.configure.excepts import TranslateSrtError
             raise TranslateSrtError(tr("Translation subtitles result is empty"))
 
         if self._exit(): return

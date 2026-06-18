@@ -544,9 +544,9 @@ class SpeedRate:
         logger.debug(f"[Audio] 开始处理 {len(self.audio_data)} 个音频变速任务")
         all_task = []
         
-        _wok=min(12, len(self.audio_data), max(os.cpu_count()-1,1))
+        _wok=min(12, len(self.audio_data), max(os.cpu_count()-1,1) )
         logger.debug(f'使用{_wok}个进程处理音频加速')
-        with ProcessPoolExecutor(max_workers=_wok) as pool:
+        with ProcessPoolExecutor(max_workers=int(_wok)) as pool:
             for i, d in enumerate(self.audio_data):
                 all_task.append(pool.submit(_change_speed_rubberband if HAS_RUBBERBAND and self.audio_speed_rubberband else _precise_speed_up_audio,d['filename'], d['target_time'] ))
         
@@ -566,9 +566,9 @@ class SpeedRate:
             
         all_task = []
         logger.debug(f"[Video] 提交 {len(data)} 个视频片段处理慢速任务")
-        _wok=min(12, len(self.audio_data), max(os.cpu_count()-1,1))
+        _wok=min(12, len(self.audio_data), max(os.cpu_count()-1,1) )
         logger.debug(f'使用{_wok}个进程处理视频慢速')
-        with ProcessPoolExecutor(max_workers=_wok) as pool:
+        with ProcessPoolExecutor(max_workers=int(_wok)) as pool:
             for i, d in enumerate(data):
                 all_task.append(pool.submit(_cut_video_get_duration,i, d, self.novoice_mp4_original, self.preset, self.crf,self.fps_mode  ))
           

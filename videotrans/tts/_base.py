@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Union, Tuple
 from tenacity import RetryError
 from videotrans.configure.base import BaseCon
-
 from videotrans.configure.config import tr, settings, logger, ROOT_DIR
 from videotrans.configure import config
 from videotrans.util.help_misc import vail_file,pygameaudio,get_tts_type

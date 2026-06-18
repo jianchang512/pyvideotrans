@@ -73,8 +73,6 @@ from videotrans.ui.xiaomi import Ui_xiaomiform
 from videotrans.ui.zhipuai import Ui_zhipuaiform
 from videotrans.ui.zijiehuoshan import Ui_zijiehuoshanform
 from videotrans.ui.zijierecognmodel import Ui_zijierecognform
-from videotrans.util import tools
-
 
 class CommonBaseMixin:
     def _setup_common_ui(self):
@@ -589,7 +587,8 @@ class Peiyinformrole(QWidgetBase, Ui_peiyinrole):
         selected_role = self.tmp_rolelist2.currentText()
 
         if not selected_role:
-            tools.show_error(tr("Please select a valid role from the dropdown list."))
+            from videotrans.util.help_misc import show_error
+            show_error(tr("Please select a valid role from the dropdown list."))
             return
         
         self.subtitle_table.setUpdatesEnabled(False)

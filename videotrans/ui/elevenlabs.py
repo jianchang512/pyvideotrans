@@ -5,8 +5,8 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 from videotrans.configure.config import tr
-from videotrans.util import tools
 from videotrans.configure.contants import ELEVENLABS_TTS_MODELS
+from videotrans.util.help_misc import open_url
 
 
 class Ui_elevenlabsform(object):
@@ -68,7 +68,7 @@ class Ui_elevenlabsform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/elevenlabstts'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/elevenlabstts'))
 
         hv = QtWidgets.QHBoxLayout()
         hv.addWidget(self.set)
