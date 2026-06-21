@@ -81,6 +81,8 @@ _no_proxy_list = [
 
     "ms.show", ".ms.show",
     "bigmodel.cn", ".bigmodel.cn",
+    
+    "api.gradio.app",".api.gradio.app",
     #"microsoft.com", ".microsoft.com", # 涵盖 tts.speech.microsoft.com
 
     # --- 本地回环 (涵盖所有端口：7860, 8000, 9880, 5051等) ---

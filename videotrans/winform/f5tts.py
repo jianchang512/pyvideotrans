@@ -32,6 +32,7 @@ def openwin():
         params["indextts_url"] = winobj.indextts_url.text()
         params["sparktts_url"] = winobj.sparktts_url.text()
         params["f5tts_url"] = winobj.f5tts_url.text()
+        params["confuciustts_url"] = winobj.confuciustts_url.text()
         params.save()
         
         _rolename = next(reversed(tools.get_f5tts_role().values()))
@@ -62,6 +63,7 @@ def openwin():
         params["indextts_url"] = winobj.indextts_url.text()
         params["sparktts_url"] = winobj.sparktts_url.text()
         params["f5tts_url"] = winobj.f5tts_url.text()
+        params["confuciustts_url"] = winobj.confuciustts_url.text()
 
 
         params.save()
@@ -76,6 +78,7 @@ def openwin():
     winobj.voxcpmtts_version.setCurrentText(params.get('voxcpmtts_version','v2'))
     
     winobj.f5tts_url.setText(params.get('f5tts_url',''))
+    winobj.confuciustts_url.setText(params.get('confuciustts_url',''))
     winobj.sparktts_url.setText(params.get('sparktts_url',''))
     winobj.indextts_url.setText(params.get('indextts_url',''))
     winobj.diatts_url.setText(params.get('diatts_url',''))
@@ -87,6 +90,7 @@ def openwin():
     winobj.indextts_urltest.clicked.connect(lambda: test(tts.INDEX_TTS))
     winobj.diatts_urltest.clicked.connect(lambda: test(tts.DIA_TTS))
     winobj.voxcpmtts_urltest.clicked.connect(lambda: test(tts.VOXCPM_TTS))
+    winobj.confuciustts_urltest.clicked.connect(lambda: test(tts.CONFUCIUS_TTS))
     winobj.show()
     test_btn={
         tts.F5_TTS:winobj.f5tts_urltest,
@@ -94,4 +98,5 @@ def openwin():
         tts.SPARK_TTS:winobj.sparktts_urltest,
         tts.DIA_TTS:winobj.diatts_urltest,
         tts.VOXCPM_TTS:winobj.voxcpmtts_urltest,
+        tts.CONFUCIUS_TTS:winobj.confuciustts_urltest,
     }

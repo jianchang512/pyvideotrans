@@ -140,8 +140,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.model_name)
 
         self.horizontalLayout_4.addWidget(self.rephrase)
-        self.horizontalLayout_4.addWidget(self.recogn2pass)
         self.horizontalLayout_4.addStretch()
+        self.horizontalLayout_4.addWidget(self.recogn2pass)
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
@@ -197,9 +197,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.source_language)
         self.horizontalLayout_5.addWidget(self.label_3)
         self.horizontalLayout_5.addWidget(self.target_language)
-        self.horizontalLayout_5.addWidget(self.aisendsrt)
-        self.horizontalLayout_5.addWidget(self.glossary)
         self.horizontalLayout_5.addStretch()
+        self.horizontalLayout_5.addWidget(self.aisendsrt)
+        
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_5)
 
@@ -238,6 +238,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.voice_role)
         self.horizontalLayout.addWidget(self.listen_btn)
         self.horizontalLayout.addStretch()
+        self.horizontalLayout.addWidget(self.glossary)
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
         # 对齐行
@@ -343,6 +344,11 @@ class Ui_MainWindow(object):
         self.bgmvolume.setToolTip(
             tr("BGM volume is a multiple of the original volume, greater than 1 increases, less than decreases"))
 
+        self.set_ass = QtWidgets.QPushButton()
+        self.set_ass.setText(tr('Modify hard subtitle style'))
+        self.set_ass.setCursor(Qt.PointingHandCursor)
+        self.set_ass.setVisible(False)
+
         self.bgm_layout.addWidget(self.is_separate)
         self.bgm_layout.addWidget(self.embed_bgm)
         self.bgm_layout.addWidget(self.is_loop_bgm)
@@ -351,11 +357,8 @@ class Ui_MainWindow(object):
 
         self.bgm_layout.addWidget(self.addbackbtn)
         self.bgm_layout.addWidget(self.back_audio)
+        self.bgm_layout.addWidget(self.set_ass)
 
-        self.set_ass = QtWidgets.QPushButton()
-        self.set_ass.setText(tr('Modify hard subtitle style'))
-        self.set_ass.setCursor(Qt.PointingHandCursor)
-        self.set_ass.setVisible(False)
 
         self.enable_diariz = QtWidgets.QCheckBox()
         self.enable_diariz.setToolTip(tr("Speaker classification language"))
@@ -420,7 +423,6 @@ class Ui_MainWindow(object):
         self.dubb_thread_layout.addWidget(self.fix_punc)
         self.dubb_thread_layout.addWidget(self.enable_diariz)
         self.dubb_thread_layout.addWidget(self.nums_diariz)
-        self.dubb_thread_layout.addWidget(self.set_ass)
 
         self.adv_layout_outer = QtWidgets.QVBoxLayout()
         self.advcontainer = QtWidgets.QWidget()
@@ -1103,7 +1105,7 @@ class Ui_MainWindow(object):
         self.actiontts_omnivoice.setText("OmniVoice TTS")
         self.actiontts_qwenttslocal.setText(f"Qwen3 TTS({tr('Local')})")
         self.actiontts_fishtts.setText("Fish TTS")
-        self.actiontts_f5tts.setText("F5-TTS/Index-TTS/VoxCPM/SparK-TTS/Dia-TTS")
+        self.actiontts_f5tts.setText("F5/Index/VoxCPM/SparK/Dia/Confucius")
         self.actiontts_refaudio.setText(tr("Set reference audio"))
         self.actiontts_doubao2.setText(tr("DouBao2"))
         self.action_website.setText(tr("Documents"))

@@ -45,14 +45,16 @@ AZURE_TTS = 28
 AI302_TTS = 29
 CAMB_TTS = 30
 G_TTS = 31
-TTS_API = 32
+CONFUCIUS_TTS = 32
+TTS_API = 33
 
 
 # 支持克隆的渠道
 SUPPORT_CLONE = [
     COSYVOICE_TTS,
     CLONE_VOICE_TTS,
-    F5_TTS, INDEX_TTS,
+    F5_TTS, 
+    INDEX_TTS,
     VOXCPM_TTS,
     SPARK_TTS,
     DIA_TTS,
@@ -61,7 +63,8 @@ SUPPORT_CLONE = [
     QWEN3LOCAL_TTS,
     CAMB_TTS,
     OMNIVOICE_TTS,
-    MOSS_TTS
+    MOSS_TTS,
+    CONFUCIUS_TTS
 ]
 
 
@@ -107,7 +110,8 @@ _ID_NAME_DICT = {
     AZURE_TTS: ChannelProvider("Azure-TTS", "._azuretts", key_name="azure_speech_key", win="azuretts"),
     AI302_TTS: ChannelProvider("302.AI", "._ai302tts", key_name="ai302_key", win="ai302"),
     CAMB_TTS: ChannelProvider("CAMB AI TTS", "._cambtts", key_name="camb_api_key", win="cambtts"),
-    G_TTS: ChannelProvider("gTTS", "._gtts"),
+    G_TTS: ChannelProvider(f"gTTS({tr('free')})", "._gtts"),
+    CONFUCIUS_TTS: ChannelProvider(f"Confucius-TTS({tr('Local')}API)", "._confuciustts",key_name="confuciustts_url", win="f5tts"),
     TTS_API: ChannelProvider(tr("Customize API"), "._ttsapi", key_name="ttsapi_url", win="ttsapi")
 }
 # 强制保持按照每个常量值大小排序
@@ -140,6 +144,9 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
     #Arabic, Danish, German, Greek, English, Spanish, Finnish, French, Hebrew, Hindi, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese, Russian, Swedish, Swahili, Turkish, Chinese
     if tts_type==CHATTERBOX_TTS and langcode[:2] not in ["zh","yu","en","de","es","fr","ja","it","ko","ru","ar","pl","pt","sv","el","tr","da","he",'hi',"ms","nl","nb"]:
+        return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
+    if tts_type==CONFUCIUS_TTS and langcode[:2] not in ["zh", "en", "ja", "ko", "de", "fr", "th", 
+    "id", "vi", "es", "pt", "it", "ru", "ms"]:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
     return True
 

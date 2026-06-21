@@ -223,7 +223,7 @@ def get_msg_from_except(ex:Exception)->str:
 
         PermissionDeniedError: lambda e: (
             f"当前密钥没有访问权限，请检查权限设置 {e.body.get('message')}" if lang == 'zh'
-            else e.message
+            else e.body.get('message')
         ),
 
         # === 频率限制 ===
@@ -231,8 +231,7 @@ def get_msg_from_except(ex:Exception)->str:
         # === 资源不存在问题 ===
         # === 请求参数问题 ===
         # === 服务端问题 ===
-        (InternalServerError, NotFoundError, BadRequestError, APIConnectionError, APIError): lambda e: e.body.get(
-            'message') if hasattr(e, 'body') and hasattr(e.body, 'get') else str(e),
+        (InternalServerError, NotFoundError, BadRequestError, APIConnectionError, APIError): lambda e: e.body.get('message') if hasattr(e, 'body') and hasattr(e.body, 'get') else str(e),
 
         LengthFinishReasonError: lambda e: (
             f'内容太长超出最大允许Token，请减小内容或增大max_token,或者降低每次发送字幕行数\n{e}' if lang == 'zh' else f'{e}'),

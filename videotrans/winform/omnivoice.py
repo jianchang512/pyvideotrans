@@ -41,7 +41,7 @@ def openwin():
             "role":rolename,
             "filename": config.TEMP_DIR + f"/{time.time()}-omnivoice.wav",
             "tts_type": tts.OMNIVOICE_TTS}],
-                         language="Auto",
+                         language="zh",
                          tts_type=tts.OMNIVOICE_TTS)
         wk.uito.connect(feed)
         wk.start()

@@ -86,6 +86,20 @@ class Ui_f5ttsform(object):
         self.diatts_urltest = QPushButton(tr("Test"))        
         h1diatts_url.addWidget(self.diatts_urltest)
         v1.addLayout(h1diatts_url)
+        
+        h1confuciustts_url = QtWidgets.QHBoxLayout()
+        self.confuciustts_urllabel = QLabel('Confucius-TTS URL')
+        self.confuciustts_urllabel.setObjectName("confuciustts_urllabel")
+        self.confuciustts_urllabel.setMinimumSize(QSize(0, 35))
+        self.confuciustts_url = QLineEdit()
+        self.confuciustts_url.setObjectName("confuciustts_url")
+        self.confuciustts_url.setPlaceholderText('URL ')
+        self.confuciustts_url.setMinimumSize(QSize(0, 35))        
+        h1confuciustts_url.addWidget(self.confuciustts_urllabel)
+        h1confuciustts_url.addWidget(self.confuciustts_url)
+        self.confuciustts_urltest = QPushButton(tr("Test"))        
+        h1confuciustts_url.addWidget(self.confuciustts_urltest)
+        v1.addLayout(h1confuciustts_url)
 
         h1voxcpmtts_url = QtWidgets.QHBoxLayout()
         self.voxcpmtts_urllabel = QLabel('VoxCPM URL')
@@ -108,23 +122,13 @@ class Ui_f5ttsform(object):
         h1voxcpmtts_url.addWidget(self.voxcpmtts_urltest)
         v1.addLayout(h1voxcpmtts_url) 
 
-
-
-        self.tips = QPlainTextEdit()
-        self.tips.setObjectName("tips")
-        self.tips.setFixedHeight(80)
-        self.tips.setStyleSheet("border:0")
-        self.tips.setReadOnly(True)
-        v1.addWidget(self.tips)
-
         h2 = QtWidgets.QHBoxLayout()
 
         self.save = QPushButton()
         self.save.setObjectName("save")
         self.save.setGeometry(QRect(10, 450, 93, 35))
         self.save.setMinimumSize(QSize(0, 35))
-
-        
+       
 
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
@@ -148,8 +152,6 @@ class Ui_f5ttsform(object):
 
 
     def retranslateUi(self, f5ttsform):
-        tips = tr("Starting from version 3.68 of this software, only the official webui is supported (F5-TTS/Spart-TTS/index-TTS/Dia-TTS/VoxCPM), and third-party integration packages and APIs are no longer supported.")
 
-        f5ttsform.setWindowTitle("F5-TTS/Spark/index-TTS/Dia" +tr('This channel needs deployed and started before available'))
-        self.tips.setPlainText(tips)
+        f5ttsform.setWindowTitle("F5/Spark/index/Dia/VoxCPM/Confucius" +tr('This channel needs deployed and started before available'))
         self.save.setText(tr("Save"))

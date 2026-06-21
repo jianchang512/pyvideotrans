@@ -31,6 +31,11 @@ class OpenAICampat(BaseTrans):
         super().__post_init__()
         self.temperature=float(settings.get('aitrans_temperature', 1.0))
         self.prompt = tools.get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name)
+        try:
+            self.max_tokens=int(self.max_tokens)
+        except (ValueError,TypeError) as e:
+            logger.error(f'当前渠道{self.ainame}设置的最大输出tokens错误，应填写整数，实际填写的是`{self.max_tokens}`\n{e}')
+            self.max_tokens=8192
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
@@ -53,25 +58,28 @@ class OpenAICampat(BaseTrans):
 
         kwargs={
             "model":self.model_name,
-            "messages":message,
             "timeout":300,
-            # 针对 openai 官方或 GPT模型，使用 max_completion_tokens参数，其他第三方使用 max_tokens 参数
-            "max_completion_tokens":int(self.max_tokens),
-            #"max_tokens":int(self.max_tokens),
             "temperature":float(self.temperature)            
         }
+        # 针对 openai 官方或 GPT模型，使用 max_completion_tokens 参数，其他第三方使用 max_tokens 参数            
+        if "api.openai.com" in self.api_url or (self.ainame=='chatgpt' and re.match(r'^(gpt|o\d)', self.model_name, flags=re.I)):
+            kwargs["max_completion_tokens"]=int(self.max_tokens)
+        else:
+            kwargs["max_tokens"]=int(self.max_tokens)
+        
         if self.reasoning_effort:
             kwargs["reasoning_effort"]=self.reasoning_effort
             
-        logger.debug(f'字幕翻译:[{self.ainame=},{self.model_name=},{self.api_url=},{self.reasoning_effort=},{self.extra_body=}]')
+        logger.debug(f'字幕翻译:[{self.ainame=},{kwargs=}]')
+        kwargs["messages"]=message
         try:
             model = OpenAI(api_key=self.api_key, base_url=self.api_url)
             response = model.chat.completions.create(**kwargs, extra_body=self.extra_body)
         except APIConnectionError as e:
-            raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e.message}') from e
+            raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e.body.get("message")}') from e
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
             del kwargs['messages']
-            raise StopTask(e.message+f'\n{self.api_url}\n{kwargs}') from e
+            raise StopTask(e.body.get('message')+f'\n{self.api_url}\n{kwargs}') from e
         except APIError as e: 
             if re.search(r"insufficient.*?balance",e.message,flags=re.I):
                 raise StopTask(tr('The server returned an error message: Insufficient balance',tools.get_tanslate_type(self.translate_type),self.api_url))
@@ -111,11 +119,25 @@ class OpenAICampat(BaseTrans):
             _reason=params.get('chatgpt_reasoning_effort')
             reasoning_effort=None if not _reason or _reason=='No' else _reason
         
+        kwargs={
+                "model":model_name,
+                
+                "temperature":temperature,
+                "timeout":300,  # 超过5分钟为失败           
+        }
+        if reasoning_effort:
+            kwargs['reasoning_effort']=reasoning_effort
+        if "api.openai.com" in api_url or ( self.ainame=='chatgpt' and re.match(r'^(gpt|o\d)', model_name, flags=re.I)):
+            kwargs["max_completion_tokens"]=int(max_tokens)
+        else:
+            kwargs["max_tokens"]=int(max_tokens)
+        logger.debug(f'LLM Re-segmenting:{self.ainame=},{kwargs=}')
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(2)),
                wait=wait_fixed(5), before=before_log(logger, logging.INFO),
                after=after_log(logger, logging.INFO))
         def _send(srt):
-            nonlocal reasoning_effort
+            nonlocal kwargs
+            
             message = [
                 {"role": "system", "content": prompts_template},
                 {
@@ -123,17 +145,8 @@ class OpenAICampat(BaseTrans):
                     'content': f"""```srt\n{srt}\n```"""
                 }
             ]
+            kwargs["messages"]=message
             model = OpenAI(api_key=api_key, base_url=api_url)
-            kwargs={
-                    "model":model_name,
-                    "max_completion_tokens":max_tokens,
-                    "messages":message,
-                    "temperature":temperature,
-                    "timeout":300,  # 超过5分钟为失败           
-            }
-            if reasoning_effort:
-                kwargs['reasoning_effort']=reasoning_effort
-            logger.debug(f'LLM Re-segmenting:{self.ainame=},{reasoning_effort=}')
             response = model.chat.completions.create(
                     **kwargs,
                     extra_body={"thinking": {"type": "enabled"}} if self.ainame=='deepseek' else None

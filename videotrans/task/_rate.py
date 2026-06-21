@@ -542,6 +542,8 @@ class SpeedRate:
 
     def _execute_audio_speedup_rubberband(self):
         logger.debug(f"[Audio] 开始处理 {len(self.audio_data)} 个音频变速任务")
+        if len(self.audio_data)<1:
+            return
         all_task = []
         
         _wok=min(12, len(self.audio_data), max(os.cpu_count()-1,1) )
@@ -563,10 +565,11 @@ class SpeedRate:
             clip_info['queue_index'] = clip_info.get('tts_index',-1)
             clip_info['filename'] = Path(self.cache_folder, f"clip_{i}_{clip_info['pts']:.3f}.mp4").as_posix()
             data.append(clip_info)
-            
+        if len(data)<1:
+            return []
         all_task = []
         logger.debug(f"[Video] 提交 {len(data)} 个视频片段处理慢速任务")
-        _wok=min(12, len(self.audio_data), max(os.cpu_count()-1,1) )
+        _wok=min(12, len(data), max(os.cpu_count()-1,1) )
         logger.debug(f'使用{_wok}个进程处理视频慢速')
         with ProcessPoolExecutor(max_workers=int(_wok)) as pool:
             for i, d in enumerate(data):

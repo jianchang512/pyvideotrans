@@ -64,6 +64,7 @@ def _set_env():
     #os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'true'
     os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "3600"
     os.environ["HF_HUB_DISABLE_XET"] = "1"
+    os.environ['GRADIO_ANALYTICS_ENABLED']='0'
 
     if sys.platform == 'win32' and IS_FROZEN:
         os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;' + os.environ.get("PATH", "")
@@ -762,6 +763,7 @@ class AppParams:
             "omnivoice_url": "http://127.0.0.1:7860",
             "fishtts_url": "http://127.0.0.1:8080/v1/tts",
             "f5tts_url": "http://127.0.0.1:7860",
+            "confuciustts_url": "http://127.0.0.1:7860",
             "f5tts_model": "",
             "f5tts_ttstype": "F5-TTS",
             "f5tts_role": "nverguo.wav#你说四大皆空，却为何，紧闭双眼，若你睁开眼睛看看我，我不相信你，两眼空空。",
