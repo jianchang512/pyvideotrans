@@ -51,13 +51,13 @@ LANGNAME_DICT: dict = translator.LANGNAME_DICT
 # ---------------------------------------------------------------------------
 # 可选渠道索引（整数 ID）
 # ---------------------------------------------------------------------------
-SELECTABLE_RECOGN = {0, 1}
+SELECTABLE_RECOGN = {0, 1,2,3,4}
 DEFAULT_RECOGN = 0
 
-SELECTABLE_TRANSLATE = {0, 1, 2, 3}
+SELECTABLE_TRANSLATE = {0, 1, 2}
 DEFAULT_TRANSLATE = 0
 
-SELECTABLE_TTS = {0, 1, 3, 4, 5, 6, 7}
+SELECTABLE_TTS = {0, 1, 3, 4, 5, 6, 7,31}
 DEFAULT_TTS = 0
 
 # faster-whisper 模型列表
@@ -442,7 +442,7 @@ def build_ui():
                 )
 
                 # === 翻译 ===
-                gr.Markdown("### 翻译")
+                gr.Markdown("### 字幕翻译")
                 translate_choice = gr.Dropdown(
                     choices=TRANSLATE_NAMES,
                     value=TRANSLATE_NAMES[DEFAULT_TRANSLATE],
@@ -463,7 +463,7 @@ def build_ui():
                 )
 
                 # === 配音 ===
-                gr.Markdown("### 配音")
+                gr.Markdown("### 字幕配音")
                 tts_choice = gr.Dropdown(
                     choices=TTS_NAMES,
                     value=TTS_NAMES[DEFAULT_TTS],
