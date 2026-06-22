@@ -509,8 +509,8 @@ def build_ui():
                 gr.Markdown("### 其他")
                 cuda_accel = gr.Checkbox(label="启用 CUDA 加速", value=False)
 
-                # 内联警告提示（用 HTML+JS 实现 alert 弹窗）
-                channel_warning = gr.HTML("", visible=False)
+                # 警告提示（gr.Warning 弹窗 + 日志双重显示）
+                channel_warning = gr.Markdown("", visible=False)
 
                 # === 硬字幕样式编辑器（纯 Gradio）===
                 build_ass_editor()
@@ -522,23 +522,21 @@ def build_ui():
                 log_output = gr.Textbox(label="执行日志", lines=20, interactive=False)
                 result_files = gr.File(label="输出文件（点击下载）", interactive=False)
 
-        # ---- 渠道验证 + 配音角色更新（合并为单一函数避免死循环） ----
-        def _alert_html(msg):
-            """生成带 alert() 的 HTML"""
-            import html as html_mod
-            safe = html_mod.escape(msg)
-            return f'<script>alert("{safe}");</script>'
-
+        # ---- 渠道验证 + 配音角色更新 ----
         def validate_recogn(choice, prev):
             idx = _recogn_index_from_display(choice)
             if idx not in SELECTABLE_RECOGN:
-                return prev, _alert_html("渠道「{}」暂不可用，仅 faster-whisper 和 openai-whisper 可选，已自动回退".format(choice))
+                msg = "渠道「{}」暂不可用，仅 faster-whisper 和 openai-whisper 可选，已自动回退".format(choice)
+                gr.Warning(msg)
+                return prev, f"⚠️ {msg}"
             return choice, ""
 
         def validate_translate(choice, prev):
             idx = _translate_index_from_display(choice)
             if idx not in SELECTABLE_TRANSLATE:
-                return prev, _alert_html("渠道「{}」暂不可用，仅前4个渠道可选，已自动回退".format(choice))
+                msg = "渠道「{}」暂不可用，仅前4个渠道可选，已自动回退".format(choice)
+                gr.Warning(msg)
+                return prev, f"⚠️ {msg}"
             return choice, ""
 
         def tts_change_handler(choice, prev, target_display):
@@ -547,8 +545,10 @@ def build_ui():
             warning = ""
             if idx not in SELECTABLE_TTS:
                 display_name = choice.split("【不可选】")[-1] if "【不可选】" in choice else choice
+                msg = "渠道「{}」暂不可用，仅 Edge-TTS 和本地内置渠道可选，已自动回退".format(display_name)
+                gr.Warning(msg)
                 choice = prev
-                warning = _alert_html("渠道「{}」暂不可用，仅 Edge-TTS 和本地内置渠道可选，已自动回退".format(display_name))
+                warning = f"⚠️ {msg}"
 
             # 更新配音角色
             tts_idx = _tts_index_from_display(choice)
