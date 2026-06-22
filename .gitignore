@@ -16,6 +16,7 @@
 .idea
 .venv
 .pytest_cache
+.mimocode
 AGENTS.md
 err.txt
 nolang.txt

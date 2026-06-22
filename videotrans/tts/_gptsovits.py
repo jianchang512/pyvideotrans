@@ -47,13 +47,8 @@ class GPTSoVITS(BaseTTS):
                     logger.warning(f'参考音频大于10s，需截断:{ref_wav=}')
                     ref_wav_audio[:9990].export(ref_wav,format="wav")
                 elif ms_ref<3000:#大于3s合法
-                    logger.warning(f'参考音频小于3s，末尾填空白:{ref_wav=}')
-                    silent_segment = AudioSegment.silent(duration=3000 if ms_ref<1500 else 1600).set_channels(1).set_frame_rate(16000)
-
-                    (ref_wav_audio+silent_segment).export(ref_wav,format="wav")
-            elif keys and keys[-1]!='clone':
-                # 克隆原音频失败，使用最后一个参考音频
-                data.update(self.roledict[keys[-1]])
+                    logger.warning(f'参考音频小于3s，无法克隆，跳过:{ref_wav=}')
+                    return tr('the reference audio duration is less than 3 seconds')
             else:
                 return 'No reference audio available for voice cloning'+f"\n{self.api_url=}"
                 

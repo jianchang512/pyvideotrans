@@ -842,5 +842,6 @@
         "ur": "乌尔都语",
         "uz": "乌兹别克语",
         "cy": "威尔士语",
-        "zu": "祖鲁语"
+        "zu": "祖鲁语",
+		"the reference audio duration is less than 3 seconds":"参考音频时长小于3s，无法进行语音克隆，跳过"
 }

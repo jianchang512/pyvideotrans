@@ -19,10 +19,10 @@ class CosyVoice(GradioBase):
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1)->Union[str, None]:
         ref_wav,prompt_text = self.get_ref_wav(data_item)
         if not ref_wav or not Path(ref_wav).exists() or Path(ref_wav).stat().st_size == 0:
-            raise RuntimeError(f"CosyVoice reference audio is empty or missing: {ref_wav}")
+            return f"CosyVoice reference audio is empty or missing: {ref_wav}"
         with wave.open(ref_wav, "rb") as wav_file:
             if wav_file.getnframes() == 0:
-                raise RuntimeError(f"CosyVoice reference audio has no frames: {ref_wav}")
+                return f"CosyVoice reference audio has no frames: {ref_wav}"
         prompt_text = (prompt_text or "").strip()
         if "<|endofprompt|>" not in prompt_text:
             prompt_text = f"You are a helpful assistant.<|endofprompt|>{prompt_text}"
@@ -37,6 +37,5 @@ class CosyVoice(GradioBase):
             "speed": self.speed,
             "stream": False,
             "api_name": "/generate_audio"
-
         }
         return self._send(kwargs, data_item)

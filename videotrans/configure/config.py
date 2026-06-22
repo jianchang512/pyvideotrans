@@ -149,7 +149,7 @@ def _write_with_retry(file_path, content, max_retries=2):
             # 随机等待一小段时间（退避算法），避免多个线程同时再次尝试
             time.sleep(random.uniform(0.05, 0.2))
         except Exception:
-            logger.exception(f'写入文件失败:{file_path}\n{e}',exc_info=True)
+            logger.exception(f'写入文件失败:{file_path}',exc_info=True)
             return
             
 

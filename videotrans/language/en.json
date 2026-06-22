@@ -842,6 +842,7 @@
             "ur": "Urdu",
             "uz": "Uzbek",
             "cy": "Welsh",
-            "zu": "Zulu"
+            "zu": "Zulu",
+			"the reference audio duration is less than 3 seconds":"If the reference audio duration is less than 3 seconds, voice cloning cannot be performed; skip this step."
 
 }
