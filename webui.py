@@ -404,7 +404,14 @@ def build_ui():
     import gradio as gr
 
     with gr.Blocks(title="pyVideoTrans WebUI") as app:
-        gr.Markdown("# pyVideoTrans 视频翻译 WebUI")
+        gr.Markdown("""
+# pyVideoTrans 视频翻译 WebUI
+
+> 📖 **文档站**：[https://pyvideotrans.com](https://pyvideotrans.com) ｜
+> 💻 **开源地址**：[https://github.com/jianchang512/pyvideotrans](https://github.com/jianchang512/pyvideotrans)
+
+> ⚠️ **渠道说明**：下拉框中显示了所有可用渠道，但出于简洁考虑，**仅免费渠道和本地内置渠道可选**。其他需要 API 密钥或 SK 的渠道因未实现设置窗口界面而暂不可用。如需使用这些渠道，请通过桌面客户端（sp.exe）进行配置。
+        """)
 
         prev_recogn = gr.State(value=RECOGN_NAMES[DEFAULT_RECOGN])
         prev_translate = gr.State(value=TRANSLATE_NAMES[DEFAULT_TRANSLATE])
@@ -516,24 +523,27 @@ def build_ui():
         def validate_recogn(choice, prev):
             idx = _recogn_index_from_display(choice)
             if idx not in SELECTABLE_RECOGN:
-                return prev, f"⚠️ 渠道「{choice}」暂不可用，请选择 faster-whisper 或 openai-whisper"
-            return choice, ""
+                gr.Warning(f"渠道「{choice}」暂不可用，仅 faster-whisper 和 openai-whisper 可选，已自动回退")
+                return prev
+            return choice
 
         def validate_translate(choice, prev):
             idx = _translate_index_from_display(choice)
             if idx not in SELECTABLE_TRANSLATE:
-                return prev, f"⚠️ 渠道「{choice}」暂不可用，请选择前4个渠道之一"
-            return choice, ""
+                gr.Warning(f"渠道「{choice}」暂不可用，仅前4个渠道可选，已自动回退")
+                return prev
+            return choice
 
         def validate_tts(choice, prev):
             idx = _tts_index_from_display(choice)
             if idx not in SELECTABLE_TTS:
-                return prev, f"⚠️ 渠道「{choice}」暂不可用，请选择 Edge-TTS 或本地内置渠道"
-            return choice, ""
+                gr.Warning(f"渠道「{choice}」暂不可用，仅 Edge-TTS 和本地内置渠道可选，已自动回退")
+                return prev
+            return choice
 
-        recogn_choice.change(fn=validate_recogn, inputs=[recogn_choice, prev_recogn], outputs=[recogn_choice, log_output])
-        translate_choice.change(fn=validate_translate, inputs=[translate_choice, prev_translate], outputs=[translate_choice, log_output])
-        tts_choice.change(fn=validate_tts, inputs=[tts_choice, prev_tts], outputs=[tts_choice, log_output])
+        recogn_choice.change(fn=validate_recogn, inputs=[recogn_choice, prev_recogn], outputs=[recogn_choice])
+        translate_choice.change(fn=validate_translate, inputs=[translate_choice, prev_translate], outputs=[translate_choice])
+        tts_choice.change(fn=validate_tts, inputs=[tts_choice, prev_tts], outputs=[tts_choice])
 
         # ---- 动态更新配音角色 ----
         def update_voice_roles(tts_display, target_display):
