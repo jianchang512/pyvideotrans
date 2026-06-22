@@ -271,6 +271,7 @@ qwenasr = [
 webui = [
 	"gradio"
 ]
+
 #https://github.com/OpenMOSS/MOSS-TTS-Nano/issues/6
 mosstts = [
     "pynini",
