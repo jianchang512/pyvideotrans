@@ -1,71 +1,4 @@
-"""
-# 具体同步原理说明
-
-通过音频加速和视频慢放来对齐翻译配音和原始视频时间轴。
-
-
-*简单起见，视频慢速暂不考虑 插帧 补帧 光流法 等复杂方式,仅仅使用 setpts=X*PTS -fps_mode vfr* 
-*音频加速使用 https://breakfastquay.com/rubberband/
-
-
-主要实现原理
-
-# 功能概述, 使用python3开发视频翻译功能：
-1. A语言发音的视频，分离出无声画面视频文件和音频文件，使用语音识别对音频文件识别出原始字幕后，将该字幕翻译翻译为B语言的字幕，再将该B语言字幕配音为B语言配音，然后将B语言字幕和B语言配音同A分离出的无声视频，进行音画同步对齐和合并为新视频。
-2. 当前正在做的这部分就是“配音、字幕、视频对齐”，B语言字幕是逐条配音的，每条字幕的配音生成一个wav音频文件。
-3. 因为语言不同，因此每条配音可能大于该条字幕的时间，例如该条字幕时长是3s，配音后的mp3时长如果小于等于3s，则不影响，但如果配音时长大于3s，则有问题，需要通过将音频片段自动加速到3s实现同步。也可以通过将该字幕的原始字幕所对应原始视频该片段截取下来，慢速播放延长该视频时长直到匹配配音时长，实现对齐。当然也可以同时 音频自动加速 和 视频慢速，从而避免音频加速太多或视频慢速太多。
-
-
-## 预先处理
-
-**有音频加速和(或)视频慢速时，先将每个字幕的 end_time 都改为和下一个字幕的 start_time 一致，即去掉字幕间静音区间**
-
-## 音频和视频同时启用时的策略
-1. 如果配音时长 小于 当前片段的字幕时长，则无需音频加速和视频慢速
-2. 如果配音时长 大于 当前片段的字幕时长，则计算将配音时长缩短到匹配字幕时长时，需要的加速倍数
-    - 如果该倍数 小于等于 1.2，则照此加速音频即可，无需视频慢速
-    - 如果该倍数 大于1.2，则音频加速和视频慢速各自负担一半,忽略所有限制
-
-## 仅仅使用音频加速时
-
-1. 如果配音时长 小于 当前片段的原始字幕时长，则无需音频加速
-2. 如果配音时长 大于 当前片段的原始字幕时长，强制将配音时长缩短到匹配时长，倍数最大不超过预定最大限制
-3. 注意开头和结尾以及字幕之间的静默区间，尤其是利用后可能还剩余的静默空间，最终合成后的音频长度，在存在视频时(self.novoice_mp4) 长度应等于视频长度，在不存在时，长度应不小于 self.raw_total_time。
-
-## 仅仅视频慢速时
-1. 如果配音时长 小于 当前片段的原始字幕时长，则无需视频慢速，直接从本条字幕开始时间裁切到下条字幕开始时间，如果这是第一条字幕，则从0时间开始裁切
-2. 如果配音时长 大于 当前片段的原始字幕时长，强制将视频片段(时长为total_a) 慢速延长到和配音等长，此处注意下，PTS倍数最大不超过 max_video_pts_rate。
-3. 裁切需注意第一条字幕前的区域(开始时间可能大于0)和最后一条字幕后的区域(结束时间可能不到视频末尾)
-4. 无需慢速处理的片段，直接裁切本条字幕开始时间到下条字幕开始时间。
-
-
-## 没有 `音频加速`也没有`视频慢速`时
-
-- 第一步按字幕拼接音频
-1. 如果第一条字幕不是从0开始的，则前面填充静音。
-2. 如果本条字幕开始时间到下条字幕开始时间，这个时长 大于 等于本条配音时长，则直接拼接该配音文件，若差值大于0，即还有富裕空间则后面填充静音。
-3. 如果本条字幕开始时间到下条字幕开始时间，这个时长小于 本条配音时长，则直接拼接，无需其他处理
-4. 如果是最后一条字幕，则直接将该配音片段拼接上即可，无需判断后边是否还有空间。
-
-- 第二步查看是否存在视频文件
-1. self.novoice_mp4 is not None, 并且该文件存在，则为存在视频，此时比较合并后的音频时长和视频时长
-    - 如果音频时长 小于 视频时长，则音频末尾填充静音直到长度一致
-    - 如果音频时长 大于 视频时长，则视频最后定格延长，直到和音频时长一致
-2. 如果不存在视频文件，则无需其他处理
-
-
-## 小于 1024B 的视频片段可视为无效，过滤掉，容器、元信息加一帧图片，尺寸在 1024B以上
-
-## 在无视频慢速参与情况下，按照配音，整理字幕时间轴，确保声音和字幕同时显示与消失
-## 在有视频慢速参与情况下，将配音片段同视频片段挨个对齐，如果配音片段短于当前视频片段，补充静音，如果大于，则无视，继续拼接，字幕时间轴以配音为准显示
-===============================================================================================
-
-## 需要注意的点
-1. ffmpeg处理视频是无法精确到毫秒级的，因此使用PTS进行慢速时，最终输出的视频可能会短于或长于期望的时长
-2. fps是不固定的，可能是25，可能是29或30等，某些片段时长可能小于1帧，如果FFmpeg进行变速处理，大概率会失败，因此在有音频加速或视频慢速参与时，应该提前将当前字幕和下条字幕的空隙都给当前字幕，即当前字幕的结束时间改为下条字幕的开始时间
-
-"""
-
+# 原理解释见 @docs/Synchronize.md
 import os
 import shutil
 import time
@@ -89,7 +22,7 @@ except ImportError:
 from videotrans.configure.config import ROOT_DIR,tr, settings, logger
 from videotrans.configure import config
 from videotrans.util import tools
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 
 
 
@@ -136,7 +69,7 @@ def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf,fps_mode)
 
     filter_complex = []
     if abs(pts_factor - 1.0) >= 0.001:
-        filter_complex.append(f"setpts={pts_factor+0.005}*PTS")
+        filter_complex.append(f"setpts={pts_factor}*PTS")
     else:
         filter_complex.append("setpts=PTS")
 
@@ -175,9 +108,7 @@ def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf,fps_mode)
                 '-vf', 'setpts=PTS',  # 显式添加
             ]+fps_mode
 
-            cmd_backup+[
-                os.path.basename(task['filename'])
-                ]
+            cmd_backup.append(os.path.basename(task['filename']))
             tools.runffmpeg(cmd_backup, force_cpu=True, cmd_dir=work_dir)
 
         # 再次检查
@@ -215,7 +146,7 @@ def _change_speed_rubberband(input_path, target_duration):
             logger.warning(f"[Audio-RB] 空音频文件: {input_path}")
             return False
             
-        current_duration = int((len(y) / sr) * 1000)
+        current_duration = round((len(y) / sr) * 1000)
         
         if target_duration <= 0: target_duration = 1
         
@@ -244,11 +175,10 @@ def _change_speed_rubberband(input_path, target_duration):
         return False
     return True
 
-def _precise_speed_up_audio(input_path=None,  target_duration=None):
-    audio = AudioSegment.from_file(input_path, format='wav')
-    current_duration_ms = len(audio)
+def _precise_speed_up_audio(input_path=None, target_duration=None):
+    # 使用 pydub 获取当前时长（避免双重读取）
+    current_duration_ms = len(AudioSegment.from_file(input_path, format='wav'))
 
-    # 完成使用 atempo 滤镜加速
     # 构造 atempo 滤镜链
     # atempo 限制：参数必须在 [0.5, 2.0] 之间
     atempo_list = []
@@ -279,7 +209,7 @@ def _precise_speed_up_audio(input_path=None,  target_duration=None):
     ]
     try:
         tools.runffmpeg(cmd)
-        shutil.copy2(f'{input_path}-after.wav',input_path)
+        shutil.copy2(f'{input_path}-after.wav', input_path)
     except Exception as e:
         logger.exception(f'音频加速失败:{e}')
         return False
@@ -290,6 +220,8 @@ class SpeedRate:
     MIN_CLIP_DURATION_MS = 40
     AUDIO_SAMPLE_RATE = 48000
     AUDIO_CHANNELS = 2
+    # 音频和视频同时启用时，如果配音/字幕倍率低于此阈值，仅加速音频，不慢速视频
+    BOTH_MODE_AUDIO_ONLY_THRESHOLD = 1.2
 
     def __init__(self,
                  *,
@@ -505,10 +437,12 @@ class SpeedRate:
                 mode_log = "Both"
                 if dubb_dur > source_dur:
                     ratio = dubb_dur / source_dur
-                    if ratio <= 1.2:
+                    if ratio <= self.BOTH_MODE_AUDIO_ONLY_THRESHOLD:
+                        # 倍率较小，仅加速音频即可，无需视频慢速
                         audio_target = source_dur
                         video_target = source_dur
                     else:
+                        # 倍率较大，音频加速和视频慢速各自负担一半时间差
                         diff = dubb_dur - source_dur
                         joint_target = int(source_dur + (diff / 2))
                         audio_target = joint_target
@@ -537,7 +471,7 @@ class SpeedRate:
             
                 it['final_duration'] = video_target
             # 记录决策日志
-            logger.debug(f"[Calc] Mode={mode_log} Line={it['line']} | Source={source_dur} Dubb={dubb_dur} -> TargetV={video_target} TargetA={audio_target}")
+            logger.debug(f"[Calc] Mode={mode_log} Line={it['line']} | Source_duration={source_dur} Dubb_duration={dubb_dur} -> TargetV={video_target} TargetA={audio_target}")
 
 
     def _execute_audio_speedup_rubberband(self):
@@ -619,42 +553,35 @@ class SpeedRate:
             self._del_mp4_clip()
             
     def _del_mp4_clip(self):
-
-        # 计数器（可选）
         deleted_count = 0
-        # 使用 os.scandir() 创建迭代器
-        with os.scandir(self.cache_folder) as entries:
-            for entry in entries:
-                # 判断：是文件 + 名字以 clip_ 开头 + 以 .mp4 结尾
-                if entry.is_file() and entry.name.startswith('clip_') and entry.name.endswith('.mp4'):
-                    try:
-                        os.remove(entry.path)
-                        deleted_count += 1
-                    except OSError as e:
-                        logger.exception(f"无法删除文件 {entry.name}: {e}",exc_info=True)
-
+        for f in Path(self.cache_folder).glob('clip_*.mp4'):
+            try:
+                f.unlink()
+                deleted_count += 1
+            except OSError as e:
+                logger.exception(f"无法删除文件 {f.name}: {e}", exc_info=True)
         logger.debug(f"清理视频慢速中生成的视频片段，共删除了 {deleted_count} 个文件。")
 
     def _concat_audio_aligned(self):
         logger.debug("[Audio] 开始对齐拼接...")
         audio_list = []
         current_timeline = self.queue_tts[0]['start_time']
-        if current_timeline>0:
+        if current_timeline > 0:
             audio_list.append(self._create_silen_file("head_0", current_timeline))
-        
+
         for i, it in enumerate(self.queue_tts):
             # 有视频慢速时，使用视频片段实际时长，否则使用字幕区间时长
             slot_duration = it.get('final_duration', it['source_duration'])
-            
+
             # 【兜底修正】如果视频槽位失效（0ms），回退到 source_duration
-            # 这样至少保证音频不会因为视频失败而全部乱掉，保持音频连续性
             if slot_duration <= 0:
-                logger.warning(f"[Audio-Sync] 字幕[{it['line']}] 视频槽时长为0，回退使用原始时长: {it['source_duration']}ms")
+                logger.warning(f"[Audio-Sync] 字幕[{it['line']}] 视频槽时长为0，回退使用原始时长: source_duration={it['source_duration']}ms")
                 slot_duration = max(1, it['source_duration'])
 
             current_slot_audio_len = 0
-            
-            # 2. 配音文件
+            seg = None
+
+            # 读取配音文件并缓存时长，避免重复读取
             audio_file = it['filename']
             if Path(audio_file).exists():
                 try:
@@ -662,42 +589,38 @@ class SpeedRate:
                     if seg.channels != self.AUDIO_CHANNELS:
                         seg = seg.set_channels(self.AUDIO_CHANNELS)
                         seg.export(audio_file, format='wav')
-                    
-                    current_slot_audio_len += len(seg)
+                    current_slot_audio_len = len(seg)
                 except Exception as e:
                     logger.error(f"[Audio-Sync] 读取配音失败 {audio_file}: {e}")
-            
-            # 3. 长度对其
-            log_flag = ""
-                        
+
+            # 长度对齐
+            diff = slot_duration - current_slot_audio_len
+            log_flag = f"当前音频时长:{current_slot_audio_len=}, 槽位时长:{slot_duration=}, "
+
             if current_slot_audio_len > slot_duration:
-                # 配音长度大于视频片段或字幕区间片段，有视频慢速时，最终生成的视频(slot_duration)可能比理论需要的短几十ms
-                log_flag = f"音频溢出截断 {current_slot_audio_len}->{slot_duration}"
-                
+                # 配音长度大于槽位，截断音频以匹配槽位
+                log_flag += f"音频溢出截断 {abs(diff)}"
                 try:
-                    # 有视频慢速时强制阶段音频
-                    if self.should_videorate:
-                        cut_seg = AudioSegment.from_file(audio_file)[:slot_duration]
-                        final_slot_path = Path(self.cache_folder, f"final_slot_cut_{i}.wav").as_posix()
-                        cut_seg.export(final_slot_path, format='wav')
-                        audio_list.append(final_slot_path)
-                    else:
-                        audio_list.append(audio_file) # 原样放入
+                    if seg is None:
+                        seg = AudioSegment.from_file(audio_file)
+                    cut_seg = seg[:slot_duration]
+                    final_slot_path = Path(self.cache_folder, f"final_slot_cut_{i}.wav").as_posix()
+                    cut_seg.export(final_slot_path, format='wav')
+                    audio_list.append(final_slot_path)
                 except Exception as e:
                     logger.error(f"截断音频失败: {e}")
-                    audio_list.append(audio_file) # 失败则原样放入
+                    audio_list.append(audio_file)
 
             elif current_slot_audio_len < slot_duration:
-                # 补尾部静音
-                diff = slot_duration - current_slot_audio_len
-                log_flag = f"音频末尾补静音 {diff}ms"
+                # 补尾部静音                
+                log_flag += f"音频变短末尾需补静音 {diff}ms"
                 audio_list.append(audio_file)
                 audio_list.append(self._create_silen_file(f"tail_{i}", diff))
             else:
-                log_flag = "匹配"
+                log_flag += "匹配"
                 audio_list.append(audio_file)
 
-            logger.debug(f"[Audio-Sync] Line={it['line']} | {log_flag} | [{current_slot_audio_len=} {slot_duration=}] | Timeline: {current_timeline} -> {current_timeline+slot_duration}")
+            logger.debug(f"[Audio-Sync] Line={it['line']} | {log_flag} | Timeline: {current_timeline} -> {current_timeline+slot_duration}")
 
             it['start_time'] = current_timeline
             it['end_time'] = current_timeline + slot_duration
@@ -849,7 +772,7 @@ class TtsSpeedRate(SpeedRate):
                     "target_time": source_dur # 不限制，强制加速到对齐
                 })
 
-            logger.debug(f"[Calc] Mode={mode_log} Line={it['line']} | Source={source_dur} Dubb={dubb_dur} -> TargetA={audio_target}")
+            logger.debug(f"[Calc] Mode={mode_log} Line={it['line']} | Source_duration={source_dur} Dubb_duration={dubb_dur} -> TargetA={audio_target}")
 
 
     def _concat_audio_aligned(self):
