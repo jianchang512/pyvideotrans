@@ -14,7 +14,6 @@ import sys
 import time
 import shutil
 import asyncio
-import tempfile
 import traceback
 from pathlib import Path
 from typing import List, Tuple, Optional
@@ -28,7 +27,7 @@ if sys.platform == "win32":
 from videotrans.configure import config
 config.init_run()
 
-from videotrans.configure.config import ROOT_DIR, TEMP_DIR, app_cfg
+from videotrans.configure.config import ROOT_DIR, TEMP_DIR, app_cfg, tr
 from videotrans.configure.contants import FASTER_MODELS_DICT
 from videotrans import recognition, translator, tts
 from videotrans.util import tools
@@ -36,28 +35,22 @@ from videotrans.util.gpus import getset_gpu
 from videotrans.util.help_role import role_menu
 
 # ---------------------------------------------------------------------------
-# 渠道名称列表
+# 渠道名称列表（使用 tr() 获取中文名称）
 # ---------------------------------------------------------------------------
 RECOGN_NAMES: List[str] = recognition.RECOGN_NAME_LIST
 TRANSLATE_NAMES: List[str] = translator.TRANSLASTE_NAME_LIST
 TTS_NAMES: List[str] = tts.TTS_NAME_LIST
 LANGNAME_DICT: dict = translator.LANGNAME_DICT
-LANGNAME_DICT_REV: dict = translator.LANGNAME_DICT_REV
 
 # ---------------------------------------------------------------------------
-# 可选渠道索引
+# 可选渠道索引（整数 ID）
 # ---------------------------------------------------------------------------
-# 语音识别：只可选 faster-whisper(0) 和 openai-whisper(1)
 SELECTABLE_RECOGN = {0, 1}
 DEFAULT_RECOGN = 0
 
-# 翻译：只可选前 4 个 (Google, Microsoft, M2M100, ChatGPT)
 SELECTABLE_TRANSLATE = {0, 1, 2, 3}
 DEFAULT_TRANSLATE = 0
 
-# 配音：Edge-TTS(0) + 标有"本地内置"的渠道
-# 根据 TTS_NAME_LIST: 0=Edge, 1=Qwen3-TTS(Local), 3=MOSS(Local), 4=Piper(Local),
-# 5=VITS(Local), 6=Supertonic(Local), 7=ChatterBox(Local)
 SELECTABLE_TTS = {0, 1, 3, 4, 5, 6, 7}
 DEFAULT_TTS = 0
 
@@ -66,9 +59,9 @@ FASTER_MODEL_NAMES = list(FASTER_MODELS_DICT.keys())
 DEFAULT_MODEL = "large-v3-turbo" if "large-v3-turbo" in FASTER_MODEL_NAMES else FASTER_MODEL_NAMES[0]
 
 # 语言列表
-LANG_OPTIONS = [f"{v} ({k})" for k, v in LANGNAME_DICT.items()]
-DEFAULT_SOURCE_LANG = "en"
-DEFAULT_TARGET_LANG = "zh-cn"
+LANG_DISPLAY_NAMES = list(LANGNAME_DICT.values())
+DEFAULT_SOURCE_LANG = "英语"
+DEFAULT_TARGET_LANG = "简体中文"
 
 # 字幕类型选项
 SUBTITLE_TYPES = {
@@ -80,35 +73,82 @@ SUBTITLE_TYPES = {
 }
 DEFAULT_SUBTITLE_TYPE = "嵌入硬字幕"
 
+# 标点选项
+PUNC_OPTIONS = {
+    "默认标点": 0,
+    "恢复标点": 1,
+    "删除标点": 2,
+}
+
+# 背景循环选项
+LOOP_BGM_OPTIONS = {
+    "背景音截断": 0,
+    "背景音循环": 1,
+}
+
 
 # ---------------------------------------------------------------------------
 # 辅助函数
 # ---------------------------------------------------------------------------
-def _parse_lang_code(display: str) -> str:
-    """从 'English (en)' 格式中提取语言代码 'en'"""
-    if "(" in display and display.endswith(")"):
-        return display.split("(")[-1].rstrip(")")
-    return display
+def _lang_code_from_display(display_name: str) -> str:
+    """从中文语言名反推语言代码"""
+    for code, name in LANGNAME_DICT.items():
+        if name == display_name:
+            return code
+    return display_name
 
 
-def _get_selectable_names(all_names: List[str], selectable: set) -> List[str]:
-    """返回带标记的名称列表：可选的正常显示，不可选的加 [不可选] 前缀"""
-    result = []
-    for i, name in enumerate(all_names):
-        if i in selectable:
-            result.append(name)
-        else:
-            result.append(f"【不可选】{name}")
-    return result
-
-
-def _tts_type_from_display(display_name: str) -> int:
-    """从显示名称反推 TTS 渠道索引"""
-    clean = display_name.replace("【不可选】", "")
+def _tts_index_from_display(display_name: str) -> int:
     for i, name in enumerate(TTS_NAMES):
-        if name == clean:
+        if name == display_name:
             return i
     return 0
+
+
+def _recogn_index_from_display(display_name: str) -> int:
+    for i, name in enumerate(RECOGN_NAMES):
+        if name == display_name:
+            return i
+    return 0
+
+
+def _translate_index_from_display(display_name: str) -> int:
+    for i, name in enumerate(TRANSLATE_NAMES):
+        if name == display_name:
+            return i
+    return 0
+
+
+def _format_rate(value: int) -> str:
+    """将数值格式化为 '+N%' 或 '-N%'"""
+    if value >= 0:
+        return f"+{value}%"
+    return f"{value}%"
+
+
+def _format_pitch(value: int) -> str:
+    """将数值格式化为 '+NHz' 或 '-NHz'"""
+    if value >= 0:
+        return f"+{value}Hz"
+    return f"{value}Hz"
+
+
+def open_ass_style_dialog():
+    """打开 ASS 字幕样式编辑对话框（使用 PySide6）"""
+    try:
+        from PySide6.QtWidgets import QApplication
+        from videotrans.component.set_ass import ASSStyleDialog
+
+        # 确保有 QApplication 实例
+        app = QApplication.instance()
+        if app is None:
+            app = QApplication(sys.argv)
+
+        dialog = ASSStyleDialog()
+        dialog.exec()
+        return "✅ 字幕样式已保存"
+    except Exception as e:
+        return f"❌ 打开字幕样式编辑器失败: {str(e)}"
 
 
 # ---------------------------------------------------------------------------
@@ -117,12 +157,13 @@ def _tts_type_from_display(display_name: str) -> int:
 def build_ui():
     import gradio as gr
 
-    selectable_recogn = _get_selectable_names(RECOGN_NAMES, SELECTABLE_RECOGN)
-    selectable_translate = _get_selectable_names(TRANSLATE_NAMES, SELECTABLE_TRANSLATE)
-    selectable_tts = _get_selectable_names(TTS_NAMES, SELECTABLE_TTS)
-
     with gr.Blocks(title="pyVideoTrans WebUI") as app:
         gr.Markdown("# pyVideoTrans 视频翻译 WebUI")
+
+        # 状态变量
+        prev_recogn = gr.State(value=RECOGN_NAMES[DEFAULT_RECOGN])
+        prev_translate = gr.State(value=TRANSLATE_NAMES[DEFAULT_TRANSLATE])
+        prev_tts = gr.State(value=TTS_NAMES[DEFAULT_TTS])
 
         with gr.Row():
             # ---- 左列：输入与参数 ----
@@ -133,10 +174,11 @@ def build_ui():
                     type="filepath",
                 )
 
+                # === 语音识别 ===
                 gr.Markdown("### 语音识别")
                 recogn_choice = gr.Dropdown(
-                    choices=selectable_recogn,
-                    value=selectable_recogn[DEFAULT_RECOGN],
+                    choices=RECOGN_NAMES,
+                    value=RECOGN_NAMES[DEFAULT_RECOGN],
                     label="识别渠道",
                     interactive=True,
                 )
@@ -147,30 +189,32 @@ def build_ui():
                     interactive=True,
                 )
 
+                # === 翻译 ===
                 gr.Markdown("### 翻译")
                 translate_choice = gr.Dropdown(
-                    choices=selectable_translate,
-                    value=selectable_translate[DEFAULT_TRANSLATE],
+                    choices=TRANSLATE_NAMES,
+                    value=TRANSLATE_NAMES[DEFAULT_TRANSLATE],
                     label="翻译渠道",
                     interactive=True,
                 )
                 source_lang = gr.Dropdown(
-                    choices=LANG_OPTIONS,
-                    value=f"{LANGNAME_DICT[DEFAULT_SOURCE_LANG]} ({DEFAULT_SOURCE_LANG})",
+                    choices=LANG_DISPLAY_NAMES,
+                    value=DEFAULT_SOURCE_LANG,
                     label="发音语言（源语言）",
                     interactive=True,
                 )
                 target_lang = gr.Dropdown(
-                    choices=LANG_OPTIONS,
-                    value=f"{LANGNAME_DICT[DEFAULT_TARGET_LANG]} ({DEFAULT_TARGET_LANG})",
+                    choices=LANG_DISPLAY_NAMES,
+                    value=DEFAULT_TARGET_LANG,
                     label="目标语言",
                     interactive=True,
                 )
 
+                # === 配音 ===
                 gr.Markdown("### 配音")
                 tts_choice = gr.Dropdown(
-                    choices=selectable_tts,
-                    value=selectable_tts[0],
+                    choices=TTS_NAMES,
+                    value=TTS_NAMES[DEFAULT_TTS],
                     label="配音渠道",
                     interactive=True,
                 )
@@ -181,10 +225,24 @@ def build_ui():
                     interactive=True,
                 )
 
+                # === 对齐与字幕 ===
                 gr.Markdown("### 对齐与字幕")
                 with gr.Row():
                     voice_autorate = gr.Checkbox(label="配音加速（音频加速对齐）", value=True)
                     video_autorate = gr.Checkbox(label="视频慢速", value=False)
+                with gr.Row():
+                    voice_rate = gr.Slider(
+                        minimum=-50, maximum=50, value=0, step=1,
+                        label="配音语速 (%)",
+                    )
+                    volume_rate = gr.Slider(
+                        minimum=-95, maximum=100, value=0, step=1,
+                        label="音量调整 (%)",
+                    )
+                    pitch_rate = gr.Slider(
+                        minimum=-100, maximum=100, value=0, step=1,
+                        label="音调 (Hz)",
+                    )
                 subtitle_type = gr.Dropdown(
                     choices=list(SUBTITLE_TYPES.keys()),
                     value=DEFAULT_SUBTITLE_TYPE,
@@ -192,8 +250,46 @@ def build_ui():
                     interactive=True,
                 )
 
+                # === 更多设置 ===
+                gr.Markdown("### 更多设置")
+
+                with gr.Row():
+                    remove_noise = gr.Checkbox(label="降噪", value=False)
+                    fix_punc = gr.Dropdown(
+                        choices=list(PUNC_OPTIONS.keys()),
+                        value="默认标点",
+                        label="标点处理",
+                        interactive=True,
+                    )
+
+                with gr.Row():
+                    is_separate = gr.Checkbox(label="分离人声背景声", value=False)
+                    embed_bgm = gr.Checkbox(label="重新嵌入背景声", value=True)
+
+                with gr.Row():
+                    loop_bgm = gr.Dropdown(
+                        choices=list(LOOP_BGM_OPTIONS.keys()),
+                        value="背景音截断",
+                        label="背景音处理方式",
+                        interactive=True,
+                    )
+                    backaudio_volume = gr.Slider(
+                        minimum=0.0, maximum=2.0, value=0.8, step=0.1,
+                        label="背景音量",
+                    )
+
+                # === 其他 ===
                 gr.Markdown("### 其他")
-                cuda_accel = gr.Checkbox(label="启用 CUDA 加速", value=False)
+                with gr.Row():
+                    cuda_accel = gr.Checkbox(label="启用 CUDA 加速", value=False)
+                    ass_style_btn = gr.Button("🎨 修改硬字幕样式", size="sm")
+                    ass_style_output = gr.Textbox(label="样式编辑器状态", interactive=False, visible=True)
+
+                ass_style_btn.click(
+                    fn=open_ass_style_dialog,
+                    inputs=[],
+                    outputs=[ass_style_output],
+                )
 
                 start_btn = gr.Button("🚀 开始执行", variant="primary", size="lg")
 
@@ -209,11 +305,45 @@ def build_ui():
                     interactive=False,
                 )
 
+        # ---- 渠道选择验证 ----
+        def validate_recogn(choice, prev):
+            idx = _recogn_index_from_display(choice)
+            if idx not in SELECTABLE_RECOGN:
+                return prev, f"⚠️ 渠道「{choice}」暂不可用，请选择 faster-whisper 或 openai-whisper"
+            return choice, ""
+
+        def validate_translate(choice, prev):
+            idx = _translate_index_from_display(choice)
+            if idx not in SELECTABLE_TRANSLATE:
+                return prev, f"⚠️ 渠道「{choice}」暂不可用，请选择前4个渠道之一"
+            return choice, ""
+
+        def validate_tts(choice, prev):
+            idx = _tts_index_from_display(choice)
+            if idx not in SELECTABLE_TTS:
+                return prev, f"⚠️ 渠道「{choice}」暂不可用，请选择 Edge-TTS 或本地内置渠道"
+            return choice, ""
+
+        recogn_choice.change(
+            fn=validate_recogn,
+            inputs=[recogn_choice, prev_recogn],
+            outputs=[recogn_choice, log_output],
+        )
+        translate_choice.change(
+            fn=validate_translate,
+            inputs=[translate_choice, prev_translate],
+            outputs=[translate_choice, log_output],
+        )
+        tts_choice.change(
+            fn=validate_tts,
+            inputs=[tts_choice, prev_tts],
+            outputs=[tts_choice, log_output],
+        )
+
         # ---- 动态更新配音角色 ----
-        def update_voice_roles(tts_display: str, target_display: str):
-            """当配音渠道或目标语言变化时，更新配音角色列表"""
-            tts_idx = _tts_type_from_display(tts_display)
-            lang_code = _parse_lang_code(target_display)
+        def update_voice_roles(tts_display, target_display):
+            tts_idx = _tts_index_from_display(tts_display)
+            lang_code = _lang_code_from_display(target_display)
             try:
                 roles = role_menu(tts_idx, langcode=lang_code)
                 if not roles:
@@ -245,7 +375,16 @@ def build_ui():
             voice_role_name,
             voice_autorate_val,
             video_autorate_val,
+            voice_rate_val,
+            volume_rate_val,
+            pitch_rate_val,
             subtitle_type_name,
+            remove_noise_val,
+            fix_punc_name,
+            is_separate_val,
+            embed_bgm_val,
+            loop_bgm_name,
+            backaudio_volume_val,
             cuda_val,
         ):
             if not file_path:
@@ -253,22 +392,14 @@ def build_ui():
                 return
 
             # 解析参数
-            recogn_idx = 0
-            for i, name in enumerate(RECOGN_NAMES):
-                if name in recogn_display:
-                    recogn_idx = i
-                    break
-
-            translate_idx = 0
-            for i, name in enumerate(TRANSLATE_NAMES):
-                if name in translate_display:
-                    translate_idx = i
-                    break
-
-            tts_idx = _tts_type_from_display(tts_display)
-            source_code = _parse_lang_code(source_display)
-            target_code = _parse_lang_code(target_display)
+            recogn_idx = _recogn_index_from_display(recogn_display)
+            translate_idx = _translate_index_from_display(translate_display)
+            tts_idx = _tts_index_from_display(tts_display)
+            source_code = _lang_code_from_display(source_display)
+            target_code = _lang_code_from_display(target_display)
             subtitle_val = SUBTITLE_TYPES.get(subtitle_type_name, 1)
+            fix_punc_val = PUNC_OPTIONS.get(fix_punc_name, 0)
+            loop_bgm_val = LOOP_BGM_OPTIONS.get(loop_bgm_name, 0)
 
             log_lines = []
             def log(msg):
@@ -278,12 +409,10 @@ def build_ui():
             yield log("初始化环境..."), []
 
             try:
-                # 设置运行时状态
                 app_cfg.exit_soft = False
                 app_cfg.exec_mode = 'cli'
                 getset_gpu()
 
-                # 构建参数
                 _file_obj = tools.format_video(Path(file_path).absolute().as_posix())
                 _nospacebasename = _file_obj["basename"].replace(" ", "-").replace(".", "-")
                 _cache_folder = f'{TEMP_DIR}/{_file_obj["uuid"]}'
@@ -306,42 +435,48 @@ def build_ui():
                     "recogn_type": recogn_idx,
                     "model_name": model_name,
                     "is_cuda": cuda_val,
-                    "remove_noise": False,
+                    "remove_noise": remove_noise_val,
                     "enable_diariz": False,
                     "nums_diariz": -1,
                     "detect_language": source_code,
                     "rephrase": 0,
-                    "fix_punc": False,
+                    "fix_punc": fix_punc_val,
                     # TTS
                     "tts_type": tts_idx,
                     "voice_role": voice_role_name,
-                    "voice_rate": "+0%",
-                    "volume": "+0%",
-                    "pitch": "+0Hz",
+                    "voice_rate": _format_rate(int(voice_rate_val)),
+                    "volume": _format_rate(int(volume_rate_val)),
+                    "pitch": _format_pitch(int(pitch_rate_val)),
                     "voice_autorate": voice_autorate_val,
                     "video_autorate": video_autorate_val,
                     "align_sub_audio": True,
                     # Translation
                     "translate_type": translate_idx,
                     # VTV extra
-                    "is_separate": False,
+                    "is_separate": is_separate_val,
                     "recogn2pass": False,
                     "subtitle_type": subtitle_val,
                     "clear_cache": True,
+                    "embed_bgm": embed_bgm_val,
+                    "loop_backaudio": loop_bgm_val,
+                    "backaudio_volume": backaudio_volume_val,
+                    "background_music": "",
                 }
 
                 params = {**common_params, **vtv_params}
 
-                yield log(f"识别渠道: {RECOGN_NAMES[recogn_idx]}"), []
-                yield log(f"翻译渠道: {TRANSLATE_NAMES[translate_idx]}"), []
-                yield log(f"配音渠道: {TTS_NAMES[tts_idx]}"), []
+                yield log(f"识别渠道: {RECOGN_NAMES[recogn_idx]} (ID={recogn_idx})"), []
+                yield log(f"翻译渠道: {TRANSLATE_NAMES[translate_idx]} (ID={translate_idx})"), []
+                yield log(f"配音渠道: {TTS_NAMES[tts_idx]} (ID={tts_idx})"), []
                 yield log(f"配音角色: {voice_role_name}"), []
                 yield log(f"语言: {source_code} → {target_code}"), []
-                yield log(f"字幕类型: {subtitle_type_name}"), []
+                yield log(f"字幕类型: {subtitle_type_name} (ID={subtitle_val})"), []
+                yield log(f"语速: {_format_rate(int(voice_rate_val))}  音量: {_format_rate(int(volume_rate_val))}  音调: {_format_pitch(int(pitch_rate_val))}"), []
+                yield log(f"降噪: {'开' if remove_noise_val else '关'}  标点: {fix_punc_name}  分离人声: {'开' if is_separate_val else '关'}"), []
+                yield log(f"嵌入背景: {'开' if embed_bgm_val else '关'}  背景处理: {loop_bgm_name}  背景音量: {backaudio_volume_val}"), []
                 yield log(f"CUDA: {'启用' if cuda_val else '关闭'}"), []
                 yield log(""), []
 
-                # 执行 VTV 流水线
                 yield log("▶ 开始执行视频翻译..."), []
 
                 from videotrans.task.trans_create import TransCreate
@@ -394,7 +529,6 @@ def build_ui():
                             output_files.append(str(f))
 
                 if not output_files:
-                    # 尝试从缓存目录查找
                     cache_path = Path(_cache_folder)
                     if cache_path.exists():
                         for f in sorted(cache_path.rglob("*")):
@@ -420,7 +554,16 @@ def build_ui():
                 voice_role,
                 voice_autorate,
                 video_autorate,
+                voice_rate,
+                volume_rate,
+                pitch_rate,
                 subtitle_type,
+                remove_noise,
+                fix_punc,
+                is_separate,
+                embed_bgm,
+                loop_bgm,
+                backaudio_volume,
                 cuda_accel,
             ],
             outputs=[log_output, result_files],
