@@ -434,6 +434,7 @@ def build_ui():
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     import argparse
+    import gradio as gr
     parser = argparse.ArgumentParser(description="pyVideoTrans WebUI")
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address")
     parser.add_argument("--port", type=int, default=7860, help="Port number")
