@@ -558,6 +558,19 @@ def build_ui():
         recogn_choice.change(fn=validate_recogn, inputs=[recogn_choice, prev_recogn], outputs=[recogn_choice, channel_warning])
         translate_choice.change(fn=validate_translate, inputs=[translate_choice, prev_translate], outputs=[translate_choice, channel_warning])
         tts_choice.change(fn=tts_change_handler, inputs=[tts_choice, prev_tts, target_lang], outputs=[tts_choice, voice_role, channel_warning])
+
+        # 目标语言变化时也更新配音角色
+        def update_voice_roles(tts_display, target_display):
+            tts_idx = _tts_index_from_display(tts_display)
+            lang_code = _lang_code_from_display(target_display)
+            try:
+                roles = role_menu(tts_idx, langcode=lang_code)
+                if not roles:
+                    roles = ["No"]
+            except Exception:
+                roles = ["No"]
+            return gr.update(choices=roles, value=roles[0] if roles else "No")
+
         target_lang.change(fn=update_voice_roles, inputs=[tts_choice, target_lang], outputs=[voice_role])
 
         # ---- 执行翻译 ----
