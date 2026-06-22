@@ -403,7 +403,14 @@ def build_ass_editor():
 def build_ui():
     import gradio as gr
 
-    with gr.Blocks(title="pyVideoTrans WebUI") as app:
+    with gr.Blocks(title="pyVideoTrans WebUI", css="""
+        /* 居中所有 toast/警告弹窗 */
+        .toast-wrap, .toast-container, [class*="toast"], [class*="Toast"] {
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+        }
+    """) as app:
         gr.Markdown("""
 # pyVideoTrans 视频翻译 WebUI
 
