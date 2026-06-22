@@ -940,14 +940,15 @@ class TransCreate(BaseTask):
         # 取出设置的每行角色
         line_roles = app_cfg.line_roles
         voice_role = self.cfg.voice_role
-        force_clone = str(voice_role).strip().lower() == 'clone' and self.cfg.tts_type in SUPPORT_CLONE
-
+        #force_clone = str(voice_role).strip().lower() == 'clone' and self.cfg.tts_type in SUPPORT_CLONE
+        logger.debug(f'{line_roles=}')
         # 取出每一条字幕，行号\n开始时间 --> 结束时间\n内容
         for i, it in enumerate(subs):
             if it['end_time'] < it['start_time'] or not it['text'].strip():
                 continue
             # 判断是否存在单独设置的行角色，如果不存在则使用全局
-            voice = 'clone' if force_clone else line_roles.get(f'{it["line"]}', voice_role)
+            #voice = 'clone' if force_clone else line_roles.get(f'{it["line"]}', voice_role)
+            voice = line_roles.get(f'{it["line"]}', voice_role) if line_roles else voice_role
 
             _key = get_md5(f"{self.cfg.target_language_code}-{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}")
 
