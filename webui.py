@@ -403,14 +403,7 @@ def build_ass_editor():
 def build_ui():
     import gradio as gr
 
-    with gr.Blocks(title="pyVideoTrans WebUI", css="""
-        /* 居中所有 toast/警告弹窗 */
-        .toast-wrap, .toast-container, [class*="toast"], [class*="Toast"] {
-            left: 50% !important;
-            right: auto !important;
-            transform: translateX(-50%) !important;
-        }
-    """) as app:
+    with gr.Blocks(title="pyVideoTrans WebUI") as app:
         gr.Markdown("""
 # pyVideoTrans 视频翻译 WebUI
 
@@ -516,6 +509,9 @@ def build_ui():
                 gr.Markdown("### 其他")
                 cuda_accel = gr.Checkbox(label="启用 CUDA 加速", value=False)
 
+                # 内联警告提示
+                channel_warning = gr.Markdown("", visible=False)
+
                 # === 硬字幕样式编辑器（纯 Gradio）===
                 build_ass_editor()
 
@@ -530,27 +526,24 @@ def build_ui():
         def validate_recogn(choice, prev):
             idx = _recogn_index_from_display(choice)
             if idx not in SELECTABLE_RECOGN:
-                gr.Warning(f"渠道「{choice}」暂不可用，仅 faster-whisper 和 openai-whisper 可选，已自动回退")
-                return prev
-            return choice
+                return prev, gr.update(visible=True, value=f"⚠️ 渠道「{choice}」暂不可用，仅 faster-whisper 和 openai-whisper 可选，已自动回退")
+            return choice, gr.update(visible=False, value="")
 
         def validate_translate(choice, prev):
             idx = _translate_index_from_display(choice)
             if idx not in SELECTABLE_TRANSLATE:
-                gr.Warning(f"渠道「{choice}」暂不可用，仅前4个渠道可选，已自动回退")
-                return prev
-            return choice
+                return prev, gr.update(visible=True, value=f"⚠️ 渠道「{choice}」暂不可用，仅前4个渠道可选，已自动回退")
+            return choice, gr.update(visible=False, value="")
 
         def validate_tts(choice, prev):
             idx = _tts_index_from_display(choice)
             if idx not in SELECTABLE_TTS:
-                gr.Warning(f"渠道「{choice}」暂不可用，仅 Edge-TTS 和本地内置渠道可选，已自动回退")
-                return prev
-            return choice
+                return prev, gr.update(visible=True, value=f"⚠️ 渠道「{choice}」暂不可用，仅 Edge-TTS 和本地内置渠道可选，已自动回退")
+            return choice, gr.update(visible=False, value="")
 
-        recogn_choice.change(fn=validate_recogn, inputs=[recogn_choice, prev_recogn], outputs=[recogn_choice])
-        translate_choice.change(fn=validate_translate, inputs=[translate_choice, prev_translate], outputs=[translate_choice])
-        tts_choice.change(fn=validate_tts, inputs=[tts_choice, prev_tts], outputs=[tts_choice])
+        recogn_choice.change(fn=validate_recogn, inputs=[recogn_choice, prev_recogn], outputs=[recogn_choice, channel_warning])
+        translate_choice.change(fn=validate_translate, inputs=[translate_choice, prev_translate], outputs=[translate_choice, channel_warning])
+        tts_choice.change(fn=validate_tts, inputs=[tts_choice, prev_tts], outputs=[tts_choice, channel_warning])
 
         # ---- 动态更新配音角色 ----
         def update_voice_roles(tts_display, target_display):
