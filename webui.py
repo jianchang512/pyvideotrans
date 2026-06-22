@@ -11,15 +11,20 @@ Requires: uv sync --extra webui
 
 import os
 import sys
+import json
 import time
-import shutil
 import asyncio
 import traceback
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+# ---------------------------------------------------------------------------
+# 语言常量 —— 修改此处可切换 UI 语言
+# ---------------------------------------------------------------------------
+CLI_LANG = "zh-cn"
 
 # ---------------------------------------------------------------------------
 # 初始化 videotrans 环境
@@ -27,7 +32,7 @@ if sys.platform == "win32":
 from videotrans.configure import config
 config.init_run()
 
-from videotrans.configure.config import ROOT_DIR, TEMP_DIR, app_cfg, tr
+from videotrans.configure.config import ROOT_DIR, TEMP_DIR, app_cfg
 from videotrans.configure.contants import FASTER_MODELS_DICT
 from videotrans import recognition, translator, tts
 from videotrans.util import tools
@@ -35,7 +40,7 @@ from videotrans.util.gpus import getset_gpu
 from videotrans.util.help_role import role_menu
 
 # ---------------------------------------------------------------------------
-# 渠道名称列表（使用 tr() 获取中文名称）
+# 渠道名称列表
 # ---------------------------------------------------------------------------
 RECOGN_NAMES: List[str] = recognition.RECOGN_NAME_LIST
 TRANSLATE_NAMES: List[str] = translator.TRANSLASTE_NAME_LIST
@@ -63,7 +68,7 @@ LANG_DISPLAY_NAMES = list(LANGNAME_DICT.values())
 DEFAULT_SOURCE_LANG = "英语"
 DEFAULT_TARGET_LANG = "简体中文"
 
-# 字幕类型选项
+# 字幕类型
 SUBTITLE_TYPES = {
     "不嵌入字幕": 0,
     "嵌入硬字幕": 1,
@@ -86,12 +91,98 @@ LOOP_BGM_OPTIONS = {
     "背景音循环": 1,
 }
 
+# ---------------------------------------------------------------------------
+# ASS 字幕样式
+# ---------------------------------------------------------------------------
+ASS_JSON_FILE = f'{ROOT_DIR}/videotrans/ass.json'
+
+DEFAULT_ASS_STYLE = {
+    'Name': 'Default',
+    'Fontname': 'Arial',
+    'Bottom_Fontname': 'Arial',
+    'Fontsize': 16,
+    'Bottom_Fontsize': 16,
+    'PrimaryColour': '&H00FFFFFF&',
+    'Bottom_PrimaryColour': '&H00FFFFFF&',
+    'SecondaryColour': '&H00FFFFFF&',
+    'OutlineColour': '&H00000000&',
+    'BackColour': '&H00000000&',
+    'Bold': 0,
+    'Italic': 0,
+    'Bottom_SecondaryColour': '&H00FFFFFF&',
+    'Bottom_OutlineColour': '&H00000000&',
+    'Bottom_BackColour': '&H00000000&',
+    'Bottom_Bold': 0,
+    'Bottom_Italic': 0,
+    'Underline': 0,
+    'StrikeOut': 0,
+    'ScaleX': 100,
+    'ScaleY': 100,
+    'Spacing': 0,
+    'Angle': 0,
+    'BorderStyle': 1,
+    'Outline': 0.5,
+    'Shadow': 0.5,
+    'Alignment': 2,
+    'MarginL': 10,
+    'MarginR': 10,
+    'MarginV': 10,
+    'Encoding': 1,
+}
+
+
+def _parse_ass_color(color_str: str) -> str:
+    """将 ASS 颜色格式 &HAABBGGRR& 转为 #RRGGBB 供 Gradio ColorPicker 使用"""
+    if not color_str.startswith('&H') or not color_str.endswith('&'):
+        return '#ffffff'
+    hex_str = color_str[2:-1].upper()
+    if len(hex_str) == 6:
+        b = int(hex_str[0:2], 16)
+        g = int(hex_str[2:4], 16)
+        r = int(hex_str[4:6], 16)
+        return f'#{r:02x}{g:02x}{b:02x}'
+    elif len(hex_str) == 8:
+        a = int(hex_str[0:2], 16)
+        b = int(hex_str[2:4], 16)
+        g = int(hex_str[4:6], 16)
+        r = int(hex_str[6:8], 16)
+        return f'#{r:02x}{g:02x}{b:02x}'
+    return '#ffffff'
+
+
+def _to_ass_color(hex_color: str) -> str:
+    """将 #RRGGBB 转为 ASS 颜色格式 &H00BBGGRR&"""
+    hex_color = hex_color.lstrip('#')
+    if len(hex_color) == 6:
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        return f'&H00{b:02X}{g:02X}{r:02X}&'
+    return '&H00FFFFFF&'
+
+
+def _load_ass_style() -> dict:
+    """从 ass.json 加载样式，不存在则用默认值"""
+    try:
+        if Path(ASS_JSON_FILE).exists():
+            with open(ASS_JSON_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return DEFAULT_ASS_STYLE.copy()
+
+
+def _save_ass_style(style: dict):
+    """保存样式到 ass.json"""
+    Path(ASS_JSON_FILE).parent.mkdir(parents=True, exist_ok=True)
+    with open(ASS_JSON_FILE, 'w', encoding='utf-8') as f:
+        json.dump(style, f, indent=4, ensure_ascii=False)
+
 
 # ---------------------------------------------------------------------------
 # 辅助函数
 # ---------------------------------------------------------------------------
 def _lang_code_from_display(display_name: str) -> str:
-    """从中文语言名反推语言代码"""
     for code, name in LANGNAME_DICT.items():
         if name == display_name:
             return code
@@ -120,35 +211,189 @@ def _translate_index_from_display(display_name: str) -> int:
 
 
 def _format_rate(value: int) -> str:
-    """将数值格式化为 '+N%' 或 '-N%'"""
-    if value >= 0:
-        return f"+{value}%"
-    return f"{value}%"
+    return f"+{value}%" if value >= 0 else f"{value}%"
 
 
 def _format_pitch(value: int) -> str:
-    """将数值格式化为 '+NHz' 或 '-NHz'"""
-    if value >= 0:
-        return f"+{value}Hz"
-    return f"{value}Hz"
+    return f"+{value}Hz" if value >= 0 else f"{value}Hz"
 
 
-def open_ass_style_dialog():
-    """打开 ASS 字幕样式编辑对话框（使用 PySide6）"""
-    try:
-        from PySide6.QtWidgets import QApplication
-        from videotrans.component.set_ass import ASSStyleDialog
+# ---------------------------------------------------------------------------
+# ASS 样式编辑器（纯 Gradio）
+# ---------------------------------------------------------------------------
+def build_ass_editor():
+    """构建 ASS 字幕样式编辑界面，返回 Gradio Blocks"""
+    import gradio as gr
 
-        # 确保有 QApplication 实例
-        app = QApplication.instance()
-        if app is None:
-            app = QApplication(sys.argv)
+    style = _load_ass_style()
 
-        dialog = ASSStyleDialog()
-        dialog.exec()
-        return "✅ 字幕样式已保存"
-    except Exception as e:
-        return f"❌ 打开字幕样式编辑器失败: {str(e)}"
+    with gr.Accordion("🎨 硬字幕样式编辑", open=False):
+        gr.Markdown("修改后点击「保存样式」，样式将应用于所有嵌入硬字幕的任务。")
+
+        with gr.Tabs():
+            # === 主字幕样式 ===
+            with gr.Tab("主字幕"):
+                with gr.Row():
+                    ass_fontname = gr.Textbox(label="字体名称", value=style.get('Fontname', 'Arial'))
+                    ass_fontsize = gr.Slider(label="字体大小", minimum=1, maximum=200,
+                                             value=style.get('Fontsize', 16), step=1)
+                with gr.Row():
+                    ass_primary_color = gr.ColorPicker(label="主颜色", value=_parse_ass_color(style.get('PrimaryColour', '&H00FFFFFF&')))
+                    ass_outline_color = gr.ColorPicker(label="描边颜色", value=_parse_ass_color(style.get('OutlineColour', '&H00000000&')))
+                    ass_back_color = gr.ColorPicker(label="背景颜色", value=_parse_ass_color(style.get('BackColour', '&H00000000&')))
+                with gr.Row():
+                    ass_bold = gr.Checkbox(label="粗体", value=bool(style.get('Bold', 0)))
+                    ass_italic = gr.Checkbox(label="斜体", value=bool(style.get('Italic', 0)))
+                    ass_underline = gr.Checkbox(label="下划线", value=bool(style.get('Underline', 0)))
+                    ass_strikeout = gr.Checkbox(label="删除线", value=bool(style.get('StrikeOut', 0)))
+
+            # === 底部副字幕样式 ===
+            with gr.Tab("底部字幕（双语时）"):
+                with gr.Row():
+                    ass_bottom_fontname = gr.Textbox(label="字体名称", value=style.get('Bottom_Fontname', 'Arial'))
+                    ass_bottom_fontsize = gr.Slider(label="字体大小", minimum=1, maximum=200,
+                                                    value=style.get('Bottom_Fontsize', 16), step=1)
+                with gr.Row():
+                    ass_bottom_primary_color = gr.ColorPicker(label="主颜色", value=_parse_ass_color(style.get('Bottom_PrimaryColour', '&H00FFFFFF&')))
+                    ass_bottom_outline_color = gr.ColorPicker(label="描边颜色", value=_parse_ass_color(style.get('Bottom_OutlineColour', '&H00000000&')))
+                    ass_bottom_back_color = gr.ColorPicker(label="背景颜色", value=_parse_ass_color(style.get('Bottom_BackColour', '&H00000000&')))
+                with gr.Row():
+                    ass_bottom_bold = gr.Checkbox(label="粗体", value=bool(style.get('Bottom_Bold', 0)))
+                    ass_bottom_italic = gr.Checkbox(label="斜体", value=bool(style.get('Bottom_Italic', 0)))
+
+            # === 全局样式 ===
+            with gr.Tab("全局样式"):
+                with gr.Row():
+                    ass_border_style = gr.Dropdown(label="边框样式", choices=["描边", "不透明背景"],
+                                                  value="描边" if style.get('BorderStyle', 1) == 1 else "不透明背景")
+                    ass_outline = gr.Slider(label="描边粗细", minimum=0.0, maximum=10.0,
+                                            value=style.get('Outline', 0.5), step=0.1)
+                    ass_shadow = gr.Slider(label="阴影", minimum=0.0, maximum=10.0,
+                                           value=style.get('Shadow', 0.5), step=0.1)
+                with gr.Row():
+                    ass_scale_x = gr.Slider(label="水平缩放 %", minimum=1, maximum=1000,
+                                            value=style.get('ScaleX', 100), step=1)
+                    ass_scale_y = gr.Slider(label="垂直缩放 %", minimum=1, maximum=1000,
+                                            value=style.get('ScaleY', 100), step=1)
+                    ass_spacing = gr.Slider(label="字间距", minimum=-100, maximum=100,
+                                            value=style.get('Spacing', 0), step=1)
+                    ass_angle = gr.Slider(label="旋转角度", minimum=-360, maximum=360,
+                                          value=style.get('Angle', 0), step=1)
+                with gr.Row():
+                    ass_margin_l = gr.Slider(label="左边距", minimum=0, maximum=1000,
+                                             value=style.get('MarginL', 10), step=1)
+                    ass_margin_r = gr.Slider(label="右边距", minimum=0, maximum=1000,
+                                             value=style.get('MarginR', 10), step=1)
+                    ass_margin_v = gr.Slider(label="垂直边距", minimum=0, maximum=1000,
+                                             value=style.get('MarginV', 10), step=1)
+                ass_alignment = gr.Dropdown(
+                    label="对齐位置",
+                    choices=["左下", "中下", "右下", "左中", "正中", "右中", "左上", "中上", "右上"],
+                    value={1: "左下", 2: "中下", 3: "右下", 4: "左中", 5: "正中", 6: "右中", 7: "左上", 8: "中上", 9: "右上"}.get(
+                        style.get('Alignment', 2), "中下"
+                    ),
+                )
+
+        # 按钮行
+        with gr.Row():
+            ass_save_btn = gr.Button("💾 保存样式", variant="primary")
+            ass_reset_btn = gr.Button("🔄 恢复默认")
+            ass_status = gr.Textbox(label="状态", interactive=False, visible=True)
+
+        # 保存逻辑
+        def save_ass_style(
+            fontname, fontsize, primary_color, outline_color, back_color,
+            bold, italic, underline, strikeout,
+            bottom_fontname, bottom_fontsize, bottom_primary_color, bottom_outline_color,
+            bottom_back_color, bottom_bold, bottom_italic,
+            border_style, outline, shadow, scale_x, scale_y, spacing, angle,
+            margin_l, margin_r, margin_v, alignment,
+        ):
+            alignment_map = {"左下": 1, "中下": 2, "右下": 3, "左中": 4, "正中": 5,
+                             "右中": 6, "左上": 7, "中上": 8, "右上": 9}
+            new_style = {
+                'Name': 'Default',
+                'Fontname': fontname,
+                'Bottom_Fontname': bottom_fontname,
+                'Fontsize': int(fontsize),
+                'Bottom_Fontsize': int(bottom_fontsize),
+                'PrimaryColour': _to_ass_color(primary_color),
+                'Bottom_PrimaryColour': _to_ass_color(bottom_primary_color),
+                'SecondaryColour': '&H00FFFFFF&',
+                'OutlineColour': _to_ass_color(outline_color),
+                'BackColour': _to_ass_color(back_color),
+                'Bold': 1 if bold else 0,
+                'Italic': 1 if italic else 0,
+                'Bottom_SecondaryColour': '&H00FFFFFF&',
+                'Bottom_OutlineColour': _to_ass_color(bottom_outline_color),
+                'Bottom_BackColour': _to_ass_color(bottom_back_color),
+                'Bottom_Bold': 1 if bottom_bold else 0,
+                'Bottom_Italic': 1 if bottom_italic else 0,
+                'Underline': 1 if underline else 0,
+                'StrikeOut': 1 if strikeout else 0,
+                'ScaleX': int(scale_x),
+                'ScaleY': int(scale_y),
+                'Spacing': int(spacing),
+                'Angle': int(angle),
+                'BorderStyle': 1 if border_style == "描边" else 3,
+                'Outline': float(outline),
+                'Shadow': float(shadow),
+                'Alignment': alignment_map.get(alignment, 2),
+                'MarginL': int(margin_l),
+                'MarginR': int(margin_r),
+                'MarginV': int(margin_v),
+                'Encoding': 1,
+            }
+            _save_ass_style(new_style)
+            return "✅ 样式已保存"
+
+        def reset_ass_style():
+            _save_ass_style(DEFAULT_ASS_STYLE.copy())
+            s = DEFAULT_ASS_STYLE
+            return (
+                s['Fontname'], s['Fontsize'],
+                _parse_ass_color(s['PrimaryColour']),
+                _parse_ass_color(s['OutlineColour']),
+                _parse_ass_color(s['BackColour']),
+                bool(s['Bold']), bool(s['Italic']), bool(s['Underline']), bool(s['StrikeOut']),
+                s['Bottom_Fontname'], s['Bottom_Fontsize'],
+                _parse_ass_color(s['Bottom_PrimaryColour']),
+                _parse_ass_color(s['Bottom_OutlineColour']),
+                _parse_ass_color(s['Bottom_BackColour']),
+                bool(s['Bottom_Bold']), bool(s['Bottom_Italic']),
+                "描边" if s['BorderStyle'] == 1 else "不透明背景",
+                s['Outline'], s['Shadow'], s['ScaleX'], s['ScaleY'], s['Spacing'], s['Angle'],
+                s['MarginL'], s['MarginR'], s['MarginV'],
+                {1: "左下", 2: "中下", 3: "右下", 4: "左中", 5: "正中", 6: "右中", 7: "左上", 8: "中上", 9: "右上"}.get(s['Alignment'], "中下"),
+                "✅ 已恢复默认样式",
+            )
+
+        ass_save_btn.click(
+            fn=save_ass_style,
+            inputs=[
+                ass_fontname, ass_fontsize, ass_primary_color, ass_outline_color, ass_back_color,
+                ass_bold, ass_italic, ass_underline, ass_strikeout,
+                ass_bottom_fontname, ass_bottom_fontsize, ass_bottom_primary_color, ass_bottom_outline_color,
+                ass_bottom_back_color, ass_bottom_bold, ass_bottom_italic,
+                ass_border_style, ass_outline, ass_shadow, ass_scale_x, ass_scale_y, ass_spacing, ass_angle,
+                ass_margin_l, ass_margin_r, ass_margin_v, ass_alignment,
+            ],
+            outputs=[ass_status],
+        )
+
+        ass_reset_btn.click(
+            fn=reset_ass_style,
+            inputs=[],
+            outputs=[
+                ass_fontname, ass_fontsize, ass_primary_color, ass_outline_color, ass_back_color,
+                ass_bold, ass_italic, ass_underline, ass_strikeout,
+                ass_bottom_fontname, ass_bottom_fontsize, ass_bottom_primary_color, ass_bottom_outline_color,
+                ass_bottom_back_color, ass_bottom_bold, ass_bottom_italic,
+                ass_border_style, ass_outline, ass_shadow, ass_scale_x, ass_scale_y, ass_spacing, ass_angle,
+                ass_margin_l, ass_margin_r, ass_margin_v, ass_alignment,
+                ass_status,
+            ],
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -160,13 +405,12 @@ def build_ui():
     with gr.Blocks(title="pyVideoTrans WebUI") as app:
         gr.Markdown("# pyVideoTrans 视频翻译 WebUI")
 
-        # 状态变量
         prev_recogn = gr.State(value=RECOGN_NAMES[DEFAULT_RECOGN])
         prev_translate = gr.State(value=TRANSLATE_NAMES[DEFAULT_TRANSLATE])
         prev_tts = gr.State(value=TTS_NAMES[DEFAULT_TTS])
 
         with gr.Row():
-            # ---- 左列：输入与参数 ----
+            # ---- 左列 ----
             with gr.Column(scale=3):
                 input_file = gr.File(
                     label="选择视频/音频文件",
@@ -231,18 +475,9 @@ def build_ui():
                     voice_autorate = gr.Checkbox(label="配音加速（音频加速对齐）", value=True)
                     video_autorate = gr.Checkbox(label="视频慢速", value=False)
                 with gr.Row():
-                    voice_rate = gr.Slider(
-                        minimum=-50, maximum=50, value=0, step=1,
-                        label="配音语速 (%)",
-                    )
-                    volume_rate = gr.Slider(
-                        minimum=-95, maximum=100, value=0, step=1,
-                        label="音量调整 (%)",
-                    )
-                    pitch_rate = gr.Slider(
-                        minimum=-100, maximum=100, value=0, step=1,
-                        label="音调 (Hz)",
-                    )
+                    voice_rate = gr.Slider(minimum=-50, maximum=50, value=0, step=1, label="配音语速 (%)")
+                    volume_rate = gr.Slider(minimum=-95, maximum=100, value=0, step=1, label="音量调整 (%)")
+                    pitch_rate = gr.Slider(minimum=-100, maximum=100, value=0, step=1, label="音调 (Hz)")
                 subtitle_type = gr.Dropdown(
                     choices=list(SUBTITLE_TYPES.keys()),
                     value=DEFAULT_SUBTITLE_TYPE,
@@ -252,60 +487,31 @@ def build_ui():
 
                 # === 更多设置 ===
                 gr.Markdown("### 更多设置")
-
                 with gr.Row():
                     remove_noise = gr.Checkbox(label="降噪", value=False)
-                    fix_punc = gr.Dropdown(
-                        choices=list(PUNC_OPTIONS.keys()),
-                        value="默认标点",
-                        label="标点处理",
-                        interactive=True,
-                    )
-
+                    fix_punc = gr.Dropdown(choices=list(PUNC_OPTIONS.keys()), value="默认标点", label="标点处理", interactive=True)
                 with gr.Row():
                     is_separate = gr.Checkbox(label="分离人声背景声", value=False)
                     embed_bgm = gr.Checkbox(label="重新嵌入背景声", value=True)
-
                 with gr.Row():
-                    loop_bgm = gr.Dropdown(
-                        choices=list(LOOP_BGM_OPTIONS.keys()),
-                        value="背景音截断",
-                        label="背景音处理方式",
-                        interactive=True,
-                    )
-                    backaudio_volume = gr.Slider(
-                        minimum=0.0, maximum=2.0, value=0.8, step=0.1,
-                        label="背景音量",
-                    )
+                    loop_bgm = gr.Dropdown(choices=list(LOOP_BGM_OPTIONS.keys()), value="背景音截断", label="背景音处理方式", interactive=True)
+                    backaudio_volume = gr.Slider(minimum=0.0, maximum=2.0, value=0.8, step=0.1, label="背景音量")
 
                 # === 其他 ===
                 gr.Markdown("### 其他")
-                with gr.Row():
-                    cuda_accel = gr.Checkbox(label="启用 CUDA 加速", value=False)
-                    ass_style_btn = gr.Button("🎨 修改硬字幕样式", size="sm")
-                    ass_style_output = gr.Textbox(label="样式编辑器状态", interactive=False, visible=True)
+                cuda_accel = gr.Checkbox(label="启用 CUDA 加速", value=False)
 
-                ass_style_btn.click(
-                    fn=open_ass_style_dialog,
-                    inputs=[],
-                    outputs=[ass_style_output],
-                )
+                # === 硬字幕样式编辑器（纯 Gradio）===
+                build_ass_editor()
 
                 start_btn = gr.Button("🚀 开始执行", variant="primary", size="lg")
 
-            # ---- 右列：日志与结果 ----
+            # ---- 右列 ----
             with gr.Column(scale=2):
-                log_output = gr.Textbox(
-                    label="执行日志",
-                    lines=20,
-                    interactive=False,
-                )
-                result_files = gr.File(
-                    label="输出文件（点击下载）",
-                    interactive=False,
-                )
+                log_output = gr.Textbox(label="执行日志", lines=20, interactive=False)
+                result_files = gr.File(label="输出文件（点击下载）", interactive=False)
 
-        # ---- 渠道选择验证 ----
+        # ---- 渠道验证 ----
         def validate_recogn(choice, prev):
             idx = _recogn_index_from_display(choice)
             if idx not in SELECTABLE_RECOGN:
@@ -324,21 +530,9 @@ def build_ui():
                 return prev, f"⚠️ 渠道「{choice}」暂不可用，请选择 Edge-TTS 或本地内置渠道"
             return choice, ""
 
-        recogn_choice.change(
-            fn=validate_recogn,
-            inputs=[recogn_choice, prev_recogn],
-            outputs=[recogn_choice, log_output],
-        )
-        translate_choice.change(
-            fn=validate_translate,
-            inputs=[translate_choice, prev_translate],
-            outputs=[translate_choice, log_output],
-        )
-        tts_choice.change(
-            fn=validate_tts,
-            inputs=[tts_choice, prev_tts],
-            outputs=[tts_choice, log_output],
-        )
+        recogn_choice.change(fn=validate_recogn, inputs=[recogn_choice, prev_recogn], outputs=[recogn_choice, log_output])
+        translate_choice.change(fn=validate_translate, inputs=[translate_choice, prev_translate], outputs=[translate_choice, log_output])
+        tts_choice.change(fn=validate_tts, inputs=[tts_choice, prev_tts], outputs=[tts_choice, log_output])
 
         # ---- 动态更新配音角色 ----
         def update_voice_roles(tts_display, target_display):
@@ -352,46 +546,23 @@ def build_ui():
                 roles = ["No"]
             return gr.update(choices=roles, value=roles[0] if roles else "No")
 
-        tts_choice.change(
-            fn=update_voice_roles,
-            inputs=[tts_choice, target_lang],
-            outputs=[voice_role],
-        )
-        target_lang.change(
-            fn=update_voice_roles,
-            inputs=[tts_choice, target_lang],
-            outputs=[voice_role],
-        )
+        tts_choice.change(fn=update_voice_roles, inputs=[tts_choice, target_lang], outputs=[voice_role])
+        target_lang.change(fn=update_voice_roles, inputs=[tts_choice, target_lang], outputs=[voice_role])
 
         # ---- 执行翻译 ----
         def run_translation(
-            file_path,
-            recogn_display,
-            model_name,
-            translate_display,
-            source_display,
-            target_display,
-            tts_display,
-            voice_role_name,
-            voice_autorate_val,
-            video_autorate_val,
-            voice_rate_val,
-            volume_rate_val,
-            pitch_rate_val,
-            subtitle_type_name,
-            remove_noise_val,
-            fix_punc_name,
-            is_separate_val,
-            embed_bgm_val,
-            loop_bgm_name,
-            backaudio_volume_val,
+            file_path, recogn_display, model_name, translate_display,
+            source_display, target_display, tts_display, voice_role_name,
+            voice_autorate_val, video_autorate_val,
+            voice_rate_val, volume_rate_val, pitch_rate_val,
+            subtitle_type_name, remove_noise_val, fix_punc_name,
+            is_separate_val, embed_bgm_val, loop_bgm_name, backaudio_volume_val,
             cuda_val,
         ):
             if not file_path:
                 yield "❌ 请先选择一个视频或音频文件", []
                 return
 
-            # 解析参数
             recogn_idx = _recogn_index_from_display(recogn_display)
             translate_idx = _translate_index_from_display(translate_display)
             tts_idx = _tts_index_from_display(tts_display)
@@ -431,7 +602,6 @@ def build_ui():
                 vtv_params = {
                     "source_language_code": source_code,
                     "target_language_code": target_code,
-                    # STT
                     "recogn_type": recogn_idx,
                     "model_name": model_name,
                     "is_cuda": cuda_val,
@@ -441,7 +611,6 @@ def build_ui():
                     "detect_language": source_code,
                     "rephrase": 0,
                     "fix_punc": fix_punc_val,
-                    # TTS
                     "tts_type": tts_idx,
                     "voice_role": voice_role_name,
                     "voice_rate": _format_rate(int(voice_rate_val)),
@@ -450,9 +619,7 @@ def build_ui():
                     "voice_autorate": voice_autorate_val,
                     "video_autorate": video_autorate_val,
                     "align_sub_audio": True,
-                    # Translation
                     "translate_type": translate_idx,
-                    # VTV extra
                     "is_separate": is_separate_val,
                     "recogn2pass": False,
                     "subtitle_type": subtitle_val,
@@ -520,7 +687,6 @@ def build_ui():
                 yield log(""), []
                 yield log("✅ 全部任务执行完毕！"), []
 
-                # 收集输出文件
                 output_files = []
                 target_path = Path(_target_dir)
                 if target_path.exists():
@@ -544,26 +710,12 @@ def build_ui():
         start_btn.click(
             fn=run_translation,
             inputs=[
-                input_file,
-                recogn_choice,
-                model_choice,
-                translate_choice,
-                source_lang,
-                target_lang,
-                tts_choice,
-                voice_role,
-                voice_autorate,
-                video_autorate,
-                voice_rate,
-                volume_rate,
-                pitch_rate,
-                subtitle_type,
-                remove_noise,
-                fix_punc,
-                is_separate,
-                embed_bgm,
-                loop_bgm,
-                backaudio_volume,
+                input_file, recogn_choice, model_choice, translate_choice,
+                source_lang, target_lang, tts_choice, voice_role,
+                voice_autorate, video_autorate,
+                voice_rate, volume_rate, pitch_rate,
+                subtitle_type, remove_noise, fix_punc,
+                is_separate, embed_bgm, loop_bgm, backaudio_volume,
                 cuda_accel,
             ],
             outputs=[log_output, result_files],
