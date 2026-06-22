@@ -674,7 +674,6 @@ def remove_silence_wav(audio_file:str, rm_start=True)->bool:
     return False  # 如果全是静音，返回False
 
 
-@lru_cache
 def format_video(name:Union[str,os.PathLike], target_dir:str=None)->InputFile:
     from . import help_misc
     raw_pathlib = Path(name)

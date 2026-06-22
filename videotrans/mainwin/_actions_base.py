@@ -336,7 +336,7 @@ class WinActionBase:
     def get_save_dir(self):
         dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),
                                                              params.get('last_opendir', ''))
-        dirname = Path(dirname).as_posix()
+        dirname = Path(dirname).resolve().as_posix()
         self.main.target_dir = dirname
         self.main.btn_save_dir.setToolTip(dirname)
         self.main.output_dir.setText(tr('Translation results saved to:') + dirname)

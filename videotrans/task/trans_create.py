@@ -87,7 +87,7 @@ class TransCreate(BaseTask):
 
 
         # 输出文件夹，去掉可能存在的双斜线
-        self.cfg.target_dir = re.sub(r'/{2,}', '/', self.cfg.target_dir, flags=re.I | re.S)
+        #self.cfg.target_dir = re.sub(r'/{2,}', '/', self.cfg.target_dir, flags=re.I | re.S)
         # 检测字幕原始语言
         self.cfg.detect_language = get_audio_code(show_source=self.cfg.source_language_code)
 

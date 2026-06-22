@@ -49,7 +49,17 @@ def get_speech_timestamp_silero(input_wav,
                                                        sampling_rate=sampling_rate),
                                           vad_options=VadOptions(**vad_p)
                                           )
-    return convert_to_milliseconds(speech_chunks),None
+    
+    merged_segments=convert_to_milliseconds(speech_chunks)
+    if not merged_segments:
+        return [],None
+    if merged_segments[0][0]<0:
+        merged_segments[0][0]=0
+    _vail_segments=[]
+    for it in merged_segments:
+        if it[1]>it[0]:
+            _vail_segments.append(it)
+    return _vail_segments,None
 
 
 def get_speech_timestamp(input_wav=None,
@@ -226,8 +236,17 @@ def get_speech_timestamp(input_wav=None,
                 # 无法合并的情况，添加为单独片段
                 merged_segments.append(segment)
 
+    if not merged_segments:
+        return [],None
+    if merged_segments[0][0]<0:
+        merged_segments[0][0]=0
+    _vail_segments=[]
+    for it in merged_segments:
+        if it[1]>it[0]:
+            _vail_segments.append(it)
+    
     logger.debug(f'[Ten-VAD]切分合并共用时:{int(time.time() - st_)}s')
-    return merged_segments,None
+    return _vail_segments,None
 
 
 def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=None):
