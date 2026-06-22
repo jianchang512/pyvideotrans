@@ -121,7 +121,7 @@ def build_ui():
     selectable_translate = _get_selectable_names(TRANSLATE_NAMES, SELECTABLE_TRANSLATE)
     selectable_tts = _get_selectable_names(TTS_NAMES, SELECTABLE_TTS)
 
-    with gr.Blocks(title="pyVideoTrans WebUI", theme=gr.themes.Soft()) as app:
+    with gr.Blocks(title="pyVideoTrans WebUI") as app:
         gr.Markdown("# pyVideoTrans 视频翻译 WebUI")
 
         with gr.Row():
@@ -203,7 +203,6 @@ def build_ui():
                     label="执行日志",
                     lines=20,
                     interactive=False,
-                    show_copy_button=True,
                 )
                 result_files = gr.File(
                     label="输出文件（点击下载）",
@@ -447,4 +446,5 @@ if __name__ == "__main__":
         server_port=args.port,
         share=args.share,
         inbrowser=True,
+        theme=gr.themes.Soft(),
     )
