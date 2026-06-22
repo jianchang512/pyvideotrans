@@ -509,8 +509,8 @@ def build_ui():
                 gr.Markdown("### 其他")
                 cuda_accel = gr.Checkbox(label="启用 CUDA 加速", value=False)
 
-                # 内联警告提示（放在文件选择下方，显眼位置）
-                channel_warning = gr.Markdown("", visible=False)
+                # 内联警告提示（用 HTML+JS 实现 alert 弹窗）
+                channel_warning = gr.HTML("", visible=False)
 
                 # === 硬字幕样式编辑器（纯 Gradio）===
                 build_ass_editor()
@@ -523,25 +523,32 @@ def build_ui():
                 result_files = gr.File(label="输出文件（点击下载）", interactive=False)
 
         # ---- 渠道验证 + 配音角色更新（合并为单一函数避免死循环） ----
+        def _alert_html(msg):
+            """生成带 alert() 的 HTML"""
+            import html as html_mod
+            safe = html_mod.escape(msg)
+            return f'<script>alert("{safe}");</script>'
+
         def validate_recogn(choice, prev):
             idx = _recogn_index_from_display(choice)
             if idx not in SELECTABLE_RECOGN:
-                return prev, "⚠️ 渠道「{}」暂不可用，仅 faster-whisper 和 openai-whisper 可选，已自动回退".format(choice)
+                return prev, _alert_html("渠道「{}」暂不可用，仅 faster-whisper 和 openai-whisper 可选，已自动回退".format(choice))
             return choice, ""
 
         def validate_translate(choice, prev):
             idx = _translate_index_from_display(choice)
             if idx not in SELECTABLE_TRANSLATE:
-                return prev, "⚠️ 渠道「{}」暂不可用，仅前4个渠道可选，已自动回退".format(choice)
+                return prev, _alert_html("渠道「{}」暂不可用，仅前4个渠道可选，已自动回退".format(choice))
             return choice, ""
 
         def tts_change_handler(choice, prev, target_display):
-            """合并：验证渠道 + 更新配音角色，返回三个值"""
+            """合并：验证渠道 + 更新配音角色"""
             idx = _tts_index_from_display(choice)
             warning = ""
             if idx not in SELECTABLE_TTS:
+                display_name = choice.split("【不可选】")[-1] if "【不可选】" in choice else choice
                 choice = prev
-                warning = "⚠️ 渠道「{}」暂不可用，仅 Edge-TTS 和本地内置渠道可选，已自动回退".format(choice.split("【不可选】")[-1] if "【不可选】" in choice else choice)
+                warning = _alert_html("渠道「{}」暂不可用，仅 Edge-TTS 和本地内置渠道可选，已自动回退".format(display_name))
 
             # 更新配音角色
             tts_idx = _tts_index_from_display(choice)
