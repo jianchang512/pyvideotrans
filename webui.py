@@ -509,7 +509,7 @@ def build_ui():
                 gr.Markdown("### 其他")
                 cuda_accel = gr.Checkbox(label="启用 CUDA 加速", value=False)
 
-                # 内联警告提示
+                # 内联警告提示（放在文件选择下方，显眼位置）
                 channel_warning = gr.Markdown("", visible=False)
 
                 # === 硬字幕样式编辑器（纯 Gradio）===
@@ -522,32 +522,29 @@ def build_ui():
                 log_output = gr.Textbox(label="执行日志", lines=20, interactive=False)
                 result_files = gr.File(label="输出文件（点击下载）", interactive=False)
 
-        # ---- 渠道验证 ----
+        # ---- 渠道验证 + 配音角色更新（合并为单一函数避免死循环） ----
         def validate_recogn(choice, prev):
             idx = _recogn_index_from_display(choice)
             if idx not in SELECTABLE_RECOGN:
-                return prev, gr.update(visible=True, value=f"⚠️ 渠道「{choice}」暂不可用，仅 faster-whisper 和 openai-whisper 可选，已自动回退")
-            return choice, gr.update(visible=False, value="")
+                return prev, "⚠️ 渠道「{}」暂不可用，仅 faster-whisper 和 openai-whisper 可选，已自动回退".format(choice)
+            return choice, ""
 
         def validate_translate(choice, prev):
             idx = _translate_index_from_display(choice)
             if idx not in SELECTABLE_TRANSLATE:
-                return prev, gr.update(visible=True, value=f"⚠️ 渠道「{choice}」暂不可用，仅前4个渠道可选，已自动回退")
-            return choice, gr.update(visible=False, value="")
+                return prev, "⚠️ 渠道「{}」暂不可用，仅前4个渠道可选，已自动回退".format(choice)
+            return choice, ""
 
-        def validate_tts(choice, prev):
+        def tts_change_handler(choice, prev, target_display):
+            """合并：验证渠道 + 更新配音角色，返回三个值"""
             idx = _tts_index_from_display(choice)
+            warning = ""
             if idx not in SELECTABLE_TTS:
-                return prev, gr.update(visible=True, value=f"⚠️ 渠道「{choice}」暂不可用，仅 Edge-TTS 和本地内置渠道可选，已自动回退")
-            return choice, gr.update(visible=False, value="")
+                choice = prev
+                warning = "⚠️ 渠道「{}」暂不可用，仅 Edge-TTS 和本地内置渠道可选，已自动回退".format(choice.split("【不可选】")[-1] if "【不可选】" in choice else choice)
 
-        recogn_choice.change(fn=validate_recogn, inputs=[recogn_choice, prev_recogn], outputs=[recogn_choice, channel_warning])
-        translate_choice.change(fn=validate_translate, inputs=[translate_choice, prev_translate], outputs=[translate_choice, channel_warning])
-        tts_choice.change(fn=validate_tts, inputs=[tts_choice, prev_tts], outputs=[tts_choice, channel_warning])
-
-        # ---- 动态更新配音角色 ----
-        def update_voice_roles(tts_display, target_display):
-            tts_idx = _tts_index_from_display(tts_display)
+            # 更新配音角色
+            tts_idx = _tts_index_from_display(choice)
             lang_code = _lang_code_from_display(target_display)
             try:
                 roles = role_menu(tts_idx, langcode=lang_code)
@@ -555,9 +552,12 @@ def build_ui():
                     roles = ["No"]
             except Exception:
                 roles = ["No"]
-            return gr.update(choices=roles, value=roles[0] if roles else "No")
 
-        tts_choice.change(fn=update_voice_roles, inputs=[tts_choice, target_lang], outputs=[voice_role])
+            return choice, gr.update(choices=roles, value=roles[0] if roles else "No"), warning
+
+        recogn_choice.change(fn=validate_recogn, inputs=[recogn_choice, prev_recogn], outputs=[recogn_choice, channel_warning])
+        translate_choice.change(fn=validate_translate, inputs=[translate_choice, prev_translate], outputs=[translate_choice, channel_warning])
+        tts_choice.change(fn=tts_change_handler, inputs=[tts_choice, prev_tts, target_lang], outputs=[tts_choice, voice_role, channel_warning])
         target_lang.change(fn=update_voice_roles, inputs=[tts_choice, target_lang], outputs=[voice_role])
 
         # ---- 执行翻译 ----
