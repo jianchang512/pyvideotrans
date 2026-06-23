@@ -1,20 +1,19 @@
-
 > Sponsors: **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans) - Meeting Transcription API**
 >
 > If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more
 
 
+---
 
-
-# pyVideoTrans 
+# pyVideoTrans
 
 <div align="center">
 
 **A Powerful Open Source Video Translation / Audio Transcription / AI Dubbing / Subtitle Translation Tool**
 
-[中文](docs/README_CN.md) | [**Documentation**](https://pyvideotrans.com) | [**Online Q&A**](https://bbs.pyvideotrans.com)
+[中文](docs/README_CN.md) | [**Documentation**](https://pyvideotrans.com) | [**Online Q&A**](https://bbs.pyvideotrans.com) | [**WebUI Guide**](docs/webui.md)
 
-[![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE)   [![Python](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://www.python.org/)   [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
+[![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://www.python.org/) [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
 </div>
 
@@ -22,24 +21,24 @@
 
 <img width="1566" height="912" alt="image" src="https://github.com/user-attachments/assets/7410b17d-9903-4919-954a-31764e246c15" />
 
-
 ---
 
 ## ✨ Core Features
 
 > [Technical Architecture and Principles](docs/architecture.md)
 
-- **🎥 Fully Automatic Video Translation**: One-click workflow: Speech Recognition (ASR) -> Subtitle Translation -> Speech Synthesis (TTS) -> Video Synthesis.
+- **🎥 Fully Automatic Video Translation**: One-click workflow: Speech Recognition (ASR) → Subtitle Translation → Speech Synthesis (TTS) → Video Synthesis.
 - **🎙️ Audio Transcription / Subtitle Generation**: Batch convert audio/video to SRT subtitles, supporting **Speaker Diarization** to distinguish between different roles.
 - **🗣️ Multi-Role AI Dubbing**: Assign different AI dubbing voices to different speakers.
 - **🧬 Voice Cloning**: Integrates models like **F5-TTS, CosyVoice, GPT-SoVITS** for zero-shot voice cloning.
-- **🧠 Powerful Model Support**: 
+- **🧠 Powerful Model Support**:
   - **ASR**: Faster-Whisper (Local), OpenAI Whisper, Alibaba Qwen, ByteDance Volcano, Azure, Google, etc.
   - **LLM Translation**: DeepSeek, ChatGPT, Claude, Gemini, MiniMax, Ollama (Local), Alibaba Bailian, etc.
   - **TTS**: Edge-TTS (Free), OpenAI, Azure, Minimaxi, ChatTTS, ChatterBox, etc.
 - **🖥️ Interactive Editing**: Supports pausing and manual proofreading at each stage (recognition, translation, dubbing) to ensure accuracy.
 - **🛠️ Utility Toolkit**: Includes auxiliary tools such as vocal separation, video/subtitle merging, audio-video alignment, and transcript matching.
 - **💻 Command Line Interface (CLI)**: Supports headless operation, convenient for server deployment or batch processing.
+- **🌐 Web Interface (WebUI)**: Browser-based interface for remote access or internal network deployment.
 
 <img width="2752" height="1536" alt="unnamed" src="https://github.com/user-attachments/assets/960e9e34-84a4-425d-b582-f726623475a8" />
 
@@ -50,12 +49,12 @@
 We provide a pre-packaged `.exe` version for Windows 10/11 users, requiring no Python environment configuration.
 
 1. **Download**: [Click to download the latest pre-packaged version](https://github.com/jianchang512/pyvideotrans/releases)
-2. **Unzip**: Extract the compressed file to a path (e.g., `D:\pyVideoTrans`).
+2. **Unzip**: Extract the compressed file to a path without Chinese characters or spaces (e.g., `D:\pyVideoTrans`).
 3. **Run**: Double-click `sp.exe` inside the folder to launch.
 
-> **Note**: 
-> *   Do not run directly from within the compressed archive.
-> *   To use GPU acceleration, ensure **CUDA 12.8** and **cuDNN 9.11** are installed.
+> **Note**:
+> * Do not run directly from within the compressed archive.
+> * To use GPU acceleration, ensure **CUDA 12.8** and **cuDNN 9.11** are installed.
 
 ---
 
@@ -65,11 +64,11 @@ We recommend using **[`uv`](https://docs.astral.sh/uv/)** for package management
 
 ### 1. Prerequisites
 
-*   **Python**: Recommended version 3.10 --> 3.12
-*   **FFmpeg**: Must be installed and configured in the environment variables.
-    *   **macOS**: `brew install ffmpeg libsndfile git`
-    *   **Linux (Ubuntu/Debian)**: `sudo apt-get install ffmpeg libsndfile1-dev`
-    *   **Windows**: [Download FFmpeg](https://ffmpeg.org/download.html) and configure Path, or place `ffmpeg.exe` and `ffprobe.exe` directly in the project directory.
+* **Python**: Recommended version 3.10
+* **FFmpeg**: Must be installed and configured in the environment variables.
+  * **macOS**: `brew install ffmpeg libsndfile git`
+  * **Linux (Ubuntu/Debian)**: `sudo apt-get install ffmpeg libsndfile1-dev`
+  * **Windows**: [Download FFmpeg](https://ffmpeg.org/download.html) and configure Path, or place `ffmpeg.exe` and `ffprobe.exe` directly in the project directory.
 
 ### 2. Install uv (If not installed)
 
@@ -83,40 +82,47 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 ### 3. Clone and Install
 
-1. Clone the repository (Ensure path has no spaces/Chinese characters)
+```bash
+git clone https://github.com/jianchang512/pyvideotrans.git
+cd pyvideotrans
+uv sync
+```
 
-`git clone https://github.com/jianchang512/pyvideotrans.git`
-`cd pyvideotrans`
-
-2. Install dependencies (uv automatically syncs environment)
-`uv sync`
-
-> By default, `qwen-tts`, `qwen-asr`, `moss-tts`, and `chatterbox` are not installed locally. To install all of them, execute `uv sync --all-extra`.
-> - To install `qwen-tts` alone, execute `uv sync --extra qwentts`.
-> - To install `qwen-asr` alone, execute `uv sync --extra qwenasr`.
-> - To install `moss-tts` alone, execute `uv sync --extra mosstts`.
-> - To install `chatterbox` alone, execute `uv sync --extra chatterbox`.
-
-
+> By default, `qwen-tts`, `qwen-asr`, `moss-tts`, and `chatterbox` are not installed locally.
+> - To install all optional channels: `uv sync --all-extra`
+> - To install individually: `uv sync --extra qwentts` / `uv sync --extra qwenasr` / `uv sync --extra mosstts` / `uv sync --extra chatterbox`
 
 ### 4. Launch Software
 
-**Launch GUI**:
+**GUI**:
 ```bash
 uv run sp.py
 ```
 
-**Use CLI**:
-
-> [View documentation for detailed parameters](https://pyvideotrans.com/cli)
-
+**CLI**:
 ```bash
-# Video Translation Example
-uv run cli.py --task vtv --name "./video.mp4" --source_language_code zh --target_language_code en
+# Video Translation
+uv run cli.py --task vtv --name "./video.mp4" --source_language_code zh-cn --target_language_code en --voice_role "en-US-GuyNeural"
 
-# Audio to Subtitle Example
+# Audio to Subtitle
 uv run cli.py --task stt --name "./audio.wav" --model_name large-v3
+
+# Subtitle Translation
+uv run cli.py --task sts --name "./subs.srt" --target_language_code en
+
+# Text to Speech
+uv run cli.py --task tts --name "./subs.srt" --voice_role "zh-CN-YunyangNeural"
 ```
+
+> [CLI documentation with all parameters](docs/cli.md)
+
+**WebUI** (for remote/internal network access):
+```bash
+uv sync --extra webui
+uv run webui.py
+```
+
+> [WebUI documentation](docs/webui.md)
 
 ### 5. (Optional) GPU Acceleration Configuration
 
@@ -130,6 +136,8 @@ uv remove torch torchaudio
 uv add torch==2.7 torchaudio==2.7 --index-url https://download.pytorch.org/whl/cu128
 uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 ```
+
+> [AMD GPU acceleration via Whisper.NET](docs/whisper_net_setup.md)
 
 ---
 
@@ -153,8 +161,9 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 ## 📚 Documentation & Support
 
-*   **Official Documentation**: [https://pyvideotrans.com](https://pyvideotrans.com) (Includes detailed tutorials, API configuration guides, FAQ)
-*   **Online Q&A Community**: [https://bbs.pyvideotrans.com](https://bbs.pyvideotrans.com) (Submit error logs for automated AI analysis and answers)
+* **Official Documentation**: [https://pyvideotrans.com](https://pyvideotrans.com) (Includes detailed tutorials, API configuration guides, FAQ)
+* **Online Q&A Community**: [https://bbs.pyvideotrans.com](https://bbs.pyvideotrans.com) (Submit error logs for automated AI analysis and answers)
+* **GitHub Wiki**: [architecture.md](docs/architecture.md) | [cli.md](docs/cli.md) | [webui.md](docs/webui.md) | [Synchronize.md](docs/Synchronize.md) | [faq.md](docs/faq.md)
 
 ## ⚠️ Disclaimer
 
@@ -164,13 +173,14 @@ This software is an open-source, free, non-commercial project. Users are solely 
 
 This project mainly relies on the following open-source projects (partial):
 
-*   [FFmpeg](https://github.com/FFmpeg/FFmpeg)
-*   [PySide6](https://pypi.org/project/PySide6/)
-*   [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
-*   [openai-whisper](https://github.com/openai/whisper)
-*   [edge-tts](https://github.com/rany2/edge-tts)
-*   [F5-TTS](https://github.com/SWivid/F5-TTS)
-*   [CosyVoice](https://github.com/FunAudioLLM/CosyVoice)
+* [FFmpeg](https://github.com/FFmpeg/FFmpeg)
+* [PySide6](https://pypi.org/project/PySide6/)
+* [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+* [openai-whisper](https://github.com/openai/whisper)
+* [edge-tts](https://github.com/rany2/edge-tts)
+* [F5-TTS](https://github.com/SWivid/F5-TTS)
+* [CosyVoice](https://github.com/FunAudioLLM/CosyVoice)
+* [Gradio](https://www.gradio.app/) (WebUI)
 
 ---
 

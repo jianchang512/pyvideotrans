@@ -66,8 +66,8 @@ DEFAULT_MODEL = "large-v3-turbo" if "large-v3-turbo" in FASTER_MODEL_NAMES else 
 
 # 语言列表
 LANG_DISPLAY_NAMES = list(LANGNAME_DICT.values())
-DEFAULT_SOURCE_LANG = "英语"
-DEFAULT_TARGET_LANG = "简体中文"
+DEFAULT_SOURCE_LANG = LANG_DISPLAY_NAMES[0]
+DEFAULT_TARGET_LANG = "-"
 
 # 字幕类型
 SUBTITLE_TYPES = {
@@ -406,11 +406,12 @@ def build_ui():
     with gr.Blocks(title="pyVideoTrans WebUI") as app:
         gr.Markdown("""
 # pyVideoTrans 视频翻译 WebUI
+*该界面仅实现部分功能，完整功能请使用桌面软件版(sp.exe 或 sp.py)*
 
 > 📖 **文档站**：[https://pyvideotrans.com](https://pyvideotrans.com) ｜
 > 💻 **开源地址**：[https://github.com/jianchang512/pyvideotrans](https://github.com/jianchang512/pyvideotrans)
 
-> ⚠️ **渠道说明**：下拉框中显示了所有可用渠道，但出于简洁考虑，**仅免费渠道和本地内置渠道可选**。其他需要 API 密钥或 SK 的渠道因未实现设置窗口界面而暂不可用。如需使用这些渠道，请通过桌面客户端（sp.exe）进行配置。
+> ⚠️ **渠道说明**：下拉框中显示了所有可用渠道，但出于简洁考虑，**仅免费渠道和本地内置渠道可选**。其他需要 API或需要SK的渠道因未实现设置窗口界面而暂不可用。如需使用这些渠道，请先通过桌面客户端（sp.exe）进行配置。
         """)
 
         prev_recogn = gr.State(value=RECOGN_NAMES[DEFAULT_RECOGN])
@@ -520,21 +521,25 @@ def build_ui():
             # ---- 右列 ----
             with gr.Column(scale=2):
                 log_output = gr.Textbox(label="执行日志", lines=20, interactive=False)
+                video_preview = gr.Video(label="视频预览", interactive=False,autoplay=True)
                 result_files = gr.File(label="输出文件（点击下载）", interactive=False)
 
         # ---- 渠道验证 + 配音角色更新 ----
         def validate_recogn(choice, prev):
             idx = _recogn_index_from_display(choice)
-            if idx not in SELECTABLE_RECOGN:
-                msg = "渠道「{}」暂不可用，仅 faster-whisper 和 openai-whisper 可选，已自动回退".format(choice)
+            # 判断是否填写自定义识别 api openai-api识别
+            _rs=recognition.is_input_api(recogn_type=idx,return_str=True)
+            if _rs is not True:
+                msg = f"渠道「{choice}」暂不可用，已自动回退\n{_rs}"
                 gr.Warning(msg)
                 return prev, f"⚠️ {msg}"
             return choice, ""
 
         def validate_translate(choice, prev):
             idx = _translate_index_from_display(choice)
-            if idx not in SELECTABLE_TRANSLATE:
-                msg = "渠道「{}」暂不可用，仅前4个渠道可选，已自动回退".format(choice)
+            _rs=translator.is_allow_translate(translate_type=idx,only_key=True, return_str=True)
+            if _rs is not True:
+                msg = f"渠道「{choice}」暂不可用，已自动回退\n{_rs}"
                 gr.Warning(msg)
                 return prev, f"⚠️ {msg}"
             return choice, ""
@@ -542,10 +547,11 @@ def build_ui():
         def tts_change_handler(choice, prev, target_display):
             """合并：验证渠道 + 更新配音角色"""
             idx = _tts_index_from_display(choice)
+            _rs=tts.is_input_api(tts_type=idx,return_str=True)
             warning = ""
-            if idx not in SELECTABLE_TTS:
+            if _rs is not True:
                 display_name = choice.split("【不可选】")[-1] if "【不可选】" in choice else choice
-                msg = "渠道「{}」暂不可用，仅 Edge-TTS 和本地内置渠道可选，已自动回退".format(display_name)
+                msg = f"渠道「{choice}」暂不可用，已自动回退\n{_rs}"
                 gr.Warning(msg)
                 choice = prev
                 warning = f"⚠️ {msg}"
@@ -581,6 +587,9 @@ def build_ui():
         target_lang.change(fn=update_voice_roles, inputs=[tts_choice, target_lang], outputs=[voice_role])
 
         # ---- 执行翻译 ----
+        _BTN_RUNNING = gr.update(value="⏳ 执行中...", interactive=False)
+        _BTN_IDLE = gr.update(value="🚀 开始执行", interactive=True)
+
         def run_translation(
             file_path, recogn_display, model_name, translate_display,
             source_display, target_display, tts_display, voice_role_name,
@@ -590,9 +599,15 @@ def build_ui():
             is_separate_val, embed_bgm_val, loop_bgm_name, backaudio_volume_val,
             cuda_val,
         ):
+            log_lines = []
+            def log(msg):
+                log_lines.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
+                return "\n".join(log_lines)
             if not file_path:
-                yield "❌ 请先选择一个视频或音频文件", []
+                yield "❌ 请先选择一个视频或音频文件", None, [], _BTN_IDLE
                 return
+
+            yield log("初始化环境..."), None, [], _BTN_RUNNING
 
             recogn_idx = _recogn_index_from_display(recogn_display)
             translate_idx = _translate_index_from_display(translate_display)
@@ -603,12 +618,6 @@ def build_ui():
             fix_punc_val = PUNC_OPTIONS.get(fix_punc_name, 0)
             loop_bgm_val = LOOP_BGM_OPTIONS.get(loop_bgm_name, 0)
 
-            log_lines = []
-            def log(msg):
-                log_lines.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
-                return "\n".join(log_lines)
-
-            yield log("初始化环境..."), []
 
             try:
                 app_cfg.exit_soft = False
@@ -628,7 +637,7 @@ def build_ui():
                 common_params = {'name': file_path, "cache_folder": _cache_folder}
                 common_params.update(asdict(_file_obj))
 
-                yield log(f"源文件: {Path(file_path).name}"), []
+                yield log(f"源文件: {Path(file_path).name}"), None, [], _BTN_RUNNING
 
                 vtv_params = {
                     "source_language_code": source_code,
@@ -663,80 +672,87 @@ def build_ui():
 
                 params = {**common_params, **vtv_params}
 
-                yield log(f"识别渠道: {RECOGN_NAMES[recogn_idx]} (ID={recogn_idx})"), []
-                yield log(f"翻译渠道: {TRANSLATE_NAMES[translate_idx]} (ID={translate_idx})"), []
-                yield log(f"配音渠道: {TTS_NAMES[tts_idx]} (ID={tts_idx})"), []
-                yield log(f"配音角色: {voice_role_name}"), []
-                yield log(f"语言: {source_code} → {target_code}"), []
-                yield log(f"字幕类型: {subtitle_type_name} (ID={subtitle_val})"), []
-                yield log(f"语速: {_format_rate(int(voice_rate_val))}  音量: {_format_rate(int(volume_rate_val))}  音调: {_format_pitch(int(pitch_rate_val))}"), []
-                yield log(f"降噪: {'开' if remove_noise_val else '关'}  标点: {fix_punc_name}  分离人声: {'开' if is_separate_val else '关'}"), []
-                yield log(f"嵌入背景: {'开' if embed_bgm_val else '关'}  背景处理: {loop_bgm_name}  背景音量: {backaudio_volume_val}"), []
-                yield log(f"CUDA: {'启用' if cuda_val else '关闭'}"), []
-                yield log(""), []
+                yield log(f"识别渠道: {RECOGN_NAMES[recogn_idx]} (ID={recogn_idx})"), None, [], _BTN_RUNNING
+                yield log(f"翻译渠道: {TRANSLATE_NAMES[translate_idx]} (ID={translate_idx})"), None, [], _BTN_RUNNING
+                yield log(f"配音渠道: {TTS_NAMES[tts_idx]} (ID={tts_idx})"), None, [], _BTN_RUNNING
+                yield log(f"配音角色: {voice_role_name}"), None, [], _BTN_RUNNING
+                yield log(f"语言: {source_code} → {target_code}"), None, [], _BTN_RUNNING
+                yield log(f"字幕类型: {subtitle_type_name} (ID={subtitle_val})"), None, [], _BTN_RUNNING
+                yield log(f"语速: {_format_rate(int(voice_rate_val))}  音量: {_format_rate(int(volume_rate_val))}  音调: {_format_pitch(int(pitch_rate_val))}"), None, [], _BTN_RUNNING
+                yield log(f"降噪: {'开' if remove_noise_val else '关'}  标点: {fix_punc_name}  分离人声: {'开' if is_separate_val else '关'}"), None, [], _BTN_RUNNING
+                yield log(f"嵌入背景: {'开' if embed_bgm_val else '关'}  背景处理: {loop_bgm_name}  背景音量: {backaudio_volume_val}"), None, [], _BTN_RUNNING
+                yield log(f"CUDA: {'启用' if cuda_val else '关闭'}"), None, [], _BTN_RUNNING
+                yield log(""), None, [], _BTN_RUNNING
 
-                yield log("▶ 开始执行视频翻译..."), []
+                yield log("▶ 开始执行视频翻译..."), None, [], _BTN_RUNNING
 
                 from videotrans.task.trans_create import TransCreate
                 from videotrans.task.taskcfg import TaskCfgVTT
 
                 trk = TransCreate(cfg=TaskCfgVTT(**params))
 
-                yield log("阶段 1/8: 预处理（分离音视频）..."), []
+                yield log("阶段 1/8: 预处理（分离音视频）..."), None, [], _BTN_RUNNING
                 trk.prepare()
-                yield log("✓ 预处理完成"), []
+                yield log("✓ 预处理完成"), None, [], _BTN_RUNNING
 
-                yield log("阶段 2/8: 语音识别..."), []
+                yield log("阶段 2/8: 语音识别..."), None, [], _BTN_RUNNING
                 trk.recogn()
-                yield log("✓ 语音识别完成"), []
+                yield log("✓ 语音识别完成"), None, [], _BTN_RUNNING
 
-                yield log("阶段 3/8: 说话人分离..."), []
+                yield log("阶段 3/8: 说话人分离..."), None, [], _BTN_RUNNING
                 trk.diariz()
-                yield log("✓ 说话人分离完成"), []
+                yield log("✓ 说话人分离完成"), None, [], _BTN_RUNNING
 
-                yield log("阶段 4/8: 字幕翻译..."), []
+                yield log("阶段 4/8: 字幕翻译..."), None, [], _BTN_RUNNING
                 trk.trans()
-                yield log("✓ 字幕翻译完成"), []
+                yield log("✓ 字幕翻译完成"), None, [], _BTN_RUNNING
 
-                yield log("阶段 5/8: 配音生成..."), []
+                yield log("阶段 5/8: 配音生成..."), None, [], _BTN_RUNNING
                 trk.dubbing()
-                yield log("✓ 配音生成完成"), []
+                yield log("✓ 配音生成完成"), None, [], _BTN_RUNNING
 
-                yield log("阶段 6/8: 音画对齐..."), []
+                yield log("阶段 6/8: 音画对齐..."), None, [], _BTN_RUNNING
                 trk.align()
-                yield log("✓ 音画对齐完成"), []
+                yield log("✓ 音画对齐完成"), None, [], _BTN_RUNNING
 
-                yield log("阶段 7/8: 二次识别..."), []
+                yield log("阶段 7/8: 二次识别..."), None, [], _BTN_RUNNING
                 trk.recogn2pass()
-                yield log("✓ 二次识别完成"), []
+                yield log("✓ 二次识别完成"), None, [], _BTN_RUNNING
 
-                yield log("阶段 8/8: 最终合成..."), []
+                yield log("阶段 8/8: 最终合成..."), None, [], _BTN_RUNNING
                 trk.assembling()
                 trk.task_done()
-                yield log("✓ 视频合成完成"), []
+                yield log("✓ 视频合成完成"), None, [], _BTN_RUNNING
 
-                yield log(""), []
-                yield log("✅ 全部任务执行完毕！"), []
+                yield log(""), None, [], _BTN_RUNNING
+                yield log("✅ 全部任务执行完毕！"), None, [], _BTN_RUNNING
 
                 output_files = []
+                video_preview_path = None
                 target_path = Path(_target_dir)
                 if target_path.exists():
                     for f in sorted(target_path.rglob("*")):
                         if f.is_file():
-                            output_files.append(str(f))
+                            if f.suffix.lower() == '.mp4' and video_preview_path is None:
+                                video_preview_path = str(f)
+                            else:
+                                output_files.append(str(f))
 
-                if not output_files:
+                if not output_files and video_preview_path is None:
                     cache_path = Path(_cache_folder)
                     if cache_path.exists():
                         for f in sorted(cache_path.rglob("*")):
-                            if f.is_file() and f.suffix.lower() in ('.mp4', '.mkv', '.wav', '.srt', '.txt', '.mp3'):
-                                output_files.append(str(f))
+                            if f.is_file():
+                                if f.suffix.lower() == '.mp4' and video_preview_path is None:
+                                    video_preview_path = str(f)
+                                elif f.suffix.lower() in ('.mkv', '.wav', '.srt', '.txt', '.mp3'):
+                                    output_files.append(str(f))
 
-                yield log(f"输出目录: {_target_dir}"), output_files
+                yield log(f"输出目录: {_target_dir}"), video_preview_path, output_files, _BTN_IDLE
 
             except Exception as e:
                 tb = traceback.format_exc()
-                yield log(f"❌ 执行出错: {str(e)}\n\n{tb}"), []
+                yield log(f"❌ 执行出错: {str(e)}\n\n{tb}"), None, [], _BTN_IDLE
 
         start_btn.click(
             fn=run_translation,
@@ -749,7 +765,7 @@ def build_ui():
                 is_separate, embed_bgm, loop_bgm, backaudio_volume,
                 cuda_accel,
             ],
-            outputs=[log_output, result_files],
+            outputs=[log_output, video_preview, result_files, start_btn],
         )
 
     return app
@@ -762,7 +778,7 @@ if __name__ == "__main__":
     import argparse
     import gradio as gr
     parser = argparse.ArgumentParser(description="pyVideoTrans WebUI")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host address")
     parser.add_argument("--port", type=int, default=7860, help="Port number")
     parser.add_argument("--share", action="store_true", help="Create a public Gradio link")
     args = parser.parse_args()

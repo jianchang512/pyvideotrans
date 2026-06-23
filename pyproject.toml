@@ -256,6 +256,7 @@ dependencies = [
     "elevenlabs",
     "camb-sdk",
     "brotli>=1.2.0",
+    "gtts>=2.5.4",
 ]
 
 [project.optional-dependencies]
@@ -275,7 +276,6 @@ webui = [
 #https://github.com/OpenMOSS/MOSS-TTS-Nano/issues/6
 mosstts = [
     "pynini",
-	"importlib-resources",
 	"WeTextProcessing",
 	"importlib-resources"	
 ]

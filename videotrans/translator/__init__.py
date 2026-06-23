@@ -60,7 +60,7 @@ AI_TRANS_CHANNELS = [
 _ID_NAME_DICT = {
     GOOGLE_INDEX: ChannelProvider(tr('Google'), imp="._google"),
     MICROSOFT_INDEX: ChannelProvider(tr('Microsoft'), imp="._microsoft"),
-    M2M100_INDEX: ChannelProvider(f'M2M100({tr("Local")})', imp="._m2m100"),
+    M2M100_INDEX: ChannelProvider(f'M2M100({tr("Local")}{tr("Built-in")})', imp="._m2m100"),
 
     CHATGPT_INDEX: ChannelProvider(tr('OpenAI ChatGPT'),  key_name="chatgpt_key", win="chatgpt", imp="._chatgpt"),
     DEEPSEEK_INDEX: ChannelProvider("DeepSeek", key_name="deepseek_key", win="deepseek", imp="._deepseek"),
@@ -82,7 +82,7 @@ _ID_NAME_DICT = {
     DEEPLX_INDEX: ChannelProvider("DeepLx", key_name="deeplx_address", win="deepLX", imp="._deeplx"),
     ALI_INDEX: ChannelProvider(tr('Alibaba Machine Translation'), key_name="ali_key", win="ali", imp="._ali"),
 
-    LIBRE_INDEX: ChannelProvider(tr('LibreTranslate'), key_name="libre_address", win="libre", imp="._libre"),
+    LIBRE_INDEX: ChannelProvider(f"{tr('LibreTranslate')}({tr('Local')}API)", key_name="libre_address", win="libre", imp="._libre"),
     MINIMAX_INDEX: ChannelProvider("MiniMax AI", key_name="minimax_key", win="minimax", imp="._minimax"),
     XIAOMI_INDEX: ChannelProvider("XiaoMi AI", key_name="xiaomi_key", win="xiaomi", imp="._xiaomi"),
     CAMB_INDEX: ChannelProvider("CAMB AI", key_name="camb_api_key", win="cambtts", imp="._camb"),
