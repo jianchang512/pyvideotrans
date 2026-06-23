@@ -40,7 +40,6 @@
 - **💻 Command Line Interface (CLI)**: Supports headless operation, convenient for server deployment or batch processing.
 - **🌐 Web Interface (WebUI)**: Browser-based interface for remote access or internal network deployment.
 
-<img width="2752" height="1536" alt="unnamed" src="https://github.com/user-attachments/assets/960e9e34-84a4-425d-b582-f726623475a8" />
 
 ---
 
