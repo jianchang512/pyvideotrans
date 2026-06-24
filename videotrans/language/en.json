@@ -388,7 +388,7 @@
     "Thank all donators, Click to view the list of donators": "Thanks to all donators! Click to view list.",
     "The language used for the original video pronunciation": "Original Video Lang",
     "The merge result is shown here": "Merge Result",
-    "The network proxy address you fill in seems to be incorrect, the general proxy/vpn format is http://127.0.0.1:port, if you do not know what is the proxy please do not fill in arbitrarily, ChatGPT and other api address please fill in the menu - settings - corresponding configuration. If you confirm that the proxy address is correct, please click Yes to continue.": "Invalid Proxy? Format: http://127.0.0.1:port. Do not fill if unsure. API URLs go in Settings. Click Yes to continue if sure.",
+    "The network proxy address you fill in seems to be incorrect": "Invalid Proxy or cannot connect? Format: http://127.0.0.1:port. Do not fill if unsure. Click Yes to continue if sure.",
     "The number of seconds to pause and wait after each completed request": "Pause (sec) after request",
     "The original file {} does not contain any audio or video data. The file may be damaged. Please confirm that the file can be played.": "File {} invalid (No A/V data). Check file.",
     "The original sound clone cannot be auditioned": "Clone preview unavailable",

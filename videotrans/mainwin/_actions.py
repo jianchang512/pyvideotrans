@@ -327,10 +327,7 @@ class WinAction(WinActionBase):
             show_error(tr("Video file must be selected"))
             self.main.startbtn.setDisabled(False)
             return
-        # 核对代理
-        if self.check_proxy() is not True:
-            self.main.startbtn.setDisabled(False)
-            return
+
 
         # 先确定原始和目标语言
         self.cfg['translate_type'] = self.main.translate_type.currentIndex()
@@ -789,7 +786,8 @@ class WinAction(WinActionBase):
             self.main.subtitle_area.clear()
             self.main.subtitle_area.insertPlainText(d['text'])
             return
-
+        if d['type']=='proxy_error':
+            show_error(f"{tr('Proxy')}: {d['text']}\n{tr('The network proxy address you fill in seems to be incorrect')}")
 
     def _check_all_done(self):
         active = [obj for obj in self.obj_list if obj['uuid'] not in app_cfg.stoped_uuid_set]

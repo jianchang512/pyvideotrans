@@ -16,8 +16,8 @@ from videotrans.task.taskcfg import InputFile
 from videotrans.configure import contants
 from videotrans.util.ListenVoice import ListenVoice
 from videotrans.configure.contants import LISTEN_TEXT
-from videotrans.util.help_misc import open_url, show_popup, set_proxy, show_error
-
+from videotrans.util.help_misc import open_url, show_popup, set_proxy, show_error,set_process
+import requests,threading
 
 @dataclass
 class WinActionBase:
@@ -44,32 +44,7 @@ class WinActionBase:
     retry_queue_mp4: List[InputFile] = field(default_factory=list, init=False)
     # 保存原始的 uuid:mp4 信息，用于出错重试
     uuid_queue_mp4: Dict = field(default_factory=dict, init=False)
-
-    def show_model_help(self):
-
-        msg = tr(
-            'From tiny model to base to small to medium to large-v3 model, the recognition effect is getting better and better, but the model size is getting bigger and bigger, the recognition speed is getting slower and slower, and it needs more CPU/memory/GPU resources. default is to use tiny model, if you want better result, please use bigger model .en suffix model and model starting with distil is only used to recognize English pronunciation video')
-
-        # 创建 QMessageBox
-        msg_box = QtWidgets.QMessageBox(self.main)
-        msg_box.setWindowTitle("Help")
-        msg_box.setText(msg)
-
-        # 添加 OK 按钮
-        ok_button = msg_box.addButton(QtWidgets.QMessageBox.Ok)
-        ok_button.setText(tr("OK"))
-
-        # 添加“模型选择教程”按钮
-        tutorial_button = QtWidgets.QPushButton(
-            tr("Model Selection Tutorial"))
-        msg_box.addButton(tutorial_button, QtWidgets.QMessageBox.ActionRole)
-
-        # 显示消息框
-        msg_box.exec()
-
-        # 检查哪个按钮被点击
-        if msg_box.clickedButton() == tutorial_button:
-            open_url("https://pyvideotrans.com/selectmodel")  # 调用模型选择教程的函数
+    _proxy_test_version:int=0  # 代理地址版本号，用于防抖和丢弃旧测试结果
 
     # 关于页面
     def about(self):
@@ -354,8 +329,26 @@ class WinActionBase:
             settings['proxy'] = proxy
             set_proxy(proxy)
             app_cfg.proxy=proxy
-
+            # 递增版本号，使之前的定时器自动失效
+            self._proxy_test_version += 1
+            current_version = self._proxy_test_version
+            current_proxy = proxy
+            # 1500ms后核对代理是否可用
+            QTimer.singleShot(1500, lambda v=current_version, p=current_proxy: self._test_proxy(v, p))
         settings.save()
+        
+    def _test_proxy(self, test_version, test_proxy):
+        """测试代理是否可用。如果版本号不匹配，说明用户又修改了代理，直接放弃。"""
+        if test_version != self._proxy_test_version:
+            return  # 用户已修改代理地址，放弃本次测试
+        
+        try:
+            requests.head(test_proxy, timeout=8)
+        except Exception as e:
+            # 再次确认版本号，防止测试期间用户又改了
+            if test_version != self._proxy_test_version:
+                return
+            set_process(text=test_proxy, type="proxy_error")
 
     # 弹出代理设置框
     def proxy_alert(self):
@@ -364,34 +357,6 @@ class WinActionBase:
         if dialog.exec():  # OK 按钮被点击时 exec 返回 True
             proxy = dialog.get_values()
             self.main.proxy.setText(proxy)
-
-    # 核对代理填写
-    def check_proxy(self):
-        proxy = self.main.proxy.text().strip().replace('：', ':')
-        if proxy:
-            if not re.match(r'^(http|sock)', proxy, re.I):
-                proxy = f'http://{proxy}'
-            if not re.match(r'^(http|sock)(s|5)?://(\d+\.){3}\d+:\d+', proxy, re.I):
-                question = show_popup(
-                    tr("Please make sure the proxy address is correct"),
-                    tr('The network proxy address you fill in seems to be incorrect, the general proxy/vpn format is http://127.0.0.1:port, if you do not know what is the proxy please do not fill in arbitrarily, ChatGPT and other api address please fill in the menu - settings - corresponding configuration. If you confirm that the proxy address is correct, please click Yes to continue.'))
-                if question != QtWidgets.QMessageBox.Yes:
-                    self.update_status('stop')
-                    return False
-        # 设置或删除代理
-        if proxy:
-            # 设置代理
-            set_proxy(proxy)
-            settings['proxy'] = proxy
-            app_cfg.proxy=proxy
-        else:
-            # 删除代理
-            settings['proxy'] = ''
-            app_cfg.proxy=''
-            set_proxy('del')
-        settings.save()
-
-        return True
 
     # 核对字幕
     def check_txt(self, txt=''):
@@ -544,16 +509,7 @@ class WinActionBase:
             show_error(
                 tr("The original sound clone cannot be auditioned"))
             return
-        if obj['tts_type'] == tts.PIPER_TTS and not Path(f'{ROOT_DIR}/models/piper').exists():
-            # tools.show_download_piper(self.main)
-            self.main.open_winform('downmodels')
-            return
-        if obj['tts_type'] == tts.VITSCNEN_TTS and not Path(f'{ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
-            # tools.show_download_tts(self.main)
-            self.main.open_winform('downmodels')
-            return
         raw_text = self.main.listen_btn.text()
-
         def feed(d):
             self.main.listen_btn.setDisabled(False)
             self.main.listen_btn.setText(raw_text)

@@ -50,7 +50,7 @@ dependencies = [
     "contourpy==1.1.1",
     "crcmod==1.7",
     "cryptography==45.0.4",
-    "ctranslate2==4.6.0",
+    "ctranslate2==4.8",
     "cycler==0.12.1",
     "dashscope==1.25.5",
     "dataclasses-json==0.6.7",
@@ -257,6 +257,8 @@ dependencies = [
     "camb-sdk",
     "brotli>=1.2.0",
     "gtts>=2.5.4",
+    "torchcodec>=0.14.0",
+    "importlib-resources",
 ]
 
 [project.optional-dependencies]
@@ -276,8 +278,7 @@ webui = [
 #https://github.com/OpenMOSS/MOSS-TTS-Nano/issues/6
 mosstts = [
     "pynini",
-	"WeTextProcessing",
-	"importlib-resources"	
+	"WeTextProcessing"	
 ]
 chatterbox=[
     "chatterbox-tts"

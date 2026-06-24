@@ -6,10 +6,7 @@ from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 from videotrans.util.gpus import mps_or_cpu
 
-try:
-    from chatterbox.mtl_tts import ChatterboxMultilingualTTS as ChatterboxTTS
-except ImportError:
-    logger.critical('please run  uv sync --extra chatterbox ')
+
 
 import soundfile as sf
 
@@ -31,7 +28,12 @@ class ChatterBoxTTS(BaseTTS):
         return True
 
     def _exec(self):
-        model = ChatterboxTTS.from_local(f'{ROOT_DIR}/models/chatterbox',
+        try:
+            from chatterbox.mtl_tts import ChatterboxMultilingualTTS
+        except ImportError:
+            logger.critical('please run  uv sync --extra chatterbox ')
+            raise RuntimeError('please run  uv sync --extra chatterbox ')
+        model = ChatterboxMultilingualTTS.from_local(f'{ROOT_DIR}/models/chatterbox',
                                          device='cuda' if self.is_cuda else mps_or_cpu())
 
         ok, err = 0, 0

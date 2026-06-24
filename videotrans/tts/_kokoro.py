@@ -31,7 +31,7 @@ class KokoroTTS(BaseTTS):
             res = requests.post(self.api_url, json=data,  timeout=3600)
         except requests.exceptions.ConnectionError as e:
             if "Failed to establish a new connection" in str(e):
-                raise StopTask(f"[Kokoro-TTS] {tr('This channel needs deployed and started before available')}") from e
+                raise StopTask(f"[Kokoro-TTS] {tr('This channel needs deployed and started before available')}\n{self.api_url=}") from e
         res.raise_for_status()
         with open(data_item['filename'] + ".mp3", 'wb') as f:
             f.write(res.content)

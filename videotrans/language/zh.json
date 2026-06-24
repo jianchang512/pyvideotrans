@@ -388,7 +388,7 @@
     "Thank all donators, Click to view the list of donators": " 感谢所有捐助者，本项目的每一点改善都离不开您的帮助 ",
     "The language used for the original video pronunciation": "原视频发音所用语言",
     "The merge result is shown here": "这里显示合并结果",
-    "The network proxy address you fill in seems to be incorrect, the general proxy/vpn format is http://127.0.0.1:port, if you do not know what is the proxy please do not fill in arbitrarily, ChatGPT and other api address please fill in the menu - settings - corresponding configuration. If you confirm that the proxy address is correct, please click Yes to continue.": "你填写的网络代理地址似乎不正确, , 一般代理/vpn格式为 http://127.0.0.1:数字端口号 , 如果不知道什么是代理请勿随意填写, ChatGPT等api地址请填写在菜单-设置-对应配置内。, 如果确认代理地址无误，请点击 Yes 继续执行",
+    "The network proxy address you fill in seems to be incorrect": "你填写的网络代理地址似乎不正确或不可用, 一般代理/vpn格式为 http://127.0.0.1:数字端口号 , 如果不知道什么是代理请勿随意填写。\n如果确认代理地址无误并且代理可用，请忽略该提示并继续执行",
     "The number of seconds to pause and wait after each completed request": "每完成一次请求后的暂停等待秒数，用于防止某些渠道限流出错",
     "The original file {} does not contain any audio or video data. The file may be damaged. Please confirm that the file can be played.": "原文件 {} 中不存在任何音视频数据，文件可能损坏，请确认该文件可以播放",
     "The original sound clone cannot be auditioned": "原音色克隆不可试听",

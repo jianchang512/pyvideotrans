@@ -248,7 +248,7 @@ def openwin():
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
-            return show_error(tr("The voice is not support listen"))
+            return show_error(tr("The current language does not support audition"))
         text = LISTEN_TEXT.get(f'{lang}')
         if not text:
             return show_error(tr('The current language does not support audition'))

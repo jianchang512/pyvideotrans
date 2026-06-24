@@ -30,6 +30,6 @@ class ParaketRecogn(BaseRecogn):
                 if not transcript or not isinstance(transcript, str):
                     raise SpeechToTextError(tr('The returned subtitles have no timestamp and cannot be used'))
         except APIConnectionError as e:
-            raise StopTask(f'[Parakeet] {tr("This channel needs deployed and started before available")}\n{e}') from e
+            raise StopTask(f'[Parakeet] {tr("This channel needs deployed and started before available")}\n{self.api_url=}\n{e}') from e
         
         return tools.get_subtitle_from_srt(transcript.split("----..----")[0], is_file=False)
