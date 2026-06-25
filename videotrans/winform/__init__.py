@@ -46,7 +46,6 @@ _module_map = {
 "openairecognapi":".openairecognapi",
 "openaitts":".openaitts",
 "openrouter":".openrouter",
-"ott":".ott",
 "parakeet":".parakeet",
 "qwenasrlocal":".qwenasrlocal",
 "qwenmt":".qwenmt",

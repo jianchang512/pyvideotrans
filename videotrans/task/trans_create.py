@@ -785,7 +785,7 @@ class TransCreate(BaseTask):
 
         try:
             if self.cfg.only_out_mp4:
-                shutil.move(self.cfg.targetdir_mp4, Path(self.cfg.target_dir).parent / f'{self.cfg.noextname}.mp4')
+                shutil.move(self.cfg.targetdir_mp4, Path(self.cfg.target_dir).parent / Path(self.cfg.targetdir_mp4).name)
                 shutil.rmtree(self.cfg.target_dir, ignore_errors=True)
         except OSError as e:
             logger.exception(f'仅输出mp4时清理临时文件移动视频位置出错，跳过 {e}', exc_info=True)
@@ -1333,7 +1333,7 @@ class TransCreate(BaseTask):
             subtitle_langcode=translator.get_mkv_code(subtitle_langcode)
 
         # 字幕嵌入时进入视频目录下
-        os.chdir(self.cfg.cache_folder)
+        #os.chdir(self.cfg.cache_folder)
 
         
         # 再次获取处理好末尾的音频真实时长
@@ -1487,13 +1487,14 @@ class TransCreate(BaseTask):
                                         cmd_dir=self.cfg.cache_folder, force_cpu=True)
         except Exception as e:
             raise VideoTransError(tr('Error in embedding the final step of the subtitle dubbing')+str(e)) from e
-        finally:
-            os.chdir(ROOT_DIR)
+        
+        
 
         # 复制到目标文件夹
         if Path(tmp_target_mp4).exists():
             try:
-                shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4[:-4]+_video_output_ext)
+                self.cfg.targetdir_mp4=self.cfg.targetdir_mp4[:-4]+_video_output_ext
+                shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4)
             except Exception:
                 # 如果移动失败，则尝试直接复制为 0.mp4 or 0.mkv
                 try:
