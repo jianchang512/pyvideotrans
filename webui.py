@@ -107,7 +107,7 @@ DEFAULT_MODEL = "large-v3-turbo" if "large-v3-turbo" in FASTER_MODEL_NAMES else 
 
 LANG_DISPLAY_NAMES = list(LANGNAME_DICT.values())
 DEFAULT_SOURCE_LANG = LANG_DISPLAY_NAMES[0]
-DEFAULT_TARGET_LANG = ['-']
+DEFAULT_TARGET_LANG = '-'
 
 SUBTITLE_TYPES = {"不嵌入字幕": 0, "嵌入硬字幕": 1, "嵌入软字幕": 2, "嵌入硬字幕(双语)": 3, "嵌入软字幕(双语)": 4}
 DEFAULT_SUBTITLE_TYPE = "嵌入硬字幕"
