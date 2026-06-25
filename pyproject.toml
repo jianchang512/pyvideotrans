@@ -282,6 +282,9 @@ mosstts = [
 chatterbox=[
     "chatterbox-tts"
 ]
+twelvelabs = [
+    "twelvelabs>=1.2.8",
+]
 
 [dependency-groups]
 dev = [

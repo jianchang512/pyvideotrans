@@ -696,6 +696,7 @@ class AppParams:
             "ai302_key": "",
             "ai302_model": "",
             "ai302_model_recogn": "whisper-1",
+            "twelvelabs_key": "",
             "whipserx_api": "http://127.0.0.1:9092",
             
             "trans_api_url": "",

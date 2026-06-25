@@ -89,7 +89,7 @@ uv sync
 
 > By default, `qwen-tts`, `qwen-asr`, `moss-tts`, and `chatterbox` are not installed locally.
 > - To install all optional channels: `uv sync --all-extra`
-> - To install individually: `uv sync --extra qwentts` / `uv sync --extra qwenasr` / `uv sync --extra mosstts` / `uv sync --extra chatterbox`
+> - To install individually: `uv sync --extra qwentts` / `uv sync --extra qwenasr` / `uv sync --extra mosstts` / `uv sync --extra chatterbox` / `uv sync --extra twelvelabs`
 
 ### 4. Launch Software
 
@@ -155,6 +155,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | **F5-TTS / CosyVoice** | Supports **Voice Cloning**, requires local deployment |
 | | GPT-SoVITS / ChatTTS | High-quality open-source TTS |
 | | 302.AI / OpenAI / Azure | High-quality commercial API |
+| **Video Understanding** | **TwelveLabs Pegasus** | Opt-in content-aware analysis: summarize / describe a video before translating. `cli.py --task analyze`. [Free API key](https://twelvelabs.io) |
 
 ---
 

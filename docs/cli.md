@@ -57,6 +57,9 @@ uv run cli.py --task <任务类型> --name "<文件路径>" [其他参数]
 | `tts` | 文字配音 — 将 SRT 字幕或文本转为语音音频 | 预处理 → 配音 → 音画对齐 → 输出音频 |
 | `sts` | 字幕翻译 — 将 SRT 字幕翻译为目标语言 | 预处理 → 翻译 → 输出字幕 |
 | `vtv` | 视频翻译 — 全流程：识别 → 翻译 → 配音 → 合成视频 | 预处理 → 识别 → 说话人分离 → 翻译 → 配音 → 对齐 → 二次识别 → 合成视频 |
+| `analyze` | 视频内容理解（TwelveLabs Pegasus）— 生成视频内容摘要/描述 | 调用 TwelveLabs API → 输出文本 `.analyze.txt` |
+
+> `analyze` 为可选功能，需先安装 `uv sync --extra twelvelabs`，并配置 `twelvelabs_key`（或 `TWELVELABS_API_KEY` 环境变量）。免费密钥见 https://twelvelabs.io 。该任务独立运行，不影响转录/翻译/配音流程。
 
 ---
 
@@ -64,7 +67,7 @@ uv run cli.py --task <任务类型> --name "<文件路径>" [其他参数]
 
 | 选项 | 说明 | 默认值 |
 |------|------|--------|
-| `--task {stt,tts,sts,vtv}` | **必选** — 任务类型 | — |
+| `--task {stt,tts,sts,vtv,analyze}` | **必选** — 任务类型 | — |
 | `--name FILE` | **必选** — 输入文件的绝对路径 | — |
 | `--output-dir DIR` | 输出目录 | `<软件目录>/output/<文件名>/` |
 | `--list {providers,languages,models}` | 查询可用渠道/语言/模型列表 | — |
@@ -402,6 +405,38 @@ uv run cli.py --task vtv --name "60.mp4" --source_language_code zh-cn --target_l
 
 ```bash
 uv run cli.py --task vtv --name "60.mp4" --source_language_code zh-cn --target_language_code en --voice_role "en-US-GuyNeural" -v
+```
+
+---
+
+## analyze — 视频内容理解（TwelveLabs）
+
+使用 TwelveLabs **Pegasus** 视频理解模型，对视频内容进行理解并生成自然语言描述/摘要，可在翻译/配音之前快速了解视频讲了什么。结果保存为输入文件同目录下的 `<文件名>.analyze.txt`。
+
+### 准备
+
+```bash
+uv sync --extra twelvelabs            # 安装可选依赖
+export TWELVELABS_API_KEY=tlk_xxx     # 或在设置中配置 twelvelabs_key
+```
+
+> 免费密钥（含慷慨免费额度）：https://twelvelabs.io
+
+### 参数说明
+
+| 选项 | 说明 | 默认值 |
+|------|------|--------|
+| `--tl_prompt TEXT` | 发送给 Pegasus 的提示词 | 自动摘要提示 |
+| `--tl_max_tokens N` | 最大返回 token 数 | `2048` |
+
+### 示例
+
+```bash
+# 默认摘要
+uv run cli.py --task analyze --name "60.mp4"
+
+# 自定义提问
+uv run cli.py --task analyze --name "60.mp4" --tl_prompt "列出视频中出现的所有产品和品牌"
 ```
 
 ---

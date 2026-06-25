@@ -37,6 +37,9 @@ TEXT_DB: Dict[str, Dict[str, str]] = {
     "exec_tts_task": {"zh": "[执行任务] 语音合成 (TTS)", "en": "[Task] Text-to-Speech (TTS)"},
     "exec_sts_task": {"zh": "[执行任务] 字幕翻译 (STS)", "en": "[Task] Subtitle Translation (STS)"},
     "exec_vtv_task": {"zh": "[执行任务] 视频翻译 (VTV)", "en": "[Task] Video Translation (VTV)"},
+    "exec_analyze_task": {"zh": "[执行任务] 视频内容理解 (TwelveLabs)", "en": "[Task] Video Understanding (TwelveLabs)"},
+    "analyze_result": {"zh": "[分析结果]\n{}", "en": "[Analysis]\n{}"},
+    "analyze_saved":  {"zh": "[已保存] {}", "en": "[Saved] {}"},
     "process_file":  {"zh": "[处理文件] {}", "en": "[File] {}"},
     "param_list":    {"zh": "[参数列表] {}", "en": "[Params] {}"},
     "output_dir":    {"zh": "[输出目录] {}", "en": "[Output Dir] {}"},
@@ -65,8 +68,8 @@ TEXT_DB: Dict[str, Dict[str, str]] = {
               "  %(prog)s --list languages"
     },
     "help_task": {
-        "zh": "任务类型: stt(语音转录), tts(文字配音), sts(字幕翻译), vtv(视频翻译)",
-        "en": "Task type: stt(Speech to Text), tts(Text to Speech), sts(Subtitle Trans), vtv(Video Trans)"
+        "zh": "任务类型: stt(语音转录), tts(文字配音), sts(字幕翻译), vtv(视频翻译), analyze(TwelveLabs 视频内容理解)",
+        "en": "Task type: stt(Speech to Text), tts(Text to Speech), sts(Subtitle Trans), vtv(Video Trans), analyze(TwelveLabs Video Understanding)"
     },
     "help_name": {
         "zh": "待处理文件的绝对路径 (请使用双引号包裹含空格的路径)",
@@ -133,10 +136,16 @@ TEXT_DB: Dict[str, Dict[str, str]] = {
     "help_clear_cache":    {"zh": "完成后清理缓存 (默认)", "en": "Clear cache after finish (default)"},
     "help_no_clear_cache": {"zh": "不清理缓存", "en": "Do not clear cache"},
 
+    # --- analyze (TwelveLabs video understanding) ---
+    "group_analyze":   {"zh": "Analyze (TwelveLabs 视频内容理解) 参数", "en": "Analyze (TwelveLabs Video Understanding) Parameters"},
+    "help_tl_prompt":  {"zh": "发送给 Pegasus 的提示词 (默认为视频内容摘要)", "en": "Prompt sent to Pegasus (defaults to a content summary)"},
+    "help_tl_maxtoken":{"zh": "Pegasus 最大返回 token 数 (默认 2048)", "en": "Max Pegasus response tokens (default 2048)"},
+    "err_tl_key":      {"zh": "未配置 TwelveLabs 密钥,请设置 twelvelabs_key 或 TWELVELABS_API_KEY 环境变量,免费密钥: https://twelvelabs.io", "en": "TwelveLabs API key not set. Configure twelvelabs_key or the TWELVELABS_API_KEY env var. Free key: https://twelvelabs.io"},
+
     # --- Error messages ---
     "err_missing_task": {
-        "zh": "缺少 --task 参数,可选值: stt, tts, sts, vtv\n使用 --help 查看详细帮助",
-        "en": "Missing --task parameter. Choose: stt, tts, sts, vtv\nUse --help for details"
+        "zh": "缺少 --task 参数,可选值: stt, tts, sts, vtv, analyze\n使用 --help 查看详细帮助",
+        "en": "Missing --task parameter. Choose: stt, tts, sts, vtv, analyze\nUse --help for details"
     },
     "err_file_not_found": {
         "zh": "文件不存在: {}\n请检查路径是否正确,含空格的路径请用双引号包裹",
@@ -276,6 +285,32 @@ def vtv_fun(params: dict) -> None:
         raise
 
 
+def analyze_fun(args: argparse.Namespace) -> None:
+    """Run TwelveLabs Pegasus content understanding on a video file.
+
+    Opt-in and standalone: it does not touch the transcribe/translate/dub
+    pipeline. Writes the analysis next to the video as <name>.analyze.txt.
+    """
+    from videotrans.util import twelvelabs_analyze
+
+    print(f"\n{tr('exec_analyze_task')}")
+    print(tr('process_file', args.name))
+    try:
+        text = twelvelabs_analyze.analyze_video(
+            args.name,
+            prompt=args.tl_prompt or twelvelabs_analyze.DEFAULT_PROMPT,
+            max_tokens=args.tl_max_tokens,
+        )
+        print(tr('analyze_result', text))
+        out = Path(args.name).with_suffix('.analyze.txt')
+        out.write_text(text, encoding='utf-8')
+        print(tr('analyze_saved', str(out)))
+        print(tr('done'))
+    except Exception as e:
+        print(tr('failed', str(e)), file=sys.stderr)
+        raise
+
+
 # ---------------------------------------------------------------------------
 # List functions
 # ---------------------------------------------------------------------------
@@ -327,7 +362,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument('--version', action='version', version='%(prog)s 4.03')
 
-    parser.add_argument('--task', type=str, choices=['stt', 'tts', 'sts', 'vtv'],
+    parser.add_argument('--task', type=str, choices=['stt', 'tts', 'sts', 'vtv', 'analyze'],
                         help=tr("help_task"))
     parser.add_argument('--name', type=str, help=tr("help_name"))
 
@@ -377,6 +412,11 @@ def build_parser() -> argparse.ArgumentParser:
     vtv_group.add_argument('--subtitle_type', type=int, default=1, help=tr("help_subtitle_type"))
     vtv_group.add_argument('--clear_cache', action='store_true', default=True, help=tr("help_clear_cache"))
     vtv_group.add_argument('--no-clear-cache', dest='clear_cache', action='store_false', help=tr("help_no_clear_cache"))
+
+    # --- Analyze (TwelveLabs) ---
+    analyze_group = parser.add_argument_group(tr("group_analyze"))
+    analyze_group.add_argument('--tl_prompt', type=str, default=None, help=tr("help_tl_prompt"))
+    analyze_group.add_argument('--tl_max_tokens', type=int, default=2048, help=tr("help_tl_maxtoken"))
 
     return parser
 
@@ -555,6 +595,17 @@ def main() -> int:
     # Set runtime flags
     app_cfg.exit_soft = False
     app_cfg.exec_mode = 'cli'
+
+    # TwelveLabs analyze is a standalone, opt-in task: it calls a remote
+    # video-understanding API and does not need the GPU / SRT / cache setup.
+    if args.task == 'analyze':
+        try:
+            analyze_fun(args)
+            return 0
+        except KeyboardInterrupt:
+            return 130
+        except Exception:
+            return 1
 
     # Get GPU info
     from videotrans.util.gpus import getset_gpu
