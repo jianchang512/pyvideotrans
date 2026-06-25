@@ -241,7 +241,9 @@ class AppSettings:
     def __post_init__(self):
         self.parse_init()
 
-    def save(self):
+    def save(self,data:Dict=None):
+        if data:
+            return self.parse_init(data)        
         self._save_to_disk()
 
 
@@ -580,7 +582,9 @@ class AppParams:
     def __post_init__(self):
         self.getset_params()
 
-    def save(self):
+    def save(self,data:Dict=None):
+        if data:
+            return self.getset_params(data)
         self._save_to_disk()
 
 

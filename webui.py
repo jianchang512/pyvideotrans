@@ -62,7 +62,7 @@ def _save_params(data: dict):
     PARAMS_JSON.parent.mkdir(parents=True, exist_ok=True)
     PARAMS_JSON.write_text(json.dumps(data, indent=4, ensure_ascii=False), encoding="utf-8")
     # 同步更新内存中的 params
-    params.update(data)
+    params.getset_params(data)
 
 
 def _load_settings() -> dict:
@@ -77,7 +77,7 @@ def _load_settings() -> dict:
 def _save_settings(data: dict):
     SETTINGS_JSON.parent.mkdir(parents=True, exist_ok=True)
     SETTINGS_JSON.write_text(json.dumps(data, indent=4, ensure_ascii=False), encoding="utf-8")
-    settings.update(data)
+    settings.parse_init(data)
 
 
 # 加载当前配置
@@ -219,7 +219,7 @@ def _safe_get(key, default=""):
 CHANNEL_SETTINGS = {
     # === 翻译渠道 ===
     "ChatGPT 翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "chatgpt_api", "label": "API URL", "type": "text", "default": "", "placeholder": "留空使用官方API"},
             {"key": "chatgpt_key", "label": "SK 密钥", "type": "text", "default": "", "placeholder": "API Key"},
@@ -228,7 +228,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "DeepSeek 翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "deepseek_key", "label": "SK 密钥", "type": "text", "default": "", "placeholder": "API Key"},
             {"key": "deepseek_model", "label": "模型", "type": "text", "default": "deepseek-chat", "placeholder": "输入模型名称"},
@@ -236,7 +236,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "Gemini 翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "gemini_key", "label": "Gemini Key", "type": "text", "default": ""},
             {"key": "gemini_model", "label": "模型", "type": "text", "default": "gemini-2.5-flash", "placeholder": "输入模型名称"},
@@ -244,7 +244,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "AzureGPT 翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "azure_api", "label": "API URL", "type": "text", "default": ""},
             {"key": "azure_key", "label": "SK 密钥", "type": "text", "default": ""},
@@ -252,7 +252,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "本地大模型 (LocalLLM)": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "localllm_api", "label": "API URL", "type": "text", "default": "http://127.0.0.1:11434/v1", "placeholder": "如 http://127.0.0.1:11434/v1"},
             {"key": "localllm_key", "label": "SK 密钥", "type": "text", "default": "no-key", "placeholder": "通常填 no-key"},
@@ -261,7 +261,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "DeepL 翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "deepl_authkey", "label": "AUTH KEY", "type": "text", "default": ""},
             {"key": "deepl_api", "label": "API URL (第三方)", "type": "text", "default": "", "placeholder": "留空使用官方API"},
@@ -269,21 +269,21 @@ CHANNEL_SETTINGS = {
         ],
     },
     "百度翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "baidu_appid", "label": "App ID", "type": "text", "default": ""},
             {"key": "baidu_miyue", "label": "密钥", "type": "text", "default": ""},
         ],
     },
     "腾讯翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "tencent_SecretId", "label": "SecretId", "type": "text", "default": ""},
             {"key": "tencent_SecretKey", "label": "SecretKey", "type": "text", "default": ""},
         ],
     },
     "阿里百炼 (QwenMT)": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "qwenmt_key", "label": "百炼 SK", "type": "text", "default": ""},
             {"key": "qwenmt_model", "label": "翻译模型", "type": "text", "default": "qwen-mt-plus", "placeholder": "需以 qwen-mt 开头"},
@@ -291,14 +291,14 @@ CHANNEL_SETTINGS = {
         ],
     },
     "字节火山 (VolcEngine)": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "zijiehuoshan_key", "label": "SK 密钥", "type": "text", "default": ""},
             {"key": "zijiehuoshan_model", "label": "推理接入点", "type": "text", "default": "", "placeholder": "输入接入点名称"},
         ],
     },
     "MiniMax 翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "minimax_key", "label": "SK 密钥", "type": "text", "default": ""},
             {"key": "minimax_api", "label": "API URL", "type": "text", "default": "api.minimax.io"},
@@ -307,7 +307,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "智谱 AI 翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "zhipu_key", "label": "SK 密钥", "type": "text", "default": ""},
             {"key": "zhipu_model", "label": "模型", "type": "text", "default": "glm-4-flash", "placeholder": "输入模型名称"},
@@ -315,7 +315,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "硅基流动 (SiliconFlow)": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "guiji_key", "label": "SK 密钥", "type": "text", "default": ""},
             {"key": "guiji_model", "label": "模型", "type": "text", "default": "Qwen/Qwen3-32B", "placeholder": "输入模型名称"},
@@ -323,7 +323,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "OpenRouter 翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "openrouter_key", "label": "SK 密钥", "type": "text", "default": ""},
             {"key": "openrouter_model", "label": "模型", "type": "text", "default": "", "placeholder": "输入模型名称"},
@@ -331,7 +331,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "小米 AI 翻译": {
-        "category": "翻译",
+        "category": "字幕翻译渠道",
         "fields": [
             {"key": "xiaomi_key", "label": "小米 Key", "type": "text", "default": ""},
             {"key": "xiaomi_model", "label": "模型", "type": "text", "default": "mimo-v2.5-pro", "placeholder": "输入模型名称"},
@@ -341,7 +341,7 @@ CHANNEL_SETTINGS = {
 
     # === 语音识别渠道 ===
     "OpenAI ASR": {
-        "category": "语音识别",
+        "category": "语音识别渠道",
         "fields": [
             {"key": "openairecognapi_url", "label": "API URL", "type": "text", "default": "", "placeholder": "留空使用官方API"},
             {"key": "openairecognapi_key", "label": "SK 密钥", "type": "text", "default": ""},
@@ -349,19 +349,19 @@ CHANNEL_SETTINGS = {
         ],
     },
     "Deepgram ASR": {
-        "category": "语音识别",
+        "category": "语音识别渠道",
         "fields": [
             {"key": "deepgram_apikey", "label": "API Key", "type": "text", "default": ""},
         ],
     },
     "Parakeet ASR": {
-        "category": "语音识别",
+        "category": "语音识别渠道",
         "fields": [
             {"key": "parakeet_address", "label": "API URL", "type": "text", "default": "http://127.0.0.1:8080"},
         ],
     },
     "字节语音识别": {
-        "category": "语音识别",
+        "category": "语音识别渠道",
         "fields": [
             {"key": "zijierecognmodel_appid", "label": "AppID", "type": "text", "default": ""},
             {"key": "zijierecognmodel_token", "label": "Access Token", "type": "text", "default": ""},
@@ -370,7 +370,7 @@ CHANNEL_SETTINGS = {
 
     # === 配音渠道 ===
     "OpenAI TTS": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "openaitts_api", "label": "API URL", "type": "text", "default": "", "placeholder": "留空使用官方API"},
             {"key": "openaitts_key", "label": "SK 密钥", "type": "text", "default": ""},
@@ -378,26 +378,26 @@ CHANNEL_SETTINGS = {
         ],
     },
     "Azure TTS": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "azure_speech_key", "label": "SPEECH KEY", "type": "text", "default": ""},
             {"key": "azure_speech_region", "label": "Region / URL", "type": "text", "default": "eastasia", "placeholder": "如 eastasia 或完整URL"},
         ],
     },
     "ElevenLabs TTS": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "elevenlabstts_key", "label": "API Key", "type": "text", "default": ""},
         ],
     },
     "GPT-SoVITS": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "gptsovits_url", "label": "API URL", "type": "text", "default": "http://127.0.0.1:9880"},
         ],
     },
     "F5-TTS / Spark / Index / Dia / VoxCPM": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "f5tts_url", "label": "F5-TTS URL", "type": "text", "default": "http://127.0.0.1:7860"},
             {"key": "sparktts_url", "label": "Spark-TTS URL", "type": "text", "default": "http://127.0.0.1:7860"},
@@ -408,53 +408,53 @@ CHANNEL_SETTINGS = {
         ],
     },
     "CosyVoice TTS": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "cosyvoice_url", "label": "WebUI URL", "type": "text", "default": "http://127.0.0.1:8000"},
             {"key": "cosyvoice_instruct_text", "label": "Prompt 提示词", "type": "text", "default": ""},
         ],
     },
     "OmniVoice TTS": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "omnivoice_url", "label": "URL", "type": "text", "default": "http://127.0.0.1:8081"},
         ],
     },
     "阿里百炼 TTS (Qwen-TTS)": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "qwentts_key", "label": "百炼 SK", "type": "text", "default": ""},
             {"key": "qwentts_model", "label": "模型", "type": "text", "default": "qwen3-tts-flash", "placeholder": "输入模型名称"},
         ],
     },
     "Qwen-TTS 本地": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "qwenttslocal_prompt", "label": "自定义语音提示词", "type": "text", "default": ""},
         ],
     },
     "豆包语音合成 2.0": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "doubao2_appid", "label": "App ID", "type": "text", "default": ""},
             {"key": "doubao2_access", "label": "Access Token", "type": "text", "default": ""},
         ],
     },
     "Minimaxi TTS": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "minimaxi_apikey", "label": "SK 密钥", "type": "text", "default": ""},
             {"key": "minimaxi_apiurl", "label": "API URL", "type": "text", "default": "api.minimaxi.com"},
         ],
     },
     "X.AI TTS": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "xaitts_key", "label": "SK 密钥", "type": "text", "default": ""},
         ],
     },
     "小米 TTS": {
-        "category": "配音",
+        "category": "配音渠道",
         "fields": [
             {"key": "xiaomi_key", "label": "小米 Key", "type": "text", "default": ""},
         ],
@@ -605,7 +605,7 @@ def build_channel_settings():
                             fields.append((f["key"], tb))
 
                         save_btn = gr.Button("💾 保存", size="sm")
-                        status = gr.Textbox(label="", interactive=False, visible=True)
+                        status = gr.Textbox(label="", interactive=False, visible=True,show_label=False)
 
                         # 使用闭包捕获当前值
                         def make_save_handler(field_keys, field_widgets):
@@ -622,6 +622,68 @@ def build_channel_settings():
                             inputs=[f[1] for f in fields],
                             outputs=[status],
                         )
+
+        # === 参考音频 Tab ===
+        with gr.Tab("设置参考音频"):
+            gr.Markdown("### 声音克隆参考音频设置")
+            gr.Markdown(
+                "配置声音克隆（clone）使用的参考音频。每行一条，格式为：`文件名.wav#音频中的说话文本`\n"
+                f"- 音频文件需放在 `{ROOT_DIR}/f5-tts/` 目录下\n"
+                "- 文件格式必须为 wav\n"
+                "- 每行用 `#` 分隔文件名和对应文本"
+            )
+
+            ref_audio_text = gr.Textbox(
+                label="参考音频列表",
+                value=str(_safe_get("f5tts_role", "")),
+                placeholder="myaudio1.wav#你说四大皆空，却为何紧闭双眼\nmyaudio2.wav#Hello, this is a test audio",
+                lines=8,
+                interactive=True,
+            )
+
+            ref_audio_save = gr.Button("💾 保存参考音频", variant="primary")
+            ref_audio_status = gr.Markdown("", visible=False)
+
+            def save_ref_audio(text):
+                text = text.strip()
+                if not text:
+                    return gr.Markdown("⚠️ 请输入参考音频信息", visible=True)
+
+                lines = text.split("\n")
+                errors = []
+                for i, line in enumerate(lines):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    parts = line.split("#")
+                    if len(parts) != 2:
+                        errors.append(f"第 {i+1} 行格式错误，需用 # 分隔文件名和文本")
+                        continue
+
+                    filename = parts[0].strip()
+                    f5tts_dir = Path(ROOT_DIR) / "f5-tts"
+
+                    # 检查文件是否存在（支持带/不带 .wav 后缀）
+                    if not (f5tts_dir / filename).exists() and not (f5tts_dir / f"{filename}.wav").exists():
+                        errors.append(f"第 {i+1} 行：文件 `{filename}` 在 f5-tts/ 目录下不存在")
+                        continue
+
+                    # 自动补全 .wav 后缀
+                    if not filename.endswith(".wav") and (f5tts_dir / f"{filename}.wav").exists():
+                        lines[i] = f"{filename}.wav#{parts[1].strip()}"
+
+                if errors:
+                    return gr.Markdown("⚠️ 保存失败：\n" + "\n".join(errors), visible=True)
+
+                role_text = "\n".join(line for line in lines if line.strip())
+                _save_params({"f5tts_role": role_text})
+                return gr.Markdown("✅ 参考音频已保存", visible=True)
+
+            ref_audio_save.click(
+                fn=save_ref_audio,
+                inputs=[ref_audio_text],
+                outputs=[ref_audio_status],
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -668,11 +730,11 @@ def _w(key, label, tip="", area=False):
         if key in COMBO_BOX_KEYS:
             options = COMBO_BOX_OPTIONS.get(key, [val])
             w = gr.Dropdown(choices=options, value=val if val in options else options[0],
-                            label="", interactive=True)
+                            label="", interactive=True,show_label=False)
         elif val.lower() in ('true', 'false'):
-            w = gr.Checkbox(value=val.lower() == 'true', label="", interactive=True)
+            w = gr.Checkbox(value=val.lower() == 'true', label="", show_label=False,interactive=True)
         else:
-            w = gr.Textbox(value=val, label="", lines=3 if area else 1, interactive=True)
+            w = gr.Textbox(value=val, label=None,show_label=False, lines=3 if area else 1, interactive=True)
     _all_widgets[key] = w
 
 
@@ -854,10 +916,19 @@ def build_advanced_settings():
 def build_ui():
     import gradio as gr
 
-    with gr.Blocks(title="pyVideoTrans WebUI") as app:
+    with gr.Blocks(title="pyVideoTrans WebUI", css="""
+        /* 默认字体：微软雅黑 > 苹果方黑 > 系统无衬线字体 */
+        *, *::before, *::after {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", sans-serif !important;
+        }
+        /* 输入框和按钮的字体也统一 */
+        input, textarea, select, button, label, .gr-textbox, .gr-dropdown, .gr-checkbox {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", sans-serif !important;
+        }
+    """) as app:
         gr.Markdown("""
 # pyVideoTrans 视频翻译 WebUI
-*该界面仅实现部分功能，完整功能请使用桌面软件版(sp.exe 或 sp.py)*
+*[该界面仅实现部分功能，完整功能请使用桌面软件版(sp.exe 或 sp.py)](https://pyvideotrans.com)*
 
 > 📖 **文档站**：[https://pyvideotrans.com](https://pyvideotrans.com) ｜
 > 💻 **开源地址**：[https://github.com/jianchang512/pyvideotrans](https://github.com/jianchang512/pyvideotrans)
@@ -872,14 +943,14 @@ def build_ui():
 
                 with gr.Row():
                     with gr.Column(scale=3):
-                        input_file = gr.File(label="选择视频/音频文件", file_types=["video", "audio"], type="filepath")
+                        input_file = gr.Video(label="选择视频文件", interactive=True)
                         gr.Markdown("### 语音识别")
                         recogn_choice = gr.Dropdown(choices=RECOGN_NAMES, value=RECOGN_NAMES[DEFAULT_RECOGN], label="识别渠道", interactive=True)
                         model_choice = gr.Dropdown(choices=FASTER_MODEL_NAMES, value=DEFAULT_MODEL, label="模型", interactive=True)
                         gr.Markdown("### 字幕翻译")
                         translate_choice = gr.Dropdown(choices=TRANSLATE_NAMES, value=TRANSLATE_NAMES[DEFAULT_TRANSLATE], label="翻译渠道", interactive=True)
                         source_lang = gr.Dropdown(choices=LANG_DISPLAY_NAMES, value=DEFAULT_SOURCE_LANG, label="发音语言（源语言）", interactive=True)
-                        target_lang = gr.Dropdown(choices=LANG_DISPLAY_NAMES, value=DEFAULT_TARGET_LANG, label="目标语言", interactive=True)
+                        target_lang = gr.Dropdown(choices=['-']+LANG_DISPLAY_NAMES, value=DEFAULT_TARGET_LANG, label="目标语言", interactive=True)
                         gr.Markdown("### 字幕配音")
                         tts_choice = gr.Dropdown(choices=TTS_NAMES, value=TTS_NAMES[DEFAULT_TTS], label="配音渠道", interactive=True)
                         voice_role = gr.Dropdown(choices=["No"], value="No", label="配音角色", interactive=True)
@@ -1002,6 +1073,7 @@ def build_ui():
                     try:
                         app_cfg.exit_soft = False
                         app_cfg.exec_mode = 'cli'
+                        app_cfg.current_status = 'ing'
                         getset_gpu()
                         _file_obj = tools.format_video(Path(file_path).absolute().as_posix())
                         _nospacebasename = _file_obj["basename"].replace(" ", "-").replace(".", "-")
