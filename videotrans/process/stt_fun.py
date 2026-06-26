@@ -490,6 +490,8 @@ def paraformer(
         res = model(audio_file,hotword=hotword.replace(',',' '))
         speaker_list = []
         i = 0
+        if not res or 'sentence_info' not in res[0]:
+            return False, f'No sentence info: {res}'
         for it in res[0]['sentence_info']:
             if not it.get('text', '').strip():
                 continue

@@ -916,20 +916,11 @@ def build_advanced_settings():
 def build_ui():
     import gradio as gr
 
-    with gr.Blocks(title="pyVideoTrans WebUI", css="""
-        /* 默认字体：微软雅黑 > 苹果方黑 > 系统无衬线字体 */
-        *, *::before, *::after {
-            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", sans-serif !important;
-        }
-        /* 输入框和按钮的字体也统一 */
-        input, textarea, select, button, label, .gr-textbox, .gr-dropdown, .gr-checkbox {
-            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", sans-serif !important;
-        }
-    """) as app:
+    with gr.Blocks(title="pyVideoTrans WebUI") as app:
         gr.Markdown("""
 # pyVideoTrans 视频翻译 WebUI
-*[该界面仅实现部分功能，完整功能请使用桌面软件版(sp.exe 或 sp.py)](https://pyvideotrans.com)*
-
+> *[该界面仅实现部分功能，完整功能请使用桌面软件版(sp.exe 或 sp.py)](https://pyvideotrans.com)*
+>
 > 📖 **文档站**：[https://pyvideotrans.com](https://pyvideotrans.com) ｜
 > 💻 **开源地址**：[https://github.com/jianchang512/pyvideotrans](https://github.com/jianchang512/pyvideotrans)
         """)
@@ -1043,7 +1034,7 @@ def build_ui():
                 # 执行翻译
                 _BTN_RUNNING = gr.update(value="⏳ 执行中...", interactive=False)
                 _BTN_IDLE = gr.update(value="🚀 开始执行", interactive=True)
-
+                
                 def run_translation(file_path, recogn_display, model_name, translate_display,
                                     source_display, target_display, tts_display, voice_role_name,
                                     voice_autorate_val, video_autorate_val,
@@ -1051,9 +1042,12 @@ def build_ui():
                                     subtitle_type_name, remove_noise_val, fix_punc_name,
                                     is_separate_val, embed_bgm_val, loop_bgm_name, backaudio_volume_val,
                                     cuda_val):
+                    if app_cfg.current_status == 'ing':
+                        return
                     if not file_path:
                         yield "❌ 请先选择一个视频或音频文件", None, [], _BTN_IDLE
                         return
+                    app_cfg.current_status = 'ing'
                     log_lines = []
                     def log(msg):
                         log_lines.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
@@ -1073,7 +1067,7 @@ def build_ui():
                     try:
                         app_cfg.exit_soft = False
                         app_cfg.exec_mode = 'cli'
-                        app_cfg.current_status = 'ing'
+                        
                         getset_gpu()
                         _file_obj = tools.format_video(Path(file_path).absolute().as_posix())
                         _nospacebasename = _file_obj["basename"].replace(" ", "-").replace(".", "-")
@@ -1155,7 +1149,9 @@ def build_ui():
                     except Exception as e:
                         tb = traceback.format_exc()
                         yield log(f"❌ 执行出错: {str(e)}\n\n{tb}"), None, [], _BTN_IDLE
-
+                    finally:
+                        app_cfg.current_status = 'end'
+                        
                 start_btn.click(fn=run_translation,
                     inputs=[input_file, recogn_choice, model_choice, translate_choice,
                             source_lang, target_lang, tts_choice, voice_role,
@@ -1185,7 +1181,17 @@ if __name__ == "__main__":
         parser.add_argument("--share", action="store_true", help="Create a public Gradio link")
         args = parser.parse_args()
         app = build_ui()
-        app.launch(server_name=args.host, server_port=args.port, share=args.share, inbrowser=True, theme=gr.themes.Soft())
+        app.launch(server_name=args.host, server_port=args.port, share=args.share, inbrowser=True, theme=gr.themes.Soft(),css="""
+        /* 默认字体：微软雅黑 > 苹果方黑 > 系统无衬线字体 */
+        *, *::before, *::after {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", sans-serif !important;
+        }
+        h1{text-align:center}
+        /* 输入框和按钮的字体也统一 */
+        input, textarea, select, button, label, .gr-textbox, .gr-dropdown, .gr-checkbox {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", sans-serif !important;
+        }
+    """)
     except Exception as e:
         import traceback
         traceback.print_exc()
