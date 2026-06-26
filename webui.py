@@ -919,10 +919,12 @@ def build_ui():
     with gr.Blocks(title="pyVideoTrans WebUI") as app:
         gr.Markdown("""
 # pyVideoTrans 视频翻译 WebUI
-> *[该界面仅实现部分功能，完整功能请使用桌面软件版(sp.exe 或 sp.py)](https://pyvideotrans.com)*
+> [该界面仅实现部分功能，完整功能请使用桌面软件版(sp.exe 或 sp.py)](https://pyvideotrans.com)
 >
-> 📖 **文档站**：[https://pyvideotrans.com](https://pyvideotrans.com) ｜
-> 💻 **开源地址**：[https://github.com/jianchang512/pyvideotrans](https://github.com/jianchang512/pyvideotrans)
+>  [使用文档](https://pyvideotrans.com) |
+>  [开源地址](https://github.com/jianchang512/pyvideotrans) |
+>  [遇到问题](https://bbs.pyvideotrans.com)
+----
         """)
 
         with gr.Tabs():
