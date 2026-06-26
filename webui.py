@@ -937,39 +937,53 @@ def build_ui():
                 with gr.Row():
                     with gr.Column(scale=3):
                         input_file = gr.Video(label="选择视频文件", interactive=True)
-                        gr.Markdown("### 语音识别")
-                        recogn_choice = gr.Dropdown(choices=RECOGN_NAMES, value=RECOGN_NAMES[DEFAULT_RECOGN], label="识别渠道", interactive=True)
-                        model_choice = gr.Dropdown(choices=FASTER_MODEL_NAMES, value=DEFAULT_MODEL, label="模型", interactive=True)
-                        gr.Markdown("### 字幕翻译")
-                        translate_choice = gr.Dropdown(choices=TRANSLATE_NAMES, value=TRANSLATE_NAMES[DEFAULT_TRANSLATE], label="翻译渠道", interactive=True)
-                        source_lang = gr.Dropdown(choices=LANG_DISPLAY_NAMES, value=DEFAULT_SOURCE_LANG, label="发音语言（源语言）", interactive=True)
-                        target_lang = gr.Dropdown(choices=['-']+LANG_DISPLAY_NAMES, value=DEFAULT_TARGET_LANG, label="目标语言", interactive=True)
-                        gr.Markdown("### 字幕配音")
-                        tts_choice = gr.Dropdown(choices=TTS_NAMES, value=TTS_NAMES[DEFAULT_TTS], label="配音渠道", interactive=True)
-                        voice_role = gr.Dropdown(choices=["No"], value="No", label="配音角色", interactive=True)
-                        gr.Markdown("### 对齐与字幕")
+
+                        recogn_choice = gr.Dropdown(choices=RECOGN_NAMES, value=RECOGN_NAMES[int(_user_params.get('recogn_type', DEFAULT_RECOGN)) if str(_user_params.get('recogn_type', '')).isdigit() else DEFAULT_RECOGN], label="识别渠道", interactive=True)
+                        model_choice = gr.Dropdown(choices=FASTER_MODEL_NAMES, value=_user_params.get('model_name', DEFAULT_MODEL), label="模型", interactive=True)
+
+                        translate_choice = gr.Dropdown(choices=TRANSLATE_NAMES, value=TRANSLATE_NAMES[int(_user_params.get('translate_type', DEFAULT_TRANSLATE)) if str(_user_params.get('translate_type', '')).isdigit() else DEFAULT_TRANSLATE], label="翻译渠道", interactive=True)
+                        source_lang = gr.Dropdown(choices=LANG_DISPLAY_NAMES, value=_user_params.get('source_language', DEFAULT_SOURCE_LANG), label="发音语言（源语言）", interactive=True)
+                        target_lang = gr.Dropdown(choices=['-']+LANG_DISPLAY_NAMES, value=_user_params.get('target_language', DEFAULT_TARGET_LANG), label="目标语言", interactive=True)
+
+                        tts_choice = gr.Dropdown(choices=TTS_NAMES, value=TTS_NAMES[int(_user_params.get('tts_type', DEFAULT_TTS)) if str(_user_params.get('tts_type', '')).isdigit() else DEFAULT_TTS], label="配音渠道", interactive=True)
+                                                # 根据已加载的TTS渠道和目标语言预填充角色列表
+                        _init_tts_idx = int(_user_params.get('tts_type', DEFAULT_TTS)) if str(_user_params.get('tts_type', '')).isdigit() else DEFAULT_TTS
+                        _init_target = _user_params.get('target_language', DEFAULT_TARGET_LANG)
+                        _init_langcode = _lang_code_from_display(_init_target) if _init_target and _init_target != '-' else None
+                        try:
+                            _init_roles = role_menu(_init_tts_idx, langcode=_init_langcode)
+                            if not _init_roles:
+                                _init_roles = ["No"]
+                        except Exception:
+                            _init_roles = ["No"]
+                        _saved_role = _user_params.get('voice_role', 'No')
+                        _init_role_val = _saved_role if _saved_role in _init_roles else _init_roles[0]
+                        voice_role = gr.Dropdown(choices=_init_roles, value=_init_role_val, label="配音角色", interactive=True)
+
                         with gr.Row():
                             voice_autorate = gr.Checkbox(label="配音加速", value=True)
                             video_autorate = gr.Checkbox(label="视频慢速", value=False)
                         with gr.Row():
-                            voice_rate = gr.Slider(minimum=-50, maximum=50, value=0, step=1, label="配音语速 (%)")
-                            volume_rate = gr.Slider(minimum=-95, maximum=100, value=0, step=1, label="音量调整 (%)")
-                            pitch_rate = gr.Slider(minimum=-100, maximum=100, value=0, step=1, label="音调 (Hz)")
-                        subtitle_type = gr.Dropdown(choices=list(SUBTITLE_TYPES.keys()), value=DEFAULT_SUBTITLE_TYPE, label="字幕嵌入类型", interactive=True)
-                        gr.Markdown("### 更多设置")
-                        with gr.Row():
-                            remove_noise = gr.Checkbox(label="降噪", value=False)
-                            fix_punc = gr.Dropdown(choices=list(PUNC_OPTIONS.keys()), value="默认标点", label="标点处理", interactive=True)
-                        with gr.Row():
-                            is_separate = gr.Checkbox(label="分离人声背景声", value=False)
-                            embed_bgm = gr.Checkbox(label="重新嵌入背景声", value=True)
-                        with gr.Row():
-                            loop_bgm = gr.Dropdown(choices=list(LOOP_BGM_OPTIONS.keys()), value="背景音截断", label="背景音处理", interactive=True)
-                            backaudio_volume = gr.Slider(minimum=0.0, maximum=2.0, value=0.8, step=0.1, label="背景音量")
-                        gr.Markdown("### 其他")
+                            voice_rate = gr.Slider(minimum=-50, maximum=50, value=int(str(_user_params.get("voice_rate", "0")).replace("%","")), step=1, label="配音语速 (%)")
+                            volume_rate = gr.Slider(minimum=-95, maximum=100, value=int(str(_user_params.get("volume", "0")).replace("%","")), step=1, label="音量调整 (%)")
+                            pitch_rate = gr.Slider(minimum=-100, maximum=100, value=int(str(_user_params.get("pitch", "0")).replace("Hz","")), step=1, label="音调 (Hz)")
+                        subtitle_type = gr.Dropdown(choices=list(SUBTITLE_TYPES.keys()), value=list(SUBTITLE_TYPES.keys())[int(_user_params.get('subtitle_type', 1)) if str(_user_params.get('subtitle_type', '')).isdigit() and int(_user_params.get('subtitle_type', 1)) < len(SUBTITLE_TYPES) else 1], label="字幕嵌入类型", interactive=True)
+                        build_ass_editor()
+
+                        with gr.Accordion("📋 更多设置", open=False):
+                            with gr.Row():
+                                remove_noise = gr.Checkbox(label="降噪", value=False)
+                                fix_punc = gr.Dropdown(choices=list(PUNC_OPTIONS.keys()), value="默认标点", label="标点处理", interactive=True)
+                            with gr.Row():
+                                is_separate = gr.Checkbox(label="分离人声背景声", value=False)
+                                embed_bgm = gr.Checkbox(label="重新嵌入背景声", value=True)
+                            with gr.Row():
+                                loop_bgm = gr.Dropdown(choices=list(LOOP_BGM_OPTIONS.keys()), value="背景音截断", label="背景音处理", interactive=True)
+                                backaudio_volume = gr.Slider(minimum=0.0, maximum=2.0, value=float(_user_params.get("backaudio_volume", settings.get("backaudio_volume", 0.8))), step=0.1, label="背景音量")
+
                         cuda_accel = gr.Checkbox(label="启用 CUDA 加速", value=False)
                         channel_warning = gr.Markdown("", visible=False)
-                        build_ass_editor()
+                        
                         start_btn = gr.Button("🚀 开始执行", variant="primary", size="lg")
 
                     with gr.Column(scale=2):
@@ -1156,6 +1170,12 @@ def build_ui():
                                         video_preview_path = str(f)
                                     elif f.suffix.lower() in ('.mkv', '.wav', '.srt', '.txt', '.mp3'):
                                         output_files.append(str(f))
+                        # 添加当天日志文件到输出列表
+                        import datetime
+                        log_file = Path(ROOT_DIR) / "logs" / f"{datetime.datetime.now().strftime('%Y%m%d')}.log"
+                        if log_file.exists():
+                            output_files.append(str(log_file))
+
                         yield log(f"输出目录: {_target_dir}"), video_preview_path, output_files, _BTN_IDLE
 
                     except Exception as e:
