@@ -1,4 +1,4 @@
-> Sponsors: **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans) - Meeting Transcription API**
+﻿> Sponsors: **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans) - Meeting Transcription API**
 >
 > If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more
 
@@ -121,6 +121,23 @@ uv sync --extra webui
 uv run webui.py
 ```
 
+
+**Docker** (containerized deployment):
+```bash
+# Build
+docker build -t pyvideotrans-webui .
+
+# Run
+docker run -d -p 7860:7860 --name pyvideotrans pyvideotrans-webui
+
+# With persistent config and output
+docker run -d -p 7860:7860 \
+  -v ./data/output:/app/output \
+  -v ./data/config:/app/videotrans \
+  --name pyvideotrans pyvideotrans-webui
+```
+
+> [WebUI documentation](docs/webui.md)
 > [WebUI documentation](docs/webui.md)
 
 ### 5. (Optional) GPU Acceleration Configuration
@@ -184,3 +201,5 @@ This project mainly relies on the following open-source projects (partial):
 ---
 
 *Created by [jianchang512](https://github.com/jianchang512)*
+
+
