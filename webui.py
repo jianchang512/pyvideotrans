@@ -1042,17 +1042,18 @@ def build_ui():
                                     subtitle_type_name, remove_noise_val, fix_punc_name,
                                     is_separate_val, embed_bgm_val, loop_bgm_name, backaudio_volume_val,
                                     cuda_val):
-                    if app_cfg.current_status == 'ing':
-                        return
+                    print(f'{file_path=}')
                     if not file_path:
                         yield "❌ 请先选择一个视频或音频文件", None, [], _BTN_IDLE
                         return
                     app_cfg.current_status = 'ing'
+                    # 清空上次的日志、预览和输出，显示执行中状态
+                    yield "", None, [], _BTN_RUNNING
+
                     log_lines = []
                     def log(msg):
                         log_lines.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
                         return "\n".join(log_lines)
-                    yield log("初始化环境..."), None, [], _BTN_RUNNING
 
                     recogn_idx = _recogn_index_from_display(recogn_display)
                     translate_idx = _translate_index_from_display(translate_display)
@@ -1072,10 +1073,18 @@ def build_ui():
                         _file_obj = tools.format_video(Path(file_path).absolute().as_posix())
                         _nospacebasename = _file_obj["basename"].replace(" ", "-").replace(".", "-")
                         _cache_folder = f'{TEMP_DIR}/{_file_obj["uuid"]}'
+                        app_cfg.rm_uuid(_file_obj['uuid'])
                         _target_dir = f'{ROOT_DIR}/output/{_nospacebasename}'
                         _file_obj['target_dir'] = _target_dir
                         Path(_cache_folder).mkdir(parents=True, exist_ok=True)
+                        target_path = Path(_target_dir)
+                        if target_path.exists():
+                            for f in sorted(target_path.rglob("*")):
+                                if f.is_file():
+                                    if f.suffix.lower() in ['.mp4','.mkv']:
+                                        f.unlink(missing_ok=True)
                         Path(_target_dir).mkdir(parents=True, exist_ok=True)
+                        
                         from dataclasses import asdict
                         common_params = {'name': file_path, "cache_folder": _cache_folder}
                         common_params.update(asdict(_file_obj))
@@ -1093,7 +1102,8 @@ def build_ui():
                             "voice_autorate": voice_autorate_val, "video_autorate": video_autorate_val,
                             "align_sub_audio": True, "translate_type": translate_idx,
                             "is_separate": is_separate_val, "recogn2pass": False,
-                            "subtitle_type": subtitle_val, "clear_cache": True,
+                            "subtitle_type": subtitle_val, 
+                            "clear_cache": True,
                             "embed_bgm": embed_bgm_val, "loop_backaudio": loop_bgm_val,
                             "backaudio_volume": backaudio_volume_val, "background_music": "",
                         }
@@ -1129,7 +1139,7 @@ def build_ui():
                         yield log("✅ 全部任务执行完毕！"), None, [], _BTN_RUNNING
 
                         output_files, video_preview_path = [], None
-                        target_path = Path(_target_dir)
+                        
                         if target_path.exists():
                             for f in sorted(target_path.rglob("*")):
                                 if f.is_file():
@@ -1149,9 +1159,6 @@ def build_ui():
                     except Exception as e:
                         tb = traceback.format_exc()
                         yield log(f"❌ 执行出错: {str(e)}\n\n{tb}"), None, [], _BTN_IDLE
-                    finally:
-                        app_cfg.current_status = 'end'
-                        
                 start_btn.click(fn=run_translation,
                     inputs=[input_file, recogn_choice, model_choice, translate_choice,
                             source_lang, target_lang, tts_choice, voice_role,
@@ -1196,3 +1203,6 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         print(f"\n❌ 启动失败: {e}")
+
+
+
