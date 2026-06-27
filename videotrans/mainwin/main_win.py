@@ -252,7 +252,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiondeepL_key.triggered.connect(lambda: self.open_winform('deepL'))
         self.actionElevenlabs_key.triggered.connect(lambda: self.open_winform('elevenlabs'))
         self.actiondeepLX_address.triggered.connect(lambda: self.open_winform('deepLX'))
-        self.actionott_address.triggered.connect(lambda: self.open_winform('ott'))
         self.actionclone_address.triggered.connect(lambda: self.open_winform('clone'))
         self.actionkokoro_address.triggered.connect(lambda: self.open_winform('kokoro'))
         self.actionchattts_address.triggered.connect(lambda: self.open_winform('chattts'))

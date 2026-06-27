@@ -138,7 +138,6 @@ docker run -d -p 7860:7860 \
 ```
 
 > [WebUI documentation](docs/webui.md)
-> [WebUI documentation](docs/webui.md)
 
 ### 5. (Optional) GPU Acceleration Configuration
 

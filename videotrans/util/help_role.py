@@ -278,9 +278,9 @@ def get_kokoro_rolelist():
 
 # 根据 gptsovits params['gptsovits_role'] 返回以参考音频为key的dict
 def get_gptsovits_role():
-    if not params.get('gptsovits_role', '').strip():
-        return None
     rolelist = {"No": "No", "clone": "clone"}
+    if not params.get('gptsovits_role', '').strip():
+        return rolelist
     for it in params.get('gptsovits_role', '').strip().split("\n"):
         tmp = it.strip().split('#')
         if len(tmp) != 3:
@@ -290,7 +290,6 @@ def get_gptsovits_role():
 
 
 def get_chatterbox_role():
-
     rolelist=get_f5tts_role()
     rolelist["default"]='default'
     return rolelist

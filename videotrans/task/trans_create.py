@@ -1067,7 +1067,7 @@ class TransCreate(BaseTask):
             if atime < 1:
                 return
             bgm_file = self.cfg.cache_folder + f'/bgm_file.wav'
-            self.convert_to_wav(self.cfg.background_music, bgm_file)
+            self.convert_to_wav(self.cfg.background_music, bgm_file, ["-filter:a", f"volume={self.cfg.backaudio_volume}"])
             self.cfg.background_music = bgm_file
             beishu = math.ceil(vtime / atime)
             if self.cfg.loop_backaudio and beishu > 1 and vtime - 1000 > atime:

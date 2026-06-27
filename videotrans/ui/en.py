@@ -615,8 +615,6 @@ class Ui_MainWindow(object):
         self.action_issue.setObjectName("action_issue")
         self.actiondeepLX_address = QtGui.QAction()
         self.actiondeepLX_address.setObjectName("actiondeepLX_address")
-        self.actionott_address = QtGui.QAction()
-        self.actionott_address.setObjectName("actionott_address")
 
         self.actionclone_address = QtGui.QAction()
         self.actionclone_address.setObjectName("actionclone_address")
@@ -800,8 +798,6 @@ class Ui_MainWindow(object):
         self.menu_Key.addAction(self.actiondeepL_key)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiondeepLX_address)
-        self.menu_Key.addSeparator()
-        self.menu_Key.addAction(self.actionott_address)
         self.menu_Key.addSeparator()
         self.menu_Key.addAction(self.actiontrans_api)
 
@@ -1084,7 +1080,6 @@ class Ui_MainWindow(object):
         self.action_git.setText("Github Repository")
         self.action_issue.setText(tr("Post issue"))
         self.actiondeepLX_address.setText("DeepLX Api")
-        self.actionott_address.setText(tr("OTT Api"))
         self.actionclone_address.setText(tr("Clone-Voice TTS"))
         self.actionkokoro_address.setText("Kokoro TTS")
         self.actionchattts_address.setText("ChatTTS")
