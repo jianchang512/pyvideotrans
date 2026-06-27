@@ -77,7 +77,7 @@ class GPTSoVITS(BaseTTS):
             response = requests.post(f"{self.api_url}", json=data,  timeout=3600,proxies={"https":"","http":""})
         except requests.exceptions.ConnectionError as e:
             if "Failed to establish a new connection" in str(e):
-                raise StopTask(f"[GPT-SoVITS] {tr('This channel needs deployed and started before available')}") from e
+                raise StopTask(f"[GPT-SoVITS] {tr('This channel needs deployed and started before available')}\n[https://pyvideotrans.com/gptsovits]") from e
         
         if response.ok:
             # 如果是WAV音频流，获取原始音频数据

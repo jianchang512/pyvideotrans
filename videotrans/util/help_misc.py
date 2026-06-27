@@ -64,7 +64,7 @@ def show_error(tb_str):
     url_button = None
     urls = re.findall(r'\[(https?:.*?)]', tb_str)
     if urls:
-        url_button = msg_box.addButton(tr("Open") + tr('Download URL'), QtWidgets.QMessageBox.ButtonRole.NoRole)
+        url_button = msg_box.addButton(tr("Open") + tr('Download URL' if "pyvideotrans.com" not in urls[0] else 'Help document'), QtWidgets.QMessageBox.ButtonRole.NoRole)
 
     msg_box.setDefaultButton(ok_button)
 

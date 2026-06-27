@@ -40,7 +40,7 @@ class CloneVoice(BaseTTS):
                     res = requests.post(f"{self.api_url}/apitts", data=data, files=files,  timeout=3600)
         except requests.exceptions.ConnectionError as e:
             if "Failed to establish a new connection" in str(e):
-                raise StopTask(f"[Clone-Voice] {tr('This channel needs deployed and started before available')}\n{self.api_url=}") from e
+                raise StopTask(f"[Clone-Voice] {tr('This channel needs deployed and started before available')}\n{self.api_url=}\n[https://pyvideotrans.com/clone-voice]") from e
 
         res.raise_for_status()
         logger.debug(f'clone-voice:{data=},{res.text=}')

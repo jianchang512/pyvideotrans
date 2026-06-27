@@ -35,7 +35,7 @@ class FishTTS(BaseTTS):
             response = requests.post(f"{self.api_url}", json=data, timeout=3600)
         except requests.exceptions.ConnectionError as e:
             if "Failed to establish a new connection" in str(e):
-                raise StopTask(f"[FishTTS] {tr('This channel needs deployed and started before available')}") from e
+                raise StopTask(f"[FishTTS] {tr('This channel needs deployed and started before available')}\n[https://pyvideotrans.com/fishtts]") from e
         response.raise_for_status()
 
         # 如果是WAV音频流，获取原始音频数据

@@ -71,7 +71,8 @@ class GradioBase(BaseTTS):
             err=str(e)
             for _title in  _quit_errors:
                 if _title in err :
-                    raise StopTask(f"{self.ainame} {tr('This channel needs deployed and started before available')}\n{self.api_url=}\n{err}") from e
+                    url='https://pyvideotrans.com/'+(self.ainame if self.ainame in ['omnivoice','cosyvoice'] else 'f5tts')
+                    raise StopTask(f"{self.ainame} {tr('This channel needs deployed and started before available')}\n{self.api_url=}\n{err}\n[{url}]") from e
             return err
         except concurrent.futures.CancelledError as e:
             logger.exception(f'配音失败:{self.ainame}',exc_info=True)

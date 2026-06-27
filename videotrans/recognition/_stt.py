@@ -59,7 +59,7 @@ class SttAPIRecogn(BaseRecogn):
         try:
             res = requests.post(f"{self.api_url}", files=files, data=data, timeout=7200)
         except requests.exceptions.ConnectionError as e:
-            raise StopTask(f"[STT] {tr('This channel needs deployed and started before available')}\n{self.api_url=}") from e
+            raise StopTask(f"[STT] {tr('This channel needs deployed and started before available')}\n{self.api_url=}\[https://pyvideotrans.com/stt]") from e
         res.raise_for_status()
         res = res.json()
         if "code" not in res or res['code'] != 0:

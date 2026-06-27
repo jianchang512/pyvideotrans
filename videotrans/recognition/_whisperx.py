@@ -57,7 +57,7 @@ class WhisperXRecogn(BaseRecogn):
                             speaker_name.append(sp)
 
         except APIConnectionError as e:
-            raise StopTask(f'[WhisperX] {tr("This channel needs deployed and started before available")}\n{self.api_url=}\n{e}') from e
+            raise StopTask(f'[WhisperX] {tr("This channel needs deployed and started before available")}\n{self.api_url=}\n{e}\n[https://pyvideotrans.com/whisperx-api]') from e
         if speaker_name:
             try:
                 #默认未识别出后的回退说话人

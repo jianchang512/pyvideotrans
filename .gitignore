@@ -36,6 +36,7 @@ videotrans/ass.json
 videotrans/codec.json
 videotrans/cfg.json
 videotrans/params.json
+videotrans/webui_state.json
 videotrans/glossary.txt
 videotrans/newlang.txt
 
@@ -68,5 +69,4 @@ runtime
 .Trashes
 ehthumbs.db
 Thumbs.db
-
 test.py

@@ -44,7 +44,7 @@ class Libre(BaseTrans):
         try:
             response = requests.post(url=self.api_url, json=jsondata)
         except requests.exceptions.ConnectionError as e:
-            raise StopTask(f"[Libre] {tr('This channel needs deployed and started before available')}") from e
+            raise StopTask(f"[Libre] {tr('This channel needs deployed and started before available')}\n[https://pyvideotrans.com/libretranslate]") from e
         response.raise_for_status()
         result = response.json()
         result = tools.cleartext(result['translatedText'])

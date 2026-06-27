@@ -144,8 +144,8 @@ def _handle_connection_error_detail(error, lang):
             )
         else:
             base_message = (
-                "连接被拒绝，目标服务可能未运行或端口错误" if lang == 'zh'
-                else "Connection refused, target service may not be running or wrong port"
+                "连接被拒绝，无法连接目标服务" if lang == 'zh'
+                else "Connection refused"
             )
     elif "reset" in error_str:
         base_message = (
