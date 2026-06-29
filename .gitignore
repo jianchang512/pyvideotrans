@@ -60,6 +60,7 @@ ytdarwin
 __pycache__
 pretrained_models
 runtime
+guide/
 
 # Arquivos do sistema
 .DS_Store
