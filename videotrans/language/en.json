@@ -143,7 +143,7 @@
     "Folder": "Folder",
     "French": "French",
     "From  Text  Into  Speech": "Batch Dubbing",
-    "FunASR-Chinese": "FunASR(Local)",
+    "FunASR-Chinese": "FunASR",
     "Gemini AI": "Gemini AI",
     "German": "German",
     "Greek": "Greek",
@@ -513,7 +513,7 @@
     "peiyinchucuo": "Dubbing Error",
     "proxy address": "Proxy URL (Not API URL)",
     "quanbuend": "All Tasks Finished",
-    "recogn result is empty": "No subs recognized. Check Audio/Lang.",
+    "recogn result is empty": "No subtitles were recognized. Please check: [1] whether it contains human speech, [2] whether the spoken language matches the selected pronunciation language, and [3] whether the selected channel supports the pronunciation language.",
     "running": "Running...",
     "save in situ": "Save in Place",
     "savesrtto": "Save SRT to...",
@@ -843,6 +843,11 @@
             "uz": "Uzbek",
             "cy": "Welsh",
             "zu": "Zulu",
-			"the reference audio duration is less than 3 seconds":"If the reference audio duration is less than 3 seconds, voice cloning cannot be performed; skip this step."
+			"the reference audio duration is less than 3 seconds":"If the reference audio duration is less than 3 seconds, voice cloning cannot be performed; skip this step.",
+			"40 Eastern languages and 22 Chinese dialects":"40 Eastern languages and 22 Chinese dialects",
+			"Chinese & English and Chinese dialects":"Chinese & English and Chinese dialects",
+			"FireRed":"FireredASR",
+			"Omnilingual":"OmnilingualASR",
+			"parakeet-ja":"parakeet-ja"
 
 }

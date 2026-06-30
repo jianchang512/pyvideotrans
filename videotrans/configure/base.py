@@ -10,7 +10,7 @@ from videotrans.configure.config import tr, settings, app_cfg, logger, push_queu
 
 
 
-from videotrans.task.taskcfg import SignMsg
+
 
 from videotrans.util.help_misc import set_proxy,vail_file
 
@@ -44,7 +44,7 @@ class BaseCon:
             return
         if 'type' not in kwargs or not kwargs.get('type'):
             kwargs['type']='logs'
-
+        from videotrans.task.taskcfg import SignMsg
         push_queue(kwargs.get('uuid') or "", SignMsg(**kwargs))
 
     def _process_callback(self, data):

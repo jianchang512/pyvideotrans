@@ -1,23 +1,23 @@
 def openwin():
-    from PySide6 import QtWidgets
-    from videotrans.configure.config import tr,params, app_cfg
+    from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
-    def feed(d):
-        if not d.startswith("ok"):
-            tools.show_error(d)
-        else:
-            QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
-        winobj.test.setText(tr("Test"))
+    from videotrans.winform._helpers import make_feed_translator
+    from videotrans.component.set_form import DeepLXForm
+
+    winobj = DeepLXForm()
+    app_cfg.child_forms['deeplx'] = winobj
+
+    feed = make_feed_translator(winobj, "test")
+
+    def _fix_url(url):
+        if not url.startswith('http'):
+            return 'http://' + url
+        return url
 
     def test():
-        url = winobj.deeplx_address.text().strip()
-        if not url.startswith('http'):
-            url = 'http://' + url
-        key = winobj.deeplx_key.text().strip()
-
-        params["deeplx_address"] = url
-        params["deeplx_key"] = key
+        params["deeplx_address"] = _fix_url(winobj.deeplx_address.text().strip())
+        params["deeplx_key"] = winobj.deeplx_key.text().strip()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.DEEPLX_INDEX)
@@ -25,20 +25,13 @@ def openwin():
         task.start()
 
     def save():
-        url = winobj.deeplx_address.text().strip()
-        if not url.startswith('http'):
-            url = 'http://' + url
-        key = winobj.deeplx_key.text().strip()
-        params["deeplx_address"] = url
-        params["deeplx_key"] = key
+        params["deeplx_address"] = _fix_url(winobj.deeplx_address.text().strip())
+        params["deeplx_key"] = winobj.deeplx_key.text().strip()
         params.save()
         winobj.close()
 
-    from videotrans.component.set_form import DeepLXForm
-    winobj = DeepLXForm()
-    app_cfg.child_forms['deeplx'] = winobj
-    winobj.deeplx_address.setText(params.get("deeplx_address",''))
-    winobj.deeplx_key.setText(str(params.get("deeplx_key",'')))
+    winobj.deeplx_address.setText(params.get("deeplx_address", ''))
+    winobj.deeplx_key.setText(str(params.get("deeplx_key", '')))
     winobj.set_deeplx.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

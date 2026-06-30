@@ -28,7 +28,6 @@ def openwin():
         params["index_tts_version"] = index_tts_version
         params["voxcpmtts_version"] = winobj.voxcpmtts_version.currentText()
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
-        params["diatts_url"] = winobj.diatts_url.text()
         params["indextts_url"] = winobj.indextts_url.text()
         params["sparktts_url"] = winobj.sparktts_url.text()
         params["f5tts_url"] = winobj.f5tts_url.text()
@@ -59,7 +58,6 @@ def openwin():
         params["voxcpmtts_version"] = winobj.voxcpmtts_version.currentText()
         
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
-        params["diatts_url"] = winobj.diatts_url.text()
         params["indextts_url"] = winobj.indextts_url.text()
         params["sparktts_url"] = winobj.sparktts_url.text()
         params["f5tts_url"] = winobj.f5tts_url.text()
@@ -81,14 +79,12 @@ def openwin():
     winobj.confuciustts_url.setText(params.get('confuciustts_url',''))
     winobj.sparktts_url.setText(params.get('sparktts_url',''))
     winobj.indextts_url.setText(params.get('indextts_url',''))
-    winobj.diatts_url.setText(params.get('diatts_url',''))
     winobj.voxcpmtts_url.setText(params.get('voxcpmtts_url',''))
 
     winobj.save.clicked.connect(save)
     winobj.f5tts_urltest.clicked.connect(lambda: test(tts.F5_TTS))
     winobj.sparktts_urltest.clicked.connect(lambda: test(tts.SPARK_TTS))
     winobj.indextts_urltest.clicked.connect(lambda: test(tts.INDEX_TTS))
-    winobj.diatts_urltest.clicked.connect(lambda: test(tts.DIA_TTS))
     winobj.voxcpmtts_urltest.clicked.connect(lambda: test(tts.VOXCPM_TTS))
     winobj.confuciustts_urltest.clicked.connect(lambda: test(tts.CONFUCIUS_TTS))
     winobj.show()
@@ -96,7 +92,6 @@ def openwin():
         tts.F5_TTS:winobj.f5tts_urltest,
         tts.INDEX_TTS:winobj.indextts_urltest,
         tts.SPARK_TTS:winobj.sparktts_urltest,
-        tts.DIA_TTS:winobj.diatts_urltest,
         tts.VOXCPM_TTS:winobj.voxcpmtts_urltest,
         tts.CONFUCIUS_TTS:winobj.confuciustts_urltest,
     }

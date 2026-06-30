@@ -1,31 +1,27 @@
 def openwin():
     import os
-    from PySide6 import QtWidgets
-    from videotrans.configure.config import tr,params,settings,app_cfg
+    from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
-    def feed(d):
-        if not d.startswith("ok"):
-            tools.show_error(d)
-        else:
-            QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
-        winobj.test_chatgpt.setText(tr("Test"))
+    from videotrans.winform._helpers import make_feed_translator, make_setallmodels
+    from videotrans.component.set_form import ChatgptForm
 
+    winobj = ChatgptForm()
+    app_cfg.child_forms['chatgpt'] = winobj
+    winobj.update_ui()
 
+    feed = make_feed_translator(winobj, "test_chatgpt")
 
     def test():
         key = winobj.chatgpt_key.text()
-        max_token = winobj.chatgpt_max_token.text().strip()
         url = tools.process_openai_api(winobj.chatgpt_api.text().strip())
-        model = winobj.chatgpt_model.currentText()
-
-        os.environ['OPENAI_API_KEY'] = key
         params["chatgpt_key"] = key
         params["chatgpt_api"] = url
-        params["chatgpt_max_token"] = max_token
-        params["chatgpt_model"] = model
+        params["chatgpt_max_token"] = winobj.chatgpt_max_token.text().strip()
+        params["chatgpt_model"] = winobj.chatgpt_model.currentText()
         params["chatgpt_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
+        os.environ['OPENAI_API_KEY'] = key
         winobj.test_chatgpt.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.CHATGPT_INDEX)
@@ -33,37 +29,15 @@ def openwin():
         task.start()
 
     def save_chatgpt():
-        key = winobj.chatgpt_key.text()
-        url = tools.process_openai_api(winobj.chatgpt_api.text().strip())
-        max_token = winobj.chatgpt_max_token.text().strip()
-        model = winobj.chatgpt_model.currentText()
-
-        params["chatgpt_max_token"] = max_token
-        params["chatgpt_key"] = key
-        params["chatgpt_api"] = url
-        params["chatgpt_model"] = model
+        params["chatgpt_max_token"] = winobj.chatgpt_max_token.text().strip()
+        params["chatgpt_key"] = winobj.chatgpt_key.text()
+        params["chatgpt_api"] = tools.process_openai_api(winobj.chatgpt_api.text().strip())
+        params["chatgpt_model"] = winobj.chatgpt_model.currentText()
         params["chatgpt_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.close()
 
-    def setallmodels():
-        t = winobj.edit_allmodels.toPlainText().strip().replace('，', ',').rstrip(',')
-        current_text = winobj.chatgpt_model.currentText()
-        winobj.chatgpt_model.clear()
-        winobj.chatgpt_model.addItems([x for x in t.split(',') if x.strip()])
-        if current_text:
-            winobj.chatgpt_model.setCurrentText(current_text)
-        settings['chatgpt_model'] = t
-        settings.save()
-
-
-
-    from videotrans.component.set_form import ChatgptForm
-
-    winobj = ChatgptForm()
-    app_cfg.child_forms['chatgpt'] = winobj
-    winobj.update_ui()
     winobj.set_chatgpt.clicked.connect(save_chatgpt)
     winobj.test_chatgpt.clicked.connect(test)
-    winobj.edit_allmodels.textChanged.connect(setallmodels)
+    winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'chatgpt_model', 'chatgpt_model'))
     winobj.show()

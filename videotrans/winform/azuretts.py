@@ -1,11 +1,16 @@
 def openwin():
-    from PySide6 import QtWidgets
-    from videotrans.configure.config import tr,app_cfg, params
+    from videotrans.configure.config import tr,app_cfg,params
     from videotrans.configure import config
     from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
+    from videotrans.component.set_form import AzurettsForm
+
+    winobj = AzurettsForm()
+    app_cfg.child_forms['azuretts'] = winobj
+
     def feed(d):
         if d == "ok":
+            from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
             tools.show_error(d)
@@ -19,12 +24,11 @@ def openwin():
         region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):
             region = winobj.azuretts_area.currentText()
-
         params['azure_speech_key'] = key
         params['azure_speech_region'] = region
         from videotrans import tts
         import time
-        wk = ListenVoice(parent=winobj, queue_tts=[{"text": '你好啊我的朋友', "role": 'zh-CN-YunjianNeural',
+        wk = ListenVoice(parent=winobj, queue_tts=[{"text": '\u4f60\u597d\u554a\u6211\u7684\u670b\u53cb', "role": 'zh-CN-YunjianNeural',
                                                     "filename": config.TEMP_DIR + f"/{time.time()}-azure.wav",
                                                     "tts_type": tts.AZURE_TTS}], language="zh", tts_type=tts.AZURE_TTS)
         wk.uito.connect(feed)
@@ -32,20 +36,14 @@ def openwin():
         winobj.test.setText('Testing...')
 
     def save():
-        key = winobj.speech_key.text()
+        params['azure_speech_key'] = winobj.speech_key.text()
         region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):
             region = winobj.azuretts_area.currentText()
-
-        params['azure_speech_key'] = key
         params['azure_speech_region'] = region
         params.save()
         winobj.close()
 
-    from videotrans.component.set_form import AzurettsForm
-
-    winobj = AzurettsForm()
-    app_cfg.child_forms['azuretts'] = winobj
     if params.get('azure_speech_region','') and params.get('azure_speech_region','').startswith('http'):
         winobj.speech_region.setText(params.get('azure_speech_region',''))
     else:

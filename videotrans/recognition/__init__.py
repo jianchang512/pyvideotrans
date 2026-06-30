@@ -12,31 +12,32 @@ FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
 QWENASR = 2
 FUNASR_CN = 3
-HUGGINGFACE_ASR = 4
+FIREREDASR=4
+DOLPHIN=5
+Omnilingual=6
+PARAKEET_JA=7
+HUGGINGFACE_ASR = 8
 
-OPENAI_API = 5
-GEMINI_SPEECH = 6
-QWEN3ASR = 7
-ZIJIE_RECOGN_MODEL = 8
+OPENAI_API = 9
+GEMINI_SPEECH = 10
+QWEN3ASR = 11
+ZIJIE_RECOGN_MODEL = 12
 
-ZHIPU_API = 9
+ZHIPU_API = 13
+Deepgram = 14
 
-Deepgram = 10
+Whisper_CPP = 15
+Faster_Whisper_XXL = 16
+WHISPERX_API = 17
+PARAKEET = 18
 
-PARAKEET = 11
-Whisper_CPP = 12
-Faster_Whisper_XXL = 13
-WHISPERX_API = 14
-
-AI_302 = 15
-ElevenLabs = 16
-
-GOOGLE_SPEECH = 17
-
-STT_API = 18
-WHISPER_NET = 19
-CAMB_ASR = 20
-CUSTOM_API = 21
+AI_302 = 19
+ElevenLabs = 20
+GOOGLE_SPEECH = 21
+WHISPER_NET = 22
+CAMB_ASR = 23
+STT_API = 24
+CUSTOM_API = 25
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
@@ -50,6 +51,10 @@ _ID_NAME_DICT = {
     OPENAI_WHISPER: ChannelProvider(f"openai-whisper({tr('Local')}{tr('Built-in')})", imp="._whisper"),
     QWENASR: ChannelProvider(f"Qwen-ASR({tr('Local')}{tr('Built-in')})", imp="._qwenasrlocal"),
     FUNASR_CN: ChannelProvider(tr("FunASR-Chinese")+f"({tr('Local')}{tr('Built-in')})", imp="._funasr"),
+    FIREREDASR: ChannelProvider(f"{tr('FireRed')}({tr('Local')}{tr('Built-in')})", imp="._fireredasr"),
+    DOLPHIN: ChannelProvider(f"Dolphin({tr('Local')}{tr('Built-in')})", imp="._dolphin"),
+    Omnilingual: ChannelProvider(f"{tr('Omnilingual')}({tr('Local')}{tr('Built-in')})", imp="._omnilingual"),
+    PARAKEET_JA: ChannelProvider(f"{tr('parakeet-ja')}({tr('Local')}{tr('Built-in')})", imp="._parakeetja"),
     HUGGINGFACE_ASR: ChannelProvider(f"Huggingface_ASR({tr('Local')}{tr('Built-in')})", imp="._huggingface"),
 
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"), key_name="openairecognapi_key", win="openairecognapi",
@@ -63,18 +68,18 @@ _ID_NAME_DICT = {
 
     Deepgram: ChannelProvider("Deepgram.com", key_name="deepgram_apikey", win="deepgram", imp="._deepgram"),
 
-    PARAKEET: ChannelProvider(f"Parakeet-tdt({tr('Local')}API)", key_name="parakeet_address", win="parakeet", imp="._parakeet"),
 
     Whisper_CPP: ChannelProvider("Whisper.cpp", imp="._cpp"),
     Faster_Whisper_XXL: ChannelProvider("Faster-Whisper-XXL.exe", imp="._xxl"),
     WHISPERX_API: ChannelProvider(f"WhisperX({tr('Local')}API)", imp="._whisperx"),
+    PARAKEET: ChannelProvider(f"Parakeet-tdt({tr('Local')}API)", key_name="parakeet_address", win="parakeet", imp="._parakeet"),
 
     AI_302: ChannelProvider("302.AI", key_name="ai302_key", win="ai302", imp="._ai302"),
     ElevenLabs: ChannelProvider("ElevenLabs.io", key_name="elevenlabstts_key", win="elevenlabs", imp="._elevenlabs"),
     GOOGLE_SPEECH: ChannelProvider(tr("Google Speech to Text"), imp="._google"),
-    STT_API: ChannelProvider(f"STT({tr('Local')}API)", key_name="stt_url", win="sttapi", imp="._stt"),
     WHISPER_NET: ChannelProvider("Whisper.NET", imp="._whispernet"),
     CAMB_ASR: ChannelProvider("CAMB AI", key_name="camb_api_key", win="cambtts", imp="._camb"),
+    STT_API: ChannelProvider(f"STT({tr('Local')}API)", key_name="stt_url", win="sttapi", imp="._stt"),
     CUSTOM_API: ChannelProvider(tr("Custom API"), key_name="recognapi_url", win="recognapi", imp="._recognapi"),
 }
 # 强制保持按照每个常量值大小排序
@@ -83,16 +88,13 @@ RECOGN_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
 HUGGINGFACE_ASR_MODELS = {
     "nvidia/parakeet-ctc-1.1b": ['en'],
-
     # hub
     "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],
     # pipeline whisper
     "kotoba-tech/kotoba-whisper-v2.0": ['ja'],
-
     # pipeline whisper
     "biodatlab/whisper-th-large-v3": ['th'],
     "vinai/Phowhisper-large": ['vi'],
-
     "openai/whisper-large-v3": [],
 }
 try:
@@ -126,19 +128,25 @@ def get_model_by_type(recogn_type: int) -> List[str]:
 # langcode=语言代码，recogn_type=识别渠道,model_name=模型名字
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
     # faster-whisper/openai-whisper支持所有语言
-    if recogn_type in [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API,
-                       AI_302, GEMINI_SPEECH, WHISPER_NET]:
+    if recogn_type in [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API, AI_302, GEMINI_SPEECH, WHISPER_NET]:
         return True
     # huggingface_asr 渠道里的 openai 和 Systran 模型也支持所有语言
     if recogn_type == HUGGINGFACE_ASR and not HUGGINGFACE_ASR_MODELS.get(model_name):
         return True
+        
     if recogn_type == HUGGINGFACE_ASR and HUGGINGFACE_ASR_MODELS.get(model_name):
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
             return tr("Only support") + tr(HUGGINGFACE_ASR_MODELS[model_name])
         return True
-    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH,
-                                                                    ElevenLabs, Faster_Whisper_XXL, Whisper_CPP,
-                                                                    WHISPERX_API, AI_302, OPENAI_API, WHISPER_NET]:
+    if recogn_type == PARAKEET_JA:
+        return tr("Only support") + tr('ja')
+        
+    if recogn_type == DOLPHIN:
+        return tr("Only support") + tr('40 Eastern languages and 22 Chinese dialects')
+    if recogn_type == FIREREDASR:
+        return tr("Only support") + tr('Chinese & English and Chinese dialects')
+    
+    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs, Faster_Whisper_XXL, Whisper_CPP,  WHISPERX_API, AI_302, OPENAI_API, WHISPER_NET,DOLPHIN,FIREREDASR,HUGGINGFACE_ASR,Omnilingual]:
         return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
 
     return True

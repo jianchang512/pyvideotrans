@@ -76,8 +76,9 @@ class DeepgramRecogn(BaseRecogn):
                 }
                 if self.detect_language[:2] in contants.CJK_LANG:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'],flags=re.I | re.S)
-                tmp['time'] = tools.ms_to_time_string(ms=tmp['start_time']) + ' --> ' + tools.ms_to_time_string(
-                    ms=tmp['end_time'])
+                tmp['startraw']=tools.ms_to_time_string(ms=tmp['start_time'])
+                tmp['endraw']=tools.ms_to_time_string(ms=tmp['end_time'])
+                tmp['time'] =  f"{tmp['startraw']} --> {tmp['endraw']}"
                 raws.append(tmp)
             if speaker_list:
                 Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')

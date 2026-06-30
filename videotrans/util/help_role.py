@@ -374,8 +374,8 @@ def role_menu(tts_type, langcode=None) -> List:
     if tts_type == tts.QWEN3LOCAL_TTS:
         return list(get_qwenttslocal_rolelist().keys())
 
-    if tts_type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS, tts.DIA_TTS, tts.OMNIVOICE_TTS,
-                    tts.COSYVOICE_TTS, tts.FISHTTS, tts.MOSS_TTS,tts.CONFUCIUS_TTS]:
+    if tts_type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,  tts.OMNIVOICE_TTS,
+                    tts.COSYVOICE_TTS, tts.FISHTTS, tts.MOSS_TTS,tts.CONFUCIUS_TTS,tts.ZIPVOICE_TTS]:
         return list(get_f5tts_role().keys())
 
     if tts_type == tts.CHATTERBOX_TTS:

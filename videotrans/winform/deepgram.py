@@ -1,24 +1,23 @@
 def openwin():
-    from PySide6 import QtWidgets
-    from videotrans import recognition
-    from videotrans.configure.config import tr,params, app_cfg
+    from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util import tools
+    from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
-    def feed(d):
-        if d.startswith("ok"):
-            QtWidgets.QMessageBox.information(winobj, "ok", d[3:])
-        else:
-            tools.show_error(d)
-        winobj.test.setText(tr("Test"))
+    from videotrans.winform._helpers import make_feed_stt
+    from videotrans.component.set_form import DeepgramForm
+
+    winobj = DeepgramForm()
+    app_cfg.child_forms['deepgram'] = winobj
+
+    feed = make_feed_stt(winobj, "test")
 
     def test():
         apikey = winobj.apikey.text().strip()
-        utt = winobj.utt.text().strip()
         if not apikey:
             tools.show_error(tr("Must fill in the API Key"))
             return
         params["deepgram_apikey"] = apikey
-        params["deepgram_utt"] = 200 if utt else 200
+        params["deepgram_utt"] = winobj.utt.text().strip() or 200
         params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.Deepgram, model_name="whisper-large")
@@ -27,22 +26,17 @@ def openwin():
 
     def save():
         apikey = winobj.apikey.text().strip()
-        utt = winobj.utt.text().strip()
         if not apikey:
             tools.show_error(tr("Must fill in the API Key"))
             return
-
         params["deepgram_apikey"] = apikey
-        params["deepgram_utt"] = 200 if utt else 200
+        params["deepgram_utt"] = winobj.utt.text().strip() or 200
         params.save()
         tools.set_process(text='', type="refreshmodel_list")
         winobj.close()
 
-    from videotrans.component.set_form import DeepgramForm
-    winobj = DeepgramForm()
-    app_cfg.child_forms['deepgram'] = winobj
-    winobj.apikey.setText(str(params.get("deepgram_apikey",'')))
-    winobj.utt.setText(str(params.get("deepgram_utt",'')))
+    winobj.apikey.setText(str(params.get("deepgram_apikey", '')))
+    winobj.utt.setText(str(params.get("deepgram_utt", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

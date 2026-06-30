@@ -73,19 +73,6 @@ class Ui_f5ttsform(object):
 
         v1.addLayout(h1indextts_url)
 
-        h1diatts_url = QtWidgets.QHBoxLayout()
-        self.diatts_urllabel = QLabel('Dia-TTS URL')
-        self.diatts_urllabel.setObjectName("diatts_urllabel")
-        self.diatts_urllabel.setMinimumSize(QSize(0, 35))
-        self.diatts_url = QLineEdit()
-        self.diatts_url.setObjectName("diatts_url")
-        self.diatts_url.setPlaceholderText('URL ')
-        self.diatts_url.setMinimumSize(QSize(0, 35))        
-        h1diatts_url.addWidget(self.diatts_urllabel)
-        h1diatts_url.addWidget(self.diatts_url)
-        self.diatts_urltest = QPushButton(tr("Test"))        
-        h1diatts_url.addWidget(self.diatts_urltest)
-        v1.addLayout(h1diatts_url)
         
         h1confuciustts_url = QtWidgets.QHBoxLayout()
         self.confuciustts_urllabel = QLabel('Confucius-TTS URL')
@@ -153,5 +140,5 @@ class Ui_f5ttsform(object):
 
     def retranslateUi(self, f5ttsform):
 
-        f5ttsform.setWindowTitle("F5/Spark/index/Dia/VoxCPM/Confucius" +tr('This channel needs deployed and started before available'))
+        f5ttsform.setWindowTitle("F5/Spark/index/VoxCPM/Confucius" +tr('This channel needs deployed and started before available'))
         self.save.setText(tr("Save"))

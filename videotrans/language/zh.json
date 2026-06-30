@@ -143,7 +143,7 @@
     "Folder": "文件夹",
     "French": "法语",
     "From  Text  Into  Speech": "批量为字幕配音",
-    "FunASR-Chinese": "阿里FunASR(本地)",
+    "FunASR-Chinese": "阿里FunASR",
     "Gemini AI": "Gemini大模型识别",
     "German": "德语",
     "Greek": "希腊语",
@@ -513,7 +513,7 @@
     "peiyinchucuo": "配音阶段出错",
     "proxy address": "Google/chatGPT官方接口国内无法访问，必须填写网络代理地址,不是填写api地址",
     "quanbuend": "全部执行完成",
-    "recogn result is empty": "没有识别出字幕，请检查是否包含人类说话声音，以及说话语言是否和你选择的原始语言匹配",
+    "recogn result is empty": "没有识别出字幕，请检查：【1】是否包含人类说话声，【2】说话语言是否和所选发音语言一致，【3】所选渠道是否支持该发音语言",
     "running": "执行中..",
     "save in situ": "原地保存",
     "savesrtto": "选择保存字幕文件到..",
@@ -843,5 +843,10 @@
         "uz": "乌兹别克语",
         "cy": "威尔士语",
         "zu": "祖鲁语",
-		"the reference audio duration is less than 3 seconds":"参考音频时长小于3s，无法进行语音克隆，跳过"
+		"the reference audio duration is less than 3 seconds":"参考音频时长小于3s，无法进行语音克隆，跳过",
+		"40 Eastern languages and 22 Chinese dialects":"40东方语言和20中文方言",
+		"Chinese & English and Chinese dialects":"中英及中文方言",
+		"FireRed":"小红书",
+		"Omnilingual":"Omnilingual ASR",
+		"parakeet-ja":"parakeet日语"
 }
