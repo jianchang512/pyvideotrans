@@ -203,7 +203,7 @@ class AppParams:
             "confuciustts_url": "http://127.0.0.1:7860",
             "f5tts_model": "",
             "f5tts_ttstype": "F5-TTS",
-            "f5tts_role": "nverguo.wav#你说四大皆空，却为何，紧闭双眼，若你睁开眼睛看看我，我不相信你，两眼空空。",
+            "f5tts_role": "nverguo.wav#你说四大皆空，却为何，紧闭双眼，若你睁开眼睛看看我，我不相信你，两眼空空。\ncosy.wav#希望你以后，能够做的比我还好哟！",
             "index_tts_version": 1,
             "f5tts_is_whisper": False,
             "indextts_url": "http://127.0.0.1:7860",

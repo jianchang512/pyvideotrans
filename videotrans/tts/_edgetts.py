@@ -135,8 +135,10 @@ class EdgeTTS(BaseTTS):
         self._stop_event.clear()
         total_tasks = len(self.queue_tts)
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
+        all_voices=set()
         for it in self.queue_tts:
             it['role']=tools.get_edge_rolelist(it['role'],self.language)
+            all_voices.add(it['role'])
 
         worker_tasks = [
             asyncio.create_task(
@@ -197,7 +199,7 @@ class EdgeTTS(BaseTTS):
                     err += 1
             if ok==0:
                 logger.debug('本次配音全部失败')
-                raise DubbingSrtError(f'All error for edge-tts  {self.error}')
+                raise DubbingSrtError(f'{tr("Dubbing failed")}:{self.error}\n{all_voices=}')
 
             if ok>0:
                 all_task = []

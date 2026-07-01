@@ -846,7 +846,10 @@
 		"the reference audio duration is less than 3 seconds":"参考音频时长小于3s，无法进行语音克隆，跳过",
 		"40 Eastern languages and 22 Chinese dialects":"40东方语言和20中文方言",
 		"Chinese & English and Chinese dialects":"中英及中文方言",
-		"FireRed":"小红书",
-		"Omnilingual":"Omnilingual ASR",
-		"parakeet-ja":"parakeet日语"
+		"FireRed":"FireRed中文",
+		"Omnilingual":"OmnilingualASR",
+		"parakeet-ja":"parakeet日语",
+		"Dolphin":"Dolphin亚洲语言",
+		"VITS":"VITS中英",
+		"ZipVoice":"ZipVoice中英"
 }

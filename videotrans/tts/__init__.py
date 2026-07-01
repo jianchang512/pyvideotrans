@@ -80,10 +80,10 @@ _ID_NAME_DICT = {
     QWEN3LOCAL_TTS: ChannelProvider(f"Qwen3-TTS({tr('Local')}{tr('Built-in')})", "._qwenttslocal"),
     MOSS_TTS: ChannelProvider(f"MOSS-TTS-Nano({tr('Local')}{tr('Built-in')})", "._mosstts"),
     PIPER_TTS: ChannelProvider(f"Piper({tr('Local')}{tr('Built-in')})", "._piper"),
-    VITSCNEN_TTS: ChannelProvider(f"VITS({tr('Local')}{tr('Built-in')})", "._vits"),
+    VITSCNEN_TTS: ChannelProvider(f"{tr('VITS')}({tr('Local')}{tr('Built-in')})", "._vits"),
     Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Local')}{tr('Built-in')})", "._supertonic"),
     CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}{tr('Built-in')})", "._chatterbox",  win="chatterbox"),
-    ZIPVOICE_TTS: ChannelProvider(f"ZipVoice({tr('Local')}{tr('Built-in')})", "._zipvoice"),
+    ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Local')}{tr('Built-in')})", "._zipvoice"),
 
     OMNIVOICE_TTS: ChannelProvider(f"OmniVoice({tr('Local')}API)", "._omnivoice", key_name="omnivoice_url",   win="omnivoice"),
     F5_TTS: ChannelProvider(f"F5-TTS({tr('Local')}API)", "._f5tts", key_name="f5tts_url", win="f5tts"),

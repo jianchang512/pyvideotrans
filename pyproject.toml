@@ -28,7 +28,6 @@ dependencies = [
     "aliyun-python-sdk-kms==2.16.5",
     "altgraph==0.17.4",
     "annotated-types==0.6.0",
-    "anthropic==0.42.0",
     "antlr4-python3-runtime==4.9.3",
     "anyio==4.9.0",
     "asttokens==2.4.1",

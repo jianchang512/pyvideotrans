@@ -106,7 +106,7 @@ class OpenAICampat(BaseTrans):
         if len(api_url)<10:
             raise StopTask(f'API URL is error: {api_url}')
 
-        prompts_template = Path(f'{ROOT_DIR}/videotrans/prompts/recharge/recharge-llm{step}.txt').read_text(encoding='utf-8')
+        prompts_template = Path(f'{ROOT_DIR}/videotrans/prompts/resegment/resegment-llm{step}.txt').read_text(encoding='utf-8')
         prompts_template = prompts_template.replace('{max_speech_s}', str(settings.get('max_speech_duration_s', 6)))
         chunk_size = int(settings.get('llm_chunk_size', 20))
         model_name=params.get(f'{self.ainame}_model')

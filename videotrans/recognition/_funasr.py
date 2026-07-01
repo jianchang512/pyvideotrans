@@ -34,7 +34,6 @@ class FunasrRecogn(BaseRecogn):
 
         if self.model_name == 'paraformer-zh':
             tools.check_and_down_ms(model_id='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',callback=self._process_callback)
-            tools.check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
             tools.check_and_down_ms(model_id='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',callback=self._process_callback)
             tools.check_and_down_ms(model_id='damo/speech_campplus_sv_zh-cn_16k-common',callback=self._process_callback)
         else:
