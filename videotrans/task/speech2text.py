@@ -110,10 +110,10 @@ class SpeechToText(BaseTask):
             raise SpeechToTextError(self.cfg.basename + tr('recogn result is empty'))
         self.source_srt_list = raw_subtitles
         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-        if self._exit() or self.cfg.detect_language == 'auto': return
+
 
         # 中英恢复标点符号
-        if self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
+        if self.cfg.detect_language != 'auto' and self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
             from videotrans.process.prepare_audio import fix_punc
             down_file_from_ms(f'{ROOT_DIR}/models/puntc', [
                     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/model.onnx",
@@ -146,8 +146,9 @@ class SpeechToText(BaseTask):
         # 本身已有说话人识别的，就不再重新断句
         self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
         if Path(self.cfg.cache_folder + "/speaker.json").exists(): return
-
-        if self.cfg.rephrase == 1:
+        
+        # 选中说话人识别，则不使用LLM重新短句
+        if not self.cfg.enable_diariz and self.cfg.rephrase == 1:
             # LLM重新断句
             try:
                 from videotrans.translator._openaicompat import OpenAICampat

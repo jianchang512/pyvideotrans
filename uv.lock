@@ -346,24 +346,6 @@ wheels = [
 ]
 
 [[package]]
-name = "anthropic"
-version = "0.42.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "anyio" },
-    { name = "distro" },
-    { name = "httpx" },
-    { name = "jiter" },
-    { name = "pydantic" },
-    { name = "sniffio" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e7/7c/91b79f5ae4a52497a4e330d66ea5929aec2878ee2c9f8a998dbe4f4c7f01/anthropic-0.42.0.tar.gz", hash = "sha256:bf8b0ed8c8cb2c2118038f29c58099d2f99f7847296cafdaa853910bfff4edf4", size = 192361, upload-time = "2024-12-17T20:42:00.781Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ba/33/b907a6d27dd0d8d3adb4edb5c9e9c85a189719ec6855051cce3814c8ef13/anthropic-0.42.0-py3-none-any.whl", hash = "sha256:46775f65b723c078a2ac9e9de44a46db5c6a4fabeacfd165e5ea78e6817f4eff", size = 203365, upload-time = "2024-12-17T20:41:57.361Z" },
-]
-
-[[package]]
 name = "antlr4-python3-runtime"
 version = "4.9.3"
 source = { registry = "https://pypi.org/simple" }
@@ -3814,7 +3796,6 @@ dependencies = [
     { name = "aliyun-python-sdk-kms" },
     { name = "altgraph" },
     { name = "annotated-types" },
-    { name = "anthropic" },
     { name = "antlr4-python3-runtime" },
     { name = "anyio" },
     { name = "asttokens" },
@@ -4108,7 +4089,6 @@ requires-dist = [
     { name = "aliyun-python-sdk-kms", specifier = "==2.16.5" },
     { name = "altgraph", specifier = "==0.17.4" },
     { name = "annotated-types", specifier = "==0.6.0" },
-    { name = "anthropic", specifier = "==0.42.0" },
     { name = "antlr4-python3-runtime", specifier = "==4.9.3" },
     { name = "anyio", specifier = "==4.9.0" },
     { name = "asttokens", specifier = "==2.4.1" },

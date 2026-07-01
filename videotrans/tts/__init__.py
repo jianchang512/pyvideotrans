@@ -9,11 +9,11 @@ EDGE_TTS = 0
 # 本地内置
 QWEN3LOCAL_TTS = 1
 MOSS_TTS = 2
-PIPER_TTS = 3
-VITSCNEN_TTS = 4
-ZIPVOICE_TTS = 5
-Supertonic_TTS = 6
-CHATTERBOX_TTS = 7
+ZIPVOICE_TTS = 3
+CHATTERBOX_TTS = 4
+Supertonic_TTS = 5
+PIPER_TTS = 6
+VITSCNEN_TTS = 7
 
 # 本地 API
 OMNIVOICE_TTS = 8
@@ -79,11 +79,11 @@ _ID_NAME_DICT = {
     EDGE_TTS: ChannelProvider(tr("Edge-TTS(free)"), "._edgetts"),
     QWEN3LOCAL_TTS: ChannelProvider(f"Qwen3-TTS({tr('Local')}{tr('Built-in')})", "._qwenttslocal"),
     MOSS_TTS: ChannelProvider(f"MOSS-TTS-Nano({tr('Local')}{tr('Built-in')})", "._mosstts"),
+    ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Local')}{tr('Built-in')})", "._zipvoice"),
+    CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}{tr('Built-in')})", "._chatterbox",  win="chatterbox"),
+    Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Local')}{tr('Built-in')})", "._supertonic"),
     PIPER_TTS: ChannelProvider(f"Piper({tr('Local')}{tr('Built-in')})", "._piper"),
     VITSCNEN_TTS: ChannelProvider(f"{tr('VITS')}({tr('Local')}{tr('Built-in')})", "._vits"),
-    Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Local')}{tr('Built-in')})", "._supertonic"),
-    CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}{tr('Built-in')})", "._chatterbox",  win="chatterbox"),
-    ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Local')}{tr('Built-in')})", "._zipvoice"),
 
     OMNIVOICE_TTS: ChannelProvider(f"OmniVoice({tr('Local')}API)", "._omnivoice", key_name="omnivoice_url",   win="omnivoice"),
     F5_TTS: ChannelProvider(f"F5-TTS({tr('Local')}API)", "._f5tts", key_name="f5tts_url", win="f5tts"),

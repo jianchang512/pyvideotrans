@@ -11,36 +11,11 @@
 
 
 ## LLM重新断句提示词
-recharge文件夹-->recharge-llm.txt 是 LLM重新断句提示词，可根据实际需要进行修改，但注意，切勿改变输入要求和返回格式要求
+resegment文件夹-->llm.txt 是语音识别后使用LLM重新断句提示词，可能会改变时间轴，根据实际需要进行修改，但注意，切勿改变输入要求和返回格式要求
+resegment文件夹-->llm2.txt 是二次识别后再次对识别结果进行LLM重新断句提示词，仅错别字修改，不改变时间轴
 
 ## Gemini语音识别提示词
 
 recogn文件夹 --> gemini_recogn.txt 是当语音识别渠道选择  GeminiAI语音识别时使用的提示词，可根据需要进行修改，但注意，切勿改变输入要求和返回格式要求
 
 
-====
-====
-
-# Instructions for using prompt words
-
-## Subtitle Translation Prompts
-
-The `srt` folder contains prompts when "Send Full Subtitles" is selected.
-
-The `text` folder contains prompts when "Send Full Subtitles" is not selected.
-
-`{lang}` is the target language variable, which will be dynamically replaced; please do not modify or delete it.
-
-`{context_block}` is the original full subtitle content, which will be dynamically inserted or deleted based on the selection in the advanced options; please do not manually modify it.
-
-`{GLOSSARY_DICT}` is the glossary; please do not modify or delete it.
-
-`{batch_input}` dynamically inserts the subtitle content to be translated; please do not modify or delete it.
-
-## LLM Re-segmentation Prompts
-
-The `recharge` folder --> `recharge-llm.txt` contains LLM re-segmentation prompts. These can be modified as needed, but please note that you must not change the input requirements and return format requirements.
-
-## Gemini Speech Recognition Prompts
-
-The `recogn` folder --> `gemini_recogn.txt` contains prompts used when GeminiAI speech recognition is selected as the speech recognition channel. These can be modified as needed, but please note that you must not change the input requirements and return format requirements.

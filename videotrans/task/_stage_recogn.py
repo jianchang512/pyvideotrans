@@ -114,8 +114,9 @@ class RecognMixin:
             self._recogn_succeed()
             self.signal(text=tr('endtiquzimu'))
             return
-
-        if self.cfg.rephrase==1:
+        
+        # 选中说话人识别，则不重新断句
+        if not self.cfg.enable_diariz and self.cfg.rephrase==1:
             try:
                 from videotrans.translator._openaicompat import OpenAICampat
                 ob = OpenAICampat(
