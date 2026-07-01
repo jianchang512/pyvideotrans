@@ -22,6 +22,12 @@
         "de_DE-thorsten-medium": "de_DE-thorsten-medium",
         "de_DE-thorsten_emotional-medium": "de_DE-thorsten_emotional-medium"
     },
+    "el": {
+        "No": "No",
+        "el_GR-joy-medium": "el_GR-joy-medium",
+        "el_GR-rapunzelina-low": "el_GR-rapunzelina-low",
+        "el_GR-rapunzelina-medium": "el_GR-rapunzelina-medium"
+    },
     "en": {
         "No": "No",
         "en_GB-alan-low": "en_GB-alan-low",
@@ -71,6 +77,7 @@
         "es_ES-mls_9972-low": "es_ES-mls_9972-low",
         "es_ES-sharvard-medium": "es_ES-sharvard-medium",
         "es_MX-ald-medium": "es_MX-ald-medium",
+        "es_MX-ald-x_low": "es_MX-ald-x_low",
         "es_MX-claude-high": "es_MX-claude-high"
     },
     "fa": {
@@ -90,10 +97,6 @@
         "fr_FR-siwis-medium": "fr_FR-siwis-medium",
         "fr_FR-tom-medium": "fr_FR-tom-medium",
         "fr_FR-upmc-medium": "fr_FR-upmc-medium"
-    },
-    "he": {
-        "No": "No",
-        "he_IL-motek-medium": "he_IL-motek-medium"
     },
     "hi": {
         "No": "No",
@@ -128,6 +131,7 @@
         "nl_BE-nathalie-x_low": "nl_BE-nathalie-x_low",
         "nl_BE-rdh-medium": "nl_BE-rdh-medium",
         "nl_BE-rdh-x_low": "nl_BE-rdh-x_low",
+        "nl_NL-alex-medium": "nl_NL-alex-medium",
         "nl_NL-mls-medium": "nl_NL-mls-medium",
         "nl_NL-mls_5809-low": "nl_NL-mls_5809-low",
         "nl_NL-mls_7432-low": "nl_NL-mls_7432-low",
@@ -136,6 +140,7 @@
     },
     "pl": {
         "No": "No",
+        "pl_PL-bass-high": "pl_PL-bass-high",
         "pl_PL-darkman-medium": "pl_PL-darkman-medium",
         "pl_PL-gosia-medium": "pl_PL-gosia-medium",
         "pl_PL-mc_speech-medium": "pl_PL-mc_speech-medium",
@@ -149,6 +154,10 @@
         "pt_BR-jeff-medium": "pt_BR-jeff-medium",
         "pt_PT-tug\u00e3o-medium": "pt_PT-tug\u00e3o-medium"
     },
+    "ro": {
+        "No": "No",
+        "ro_RO-mihai-medium": "ro_RO-mihai-medium"
+    },
     "ru": {
         "No": "No",
         "ru_RU-denis-medium": "ru_RU-denis-medium",
@@ -158,19 +167,25 @@
     },
     "sv": {
         "No": "No",
+        "sv_SE-alma-medium": "sv_SE-alma-medium",
         "sv_SE-lisa-medium": "sv_SE-lisa-medium",
         "sv_SE-nst-medium": "sv_SE-nst-medium"
     },
     "tr": {
         "No": "No",
-        "tr_TR-dfki-medium": "tr_TR-dfki-medium",
-        "tr_TR-fahrettin-medium": "tr_TR-fahrettin-medium",
-        "tr_TR-fettah-medium": "tr_TR-fettah-medium"
+        "tr_TR-dfki-medium": "tr_TR-dfki-medium"
     },
     "uk": {
         "No": "No",
         "uk_UA-lada-x_low": "uk_UA-lada-x_low",
+        "uk_UA-mykyta-high": "uk_UA-mykyta-high",
+        "uk_UA-oleksa-high": "uk_UA-oleksa-high",
+        "uk_UA-tetiana-high": "uk_UA-tetiana-high",
         "uk_UA-ukrainian_tts-medium": "uk_UA-ukrainian_tts-medium"
+    },
+    "ur": {
+        "No": "No",
+        "ur_PK-fasih-medium": "ur_PK-fasih-medium"
     },
     "vi": {
         "No": "No",
@@ -180,7 +195,9 @@
     },
     "zh": {
         "No": "No",
+        "zh_CN-chaowen-medium": "zh_CN-chaowen-medium",
         "zh_CN-huayan-medium": "zh_CN-huayan-medium",
-        "zh_CN-huayan-x_low": "zh_CN-huayan-x_low"
+        "zh_CN-huayan-x_low": "zh_CN-huayan-x_low",
+        "zh_CN-xiao_ya-medium": "zh_CN-xiao_ya-medium"
     }
 }

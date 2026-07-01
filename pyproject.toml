@@ -258,6 +258,9 @@ dependencies = [
     "gtts>=2.5.4",
     "torchcodec>=0.14.0",
     "importlib-resources",
+    "g2pw>=0.1.1",
+    "unicode-rbnf>=2.4.0",
+    "sentence-stream>=1.3.0",
 ]
 
 [project.optional-dependencies]

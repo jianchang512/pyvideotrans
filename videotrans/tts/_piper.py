@@ -6,6 +6,18 @@ from videotrans.configure.config import ROOT_DIR,app_cfg,logger
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
 import wave
+import builtins
+import g2pw.api
+_original_open = builtins.open
+
+# 修改 g2pw 读取中文默认为gbk编码问题
+def _utf8_open(file, mode='r', buffering=-1, encoding=None, *args, **kwargs):
+    # 只有在读取文本模式（没有 'b'）且没有指定编码时，才强制设为 utf-8
+    if 'b' not in mode and 'r' in mode and encoding is None:
+        encoding = 'utf-8'
+    return _original_open(file, mode, buffering, encoding, *args, **kwargs)
+g2pw.api.open=_utf8_open
+
 from piper import PiperVoice,SynthesisConfig
 
 @dataclass

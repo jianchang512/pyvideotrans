@@ -30,6 +30,7 @@ def _set_env():
     os.environ["CT2_VERBOSE"] = "1"
     os.environ["OMP_NUM_THREADS"] = "1"
     os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
+    os.environ['PYTHONUTF8'] = '1'
     os.environ['QT_API'] = 'pyside6'
     os.environ['SOFT_NAME'] = 'pyvideotrans'
     os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"

@@ -13,8 +13,10 @@ from videotrans.configure._app_params import AppParams, set_settings_ref
 from videotrans.configure._helpers import push_queue, set_app_cfg_ref, set_logger_ref  # noqa: F401
 
 
-_set_env()
 
+    
+
+_set_env()
 logger = _set_logs()
 
 app_cfg: AppCfg = AppCfg()
