@@ -129,27 +129,35 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     if langcode is None or tts_type is None:
         return True
     name = _ID_NAME_DICT.get(tts_type).name
-    if tts_type in [CHATTTS,ZIPVOICE_TTS,VITSCNEN_TTS,F5_TTS,INDEX_TTS,SPARK_TTS] and langcode[:2] not in ['zh', 'en']:
+    _lang2=langcode[:2]
+    
+    if tts_type in [CHATTTS,ZIPVOICE_TTS,VITSCNEN_TTS,F5_TTS,INDEX_TTS,SPARK_TTS] and _lang2 not in ['zh', 'en']:
         return name + tr('Dubbing channel') + ' ' +tr('may not support') + tr(langcode)
+    
+    if tts_type==PIPER_TTS and _lang2 not in ["ar","cs","de","el","en","es","fa","fr","hi","hu","id","it","kk","nl","pl","pt","ro","ru","sv","tr","uk","ur","vi","zh"]:
+        return name + tr('Dubbing channel') + ' ' +tr('may not support') + tr(langcode)
+        
 
-    if tts_type == GPTSOVITS_TTS and langcode[:2] not in ['zh', 'ja', 'ko', 'en', 'yu']:
+    if tts_type == GPTSOVITS_TTS and _lang2 not in ['zh', 'ja', 'ko', 'en', 'yu']:
         return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
+    
     # 中文、英文、日文、韩文、德文、法文、俄文、葡萄牙文、西班牙文、意大利文
-    if tts_type == QWEN3LOCAL_TTS and langcode[:2] not in ['zh', 'ja', 'ko', 'en', 'yu', 'de', 'fr', 'ru', 'pt', 'es','it']:
+    if tts_type == QWEN3LOCAL_TTS and _lang2 not in ['zh', 'ja', 'ko', 'en', 'yu', 'de', 'fr', 'ru', 'pt', 'es','it']:
         return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
 
         
-    if tts_type == Supertonic_TTS and langcode[:2] not in ['ar','cs','nl','en','fr','de','el','hi','hu','id','it','ja','ko','pl','pt','ro','ru','es','sv','tr','uk','vi']:
+    if tts_type == Supertonic_TTS and _lang2 not in ['ar','cs','nl','en','fr','de','el','hi','hu','id','it','ja','ko','pl','pt','ro','ru','es','sv','tr','uk','vi']:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
 
 
-    if tts_type==MOSS_TTS and langcode[:2] not in ["zh","yu","en","de","es","fr","ja","it","hu","ko","ru","fa","ar","pl","pt","cs","sv","el","tr","da"]:
+    if tts_type==MOSS_TTS and _lang2 not in ["zh","yu","en","de","es","fr","ja","it","hu","ko","ru","fa","ar","pl","pt","cs","sv","el","tr","da"]:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
-        
+
     #Arabic, Danish, German, Greek, English, Spanish, Finnish, French, Hebrew, Hindi, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese, Russian, Swedish, Swahili, Turkish, Chinese
-    if tts_type==CHATTERBOX_TTS and langcode[:2] not in ["zh","yu","en","de","es","fr","ja","it","ko","ru","ar","pl","pt","sv","el","tr","da","he",'hi',"ms","nl","nb"]:
+    if tts_type==CHATTERBOX_TTS and _lang2 not in ["zh","yu","en","de","es","fr","ja","it","ko","ru","ar","pl","pt","sv","el","tr","da","he",'hi',"ms","nl","nb"]:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
-    if tts_type==CONFUCIUS_TTS and langcode[:2] not in ["zh", "en", "ja", "ko", "de", "fr", "th", 
+    
+    if tts_type==CONFUCIUS_TTS and _lang2 not in ["zh", "en", "ja", "ko", "de", "fr", "th", 
     "id", "vi", "es", "pt", "it", "ru", "ms"]:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
     return True
