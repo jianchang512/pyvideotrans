@@ -94,7 +94,6 @@ def openwin():
         if recogn_type == recognition.Faster_Whisper_XXL and not show_xxl_select():
             return
 
-        langcode = translator.get_audio_code(show_source=winobj.shibie_language.currentText())
         is_cuda = winobj.is_cuda.isChecked()
         if is_cuda and check_cuda(is_cuda) is not True:
             return show_error(tr("nocudnn"))
@@ -102,10 +101,14 @@ def openwin():
         files = winobj.shibie_dropbtn.filelist
         if not files or len(files) < 1:
             return show_error(tr('bixuyinshipin'))
-
-        is_allow_lang_res = recognition.is_allow_lang(langcode=langcode, recogn_type=recogn_type, model_name=model)
-
-        winobj.loglabel.setText(is_allow_lang_res if is_allow_lang_res is not True else '')
+        
+        langcode=winobj.shibie_language.currentText()
+        if langcode==tr('auto'):
+            langcode='auto'
+        else:
+            langcode = translator.get_audio_code(show_source=langcode)
+            is_allow_lang_res = recognition.is_allow_lang(langcode=langcode, recogn_type=recogn_type, model_name=model)
+            winobj.loglabel.setText(is_allow_lang_res if is_allow_lang_res is not True else '')
         # 判断是否填写自定义识别api openai-api识别、zh_recogn识别信息
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
@@ -294,7 +297,7 @@ def openwin():
         winobj.shibie_dropbtn.setMinimumSize(0, 150)
         winobj.shibie_widget.insertWidget(0, winobj.shibie_dropbtn)
 
-        winobj.shibie_language.addItems(list(translator.LANGNAME_DICT.values()) + ['auto'])
+        winobj.shibie_language.addItems([tr('auto')]+list(translator.LANGNAME_DICT.values()))
         winobj.is_cuda.setChecked(params.get("stt_cuda", False))
         winobj.rephrase.setCurrentIndex(int(params.get('stt_rephrase', 2)))
         winobj.remove_noise.setChecked(bool(params.get('stt_remove_noise')))

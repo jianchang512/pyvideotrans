@@ -851,5 +851,6 @@
 		"parakeet-ja":"parakeet日语",
 		"Dolphin":"Dolphin亚洲语言",
 		"VITS":"VITS中英",
-		"ZipVoice":"ZipVoice中英"
+		"ZipVoice":"ZipVoice中英",
+		"auto":"自动检测"
 }

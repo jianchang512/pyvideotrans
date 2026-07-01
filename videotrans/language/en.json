@@ -851,6 +851,7 @@
 			"parakeet-ja":"parakeet_Japanese",
 			"Dolphin":"Dolphin_Asian",
 			"VITS":"VITS_EN_CN",
-			"ZipVoice":"ZipVoice_EN_CN"
+			"ZipVoice":"ZipVoice_EN_CN",
+			"auto":"Automatic detection"
 
 }
