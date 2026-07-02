@@ -145,7 +145,8 @@ def openwin():
         }
 
         if role == 'clone':
-            return
+            return show_error(
+                tr("The original sound clone cannot be auditioned"))
 
         raw_text = winobj.listen_btn.text()
 

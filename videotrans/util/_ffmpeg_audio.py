@@ -161,15 +161,14 @@ def remove_silence_wav(audio_file:str, rm_start=True)->bool:
 
     audio = AudioSegment.from_file(audio_file, format="wav")
 
-    silence_threshold = audio.dBFS - 20
-
+    silence_threshold = audio.dBFS - 80
     min_silence_len = 100
 
     nonsilent_chunks = detect_nonsilent(
         audio,
         min_silence_len=min_silence_len,
         silence_thresh=silence_threshold,
-        seek_step=10
+        seek_step=1
     )
 
     if len(nonsilent_chunks) > 0:
@@ -184,6 +183,7 @@ def remove_silence_wav(audio_file:str, rm_start=True)->bool:
 
         trimmed_audio = audio[start_trim:end_trim]
         trimmed_audio.export(audio_file, format="wav")
+        #print(f'原:{len(audio)},新:{len(trimmed_audio)}')
         return True
 
     return False

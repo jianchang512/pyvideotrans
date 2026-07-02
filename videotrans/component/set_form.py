@@ -26,7 +26,7 @@ from videotrans.ui.deeplx import Ui_deeplxform
 from videotrans.ui.deepseek import Ui_deepseekform
 from videotrans.ui.doubao2 import Ui_doubao2form
 from videotrans.ui.elevenlabs import Ui_elevenlabsform
-from videotrans.ui.f5tts import Ui_f5ttsform
+from videotrans.ui.gradiowin import Ui_gradiowinform
 from videotrans.ui.fanyi import Ui_fanyisrt
 from videotrans.ui.fishtts import Ui_fishttsform
 from videotrans.ui.formatcover import Ui_formatcover
@@ -205,7 +205,7 @@ class FishTTSForm(QDialogBase, Ui_fishttsform):  # <===
         super().__init__(parent)
 
 
-class F5TTSForm(QDialogBase, Ui_f5ttsform):  # <===
+class GradiowinForm(QDialogBase, Ui_gradiowinform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
 

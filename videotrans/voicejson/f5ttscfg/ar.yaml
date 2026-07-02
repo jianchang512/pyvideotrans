@@ -1,0 +1,54 @@
+hydra:
+  run:
+    dir: ckpts/${datasets.name}_{model.tokenizer}
+
+datasets:
+  name: ${datasets.name}
+  batch_size_per_gpu: 8  
+  batch_size_type: sample  
+  max_samples: 1 
+  num_workers: 16
+
+optim:
+  epochs: 250  
+  learning_rate: 7.5e-5
+  num_warmup_updates: 20000  
+  grad_accumulation_steps: 1  
+  max_grad_norm: 1.0  
+  bnb_optimizer: False  
+
+model:
+  name: SilmaTTS_V1_Small
+  tokenizer: char
+  tokenizer_path: null  
+  backbone: DiT
+  arch:
+    dim: 768
+    depth: 18
+    heads: 12
+    ff_mult: 2
+    text_dim: 512
+    text_mask_padding: True
+    conv_layers: 4
+    pe_attn_head: null
+    attn_backend: torch  
+    attn_mask_enabled: False
+    checkpoint_activations: False  
+  mel_spec:
+    target_sample_rate: 24000
+    n_mel_channels: 100
+    hop_length: 256
+    win_length: 1024
+    n_fft: 1024
+    mel_spec_type: vocos  
+  vocoder:
+    is_local: False  
+    local_path: null  
+
+ckpts:
+  logger: wandb  
+  log_samples: True 
+  save_per_updates: 1000  
+  keep_last_n_checkpoints: 100  
+  last_per_updates: 1000  
+  save_dir: ckpts/${datasets.name}_{model.tokenizer}

@@ -7,49 +7,21 @@ from videotrans.configure.config import tr
 from videotrans.util.help_misc import show_refaudio_win, open_url
 
 
-class Ui_f5ttsform(object):
-    def setupUi(self, f5ttsform):
+class Ui_gradiowinform(object):
+    def setupUi(self, gradiowinform):
         self.has_done = False
-        if not f5ttsform.objectName():
-            f5ttsform.setObjectName("f5ttsform")
-        f5ttsform.setWindowModality(Qt.NonModal)
-        f5ttsform.resize(600, 500)
+        if not gradiowinform.objectName():
+            gradiowinform.setObjectName("gradiowinform")
+        gradiowinform.setWindowModality(Qt.NonModal)
+        gradiowinform.resize(600, 500)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(f5ttsform.sizePolicy().hasHeightForWidth())
-        f5ttsform.setSizePolicy(sizePolicy)
-        f5ttsform.setMaximumSize(QSize(600, 500))
+        sizePolicy.setHeightForWidth(gradiowinform.sizePolicy().hasHeightForWidth())
+        gradiowinform.setSizePolicy(sizePolicy)
+        gradiowinform.setMaximumSize(QSize(600, 500))
 
-        v1 = QtWidgets.QVBoxLayout(f5ttsform)
-
-        h1f5tts_url = QtWidgets.QHBoxLayout()
-        self.f5tts_urllabel = QLabel('F5-TTS URL')
-        self.f5tts_urllabel.setObjectName("f5tts_urllabel")
-        self.f5tts_urllabel.setMinimumSize(QSize(0, 35))
-        self.f5tts_url = QLineEdit()
-        self.f5tts_url.setObjectName("f5tts_url")
-        self.f5tts_url.setPlaceholderText('F5-TTS URL ')
-        self.f5tts_url.setMinimumSize(QSize(0, 35))    
-        h1f5tts_url.addWidget(self.f5tts_urllabel)
-        h1f5tts_url.addWidget(self.f5tts_url)
-        self.f5tts_urltest = QPushButton(tr("Test"))
-        h1f5tts_url.addWidget(self.f5tts_urltest)
-        v1.addLayout(h1f5tts_url)
-
-        h1sparktts_url = QtWidgets.QHBoxLayout()
-        self.sparktts_urllabel = QLabel('Spark-TTS URL')
-        self.sparktts_urllabel.setObjectName("sparktts_urllabel")
-        self.sparktts_urllabel.setMinimumSize(QSize(0, 35))
-        self.sparktts_url = QLineEdit()
-        self.sparktts_url.setObjectName("sparktts_url")
-        self.sparktts_url.setPlaceholderText('URL ')
-        self.sparktts_url.setMinimumSize(QSize(0, 35))        
-        h1sparktts_url.addWidget(self.sparktts_urllabel)
-        h1sparktts_url.addWidget(self.sparktts_url)
-        self.sparktts_urltest = QPushButton(tr("Test"))        
-        h1sparktts_url.addWidget(self.sparktts_urltest)
-        v1.addLayout(h1sparktts_url)
+        v1 = QtWidgets.QVBoxLayout(gradiowinform)
 
         h1indextts_url = QtWidgets.QHBoxLayout()
         self.indextts_urllabel = QLabel('Index-TTS URL')
@@ -69,9 +41,22 @@ class Ui_f5ttsform(object):
         h1indextts_url.addWidget(self.index_tts_version)
         h1indextts_url.addWidget(self.indextts_urltest)
 
-
-
         v1.addLayout(h1indextts_url)
+
+        h1sparktts_url = QtWidgets.QHBoxLayout()
+        self.sparktts_urllabel = QLabel('Spark-TTS URL')
+        self.sparktts_urllabel.setObjectName("sparktts_urllabel")
+        self.sparktts_urllabel.setMinimumSize(QSize(0, 35))
+        self.sparktts_url = QLineEdit()
+        self.sparktts_url.setObjectName("sparktts_url")
+        self.sparktts_url.setPlaceholderText('URL ')
+        self.sparktts_url.setMinimumSize(QSize(0, 35))        
+        h1sparktts_url.addWidget(self.sparktts_urllabel)
+        h1sparktts_url.addWidget(self.sparktts_url)
+        self.sparktts_urltest = QPushButton(tr("Test"))        
+        h1sparktts_url.addWidget(self.sparktts_urltest)
+        v1.addLayout(h1sparktts_url)
+
 
         
         h1confuciustts_url = QtWidgets.QHBoxLayout()
@@ -122,7 +107,7 @@ class Ui_f5ttsform(object):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/f5tts'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/gradiowin'))
 
 
         h2.addWidget(self.save)
@@ -133,12 +118,12 @@ class Ui_f5ttsform(object):
         h2.addWidget(help_btn)
         v1.addLayout(h2)
 
-        self.retranslateUi(f5ttsform)
+        self.retranslateUi(gradiowinform)
 
-        QMetaObject.connectSlotsByName(f5ttsform)
+        QMetaObject.connectSlotsByName(gradiowinform)
 
 
-    def retranslateUi(self, f5ttsform):
+    def retranslateUi(self, gradiowinform):
 
-        f5ttsform.setWindowTitle("F5/Spark/index/VoxCPM/Confucius" +tr('This channel needs deployed and started before available'))
+        gradiowinform.setWindowTitle("Index/VoxCPM/Confucius/Spark" +tr('This channel needs deployed and started before available'))
         self.save.setText(tr("Save"))

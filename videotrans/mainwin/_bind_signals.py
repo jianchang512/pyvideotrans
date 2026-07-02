@@ -81,7 +81,7 @@ class BindSignalsMixin:
         self.actionqwentts_key.triggered.connect(lambda: self.open_winform('qwentts'))
         self.actionopenairecognapi_key.triggered.connect(lambda: self.open_winform('openairecognapi'))
         self.actiontts_fishtts.triggered.connect(lambda: self.open_winform('fishtts'))
-        self.actiontts_f5tts.triggered.connect(lambda: self.open_winform('f5tts'))
+        self.actiontts_gradiowin.triggered.connect(lambda: self.open_winform('gradiowin'))
         self.actiontts_refaudio.triggered.connect(lambda: self.open_winform('refaudio'))
         self.actiontts_doubao2.triggered.connect(lambda: self.open_winform('doubao2'))
         self.actionzhipuai_key.triggered.connect(lambda: self.open_winform('zhipuai'))

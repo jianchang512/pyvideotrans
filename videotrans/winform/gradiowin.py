@@ -22,7 +22,7 @@ def openwin():
             it.setText(tr('Test'))
 
 
-    def test(tts_type=tts.F5_TTS):
+    def test(tts_type=tts.INDEX_TTS):
         index_tts_version = winobj.index_tts_version.currentIndex()
         # 通用
         params["index_tts_version"] = index_tts_version
@@ -30,7 +30,6 @@ def openwin():
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
         params["indextts_url"] = winobj.indextts_url.text()
         params["sparktts_url"] = winobj.sparktts_url.text()
-        params["f5tts_url"] = winobj.f5tts_url.text()
         params["confuciustts_url"] = winobj.confuciustts_url.text()
         params.save()
         
@@ -60,7 +59,6 @@ def openwin():
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
         params["indextts_url"] = winobj.indextts_url.text()
         params["sparktts_url"] = winobj.sparktts_url.text()
-        params["f5tts_url"] = winobj.f5tts_url.text()
         params["confuciustts_url"] = winobj.confuciustts_url.text()
 
 
@@ -68,28 +66,25 @@ def openwin():
         tools.set_process(text='', type="refreshtts")
         winobj.close()
 
-    from videotrans.component.set_form import F5TTSForm
+    from videotrans.component.set_form import GradiowinForm
     Path(ROOT_DIR + "/f5-tts").mkdir(exist_ok=True)
-    winobj = F5TTSForm()
-    app_cfg.child_forms['f5tts'] = winobj
+    winobj = GradiowinForm()
+    app_cfg.child_forms['gradiowin'] = winobj
     winobj.index_tts_version.setCurrentIndex(int(params.get('index_tts_version',0)))
     winobj.voxcpmtts_version.setCurrentText(params.get('voxcpmtts_version','v2'))
     
-    winobj.f5tts_url.setText(params.get('f5tts_url',''))
     winobj.confuciustts_url.setText(params.get('confuciustts_url',''))
     winobj.sparktts_url.setText(params.get('sparktts_url',''))
     winobj.indextts_url.setText(params.get('indextts_url',''))
     winobj.voxcpmtts_url.setText(params.get('voxcpmtts_url',''))
 
     winobj.save.clicked.connect(save)
-    winobj.f5tts_urltest.clicked.connect(lambda: test(tts.F5_TTS))
     winobj.sparktts_urltest.clicked.connect(lambda: test(tts.SPARK_TTS))
     winobj.indextts_urltest.clicked.connect(lambda: test(tts.INDEX_TTS))
     winobj.voxcpmtts_urltest.clicked.connect(lambda: test(tts.VOXCPM_TTS))
     winobj.confuciustts_urltest.clicked.connect(lambda: test(tts.CONFUCIUS_TTS))
     winobj.show()
     test_btn={
-        tts.F5_TTS:winobj.f5tts_urltest,
         tts.INDEX_TTS:winobj.indextts_urltest,
         tts.SPARK_TTS:winobj.sparktts_urltest,
         tts.VOXCPM_TTS:winobj.voxcpmtts_urltest,

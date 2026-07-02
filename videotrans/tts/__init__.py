@@ -8,16 +8,16 @@ EDGE_TTS = 0
 
 # 本地内置
 QWEN3LOCAL_TTS = 1
-MOSS_TTS = 2
-ZIPVOICE_TTS = 3
-CHATTERBOX_TTS = 4
-Supertonic_TTS = 5
-PIPER_TTS = 6
-VITSCNEN_TTS = 7
+F5_TTS = 2
+MOSS_TTS = 3
+ZIPVOICE_TTS = 4
+PIPER_TTS = 5
+CHATTERBOX_TTS = 6
+Supertonic_TTS = 7
+VITSCNEN_TTS = 8
 
 # 本地 API
-OMNIVOICE_TTS = 8
-F5_TTS = 9
+OMNIVOICE_TTS = 9
 INDEX_TTS = 10
 GPTSOVITS_TTS = 11
 COSYVOICE_TTS = 12
@@ -78,20 +78,21 @@ CHANGE_BY_LANGUAGE = [EDGE_TTS, MINIMAXI_TTS, AZURE_TTS, DOUBAO2_TTS, AI302_TTS,
 _ID_NAME_DICT = {
     EDGE_TTS: ChannelProvider(tr("Edge-TTS(free)"), "._edgetts"),
     QWEN3LOCAL_TTS: ChannelProvider(f"Qwen3-TTS({tr('Local')}{tr('Built-in')})", "._qwenttslocal"),
+    F5_TTS: ChannelProvider(f"F5-TTS({tr('Local')}{tr('Built-in')})", "._f5tts"),
     MOSS_TTS: ChannelProvider(f"MOSS-TTS-Nano({tr('Local')}{tr('Built-in')})", "._mosstts"),
     ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Local')}{tr('Built-in')})", "._zipvoice"),
+    PIPER_TTS: ChannelProvider(f"Piper({tr('Local')}{tr('Built-in')})", "._piper"),
     CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Local')}{tr('Built-in')})", "._chatterbox",  win="chatterbox"),
     Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Local')}{tr('Built-in')})", "._supertonic"),
-    PIPER_TTS: ChannelProvider(f"Piper({tr('Local')}{tr('Built-in')})", "._piper"),
     VITSCNEN_TTS: ChannelProvider(f"{tr('VITS')}({tr('Local')}{tr('Built-in')})", "._vits"),
 
+    
     OMNIVOICE_TTS: ChannelProvider(f"OmniVoice({tr('Local')}API)", "._omnivoice", key_name="omnivoice_url",   win="omnivoice"),
-    F5_TTS: ChannelProvider(f"F5-TTS({tr('Local')}API)", "._f5tts", key_name="f5tts_url", win="f5tts"),
-    INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)", "._index", key_name="indextts_url", win="f5tts"),
+    INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)", "._index", key_name="indextts_url", win="gradiowin"),
     GPTSOVITS_TTS: ChannelProvider(f"GPT-SoVITS({tr('Local')}API)", "._gptsovits", key_name="gptsovits_url", win="gptsovits"),
     COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)", "._cosyvoice", key_name="cosyvoice_url",  win="cosyvoice"),
-    VOXCPM_TTS: ChannelProvider(f"VoxCPM({tr('Local')}API)", "._voxcpm", key_name="voxcpmtts_url", win="f5tts"),
-    CONFUCIUS_TTS: ChannelProvider(f"Confucius-TTS({tr('Local')}API)", "._confuciustts",key_name="confuciustts_url", win="f5tts"),
+    VOXCPM_TTS: ChannelProvider(f"VoxCPM({tr('Local')}API)", "._voxcpm", key_name="voxcpmtts_url", win="gradiowin"),
+    CONFUCIUS_TTS: ChannelProvider(f"Confucius-TTS({tr('Local')}API)", "._confuciustts",key_name="confuciustts_url", win="gradiowin"),
 
     DOUBAO2_TTS: ChannelProvider(tr("DouBao2"), "._doubao2", key_name="doubao2_access", win="doubao2"),
     QWEN_TTS: ChannelProvider("Qwen3-TTS", "._qwentts", key_name="qwentts_key", win="qwentts"),
@@ -131,7 +132,7 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     name = _ID_NAME_DICT.get(tts_type).name
     _lang2=langcode[:2]
     
-    if tts_type in [CHATTTS,ZIPVOICE_TTS,VITSCNEN_TTS,F5_TTS,INDEX_TTS,SPARK_TTS] and _lang2 not in ['zh', 'en']:
+    if tts_type in [CHATTTS,ZIPVOICE_TTS,VITSCNEN_TTS,INDEX_TTS,SPARK_TTS] and _lang2 not in ['zh', 'en']:
         return name + tr('Dubbing channel') + ' ' +tr('may not support') + tr(langcode)
     
     if tts_type==PIPER_TTS and _lang2 not in ["ar","cs","de","el","en","es","fa","fr","hi","hu","id","it","kk","nl","pl","pt","ro","ru","sv","tr","uk","ur","vi","zh"]:
@@ -143,6 +144,8 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     
     # 中文、英文、日文、韩文、德文、法文、俄文、葡萄牙文、西班牙文、意大利文
     if tts_type == QWEN3LOCAL_TTS and _lang2 not in ['zh', 'ja', 'ko', 'en', 'yu', 'de', 'fr', 'ru', 'pt', 'es','it']:
+        return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
+    if tts_type == F5_TTS and _lang2 not in ['zh', 'ja', 'it', 'en', 'de', 'fr', 'ru', 'hi', 'es','ar']:
         return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
 
         

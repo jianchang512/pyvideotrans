@@ -22,11 +22,11 @@ def qwen3tts_fun(
         defaulelang="en",
         is_cuda=False,
         prompt=None,
-        model_name='1.7B',
-        roledict=None,
+        model_name='0.6B',
         device_index=0 # gpu索引
 )->Tuple[bool,Union[str,None]]:
     import torch
+    from videotrans.util.help_role import get_qwenttslocal_rolelist
     try:
         from qwen_tts import Qwen3TTSModel
     except ImportError:
@@ -76,6 +76,7 @@ def qwen3tts_fun(
         _len=len(queue_tts)
         ok,err=0,0
         last_error=''
+        roledict=get_qwenttslocal_rolelist()
         for i,it in enumerate(queue_tts):
             text=it.get('text')
             if not text:
@@ -85,7 +86,6 @@ def qwen3tts_fun(
             role=it.get('role')
             filename=it.get('filename','')+"-qwen3tts.wav"
             _write_log(logs_file, json.dumps({"type": "logs", "text": f'{i+1}/{_len} {role}'}))
-            
             if role in CUSTOM_VOICE and CUSTOM_OBJ:
                 wavs, sr = CUSTOM_OBJ.generate_custom_voice(
                     text=text,
@@ -98,7 +98,7 @@ def qwen3tts_fun(
                 continue
             if not BASE_OBJ:
                 err+=1
-                last_error='load model failed'
+                last_error='load model failed: not BASE_OBJ'
                 continue
             if role == 'clone':
                 wavfile = it.get('ref_wav', '')
@@ -106,11 +106,11 @@ def qwen3tts_fun(
             else:
                 # 使用 f5-tts文件夹内音频
                 wavfile = f'{ROOT_DIR}/f5-tts/{role}'
-                ref_text = roledict.get(role) if roledict else None
+                ref_text = roledict.get(role,{}).get('ref_text') if roledict  else None
             
             if not wavfile or not Path(wavfile).is_file():
                 # 仍然不存在，无参考音频不可用
-                msg = f"不存在参考音频，无法克隆:{role=},{wavfile=}"
+                msg = f"No ref_audio: {role=},{wavfile=}"
                 _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
                 err+=1
                 last_error=msg
@@ -130,7 +130,7 @@ def qwen3tts_fun(
         if ok<1:
             logger.error(f'配音全部失败：{last_error}')
             return False,"Dubbing failed"+last_error
-        logger.error(f'配音成功{ok}个，失败{err}个')
+        logger.debug(f'配音成功{ok}个，失败{err}个')
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'{ok=},{err=} {last_error}'}))
         return True,None
     except BaseException as e:

@@ -2,56 +2,79 @@
 import traceback, time, json
 from videotrans.configure.config import ROOT_DIR, logger
 from pathlib import Path
+from collections import defaultdict
+
+
+"""
+
+subtitles:List[List[start:int,end:int]]=[[0, 4580], [4580, 7860], [8260, 10520], [10520, 11880], [12200, 13260], [14020, 14140], [14460, 15660], [15660, 19640], [19640, 24040], [24040, 24880], [25100, 28600], [28720, 29260], [29260, 33220], [33220, 36540], [36540, 39460], [39460, 43420], [43420, 46400], [46400, 49420], [49420, 53840], [53840, 56480], [56480, 57020]]
+
+diarizations:List[List[List[start:int,end:int],spk:str]]=[[[30, 41037], 'spk0'], [[30237, 30591], 'spk1'], [[41442, 57405], 'spk2']]
+
+retun output=['spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk0', 'spk2', 'spk2', 'spk2', 'spk2', 'spk2', 'spk2']
+"""
 
 
 def _assign_speakers(subtitles, diarizations):
-    output = []
-    for sub in subtitles:
-        if len(sub) != 2 or sub[0] >= sub[1]:
-            output.append("spk0")
-            continue
+    # ----------------- 1. 预处理 diarizations -----------------
+    clean_diars = []
+    for dia in diarizations:
+        if (len(dia) == 2 and len(dia[0]) == 2 and dia[0][0] < dia[0][1]):
+            clean_diars.append((dia[0][0], dia[0][1], dia[1]))
+    clean_diars.sort(key=lambda x: x[0])  # 按开始时间排序
 
-        s_start, s_end = sub
-        s_duration = s_end - s_start
-        if s_duration <= 0:
-            output.append("spk0")
-            continue
+    # ----------------- 2. 预处理 subtitles（保留原顺序） -----------------
+    indexed_subs = []
+    for idx, sub in enumerate(subtitles):
+        if len(sub) == 2 and sub[0] < sub[1]:
+            indexed_subs.append((idx, sub[0], sub[1]))
+        else:
+            indexed_subs.append((idx, None, None))
 
-        overlaps = {}
-        for dia in diarizations:
-            if len(dia) != 2 or len(dia[0]) != 2 or dia[0][0] >= dia[0][1]:
-                continue
+    valid_subs = [s for s in indexed_subs if s[1] is not None]
+    valid_subs.sort(key=lambda x: x[1])  # 只对有效片段按开始时间排序
 
-            d_start, d_end = dia[0]
-            speaker = dia[1]
+    # 输出数组，默认全是 "spk0"
+    output = ["spk0"] * len(subtitles)
 
-            overlap_start = max(s_start, d_start)
-            overlap_end = min(s_end, d_end)
-            overlap = max(0, overlap_end - overlap_start)
+    # ----------------- 3. 扫描线分配说话人 -----------------
+    d_ptr = 0
+    active = []           # 存储 (d_start, d_end, speaker)
+    total_diars = len(clean_diars)
 
-            if overlap > 0:
-                if speaker in overlaps:
-                    overlaps[speaker] += overlap
-                else:
-                    overlaps[speaker] = overlap
+    for orig_idx, s_start, s_end in valid_subs:
+        duration = s_end - s_start
+
+        # 将开始时间 < VAD 结束时间 的 diar 加入窗口
+        while d_ptr < total_diars and clean_diars[d_ptr][0] < s_end:
+            active.append(clean_diars[d_ptr])
+            d_ptr += 1
+
+        # 移除窗口中已经结束的 diar（结束时间 <= VAD 开始时间）
+        # 因为 active 很小，重建列表完全没问题
+        active = [d for d in active if d[1] > s_start]
+
+        # 计算重叠
+        overlaps = defaultdict(int)
+        for d_start, d_end, spk in active:
+            o_start = max(s_start, d_start)
+            o_end   = min(s_end,   d_end)
+            overlaps[spk] += (o_end - o_start)
 
         if not overlaps:
-            output.append("spk0")
-            continue
+            continue  # 保持 "spk0"
 
-        num_unique_speakers = len(overlaps)
-        max_overlap = max(overlaps.values())
-        best_speaker = max(overlaps, key=overlaps.get)
+        num_speakers = len(overlaps)
+        best_spk = max(overlaps, key=overlaps.get)
+        max_overlap = overlaps[best_spk]
 
-        if num_unique_speakers > 1:
-            output.append(best_speaker)
-        elif num_unique_speakers == 1:
-            if max_overlap > 0.2 * s_duration:
-                output.append(best_speaker)
-            else:
-                output.append("spk0")
+        if num_speakers > 1:
+            output[orig_idx] = best_spk
+        else:  # num_speakers == 1
+            if max_overlap > 0.2 * duration:
+                output[orig_idx] = best_spk
+            # 否则保持 "spk0"
     return output
-
 
 def _map_speakers(diarizations):
     speaker_list = sorted(list(set(d['speaker'] for d in diarizations)))

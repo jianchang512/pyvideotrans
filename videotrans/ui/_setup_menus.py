@@ -101,7 +101,7 @@ def _setup_actions_and_menus(ui, MainWindow):
     _make_action(ui, "actiontts_omnivoice")
     _make_action(ui, "actiontts_qwenttslocal")
     _make_action(ui, "actiontts_fishtts")
-    _make_action(ui, "actiontts_f5tts")
+    _make_action(ui, "actiontts_gradiowin")
     _make_action(ui, "actiontts_refaudio")
     _make_action(ui, "actiontts_doubao2")
     _make_action(ui, "action_website")
@@ -166,7 +166,7 @@ def _setup_actions_and_menus(ui, MainWindow):
         ui.actiontts_refaudio, ui.actionclone_address, ui.actionkokoro_address,
         ui.actionchattts_address, ui.actiontts_gptsovits, ui.actiontts_omnivoice,
         ui.actiontts_cosyvoice, ui.actiontts_qwenttslocal, ui.actionqwentts_key,
-        ui.actiontts_fishtts, ui.actiontts_f5tts, ui.actionai302_key,
+        ui.actiontts_fishtts, ui.actiontts_gradiowin, ui.actionai302_key,
         ui.actiontts_doubao2, ui.actionElevenlabs_key, ui.actionazure_tts,
         ui.actionxaitts_key, ui.actionopenaitts_key, ui.actionminimaxi_api,
         ui.actiontts_api, ui.actiontts_chatterbox,

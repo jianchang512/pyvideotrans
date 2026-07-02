@@ -20,7 +20,7 @@ _module_map = {
 "deepseek":".deepseek",
 "doubao2":".doubao2",# 豆包语音合成2.0
 "elevenlabs":".elevenlabs",
-"f5tts":".f5tts",
+"gradiowin":".gradiowin",
 "fishtts":".fishtts",
 "fn_audiofromvideo":".fn_audiofromvideo",
 "fn_fanyisrt":".fn_fanyisrt",

@@ -12,6 +12,9 @@ class ListenVoice(QThread):
 
     def run(self):
         try:
+            if self.queue_tts[0]['role']=='clone':
+                self.uito.emit(tr("The original sound clone cannot be auditioned"))
+                return
             from videotrans import tts
             tts.run(
                 queue_tts=self.queue_tts,
