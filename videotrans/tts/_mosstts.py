@@ -17,10 +17,6 @@ class MossTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        # service_urls = tools.get_mosstts_service_urls(params.get('moss_tts_url', ''))
-        # self.api_url = service_urls['generate_url']
-        # if len(self.api_url)<10:
-        #     raise StopTask(f'API URL is error: {self.api_url}')
 
         self.roledict = tools.get_f5tts_role()
 

@@ -100,7 +100,7 @@ HUGGINGFACE_ASR_MODELS = {
 try:
     if Path(f'{ROOT_DIR}/huggingface_models.txt').exists():
         for it in Path(f'{ROOT_DIR}/huggingface_models.txt').read_text(encoding='utf-8').strip().split("\n"):
-            HUGGINGFACE_ASR_MODELS[it] = []
+            HUGGINGFACE_ASR_MODELS[it.strip()] = []
 except Exception as e:
     logger.waring(f'添加自定义 Huggingface_ASR 模型失败:{e}')
 

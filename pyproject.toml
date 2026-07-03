@@ -262,9 +262,6 @@ dependencies = [
     "unicode-rbnf>=2.4.0",
     "sentence-stream>=1.3.0",
     "google-cloud-storage>=3.12.0",
-	"qwen-tts",
-	"qwen-asr",
-	"f5-tts"
 ]
 #"qwen-tts",
 #"qwen-asr",

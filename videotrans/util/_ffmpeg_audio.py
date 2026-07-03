@@ -161,19 +161,19 @@ def remove_silence_wav(audio_file:str, rm_start=True)->bool:
 
     audio = AudioSegment.from_file(audio_file, format="wav")
 
-    silence_threshold = audio.dBFS - 80
-    min_silence_len = 100
+    silence_threshold = -50#audio.dBFS - 120
+    min_silence_len = 200
 
     nonsilent_chunks = detect_nonsilent(
         audio,
         min_silence_len=min_silence_len,
         silence_thresh=silence_threshold,
-        seek_step=1
+        seek_step=10
     )
 
     if len(nonsilent_chunks) > 0:
         head_padding_ms = 80
-        tail_padding_ms = 200
+        tail_padding_ms = 400
 
         raw_start = nonsilent_chunks[0][0]
         raw_end = nonsilent_chunks[-1][1]

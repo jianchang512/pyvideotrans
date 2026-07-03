@@ -16,7 +16,7 @@ class VoxCPMTTS(GradioBase):
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         kwargs = {
             "do_normalize": True,
-            "denoise": True,
+            "denoise": False,
             "api_name": '/generate'
         }
         _version = params.get('voxcpmtts_version', 'v2')
@@ -35,7 +35,6 @@ class VoxCPMTTS(GradioBase):
             kwargs['control_instruction'] = ''
             kwargs['use_prompt_text'] = True if ref_text else False
             kwargs['reference_wav_path_input'] = handle_file(ref_wav)
-            # kwargs['inference_timesteps']=10
             kwargs["cfg_value_input"] = 2
             kwargs["prompt_text_input"] = ref_text
 

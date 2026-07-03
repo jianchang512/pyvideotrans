@@ -91,8 +91,7 @@ class F5TTSBuilt(BaseTTS):
         
         self.cfg=cfg[language]
         self.localdir=f'{ROOT_DIR}/models/models--'+self.cfg['repid'].replace('/','--')
-        print(self.cfg)
-        print(self.localdir)
+
     
     def _download(self):
         tools.check_and_down_hf(
@@ -139,7 +138,7 @@ class F5TTSBuilt(BaseTTS):
                     gen_text=item['text'],
                     file_wave=output_filename,
                     seed=seed,
-                    remove_silence=True,                    
+                    remove_silence=False,                    
                     speed=speed
                 )
                 if not tools.vail_file(output_filename):
