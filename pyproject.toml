@@ -256,7 +256,6 @@ dependencies = [
     "camb-sdk",
     "brotli>=1.2.0",
     "gtts>=2.5.4",
-    "torchcodec>=0.14.0",
     "importlib-resources",
     "g2pw>=0.1.1",
     "unicode-rbnf>=2.4.0",
@@ -304,10 +303,10 @@ override-dependencies = [
 	"huggingface-hub==0.35.3",
 	"chatterbox-tts==0.1.7",
 	"google-cloud-storage==3.12.0",
+	"torchcodec ; sys_platform == 'never'"
 ]
 
 index-strategy = "unsafe-best-match"
-
 
 
 
@@ -320,6 +319,8 @@ explicit = true
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
+
+
 
 [tool.uv.sources]
 torch = [

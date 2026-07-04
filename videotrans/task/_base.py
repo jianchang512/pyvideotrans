@@ -75,10 +75,10 @@ class BaseTask(BaseCon):
                 p.unlink(missing_ok=True)
 
     # 保存字幕文件 到目标文件夹
-    def _save_srt_target(self, srtstr: List[SrtItem], file: str):
+    def _save_srt_target(self, srt_list: List[SrtItem], file: str):
         from videotrans.util.help_srt import get_srt_from_list
         try:
-            txt = get_srt_from_list(srtstr)
+            txt = get_srt_from_list(srt_list)
             with open(file, "w", encoding="utf-8", errors="ignore") as f:
                 f.write(txt)
         except Exception as e:

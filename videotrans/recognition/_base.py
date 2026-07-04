@@ -82,7 +82,7 @@ class BaseRecogn(BaseCon):
     # run->_exec
     def run(self) -> Union[List[SrtItem], None]:
         if hasattr(self, '_download'):
-            self.signal(text=f"check or download models")
+            self.signal(text=tr("check or download models"))
             self._download()
         self.signal(text=f"starting transcription")
         from tenacity import RetryError
@@ -124,7 +124,9 @@ class BaseRecogn(BaseCon):
                 srt_list[i - 1]['end_time'] = it['start_time']
                 srt_list[i - 1]['endraw'] = ms_to_time_string(ms=it['start_time'])
                 srt_list[i - 1]['time'] = f"{srt_list[i - 1]['startraw']} --> {srt_list[i - 1]['endraw']}"
-
+        
+        
+        
         # 不是LLM重新断句，并且选中合并过短字幕, 进行合并
         if not self.recogn2pass and not self.llm_post and settings.get('merge_short_sub', True):
             logger.debug('开始合并邻近短字幕')
@@ -285,80 +287,6 @@ class BaseRecogn(BaseCon):
         logger.debug(f'切分为 {len(data)} 个音频片段')
         return data
     
-    def cut_audio0(self) -> List[SrtItem]:
-        from pydub import AudioSegment
-        dir_name = f"{config.TEMP_DIR}/clip_{time.time()}"
-        Path(dir_name).mkdir(parents=True, exist_ok=True)
-        if not self.speech_timestamps:
-            self._vad_split()
-
-        audio = AudioSegment.from_wav(self.audio_file)
-        # 裁切出的最小语音时长需符合 min_speech_duration_ms 要求，合并过短的
-        min_speech_duration_ms = min(25000, max(int(settings.get('min_speech_duration_ms', 1000)), 1000))
-
-        new_chunk=[]
-        speech_chunks = self.speech_timestamps
-        speech_len = len(speech_chunks)
-        for i, it in enumerate(speech_chunks):
-            diff = it[1] - it[0]
-            if diff>=min_speech_duration_ms:
-                continue
-            # 距离前面片段的空隙
-            prev_diff = it[0] - speech_chunks[i-1][1] if i > 0 else 0
-            # 距离后面片段的空隙
-            next_diff = speech_chunks[i + 1][0] - it[1] if i < speech_len - 1 else 0
-            msg=f' {prev_diff=},{next_diff=}'
-            if i==0:
-                #是第一个片段
-                speech_chunks[i + 1][0] = it[0]
-                logger.debug(f'[第0个]:下个片段开始时间向左移, {msg}')
-            elif i==speech_len-1:
-                # 是最后一个
-                speech_chunks[i-1][1] = it[1]
-                logger.debug(f'[最后一个{i=}]:当前片段结束时间给上个片段结束时间, {msg}')
-            elif prev_diff < next_diff:
-                #左侧偏移小, 左侧结束位置延长
-                speech_chunks[i-1][1]=it[1]
-                logger.debug(f'[{i=}]:距离左侧距离短，当前片段结束时间给上个片段结束时间, {msg}')
-            else:
-                # 右侧偏移小，右侧开始时间左移
-                speech_chunks[i + 1][0] = it[0]
-                logger.debug(f'[{i=}]:距离右侧距离短或等于左侧，当前片段开始时间给下个片段开始时间, {msg}')
-            speech_chunks[i][0]=-1
-        for it in speech_chunks:
-            if it[0]==-1:
-                continue
-            # 超过30s的片段强制一分为二
-            diff=it[1]-it[0]
-            if diff<30000:
-                new_chunk.append(it)
-                continue
-            off = diff // 2
-            new_chunk.extend([[it[0], it[0] + off],[it[0] + off, it[1]]])
-            logger.warning(f'cut_audio 超过30s需要拆分，{diff=}')
-
-        speech_chunks=new_chunk
-        # 两侧各填充500ms空白padding，利于语音识别
-        silent_segment = AudioSegment.silent(duration=500).set_channels(1).set_frame_rate(16000)
-        data=[]
-        for i, it in enumerate(speech_chunks):
-            start_ms, end_ms = it[0], it[1]
-            startraw, endraw = ms_to_time_string(ms=it[0]), ms_to_time_string(ms=it[1])
-            chunk = audio[start_ms:end_ms]
-            file_name = f"{dir_name}/audio_{i}.wav"
-            (silent_segment + chunk + silent_segment).export(file_name, format="wav")
-            data.append(SrtItem(
-                line=i + 1,
-                text="",
-                start_time=start_ms,
-                end_time=end_ms,
-                startraw=startraw,
-                endraw=endraw,
-                time=f'{startraw} --> {endraw}',
-                filename=file_name
-            ))
-        logger.debug(f'切分为 {len(data)} 个音频片段')
-        return data
 
     def _merge_sub(self, srt_list: List[SrtItem]) -> List[SrtItem]:
         """合并过短字幕，按标点重分配片段"""
@@ -400,7 +328,9 @@ class BaseRecogn(BaseCon):
         for idx, it in enumerate(srt_list):
             if not it['text'].strip():
                 continue
-            if  idx == 0 or idx == len(srt_list) - 1 or (it['end_time'] - it['start_time'] >= min_speech and len(it['text'].strip())>1 ):
+            
+            _words_len=len(it['text'].strip()) if self.is_cjk else len(it['text'].strip().split(' '))
+            if  idx == 0 or idx == len(srt_list) - 1 or (it['end_time'] - it['start_time'] >= min_speech and _words_len>1 ):
                 post_srt_raws.append(it)
                 continue
 
@@ -417,7 +347,7 @@ class BaseRecogn(BaseCon):
                 logger.warning(f'应合并到前边字幕，但已过长，因此强制合并进后个字幕')
 
             # 如果已是要求合并到前边，但是只有1-2个字符，并且前后时间相连，则合并到后边
-            if merge_forward and idx < len(srt_list) - 1 and len(it['text'].strip())<3 and next_diff<140:
+            if merge_forward and idx < len(srt_list) - 1 and _words_len<3 and next_diff==0:
                 merge_forward=False
                 logger.warning(f'已是要求合并到前边，但是只有1-2个字符，并且前后时间相连，则合并到后边,{next_diff=},{it["text"]=},{idx=}')
             

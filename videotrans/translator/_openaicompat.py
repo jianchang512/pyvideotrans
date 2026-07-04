@@ -107,7 +107,7 @@ class OpenAICampat(BaseTrans):
             raise StopTask(f'API URL is error: {api_url}')
 
         prompts_template = Path(f'{ROOT_DIR}/videotrans/prompts/resegment/llm{step}.txt').read_text(encoding='utf-8')
-        prompts_template = prompts_template.replace('{max_speech_s}', str(settings.get('max_speech_duration_s', 6)))
+        prompts_template = prompts_template.replace('{max_speech_s}', str(int(int(settings.get('max_speech_duration_s', 6))*1.7)) )
         chunk_size = int(settings.get('llm_chunk_size', 20))
         model_name=params.get(f'{self.ainame}_model')
         max_tokens=max(8192,int( float(params.get(f'{self.ainame}_max_token', 8192)) ))
@@ -123,7 +123,7 @@ class OpenAICampat(BaseTrans):
                 "model":model_name,
                 
                 "temperature":temperature,
-                "timeout":300,  # 超过5分钟为失败           
+                "timeout":600,   
         }
         if reasoning_effort:
             kwargs['reasoning_effort']=reasoning_effort

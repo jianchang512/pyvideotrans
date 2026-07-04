@@ -57,6 +57,7 @@ class BaseTrans(BaseCon):
     # 实际操作 run  -> run_text|run_srt -> _item_task
     def run(self) -> List[SrtItem]:
         if hasattr(self, '_download'):
+            self.signal(text=tr("check or download models"))
             self._download()
         try:
             if not self.aisendsrt:

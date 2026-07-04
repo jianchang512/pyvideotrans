@@ -7,7 +7,7 @@ from videotrans.configure.config import tr, logger
 from videotrans.tts import EDGE_TTS, AZURE_TTS
 from videotrans.util.help_ffmpeg import get_video_duration, runffmpeg
 from videotrans.util.help_misc import vail_file, is_novoice_mp4
-from videotrans.util.help_srt import ms_to_time_string
+from videotrans.util.help_srt import ms_to_time_string, delete_punc
 
 
 class AlignMixin:
@@ -43,12 +43,15 @@ class AlignMixin:
 
         if vail_file(self.cfg.novoice_mp4):
             self.video_time = get_video_duration(self.cfg.novoice_mp4)
-
+        
+        # 变速后更新字幕
         if self.cfg.voice_autorate or self.cfg.video_autorate or self.cfg.align_sub_audio:
             srt = ""
             for (idx, it) in enumerate(self.queue_tts):
                 startraw = ms_to_time_string(ms=it['start_time'])
                 endraw = ms_to_time_string(ms=it['end_time'])
+                if self.cfg.fix_punc==2:
+                    it['text']=delete_punc(it['text'])
                 srt += f"{idx + 1}\n{startraw} --> {endraw}\n{it['text'].strip('...')}\n\n"
             with  Path(self.cfg.target_sub).open('w', encoding="utf-8") as f:
                 f.write(srt.strip())

@@ -41,14 +41,17 @@ class WhisperXRecogn(BaseRecogn):
 
                 if not hasattr(transcript, 'segments') or not transcript.segments:
                     raise SpeechToTextError('No support')
+                #print(f'{transcript.segments=}')
                 for it in transcript.segments:
+                    startraw,endraw=tools.ms_to_time_string(ms=it.start * 1000),tools.ms_to_time_string( ms=it.end * 1000)
                     raws.append(SrtItem(
                         line=len(raws) + 1,
                         start_time=it.start * 1000,
                         end_time=it.end * 1000,
                         text=it.text,
-                        time=tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
-                            ms=it.end * 1000)
+                        startraw=startraw,
+                        endraw=endraw,
+                        time=f'{startraw} --> {endraw}'
                     ))
                     if self.max_speakers>-1:
                         sp = getattr(it,"speaker",'-')
@@ -71,6 +74,7 @@ class WhisperXRecogn(BaseRecogn):
                     Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
             except Exception as e:
                 logger.exception(f'说话人重排序出错，忽略{e}',exc_info=True)
+        
         return raws
 
 

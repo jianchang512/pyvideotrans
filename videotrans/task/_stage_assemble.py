@@ -79,7 +79,7 @@ class AssembleMixin:
     def _join_video_audio_srt(self) -> None:
         if self._exit() or not self.should_hebing:
             return
-
+        
         is_novoice_mp4(self.cfg.novoice_mp4, self.uuid)
         if not Path(self.cfg.novoice_mp4).exists():
             raise VideoTransError(f'{self.cfg.novoice_mp4} 不存在')

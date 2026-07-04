@@ -67,7 +67,8 @@ def pipe_asr(
         if is_whisper:
             # === Whisper 专用参数 ===
             lang = detect_language.split('-')[0] if detect_language != 'auto' else None
-
+            if "uyghur" in local_dir:
+                lang=None
             generate_kwargs["task"] = "transcribe"
             if lang:
                 generate_kwargs["language"] = lang

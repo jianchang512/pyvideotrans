@@ -213,8 +213,9 @@ def get_srt_from_list(srt_list: List[SrtItem]) -> str:
     for it in srt_list:
         line += 1
         if "startraw" not in it or not it['startraw']:
-            if 'time' in it:
-                startraw, endraw = it['time'].strip().split(" --> ")
+            _time_split=it['time'].strip().split(" --> ") if 'time' in it else []
+            if len(_time_split)==2:
+                startraw, endraw =_time_split[0],_time_split[1] 
                 startraw = format_time(startraw.strip().replace('.', ','), ',')
                 endraw = format_time(endraw.strip().replace('.', ','), ',')
             elif 'start_time' in it and 'end_time' in it:

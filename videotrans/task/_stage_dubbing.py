@@ -29,6 +29,7 @@ class DubbingMixin:
                 it['text']=it['text'].strip('...')
                 if self.cfg.fix_punc==2:
                     it['text']=delete_punc(it['text'])
+            self._save_srt_target(subs, self.cfg.target_sub)
 
         if  self.cfg.fix_punc==2 and Path(self.cfg.source_sub).exists():
             logger.debug('配音结束后，移除原始字幕中所有标点')

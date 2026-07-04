@@ -96,6 +96,8 @@ HUGGINGFACE_ASR_MODELS = {
     "biodatlab/whisper-th-large-v3": ['th'],
     "vinai/Phowhisper-large": ['vi'],
     "openai/whisper-large-v3": [],
+    #"openai/whisper-tiny": [],
+    "anke01/whisper-small-uyghur":[]
 }
 try:
     if Path(f'{ROOT_DIR}/huggingface_models.txt').exists():

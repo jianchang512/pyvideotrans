@@ -852,6 +852,7 @@
 			"Dolphin":"Dolphin_Asian",
 			"VITS":"VITS_EN_CN",
 			"ZipVoice":"ZipVoice_EN_CN",
-			"auto":"Automatic detection"
+			"auto":"Automatic detection",
+			"check or download models":"Check if the model exists..."
 
 }

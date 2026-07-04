@@ -74,7 +74,7 @@ class BaseTTS(BaseCon):
         logger.debug(f'当前使用配音渠道：{_tts_name}')
         self.signal(text=f"{_tts_name} starting: [len={self.len}]")
         if hasattr(self, '_download'):
-            self.signal(text=f"Check and downloading models...")
+            self.signal(text=tr("check or download models"))
             self._download()
         loop = None
         try:
