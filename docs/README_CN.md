@@ -87,11 +87,10 @@ cd pyvideotrans
 uv sync
 ```
 
-> 默认不安装 `qwen-tts`、`qwen-asr`、`moss-tts`、`chatterbox` 本地渠道，若需要全部安装请执行 `uv sync --all-extra`
-> - 单独安装 `qwen-tts`：`uv sync --extra qwentts`
-> - 单独安装 `qwen-asr`：`uv sync --extra qwenasr`
+> 默认不安装 `moss-tts`、`chatterbox` 、`whisper.net` 本地渠道，若需要全部安装请执行 `uv sync --all-extra`
 > - 单独安装 `moss-tts`：`uv sync --extra mosstts`
 > - 单独安装 `chatterbox`：`uv sync --extra chatterbox`
+> - 单独安装 `whisper.net`：`uv sync --extra dotnet`
 
 ### 4. 启动软件
 
