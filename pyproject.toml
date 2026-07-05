@@ -261,9 +261,12 @@ dependencies = [
     "unicode-rbnf>=2.4.0",
     "sentence-stream>=1.3.0",
     "google-cloud-storage>=3.12.0",
+    "chatterbox-tts>=0.1.7",
     "f5-tts>=1.1.20",
     "qwen-tts>=0.1.1",
     "qwen-asr>=0.0.6",
+    "pynini",
+    "WeTextProcessing",
 ]
 #"qwen-tts",
 #"qwen-asr",
@@ -275,15 +278,6 @@ dotnet = [
 ]
 webui = [
 	"gradio"
-]
-
-#https://github.com/OpenMOSS/MOSS-TTS-Nano/issues/6
-mosstts = [
-    "pynini",
-	"WeTextProcessing"	
-]
-chatterbox=[
-    "chatterbox-tts"
 ]
 
 [dependency-groups]
@@ -334,7 +328,15 @@ torchaudio = [
     { index = "pytorch-cu128", marker = "sys_platform == 'win32' or sys_platform == 'linux'" },
     { index = "pytorch-cpu", marker = "sys_platform == 'darwin'" },
 ]
+# 仅针对 Windows (win32) 平台指定从 URL 下载 wheel 文件
+# https://github.com/OpenMOSS/MOSS-TTS-Nano/issues/6
+#  https://github.com/billwuhao/pynini-windows-wheels/releases/download/v2.1.6.post1/pynini-2.1.6.post1-cp310-cp310-win_amd64.whl
 
-faster-whisper = { url = "https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz" }
+pynini = [
+    { url = "https://github.com/billwuhao/pynini-windows-wheels/releases/download/v2.1.6.post1/pynini-2.1.6.post1-cp310-cp310-win_amd64.whl", marker = "sys_platform == 'win32'" }
+]
+
+
+#faster-whisper = { url = "https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz" }
 
 

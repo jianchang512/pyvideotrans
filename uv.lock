@@ -2,8 +2,10 @@ version = 1
 revision = 3
 requires-python = "==3.10.*"
 resolution-markers = [
-    "(platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux') or (platform_machine != 's390x' and sys_platform == 'win32')",
-    "(platform_machine == 's390x' and sys_platform == 'linux') or (platform_machine == 's390x' and sys_platform == 'win32')",
+    "platform_machine != 's390x' and sys_platform == 'win32'",
+    "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'",
+    "platform_machine == 's390x' and sys_platform == 'win32'",
+    "platform_machine == 's390x' and sys_platform == 'linux'",
     "platform_machine == 'aarch64' and sys_platform == 'linux'",
     "sys_platform == 'darwin'",
     "sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32'",
@@ -1305,7 +1307,7 @@ wheels = [
 [[package]]
 name = "faster-whisper"
 version = "1.2.1"
-source = { url = "https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "av" },
     { name = "ctranslate2" },
@@ -1314,23 +1316,9 @@ dependencies = [
     { name = "tokenizers" },
     { name = "tqdm" },
 ]
-sdist = { hash = "sha256:16903f749864eb5b040fdf0db70940021168f5603a3408ec74a5ab0805473961" }
-
-[package.metadata]
-requires-dist = [
-    { name = "av", specifier = ">=11" },
-    { name = "black", marker = "extra == 'dev'", specifier = "==23.*" },
-    { name = "ctranslate2", specifier = ">=4.0,<5" },
-    { name = "flake8", marker = "extra == 'dev'", specifier = "==6.*" },
-    { name = "huggingface-hub", specifier = ">=0.23" },
-    { name = "isort", marker = "extra == 'dev'", specifier = "==5.*" },
-    { name = "onnxruntime", specifier = ">=1.14,<2" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = "==7.*" },
-    { name = "tokenizers", specifier = ">=0.13,<1" },
-    { name = "tqdm" },
-    { name = "transformers", extras = ["torch"], marker = "extra == 'conversion'", specifier = ">=4.23" },
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/05/99/49ee85903dee060d9f08297b4a342e5e0bcfca2f027a07b4ee0a38ab13f9/faster_whisper-1.2.1-py3-none-any.whl", hash = "sha256:79a66ad50688c0b794dd501dc340a736992a6342f7f95e5811be60b5224a26a7", size = 1118909, upload-time = "2025-10-31T11:35:47.794Z" },
 ]
-provides-extras = ["conversion", "dev"]
 
 [[package]]
 name = "ffmpeg-python"
@@ -2851,7 +2839,7 @@ name = "nvidia-cudnn-cu12"
 version = "9.7.1.26"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "(platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux') or (platform_machine != 's390x' and sys_platform == 'win32')" },
+    { name = "nvidia-cublas-cu12", marker = "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/25/dc/dc825c4b1c83b538e207e34f48f86063c88deaa35d46c651c7c181364ba2/nvidia_cudnn_cu12-9.7.1.26-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:6d011159a158f3cfc47bf851aea79e31bcff60d530b70ef70474c84cac484d07", size = 726851421, upload-time = "2025-02-06T22:18:29.812Z" },
@@ -2862,7 +2850,7 @@ name = "nvidia-cufft-cu12"
 version = "11.3.3.41"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux') or (platform_machine != 's390x' and sys_platform == 'win32')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ac/26/b53c493c38dccb1f1a42e1a21dc12cba2a77fbe36c652f7726d9ec4aba28/nvidia_cufft_cu12-11.3.3.41-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:da650080ab79fcdf7a4b06aa1b460e99860646b176a43f6208099bdc17836b6a", size = 193118795, upload-time = "2025-01-23T17:56:30.536Z" },
@@ -2889,9 +2877,9 @@ name = "nvidia-cusolver-cu12"
 version = "11.7.2.55"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "(platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux') or (platform_machine != 's390x' and sys_platform == 'win32')" },
-    { name = "nvidia-cusparse-cu12", marker = "(platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux') or (platform_machine != 's390x' and sys_platform == 'win32')" },
-    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux') or (platform_machine != 's390x' and sys_platform == 'win32')" },
+    { name = "nvidia-cublas-cu12", marker = "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'" },
+    { name = "nvidia-cusparse-cu12", marker = "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'" },
+    { name = "nvidia-nvjitlink-cu12", marker = "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c2/08/953675873a136d96bb12f93b49ba045d1107bc94d2551c52b12fa6c7dec3/nvidia_cusolver_cu12-11.7.2.55-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:4d1354102f1e922cee9db51920dba9e2559877cf6ff5ad03a00d853adafb191b", size = 260373342, upload-time = "2025-01-23T17:58:56.406Z" },
@@ -2902,7 +2890,7 @@ name = "nvidia-cusparse-cu12"
 version = "12.5.7.53"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux') or (platform_machine != 's390x' and sys_platform == 'win32')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c2/ab/31e8149c66213b846c082a3b41b1365b831f41191f9f40c6ddbc8a7d550e/nvidia_cusparse_cu12-12.5.7.53-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:3c1b61eb8c85257ea07e9354606b26397612627fdcd327bfd91ccf6155e7c86d", size = 292064180, upload-time = "2025-01-23T18:00:23.233Z" },
@@ -3206,7 +3194,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess" },
+    { name = "ptyprocess", marker = "sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
@@ -3804,10 +3792,29 @@ wheels = [
 name = "pynini"
 version = "2.1.6"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'",
+    "platform_machine == 's390x' and sys_platform == 'linux'",
+    "platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "sys_platform == 'darwin'",
+    "sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32'",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/9b/69/4b59968b0fd351a153d7a3c2feaa6e7514c903c063bbd7f7e1e3f1c079b0/pynini-2.1.6.tar.gz", hash = "sha256:b09b6dda73608cedf962dbfbcfa5826b0984d1b43a8f995761972e6e032921c6", size = 789830, upload-time = "2024-01-13T05:20:20.851Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/56/81/4bb768d67943088a0bc12d9f3581e7edc9addf4b29b91f65b4ed733c0a0f/pynini-2.1.6-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:d04d3000cda1cd006c791d8c08ecf9472e3710430024b3130eac3fad26afee60", size = 154541768, upload-time = "2024-01-13T05:19:49.447Z" },
     { url = "https://files.pythonhosted.org/packages/f3/25/e5c69822c420a9fbde5f76df6e482e370d24bcebd6cacd9e12c829aaabaf/pynini-2.1.6-pp310-pypy310_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:bb6bef42826b015d778ae6874e3972e8d06417c7f48c7d7635a2bef7d13eb840", size = 98750429, upload-time = "2024-01-13T05:22:01.15Z" },
+]
+
+[[package]]
+name = "pynini"
+version = "2.1.6.post1"
+source = { url = "https://github.com/billwuhao/pynini-windows-wheels/releases/download/v2.1.6.post1/pynini-2.1.6.post1-cp310-cp310-win_amd64.whl" }
+resolution-markers = [
+    "platform_machine != 's390x' and sys_platform == 'win32'",
+    "platform_machine == 's390x' and sys_platform == 'win32'",
+]
+wheels = [
+    { url = "https://github.com/billwuhao/pynini-windows-wheels/releases/download/v2.1.6.post1/pynini-2.1.6.post1-cp310-cp310-win_amd64.whl", hash = "sha256:18be20f369f86355a12f9bad76bd17f1235df32cd72df6564f068b0e4f4f1911" },
 ]
 
 [[package]]
@@ -4133,6 +4140,7 @@ dependencies = [
     { name = "cffi" },
     { name = "chardet" },
     { name = "charset-normalizer" },
+    { name = "chatterbox-tts" },
     { name = "click" },
     { name = "colorama" },
     { name = "coloredlogs" },
@@ -4280,6 +4288,8 @@ dependencies = [
     { name = "pygments" },
     { name = "pyinstaller" },
     { name = "pyinstaller-hooks-contrib" },
+    { name = "pynini", version = "2.1.6", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'win32'" },
+    { name = "pynini", version = "2.1.6.post1", source = { url = "https://github.com/billwuhao/pynini-windows-wheels/releases/download/v2.1.6.post1/pynini-2.1.6.post1-cp310-cp310-win_amd64.whl" }, marker = "sys_platform == 'win32'" },
     { name = "pynndescent" },
     { name = "pyparsing" },
     { name = "pyppmd" },
@@ -4352,6 +4362,8 @@ dependencies = [
     { name = "urllib3" },
     { name = "websocket-client" },
     { name = "websockets" },
+    { name = "wetextprocessing", version = "1.0.4.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'win32'" },
+    { name = "wetextprocessing", version = "1.2.0", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'win32'" },
     { name = "wheel" },
     { name = "wrapt" },
     { name = "xxhash" },
@@ -4360,15 +4372,8 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-chatterbox = [
-    { name = "chatterbox-tts" },
-]
 dotnet = [
     { name = "pythonnet" },
-]
-mosstts = [
-    { name = "pynini" },
-    { name = "wetextprocessing" },
 ]
 webui = [
     { name = "gradio" },
@@ -4426,7 +4431,7 @@ requires-dist = [
     { name = "cffi", specifier = "==1.17.1" },
     { name = "chardet", specifier = "==3.0.4" },
     { name = "charset-normalizer", specifier = "==3.4.4" },
-    { name = "chatterbox-tts", marker = "extra == 'chatterbox'" },
+    { name = "chatterbox-tts", specifier = ">=0.1.7" },
     { name = "click", specifier = "==8.1.7" },
     { name = "colorama", specifier = "==0.4.6" },
     { name = "coloredlogs", specifier = "==15.0.1" },
@@ -4452,7 +4457,7 @@ requires-dist = [
     { name = "exceptiongroup", specifier = "==1.2.2" },
     { name = "executing", specifier = "==2.0.1" },
     { name = "f5-tts", specifier = ">=1.1.20" },
-    { name = "faster-whisper", url = "https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz" },
+    { name = "faster-whisper" },
     { name = "ffmpeg-python", specifier = "==0.2.0" },
     { name = "filelock", specifier = "==3.13.1" },
     { name = "flatbuffers", specifier = "==25.9.23" },
@@ -4575,7 +4580,8 @@ requires-dist = [
     { name = "pygments", specifier = "==2.17.2" },
     { name = "pyinstaller", specifier = "==6.16.0" },
     { name = "pyinstaller-hooks-contrib", specifier = "==2025.8" },
-    { name = "pynini", marker = "extra == 'mosstts'" },
+    { name = "pynini", marker = "sys_platform != 'win32'" },
+    { name = "pynini", marker = "sys_platform == 'win32'", url = "https://github.com/billwuhao/pynini-windows-wheels/releases/download/v2.1.6.post1/pynini-2.1.6.post1-cp310-cp310-win_amd64.whl" },
     { name = "pynndescent", specifier = "==0.5.13" },
     { name = "pyparsing", specifier = "==3.1.1" },
     { name = "pyppmd", specifier = "==1.1.0" },
@@ -4648,14 +4654,14 @@ requires-dist = [
     { name = "urllib3", specifier = "==2.5.0" },
     { name = "websocket-client", specifier = "==1.8.0" },
     { name = "websockets", specifier = "==13.1" },
-    { name = "wetextprocessing", marker = "extra == 'mosstts'" },
+    { name = "wetextprocessing" },
     { name = "wheel", specifier = "==0.45.1" },
     { name = "wrapt", specifier = "==1.15.0" },
     { name = "xxhash", specifier = "==3.5.0" },
     { name = "yarl", specifier = "==1.20.1" },
     { name = "zhconv", specifier = "==1.4.3" },
 ]
-provides-extras = ["dotnet", "webui", "mosstts", "chatterbox"]
+provides-extras = ["dotnet", "webui"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest" }]
@@ -5727,8 +5733,10 @@ name = "torch"
 version = "2.7.1+cu128"
 source = { registry = "https://download.pytorch.org/whl/cu128" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux') or (platform_machine != 's390x' and sys_platform == 'win32')",
-    "(platform_machine == 's390x' and sys_platform == 'linux') or (platform_machine == 's390x' and sys_platform == 'win32')",
+    "platform_machine != 's390x' and sys_platform == 'win32'",
+    "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'",
+    "platform_machine == 's390x' and sys_platform == 'win32'",
+    "platform_machine == 's390x' and sys_platform == 'linux'",
     "platform_machine == 'aarch64' and sys_platform == 'linux'",
 ]
 dependencies = [
@@ -5872,8 +5880,10 @@ name = "torchaudio"
 version = "2.7.1+cu128"
 source = { registry = "https://download.pytorch.org/whl/cu128" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux') or (platform_machine != 's390x' and sys_platform == 'win32')",
-    "(platform_machine == 's390x' and sys_platform == 'linux') or (platform_machine == 's390x' and sys_platform == 'win32')",
+    "platform_machine != 's390x' and sys_platform == 'win32'",
+    "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'",
+    "platform_machine == 's390x' and sys_platform == 'win32'",
+    "platform_machine == 's390x' and sys_platform == 'linux'",
 ]
 dependencies = [
     { name = "torch", version = "2.7.1+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux') or sys_platform == 'win32'" },
@@ -5993,7 +6003,7 @@ name = "triton"
 version = "3.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "setuptools", marker = "sys_platform != 'darwin'" },
+    { name = "setuptools", marker = "sys_platform != 'darwin' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8d/a9/549e51e9b1b2c9b854fd761a1d23df0ba2fbc60bd0c13b489ffa518cfcb7/triton-3.3.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b74db445b1c562844d3cfad6e9679c72e93fdfb1a90a24052b03bb5c49d1242e", size = 155600257, upload-time = "2025-05-29T23:39:36.085Z" },
@@ -6261,13 +6271,37 @@ wheels = [
 name = "wetextprocessing"
 version = "1.0.4.1"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "platform_machine != 'aarch64' and platform_machine != 's390x' and sys_platform == 'linux'",
+    "platform_machine == 's390x' and sys_platform == 'linux'",
+    "platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "sys_platform == 'darwin'",
+    "sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32'",
+]
 dependencies = [
-    { name = "importlib-resources" },
-    { name = "pynini" },
+    { name = "importlib-resources", marker = "sys_platform != 'win32'" },
+    { name = "pynini", version = "2.1.6", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0f/94/25f1ec447bbe801de9dfb5c9e35775709d551c0d2364b83c2c1bf08eede5/WeTextProcessing-1.0.4.1.tar.gz", hash = "sha256:95eabf1b1c4c102e886b234ee70b13e11ff19ac57ea18d6581aae0cc814f7801", size = 1846631, upload-time = "2024-08-01T10:03:46.463Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c2/e3/19e847398a2863d8c72a1f4f0082fa2a614a7b654d5bad161f03134e5fb7/WeTextProcessing-1.0.4.1-py3-none-any.whl", hash = "sha256:2080c4788ae9de4e8cda07a9cd100003e951b8f2ecee64ad14afa34a79b0dfb4", size = 1972683, upload-time = "2024-08-01T10:03:43.984Z" },
+]
+
+[[package]]
+name = "wetextprocessing"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "platform_machine != 's390x' and sys_platform == 'win32'",
+    "platform_machine == 's390x' and sys_platform == 'win32'",
+]
+dependencies = [
+    { name = "importlib-resources", marker = "sys_platform == 'win32'" },
+    { name = "pynini", version = "2.1.6.post1", source = { url = "https://github.com/billwuhao/pynini-windows-wheels/releases/download/v2.1.6.post1/pynini-2.1.6.post1-cp310-cp310-win_amd64.whl" }, marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ec/86/5af15ef13257f8fc223c392c3b4bfa0232e26bd52031c17ddd94661f5042/wetextprocessing-1.2.0.tar.gz", hash = "sha256:8f00a446920b198a4b698a44e14fa7c011d19d1197465cf2383e990c92c355d5", size = 1997204, upload-time = "2026-06-10T03:49:59.096Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d9/81/351722ec61dbdf96cca59edac14ce620be273fa98a9fab9e1a2aa524c3e1/wetextprocessing-1.2.0-py3-none-any.whl", hash = "sha256:2c7c1e048ede69b67e8a0921093c08a591bc9d7566ad70f5343686196f97aea9", size = 2012397, upload-time = "2026-06-10T03:49:57.359Z" },
 ]
 
 [[package]]
