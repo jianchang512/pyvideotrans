@@ -87,11 +87,10 @@ cd pyvideotrans
 uv sync
 ```
 
-> By default, `moss-tts` / `chatterbox` / `whisper.net` are not installed locally.
-> - To install all optional channels: `uv sync --all-extra`
-> - To install moss: `uv sync --extra mosstts` 
-> - To install chatterbox: `uv sync --extra chatterbox` 
+> By default, `whisper.net` and `WebUI` are not installed locally.
+> - To install all optional channels: `uv sync --all-extras`
 > - To install whisper.net: `uv sync --extra dotnet` 
+> - To install WebUI: `uv sync --extra webui` 
 
 ### 4. Launch Software
 
