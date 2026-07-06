@@ -227,14 +227,12 @@ def get_msg_from_except(ex:Exception)->str:
         ),
 
         # === 频率限制 ===
-        RateLimitError: lambda e: e.body.get('message') if e.body else e.message,
         # === 资源不存在问题 ===
         # === 请求参数问题 ===
         # === 服务端问题 ===
-        (InternalServerError, NotFoundError, BadRequestError, APIConnectionError, APIError): lambda e: e.body.get('message') if hasattr(e, 'body') and e.body else e.message,
+        (RateLimitError,InternalServerError, NotFoundError, BadRequestError, APIConnectionError, APIError): lambda e: e.body.get('message') if hasattr(e, 'body') and e.body else e.message,
 
-        LengthFinishReasonError: lambda e: (
-            f'内容太长超出最大允许Token，请减小内容或增大max_token,或者降低每次发送字幕行数\n{e}' if lang == 'zh' else f'{e}'),
+        LengthFinishReasonError: lambda e: f'内容太长超出最大允许Token，请减小内容或增大max_token,或者降低每次发送字幕行数\n{e}' if lang == 'zh' else f'{e}',
         ContentFilterFinishReasonError: lambda
             e: f"内容触发AI风控被过滤 {e}" if lang == 'zh' else f'Content triggers AI risk control and is filtered\n{e}',
 
