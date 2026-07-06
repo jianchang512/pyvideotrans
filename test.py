@@ -1,56 +1,80 @@
-
-
-#!/usr/bin/env python3
-
 """
-This file shows how to use a non-streaming CTC model from NeMo
-to decode files.
+from omnivoice import OmniVoice
+import soundfile as sf
+import torch
 
-Please download model files from
-https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models
+model = OmniVoice.from_pretrained(
+    "./models/models--k2-fsa--OmniVoice",
+    #device_map="cuda:0",
+    #dtype=torch.float16
+)
+# Apple Silicon users: use device_map="mps" instead
+# Intel Arc GPU users: use device_map="xpu" instead
+
+audio = model.generate(
+    text="Hello, this is a test of zero-shot voice cloning.",
+    ref_audio="cosy.wav",
+    ref_text="希望你以后，能够做的比我还好哟！",
+) # audio is a list of `np.ndarray` with shape (T,) at 24 kHz.
+
+# If you don't want to input `ref_text` manually, you can directly omit the `ref_text`.
+# The model will use Whisper ASR to auto-transcribe it.
+
+sf.write("out0.wav", audio[0], 24000)
 
 
-The example model supports 10 languages and it is converted from
-https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/stt_multilingual_fastconformer_hybrid_large_pc
+import sys
+sys.exit(1)
 """
-
+from videotrans.util.help_role import get_qwenttslocal_rolelist
+import torch
 from pathlib import Path
-
-import sherpa_onnx
+import traceback, json
+from typing import Tuple, Union
+from videotrans.configure.config import logger,ROOT_DIR
 import soundfile as sf
 
 
-def create_recognizer():
-    encoder = "./models/fireredasr/encoder.int8.onnx"
-    model = "./models/omnilingual/model.int8.onnx"
-    tokens = "./models/omnilingual/tokens.txt"
+from qwen_tts import Qwen3TTSModel
+CUSTOM_VOICE= {"Vivian", "Serena", "Uncle_fu", "Dylan", "Eric", "Ryan", "Aiden", "Ono_anna", "Sohee"}
 
-    return  sherpa_onnx.OfflineRecognizer.from_omnilingual_asr_ctc(
-            model=model,
-            tokens=tokens,
-            debug=False,
-            num_threads=4
+
+
+atten=None
+device_map = 'cpu'
+dtype=torch.float32
+
+BASE_OBJ=None
+CUSTOM_OBJ=None
+
+   
+BASE_OBJ=Qwen3TTSModel.from_pretrained(
+    f"{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-0.6B-Base",
+    device_map=device_map,
+    dtype=dtype,
+    attn_implementation=atten
+)
+kw={
+    "text":"你好啊朋友们,要天天开心哦！",
+    "language":"Chinese",
+    "ref_audio":"./f5-tts/cosy.wav",
+}
+kw['ref_text']="希望你以后，能够做的比我还好哟！"
+wavs, sr = BASE_OBJ.generate_voice_clone(**kw)
+sf.write("ceshi2.wav", wavs[0], sr)
+
+
+from qwen_asr import Qwen3ASRModel
+model = Qwen3ASRModel.from_pretrained(
+            f"./models/models--Qwen--Qwen3-ASR-0.6B",
+            max_inference_batch_size=8,
+            # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
+            max_new_tokens=2048,  # Maximum number of tokens to generate. Set a larger value for long audio input.
         )
-    
-
-
-def main():
-    recognizer = create_recognizer()
-    
-    audio, sample_rate = sf.read('c:/users/c1/videos/0.wav', dtype="float32", always_2d=True)
-    audio = audio[:, 0]  # only use the first channel
-
-    # audio is a 1-D float32 numpy array normalized to the range [-1, 1]
-    # sample_rate does not need to be 16000 Hz
-
-    stream = recognizer.create_stream()
-    stream.accept_waveform(sample_rate, audio)
-    recognizer.decode_stream(stream)
-    #print(wave_filename)
-    print(stream.result)
-    print('#########')
-    print(stream.result.text)
-
-
-if __name__ == "__main__":
-    main()
+results = model.transcribe(
+                audio=["10.wav"],
+                language=[None],  # can also be set to None for automatic language detection
+                return_time_stamps=False,
+                #context=hotword.split(',') if hotword else []
+            )
+print(results)

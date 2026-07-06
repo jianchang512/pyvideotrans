@@ -407,7 +407,6 @@ class Ui_MainWindow(object):
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_chatterbox.setText("ChatterBox TTS")
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
-        self.actiontts_omnivoice.setText("OmniVoice TTS")
         self.actiontts_qwenttslocal.setText(f"Qwen3 TTS({tr('Local')})")
         self.actiontts_fishtts.setText("Fish TTS")
         self.actiontts_gradiowin.setText("Index/VoxCPM/SparK/Confucius")

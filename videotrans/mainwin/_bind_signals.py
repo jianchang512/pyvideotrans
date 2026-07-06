@@ -73,7 +73,6 @@ class BindSignalsMixin:
         self.actiontts_gptsovits.triggered.connect(lambda: self.open_winform('gptsovits'))
         self.actiontts_chatterbox.triggered.connect(lambda: self.open_winform('chatterbox'))
         self.actiontts_cosyvoice.triggered.connect(lambda: self.open_winform('cosyvoice'))
-        self.actiontts_omnivoice.triggered.connect(lambda: self.open_winform('omnivoice'))
         self.actiontts_qwenttslocal.triggered.connect(lambda: self.open_winform('qwenttslocal'))
         self.actionopenaitts_key.triggered.connect(lambda: self.open_winform('openaitts'))
         self.actionxaitts_key.triggered.connect(lambda: self.open_winform('xaitts'))

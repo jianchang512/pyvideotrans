@@ -41,6 +41,8 @@ def _set_env():
     os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "3600"
     os.environ["HF_HUB_DISABLE_XET"] = "1"
     os.environ['GRADIO_ANALYTICS_ENABLED'] = '0'
+    if Path(f'{ROOT_DIR}/netoffline.txt').is_file():
+        os.environ['HF_HUB_OFFLINE'] = '1'
 
     if sys.platform == 'win32' and IS_FROZEN:
         os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;' + os.environ.get("PATH", "")

@@ -70,13 +70,13 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
     def _patched_http_get(url, temp_file, *,
                           proxies=None, resume_size=0, headers=None,
                           expected_size=None, displayed_filename=None,
-                          _nb_retries=5, _tqdm_bar=None):
+                          _nb_retries=5, _tqdm_bar=None,**kwargs):
         if expected_size is None:
             return _original_http_get(url, temp_file, proxies=proxies,
                                       resume_size=resume_size, headers=headers,
                                       expected_size=expected_size,
                                       displayed_filename=displayed_filename,
-                                      _nb_retries=_nb_retries, _tqdm_bar=_tqdm_bar)
+                                      _nb_retries=_nb_retries, _tqdm_bar=_tqdm_bar,**kwargs)
 
         class _ChunkTracker:
             def __init__(self):

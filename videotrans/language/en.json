@@ -844,7 +844,7 @@
             "cy": "Welsh",
             "zu": "Zulu",
 			"the reference audio duration is less than 3 seconds":"If the reference audio duration is less than 3 seconds, voice cloning cannot be performed; skip this step.",
-			"40 Eastern languages and 22 Chinese dialects":"40 Eastern languages and 22 Chinese dialects",
+			"40 Eastern languages and 22 Chinese dialects":"40 Asian languages and 22 Chinese dialects",
 			"Chinese & English and Chinese dialects":"Chinese & English and Chinese dialects",
 			"FireRed":"Firered_Chinese",
 			"Omnilingual":"OmnilingualASR",

@@ -40,7 +40,6 @@ from videotrans.ui.libretranslate import Ui_libretranslateform
 from videotrans.ui.localllm import Ui_localllmform
 from videotrans.ui.minimax import Ui_minimaxform
 from videotrans.ui.minimaxi import Ui_minimaxiform
-from videotrans.ui.omnivoice import Ui_omnivoiceform
 from videotrans.ui.openairecognapi import Ui_openairecognapiform
 from videotrans.ui.openaitts import Ui_openaittsform
 from videotrans.ui.openrouter import Ui_openrouterform
@@ -190,9 +189,6 @@ class ChatterboxForm(QDialogBase, Ui_chatterboxform):  # <===
 
 
 class CosyVoiceForm(QDialogBase, Ui_cosyvoiceform):  # <===
-    def __init__(self, parent=None):
-        super().__init__(parent)
-class OmniVoiceForm(QDialogBase, Ui_omnivoiceform):  # <===
     def __init__(self, parent=None):
         super().__init__(parent)
 class QwenttsLocalForm(QDialogBase, Ui_qwenttslocal):  # <===

@@ -17,7 +17,6 @@ try:
 except ImportError:
     pass
 
-from f5_tts.api import F5TTS  # 这是你代码里原有的那行
 from f5_tts.api import F5TTS
 from omegaconf import OmegaConf
 from hydra.utils import get_class

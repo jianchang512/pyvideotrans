@@ -5,7 +5,7 @@ from videotrans.translator._constants import (  # noqa: F401
     QWENMT_INDEX, ZIJIE_INDEX,
     TENCENT_INDEX, BAIDU_INDEX, DEEPL_INDEX, DEEPLX_INDEX, ALI_INDEX,
     LIBRE_INDEX, MINIMAX_INDEX, XIAOMI_INDEX, CAMB_INDEX, TRANSAPI_INDEX,
-    AI_TRANS_CHANNELS,
+    AI_TRANS_CHANNELS,HYMT2_INDEX
 )
 
 from videotrans.translator._registry import (  # noqa: F401

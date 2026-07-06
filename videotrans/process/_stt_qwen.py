@@ -21,11 +21,8 @@ def qwen3asr_fun(
         hotword=None
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import torch
-    try:
-        from qwen_asr import Qwen3ASRModel
-    except ImportError as e:
-        logger.critical('please run  uv sync --extra qwenasr ')
-        return False, f'{e}'
+    from qwen_asr import Qwen3ASRModel
+
     if is_cuda:
         device_map = f'cuda:{device_index}'
         dtype = torch.float16

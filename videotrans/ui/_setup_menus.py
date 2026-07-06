@@ -98,7 +98,6 @@ def _setup_actions_and_menus(ui, MainWindow):
     _make_action(ui, "actiontts_gptsovits")
     _make_action(ui, "actiontts_chatterbox")
     _make_action(ui, "actiontts_cosyvoice")
-    _make_action(ui, "actiontts_omnivoice")
     _make_action(ui, "actiontts_qwenttslocal")
     _make_action(ui, "actiontts_fishtts")
     _make_action(ui, "actiontts_gradiowin")
@@ -164,7 +163,7 @@ def _setup_actions_and_menus(ui, MainWindow):
 
     _fill_menu(ui.menu_TTS, [
         ui.actiontts_refaudio, ui.actionclone_address, ui.actionkokoro_address,
-        ui.actionchattts_address, ui.actiontts_gptsovits, ui.actiontts_omnivoice,
+        ui.actionchattts_address, ui.actiontts_gptsovits, 
         ui.actiontts_cosyvoice, ui.actiontts_qwenttslocal, ui.actionqwentts_key,
         ui.actiontts_fishtts, ui.actiontts_gradiowin, ui.actionai302_key,
         ui.actiontts_doubao2, ui.actionElevenlabs_key, ui.actionazure_tts,

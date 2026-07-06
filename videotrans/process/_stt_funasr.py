@@ -41,7 +41,7 @@ def funasr_mlt(
         if model_name == 'iic/SenseVoiceSmall':
             model = pipeline(
                 task=Tasks.auto_speech_recognition,
-                model='iic/SenseVoiceSmall',
+                model=f'{ROOT_DIR}/models/SenseVoiceSmall',
                 # model_revision="master",
                 disable_update=True,
                 disable_progress_bar=True,
@@ -51,10 +51,10 @@ def funasr_mlt(
             res = model([it['filename'] for it in cut_audio_list], batch_size=4, disable_pbar=True,hotword=hotword.replace(',',' '))
         else:
             model = AutoModel(
-                model=model_name,
-                punc_model="iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch",
+                model=f'{ROOT_DIR}/models/'+model_name.split('/')[-1],
+                punc_model=f'{ROOT_DIR}/models/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',
                 device=device,
-                local_dir=ROOT_DIR + "/models",
+                #local_dir=ROOT_DIR + "/models",
                 disable_update=True,
                 disable_progress_bar=True,
                 disable_log=True,

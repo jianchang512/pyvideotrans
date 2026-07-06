@@ -4,7 +4,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import List,  Union
 from videotrans.configure import config
-from videotrans.configure.config import settings
+from videotrans.configure.config import settings,ROOT_DIR
 from videotrans.process import paraformer, funasr_mlt
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -17,11 +17,10 @@ class FunasrRecogn(BaseRecogn):
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit():
             return
-        tools.check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback)
+        tools.check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/punc_ct-transformer_zh-cn-common-vocab272727-pytorch')
 
         if self.model_name == 'paraformer-zh' and self.detect_language[:2].lower() !='zh':
-            self.model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if self.detect_language[:2] not in ['zh','en','ja','yu'] else 'FunAudioLLM/Fun-ASR-Nano-2512'
-            tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
+            self.model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if self.detect_language[:2] not in ['zh','en','ja','yu'] else 'Fun-ASR-Nano-2512'
         elif self.model_name == 'SenseVoiceSmall':
             self.model_name = 'iic/SenseVoiceSmall'
         elif self.model_name == 'Fun-ASR-Nano-2512':
@@ -31,13 +30,14 @@ class FunasrRecogn(BaseRecogn):
                 self.model_name = f'FunAudioLLM/Fun-ASR-Nano-2512'
         elif self.model_name != 'paraformer-zh':
             self.model_name = f'FunAudioLLM/Fun-ASR-MLT-Nano-2512'
-
+        print(f'{self.model_name=}')
         if self.model_name == 'paraformer-zh':
-            tools.check_and_down_ms(model_id='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',callback=self._process_callback)
-            tools.check_and_down_ms(model_id='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',callback=self._process_callback)
-            tools.check_and_down_ms(model_id='damo/speech_campplus_sv_zh-cn_16k-common',callback=self._process_callback)
+            tools.check_and_down_ms(model_id='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/speech_fsmn_vad_zh-cn-16k-common-pytorch')
+            tools.check_and_down_ms(model_id='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch')
+            tools.check_and_down_ms(model_id='damo/speech_campplus_sv_zh-cn_16k-common',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/speech_campplus_sv_zh-cn_16k-common')
         else:
-            tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback)
+            print('download---')
+            tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/'+self.model_name.split('/')[-1])
         self.signal(text=f"load {self.model_name}")
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/funasr-{self.detect_language}-{time.time()}.log'
         if self.model_name != 'paraformer-zh':

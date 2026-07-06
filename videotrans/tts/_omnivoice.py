@@ -1,19 +1,17 @@
 import logging
 from dataclasses import dataclass
 from typing import Union, Dict, List
-
-import requests
-from gradio_client import handle_file
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-
-from videotrans.configure.config import settings, logger,tr
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
-from videotrans.tts._gradio import GradioBase
+from videotrans.configure.config import settings, logger,tr,ROOT_DIR,app_cfg
+from videotrans.util import tools,gpus
+from videotrans.tts._base import BaseTTS
+import soundfile as sf
+from pathlib import Path
 
 @dataclass
-class OmniVoice(GradioBase):
+class OmniVoice(BaseTTS):
+    localdir:str=None
     def __post_init__(self):
-        self.ainame="omnivoice"
+        super().__post_init__()
         # 语言代码 对应语言名称
         lang_code= {
             "zh-cn": "Chinese",
@@ -97,68 +95,71 @@ class OmniVoice(GradioBase):
             "cy": "Welsh",
             "zu": "Zulu"
         }
+        self.roledict = tools.get_f5tts_role()
+        self.device='cuda' if self.is_cuda else  gpus.mps_or_cpu()
         self.lang=lang_code.get(self.language,'Auto') if self.language else 'Auto'
-        super().__post_init__()
+        self.localdir=f'{ROOT_DIR}/models/models--k2-fsa--OmniVoice'
 
+    def _download(self):
+        tools.check_and_down_hf(
+                "OmniVoice",
+                'k2-fsa/OmniVoice',
+                self.localdir,
+                callback=self._process_callback,
+                #allow_list=[self.cfg['model_name'],self.cfg['vocab_name']]
+        )        
+        return True
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
-    def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
-        if self.api_url.endswith(':3900'):#OmniVoice-studio
-            return self._omnivoice_studio(data_item)
-        ref_wav,ref_text = self.get_ref_wav(data_item)
-        kwargs = {
-            "text":data_item.get('text',''),
-            "lang":self.lang,
-            "ref_aud":handle_file(ref_wav),
-            "ref_text":ref_text,
-            "instruct":'',
-            "ns":32,
-            "gs":2.0,
-            "dn":False,
-            "sp":self.get_speed(),
-            "du":0,
-            "pp":True,
-            "po":False,
-            "api_name":"/_clone_fn",
-        }
-        return self._send(kwargs, data_item)
-    
-    
-    def _omnivoice_studio(self,data_item):
-        ref_wav,ref_text = self.get_ref_wav(data_item)
-        data = {
-            "text": data_item.get('text', ''),
-            "language": self.lang,
-            "num_step": 32,
-            "guidance_scale": 2.0,
-            "speed": self.get_speed(),
-            "denoise": "false",
-            "postprocess_output": "true",
-        }
-        files = None
-        if ref_wav:
-            files = {"ref_audio": open(ref_wav, 'rb')}
-            if ref_text:
-                data["ref_text"] = ref_text
+    def _exec(self):
+        _model_obj = {}
+        ok, err = 0, 0
+        _except = None
+        import torch
+        from omnivoice import OmniVoice
+        
+        model = OmniVoice.from_pretrained(
+            self.localdir,
+            device_map=self.device,
+            dtype=torch.float32 if self.device == 'cpu' else torch.float16
+        )
+        
+        for i,item in enumerate(self.queue_tts):
+            if app_cfg.exit_soft: return
+            self.signal(text=f"Dubbing {i+1}/{len(self.queue_tts)}")
+            try:
+                reference_audio_file,reference_text=self.get_ref_wav(item)
+                if not Path(reference_audio_file).is_file():
+                    raise ValueError(f"No reference audio_file in {ROOT_DIR}/f5-tts")
+                output_filename=f'{item["filename"]}-24k.wav'
 
-        logger.debug(f'OmniVoice request: {self.api_url=}/generate {data=}')
+                wav = model.generate(
+                    text=item['text'],
+                    ref_audio=reference_audio_file,
+                    ref_text=reference_text
+                )
+                sf.write(output_filename, wav[0], 24000)
+                if not tools.vail_file(output_filename):
+                    err += 1
+                    continue
+                ok += 1
+                self.convert_to_wav(output_filename, item['filename'])
+                self.signal(text=f"Dubbing {ok}")
+            except Exception as e:
+                _except = e
+                logger.exception(f'OmniVoice dubbing error:{e}', exc_info=True)
+                err += 1
+
         try:
-            response = requests.post(
-                f"{self.api_url}/generate",
-                data=data,
-                files=files,
-                timeout=3600,
-                proxies={"https": "", "http": ""},
-            )
-        finally:
-            if files:
-                files["ref_audio"].close()
+            del model
+        except Exception:
+            pass
+        if ok == 0:
+            raise _except if _except else DubbingSrtError('[OmniVoice] dubbing error')
 
-        if not response.ok:
-            error_data = response.text + f"\n{self.api_url=}"
-            logger.error(f'OmniVoice returned error: {error_data=}')
-            return error_data
+        msg = "dubbing ended"
+        if err > 0 and ok > 0:
+            msg = f'[{err}] errors, {ok} succeed'
 
-        with open(data_item['filename'] + ".wav", 'wb') as f:
-            f.write(response.content)
-        self.convert_to_wav(data_item['filename'] + ".wav", data_item['filename'])
+
+        self.signal(text=msg)
+        logger.debug(f'OmniVoice 配音结束：{msg}')

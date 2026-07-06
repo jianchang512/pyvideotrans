@@ -25,15 +25,9 @@ def qwen3tts_fun(
         model_name='0.6B',
         device_index=0 # gpu索引
 )->Tuple[bool,Union[str,None]]:
-    import torch
     from videotrans.util.help_role import get_qwenttslocal_rolelist
-    try:
-        from qwen_tts import Qwen3TTSModel
-    except ImportError:
-        logger.error('please run  uv sync --extra qwentts ')
-        return False, 'please run  uv sync --extra qwentts '
-
-    
+    import torch
+    from qwen_tts import Qwen3TTSModel
     CUSTOM_VOICE= {"Vivian", "Serena", "Uncle_fu", "Dylan", "Eric", "Ryan", "Aiden", "Ono_anna", "Sohee"}
 
     

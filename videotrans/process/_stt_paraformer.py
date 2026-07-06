@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List, Tuple, Union
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
-from videotrans.configure.config import logger
+from videotrans.configure.config import logger,ROOT_DIR
 from videotrans.process._stt_utils import _write_log
 
 
@@ -35,13 +35,13 @@ def paraformer(
     try:
         model = pipeline(
             task=Tasks.auto_speech_recognition,
-            model='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',
+            model=f'{ROOT_DIR}/models/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',
             # model_revision="v2.0.4",
-            vad_model='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',
+            vad_model=f'{ROOT_DIR}/models/speech_fsmn_vad_zh-cn-16k-common-pytorch',
             # vad_model_revision="v2.0.4",
-            punc_model='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',
+            punc_model=f'{ROOT_DIR}/models/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',
             # punc_model_revision="v2.0.3",
-            spk_model="damo/speech_campplus_sv_zh-cn_16k-common",
+            spk_model=f"{ROOT_DIR}/models/speech_campplus_sv_zh-cn_16k-common",
             # spk_model_revision="v2.0.2",
             disable_update=True,
             disable_progress_bar=True,

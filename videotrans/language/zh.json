@@ -844,7 +844,7 @@
         "cy": "威尔士语",
         "zu": "祖鲁语",
 		"the reference audio duration is less than 3 seconds":"参考音频时长小于3s，无法进行语音克隆，跳过",
-		"40 Eastern languages and 22 Chinese dialects":"40东方语言和20中文方言",
+		"40 Eastern languages and 22 Chinese dialects":"40种亚洲语言和20种中文方言",
 		"Chinese & English and Chinese dialects":"中英及中文方言",
 		"FireRed":"FireRed中文",
 		"Omnilingual":"OmnilingualASR",

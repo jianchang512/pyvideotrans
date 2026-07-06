@@ -94,9 +94,10 @@ HUGGINGFACE_ASR_MODELS = {
     "kotoba-tech/kotoba-whisper-v2.0": ['ja'],
     # pipeline whisper
     "biodatlab/whisper-th-large-v3": ['th'],
+    "zai-org/GLM-ASR-Nano-2512": ['zh','en','yue'],
     "vinai/Phowhisper-large": ['vi'],
     "openai/whisper-large-v3": [],
-    #"openai/whisper-tiny": [],
+    "openai/whisper-tiny": [],
     "anke01/whisper-small-uyghur":[]
 }
 try:

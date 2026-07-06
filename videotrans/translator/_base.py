@@ -7,7 +7,7 @@ from tenacity import RetryError
 
 from videotrans import translator
 from videotrans.configure.base import BaseCon
-from videotrans.configure.config import tr, settings, logger, TEMP_ROOT
+from videotrans.configure.config import tr, settings, logger, TEMP_ROOT,ROOT_DIR
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util.help_srt import get_subtitle_from_srt,cleartext
 from videotrans.util.help_misc import get_md5,serial
@@ -46,6 +46,8 @@ class BaseTrans(BaseCon):
         super().__post_init__()
         Path(TEMP_ROOT + f'/translate_cache').mkdir(parents=True, exist_ok=True)
         self.aisendsrt = settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS
+        if self.translate_type==translator.HYMT2_INDEX:
+            self.aisendsrt=False
         if self.aisendsrt:
             self.trans_thread = int(settings.get('aitrans_thread', 20)) if not settings.get('aitrans_context') else len(self.text_list)
         else:
@@ -85,8 +87,11 @@ class BaseTrans(BaseCon):
             ...
         ]
         """
+        if self.translate_type==translator.HYMT2_INDEX:
+            return self._hymt2(split_source_text)
         target_list = []
         logger.debug(f'以纯文本行形式翻译，每次翻译{self.trans_thread}行，翻译后暂停{self.wait_sec}s')
+        
         for i, it in enumerate(split_source_text):
             """ it=['你好啊我的朋友','第二行']  此时 _item_task 接收的是 list[str] """
             if self._exit(): return
@@ -120,6 +125,58 @@ class BaseTrans(BaseCon):
             raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
         return self.text_list
 
+    def _hymt2(self,split_source_text: List[List[str]]):
+    
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        import torch
+
+        model_path = f"{ROOT_DIR}/models/models--tencent--Hy-MT2-1.8B"
+
+        # Load tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+
+        # Load model
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            #dtype=torch.bfloat16,
+            device_map="auto",
+            trust_remote_code=True,
+        )
+        model.eval()
+        
+        target_list = []
+        logger.debug(f'以纯文本行形式翻译，每次翻译{self.trans_thread}行，翻译后暂停{self.wait_sec}s')
+        for i, it in enumerate(split_source_text):
+            """ it=['你好啊我的朋友','第二行']  此时 _item_task 接收的是 list[str] """
+            if self._exit(): return
+            self.signal(text=tr('starttrans') + f' {i} ')
+            result = self._get_cache(it)
+            if not result:
+                result = cleartext(self._item_task(model,tokenizer,it))
+                self._set_cache(it, result)
+            sep_res = result.split("\n")
+            for x, result_item in enumerate(sep_res):
+                if x < len(it):
+                    target_list.append(result_item.strip())
+                    self.signal(text=result_item + "\n", type='subtitle')
+            # 行数不匹配填充空行
+            if len(sep_res) < len(it):
+                logger.debug(f'行数不匹配，原始：{len(it)}, 结果：{len(sep_res)}\n{it=}\n{sep_res=}')
+                tmp = ["" for x in range(len(it) - len(sep_res))]
+                target_list += tmp
+        max_i = len(target_list)
+        logger.debug(f'原始行数:{len(self.text_list)},翻译后行数:{max_i}')
+        _empty_line = 0
+        for i, it in enumerate(self.text_list):
+            text = target_list[i].strip() if i < max_i else ""
+            if not text:
+                _empty_line += 1
+            self.text_list[i]['text'] = text
+
+        if _empty_line >= len(self.text_list):
+            from videotrans.configure.excepts import TranslateSrtError
+            raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
+        return self.text_list
     # 发送完整字幕格式内容进行翻译
     # 此时 _item_task 接收的是 srt 格式的字符串
     def _run_srt(self, split_source_text: List[List[SrtItem]]):
