@@ -266,11 +266,15 @@ dependencies = [
     "pynini",
     "WeTextProcessing",
     "transformers4576>=4.57.6",
+	"omnivoice",
+	"qwen-asr-pvt",
+	"qwen-tts-pvt",
+	"f5-tts",
 ]
-# omnivoice
-# qwen-asr-pvt
-# qwen-tts-pvt
-# f5-tts
+# "omnivoice",
+# "qwen-asr-pvt",
+# "qwen-tts-pvt",
+# "f5-tts",
 
 [project.optional-dependencies]
 dotnet = [
@@ -292,13 +296,11 @@ lint = [
 [tool.uv]
 override-dependencies = [
 	"torch==2.7.1",
-    #"transformers==4.57.6",
     "transformers==5.3.0",
     "torchaudio==2.7.1",
     "diffusers==0.33.1",
 	"safetensors==0.4.5",
 	"f5-tts==1.1.20",
-	#"huggingface-hub==0.35.3",
 	"huggingface-hub==1.10.0",
 	"chatterbox-tts==0.1.7",
 	"google-cloud-storage==3.12.0",
