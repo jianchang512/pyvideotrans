@@ -34,7 +34,7 @@ from videotrans.configure import config
 config.init_run()
 
 from videotrans.configure.config import ROOT_DIR, TEMP_DIR, app_cfg, params, settings
-from videotrans.configure.contants import FASTER_MODELS_DICT
+from videotrans.configure.contants import FASTER_MODELS_DICT, DEEPGRAM_MODEL, Openai_Whisper_Models, FUNASR_MODEL
 from videotrans import recognition, translator, tts
 from videotrans.util import tools
 from videotrans.util.gpus import getset_gpu
@@ -991,16 +991,43 @@ def build_ui():
                         video_preview = gr.Video(label="视频预览", interactive=False)
                         result_files = gr.File(label="输出文件（点击下载）", interactive=False)
 
-                # 渠道验证
+                # 渠道验证并更新模型列表
                 def validate_recogn(choice, prev):
                     idx = _recogn_index_from_display(choice)
-                    
+
                     _rs=recognition.is_input_api(recogn_type=idx, return_str=True)
                     if _rs is not True:
                         msg = "渠道「{}」暂不可用，已自动回退".format(choice)
                         gr.Warning(msg)
-                        return prev, f"⚠️ {msg}"
-                    return choice, ""
+                        return prev, f"⚠️ {msg}", gr.update()
+
+                    # 根据渠道更新模型下拉框
+                    models = []
+                    disabled = False
+                    if idx in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.WHISPERX_API]:
+                        models = settings.WHISPER_MODEL_LIST
+                    elif idx == recognition.OPENAI_WHISPER:
+                        models = Openai_Whisper_Models.split(',')
+                    elif idx == recognition.Deepgram:
+                        models = DEEPGRAM_MODEL
+                    elif idx == recognition.Whisper_CPP:
+                        models = settings.Whisper_CPP_MODEL_LIST
+                    elif idx == recognition.WHISPER_NET:
+                        models = settings.Whisper_NET_MODEL_LIST
+                    elif idx == recognition.QWENASR:
+                        models = ['1.7B', '0.6B']
+                    elif idx == recognition.HUGGINGFACE_ASR:
+                        models = list(recognition.HUGGINGFACE_ASR_MODELS.keys())
+                    elif idx == recognition.FUNASR_CN:
+                        models = FUNASR_MODEL
+                    else:
+                        models = FASTER_MODEL_NAMES
+                        disabled = True
+
+                    if models:
+                        default_val = models[0] if models else ""
+                        return choice, "", gr.update(choices=models, value=default_val, interactive=not disabled)
+                    return choice, "", gr.update(interactive=False)
 
                 def validate_translate(choice, prev):
                     idx = _translate_index_from_display(choice)
@@ -1030,7 +1057,7 @@ def build_ui():
                         roles = ["No"]
                     return choice, gr.update(choices=roles, value=roles[0] if roles else "No"), warning
 
-                recogn_choice.change(fn=validate_recogn, inputs=[recogn_choice, prev_recogn], outputs=[recogn_choice, channel_warning])
+                recogn_choice.change(fn=validate_recogn, inputs=[recogn_choice, prev_recogn], outputs=[recogn_choice, channel_warning, model_choice])
                 translate_choice.change(fn=validate_translate, inputs=[translate_choice, prev_translate], outputs=[translate_choice, channel_warning])
                 tts_choice.change(fn=tts_change_handler, inputs=[tts_choice, prev_tts, target_lang], outputs=[tts_choice, voice_role, channel_warning])
 
