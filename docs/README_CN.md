@@ -138,7 +138,7 @@ docker run -d -p 7860:7860 \
 ```
 
 > [WebUI 使用说明](webui.md)
-> [WebUI 使用说明](webui.md)
+
 
 ### 5. (可选) GPU 加速配置
 

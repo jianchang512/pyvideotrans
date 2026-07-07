@@ -31,18 +31,18 @@ class MossTTS(BaseTTS):
             logger.warning(f'当前无法连接到 https://huggingface.co,从 modelscope.cn下载')
             tools.check_and_down_ms("openmoss/MOSS-TTS-Nano-100M-ONNX",
                                     callback=self._process_callback,
-                                    local_dir="./models/MOSS-TTS-Nano-100M-ONNX")
+                                    local_dir=f"{ROOT_DIR}/models/MOSS-TTS-Nano-100M-ONNX")
             tools.check_and_down_ms("openmoss/MOSS-Audio-Tokenizer-Nano-ONNX",
                                     callback=self._process_callback,
-                                    local_dir="./models/MOSS-Audio-Tokenizer-Nano-ONNX")
+                                    local_dir=f"{ROOT_DIR}/models/MOSS-Audio-Tokenizer-Nano-ONNX")
         else:
             tools.check_and_down_hf("",
                                     "OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX",
-                                    local_dir="./models/MOSS-TTS-Nano-100M-ONNX",
+                                    local_dir=f"{ROOT_DIR}/models/MOSS-TTS-Nano-100M-ONNX",
                                     callback=self._process_callback)
             tools.check_and_down_hf("",
                                     "OpenMOSS-Team/MOSS-Audio-Tokenizer-Nano-ONNX",
-                                    local_dir="./models/MOSS-Audio-Tokenizer-Nano-ONNX",
+                                    local_dir=f"{ROOT_DIR}/models/MOSS-Audio-Tokenizer-Nano-ONNX",
                                     callback=self._process_callback
                                     )
 
