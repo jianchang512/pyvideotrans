@@ -1,4 +1,4 @@
-import logging
+import logging,time
 from dataclasses import dataclass
 from typing import List, Union
 
@@ -59,6 +59,9 @@ class Qwen3ASRRecogn(BaseRecogn):
             for t in response.output.choices[0]['message']['content']:
                 txt += t['text']
             self.raws[i]['text'] = txt
+            if self.asr_wait>0:
+                time.sleep(self.asr_wait)
+            
         if ok_nums==0:
             raise SpeechToTextError(error)
         return self.raws

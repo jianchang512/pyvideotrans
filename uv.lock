@@ -4150,7 +4150,7 @@ wheels = [
 
 [[package]]
 name = "pyvideotrans"
-version = "4.4"
+version = "4.5"
 source = { virtual = "." }
 dependencies = [
     { name = "absl-py" },
@@ -4242,6 +4242,7 @@ dependencies = [
     { name = "google-genai" },
     { name = "google-pasta" },
     { name = "googleapis-common-protos" },
+    { name = "gradio" },
     { name = "gradio-client" },
     { name = "grpcio" },
     { name = "grpcio-status" },
@@ -4535,6 +4536,7 @@ requires-dist = [
     { name = "google-genai" },
     { name = "google-pasta", specifier = "==0.2.0" },
     { name = "googleapis-common-protos", specifier = "==1.63.0" },
+    { name = "gradio", specifier = ">=6.8.0" },
     { name = "gradio", marker = "extra == 'webui'" },
     { name = "gradio-client", specifier = ">=2.0.1" },
     { name = "grpcio", specifier = "==1.60.0" },

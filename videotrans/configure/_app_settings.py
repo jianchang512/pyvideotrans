@@ -170,6 +170,7 @@ class AppSettings:
             "translation_wait": 0,
             "dubbing_wait": 1,
             "dubbing_thread": 1,
+            "asr_wait": 0,
             "normal_text": False,
             "remove_dubb_silence": True,
             "save_segment_audio": False,

@@ -1,4 +1,5 @@
 from videotrans.task.taskcfg import InputFile
+from videotrans.util.help_misc import show_error
 
 
 def openwin():

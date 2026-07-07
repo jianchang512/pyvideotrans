@@ -1,5 +1,7 @@
 from PySide6.QtCore import QThread, Signal
 
+from videotrans.configure._i18n import tr
+
 
 class ListenVoice(QThread):
     uito = Signal(str)

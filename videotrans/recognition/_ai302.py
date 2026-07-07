@@ -1,5 +1,5 @@
 import json
-import logging
+import logging,time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List,  Union
@@ -102,6 +102,8 @@ class AI302Recogn(BaseRecogn):
                 continue
             raws[i]['text'] = res_json['text']
             ok_nums+=1
+            if self.asr_wait>0:
+                time.sleep(self.asr_wait)
         if ok_nums<1:
             raise SpeechToTextError(err)
         return raws

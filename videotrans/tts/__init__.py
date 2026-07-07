@@ -96,7 +96,7 @@ _ID_NAME_DICT = {
 
     DOUBAO2_TTS: ChannelProvider(tr("DouBao2"), "._doubao2", key_name="doubao2_access", win="doubao2"),
     QWEN_TTS: ChannelProvider("Qwen3-TTS", "._qwentts", key_name="qwentts_key", win="qwentts"),
-    XIAOMI_TTS: ChannelProvider('XiaoMi-TTS', "._xiaomi", key_name="xiaomi_key", win="mitts"),
+    XIAOMI_TTS: ChannelProvider(tr('XiaoMi'), "._xiaomi", key_name="xiaomi_key", win="mitts"),
     GLM_TTS: ChannelProvider(f'GLM-TTS {tr("Zhipu AI")}', "._glmtts", key_name="zhipu_key", win="zhipuai"),
     MINIMAXI_TTS: ChannelProvider("Minimaxi-TTS", "._minimaxi", key_name="minimaxi_apikey", win="minimaxi"),
 

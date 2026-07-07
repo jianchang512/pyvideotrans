@@ -61,7 +61,8 @@ class GLMASRRecogn(BaseRecogn):
                         time.sleep(5)
                         continue
                     raise SpeechToTextError(err_json['error']['message'])
-
+            if self.asr_wait>0:
+                time.sleep(self.asr_wait)
         if ok_nums<1:
             raise SpeechToTextError(err)
         return raws

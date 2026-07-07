@@ -1,6 +1,6 @@
 [project]
 name = "pyVideoTrans"
-version = "4.04"
+version = "4.05"
 requires-python = ">=3.10, <3.11"
 dependencies = [
     "absl-py==2.0.0",
@@ -266,10 +266,11 @@ dependencies = [
     "pynini",
     "WeTextProcessing",
     "transformers4576>=4.57.6",
-	"omnivoice",
-	"qwen-asr-pvt",
-	"qwen-tts-pvt",
-	"f5-tts",
+    "omnivoice",
+    "qwen-asr-pvt",
+    "qwen-tts-pvt",
+    "f5-tts",
+    "gradio>=6.8.0",
 ]
 # "omnivoice",
 # "qwen-asr-pvt",

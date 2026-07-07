@@ -105,6 +105,8 @@ class OpenaiAPIRecogn(BaseRecogn):
                 if not hasattr(transcript, 'text') or not transcript.text or not transcript.text.strip():
                     continue
                 raws[i]['text'] = transcript.text
+            if self.asr_wait>0:
+                time.sleep(self.asr_wait)
         return raws
 
     def _diarize(self)->Union[List[SrtItem], None]:

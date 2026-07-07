@@ -117,7 +117,7 @@ class Ui_xiaomiform(object):
         h3.addWidget(help_btn)
         v1.addLayout(h3)
         self.xiaomi_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'xiaomi', 'xiaomi'))
-        xiaomiform.setWindowTitle("xiaomi AI")
+        xiaomiform.setWindowTitle(tr("XiaoMi")+"AI")
         self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(xiaomiform)
 
@@ -144,6 +144,6 @@ class Ui_xiaomiform(object):
         self.label_4.setStyleSheet("color: #999;")
         self.set_xiaomi.setText(tr("Save"))
         self.test.setText(tr("Test"))
-        self.xiaomi_key.setPlaceholderText("secret key")
-        self.label_2.setText("xiaomi  Key ")
+        self.xiaomi_key.setPlaceholderText("XiaoMi API Keys")
+        self.label_2.setText("XiaoMi API Key ")
         self.label_3.setText(tr("Select model"))

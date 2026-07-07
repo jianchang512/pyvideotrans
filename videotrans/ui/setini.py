@@ -75,7 +75,8 @@ notices = {
 
         "gemini_recogn_chunk": "使用gemini识别语音时，每次发送音频切片数，越大效果越好，但失败率会升高",
         "zh_hant_s": "强制将识别出的繁体字幕转为简体",
-        "del_end_punc": "删除字幕末尾标点?"
+        "del_end_punc": "删除字幕末尾标点?",
+        "asr_wait":"云API每次识别后暂停秒数，防止超过频率限制"
 
     },
 
@@ -168,6 +169,7 @@ titles = {
     "uvr_models": "分离背景声模型",
     "del_end_punc": "删除字幕末尾标点?",
     "out_video_ext": "输出视频格式(mp4/mkv)",
+    "asr_wait":"云API识别暂停秒",
 
     "retry_nums": "失败后重试次数",
     
@@ -351,7 +353,8 @@ if defaulelang != 'zh':
             "Whisper_cpp_models": "Comma-separated list of model names for whisper.cpp mode.",
             "gemini_recogn_chunk": "Number of audio slices per request for Gemini recognition. Larger values improve accuracy but increase failure rate.",
             "zh_hant_s": "Force conversion of recognized Traditional Chinese to Simplified Chinese.",
-            "del_end_punc": "Remove punctuation at the end of subtitles?"
+            "del_end_punc": "Remove punctuation at the end of subtitles?",
+            "asr_wait": "The number of seconds the cloud API pauses after each recognition to prevent exceeding the frequency limit."
 
         },
         "trans": {
@@ -448,6 +451,8 @@ if defaulelang != 'zh':
         "uvr_models": "BGM separation model",
         "del_end_punc": "Remove punctuation at end subtitles?",
         "out_video_ext": "Output video format (mp4/mkv)",
+        
+        "asr_wait": "Cloud API pauses after each recognition/Seconds",
 
         "retry_nums": "Number of retries after failure",
         "fps_mode": "Variable frame rate (vfr)/fixed frame rate (cfr)",

@@ -19,12 +19,12 @@ PARAKEET_JA=7
 HUGGINGFACE_ASR = 8
 
 OPENAI_API = 9
-GEMINI_SPEECH = 10
-QWEN3ASR = 11
+QWEN3ASR = 10
+XIAOMIASR = 11
 ZIJIE_RECOGN_MODEL = 12
-
 ZHIPU_API = 13
-Deepgram = 14
+
+GEMINI_SPEECH = 14
 
 Whisper_CPP = 15
 Faster_Whisper_XXL = 16
@@ -34,10 +34,12 @@ PARAKEET = 18
 AI_302 = 19
 ElevenLabs = 20
 GOOGLE_SPEECH = 21
-WHISPER_NET = 22
+
+Deepgram = 22
 CAMB_ASR = 23
 STT_API = 24
-CUSTOM_API = 25
+WHISPER_NET = 25
+CUSTOM_API = 26
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
@@ -59,14 +61,14 @@ _ID_NAME_DICT = {
 
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"), key_name="openairecognapi_key", win="openairecognapi",
                                 imp="._openairecognapi"),
-    GEMINI_SPEECH: ChannelProvider(tr("Gemini AI"), key_name="gemini_key", win="gemini", imp="._gemini"),
 
     QWEN3ASR: ChannelProvider(tr("Ali Qwen3-ASR"), key_name="qwenmt_key", win="qwenmt", imp="._qwen3asr"),
+    XIAOMIASR: ChannelProvider(tr("XiaoMi"), key_name="xiaomi_key", win="xiaomi", imp="._xiaomiasr"),
     ZIJIE_RECOGN_MODEL: ChannelProvider(tr("VolcEngine STT"), key_name="zijierecognmodel_appid", win="zijierecognmodel",
                                         imp="._zijiemodel"),
     ZHIPU_API: ChannelProvider(f'{tr("Zhipu AI")} GLM-ASR', key_name="zhipu_key", win="zhipuai", imp="._glmasr"),
+    GEMINI_SPEECH: ChannelProvider(tr("Gemini AI"), key_name="gemini_key", win="gemini", imp="._gemini"),
 
-    Deepgram: ChannelProvider("Deepgram.com", key_name="deepgram_apikey", win="deepgram", imp="._deepgram"),
 
 
     Whisper_CPP: ChannelProvider("Whisper.cpp", imp="._cpp"),
@@ -77,9 +79,10 @@ _ID_NAME_DICT = {
     AI_302: ChannelProvider("302.AI", key_name="ai302_key", win="ai302", imp="._ai302"),
     ElevenLabs: ChannelProvider("ElevenLabs.io", key_name="elevenlabstts_key", win="elevenlabs", imp="._elevenlabs"),
     GOOGLE_SPEECH: ChannelProvider(tr("Google Speech to Text"), imp="._google"),
-    WHISPER_NET: ChannelProvider("Whisper.NET", imp="._whispernet"),
+    Deepgram: ChannelProvider("Deepgram.com", key_name="deepgram_apikey", win="deepgram", imp="._deepgram"),
     CAMB_ASR: ChannelProvider("CAMB AI", key_name="camb_api_key", win="cambtts", imp="._camb"),
     STT_API: ChannelProvider(f"STT({tr('Local')}API)", key_name="stt_url", win="sttapi", imp="._stt"),
+    WHISPER_NET: ChannelProvider("Whisper.NET", imp="._whispernet"),
     CUSTOM_API: ChannelProvider(tr("Custom API"), key_name="recognapi_url", win="recognapi", imp="._recognapi"),
 }
 # 强制保持按照每个常量值大小排序

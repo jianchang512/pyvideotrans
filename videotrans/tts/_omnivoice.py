@@ -1,7 +1,6 @@
-import logging
 from dataclasses import dataclass
-from typing import Union, Dict, List
-from videotrans.configure.config import settings, logger,tr,ROOT_DIR,app_cfg
+from videotrans.configure.config import logger,ROOT_DIR,app_cfg
+from videotrans.configure.excepts import DubbingSrtError
 from videotrans.util import tools,gpus
 from videotrans.tts._base import BaseTTS
 import soundfile as sf

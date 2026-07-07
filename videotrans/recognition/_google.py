@@ -1,6 +1,6 @@
 import json
 import logging
-import re
+import re,time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Union
@@ -78,6 +78,8 @@ class GoogleRecogn(BaseRecogn):
             self.raws.append(srt_line)
             self.signal(text=f"{tr('yuyinshibiejindu')} {srt_line['line']}/{total_length}")
             self.signal(text=f"{srt_line['text']}\n", type='subtitle')
+            if self.asr_wait>0:
+                time.sleep(self.asr_wait)
         return self.raws
 
     def match_target_amplitude(self, sound, target_dBFS):

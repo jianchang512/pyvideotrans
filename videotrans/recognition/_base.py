@@ -54,6 +54,7 @@ class BaseRecogn(BaseCon):
     llm_post: bool = False  # 是否进行llm重新断句，如果是，则无需在识别完成后进行简单修正
     speech_timestamps: List = field(default_factory=list)  # vad切割好的数据
     recogn2pass: bool = False
+    asr_wait: float = float(settings.get('asr_wait', 0))
 
     def __post_init__(self):
         super().__post_init__()

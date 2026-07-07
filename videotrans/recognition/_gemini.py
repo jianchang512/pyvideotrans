@@ -1,6 +1,6 @@
 import json
 import logging
-import re,httpx
+import re,httpx,time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Union
@@ -140,6 +140,8 @@ class GeminiRecogn(BaseRecogn):
                 text=('\n\n'.join(str_s)) + "\n\n",
                 type='subtitle'
             )
+            if self.asr_wait>0:
+                time.sleep(self.asr_wait)
 
         if len(srt_str_list) < 1:
             raise SpeechToTextError('No result:The return format may not meet the requirements')

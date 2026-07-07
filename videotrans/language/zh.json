@@ -853,5 +853,6 @@
 		"VITS":"VITS中英",
 		"ZipVoice":"ZipVoice中英",
 		"auto":"自动检测",
-		"check or download models":"检查模型是否存在..."
+		"check or download models":"检查模型是否存在...",
+		"XiaoMi":"小米"
 }
