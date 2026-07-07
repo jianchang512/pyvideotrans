@@ -288,14 +288,14 @@ def openwin():
         if type != tts.EDGE_TTS:
             is_allow_lang_res = tts.is_allow_lang(langcode=code, tts_type=type)
             winobj.loglabel.setText(is_allow_lang_res if is_allow_lang_res is not True else '')
-            if tts.is_input_api(tts_type=type) is not True:
-                return False
 
         role_list = tools.role_menu(type, code)
         winobj.hecheng_role.clear()
         if 'clone' in role_list:
             role_list.remove('clone')
         winobj.hecheng_role.addItems(role_list)
+        if type != tts.EDGE_TTS and tts.is_input_api(tts_type=type) is not True:
+            return False
 
     def hecheng_language_fun(t):
         tts_type = winobj.tts_type.currentIndex()

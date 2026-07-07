@@ -63,7 +63,7 @@ _module_map = {
 "zijierecognmodel":".zijierecognmodel",#字节语音识别大模型极速版
 "whisperxapi":".whisperxapi",
 "xaitts":".xaitts",
-"mitts":".mitts",
+"xiaomi":".xiaomi",
 }
 
 _loaded_modules = {}  # 用于缓存已经加载过的模块

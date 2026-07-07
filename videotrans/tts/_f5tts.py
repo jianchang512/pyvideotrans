@@ -124,9 +124,10 @@ class F5TTSBuilt(BaseTTS):
             device=self.device
         )
         
-        for item in self.queue_tts:
+        for i,item in enumerate(self.queue_tts):
             if app_cfg.exit_soft: return
             try:
+                self.signal(text=f"Dubbing {i+1}/{len(self.queue_tts)}")
                 reference_audio_file,reference_text=self.get_ref_wav(item)
                 if not Path(reference_audio_file).is_file():
                     raise ValueError(f"No reference audio_file in {ROOT_DIR}/f5-tts")
@@ -145,7 +146,7 @@ class F5TTSBuilt(BaseTTS):
                     continue
                 ok += 1
                 self.convert_to_wav(output_filename, item['filename'])
-                self.signal(text=f"Dubbing {ok}")
+                self.signal(text=f"Dubbed {i+1}")
             except Exception as e:
                 _except = e
                 logger.exception(f'F5-TTS dubbing error:{e}', exc_info=True)

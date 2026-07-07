@@ -101,8 +101,6 @@ class WinActionConfigMixin:
             self.main.show_tips.setText('')
 
     def tts_type_change(self, type):
-        if tts.is_input_api(tts_type=type) is not True:
-            return
 
         lang = translator.get_code(show_text=self.main.target_language.currentText())
         if lang and lang != '-':
@@ -114,6 +112,8 @@ class WinActionConfigMixin:
         self.main.voice_role.clear()
         self.main.current_rolelist = _role_list
         self.main.voice_role.addItems(self.main.current_rolelist)
+        if tts.is_input_api(tts_type=type) is not True:
+            return
 
     def set_voice_role(self, t):
         role = self.main.voice_role.currentText()
