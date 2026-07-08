@@ -20,9 +20,7 @@ class CosyVoice(GradioBase):
         ref_wav,prompt_text = self.get_ref_wav(data_item)
         if not ref_wav or not Path(ref_wav).exists() or Path(ref_wav).stat().st_size == 0:
             return f"CosyVoice reference audio is empty or missing: {ref_wav}"
-        with wave.open(ref_wav, "rb") as wav_file:
-            if wav_file.getnframes() == 0:
-                return f"CosyVoice reference audio has no frames: {ref_wav}"
+
         prompt_text = (prompt_text or "").strip()
         if "<|endofprompt|>" not in prompt_text:
             prompt_text = f"You are a helpful assistant.<|endofprompt|>{prompt_text}"

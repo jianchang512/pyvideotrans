@@ -48,6 +48,8 @@ class AppParams:
         if Path(self._json_path).exists():
             try:
                 loaded = json.loads(Path(self._json_path).read_text(encoding='utf-8'))
+                # 单独更新 f5tts_role
+                loaded['f5tts_role']=("\n".join(set( (loaded['f5tts_role'].strip()+"\n"+default['f5tts_role']).split("\n") ) )).strip()
                 default.update(loaded)
             except (OSError, json.JSONDecodeError):
                 pass
@@ -203,7 +205,7 @@ class AppParams:
             "confuciustts_url": "http://127.0.0.1:7860",
             "f5tts_model": "",
             "f5tts_ttstype": "F5-TTS",
-            "f5tts_role": "nverguo.wav#你说四大皆空，却为何，紧闭双眼，若你睁开眼睛看看我，我不相信你，两眼空空。\ncosy.wav#希望你以后，能够做的比我还好哟！",
+            "f5tts_role": "nverguo.wav#你说四大皆空，却为何，紧闭双眼，若你睁开眼睛看看我，我不相信你，两眼空空。\ncosy.wav#希望你以后，能够做的比我还好哟！\nzh_male_bj.wav#说起咱北京的烤鸭啊，那可真是外焦里嫩、色泽金黄，一口咬下去满嘴流油！\nzh_female_cn.wav#大家好呀，今天跟你们分享一下我的日常护肤小习惯，其实护肤不需要太复杂，清洁补水最重要。\nzh_female_tw.wav#台湾有许多隐藏版的小吃店，他们可能不起眼，但食物却十分美味，下次不妨多留意身边这样的小店吧！",
             "index_tts_version": 1,
             "f5tts_is_whisper": False,
             "indextts_url": "http://127.0.0.1:7860",

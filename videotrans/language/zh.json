@@ -276,7 +276,7 @@
     "Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.": "仅在 faster-whisper/openai-whisper/Gemini模式下允许检测语言",
     "Recognition may take a while, please be patient": "识别可能较久，请耐心等待",
     "Reference Audio#Audio Text": "参考音频#音频文字内容",
-    "Reference audio needs to be in wav format": "参考音频需wav格式，时长10s内，发音清晰，存放到本软件/f5-tts目录下,在此填写音频名(含扩展名wav，例如 1.wav)\nCosyVoice渠道参考音频时长需大于3s",
+    "Reference audio needs to be in wav format": "参考音频需wav格式，时长3-10s，发音清晰，存放到本软件/f5-tts目录下,在此填写音频名(含扩展名wav，例如 1.wav)",
     "Replace": "替换",
     "Report Error": "报告错误",
     "Restart": "重启",
