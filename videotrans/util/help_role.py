@@ -82,8 +82,8 @@ def get_elevenlabs_role(force=False, raise_exception=False):
 
 @lru_cache
 def get_vits_role():
-    zh = ['No', "zh_female"]
-    en = ['No', "en_female"]
+    zh = ['No', "zh_female","zh_en"]
+    en = ['No', "en_female","zh_en"]
     for i in range(109):
         en.append(f'en_{i}')
     for i in range(174):

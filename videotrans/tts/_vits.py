@@ -10,6 +10,7 @@ import soundfile as sf
 
 _model_obj = {}
 
+# https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/vits.html#id25
 
 # 用于多进程
 def _t(role, device='cpu'):
