@@ -13,6 +13,8 @@ from videotrans.process import qwen3tts_fun
 
 @dataclass
 class QwenttsLocal(BaseTTS):
+    target_language: str = None
+    
     def __post_init__(self):
         super().__post_init__()
         self.model_name="0.6B"

@@ -15,6 +15,9 @@ from videotrans.task.taskcfg import SrtItem
 class Qwen3ASRRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
+        spaceid=params.get('qwenmt_spaceid', '')
+        if spaceid:
+            dashscope.base_http_api_url = f'https://{spaceid}.cn-beijing.maas.aliyuncs.com/api/v1'
         self.raws = self.cut_audio()
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
@@ -42,7 +45,7 @@ class Qwen3ASRRecogn(BaseRecogn):
                     }],
                     result_format="message",
                     asr_options={
-                        "language": self.detect_language[:2].lower(), # 可选，若已知音频的语种，可通过该参数指定待识别语种，以提升识别准确率
+                        "language": self.detect_language.split('-')[0], # 可选，若已知音频的语种，可通过该参数指定待识别语种，以提升识别准确率
                         "enable_lid": True,
                         "enable_itn": True
                     }

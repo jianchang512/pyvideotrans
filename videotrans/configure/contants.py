@@ -147,8 +147,8 @@ GEMINI_TTS_MODELS="gemini-3.1-flash-tts-preview,gemini-2.5-flash-preview-tts,gem
 
 Whisper_cpp_models="ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
 Whisper_net_models=Whisper_cpp_models
-Qwenmt_Model="qwen3.6-plus,qwen3.6-flash,qwen3-max,qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3-asr-flash,qwen3-asr-flash-filetrans"
-Qwentts_Models='qwen3-tts-vd-2026-01-26,qwen3-tts-instruct-flash,qwen3-tts-flash'
+Qwenmt_Model="qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3.7-max,qwen3.7-plus,qwen3.6-flash,qwen3.6-plus,qwen3-asr-flash,qwen3-asr-flash-filetrans"
+Qwentts_Models='qwen3-tts-flash,qwen3-tts-instruct-flash,qwen-tts-latest,qwen-tts'
 Qpenaitts_Model="tts-1,tts-1-hd,gpt-4o-mini-tts"
 
 Openairecognapi_Model= "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe,gpt-4o-transcribe-diarize"

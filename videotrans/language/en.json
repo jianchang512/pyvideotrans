@@ -854,6 +854,7 @@
 			"ZipVoice":"ZipVoice_EN_CN",
 			"auto":"Automatic detection",
 			"check or download models":"Check if the model exists...",
-			"XiaoMi":"XiaoMi"
+			"XiaoMi":"XiaoMi",
+			"Business space ID":"Business space ID"
 
 }

@@ -31,20 +31,32 @@ class Ui_qwenmtform(object):
         self.label_0.setText(tr('Configure Alibaba Bailian Qwen-MT model or other text models or Qwen3-ASR speech recognition model here'))
         v1.addWidget(self.label_0)
 
-        self.label_2 = QtWidgets.QLabel(qwenmtform)
+        h2 = QtWidgets.QHBoxLayout()
+        self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
-        self.qwenmt_key = QtWidgets.QLineEdit(qwenmtform)
+        self.qwenmt_key = QtWidgets.QLineEdit()
         self.qwenmt_key.setMinimumSize(QtCore.QSize(0, 35))
         self.qwenmt_key.setObjectName("qwenmt_key")
-        h2 = QtWidgets.QHBoxLayout()
         h2.addWidget(self.label_2)
         h2.addWidget(self.qwenmt_key)
-
-
-
         v1.addLayout(h2)
+
+        
+        hspaceid = QtWidgets.QHBoxLayout()
+        self.label_spaceid = QtWidgets.QLabel()
+        self.label_spaceid.setMinimumSize(QtCore.QSize(0, 35))
+        self.label_spaceid.setSizeIncrement(QtCore.QSize(0, 35))
+        self.label_spaceid.setObjectName("label_spaceid")
+        self.label_spaceid.setText(tr("Business space ID"))
+        self.qwenmt_spaceid = QtWidgets.QLineEdit()
+        self.qwenmt_spaceid.setMinimumSize(QtCore.QSize(0, 35))
+        self.qwenmt_spaceid.setObjectName("qwenmt_spaceid")
+        hspaceid.addWidget(self.label_spaceid)
+        hspaceid.addWidget(self.qwenmt_spaceid)
+        v1.addLayout(hspaceid)
+
 
         label_domains = QtWidgets.QLabel(qwenmtform)
         label_domains.setMinimumSize(QtCore.QSize(0, 35))
@@ -137,6 +149,7 @@ class Ui_qwenmtform(object):
         self.edit_allmodels.setPlainText(allmodels_str)
 
         self.qwenmt_key.setText(str(params.get("qwenmt_key",'')))
+        self.qwenmt_spaceid.setText(str(params.get("qwenmt_spaceid",'')))
         self.qwenmt_domains.setText(params.get("qwenmt_domains",''))
         self.qwenmt_model.setCurrentText(params.get("qwenmt_model",''))
         self.qwenmt_asr_model.setCurrentText(params.get("qwenmt_asr_model",''))

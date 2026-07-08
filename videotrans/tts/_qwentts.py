@@ -10,16 +10,22 @@ from videotrans.configure.config import params, logger, settings
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-
+from videotrans import translator
 
 # 强制单线程 防止远端限制出错
 @dataclass
 class QWENTTS(BaseTTS):
-
+    target_language: str = None
+    
     def __post_init__(self):
         super().__post_init__()
         self.role_dict=tools.get_qwen3tts_rolelist()
         self.api_key=params.get('qwentts_key', '')
+        spaceid=params.get('qwentts_spaceid', '')
+        if spaceid:
+            dashscope.base_http_api_url = f'https://{spaceid}.cn-beijing.maas.aliyuncs.com/api/v1'
+        _langnames = translator.LANG_CODE.get(self.language, [])
+        self.target_language = _langnames[9].capitalize() if _langnames and len(_langnames) >= 10 else 'Auto'
         self.model=params.get('qwentts_model', 'qwen3-tts-flash')
         if self.model.startswith('qwen-tts'):
             self.model='qwen3-tts-flash'
@@ -28,11 +34,16 @@ class QWENTTS(BaseTTS):
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         role = self.role_dict.get(data_item['role'],'Cherry')
         try:
-            response = dashscope.audio.qwen_tts.SpeechSynthesizer.call(
+            logger.debug(f"[Qwen-TTS(bailian)]{self.model=},{self.api_key=},{role=},{data_item['text']=},{self.target_language=}")
+            response = dashscope.MultiModalConversation.call(
                 model=self.model,
+                # 新加坡和北京地域的API Key不同。获取API Key：https://help.aliyun.com/zh/model-studio/get-api-key
+                # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key = "sk-xxx"
                 api_key=self.api_key,
                 text=data_item['text'],
                 voice=role,
+                language_type=self.target_language, 
+                stream=False
             )
 
             if response is None:

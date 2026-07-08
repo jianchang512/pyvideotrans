@@ -51,7 +51,7 @@ dependencies = [
     "cryptography==45.0.4",
     "ctranslate2==4.8",
     "cycler==0.12.1",
-    "dashscope==1.25.5",
+    "dashscope",
     "dataclasses-json==0.6.7",
     "datasets==3.0.0",
     "decorator==5.2.1",

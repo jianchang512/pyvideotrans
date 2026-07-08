@@ -34,6 +34,20 @@ class Ui_qwenttsform(object):
         h2.addWidget(self.label_2)
         h2.addWidget(self.qwentts_key)
         v1.addLayout(h2)
+        
+        
+        hspaceid = QtWidgets.QHBoxLayout()
+        self.label_spaceid = QtWidgets.QLabel()
+        self.label_spaceid.setMinimumSize(QtCore.QSize(0, 35))
+        self.label_spaceid.setSizeIncrement(QtCore.QSize(0, 35))
+        self.label_spaceid.setObjectName("label_spaceid")
+        self.label_spaceid.setText(tr("Business space ID"))
+        self.qwentts_spaceid = QtWidgets.QLineEdit()
+        self.qwentts_spaceid.setMinimumSize(QtCore.QSize(0, 35))
+        self.qwentts_spaceid.setObjectName("qwentts_spaceid")
+        hspaceid.addWidget(self.label_spaceid)
+        hspaceid.addWidget(self.qwentts_spaceid)
+        v1.addLayout(hspaceid)
 
         h3 = QtWidgets.QHBoxLayout()
         self.label_3 = QtWidgets.QLabel(qwenttsform)
@@ -82,6 +96,8 @@ class Ui_qwenttsform(object):
 
         if params.get("qwentts_key",''):
             self.qwentts_key.setText(str(params.get("qwentts_key",'')))
+        if params.get("qwentts_spaceid",''):
+            self.qwentts_spaceid.setText(str(params.get("qwentts_spaceid",'')))
         if params.get("qwentts_model",''):
             self.qwentts_model.setCurrentText(params.get("qwentts_model",''))
         self.qwentts_modellist.setPlainText(settings.get('qwentts_models'))

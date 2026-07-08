@@ -18,9 +18,9 @@
     "Adding background audio": "添加背景音频",
     "Adding image watermark to videos": "批量视频添加图片水印",
     "After cleaning, you need to restart the software. Only cache and temporary files are cleaned. For configuration information, please directly delete the .json in the videotrans folder.": "清理后需要重启软件，仅清理缓存和临时文件，密钥和配置信息请直接删除 videotrans 目录内的 .json 格式文件即可",
-    "Ali Qwen3-ASR": "阿里百炼 Qwen3-ASR",
-    "Ali-BaiLian API/Qwen3-ASR AI": "阿里百炼API/Qwen3-ASR AI",
-    "Ali-Bailian": "阿里百炼",
+    "Ali Qwen3-ASR": "阿里百炼API/Qwen3-ASR",
+    "Ali-BaiLian API/Qwen3-ASR AI": "阿里百炼API/Qwen3-ASR",
+    "Ali-Bailian": "阿里百炼API",
     "Solution to model download failure": "模型下载失败解决办法",
     "Alibaba Machine Translation": "阿里机器翻译",
     "Alibaba Translation": "阿里机器翻译",
@@ -854,5 +854,6 @@
 		"ZipVoice":"ZipVoice中英",
 		"auto":"自动检测",
 		"check or download models":"检查模型是否存在...",
-		"XiaoMi":"小米"
+		"XiaoMi":"小米",
+		"Business space ID":"业务空间ID"
 }

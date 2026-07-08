@@ -926,17 +926,22 @@ wheels = [
 
 [[package]]
 name = "dashscope"
-version = "1.25.5"
+version = "1.26.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "certifi" },
     { name = "cryptography" },
+    { name = "httpx" },
+    { name = "httpx-sse" },
     { name = "requests" },
+    { name = "rich" },
+    { name = "typer" },
     { name = "websocket-client" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/36/66/23894b267d5811299a1a40ecc38302525b27c198c071f37c832341d28d92/dashscope-1.26.2.tar.gz", hash = "sha256:2ab2b6059872bde4fef2f1d77268ddc21bad09ad282cace266437eda526c3932", size = 1420273, upload-time = "2026-07-02T08:20:24.353Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c5/91/60f5353c8752d8ce489f4baeb252999d4cfb1a784c0beda34b5287135d65/dashscope-1.25.5-py3-none-any.whl", hash = "sha256:1be9eebaf1e7327317a22db9233770f4252463b926c84071ffd8805ae06cf998", size = 1323186, upload-time = "2025-12-18T02:15:26.462Z" },
+    { url = "https://files.pythonhosted.org/packages/58/a8/871ad5eb563a50dfd059b1865f149e42176d245341a9a890a3468b2a6369/dashscope-1.26.2-py3-none-any.whl", hash = "sha256:6ca4eefc34bcfd54cc58a58aac6ba4a1dfdb65906a599a2b436ccc8ba08d9cbd", size = 1522086, upload-time = "2026-07-02T08:20:21.583Z" },
 ]
 
 [[package]]
@@ -2025,6 +2030,15 @@ wheels = [
 [package.optional-dependencies]
 socks = [
     { name = "socksio" },
+]
+
+[[package]]
+name = "httpx-sse"
+version = "0.4.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0f/4c/751061ffa58615a32c31b2d82e8482be8dd4a89154f003147acee90f2be9/httpx_sse-0.4.3.tar.gz", hash = "sha256:9b1ed0127459a66014aec3c56bebd93da3c1bc8bb6618c8082039a44889a755d", size = 15943, upload-time = "2025-10-10T21:48:22.271Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/fd/6668e5aec43ab844de6fc74927e155a3b37bf40d7c3790e49fc0406b6578/httpx_sse-0.4.3-py3-none-any.whl", hash = "sha256:0ac1c9fe3c0afad2e0ebb25a934a59f4c7823b60792691f779fad2c5568830fc", size = 8960, upload-time = "2025-10-10T21:48:21.158Z" },
 ]
 
 [[package]]
@@ -4498,7 +4512,7 @@ requires-dist = [
     { name = "cryptography", specifier = "==45.0.4" },
     { name = "ctranslate2", specifier = "==4.8" },
     { name = "cycler", specifier = "==0.12.1" },
-    { name = "dashscope", specifier = "==1.25.5" },
+    { name = "dashscope" },
     { name = "dataclasses-json", specifier = "==0.6.7" },
     { name = "datasets", specifier = "==3.0.0" },
     { name = "decorator", specifier = "==5.2.1" },
