@@ -126,6 +126,17 @@ def get_302ai():
     role_dict['ja'] = role_dict['ja'] | _doubao_ja
     return role_dict
 
+def _resolve_role(roles_dict, role_name, default=None):
+    if not roles_dict or not role_name:
+        return default
+    res = roles_dict.get(role_name)
+    if res is not None:
+        return res
+    if role_name in roles_dict.values():
+        return role_name
+    return default
+
+
 @lru_cache
 def get_doubao2_rolelist(role_name=None, langcode="zh"):
     roledata = json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/doubao2.json').read_text(encoding='utf-8-sig'))
@@ -134,7 +145,7 @@ def get_doubao2_rolelist(role_name=None, langcode="zh"):
         current_d = roledata.get(langcode[:2])
         if not current_d:
             return 'No'
-        return current_d.get(role_name)
+        return _resolve_role(current_d, role_name)
 
     return {key: ['No'] + list(item.keys()) for key, item in roledata.items()}
 
@@ -154,7 +165,8 @@ def get_edge_rolelist(role_name=None, locale=None):
         except (OSError, json.JSONDecodeError):
             pass
     if role_name and locale:
-        return voice_list.get(locale.split('-')[0], {}).get(role_name)
+        roles_dict = voice_list.get(locale.split('-')[0], {})
+        return _resolve_role(roles_dict, role_name)
     return voice_list
 
 @lru_cache
@@ -163,12 +175,15 @@ def get_azure_rolelist(language=None, role_name=None):
     voice_list = json.loads(Path(voice_file).read_text(encoding='utf-8-sig'))
     # 根据角色显示名字获取真实角色
     if language and role_name:
-        return voice_list.get(language, {}).get(role_name)
+        roles_dict = voice_list.get(language, {})
+        return _resolve_role(roles_dict, role_name)
     if role_name and (not language or language == 'auto'):
         for it in voice_list.values():
             for name, ro in it.items():
                 if name == role_name:
                     return ro
+            if role_name in it.values():
+                return role_name
         return None
     try:
         for k, it in voice_list.items():
