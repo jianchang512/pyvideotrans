@@ -23,6 +23,7 @@ def openwin():
             tools.show_error("API Key is empty")
             return
         params["qwentts_key"] = key
+        params["qwentts_spaceid"] = winobj.qwentts_spaceid.text().strip()
         params["qwentts_model"] = winobj.qwentts_model.currentText()
         params.save()
         settings['qwentts_models']=winobj.qwentts_modellist.toPlainText().strip()
@@ -43,6 +44,7 @@ def openwin():
     def save():
         params["qwentts_key"] = winobj.qwentts_key.text()
         params["qwentts_model"] = winobj.qwentts_model.currentText()
+        params["qwentts_spaceid"] = winobj.qwentts_spaceid.text().strip()
         params.save()
         settings['qwentts_models']=winobj.qwentts_modellist.toPlainText().strip()
         settings.save()

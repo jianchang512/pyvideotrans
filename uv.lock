@@ -6073,7 +6073,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/42/c2/65f13aec253100e19
 
 [[package]]
 name = "transformers4576"
-version = "4.57.6"
+version = "4.57.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "filelock" },
@@ -6087,9 +6087,9 @@ dependencies = [
     { name = "tokenizers" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b1/85/44a4ca10cc0d37b647c290e23b4b1230de15067a6314a263f27c611131ef/transformers4576-4.57.6.tar.gz", hash = "sha256:13ad2bfc286008fab97b5d7eb087bfeac5b4cb8b5ed1475fb963ae0085386e5d", size = 10143168, upload-time = "2026-07-06T03:15:38.068Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/15/d8/f08e2572081d5fae9186e743bcfec2efc38775cf4ab277422aca3085ea6a/transformers4576-4.57.6.1.tar.gz", hash = "sha256:f6851fe3be5e1175436e41260f00e4d3923481aada0a8e580defc70b117f94cb", size = 9931986, upload-time = "2026-07-09T04:07:37.99Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f3/06/389abffe77121b9540a6abeab01ba345ca4236135ab631bdb714055c2f66/transformers4576-4.57.6-py3-none-any.whl", hash = "sha256:90528143b5badaae8b8c8189605cfac33ac0dfd7bda728a8cbb6bb11add1e9b1", size = 12018876, upload-time = "2026-07-06T03:15:21.463Z" },
+    { url = "https://files.pythonhosted.org/packages/db/08/29be74f4ee1331343ed998c500b37c7d30f57591b87288d0b5772bb5f02c/transformers4576-4.57.6.1-py3-none-any.whl", hash = "sha256:67ebce1c400a11221441ca690bdeb07644c74085f0b4ccc4ebdfd30f797e74cb", size = 12019082, upload-time = "2026-07-09T04:07:19.612Z" },
 ]
 
 [[package]]

@@ -376,7 +376,7 @@ class Ui_MainWindow(object):
         self.actionopenaitts_key.setText("OpenAI TTS")
         self.actionxaitts_key.setText("X.AI TTS")
         self.actionxiaomi_key.setText(tr("XiaoMi")+ "AI")
-        self.actionqwentts_key.setText("Qwen3 TTS(Bailian)")
+        self.actionqwentts_key.setText(f"{tr('Ali-Bailian')}/Qwen3-TTS")
         self.actionopenairecognapi_key.setText(
             tr("OpenAI Speech to Text API"))
         self.actionparakeet_key.setText('Nvidia parakeet-tdt')

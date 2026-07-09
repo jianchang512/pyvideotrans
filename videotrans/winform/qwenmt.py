@@ -16,6 +16,7 @@ def openwin():
         if not key:
             return tools.show_error(tr("Please input Secret"))
         params["qwenmt_key"] = key
+        params["qwenmt_spaceid"] = winobj.qwenmt_spaceid.text().strip()
         params["qwenmt_model"] = winobj.qwenmt_model.currentText()
         params["qwenmt_asr_model"] = winobj.qwenmt_asr_model.currentText()
         params["qwenmt_domains"] = winobj.qwenmt_domains.text()
@@ -27,6 +28,7 @@ def openwin():
 
     def save():
         params["qwenmt_key"] = winobj.qwenmt_key.text()
+        params["qwenmt_spaceid"] = winobj.qwenmt_spaceid.text().strip()
         params["qwenmt_model"] = winobj.qwenmt_model.currentText()
         params["qwenmt_asr_model"] = winobj.qwenmt_asr_model.currentText()
         params["qwenmt_domains"] = winobj.qwenmt_domains.text()
