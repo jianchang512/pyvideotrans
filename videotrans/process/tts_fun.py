@@ -36,7 +36,8 @@ def qwen3tts_fun(
     atten=None
     if is_cuda:
         device_map = f'cuda:{device_index}'
-        dtype=torch.float16
+        # qwen_tts 在cuda加速时可能遇到 device-side assert triggered 报错，改为 float32 或  bfloat16 类型可解决
+        dtype=torch.float32 if not torch.cuda.is_bf16_supported() else torch.bfloat16
     else:
         device_map = 'cpu'
         dtype=torch.float32
@@ -46,7 +47,7 @@ def qwen3tts_fun(
     
 
     all_roles={ r.get('role') for r in queue_tts}
-    logger.debug(f'Qwen-TTS本地内置渠道使用 {model_name} 模型，{device_map=}')
+    logger.debug(f'Qwen-TTS本地内置渠道使用 {model_name} 模型，{device_map=},{dtype=}')
     try:
         if all_roles & CUSTOM_VOICE:
             # 存在自定义音色

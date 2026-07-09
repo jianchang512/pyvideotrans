@@ -59,7 +59,7 @@ class XiaomiASRRecogn(BaseRecogn):
                     ],
                     extra_body={
                         "asr_options": {
-                            "language": "auto"
+                            "language": "auto" if self.detect_language[:2] not in ['zh','en'] else self.detect_language[:2]
                         }
                     }
                 )
