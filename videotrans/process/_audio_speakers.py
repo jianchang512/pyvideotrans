@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import traceback, time, json
-from videotrans.configure.config import ROOT_DIR, logger
+from videotrans.configure.config import ROOT_DIR, logger,app_cfg
 from pathlib import Path
 from collections import defaultdict
 
@@ -155,6 +155,10 @@ def cam_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speake
 
 # pyannote 3.4 依赖 huggingface_hub<1.0，高于会出现 use_auth_token 被废弃改为 token错误，而其他很多模块要求 huggingface_hub>1.0, 因此通过补丁允许 huggingface_hub仍接受 废弃的 use_auth_token
 def _hook_hf():
+    import os
+    if app_cfg.proxy:
+        os.environ['HTTPS_PROXY'] = app_cfg.proxy
+        os.environ['HTTP_PROXY'] = app_cfg.proxy
     import huggingface_hub
     import huggingface_hub.file_download
 
