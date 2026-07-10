@@ -99,6 +99,7 @@ class BindSignalsMixin:
         self.action_hebingsrt.triggered.connect(lambda: self.open_winform('fn_hebingsrt'))
         self.action_yinshipinfenli.triggered.connect(lambda: self.open_winform('fn_audiofromvideo'))
         self.action_hun.triggered.connect(lambda: self.open_winform('fn_hunliu'))
+        self.action_formatsrtfiles.triggered.connect(lambda: self.open_winform('format_srtfiles_folders'))
         self.action_yingyinhebing.triggered.connect(lambda: self.open_winform('fn_vas'))
         self.action_clipvideo.triggered.connect(lambda: self.open_winform('clipvideo'))
         self.action_textmatching.triggered.connect(lambda: self.open_winform('textmatching'))

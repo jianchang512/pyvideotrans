@@ -51,5 +51,11 @@ class WinformMixin:
             app_cfg.child_forms[name] = window
             window.show()
             return
+        if name == 'format_srtfiles_folders':
+            from videotrans.component.format_srtfiles_folders import FormatSrtFilesFolders
+            window = FormatSrtFilesFolders()
+            app_cfg.child_forms[name] = window
+            window.show()
+            return
         from videotrans import winform
         return winform.get_win(name).openwin()

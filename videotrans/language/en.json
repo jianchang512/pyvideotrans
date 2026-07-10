@@ -855,6 +855,27 @@
 			"auto":"Automatic detection",
 			"check or download models":"Check if the model exists...",
 			"XiaoMi":"XiaoMi",
-			"Business space ID":"Business space ID"
+			"Business space ID":"Business space ID",
+			"Batch create folder structure":"Batch create folder structure",
+			
+			"formatsrtfile_window_title": "Batch create folder structure: Create a folder from existing batch SRT files that meets translation requirements.",
+        "select_videos": "Select videos to process",
+        "select_lang": "Subtitle text language",
+        "start_btn": "Start batch folder creation",
+        "hint_title": "This interface is for batch video translation. You already have SRT subtitles with the same name locally, and you want to use them, but you don't want to create separate folders that meet your translation requirements.",
+        "hint_detail": "The function rules are as follows:\nCheck if a file with the same name as the selected video but with the .srt extension exists. \nIf it exists, create a folder named _video_out/{video name}-{extension} in the video's directory, copy the SRT file here, and rename it to {subtitle text language code}.srt.\n\nAfter completing this task, you can select these videos on the main interface. These subtitles will be used automatically, but please do not manually select [Save to...] and donot checked [Clean Output]\n\nThe currently selected [subtitle text language] and [video spoken language]:\n\t[When they are same]: Speech recognition will be skipped, and subtitle translation will proceed directly. If you do not want to translate subtitles, please set the target language in the main interface to `-` or set it to the same as the audio language.\n\t[When they are different]: This subtitle will be considered a translated subtitle, skipping the translation stage, but speech recognition will still be performed to generate subtitles in the audio language. If this is not needed, please set the audio language in the main interface to the same as the target language.",
+        "no_files": "No files selected",
+        "no_lang": "Please select a subtitle language first",
+        "processing": "Processing...",
+        "done": "Done! Processed {} videos, {} succeeded, {} skipped",
+        "file_selected": "{} file(s) selected",
+        "col_file": "Video File",
+        "col_srt": "Matching SRT",
+        "col_result": "Result",
+        "srt_found": "Copied",
+        "srt_not_found": "SRT not found",
+        "folder_created": "Created",
+        "error": "Error",
+        "help_doc":"Help"
 
 }

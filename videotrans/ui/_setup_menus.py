@@ -129,6 +129,7 @@ def _setup_actions_and_menus(ui, MainWindow):
     _make_action(ui, "action_realtime_stt")
     _make_action(ui, "action_textmatching")
     _make_action(ui, "action_hun")
+    _make_action(ui, "action_formatsrtfiles")
     _make_action(ui, "action_fanyi")
     _make_action(ui, "action_hebingsrt")
     _make_action(ui, "action_clearcache")
@@ -183,7 +184,7 @@ def _setup_actions_and_menus(ui, MainWindow):
         ui.action_realtime_stt, ui.action_textmatching, ui.action_yingyinhebing,
         ui.actionvideoandaudio, ui.actionvideoandsrt, ui.actionformatcover,
         ui.actionsubtitlescover, ui.actionsrtmultirole, ui.action_yinshipinfenli,
-        ui.action_hun, ui.action_hebingsrt, ui.actionsepar, ui.action_set_proxy,
+        ui.action_hun,ui.action_formatsrtfiles, ui.action_hebingsrt, ui.actionsepar, ui.action_set_proxy,
     ])
     ui.menu.addAction(ui.action_clearcache)
     ui.menu.addSeparator()

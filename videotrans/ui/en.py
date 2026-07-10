@@ -450,6 +450,7 @@ class Ui_MainWindow(object):
 
         self.action_hun.setText(tr("Mixing 2 Audio Streams"))
         self.action_hun.setToolTip(tr("Mix two audio files into one audio file"))
+        self.action_formatsrtfiles.setText(tr("Batch create folder structure"))
 
         self.action_fanyi.setText(tr("Text  Or Srt  Translation"))
         self.action_fanyi.setToolTip(

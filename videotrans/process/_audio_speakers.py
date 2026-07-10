@@ -128,7 +128,7 @@ def cam_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speake
 
         ans = pipeline(
             task='speaker-diarization',
-            model='iic/speech_campplus_speaker-diarization_common',
+            model=f'{ROOT_DIR}/models/speech_campplus_speaker-diarization_common',
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
@@ -153,9 +153,36 @@ def cam_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speake
         return False, f'{e}{msg}'
 
 
+# pyannote 3.4 依赖 huggingface_hub<1.0，高于会出现 use_auth_token 被废弃改为 token错误，而其他很多模块要求 huggingface_hub>1.0, 因此通过补丁允许 huggingface_hub仍接受 废弃的 use_auth_token
+def _hook_hf():
+    import huggingface_hub
+    import huggingface_hub.file_download
+
+    # 1. 备份原生的 hf_hub_download 方法
+    _original_hf_hub_download = huggingface_hub.file_download.hf_hub_download
+
+    # 2. 定义我们自己的包装（拦截）函数
+    def patched_hf_hub_download(*args, **kwargs):
+        # 拦截并处理 use_auth_token
+        if "use_auth_token" in kwargs:
+            # 取出 use_auth_token 并从 kwargs 中删除
+            auth_token = kwargs.pop("use_auth_token")
+            
+            # 将其赋值给新版 hf_hub_download 认的 'token' 参数
+            if "token" not in kwargs:
+                kwargs["token"] = auth_token
+                
+        # 调用并返回原本的下载逻辑
+        return _original_hf_hub_download(*args, **kwargs)
+
+    # 3. 替换 huggingface_hub 中的方法为我们的包装函数
+    huggingface_hub.hf_hub_download = patched_hf_hub_download
+    huggingface_hub.file_download.hf_hub_download = patched_hf_hub_download
+
 def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False,
                       logs_file=None,
                       device_index=0):
+    _hook_hf()
     import torch, pyannote.audio, torchaudio
     torch.serialization.add_safe_globals([
         torch.torch_version.TorchVersion,
@@ -166,7 +193,7 @@ def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_s
     from pyannote.audio import Pipeline
 
     def _get_diariz():
-        pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1")
+        pipeline = Pipeline.from_pretrained(f"{ROOT_DIR}/models/models--pyannote--speaker-diarization-3.1/config.yaml")
 
         if is_cuda:
             pipeline.to(torch.device(f"cuda:{device_index}"))
@@ -205,6 +232,7 @@ def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_s
 
 def reverb_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False, logs_file=None,
                     device_index=0):
+    _hook_hf()
     import torch, pyannote.audio, torchaudio
     torch.serialization.add_safe_globals([
         torch.torch_version.TorchVersion,
@@ -215,7 +243,7 @@ def reverb_speakers(*, input_file, subtitles_file: str, speak_file: str, num_spe
     from pyannote.audio import Pipeline
 
     def _get_diariz():
-        pipeline = Pipeline.from_pretrained('Revai/reverb-diarization-v1')
+        pipeline = Pipeline.from_pretrained(f'{ROOT_DIR}/models/models--Revai--reverb-diarization-v1/config.yaml')
 
         if is_cuda:
             pipeline.to(torch.device(f"cuda:{device_index}"))

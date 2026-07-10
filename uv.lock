@@ -4640,7 +4640,7 @@ requires-dist = [
     { name = "psutil", specifier = "==6.0.0" },
     { name = "pure-eval", specifier = "==0.2.2" },
     { name = "py7zr", specifier = "==0.22.0" },
-    { name = "pyannote-audio", specifier = "==3.4.0" },
+    { name = "pyannote-audio" },
     { name = "pyarrow", specifier = "==20.0.0" },
     { name = "pyasn1", specifier = "==0.5.0" },
     { name = "pyasn1-modules", specifier = "==0.3.0" },

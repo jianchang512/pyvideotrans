@@ -209,8 +209,10 @@ class SpeechToText(BaseTask):
             kw['num_speakers'] = -1 if self.max_speakers < 1 else self.max_speakers
             kw['language'] = self.cfg.detect_language
         elif speaker_type == 'ali_CAM':
-            check_and_down_ms(model_id='iic/speech_campplus_speaker-diarization_common',
-                                    callback=self._process_callback)
+            check_and_down_ms(
+                model_id='iic/speech_campplus_speaker-diarization_common', 
+                local_dir=f"{ROOT_DIR}/models/speech_campplus_speaker-diarization_common",
+                callback=self._process_callback)
             from videotrans.process.prepare_audio import cam_speakers as _run_speakers
         elif speaker_type == 'pyannote':
             from videotrans.process.prepare_audio import pyannote_speakers as _run_speakers
@@ -226,6 +228,7 @@ class SpeechToText(BaseTask):
                 snapshot_download(
                     repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
                     token=hf_token,
+                    local_dir=f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"),
                     endpoint=hf_endpoit
                 )
             _rs = self._new_process(callback=_run_speakers, title=title,
