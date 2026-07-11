@@ -129,7 +129,7 @@ class AppSettings:
             "del_end_punc": True,
             "force_lib": False,
             "hw_decode": False,
-            "preset": "medium",
+            "preset": "slow",
             "ffmpeg_cmd": "",
             "aisendsrt": True,
             "dont_notify": False,

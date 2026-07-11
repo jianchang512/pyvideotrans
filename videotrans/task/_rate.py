@@ -266,7 +266,7 @@ class SpeedRate:
         self.audio_data = [] 
         self.video_for_clips = [] 
 
-        self.crf = "20"
+        self.crf = "18"
         self.preset = "veryfast"
         
         try:

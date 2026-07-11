@@ -18,6 +18,30 @@ Path(f"{ROOT_DIR}/models").mkdir(parents=True, exist_ok=True)
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
 Path(f"{TRANSLATE_CACHE}").mkdir(parents=True, exist_ok=True)
 
+def fix_ssl_cert_env():
+    """
+    修复部分用户电脑上存在错误的全局 SSL 证书环境变量，
+    强制将其指向程序自带的 certifi 证书路径。
+    """
+    try:
+        import certifi
+        ca_bundle = certifi.where()
+        
+        # 确保该路径确实存在（兼容 PyInstaller 打包后的临时目录）
+        if os.path.exists(ca_bundle):
+            # 强制覆盖用户的错误环境变量，指引到正确的证书
+            os.environ['CURL_CA_BUNDLE'] = ca_bundle
+            os.environ['REQUESTS_CA_BUNDLE'] = ca_bundle
+            os.environ['SSL_CERT_FILE'] = ca_bundle
+        else:
+            raise FileNotFoundError
+            
+    except Exception:
+        # 如果 certifi 加载失败，至少把错误的干扰变量删掉，让系统回退到默认逻辑
+        for key in ['CURL_CA_BUNDLE', 'REQUESTS_CA_BUNDLE', 'SSL_CERT_FILE']:
+            os.environ.pop(key, None)
+
+
 
 def _set_env():
     if IS_FROZEN:
@@ -41,6 +65,8 @@ def _set_env():
     os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "3600"
     os.environ["HF_HUB_DISABLE_XET"] = "1"
     os.environ['GRADIO_ANALYTICS_ENABLED'] = '0'
+    # 必须在 import requests, modelscope 等库之前执行！
+    fix_ssl_cert_env()
     if Path(f'{ROOT_DIR}/netoffline.txt').is_file():
         os.environ['HF_HUB_OFFLINE'] = '1'
 
