@@ -64,7 +64,7 @@ class EditDubbingResultDialog(QDialog):
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setMinimumWidth(1000)
         self.setMinimumHeight(600)
-        self.setWindowFlags(Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMaximizeButtonHint)
+        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMaximizeButtonHint)
 
         self.count_down = int(float(settings.get('countdown_sec', 1)))
 
@@ -219,7 +219,8 @@ class EditDubbingResultDialog(QDialog):
             self.timer.timeout.connect(self.update_countdown)
             self.timer.start(1000)
             if self.parent:
-                self.parent.activateWindow()
+                self.raise_()                
+                self.activateWindow()
                 
         except Exception as e:
             import traceback

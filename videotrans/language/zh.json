@@ -876,5 +876,6 @@
         "srt_not_found": "未找到 SRT",
         "folder_created": "已创建",
         "error": "出错",
-        "help_doc":"帮助教程"
+        "help_doc":"帮助教程",
+		"Assign roles":"为说话人设置配音角色"
 }

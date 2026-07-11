@@ -80,7 +80,7 @@ class ClickableProgressBar(QLabel):
 
     # 出错时，设置状态，停止 完成
     def setError(self, text=""):
-        self.error = text
+        self.error = text.strip()
         self.ended = True
         self.progress_bar.setToolTip(
             tr("Click to view the detailed error report"))

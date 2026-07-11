@@ -199,7 +199,9 @@ class EditRecognResultDialog(QDialog):
             self.timer.timeout.connect(self.update_countdown)
             self.timer.start(1000)
             if self.parent:
-                self.parent.activateWindow()
+                self.raise_()                
+                self.activateWindow()
+                #self.parent.activateWindow()
                 
         except Exception as e:
             import traceback

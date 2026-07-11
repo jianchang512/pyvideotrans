@@ -548,7 +548,9 @@ class SpeakerAssignmentDialog(QDialog):
 
     def _active(self):
         if self.parent:
-            self.parent.activateWindow()
+            self.raise_()                
+            self.activateWindow()
+            #self.parent.activateWindow()
 
     def cancel_and_close(self):
         if hasattr(self, 'timer') and self.timer:
