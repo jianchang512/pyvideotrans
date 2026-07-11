@@ -16,9 +16,14 @@ def getset_gpu(force_cpu=False) -> int:
     # 尚未获取过时是 -1
     if app_cfg.NVIDIA_GPU_NUMS > -1:
         return app_cfg.NVIDIA_GPU_NUMS
+    
+    if platform.system() == 'Darwin':
+        app_cfg.NVIDIA_GPU_NUMS = 0
+        return 0
+        
     import torch
     # 无可用显卡
-    app_cfg.NVIDIA_GPU_NUMS = 0 if platform.system() == 'Darwin' or  not torch.cuda.is_available() else torch.cuda.device_count()
+    app_cfg.NVIDIA_GPU_NUMS = 0 if not torch.cuda.is_available() else torch.cuda.device_count()
     logger.debug(f'可用 Nvidia 显卡数: {app_cfg.NVIDIA_GPU_NUMS}')
     return app_cfg.NVIDIA_GPU_NUMS
 
