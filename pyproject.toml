@@ -271,6 +271,7 @@ dependencies = [
     "qwen-tts-pvt",
     "f5-tts",
     "gradio>=6.8.0",
+    "inflect>=7.5.0",
 ]
 # "omnivoice",
 # "qwen-asr-pvt",

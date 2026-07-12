@@ -121,6 +121,7 @@ class OmniVoice(BaseTTS):
             device_map=self.device,
             dtype=torch.float32 if self.device == 'cpu' else torch.float16
         )
+        speed = self.get_speed()
         
         for i,item in enumerate(self.queue_tts):
             if app_cfg.exit_soft: return
@@ -134,7 +135,8 @@ class OmniVoice(BaseTTS):
                 wav = model.generate(
                     text=item['text'],
                     ref_audio=reference_audio_file,
-                    ref_text=reference_text
+                    ref_text=reference_text,
+                    speed=speed
                 )
                 sf.write(output_filename, wav[0], 24000)
                 if not tools.vail_file(output_filename):

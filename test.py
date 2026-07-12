@@ -1,24 +1,22 @@
 from videotrans.configure import config
-from transformers import AutoModelForRNNT, AutoProcessor
-from transformers.audio_utils import load_audio
+from omnivoice import OmniVoice
+import soundfile as sf
+import torch
 
-model_id = "nvidia/nemotron-3.5-asr-streaming-0.6b"
-processor = AutoProcessor.from_pretrained(model_id)
-model = AutoModelForRNNT.from_pretrained(model_id, device_map="auto")
-
-audio = load_audio(
-    "10.wav",
-    sampling_rate=processor.feature_extractor.sampling_rate,
+model = OmniVoice.from_pretrained(
+    "k2-fsa/OmniVoice",
+    device_map="cpu",
+    #dtype=torch.float16
 )
 
-# Condition on a known language ...
-inputs = processor(audio, sampling_rate=processor.feature_extractor.sampling_rate, language="zh-CN")
-inputs.to(model.device, dtype=model.dtype)
-output = model.generate(**inputs, return_dict_in_generate=True)
-print(processor.decode(output.sequences, skip_special_tokens=True))
+audio = model.generate(
+    text="你好啊，今天天气不错哦，挺风和日丽的，你说是不是啊我的朋友们.",
+    ref_audio="./f5-tts/cosy.wav",
+    ref_text="希望你以后，能够做的比我还好哟！",
 
-# ... or let the model detect it and keep the emitted <xx-XX> language tag.
-inputs = processor(audio, sampling_rate=processor.feature_extractor.sampling_rate) # equiv to ..., language="auto"
-inputs.to(model.device, dtype=model.dtype)
-output = model.generate(**inputs, return_dict_in_generate=True)
-print(processor.decode(output.sequences, skip_special_tokens=False))
+    num_step=32,  # diffusion steps (or 16 for faster inference)
+    speed=2,     # speed factor (>1.0 faster, <1.0 slower)
+    duration=10.0, # fixed output duration in seconds (overrides speed)
+    # ... more options
+)
+sf.write("out.wav", audio[0], 24000)

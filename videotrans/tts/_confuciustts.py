@@ -2,31 +2,79 @@ import logging
 from dataclasses import dataclass
 from typing import Union, Dict, List
 
-import requests
-from gradio_client import handle_file
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from videotrans.tts._base import BaseTTS
 
-from videotrans.configure.config import settings, logger,tr
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
-from videotrans.tts._gradio import GradioBase
+from videotrans.configure.config import settings, logger,tr,ROOT_DIR,app_cfg
+from videotrans.util import tools
+from videotrans.configure.excepts import DubbingSrtError
+from pathlib import Path
 
 @dataclass
-class ConfuciusTTS(GradioBase):
+class ConfuciusTTS(BaseTTS):
+    localdir:str=None
     def __post_init__(self):
-        self.ainame="confuciustts"
         super().__post_init__()
+        self.roledict = tools.get_f5tts_role()
+        self.device='cuda' if self.is_cuda else 'cpu'
+            
+    def _download(self):
+        from videotrans.util import help_down
+
+        help_down.check_and_down_hf('', 'netease-youdao/Confucius4-TTS', local_dir=f"{ROOT_DIR}/models/models--netease-youdao--Confucius4-TTS")
+        help_down.check_and_down_hf('', 'facebook/w2v-bert-2.0', local_dir=f"{ROOT_DIR}/models/models--facebook--w2v-bert-2.0")
+        help_down.check_and_down_hf('', 'nvidia/bigvgan_v2_22khz_80band_256x', local_dir=f"{ROOT_DIR}/models/models--nvidia--bigvgan_v2_22khz_80band_256x")
+        help_down.check_and_down_hf('', 'funasr/campplus', local_dir=f"{ROOT_DIR}/models/models--funasr--campplus",allow_list=["campplus_cn_common.bin"])
+        return True
+
+    def _exec(self):
+        ok, err = 0, 0
+        _except = None
+        
+        speed = self.get_speed()
+        import torchaudio
+        from videotrans.confuciustts.cli.inference import ConfuciusTTS
+        model = ConfuciusTTS(
+            device=self.device,
+        )
+        lang=self.language.split('-')[0]
+        for i,item in enumerate(self.queue_tts):
+            if app_cfg.exit_soft: return
+            try:
+                self.signal(text=f"Dubbing {i+1}/{len(self.queue_tts)}")
+                reference_audio_file,reference_text=self.get_ref_wav(item)
+                if not Path(reference_audio_file).is_file():
+                    raise ValueError(f"No reference audio_file in {ROOT_DIR}/f5-tts")
+                output_filename=f'{item["filename"]}-24k.wav'
+
+                audio = model.generate(item['text'],lang ,reference_audio_file, verbose=False)
+                torchaudio.save(output_filename, audio.cpu(), model.sample_rate)
+                if not tools.vail_file(output_filename):
+                    err += 1
+                    continue
+                ok += 1
+                self.convert_to_wav(output_filename, item['filename'])
+                self.signal(text=f"Dubbed {i+1}")
+            except Exception as e:
+                _except = e
+                logger.exception(f'Confucius-TTS dubbing error:{e}', exc_info=True)
+                err += 1
+
+        try:
+            del model
+        except Exception:
+            pass
+        if ok == 0:
+            raise _except if _except else DubbingSrtError('[Confucius-TTS] dubbing error')
+
+        msg = "dubbing ended"
+        if err > 0 and ok > 0:
+            msg = f'[{err}] errors, {ok} succeed'
 
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
-    def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
-        ref_wav,ref_text = self.get_ref_wav(data_item)
-        kwargs = {
-            "text":data_item.get('text',''),
-            "lang":self.language.split('-')[0],
-            "ref_aud":handle_file(ref_wav),
-            "api_name":"/_clone_fn",
-        }
-        return self._send(kwargs, data_item)
+        self.signal(text=msg)
+        logger.debug(f'Confucius-TTS 配音结束：{msg}')
+
+
     
     
     

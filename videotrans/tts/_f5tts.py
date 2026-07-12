@@ -110,7 +110,6 @@ class F5TTSBuilt(BaseTTS):
         return True
     
     def _exec(self):
-        _model_obj = {}
         ok, err = 0, 0
         _except = None
         

@@ -59,19 +59,6 @@ class Ui_gradiowinform(object):
 
 
         
-        h1confuciustts_url = QtWidgets.QHBoxLayout()
-        self.confuciustts_urllabel = QLabel('Confucius-TTS URL')
-        self.confuciustts_urllabel.setObjectName("confuciustts_urllabel")
-        self.confuciustts_urllabel.setMinimumSize(QSize(0, 35))
-        self.confuciustts_url = QLineEdit()
-        self.confuciustts_url.setObjectName("confuciustts_url")
-        self.confuciustts_url.setPlaceholderText('URL ')
-        self.confuciustts_url.setMinimumSize(QSize(0, 35))        
-        h1confuciustts_url.addWidget(self.confuciustts_urllabel)
-        h1confuciustts_url.addWidget(self.confuciustts_url)
-        self.confuciustts_urltest = QPushButton(tr("Test"))        
-        h1confuciustts_url.addWidget(self.confuciustts_urltest)
-        v1.addLayout(h1confuciustts_url)
 
         h1voxcpmtts_url = QtWidgets.QHBoxLayout()
         self.voxcpmtts_urllabel = QLabel('VoxCPM URL')
@@ -125,5 +112,5 @@ class Ui_gradiowinform(object):
 
     def retranslateUi(self, gradiowinform):
 
-        gradiowinform.setWindowTitle("Index/VoxCPM/Confucius/Spark" +tr('This channel needs deployed and started before available'))
+        gradiowinform.setWindowTitle("Index/VoxCPM/Spark" +tr('This channel needs deployed and started before available'))
         self.save.setText(tr("Save"))

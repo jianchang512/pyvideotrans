@@ -409,7 +409,7 @@ class Ui_MainWindow(object):
         self.actiontts_cosyvoice.setText("CosyVoice TTS")
         self.actiontts_qwenttslocal.setText(f"Qwen3 TTS({tr('Local')})")
         self.actiontts_fishtts.setText("Fish TTS")
-        self.actiontts_gradiowin.setText("Index/VoxCPM/SparK/Confucius")
+        self.actiontts_gradiowin.setText("Index/VoxCPM/SparK")
         self.actiontts_refaudio.setText(tr("Set reference audio"))
         self.actiontts_doubao2.setText(tr("DouBao2"))
         self.action_website.setText(tr("Documents"))
