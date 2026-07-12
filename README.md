@@ -191,10 +191,13 @@ This project mainly relies on the following open-source projects (partial):
 
 * [FFmpeg](https://github.com/FFmpeg/FFmpeg)
 * [PySide6](https://pypi.org/project/PySide6/)
+* [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)
 * [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
 * [openai-whisper](https://github.com/openai/whisper)
 * [edge-tts](https://github.com/rany2/edge-tts)
 * [F5-TTS](https://github.com/SWivid/F5-TTS)
+* [Confucius4-TTS](https://github.com/netease-youdao/Confucius4-TTS)
+* [OmniVoice](https://github.com/k2-fsa/omnivoice)
 * [CosyVoice](https://github.com/FunAudioLLM/CosyVoice)
 * [Gradio](https://www.gradio.app/) (WebUI)
 
