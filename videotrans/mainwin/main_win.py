@@ -52,7 +52,7 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
         s = AiLoaderThread(self)
         s.gpu_io.connect(self._start_workers)
         self.startbtn.setDisabled(True)
-        self.startbtn.setText('Checking GPUs...')
+        self.startbtn.setText(tr('Checking GPUs...'))
         s.start()
         self._set_default()
 

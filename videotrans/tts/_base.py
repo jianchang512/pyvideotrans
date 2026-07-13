@@ -76,6 +76,7 @@ class BaseTTS(BaseCon):
         if hasattr(self, '_download'):
             self.signal(text=tr("check or download models"))
             self._download()
+            self.signal(text='starting load model')
         loop = None
         try:
             # edge-tts:检查 self._exec 是不是一个异步函数 (coroutine)

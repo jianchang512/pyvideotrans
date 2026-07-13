@@ -877,5 +877,6 @@
         "folder_created": "已创建",
         "error": "出错",
         "help_doc":"帮助教程",
-		"Assign roles":"为说话人设置配音角色"
+		"Assign roles":"为说话人设置配音角色",
+		"Checking GPUs...":"检查可用GPU，稍等..."
 }

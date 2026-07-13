@@ -877,6 +877,7 @@
         "folder_created": "Created",
         "error": "Error",
         "help_doc":"Help",
-		"Assign roles":"Set up a voice actor for the speaker"
+		"Assign roles":"Set up a voice actor for the speaker",
+		"Checking GPUs...":"Checking GPUs..."
 
 }

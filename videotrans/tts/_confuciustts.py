@@ -33,6 +33,7 @@ class ConfuciusTTS(BaseTTS):
         speed = self.get_speed()
         import torchaudio
         from videotrans.confuciustts.cli.inference import ConfuciusTTS
+        self.signal(text=f"Load Confucius-TTS model...")
         model = ConfuciusTTS(
             device=self.device,
         )
