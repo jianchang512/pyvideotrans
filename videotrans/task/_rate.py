@@ -68,15 +68,19 @@ def _cut_video_get_duration(i, task, novoice_mp4_original, preset, crf,fps_mode)
     ]
 
     filter_complex = []
-    if abs(pts_factor - 1.0) >= 0.001:
-        filter_complex.append(f"setpts={pts_factor}*PTS")
+    if abs(pts_factor - 1.0) >0:
+        # 无法精确到毫秒，一般会比期望值小几十ms，增加 0.015修正
+        filter_complex.append(f"setpts={pts_factor+0.02}*PTS")
     else:
         filter_complex.append("setpts=PTS")
 
     cmd.extend(['-vf', ",".join(filter_complex)])
-    #cmd.extend(['-fps_mode', 'vfr']) # 关键修正
-    cmd.extend(fps_mode) # 关键修正
-    cmd.extend(['-t', f'{target_duration_s:.6f}']) # 强制限制输出时长
+    cmd.extend(fps_mode)
+    if abs(pts_factor - 1.0) >0:
+        # 同样增加50ms截取
+        cmd.extend(['-t', f'{target_duration_s+0.05:.6f}']) # 强制限制输出时长
+    #else:
+    #cmd.extend(['-t', f'{target_duration_s:.6f}'])
     
     cmd.append(os.path.basename(task['filename']))
 

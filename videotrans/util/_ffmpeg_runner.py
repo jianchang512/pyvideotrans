@@ -41,8 +41,8 @@ def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
     if settings.get('ffmpeg_cmd'):
         custom_params = [p for p in settings.get('ffmpeg_cmd', '').split(' ') if p]
         cmd = cmd[:-1] + custom_params + cmd[-1:]
-    if cmd[-1].endswith('.mp4'):
-        logger.debug(f'runffmpeg:{cmd=}')
+    #if cmd[-1].endswith('.mp4'):
+    #    logger.debug(f'runffmpeg:{cmd=}')
     try:
         if app_cfg.exit_soft:
             return
