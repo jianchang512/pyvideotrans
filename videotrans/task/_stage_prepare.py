@@ -1,5 +1,4 @@
-import shutil
-import time
+import time,re,json,shutil
 from pathlib import Path
 
 from videotrans.configure.config import tr, app_cfg, settings, logger
@@ -7,7 +6,7 @@ from videotrans.configure.excepts import VideoTransError
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util.help_ffmpeg import get_video_info, runffmpeg
 from videotrans.util.help_misc import vail_file
-
+from videotrans.util.help_srt import get_srt_from_list,get_subtitle_from_srt
 
 class PrepareMixin:
 
@@ -36,7 +35,6 @@ class PrepareMixin:
             self.is_copy_video = True
 
         if self.cfg.subtitles.strip():
-            import re
             with open(self.cfg.source_sub, 'w', encoding="utf-8", errors="ignore") as f:
                 txt = re.sub(r':\d+\.\d+', lambda m: m.group().replace('.', ','),
                              self.cfg.subtitles.strip(), flags=re.I | re.S)
@@ -93,6 +91,33 @@ class PrepareMixin:
             self._split_audio_byraw()
         if self.cfg.vocal and Path(self.cfg.vocal).exists():
             self.clone_ref = self.cfg.vocal
+        # 从字幕中提取说话人 start
+        # 如果存在原始字幕，并且字幕第一条开头存在说话人标识，提取出说话人
+        if vail_file(self.cfg.source_sub):
+            try:
+                source_srt_list = get_subtitle_from_srt(self.cfg.source_sub, is_file=True)
+                if source_srt_list:
+                    spk_list=[]
+                    for i,it in enumerate(source_srt_list):
+                        groups=re.search(r'^\[\s*?(sp[a-zA-Z]+\s*?\d+)\s*?\]',it['text'].strip(),flags=re.I)
+                        if not groups:
+                            if i==0:
+                                break
+                            if i>0 and spk_list:
+                                spk_list.append(spk_list[0])
+                        else:
+                            spk_list.append(groups.group(1))
+                            # 从字幕中删掉说话人标识
+                            it['text']=it['text'].replace(groups.group(0),'')
+                    if spk_list:                            
+                        Path(self.cfg.target_dir + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
+                        txt = get_srt_from_list(source_srt_list)
+                        with open(self.cfg.source_sub, "w", encoding="utf-8", errors="ignore") as f:
+                            f.write(txt)
+            except Exception as e:
+                logger.exception(f'从原始字幕中提取出说话人并删除标识后保存失败:{e}',exc_info=True)
+        # 从字幕中提取说话人 end
+            
         self.signal(text=tr('endfenliyinpin'))
         logger.debug(f'[预处理阶段结束耗时]:{time.time()-_st}s')
 

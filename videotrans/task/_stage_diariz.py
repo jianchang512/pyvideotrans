@@ -26,7 +26,6 @@ class DiarizMixin:
             try:
                 import requests
                 requests.head('https://huggingface.co', timeout=5)
-
             except Exception:
                 logger.exception(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败', exc_info=True)
                 hf_endpoit = "https://hf-mirror.com"

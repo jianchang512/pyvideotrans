@@ -1,5 +1,5 @@
 import time
-import threading
+import threading,shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict
@@ -56,10 +56,8 @@ class TransCreate(
             self.cfg.cache_folder = f"{config.TEMP_DIR}/{self.uuid}"
         if self.cfg.clear_cache:
             if self.cfg.target_dir and Path(self.cfg.target_dir).is_dir():
-                import shutil
                 shutil.rmtree(self.cfg.target_dir, ignore_errors=True)
             if self.cfg.cache_folder and Path(self.cfg.cache_folder).is_dir():
-                import shutil
                 shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
 
         self.signal(text=tr('kaishichuli'))

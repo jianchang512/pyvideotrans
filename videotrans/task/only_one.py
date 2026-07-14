@@ -42,35 +42,7 @@ class Worker(QThread):
             # 目标语言字幕文件
             app_cfg.onlyone_target_sub = trk.cfg.target_sub
             app_cfg.set_countdown(0)
-            trk.prepare()
-            if self._exit(): return
-            
-            # 如果存在原始字幕，并且字幕第一条开头存在说话人标识，提取出说话人
-            if vail_file(trk.cfg.source_sub):
-                try:
-                    from videotrans.util.help_srt import get_srt_from_list,get_subtitle_from_srt
-                    source_srt_list = get_subtitle_from_srt(trk.cfg.source_sub, is_file=True)
-                    if source_srt_list:
-                        spk_list=[]
-                        for i,it in enumerate(source_srt_list):
-                            groups=re.search(r'^\[\s*?(sp[a-zA-Z]+\s*?\d+)\s*?\]',it['text'].strip(),flags=re.I)
-                            if not groups:
-                                if i==0:
-                                    break
-                                if i>0 and spk_list:
-                                    spk_list.append(spk_list[0])
-                            else:
-                                spk_list.append(groups.group(1))
-                                # 从字幕中删掉说话人标识
-                                it['text']=it['text'].replace(groups.group(0),'')
-                        if spk_list:                            
-                            Path(trk.cfg.target_dir + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
-                            txt = get_srt_from_list(source_srt_list)
-                            with open(trk.cfg.source_sub, "w", encoding="utf-8", errors="ignore") as f:
-                                f.write(txt)
-                except Exception as e:
-                    logger.exception(f'从原始字幕中提取出说话人并删除标识后保存失败:{e}',exc_info=True)
-                
+            trk.prepare()                           
             if self._exit(): return
             trk.recogn()
             if self._exit(): return
