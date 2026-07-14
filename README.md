@@ -65,7 +65,16 @@ We recommend using **[`uv`](https://docs.astral.sh/uv/)** for package management
 
 * **Python**: Recommended version 3.10
 * **FFmpeg**: Must be installed and configured in the environment variables.
-  * **macOS**: `brew install ffmpeg libsndfile git`
+  * **macOS**: 
+  ```
+    brew install libsndfile  git  python@3.10
+	
+	brew uninstall --ignore-dependencies ffmpeg
+	
+	brew tap homebrew-ffmpeg/ffmpeg
+	
+	brew install homebrew-ffmpeg/ffmpeg/ffmpeg
+  ```
   * **Linux (Ubuntu/Debian)**: `sudo apt-get install ffmpeg libsndfile1-dev`
   * **Windows**: [Download FFmpeg](https://ffmpeg.org/download.html) and configure Path, or place `ffmpeg.exe` and `ffprobe.exe` directly in the project directory.
 

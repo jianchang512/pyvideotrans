@@ -65,7 +65,16 @@
 
 * **Python**: 建议版本 3.10
 * **FFmpeg**: 必须安装并配置到环境变量。
-  * **macOS**: `brew install ffmpeg libsndfile git`
+  * **macOS**: 
+  ```
+    brew install libsndfile  git  python@3.10
+	
+	brew uninstall --ignore-dependencies ffmpeg
+	
+	brew tap homebrew-ffmpeg/ffmpeg
+	
+	brew install homebrew-ffmpeg/ffmpeg/ffmpeg
+  ```
   * **Linux (Ubuntu/Debian)**: `sudo apt-get install ffmpeg libsndfile1-dev`
   * **Windows**: [下载 FFmpeg](https://ffmpeg.org/download.html) 并配置 Path，或者直接将 ffmpeg.exe 和 ffprobe.exe 放在项目目录下
 
