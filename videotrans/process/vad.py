@@ -57,7 +57,7 @@ def get_speech_timestamp_silero(input_wav,
         merged_segments[0][0]=0
     _vail_segments=[]
     for it in merged_segments:
-        if it[1]>it[0]:
+        if it[1]>it[0] and it[0]>=0:
             _vail_segments.append(it)
     return _vail_segments,None
 
@@ -204,7 +204,7 @@ def get_speech_timestamp(input_wav=None,
     # 或者如果它是唯一片段，也保留
     _vail_segments = []
     for s, e in merged:
-        if e > s:
+        if e > s and s>=0:
             # 再次确保非负和有效性
             _vail_segments.append([max(0, s), max(0, e)])
             
