@@ -5,11 +5,11 @@ Home-page: https://github.com/jianchang512/pyvideotrans
 Author: jianchang512@gmail.com
 Documents: https://pyvideotrans.com
 Discuss: https://bbs.pyvideotrans.com
-License: GPL-V3
+License: GPL-V3 <https://www.gnu.org/licenses/gpl-3.0.html>
 
 码不在雅，能跑则灵。
 型不在秀，兼容就行。
-斯是烂码，自得其乐。
+斯是烂码，乐在其中。
 全局变量乱如麻，if分支叠成塔。
 线程队列八九个，传参全靠大字典。
 可以塞硬件，怼系统。

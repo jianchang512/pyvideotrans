@@ -36,7 +36,7 @@ class AlignMixin:
             raw_total_time=self.video_time,
             target_audio=self.cfg.target_wav,
             cache_folder=self.cfg.cache_folder,
-            align_sub_audio=self.cfg.align_sub_audio,
+            align_sub_audio=self.cfg.align_sub_audio and not self.cfg.voice_autorate and not self.cfg.video_autorate,
             remove_silent_mid=self.cfg.remove_silent_mid
         )
         self.queue_tts = rate_inst.run()

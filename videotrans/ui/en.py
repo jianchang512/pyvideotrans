@@ -341,6 +341,7 @@ class Ui_MainWindow(object):
 
         self.align_sub_audio.setText(tr("Align subtitles and audio"))
         self.align_sub_audio.setToolTip(tr("If selected, it will force the subtitles and audio to align."))
+        self.align_sub_audio.setChecked(True)
 
         self.enable_cuda.setText(tr("Enable CUDA?"))
         self.embed_bgm.setText(tr("embed_bgm"))
