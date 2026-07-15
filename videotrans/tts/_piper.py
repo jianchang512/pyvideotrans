@@ -45,7 +45,13 @@ class PiperTTS(BaseTTS):
         tools.down_file_from_hf(local_dir,urls=urls,callback=self._process_callback)
         return onnx_file
     
-
+    def _download(self):
+        if not Path(f'{ROOT_DIR}/models/g2pW/g2pw.onnx').exists():
+            self.signal(text="Downloading G2PWModel-v2...")
+            tools.down_zip(f"{ROOT_DIR}/models",
+                           'https://modelscope.cn/models/himyworld/videotrans/resolve/master/G2PWModel-v2-onnx.zip',
+                           self._process_callback)
+        return True
     
     def _exec(self):
         # 判断模型是否存在
@@ -69,7 +75,7 @@ class PiperTTS(BaseTTS):
                 _model_file=role_model.get(item['role'])
                 voice=_model_obj.get(_model_file)
                 if voice is None:
-                    voice = PiperVoice.load(_model_file,use_cuda=True if self.device=='cuda' else False)
+                    voice = PiperVoice.load(_model_file,use_cuda=True if self.device=='cuda' else False,download_dir=f'{ROOT_DIR}/models')
                     _model_obj[_model_file]=voice
                 with wave.open(item['filename']+'-24k.wav', "wb") as wav_file:
                     voice.synthesize_wav(item.get('text'), wav_file,syn_config=syn_config)

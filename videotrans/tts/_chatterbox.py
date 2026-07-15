@@ -18,23 +18,20 @@ class ChatterBoxTTS(BaseTTS):
         self.roledict = tools.get_chatterbox_role()
 
     def _download(self):
-        if not Path(f'{ROOT_DIR}/models/chatterbox/ve.pt').exists():
-            tools.check_and_down_hf("", 'resembleAI/chatterbox', f'{ROOT_DIR}/models/chatterbox',
+        if not Path(f'{ROOT_DIR}/models/models--resembleAI--chatterbox/ve.pt').exists():
+            tools.check_and_down_hf("", 'resembleAI/chatterbox', f'{ROOT_DIR}/models/models--resembleAI--chatterbox',
                                     callback=self._process_callback,
-                                    allow_list=['ve.pt', 's3gen.pt', 'conds.pt', 't3_cfg.pt',
-                                                't3_mtl23ls_v2.safetensors', 'Cangjie5_TC.json',
-                                                'grapheme_mtl_merged_expanded_v1.json', 'mtl_tokenizer.json',
-                                                'tokenizer.json'])
+                                    allow_list=["ve.pt","t3_mtl23ls_v3.safetensors","t3_mtl23ls_v2.safetensors","s3gen.pt", "grapheme_mtl_merged_expanded_v1.json", "conds.pt", "Cangjie5_TC.json"])
         return True
 
     def _exec(self):
-        try:
-            from chatterbox.mtl_tts import ChatterboxMultilingualTTS
-        except ImportError:
-            logger.critical('please run  uv sync --extra chatterbox ')
-            raise RuntimeError('please run  uv sync --extra chatterbox ')
-        model = ChatterboxMultilingualTTS.from_local(f'{ROOT_DIR}/models/chatterbox',
-                                         device='cuda' if self.is_cuda else mps_or_cpu())
+        from chatterbox.mtl_tts import ChatterboxMultilingualTTS
+
+        model = ChatterboxMultilingualTTS.from_local(f'{ROOT_DIR}/models/models--resembleAI--chatterbox',
+                                         device='cuda' if self.is_cuda else mps_or_cpu(),
+                                         t3_model="v3",
+
+                                         )
 
         ok, err = 0, 0
         _except = None

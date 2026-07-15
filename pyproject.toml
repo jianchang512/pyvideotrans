@@ -262,7 +262,6 @@ dependencies = [
     "unicode-rbnf>=2.4.0",
     "sentence-stream>=1.3.0",
     "google-cloud-storage>=3.12.0",
-    "chatterbox-tts>=0.1.7",
     "pynini",
     "WeTextProcessing",
     "transformers4576>=4.57.6",
@@ -272,6 +271,7 @@ dependencies = [
     "f5-tts",
     "gradio>=6.8.0",
     "inflect>=7.5.0",
+    "chatterbox-tts>=0.1.7",
 ]
 # "omnivoice",
 # "qwen-asr-pvt",
@@ -344,5 +344,6 @@ pynini = [
 
 
 #faster-whisper = { url = "https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz" }
+chatterbox-tts = { url = "https://github.com/resemble-ai/chatterbox/archive/refs/heads/master.tar.gz" }
 
 
