@@ -13,9 +13,13 @@ import soundfile as sf
 # 1B int8
 @dataclass
 class OmnilingualRecogn(BaseRecogn):
+    def __post_init__(self):
+        super().__post_init__()
+        self.local_dir=f"{ROOT_DIR}/models/omnilingual"
+
     def _create_recognizer(self):
-        model = f"{ROOT_DIR}/models/omnilingual/model.int8.onnx"
-        tokens = f"{ROOT_DIR}/models/omnilingual/tokens.txt"
+        model = f"{self.local_dir}/model.int8.onnx"
+        tokens = f"{self.local_dir}/tokens.txt"
 
         return  sherpa_onnx.OfflineRecognizer.from_omnilingual_asr_ctc(
                 model=model,
@@ -25,7 +29,7 @@ class OmnilingualRecogn(BaseRecogn):
             )
             
     def _download(self):
-        if not Path(f'{ROOT_DIR}/models/omnilingual/model.int8.onnx').exists():
+        if not Path(f'{self.local_dir}/model.int8.onnx').exists():
             from videotrans.util import help_down
             help_down.down_zip(f"{ROOT_DIR}/models",
                            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/omnilingual.zip',

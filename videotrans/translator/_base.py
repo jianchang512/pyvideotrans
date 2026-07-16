@@ -1,4 +1,4 @@
-import time
+import time,os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Union
@@ -37,10 +37,9 @@ class BaseTrans(BaseCon):
     trans_thread: int = 5
     # 翻译后暂停秒
     wait_sec: float = float(settings.get('translation_wait', 0))
-
-
     #  是AI翻译渠道并且选中了以完整srt格式字幕发送
     aisendsrt: bool = False
+    local_dir: str = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -58,10 +57,11 @@ class BaseTrans(BaseCon):
 
     # 实际操作 run  -> run_text|run_srt -> _item_task
     def run(self) -> List[SrtItem]:
-        if hasattr(self, '_download'):
-            self.signal(text=tr("check or download models"))
-            self._download()
         try:
+            if hasattr(self, '_download'):
+                self.signal(text=tr("check or download models"))
+                self._download()
+                self.signal(text="starting load model")
             if not self.aisendsrt:
                 # 是文字列表  [str,...]
                 source_text = [t['text'].replace("\n", " ") for t in self.text_list]
@@ -69,9 +69,15 @@ class BaseTrans(BaseCon):
                     [source_text[i:i + self.trans_thread] for i in range(0, len(source_text), self.trans_thread)])
             # 是srt格式字幕列表 [SrtItem,...]
             return self._run_srt(
-                    [self.text_list[i:i + self.trans_thread] for i in range(0, len(self.text_list), self.trans_thread)])
+                    [self.text_list[i:i + self.trans_thread] for i in range(0, len(self.text_list), self.trans_thread)])        
         except RetryError as e:
             raise e.last_attempt.exception()
+        except (OSError,FileNotFoundError) as e:
+            _e=str(e)
+            if self.local_dir and ("no file named model.safetensors" in _e or os.path.basename(self.local_dir) in _e):
+               from videotrans.configure.excepts import DownloadModelsError
+               raise  DownloadModelsError(tr('model incomplete error',self.local_dir,tr('Help document')))
+            raise
         finally:
             if hasattr(self, '_unload'):
                 self._unload()

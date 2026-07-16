@@ -16,15 +16,18 @@ from videotrans.process import qwen3asr_fun
 
 @dataclass
 class QwenasrlocalRecogn(BaseRecogn):
-
+    def __post_init__(self):
+        super().__post_init__()
+        self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}'
+    
     def _download(self):
         if defaulelang == 'zh':
             tools.check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}', callback=self._process_callback,
-                                    local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}')
+                                    local_dir=self.local_dir)
         else:
             tools.check_and_down_hf(model_id=f'Qwen3-ASR-{self.model_name}',
                                     repo_id=f'Qwen/Qwen3-ASR-{self.model_name}',
-                                    local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}',
+                                    local_dir=self.local_dir,
                                     callback=self._process_callback)
 
     def _exec(self) -> Union[List[SrtItem], None]:

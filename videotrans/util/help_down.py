@@ -40,7 +40,7 @@ _original_http_get=None
 def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=None) -> bool:
     global _original_http_get
     from .help_misc import is_connect_hf
-    if model_id and model_id in FASTER_MODELS_DICT and defaulelang=='zh' and is_connect_hf() is False:
+    if model_id and model_id in FASTER_MODELS_DICT and defaulelang=='zh' :#and is_connect_hf() is False:
         logger.debug(f'从 modelscope.cn 下载模型 {model_id=}')
         return check_and_down_ms(FASTER_MODELS_DICT[
                                      model_id] if model_id != 'distil-large-v3.5' else 'iBoostAI/distil-whisper-distil-large-v3.5-ct2',
@@ -162,9 +162,8 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
                 except OSError as e:
                     logger.exception(f"清理临时文件失败：{junk} {e}", exc_info=True)
     except Exception as e:
-        msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
         from videotrans.configure.excepts import DownloadModelsError
-        raise DownloadModelsError(f'{msg}\n[https://huggingface.co/{repo_id}/tree/main]\n{e}')
+        raise DownloadModelsError(tr("download model error"))
     finally:
         hf_fd.http_get = _original_http_get
     return True
@@ -361,10 +360,8 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
         else:
             return True
     except Exception as e:
-        local_dir = f'{ROOT_DIR}/models/models/{model_id}/' if not local_dir else local_dir
-        msg = f'下载模型失败，你可以打开以下网址，将所有文件下载到\n {local_dir} 文件夹内\n' if defaulelang == 'zh' else f'The model download failed. You can try opening the following URL and downloading all files to the {local_dir} folder.'
         from videotrans.configure.excepts import DownloadModelsError
-        raise DownloadModelsError(f'{msg}\n[https://modelscope.cn/models/{model_id}/tree/main]\n{e}')
+        raise DownloadModelsError(tr("download model error"))
     finally:
         ms_sd._download_file_lists = _orig_download_file_lists
     return True

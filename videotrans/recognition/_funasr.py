@@ -13,6 +13,8 @@ from videotrans.util import tools
 
 @dataclass
 class FunasrRecogn(BaseRecogn):
+    
+
 
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit():
@@ -30,7 +32,7 @@ class FunasrRecogn(BaseRecogn):
                 self.model_name = f'FunAudioLLM/Fun-ASR-Nano-2512'
         elif self.model_name != 'paraformer-zh':
             self.model_name = f'FunAudioLLM/Fun-ASR-MLT-Nano-2512'
-        print(f'{self.model_name=}')
+
         if self.model_name == 'paraformer-zh':
             tools.check_and_down_ms(model_id='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/speech_fsmn_vad_zh-cn-16k-common-pytorch')
             tools.check_and_down_ms(model_id='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch')

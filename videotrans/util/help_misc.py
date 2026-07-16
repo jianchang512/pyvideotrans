@@ -50,7 +50,6 @@ def show_error(tb_str):
 
     msg_box.setIcon(QtWidgets.QMessageBox.Icon.Critical)
     msg_box.setWindowTitle(tr('anerror'))
-    msg_box.setText(tb_str[:300])
     if len(tb_str) > 300:
         msg_box.setDetailedText(tb_str)
 
@@ -63,11 +62,12 @@ def show_error(tb_str):
     report_button = msg_box.addButton(tr("Report Error"), QtWidgets.QMessageBox.ButtonRole.NoRole)
     url_button = None
     urls = re.findall(r'\[(https?:.*?)\]', tb_str)
-    if urls:
-        url_button = msg_box.addButton(tr("Open") + tr('Download URL' if "pyvideotrans.com" not in urls[0] else 'Help document'), QtWidgets.QMessageBox.ButtonRole.NoRole)
-        if "pyvideotrans.com" in urls[0]:
-            tb_str=tb_str.replace(f'[{urls[0]}]','')
+    if urls and urls[0]:
+        url_button = msg_box.addButton(tr('Download URL' if "pyvideotrans.com" not in urls[0] else 'Help document'), QtWidgets.QMessageBox.ButtonRole.NoRole)
+        tb_str=tb_str.replace(f'[{urls[0]}]','')
+        
     msg_box.setDefaultButton(ok_button)
+    msg_box.setText(tb_str[:300])
 
     msg_box.setStyleSheet("""
             QMessageBox {
@@ -118,8 +118,8 @@ def open_url(url: str = None):
         'models': "https://github.com/jianchang512/stt/releases/tag/0.0",
         'stt': "https://github.com/jianchang512/stt/",
 
-        'gtrans': "https://pyvideotrans.com/aiocr",
-        'cuda': "https://pyvideotrans.com/gpu.html",
+        'gtrans': "https://pyvideotrans.com/ocrsp",
+        'cuda': "https://pyvideotrans.com/gpu",
         'website': "https://pyvideotrans.com",
         'help': "https://pyvideotrans.com",
         'xinshou': "https://pyvideotrans.com/getstart",

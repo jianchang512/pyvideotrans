@@ -1,4 +1,4 @@
-import asyncio
+import asyncio,os
 import copy
 import inspect
 import re
@@ -57,6 +57,7 @@ class BaseTTS(BaseCon):
     api_url: str = field(default='', init=False)
     # 启用CUDA，仅 qwen3-tts-local 游戏哦啊
     is_cuda: bool = False
+    local_dir: str = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -73,12 +74,12 @@ class BaseTTS(BaseCon):
         _tts_name=get_tts_type(self.tts_type)
         logger.debug(f'当前使用配音渠道：{_tts_name}')
         self.signal(text=f"{_tts_name} starting: [len={self.len}]")
-        if hasattr(self, '_download'):
-            self.signal(text=tr("check or download models"))
-            self._download()
-            self.signal(text='starting load model')
         loop = None
         try:
+            if hasattr(self, '_download'):
+                self.signal(text=tr("check or download models"))
+                self._download()
+                self.signal(text='starting load model')
             # edge-tts:检查 self._exec 是不是一个异步函数 (coroutine)
             if inspect.iscoroutinefunction(self._exec):
                 try:
@@ -94,6 +95,12 @@ class BaseTTS(BaseCon):
                 self._exec()
         except RetryError as e:
             raise e.last_attempt.exception()
+        except (OSError,FileNotFoundError) as e:
+            _e=str(e)
+            if self.local_dir and ("no file named model.safetensors" in _e or os.path.basename(self.local_dir) in _e):
+               from videotrans.configure.excepts import DownloadModelsError
+               raise  DownloadModelsError(tr('model incomplete error',self.local_dir,tr('Help document')))
+            raise
         except RuntimeError as e:
             logger.warning(f'TTS 线程运行时发生错误: {e}')
             if 'Event loop' in str(e):

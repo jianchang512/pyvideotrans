@@ -17,9 +17,10 @@ class ZipVoice(BaseTTS):
         self.speed = self.get_speed()
         self.device = "cpu"  # todo cuda
         self.roledict = tools.get_f5tts_role()
+        self.local_dir=f'{ROOT_DIR}/models/zipvoice'
 
     def _download(self):
-        if not Path(f'{ROOT_DIR}/models/zipvoice/decoder.int8.onnx').exists():
+        if not Path(f'{self.local_dir}/decoder.int8.onnx').exists():
             tools.down_zip(f"{ROOT_DIR}/models",
                            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/zipvoice-tts.zip',
                            self._process_callback)
@@ -30,12 +31,12 @@ class ZipVoice(BaseTTS):
         tts_config = sherpa_onnx.OfflineTtsConfig(
             model=sherpa_onnx.OfflineTtsModelConfig(
                 zipvoice=sherpa_onnx.OfflineTtsZipvoiceModelConfig(
-                    tokens=f"{ROOT_DIR}/models/zipvoice/tokens.txt",
-                    encoder=f"{ROOT_DIR}/models/zipvoice/encoder.int8.onnx",
-                    decoder=f"{ROOT_DIR}/models/zipvoice/decoder.int8.onnx",
-                    data_dir=f"{ROOT_DIR}/models/zipvoice/espeak-ng-data",
-                    lexicon=f"{ROOT_DIR}/models/zipvoice/lexicon.txt",
-                    vocoder=f"{ROOT_DIR}/models/zipvoice/vocos_24khz.onnx",
+                    tokens=f"{self.local_dir}/tokens.txt",
+                    encoder=f"{self.local_dir}/encoder.int8.onnx",
+                    decoder=f"{self.local_dir}/decoder.int8.onnx",
+                    data_dir=f"{self.local_dir}/espeak-ng-data",
+                    lexicon=f"{self.local_dir}/lexicon.txt",
+                    vocoder=f"{self.local_dir}/vocos_24khz.onnx",
                 ),
                 debug=False,
                 num_threads=4,

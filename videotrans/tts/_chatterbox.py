@@ -16,10 +16,11 @@ class ChatterBoxTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
         self.roledict = tools.get_chatterbox_role()
+        self.local_dir=f'{ROOT_DIR}/models/models--resembleAI--chatterbox'
 
     def _download(self):
-        if not Path(f'{ROOT_DIR}/models/models--resembleAI--chatterbox/ve.pt').exists():
-            tools.check_and_down_hf("", 'resembleAI/chatterbox', f'{ROOT_DIR}/models/models--resembleAI--chatterbox',
+        if not Path(f'{self.local_dir}/ve.pt').exists():
+            tools.check_and_down_hf("", 'resembleAI/chatterbox', self.local_dir,
                                     callback=self._process_callback,
                                     allow_list=["ve.pt","t3_mtl23ls_v3.safetensors","t3_mtl23ls_v2.safetensors","s3gen.pt", "grapheme_mtl_merged_expanded_v1.json", "conds.pt", "Cangjie5_TC.json"])
         return True
@@ -27,11 +28,9 @@ class ChatterBoxTTS(BaseTTS):
     def _exec(self):
         from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
-        model = ChatterboxMultilingualTTS.from_local(f'{ROOT_DIR}/models/models--resembleAI--chatterbox',
+        model = ChatterboxMultilingualTTS.from_local(self.local_dir,
                                          device='cuda' if self.is_cuda else mps_or_cpu(),
-                                         t3_model="v3",
-
-                                         )
+                                         t3_model="v3")
 
         ok, err = 0, 0
         _except = None

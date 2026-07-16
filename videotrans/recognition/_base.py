@@ -1,4 +1,4 @@
-import re, time
+import re, time,os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Union
@@ -9,6 +9,7 @@ from videotrans.configure.base import BaseCon
 from videotrans.task.taskcfg import SrtItem
 from videotrans.configure import contants
 from videotrans.util.help_srt import ms_to_time_string
+from tenacity import RetryError
 
 
 @dataclass
@@ -55,6 +56,7 @@ class BaseRecogn(BaseCon):
     speech_timestamps: List = field(default_factory=list)  # vad切割好的数据
     recogn2pass: bool = False
     asr_wait: float = float(settings.get('asr_wait', 0))
+    local_dir: str = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -82,12 +84,11 @@ class BaseRecogn(BaseCon):
 
     # run->_exec
     def run(self) -> Union[List[SrtItem], None]:
-        if hasattr(self, '_download'):
-            self.signal(text=tr("check or download models"))
-            self._download()
-        self.signal(text=f"starting transcription")
-        from tenacity import RetryError
         try:
+            if hasattr(self, '_download'):
+                self.signal(text=tr("check or download models"))
+                self._download()
+            self.signal(text=f"starting transcription")
             res = self._exec()
             if res:
                 return self._post_fix(res)
@@ -96,6 +97,12 @@ class BaseRecogn(BaseCon):
                 tr('No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.'))
         except RetryError as e:
             raise e.last_attempt.exception()
+        except (OSError,FileNotFoundError) as e:
+            _e=str(e)
+            if self.local_dir and ("no file named model.safetensors" in _e or os.path.basename(self.local_dir) in _e):
+               from videotrans.configure.excepts import DownloadModelsError
+               raise  DownloadModelsError(tr('model incomplete error',self.local_dir,tr('Help document')))
+            raise
         finally:
             self.signal(text=f'STT ended')
 

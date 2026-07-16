@@ -111,9 +111,10 @@ class VitsCNEN(BaseTTS):
         super().__post_init__()
         self.speed = self.get_speed()
         self.device = "cpu"  # todo cuda
+        self.local_dir=f'{ROOT_DIR}/models/vits'
 
     def _download(self):
-        if not Path(f'{ROOT_DIR}/models/vits/zh_en/model.onnx').exists():
+        if not Path(f'{self.local_dir}/zh_en/model.onnx').exists():
             tools.down_zip(f"{ROOT_DIR}/models",
                            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/vits-tts.zip',
                            self._process_callback)

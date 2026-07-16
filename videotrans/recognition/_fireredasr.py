@@ -14,10 +14,14 @@ import soundfile as sf
 
 @dataclass
 class FireredRecogn(BaseRecogn):
+    def __post_init__(self):
+        super().__post_init__()
+        self.local_dir=f"{ROOT_DIR}/models/fireredasr"
+
     def _create_recognizer(self):
-        encoder = f"{ROOT_DIR}/models/fireredasr/encoder.int8.onnx"
-        decoder = f"{ROOT_DIR}/models/fireredasr/decoder.int8.onnx"
-        tokens = f"{ROOT_DIR}/models/fireredasr/tokens.txt"
+        encoder = f"{self.local_dir}/encoder.int8.onnx"
+        decoder = f"{self.local_dir}/decoder.int8.onnx"
+        tokens = f"{self.local_dir}/tokens.txt"
 
         return  sherpa_onnx.OfflineRecognizer.from_fire_red_asr(
                 decoder=decoder,
@@ -28,7 +32,7 @@ class FireredRecogn(BaseRecogn):
             )
             
     def _download(self):
-        if not Path(f'{ROOT_DIR}/models/fireredasr/encoder.int8.onnx').exists():
+        if not Path(f'{self.local_dir}/encoder.int8.onnx').exists():
             from videotrans.util import help_down
             help_down.down_zip(f"{ROOT_DIR}/models",
                            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/fireredasr2aed.zip',

@@ -11,7 +11,7 @@ from pathlib import Path
 
 @dataclass
 class ConfuciusTTS(BaseTTS):
-    localdir:str=None
+
     def __post_init__(self):
         super().__post_init__()
         self.roledict = tools.get_f5tts_role()
@@ -19,11 +19,14 @@ class ConfuciusTTS(BaseTTS):
             
     def _download(self):
         from videotrans.util import help_down
-
-        help_down.check_and_down_hf('', 'netease-youdao/Confucius4-TTS', local_dir=f"{ROOT_DIR}/models/models--netease-youdao--Confucius4-TTS")
-        help_down.check_and_down_hf('', 'facebook/w2v-bert-2.0', local_dir=f"{ROOT_DIR}/models/models--facebook--w2v-bert-2.0")
-        help_down.check_and_down_hf('', 'nvidia/bigvgan_v2_22khz_80band_256x', local_dir=f"{ROOT_DIR}/models/models--nvidia--bigvgan_v2_22khz_80band_256x")
-        help_down.check_and_down_hf('', 'funasr/campplus', local_dir=f"{ROOT_DIR}/models/models--funasr--campplus",allow_list=["campplus_cn_common.bin"])
+        self.local_dir=f"{ROOT_DIR}/models/models--netease-youdao--Confucius4-TTS"
+        help_down.check_and_down_hf('', 'netease-youdao/Confucius4-TTS', local_dir=self.local_dir)
+        self.local_dir=f"{ROOT_DIR}/models/models--facebook--w2v-bert-2.0"
+        help_down.check_and_down_hf('', 'facebook/w2v-bert-2.0', local_dir=self.local_dir)
+        self.local_dir=f"{ROOT_DIR}/models/models--nvidia--bigvgan_v2_22khz_80band_256x"
+        help_down.check_and_down_hf('', 'nvidia/bigvgan_v2_22khz_80band_256x', local_dir=self.local_dir)
+        self.local_dir=f"{ROOT_DIR}/models/models--funasr--campplus"
+        help_down.check_and_down_hf('', 'funasr/campplus', local_dir=self.local_dir,allow_list=["campplus_cn_common.bin"])
         return True
 
     def _exec(self):

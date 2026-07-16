@@ -10,19 +10,18 @@ import torch
 
 @dataclass
 class HYMT2(BaseTrans):
-    localdir:str=None
+
     def __post_init__(self):
         super().__post_init__()
-        self.localdir=f'{ROOT_DIR}/models/models--tencent--Hy-MT2-1.8B'
+        self.local_dir=f'{ROOT_DIR}/models/models--tencent--Hy-MT2-1.8B'
+        
     def _download(self):
         from videotrans.util.help_down import check_and_down_hf
         check_and_down_hf(
                 "Hy-MT2-1.8B",
                 'tencent/Hy-MT2-1.8B',
-                self.localdir,
-                callback=self._process_callback,
-                #allow_list=[self.cfg['model_name'],self.cfg['vocab_name']]
-        )        
+                self.local_dir,
+                callback=self._process_callback)        
         return True
 
     def _item_task(self,model,tokenizer, data: Union[List[str], str]) -> str:

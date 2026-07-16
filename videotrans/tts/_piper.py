@@ -27,12 +27,13 @@ class PiperTTS(BaseTTS):
         super().__post_init__()
         self.speed=self.get_speed()
         self.device="cpu"# todo cuda
+        self.local_dir=f'{ROOT_DIR}/models/piper'
         
     def _get_model_from_name(self,name):
         # 角色名转为 piper文件夹下的子文件夹名
         name_path=name.split('_')[0]+'/'+name.replace('-','/')
         # 存放onnx文件的最终文件夹绝对路径
-        local_dir=ROOT_DIR+'/models/piper/'+name_path
+        local_dir=f'{self.local_dir}/'+name_path
         onnx_file=f'{local_dir}/{name}.onnx'
         if Path(onnx_file).exists():
             return onnx_file
@@ -48,6 +49,7 @@ class PiperTTS(BaseTTS):
     def _download(self):
         if not Path(f'{ROOT_DIR}/models/g2pW/g2pw.onnx').exists():
             self.signal(text="Downloading G2PWModel-v2...")
+            
             tools.down_zip(f"{ROOT_DIR}/models",
                            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/G2PWModel-v2-onnx.zip',
                            self._process_callback)

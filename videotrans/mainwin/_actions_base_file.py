@@ -85,20 +85,21 @@ class WinActionBaseFileMixin:
             self._proxy_test_version += 1
             current_version = self._proxy_test_version
             current_proxy = proxy
-            QTimer.singleShot(1500, lambda v=current_version, p=current_proxy: self._test_proxy(v, p))
+            QTimer.singleShot(3000, lambda v=current_version, p=current_proxy: self._test_proxy(v, p))
         settings.save()
 
     def _test_proxy(self, test_version, test_proxy):
-        import requests
+        import requests,threading
         if test_version != self._proxy_test_version:
             return
-
-        try:
-            requests.head(test_proxy, timeout=8)
-        except Exception as e:
-            if test_version != self._proxy_test_version:
-                return
-            set_process(text=test_proxy, type="proxy_error")
+        def _curl():
+            try:
+                requests.head(test_proxy, timeout=8)
+            except Exception as e:
+                if test_version != self._proxy_test_version:
+                    return
+                set_process(text=test_proxy, type="proxy_error")
+        threading.Thread(target=_curl).start()
 
     def proxy_alert(self):
         from videotrans.component.set_proxy import SetThreadProxy

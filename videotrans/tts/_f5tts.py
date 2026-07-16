@@ -75,10 +75,7 @@ class _F5TTS(F5TTS):
 
 @dataclass
 class F5TTSBuilt(BaseTTS):
-    
     cfg:Dict[str, Any] = field(default_factory=dict, repr=False)
-    localdir:str=None
-
     def __post_init__(self):
         super().__post_init__()
         self.roledict = tools.get_f5tts_role()
@@ -89,24 +86,28 @@ class F5TTSBuilt(BaseTTS):
             raise DubbingSrtError(f"[F5-TTS]{tr('may not support')}{tr(language)}")
         
         self.cfg=cfg[language]
-        self.localdir=f'{ROOT_DIR}/models/models--'+self.cfg['repid'].replace('/','--')
+        self.local_dir=f'{ROOT_DIR}/models/models--'+self.cfg['repid'].replace('/','--')
 
     
     def _download(self):
         tools.check_and_down_hf(
                 "",
                 self.cfg['repid'],
-                self.localdir,
+                self.local_dir,
                 callback=self._process_callback,
                 allow_list=[self.cfg['model_name'],self.cfg['vocab_name']]
         )
         
         if not Path(f'{ROOT_DIR}/models/models--charactr--vocos-mel-24khz/pytorch_model.bin').is_file():
-            tools.check_and_down_hf("",
+            try:
+                tools.check_and_down_hf("",
                 'charactr/vocos-mel-24khz',
                 f'{ROOT_DIR}/models/models--charactr--vocos-mel-24khz',
                 callback=self._process_callback,
                 allow_list=['pytorch_model.bin','config.yaml'])
+            except Exception:
+                self.local_dir=f'{ROOT_DIR}/models/models--charactr--vocos-mel-24khz'
+                raise
         return True
     
     def _exec(self):
@@ -117,8 +118,8 @@ class F5TTSBuilt(BaseTTS):
         speed = self.get_speed()
         f5tts = _F5TTS(
             yaml_path=f"{ROOT_DIR}/videotrans/voicejson/{self.cfg['config']}",
-            ckpt_file=f'{self.localdir}/{self.cfg["model_name"]}',
-            vocab_file=f'{self.localdir}/{self.cfg["vocab_name"]}',
+            ckpt_file=f'{self.local_dir}/{self.cfg["model_name"]}',
+            vocab_file=f'{self.local_dir}/{self.cfg["vocab_name"]}',
             vocoder_local_path=f'{ROOT_DIR}/models/models--charactr--vocos-mel-24khz',
             device=self.device
         )

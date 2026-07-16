@@ -878,6 +878,8 @@
         "error": "Error",
         "help_doc":"Help",
 		"Assign roles":"Set up a voice actor for the speaker",
-		"Checking GPUs...":"Checking GPUs..."
+		"Checking GPUs...":"Checking GPUs...",
+		"model incomplete error":"The model download may be incomplete. Please check the model folder: \n{}.\n Try deleting the downloaded model files and then re-run the download. Larger models require a long, continuous, and stable download process. \nIf the download still fails, please click the {} button to manually download the model.\n[https://pyvideotrans.com/aboutmodels]",
+		"download model error":"The model download failed, you can click to view the help tutorial to learn how to manually download the model.\n[https://pyvideotrans.com/aboutmodels]"
 
 }
