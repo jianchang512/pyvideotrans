@@ -82,8 +82,10 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         "color": "yuv420p"
     }
     try:
-        _duration = out['streams'][0].get('duration', 'DURATION')
-        if re.match(r'^\d+(\.\d+)?$', _duration):
+        _duration = out['streams'][0].get('duration')
+        if not _duration:
+            result['time'] = int(float(out['format']['duration']) * 1000)            
+        elif re.match(r'^\d+(\.\d+)?$', _duration):
             result['time'] = int(float(_duration) * 1000)
         elif re.match(r'^\d+:', _duration):
             _t = _duration.split('.')
@@ -98,7 +100,7 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         else:
             result['time'] = int(float(out['format']['duration']) * 1000)
     except Exception as e:
-        result['time'] = int(float(out['format']['duration']) * 1000)
+        raise FFmpegError(tr('Unable to obtain video duration data, please check the video data')+f"\n{mp4_file}\n{e}")
         logger.exception(e, exc_info=True)
 
     video_stream = next((s for s in out['streams'] if s.get('codec_type') == 'video'), None)

@@ -880,5 +880,6 @@
 		"Assign roles":"为说话人设置配音角色",
 		"Checking GPUs...":"检查可用GPU，稍等...",
 		"model incomplete error":"可能模型下载不完整，请查看模型文件夹:\n{}，\n尝试删掉已下载模型文件，然后重新执行再次自动下载，模型需长时间连续稳定下载。你也可以点击 【{}】 按钮查看如何手动下载模型\n[https://pyvideotrans.com/aboutmodels]",
-		"download model error":"自动下载模型失败，你可以点击 【查看帮助教程】 了解如何手动下载\n[https://pyvideotrans.com/aboutmodels]"
+		"download model error":"自动下载模型失败，你可以点击 【查看帮助教程】 了解如何手动下载\n[https://pyvideotrans.com/aboutmodels]",
+		"Unable to obtain video duration data, please check the video data":"无法获取视频时长，请检查该视频是否正确完整"
 }
