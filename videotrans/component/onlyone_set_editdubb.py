@@ -62,7 +62,7 @@ class EditDubbingResultDialog(QDialog):
 
         self.setWindowTitle(tr("Proofreading and dubbing - Re-dubbing"))
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setMinimumWidth(1000)
+        self.setMinimumWidth(1200)
         self.setMinimumHeight(600)
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMaximizeButtonHint)
 
@@ -114,18 +114,28 @@ class EditDubbingResultDialog(QDialog):
         cancel_button = QPushButton(tr("Terminate this mission"))
         cancel_button.setCursor(Qt.PointingHandCursor)
         cancel_button.setMaximumSize(QSize(200, 30))
-        cancel_button.setStyleSheet("background-color:transparent")
+        cancel_button.setStyleSheet("background-color:transparent;color:#ffff00")
         cancel_button.clicked.connect(self.cancel_and_close)
+        
+        help_button = QPushButton(tr("Detailed instructions"))
+        help_button.setCursor(Qt.PointingHandCursor)
+        help_button.setMaximumSize(QSize(200, 30))
+        help_button.setStyleSheet("background-color:transparent")
+        help_button.clicked.connect(self.help_doc)
         
         bottom_layout = QHBoxLayout()
         bottom_layout.addStretch()
         bottom_layout.addWidget(self.save_button)
         bottom_layout.addWidget(cancel_button)
+        bottom_layout.addWidget(help_button)
         bottom_layout.addStretch()
         main_layout.addLayout(bottom_layout)
 
         # 延迟加载表格
         QTimer.singleShot(10, self.load_table)
+
+    def help_doc(self):
+        tools.open_url('https://pyvideotrans.com/danshipin')
 
     def load_table(self):
         """极致性能加载表格"""
@@ -137,7 +147,7 @@ class EditDubbingResultDialog(QDialog):
             # 列：Line | Start | End | Status | Text
             self.table.setColumnCount(5)
             self.table.setHorizontalHeaderLabels([
-                tr("Line"), tr('Subtitles')+tr("Start Time"), tr('Subtitles')+tr("End Time"), tr("Dubbed Status"), tr("Subtitle Text")
+                tr("Line"), tr("Start Time"), tr("End Time"), tr("Dubbed Status"), tr("Subtitle Text")
             ])
             
             # 2.
@@ -167,7 +177,7 @@ class EditDubbingResultDialog(QDialog):
             self.table.setColumnWidth(0, 50)   # Line
             self.table.setColumnWidth(1, 130)   # Start
             self.table.setColumnWidth(2, 130)   # End
-            self.table.setColumnWidth(3, 120)  # Status
+            self.table.setColumnWidth(3, 180)  # Status
             
 
             self.table.setStyleSheet("""
@@ -213,6 +223,8 @@ class EditDubbingResultDialog(QDialog):
             self.table.cellDoubleClicked.connect(self._on_cell_double_clicked)
             self.table.setContextMenuPolicy(Qt.CustomContextMenu)
             self.table.customContextMenuRequested.connect(self._show_context_menu)
+            # 拦截表格按键事件（Ctrl+方向键调时间）
+            self.table.installEventFilter(self)
             
             # 9. 启动倒计时
             self.timer = QTimer(self)
@@ -237,9 +249,9 @@ class EditDubbingResultDialog(QDialog):
             if dubbing <= 0.0:
                 msg = tr('No audio')
             elif diff > 0:
-                msg = f'[{dubbing}s]{tr("Exceeded")}{diff}s'
+                msg = f'[{dubbing}s]{tr("Exceeded")} {diff}s'
             elif diff < 0:
-                msg = f'[{dubbing}s]{tr("Shortened")}{abs(diff)}s'
+                msg = f'[{dubbing}s]{tr("Shortened")} {abs(diff)}s'
             else:
                 msg = f'{dubbing}s'
             
@@ -302,6 +314,21 @@ class EditDubbingResultDialog(QDialog):
         
         if end_row < total:
             QTimer.singleShot(0, lambda: self._load_remaining(end_row))
+
+    def eventFilter(self, obj, event):
+        """拦截表格的 Ctrl+方向键事件，调整 Start/End 时间"""
+        if obj is self.table and event.type() == event.Type.KeyPress:
+            if event.modifiers() & Qt.ControlModifier:
+                key = event.key()
+                if key in (Qt.Key_Left, Qt.Key_Right):
+                    row = self.table.currentRow()
+                    col = self.table.currentColumn()
+                    if row >= 0 and col in (1, 2):
+                        offset = -100 if key == Qt.Key_Left else 100
+                        mode = 'start' if col == 1 else 'end'
+                        self._adjust_time(row, mode, offset)
+                        return True  # 拦截事件，阻止表格默认行为
+        return super().eventFilter(obj, event)
 
     def _on_cell_double_clicked(self, row, col):
         """单元格双击"""

@@ -104,7 +104,6 @@ def openai_whisper(
                 audio_file,
                 no_speech_threshold=no_speech_threshold,
                 language=detect_language.split('-')[0] if detect_language != 'auto' else None,
-                # clip_timestamps=speech_timestamps_flat,
                 initial_prompt=prompt if prompt else None,
                 temperature=temperature,
                 word_timestamps=True,

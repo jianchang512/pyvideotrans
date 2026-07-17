@@ -164,7 +164,7 @@ def faster_whisper(
                 best_of=best_of,
                 condition_on_previous_text=condition_on_previous_text,
                 vad_filter=True,
-                vad_parameters=dict(min_silence_duration_ms=140, min_speech_duration_ms=0,max_speech_duration_s=max_speech_ms/1000),
+                vad_parameters=dict(min_silence_duration_ms=140, min_speech_duration_ms=0),
                 no_speech_threshold=no_speech_threshold,
                 # clip_timestamps="0",  # clip_timestamps,
                 word_timestamps=True,

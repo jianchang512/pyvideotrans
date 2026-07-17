@@ -32,6 +32,12 @@ def qwen3asr_fun(
 
     logger.debug(f'QwenASR本地渠道 {model_name} 模型，{device_map=}')
     try:
+        """
+        之所以未使用 Qwen/Qwen3-ForcedAligner-0.6B 返回字级时间戳，长语音例如1个小时、2个小时可能OOM，为避免需提前裁切
+        1. 如果不使用VAD而是固定时间裁切，可能断在句子中间，影响效果
+        2. 若VAD裁切，既然都用VAD了，干脆直接裁切为合适长度语句了，无需再对齐
+        3. 返回的词级时间戳无标点符号，需要进一步根据静音区间等断句，可能产生过长过短的字幕
+        """
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {device_map}'}))
         model = Qwen3ASRModel.from_pretrained(
             f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
