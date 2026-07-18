@@ -21,6 +21,7 @@ class QwenasrlocalRecogn(BaseRecogn):
         self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}'
     
     def _download(self):
+        print(f'{defaulelang=}')
         if defaulelang == 'zh':
             tools.check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}', callback=self._process_callback,
                                     local_dir=self.local_dir)

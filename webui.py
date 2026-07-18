@@ -396,15 +396,12 @@ CHANNEL_SETTINGS = {
             {"key": "gptsovits_url", "label": "API URL", "type": "text", "default": "http://127.0.0.1:9880"},
         ],
     },
-    "F5-TTS / Spark / Index / Dia / VoxCPM": {
+    "Spark / Index / VoxCPM": {
         "category": "配音渠道",
         "fields": [
-            {"key": "f5tts_url", "label": "F5-TTS URL", "type": "text", "default": "http://127.0.0.1:7860"},
             {"key": "sparktts_url", "label": "Spark-TTS URL", "type": "text", "default": "http://127.0.0.1:7860"},
             {"key": "indextts_url", "label": "Index-TTS URL", "type": "text", "default": "http://127.0.0.1:7860"},
-            {"key": "diatts_url", "label": "Dia-TTS URL", "type": "text", "default": "http://127.0.0.1:7860"},
             {"key": "voxcpmtts_url", "label": "VoxCPM URL", "type": "text", "default": "http://127.0.0.1:7860"},
-            {"key": "confuciustts_url", "label": "Confucius URL", "type": "text", "default": "http://127.0.0.1:7860"},
         ],
     },
     "CosyVoice TTS": {
@@ -414,12 +411,7 @@ CHANNEL_SETTINGS = {
             {"key": "cosyvoice_instruct_text", "label": "Prompt 提示词", "type": "text", "default": ""},
         ],
     },
-    "OmniVoice TTS": {
-        "category": "配音渠道",
-        "fields": [
-            {"key": "omnivoice_url", "label": "URL", "type": "text", "default": "http://127.0.0.1:8081"},
-        ],
-    },
+
     "阿里百炼 TTS (Qwen-TTS)": {
         "category": "配音渠道",
         "fields": [
