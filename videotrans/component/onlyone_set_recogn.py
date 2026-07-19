@@ -14,12 +14,16 @@ from videotrans.util import tools
 class EditRecognResultDialog(QDialog):
     def __init__(
             self,
+            source_sub: str = None,#识别出的原始srt字幕
+            source_wav: str = None,# 从原始视频分离出的原始音频绝对路径，用于播放声音
+            novoice_mp4: str = None,# 从原始视频分离出的无声音频绝对路径，用于播放画面
             parent=None,
-            source_sub: str = None
     ):
         super().__init__()
         self.parent = parent
         self.source_sub = source_sub
+        self.source_wav = source_wav
+        self.novoice_mp4 = novoice_mp4
         self.srt_list_dict = tools.get_subtitle_from_srt(self.source_sub)
 
         self.setWindowTitle(tr("zimubianjitishi"))

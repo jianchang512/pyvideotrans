@@ -5,9 +5,9 @@
 import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
-from videotrans.task.taskcfg import SrtItem
+
 from videotrans.configure.config import logger, ROOT_DIR
-from videotrans.process._stt_utils import _write_log
+
 
 
 #支持热词
@@ -19,9 +19,11 @@ def qwen3asr_fun(
         model_name="1.7B",
         device_index=0,  # gpu索引
         hotword=None
-) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
+):
     import torch
     from qwen_asr import Qwen3ASRModel
+    from videotrans.task.taskcfg import SrtItem
+    from videotrans.process._stt_utils import _write_log
 
     if is_cuda:
         device_map = f'cuda:{device_index}'

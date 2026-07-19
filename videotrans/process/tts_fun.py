@@ -6,7 +6,7 @@ from pathlib import Path
 import traceback, json
 from typing import Tuple, Union
 from videotrans.configure.config import logger,ROOT_DIR
-import soundfile as sf
+
 
 def _write_log(file, msg):
     try:
@@ -26,6 +26,7 @@ def qwen3tts_fun(
         device_index=0 # gpu索引
 )->Tuple[bool,Union[str,None]]:
     from videotrans.util.help_role import get_qwenttslocal_rolelist
+    import soundfile as sf
     import torch
     from qwen_tts import Qwen3TTSModel
     CUSTOM_VOICE= {"Vivian", "Serena", "Uncle_fu", "Dylan", "Eric", "Ryan", "Aiden", "Ono_anna", "Sohee"}

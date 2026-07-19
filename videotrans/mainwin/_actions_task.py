@@ -239,6 +239,8 @@ class WinActionTaskMixin:
 
             dialog = EditRecognResultDialog(
                 source_sub=app_cfg.onlyone_source_sub,
+                source_wav=app_cfg.onlyone_source_wav,
+                novoice_mp4=app_cfg.onlyone_novoice_mp4,
                 parent=self.main
             )
 

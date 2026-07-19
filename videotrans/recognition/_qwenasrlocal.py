@@ -11,7 +11,7 @@ from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
-from videotrans.process import qwen3asr_fun
+
 
 
 @dataclass
@@ -46,6 +46,7 @@ class QwenasrlocalRecogn(BaseRecogn):
             "model_name": self.model_name,
             "hotword":settings.get('hotwords'),
         }
+        from videotrans.process.stt_qwen import qwen3asr_fun
         jsdata = self._new_process(callback=qwen3asr_fun, title=title, is_cuda=self.is_cuda, kwargs=kwargs)
         logger.debug(f'Qwen-asr返回的字词时间戳数据:{jsdata=}')
         return jsdata

@@ -9,7 +9,7 @@ from videotrans.configure.config import ROOT_DIR,params,defaulelang
 from videotrans.configure import config
 from videotrans.tts._base import BaseTTS
 from videotrans.util import tools
-from videotrans.process import qwen3tts_fun
+
 
 @dataclass
 class QwenttsLocal(BaseTTS):
@@ -51,6 +51,7 @@ class QwenttsLocal(BaseTTS):
             "model_name":self.model_name,
             "prompt":params.get('qwenttslocal_prompt', '')
         }
+        from videotrans.process.tts_fun import qwen3tts_fun
         self._new_process(callback=qwen3tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
 
         self.signal(text=f'convert wav')
