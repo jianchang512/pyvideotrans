@@ -4627,7 +4627,7 @@ requires-dist = [
     { name = "fonttools", specifier = "==4.43.1" },
     { name = "frozenlist", specifier = "==1.7.0" },
     { name = "fsspec", specifier = "==2024.6.1" },
-    { name = "funasr", specifier = ">=1.3.1" },
+    { name = "funasr", specifier = "==1.3.1" },
     { name = "future", specifier = "==0.18.3" },
     { name = "g2pw", specifier = ">=0.1.1" },
     { name = "gast", specifier = "==0.4.0" },
@@ -4694,7 +4694,7 @@ requires-dist = [
     { name = "marshmallow", specifier = "==3.23.0" },
     { name = "matplotlib-inline", specifier = "==0.1.6" },
     { name = "mdurl", specifier = "==0.1.2" },
-    { name = "modelscope", specifier = ">=1.34.0" },
+    { name = "modelscope", specifier = "==1.34.0" },
     { name = "more-itertools", specifier = "==10.1.0" },
     { name = "mpmath", specifier = "==1.3.0" },
     { name = "msgpack", specifier = "==1.1.1" },
@@ -4812,7 +4812,7 @@ requires-dist = [
     { name = "torchaudio", marker = "sys_platform == 'linux' or sys_platform == 'win32'", specifier = "==2.7.1", index = "https://download.pytorch.org/whl/cu128" },
     { name = "tqdm", specifier = "==4.67.1" },
     { name = "transformers", specifier = ">=5.3.0" },
-    { name = "transformers4576", specifier = ">=4.57.6" },
+    { name = "transformers4576", specifier = "==4.57.6.3" },
     { name = "typer", specifier = "==0.19.2" },
     { name = "typing-extensions", specifier = "==4.15.0" },
     { name = "typing-inspect", specifier = "==0.9.0" },
@@ -6261,7 +6261,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/42/c2/65f13aec253100e19
 
 [[package]]
 name = "transformers4576"
-version = "4.57.6.1"
+version = "4.57.6.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "filelock" },
@@ -6275,9 +6275,9 @@ dependencies = [
     { name = "tokenizers" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/15/d8/f08e2572081d5fae9186e743bcfec2efc38775cf4ab277422aca3085ea6a/transformers4576-4.57.6.1.tar.gz", hash = "sha256:f6851fe3be5e1175436e41260f00e4d3923481aada0a8e580defc70b117f94cb", size = 9931986, upload-time = "2026-07-09T04:07:37.99Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c3/64/61e72aff285364a4e1fb0e88d92370710f57adc731f86e61aeaef27efaf5/transformers4576-4.57.6.3.tar.gz", hash = "sha256:eaa950579167377565b7c3337eb5fcb4505f2a3272c90e3e60fd2747a2374498", size = 9914817, upload-time = "2026-07-18T15:22:40.984Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/db/08/29be74f4ee1331343ed998c500b37c7d30f57591b87288d0b5772bb5f02c/transformers4576-4.57.6.1-py3-none-any.whl", hash = "sha256:67ebce1c400a11221441ca690bdeb07644c74085f0b4ccc4ebdfd30f797e74cb", size = 12019082, upload-time = "2026-07-09T04:07:19.612Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/df/856eb23cd82a6cc4bae6ed6a72c155265733a363dace9e46e673b7d58225/transformers4576-4.57.6.3-py3-none-any.whl", hash = "sha256:8f75915754dfcb33e4244f176a633a38a8fdb05168ee82593b021a893ce90c06", size = 12000277, upload-time = "2026-07-18T15:22:19.869Z" },
 ]
 
 [[package]]

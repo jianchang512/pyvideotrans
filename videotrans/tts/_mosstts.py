@@ -21,34 +21,20 @@ class MossTTS(BaseTTS):
         
 
     def _download(self):
-        if Path(f'{ROOT_DIR}/models/moss_tts_global_shared.data').exists() and Path(
+        if Path(f'{ROOT_DIR}/models/MOSS-TTS-Nano-100M-ONNX/moss_tts_global_shared.data').exists() and Path(
                 f'{ROOT_DIR}/models/MOSS-Audio-Tokenizer-Nano-ONNX/moss_audio_tokenizer_decode_shared.data').exists():
             return
-        try:
-            import requests
-            requests.head('https://huggingface.co', timeout=5)
-        except Exception:
-            logger.warning(f'当前无法连接到 https://huggingface.co,从 modelscope.cn下载')
-            self.local_dir=f'{ROOT_DIR}/models/MOSS-TTS-Nano-100M-ONNX'
-            tools.check_and_down_ms("openmoss/MOSS-TTS-Nano-100M-ONNX",
-                                    callback=self._process_callback,
-                                    local_dir=self.local_dir)
-            self.local_dir=f"{ROOT_DIR}/models/MOSS-Audio-Tokenizer-Nano-ONNX"
-            tools.check_and_down_ms("openmoss/MOSS-Audio-Tokenizer-Nano-ONNX",
-                                    callback=self._process_callback,
-                                    local_dir=f"{ROOT_DIR}/models/MOSS-Audio-Tokenizer-Nano-ONNX")
-        else:
-            self.local_dir=f'{ROOT_DIR}/models/MOSS-TTS-Nano-100M-ONNX'
-            tools.check_and_down_hf("",
-                                    "OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX",
-                                    local_dir=self.local_dir,
-                                    callback=self._process_callback)
-            self.local_dir=f"{ROOT_DIR}/models/MOSS-Audio-Tokenizer-Nano-ONNX"
-            tools.check_and_down_hf("",
-                                    "OpenMOSS-Team/MOSS-Audio-Tokenizer-Nano-ONNX",
-                                    local_dir=f"{ROOT_DIR}/models/MOSS-Audio-Tokenizer-Nano-ONNX",
-                                    callback=self._process_callback
-                                    )
+        self.local_dir=f'{ROOT_DIR}/models/MOSS-TTS-Nano-100M-ONNX'
+        tools.check_and_down_hf("",
+                                "OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX",
+                                local_dir=self.local_dir,
+                                callback=self._process_callback)
+        self.local_dir=f"{ROOT_DIR}/models/MOSS-Audio-Tokenizer-Nano-ONNX"
+        tools.check_and_down_hf("",
+                                "OpenMOSS-Team/MOSS-Audio-Tokenizer-Nano-ONNX",
+                                local_dir=self.local_dir,
+                                callback=self._process_callback
+                                )
 
     def _exec(self):
         ok, err = 0, 0
