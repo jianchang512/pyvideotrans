@@ -31,9 +31,9 @@ class OpenaiAPIRecogn(BaseRecogn):
         try:
             if model_name.lower() == 'gpt-4o-transcribe-diarize':
                 return self._diarize()
-            # 如果是第三方或 gpt-4o-模型
-            if not re.search(r'api\.openai\.com/v1', self.api_url) or model_name.find(
-                    'gpt-4o-') > -1:
+            
+            # 如果是第三方
+            if not re.search(r'api\.openai\.com/v1', self.api_url):
                 return self._thrid_api()
 
             mp3_tmp = config.TEMP_DIR + f'/recogn{time.time()}.mp3'

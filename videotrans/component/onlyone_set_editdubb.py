@@ -3,12 +3,14 @@ import threading
 import traceback
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, QSize, QThread, Signal
+from PySide6.QtCore import Qt, QTimer, QSize, QThread, Signal,QUrl
 from PySide6.QtGui import QIcon, QColor
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QWidget, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView,
-    QMessageBox, QMenu, QInputDialog
+    QMessageBox, QMenu, QInputDialog, QSplitter, QStackedLayout
 )
 from pydub import AudioSegment
 
@@ -44,14 +46,19 @@ class ReDubb(QThread):
 class EditDubbingResultDialog(QDialog):
     def __init__(
             self,
-            parent=None,
+            novoice_mp4: str = None,
             language=None,
-            cache_folder: str = None
+            cache_folder: str = None,
+            parent=None,
     ):
         super().__init__()
         self.parent = parent
         self.language = language
         self.cache_folder = cache_folder
+        self.novoice_mp4 = novoice_mp4
+        self._target_end_ms = -1
+        self._video_end_ms = -1
+        self._audio_playing = False
         self.queue_tts = []
         queue_tts_file = Path(f'{cache_folder}/queue_tts.json')
         if queue_tts_file.exists():
@@ -63,7 +70,7 @@ class EditDubbingResultDialog(QDialog):
         self.setWindowTitle(tr("Proofreading and dubbing - Re-dubbing"))
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setMinimumWidth(1200)
-        self.setMinimumHeight(600)
+        self.setMinimumHeight(700)
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMaximizeButtonHint)
 
         self.count_down = int(float(settings.get('countdown_sec', 1)))
@@ -92,18 +99,54 @@ class EditDubbingResultDialog(QDialog):
         prompt_label2.setStyleSheet("font-size: 14px;")
         main_layout.addWidget(prompt_label2)
 
+        # ===================== Splitter: video (top) + table (bottom) =====================
+        self.splitter = QSplitter(Qt.Vertical)
+        self.splitter.setHandleWidth(6)
+
+        # --- Top area: video display ---
+        self.video_widget = QVideoWidget()
+        self.video_widget.setStyleSheet("background-color: #1a1a1a;")
+        self.video_widget.setMinimumHeight(150)
+
+        self.video_hint = QLabel(tr("Previewing a dubbed line will sync-play the video segment"))
+        self.video_hint.setStyleSheet("color:#ffcc00; font-size:13px; background-color:transparent;")
+        self.video_hint.setAlignment(Qt.AlignCenter)
+        self.video_hint.setWordWrap(True)
+        self.video_hint.setAttribute(Qt.WA_TransparentForMouseEvents)
+
+        self.video_status = QLabel("")
+        self.video_status.setStyleSheet("color:#aaaaaa; font-size:12px;")
+        self.video_status.setAlignment(Qt.AlignCenter)
+
+        self._stack = QStackedLayout()
+        self._stack.addWidget(self.video_widget)
+        self._stack.addWidget(self.video_hint)
+        self._stack.setCurrentIndex(1)
+
+        top_container = QWidget()
+        top_layout = QVBoxLayout(top_container)
+        top_layout.setContentsMargins(0, 0, 0, 0)
+        top_layout.addWidget(self.video_status)
+        top_layout.addLayout(self._stack, 1)
+        self.splitter.addWidget(top_container)
+
+        # --- Bottom area: table + buttons ---
+        bottom_container = QWidget()
+        bottom_layout = QVBoxLayout(bottom_container)
+        bottom_layout.setContentsMargins(0, 0, 0, 0)
+
         # Loading
         self.loading_widget = QWidget()
         load_layout = QVBoxLayout(self.loading_widget)
         self.loading_label = QLabel(tr('Loading...'), self)
         self.loading_label.setAlignment(Qt.AlignCenter)
         load_layout.addWidget(self.loading_label)
-        main_layout.addWidget(self.loading_widget)
+        bottom_layout.addWidget(self.loading_widget)
 
         # Table Widget (初始隐藏)
         self.table = QTableWidget()
         self.table.setVisible(False)
-        main_layout.addWidget(self.table)
+        bottom_layout.addWidget(self.table, 1)
 
         # Bottom Bar
         self.save_button = QPushButton(tr("nextstep"))
@@ -123,13 +166,17 @@ class EditDubbingResultDialog(QDialog):
         help_button.setStyleSheet("background-color:transparent")
         help_button.clicked.connect(self.help_doc)
         
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addStretch()
-        bottom_layout.addWidget(self.save_button)
-        bottom_layout.addWidget(cancel_button)
-        bottom_layout.addWidget(help_button)
-        bottom_layout.addStretch()
-        main_layout.addLayout(bottom_layout)
+        bottom_btn_layout = QHBoxLayout()
+        bottom_btn_layout.addStretch()
+        bottom_btn_layout.addWidget(self.save_button)
+        bottom_btn_layout.addWidget(cancel_button)
+        bottom_btn_layout.addWidget(help_button)
+        bottom_btn_layout.addStretch()
+        bottom_layout.addLayout(bottom_btn_layout)
+
+        self.splitter.addWidget(bottom_container)
+        self.splitter.setSizes([int(parent.height * 0.22), int(parent.height * 0.68)])
+        main_layout.addWidget(self.splitter, 1)
 
         # 延迟加载表格
         QTimer.singleShot(10, self.load_table)
@@ -143,11 +190,11 @@ class EditDubbingResultDialog(QDialog):
             return
 
         try:
-            # 1. 创建 QTableWidget - 只有5列
-            # 列：Line | Start | End | Status | Text
-            self.table.setColumnCount(5)
+            # 1. 创建 QTableWidget - 6列
+            # 列：Line | Play | Start | End | Status | Text
+            self.table.setColumnCount(6)
             self.table.setHorizontalHeaderLabels([
-                tr("Line"), tr("Start Time"), tr("End Time"), tr("Dubbed Status"), tr("Subtitle Text")
+                tr("Line"), "\u23F5", tr("Start Time"), tr("End Time"), tr("Dubbed Status"), tr("Subtitle Text")
             ])
             
             # 2.
@@ -168,16 +215,18 @@ class EditDubbingResultDialog(QDialog):
             # 水平表头
             h_header = self.table.horizontalHeader()
             h_header.setSectionResizeMode(0, QHeaderView.Fixed)  # Line
-            h_header.setSectionResizeMode(1, QHeaderView.Fixed)  # Start
-            h_header.setSectionResizeMode(2, QHeaderView.Fixed)  # End
-            h_header.setSectionResizeMode(3, QHeaderView.Fixed)  # Status
-            h_header.setSectionResizeMode(4, QHeaderView.Stretch)  # Text
+            h_header.setSectionResizeMode(1, QHeaderView.Fixed)  # Play
+            h_header.setSectionResizeMode(2, QHeaderView.Fixed)  # Start
+            h_header.setSectionResizeMode(3, QHeaderView.Fixed)  # End
+            h_header.setSectionResizeMode(4, QHeaderView.Fixed)  # Status
+            h_header.setSectionResizeMode(5, QHeaderView.Stretch)  # Text
             
             # 设置列宽
             self.table.setColumnWidth(0, 50)   # Line
-            self.table.setColumnWidth(1, 130)   # Start
-            self.table.setColumnWidth(2, 130)   # End
-            self.table.setColumnWidth(3, 180)  # Status
+            self.table.setColumnWidth(1, 30)   # Play
+            self.table.setColumnWidth(2, 130)   # Start
+            self.table.setColumnWidth(3, 130)   # End
+            self.table.setColumnWidth(4, 180)  # Status
             
 
             self.table.setStyleSheet("""
@@ -198,6 +247,22 @@ class EditDubbingResultDialog(QDialog):
                     border: none;
                     border-right: 1px solid #3e3e3e;
                     padding: 2px;
+                }
+                QPushButton#playBtn {
+                    background-color: #3a7c3a;
+                    color: white;
+                    border: none;
+                    border-radius: 2px;
+                    font-size: 9px;
+                    padding: 1px 4px;
+                    min-width: 20px;
+                    max-width: 24px;
+                }
+                QPushButton#playBtn:hover {
+                    background-color: #4caf50;
+                }
+                QPushButton#playBtn:pressed {
+                    background-color: #2e5e2e;
                 }
             """)
             
@@ -259,7 +324,7 @@ class EditDubbingResultDialog(QDialog):
             item['_msg'] = msg
 
     def _batch_fill(self, start_row, end_row):
-        """批量填充表格数据 - 纯文本，无按钮"""
+        """批量填充表格数据"""
         for row in range(start_row, end_row):
             item = self.queue_tts[row]
             
@@ -269,40 +334,49 @@ class EditDubbingResultDialog(QDialog):
             line_item.setData(Qt.UserRole, row)
             self.table.setItem(row, 0, line_item)
             
-            # 1: Start (显示为  00:00:00,000)
+            # 1: Play button
+            btn = QPushButton("\u23F5")
+            btn.setObjectName("playBtn")
+            btn.setCursor(Qt.PointingHandCursor)
+            s = item['start_time']
+            e = item['end_time']
+            btn.clicked.connect(lambda checked=False, _s=s, _e=e, _r=row: self._listen(_r))
+            self.table.setCellWidget(row, 1, btn)
+            
+            # 2: Start
             start_item = QTableWidgetItem(f"{item['startraw']}")
             start_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             start_item.setTextAlignment(Qt.AlignCenter)
             start_item.setToolTip(tr("Double-click: -0.1s | Right-click: adjust"))
-            self.table.setItem(row, 1, start_item)
+            self.table.setItem(row, 2, start_item)
             
-            # 2: End
+            # 3: End
             end_item = QTableWidgetItem(f"{item['endraw']}")
             end_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             end_item.setTextAlignment(Qt.AlignCenter)
             end_item.setToolTip(tr("Double-click: +0.1s | Right-click: adjust"))
-            self.table.setItem(row, 2, end_item)
+            self.table.setItem(row, 3, end_item)
             
-            # 3: Status
+            # 4: Status
             msg_item = QTableWidgetItem(item['_msg'])
             msg_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             msg_item.setTextAlignment(Qt.AlignCenter)
             dubbing = float(item.get('dubbing_s', 0.0))
             diff=dubbing - float( item['_duration'])
             if dubbing <= 0:
-                msg_item.setForeground(QColor("#ff4d4d"))  # 橙色
+                msg_item.setForeground(QColor("#ff4d4d"))
             elif  diff>0:
-                msg_item.setForeground(QColor("#ff6600"))  # 红色
+                msg_item.setForeground(QColor("#ff6600"))
             elif  diff<0:
-                msg_item.setForeground(QColor("#ffffff"))  # 白色
+                msg_item.setForeground(QColor("#ffffff"))
             else:
-                msg_item.setForeground(QColor("#66ff66"))  # 绿色
-            self.table.setItem(row, 3, msg_item)
+                msg_item.setForeground(QColor("#66ff66"))
+            self.table.setItem(row, 4, msg_item)
             
-            # 4: Text (可编辑)
+            # 5: Text (可编辑)
             text_item = QTableWidgetItem(item['text'])
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            self.table.setItem(row, 4, text_item)
+            self.table.setItem(row, 5, text_item)
 
     def _load_remaining(self, start_row):
         """延迟加载剩余行"""
@@ -323,20 +397,20 @@ class EditDubbingResultDialog(QDialog):
                 if key in (Qt.Key_Left, Qt.Key_Right):
                     row = self.table.currentRow()
                     col = self.table.currentColumn()
-                    if row >= 0 and col in (1, 2):
+                    if row >= 0 and col in (2, 3):
                         offset = -100 if key == Qt.Key_Left else 100
-                        mode = 'start' if col == 1 else 'end'
+                        mode = 'start' if col == 2 else 'end'
                         self._adjust_time(row, mode, offset)
                         return True  # 拦截事件，阻止表格默认行为
         return super().eventFilter(obj, event)
 
     def _on_cell_double_clicked(self, row, col):
         """单元格双击"""
-        if col == 1:  # Start 列 - 减0.1秒
+        if col == 2:  # Start 列 - 减0.1秒
             self._adjust_time(row, 'start', -100)
-        elif col == 2:  # End 列 - 加0.1秒
+        elif col == 3:  # End 列 - 加0.1秒
             self._adjust_time(row, 'end', 100)
-        elif col == 4:  # Text 列 - 编辑
+        elif col == 5:  # Text 列 - 编辑
             self.table.editItem(self.table.item(row, col))
 
     def _show_context_menu(self, pos):
@@ -360,23 +434,23 @@ class EditDubbingResultDialog(QDialog):
             }
         """)
         
-        if col == 1:  # Start 列
+        if col == 2:  # Start 列
             menu.addAction(tr("Start -0.1s"), lambda: self._adjust_time(row, 'start', -100))
             menu.addAction(tr("Start +0.1s"), lambda: self._adjust_time(row, 'start', 100))
             menu.addSeparator()
             menu.addAction(tr("Custom adjust..."), lambda: self._custom_adjust(row, 'start'))
             
-        elif col == 2:  # End 列
+        elif col == 3:  # End 列
             menu.addAction(tr("End -0.1s"), lambda: self._adjust_time(row, 'end', -100))
             menu.addAction(tr("End +0.1s"), lambda: self._adjust_time(row, 'end', 100))
             menu.addSeparator()
             menu.addAction(tr("Custom adjust..."), lambda: self._custom_adjust(row, 'end'))
             
-        elif col == 3:  # Status 列
+        elif col == 4:  # Status 列
             menu.addAction(tr("Trial dubbing"), lambda: self._listen(row))
             menu.addAction(tr("Re-dubbed"), lambda: self._redub(row))
             
-        elif col == 4:  # Text 列
+        elif col == 5:  # Text 列
             menu.addAction(tr("Trial dubbing"), lambda: self._listen(row))
             menu.addAction(tr("Re-dubbed"), lambda: self._redub(row))
             menu.addSeparator()
@@ -396,7 +470,7 @@ class EditDubbingResultDialog(QDialog):
 
     def _clear_text(self, row):
         """清空文本"""
-        text_item = self.table.item(row, 4)
+        text_item = self.table.item(row, 5)
         if text_item:
             text_item.setText("")
             self.queue_tts[row]['text'] = ""
@@ -469,12 +543,12 @@ class EditDubbingResultDialog(QDialog):
         item = self.queue_tts[row]
         
         # 更新Start
-        start_item = self.table.item(row, 1)
+        start_item = self.table.item(row, 2)
         if start_item:
             start_item.setText(f"{item['startraw']}")
         
         # 更新End
-        end_item = self.table.item(row, 2)
+        end_item = self.table.item(row, 3)
         if end_item:
             end_item.setText(f"{item['endraw']}")
         
@@ -492,7 +566,7 @@ class EditDubbingResultDialog(QDialog):
         else:
             msg = f'{dubbing}s'
         
-        msg_item = self.table.item(row, 3)
+        msg_item = self.table.item(row, 4)
         if msg_item:
             msg_item.setText(msg)
             if dubbing <= 0:
@@ -504,8 +578,141 @@ class EditDubbingResultDialog(QDialog):
             else:
                 msg_item.setForeground(QColor("#66ff66"))
 
+    # ===================== Video + Audio playback =====================
+    def _ensure_players(self):
+        if hasattr(self, '_players_created'):
+            return
+        self._players_created = True
+        self.video_player = QMediaPlayer()
+        self.video_player.setVideoOutput(self.video_widget)
+        self.video_player.positionChanged.connect(self._on_video_position_changed)
+        self.audio_player = QMediaPlayer()
+        self.audio_output = QAudioOutput()
+        self.audio_player.setAudioOutput(self.audio_output)
+        self.audio_player.positionChanged.connect(self._on_audio_position_changed)
+
+    def _on_video_position_changed(self, position):
+        """Stop video when it reaches the subtitle end time."""
+        if self._video_end_ms > 0 and position >= self._video_end_ms:
+            try:
+                self.video_player.pause()
+            except Exception:
+                pass
+            self._video_end_ms = -1
+            self.video_status.setText(tr("Playback stopped"))
+
+    def _on_audio_position_changed(self, position):
+        """Stop audio when it finishes naturally."""
+        if self._target_end_ms > 0 and position >= self._target_end_ms:
+            try:
+                self.audio_player.stop()
+            except Exception:
+                pass
+            self._target_end_ms = -1
+            self._audio_playing = False
+
+    def _play_with_video(self, audio_path, video_start_ms, video_end_ms):
+        """Play audio to completion while video plays only the segment."""
+        self._ensure_players()
+        self._pending_start = video_start_ms
+        self._pending_end = video_end_ms
+
+        video_needs_load = False
+        try:
+            if self.novoice_mp4 and Path(self.novoice_mp4).exists():
+                if not self.video_player.source().toString():
+                    self.video_player.setSource(QUrl.fromLocalFile(self.novoice_mp4))
+                    video_needs_load = True
+            else:
+                self.video_status.setText(tr('No silent video frames generated yet'))
+            if audio_path and Path(audio_path).exists():
+                self.audio_player.setSource(QUrl.fromLocalFile(audio_path))
+        except Exception as e:
+            self.video_status.setText(f"Load failed: {e}")
+            return
+
+        # Stop any previous playback to reset state
+        try:
+            self.video_player.stop()
+            self.audio_player.stop()
+        except Exception:
+            pass
+
+        if video_needs_load:
+            import warnings
+            warnings.filterwarnings("ignore", category=RuntimeWarning, message="Failed to disconnect")
+            self._players_pending = 1
+            try:
+                self.video_player.mediaStatusChanged.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+            self.video_player.mediaStatusChanged.connect(self._on_media_ready)
+            return
+
+        self._do_play(video_start_ms, video_end_ms)
+
+    def _on_media_ready(self, status):
+        from PySide6.QtMultimedia import QMediaPlayer
+        if status in (QMediaPlayer.MediaStatus.BufferedMedia, QMediaPlayer.MediaStatus.LoadedMedia):
+            import warnings
+            warnings.filterwarnings("ignore", category=RuntimeWarning, message="Failed to disconnect")
+            try:
+                self.video_player.mediaStatusChanged.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+            self._do_play(self._pending_start, self._pending_end)
+
+    def _do_play(self, video_start_ms, video_end_ms):
+        self._video_end_ms = video_end_ms
+        self._target_end_ms = -1
+        self._audio_playing = True
+
+        self.video_player.setPosition(video_start_ms)
+        self.audio_player.setPosition(0)
+        self.video_player.play()
+        self.audio_player.play()
+        self._stack.setCurrentIndex(0)
+        self.video_status.setText(
+            f"\u23F5 {tools.ms_to_time_string(ms=video_start_ms)} → {tools.ms_to_time_string(ms=video_end_ms)}"
+        )
+
+    def _stop_playback(self):
+        self._target_end_ms = -1
+        self._video_end_ms = -1
+        self._audio_playing = False
+        if not hasattr(self, '_players_created'):
+            return
+        try:
+            self.video_player.stop()
+            self.audio_player.stop()
+        except Exception as e:
+            logger.exception(e, exc_info=True)
+
+    def _release_media(self):
+        if not hasattr(self, '_players_created'):
+            return
+        self._stop_playback()
+        import warnings
+        warnings.filterwarnings("ignore", category=RuntimeWarning, message="Failed to disconnect")
+        for player in [self.video_player, self.audio_player]:
+            for sig in [player.positionChanged, player.mediaStatusChanged]:
+                try:
+                    sig.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+        try:
+            self.video_player.setSource(QUrl())
+        except Exception:
+            pass
+        try:
+            self.audio_player.setSource(QUrl())
+        except Exception:
+            pass
+        import gc
+        gc.collect()
+
     def _listen(self, row):
-        """试听"""
+        """试听 — 同时播放对应视频片段"""
         self.stop_countdown()
         item = self.queue_tts[row]
         filename = item['filename']
@@ -514,7 +721,11 @@ class EditDubbingResultDialog(QDialog):
             QMessageBox.information(self, tr("The audio file does not exist"), tr("The audio file does not exist"))
             return
         
-        threading.Thread(target=tools.pygameaudio, args=(filename,), daemon=True).start()
+        self._play_with_video(
+            audio_path=filename,
+            video_start_ms=item['start_time'],
+            video_end_ms=item['end_time'],
+        )
 
     def _redub(self, row):
         """重配音"""
@@ -531,7 +742,7 @@ class EditDubbingResultDialog(QDialog):
         self._refresh_row(row)
         
         # 获取当前文本
-        text_item = self.table.item(row, 4)
+        text_item = self.table.item(row, 5)
         current_text = text_item.text() if text_item else self.queue_tts[row]['text']
         
         # 准备TTS参数
@@ -566,8 +777,12 @@ class EditDubbingResultDialog(QDialog):
             # 更新状态显示
             self._refresh_row(idx)
             
-            # 播放新音频
-            threading.Thread(target=tools.pygameaudio, args=(item['filename'],), daemon=True).start()
+            # 播放新音频 + video segment
+            self._play_with_video(
+                audio_path=item['filename'],
+                video_start_ms=item['start_time'],
+                video_end_ms=item['end_time'],
+            )
         else:
             QMessageBox.information(self, 'Error', msg)
 
@@ -589,6 +804,7 @@ class EditDubbingResultDialog(QDialog):
     def cancel_and_close(self):
         if hasattr(self, 'timer') and self.timer:
             self.timer.stop()
+        self._release_media()
         self.reject()
 
     def update_countdown(self):
@@ -621,11 +837,12 @@ class EditDubbingResultDialog(QDialog):
             self.stop_button = None
 
     def save_and_close(self):
+        self._release_media()
         self.save_button.setDisabled(True)
         
         for i, item in enumerate(self.queue_tts):
             # 不修改文本，以便可以单独使用 各种配音渠道支持的控制符号进行声音微调
-            text_item = self.table.item(i, 4)
+            text_item = self.table.item(i, 5)
             text = text_item.text().strip() if text_item else item['text'].strip()
 
             # 删除空文本对应的音频文件

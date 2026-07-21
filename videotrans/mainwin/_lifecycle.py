@@ -64,7 +64,6 @@ class LifecycleMixin:
         os.chdir(ROOT_DIR)
         self.cleanup_and_accept()
 
-        time.sleep(4)
         try:
             shutil.rmtree(TEMP_ROOT, ignore_errors=True)
         except OSError:
@@ -98,8 +97,12 @@ class LifecycleMixin:
 
         for thread in self.worker_threads:
             if thread and thread.isRunning():
-                thread.terminate()
-                thread.wait(5000)
+                thread.requestInterruption()
+        
+        # 等待所有线程安全结束
+        for thread in self.worker_threads:
+            if thread and thread.isRunning():
+                thread.wait(3000) # 等待3秒
 
         try:
             for w in app_cfg.child_forms.values():

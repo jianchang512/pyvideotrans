@@ -78,7 +78,7 @@ class AppParams:
             "source_language": "en",
             "target_language": "zh-cn",
             "translate_type": 0,
-            "subtitle_type": 1,
+            "subtitle_type": 2,
             "tts_type": 0,
             "model_name": "large-v3-turbo",
             "recogn_type": 0,

@@ -4812,7 +4812,7 @@ requires-dist = [
     { name = "torchaudio", marker = "sys_platform == 'linux' or sys_platform == 'win32'", specifier = "==2.7.1", index = "https://download.pytorch.org/whl/cu128" },
     { name = "tqdm", specifier = "==4.67.1" },
     { name = "transformers", specifier = ">=5.3.0" },
-    { name = "transformers4576", specifier = "==4.57.6.3" },
+    { name = "transformers4576", specifier = "==4.57.6.4" },
     { name = "typer", specifier = "==0.19.2" },
     { name = "typing-extensions", specifier = "==4.15.0" },
     { name = "typing-inspect", specifier = "==0.9.0" },
@@ -6261,7 +6261,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/42/c2/65f13aec253100e19
 
 [[package]]
 name = "transformers4576"
-version = "4.57.6.3"
+version = "4.57.6.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "filelock" },
@@ -6275,9 +6275,9 @@ dependencies = [
     { name = "tokenizers" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c3/64/61e72aff285364a4e1fb0e88d92370710f57adc731f86e61aeaef27efaf5/transformers4576-4.57.6.3.tar.gz", hash = "sha256:eaa950579167377565b7c3337eb5fcb4505f2a3272c90e3e60fd2747a2374498", size = 9914817, upload-time = "2026-07-18T15:22:40.984Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/27/9d/b326bebea7fce3382a742acb8cc0bed4c460009db6ef0355bb6b9b4b4d3e/transformers4576-4.57.6.4.tar.gz", hash = "sha256:2c361cb5bd74d304e9ec46bbcc864c66dcd49902114f61ae5c9372c7736e82f9", size = 9914641, upload-time = "2026-07-19T15:01:06.03Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/df/856eb23cd82a6cc4bae6ed6a72c155265733a363dace9e46e673b7d58225/transformers4576-4.57.6.3-py3-none-any.whl", hash = "sha256:8f75915754dfcb33e4244f176a633a38a8fdb05168ee82593b021a893ce90c06", size = 12000277, upload-time = "2026-07-18T15:22:19.869Z" },
+    { url = "https://files.pythonhosted.org/packages/41/83/0c8784e0b2bc465f7651595cc46b02a3779bdbad4e39d969510d1ae48709/transformers4576-4.57.6.4-py3-none-any.whl", hash = "sha256:484efca2daaa3927d70b6dc99fa4f6a89428daac6aa18cd962c1582c61fb4d2a", size = 12000336, upload-time = "2026-07-19T15:00:45.184Z" },
 ]
 
 [[package]]

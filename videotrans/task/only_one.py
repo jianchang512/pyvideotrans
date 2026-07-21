@@ -37,9 +37,10 @@ class Worker(QThread):
             trk = TransCreate(cfg=TaskCfgVTT(**self.cfg | self.file))
             # 原始语言字幕文件
             app_cfg.onlyone_source_sub = trk.cfg.source_sub
-            app_cfg.onlyone_target_sub = trk.cfg.target_sub
-            app_cfg.onlyone_novoice_mp4 = trk.cfg.novoice_mp4
             app_cfg.onlyone_source_wav = trk.cfg.source_wav
+            app_cfg.onlyone_target_sub = trk.cfg.target_sub
+            app_cfg.onlyone_target_wav = trk.cfg.target_wav
+            app_cfg.onlyone_novoice_mp4 = trk.cfg.novoice_mp4
             # 如果存在原始字幕，并且字幕第一条开头存在说话人标识 \[(spk|speakers?)\s*?\d+\]
             # 则取出所有说话人，不存在的以第一条的为默认，然后从字幕中删除
             # 目标语言字幕文件

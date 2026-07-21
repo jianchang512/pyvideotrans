@@ -49,7 +49,7 @@ def cleanup():
     try:
         if 'app' in globals():
             app.quit()
-            app.deleteLater()
+            #app.deleteLater()
     except:
         pass
 
@@ -213,9 +213,8 @@ if __name__ == "__main__":
         finally:
             try:
                 cleanup()
-                import gc
-
-                gc.collect()
+                #import gc
+                #gc.collect()
             except Exception as e:
                 print(e)
     sys.exit(res if isinstance(res, int) else 0)

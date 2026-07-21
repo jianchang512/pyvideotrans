@@ -224,8 +224,9 @@ class WinActionTaskMixin:
 
             cache_folder, language = d['text'].split('<|>')
             dialog = EditDubbingResultDialog(
-                cache_folder=cache_folder,
+                novoice_mp4=app_cfg.onlyone_novoice_mp4,
                 language=language,
+                cache_folder=cache_folder,
                 parent=self.main
 
             )
@@ -248,12 +249,15 @@ class WinActionTaskMixin:
                 self.set_djs_timeout()
             else:
                 self.update_status('stop')
+            dialog=None
             return
         if d['type'] == 'edit_recogn2_subtitle':
             from videotrans.component.onlyone_set_recogn2 import EditRecognResultDialog2
 
             dialog = EditRecognResultDialog2(
-                target_sub=app_cfg.onlyone_target_sub,
+                target_sub=app_cfg.onlyone_target_sub, #二次识别后的字幕
+                target_wav=app_cfg.onlyone_target_wav,#用于二次识别的完整音频，需要和 novoice_mp4 同步播放
+                novoice_mp4=app_cfg.onlyone_novoice_mp4,# 处理后的无声视频，需要和 target_wav 同步播放
                 parent=self.main
             )
 
@@ -268,12 +272,13 @@ class WinActionTaskMixin:
             dialog = SpeakerAssignmentDialog(
                 source_sub=None if not app_cfg.onlyone_trans else app_cfg.onlyone_source_sub,
                 target_sub=app_cfg.onlyone_target_sub,
+                target_language=target_language,
+                source_wav=app_cfg.onlyone_source_wav,
+                novoice_mp4=app_cfg.onlyone_novoice_mp4,
                 all_voices=self.main.current_rolelist,
                 cache_folder=cache_folder,
-                target_language=target_language,
                 tts_type=int(tts_type),
                 parent=self.main
-
             )
             if dialog.exec():
                 self.set_djs_timeout()

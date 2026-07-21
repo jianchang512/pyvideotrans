@@ -718,6 +718,7 @@
     "conflict with the role specified by row": "If you want to assign a character to a specific subtitle without being restricted by the speaker's role, please make sure to do this last.",
     "will be automatically identified as the speaker": "If the subtitle begins with [xxx],example [spk1],[speaker2]eg., it will be automatically identified as the speaker",
     "Subtitle Text": "Subtitles:Double-click to edit",
+	"SourceLang Text": "Original Text",
     "Time Axis": "Time Axis",
     "Line": "Line",
     "Dubbed Status": "Dubbing duration",
@@ -882,6 +883,11 @@
 		"model incomplete error":"The model download may be incomplete. Please check the model folder: \n{}.\n Try deleting the downloaded model files and then re-run the download. Larger models require a long, continuous, and stable download process. \nIf the download still fails, please click the {} button to manually download the model.\n[https://pyvideotrans.com/aboutmodels]",
 		"download model error":"The model download failed, you can click to view the help tutorial to learn how to manually download the model.\n[https://pyvideotrans.com/aboutmodels]",
 		"Unable to obtain video duration data, please check the video data":"Unable to obtain video duration data. Please check if the video is complete and correct.",
-		"Detailed instructions":"Detailed instructions?"
+		"Detailed instructions":"Detailed instructions?",
+		"Play":"Play",
+		"Playing":"Playing",
+		"Playback stopped":"Playback stopped",
+		"Previewing a dubbed line will sync-play the video segment":"Clicking to preview will automatically play the video clip corresponding to the subtitles. \nThe dubbing duration may differ from the original subtitle duration, therefore the video and audio may be out of sync.",
+		"No silent video frames generated yet":"No silent video frames generated yet; \npreview and playback unavailable."
 
 }

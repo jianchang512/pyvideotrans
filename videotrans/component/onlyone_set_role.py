@@ -3,48 +3,58 @@ import time
 from pathlib import Path
 from typing import List, Optional
 
-from PySide6.QtCore import Qt, QTimer, QSize, QUrl
+from PySide6.QtCore import Qt, QTimer, QSize, QUrl, QThread, Signal
 from PySide6.QtGui import QIcon, QDesktopServices, QColor
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QCheckBox,
     QComboBox, QPushButton, QWidget, QGroupBox, QPlainTextEdit,
     QMessageBox, QTableWidget, QTableWidgetItem,
-    QHeaderView, QAbstractItemView, QGridLayout
+    QHeaderView, QAbstractItemView, QGridLayout, QSplitter, QStackedLayout
 )
 
-from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings,  logger
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
 from videotrans.configure import config
 from videotrans.util import tools
+
 
 
 class SpeakerAssignmentDialog(QDialog):
     def __init__(
             self,
             parent=None,
-            target_sub: str = None,
-            all_voices: Optional[List[str]] = None,
-            source_sub: str = None,
-            cache_folder=None,
-            target_language="en",
-            tts_type=0
+            source_sub: str = None, # 翻译前的原始字幕
+            target_sub: str = None,# 翻译后的目标字幕
+            target_language="en",#翻译目标语言代码
+            source_wav: str = None,#原始视频中分离出的声音，用于播放
+            novoice_mp4: str = None,#原始视频中分离出的无声视频，用于播放
+            all_voices: Optional[List[str]] = None,#所有角色列表
+            cache_folder=None,#缓存目录
+            tts_type=0#当前配音渠道ID
     ):
         super().__init__()
         self.parent = parent
         self.target_sub = target_sub
         self.source_srtstring = None
+        self.source_srt_list_dict = None
         self.cache_folder = cache_folder
         self.target_language = target_language
         self.tts_type = tts_type
+        self.source_wav = source_wav
+        self.novoice_mp4 = novoice_mp4
+        self._target_end_ms = -1
 
         if source_sub:
             sour_pt = Path(source_sub)
             if sour_pt.as_posix() and not sour_pt.samefile(Path(target_sub)):
                 try:
                     self.source_srtstring = sour_pt.read_text(encoding="utf-8-sig")
+                    self.source_srt_list_dict = tools.get_subtitle_from_srt(source_sub)
                 except Exception:
                     self.source_srtstring = ""
 
-        self.srt_list_dict = tools.get_subtitle_from_srt(self.target_sub)
+        self.srt_list_dict = []  # Defer parsing to background thread
 
         # 说话人数据初始化
         self.speaker_list_sub = []
@@ -63,8 +73,8 @@ class SpeakerAssignmentDialog(QDialog):
 
         self.setWindowTitle(tr("zidonghebingmiaohou"))
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setMinimumWidth(int(parent.width*0.95))
-        self.setMinimumHeight(int(parent.height*0.95))
+        self.setMinimumWidth(1200)
+        self.setMinimumHeight(700)
         self.setWindowFlags(
         Qt.WindowStaysOnTopHint |       # 2. 始终在最顶层
             Qt.WindowTitleHint |            # 3. 显示标题栏
@@ -119,26 +129,40 @@ class SpeakerAssignmentDialog(QDialog):
         search_replace_layout.addStretch()
         main_layout.addLayout(search_replace_layout)
 
-        # --- 中间内容区域 ---
-        content_layout = QHBoxLayout()
-        
-        # 左侧：源字幕参考
-        if self.source_srtstring:
-            left_widget = QWidget()
-            left_layout = QVBoxLayout(left_widget)
-            self.raw_srt_edit = QPlainTextEdit()
-            self.raw_srt_edit.setPlainText(self.source_srtstring)
-            self.raw_srt_edit.setReadOnly(True)
-            self.raw_srt_edit.setStyleSheet("color: #aaaaaa;")
-            tiplabel = QLabel(tr("This is the original language subtitles for comparison reference"))
-            tiplabel.setStyleSheet("color:#aaaaaa")
-            left_layout.addWidget(tiplabel)
-            left_layout.addWidget(self.raw_srt_edit)
-            content_layout.addWidget(left_widget, stretch=2)
+        # ===================== Splitter: video (top) + content (bottom) =====================
+        self.splitter = QSplitter(Qt.Vertical)
+        self.splitter.setHandleWidth(6)
 
-        # 右侧主区域
-        self.right_widget = QWidget()
-        self.right_layout = QVBoxLayout(self.right_widget)
+        # --- Top area: video display (players created lazily on first play) ---
+        self.video_widget = QVideoWidget()
+        self.video_widget.setStyleSheet("background-color: #1a1a1a;")
+        self.video_widget.setMinimumHeight(150)
+
+        self.video_hint = QLabel(tr("Click on a subtitle below to play video"))
+        self.video_hint.setStyleSheet("color:#ffcc00; font-size:14px; background-color:transparent;")
+        self.video_hint.setAlignment(Qt.AlignCenter)
+        self.video_hint.setAttribute(Qt.WA_TransparentForMouseEvents)
+
+        self.video_status = QLabel("")
+        self.video_status.setStyleSheet("color:#aaaaaa; font-size:12px;")
+        self.video_status.setAlignment(Qt.AlignCenter)
+
+        self._stack = QStackedLayout()
+        self._stack.addWidget(self.video_widget)
+        self._stack.addWidget(self.video_hint)
+        self._stack.setCurrentIndex(1)
+
+        top_container = QWidget()
+        top_layout = QVBoxLayout(top_container)
+        top_layout.setContentsMargins(0, 0, 0, 0)
+        top_layout.addWidget(self.video_status)
+        top_layout.addLayout(self._stack, 1)
+        self.splitter.addWidget(top_container)
+
+        # --- Bottom area: content (existing layout) ---
+        bottom_container = QWidget()
+        self.content_layout = QVBoxLayout(bottom_container)
+        self.content_layout.setContentsMargins(0, 0, 0, 0)
         
         # Loading 区域
         self.loading_widget = QWidget()
@@ -146,22 +170,23 @@ class SpeakerAssignmentDialog(QDialog):
         self.loading_label = QLabel(tr('Loading...'), self)
         self.loading_label.setAlignment(Qt.AlignCenter)
         load_layout.addWidget(self.loading_label)
-        self.right_layout.addWidget(self.loading_widget)
+        self.content_layout.addWidget(self.loading_widget)
 
         # 表格容器
         self.table_container = QWidget()
         self.table_container_layout = QVBoxLayout(self.table_container)
         self.table_container.setVisible(False)
-        self.right_layout.addWidget(self.table_container)
+        self.content_layout.addWidget(self.table_container)
         
         # 底部按钮容器
         self.bottom_button_container = QWidget()
         self.bottom_button_container_layout = QHBoxLayout(self.bottom_button_container)
         self.bottom_button_container.setVisible(False)
-        self.right_layout.addWidget(self.bottom_button_container)
+        self.content_layout.addWidget(self.bottom_button_container)
 
-        content_layout.addWidget(self.right_widget, stretch=7)
-        main_layout.addLayout(content_layout, stretch=1)
+        self.splitter.addWidget(bottom_container)
+        self.splitter.setSizes([int(parent.height * 0.22), int(parent.height * 0.68)])
+        main_layout.addWidget(self.splitter, 1)
 
         # --- 底部按钮 ---
         self.save_button = QPushButton(tr("nextstep"))
@@ -201,17 +226,19 @@ class SpeakerAssignmentDialog(QDialog):
 
 
     def load_table(self):
-        """极致性能加载表格"""
+        """Load table with background SRT parsing."""
         if not self.isVisible():
             return
 
+
         try:
+            self.srt_list_dict= tools.get_subtitle_from_srt(self.target_sub)
             # 1. 创建 QTableWidget（比 Model/View 快得多）
             self.table = QTableWidget()
             
             # 2. 【极致性能配置】禁用所有非必要功能
-            self.table.setColumnCount(6)
-            self.table.setHorizontalHeaderLabels(["Sel", tr("Line"), tr('Speaker'), tr("Dubbing role"), tr("Time Axis"), tr("Subtitle Text")])
+            self.table.setColumnCount(8)
+            self.table.setHorizontalHeaderLabels(["Sel", tr("Line"), tr('Speaker'), tr("Dubbing role"), tr("Time Axis"), "\u23F5", tr("Subtitle Text"),tr("SourceLang Text")])
             
             # 禁用所有视觉效果
             self.table.setAlternatingRowColors(False)
@@ -235,13 +262,17 @@ class SpeakerAssignmentDialog(QDialog):
             header.setSectionResizeMode(2, QHeaderView.Fixed)  # Spk
             header.setSectionResizeMode(3, QHeaderView.Fixed)  # Role
             header.setSectionResizeMode(4, QHeaderView.Fixed)  # Time
-            header.setSectionResizeMode(5, QHeaderView.Stretch)  # Text
+            header.setSectionResizeMode(5, QHeaderView.Fixed)  # Play
+            header.setSectionResizeMode(6, QHeaderView.Stretch)  # Text
+            header.setSectionResizeMode(7, QHeaderView.Fixed)  # SourceText
             
             self.table.setColumnWidth(0, 30)
             self.table.setColumnWidth(1, 40)
             self.table.setColumnWidth(2, 50)
             self.table.setColumnWidth(3, 150)
-            self.table.setColumnWidth(4, 210)
+            self.table.setColumnWidth(4, 180)
+            self.table.setColumnWidth(5, 30)
+            self.table.setColumnWidth(7, 300)
             
             # 最小样式
             self.table.setStyleSheet("""
@@ -258,6 +289,22 @@ class SpeakerAssignmentDialog(QDialog):
                 }
                 QTableWidget::item {
                     padding: 2px;
+                }
+                QPushButton#playBtn {
+                    background-color: #3a7c3a;
+                    color: white;
+                    border: none;
+                    border-radius: 2px;
+                    font-size: 9px;
+                    padding: 1px 4px;
+                    min-width: 20px;
+                    max-width: 24px;
+                }
+                QPushButton#playBtn:hover {
+                    background-color: #4caf50;
+                }
+                QPushButton#playBtn:pressed {
+                    background-color: #2e5e2e;
                 }
             """)
             
@@ -282,6 +329,7 @@ class SpeakerAssignmentDialog(QDialog):
                     'spk': spk,
                     'time_str': time_str,
                     'text': item['text'],
+                    'origin_text': '' if not self.source_srt_list_dict or len(self.source_srt_list_dict)<i+1 else self.source_srt_list_dict[i]['text'],
                     'startraw': item['startraw'],
                     'endraw': item['endraw'],
                     'start_time': item['start_time'],
@@ -294,8 +342,8 @@ class SpeakerAssignmentDialog(QDialog):
             total_rows = len(self.display_data)
             self.table.setRowCount(total_rows)
             
-            # 5. 【批量填充数据】一次性创建所有单元格
-            self._batch_fill_table(0, min(total_rows, 100))  # 先填充前100行
+            # 5. 渲染行 — 通过 QTimer 分批执行，避免界面冻结
+            QTimer.singleShot(0, lambda: self._load_remaining_rows(0))
             
             # 6. 添加到布局
             self.table_container_layout.addWidget(self.table)
@@ -308,15 +356,12 @@ class SpeakerAssignmentDialog(QDialog):
             self.table_container.setVisible(True)
             self.bottom_button_container.setVisible(True)
             
-            # 9. 延迟加载剩余数据
-            if total_rows > 100:
-                QTimer.singleShot(0, lambda: self._load_remaining_rows(100))
-            
-            # 10. 启动倒计时
+            # 8. 启动倒计时
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.update_countdown)
             self.timer.start(1000)
             self._active()
+            self._play_segment(0,5)
             
         except Exception as e:
             import traceback
@@ -336,7 +381,7 @@ class SpeakerAssignmentDialog(QDialog):
             
             # 第1列：ID（只读）
             id_item = QTableWidgetItem(str(data['line']))
-            id_item.setFlags(Qt.ItemIsEnabled)  # 只读
+            id_item.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 1, id_item)
             
             # 第2列：Speaker（只读）
@@ -355,15 +400,28 @@ class SpeakerAssignmentDialog(QDialog):
             time_item.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 4, time_item)
             
-            # 第5列：Text（可编辑）
+            # 第5列：Play button
+            btn = QPushButton("\u23F5")
+            btn.setObjectName("playBtn")
+            btn.setCursor(Qt.PointingHandCursor)
+            s = data['start_time']
+            e = data['end_time']
+            btn.clicked.connect(lambda checked=False, _s=s, _e=e: self._play_segment(_s, _e))
+            self.table.setCellWidget(row, 5, btn)
+            
+            # 第6列：Text（可编辑）
             text_item = QTableWidgetItem(data['text'])
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            self.table.setItem(row, 5, text_item)
+            self.table.setItem(row, 6, text_item)
+            
+            origin_text_item = QTableWidgetItem(data['origin_text'])
+            origin_text_item.setFlags(Qt.ItemIsEnabled)
+            self.table.setItem(row, 7, origin_text_item)
 
     def _load_remaining_rows(self, start_row):
         """延迟加载剩余行 - 避免界面冻结"""
         total = len(self.display_data)
-        batch_size = 200  # 每批加载200行
+        batch_size = 50  # 每批加载50行
         
         end_row = min(start_row + batch_size, total)
         self._batch_fill_table(start_row, end_row)
@@ -378,7 +436,7 @@ class SpeakerAssignmentDialog(QDialog):
         if self.speakers:
             speaker_widget = self._create_speaker_assignment_area()
             # 插入到表格容器之前
-            self.right_layout.insertWidget(0, speaker_widget)
+            self.content_layout.insertWidget(0, speaker_widget)
         
         # 底部按钮
         self.subtitle_combo = QComboBox()
@@ -509,7 +567,7 @@ class SpeakerAssignmentDialog(QDialog):
             if search_text in data['text']:
                 new_text = data['text'].replace(search_text, replace_text)
                 data['text'] = new_text
-                item = self.table.item(row, 5)
+                item = self.table.item(row, 6)
                 if item:
                     item.setText(new_text)
         
@@ -546,6 +604,119 @@ class SpeakerAssignmentDialog(QDialog):
         self.listen_button.setText('Listening...')
         self.listen_button.setDisabled(True)
 
+    # ===================== Audio-driven sync =====================
+    def _ensure_players(self):
+        """Create QMediaPlayer instances on first use."""
+        if hasattr(self, '_players_created'):
+            return
+        self._players_created = True
+
+        self.video_player = QMediaPlayer()
+        self.video_player.setVideoOutput(self.video_widget)
+
+        self.audio_player = QMediaPlayer()
+        self.audio_output = QAudioOutput()
+        self.audio_player.setAudioOutput(self.audio_output)
+        self.audio_player.positionChanged.connect(self._on_audio_position_changed)
+
+    def _on_audio_position_changed(self, position):
+        if self._target_end_ms > 0 and position >= self._target_end_ms:
+            self.video_player.pause()
+            self.audio_player.pause()
+            self._target_end_ms = -1
+            self.video_status.setText(tr("Playback stopped"))
+
+    def _play_segment(self, start_ms, end_ms):
+        self._ensure_players()
+        self._pending_start = start_ms
+        self._pending_end = end_ms
+
+        self._players_pending = 0
+        try:
+            if self.novoice_mp4 and Path(self.novoice_mp4).exists():
+                if not self.video_player.source().toString():
+                    self.video_player.setSource(QUrl.fromLocalFile(self.novoice_mp4))
+                    self._players_pending += 1
+            else:
+                self.video_status.setText(tr('No silent video frames generated yet'))
+            if self.source_wav and Path(self.source_wav).exists():
+                if not self.audio_player.source().toString():
+                    self.audio_player.setSource(QUrl.fromLocalFile(self.source_wav))
+                    self._players_pending += 1
+        except Exception as e:
+            self.video_status.setText(f"Load failed: {e}")
+            return
+
+        if self._players_pending > 0:
+            for player in [self.video_player, self.audio_player]:
+                try:
+                    player.mediaStatusChanged.disconnect(self._on_media_ready)
+                except BaseException:
+                    pass
+                player.mediaStatusChanged.connect(self._on_media_ready)
+            return
+        self._do_play(start_ms, end_ms)
+
+    def _on_media_ready(self, status):
+        from PySide6.QtMultimedia import QMediaPlayer
+        if status in (QMediaPlayer.MediaStatus.BufferedMedia, QMediaPlayer.MediaStatus.LoadedMedia):
+            self._players_pending -= 1
+            if self._players_pending <= 0:
+                self._disconnect_media_signals()
+                self._do_play(self._pending_start, self._pending_end)
+
+    def _disconnect_media_signals(self):
+        import warnings
+        warnings.filterwarnings("ignore", category=RuntimeWarning, message="Failed to disconnect")
+        for player in [self.video_player, self.audio_player]:
+            try:
+                player.mediaStatusChanged.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+
+    def _do_play(self, start_ms, end_ms):
+        self._target_end_ms = end_ms
+        self.video_player.setPosition(start_ms)
+        self.audio_player.setPosition(start_ms)
+        self.video_player.play()
+        self.audio_player.play()
+        self._stack.setCurrentIndex(0)
+        self.video_status.setText(f"\u23F5 {tools.ms_to_time_string(ms=start_ms)} → {tools.ms_to_time_string(ms=end_ms)}")
+        #self.stop_countdown()
+
+    def _stop_playback(self):
+        self._target_end_ms = -1
+        if not hasattr(self, '_players_created'):
+            return
+        try:
+            self.video_player.stop()
+            self.audio_player.stop()
+        except Exception as e:
+            logger.exception(e, exc_info=True)
+
+    def _release_media(self):
+        if not hasattr(self, '_players_created'):
+            return
+        self._stop_playback()
+        import warnings
+        warnings.filterwarnings("ignore", category=RuntimeWarning, message="Failed to disconnect")
+        for player in [self.video_player, self.audio_player]:
+            for sig in [player.positionChanged, player.mediaStatusChanged]:
+                try:
+                    sig.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+        try:
+            self.video_player.setSource(QUrl())
+        except Exception:
+            pass
+        try:
+            self.audio_player.setSource(QUrl())
+        except Exception:
+            pass
+        import gc
+        gc.collect()
+
     def _active(self):
         if self.parent:
             self.raise_()                
@@ -555,6 +726,7 @@ class SpeakerAssignmentDialog(QDialog):
     def cancel_and_close(self):
         if hasattr(self, 'timer') and self.timer:
             self.timer.stop()
+        self._release_media()
         self.reject()
 
     def keyPressEvent(self, event):
@@ -572,12 +744,15 @@ class SpeakerAssignmentDialog(QDialog):
             self.save_and_close()
 
     def stop_countdown(self):
-        if hasattr(self, 'timer'):
+        if hasattr(self, 'timer') and self.timer:
             self.timer.stop()
-        self.stop_button.deleteLater()
-        self.prompt_label.deleteLater()
+            #self._stop_playback()
+            self.stop_button.deleteLater()
+            self.prompt_label.deleteLater()
+            self.timer=None
 
     def save_and_close2(self):
+        self._release_media()
         self.accept()
 
     def opendir_sub(self):
@@ -588,6 +763,7 @@ class SpeakerAssignmentDialog(QDialog):
         event.ignore()  # 忽略关闭请求，窗口保持不动
     
     def save_and_close(self):
+        self._release_media()
         self.save_button.setDisabled(True)
         app_cfg.line_roles = {}
         srt_str_list = []
@@ -595,7 +771,7 @@ class SpeakerAssignmentDialog(QDialog):
         speaker_keys = list(self.speakers.keys()) if self.speakers else []
         for row, data in enumerate(self.display_data):
             # 获取当前文本（从表格中获取最新值）
-            text_item = self.table.item(row, 5)
+            text_item = self.table.item(row, 6)
             text = text_item.text().strip() if text_item else data['text'].strip()
             
             srt_str_list.append(f'{data["line"]}\n{data["startraw"]} --> {data["endraw"]}\n{text}')

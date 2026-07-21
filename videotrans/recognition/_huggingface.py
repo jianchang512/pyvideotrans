@@ -9,7 +9,7 @@ from pydub import AudioSegment
 from videotrans.configure.config import ROOT_DIR, logger, settings
 from videotrans.configure import config
 from videotrans.configure.excepts import SpeechToTextError
-from videotrans.process import faster_whisper, pipe_asr,glmasr_asr
+
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import tools
@@ -56,7 +56,13 @@ class HuggingfaceRecogn(BaseRecogn):
             "local_dir": self.local_dir,
             "jianfan": self.jianfan
         }
-        raws=self._new_process(callback=pipe_asr if self.model_name!='zai-org/GLM-ASR-Nano-2512' else glmasr_asr,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        from videotrans.process import faster_whisper, pipe_asr,glmasr_asr,mosstrans_asr
+        func_dict={
+            "zai-org/GLM-ASR-Nano-2512":glmasr_asr,
+            "OpenMOSS-Team/MOSS-Transcribe-Diarize":mosstrans_asr
+        }
+        
+        raws=self._new_process(callback=func_dict.get(self.model_name,pipe_asr),title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         return raws
 
   

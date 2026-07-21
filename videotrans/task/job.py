@@ -22,7 +22,7 @@ class BaseWorker(QThread):
 
     def run(self) -> None:
         while True:
-            if app_cfg.exit_soft: return
+            if self.isInterruptionRequested() or app_cfg.exit_soft: break
             try:
                 trk = self.queue.get(timeout=1)
             except Empty:
