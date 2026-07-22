@@ -34,7 +34,7 @@ videotrans/params.json
 videotrans/webui_state.json
 videotrans/glossary.txt
 videotrans/newlang.txt
-
+deps/
 g2pW/
 output/
 hooks
