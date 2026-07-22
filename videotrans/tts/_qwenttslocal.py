@@ -58,7 +58,7 @@ class QwenttsLocal(BaseTTS):
         with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:
             for item in self.queue_tts:
                 filename=item.get('filename','')+"-24k.wav"
-                if tools.vail_file(filename):
+                if vail_file(filename):
                     all_task.append(pool.submit(self.convert_to_wav, filename,item['filename']))
             if len(all_task) > 0:
                 _ = [i.result() for i in all_task]

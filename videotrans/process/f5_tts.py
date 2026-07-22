@@ -103,7 +103,7 @@ def f5tts_fun(
         device=f'cuda:{device_index}' if is_cuda else 'cpu'
     )
 
-    logger.debug(f'F5-TTS 本地内置渠道使用 {model_name} 模型,{is_cuda=}')
+    logger.debug(f'F5-TTS 本地内置渠道使用 {cfg["model_name"]} 模型,{is_cuda=}')
     try:
 
         _len=len(queue_tts)
