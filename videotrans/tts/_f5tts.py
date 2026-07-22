@@ -6,6 +6,7 @@ from videotrans.configure.config import ROOT_DIR, app_cfg, logger,tr,TEMP_DIR
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.util.help_misc import vail_file
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 @dataclass
 class F5TTSBuilt(BaseTTS):

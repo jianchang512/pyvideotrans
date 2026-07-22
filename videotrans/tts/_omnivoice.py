@@ -4,6 +4,7 @@ from videotrans.util.help_misc import vail_file
 from videotrans.tts._base import BaseTTS
 from pathlib import Path
 import json,time
+from concurrent.futures import ThreadPoolExecutor
 
 @dataclass
 class OmniVoice(BaseTTS):

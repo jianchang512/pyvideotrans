@@ -5,7 +5,7 @@ from videotrans.tts._base import BaseTTS
 from videotrans.configure.config import settings, logger,tr,ROOT_DIR,app_cfg,TEMP_DIR
 from videotrans.util.help_misc import vail_file
 from pathlib import Path
-
+from concurrent.futures import ThreadPoolExecutor
 
 @dataclass
 class ConfuciusTTS(BaseTTS):
