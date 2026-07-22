@@ -319,7 +319,7 @@
     "Select the videos": "Select Videos",
     "Select to perform noise reduction processing from modelscope.cn, which takes a long time": "Enable Denoise (Modelscope) - Slow",
     "Select where to save the processed output resources": "Select Output Folder",
-    "Send SRT": "Send SRT",
+    "Send SRT": "SendSrt",
     "Separate End/Restart": "Done/Restart",
     "Separate Video to audio": "Extract Audio from Video",
     "Separate audio and silent videos from videos": "Separate Audio & Silent Video",

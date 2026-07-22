@@ -163,6 +163,7 @@ def _create_translation_row(ui, parent):
     layout.addWidget(ui.target_language)
     layout.addStretch()
     layout.addWidget(ui.aisendsrt)
+    layout.addWidget(ui.glossary)
     return layout
 
 
@@ -198,7 +199,6 @@ def _create_tts_row(ui, parent):
     layout.addWidget(ui.voice_role)
     layout.addWidget(ui.listen_btn)
     layout.addStretch()
-    layout.addWidget(ui.glossary)
     return layout
 
 
