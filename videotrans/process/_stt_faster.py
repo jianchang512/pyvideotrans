@@ -157,7 +157,7 @@ def faster_whisper(
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
         else:
             logger.debug(f'直接传递完整音频，由faster-whisper内部VAD处理，返回字级时间戳数据')
-            _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word_timestamps'}))
+            _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word timestamps'}))
             segments, info = model.transcribe(
                 audio_file,
                 beam_size=beam_size,

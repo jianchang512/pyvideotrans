@@ -99,7 +99,7 @@ def openai_whisper(
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
             logger.debug(f'openai-whisper模式下，预先使用VAD分割音频，直接使用{model_name}模型返回的各个片段音频的文字结果')
         else:
-            _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word_timestamps'}))
+            _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word timestamps'}))
             segments = model.transcribe(
                 audio_file,
                 no_speech_threshold=no_speech_threshold,

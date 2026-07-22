@@ -37,18 +37,3 @@ class WinAction(WinActionCheckMixin, WinActionConfigMixin, WinActionTaskMixin, W
         self.main.subtitle_area.setReadOnly(True)
         self.had_click_btn = False
 
-    def import_sub_fun(self):
-        fname, _ = QFileDialog.getOpenFileName(self.main, tr('selectmp4'), params.get('last_opendir', ''),
-                                               "Srt files(*.srt *.txt)")
-        if not fname: return
-        content = ""
-        try:
-            content = Path(fname).read_text(encoding='utf-8')
-        except UnicodeError:
-            content = Path(fname).read_text(encoding='gbk')
-
-        if content:
-            self.main.subtitle_area.clear()
-            self.main.subtitle_area.insertPlainText(content.strip())
-        else:
-            return show_error(tr('import src error'))

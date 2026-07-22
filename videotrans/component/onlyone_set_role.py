@@ -222,7 +222,7 @@ class SpeakerAssignmentDialog(QDialog):
         main_layout.addLayout(bottom_layout)
 
         # 延迟加载表格
-        QTimer.singleShot(10, self.load_table)
+        QTimer.singleShot(200, self.load_table)
 
 
     def load_table(self):

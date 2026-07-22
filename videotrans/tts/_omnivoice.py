@@ -1,114 +1,56 @@
 from dataclasses import dataclass
-from videotrans.configure.config import logger,ROOT_DIR,app_cfg
-from videotrans.configure.excepts import DubbingSrtError
-from videotrans.util import tools,gpus
+from videotrans.configure.config import logger,ROOT_DIR,app_cfg,TEMP_DIR
+from videotrans.util.help_misc import vail_file
 from videotrans.tts._base import BaseTTS
-import soundfile as sf
 from pathlib import Path
+import json,time
 
 @dataclass
 class OmniVoice(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        # 语言代码 对应语言名称
-        lang_code= {
-            "zh-cn": "Chinese",
-            "zh-tw": "Min Nan Chinese",
-            "zh": "Chinese",
-            "yue": "Cantonese",
-            "en": "English",
-            "fr": "French",
-            "de": "German",
-            "ja": "Japanese",
-            "ko": "Korean",
-            "ru": "Russian",
-            "es": "Spanish",
-            "th": "Thai",
-            "it": "Italian",
-            "pt": "Portuguese",
-            "vi": "Vietnamese",
-            "ar": "Standard Arabic",
-            "tr": "Turkish",
-            "hi": "Hindi",
-            "hu": "Hungarian",
-            "uk": "Ukrainian",
-            "id": "Indonesian",
-            "ms": "Malay",
-            "kk": "Kazakh",
-            "cs": "Czech",
-            "pl": "Polish",
-            "nl": "Dutch",
-            "sv": "Swedish",
-            "he": "Hebrew",
-            "bn": "Bengali",
-            "fil": "Filipino",
-
-            "af": "Afrikaans",
-            "sq": "Albanian",
-            "am": "Amharic",
-            "az": "Azerbaijani",
-            "bs": "Bosnian",
-            "bg": "Bulgarian",
-            "my": "Burmese",
-            "ca": "Catalan",
-            "hr": "Croatian",
-            "da": "Danish",
-            "et": "Estonian",
-            "fi": "Finnish",
-            "gl": "Galician",
-            "ka": "Georgian",
-            "el": "Greek",
-            "gu": "Gujarati",
-            "is": "Icelandic",
-            "iu": "Inuktitut",
-            "ga": "Irish",
-            "jv": "Javanese",
-            "kn": "Kannada",
-            "km": "Khmer",
-            "lo": "Lao",
-            "lv": "Latvian",
-            "lt": "Lithuanian",
-            "mk": "Macedonian",
-            "ml": "Malayalam",
-            "mt": "Maltese",
-            "mr": "Marathi",
-            "mn": "Mongolian",
-            "ne": "Nepali",
-            "nb": "Norwegian Bokmål",
-            "ps": "Pashto",
-            "fa": "Persian",
-
-            "ro": "Romanian",
-            "sr": "Serbian",
-            "si": "Sinhala",
-            "sk": "Slovak",
-            "sl": "Slovenian",
-            "so": "Somali",
-            "su": "Sudanese Arabic",
-            "sw": "Swahili",
-            "ta": "Tamil",
-            "te": "Telugu",
-            "ur": "Urdu",
-            "uz": "Uzbek",
-            "cy": "Welsh",
-            "zu": "Zulu"
-        }
-        self.roledict = tools.get_f5tts_role()
-        self.device='cuda' if self.is_cuda else  gpus.mps_or_cpu()
-        self.lang=lang_code.get(self.language,'Auto') if self.language else 'Auto'
-        self.local_dir=f'{ROOT_DIR}/models/models--k2-fsa--OmniVoice'
 
     def _download(self):
-        tools.check_and_down_hf(
+        from videotrans.util import help_down
+        help_down.check_and_down_hf(
                 "OmniVoice",
                 'k2-fsa/OmniVoice',
-                self.local_dir,
+                f'{ROOT_DIR}/models/models--k2-fsa--OmniVoice',
                 callback=self._process_callback,
         )        
         return True
-
+        
     def _exec(self):
+        logs_file = f'{TEMP_DIR}/{self.uuid}/omnivoice-{time.time()}.log'
+        queue_tts_file = f'{TEMP_DIR}/{self.uuid}/omnivoice-{time.time()}.json'
+        Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
+        title="OmniVoice-TTS dubbing..."
+        kwargs = {
+            "queue_tts_file":queue_tts_file,
+            "logs_file": logs_file,
+            "is_cuda": self.is_cuda,
+            "speed":self.get_speed()
+        }
+        from videotrans.process.omnivoice_tts import omnivoice_fun
+        self._new_process(callback=omnivoice_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+
+        self.signal(text=f'convert wav')
+        all_task = []
+
+        with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:
+            for item in self.queue_tts:
+                filename=item.get('filename','')+"-24k.wav"
+                if vail_file(filename):
+                    all_task.append(pool.submit(self.convert_to_wav, filename,item['filename']))
+            if len(all_task) > 0:
+                _ = [i.result() for i in all_task]
+            else:
+                self.error="No dubbing audio generate, view logs"
+
+
+
+    def _exec0(self):
         _model_obj = {}
         ok, err = 0, 0
         _except = None
@@ -138,7 +80,7 @@ class OmniVoice(BaseTTS):
                     speed=speed
                 )
                 sf.write(output_filename, wav[0], 24000)
-                if not tools.vail_file(output_filename):
+                if not vail_file(output_filename):
                     err += 1
                     continue
                 ok += 1

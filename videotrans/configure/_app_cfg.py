@@ -54,6 +54,7 @@ class AppCfg:
     def __post_init__(self):
         self.SUPPORT_LANG = _get_langjson_list()
 
+
     def set_countdown(self, sec=86400):
         self.task_countdown = sec
 

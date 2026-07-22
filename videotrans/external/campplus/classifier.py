@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from modules.campplus.layers import DenseLayer
+from .layers import DenseLayer
 
 
 class CosineClassifier(nn.Module):

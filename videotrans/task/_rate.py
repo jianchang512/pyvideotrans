@@ -299,12 +299,12 @@ class SpeedRate:
         
         # 3. 音频变速
         if self.audio_data:
-            tools.set_process(text='Processing audio speed...', uuid=self.uuid)
+            tools.set_process(text=tr('Sound speed alignment stage')+'...', uuid=self.uuid)
             self._execute_audio_speedup_rubberband()
 
         # 4. 视频变速
         if self.should_videorate and self.video_for_clips:
-            tools.set_process(text='Processing video speed...', uuid=self.uuid)
+            tools.set_process(text=tr('Slow video')+'...', uuid=self.uuid)
             processed_video_clips = self._video_speeddown()           
             self._concat_video(processed_video_clips)
             
@@ -317,14 +317,14 @@ class SpeedRate:
                     pass
             
         # 5. 音频对齐拼接
-        tools.set_process(text='Concatenating final audio...', uuid=self.uuid)
+        tools.set_process(text=tr('Concatenating final audio'), uuid=self.uuid)
         self._concat_audio_aligned()
 
         return self.queue_tts
 
     def _prepare_data(self):
         """数据清洗与预处理"""
-        tools.set_process(text="Preparing data...", uuid=self.uuid)
+        tools.set_process(text=tr("Preparing data"), uuid=self.uuid)
         
         if self.novoice_mp4_original and tools.vail_file(self.novoice_mp4_original):
             self.raw_total_time = tools.get_video_duration(self.novoice_mp4_original)
@@ -368,7 +368,7 @@ class SpeedRate:
 
     def _calculate_adjustments(self):
         """计算策略"""
-        tools.set_process(text="Calculating sync adjustments...", uuid=self.uuid)
+        tools.set_process(text=tr("Calculating sync adjustments"), uuid=self.uuid)
         # 视频慢速，第0条字幕之前可能有无声音视频
         if self.should_videorate and self.queue_tts[0]['start_time_source']>0:
             self.video_for_clips.append({
@@ -477,7 +477,7 @@ class SpeedRate:
         
         for i,task in enumerate(all_task):
             try:
-                tools.set_process(text=f'audio speedup {i}/{len(all_task)}',uuid=self.uuid)
+                tools.set_process(text=f'Audio {i}/{len(all_task)}',uuid=self.uuid)
                 res=task.result()
             except Exception:
                 pass
@@ -512,7 +512,7 @@ class SpeedRate:
         processed_clips = []
         for i,task in enumerate(all_task):
             try:
-                tools.set_process(text=f'video speed down {i}/{len(all_task)}',uuid=self.uuid)
+                tools.set_process(text=f'Video {i}/{len(all_task)}',uuid=self.uuid)
                 res = task.result()
                 if res: 
                     processed_clips.append(res)
@@ -558,7 +558,7 @@ class SpeedRate:
         
         cmd = ['-y', '-f', 'concat', '-safe', '0', '-i', concat_list, '-c', 'copy', output_path]
         logger.debug(f"[Video-Concat] 合并 {valid_cnt} 个片段 -> {output_path}\n{cmd=}")
-        tools.set_process(text=f'concat all videos...',uuid=self.uuid)
+        tools.set_process(text=tr('Concat videos'),uuid=self.uuid)
         tools.runffmpeg(cmd, force_cpu=True, cmd_dir=self.cache_folder)
 
         if Path(output_path).exists():

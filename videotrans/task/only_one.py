@@ -30,6 +30,7 @@ class Worker(QThread):
 
     def run(self) -> None:
         # 从停止队列中移出，以便重新开始
+        #app_cfg.reset_queue()
         app_cfg.rm_uuid(self.file['uuid'])
         trk=None
         try:

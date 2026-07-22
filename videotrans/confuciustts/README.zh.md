@@ -96,7 +96,7 @@ python example.py \
 ```python
 import torch
 import torchaudio
-from confuciustts.cli.inference import ConfuciusTTS
+from videotrans.confuciustts.cli.inference import ConfuciusTTS
 
 model = ConfuciusTTS(
     config_path="config/inference_config.yaml",

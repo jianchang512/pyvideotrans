@@ -137,8 +137,8 @@ notices = {
         "initial_prompt_pl": "发音语言为波兰语时发送给whisper模型的提示词",
         "initial_prompt_nl": "发音语言为荷兰语时发送给whisper模型的提示词",
         "initial_prompt_sv": "发音语言为瑞典语时发送给whisper模型的提示词",
-        "initial_prompt_he": "发音语言为瑞典语时发送给whisper模型的提示词",
-        "initial_prompt_bn": "发音语言为瑞典语时发送给whisper模型的提示词",
+        "initial_prompt_he": "发音语言为希伯来语时发送给whisper模型的提示词",
+        "initial_prompt_bn": "发音语言为孟加拉语时发送给whisper模型的提示词",
         "initial_prompt_fa": "发音语言为波斯语时发送给whisper模型的提示词",
         "initial_prompt_ur": "发音语言为乌尔都语时发送给whisper模型的提示词",
         "initial_prompt_yue": "发音语言为粤语时发送给whisper模型的提示词",
@@ -615,6 +615,78 @@ class Ui_setini(object):
 
         return data.get(key, [""])
 
+    def _build_setting_row(self, key, tips_str, parent_layout):
+        """构建单行设置项（标签按钮 + 输入控件）并添加到 parent_layout"""
+        tmp = QtWidgets.QHBoxLayout()
+        tmp_0 = QtWidgets.QPushButton()
+        tmp_0.setStyleSheet("""background-color:transparent;""")
+
+        tmp_0.setText(titles[key])
+        tmp_0.setObjectName(f'btn_{key}')
+        tmp_0.setToolTip(tips_str)
+        tmp.addWidget(tmp_0)
+
+        val = str(settings.get(key, ""))
+        # 下拉列表 comboBox
+        if self._is_comboBox(key):
+            combobox_data = self._get_comboBox(key)
+            tmp1 = QtWidgets.QComboBox()
+            tmp1.addItems(combobox_data)
+
+            if val in combobox_data:
+                tmp1.setCurrentText(val)
+            tmp1.setObjectName(key)
+            tmp1.setToolTip(tips_str)
+            tmp.addWidget(tmp1)
+            tmp.addStretch(1)
+            parent_layout.addLayout(tmp)
+            return
+        # 设置家目录按钮
+        if key == 'homedir':
+            self.homedir_btn = QtWidgets.QPushButton()
+            self.homedir_btn.setCursor(Qt.PointingHandCursor)
+            self.homedir_btn.setText(val)
+            self.homedir_btn.setToolTip(
+                tr("Click on Set Home Directory to save the result files for video separation, subtitle translation, subtitle dubbing, etc."))
+            self.homedir_btn.clicked.connect(self.get_target)
+            self.homedir_btn.setObjectName(key)
+            tmp.addWidget(self.homedir_btn)
+            tmp.addStretch(1)
+            parent_layout.addLayout(tmp)
+            return
+        # 是checkbox 复选框
+        if val.lower() in ['true', 'false']:
+            tmp_1 = QtWidgets.QCheckBox()
+            tmp_1.setChecked(True if val.lower() == 'true' else False)
+            tmp_1.setToolTip(tips_str)
+            tmp_1.setObjectName(key)
+
+            tmp.addWidget(tmp_1)
+            tmp.addStretch(1)
+            parent_layout.addLayout(tmp)
+            return
+
+        # 是 model_list faster-whisper
+        if key in ['model_list', 'Whisper_cpp_models']:
+            tmp_1 = QtWidgets.QPlainTextEdit()
+            tmp_1.setPlainText(val)
+            tmp_1.setToolTip(tips_str)
+            tmp_1.setObjectName(key)
+            tmp.addWidget(tmp_1)
+            parent_layout.addLayout(tmp)
+            return
+
+        # 普通文本框 字符串或数字
+        tmp_1 = QtWidgets.QLineEdit()
+        tmp_1.setMinimumSize(QtCore.QSize(0, 30))
+        tmp_1.setText(val)
+        tmp_1.setPlaceholderText(tips_str)
+        tmp_1.setToolTip(tips_str)
+        tmp_1.setObjectName(key)
+        tmp.addWidget(tmp_1)
+
+        parent_layout.addLayout(tmp)
+
     def setupUi(self, setini):
         self.centralwidget = QtWidgets.QWidget(setini)
         self.centralwidget.setObjectName("centralwidget")
@@ -629,136 +701,112 @@ class Ui_setini(object):
 
         action_layout = QtWidgets.QHBoxLayout()
 
-        scroll_area = QtWidgets.QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        # 2. 创建一个“容器”QWidget，这个容器将承载你的所有内容
-        scroll_content_widget = QtWidgets.QWidget()
-
-        # 界面语言
+        # 顶部提示文字
         label_title = QtWidgets.QLabel()
         label_title.setText(
             tr("Clicking  title on the left will show help"))
-        label_title.setObjectName(f"label_head")
+        label_title.setObjectName("label_head")
         label_title.setAlignment(Qt.AlignCenter)
         label_title.setStyleSheet("""color:#eeeeee;text-align:center;font-size:16px;margin-top:10px""")
         self.layout.addWidget(label_title)
 
         self.homedir_btn = None
 
-        h1 = QtWidgets.QHBoxLayout(scroll_content_widget)
-        v1 = QtWidgets.QVBoxLayout()
-        v2 = QtWidgets.QVBoxLayout()
-        h1.addLayout(v1)
-        h1.addLayout(v2)
+        # 使用 QTabWidget 替代原来的双列滚动布局，每个模块一个标签卡
+        self.tab_widget = QtWidgets.QTabWidget()
+        self.tab_widget.setObjectName("tab_widget")
+        self.tab_widget.setStyleSheet("""
+            QTabWidget::pane {
+                border: 1px solid #3a3a3a;
+                background-color: #2b2b2b;
+            }
+            QTabBar::tab {
+                background-color: #3a3a3a;
+                color: #cccccc;
+                padding: 8px 18px;
+                margin-right: 2px;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                font-size: 13px;
+            }
+            QTabBar::tab:selected {
+                background-color: #148CD2;
+                color: #ffffff;
+                font-weight: bold;
+            }
+            QTabBar::tab:hover:!selected {
+                background-color: #4a4a4a;
+            }
+        """)
 
-        layout_index = 0
         for headkey, item in notices.items():
-            box = QtWidgets.QWidget()
-            box.setLayout(QtWidgets.QVBoxLayout())
-            label_title = QtWidgets.QLabel()
-            label_title.setText('[' + heads[headkey] + "↓]")
-            label_title.setStyleSheet("""color:#148CD2;font-size:18px;""")
-            label_title.setObjectName(f"label_{headkey}")
-            box.layout().addWidget(label_title)
+            # 每个标签页内部使用滚动区域，防止内容溢出
+            tab_scroll = QtWidgets.QScrollArea()
+            tab_scroll.setWidgetResizable(True)
+            tab_scroll.setAlignment(Qt.AlignmentFlag.AlignTop)
+            tab_scroll.setStyleSheet("QScrollArea{border:none;background-color:transparent;}")
+
+            tab_content = QtWidgets.QWidget()
+            tab_layout = QtWidgets.QVBoxLayout(tab_content)
+            tab_layout.setContentsMargins(10, 10, 10, 10)
+
             for key, tips_str in item.items():
-                tmp = QtWidgets.QHBoxLayout()
-                tmp_0 = QtWidgets.QPushButton()
-                tmp_0.setStyleSheet("""background-color:transparent;""")
+                self._build_setting_row(key, tips_str, tab_layout)
 
-                tmp_0.setText(titles[key])
-                tmp_0.setObjectName(f'btn_{key}')
-                tmp_0.setToolTip(tips_str)
-                tmp.addWidget(tmp_0)
+            tab_layout.addStretch()
+            tab_scroll.setWidget(tab_content)
+            self.tab_widget.addTab(tab_scroll, heads[headkey])
 
-                val = str(settings.get(key, ""))
-                # 下拉列表 comboBox
-                if self._is_comboBox(key):
-                    combobox_data=self._get_comboBox(key)
-                    tmp1 = QtWidgets.QComboBox()
-                    tmp1.addItems(combobox_data)
-
-                    if val in combobox_data:
-                        tmp1.setCurrentText(val)
-                    tmp1.setObjectName(key)
-                    tmp1.setToolTip(tips_str)
-                    tmp.addWidget(tmp1)
-                    tmp.addStretch(1)
-                    box.layout().addLayout(tmp)
-                    continue
-                # 设置家目录按钮
-                if key == 'homedir':
-                    self.homedir_btn = QtWidgets.QPushButton()
-                    self.homedir_btn.setCursor(Qt.PointingHandCursor)
-                    self.homedir_btn.setText(val)
-                    self.homedir_btn.setToolTip(
-                        tr("Click on Set Home Directory to save the result files for video separation, subtitle translation, subtitle dubbing, etc."))
-                    self.homedir_btn.clicked.connect(self.get_target)
-                    self.homedir_btn.setObjectName(key)
-                    tmp.addWidget(self.homedir_btn)
-                    tmp.addStretch(1)
-                    box.layout().addLayout(tmp)
-                    continue
-                # 是checkbox 复选框
-                if val.lower() in ['true', 'false']:
-                    tmp_1 = QtWidgets.QCheckBox()
-                    tmp_1.setChecked(True if val.lower() == 'true' else False)
-                    tmp_1.setToolTip(tips_str)
-                    tmp_1.setObjectName(key)
-
-                    tmp.addWidget(tmp_1)
-                    tmp.addStretch(1)
-                    box.layout().addLayout(tmp)
-                    continue
-
-                # 是 model_list faster-whisper
-                if key in ['model_list', 'Whisper_cpp_models']:
-                    tmp_1 = QtWidgets.QPlainTextEdit()
-                    tmp_1.setPlainText(val)
-                    tmp_1.setToolTip(tips_str)
-                    tmp_1.setObjectName(key)
-                    tmp.addWidget(tmp_1)
-                    box.layout().addLayout(tmp)
-                    continue
-
-                # 普通文本框 字符串或数字
-                tmp_1 = QtWidgets.QLineEdit()
-                tmp_1.setMinimumSize(QtCore.QSize(0, 30))
-                tmp_1.setText(val)
-                tmp_1.setPlaceholderText(tips_str)
-                tmp_1.setToolTip(tips_str)
-                tmp_1.setObjectName(key)
-                tmp.addWidget(tmp_1)
-
-                box.layout().addLayout(tmp)
-            if headkey in ['common', 'video', 'prompt_init']:
-                v1.addWidget(box)
-            else:
-                v2.addWidget(box)
-            layout_index += 1
-
-        v1.addStretch()
-        v2.addStretch()
-        scroll_area.setWidget(scroll_content_widget)
-
-        self.layout.addWidget(scroll_area)
+        # stretch=1 让 tab_widget 填充剩余空间，按钮固定在底部不会遮挡内容
+        self.layout.addWidget(self.tab_widget, stretch=1)
 
         self.set_ok = QtWidgets.QPushButton()
-        self.set_ok.setMinimumSize(QtCore.QSize(0, 35))
+        self.set_ok.setMinimumSize(QtCore.QSize(160, 40))
         self.set_ok.setObjectName("set_ok")
         self.set_ok.setCursor(Qt.PointingHandCursor)
-        self.set_ok.setStyleSheet("""color:#ff0""")
+        self.set_ok.setStyleSheet("""
+            QPushButton {
+                color: #ffffff;
+                background-color: #148CD2;
+                font-size: 15px;
+                font-weight: bold;
+                border-radius: 5px;
+                padding: 6px 24px;
+            }
+            QPushButton:hover {
+                background-color: #0e6fa0;
+            }
+            QPushButton:pressed {
+                background-color: #0b5a82;
+            }
+        """)
 
         self.help_btn = QtWidgets.QPushButton()
         self.help_btn.setObjectName("help_btn")
-        self.help_btn.setMaximumWidth(200)
+        self.help_btn.setMinimumSize(QtCore.QSize(120, 30))
+        self.help_btn.setMaximumSize(QtCore.QSize(160, 30))
         self.help_btn.setCursor(Qt.PointingHandCursor)
+        self.help_btn.setStyleSheet("""
+            QPushButton {
+                color: #aaaaaa;
+                background-color: transparent;
+                font-size: 12px;
+                border: 1px solid #555555;
+                border-radius: 4px;
+                padding: 4px 12px;
+            }
+            QPushButton:hover {
+                color: #ffffff;
+                border-color: #148CD2;
+            }
+        """)
         self.help_btn.setText(tr("Fill out the tutorial"))
         self.help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/adv'))
 
+        action_layout.addStretch()
         action_layout.addWidget(self.set_ok)
         action_layout.addWidget(self.help_btn)
+        action_layout.addStretch()
 
         self.layout.addLayout(action_layout)
 

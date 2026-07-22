@@ -38,8 +38,9 @@ def _create_file_row(ui, parent):
     layout.addWidget(ui.source_mp4)
 
     ui.btn_save_dir = QtWidgets.QPushButton()
-    ui.btn_save_dir.setMinimumSize(QtCore.QSize(120, 30))
+    #ui.btn_save_dir.setMinimumSize(QtCore.QSize(120, 30))
     ui.btn_save_dir.setObjectName("btn_save_dir")
+    ui.btn_save_dir.setStyleSheet("""background-color:transparent;border:1px solid #455364""")
 
     ui.copysrt_rawvideo = QtWidgets.QCheckBox(parent)
     ui.copysrt_rawvideo.setMinimumSize(QtCore.QSize(0, 30))
@@ -74,8 +75,6 @@ def _create_asr_row(ui, parent):
     ui.reglabel.setStyleSheet("""background-color:transparent""")
 
     ui.reglabel.setText(tr("Speech Recognit"))
-    ui.reglabel.setToolTip(
-        tr("Click to set detailed recognition parameters when using faster-whisper"))
     ui.recogn_type = QtWidgets.QComboBox(parent)
     ui.recogn_type.setMinimumSize(QtCore.QSize(_channel_com, 30))
     ui.recogn_type.setObjectName("label_5")
@@ -119,8 +118,6 @@ def _create_translation_row(ui, parent):
     ui.label_9 = QtWidgets.QLabel(parent)
     ui.label_9.setObjectName("label_9")
     ui.label_9.setStyleSheet("""background-color:transparent""")
-    ui.label_9.setToolTip(
-        tr("Click to set the number of subtitles to be translated at the same time"))
     ui.translate_type = QtWidgets.QComboBox(parent)
     ui.translate_type.setMinimumSize(QtCore.QSize(_channel_com, 30))
     ui.translate_type.setObjectName("translate_type")
@@ -174,8 +171,6 @@ def _create_tts_row(ui, parent):
     ui.tts_text = QtWidgets.QLabel(parent)
     ui.tts_text.setObjectName("tts_text")
     ui.tts_text.setStyleSheet("""background-color:transparent""")
-    ui.tts_text.setToolTip(
-        tr("Click to set the number of threads to be used for dubbing"))
 
     ui.tts_type = QtWidgets.QComboBox(parent)
     ui.tts_type.setMinimumSize(QtCore.QSize(_channel_com, 30))
@@ -209,7 +204,6 @@ def _create_alignment_row(ui, parent):
     ui.align_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
     ui.align_btn.setObjectName("align_btn")
     ui.align_btn.setText(tr("Alignment control"))
-    ui.align_btn.setToolTip(tr("View alignment tutorial"))
 
     ui.voice_autorate = QtWidgets.QCheckBox(parent)
     ui.voice_autorate.setObjectName("voice_autorate")

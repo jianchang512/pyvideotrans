@@ -2,9 +2,8 @@ import platform
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtWidgets import QSizePolicy, QApplication
+from PySide6.QtWidgets import QSizePolicy, QApplication,QPlainTextEdit
 
-from videotrans.component.controlobj import TextGetdir
 from videotrans.configure.config import tr, settings
 from videotrans.ui._setup_menus import _setup_actions_and_menus
 from videotrans.ui._setup_rows import (
@@ -181,6 +180,8 @@ class Ui_MainWindow(object):
 
         self.show_tips = QtWidgets.QLabel(self.layoutWidget)
         self.show_tips.setWordWrap(True)
+        self.show_tips.setText(
+            tr("Customize each configuration to batch video translation. When selecting a single video, you can pause to edit subtitles during processing."))
         self.show_tips.setStyleSheet(
             """background-color:transparent;border-color:transparent;color:#aaaaaa;text-align:left""")
         self.show_tips.setObjectName("show_tips")
@@ -239,20 +240,15 @@ class Ui_MainWindow(object):
         self.subtitle_layout = QtWidgets.QHBoxLayout(self.verticalLayoutWidget)
         self.subtitle_layout.setContentsMargins(3, 0, 0, 0)
         self.subtitle_layout.setObjectName("subtitle_layout")
-
-        self.source_area_layout = QtWidgets.QVBoxLayout()
-
-        self.subtitle_area_placeholder = QtWidgets.QWidget(self)
-        self.subtitle_area_placeholder.setObjectName("subtitle_area_placeholder")
-
-        self.import_sub = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.import_sub.setObjectName("import_sub")
-        self.source_area_layout.addWidget(self.subtitle_area_placeholder)
-        self.source_area_layout.addWidget(self.import_sub)
-        self.target_subtitle_area = QtWidgets.QVBoxLayout()
-
-        self.subtitle_layout.addLayout(self.source_area_layout)
-        self.subtitle_layout.addLayout(self.target_subtitle_area)
+    
+        self.subtitle_area =  QPlainTextEdit()
+        self.subtitle_area.setReadOnly(True)
+        self.subtitle_area.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
+        self.subtitle_area.setObjectName("subtitle_area")
+        self.subtitle_area.setPlaceholderText(
+            f"\n{tr('subtitle_tips')}\n\n{tr('meitiaozimugeshi')}")
+    
+        self.subtitle_layout.addWidget(self.subtitle_area)
 
         self.horizontalLayout_7.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -269,16 +265,7 @@ class Ui_MainWindow(object):
 
         self._set_Ui_Text()
 
-    def _set_Ui_Text(self):
-        self.subtitle_area = TextGetdir(self)
-        self.subtitle_area.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
-        self.subtitle_area.setObjectName("subtitle_area")
-        self.subtitle_area.setPlaceholderText(
-            f"{tr('zimubianjitishi')}\n\n{tr('subtitle_tips')}\n\n{tr('meitiaozimugeshi')}")
-        self.source_area_layout.insertWidget(self.source_area_layout.indexOf(self.subtitle_area_placeholder),
-                                             self.subtitle_area)
-        self.subtitle_area_placeholder.hide()
-        self.subtitle_area_placeholder.deleteLater()
+    def _set_Ui_Text(self):       
 
         self.statusLabel = QtWidgets.QPushButton(tr("Open Documents"))
         self.statusLabel.setStyleSheet("""color:#ffff66""")
@@ -313,7 +300,9 @@ class Ui_MainWindow(object):
             tr("Click to view the tutorial for filling in the network proxy"))
         self.label.setCursor(Qt.PointingHandCursor)
 
-        self.proxy.setPlaceholderText(tr("proxy address"))
+        self.proxy.setPlaceholderText(tr("Failed to access Google services. Please set up the proxy correctly"))
+        self.proxy.setToolTip(tr("Failed to access Google services. Please set up the proxy correctly"))
+        self.model_name.setToolTip(tr("Whisper can select models for related channels"))
         self.listen_btn.setToolTip(tr("shuoming01"))
         self.listen_btn.setText(tr("Trial dubbing"))
         self.label_2.setText(tr("Speech language"))
@@ -324,8 +313,6 @@ class Ui_MainWindow(object):
         self.label_4.setText(tr("Dubbing role") + " ")
         self.voice_role.setToolTip(tr("No is not dubbing"))
 
-        self.model_name.setToolTip(tr(
-            "From base to large v3, the effect is getting better and better, but the speed is also getting slower and slower"))
         self.subtitle_type.setToolTip(tr("shuoming02"))
 
         self.label_6.setText(tr("Dubbing speed"))
@@ -355,7 +342,6 @@ class Ui_MainWindow(object):
         self.back_audio.setPlaceholderText(tr("back_audio_place"))
         self.back_audio.setToolTip(tr("back_audio_place"))
 
-        self.import_sub.setText(tr("Import original language SRT"))
 
         self.menu_Key.setTitle(tr("&Setting"))
         self.menu_TTS.setTitle(tr("&TTSsetting"))

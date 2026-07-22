@@ -98,6 +98,12 @@ class EditDubbingResultDialog(QDialog):
         prompt_label2.setWordWrap(True)
         prompt_label2.setStyleSheet("font-size: 14px;")
         main_layout.addWidget(prompt_label2)
+        self.video_hint = QLabel(tr("Previewing a dubbed line will sync-play the video segment"))
+        self.video_hint.setStyleSheet("color:#ffcc00; font-size:13px; background-color:transparent;")
+        self.video_hint.setAlignment(Qt.AlignCenter)
+        self.video_hint.setWordWrap(True)
+        main_layout.addWidget(self.video_hint)
+
 
         # ===================== Splitter: video (top) + table (bottom) =====================
         self.splitter = QSplitter(Qt.Vertical)
@@ -108,11 +114,7 @@ class EditDubbingResultDialog(QDialog):
         self.video_widget.setStyleSheet("background-color: #1a1a1a;")
         self.video_widget.setMinimumHeight(150)
 
-        self.video_hint = QLabel(tr("Previewing a dubbed line will sync-play the video segment"))
-        self.video_hint.setStyleSheet("color:#ffcc00; font-size:13px; background-color:transparent;")
-        self.video_hint.setAlignment(Qt.AlignCenter)
-        self.video_hint.setWordWrap(True)
-        self.video_hint.setAttribute(Qt.WA_TransparentForMouseEvents)
+        
 
         self.video_status = QLabel("")
         self.video_status.setStyleSheet("color:#aaaaaa; font-size:12px;")
@@ -120,8 +122,8 @@ class EditDubbingResultDialog(QDialog):
 
         self._stack = QStackedLayout()
         self._stack.addWidget(self.video_widget)
-        self._stack.addWidget(self.video_hint)
-        self._stack.setCurrentIndex(1)
+        #self._stack.addWidget(self.video_hint)
+        #self._stack.setCurrentIndex(1)
 
         top_container = QWidget()
         top_layout = QVBoxLayout(top_container)
@@ -179,7 +181,7 @@ class EditDubbingResultDialog(QDialog):
         main_layout.addWidget(self.splitter, 1)
 
         # 延迟加载表格
-        QTimer.singleShot(10, self.load_table)
+        QTimer.singleShot(200, self.load_table)
 
     def help_doc(self):
         tools.open_url('https://pyvideotrans.com/danshipin')
@@ -295,6 +297,7 @@ class EditDubbingResultDialog(QDialog):
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.update_countdown)
             self.timer.start(1000)
+            self._play_with_video(None,0,5)
             if self.parent:
                 self.raise_()                
                 self.activateWindow()
@@ -618,6 +621,7 @@ class EditDubbingResultDialog(QDialog):
         self._pending_end = video_end_ms
 
         video_needs_load = False
+        play_audio=True
         try:
             if self.novoice_mp4 and Path(self.novoice_mp4).exists():
                 if not self.video_player.source().toString():
@@ -627,6 +631,8 @@ class EditDubbingResultDialog(QDialog):
                 self.video_status.setText(tr('No silent video frames generated yet'))
             if audio_path and Path(audio_path).exists():
                 self.audio_player.setSource(QUrl.fromLocalFile(audio_path))
+            else:
+                play_audio=False
         except Exception as e:
             self.video_status.setText(f"Load failed: {e}")
             return
@@ -649,7 +655,7 @@ class EditDubbingResultDialog(QDialog):
             self.video_player.mediaStatusChanged.connect(self._on_media_ready)
             return
 
-        self._do_play(video_start_ms, video_end_ms)
+        self._do_play(video_start_ms, video_end_ms,play_audio)
 
     def _on_media_ready(self, status):
         from PySide6.QtMultimedia import QMediaPlayer
@@ -662,19 +668,25 @@ class EditDubbingResultDialog(QDialog):
                 pass
             self._do_play(self._pending_start, self._pending_end)
 
-    def _do_play(self, video_start_ms, video_end_ms):
+    def _do_play(self, video_start_ms, video_end_ms,play_audio=True):
         self._video_end_ms = video_end_ms
         self._target_end_ms = -1
         self._audio_playing = True
 
         self.video_player.setPosition(video_start_ms)
-        self.audio_player.setPosition(0)
+        if play_audio:
+            self.audio_player.setPosition(0)
         self.video_player.play()
-        self.audio_player.play()
+        if play_audio:
+            self.audio_player.play()
         self._stack.setCurrentIndex(0)
-        self.video_status.setText(
+        if play_audio:
+            self.video_status.setText(
             f"\u23F5 {tools.ms_to_time_string(ms=video_start_ms)} → {tools.ms_to_time_string(ms=video_end_ms)}"
-        )
+            )
+        if not play_audio:
+            self.video_player.pause()
+            
 
     def _stop_playback(self):
         self._target_end_ms = -1

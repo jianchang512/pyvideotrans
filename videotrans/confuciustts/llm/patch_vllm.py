@@ -13,7 +13,7 @@ created:
 """
 
 from vllm import ModelRegistry
-from confuciustts.llm.llm_vllm import Text2SemanticVLLM
+from videotrans.confuciustts.llm.llm_vllm import Text2SemanticVLLM
 
 ModelRegistry.register_model("Text2SemanticVLLM", Text2SemanticVLLM)
 print("Registered Text2SemanticVLLM into vLLM ModelRegistry")

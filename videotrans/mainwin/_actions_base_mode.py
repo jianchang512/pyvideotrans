@@ -173,7 +173,6 @@ class WinActionBaseModeMixin:
         self.main.pitch_rate.setDisabled(type)
         self.main.only_out_mp4.setDisabled(type)
         self.main.recogn2pass.setDisabled(type)
-        self.main.import_sub.setDisabled(type)
         self.main.btn_get_video.setDisabled(type)
         self.main.btn_save_dir.setDisabled(type)
         self.main.translate_type.setDisabled(type)

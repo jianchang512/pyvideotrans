@@ -19,7 +19,6 @@ class WinActionTaskMixin:
 
     def create_btns(self):
         from videotrans.util.help_ffmpeg import format_video
-        self.main.show_tips.show()
         self.main.show_tips.setText(tr('Creating progress bar, please wait'))
         target_dir = (Path(
             self.queue_mp4[0]).parent / '_video_out').as_posix() if not self.main.target_dir else self.main.target_dir
@@ -230,6 +229,7 @@ class WinActionTaskMixin:
                 parent=self.main
 
             )
+            
             if dialog.exec():
                 self.set_djs_timeout()
             else:
@@ -244,7 +244,6 @@ class WinActionTaskMixin:
                 novoice_mp4=app_cfg.onlyone_novoice_mp4,
                 parent=self.main
             )
-
             if dialog.exec():
                 self.set_djs_timeout()
             else:

@@ -157,7 +157,7 @@ class EditRecognResultDialog2(QDialog):
 
         main_layout.addWidget(self.splitter, 1)
 
-        QTimer.singleShot(10, self.load_table)
+        QTimer.singleShot(200, self.load_table)
 
     # ===================== Audio-driven sync =====================
     def _ensure_players(self):

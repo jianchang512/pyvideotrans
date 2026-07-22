@@ -25,6 +25,7 @@ class EditRecognResultDialog(QDialog):
             parent=None,
     ):
         super().__init__()
+
         self.parent = parent
         self.source_sub = source_sub
         self.source_wav = source_wav
@@ -168,7 +169,7 @@ class EditRecognResultDialog(QDialog):
         main_layout.addWidget(self.splitter, 1)
 
         # 延迟加载表格，表格就绪后再加载媒体
-        QTimer.singleShot(10, self.load_table)
+        QTimer.singleShot(200, self.load_table)
 
     # ===================== Audio-driven sync =====================
     def _ensure_players(self):
@@ -385,15 +386,17 @@ class EditRecognResultDialog(QDialog):
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.update_countdown)
             self.timer.start(1000)
-            if self.parent:
-                self.raise_()
-                self.activateWindow()
+            self._play_segment(0,5)
                 # start 
-                self._play_segment(0,5)
         except Exception as e:
             import traceback
             traceback.print_exc()
             self.loading_label.setText(f"Error: {e}")
+        finally:
+            if self.parent:
+                self.raise_()
+                self.activateWindow()
+            return True
 
     def _batch_fill(self, start_row, end_row):
         for row in range(start_row, end_row):

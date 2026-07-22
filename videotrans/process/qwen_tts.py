@@ -6,20 +6,13 @@ from pathlib import Path
 import traceback, json
 from typing import Tuple, Union
 from videotrans.configure.config import logger,ROOT_DIR
-
-
-def _write_log(file, msg):
-    try:
-        Path(file).write_text(msg, encoding='utf-8')
-    except Exception as e:
-        logger.warning(f'写入新进程日志时出错{e}')
+from ._utils import _write_log
 
 
 def qwen3tts_fun(
         queue_tts_file=None,# 配音数据存在 json文件下，根据文件路径获取
         language='Auto',#语言
         logs_file=None,
-        defaulelang="en",
         is_cuda=False,
         prompt=None,
         model_name='0.6B',
@@ -30,7 +23,6 @@ def qwen3tts_fun(
     import torch
     from qwen_tts import Qwen3TTSModel
     CUSTOM_VOICE= {"Vivian", "Serena", "Uncle_fu", "Dylan", "Eric", "Ryan", "Aiden", "Ono_anna", "Sohee"}
-
     
     queue_tts=json.loads(Path(queue_tts_file).read_text(encoding='utf-8'))
     
@@ -80,7 +72,7 @@ def qwen3tts_fun(
                 last_error="No text for dubbing"
                 continue
             role=it.get('role')
-            filename=it.get('filename','')+"-qwen3tts.wav"
+            filename=it.get('filename','')+"-24k.wav"
             _write_log(logs_file, json.dumps({"type": "logs", "text": f'{i+1}/{_len} {role}'}))
             if role in CUSTOM_VOICE and CUSTOM_OBJ:
                 wavs, sr = CUSTOM_OBJ.generate_custom_voice(

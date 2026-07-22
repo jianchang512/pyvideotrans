@@ -38,7 +38,7 @@ def _build_s2a_model(model_config: Dict[str, Any]) -> MaskedDiffWithXvec:
     Returns:
         Instantiated S2A model
     """
-    from confuciustts.flow.flow import MaskedDiffWithXvecConfig
+    from videotrans.confuciustts.flow.flow import MaskedDiffWithXvecConfig
 
     config = MaskedDiffWithXvecConfig(**model_config)
     return MaskedDiffWithXvec(config)

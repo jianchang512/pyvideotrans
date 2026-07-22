@@ -4,12 +4,8 @@ from typing import List
 from videotrans.task.taskcfg import SrtItem
 from videotrans.configure.config import logger
 
+from ._utils import _write_log
 
-def _write_log(file, msg):
-    try:
-        Path(file).write_text(msg, encoding='utf-8')
-    except Exception as e:
-        logger.exception(f'写入新进程日志时出错{e}', exc_info=True)
 
 def _remove_unwanted_characters(text: str) -> str:
     # 保留中文、日文、韩文、英文、数字和常见符号，去除其他字符

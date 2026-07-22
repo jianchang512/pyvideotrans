@@ -22,7 +22,6 @@ class BindSignalsMixin:
         self.target_language.currentTextChanged.connect(self.win_action.set_voice_role)
 
         self.proxy.textChanged.connect(self.win_action.change_proxy)
-        self.import_sub.clicked.connect(self.win_action.import_sub_fun)
 
         self.startbtn.clicked.connect(self.win_action.check_start)
         self.retrybtn.clicked.connect(self.win_action.retry)
@@ -127,7 +126,6 @@ class BindSignalsMixin:
 
         self.callback('set cursor...')
 
-        self.import_sub.setCursor(Qt.PointingHandCursor)
         self.startbtn.setCursor(Qt.PointingHandCursor)
         self.btn_get_video.setCursor(Qt.PointingHandCursor)
         self.btn_save_dir.setCursor(Qt.PointingHandCursor)
