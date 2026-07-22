@@ -40,7 +40,7 @@ def qwen3tts_fun(
     
 
     all_roles={ r.get('role') for r in queue_tts}
-    logger.debug(f'Qwen-TTS本地内置渠道使用 {model_name} 模型，{device_map=},{dtype=}')
+    logger.debug(f'Qwen-TTS本地内置渠道使用 {model_name} 模型，{device_map=},{is_cuda=}')
     try:
         if all_roles & CUSTOM_VOICE:
             # 存在自定义音色

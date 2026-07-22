@@ -25,6 +25,7 @@ def confucius_fun(
         model = ConfuciusTTS(
             device=f'cuda:{device_index}' if is_cuda else 'cpu',
         )
+        logger.debug(f'Confucius-TTS 本地内置渠道，{is_cuda=}')
         _len=len(queue_tts)
         ok,err=0,0
         last_error=''
