@@ -1,4 +1,4 @@
-import json,time
+import json,time,os
 from dataclasses import dataclass
 from typing import Union, Dict, List
 from videotrans.tts._base import BaseTTS

@@ -3,7 +3,7 @@ from videotrans.configure.config import logger,ROOT_DIR,app_cfg,TEMP_DIR
 from videotrans.util.help_misc import vail_file
 from videotrans.tts._base import BaseTTS
 from pathlib import Path
-import json,time
+import json,time,os
 from concurrent.futures import ThreadPoolExecutor
 
 @dataclass

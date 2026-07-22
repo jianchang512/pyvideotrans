@@ -1,6 +1,6 @@
 from dataclasses import dataclass,field
 from typing import List, Dict, Union,Any
-import sys,json,time
+import sys,json,time,os
 from videotrans.tts._base import BaseTTS
 from videotrans.configure.config import ROOT_DIR, app_cfg, logger,tr,TEMP_DIR
 from videotrans.configure.excepts import DubbingSrtError
@@ -65,7 +65,7 @@ class F5TTSBuilt(BaseTTS):
         with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:
             for item in self.queue_tts:
                 filename=item.get('filename','')+"-24k.wav"
-                if tools.vail_file(filename):
+                if vail_file(filename):
                     all_task.append(pool.submit(self.convert_to_wav, filename,item['filename']))
             if len(all_task) > 0:
                 _ = [i.result() for i in all_task]
@@ -104,7 +104,7 @@ class F5TTSBuilt(BaseTTS):
                     remove_silence=False,                    
                     speed=speed
                 )
-                if not tools.vail_file(output_filename):
+                if not vail_file(output_filename):
                     err += 1
                     continue
                 ok += 1

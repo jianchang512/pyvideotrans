@@ -3,7 +3,7 @@
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 from pathlib import Path
-import traceback, json
+import traceback, json,os
 from typing import Tuple, Union
 from videotrans.configure.config import logger,ROOT_DIR
 from ._utils import _write_log
@@ -21,12 +21,13 @@ def omnivoice_fun(
     import torch
     from omnivoice import OmniVoice
     from videotrans.util import gpus
+    import soundfile as sf
     queue_tts=json.loads(Path(queue_tts_file).read_text(encoding='utf-8'))
         
     model = OmniVoice.from_pretrained(
             f'{ROOT_DIR}/models/models--k2-fsa--OmniVoice',
             device_map=f'cuda:{device_index}' if is_cuda else  gpus.mps_or_cpu(),
-            dtype=torch.float32 if self.device == 'cpu' else torch.float16
+            dtype=torch.float32 if not is_cuda else torch.float16
     )    
     
     logger.debug(f'OmniVoice-TTS本地内置渠道，{is_cuda=}')
@@ -62,8 +63,8 @@ def omnivoice_fun(
                 continue
             wav = model.generate(
                     text=it['text'],
-                    ref_audio=ref_text,
-                    ref_text=wavfile,
+                    ref_audio=wavfile,
+                    ref_text=ref_text,
                     speed=speed
             )
             sf.write(filename, wav[0], 24000)
