@@ -92,7 +92,7 @@ def f5tts_fun(
     cfg=json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/f5ttscfg.json').read_text(encoding='utf-8'))
     cfg=cfg.get(language)
     if not cfg:
-        return False,f"[F5-TTS]{tr('may not support')}{tr(language)}"
+        return False,f"[F5-TTS] may not support {language}"
     
     local_dir=f'{ROOT_DIR}/models/models--'+cfg['repid'].replace('/','--')
     f5tts = _F5TTS(

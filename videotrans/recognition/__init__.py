@@ -102,7 +102,7 @@ HUGGINGFACE_ASR_MODELS = {
     "openai/whisper-large-v3": [],
     "openai/whisper-tiny": [],
     "anke01/whisper-small-uyghur":[],
-    "OpenMOSS-Team/MOSS-Transcribe-Diarize":[]
+    #"OpenMOSS-Team/MOSS-Transcribe-Diarize":[]
 }
 try:
     if Path(f'{ROOT_DIR}/huggingface_models.txt').exists():

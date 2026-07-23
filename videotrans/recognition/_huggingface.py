@@ -12,7 +12,7 @@ from videotrans.configure.excepts import SpeechToTextError
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+from videotrans.util.help_down import check_and_down_hf
 
 
 @dataclass
@@ -25,7 +25,7 @@ class HuggingfaceRecogn(BaseRecogn):
         self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
 
     def _download(self):
-        tools.check_and_down_hf(self.model_name,self.model_name,self.local_dir,callback=self._process_callback)
+        check_and_down_hf(self.model_name,self.model_name,self.local_dir,callback=self._process_callback)
 
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
@@ -56,10 +56,12 @@ class HuggingfaceRecogn(BaseRecogn):
             "local_dir": self.local_dir,
             "jianfan": self.jianfan
         }
-        from videotrans.process import faster_whisper, pipe_asr,glmasr_asr,mosstrans_asr
+        from videotrans.process.stt_faster import faster_whisper
+        from videotrans.process.stt_pipe import  pipe_asr
+        from videotrans.process.stt_glmasr import glmasr_asr
         func_dict={
             "zai-org/GLM-ASR-Nano-2512":glmasr_asr,
-            "OpenMOSS-Team/MOSS-Transcribe-Diarize":mosstrans_asr
+            #"OpenMOSS-Team/MOSS-Transcribe-Diarize":mosstrans_asr
         }
         
         raws=self._new_process(callback=func_dict.get(self.model_name,pipe_asr),title=title,is_cuda=self.is_cuda,kwargs=kwargs)

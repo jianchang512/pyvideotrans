@@ -5,10 +5,8 @@ from pathlib import Path
 from typing import List,  Union
 from videotrans.configure import config
 from videotrans.configure.config import settings,ROOT_DIR
-from videotrans.process import paraformer, funasr_mlt
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
 
 
 @dataclass
@@ -19,6 +17,9 @@ class FunasrRecogn(BaseRecogn):
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit():
             return
+        from videotrans.util import tools
+        from videotrans.process.stt_paraformer import paraformer
+        from videotrans.process.stt_funasr import funasr_mlt
         tools.check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/punc_ct-transformer_zh-cn-common-vocab272727-pytorch')
 
         if self.model_name == 'paraformer-zh' and self.detect_language[:2].lower() !='zh':

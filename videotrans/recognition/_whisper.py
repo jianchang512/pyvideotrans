@@ -8,9 +8,11 @@ from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 
-from videotrans.util import tools
+from videotrans.util.help_down import check_and_down_hf
+from videotrans.util.help_srt import get_subtitle_from_srt
 from pydub import AudioSegment
-from videotrans.process import openai_whisper, faster_whisper
+
+
 from videotrans.configure.contants import FASTER_MODELS_DICT
 from videotrans.configure.excepts import SttTimeoutError
 
@@ -44,7 +46,7 @@ class FasterAll(BaseRecogn):
                 repo_id = FASTER_MODELS_DICT[self.model_name]
             else:
                 repo_id = self.model_name
-            tools.check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
+            check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
         # 批量时预先vad切分
         # 否则后断句处理
 
@@ -82,6 +84,7 @@ class FasterAll(BaseRecogn):
             "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.4)),
             "max_speech_ms":_max_speech
         }
+        from videotrans.process.stt_openai import openai_whisper
         raws=self._new_process(callback=openai_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         return raws
 
@@ -121,8 +124,9 @@ class FasterAll(BaseRecogn):
             "subtitle_srt":subtitle_srt
         }
         try:
+            from videotrans.process.stt_faster import  faster_whisper
             raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
             return raws
         except SttTimeoutError:
             logger.debug(f'捕获到强制抛出的 SttTimeoutError, 使用已识别的文件 {subtitle_srt}')
-            return tools.get_subtitle_from_srt(subtitle_srt, is_file=True)
+            return get_subtitle_from_srt(subtitle_srt, is_file=True)

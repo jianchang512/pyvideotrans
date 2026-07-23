@@ -30,5 +30,5 @@ class ListenVoice(QThread):
             from videotrans.configure.excepts import get_msg_from_except
             import traceback
             except_msg=get_msg_from_except(e)
-            msg = f'{except_msg}:\n' + traceback.format_exc()
+            msg = f'{except_msg}:\n{self.queue_tts[0]}\n' + traceback.format_exc()
             self.uito.emit(msg)

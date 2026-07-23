@@ -1,3 +1,4 @@
+"""
 from videotrans.process._stt_openai import openai_whisper
 from videotrans.process._stt_faster import faster_whisper
 from videotrans.process._stt_pipe import pipe_asr
@@ -12,3 +13,4 @@ __all__ = [
     'paraformer', 'funasr_mlt',
     '_write_log', '_remove_unwanted_characters', '_resegment','mosstrans_asr'
 ]
+"""

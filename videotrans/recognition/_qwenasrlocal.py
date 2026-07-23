@@ -10,7 +10,6 @@ from videotrans.configure import config
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
 
 
 
@@ -21,7 +20,7 @@ class QwenasrlocalRecogn(BaseRecogn):
         self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}'
     
     def _download(self):
-        print(f'{defaulelang=}')
+        from videotrans.util import tools
         if defaulelang == 'zh':
             tools.check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}', callback=self._process_callback,
                                     local_dir=self.local_dir)

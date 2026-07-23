@@ -1,7 +1,6 @@
-import re
+import re,sys
 import aiohttp
 import requests
-
 from requests.exceptions import TooManyRedirects, MissingSchema, InvalidSchema, InvalidURL, ProxyError, SSLError, \
     Timeout, ConnectionError as ReqConnectionError, RetryError, HTTPError
 from tenacity import RetryError as TenRetryError
@@ -197,6 +196,13 @@ def _handle_connection_error_detail(error, lang):
     return base_message
 
 
+
+def _nofoundfile(e,lang):
+    filename=getattr(e, 'filename', '')
+    if sys.platform=='win32' and filename and "/tmp/" not in filename and len(filename)>250:
+        return f'请检查文件是否存在，若存在，可能文件名可能过长，请重命名为简短名称，并移动到浅层目录下:\n{filename}' if lang=='zh' else f'The filename may be too long. Please rename it to a shorter name and move it to a shallow directory.:\n{filename}'
+    return f"文件不存在：{filename}" if lang == 'zh' else f"File not found: {filename}"
+
 # 根据异常类型，返回整理后的可读性错误消息
 def get_msg_from_except(ex:Exception)->str:
     if isinstance(ex, VideoTransError):
@@ -264,8 +270,7 @@ def get_msg_from_except(ex:Exception)->str:
         (RuntimeError, ValueError, requests.exceptions.RequestException): lambda e: f"{e}",
 
         FileNotFoundError: lambda e: (
-            f"文件不存在：{getattr(e, 'filename', '')}" if lang == 'zh'
-            else f"File not found: {getattr(e, 'filename', '')}"
+            _nofoundfile(e,lang)
         ),
 
         PermissionError: lambda e: (
