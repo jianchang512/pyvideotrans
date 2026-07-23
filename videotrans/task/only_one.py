@@ -102,7 +102,12 @@ class Worker(QThread):
                     Path(f'{trk.cfg.cache_folder}/queue_tts.json').write_text(
                         json.dumps(trk.queue_tts, ensure_ascii=False), encoding='utf-8')
 
+                    app_cfg.onlyone_voice_autorate=trk.cfg.voice_autorate
+                    app_cfg.onlyone_video_autorate=trk.cfg.video_autorate
+                    app_cfg.remove_silent_mid=trk.cfg.remove_silent_mid
+                    app_cfg.align_sub_audio=trk.cfg.align_sub_audio
                     app_cfg.set_countdown(86400)
+                    
                     # 等待修改配音结果或重新配音
                     self._post(text=f"{trk.cfg.cache_folder}<|>{trk.cfg.target_language_code}", type='edit_dubbing')
                     self._post(text=tr('The subtitle editing interface is rendering'))
@@ -110,6 +115,10 @@ class Worker(QThread):
                         if self._exit(): return
                         time.sleep(1)
                         app_cfg.set_countdown(app_cfg.task_countdown - 1)
+                    trk.cfg.voice_autorate=app_cfg.onlyone_voice_autorate
+                    trk.cfg.video_autorate=app_cfg.onlyone_video_autorate
+                    trk.cfg.remove_silent_mid=app_cfg.onlyone_remove_silent_mid
+                    trk.cfg.align_sub_audio=app_cfg.onlyone_align_sub_audio
 
             if self._exit(): return
             trk.align()

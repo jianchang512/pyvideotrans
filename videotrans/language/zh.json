@@ -902,6 +902,7 @@
 		"Calculating sync adjustments":"计算同步对齐策略...",
 		"Preparing data":"清洗数据准备执行对齐...",
 		"Concatenating final audio":"连接所有音频片段...",
-		"Concat videos":"连接所有视频频片段..."
+		"Concat videos":"连接所有视频频片段...",
+		"You can select again whether to enable voice acceleration video slow":"可以再次选择是否启用[配音加速/视频慢速]，将在下一步对齐阶段中生效"
 		
 }

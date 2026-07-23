@@ -27,6 +27,7 @@ class AlignMixin:
         if vail_file(self.cfg.novoice_mp4):
             self.video_time = get_video_duration(self.cfg.novoice_mp4)
         from videotrans.task._rate import SpeedRate
+        print(f'{self.cfg.voice_autorate=},{self.cfg.video_autorate=}')
         rate_inst = SpeedRate(
             queue_tts=self.queue_tts,
             uuid=self.uuid,

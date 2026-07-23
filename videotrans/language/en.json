@@ -690,7 +690,7 @@
     "Cannot overlap with previous subtitle": "Cannot overlap with previous subtitle",
     "Shortened": "Shortened",
     "Exceeded": "Exceeded",
-    "Shortened and Exceeded mean": "[Exceeded]：dubbing duration longer than original; [Shortened] : dubbing duration shorter than the original.",
+    "Shortened and Exceeded mean": "[Exceeded]:dubbing duration longer than original; [Shortened]:dubbing duration shorter than the original.",
     "Detection microphone": "Detection microphone",
     "whisperx-tips": "Please deploy and start the whisperx-api project, and enter http://127.0.0.1:9092 in the API address box. \nFor detailed installation and usage instructions, please click the Help/Tutorials button to view. \nWhisperx-api project address: https://github.com/jianchang512/whisperx-api",
     "Retry failed": "Retry failed",
@@ -900,6 +900,7 @@
 		"Calculating sync adjustments":"Calculating sync adjustments...",
 		"Preparing data":"Preparing data...",
 		"Concatenating final audio":"Concatenating final audio...",
-		"Concat videos":"Concat all videos..."
+		"Concat videos":"Concat all videos...",
+		"You can select again whether to enable voice acceleration video slow":"You can select again whether to enable [voice acceleration/video slow], which will take effect in the next alignment phase"
 
 }

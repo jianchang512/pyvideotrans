@@ -10,12 +10,12 @@ from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QWidget, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView,
-    QMessageBox, QMenu, QInputDialog, QSplitter, QStackedLayout
+    QMessageBox, QMenu, QInputDialog, QSplitter, QStackedLayout, QCheckBox
 )
 from pydub import AudioSegment
 
 from videotrans import tts
-from videotrans.configure.config import ROOT_DIR, tr, settings, logger
+from videotrans.configure.config import ROOT_DIR, tr, settings, logger,app_cfg
 from videotrans.util import tools
 
 
@@ -49,7 +49,7 @@ class EditDubbingResultDialog(QDialog):
             novoice_mp4: str = None,
             language=None,
             cache_folder: str = None,
-            parent=None,
+            parent=None
     ):
         super().__init__()
         self.parent = parent
@@ -80,7 +80,7 @@ class EditDubbingResultDialog(QDialog):
         # Top Bar
         hstop = QHBoxLayout()
         self.prompt_label = QLabel(tr("You can check the voiceover here, or modify the text and re-encode the voiceover. Please stop the countdown before proceeding"))
-        self.prompt_label.setStyleSheet('font-size:14px;color:#aaaaaa')
+        self.prompt_label.setStyleSheet('font-size:14px;color:#999999')
         self.prompt_label.setWordWrap(True)
         hstop.addWidget(self.prompt_label)
 
@@ -93,16 +93,21 @@ class EditDubbingResultDialog(QDialog):
         main_layout.addLayout(hstop)
 
         # 操作提示
+        htips = QHBoxLayout()
+        
         prompt_label2 = QLabel(tr("Right-click: Menu | << >> : Adjust time")+"\n"+tr('Shortened and Exceeded mean'))
-        prompt_label2.setAlignment(Qt.AlignCenter)
+        #prompt_label2.setAlignment(Qt.AlignCenter)
         prompt_label2.setWordWrap(True)
-        prompt_label2.setStyleSheet("font-size: 14px;")
-        main_layout.addWidget(prompt_label2)
+        prompt_label2.setStyleSheet("font-size: 14px;color:#999999")
+        htips.addWidget(prompt_label2)
+        #htips.addStretch()
         self.video_hint = QLabel(tr("Previewing a dubbed line will sync-play the video segment"))
-        self.video_hint.setStyleSheet("color:#ffcc00; font-size:13px; background-color:transparent;")
-        self.video_hint.setAlignment(Qt.AlignCenter)
+        self.video_hint.setStyleSheet("color:#ffcc00; font-size:12px; background-color:transparent;")
+        #self.video_hint.setAlignment(Qt.AlignCenter)
         self.video_hint.setWordWrap(True)
-        main_layout.addWidget(self.video_hint)
+        htips.addWidget(self.video_hint)
+        main_layout.addLayout(htips)
+        
 
 
         # ===================== Splitter: video (top) + table (bottom) =====================
@@ -168,6 +173,50 @@ class EditDubbingResultDialog(QDialog):
         help_button.setStyleSheet("background-color:transparent")
         help_button.clicked.connect(self.help_doc)
         
+        
+        hautorate=QHBoxLayout()
+        
+        self.voice_autorate = QCheckBox()
+        self.voice_autorate.setObjectName("voice_autorate")
+        self.voice_autorate.setChecked(app_cfg.onlyone_voice_autorate)
+        self.voice_autorate.setText(tr("Dubbing acceler"))
+        
+        self.video_autorate = QCheckBox()
+        self.video_autorate.setObjectName("voice_autorate")
+        self.video_autorate.setChecked(app_cfg.onlyone_video_autorate)
+        self.video_autorate.setText(tr("Slow video"))
+        
+        self.remove_silent_mid = QCheckBox()
+        self.remove_silent_mid.setObjectName("remove_silent_mid")
+        self.remove_silent_mid.setChecked(app_cfg.onlyone_remove_silent_mid)
+        self.remove_silent_mid.setText(tr("Del inline mute?"))
+        
+        self.align_sub_audio = QCheckBox()
+        self.align_sub_audio.setObjectName("align_sub_audio")
+        self.align_sub_audio.setChecked(app_cfg.onlyone_align_sub_audio)
+        self.align_sub_audio.setText(tr("Align subtitles and audio"))
+
+        self.remove_silent_mid.setVisible(not app_cfg.onlyone_voice_autorate and not app_cfg.onlyone_video_autorate)
+        self.align_sub_audio.setVisible(not app_cfg.onlyone_voice_autorate and not app_cfg.onlyone_video_autorate)
+        
+        
+        self.voice_autorate.toggled.connect(self.check_voice_autorate)
+        self.video_autorate.toggled.connect(self.check_video_autorate)
+        
+        tipslabe=QLabel(tr('You can select again whether to enable voice acceleration video slow'))
+        tipslabe.setStyleSheet("""color:#999999""")
+        hautorate.addWidget(self.voice_autorate)
+        hautorate.addWidget(self.video_autorate)
+        hautorate.addWidget(self.remove_silent_mid)
+        hautorate.addWidget(self.align_sub_audio)
+        hautorate.addWidget(tipslabe)       
+        hautorate.addStretch()
+        
+        
+        
+       
+        bottom_layout.addLayout(hautorate)
+        
         bottom_btn_layout = QHBoxLayout()
         bottom_btn_layout.addStretch()
         bottom_btn_layout.addWidget(self.save_button)
@@ -182,6 +231,22 @@ class EditDubbingResultDialog(QDialog):
 
         # 延迟加载表格
         QTimer.singleShot(200, self.load_table)
+
+    def check_voice_autorate(self, state):
+        if state:
+            self.remove_silent_mid.setVisible(False)
+            self.align_sub_audio.setVisible(False)
+        elif not self.video_autorate.isChecked():
+            self.remove_silent_mid.setVisible(True)
+            self.align_sub_audio.setVisible(True)
+
+    def check_video_autorate(self, state):
+        if state:
+            self.remove_silent_mid.setVisible(False)
+            self.align_sub_audio.setVisible(False)
+        elif not self.voice_autorate.isChecked():
+            self.remove_silent_mid.setVisible(True)
+            self.align_sub_audio.setVisible(True)
 
     def help_doc(self):
         tools.open_url('https://pyvideotrans.com/danshipin')
@@ -851,6 +916,10 @@ class EditDubbingResultDialog(QDialog):
     def save_and_close(self):
         self._release_media()
         self.save_button.setDisabled(True)
+        app_cfg.onlyone_video_autorate=self.video_autorate.isChecked()
+        app_cfg.onlyone_voice_autorate=self.voice_autorate.isChecked()
+        app_cfg.onlyone_remove_silent_mid=self.remove_silent_mid.isChecked()
+        app_cfg.onlyone_align_sub_audio=self.align_sub_audio.isChecked()
         
         for i, item in enumerate(self.queue_tts):
             # 不修改文本，以便可以单独使用 各种配音渠道支持的控制符号进行声音微调

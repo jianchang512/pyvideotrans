@@ -39,13 +39,18 @@ class AppCfg:
     video_codec: Any = None
     codec_cache: Dict = field(default_factory=dict)
     line_roles: Dict = field(default_factory=dict)
+    
     onlyone_source_sub: Any = None
     onlyone_source_wav: Any = None
     onlyone_target_sub: Any = None
     onlyone_target_wav: Any = None
     onlyone_novoice_mp4: Any = None
-    
+    onlyone_voice_autorate:bool=True
+    onlyone_video_autorate:bool=False    
+    onlyone_align_sub_audio:bool=True
+    onlyone_remove_silent_mid:bool=False
     onlyone_trans: bool = False
+    
     dubbing_role: Dict = field(default_factory=dict)
     SUPPORT_LANG: Dict = field(default_factory=dict)
     proxy: str = ''
