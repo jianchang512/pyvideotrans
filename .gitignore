@@ -10,18 +10,15 @@
 *.pyi
 *.mp4
 .agree.txt
-.git
-.github
 .idea
 .venv
 .pytest_cache
 .mimocode
 .ruff_cache
 AGENTS.md
-err.txt
-nolang.txt
 edgetts.txt
 debug*.py
+test.py
 ceshi*
 ffmpeg/ffmpeg.exe
 ffmpeg/ffprobe.exe
@@ -47,12 +44,9 @@ venv
 chatterbox
 !f5-tts/nverguo.wav
 !f5-tts/cosy.wav
-apidata
 dist
 source
 build
-ytlinux
-ytdarwin
 __pycache__
 pretrained_models
 runtime
@@ -66,4 +60,3 @@ guide/
 .Trashes
 ehthumbs.db
 Thumbs.db
-test.py
