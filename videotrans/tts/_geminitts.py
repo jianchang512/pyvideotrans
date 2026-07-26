@@ -11,6 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.configure.config import params, logger, settings
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
+from videotrans.util.help_misc import vail_file
 
 
 @dataclass
@@ -18,6 +19,7 @@ class GEMINITTS(BaseTTS):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         role = data_item['role']
         try:
             self.generate_tts_segment(data_item['text'], role, params.get('gemini_ttsmodel',''),

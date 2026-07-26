@@ -5,6 +5,7 @@ import subprocess
 import sys
 import time
 import getpass
+from pathlib import Path
 
 
 class LifecycleMixin:
@@ -56,8 +57,8 @@ class LifecycleMixin:
             logger.exception(f"Error using pkill: {e}", exc_info=True)
 
     def closeEvent(self, event):
-        from videotrans.configure.config import app_cfg, ROOT_DIR, TEMP_ROOT
-
+        from videotrans.configure.config import app_cfg, ROOT_DIR, TEMP_ROOT,REDUBB_STATUS_FILE
+        Path(REDUBB_STATUS_FILE).write_text('end')
         app_cfg.exit_soft = True
         app_cfg.current_status = 'stop'
         self.hide()

@@ -1,12 +1,9 @@
 from dataclasses import dataclass
 from typing import Union, Dict, List
 from pathlib import Path
-import wave
-
 from gradio_client import handle_file
-from videotrans.configure.config import params
 from videotrans.tts._gradio import GradioBase
-
+from videotrans.util.help_misc import vail_file
 
 
 @dataclass
@@ -17,6 +14,7 @@ class CosyVoice(GradioBase):
         self.speed = max(0.5, min(2.0, self.get_speed()))
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1)->Union[str, None]:
+        if vail_file(data_item['filename']):return
         ref_wav,prompt_text = self.get_ref_wav(data_item)
         if not ref_wav or not Path(ref_wav).exists() or Path(ref_wav).stat().st_size == 0:
             return f"CosyVoice reference audio is empty or missing: {ref_wav}"

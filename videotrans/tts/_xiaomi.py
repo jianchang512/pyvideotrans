@@ -9,6 +9,8 @@ from openai import OpenAI,AuthenticationError, PermissionDeniedError, NotFoundEr
 import base64
 from dataclasses import dataclass
 
+from videotrans.util.help_misc import vail_file
+
 
 @dataclass
 class XiaoMiTTS(BaseTTS):
@@ -19,6 +21,7 @@ class XiaoMiTTS(BaseTTS):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         refer_text=''
         if idx>-1:
             refer_text=" ".join([it['text'] for it in self.queue_tts[max(0,idx-5):min(idx+6,len(self.queue_tts))]])

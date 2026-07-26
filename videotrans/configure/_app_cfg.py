@@ -50,6 +50,8 @@ class AppCfg:
     onlyone_align_sub_audio:bool=True
     onlyone_remove_silent_mid:bool=False
     onlyone_trans: bool = False
+
+
     
     dubbing_role: Dict = field(default_factory=dict)
     SUPPORT_LANG: Dict = field(default_factory=dict)

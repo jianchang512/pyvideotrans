@@ -1,6 +1,8 @@
+import json
+import time
 from dataclasses import dataclass
 from pathlib import Path
-
+from videotrans.configure._paths import REDUBB_QUEUE_FILE, REDUBB_STATUS_FILE
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.configure.config import ROOT_DIR,app_cfg,logger
 from videotrans.tts._base import BaseTTS
@@ -8,6 +10,9 @@ from videotrans.util import tools
 import wave
 import builtins
 import g2pw.api
+
+from videotrans.util.help_misc import vail_file
+
 _original_open = builtins.open
 
 # 修改 g2pw 读取中文默认为gbk编码问题
@@ -49,8 +54,8 @@ class PiperTTS(BaseTTS):
     def _download(self):
         if not Path(f'{ROOT_DIR}/models/g2pW/g2pw.onnx').exists():
             self.signal(text="Downloading G2PWModel-v2...")
-            
-            tools.down_zip(f"{ROOT_DIR}/models",
+            from videotrans.util.help_down import down_zip
+            down_zip(f"{ROOT_DIR}/models",
                            'https://modelscope.cn/models/himyworld/videotrans/resolve/master/G2PWModel-v2-onnx.zip',
                            self._process_callback)
         return True
@@ -69,35 +74,50 @@ class PiperTTS(BaseTTS):
         )
         ok, err = 0, 0
         _except=None
-        for i, item in enumerate(self.queue_tts):
-            if app_cfg.exit_soft:return
-            if not item.get('text','').strip():
-                continue
-            try:
-                _model_file=role_model.get(item['role'])
-                voice=_model_obj.get(_model_file)
-                if voice is None:
-                    voice = PiperVoice.load(_model_file,use_cuda=True if self.device=='cuda' else False,download_dir=f'{ROOT_DIR}/models')
-                    _model_obj[_model_file]=voice
-                with wave.open(item['filename']+'-24k.wav', "wb") as wav_file:
-                    voice.synthesize_wav(item.get('text'), wav_file,syn_config=syn_config)
-                if not tools.vail_file(item['filename']+'-24k.wav'):
-                    err+=1
-                    continue
-                ok+=1
-                self.convert_to_wav(item['filename']+'-24k.wav',item['filename'])
-                self.signal(text=f"Dubbing {ok}")
-            except Exception as e:
-                logger.exception(f'piper dubbing error',exc_info=True)
-                err+=1
-                _except=e
+        queue_tts=self.queue_tts
+        # 循环，用于轮询重新配音数据，非重新配音时，第一轮直接返回
+        while 1:
+            if self.is_redubb and Path(REDUBB_STATUS_FILE).exists():
+                return True
+            if self.is_redubb:
+                try:
+                    queue_tts=json.loads(Path(REDUBB_QUEUE_FILE).read_text(encoding='utf-8'))
+                except (OSError,json.JSONDecodeError) as e:
+                    logger.exception(f'supertonic-3: {e}',exc_info=True)
+                    raise
 
-        try:
-            del _model_obj
-            import gc
-            gc.collect()
-        except Exception:
-            pass
+
+            for i,item in enumerate(queue_tts):
+                if app_cfg.exit_soft or (self.is_redubb and Path(REDUBB_STATUS_FILE).exists()):
+                    return
+                if vail_file(item['filename']):
+                    continue
+                if not item.get('text','').strip():
+                    continue
+                try:
+                    _model_file=role_model.get(item['role'])
+                    voice=_model_obj.get(_model_file)
+                    if voice is None:
+                        voice = PiperVoice.load(_model_file,use_cuda=True if self.device=='cuda' else False,download_dir=f'{ROOT_DIR}/models')
+                        _model_obj[_model_file]=voice
+                    with wave.open(item['filename']+'-24k.wav', "wb") as wav_file:
+                        voice.synthesize_wav(item.get('text'), wav_file,syn_config=syn_config)
+                    if not vail_file(item['filename']+'-24k.wav'):
+                        err+=1
+                        continue
+                    ok+=1
+                    self.convert_to_wav(item['filename']+'-24k.wav',item['filename'])
+                    self.signal(text=f"Dubbing {ok}")
+                except Exception as e:
+                    logger.exception(f'piper dubbing error',exc_info=True)
+                    err+=1
+                    _except=e
+            if self.is_redubb:
+                time.sleep(0.5)
+                continue
+            break
+
+
 
         if ok==0:
             raise _except if _except else DubbingSrtError('piper dubbing error')

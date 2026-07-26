@@ -8,10 +8,12 @@ from tenacity import retry_if_not_exception_type, stop_after_attempt, wait_fixed
 from videotrans.configure.excepts import StopTask, NO_RETRY_EXCEPT
 from videotrans.configure.config import logger, params, settings
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
 import requests
 import json
 import base64
+
+from videotrans.util.help_misc import vail_file
+from videotrans.util.help_role import get_doubao2_rolelist
 
 
 @dataclass
@@ -46,9 +48,10 @@ class Doubao2TTS(BaseTTS):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         # 角色为实际名字
         role = data_item.get('role','Vivi 2.0')
-        role = tools.get_doubao2_rolelist(role_name=role, langcode=self.language[:2])
+        role = get_doubao2_rolelist(role_name=role, langcode=self.language[:2])
         headers = {
             "X-Api-App-Id": self.appid,
             "X-Api-Access-Key": self.access_token,

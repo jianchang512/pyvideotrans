@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.configure.config import tr, params, logger, settings
 from videotrans.tts._base import BaseTTS
+from videotrans.util.help_misc import vail_file
 
 
 @dataclass
@@ -23,6 +24,7 @@ class CloneVoice(BaseTTS):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         data = {"text": data_item['text'], "language": self.language}
         role = data_item['role']
         if role=='clone'  and (not data_item.get('ref_wav') or not Path(data_item.get('ref_wav')).exists()):

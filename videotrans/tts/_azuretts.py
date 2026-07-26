@@ -7,13 +7,16 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.configure.config import params, logger, settings
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
+from videotrans.util.help_misc import vail_file
+from videotrans.util.help_role import get_azure_rolelist
+
 
 @dataclass
 class AzureTTS(BaseTTS):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         try:
             filename = data_item['filename'] + f"-generate.wav"
             speech_config = speechsdk.SpeechConfig(
@@ -32,13 +35,13 @@ class AzureTTS(BaseTTS):
                                         {}
                                         </prosody>
                                     </voice>
-                                    </speak>""".format(self.language, tools.get_azure_rolelist(self.language.split('-')[0],data_item['role']), self.rate, self.pitch,
+                                    </speak>""".format(self.language, get_azure_rolelist(self.language.split('-')[0],data_item['role']), self.rate, self.pitch,
                                                        self.volume,
                                                        text_xml)
             logger.debug(f'{ssml=}')
             speech_synthesis_result = speech_synthesizer.speak_ssml_async(ssml).get()
             if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-                if tools.vail_file(filename):
+                if vail_file(filename):
                     self.convert_to_wav(filename, data_item['filename'])
                 else:
                     return 'TTS Error'

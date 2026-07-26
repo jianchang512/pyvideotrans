@@ -9,17 +9,20 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.configure.config import params, logger, settings
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
 from videotrans import translator
 
 # 强制单线程 防止远端限制出错
+from videotrans.util.help_misc import vail_file
+from videotrans.util.help_role import get_qwen3tts_rolelist
+
+
 @dataclass
 class QWENTTS(BaseTTS):
     target_language: str = None
     
     def __post_init__(self):
         super().__post_init__()
-        self.role_dict=tools.get_qwen3tts_rolelist()
+        self.role_dict=get_qwen3tts_rolelist()
         self.api_key=params.get('qwentts_key', '')
         spaceid=params.get('qwentts_spaceid', '')
         if spaceid:
@@ -32,6 +35,7 @@ class QWENTTS(BaseTTS):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         role = self.role_dict.get(data_item['role'],'Cherry')
         try:
             logger.debug(f"[Qwen-TTS(bailian)]{self.model=},{self.api_key=},{role=},{data_item['text']=},{self.target_language=}")

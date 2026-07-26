@@ -8,6 +8,8 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
+from videotrans.util.help_misc import vail_file
+
 
 @dataclass
 class KokoroTTS(BaseTTS):
@@ -25,6 +27,7 @@ class KokoroTTS(BaseTTS):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         data = {"input": data_item['text'], "voice": data_item['role'], "speed": self.speed}
         
         try:

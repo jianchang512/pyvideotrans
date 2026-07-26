@@ -3,6 +3,7 @@ from typing import List, Dict, Union
 
 from gradio_client import handle_file
 from videotrans.tts._gradio import GradioBase
+from videotrans.util.help_misc import vail_file
 
 
 @dataclass
@@ -12,6 +13,7 @@ class SparkTTS(GradioBase):
         super().__post_init__()
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         ref_wav,ref_text = self.get_ref_wav(data_item)
         kwargs = {
             "text":data_item['text'].strip(),

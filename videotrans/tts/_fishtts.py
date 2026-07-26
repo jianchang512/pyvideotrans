@@ -6,7 +6,9 @@ import requests
 from videotrans.configure.config import params, logger,tr
 from videotrans.configure.excepts import StopTask
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
+from videotrans.util.help_misc import vail_file
+from videotrans.util.help_role import get_f5tts_role
+
 
 @dataclass
 class FishTTS(BaseTTS):
@@ -15,9 +17,10 @@ class FishTTS(BaseTTS):
         self.api_url = 'http://' +params.get('fishtts_url', '').strip().rstrip('/').lower().replace('http://', '')
         if len(self.api_url)<10:
             raise StopTask(f'API URL is error: {self.api_url}')
-        self.roledict = tools.get_f5tts_role()
+        self.roledict = get_f5tts_role()
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         ref_wav, ref_text = self.get_ref_wav(data_item)
         data = {
             "text": data_item['text'],

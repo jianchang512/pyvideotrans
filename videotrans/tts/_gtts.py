@@ -8,7 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.configure.config import tr,params,settings,app_cfg,logger
 from videotrans.configure.excepts import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
+from videotrans.util.help_misc import vail_file
 
 RETRY_NUMS = 2
 RETRY_DELAY = 5
@@ -32,7 +32,7 @@ class GTTS(BaseTTS):
                wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
                after=after_log(logger, logging.INFO))
         def _run():
-            if self._exit() or tools.vail_file(data_item['filename']):
+            if self._exit() or vail_file(data_item['filename']):
                 return
 
             lans = self.language.split('-')

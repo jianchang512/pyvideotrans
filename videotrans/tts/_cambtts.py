@@ -8,11 +8,12 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.configure.config import params, logger, ROOT_DIR, settings
 from videotrans.configure.excepts import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
 from camb.client import CambAI
 from camb.types.stream_tts_output_configuration import StreamTtsOutputConfiguration
 
 # Map pyvideotrans language codes to CAMB AI locale strings
+from videotrans.util.help_misc import get_md5, vail_file
+
 LANG_TO_CAMB_LOCALE = {
     "en": "en-us",
     "zh-cn": "zh-cn",
@@ -39,6 +40,8 @@ LANG_TO_CAMB_LOCALE = {
     "nl": "nl-nl",
     "sv": "sv-se",
     "he": "he-il",
+    "el": "el-el",
+    "km": "km-km",
     "bn": "bn-bd",
     "fa": "fa-ir",
     "fil": "fil-ph",
@@ -52,6 +55,7 @@ class CambTTS(BaseTTS):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         role = data_item['role']
         # Determine locale
         locale = LANG_TO_CAMB_LOCALE.get(self.language, LANG_TO_CAMB_LOCALE.get(self.language[:2], "en-us"))
@@ -107,7 +111,7 @@ class CambTTS(BaseTTS):
 
     def _get_or_create_clone_voice(self, ref_wav):
         """Upload reference audio to create a cloned voice, caching the voice_id."""
-        cache_key = f'camb_clone_{tools.get_md5(ref_wav)}'
+        cache_key = f'camb_clone_{get_md5(ref_wav)}'
         cached_id = params.get(cache_key)
         if cached_id:
             return cached_id

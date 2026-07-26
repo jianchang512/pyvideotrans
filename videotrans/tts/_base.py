@@ -58,6 +58,9 @@ class BaseTTS(BaseCon):
     # 启用CUDA，仅 qwen3-tts-local 游戏哦啊
     is_cuda: bool = False
     local_dir: str = None
+    # 单视频模式下，配音校对面板可能需要重新配音，对于 F5-TTS等重型独立配音进程不能再任务完成后退出，需轮询等待是否有新的配音任务
+    # is_redubb is True 代表是配音校对面板发起的
+    is_redubb:bool=False
 
     def __post_init__(self):
         super().__post_init__()

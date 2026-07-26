@@ -150,13 +150,12 @@ def initialize_full_app(start_window, app_instance):
     from videotrans.mainwin.main_win import MainWindow
     try:
         screen = QGuiApplication.primaryScreen().geometry()
+        w, h = int(screen.width()), int(screen.height())
         sets = QSettings("pyvideotrans", "settings")
-        w, h = int(screen.width() * 0.85), int(screen.height() * 0.85)
-        size = sets.value("windowSize", QSize(w, h))
-        w, h = size.width(), size.height()
+        size = sets.value("windowSize", QSize(int(w*0.85), int(h*0.85)))
         start_window.update_lable('Initializing UI...')
         QApplication.processEvents()
-        start_window.main_window = MainWindow(width=w, height=h,callback=start_window.update_lable)
+        start_window.main_window = MainWindow(width=size.width(), height=size.height(),callback=start_window.update_lable,screen_size=[w,h])
     except Exception as e:
         show_global_error_dialog(type(e), e, e.__traceback__)
         app_instance.quit()

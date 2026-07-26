@@ -69,6 +69,19 @@ SUPPORT_CLONE = [
     CONFUCIUS_TTS,
     ZIPVOICE_TTS
 ]
+# 本地内置，在单视频模式下 校对配音时，需 is_redubb 特殊处理
+LOCAL_BUILTIN=[
+QWEN3LOCAL_TTS,
+F5_TTS,
+OMNIVOICE_TTS,
+CONFUCIUS_TTS,
+MOSS_TTS,
+ZIPVOICE_TTS,
+PIPER_TTS,
+CHATTERBOX_TTS,
+Supertonic_TTS,
+VITSCNEN_TTS
+]
 
 
 # 配音角色根据语言不同而变化的渠道
@@ -185,7 +198,7 @@ def clone_tips(tts_type, role: str = 'No', recogn_type=9):
 
 
 # 统一调用 tts渠道入口，通过 tts_type 调用对应渠道
-def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, tts_type=0, is_cuda=False) -> None:
+def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, tts_type=0, is_cuda=False,is_redubb=False) -> None:
     # 需要并行的数量3
     if len(queue_tts) < 1 or app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set): return
 
@@ -196,7 +209,8 @@ def run(*, queue_tts=None, language=None, uuid=None, play=False, is_test=False, 
         "play": play,
         "is_test": is_test,
         "tts_type": tts_type,
-        "is_cuda": is_cuda
+        "is_cuda": is_cuda,
+        "is_redubb":is_redubb
     }
 
     _cls: Union[Type[BaseTTS], None] = get_class(tts_type, "tts", _ID_NAME_DICT)

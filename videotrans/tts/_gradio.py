@@ -10,9 +10,10 @@ from tenacity import wait_fixed, before_log, after_log, stop_after_attempt, retr
 from videotrans.configure.config import params, logger, settings,tr
 from videotrans.configure.excepts import StopTask, NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
 import urllib3,httpx
 
+from videotrans.util.help_misc import vail_file
+from videotrans.util.help_role import get_f5tts_role
 
 thread_local = threading.local()
 
@@ -27,7 +28,7 @@ class GradioBase(BaseTTS):
         if len(api_url)<4:
             raise StopTask(f'API URL is error: {api_url}')
         self.api_url = f'http://{api_url}' if not api_url.startswith('http') else api_url
-        self.roledict = tools.get_f5tts_role()
+        self.roledict = get_f5tts_role()
 
     def get_thread_client(self)->Client:
         # 检查当前线程是否已经有存活的 client
@@ -44,7 +45,7 @@ class GradioBase(BaseTTS):
     # 实际发送进行推理
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _send(self, kwargs,data_item)->Union[str,None]:
-        if self._exit() or not data_item.get('text','').strip() or tools.vail_file(data_item['filename']):
+        if self._exit() or not data_item.get('text','').strip() or vail_file(data_item['filename']):
             return
         try:
             logger.debug(f'TTS-name={self.ainame}')

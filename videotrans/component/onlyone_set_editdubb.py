@@ -1,5 +1,7 @@
 import json
+import random
 import threading
+import time
 import traceback
 from pathlib import Path
 
@@ -15,14 +17,70 @@ from PySide6.QtWidgets import (
 from pydub import AudioSegment
 
 from videotrans import tts
-from videotrans.configure.config import ROOT_DIR, tr, settings, logger,app_cfg
+
+from videotrans.configure.config import ROOT_DIR, tr, settings, logger,app_cfg,REDUBB_QUEUE_FILE,REDUBB_STATUS_FILE
 from videotrans.util import tools
 
+# 需要重新配音的队列
+from videotrans.util.help_misc import vail_file, atomic_write_json
 
+# 存储待配音数据,以文件名为key
+_REDUBB_QUEUE={}
+# 存储文件名映射行index
+_FILENAME_ROW_MAP={}
+
+# 本地内置TTS渠道，只启动一个配音任务
 class ReDubb(QThread):
     uito = Signal(str)
 
-    def __init__(self, *, parent=None, idx=0, tts_dict=None, language=None):
+    def __init__(self, *, parent=None, tts_dict=None, language=None):
+        super().__init__(parent=parent)
+        self.tts_dict = tts_dict
+        self.language = language
+        atomic_write_json([tts_dict],REDUBB_QUEUE_FILE)
+
+    def _checking_task(self):
+        """检测重新配音是否完成，完成发送信号，未完成重新写入文件"""
+        while 1:
+            if Path(REDUBB_STATUS_FILE).exists():
+                return
+            time.sleep(0.5)
+            # _noend_dict={}
+            _shound_pop=[]
+            for filename,it in _REDUBB_QUEUE.items():
+                if Path(REDUBB_STATUS_FILE).exists():
+                    return
+                print(f'判断是否:{filename=}')
+                if vail_file(filename):
+                    print(f'存在 {filename=}')
+                    _shound_pop.append(filename)
+                    self.uito.emit(f"ok:{_FILENAME_ROW_MAP[filename]}")
+
+            # 移除已生成的
+            for filename in _shound_pop:
+                if vail_file(filename):
+                    _REDUBB_QUEUE.pop(filename)
+
+    def run(self):
+        try:
+            threading.Thread(target=self._checking_task).start()
+            tts.run(
+                queue_tts=[self.tts_dict],
+                language=self.language,
+                tts_type=self.tts_dict['tts_type'],
+                is_redubb=True
+            )
+        except Exception as e:
+            from videotrans.configure.excepts import get_msg_from_except
+            except_msg = get_msg_from_except(e)
+            msg = f'error:{except_msg}:\n' + traceback.format_exc()
+            self.uito.emit(msg)
+
+# 非本地，直接一个重新配音起一个配音任务
+class ReDubbNolocal(QThread):
+    uito = Signal(str)
+
+    def __init__(self, *, parent=None, idx=None, tts_dict=None, language=None):
         super().__init__(parent=parent)
         self.tts_dict = tts_dict
         self.language = language
@@ -33,14 +91,15 @@ class ReDubb(QThread):
             tts.run(
                 queue_tts=[self.tts_dict],
                 language=self.language,
-                tts_type=self.tts_dict['tts_type']
+                tts_type=self.tts_dict['tts_type'],
             )
             self.uito.emit(f"ok:{self.idx}")
         except Exception as e:
             from videotrans.configure.excepts import get_msg_from_except
             except_msg = get_msg_from_except(e)
-            msg = f'{except_msg}:\n' + traceback.format_exc()
+            msg = f'error:{except_msg}:\n' + traceback.format_exc()
             self.uito.emit(msg)
+
 
 
 class EditDubbingResultDialog(QDialog):
@@ -56,10 +115,12 @@ class EditDubbingResultDialog(QDialog):
         self.language = language
         self.cache_folder = cache_folder
         self.novoice_mp4 = novoice_mp4
-        self._target_end_ms = -1
         self._video_end_ms = -1
         self._audio_playing = False
         self.queue_tts = []
+
+        # 任务
+        self.task=None
         queue_tts_file = Path(f'{cache_folder}/queue_tts.json')
         if queue_tts_file.exists():
             try:
@@ -69,8 +130,9 @@ class EditDubbingResultDialog(QDialog):
 
         self.setWindowTitle(tr("Proofreading and dubbing - Re-dubbing"))
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setMinimumWidth(1200)
-        self.setMinimumHeight(700)
+
+        self.setMinimumWidth(int(parent.screen_size[0]*0.95))
+        self.setMinimumHeight(int(parent.screen_size[1]*0.9))
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMaximizeButtonHint)
 
         self.count_down = int(float(settings.get('countdown_sec', 1)))
@@ -255,19 +317,26 @@ class EditDubbingResultDialog(QDialog):
         """极致性能加载表格"""
         if not self.isVisible():
             return
+        try:
+            if Path(REDUBB_QUEUE_FILE).exists():
+                Path(REDUBB_QUEUE_FILE).unlink(missing_ok=True)
+            if Path(REDUBB_STATUS_FILE).exists():
+                Path(REDUBB_STATUS_FILE).unlink(missing_ok=True)
+        except OSError:
+            pass
 
         try:
             # 1. 创建 QTableWidget - 6列
             # 列：Line | Play | Start | End | Status | Text
             self.table.setColumnCount(6)
             self.table.setHorizontalHeaderLabels([
-                tr("Line"), "\u23F5", tr("Start Time"), tr("End Time"), tr("Dubbed Status"), tr("Subtitle Text")
+                tr("Line"), tr("Play"), tr("Start Time"), tr("End Time"), tr("Dubbed Status"), tr("Subtitle Text")
             ])
             
             # 2.
             self.table.setShowGrid(True)
             self.table.setAlternatingRowColors(False)
-            self.table.setWordWrap(False)
+            self.table.setWordWrap(True)
             self.table.setMouseTracking(False)
             self.table.setFocusPolicy(Qt.StrongFocus)
             self.table.setSelectionMode(QAbstractItemView.SingleSelection)
@@ -276,8 +345,8 @@ class EditDubbingResultDialog(QDialog):
             # 垂直表头
             v_header = self.table.verticalHeader()
             v_header.setVisible(False)
-            v_header.setSectionResizeMode(QHeaderView.Fixed)
-            v_header.setDefaultSectionSize(24)  # 更小行高
+            v_header.setSectionResizeMode(QHeaderView.ResizeToContents)
+            v_header.setMinimumSectionSize(24)
             
             # 水平表头
             h_header = self.table.horizontalHeader()
@@ -316,20 +385,14 @@ class EditDubbingResultDialog(QDialog):
                     padding: 2px;
                 }
                 QPushButton#playBtn {
-                    background-color: #3a7c3a;
+                    background-color: transparent;
                     color: white;
                     border: none;
                     border-radius: 2px;
-                    font-size: 9px;
+                    font-size: 14px;
                     padding: 1px 4px;
                     min-width: 20px;
                     max-width: 24px;
-                }
-                QPushButton#playBtn:hover {
-                    background-color: #4caf50;
-                }
-                QPushButton#playBtn:pressed {
-                    background-color: #2e5e2e;
                 }
             """)
             
@@ -394,10 +457,10 @@ class EditDubbingResultDialog(QDialog):
     def _batch_fill(self, start_row, end_row):
         """批量填充表格数据"""
         for row in range(start_row, end_row):
-            item = self.queue_tts[row]
+            data = self.queue_tts[row]
             
             # 0: Line
-            line_item = QTableWidgetItem(str(item['line']))
+            line_item = QTableWidgetItem(str(data['line']))
             line_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             line_item.setData(Qt.UserRole, row)
             self.table.setItem(row, 0, line_item)
@@ -406,31 +469,31 @@ class EditDubbingResultDialog(QDialog):
             btn = QPushButton("\u23F5")
             btn.setObjectName("playBtn")
             btn.setCursor(Qt.PointingHandCursor)
-            s = item['start_time']
-            e = item['end_time']
+            s = data['start_time']
+            e = data['end_time']
             btn.clicked.connect(lambda checked=False, _s=s, _e=e, _r=row: self._listen(_r))
             self.table.setCellWidget(row, 1, btn)
             
             # 2: Start
-            start_item = QTableWidgetItem(f"{item['startraw']}")
+            start_item = QTableWidgetItem(f"{data['startraw']}")
             start_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             start_item.setTextAlignment(Qt.AlignCenter)
             start_item.setToolTip(tr("Double-click: -0.1s | Right-click: adjust"))
             self.table.setItem(row, 2, start_item)
             
             # 3: End
-            end_item = QTableWidgetItem(f"{item['endraw']}")
+            end_item = QTableWidgetItem(f"{data['endraw']}")
             end_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             end_item.setTextAlignment(Qt.AlignCenter)
             end_item.setToolTip(tr("Double-click: +0.1s | Right-click: adjust"))
             self.table.setItem(row, 3, end_item)
             
             # 4: Status
-            msg_item = QTableWidgetItem(item['_msg'])
+            msg_item = QTableWidgetItem(data['_msg'])
             msg_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             msg_item.setTextAlignment(Qt.AlignCenter)
-            dubbing = float(item.get('dubbing_s', 0.0))
-            diff=dubbing - float( item['_duration'])
+            dubbing = float(data.get('dubbing_s', 0.0))
+            diff=dubbing - float( data['_duration'])
             if dubbing <= 0:
                 msg_item.setForeground(QColor("#ff4d4d"))
             elif  diff>0:
@@ -442,7 +505,7 @@ class EditDubbingResultDialog(QDialog):
             self.table.setItem(row, 4, msg_item)
             
             # 5: Text (可编辑)
-            text_item = QTableWidgetItem(item['text'])
+            text_item = QTableWidgetItem(data['text'])
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             self.table.setItem(row, 5, text_item)
 
@@ -606,7 +669,7 @@ class EditDubbingResultDialog(QDialog):
         hours, minutes = divmod(minutes, 60)
         return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d},{int(milliseconds):03d}"
 
-    def _refresh_row(self, row):
+    def _refresh_row(self, row,msg=None):
         """刷新指定行"""
         item = self.queue_tts[row]
         
@@ -624,15 +687,15 @@ class EditDubbingResultDialog(QDialog):
         duration = (item['end_time'] - item['start_time']) / 1000.0
         dubbing = float(item.get('dubbing_s', 0.0))
         diff = round(dubbing - duration, 3)
-        
-        if dubbing <= 0.0:
-            msg = tr('No audio')
-        elif diff > 0:
-            msg = f'[{dubbing}s]{tr("Exceeded")}{diff}s'
-        elif diff < 0:
-            msg = f'[{dubbing}s]{tr("Shortened")}{abs(diff)}s'
-        else:
-            msg = f'{dubbing}s'
+        if not msg:
+            if dubbing <= 0.0:
+                msg = tr('No audio')
+            elif diff > 0:
+                msg = f'[{dubbing}s]{tr("Exceeded")}{diff}s'
+            elif diff < 0:
+                msg = f'[{dubbing}s]{tr("Shortened")}{abs(diff)}s'
+            else:
+                msg = f'{dubbing}s'
         
         msg_item = self.table.item(row, 4)
         if msg_item:
@@ -657,7 +720,9 @@ class EditDubbingResultDialog(QDialog):
         self.audio_player = QMediaPlayer()
         self.audio_output = QAudioOutput()
         self.audio_player.setAudioOutput(self.audio_output)
-        self.audio_player.positionChanged.connect(self._on_audio_position_changed)
+        # self.audio_player.positionChanged.connect(self._on_audio_position_changed)
+        self.audio_player.mediaStatusChanged.connect(self._on_media_status_changed)
+
 
     def _on_video_position_changed(self, position):
         """Stop video when it reaches the subtitle end time."""
@@ -669,15 +734,12 @@ class EditDubbingResultDialog(QDialog):
             self._video_end_ms = -1
             self.video_status.setText(tr("Playback stopped"))
 
-    def _on_audio_position_changed(self, position):
-        """Stop audio when it finishes naturally."""
-        if self._target_end_ms > 0 and position >= self._target_end_ms:
-            try:
-                self.audio_player.stop()
-            except Exception:
-                pass
-            self._target_end_ms = -1
-            self._audio_playing = False
+    def _on_media_status_changed(self, status):
+        if status == QMediaPlayer.EndOfMedia:
+            # 停止播放
+            self.audio_player.stop()
+            # 清空媒体源，释放文件句柄
+            self.audio_player.setSource(QUrl())
 
     def _play_with_video(self, audio_path, video_start_ms, video_end_ms):
         """Play audio to completion while video plays only the segment."""
@@ -735,7 +797,6 @@ class EditDubbingResultDialog(QDialog):
 
     def _do_play(self, video_start_ms, video_end_ms,play_audio=True):
         self._video_end_ms = video_end_ms
-        self._target_end_ms = -1
         self._audio_playing = True
 
         self.video_player.setPosition(video_start_ms)
@@ -754,7 +815,6 @@ class EditDubbingResultDialog(QDialog):
             
 
     def _stop_playback(self):
-        self._target_end_ms = -1
         self._video_end_ms = -1
         self._audio_playing = False
         if not hasattr(self, '_players_created'):
@@ -816,7 +876,7 @@ class EditDubbingResultDialog(QDialog):
         
         # 重置时长
         self.queue_tts[row]['dubbing_s'] = 0.0
-        self._refresh_row(row)
+        self._refresh_row(row,msg=f'{tr("Re-dubbed")}...')
         
         # 获取当前文本
         text_item = self.table.item(row, 5)
@@ -825,11 +885,34 @@ class EditDubbingResultDialog(QDialog):
         # 准备TTS参数
         tts_dict = self.queue_tts[row].copy()
         tts_dict['text'] = current_text
-        
-        # 启动后台线程
-        task = ReDubb(parent=self, idx=row, tts_dict=tts_dict, language=self.language)
-        task.uito.connect(self._on_redub_finished, type=Qt.ConnectionType.QueuedConnection)
-        task.start()
+        if int(tts_dict['tts_type']) not in tts.LOCAL_BUILTIN:
+            self.task = ReDubbNolocal(parent=self, idx=row,tts_dict=tts_dict, language=self.language)
+            self.task.uito.connect(self._on_redub_finished, type=Qt.ConnectionType.QueuedConnection)
+            self.task.start()
+        else:
+            _REDUBB_QUEUE[tts_dict['filename']]=tts_dict
+            _FILENAME_ROW_MAP[tts_dict['filename']]=row
+            try:
+                atomic_write_json([it for it in _REDUBB_QUEUE.values()],REDUBB_QUEUE_FILE)
+            except (OSError,PermissionError):
+                _retry=0
+                while 1:
+                    # 可能遇到权限失败或读写冲突
+                    if _retry>5:
+                        raise
+                    try:
+                        Path(REDUBB_QUEUE_FILE).write_text(json.dumps([it for it in _REDUBB_QUEUE.values()]),encoding='utf-8')
+                    except (OSError,PermissionError):
+                        _retry+=1
+                        time.sleep(round(random.random()*3.5,1))
+                    else:
+                        break
+            # 启动后台线程
+            if not self.task:
+                self.task = ReDubb(parent=self, tts_dict=tts_dict, language=self.language)
+                self.task.uito.connect(self._on_redub_finished, type=Qt.ConnectionType.QueuedConnection)
+                self.task.start()
+
 
     def _on_redub_finished(self, msg):
         """重配音完成回调"""
@@ -861,6 +944,8 @@ class EditDubbingResultDialog(QDialog):
                 video_end_ms=item['end_time'],
             )
         else:
+            # 崩溃停止任务
+            Path(REDUBB_STATUS_FILE).write_text('end')
             QMessageBox.information(self, 'Error', msg)
 
     def _show_error(self, msg):
@@ -881,6 +966,7 @@ class EditDubbingResultDialog(QDialog):
     def cancel_and_close(self):
         if hasattr(self, 'timer') and self.timer:
             self.timer.stop()
+        Path(REDUBB_STATUS_FILE).write_text("end")
         self._release_media()
         self.reject()
 
@@ -914,6 +1000,7 @@ class EditDubbingResultDialog(QDialog):
             self.stop_button = None
 
     def save_and_close(self):
+        Path(REDUBB_STATUS_FILE).write_text("end")
         self._release_media()
         self.save_button.setDisabled(True)
         app_cfg.onlyone_video_autorate=self.video_autorate.isChecked()

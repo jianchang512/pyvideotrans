@@ -73,8 +73,8 @@ class SpeakerAssignmentDialog(QDialog):
 
         self.setWindowTitle(tr("zidonghebingmiaohou"))
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setMinimumWidth(1200)
-        self.setMinimumHeight(700)
+        self.setMinimumWidth(parent.screen_size[0]*0.95)
+        self.setMinimumHeight(parent.screen_size[1]*0.9)
         self.setWindowFlags(
         Qt.WindowStaysOnTopHint |       # 2. 始终在最顶层
             Qt.WindowTitleHint |            # 3. 显示标题栏
@@ -238,7 +238,7 @@ class SpeakerAssignmentDialog(QDialog):
             
             # 2. 【极致性能配置】禁用所有非必要功能
             self.table.setColumnCount(8)
-            self.table.setHorizontalHeaderLabels(["Sel", tr("Line"), tr('Speaker'), tr("Dubbing role"), tr("Time Axis"), "\u23F5", tr("Subtitle Text"),tr("SourceLang Text")])
+            self.table.setHorizontalHeaderLabels(["Sel", tr("Line"), tr('Speaker'), tr("Dubbing role"), tr("Time Axis"), tr("Play"), tr("Subtitle Text"),tr("SourceLang Text")])
             
             # 禁用所有视觉效果
             self.table.setAlternatingRowColors(False)
@@ -251,8 +251,10 @@ class SpeakerAssignmentDialog(QDialog):
             # 禁用焦点
             self.table.setFocusPolicy(Qt.NoFocus)
             
-            # 固定行高，避免动态计算
-            self.table.verticalHeader().setDefaultSectionSize(22)
+            # 长文本自动换行时行高自适应
+            self.table.setWordWrap(True)
+            self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+            self.table.verticalHeader().setMinimumSectionSize(22)
             self.table.verticalHeader().setVisible(False)
             
             # 列宽设置
@@ -264,15 +266,15 @@ class SpeakerAssignmentDialog(QDialog):
             header.setSectionResizeMode(4, QHeaderView.Fixed)  # Time
             header.setSectionResizeMode(5, QHeaderView.Fixed)  # Play
             header.setSectionResizeMode(6, QHeaderView.Stretch)  # Text
-            header.setSectionResizeMode(7, QHeaderView.Fixed)  # SourceText
+            header.setSectionResizeMode(7, QHeaderView.Stretch)  # SourceText
             
             self.table.setColumnWidth(0, 30)
             self.table.setColumnWidth(1, 40)
             self.table.setColumnWidth(2, 50)
             self.table.setColumnWidth(3, 150)
-            self.table.setColumnWidth(4, 180)
+            self.table.setColumnWidth(4, 200)
             self.table.setColumnWidth(5, 30)
-            self.table.setColumnWidth(7, 300)
+            #self.table.setColumnWidth(7, 300)
             
             # 最小样式
             self.table.setStyleSheet("""
@@ -291,20 +293,14 @@ class SpeakerAssignmentDialog(QDialog):
                     padding: 2px;
                 }
                 QPushButton#playBtn {
-                    background-color: #3a7c3a;
+                    background-color: transparent;
                     color: white;
                     border: none;
                     border-radius: 2px;
-                    font-size: 9px;
+                    font-size: 14px;
                     padding: 1px 4px;
                     min-width: 20px;
                     max-width: 24px;
-                }
-                QPushButton#playBtn:hover {
-                    background-color: #4caf50;
-                }
-                QPushButton#playBtn:pressed {
-                    background-color: #2e5e2e;
                 }
             """)
             

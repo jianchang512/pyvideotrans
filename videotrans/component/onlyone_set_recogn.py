@@ -34,8 +34,8 @@ class EditRecognResultDialog(QDialog):
 
         self.setWindowTitle(tr("zimubianjitishi"))
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setMinimumWidth(1200)
-        self.setMinimumHeight(700)
+        self.setMinimumWidth(parent.screen_size[0]*0.95)
+        self.setMinimumHeight(parent.screen_size[1]*0.9)
         self.setWindowFlags(
             Qt.Window |
             Qt.WindowStaysOnTopHint |
@@ -297,20 +297,20 @@ class EditRecognResultDialog(QDialog):
             self.srt_list_dict=tools.get_subtitle_from_srt(self.source_sub)
             self.table.setColumnCount(4)
             self.table.setHorizontalHeaderLabels([
-                tr("Line"), tr('Subtitles') + tr("Time Axis"), "\u23F5", tr("Subtitle Text")
+                tr("Line"), tr('Subtitles') + tr("Time Axis"), tr("Play"), tr("Subtitle Text")
             ])
 
             self.table.setShowGrid(False)
             self.table.setAlternatingRowColors(False)
-            self.table.setWordWrap(False)
+            self.table.setWordWrap(True)
             self.table.setMouseTracking(False)
             self.table.setFocusPolicy(Qt.NoFocus)
             self.table.setSelectionMode(QAbstractItemView.NoSelection)
 
             v_header = self.table.verticalHeader()
             v_header.setVisible(False)
-            v_header.setSectionResizeMode(QHeaderView.Fixed)
-            v_header.setDefaultSectionSize(26)
+            v_header.setSectionResizeMode(QHeaderView.ResizeToContents)
+            v_header.setMinimumSectionSize(26)
 
             h_header = self.table.horizontalHeader()
             h_header.setStretchLastSection(True)
@@ -340,21 +340,16 @@ class EditRecognResultDialog(QDialog):
                     height: 24px;
                 }
                 QPushButton#playBtn {
-                    background-color: #3a7c3a;
-                    color: white;
+                    background-color: transparent;
+                    color: #ffffff;
                     border: none;
                     border-radius: 2px;
-                    font-size: 9px;
+                    font-size: 14px;
                     padding: 1px 4px;
                     min-width: 20px;
                     max-width: 24px;
                 }
-                QPushButton#playBtn:hover {
-                    background-color: #4caf50;
-                }
-                QPushButton#playBtn:pressed {
-                    background-color: #2e5e2e;
-                }
+                
             """)
 
             # Precompute display data

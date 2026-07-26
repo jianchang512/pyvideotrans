@@ -38,6 +38,7 @@ class QwenttsLocal(BaseTTS):
 
 
     def _exec(self):
+
         logs_file = f'{TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
         queue_tts_file = f'{TEMP_DIR}/{self.uuid}/queuetts-{time.time()}.json'
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
@@ -48,21 +49,23 @@ class QwenttsLocal(BaseTTS):
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
             "model_name":self.model_name,
-            "prompt":params.get('qwenttslocal_prompt', '')
+            "prompt":params.get('qwenttslocal_prompt', ''),
+            "is_redubb":self.is_redubb
         }
         from videotrans.process.qwen_tts import qwen3tts_fun
         self._new_process(callback=qwen3tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        if self.is_redubb:return
         self.signal(text=f'convert wav')
         all_task = []
 
         with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:
             for item in self.queue_tts:
+                if vail_file(item['filename']):continue
                 filename=item.get('filename','')+"-24k.wav"
-                if vail_file(filename):
+                if  vail_file(filename):
                     all_task.append(pool.submit(self.convert_to_wav, filename,item['filename']))
             if len(all_task) > 0:
                 _ = [i.result() for i in all_task]
-            else:
-                self.error="No dubbing audio generate, view logs"
+
 
 

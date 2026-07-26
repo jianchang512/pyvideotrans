@@ -4,6 +4,7 @@ import os, re
 import platform
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import is_dataclass, asdict
 from functools import lru_cache
@@ -505,3 +506,16 @@ def show_refaudio_win():
     dialog = RefaudioForm()
     dialog.exec()
     return
+
+
+def atomic_write_json(data, target_path):
+    target = Path(target_path)
+
+    # 创建临时文件
+    fd, tmp_name = tempfile.mkstemp(dir=target.parent, suffix='.tmp', text=True)
+    with os.fdopen(fd, 'w', encoding='utf-8') as f:
+        json.dump(data, f)
+
+    # 原子替换（此处即使进程崩溃，原文件依然完整）
+    os.replace(tmp_name, target_path)
+

@@ -13,10 +13,16 @@ TEMP_ROOT = f'{ROOT_DIR}/tmp'
 LOGS_DIR = f'{ROOT_DIR}/logs'
 TEMP_DIR = f'{TEMP_ROOT}/None'
 TRANSLATE_CACHE = f'{TEMP_ROOT}/translate_cache'
+DUBBING_CACHE = f'{TEMP_ROOT}/dubbing_cache'
+
+# 单视频模式时重新进行配音，队列数据文件和停止标识文件
+REDUBB_QUEUE_FILE=f'{TEMP_ROOT}/redubbing.json'
+REDUBB_STATUS_FILE=f'{TEMP_ROOT}/stopredubbing.pid'
 
 Path(f"{ROOT_DIR}/models").mkdir(parents=True, exist_ok=True)
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
 Path(f"{TRANSLATE_CACHE}").mkdir(parents=True, exist_ok=True)
+Path(f"{DUBBING_CACHE}").mkdir(parents=True, exist_ok=True)
 
 def fix_ssl_cert_env():
     """

@@ -10,9 +10,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 @dataclass
 class F5TTSBuilt(BaseTTS):
-    def __post_init__(self):
-        super().__post_init__()
-
     
     def _download(self):
         language = self.language.split('-')[0]
@@ -54,20 +51,22 @@ class F5TTSBuilt(BaseTTS):
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
             "speed":self.get_speed(),
+            "is_redubb":self.is_redubb
         }
-        
+
         from videotrans.process.f5_tts import f5tts_fun
         self._new_process(callback=f5tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        if self.is_redubb:return
 
         self.signal(text=f'convert wav')
         all_task = []
 
         with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:
             for item in self.queue_tts:
+                if vail_file(item['filename']):continue
                 filename=item.get('filename','')+"-24k.wav"
                 if vail_file(filename):
                     all_task.append(pool.submit(self.convert_to_wav, filename,item['filename']))
             if len(all_task) > 0:
                 _ = [i.result() for i in all_task]
-            else:
-                self.error="No dubbing audio generate, view logs"
+

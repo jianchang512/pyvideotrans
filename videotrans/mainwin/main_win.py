@@ -24,10 +24,11 @@ from videotrans.mainwin._lifecycle import LifecycleMixin
 class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
 
 
-    def __init__(self, parent=None, width=1200, height=650,callback=None):
+    def __init__(self, parent=None, width=1200, height=650,callback=None,screen_size=None):
         super().__init__(parent)
         self.callback=callback
         self.resize(width, height)
+        self.screen_size=screen_size
         self.setupUi(self)
         self.callback("SetupUI end...")
 

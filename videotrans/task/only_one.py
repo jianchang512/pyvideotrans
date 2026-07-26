@@ -8,6 +8,7 @@ from typing import Optional,  Dict, Any
 from PySide6.QtCore import QThread, Signal, QObject
 from pydub import AudioSegment
 
+from videotrans.configure._paths import REDUBB_QUEUE_FILE, REDUBB_STATUS_FILE
 from videotrans.configure.config import tr, settings, app_cfg, logger
 
 from videotrans.task.taskcfg import TaskCfgVTT, SignMsg, InputFile
@@ -30,8 +31,16 @@ class Worker(QThread):
 
     def run(self) -> None:
         # 从停止队列中移出，以便重新开始
-        #app_cfg.reset_queue()
         app_cfg.rm_uuid(self.file['uuid'])
+        # 删除上次遗留的重新配音文件
+        try:
+            if Path(REDUBB_QUEUE_FILE).exists():
+                Path(REDUBB_QUEUE_FILE).unlink(missing_ok=True)
+            if Path(REDUBB_STATUS_FILE).exists():
+                Path(REDUBB_STATUS_FILE).unlink(missing_ok=True)
+        except OSError:
+            pass
+
         trk=None
         try:
             self.uuid = self.file['uuid']

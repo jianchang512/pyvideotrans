@@ -11,7 +11,8 @@ from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, aft
 from videotrans.configure.config import tr, params, logger, settings
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
+from videotrans.util.help_misc import vail_file
+from videotrans.util.help_role import get_gptsovits_role
 
 
 @dataclass
@@ -23,15 +24,16 @@ class GPTSoVITS(BaseTTS):
         if len(self.api_url)<10:
             raise StopTask(f'API URL is error: {self.api_url}')
         self.speed = self.get_speed()
-        self.roledict = tools.get_gptsovits_role() or {}
+        self.roledict = get_gptsovits_role() or {}
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         role = data_item['role']
         data = {
             "text": data_item['text'],
             "text_language": "zh" if self.language.startswith('zh') else self.language,
         }
-        keys=list(self.roledict.keys())
+
         ref_wav=data_item.get('ref_wav','')
 
         if role !='clone' and self.roledict and role in self.roledict:

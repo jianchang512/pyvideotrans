@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from videotrans.configure._paths import (  # noqa: F401
-    IS_FROZEN, SYS_TMP, ROOT_DIR, TEMP_ROOT, LOGS_DIR, TEMP_DIR, TRANSLATE_CACHE, _set_env
+    IS_FROZEN, SYS_TMP, ROOT_DIR, TEMP_ROOT, LOGS_DIR, TEMP_DIR, TRANSLATE_CACHE, DUBBING_CACHE,_set_env,REDUBB_QUEUE_FILE,REDUBB_STATUS_FILE
 )
 from videotrans.configure._logging import _set_logs, _write_with_retry, update_logging_level  # noqa: F401
 from videotrans.configure._i18n import _get_langjson_list, _get_transobj, _init_language, tr  # noqa: F401

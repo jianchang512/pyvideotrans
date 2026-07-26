@@ -5,6 +5,7 @@ from gradio_client import handle_file
 
 from videotrans.configure.config import params
 from videotrans.tts._gradio import GradioBase
+from videotrans.util.help_misc import vail_file
 
 
 @dataclass
@@ -14,6 +15,7 @@ class VoxCPMTTS(GradioBase):
         super().__post_init__()
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
+        if vail_file(data_item['filename']):return
         kwargs = {
             "do_normalize": True,
             "denoise": False,
