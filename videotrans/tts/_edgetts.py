@@ -28,9 +28,10 @@ SAVE_TIMEOUT = 30  # edge_tts可能限流超时，超过30s就认定失败，防
 class EdgeTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        self._stop_event = asyncio.Event()
+        self._stop_event = None#asyncio.Event()
         self.ends_counter = 0
-        self.lock = asyncio.Lock()
+        self.lock = None#asyncio.Lock()
+
         # 默认跟随设置使用代理，如果不想使用，单独根目录下创建 edgetts-noproxy.txt 文件
         self.useproxy=None if not self.proxy_str or Path(f'{ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
 
@@ -53,7 +54,7 @@ class EdgeTTS(BaseTTS):
                     return
                 msg=""
                 for attempt in range(RETRY_NUMS+1):
-                    if self._stop_event.is_set():
+                    if self._exit() or self._stop_event.is_set():
                         return
                     
                     try:
@@ -132,6 +133,10 @@ class EdgeTTS(BaseTTS):
             self._stop_event.set()
     
     async def _exec(self) -> None:
+        self._stop_event = asyncio.Event()
+        self.lock = asyncio.Lock()
+        self.ends_counter = 0
+
         total_tasks = len(self.queue_tts)
         print(f'len={total_tasks}')
         if total_tasks==1:
@@ -212,7 +217,7 @@ class EdgeTTS(BaseTTS):
                 if app_cfg.exit_soft:
                     return
                 mp3_path = item['filename'] + ".mp3"
-                if vail_file(mp3_path):
+                if vail_file(item['filename']) or  vail_file(mp3_path):
                     ok += 1
                 else:
                     err += 1

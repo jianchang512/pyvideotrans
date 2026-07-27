@@ -93,7 +93,6 @@ def _setup_actions_and_menus(ui, MainWindow):
     _make_action(ui, "actionwhisperx")
     _make_action(ui, "actiondeepgram")
     _make_action(ui, "actionxxl")
-    _make_action(ui, "actioncpp")
     _make_action(ui, "actionzijierecognmodel_api")
     _make_action(ui, "actiontts_gptsovits")
     _make_action(ui, "actiontts_chatterbox")
@@ -176,7 +175,7 @@ def _setup_actions_and_menus(ui, MainWindow):
         ui.actionzijierecognmodel_api, ui.actionopenairecognapi_key,
         ui.actionparakeet_key, ui.actionrecognapi, ui.actionai302_key,
         ui.actionsttapi, ui.actionwhisperx, ui.actiondeepgram,
-        ui.actionxxl, ui.actioncpp,
+        ui.actionxxl,
     ])
 
     _fill_menu(ui.menu, [

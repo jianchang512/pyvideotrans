@@ -60,12 +60,16 @@ def openwin():
         from videotrans.component.set_form import SetINIForm
         winobj=app_cfg.child_forms.get('setini')
         if winobj:
+
             winobj.show()
+            winobj.raise_()
+            winobj.activateWindow()
             return
         winobj = SetINIForm()
         app_cfg.child_forms['setini'] = winobj
         winobj.set_ok.clicked.connect(save)
-        
         winobj.show()
+        winobj.raise_()
+        winobj.activateWindow()
 
     QTimer.singleShot(100, create)

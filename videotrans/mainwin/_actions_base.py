@@ -24,6 +24,7 @@ class WinActionBase(WinActionBaseModeMixin, WinActionBaseFileMixin, WinActionBas
     scroll_area_search: Optional[Any] = field(default=None, init=False)
 
     processbtns: Dict = field(default_factory=dict, init=False)
+    delbtns: Dict = field(default_factory=dict, init=False)
     obj_list: List[InputFile] = field(default_factory=list, init=False)
     cfg: Dict = field(default_factory=dict, init=False)
     queue_mp4: List[str] = field(default_factory=list, init=False)

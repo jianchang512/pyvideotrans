@@ -1,16 +1,16 @@
 import json
 from pathlib import Path
 
-from PySide6.QtCore import Qt, Signal, QSize
+from PySide6.QtCore import Qt, Signal, QSize, QTimer
 from PySide6.QtGui import QColor, QPixmap, QFont, QBrush, QPainterPath, QTransform, QPainterPathStroker, QIcon
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFormLayout,
     QFontComboBox, QSpinBox, QDoubleSpinBox, QCheckBox, QComboBox, QColorDialog, QGridLayout,
     QGroupBox, QWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
-    QGraphicsRectItem, QGraphicsPathItem, QScrollArea
+    QGraphicsRectItem, QGraphicsPathItem, QScrollArea, QLineEdit
 )
 
-from videotrans.configure.config import ROOT_DIR, tr, defaulelang
+from videotrans.configure.config import ROOT_DIR, tr, defaulelang, settings
 
 JSON_FILE = f'{ROOT_DIR}/videotrans/ass.json'
 PREVIEW_IMAGE = f'{ROOT_DIR}/videotrans/styles/preview.png'
@@ -287,8 +287,26 @@ class ASSStyleDialog(QDialog):
         self.main_layout = QVBoxLayout(self)
 
 
+        maxlen_layout = QHBoxLayout()
+        cjk_label=QLabel(tr('CJK Subtitle Length:'))
+        self.cjk_len = QLineEdit()
+        self.cjk_len.setMinimumSize(QSize(0, 30))
+        self.cjk_len.setText('15')
+        maxlen_layout.addWidget(cjk_label)
+        maxlen_layout.addWidget(self.cjk_len)
+
+        other_label=QLabel(tr('CJK Subtitle Length:'))
+        self.other_len = QLineEdit()
+        self.other_len.setMinimumSize(QSize(0, 30))
+        self.other_len.setText('40')
+        maxlen_layout.addWidget(other_label)
+        maxlen_layout.addWidget(self.other_len)
+        maxlen_layout.addStretch()
+        self.main_layout.addLayout(maxlen_layout)
+
+
         content_layout = QHBoxLayout()
-        
+
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)   # 让内容自适应宽度，高度不够时出现滚动条
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -463,7 +481,7 @@ class ASSStyleDialog(QDialog):
         self.scroll_area.setWidget(self.form_group)
 
         content_layout.addWidget(self.scroll_area)
-        #content_layout.addWidget(self.form_group)
+
 
         # Preview
         self.preview_group = QGroupBox('')
@@ -495,8 +513,10 @@ class ASSStyleDialog(QDialog):
         self.main_layout.addLayout(self.buttons_layout)
 
         # Load settings if exist
-        self.load_settings()
-        self.update_preview()
+        QTimer.singleShot(10,self.load_settings)
+        # self.load_settings()
+        # self.update_preview()
+
 
     def set_alignment(self, value):
         for btn in self.alignment_buttons:
@@ -518,6 +538,8 @@ class ASSStyleDialog(QDialog):
                     style = json.load(f)
             else:
                 style = DEFAULT_STYLE
+            self.cjk_len.setText(str(settings.get("cjk_len")))
+            self.other_len.setText(str(settings.get("other_len")))
 
             self.font_combo.setCurrentFont(style.get('Fontname', 'Arial'))
             self.bottom_font_combo.setCurrentFont(style.get('Bottom_Fontname', 'Arial'))
@@ -561,11 +583,15 @@ class ASSStyleDialog(QDialog):
             self.margin_v_spin.setValue(style.get('MarginV', 10))
         finally:
             self.blockSignals(False)
+            QTimer.singleShot(200,self.update_preview)
 
     def save_settings(self):
         style = self.get_current_style()
         with open(JSON_FILE, 'w',encoding='utf-8') as f:
             json.dump(style, f, indent=4)
+        settings['cjk_len']=self.cjk_len.text()
+        settings['other_len']=self.other_len.text()
+        settings.save()
         self.close()
     def restore_defaults(self):
         style = DEFAULT_STYLE

@@ -1,4 +1,5 @@
 import asyncio,os
+import concurrent
 import copy
 import inspect
 import re
@@ -86,13 +87,19 @@ class BaseTTS(BaseCon):
             # edge-tts:检查 self._exec 是不是一个异步函数 (coroutine)
             if inspect.iscoroutinefunction(self._exec):
                 try:
+                    # 检查当前线程是否有正在运行的事件循环
                     loop = asyncio.get_running_loop()
                 except RuntimeError:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(self._exec())
+                    loop = None
+
+                if loop and loop.is_running():
+                    # 如果当前线程已有正在运行的 loop（例如 GUI 线程或主异步框架），
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                        future = executor.submit(asyncio.run, self._exec())
+                        future.result()
                 else:
-                    loop.run_until_complete(self._exec())
+                    # 如果没有正在运行的 loop，直接使用 asyncio.run
+                    asyncio.run(self._exec())
             else:
                 # 可能调用多线程
                 self._exec()
@@ -146,6 +153,7 @@ class BaseTTS(BaseCon):
         # 记录成功数量
         succeed_nums = 0
         for it in self.queue_tts:
+            if self._exit(): return
             if not it['text'].strip() or vail_file(it['filename']):
                 succeed_nums += 1
         # 只有全部配音都失败，才视为失败

@@ -692,15 +692,13 @@ class Ui_setini(object):
         self.centralwidget.setObjectName("centralwidget")
         self.has_done = False
         setini.setObjectName("setini")
-
         setini.setMinimumSize(900, 670)
-
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.layout = QtWidgets.QVBoxLayout(setini)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setObjectName("layout")
 
         action_layout = QtWidgets.QHBoxLayout()
-
         # 顶部提示文字
         label_title = QtWidgets.QLabel()
         label_title.setText(

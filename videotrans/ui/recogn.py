@@ -104,7 +104,7 @@ class Ui_recogn(object):
 
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
-        recogn.setWindowTitle(tr("Speech Recognition Text"))
+        recogn.setWindowTitle(tr('Speech Recognit')+': '+tr("Speech Recognition Text"))
 
         self.rephrase = QtWidgets.QComboBox()
         self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase")])
@@ -249,7 +249,7 @@ class Ui_recogn(object):
             "vtt",
             "txt"
         ])
-        self.shibie_stop.setText(tr("Stop"))
+        self.shibie_stop.setText(tr("stop"))
         self.shibie_stop.setCursor(Qt.PointingHandCursor)
 
         self.remove_noise.setText(tr("Noise reduction"))

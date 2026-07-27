@@ -43,7 +43,7 @@ class ClickableProgressBar(QLabel):
         """)
         layout = QHBoxLayout(self)
         layout.addWidget(self.progress_bar)  # 将进度条添加到布局
-
+    # 保存输出目录，以便点击进度条时打开
     def setTarget(self, target_dir=None, name=None):
         self.target_dir = target_dir
         self.name = name

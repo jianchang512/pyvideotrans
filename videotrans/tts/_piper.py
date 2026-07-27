@@ -3,6 +3,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from videotrans.configure._paths import REDUBB_QUEUE_FILE, REDUBB_STATUS_FILE
+from videotrans.configure.contants import GPTW_URL_MS
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.configure.config import ROOT_DIR,app_cfg,logger
 from videotrans.tts._base import BaseTTS
@@ -56,7 +57,7 @@ class PiperTTS(BaseTTS):
             self.signal(text="Downloading G2PWModel-v2...")
             from videotrans.util.help_down import down_zip
             down_zip(f"{ROOT_DIR}/models",
-                           'https://modelscope.cn/models/himyworld/videotrans/resolve/master/G2PWModel-v2-onnx.zip',
+                           GPTW_URL_MS,
                            self._process_callback)
         return True
     

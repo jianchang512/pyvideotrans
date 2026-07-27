@@ -4,6 +4,8 @@ import time
 from pathlib import Path
 
 from videotrans.configure.config import tr, ROOT_DIR, settings, logger
+from videotrans.configure.contants import BUILTINT_URL_MS
+from videotrans.util.help_misc import is_connect_hf
 
 
 class DiarizMixin:
@@ -21,14 +23,6 @@ class DiarizMixin:
         if speaker_type in ['pyannote', 'reverb'] and not hf_token:
             logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
             return
-        hf_endpoit = "https://huggingface.co"
-        if speaker_type in ['pyannote', 'reverb']:
-            try:
-                import requests
-                requests.head('https://huggingface.co', timeout=5)
-            except Exception:
-                logger.exception(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败', exc_info=True)
-                hf_endpoit = "https://hf-mirror.com"
         from videotrans.util.help_down import down_file_from_ms, check_and_down_ms
         try:
             self.precent += 3
@@ -43,11 +37,7 @@ class DiarizMixin:
                 "is_cuda": self.cfg.is_cuda
             }
             if speaker_type == 'built':
-                down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/seg_model.onnx",
-                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/nemo_en_titanet_small.onnx",
-                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"
-                ], callback=self._process_callback)
+                down_file_from_ms(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_MS, callback=self._process_callback)
                 from videotrans.process.prepare_audio import built_speakers as _run_speakers
                 del kw['is_cuda']
                 kw['num_speakers'] = -1 if self.max_speakers < 1 else self.max_speakers
@@ -71,7 +61,7 @@ class DiarizMixin:
                     repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
                     token=hf_token,
                     local_dir=f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"),
-                    endpoint=hf_endpoit
+                    endpoint='https://huggingface.co' if is_connect_hf() else 'https://hf-mirror.com'
                 )
 
             _rs = self._new_process(callback=_run_speakers, title=title,

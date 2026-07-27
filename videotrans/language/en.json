@@ -357,7 +357,6 @@
     "Start>": "Translate >",
     "Starting from version 3.68 of this software, only the official webui is supported (F5-TTS/Spart-TTS/index-TTS/Dia-TTS/VoxCPM), and third-party integration packages and APIs are no longer supported.": "v3.68+: Supports official WebUI only (F5/Spart/Index/Dia/VoxCPM). No 3rd-party packages/APIs.",
     "Starting to process speech noise reduction, which may take a long time, please be patient": "Denoising... Please wait.",
-    "Stop": "Stop",
     "Subtitle File 1 and Subtitle File 2 must be selected": "Select Sub 1 & Sub 2",
     "Subtitle file 1:The final length of the subtitles will be determined accordingly.": "Sub 1: Determines final length",
     "Subtitle file 2": "Sub 2",
@@ -701,7 +700,7 @@
     "Built-in": "Built-in",
     "win-forbid-name": "In Windows, filenames are not allowed to use the symbols {}. Some download tools may create filenames that do not conform to Windows rules. Please modify them and try again.",
     "cosyvoice23webui": "Using this interface requires launching the webui.py file of the official CosyVoice2/3 project. CosyVoice3 cannot directly use the official webui.py file to interface with this software. Click the Fill in Tutorial  button in the lower right corner to see the solution.",
-    "Download URL": " Download URL for models",
+    "Download URL": " Download URL",
     "downloading all files": "If the model download failed, \nyou can try opening the following URL and downloading all files to the\n {} folder.",
     "Restoring punct": "Restoring punct",
     "Restoring punctuation marks when Chinese & English": "Restoring punctuation marks when Chinese & English",
@@ -713,7 +712,7 @@
     "bubaocunshuoming": "If you have manually or used other tools to modify the\n[{}] subtitle files in the subtitle folder, please click this button.",
     "Only support": "Only support ",
     "Downloading please wait": "Downloading please wait ",
-    "Batch dubbing of SRT or TXT subtitle files": "Batch dubbing of SRT or TXT subtitle files",
+    "Batch dubbing of SRT or TXT subtitle files": "TTS: Batch dubbing of SRT or TXT subtitle files",
     "Select at least one speaker": "Select at least one speaker",
     "conflict with the role specified by row": "If you want to assign a character to a specific subtitle without being restricted by the speaker's role, please make sure to do this last.",
     "will be automatically identified as the speaker": "If the subtitle begins with [xxx],example [spk1],[speaker2]eg., it will be automatically identified as the speaker",
@@ -757,7 +756,7 @@
 	"Unable to connect to API":"Unable to connect to {}. This may be because the API is currently inaccessible on the network. If it's a local service, please ensure it's deployed and running.",
 	"Unable to connect to remote API":"Unable to connect to {}, the API may be inaccessible on the current network.",
 	"end":"Ended",
-	"stop":"Paused",
+	"stop":"Stopped",
 	"The server returned an error message: Insufficient balance":"The server [{}] returned an error message: Insufficient balance. \nPlease log in to the platform to view your balance information. Current API: {}\n",
 	"ensure that each line is separated into two parts using":"Please ensure that each line is separated into two parts using #: `ReferenceAudioName#ReferenceAudioTextContent`\nThe current line does not meet the requirements: {}",
 	"ensure that the reference audio is in wav format and saved":"Reference audio: `{}` is not in the `{}` folder. Please ensure that the reference audio is in wav format and saved to this folder.",
@@ -901,6 +900,10 @@
 		"Preparing data":"Preparing data...",
 		"Concatenating final audio":"Concatenating final audio...",
 		"Concat videos":"Concat all videos...",
-		"You can select again whether to enable voice acceleration video slow":"You can select again whether to enable [voice acceleration/video slow], which will take effect in the next alignment phase"
+		"You can select again whether to enable voice acceleration video slow":"You can select again whether to enable [voice acceleration/video slow], which will take effect in the next alignment phase",
+    "download whisper.cpp or make binary": "The `whisper-cli` command was not found. \nPlease download the pre-compiled package or compile it yourself, \nand place the `whisper-cli` executable file and all its dependent libraries  into the `{}` folder (create it if it doesn't exist). \nFor detailed compilation instructions, please refer to the official whisper.cpp repository documentation.[https://github.com/ggerganov/whisper.cpp]",
+    "Transcription in progress, please wait": "Transcription in progress, please wait...",
+    "Del task": "Del task",
+    "Delete and stop the task": "Delete and stop the task?"
 
 }

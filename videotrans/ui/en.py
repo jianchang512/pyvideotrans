@@ -389,7 +389,6 @@ class Ui_MainWindow(object):
         self.actiondeepgram.setText(
             tr("Deepgram Speech Recognition API"))
         self.actionxxl.setText('Faster_Whisper_XXL.exe')
-        self.actioncpp.setText('Whisper.cpp')
         self.actionzijierecognmodel_api.setText(tr("VolcEngine STT"))
         self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
         self.actiontts_chatterbox.setText("ChatterBox TTS")

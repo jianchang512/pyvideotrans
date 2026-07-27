@@ -2,6 +2,7 @@ import time,re,json,shutil
 from pathlib import Path
 
 from videotrans.configure.config import tr, app_cfg, settings, logger
+from videotrans.configure.contants import UVR_URL_MS
 from videotrans.configure.excepts import VideoTransError
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util.help_ffmpeg import get_video_info, runffmpeg
@@ -33,13 +34,6 @@ class PrepareMixin:
 
         if self.video_info['video_codec_name'] == 'h264' and self.video_info['color'] == 'yuv420p':
             self.is_copy_video = True
-
-        if self.cfg.subtitles.strip():
-            with open(self.cfg.source_sub, 'w', encoding="utf-8", errors="ignore") as f:
-                txt = re.sub(r':\d+\.\d+', lambda m: m.group().replace('.', ','),
-                             self.cfg.subtitles.strip(), flags=re.I | re.S)
-                f.write(txt)
-            self.should_recogn = False
 
         raw_vocal = f"{self.cfg.target_dir}/vocal.wav"
         if vail_file(raw_vocal):
@@ -213,13 +207,13 @@ class PrepareMixin:
         uvr_models = settings.get('uvr_models')
         if uvr_models.startswith('spleeter'):
             down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/vocals.fp16.onnx",
-                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/accompaniment.fp16.onnx"
+                f"{UVR_URL_MS}vocals.fp16.onnx",
+                f"{UVR_URL_MS}accompaniment.fp16.onnx"
             ], callback=self._process_callback)
 
         else:
             down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/{uvr_models}.onnx"
+                f"{UVR_URL_MS}{uvr_models}.onnx"
             ], callback=self._process_callback)
         from videotrans.process.prepare_audio import vocal_bgm
         kw = {"input_file": tmpfile, "vocal_file": self.cfg.vocal, "instr_file": self.cfg.instrument,

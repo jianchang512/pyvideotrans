@@ -10,11 +10,11 @@ from typing import List
 from videotrans.configure import contants
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger, HOME_DIR
 from videotrans.configure import config
+from videotrans.configure.contants import BUILTINT_URL_MS, PUNC_RESTORE_MS, DENOISE_URL_MS
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
-
-
+from videotrans.util.help_misc import is_connect_hf
 
 """
 仅语音识别
@@ -76,8 +76,7 @@ class SpeechToText(BaseTask):
             logger.debug('开始降噪')
             from videotrans.process.prepare_audio import remove_noise
             title = tr('Starting to process speech noise reduction, which may take a long time, please be patient')
-            down_file_from_ms(f'{ROOT_DIR}/models/onnx', urls=[
-                    'https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet4.onnx'],
+            down_file_from_ms(f'{ROOT_DIR}/models/onnx', urls=DENOISE_URL_MS,
                                         callback=self._process_callback)
             _noise_wav = f"{config.TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
             kw = {
@@ -115,18 +114,12 @@ class SpeechToText(BaseTask):
         # 中英恢复标点符号
         if self.cfg.detect_language != 'auto' and self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
             from videotrans.process.prepare_audio import fix_punc
-            down_file_from_ms(f'{ROOT_DIR}/models/puntc', [
-                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/model.onnx",
-                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/config.yaml",
-                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/tokens.json",
-            ], callback=self._process_callback)
+            down_file_from_ms(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS, callback=self._process_callback)
             text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
             # 序列化后传递文件路径
             text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
             Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
             kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
-
-
 
             try:
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
@@ -178,14 +171,6 @@ class SpeechToText(BaseTask):
         if speaker_type in ['pyannote', 'reverb'] and not hf_token:
             logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
             return
-        hf_endpoit = "https://huggingface.co"
-        if speaker_type in ['pyannote', 'reverb']:
-            try:
-                import requests
-                requests.head('https://huggingface.co', timeout=5)
-            except Exception:
-                logger.exception(f'当前选择 {speaker_type} 说话人分离模型，但无法连接到 https://huggingface.co,可能会失败', exc_info=True)
-                hf_endpoit = "https://hf-mirror.com"
 
         self.precent += 3
         title = tr(f'Begin separating the speakers') + f':{speaker_type}'
@@ -199,11 +184,7 @@ class SpeechToText(BaseTask):
             "is_cuda": self.cfg.is_cuda
         }
         if speaker_type == 'built':
-            down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/seg_model.onnx",
-                "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/nemo_en_titanet_small.onnx",
-                "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"
-            ], callback=self._process_callback)
+            down_file_from_ms(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_MS, callback=self._process_callback)
             from videotrans.process.prepare_audio import built_speakers as _run_speakers
             del kw['is_cuda']
             kw['num_speakers'] = -1 if self.max_speakers < 1 else self.max_speakers
@@ -229,7 +210,7 @@ class SpeechToText(BaseTask):
                     repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
                     token=hf_token,
                     local_dir=f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"),
-                    endpoint=hf_endpoit
+                    endpoint='https://huggingface.co' if is_connect_hf() else 'https://hf-mirror.com'
                 )
             _rs = self._new_process(callback=_run_speakers, title=title,
                                          is_cuda=self.cfg.is_cuda and speaker_type != 'built', kwargs=kw)

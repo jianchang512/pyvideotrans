@@ -18,11 +18,6 @@ class WinformMixin:
             dialog.exec()
             return
 
-        if name == 'cpp':
-            from videotrans.component.set_cpp import SetWhisperCPP
-            dialog = SetWhisperCPP()
-            dialog.exec()
-            return
 
         winobj = app_cfg.child_forms.get(name)
         if winobj:

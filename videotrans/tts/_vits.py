@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
+from videotrans.configure.contants import VITS_URL_MS
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.configure.config import ROOT_DIR, app_cfg, logger
 from videotrans.tts._base import BaseTTS
@@ -121,7 +122,7 @@ class VitsCNEN(BaseTTS):
         if not Path(f'{self.local_dir}/zh_en/model.onnx').exists():
             from videotrans.util.help_down import down_zip
             down_zip(f"{ROOT_DIR}/models",
-                           'https://modelscope.cn/models/himyworld/videotrans/resolve/master/vits-tts.zip',
+                           VITS_URL_MS,
                            self._process_callback)
         return True
 

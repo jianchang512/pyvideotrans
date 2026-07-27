@@ -2,6 +2,8 @@ import sys
 
 from pathlib import Path
 
+from PySide6.QtCore import QTimer
+
 from videotrans import translator, recognition, tts
 from videotrans.configure.config import tr, params, settings, app_cfg
 from videotrans.util.help_misc import show_error
@@ -174,10 +176,6 @@ class WinActionCheckMixin:
                 show_target=self.cfg['target_language_code']) is not True:
             self.main.startbtn.setDisabled(False)
             return
-        txt = self.main.subtitle_area.toPlainText().strip()
-        if self.check_txt(txt) is not True:
-            self.main.startbtn.setDisabled(False)
-            return
 
         if self.check_tts() is not True:
             self.main.tts_type.setCurrentIndex(0)
@@ -235,16 +233,15 @@ class WinActionCheckMixin:
         params.save()
 
         self.delete_process()
-
         self.update_status('ing')
-
         settings['aisendsrt'] = self.main.aisendsrt.isChecked()
         settings.save()
 
         self._disabled_button(True)
-        self.main.subtitle_area.setReadOnly(True)
         self.main.startbtn.setDisabled(False)
         self.retry_queue_mp4 = []
         self.uuid_queue_mp4 = {}
+
         self.main.retrybtn.setVisible(False)
-        self.create_btns()
+        QTimer.singleShot(10,self.create_btns)
+        # self.create_btns()

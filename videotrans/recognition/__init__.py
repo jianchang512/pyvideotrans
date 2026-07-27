@@ -11,22 +11,22 @@ from videotrans.task.taskcfg import SrtItem
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
 QWENASR = 2
-FUNASR_CN = 3
-FIREREDASR=4
-DOLPHIN=5
-Omnilingual=6
-PARAKEET_JA=7
-HUGGINGFACE_ASR = 8
+Whisper_CPP = 3
+FUNASR_CN = 4
+FIREREDASR=5
+DOLPHIN=6
+Omnilingual=7
+PARAKEET_JA=8
+HUGGINGFACE_ASR = 9
 
-OPENAI_API = 9
-QWEN3ASR = 10
-XIAOMIASR = 11
-ZIJIE_RECOGN_MODEL = 12
-ZHIPU_API = 13
+OPENAI_API = 10
+QWEN3ASR = 11
+XIAOMIASR = 12
+ZIJIE_RECOGN_MODEL = 13
+ZHIPU_API = 14
 
-GEMINI_SPEECH = 14
+GEMINI_SPEECH = 15
 
-Whisper_CPP = 15
 Faster_Whisper_XXL = 16
 WHISPERX_API = 17
 PARAKEET = 18
@@ -52,6 +52,7 @@ _ID_NAME_DICT = {
     FASTER_WHISPER: ChannelProvider(f"faster-whisper({tr('Local')}{tr('Built-in')})", imp="._whisper"),
     OPENAI_WHISPER: ChannelProvider(f"openai-whisper({tr('Local')}{tr('Built-in')})", imp="._whisper"),
     QWENASR: ChannelProvider(f"Qwen-ASR({tr('Local')}{tr('Built-in')})", imp="._qwenasrlocal"),
+    Whisper_CPP: ChannelProvider(f"Whisper.cpp(Win{tr('Built-in')})", imp="._cpp"),
     FUNASR_CN: ChannelProvider(tr("FunASR-Chinese")+f"({tr('Local')}{tr('Built-in')})", imp="._funasr"),
     FIREREDASR: ChannelProvider(f"{tr('FireRed')}({tr('Local')}{tr('Built-in')})", imp="._fireredasr"),
     DOLPHIN: ChannelProvider(f"{tr('Dolphin')}({tr('Local')}{tr('Built-in')})", imp="._dolphin"),
@@ -59,9 +60,9 @@ _ID_NAME_DICT = {
     PARAKEET_JA: ChannelProvider(f"{tr('parakeet-ja')}({tr('Local')}{tr('Built-in')})", imp="._parakeetja"),
     HUGGINGFACE_ASR: ChannelProvider(f"Huggingface_ASR({tr('Local')}{tr('Built-in')})", imp="._huggingface"),
 
+
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"), key_name="openairecognapi_key", win="openairecognapi",
                                 imp="._openairecognapi"),
-
     QWEN3ASR: ChannelProvider(tr("Ali Qwen3-ASR"), key_name="qwenmt_key", win="qwenmt", imp="._qwen3asr"),
     XIAOMIASR: ChannelProvider(tr("XiaoMi"), key_name="xiaomi_key", win="xiaomi", imp="._xiaomiasr"),
     ZIJIE_RECOGN_MODEL: ChannelProvider(tr("VolcEngine STT"), key_name="zijierecognmodel_appid", win="zijierecognmodel",
@@ -71,7 +72,6 @@ _ID_NAME_DICT = {
 
 
 
-    Whisper_CPP: ChannelProvider("Whisper.cpp", imp="._cpp"),
     Faster_Whisper_XXL: ChannelProvider("Faster-Whisper-XXL.exe", imp="._xxl"),
     WHISPERX_API: ChannelProvider(f"WhisperX({tr('Local')}API)", imp="._whisperx"),
     PARAKEET: ChannelProvider(f"Parakeet-tdt({tr('Local')}API)", key_name="parakeet_address", win="parakeet", imp="._parakeet"),

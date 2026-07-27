@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Union
 import time
 from videotrans.configure.config import params, logger, settings,ROOT_DIR
+from videotrans.configure.contants import PARAKEETJA_URL_MS
 from videotrans.configure.excepts import SpeechToTextError, StopTask
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -33,7 +34,7 @@ class ParakeetJARecogn(BaseRecogn):
         if not Path(f'{self.local_dir}/model.int8.onnx').exists():
             from videotrans.util import help_down
             help_down.down_zip(f"{ROOT_DIR}/models",
-                           'https://modelscope.cn/models/himyworld/videotrans/resolve/master/parakeet-ja.zip',
+                           PARAKEETJA_URL_MS,
                            self._process_callback)
         return True
         

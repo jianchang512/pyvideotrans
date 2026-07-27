@@ -7,6 +7,7 @@ from pathlib import Path
 import os
 
 from videotrans.configure.config import tr, ROOT_DIR, settings, logger
+from videotrans.configure.contants import  DENOISE_URL_MS, PUNC_RESTORE_MS
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run as run_recogn, is_allow_lang as recogn_allow_lang, FASTER_WHISPER
 from videotrans.util.help_ffmpeg import conver_to_16k, runffmpeg, cut_from_audio
@@ -40,8 +41,7 @@ class RecognMixin:
                 logger.debug(f'复用已存在的降噪缓存文件')
             else:
                 title = tr("Starting to process speech noise reduction, which may take a long time, please be patient")
-                down_file_from_ms(f'{ROOT_DIR}/models/onnx', urls=[
-                    'https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet4.onnx'],
+                down_file_from_ms(f'{ROOT_DIR}/models/onnx', urls=DENOISE_URL_MS,
                                         callback=self._process_callback)
                 from videotrans.process.prepare_audio import remove_noise
                 kw = {
@@ -84,11 +84,7 @@ class RecognMixin:
         self.source_srt_list = raw_subtitles
 
         if self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
-            down_file_from_ms(f'{ROOT_DIR}/models/puntc', [
-                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/model.onnx",
-                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/config.yaml",
-                    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/tokens.json",
-            ], callback=self._process_callback)
+            down_file_from_ms(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS, callback=self._process_callback)
             from videotrans.process.prepare_audio import fix_punc
             text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
             text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'

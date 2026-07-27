@@ -28,25 +28,9 @@ class WinActionConfigMixin:
             return False
         return True
 
-    def show_cpp_select(self):
-        cpp_path = settings.get('Whisper_cpp', '')
-        if not cpp_path or not Path(cpp_path).exists():
-            from videotrans.component.set_cpp import SetWhisperCPP
-            dialog = SetWhisperCPP()
-            if dialog.exec():
-                cpp_path = dialog.get_values()
-                if cpp_path and Path(cpp_path).is_file():
-                    return True
-            show_error(
-                tr("Must be selected, otherwise it cannot be used"))
-            return False
-        return True
-
     def recogn_type_change(self):
         recogn_type = self.main.recogn_type.currentIndex()
         if recogn_type == recognition.Faster_Whisper_XXL and not self.show_xxl_select():
-            return
-        if recogn_type == recognition.Whisper_CPP and not self.show_cpp_select():
             return
 
         if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,

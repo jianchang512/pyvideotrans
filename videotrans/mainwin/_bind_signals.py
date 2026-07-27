@@ -66,7 +66,6 @@ class BindSignalsMixin:
         self.actionwhisperx.triggered.connect(lambda: self.open_winform('whisperxapi'))
         self.actiondeepgram.triggered.connect(lambda: self.open_winform('deepgram'))
         self.actionxxl.triggered.connect(lambda: self.open_winform('xxl'))
-        self.actioncpp.triggered.connect(lambda: self.open_winform('cpp'))
         self.actionzijierecognmodel_api.triggered.connect(lambda: self.open_winform('zijierecognmodel'))
         self.actiontrans_api.triggered.connect(lambda: self.open_winform('transapi'))
         self.actiontts_gptsovits.triggered.connect(lambda: self.open_winform('gptsovits'))

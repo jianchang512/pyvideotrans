@@ -266,7 +266,7 @@ class Ui_peiyinrole(object):
         self.hecheng_startbtn = QtWidgets.QPushButton()
         self.hecheng_startbtn.setMinimumSize(QtCore.QSize(200, 40))
         self.hecheng_startbtn.setCursor(Qt.PointingHandCursor)
-        self.hecheng_stop = QtWidgets.QPushButton(tr("Stop"))
+        self.hecheng_stop = QtWidgets.QPushButton(tr("stop"))
         self.hecheng_stop.setFixedWidth(100)
         self.hecheng_stop.setDisabled(True)
         self.hecheng_stop.setCursor(Qt.PointingHandCursor)

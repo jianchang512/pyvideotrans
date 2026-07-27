@@ -34,6 +34,7 @@ videotrans/newlang.txt
 deps/
 g2pW/
 output/
+whisper-cpp/
 hooks
 tmp
 images

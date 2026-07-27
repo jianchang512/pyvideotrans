@@ -215,22 +215,7 @@ def openwin():
             return False
         return True
 
-    def show_cpp_select():
-        cpp_path = settings.get('Whisper_cpp', '')
-        if not cpp_path or not Path(cpp_path).exists():
-            from videotrans.component.set_cpp import SetWhisperCPP
-            dialog = SetWhisperCPP()
-            if dialog.exec():  # OK 按钮被点击时 exec 返回 True
-                cpp_path = dialog.get_values()
-                if cpp_path and Path(cpp_path).is_file():
-                    return True
-            show_error(
-                tr("Must be selected, otherwise it cannot be used"))
-            return False
-        return True
-
-        # 识别类型改变时
-
+    # 识别类型改变时
     def model_type_change():
         lang = translator.get_code(show_text=winobj.shibie_language.currentText())
         recogn_type = winobj.shibie_recogn_type.currentIndex()
@@ -241,8 +226,6 @@ def openwin():
     def recogn_type_change():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
         if recogn_type == recognition.Faster_Whisper_XXL and not show_xxl_select():
-            return
-        if recogn_type == recognition.Whisper_CPP and not show_cpp_select():
             return
         # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
         if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER]:  # openai-whisper

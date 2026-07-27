@@ -175,7 +175,7 @@ class Ui_peiyin(object):
 
         self.hecheng_stop = QtWidgets.QPushButton()
         self.hecheng_stop.setFixedWidth(100)
-        self.hecheng_stop.setText(tr("Stop"))
+        self.hecheng_stop.setText(tr("stop"))
         self.hecheng_stop.setDisabled(True)
         self.hecheng_stop.setObjectName("hecheng_stop")
         self.hecheng_stop.setCursor(Qt.PointingHandCursor)

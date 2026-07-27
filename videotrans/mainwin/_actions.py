@@ -1,11 +1,8 @@
 from dataclasses import dataclass
-from pathlib import Path
-
-from PySide6.QtWidgets import QFileDialog
 
 from videotrans.configure.config import tr, params, app_cfg
 from videotrans.mainwin._actions_base import WinActionBase
-from videotrans.util.help_misc import show_error
+
 
 from ._actions_check import WinActionCheckMixin
 from ._actions_config import WinActionConfigMixin
@@ -17,23 +14,30 @@ class WinAction(WinActionCheckMixin, WinActionConfigMixin, WinActionTaskMixin, W
 
     def _reset(self):
         self.obj_list = []
+        self.queue_mp4=[]
+        self.retry_queue_mp4=[]
         self.main.source_mp4.setText(tr("No select videos"))
 
     def delete_process(self):
-        for i in range(self.main.processlayout.count()):
-            item = self.main.processlayout.itemAt(i)
-            if item.widget():
+        def _del_item(wd):
+            if wd.widget():
                 try:
-                    item.widget().deleteLater()
+                    wd.widget().deleteLater()
                 except Exception:
                     pass
+            elif wd.layout():
+                layout=wd.layout()
+                for j in range(layout.count()):
+                    return _del_item(layout.itemAt(j))
+
+        for i in range(self.main.processlayout.count()):
+            _del_item(self.main.processlayout.itemAt(i))
         self.processbtns = {}
+        self.delbtns = {}
 
     def set_djs_timeout(self):
         app_cfg.set_countdown(-1)
         if self.had_click_btn:
             return
         self.had_click_btn = True
-        self.main.subtitle_area.setReadOnly(True)
-        self.had_click_btn = False
 

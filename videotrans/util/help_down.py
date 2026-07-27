@@ -170,6 +170,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
 
 
 # 从 huggingface.co 下载单个文件
+# 非 https开头的，则必须以 / 开头，根据是否可访问自动添加 huggingface.co或 hf-mirror.com
 def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
     from .help_misc import is_connect_hf
     is_connect_hf()
@@ -248,12 +249,13 @@ def down_file_from_ms(local_dir, urls=None, callback=None) -> bool:
     return True
 
 
-# 从 modelscope.cn下载zip并解压 到指定目录
+# 下载zip并解压 到指定目录
 def down_zip(local_dir, zip_url, callback=None) -> bool:
     import requests
     try:
         filename = get_filename_from_url(zip_url)
         with requests.get(zip_url, stream=True, timeout=(30, 600)) as response:
+            logger.debug(f'download from {zip_url} to {local_dir}')
             response.raise_for_status()
             total_length = response.headers.get('content-length')
 
