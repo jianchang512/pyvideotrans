@@ -173,13 +173,12 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
     def _daemon(self):
         from videotrans.util.help_ffmpeg import check_hw_on_start
         from videotrans.util.help_misc import check_new_version, is_connect_hf
-        check_hw_on_start()
+        check_hw_on_start(force=True)
         check_new_version()
         is_connect_hf()
 
     def _start_workers(self, status):
         if status == 'end':
-
             self.worker_threads = start_thread()
             self.startbtn.setDisabled(False)
             self.startbtn.setText(tr("Start"))

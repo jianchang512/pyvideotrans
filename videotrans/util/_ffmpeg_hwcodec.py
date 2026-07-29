@@ -10,12 +10,12 @@ from videotrans.configure.config import ROOT_DIR, app_cfg, settings, logger
 from videotrans.configure import config
 
 
-def check_hw_on_start(_compat=None):
-    get_video_codec(264)
-    get_video_codec(265)
+def check_hw_on_start(force=False):
+    get_video_codec(264,force)
+    get_video_codec(265,force)
 
 
-def get_video_codec(compat=None) -> str:
+def get_video_codec(compat=None,force=False) -> str:
     import torch
     _codec_cache = app_cfg.codec_cache
     try:
@@ -35,7 +35,7 @@ def get_video_codec(compat=None) -> str:
             video_codec_pref = 264
 
     cache_key = f'{plat}-{video_codec_pref}'
-    if cache_key in _codec_cache:
+    if not force and cache_key in _codec_cache:
         logger.debug(f"返回缓存的编解码器 {cache_key}: {_codec_cache[cache_key]}")
         return _codec_cache[cache_key]
 
