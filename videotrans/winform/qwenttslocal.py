@@ -47,7 +47,7 @@ def openwin():
         winobj.close()
 
     if params.get("qwenttslocal_prompt"):
-        winobj.instruct_text.setText(params.get("qwenttslocal_prompt"))
+        winobj.instruct_text.setText(str(params.get("qwenttslocal_prompt")))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

@@ -197,7 +197,6 @@ class WinActionTaskMixin:
             app_cfg.stoped_uuid_set.add(it['uuid'])
 
         if type == 'end':
-            self.main.subtitle_area.clear()
             if self.processbtns:
                 for prb in self.processbtns.values():
                     prb.setEnd()
@@ -220,6 +219,7 @@ class WinActionTaskMixin:
         self.had_click_btn = False
 
     def update_data(self, uuid: Union[str, None] = "", d: Union[SignMsg, None] = None):
+
         if uuid and uuid not in [it['uuid'] for it in self.obj_list]:
             return
 

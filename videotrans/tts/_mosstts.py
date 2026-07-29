@@ -82,6 +82,7 @@ class MossTTS(BaseTTS):
                 if app_cfg.exit_soft or (self.is_redubb and Path(REDUBB_STATUS_FILE).exists()):
                     return
                 if vail_file(item['filename']):
+                    ok+=1
                     continue
                 try:
                     ref_wav,_=self.get_ref_wav(item)

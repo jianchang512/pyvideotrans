@@ -9,7 +9,8 @@ from pathlib import Path
 from videotrans.configure import contants
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure.config import tr, settings, logger
-from videotrans.configure.contants import WHISPER_CPP_URL_MS,WHISPER_CPP_URL_HF
+from videotrans.configure.contants import WHISPER_CPP_URL_MS, WHISPER_CPP_URL_HF, WHISPERCPP_MODEL_URL_MS, \
+    WHISPERCPP_MODEL_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util import tools
@@ -41,9 +42,13 @@ class CPPRecogn(BaseRecogn):
 
         if not Path(f'{ROOT_DIR}/models/{self.model_name}').is_file():
             from videotrans.util import help_down
+            if not is_connect_hf():
+                url=WHISPERCPP_MODEL_URL_MS.replace('{}',self.model_name)
+            else:
+                url=WHISPERCPP_MODEL_URL_HF.replace('{}',self.model_name)
             help_down.down_file_from_hf(
                 f"{ROOT_DIR}/models",
-                [f'/ggerganov/whisper.cpp/resolve/main/{self.model_name}?download=true'],
+                [url],
                 self._process_callback)
         txt_file = ROOT_DIR + '/pyvideotrans.txt'
 

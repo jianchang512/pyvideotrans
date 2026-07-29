@@ -3,16 +3,16 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from videotrans.configure._paths import REDUBB_QUEUE_FILE, REDUBB_STATUS_FILE
-from videotrans.configure.contants import GPTW_URL_MS
+from videotrans.configure.contants import GPTW_URL_MS, GPTW_URL_HF
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.configure.config import ROOT_DIR,app_cfg,logger
 from videotrans.tts._base import BaseTTS
-from videotrans.util import tools
 import wave
 import builtins
 import g2pw.api
 
-from videotrans.util.help_misc import vail_file
+from videotrans.util.help_down import down_file_from_hf
+from videotrans.util.help_misc import vail_file, is_connect_hf
 
 _original_open = builtins.open
 
@@ -49,7 +49,7 @@ class PiperTTS(BaseTTS):
             f'{url}/{name}.onnx.json?download=true',
         ]
         Path(local_dir).mkdir(exist_ok=True, parents=True)
-        tools.down_file_from_hf(local_dir,urls=urls,callback=self._process_callback)
+        down_file_from_hf(local_dir,urls=urls,callback=self._process_callback)
         return onnx_file
     
     def _download(self):
@@ -57,7 +57,7 @@ class PiperTTS(BaseTTS):
             self.signal(text="Downloading G2PWModel-v2...")
             from videotrans.util.help_down import down_zip
             down_zip(f"{ROOT_DIR}/models",
-                           GPTW_URL_MS,
+                           GPTW_URL_MS if not is_connect_hf() else GPTW_URL_HF,
                            self._process_callback)
         return True
     
@@ -92,6 +92,7 @@ class PiperTTS(BaseTTS):
                 if app_cfg.exit_soft or (self.is_redubb and Path(REDUBB_STATUS_FILE).exists()):
                     return
                 if vail_file(item['filename']):
+                    ok+=1
                     continue
                 if not item.get('text','').strip():
                     continue

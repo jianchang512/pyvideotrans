@@ -205,7 +205,7 @@ class Ui_vasrt(object):
 
         # end
         self.horizontalLayout_3.addLayout(self.v3)
-        vasrt.setWindowTitle(tr("Video, audio, and subtitle merging"))
+        vasrt.setWindowTitle(tr("hebing-windows-title"))
         self.retranslateUi()
 
         QMetaObject.connectSlotsByName(vasrt)

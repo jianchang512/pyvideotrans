@@ -35,7 +35,7 @@ class Ui_MainWindow(object):
         self.splitter.setObjectName("splitter")
         self.splitter.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
 
-        self.splitter.setMinimumWidth(500)
+        self.splitter.setMinimumWidth(600)
 
         self.layoutWidget = QtWidgets.QWidget(self.splitter)
         self.layoutWidget.setObjectName("layoutWidget")
@@ -81,7 +81,7 @@ class Ui_MainWindow(object):
         self.bgmvolume_label.setVisible(False)
         self.bgmvolume = QtWidgets.QLineEdit()
         self.bgmvolume.setText('0.8')
-        self.bgmvolume.setMaximumWidth(80)
+        self.bgmvolume.setMaximumWidth(60)
         self.bgmvolume.setVisible(False)
         self.bgmvolume.setToolTip(
             tr("BGM volume is a multiple of the original volume, greater than 1 increases, less than decreases"))
@@ -124,7 +124,7 @@ class Ui_MainWindow(object):
         self.voice_rate = QtWidgets.QSpinBox(self.layoutWidget)
         self.voice_rate.setMinimum(-50)
         self.voice_rate.setMaximum(50)
-        self.voice_rate.setMinimumWidth(80)
+        self.voice_rate.setMinimumWidth(60)
         self.voice_rate.setObjectName("voice_rate")
         self.voice_rate.setVisible(False)
 
@@ -135,7 +135,7 @@ class Ui_MainWindow(object):
         self.volume_rate.setMinimum(-95)
         self.volume_rate.setToolTip(tr("Percentage of volume adjustment"))
         self.volume_rate.setMaximum(100)
-        self.volume_rate.setMinimumWidth(80)
+        self.volume_rate.setMinimumWidth(60)
         self.volume_rate.setObjectName("volume_rate")
         self.volume_rate.setVisible(False)
 
@@ -146,7 +146,7 @@ class Ui_MainWindow(object):
         self.pitch_rate.setVisible(False)
         self.pitch_rate.setMinimum(-100)
         self.pitch_rate.setMaximum(100)
-        self.pitch_rate.setMinimumWidth(80)
+        self.pitch_rate.setMinimumWidth(60)
         self.pitch_rate.setObjectName("pitch_rate")
 
         self.dubb_thread_layout = QtWidgets.QHBoxLayout()
@@ -169,8 +169,7 @@ class Ui_MainWindow(object):
         self.advcontainer.setObjectName("advContainer")
         self.advcontainer.setStyleSheet("""#advContainer {
         border: 1px solid #455364;
-        border-radius: 5px;         
-        padding: 10px; 
+        padding: 0; 
     }""")
 
         self.adv_layout_outer.addLayout(self.dubb_thread_layout)
@@ -413,21 +412,21 @@ class Ui_MainWindow(object):
             tr("Batch audio or video translation with all configuration options customizable on demand"))
         self.action_yuyinshibie.setText(tr("Speech Recognition Text"))
         self.action_yuyinshibie.setToolTip(
-            tr("Batch recognize speech in audio or video as srt subtitles"))
+            tr("stt-windows-title"))
 
         self.action_yuyinhecheng.setText(tr("From  Text  Into  Speech"))
         self.action_yuyinhecheng.setToolTip(
-            tr("Batch dubbing based on srt subtitle files"))
+            tr("tts-windows-title"))
 
         self.action_tiquzimu.setText(tr("Extract Srt And Translate"))
         self.action_tiquzimu.setToolTip(
             tr("Batch recognize speech in video as srt subtitles"))
+        self.action_yingyinhebing.setText(tr("Video Subtitles Merging"))
+        self.action_yingyinhebing.setToolTip(tr("hebing-windows-title"))
 
         self.action_yinshipinfenli.setText(tr("Separate Video to audio"))
         self.action_yinshipinfenli.setToolTip(tr("Separate audio and silent videos from videos"))
 
-        self.action_yingyinhebing.setText(tr("Video Subtitles Merging"))
-        self.action_yingyinhebing.setToolTip(tr("Merge audio, video, and subtitles into one file"))
         self.action_clipvideo.setText(tr("Edit video on subtitles"))
         self.action_clipvideo.setToolTip(tr("Edit video on subtitles"))
         self.action_realtime_stt.setText(tr("Real-time speech-to-text"))
@@ -440,7 +439,7 @@ class Ui_MainWindow(object):
 
         self.action_fanyi.setText(tr("Text  Or Srt  Translation"))
         self.action_fanyi.setToolTip(
-            tr("Batch translation of multiple srt subtitle files"))
+            tr("transsrt-windows-title"))
 
         self.action_hebingsrt.setText(tr("Combine Two Subtitles"))
         self.action_hebingsrt.setToolTip(
@@ -477,4 +476,4 @@ class Ui_MainWindow(object):
 
         self.actionsrtmultirole.setText(tr("Multi voice dubbing for SRT"))
         self.actionsrtmultirole.setToolTip(
-            tr("Subtitle multi-role dubbing: assign a voice to each subtitle"))
+            tr("multi-windows-title"))

@@ -204,7 +204,7 @@ class Ui_peiyin(object):
         self.verticalLayout_4.addWidget(self.hecheng_opendir)
         self.horizontalLayout_11.addLayout(self.verticalLayout_4)
 
-        peiyin.setWindowTitle(tr("Batch dubbing of SRT or TXT subtitle files"))
+        peiyin.setWindowTitle(tr("tts-windows-title"))
         self.retranslateUi()
 
         # tab-4 语音合成

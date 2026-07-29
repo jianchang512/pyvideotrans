@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Union
 from videotrans.configure.config import params, logger, settings,ROOT_DIR
-from videotrans.configure.contants import FIRERED_URL_MS
+from videotrans.configure.contants import FIRERED_URL_MS, FIRERED_URL_HF
 from videotrans.configure.excepts import SpeechToTextError, StopTask
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -11,6 +11,8 @@ import soundfile as sf
 
 # Firered ASR2 AED int8
 # https://k2-fsa.github.io/sherpa/onnx/FireRedAsr/pretrained.html
+from videotrans.util.help_misc import is_connect_hf
+
 
 @dataclass
 class FireredRecogn(BaseRecogn):
@@ -35,7 +37,7 @@ class FireredRecogn(BaseRecogn):
         if not Path(f'{self.local_dir}/encoder.int8.onnx').exists():
             from videotrans.util import help_down
             help_down.down_zip(f"{ROOT_DIR}/models",
-                           FIRERED_URL_MS,
+                           FIRERED_URL_MS if not is_connect_hf() else FIRERED_URL_HF,
                            self._process_callback)
         return True
         

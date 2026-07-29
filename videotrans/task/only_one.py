@@ -149,8 +149,7 @@ class Worker(QThread):
 
             if self._exit(): return
             trk.task_done()
-            self._post(text="", type='end')
-        except Exception as e:
+        except BaseException as e:
             from videotrans.configure.excepts import get_msg_from_except
             logger.exception(f'单视频模式翻译失败{e}',exc_info=True)
             except_msg = get_msg_from_except(e)

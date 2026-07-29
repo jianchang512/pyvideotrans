@@ -130,12 +130,12 @@ class Ui_minimaxform(object):
         allmodels = str(allmodels_str).split(',')
         self.minimax_model.clear()
         self.minimax_model.addItems(allmodels)
-        self.edit_allmodels.setPlainText(allmodels_str)
+        self.edit_allmodels.setPlainText(str(allmodels_str))
 
         self.minimax_key.setText(str(params.get("minimax_key",'')))
-        self.minimax_api.setText(params.get("minimax_api",''))
+        self.minimax_api.setText(str(params.get("minimax_api",'')))
         self.max_token.setText(str(params.get("minimax_max_tokens",'8192')))
-        self.minimax_model.setCurrentText(params.get("minimax_model",''))
+        self.minimax_model.setCurrentText(str(params.get("minimax_model",'')))
 
     def retranslateUi(self, minimaxform):
         minimaxform.setWindowTitle("MiniMax AI")

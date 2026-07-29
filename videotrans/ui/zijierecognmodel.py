@@ -98,8 +98,8 @@ class Ui_zijierecognform(object):
         self.retranslateUi(zijierecognform)
         QtCore.QMetaObject.connectSlotsByName(zijierecognform)
     def update_ui(self):
-        self.zijierecognmodel_appid.setText(params.get("zijierecognmodel_appid",''))
-        self.zijierecognmodel_token.setText(params.get("zijierecognmodel_token",''))
+        self.zijierecognmodel_appid.setText(str(params.get("zijierecognmodel_appid",'')))
+        self.zijierecognmodel_token.setText(str(params.get("zijierecognmodel_token",'')))
 
     def retranslateUi(self, zijierecognform):
         zijierecognform.setWindowTitle(tr('VolcEngine STT'))

@@ -50,7 +50,7 @@ def openwin():
         tools.set_process(text='', type="refreshtts")
         winobj.close()
 
-    winobj.api_url.setText(params.get("fishtts_url",''))
+    winobj.api_url.setText(str(params.get("fishtts_url",'')))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

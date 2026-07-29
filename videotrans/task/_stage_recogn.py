@@ -7,11 +7,11 @@ from pathlib import Path
 import os
 
 from videotrans.configure.config import tr, ROOT_DIR, settings, logger
-from videotrans.configure.contants import  DENOISE_URL_MS, PUNC_RESTORE_MS
+from videotrans.configure.contants import DENOISE_URL_MS, PUNC_RESTORE_MS, DENOISE_URL_HF, PUNC_RESTORE_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run as run_recogn, is_allow_lang as recogn_allow_lang, FASTER_WHISPER
 from videotrans.util.help_ffmpeg import conver_to_16k, runffmpeg, cut_from_audio
-from videotrans.util.help_misc import vail_file
+from videotrans.util.help_misc import vail_file, is_connect_hf
 from videotrans.util.help_srt import get_subtitle_from_srt, delete_punc
 
 
@@ -32,7 +32,7 @@ class RecognMixin:
 
         if not vail_file(self.cfg.source_wav):
             raise SpeechToTextError(tr("Failed to separate audio, please check the log or retry"))
-        from videotrans.util.help_down import down_file_from_ms
+        from videotrans.util.help_down import down_file_from_hf
         if self.cfg.remove_noise:
             _remove_noise_wav = f"{self.cfg.cache_folder}/remove_noise.wav"
             if vail_file(_remove_noise_wav):
@@ -41,15 +41,15 @@ class RecognMixin:
                 logger.debug(f'复用已存在的降噪缓存文件')
             else:
                 title = tr("Starting to process speech noise reduction, which may take a long time, please be patient")
-                down_file_from_ms(f'{ROOT_DIR}/models/onnx', urls=DENOISE_URL_MS,
-                                        callback=self._process_callback)
-                from videotrans.process.prepare_audio import remove_noise
                 kw = {
                     "input_file": self.cfg.source_wav if not self.cfg.vocal or not Path(self.cfg.vocal).exists() else self.cfg.vocal,
                     "output_file": _remove_noise_wav,
                     "is_cuda": self.cfg.is_cuda
                 }
                 try:
+                    down_file_from_hf(f'{ROOT_DIR}/models/onnx', urls=DENOISE_URL_MS if not is_connect_hf() else DENOISE_URL_HF,
+                                            callback=self._process_callback)
+                    from videotrans.process.prepare_audio import remove_noise
                     _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                     if _rs:
                         self.clone_ref = self.cfg.vocal if self.cfg.vocal and Path(self.cfg.vocal).exists() else _remove_noise_wav
@@ -84,13 +84,13 @@ class RecognMixin:
         self.source_srt_list = raw_subtitles
 
         if self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
-            down_file_from_ms(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS, callback=self._process_callback)
-            from videotrans.process.prepare_audio import fix_punc
-            text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
-            text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
-            Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
-            kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
             try:
+                down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF, callback=self._process_callback)
+                from videotrans.process.prepare_audio import fix_punc
+                text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
+                text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
+                Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
+                kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), is_cuda=self.cfg.is_cuda,
                                         kwargs=kw)
                 if _rs:

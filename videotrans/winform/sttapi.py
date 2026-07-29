@@ -29,8 +29,8 @@ def openwin():
         params.save()
         winobj.close()
 
-    winobj.stt_url.setText(params.get("stt_url", ''))
-    winobj.stt_model.setCurrentText(params.get("stt_model", ''))
+    winobj.stt_url.setText(str(params.get("stt_url", '')))
+    winobj.stt_model.setCurrentText(str(params.get("stt_model", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

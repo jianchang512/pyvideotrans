@@ -30,7 +30,7 @@ def openwin():
         params.save()
         winobj.close()
 
-    winobj.api_url.setText(params.get("trans_api_url", ''))
+    winobj.api_url.setText(str(params.get("trans_api_url", '')))
     winobj.miyue.setText(str(params.get("trans_secret", '')))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

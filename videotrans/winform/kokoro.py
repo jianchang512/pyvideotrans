@@ -42,7 +42,7 @@ def openwin():
         tools.set_process(text='', type="refreshtts")
         winobj.close()
 
-    winobj.kokoro_address.setText(params.get("kokoro_api",''))
+    winobj.kokoro_address.setText(str(params.get("kokoro_api",'')))
     winobj.set_kokoro.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

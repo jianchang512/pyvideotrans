@@ -327,13 +327,13 @@ if defaulelang != 'zh':
             "threshold": "VAD: Minimum probability for an audio chunk to be considered speech.",
             "no_speech_threshold": "no speech threshold",
             "max_speech_duration_s": "VAD: Maximum duration (s) of a single speech segment before splitting.",
+            "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle.",
             "min_silence_duration_ms": "VAD: Minimum silence duration (ms) to mark the end of a segment.",
 
 
             "max_speech_duration_s2": "Maximum speech duration (seconds) during secondary recognition. Limits the maximum length of a single speech segment. Forced segmentation occurs if this length is exceeded. Enter a number in seconds.",
             "min_speech_duration_ms2": "Shortest speech duration (milliseconds) during secondary recognition. If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle. Unit: milliseconds.",
 
-            "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle.",
 
             "merge_short_sub": "Short subtitles will only be merged if this option is selected",
             "whisper_prepare": "Should we pre-segment the speech using VAD before sending it to the Whisper model for recognition? \nIf using cloned voice-over characters, please select this option and set the shortest speech length to 3000 and the maximum speech length to 10 to improve the reliability of the voice cloning.",
@@ -645,7 +645,7 @@ class Ui_setini(object):
         if key == 'homedir':
             self.homedir_btn = QtWidgets.QPushButton()
             self.homedir_btn.setCursor(Qt.PointingHandCursor)
-            self.homedir_btn.setText(val)
+            self.homedir_btn.setText(str(val))
             self.homedir_btn.setToolTip(
                 tr("Click on Set Home Directory to save the result files for video separation, subtitle translation, subtitle dubbing, etc."))
             self.homedir_btn.clicked.connect(self.get_target)
@@ -679,7 +679,7 @@ class Ui_setini(object):
         # 普通文本框 字符串或数字
         tmp_1 = QtWidgets.QLineEdit()
         tmp_1.setMinimumSize(QtCore.QSize(0, 30))
-        tmp_1.setText(val)
+        tmp_1.setText(str(val))
         tmp_1.setPlaceholderText(tips_str)
         tmp_1.setToolTip(tips_str)
         tmp_1.setObjectName(key)

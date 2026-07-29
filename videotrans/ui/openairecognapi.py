@@ -99,10 +99,10 @@ class Ui_openairecognapiform(object):
         self.edit_allmodels.setPlainText(allmodels_str)
 
         self.openairecognapi_key.setText(str(params.get("openairecognapi_key",'')))
-        self.openairecognapi_prompt.setText(params.get("openairecognapi_prompt",''))
-        self.openairecognapi_url.setText(params.get("openairecognapi_url",''))
+        self.openairecognapi_prompt.setText(str(params.get("openairecognapi_prompt",'')))
+        self.openairecognapi_url.setText(str(params.get("openairecognapi_url",'')))
         if params.get('openairecognapi_model','') in allmodels:
-            self.openairecognapi_model.setCurrentText(params.get("openairecognapi_model",''))
+            self.openairecognapi_model.setCurrentText(str(params.get("openairecognapi_model",'')))
 
     def retranslateUi(self, openairecognapiform):
         openairecognapiform.setWindowTitle(

@@ -51,9 +51,9 @@ def openwin():
         winobj.close()
 
     winobj.apikey.setText(str(params.get("minimaxi_apikey",'')))
-    winobj.apiurl.setCurrentText(params.get("minimaxi_apiurl",'api.minimaxi.com'))
-    winobj.emotion.setCurrentText(params.get("minimaxi_emotion",''))
-    winobj.model.setCurrentText(params.get("minimaxi_model",''))
+    winobj.apiurl.setCurrentText(str(params.get("minimaxi_apiurl",'api.minimaxi.com')))
+    winobj.emotion.setCurrentText(str(params.get("minimaxi_emotion",'')))
+    winobj.model.setCurrentText(str(params.get("minimaxi_model",'')))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

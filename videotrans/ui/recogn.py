@@ -104,7 +104,7 @@ class Ui_recogn(object):
 
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
-        recogn.setWindowTitle(tr('Speech Recognit')+': '+tr("Speech Recognition Text"))
+        recogn.setWindowTitle(tr("stt-windows-title"))
 
         self.rephrase = QtWidgets.QComboBox()
         self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase")])

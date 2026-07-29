@@ -135,13 +135,13 @@ class Ui_geminiform(object):
         allmodels = str(settings.get('gemini_model','')).split(',')
         self.model.clear()
         self.model.addItems(allmodels)
-        self.edit_allmodels.setPlainText(allmodels_str)
+        self.edit_allmodels.setPlainText(str(allmodels_str))
         self.gemini_key.setText(str(params.get("gemini_key",'')))
-        self.model.setCurrentText(params.get("gemini_model",''))
+        self.model.setCurrentText(str(params.get("gemini_model",'')))
         
         self.gemini_maxtoken.setText(str(params.get("gemini_maxtoken",'16384')))
 
-        self.ttsmodel.setCurrentText(params.get("gemini_ttsmodel",''))
+        self.ttsmodel.setCurrentText(str(params.get("gemini_ttsmodel",'')))
 
     def retranslateUi(self):
         

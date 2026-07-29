@@ -1,7 +1,10 @@
+
+
 class BindSignalsMixin:
 
     def _bind_signal(self):
         self.callback('Bind signal...')
+        from PySide6.QtCore import QTimer
         from PySide6.QtCore import Qt
         from videotrans.mainwin._actions import WinAction
         from videotrans.configure.signal_hub import SignalHub
@@ -123,29 +126,31 @@ class BindSignalsMixin:
         self.rightbottom.clicked.connect(self.win_action.about)
         self.statusLabel.clicked.connect(lambda: self.win_action.open_url('help'))
 
-        self.callback('set cursor...')
+        def _setcursor():
+            self.callback('set cursor...')
 
-        self.startbtn.setCursor(Qt.PointingHandCursor)
-        self.btn_get_video.setCursor(Qt.PointingHandCursor)
-        self.btn_save_dir.setCursor(Qt.PointingHandCursor)
-        self.listen_btn.setCursor(Qt.PointingHandCursor)
-        self.statusLabel.setCursor(Qt.PointingHandCursor)
-        self.rightbottom.setCursor(Qt.PointingHandCursor)
-        self.restart_btn.setCursor(Qt.PointingHandCursor)
+            self.startbtn.setCursor(Qt.PointingHandCursor)
+            self.btn_get_video.setCursor(Qt.PointingHandCursor)
+            self.btn_save_dir.setCursor(Qt.PointingHandCursor)
+            self.listen_btn.setCursor(Qt.PointingHandCursor)
+            self.statusLabel.setCursor(Qt.PointingHandCursor)
+            self.rightbottom.setCursor(Qt.PointingHandCursor)
+            self.restart_btn.setCursor(Qt.PointingHandCursor)
 
-        SignalHub.instance().new_message.connect(self.win_action.update_data)
-        if settings.get('show_more_settings'):
-            self.win_action.toggle_adv()
+            SignalHub.instance().new_message.connect(self.win_action.update_data)
+            if settings.get('show_more_settings'):
+                self.win_action.toggle_adv()
 
-        self.win_action.tts_type_change(self.tts_type.currentIndex())
-        _role = params.get('voice_role') or 'No'
-        if _role in self.current_rolelist:
-            self.voice_role.setCurrentText(_role)
+            self.win_action.tts_type_change(self.tts_type.currentIndex())
+            _role = params.get('voice_role') or 'No'
+            if _role in self.current_rolelist:
+                self.voice_role.setCurrentText(_role)
 
-        self.callback('preload TTS win...')
-        self.open_winform('fn_peiyin')
-        self.callback('preload STT win...')
-        self.open_winform('fn_recogn')
-        self.callback('preload translate srt win...')
-        self.open_winform('fn_fanyisrt')
-        self.callback('end')
+            self.callback('preload TTS win...')
+            self.open_winform('fn_peiyin')
+            self.callback('preload STT win...')
+            self.open_winform('fn_recogn')
+            self.callback('preload translate srt win...')
+            self.open_winform('fn_fanyisrt')
+            self.callback('end')
+        QTimer.singleShot(10,_setcursor)

@@ -31,7 +31,7 @@ def openwin():
         params.save()
         winobj.close()
 
-    winobj.recognapiform_address.setText(params.get("recognapi_url", ''))
+    winobj.recognapiform_address.setText(str(params.get("recognapi_url", '')))
     winobj.recognapiform_key.setText(str(params.get("recognapi_key", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)

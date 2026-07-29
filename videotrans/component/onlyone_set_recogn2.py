@@ -53,7 +53,7 @@ class EditRecognResultDialog2(QDialog):
         self.prompt_label.setStyleSheet('font-size:14px;color:#aaaaaa')
         hstop.addWidget(self.prompt_label)
         self.stop_button = QPushButton(f"{tr('Click here to stop the countdown')}({self.count_down})")
-        self.stop_button.setStyleSheet("font-size: 16px;color:#ffff00")
+        self.stop_button.setStyleSheet("font-size: 14px;color:#ffff00")
         self.stop_button.setCursor(Qt.PointingHandCursor)
         self.stop_button.clicked.connect(self.stop_countdown)
         hstop.addWidget(self.stop_button)
@@ -480,6 +480,7 @@ class EditRecognResultDialog2(QDialog):
         self.table.setUpdatesEnabled(True)
 
     def save_and_close2(self):
+        self.stop_countdown()
         self._release_media()
         self.accept()
 
@@ -490,6 +491,7 @@ class EditRecognResultDialog2(QDialog):
         QDesktopServices.openUrl(QUrl.fromLocalFile(Path(self.source_sub).parent.as_posix()))
 
     def save_and_close(self):
+        self.stop_countdown()
         self.save_button.setDisabled(True)
         srt_str_list = []
         for i, data in enumerate(self.display_data):

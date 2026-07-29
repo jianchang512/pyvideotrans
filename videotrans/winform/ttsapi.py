@@ -57,16 +57,16 @@ def openwin():
     winobj = TtsapiForm()
     app_cfg.child_forms['ttsapi'] = winobj
     if params["ttsapi_url"]:
-        winobj.api_url.setText(params["ttsapi_url"])
+        winobj.api_url.setText(str(params["ttsapi_url"]))
     if params["ttsapi_voice_role"]:
-        winobj.voice_role.setPlainText(params["ttsapi_voice_role"])
+        winobj.voice_role.setPlainText(str(params["ttsapi_voice_role"]))
     if params["ttsapi_extra"]:
         winobj.extra.setText(str(params["ttsapi_extra"]))
 
     if params["ttsapi_language_boost"]:
-        winobj.language_boost.setCurrentText(params["ttsapi_language_boost"])
+        winobj.language_boost.setCurrentText(str(params["ttsapi_language_boost"]))
     if params["ttsapi_emotion"]:
-        winobj.emotion.setCurrentText(params["ttsapi_emotion"])
+        winobj.emotion.setCurrentText(str(params["ttsapi_emotion"]))
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

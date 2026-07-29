@@ -15,7 +15,6 @@ from PySide6.QtCore import Qt, QThread, Signal, Slot, QSettings, QUrl
 
 from videotrans.configure.config import ROOT_DIR, settings,  defaulelang
 from videotrans.configure import config
-from videotrans.util import tools
 from videotrans.configure.contants import FASTER_MODELS_DICT
 
 # ==========================================
@@ -23,6 +22,9 @@ from videotrans.configure.contants import FASTER_MODELS_DICT
 # ==========================================
 
 # 可选: 'zh' (中文) | 'en' (English)
+from videotrans.util._ffmpeg_audio import conver_to_16k
+from videotrans.util.help_down import check_and_down_hf
+
 CURRENT_LANG = defaulelang
 
 TEXT_DB = {
@@ -125,7 +127,7 @@ class AlignmentWorker(QThread):
     def run(self):
         try:
             self.log_signal.emit(tr("status_loading_model", self.model_name, self.device))
-            tools.check_and_down_hf(self.model_name,FASTER_MODELS_DICT[self.model_name],self.local_dir,callback=self._progress_callback)
+            check_and_down_hf(self.model_name,FASTER_MODELS_DICT[self.model_name],self.local_dir,callback=self._progress_callback)
             from faster_whisper import WhisperModel
 
             try:
@@ -140,7 +142,7 @@ class AlignmentWorker(QThread):
             self.log_signal.emit(tr("status_transcribing"))
             tempfile=f'{config.TEMP_DIR}/textmatching-{time.time()}.wav'
             try:
-                tools.conver_to_16k(self.audio_path,tempfile)
+                conver_to_16k(self.audio_path,tempfile)
                 segments, info = model.transcribe(
                       tempfile,
                       vad_filter=True,
@@ -526,9 +528,8 @@ class TextmatchingWindow(QWidget):
 
             try:
                 with open(path, 'r', encoding='utf-8') as f:
-                    content = f.read()
                     self.text_edit.clear()
-                    self.text_edit.setText(content)
+                    self.text_edit.setText(f.read())
             except Exception as e:
                 QMessageBox.warning(self, tr("msg_warning"), tr("msg_read_txt_fail", str(e)))
 

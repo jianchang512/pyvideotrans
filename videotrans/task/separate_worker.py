@@ -6,9 +6,12 @@ from PySide6.QtCore import QThread, Signal as pyqtSignal
 
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger
 from videotrans.configure import config
+from videotrans.configure.contants import UVR_URL_HF, UVR_URL_MS
 from videotrans.process.prepare_audio import vocal_bgm
 from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools
+from videotrans.util.help_down import down_file_from_hf
+from videotrans.util.help_misc import is_connect_hf
 
 
 class SeparateWorker(QThread):
@@ -42,14 +45,15 @@ class SeparateWorker(QThread):
         try:
             
             uvr_models=settings.get('uvr_models')
+            URL_PREFIX= UVR_URL_MS if not is_connect_hf() else UVR_URL_HF
             if uvr_models.startswith('spleeter'):
-                tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                    f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/vocals.fp16.onnx",
-                    f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/accompaniment.fp16.onnx"
+                down_file_from_hf(f'{ROOT_DIR}/models/onnx', [
+                    URL_PREFIX.replace('{}','vocals.fp16.onnx'),
+                URL_PREFIX.replace('{}','accompaniment.fp16.onnx')
                 ], callback=self._process_callback)
             else:
-                tools.down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                    f"https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/{uvr_models}.onnx"
+                down_file_from_hf(f'{ROOT_DIR}/models/onnx', [
+                    URL_PREFIX.replace('{}',f'{uvr_models}.onnx')
                 ], callback=self._process_callback)
 
         

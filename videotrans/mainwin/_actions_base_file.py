@@ -85,7 +85,7 @@ class WinActionBaseFileMixin:
             self._proxy_test_version += 1
             current_version = self._proxy_test_version
             current_proxy = proxy
-            QTimer.singleShot(3000, lambda v=current_version, p=current_proxy: self._test_proxy(v, p))
+            QTimer.singleShot(10000, lambda v=current_version, p=current_proxy: self._test_proxy(v, p))
         settings.save()
 
     def _test_proxy(self, test_version, test_proxy):

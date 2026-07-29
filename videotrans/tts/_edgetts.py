@@ -136,9 +136,7 @@ class EdgeTTS(BaseTTS):
         self._stop_event = asyncio.Event()
         self.lock = asyncio.Lock()
         self.ends_counter = 0
-
         total_tasks = len(self.queue_tts)
-        print(f'len={total_tasks}')
         if total_tasks==1:
             communicate = Communicate(
                 self.queue_tts[0]['text'],

@@ -124,17 +124,17 @@ class Ui_openaittsform(object):
 
         self.openaitts_model.clear()
         self.openaitts_model.addItems(allmodels)
-        self.edit_allmodels.setPlainText(allmodels_str)
-        self.edit_roles.setPlainText(params.get('openaitts_role',''))
+        self.edit_allmodels.setPlainText(str(allmodels_str))
+        self.edit_roles.setPlainText(str(params.get('openaitts_role','')))
 
         if params.get("openaitts_key",''):
             self.openaitts_key.setText(str(params.get("openaitts_key",'')))
         if params.get("openaitts_instructions",''):
-            self.openaitts_instructions.setText(params.get("openaitts_instructions", ''))
+            self.openaitts_instructions.setText(str(params.get("openaitts_instructions", '')))
         if params.get("openaitts_api",''):
-            self.openaitts_api.setText(params.get("openaitts_api",''))
+            self.openaitts_api.setText(str(params.get("openaitts_api",'')))
         if params.get("openaitts_model",'') and params.get('openaitts_model','') in allmodels:
-            self.openaitts_model.setCurrentText(params.get("openaitts_model",''))
+            self.openaitts_model.setCurrentText(str(params.get("openaitts_model",'')))
     def retranslateUi(self, openaittsform):
         openaittsform.setWindowTitle("OpenAI API TTS")
         self.label_3.setText(tr("Model"))

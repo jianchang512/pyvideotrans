@@ -50,6 +50,7 @@ class SupertonicTTS(BaseTTS):
                     return True
                 try:
                     if vail_file(item['filename']):
+                        ok+=1
                         continue
                     role=item.get('role','F1')
                     style = load_voice_style([f"{self.local_dir}/voice_styles/{role}.json"], verbose=False)

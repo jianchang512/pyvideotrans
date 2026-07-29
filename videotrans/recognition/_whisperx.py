@@ -41,7 +41,6 @@ class WhisperXRecogn(BaseRecogn):
 
                 if not hasattr(transcript, 'segments') or not transcript.segments:
                     raise SpeechToTextError('No support')
-                #print(f'{transcript.segments=}')
                 for it in transcript.segments:
                     startraw,endraw=tools.ms_to_time_string(ms=it.start * 1000),tools.ms_to_time_string( ms=it.end * 1000)
                     raws.append(SrtItem(

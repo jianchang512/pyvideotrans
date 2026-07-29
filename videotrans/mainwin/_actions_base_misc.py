@@ -55,13 +55,6 @@ class WinActionBaseMiscMixin:
             self.main.remove_silent_mid.setVisible(True)
             self.main.align_sub_audio.setVisible(True)
 
-    def check_txt(self, txt=''):
-        if txt and not re.search(r'\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?\s*?-->\s*?\d{1,2}:\d{1,2}:\d{1,2}(.\d+)?', txt):
-            show_error(
-                tr("Subtitle format is not correct, please re-import the subtitle or delete the imported subtitle."))
-            return False
-        return True
-
     def cuda_isok(self):
         if not self.main.enable_cuda.isChecked() or platform.system() == 'Darwin':
             self.cfg['is_cuda'] = False

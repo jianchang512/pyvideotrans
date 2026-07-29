@@ -40,7 +40,7 @@ def openwin():
         tools.set_process(text='', type="refreshtts")
         winobj.close()
 
-    winobj.chattts_address.setText(params.get("chattts_api",''))
+    winobj.chattts_address.setText(str(params.get("chattts_api",'')))
     winobj.chattts_voice.setText(str(settings.get("chattts_voice",'')))
     winobj.set_chattts.clicked.connect(save)
     winobj.test.clicked.connect(test)

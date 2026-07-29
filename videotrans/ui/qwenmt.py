@@ -150,9 +150,9 @@ class Ui_qwenmtform(object):
 
         self.qwenmt_key.setText(str(params.get("qwenmt_key",'')))
         self.qwenmt_spaceid.setText(str(params.get("qwenmt_spaceid",'')))
-        self.qwenmt_domains.setText(params.get("qwenmt_domains",''))
-        self.qwenmt_model.setCurrentText(params.get("qwenmt_model",''))
-        self.qwenmt_asr_model.setCurrentText(params.get("qwenmt_asr_model",''))
+        self.qwenmt_domains.setText(str(params.get("qwenmt_domains",'')))
+        self.qwenmt_model.setCurrentText(str(params.get("qwenmt_model",'')))
+        self.qwenmt_asr_model.setCurrentText(str(params.get("qwenmt_asr_model",'')))
 
     def retranslateUi(self, qwenmtform):
         qwenmtform.setWindowTitle(tr("Ali-BaiLian API/Qwen3-ASR AI"))

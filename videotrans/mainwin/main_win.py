@@ -5,7 +5,7 @@ import os
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from PySide6.QtCore import QEvent
+from PySide6.QtCore import QEvent, QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow
 from videotrans.configure import config
@@ -19,12 +19,12 @@ from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.mainwin._bind_signals import BindSignalsMixin
 from videotrans.mainwin._winform import WinformMixin
 from videotrans.mainwin._lifecycle import LifecycleMixin
-
+from videotrans.task.job import start_thread
 
 class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
 
 
-    def __init__(self, parent=None, width=1200, height=650,callback=None,screen_size=None):
+    def __init__(self, parent=None, width=1400, height=700,callback=None,screen_size=None):
         super().__init__(parent)
         self.callback=callback
         self.resize(width, height)
@@ -167,7 +167,8 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
         self.callback('show main window ...')
         self.show()
         run_in_threadpool(self._daemon)
-        self._bind_signal()
+        QTimer.singleShot(10,self._bind_signal)
+
 
     def _daemon(self):
         from videotrans.util.help_ffmpeg import check_hw_on_start
@@ -178,8 +179,7 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
 
     def _start_workers(self, status):
         if status == 'end':
-            from videotrans.task.job import start_thread
-            from videotrans.configure.config import tr
+
             self.worker_threads = start_thread()
             self.startbtn.setDisabled(False)
             self.startbtn.setText(tr("Start"))

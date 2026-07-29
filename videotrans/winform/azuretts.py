@@ -45,9 +45,9 @@ def openwin():
         winobj.close()
 
     if params.get('azure_speech_region','') and params.get('azure_speech_region','').startswith('http'):
-        winobj.speech_region.setText(params.get('azure_speech_region',''))
+        winobj.speech_region.setText(str(params.get('azure_speech_region','')))
     else:
-        winobj.azuretts_area.setCurrentText(params.get('azure_speech_region',''))
+        winobj.azuretts_area.setCurrentText(str(params.get('azure_speech_region','')))
     if params.get('azure_speech_key',''):
         winobj.speech_key.setText(str(params.get('azure_speech_key','')))
     winobj.save.clicked.connect(save)

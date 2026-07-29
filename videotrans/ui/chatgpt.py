@@ -136,13 +136,13 @@ class Ui_chatgptform(object):
         allmodels = str(settings.get('chatgpt_model','')).split(',')
         self.chatgpt_model.clear()
         self.chatgpt_model.addItems(allmodels)
-        self.edit_allmodels.setPlainText(allmodels_str)
+        self.edit_allmodels.setPlainText(str(allmodels_str))
 
         self.chatgpt_key.setText(str(params.get("chatgpt_key",'')))
-        self.chatgpt_api.setText(params.get("chatgpt_api",''))
-        self.chatgpt_model.setCurrentText(params.get("chatgpt_model",''))
+        self.chatgpt_api.setText(str(params.get("chatgpt_api",'')))
+        self.chatgpt_model.setCurrentText(str(params.get("chatgpt_model",'')))
         self.chatgpt_max_token.setText(str(params.get("chatgpt_max_token",'')))
-        self.reasoning_effort.setCurrentText(params.get("chatgpt_reasoning_effort","No"))
+        self.reasoning_effort.setCurrentText(str(params.get("chatgpt_reasoning_effort","No")))
         
     def retranslateUi(self, chatgptform):
         chatgptform.setWindowTitle(tr("OpenAI API & Compatible AI"))

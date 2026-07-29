@@ -290,7 +290,7 @@ class Ui_peiyinrole(object):
 
     def retranslateUi(self, peiyinrole):
         peiyinrole.setWindowTitle(
-            tr("Subtitle multi-role dubbing: assign a voice to each subtitle"))
+            tr("multi-windows-title"))
         self.label_10.setText(tr("Subtitle lang"))
         self.label_8.setText(tr("TTS"))
         self.label_11.setText(tr("Default Role"))

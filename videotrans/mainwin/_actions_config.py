@@ -67,7 +67,7 @@ class WinActionConfigMixin:
         is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
                                                   model_name=self.main.model_name.currentText())
         if is_allow_lang is not True:
-            self.main.show_tips.setText(is_allow_lang)
+            self.main.show_tips.setText(str(is_allow_lang))
 
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
@@ -78,7 +78,7 @@ class WinActionConfigMixin:
         is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
                                                   model_name=self.main.model_name.currentText())
         if is_allow_lang is not True:
-            self.main.show_tips.setText(is_allow_lang)
+            self.main.show_tips.setText(str(is_allow_lang))
 
     def tts_type_change(self, type):
 
@@ -86,7 +86,7 @@ class WinActionConfigMixin:
         if lang and lang != '-':
             is_allow_lang = tts.is_allow_lang(langcode=lang, tts_type=type)
             if is_allow_lang is not True:
-                self.main.show_tips.setText(is_allow_lang)
+                self.main.show_tips.setText(str(is_allow_lang))
 
         app_cfg.line_roles = {}
         _role_list = role_menu(type, lang if lang and lang != '-' else None)
@@ -102,7 +102,7 @@ class WinActionConfigMixin:
         if code and code != '-':
             is_allow_lang = tts.is_allow_lang(langcode=code, tts_type=self.main.tts_type.currentIndex())
             if is_allow_lang is not True:
-                self.main.show_tips.setText(is_allow_lang)
+                self.main.show_tips.setText(str(is_allow_lang))
             
             if translator.is_allow_translate(translate_type=self.main.translate_type.currentIndex(),
                                              show_target=t) is not True:

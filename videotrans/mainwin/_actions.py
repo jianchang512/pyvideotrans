@@ -39,5 +39,4 @@ class WinAction(WinActionCheckMixin, WinActionConfigMixin, WinActionTaskMixin, W
         app_cfg.set_countdown(-1)
         if self.had_click_btn:
             return
-        self.had_click_btn = True
 

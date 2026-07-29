@@ -68,6 +68,7 @@ class StartWindow(QWidget):
         self.start_time = time.time()
         self.loader = None
         self.setWindowTitle('pyVideoTrans')
+        self.screen=None
 
         self.resize(560, 350)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
@@ -110,9 +111,9 @@ class StartWindow(QWidget):
         QApplication.processEvents()
 
     def center(self):
-        screen = QGuiApplication.primaryScreen()
-        if screen:
-            center_point = screen.geometry().center()
+        self.screen = QGuiApplication.primaryScreen().geometry()
+        if self.screen:
+            center_point = self.screen.center()
             self.move(center_point.x() - self.width() // 2, center_point.y() - self.height() // 2)
 
 
@@ -139,23 +140,22 @@ def initialize_full_app(start_window, app_instance):
     if cli_args.lang:
         os.environ['PYVIDEOTRANS_LANG'] = cli_args.lang.lower()
     start_window.update_lable('Loading resources...')
-    QApplication.processEvents()
     # 导入qss image 资源
     import videotrans.ui.dark.darkstyle_rc
     with open('./videotrans/styles/style.qss', 'r', encoding='utf-8') as f:
         app_instance.setStyleSheet(f.read())
     start_window.update_lable('Loading main window...')
-    QApplication.processEvents()
 
     from videotrans.mainwin.main_win import MainWindow
     try:
-        screen = QGuiApplication.primaryScreen().geometry()
+        screen = start_window.screen
         w, h = int(screen.width()), int(screen.height())
         sets = QSettings("pyvideotrans", "settings")
-        size = sets.value("windowSize", QSize(int(w*0.85), int(h*0.85)))
+        size = sets.value("windowSize", QSize(min(int(w*0.9),1400), min(int(h*0.85),800)))
         start_window.update_lable('Initializing UI...')
-        QApplication.processEvents()
         start_window.main_window = MainWindow(width=size.width(), height=size.height(),callback=start_window.update_lable,screen_size=[w,h])
+        center_point = screen.center()
+        start_window.main_window.move(center_point.x() - size.width() // 2, center_point.y() - size.height() // 2)
     except Exception as e:
         show_global_error_dialog(type(e), e, e.__traceback__)
         app_instance.quit()

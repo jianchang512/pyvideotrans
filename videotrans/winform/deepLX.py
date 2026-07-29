@@ -30,7 +30,7 @@ def openwin():
         params.save()
         winobj.close()
 
-    winobj.deeplx_address.setText(params.get("deeplx_address", ''))
+    winobj.deeplx_address.setText(str(params.get("deeplx_address", '')))
     winobj.deeplx_key.setText(str(params.get("deeplx_key", '')))
     winobj.set_deeplx.clicked.connect(save)
     winobj.test.clicked.connect(test)

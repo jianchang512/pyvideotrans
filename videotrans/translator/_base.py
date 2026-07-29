@@ -61,7 +61,7 @@ class BaseTrans(BaseCon):
             if hasattr(self, '_download'):
                 self.signal(text=tr("check or download models"))
                 self._download()
-                self.signal(text="starting load model")
+                self.signal(text=tr("Transation subtitles"))
             if not self.aisendsrt:
                 # 是文字列表  [str,...]
                 source_text = [t['text'].replace("\n", " ") for t in self.text_list]
@@ -134,7 +134,6 @@ class BaseTrans(BaseCon):
     def _hymt2(self,split_source_text: List[List[str]]):
     
         from transformers import AutoModelForCausalLM, AutoTokenizer
-        import torch
 
         model_path = f"{ROOT_DIR}/models/models--tencent--Hy-MT2-1.8B"
 
@@ -144,7 +143,6 @@ class BaseTrans(BaseCon):
         # Load model
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
-            #dtype=torch.bfloat16,
             device_map="auto",
             trust_remote_code=True,
         )

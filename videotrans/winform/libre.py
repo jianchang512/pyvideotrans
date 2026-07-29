@@ -30,7 +30,7 @@ def openwin():
         params.save()
         winobj.close()
 
-    winobj.address.setText(params.get("libre_address", ''))
+    winobj.address.setText(str(params.get("libre_address", '')))
     winobj.key.setText(str(params.get("libre_key", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)

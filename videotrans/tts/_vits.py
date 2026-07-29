@@ -4,13 +4,14 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
-from videotrans.configure.contants import VITS_URL_MS
+from videotrans.configure.contants import VITS_URL_MS, VITS_URL_HF
 from videotrans.configure.excepts import DubbingSrtError
-from videotrans.configure.config import ROOT_DIR, app_cfg, logger
+from videotrans.configure.config import ROOT_DIR, app_cfg, logger,settings
 from videotrans.tts._base import BaseTTS
 import sherpa_onnx
 import soundfile as sf
-from videotrans.util.help_misc import vail_file
+from videotrans.util.help_misc import vail_file, is_connect_hf
+
 # https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/vits.html#id25
 
 
@@ -32,7 +33,7 @@ def _t(role, device='cpu'):
                 ),
                 provider=device,
                 debug=False,
-                num_threads=4,
+                num_threads=int(settings.get('noise_separate_nums', 4)),
             ),
             rule_fsts="",
             max_num_sentences=1,
@@ -48,7 +49,7 @@ def _t(role, device='cpu'):
                 ),
                 provider=device,
                 debug=False,
-                num_threads=4,
+                num_threads=int(settings.get('noise_separate_nums', 4)),
             ),
             rule_fsts=f"{ROOT_DIR}/models/vits/{role}/date.fst,{ROOT_DIR}/models/vits/{role}/number.fst,{ROOT_DIR}/models/vits/{role}/phone.fst",
             max_num_sentences=1,
@@ -64,7 +65,7 @@ def _t(role, device='cpu'):
                 ),
                 provider=device,
                 debug=False,
-                num_threads=4,
+                num_threads=int(settings.get('noise_separate_nums', 4)),
             ),
             rule_fsts=f"{ROOT_DIR}/models/vits/{role}/date.fst,{ROOT_DIR}/models/vits/{role}/number.fst,{ROOT_DIR}/models/vits/{role}/phone.fst,{ROOT_DIR}/models/vits/{role}/new_heteronym.fst",
             max_num_sentences=1,
@@ -80,7 +81,7 @@ def _t(role, device='cpu'):
                 ),
                 provider=device,
                 debug=False,
-                num_threads=4,
+                num_threads=int(settings.get('noise_separate_nums', 4)),
             ),
             rule_fsts="",
             max_num_sentences=1,
@@ -97,7 +98,7 @@ def _t(role, device='cpu'):
                 ),
                 provider=device,
                 debug=False,
-                num_threads=4,
+                num_threads=int(settings.get('noise_separate_nums', 4)),
             ),
             rule_fsts=f"{ROOT_DIR}/models/vits/zh_aishell/date.fst,{ROOT_DIR}/models/vits/zh_aishell/number.fst,{ROOT_DIR}/models/vits/zh_aishell/phone.fst,{ROOT_DIR}/models/vits/zh_aishell/new_heteronym.fst",
             max_num_sentences=1,
@@ -122,7 +123,7 @@ class VitsCNEN(BaseTTS):
         if not Path(f'{self.local_dir}/zh_en/model.onnx').exists():
             from videotrans.util.help_down import down_zip
             down_zip(f"{ROOT_DIR}/models",
-                           VITS_URL_MS,
+                           VITS_URL_MS  if not is_connect_hf() else VITS_URL_HF,
                            self._process_callback)
         return True
 
@@ -148,6 +149,7 @@ class VitsCNEN(BaseTTS):
                 if app_cfg.exit_soft or (self.is_redubb and Path(REDUBB_STATUS_FILE).exists()):
                     return
                 if vail_file(item['filename']):
+                    ok+=1
                     continue
                 try:
                     _key = f'{item["role"]}-{self.device}'

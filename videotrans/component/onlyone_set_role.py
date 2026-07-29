@@ -95,7 +95,7 @@ class SpeakerAssignmentDialog(QDialog):
         hstop.addWidget(self.prompt_label)
 
         self.stop_button = QPushButton(f"{tr('Click here to stop the countdown')}({self.count_down})")
-        self.stop_button.setStyleSheet("font-size: 16px;color:#ffff00")
+        self.stop_button.setStyleSheet("font-size: 14px;color:#ffff00")
         self.stop_button.setCursor(Qt.PointingHandCursor)
         self.stop_button.setMinimumSize(QSize(300, 35))
         self.stop_button.clicked.connect(self.stop_countdown)
@@ -748,6 +748,7 @@ class SpeakerAssignmentDialog(QDialog):
             self.timer=None
 
     def save_and_close2(self):
+        self.stop_countdown()
         self._release_media()
         self.accept()
 
@@ -759,6 +760,7 @@ class SpeakerAssignmentDialog(QDialog):
         event.ignore()  # 忽略关闭请求，窗口保持不动
     
     def save_and_close(self):
+        self.stop_countdown()
         self._release_media()
         self.save_button.setDisabled(True)
         app_cfg.line_roles = {}

@@ -1,10 +1,11 @@
 import json
+import os
 import shutil
 import time
 from pathlib import Path
 
 from videotrans.configure.config import tr, ROOT_DIR, settings, logger
-from videotrans.configure.contants import BUILTINT_URL_MS
+from videotrans.configure.contants import BUILTINT_URL_MS, BUILTINT_URL_HF
 from videotrans.util.help_misc import is_connect_hf
 
 
@@ -23,10 +24,11 @@ class DiarizMixin:
         if speaker_type in ['pyannote', 'reverb'] and not hf_token:
             logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
             return
-        from videotrans.util.help_down import down_file_from_ms, check_and_down_ms
+        from videotrans.util.help_down import down_file_from_hf, check_and_down_ms
+        ishf=is_connect_hf()
         try:
             self.precent += 3
-            title = tr(f'Begin separating the speakers') + f':{speaker_type}'
+            title = tr('Speaker classification') + f':{speaker_type}'
             subtitles_file=f'{self.cfg.cache_folder}/diariz-{time.time()}.json'
             Path(subtitles_file).write_text(json.dumps([[it['start_time'], it['end_time']] for it in self.source_srt_list]),encoding='utf-8')
             kw = {
@@ -37,7 +39,7 @@ class DiarizMixin:
                 "is_cuda": self.cfg.is_cuda
             }
             if speaker_type == 'built':
-                down_file_from_ms(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_MS, callback=self._process_callback)
+                down_file_from_hf(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_MS if not ishf else BUILTINT_URL_HF, callback=self._process_callback)
                 from videotrans.process.prepare_audio import built_speakers as _run_speakers
                 del kw['is_cuda']
                 kw['num_speakers'] = -1 if self.max_speakers < 1 else self.max_speakers
@@ -55,14 +57,22 @@ class DiarizMixin:
                 logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
                 return
             if speaker_type in ['pyannote', 'reverb']:
-                self.signal(text='Downloading speakers models')
-                from huggingface_hub import snapshot_download
-                snapshot_download(
-                    repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
-                    token=hf_token,
-                    local_dir=f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"),
-                    endpoint='https://huggingface.co' if is_connect_hf() else 'https://hf-mirror.com'
-                )
+                #self.signal(text='Downloading speakers models')
+                #from huggingface_hub import snapshot_download
+                from videotrans.util.help_down import check_and_down_hf
+                check_and_down_hf(
+                    speaker_type, 
+                    "pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1", 
+                    f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"), 
+                    self._process_callback, 
+                    None,
+                    hf_token)
+                #snapshot_download(
+                #    repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
+                #    token=hf_token,
+                #    local_dir=f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"),
+                #    endpoint=os.environ.get('HF_ENDPOINT')
+                #)
 
             _rs = self._new_process(callback=_run_speakers, title=title,
                                          is_cuda=self.cfg.is_cuda and speaker_type != 'built', kwargs=kw)

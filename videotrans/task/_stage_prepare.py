@@ -2,7 +2,7 @@ import time,re,json,shutil
 from pathlib import Path
 
 from videotrans.configure.config import tr, app_cfg, settings, logger
-from videotrans.configure.contants import UVR_URL_MS
+from videotrans.configure.contants import UVR_URL_MS, UVR_URL_HF
 from videotrans.configure.excepts import VideoTransError
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util.help_ffmpeg import get_video_info, runffmpeg
@@ -202,18 +202,21 @@ class PrepareMixin:
         if vail_file(self.cfg.vocal) and vail_file(self.cfg.instrument):
             return
         from videotrans.configure.config import ROOT_DIR
-        from videotrans.util.help_down import down_file_from_ms
+        from videotrans.util.help_down import down_file_from_hf
+        from videotrans.util.help_misc import is_connect_hf
         title = tr('Separating vocals and background music, which may take a longer time')
         uvr_models = settings.get('uvr_models')
+        URL_PREFIX= UVR_URL_MS if not is_connect_hf() else UVR_URL_HF
+        
         if uvr_models.startswith('spleeter'):
-            down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                f"{UVR_URL_MS}vocals.fp16.onnx",
-                f"{UVR_URL_MS}accompaniment.fp16.onnx"
+            down_file_from_hf(f'{ROOT_DIR}/models/onnx', [
+                URL_PREFIX.replace('{}','vocals.fp16.onnx'),
+                URL_PREFIX.replace('{}','accompaniment.fp16.onnx')
             ], callback=self._process_callback)
 
         else:
-            down_file_from_ms(f'{ROOT_DIR}/models/onnx', [
-                f"{UVR_URL_MS}{uvr_models}.onnx"
+            down_file_from_hf(f'{ROOT_DIR}/models/onnx', [
+                URL_PREFIX.replace('{}',f'{uvr_models}.onnx')
             ], callback=self._process_callback)
         from videotrans.process.prepare_audio import vocal_bgm
         kw = {"input_file": tmpfile, "vocal_file": self.cfg.vocal, "instr_file": self.cfg.instrument,

@@ -79,7 +79,8 @@ class AssembleMixin:
     def _join_video_audio_srt(self) -> None:
         if self._exit() or not self.should_hebing:
             return
-        
+        self._save_srt_target(self.queue_tts, self.cfg.target_sub)
+
         self.signal(text="Checking novoice.mp4...")
         is_novoice_mp4(self.cfg.novoice_mp4, self.uuid)
         if not Path(self.cfg.novoice_mp4).exists():
@@ -89,7 +90,6 @@ class AssembleMixin:
             raise VideoTransError(f"{tr('Dubbing')}{tr('anerror')}:{self.cfg.target_wav}")
 
         self.precent = min(max(90, self.precent), 98)
-
         target_m4a = self.cfg.cache_folder + "/will_embed.m4a"
         output_source_output = True
         duration_ms = int(get_video_duration(self.cfg.novoice_mp4))

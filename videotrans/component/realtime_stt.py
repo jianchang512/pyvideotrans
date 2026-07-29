@@ -13,7 +13,9 @@ from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, Q
     QFileDialog, QMessageBox
 
 from videotrans.configure.config import ROOT_DIR, HOME_DIR, tr
-from videotrans.util import tools
+from videotrans.configure.contants import REALTIME_URL_HF, REALTIME_URL_MS
+from videotrans.util.help_down import down_zip
+from videotrans.util.help_misc import is_connect_hf
 
 CTC_MODEL_FILE=f"{ROOT_DIR}/models/onnx/ctc.model.onnx"
 PAR_ENCODER = f"{ROOT_DIR}/models/onnx/encoder.onnx"
@@ -265,7 +267,7 @@ class DownloadModel(QThread):
     
     
     def run(self):
-        tools.down_zip(f"{ROOT_DIR}/models",'https://modelscope.cn/models/himyworld/videotrans/resolve/master/realtimestt.zip',self._process_callback)
+        down_zip(f"{ROOT_DIR}/models", REALTIME_URL_MS if not is_connect_hf() else REALTIME_URL_HF,self._process_callback)
     def _process_callback(self,msg):
         self.down.emit(msg)
 

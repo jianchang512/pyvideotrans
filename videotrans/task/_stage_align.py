@@ -27,7 +27,8 @@ class AlignMixin:
         if vail_file(self.cfg.novoice_mp4):
             self.video_time = get_video_duration(self.cfg.novoice_mp4)
         from videotrans.task._rate import SpeedRate
-        print(f'{self.cfg.voice_autorate=},{self.cfg.video_autorate=}')
+
+        
         rate_inst = SpeedRate(
             queue_tts=self.queue_tts,
             uuid=self.uuid,
@@ -41,21 +42,18 @@ class AlignMixin:
             remove_silent_mid=self.cfg.remove_silent_mid
         )
         self.queue_tts = rate_inst.run()
-
         if vail_file(self.cfg.novoice_mp4):
             self.video_time = get_video_duration(self.cfg.novoice_mp4)
         
         # 变速后更新字幕
         if self.cfg.voice_autorate or self.cfg.video_autorate or self.cfg.align_sub_audio:
             srt = ""
-            for (idx, it) in enumerate(self.queue_tts):
-                startraw = ms_to_time_string(ms=it['start_time'])
-                endraw = ms_to_time_string(ms=it['end_time'])
+            for it in self.queue_tts:
+                it['startraw'] = ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = ms_to_time_string(ms=it['end_time'])
                 if self.cfg.fix_punc==2:
                     it['text']=delete_punc(it['text'])
-                srt += f"{idx + 1}\n{startraw} --> {endraw}\n{it['text'].strip('...')}\n\n"
-            with  Path(self.cfg.target_sub).open('w', encoding="utf-8") as f:
-                f.write(srt.strip())
+                it['text']=it['text'].strip('...')
 
         if self.cfg.tts_type not in [EDGE_TTS, AZURE_TTS] and self.cfg.volume != '+0%' and vail_file(
                 self.cfg.target_wav):

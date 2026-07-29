@@ -110,13 +110,13 @@ class Ui_ai302form(object):
         self.ai302_model.addItems(allmodels)
         self.ai302_model_recogn.clear()
         self.ai302_model_recogn.addItems(['whisper-1','gpt-4o-transcribe','gpt-4o-mini-transcribe','gpt-4o-transcribe-diarize'])
-        self.edit_allmodels.setPlainText(allmodels_str)
+        self.edit_allmodels.setPlainText(str(allmodels_str))
 
         if params.get("ai302_key",''):
             self.ai302_key.setText(str(params.get("ai302_key",'')))
         if  params.get("ai302_model") in allmodels:
-            self.ai302_model.setCurrentText(params.get("ai302_model",''))
-        self.ai302_model_recogn.setCurrentText(params.get("ai302_model_recogn",''))
+            self.ai302_model.setCurrentText(str(params.get("ai302_model",'')))
+        self.ai302_model_recogn.setCurrentText(str(params.get("ai302_model_recogn",'')))
 
     def retranslateUi(self, ai302form):
         ai302form.setWindowTitle("302.ai"+tr("Access translation and dubbing channel configuration"))

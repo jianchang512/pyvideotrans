@@ -83,7 +83,7 @@ class BaseTTS(BaseCon):
             if hasattr(self, '_download'):
                 self.signal(text=tr("check or download models"))
                 self._download()
-                self.signal(text='starting load model')
+                self.signal(text=tr('Dubbing'))
             # edge-tts:检查 self._exec 是不是一个异步函数 (coroutine)
             if inspect.iscoroutinefunction(self._exec):
                 try:
@@ -117,28 +117,7 @@ class BaseTTS(BaseCon):
                 logger.warning("捕获到 'Event loop is closed' 错误，这通常是关闭时序问题。")
             else:
                 raise
-        finally:
-            # edge-tts:只有当 self._exec 是异步函数时，才需要处理事件循环
-            if inspect.iscoroutinefunction(self._exec) and loop and not loop.is_closed():
-                try:
-                    # 1: 取消所有剩余的任务
-                    tasks = asyncio.all_tasks(loop=loop)
-                    for task in tasks:
-                        task.cancel()
 
-                    # 2: 聚合所有任务，等待它们完成取消
-                    group = asyncio.gather(*tasks, return_exceptions=True)
-                    loop.run_until_complete(group)
-                    import gc
-                    gc.collect()
-                    loop.run_until_complete(asyncio.sleep(0))
-                    # 3: 关闭异步生成器
-                    loop.run_until_complete(loop.shutdown_asyncgens())
-                except Exception as e:
-                    logger.exception(f'结束 edge-tts 时失败，忽略 {e}', exc_info=True)
-                finally:
-                    # 4: 最终关闭事件循环
-                    loop.close()
 
         # 试听或测试时播放
         if self.play:
@@ -186,9 +165,8 @@ class BaseTTS(BaseCon):
                     # 发送终止信号，终止时会将 uuid 加入 app_cfg.stop_uid
                     raise error
 
-                self.signal(text=f'TTS[{k + 1}/{self.len}]')
+                self.signal(text=f'{tr("Dubbing")} [{k + 1}/{self.len}]')
                 time.sleep(self.wait_sec)
-            self.signal(text=f'TTS ended')
             return
 
         all_task = []
@@ -215,7 +193,7 @@ class BaseTTS(BaseCon):
                         # 发送终止信号，终止时会将 uuid 加入 app_cfg.stop_uid
                         raise error
                     completed_tasks += 1
-                    self.signal(text=f"TTS: [{completed_tasks}/{self.len}] ...")
+                    self.signal(text=f"{tr('Dubbing')}: [{completed_tasks}/{self.len}] ...")
             self.signal(text=f"TTS ended ...")
         finally:
             # 只能取消排队的任务，并让主线程不再等待。
@@ -235,7 +213,7 @@ class BaseTTS(BaseCon):
             return
         # 有些不可恢复的错误，例如 404 sk错误 无权访问等，直接发送 error 信号，无需继续多线程
         try:
-            self.signal(text=f'Dubbing {idx}/{self.len}')
+            self.signal(text=f'{tr("Dubbing")} {idx}/{self.len}')
             return self._run(data_item,idx)
         except RetryError as e:
             logger.exception(f'\n第{idx}条字幕配音失败,字幕文本:{data_item}\n{e}', exc_info=True)

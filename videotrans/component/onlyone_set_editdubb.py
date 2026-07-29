@@ -50,9 +50,7 @@ class ReDubb(QThread):
             for filename,it in _REDUBB_QUEUE.items():
                 if Path(REDUBB_STATUS_FILE).exists():
                     return
-                print(f'判断是否:{filename=}')
                 if vail_file(filename):
-                    print(f'存在 {filename=}')
                     _shound_pop.append(filename)
                     self.uito.emit(f"ok:{_FILENAME_ROW_MAP[filename]}")
 
@@ -147,7 +145,7 @@ class EditDubbingResultDialog(QDialog):
         hstop.addWidget(self.prompt_label)
 
         self.stop_button = QPushButton(f"{tr('Click here to stop the countdown')}({self.count_down})")
-        self.stop_button.setStyleSheet("font-size: 16px;color:#ffff00")
+        self.stop_button.setStyleSheet("font-size: 14px;color:#ffff00")
         self.stop_button.setCursor(Qt.PointingHandCursor)
         self.stop_button.setMinimumSize(QSize(300, 35))
         self.stop_button.clicked.connect(self.stop_countdown)
@@ -699,7 +697,7 @@ class EditDubbingResultDialog(QDialog):
         
         msg_item = self.table.item(row, 4)
         if msg_item:
-            msg_item.setText(msg)
+            msg_item.setText(str(msg))
             if dubbing <= 0:
                 msg_item.setForeground(QColor("#ff4d4d"))
             elif diff>0:
@@ -959,7 +957,7 @@ class EditDubbingResultDialog(QDialog):
             
             def restore():
                 if hasattr(self, 'prompt_label') and self.prompt_label:
-                    self.prompt_label.setText(original_text)
+                    self.prompt_label.setText(str(original_text))
                     self.prompt_label.setStyleSheet(original_style)
             QTimer.singleShot(2000, restore)
 
@@ -1000,6 +998,7 @@ class EditDubbingResultDialog(QDialog):
             self.stop_button = None
 
     def save_and_close(self):
+        self.stop_countdown()
         Path(REDUBB_STATUS_FILE).write_text("end")
         self._release_media()
         self.save_button.setDisabled(True)
@@ -1007,14 +1006,11 @@ class EditDubbingResultDialog(QDialog):
         app_cfg.onlyone_voice_autorate=self.voice_autorate.isChecked()
         app_cfg.onlyone_remove_silent_mid=self.remove_silent_mid.isChecked()
         app_cfg.onlyone_align_sub_audio=self.align_sub_audio.isChecked()
-        
         for i, item in enumerate(self.queue_tts):
             # 不修改文本，以便可以单独使用 各种配音渠道支持的控制符号进行声音微调
             text_item = self.table.item(i, 5)
             text = text_item.text().strip() if text_item else item['text'].strip()
-
             # 删除空文本对应的音频文件
             if not text:
                 Path(item['filename']).unlink(missing_ok=True)
-
         self.accept()

@@ -68,9 +68,9 @@ def openwin():
         tools.set_process(text='', type="refreshtts")
         winobj.close()
 
-    winobj.api_url.setText(params.get("gptsovits_url",''))
-    winobj.role.setPlainText(params.get("gptsovits_role",''))
-    winobj.is_v2.setChecked(params.get("gptsovits_isv2",''))
+    winobj.api_url.setText(str(params.get("gptsovits_url",'')))
+    winobj.role.setPlainText(str(params.get("gptsovits_role",'')))
+    winobj.is_v2.setChecked(str(params.get("gptsovits_isv2",'')))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

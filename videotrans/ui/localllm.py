@@ -126,10 +126,10 @@ class Ui_localllmform(object):
         allmodels = str(settings.get('localllm_model','')).split(',')
         self.localllm_model.clear()
         self.localllm_model.addItems(allmodels)
-        self.edit_allmodels.setPlainText(allmodels_str)
+        self.edit_allmodels.setPlainText(str(allmodels_str))
         self.localllm_key.setText(str(params.get("localllm_key",'')))
-        self.localllm_api.setText(params.get("localllm_api",''))
-        self.localllm_model.setCurrentText(params.get("localllm_model",''))
+        self.localllm_api.setText(str(params.get("localllm_api",'')))
+        self.localllm_model.setCurrentText(str(params.get("localllm_model",'')))
         self.localllm_max_token.setText(str(params.get("localllm_max_token",'')))
 
     def retranslateUi(self, localllmform):

@@ -58,7 +58,11 @@ class LifecycleMixin:
 
     def closeEvent(self, event):
         from videotrans.configure.config import app_cfg, ROOT_DIR, TEMP_ROOT,REDUBB_STATUS_FILE
-        Path(REDUBB_STATUS_FILE).write_text('end')
+        try:
+            if Path(REDUBB_STATUS_FILE).exists():
+                Path(REDUBB_STATUS_FILE).write_text('end')
+        except OSError:
+            pass
         app_cfg.exit_soft = True
         app_cfg.current_status = 'stop'
         self.hide()

@@ -31,9 +31,9 @@ def openwin():
         winobj.close()
 
     if params['deepl_authkey']:
-        winobj.deepl_authkey.setText(params['deepl_authkey'])
+        winobj.deepl_authkey.setText(str(params['deepl_authkey']))
     if params['deepl_api']:
-        winobj.deepl_api.setText(params['deepl_api'])
+        winobj.deepl_api.setText(str(params['deepl_api']))
     if params['deepl_gid']:
         winobj.deepl_gid.setText(str(params['deepl_gid']))
     winobj.set_deepl.clicked.connect(save)

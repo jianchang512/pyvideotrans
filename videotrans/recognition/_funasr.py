@@ -39,7 +39,6 @@ class FunasrRecogn(BaseRecogn):
             tools.check_and_down_ms(model_id='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch')
             tools.check_and_down_ms(model_id='damo/speech_campplus_sv_zh-cn_16k-common',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/speech_campplus_sv_zh-cn_16k-common')
         else:
-            print('download---')
             tools.check_and_down_ms(model_id=self.model_name,callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/'+self.model_name.split('/')[-1])
         self.signal(text=f"load {self.model_name}")
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/funasr-{self.detect_language}-{time.time()}.log'

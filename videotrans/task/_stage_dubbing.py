@@ -22,21 +22,14 @@ class DubbingMixin:
             self.signal(text=tr('kaishipeiyin'))
         self.precent += 3
         self._tts()
-        if Path(self.cfg.target_sub).exists():
-            subs = get_subtitle_from_srt(self.cfg.target_sub)
-            if self.cfg.fix_punc==2:
-                logger.debug('配音结束后，移除目标字幕中所有标点')
-            for it in subs:
-                it['text']=it['text'].strip('...')
-                if self.cfg.fix_punc==2:
-                    it['text']=delete_punc(it['text'])
-            self._save_srt_target(subs, self.cfg.target_sub)
-
-        if  self.cfg.fix_punc==2 and Path(self.cfg.source_sub).exists():
+        
+        if  Path(self.cfg.source_sub).exists():
             logger.debug('配音结束后，移除原始字幕中所有标点')
             subs = get_subtitle_from_srt(self.cfg.source_sub)
             for it in subs:
-                it['text']=delete_punc(it['text'])
+                if self.cfg.fix_punc==2:
+                    it['text']=delete_punc(it['text'])
+                it['text']=it['text'].strip('...')
             self._save_srt_target(subs, self.cfg.source_sub)
         if self.should_dubbing:
             self.signal(text=tr('The dubbing is finished'))
@@ -116,6 +109,9 @@ class DubbingMixin:
             outname = self.cfg.target_dir + f'/segment_audio_{self.cfg.noextname}'
             Path(outname).mkdir(parents=True, exist_ok=True)
         for it in self.queue_tts:
+            it['text']=it['text'].strip('...')
+            if self.cfg.fix_punc==2:
+                it['text']=delete_punc(it['text'])
             if Path(it['filename']).exists():
                 # 保存缓存
                 shutil.copy2(it['filename'],f'{DUBBING_CACHE}/'+Path(it['filename']).name.split('-')[-1])
@@ -123,4 +119,4 @@ class DubbingMixin:
                     text = re.sub(r'["\'*?\\/|:<>\r\n\t]+', '', it['text'], flags=re.I | re.S)
                     name = f'{outname}/{it["line"]}-{text[:60]}.wav'
                     shutil.copy2(it['filename'], name)
-
+        

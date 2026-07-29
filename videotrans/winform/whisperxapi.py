@@ -28,7 +28,7 @@ def openwin():
         params.save()
         winobj.close()
 
-    winobj.api_url.setText(params.get("whisperx_api", ''))
+    winobj.api_url.setText(str(params.get("whisperx_api", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

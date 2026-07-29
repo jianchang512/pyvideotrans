@@ -69,11 +69,11 @@ def openwin():
     winobj = GradiowinForm()
     app_cfg.child_forms['gradiowin'] = winobj
     winobj.index_tts_version.setCurrentIndex(int(params.get('index_tts_version',0)))
-    winobj.voxcpmtts_version.setCurrentText(params.get('voxcpmtts_version','v2'))
+    winobj.voxcpmtts_version.setCurrentText(str(params.get('voxcpmtts_version','v2')))
     
-    winobj.sparktts_url.setText(params.get('sparktts_url',''))
-    winobj.indextts_url.setText(params.get('indextts_url',''))
-    winobj.voxcpmtts_url.setText(params.get('voxcpmtts_url',''))
+    winobj.sparktts_url.setText(str(params.get('sparktts_url','')))
+    winobj.indextts_url.setText(str(params.get('indextts_url','')))
+    winobj.voxcpmtts_url.setText(str(params.get('voxcpmtts_url','')))
 
     winobj.save.clicked.connect(save)
     winobj.sparktts_urltest.clicked.connect(lambda: test(tts.SPARK_TTS))

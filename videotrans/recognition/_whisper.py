@@ -3,6 +3,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Union, List
 
+from videotrans.configure._paths import TEMP_ROOT
 from videotrans.configure.config import settings, ROOT_DIR, logger
 from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
@@ -57,7 +58,7 @@ class FasterAll(BaseRecogn):
 
 
     def _openai(self)->Union[List[SrtItem], None]:
-        title=f'STT use {self.model_name}'
+        title=f'Model: {self.model_name}'
         self.signal(text=title)
         # 起一个进程
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/openai-{self.detect_language}-{time.time()}.log'
@@ -90,7 +91,7 @@ class FasterAll(BaseRecogn):
 
 
     def _faster(self)->Union[List[SrtItem], None]:
-        title=f"STT use {self.model_name}"
+        title=f"Model: {self.model_name}"
         self.signal(text=title)
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/faster-{self.detect_language}-{time.time()}.log'
         _max_speech=max(int(float(settings.get('max_speech_duration_s', 5)) * 1000),2000)
@@ -99,7 +100,7 @@ class FasterAll(BaseRecogn):
             _max_speech = max(int(float(settings.get('max_speech_duration_s2', 2)) * 1000),500)
         
         
-        subtitle_srt=f'{config.TEMP_ROOT}/faster-{datetime.datetime.now().strftime("%Y%m%d-%H_%M_%S")}.srt'
+        subtitle_srt=f'{TEMP_ROOT}/faster-{datetime.datetime.now().strftime("%Y%m%d-%H_%M_%S")}.srt'
         kwargs = {
             "detect_language": self.detect_language,
             "model_name": self.model_name,
@@ -128,5 +129,7 @@ class FasterAll(BaseRecogn):
             raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
             return raws
         except SttTimeoutError:
+            if not Path(subtitle_srt).exists():
+                raise
             logger.debug(f'捕获到强制抛出的 SttTimeoutError, 使用已识别的文件 {subtitle_srt}')
             return get_subtitle_from_srt(subtitle_srt, is_file=True)

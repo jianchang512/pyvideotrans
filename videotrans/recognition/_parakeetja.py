@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Union
 import time
 from videotrans.configure.config import params, logger, settings,ROOT_DIR
-from videotrans.configure.contants import PARAKEETJA_URL_MS
+from videotrans.configure.contants import PARAKEETJA_URL_MS, PARAKEETJA_URL_HF
 from videotrans.configure.excepts import SpeechToTextError, StopTask
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -12,6 +12,8 @@ import soundfile as sf
 
 # https://k2-fsa.github.io/sherpa/onnx/pretrained_models/offline-ctc/nemo/japanese.html#sherpa-onnx-nemo-parakeet-tdt-ctc-0-6b-ja-35000-int8-japanese
 # int8
+from videotrans.util.help_misc import is_connect_hf
+
 
 @dataclass
 class ParakeetJARecogn(BaseRecogn):
@@ -34,7 +36,7 @@ class ParakeetJARecogn(BaseRecogn):
         if not Path(f'{self.local_dir}/model.int8.onnx').exists():
             from videotrans.util import help_down
             help_down.down_zip(f"{ROOT_DIR}/models",
-                           PARAKEETJA_URL_MS,
+                           PARAKEETJA_URL_MS if not is_connect_hf() else PARAKEETJA_URL_HF,
                            self._process_callback)
         return True
         

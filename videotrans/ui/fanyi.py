@@ -196,7 +196,7 @@ class Ui_fanyisrt(object):
 
         # end
 
-        fanyisrt.setWindowTitle(tr("Text  Or Srt  Translation"))
+        fanyisrt.setWindowTitle(tr("transsrt-windows-title"))
         self.retranslateUi()
 
         QMetaObject.connectSlotsByName(fanyisrt)

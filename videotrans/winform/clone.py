@@ -43,7 +43,7 @@ def openwin():
         winobj.close()
 
     if params.get("clone_api",''):
-        winobj.clone_address.setText(params.get("clone_api",''))
+        winobj.clone_address.setText(str(params.get("clone_api",'')))
     winobj.set_clone.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

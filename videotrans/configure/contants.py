@@ -152,6 +152,11 @@ BUILTINT_URL_MS = [
     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/nemo_en_titanet_small.onnx",
     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"
 ]
+BUILTINT_URL_HF = [
+    "https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/seg_model.onnx?download=true",
+    "https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/nemo_en_titanet_small.onnx?download=true",
+    "https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx?download=true"
+]
 
 # 内置标点恢复模型下载地址
 PUNC_RESTORE_MS = [
@@ -159,28 +164,53 @@ PUNC_RESTORE_MS = [
     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/config.yaml",
     "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/tokens.json",
 ]
+PUNC_RESTORE_HF = [
+    "https://huggingface.co/mortimerme/repocollect/resolve/main/puntc/model.onnx?download=true",
+    "https://huggingface.co/mortimerme/repocollect/resolve/main/puntc/config.yaml?download=true",
+    "https://huggingface.co/mortimerme/repocollect/resolve/main/puntc/tokens.json?download=true",
+]
 # 降噪模型下载地址
 DENOISE_URL_MS = [
-    'https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet4.onnx'
+    'https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet8.onnx'
+]
+DENOISE_URL_HF = [
+    'https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/dpdfnet8.onnx?download=true'
 ]
 # 背景音频分离地址前缀
-UVR_URL_MS = 'https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/'
+UVR_URL_MS = 'https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/{}'
+UVR_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/{}?download=true'
 # M2M100模型下载地址
 M2M100_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/m2m100_12b_model.zip'
+M2M100_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/m2m100_12b_model.zip?download=true'
 # ZipVoice-TTS 下载地址
 ZIPVOICE_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/zipvoice-tts.zip'
+ZIPVOICE_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/zipvoice-tts.zip?download=true'
 # VITS-TTS 下载地址
 VITS_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/vits-tts.zip'
+VITS_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/vits-tts.zip?download=true'
 # GPTW 用于 piper-TTS  下载地址
 GPTW_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/G2PWModel-v2-onnx.zip'
+GPTW_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/G2PWModel-v2-onnx.zip?download=true'
 # 小红书语音识别 fireredasr 下载地址
 FIRERED_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/fireredasr2aed.zip'
+FIRERED_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/fireredasr2aed.zip?download=true'
 # dolphine 语音识别模型下载地址
 DOLPHIN_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/dolphin.zip'
+DOLPHIN_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/dolphin.zip?download=true'
 # parakeet-ja日语识别模型下载地址
 PARAKEETJA_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/parakeet-ja.zip'
+PARAKEETJA_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/parakeet-ja.zip?download=true'
 # omnilingual 语音识别模型下载地址
 OMNILINGUAL_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/omnilingual.zip'
+OMNILINGUAL_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/omnilingual.zip?download=true'
+
+# realtime stt
+REALTIME_URL_MS='https://modelscope.cn/models/himyworld/videotrans/resolve/master/realtimestt.zip'
+REALTIME_URL_HF='https://huggingface.co/mortimerme/repocollect/resolve/main/realtimestt.zip?download=true'
+
+# whisper.cpp 模型下载地址
+WHISPERCPP_MODEL_URL_HF='https://huggingface.co/ggerganov/whisper.cpp/resolve/main/{}?download=true'
+WHISPERCPP_MODEL_URL_MS='https://modelscope.cn/models/viggocx/whisper.cpp/resolve/master/{}'
 
 #----------Rubberband 库安装提示------------------
 INSTALL_RUBBERBAND_TIPS = """Windows: For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip

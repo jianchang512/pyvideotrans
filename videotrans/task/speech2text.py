@@ -10,7 +10,8 @@ from typing import List
 from videotrans.configure import contants
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger, HOME_DIR
 from videotrans.configure import config
-from videotrans.configure.contants import BUILTINT_URL_MS, PUNC_RESTORE_MS, DENOISE_URL_MS
+from videotrans.configure.contants import BUILTINT_URL_MS, PUNC_RESTORE_MS, DENOISE_URL_MS, BUILTINT_URL_HF, \
+    DENOISE_URL_HF, PUNC_RESTORE_HF
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
@@ -68,23 +69,23 @@ class SpeechToText(BaseTask):
                 break
             time.sleep(0.5)
 
-        from videotrans.util.help_down import down_file_from_ms
+        from videotrans.util.help_down import down_file_from_hf
         from videotrans.configure.excepts import SpeechToTextError
 
         # 需要降噪
         if self.cfg.remove_noise:
             logger.debug('开始降噪')
-            from videotrans.process.prepare_audio import remove_noise
-            title = tr('Starting to process speech noise reduction, which may take a long time, please be patient')
-            down_file_from_ms(f'{ROOT_DIR}/models/onnx', urls=DENOISE_URL_MS,
-                                        callback=self._process_callback)
-            _noise_wav = f"{config.TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
-            kw = {
-                    "input_file": self.cfg.shibie_audio,
-                    "output_file": _noise_wav,
-                    "is_cuda": self.cfg.is_cuda
-                }
             try:
+                from videotrans.process.prepare_audio import remove_noise
+                title = tr('Starting to process speech noise reduction, which may take a long time, please be patient')
+                down_file_from_hf(f'{ROOT_DIR}/models/onnx', urls=DENOISE_URL_MS if not is_connect_hf() else DENOISE_URL_HF,
+                                            callback=self._process_callback)
+                _noise_wav = f"{config.TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
+                kw = {
+                        "input_file": self.cfg.shibie_audio,
+                        "output_file": _noise_wav,
+                        "is_cuda": self.cfg.is_cuda
+                    }
                 _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                 if _rs:
                     self.cfg.shibie_audio = _noise_wav
@@ -113,15 +114,15 @@ class SpeechToText(BaseTask):
 
         # 中英恢复标点符号
         if self.cfg.detect_language != 'auto' and self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
-            from videotrans.process.prepare_audio import fix_punc
-            down_file_from_ms(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS, callback=self._process_callback)
-            text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
-            # 序列化后传递文件路径
-            text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
-            Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
-            kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
 
             try:
+                from videotrans.process.prepare_audio import fix_punc
+                down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF, callback=self._process_callback)
+                text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
+                # 序列化后传递文件路径
+                text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
+                Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
+                kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
                 if _rs:
                     text_dict_obj=json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
@@ -162,7 +163,7 @@ class SpeechToText(BaseTask):
     def diariz(self):
         if self._exit() or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
             return
-        from videotrans.util.help_down import down_file_from_ms, check_and_down_ms
+        from videotrans.util.help_down import down_file_from_hf, check_and_down_ms
         speaker_type = settings.get('speaker_type', 'built')
         hf_token = settings.get('hf_token')
         if speaker_type == 'built' and self.cfg.detect_language[:2] not in ['zh', 'en']:
@@ -173,7 +174,8 @@ class SpeechToText(BaseTask):
             return
 
         self.precent += 3
-        title = tr(f'Begin separating the speakers') + f':{speaker_type}'
+        ishf=is_connect_hf()
+        title = tr(f'Speaker classification') + f':{speaker_type}'
         subtitles_file=f'{self.cfg.cache_folder}/diariz-{time.time()}.json'
         Path(subtitles_file).write_text(json.dumps([[it['start_time'], it['end_time']] for it in self.source_srt_list]),encoding='utf-8')
         kw = {
@@ -184,7 +186,7 @@ class SpeechToText(BaseTask):
             "is_cuda": self.cfg.is_cuda
         }
         if speaker_type == 'built':
-            down_file_from_ms(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_MS, callback=self._process_callback)
+            down_file_from_hf(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_MS if not ishf else BUILTINT_URL_HF, callback=self._process_callback)
             from videotrans.process.prepare_audio import built_speakers as _run_speakers
             del kw['is_cuda']
             kw['num_speakers'] = -1 if self.max_speakers < 1 else self.max_speakers
@@ -204,14 +206,22 @@ class SpeechToText(BaseTask):
             return
         try:
             if speaker_type in ['pyannote', 'reverb']:
-                self.signal(text='Downloading speakers models')
-                from huggingface_hub import snapshot_download
-                snapshot_download(
-                    repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
-                    token=hf_token,
-                    local_dir=f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"),
-                    endpoint='https://huggingface.co' if is_connect_hf() else 'https://hf-mirror.com'
-                )
+                #self.signal(text='Downloading speakers models')
+                #from huggingface_hub import snapshot_download
+                #snapshot_download(
+                #    repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
+                #    token=hf_token,
+                #    local_dir=f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"),
+                #    endpoint=os.environ.get('HF_ENDPOINT')
+                #)
+                from videotrans.util.help_down import check_and_down_hf
+                check_and_down_hf(
+                    speaker_type, 
+                    "pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1", 
+                    f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"), 
+                    self._process_callback, 
+                    None,
+                    hf_token)
             _rs = self._new_process(callback=_run_speakers, title=title,
                                          is_cuda=self.cfg.is_cuda and speaker_type != 'built', kwargs=kw)
 

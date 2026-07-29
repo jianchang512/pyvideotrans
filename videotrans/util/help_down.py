@@ -1,18 +1,22 @@
-import tempfile
 import time
 from pathlib import Path
 import shutil, os
 import zipfile
-from videotrans.configure.config import ROOT_DIR, tr, logger, defaulelang,app_cfg
+from videotrans.configure.config import  tr, logger,  app_cfg
 from videotrans.configure.contants import FASTER_MODELS_DICT
 from urllib.parse import urlparse
 import threading
 import tqdm
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # 全局锁对象防止同时下载模型，避免文件冲突或限流
 download_lock = threading.Lock()
 
 """解析URL获取纯净文件名 (去除 ?query)"""
+
+
 def get_filename_from_url(url) -> str:
     parsed = urlparse(url)
     return os.path.basename(parsed.path)
@@ -28,19 +32,20 @@ def file_exists(dirname, glob_patter='*.bin') -> bool:
     return False
 
 
-
 """
 若无法连接 huggingface.co
     针对 faster-whisper 系列模型， 使用 modelscope.cn 下载[https://modelscope.cn/collections/himyworld/faster-whisper]，速度更快，其他模型使用国内镜像 https://hf-mirror.com 下载(慢易报错429)
-    
 若可连接 huggingface.co ，则始终使用
 """
+_original_http_get = None
 
-_original_http_get=None
-def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=None) -> bool:
+
+def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=None,token=None) -> bool:
+    Path(local_dir).mkdir(exist_ok=True, parents=True)
     global _original_http_get
     from .help_misc import is_connect_hf
-    if model_id and model_id in FASTER_MODELS_DICT and defaulelang=='zh' :#and is_connect_hf() is False:
+    ishf = is_connect_hf()
+    if model_id and model_id in FASTER_MODELS_DICT and not ishf:
         logger.debug(f'从 modelscope.cn 下载模型 {model_id=}')
         return check_and_down_ms(FASTER_MODELS_DICT[
                                      model_id] if model_id != 'distil-large-v3.5' else 'iBoostAI/distil-whisper-distil-large-v3.5-ct2',
@@ -54,6 +59,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
     from huggingface_hub.errors import LocalEntryNotFoundError
 
     _state = {"completed": 0, "total_files": 0}
+
     # ── 总进度 ──
     class QtAwareTqdm(tqdm.tqdm):
         def update(self, n=1):
@@ -65,18 +71,16 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
                 _state["total_files"] = int(self.total)
             callback({"type": "batch", "current": int(self.n), "total": int(self.total)})
 
-
-
     def _patched_http_get(url, temp_file, *,
                           proxies=None, resume_size=0, headers=None,
                           expected_size=None, displayed_filename=None,
-                          _nb_retries=5, _tqdm_bar=None,**kwargs):
+                          _nb_retries=5, _tqdm_bar=None, **kwargs):
         if expected_size is None:
             return _original_http_get(url, temp_file, proxies=proxies,
                                       resume_size=resume_size, headers=headers,
                                       expected_size=expected_size,
                                       displayed_filename=displayed_filename,
-                                      _nb_retries=_nb_retries, _tqdm_bar=_tqdm_bar,**kwargs)
+                                      _nb_retries=_nb_retries, _tqdm_bar=_tqdm_bar, **kwargs)
 
         class _ChunkTracker:
             def __init__(self):
@@ -117,12 +121,10 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
             huggingface_hub.snapshot_download(
                 repo_id=repo_id,
                 local_dir=local_dir,
-                etag_timeout=5,
                 local_files_only=True
             )
         except LocalEntryNotFoundError:
-            Path(local_dir).mkdir(exist_ok=True, parents=True)
-            is_connect_hf()
+
             # 线程锁，避免同时多个下载或其他线程也在下载
             if callback:
                 callback(' wait get download lock...')
@@ -133,13 +135,13 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
                 huggingface_hub.snapshot_download(
                     repo_id=repo_id,
                     local_dir=local_dir,
-                    local_dir_use_symlinks=False,
+                    # local_dir_use_symlinks=False,
                     endpoint=os.environ.get('HF_ENDPOINT'),
-                    etag_timeout=10,
                     tqdm_class=QtAwareTqdm if callback else None,
                     local_files_only=False,
-                    max_workers=1,
+                    # max_workers=1,
                     ignore_patterns=["*.msgpack", "*.h5", ".git*", "*.md"],
+                    token=token,
                     allow_patterns=allow_list
                 )
 
@@ -169,135 +171,222 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
     return True
 
 
-# 从 huggingface.co 下载单个文件
 # 非 https开头的，则必须以 / 开头，根据是否可访问自动添加 huggingface.co或 hf-mirror.com
+# 如果是 http开头，则直接使用
 def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
+    Path(local_dir).mkdir(parents=True, exist_ok=True)
+    max_retries = 10
     from .help_misc import is_connect_hf
-    is_connect_hf()
+    from videotrans.configure.excepts import DownloadModelsError
     import requests
-    endpoint = os.environ.get('HF_ENDPOINT')
+    endpoint = None
+    # 复用底层 TCP 连接
+    session = requests.Session()
+    proxy = {"https": app_cfg.proxy} if app_cfg.proxy else None
+
     for index, url in enumerate(urls):
         try:
-            if not url.startswith('https://'):
-                url = f'{endpoint}{url}'
             filename = get_filename_from_url(url)
-            with requests.get(f'{url}', stream=True, timeout=(30, 600)) as response:
-                response.raise_for_status()
-                total_length = response.headers.get('content-length')
+        except NameError:
+            filename = url.split('/')[-1]  # fallback
+            if '?' in filename:
+                filename = filename.split('?')[0]
 
-                dest_file_obj = open(f'{local_dir}/{filename}', 'wb')
+        final_file_path = Path(f'{local_dir}/{filename}')
+        temp_file_path = Path(f'{local_dir}/{filename}.downloading')
 
-                try:
-                    if total_length is None:
-                        dest_file_obj.write(response.content)
+        # 如果正式文件存在且有大小，说明之前已经 100% 成功下载过
+        if final_file_path.exists() and final_file_path.stat().st_size > 0:
+            if callback:
+                callback(f'{filename}:100.00%')
+            continue
+
+        if not url.startswith('https://'):
+            if not endpoint:
+                is_connect_hf()
+                endpoint = os.environ.get('HF_ENDPOINT')
+            url = f'{endpoint}{url}'
+
+        logger.debug(f'开始下载[{filename}]: {url}')
+
+        retries = 0
+        while retries < max_retries:
+            try:
+                headers = {}
+                downloaded_size = 0
+
+                # 检查临时文件是否存在以及已下载的大小
+                if temp_file_path.exists():
+                    downloaded_size = temp_file_path.stat().st_size
+                    if downloaded_size > 0:
+                        headers['Range'] = f'bytes={downloaded_size}-'
+
+                if 'modelscope.cn' in url:
+                    proxy = None
+                with session.get(url, headers=headers, stream=True, timeout=(15, 30), verify=False,
+                                 proxies=proxy) as response:
+                    # 如果不是 200 (OK) 也不是 206 则抛出异常触发重试
+                    if response.status_code not in (200, 206):
+                        response.raise_for_status()
+
+                    # 根据状态码自适应判断源站是否支持断点续传
+                    if response.status_code == 206:
+                        mode = 'ab'  # 追加
+                        remaining_length = response.headers.get('content-length')
+                        total_length = (downloaded_size + int(remaining_length)) if remaining_length else None
                     else:
-                        total_length = max(int(total_length), 1)
-                        downloaded = 0
+                        mode = 'wb'  # 不覆盖
+                        downloaded_size = 0
+                        total_length = response.headers.get('content-length')
+                        total_length = int(total_length) if total_length else None
+
+                    with open(temp_file_path, mode) as dest_file_obj:
                         for chunk in response.iter_content(chunk_size=1024 * 1024):
                             if chunk:
                                 dest_file_obj.write(chunk)
-                                downloaded += len(chunk)
-
-                                # 计算进度
-                                # 单文件进度 0-100
-                                file_percent = (downloaded / total_length)
+                                downloaded_size += len(chunk)
                                 if callback:
-                                    callback(f'{filename}:{file_percent * 100:.2f}%')
-                finally:
-                    dest_file_obj.close()  # 关闭实体文件句柄
-        except Exception as e:
-            from videotrans.configure.excepts import DownloadModelsError
-            raise DownloadModelsError(
-                tr("downloading all files", local_dir) + f'\n[https://huggingface.co{url}]\n\n{e}')
+                                    if total_length:
+                                        file_percent = (downloaded_size / total_length) * 100
+                                        callback(f'{filename}:{file_percent:.2f}%')
+                                    else:
+                                        # 源站无 content-length ，退化为显示已下载的数据量
+                                        mb_size = downloaded_size / (1024 * 1024)
+                                        callback(f'{filename}:{mb_size:.1f}MB')
+
+                    # 确保下载没有中途悄悄结束
+                    if total_length is not None and downloaded_size < total_length:
+                        raise ConnectionError(f"文件截断：预期 {total_length} 字节，仅收到 {downloaded_size} 字节")
+
+                    # 使用 replace 跨平台覆盖
+                    temp_file_path.replace(final_file_path)
+                    logger.debug(f'下载完成 {filename}')
+                    break
+            except Exception as e:
+                retries += 1
+                logger.warning(f'下载[{filename}]异常: {e}，正在进行重试 ({retries}/{max_retries})')
+                if retries >= max_retries:
+                    raise DownloadModelsError(
+                        tr("downloading all files", local_dir) + f'\n[{url}]\n\n多次重试后仍然失败: {e}')
+
+                time.sleep(min(2 ** retries, 30))
     return True
 
 
-# 从 modelscope.cn 下载单个文件
-def down_file_from_ms(local_dir, urls=None, callback=None) -> bool:
+def down_zip(local_dir, zip_url, callback=None) -> bool:
     Path(local_dir).mkdir(parents=True, exist_ok=True)
+    from videotrans.configure.excepts import DownloadModelsError
     import requests
-    for index, url in enumerate(urls):
-        filename = get_filename_from_url(url)
-        file_abso_path = f'{local_dir}/{filename}'
-        if Path(file_abso_path).exists():
-            continue
-        with requests.get(url, stream=True, timeout=(30, 600)) as response:
-            response.raise_for_status()
-            total_length = response.headers.get('content-length')
-            dest_file_obj = open(file_abso_path, 'wb')
-            try:
-                if total_length is None:
-                    dest_file_obj.write(response.content)
+    max_retries = 10
+
+    proxy = None
+    # modelscope.cn 阿里魔塔不使用代理
+    if 'modelscope.cn' not in zip_url:
+        proxy = {"https": app_cfg.proxy} if app_cfg.proxy else None
+    try:
+        filename = get_filename_from_url(zip_url)
+    except NameError:
+        filename = zip_url.split('/')[-1]
+        if '?' in filename:
+            filename = filename.split('?')[0]
+
+    logger.debug(f'Download from {zip_url} to {local_dir}')
+
+    # 文件名带 .downloading 后缀 实现“断点续传”
+    temp_zip_path = Path(local_dir) / f"{filename}.downloading"
+    session = requests.Session()
+    retries = 0
+    while retries < max_retries:
+        try:
+            headers = {}
+            downloaded_size = 0
+
+            # 检查是否有未完成的临时 zip 文件，有则尝试断点续传
+            if temp_zip_path.exists():
+                downloaded_size = temp_zip_path.stat().st_size
+                if downloaded_size > 0:
+                    headers['Range'] = f'bytes={downloaded_size}-'
+
+            with session.get(zip_url, headers=headers, stream=True, timeout=(15, 30), proxies=proxy,
+                             verify=False) as response:
+                if response.status_code not in (200, 206):
+                    response.raise_for_status()
+
+                # 判断源站是否支持 206 Range 续传
+                if response.status_code == 206:
+                    mode = 'ab'  # 追加
+                    remaining = response.headers.get('content-length')
+                    total_length = (downloaded_size + int(remaining)) if remaining else None
                 else:
-                    total_length = max(int(total_length), 1)
-                    downloaded = 0
-                    last_send = time.time()
+                    mode = 'wb'  # 覆盖
+                    downloaded_size = 0
+                    total_length = response.headers.get('content-length')
+                    total_length = int(total_length) if total_length else None
+
+                with open(temp_zip_path, mode) as dest_file_obj:
                     for chunk in response.iter_content(chunk_size=1024 * 1024):
                         if chunk:
                             dest_file_obj.write(chunk)
-                            downloaded += len(chunk)
-                            file_percent = min((downloaded / total_length) * 100, 100)
-                            if time.time() - last_send > 3:
-                                last_send = time.time()
+                            downloaded_size += len(chunk)
+
                             if callback:
-                                callback(
-                                    {"type": "file", "percent": file_percent, "filename": f"{filename}",
-                                     "current": index + 1, "total": 5})
+                                if total_length:
+                                    file_percent = min(99.0, (downloaded_size / total_length) * 100)
+                                    callback(f'{tr("Download Models")} {filename} {file_percent:.2f}%')
+                                else:
+                                    mb_size = downloaded_size / (1024 * 1024)
+                                    callback(f'{tr("Download Models")} {filename} {mb_size:.1f}MB')
 
-            finally:
-                dest_file_obj.close()
-    return True
+                # 确保 Zip 文件已被完全接收
+                if total_length is not None and downloaded_size < total_length:
+                    raise ConnectionError(f"Zip下载不完整：预期 {total_length} 字节，实际收到 {downloaded_size} 字节")
+                break
+        except Exception as e:
+            retries += 1
+            logger.warning(f'Zip下载[{filename}]发生异常: {e}，正在进行第 ({retries}/{max_retries}) 次重试...')
+            if retries >= max_retries:
+                msg = tr('model is missing. Please download it', local_dir)
+                if callback:
+                    callback(f'Error:{msg}')
+                raise DownloadModelsError(f"{msg}\n[{zip_url}]\n多次重试后仍然失败: {e}")
 
+            # 指数退避
+            time.sleep(min(2 ** retries, 30))
 
-# 下载zip并解压 到指定目录
-def down_zip(local_dir, zip_url, callback=None) -> bool:
-    import requests
+    # === 校验并解压 Zip 文件 ===
     try:
-        filename = get_filename_from_url(zip_url)
-        with requests.get(zip_url, stream=True, timeout=(30, 600)) as response:
-            logger.debug(f'download from {zip_url} to {local_dir}')
-            response.raise_for_status()
-            total_length = response.headers.get('content-length')
+        if callback:
+            callback('Extracting zip...')
+        with zipfile.ZipFile(temp_zip_path, 'r') as zf:
+            zf.extractall(path=local_dir)
+        if callback:
+            callback('Downloaded end')
+        logger.debug(f'下载并解压完毕:{filename}')
 
-            # 决定写入目标：如果是需要解压的，写入临时文件；否则直接写入目标文件
-            dest_file_obj = tempfile.TemporaryFile()  # 内存/临时磁盘，自动删除
-            try:
-                if total_length is None:
-                    dest_file_obj.write(response.content)
-                else:
-                    total_length = max(int(total_length), 1)
-                    downloaded = 0
-                    for chunk in response.iter_content(chunk_size=8192):
-                        if chunk:
-                            dest_file_obj.write(chunk)
-                            downloaded += len(chunk)
+        if temp_zip_path.exists():
+            temp_zip_path.unlink()
 
-                            # 计算进度
-                            # 单文件进度 0-100
-                            file_percent = min(99.0, downloaded * 100 / total_length)
-                            if callback:
-                                callback(f'{tr("Download Models")} {filename} {file_percent:.2f}%')
-                if callback:
-                    callback(f'Extracting zip...')
-                dest_file_obj.seek(0)  # 回到文件头
-                with zipfile.ZipFile(dest_file_obj) as zf:
-                    zf.extractall(path=local_dir)
-                if callback:
-                    callback('Downloaded end')
-            finally:
-                dest_file_obj.close()
+        return True
+
+    except zipfile.BadZipFile as e:
+        # 如果 Zip 损坏，立即删除坏文件
+        if temp_zip_path.exists():
+            temp_zip_path.unlink()
+        msg = tr('model is missing. Please download it', local_dir)
+        if callback:
+            callback(f'Error: Corrupted zip file')
+        raise DownloadModelsError(f"{msg}\n[{zip_url}]\n{e}")
+
     except Exception as e:
         msg = tr('model is missing. Please download it', local_dir)
         if callback:
             callback(f'Error:{msg}')
-        from videotrans.configure.excepts import DownloadModelsError
         raise DownloadModelsError(f"{msg}\n[{zip_url}]\n{e}")
-    return True
 
 
 # 从 modelscope.cn 下载完整模型
 # 优先加载本地模型，失败则在线下载
-_orig_download_file_lists=None
+_orig_download_file_lists = None
 def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
     global _orig_download_file_lists
     import modelscope.hub.snapshot_download as ms_sd
@@ -307,7 +396,6 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
     from modelscope.hub.snapshot_download import snapshot_download
 
     _state = {"completed": 0, "total_files": 0}
-
 
     def _patched_dfl(repo_files, *args, **kwargs):
         # 简单统计非 tree 条目数
@@ -342,8 +430,6 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
             _state["completed"] += 1
             super().end()
 
-
-
     try:
         try:
             # 如果本地加载失败，则在线下载
@@ -363,7 +449,7 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
             return True
     except Exception as e:
         from videotrans.configure.excepts import DownloadModelsError
-        raise DownloadModelsError(tr("download model error"))
+        raise DownloadModelsError(tr("download model error") + f'{e}')
     finally:
         ms_sd._download_file_lists = _orig_download_file_lists
     return True

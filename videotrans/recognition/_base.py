@@ -88,7 +88,7 @@ class BaseRecogn(BaseCon):
             if hasattr(self, '_download'):
                 self.signal(text=tr("check or download models"))
                 self._download()
-            self.signal(text=f"starting transcription")
+            self.signal(text=tr("Transcription in progress, please wait"))
             res = self._exec()
             if res:
                 return self._post_fix(res)
@@ -103,8 +103,6 @@ class BaseRecogn(BaseCon):
                from videotrans.configure.excepts import DownloadModelsError
                raise  DownloadModelsError(tr('model incomplete error',self.local_dir,tr('Help document')))
             raise
-        finally:
-            self.signal(text=f'STT ended')
 
 
     # 对转录结果进行简单后处理

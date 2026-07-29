@@ -54,9 +54,9 @@ def openwin():
         winobj.close()
 
     if params["cosyvoice_url"]:
-        winobj.api_url.setText(params["cosyvoice_url"])
+        winobj.api_url.setText(str(params["cosyvoice_url"]))
     if params.get("cosyvoice_instruct_text"):
-        winobj.instruct_text.setText(params.get("cosyvoice_instruct_text"))
+        winobj.instruct_text.setText(str(params.get("cosyvoice_instruct_text")))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()
