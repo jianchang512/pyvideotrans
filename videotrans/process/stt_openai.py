@@ -6,10 +6,7 @@ import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
 from videotrans.configure.config import logger, ROOT_DIR, defaulelang
-from videotrans.process._stt_utils import _write_log, _resegment
-
 
 def openai_whisper(
         *,
@@ -30,6 +27,9 @@ def openai_whisper(
         max_speech_ms=6000
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import whisper,zhconv
+    from videotrans.process._stt_utils import _write_log, _resegment
+    from videotrans.util._srt_parse import ms_to_time_string
+
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
         msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
     else:
@@ -92,8 +92,8 @@ def openai_whisper(
                     'start_time': s,
                     'end_time': e
                 })
-                tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-                tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
+                tmp['startraw'] = ms_to_time_string(ms=tmp['start_time'])
+                tmp['endraw'] = ms_to_time_string(ms=tmp['end_time'])
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
                 raws.append(tmp)
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))

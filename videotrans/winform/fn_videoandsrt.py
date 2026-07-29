@@ -2,6 +2,11 @@
 
 
 def openwin():
+    from videotrans.util._ffmpeg_runner import runffmpeg
+    from videotrans.util._srt_ass import set_ass_font
+    from videotrans.util._srt_parse import get_subtitle_from_srt
+    from videotrans.util._srt_wrap import simple_wrap
+    from videotrans.util.help_misc import show_error
     import json
     import os
     import time
@@ -13,7 +18,6 @@ def openwin():
     from videotrans.configure import contants
     from videotrans.configure.config import tr,app_cfg,settings,params,logger, HOME_DIR
     from videotrans.configure import config
-    from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/videoandsrt"
 
     from videotrans import translator
@@ -72,16 +76,16 @@ def openwin():
                         '-i',
                         os.path.normpath(info['video'])
                     ]
-                    sub_list = tools.get_subtitle_from_srt(srt, is_file=True)
+                    sub_list = get_subtitle_from_srt(srt, is_file=True)
                     text = ""
                     for i, it in enumerate(sub_list):
                         if self.remain_hr:
                             txt_list = []
                             for txt_line in it['text'].strip().split("\n"):
-                                txt_list.append(tools.simple_wrap(txt_line.strip(), self.maxlen,self.language))
+                                txt_list.append(simple_wrap(txt_line.strip(), self.maxlen,self.language))
                             text += f"{it['line']}\n{it['time']}\n{chr(10).join(txt_list)}\n\n"
                         else:
-                            it['text'] = tools.simple_wrap(it['text'], self.maxlen,self.language).strip()
+                            it['text'] = simple_wrap(it['text'], self.maxlen,self.language).strip()
                             text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}\n\n"
                     srtfile = config.TEMP_DIR + f"/srt{time.time()}.srt"
                     with Path(srtfile).open('w', encoding='utf-8') as f:
@@ -89,7 +93,7 @@ def openwin():
                     cmd_dir = None
                     if not self.is_soft or not self.language:
                         # 硬字幕
-                        assfile = tools.set_ass_font(srtfile)
+                        assfile = set_ass_font(srtfile)
                         cmd_dir = os.path.dirname(assfile)
                         cmd += [
                             '-c:v',
@@ -116,7 +120,7 @@ def openwin():
                             f"language={subtitle_language}"
                         ]
                     cmd.append(result_file)
-                    tools.runffmpeg(cmd,force_cpu=False,cmd_dir=cmd_dir)
+                    runffmpeg(cmd,force_cpu=False,cmd_dir=cmd_dir)
                 except Exception as e:
                     logger.exception(e,exc_info=True)
                     self.post(type='error', text=str(e))
@@ -132,7 +136,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            tools.show_error(d['text'])
+            show_error(d['text'])
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.opendir.setDisabled(False)
@@ -156,7 +160,7 @@ def openwin():
         winobj.has_done = False
         folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
-            tools.show_error(
+            show_error(
                 tr("You must select the folder where the video and srt subtitles with the same name exists."))
             return
         is_soft = winobj.issoft.isChecked()

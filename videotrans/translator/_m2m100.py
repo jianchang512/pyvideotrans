@@ -12,7 +12,6 @@ import torch
 # Adapted from:
 # https://gist.github.com/ymoslem/a414a0ead0d3e50f4d7ff7110b1d1c0d
 # https://github.com/ymoslem/DesktopTranslator
-from videotrans.util import tools
 from videotrans.util.help_down import down_zip
 from videotrans.util.help_misc import is_connect_hf
 

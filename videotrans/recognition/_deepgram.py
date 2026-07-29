@@ -17,8 +17,9 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT
 from videotrans.configure.config import tr,params,settings,logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
 from videotrans.configure import contants
+from videotrans.util._ffmpeg_runner import runffmpeg
+from videotrans.util._srt_parse import ms_to_time_string, get_subtitle_from_srt
 
 
 @dataclass
@@ -29,7 +30,7 @@ class DeepgramRecogn(BaseRecogn):
         if self._exit(): return
         import zhconv    
         if os.path.getsize(self.audio_file) > 52428800:
-            tools.runffmpeg(
+            runffmpeg(
                 ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/deepgram-tmp.mp3'])
             self.audio_file = self.cache_folder + '/deepgram-tmp.mp3'
         with open(self.audio_file, "rb") as file:
@@ -76,8 +77,8 @@ class DeepgramRecogn(BaseRecogn):
                 }
                 if self.detect_language[:2] in contants.CJK_LANG:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'],flags=re.I | re.S)
-                tmp['startraw']=tools.ms_to_time_string(ms=tmp['start_time'])
-                tmp['endraw']=tools.ms_to_time_string(ms=tmp['end_time'])
+                tmp['startraw']=ms_to_time_string(ms=tmp['start_time'])
+                tmp['endraw']=ms_to_time_string(ms=tmp['end_time'])
                 tmp['time'] =  f"{tmp['startraw']} --> {tmp['endraw']}"
                 raws.append(tmp)
             if speaker_list:
@@ -86,7 +87,7 @@ class DeepgramRecogn(BaseRecogn):
             transcription = DeepgramConverter(res)
             srt_str = srt(transcription,
                           line_length=int(settings.get('cjk_len') if self.detect_language[:2] in ['zh', 'ja','ko'] else settings.get('other_len')))
-            raws = tools.get_subtitle_from_srt(srt_str, is_file=False)
+            raws = get_subtitle_from_srt(srt_str, is_file=False)
             if self.detect_language[:2] in contants.CJK_LANG:
                 for i, it in enumerate(raws):
                     if self.detect_language[:2] == 'zh':

@@ -3,6 +3,9 @@
 
 def openwin():
 
+    from videotrans.util._ffmpeg_runner import runffmpeg
+    from videotrans.util._ffprobe import get_video_duration
+    from videotrans.util.help_misc import show_error, read_last_n_lines
     import json
     import os
     import time,threading
@@ -14,7 +17,6 @@ def openwin():
     from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR
     from videotrans.configure import config
     # 使用内置的 open 函数
-    from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/watermark"
 
 
@@ -42,7 +44,7 @@ def openwin():
                 if app_cfg.exit_soft:return
                 if self.end or percent >= 100:
                     return
-                content = tools.read_last_n_lines(protxt)    
+                content = read_last_n_lines(protxt)    
                 if not content:
                     time.sleep(1)
                     continue
@@ -78,7 +80,7 @@ def openwin():
                 result_file = RESULT_DIR + f'/{Path(video).stem}.mp4'
 
                 # 计算水印位置
-                duration = tools.get_video_duration(video)
+                duration = get_video_duration(video)
                 positions = [
                     f"{self.x}:{self.y}",  # 左上角
                     f"(w-overlay_w-{self.x}):{self.y}",  # 右上角
@@ -108,7 +110,7 @@ def openwin():
                     result_file
                 ]
                 try:
-                    tools.runffmpeg(ffmpeg_command,force_cpu=False)
+                    runffmpeg(ffmpeg_command,force_cpu=False)
                 except Exception as e:
                     from videotrans.configure.excepts import get_msg_from_except
                     self.post(type='error', text=get_msg_from_except(e))
@@ -124,7 +126,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            tools.show_error(d['text'])
+            show_error(d['text'])
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.resultlabel.setText('')
@@ -159,7 +161,7 @@ def openwin():
         winobj.has_done = False
         png = winobj.pngurl.text()
         if len(winobj.videourls) < 1 or not png:
-            tools.show_error(tr("Must select video and watermark image"))
+            show_error(tr("Must select video and watermark image"))
             return
 
         winobj.startbtn.setText(

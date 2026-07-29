@@ -10,7 +10,8 @@ from videotrans.configure.config import params,settings,logger
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+from videotrans.util._srt_parse import ms_to_time_string
+
 
 @dataclass
 class AI302Recogn(BaseRecogn):
@@ -59,8 +60,8 @@ class AI302Recogn(BaseRecogn):
                 "end_time": int(it['end'] * 1000),
                 "text": it['text']
             }
-            srt["endraw"] = tools.ms_to_time_string(ms=srt["end_time"])
-            srt["startraw"] = tools.ms_to_time_string(ms=srt["start_time"])
+            srt["endraw"] = ms_to_time_string(ms=srt["end_time"])
+            srt["startraw"] = ms_to_time_string(ms=srt["start_time"])
             srt['time'] = f'{srt["startraw"]} --> {srt["endraw"]}'
             self.signal(
                 text=f'{srt["line"]}\n{srt["time"]}\n{srt["text"]}\n\n',
@@ -144,7 +145,7 @@ class AI302Recogn(BaseRecogn):
                 start_time=it['start'] * 1000,
                 end_time=it['end'] * 1000,
                 text=it['text'],
-                time=tools.ms_to_time_string(ms=it['start'] * 1000) + ' --> ' + tools.ms_to_time_string(
+                time=ms_to_time_string(ms=it['start'] * 1000) + ' --> ' + ms_to_time_string(
                     ms=it['end'] * 1000),
             ))
 

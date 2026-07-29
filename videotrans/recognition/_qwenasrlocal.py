@@ -10,7 +10,7 @@ from videotrans.configure import config
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-
+from videotrans.util.help_down import check_and_down_ms, check_and_down_hf
 
 
 @dataclass
@@ -20,12 +20,11 @@ class QwenasrlocalRecogn(BaseRecogn):
         self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}'
     
     def _download(self):
-        from videotrans.util import tools
         if defaulelang == 'zh':
-            tools.check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}', callback=self._process_callback,
+            check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}', callback=self._process_callback,
                                     local_dir=self.local_dir)
         else:
-            tools.check_and_down_hf(model_id=f'Qwen3-ASR-{self.model_name}',
+            check_and_down_hf(model_id=f'Qwen3-ASR-{self.model_name}',
                                     repo_id=f'Qwen/Qwen3-ASR-{self.model_name}',
                                     local_dir=self.local_dir,
                                     callback=self._process_callback)

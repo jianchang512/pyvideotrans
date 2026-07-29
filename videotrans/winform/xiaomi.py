@@ -1,6 +1,5 @@
 def openwin():
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels

@@ -14,7 +14,8 @@ from videotrans.configure.config import tr, settings, logger
 from videotrans.configure.excepts import NO_RETRY_EXCEPT
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+from videotrans.util._srt_parse import ms_to_time_string
+from videotrans.util.help_misc import vail_file
 
 
 @dataclass
@@ -30,7 +31,7 @@ class GoogleRecogn(BaseRecogn):
 
         normalized_sound = AudioSegment.from_wav(self.audio_file)  # -20.0
         nonslient_file = f'{tmp_path}/detected_voice.json'
-        if tools.vail_file(nonslient_file):
+        if vail_file(nonslient_file):
             with open(nonslient_file, 'r') as f:
                 nonsilent_data = json.load(f)
         else:
@@ -63,9 +64,9 @@ class GoogleRecogn(BaseRecogn):
             text = re.sub(r'&#\d+;', '', f"{text.capitalize()}. ".replace('&#39;', "'"),flags=re.I | re.S).strip()
             if not text or re.match(r'^[，。、？‘’“”；：（｛｝【】）:;"\'\s \d`!@#$%^&*()_+=.,?/\\-]*$', text):
                 continue
-            start = tools.ms_to_time_string(ms=start_time)
+            start = ms_to_time_string(ms=start_time)
 
-            end = tools.ms_to_time_string(ms=end_time)
+            end = ms_to_time_string(ms=end_time)
             srt_line = SrtItem(
                 line=len(self.raws) + 1,
                 time=f"{start} --> {end}",

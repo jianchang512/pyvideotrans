@@ -1,7 +1,9 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr,app_cfg,settings,params
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans.component.set_form import QwenTTSForm
 
@@ -14,13 +16,13 @@ def openwin():
             from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         else:
-            tools.show_error(d)
+            show_error(d)
         winobj.test_qwentts.setText(tr("Test"))
 
     def test():
         key = winobj.qwentts_key.text().strip()
         if not key:
-            tools.show_error("API Key is empty")
+            show_error("API Key is empty")
             return
         params["qwentts_key"] = key
         params["qwentts_spaceid"] = winobj.qwentts_spaceid.text().strip()
@@ -48,7 +50,7 @@ def openwin():
         params.save()
         settings['qwentts_models']=winobj.qwentts_modellist.toPlainText().strip()
         settings.save()
-        tools.set_process(text='', type="refreshtts")
+        set_process(text='', type="refreshtts")
         winobj.close()
 
     winobj.set_qwentts.clicked.connect(save)

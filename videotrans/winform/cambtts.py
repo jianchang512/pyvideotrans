@@ -1,7 +1,9 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr, app_cfg, params
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans.component.set_form import CambTTSForm
 
@@ -10,7 +12,7 @@ def openwin():
 
     def feed(d):
         if not d.startswith("ok"):
-            tools.show_error(d)
+            show_error(d)
         else:
             from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "OK", tr("CAMB AI voices refreshed"))
@@ -25,7 +27,7 @@ def openwin():
             import time
             voices = get_camb_role(force=True)
             if not voices or len(voices) < 2:
-                tools.show_error("Failed to get CAMB AI voices. Check your API key.")
+                show_error("Failed to get CAMB AI voices. Check your API key.")
                 return
             test_role = voices[1] if len(voices) > 1 else voices[0]
             if test_role in ['No', 'clone']:
@@ -42,13 +44,13 @@ def openwin():
             winobj.test.setText(tr("Testing..."))
         except Exception as e:
             from videotrans.configure.excepts import get_msg_from_except
-            tools.show_error(get_msg_from_except(e))
+            show_error(get_msg_from_except(e))
 
     def save():
         params['camb_api_key'] = winobj.camb_api_key.text()
         params['camb_speech_model'] = winobj.camb_speech_model.currentText()
         params.save()
-        tools.set_process(text='', type="refreshtts")
+        set_process(text='', type="refreshtts")
         winobj.close()
 
     winobj.camb_api_key.setText(str(params.get('camb_api_key', '')))

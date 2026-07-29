@@ -1,6 +1,8 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
     from videotrans.component.set_form import QwenmtForm
@@ -14,7 +16,7 @@ def openwin():
     def test():
         key = winobj.qwenmt_key.text()
         if not key:
-            return tools.show_error(tr("Please input Secret"))
+            return show_error(tr("Please input Secret"))
         params["qwenmt_key"] = key
         params["qwenmt_spaceid"] = winobj.qwenmt_spaceid.text().strip()
         params["qwenmt_model"] = winobj.qwenmt_model.currentText()

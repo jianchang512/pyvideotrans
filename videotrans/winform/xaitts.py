@@ -1,7 +1,9 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans.component.set_form import XAITTSForm
 
@@ -14,7 +16,7 @@ def openwin():
             from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         else:
-            tools.show_error(d)
+            show_error(d)
         winobj.test_xaitts.setText(tr("Test"))
 
     def test():

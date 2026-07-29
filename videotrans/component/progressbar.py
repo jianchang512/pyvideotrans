@@ -6,7 +6,7 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QLabel, QProgressBar, QHBoxLayout
 
 from videotrans.configure.config import tr
-from videotrans.util import tools
+from videotrans.util.help_misc import show_error
 
 
 class ClickableProgressBar(QLabel):
@@ -107,5 +107,5 @@ class ClickableProgressBar(QLabel):
     def mousePressEvent(self, event):
         if self.target_dir and event.button() == Qt.LeftButton:
             if self.error:
-                tools.show_error(self.error)
+                show_error(self.error)
             QDesktopServices.openUrl(QUrl.fromLocalFile(self.target_dir))

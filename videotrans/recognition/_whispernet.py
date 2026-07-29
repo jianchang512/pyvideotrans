@@ -10,9 +10,10 @@ from videotrans.configure.config import ROOT_DIR,  settings,  logger
 from videotrans.configure.whispernet_config import whispernet_config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
 
 # 模块级别的初始化状态
+from videotrans.util._srt_parse import ms_to_time_string
+
 _initialized = False
 _clr = None
 
@@ -244,7 +245,7 @@ class WhisperNetRecogn(BaseRecogn):
                         start_time=int(start * 1000),
                         end_time=int(end * 1000),
                         text=text,
-                        time=tools.ms_to_time_string(ms=int(start * 1000)) + ' --> ' + tools.ms_to_time_string(
+                        time=ms_to_time_string(ms=int(start * 1000)) + ' --> ' + ms_to_time_string(
                             ms=int(end * 1000)),
                     ))
                     self.signal(text=f"Processing: {len(segments)}")

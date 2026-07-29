@@ -1,4 +1,8 @@
+
+
 def openwin():
+    from videotrans.util._ffmpeg_runner import runffmpeg
+    from videotrans.util.help_misc import show_error
     import json
     import os
     from pathlib import Path
@@ -7,7 +11,6 @@ def openwin():
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure import contants
     from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
-    from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/audiofromvideo"
 
 
@@ -26,7 +29,7 @@ def openwin():
             try:
 
                 for i, v in enumerate(self.videourls):
-                    tools.runffmpeg([
+                    runffmpeg([
                         "-y",
                         "-i",
                         os.path.normpath(v),
@@ -40,7 +43,7 @@ def openwin():
                         RESULT_DIR + f"/{Path(v).stem}.wav"
                     ])
                     if self.export_video:
-                        tools.runffmpeg([
+                        runffmpeg([
                             "-y",
                             "-i",
                             os.path.normpath(v),
@@ -63,7 +66,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            tools.show_error(d['text'])
+            show_error(d['text'])
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.resultbtn.setDisabled(False)
@@ -93,7 +96,7 @@ def openwin():
 
     def start():
         if len(winobj.videourls) < 1:
-            tools.show_error(tr("Must select video"))
+            show_error(tr("Must select video"))
             return
         winobj.has_done = False
 

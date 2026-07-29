@@ -8,7 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.configure.config import params,settings,logger
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.translator._base import BaseTrans
-from videotrans.util import tools
+from videotrans.util._srt_parse import cleartext
 
 
 @dataclass
@@ -57,5 +57,5 @@ class DeepLX(BaseTrans):
         logger.debug(f'[DeepLX]返回响应,{response=}')
 
         result = response.json()
-        result = tools.cleartext(result['data'])
+        result = cleartext(result['data'])
         return result

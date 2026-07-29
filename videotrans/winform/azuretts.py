@@ -1,7 +1,9 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans.component.set_form import AzurettsForm
 
@@ -13,13 +15,13 @@ def openwin():
             from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            tools.show_error(d)
+            show_error(d)
         winobj.test.setText(tr("Test"))
 
     def test():
         key = winobj.speech_key.text().strip()
         if not key:
-            tools.show_error('填写Azure speech key ')
+            show_error('填写Azure speech key ')
             return
         region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):

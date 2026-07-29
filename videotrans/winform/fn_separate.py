@@ -1,14 +1,13 @@
 
 
 def openwin():
+    from videotrans.util.help_misc import show_error, get_md5
     import os
     from videotrans.configure import contants
     from pathlib import Path
     from PySide6.QtCore import QTimer
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
-    # 分离背景音
-    from videotrans.util import tools
 
 
     outdir = HOME_DIR +'/separate'
@@ -32,7 +31,7 @@ def openwin():
             if len(d) > 5:
                 winobj.set.setText(d[5:])
         elif d.startswith('error:'):
-            tools.show_error(d[6:])
+            show_error(d[6:])
         
         if not d.startswith('logs:'):
             winobj.has_done = False
@@ -42,10 +41,10 @@ def openwin():
         # 开始处理分离，判断是否选择了源文件
         file = winobj.fromfile.text()
         if not file or not os.path.exists(file):
-            tools.show_error(tr('must select audio or video file'))
+            show_error(tr('must select audio or video file'))
             return
 
-        uuid = tools.get_md5(file)
+        uuid = get_md5(file)
         # 已在执行，在此点击停止
         if winobj.has_done:
             winobj.has_done = False

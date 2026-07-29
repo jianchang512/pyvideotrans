@@ -1,7 +1,9 @@
+
+
 def openwin():
-    from videotrans.configure.config import tr,app_cfg,settings,params
+    from videotrans.util.help_misc import set_process, process_openai_api, show_error
+    from videotrans.configure.config import tr,app_cfg,params
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans.winform._helpers import make_setallmodels
     from videotrans.component.set_form import OpenAITTSForm
@@ -15,12 +17,12 @@ def openwin():
             from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "OK", d[3:])
         else:
-            tools.show_error(d)
+            show_error(d)
         winobj.test_openaitts.setText(tr("Test"))
 
     def test():
         params["openaitts_key"] = winobj.openaitts_key.text()
-        params["openaitts_api"] = tools.process_openai_api(winobj.openaitts_api.text().strip())
+        params["openaitts_api"] = process_openai_api(winobj.openaitts_api.text().strip())
         params["openaitts_model"] = winobj.openaitts_model.currentText()
         params["openaitts_instructions"] = winobj.openaitts_instructions.text()
         params.save()
@@ -40,11 +42,11 @@ def openwin():
 
     def save():
         params["openaitts_key"] = winobj.openaitts_key.text()
-        params["openaitts_api"] = tools.process_openai_api(winobj.openaitts_api.text().strip())
+        params["openaitts_api"] = process_openai_api(winobj.openaitts_api.text().strip())
         params["openaitts_model"] = winobj.openaitts_model.currentText()
         params["openaitts_instructions"] = winobj.openaitts_instructions.text()
         params.save()
-        tools.set_process(text='', type="refreshtts")
+        set_process(text='', type="refreshtts")
         winobj.close()
 
     def setedit_roles():

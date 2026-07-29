@@ -14,7 +14,9 @@ from videotrans.configure import config
 from videotrans.configure.excepts import SpeechToTextError, StopTask
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+from videotrans.util._ffmpeg_runner import runffmpeg
+from videotrans.util._srt_parse import ms_to_time_string
+
 
 @dataclass
 class OpenaiAPIRecogn(BaseRecogn):
@@ -37,7 +39,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                 return self._thrid_api()
 
             mp3_tmp = config.TEMP_DIR + f'/recogn{time.time()}.mp3'
-            tools.runffmpeg([
+            runffmpeg([
                 "-y",
                 "-i",
                 Path(self.audio_file).as_posix(),
@@ -73,7 +75,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                         start_time=it.start * 1000,
                         end_time=it.end * 1000,
                         text=it.text,
-                        time=tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
+                        time=ms_to_time_string(ms=it.start * 1000) + ' --> ' + ms_to_time_string(
                             ms=it.end * 1000),
                     ))
         except APIConnectionError as e:
@@ -134,7 +136,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                     start_time=it.start * 1000,
                     end_time=it.end * 1000,
                     text=it.text,
-                    time=tools.ms_to_time_string(ms=it.start * 1000) + ' --> ' + tools.ms_to_time_string(
+                    time=ms_to_time_string(ms=it.start * 1000) + ' --> ' + ms_to_time_string(
                         ms=it.end * 1000),
                 ))
                 if self.max_speakers>-1:

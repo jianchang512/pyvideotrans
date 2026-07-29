@@ -1,7 +1,11 @@
 # 水印
 
-
 def openwin():
+    from videotrans.util._ffmpeg_audio import change_speed_rubberband
+    from videotrans.util._ffmpeg_runner import runffmpeg
+    from videotrans.util._ffprobe import get_video_info, get_audio_time, get_video_duration
+    from videotrans.util.help_misc import show_error
+
 
     import json
     import os
@@ -15,7 +19,6 @@ def openwin():
     from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
     from videotrans.configure import config
     # 使用内置的 open 函数
-    from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/videoandaudio"
 
 
@@ -70,23 +73,23 @@ def openwin():
                 audio = info['audio']
                 try:
                     self.post(f'{Path(audio).name} --> {Path(info["video"]).name} ')
-                    video_time = tools.get_video_duration(info['video'])
-                    audio_time = int(tools.get_audio_time(audio))
+                    video_time = get_video_duration(info['video'])
+                    audio_time = int(get_audio_time(audio))
                     tmp_audio = config.TEMP_DIR + f"/{time.time()}-{Path(audio).name}"
                     if audio_time > video_time and self.audio_process == 0:
-                        tools.runffmpeg(
+                        runffmpeg(
                             ['-y', '-i', audio, '-ss', '00:00:00.000', '-t', str(video_time / 1000), tmp_audio])
                         audio = tmp_audio
                     elif audio_time > video_time and self.audio_process == 1:
-                        tools.change_speed_rubberband(audio, tmp_audio, video_time)
+                        change_speed_rubberband(audio, tmp_audio, video_time)
                         audio = tmp_audio
                     if self.remain:
                         # 需要保留原声
-                        video_info = tools.get_video_info(info['video'])
+                        video_info = get_video_info(info['video'])
                         if video_info['streams_audio']:
                             tmp_mp4 = config.TEMP_DIR + f"/{name}-{time.time()}.m4a"
                             # 存在声音，则需要混合
-                            tools.runffmpeg([
+                            runffmpeg([
                                 '-y',
                                 '-i',
                                 info['video'],
@@ -101,7 +104,7 @@ def openwin():
                                 '2', tmp_mp4])
                             audio = tmp_mp4
 
-                    tools.runffmpeg([
+                    runffmpeg([
                         '-y',
                         '-i',
                         info['video'],
@@ -132,7 +135,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            tools.show_error(d['text'])
+            show_error(d['text'])
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.loglabel.setText('')
@@ -156,7 +159,7 @@ def openwin():
         winobj.has_done = False
         folder = winobj.folder.text()
         if not folder or not Path(folder).exists() or not Path(folder).is_dir():
-            tools.show_error(
+            show_error(
                 tr("You must select the folder where the video and audio with the same name exists."))
             return
 

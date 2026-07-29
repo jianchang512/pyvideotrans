@@ -1,7 +1,9 @@
+
+
 def openwin():
     import os
+    from videotrans.util.help_misc import process_openai_api
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
     from videotrans.component.set_form import ChatgptForm
@@ -14,7 +16,7 @@ def openwin():
 
     def test():
         key = winobj.chatgpt_key.text()
-        url = tools.process_openai_api(winobj.chatgpt_api.text().strip())
+        url = process_openai_api(winobj.chatgpt_api.text().strip())
         params["chatgpt_key"] = key
         params["chatgpt_api"] = url
         params["chatgpt_max_token"] = winobj.chatgpt_max_token.text().strip()
@@ -31,7 +33,7 @@ def openwin():
     def save_chatgpt():
         params["chatgpt_max_token"] = winobj.chatgpt_max_token.text().strip()
         params["chatgpt_key"] = winobj.chatgpt_key.text()
-        params["chatgpt_api"] = tools.process_openai_api(winobj.chatgpt_api.text().strip())
+        params["chatgpt_api"] = process_openai_api(winobj.chatgpt_api.text().strip())
         params["chatgpt_model"] = winobj.chatgpt_model.currentText()
         params["chatgpt_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()

@@ -7,7 +7,7 @@ from tenacity import retry, retry_if_not_exception_type, wait_fixed, stop_after_
 from videotrans.configure.excepts import TranslateSrtError, NO_RETRY_EXCEPT
 from videotrans.configure.config import params, logger, settings
 from videotrans.translator._base import BaseTrans
-from videotrans.util import tools
+from videotrans.util.help_misc import qwenmt_glossary, get_prompt
 
 
 @dataclass
@@ -39,7 +39,7 @@ class QwenMT(BaseTrans):
                 "target_lang": self.target_language_name
             }
             # 术语表
-            term=tools.qwenmt_glossary()
+            term=qwenmt_glossary()
             if term:
                 translation_options['terms']=term
             if params.get("qwenmt_domains"):
@@ -61,7 +61,7 @@ class QwenMT(BaseTrans):
             logger.debug(f'qwen-mt返回响应:{response.output.choices[0].message.content}')
             return self.clean_srt(response.output.choices[0].message.content)
 
-        self.prompt = tools.get_prompt(ainame='bailian',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
+        self.prompt = get_prompt(ainame='bailian',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
         message = [
             {
                 'role': 'system',

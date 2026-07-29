@@ -7,7 +7,8 @@ from videotrans.configure.excepts import SpeechToTextError,StopTask
 from videotrans.configure.config import params,logger,tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+from videotrans.util._srt_parse import ms_to_time_string
+
 
 @dataclass
 class WhisperXRecogn(BaseRecogn):
@@ -42,7 +43,7 @@ class WhisperXRecogn(BaseRecogn):
                 if not hasattr(transcript, 'segments') or not transcript.segments:
                     raise SpeechToTextError('No support')
                 for it in transcript.segments:
-                    startraw,endraw=tools.ms_to_time_string(ms=it.start * 1000),tools.ms_to_time_string( ms=it.end * 1000)
+                    startraw,endraw=ms_to_time_string(ms=it.start * 1000),ms_to_time_string( ms=it.end * 1000)
                     raws.append(SrtItem(
                         line=len(raws) + 1,
                         start_time=it.start * 1000,

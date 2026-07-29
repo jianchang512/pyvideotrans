@@ -1,6 +1,8 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_feed_translator
@@ -15,7 +17,7 @@ def openwin():
         SecretId = winobj.tencent_SecretId.text().strip()
         SecretKey = winobj.tencent_SecretKey.text().strip()
         if not SecretId or not SecretKey:
-            return tools.show_error(tr("Please input SecretId and SecretKey"))
+            return show_error(tr("Please input SecretId and SecretKey"))
         params["tencent_SecretId"] = SecretId
         params["tencent_SecretKey"] = SecretKey
         params["tencent_termlist"] = winobj.tencent_term.text().strip()

@@ -1,8 +1,15 @@
 # 视频 字幕 音频 合并
-from videotrans.task.taskcfg import SignMsg
 
 
 def openwin():
+    from videotrans.task.taskcfg import SignMsg
+    from videotrans.util._ffmpeg_audio import change_speed_rubberband
+    from videotrans.util._ffmpeg_runner import runffmpeg
+    from videotrans.util._ffprobe import get_audio_time, get_video_duration, get_video_info
+    from videotrans.util._srt_ass import set_ass_font
+    from videotrans.util._srt_parse import get_subtitle_from_srt
+    from videotrans.util._srt_wrap import simple_wrap
+    from videotrans.util.help_misc import show_error, read_last_n_lines
     from videotrans.configure import contants
     from PySide6.QtWidgets import QFileDialog
     import shutil, threading
@@ -13,7 +20,6 @@ def openwin():
     from PySide6.QtGui import QDesktopServices
     from videotrans.configure.config import tr, app_cfg, settings, params, logger, HOME_DIR
     from videotrans.configure import config
-    from videotrans.util import tools
 
     RESULT_DIR = HOME_DIR + "/vas"
 
@@ -36,8 +42,8 @@ def openwin():
             self.remain_hr = remain_hr
             self.audio_process = audio_process
             self.file = f'{RESULT_DIR}/{Path(self.video).stem}-{int(time.time())}.mp4'
-            self.video_info = tools.get_video_info(self.video)
-            self.video_time = tools.get_video_duration(self.video)
+            self.video_info = get_video_info(self.video)
+            self.video_time = get_video_duration(self.video)
             self.is_end = False
 
         def post(self, type='logs', text=''):
@@ -53,7 +59,7 @@ def openwin():
                 timeout += 1
                 if timeout > 1200:
                     return
-                content = tools.read_last_n_lines(protxt)
+                content = read_last_n_lines(protxt)
                 if not content:
                     time.sleep(1)
                     continue
@@ -79,7 +85,7 @@ def openwin():
                     # 先转为 wav，方便 soundfile 处理
                     if ext != 'wav':
                         _audio = f'{config.TEMP_DIR}/vas-audio-{time.time()}.wav'
-                        tools.runffmpeg([
+                        runffmpeg([
                             "-y",
                             "-i",
                             Path(self.audio).as_posix(),
@@ -92,7 +98,7 @@ def openwin():
                             _audio
                         ])
                         self.audio = _audio
-                    audio_time = int(tools.get_audio_time(self.audio))
+                    audio_time = int(get_audio_time(self.audio))
 
                     tmp_audio = config.TEMP_DIR + f"/vas-tmp_audio-{time.time()}.wav"
                     # 如果音频时长小于视频，则音频直接添加末尾静音
@@ -102,13 +108,13 @@ def openwin():
                         audio_data.export(self.audio, format="wav")
                     elif audio_time > self.video_time and self.audio_process == 0:
                         # 截断音频
-                        tools.runffmpeg(
+                        runffmpeg(
                             ['-y', '-i', self.audio, '-ss', '00:00:00.000', '-t', str(self.video_time / 1000),
                              tmp_audio])
                         self.audio = tmp_audio
                     elif audio_time > self.video_time and self.audio_process == 1:
                         # 加速音频
-                        tools.change_speed_rubberband(self.audio, tmp_audio, self.video_time)
+                        change_speed_rubberband(self.audio, tmp_audio, self.video_time)
                         self.audio = tmp_audio
 
                     # 需要保留原视频中声音，则需要混合 self.audio 和视频声音
@@ -116,7 +122,7 @@ def openwin():
                         tmp_mp4a = config.TEMP_DIR + f"/vas-fromvideotowav-{time.time()}.wav"
                         end_m4a = config.TEMP_DIR + f"/vas-fromvideotowav2uploadwav-{time.time()}.m4a"
                         # 先取出来视频中的音频为 wav
-                        tools.runffmpeg([
+                        runffmpeg([
                             '-y',
                             '-i',
                             Path(self.video).as_posix(),
@@ -133,7 +139,7 @@ def openwin():
 
                         # 到此处，新插入的音频 self.audio和视频剥离的音频，时长已经一致了
                         # 开始混合 2个音频
-                        tools.runffmpeg([
+                        runffmpeg([
                             '-y',
                             '-i',
                             tmp_mp4a,
@@ -149,7 +155,7 @@ def openwin():
                         # 混合后新音频
                         self.audio = end_m4a
                         # 混合后音频时长，当大于视频时长，并且 audio_process == 2 需定格视频
-                        audio_time = int(tools.get_audio_time(self.audio))
+                        audio_time = int(get_audio_time(self.audio))
 
                     # audio_process=0截断 1=音频加速 2=视频定格
                     # 如果存在 self.audio ，则无论是否保留原视频中声音，此时都已处理好，直接替换 视频中声音
@@ -164,7 +170,7 @@ def openwin():
                         f'libx264',
                         novoice_mp4
                     ]
-                    tools.runffmpeg(cmd)
+                    runffmpeg(cmd)
                     if self.audio_process == 2 and audio_time > self.video_time:
                         # 如果定格视频并且音频时长大于视频时长
                         sec = max((audio_time - self.video_time) / 1000, 1)
@@ -179,14 +185,14 @@ def openwin():
                             f'{novoice_mp4}-clone.mp4'
                         ]
                         try:
-                            tools.runffmpeg(cmd)
+                            runffmpeg(cmd)
                             novoice_mp4 = f'{novoice_mp4}-clone.mp4'
                         except Exception as e:
                             logger.exception(f'VAS合并期间，延长视频末端失败，将保持原样:{e}')
 
                     # 视频音频合并
                     audiovideoend_mp4 = config.TEMP_DIR + f"/vad-end-{time.time()}.mp4"
-                    tools.runffmpeg([
+                    runffmpeg([
                         '-y',
                         '-i',
                         novoice_mp4,
@@ -217,16 +223,16 @@ def openwin():
                 ]
 
                 # 硬字幕
-                sublist = tools.get_subtitle_from_srt(self.srt, is_file=True)
+                sublist = get_subtitle_from_srt(self.srt, is_file=True)
                 srt_string = ''
                 for i, it in enumerate(sublist):
                     if self.remain_hr:
                         txt_list = []
                         for txt_line in it['text'].strip().split("\n"):
-                            txt_list.append(tools.simple_wrap(txt_line.strip(), self.maxlen,self.language))
+                            txt_list.append(simple_wrap(txt_line.strip(), self.maxlen,self.language))
                         tmp = "\n".join(txt_list)
                     else:
-                        tmp = tools.simple_wrap(it['text'].strip(), self.maxlen,self.language)
+                        tmp = simple_wrap(it['text'].strip(), self.maxlen,self.language)
                     srt_string += f"{it['line']}\n{it['time']}\n{tmp.strip()}\n\n"
                 tmpsrt = config.TEMP_DIR + f"/vas-{time.time()}.srt"
                 with Path(tmpsrt).open('w', encoding='utf-8') as f:
@@ -246,7 +252,7 @@ def openwin():
                         self.file
                     ]
                 else:
-                    assfile = tools.set_ass_font(tmpsrt)
+                    assfile = set_ass_font(tmpsrt)
 
                     cmd += [
                         '-c:v',
@@ -260,7 +266,7 @@ def openwin():
                         self.file
                     ]
                 threading.Thread(target=self.hebing_pro, args=(protxt, ), daemon=True).start()
-                tools.runffmpeg(cmd, cmd_dir=config.TEMP_DIR)
+                runffmpeg(cmd, cmd_dir=config.TEMP_DIR)
                 self.post(type='ok', text=self.file)
             except Exception as e:
                 from videotrans.configure.excepts import get_msg_from_except
@@ -274,7 +280,7 @@ def openwin():
 
         if d['type'] == "error":
             winobj.has_done = True
-            tools.show_error(d['text'])
+            show_error(d['text'])
             winobj.ysphb_startbtn.setText(tr("start operate"))
             winobj.ysphb_startbtn.setDisabled(False)
             winobj.ysphb_opendir.setDisabled(False)
@@ -330,10 +336,10 @@ def openwin():
         except (TypeError,ValueError):
             pass
         if not video:
-            tools.show_error(tr("Video must be selected"))
+            show_error(tr("Video must be selected"))
             return
         if not audio and not srt:
-            tools.show_error(
+            show_error(
                 tr("Choose at least one for audio and video"))
             return
 

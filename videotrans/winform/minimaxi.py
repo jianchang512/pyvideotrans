@@ -1,7 +1,9 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans.component.set_form import MinimaxiForm
 
@@ -13,7 +15,7 @@ def openwin():
             from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            tools.show_error(d)
+            show_error(d)
         winobj.test.setText(tr("Test"))
 
     def test():
@@ -21,7 +23,7 @@ def openwin():
         model = winobj.model.currentText()
         apiurl = winobj.apiurl.currentText()
         if not apikey:
-            return tools.show_error(tr("SK is required"))
+            return show_error(tr("SK is required"))
         params["minimaxi_apikey"] = apikey
         params["minimaxi_model"] = model
         params["minimaxi_apiurl"] = apiurl
@@ -39,7 +41,7 @@ def openwin():
                          tts_type=tts.MINIMAXI_TTS)
         wk.uito.connect(feed)
         wk.start()
-        tools.set_process(text='', type="refreshtts")
+        set_process(text='', type="refreshtts")
 
     def save():
         params["minimaxi_apikey"] = winobj.apikey.text()
@@ -47,7 +49,7 @@ def openwin():
         params["minimaxi_apiurl"] = winobj.apiurl.currentText()
         params["minimaxi_emotion"] = winobj.emotion.currentText()
         params.save()
-        tools.set_process(text='', type="refreshtts")
+        set_process(text='', type="refreshtts")
         winobj.close()
 
     winobj.apikey.setText(str(params.get("minimaxi_apikey",'')))

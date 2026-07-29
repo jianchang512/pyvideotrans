@@ -1,12 +1,12 @@
 from PySide6 import QtWidgets
 from videotrans.configure.config import tr
-from videotrans.util import tools
+from videotrans.util.help_misc import show_error
 
 
 def make_feed_translator(form, test_btn_name):
     def feed(d):
         if not d.startswith("ok"):
-            tools.show_error(d)
+            show_error(d)
         else:
             QtWidgets.QMessageBox.information(form, "OK", d[3:])
         getattr(form, test_btn_name).setText(tr("Test"))
@@ -18,7 +18,7 @@ def make_feed_stt(form, test_btn_name):
         if d.startswith("ok"):
             QtWidgets.QMessageBox.information(form, "ok", d[3:])
         else:
-            tools.show_error(d)
+            show_error(d)
         getattr(form, test_btn_name).setText(tr("Test"))
     return feed
 
@@ -28,7 +28,7 @@ def make_feed_tts(form, test_btn_name, success_msg="Test Ok"):
         if d == "ok":
             QtWidgets.QMessageBox.information(form, "ok", success_msg)
         else:
-            tools.show_error(d)
+            show_error(d)
         getattr(form, test_btn_name).setText(tr("Test"))
     return feed
 

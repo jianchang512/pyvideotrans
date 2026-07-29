@@ -11,9 +11,7 @@ from PySide6.QtWidgets import (
 )
 
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger
-from videotrans.util import tools
-
-
+from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
 
 
 class EditRecognResultDialog(QDialog):
@@ -252,7 +250,7 @@ class EditRecognResultDialog(QDialog):
         self.video_player.play()
         self.audio_player.play()
         self._stack.setCurrentIndex(0)
-        self.video_status.setText(f"\u23F5 {tools.ms_to_time_string(ms=start_ms)} → {tools.ms_to_time_string(ms=end_ms)}")
+        self.video_status.setText(f"\u23F5 {ms_to_time_string(ms=start_ms)} → {ms_to_time_string(ms=end_ms)}")
         #self.stop_countdown()
 
     def _stop_playback(self):
@@ -294,7 +292,7 @@ class EditRecognResultDialog(QDialog):
     # ===================== Table =====================
     def load_table(self):
         try:
-            self.srt_list_dict=tools.get_subtitle_from_srt(self.source_sub)
+            self.srt_list_dict=get_subtitle_from_srt(self.source_sub)
             self.table.setColumnCount(4)
             self.table.setHorizontalHeaderLabels([
                 tr("Line"), tr('Subtitles') + tr("Time Axis"), tr("Play"), tr("Subtitle Text")

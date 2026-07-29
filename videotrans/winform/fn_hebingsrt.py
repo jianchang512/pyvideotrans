@@ -1,13 +1,15 @@
 # 合并2个srt
 
+
 def openwin():
+    from videotrans.util._srt_parse import get_subtitle_from_srt
+    from videotrans.util.help_misc import show_error
     import json
     from pathlib import Path
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
-    from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/Mergersrt"
 
 
@@ -26,8 +28,8 @@ def openwin():
         def run(self):
             try:
                 text = ""
-                srt1_list = tools.get_subtitle_from_srt(self.file1)
-                srt2_list = tools.get_subtitle_from_srt(self.file2)
+                srt1_list = get_subtitle_from_srt(self.file1)
+                srt2_list = get_subtitle_from_srt(self.file2)
                 srt2_len = len(srt2_list)
                 for i, it in enumerate(srt1_list):
                     text += f"{it['line']}\n{it['time']}\n{it['text'].strip()}"
@@ -48,7 +50,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            tools.show_error(d['text'])
+            show_error(d['text'])
         elif d['type'] == 'logs':
             winobj.startbtn.setText(d['text'])
         else:
@@ -73,7 +75,7 @@ def openwin():
         srt1 = winobj.srtinput1.text()
         srt2 = winobj.srtinput2.text()
         if not srt1 or not srt2:
-            tools.show_error(
+            show_error(
                 tr("Subtitle File 1 and Subtitle File 2 must be selected"))
             return
 

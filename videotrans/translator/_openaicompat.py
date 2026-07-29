@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging,json
+import logging
 import re
-import time,httpcore,httpx
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Union
@@ -12,8 +12,8 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError, LLM
 from videotrans.configure.config import logger, settings, params, ROOT_DIR, tr
 from videotrans.task.taskcfg import SrtItem
 from videotrans.translator._base import BaseTrans
-
-from videotrans.util import tools
+from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
+from videotrans.util.help_misc import get_prompt, get_tanslate_type
 
 
 @dataclass
@@ -30,7 +30,7 @@ class OpenAICampat(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.temperature=float(settings.get('aitrans_temperature', 1.0))
-        self.prompt = tools.get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name)
+        self.prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name)
         try:
             self.max_tokens=int(self.max_tokens)
         except (ValueError,TypeError) as e:
@@ -82,7 +82,7 @@ class OpenAICampat(BaseTrans):
             raise StopTask((e.body.get('message') if e.body else e.message)+f'\n{self.api_url}\n{kwargs}') from e
         except APIError as e: 
             if re.search(r"insufficient.*?balance",e.message,flags=re.I):
-                raise StopTask(tr('The server returned an error message: Insufficient balance',tools.get_tanslate_type(self.translate_type),self.api_url))
+                raise StopTask(tr('The server returned an error message: Insufficient balance',get_tanslate_type(self.translate_type),self.api_url))
             raise
             
         result = ""
@@ -175,7 +175,7 @@ class OpenAICampat(BaseTrans):
                 [f"{line + 1}\n{it['time']}\n{it['text']}" for line, it in enumerate(srt_list[idx: idx + chunk_size])])
             new_sublist.append(_send(srt_str))
 
-        _srtlist = tools.get_subtitle_from_srt("\n\n".join(new_sublist), is_file=False)
+        _srtlist = get_subtitle_from_srt("\n\n".join(new_sublist), is_file=False)
         # 修正可能存在的时间戳错误
         _len = len(_srtlist)
         for i, it in enumerate(_srtlist):
@@ -187,8 +187,8 @@ class OpenAICampat(BaseTrans):
                 it['start_time'] = it['end_time']
                 _had_edit = True
             if _had_edit:
-                it['startraw'] = tools.ms_to_time_string(ms=it['start_time'])
-                it['endraw'] = tools.ms_to_time_string(ms=it['end_time'])
+                it['startraw'] = ms_to_time_string(ms=it['start_time'])
+                it['endraw'] = ms_to_time_string(ms=it['end_time'])
                 it["time"] = f"{it['startraw']} --> {it['endraw']}"
         logger.debug(f'{"【二次识别后】"  if step else ""}LLM重新断句完成,原始字幕行:{len(srt_list)}, 新字幕行:{len(_srtlist)}, 用时:{time.time()-_st}s')
         return _srtlist

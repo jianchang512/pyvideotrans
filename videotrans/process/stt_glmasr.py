@@ -8,7 +8,6 @@ from typing import List, Tuple, Union
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util import gpus
 from videotrans.configure.config import logger
-from videotrans.process._stt_utils import _write_log
 
 
 def glmasr_asr(
@@ -24,8 +23,9 @@ def glmasr_asr(
         device_index=0  # gpu索引
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import torch,zhconv
+    from videotrans.process._stt_utils import _write_log
     from transformers import AutoProcessor, GlmAsrForConditionalGeneration
-    
+
     checkpoint_name = local_dir
     processor = AutoProcessor.from_pretrained(local_dir)
 

@@ -19,10 +19,10 @@ from pydub import AudioSegment
 from videotrans import tts
 
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger,app_cfg,REDUBB_QUEUE_FILE,REDUBB_STATUS_FILE
-from videotrans.util import tools
 
 # 需要重新配音的队列
-from videotrans.util.help_misc import vail_file, atomic_write_json
+from videotrans.util._srt_parse import ms_to_time_string
+from videotrans.util.help_misc import vail_file, atomic_write_json, open_url
 
 # 存储待配音数据,以文件名为key
 _REDUBB_QUEUE={}
@@ -309,7 +309,7 @@ class EditDubbingResultDialog(QDialog):
             self.align_sub_audio.setVisible(True)
 
     def help_doc(self):
-        tools.open_url('https://pyvideotrans.com/danshipin')
+        open_url('https://pyvideotrans.com/danshipin')
 
     def load_table(self):
         """极致性能加载表格"""
@@ -806,7 +806,7 @@ class EditDubbingResultDialog(QDialog):
         self._stack.setCurrentIndex(0)
         if play_audio:
             self.video_status.setText(
-            f"\u23F5 {tools.ms_to_time_string(ms=video_start_ms)} → {tools.ms_to_time_string(ms=video_end_ms)}"
+            f"\u23F5 {ms_to_time_string(ms=video_start_ms)} → {ms_to_time_string(ms=video_end_ms)}"
             )
         if not play_audio:
             self.video_player.pause()
@@ -852,7 +852,7 @@ class EditDubbingResultDialog(QDialog):
         item = self.queue_tts[row]
         filename = item['filename']
         
-        if not tools.vail_file(filename):
+        if not vail_file(filename):
             QMessageBox.information(self, tr("The audio file does not exist"), tr("The audio file does not exist"))
             return
         
@@ -953,7 +953,7 @@ class EditDubbingResultDialog(QDialog):
             original_style = self.prompt_label.styleSheet()
             
             self.prompt_label.setText(f"Error: {msg}")
-            self.prompt_label.setStyleSheet("font-size:16px; font-weight:bold; color:red;")
+            self.prompt_label.setStyleSheet("font-size:14px; font-weight:bold; color:red;")
             
             def restore():
                 if hasattr(self, 'prompt_label') and self.prompt_label:

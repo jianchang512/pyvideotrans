@@ -14,7 +14,9 @@ from PySide6.QtWidgets import (
 
 from videotrans.configure.config import ROOT_DIR, tr, settings, HOME_DIR
 # 全局输出文件夹
-from videotrans.util import tools
+from videotrans.util._ffmpeg_runner import runffmpeg
+from videotrans.util._ffprobe import get_video_info
+from videotrans.util._srt_parse import get_subtitle_from_srt
 
 output_folder = HOME_DIR
 
@@ -59,7 +61,7 @@ class ClipTask(QRunnable):
                 cmd+=[
                     "-crf","18",output_path
                 ]
-                tools.runffmpeg(cmd, force_cpu=True)
+                runffmpeg(cmd, force_cpu=True)
             elif self.mode == 1:  # 仅视频
                 output_path = os.path.join(output_dir, f"{self.line_num}.mp4")
                 cmd = [
@@ -67,7 +69,7 @@ class ClipTask(QRunnable):
                     "-i", self.video_path, "-an", "-c:v", "copy","-crf","18",
                     output_path
                 ]
-                tools.runffmpeg(cmd, force_cpu=True)
+                runffmpeg(cmd, force_cpu=True)
             elif self.mode == 2:  # 仅音频
                 output_path = os.path.join(output_dir, f"{self.line_num}.wav")
                 cmd = [
@@ -75,7 +77,7 @@ class ClipTask(QRunnable):
                     "-i", self.video_path, "-vn", "-c:a", "pcm_s16le",
                     output_path
                 ]
-                tools.runffmpeg(cmd, force_cpu=True)
+                runffmpeg(cmd, force_cpu=True)
             elif self.mode == 3:  # 分离
                 # 无声视频
                 video_path_out = os.path.join(output_dir, f"{self.line_num}.mp4")
@@ -84,7 +86,7 @@ class ClipTask(QRunnable):
                     "-i", self.video_path, "-an", "-c:v", "copy","-crf","18",
                     video_path_out
                 ]
-                tools.runffmpeg(cmd_video, force_cpu=True)
+                runffmpeg(cmd_video, force_cpu=True)
 
                 # 音频
                 if self.video_info['streams_audio']>0:
@@ -94,7 +96,7 @@ class ClipTask(QRunnable):
                         "-i", self.video_path, "-vn", "-c:a", "pcm_s16le",
                         audio_path_out
                     ]
-                    tools.runffmpeg(cmd_audio, force_cpu=True)
+                    runffmpeg(cmd_audio, force_cpu=True)
 
             self.signals.progress.emit(f"Completed: {self.line_num}Line")
         except subprocess.CalledProcessError as e:
@@ -247,7 +249,7 @@ class ClipVideoWindow(QWidget):
             self.subtitle_label.setText(self.subtitle_name)
 
 
-            self.subtitles = tools.get_subtitle_from_srt(self.subtitle_path)  # Reload if needed
+            self.subtitles = get_subtitle_from_srt(self.subtitle_path)  # Reload if needed
             for i, it in enumerate(self.subtitles):
                 item = QListWidgetItem()
                 check = QCheckBox(f"第{i+1}行 [{(it['end_time']-it['start_time'])/1000.0}s] {it['startraw']}->{it['endraw']}  {it['text']}")
@@ -385,7 +387,7 @@ class Worker(QThread):
 
     def run(self):
         try:
-            video_info=tools.get_video_info(self.parent.video_path)
+            video_info=get_video_info(self.parent.video_path)
             if video_info['streams_audio']==0 and self.mode == 2:
                 self.uito.emit(f"Error:{tr('errorNoAudioTrackForAudioOnly')}")
                 return

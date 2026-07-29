@@ -13,7 +13,7 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTex
 from videotrans.configure.config import params, logger, ROOT_DIR, settings,tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+from videotrans.util._srt_parse import ms_to_time_string
 
 
 @dataclass
@@ -116,8 +116,8 @@ class GeminiRecogn(BaseRecogn):
             str_s = []
             for i, f in enumerate(seg_group):
                 if i < len(m):
-                    startraw = tools.ms_to_time_string(ms=f['start_time'])
-                    endraw = tools.ms_to_time_string(ms=f['end_time'])
+                    startraw = ms_to_time_string(ms=f['start_time'])
+                    endraw = ms_to_time_string(ms=f['end_time'])
                     text = m[i].strip()
                     if not text:
                         continue

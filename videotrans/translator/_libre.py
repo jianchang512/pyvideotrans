@@ -8,8 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.configure.config import tr,params,settings,logger
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.translator._base import BaseTrans
-from videotrans.util import tools
-
+from videotrans.util._srt_parse import cleartext
 
 
 @dataclass
@@ -47,6 +46,6 @@ class Libre(BaseTrans):
             raise StopTask(f"[Libre] {tr('This channel needs deployed and started before available')}\n[https://pyvideotrans.com/libretranslate]") from e
         response.raise_for_status()
         result = response.json()
-        result = tools.cleartext(result['translatedText'])
+        result = cleartext(result['translatedText'])
 
         return result.lower() if self.target_code[:2] == 'en' else result

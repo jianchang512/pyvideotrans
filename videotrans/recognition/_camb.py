@@ -14,8 +14,8 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry
 from videotrans.configure.config import tr, params, settings,  logger, ROOT_DIR
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
 from videotrans.configure import contants
+from videotrans.util._srt_parse import ms_to_time_string
 
 
 def _get_camb_lang_id(langcode):
@@ -128,9 +128,9 @@ class CambRecogn(BaseRecogn):
                 if self.detect_language and self.detect_language[:2] in contants.CJK_LANG:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'], flags=re.I | re.S)
 
-                tmp['time'] = tools.ms_to_time_string(ms=start_ms) + ' --> ' + tools.ms_to_time_string(ms=end_ms)
-                tmp['startraw'] = tools.ms_to_time_string(ms=start_ms)
-                tmp['endraw'] = tools.ms_to_time_string(ms=end_ms)
+                tmp['time'] = ms_to_time_string(ms=start_ms) + ' --> ' + ms_to_time_string(ms=end_ms)
+                tmp['startraw'] = ms_to_time_string(ms=start_ms)
+                tmp['endraw'] = ms_to_time_string(ms=end_ms)
 
                 raws.append(tmp)
 

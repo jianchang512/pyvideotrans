@@ -1,9 +1,11 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import set_process, show_error
+    from videotrans.util.help_role import get_elevenlabs_role
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,params
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
-    from videotrans.winform._helpers import make_feed_translator
     from videotrans.component.set_form import ElevenlabsForm
 
     winobj = ElevenlabsForm()
@@ -11,7 +13,7 @@ def openwin():
 
     def feed(d):
         if not d.startswith("ok"):
-            tools.show_error(d)
+            show_error(d)
         else:
             from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "OK", tr("elevenlabs toggle role"))
@@ -35,17 +37,17 @@ def openwin():
             wk.uito.connect(feed)
             wk.start()
             winobj.test.setText(tr("Testing..."))
-            run_in_threadpool(tools.get_elevenlabs_role,True)
+            run_in_threadpool(get_elevenlabs_role,True)
         except Exception as e:
             from videotrans.configure.excepts import get_msg_from_except
-            tools.show_error(get_msg_from_except(e))
+            show_error(get_msg_from_except(e))
 
     def save():
         params['elevenlabstts_key'] = winobj.elevenlabstts_key.text()
         params['elevenlabstts_models'] = winobj.elevenlabstts_models.currentText()
         params.save()
-        tools.set_process(text='', type="refreshtts")
-        tools.set_process(text='', type="refreshmodel_list")
+        set_process(text='', type="refreshtts")
+        set_process(text='', type="refreshmodel_list")
         winobj.close()
 
     winobj.elevenlabstts_key.setText(str(params.get('elevenlabstts_key','')))

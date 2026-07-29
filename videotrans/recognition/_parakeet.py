@@ -4,10 +4,11 @@ from typing import List, Union
 from openai import OpenAI,APIConnectionError
 
 from videotrans.configure.excepts import SpeechToTextError,StopTask
-from videotrans.configure.config import tr, params,tr
+from videotrans.configure.config import params,tr
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+from videotrans.util._srt_parse import get_subtitle_from_srt
+
 
 @dataclass
 class ParaketRecogn(BaseRecogn):
@@ -32,4 +33,4 @@ class ParaketRecogn(BaseRecogn):
         except APIConnectionError as e:
             raise StopTask(f'[Parakeet] {tr("This channel needs deployed and started before available")}\n{self.api_url=}\n{e}\n[https://pyvideotrans.com/parakeet]') from e
         
-        return tools.get_subtitle_from_srt(transcript.split("----..----")[0], is_file=False)
+        return get_subtitle_from_srt(transcript.split("----..----")[0], is_file=False)

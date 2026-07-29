@@ -8,7 +8,7 @@ from videotrans.configure.excepts import SpeechToTextError
 from videotrans.configure.config import settings,logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+from videotrans.util._srt_parse import get_subtitle_from_srt
 
 
 @dataclass
@@ -40,7 +40,7 @@ class XXLRecogn(BaseRecogn):
 
         try:
             subprocess.run(cmd, capture_output=True, text=True, check=True, encoding='utf-8', errors='replace', creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0, cwd=os.path.dirname(xxl_path))
-            return tools.get_subtitle_from_srt(outsrt_file, is_file=True)
+            return get_subtitle_from_srt(outsrt_file, is_file=True)
         except subprocess.CalledProcessError as e:
             raise SpeechToTextError(e.stderr+f"\n{e.stdout}")
 

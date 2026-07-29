@@ -1,6 +1,8 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.util import tools
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans.winform._helpers import make_feed_translator
     from videotrans.component.set_form import BaiduForm
@@ -14,7 +16,7 @@ def openwin():
         appid = winobj.baidu_appid.text()
         miyue = winobj.baidu_miyue.text()
         if not appid or not miyue:
-            return tools.show_error(tr("Please input appid and Secret"))
+            return show_error(tr("Please input appid and Secret"))
         params["baidu_appid"] = appid
         params["baidu_miyue"] = miyue
         winobj.test.setText(tr("Testing..."))

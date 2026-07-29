@@ -16,8 +16,8 @@ from PySide6.QtWidgets import (
 
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
 from videotrans.configure import config
-from videotrans.util import tools
-
+from videotrans.util._srt_parse import ms_to_time_string, get_subtitle_from_srt
+from videotrans.util.help_misc import show_error
 
 
 class SpeakerAssignmentDialog(QDialog):
@@ -50,7 +50,7 @@ class SpeakerAssignmentDialog(QDialog):
             if sour_pt.as_posix() and not sour_pt.samefile(Path(target_sub)):
                 try:
                     self.source_srtstring = sour_pt.read_text(encoding="utf-8-sig")
-                    self.source_srt_list_dict = tools.get_subtitle_from_srt(source_sub)
+                    self.source_srt_list_dict = get_subtitle_from_srt(source_sub)
                 except Exception:
                     self.source_srtstring = ""
 
@@ -232,7 +232,7 @@ class SpeakerAssignmentDialog(QDialog):
 
 
         try:
-            self.srt_list_dict= tools.get_subtitle_from_srt(self.target_sub)
+            self.srt_list_dict= get_subtitle_from_srt(self.target_sub)
             # 1. 创建 QTableWidget（比 Model/View 快得多）
             self.table = QTableWidget()
             
@@ -586,7 +586,7 @@ class SpeakerAssignmentDialog(QDialog):
             self.listen_button.setText(tr("Trial dubbing"))
             self.listen_button.setDisabled(False)
             if d != "ok":
-                tools.show_error(d)
+                show_error(d)
 
         wk = ListenVoice(parent=self, queue_tts=[{
             "text": first_text,
@@ -677,7 +677,7 @@ class SpeakerAssignmentDialog(QDialog):
         self.video_player.play()
         self.audio_player.play()
         self._stack.setCurrentIndex(0)
-        self.video_status.setText(f"\u23F5 {tools.ms_to_time_string(ms=start_ms)} → {tools.ms_to_time_string(ms=end_ms)}")
+        self.video_status.setText(f"\u23F5 {ms_to_time_string(ms=start_ms)} → {ms_to_time_string(ms=end_ms)}")
         #self.stop_countdown()
 
     def _stop_playback(self):

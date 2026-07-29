@@ -1,7 +1,9 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans.winform._helpers import make_feed_tts
     from videotrans.component.set_form import Doubao2TTSForm
@@ -16,7 +18,7 @@ def openwin():
         appid = winobj.doubao2_appid.text().strip()
         access = winobj.doubao2_access.text().strip()
         if not appid or not access:
-            return tools.show_error(tr('Appid access and cluster are required'))
+            return show_error(tr('Appid access and cluster are required'))
         params["doubao2_appid"] = appid
         params["doubao2_access"] = access
         params.save()

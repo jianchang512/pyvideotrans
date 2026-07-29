@@ -6,9 +6,11 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError, StopTask
 from videotrans.configure.config import tr,settings,params,logger
 from videotrans.translator._base import BaseTrans
-from videotrans.util import tools
 from google import genai
 from google.genai import types,errors
+
+from videotrans.util.help_misc import get_prompt
+
 
 @dataclass
 class Gemini(BaseTrans):
@@ -18,7 +20,7 @@ class Gemini(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.model_name = params.get("gemini_model",'gemini-2.5-flash')
-        self.prompt = tools.get_prompt(ainame='gemini',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
+        self.prompt = get_prompt(ainame='gemini',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
         self.api_keys = params.get('gemini_key', '').strip().split(',')
 
 

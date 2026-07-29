@@ -1,6 +1,5 @@
 def openwin():
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.util import tools
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt

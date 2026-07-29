@@ -1,6 +1,8 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import set_process
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.util import tools
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt
@@ -36,7 +38,7 @@ def openwin():
             return
         params["parakeet_address"] = _fix_url(url)
         params.save()
-        tools.set_process(text='', type="refreshtts")
+        set_process(text='', type="refreshtts")
         winobj.close()
 
     winobj.set_btn.clicked.connect(save)

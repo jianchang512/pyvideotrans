@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import traceback, time, json
+import traceback, time
 from videotrans.configure.config import ROOT_DIR, logger, settings
 from pathlib import Path
 from videotrans.process._audio_utils import _write_log

@@ -6,12 +6,9 @@ import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
 from videotrans.configure.config import logger,ROOT_DIR
-from videotrans.process._stt_utils import _write_log
 
 
-# 支持热词
 def paraformer(
         cut_audio_list=None,
         detect_language=None,
@@ -26,6 +23,8 @@ def paraformer(
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
+    from videotrans.util._srt_parse import ms_to_time_string
+    from videotrans.process._stt_utils import _write_log
 
     msg = f'Load {model_name}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
@@ -70,8 +69,8 @@ def paraformer(
                 "text": it['text'].strip(),
                 "start_time": it['start'],
                 "end_time": it['end'],
-                "startraw": f'{tools.ms_to_time_string(ms=it["start"])}',
-                "endraw": f'{tools.ms_to_time_string(ms=it["end"])}'
+                "startraw": f'{ms_to_time_string(ms=it["start"])}',
+                "endraw": f'{ms_to_time_string(ms=it["end"])}'
             })
             _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {it["text"]}\n'}))
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"

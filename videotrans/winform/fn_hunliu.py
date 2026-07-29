@@ -2,6 +2,8 @@
 
 def openwin():
     import json
+    from videotrans.util._ffmpeg_runner import runffmpeg
+    from videotrans.util.help_misc import show_error
     import os
     from pathlib import Path
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
@@ -9,7 +11,6 @@ def openwin():
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure import contants
     from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
-    from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/hunliu"
 
 
@@ -26,7 +27,7 @@ def openwin():
 
         def run(self):
             try:
-                tools.runffmpeg([
+                runffmpeg([
                     '-y',
                     '-i',
                     os.path.normpath(self.videourls[0]),
@@ -49,7 +50,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            tools.show_error(d['text'])
+            show_error(d['text'])
             winobj.hun_startbtn.setText(tr("start operate"))
             winobj.hun_startbtn.setDisabled(False)
             winobj.hun_opendir.setDisabled(False)
@@ -79,7 +80,7 @@ def openwin():
         audio1 = winobj.hun_file1.text()
         audio2 = winobj.hun_file2.text()
         if not audio1 or not audio2:
-            tools.show_error(tr("必须选择视频"))
+            show_error(tr("必须选择视频"))
             return
 
         winobj.hun_startbtn.setText(

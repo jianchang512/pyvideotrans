@@ -49,7 +49,6 @@ def cleanup():
     try:
         if 'app' in globals():
             app.quit()
-            #app.deleteLater()
     except:
         pass
 

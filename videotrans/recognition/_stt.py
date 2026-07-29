@@ -9,7 +9,7 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTex
 from videotrans.configure.config import tr, params, logger, settings
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+from videotrans.util._srt_parse import get_subtitle_from_srt
 
 """
             请求发送：以二进制形式发送键名为 audio 的wav格式音频数据，采样率为16k、通道为1
@@ -70,4 +70,4 @@ class SttAPIRecogn(BaseRecogn):
             text=res['data'],
             type='replace_subtitle'
         )
-        return tools.get_subtitle_from_srt(res['data'], is_file=False)
+        return get_subtitle_from_srt(res['data'], is_file=False)

@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 )
 
 from videotrans.configure.config import ROOT_DIR, tr, settings
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url
 
 
 class SetFasterXXL(QDialog):
@@ -51,7 +51,7 @@ class SetFasterXXL(QDialog):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Help document"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/xxl'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/xxl'))
         layout.addWidget(help_btn)
 
         self.setLayout(layout)

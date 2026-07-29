@@ -13,7 +13,7 @@ from videotrans.configure.contants import WHISPER_CPP_URL_MS, WHISPER_CPP_URL_HF
     WHISPERCPP_MODEL_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
-from videotrans.util import tools
+from videotrans.util._srt_parse import get_subtitle_from_srt
 from videotrans.util.help_down import down_zip
 from videotrans.util.help_misc import is_connect_hf
 
@@ -126,6 +126,6 @@ class CPPRecogn(BaseRecogn):
                 Path(log_file_path).unlink(missing_ok=True)
             except OSError:
                 pass
-            return tools.get_subtitle_from_srt(_sub + ".srt", is_file=True)
+            return get_subtitle_from_srt(_sub + ".srt", is_file=True)
         except Exception as e:
             raise SpeechToTextError(str(e))

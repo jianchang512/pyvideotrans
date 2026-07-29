@@ -1,7 +1,9 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans import recognition
-    from videotrans.util import tools
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt
     from videotrans.component.set_form import ZijierecognmodelForm
@@ -16,7 +18,7 @@ def openwin():
         appid = winobj.zijierecognmodel_appid.text().strip()
         access = winobj.zijierecognmodel_token.text().strip()
         if not appid or not access:
-            return tools.show_error(tr('Appid access and cluster are required'))
+            return show_error(tr('Appid access and cluster are required'))
         params["zijierecognmodel_appid"] = appid
         params["zijierecognmodel_token"] = access
         task = TestSTT(parent=winobj, recogn_type=recognition.ZIJIE_RECOGN_MODEL)

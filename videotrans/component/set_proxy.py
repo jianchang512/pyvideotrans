@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 )
 
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings
-from videotrans.util import tools
+from videotrans.util.help_misc import open_url, show_popup
 
 
 class SetThreadProxy(QDialog):
@@ -49,7 +49,7 @@ class SetThreadProxy(QDialog):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Help document"))
-        help_btn.clicked.connect(lambda: tools.open_url(url='https://pyvideotrans.com/proxy'))
+        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/proxy'))
         layout.addWidget(help_btn)
 
         self.setLayout(layout)
@@ -61,7 +61,7 @@ class SetThreadProxy(QDialog):
             if not re.match(r'^(http|sock)', proxy, re.I):
                 proxy = f'http://{proxy}'
             if not re.match(r'^(http|sock)(s|5)?://(\d+\.){3}\d+:\d+', proxy, re.I):
-                question = tools.show_popup(
+                question = show_popup(
                     tr("Please make sure the proxy address is correct"), tr('The network proxy address you fill in seems to be incorrect, the general proxy/vpn format is http://127.0.0.1:port, if you do not know what is the proxy please do not fill in arbitrarily, ChatGPT and other api address please fill in the menu - settings - corresponding configuration. If you confirm that the proxy address is correct, please click Yes to continue.'))
                 if question != QtWidgets.QMessageBox.Yes:
                     return False

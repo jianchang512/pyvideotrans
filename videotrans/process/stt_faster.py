@@ -6,9 +6,8 @@ import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
 from videotrans.configure.config import logger
-from videotrans.process._stt_utils import _write_log, _resegment
+
 
 
 def faster_whisper(
@@ -37,6 +36,8 @@ def faster_whisper(
         subtitle_srt=None
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import zhconv
+    from videotrans.process._stt_utils import _write_log, _resegment
+    from videotrans.util._srt_parse import ms_to_time_string
     from faster_whisper import WhisperModel, BatchedInferencePipeline
 
     raws = []
@@ -150,8 +151,8 @@ def faster_whisper(
                     'start_time': s,
                     'end_time': e
                 })
-                tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-                tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
+                tmp['startraw'] = ms_to_time_string(ms=tmp['start_time'])
+                tmp['endraw'] = ms_to_time_string(ms=tmp['end_time'])
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
                 raws.append(tmp)
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))

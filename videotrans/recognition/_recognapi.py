@@ -9,8 +9,8 @@ from videotrans.configure.excepts import StopRetry, SpeechToTextError
 from videotrans.configure.config import tr, params, app_cfg, logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
 from videotrans.configure import contants
+from videotrans.util._srt_parse import get_srt_from_list, get_subtitle_from_srt, ms_to_time_string
 
 """
             请求发送：以二进制形式发送键名为 audio 的wav格式音频数据，采样率为16k、通道为1
@@ -81,7 +81,7 @@ class APIRecogn(BaseRecogn):
             testdata=json.dumps(testdata,ensure_ascii=False)
             raise SpeechToTextError(f'识别出错,应返回类似数据:\n{testdata}\n\n但实际返回: {res}')
         self.signal(
-            text=tools.get_srt_from_list(res['data']),
+            text=get_srt_from_list(res['data']),
             type='replace_subtitle'
         )
 
@@ -91,7 +91,7 @@ class APIRecogn(BaseRecogn):
         else:
             data=res['data']
         
-        return tools.get_subtitle_from_srt(data, is_file=False)
+        return get_subtitle_from_srt(data, is_file=False)
         
 
     def _whisperzero(self)->Union[List[SrtItem], None]:
@@ -148,7 +148,7 @@ class APIRecogn(BaseRecogn):
                 raise StopRetry(f"Error:{d['error_code']}")
             if d['status'] == 'done':
                 sens = d['result']['transcription']['subtitles'][0]['subtitles']
-                raws = tools.get_subtitle_from_srt(sens, is_file=False)
+                raws = get_subtitle_from_srt(sens, is_file=False)
                 if self.detect_language and self.detect_language[:2] in contants.CJK_LANG:
                     for i, it in enumerate(raws):
                         text = re.sub(r'\s+', '', it['text'], flags=re.I | re.S)
@@ -222,8 +222,8 @@ class APIRecogn(BaseRecogn):
                     continue
 
                 # 假设 tools 是你类外部或全局可访问的工具
-                tmp['startraw'] = tools.ms_to_time_string(ms=tmp['start_time'])
-                tmp['endraw'] = tools.ms_to_time_string(ms=tmp['end_time'])
+                tmp['startraw'] = ms_to_time_string(ms=tmp['start_time'])
+                tmp['endraw'] = ms_to_time_string(ms=tmp['end_time'])
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
 
                 chunk_raws.append(tmp)

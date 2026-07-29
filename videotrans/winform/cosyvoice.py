@@ -1,8 +1,11 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import set_process, show_error
+    from videotrans.util.help_role import get_f5tts_role
     from pathlib import Path
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,params
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans.component.set_form import CosyVoiceForm
 
@@ -14,7 +17,7 @@ def openwin():
             from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            tools.show_error(d)
+            show_error(d)
         winobj.test.setText(tr('Test'))
 
     def _fix_url(url):
@@ -26,13 +29,13 @@ def openwin():
         params["cosyvoice_url"] = _fix_url(winobj.api_url.text().strip())
         params["cosyvoice_instruct_text"] = winobj.instruct_text.text()
         params.save()
-        _rolename = next(reversed(tools.get_f5tts_role().values()))
+        _rolename = next(reversed(get_f5tts_role().values()))
         if not isinstance(_rolename,dict):
-            return tools.show_error(tr("No reference audio {} exists",_rolename))
+            return show_error(tr("No reference audio {} exists",_rolename))
         rolename=_rolename.get('ref_wav')
         file=ROOT_DIR+f'/f5-tts/{rolename}'
         if not Path(file).exists():
-            return tools.show_error(tr("No reference audio {} exists",file))
+            return show_error(tr("No reference audio {} exists",file))
         winobj.test.setText(tr('Testing...'))
         from videotrans import tts
         import time
@@ -50,7 +53,7 @@ def openwin():
         params["cosyvoice_url"] = _fix_url(winobj.api_url.text().strip())
         params["cosyvoice_instruct_text"] = winobj.instruct_text.text()
         params.save()
-        tools.set_process(text='', type="refreshtts")
+        set_process(text='', type="refreshtts")
         winobj.close()
 
     if params["cosyvoice_url"]:

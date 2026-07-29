@@ -207,7 +207,7 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
         _msg.append(f'原始输入文件名: {self.name}, \n输出结果保存到文件夹: {self.target_dir},\n临时文件夹: {self.cache_folder}')
 
         _msg.append(f'{isTrue[self.clear_cache]} 清理已存在')
-        _msg.append(f'{isTrue[self.is_cuda]} 启用CUDA加速')
+        _msg.append(f'{"已" if self.is_cuda else "未"}启用CUDA加速')
         _msg.append(f'{isTrue[self.remove_noise]} 降噪')
         if self.enable_diariz:
             _msg.append(f'已选 识别说话人，最大说话人数量{"不限制" if self.nums_diariz<1 else self.nums_diariz+1}')

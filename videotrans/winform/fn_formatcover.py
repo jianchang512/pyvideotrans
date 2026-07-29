@@ -2,6 +2,8 @@
 
 
 def openwin():
+    from videotrans.util._ffmpeg_runner import runffmpeg
+    from videotrans.util.help_misc import show_error
     import json
     import os
     import shutil
@@ -12,7 +14,6 @@ def openwin():
 
     from videotrans.configure import contants
     from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
-    from videotrans.util import tools
 
     RESULT_DIR = HOME_DIR + "/formatcover"
 
@@ -36,7 +37,7 @@ def openwin():
                     if raw_path.suffix.lower() == self.target_format:
                         shutil.copy2(v, RESULT_DIR + f'/{raw_path.name}')
                         continue
-                    tools.runffmpeg([
+                    runffmpeg([
                         "-y",
                         "-i",
                         os.path.normpath(v),
@@ -56,7 +57,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            tools.show_error(d['text'])
+            show_error(d['text'])
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.opendir.setDisabled(False)
@@ -87,7 +88,7 @@ def openwin():
     def start():
         winobj.has_done = False
         if len(winobj.videourls) < 1:
-            tools.show_error(tr("Must select videos or audio"))
+            show_error(tr("Must select videos or audio"))
             return
 
         winobj.startbtn.setText(

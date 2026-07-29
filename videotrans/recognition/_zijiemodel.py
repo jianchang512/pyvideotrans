@@ -6,10 +6,10 @@ from typing import List,  Union
 
 import requests
 from videotrans.configure.excepts import SpeechToTextError
-from videotrans.configure.config import params, logger
+from videotrans.configure.config import params
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util import tools
+from videotrans.util._srt_parse import ms_to_time_string
 
 _error = {
     "20000003": "静音音频",
@@ -77,8 +77,8 @@ class ZijieRecogn(BaseRecogn):
             if not it.get('text', '').strip():
                 continue
             speaker_list.append(f'spk{it.get("additions", {}).get("speaker", 0)}')
-            startraw = tools.ms_to_time_string(ms=it['start_time'])
-            endraw = tools.ms_to_time_string(ms=it['end_time'])
+            startraw = ms_to_time_string(ms=it['start_time'])
+            endraw = ms_to_time_string(ms=it['end_time'])
             tmp = SrtItem(
                 line=len(srt_list) + 1,
                 start_time=it['start_time'],

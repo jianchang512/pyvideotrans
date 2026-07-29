@@ -4,7 +4,7 @@
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List
 
 from videotrans.configure.config import logger, ROOT_DIR
 

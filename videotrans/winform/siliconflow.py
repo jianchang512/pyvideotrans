@@ -1,6 +1,8 @@
+
+
 def openwin():
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.util import tools
+    from videotrans.util.help_misc import show_error
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
@@ -15,7 +17,7 @@ def openwin():
     def test():
         key = winobj.guiji_key.text()
         if not key:
-            return tools.show_error(tr("Please input Secret"))
+            return show_error(tr("Please input Secret"))
         params["guiji_key"] = key
         params["guiji_model"] = winobj.guiji_model.currentText()
         params["guiji_max_token"] = winobj.max_token.text().strip()

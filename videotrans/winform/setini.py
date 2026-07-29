@@ -1,11 +1,12 @@
 # 高级设置
 
+
 def openwin():
+    from videotrans.util.help_misc import set_process
 
     from PySide6.QtCore import QTimer
     from PySide6.QtWidgets import QLineEdit, QPlainTextEdit, QCheckBox, QComboBox
     from videotrans.configure.config import ROOT_DIR, app_cfg,settings
-    from videotrans.util import tools
     from pathlib import Path
     winobj = None
 
@@ -50,7 +51,7 @@ def openwin():
         settings.save()
         
         if should_model_list_sign:
-            tools.set_process(text="", type='refreshmodel_list')
+            set_process(text="", type='refreshmodel_list')
 
         winobj.close()
 

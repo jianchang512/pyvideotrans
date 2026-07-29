@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-set_form.py — Provider settings form classes with lazy UI loading.
-
-All simple form classes (Base + Ui_xxx mixin) are created on demand via
-module-level __getattr__, so importing this module does NOT load any UI files.
-Custom classes (Peiyinformrole, SetINIForm, SeparateForm, Fanyisrt, SpkRowWidget)
-are defined explicitly because they have extra logic.
-"""
 import os
 import re
 
@@ -21,6 +12,10 @@ from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings
 # ---------------------------------------------------------------------------
 # Base classes (always loaded)
 # ---------------------------------------------------------------------------
+from videotrans.util._srt_parse import get_subtitle_from_srt
+from videotrans.util.help_misc import show_error
+
+
 class CommonBaseMixin:
     def _setup_common_ui(self):
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
@@ -228,8 +223,7 @@ class Peiyinformrole(QWidgetBase):
         self.clear_all_ui()
         self.srt_path = srt_path
         try:
-            from videotrans.util import tools
-            subs = tools.get_subtitle_from_srt(srt_path)
+            subs = get_subtitle_from_srt(srt_path)
             patter_str = r'(?:\s*?\[)((?:spk|speaker|说话人|speaker_|\w{1,10})\s*?\d*?)(?:\])\s*?[:：]?'
             self.subtitle_table.setSortingEnabled(False)
             self.subtitle_table.setRowCount(len(subs))
@@ -286,9 +280,8 @@ class Peiyinformrole(QWidgetBase):
 
     def assign_role_to_selected(self):
         selected_role = self.tmp_rolelist.currentText()
-        from videotrans.util import tools
         if not selected_role:
-            tools.show_error(tr("Please select a valid role from the dropdown list."))
+            show_error(tr("Please select a valid role from the dropdown list."))
             return
         assigned_count = 0
         default_role_text = tr('Default Role')

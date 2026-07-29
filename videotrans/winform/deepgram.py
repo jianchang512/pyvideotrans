@@ -1,6 +1,8 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.util import tools
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt
@@ -14,7 +16,7 @@ def openwin():
     def test():
         apikey = winobj.apikey.text().strip()
         if not apikey:
-            tools.show_error(tr("Must fill in the API Key"))
+            show_error(tr("Must fill in the API Key"))
             return
         params["deepgram_apikey"] = apikey
         params["deepgram_utt"] = winobj.utt.text().strip() or 200
@@ -27,12 +29,12 @@ def openwin():
     def save():
         apikey = winobj.apikey.text().strip()
         if not apikey:
-            tools.show_error(tr("Must fill in the API Key"))
+            show_error(tr("Must fill in the API Key"))
             return
         params["deepgram_apikey"] = apikey
         params["deepgram_utt"] = winobj.utt.text().strip() or 200
         params.save()
-        tools.set_process(text='', type="refreshmodel_list")
+        set_process(text='', type="refreshmodel_list")
         winobj.close()
 
     winobj.apikey.setText(str(params.get("deepgram_apikey", '')))

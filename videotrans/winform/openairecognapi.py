@@ -1,6 +1,8 @@
+
+
 def openwin():
+    from videotrans.util.help_misc import process_openai_api
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.util import tools
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt, make_setallmodels
@@ -14,7 +16,7 @@ def openwin():
 
     def test():
         params["openairecognapi_key"] = winobj.openairecognapi_key.text()
-        params["openairecognapi_url"] = tools.process_openai_api(winobj.openairecognapi_url.text().strip())
+        params["openairecognapi_url"] = process_openai_api(winobj.openairecognapi_url.text().strip())
         params["openairecognapi_model"] = winobj.openairecognapi_model.currentText()
         params["openairecognapi_prompt"] = winobj.openairecognapi_prompt.text()
         winobj.test_openairecognapi.setText(tr("Testing..."))
@@ -24,7 +26,7 @@ def openwin():
 
     def save_openairecognapi():
         params["openairecognapi_key"] = winobj.openairecognapi_key.text()
-        params["openairecognapi_url"] = tools.process_openai_api(winobj.openairecognapi_url.text().strip())
+        params["openairecognapi_url"] = process_openai_api(winobj.openairecognapi_url.text().strip())
         params["openairecognapi_model"] = winobj.openairecognapi_model.currentText()
         params["openairecognapi_prompt"] = winobj.openairecognapi_prompt.text()
         params.save()

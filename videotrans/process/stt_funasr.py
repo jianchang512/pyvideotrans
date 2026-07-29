@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import List, Tuple, Union
 from videotrans.task.taskcfg import SrtItem
 from videotrans.configure.config import logger, ROOT_DIR
-from videotrans.process._stt_utils import _write_log, _remove_unwanted_characters
 
 
 def funasr_mlt(
@@ -24,6 +23,7 @@ def funasr_mlt(
         hotword=None
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     from funasr import AutoModel
+    from videotrans.process._stt_utils import _write_log, _remove_unwanted_characters
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
 

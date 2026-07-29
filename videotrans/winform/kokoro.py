@@ -1,7 +1,9 @@
+
+
 def openwin():
     from videotrans.configure.config import tr,app_cfg,params
+    from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans.component.set_form import KokoroForm
 
@@ -13,7 +15,7 @@ def openwin():
             from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
-            tools.show_error(d)
+            show_error(d)
         winobj.test.setText(tr("Test"))
 
     def _fix_url(url):
@@ -39,7 +41,7 @@ def openwin():
     def save():
         params["kokoro_api"] = _fix_url(winobj.kokoro_address.text().strip())
         params.save()
-        tools.set_process(text='', type="refreshtts")
+        set_process(text='', type="refreshtts")
         winobj.close()
 
     winobj.kokoro_address.setText(str(params.get("kokoro_api",'')))

@@ -1,8 +1,10 @@
-from videotrans.task.taskcfg import InputFile
-from videotrans.util.help_misc import show_error
 
 
 def openwin():
+    from videotrans.task.taskcfg import InputFile
+    from videotrans.util._ffmpeg_misc import format_video
+    from videotrans.util.help_misc import show_error
+    from videotrans.util.help_role import role_menu
     from videotrans.task.taskcfg import TaskCfgTTS
     from videotrans.configure.contants import LISTEN_TEXT
     import json
@@ -13,7 +15,6 @@ def openwin():
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure.config import tr, app_cfg, params, defaulelang, HOME_DIR
     from videotrans.configure import config
-    from videotrans.util import tools
     from videotrans.task.dubbing import DubbingSrt
     from videotrans import translator, tts
     from videotrans.component.set_form import Peiyinformrole
@@ -113,13 +114,13 @@ def openwin():
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
-            return tools.show_error(tr("The current language does not support audition"))
+            return show_error(tr("The current language does not support audition"))
         text = LISTEN_TEXT.get(f'{lang}')
         if not text:
-            return tools.show_error(tr('The current language does not support audition'))
+            return show_error(tr('The current language does not support audition'))
         role = winobj.hecheng_role.currentText()
         if not role or role == 'No':
-            return tools.show_error(tr('mustberole'))
+            return show_error(tr('mustberole'))
         voice_dir = config.TEMP_DIR + '/listen_voice'
         Path(voice_dir).mkdir(parents=True, exist_ok=True)
         lujing_role = role.replace('/', '-')
@@ -155,7 +156,7 @@ def openwin():
             winobj.listen_btn.setDisabled(False)
             winobj.listen_btn.setText(raw_text)
             if d != "ok":
-                tools.show_error(d)
+                show_error(d)
 
         winobj.listen_btn.setDisabled(True)
         winobj.listen_btn.setText('load...')
@@ -168,7 +169,7 @@ def openwin():
         nonlocal RESULT_DIR, uuid
 
         if not winobj.srt_path:
-            return tools.show_error(
+            return show_error(
                 tr("Please import an SRT subtitle file first."))
 
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
@@ -179,7 +180,7 @@ def openwin():
         tts_type = winobj.tts_type.currentIndex()
 
         if language == '-' or role in ['No', '-', '']:
-            return tools.show_error(tr("A default role must be selected"))
+            return show_error(tr("A default role must be selected"))
 
         if tts.is_input_api(tts_type=tts_type) is not True:
             return False
@@ -194,7 +195,7 @@ def openwin():
         else:
             code_list = [key for key, value in langname_dict.items() if value == language]
             if not code_list:
-                return tools.show_error(f'{language} is not support -1')
+                return show_error(f'{language} is not support -1')
             langcode = code_list[0]
         toggle_state(True)
         if rate >= 0:
@@ -210,7 +211,7 @@ def openwin():
             RESULT_DIR = Path(winobj.srt_path).parent.as_posix()
         else:
             RESULT_DIR = HOME_DIR + '/tts'
-        video_obj:InputFile = tools.format_video(winobj.srt_path, None)
+        video_obj:InputFile = format_video(winobj.srt_path, None)
         uuid = video_obj['uuid']
         app_cfg.rm_uuid(uuid)
         cfg = {
@@ -289,7 +290,7 @@ def openwin():
             is_allow_lang_res = tts.is_allow_lang(langcode=code, tts_type=type)
             winobj.loglabel.setText(is_allow_lang_res if is_allow_lang_res is not True else '')
 
-        role_list = tools.role_menu(type, code)
+        role_list = role_menu(type, code)
         winobj.hecheng_role.clear()
         if 'clone' in role_list:
             role_list.remove('clone')
@@ -316,7 +317,7 @@ def openwin():
         if t == '-' or not code:
             winobj.hecheng_role.addItems(['No'])
 
-        role_list = tools.role_menu(tts_type, code)
+        role_list = role_menu(tts_type, code)
         if 'clone' in role_list:
             role_list.remove('clone')
         winobj.hecheng_role.addItems(role_list)
@@ -338,7 +339,7 @@ def openwin():
 
     def show_detail_error():
         if winobj.error_msg:
-            tools.show_error(winobj.error_msg)
+            show_error(winobj.error_msg)
 
     def check_voice_autorate(state):
         winobj.remove_silent_mid.setVisible(not state)
@@ -348,7 +349,7 @@ def openwin():
         if state:
             import torch
             if not torch.cuda.is_available():
-                tools.show_error(tr('nocuda'))
+                show_error(tr('nocuda'))
                 winobj.is_cuda.setChecked(False)
                 winobj.is_cuda.setDisabled(True)
                 return False

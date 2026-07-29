@@ -1,8 +1,6 @@
 import json, re
-from pathlib import Path
 from typing import List
 from videotrans.task.taskcfg import SrtItem
-from videotrans.configure.config import logger
 
 from ._utils import _write_log
 

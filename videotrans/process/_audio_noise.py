@@ -2,14 +2,13 @@
 import traceback, time, json
 from videotrans.configure.config import ROOT_DIR, logger, settings
 from pathlib import Path
-from videotrans.process._audio_utils import _write_log
 
 
 def remove_noise(*, input_file, output_file, is_cuda=False, logs_file=None, device_index=0):
+    from videotrans.util._ffmpeg_runner import runffmpeg
     import numpy as np
     import sherpa_onnx, time
     import soundfile as sf
-    from videotrans.util import tools
 
     _st = time.time()
     logger.debug(f'开始降噪，使用模型 dpdfnet4')
@@ -43,7 +42,7 @@ def remove_noise(*, input_file, output_file, is_cuda=False, logs_file=None, devi
         logger.debug(f'{input_file=}, {sample_rate=}, {denoised.sample_rate=}')
         tmp_name = Path(output_file).parent.as_posix() + f'/noise-{time.time()}.wav'
         sf.write(tmp_name, denoised.samples, denoised.sample_rate)
-        tools.runffmpeg(['-y', '-i', tmp_name, '-af', "volume=1.5", output_file])
+        runffmpeg(['-y', '-i', tmp_name, '-af', "volume=1.5", output_file])
         logger.debug(f'降噪成功完成，耗时:{int(time.time() - _st)}s')
         return output_file, None
     except Exception as e:

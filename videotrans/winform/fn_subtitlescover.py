@@ -1,4 +1,9 @@
+
+
 def openwin():
+    from videotrans.util._ffmpeg_runner import runffmpeg
+    from videotrans.util._srt_parse import get_subtitle_from_srt
+    from videotrans.util.help_misc import show_error
     import json
     import os
     import shutil
@@ -9,7 +14,6 @@ def openwin():
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
     from videotrans.configure import config
-    from videotrans.util import tools
     RESULT_DIR = HOME_DIR + "/subtitlescover"
 
 
@@ -34,23 +38,23 @@ def openwin():
                         continue
                     if self.target_format == 'txt':
                         if raw_path.name.lower().endswith('.srt'):
-                            srt_list = tools.get_subtitle_from_srt(v, is_file=True)
+                            srt_list = get_subtitle_from_srt(v, is_file=True)
                         else:
                             tmp_srt = config.TEMP_DIR + f'/{time.time()}.srt'
-                            tools.runffmpeg([
+                            runffmpeg([
                                 "-y",
                                 "-i",
                                 os.path.normpath(v),
                                 tmp_srt
                             ])
-                            srt_list = tools.get_subtitle_from_srt(tmp_srt, is_file=True)
+                            srt_list = get_subtitle_from_srt(tmp_srt, is_file=True)
                         txt_list = []
                         for srt in srt_list:
                             txt_list.append(srt['text'])
                         with open(RESULT_DIR + f"/{Path(v).stem}.{self.target_format}", 'w', encoding='utf-8') as f:
                             f.write("\n".join(txt_list))
                         continue
-                    tools.runffmpeg([
+                    runffmpeg([
                         "-y",
                         "-i",
                         os.path.normpath(v),
@@ -70,7 +74,7 @@ def openwin():
         d = json.loads(d)
         if d['type'] == "error":
             winobj.has_done = True
-            tools.show_error(d['text'])
+            show_error(d['text'])
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
             winobj.opendir.setDisabled(False)
@@ -102,7 +106,7 @@ def openwin():
 
     def start():
         if len(winobj.subtitlefiles) < 1:
-            tools.show_error(tr("Must select subtitles"))
+            show_error(tr("Must select subtitles"))
             return
         winobj.has_done = False
         winobj.logs.setStyleSheet("""color:#dddddd;text-align:center""")

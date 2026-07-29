@@ -1,4 +1,4 @@
-import json, traceback
+import json
 from pathlib import Path
 from videotrans.configure.config import logger
 
