@@ -19,7 +19,7 @@ class Ui_peiyinrole(object):
         self.error_msg = ""
         if not peiyinrole.objectName():
             peiyinrole.setObjectName(u"peiyinrole")
-        peiyinrole.setMinimumSize(1000, 750)
+        peiyinrole.setMinimumSize(1200, 750)
 
         self.main_layout = QtWidgets.QVBoxLayout(peiyinrole)
         self.main_layout.setObjectName("main_layout")

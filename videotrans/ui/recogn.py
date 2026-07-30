@@ -13,7 +13,7 @@ class Ui_recogn(object):
         self.error_msg = ""
         self.shibie_out_path = None
         recogn.setObjectName("recogn")
-        recogn.setMinimumSize(1150, 500)
+        recogn.setMinimumSize(1200, 500)
 
 
         # 语音识别
@@ -33,7 +33,7 @@ class Ui_recogn(object):
         self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
         self.shibie_language = QtWidgets.QComboBox()
-        self.shibie_language.setMinimumSize(QtCore.QSize(100, 30))
+        #self.shibie_language.setMinimumSize(QtCore.QSize(100, 30))
         self.shibie_language.setObjectName("shibie_language")
 
         self.is_cuda = QtWidgets.QCheckBox()
@@ -42,15 +42,14 @@ class Ui_recogn(object):
         if platform.system() == 'Darwin':
             self.is_cuda.setVisible(False)
 
-        self.shibie_label = QtWidgets.QPushButton()
+        self.shibie_label = QtWidgets.QLabel()
         self.shibie_recogn_type = QtWidgets.QComboBox()
-        self.shibie_recogn_type.setMinimumSize(QtCore.QSize(150, 30))
+        #self.shibie_recogn_type.setMinimumSize(QtCore.QSize(150, 30))
         self.shibie_recogn_type.setObjectName("shibie_recogn_type")
 
-        self.label_model = QtWidgets.QLabel()
 
         self.shibie_model = QtWidgets.QComboBox()
-        self.shibie_model.setMinimumSize(QtCore.QSize(300, 30))
+        self.shibie_model.setMinimumSize(QtCore.QSize(250, 30))
         self.shibie_model.setObjectName("shibie_model")
         
         
@@ -70,7 +69,6 @@ class Ui_recogn(object):
 
 
 
-        self.lable_out = QtWidgets.QLabel()
         self.out_format = QtWidgets.QComboBox()
         self.out_format.setMinimumSize(QtCore.QSize(100, 35))
 
@@ -95,9 +93,9 @@ class Ui_recogn(object):
         self.horizontalLayout.addWidget(self.shibie_language)
         self.horizontalLayout.addWidget(self.shibie_label)
         self.horizontalLayout.addWidget(self.shibie_recogn_type)
-        self.horizontalLayout.addWidget(self.label_model)
+        self.horizontalLayout.addWidget(QtWidgets.QLabel(tr('Model')))
         self.horizontalLayout.addWidget(self.shibie_model)
-        self.horizontalLayout.addWidget(self.lable_out)
+        self.horizontalLayout.addWidget(QtWidgets.QLabel(tr('Output')))
         self.horizontalLayout.addWidget(self.out_format)
         self.horizontalLayout.addStretch()
         
@@ -145,52 +143,6 @@ class Ui_recogn(object):
 
         
         self.h4.addStretch()
-        # 语音调整行
-        # 语音识别高级行
-        self.hfaster_layout = QtWidgets.QHBoxLayout()
-        self.threshold_label = QtWidgets.QLabel()
-        self.threshold_label.setVisible(False)
-        self.threshold = QtWidgets.QLineEdit()
-        self.threshold.setMaximumWidth(80)
-        self.threshold.setVisible(False)
-        self.hfaster_layout.addStretch()
-        self.hfaster_layout.addWidget(self.threshold_label)
-        self.hfaster_layout.addWidget(self.threshold)
-
-        self.min_speech_duration_ms_label = QtWidgets.QLabel()
-        self.min_speech_duration_ms_label.setVisible(False)
-        self.min_speech_duration_ms = QtWidgets.QLineEdit()
-        self.min_speech_duration_ms.setMaximumWidth(80)
-        self.min_speech_duration_ms.setVisible(False)
-        self.hfaster_layout.addWidget(self.min_speech_duration_ms_label)
-        self.hfaster_layout.addWidget(self.min_speech_duration_ms)
-
-        self.min_silence_duration_ms_label = QtWidgets.QLabel()
-        self.min_silence_duration_ms_label.setVisible(False)
-        self.min_silence_duration_ms = QtWidgets.QLineEdit()
-        self.min_silence_duration_ms.setMaximumWidth(80)
-        self.min_silence_duration_ms.setVisible(False)
-        self.hfaster_layout.addWidget(self.min_silence_duration_ms_label)
-        self.hfaster_layout.addWidget(self.min_silence_duration_ms)
-
-        self.max_speech_duration_s_label = QtWidgets.QLabel()
-        self.max_speech_duration_s_label.setVisible(False)
-        self.max_speech_duration_s = QtWidgets.QLineEdit()
-        self.max_speech_duration_s.setMaximumWidth(80)
-        self.max_speech_duration_s.setVisible(False)
-        self.hfaster_layout.addWidget(self.max_speech_duration_s_label)
-        self.hfaster_layout.addWidget(self.max_speech_duration_s)
-
-        self.speech_pad_ms_label = QtWidgets.QLabel()
-        self.speech_pad_ms_label.setVisible(False)
-        self.speech_pad_ms = QtWidgets.QLineEdit()
-        self.speech_pad_ms.setMaximumWidth(80)
-        self.speech_pad_ms.setVisible(False)
-        self.hfaster_layout.addWidget(self.speech_pad_ms_label)
-        self.hfaster_layout.addWidget(self.speech_pad_ms)
-        self.hfaster_layout.addStretch()
-
-        self.verticalLayout_3.addLayout(self.hfaster_layout)
         self.verticalLayout_3.addLayout(self.h4)
 
         self.loglabel = QtWidgets.QPushButton()
@@ -226,23 +178,11 @@ class Ui_recogn(object):
 
         self.horizontalLayout_9.addLayout(self.verticalLayout_3)
 
-        self.threshold_label.setText(tr("threshold"))
         self.shibie_startbtn.setCursor(Qt.PointingHandCursor)
-        self.min_speech_duration_ms.setPlaceholderText('0ms')
-        self.max_speech_duration_s_label.setText(tr("max_speech_duration_s"))
-        self.max_speech_duration_s.setPlaceholderText('5s')
-        self.speech_pad_ms.setToolTip(
-            tr("Speech padding (ms)"))
         self.shibie_opendir.setCursor(Qt.PointingHandCursor)
         self.is_cuda.setText(tr("Enable CUDA?"))
         self.shibie_label.setText(tr("Speech Recognit"))
-        self.shibie_label.setStyleSheet("""background-color:transparent""")
-        self.shibie_label.setCursor(Qt.PointingHandCursor)
-        self.shibie_label.setToolTip(
-            tr("Click to set detailed recognition parameters when using faster-whisper"))
-        self.label_model.setText(tr("Select model"))
 
-        self.lable_out.setText(tr("Subtitle format:"))
         self.out_format.addItems([
             "srt",
             "ass",
@@ -258,30 +198,9 @@ class Ui_recogn(object):
         self.copysrt_rawvideo.setText(tr("Moving subtitle"))
         self.copysrt_rawvideo.setToolTip(
             tr("If selected, the subtitles will be saved to the original audio and video location and renamed to the same name as the original audio and video"))
-        self.threshold.setPlaceholderText('200ms')
-        self.threshold.setToolTip(
-            tr("Threshold for speech detection"))
-        self.threshold.setText(str(settings.get('threshold', 0.5)))
-        self.min_speech_duration_ms_label.setText(
-            tr("min_speech_duration_ms"))
-        self.min_speech_duration_ms.setText(str(settings.get('min_speech_duration_ms', 0)))
-        self.min_speech_duration_ms.setToolTip(
-            tr("Minimum speech duration (ms)"))
-        self.min_silence_duration_ms_label.setText(
-            tr("min_silence_duration_ms"))
-        self.min_silence_duration_ms.setPlaceholderText('200ms')
-        self.min_silence_duration_ms.setText(str(settings.get('min_silence_duration_ms', 2000)))
-        self.min_silence_duration_ms.setToolTip(
-            tr("Minimum silence duration (ms)"))
-        self.max_speech_duration_s.setText(str(settings.get('max_speech_duration_s', 2000)))
-        self.max_speech_duration_s.setToolTip(
-            tr("max speech duration (s)"))
-        self.speech_pad_ms_label.setText(tr("speech_pad_ms"))
-        self.speech_pad_ms.setPlaceholderText('200ms')
-        self.speech_pad_ms.setText(str(settings.get('speech_pad_ms', 400)))
         self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
         self.shibie_opendir.setText(tr("Open output directory"))
 
-        self.label_3.setText(tr("Source lang"))
+        self.label_3.setText(tr("Speech language"))
         self.shibie_startbtn.setText(tr("Start"))
         QtCore.QMetaObject.connectSlotsByName(recogn)

@@ -259,12 +259,6 @@ def openwin():
         if winobj.error_msg:
             show_error(winobj.error_msg)
 
-    # 点击语音识别，显示隐藏faster时的详情设置
-    def click_reglabel():
-        if winobj.shibie_recogn_type.currentIndex() in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER]:
-            hide_show_element(winobj.hfaster_layout, not winobj.threshold.isVisible())
-        else:
-            hide_show_element(winobj.hfaster_layout, False)
 
     winobj = Recognform()
     app_cfg.child_forms['fn_recogn'] = winobj
@@ -291,7 +285,6 @@ def openwin():
         winobj.nums_diariz.setCurrentIndex(int(params.get("stt_nums_diariz", 0)))
         winobj.out_format.setCurrentText(params.get('stt_out_format', 'srt'))
 
-        winobj.shibie_label.clicked.connect(click_reglabel)
         winobj.shibie_startbtn.clicked.connect(shibie_start_fun)
         winobj.shibie_stop.clicked.connect(stop_recogn)
         winobj.shibie_opendir.clicked.connect(opendir_fn)
