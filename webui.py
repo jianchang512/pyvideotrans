@@ -996,6 +996,8 @@ def build_ui():
                     # 根据渠道更新模型下拉框
                     models = []
                     disabled = False
+                    print(f'{idx=}')
+                    print(f'{recognition.Whisper_CPP=}')
                     if idx in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.WHISPERX_API]:
                         models = settings.WHISPER_MODEL_LIST
                     elif idx == recognition.OPENAI_WHISPER:

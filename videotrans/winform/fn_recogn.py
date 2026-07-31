@@ -227,9 +227,6 @@ def openwin():
         recogn_type = winobj.shibie_recogn_type.currentIndex()
         if recogn_type == recognition.Faster_Whisper_XXL and not show_xxl_select():
             return
-        # 仅在faster模式下，才涉及 均等分割和阈值等，其他均隐藏
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER]:  # openai-whisper
-            hide_show_element(winobj.hfaster_layout, False)
 
         if recogn_type not in recognition.ALLOW_CHANGE_MODEL:  # 可选模型，whisper funasr deepram
             winobj.shibie_model.setDisabled(True)
