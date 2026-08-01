@@ -50,6 +50,7 @@ class AppCfg:
     onlyone_align_sub_audio:bool=True
     onlyone_remove_silent_mid:bool=False
     onlyone_trans: bool = False
+    onlyone_is_cuda:bool=False
 
 
     

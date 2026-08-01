@@ -747,7 +747,7 @@
     "Translation results saved to:": "Translation results saved to: ",
     "Romanian": "Romanian",
     "may not support": "May not be supported",
-    "Modify secondary recognition results": "Edit Secondary STT Subtitles",
+    "Modify secondary recognition results": "Secondary STT: Edit Subtitles",
     "Reasoning Effort": "Reasoning Effort",
     "This channel needs deployed and started before available": "Service must be deployed and running before use",
     "Default punctuation": "Default Punct",
@@ -907,5 +907,8 @@
 	"tts-windows-title":"Text-to-Speech: Batch dubbing SRT or TXT subtitles",
 	"transsrt-windows-title":"Translation Srt: Batch translate SRT subtitle files",
 	"multi-windows-title":"Multi-Speaker: Dubbing single subtitles line by line or by specifying a character as a speaker",
-	"hebing-windows-title":"Merge V/A/Srt: Embed audio and subtitles into video"
+	"hebing-windows-title":"Merge V/A/Srt: Embed audio and subtitles into video",
+    "Click to pause playback": "Click pause playback",
+    "Increase table font size": "Increase table font size",
+    "Decrease table font size": "Decrease table font size"
 }

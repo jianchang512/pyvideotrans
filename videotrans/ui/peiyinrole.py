@@ -239,7 +239,7 @@ class Ui_peiyinrole(object):
         self.volume_label = QtWidgets.QLabel(tr("Volume+"))
         self.volume_rate = QtWidgets.QSpinBox()
         self.volume_rate.setMinimum(-95)
-        self.volume_rate.setMaximum(100)
+        self.volume_rate.setMaximum(200)
         self.volume_rate.setMinimumWidth(90)
         self.pitch_label = QtWidgets.QLabel(tr("Pitch+"))
         self.pitch_rate = QtWidgets.QSpinBox()

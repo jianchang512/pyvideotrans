@@ -3,7 +3,7 @@ import time
 from pathlib import Path
 from typing import List, Optional
 
-from PySide6.QtCore import Qt, QTimer, QSize, QUrl, QThread, Signal
+from PySide6.QtCore import Qt, QTimer, QSize, QUrl, QThread, Signal, QSettings
 from PySide6.QtGui import QIcon, QDesktopServices, QColor
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtMultimediaWidgets import QVideoWidget
@@ -14,13 +14,14 @@ from PySide6.QtWidgets import (
     QHeaderView, QAbstractItemView, QGridLayout, QSplitter, QStackedLayout
 )
 
+from videotrans.component._danspmixin import DanspMixin
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
 from videotrans.configure import config
 from videotrans.util._srt_parse import ms_to_time_string, get_subtitle_from_srt
 from videotrans.util.help_misc import show_error
 
 
-class SpeakerAssignmentDialog(QDialog):
+class SpeakerAssignmentDialog(QDialog,DanspMixin):
     def __init__(
             self,
             parent=None,
@@ -90,12 +91,12 @@ class SpeakerAssignmentDialog(QDialog):
         hstop = QHBoxLayout()
 
         self.prompt_label = QLabel(tr("This window will automatically close after the countdown ends"))
-        self.prompt_label.setStyleSheet('font-size:14px;color:#aaaaaa')
+        self.prompt_label.setStyleSheet('color:#aaaaaa')
         self.prompt_label.setWordWrap(True)
         hstop.addWidget(self.prompt_label)
 
         self.stop_button = QPushButton(f"{tr('Click here to stop the countdown')}({self.count_down})")
-        self.stop_button.setStyleSheet("font-size: 14px;color:#ffff00")
+        self.stop_button.setStyleSheet("color:#ffff00")
         self.stop_button.setCursor(Qt.PointingHandCursor)
         self.stop_button.setMinimumSize(QSize(300, 35))
         self.stop_button.clicked.connect(self.stop_countdown)
@@ -139,24 +140,47 @@ class SpeakerAssignmentDialog(QDialog):
         self.video_widget.setMinimumHeight(150)
 
         self.video_hint = QLabel(tr("Click on a subtitle below to play video"))
-        self.video_hint.setStyleSheet("color:#ffcc00; font-size:14px; background-color:transparent;")
+        self.video_hint.setStyleSheet("color:#ffcc00;  background-color:transparent;")
         self.video_hint.setAlignment(Qt.AlignCenter)
         self.video_hint.setAttribute(Qt.WA_TransparentForMouseEvents)
 
         self.video_status = QLabel("")
         self.video_status.setStyleSheet("color:#aaaaaa; font-size:12px;")
-        self.video_status.setAlignment(Qt.AlignCenter)
+
 
         self._stack = QStackedLayout()
         self._stack.addWidget(self.video_widget)
         self._stack.addWidget(self.video_hint)
         self._stack.setCurrentIndex(1)
 
+        videostatus_layout=QHBoxLayout()
+        videostatus_layout.setContentsMargins(0, 2, 0, 2)
+        self.stop_play_btn=QPushButton()
+        self.stop_play_btn.setToolTip(tr('Click to pause playback'))
+        self.stop_play_btn.setText(tr('Click to pause playback'))
+        self.stop_play_btn.clicked.connect(self._pause_play)
+        self.stop_play_btn.setCursor(Qt.PointingHandCursor)
+        self.stop_play_btn.hide()
+        self.btn_minus = QPushButton("-")
+        self.btn_minus.setToolTip(tr('Decrease table font size'))
+        self.btn_minus.setFixedWidth(30)
+        self.btn_plus = QPushButton("+")
+        self.btn_plus.setToolTip(tr('Increase table font size'))
+        self.btn_plus.setFixedWidth(30)
+        self.btn_plus.clicked.connect(lambda: self.change_table_font_size(2))
+        self.btn_minus.clicked.connect(lambda: self.change_table_font_size(-2))
+        videostatus_layout.addStretch()
+        videostatus_layout.addWidget(self.btn_minus)
+        videostatus_layout.addWidget(self.btn_plus)
+        videostatus_layout.addWidget(self.stop_play_btn)
+        videostatus_layout.addWidget(self.video_status)
+        videostatus_layout.addStretch()
+
         top_container = QWidget()
         top_layout = QVBoxLayout(top_container)
         top_layout.setContentsMargins(0, 0, 0, 0)
-        top_layout.addWidget(self.video_status)
-        top_layout.addLayout(self._stack, 1)
+        top_layout.addLayout(self._stack)
+        top_layout.addLayout(videostatus_layout)
         self.splitter.addWidget(top_container)
 
         # --- Bottom area: content (existing layout) ---
@@ -176,6 +200,15 @@ class SpeakerAssignmentDialog(QDialog):
         self.table_container = QWidget()
         self.table_container_layout = QVBoxLayout(self.table_container)
         self.table_container.setVisible(False)
+        self.table = QTableWidget()
+        sets = QSettings("pyvideotrans", "settings")
+        fontsize = int(sets.value("danshipin_table_fontsize", 0))
+        if fontsize>0:
+            default_font = self.table.font()
+            default_font.setPointSize(fontsize)  # 设置为 16px
+            self.table.setFont(default_font)
+            self.table.horizontalHeader().setFont(default_font)
+            self.table.verticalHeader().setFont(default_font)
         self.content_layout.addWidget(self.table_container)
         
         # 底部按钮容器
@@ -224,6 +257,14 @@ class SpeakerAssignmentDialog(QDialog):
         # 延迟加载表格
         QTimer.singleShot(200, self.load_table)
 
+    def _pause_play(self):
+        if hasattr(self,'audio_player'):
+            self.video_player.pause()
+            self.audio_player.pause()
+            self._target_end_ms = -1
+            self.video_status.setText(tr("Playback stopped"))
+            self.stop_play_btn.hide()
+
 
     def load_table(self):
         """Load table with background SRT parsing."""
@@ -234,7 +275,7 @@ class SpeakerAssignmentDialog(QDialog):
         try:
             self.srt_list_dict= get_subtitle_from_srt(self.target_sub)
             # 1. 创建 QTableWidget（比 Model/View 快得多）
-            self.table = QTableWidget()
+
             
             # 2. 【极致性能配置】禁用所有非必要功能
             self.table.setColumnCount(8)
@@ -272,37 +313,11 @@ class SpeakerAssignmentDialog(QDialog):
             self.table.setColumnWidth(1, 40)
             self.table.setColumnWidth(2, 50)
             self.table.setColumnWidth(3, 150)
-            self.table.setColumnWidth(4, 200)
+            self.table.setColumnWidth(4, 250)
             self.table.setColumnWidth(5, 30)
-            #self.table.setColumnWidth(7, 300)
-            
+
             # 最小样式
-            self.table.setStyleSheet("""
-                QTableWidget {
-                    color: #eeeeee;
-                    border: none;
-                }
-                QHeaderView::section {
-                    background-color: #2b2b2b;
-                    color: white;
-                    padding: 2px;
-                    border: none;
-                    border-right: 1px solid #3e3e3e;
-                }
-                QTableWidget::item {
-                    padding: 2px;
-                }
-                QPushButton#playBtn {
-                    background-color: transparent;
-                    color: white;
-                    border: none;
-                    border-radius: 2px;
-                    font-size: 14px;
-                    padding: 1px 4px;
-                    min-width: 20px;
-                    max-width: 24px;
-                }
-            """)
+            self.table.setStyleSheet(self.table_style_css)
             
             # 3. 预计算所有显示数据
             speaker_keys = list(self.speakers.keys()) if self.speakers else []
@@ -617,13 +632,12 @@ class SpeakerAssignmentDialog(QDialog):
 
     def _on_audio_position_changed(self, position):
         if self._target_end_ms > 0 and position >= self._target_end_ms:
-            self.video_player.pause()
-            self.audio_player.pause()
-            self._target_end_ms = -1
-            self.video_status.setText(tr("Playback stopped"))
+            self._pause_play()
+
 
     def _play_segment(self, start_ms, end_ms):
         self._ensure_players()
+        self.stop_play_btn.show()
         self._pending_start = start_ms
         self._pending_end = end_ms
 
@@ -717,7 +731,6 @@ class SpeakerAssignmentDialog(QDialog):
         if self.parent:
             self.raise_()                
             self.activateWindow()
-            #self.parent.activateWindow()
 
     def cancel_and_close(self):
         if hasattr(self, 'timer') and self.timer:
@@ -742,7 +755,6 @@ class SpeakerAssignmentDialog(QDialog):
     def stop_countdown(self):
         if hasattr(self, 'timer') and self.timer:
             self.timer.stop()
-            #self._stop_playback()
             self.stop_button.deleteLater()
             self.prompt_label.deleteLater()
             self.timer=None

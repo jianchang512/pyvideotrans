@@ -5,7 +5,7 @@ import time
 import traceback
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, QSize, QThread, Signal,QUrl
+from PySide6.QtCore import Qt, QTimer, QSize, QThread, Signal, QUrl, QSettings
 from PySide6.QtGui import QIcon, QColor
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtMultimediaWidgets import QVideoWidget
@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 from pydub import AudioSegment
 
 from videotrans import tts
+from videotrans.component._danspmixin import DanspMixin
 
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger,app_cfg,REDUBB_QUEUE_FILE,REDUBB_STATUS_FILE
 
@@ -66,7 +67,8 @@ class ReDubb(QThread):
                 queue_tts=[self.tts_dict],
                 language=self.language,
                 tts_type=self.tts_dict['tts_type'],
-                is_redubb=True
+                is_redubb=True,
+                is_cuda=app_cfg.onlyone_is_cuda
             )
         except Exception as e:
             from videotrans.configure.excepts import get_msg_from_except
@@ -90,6 +92,7 @@ class ReDubbNolocal(QThread):
                 queue_tts=[self.tts_dict],
                 language=self.language,
                 tts_type=self.tts_dict['tts_type'],
+                is_cuda=app_cfg.onlyone_is_cuda
             )
             self.uito.emit(f"ok:{self.idx}")
         except Exception as e:
@@ -100,7 +103,7 @@ class ReDubbNolocal(QThread):
 
 
 
-class EditDubbingResultDialog(QDialog):
+class EditDubbingResultDialog(QDialog,DanspMixin):
     def __init__(
             self,
             novoice_mp4: str = None,
@@ -140,12 +143,12 @@ class EditDubbingResultDialog(QDialog):
         # Top Bar
         hstop = QHBoxLayout()
         self.prompt_label = QLabel(tr("You can check the voiceover here, or modify the text and re-encode the voiceover. Please stop the countdown before proceeding"))
-        self.prompt_label.setStyleSheet('font-size:14px;color:#999999')
+        self.prompt_label.setStyleSheet('color:#999999')
         self.prompt_label.setWordWrap(True)
         hstop.addWidget(self.prompt_label)
 
         self.stop_button = QPushButton(f"{tr('Click here to stop the countdown')}({self.count_down})")
-        self.stop_button.setStyleSheet("font-size: 14px;color:#ffff00")
+        self.stop_button.setStyleSheet("color:#ffff00")
         self.stop_button.setCursor(Qt.PointingHandCursor)
         self.stop_button.setMinimumSize(QSize(300, 35))
         self.stop_button.clicked.connect(self.stop_countdown)
@@ -156,14 +159,11 @@ class EditDubbingResultDialog(QDialog):
         htips = QHBoxLayout()
         
         prompt_label2 = QLabel(tr("Right-click: Menu | << >> : Adjust time")+"\n"+tr('Shortened and Exceeded mean'))
-        #prompt_label2.setAlignment(Qt.AlignCenter)
         prompt_label2.setWordWrap(True)
-        prompt_label2.setStyleSheet("font-size: 14px;color:#999999")
+        prompt_label2.setStyleSheet("color:#999999")
         htips.addWidget(prompt_label2)
-        #htips.addStretch()
         self.video_hint = QLabel(tr("Previewing a dubbed line will sync-play the video segment"))
         self.video_hint.setStyleSheet("color:#ffcc00; font-size:12px; background-color:transparent;")
-        #self.video_hint.setAlignment(Qt.AlignCenter)
         self.video_hint.setWordWrap(True)
         htips.addWidget(self.video_hint)
         main_layout.addLayout(htips)
@@ -183,18 +183,41 @@ class EditDubbingResultDialog(QDialog):
 
         self.video_status = QLabel("")
         self.video_status.setStyleSheet("color:#aaaaaa; font-size:12px;")
-        self.video_status.setAlignment(Qt.AlignCenter)
+
 
         self._stack = QStackedLayout()
         self._stack.addWidget(self.video_widget)
-        #self._stack.addWidget(self.video_hint)
-        #self._stack.setCurrentIndex(1)
+
+        videostatus_layout=QHBoxLayout()
+        videostatus_layout.setContentsMargins(0, 2, 0, 2)
+        self.stop_play_btn=QPushButton()
+        self.stop_play_btn.setToolTip(tr('Click to pause playback'))
+        self.stop_play_btn.setText(tr('Click to pause playback'))
+        self.stop_play_btn.clicked.connect(self._pause_play)
+        self.stop_play_btn.setCursor(Qt.PointingHandCursor)
+        self.stop_play_btn.hide()
+        self.btn_minus = QPushButton("-")
+        self.btn_minus.setToolTip(tr('Decrease table font size'))
+        self.btn_minus.setFixedWidth(30)
+        self.btn_plus = QPushButton("+")
+        self.btn_plus.setToolTip(tr('Increase table font size'))
+        self.btn_plus.setFixedWidth(30)
+        self.btn_plus.clicked.connect(lambda: self.change_table_font_size(2))
+        self.btn_minus.clicked.connect(lambda: self.change_table_font_size(-2))
+        videostatus_layout.addStretch()
+        videostatus_layout.addWidget(self.btn_minus)
+        videostatus_layout.addWidget(self.btn_plus)
+        videostatus_layout.addWidget(self.stop_play_btn)
+        videostatus_layout.addWidget(self.video_status)
+        videostatus_layout.addStretch()
+
+
 
         top_container = QWidget()
         top_layout = QVBoxLayout(top_container)
         top_layout.setContentsMargins(0, 0, 0, 0)
-        top_layout.addWidget(self.video_status)
-        top_layout.addLayout(self._stack, 1)
+        top_layout.addLayout(self._stack)
+        top_layout.addLayout(videostatus_layout)
         self.splitter.addWidget(top_container)
 
         # --- Bottom area: table + buttons ---
@@ -213,6 +236,14 @@ class EditDubbingResultDialog(QDialog):
         # Table Widget (初始隐藏)
         self.table = QTableWidget()
         self.table.setVisible(False)
+        sets = QSettings("pyvideotrans", "settings")
+        fontsize = int(sets.value("danshipin_table_fontsize", 0))
+        if fontsize>0:
+            default_font = self.table.font()
+            default_font.setPointSize(fontsize)  # 设置为 16px
+            self.table.setFont(default_font)
+            self.table.horizontalHeader().setFont(default_font)
+            self.table.verticalHeader().setFont(default_font)
         bottom_layout.addWidget(self.table, 1)
 
         # Bottom Bar
@@ -271,10 +302,7 @@ class EditDubbingResultDialog(QDialog):
         hautorate.addWidget(self.align_sub_audio)
         hautorate.addWidget(tipslabe)       
         hautorate.addStretch()
-        
-        
-        
-       
+
         bottom_layout.addLayout(hautorate)
         
         bottom_btn_layout = QHBoxLayout()
@@ -291,6 +319,8 @@ class EditDubbingResultDialog(QDialog):
 
         # 延迟加载表格
         QTimer.singleShot(200, self.load_table)
+
+
 
     def check_voice_autorate(self, state):
         if state:
@@ -363,36 +393,7 @@ class EditDubbingResultDialog(QDialog):
             self.table.setColumnWidth(4, 180)  # Status
             
 
-            self.table.setStyleSheet("""
-                QTableWidget {
-                    color: #cccccc;
-                    border: 1px solid #333;
-                    gridline-color: #333;
-                }
-                QTableWidget::item {
-                    padding: 1px 3px;
-                }
-                QTableWidget::item:selected {
-                    background-color: #0066cc;
-                }
-                QHeaderView::section {
-                    background-color: #252525;
-                    color: #aaa;
-                    border: none;
-                    border-right: 1px solid #3e3e3e;
-                    padding: 2px;
-                }
-                QPushButton#playBtn {
-                    background-color: transparent;
-                    color: white;
-                    border: none;
-                    border-radius: 2px;
-                    font-size: 14px;
-                    padding: 1px 4px;
-                    min-width: 20px;
-                    max-width: 24px;
-                }
-            """)
+            self.table.setStyleSheet(self.table_style_css)
             
             # 3. 预计算数据
             self._precompute_data()
@@ -718,7 +719,6 @@ class EditDubbingResultDialog(QDialog):
         self.audio_player = QMediaPlayer()
         self.audio_output = QAudioOutput()
         self.audio_player.setAudioOutput(self.audio_output)
-        # self.audio_player.positionChanged.connect(self._on_audio_position_changed)
         self.audio_player.mediaStatusChanged.connect(self._on_media_status_changed)
 
 
@@ -731,6 +731,13 @@ class EditDubbingResultDialog(QDialog):
                 pass
             self._video_end_ms = -1
             self.video_status.setText(tr("Playback stopped"))
+            self.stop_play_btn.hide()
+
+    def _pause_play(self):
+        self.video_player.pause()
+        self.audio_player.stop()
+        self.audio_player.setSource(QUrl())
+        self.stop_play_btn.hide()
 
     def _on_media_status_changed(self, status):
         if status == QMediaPlayer.EndOfMedia:
@@ -738,10 +745,12 @@ class EditDubbingResultDialog(QDialog):
             self.audio_player.stop()
             # 清空媒体源，释放文件句柄
             self.audio_player.setSource(QUrl())
+            self.stop_play_btn.hide()
 
     def _play_with_video(self, audio_path, video_start_ms, video_end_ms):
         """Play audio to completion while video plays only the segment."""
         self._ensure_players()
+        self.stop_play_btn.show()
         self._pending_start = video_start_ms
         self._pending_end = video_end_ms
 
@@ -810,7 +819,7 @@ class EditDubbingResultDialog(QDialog):
             )
         if not play_audio:
             self.video_player.pause()
-            
+
 
     def _stop_playback(self):
         self._video_end_ms = -1
@@ -953,7 +962,7 @@ class EditDubbingResultDialog(QDialog):
             original_style = self.prompt_label.styleSheet()
             
             self.prompt_label.setText(f"Error: {msg}")
-            self.prompt_label.setStyleSheet("font-size:14px; font-weight:bold; color:red;")
+            self.prompt_label.setStyleSheet("color:red;")
             
             def restore():
                 if hasattr(self, 'prompt_label') and self.prompt_label:

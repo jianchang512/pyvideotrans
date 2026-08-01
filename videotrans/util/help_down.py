@@ -387,7 +387,7 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
 # 从 modelscope.cn 下载完整模型
 # 优先加载本地模型，失败则在线下载
 _orig_download_file_lists = None
-def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
+def check_and_down_ms(model_id, callback=None, local_dir=None,allow_patterns=None) -> bool:
     global _orig_download_file_lists
     import modelscope.hub.snapshot_download as ms_sd
     if not _orig_download_file_lists:
@@ -444,7 +444,7 @@ def check_and_down_ms(model_id, callback=None, local_dir=None) -> bool:
                 if callback:
                     callback('starting downloading...')
                 logger.debug(f'获取到下载锁，开始从 ms 下载 {model_id}')
-            snapshot_download(model_id=model_id, progress_callbacks=[Pro], local_dir=local_dir)
+            snapshot_download(model_id=model_id, progress_callbacks=[Pro], local_dir=local_dir,allow_patterns=allow_patterns)
         else:
             return True
     except Exception as e:

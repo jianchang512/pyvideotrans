@@ -135,7 +135,7 @@ class Ui_peiyin(object):
 
         self.volume_rate = QtWidgets.QSpinBox()
         self.volume_rate.setMinimum(-95)
-        self.volume_rate.setMaximum(100)
+        self.volume_rate.setMaximum(200)
         self.volume_rate.setMinimumWidth(90)
         self.volume_rate.setObjectName("volume_rate")
 

@@ -10,7 +10,7 @@ from videotrans.mosstts.args import Args
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_role import get_f5tts_role
 from videotrans.mosstts.onnx_tts_runtime import    OnnxTtsRuntime
-from videotrans.util.help_misc import vail_file
+from videotrans.util.help_misc import vail_file, is_connect_hf
 
 
 @dataclass
@@ -25,7 +25,7 @@ class MossTTS(BaseTTS):
         if Path(f'{ROOT_DIR}/models/MOSS-TTS-Nano-100M-ONNX/moss_tts_global_shared.data').exists() and Path(
                 f'{ROOT_DIR}/models/MOSS-Audio-Tokenizer-Nano-ONNX/moss_audio_tokenizer_decode_shared.data').exists():
             return
-        from videotrans.util.help_down import check_and_down_hf
+        from videotrans.util.help_down import check_and_down_hf,check_and_down_ms
         self.local_dir=f'{ROOT_DIR}/models/MOSS-TTS-Nano-100M-ONNX'
         check_and_down_hf("",
                                 "OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX",

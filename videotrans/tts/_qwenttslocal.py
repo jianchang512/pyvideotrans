@@ -7,7 +7,7 @@ import json
 from videotrans import translator
 from videotrans.configure.config import ROOT_DIR,params,defaulelang,TEMP_DIR
 from videotrans.tts._base import BaseTTS
-from videotrans.util.help_misc import vail_file
+from videotrans.util.help_misc import vail_file, is_connect_hf
 
 
 @dataclass
@@ -23,7 +23,9 @@ class QwenttsLocal(BaseTTS):
     
     def _download(self):
         from videotrans.util import help_down
-        if defaulelang == 'zh':
+        if Path(f'{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-Base/model.safetensors').exists() and Path(f'{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-CustomVoice/model.safetensors').exists():
+            return True
+        if not is_connect_hf():
             self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-Base'
             help_down.check_and_down_ms(f'Qwen/Qwen3-TTS-12Hz-{self.model_name}-Base',callback=self._process_callback,local_dir=self.local_dir)
             

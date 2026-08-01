@@ -63,7 +63,7 @@ class APIRecogn(BaseRecogn):
         self.signal(
             text=tr("Recognition may take a while, please be patient"))
 
-        res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files, timeout=1200)
+        res = requests.post(f"{self.api_url}", data={"language": self.detect_language}, files=files, timeout=1200,verify=False)
         res.raise_for_status()
         content_type = res.headers.get('Content-Type','')
         if 'application/json' not in content_type:

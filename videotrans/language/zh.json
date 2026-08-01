@@ -747,7 +747,7 @@
     "Translation results saved to:": "翻译结果保存到: ",
     "Romanian": "罗马尼亚语",
     "may not support": "可能不支持",
-    "Modify secondary recognition results": "在此修改 二次识别 出的字幕",
+    "Modify secondary recognition results": "二次语音识别结果：可在此修改字幕",
     "Reasoning Effort": "推理深度",
     "This channel needs deployed and started before available": "该渠道需另行部署并启动后可用",
     "Default punctuation": "默认标点",
@@ -885,7 +885,7 @@
 		"Detailed instructions":"查看如何使用?",
 		"Play":"播放",
 		"Playing":"播放中",
-		"Playback stopped":"播放停止",
+		"Playback stopped":"播放已停止",
 		"Click on a subtitle below to play video":"点击字幕按钮播放对应视频片段",
 		"Previewing a dubbed line will sync-play the video segment":"点击试听将自动播放字幕对应的视频片段\n配音时长可能和字幕原始时长不相等，因此视频音频也可能不同步",
 		"No silent video frames generated yet":"尚未生成无声视频画面，不可预览播放",
@@ -911,5 +911,8 @@
 	"tts-windows-title":"文字配音: 批量为 srt 字幕或 txt文件配音",
 	"transsrt-windows-title":"翻译字幕: 批量翻译 srt 字幕文件",
 	"multi-windows-title":"角色配音：单字幕按行或按说话人指定角色进行配音",
-	"hebing-windows-title":"媒体合并: 将音频、字幕嵌入视频"
+	"hebing-windows-title":"媒体合并: 将音频、字幕嵌入视频",
+    "Click to pause playback": "点击暂停播放",
+    "Increase table font size": "增大表格字体",
+    "Decrease table font size": "减小表格字体"
 }

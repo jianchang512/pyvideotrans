@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, QSize, QUrl, QThread, Signal
+from PySide6.QtCore import Qt, QTimer, QSize, QUrl, QThread, Signal, QSettings
 from PySide6.QtGui import QIcon, QDesktopServices
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtMultimediaWidgets import QVideoWidget
@@ -10,11 +10,12 @@ from PySide6.QtWidgets import (
     QAbstractItemView, QSplitter, QApplication
 )
 
+from videotrans.component._danspmixin import DanspMixin
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger
 from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
 
 
-class EditRecognResultDialog2(QDialog):
+class EditRecognResultDialog2(QDialog,DanspMixin):
     def __init__(
             self,
             target_sub: str = None,       # 二次识别后的字幕
@@ -50,12 +51,13 @@ class EditRecognResultDialog2(QDialog):
         # Top Bar
         hstop = QHBoxLayout()
         self.prompt_label = QLabel(tr("jimiaohoufanyi"))
-        self.prompt_label.setStyleSheet('font-size:14px;color:#aaaaaa')
+        self.prompt_label.setStyleSheet('color:#aaaaaa')
         hstop.addWidget(self.prompt_label)
         self.stop_button = QPushButton(f"{tr('Click here to stop the countdown')}({self.count_down})")
-        self.stop_button.setStyleSheet("font-size: 14px;color:#ffff00")
+        self.stop_button.setStyleSheet("color:#ffff00")
         self.stop_button.setCursor(Qt.PointingHandCursor)
         self.stop_button.clicked.connect(self.stop_countdown)
+        self.stop_button.setMinimumSize(QSize(300, 35))
         hstop.addWidget(self.stop_button)
         main_layout.addLayout(hstop)
 
@@ -87,13 +89,13 @@ class EditRecognResultDialog2(QDialog):
         self.video_widget.setMinimumHeight(150)
 
         self.video_hint = QLabel(tr("Click on a subtitle below to play video"))
-        self.video_hint.setStyleSheet("color:#ffcc00; font-size:14px; background-color:transparent;")
+        self.video_hint.setStyleSheet("color:#ffcc00; background-color:transparent;")
         self.video_hint.setAlignment(Qt.AlignCenter)
         self.video_hint.setAttribute(Qt.WA_TransparentForMouseEvents)
 
         self.video_status = QLabel("")
         self.video_status.setStyleSheet("color:#aaaaaa; font-size:12px;")
-        self.video_status.setAlignment(Qt.AlignCenter)
+
 
         from PySide6.QtWidgets import QStackedLayout
         self._stack = QStackedLayout()
@@ -101,11 +103,36 @@ class EditRecognResultDialog2(QDialog):
         self._stack.addWidget(self.video_hint)
         self._stack.setCurrentIndex(1)
 
+        videostatus_layout=QHBoxLayout()
+        videostatus_layout.setContentsMargins(0, 2, 0, 2)
+        self.btn_minus = QPushButton("-")
+        self.btn_minus.setToolTip(tr('Decrease table font size'))
+        self.btn_minus.setFixedWidth(30)
+        self.btn_plus = QPushButton("+")
+        self.btn_plus.setToolTip(tr('Increase table font size'))
+        self.btn_plus.setFixedWidth(30)
+        self.btn_plus.clicked.connect(lambda: self.change_table_font_size(2))
+        self.btn_minus.clicked.connect(lambda: self.change_table_font_size(-2))
+
+        self.stop_play_btn=QPushButton()
+        self.stop_play_btn.setToolTip(tr('Click to pause playback'))
+        self.stop_play_btn.setText(tr('Click to pause playback'))
+        self.stop_play_btn.clicked.connect(self._stop_and_display)
+        self.stop_play_btn.setCursor(Qt.PointingHandCursor)
+        self.stop_play_btn.hide()
+        videostatus_layout.addStretch()
+        videostatus_layout.addWidget(self.btn_minus)
+        videostatus_layout.addWidget(self.btn_plus)
+        videostatus_layout.addWidget(self.stop_play_btn)
+        videostatus_layout.addWidget(self.video_status)
+        videostatus_layout.addStretch()
+
+
         top_container = QWidget()
         top_layout = QVBoxLayout(top_container)
         top_layout.setContentsMargins(0, 0, 0, 0)
-        top_layout.addWidget(self.video_status)
-        top_layout.addLayout(self._stack, 1)
+        top_layout.addLayout(self._stack)
+        top_layout.addLayout(videostatus_layout)
         self.splitter.addWidget(top_container)
 
         # --- Bottom area ---
@@ -122,6 +149,14 @@ class EditRecognResultDialog2(QDialog):
 
         self.table = QTableWidget()
         self.table.setVisible(False)
+        sets = QSettings("pyvideotrans", "settings")
+        fontsize = int(sets.value("danshipin_table_fontsize", 0))
+        if fontsize>0:
+            default_font = self.table.font()
+            default_font.setPointSize(fontsize)  # 设置为 16px
+            self.table.setFont(default_font)
+            self.table.horizontalHeader().setFont(default_font)
+            self.table.verticalHeader().setFont(default_font)
         bottom_layout.addWidget(self.table, 1)
 
         # Bottom Bar
@@ -159,10 +194,11 @@ class EditRecognResultDialog2(QDialog):
 
         QTimer.singleShot(200, self.load_table)
 
-    # ===================== Audio-driven sync =====================
+
     def _ensure_players(self):
         if hasattr(self, '_players_created'):
             return
+
         self._players_created = True
         self.video_player = QMediaPlayer()
         self.video_player.setVideoOutput(self.video_widget)
@@ -192,6 +228,7 @@ class EditRecognResultDialog2(QDialog):
 
     def _stop_and_display(self):
         self._poll_timer.stop()
+        self.stop_play_btn.hide()
         try:
             self.video_player.pause()
             self.audio_player.stop()
@@ -200,8 +237,11 @@ class EditRecognResultDialog2(QDialog):
         self._video_end_ms = -1
         self._target_end_ms = -1
         self.video_status.setText(tr("Playback stopped"))
+
+
     def _play_segment(self, start_ms, end_ms):
         self._ensure_players()
+        self.stop_play_btn.show()
         self._pending_start = start_ms
         self._pending_end = end_ms
 
@@ -337,34 +377,7 @@ class EditRecognResultDialog2(QDialog):
             self.table.setColumnWidth(1, 230)
             self.table.setColumnWidth(2, 30)
 
-            self.table.setStyleSheet("""
-                QTableWidget {
-                    color: #cccccc;
-                    border: none;
-                }
-                QTableWidget::item {
-                    padding: 2px;
-                    border: none;
-                }
-                QHeaderView::section {
-                    background-color: #2b2b2b;
-                    color: #dddddd;
-                    border: none;
-                    border-right: 1px solid #3e3e3e;
-                    padding: 3px;
-                    height: 24px;
-                }
-                QPushButton#playBtn {
-                    background-color: transparent;
-                    color: white;
-                    border: none;
-                    border-radius: 2px;
-                    font-size: 14px;
-                    padding: 1px 4px;
-                    min-width: 20px;
-                    max-width: 24px;
-                }
-            """)
+            self.table.setStyleSheet(self.table_style_css)
 
             self.display_data = []
             for item in self.srt_list_dict:

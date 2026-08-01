@@ -278,7 +278,6 @@ class WinActionTaskMixin:
                 language=language,
                 cache_folder=cache_folder,
                 parent=self.main
-
             )
             
             if dialog.exec():

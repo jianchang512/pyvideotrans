@@ -10,7 +10,7 @@ from videotrans.configure.excepts import DubbingSrtError
 from videotrans.tts._base import BaseTTS
 import soundfile as sf
 
-from videotrans.util.help_misc import vail_file
+from videotrans.util.help_misc import vail_file, is_connect_hf
 from videotrans.util.helper_supertonic import load_text_to_speech, load_voice_style
 
 
@@ -23,9 +23,11 @@ class SupertonicTTS(BaseTTS):
         self.speed=self.get_speed()
 
     def _download(self):
-        from videotrans.util.help_down import check_and_down_hf
+        from videotrans.util.help_down import check_and_down_hf,check_and_down_ms
+        if  Path(f'{self.local_dir}/onnx/vector_estimator.onnx').exists():
+            return
         check_and_down_hf(self.model_name,self.model_name, self.local_dir,
-                                    callback=self._process_callback)
+                                callback=self._process_callback)
 
 
     def _exec(self):

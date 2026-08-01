@@ -11,6 +11,7 @@ from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util.help_down import check_and_down_ms, check_and_down_hf
+from videotrans.util.help_misc import is_connect_hf
 
 
 @dataclass
@@ -20,7 +21,8 @@ class QwenasrlocalRecogn(BaseRecogn):
         self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}'
     
     def _download(self):
-        if defaulelang == 'zh':
+
+        if not is_connect_hf():
             check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}', callback=self._process_callback,
                                     local_dir=self.local_dir)
         else:

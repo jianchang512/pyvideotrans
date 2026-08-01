@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, QSize, QUrl, QThread, Signal
+from PySide6.QtCore import Qt, QTimer, QSize, QUrl, QThread, Signal, QSettings
 from PySide6.QtGui import QIcon, QDesktopServices
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtMultimediaWidgets import QVideoWidget
@@ -10,11 +10,12 @@ from PySide6.QtWidgets import (
     QAbstractItemView, QSplitter,QApplication
 )
 
+from videotrans.component._danspmixin import DanspMixin
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger
 from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
 
 
-class EditRecognResultDialog(QDialog):
+class EditRecognResultDialog(QDialog,DanspMixin):
     def __init__(
             self,
             source_sub: str = None,
@@ -51,11 +52,12 @@ class EditRecognResultDialog(QDialog):
         # Top Bar
         hstop = QHBoxLayout()
         self.prompt_label = QLabel(tr("jimiaohoufanyi"))
-        self.prompt_label.setStyleSheet('font-size:14px;color:#aaaaaa')
+        self.prompt_label.setStyleSheet('color:#aaaaaa')
         hstop.addWidget(self.prompt_label)
         self.stop_button = QPushButton(f"{tr('Click here to stop the countdown')}({self.count_down})")
-        self.stop_button.setStyleSheet("font-size: 14px;color:#ffff00")
+        self.stop_button.setStyleSheet("color:#ffff00")
         self.stop_button.setCursor(Qt.PointingHandCursor)
+        self.stop_button.setMinimumSize(QSize(300, 35))
         self.stop_button.clicked.connect(self.stop_countdown)
         hstop.addWidget(self.stop_button)
         main_layout.addLayout(hstop)
@@ -90,28 +92,55 @@ class EditRecognResultDialog(QDialog):
 
         # Hint label over video area
         self.video_hint = QLabel(tr("Click on a subtitle below to play video"))
-        self.video_hint.setStyleSheet("color:#ffcc00; font-size:14px; background-color:transparent;")
+        self.video_hint.setStyleSheet("color:#ffcc00;  background-color:transparent;")
         self.video_hint.setAlignment(Qt.AlignCenter)
         self.video_hint.setAttribute(Qt.WA_TransparentForMouseEvents)
 
         # Status label above video
         self.video_status = QLabel("")
         self.video_status.setStyleSheet("color:#aaaaaa; font-size:12px;")
-        self.video_status.setAlignment(Qt.AlignCenter)
 
         from PySide6.QtWidgets import QStackedLayout
+
+        # --- 1. 创建按钮并添加到布局 ---
+        self.btn_minus = QPushButton("-")
+        self.btn_minus.setToolTip(tr('Decrease table font size'))
+        self.btn_minus.setFixedWidth(30)
+        self.btn_plus = QPushButton("+")
+        self.btn_plus.setToolTip(tr('Increase table font size'))
+        self.btn_plus.setFixedWidth(30)
+        self.btn_plus.clicked.connect(lambda: self.change_table_font_size(2))
+        self.btn_minus.clicked.connect(lambda: self.change_table_font_size(-2))
+
+
+        videostatus_layout=QHBoxLayout()
+        videostatus_layout.setContentsMargins(0, 2, 0, 2)
+        self.stop_play_btn=QPushButton()
+        self.stop_play_btn.setToolTip(tr('Click to pause playback'))
+        self.stop_play_btn.setText(tr('Click to pause playback'))
+        self.stop_play_btn.clicked.connect(self._pause_play)
+        self.stop_play_btn.setCursor(Qt.PointingHandCursor)
+        self.stop_play_btn.hide()
+        videostatus_layout.addStretch()
+        videostatus_layout.addWidget(self.btn_minus)
+        videostatus_layout.addWidget(self.btn_plus)
+
+        videostatus_layout.addWidget(self.stop_play_btn)
+        videostatus_layout.addWidget(self.video_status)
+        videostatus_layout.addStretch()
 
         top_container = QWidget()
         top_layout = QVBoxLayout(top_container)
         top_layout.setContentsMargins(0, 0, 0, 0)
-        top_layout.addWidget(self.video_status)
+
 
         # Stack hint over video so they overlap in the same area
         self._stack = QStackedLayout()
         self._stack.addWidget(self.video_widget)    # index 0: video
         self._stack.addWidget(self.video_hint)       # index 1: hint (on top)
         self._stack.setCurrentIndex(1)  # show hint initially
-        top_layout.addLayout(self._stack, 1)
+        top_layout.addLayout(self._stack)
+        top_layout.addLayout(videostatus_layout)
         self.splitter.addWidget(top_container)
 
         # --- Bottom area: subtitle table + buttons ---
@@ -130,6 +159,17 @@ class EditRecognResultDialog(QDialog):
         # Table Widget
         self.table = QTableWidget()
         self.table.setVisible(False)
+
+        sets = QSettings("pyvideotrans", "settings")
+        fontsize = int(sets.value("danshipin_table_fontsize", 0))
+        if fontsize>0:
+            default_font = self.table.font()
+            default_font.setPointSize(fontsize)  # 设置为 16px
+            self.table.setFont(default_font)
+            self.table.horizontalHeader().setFont(default_font)
+            self.table.verticalHeader().setFont(default_font)
+
+
         bottom_layout.addWidget(self.table, 1)
 
         # Bottom Bar
@@ -169,6 +209,16 @@ class EditRecognResultDialog(QDialog):
         # 延迟加载表格，表格就绪后再加载媒体
         QTimer.singleShot(200, self.load_table)
 
+
+
+    def _pause_play(self):
+        if hasattr(self,'audio_player'):
+            self.video_player.pause()
+            self.audio_player.pause()
+            self._target_end_ms = -1
+            self.video_status.setText(tr("Playback stopped"))
+            self.stop_play_btn.hide()
+
     # ===================== Audio-driven sync =====================
     def _ensure_players(self):
         """Create QMediaPlayer instances on first use, not in __init__."""
@@ -188,14 +238,14 @@ class EditRecognResultDialog(QDialog):
     def _on_audio_position_changed(self, position):
         """Monitor audio clock — pause both players when segment ends."""
         if self._target_end_ms > 0 and position >= self._target_end_ms:
-            self.video_player.pause()
-            self.audio_player.pause()
-            self._target_end_ms = -1
-            self.video_status.setText(tr("Playback stopped"))
+            self._pause_play()
+
+
 
     def _play_segment(self, start_ms, end_ms):
         """Start synchronized video+audio playback for a segment."""
         self._ensure_players()
+        self.stop_play_btn.show()
         self._pending_start = start_ms
         self._pending_end = end_ms
 
@@ -251,7 +301,7 @@ class EditRecognResultDialog(QDialog):
         self.audio_player.play()
         self._stack.setCurrentIndex(0)
         self.video_status.setText(f"\u23F5 {ms_to_time_string(ms=start_ms)} → {ms_to_time_string(ms=end_ms)}")
-        #self.stop_countdown()
+
 
     def _stop_playback(self):
         self._target_end_ms = -1
@@ -320,35 +370,7 @@ class EditRecognResultDialog(QDialog):
             self.table.setColumnWidth(1, 230)
             self.table.setColumnWidth(2, 30)
 
-            self.table.setStyleSheet("""
-                QTableWidget {
-                    color: #cccccc;
-                    border: none;
-                }
-                QTableWidget::item {
-                    padding: 2px;
-                    border: none;
-                }
-                QHeaderView::section {
-                    background-color: #2b2b2b;
-                    color: #dddddd;
-                    border: none;
-                    border-right: 1px solid #3e3e3e;
-                    padding: 3px;
-                    height: 24px;
-                }
-                QPushButton#playBtn {
-                    background-color: transparent;
-                    color: #ffffff;
-                    border: none;
-                    border-radius: 2px;
-                    font-size: 14px;
-                    padding: 1px 4px;
-                    min-width: 20px;
-                    max-width: 24px;
-                }
-                
-            """)
+            self.table.setStyleSheet(self.table_style_css)
 
             # Precompute display data
             self.display_data = []
@@ -448,8 +470,7 @@ class EditRecognResultDialog(QDialog):
             self.stop_button.deleteLater()
             self.prompt_label.deleteLater()
             self.timer=None
-            #return
-            #self._stop_playback()
+
 
     def replace_text(self):
         search_text = self.search_input.text()

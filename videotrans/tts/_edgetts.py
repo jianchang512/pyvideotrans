@@ -58,6 +58,7 @@ class EdgeTTS(BaseTTS):
                         return
                     
                     try:
+
                         
                         if attempt>0:
                             msg= f'Retry after {attempt}nd  '

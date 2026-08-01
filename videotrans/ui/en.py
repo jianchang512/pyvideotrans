@@ -134,7 +134,7 @@ class Ui_MainWindow(object):
         self.volume_rate = QtWidgets.QSpinBox(self.layoutWidget)
         self.volume_rate.setMinimum(-95)
         self.volume_rate.setToolTip(tr("Percentage of volume adjustment"))
-        self.volume_rate.setMaximum(100)
+        self.volume_rate.setMaximum(200)
         self.volume_rate.setMinimumWidth(60)
         self.volume_rate.setObjectName("volume_rate")
         self.volume_rate.setVisible(False)

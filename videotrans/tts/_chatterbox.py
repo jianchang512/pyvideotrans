@@ -10,7 +10,7 @@ from videotrans.tts._base import BaseTTS
 from videotrans.util.help_role import get_chatterbox_role
 from videotrans.util.gpus import mps_or_cpu
 import soundfile as sf
-from videotrans.util.help_misc import vail_file
+from videotrans.util.help_misc import vail_file, is_connect_hf
 
 
 @dataclass
@@ -21,11 +21,12 @@ class ChatterBoxTTS(BaseTTS):
         self.local_dir=f'{ROOT_DIR}/models/models--resembleAI--chatterbox'
 
     def _download(self):
-        if not Path(f'{self.local_dir}/ve.pt').exists():
-            from videotrans.util.help_down import check_and_down_hf
-            check_and_down_hf("", 'resembleAI/chatterbox', self.local_dir,
-                                    callback=self._process_callback,
-                                    allow_list=["ve.pt","t3_mtl23ls_v3.safetensors","t3_mtl23ls_v2.safetensors","s3gen.pt", "grapheme_mtl_merged_expanded_v1.json", "conds.pt", "Cangjie5_TC.json"])
+        if Path(f'{self.local_dir}/ve.pt').exists():
+            return True
+        from videotrans.util.help_down import check_and_down_hf,check_and_down_ms
+        check_and_down_hf("", 'resembleAI/chatterbox', self.local_dir,
+                                callback=self._process_callback,
+                                allow_list=["ve.pt","t3_mtl23ls_v3.safetensors","t3_mtl23ls_v2.safetensors","s3gen.pt", "grapheme_mtl_merged_expanded_v1.json", "conds.pt", "Cangjie5_TC.json"])
         return True
 
     def _exec(self):

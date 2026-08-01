@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from videotrans.configure.config import logger,ROOT_DIR,app_cfg,TEMP_DIR
-from videotrans.util.help_misc import vail_file
+from videotrans.util.help_misc import vail_file, is_connect_hf
 from videotrans.tts._base import BaseTTS
 from pathlib import Path
 import json,time,os
@@ -12,12 +12,15 @@ class OmniVoice(BaseTTS):
 
     def _download(self):
         from videotrans.util import help_down
+        if Path(f'{ROOT_DIR}/models/models--k2-fsa--OmniVoice/model.safetensors').exists():
+            return True
         help_down.check_and_down_hf(
-                "OmniVoice",
-                'k2-fsa/OmniVoice',
-                f'{ROOT_DIR}/models/models--k2-fsa--OmniVoice',
-                callback=self._process_callback,
-        )        
+                    "OmniVoice",
+                    'k2-fsa/OmniVoice',
+                    f'{ROOT_DIR}/models/models--k2-fsa--OmniVoice',
+                    callback=self._process_callback,
+            )
+
         return True
         
     def _exec(self):
