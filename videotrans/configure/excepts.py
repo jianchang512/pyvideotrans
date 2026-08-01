@@ -274,8 +274,7 @@ def get_msg_from_except(ex:Exception)->str:
         ),
 
         PermissionError: lambda e: (
-            f"权限不足，请以管理员权限运行：{getattr(e, 'filename', '')}" if lang == 'zh'
-            else f"Permission denied: {getattr(e, 'filename', '')}"
+            f"{e}：{getattr(e, 'filename', '')}"
         ),
 
         FileExistsError: lambda e: (
