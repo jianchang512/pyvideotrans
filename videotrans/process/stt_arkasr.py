@@ -71,59 +71,55 @@ def ark_asr(
         
 
 
-        try:
-            total = len(raws)
+        total = len(raws)
 
-            for i, it in enumerate(raws):
-                conversation = [
-                      {
-                          "role": "user",
-                          "content": [
-                              {"type": "audio", "path": it['filename']},
-                              {"type": "text", "text": "Please transcribe this audio."},
-                          ],
-                      }
-                  ]
+        for i, it in enumerate(raws):
+            conversation = [
+                  {
+                      "role": "user",
+                      "content": [
+                          {"type": "audio", "path": it['filename']},
+                          {"type": "text", "text": "Please transcribe this audio."},
+                      ],
+                  }
+              ]
 
-                inputs = processor.apply_chat_template(
-                      conversation,
-                      add_generation_prompt=True,
-                      return_tensors="pt",
-                      sampling_rate=16000,
-                      audio_padding="longest",
-                      text_kwargs={"padding": "longest"},
-                      audio_max_length=30 * 16000,
+            inputs = processor.apply_chat_template(
+                  conversation,
+                  add_generation_prompt=True,
+                  return_tensors="pt",
+                  sampling_rate=16000,
+                  audio_padding="longest",
+                  text_kwargs={"padding": "longest"},
+                  audio_max_length=30 * 16000,
+              )
+            inputs = inputs.to(device)
+            if "audios" in inputs:
+                  inputs["audios"] = inputs["audios"].to(dtype=torch_dtype)
+
+            bad_words_ids = build_bad_words_ids()
+            with torch.inference_mode():
+                  outputs = model.generate(
+                      **inputs,
+                      do_sample=False,
+                      max_new_tokens=256,
+                      pad_token_id=tokenizer.pad_token_id,
+                      eos_token_id=tokenizer.eos_token_id,
+                      bad_words_ids=bad_words_ids,
                   )
-                inputs = inputs.to(device)
-                if "audios" in inputs:
-                      inputs["audios"] = inputs["audios"].to(dtype=torch_dtype)
+            decoded_outputs = tokenizer.batch_decode(
+                  outputs[:, inputs.input_ids.shape[1] :],
+                  skip_special_tokens=True,
+            )
+            print(decoded_outputs[0])
 
-                bad_words_ids = build_bad_words_ids()
-                with torch.inference_mode():
-                      outputs = model.generate(
-                          **inputs,
-                          do_sample=False,
-                          max_new_tokens=256,
-                          pad_token_id=tokenizer.pad_token_id,
-                          eos_token_id=tokenizer.eos_token_id,
-                          bad_words_ids=bad_words_ids,
-                      )
-                decoded_outputs = tokenizer.batch_decode(
-                      outputs[:, inputs.input_ids.shape[1] :],
-                      skip_special_tokens=True,
-                )
-                print(decoded_outputs[0])
+            it['text']=decoded_outputs[0]
+        
+            _write_log(logs_file, json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}))
 
-                it['text']=decoded_outputs[0]
-            
-                _write_log(logs_file, json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}))
-
-                    
-            return raws, None
-            
-        finally:
-            gen_logger.removeFilter(warning_filter)
-            
+                
+        return raws, None
+                        
     except Exception as e:
         msg = traceback.format_exc()
         return False, f'{e}:{msg}'
