@@ -66,7 +66,7 @@ def ark_asr(
                                              json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         raws = cut_audio_list
 
-        msg = f'Pipeline loaded on device={p.model.device}'
+        msg = f'Pipeline loaded on device={device}'
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
         
 
