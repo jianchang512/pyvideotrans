@@ -90,6 +90,7 @@ _ID_NAME_DICT=dict(sorted(_ID_NAME_DICT.items(),key=lambda item:item[0]))
 RECOGN_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
 HUGGINGFACE_ASR_MODELS = {
+    "AutoArk-AI/ARK-ASR-0.6B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
     "nvidia/parakeet-ctc-1.1b": ['en'],
     # hub
     "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],

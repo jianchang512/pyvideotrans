@@ -59,9 +59,10 @@ class HuggingfaceRecogn(BaseRecogn):
         from videotrans.process.stt_faster import faster_whisper
         from videotrans.process.stt_pipe import  pipe_asr
         from videotrans.process.stt_glmasr import glmasr_asr
+        from videotrans.process.stt_arkasr import ark_asr
         func_dict={
             "zai-org/GLM-ASR-Nano-2512":glmasr_asr,
-            #"OpenMOSS-Team/MOSS-Transcribe-Diarize":mosstrans_asr
+            "AutoArk-AI/ARK-ASR-0.6B":ark_asr
         }
         
         raws=self._new_process(callback=func_dict.get(self.model_name,pipe_asr),title=title,is_cuda=self.is_cuda,kwargs=kwargs)
