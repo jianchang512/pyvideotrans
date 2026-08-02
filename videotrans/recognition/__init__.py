@@ -92,6 +92,8 @@ RECOGN_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 HUGGINGFACE_ASR_MODELS = {
     "Audio8/ARK-ASR-0.6B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
     "Audio8/ARK-ASR-3B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
+    "zai-org/GLM-ASR-Nano-2512": ['zh','en','yue'],
+    "ibm-granite/granite-speech-4.1-2b": ['fr','en','de','es','pt','ja'],
     "nvidia/parakeet-ctc-1.1b": ['en'],
     # hub
     "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],
@@ -99,10 +101,8 @@ HUGGINGFACE_ASR_MODELS = {
     "kotoba-tech/kotoba-whisper-v2.0": ['ja'],
     # pipeline whisper
     "biodatlab/whisper-th-large-v3": ['th'],
-    "zai-org/GLM-ASR-Nano-2512": ['zh','en','yue'],
     "vinai/Phowhisper-large": ['vi'],
     "openai/whisper-large-v3": [],
-    "openai/whisper-tiny": [],
     "anke01/whisper-small-uyghur":[],
     #"OpenMOSS-Team/MOSS-Transcribe-Diarize":[]
 }
