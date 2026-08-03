@@ -20,7 +20,7 @@ def higgs_fun(
 )->Tuple[bool,Union[str,None]]:
     from videotrans.util.help_role import get_f5tts_role
     from videotrans.util.help_misc import vail_file
-    import torch
+    import torch,torchaudio
     from omnivoice import OmniVoice
     from videotrans.util import gpus
     import soundfile as sf
