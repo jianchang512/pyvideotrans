@@ -276,7 +276,7 @@ def openwin():
         winobj.rephrase.setCurrentIndex(int(params.get('stt_rephrase', 2)))
         winobj.remove_noise.setChecked(bool(params.get('stt_remove_noise')))
         winobj.copysrt_rawvideo.setChecked(params.get('stt_copysrt_rawvideo', False))
-        winobj.spk_insert.setChecked(bool(params.get('stt_spk_insert', False)))
+        winobj.spk_insert.setChecked(bool(params.get('stt_spk_insert', True)))
         winobj.enable_diariz.setChecked(bool(params.get('stt_enable_diariz', False)))
         winobj.fix_punc.setCurrentIndex(int(params.get('stt_fix_punc', 0)))
         winobj.nums_diariz.setCurrentIndex(int(params.get("stt_nums_diariz", 0)))

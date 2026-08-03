@@ -226,6 +226,7 @@ class AppParams:
             "stt_cuda": False,
             "stt_remove_noise": False,
             "stt_enable_diariz": False,
+            "stt_spk_insert": True,
             "stt_rephrase": 0,
             "stt_nums_diariz": 0,
             "subtitlecover_outformat": "srt",

@@ -34,7 +34,7 @@ class SpeechToText(BaseTask):
     # 存放原始语言字幕
     source_srt_list: List = field(default_factory=list)
     # 插入说话人到字幕开头
-    spk_insert: bool = False
+    spk_insert: bool = True
 
     def __post_init__(self):
         super().__post_init__()
@@ -206,14 +206,6 @@ class SpeechToText(BaseTask):
             return
         try:
             if speaker_type in ['pyannote', 'reverb']:
-                #self.signal(text='Downloading speakers models')
-                #from huggingface_hub import snapshot_download
-                #snapshot_download(
-                #    repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
-                #    token=hf_token,
-                #    local_dir=f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"),
-                #    endpoint=os.environ.get('HF_ENDPOINT')
-                #)
                 from videotrans.util.help_down import check_and_down_hf
                 check_and_down_hf(
                     speaker_type, 
