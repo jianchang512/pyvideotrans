@@ -17,40 +17,40 @@ PIPER_TTS = 7
 CHATTERBOX_TTS = 8
 Supertonic_TTS = 9
 VITSCNEN_TTS = 10
-#HIGGS_AUDIO_TTS = 11
+HIGGS_AUDIO_TTS = 11
 
 # 本地 API
-INDEX_TTS = 11
-GPTSOVITS_TTS = 12
-COSYVOICE_TTS = 13
-VOXCPM_TTS = 14
+INDEX_TTS = 12
+GPTSOVITS_TTS = 13
+COSYVOICE_TTS = 14
+VOXCPM_TTS = 15
 
 # 云 API
-DOUBAO2_TTS = 15
-QWEN_TTS = 16
-XIAOMI_TTS = 17
-GLM_TTS = 18
-MINIMAXI_TTS = 19
+DOUBAO2_TTS = 16
+QWEN_TTS = 17
+XIAOMI_TTS = 18
+GLM_TTS = 19
+MINIMAXI_TTS = 20
 
 # 海外 API
-OPENAI_TTS = 20
-GEMINI_TTS = 21
-ELEVENLABS_TTS = 22
-XAI_TTS = 23
-G_TTS = 24
+OPENAI_TTS = 21
+GEMINI_TTS = 22
+ELEVENLABS_TTS = 23
+XAI_TTS = 24
+G_TTS = 25
 
 # 本地 API
-CHATTTS = 25
-SPARK_TTS = 26
-KOKORO_TTS = 27
-FISHTTS = 28
+CHATTTS = 26
+SPARK_TTS = 27
+KOKORO_TTS = 28
+FISHTTS = 29
 
 #不推荐
-CLONE_VOICE_TTS = 29
-AZURE_TTS = 30
-AI302_TTS = 31
-CAMB_TTS = 32
-TTS_API = 33
+CLONE_VOICE_TTS = 30
+AZURE_TTS = 31
+AI302_TTS = 32
+CAMB_TTS = 33
+TTS_API = 34
 
 
 # 支持克隆的渠道
@@ -58,7 +58,7 @@ SUPPORT_CLONE = [
     COSYVOICE_TTS,
     CLONE_VOICE_TTS,
     F5_TTS, 
-    #HIGGS_AUDIO_TTS, 
+    HIGGS_AUDIO_TTS, 
     INDEX_TTS,
     VOXCPM_TTS,
     SPARK_TTS,
@@ -75,7 +75,7 @@ SUPPORT_CLONE = [
 LOCAL_BUILTIN=[
 QWEN3LOCAL_TTS,
 F5_TTS,
-#HIGGS_AUDIO_TTS,
+HIGGS_AUDIO_TTS,
 OMNIVOICE_TTS,
 CONFUCIUS_TTS,
 MOSS_TTS,
@@ -103,7 +103,7 @@ _ID_NAME_DICT = {
     CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Built-in')})", "._chatterbox",  win="chatterbox"),
     Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Built-in')})", "._supertonic"),
     VITSCNEN_TTS: ChannelProvider(f"{tr('VITS')}({tr('Built-in')})", "._vits"),
-    #HIGGS_AUDIO_TTS: ChannelProvider(f"Higgs-audio-v2({tr('Built-in')})", "._higgs"),
+    HIGGS_AUDIO_TTS: ChannelProvider(f"Higgs-audio-v3({tr('Built-in')})", "._higgs"),
 
     
     INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)", "._index", key_name="indextts_url", win="gradiowin"),
@@ -180,6 +180,9 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     if tts_type==CONFUCIUS_TTS and _lang2 not in ["zh", "en", "ja", "ko", "de", "fr", "th", 
     "id", "vi", "es", "pt", "it", "ru", "ms"]:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
+    
+    if tts_type==HIGGS_AUDIO_TTS:
+        return tr('higgs-audio-v3-tips')
     return True
 
 

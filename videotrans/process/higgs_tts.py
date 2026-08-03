@@ -21,9 +21,6 @@ def higgs_fun(
     from videotrans.util.help_role import get_f5tts_role
     from videotrans.util.help_misc import vail_file
     import torch,torchaudio
-    from omnivoice import OmniVoice
-    from videotrans.util import gpus
-    import soundfile as sf
 
     from transformers import AutoModelForCausalLM, AutoTokenizer,BitsAndBytesConfig
 
@@ -31,15 +28,18 @@ def higgs_fun(
     repo = f"{ROOT_DIR}/models/models--multimodalart--higgs-audio-v3-tts-4b-transformers"
     tokenizer = AutoTokenizer.from_pretrained(repo,trust_remote_code=True)
     if is_cuda:    
+        # 量化处理，以降低显存，不量化需>18G显存
         quant_config = BitsAndBytesConfig(
-        load_in_8bit=True
-            )
+            load_in_8bit=True
+        )
 
         model = AutoModelForCausalLM.from_pretrained(
-            repo, trust_remote_code=True, quantization_config=quant_config,
-                device_map={"": f"cuda:{device_index}"}, # 将量化模型指定到指定 GPU
-                dtype=torch.bfloat16
-                ).eval()
+            repo, 
+            trust_remote_code=True, 
+            quantization_config=quant_config,
+            device_map={"": f"cuda:{device_index}"}, # 将量化模型指定到指定 GPU
+            dtype=torch.bfloat16
+        ).eval()
     else:
         model = AutoModelForCausalLM.from_pretrained(
             repo, trust_remote_code=True, dtype=torch.float32
@@ -90,16 +90,17 @@ def higgs_fun(
                 
                 text=re.sub(r'[！？]','。',it['text'])
                 ref, sr = torchaudio.load(wavfile)
-                wav = model.generate_speech(
-                    text,
-                    tokenizer,
-                    reference_audio=ref,
-                    reference_sample_rate=sr,
-                    reference_text=ref_text,
-                    temperature=0.7,
-                    top_p=0.95,
-                )
-                torchaudio.save(output_filename, wav.unsqueeze(0), model.config.sample_rate)
+                with torch.inference_mode():
+                    wav = model.generate_speech(
+                        text,
+                        tokenizer,
+                        reference_audio=ref,
+                        reference_sample_rate=sr,
+                        reference_text=ref_text,
+                        temperature=0.7,
+                        top_p=0.95,
+                    )
+                    torchaudio.save(output_filename, wav.unsqueeze(0), model.config.sample_rate)
 
                 
                 
