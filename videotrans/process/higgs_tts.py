@@ -25,12 +25,20 @@ def higgs_fun(
     from videotrans.util import gpus
     import soundfile as sf
 
-    from transformers import AutoProcessor, HiggsAudioV2ForConditionalGeneration
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    model_id = f"{ROOT_DIR}/models/models--eustlb--higgs-audio-v2-generation-3B-base"
     device="cpu" if not is_cuda else f"cuda:{device_index}"
-    processor = AutoProcessor.from_pretrained(model_id, device_map=device)
-    model = HiggsAudioV2ForConditionalGeneration.from_pretrained(model_id, device_map=device)
+    repo = f"{ROOT_DIR}/models/models--multimodalart--higgs-audio-v3-tts-4b-transformers"
+    tokenizer = AutoTokenizer.from_pretrained(repo,trust_remote_code=True)
+    if is_cuda:    
+        model = AutoModelForCausalLM.from_pretrained(
+            repo, trust_remote_code=True, dtype=torch.bfloat16
+                ).to(device).eval()
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            repo, trust_remote_code=True, dtype=torch.float32
+                ).to(device).eval()
+
 
     logger.debug(f'higgs_tts本地内置渠道，{is_cuda=}')
     try:
@@ -75,49 +83,18 @@ def higgs_fun(
                     continue
                 
                 text=re.sub(r'[！？]','。',it['text'])
-                
-                conversation = [
-                    {
-                        "role": "system",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": "Generate audio following instruction."
-                            }
-                        ]
-                    },
-                    {
-                        "role": "assistant",
-                        "content": [
-                            {
-                                "type": "audio",
-                                "url": wavfile
-                            }
-                        ]
-                    },
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": text
-                            }
-                        ]
-                    }
-                ]
+                ref, sr = torchaudio.load(wavfile)
+                wav = model.generate_speech(
+                    text,
+                    tokenizer,
+                    reference_audio=ref,
+                    reference_sample_rate=sr,
+                    reference_text=ref_text,
+                    temperature=0.7,
+                    top_p=0.95,
+                )
+                torchaudio.save(output_filename, wav.unsqueeze(0), model.config.sample_rate)
 
-                inputs = processor.apply_chat_template(
-                    conversation,
-                    add_generation_prompt=True,
-                    tokenize=True,
-                    return_dict=True,
-                    sampling_rate=24000,
-                    return_tensors="pt"
-                ).to(model.device)
-
-                outputs = model.generate(**inputs, max_new_tokens=1000, do_sample=False)
-                decoded = processor.batch_decode(outputs)
-                processor.save_audio(decoded, output_filename)
                 
                 
                 if not vail_file(output_filename):
