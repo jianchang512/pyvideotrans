@@ -37,7 +37,7 @@ def higgs_fun(
 
         model = AutoModelForCausalLM.from_pretrained(
             repo, trust_remote_code=True, quantization_config=quant_config,
-        device_map={"": f"cuda:{device_index}"} # 将量化模型指定到指定 GPU
+                device_map={"": f"cuda:{device_index}"}, # 将量化模型指定到指定 GPU
                 dtype=torch.bfloat16
                 ).eval()
     else:
