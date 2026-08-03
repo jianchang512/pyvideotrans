@@ -46,6 +46,7 @@ class MossRecogn(BaseRecogn):
             "audio_file": self.audio_file,
             "spkfile": f'{self.cache_folder}/speaker.json',
             "hotword":settings.get('hotwords',''),
+            "local_dir":self.local_dir
         }
         from videotrans.process.stt_mossasr import mosstrans_asr
         jsdata = self._new_process(callback=mosstrans_asr, title=title, is_cuda=self.is_cuda, kwargs=kwargs)
