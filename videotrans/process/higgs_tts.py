@@ -74,7 +74,7 @@ def higgs_fun(
                     last_error=msg
                     continue
                 
-                text=re.sub(r'[！？]','。')
+                text=re.sub(r'[！？]','。',it['text'])
                 
                 conversation = [
                     {
