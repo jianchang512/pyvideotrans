@@ -25,15 +25,21 @@ def higgs_fun(
     from videotrans.util import gpus
     import soundfile as sf
 
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM, AutoTokenizer,BitsAndBytesConfig
 
     device="cpu" if not is_cuda else f"cuda:{device_index}"
     repo = f"{ROOT_DIR}/models/models--multimodalart--higgs-audio-v3-tts-4b-transformers"
     tokenizer = AutoTokenizer.from_pretrained(repo,trust_remote_code=True)
     if is_cuda:    
+        quant_config = BitsAndBytesConfig(
+        load_in_8bit=True
+            )
+
         model = AutoModelForCausalLM.from_pretrained(
-            repo, trust_remote_code=True, dtype=torch.bfloat16
-                ).to(device).eval()
+            repo, trust_remote_code=True, quantization_config=quant_config,
+        device_map={"": f"cuda:{device_index}"} # 将量化模型指定到指定 GPU
+                dtype=torch.bfloat16
+                ).eval()
     else:
         model = AutoModelForCausalLM.from_pretrained(
             repo, trust_remote_code=True, dtype=torch.float32
