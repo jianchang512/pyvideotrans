@@ -914,5 +914,5 @@
 	"ug":"uyghur",
 	"Import SRT(only effective for single-video)":"Import origin SRT(only effective single-video)",
 	"For instructions on importing local SRT files during batch translation":"For instructions on importing local SRT files during batch translation, please refer to [https://pyvideotrans.com/localsrt].",
-	"higgs-audio-v3-tips":"CUDA acceleration uses 8-bit quantization and requires approximately 10GB of video memory; pure CPU operation requires more than 25GB of RAM."
+	"higgs-audio-v3-tips":"CUDA acceleration 8-bit quantization requires 10GB of gpu memory; pure CPU operation requires more than 20GB of RAM."
 }
