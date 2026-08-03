@@ -292,7 +292,7 @@ lint = [
 [tool.uv]
 override-dependencies = [
 	"torch==2.7.1",
-    "transformers==5.3.0",
+    "transformers==5.6.0",
     "torchaudio==2.7.1",
     "diffusers==0.33.1",
 	"safetensors==0.4.5",

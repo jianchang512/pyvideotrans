@@ -104,6 +104,7 @@ def mosstrans_asr(
                 tmp['startraw'] = ms_to_time_string(ms=tmp['start_time'])
                 tmp['endraw'] = ms_to_time_string(ms=tmp['end_time'])
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
+                raws.append(tmp)
                 print(segment.start, segment.end, segment.speaker, segment.text)
                 _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {tmp["text"]}\n'}))
             if spks:
