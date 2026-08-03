@@ -12,12 +12,12 @@ class OmniVoice(BaseTTS):
 
     def _download(self):
         from videotrans.util import help_down
-        if Path(f'{ROOT_DIR}/models/models--eustlb--higgs-audio-v2-generation-3B-base/model.safetensors').exists():
+        if Path(f'{ROOT_DIR}/models/models--multimodalart--higgs-audio-v3-tts-4b-transformers/model.safetensors').exists():
             return True
         help_down.check_and_down_hf(
-                    "higgs-audio-v2",
-                    'eustlb/higgs-audio-v2-generation-3B-base',
-                    f'{ROOT_DIR}/models/models--eustlb--higgs-audio-v2-generation-3B-base',
+                    "multimodalart--higgs-audio-v3-tts-4b-transformers",
+                    'multimodalart/higgs-audio-v3-tts-4b-transformers',
+                    f'{ROOT_DIR}/models/models--multimodalart--higgs-audio-v3-tts-4b-transformers',
                     callback=self._process_callback,
             )
 
