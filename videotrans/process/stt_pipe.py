@@ -40,7 +40,7 @@ def pipe_asr(
         for item in raws:
             yield item['filename']
 
-    device_arg = f'cuda:{device_index}' if is_cuda else 'auto'
+    device_arg = f'cuda:{device_index}' if is_cuda else 'cpu'
 
     msg = f"Loading pipeline from {local_dir}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))

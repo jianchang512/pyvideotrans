@@ -31,7 +31,7 @@ def glmasr_asr(
 
 
     # 使用 device_map="auto" 自动分配，或指定 device
-    device_arg = f"cuda:{device_index}" if is_cuda else "auto"
+    device_arg = f"cuda:{device_index}" if is_cuda else "cpu"
     model = GlmAsrForConditionalGeneration.from_pretrained(local_dir, device_map=device_arg)
     msg = f'Use device {model.device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))

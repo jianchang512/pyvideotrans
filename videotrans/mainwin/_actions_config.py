@@ -66,8 +66,8 @@ class WinActionConfigMixin:
 
         is_allow_lang = recognition.is_allow_lang(langcode=lang, recogn_type=recogn_type,
                                                   model_name=self.main.model_name.currentText())
-        if is_allow_lang is not True:
-            self.main.show_tips.setText(str(is_allow_lang))
+        
+        self.main.show_tips.setText(str(is_allow_lang) if is_allow_lang is not True else '')
 
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return

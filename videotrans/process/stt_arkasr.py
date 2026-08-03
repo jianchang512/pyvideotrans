@@ -26,10 +26,8 @@ def ark_asr(
     import torch
     from transformers import AutoModelForCausalLM, AutoProcessor, AutoTokenizer
 
-    model_path = "AutoArk-AI/ARK-ASR-0.6B"
 
-
-    device = f'cuda:{device_index}' if is_cuda else 'auto'
+    device = f'cuda:{device_index}' if is_cuda else 'cpu'
     torch_dtype = torch.bfloat16 if is_cuda and torch.cuda.is_bf16_supported() else torch.float32
 
     msg = f"Loading pipeline from {local_dir}"

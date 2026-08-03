@@ -102,8 +102,8 @@ HUGGINGFACE_ASR_MODELS = {
     # pipeline whisper
     "biodatlab/whisper-th-large-v3": ['th'],
     "vinai/Phowhisper-large": ['vi'],
+    "anke01/whisper-small-uyghur":['ug'],
     "openai/whisper-large-v3": [],
-    "anke01/whisper-small-uyghur":[],
     #"OpenMOSS-Team/MOSS-Transcribe-Diarize":[]
 }
 try:

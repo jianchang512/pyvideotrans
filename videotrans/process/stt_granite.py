@@ -30,14 +30,11 @@ def granite_asr(
 
     processor = AutoProcessor.from_pretrained(local_dir)
     tokenizer = processor.tokenizer
-    device = f'cuda:{device_index}' if is_cuda else 'auto'
+    device = f'cuda:{device_index}' if is_cuda else 'cpu'
     torch_dtype = torch.bfloat16 if is_cuda and torch.cuda.is_bf16_supported() else torch.float32
     model = AutoModelForSpeechSeq2Seq.from_pretrained(
         local_dir, device_map=device, torch_dtype=torch_dtype
     )
-
-
-
 
     msg = f"Loading pipeline from {local_dir}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
