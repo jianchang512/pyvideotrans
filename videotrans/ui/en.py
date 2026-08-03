@@ -236,7 +236,7 @@ class Ui_MainWindow(object):
         self.verticalLayoutWidget = QtWidgets.QWidget(self.splitter)
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
 
-        self.subtitle_layout = QtWidgets.QHBoxLayout(self.verticalLayoutWidget)
+        self.subtitle_layout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.subtitle_layout.setContentsMargins(3, 0, 0, 0)
         self.subtitle_layout.setObjectName("subtitle_layout")
     
@@ -248,6 +248,11 @@ class Ui_MainWindow(object):
             f"\n{tr('subtitle_tips')}\n\n{tr('meitiaozimugeshi')}")
     
         self.subtitle_layout.addWidget(self.subtitle_area)
+        
+        self.import_subtitle=QtWidgets.QPushButton()
+        self.import_subtitle.setText(tr('Import SRT(only effective for single-video)'))
+        self.import_subtitle.setCursor(Qt.PointingHandCursor)
+        self.subtitle_layout.addWidget(self.import_subtitle)
 
         self.horizontalLayout_7.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)

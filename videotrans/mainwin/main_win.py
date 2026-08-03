@@ -198,3 +198,5 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
         if event.type() == QEvent.Type.ActivationChange:
             if self.isActiveWindow():
                 self.aisendsrt.setChecked(settings.get('aisendsrt'))
+    
+    
