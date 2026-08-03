@@ -7,7 +7,7 @@ from videotrans.configure import config
 from videotrans.configure.config import settings,ROOT_DIR
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util.help_down import check_and_down_ms
+from videotrans.util.help_down import check_and_down_ms,check_and_down_hf
 from videotrans.util.help_misc import is_connect_hf
 
 
