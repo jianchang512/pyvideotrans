@@ -18,28 +18,29 @@ DOLPHIN=6
 Omnilingual=7
 PARAKEET_JA=8
 HUGGINGFACE_ASR = 9
+MOSS_DIARIZE=10
 
-OPENAI_API = 10
-QWEN3ASR = 11
-XIAOMIASR = 12
-ZIJIE_RECOGN_MODEL = 13
-ZHIPU_API = 14
+OPENAI_API = 11
+QWEN3ASR = 12
+XIAOMIASR = 13
+ZIJIE_RECOGN_MODEL = 14
+ZHIPU_API = 15
 
-GEMINI_SPEECH = 15
+GEMINI_SPEECH = 16
 
-Faster_Whisper_XXL = 16
-WHISPERX_API = 17
-PARAKEET = 18
+Faster_Whisper_XXL = 17
+WHISPERX_API = 18
+PARAKEET = 19
 
-AI_302 = 19
-ElevenLabs = 20
-GOOGLE_SPEECH = 21
+AI_302 = 20
+ElevenLabs = 21
+GOOGLE_SPEECH = 22
 
-Deepgram = 22
-CAMB_ASR = 23
-STT_API = 24
-WHISPER_NET = 25
-CUSTOM_API = 26
+Deepgram = 23
+CAMB_ASR = 24
+STT_API = 25
+WHISPER_NET = 26
+CUSTOM_API = 27
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
@@ -59,6 +60,8 @@ _ID_NAME_DICT = {
     Omnilingual: ChannelProvider(f"{tr('Omnilingual')}({tr('Built-in')})", imp="._omnilingual"),
     PARAKEET_JA: ChannelProvider(f"{tr('parakeet-ja')}({tr('Built-in')})", imp="._parakeetja"),
     HUGGINGFACE_ASR: ChannelProvider(f"Huggingface_ASR({tr('Built-in')})", imp="._huggingface"),
+    MOSS_DIARIZE: ChannelProvider(f"MOSS-Transcribe-Diarize({tr('Built-in')})", imp="._moss"),
+    
 
 
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"), key_name="openairecognapi_key", win="openairecognapi",
