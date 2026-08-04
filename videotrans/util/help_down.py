@@ -96,7 +96,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
                     total = _state.get("total_files", 0)
                     # 单文件进度
                     callback({"type": "file", "percent": pct,
-                              "filename": f'[{completed + 1}/{total}](hf) {name}' if total > 0 else name})
+                              "filename": f'{model_id} [{completed + 1}/{total}](hf) {name}' if total > 0 else name})
                     if total > 0:
                         smooth = (completed + pct / 100) / total * 100
                         callback({
@@ -130,7 +130,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
                 callback(' wait get download lock...')
             with download_lock:
                 if callback:
-                    callback('starting downloading...')
+                    callback(f'starting downloading {model_id}...')
                 logger.debug(f'获取到下载锁，开始从 hf下载 {repo_id}')
                 huggingface_hub.snapshot_download(
                     repo_id=repo_id,
@@ -421,7 +421,7 @@ def check_and_down_ms(model_id, callback=None, local_dir=None,allow_patterns=Non
                 callback(
                     f"[{_state['completed'] + 1}/"
                     f"{max(_state['total_files'], 1)}](ms) "
-                    f"{self.filename} {pct:.1f}%"
+                    f"{model_id} {self.filename} {pct:.1f}%"
                 )
             except Exception:
                 pass
@@ -442,7 +442,7 @@ def check_and_down_ms(model_id, callback=None, local_dir=None,allow_patterns=Non
                 callback('wait get download lock...')
             with download_lock:
                 if callback:
-                    callback('starting downloading...')
+                    callback(f'starting downloading {model_id}...')
                 logger.debug(f'获取到下载锁，开始从 ms 下载 {model_id}')
             snapshot_download(model_id=model_id, progress_callbacks=[Pro], local_dir=local_dir,allow_patterns=allow_patterns)
         else:

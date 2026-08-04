@@ -58,7 +58,7 @@ class F5TTSBuilt(BaseTTS):
         self._new_process(callback=f5tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         if self.is_redubb:return
 
-        self.signal(text=f'convert wav')
+        self.signal(text=tr('Standardized dubbing segment processing'))
         all_task = []
 
         with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:

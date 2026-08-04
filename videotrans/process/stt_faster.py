@@ -79,7 +79,7 @@ def faster_whisper(
 
         try:
             # 1. 加载基础模型
-            _write_log(logs_file, json.dumps({"type": "logs", "text": 'loading model'}))
+            _write_log(logs_file, json.dumps({"type": "logs", "text": f'Loading {model_name}'}))
             logger.debug(f'开始加载 faster-whisper模型{model_name},数据类型:{compute_type}')
             model = _create_model(compute_type)
         except Exception as e:
@@ -155,7 +155,7 @@ def faster_whisper(
                 tmp['endraw'] = ms_to_time_string(ms=tmp['end_time'])
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
                 raws.append(tmp)
-                _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
+                _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'Faster-whisper [{i}] {text}\n'}))
         else:
             logger.debug(f'直接传递完整音频，由faster-whisper内部VAD处理，返回字级时间戳数据')
             _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word timestamps'}))
@@ -187,7 +187,7 @@ def faster_whisper(
                     "end": segment.end,
                     "words": [{'word': it.word, 'start': it.start, 'end': it.end} for it in segment.words]
                 })
-                _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment.text}\n'}))
+                _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'Faster-whisper [{i}] {segment.text}\n'}))
 
             logger.debug(f'faster-whisper模式下，对{model_name}模型返回的字级时间戳进行断句')
             if not texts:

@@ -17,7 +17,7 @@ def mosstrans_asr(
         is_cuda=False,
         audio_file=None,
         local_dir=None,
-        spkfile=None,
+        cache_folder=None,
         hotword=None,
         device_index=0  # gpu索引
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
@@ -32,27 +32,20 @@ def mosstrans_asr(
         resolve_device,
     )
 
-
-
-
-    model_id = local_dir#"OpenMOSS-Team/MOSS-Transcribe-Diarize"
-
-
-    #device = resolve_device("auto")
     dev_str=f"cuda:{device_index}" if is_cuda else "cpu"
     device = torch.device(dev_str)
     dtype =  torch.float32 if not is_cuda or not torch.cuda.is_bf16_supported() else torch.bfloat16
     model = AutoModelForCausalLM.from_pretrained(
-        model_id,
+        local_dir,
         trust_remote_code=True,
         dtype="auto",
     ).to(dtype=dtype).to(device).eval()
-    processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
+    processor = AutoProcessor.from_pretrained(local_dir, trust_remote_code=True)
 
     msg = f'Use device {device.type}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
-    logger.debug(f'huggingface_asr 渠道使用模型: {local_dir}')
+    logger.debug(f'Moss-Diarize 渠道使用模型: {local_dir}')
     try:
         prompt="请将音频转写为文本，每一段需以起始时间戳和说话人编号（[S01]、[S02]、[S03]…）开头，正文为对应的语音内容，并在段末标注结束时间戳，以清晰标明该段语音范围。"
         if hotword:
@@ -64,6 +57,7 @@ def mosstrans_asr(
             raws = cut_audio_list
 
             for i,it in enumerate(raws):
+                _write_log(logs_file, json.dumps({"type": "logs", "text": f'Moss-Diarize {i}/{len(raws)} \n'}))
                 messages = build_transcription_messages(it['filename'],prompt=prompt)
                 result = generate_transcription(
                     model,
@@ -92,23 +86,20 @@ def mosstrans_asr(
             spks=[]
             for i,segment in enumerate(parse_transcript(result["text"])):
                 tmp = {
-                    "line": i + 1,  # 累加行号
+                    "line": i + 1, 
                     "text": segment.text,
                     "start_time": int(float(segment.start)*1000),
                     "end_time": int(float(segment.end)*1000),
                 }
                 spks.append(segment.speaker.replace('S','spk'))
 
-
-                # 假设 tools 是你类外部或全局可访问的工具
                 tmp['startraw'] = ms_to_time_string(ms=tmp['start_time'])
                 tmp['endraw'] = ms_to_time_string(ms=tmp['end_time'])
                 tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
                 raws.append(tmp)
-                print(segment.start, segment.end, segment.speaker, segment.text)
                 _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {tmp["text"]}\n'}))
             if spks:
-                Path(spkfile).write_text(json.dumps(spks), encoding='utf-8')
+                Path(f'{cache_folder}/speaker.json').write_text(json.dumps(spks), encoding='utf-8')
         return raws, None
     except Exception as e:
         msg = traceback.format_exc()

@@ -26,10 +26,10 @@ def paraformer(
     from videotrans.util._srt_parse import ms_to_time_string
     from videotrans.process._stt_utils import _write_log
 
-    msg = f'Load {model_name}'
+    device = f'cuda:{device_index}' if is_cuda else 'cpu'
+    msg = f'Load {model_name} on {device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
     raw_subtitles = []
-    device = f'cuda:{device_index}' if is_cuda else 'cpu'
     logger.debug(f'阿里FunASR渠道使用 {model_name} 模型，{device=}')
     try:
         model = pipeline(
@@ -50,9 +50,6 @@ def paraformer(
             # trust_remote_code=True,
         )
 
-        msg = "Model loading is complete, enter recognition"
-        _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
-
         res = model(audio_file,hotword=hotword.replace(',',' '))
         speaker_list = []
         i = 0
@@ -72,7 +69,7 @@ def paraformer(
                 "startraw": f'{ms_to_time_string(ms=it["start"])}',
                 "endraw": f'{ms_to_time_string(ms=it["end"])}'
             })
-            _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {it["text"]}\n'}))
+            _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'paraformer-zh [{i}] {it["text"]}\n'}))
             tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
             raw_subtitles.append(tmp)
         if speaker_list:

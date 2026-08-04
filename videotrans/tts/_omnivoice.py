@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+
+from videotrans.configure._i18n import tr
 from videotrans.configure.config import logger,ROOT_DIR,app_cfg,TEMP_DIR
 from videotrans.util.help_misc import vail_file, is_connect_hf
 from videotrans.tts._base import BaseTTS
@@ -39,7 +41,7 @@ class OmniVoice(BaseTTS):
         self._new_process(callback=omnivoice_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
         if self.is_redubb:return
 
-        self.signal(text=f'convert wav')
+        self.signal(text=tr('Standardized dubbing segment processing'))
         all_task = []
 
         with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:

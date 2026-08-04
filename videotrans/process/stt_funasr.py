@@ -64,14 +64,14 @@ def funasr_mlt(
             )
 
             # vad
-            msg = "Recognition starting"
+            msg = f"{model_name} starting..."
             _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
             num = 0
 
             def _show_process(ex, dx):
                 nonlocal num
                 num += 1
-                _write_log(logs_file, json.dumps({"type": "logs", "text": f'STT {num}'}))
+                _write_log(logs_file, json.dumps({"type": "logs", "text": f'STT {num}/{ex} {dx}'}))
 
             res = model.generate(
                 input=[it['filename'] for it in srts],

@@ -167,6 +167,7 @@ class BaseTTS(BaseCon):
 
                 self.signal(text=f'{tr("Dubbing")} [{k + 1}/{self.len}]')
                 time.sleep(self.wait_sec)
+            self.signal(text=tr('The dubbing is finished'))
             return
 
         all_task = []
@@ -194,7 +195,7 @@ class BaseTTS(BaseCon):
                         raise error
                     completed_tasks += 1
                     self.signal(text=f"{tr('Dubbing')}: [{completed_tasks}/{self.len}] ...")
-            self.signal(text=f"TTS ended ...")
+            self.signal(text=tr('The dubbing is finished'))
         finally:
             # 只能取消排队的任务，并让主线程不再等待。
             pool.shutdown(wait=False)

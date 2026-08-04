@@ -85,7 +85,7 @@ def qwen3tts_fun(
                     last_error="No text for dubbing"
                     continue
                 role=it.get('role')
-                _write_log(logs_file, json.dumps({"type": "logs", "text": f'{i+1}/{_len} {role}'}))
+                _write_log(logs_file, json.dumps({"type": "logs", "text": f'Qwen3-TTS {i+1}/{_len} {role}'}))
                 if role in CUSTOM_VOICE and CUSTOM_OBJ:
                     wavs, sr = CUSTOM_OBJ.generate_custom_voice(
                         text=text,

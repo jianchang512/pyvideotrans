@@ -3,6 +3,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
 from videotrans.configure.contants import VITS_URL_MS, VITS_URL_HF
 from videotrans.configure.excepts import DubbingSrtError
@@ -175,7 +176,7 @@ class VitsCNEN(BaseTTS):
                         continue
                     ok += 1
                     self.convert_to_wav(item['filename'] + '-24k.wav', item['filename'])
-                    self.signal(text=f"Dubbing {ok}")
+                    self.signal(text=f"{tr('Dubbing')} {ok}")
                 except Exception as e:
                     _except = e
                     logger.exception(f'vits dubbing error:{e}', exc_info=True)
@@ -189,7 +190,7 @@ class VitsCNEN(BaseTTS):
         if ok == 0:
             raise _except if _except else DubbingSrtError('vits dubbing error')
 
-        msg = "dubbing ended"
+        msg = f"{tr('Dubbing')} ended"
         if err > 0 and ok > 0:
             msg = f'[{err}] errors, {ok} succeed'
 

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Union, Dict, List
 
+from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_QUEUE_FILE, REDUBB_STATUS_FILE
 from videotrans.configure.config import ROOT_DIR, logger, app_cfg
 from videotrans.configure.excepts import DubbingSrtError
@@ -67,7 +68,7 @@ class SupertonicTTS(BaseTTS):
                         continue
                     ok += 1
                     self.convert_to_wav(filename, item['filename'])
-                    self.signal(text=f"Dubbinged {i}/{self.len}")
+                    self.signal(text=f"{tr('Dubbing')} {i}/{self.len}")
                 except Exception as e:
                     _except = e
                     logger.exception(f'supertonic-3 dubbing error:{e}', exc_info=True)
@@ -81,21 +82,10 @@ class SupertonicTTS(BaseTTS):
         if ok == 0:
             raise _except if _except else DubbingSrtError('supertonic-3 dubbing error')
 
-        msg = "dubbing ended"
+        msg = f"{tr('Dubbing')} ended"
         if err > 0 and ok > 0:
             msg = f'[{err}] errors, {ok} succeed'
 
         self.signal(text=msg)
         logger.debug(f'supertonic-3 配音结束：{msg}')
 
-
-    def _run0(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
-        role=data_item.get('role','F1')
-        text_to_speech = load_text_to_speech(f"{self.local_dir}/onnx", False)
-        style = load_voice_style([f"{self.local_dir}/voice_styles/{role}.json"], verbose=False)
-        wav, duration = text_to_speech(
-                       data_item.get('text'), self.language[:2], style, 10, self.speed
-                    )
-        w = wav[0, : int(text_to_speech.sample_rate * duration.item())]  # [T_trim]
-        sf.write(data_item['filename']+'-tmp.wav', w, text_to_speech.sample_rate)
-        self.convert_to_wav(data_item['filename'] +'-tmp.wav', data_item['filename'])

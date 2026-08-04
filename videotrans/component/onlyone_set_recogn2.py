@@ -30,7 +30,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
         self.novoice_mp4 = novoice_mp4
         self.srt_list_dict = []
 
-        self.setWindowTitle(tr("zimubianjitishi"))
+        self.setWindowTitle(tr("Modify secondary recognition results"))
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setMinimumWidth(parent.screen_size[0]*0.95)
         self.setMinimumHeight(parent.screen_size[1]*0.9)

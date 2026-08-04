@@ -22,7 +22,7 @@ def glmasr_asr(
         jianfan=False,
         device_index=0  # gpu索引
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
-    import torch,zhconv
+    import torch
     from videotrans.process._stt_utils import _write_log
     from transformers import AutoProcessor, GlmAsrForConditionalGeneration
 
@@ -65,7 +65,7 @@ def glmasr_asr(
         inputs_transcription = processor.apply_transcription_request(
             [it['filename'] for it in cut_audio_list],
         ).to(model.device, dtype=model.dtype)
-        _write_log(logs_file, json.dumps({"type": "logs", "text": 'Generate text...'}))
+        _write_log(logs_file, json.dumps({"type": "logs", "text": 'Zai-asr generate text...'}))
         outputs = model.generate(**inputs, do_sample=False, max_new_tokens=500)
         decoded_outputs = processor.batch_decode(
             outputs[:, inputs.input_ids.shape[1] :], skip_special_tokens=True
@@ -74,12 +74,10 @@ def glmasr_asr(
         total = len(raws)
 
         for i, (it, text) in enumerate(zip(raws, decoded_outputs)):
-            _write_log(logs_file, json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}))
+            _write_log(logs_file, json.dumps({"type": "logs", "text": f"Subtitles {i + 1}/{total}..."}))
             if text:
                 # 清理特殊标记
                 cleaned_text = re.sub(r'<unk>|</unk>', '', text).strip()
-                if jianfan:
-                    cleaned_text = zhconv.convert(cleaned_text, 'zh-hans')
                 raws[i]['text'] = cleaned_text
                 _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {cleaned_text}\n'}))
         return raws, None

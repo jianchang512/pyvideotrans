@@ -30,7 +30,7 @@ def ark_asr(
     device = f'cuda:{device_index}' if is_cuda else 'cpu'
     torch_dtype = torch.bfloat16 if is_cuda and torch.cuda.is_bf16_supported() else torch.float32
 
-    msg = f"Loading pipeline from {local_dir}"
+    msg = f"Loading from audio8-ark-asr on {device}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
     vt_logger.debug(f'huggingface_asr渠道使用模型: {local_dir}')
     
@@ -63,11 +63,6 @@ def ark_asr(
             cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in
                                              json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         raws = cut_audio_list
-
-        msg = f'Pipeline loaded on device={device}'
-        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
-        
-
 
         total = len(raws)
 
@@ -109,11 +104,9 @@ def ark_asr(
                   outputs[:, inputs.input_ids.shape[1] :],
                   skip_special_tokens=True,
             )
-            print(decoded_outputs[0])
-
             it['text']=decoded_outputs[0]
         
-            _write_log(logs_file, json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}))
+            _write_log(logs_file, json.dumps({"type": "logs", "text": f"Subtitles {i + 1}/{total}..."}))
 
                 
         return raws, None

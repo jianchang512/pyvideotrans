@@ -55,7 +55,7 @@ def omnivoice_fun(
                     last_error="No text for dubbing"
                     continue
                 role=it.get('role')
-                _write_log(logs_file, json.dumps({"type": "logs", "text": f'{i+1}/{_len} {role}'}))
+                _write_log(logs_file, json.dumps({"type": "logs", "text": f'OmniVoice-TTS {i+1}/{_len} {role}'}))
                 if role == 'clone':
                     wavfile = it.get('ref_wav', '')
                     ref_text = it.get('ref_text', '')

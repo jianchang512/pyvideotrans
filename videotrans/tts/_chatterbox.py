@@ -3,6 +3,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
 from videotrans.configure.config import params, logger, app_cfg, ROOT_DIR
 from videotrans.configure.excepts import DubbingSrtError
@@ -66,7 +67,7 @@ class ChatterBoxTTS(BaseTTS):
                 except Exception:
                     logger.warn('无参考音频，使用内置音色')
                 try:
-                    self.signal(text=f'starting {i}/{self.len}')
+                    self.signal(text=f'{tr("Dubbing")} {i}/{self.len}')
                     wav_tensor = model.generate(item['text'], exaggeration=exaggeration, cfg_weight=cfg_weight,
                                                 language_id=lang, audio_prompt_path=ref_wav)
                     wav_tensor = wav_tensor.detach().cpu()
@@ -81,7 +82,6 @@ class ChatterBoxTTS(BaseTTS):
                         continue
                     ok += 1
                     self.convert_to_wav(item['filename'] + '-24k.wav', item['filename'])
-                    self.signal(text=f"Dubbinged {i}/{self.len}")
                 except Exception as e:
                     _except = e
                     logger.exception(f'chatterbox dubbing error:{e}', exc_info=True)
@@ -94,7 +94,7 @@ class ChatterBoxTTS(BaseTTS):
         if ok == 0:
             raise _except if _except else DubbingSrtError('ChatterBox-TTS dubbing error')
 
-        msg = "dubbing ended"
+        msg = f"{tr('Dubbing')} ended"
         if err > 0 and ok > 0:
             msg = f'[{err}] errors, {ok} succeed'
 

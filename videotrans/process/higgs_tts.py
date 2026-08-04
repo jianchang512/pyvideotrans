@@ -71,7 +71,7 @@ def higgs_fun(
                     last_error="No text for dubbing"
                     continue
                 role=it.get('role')
-                _write_log(logs_file, json.dumps({"type": "logs", "text": f'{i+1}/{_len} {role}'}))
+                _write_log(logs_file, json.dumps({"type": "logs", "text": f'Higgs-audio-v3 TTS {i+1}/{_len} {role}'}))
                 if role == 'clone':
                     wavfile = it.get('ref_wav', '')
                     ref_text = it.get('ref_text', '')
@@ -102,8 +102,6 @@ def higgs_fun(
                     )
                     torchaudio.save(output_filename, wav.unsqueeze(0), model.config.sample_rate)
 
-                
-                
                 if not vail_file(output_filename):
                     err += 1
                     continue

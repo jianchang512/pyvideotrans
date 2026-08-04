@@ -36,7 +36,7 @@ def granite_asr(
         local_dir, device_map=device, torch_dtype=torch_dtype
     )
 
-    msg = f"Loading pipeline from {local_dir}"
+    msg = f"Loading model on {device}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
     vt_logger.debug(f'huggingface_asr渠道使用模型: {local_dir}')
     
@@ -49,7 +49,7 @@ def granite_asr(
                                              json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         raws = cut_audio_list
 
-        msg = f'Pipeline loaded on device={device}'
+        msg = f'Loaded on device={device}'
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
         
 
@@ -77,14 +77,11 @@ def granite_asr(
             new_tokens = model_outputs[0, num_input_tokens:].unsqueeze(0)
             output_text = tokenizer.batch_decode(
               new_tokens, add_special_tokens=False, skip_special_tokens=True
-            )
-            print(f"STT output = {output_text[0]}")
-
-            
+            )            
 
             it['text']=output_text[0]
         
-            _write_log(logs_file, json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}))
+            _write_log(logs_file, json.dumps({"type": "logs", "text": f"Subtitles {i + 1}/{total}..."}))
 
                 
         return raws, None

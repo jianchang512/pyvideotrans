@@ -60,7 +60,7 @@ _ID_NAME_DICT = {
     Omnilingual: ChannelProvider(f"{tr('Omnilingual')}({tr('Built-in')})", imp="._omnilingual"),
     PARAKEET_JA: ChannelProvider(f"{tr('parakeet-ja')}({tr('Built-in')})", imp="._parakeetja"),
     HUGGINGFACE_ASR: ChannelProvider(f"Huggingface_ASR({tr('Built-in')})", imp="._huggingface"),
-    MOSS_DIARIZE: ChannelProvider(f"MOSS-Transcribe-Diarize({tr('Built-in')})", imp="._moss"),
+    MOSS_DIARIZE: ChannelProvider(f"MOSS-Diarize({tr('Built-in')})", imp="._moss"),
     
 
 

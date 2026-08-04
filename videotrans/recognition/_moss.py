@@ -35,7 +35,7 @@ class MossRecogn(BaseRecogn):
         cut_audio_list_file=None
         from pydub import AudioSegment
         
-        if len(AudioSegment.from_file(self.audio_file, format="wav"))>3600000:
+        if len(AudioSegment.from_file(self.audio_file, format="wav"))>5400000:
             cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
             Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]), encoding='utf-8')
         
@@ -44,7 +44,7 @@ class MossRecogn(BaseRecogn):
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
             "audio_file": self.audio_file,
-            "spkfile": f'{self.cache_folder}/speaker.json',
+            "cache_folder": self.cache_folder,
             "hotword":settings.get('hotwords',''),
             "local_dir":self.local_dir
         }
