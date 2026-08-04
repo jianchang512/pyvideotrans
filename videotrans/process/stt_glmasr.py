@@ -24,15 +24,24 @@ def glmasr_asr(
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import torch
     from videotrans.process._stt_utils import _write_log
-    from transformers import AutoProcessor, GlmAsrForConditionalGeneration
+    from transformers import AutoProcessor, GlmAsrForConditionalGeneration,BitsAndBytesConfig
 
     checkpoint_name = local_dir
     processor = AutoProcessor.from_pretrained(local_dir)
 
-
-    # 使用 device_map="auto" 自动分配，或指定 device
-    device_arg = f"cuda:{device_index}" if is_cuda else "cpu"
-    model = GlmAsrForConditionalGeneration.from_pretrained(local_dir, device_map=device_arg)
+    if is_cuda:
+        # 量化处理，以降低显存，不量化需>18G显存
+        quant_config = BitsAndBytesConfig(
+            load_in_8bit=True
+        )
+        model = GlmAsrForConditionalGeneration.from_pretrained(
+            local_dir, 
+            quantization_config=quant_config,
+            device_map={"": f"cuda:{device_index}"},
+            dtype=torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
+        )
+    else:
+        model = GlmAsrForConditionalGeneration.from_pretrained(local_dir, device_map="cpu")
     msg = f'Use device {model.device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
