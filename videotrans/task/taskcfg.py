@@ -185,7 +185,7 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
         _msg=[]
         from videotrans.recognition import ALLOW_CHANGE_MODEL
         from videotrans.util.tools import get_recogn_type,get_tanslate_type,get_tts_type
-        from videotrans.configure.config import tr,settings
+        from videotrans.configure.config import tr,settings,app_cfg
 
         isTrue={True:"已选",False:"未选"}
         _duanjus=["默认断句","LLM重新断句"]
@@ -257,5 +257,6 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
                 _msg.append(_str)
             if self.only_out_mp4:
                 _msg.append('已选 仅输出mp4')
-        _msg.append(f'代理地址:{settings.get("proxy")}')
+        if app_cfg.proxy:
+            _msg.append(f'代理地址:{app_cfg.proxy}')
         return "\n".join(_msg)

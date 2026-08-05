@@ -162,7 +162,7 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     # 中文、英文、日文、韩文、德文、法文、俄文、葡萄牙文、西班牙文、意大利文
     if tts_type == QWEN3LOCAL_TTS and _lang2 not in ['zh', 'ja', 'ko', 'en', 'yu', 'de', 'fr', 'ru', 'pt', 'es','it']:
         return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
-    if tts_type == F5_TTS and _lang2 not in ['zh', 'ja', 'it', 'en', 'de', 'fr', 'ru', 'hi', 'es','ar']:
+    if tts_type == F5_TTS and _lang2 not in ['zh', 'ja', 'it', 'en', 'de', 'fr', 'ru', 'hi', 'es','ar','tr','vi']:
         return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
 
         

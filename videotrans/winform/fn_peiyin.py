@@ -436,10 +436,8 @@ def openwin():
 
         if type != tts.EDGE_TTS:
             is_allow_lang_res = tts.is_allow_lang(langcode=code, tts_type=type)
-            if is_allow_lang_res is not True:
-                winobj.loglabel.setText(is_allow_lang_res)
-            else:
-                winobj.loglabel.setText('')
+            winobj.loglabel.setText(is_allow_lang_res if is_allow_lang_res is not True else '')
+
         role_list = role_menu(type, code)
         winobj.hecheng_role.clear()
         if "clone" in role_list:

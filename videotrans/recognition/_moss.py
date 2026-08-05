@@ -21,8 +21,12 @@ class MossRecogn(BaseRecogn):
         self.local_dir=f'{ROOT_DIR}/models/models--OpenMOSS-Team--MOSS-Transcribe-Diarize'
     
     def _download(self):
-
-        check_and_down_hf(model_id=f'OpenMOSS-Team/MOSS-Transcribe-Diarize',
+        if not is_connect_hf():
+            check_and_down_hf(model_id=f'openmoss/MOSS-Transcribe-Diarize',
+                                    local_dir=self.local_dir,
+                                    callback=self._process_callback)
+        else:
+            check_and_down_hf(model_id=f'OpenMOSS-Team/MOSS-Transcribe-Diarize',
                                     repo_id=f'OpenMOSS-Team/MOSS-Transcribe-Diarize',
                                     local_dir=self.local_dir,
                                     callback=self._process_callback)
