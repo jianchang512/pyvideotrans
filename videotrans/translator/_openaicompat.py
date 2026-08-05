@@ -75,6 +75,7 @@ class OpenAICampat(BaseTrans):
         try:
             model = OpenAI(api_key=self.api_key, base_url=self.api_url)
             response = model.chat.completions.create(**kwargs, extra_body=self.extra_body)
+            #logger.debug(response)
         except APIConnectionError as e:
             raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e.message}') from e
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
@@ -151,6 +152,7 @@ class OpenAICampat(BaseTrans):
                     **kwargs,
                     extra_body={"thinking": {"type": "enabled"}} if self.ainame=='deepseek' else None
             )
+            
             if not response or not hasattr(response, 'choices') or not response.choices:
                 logger.warning(f'[{self.ainame}]重新断句失败:{response=}')
                 raise LLMSegmentError(f"[{self.ainame}]{response}")
