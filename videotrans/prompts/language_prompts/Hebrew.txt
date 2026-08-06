@@ -1,0 +1,1 @@
+CRITICAL RTL RULE: Ensure punctuation behaves correctly in Right-To-Left formatting. Use modern, everyday spoken Hebrew. Prefer short, modern phrasing over biblical or overly formal vocabulary.

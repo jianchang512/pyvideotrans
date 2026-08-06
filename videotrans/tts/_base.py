@@ -127,6 +127,8 @@ class BaseTTS(BaseCon):
             logger.error(f'试听配音时发生错误{self.error}')
             if isinstance(self.error, RetryError):
                 raise self.error.last_attempt.exception()
+            if not self.error:
+                self.error='No audio file was generated during the listening test.'
             raise self.error if isinstance(self.error, Exception) else DubbingSrtError(str(self.error))
 
         # 记录成功数量

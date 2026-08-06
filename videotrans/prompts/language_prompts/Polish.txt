@@ -1,0 +1,1 @@
+Polish has complex inflections and long consonant clusters that slow down TTS. You MUST find the absolute shortest synonyms. Omit personal pronouns aggressively. Translate fragments exactly where they fall without fixing the word order across blocks.

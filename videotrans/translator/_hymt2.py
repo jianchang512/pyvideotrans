@@ -16,12 +16,20 @@ class HYMT2(BaseTrans):
         self.local_dir=f'{ROOT_DIR}/models/models--tencent--Hy-MT2-1.8B'
         
     def _download(self):
-        from videotrans.util.help_down import check_and_down_hf
-        check_and_down_hf(
+        from videotrans.util.help_down import check_and_down_hf,check_and_down_ms
+        from videotrans.util.help_misc import is_connect_hf
+        if is_connect_hf():
+            check_and_down_hf(
                 "Hy-MT2-1.8B",
                 'tencent/Hy-MT2-1.8B',
                 self.local_dir,
                 callback=self._process_callback)        
+        else:
+            check_and_down_ms(
+                'Tencent-Hunyuan/Hy-MT2-1.8B',
+                local_dir=self.local_dir,
+                callback=self._process_callback)        
+                
         return True
 
     def _item_task(self,model,tokenizer, data: Union[List[str], str]) -> str:

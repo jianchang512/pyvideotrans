@@ -158,8 +158,8 @@ class Ui_MainWindow(object):
         self.dubb_thread_layout.addWidget(self.pitch_rate)
         self.dubb_thread_layout.addStretch()
 
-        self.dubb_thread_layout.addWidget(self.remove_noise)
         self.dubb_thread_layout.addWidget(self.fix_punc)
+        self.dubb_thread_layout.addWidget(self.remove_noise)
         self.dubb_thread_layout.addWidget(self.enable_diariz)
         self.dubb_thread_layout.addWidget(self.nums_diariz)
 

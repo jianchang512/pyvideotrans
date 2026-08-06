@@ -90,7 +90,7 @@ class WinActionBaseFileMixin:
 
     def _test_proxy(self, test_version, test_proxy):
         import requests,threading
-        if test_version != self._proxy_test_version:
+        if not test_proxy or test_version != self._proxy_test_version:
             return
         def _curl():
             try:
@@ -98,7 +98,8 @@ class WinActionBaseFileMixin:
             except Exception as e:
                 if test_version != self._proxy_test_version:
                     return
-                set_process(text=test_proxy, type="proxy_error")
+                if self.main.proxy.text().strip()==test_proxy:
+                    set_process(text=test_proxy, type="proxy_error")
         threading.Thread(target=_curl).start()
 
     def proxy_alert(self):

@@ -1,0 +1,1 @@
+Keep character counts extremely low (target 2.5–3.5 chars/sec). Use standard Taiwan/Hong Kong spoken vocabulary based on context. Drop explicit pronouns if context permits. Ensure natural phrasing for dubbing, avoiding overly rigid written (文言) style.

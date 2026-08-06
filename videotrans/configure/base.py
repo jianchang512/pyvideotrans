@@ -171,7 +171,7 @@ class BaseCon:
             if status_dict and status_dict['is_end']:
                 return
             timeout += 1
-            if timeout > 3600:
+            if timeout > 7200:
                 logger.warning(f'新进程已执行3600s仍未终止，可能已出错: {logs_file}')
                 return
             _p = Path(logs_file)

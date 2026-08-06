@@ -5,16 +5,21 @@ from typing import List, Union
 import dashscope
 from tenacity import retry, retry_if_not_exception_type, wait_fixed, stop_after_attempt, before_log, after_log
 from videotrans.configure.excepts import TranslateSrtError, NO_RETRY_EXCEPT
-from videotrans.configure.config import params, logger, settings
+from videotrans.configure.config import params, logger, settings,ROOT_DIR
 from videotrans.translator._base import BaseTrans
 from videotrans.util.help_misc import qwenmt_glossary, get_prompt
-
+from pathlib import Path
 
 @dataclass
 class QwenMT(BaseTrans):
+    lang_prompt:str=''
     def __post_init__(self):
         super().__post_init__()
         spaceid=params.get('qwenmt_spaceid', '')
+        self.lang_prompt=''
+        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_language_name}.txt'
+        if Path(lang_prompt_file).exists():
+            self.lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
         if spaceid:
             dashscope.base_http_api_url = f'https://{spaceid}.cn-beijing.maas.aliyuncs.com/api/v1'
     
@@ -61,7 +66,9 @@ class QwenMT(BaseTrans):
             logger.debug(f'qwen-mt返回响应:{response.output.choices[0].message.content}')
             return self.clean_srt(response.output.choices[0].message.content)
 
-        self.prompt = get_prompt(ainame='bailian',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
+
+
+        self.prompt = get_prompt(ainame='bailian',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name).replace('{lang_prompt}',self.lang_prompt)
         message = [
             {
                 'role': 'system',

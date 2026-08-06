@@ -1,0 +1,1 @@
+Use colloquial Romanian. Omit subject pronouns (eu, tu). Use shortened forms and elisions (e.g., "nu-i", "las-o") to minimize syllable count and ensure natural TTS flow.

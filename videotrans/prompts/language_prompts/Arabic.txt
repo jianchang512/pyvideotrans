@@ -1,0 +1,1 @@
+CRITICAL RTL RULE: Ensure punctuation (`...`, `.`, `?`) does not corrupt the Right-To-Left bidirectional rendering or mess up the timestamps. Use a modern spoken standard (or Egyptian/Levantine colloquial if appropriate) rather than strict Modern Standard Arabic (MSA) to save syllables and sound natural.

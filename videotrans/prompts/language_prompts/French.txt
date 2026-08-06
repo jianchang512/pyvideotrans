@@ -1,0 +1,1 @@
+Use everyday spoken French (Français familier). Heavily utilize oral elisions and contractions (e.g., "t'es", "j'suis", "y a"). Drop the "ne" in negative sentences (e.g., use "c'est pas" instead of "ce n'est pas") to save syllables and sound natural for TTS dubbing.

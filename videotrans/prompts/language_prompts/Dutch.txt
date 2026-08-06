@@ -1,0 +1,1 @@
+Use natural spoken Dutch. Avoid overly complex compound words; break them down or simplify if it reduces speaking time. Use spoken contractions and particles (e.g., "effe", "zo'n") to make the TTS sound conversational.

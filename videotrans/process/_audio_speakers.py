@@ -234,55 +234,6 @@ def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_s
         return False, f'{e}{msg}'
 
 
-def reverb_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False, logs_file=None,
-                    device_index=0):
-    _hook_hf()
-    import torch, pyannote.audio, torchaudio
-    torch.serialization.add_safe_globals([
-        torch.torch_version.TorchVersion,
-        pyannote.audio.core.task.Specifications,
-        pyannote.audio.core.task.Problem,
-        pyannote.audio.core.task.Resolution
-    ])
-    from pyannote.audio import Pipeline
-
-    def _get_diariz():
-        pipeline = Pipeline.from_pretrained(f'{ROOT_DIR}/models/models--Revai--reverb-diarization-v1/config.yaml')
-
-        if is_cuda:
-            pipeline.to(torch.device(f"cuda:{device_index}"))
-
-        waveform, sample_rate = torchaudio.load(input_file)
-        if num_speakers > 0:
-            diarization = pipeline({"waveform": waveform, "sample_rate": sample_rate}, num_speakers=num_speakers)
-        else:
-            diarization = pipeline({"waveform": waveform, "sample_rate": sample_rate})
-
-        raw_output = []
-        for turn, _, speaker in diarization.itertracks(yield_label=True):
-            speaker = speaker.replace('SPEAKER_', '')
-            raw_output.append({'start': turn.start, 'end': turn.end, 'speaker': f'spk{speaker}'})
-        return _normalize_diarizations(raw_output)
-
-    try:
-        _st = time.time()
-        logger.debug(f'开始说话人分离,使用模型 Revai/reverb-diarization-v1')
-        subtitles = json.loads(Path(subtitles_file).read_text(encoding='utf-8'))
-        diarizations = _get_diariz()
-        if not diarizations:
-            return False, "Unknwo error"
-        diar_list = [[d['times'], d['speaker']] for d in diarizations]
-        output = _assign_speakers(subtitles, diar_list)
-        logger.debug(f'说话人分离成功结束,识别出个 {len(set(output))} 说话人,耗时:{int(time.time() - _st)}s')
-        if output:
-            Path(speak_file).write_text(json.dumps(output), encoding='utf-8')
-            return True, None
-        return False, "0 speakers"
-    except Exception as e:
-        msg = traceback.format_exc()
-        logger.exception(f'说话人分离出错{e}:{msg}', exc_info=True)
-        return False, f'{e}{msg}'
-
 
 def built_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, language="zh", logs_file=None,
                    is_cuda=False):

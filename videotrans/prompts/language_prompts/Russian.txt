@@ -1,0 +1,1 @@
+Russian words are naturally long; you MUST aggressively find the shortest synonyms. Omit personal pronouns when the verb conjugation makes the subject obvious. Use colloquial sentence structures to reduce word count.

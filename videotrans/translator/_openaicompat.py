@@ -30,7 +30,12 @@ class OpenAICampat(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
         self.temperature=float(settings.get('aitrans_temperature', 1.0))
-        self.prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name)
+        lang_prompt=''
+        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_language_name}.txt'
+        if Path(lang_prompt_file).exists():
+            lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
+        self.prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name).replace('{lang_prompt}',lang_prompt)
+
         try:
             self.max_tokens=int(self.max_tokens)
         except (ValueError,TypeError) as e:
@@ -71,11 +76,12 @@ class OpenAICampat(BaseTrans):
             kwargs["reasoning_effort"]=self.reasoning_effort
             
         logger.debug(f'字幕翻译:[{self.ainame=},{kwargs=}]')
+        logger.debug(f'{kwargs=}')
         kwargs["messages"]=message
+        
         try:
             model = OpenAI(api_key=self.api_key, base_url=self.api_url)
             response = model.chat.completions.create(**kwargs, extra_body=self.extra_body)
-            #logger.debug(response)
         except APIConnectionError as e:
             raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e.message}') from e
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
@@ -132,7 +138,7 @@ class OpenAICampat(BaseTrans):
             kwargs["max_completion_tokens"]=int(max_tokens)
         else:
             kwargs["max_tokens"]=int(max_tokens)
-        logger.debug(f'LLM Re-segmenting:{self.ainame=},{kwargs=}')
+        logger.debug(f'LLM Re-segmenting:{self.ainame=},{kwargs=},{model_name=},{api_url=},{step=}')
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(2)),
                wait=wait_fixed(5), before=before_log(logger, logging.INFO),
                after=after_log(logger, logging.INFO))
@@ -169,7 +175,6 @@ class OpenAICampat(BaseTrans):
                 return match.group(1)
             return result.strip()
         
-        logger.debug(f'LLM断句:{self.ainame=},{model_name=},{api_url=}')
         new_sublist = []
         for idx in range(0, len(srt_list), chunk_size):
             self.signal(text=f'[{idx}] {self.ainame} ' + tr("Re-segmenting..."))

@@ -113,7 +113,7 @@ def faster_whisper(
             # BatchedInferencePipeline 需要 [{'start': start_sec, 'end': end_sec}, ...]
             clip_timestamps_dicts = [
                 {"start": it[0] / 1000.0, "end": it[1] / 1000.0}
-                for it in speech_timestamps
+                for it in speech_timestamps if it[0]>=0 and it[1]>it[0]
             ]
             segments, info = batched_model.transcribe(
                 audio_file,
@@ -206,5 +206,7 @@ def faster_whisper(
         return raws,None
     except BaseException as e:
         msg = traceback.format_exc()
+        if speech_timestamps:
+            msg+=f'\n{speech_timestamps=}'
         logger.exception(e,exc_info=True)
         return False, f'{e}:{msg}'

@@ -57,6 +57,7 @@ class QwenttsLocal(BaseTTS):
         }
         from videotrans.process.qwen_tts import qwen3tts_fun
         self._new_process(callback=qwen3tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+
         if self.is_redubb:return
         self.signal(text=tr('Standardized dubbing segment processing'))
         all_task = []

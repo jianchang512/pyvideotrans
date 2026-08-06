@@ -215,7 +215,7 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
             _msg.append(f'{"已选 恢复标点符号" if self.fix_punc==1 else "已选 删除所有标点符号"}')
         
         
-        _msg.append(f"{tr('Speech Recognit')}:{get_recogn_type(self.recogn_type)}, model_name: {self.model_name if self.recogn_type in ALLOW_CHANGE_MODEL else ''}, 发音语言: {self.source_language}, 断句方式:{_duanjus[self.rephrase]}")
+        _msg.append(f"{tr('Speech Recognit')}:{get_recogn_type(self.recogn_type)}, {self.model_name if self.recogn_type in ALLOW_CHANGE_MODEL else ''}, 发音语言: {self.source_language}, 断句方式:{_duanjus[self.rephrase]}")
         
         if self.target_language in [None,'No','-'] or self.source_language==self.target_language:
             _msg.append(f'{"发音语言和目标语言相同" if self.source_language==self.target_language else "未选 目标语言"}，不翻译字幕')

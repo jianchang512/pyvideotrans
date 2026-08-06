@@ -1,0 +1,1 @@
+Khmer has no spaces between words. Construct phrases carefully so the TTS engine processes word boundaries correctly. Keep sentences brief and direct. Avoid overly formal registers unless specifically required by the original context.

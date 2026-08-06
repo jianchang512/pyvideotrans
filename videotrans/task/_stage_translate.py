@@ -38,18 +38,21 @@ class TranslateMixin:
         if self._exit():  return
 
         target_srt = self.check_target_sub(rawsrt, target_srt)
-        if not self.should_dubbing:
+        # 删除原字幕标点
+        if self.cfg.fix_punc==2:
+            for it in rawsrt:
+                it['text']=delete_punc(it['text'])
+            self._save_srt_target(rawsrt, self.cfg.source_sub)
+        # 无需配音或提取模式，在此移除标点
+        if self.cfg.app_mode=='tiqu' or not self.should_dubbing:
             for it in target_srt:
                 it['text']=it['text'].strip('...')
+                if self.cfg.fix_punc==2:
+                    it['text']=delete_punc(it['text'])
+
 
         if self.cfg.app_mode=='tiqu':
-            if self.cfg.fix_punc==2:
-                logger.debug('仅提取模式下，移除所有标点')
-                for it in rawsrt:
-                    it['text']=delete_punc(it['text'])
-                for it in target_srt:
-                    it['text']=delete_punc(it['text'])
-            self._save_srt_target(rawsrt, f"{self.cfg.target_dir}/{self.cfg.noextname}-{self.cfg.source_language_code}.srt")
+            shutil.copy2(self.cfg.source_sub, f"{self.cfg.target_dir}/{self.cfg.noextname}-{self.cfg.source_language_code}.srt")
             if self.cfg.output_srt > 0 and self.cfg.source_language_code != self.cfg.target_language_code:
                 _source_srt_len = len(rawsrt)
                 for i, it in enumerate(target_srt):

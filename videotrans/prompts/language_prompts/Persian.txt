@@ -1,0 +1,1 @@
+CRITICAL RTL RULE: Maintain correct Right-To-Left formatting. Use colloquial Persian (Tehrani accent style phrasing) rather than formal written Persian (e.g., use "میدونم" instead of "می‌دانم"). Keep verb structures as concise as possible.

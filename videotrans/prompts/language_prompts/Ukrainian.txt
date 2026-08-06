@@ -1,0 +1,1 @@
+Prioritize brief, everyday Ukrainian vocabulary. Drop subject pronouns whenever the verb ending conveys the subject clearly. Use concise phrasing to prevent the TTS from rushing through long Cyrillic words.
