@@ -54,12 +54,16 @@ class WinActionBaseFileMixin:
             self.queue_mp4 = mp4_list
 
     def get_save_dir(self):
-        dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),
-                                                              params.get('last_opendir', ''))
-        dirname = Path(dirname).resolve().as_posix()
-        self.main.target_dir = dirname
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),'')
+        if dirname:            
+            dirname = Path(dirname).resolve().as_posix()
+            self.main.target_dir = dirname
+            self.main.output_dir.setText(tr('Translation results saved to:') + dirname)
+        else:
+            self.main.target_dir = None
+            self.main.output_dir.setText('')
+        
         self.main.btn_save_dir.setToolTip(dirname)
-        self.main.output_dir.setText(tr('Translation results saved to:') + dirname)
         params['output_dir'] = dirname
         params.save()
 
