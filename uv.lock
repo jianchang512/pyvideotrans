@@ -27,7 +27,7 @@ overrides = [
     { name = "torchaudio", marker = "sys_platform == 'darwin'", specifier = "==2.7.1", index = "https://download.pytorch.org/whl/cpu" },
     { name = "torchaudio", marker = "sys_platform == 'linux' or sys_platform == 'win32'", specifier = "==2.7.1", index = "https://download.pytorch.org/whl/cu128" },
     { name = "torchcodec", marker = "sys_platform == 'never'" },
-    { name = "transformers", specifier = "==5.3.0" },
+    { name = "transformers", specifier = "==5.6.0" },
 ]
 
 [[package]]
@@ -511,12 +511,14 @@ name = "bitsandbytes"
 version = "0.49.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy", marker = "sys_platform != 'darwin'" },
-    { name = "packaging", marker = "sys_platform != 'darwin'" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "torch", version = "2.7.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.7.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32'" },
     { name = "torch", version = "2.7.1+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 wheels = [
+    { url = "https://files.pythonhosted.org/packages/d8/7d/f1fe0992334b18cd8494f89aeec1dcc674635584fcd9f115784fea3a1d05/bitsandbytes-0.49.2-py3-none-macosx_14_0_arm64.whl", hash = "sha256:87be5975edeac5396d699ecbc39dfc47cf2c026daaf2d5852a94368611a6823f", size = 131940, upload-time = "2026-02-16T21:26:04.572Z" },
     { url = "https://files.pythonhosted.org/packages/29/71/acff7af06c818664aa87ff73e17a52c7788ad746b72aea09d3cb8e424348/bitsandbytes-0.49.2-py3-none-manylinux_2_24_aarch64.whl", hash = "sha256:2fc0830c5f7169be36e60e11f2be067c8f812dfcb829801a8703735842450750", size = 31442815, upload-time = "2026-02-16T21:26:06.783Z" },
     { url = "https://files.pythonhosted.org/packages/19/57/3443d6f183436fbdaf5000aac332c4d5ddb056665d459244a5608e98ae92/bitsandbytes-0.49.2-py3-none-manylinux_2_24_x86_64.whl", hash = "sha256:54b771f06e1a3c73af5c7f16ccf0fc23a846052813d4b008d10cb6e017dd1c8c", size = 60651714, upload-time = "2026-02-16T21:26:11.579Z" },
     { url = "https://files.pythonhosted.org/packages/b6/d4/501655842ad6771fb077f576d78cbedb5445d15b1c3c91343ed58ca46f0e/bitsandbytes-0.49.2-py3-none-win_amd64.whl", hash = "sha256:2e0ddd09cd778155388023cbe81f00afbb7c000c214caef3ce83386e7144df7d", size = 55372289, upload-time = "2026-02-16T21:26:16.267Z" },
@@ -4292,6 +4294,7 @@ dependencies = [
     { name = "audioread" },
     { name = "av" },
     { name = "azure-cognitiveservices-speech" },
+    { name = "bitsandbytes" },
     { name = "blinker" },
     { name = "brotli" },
     { name = "cachetools" },
@@ -4586,6 +4589,7 @@ requires-dist = [
     { name = "audioread", specifier = "==3.0.1" },
     { name = "av", specifier = "==16.0.1" },
     { name = "azure-cognitiveservices-speech" },
+    { name = "bitsandbytes", specifier = ">=0.49.2" },
     { name = "blinker", specifier = "==1.8.2" },
     { name = "brotli", specifier = ">=1.2.0" },
     { name = "cachetools", specifier = "==5.3.2" },
@@ -6232,7 +6236,7 @@ wheels = [
 
 [[package]]
 name = "transformers"
-version = "5.3.0"
+version = "5.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "huggingface-hub" },
@@ -6245,9 +6249,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fc/1a/70e830d53ecc96ce69cfa8de38f163712d2b43ac52fbd743f39f56025c31/transformers-5.3.0.tar.gz", hash = "sha256:009555b364029da9e2946d41f1c5de9f15e6b1df46b189b7293f33a161b9c557", size = 8830831, upload-time = "2026-03-04T17:41:46.119Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/14/e3eb58bd4c9df45af154f9de59a6e66a2ece30dd64434c710e40e5a4b1f1/transformers-5.6.0.tar.gz", hash = "sha256:291951976b79a6f93ec06d6ab14489a99aecdbc8f05aaabab538ea1d508c9a97", size = 8311711, upload-time = "2026-04-22T15:42:03.393Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/88/ae8320064e32679a5429a2c9ebbc05c2bf32cefb6e076f9b07f6d685a9b4/transformers-5.3.0-py3-none-any.whl", hash = "sha256:50ac8c89c3c7033444fb3f9f53138096b997ebb70d4b5e50a2e810bf12d3d29a", size = 10661827, upload-time = "2026-03-04T17:41:42.722Z" },
+    { url = "https://files.pythonhosted.org/packages/e8/80/ac700df26a83969d2cf8d09d3dd191bb9bbe8156fa4607e614438b1da8c8/transformers-5.6.0-py3-none-any.whl", hash = "sha256:def5aac47b28e2f1386fa64f2f458a5474ba7733ab74c1765e7c67a79d1f1cbd", size = 10364790, upload-time = "2026-04-22T15:41:58.723Z" },
 ]
 
 [[package]]

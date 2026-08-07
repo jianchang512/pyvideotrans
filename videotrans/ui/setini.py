@@ -593,7 +593,7 @@ class Ui_setini(object):
             "fps_mode":["vfr","cfr"],
             "llm_ai_type": ['chatgpt', 'deepseek'],
             "vad_type": ['tenvad', 'silero'],
-            "speaker_type": ['built', 'ali_CAM', 'pyannote', 'reverb'],
+            "speaker_type": ['built', 'ali_CAM', 'pyannote'],
             "video_codec": ['264', '265'],
             "preset": ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower',
                        'veryslow'],

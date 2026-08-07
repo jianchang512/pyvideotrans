@@ -118,7 +118,7 @@
     "Edge-TTS(free)": "Edge-TTS(免费)",
     "Embedded Soft Subtitles": "嵌入软字幕",
     "Emotion": "情绪",
-    "Enable CUDA?": "启用CUDA?",
+    "Enable CUDA?": "CUDA加速?",
     "Ended": "执行完成",
     "Ended/Start operate": "执行完成/开始执行",
     "English": "英语",
@@ -914,5 +914,10 @@
 	"hebing-windows-title":"媒体合并: 将音频、字幕嵌入视频",
     "Click to pause playback": "点击暂停播放",
     "Increase table font size": "增大表格字体",
-    "Decrease table font size": "减小表格字体"
+    "Decrease table font size": "减小表格字体",
+	"ug":"维吾尔语",
+	"Import SRT(only effective for single-video)":"导入发音语言SRT(仅单视频翻译有效)",
+	"For instructions on importing local SRT files during batch translation":"批量翻译时导入本地SRT文件方法，请查看[https://pyvideotrans.com/localsrt]",
+	"higgs-audio-v3-tips":"CUDA加速8位量化后显存需10G+；纯CPU运行内存需20G+",
+	"Standardized dubbing segment processing":"标准化配音片段处理中..."
 }

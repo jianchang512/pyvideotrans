@@ -31,7 +31,7 @@ from videotrans.translator._lang_utils import (  # noqa: F401
 
 from videotrans.translator._runner import (  # noqa: F401
     run,
-    _check_google,
+    _check_gorm,
 )
 
 from videotrans.translator._base import BaseTrans  # noqa: F401

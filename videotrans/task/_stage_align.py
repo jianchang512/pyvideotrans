@@ -45,16 +45,17 @@ class AlignMixin:
         if vail_file(self.cfg.novoice_mp4):
             self.video_time = get_video_duration(self.cfg.novoice_mp4)
         
-        # 变速后更新字幕
-        if self.cfg.voice_autorate or self.cfg.video_autorate or self.cfg.align_sub_audio:
-            srt = ""
-            for it in self.queue_tts:
-                it['startraw'] = ms_to_time_string(ms=it['start_time'])
-                it['endraw'] = ms_to_time_string(ms=it['end_time'])
-                if self.cfg.fix_punc==2:
-                    it['text']=delete_punc(it['text'])
-                it['text']=it['text'].strip('...')
-
+        # 更新字幕
+        for it in self.queue_tts:
+            it['startraw'] = ms_to_time_string(ms=it['start_time'])
+            it['endraw'] = ms_to_time_string(ms=it['end_time'])
+            it['text']=it['text'].strip('...')
+            if self.cfg.fix_punc==2:
+                it['text']=delete_punc(it['text'])
+        # 不嵌入字幕，则在此保存修改后的目标字幕
+        if not self.should_hebing:
+            self._save_srt_target(self.queue_tts, self.cfg.target_sub)
+            
         if self.cfg.tts_type not in [EDGE_TTS, AZURE_TTS] and self.cfg.volume != '+0%' and vail_file(
                 self.cfg.target_wav):
             volume = self.cfg.volume.replace('%', '').strip()

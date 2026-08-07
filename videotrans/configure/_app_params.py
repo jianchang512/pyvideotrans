@@ -106,7 +106,7 @@ class AppParams:
             "chatgpt_api": "",
             "chatgpt_key": "",
             "chatgpt_reasoning_effort": "No",
-            "chatgpt_max_token": 16384,
+            "chatgpt_max_token": 32768,#32k
             "chatgpt_model": str(_settings.get('chatgpt_model', '-')).strip().split(',')[0],
             "azure_api": "",
             "azure_key": "",
@@ -114,7 +114,7 @@ class AppParams:
             "azure_model": str(_settings.get('azure_model', '-')).strip().split(',')[0],
             "gemini_key": "",
             "gemini_model": DEFAULT_GEMINI_MODEL.split(',')[0],
-            "gemini_maxtoken": 16384,
+            "gemini_maxtoken": 32768,
             "gemini_ttsstyle": "",
             "gemini_ttsmodel": GEMINI_TTS_MODELS.split(',')[0],
             "localllm_api": "",
@@ -126,14 +126,14 @@ class AppParams:
             "zhipu_max_token": 16384,
             "guiji_key": "",
             "guiji_model": str(_settings.get('guiji_model', '-')).strip().split(',')[0],
-            "guiji_max_token": 16384,
+            "guiji_max_token": 16384,#最大输出16k
             "deepseek_key": "",
             "deepseek_model": str(_settings.get('deepseek_model', '-')).strip().split(',')[0],
-            "deepseek_max_token": 32768,
+            "deepseek_max_token": 65536,#最大输出64k
             "openrouter_key": "",
             "openrouter_reasoning_effort": "No",
             "openrouter_model": str(_settings.get('openrouter_model', '-')).strip().split(',')[0],
-            "openrouter_max_token": 16384,
+            "openrouter_max_token": 16384,#最大输出16k
             "zijiehuoshan_key": "",
             "zijiehuoshan_model": str(_settings.get('zijiehuoshan_model', '-')).strip().split(',')[0],
             "qwenmt_key": "",
@@ -226,6 +226,7 @@ class AppParams:
             "stt_cuda": False,
             "stt_remove_noise": False,
             "stt_enable_diariz": False,
+            "stt_spk_insert": True,
             "stt_rephrase": 0,
             "stt_nums_diariz": 0,
             "subtitlecover_outformat": "srt",

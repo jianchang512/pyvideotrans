@@ -1,0 +1,1 @@
+MUST use authentic spoken Cantonese vocabulary and characters (e.g., 係, 唔, 咁, 佢, 喺). Do not use formal Written Chinese (書面語). Keep sentences extremely punchy and concise. Use appropriate Cantonese sentence-final particles (啊, 啦, 囉) to guide the TTS engine's tone.

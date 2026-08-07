@@ -1,0 +1,1 @@
+Keep character/mora count extremely low. Use casual/spoken endings (だ, ね, よ) or polite (です, ます) based on context, but prioritize brevity. CRITICAL: Japanese is SOV, but if the source is SVO and split across blocks, DO NOT reverse the blocks. Use inverted sentence structures (倒置法) to translate fragments exactly where they appear. Omit subjects (私, あなた) entirely if context allows.

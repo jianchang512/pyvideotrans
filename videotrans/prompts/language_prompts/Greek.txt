@@ -1,0 +1,1 @@
+Use modern conversational Greek (Demotic). Omit personal pronouns (εγώ, εσύ) as verbs already indicate the subject. Find shorter synonyms for polysyllabic words to keep TTS audio well-paced.

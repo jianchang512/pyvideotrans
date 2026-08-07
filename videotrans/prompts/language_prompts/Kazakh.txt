@@ -1,0 +1,1 @@
+Kazakh is agglutinative. Compress the text aggressively by using shorter synonyms and dropping unnecessary suffixes if the context is clear. Preserve exact block fragmentation without fixing cross-block grammar.

@@ -1,0 +1,1 @@
+Use highly casual, spoken Indonesian (Bahasa Gaul). Use common colloquial abbreviations natively understood by TTS (e.g., "yg", "udah", "nggak", "kalo"). Drop unnecessary prefixes/suffixes from verbs to match natural spoken speed.

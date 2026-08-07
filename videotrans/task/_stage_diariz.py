@@ -13,7 +13,7 @@ class DiarizMixin:
 
     def diariz(self):
         _st=time.time()
-        if self._exit() or not self.cfg.enable_diariz or self.max_speakers == 1 or Path(
+        if self._exit() or not self.do_diarize or not self.cfg.enable_diariz or self.max_speakers == 1 or Path(
                 self.cfg.cache_folder + "/speaker.json").exists():
             return
         speaker_type = settings.get('speaker_type', 'built')
@@ -49,30 +49,34 @@ class DiarizMixin:
                     local_dir=f"{ROOT_DIR}/models/speech_campplus_speaker-diarization_common",
                     callback=self._process_callback)
                 from videotrans.process.prepare_audio import cam_speakers as _run_speakers
-            elif speaker_type == 'pyannote':
+            elif speaker_type in ['pyannote','reverb']:
                 from videotrans.process.prepare_audio import pyannote_speakers as _run_speakers
-            elif speaker_type == 'reverb':
-                from videotrans.process.prepare_audio import reverb_speakers as _run_speakers
             else:
                 logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
                 return
             if speaker_type in ['pyannote', 'reverb']:
-                #self.signal(text='Downloading speakers models')
-                #from huggingface_hub import snapshot_download
                 from videotrans.util.help_down import check_and_down_hf
                 check_and_down_hf(
                     speaker_type, 
-                    "pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1", 
-                    f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"), 
+                    "pyannote/speaker-diarization-3.1", 
+                    f'{ROOT_DIR}/models/models--pyannote--speaker-diarization-3.1', 
                     self._process_callback, 
                     None,
                     hf_token)
-                #snapshot_download(
-                #    repo_id="pyannote/speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai/reverb-diarization-v1",
-                #    token=hf_token,
-                #    local_dir=f'{ROOT_DIR}/models/models--'+("pyannote--speaker-diarization-3.1" if speaker_type == 'pyannote' else "Revai--reverb-diarization-v1"),
-                #    endpoint=os.environ.get('HF_ENDPOINT')
-                #)
+                check_and_down_hf(
+                    speaker_type, 
+                    "pyannote/segmentation-3.0", 
+                    f'{ROOT_DIR}/models/models--pyannote--segmentation-3.0', 
+                    self._process_callback, 
+                    None,
+                    hf_token)
+                check_and_down_hf(
+                    speaker_type, 
+                    "pyannote/wespeaker-voxceleb-resnet34-LM", 
+                    f'{ROOT_DIR}/models/models--pyannote--wespeaker-voxceleb-resnet34-LM', 
+                    self._process_callback, 
+                    None,
+                    hf_token)
 
             _rs = self._new_process(callback=_run_speakers, title=title,
                                          is_cuda=self.cfg.is_cuda and speaker_type != 'built', kwargs=kw)

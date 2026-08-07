@@ -1,0 +1,1 @@
+Turkish is highly agglutinative, leading to very long words that speed up TTS. Compress meanings ruthlessly. Omit unnecessary suffixes and pronouns if the core meaning survives. Do not artificially reverse split sentences just to put the verb at the end; translate fragments in-place.

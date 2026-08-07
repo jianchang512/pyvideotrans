@@ -127,6 +127,8 @@ class BaseTTS(BaseCon):
             logger.error(f'试听配音时发生错误{self.error}')
             if isinstance(self.error, RetryError):
                 raise self.error.last_attempt.exception()
+            if not self.error:
+                self.error='No audio file was generated during the listening test.'
             raise self.error if isinstance(self.error, Exception) else DubbingSrtError(str(self.error))
 
         # 记录成功数量
@@ -167,6 +169,7 @@ class BaseTTS(BaseCon):
 
                 self.signal(text=f'{tr("Dubbing")} [{k + 1}/{self.len}]')
                 time.sleep(self.wait_sec)
+            self.signal(text=tr('The dubbing is finished'))
             return
 
         all_task = []
@@ -194,7 +197,7 @@ class BaseTTS(BaseCon):
                         raise error
                     completed_tasks += 1
                     self.signal(text=f"{tr('Dubbing')}: [{completed_tasks}/{self.len}] ...")
-            self.signal(text=f"TTS ended ...")
+            self.signal(text=tr('The dubbing is finished'))
         finally:
             # 只能取消排队的任务，并让主线程不再等待。
             pool.shutdown(wait=False)

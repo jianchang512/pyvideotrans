@@ -1,0 +1,1 @@
+Prioritize short syllable counts. Use polite informal (해요체) or casual (반말) register appropriately. Omit subjects and pronouns frequently. CRITICAL: Korean is SOV, but if the source is SVO and split, DO NOT merge or swap blocks. Translate the fragment as-is, using inversion (도치법) or ending with nouns/adjectives if necessary to match the original pacing.

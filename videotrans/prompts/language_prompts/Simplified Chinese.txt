@@ -1,0 +1,1 @@
+Keep character counts extremely low (target 2.5–3.5 chars/sec). Drop explicit pronouns (我, 你, 他) if the context is clear. Prefer 2-character words over 4-character idioms unless the idiom significantly reduces the total length. Use natural spoken particles (啊, 吧, 呢) carefully to aid TTS intonation without adding clutter.

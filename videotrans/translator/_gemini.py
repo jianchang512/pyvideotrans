@@ -4,11 +4,11 @@ from dataclasses import dataclass, field
 from typing import List, Union
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError, StopTask
-from videotrans.configure.config import tr,settings,params,logger
+from videotrans.configure.config import tr,settings,params,logger,ROOT_DIR
 from videotrans.translator._base import BaseTrans
 from google import genai
 from google.genai import types,errors
-
+from pathlib import Path
 from videotrans.util.help_misc import get_prompt
 
 
@@ -19,8 +19,12 @@ class Gemini(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-        self.model_name = params.get("gemini_model",'gemini-2.5-flash')
-        self.prompt = get_prompt(ainame='gemini',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name)
+        self.model_name = params.get("gemini_model",'gemini-3.5-flash')
+        lang_prompt=''
+        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_language_name}.txt'
+        if Path(lang_prompt_file).exists():
+            lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
+        self.prompt = get_prompt(ainame='gemini',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name).replace('{lang_prompt}',lang_prompt)
         self.api_keys = params.get('gemini_key', '').strip().split(',')
 
 

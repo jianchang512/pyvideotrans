@@ -910,5 +910,10 @@
 	"hebing-windows-title":"Merge V/A/Srt: Embed audio and subtitles into video",
     "Click to pause playback": "Click pause playback",
     "Increase table font size": "Increase table font size",
-    "Decrease table font size": "Decrease table font size"
+    "Decrease table font size": "Decrease table font size",
+	"ug":"uyghur",
+	"Import SRT(only effective for single-video)":"Import origin SRT(only effective single-video)",
+	"For instructions on importing local SRT files during batch translation":"For instructions on importing local SRT files during batch translation, please refer to [https://pyvideotrans.com/localsrt].",
+	"higgs-audio-v3-tips":"CUDA acceleration 8-bit quantization requires 10GB of gpu memory; pure CPU operation requires more than 20GB of RAM.",
+	"Standardized dubbing segment processing":"Standardized dubbing segment processing..."
 }

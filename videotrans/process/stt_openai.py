@@ -29,11 +29,12 @@ def openai_whisper(
     import whisper,zhconv
     from videotrans.process._stt_utils import _write_log, _resegment
     from videotrans.util._srt_parse import ms_to_time_string
+    device=f"cuda:{device_index}" if is_cuda else 'cpu'
 
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
         msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
     else:
-        msg = f"loading {model_name}"
+        msg = f"Loading {model_name} on {device}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
     raws = []
@@ -51,11 +52,9 @@ def openai_whisper(
 
         model = whisper.load_model(
             model_name,
-            device=f"cuda:{device_index}" if is_cuda else 'cpu',
+            device=device,
             download_root=ROOT_DIR + "/models"
         )
-        msg = f"Loaded {model_name}"
-        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
         last_end_time = audio_duration / 1000.0 if audio_duration > 0 else (speech_timestamps[-1][1] / 1000.0 if speech_timestamps else 0)
         speech_timestamps_flat = []
@@ -64,7 +63,9 @@ def openai_whisper(
         if speech_timestamps:
             _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe batch...'}))
             for it in speech_timestamps:
-                speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
+                if it[0]>=0 and it[1]>it[0]:
+                    speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
+            
             result = model.transcribe(
                 audio_file,
                 no_speech_threshold=no_speech_threshold,
@@ -134,4 +135,6 @@ def openai_whisper(
         return raws, None
     except BaseException as e:
         msg = traceback.format_exc()
+        if speech_timestamps:
+            msg+=f'\n{speech_timestamps=}'
         return False, f'{e}:{msg}'

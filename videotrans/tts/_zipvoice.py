@@ -2,6 +2,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
 from videotrans.configure.contants import ZIPVOICE_URL_MS, ZIPVOICE_URL_HF
 from videotrans.configure.excepts import DubbingSrtError
@@ -117,7 +118,7 @@ class ZipVoice(BaseTTS):
                         continue
                     ok += 1
                     self.convert_to_wav(output_filename, item['filename'])
-                    self.signal(text=f"Dubbing {ok}")
+                    self.signal(text=f"{tr('Dubbing')} {ok}")
                 except Exception as e:
                     _except = e
                     logger.exception(f'zipvoice dubbing error:{e}', exc_info=True)
@@ -131,7 +132,7 @@ class ZipVoice(BaseTTS):
         if ok == 0:
             raise _except if _except else DubbingSrtError('[zipvoice] dubbing error')
 
-        msg = "dubbing ended"
+        msg = f"{tr('Dubbing')} ended"
         if err > 0 and ok > 0:
             msg = f'[{err}] errors, {ok} succeed'
 

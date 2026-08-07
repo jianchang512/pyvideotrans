@@ -18,28 +18,29 @@ DOLPHIN=6
 Omnilingual=7
 PARAKEET_JA=8
 HUGGINGFACE_ASR = 9
+MOSS_DIARIZE=10
 
-OPENAI_API = 10
-QWEN3ASR = 11
-XIAOMIASR = 12
-ZIJIE_RECOGN_MODEL = 13
-ZHIPU_API = 14
+OPENAI_API = 11
+QWEN3ASR = 12
+XIAOMIASR = 13
+ZIJIE_RECOGN_MODEL = 14
+ZHIPU_API = 15
 
-GEMINI_SPEECH = 15
+GEMINI_SPEECH = 16
 
-Faster_Whisper_XXL = 16
-WHISPERX_API = 17
-PARAKEET = 18
+Faster_Whisper_XXL = 17
+WHISPERX_API = 18
+PARAKEET = 19
 
-AI_302 = 19
-ElevenLabs = 20
-GOOGLE_SPEECH = 21
+AI_302 = 20
+ElevenLabs = 21
+GOOGLE_SPEECH = 22
 
-Deepgram = 22
-CAMB_ASR = 23
-STT_API = 24
-WHISPER_NET = 25
-CUSTOM_API = 26
+Deepgram = 23
+CAMB_ASR = 24
+STT_API = 25
+WHISPER_NET = 26
+CUSTOM_API = 27
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
@@ -59,6 +60,8 @@ _ID_NAME_DICT = {
     Omnilingual: ChannelProvider(f"{tr('Omnilingual')}({tr('Built-in')})", imp="._omnilingual"),
     PARAKEET_JA: ChannelProvider(f"{tr('parakeet-ja')}({tr('Built-in')})", imp="._parakeetja"),
     HUGGINGFACE_ASR: ChannelProvider(f"Huggingface_ASR({tr('Built-in')})", imp="._huggingface"),
+    MOSS_DIARIZE: ChannelProvider(f"MOSS-Diarize({tr('Built-in')})", imp="._moss"),
+    
 
 
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"), key_name="openairecognapi_key", win="openairecognapi",
@@ -90,6 +93,10 @@ _ID_NAME_DICT=dict(sorted(_ID_NAME_DICT.items(),key=lambda item:item[0]))
 RECOGN_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
 HUGGINGFACE_ASR_MODELS = {
+    "Audio8/ARK-ASR-0.6B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
+    "Audio8/ARK-ASR-3B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
+    "zai-org/GLM-ASR-Nano-2512": ['zh','en','yue'],
+    "ibm-granite/granite-speech-4.1-2b": ['fr','en','de','es','pt','ja'],
     "nvidia/parakeet-ctc-1.1b": ['en'],
     # hub
     "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],
@@ -97,11 +104,9 @@ HUGGINGFACE_ASR_MODELS = {
     "kotoba-tech/kotoba-whisper-v2.0": ['ja'],
     # pipeline whisper
     "biodatlab/whisper-th-large-v3": ['th'],
-    "zai-org/GLM-ASR-Nano-2512": ['zh','en','yue'],
     "vinai/Phowhisper-large": ['vi'],
+    "anke01/whisper-small-uyghur":['ug'],
     "openai/whisper-large-v3": [],
-    "openai/whisper-tiny": [],
-    "anke01/whisper-small-uyghur":[],
     #"OpenMOSS-Team/MOSS-Transcribe-Diarize":[]
 }
 try:

@@ -32,7 +32,7 @@ def qwen3tts_fun(
     if is_cuda:
         device_map = f'cuda:{device_index}'
         # qwen_tts 在cuda加速时可能遇到 device-side assert triggered 报错，改为 float32 或  bfloat16 类型可解决
-        dtype=torch.float32 if not torch.cuda.is_bf16_supported() else torch.bfloat16
+        dtype=torch.float16 if not torch.cuda.is_bf16_supported() else torch.bfloat16
     else:
         device_map = 'cpu'
         dtype=torch.float32
@@ -85,7 +85,7 @@ def qwen3tts_fun(
                     last_error="No text for dubbing"
                     continue
                 role=it.get('role')
-                _write_log(logs_file, json.dumps({"type": "logs", "text": f'{i+1}/{_len} {role}'}))
+                _write_log(logs_file, json.dumps({"type": "logs", "text": f'Qwen3-TTS {i+1}/{_len} {role}'}))
                 if role in CUSTOM_VOICE and CUSTOM_OBJ:
                     wavs, sr = CUSTOM_OBJ.generate_custom_voice(
                         text=text,

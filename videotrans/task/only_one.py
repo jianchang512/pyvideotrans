@@ -1,6 +1,6 @@
 # 执行单个视频翻译任务时 暂停等待
 import json,re
-import time
+import time,shutil
 import traceback
 from pathlib import Path
 from typing import Optional,  Dict, Any
@@ -45,7 +45,11 @@ class Worker(QThread):
         try:
             self.uuid = self.file['uuid']
             trk = TransCreate(cfg=TaskCfgVTT(**self.cfg | self.file))
+            trk.do_diarize=True#根据选项进行说话人分离
             # 原始语言字幕文件
+            if vail_file(app_cfg.onlyone_importsrtfile):
+                Path(trk.cfg.source_sub).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(app_cfg.onlyone_importsrtfile,trk.cfg.source_sub)
             app_cfg.onlyone_source_sub = trk.cfg.source_sub
             app_cfg.onlyone_source_wav = trk.cfg.source_wav
             app_cfg.onlyone_target_sub = trk.cfg.target_sub
@@ -158,6 +162,8 @@ class Worker(QThread):
             if trk:
                 msg+=f'cfg={trk.cfg}'
             self._post(text=msg, type='error')
+        finally:
+            app_cfg.onlyone_importsrtfile=None
 
     def _post(self, text='', type='logs'):
         try:

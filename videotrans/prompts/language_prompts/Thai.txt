@@ -1,0 +1,1 @@
+Thai has no spaces between words. You MUST phrase the translation so the TTS engine correctly identifies word boundaries. Avoid excessively formal or royal vocabulary. Use spoken particles (ครับ/ค่ะ, นะ) but keep them minimal to save time. Keep phrasing extremely direct.

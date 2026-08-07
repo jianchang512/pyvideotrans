@@ -54,12 +54,16 @@ class WinActionBaseFileMixin:
             self.queue_mp4 = mp4_list
 
     def get_save_dir(self):
-        dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),
-                                                              params.get('last_opendir', ''))
-        dirname = Path(dirname).resolve().as_posix()
-        self.main.target_dir = dirname
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(self.main, tr('selectsavedir'),'')
+        if dirname:            
+            dirname = Path(dirname).resolve().as_posix()
+            self.main.target_dir = dirname
+            self.main.output_dir.setText(tr('Translation results saved to:') + dirname)
+        else:
+            self.main.target_dir = None
+            self.main.output_dir.setText('')
+        
         self.main.btn_save_dir.setToolTip(dirname)
-        self.main.output_dir.setText(tr('Translation results saved to:') + dirname)
         params['output_dir'] = dirname
         params.save()
 
@@ -90,7 +94,7 @@ class WinActionBaseFileMixin:
 
     def _test_proxy(self, test_version, test_proxy):
         import requests,threading
-        if test_version != self._proxy_test_version:
+        if not test_proxy or test_version != self._proxy_test_version:
             return
         def _curl():
             try:
@@ -98,7 +102,8 @@ class WinActionBaseFileMixin:
             except Exception as e:
                 if test_version != self._proxy_test_version:
                     return
-                set_process(text=test_proxy, type="proxy_error")
+                if self.main.proxy.text().strip()==test_proxy:
+                    set_process(text=test_proxy, type="proxy_error")
         threading.Thread(target=_curl).start()
 
     def proxy_alert(self):
@@ -123,3 +128,17 @@ class WinActionBaseFileMixin:
         Path(ROOT_DIR + "/videotrans/codec.json").unlink(missing_ok=True)
         Path(ROOT_DIR + "/videotrans/ass.json").unlink(missing_ok=True)
         self.main.restart_app()
+
+
+    def import_srtfile(self):
+        fname,_ = QtWidgets.QFileDialog.getOpenFileName(self.main,
+                                                                tr("Import SRT(only effective for single-video)"),
+                                                                params.get('last_opendir', ''),
+                                                                f'Files(*.srt)')
+        app_cfg.onlyone_importsrtfile=None
+        self.main.subtitle_area.clear()
+        if fname:
+            app_cfg.onlyone_importsrtfile=fname            
+            self.main.subtitle_area.insertPlainText(f'{tr("Import SRT(only effective for single-video)")}\n{tr("For instructions on importing local SRT files during batch translation")}\n\n'+Path(fname).read_text(encoding='utf-8'))
+        
+        #params['last_opendir'] = Path(mp4_list[0]).parent.resolve().as_posix()

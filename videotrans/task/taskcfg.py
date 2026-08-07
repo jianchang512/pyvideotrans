@@ -185,7 +185,7 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
         _msg=[]
         from videotrans.recognition import ALLOW_CHANGE_MODEL
         from videotrans.util.tools import get_recogn_type,get_tanslate_type,get_tts_type
-        from videotrans.configure.config import tr,settings
+        from videotrans.configure.config import tr,settings,app_cfg
 
         isTrue={True:"已选",False:"未选"}
         _duanjus=["默认断句","LLM重新断句"]
@@ -215,7 +215,7 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
             _msg.append(f'{"已选 恢复标点符号" if self.fix_punc==1 else "已选 删除所有标点符号"}')
         
         
-        _msg.append(f"{tr('Speech Recognit')}:{get_recogn_type(self.recogn_type)}, model_name: {self.model_name if self.recogn_type in ALLOW_CHANGE_MODEL else ''}, 发音语言: {self.source_language}, 断句方式:{_duanjus[self.rephrase]}")
+        _msg.append(f"{tr('Speech Recognit')}:{get_recogn_type(self.recogn_type)}, {self.model_name if self.recogn_type in ALLOW_CHANGE_MODEL else ''}, 发音语言: {self.source_language}, 断句方式:{_duanjus[self.rephrase]}")
         
         if self.target_language in [None,'No','-'] or self.source_language==self.target_language:
             _msg.append(f'{"发音语言和目标语言相同" if self.source_language==self.target_language else "未选 目标语言"}，不翻译字幕')
@@ -257,5 +257,6 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
                 _msg.append(_str)
             if self.only_out_mp4:
                 _msg.append('已选 仅输出mp4')
-        _msg.append(f'代理地址:{settings.get("proxy")}')
+        if app_cfg.proxy:
+            _msg.append(f'代理地址:{app_cfg.proxy}')
         return "\n".join(_msg)

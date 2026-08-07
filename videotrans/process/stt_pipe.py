@@ -40,9 +40,9 @@ def pipe_asr(
         for item in raws:
             yield item['filename']
 
-    device_arg = f'cuda:{device_index}' if is_cuda else 'auto'
+    device_arg = f'cuda:{device_index}' if is_cuda else 'cpu'
 
-    msg = f"Loading pipeline from {local_dir}"
+    msg = f"Loading model on {device_arg}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
     vt_logger.debug(f'huggingface_asr渠道使用模型: {local_dir}')
     
@@ -60,9 +60,6 @@ def pipe_asr(
             device_map=device_arg,
             dtype=torch.float16 if is_cuda else torch.float32,
         )
-
-        msg = f'Pipeline loaded on device={p.model.device}'
-        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
         
         generate_kwargs = {}
 
@@ -102,7 +99,7 @@ def pipe_asr(
             total = len(raws)
 
             for i, (it, res) in enumerate(zip(raws, results_iterator)):
-                _write_log(logs_file, json.dumps({"type": "logs", "text": f"subtitles {i + 1}/{total}..."}))
+                _write_log(logs_file, json.dumps({"type": "logs", "text": f"Subtitles {i + 1}/{total}..."}))
                 text = res.get('text', '')
                 if text:
                     cleaned_text = re.sub(r'<unk>|</unk>', '', text).strip()

@@ -217,6 +217,7 @@ class WinActionTaskMixin:
             self.set_tiquzimu()
         self._reset()
         self.had_click_btn = False
+        app_cfg.onlyone_importsrtfile=None
 
     def update_data(self, uuid: Union[str, None] = "", d: Union[SignMsg, None] = None):
 

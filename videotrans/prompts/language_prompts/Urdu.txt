@@ -1,0 +1,1 @@
+CRITICAL RTL RULE: Maintain correct Right-To-Left formatting. Use everyday conversational Urdu. Feel free to use extremely common English loanwords if they are standard in spoken Urdu, as this often reduces length and improves naturalness.

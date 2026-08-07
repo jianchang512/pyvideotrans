@@ -50,13 +50,25 @@
 	"ru":{
 		"config":"f5ttscfg/ru.yaml",
 		"model_name":"model_last.safetensors",
-		"vocab_name":"vocab_.txt",
+		"vocab_name":"vocab.txt",
 		"repid":"hotstone228/F5-TTS-Russian"
 	},
 	"es":{
 		"config":"f5ttscfg/es.yaml",
 		"model_name":"model_1250000.safetensors",
-		"vocab_name":"vocab_.txt",
+		"vocab_name":"vocab.txt",
 		"repid":"jpgallegoar/F5-Spanish"
+	},
+	"tr":{
+		"config":"f5ttscfg/tr.yaml",
+		"model_name":"model_last.pt",
+		"vocab_name":"vocab.txt",
+		"repid":"multilingual-tts/F5-TTS-OpenBible-Turkish"
+	},
+	"vi":{
+		"config":"f5ttscfg/vi.yaml",
+		"model_name":"model_last.pt",
+		"vocab_name":"vocab.txt",
+		"repid":"multilingual-tts/F5-TTS-OpenBible-Vietnamese"
 	}
 }

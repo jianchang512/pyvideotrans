@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import json
 from videotrans import translator
+from videotrans.configure._i18n import tr
 from videotrans.configure.config import ROOT_DIR,params,defaulelang,TEMP_DIR
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_misc import vail_file, is_connect_hf
@@ -56,8 +57,9 @@ class QwenttsLocal(BaseTTS):
         }
         from videotrans.process.qwen_tts import qwen3tts_fun
         self._new_process(callback=qwen3tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+
         if self.is_redubb:return
-        self.signal(text=f'convert wav')
+        self.signal(text=tr('Standardized dubbing segment processing'))
         all_task = []
 
         with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:

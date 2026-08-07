@@ -2,6 +2,8 @@ import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
+
+from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_QUEUE_FILE, REDUBB_STATUS_FILE
 from videotrans.configure.contants import GPTW_URL_MS, GPTW_URL_HF
 from videotrans.configure.excepts import DubbingSrtError
@@ -109,7 +111,7 @@ class PiperTTS(BaseTTS):
                         continue
                     ok+=1
                     self.convert_to_wav(item['filename']+'-24k.wav',item['filename'])
-                    self.signal(text=f"Dubbing {ok}")
+                    self.signal(text=f"{tr('Dubbing')} {ok}")
                 except Exception as e:
                     logger.exception(f'piper dubbing error',exc_info=True)
                     err+=1
@@ -124,7 +126,7 @@ class PiperTTS(BaseTTS):
         if ok==0:
             raise _except if _except else DubbingSrtError('piper dubbing error')
 
-        msg="Dubbing ended"
+        msg=f"{tr('Dubbing')} ended"
         if err > 0 and ok>0:
             msg=f'[{err}] errors, {ok} succeed'
 

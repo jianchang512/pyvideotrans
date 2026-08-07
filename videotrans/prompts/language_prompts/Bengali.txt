@@ -1,0 +1,1 @@
+Use standard colloquial Bengali (Cholito bhasha). Avoid formal written (Shadhu bhasha) terms. Prioritize short, everyday words to ensure the TTS pacing remains steady and audible.

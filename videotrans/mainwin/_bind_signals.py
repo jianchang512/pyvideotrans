@@ -40,6 +40,7 @@ class BindSignalsMixin:
         self.glossary.clicked.connect(lambda: show_glossary_editor(self))
         self.action_biaozhun.triggered.connect(self.win_action.set_biaozhun)
         self.action_tiquzimu.triggered.connect(self.win_action.set_tiquzimu)
+        self.import_subtitle.clicked.connect(self.win_action.import_srtfile)
 
         self.actionbaidu_key.triggered.connect(lambda: self.open_winform('baidu'))
         self.actionali_key.triggered.connect(lambda: self.open_winform('ali'))
