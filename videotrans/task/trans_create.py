@@ -48,6 +48,8 @@ class TransCreate(
     clone_ref: str = ""
     cost_duration:float=0.0
     should_recogn2:bool=False
+    # 批量时不进行说话人分离，仅在单个视频翻译时，根据选项进入说话人
+    do_diarize:bool=False
 
     def __post_init__(self):
         super().__post_init__()

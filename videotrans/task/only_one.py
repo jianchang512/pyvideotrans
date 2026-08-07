@@ -45,6 +45,7 @@ class Worker(QThread):
         try:
             self.uuid = self.file['uuid']
             trk = TransCreate(cfg=TaskCfgVTT(**self.cfg | self.file))
+            trk.do_diarize=True#根据选项进行说话人分离
             # 原始语言字幕文件
             if vail_file(app_cfg.onlyone_importsrtfile):
                 Path(trk.cfg.source_sub).parent.mkdir(parents=True, exist_ok=True)

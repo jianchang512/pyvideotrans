@@ -13,7 +13,7 @@ class DiarizMixin:
 
     def diariz(self):
         _st=time.time()
-        if self._exit() or not self.cfg.enable_diariz or self.max_speakers == 1 or Path(
+        if self._exit() or not self.do_diarize or not self.cfg.enable_diariz or self.max_speakers == 1 or Path(
                 self.cfg.cache_folder + "/speaker.json").exists():
             return
         speaker_type = settings.get('speaker_type', 'built')
