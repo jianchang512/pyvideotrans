@@ -20,15 +20,6 @@ def _check_gorm(name='google'):
         if name=='google':
             requests.head(f"https://translate.google.com", timeout=5,verify=False,headers=headers)
             return True
-
-        auth = requests.head(
-            'https://edge.microsoft.com/translate/translatetext',
-            headers=headers,
-            verify=False,
-            timeout=5,
-        )
-        if not auth or auth.status_code == 404:
-            return False
     except Exception as e:
         logger.exception(f'检测 {name} 翻译失败{e}', exc_info=True)
         return False
@@ -70,11 +61,6 @@ def run(*, translate_type=0,
         logger.warning('未设置代理并且检测google失败，改为使用微软翻译')
         translate_type = MICROSOFT_INDEX
         kwargs['translate_type']=translate_type
-    # 如果微软也失败，改为 M2M100_INDEX
-    if translate_type==MICROSOFT_INDEX and not _check_gorm(name='microsoft'):
-        logger.warning('检测微软翻译不可用，改为使用 M2M100_INDEX')
-        translate_type=M2M100_INDEX
-        kwargs['translate_type']=M2M100_INDEX
     _cls: Union[Type[BaseTrans], None] = get_class(translate_type,"translator",_ID_NAME_DICT)
     if _cls is None:
         raise RuntimeError(f'No this Translation Channel:{translate_type}')
