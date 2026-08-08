@@ -21,8 +21,13 @@ def _check_gorm(name='google'):
             requests.head(f"https://translate.google.com", timeout=5,verify=False,headers=headers)
             return True
 
-        auth = requests.head('https://edge.microsoft.com/translate/auth', headers=headers, verify=False)
-        if not auth or auth.status_code==404:
+        auth = requests.head(
+            'https://edge.microsoft.com/translate/translatetext',
+            headers=headers,
+            verify=False,
+            timeout=5,
+        )
+        if not auth or auth.status_code == 404:
             return False
     except Exception as e:
         logger.exception(f'检测 {name} 翻译失败{e}', exc_info=True)
