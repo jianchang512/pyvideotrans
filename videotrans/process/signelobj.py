@@ -3,6 +3,25 @@ import time
 
 from videotrans.configure.config import app_cfg, settings, logger
 
+def pool_init_worker():
+    import sys
+    class NullWriter:
+        def write(self, *args, **kwargs): pass
+        def flush(self, *args, **kwargs): pass
+        def isatty(self): return False
+        def fileno(self): return -1
+        def read(self, *args, **kwargs): return ""
+        def close(self): pass
+        @property
+        def encoding(self): return "utf-8"
+        @property
+        def closed(self): return False
+
+    _null_writer = NullWriter()
+    for _stream in ['stdout', 'stderr', 'stdin', '__stdout__', '__stderr__', '__stdin__']:
+        if getattr(sys, _stream, None) is None:
+            setattr(sys, _stream, _null_writer)
+
 
 def _task_worker_wrapper(func, kwargs):
     os.environ["OMP_NUM_THREADS"] = "1"
@@ -113,6 +132,7 @@ class GlobalProcessManager:
             logger.debug(f'CPU进程池:{max_workers=}')
             cls._executor_cpu = ctx.Pool(
                 processes=int(max_workers),
+                initializer=pool_init_worker, 
                 maxtasksperchild=1  # <--- CPU 也让它跑完就死，彻底释放物理内存
             )
         return cls._executor_cpu
@@ -128,6 +148,7 @@ class GlobalProcessManager:
             logger.debug(f'GPU进程池:{max_workers=}')
             cls._executor_gpu = ctx.Pool(
                 processes=int(max_workers),
+                initializer=pool_init_worker, 
                 maxtasksperchild=1
             )
 

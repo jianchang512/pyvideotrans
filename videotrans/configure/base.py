@@ -9,18 +9,6 @@ from typing import Optional
 from videotrans.configure.config import tr, settings, app_cfg, logger, push_queue, TEMP_ROOT
 from videotrans.util.help_misc import set_proxy,vail_file
 import sys
-# --- 修复 NoneType object has no attribute 'isatty' 开始 ---
-class NullWriter:
-    def write(self, *args, **kwargs): pass
-    def flush(self, *args, **kwargs): pass
-    def isatty(self): return False
-
-if sys.stdout is None:
-    sys.stdout = NullWriter()
-if sys.stderr is None:
-    sys.stderr = NullWriter()
-if sys.stdin is None:
-    sys.stdin = NullWriter()
 
 
 
