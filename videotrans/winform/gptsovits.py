@@ -72,7 +72,7 @@ def openwin():
 
     winobj.api_url.setText(str(params.get("gptsovits_url",'')))
     winobj.role.setPlainText(str(params.get("gptsovits_role",'')))
-    winobj.is_v2.setChecked(str(params.get("gptsovits_isv2",'')))
+    winobj.is_v2.setChecked(bool(params.get("gptsovits_isv2",True)))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.show()

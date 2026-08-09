@@ -42,6 +42,7 @@ class BaseWorker(QThread):
     def handle_error(self, e, trk):
         """统一的错误处理逻辑"""
         logger.exception(e, exc_info=True)
+        logger.error(f'{trk.cfg=}')
         # 简单的错误消息
         except_msg = get_msg_from_except(e)
         # 错误堆栈
