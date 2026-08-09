@@ -144,7 +144,7 @@ class TaskCfgSTT(TaskCfgBase):
         from videotrans.recognition import ALLOW_CHANGE_MODEL
         from videotrans.util.tools import get_recogn_type
         from videotrans.configure.config import tr, app_cfg
-        _msg = [f'[TaskCfgSTT]语音转录']
+        _msg = [f'[TaskCfgSTT]']
         _msg.append(f'原始输入文件名: {self.name}, \n输出结果保存到文件夹: {self.target_dir},\n临时文件夹: {self.cache_folder}')
         _msg.append(f'{"已" if self.is_cuda else "未"}启用CUDA加速')
         _msg.append(f'{isTrue[self.remove_noise]} 降噪')
@@ -181,7 +181,7 @@ class TaskCfgTTS(TaskCfgBase):
         from videotrans.util.tools import get_tts_type
         from videotrans.configure.config import tr, app_cfg
 
-        _msg.append(f'[TaskCfgTTS]语音合成')
+        _msg.append(f'[TaskCfgTTS]')
         _msg.append(f'原始输入文件名: {self.name}, \n输出结果保存到文件夹: {self.target_dir},\n临时文件夹: {self.cache_folder}')
         _msg.append(f'{"已" if self.is_cuda else "未"}启用CUDA加速')
         _msg.append(
@@ -206,7 +206,7 @@ class TaskCfgSTS(TaskCfgBase):
         _msg = []
         from videotrans.util.tools import get_tanslate_type
         from videotrans.configure.config import tr, settings, app_cfg
-        _msg.append(f'[TaskCfgSTS]字幕翻译')
+        _msg.append(f'[TaskCfgSTS]')
         _msg.append(f'原始输入文件名: {self.name}, \n输出结果保存到文件夹: {self.target_dir}')
         _msg.append(
             f"{tr('Translate channel')}:{get_tanslate_type(self.translate_type)},原始语言:{self.source_language_code},目标语言:{self.target_language_code}, {isTrue[settings['aisendsrt']]} {tr('Send SRT')}")

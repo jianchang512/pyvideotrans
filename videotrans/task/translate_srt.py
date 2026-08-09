@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-from videotrans.configure.config import tr, HOME_DIR
+from videotrans.configure.config import tr, HOME_DIR,logger
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTS, SrtItem
 from videotrans.translator import run
@@ -22,6 +22,10 @@ class TranslateSrt(BaseTask):
     out_format: int = field(init=True, default=0)
     # 固定应该翻译
     should_trans: bool = True
+    
+    def __repr__(self):        
+        _format=["单语字幕","双语(目标语言在上)","双语(目标语言在下)"]
+        return f'[TranslateSrt]翻译字幕: OutputFormat={_format[self.out_format]}\n{self.cfg}'
 
     def __post_init__(self):
         super().__post_init__()
@@ -38,7 +42,7 @@ class TranslateSrt(BaseTask):
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
         if self.cfg.cache_folder:
             Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
-
+        logger.debug(f'{self}')
 
     def trans(self):
         if self._exit(): return

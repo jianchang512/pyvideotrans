@@ -30,6 +30,9 @@ class DubbingSrt(BaseTask):
     # 多角色配音时直接使用该字幕信息
     subs: List = field(default_factory=list, repr=False)
 
+    def __repr__(self):        
+        return f'[DubbingSrt]语音合成: {self.out_ext=},{self.is_multi_role=}\n{self.cfg}'
+
     def __post_init__(self):
         super().__post_init__()
         # 输出目标位置
@@ -40,9 +43,10 @@ class DubbingSrt(BaseTask):
         # 配音后音频文件保存为
         self.cfg.target_wav = f'{self.cfg.target_dir}/{self.cfg.noextname}.wav'
         self.signal(text=tr("Dubbing from subtitles"))
-        logger.debug(f'配音 {self.cfg=}')
+
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
         Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
+        logger.debug(f'{self}')
 
 
 

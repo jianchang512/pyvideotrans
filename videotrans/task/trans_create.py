@@ -117,7 +117,7 @@ class TransCreate(
         self.cfg.vocal = f"{self.cfg.cache_folder}/vocal.wav"
         self.cfg.instrument = f"{self.cfg.cache_folder}/instrument.wav"
 
-        logger.debug(f"[TransCreate]最终配置信息：{self=}\n{self.cfg=}")
+        logger.debug(f"{self}")
         self.signal(text="forbid", type="disabled_edit")
 
         def runing():
@@ -130,3 +130,5 @@ class TransCreate(
         if app_cfg.exec_mode != 'cli':
             threading.Thread(target=runing, daemon=True).start()
 
+    def __repr__(self):
+        return f'[TransCreate]翻译视频: {self.is_copy_video=},{self.video_codec_num=},{self.is_audio_trans=}\n{self.cfg}'

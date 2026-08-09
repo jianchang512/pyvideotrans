@@ -10,8 +10,7 @@ from typing import List
 from videotrans.configure import contants
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger, HOME_DIR
 from videotrans.configure import config
-from videotrans.configure.contants import BUILTINT_URL_MS, PUNC_RESTORE_MS, DENOISE_URL_MS, BUILTINT_URL_HF, \
-    DENOISE_URL_HF, PUNC_RESTORE_HF
+from videotrans.configure.contants import BUILTINT_URL_MS, PUNC_RESTORE_MS, DENOISE_URL_MS, BUILTINT_URL_HF,  DENOISE_URL_HF, PUNC_RESTORE_HF
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
@@ -36,6 +35,9 @@ class SpeechToText(BaseTask):
     # 插入说话人到字幕开头
     spk_insert: bool = True
 
+    def __repr__(self):        
+        return f'[SpeechToText]语音转录: {self.out_format=},{self.copysrt_rawvideo=},{self.spk_insert=}\n{self.cfg}'
+
     def __post_init__(self):
         super().__post_init__()
         # -1=不启用说话人，0=启用并且不限制说话人数量，>0+1是最大说话人数量
@@ -52,6 +54,7 @@ class SpeechToText(BaseTask):
         # 处理为 16k 的wav单通道音频，供模型识别用
         self.cfg.shibie_audio = self.cfg.cache_folder + f'/{self.cfg.noextname}-{time.time()}.wav'
         self.signal(text=tr("Speech Recognition to Word Processing"))
+        logger.debug(f'{self}')
 
     # 预先处理
     def prepare(self):
