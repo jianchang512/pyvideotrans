@@ -24,27 +24,27 @@
 
 ---
 
-## ✨ Core Features
+##  Core Features
 
 > [Technical Architecture and Principles](docs/architecture.md)
 
-- **🎥 Fully Automatic Video Translation**: One-click workflow: Speech Recognition (ASR) → Subtitle Translation → Speech Synthesis (TTS) → Video Synthesis.
-- **🎙️ Audio Transcription / Subtitle Generation**: Batch convert audio/video to SRT subtitles, supporting **Speaker Diarization** to distinguish between different roles.
-- **🗣️ Multi-Role AI Dubbing**: Assign different AI dubbing voices to different speakers.
-- **🧬 Voice Cloning**: Integrates models like **F5-TTS, CosyVoice, GPT-SoVITS** for zero-shot voice cloning.
-- **🧠 Powerful Model Support**:
+- ** Fully Automatic Video Translation**: One-click workflow: Speech Recognition (ASR) → Subtitle Translation → Speech Synthesis (TTS) → Video Synthesis.
+- ** Audio Transcription / Subtitle Generation**: Batch convert audio/video to SRT subtitles, supporting **Speaker Diarization** to distinguish between different roles.
+- **️ Multi-Role AI Dubbing**: Assign different AI dubbing voices to different speakers.
+- ** Voice Cloning**: Integrates models like **F5-TTS, CosyVoice, GPT-SoVITS** for zero-shot voice cloning.
+- ** Powerful Model Support**:
   - **ASR**: Faster-Whisper (Local), OpenAI Whisper, Alibaba Qwen, ByteDance Volcano, Azure, Google, etc.
   - **LLM Translation**: DeepSeek, ChatGPT, Claude, Gemini, MiniMax, Ollama (Local), Alibaba Bailian, etc.
   - **TTS**: Edge-TTS (Free), OpenAI, Azure, Minimaxi, ChatTTS, ChatterBox, etc.
-- **🖥️ Interactive Editing**: Supports pausing and manual proofreading at each stage (recognition, translation, dubbing) to ensure accuracy.
-- **🛠️ Utility Toolkit**: Includes auxiliary tools such as vocal separation, video/subtitle merging, audio-video alignment, and transcript matching.
-- **💻 Command Line Interface (CLI)**: Supports headless operation, convenient for server deployment or batch processing.
-- **🌐 Web Interface (WebUI)**: Browser-based interface for remote access or internal network deployment.
+- **️ Interactive Editing**: Supports pausing and manual proofreading at each stage (recognition, translation, dubbing) to ensure accuracy.
+- **️ Utility Toolkit**: Includes auxiliary tools such as vocal separation, video/subtitle merging, audio-video alignment, and transcript matching.
+- ** Command Line Interface (CLI)**: Supports headless operation, convenient for server deployment or batch processing.
+- ** Web Interface (WebUI)**: Browser-based interface for remote access or internal network deployment.
 
 
 ---
 
-## 🚀 Quick Start (Windows Users)
+##  Quick Start (Windows Users)
 
 We provide a pre-packaged `.exe` version for Windows 10/11 users, requiring no Python environment configuration.
 
@@ -58,7 +58,7 @@ We provide a pre-packaged `.exe` version for Windows 10/11 users, requiring no P
 
 ---
 
-## 🛠️ Source Deployment (macOS / Linux / Windows Developers)
+## ️ Source Deployment (macOS / Linux / Windows Developers)
 
 We recommend using **[`uv`](https://docs.astral.sh/uv/)** for package management for faster speed and better environment isolation.
 
@@ -167,7 +167,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 ---
 
-## 🧩 Supported Channels & Models (Partial)
+##  Supported Channels & Models (Partial)
 
 | Category | Channel/Model | Description |
 | :--- | :--- | :--- |
@@ -185,17 +185,17 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 ---
 
-## 📚 Documentation & Support
+##  Documentation & Support
 
 * **Official Documentation**: [https://pyvideotrans.com](https://pyvideotrans.com) (Includes detailed tutorials, API configuration guides, FAQ)
 * **Online Q&A Community**: [https://bbs.pyvideotrans.com](https://bbs.pyvideotrans.com) (Submit error logs for automated AI analysis and answers)
 * **GitHub Wiki**: [architecture.md](docs/architecture.md) | [cli.md](docs/cli.md) | [webui.md](docs/webui.md) | [Synchronize.md](docs/Synchronize.md) | [faq.md](docs/faq.md)
 
-## ⚠️ Disclaimer
+##  Disclaimer
 
 This software is an open-source, free, non-commercial project. Users are solely responsible for any legal consequences arising from the use of this software (including but not limited to calling third-party APIs or processing copyrighted video content). Please comply with local laws and regulations and the terms of use of relevant service providers.
 
-## 🙏 Acknowledgements
+## Acknowledgements
 
 This project mainly relies on the following open-source projects (partial):
 

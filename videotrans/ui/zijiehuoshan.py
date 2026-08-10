@@ -45,7 +45,24 @@ class Ui_zijiehuoshanform(object):
         self.zijiehuoshan_model.setSizePolicy(sizePolicy)
         h2.addWidget(self.label_3)
         h2.addWidget(self.zijiehuoshan_model)
+        
+        
+        h_max_token = QtWidgets.QHBoxLayout()
+        label_token = QtWidgets.QLabel()
+        label_token.setObjectName("label_token")
+        label_token.setText("MaxOutToken")
+        self.huoshan_max_token = QtWidgets.QLineEdit()
+        self.huoshan_max_token.setMinimumSize(QtCore.QSize(0, 35))
+        self.huoshan_max_token.setObjectName("huoshan_max_token")
+        
+        self.huoshan_thinking = QtWidgets.QCheckBox()
+        self.huoshan_thinking.setObjectName("huoshan_thinking")
+        self.huoshan_thinking.setText("Thinking")
+        h_max_token.addWidget(label_token)
+        h_max_token.addWidget(self.huoshan_max_token)
+        h_max_token.addWidget(self.huoshan_thinking)
         v1.addLayout(h2)
+        v1.addLayout(h_max_token)
 
         self.label_allmodels = QtWidgets.QLabel(zijiehuoshanform)
         self.label_allmodels.setObjectName("label_allmodels")

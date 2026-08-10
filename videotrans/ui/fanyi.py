@@ -41,7 +41,7 @@ class Ui_fanyisrt(object):
         self.fanyi_translate_type.setObjectName("fanyi_translate_type")
 
         self.fanyi_model_list = QtWidgets.QComboBox()
-        self.fanyi_model_list.setMinimumSize(QtCore.QSize(100, 30))
+        self.fanyi_model_list.setMinimumSize(QtCore.QSize(200, 30))
         self.fanyi_model_list.setObjectName("fanyi_model_list")
         self.fanyi_model_list.setVisible(False)
 

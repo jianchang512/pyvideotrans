@@ -75,8 +75,7 @@ class OpenAICampat(BaseTrans):
         if self.reasoning_effort:
             kwargs["reasoning_effort"]=self.reasoning_effort
             
-        logger.debug(f'字幕翻译:[{self.ainame=},{kwargs=}]')
-        logger.debug(f'{kwargs=}')
+        logger.debug(f'字幕翻译:{self.ainame=},{kwargs=},{self.extra_body=}')
         kwargs["messages"]=message
         
         try:

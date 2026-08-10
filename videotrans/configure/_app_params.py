@@ -134,7 +134,9 @@ class AppParams:
             "openrouter_reasoning_effort": "No",
             "openrouter_model": str(_settings.get('openrouter_model', '-')).strip().split(',')[0],
             "openrouter_max_token": 16384,#最大输出16k
+            "huoshan_max_token": 32768,#最大输出32k
             "zijiehuoshan_key": "",
+            "huoshan_thinking": False,
             "zijiehuoshan_model": str(_settings.get('zijiehuoshan_model', '-')).strip().split(',')[0],
             "qwenmt_key": "",
             "qwenmt_spaceid": "",
