@@ -23,8 +23,6 @@ class BaseTask(BaseCon):
     should_trans: bool = False
     # 是否需要配音
     should_dubbing: bool = False
-    # 是否需要人声分离
-    should_separate: bool = False
     # 是否需要嵌入配音或字幕
     should_hebing: bool = False
 

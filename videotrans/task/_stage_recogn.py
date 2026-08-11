@@ -32,8 +32,9 @@ class RecognMixin:
 
         if not vail_file(self.cfg.source_wav):
             raise SpeechToTextError(tr("Failed to separate audio, please check the log or retry"))
-        from videotrans.util.help_down import down_file_from_hf
-        if self.cfg.remove_noise:
+        # 未分离人声背景时才降噪，已分离则不再降噪
+        if self.cfg.remove_noise and not self.cfg.is_separate:
+            from videotrans.util.help_down import down_file_from_hf
             _remove_noise_wav = f"{self.cfg.cache_folder}/remove_noise.wav"
             if vail_file(_remove_noise_wav):
                 self.cfg.source_wav = _remove_noise_wav
@@ -52,7 +53,7 @@ class RecognMixin:
                     from videotrans.process.prepare_audio import remove_noise
                     _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                     if _rs:
-                        self.clone_ref = self.cfg.vocal if self.cfg.vocal and Path(self.cfg.vocal).exists() else _remove_noise_wav
+                        self.clone_ref = _remove_noise_wav
                         self.cfg.source_wav = _remove_noise_wav
                     self.signal(text='remove noise end')
                 except Exception as e:
@@ -82,7 +83,7 @@ class RecognMixin:
 
         self._save_srt_target(raw_subtitles, self.cfg.source_sub)
         self.source_srt_list = raw_subtitles
-
+        # 恢复标点
         if self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
             try:
                 down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF, callback=self._process_callback)
@@ -111,8 +112,8 @@ class RecognMixin:
             self.signal(text=tr('endtiquzimu'))
             return
         
-        # 选中说话人识别，则不重新断句
-        if not self.cfg.enable_diariz and self.cfg.rephrase==1:
+        # 未选中说话人识别时，才重新断句
+        if self.cfg.rephrase==1 and (not self.do_diarize or not self.cfg.enable_diariz):
             try:
                 from videotrans.translator._openaicompat import OpenAICampat
                 ob = OpenAICampat(

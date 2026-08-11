@@ -50,12 +50,13 @@ def mosstrans_asr(
         prompt="请将音频转写为文本，每一段需以起始时间戳和说话人编号（[S01]、[S02]、[S03]…）开头，正文为对应的语音内容，并在段末标注结束时间戳，以清晰标明该段语音范围。"
         if hotword:
             prompt+=f'热词提示：{hotword}'
+        result=""
+        raws=[]
         if cut_audio_list:
             # 是文件名，获取列表
-            cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in
+            cut_audio_list = [SrtItem(**item) for item in
                                              json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
             raws = cut_audio_list
-
             for i,it in enumerate(raws):
                 _write_log(logs_file, json.dumps({"type": "logs", "text": f'Moss-Diarize {i}/{len(raws)} \n'}))
                 messages = build_transcription_messages(it['filename'],prompt=prompt)
@@ -82,7 +83,6 @@ def mosstrans_asr(
                 device=device,
                 dtype=dtype,
             )
-            raws=[]
             spks=[]
             for i,segment in enumerate(parse_transcript(result["text"])):
                 tmp = {
@@ -100,6 +100,8 @@ def mosstrans_asr(
                 _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {tmp["text"]}\n'}))
             if spks:
                 Path(f'{cache_folder}/speaker.json').write_text(json.dumps(spks), encoding='utf-8')
+        if not raws:
+            return False,f'{result}'
         return raws, None
     except Exception as e:
         msg = traceback.format_exc()

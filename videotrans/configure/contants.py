@@ -112,7 +112,7 @@ GEMINI_TTS_MODELS = "gemini-3.1-flash-tts-preview,gemini-2.5-flash-preview-tts,g
 
 Whisper_cpp_models = "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
 Whisper_net_models = Whisper_cpp_models
-Qwenmt_Model = "qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3.7-max,qwen3.7-plus,qwen3.6-flash,qwen3.6-plus,qwen3-asr-flash,qwen3-asr-flash-filetrans"
+Qwenmt_Model = "qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3.7-max,qwen3.7-plus,qwen3.6-flash,qwen3.6-plus,qwen3-asr-flash"
 Qwentts_Models = 'qwen3-tts-flash,qwen3-tts-instruct-flash,qwen-tts-latest,qwen-tts'
 Qpenaitts_Model = "tts-1,tts-1-hd,gpt-4o-mini-tts"
 

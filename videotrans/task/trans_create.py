@@ -49,6 +49,7 @@ class TransCreate(
     cost_duration:float=0.0
     should_recogn2:bool=False
     # 批量时不进行说话人分离，仅在单个视频翻译时，根据选项进入说话人
+    # 只要 do_diarize 是 Flase，无论是否选中分离说话人，都不分离，是 True时，若选中则分离
     do_diarize:bool=False
 
     def __post_init__(self):
@@ -111,7 +112,6 @@ class TransCreate(
         if self.cfg.app_mode == 'tiqu':
             self.cfg.enable_diariz = False
             self.should_dubbing = False
-        self.should_separate = self.cfg.is_separate
         self.should_recogn2 = self.cfg.recogn2pass and self.should_dubbing and self.cfg.subtitle_type<3 and (self.cfg.source_language_code != self.cfg.target_language_code)
 
         self.cfg.vocal = f"{self.cfg.cache_folder}/vocal.wav"

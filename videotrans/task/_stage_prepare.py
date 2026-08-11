@@ -60,7 +60,7 @@ class PrepareMixin:
                 logger.exception(f'分离人声背景声失败，跳过 {e}', exc_info=True)
             finally:
                 if not vail_file(self.cfg.vocal) or not vail_file(self.cfg.instrument):
-                    self.cfg.is_separate = self.should_separate = False
+                    self.cfg.is_separate = False
 
         if audio_stream_len > 0 and not vail_file(self.cfg.source_wav) and vail_file(self.cfg.vocal):
             cmd = [

@@ -38,7 +38,6 @@ def _create_file_row(ui, parent):
     layout.addWidget(ui.source_mp4)
 
     ui.btn_save_dir = QtWidgets.QPushButton()
-    #ui.btn_save_dir.setMinimumSize(QtCore.QSize(120, 30))
     ui.btn_save_dir.setObjectName("btn_save_dir")
     ui.btn_save_dir.setStyleSheet("""background-color:transparent;border:1px solid #455364""")
 

@@ -184,10 +184,11 @@ class BaseRecogn(BaseCon):
 
         try:
             from videotrans.process.vad import get_speech_timestamp, get_speech_timestamp_silero
-            self.speech_timestamps = self._new_process(
-                callback=get_speech_timestamp if _vad_type == 'tenvad' else get_speech_timestamp_silero,
-                title=title,
-                kwargs=kw)
+            # self.speech_timestamps = self._new_process(
+            #     callback=get_speech_timestamp if _vad_type == 'tenvad' else get_speech_timestamp_silero,
+            #     title=title,
+            #     kwargs=kw)
+            self.speech_timestamps = get_speech_timestamp(**kw) if _vad_type == 'tenvad' else get_speech_timestamp_silero(**kw)
         except Exception as e:
             logger.exception(f'VAD 处理失败 {e}', exc_info=True)
             if not self.recogn2pass:

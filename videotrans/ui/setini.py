@@ -26,6 +26,9 @@ notices = {
         "llm_ai_type": "LLM重新断句时使用的AI渠道，目前支持 OpenAI-ChatGPT 或 DeepSeek 渠道",
 
         "dont_notify": "任务完成或失败后不显示桌面通知",
+        "noise_separate_nums": "人声背景声分离线程数，越大越快但占用资源越多",
+        "uvr_models": "选择分离背景声时所用模型",
+
         "batch_nums": "批量翻译视频时，在此设置每批次同时翻译几个，默认0即不限制",
         "show_more_settings": "为避免过多参数造成困扰，主界面默认隐藏大部分参数，如果选中这里将切换为默认显示所有参数",
 
@@ -97,8 +100,7 @@ notices = {
         "chattts_voice": "ChatTTS 音色值",
         "edgetts_max_concurrent_tasks": "EdgeTTS渠道配音并发数，越大越快，但可能限流失败",
         "edgetts_retry_nums": "EdgeTTS渠道失败后重试次数,有些失败无论多少次重试也无法恢复，太大只会延长耗时",
-        "noise_separate_nums": "人声背景声分离线程数，越大越快但占用资源越多",
-        "uvr_models": "选择分离背景声时所用模型",
+
     },
     "justify": {
 
@@ -303,6 +305,9 @@ if defaulelang != 'zh':
 
             "dont_notify": "Disable desktop notifications for task completion or failure.",
 
+            "noise_separate_nums": "The more threads used for separation of human and background voices, the faster the process, but the more resources it consumes.",
+            "uvr_models": "Select the model used when separating background noise.",
+
             "batch_nums": "When translating in batches, set the number of lines to translate simultaneously in each batch here.",
             "show_more_settings": "To avoid confusion caused by too many parameters, most parameters are hidden by default on the main interface. Selecting this option will switch to displaying all parameters by default.",
 
@@ -374,8 +379,7 @@ if defaulelang != 'zh':
             "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
             "edgetts_retry_nums": "Number of retries after EdgeTTS channel failure",
             "chattts_voice": "ChatTTS voice timbre value.",
-            "noise_separate_nums": "The more threads used for separation of human and background voices, the faster the process, but the more resources it consumes.",
-            "uvr_models": "Select the model used when separating background noise.",
+
         },
         "justify": {
 
