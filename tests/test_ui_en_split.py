@@ -65,6 +65,7 @@ def test_setupUi_creates_actions():
         'actionbaidu_key', 'actionali_key', 'actionchatgpt_key',
         'actionzhipuai_key', 'actionsiliconflow_key', 'actiondeepseek_key',
         'actionminimax_key', 'actionqwenmt_key', 'actionopenrouter_key',
+        'actionlitellm_key',
         'actionlibretranslate_key', 'actionopenaitts_key', 'actionxaitts_key',
         'actionxiaomi_key', 'actionqwentts_key', 'actionopenairecognapi_key',
         'actionparakeet_key', 'actionai302_key', 'actionlocalllm_key',

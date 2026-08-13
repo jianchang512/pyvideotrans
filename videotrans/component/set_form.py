@@ -78,6 +78,7 @@ _LAZY_FORMS = {
     "InfoForm": ("QDialogBase", "videotrans.ui.info", "Ui_infoform"),
     "KokoroForm": ("QDialogBase", "videotrans.ui.kokoro", "Ui_kokoroform"),
     "LibreForm": ("QDialogBase", "videotrans.ui.libretranslate", "Ui_libretranslateform"),
+    "LiteLLMForm": ("QDialogBase", "videotrans.ui.litellm", "Ui_litellmform"),
     "LocalLLMForm": ("QDialogBase", "videotrans.ui.localllm", "Ui_localllmform"),
     "MiniMaxForm": ("QDialogBase", "videotrans.ui.minimax", "Ui_minimaxform"),
     "MinimaxiForm": ("QDialogBase", "videotrans.ui.minimaxi", "Ui_minimaxiform"),

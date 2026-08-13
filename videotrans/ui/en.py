@@ -363,6 +363,7 @@ class Ui_MainWindow(object):
         self.actionminimax_key.setText('MiniMax AI')
         self.actionqwenmt_key.setText(tr('Ali Qwen3-ASR'))
         self.actionopenrouter_key.setText('OpenRouter.ai')
+        self.actionlitellm_key.setText('LiteLLM')
         self.actionlibretranslate_key.setText("LibreTranslate API")
         self.actionopenaitts_key.setText("OpenAI TTS")
         self.actionxaitts_key.setText("X.AI TTS")

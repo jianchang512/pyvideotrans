@@ -66,6 +66,7 @@ def _setup_actions_and_menus(ui, MainWindow):
     _make_action(ui, "actionminimax_key")
     _make_action(ui, "actionqwenmt_key")
     _make_action(ui, "actionopenrouter_key")
+    _make_action(ui, "actionlitellm_key")
     _make_action(ui, "actionlibretranslate_key")
     _make_action(ui, "actionopenaitts_key")
     _make_action(ui, "actionxaitts_key")
@@ -155,7 +156,7 @@ def _setup_actions_and_menus(ui, MainWindow):
         ui.actionai302_key, ui.actionchatgpt_key, ui.actionlocalllm_key,
         ui.actionzhipuai_key, ui.actionsiliconflow_key, ui.actiondeepseek_key,
         ui.actionxiaomi_key, ui.actionminimax_key, ui.actionqwenmt_key,
-        ui.actionopenrouter_key, ui.actionlibretranslate_key,
+        ui.actionopenrouter_key, ui.actionlitellm_key, ui.actionlibretranslate_key,
         ui.actionzijiehuoshan_key, ui.actionazure_key, ui.actiongemini_key,
         ui.actioncamb_key, ui.actiondeepL_key, ui.actiondeepLX_address,
         ui.actiontrans_api,

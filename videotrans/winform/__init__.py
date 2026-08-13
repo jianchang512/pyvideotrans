@@ -40,6 +40,7 @@ _module_map = {
 "gptsovits":".gptsovits",
 "kokoro":".kokoro",
 "libre":".libre",
+"litellm":".litellm",
 "localllm":".localllm",
 "minimaxi":".minimaxi",#tts
 "minimax":".minimax",#翻译
