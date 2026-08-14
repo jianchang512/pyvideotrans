@@ -169,32 +169,47 @@ def _save_ass_style(s):
 # ---------------------------------------------------------------------------
 # 辅助函数
 # ---------------------------------------------------------------------------
-def _lang_code_from_display(d):
-    for code, name in LANGNAME_DICT.items():
-        if name == d:
-            return code
-    return d
+LANG_CODE_TO_DISPLAY = LANGNAME_DICT
+LANG_DISPLAY_TO_CODE = {name: code for code, name in LANGNAME_DICT.items()}
 
 
-def _tts_index_from_display(d):
-    for i, name in enumerate(TTS_NAMES):
-        if name == d:
-            return i
-    return 0
+def _lang_code_from_display(val: str) -> str:
+    """Resolve language code from display name, or return code as-is."""
+    if not val or val == '-':
+        return val
+    return LANG_DISPLAY_TO_CODE.get(val, val)
 
 
-def _recogn_index_from_display(d):
-    for i, name in enumerate(RECOGN_NAMES):
-        if name == d:
-            return i
-    return 0
+def _lang_display_from_code(val: str, default: str) -> str:
+    """Resolve display name from language code, or return display name as-is."""
+    if not val or val == '-':
+        return default
+    if val in LANG_CODE_TO_DISPLAY:
+        return LANG_CODE_TO_DISPLAY[val]
+    if val in LANG_DISPLAY_TO_CODE:
+        return val
+    return default
 
 
-def _translate_index_from_display(d):
-    for i, name in enumerate(TRANSLATE_NAMES):
-        if name == d:
-            return i
-    return 0
+def _tts_index_from_display(d: str) -> int:
+    try:
+        return TTS_NAMES.index(d)
+    except (ValueError, IndexError):
+        return 0
+
+
+def _recogn_index_from_display(d: str) -> int:
+    try:
+        return RECOGN_NAMES.index(d)
+    except (ValueError, IndexError):
+        return 0
+
+
+def _translate_index_from_display(d: str) -> int:
+    try:
+        return TRANSLATE_NAMES.index(d)
+    except (ValueError, IndexError):
+        return 0
 
 
 def _format_rate(v):
@@ -934,8 +949,10 @@ def build_ui():
                         model_choice = gr.Dropdown(choices=FASTER_MODEL_NAMES, value=_user_params.get('model_name', DEFAULT_MODEL), label="模型", interactive=True)
 
                         translate_choice = gr.Dropdown(choices=TRANSLATE_NAMES, value=TRANSLATE_NAMES[int(_user_params.get('translate_type', DEFAULT_TRANSLATE)) if str(_user_params.get('translate_type', '')).isdigit() else DEFAULT_TRANSLATE], label="翻译渠道", interactive=True)
-                        source_lang = gr.Dropdown(choices=LANG_DISPLAY_NAMES, value=_user_params.get('source_language', DEFAULT_SOURCE_LANG), label="发音语言（源语言）", interactive=True)
-                        target_lang = gr.Dropdown(choices=['-']+LANG_DISPLAY_NAMES, value=_user_params.get('target_language', DEFAULT_TARGET_LANG), label="目标语言", interactive=True)
+                        _init_source = _lang_display_from_code(_user_params.get('source_language'), default=DEFAULT_SOURCE_LANG)
+                        _init_target = _lang_display_from_code(_user_params.get('target_language'), default=DEFAULT_TARGET_LANG)
+                        source_lang = gr.Dropdown(choices=LANG_DISPLAY_NAMES, value=_init_source, label="发音语言（源语言）", interactive=True)
+                        target_lang = gr.Dropdown(choices=['-']+LANG_DISPLAY_NAMES, value=_init_target, label="目标语言", interactive=True)
 
                         tts_choice = gr.Dropdown(choices=TTS_NAMES, value=TTS_NAMES[int(_user_params.get('tts_type', DEFAULT_TTS)) if str(_user_params.get('tts_type', '')).isdigit() else DEFAULT_TTS], label="配音渠道", interactive=True)
                                                 # 根据已加载的TTS渠道和目标语言预填充角色列表
