@@ -74,6 +74,7 @@ class WinActionTaskMixin:
         if not self.retry_queue_mp4:
             self.main.retrybtn.setVisible(False)
             return
+        self.edit_action='edit_subtitle_source'
         self._disabled_button(True)
         self.main.retrybtn.setVisible(False)
         self.delete_process()
@@ -271,6 +272,7 @@ class WinActionTaskMixin:
             return
 
         if d['type'] == 'edit_dubbing':
+            self.edit_action='edit_dubbing'
             from videotrans.component.onlyone_set_editdubb import EditDubbingResultDialog
 
             cache_folder, language = d['text'].split('<|>')
@@ -286,7 +288,9 @@ class WinActionTaskMixin:
             else:
                 self.update_status('stop')
             return
+            
         if d['type'] == 'edit_subtitle_source':
+            if self.edit_action!='edit_subtitle_source':return
             from videotrans.component.onlyone_set_recogn import EditRecognResultDialog
 
             dialog = EditRecognResultDialog(
@@ -299,6 +303,7 @@ class WinActionTaskMixin:
             dialog=None
             return
         if d['type'] == 'edit_recogn2_subtitle':
+            self.edit_action='edit_recogn2_subtitle'
             from videotrans.component.onlyone_set_recogn2 import EditRecognResultDialog2
 
             dialog = EditRecognResultDialog2(
@@ -311,6 +316,7 @@ class WinActionTaskMixin:
                 self.update_status('stop')
             return
         if d['type'] == 'edit_subtitle_target':
+            self.edit_action='edit_subtitle_target'
             from videotrans.component.onlyone_set_role import SpeakerAssignmentDialog
             cache_folder, target_language, tts_type = d['text'].split('<|>')
             dialog = SpeakerAssignmentDialog(

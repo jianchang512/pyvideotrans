@@ -16,6 +16,7 @@ class WinAction(WinActionCheckMixin, WinActionConfigMixin, WinActionTaskMixin, W
         self.obj_list = []
         self.queue_mp4=[]
         self.retry_queue_mp4=[]
+        self.edit_action='edit_subtitle_source'
         self.main.source_mp4.setText(tr("No select videos"))
 
     def delete_process(self):

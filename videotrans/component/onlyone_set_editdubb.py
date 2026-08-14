@@ -454,16 +454,13 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             item['_msg'] = msg
 
     def _text_change(self, item):
-        # 比如你的代码中设置在第 1 列，这里可以加个判断
         _column=item.column()
         if _column in [2,3]:
             row = item.row()
             new_text = item.text().strip()
-            print(f"第 {row} 行，第 1 列的内容改变为了: {new_text}")
             offset=(float(new_text)*1000)-self.queue_tts[row]['start_time' if _column==2 else 'end_time']
             self._adjust_time(row,'start' if _column==2 else 'end',offset)
-            # 在这里执行你需要的逻辑
-            # ...
+
 
     def _batch_fill(self, start_row, end_row):
         """批量填充表格数据"""

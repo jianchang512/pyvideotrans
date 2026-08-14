@@ -366,7 +366,6 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
         """批量填充表格数据 - 减少重绘"""
         for row in range(start_row, end_row):
             data = self.display_data[row]
-            print(f'{data=}')
             
             # 第0列：复选框
             chk_item = QTableWidgetItem()
@@ -476,9 +475,8 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
         grid_layout.setVerticalSpacing(5)
 
         for i, spk_id in enumerate(self.speakers):
-            row = i // 3
-            col = (i % 3) * 2
-
+            row = i // 4
+            col = i % 4
             check = QCheckBox(f'{tr("Speaker")}{spk_id}')
             check.setStyleSheet("color: #dddddd;")
             
@@ -486,8 +484,11 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             label.setMinimumWidth(80)
             label.setStyleSheet("color: #ffcccc;")
 
-            grid_layout.addWidget(check, row, col)
-            grid_layout.addWidget(label, row, col + 1)
+            h=QHBoxLayout()
+            h.addWidget(check)
+            h.addWidget(label)
+            h.addStretch()
+            grid_layout.addLayout(h,row,col)
 
             self.speaker_checks[check] = spk_id
             self.speaker_labels[check] = label
@@ -779,8 +780,6 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             if role:
                 app_cfg.line_roles[str(data["line"])] = role
 
-
-        print(f'{srt_str_list=}')
         try:
             Path(self.target_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
         except Exception as e:

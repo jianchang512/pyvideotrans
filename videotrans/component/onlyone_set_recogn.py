@@ -484,7 +484,7 @@ class EditRecognResultDialog(QDialog,DanspMixin):
             text = item.text().strip() if item else data['text'].strip()
             if text:
                 srt_str_list.append(f'{len(srt_str_list)+1}\n{start_raw} --> {end_raw}\n{text}')
-        print(f'{srt_str_list=}')
+
         try:
             Path(self.source_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
         except Exception as e:

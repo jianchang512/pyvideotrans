@@ -55,6 +55,8 @@ def faster_whisper(
             )
             return model
         except Exception as e:
+            if 'Unable to open file' in str(e) or _compute_type == 'float32':
+                raise
             # 对数据类型问题引发的错误重试
             # cuda下先尝试使用 float16
             if is_cuda and _compute_type != 'float16':

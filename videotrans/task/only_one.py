@@ -85,16 +85,13 @@ class Worker(QThread):
 
             if trk.should_trans:
                 app_cfg.onlyone_trans = True
-                if vail_file(trk.cfg.target_sub):
-                    self._post(text="已存在翻译文件，跳过")
-                else:
+                if not vail_file(trk.cfg.target_sub):
                     trk.trans()
 
             if self._exit(): return
 
             # 需要配音时
             if trk.should_dubbing:
-
                 self._post(text=Path(trk.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
                 if float(settings.get('countdown_sec', 0)) > 0:
                     app_cfg.set_countdown(86400)
@@ -117,8 +114,7 @@ class Worker(QThread):
                             it['filename']) else 0) / 1000.0
 
                     # 存入临时目录
-                    Path(f'{trk.cfg.cache_folder}/queue_tts.json').write_text(
-                        json.dumps(trk.queue_tts, ensure_ascii=False), encoding='utf-8')
+                    Path(f'{trk.cfg.cache_folder}/queue_tts.json').write_text(json.dumps(trk.queue_tts, ensure_ascii=False), encoding='utf-8')
 
                     app_cfg.onlyone_voice_autorate=trk.cfg.voice_autorate
                     app_cfg.onlyone_video_autorate=trk.cfg.video_autorate

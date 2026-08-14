@@ -32,3 +32,5 @@ class WinActionBase(WinActionBaseModeMixin, WinActionBaseFileMixin, WinActionBas
     retry_queue_mp4: List[InputFile] = field(default_factory=list, init=False)
     uuid_queue_mp4: Dict = field(default_factory=dict, init=False)
     _proxy_test_version: int = 0
+    # 防止极端情况下，未结束或堆积的消息要求弹出语音识别后的编辑界面
+    edit_action:str="edit_subtitle_source"
