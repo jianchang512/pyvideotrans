@@ -38,7 +38,7 @@ def openwin():
             "role": rolename,
             "filename": config.TEMP_DIR + f"/{time.time()}-qwenttslocal.wav",
             "tts_type": tts.QWEN3LOCAL_TTS}],
-                         language="zh-cn",
+                         language="zh-CN",
                          tts_type=tts.QWEN3LOCAL_TTS)
         wk.uito.connect(feed)
         wk.start()

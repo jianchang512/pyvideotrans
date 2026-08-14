@@ -23,8 +23,8 @@ def openwin():
 
 
     langname_dict = {
-        "zh-cn": "简体中文",
-        "zh-tw": "繁体中文",
+        "zh-CN": "简体中文",
+        "zh-TW": "繁体中文",
         "yue": "粤语",
         "en": "英语",
         "fr": "法语",
@@ -39,10 +39,10 @@ def openwin():
         "vi": "越南语",
         "ar": "阿拉伯语",
         "tr": "土耳其语",
-        "hi": "印度语",
+        "hi": "印地语",
         "hu": "匈牙利语",
         "uk": "乌克兰语",
-        "id": "印度尼西亚",
+        "id": "印尼语",
         "ms": "马来语",
         "kk": "哈萨克语",
         "cs": "捷克语",
@@ -51,11 +51,8 @@ def openwin():
         "sv": "瑞典语",
         "he": "希伯来语",
         "bn": "孟加拉语",
+        "fa": "波斯语",
         "fil": "菲律宾语",
-
-        "af": "南非荷兰语",
-        "sq": "阿尔巴尼亚语",
-        "am": "阿姆哈拉语",
         "az": "阿塞拜疆语",
         "bs": "波斯尼亚语",
         "bg": "保加利亚语",
@@ -105,8 +102,8 @@ def openwin():
     }
     if defaulelang != 'zh':
         langname_dict = {
-            "zh-cn": "Simplified Chinese",
-            "zh-tw": "Traditional Chinese",
+            "zh-CN": "Simplified Chinese",
+            "zh-TW": "Traditional Chinese",
             "yue": "Cantonese",
             "en": "English",
             "fr": "French",

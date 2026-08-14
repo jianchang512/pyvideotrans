@@ -439,11 +439,11 @@ class TestBuildTTSParams:
 
 class TestBuildSTSParams:
     def test_build_sts_params(self):
-        args = MagicMock(translate_type=1, source_language_code='zh-cn', target_language_code='en')
+        args = MagicMock(translate_type=1, source_language_code='zh-CN', target_language_code='en')
         result = build_sts_params(args)
         assert result == {
             "translate_type": 1,
-            "source_language_code": "zh-cn",
+            "source_language_code": "zh-CN",
             "target_language_code": "en",
         }
 
@@ -456,7 +456,7 @@ class TestBuildSTSParams:
 class TestBuildVTVParams:
     def test_build_vtv_params(self):
         args = MagicMock(
-            source_language_code='zh-cn', target_language_code='en',
+            source_language_code='zh-CN', target_language_code='en',
             recogn_type=0, model_name='large-v3', cuda=True,
             remove_noise=False, enable_diariz=False,
             nums_diariz=-1, rephrase=0, fix_punc=False,
@@ -469,7 +469,7 @@ class TestBuildVTVParams:
             subtitle_type=1, clear_cache=True,
         )
         result = build_vtv_params(args)
-        assert result["source_language_code"] == "zh-cn"
+        assert result["source_language_code"] == "zh-CN"
         assert result["target_language_code"] == "en"
         assert result["is_separate"] is True
         assert result["recogn2pass"] is True

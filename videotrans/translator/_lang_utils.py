@@ -18,7 +18,7 @@ def get_code(show_text=None):
     if not show_text or show_text in ['-', 'No']:
         return None
     if show_text == 'zh':
-        return 'zh-cn'
+        return 'zh-CN'
     if show_text in LANG_CODE:
         return show_text
     return LANGNAME_DICT_REV.get(show_text, show_text)
@@ -41,7 +41,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         elif LANGNAME_DICT_REV.get(show_source):  # 是语言显示名字
             source_list = LANG_CODE.get(LANGNAME_DICT_REV.get(show_source))
         elif show_source == 'zh':  # 特殊兼容zh
-            source_list = LANG_CODE['zh-cn']
+            source_list = LANG_CODE['zh-CN']
 
     if show_target and show_target not in ['-', 'No']:
         if show_target in LANG_CODE:  # 是语言代码
@@ -50,7 +50,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
             target_list = LANG_CODE.get(LANGNAME_DICT_REV.get(show_target))
         elif show_target == 'zh':
             # 特殊兼容zh
-            target_list = LANG_CODE['zh-cn']
+            target_list = LANG_CODE['zh-CN']
 
     # 均未找到，可能是新增语言代码
     if not source_list and not target_list:

@@ -15,8 +15,8 @@ from videotrans.configure.config import tr, ROOT_DIR, logger
 # m2m100  https://github.com/ymoslem/DesktopTranslator/blob/main/utils/m2m_languages.json
 LANGNAME_DICT = {
     "en": tr("English"),
-    "zh-cn": tr("Simplified Chinese"),
-    "zh-tw": tr("Traditional Chinese"),
+    "zh-CN": tr("Simplified Chinese"),
+    "zh-TW": tr("Traditional Chinese"),
     "fr": tr("French"),
     "de": tr("German"),
     "ja": tr("Japanese"),
@@ -66,7 +66,7 @@ LANGNAME_DICT_REV = {v: k for k, v in LANGNAME_DICT.items()}
 # 根据语言代码查找各个翻译渠道对应的 代码list
 # 字幕嵌入代码默认使用  ISO 639-2/T(mp4所需)，MKV视频需使用 ISO 639-2/B 格式
 LANG_CODE = {
-    "zh-cn": [
+    "zh-CN": [
         "zh-cn",  # google通道
         "zho",  # 字幕嵌入语言
         "zh",  # 百度通道
@@ -79,7 +79,7 @@ LANG_CODE = {
         "Chinese",  # qwen-mt qwen-tts qwen-asr
         "zh"  # m2m100
     ],
-    "zh-tw": [
+    "zh-TW": [
         "zh-tw",
         "zho",
         "cht",

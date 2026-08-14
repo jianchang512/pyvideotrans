@@ -16,8 +16,8 @@ from videotrans.util.help_misc import get_md5, vail_file
 
 LANG_TO_CAMB_LOCALE = {
     "en": "en-us",
-    "zh-cn": "zh-cn",
-    "zh-tw": "zh-tw",
+    "zh-CN": "zh-cn",
+    "zh-TW": "zh-tw",
     "fr": "fr-fr",
     "de": "de-de",
     "ja": "ja-jp",

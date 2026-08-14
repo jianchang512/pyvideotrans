@@ -19,7 +19,7 @@ class TestSrtTrans(QThread):
             text:List[dict] = translator.run(translate_type=self.translator_type,
                                   text_list=[{"text":raw,"line":1,"time":"00:00:00,000 --> 00:00:05,000"}],
                                   target_code="en",
-                                  source_code="zh-cn",
+                                  source_code="zh-CN",
                                   is_test=True
                                   )
             self.uito.emit(f"ok:{raw}\n{text[0]['text']}")

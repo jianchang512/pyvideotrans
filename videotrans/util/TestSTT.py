@@ -23,7 +23,7 @@ class TestSTT(QThread):
                 cache_folder=config.TEMP_DIR,
                 recogn_type=self.recogn_type,
                 model_name=self.model_name,
-                detect_language="zh-cn"
+                detect_language="zh-CN"
             )
             srt_str = get_srt_from_list(res)
             self.uito.emit(f"ok:{srt_str}")

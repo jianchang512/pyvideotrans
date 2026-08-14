@@ -15,7 +15,7 @@ def _make_srt(text, start, end, line=1):
 
 class TestBaseRecognPostInit:
     def test_cjk_language_join_word_flag(self):
-        rec = BaseRecogn(detect_language="zh-cn")
+        rec = BaseRecogn(detect_language="zh-CN")
         assert rec.join_word_flag == ""
         assert rec.is_cjk is True
         assert rec.maxlen > 0

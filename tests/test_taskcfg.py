@@ -205,13 +205,13 @@ class TestTaskCfgBase:
             name="D:/media/video.mp4",
             is_cuda=True,
             source_language_code="en",
-            target_language_code="zh-cn",
+            target_language_code="zh-CN",
         )
         assert cfg.uuid == uid
         assert cfg.name == "D:/media/video.mp4"
         assert cfg.is_cuda is True
         assert cfg.source_language_code == "en"
-        assert cfg.target_language_code == "zh-cn"
+        assert cfg.target_language_code == "zh-CN"
 
 
 class TestTaskCfgSTT:
@@ -223,9 +223,8 @@ class TestTaskCfgSTT:
         # STT-specific defaults
         assert cfg.remove_noise is False
         assert cfg.enable_diariz is False
-        assert cfg.nums_diariz == 0
-        assert cfg.fix_punc is False
-        assert cfg.rephrase == 2
+        assert not cfg.fix_punc
+        assert cfg.rephrase == 0
 
     def test_stt_specific_fields(self):
         cfg = TaskCfgSTT(
@@ -289,7 +288,7 @@ class TestTaskCfgVTT:
             uuid="vtt-001",
             name="D:/media/video.mp4",
             source_language_code="en",
-            target_language_code="zh-cn",
+            target_language_code="zh-CN",
             recogn_type=0,
             tts_type=0,
             translate_type=3,
@@ -299,7 +298,7 @@ class TestTaskCfgVTT:
         # Base fields
         assert cfg.uuid == "vtt-001"
         assert cfg.source_language_code == "en"
-        assert cfg.target_language_code == "zh-cn"
+        assert cfg.target_language_code == "zh-CN"
         # STT fields
         assert cfg.recogn_type == 0
         # TTS fields

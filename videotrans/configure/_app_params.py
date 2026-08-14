@@ -76,7 +76,7 @@ class AppParams:
             "nums_diariz": 0,
             "target_dir": "",
             "source_language": "en",
-            "target_language": "zh-cn",
+            "target_language": "zh-CN",
             "translate_type": 0,
             "subtitle_type": 2,
             "tts_type": 0,

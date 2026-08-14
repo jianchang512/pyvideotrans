@@ -25,10 +25,10 @@ class TestBaseTransPostInit:
         bt = BaseTrans(
             text_list=[_make_srt_item("bonjour")],
             source_code="fr",
-            target_code="zh-cn",
+            target_code="zh-CN",
         )
         assert bt.source_code == "fr"
-        assert bt.target_code == "zh-cn"
+        assert bt.target_code == "zh-CN"
 
     def test_uuid_set(self):
         bt = BaseTrans(text_list=[_make_srt_item("test")], uuid="test-123")
@@ -41,7 +41,7 @@ class TestBaseTransGetKey:
             text_list=[_make_srt_item("hello world")],
             translate_type=0,
             source_code="en",
-            target_code="zh-cn",
+            target_code="zh-CN",
         )
         key = bt._get_key("hello world")
         assert isinstance(key, str)
@@ -55,11 +55,11 @@ class TestBaseTransGetKey:
 
     def test_different_languages_different_keys(self):
         bt1 = BaseTrans(text_list=[_make_srt_item("test")], source_code="en", target_code="fr")
-        bt2 = BaseTrans(text_list=[_make_srt_item("test")], source_code="en", target_code="zh-cn")
+        bt2 = BaseTrans(text_list=[_make_srt_item("test")], source_code="en", target_code="zh-CN")
         assert bt1._get_key("same") != bt2._get_key("same")
 
     def test_same_key_for_identical_input(self):
-        bt = BaseTrans(text_list=[_make_srt_item("test")], source_code="en", target_code="zh-cn")
+        bt = BaseTrans(text_list=[_make_srt_item("test")], source_code="en", target_code="zh-CN")
         k1 = bt._get_key("repeat me")
         k2 = bt._get_key("repeat me")
         assert k1 == k2
@@ -68,7 +68,7 @@ class TestBaseTransGetKey:
 class TestBaseTransRunTextChunking:
     def test_chunking_with_thread_count(self):
         items = [_make_srt_item(f"line {i}", line=i + 1) for i in range(10)]
-        bt = BaseTrans(text_list=items, source_code="en", target_code="zh-cn")
+        bt = BaseTrans(text_list=items, source_code="en", target_code="zh-CN")
         # trans_thread controls chunk size
         bt.trans_thread = 3
         chunks = [items[i:i + bt.trans_thread] for i in range(0, len(items), bt.trans_thread)]
