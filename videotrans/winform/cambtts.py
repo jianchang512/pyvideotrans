@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.configure.contants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr, app_cfg, params
     from videotrans.configure import config
@@ -33,7 +34,7 @@ def openwin():
             if test_role in ['No', 'clone']:
                 test_role = voices[2] if len(voices) > 2 else voices[0]
             wk = ListenVoice(parent=winobj, queue_tts=[{
-                "text": 'hello, my friend',
+                "text":  LISTEN_TEXT.get('en'),
                 "role": test_role,
                 "filename": config.TEMP_DIR + f"/{time.time()}-cambtts.wav",
                 "tts_type": tts.CAMB_TTS}],

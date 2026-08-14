@@ -184,8 +184,6 @@ class AlignmentWorker(QThread):
 
             target_chars_map = []
             punctuations = {'，', '。', '？', '！', '；', '：', ',', '.', '?', '!', ';', ':'}
-            #if self.language[:2] in ['zh','ja','ko']:
-            #    punctuations.add(' ')
             comparison_target = []
 
             for i, char in enumerate(self.text_content):

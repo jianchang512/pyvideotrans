@@ -116,7 +116,7 @@ class SpeechToText(BaseTask):
 
 
         # 中英恢复标点符号
-        if self.cfg.detect_language != 'auto' and self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
+        if self.cfg.detect_language != 'auto' and self.cfg.fix_punc==1 and self.cfg.detect_language.split('-')[0] in ['zh', 'en']:
 
             try:
                 from videotrans.process.prepare_audio import fix_punc
@@ -129,9 +129,10 @@ class SpeechToText(BaseTask):
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
                 if _rs:
                     text_dict_obj=json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
+                    _lang=self.cfg.detect_language.split('-')[0]
                     for it in self.source_srt_list:
                         it['text'] = text_dict_obj.get(f'{it["line"]}', it['text'])
-                        if self.cfg.detect_language[:2] == 'en':
+                        if  _lang == 'en':
                             it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace(
                                 '！', '!')
                     self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
@@ -169,7 +170,7 @@ class SpeechToText(BaseTask):
         from videotrans.util.help_down import down_file_from_hf, check_and_down_ms
         speaker_type = settings.get('speaker_type', 'built')
         hf_token = settings.get('hf_token')
-        if speaker_type == 'built' and self.cfg.detect_language[:2] not in ['zh', 'en']:
+        if speaker_type == 'built' and self.cfg.detect_language.split('-')[0] not in ['zh', 'en']:
             logger.error(f'当前选择 built 说话人分离模型，但不支持当前语言:{self.cfg.detect_language}')
             return
         if speaker_type in ['pyannote', 'reverb'] and not hf_token:
@@ -244,7 +245,7 @@ class SpeechToText(BaseTask):
         if self.cfg.detect_language and self.cfg.detect_language != 'auto':
             # 处理换行
             maxlen = int(
-                settings.get('cjk_len', 15) if self.cfg.detect_language[:2] in contants.CJK_LANG else
+                settings.get('cjk_len', 15) if self.cfg.detect_language.split('-')[0] in contants.CJK_LANG else
                 settings.get('other_len', 60))
             for i, it in enumerate(self.source_srt_list):
                 it['text'] = simple_wrap(it['text'], maxlen, self.cfg.detect_language)

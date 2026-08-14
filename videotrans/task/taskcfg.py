@@ -113,14 +113,14 @@ class TaskCfgBase:
 
     is_cuda: bool = False  # 是否使用cuda加速
 
-    source_language: str = None  # 原始语言名称或代码
-    source_language_code: str = None  # 原始语言代码
+    source_language: str = ""  # 原始语言名称或代码
+    source_language_code: str = ""  # 原始语言代码
     source_sub: Union[os.PathLike, str] = None  # 原始字幕文件绝对路径
     source_wav: Union[os.PathLike, str] = None  # 原始语言音频，存在于临时文件夹下
     source_wav_output: Union[os.PathLike, str] = None  # 原始语言音频输出，存在于目标文件夹下
 
-    target_language: str = None  # 目标语言名称或代码
-    target_language_code: str = None  # 目标语言代码
+    target_language: str = ""  # 目标语言名称或代码
+    target_language_code: str = ""  # 目标语言代码
     target_sub: Union[os.PathLike, str] = None  # 目标字幕文件绝对路径
     target_wav: Union[os.PathLike, str] = None  # 目标语言音频，存在于临时文件夹下
     target_wav_output: Union[os.PathLike, str] = None  # 目标语言音频输出，存在于目标文件夹下
@@ -144,10 +144,8 @@ class TaskCfgSTT(TaskCfgBase):
         from videotrans.recognition import ALLOW_CHANGE_MODEL
         from videotrans.util.tools import get_recogn_type
         from videotrans.configure.config import tr, app_cfg
-        _msg = [f'[TaskCfgSTT]']
-        _msg.append(f'原始输入文件名: {self.name}, \n输出结果保存到文件夹: {self.target_dir},\n临时文件夹: {self.cache_folder}')
-        _msg.append(f'{"已" if self.is_cuda else "未"}启用CUDA加速')
-        _msg.append(f'{isTrue[self.remove_noise]} 降噪')
+        _msg = [f'[TaskCfgSTT]', f'原始输入文件名: {self.name}, \n输出结果保存到文件夹: {self.target_dir},\n临时文件夹: {self.cache_folder}',
+                f'{"已" if self.is_cuda else "未"}启用CUDA加速', f'{isTrue[self.remove_noise]} 降噪']
         if self.enable_diariz:
             _msg.append(f'已选 识别说话人，最大说话人数量{"不限制" if self.nums_diariz < 1 else self.nums_diariz + 1}')
         if self.fix_punc > 0:
@@ -221,7 +219,6 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
     ############## 视频翻译特有
     subtitle_language: str = None  # 软字幕嵌入语言代码，3位
     app_mode: str = "biaozhun"  # 工作模式 biaohzun tiqu
-    subtitles: str = ""  # 已存在的字幕文本，例如预先导入的
     targetdir_mp4: Union[os.PathLike, str] = None  # 最终输出合成后的mp4
     novoice_mp4: Union[os.PathLike, str] = None  # 从原始视频分离出的无声视频
     is_separate: bool = False  # 是否进行人声、背景音分离
@@ -237,8 +234,8 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
     copysrt_rawvideo: bool = False  # 是否将生成的字幕复制到视频目录下
     loop_backaudio: int = 0  # 循环背景音 或 延长拉伸背景音
     backaudio_volume: float = 0.8  # 背景音量
-    batch: bool = False  # 批量翻译模式或单视频翻译模式
-    batch_size: int = 0  # 0批量并发模式，>0 每批n个
+    batch: bool = False  # True=批量翻译模式, False=单视频翻译模式
+    batch_size: int = 0  # batch=True时： 0批量并发模式不限制数量，>0 每批n个
 
     def __repr__(self):
         _msg = []
@@ -257,7 +254,7 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
         if self.app_mode == "tiqu":
             _msg.append(f"[TaskCfgVTT]当前工作模式: 转录并翻译字幕")
         else:
-            _msg.append(f'[TaskCfgVTT]当前工作模式: 翻译视频或音频 {"批量翻译模式" if self.batch else "单视频模式"}' + (
+            _msg.append(f'[TaskCfgVTT]当前工作模式: 翻译视频  {"批量翻译模式" if self.batch else "单视频模式"}' + (
                 f" 每批{self.batch_size}个" if self.batch and self.batch_size > 0 else ""))
 
         _msg.append(f'原始输入文件名: {self.name}, \n输出结果保存到文件夹: {self.target_dir},\n临时文件夹: {self.cache_folder}')

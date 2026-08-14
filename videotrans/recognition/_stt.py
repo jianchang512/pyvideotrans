@@ -54,7 +54,7 @@ class SttAPIRecogn(BaseRecogn):
         self.signal(
             text=tr("Recognition may take a while, please be patient"))
 
-        data = {"language": self.detect_language[:2], "model": params.get('stt_model', 'tiny'),
+        data = {"language": self.detect_language.split('-')[0], "model": params.get('stt_model', 'tiny'),
                 "response_format": "srt"}
         try:
             res = requests.post(f"{self.api_url}", files=files, data=data, timeout=7200)

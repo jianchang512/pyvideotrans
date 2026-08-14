@@ -25,33 +25,27 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
     def __init__(
             self,
             parent=None,
-            source_sub: str = None, # 翻译前的原始字幕
-            target_sub: str = None,# 翻译后的目标字幕
             target_language="en",#翻译目标语言代码
-            source_wav: str = None,#原始视频中分离出的声音，用于播放
-            novoice_mp4: str = None,#原始视频中分离出的无声视频，用于播放
             all_voices: Optional[List[str]] = None,#所有角色列表
             cache_folder=None,#缓存目录
             tts_type=0#当前配音渠道ID
     ):
         super().__init__()
         self.parent = parent
-        self.target_sub = target_sub
+        self.target_sub = app_cfg.onlyone_target_sub
         self.source_srtstring = None
         self.source_srt_list_dict = None
         self.cache_folder = cache_folder
         self.target_language = target_language
         self.tts_type = tts_type
-        self.source_wav = source_wav
-        self.novoice_mp4 = novoice_mp4
         self._target_end_ms = -1
 
-        if source_sub:
-            sour_pt = Path(source_sub)
-            if sour_pt.as_posix() and not sour_pt.samefile(Path(target_sub)):
+        if app_cfg.onlyone_source_sub:
+            sour_pt = Path(app_cfg.onlyone_source_sub)
+            if sour_pt.as_posix() and not sour_pt.samefile(Path(self.target_sub)):
                 try:
                     self.source_srtstring = sour_pt.read_text(encoding="utf-8-sig")
-                    self.source_srt_list_dict = get_subtitle_from_srt(source_sub)
+                    self.source_srt_list_dict = get_subtitle_from_srt(app_cfg.onlyone_source_sub)
                 except Exception:
                     self.source_srtstring = ""
 
@@ -257,29 +251,20 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
         # 延迟加载表格
         QTimer.singleShot(200, self.load_table)
 
-    def _pause_play(self):
-        if hasattr(self,'audio_player'):
-            self.video_player.pause()
-            self.audio_player.pause()
-            self._target_end_ms = -1
-            self.video_status.setText(tr("Playback stopped"))
-            self.stop_play_btn.hide()
 
 
     def load_table(self):
         """Load table with background SRT parsing."""
         if not self.isVisible():
             return
-
-
         try:
             self.srt_list_dict= get_subtitle_from_srt(self.target_sub)
             # 1. 创建 QTableWidget（比 Model/View 快得多）
 
             
             # 2. 【极致性能配置】禁用所有非必要功能
-            self.table.setColumnCount(8)
-            self.table.setHorizontalHeaderLabels(["Sel", tr("Line"), tr('Speaker'), tr("Dubbing role"), tr("Time Axis"), tr("Play"), tr("Subtitle Text"),tr("SourceLang Text")])
+            self.table.setColumnCount(9)
+            self.table.setHorizontalHeaderLabels(["Sel", tr("Line"), tr('Speaker'), tr("Dubbing role"), '\u270D'+tr("Start Time")+'/s', '\u270D'+tr("End Time")+'/s', '\u23F5', '\u270D'+tr("Subtitle Text"),tr("SourceLang Text")])
             
             # 禁用所有视觉效果
             self.table.setAlternatingRowColors(False)
@@ -305,16 +290,18 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             header.setSectionResizeMode(2, QHeaderView.Fixed)  # Spk
             header.setSectionResizeMode(3, QHeaderView.Fixed)  # Role
             header.setSectionResizeMode(4, QHeaderView.Fixed)  # Time
-            header.setSectionResizeMode(5, QHeaderView.Fixed)  # Play
-            header.setSectionResizeMode(6, QHeaderView.Stretch)  # Text
-            header.setSectionResizeMode(7, QHeaderView.Stretch)  # SourceText
+            header.setSectionResizeMode(5, QHeaderView.Fixed)  # Time
+            header.setSectionResizeMode(6, QHeaderView.Fixed)  # Play
+            header.setSectionResizeMode(7, QHeaderView.Stretch)  # Text
+            header.setSectionResizeMode(8, QHeaderView.Stretch)  # SourceText
             
             self.table.setColumnWidth(0, 30)
             self.table.setColumnWidth(1, 40)
             self.table.setColumnWidth(2, 50)
             self.table.setColumnWidth(3, 150)
-            self.table.setColumnWidth(4, 250)
-            self.table.setColumnWidth(5, 30)
+            self.table.setColumnWidth(4, 125)
+            self.table.setColumnWidth(5, 125)
+            self.table.setColumnWidth(6, 30)
 
             # 最小样式
             self.table.setStyleSheet(self.table_style_css)
@@ -332,13 +319,9 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
                     spk = default_spk if self.speakers else ''
                 
                 # 时间字符串
-                duration = (item['end_time'] - item['start_time']) / 1000.0
-                time_str = f"{item['startraw']}->{item['endraw']}({duration:.1f}s)"
-                
                 self.display_data.append({
                     'line': item['line'],
                     'spk': spk,
-                    'time_str': time_str,
                     'text': item['text'],
                     'origin_text': '' if not self.source_srt_list_dict or len(self.source_srt_list_dict)<i+1 else self.source_srt_list_dict[i]['text'],
                     'startraw': item['startraw'],
@@ -383,6 +366,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
         """批量填充表格数据 - 减少重绘"""
         for row in range(start_row, end_row):
             data = self.display_data[row]
+            print(f'{data=}')
             
             # 第0列：复选框
             chk_item = QTableWidgetItem()
@@ -401,16 +385,20 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             self.table.setItem(row, 2, spk_item)
             
             # 第3列：Role（只读，显示用）
-            role_item = QTableWidgetItem(tr('Default Role'))
+            role_item = QTableWidgetItem(app_cfg.onlyone_voice_role)
             role_item.setFlags(Qt.ItemIsEnabled)
             role_item.setForeground(QColor("#ff4d4d"))
             self.table.setItem(row, 3, role_item)
             
             # 第4列：Time（只读）
-            time_item = QTableWidgetItem(data['time_str'])
-            time_item.setFlags(Qt.ItemIsEnabled)
+            time_item = QTableWidgetItem( str(data['start_time']/1000.0 ))
+            time_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             self.table.setItem(row, 4, time_item)
-            
+
+            time_item2 = QTableWidgetItem(str(data['end_time']/1000.0 ))
+            time_item2.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+            self.table.setItem(row, 5, time_item2)
+
             # 第5列：Play button
             btn = QPushButton("\u23F5")
             btn.setObjectName("playBtn")
@@ -418,16 +406,16 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             s = data['start_time']
             e = data['end_time']
             btn.clicked.connect(lambda checked=False, _s=s, _e=e: self._play_segment(_s, _e))
-            self.table.setCellWidget(row, 5, btn)
+            self.table.setCellWidget(row, 6, btn)
             
             # 第6列：Text（可编辑）
             text_item = QTableWidgetItem(data['text'])
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            self.table.setItem(row, 6, text_item)
+            self.table.setItem(row, 7, text_item)
             
             origin_text_item = QTableWidgetItem(data['origin_text'])
             origin_text_item.setFlags(Qt.ItemIsEnabled)
-            self.table.setItem(row, 7, origin_text_item)
+            self.table.setItem(row, 8, origin_text_item)
 
     def _load_remaining_rows(self, start_row):
         """延迟加载剩余行 - 避免界面冻结"""
@@ -548,8 +536,9 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
                 role = self.speakers.get(data['spk'], '')
             
             item = self.table.item(row, 3)
-            if item:
-                item.setText(role if role else tr('Default Role'))
+            if not item:
+                continue
+            item.setText(app_cfg.onlyone_voice_role if role in ['No','',None] else role)
 
     def assign_subtitle_roles(self):
         """分配角色给选中的行"""
@@ -616,6 +605,12 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
         self.listen_button.setDisabled(True)
 
     # ===================== Audio-driven sync =====================
+    def _pause_play(self):
+        self.video_player.pause()
+        self._target_end_ms = -1
+        self.video_status.setText(tr("Playback stopped"))
+        self.stop_play_btn.hide()
+
     def _ensure_players(self):
         """Create QMediaPlayer instances on first use."""
         if hasattr(self, '_players_created'):
@@ -624,13 +619,13 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
 
         self.video_player = QMediaPlayer()
         self.video_player.setVideoOutput(self.video_widget)
-
-        self.audio_player = QMediaPlayer()
         self.audio_output = QAudioOutput()
-        self.audio_player.setAudioOutput(self.audio_output)
-        self.audio_player.positionChanged.connect(self._on_audio_position_changed)
+        self.video_player.setAudioOutput(self.audio_output)
+        self.audio_output.setVolume(1.0) # 1.0 表示 100% 音量
+        self.video_player.positionChanged.connect(self._on_video_position_changed)
 
-    def _on_audio_position_changed(self, position):
+
+    def _on_video_position_changed(self, position):
         if self._target_end_ms > 0 and position >= self._target_end_ms:
             self._pause_play()
 
@@ -643,27 +638,22 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
 
         self._players_pending = 0
         try:
-            if self.novoice_mp4 and Path(self.novoice_mp4).exists():
+            if app_cfg.onlyone_name and Path(app_cfg.onlyone_name).exists():
                 if not self.video_player.source().toString():
-                    self.video_player.setSource(QUrl.fromLocalFile(self.novoice_mp4))
+                    self.video_player.setSource(QUrl.fromLocalFile(app_cfg.onlyone_name))
                     self._players_pending += 1
             else:
                 self.video_status.setText(tr('No silent video frames generated yet'))
-            if self.source_wav and Path(self.source_wav).exists():
-                if not self.audio_player.source().toString():
-                    self.audio_player.setSource(QUrl.fromLocalFile(self.source_wav))
-                    self._players_pending += 1
         except Exception as e:
             self.video_status.setText(f"Load failed: {e}")
             return
 
         if self._players_pending > 0:
-            for player in [self.video_player, self.audio_player]:
-                try:
-                    player.mediaStatusChanged.disconnect(self._on_media_ready)
-                except BaseException:
-                    pass
-                player.mediaStatusChanged.connect(self._on_media_ready)
+            try:
+                self.video_player.mediaStatusChanged.disconnect(self._on_media_ready)
+            except BaseException:
+                pass
+            self.video_player.mediaStatusChanged.connect(self._on_media_ready)
             return
         self._do_play(start_ms, end_ms)
 
@@ -678,21 +668,17 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
     def _disconnect_media_signals(self):
         import warnings
         warnings.filterwarnings("ignore", category=RuntimeWarning, message="Failed to disconnect")
-        for player in [self.video_player, self.audio_player]:
-            try:
-                player.mediaStatusChanged.disconnect()
-            except (TypeError, RuntimeError):
-                pass
+        try:
+            self.video_player.mediaStatusChanged.disconnect()
+        except (TypeError, RuntimeError):
+            pass
 
     def _do_play(self, start_ms, end_ms):
         self._target_end_ms = end_ms
         self.video_player.setPosition(start_ms)
-        self.audio_player.setPosition(start_ms)
         self.video_player.play()
-        self.audio_player.play()
         self._stack.setCurrentIndex(0)
         self.video_status.setText(f"\u23F5 {ms_to_time_string(ms=start_ms)} → {ms_to_time_string(ms=end_ms)}")
-        #self.stop_countdown()
 
     def _stop_playback(self):
         self._target_end_ms = -1
@@ -700,7 +686,6 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             return
         try:
             self.video_player.stop()
-            self.audio_player.stop()
         except Exception as e:
             logger.exception(e, exc_info=True)
 
@@ -710,18 +695,13 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
         self._stop_playback()
         import warnings
         warnings.filterwarnings("ignore", category=RuntimeWarning, message="Failed to disconnect")
-        for player in [self.video_player, self.audio_player]:
-            for sig in [player.positionChanged, player.mediaStatusChanged]:
-                try:
-                    sig.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
+        for sig in [self.video_player.positionChanged, self.video_player.mediaStatusChanged]:
+            try:
+                sig.disconnect()
+            except (TypeError, RuntimeError):
+                pass
         try:
             self.video_player.setSource(QUrl())
-        except Exception:
-            pass
-        try:
-            self.audio_player.setSource(QUrl())
         except Exception:
             pass
         import gc
@@ -778,13 +758,18 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
         app_cfg.line_roles = {}
         srt_str_list = []
 
-        speaker_keys = list(self.speakers.keys()) if self.speakers else []
+
         for row, data in enumerate(self.display_data):
             # 获取当前文本（从表格中获取最新值）
-            text_item = self.table.item(row, 6)
+            start_time = self.table.item(row, 4)
+            end_time = self.table.item(row, 5)
+            start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
+            end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))
+
+            text_item = self.table.item(row, 7)
             text = text_item.text().strip() if text_item else data['text'].strip()
             
-            srt_str_list.append(f'{data["line"]}\n{data["startraw"]} --> {data["endraw"]}\n{text}')
+            srt_str_list.append(f'{len(srt_str_list)+1}\n{start_raw} --> {end_raw}\n{text}')
 
             # 角色保存逻辑
             role = data.get('role', '')
@@ -794,6 +779,8 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             if role:
                 app_cfg.line_roles[str(data["line"])] = role
 
+
+        print(f'{srt_str_list=}')
         try:
             Path(self.target_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
         except Exception as e:

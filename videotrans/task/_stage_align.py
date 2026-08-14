@@ -53,8 +53,7 @@ class AlignMixin:
             if self.cfg.fix_punc==2:
                 it['text']=delete_punc(it['text'])
         # 不嵌入字幕，则在此保存修改后的目标字幕
-        if not self.should_hebing:
-            self._save_srt_target(self.queue_tts, self.cfg.target_sub)
+        self._save_srt_target(self.queue_tts, self.cfg.target_sub)
             
         if self.cfg.tts_type not in [EDGE_TTS, AZURE_TTS] and self.cfg.volume != '+0%' and vail_file(
                 self.cfg.target_wav):

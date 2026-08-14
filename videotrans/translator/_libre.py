@@ -38,7 +38,7 @@ class Libre(BaseTrans):
             "q": "\n".join(data),
             "source": 'auto',
             "api_key": params.get('libre_key', ''),
-            "target": self.target_code[:2]
+            "target": self.target_code.split('-')[0]
         }
         try:
             response = requests.post(url=self.api_url, json=jsondata)
@@ -48,4 +48,4 @@ class Libre(BaseTrans):
         result = response.json()
         result = cleartext(result['translatedText'])
 
-        return result.lower() if self.target_code[:2] == 'en' else result
+        return result.lower() if self.target_code.split('-')[0] == 'en' else result

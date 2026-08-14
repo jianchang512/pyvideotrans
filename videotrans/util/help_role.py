@@ -142,7 +142,7 @@ def get_doubao2_rolelist(role_name=None, langcode="zh"):
     roledata = json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/doubao2.json').read_text(encoding='utf-8-sig'))
 
     if role_name:
-        current_d = roledata.get(langcode[:2])
+        current_d = roledata.get(langcode.split('-')[0])
         if not current_d:
             return 'No'
         return _resolve_role(current_d, role_name)

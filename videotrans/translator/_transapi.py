@@ -26,7 +26,7 @@ class TransAPI(BaseTrans):
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = quote("\n".join(data))
-        requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code[:2] if self.source_code else ''}&text={text}&secret={params.get('trans_secret','')}"
+        requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code.split('-')[0] if self.source_code else ''}&text={text}&secret={params.get('trans_secret','')}"
 
         response = requests.get(url=requrl,verify=False)
         logger.debug(f'[TransAPI]返回:{response=}')

@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.configure.contants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.util.help_role import get_elevenlabs_role
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,params
@@ -28,7 +29,7 @@ def openwin():
             with open(ROOT_DIR+'/videotrans/voicejson/elevenlabs.json','r',encoding='utf-8') as f:
                 jsondata=json.loads(f.read())
             wk = ListenVoice(parent=winobj, queue_tts=[{
-                "text": 'hello,my friend',
+                "text":  LISTEN_TEXT.get('en'),
                 "role": list(jsondata.keys())[0],
                 "filename": config.TEMP_DIR + f"/{time.time()}-elevenlabs.wav",
                 "tts_type": tts.ELEVENLABS_TTS}],

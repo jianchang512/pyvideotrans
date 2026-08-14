@@ -358,7 +358,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             # 列：Line | Play | Start | End | Status | Text
             self.table.setColumnCount(6)
             self.table.setHorizontalHeaderLabels([
-                tr("Line"), tr("Play"), tr("Start Time"), tr("End Time"), tr("Dubbed Status"), tr("Subtitle Text")
+                tr("Line"), '\u23F5', '\u270D'+tr("Start Time")+'/s', '\u270D'+tr("End Time")+'/s', tr("Dubbed Status"), '\u270D'+tr("Subtitle Text")
             ])
             
             # 2.
@@ -453,6 +453,18 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             item['_duration'] = duration
             item['_msg'] = msg
 
+    def _text_change(self, item):
+        # 比如你的代码中设置在第 1 列，这里可以加个判断
+        _column=item.column()
+        if _column in [2,3]:
+            row = item.row()
+            new_text = item.text().strip()
+            print(f"第 {row} 行，第 1 列的内容改变为了: {new_text}")
+            offset=(float(new_text)*1000)-self.queue_tts[row]['start_time' if _column==2 else 'end_time']
+            self._adjust_time(row,'start' if _column==2 else 'end',offset)
+            # 在这里执行你需要的逻辑
+            # ...
+
     def _batch_fill(self, start_row, end_row):
         """批量填充表格数据"""
         for row in range(start_row, end_row):
@@ -474,17 +486,17 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             self.table.setCellWidget(row, 1, btn)
             
             # 2: Start
-            start_item = QTableWidgetItem(f"{data['startraw']}")
-            start_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+            start_item = QTableWidgetItem(f"{data['start_time']/1000.0}")
+            start_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             start_item.setTextAlignment(Qt.AlignCenter)
-            start_item.setToolTip(tr("Double-click: -0.1s | Right-click: adjust"))
+            # start_item.setToolTip(tr("Double-click: -0.1s | Right-click: adjust"))
             self.table.setItem(row, 2, start_item)
             
             # 3: End
-            end_item = QTableWidgetItem(f"{data['endraw']}")
-            end_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+            end_item = QTableWidgetItem(f"{data['end_time']/1000.0}")
+            end_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             end_item.setTextAlignment(Qt.AlignCenter)
-            end_item.setToolTip(tr("Double-click: +0.1s | Right-click: adjust"))
+            # end_item.setToolTip(tr("Double-click: +0.1s | Right-click: adjust"))
             self.table.setItem(row, 3, end_item)
             
             # 4: Status
@@ -507,6 +519,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             text_item = QTableWidgetItem(data['text'])
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             self.table.setItem(row, 5, text_item)
+        self.table.itemChanged.connect(self._text_change)
 
     def _load_remaining(self, start_row):
         """延迟加载剩余行"""
@@ -536,11 +549,12 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
 
     def _on_cell_double_clicked(self, row, col):
         """单元格双击"""
-        if col == 2:  # Start 列 - 减0.1秒
-            self._adjust_time(row, 'start', -100)
-        elif col == 3:  # End 列 - 加0.1秒
-            self._adjust_time(row, 'end', 100)
-        elif col == 5:  # Text 列 - 编辑
+        # if col == 2:  # Start 列 - 减0.1秒
+        #     self._adjust_time(row, 'start', -100)
+        # elif col == 3:  # End 列 - 加0.1秒
+        #     self._adjust_time(row, 'end', 100)
+        # el
+        if col == 5:  # Text 列 - 编辑
             self.table.editItem(self.table.item(row, col))
 
     def _show_context_menu(self, pos):
@@ -675,12 +689,12 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         # 更新Start
         start_item = self.table.item(row, 2)
         if start_item:
-            start_item.setText(f"{item['startraw']}")
+            start_item.setText(f"{item['start_time']/1000.0}")
         
         # 更新End
         end_item = self.table.item(row, 3)
         if end_item:
-            end_item.setText(f"{item['endraw']}")
+            end_item.setText(f"{item['end_time']/1000.0}")
         
         # 重新计算状态
         duration = (item['end_time'] - item['start_time']) / 1000.0
@@ -1015,11 +1029,27 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         app_cfg.onlyone_voice_autorate=self.voice_autorate.isChecked()
         app_cfg.onlyone_remove_silent_mid=self.remove_silent_mid.isChecked()
         app_cfg.onlyone_align_sub_audio=self.align_sub_audio.isChecked()
+        srt_str_list=[]
         for i, item in enumerate(self.queue_tts):
+            start_time = self.table.item(i, 2)
+            end_time = self.table.item(i, 3)
+            start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
+            end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))
             # 不修改文本，以便可以单独使用 各种配音渠道支持的控制符号进行声音微调
             text_item = self.table.item(i, 5)
             text = text_item.text().strip() if text_item else item['text'].strip()
             # 删除空文本对应的音频文件
             if not text:
                 Path(item['filename']).unlink(missing_ok=True)
+            else:
+                srt_str_list.append(f'{len(srt_str_list)+1}\n{start_raw} --> {end_raw}\n{text}')
+
+        try:
+            Path(app_cfg.onlyone_target_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
+            Path(f'{self.cache_folder}/queue_tts.json').write_text( json.dumps(self.queue_tts, ensure_ascii=False), encoding='utf-8')
+        except Exception as e:
+            logger.error(f"Save subtitle failed: {e}")
+            QMessageBox.critical(self, "Error", f"Save failed: {e}")
+            self.save_button.setDisabled(False)
+            return
         self.accept()

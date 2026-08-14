@@ -23,12 +23,13 @@ class FunasrRecogn(BaseRecogn):
         from videotrans.process.stt_funasr import funasr_mlt
         check_and_down_ms(model_id='iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/punc_ct-transformer_zh-cn-common-vocab272727-pytorch')
 
-        if self.model_name == 'paraformer-zh' and self.detect_language[:2].lower() !='zh':
-            self.model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if self.detect_language[:2] not in ['zh','en','ja','yu'] else 'FunAudioLLM/Fun-ASR-Nano-2512'
+        _lang=self.detect_language.split('-')[0]
+        if self.model_name == 'paraformer-zh' and _lang !='zh':
+            self.model_name = 'FunAudioLLM/Fun-ASR-MLT-Nano-2512' if _lang not in ['zh','en','ja','yue'] else 'FunAudioLLM/Fun-ASR-Nano-2512'
         elif self.model_name == 'SenseVoiceSmall':
             self.model_name = 'iic/SenseVoiceSmall'
         elif self.model_name == 'Fun-ASR-Nano-2512':
-            if self.detect_language[:2] not in ['zh', 'en', 'ja', 'yu']:
+            if _lang not in ['zh', 'en', 'ja', 'yue']:
                 self.model_name = f'FunAudioLLM/Fun-ASR-MLT-Nano-2512'
             else:
                 self.model_name = f'FunAudioLLM/Fun-ASR-Nano-2512'

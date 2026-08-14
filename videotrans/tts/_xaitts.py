@@ -20,7 +20,7 @@ class XAITTS(BaseTTS):
         if self.language and self.language in ['ar','pt','es']:
             self.xai_language= 'ar-SA' if self.language=='ar' else f'{self.language}-{self.language.upper()}'
         elif self.language:
-            self.xai_language=self.language[:2]
+            self.xai_language=self.language.split('-')[0]
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))

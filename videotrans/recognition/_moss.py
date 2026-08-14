@@ -22,7 +22,7 @@ class MossRecogn(BaseRecogn):
     
     def _download(self):
         if not is_connect_hf():
-            check_and_down_hf(model_id=f'openmoss/MOSS-Transcribe-Diarize',
+            check_and_down_ms(model_id=f'openmoss/MOSS-Transcribe-Diarize',
                                     local_dir=self.local_dir,
                                     callback=self._process_callback)
         else:

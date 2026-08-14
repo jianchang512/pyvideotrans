@@ -32,22 +32,19 @@ class BaseTTS(BaseCon):
     # queue_tts 数量
     len: int = field(init=False)
     # 语言代码
-    language: Optional[str] = None
+    language: Optional[str] = ""
     # 唯一uid
     uuid: Optional[str] = None
     # 是否立即播放
     play: bool = False
     # 是否测试
     is_test: bool = False
-
     # 音量 音速 音调，默认 edge-tts格式， % 号结尾
     volume: Union[float, str] = field(default='+0%', init=False)
     rate: Union[float, str] = field(default='+0%', init=False)
     pitch: Union[float, str] = field(default='+0Hz', init=False)
-
     # 是否完成
     has_done: int = field(default=0, init=False)
-
     # 每次任务后暂停时间
     wait_sec: float = float(settings.get('dubbing_wait', 0))
     # 并发线程数量
@@ -58,6 +55,7 @@ class BaseTTS(BaseCon):
     api_url: str = field(default='', init=False)
     # 启用CUDA，仅 qwen3-tts-local 游戏哦啊
     is_cuda: bool = False
+    # 本地模型目录
     local_dir: str = None
     # 单视频模式下，配音校对面板可能需要重新配音，对于 F5-TTS等重型独立配音进程不能再任务完成后退出，需轮询等待是否有新的配音任务
     # is_redubb is True 代表是配音校对面板发起的
@@ -233,10 +231,11 @@ class BaseTTS(BaseCon):
     def _cleantts(self) -> None:
         normalizer = None
         if settings.get('normal_text'):
-            if self.language[:2] == 'zh':
+            _lang=self.language.split('-')[0]
+            if _lang == 'zh':
                 from videotrans.util.cn_tn import TextNorm
                 normalizer = TextNorm(to_banjiao=True)
-            elif self.language[:2] == 'en':
+            elif _lang == 'en':
                 from videotrans.util.en_tn import EnglishNormalizer
                 normalizer = EnglishNormalizer()
 

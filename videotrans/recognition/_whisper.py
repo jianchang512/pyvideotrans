@@ -42,7 +42,7 @@ class FasterAll(BaseRecogn):
         return raws
 
     def _download(self):
-        if self.recogn_type == 0:
+        if self.recogn_type == 0 and not Path(f'{self.local_dir}/model.bin').exists():
             if self.model_name in FASTER_MODELS_DICT:
                 repo_id = FASTER_MODELS_DICT[self.model_name]
             else:
@@ -52,6 +52,7 @@ class FasterAll(BaseRecogn):
         # 否则后断句处理
 
         if settings.get('whisper_prepare'):
+
             self._vad_split()
             self.speech_timestamps_file=f'{self.cache_folder}/speech_timestamps_{time.time()}.json'
             Path(self.speech_timestamps_file).write_text(json.dumps(self.speech_timestamps),encoding='utf-8')

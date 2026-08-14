@@ -13,7 +13,7 @@ from videotrans.util.help_srt import get_subtitle_from_srt, simple_wrap, set_ass
 class SubtitleMixin:
 
     def _process_subtitles(self) -> Union[tuple[str, str], None]:
-        logger.debug(f"\n======准备要嵌入的字幕:{self.cfg.subtitle_type=}=====")
+        logger.debug(f"\n======准备要嵌入的字幕:{self.cfg.subtitle_type=}===={self.cfg.target_sub=}=")
         if not Path(self.cfg.target_sub).exists() :
             raise VideoTransError(tr("No valid subtitle file exists")+self.cfg.target_sub)
 
@@ -35,8 +35,7 @@ class SubtitleMixin:
             source_sub_list = get_subtitle_from_srt(self.cfg.source_sub)
             source_length = len(source_sub_list)
             source_maxlen = int(
-                settings.get('cjk_len', 15) if self.cfg.source_language_code[:2] in ["zh", "ja", "jp", "ko",
-                                                                                     'yu'] else
+                settings.get('cjk_len', 15) if self.cfg.source_language_code.split('-')[0] in contants.CJK_LANG   else
                 settings.get('other_len', 60))
 
             _join_flag = self._get_join_flag()

@@ -32,7 +32,7 @@ class TTSAPI(BaseTTS):
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         if vail_file(data_item['filename']):return
         data = {"text": data_item.get('text','').strip(),
-                "language": self.language[:2] if self.language else "",
+                "language": self.language.split('-')[0] if self.language else "",
                 "extra": params.get('ttsapi_extra',''),
                 "voice": data_item['role'].strip(),
                 "ostype": sys.platform,

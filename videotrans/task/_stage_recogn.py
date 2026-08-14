@@ -84,7 +84,7 @@ class RecognMixin:
         self._save_srt_target(raw_subtitles, self.cfg.source_sub)
         self.source_srt_list = raw_subtitles
         # 恢复标点
-        if self.cfg.fix_punc==1 and self.cfg.detect_language[:2] in ['zh', 'en']:
+        if self.cfg.fix_punc==1 and self.cfg.detect_language.split('-')[0] in ['zh', 'en']:
             try:
                 down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF, callback=self._process_callback)
                 from videotrans.process.prepare_audio import fix_punc
@@ -98,7 +98,7 @@ class RecognMixin:
                     text_dict_obj=json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
                     for it in self.source_srt_list:
                         it['text'] = text_dict_obj.get(f'{it["line"]}', it['text'])
-                        if self.cfg.detect_language[:2] == 'en':
+                        if self.cfg.detect_language.split('-')[0] == 'en':
                             it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace('！','!')
                     self._save_srt_target(self.source_srt_list, self.cfg.source_sub)
                 else:

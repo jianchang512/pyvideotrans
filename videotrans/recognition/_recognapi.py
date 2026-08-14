@@ -114,7 +114,7 @@ class APIRecogn(BaseRecogn):
         payload = {
             "detect_language": True if not self.detect_language or self.detect_language == 'auto' else False,
             "enable_code_switching": False,
-            "language": "" if not self.detect_language or self.detect_language == 'auto' else self.detect_language[:2],
+            "language": "" if not self.detect_language or self.detect_language == 'auto' else self.detect_language.split('-')[0],
             "subtitles": True,
             "subtitles_config": {
                 "formats": ["srt"],
@@ -149,7 +149,7 @@ class APIRecogn(BaseRecogn):
             if d['status'] == 'done':
                 sens = d['result']['transcription']['subtitles'][0]['subtitles']
                 raws = get_subtitle_from_srt(sens, is_file=False)
-                if self.detect_language and self.detect_language[:2] in contants.CJK_LANG:
+                if self.detect_language and self.detect_language.split('-')[0] in contants.CJK_LANG:
                     for i, it in enumerate(raws):
                         text = re.sub(r'\s+', '', it['text'], flags=re.I | re.S)
                         raws[i]['text'] = text

@@ -16,6 +16,7 @@ from videotrans.util.help_misc import get_md5, vail_file
 
 LANG_TO_CAMB_LOCALE = {
     "en": "en-us",
+    "zh": "zh-cn",
     "zh-cn": "zh-cn",
     "zh-tw": "zh-tw",
     "fr": "fr-fr",
@@ -58,7 +59,7 @@ class CambTTS(BaseTTS):
         if vail_file(data_item['filename']):return
         role = data_item['role']
         # Determine locale
-        locale = LANG_TO_CAMB_LOCALE.get(self.language, LANG_TO_CAMB_LOCALE.get(self.language[:2], "en-us"))
+        locale = LANG_TO_CAMB_LOCALE.get(self.language, LANG_TO_CAMB_LOCALE.get(self.language.split('-')[0], "en-us"))
 
         # Load voice data
         jsonfile = ROOT_DIR + '/videotrans/voicejson/camb.json'

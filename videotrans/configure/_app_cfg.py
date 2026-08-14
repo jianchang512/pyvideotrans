@@ -45,6 +45,9 @@ class AppCfg:
     onlyone_target_sub: Any = None
     onlyone_target_wav: Any = None
     onlyone_novoice_mp4: Any = None
+    onlyone_name: Any = None
+    onlyone_voice_role: Any = None
+    onlyone_recogn2_video:Any=None
     onlyone_voice_autorate:bool=True
     onlyone_video_autorate:bool=False    
     onlyone_align_sub_audio:bool=True
@@ -53,6 +56,8 @@ class AppCfg:
     onlyone_is_cuda:bool=False
     onlyone_importsrtfile:str=None
 
+    hymt2_model:Any=None
+    hymt2_tokenizer:Any=None
 
     
     dubbing_role: Dict = field(default_factory=dict)

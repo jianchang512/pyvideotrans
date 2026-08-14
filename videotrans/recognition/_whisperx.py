@@ -33,7 +33,7 @@ class WhisperXRecogn(BaseRecogn):
                 transcript = client.audio.transcriptions.create(
                     file=(self.audio_file, file.read()),
                     model=self.model_name,
-                    language=self.detect_language[:2].lower(),
+                    language=self.detect_language.split('-')[0],
                     response_format="diarized_json",
                     extra_body={
                       "max_speakers": self.max_speakers #-1不启用，0=不限制数量，>0 最大数量

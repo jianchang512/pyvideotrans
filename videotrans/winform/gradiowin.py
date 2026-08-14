@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.configure.contants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.util.help_role import get_f5tts_role
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg, params
@@ -43,7 +44,7 @@ def openwin():
         test_btn[tts_type].setText(tr('Testing...'))
         import time
         wk = ListenVoice(parent=winobj,
-                         queue_tts=[{"text": '你好啊我的朋友,希望你今天开心！', "role": rolename, "filename": config.TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
+                         queue_tts=[{"text":  LISTEN_TEXT.get('zh'), "role": rolename, "filename": config.TEMP_DIR + f"/{time.time()}-{tts_type}.wav", "tts_type": tts_type}],
                          language="zh",
                          tts_type=tts_type)
         wk.uito.connect(feed)

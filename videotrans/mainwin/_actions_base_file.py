@@ -99,7 +99,7 @@ class WinActionBaseFileMixin:
         def _curl():
             try:
                 requests.head(test_proxy, timeout=8)
-            except Exception as e:
+            except Exception:
                 if test_version != self._proxy_test_version:
                     return
                 if self.main.proxy.text().strip()==test_proxy:

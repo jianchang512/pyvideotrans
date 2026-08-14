@@ -54,6 +54,7 @@ class DubbingMixin:
         line_roles = app_cfg.line_roles
         voice_role = self.cfg.voice_role
         logger.debug(f'{line_roles=}')
+        _lang=self.cfg.detect_language.split('-')[0]
         for i, it in enumerate(subs):
             if it['end_time'] < it['start_time'] or not it['text'].strip():
                 continue
@@ -86,7 +87,7 @@ class DubbingMixin:
                 shutil.copy2(_dubbing_cache,tmp_dict['filename'])
             if str(voice).strip().lower() == 'clone' and self.cfg.tts_type in SUPPORT_CLONE:
                 tmp_dict['ref_wav'] = f"{self.cfg.cache_folder}/clone-{i}.wav"
-                tmp_dict['ref_language'] = self.cfg.detect_language[:2]
+                tmp_dict['ref_language'] = _lang
             queue_tts.append(tmp_dict)
 
         self.queue_tts = copy.deepcopy(queue_tts)
@@ -120,3 +121,4 @@ class DubbingMixin:
                     name = f'{outname}/{it["line"]}-{text[:60]}.wav'
                     shutil.copy2(it['filename'], name)
         
+        self._save_srt_target(self.queue_tts, self.cfg.target_sub)

@@ -75,7 +75,7 @@ def funasr_mlt(
 
             res = model.generate(
                 input=[it['filename'] for it in srts],
-                language=detect_language[:2],  # "zh", "en", "yue", "ja", "ko", "nospeech"
+                language=detect_language.split('-')[0] if detect_language else 'zh',  # "zh", "en", "yue", "ja", "ko", "nospeech"
                 use_itn=True,
                 # batch_size=4,
                 progress_callback=_show_process,

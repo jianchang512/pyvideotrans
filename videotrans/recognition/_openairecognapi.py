@@ -62,7 +62,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                     file=(os.path.basename(self.audio_file), file.read()),
                     model=model_name,
                     prompt=params.get('openairecognapi_prompt', ''),
-                    language=self.detect_language[:2].lower(),
+                    language=self.detect_language.split('-')[0],
                     response_format="verbose_json",
                     #chunking_strategy='auto',
                     timestamp_granularities=["segment"]
@@ -101,7 +101,7 @@ class OpenaiAPIRecogn(BaseRecogn):
                     model=params.get("openairecognapi_model", 'whisper-1'),
                     prompt=params.get('openairecognapi_prompt', ''),
                     # timeout=7200,
-                    language=self.detect_language[:2].lower(),
+                    language=self.detect_language.split('-')[0],
                     response_format="json"
                 )
                 if not hasattr(transcript, 'text') or not transcript.text or not transcript.text.strip():
@@ -123,7 +123,7 @@ class OpenaiAPIRecogn(BaseRecogn):
             transcript = client.audio.transcriptions.create(
                 file=(os.path.basename(self.audio_file), file.read()),
                 model='gpt-4o-transcribe-diarize',
-                language=self.detect_language[:2].lower(),
+                language=self.detect_language.split('-')[0],
                 chunking_strategy="auto",
                 response_format="diarized_json"
             )

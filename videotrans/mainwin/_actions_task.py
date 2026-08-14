@@ -290,9 +290,6 @@ class WinActionTaskMixin:
             from videotrans.component.onlyone_set_recogn import EditRecognResultDialog
 
             dialog = EditRecognResultDialog(
-                source_sub=app_cfg.onlyone_source_sub,
-                source_wav=app_cfg.onlyone_source_wav,
-                novoice_mp4=app_cfg.onlyone_novoice_mp4,
                 parent=self.main
             )
             if dialog.exec():
@@ -305,9 +302,6 @@ class WinActionTaskMixin:
             from videotrans.component.onlyone_set_recogn2 import EditRecognResultDialog2
 
             dialog = EditRecognResultDialog2(
-                target_sub=app_cfg.onlyone_target_sub, #二次识别后的字幕
-                target_wav=app_cfg.onlyone_target_wav,#用于二次识别的完整音频，需要和 novoice_mp4 同步播放
-                novoice_mp4=app_cfg.onlyone_novoice_mp4,# 处理后的无声视频，需要和 target_wav 同步播放
                 parent=self.main
             )
 
@@ -320,11 +314,7 @@ class WinActionTaskMixin:
             from videotrans.component.onlyone_set_role import SpeakerAssignmentDialog
             cache_folder, target_language, tts_type = d['text'].split('<|>')
             dialog = SpeakerAssignmentDialog(
-                source_sub=None if not app_cfg.onlyone_trans else app_cfg.onlyone_source_sub,
-                target_sub=app_cfg.onlyone_target_sub,
                 target_language=target_language,
-                source_wav=app_cfg.onlyone_source_wav,
-                novoice_mp4=app_cfg.onlyone_novoice_mp4,
                 all_voices=self.main.current_rolelist,
                 cache_folder=cache_folder,
                 tts_type=int(tts_type),

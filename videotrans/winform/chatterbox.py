@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.configure.contants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.util.help_role import get_f5tts_role
     from pathlib import Path
@@ -41,7 +42,7 @@ def openwin():
         winobj.test.setText(tr('Testing...'))
         from videotrans import tts
         wk = ListenVoice(parent=winobj, queue_tts=[{
-            "text": 'Hello,my friend,welcom to China',
+            "text":  LISTEN_TEXT.get('en'),
             "role": rolename,
             "filename": config.TEMP_DIR + f"/test-chatterbox.wav",
             "tts_type": tts.CHATTERBOX_TTS}], language="en",

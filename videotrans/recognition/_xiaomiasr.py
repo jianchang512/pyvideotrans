@@ -33,6 +33,7 @@ class XiaomiASRRecogn(BaseRecogn):
         raws = self.cut_audio()
         err,ok=0,0
         err_msg=''
+        _lang=self.detect_language.split('-')[0]
         for i, it in enumerate(raws):
             try:
                 client = OpenAI(
@@ -70,7 +71,7 @@ class XiaomiASRRecogn(BaseRecogn):
                     ],
                     extra_body={
                         "asr_options": {
-                            "language": "auto" if self.detect_language[:2] not in ['zh','en'] else self.detect_language[:2]
+                            "language": "auto" if _lang not in ['zh','en'] else _lang
                         }
                     }
                 )

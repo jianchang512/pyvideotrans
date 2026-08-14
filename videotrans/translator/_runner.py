@@ -4,8 +4,7 @@ from videotrans.configure.config import app_cfg, logger
 from videotrans.translator._base import BaseTrans
 from videotrans import get_class
 from videotrans.translator._constants import (
-    GOOGLE_INDEX, MICROSOFT_INDEX,M2M100_INDEX,
-    AI_TRANS_CHANNELS,
+    GOOGLE_INDEX, MICROSOFT_INDEX,    AI_TRANS_CHANNELS,
 )
 from videotrans.translator._registry import _ID_NAME_DICT
 from videotrans.translator._lang_utils import get_source_target_code
@@ -31,8 +30,8 @@ def _check_gorm(name='google'):
 def run(*, translate_type=0,
         text_list=None,
         is_test=False,
-        source_code=None,
-        target_code=None,
+        source_code="",
+        target_code="",
         uuid=None) -> Union[List, str, None]:
     translate_type = int(translate_type)
     # ai渠道下，target_language_name 是语言名称

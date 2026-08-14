@@ -14,23 +14,21 @@ from tenacity import RetryError
 
 @dataclass
 class BaseRecogn(BaseCon):
-    recogn_type: int = 0  # 语音识别类型
-    # 字幕检测语言
-    detect_language: str = None
-
+    # 语音识别类型
+    recogn_type: int = 0
+    # 语音转录时 字幕检测语言
+    detect_language: str = ""
     # 模型名字
     model_name: Optional[str] = None
     # 待识别的 16k wav
     audio_file: Optional[str] = None
     # 临时目录
     cache_folder: Optional[str] = None
-
     # 任务id
     uuid: Optional[str] = None
     # 启用cuda加速
     is_cuda: bool = False
-
-    # 字幕嵌入类型 0 1234
+    # 字幕嵌入类型 0 1 2 3 4
     subtitle_type: int = 0
     # 是否已结束
     has_done: bool = field(default=False, init=False)
@@ -44,18 +42,25 @@ class BaseRecogn(BaseCon):
     flag: List[str] = field(init=False, default_factory=list)
     # 存放返回的字幕列表
     raws: List = field(default_factory=list, init=False)
-    # 文字之间连接，中日韩粤语直接相连，其他空格
+    # 文字之间连接，中日韩粤语高棉语泰语 直接相连，其他空格
     join_word_flag: str = field(init=False, default=' ')
     # 是否需转为简体中文
     jianfan: bool = False
-    # 字幕行字符数
+    # 单行字幕字符数
     maxlen: int = 20
     audio_duration: int = 0
-    max_speakers: int = -1  # 说话人，-1不启用说话人，0=不限制数量，>0 说话人最大数量
-    llm_post: bool = False  # 是否进行llm重新断句，如果是，则无需在识别完成后进行简单修正
-    speech_timestamps: List = field(default_factory=list)  # vad切割好的数据
+    # 说话人，-1不启用说话人，0=不限制数量，>0 说话人最大数量
+    max_speakers: int = -1
+
+    # 是否进行llm重新断句，如果是，则无需在识别完成后进行简单修正
+    llm_post: bool = False
+    # vad切割好的数据
+    speech_timestamps: List = field(default_factory=list)
+    # 当前需进行的是否是二次识别
     recogn2pass: bool = False
+    # 每次识别后等待时间，用于在线API，防止超频
     asr_wait: float = float(settings.get('asr_wait', 0))
+    # 本地模型存放目录
     local_dir: str = None
 
     def __post_init__(self):
@@ -69,12 +74,13 @@ class BaseRecogn(BaseCon):
         self.end_flag = contants.PUNC_FLAGS_END
         # 连接字符 中日韩粤语高棉语泰国语 直接连接，无需空格，其他语言空格连接
         self.join_word_flag = " "
-        # 中日韩文字
+        # 是中日韩文字
         self.is_cjk = False
 
-        if self.detect_language and self.detect_language[:2].lower() in contants.CJK_LANG:
+        _lang=self.detect_language.split('-')[0].lower()
+        if self.detect_language and _lang in contants.CJK_LANG:
             self.maxlen = int(float(settings.get('cjk_len', 20)))
-            self.jianfan = True if self.detect_language[:2] == 'zh' and settings.get('zh_hant_s') else False
+            self.jianfan = True if _lang == 'zh' and settings.get('zh_hant_s') else False
             self.flag.append(" ")
             self.join_word_flag = ""
             self.is_cjk = True
@@ -108,7 +114,6 @@ class BaseRecogn(BaseCon):
     # 对转录结果进行简单后处理
     def _post_fix(self, res: List[SrtItem]) -> List[SrtItem]:
         srt_list = []
-        logger.debug('移除无效字幕行')
         for i, it in enumerate(res):
             text = it['text'].strip()
             # 移除无效字幕行,全部由符号组成的行
@@ -121,8 +126,6 @@ class BaseRecogn(BaseCon):
         if not srt_list:
             return []
 
-        # 修正时间戳重叠
-        logger.debug('修正重叠时间轴')
         for i, it in enumerate(srt_list):
             if i > 0 and srt_list[i - 1]['end_time'] > it['start_time']:
                 logger.warning(
@@ -131,8 +134,7 @@ class BaseRecogn(BaseCon):
                 srt_list[i - 1]['endraw'] = ms_to_time_string(ms=it['start_time'])
                 srt_list[i - 1]['time'] = f"{srt_list[i - 1]['startraw']} --> {srt_list[i - 1]['endraw']}"
         
-        
-        
+
         # 不是LLM重新断句，并且选中合并过短字幕, 进行合并
         if not self.recogn2pass and not self.llm_post and settings.get('merge_short_sub', True):
             logger.debug('开始合并邻近短字幕')
@@ -153,8 +155,7 @@ class BaseRecogn(BaseCon):
     def _vad_split(self):
         _st = time.time()
         _vad_type = settings.get('vad_type', 'tenvad')
-        title = f'VAD:{_vad_type} split audio...'
-        self.signal(text=title)
+        self.signal(text=f'VAD:{_vad_type} split audio...')
 
         _threshold = float(settings.get('threshold', 0.5))
         _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 0)
@@ -184,10 +185,6 @@ class BaseRecogn(BaseCon):
 
         try:
             from videotrans.process.vad import get_speech_timestamp, get_speech_timestamp_silero
-            # self.speech_timestamps = self._new_process(
-            #     callback=get_speech_timestamp if _vad_type == 'tenvad' else get_speech_timestamp_silero,
-            #     title=title,
-            #     kwargs=kw)
             self.speech_timestamps = get_speech_timestamp(**kw) if _vad_type == 'tenvad' else get_speech_timestamp_silero(**kw)
         except Exception as e:
             logger.exception(f'VAD 处理失败 {e}', exc_info=True)
@@ -195,7 +192,7 @@ class BaseRecogn(BaseCon):
                 raise
         self.signal(text=f'[VAD] ended {int(time.time() - _st)}s')
 
-
+    # 预先使用 VAD 将待识别的音频切割为语句片段后进行识别
     def cut_audio(self) -> List[SrtItem]:
         from pydub import AudioSegment
         import numpy as np
@@ -206,7 +203,6 @@ class BaseRecogn(BaseCon):
         if not self.speech_timestamps:
             self._vad_split()
 
-        # 加载音频（16k 单声道）
         audio = AudioSegment.from_wav(self.audio_file)
 
         # 最小片段时长（至少 1000ms，至多 25000ms）

@@ -3,7 +3,7 @@ import re
 from dataclasses import dataclass
 from typing import List, Union
 
-from videotrans.configure.config import tr, logger, settings,ROOT_DIR
+from videotrans.configure.config import tr, logger, settings, ROOT_DIR, app_cfg
 from videotrans.translator._base import BaseTrans
 import torch
 
@@ -32,7 +32,7 @@ class HYMT2(BaseTrans):
                 
         return True
 
-    def _item_task(self,model,tokenizer, data: Union[List[str], str]) -> str:
+    def _item_task(self,data: Union[List[str], str]) -> str:
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
 
@@ -41,12 +41,12 @@ class HYMT2(BaseTrans):
 
 
         messages = [{"role": "user", "content": prompt}]
-        inputs = tokenizer.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt").to(model.device)
+        inputs = app_cfg.hymt2_tokenizer.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt").to(app_cfg.hymt2_model.device)
 
         with torch.no_grad():
-            outputs = model.generate(
+            outputs = app_cfg.hymt2_model.generate(
                 **inputs,
                 max_new_tokens=4096,
             )
-        response = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+        response = app_cfg.hymt2_tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
         return response.strip()

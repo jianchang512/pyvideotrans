@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.configure.contants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.util.help_role import get_f5tts_role
     from pathlib import Path
@@ -40,7 +41,7 @@ def openwin():
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
-            "text": '\u4f60\u597d\u554a\u6211\u7684\u670b\u53cb,\u5e0c\u671b\u4f60\u7684\u6bcf\u4e00\u5929\u90fd\u7f8e\u597d\u6109\u5feb',
+            "text":  LISTEN_TEXT.get('zh'),
             "role": rolename,
             "filename": config.TEMP_DIR + f"/{time.time()}-cosyvoice.wav",
             "tts_type": tts.COSYVOICE_TTS}],

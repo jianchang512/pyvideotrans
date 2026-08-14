@@ -841,6 +841,11 @@
     "uz": "Uzbek",
     "cy": "Welsh",
     "zu": "Zulu",
+	
+	
+	"pt-br":"Portuguese (Brazilian)",
+	"es-419":"Spanish (Latin America)",
+	
     "the reference audio duration is less than 3 seconds": "Reference audio duration is under 3s. Skipping voice clone.",
     "40 Eastern languages and 22 Chinese dialects": "40 Asian Languages & 22 Chinese Dialects",
     "Chinese & English and Chinese dialects": "Chinese/English & Dialects",

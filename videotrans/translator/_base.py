@@ -7,7 +7,7 @@ from tenacity import RetryError
 
 from videotrans import translator
 from videotrans.configure.base import BaseCon
-from videotrans.configure.config import tr, settings, logger, TEMP_ROOT,ROOT_DIR
+from videotrans.configure.config import tr, settings, logger, TEMP_ROOT, ROOT_DIR, app_cfg
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util.help_srt import get_subtitle_from_srt,cleartext
 from videotrans.util.help_misc import get_md5,serial
@@ -138,15 +138,15 @@ class BaseTrans(BaseCon):
         model_path = f"{ROOT_DIR}/models/models--tencent--Hy-MT2-1.8B"
 
         # Load tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+        app_cfg.hymt2_tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
 
         # Load model
-        model = AutoModelForCausalLM.from_pretrained(
+        app_cfg.hymt2_model = AutoModelForCausalLM.from_pretrained(
             model_path,
             device_map="auto",
             trust_remote_code=True,
         )
-        model.eval()
+        app_cfg.hymt2_model.eval()
         
         target_list = []
         logger.debug(f'以纯文本行形式翻译，每次翻译{self.trans_thread}行，翻译后暂停{self.wait_sec}s')
@@ -156,7 +156,7 @@ class BaseTrans(BaseCon):
             self.signal(text=tr('starttrans') + f' {i} ')
             result = self._get_cache(it)
             if not result:
-                result = cleartext(self._item_task(model,tokenizer,it))
+                result = cleartext(self._item_task(it))
                 self._set_cache(it, result)
             sep_res = result.split("\n")
             for x, result_item in enumerate(sep_res):
@@ -177,6 +177,11 @@ class BaseTrans(BaseCon):
                 _empty_line += 1
             self.text_list[i]['text'] = text
 
+        try:
+            app_cfg.hymt2_model=None
+            app_cfg.hymt2_tokenizer=None
+        except Exception:
+            pass
         if _empty_line >= len(self.text_list):
             from videotrans.configure.excepts import TranslateSrtError
             raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')

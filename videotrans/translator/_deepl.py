@@ -38,7 +38,7 @@ class DeepL(BaseTrans):
             target_code = 'ZH-HANT'
         elif target_code == 'PT':
             target_code = 'PT-PT'
-        sourcecode = self.source_code.upper()[:2] if self.source_code else None
+        sourcecode = self.source_code.split('-')[0].upper() if self.source_code else None
         sourcecode = sourcecode if sourcecode != 'AUTO' else None
         result = deepltranslator.translate_text(
             text,

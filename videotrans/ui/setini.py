@@ -26,8 +26,8 @@ notices = {
         "llm_ai_type": "LLM重新断句时使用的AI渠道，目前支持 OpenAI-ChatGPT 或 DeepSeek 渠道",
 
         "dont_notify": "任务完成或失败后不显示桌面通知",
-        "noise_separate_nums": "人声背景声分离线程数，越大越快但占用资源越多",
         "uvr_models": "选择分离背景声时所用模型",
+        "noise_separate_nums": "人声背景声分离/降噪线程数，越大越快但占用资源越多",
 
         "batch_nums": "批量翻译视频时，在此设置每批次同时翻译几个，默认0即不限制",
         "show_more_settings": "为避免过多参数造成困扰，主界面默认隐藏大部分参数，如果选中这里将切换为默认显示所有参数",

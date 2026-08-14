@@ -30,7 +30,7 @@ class AI302Recogn(BaseRecogn):
         
         # 转为 mp3
         apikey = params.get('ai302_key')
-        langcode = self.detect_language[:2].lower()
+        langcode = self.detect_language.split('-')[0].lower()
         url = "https://api.302.ai/v1/audio/transcriptions"
         headers = {
             'Accept': 'application/json',
@@ -75,7 +75,7 @@ class AI302Recogn(BaseRecogn):
         model_name = params.get('ai302_model_recogn','whisper-1')
         raws = self.cut_audio()
         apikey = params.get('ai302_key')
-        langcode = self.detect_language[:2].lower()
+        langcode = self.detect_language.split('-')[0].lower()
         url = "https://api.302.ai/v1/audio/transcriptions"
         headers = {
             'Accept': 'application/json',
@@ -113,7 +113,7 @@ class AI302Recogn(BaseRecogn):
     def _diarize(self)->Union[List[SrtItem], None]:
         apikey = params.get('ai302_key')
 
-        langcode = self.detect_language[:2].lower()
+        langcode = self.detect_language.split('-')[0].lower()
         url = "https://api.302.ai/v1/audio/transcriptions"
         headers = {
             'Accept': 'application/json',

@@ -46,6 +46,7 @@ _LANGUAGE_CODE_MAP = {
         "fa": "__fa__",
         "fi": "__tl__",# 菲律宾语
         "ur": "__ur__",
+        "yue": "__zh__",
         "yu": "__zh__",
         "ro": "__ro__",
         "nb": "__no__"
@@ -62,8 +63,8 @@ class M2M100Trans(BaseTrans):
         if not self.source_code or self.source_code=='auto':
             self.from_lang='auto'
         else:
-            self.from_lang=_LANGUAGE_CODE_MAP.get(self.source_code[:2].lower(),'auto')
-        self.to_lang=_LANGUAGE_CODE_MAP.get(self.target_code[:2].lower())
+            self.from_lang=_LANGUAGE_CODE_MAP.get(self.source_code.split('-')[0].lower(),'auto')
+        self.to_lang=_LANGUAGE_CODE_MAP.get(self.target_code.split('-')[0].lower())
 
     def _download(self):
         if not Path(f'{ROOT_DIR}/models/m2m100_12b/model.bin').exists():

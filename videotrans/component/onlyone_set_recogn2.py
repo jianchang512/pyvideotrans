@@ -11,23 +11,18 @@ from PySide6.QtWidgets import (
 )
 
 from videotrans.component._danspmixin import DanspMixin
-from videotrans.configure.config import ROOT_DIR, tr, settings, logger
+from videotrans.configure.config import ROOT_DIR, tr, settings, logger, app_cfg
 from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
 
 
 class EditRecognResultDialog2(QDialog,DanspMixin):
     def __init__(
             self,
-            target_sub: str = None,       # 二次识别后的字幕
-            target_wav: str = None,       # 用于播放的完整配音音频
-            novoice_mp4: str = None,      # 处理后的无声视频
             parent=None,
     ):
         super().__init__()
         self.parent = parent
-        self.source_sub = target_sub
-        self.source_wav = target_wav
-        self.novoice_mp4 = novoice_mp4
+        self.source_sub = app_cfg.onlyone_target_sub
         self.srt_list_dict = []
 
         self.setWindowTitle(tr("Modify secondary recognition results"))
@@ -117,7 +112,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
         self.stop_play_btn=QPushButton()
         self.stop_play_btn.setToolTip(tr('Click to pause playback'))
         self.stop_play_btn.setText(tr('Click to pause playback'))
-        self.stop_play_btn.clicked.connect(self._stop_and_display)
+        self.stop_play_btn.clicked.connect(self._pause_play)
         self.stop_play_btn.setCursor(Qt.PointingHandCursor)
         self.stop_play_btn.hide()
         videostatus_layout.addStretch()
@@ -198,74 +193,46 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
     def _ensure_players(self):
         if hasattr(self, '_players_created'):
             return
-
         self._players_created = True
         self.video_player = QMediaPlayer()
         self.video_player.setVideoOutput(self.video_widget)
-        self.video_player.positionChanged.connect(self._on_audio_position_changed)
-        self.audio_player = QMediaPlayer()
         self.audio_output = QAudioOutput()
-        self.audio_player.setAudioOutput(self.audio_output)
-        self.audio_player.positionChanged.connect(self._on_audio_position_changed)
+        self.video_player.setAudioOutput(self.audio_output)
+        self.audio_output.setVolume(1.0) # 1.0 表示 100% 音量
+        self.video_player.positionChanged.connect(self._on_video_position_changed)
 
-        # Timer to poll video position (more reliable than signal)
-        self._poll_timer = QTimer(self)
-        self._poll_timer.timeout.connect(self._poll_video_position)
 
-    def _on_audio_position_changed(self, position):
-        if self._target_end_ms > 0 and position >= self._target_end_ms:
-            self._stop_and_display()
-
-    def _poll_video_position(self):
-        if self._video_end_ms <= 0:
-            return
-        try:
-            pos = self.video_player.position()
-            if pos >= self._video_end_ms:
-                self._stop_and_display()
-        except Exception:
-            pass
-
-    def _stop_and_display(self):
-        self._poll_timer.stop()
-        self.stop_play_btn.hide()
-        try:
-            self.video_player.pause()
-            self.audio_player.stop()
-        except Exception:
-            pass
-        self._video_end_ms = -1
+    def _pause_play(self):
+        self.video_player.pause()
         self._target_end_ms = -1
         self.video_status.setText(tr("Playback stopped"))
+        self.stop_play_btn.hide()
 
+    def _on_video_position_changed(self, position):
+        if self._target_end_ms > 0 and position >= self._target_end_ms:
+            self._pause_play()
 
     def _play_segment(self, start_ms, end_ms):
         self._ensure_players()
         self.stop_play_btn.show()
         self._pending_start = start_ms
         self._pending_end = end_ms
-
         self._players_pending = 0
         try:
-            if self.novoice_mp4 and Path(self.novoice_mp4).exists():
+            if app_cfg.onlyone_recogn2_video and Path(app_cfg.onlyone_recogn2_video).exists():
                 if not self.video_player.source().toString():
-                    self.video_player.setSource(QUrl.fromLocalFile(self.novoice_mp4))
-                    self._players_pending += 1
-            if self.source_wav and Path(self.source_wav).exists():
-                if not self.audio_player.source().toString():
-                    self.audio_player.setSource(QUrl.fromLocalFile(self.source_wav))
+                    self.video_player.setSource(QUrl.fromLocalFile(app_cfg.onlyone_recogn2_video))
                     self._players_pending += 1
         except Exception as e:
             self.video_status.setText(f"Load failed: {e}")
             return
 
         if self._players_pending > 0:
-            for player in [self.video_player, self.audio_player]:
-                try:
-                    player.mediaStatusChanged.disconnect(self._on_media_ready)
-                except BaseException:
-                    pass
-                player.mediaStatusChanged.connect(self._on_media_ready)
+            try:
+                self.video_player.mediaStatusChanged.disconnect(self._on_media_ready)
+            except BaseException:
+                pass
+            self.video_player.mediaStatusChanged.connect(self._on_media_ready)
             return
 
         self._do_play(start_ms, end_ms)
@@ -281,40 +248,27 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
     def _disconnect_media_signals(self):
         import warnings
         warnings.filterwarnings("ignore", category=RuntimeWarning, message="Failed to disconnect")
-        for player in [self.video_player, self.audio_player]:
-            for sig in [player.positionChanged, player.mediaStatusChanged]:
-                try:
-                    sig.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
+        try:
+            self.video_player.mediaStatusChanged.disconnect()
+        except (TypeError, RuntimeError):
+            pass
 
     def _do_play(self, start_ms, end_ms):
-        self._video_end_ms = end_ms
         self._target_end_ms = end_ms
         try:
             self.video_player.setPosition(start_ms)
-            self.audio_player.setPosition(start_ms)
         except Exception:
             pass
         self.video_player.play()
-        self.audio_player.play()
         self._stack.setCurrentIndex(0)
         self.video_status.setText(f"\u23F5 {ms_to_time_string(ms=start_ms)} \u2192 {ms_to_time_string(ms=end_ms)}")
-        #self.stop_countdown()
-        # Start polling timer for reliable video position tracking
-        if hasattr(self, '_poll_timer'):
-            self._poll_timer.start(100)
 
     def _stop_playback(self):
         self._target_end_ms = -1
-        self._video_end_ms = -1
-        if hasattr(self, '_poll_timer'):
-            self._poll_timer.stop()
         if not hasattr(self, '_players_created'):
             return
         try:
             self.video_player.stop()
-            self.audio_player.stop()
         except Exception as e:
             logger.exception(e, exc_info=True)
 
@@ -324,23 +278,14 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
         self._stop_playback()
         import warnings
         warnings.filterwarnings("ignore", category=RuntimeWarning, message="Failed to disconnect")
-        for player in [self.video_player, self.audio_player]:
-            for sig in [player.positionChanged, player.mediaStatusChanged]:
-                try:
-                    sig.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-        if hasattr(self, '_poll_timer'):
+        for sig in [self.video_player.positionChanged, self.video_player.mediaStatusChanged]:
             try:
-                self._poll_timer.timeout.disconnect()
+                sig.disconnect()
             except (TypeError, RuntimeError):
                 pass
+
         try:
             self.video_player.setSource(QUrl())
-        except Exception:
-            pass
-        try:
-            self.audio_player.setSource(QUrl())
         except Exception:
             pass
         import gc
@@ -350,9 +295,9 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
     def load_table(self):
         try:
             self.srt_list_dict = get_subtitle_from_srt(self.source_sub)
-            self.table.setColumnCount(4)
+            self.table.setColumnCount(5)
             self.table.setHorizontalHeaderLabels([
-                tr("Line"), tr('Subtitles') + tr("Time Axis"), tr("Play"), tr("Subtitle Text")
+                tr("Line"), '\u270D'+tr("Start Time")+'/s', '\u270D'+tr("End Time")+'/s','\u23F5', '\u270D'+tr("Subtitle Text")
             ])
 
             self.table.setShowGrid(False)
@@ -372,20 +317,19 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
             h_header.setSectionResizeMode(0, QHeaderView.Fixed)
             h_header.setSectionResizeMode(1, QHeaderView.Fixed)
             h_header.setSectionResizeMode(2, QHeaderView.Fixed)
+            h_header.setSectionResizeMode(3, QHeaderView.Fixed)
 
             self.table.setColumnWidth(0, 50)
-            self.table.setColumnWidth(1, 230)
-            self.table.setColumnWidth(2, 30)
+            self.table.setColumnWidth(1, 120)
+            self.table.setColumnWidth(2, 120)
+            self.table.setColumnWidth(3, 30)
 
             self.table.setStyleSheet(self.table_style_css)
 
             self.display_data = []
             for item in self.srt_list_dict:
-                duration = (item['end_time'] - item['start_time']) / 1000.0
-                time_str = f"{item['startraw']} --> {item['endraw']} ({duration:.1f}s)"
                 self.display_data.append({
                     'line': item['line'],
-                    'time_str': time_str,
                     'text': item['text'],
                     'startraw': item['startraw'],
                     'endraw': item['endraw'],
@@ -422,9 +366,15 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
             item0.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 0, item0)
 
-            item1 = QTableWidgetItem(data['time_str'])
-            item1.setFlags(Qt.ItemIsEnabled)
+            item1 = QTableWidgetItem(f'{data["start_time"]/1000.0}')
+            item1.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             self.table.setItem(row, 1, item1)
+
+
+
+            item2 = QTableWidgetItem(f'{data["end_time"]/1000.0}')
+            item2.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+            self.table.setItem(row, 2, item2)
 
             btn = QPushButton("\u23F5")
             btn.setObjectName("playBtn")
@@ -432,11 +382,12 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
             s = data['start_time']
             e = data['end_time']
             btn.clicked.connect(lambda checked=False, _s=s, _e=e: self._play_segment(_s, _e))
-            self.table.setCellWidget(row, 2, btn)
+            self.table.setCellWidget(row, 3, btn)
 
             text_item = QTableWidgetItem(data['text'])
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            self.table.setItem(row, 3, text_item)
+            self.table.setItem(row, 4, text_item)
+
 
     def _load_remaining(self, start_row):
         total = len(self.display_data)
@@ -508,13 +459,17 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
         self.save_button.setDisabled(True)
         srt_str_list = []
         for i, data in enumerate(self.display_data):
-            item = self.table.item(i, 3)
+            start_time = self.table.item(i, 1)
+            end_time = self.table.item(i, 2)
+            start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
+            end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))
+            item = self.table.item(i, 4)
             text = item.text().strip() if item else data['text'].strip()
             if text:
-                srt_str_list.append(f'{data["line"]}\n{data["startraw"]} --> {data["endraw"]}\n{text}')
-        try:
-            Path(self.source_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
-        except Exception as e:
-            logger.exception(f"Save error: {e}", exc_info=True)
+                srt_str_list.append(f'{len(srt_str_list)+1}\n{start_raw} --> {end_raw}\n{text}')
+        print(f'{srt_str_list=}')
+        print(f'{self.source_sub=}')
+        Path(self.source_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
+
         self._release_media()
         self.accept()

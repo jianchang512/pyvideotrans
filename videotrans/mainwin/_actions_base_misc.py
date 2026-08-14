@@ -74,10 +74,10 @@ class WinActionBaseMiscMixin:
         if not lang:
             return show_error(
                 tr("Please select the target language first"))
-
-        text = LISTEN_TEXT.get(f'{lang}')
+        
+        text = LISTEN_TEXT.get(lang.split('-')[0])
         if not text:
-            return show_error(tr("The voice is not support listen"))
+            return show_error(tr("The voice is not support listen")+f' {lang=}')
         role = self.main.voice_role.currentText()
         if not role or role == 'No':
             return show_error(tr('mustberole'))

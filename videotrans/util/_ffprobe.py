@@ -100,8 +100,8 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
         else:
             result['time'] = int(float(out['format']['duration']) * 1000)
     except Exception as e:
-        raise FFmpegError(tr('Unable to obtain video duration data, please check the video data')+f"\n{mp4_file}\n{e}")
         logger.exception(e, exc_info=True)
+        raise FFmpegError(tr('Unable to obtain video duration data, please check the video data')+f"\n{mp4_file}\n{e}")
 
     video_stream = next((s for s in out['streams'] if s.get('codec_type') == 'video'), None)
     audio_streams = [s for s in out['streams'] if s.get('codec_type') == 'audio']

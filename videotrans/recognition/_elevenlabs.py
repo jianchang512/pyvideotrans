@@ -27,7 +27,7 @@ class ElevenLabsRecogn(BaseRecogn):
             httpx_client=httpx.Client(proxy=self.proxy_str)
         )
 
-        language_code = self.detect_language[:2] if self.detect_language and self.detect_language != 'auto' else ''
+        language_code = self.detect_language.split('-')[0] if self.detect_language and self.detect_language != 'auto' else ''
         logger.debug(f'{language_code=}')
 
         raws = []

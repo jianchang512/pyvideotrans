@@ -79,8 +79,6 @@ class AssembleMixin:
     def _join_video_audio_srt(self) -> None:
         if self._exit() or not self.should_hebing:
             return
-        if self.should_dubbing and self.queue_tts:
-            self._save_srt_target(self.queue_tts, self.cfg.target_sub)
         self.signal(text="Checking novoice.mp4...")
         is_novoice_mp4(self.cfg.novoice_mp4, self.uuid)
         if not Path(self.cfg.novoice_mp4).exists():

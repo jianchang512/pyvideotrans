@@ -125,7 +125,7 @@ class CambRecogn(BaseRecogn):
                     "text": text.strip()
                 })
 
-                if self.detect_language and self.detect_language[:2] in contants.CJK_LANG:
+                if self.detect_language and self.detect_language.split('-')[0] in contants.CJK_LANG:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'], flags=re.I | re.S)
 
                 tmp['time'] = ms_to_time_string(ms=start_ms) + ' --> ' + ms_to_time_string(ms=end_ms)

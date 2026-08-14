@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.configure.contants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans.configure import config
@@ -29,7 +30,7 @@ def openwin():
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
-            "text": '\u4f60\u597d\u554a\u6211\u7684\u670b\u53cb',
+            "text":  LISTEN_TEXT.get('zh'),
             "role": params.get("clone_voicelist",'')[1] if len(params.get("clone_voicelist",'')) > 1 else '',
             "filename": config.TEMP_DIR + f"/{time.time()}-clonevoice.wav",
             "tts_type": tts.CLONE_VOICE_TTS}],

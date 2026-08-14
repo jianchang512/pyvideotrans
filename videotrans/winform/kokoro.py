@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.configure.contants import LISTEN_TEXT
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure import config
@@ -29,7 +30,7 @@ def openwin():
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
-            "text": 'hello,my friend',
+            "text":  LISTEN_TEXT.get('en'),
             "role": "af_alloy",
             "filename": config.TEMP_DIR + f"/{time.time()}-kokoro.wav",
             "tts_type": tts.KOKORO_TTS}],

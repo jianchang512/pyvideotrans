@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.configure.contants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr,app_cfg,settings,params
     from videotrans.configure import config
@@ -28,7 +29,7 @@ def openwin():
         winobj.test.setText(tr("Testing..."))
         from videotrans import tts
         import time
-        wk = ListenVoice(parent=winobj, queue_tts=[{"text": '\u4f60\u597d\u554a\u6211\u7684\u670b\u53cb', "role": "boy1",
+        wk = ListenVoice(parent=winobj, queue_tts=[{"text": LISTEN_TEXT.get('zh'), "role": "boy1",
                                                     "filename": config.TEMP_DIR + f"/{time.time()}-chattts.wav",
                                                     "tts_type": tts.CHATTTS}], language="zh", tts_type=tts.CHATTTS)
         wk.uito.connect(feed)

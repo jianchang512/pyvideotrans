@@ -58,7 +58,7 @@ class SupertonicTTS(BaseTTS):
                     role=item.get('role','F1')
                     style = load_voice_style([f"{self.local_dir}/voice_styles/{role}.json"], verbose=False)
                     wav, duration = text_to_speech(
-                                   item.get('text'), self.language[:2], style, 10, self.speed
+                                   item.get('text'), self.language.split('-')[0], style, 10, self.speed
                                 )
                     w = wav[0, : int(text_to_speech.sample_rate * duration.item())]  # [T_trim]
                     filename=item['filename']+'-tmp.wav'

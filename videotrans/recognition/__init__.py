@@ -177,7 +177,7 @@ def is_input_api(recogn_type: int = None, return_str=False):
 
 # 统一入口
 def run(*,
-        detect_language=None,
+        detect_language="",
         audio_file=None,
         cache_folder=None,
         model_name=None,
@@ -192,7 +192,7 @@ def run(*,
         ) -> Union[List[SrtItem], None]:
     if app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set): return
     kwargs = {
-        "detect_language": detect_language,
+        "detect_language": detect_language.lower() if detect_language else "",
         "audio_file": audio_file,
         "cache_folder": cache_folder,
         "model_name": model_name,

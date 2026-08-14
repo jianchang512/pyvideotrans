@@ -23,10 +23,12 @@ LANGNAME_DICT = {
     "ko": tr("Korean"),
     "ru": tr("Russian"),
     "es": tr("Spanish"),
+    "es-419": tr("es-419"),
     "th": tr("Thai"),
     "it": tr("Italian"),
     "el": tr("Greek"),
     "pt": tr("Portuguese"),
+    "pt-br": tr("pt-br"),
     "vi": tr("Vietnamese"),
     "ar": tr("Arabic"),
     "tr": tr("Turkish"),
@@ -96,7 +98,7 @@ LANG_CODE = {
         "ur",  # google通道
         "urd",  # 字幕嵌入语言
         "ur",  # 百度通道
-        "No",  # deepl deeplx通道
+        "UR",  # deepl deeplx通道
         "No",  # 腾讯通道
         "No",  # OTT通道
         "ur",  # 微软翻译
@@ -135,7 +137,7 @@ LANG_CODE = {
         "yue",  # google通道
         "chi",  # 字幕嵌入语言
         "yue",  # 百度通道
-        "No",  # deepl deeplx通道
+        "YUE",  # deepl deeplx通道
         "No",  # 腾讯通道
         "No",  # OTT通道
         "yue",  # 微软翻译
@@ -254,7 +256,7 @@ LANG_CODE = {
         "th",
         "tha",
         "th",
-        "No",
+        "TH",
         "th",
         "th",
         "th",
@@ -303,11 +305,11 @@ LANG_CODE = {
         "no"  # m2m100
     ],
     "pt": [
-        "pt",  # pt-PT
+        "pt-PT",  # pt-PT
         "por",
         "pt",
         "PT-PT",
-        "PT-PT",
+        "pt",
         "pt",
         "pt",
         "Portuguese",
@@ -319,7 +321,7 @@ LANG_CODE = {
         "vi",
         "vie",
         "vie",
-        "vi",
+        "VI",
         "vi",
         "vi",
         "vi",
@@ -358,7 +360,7 @@ LANG_CODE = {
         "hi",
         "hin",
         "hi",
-        "No",
+        "HI",
         "hi",
         "hi",
         "hi",
@@ -410,7 +412,7 @@ LANG_CODE = {
         "ms",
         "msa",
         "may",
-        "No",
+        "MS",
         "ms",
         "ms",
         "ms",
@@ -422,7 +424,7 @@ LANG_CODE = {
     "kk": [
         "kk",
         "kaz",
-        "No",
+        "KK",
         "No",
         "No",
         "No",
@@ -501,7 +503,7 @@ LANG_CODE = {
         "bn",  # google通道
         "ben",  # 字幕嵌入语言
         "ben",  # 百度通道
-        "No",  # deepl deeplx通道
+        "BN",  # deepl deeplx通道
         "No",  # 腾讯通道
         "No",  # OTT通道
         "bn",  # 微软翻译
@@ -514,7 +516,7 @@ LANG_CODE = {
         "fa",  # google通道
         "fas",  # 字幕嵌入语言
         "per",  # 百度通道
-        "No",  # deepl deeplx通道
+        "FA",  # deepl deeplx通道
         "No",  # 腾讯通道
         "No",  # OTT通道
         "fa",  # 微软翻译
@@ -523,6 +525,34 @@ LANG_CODE = {
         "Western Persian",
         "fa"  # m2m100
     ],
+    
+    "pt-br": [
+        "pt",  # pt-PT
+        "por",#字幕
+        "pot",#百度
+        "PT-BR",#deepl
+        "pt",#腾讯
+        "pt",#ott
+        "pt",#微软
+        "Portuguese (Brazilian)",#AI 
+        "pt",#阿里
+        "Portuguese (Brazilian)",#qwen-mt
+        "pt"  # m2m100
+    ],
+    "es-419": [
+        "es",#google
+        "spa",
+        "spa",#baidu
+        "ES-419",#deepl
+        "es",#腾讯
+        "es",#ott
+        "es",#微软
+        "Spanish",#AI
+        "es",#阿里机器
+        "Spanish",#qwenmt
+        "es"  # m2m100
+    ],
+    
     "auto": [
         "auto",
         "auto",

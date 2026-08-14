@@ -249,7 +249,7 @@ def openwin():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
         if not lang or lang == '-':
             return show_error(tr("The current language does not support audition"))
-        text = LISTEN_TEXT.get(f'{lang}')
+        text = LISTEN_TEXT.get(lang.split('-')[0])
         if not text:
             return show_error(tr('The current language does not support audition'))
         role = winobj.hecheng_role.currentText()

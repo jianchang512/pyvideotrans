@@ -49,7 +49,7 @@ class DeepgramRecogn(BaseRecogn):
         options = PrerecordedOptions(
             model=self.model_name,
             # detect_language=True,
-            language=self.detect_language[:2],
+            language=self.detect_language.split('-')[0],
             smart_format=True,
             punctuate=True,
             paragraphs=True,
@@ -75,7 +75,7 @@ class DeepgramRecogn(BaseRecogn):
                     "end_time": int(it.end * 1000),
                     "text": it.transcript
                 }
-                if self.detect_language[:2] in contants.CJK_LANG:
+                if self.detect_language.split('-')[0] in contants.CJK_LANG:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'],flags=re.I | re.S)
                 tmp['startraw']=ms_to_time_string(ms=tmp['start_time'])
                 tmp['endraw']=ms_to_time_string(ms=tmp['end_time'])
@@ -85,12 +85,13 @@ class DeepgramRecogn(BaseRecogn):
                 Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
         else:
             transcription = DeepgramConverter(res)
+            _lang=self.detect_language.split('-')[0]
             srt_str = srt(transcription,
-                          line_length=int(settings.get('cjk_len') if self.detect_language[:2] in ['zh', 'ja','ko'] else settings.get('other_len')))
+                          line_length=int(settings.get('cjk_len') if _lang in ['zh', 'ja','ko'] else settings.get('other_len')))
             raws = get_subtitle_from_srt(srt_str, is_file=False)
-            if self.detect_language[:2] in contants.CJK_LANG:
+            if _lang in contants.CJK_LANG:
                 for i, it in enumerate(raws):
-                    if self.detect_language[:2] == 'zh':
+                    if _lang == 'zh':
                         it['text'] = zhconv.convert(it['text'], 'zh-hans')
                     raws[i]['text'] = it['text'].replace(' ', '')
 

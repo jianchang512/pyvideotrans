@@ -51,7 +51,7 @@ class Doubao2TTS(BaseTTS):
         if vail_file(data_item['filename']):return
         # 角色为实际名字
         role = data_item.get('role','Vivi 2.0')
-        role = get_doubao2_rolelist(role_name=role, langcode=self.language[:2])
+        role = get_doubao2_rolelist(role_name=role, langcode=self.language.split('-')[0])
         headers = {
             "X-Api-App-Id": self.appid,
             "X-Api-Access-Key": self.access_token,

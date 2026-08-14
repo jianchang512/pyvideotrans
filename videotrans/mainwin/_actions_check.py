@@ -244,4 +244,4 @@ class WinActionCheckMixin:
 
         self.main.retrybtn.setVisible(False)
         QTimer.singleShot(10,self.create_btns)
-        # self.create_btns()
+

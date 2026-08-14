@@ -13,6 +13,7 @@ from videotrans.configure.config import tr, settings, app_cfg, logger
 
 from videotrans.task.taskcfg import TaskCfgVTT, SignMsg, InputFile
 from videotrans.task.trans_create import TransCreate
+from videotrans.util._ffmpeg_runner import runffmpeg
 from videotrans.util.tools import vail_file
 
 
@@ -54,8 +55,11 @@ class Worker(QThread):
             app_cfg.onlyone_source_wav = trk.cfg.source_wav
             app_cfg.onlyone_target_sub = trk.cfg.target_sub
             app_cfg.onlyone_target_wav = trk.cfg.target_wav
+            app_cfg.onlyone_voice_role = trk.cfg.voice_role
             app_cfg.onlyone_novoice_mp4 = trk.cfg.novoice_mp4
+            app_cfg.onlyone_name = trk.cfg.name
             app_cfg.onlyone_is_cuda=trk.cfg.is_cuda
+            app_cfg.onlyone_recogn2_video=f'{trk.cfg.cache_folder}/recogn2_tmp_video.mp4'
             # 如果存在原始字幕，并且字幕第一条开头存在说话人标识 \[(spk|speakers?)\s*?\d+\]
             # 则取出所有说话人，不存在的以第一条的为默认，然后从字幕中删除
             # 目标语言字幕文件
@@ -129,6 +133,7 @@ class Worker(QThread):
                         if self._exit(): return
                         time.sleep(1)
                         app_cfg.set_countdown(app_cfg.task_countdown - 1)
+                    trk.queue_tts=json.loads(Path(f'{trk.cfg.cache_folder}/queue_tts.json').read_text(encoding='utf-8'))
                     trk.cfg.voice_autorate=app_cfg.onlyone_voice_autorate
                     trk.cfg.video_autorate=app_cfg.onlyone_video_autorate
                     trk.cfg.remove_silent_mid=app_cfg.onlyone_remove_silent_mid
@@ -141,9 +146,19 @@ class Worker(QThread):
             trk.recogn2pass()
             if trk.should_recogn2:
                 app_cfg.set_countdown(86400)
+                self._post(text=tr('The subtitle editing interface is rendering'))
+                # 将无声视频和配音文件合并为临时视频
+
+                runffmpeg([
+                    "-i",app_cfg.onlyone_novoice_mp4,
+                    "-i", app_cfg.onlyone_target_wav,
+                    "-c:v","copy",
+                    "-c:a","copy",
+                    app_cfg.onlyone_recogn2_video
+                ])
+
                 # 等待修改二次识别出的字幕
                 self._post(text=f'{trk.cfg.target_sub}', type="edit_recogn2_subtitle")
-                self._post(text=tr('The subtitle editing interface is rendering'))
                 while app_cfg.task_countdown > 0:
                     if self._exit(): return
                     time.sleep(1)

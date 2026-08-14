@@ -24,7 +24,7 @@ class ParaketRecogn(BaseRecogn):
                 transcript = client.audio.transcriptions.create(
                     file=(self.audio_file, file.read()),
                     model='parakeet_srt_words',
-                    prompt=self.detect_language[:2].lower(),
+                    prompt=self.detect_language.split('-')[0],
                     response_format="srt",
                     timeout=3600
                 )

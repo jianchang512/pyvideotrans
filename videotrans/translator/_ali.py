@@ -33,7 +33,7 @@ class Ali(BaseTrans):
         translate_general_request = alimt_20181012_models.TranslateGeneralRequest(
             format_type='text',
             source_language='auto',
-            target_language='zh' if self.target_code[:2] == 'zh' else self.target_code,
+            target_language='zh' if self.target_code.split('-')[0] == 'zh' else self.target_code,
             source_text="\n".join(data),
             scene='general'
         )

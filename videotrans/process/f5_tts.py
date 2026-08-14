@@ -30,17 +30,9 @@ from f5_tts.infer.utils_infer import (
 
 # 重新 F5TTS 初始化方法，以实现多语言
 class _F5TTS(F5TTS):
-    def __init__(
-        self,
-        yaml_path: str,            # 配置文件的绝对路径（原 `model` 参数被替换）
-        ckpt_file: str,            # 模型权重的绝对路径
-        vocab_file: str,           # 词汇表的绝对路径
-        ode_method: str = "euler",
-        use_ema: bool = True,
-        vocoder_local_path: str = None,
-        device: str = None,
-        hf_cache_dir: str = None,
-    ):
+    def __init__(self, yaml_path: str, ckpt_file: str, vocab_file: str, ode_method: str = "euler", use_ema: bool = True,
+                 vocoder_local_path: str = None, device: str = None, hf_cache_dir: str = None):
+
         model_cfg = OmegaConf.load(yaml_path)
         model_cls = get_class(f"f5_tts.model.{model_cfg.model.backbone}")
         model_arc = model_cfg.model.arch
