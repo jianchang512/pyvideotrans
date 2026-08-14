@@ -39,7 +39,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf ffmpeg-* \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN git clone -b dev https://github.com/jianchang512/pyvideotrans.git .
+# Copy dependency specification files first for Docker layer caching
+COPY pyproject.toml uv.lock .python-version* ./
 
 # 修复丢失了变量的 if 语句，正确引用 "${USE_CUDA}"
 RUN if [ "${USE_CUDA}" = "true" ]; then \
@@ -49,10 +50,14 @@ RUN if [ "${USE_CUDA}" = "true" ]; then \
         uv pip install --system nvidia-cublas-cu12 nvidia-cudnn-cu12; \
     else \
         echo ">>> CPU" && \
+        # Pre-install CPU PyTorch so that 'uv pip install -r pyproject.toml' sees torch as satisfied and does not download NVIDIA CUDA wheels \
+        uv pip install --system torch==2.7.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cpu && \
         uv pip install --system -r pyproject.toml --all-extras; \
-    fi
+    fi && \
+    rm -rf /root/.cache/uv /tmp/*
 
-RUN rm -rf /root/.cache/uv /tmp/*
+# Copy application source code
+COPY . .
 
 EXPOSE 7860
 
