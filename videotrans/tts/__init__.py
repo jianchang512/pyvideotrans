@@ -96,7 +96,7 @@ _ID_NAME_DICT = {
     QWEN3LOCAL_TTS: ChannelProvider(f"Qwen3-TTS({tr('Built-in')})", "._qwenttslocal"),
     F5_TTS: ChannelProvider(f"F5-TTS({tr('Built-in')})", "._f5tts"),
     OMNIVOICE_TTS: ChannelProvider(f"OmniVoice({tr('Built-in')})", "._omnivoice"),
-    CONFUCIUS_TTS: ChannelProvider(f"Confucius-TTS({tr('Built-in')})", "._confuciustts"),
+    CONFUCIUS_TTS: ChannelProvider(f"Confucius4({tr('Built-in')})", "._confuciustts"),
     MOSS_TTS: ChannelProvider(f"MOSS-TTS-Nano({tr('Built-in')})", "._mosstts"),
     ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Built-in')})", "._zipvoice"),
     PIPER_TTS: ChannelProvider(f"Piper({tr('Built-in')})", "._piper"),
@@ -114,10 +114,10 @@ _ID_NAME_DICT = {
     DOUBAO2_TTS: ChannelProvider(tr("DouBao2"), "._doubao2", key_name="doubao2_access", win="doubao2"),
     QWEN_TTS: ChannelProvider(f"{tr('Ali-Bailian')}/Qwen3-TTS", "._qwentts", key_name="qwentts_key", win="qwentts"),
     XIAOMI_TTS: ChannelProvider(tr('XiaoMi'), "._xiaomi", key_name="xiaomi_key", win="xiaomi"),
-    GLM_TTS: ChannelProvider(f'GLM-TTS {tr("Zhipu AI")}', "._glmtts", key_name="zhipu_key", win="zhipuai"),
-    MINIMAXI_TTS: ChannelProvider("Minimaxi-TTS", "._minimaxi", key_name="minimaxi_apikey", win="minimaxi"),
+    GLM_TTS: ChannelProvider(f'GLM TTS {tr("Zhipu AI")}', "._glmtts", key_name="zhipu_key", win="zhipuai"),
+    MINIMAXI_TTS: ChannelProvider("Minimaxi TTS", "._minimaxi", key_name="minimaxi_apikey", win="minimaxi"),
 
-    OPENAI_TTS: ChannelProvider("OpenAI-TTS", "._openaitts", key_name="openaitts_key", win="openaitts"),
+    OPENAI_TTS: ChannelProvider("OpenAI TTS", "._openaitts", key_name="openaitts_key", win="openaitts"),
     GEMINI_TTS: ChannelProvider("Gemini TTS", "._geminitts", key_name="gemini_key", win="gemini"),
     ELEVENLABS_TTS: ChannelProvider("Elevenlabs.io", "._elevenlabs", key_name="elevenlabstts_key", win="elevenlabs"),
     XAI_TTS: ChannelProvider('X.AI TTS', "._xaitts", key_name="xaitts_key", win="xaitts"),
@@ -126,13 +126,13 @@ _ID_NAME_DICT = {
 
     CHATTTS: ChannelProvider(f"ChatTTS({tr('Local')}API)", "._chattts", key_name="chattts_api", win="chattts"),
     SPARK_TTS: ChannelProvider(f"Spark-TTS({tr('Local')}API)", "._spark", key_name="sparktts_url", win="f5tts"),
-    KOKORO_TTS: ChannelProvider(f"kokoro-TTS({tr('Local')}API)", "._kokoro", key_name="kokoro_api", win="kokoro"),
-    FISHTTS: ChannelProvider(f"Fish-TTS({tr('Local')}API)", "._fishtts", key_name="fishtts_url", win="fishtts"),
+    KOKORO_TTS: ChannelProvider(f"kokoro({tr('Local')}API)", "._kokoro", key_name="kokoro_api", win="kokoro"),
+    FISHTTS: ChannelProvider(f"Fish TTS({tr('Local')}API)", "._fishtts", key_name="fishtts_url", win="fishtts"),
 
     CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)", "._clone", key_name="clone_api", win="clone"),
-    AZURE_TTS: ChannelProvider("Azure-TTS", "._azuretts", key_name="azure_speech_key", win="azuretts"),
+    AZURE_TTS: ChannelProvider("Azure TTS", "._azuretts", key_name="azure_speech_key", win="azuretts"),
     AI302_TTS: ChannelProvider("302.AI", "._ai302tts", key_name="ai302_key", win="ai302"),
-    CAMB_TTS: ChannelProvider("CAMB AI TTS", "._cambtts", key_name="camb_api_key", win="cambtts"),
+    CAMB_TTS: ChannelProvider("CAMB AI", "._cambtts", key_name="camb_api_key", win="cambtts"),
     
     TTS_API: ChannelProvider(tr("Customize API"), "._ttsapi", key_name="ttsapi_url", win="ttsapi")
 }

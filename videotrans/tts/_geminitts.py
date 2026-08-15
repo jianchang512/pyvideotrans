@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Union, Dict, List
 
 from google import genai
-from google.api_core.exceptions import Unauthorized
+from google.genai.errors import APIError
 from google.genai import types
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 from videotrans.configure.config import params, logger, settings
@@ -17,14 +17,14 @@ from videotrans.util.help_misc import vail_file
 @dataclass
 class GEMINITTS(BaseTTS):
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT+(APIError,)), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         if vail_file(data_item['filename']):return
         role = data_item['role']
         try:
             self.generate_tts_segment(data_item['text'], role, params.get('gemini_ttsmodel',''),
                                       data_item['filename'] + '.wav')
-        except Unauthorized as e:
+        except APIError as e:
             raise StopTask(e.message)
         self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
 
