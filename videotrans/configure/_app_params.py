@@ -214,6 +214,7 @@ class AppParams:
             "f5tts_is_whisper": False,
             "indextts_url": "http://127.0.0.1:7860",
             "voxcpmtts_url": "http://127.0.0.1:7860",
+            "firered3tts_url": "http://127.0.0.1:7860",
             "voxcpmtts_version": "v2",
             "sparktts_url": "http://127.0.0.1:7860",
             "doubao2_appid": "",

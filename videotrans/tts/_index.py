@@ -30,14 +30,12 @@ class IndexTTS(GradioBase):
             kwargs['emo_ref_path'] = handle_file(ref_wav)
         
         if _v==2:
-            kwargs['lang_choice']=self.language.split('-')[0]
+            kwargs['lang_choice']=self.language.split('-')[0].upper()
         try:       
             return self._send(kwargs, data_item)
         except Exception as e:
-            if app_cfg.indextts_default_choice=='Same as the voice reference' and '与音色参考音频相同' in str(e):
-                app_cfg.indextts_default_choice='与音色参考音频相同'
-                kwargs['emo_control_method'] = app_cfg.indextts_default_choice
-                return self._send(kwargs,data_item)
+            if '与音色参考音频相同' in str(e):
+                raise ValueError(f'请打开 Index-TTS 中的 webui.py,搜索 i18n("与音色参考音频相同") ，将它改为 "Same as the voice reference" ,保存后重启 Index-TTS webui.py')
             raise
         
 

@@ -80,6 +80,28 @@ class Ui_gradiowinform(object):
         self.voxcpmtts_urltest = QPushButton(tr("Test"))        
         h1voxcpmtts_url.addWidget(self.voxcpmtts_urltest)
         v1.addLayout(h1voxcpmtts_url) 
+        
+        h1firered3tts_url = QtWidgets.QHBoxLayout()
+        self.firered3tts_urllabel = QLabel('FireRed-TTS3 URL')
+        self.firered3tts_urllabel.setObjectName("firered3tts_urllabel")
+        self.firered3tts_urllabel.setMinimumSize(QSize(0, 35))
+        self.firered3tts_url = QLineEdit()
+        self.firered3tts_url.setPlaceholderText('URL ')
+        self.firered3tts_url.setObjectName("firered3tts_url")
+        self.firered3tts_url.setMinimumSize(QSize(0, 35))        
+
+
+        h1firered3tts_url.addWidget(self.firered3tts_urllabel)
+        h1firered3tts_url.addWidget(self.firered3tts_url)
+
+        
+        
+        self.firered3tts_urltest = QPushButton(tr("Test"))        
+        h1firered3tts_url.addWidget(self.firered3tts_urltest)
+        v1.addLayout(h1firered3tts_url) 
+        
+        
+        
 
         h2 = QtWidgets.QHBoxLayout()
 
@@ -112,5 +134,5 @@ class Ui_gradiowinform(object):
 
     def retranslateUi(self, gradiowinform):
 
-        gradiowinform.setWindowTitle("Index/VoxCPM/Spark" +tr('This channel needs deployed and started before available'))
+        gradiowinform.setWindowTitle("Index/VoxCPM/Spark/FireRed3" +tr('This channel needs deployed and started before available'))
         self.save.setText(tr("Save"))

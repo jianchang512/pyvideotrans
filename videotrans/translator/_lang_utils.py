@@ -11,7 +11,7 @@ from videotrans.translator._constants import (
 from videotrans.translator._lang_codes import LANGNAME_DICT_REV, LANG_CODE
 from videotrans.translator._registry import _ID_NAME_DICT
 
-
+# 根据语言显示文字，返回语言代码，show_text 可能是显示文字或本身已是语言代码
 def get_code(show_text=None):
     # - None 即不选择语言，则返回 None，调用处需根据返回结果判断
     # 未在 LANG CODE 中找到则原样返回

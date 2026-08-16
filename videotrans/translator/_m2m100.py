@@ -48,6 +48,7 @@ _LANGUAGE_CODE_MAP = {
         "ur": "__ur__",
         "yue": "__zh__",
         "yu": "__zh__",
+        "uz": "__uz__",
         "ro": "__ro__",
         "nb": "__no__"
 }

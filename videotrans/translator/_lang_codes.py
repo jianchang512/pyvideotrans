@@ -4,53 +4,54 @@ from videotrans.configure.config import tr, ROOT_DIR, logger
 
 # subtitles language code  https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
 #  MP4视频   使用3位 T格式(ISO-639-2/T)，  MKV使用使用 3位B格式 ISO 639-2/B
-# 腾讯翻译 https://cloud.tencent.com/document/api/551/15619
+# 腾讯翻译 https://cloud.tencent.com/document/api/862/126431
 # google翻译 https://translate.google.com/
 # 百度翻译 https://fanyi.baidu.com/
 # deepl  https://deepl.com/
 # microsoft https://www.bing.com/translator?mkt=zh-CN
 # 阿里机器翻译
-# https://help.aliyun.com/zh/machine-translation/developer-reference/machine-translation-language-code-list?spm=a2c4g.11186623.help-menu-30396.d_4_4.4bda2b009oye8y
-# qwen-mt https://help.aliyun.com/zh/model-studio/machine-translation?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.69bf2f3dfuEVHs&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2860790._.ID_help@@%E6%96%87%E6%A1%A3@@2860790-RL_qwen~DAS~mt-LOC_2024SPHelpResult-OR_ser-PAR1_0bc3b4ad17766086921897050e02b4-V_4-PAR3_o-RE_new5-P0_0-P1_0#038d2865bbydc
+# https://help.aliyun.com/zh/machine-translation/developer-reference/machine-translation-language-code-list
+# qwen-mt https://help.aliyun.com/zh/model-studio/machine-translation
 # m2m100  https://github.com/ymoslem/DesktopTranslator/blob/main/utils/m2m_languages.json
 LANGNAME_DICT = {
-    "en": tr("English"),
-    "zh-cn": tr("Simplified Chinese"),
-    "zh-tw": tr("Traditional Chinese"),
-    "fr": tr("French"),
-    "de": tr("German"),
-    "ja": tr("Japanese"),
-    "ko": tr("Korean"),
-    "ru": tr("Russian"),
-    "es": tr("Spanish"),
+    "en": tr("en"),
+    "zh-cn": tr("zh-cn"),
+    "zh-tw": tr("zh-tw"),
+    "fr": tr("fr"),
+    "de": tr("de"),
+    "ja": tr("ja"),
+    "ko": tr("ko"),
+    "ru": tr("ru"),
+    "es": tr("es"),
     "es-419": tr("es-419"),
-    "th": tr("Thai"),
-    "it": tr("Italian"),
-    "el": tr("Greek"),
-    "pt": tr("Portuguese"),
+    "th": tr("th"),
+    "it": tr("it"),
+    "el": tr("el"),
+    "pt": tr("pt"),
     "pt-br": tr("pt-br"),
-    "vi": tr("Vietnamese"),
-    "ar": tr("Arabic"),
-    "tr": tr("Turkish"),
-    "hi": tr("Hindi"),
-    "hu": tr("Hungarian"),
-    "uk": tr("Ukrainian"),
-    "id": tr("Indonesian"),
-    "ms": tr("Malay"),
-    "kk": tr("Kazakh"),
-    "cs": tr("Czech"),
-    "pl": tr("Polish"),
-    "nl": tr("Dutch"),
-    "sv": tr("Swedish"),
-    "he": tr("Hebrew"),
-    "bn": tr("Bengali"),
-    "fa": tr("Persian"),
-    "fil": tr("Filipino"),
-    "ur": tr("Urdu"),
-    "nb": tr("Norway"),  # 书面挪威语
-    "yue": tr("Cantonese"),
-    "km": tr("Khmer"),  # 高棉
-    "ro": tr("Romanian"),  # 罗马尼亚
+    "vi": tr("vi"),
+    "ar": tr("ar"),
+    "tr": tr("tr"),
+    "hi": tr("hi"),
+    "hu": tr("hu"),
+    "uk": tr("uk"),
+    "id": tr("id"),
+    "ms": tr("ms"),
+    "kk": tr("kk"),
+    "cs": tr("cs"),
+    "pl": tr("pl"),
+    "nl": tr("nl"),
+    "sv": tr("sv"),
+    "he": tr("he"),
+    "bn": tr("bn"),
+    "fa": tr("fa"),
+    "fil": tr("fil"),
+    "ur": tr("ur"),
+    "nb": tr("nb"),  # 书面挪威语
+    "yue": tr("yue"),
+    "km": tr("km"),  # 高棉
+    "ro": tr("ro"),  # 罗马尼亚
+    "uz": tr("uz"),  # 乌兹别克斯坦
 }
 
 # 如果存在新增
@@ -94,12 +95,25 @@ LANG_CODE = {
         "Traditional Chinese",
         "zh"  # m2m100
     ],
+    "uz": [
+        "uz",  # google通道
+        "uzb",  # 字幕嵌入语言
+        "No",  # 百度通道
+        "No",  # deepl deeplx通道
+        "uz",  # 腾讯通道
+        "uz",  # OTT通道
+        "uz",  # 微软翻译
+        "Uzbek",  # AI翻译
+        "uz",  # 阿里
+        "Northern Uzbek",  # qwen-mt qwen-tts qwen-asr
+        "uz"  # m2m100
+    ],
     "ur": [
         "ur",  # google通道
         "urd",  # 字幕嵌入语言
         "ur",  # 百度通道
         "UR",  # deepl deeplx通道
-        "No",  # 腾讯通道
+        "ur",  # 腾讯通道
         "No",  # OTT通道
         "ur",  # 微软翻译
         "Urdu",  # AI翻译
@@ -112,7 +126,7 @@ LANG_CODE = {
         "ron",  # 字幕嵌入语言
         "rom",  # 百度通道
         "RO",  # deepl deeplx通道
-        "No",  # 腾讯通道
+        "ro",  # 腾讯通道
         "No",  # OTT通道
         "ro",  # 微软翻译
         "Romanian",  # AI翻译
@@ -125,7 +139,7 @@ LANG_CODE = {
         "khm",  # 字幕嵌入语言
         "km",  # 百度通道
         "No",  # deepl deeplx通道
-        "No",  # 腾讯通道
+        "km",  # 腾讯通道
         "No",  # OTT通道
         "km",  # 微软翻译
         "Khmer",  # AI翻译
@@ -138,7 +152,7 @@ LANG_CODE = {
         "chi",  # 字幕嵌入语言
         "yue",  # 百度通道
         "YUE",  # deepl deeplx通道
-        "No",  # 腾讯通道
+        "yue",  # 腾讯通道
         "No",  # OTT通道
         "yue",  # 微软翻译
         "Cantonese",  # AI翻译
@@ -152,7 +166,7 @@ LANG_CODE = {
         "fil",  # 字幕嵌入语言
         "fil",  # 百度通道
         "No",  # deepl deeplx通道
-        "No",  # 腾讯通道
+        "fil",  # 腾讯通道
         "No",  # OTT通道
         "fil",  # 微软翻译
         "Filipino",  # AI翻译
@@ -374,7 +388,7 @@ LANG_CODE = {
         "hun",
         "hu",
         "HU",
-        "No",
+        "hu",
         "hu",
         "hu",
         "Hungarian",
@@ -387,7 +401,7 @@ LANG_CODE = {
         "ukr",
         "ukr",  # 百度
         "UK",  # deepl
-        "No",  # 腾讯
+        "uk",  # 腾讯
         "uk",  # ott
         "uk",  # 微软
         "Ukrainian",
@@ -426,7 +440,7 @@ LANG_CODE = {
         "kaz",
         "KK",
         "No",
-        "No",
+        "kk",
         "No",
         "kk",
         "Kazakh",
@@ -439,7 +453,7 @@ LANG_CODE = {
         "ces",
         "cs",
         "CS",
-        "No",
+        "cs",
         "cs",
         "cs",
         "Czech",
@@ -452,7 +466,7 @@ LANG_CODE = {
         "pol",
         "pl",
         "PL",
-        "No",
+        "pl",
         "pl",
         "pl",
         "Polish",
@@ -465,7 +479,7 @@ LANG_CODE = {
         "nld",  # 字幕嵌入语言
         "nl",  # 百度通道
         "NL",  # deepl deeplx通道
-        "No",  # 腾讯通道
+        "nl",  # 腾讯通道
         "nl",  # OTT通道
         "nl",  # 微软翻译
         "Dutch",  # AI翻译
@@ -478,7 +492,7 @@ LANG_CODE = {
         "swe",  # 字幕嵌入语言
         "swe",  # 百度通道
         "SV",  # deepl deeplx通道
-        "No",  # 腾讯通道
+        "sv",  # 腾讯通道
         "sv",  # OTT通道
         "sv",  # 微软翻译
         "Swedish",  # AI翻译
@@ -491,7 +505,7 @@ LANG_CODE = {
         "heb",  # 字幕嵌入语言
         "heb",  # 百度通道
         "HE",  # deepl deeplx通道
-        "No",  # 腾讯通道
+        "he",  # 腾讯通道
         "No",  # OTT通道
         "he",  # 微软翻译
         "Hebrew",  # AI翻译
@@ -504,7 +518,7 @@ LANG_CODE = {
         "ben",  # 字幕嵌入语言
         "ben",  # 百度通道
         "BN",  # deepl deeplx通道
-        "No",  # 腾讯通道
+        "bn",  # 腾讯通道
         "No",  # OTT通道
         "bn",  # 微软翻译
         "Bengali",  # AI翻译,
@@ -517,7 +531,7 @@ LANG_CODE = {
         "fas",  # 字幕嵌入语言
         "per",  # 百度通道
         "FA",  # deepl deeplx通道
-        "No",  # 腾讯通道
+        "fa",  # 腾讯通道
         "No",  # OTT通道
         "fa",  # 微软翻译
         "Persian",  # AI翻译

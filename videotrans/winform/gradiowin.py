@@ -29,6 +29,7 @@ def openwin():
         params["index_tts_version"] = index_tts_version
         params["voxcpmtts_version"] = winobj.voxcpmtts_version.currentText()
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
+        params["firered3tts_url"] = winobj.firered3tts_url.text()
         params["indextts_url"] = winobj.indextts_url.text()
         params["sparktts_url"] = winobj.sparktts_url.text()
         params.save()
@@ -57,6 +58,7 @@ def openwin():
         params["voxcpmtts_version"] = winobj.voxcpmtts_version.currentText()
         
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
+        params["firered3tts_url"] = winobj.firered3tts_url.text()
         params["indextts_url"] = winobj.indextts_url.text()
         params["sparktts_url"] = winobj.sparktts_url.text()
 
@@ -75,14 +77,17 @@ def openwin():
     winobj.sparktts_url.setText(str(params.get('sparktts_url','')))
     winobj.indextts_url.setText(str(params.get('indextts_url','')))
     winobj.voxcpmtts_url.setText(str(params.get('voxcpmtts_url','')))
+    winobj.firered3tts_url.setText(str(params.get('firered3tts_url','')))
 
     winobj.save.clicked.connect(save)
     winobj.sparktts_urltest.clicked.connect(lambda: test(tts.SPARK_TTS))
     winobj.indextts_urltest.clicked.connect(lambda: test(tts.INDEX_TTS))
     winobj.voxcpmtts_urltest.clicked.connect(lambda: test(tts.VOXCPM_TTS))
+    winobj.firered3tts_urltest.clicked.connect(lambda: test(tts.FIRERED3_TTS))
     winobj.show()
     test_btn={
         tts.INDEX_TTS:winobj.indextts_urltest,
         tts.SPARK_TTS:winobj.sparktts_urltest,
         tts.VOXCPM_TTS:winobj.voxcpmtts_urltest,
+        tts.FIRERED3_TTS:winobj.firered3tts_urltest,
     }
