@@ -248,6 +248,7 @@ dependencies = [
     "edge-tts",
     "onnxruntime",
     "openai",
+    "litellm>=1.85.0,<2.0",
     "faster-whisper",
     "google-genai",
     "elevenlabs",

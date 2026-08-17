@@ -125,6 +125,9 @@ Zhipuai_Model = "glm-5.2,glm-5.1,glm-5, glm-4.7, glm-4.7-flash, glm-4.6,glm-4.5-
 
 Deepseek_Model = "deepseek-v4-pro,deepseek-v4-flash"
 Openrouter_Model = "minimax/minimax-m2.7,z-ai/glm-5,qwen/qwen3-max-thinking,moonshotai/kimi-k2.5,google/gemini-3-flash-preview"
+# LiteLLM proxy model aliases are defined by the user's own proxy config; these
+# are only convenience defaults for the dropdown and can be edited freely.
+Litellm_Model = "gpt-4o-mini,gpt-4o,claude-sonnet-4-6,claude-haiku-4-5,deepseek-chat"
 Guiji_Model = "Pro/zai-org/GLM-5.1,Pro/zai-org/GLM-5,Pro/moonshotai/Kimi-K2.6,Qwen/Qwen3.6-35B-A3B,MiniMaxAI/MiniMax-M2.5"
 Ai302_Models = "deepseek-v4-pro,deepseek-v4-flash"
 Zijiehuoshan_Model = "doubao-seed-2-0-pro-260215,doubao-seed-2-0-lite-260215,doubao-seed-2-0-mini-260215"

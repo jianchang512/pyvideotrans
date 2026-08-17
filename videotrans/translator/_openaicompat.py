@@ -42,6 +42,14 @@ class OpenAICampat(BaseTrans):
             logger.error(f'当前渠道{self.ainame}设置的最大输出tokens错误，应填写整数，实际填写的是`{self.max_tokens}`\n{e}')
             self.max_tokens=8192
 
+    def _create_completion(self, kwargs):
+        """Issue the chat completion. Overridable so channels can swap the
+        transport (e.g. the LiteLLM channel routes through the litellm SDK)
+        while reusing the shared prompt building, parsing and error handling.
+        """
+        model = OpenAI(api_key=self.api_key, base_url=self.api_url)
+        return model.chat.completions.create(**kwargs, extra_body=self.extra_body)
+
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: Union[List[str], str]) -> str:
         if self._exit(): return
@@ -79,8 +87,7 @@ class OpenAICampat(BaseTrans):
         kwargs["messages"]=message
         
         try:
-            model = OpenAI(api_key=self.api_key, base_url=self.api_url)
-            response = model.chat.completions.create(**kwargs, extra_body=self.extra_body)
+            response = self._create_completion(kwargs)
         except APIConnectionError as e:
             raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e.message}') from e
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:

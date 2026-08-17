@@ -27,3 +27,25 @@ class LiteLLM(OpenAICampat):
         self.reasoning_effort = None if not _reason or _reason == 'No' else _reason
 
         super().__post_init__()
+
+    def _create_completion(self, kwargs):
+        """Route the request through the litellm SDK instead of the OpenAI SDK.
+
+        The user hosts their own LiteLLM proxy and supplies its URL + key, so we
+        prefix the model with ``litellm_proxy/`` to make the SDK forward the call
+        to that proxy (which then routes to whichever provider serves the alias).
+        ``drop_params=True`` keeps a single config working across every model the
+        proxy can route to.
+        """
+        import litellm
+
+        call_kwargs = dict(kwargs)
+        model_name = call_kwargs.get('model', '')
+        if self.api_url and not model_name.startswith('litellm_proxy/'):
+            call_kwargs['model'] = f'litellm_proxy/{model_name}'
+            call_kwargs['api_base'] = self.api_url
+        if self.api_key:
+            call_kwargs['api_key'] = self.api_key
+        call_kwargs['drop_params'] = True
+
+        return litellm.completion(**call_kwargs, extra_body=self.extra_body)
