@@ -134,6 +134,11 @@ class AppParams:
             "openrouter_reasoning_effort": "No",
             "openrouter_model": str(_settings.get('openrouter_model', '-')).strip().split(',')[0],
             "openrouter_max_token": 16384,#最大输出16k
+            "litellm_api":'http://localhost:4000/v1',
+            "litellm_key": "",
+            "litellm_reasoning_effort": "No",
+            "litellm_model": str(_settings.get('litellm_model', '-')).strip().split(',')[0],
+            "litellm_max_token": 16384,
             "huoshan_max_token": 32768,#最大输出32k
             "zijiehuoshan_key": "",
             "huoshan_thinking": False,

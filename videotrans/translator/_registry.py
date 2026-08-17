@@ -6,7 +6,8 @@ from videotrans.translator._constants import (
     OPENROUTER_INDEX, SILICONFLOW_INDEX, AI302_INDEX,
     QWENMT_INDEX, ZIJIE_INDEX,
     TENCENT_INDEX, BAIDU_INDEX, DEEPL_INDEX, DEEPLX_INDEX, ALI_INDEX,
-    LIBRE_INDEX, MINIMAX_INDEX, XIAOMI_INDEX, CAMB_INDEX, TRANSAPI_INDEX,HYMT2_INDEX
+    LIBRE_INDEX, MINIMAX_INDEX, XIAOMI_INDEX, CAMB_INDEX, TRANSAPI_INDEX,HYMT2_INDEX,
+    LITELLM_INDEX
 )
 
 _ID_NAME_DICT = {
@@ -40,6 +41,7 @@ _ID_NAME_DICT = {
     XIAOMI_INDEX: ChannelProvider(tr("XiaoMi"), key_name="xiaomi_key", win="xiaomi", imp="._xiaomi"),
     CAMB_INDEX: ChannelProvider("CAMB AI", key_name="camb_api_key", win="cambtts", imp="._camb"),
     TRANSAPI_INDEX: ChannelProvider(tr('Customized API'), key_name="trans_api_url", win="transapi", imp="._transapi"),
+    LITELLM_INDEX: ChannelProvider("LiteLLM", key_name="litellm_key", win="litellm", imp="._litellm"),
 }
 
 _ID_NAME_DICT = dict(sorted(_ID_NAME_DICT.items(), key=lambda item: item[0]))

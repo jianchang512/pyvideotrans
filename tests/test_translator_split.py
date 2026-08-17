@@ -118,6 +118,11 @@ class TestTranslatorIndexConstants:
         from videotrans.translator import OPENROUTER_INDEX
         assert OPENROUTER_INDEX == 9
 
+    def test_litellm_index(self):
+        from videotrans.translator import LITELLM_INDEX, AI_TRANS_CHANNELS
+        assert LITELLM_INDEX == 25
+        assert LITELLM_INDEX in AI_TRANS_CHANNELS
+
     def test_siliconflow_index(self):
         from videotrans.translator import SILICONFLOW_INDEX
         assert SILICONFLOW_INDEX == 10
