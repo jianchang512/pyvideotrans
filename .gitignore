@@ -43,8 +43,6 @@ models
 dev
 venv
 chatterbox
-!f5-tts/nverguo.wav
-!f5-tts/cosy.wav
 dist
 source
 build

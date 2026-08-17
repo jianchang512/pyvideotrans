@@ -227,6 +227,7 @@ ING_STATUS = "ing"
 #------------配音试听词---------------
 LISTEN_TEXT = {
     "zh": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
+    "uz": "Salom, aziz do'stim, umid qilamanki, har bir kuningiz ajoyib va ​​quvonchli o'tadi!",
     "en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
     "fr": "Bonjour mon cher ami. J'espère que votre quotidien est beau et agréable !",
     "de": "Hallo mein lieber Freund. Ich hoffe, dass Ihr Tag schön und angenehm ist!",

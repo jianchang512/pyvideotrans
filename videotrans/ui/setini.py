@@ -113,6 +113,7 @@ notices = {
     "prompt_init": {
         "initial_prompt_zh-cn": "发音语言为简体中文时发送给whisper模型的提示词",
         "initial_prompt_zh-tw": "发音语言为繁体中文时发送给whisper模型的提示词",
+        "initial_prompt_uz": "发音语言为乌兹别克语时发送给whisper模型的提示词",
         "initial_prompt_en": "发音语言为英语时发送给whisper模型的提示词",
         "initial_prompt_fr": "发音语言为法语时发送给whisper模型的提示词",
         "initial_prompt_de": "发音语言为德语时发送给whisper模型的提示词",
@@ -247,6 +248,7 @@ titles = {
 
     "initial_prompt_zh-cn": "whisper模型简体中文提示词",
     "initial_prompt_zh-tw": "whisper模型繁体中文提示词",
+    "initial_prompt_uz": "whisper模型乌兹别克语提示词",
     "initial_prompt_en": "whisper模型英语提示词",
     "initial_prompt_fr": "whisper模型法语提示词",
     "initial_prompt_de": "whisper模型德语提示词",
@@ -392,6 +394,7 @@ if defaulelang != 'zh':
         "prompt_init": {
             "initial_prompt_zh-cn": "Initial prompt for the Whisper model for Simplified Chinese speech.",
             "initial_prompt_zh-tw": "Initial prompt for the Whisper model for Traditional Chinese speech.",
+            "initial_prompt_uz": "Initial prompt for the Whisper model for Uzbek speech.",
             "initial_prompt_en": "Initial prompt for the Whisper model for English speech.",
             "initial_prompt_fr": "Initial prompt for the Whisper model for French speech.",
             "initial_prompt_de": "Initial prompt for the Whisper model for German speech.",
@@ -521,6 +524,7 @@ if defaulelang != 'zh':
         "initial_prompt_zh-cn": "initial prompt for Simplified Chinese",
         "initial_prompt_zh-tw": "initial prompt for Traditional Chinese",
         "initial_prompt_en": "initial prompt for English",
+        "initial_prompt_uz": "initial prompt for Uzbek",
         "initial_prompt_fr": "initial prompt for French",
         "initial_prompt_de": "initial prompt for German",
         "initial_prompt_ja": "initial prompt for Japanese",

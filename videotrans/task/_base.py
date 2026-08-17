@@ -77,6 +77,7 @@ class BaseTask(BaseCon):
         from videotrans.util.help_srt import get_srt_from_list
         try:
             txt = get_srt_from_list(srt_list)
+            Path(file).parent.mkdir(exist_ok=True,parents=True)
             with open(file, "w", encoding="utf-8", errors="ignore") as f:
                 f.write(txt)
         except Exception as e:
