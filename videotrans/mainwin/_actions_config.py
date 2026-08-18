@@ -56,7 +56,7 @@ class WinActionConfigMixin:
                 self.main.model_name.addItems(settings.Whisper_NET_MODEL_LIST)
 
             elif recogn_type == recognition.QWENASR:
-                self.main.model_name.addItems(['1.7B', '0.6B'])
+                self.main.model_name.addItems(recognition.get_model_by_type(recognition.QWENASR))
             elif recogn_type == recognition.HUGGINGFACE_ASR:
                 self.main.model_name.addItems(list(recognition.HUGGINGFACE_ASR_MODELS.keys()))
             else:

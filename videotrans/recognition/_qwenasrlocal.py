@@ -18,24 +18,29 @@ from videotrans.util.help_misc import is_connect_hf
 class QwenasrlocalRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
-        self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}'
+        if self.model_name in ['1.7B','0.6B']:
+            self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}'
+            self._repid=f'Qwen/Qwen3-ASR-{self.model_name}'
+        else:
+            self.local_dir=f'{ROOT_DIR}/models/models--ASLP-lab--CN-MultiDialect-ASR'
+            self._repid='ASLP-lab/CN-MultiDialect-ASR'
     
     def _download(self):
-
+        
         if not is_connect_hf():
-            check_and_down_ms(f'Qwen/Qwen3-ASR-{self.model_name}', callback=self._process_callback,
+            check_and_down_ms(self._repid, callback=self._process_callback,
                                     local_dir=self.local_dir)
         else:
-            check_and_down_hf(model_id=f'Qwen3-ASR-{self.model_name}',
-                                    repo_id=f'Qwen/Qwen3-ASR-{self.model_name}',
+            check_and_down_hf(model_id=self._repid,
+                                    repo_id=self._repid,
                                     local_dir=self.local_dir,
                                     callback=self._process_callback)
 
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
 
-        logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3tts-{time.time()}.log'
-        title = "Qwen3-ASR"
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3asrlocal-{time.time()}.log'
+        title = f"Qwen3-ASR {self.model_name}"
         cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
         Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]), encoding='utf-8')
         kwargs = {
@@ -43,7 +48,8 @@ class QwenasrlocalRecogn(BaseRecogn):
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
             "audio_file": self.audio_file,
-            "model_name": self.model_name,
+            #"model_name": self.model_name,
+            "local_dir":self.local_dir,
             "hotword":settings.get('hotwords'),
         }
         from videotrans.process.stt_qwen import qwen3asr_fun

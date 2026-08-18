@@ -16,7 +16,8 @@ def qwen3asr_fun(
         logs_file=None,
         is_cuda=False,
         audio_file=None,
-        model_name="1.7B",
+
+        local_dir=None,
         device_index=0,  # gpu索引
         hotword=None
 ):
@@ -27,12 +28,12 @@ def qwen3asr_fun(
 
     if is_cuda:
         device_map = f'cuda:{device_index}'
-        dtype = torch.float16
+        dtype = torch.float16 if not torch.cuda.is_bf16_supported() else torch.bfloat16
     else:
         device_map = 'cpu'
         dtype = torch.float32
 
-    logger.debug(f'QwenASR本地渠道 {model_name} 模型，{device_map=}')
+    logger.debug(f'QwenASR本地渠道  {local_dir} 模型，{device_map=}')
     try:
         """
         之所以未使用 Qwen/Qwen3-ForcedAligner-0.6B 返回字级时间戳，长语音例如1个小时、2个小时可能OOM，为避免需提前裁切
@@ -42,7 +43,7 @@ def qwen3asr_fun(
         """
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {device_map}'}))
         model = Qwen3ASRModel.from_pretrained(
-            f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
+            local_dir,#f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
             dtype=dtype,
             device_map=device_map,
             max_inference_batch_size=8,

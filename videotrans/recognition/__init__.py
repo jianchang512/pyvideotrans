@@ -125,7 +125,7 @@ def get_model_by_type(recogn_type: int) -> List[str]:
     if recogn_type == WHISPER_NET:
         return settings.Whisper_NET_MODEL_LIST
     if recogn_type == QWENASR:
-        return ['1.7B', '0.6B']
+        return contants.QWENASR_LOCAL
     if recogn_type == FUNASR_CN:
         return contants.FUNASR_MODEL
     if recogn_type == HUGGINGFACE_ASR:

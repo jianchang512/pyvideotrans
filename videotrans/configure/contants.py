@@ -90,6 +90,8 @@ FASTER_MODELS_DICT = {
 }
 # funasr模型
 FUNASR_MODEL = ['Fun-ASR-Nano-2512', 'Fun-ASR-MLT-Nano-2512', 'paraformer-zh', 'SenseVoiceSmall']
+QWENASR_LOCAL=['1.7B', '0.6B','CN_Dialect']
+
 # deepgram 支持的语音识别模型
 DEEPGRAM_MODEL = [
     "nova-3",
