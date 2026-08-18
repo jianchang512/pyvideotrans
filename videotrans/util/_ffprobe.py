@@ -30,9 +30,8 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
     except FileNotFoundError as e:
         raise FFmpegError("Command not found: ffmpeg. Ensure FFmpeg is installed and in your PATH.") from e
     except subprocess.CalledProcessError as e:
-        concise_error = extract_concise_error(e.stderr)
-        logger.exception(f"ffprobe command failed: {concise_error}", exc_info=True)
-        raise FFmpegError(concise_error) from e
+        logger.exception(f"ffprobe command failed: {e.stderr}\n{e.stdout}", exc_info=True)
+        raise FFmpegError(f'{e.stderr}\n{e.stdout}') from e
     except (PermissionError, OSError) as e:
         logger.exception(e, exc_info=True)
         raise FFmpegError(e) from e

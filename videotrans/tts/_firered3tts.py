@@ -53,5 +53,4 @@ class FireRed3TTS(GradioBase):
             "language": _LANGUAGE.get(self.language.split('-')[0],"Auto-detect"),
             "api_name":'/voice_clone'
         }
-
         return self._send(kwargs, data_item)

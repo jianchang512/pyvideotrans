@@ -1,11 +1,11 @@
-import sys
+import sys,re
 
 from pathlib import Path
 
 from PySide6.QtCore import QTimer
 
 from videotrans import translator, recognition, tts
-from videotrans.configure.config import tr, params, settings, app_cfg
+from videotrans.configure.config import tr, params, settings, app_cfg,logger
 from videotrans.util.help_misc import show_error
 
 
@@ -243,5 +243,24 @@ class WinActionCheckMixin:
         self.uuid_queue_mp4 = {}
 
         self.main.retrybtn.setVisible(False)
+        # 删除每个name文件中的  % *?" 等特殊符号
+        self._rename_video()
         QTimer.singleShot(10,self.create_btns)
 
+    # 重命名，移除原始文件名中的 %?*" 等，避免后续报错
+    def _rename_video(self):
+        _del=r'[%?*"\|<>:]'
+        for i,it in enumerate(self.queue_mp4):
+            p=Path(it)
+            if re.search(_del,p.name):
+                _newit=re.sub(_del,'-',p.name)
+                try:
+                    p2=p.with_name(_newit)
+                    if p2.exists() and p != p2:
+                        continue
+                    p.rename(p2)
+                    self.queue_mp4[i]=p2.as_posix()
+                except OSError as e:                    
+                    logger.warning(f'{it}->{_newit} error:{e}')
+
+            
