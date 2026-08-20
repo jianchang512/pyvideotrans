@@ -46,40 +46,22 @@ class Ui_ttsapiform(object):
         v1.addLayout(h2)
 
         h3 = QtWidgets.QHBoxLayout()
-        h4 = QtWidgets.QHBoxLayout()
-        h5 = QtWidgets.QHBoxLayout()
+
+
         self.label_3 = QLabel(ttsapiform)
         self.label_3.setObjectName("label_3")
         self.extra = QLineEdit(ttsapiform)
         self.extra.setObjectName("extra")
         self.extra.setMinimumSize(QSize(0, 35))
 
-        self.label_4 = QLabel(ttsapiform)
-        self.label_4.setObjectName("label_4")
-        self.label_4.setText(tr("Language"))
-        self.language_boost = QtWidgets.QComboBox(ttsapiform)
-        self.language_boost.setObjectName("language_boost")
-        self.language_boost.setMinimumSize(QSize(0, 35))
-        self.language_boost.addItems(
-            ['auto', 'Chinese', 'Chinese,Yue', 'English', 'Arabic', 'Russian', 'Spanish', 'French', 'Portuguese',
-             'German', 'Turkish', 'Dutch', 'Ukrainian', 'Vietnamese', 'Indonesian', 'Japanese', 'Italian', 'Korean'])
 
-        label_5 = QLabel(ttsapiform)
-        label_5.setText(tr("Emotion"))
-        self.emotion = QtWidgets.QComboBox(ttsapiform)
-        self.language_boost.setObjectName("emotion")
-        self.emotion.setMinimumSize(QSize(0, 35))
-        self.emotion.addItems(["happy", "sad", "angry", "fearful", "disgusted", "surprised", "neutral"])
+
 
         h3.addWidget(self.label_3)
         h3.addWidget(self.extra)
-        h4.addWidget(self.label_4)
-        h4.addWidget(self.language_boost)
-        h5.addWidget(label_5)
-        h5.addWidget(self.emotion)
+        
+        
         v1.addLayout(h3)
-        v1.addLayout(h4)
-        v1.addLayout(h5)
 
         self.tips = QPlainTextEdit(ttsapiform)
         self.tips.setObjectName("tips")

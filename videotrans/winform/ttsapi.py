@@ -17,11 +17,7 @@ def openwin():
             url = 'http://' + url
         extra = winobj.extra.text()
         role = winobj.voice_role.toPlainText().strip()
-        language_boost = winobj.language_boost.currentText()
 
-        params["ttsapi_language_boost"] = language_boost
-        emotion = winobj.emotion.currentText()
-        params["ttsapi_emotion"] = emotion
         params["ttsapi_url"] = url
         params["ttsapi_extra"] = extra
         params["ttsapi_voice_role"] = role
@@ -44,12 +40,6 @@ def openwin():
             url = 'http://' + url
         extra = winobj.extra.text()
         role = winobj.voice_role.toPlainText().strip().replace('\n', '')
-        language_boost = winobj.language_boost.currentText()
-        params["ttsapi_language_boost"] = language_boost
-
-        emotion = winobj.emotion.currentText()
-        params["ttsapi_emotion"] = emotion
-
         params["ttsapi_url"] = url
         params["ttsapi_extra"] = extra
         params["ttsapi_voice_role"] = role
@@ -66,10 +56,7 @@ def openwin():
     if params["ttsapi_extra"]:
         winobj.extra.setText(str(params["ttsapi_extra"]))
 
-    if params["ttsapi_language_boost"]:
-        winobj.language_boost.setCurrentText(str(params["ttsapi_language_boost"]))
-    if params["ttsapi_emotion"]:
-        winobj.emotion.setCurrentText(str(params["ttsapi_emotion"]))
+
 
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)

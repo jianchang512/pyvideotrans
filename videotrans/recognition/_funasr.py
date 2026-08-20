@@ -40,7 +40,7 @@ class FunasrRecogn(BaseRecogn):
             check_and_down_ms(model_id='iic/speech_fsmn_vad_zh-cn-16k-common-pytorch',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/speech_fsmn_vad_zh-cn-16k-common-pytorch')
             check_and_down_ms(model_id='iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch')
             check_and_down_ms(model_id='damo/speech_campplus_sv_zh-cn_16k-common',callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/speech_campplus_sv_zh-cn_16k-common')
-        elif not is_connect_hf():
+        elif self.model_name == 'iic/SenseVoiceSmall' or not is_connect_hf():
             check_and_down_ms(model_id=self.model_name,callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/'+self.model_name.split('/')[-1])
         else:
             check_and_down_hf(model_id=self.model_name,repo_id=self.model_name,callback=self._process_callback,local_dir=f'{ROOT_DIR}/models/'+self.model_name.split('/')[-1])

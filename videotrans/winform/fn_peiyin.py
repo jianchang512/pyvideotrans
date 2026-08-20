@@ -9,7 +9,7 @@ def openwin():
     from videotrans.task.taskcfg import InputFile
     from datetime import datetime
     from videotrans.configure.contants import LISTEN_TEXT
-    import re
+    import re,time
     import json
     from pathlib import Path
     from PySide6.QtCore import QUrl, Qt
@@ -267,7 +267,7 @@ def openwin():
         pitch = int(winobj.pitch_rate.value())
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
 
-        voice_file = f"{voice_dir}/{tts_type}-{lang}-{lujing_role}-{volume}-{pitch}.wav"
+        voice_file = f"{voice_dir}/{tts_type}-{lang}-{time.time()}.wav"
 
         obj = {
             "text": text,

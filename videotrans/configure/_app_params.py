@@ -187,8 +187,7 @@ class AppParams:
             "ttsapi_url": "",
             "ttsapi_voice_role": "",
             "ttsapi_extra": "pyvideotrans",
-            "ttsapi_language_boost": "auto",
-            "ttsapi_emotion": "happy",
+
             "minimaxi_apikey": "",
             "minimaxi_emotion": "",
             "minimaxi_apiurl": "api.minimaxi.com",
