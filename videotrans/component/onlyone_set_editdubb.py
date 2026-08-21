@@ -247,7 +247,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         bottom_layout.addWidget(self.table, 1)
 
         # Bottom Bar
-        self.save_button = QPushButton(tr("nextstep"))
+        self.save_button = QPushButton(tr("continnextstep"))
         self.save_button.setCursor(Qt.PointingHandCursor)
         self.save_button.setMinimumSize(QSize(400, 35))
         self.save_button.clicked.connect(self.save_and_close)

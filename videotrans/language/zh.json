@@ -505,6 +505,7 @@
     "must select audio or video file": "必须选择音视频文件",
     "mustberole": "必须选择一个配音角色",
     "nextstep": "保存修改并继续下一步",
+    "continnextstep": "继续下一步",
     "nocuda": "你的设备不满足CUDA加速要求，请确认是NVIDIA显卡，并已配置好CUDA环境，点击菜单栏-帮助支持-CUDA help",
     "nocudnn": "你的设备没有安装配置cuDNN，请安装然后重启软件，或者取消CUDA加速",
     "nosubtitle": "不嵌入字幕",

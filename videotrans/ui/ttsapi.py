@@ -21,6 +21,10 @@ class Ui_ttsapiform(object):
         ttsapiform.setMaximumSize(QSize(600, 600))
 
         v1 = QtWidgets.QVBoxLayout(ttsapiform)
+        self.tips = QLabel(ttsapiform)
+        self.tips.setObjectName("tips")
+        v1.addWidget(self.tips)
+        
         self.label = QLabel()
         self.label.setObjectName("label")
         self.label.setMinimumSize(QSize(0, 35))
@@ -63,10 +67,6 @@ class Ui_ttsapiform(object):
         
         v1.addLayout(h3)
 
-        self.tips = QPlainTextEdit(ttsapiform)
-        self.tips.setObjectName("tips")
-        self.tips.setReadOnly(True)
-        v1.addWidget(self.tips)
 
         h4 = QtWidgets.QHBoxLayout()
         self.save = QPushButton(ttsapiform)
@@ -96,49 +96,11 @@ class Ui_ttsapiform(object):
     # setupUi
 
     def retranslateUi(self, ttsapiform):
-        if defaulelang == 'zh':
-            tips = """
-将以POST请求向填写的API地址发送application/www-urlencode数据：
-
-text:需要合成的文本/字符串
-language:文字所属语言代码(zh-cn,zh-tw,en,ja,ko,ru,de,fr,tr,th,vi,ar,hi,hu,es,pt,it)/字符串
-voice:配音角色名称/字符串
-rate:加减速值，0或者 '+数字%' '-数字%'，代表在正常速度基础上进行加减速的百分比/字符串
-ostype:win32或mac或linux操作系统类型/字符串
-extra:额外参数/字符串
-
-期待从接口返回json格式数据：
-{
-    code:0=合成成功时，>0的数字代表失败
-    msg:ok=合成成功时，其他为失败原因
-    data:在合成成功时，返回mp3文件的完整url地址，用于在软件内下载。失败时为空
-}       
-
-     
-"""
-        else:
-            tips = """
-            
-The application/www-urlencode data will be sent in a POST request to the filled API address:
-
-text:text/string
-language:language code(zh-cn,zh-tw,en,ja,ko,ru,de,fr,tr,th,vi,ar,hi,hu,es,pt,it) / string
-voice:voice character name/string
-rate:acceleration/deceleration value, 0 or '+numeric%' '-numeric%', represents the percentage of acceleration/deceleration on top of the normal speed /string
-ostype:win32 or mac or linux OS type/string
-extra:extra parameters/string
-
-Expect data to be returned from the interface in json format:
-{
-    code:0=when synthesis is successful, a number >0 means failure
-    msg:ok=when the synthesis was successful, other is the reason for failure
-    data:On successful synthesis, return the full url of the mp3 file for downloading within the software. When it fails, the url will be empty.
-}            
-"""
+        tips = """接受两种 API 请求方式，具体请点击 【查看填写教程】 按钮了解""" if defaulelang == 'zh' else  """We accept two API request methods. Please click the [View Setup Guide] button for details."""
         ttsapiform.setWindowTitle(tr("Customizing the TTS-API"))
         self.label_3.setText(tr("SK"))
-        self.tips.setPlainText(tips)
-        self.tips.setPlaceholderText("")
+        self.tips.setText(tips)
+
         self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText(
             tr("Fill in the full address starting with http"))

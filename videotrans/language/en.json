@@ -4,6 +4,7 @@
     "&Setting": "Translation Settings (&S)",
     "&TTSsetting": "TTS Settings (&E)",
     "&Tools": "Tools / Options (&T)",
+	"continnextstep":"Continue Next",
     "302.AI API KEY": "302.AI API Key",
     "A default role must be selected": "A default role must be selected",
     "AIs compatible with the ChatGPT Local LLM also used here": "OpenAI-compatible local LLMs (e.g., Ollama; API URL usually ends with /v1)",

@@ -186,7 +186,7 @@ class AppParams:
             "stt_model": "large-v3-turbo",
             "ttsapi_url": "",
             "ttsapi_voice_role": "",
-            "ttsapi_extra": "pyvideotrans",
+            "ttsapi_extra": "123456",
 
             "minimaxi_apikey": "",
             "minimaxi_emotion": "",

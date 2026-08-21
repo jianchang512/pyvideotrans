@@ -6,9 +6,12 @@ def openwin():
     from videotrans.configure.config import tr,app_cfg, params
     from videotrans.configure import config
     from videotrans.util.ListenVoice import ListenVoice
+    from videotrans.util.help_misc import show_error
     def feed(d):
         if d == "ok":
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
+        else:
+            show_error(d)
         winobj.test.setText(tr("Test"))
 
     def test():
