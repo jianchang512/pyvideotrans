@@ -52,6 +52,13 @@ class Ui_siliconflowform(object):
 
         h_token.addWidget(label_token)
         h_token.addWidget(self.max_token)
+        
+        
+        self.guiji_thinking = QtWidgets.QCheckBox()
+        self.guiji_thinking.setObjectName("guiji_thinking")
+        self.guiji_thinking.setText("Thinking")
+        h_token.addWidget(self.guiji_thinking)
+        
         v1.addLayout(h_token)
 
 
@@ -120,6 +127,7 @@ class Ui_siliconflowform(object):
         self.guiji_key.setText(str(params.get("guiji_key",'')))
         self.guiji_model.setCurrentText(params.get("guiji_model",''))
         self.max_token.setText(str(params.get("guiji_max_token",'')))
+        self.guiji_thinking.setChecked(bool(params.get("guiji_thinking",False)))
 
     def retranslateUi(self, siliconflowform):
         siliconflowform.setWindowTitle(tr("SiliconFlow"))

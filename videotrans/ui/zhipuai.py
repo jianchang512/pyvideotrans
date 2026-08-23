@@ -54,6 +54,11 @@ class Ui_zhipuaiform(object):
 
         h_token.addWidget(label_token)
         h_token.addWidget(self.max_token)
+        
+        self.zhipu_thinking = QtWidgets.QCheckBox()
+        self.zhipu_thinking.setObjectName("zhipu_thinking")
+        self.zhipu_thinking.setText("Thinking")
+        h_token.addWidget(self.zhipu_thinking)
         v1.addLayout(h_token)
 
         h_model = QtWidgets.QHBoxLayout()
@@ -121,6 +126,9 @@ class Ui_zhipuaiform(object):
         self.zhipu_key.setText(str(params.get("zhipu_key",'')))
         self.zhipu_model.setCurrentText(params.get("zhipu_model",''))
         self.max_token.setText(str(params.get("zhipu_max_token",'')))
+        self.zhipu_thinking.setChecked(bool(params.get("zhipu_thinking",False)))
+        
+        
     def retranslateUi(self, zhipuaiform):
         zhipuaiform.setWindowTitle(tr("Zhipu AI"))
         self.label_2.setText(tr("SK"))

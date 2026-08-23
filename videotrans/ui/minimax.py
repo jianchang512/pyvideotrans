@@ -77,6 +77,11 @@ class Ui_minimaxform(object):
 
         h_token.addWidget(label_token)
         h_token.addWidget(self.max_token)
+        
+        self.minimax_thinking = QtWidgets.QCheckBox()
+        self.minimax_thinking.setObjectName("minimax_thinking")
+        self.minimax_thinking.setText("Thinking")
+        h_token.addWidget(self.minimax_thinking)
         v1.addLayout(h_token)
 
         self.label_allmodels = QtWidgets.QLabel()
@@ -136,6 +141,9 @@ class Ui_minimaxform(object):
         self.minimax_api.setText(str(params.get("minimax_api",'')))
         self.max_token.setText(str(params.get("minimax_max_tokens",'8192')))
         self.minimax_model.setCurrentText(str(params.get("minimax_model",'')))
+        self.minimax_thinking.setChecked(bool(params.get("minimax_thinking",False)))
+        
+        
 
     def retranslateUi(self, minimaxform):
         minimaxform.setWindowTitle("MiniMax AI")

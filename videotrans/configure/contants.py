@@ -107,7 +107,7 @@ DEEPGRAM_MODEL = [
 ]
 
 # 缺省 gemini 模型
-DEFAULT_GEMINI_MODEL = "gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"
 # gemini-tts 音色
 GEMINITTS_ROLES = "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
 
@@ -121,19 +121,19 @@ Qpenaitts_Model = "tts-1,tts-1-hd,gpt-4o-mini-tts"
 
 Openairecognapi_Model = "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe,gpt-4o-transcribe-diarize"
 
-Chatgpt_Model = "gpt-5.5,gpt-5.5-pro,gpt-5.4-pro,gpt-5.4,gpt-5.4-mini,gpt-5,gpt-5-mini,gpt-4.1"
+Chatgpt_Model = "gpt-5.6-sol,gpt-5.6-luna,gpt-5.5,gpt-5.5-pro,gpt-5.4-pro,gpt-5.4,gpt-5.4-mini,gpt-5,gpt-5-mini"
 Azure_Model = "gpt-5.5,gpt-5.4-mini, gpt-5.4-nano, gpt-5.4, gpt-5.4-pro,gpt-5.1, gpt-5.1-chat"
 Localllm_Model = "qwen3.6,deepseek-v4-flash"
-Zhipuai_Model = "glm-5.2,glm-5.1,glm-5, glm-4.7, glm-4.7-flash, glm-4.6,glm-4.5-flash"
+Zhipuai_Model = "glm-5.3,glm-5.2,glm-5.1,glm-5, glm-4.7, glm-4.7-flash, glm-4.6,glm-4.5-flash"
 
 Deepseek_Model = "deepseek-v4-pro,deepseek-v4-flash"
-Openrouter_Model = "minimax/minimax-m2.7,z-ai/glm-5,qwen/qwen3-max-thinking,moonshotai/kimi-k2.5,google/gemini-3-flash-preview"
+Openrouter_Model = "z-ai/glm-5.3,qwen/qwen3.8-27b,google/gemini-3.7-flash,deepseek/deepseek-v4-flash-vision-exp"
 # LiteLLM proxy model aliases are defined by the user's own proxy config; these
 # are only convenience defaults for the dropdown and can be edited freely.
 Litellm_Model = "gpt-4o-mini,gpt-4o,claude-sonnet-4-6,claude-haiku-4-5,deepseek-chat"
-Guiji_Model = "Pro/zai-org/GLM-5.1,Pro/zai-org/GLM-5,Pro/moonshotai/Kimi-K2.6,Qwen/Qwen3.6-35B-A3B,MiniMaxAI/MiniMax-M2.5"
+Guiji_Model = "deepseek-ai/DeepSeek-V4-Flash,zai-org/GLM-5.2,meituan-longcat/LongCat-2.0,MiniMaxAI/MiniMax-M2.5,Qwen/Qwen3.6-35B-A3B"
 Ai302_Models = "deepseek-v4-pro,deepseek-v4-flash"
-Zijiehuoshan_Model = "doubao-seed-2-0-pro-260215,doubao-seed-2-0-lite-260215,doubao-seed-2-0-mini-260215"
+Zijiehuoshan_Model = "doubao-seed-evolving,doubao-seed-2-1-pro-260628,doubao-seed-2-1-turbo-260628,doubao-seed-2-0-pro-260215"
 
 Whisper_Models = "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3,distil-large-v3.5"
 Openai_Whisper_Models = "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3"

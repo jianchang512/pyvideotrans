@@ -12,4 +12,5 @@ class ZhipuAI(OpenAICampat):
         self.model_name = params.get('zhipu_model', "glm-4.5-flash")
         self.api_url = 'https://open.bigmodel.cn/api/paas/v4/'
         self.api_key = params.get('zhipu_key', '')
+        self.extra_body={"thinking": {"type": "enabled" if params.get('zhipu_thinking') else "disabled"}}
         super().__post_init__()

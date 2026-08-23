@@ -21,6 +21,7 @@ def openwin():
         params["guiji_key"] = key
         params["guiji_model"] = winobj.guiji_model.currentText()
         params["guiji_max_token"] = winobj.max_token.text().strip()
+        params["guiji_thinking"] = winobj.guiji_thinking.isChecked()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.SILICONFLOW_INDEX)
         task.uito.connect(feed)
@@ -30,6 +31,7 @@ def openwin():
         params["guiji_key"] = winobj.guiji_key.text()
         params["guiji_model"] = winobj.guiji_model.currentText()
         params["guiji_max_token"] = winobj.max_token.text().strip()
+        params["guiji_thinking"] = winobj.guiji_thinking.isChecked()
         params.save()
         winobj.close()
 

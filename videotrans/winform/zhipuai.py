@@ -21,6 +21,7 @@ def openwin():
         params["zhipu_key"] = key
         params["zhipu_model"] = winobj.zhipu_model.currentText()
         params["zhipu_max_token"] = winobj.max_token.text().strip()
+        params["zhipu_thinking"] = winobj.zhipu_thinking.isChecked()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.ZHIPUAI_INDEX)
         task.uito.connect(feed)
@@ -30,6 +31,7 @@ def openwin():
         params["zhipu_key"] = winobj.zhipu_key.text()
         params["zhipu_model"] = winobj.zhipu_model.currentText()
         params["zhipu_max_token"] = winobj.max_token.text().strip()
+        params["zhipu_thinking"] = winobj.zhipu_thinking.isChecked()
         params.save()
         winobj.close()
 
