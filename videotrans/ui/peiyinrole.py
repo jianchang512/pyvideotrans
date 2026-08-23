@@ -67,13 +67,12 @@ class Ui_peiyinrole(object):
         self.assign_role_button2 = QPushButton(tr("Assign"))
         self.assign_role_button2.setVisible(False)
         self.assign_role_button2.setCursor(Qt.PointingHandCursor)
-        self.spk_tips=QLabel(tr('conflict with the role specified by row'))
-        self.spk_tips.setVisible(False)
+
         self.assign_role_layout2 = QHBoxLayout()
         self.assign_role_layout2.addWidget(self.assign_role_label2)
         self.assign_role_layout2.addWidget(self.tmp_rolelist2)
         self.assign_role_layout2.addWidget(self.assign_role_button2)
-        self.assign_role_layout2.addWidget(self.spk_tips)
+
         self.assign_role_layout2.addStretch()
         container_layout2.addLayout(self.assign_role_layout2)
         self.splitter.addWidget(self.container_frame)
@@ -94,8 +93,9 @@ class Ui_peiyinrole(object):
         self.subtitle_table.setShowGrid(False) 
         self.subtitle_table.setAlternatingRowColors(False) # 交替颜色
         self.subtitle_table.setSelectionBehavior(QAbstractItemView.SelectRows) # 选中整行
-        self.subtitle_table.setEditTriggers(QAbstractItemView.NoEditTriggers) # 禁止编辑
+        # self.subtitle_table.setEditTriggers(QAbstractItemView.NoEditTriggers) # 禁止编辑
         self.subtitle_table.verticalHeader().setVisible(False) # 隐藏行号头
+        self.subtitle_table.setWordWrap(True)
         
         # 调整列宽模式
         header = self.subtitle_table.horizontalHeader()
@@ -293,6 +293,7 @@ class Ui_peiyinrole(object):
             tr("multi-windows-title"))
         self.label_10.setText(tr("Subtitle lang"))
         self.label_8.setText(tr("TTS"))
+        self.label_11.setStyleSheet("""color:#ffff00""")
         self.label_11.setText(tr("Default Role"))
         self.label_12.setText(tr("Speed change"))
         self.hecheng_rate.setToolTip(tr("Negative deceleration, positive acceleration"))

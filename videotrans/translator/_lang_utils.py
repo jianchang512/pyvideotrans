@@ -19,8 +19,10 @@ def get_code(show_text=None):
         return None
     if show_text == 'zh':
         return 'zh-cn'
+    # 是语言代码本身，例如 zh-cn,en
     if show_text in LANG_CODE:
         return show_text
+    # 是语言显示名称，例如 简体中文，English
     return LANGNAME_DICT_REV.get(show_text, show_text)
 
 
@@ -62,8 +64,10 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 
     # qwenmt翻译渠道语言代码
     if translate_type == QWENMT_INDEX:
+        # 返回代码
         if params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
-            return 'auto', target_list[9] if target_list else show_target
+            return source_list[0] if source_list else show_source, target_list[0] if target_list else show_target
+        # 其他大模型返回文字
         return source_list[7] if source_list else show_source, target_list[7] if target_list else show_target
 
     # AI渠道
@@ -89,15 +93,6 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return source_list[10] if source_list else show_source, target_list[10] if target_list else show_target
     return show_source, show_target
 
-
-# 单独返回 qwen-mt qwen-tts qwen-asr 所需要的语言名称
-def get_language_qwen(langcode=None):
-    if not langcode:
-        return None
-    if langcode == 'zh':
-        langcode = 'zh-cn'
-    _lang_list = LANG_CODE.get(langcode)
-    return langcode if not _lang_list else _lang_list[9]
 
 
 # 判断当前翻译通道和目标语言是否允许翻译

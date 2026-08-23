@@ -924,5 +924,7 @@
 	"Import SRT(only effective for single-video)":"导入发音语言SRT(仅单视频翻译有效)",
 	"For instructions on importing local SRT files during batch translation":"批量翻译时导入本地SRT文件方法，请查看[https://pyvideotrans.com/localsrt]",
 	"higgs-audio-v3-tips":"CUDA加速8位量化后显存需10G+；纯CPU运行内存需20G+",
-	"Standardized dubbing segment processing":"标准化配音片段处理中..."
+	"Standardized dubbing segment processing":"标准化配音片段处理中...",
+    "Initial prompt for the Whisper model for speech": "发音语言为 {} 时发送给whisper模型的提示词",
+    "The subtitle line does not specify a voice actor": "第 {} 行字幕未指定配音角色，并且未设置默认角色，请检查！"
 }

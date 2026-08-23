@@ -297,7 +297,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             
             self.table.setColumnWidth(0, 30)
             self.table.setColumnWidth(1, 40)
-            self.table.setColumnWidth(2, 50)
+            self.table.setColumnWidth(2, 100)
             self.table.setColumnWidth(3, 150)
             self.table.setColumnWidth(4, 125)
             self.table.setColumnWidth(5, 125)
@@ -378,9 +378,9 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             id_item.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 1, id_item)
             
-            # 第2列：Speaker（只读）
+            # 第2列：Speaker 
             spk_item = QTableWidgetItem(data['spk'])
-            spk_item.setFlags(Qt.ItemIsEnabled)
+            spk_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             self.table.setItem(row, 2, spk_item)
             
             # 第3列：Role（只读，显示用）
@@ -389,7 +389,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             role_item.setForeground(QColor("#ff4d4d"))
             self.table.setItem(row, 3, role_item)
             
-            # 第4列：Time（只读）
+            # 第4列：Time
             time_item = QTableWidgetItem( str(data['start_time']/1000.0 ))
             time_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             self.table.setItem(row, 4, time_item)
@@ -477,7 +477,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
         for i, spk_id in enumerate(self.speakers):
             row = i // 4
             col = i % 4
-            check = QCheckBox(f'{tr("Speaker")}{spk_id}')
+            check = QCheckBox(f'{tr("Speaker")}: {spk_id}')
             check.setStyleSheet("color: #dddddd;")
             
             label = QLabel("")
@@ -769,13 +769,15 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
 
             text_item = self.table.item(row, 7)
             text = text_item.text().strip() if text_item else data['text'].strip()
+            if not text:continue
             
             srt_str_list.append(f'{len(srt_str_list)+1}\n{start_raw} --> {end_raw}\n{text}')
 
             # 角色保存逻辑
             role = data.get('role', '')
-            if not role and self.speakers and data['spk']:
-                role = self.speakers.get(data['spk'], '')
+            spk= self.table.item(row, 2).text().strip() or data['spk']
+            if not role and self.speakers and spk:
+                role = self.speakers.get(spk, '')
 
             if role:
                 app_cfg.line_roles[str(data["line"])] = role

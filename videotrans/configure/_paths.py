@@ -4,7 +4,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from videotrans.configure.contants import no_proxy
+
 
 IS_FROZEN = True if getattr(sys, 'frozen', False) else False
 SYS_TMP = Path(tempfile.gettempdir()).as_posix()
@@ -50,6 +50,7 @@ def fix_ssl_cert_env():
 
 
 def _set_env():
+    from videotrans.configure.contants import no_proxy
     if IS_FROZEN:
         os.environ['TQDM_DISABLE'] = '1'
     os.environ['no_proxy'] = no_proxy

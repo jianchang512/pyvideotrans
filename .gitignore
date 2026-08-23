@@ -28,6 +28,7 @@ videotrans/ass.json
 videotrans/codec.json
 videotrans/cfg.json
 videotrans/params.json
+videotrans/languages.json
 videotrans/webui_state.json
 videotrans/glossary.txt
 videotrans/newlang.txt

@@ -27,6 +27,7 @@ class DubbingSrt(BaseTask):
     # 固定为True
     should_dubbing: bool = True
     ignore_align: bool = False
+    output_folder:str=None
     # 多角色配音时直接使用该字幕信息
     subs: List = field(default_factory=list, repr=False)
 
@@ -273,12 +274,16 @@ class DubbingSrt(BaseTask):
         if Path(self.cfg.target_wav).is_file():
             # 移除末尾静音
             remove_silence_wav(self.cfg.target_wav, rm_start=False)
+            target_dir=self.cfg.target_dir if not self.output_folder else self.output_folder
+            _output= f'{target_dir}/{self.cfg.noextname}.{self.out_ext}'
             if self.out_ext.lower() != 'wav':
                 runffmpeg(
-                    ['-y', '-i', self.cfg.target_wav, f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'])
+                    ['-y', '-i', self.cfg.target_wav,_output]
+                )
                 try:
                     Path(self.cfg.target_wav).unlink(missing_ok=True)
                 except OSError:
                     pass
-
+            else:
+                shutil.copy2(self.cfg.target_wav,_output)
         self.set_end(True)

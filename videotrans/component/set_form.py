@@ -2,7 +2,7 @@ import os
 import re
 
 from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import QEvent, Qt
+from PySide6.QtCore import QEvent, Qt, QModelIndex
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog, QTableWidgetItem
 
@@ -204,21 +204,29 @@ class Peiyinformrole(QWidgetBase):
         self.srt_path = None
         self.spk_lines = {}
         self.spk_role = {}
-        self.subtitle_scroll_area2.setVisible(False)
-        self.spk_tips.setVisible(False)
-        self.assign_role_label2.setVisible(False)
-        self.tmp_rolelist2.setVisible(False)
-        self.assign_role_button2.setVisible(False)
         self.subtitles.clear()
         app_cfg.dubbing_role.clear()
         self.clear_subtitle_area()
+        self.subtitle_scroll_area2.setVisible(False)
+        self.assign_role_label2.setVisible(False)
+        self.tmp_rolelist2.setVisible(False)
+        self.assign_role_button2.setVisible(False)
         self.hecheng_importbtn.setText(tr("Import SRT file..."))
         self.loglabel.setText("")
 
     def reset_assigned_roles(self):
         app_cfg.dubbing_role.clear()
+        #self.spk_lines = {}
+        self.spk_role = {}
+        for i in range(self.subtitle_layout2.count()):
+            widget = self.subtitle_layout2.itemAt(i).widget()
+            if isinstance(widget, SpkRowWidget):
+                _spk = widget.spk_name_label.text()
+                self.spk_role[_spk] = None
+                widget.spk_name_role.setText('')
+
         for row in range(self.subtitle_table.rowCount()):
-            self.subtitle_table.item(row, 3).setText(tr('Default Role'))
+            self.subtitle_table.item(row, 3).setText('')
 
     def parse_and_display_srt(self, srt_path):
         self.clear_all_ui()
@@ -228,7 +236,7 @@ class Peiyinformrole(QWidgetBase):
             patter_str = r'(?:\s*?\[)((?:spk|speaker|说话人|speaker_|\w{1,10})\s*?\d*?)(?:\])\s*?[:：]?'
             self.subtitle_table.setSortingEnabled(False)
             self.subtitle_table.setRowCount(len(subs))
-            default_role_text = tr('Default Role')
+            default_role_text = ''
             for row_idx, sub in enumerate(subs):
                 spk_name = None
                 match = re.match(patter_str, sub['text'].strip(), flags=re.I)
@@ -254,10 +262,10 @@ class Peiyinformrole(QWidgetBase):
                 item_time.setFlags(item_time.flags() & ~Qt.ItemIsEditable)
                 self.subtitle_table.setItem(row_idx, 2, item_time)
                 item_role = QTableWidgetItem(default_role_text)
-                item_role.setFlags(item_role.flags() & ~Qt.ItemIsEditable)
+                #item_role.setFlags(item_role.flags() & Qt.ItemIsEditable)
                 self.subtitle_table.setItem(row_idx, 3, item_role)
                 item_spk = QTableWidgetItem(spk_name if spk_name else "")
-                item_spk.setFlags(item_spk.flags() & ~Qt.ItemIsEditable)
+                item_spk.setFlags(item_time.flags() & ~Qt.ItemIsEditable)
                 self.subtitle_table.setItem(row_idx, 4, item_spk)
                 item_text = QTableWidgetItem(sub['text'])
                 item_text.setToolTip(sub['text'])
@@ -268,7 +276,6 @@ class Peiyinformrole(QWidgetBase):
                 self.assign_role_label2.setVisible(True)
                 self.tmp_rolelist2.setVisible(True)
                 self.assign_role_button2.setVisible(True)
-                self.spk_tips.setVisible(True)
                 for ix, spk in enumerate(self.spk_role.keys()):
                     spk_widget = SpkRowWidget(spk)
                     self.subtitle_layout2.addWidget(spk_widget, ix // 6, ix % 6)
@@ -285,23 +292,15 @@ class Peiyinformrole(QWidgetBase):
             show_error(tr("Please select a valid role from the dropdown list."))
             return
         assigned_count = 0
-        default_role_text = tr('Default Role')
+        default_role_text = ''
         for row in range(self.subtitle_table.rowCount()):
             check_item = self.subtitle_table.item(row, 1)
-            if check_item and check_item.checkState() == Qt.Checked:
-                try:
-                    sub_index = int(self.subtitle_table.item(row, 0).text())
-                except Exception:
-                    continue
+            # 检查当前行是否被选中
+            if (check_item and check_item.checkState() == Qt.Checked) or (self.subtitle_table.selectionModel().isRowSelected( row, QModelIndex())):
                 role_item = self.subtitle_table.item(row, 3)
                 if selected_role in ['-', 'No']:
                     role_item.setText(default_role_text)
-                    try:
-                        del app_cfg.dubbing_role[sub_index]
-                    except Exception:
-                        pass
                 else:
-                    app_cfg.dubbing_role[sub_index] = selected_role
                     role_item.setText(selected_role)
                 check_item.setCheckState(Qt.Unchecked)
                 assigned_count += 1
@@ -331,18 +330,11 @@ class Peiyinformrole(QWidgetBase):
                     widget.checkbox.setChecked(False)
                     assigned_count += 1
                     for line in self.spk_lines.get(_spk, []):
-                        if selected_role in ['-', 'No']:
-                            try:
-                                del app_cfg.dubbing_role[line]
-                            except Exception:
-                                pass
-                        else:
-                            app_cfg.dubbing_role[line] = selected_role
                         try:
                             row_idx = line - 1
                             if 0 <= row_idx < self.subtitle_table.rowCount():
                                 if self.subtitle_table.item(row_idx, 0).text() == str(line):
-                                    display_role = tr('Default Role') if selected_role in ['-', 'No'] else selected_role
+                                    display_role = '' if selected_role in ['-', 'No'] else selected_role
                                     self.subtitle_table.item(row_idx, 3).setText(display_role)
                         except Exception:
                             pass

@@ -144,15 +144,28 @@ class Ui_qwenmtform(object):
         allmodels = str(settings.get('qwenmt_model','')).split(',')
         self.qwenmt_model.clear()
         self.qwenmt_asr_model.clear()
-        self.qwenmt_model.addItems([ it  for it in allmodels if not it.startswith('qwen3-asr')])
-        self.qwenmt_asr_model.addItems([ it  for it in allmodels if it.startswith('qwen3-asr')])
+        
+        self.qwenmt_model.addItems([ it  for it in allmodels if "-asr" not in it])
+        self.qwenmt_asr_model.addItems([ it  for it in allmodels if "-asr" in it])
         self.edit_allmodels.setPlainText(allmodels_str)
+        
 
         self.qwenmt_key.setText(str(params.get("qwenmt_key",'')))
         self.qwenmt_spaceid.setText(str(params.get("qwenmt_spaceid",'')))
         self.qwenmt_domains.setText(str(params.get("qwenmt_domains",'')))
-        self.qwenmt_model.setCurrentText(str(params.get("qwenmt_model",'')))
-        self.qwenmt_asr_model.setCurrentText(str(params.get("qwenmt_asr_model",'')))
+        
+        if params["qwenmt_model"] and params['qwenmt_model'] not in allmodels:
+            params['qwenmt_model']='qwen-mt-turbo'
+            params.save()
+        if params['qwenmt_asr_model'] and params['qwenmt_asr_model'] not in allmodels:
+            params['qwenmt_asr_model']='qwen3-asr-flash'
+            params.save()
+
+        if '-asr' in params['qwenmt_asr_model']:
+            self.qwenmt_asr_model.setCurrentText(params["qwenmt_asr_model"])
+        else:
+            self.qwenmt_model.setCurrentText(params["qwenmt_model"])
+        
 
     def retranslateUi(self, qwenmtform):
         qwenmtform.setWindowTitle(tr("Ali-BaiLian API/Qwen3-ASR AI"))

@@ -6,7 +6,7 @@ def openwin():
     from videotrans.util.help_misc import show_error
     from videotrans.util.help_role import role_menu
     from videotrans.task.taskcfg import TaskCfgTTS
-    from videotrans.configure.contants import LISTEN_TEXT
+    from videotrans.configure.contants import LISTEN_TEXT,EDGE_LANGUANGES_CODE
     import json
     import os,time
     from pathlib import Path
@@ -19,44 +19,9 @@ def openwin():
     from videotrans import translator, tts
     from videotrans.component.set_form import Peiyinformrole
 
-    langname_dict = {
-        "zh-cn": "简体中文", "zh-tw": "繁体中文", "yue": "粤语", "en": "英语", "fr": "法语", "de": "德语", "ja": "日语", "ko": "韩语",
-        "ru": "俄语", "es": "西班牙语",
-        "th": "泰国语", "it": "意大利语", "pt": "葡萄牙语", "vi": "越南语", "ar": "阿拉伯语", "tr": "土耳其语", "hi": "印度语", "hu": "匈牙利语",
-        "uk": "乌克兰语", "id": "印度尼西亚", "ms": "马来语", "kk": "哈萨克语", "cs": "捷克语", "pl": "波兰语", "nl": "荷兰语", "sv": "瑞典语",
-        "he": "希伯来语", "bn": "孟加拉语", "fil": "菲律宾语", "af": "南非荷兰语", "sq": "阿尔巴尼亚语", "am": "阿姆哈拉语", "az": "阿塞拜疆语",
-        "bs": "波斯尼亚语", "bg": "保加利亚语", "my": "缅甸语", "ca": "加泰罗尼亚语", "hr": "克罗地亚语", "da": "丹麦语", "et": "爱沙尼亚语",
-        "fi": "芬兰语", "gl": "加利西亚语", "ka": "格鲁吉亚语", "el": "希腊语", "gu": "古吉拉特语", "is": "冰岛语", "iu": "因纽特语", "ga": "爱尔兰语",
-        "jv": "爪哇语", "kn": "卡纳达语", "km": "高棉语", "lo": "老挝语", "lv": "拉脱维亚语", "lt": "立陶宛语", "mk": "马其顿语", "ml": "马拉雅拉姆语",
-        "mt": "马耳他语", "mr": "马拉地语", "mn": "蒙古语", "ne": "尼泊尔语", "nb": "挪威语(书面挪威语)", "ps": "普什图语", "fa": "波斯语",
-        "ro": "罗马尼亚语",
-        "sr": "塞尔维亚语", "si": "僧伽罗语", "sk": "斯洛伐克语", "sl": "斯洛文尼亚语", "so": "索马里语", "su": "巽他语", "sw": "斯瓦希里语",
-        "ta": "泰米尔语", "te": "泰卢固语", "ur": "乌尔都语", "uz": "乌兹别克语", "cy": "威尔士语", "zu": "祖鲁语"
-    }
-    if defaulelang != 'zh':
-        langname_dict = {
-            "zh-cn": "Simplified Chinese", "zh-tw": "Traditional Chinese", "yue": "Cantonese", "en": "English",
-            "fr": "French", "de": "German", "ja": "Japanese",
-            "ko": "Korean", "ru": "Russian", "es": "Spanish", "th": "Thai", "it": "Italian", "pt": "Portuguese",
-            "vi": "Vietnamese",
-            "ar": "Arabic", "tr": "Turkish", "hi": "Hindi", "hu": "Hungarian", "uk": "Ukrainian", "id": "Indonesian",
-            "ms": "Malay",
-            "kk": "Kazakh", "cs": "Czech", "pl": "Polish", "nl": "Dutch", "sv": "Swedish", "he": "Hebrew",
-            "bn": "Bengali", "fil": "Filipino",
-            "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "az": "Azerbaijani", "bs": "Bosnian",
-            "bg": "Bulgarian", "my": "Burmese",
-            "ca": "Catalan", "hr": "Croatian", "da": "Danish", "et": "Estonian", "fi": "Finnish", "gl": "Galician",
-            "ka": "Georgian",
-            "el": "Greek", "gu": "Gujarati", "is": "Icelandic", "iu": "Inuktitut", "ga": "Irish", "jv": "Javanese",
-            "kn": "Kannada",
-            "km": "Khmer", "lo": "Lao", "lv": "Latvian", "lt": "Lithuanian", "mk": "Macedonian", "ml": "Malayalam",
-            "mt": "Maltese",
-            "mr": "Marathi", "mn": "Mongolian", "ne": "Nepali", "nb": "Norwegian Bokmål", "ps": "Pashto",
-            "fa": "Persian", "ro": "Romanian",
-            "sr": "Serbian", "si": "Sinhala", "sk": "Slovak", "sl": "Slovenian", "so": "Somali", "su": "Sundanese",
-            "sw": "Swahili",
-            "ta": "Tamil", "te": "Telugu", "ur": "Urdu", "uz": "Uzbek", "cy": "Welsh", "zu": "Zulu"
-        }
+    EDGE_LANGUANGES_DICT={}
+    for code in EDGE_LANGUANGES_CODE:
+        EDGE_LANGUANGES_DICT[code]=tr(code)
 
     RESULT_DIR = HOME_DIR + "/tts"
     Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
@@ -175,12 +140,11 @@ def openwin():
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         language = winobj.hecheng_language.currentText()
-        role = winobj.hecheng_role.currentText()  # Default role
+        default_role = winobj.hecheng_role.currentText()  # Default role
         rate = int(winobj.hecheng_rate.value())
         tts_type = winobj.tts_type.currentIndex()
 
-        if language == '-' or role in ['No', '-', '']:
-            return show_error(tr("A default role must be selected"))
+
 
         if tts.is_input_api(tts_type=tts_type) is not True:
             return False
@@ -188,12 +152,9 @@ def openwin():
         if tts_type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
             langcode = translator.get_code(show_text=language)
             is_allow_lang_res = tts.is_allow_lang(langcode=langcode, tts_type=tts_type)
-            if is_allow_lang_res is not True:
-                winobj.loglabel.setText(is_allow_lang_res)
-            else:
-                winobj.loglabel.setText('')
+            winobj.loglabel.setText(is_allow_lang_res if is_allow_lang_res is not True else '')
         else:
-            code_list = [key for key, value in langname_dict.items() if value == language]
+            code_list = [key for key, value in EDGE_LANGUANGES_DICT.items() if value == language]
             if not code_list:
                 return show_error(f'{language} is not support -1')
             langcode = code_list[0]
@@ -215,7 +176,7 @@ def openwin():
         uuid = video_obj['uuid']
         app_cfg.rm_uuid(uuid)
         cfg = {
-            "voice_role": role,  # Default role
+            "voice_role": default_role,  # Default role
             "cache_folder": config.TEMP_DIR + f'/{uuid}',
             "target_language_code": langcode,
             "target_dir": RESULT_DIR,
@@ -229,7 +190,20 @@ def openwin():
             "align_sub_audio": False,
             "is_cuda": winobj.is_cuda.isChecked()
         }
-        trk = DubbingSrt(cfg=TaskCfgTTS(**cfg | video_obj), subs=winobj.subtitles, is_multi_role=True,
+        app_cfg.dubbing_role={}
+
+        for row in range(winobj.subtitle_table.rowCount()):
+            _role=winobj.subtitle_table.item(row, 3).text().strip()
+            if default_role in ['-','No'] and not _role:
+                toggle_state(False)
+                return show_error(tr("The subtitle line does not specify a voice actor",row+1))
+            app_cfg.dubbing_role[row+1]=_role
+            winobj.subtitles[row]['text']=winobj.subtitle_table.item(row,5).text().strip()
+
+        trk = DubbingSrt(cfg=TaskCfgTTS(**cfg | video_obj),
+                         subs=winobj.subtitles,
+                         is_multi_role=True,
+                         output_folder=RESULT_DIR,
                          out_ext=winobj.out_format.currentText())
         app_cfg.dubb_queue.put_nowait(trk)
         from videotrans.task.child_win_sign import SignThread
@@ -264,11 +238,12 @@ def openwin():
 
     def getlangnamelist(tts_type=0):
         if tts_type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
-            return ['-'] + list(translator.LANGNAME_DICT.values())
-        return ['-'] + list(langname_dict.values())
+            return    list(translator.LANGNAME_DICT.values())
+        return  list(EDGE_LANGUANGES_DICT.values())
 
     def tts_type_change(type):
         app_cfg.dubbing_role = {}
+        winobj.reset_assigned_roles()
         if type in tts.CHANGE_BY_LANGUAGE:
             winobj.volume_rate.setDisabled(False)
             winobj.pitch_rate.setDisabled(False)
@@ -284,7 +259,8 @@ def openwin():
             winobj.hecheng_language.setCurrentText(current_text)
         code = translator.get_code(show_text=current_text)
 
-        if type != tts.EDGE_TTS:
+        winobj.loglabel.setText('')
+        if type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
             is_allow_lang_res = tts.is_allow_lang(langcode=code, tts_type=type)
             winobj.loglabel.setText(is_allow_lang_res if is_allow_lang_res is not True else '')
 
@@ -293,13 +269,13 @@ def openwin():
         if 'clone' in role_list:
             role_list.remove('clone')
         winobj.hecheng_role.addItems(role_list)
-        if type != tts.EDGE_TTS and tts.is_input_api(tts_type=type) is not True:
+        if type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS] and tts.is_input_api(tts_type=type) is not True:
             return False
 
     def hecheng_language_fun(t):
         tts_type = winobj.tts_type.currentIndex()
         if tts_type in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
-            code_list = [key for key, value in langname_dict.items() if value == t]
+            code_list = [key for key, value in EDGE_LANGUANGES_DICT.items() if value == t]
             code = code_list[0] if code_list else '-'
         else:
             code = translator.get_code(show_text=t)
@@ -333,6 +309,11 @@ def openwin():
         winobj.parse_and_display_srt(fname)
 
     def opendir_fn():
+        nonlocal RESULT_DIR
+        if winobj.srt_path and winobj.save_to_srt.isChecked():
+            RESULT_DIR = Path(winobj.srt_path).parent.as_posix()
+        else:
+            RESULT_DIR = HOME_DIR + '/tts'
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     def show_detail_error():
@@ -371,10 +352,14 @@ def openwin():
         winobj.volume_rate.setValue(int(params.get('dubb_volume_rate', 0)))
 
         last_tts_type = int(params.get("dubb_tts_type", 0))
-        winobj.tts_type.setCurrentIndex(last_tts_type)
-        winobj.hecheng_language.setCurrentIndex(int(params.get("dubb_source_language", 0)))
 
         winobj.out_format.setCurrentIndex(int(params.get("dubb_out_format", 0)))
+        winobj.tts_type.setCurrentIndex(last_tts_type)
+        winobj.hecheng_language.addItems(getlangnamelist(last_tts_type))
+        winobj.hecheng_language.setCurrentIndex(int(params.get("dubb_source_language", 0)))
+
+
+
 
         winobj.is_cuda.toggled.connect(check_cuda)
         winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
@@ -384,10 +369,15 @@ def openwin():
         winobj.hecheng_opendir.clicked.connect(opendir_fn)
         winobj.loglabel.clicked.connect(show_detail_error)
 
-        winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)
         winobj.voice_autorate.toggled.connect(check_voice_autorate)
+
+        winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
+
         tts_type_change(last_tts_type)
+
         winobj.hecheng_role.setCurrentIndex(int(params.get("dubb_role", 0)))
+
+
 
     QTimer.singleShot(10, _bind)

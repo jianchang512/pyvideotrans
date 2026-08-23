@@ -5,7 +5,7 @@ import sentencepiece as spm
 from dataclasses import dataclass
 from typing import List, Union
 from videotrans.configure.config import ROOT_DIR,logger
-from videotrans.configure.contants import M2M100_URL_MS, M2M100_URL_HF
+from videotrans.configure.contants import M2M100_URL_MS, M2M100_URL_HF,_LANGUAGE_M2M100
 from videotrans.translator._base import BaseTrans
 import torch
 
@@ -14,44 +14,6 @@ import torch
 # https://github.com/ymoslem/DesktopTranslator
 from videotrans.util.help_down import down_zip
 from videotrans.util.help_misc import is_connect_hf
-
-_LANGUAGE_CODE_MAP = {
-        "en": "__en__",
-        "zh": "__zh__",
-        "fr": "__fr__",
-        "de": "__de__",
-        "ja": "__ja__",
-        "ko": "__ko__",
-        "ru": "__ru__",
-        "es": "__es__",
-        "th": "__th__",
-        "it": "__it__",
-        "el": "__el__",
-        "pt": "__pt__",
-        "vi": "__vi__",
-        "ar": "__ar__",
-        "tr": "__tr__",
-        "hi": "__hi__",
-        "hu": "__hu__",
-        "uk": "__uk__",
-        "id": "__id__",
-        "ms": "__ms__",
-        "kk": "__kk__",
-        "cs": "__cs__",
-        "pl": "__pl__",
-        "nl": "__nl__",
-        "sv": "__sv__",
-        "he": "__he__",
-        "bn": "__bn__",
-        "fa": "__fa__",
-        "fi": "__tl__",# 菲律宾语
-        "ur": "__ur__",
-        "yue": "__zh__",
-        "yu": "__zh__",
-        "uz": "__uz__",
-        "ro": "__ro__",
-        "nb": "__no__"
-}
 
 # Refer to https://github.com/ymoslem/DesktopTranslator/blob/main/utils/m2m_languages.json
 # other languages can be added as well
@@ -64,8 +26,8 @@ class M2M100Trans(BaseTrans):
         if not self.source_code or self.source_code=='auto':
             self.from_lang='auto'
         else:
-            self.from_lang=_LANGUAGE_CODE_MAP.get(self.source_code.split('-')[0].lower(),'auto')
-        self.to_lang=_LANGUAGE_CODE_MAP.get(self.target_code.split('-')[0].lower())
+            self.from_lang=_LANGUAGE_M2M100.get(self.source_code.split('-')[0].lower(),'auto')
+        self.to_lang=_LANGUAGE_M2M100.get(self.target_code.split('-')[0].lower())
 
     def _download(self):
         if not Path(f'{ROOT_DIR}/models/m2m100_12b/model.bin').exists():

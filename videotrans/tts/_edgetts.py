@@ -89,7 +89,9 @@ class EdgeTTS(BaseTTS):
                             logger.warning(f"{task_id}: 发送 UI 信号超时！")
 
                         return
-
+                    except ValueError as e:
+                        logger.error(f'配音角色 {e} 错误，不存在该角色')
+                        return
                     except asyncio.TimeoutError as e:
                         if attempt < RETRY_NUMS:
                             await asyncio.sleep(RETRY_DELAY)
@@ -163,6 +165,7 @@ class EdgeTTS(BaseTTS):
             all_voices.add(it['role'])
 
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
+
         worker_tasks = [
             asyncio.create_task(
                 self._create_audio_with_retry(item, i, total_tasks, semaphore)

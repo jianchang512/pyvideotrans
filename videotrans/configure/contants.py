@@ -1,3 +1,4 @@
+from ._languages_dict import LISTEN_TEXT,_LANGUAGE_M2M100,_LANGUAGE_FIRERED3,LANG_CODE,EDGE_LANGUANGES_CODE
 #-------------标点 空格语言-----------
 # 中日韩 泰国语 高棉语 粤语 不使用空格
 CJK_LANG = ["zh", "ja", "ko","th", "km", "yue"]
@@ -229,42 +230,4 @@ SUCCEED_STATUS = "succeed"
 STOP_STATUS = "stop"
 ING_STATUS = "ing"
 
-#------------配音试听词---------------
-LISTEN_TEXT = {
-    "zh": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
-    "uz": "Salom, aziz do'stim, umid qilamanki, har bir kuningiz ajoyib va ​​quvonchli o'tadi!",
-    "en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
-    "fr": "Bonjour mon cher ami. J'espère que votre quotidien est beau et agréable !",
-    "de": "Hallo mein lieber Freund. Ich hoffe, dass Ihr Tag schön und angenehm ist!",
-    "ja": "こんにちは私の親愛なる友人。 あなたの毎日が美しく楽しいものでありますように！",
-    "ko": "안녕, 내 사랑하는 친구. 당신의 매일이 아름답고 즐겁기를 바랍니다!",
-    "ru": "Привет, мой дорогой друг. Желаю, чтобы каждый твой день был прекрасен и приятен!",
-    "es": "Hola mi querido amigo. ¡Espero que cada día sea hermoso y agradable!",
-    "th": "สวัสดีเพื่อนรัก. ฉันหวังว่าทุกวันของคุณจะสวยงามและสนุกสนาน!",
-    "it": "Ciao caro amico mio. Spero che ogni tuo giorno sia bello e divertente!",
-    "el": "Γεια σου, αγαπητέ μου φίλε. Εύχομαι κάθε σου μέρα να είναι όμορφη και ευχάριστη!",
-    "pt": "Olá meu querido amigo. Espero que todos os seus dias sejam lindos e agradáveis!",
-    "vi": "Xin chào người bạn thân yêu của tôi. Tôi hy vọng mỗi ngày của bạn đều đẹp và thú vị!",
-    "ar": "مرحبا صديقي العزيز. أتمنى أن يكون كل يوم جميلاً وممتعًا!",
-    "tr": "Merhaba sevgili arkadaşım. Umarım her gününüz güzel ve keyifli geçer!",
-    "hi": "नमस्ते मेरे प्यारे दोस्त। मुझे आशा है कि आपका हर दिन सुंदर और आनंददायक हो!!",
-    "hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
-    "uk": "Привіт, мій дорогий друже, сподіваюся, ти щодня прекрасна!",
-    "id": "Halo, temanku, semoga kamu cantik setiap hari!",
-    "ms": "Helo, sahabat saya, saya harap anda cantik setiap hari!",
-    "kk": "Сәлеметсіз бе, менің қымбатты досым, сендер күн сайын әдемісің деп үміттенемін!",
-    "cs": "Ahoj, můj drahý příteli, doufám, že jsi každý den krásná!",
-    "pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
-    "nl": "Hallo mijn lieve vriend, ik hoop dat elke dag goed en fijn voor je is!!",
-    "sv": "Hej min kära vän, jag hoppas att varje dag är en bra och trevlig dag för dig!",
-    "he": "שלום, ידידי היקר, אני מקווה שכל יום בחייך יהיה נפלא ומאושר!",
-    "bn": "হ্যালো, আমার প্রিয় বন্ধু, আমি আশা করি আপনার জীবনের প্রতিটি দিন চমৎকার এবং সুখী হোক!",
-    "fil": "Hello, kaibigan ko",
-    "fa": "سلام دوستای گلم امیدوارم هر روز از زندگیتون عالی و شاد باشه.",
-    "ur": "ہیلو پیارے دوست، مجھے امید ہے کہ آپ آج خوش ہوں گے۔",
-    "yue": "你好啊親愛嘅朋友，希望你今日好開心",
-    "ro": "Bună, draga mea prietenă, sper ca fiecare zi a ta să fie minunată și plină de bucurie!",
-    "km": "សួស្តីមិត្តជាទីស្រឡាញ់របស់ខ្ញុំ ខ្ញុំសង្ឃឹមថារាល់ថ្ងៃរបស់អ្នកគឺអស្ចារ្យ និងរីករាយ។!",
-    "nb": "Hallo, min kjære venn, jeg håper hver dag din er fantastisk og gledelig.",
 
-}

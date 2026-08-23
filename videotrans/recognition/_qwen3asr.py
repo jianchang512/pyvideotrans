@@ -45,7 +45,7 @@ class Qwen3ASRRecogn(BaseRecogn):
                     }],
                     result_format="message",
                     asr_options={
-                        "language": self.detect_language.split('-')[0], # 可选，若已知音频的语种，可通过该参数指定待识别语种，以提升识别准确率
+                        "language": None if self.detect_language=='auto' else  self.detect_language.split('-')[0], # 可选，若已知音频的语种，可通过该参数指定待识别语种，以提升识别准确率
                         "enable_lid": True,
                         "enable_itn": True
                     }

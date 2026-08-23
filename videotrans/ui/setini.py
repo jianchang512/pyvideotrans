@@ -7,12 +7,17 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QFileDialog
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, defaulelang
+from videotrans.configure.contants import LANG_CODE
 
 # ultrafast 、 superfast 、 veryfast 、 faster 、 fast 、 medium （默认）、 slow和veryslow
 # 处理速度越来越慢，输出视频压缩率和质量越来越高，视频尺寸也将变小
 
 # 中文注释 界面ui控制
 from videotrans.util.help_misc import open_url
+
+prompt_dicts={}
+for code in LANG_CODE.keys():
+    prompt_dicts[f'initial_prompt_{code}']=tr('Initial prompt for the Whisper model for speech',tr(code))
 
 notices = {
     "common": {
@@ -110,44 +115,7 @@ notices = {
         "other_len": "其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕"
     },
 
-    "prompt_init": {
-        "initial_prompt_zh-cn": "发音语言为简体中文时发送给whisper模型的提示词",
-        "initial_prompt_zh-tw": "发音语言为繁体中文时发送给whisper模型的提示词",
-        "initial_prompt_uz": "发音语言为乌兹别克语时发送给whisper模型的提示词",
-        "initial_prompt_en": "发音语言为英语时发送给whisper模型的提示词",
-        "initial_prompt_fr": "发音语言为法语时发送给whisper模型的提示词",
-        "initial_prompt_de": "发音语言为德语时发送给whisper模型的提示词",
-        "initial_prompt_ja": "发音语言为日语时发送给whisper模型的提示词",
-        "initial_prompt_ko": "发音语言为韩语时发送给whisper模型的提示词",
-        "initial_prompt_ru": "发音语言为俄语时发送给whisper模型的提示词",
-        "initial_prompt_es": "发音语言为西班牙语时发送给whisper模型的提示词",
-        "initial_prompt_th": "发音语言为泰国语时发送给whisper模型的提示词",
-        "initial_prompt_it": "发音语言为意大利语时发送给whisper模型的提示词",
-        "initial_prompt_el": "发音语言为希腊语时发送给whisper模型的提示词",
-        "initial_prompt_km": "发音语言为高棉语时发送给whisper模型的提示词",
-        "initial_prompt_nb": "发音语言为挪威语时发送给whisper模型的提示词",
-        "initial_prompt_pt": "发音语言为葡萄牙语时发送给whisper模型的提示词",
-        "initial_prompt_vi": "发音语言为越南语时发送给whisper模型的提示词",
-        "initial_prompt_ar": "发音语言为阿拉伯语时发送给whisper模型的提示词",
-        "initial_prompt_tr": "发音语言为土耳其语时发送给whisper模型的提示词",
-        "initial_prompt_hi": "发音语言为印度语时发送给whisper模型的提示词",
-        "initial_prompt_hu": "发音语言为匈牙利语时发送给whisper模型的提示词",
-        "initial_prompt_uk": "发音语言为乌克兰语时发送给whisper模型的提示词",
-        "initial_prompt_id": "发音语言为印尼语时发送给whisper模型的提示词",
-        "initial_prompt_ms": "发音语言为马来西亚语时发送给whisper模型的提示词",
-        "initial_prompt_kk": "发音语言为哈萨克语时发送给whisper模型的提示词",
-        "initial_prompt_cs": "发音语言为捷克语时发送给whisper模型的提示词",
-        "initial_prompt_pl": "发音语言为波兰语时发送给whisper模型的提示词",
-        "initial_prompt_nl": "发音语言为荷兰语时发送给whisper模型的提示词",
-        "initial_prompt_sv": "发音语言为瑞典语时发送给whisper模型的提示词",
-        "initial_prompt_he": "发音语言为希伯来语时发送给whisper模型的提示词",
-        "initial_prompt_bn": "发音语言为孟加拉语时发送给whisper模型的提示词",
-        "initial_prompt_fa": "发音语言为波斯语时发送给whisper模型的提示词",
-        "initial_prompt_ur": "发音语言为乌尔都语时发送给whisper模型的提示词",
-        "initial_prompt_yue": "发音语言为粤语时发送给whisper模型的提示词",
-        "initial_prompt_ro": "发音语言为罗马尼亚语时发送给whisper模型的提示词",
-        "initial_prompt_fil": "发音语言为菲律宾语时发送给whisper模型的提示词"
-    }
+    "prompt_init": { }
 }
 # 中文左侧label
 titles = {
@@ -244,44 +212,7 @@ titles = {
     "zh_hant_s": "字幕繁体转简体",
     "chattts_voice": "ChatTTS音色值",
 
-    "gemini_model": "Gemini模型列表",
-
-    "initial_prompt_zh-cn": "whisper模型简体中文提示词",
-    "initial_prompt_zh-tw": "whisper模型繁体中文提示词",
-    "initial_prompt_uz": "whisper模型乌兹别克语提示词",
-    "initial_prompt_en": "whisper模型英语提示词",
-    "initial_prompt_fr": "whisper模型法语提示词",
-    "initial_prompt_de": "whisper模型德语提示词",
-    "initial_prompt_ja": "whisper模型日语提示词",
-    "initial_prompt_ko": "whisper模型韩语提示词",
-    "initial_prompt_ru": "whisper模型俄语提示词",
-    "initial_prompt_es": "whisper模型西班牙语提示词",
-    "initial_prompt_th": "whisper模型泰国语提示词",
-    "initial_prompt_it": "whisper模型意大利语提示词",
-    "initial_prompt_pt": "whisper模型葡萄牙语提示词",
-    "initial_prompt_vi": "whisper模型越南语提示词",
-    "initial_prompt_ar": "whisper模型阿拉伯语提示词",
-    "initial_prompt_tr": "whisper模型土耳其语提示词",
-    "initial_prompt_hi": "whisper模型印度语提示词",
-    "initial_prompt_hu": "whisper模型匈牙利语提示词",
-    "initial_prompt_uk": "whisper模型乌克兰语提示词",
-    "initial_prompt_id": "whisper模型印尼语提示词",
-    "initial_prompt_ms": "whisper模型马来语提示词",
-    "initial_prompt_km": "whisper模型高棉语提示词",
-    "initial_prompt_kk": "whisper模型哈萨克语提示词",
-    "initial_prompt_nb": "whisper模型挪威语提示词",
-    "initial_prompt_el": "whisper模型希腊语提示词",
-    "initial_prompt_cs": "whisper模型捷克语提示词",
-    "initial_prompt_pl": "whisper模型波兰语提示词",
-    "initial_prompt_nl": "whisper模型荷兰语提示词",
-    "initial_prompt_bn": "whisper模型孟加拉语提示词",
-    "initial_prompt_he": "whisper模型希伯来语提示词",
-    "initial_prompt_sv": "whisper模型瑞典语提示词",
-    "initial_prompt_fa": "whisper模型波斯语提示词",
-    "initial_prompt_ur": "whisper模型乌尔都语提示词",
-    "initial_prompt_yue": "whisper模型粤语提示词",
-    "initial_prompt_ro": "whisper模型罗马尼亚语提示词",
-    "initial_prompt_fil": "whisper模型菲律宾语提示词"
+    "gemini_model": "Gemini模型列表"
 }
 # 中文分区
 heads = {
@@ -391,44 +322,7 @@ if defaulelang != 'zh':
             "other_len": "Number of words per line for subtitles in other languages; more than this will result in a line break"
         },
 
-        "prompt_init": {
-            "initial_prompt_zh-cn": "Initial prompt for the Whisper model for Simplified Chinese speech.",
-            "initial_prompt_zh-tw": "Initial prompt for the Whisper model for Traditional Chinese speech.",
-            "initial_prompt_uz": "Initial prompt for the Whisper model for Uzbek speech.",
-            "initial_prompt_en": "Initial prompt for the Whisper model for English speech.",
-            "initial_prompt_fr": "Initial prompt for the Whisper model for French speech.",
-            "initial_prompt_de": "Initial prompt for the Whisper model for German speech.",
-            "initial_prompt_ja": "Initial prompt for the Whisper model for Japanese speech.",
-            "initial_prompt_ko": "Initial prompt for the Whisper model for Korean speech.",
-            "initial_prompt_km": "Initial prompt for the Whisper model for Khmer speech.",
-            "initial_prompt_ru": "Initial prompt for the Whisper model for Russian speech.",
-            "initial_prompt_es": "Initial prompt for the Whisper model for Spanish speech.",
-            "initial_prompt_th": "Initial prompt for the Whisper model for Thai speech.",
-            "initial_prompt_it": "Initial prompt for the Whisper model for Italian speech.",
-            "initial_prompt_pt": "Initial prompt for the Whisper model for Portuguese speech.",
-            "initial_prompt_vi": "Initial prompt for the Whisper model for Vietnamese speech.",
-            "initial_prompt_ar": "Initial prompt for the Whisper model for Arabic speech.",
-            "initial_prompt_tr": "Initial prompt for the Whisper model for Turkish speech.",
-            "initial_prompt_hi": "Initial prompt for the Whisper model for Hindi speech.",
-            "initial_prompt_hu": "Initial prompt for the Whisper model for Hungarian speech.",
-            "initial_prompt_uk": "Initial prompt for the Whisper model for Ukrainian speech.",
-            "initial_prompt_id": "Initial prompt for the Whisper model for Indonesian speech.",
-            "initial_prompt_ms": "Initial prompt for the Whisper model for Malaysian speech.",
-            "initial_prompt_kk": "Initial prompt for the Whisper model for Kazakh speech.",
-            "initial_prompt_cs": "Initial prompt for the Whisper model for Czech speech.",
-            "initial_prompt_pl": "Initial prompt for the Whisper model for Polish speech.",
-            "initial_prompt_nl": "Initial prompt for the Whisper model for Dutch speech.",
-            "initial_prompt_sv": "Initial prompt for the Whisper model for Swedish speech.",
-            "initial_prompt_he": "Initial prompt for the Whisper model for Hebrew speech.",
-            "initial_prompt_bn": "Initial prompt for the Whisper model for Bengali speech.",
-            "initial_prompt_fa": "Initial prompt for the Whisper model for Persian speech.",
-            "initial_prompt_ur": "Initial prompt for the Whisper model for Urdu speech.",
-            "initial_prompt_yue": "Initial prompt for the Whisper model for Cantonese speech.",
-            "initial_prompt_nb": "Initial prompt for the Whisper model for Norwegian speech.",
-            "initial_prompt_ro": "Initial prompt for the Whisper model for Romanian speech.",
-            "initial_prompt_el": "Initial prompt for the Whisper model for Greek speech.",
-            "initial_prompt_fil": "Initial prompt for the Whisper model for Filipino speech."
-        }
+        "prompt_init": {}
     }
 
     titles = {
@@ -521,42 +415,6 @@ if defaulelang != 'zh':
         "dubbing_wait": "Pause (s) after each dubbing request",
         "gemini_model": "Gemini model list",
         "aisendsrt": "Send full SRT format for AI translation",
-        "initial_prompt_zh-cn": "initial prompt for Simplified Chinese",
-        "initial_prompt_zh-tw": "initial prompt for Traditional Chinese",
-        "initial_prompt_en": "initial prompt for English",
-        "initial_prompt_uz": "initial prompt for Uzbek",
-        "initial_prompt_fr": "initial prompt for French",
-        "initial_prompt_de": "initial prompt for German",
-        "initial_prompt_ja": "initial prompt for Japanese",
-        "initial_prompt_ko": "initial prompt for Korean",
-        "initial_prompt_ru": "initial prompt for Russian",
-        "initial_prompt_es": "initial prompt for Spanish",
-        "initial_prompt_th": "initial prompt for Thai",
-        "initial_prompt_it": "initial prompt for Italian",
-        "initial_prompt_pt": "initial prompt for Portuguese",
-        "initial_prompt_vi": "initial prompt for Vietnamese",
-        "initial_prompt_ar": "initial prompt for Arabic",
-        "initial_prompt_tr": "initial prompt for Turkish",
-        "initial_prompt_hi": "initial prompt for Hindi",
-        "initial_prompt_hu": "initial prompt for Hungarian",
-        "initial_prompt_km": "initial prompt for Khmer",
-        "initial_prompt_ro": "initial prompt for Romanian",
-        "initial_prompt_uk": "initial prompt for Ukrainian",
-        "initial_prompt_id": "initial prompt for Indonesian",
-        "initial_prompt_ms": "initial prompt for Malay",
-        "initial_prompt_kk": "initial prompt for Kazakh",
-        "initial_prompt_cs": "initial prompt for Czech",
-        "initial_prompt_pl": "initial prompt for Polish",
-        "initial_prompt_nl": "initial prompt for Dutch",
-        "initial_prompt_bn": "initial prompt for Bengali",
-        "initial_prompt_nb": "initial prompt for Norwegian",
-        "initial_prompt_el": "initial prompt for Greek",
-        "initial_prompt_he": "initial prompt for Hebrew",
-        "initial_prompt_sv": "initial prompt for Swedish",
-        "initial_prompt_fa": "initial prompt for Persian",
-        "initial_prompt_ur": "initial prompt for Urdu",
-        "initial_prompt_yue": "initial prompt for Cantonese",
-        "initial_prompt_fil": "initial prompt for Filipino"
     }
 
     heads = {
@@ -569,6 +427,9 @@ if defaulelang != 'zh':
         "prompt_init": "Whisper Prompt"
     }
 
+
+titles.update(prompt_dicts)
+notices['prompt_init'].update(prompt_dicts)
 
 class Ui_setini(object):
 

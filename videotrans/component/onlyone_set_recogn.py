@@ -384,7 +384,6 @@ class EditRecognResultDialog(QDialog,DanspMixin):
     def _batch_fill(self, start_row, end_row):
         for row in range(start_row, end_row):
             data = self.display_data[row]
-            print(f'{data=}')
 
             # 0: Line
             item0 = QTableWidgetItem(str(data['line'])+f'({(data["end_time"]-data["start_time"])/1000.0}s)')

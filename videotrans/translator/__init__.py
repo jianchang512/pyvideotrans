@@ -23,7 +23,6 @@ from videotrans.translator._lang_codes import (  # noqa: F401
 from videotrans.translator._lang_utils import (  # noqa: F401
     get_code,
     get_source_target_code,
-    get_language_qwen,
     is_allow_translate,
     get_audio_code,
     get_subtitle_code,
