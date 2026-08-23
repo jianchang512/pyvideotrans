@@ -70,6 +70,14 @@ class Ui_localllmform(object):
 
         v1.addLayout(h2)
         v1.addLayout(h_token)
+        
+        hreason = QtWidgets.QHBoxLayout()
+        hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
+        self.reasoning_effort=QtWidgets.QComboBox()
+        self.reasoning_effort.addItems(['default','none','low','medium','high','max'])
+        self.reasoning_effort.setToolTip(tr('none_effort'))
+        hreason.addWidget(self.reasoning_effort)
+        v1.addLayout(hreason)
 
         self.label_3 = QtWidgets.QLabel(localllmform)
         self.label_3.setObjectName("label_3")
@@ -131,6 +139,11 @@ class Ui_localllmform(object):
         self.localllm_api.setText(str(params.get("localllm_api",'')))
         self.localllm_model.setCurrentText(str(params.get("localllm_model",'')))
         self.localllm_max_token.setText(str(params.get("localllm_max_token",'')))
+        _effort=str(params.get("localllm_reasoning_effort","default"))
+        # 兼容旧版本
+        if _effort =='No':
+            _effort='default'
+        self.reasoning_effort.setCurrentText(_effort)
 
     def retranslateUi(self, localllmform):
         localllmform.setWindowTitle(tr("Local LLM API")+tr('This channel needs deployed and started before available'))

@@ -926,5 +926,6 @@
 	"higgs-audio-v3-tips":"CUDA加速8位量化后显存需10G+；纯CPU运行内存需20G+",
 	"Standardized dubbing segment processing":"标准化配音片段处理中...",
     "Initial prompt for the Whisper model for speech": "发音语言为 {} 时发送给whisper模型的提示词",
-    "The subtitle line does not specify a voice actor": "第 {} 行字幕未指定配音角色，并且未设置默认角色，请检查！"
+    "The subtitle line does not specify a voice actor": "第 {} 行字幕未指定配音角色，并且未设置默认角色，请检查！",
+	"none_effort":"default=不设置参数，跟随远端模型默认\nnone=禁止思考"
 }

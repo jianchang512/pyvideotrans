@@ -21,6 +21,7 @@ def openwin():
         params["localllm_api"] = _fix_url(winobj.localllm_api.text().strip())
         params["localllm_max_token"] = winobj.localllm_max_token.text().strip()
         params["localllm_model"] = winobj.localllm_model.currentText()
+        params["localllm_reasoning_effort"] = winobj.reasoning_effort.currentText()
         winobj.test_localllm.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.LOCALLLM_INDEX)
         task.uito.connect(feed)
@@ -31,6 +32,7 @@ def openwin():
         params["localllm_api"] = _fix_url(winobj.localllm_api.text().strip())
         params["localllm_max_token"] = winobj.localllm_max_token.text().strip()
         params["localllm_model"] = winobj.localllm_model.currentText()
+        params["localllm_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.close()
 

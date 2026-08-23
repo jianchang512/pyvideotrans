@@ -15,7 +15,8 @@ class ChatGPT(OpenAICampat):
         self.max_tokens = int(params.get('chatgpt_max_token', 8192))
         self.model_name = params.get("chatgpt_model", '')
         _reason=params.get('chatgpt_reasoning_effort')
-        self.reasoning_effort=None if not _reason or _reason=='No' else _reason
+        # 默认default时不添加参数，是否思考依赖模型
+        self.reasoning_effort=None if not _reason or _reason=='default' else _reason
         super().__post_init__()
 
 

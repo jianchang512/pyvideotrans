@@ -24,7 +24,7 @@ class LiteLLM(OpenAICampat):
         self.api_url = params.get('litellm_api', '') or DEFAULT_LITELLM_API
         self.api_key = params.get('litellm_key', '')
         _reason = params.get('litellm_reasoning_effort')
-        self.reasoning_effort = None if not _reason or _reason == 'No' else _reason
+        self.reasoning_effort = None if not _reason or _reason == 'default' else _reason
 
         super().__post_init__()
 

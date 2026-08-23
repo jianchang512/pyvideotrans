@@ -316,6 +316,11 @@ def openwin():
         winobj.hecheng_role.addItems(role_list)
 
     def opendir_fn():
+        nonlocal RESULT_DIR
+        if len(winobj.hecheng_importbtn.filelist) > 0 and winobj.save_to_srt.isChecked():
+            RESULT_DIR = Path(winobj.hecheng_importbtn.filelist[0]).parent.as_posix()
+        else:
+            RESULT_DIR = HOME_DIR + "/tts"
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     def show_detail_error():

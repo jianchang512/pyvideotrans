@@ -105,7 +105,8 @@ class AppParams:
             "baidu_miyue": "",
             "chatgpt_api": "",
             "chatgpt_key": "",
-            "chatgpt_reasoning_effort": "No",
+            "chatgpt_reasoning_effort": "default",
+            "localllm_reasoning_effort":"default",
             "chatgpt_max_token": 32768,#32k
             "chatgpt_model": str(_settings.get('chatgpt_model', '-')).strip().split(',')[0],
             "azure_api": "",
@@ -131,12 +132,12 @@ class AppParams:
             "deepseek_model": str(_settings.get('deepseek_model', '-')).strip().split(',')[0],
             "deepseek_max_token": 65536,#最大输出64k
             "openrouter_key": "",
-            "openrouter_reasoning_effort": "No",
+            "openrouter_reasoning_effort": "default",
             "openrouter_model": str(_settings.get('openrouter_model', '-')).strip().split(',')[0],
             "openrouter_max_token": 16384,#最大输出16k
             "litellm_api":'http://localhost:4000/v1',
             "litellm_key": "",
-            "litellm_reasoning_effort": "No",
+            "litellm_reasoning_effort": "default",
             "litellm_model": str(_settings.get('litellm_model', '-')).strip().split(',')[0],
             "litellm_max_token": 16384,
             "huoshan_max_token": 32768,#最大输出32k

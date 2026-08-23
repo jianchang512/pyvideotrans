@@ -73,7 +73,8 @@ class Ui_chatgptform(object):
         hreason = QtWidgets.QHBoxLayout()
         hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
         self.reasoning_effort=QtWidgets.QComboBox()
-        self.reasoning_effort.addItems(['No','low','medium','high'])
+        self.reasoning_effort.addItems(['default','none','low','medium','high','max'])
+        self.reasoning_effort.setToolTip(tr('none_effort'))
         hreason.addWidget(self.reasoning_effort)
         v1.addLayout(hreason)
         
@@ -142,7 +143,11 @@ class Ui_chatgptform(object):
         self.chatgpt_api.setText(str(params.get("chatgpt_api",'')))
         self.chatgpt_model.setCurrentText(str(params.get("chatgpt_model",'')))
         self.chatgpt_max_token.setText(str(params.get("chatgpt_max_token",'')))
-        self.reasoning_effort.setCurrentText(str(params.get("chatgpt_reasoning_effort","No")))
+        _effort=str(params.get("chatgpt_reasoning_effort","default"))
+        # 兼容旧版本
+        if _effort =='No':
+            _effort='default'
+        self.reasoning_effort.setCurrentText(_effort)
         
     def retranslateUi(self, chatgptform):
         chatgptform.setWindowTitle(tr("OpenAI API & Compatible AI"))

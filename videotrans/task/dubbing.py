@@ -284,6 +284,6 @@ class DubbingSrt(BaseTask):
                     Path(self.cfg.target_wav).unlink(missing_ok=True)
                 except OSError:
                     pass
-            else:
+            elif self.output_folder:
                 shutil.copy2(self.cfg.target_wav,_output)
         self.set_end(True)
