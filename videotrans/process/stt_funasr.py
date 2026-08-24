@@ -15,12 +15,9 @@ def funasr_mlt(
         model_name=None,
         logs_file=None,
         is_cuda=False,
-        audio_file=None,
-        jianfan=False,
-        max_speakers=-1,
-        cache_folder=None,
         device_index=0,  # gpu索引
-        hotword=None
+        hotword=None,
+        **kw
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     from funasr import AutoModel
     from videotrans.process._stt_utils import _write_log, _remove_unwanted_characters

@@ -41,7 +41,7 @@ class SpeechToText(BaseTask):
     def __post_init__(self):
         super().__post_init__()
         # -1=不启用说话人，0=启用并且不限制说话人数量，>0+1是最大说话人数量
-        self.max_speakers = self.cfg.nums_diariz if self.cfg.enable_diariz else -1
+        self.max_speakers = max(self.cfg.nums_diariz,0) if self.cfg.enable_diariz else -1
         if self.max_speakers > 0:
             self.max_speakers += 1
         # 存放目标文件夹

@@ -11,26 +11,16 @@ from videotrans.configure.config import logger
 
 
 def glmasr_asr(
-        prompt=None,
         cut_audio_list=None,
-        detect_language=None,
-        model_name=None,
         logs_file=None,
-        is_cuda=False,
-        audio_file=None,
         local_dir=None,
-        jianfan=False,
-        device_index=0  # gpu索引
+        **kw
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
-    import torch
     from videotrans.process._stt_utils import _write_log
-    from transformers import AutoProcessor, GlmAsrForConditionalGeneration,BitsAndBytesConfig
+    from transformers import AutoProcessor, GlmAsrForConditionalGeneration, BitsAndBytesConfig
 
-    checkpoint_name = local_dir
     processor = AutoProcessor.from_pretrained(local_dir)
 
-    #if is_cuda:
-    # 量化处理，以降低显存，不量化需>18G显存
     quant_config = BitsAndBytesConfig(
         load_in_8bit=True
     )
@@ -38,20 +28,17 @@ def glmasr_asr(
         local_dir,
         quantization_config=quant_config,
         device_map='auto',
-        torch_dtype='auto'#torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
+        torch_dtype='auto'  # torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
     )
-    #else:
-    #    model = GlmAsrForConditionalGeneration.from_pretrained(local_dir, device_map="cpu")
     msg = f'Use device {model.device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
-
-    logger.debug(f'huggingface_asr 渠道使用模型: {local_dir}')
+    logger.debug(f'huggingface_asr 渠道使用模型: {local_dir}, On running{model.device}')
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
             cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in
                                              json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         raws = cut_audio_list
-        conversation=[]
+        conversation = []
         for it in cut_audio_list:
             conversation.append(
                 [
@@ -67,17 +54,15 @@ def glmasr_asr(
                     },
                 ]
             )
-    
+
         inputs = processor.apply_chat_template(
             conversation, tokenize=True, add_generation_prompt=True, return_dict=True
         ).to(model.device, dtype=model.dtype)
-        # inputs_transcription = processor.apply_transcription_request(
-        #     [it['filename'] for it in cut_audio_list],
-        # ).to(model.device, dtype=model.dtype)
+
         _write_log(logs_file, json.dumps({"type": "logs", "text": 'Zai-asr generate text...'}))
         outputs = model.generate(**inputs, do_sample=False, max_new_tokens=500)
         decoded_outputs = processor.batch_decode(
-            outputs[:, inputs.input_ids.shape[1] :], skip_special_tokens=True
+            outputs[:, inputs.input_ids.shape[1]:], skip_special_tokens=True
         )
 
         total = len(raws)
@@ -93,4 +78,3 @@ def glmasr_asr(
     except Exception as e:
         msg = traceback.format_exc()
         return False, f'{e}:{msg}'
-

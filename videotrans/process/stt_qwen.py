@@ -9,31 +9,17 @@ from typing import List
 from videotrans.configure.config import logger, ROOT_DIR
 
 
-
-#支持热词
+# 支持热词
 def qwen3asr_fun(
         cut_audio_list=None,
         logs_file=None,
-        is_cuda=False,
-        audio_file=None,
-
         local_dir=None,
-        device_index=0,  # gpu索引
-        hotword=None
+        **kw
 ):
-    import torch
     from qwen_asr import Qwen3ASRModel
     from videotrans.task.taskcfg import SrtItem
     from videotrans.process._stt_utils import _write_log
 
-    if is_cuda:
-        device_map = f'cuda:{device_index}'
-        dtype = torch.float16 if not torch.cuda.is_bf16_supported() else torch.bfloat16
-    else:
-        device_map = 'cpu'
-        dtype = torch.float32
-
-    logger.debug(f'QwenASR本地渠道  {local_dir} 模型，{device_map=}')
     try:
         """
         之所以未使用 Qwen/Qwen3-ForcedAligner-0.6B 返回字级时间戳，长语音例如1个小时、2个小时可能OOM，为避免需提前裁切
@@ -41,15 +27,16 @@ def qwen3asr_fun(
         2. 若VAD裁切，既然都用VAD了，干脆直接裁切为合适长度语句了，无需再对齐
         3. 返回的词级时间戳无标点符号，需要进一步根据静音区间等断句，可能产生过长过短的字幕
         """
-        _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {device_map}'}))
         model = Qwen3ASRModel.from_pretrained(
-            local_dir,#f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
+            local_dir,  # f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
             torch_dtype='auto',
             device_map='auto',
             max_inference_batch_size=8,
             # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
             max_new_tokens=2048,  # Maximum number of tokens to generate. Set a larger value for long audio input.
         )
+        _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {model.device}'}))
+        logger.debug(f'QwenASR本地渠道  {local_dir} 模型，running on {model.device}')
         srts: List[SrtItem] = [SrtItem(**item) for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
 
         srts_chunk = [srts[i:i + 8] for i in range(0, len(srts), 8)]

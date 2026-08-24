@@ -6,7 +6,7 @@ import re, json, traceback, logging
 from pathlib import Path
 from typing import List, Tuple, Union
 from videotrans.task.taskcfg import SrtItem
-from videotrans.configure.config import logger as vt_logger 
+from videotrans.configure.config import logger as vt_logger
 from videotrans.process._stt_utils import _write_log
 
 
@@ -25,29 +25,21 @@ def pipe_asr(
         prompt=None,
         cut_audio_list=None,
         detect_language=None,
-        model_name=None,
         logs_file=None,
         is_cuda=False,
-        audio_file=None,
         local_dir=None,
         jianfan=False,
-        device_index=0  # gpu索引
+        **kw
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
-    import torch, zhconv
+    import zhconv
     from transformers import pipeline
 
     def inputs_generator():
         for item in raws:
             yield item['filename']
 
-    device_arg = f'cuda:{device_index}' if is_cuda else 'cpu'
-
-    msg = f"Loading model on {device_arg}"
-    _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
-    vt_logger.debug(f'huggingface_asr渠道使用模型: {local_dir}')
-    
     detect_language = 'tl' if detect_language == 'fil' else detect_language
-    
+
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
             cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in
@@ -58,9 +50,12 @@ def pipe_asr(
             model=local_dir,
             batch_size=4,
             device_map='auto',
-            torch_dtype='auto'#torch.float16 if is_cuda else torch.float32,
+            torch_dtype='auto'  # torch.float16 if is_cuda else torch.float32,
         )
-        
+        msg = f"Loading model on {p.model.device}"
+        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+        vt_logger.debug(f'huggingface_asr渠道使用模型: {local_dir},{msg}')
+
         generate_kwargs = {}
 
         model_type = p.model.config.model_type
@@ -85,7 +80,6 @@ def pipe_asr(
 
                 generate_kwargs["prompt_ids"] = prompt_ids
 
-
         gen_logger = logging.getLogger("transformers.generation.utils")
         warning_filter = SuppressLogitsWarningFilter()
         gen_logger.addFilter(warning_filter)
@@ -108,15 +102,12 @@ def pipe_asr(
                     raws[i]['text'] = cleaned_text
 
                     _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {cleaned_text}\n'}))
-                    
+
             return raws, None
-            
+
         finally:
             gen_logger.removeFilter(warning_filter)
-            
+
     except Exception as e:
         msg = traceback.format_exc()
         return False, f'{e}:{msg}'
-
-
-

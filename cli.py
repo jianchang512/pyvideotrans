@@ -349,7 +349,7 @@ def build_parser() -> argparse.ArgumentParser:
     stt_group.add_argument('--cuda', action='store_true', help=tr("help_cuda"))
     stt_group.add_argument('--remove_noise', action='store_true', help=tr("help_remove_noise"))
     stt_group.add_argument('--enable_diariz', action='store_true', help=tr("help_enable_diariz"))
-    stt_group.add_argument('--nums_diariz', type=int, default=-1, help=tr("help_nums_diariz"))
+    stt_group.add_argument('--nums_diariz', type=int, default=0, help=tr("help_nums_diariz"))
     stt_group.add_argument('--rephrase', type=int, default=0, help=tr("help_rephrase"))
     stt_group.add_argument('--fix_punc', action='store_true', help=tr("help_fix_punc"))
 
