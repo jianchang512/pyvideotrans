@@ -44,8 +44,8 @@ def qwen3asr_fun(
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {device_map}'}))
         model = Qwen3ASRModel.from_pretrained(
             local_dir,#f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
-            dtype=dtype,
-            device_map=device_map,
+            torch_dtype='auto',
+            device_map='auto',
             max_inference_batch_size=8,
             # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
             max_new_tokens=2048,  # Maximum number of tokens to generate. Set a larger value for long audio input.

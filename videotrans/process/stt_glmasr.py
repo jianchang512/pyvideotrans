@@ -29,19 +29,19 @@ def glmasr_asr(
     checkpoint_name = local_dir
     processor = AutoProcessor.from_pretrained(local_dir)
 
-    if is_cuda:
-        # 量化处理，以降低显存，不量化需>18G显存
-        quant_config = BitsAndBytesConfig(
-            load_in_8bit=True
-        )
-        model = GlmAsrForConditionalGeneration.from_pretrained(
-            local_dir, 
-            quantization_config=quant_config,
-            device_map={"": f"cuda:{device_index}"},
-            dtype=torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
-        )
-    else:
-        model = GlmAsrForConditionalGeneration.from_pretrained(local_dir, device_map="cpu")
+    #if is_cuda:
+    # 量化处理，以降低显存，不量化需>18G显存
+    quant_config = BitsAndBytesConfig(
+        load_in_8bit=True
+    )
+    model = GlmAsrForConditionalGeneration.from_pretrained(
+        local_dir,
+        quantization_config=quant_config,
+        device_map='auto',
+        torch_dtype='auto'#torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
+    )
+    #else:
+    #    model = GlmAsrForConditionalGeneration.from_pretrained(local_dir, device_map="cpu")
     msg = f'Use device {model.device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
@@ -71,9 +71,9 @@ def glmasr_asr(
         inputs = processor.apply_chat_template(
             conversation, tokenize=True, add_generation_prompt=True, return_dict=True
         ).to(model.device, dtype=model.dtype)
-        inputs_transcription = processor.apply_transcription_request(
-            [it['filename'] for it in cut_audio_list],
-        ).to(model.device, dtype=model.dtype)
+        # inputs_transcription = processor.apply_transcription_request(
+        #     [it['filename'] for it in cut_audio_list],
+        # ).to(model.device, dtype=model.dtype)
         _write_log(logs_file, json.dumps({"type": "logs", "text": 'Zai-asr generate text...'}))
         outputs = model.generate(**inputs, do_sample=False, max_new_tokens=500)
         decoded_outputs = processor.batch_decode(

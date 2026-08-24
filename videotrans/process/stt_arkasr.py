@@ -28,7 +28,6 @@ def ark_asr(
 
 
     device = f'cuda:{device_index}' if is_cuda else 'cpu'
-    torch_dtype = torch.bfloat16 if is_cuda and torch.cuda.is_bf16_supported() else torch.float32
 
     msg = f"Loading from audio8-ark-asr on {device}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
@@ -37,15 +36,16 @@ def ark_asr(
 
     
     try:
-        detect_language = 'tl' if detect_language == 'fil' else detect_language
         processor = AutoProcessor.from_pretrained(local_dir, trust_remote_code=True)
         tokenizer = AutoTokenizer.from_pretrained(local_dir, trust_remote_code=True)
         model = AutoModelForCausalLM.from_pretrained(
             local_dir,
             trust_remote_code=True,
-            torch_dtype=torch_dtype,
+            torch_dtype='auto',
+            device_map='auto',
             attn_implementation="sdpa",
-        ).to(device)
+        )
+
         model.eval()
         def build_bad_words_ids():
             eos_ids = tokenizer.eos_token_id
@@ -86,9 +86,7 @@ def ark_asr(
                   text_kwargs={"padding": "longest"},
                   audio_max_length=30 * 16000,
               )
-            inputs = inputs.to(device)
-            if "audios" in inputs:
-                  inputs["audios"] = inputs["audios"].to(dtype=torch_dtype)
+            inputs = inputs.to(model.device)
 
             bad_words_ids = build_bad_words_ids()
             with torch.inference_mode():

@@ -43,8 +43,8 @@ def get_cudaX() -> int:
             # 无可用显卡
             return -1
 
-        if app_cfg.NVIDIA_GPU_NUMS == 1 or not bool(settings.get('multi_gpus', False)):
-            # 只有一张卡，无可选 或 有多张但未启用多显卡
+        if app_cfg.NVIDIA_GPU_NUMS == 1:
+            # 只有一张卡，无可选
             return 0
 
         import torch

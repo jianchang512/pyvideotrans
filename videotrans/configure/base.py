@@ -232,14 +232,15 @@ class BaseCon:
             # 如果使用gpu，则获取可用 device_index
             if is_cuda:
                 # 启用了多显卡模式
-                if settings.get('multi_gpus'):
-                    from videotrans.util.gpus import get_cudaX
-                    device_index = get_cudaX()
+                from videotrans.util.gpus import get_cudaX
+                device_index = get_cudaX()
                 if device_index == -1:
                     is_cuda = False
                     kwargs['is_cuda'] = False
                     logger.error(f'已启用CUDA但未检测到可用显卡，强制使用CPU')
-                kwargs['device_index'] = max(device_index, 0)
+                else:
+                    kwargs['device_index'] = device_index
+
             logger.debug(f'新进程任务 参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,

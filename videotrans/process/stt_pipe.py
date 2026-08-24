@@ -57,8 +57,8 @@ def pipe_asr(
             task="automatic-speech-recognition",
             model=local_dir,
             batch_size=4,
-            device_map=device_arg,
-            dtype=torch.float16 if is_cuda else torch.float32,
+            device_map='auto',
+            torch_dtype='auto'#torch.float16 if is_cuda else torch.float32,
         )
         
         generate_kwargs = {}

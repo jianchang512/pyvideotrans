@@ -33,7 +33,7 @@ def granite_asr(
     device = f'cuda:{device_index}' if is_cuda else 'cpu'
     torch_dtype = torch.bfloat16 if is_cuda and torch.cuda.is_bf16_supported() else torch.float32
     model = AutoModelForSpeechSeq2Seq.from_pretrained(
-        local_dir, device_map=device, torch_dtype=torch_dtype
+        local_dir, device_map='auto', torch_dtype='auto'
     )
 
     msg = f"Loading model on {device}"
@@ -67,7 +67,7 @@ def granite_asr(
             prompt = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
 
             # Run the processor + model
-            model_inputs = processor(prompt, wav, device=device, return_tensors="pt").to(device)
+            model_inputs = processor(prompt, wav, device=model.device, return_tensors="pt").to(model.device)
             model_outputs = model.generate(
               **model_inputs, max_new_tokens=256, do_sample=False, num_beams=1
             )

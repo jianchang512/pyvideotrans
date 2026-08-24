@@ -236,7 +236,6 @@ class AppSettings:
             "zh_hant_s": True,
             "process_max": 0,
             "process_max_gpu": 1,
-            "multi_gpus": False,
             "retry_nums": 1,
             "chattts_voice": ChatTTS_VOICE,
             "proxy": ""

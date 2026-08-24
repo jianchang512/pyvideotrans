@@ -38,8 +38,10 @@ def mosstrans_asr(
     model = AutoModelForCausalLM.from_pretrained(
         local_dir,
         trust_remote_code=True,
-        dtype="auto",
-    ).to(dtype=dtype).to(device).eval()
+        torch_dtype="auto",
+        device_map='auto'
+    )
+    model.eval()
     processor = AutoProcessor.from_pretrained(local_dir, trust_remote_code=True)
 
     msg = f'Use device {device.type}'
@@ -66,8 +68,8 @@ def mosstrans_asr(
                     messages,
                     max_new_tokens=4096,
                     do_sample=False,
-                    device=device,
-                    dtype=dtype,
+                    device=model.device,
+                    dtype=model.dtype,
                 )
                 it['text']=result["text"]
                 _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {it["text"]}\n'}))
@@ -80,8 +82,8 @@ def mosstrans_asr(
                 messages,
                 max_new_tokens=4096,
                 do_sample=False,
-                device=device,
-                dtype=dtype,
+                device=model.device,
+                dtype=model.dtype,
             )
             spks=[]
             for i,segment in enumerate(parse_transcript(result["text"])):
