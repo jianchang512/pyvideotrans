@@ -93,8 +93,8 @@ class BaseTrans(BaseCon):
             ...
         ]
         """
-        if self.translate_type==translator.HYMT2_INDEX:
-            return self._hymt2(split_source_text)
+        # if self.translate_type==translator.HYMT2_INDEX:
+        #     return self._hymt2(split_source_text)
         target_list = []
         logger.debug(f'以纯文本行形式翻译，每次翻译{self.trans_thread}行，翻译后暂停{self.wait_sec}s')
         

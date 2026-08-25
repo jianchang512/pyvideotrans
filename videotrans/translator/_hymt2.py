@@ -1,7 +1,7 @@
 import logging
 import re
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Union, Any
 
 from videotrans.configure.config import tr, logger, settings, ROOT_DIR, app_cfg
 from videotrans.translator._base import BaseTrans
@@ -10,11 +10,14 @@ import torch
 
 @dataclass
 class HYMT2(BaseTrans):
+    hymt2_tokenizer:Any=None
+    hymt2_model:Any=None
 
     def __post_init__(self):
         super().__post_init__()
         self.local_dir=f'{ROOT_DIR}/models/models--tencent--Hy-MT2-1.8B'
-        
+
+
     def _download(self):
         from videotrans.util.help_down import check_and_down_hf,check_and_down_ms
         from videotrans.util.help_misc import is_connect_hf
@@ -29,7 +32,24 @@ class HYMT2(BaseTrans):
                 'Tencent-Hunyuan/Hy-MT2-1.8B',
                 local_dir=self.local_dir,
                 callback=self._process_callback)        
-                
+
+
+
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+
+
+        # Load tokenizer
+        self.hymt2_tokenizer = AutoTokenizer.from_pretrained(self.local_dir, trust_remote_code=True)
+
+        # Load model
+        self.hymt2_model = AutoModelForCausalLM.from_pretrained(
+            self.local_dir,
+            device_map=settings.get('device_name','auto'),
+            dtype='auto',
+            trust_remote_code=True,
+        )
+        logger.debug(f'HY2-MT:running on {self.hymt2_model.device}')
+        self.hymt2_model.eval()
         return True
 
     def _item_task(self,data: Union[List[str], str]) -> str:
@@ -41,12 +61,12 @@ class HYMT2(BaseTrans):
 
 
         messages = [{"role": "user", "content": prompt}]
-        inputs = app_cfg.hymt2_tokenizer.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt").to(app_cfg.hymt2_model.device)
+        inputs = self.hymt2_tokenizer.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt").to(self.hymt2_model.device)
 
         with torch.no_grad():
-            outputs = app_cfg.hymt2_model.generate(
+            outputs = self.hymt2_model.generate(
                 **inputs,
                 max_new_tokens=4096,
             )
-        response = app_cfg.hymt2_tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+        response = self.hymt2_tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
         return response.strip()
