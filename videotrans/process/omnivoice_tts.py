@@ -24,7 +24,7 @@ def omnivoice_fun(
 
     model = OmniVoice.from_pretrained(
         f'{ROOT_DIR}/models/models--k2-fsa--OmniVoice',
-        device_map='auto',
+        device_map=kw.get('device_name','auto'),
         dtype='auto'
     )
     logger.debug(f'OmniVoice-TTS本地内置渠道，running on {model.device}')
@@ -53,21 +53,24 @@ def omnivoice_fun(
                     continue
                 role = it.get('role')
                 _write_log(logs_file, json.dumps({"type": "logs", "text": f'OmniVoice-TTS {i + 1}/{_len} {role}'}))
+                wavfile,ref_text=None,None
                 if role == 'clone':
-                    wavfile = it.get('ref_wav', '')
-                    ref_text = it.get('ref_text', '')
-                else:
+                    wavfile = it.get('ref_wav')
+                    ref_text = it.get('ref_text')
+                elif role !='default':
                     # 使用 f5-tts文件夹内音频
                     wavfile = f'{ROOT_DIR}/f5-tts/{role}'
                     ref_text = roledict.get(role, {}).get('ref_text') if roledict else None
 
-                if not wavfile or not Path(wavfile).is_file():
+                if wavfile and not Path(wavfile).exists():
                     # 仍然不存在，无参考音频不可用
                     msg = f"No ref_audio: {role=},{wavfile=}"
                     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
                     err += 1
                     last_error = msg
                     continue
+                if not wavfile:
+                    ref_text=None
                 wav = model.generate(
                     text=it['text'],
                     ref_audio=wavfile,

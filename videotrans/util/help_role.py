@@ -338,7 +338,7 @@ def role_menu(tts_type, langcode=None) -> List:
         return ['No'] if not isinstance(_list, list) else _list
 
     if tts_type == tts.CHATTTS:
-        return ['No'] + list(settings.ChatTTS_voicelist)
+        return ['No'] + list(str(settings.get('chattts_voice','')).split(','))
 
     if tts_type == tts.TTS_API:
         _f5=list(get_f5tts_role().keys())
@@ -353,8 +353,10 @@ def role_menu(tts_type, langcode=None) -> List:
     if tts_type == tts.QWEN3LOCAL_TTS:
         return list(get_qwenttslocal_rolelist().keys())
 
-    if tts_type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,  tts.OMNIVOICE_TTS,
-                    tts.COSYVOICE_TTS, tts.FISHTTS, tts.MOSS_TTS,tts.CONFUCIUS_TTS,tts.ZIPVOICE_TTS,tts.HIGGS_AUDIO_TTS,tts.FIRERED3_TTS]:
+    if tts_type==tts.OMNIVOICE_TTS:
+        return list(get_f5tts_role().keys())+['default']
+
+    if tts_type in [tts.F5_TTS, tts.INDEX_TTS, tts.SPARK_TTS, tts.VOXCPM_TTS,   tts.COSYVOICE_TTS, tts.FISHTTS, tts.MOSS_TTS,tts.CONFUCIUS_TTS,tts.ZIPVOICE_TTS,tts.HIGGS_AUDIO_TTS,tts.FIRERED3_TTS]:
         return list(get_f5tts_role().keys())
 
     if tts_type == tts.CHATTERBOX_TTS:

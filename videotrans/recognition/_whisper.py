@@ -69,8 +69,7 @@ class FasterAll(BaseRecogn):
             # 2次识别， 生成简短的字幕,  最长持续时长>500ms
             _max_speech = max(int(float(settings.get('max_speech_duration_s2', 2)) * 1000),500)
         kwargs = {
-            "prompt": settings.get(
-                f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
+            "prompt": settings.get(f'initial_prompt_{self.detect_language}'),
             "detect_language": self.detect_language,
             "model_name": self.model_name,
             "logs_file": logs_file,
@@ -116,7 +115,7 @@ class FasterAll(BaseRecogn):
             "jianfan": self.jianfan,
             "audio_duration":self.audio_duration,
             "hotwords":settings.get('hotwords'),
-            "prompt": settings.get(f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
+            "prompt": settings.get(f'initial_prompt_{self.detect_language}'),
             "beam_size": int(settings.get('beam_size', 5)),
             "best_of": int(settings.get('best_of', 5)),
             "temperature":settings.get('temperature'),

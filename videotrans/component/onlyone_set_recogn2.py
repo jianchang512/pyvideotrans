@@ -460,6 +460,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
         srt_str_list = []
         for i, data in enumerate(self.display_data):
             start_time = self.table.item(i, 1)
+            if not start_time:continue
             end_time = self.table.item(i, 2)
             start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
             end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))

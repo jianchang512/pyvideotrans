@@ -763,6 +763,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
         for row, data in enumerate(self.display_data):
             # 获取当前文本（从表格中获取最新值）
             start_time = self.table.item(row, 4)
+            if not start_time:continue
             end_time = self.table.item(row, 5)
             start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
             end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))
@@ -770,7 +771,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             text_item = self.table.item(row, 7)
             text = text_item.text().strip() if text_item else data['text'].strip()
             if not text:continue
-            
+
             srt_str_list.append(f'{len(srt_str_list)+1}\n{start_raw} --> {end_raw}\n{text}')
 
             # 角色保存逻辑

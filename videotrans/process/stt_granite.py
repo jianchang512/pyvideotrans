@@ -22,12 +22,12 @@ def granite_asr(
     processor = AutoProcessor.from_pretrained(local_dir)
     tokenizer = processor.tokenizer
     model = AutoModelForSpeechSeq2Seq.from_pretrained(
-        local_dir, device_map='auto', torch_dtype='auto'
+        local_dir, device_map=kw.get('device_name','auto'), dtype='auto'
     )
 
     msg = f"Loading model on {model.device}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
-    vt_logger.debug(f'huggingface_asr渠道使用模型: {local_dir}, running on {model.device}')
+    vt_logger.debug(f'huggingface_asr渠道使用模型: {local_dir}, {msg}')
 
     try:
 

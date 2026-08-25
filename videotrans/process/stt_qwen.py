@@ -29,14 +29,15 @@ def qwen3asr_fun(
         """
         model = Qwen3ASRModel.from_pretrained(
             local_dir,  # f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
-            torch_dtype='auto',
-            device_map='auto',
+            dtype='auto',
+            device_map=kw.get('device_name','auto'),
             max_inference_batch_size=8,
             # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
             max_new_tokens=2048,  # Maximum number of tokens to generate. Set a larger value for long audio input.
         )
-        _write_log(logs_file, json.dumps({"type": "logs", "text": f'Load Qwen3ASR on {model.device}'}))
-        logger.debug(f'QwenASR本地渠道  {local_dir} 模型，running on {model.device}')
+        msg= f'Load Qwen3ASR on {model.device}'
+        _write_log(logs_file, json.dumps({"type": "logs", "text":msg}))
+        logger.debug(f'QwenASR本地渠道  {local_dir} 模型，{msg}')
         srts: List[SrtItem] = [SrtItem(**item) for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
 
         srts_chunk = [srts[i:i + 8] for i in range(0, len(srts), 8)]

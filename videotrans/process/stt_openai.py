@@ -24,18 +24,20 @@ def openai_whisper(
         temperature=None,
         compression_ratio_threshold=2.2,
         device_index=0,  # gpu索引
-        max_speech_ms=6000
+        max_speech_ms=6000,
+        **kw
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import whisper,zhconv
     from videotrans.process._stt_utils import _write_log, _resegment
     from videotrans.util._srt_parse import ms_to_time_string
-    device=f"cuda:{device_index}" if is_cuda else 'cpu'
+    device=kw.get('device_name','auto')
+    if device=='auto':
+        device=f"cuda:{device_index}" if is_cuda else 'cpu'
 
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
         msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
-    else:
-        msg = f"Loading {model_name} on {device}"
-    _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+
 
     raws = []
     try:
@@ -49,6 +51,10 @@ def openai_whisper(
             temperature = tuple([float(i) for i in str(temperature)[1:-1].split(',')])
         else:
             temperature = float(temperature)
+
+        msg = f"Loading {model_name} on {device}"
+        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+        logger.debug(msg)
 
         model = whisper.load_model(
             model_name,

@@ -19,15 +19,15 @@ def ark_asr(
     import torch
     from transformers import AutoModelForCausalLM, AutoProcessor, AutoTokenizer
 
-    vt_logger.debug(f'huggingface_asr渠道使用模型: {local_dir}')
+
     try:
         processor = AutoProcessor.from_pretrained(local_dir, trust_remote_code=True)
         tokenizer = AutoTokenizer.from_pretrained(local_dir, trust_remote_code=True)
         model = AutoModelForCausalLM.from_pretrained(
             local_dir,
             trust_remote_code=True,
-            torch_dtype='auto',
-            device_map='auto',
+            dtype='auto',
+            device_map=kw.get('device_name','auto'),
             attn_implementation="sdpa",
         )
         _write_log(logs_file, json.dumps({"type": "logs", "text": f"Running on {model.device}"}))

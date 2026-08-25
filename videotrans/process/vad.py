@@ -12,7 +12,7 @@ def get_speech_timestamp_silero(input_wav,
                                 threshold=None,
                                 min_speech_duration_ms=0,
                                 max_speech_duration_ms=None,
-                                min_silent_duration_ms=None):
+                                min_silent_duration_ms=None, **kw):
     # 防止填写错误
     min_speech_duration_ms = 0  # int(max(min_speech_duration_ms,0))
     min_silent_duration_ms = int(max(min_silent_duration_ms, 50))
@@ -68,7 +68,7 @@ def get_speech_timestamp(input_wav=None,
                          threshold=None,
                          min_speech_duration_ms=None,
                          max_speech_duration_ms=None,
-                         min_silent_duration_ms=None):
+                         min_silent_duration_ms=None, **kw):
     st_ = time.time()
     
     try:

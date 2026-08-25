@@ -33,7 +33,8 @@ def faster_whisper(
         compression_ratio_threshold=2.2,
         device_index=0,  # gpu索引
         max_speech_ms=6000,
-        subtitle_srt=None
+        subtitle_srt=None,
+        **kw
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import zhconv
     from videotrans.process._stt_utils import _write_log, _resegment
@@ -43,13 +44,15 @@ def faster_whisper(
     raws = []
     if detect_language == 'fil':
         detect_language = 'tl'
-
+    device=kw.get('device_name','auto')
+    if device == 'auto':
+        device="cuda" if is_cuda else 'cpu'
     def _create_model(_compute_type):
         try:
             logger.debug(f'[faster_whisper]加载模型{model_name}: {is_cuda=},{_compute_type=}')
             model = WhisperModel(
                 local_dir,
-                device="cuda" if is_cuda else 'cpu',
+                device=device,
                 device_index=device_index if is_cuda else 0,
                 compute_type=_compute_type
             )
@@ -134,7 +137,7 @@ def faster_whisper(
                 repetition_penalty=repetition_penalty,
                 compression_ratio_threshold=compression_ratio_threshold,
                 language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
-                initial_prompt=prompt if prompt else None
+                initial_prompt=prompt
             )
             i = 0
             logger.debug(f'faster-whisper模式下，预先使用VAD分割音频，对{model_name}模型返回的文字结果直接使用')

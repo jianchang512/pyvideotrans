@@ -14,7 +14,6 @@ def qwen3tts_fun(
         queue_tts_file=None,  # 配音数据存在 json文件下，根据文件路径获取
         language='Auto',  # 语言
         logs_file=None,
-        is_cuda=False,
         prompt=None,
         model_name='0.6B',
         is_redubb=False,  # 是否处于单视频校对配音流程
@@ -27,9 +26,9 @@ def qwen3tts_fun(
     CUSTOM_VOICE = {"Vivian", "Serena", "Uncle_fu", "Dylan", "Eric", "Ryan", "Aiden", "Ono_anna", "Sohee"}
 
     atten = None
-    device_map = 'auto'
+    device_map = kw.get('device_name','auto')
     dtype = 'auto'
-    logger.debug(f'Qwen-TTS本地内置渠道使用 {model_name} 模型，{device_map=},{is_cuda=}')
+    logger.debug(f'Qwen-TTS本地内置渠道使用 {model_name} 模型')
     BASE_OBJ = None
     CUSTOM_OBJ = None
     if is_redubb:
@@ -48,7 +47,7 @@ def qwen3tts_fun(
                     dtype=dtype,
                     attn_implementation=atten
                 )
-                logger.debug(f'存在内置自定义音色，加载 {model_name} 模型')
+                logger.debug(f'存在内置自定义音色，加载 {model_name} 模型,device={CUSTOM_OBJ.device}')
             if ("clone" in all_roles or all_roles - CUSTOM_VOICE) and not BASE_OBJ:
                 # 存在克隆音色
                 BASE_OBJ = Qwen3TTSModel.from_pretrained(
@@ -57,7 +56,7 @@ def qwen3tts_fun(
                     dtype=dtype,
                     attn_implementation=atten
                 )
-                logger.debug(f'需要克隆音色，加载 {model_name} 模型')
+                logger.debug(f'需要克隆音色，加载 {model_name} 模型,device={BASE_OBJ.device}')
 
             _len = len(queue_tts)
             ok, err = 0, 0

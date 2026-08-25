@@ -240,7 +240,7 @@ class BaseCon:
                     logger.error(f'已启用CUDA但未检测到可用显卡，强制使用CPU')
                 else:
                     kwargs['device_index'] = device_index
-
+            kwargs['device_name']=settings.get('device_name','auto')
             logger.debug(f'新进程任务 参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,

@@ -121,9 +121,9 @@ def get_model_by_type(recogn_type: int) -> List[str]:
     if recogn_type == Deepgram:
         return contants.DEEPGRAM_MODEL
     if recogn_type == Whisper_CPP:
-        return settings.Whisper_CPP_MODEL_LIST
+        return settings.get('Whisper_cpp_models','').split(',')
     if recogn_type == WHISPER_NET:
-        return settings.Whisper_NET_MODEL_LIST
+        return settings.get('Whisper_net_models','').split(',')
     if recogn_type == QWENASR:
         return contants.QWENASR_LOCAL
     if recogn_type == FUNASR_CN:
@@ -133,7 +133,7 @@ def get_model_by_type(recogn_type: int) -> List[str]:
     if recogn_type == OPENAI_WHISPER:
         return contants.Openai_Whisper_Models.split(',')
 
-    return settings.WHISPER_MODEL_LIST
+    return settings.get('model_list','').split(',')
 
 
 # 判断所用渠道和模型是否支持该语言的语音识别

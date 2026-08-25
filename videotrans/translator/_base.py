@@ -143,7 +143,8 @@ class BaseTrans(BaseCon):
         # Load model
         app_cfg.hymt2_model = AutoModelForCausalLM.from_pretrained(
             model_path,
-            device_map="auto",
+            device_map=settings.get('device_name','auto'),
+            dtype='auto',
             trust_remote_code=True,
         )
         app_cfg.hymt2_model.eval()

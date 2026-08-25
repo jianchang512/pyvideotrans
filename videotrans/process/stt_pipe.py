@@ -49,10 +49,10 @@ def pipe_asr(
             task="automatic-speech-recognition",
             model=local_dir,
             batch_size=4,
-            device_map='auto',
-            torch_dtype='auto'  # torch.float16 if is_cuda else torch.float32,
+            device_map=kw.get('device_name','auto'),
+            dtype='auto'  # torch.float16 if is_cuda else torch.float32,
         )
-        msg = f"Loading model on {p.model.device}"
+        msg = f"Use device {p.model.device}"
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
         vt_logger.debug(f'huggingface_asr渠道使用模型: {local_dir},{msg}')
 

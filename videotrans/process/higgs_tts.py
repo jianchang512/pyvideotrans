@@ -19,7 +19,6 @@ def higgs_fun(
     from videotrans.util.help_role import get_f5tts_role
     from videotrans.util.help_misc import vail_file
     import torch, torchaudio
-
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
     repo = f"{ROOT_DIR}/models/models--multimodalart--higgs-audio-v3-tts-4b-transformers"
@@ -29,12 +28,11 @@ def higgs_fun(
     quant_config = BitsAndBytesConfig(
         load_in_8bit=True
     )
-
     model = AutoModelForCausalLM.from_pretrained(
         repo,
         trust_remote_code=True,
         quantization_config=quant_config,
-        device_map='auto',
+        device_map=kw.get('device_name','auto'),
         dtype='auto',  # torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
     ).eval()
 

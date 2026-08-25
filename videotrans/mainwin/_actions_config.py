@@ -47,13 +47,13 @@ class WinActionConfigMixin:
             if recogn_type in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,
                                recognition.WHISPERX_API]:
                 self.main.model_name.addItems(
-                    settings.WHISPER_MODEL_LIST if recogn_type != recognition.OPENAI_WHISPER else contants.Openai_Whisper_Models.split(','))
+                    settings.get('model_list','').split(',') if recogn_type != recognition.OPENAI_WHISPER else contants.Openai_Whisper_Models.split(','))
             elif recogn_type == recognition.Deepgram:
                 self.main.model_name.addItems(contants.DEEPGRAM_MODEL)
             elif recogn_type == recognition.Whisper_CPP:
-                self.main.model_name.addItems(settings.Whisper_CPP_MODEL_LIST)
+                self.main.model_name.addItems(settings.get('Whisper_cpp_models','').split(','))
             elif recogn_type == recognition.WHISPER_NET:
-                self.main.model_name.addItems(settings.Whisper_NET_MODEL_LIST)
+                self.main.model_name.addItems(settings.get('Whisper_net_models','').split(','))
 
             elif recogn_type == recognition.QWENASR:
                 self.main.model_name.addItems(recognition.get_model_by_type(recognition.QWENASR))

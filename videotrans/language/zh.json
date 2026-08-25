@@ -764,6 +764,8 @@
 	"If selected, separate human voice and background sound, and finally output video will embed background sound":"如果选中，将分离出背景声音和纯净人声，背景声可选重新嵌入视频中",
 	"Clear text":"清空该行文字", 
 	"free":"免费", 
+	
+	
 	"zh": "中文",
 	"zh-cn": "简体中文",
         "zh-tw": "繁体中文",
@@ -844,9 +846,10 @@
         "uz": "乌兹别克语",
         "cy": "威尔士语",
         "zu": "祖鲁语",
-		
 		"pt-br":"葡萄牙语(巴西)",
 		"es-419":"西班牙语(拉美)",
+		
+		
 		
 		"the reference audio duration is less than 3 seconds":"参考音频时长小于3s，无法进行语音克隆，跳过",
 		"40 Eastern languages and 22 Chinese dialects":"40种亚洲语言和20种中文方言",

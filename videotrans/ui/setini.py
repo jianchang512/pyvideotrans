@@ -39,6 +39,7 @@ notices = {
 
         "process_max": "最大CPU同时任务数，越大越快但可能爆内存，最大不应超过cpu核数\n(修改保存后重启生效)",
         "process_max_gpu": "GPU任务同时执行数量，除非多卡，否则请设为1\n(修改保存后重启生效)",
+        "device_name":"强制指定重型任务运行设备，不要乱动，除非你知道自己在做什么"
     },
 
     "video": {
@@ -119,6 +120,7 @@ notices = {
 titles = {
     "process_max": "CPU同时任务数[重启生效]",
     "process_max_gpu": "GPU同时任务数[重启生效]",
+    "device_name":"强制指定重型任务运行设备",
     "cjk_len": "中日韩字幕单行字符数",
     "other_len": "其他语言字幕单行字符数",
     "max_audio_speed_rate": "音频加速最大倍数",
@@ -243,6 +245,7 @@ if defaulelang != 'zh':
 
             "process_max": "Process Maximum for CPU",
             "process_max_gpu": "The number of GPU tasks that can be executed simultaneously should be set to 1 unless multi GPUs",
+            "device_name":"Force the operation of heavy-duty equipment; do not tamper with it unless you know what you are doing."
 
         },
         "video": {
@@ -326,6 +329,7 @@ if defaulelang != 'zh':
         "other_len": "Number of words per line for Other",
         "process_max": "Number of CPU tasks[restart]",
         "process_max_gpu": "Number of GPU tasks[restart]",
+        "device_name":"Force the operation of heavy-duty equipment",
         "max_audio_speed_rate": "Maximum audio speed-up rate",
         "max_video_pts_rate": "Maximum video slow-down rate",
         "batch_nums": "Translating batches, quantity per batch",
@@ -438,7 +442,7 @@ class Ui_setini(object):
             settings.save()
 
     def _is_comboBox(self,key):
-        return key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset','lang','uvr_models','out_video_ext',"fps_mode"]
+        return key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset','lang','uvr_models','out_video_ext',"fps_mode","device_name"]
 
     def _get_comboBox(self, key) -> List[str]:
         data = {
@@ -475,6 +479,7 @@ class Ui_setini(object):
                 'UVR-MDX-NET-Inst_3'
             ],
             "out_video_ext": ['.mp4', '.mkv'],
+            "device_name":['auto','cuda','cpu','mps','xpu','cuda:0','cuda:1','cuda:2','cuda:3']
         }
 
         return data.get(key, [""])

@@ -1029,6 +1029,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         srt_str_list=[]
         for i, item in enumerate(self.queue_tts):
             start_time = self.table.item(i, 2)
+            if not start_time:continue
             end_time = self.table.item(i, 3)
             start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
             end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))

@@ -118,13 +118,14 @@ def _diarize_and_write(subtitles_file, diarizations, speak_file):
 
 def cam_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False,  device_index=0,**kw):
     from modelscope.pipelines import pipeline
-    device = f"cuda:{device_index}" if is_cuda else "cpu"
+    device=kw.get('device_name','auto')
+    if device=='auto':
+        device = f"cuda:{device_index}" if is_cuda else "cpu"
     _st = time.time()
     logger.debug(f'开始说话人分离:使用阿里cam++模型')
 
     try:
         subtitles = json.loads(Path(subtitles_file).read_text(encoding='utf-8'))
-
         ans = pipeline(
             task='speaker-diarization',
             model=f'{ROOT_DIR}/models/speech_campplus_speaker-diarization_common',
@@ -158,7 +159,7 @@ def _hook_hf():
     if app_cfg.proxy:
         os.environ['HTTPS_PROXY'] = app_cfg.proxy
         os.environ['HTTP_PROXY'] = app_cfg.proxy
-    import huggingface_hub
+
     import huggingface_hub.file_download
 
     # 1. 备份原生的 hf_hub_download 方法
@@ -197,8 +198,10 @@ def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_s
 
     def _get_diariz():
         pipeline = Pipeline.from_pretrained(f"{ROOT_DIR}/models/models--pyannote--speaker-diarization-3.1/config.yaml")
-
-        if is_cuda:
+        _device_name=kw.get('device_name','auto')
+        if _device_name!='auto':
+            pipeline.to(torch.device(_device_name))
+        elif is_cuda:
             pipeline.to(torch.device(f"cuda:{device_index}"))
 
         waveform, sample_rate = torchaudio.load(input_file)

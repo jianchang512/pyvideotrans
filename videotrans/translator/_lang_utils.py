@@ -6,7 +6,7 @@ from videotrans.translator._constants import (
     QWENMT_INDEX,
     TENCENT_INDEX, BAIDU_INDEX, DEEPL_INDEX, DEEPLX_INDEX, ALI_INDEX,
     LIBRE_INDEX, TRANSAPI_INDEX, CAMB_INDEX,
-    AI_TRANS_CHANNELS,
+    AI_TRANS_CHANNELS
 )
 from videotrans.translator._lang_codes import LANGNAME_DICT_REV, LANG_CODE
 from videotrans.translator._registry import _ID_NAME_DICT
@@ -23,7 +23,13 @@ def get_code(show_text=None):
     if show_text in LANG_CODE:
         return show_text
     # 是语言显示名称，例如 简体中文，English
-    return LANGNAME_DICT_REV.get(show_text, show_text)
+    if show_text in LANGNAME_DICT_REV:
+        return LANGNAME_DICT_REV.get(show_text)
+    # 保底，edge-tts 配音用语，gtts用语
+    from videotrans.configure.contants import EDGET_LANGUAGES_NAME2CODE
+    if show_text in EDGET_LANGUAGES_NAME2CODE:
+        return EDGET_LANGUAGES_NAME2CODE.get(show_text)
+    return show_text
 
 
 # 根据显示的语言和翻译通道，获取该翻译通道要求的源语言代码和目标语言代码
@@ -181,5 +187,6 @@ def get_mkv_code(code):
         "msa":"may",
         "nld":"dut",
         "ron":"rum",
+        "mya":"bur"
     }
     return langcode.get(code,code)

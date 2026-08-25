@@ -5,7 +5,7 @@ from pathlib import Path
 from videotrans.process._audio_utils import _write_log
 
 
-def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, is_cuda=False, uvr_models="UVR-MDX-NET-Inst_HQ_4"):
+def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, uvr_models="UVR-MDX-NET-Inst_HQ_4",**kw):
     if uvr_models.startswith('spleeter'):
         return vocal_bgm_spleeter(input_file=input_file, vocal_file=vocal_file, instr_file=instr_file,
                                   logs_file=logs_file)
@@ -75,7 +75,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, is_cuda=Fal
         return False, f'{e}{msg}'
 
 
-def vocal_bgm_spleeter(*, input_file, vocal_file, instr_file, logs_file=None):
+def vocal_bgm_spleeter(*, input_file, vocal_file, instr_file, logs_file=None,**kw):
     import numpy as np
     import sherpa_onnx
     import soundfile as sf

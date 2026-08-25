@@ -27,12 +27,12 @@ def glmasr_asr(
     model = GlmAsrForConditionalGeneration.from_pretrained(
         local_dir,
         quantization_config=quant_config,
-        device_map='auto',
-        torch_dtype='auto'  # torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
+        device_map=kw.get('device_name','auto'),
+        dtype='auto'  # torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
     )
     msg = f'Use device {model.device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
-    logger.debug(f'huggingface_asr 渠道使用模型: {local_dir}, On running{model.device}')
+    logger.debug(f'huggingface_asr 渠道使用模型: {local_dir}, {msg}')
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
             cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in

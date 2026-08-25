@@ -31,8 +31,8 @@ def mosstrans_asr(
     model = AutoModelForCausalLM.from_pretrained(
         local_dir,
         trust_remote_code=True,
-        torch_dtype="auto",
-        device_map='auto'
+        dtype="auto",
+        device_map=kw.get('device_name','auto')
     )
     model.eval()
     processor = AutoProcessor.from_pretrained(local_dir, trust_remote_code=True)
@@ -40,7 +40,7 @@ def mosstrans_asr(
     msg = f'Use device {model.device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
-    logger.debug(f'Moss-Diarize 渠道使用模型: {local_dir},running on {model.device}')
+    logger.debug(f'Moss-Diarize 渠道使用模型: {local_dir},{msg}')
     try:
         prompt = "请将音频转写为文本，每一段需以起始时间戳和说话人编号（[S01]、[S02]、[S03]…）开头，正文为对应的语音内容，并在段末标注结束时间戳，以清晰标明该段语音范围。"
         if hotword:

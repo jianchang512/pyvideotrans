@@ -1,7 +1,7 @@
-from ._languages_dict import LISTEN_TEXT,_LANGUAGE_M2M100,_LANGUAGE_FIRERED3,LANG_CODE,EDGE_LANGUANGES_CODE
+from ._languages_dict import LISTEN_TEXT,_LANGUAGE_M2M100,_LANGUAGE_FIRERED3,LANG_CODE,EDGE_LANGUANGES_CODE,EDGET_LANGUAGES_NAME2CODE
 #-------------标点 空格语言-----------
 # 中日韩 泰国语 高棉语 粤语 不使用空格
-CJK_LANG = ["zh", "ja", "ko","th", "km", "yue"]
+CJK_LANG = ["zh", "ja", "ko","th", "km", "yue","lo","lao"]
 # 常见标点
 PUNC_FLAGS = [",", ".", "?", "!", ";", "，", "。", "？", "；", "！"]
 # 逗号等软性标点
