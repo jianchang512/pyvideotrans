@@ -15,6 +15,7 @@ def omnivoice_fun(
         logs_file=None,
         speed=1.0,
         is_redubb=False,  # 是否处于单视频校对配音流程
+        language=None,
         **kw
 ) -> Tuple[bool, Union[str, None]]:
     from videotrans.util.help_role import get_f5tts_role
@@ -75,7 +76,8 @@ def omnivoice_fun(
                     text=it['text'],
                     ref_audio=wavfile,
                     ref_text=ref_text,
-                    speed=speed
+                    speed=speed,
+                    language=language
                 )
                 sf.write(output_filename, wav[0], 24000)
                 if not vail_file(output_filename):

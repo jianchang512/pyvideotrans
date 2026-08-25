@@ -147,10 +147,11 @@ class BaseTrans(BaseCon):
             dtype='auto',
             trust_remote_code=True,
         )
+        logger.debug(f'HY2-MT:running on {app_cfg.hymt2_model.device}')
         app_cfg.hymt2_model.eval()
         
         target_list = []
-        logger.debug(f'以纯文本行形式翻译，每次翻译{self.trans_thread}行，翻译后暂停{self.wait_sec}s')
+        logger.debug(f'  以纯文本行形式翻译，每次翻译{self.trans_thread}行，翻译后暂停{self.wait_sec}s')
         for i, it in enumerate(split_source_text):
             """ it=['你好啊我的朋友','第二行']  此时 _item_task 接收的是 list[str] """
             if self._exit(): return

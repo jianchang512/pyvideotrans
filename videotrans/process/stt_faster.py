@@ -49,11 +49,10 @@ def faster_whisper(
         device="cuda" if is_cuda else 'cpu'
     def _create_model(_compute_type):
         try:
-            logger.debug(f'[faster_whisper]加载模型{model_name}: {is_cuda=},{_compute_type=}')
+            logger.debug(f'[faster_whisper]加载模型{model_name}: running on {device},{_compute_type=}')
             model = WhisperModel(
                 local_dir,
                 device=device,
-                device_index=device_index if is_cuda else 0,
                 compute_type=_compute_type
             )
             return model

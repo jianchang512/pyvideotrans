@@ -37,7 +37,7 @@ def mosstrans_asr(
     model.eval()
     processor = AutoProcessor.from_pretrained(local_dir, trust_remote_code=True)
 
-    msg = f'Use device {model.device}'
+    msg = f'running on {model.device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
     logger.debug(f'Moss-Diarize 渠道使用模型: {local_dir},{msg}')

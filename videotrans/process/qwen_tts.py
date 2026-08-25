@@ -47,7 +47,7 @@ def qwen3tts_fun(
                     dtype=dtype,
                     attn_implementation=atten
                 )
-                logger.debug(f'存在内置自定义音色，加载 {model_name} 模型,device={CUSTOM_OBJ.device}')
+                logger.debug(f'存在内置自定义音色，加载 {model_name} 模型,running on {CUSTOM_OBJ.device}')
             if ("clone" in all_roles or all_roles - CUSTOM_VOICE) and not BASE_OBJ:
                 # 存在克隆音色
                 BASE_OBJ = Qwen3TTSModel.from_pretrained(
@@ -56,7 +56,7 @@ def qwen3tts_fun(
                     dtype=dtype,
                     attn_implementation=atten
                 )
-                logger.debug(f'需要克隆音色，加载 {model_name} 模型,device={BASE_OBJ.device}')
+                logger.debug(f'需要克隆音色，加载 {model_name} 模型, running on {BASE_OBJ.device}')
 
             _len = len(queue_tts)
             ok, err = 0, 0

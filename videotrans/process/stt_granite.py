@@ -25,7 +25,7 @@ def granite_asr(
         local_dir, device_map=kw.get('device_name','auto'), dtype='auto'
     )
 
-    msg = f"Loading model on {model.device}"
+    msg = f"Loading model running on {model.device}"
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
     vt_logger.debug(f'huggingface_asr渠道使用模型: {local_dir}, {msg}')
 

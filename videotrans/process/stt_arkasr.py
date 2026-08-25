@@ -31,7 +31,7 @@ def ark_asr(
             attn_implementation="sdpa",
         )
         _write_log(logs_file, json.dumps({"type": "logs", "text": f"Running on {model.device}"}))
-        vt_logger.debug(f'{local_dir}, on {model.device}')
+        vt_logger.debug(f'{local_dir}, running on {model.device}')
         model.eval()
 
         def build_bad_words_ids():

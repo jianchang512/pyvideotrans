@@ -30,7 +30,7 @@ def glmasr_asr(
         device_map=kw.get('device_name','auto'),
         dtype='auto'  # torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
     )
-    msg = f'Use device {model.device}'
+    msg = f'running on {model.device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
     logger.debug(f'huggingface_asr 渠道使用模型: {local_dir}, {msg}')
     try:

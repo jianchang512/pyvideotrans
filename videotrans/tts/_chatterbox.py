@@ -35,6 +35,7 @@ class ChatterBoxTTS(BaseTTS):
         device=settings.get('device_name','auto')
         if device=='auto':
             device='cuda' if self.is_cuda else mps_or_cpu()
+        logger.debug(f'Chatterbox running on {device}')
         model = ChatterboxMultilingualTTS.from_local(self.local_dir, device=device,  t3_model="v3")
 
         ok, err = 0, 0

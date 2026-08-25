@@ -52,7 +52,7 @@ def openai_whisper(
         else:
             temperature = float(temperature)
 
-        msg = f"Loading {model_name} on {device}"
+        msg = f"Loading {model_name} running on {device}"
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
         logger.debug(msg)
 

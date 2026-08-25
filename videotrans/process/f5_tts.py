@@ -102,7 +102,7 @@ def f5tts_fun(
         vocoder_local_path=f'{ROOT_DIR}/models/models--charactr--vocos-mel-24khz',
         device=device
     )
-    logger.debug(f'F5-TTS 本地内置渠道使用 {cfg["model_name"]} 模型,{is_cuda=},{f5tts.device}')
+    logger.debug(f'F5-TTS 本地内置渠道使用 {cfg["model_name"]} 模型,{is_cuda=}, running on {f5tts.device}')
     try:
         if is_redubb:
             queue_tts_file=REDUBB_QUEUE_FILE

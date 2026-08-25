@@ -30,7 +30,7 @@ def confucius_fun(
         model = ConfuciusTTS(
             device=device
         )
-        logger.debug(f'Confucius-TTS 本地内置渠道，{is_cuda=},{model.device}')
+        logger.debug(f'Confucius-TTS 本地内置渠道，{is_cuda=},running on {model.device}')
         if is_redubb:
             queue_tts_file=REDUBB_QUEUE_FILE
         # 循环，用于轮询重新配音数据，非重新配音时，第一轮直接返回
