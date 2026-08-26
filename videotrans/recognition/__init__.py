@@ -111,7 +111,7 @@ HUGGINGFACE_ASR_MODELS = {
     "chuuhtetnaing/whisper-large-v3-myanmar":[],#缅甸语
     "1morecupofhottea/whisper-turbo-khmer-v9":[],#高棉语 柬埔寨
     "anke01/whisper-small-uyghur":[],#维吾尔语
-    "kingabzpro/whisper-large-v3-urdu":[],#乌尔都语
+    "kingabzpro/whisper-large-v3-turbo-urdu":[],#乌尔都语
     "vasista22/whisper-tamil-small":[],#泰米尔
     "theainerd/Wav2Vec2-large-xlsr-hindi":[],#印地语
     "cautroi/whisper-large-v3-id":[],#印尼语
