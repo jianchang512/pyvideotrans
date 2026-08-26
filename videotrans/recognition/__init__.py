@@ -117,7 +117,7 @@ HUGGINGFACE_ASR_MODELS = {
     "cautroi/whisper-large-v3-id":[],#印尼语
     "Khalsuu/filipino-wav2vec2-l-xls-r-300m-official":[],#菲律宾
     "navai-uz/whisper-medium-uzbek":[],#乌兹别克
-    "MohammadKhosravi/whisper-large-v3-Persian":[],#波斯语
+    "jonatasgrosman/wav2vec2-large-xlsr-53-persian":[],#波斯语
     "Ghost3454/translynx-pakistani-punjabi-whisper-small":[],#旁遮普语
     "turkmedstt/whisper-large-v3-turkish-general":[],#土耳其语
     "anton-l/wav2vec2-large-xlsr-53-mongolian":[],#蒙古语

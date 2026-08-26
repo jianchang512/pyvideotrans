@@ -46,6 +46,7 @@ def pipe_asr(
         logger.debug(f'huggingface_asr渠道使用模型: {local_dir},{msg}')
 
         generate_kwargs = {}
+        # 仅 openai官方模型加 generate_kwargs 参数，其他微调可能不兼容，暂不加
         if "--openai--whisper" in local_dir:
             lang = detect_language.split('-')[0] if detect_language != 'auto' else None
             generate_kwargs["task"] = "transcribe"
