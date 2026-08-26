@@ -99,15 +99,31 @@ HUGGINGFACE_ASR_MODELS = {
     "ibm-granite/granite-speech-4.1-2b": ['fr','en','de','es','pt','ja'],
     "nvidia/parakeet-ctc-1.1b": ['en'],
     # hub
-    "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],
+    "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],#日语
     # pipeline whisper
-    "kotoba-tech/kotoba-whisper-v2.0": ['ja'],
+    "kotoba-tech/kotoba-whisper-v2.0": ['ja'],#日语
     # pipeline whisper
-    "biodatlab/whisper-th-large-v3": ['th'],
-    "vinai/Phowhisper-large": ['vi'],
-    "anke01/whisper-small-uyghur":['ug'],
-    "openai/whisper-large-v3": [],
-    #"OpenMOSS-Team/MOSS-Transcribe-Diarize":[]
+    "vinai/Phowhisper-large": ['vi'],#越南语
+    "nguyenvulebinh/wav2vec2-base-vietnamese-250h": ['vi'],#越南语
+    "biodatlab/whisper-th-large-v3": ['th'],#泰语
+    "sakares/wav2vec2-large-xlsr-thai-demo": ['th'],#泰语
+    "SiangLao/xlsr-53-lao-asr":['lo'],# 老挝语
+    "chuuhtetnaing/whisper-large-v3-myanmar":[],#缅甸语
+    "1morecupofhottea/whisper-turbo-khmer-v9":[],#高棉语 柬埔寨
+    "anke01/whisper-small-uyghur":[],#维吾尔语
+    "kingabzpro/whisper-large-v3-urdu":[],#乌尔都语
+    "vasista22/whisper-tamil-small":[],#泰米尔
+    "theainerd/Wav2Vec2-large-xlsr-hindi":[],#印地语
+    "cautroi/whisper-large-v3-id":[],#印尼语
+    "Khalsuu/filipino-wav2vec2-l-xls-r-300m-official":[],#菲律宾
+    "navai-uz/whisper-medium-uzbek":[],#乌兹别克
+    "MohammadKhosravi/whisper-large-v3-Persian":[],#波斯语
+    "Ghost3454/translynx-pakistani-punjabi-whisper-small":[],#旁遮普语
+    "turkmedstt/whisper-large-v3-turkish-general":[],#土耳其语
+    "anton-l/wav2vec2-large-xlsr-53-mongolian":[],#蒙古语
+    
+    "HNO333333/w2v-bert-2.0-Tibetan-Amdo":[],#藏语
+    "openai/whisper-large-v3": []
 }
 try:
     if Path(f'{ROOT_DIR}/huggingface_models.txt').exists():

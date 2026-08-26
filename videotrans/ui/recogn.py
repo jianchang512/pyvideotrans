@@ -49,7 +49,7 @@ class Ui_recogn(object):
 
 
         self.shibie_model = QtWidgets.QComboBox()
-        self.shibie_model.setMinimumSize(QtCore.QSize(250, 30))
+        self.shibie_model.setMinimumSize(QtCore.QSize(300, 30))
         self.shibie_model.setObjectName("shibie_model")
         
         

@@ -83,7 +83,7 @@ def _create_asr_row(ui, parent):
     ui.model_name_help.setText(tr("ASRModel"))
 
     ui.model_name = QtWidgets.QComboBox(parent)
-    ui.model_name.setMinimumWidth(250)
+    ui.model_name.setMinimumWidth(300)
     ui.model_name.setObjectName("model_name")
 
     ui.rephrase = QtWidgets.QComboBox()
