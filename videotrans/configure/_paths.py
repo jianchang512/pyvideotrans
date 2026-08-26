@@ -68,6 +68,7 @@ def _set_env():
     os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
     os.environ['HF_HOME'] = ROOT_DIR + "/models"
     os.environ['PYANNOTE_CACHE'] = ROOT_DIR + "/models"
+    os.environ['PKUSEG_HOME'] = ROOT_DIR + "/models/pkuser_home"
     os.environ['HF_HUB_CACHE'] = ROOT_DIR + "/models"
     os.environ['HF_TOKEN_PATH'] = ROOT_DIR + "/models/hf_token.txt"
     os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
