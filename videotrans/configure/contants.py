@@ -21,6 +21,7 @@ LISTEN_TEXT={
         "ar": "مرحبا صديقي العزيز. أتمنى أن يكون كل يوم جميلاً وممتعًا!",
         "tr": "Merhaba sevgili arkadaşım. Umarım her gününüz güzel ve keyifli geçer!",
         "hi": "नमस्ते मेरे प्यारे दोस्त। मुझे आशा है कि आपका हर दिन सुंदर और आनंददायक हो!!",
+        "my": "မင်္ဂလာပါ ချစ်လှစွာသောမိတ်ဆွေ။ မင်းရဲ့နေ့ရက်တိုင်း လှပပျော်ရွှင်စရာကောင်းပါစေ။",
         "hu": "Helló kedves barátom. Remélem minden napod szép és kellemes!",
         "uk": "Привіт, мій дорогий друже, сподіваюся, ти щодня прекрасна!",
         "id": "Halo, temanku, semoga kamu cantik setiap hari!",

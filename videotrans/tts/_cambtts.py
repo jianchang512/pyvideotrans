@@ -30,6 +30,7 @@ LANG_TO_CAMB_LOCALE = {
     "ar": "ar-sa",
     "tr": "tr-tr",
     "hi": "hi-in",
+    "my": "my-mm",
     "hu": "hu-hu",
     "uk": "uk-ua",
     "id": "id-id",

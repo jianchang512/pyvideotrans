@@ -122,6 +122,7 @@ LANGNAME_DICT = {
     "ar": tr("Arabic"),
     "tr": tr("Turkish"),
     "hi": tr("Hindi"),
+    "my": tr("Burmese"),
     "hu": tr("Hungarian"),
     "uk": tr("Ukrainian"),
     "id": tr("Indonesian"),
@@ -457,6 +458,20 @@ LANG_CODE = {
         "Hindi",
         "hi"  # m2m100
     ],
+    "my": [
+        "my",  # google通道
+        "mya",  # 字幕嵌入语言
+        "my",  # 百度通道
+        "No",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "my",  # 微软翻译
+        "Burmese",  # AI翻译
+        "my",  # 阿里
+        "Burmese",
+        "my"  # m2m100
+    ],
+
     "hu": [
         "hu",
         "hun",

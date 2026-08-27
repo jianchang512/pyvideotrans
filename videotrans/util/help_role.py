@@ -269,6 +269,7 @@ def get_kokoro_rolelist():
         "fr": ["No", "ff_siwis"],
         "it": ["No", "if_sara", "im_nicola"],
         "hi": ["No", "hf_alpha", "hf_beta", "hm_omega", "hm_psi"],
+        "my": ["No"],
         "es": ["No", "ef_dora", "em_alex", "em_santa"],
         "pt": ["No", "pf_dora", "pm_alex", "pm_santa"]
     }

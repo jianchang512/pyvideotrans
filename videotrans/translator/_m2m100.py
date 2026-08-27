@@ -30,6 +30,7 @@ _LANGUAGE_CODE_MAP = {
         "ar": "__ar__",
         "tr": "__tr__",
         "hi": "__hi__",
+        "my": "__my__",
         "hu": "__hu__",
         "uk": "__uk__",
         "id": "__id__",
