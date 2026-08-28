@@ -14,7 +14,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.minimax_key.text()
+        key = winobj.minimax_key.text().strip()
         if not key:
             return show_error(tr("Please input Secret"))
         params["minimax_key"] = key
@@ -32,7 +32,7 @@ def openwin():
         task.start()
 
     def save():
-        params["minimax_key"] = winobj.minimax_key.text()
+        params["minimax_key"] = winobj.minimax_key.text().strip()
         params["minimax_model"] = winobj.minimax_model.currentText()
         params["minimax_max_tokens"] = winobj.max_token.text()
         params["minimax_thinking"] = winobj.minimax_thinking.isChecked()

@@ -15,7 +15,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.qwenmt_key.text()
+        key = winobj.qwenmt_key.text().strip()
         if not key:
             return show_error(tr("Please input Secret"))
         params["qwenmt_key"] = key
@@ -30,7 +30,7 @@ def openwin():
         task.start()
 
     def save():
-        params["qwenmt_key"] = winobj.qwenmt_key.text()
+        params["qwenmt_key"] = winobj.qwenmt_key.text().strip()
         params["qwenmt_spaceid"] = winobj.qwenmt_spaceid.text().strip()
         params["qwenmt_model"] = winobj.qwenmt_model.currentText()
         params["qwenmt_asr_model"] = winobj.qwenmt_asr_model.currentText()

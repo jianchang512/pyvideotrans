@@ -17,7 +17,7 @@ def openwin():
         return url
 
     def test():
-        params["localllm_key"] = winobj.localllm_key.text()
+        params["localllm_key"] = winobj.localllm_key.text().strip()
         params["localllm_api"] = _fix_url(winobj.localllm_api.text().strip())
         params["localllm_max_token"] = winobj.localllm_max_token.text().strip()
         params["localllm_model"] = winobj.localllm_model.currentText()
@@ -28,7 +28,7 @@ def openwin():
         task.start()
 
     def save_localllm():
-        params["localllm_key"] = winobj.localllm_key.text()
+        params["localllm_key"] = winobj.localllm_key.text().strip()
         params["localllm_api"] = _fix_url(winobj.localllm_api.text().strip())
         params["localllm_max_token"] = winobj.localllm_max_token.text().strip()
         params["localllm_model"] = winobj.localllm_model.currentText()

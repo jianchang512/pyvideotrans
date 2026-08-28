@@ -10,8 +10,8 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        appid = winobj.ali_id.text()
-        miyue = winobj.ali_key.text()
+        appid = winobj.ali_id.text().strip()
+        miyue = winobj.ali_key.text().strip()
         if not appid or not miyue:
             from videotrans.util.help_misc import show_error
             return show_error(tr("Please input AccessKey ID and AccessKey Secret"))
@@ -24,8 +24,8 @@ def openwin():
         task.start()
 
     def save():
-        params["ali_id"] = winobj.ali_id.text()
-        params["ali_key"] = winobj.ali_key.text()
+        params["ali_id"] = winobj.ali_id.text().strip()
+        params["ali_key"] = winobj.ali_key.text().strip()
         params.save()
         winobj.close()
 

@@ -15,7 +15,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.guiji_key.text()
+        key = winobj.guiji_key.text().strip()
         if not key:
             return show_error(tr("Please input Secret"))
         params["guiji_key"] = key
@@ -28,7 +28,7 @@ def openwin():
         task.start()
 
     def save():
-        params["guiji_key"] = winobj.guiji_key.text()
+        params["guiji_key"] = winobj.guiji_key.text().strip()
         params["guiji_model"] = winobj.guiji_model.currentText()
         params["guiji_max_token"] = winobj.max_token.text().strip()
         params["guiji_thinking"] = winobj.guiji_thinking.isChecked()

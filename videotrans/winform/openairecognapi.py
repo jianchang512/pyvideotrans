@@ -15,7 +15,7 @@ def openwin():
     feed = make_feed_stt(winobj, "test_openairecognapi")
 
     def test():
-        params["openairecognapi_key"] = winobj.openairecognapi_key.text()
+        params["openairecognapi_key"] = winobj.openairecognapi_key.text().strip()
         params["openairecognapi_url"] = process_openai_api(winobj.openairecognapi_url.text().strip())
         params["openairecognapi_model"] = winobj.openairecognapi_model.currentText()
         params["openairecognapi_prompt"] = winobj.openairecognapi_prompt.text()
@@ -25,7 +25,7 @@ def openwin():
         task.start()
 
     def save_openairecognapi():
-        params["openairecognapi_key"] = winobj.openairecognapi_key.text()
+        params["openairecognapi_key"] = winobj.openairecognapi_key.text().strip()
         params["openairecognapi_url"] = process_openai_api(winobj.openairecognapi_url.text().strip())
         params["openairecognapi_model"] = winobj.openairecognapi_model.currentText()
         params["openairecognapi_prompt"] = winobj.openairecognapi_prompt.text()

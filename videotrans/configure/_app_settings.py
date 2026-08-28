@@ -178,7 +178,7 @@ class AppSettings:
             "best_of": 5,
             "uvr_models": "spleeter",
             "condition_on_previous_text": False,
-            "temperature": "",
+            "temperature": "0.0",
             "repetition_penalty": 1.0,
             "compression_ratio_threshold": 2.4,
             "qwentts_role": '',

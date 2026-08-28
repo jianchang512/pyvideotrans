@@ -20,7 +20,7 @@ def openwin():
         winobj.test.setText(tr("Test"))
 
     def test():
-        key = winobj.camb_api_key.text()
+        key = winobj.camb_api_key.text().strip()
         params['camb_api_key'] = key
         try:
             from videotrans import tts
@@ -48,7 +48,7 @@ def openwin():
             show_error(get_msg_from_except(e))
 
     def save():
-        params['camb_api_key'] = winobj.camb_api_key.text()
+        params['camb_api_key'] = winobj.camb_api_key.text().strip()
         params['camb_speech_model'] = winobj.camb_speech_model.currentText()
         params.save()
         set_process(text='', type="refreshtts")

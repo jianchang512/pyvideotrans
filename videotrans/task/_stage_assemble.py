@@ -291,10 +291,10 @@ class AssembleMixin:
         if Path(tmp_target_mp4).exists():
             try:
                 self.cfg.targetdir_mp4=self.cfg.targetdir_mp4[:-4]+_video_output_ext
-                shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4)
+                shutil.move(tmp_target_mp4, self.cfg.targetdir_mp4)
             except Exception:
                 try:
-                    shutil.copy2(tmp_target_mp4, f'{self.cfg.target_dir}/0{_video_output_ext}')
+                    shutil.move(tmp_target_mp4, f'{self.cfg.target_dir}/0{_video_output_ext}')
                 except Exception as e:
                     logger.exception(f'再次复制到目标文件夹内 0{_video_output_ext}也失败 {e}', exc_info=True)
                     raise VideoTransError(tr('Translation successful but transfer failed.', tmp_target_mp4)) from e

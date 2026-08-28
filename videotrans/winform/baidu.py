@@ -13,8 +13,8 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        appid = winobj.baidu_appid.text()
-        miyue = winobj.baidu_miyue.text()
+        appid = winobj.baidu_appid.text().strip()
+        miyue = winobj.baidu_miyue.text().strip()
         if not appid or not miyue:
             return show_error(tr("Please input appid and Secret"))
         params["baidu_appid"] = appid
@@ -26,8 +26,8 @@ def openwin():
         task.start()
 
     def save_baidu():
-        params["baidu_appid"] = winobj.baidu_appid.text()
-        params["baidu_miyue"] = winobj.baidu_miyue.text()
+        params["baidu_appid"] = winobj.baidu_appid.text().strip()
+        params["baidu_miyue"] = winobj.baidu_miyue.text().strip()
         params.save()
         winobj.close()
 

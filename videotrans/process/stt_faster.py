@@ -17,7 +17,8 @@ def faster_whisper(
         model_name=None,
         logs_file=None,
         is_cuda=False,
-        no_speech_threshold=0.5,
+        no_speech_threshold=0.6,
+        threshold=0.5,
         condition_on_previous_text=False,
         speech_timestamps=None,
         audio_file=None,
@@ -169,7 +170,11 @@ def faster_whisper(
                 best_of=best_of,
                 condition_on_previous_text=condition_on_previous_text,
                 vad_filter=True,
-                vad_parameters=dict(min_silence_duration_ms=140, min_speech_duration_ms=0),
+                vad_parameters=dict(
+                    min_silence_duration_ms=140, 
+                    min_speech_duration_ms=0,
+                    threshold=threshold
+                    ),
                 no_speech_threshold=no_speech_threshold,
                 # clip_timestamps="0",  # clip_timestamps,
                 word_timestamps=True,

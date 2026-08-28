@@ -9,7 +9,7 @@ from videotrans.configure.config import logger
 
 
 def get_speech_timestamp_silero(input_wav,
-                                threshold=None,
+                                threshold=0.5,
                                 min_speech_duration_ms=0,
                                 max_speech_duration_ms=None,
                                 min_silent_duration_ms=None, **kw):
@@ -57,15 +57,20 @@ def get_speech_timestamp_silero(input_wav,
         merged_segments[0][0]=0
     _vail_segments=[]
     for it in merged_segments:
-        if it[1]>it[0] and it[0]>=0:
+        if it[1]<=it[0] or it[0]<0:
+            continue
+        if not _vail_segments or (it[1]-it[0]>1000) or (_vail_segments[-1][1]-_vail_segments[-1][0]>10000):
             _vail_segments.append(it)
+        else:
+            _vail_segments[-1][1]=it[1]
+        
     return _vail_segments
 
 
 
 
 def get_speech_timestamp(input_wav=None,
-                         threshold=None,
+                         threshold=0.5,
                          min_speech_duration_ms=None,
                          max_speech_duration_ms=None,
                          min_silent_duration_ms=None, **kw):
@@ -82,10 +87,10 @@ def get_speech_timestamp(input_wav=None,
     frame_duration_ms = (hop_size / sr) * 1000.0
 
     # 规范化参数
-    min_speech_duration_ms = int(max(500, min_speech_duration_ms if min_speech_duration_ms else 1000))
+    min_speech_duration_ms = int(max(1000, min_speech_duration_ms if min_speech_duration_ms else 1000))
     min_silent_duration_ms = int(max(50, min_silent_duration_ms if min_silent_duration_ms else 200))
     if max_speech_duration_ms is None:
-        max_speech_duration_ms = 30000
+        max_speech_duration_ms = 12000
 
     logger.debug(
         f'[Ten-VAD]:断句参数：{threshold=},{min_speech_duration_ms=}ms,{max_speech_duration_ms=}ms,{min_silent_duration_ms=}ms')
@@ -100,116 +105,74 @@ def get_speech_timestamp(input_wav=None,
 
     logger.debug(f'[Ten-VAD]音频能量: {audio_energy}, 调整后阈值: {adjusted_threshold}')
 
-    # --- 初步 VAD 检测（不设最长限制，保证自然断句） ---
+
     min_sil_frames = max(1, int(min_silent_duration_ms / frame_duration_ms))
-    initial_segments = _detect_raw_segments(data, adjusted_threshold, min_sil_frames, max_speech_frames=None)
+    max_speech_frames = int(max_speech_duration_ms / frame_duration_ms)+1000
+    initial_segments = _detect_raw_segments(
+        data, 
+        adjusted_threshold, 
+        min_sil_frames, 
+        max_speech_frames=max_speech_frames
+        )
 
     if not initial_segments:
         # 完全无语音
         return None
 
-    # --- 处理超长片段 ---
-    # 使用队列递归切分，寻找微停顿，兜底用能量最低点切割
-    max_speech_frames = int(max_speech_duration_ms / frame_duration_ms)
+
     segments_ms = []
     chunk_queue = [list(seg) for seg in initial_segments]
-
+    
     while chunk_queue:
         s_frame, e_frame = chunk_queue.pop(0)
-        dur_frames = e_frame - s_frame
 
-        if dur_frames <= max_speech_frames:
-            segments_ms.append([s_frame * frame_duration_ms, e_frame * frame_duration_ms])
-            continue
+        segments_ms.append([s_frame * frame_duration_ms, e_frame * frame_duration_ms])
 
-        # 超过最大时长，尝试寻找换气点/微停顿
-        sub_data = data[s_frame * hop_size : e_frame * hop_size]
-        sub_segs = []
-        # 尝试三档：标准静音 -> 半静音 -> 极短静音(约30ms)
-        test_conditions = [
-            (1.0, 1.0),                     # 原始参数
-            (0.5, 1.2),                     # 一半静音时长，阈值稍严
-            (max(30 / min_silent_duration_ms, 0.2), 1.5)  # 约30ms，阈值较严
-        ]
-        
-        for sil_ratio, thresh_mult in test_conditions:
-            test_sil_frames = max(1, int((min_silent_duration_ms * sil_ratio) / frame_duration_ms))
-            test_thresh = min(adjusted_threshold * thresh_mult, 0.9)
-            
-            temp_segs = _detect_raw_segments(
-                sub_data, test_thresh, test_sil_frames,
-                max_speech_frames=max_speech_frames   # 传入最大帧数限制，防止子段又超长
-            )
-            if len(temp_segs) > 1:
-                max_sub_dur = max((se - ss) for ss, se in temp_segs)
-                if max_sub_dur < dur_frames:  # 确实切短了
-                    sub_segs = temp_segs
-                    break
-
-        if sub_segs:
-            new_chunks = [[s_frame + ss, s_frame + se] for ss, se in sub_segs]
-            chunk_queue = new_chunks + chunk_queue
-        else:
-            # 终极兜底：在安全区内寻找能量最低点切断
-            # 安全区为 50%~100% 最大时长之间
-            search_start = int(max_speech_frames * 0.5)
-            search_end = min(max_speech_frames, dur_frames)
-            
-            if search_end > search_start:
-                energies = [np.sum(np.abs(sub_data[i * hop_size : (i+1) * hop_size]))
-                            for i in range(search_start, search_end)]
-                best_cut_idx = search_start + np.argmin(energies)
-            else:
-                best_cut_idx = max_speech_frames
-                
-            cut_point = s_frame + best_cut_idx
-            # 先放后半段，再放前半段，保证按时间顺序处理
-            chunk_queue.insert(0, [cut_point, e_frame])
-            chunk_queue.insert(0, [s_frame, cut_point])
-
-    logger.debug(f'[Ten-VAD]初步切分及超长处理用时 {int(time.time() - st_)}s')
-
-    # --- 短片段合并 ---
-    # 确保所有片段时长 >= min_speech_duration_ms
-    segs = [seg.copy() for seg in segments_ms]
     # 先过滤掉非法片段（start>=end）
-    segs = [[int(max(0, s)), int(max(0, e))] for s, e in segs if e > s]
+    segs = [[int(max(0, s)), int(max(0, e))] for s, e in segments_ms if e > s]
+    if not segs:
+        return None
     
-    # 合并算法：利用栈，动态检查栈顶片段是否过短
+    
+    
+    _len=len(segs)
     merged = []
-    for seg in segs:
+    for i,seg in enumerate(segs):
+        # 当前结束时间大于后边开始时间，非法，移除
+        if _len>1 and i<_len-1 and seg[1]>segs[i+1][0]:
+            continue
         if not merged:
             merged.append(seg)
             continue
-        # 检查栈顶片段是否过短
-        while merged and (merged[-1][1] - merged[-1][0]) < min_speech_duration_ms:
-            # 栈顶短，必须与当前seg合并
-            prev = merged.pop()
-            # 合并到当前seg（向前合并）
-            seg[0] = prev[0]
-            # 如果栈非空且gap很小，也可以考虑合并，但这里简单把prev吞给seg
-        # 现在再检查当前seg本身是否过短
-        if (seg[1] - seg[0]) < min_speech_duration_ms:
-            if merged:
-                # 看看是合并到上一个更好，还是留待后面处理
-                # 直接合并到上一个，因为如果留到后面可能还是得合并
-                merged[-1][1] = seg[1]
-            else:
-                # 第一个片段本身就短，暂存
-                merged.append(seg)
-        else:
-            merged.append(seg)
-    
-    # 处理栈顶可能残留的过短片段（因为后面没有片段了，只能保留）
-    # 或者如果它是唯一片段，也保留
-    _vail_segments = []
-    for s, e in merged:
-        if e > s and s>=0:
-            # 再次确保非负和有效性
-            _vail_segments.append([max(0, s), max(0, e)])
+        
+        # 小于1s
+        if seg[1]-seg[0]<1000:
+            if i==_len-1:
+                merged[-1][1]=seg[1]
+                continue
             
+            if merged[-1][1]-merged[-1][0]<max_speech_duration_ms:
+                merged[-1][1]=seg[1]
+                continue
+        
+        merged.append(seg)
+            
+    if not merged:
+        return None
+    _s,_e=None,None
+    if len(merged)>1 and merged[0][1]-merged[0][0]<1000:
+        _s=merged.pop(0)
+
+    if len(merged)>1 and merged[-1][1]-merged[-1][0]<1000:
+        _emerged.pop(-1)
+    
+    
+    if _s:
+        merged[0][0]=_s[0]
+    if _e:
+        merged[-1][1]=_e[1]
     logger.debug(f'[Ten-VAD]切分合并共用时:{int(time.time() - st_)}s')
-    return _vail_segments
+    return merged
 
 
 def _detect_raw_segments(data, threshold, min_silent_frames, max_speech_frames=None):

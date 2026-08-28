@@ -22,7 +22,7 @@ def openwin():
         winobj.test_openaitts.setText(tr("Test"))
 
     def test():
-        params["openaitts_key"] = winobj.openaitts_key.text()
+        params["openaitts_key"] = winobj.openaitts_key.text().strip()
         params["openaitts_api"] = process_openai_api(winobj.openaitts_api.text().strip())
         params["openaitts_model"] = winobj.openaitts_model.currentText()
         params["openaitts_instructions"] = winobj.openaitts_instructions.text()
@@ -42,7 +42,7 @@ def openwin():
         wk.start()
 
     def save():
-        params["openaitts_key"] = winobj.openaitts_key.text()
+        params["openaitts_key"] = winobj.openaitts_key.text().strip()
         params["openaitts_api"] = process_openai_api(winobj.openaitts_api.text().strip())
         params["openaitts_model"] = winobj.openaitts_model.currentText()
         params["openaitts_instructions"] = winobj.openaitts_instructions.text()

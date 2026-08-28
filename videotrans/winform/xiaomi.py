@@ -12,7 +12,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        params["xiaomi_key"] = winobj.xiaomi_key.text()
+        params["xiaomi_key"] = winobj.xiaomi_key.text().strip()
         params["xiaomi_model"] = winobj.model.currentText()
         params["xiaomi_maxtoken"] = winobj.xiaomi_maxtoken.text()
         params["xiaomi_thinking"] = winobj.xiaomi_thinking.isChecked()
@@ -24,7 +24,7 @@ def openwin():
         task.start()
 
     def save():
-        params["xiaomi_key"] = winobj.xiaomi_key.text()
+        params["xiaomi_key"] = winobj.xiaomi_key.text().strip()
         params["xiaomi_model"] = winobj.model.currentText()
         params["xiaomi_maxtoken"] = winobj.xiaomi_maxtoken.text()
         params["xiaomi_thinking"] = winobj.xiaomi_thinking.isChecked()

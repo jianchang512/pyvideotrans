@@ -10,9 +10,9 @@ from pathlib import Path
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
 
 
-def extract_concise_error(stderr_text: str) -> str:
+def extract_concise_error(stderr_text: str,stdout:str="") -> str:
     if not stderr_text:
-        return "Unknown error (empty stderr)"
+        return f"Unknown error (empty stderr) {stdout}"
 
     lines = stderr_text.strip().splitlines()
     if not lines:
@@ -68,7 +68,7 @@ def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
     except subprocess.CalledProcessError as e:
         error_message = e.stderr or ""
         logger.error(f"FFmpeg 命令执行失败 (force_cpu={force_cpu})。\n命令: {' '.join(cmd)}\n错误: {error_message} {e.stdout}")
-        err = extract_concise_error(e.stderr)
+        err = extract_concise_error(e.stderr,e.stdout)
         if noextname:
             app_cfg.queue_novice[noextname] = f"error:{err}"
         if sys.platform == 'win32' and 'No such file or directory' in str(e):

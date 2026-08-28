@@ -13,7 +13,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test_ai302")
 
     def test():
-        params["ai302_key"] = winobj.ai302_key.text()
+        params["ai302_key"] = winobj.ai302_key.text().strip()
         params["ai302_model"] = winobj.ai302_model.currentText()
         params["ai302_model_recogn"] = winobj.ai302_model_recogn.currentText()
         winobj.test_ai302.setText(tr("Testing..."))
@@ -22,7 +22,7 @@ def openwin():
         task.start()
 
     def save_ai302():
-        params["ai302_key"] = winobj.ai302_key.text()
+        params["ai302_key"] = winobj.ai302_key.text().strip()
         params["ai302_model"] = winobj.ai302_model.currentText()
         params["ai302_model_recogn"] = winobj.ai302_model_recogn.currentText()
         params.save()

@@ -6,7 +6,7 @@ from PySide6.QtCore import QTimer
 
 from videotrans import translator, recognition, tts
 from videotrans.configure.config import tr, params, settings, app_cfg,logger
-from videotrans.util.help_misc import show_error
+from videotrans.util.help_misc import ensure_safe_media_file, is_dir_not_empty, show_error
 
 
 class WinActionCheckMixin:
@@ -69,7 +69,7 @@ class WinActionCheckMixin:
         for it in self.queue_mp4:
             p = Path(it)
             folder = output_folder / f'{p.stem}-{p.suffix.lower()[1:]}'
-            if folder.exists():
+            if folder.exists() and is_dir_not_empty(str(folder)):
                 reply = QMessageBox.question(
                     self.main,
                     tr("Are you sure the cleanup has been output?"),
@@ -91,7 +91,7 @@ class WinActionCheckMixin:
         for it in self.queue_mp4:
             _itlen = len(it)
             _namelen = len(Path(it).name)
-            if _itlen >= 170 and _namelen >= 90:
+            if _itlen > 250:
                 reply = QMessageBox.question(
                     self.main,
                     tr("The filename is too long"),
@@ -251,16 +251,5 @@ class WinActionCheckMixin:
     def _rename_video(self):
         _del=r'[%?*"\|<>:]'
         for i,it in enumerate(self.queue_mp4):
-            p=Path(it)
-            if re.search(_del,p.name):
-                _newit=re.sub(_del,'-',p.name)
-                try:
-                    p2=p.with_name(_newit)
-                    if p2.exists() and p != p2:
-                        continue
-                    p.rename(p2)
-                    self.queue_mp4[i]=p2.as_posix()
-                except OSError as e:                    
-                    logger.warning(f'{it}->{_newit} error:{e}')
+            self.queue_mp4[i]=ensure_safe_media_file(it)
 
-            

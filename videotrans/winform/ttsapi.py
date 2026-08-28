@@ -18,7 +18,7 @@ def openwin():
         url = winobj.api_url.text().strip()
         if not url.startswith('http'):
             url = 'http://' + url
-        extra = winobj.extra.text()
+        extra = winobj.extra.text().strip()
         role = winobj.voice_role.toPlainText().strip()
 
         params["ttsapi_url"] = url
@@ -41,7 +41,7 @@ def openwin():
         url = winobj.api_url.text().strip()
         if not url.startswith('http'):
             url = 'http://' + url
-        extra = winobj.extra.text()
+        extra = winobj.extra.text().strip()
         role = winobj.voice_role.toPlainText().strip().replace('\n', '')
         params["ttsapi_url"] = url
         params["ttsapi_extra"] = extra

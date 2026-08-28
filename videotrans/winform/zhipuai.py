@@ -15,7 +15,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.zhipu_key.text()
+        key = winobj.zhipu_key.text().strip()
         if not key:
             return show_error(tr("Please input Secret"))
         params["zhipu_key"] = key
@@ -28,7 +28,7 @@ def openwin():
         task.start()
 
     def save():
-        params["zhipu_key"] = winobj.zhipu_key.text()
+        params["zhipu_key"] = winobj.zhipu_key.text().strip()
         params["zhipu_model"] = winobj.zhipu_model.currentText()
         params["zhipu_max_token"] = winobj.max_token.text().strip()
         params["zhipu_thinking"] = winobj.zhipu_thinking.isChecked()

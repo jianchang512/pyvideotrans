@@ -21,7 +21,7 @@ def openwin():
         winobj.test_zijiehuoshan.setText('Test')
 
     def test():
-        key = winobj.zijiehuoshan_key.text()
+        key = winobj.zijiehuoshan_key.text().strip()
         model = winobj.zijiehuoshan_model.currentText()
         if not key or not model.strip():
             return show_error('API KEY and Model')
@@ -36,7 +36,7 @@ def openwin():
         task.start()
 
     def save_zijiehuoshan():
-        params["zijiehuoshan_key"] = winobj.zijiehuoshan_key.text()
+        params["zijiehuoshan_key"] = winobj.zijiehuoshan_key.text().strip()
         params["zijiehuoshan_model"] = winobj.zijiehuoshan_model.currentText()
         params["huoshan_thinking"] = winobj.huoshan_thinking.isChecked()
         params["huoshan_max_token"] = int(winobj.huoshan_max_token.text())

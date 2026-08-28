@@ -20,7 +20,7 @@ def openwin():
         winobj.test.setText(tr("Test"))
 
     def test():
-        apikey = winobj.apikey.text()
+        apikey = winobj.apikey.text().strip()
         model = winobj.model.currentText()
         apiurl = winobj.apiurl.currentText()
         if not apikey:
@@ -45,7 +45,7 @@ def openwin():
         set_process(text='', type="refreshtts")
 
     def save():
-        params["minimaxi_apikey"] = winobj.apikey.text()
+        params["minimaxi_apikey"] = winobj.apikey.text().strip()
         params["minimaxi_model"] = winobj.model.currentText()
         params["minimaxi_apiurl"] = winobj.apiurl.currentText()
         params["minimaxi_emotion"] = winobj.emotion.currentText()

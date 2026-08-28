@@ -13,7 +13,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.gemini_key.text()
+        key = winobj.gemini_key.text().strip()
         os.environ['GOOGLE_API_KEY'] = key
         params["gemini_key"] = key
         params["gemini_model"] = winobj.model.currentText()
@@ -26,7 +26,7 @@ def openwin():
         task.start()
 
     def save():
-        params["gemini_key"] = winobj.gemini_key.text()
+        params["gemini_key"] = winobj.gemini_key.text().strip()
         params["gemini_model"] = winobj.model.currentText()
         params["gemini_maxtoken"] = winobj.gemini_maxtoken.text()
         params["gemini_ttsmodel"] = winobj.ttsmodel.currentText()

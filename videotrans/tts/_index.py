@@ -26,7 +26,7 @@ class IndexTTS(GradioBase):
         # 0=v1 1=v2 2=v2.5
         _v=int(params.get('index_tts_version', 1))
         if _v >0:
-            kwargs['emo_control_method'] = app_cfg.indextts_default_choice
+            kwargs['emo_control_method'] = 'Same as the voice reference'
             kwargs['emo_ref_path'] = handle_file(ref_wav)
         
         if _v==2:
