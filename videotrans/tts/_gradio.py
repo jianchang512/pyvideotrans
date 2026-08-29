@@ -43,7 +43,7 @@ class GradioBase(BaseTTS):
 
 
     # 实际发送进行推理
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
+    #@retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _send(self, kwargs,data_item)->Union[str,None]:
         if self._exit() or not data_item.get('text','').strip() or vail_file(data_item['filename']):
             return
@@ -74,15 +74,14 @@ class GradioBase(BaseTTS):
                 if _title in err :
                     url='https://pyvideotrans.com/'+(self.ainame if self.ainame in ['omnivoice','cosyvoice'] else 'f5tts')
                     raise StopTask(f"{self.ainame} {tr('This channel needs deployed and started before available')}\n{self.api_url=}\n{err}\n[{url}]") from e
-            return err
+            raise
         except concurrent.futures.CancelledError as e:
             logger.exception(f'配音失败:{self.ainame}',exc_info=True)
             # 清理当前线程的客户端缓存，防止下次复用一个已损坏的连接
             if hasattr(thread_local, "client"):
                 del thread_local.client
-            return str(e)+f"\n{self.api_url=}"
-        except Exception as e:
-            return +f"{self.ainame} {self.api_url} \n{str(e)}"
+            raise
+        
         return
 
 

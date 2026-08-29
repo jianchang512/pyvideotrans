@@ -2,7 +2,8 @@
 
 def openwin():
 
-    from videotrans.util.help_misc import hide_show_element, show_error
+    from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
+    from videotrans.util.help_misc import  show_error
     from typing import List
     from videotrans.task.taskcfg import InputFile
     import sys
@@ -16,6 +17,11 @@ def openwin():
     from videotrans.task.taskcfg import TaskCfgSTT
     from videotrans import translator, recognition
     from videotrans.component.set_form import Recognform
+
+    EDGE_LANGUANGES_DICT = {}
+
+    for code in EDGE_LANGUANGES_CODE:
+        EDGE_LANGUANGES_DICT[code]=tr(code)
 
 
     RESULT_DIR = HOME_DIR + f"/recogn"
@@ -271,7 +277,7 @@ def openwin():
         winobj.shibie_dropbtn.setMinimumSize(0, 150)
         winobj.shibie_widget.insertWidget(0, winobj.shibie_dropbtn)
 
-        winobj.shibie_language.addItems([tr('auto')]+list(translator.LANGNAME_DICT.values()))
+        winobj.shibie_language.addItems([tr('auto')]+list(EDGE_LANGUANGES_DICT.values()))
         winobj.is_cuda.setChecked(params.get("stt_cuda", False))
         winobj.rephrase.setCurrentIndex(int(params.get('stt_rephrase', 2)))
         winobj.remove_noise.setChecked(bool(params.get('stt_remove_noise')))

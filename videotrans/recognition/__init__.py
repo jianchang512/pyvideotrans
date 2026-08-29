@@ -1,4 +1,3 @@
-import time
 from pathlib import Path
 from typing import Union, List, Type
 
@@ -121,7 +120,6 @@ HUGGINGFACE_ASR_MODELS = {
     "Ghost3454/translynx-pakistani-punjabi-whisper-small":[],#旁遮普语
     "turkmedstt/whisper-large-v3-turkish-general":[],#土耳其语
     "anton-l/wav2vec2-large-xlsr-53-mongolian":[],#蒙古语
-    
     "HNO333333/w2v-bert-2.0-Tibetan-Amdo":[],#藏语
     "openai/whisper-large-v3": []
 }

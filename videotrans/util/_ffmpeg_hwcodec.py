@@ -57,7 +57,7 @@ def get_video_codec(compat=None,force=False) -> str:
         _codec_cache[cache_key] = default_codec
         return default_codec
 
-    def test_encoder_internal(encoder_to_test: str, timeout: int = 10) -> bool:
+    def test_encoder_internal(encoder_to_test: str, timeout: int = 5) -> bool:
         timestamp = int(time.time() * 1000)
         output_file = temp_dir / f"test_{encoder_to_test}_{timestamp}.mp4"
         command = [
@@ -70,6 +70,7 @@ def get_video_codec(compat=None,force=False) -> str:
         logger.debug(f"正在测试编码器是否可用: {encoder_to_test}...")
         success = False
         try:
+
             subprocess.run(
                 command, check=True, capture_output=True, text=True,
                 encoding='utf-8', errors='ignore', creationflags=creationflags, timeout=timeout

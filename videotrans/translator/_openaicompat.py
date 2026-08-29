@@ -92,7 +92,8 @@ class OpenAICampat(BaseTrans):
             raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e.message}') from e
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
             del kwargs['messages']
-            raise StopTask((e.body.get('message') if e.body else e.message)+f'\n{self.api_url}\n{kwargs}') from e
+            _msg=(e.body.get('message') if e.body else e.message) or str(e)
+            raise StopTask(f'{_msg}\n{self.api_url}\n{kwargs}') from e
         except APIError as e: 
             if re.search(r"insufficient.*?balance",e.message,flags=re.I):
                 raise StopTask(tr('The server returned an error message: Insufficient balance',get_tanslate_type(self.translate_type),self.api_url))
@@ -130,7 +131,7 @@ class OpenAICampat(BaseTrans):
         
         if reasoning_effort is None:
             _reason=params.get('chatgpt_reasoning_effort')
-            reasoning_effort=None if not _reason or _reason=='No' else _reason
+            reasoning_effort=None if not _reason or _reason=='default' else _reason
         
         kwargs={
                 "model":model_name,

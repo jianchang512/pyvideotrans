@@ -38,6 +38,7 @@ def openwin():
         if not isinstance(_rolename,dict):
             return show_error(tr("No reference audio {} exists",_rolename))
         rolename=_rolename.get('ref_wav')
+        print(rolename)
         file=ROOT_DIR+f'/f5-tts/{rolename}'
         if not Path(file).exists():
             return show_error(tr("No reference audio {} exists",file))

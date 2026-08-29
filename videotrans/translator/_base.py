@@ -7,7 +7,7 @@ from tenacity import RetryError
 
 from videotrans import translator
 from videotrans.configure.base import BaseCon
-from videotrans.configure.config import tr, settings, logger, TEMP_ROOT, ROOT_DIR, app_cfg
+from videotrans.configure.config import tr, settings, logger, TEMP_ROOT
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util.help_srt import get_subtitle_from_srt,cleartext
 from videotrans.util.help_misc import get_md5,serial

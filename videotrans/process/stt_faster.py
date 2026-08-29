@@ -31,8 +31,7 @@ def faster_whisper(
         temperature=None,
         hotwords=None,
         repetition_penalty=1.0,
-        compression_ratio_threshold=2.2,
-        device_index=0,  # gpu索引
+        compression_ratio_threshold=2.4,
         max_speech_ms=6000,
         subtitle_srt=None,
         **kw
@@ -117,8 +116,7 @@ def faster_whisper(
             # 3. 转换时间戳格式
             # BatchedInferencePipeline 需要 [{'start': start_sec, 'end': end_sec}, ...]
             clip_timestamps_dicts = [
-                {"start": it[0] / 1000.0, "end": it[1] / 1000.0}
-                for it in speech_timestamps if it[0]>=0 and it[1]>it[0]
+                {"start": it[0] / 1000.0, "end": it[1] / 1000.0} for it in speech_timestamps
             ]
             segments, info = batched_model.transcribe(
                 audio_file,
@@ -176,9 +174,7 @@ def faster_whisper(
                     threshold=threshold
                     ),
                 no_speech_threshold=no_speech_threshold,
-                # clip_timestamps="0",  # clip_timestamps,
                 word_timestamps=True,
-                # without_timestamps=False,
                 temperature=temperature,
                 hotwords=hotwords,
                 repetition_penalty=repetition_penalty,
@@ -200,8 +196,19 @@ def faster_whisper(
 
             logger.debug(f'faster-whisper模式下，对{model_name}模型返回的字级时间戳进行断句')
             if not texts:
-                logger.error(f'no texts:{info=}\n{segments=}')
-                return False, f"No transcription results returned. Please check the original audio/video [{info.duration_after_vad=}s].\n{info=}"
+                _kw=dict(beam_size=beam_size,
+                    best_of=best_of,
+                    condition_on_previous_text=condition_on_previous_text,
+                    threshold=threshold,
+                    no_speech_threshold=no_speech_threshold,
+                    temperature=temperature,
+                    repetition_penalty=repetition_penalty,
+                    compression_ratio_threshold=compression_ratio_threshold,
+                    initial_prompt=prompt
+                )
+                msg=f"No human voice detected. Please confirm that human speech is present in the original file. [{info.duration_after_vad=}s].\n{_kw=}\n{info=}"
+                logger.error(msg)
+                return False, msg
             raws = _resegment(texts, info.language, max_speech_ms, logs_file)
             if jianfan and raws:
                 for it in raws:
@@ -211,7 +218,6 @@ def faster_whisper(
         if subtitle_srt:
             Path(subtitle_srt).write_text("\n\n".join([f'{i+1}\n{it.startraw} --> {it.endraw}\n{it.text}' for i,it in enumerate(raws)]),encoding="utf-8")
             logger.debug(f'faster-whisper下已临时保存识别结果到 {subtitle_srt}，防止进程崩溃后永久等待')
-        
         return raws,None
     except BaseException as e:
         msg = traceback.format_exc()

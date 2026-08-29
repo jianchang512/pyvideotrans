@@ -59,7 +59,7 @@ class SeparateWorker(QThread):
         
             p=Path(self.file)
             self.vocal=f"{self.out}/vocal-{p.stem}.wav"
-            self.finish_event.emit('logs:Separating vocals from the background ...')
+            self.finish_event.emit(f'logs:{tr("Separating vocals and background music, which may take a longer time")} ...')
             # 如果不是wav，需要先转为wav
             if  p.suffix.lower()!= '.wav':
                 newfile = config.TEMP_DIR + f'/sep-{time.time()}.wav'

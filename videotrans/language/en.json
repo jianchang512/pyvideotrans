@@ -924,5 +924,6 @@
 	"Standardized dubbing segment processing":"Standardized dubbing segment processing...",
     "Initial prompt for the Whisper model for speech": "Initial prompt for the Whisper model for {} speech",
     "The subtitle line does not specify a voice actor": "The subtitle line {} does not specify a voice actor and no default character has been set. Please check!",
-	"none_effort":"default=No parameters set, follow the default settings of the remote model\nnone=Disable thinking"
+	"none_effort":"default=No parameters set, follow the default settings of the remote model\nnone=Disable thinking",
+    "The voice actor has been cloned, but there is no": "The voice actor has been cloned, but there is no corresponding reference audio. Please choose a different voice actor."
 }

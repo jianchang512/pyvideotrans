@@ -930,5 +930,7 @@
 	"Standardized dubbing segment processing":"标准化配音片段处理中...",
     "Initial prompt for the Whisper model for speech": "发音语言为 {} 时发送给whisper模型的提示词",
     "The subtitle line does not specify a voice actor": "第 {} 行字幕未指定配音角色，并且未设置默认角色，请检查！",
-	"none_effort":"default=不设置参数，跟随远端模型默认\nnone=禁止思考"
+	"none_effort":"default=不设置参数，跟随远端模型默认\nnone=禁止思考",
+    "The voice actor has been cloned, but there is no": "配音角色已选 clone，但不存在对应参考音频，请更换其他配音角色"
+
 }

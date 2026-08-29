@@ -7,6 +7,7 @@ from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR
 from videotrans.configure.base import BaseCon
 from videotrans.task.taskcfg import TaskCfgBase, SrtItem
 
+
 @dataclass
 class BaseTask(BaseCon):
     # 各项配置信息，例如 翻译、配音、识别渠道等
@@ -77,7 +78,7 @@ class BaseTask(BaseCon):
         from videotrans.util.help_srt import get_srt_from_list
         try:
             txt = get_srt_from_list(srt_list)
-            Path(file).parent.mkdir(exist_ok=True,parents=True)
+            Path(file).parent.mkdir(exist_ok=True, parents=True)
             with open(file, "w", encoding="utf-8", errors="ignore") as f:
                 f.write(txt)
         except Exception as e:
@@ -97,14 +98,14 @@ class BaseTask(BaseCon):
 
         logger.warning(f'翻译结果行数{target_len}，原始字幕行数{source_len}，不一致,根据原始字幕时间轴获取对应目标字幕文本')
         # 根据原始字幕的时间轴，到目标字幕内寻找同样时间轴的字幕文本，更准确
-        _time2srt={}
+        _time2srt = {}
         for it in target_srt_list:
-            _time2srt[it['time']]=it['text']
+            _time2srt[it['time']] = it['text']
 
         logger.debug(f'翻译结果行数{target_len} > 原始字幕行{source_len}，根据原始字幕的时间轴，到目标字幕内寻找同样时间轴的字幕文本')
-        _source=copy.deepcopy(source_srt_list)
+        _source = copy.deepcopy(source_srt_list)
         for it in _source:
-            it['text']=_time2srt.get(it['time'],'')
+            it['text'] = _time2srt.get(it['time'], '')
         return _source
 
     # 手动调用设为结束，成功完成或出错时
@@ -115,7 +116,7 @@ class BaseTask(BaseCon):
             if self.uuid in app_cfg.stoped_uuid_set:
                 return
             self.signal(text=f"{self.cfg.name}", type='succeed')
-            if app_cfg.exec_mode=="cli":
+            if app_cfg.exec_mode == "cli":
                 print(f'Save to:[ {self.cfg.target_dir} ]')
             else:
                 from videotrans.util.help_ffmpeg import send_notification

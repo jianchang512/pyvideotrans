@@ -33,7 +33,6 @@ class Ui_recogn(object):
         self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
         self.shibie_language = QtWidgets.QComboBox()
-        #self.shibie_language.setMinimumSize(QtCore.QSize(100, 30))
         self.shibie_language.setObjectName("shibie_language")
 
         self.is_cuda = QtWidgets.QCheckBox()
@@ -44,7 +43,6 @@ class Ui_recogn(object):
 
         self.shibie_label = QtWidgets.QLabel()
         self.shibie_recogn_type = QtWidgets.QComboBox()
-        #self.shibie_recogn_type.setMinimumSize(QtCore.QSize(150, 30))
         self.shibie_recogn_type.setObjectName("shibie_recogn_type")
 
 
@@ -52,10 +50,7 @@ class Ui_recogn(object):
         self.shibie_model.setMinimumSize(QtCore.QSize(300, 30))
         self.shibie_model.setObjectName("shibie_model")
         
-        
-
-
-        
+            
         
         
         self.enable_diariz = QtWidgets.QCheckBox()

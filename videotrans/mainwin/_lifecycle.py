@@ -57,7 +57,7 @@ class LifecycleMixin:
             logger.exception(f"Error using pkill: {e}", exc_info=True)
 
     def closeEvent(self, event):
-        from videotrans.configure.config import app_cfg, ROOT_DIR, TEMP_ROOT,REDUBB_STATUS_FILE
+        from videotrans.configure.config import app_cfg, ROOT_DIR, TEMP_DIR, REDUBB_STATUS_FILE
         try:
             if Path(REDUBB_STATUS_FILE).exists():
                 Path(REDUBB_STATUS_FILE).write_text('end')
@@ -70,7 +70,7 @@ class LifecycleMixin:
         self.cleanup_and_accept()
 
         try:
-            shutil.rmtree(TEMP_ROOT, ignore_errors=True)
+            shutil.rmtree(TEMP_DIR, ignore_errors=True)
         except OSError:
             pass
         if not self.is_restarting:
@@ -103,11 +103,11 @@ class LifecycleMixin:
         for thread in self.worker_threads:
             if thread and thread.isRunning():
                 thread.requestInterruption()
-        
+
         # 等待所有线程安全结束
         for thread in self.worker_threads:
             if thread and thread.isRunning():
-                thread.wait(3000) # 等待3秒
+                thread.wait(3000)  # 等待3秒
 
         try:
             for w in app_cfg.child_forms.values():

@@ -68,10 +68,7 @@ def openai_whisper(
             detect_language = 'tl'
         if speech_timestamps:
             _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe batch...'}))
-            for it in speech_timestamps:
-                if it[0]>=0 and it[1]>it[0]:
-                    speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
-            
+
             result = model.transcribe(
                 audio_file,
                 no_speech_threshold=no_speech_threshold,
@@ -109,11 +106,11 @@ def openai_whisper(
             _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word timestamps'}))
             segments = model.transcribe(
                 audio_file,
-                no_speech_threshold=no_speech_threshold,
                 language=detect_language.split('-')[0] if detect_language != 'auto' else None,
+                word_timestamps=True,
+                no_speech_threshold=no_speech_threshold,
                 initial_prompt=prompt if prompt else None,
                 temperature=temperature,
-                word_timestamps=True,
                 compression_ratio_threshold=compression_ratio_threshold,
                 condition_on_previous_text=condition_on_previous_text
             )
@@ -130,8 +127,14 @@ def openai_whisper(
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment["text"]}\n'}))
             logger.debug(f'openai-whisper模式下，传递完整音频由模型{model_name} 输出字级时间戳')
             if not texts:
-                logger.error(f'no texts:{segments=}')
-                return False, "No transcription results returned. Please check the original audio/video or model and try again."
+                _kw=dict(no_speech_threshold=no_speech_threshold,
+                initial_prompt=prompt,
+                temperature=temperature,
+                compression_ratio_threshold=compression_ratio_threshold,
+                condition_on_previous_text=condition_on_previous_text)
+                msg=f"No human voice detected. Please confirm that human speech is present in the original file.\n{_kw=}\n{segments=}"
+                logger.error(msg)
+                return False, msg
             logger.debug(f'对字级时间戳进行组合断句')
             raws = _resegment(texts, segments['language'], max_speech_ms, logs_file)
             if jianfan and raws:
