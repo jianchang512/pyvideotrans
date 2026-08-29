@@ -48,7 +48,7 @@ Email: jianchang512@gmail.com
 GitHub: https://github.com/jianchang512/pyvideotrans
 【软件免费下载使用，不收取任何费用，也未在任何平台销售】
 
-""" if defaulelang == 'zh' else f"""
+""" if defaulelang == 'zh_CN' else f"""
 {en_version_info}
 
 This project is created based on interest, there is no commercial and no charge plan, you can use it for free or fork it and modify it (open source license GPL-v3). 
@@ -78,7 +78,7 @@ GitHub: https://github.com/jianchang512/pyvideotrans
         self.v1.addWidget(label)
 
         self.h1 = QtWidgets.QHBoxLayout()
-        if defaulelang == 'zh':
+        if defaulelang  == 'zh_CN':
             self.wxpay = QtWidgets.QLabel()
             self.alipay = QtWidgets.QLabel()
             self.mp = QtWidgets.QLabel()

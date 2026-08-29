@@ -17,73 +17,9 @@ from videotrans.configure.config import ROOT_DIR, settings,  defaulelang,tr
 from videotrans.configure import config
 from videotrans.configure.contants import FASTER_MODELS_DICT
 
-# ==========================================
-# 1. 多语言配置区域
-# ==========================================
 
-# 可选: 'zh' (中文) | 'en' (English)
 from videotrans.util._ffmpeg_audio import conver_to_16k
 from videotrans.util.help_down import check_and_down_hf
-
-
-"""
-TEXT_DB = {
-    # 窗口与标题
-    "window_title": {"zh": "文稿匹配自动对齐", "en": "Force Alignment Text"},
-    "language": {"zh": "发音语言", "en": "Spoken Language"},
-
-    # 区域 1: 音频
-    "group_audio": {"zh": "1. 选择音频文件", "en": "1. Select Audio File"},
-    "no_audio_selected": {"zh": "未选择文件", "en": "No file selected"},
-    "btn_browse": {"zh": "浏览...", "en": "Browse..."},
-    "dialog_select_audio": {"zh": "选择音频", "en": "Select Audio"},
-
-    # 区域 2: 文本
-    "group_text": {"zh": "2. 输入文本内容 (文件或直接输入)", "en": "2. Input Text (File or Direct Input)"},
-    "no_txt_selected": {"zh": "未选择TXT文件", "en": "No TXT file selected"},
-    "btn_select_txt": {"zh": "选择TXT...", "en": "Select TXT..."},
-    "dialog_select_txt": {"zh": "选择文本", "en": "Select Text File"},
-    "label_paste_text": {"zh": "或者在下方粘贴文本 (优先使用输入框内容):", "en": "Or paste text below (Input box takes priority):"},
-    "placeholder_text": {"zh": "在此处粘贴纯文本内容...如果不填则读取上方选择的文件", "en": "Paste plain text here... If empty, the file above will be used."},
-    "btn_clear": {"zh": "清空内容", "en": "Clear Content"},  # 新增
-
-    # 区域 3: 设置
-    "group_settings": {"zh": "3. 模型设置", "en": "3. Model Settings"},
-    "label_model": {"zh": "模型:", "en": "Model:"},
-    "check_cuda": {"zh": "使用 CUDA 加速", "en": "Use CUDA Acceleration"},
-
-    # 区域 4: 操作
-    "btn_start": {"zh": "开始对齐生成 SRT", "en": "Start Alignment (Generate SRT)"},
-    "btn_open_dir": {"zh": "打开输出目录", "en": "Open Output Dir"}, # 新增
-    "btn_processing": {"zh": "处理中...", "en": "Processing..."},
-
-    # 状态与日志
-    "status_ready": {"zh": "准备就绪 (配置已加载)", "en": "Ready (Settings Loaded)"},
-    "status_init": {"zh": "正在初始化...", "en": "Initializing..."},
-    "status_loading_model": {"zh": "正在加载模型: {} (设备: {})...", "en": "Loading model: {} (Device: {})..."},
-    "status_cuda_fail": {"zh": "CUDA加载失败，尝试使用CPU (int8)...", "en": "CUDA failed, fallback to CPU (int8)..."},
-    "status_transcribing": {"zh": "正在识别音频 (Word Timestamps)...", "en": "Transcribing audio (Word Timestamps)..."},
-    "status_processing_seg": {"zh": "已处理 {} 个片段...", "en": "Processed {} segments..."},
-    "status_extracted": {"zh": "识别完成，共提取 {} 个字符时间点。", "en": "Transcription done. Extracted {} char timestamps."},
-    "status_building_map": {"zh": "正在构建文本映射...", "en": "Building text mapping..."},
-    "status_aligning": {"zh": "正在执行序列对齐算法...", "en": "Running sequence alignment..."},
-    "status_aligned": {"zh": "对齐完成，匹配了 {} 个字符。正在插值补全...", "en": "Alignment done. Matched {} chars. Interpolating..."},
-    "status_generating": {"zh": "正在生成 SRT 字幕...", "en": "Generating SRT subtitles..."},
-    "status_saved": {"zh": "完成！已保存至: {}", "en": "Done! Saved to: {}"},
-    "status_error": {"zh": "发生错误", "en": "Error Occurred"},
-
-    # 弹窗提示
-    "msg_warning": {"zh": "提示", "en": "Warning"},
-    "msg_error": {"zh": "错误", "en": "Error"},
-    "msg_success": {"zh": "成功", "en": "Success"},
-    "msg_select_audio_first": {"zh": "请先选择有效的音频文件。", "en": "Please select a valid audio file first."},
-    "msg_read_txt_fail": {"zh": "读取TXT文件失败: {}", "en": "Failed to read TXT file: {}"},
-    "msg_provide_text": {"zh": "请提供文本内容（直接输入或选择文件）。", "en": "Please provide text content (Input or File)."},
-    "msg_text_empty": {"zh": "文本内容不能为空。", "en": "Text content cannot be empty."},
-    "msg_save_fail": {"zh": "保存文件失败: {}", "en": "Failed to save file: {}"},
-    "msg_success_detail": {"zh": "SRT 字幕生成成功！\n文件已保存为:\n{}", "en": "SRT generated successfully!\nFile saved as:\n{}"}
-}
-"""
 
 
 

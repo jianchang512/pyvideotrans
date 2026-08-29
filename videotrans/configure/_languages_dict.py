@@ -163,7 +163,6 @@ EDGE_LANGUANGES_CODE = [
         "he",
         "bn",
         "fil",
-
         "af",
         "sq",
         "am",
@@ -198,7 +197,6 @@ EDGE_LANGUANGES_CODE = [
         "nb",
         "ps",
         "fa",
-
         "ro",
         "sr",
         "si",

@@ -77,7 +77,7 @@ class Ui_transapiform(object):
     # setupUi
 
     def retranslateUi(self, transapiform):
-        if defaulelang == 'zh':
+        if defaulelang == 'zh_CN':
             tips = """
 将以GET请求向填写的API地址发送application/www-urlencode数据：
 text:需要翻译的文本/字符串

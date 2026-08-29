@@ -223,7 +223,7 @@ heads = {
     "dubbing": "字幕配音调整",
     "prompt_init": "Whisper模型提示词"
 }
-if defaulelang != 'zh':
+if defaulelang != 'zh_CN':
     notices = {
         "common": {
             "lang": "Set the software's interface language. Requires a restart to take effect.",

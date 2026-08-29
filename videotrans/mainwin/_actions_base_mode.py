@@ -24,7 +24,7 @@ class WinActionBaseModeMixin:
         self.main.label_3.show()
         self.main.target_language.show()
         self.main.label.show()
-        if defaulelang == 'zh':
+        if defaulelang == 'zh_CN':
             self.main.proxy.show()
 
         self.main.tts_text.show()
@@ -87,7 +87,7 @@ class WinActionBaseModeMixin:
         self.main.label_3.show()
         self.main.target_language.show()
         self.main.label.show()
-        if defaulelang == 'zh':
+        if defaulelang == 'zh_CN':
             self.main.proxy.show()
 
         self.main.recogn2pass.hide()

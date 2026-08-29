@@ -6,7 +6,7 @@ import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
 from videotrans.task.taskcfg import SrtItem
-from videotrans.configure.config import logger, ROOT_DIR, defaulelang
+from videotrans.configure.config import logger, ROOT_DIR
 
 def openai_whisper(
         *,
@@ -35,7 +35,7 @@ def openai_whisper(
         device=f"cuda:{device_index}" if is_cuda else 'cpu'
 
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
-        msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
+        msg = f'Model {model_name} will be automatically downloaded'
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
 

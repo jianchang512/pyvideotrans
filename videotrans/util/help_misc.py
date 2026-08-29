@@ -60,7 +60,7 @@ def show_error(tb_str):
 
     # 添加一个标准的“OK”按钮
     ok_button = msg_box.addButton(QtWidgets.QMessageBox.StandardButton.Ok)
-    if defaulelang == 'zh':
+    if defaulelang == 'zh_CN':
         ok_button.setText("知道了")
 
     # 添加自定义的“报告错误”按钮
