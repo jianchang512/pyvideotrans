@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                                QComboBox, QCheckBox,  QMessageBox)
 from PySide6.QtCore import Qt, QThread, Signal, Slot, QSettings, QUrl
 
-from videotrans.configure.config import ROOT_DIR, settings,  defaulelang
+from videotrans.configure.config import ROOT_DIR, settings,  defaulelang,tr
 from videotrans.configure import config
 from videotrans.configure.contants import FASTER_MODELS_DICT
 
@@ -25,8 +25,8 @@ from videotrans.configure.contants import FASTER_MODELS_DICT
 from videotrans.util._ffmpeg_audio import conver_to_16k
 from videotrans.util.help_down import check_and_down_hf
 
-CURRENT_LANG = defaulelang
 
+"""
 TEXT_DB = {
     # 窗口与标题
     "window_title": {"zh": "文稿匹配自动对齐", "en": "Force Alignment Text"},
@@ -83,16 +83,9 @@ TEXT_DB = {
     "msg_save_fail": {"zh": "保存文件失败: {}", "en": "Failed to save file: {}"},
     "msg_success_detail": {"zh": "SRT 字幕生成成功！\n文件已保存为:\n{}", "en": "SRT generated successfully!\nFile saved as:\n{}"}
 }
+"""
 
 
-
-def tr(key, *args):
-    """翻译辅助函数"""
-    lang_dict = TEXT_DB.get(key, {})
-    text = lang_dict.get(CURRENT_LANG, key) # 默认回退到key本身
-    if args:
-        return text.format(*args)
-    return text
 
 # ==========================================
 # 2. 核心逻辑线程
@@ -345,7 +338,7 @@ class TextmatchingWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.settings = QSettings("MyTools", "WhisperForceAlign")
-        self.setWindowTitle(tr("window_title"))
+        self.setWindowTitle(tr("text_match_window_title"))
         self.resize(800, 700)
         self.worker = None
 
@@ -418,7 +411,7 @@ class TextmatchingWindow(QWidget):
         self.combo_model.setMinimumWidth(150)
         self.combo_model.addItems([ "large-v2", "large-v3","large-v3-turbo", "medium"])
         settings_layout.addWidget(self.combo_model)
-        settings_layout.addWidget(QLabel(tr("language")))
+        settings_layout.addWidget(QLabel(tr("Speech language")))
         self.language = QComboBox()
         self.language.setMinimumWidth(100)
         self.language.addItems(["auto", "zh", "en", "ja", "ko","ru","es","de","fr","it","pt","vi","th","ms","ar","kk","hi","hu","id","tr","nl","he","bn","ur","uk","nl","sw","yue"])

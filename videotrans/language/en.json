@@ -925,5 +925,51 @@
     "Initial prompt for the Whisper model for speech": "Initial prompt for the Whisper model for {} speech",
     "The subtitle line does not specify a voice actor": "The subtitle line {} does not specify a voice actor and no default character has been set. Please check!",
 	"none_effort":"default=No parameters set, follow the default settings of the remote model\nnone=Disable thinking",
-    "The voice actor has been cloned, but there is no": "The voice actor has been cloned, but there is no corresponding reference audio. Please choose a different voice actor."
+    "The voice actor has been cloned, but there is no": "The voice actor has been cloned, but there is no corresponding reference audio. Please choose a different voice actor.",
+"text_match_window_title":"Force Alignment Text",
+
+"group_audio":"1. Select Audio File",
+"no_audio_selected":"No file selected",
+"btn_browse":"Browse...",
+"dialog_select_audio":"Select Audio",
+
+"group_text":"2. Input Text (File or Direct Input)",
+"no_txt_selected":"No TXT file selected",
+"btn_select_txt":"Select TXT...",
+"dialog_select_txt":"Select Text File",
+"label_paste_text":"Or paste text below (Input box takes priority):",
+"placeholder_text":"Paste plain text here... If empty, the file above will be used.",
+"btn_clear": "Clear Content",
+
+"group_settings":"3. Model Settings",
+"label_model":"Model:",
+"check_cuda":"Use CUDA Acceleration",
+
+"btn_start":"Start",
+"btn_open_dir": "Open Output Dir",
+"btn_processing":"Processing...",
+
+"status_ready":"Ready (Settings Loaded)",
+"status_init":"Initializing...",
+"status_loading_model":"Loading model: {} (Device: {})...",
+"status_cuda_fail":"CUDA failed, fallback to CPU (int8)...",
+"status_transcribing":"Transcribing audio (Word Timestamps)...",
+"status_processing_seg":"Processed {} segments...",
+"status_extracted":"Transcription done. Extracted {} char timestamps.",
+"status_building_map":"Building text mapping...",
+"status_aligning":"Running sequence alignment...",
+"status_aligned":"Alignment done. Matched {} chars. Interpolating...",
+"status_generating":"Generating SRT subtitles...",
+"status_saved":"Done! Saved to: {}",
+"status_error":"Error Occurred",
+
+"msg_warning":"Warning",
+"msg_error":"Error",
+"msg_success":"Success",
+"msg_select_audio_first":"Please select a valid audio file first.",
+"msg_read_txt_fail":"Failed to read TXT file: {}",
+"msg_provide_text":"Please provide text content (Input or File).",
+"msg_text_empty":"Text content cannot be empty.",
+"msg_save_fail":"Failed to save file: {}",
+"msg_success_detail": "SRT generated successfully!\nFile saved as:\n{}"	
 }
