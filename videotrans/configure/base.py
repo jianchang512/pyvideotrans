@@ -8,8 +8,6 @@ from pathlib import Path
 from typing import Optional
 from videotrans.configure.config import tr, settings, app_cfg, logger, push_queue, TEMP_ROOT
 from videotrans.util.help_misc import set_proxy,vail_file
-import sys
-
 
 
 @dataclass

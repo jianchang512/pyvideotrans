@@ -43,7 +43,7 @@ class Gemini(BaseTrans):
                 )
 
             )
-            model = params.get("gemini_model","gemini-2.5-flash")
+            model = params.get("gemini_model","gemini-flash-latest")
             message=self.prompt.replace('{batch_input}', f'{text}')
             contents = [
                 types.Content(
@@ -59,7 +59,7 @@ class Gemini(BaseTrans):
             if model.lower().startswith('gemini-2'):
                 think_cfg=types.ThinkingConfig(
                         thinking_budget=24576,
-                    )
+                )
                 
             generate_content_config = types.GenerateContentConfig(
                 temperature=float(settings.get('aitrans_temperature',0.1)),
@@ -91,21 +91,18 @@ class Gemini(BaseTrans):
             if model.startswith('gemini-1.') or model.startswith('gemini-2.0'):            
                 generate_content_config = types.GenerateContentConfig()
 
-            result = ""
-            for chunk in client.models.generate_content_stream(
+            result = client.models.generate_content(
                 model=model,
                 contents=contents,
                 config=generate_content_config,
-            ):
-                result+=chunk.text if chunk.text else ""
-                     
-            logger.debug(f'{result=}')
+            )
+
             if not result:
                 logger.warning(f'[gemini]请求失败')
                 raise TranslateSrtError(f"[Gemini]result is empty")
-                
+
             match = re.search(r'<TRANSLATE_TEXT>(.*?)(?:</TRANSLATE_TEXT>|$)',
-                              re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S), re.S | re.I)
+                              re.sub(r'<think>(.*?)</think>', '', result.text, flags=re.I | re.S), re.S | re.I)
             if match:
                 return match.group(1)
             raise TranslateSrtError(f"Gemini result is emtpy")

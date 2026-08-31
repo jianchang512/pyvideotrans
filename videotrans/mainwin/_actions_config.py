@@ -3,6 +3,7 @@ from pathlib import Path
 from videotrans import translator, recognition, tts
 from videotrans.configure import contants
 from videotrans.configure.config import tr, settings, app_cfg
+from videotrans.recognition import ALLOW_CHANGE_MODEL, get_model_by_type
 from videotrans.util.help_misc import show_error
 from videotrans.util.help_role import role_menu
 
@@ -33,10 +34,7 @@ class WinActionConfigMixin:
         if recogn_type == recognition.Faster_Whisper_XXL and not self.show_xxl_select():
             return
 
-        if recogn_type not in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,
-                               recognition.FUNASR_CN, recognition.Deepgram, recognition.Whisper_CPP,
-                               recognition.WHISPERX_API, recognition.HUGGINGFACE_ASR, recognition.QWENASR,
-                               recognition.WHISPER_NET]:
+        if recogn_type not in ALLOW_CHANGE_MODEL:
 
             self.main.model_name.setDisabled(True)
             self.main.model_name_help.setDisabled(True)
@@ -44,23 +42,7 @@ class WinActionConfigMixin:
             self.main.model_name_help.setDisabled(False)
             self.main.model_name.setDisabled(False)
             self.main.model_name.clear()
-            if recogn_type in [recognition.FASTER_WHISPER, recognition.OPENAI_WHISPER, recognition.Faster_Whisper_XXL,
-                               recognition.WHISPERX_API]:
-                self.main.model_name.addItems(
-                    settings.get('model_list','').split(',') if recogn_type != recognition.OPENAI_WHISPER else contants.Openai_Whisper_Models.split(','))
-            elif recogn_type == recognition.Deepgram:
-                self.main.model_name.addItems(contants.DEEPGRAM_MODEL)
-            elif recogn_type == recognition.Whisper_CPP:
-                self.main.model_name.addItems(settings.get('Whisper_cpp_models','').split(','))
-            elif recogn_type == recognition.WHISPER_NET:
-                self.main.model_name.addItems(settings.get('Whisper_net_models','').split(','))
-
-            elif recogn_type == recognition.QWENASR:
-                self.main.model_name.addItems(recognition.get_model_by_type(recognition.QWENASR))
-            elif recogn_type == recognition.HUGGINGFACE_ASR:
-                self.main.model_name.addItems(list(recognition.HUGGINGFACE_ASR_MODELS.keys()))
-            else:
-                self.main.model_name.addItems(contants.FUNASR_MODEL)
+            self.main.model_name.addItems(get_model_by_type(recogn_type))
 
         lang = translator.get_code(show_text=self.main.source_language.currentText())
 

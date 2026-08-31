@@ -4,6 +4,7 @@ from typing import Union, List, Type
 from videotrans import winform, ChannelProvider, get_class
 from videotrans.configure import contants
 from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR, settings
+from videotrans.configure.contants import Qwenasr_Models
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 
@@ -42,10 +43,13 @@ WHISPER_NET = 26
 CUSTOM_API = 27
 
 # 允许切换不同模型的渠道
-ALLOW_CHANGE_MODEL = [FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
+ALLOW_CHANGE_MODEL = [
+    FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
                       OPENAI_WHISPER, FUNASR_CN, Deepgram,
                       WHISPERX_API, HUGGINGFACE_ASR, QWENASR,
-                      WHISPER_NET]
+                      WHISPER_NET,QWEN3ASR
+
+]
 
 # 渠道id对应的设置窗口和sk键名, key_name: 存储SK或api url的键，(app_cfg.params),win:对应winform中的映射
 _ID_NAME_DICT = {
@@ -146,6 +150,8 @@ def get_model_by_type(recogn_type: int) -> List[str]:
         return list(HUGGINGFACE_ASR_MODELS.keys())
     if recogn_type == OPENAI_WHISPER:
         return contants.Openai_Whisper_Models.split(',')
+    if recogn_type == QWEN3ASR:
+        return Qwenasr_Models.split(',')
 
     return settings.get('model_list','').split(',')
 

@@ -9,7 +9,7 @@ import json,time,os
 from concurrent.futures import ThreadPoolExecutor
 
 @dataclass
-class OmniVoice(BaseTTS):
+class HiggsVoice(BaseTTS):
 
 
     def _download(self):
@@ -20,6 +20,12 @@ class OmniVoice(BaseTTS):
                     "multimodalart--higgs-audio-v3-tts-4b-transformers",
                     'multimodalart/higgs-audio-v3-tts-4b-transformers',
                     f'{ROOT_DIR}/models/models--multimodalart--higgs-audio-v3-tts-4b-transformers',
+                    callback=self._process_callback,
+            )
+        help_down.check_and_down_hf(
+                    "bosonai--higgs-audio-v2-tokenizer",
+                    'bosonai/higgs-audio-v2-tokenizer',
+                    f'{ROOT_DIR}/models/models--bosonai--higgs-audio-v2-tokenizer',
                     callback=self._process_callback,
             )
 

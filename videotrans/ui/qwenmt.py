@@ -85,16 +85,6 @@ class Ui_qwenmtform(object):
         h_model.addWidget(self.qwenmt_model)
         v1.addLayout(h_model)
 
-        h_asr_model = QtWidgets.QHBoxLayout()
-        label_asr_selectmodel = QtWidgets.QLabel()
-        label_asr_selectmodel.setObjectName("label_asr_selectmodel")
-        label_asr_selectmodel.setText(tr("Speech recognition model (must start with qwen3-asr)"))
-        self.qwenmt_asr_model = QtWidgets.QComboBox()
-        self.qwenmt_asr_model.setMinimumSize(QtCore.QSize(0, 35))
-        self.qwenmt_asr_model.setObjectName("qwenmt_asr_model")
-        h_asr_model.addWidget(label_asr_selectmodel)
-        h_asr_model.addWidget(self.qwenmt_asr_model)
-        v1.addLayout(h_asr_model)
 
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
@@ -143,10 +133,8 @@ class Ui_qwenmtform(object):
         allmodels_str = settings.get('qwenmt_model','')
         allmodels = str(settings.get('qwenmt_model','')).split(',')
         self.qwenmt_model.clear()
-        self.qwenmt_asr_model.clear()
-        
+
         self.qwenmt_model.addItems([ it  for it in allmodels if "-asr" not in it])
-        self.qwenmt_asr_model.addItems([ it  for it in allmodels if "-asr" in it])
         self.edit_allmodels.setPlainText(allmodels_str)
         
 
@@ -157,17 +145,11 @@ class Ui_qwenmtform(object):
         if params["qwenmt_model"] and params['qwenmt_model'] not in allmodels:
             params['qwenmt_model']='qwen-mt-turbo'
             params.save()
-        if params['qwenmt_asr_model'] and params['qwenmt_asr_model'] not in allmodels:
-            params['qwenmt_asr_model']='qwen3-asr-flash'
-            params.save()
 
-        if '-asr' in params['qwenmt_asr_model']:
-            self.qwenmt_asr_model.setCurrentText(params["qwenmt_asr_model"])
-        else:
-            self.qwenmt_model.setCurrentText(params["qwenmt_model"])
+        self.qwenmt_model.setCurrentText(params["qwenmt_model"])
         
 
     def retranslateUi(self, qwenmtform):
-        qwenmtform.setWindowTitle(tr("Ali-BaiLian API/Qwen3-ASR AI"))
+        qwenmtform.setWindowTitle(tr("Ali-BaiLian API/Qwen-ASR AI"))
         self.label_2.setText(f"{tr('Ali-Bailian')} {tr('SK')}")
         self.set.setText(tr("Save"))

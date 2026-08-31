@@ -9,7 +9,7 @@ from typing import Dict
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure._logging import _write_with_retry
 from videotrans.configure.contants import (
-    DEFAULT_GEMINI_MODEL, OPENAITTS_ROLES, GEMINI_TTS_MODELS,
+    DEFAULT_GEMINI_MODEL, OPENAITTS_ROLES, GEMINI_TTS_MODELS,GEMINI_ASR_MODELS,
     XIAOMI_MODELS, XIAOMI_TTS_MODELS, ELEVENLABS_TTS_MODELS,
     MINIMAX_TTS_MODELS, MINIMAX_MODELS
 )
@@ -118,6 +118,7 @@ class AppParams:
             "gemini_maxtoken": 32768,
             "gemini_ttsstyle": "",
             "gemini_ttsmodel": GEMINI_TTS_MODELS.split(',')[0],
+            "gemini_asrmodel": GEMINI_ASR_MODELS.split(',')[0],
             "localllm_api": "",
             "localllm_key": "",
             "localllm_model": str(_settings.get('localllm_model', '-')).strip().split(',')[0],
@@ -151,7 +152,6 @@ class AppParams:
             "qwenmt_spaceid": "",
             "qwenmt_domains": "",
             "qwenmt_model": "qwen-mt-turbo",
-            "qwenmt_asr_model": "qwen3-asr-flash",
             "qwenttslocal_prompt": "",
             "ai302_key": "",
             "ai302_model": "",

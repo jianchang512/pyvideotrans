@@ -2,7 +2,7 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
 from videotrans.configure.config import tr,ROOT_DIR, params,settings
-from videotrans.configure.contants import GEMINI_TTS_MODELS
+from videotrans.configure.contants import GEMINI_TTS_MODELS,GEMINI_ASR_MODELS
 from videotrans.util.help_misc import open_url
 
 
@@ -102,7 +102,24 @@ class Ui_geminiform(object):
         self.ttsmodel.addItems(GEMINI_TTS_MODELS.split(','))
         h2ttsmodel.addWidget(self.label_ttsmodel)
         h2ttsmodel.addWidget(self.ttsmodel)
+        
+        h3asrmodel = QtWidgets.QHBoxLayout()
+        self.label_asrmodel = QtWidgets.QLabel()
+        self.label_asrmodel.setObjectName("label_asrmodel")
+        self.label_asrmodel.setText('ASR model')
+
+        self.asrmodel = QtWidgets.QComboBox()
+        self.asrmodel.setMinimumSize(QtCore.QSize(0, 35))
+        self.asrmodel.setObjectName("asrmodel")
+        self.asrmodel.addItems(GEMINI_ASR_MODELS.split(','))
+        h3asrmodel.addWidget(self.label_asrmodel)
+        h3asrmodel.addWidget(self.asrmodel)
+        
+        
+        
+        
         v1.addLayout(h2ttsmodel)
+        v1.addLayout(h3asrmodel)
 
         h3 = QtWidgets.QHBoxLayout()
         self.set_gemini = QtWidgets.QPushButton()
@@ -142,6 +159,7 @@ class Ui_geminiform(object):
         self.gemini_maxtoken.setText(str(params.get("gemini_maxtoken",'16384')))
 
         self.ttsmodel.setCurrentText(str(params.get("gemini_ttsmodel",'')))
+        self.asrmodel.setCurrentText(str(params.get("gemini_asrmodel",'')))
 
     def retranslateUi(self):
         

@@ -79,7 +79,7 @@ def get_speech_timestamp(input_wav=None,
     try:
         sr, data = Wavfile.read(input_wav)
     except Exception as e:
-        msg = traceback.format_exc()
+        logger.exception(e,exc_info=True)
         return None
 
     # 动态计算每帧时长
@@ -164,7 +164,7 @@ def get_speech_timestamp(input_wav=None,
         _s=merged.pop(0)
 
     if len(merged)>1 and merged[-1][1]-merged[-1][0]<1000:
-        _emerged.pop(-1)
+        _e=merged.pop(-1)
     
     
     if _s:

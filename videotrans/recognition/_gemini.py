@@ -26,8 +26,8 @@ class GeminiRecogn(BaseRecogn):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _req(self,seg_group,api_key,prompt):
-        res_text = ""
         try:
+            logger.debug(f'{self.proxy_str=}')
             client = genai.Client(
                 api_key=api_key,
                 http_options = types.HttpOptions(
@@ -45,11 +45,11 @@ class GeminiRecogn(BaseRecogn):
                 )
             parts.append(types.Part.from_text(text=prompt))
 
-            logger.debug(f'发送音频到Gemini:prompt={prompt},{seg_group=}')
+            logger.debug(f'发送音频到Gemini:prompt={prompt}')
             generate_content_config = types.GenerateContentConfig(
                 max_output_tokens=65536,
                 thinking_config=types.ThinkingConfig(
-                    thinking_budget=1,
+                        thinking_level="HIGH",
                 ),
                 safety_settings=[
                     types.SafetySetting(
@@ -76,23 +76,23 @@ class GeminiRecogn(BaseRecogn):
                     parts=parts
                 )
             ]
-            
-            for chunk in client.models.generate_content_stream(
-                    model='gemini-flash-latest',
+            _m=params.get("gemini_asrmodel","gemini-flash-latest")
+
+            res=client.models.generate_content(
+                    model=_m,
                     contents=contents,
                     config=generate_content_config,
+            )
 
-            ):
-                if chunk.text is None:
-                    continue
-                res_text += chunk.text
-            return res_text
+            return res.text
         except httpx.ConnectTimeout as e:
             raise StopTask(f' {tr("Unable to connect to remote API","Gemini AI")}\n{e}') from e
         except errors.APIError as e:
+            logger.error(str(e))
             if e.code in [400,403,404,429,500]:
                 raise StopRetry(e.message)
             return ''
+
     def _exec(self)->Union[List[SrtItem], None]:
         seg_list = self.cut_audio()
         if len(seg_list) < 1:

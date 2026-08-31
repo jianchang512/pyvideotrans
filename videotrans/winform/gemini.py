@@ -19,6 +19,7 @@ def openwin():
         params["gemini_model"] = winobj.model.currentText()
         params["gemini_maxtoken"] = winobj.gemini_maxtoken.text()
         params["gemini_ttsmodel"] = winobj.ttsmodel.currentText()
+        params["gemini_asrmodel"] = winobj.asrmodel.currentText()
         params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.GEMINI_INDEX)
@@ -30,6 +31,7 @@ def openwin():
         params["gemini_model"] = winobj.model.currentText()
         params["gemini_maxtoken"] = winobj.gemini_maxtoken.text()
         params["gemini_ttsmodel"] = winobj.ttsmodel.currentText()
+        params["gemini_asrmodel"] = winobj.asrmodel.currentText()
         params.save()
         winobj.close()
 

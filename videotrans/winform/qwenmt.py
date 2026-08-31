@@ -21,7 +21,6 @@ def openwin():
         params["qwenmt_key"] = key
         params["qwenmt_spaceid"] = winobj.qwenmt_spaceid.text().strip()
         params["qwenmt_model"] = winobj.qwenmt_model.currentText()
-        params["qwenmt_asr_model"] = winobj.qwenmt_asr_model.currentText()
         params["qwenmt_domains"] = winobj.qwenmt_domains.text()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
@@ -33,7 +32,6 @@ def openwin():
         params["qwenmt_key"] = winobj.qwenmt_key.text().strip()
         params["qwenmt_spaceid"] = winobj.qwenmt_spaceid.text().strip()
         params["qwenmt_model"] = winobj.qwenmt_model.currentText()
-        params["qwenmt_asr_model"] = winobj.qwenmt_asr_model.currentText()
         params["qwenmt_domains"] = winobj.qwenmt_domains.text()
         params.save()
         winobj.close()
