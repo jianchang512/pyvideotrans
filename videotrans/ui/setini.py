@@ -7,7 +7,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QFileDialog
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, defaulelang
-from videotrans.configure.contants import LANG_CODE
+from videotrans.configure.contants import LANG_CODE, Whisper_Models
 
 # ultrafast 、 superfast 、 veryfast 、 faster 、 fast 、 medium （默认）、 slow和veryslow
 # 处理速度越来越慢，输出视频压缩率和质量越来越高，视频尺寸也将变小
@@ -58,9 +58,11 @@ notices = {
         "no_speech_threshold": "减小可降低幻觉但可能遗漏文字",
         "max_speech_duration_s": "最长语音持续时长(秒),限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒",
         "min_speech_duration_ms": "最短语音持续时长(毫秒)，如果某条字幕时长小于该ms，则尝试将该字幕合并进相邻字幕中，单位是毫秒",
+        "min_silence_duration_ms": "在语音结束时，需等待的静音时间达到此值后，才会分割出语音片段。填写数字，单位ms\n也就是只在大于此值的静音片段处分割",
+
         "max_speech_duration_s2": "二次识别最长语音持续时长(秒),限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒",
         "min_speech_duration_ms2": "二次识别最短语音持续时长(毫秒)，如果某条字幕时长小于该ms，则尝试将该字幕合并进相邻字幕中，单位是毫秒",
-        "min_silence_duration_ms": "在语音结束时，需等待的静音时间达到此值后，才会分割出语音片段。填写数字，单位ms\n也就是只在大于此值的静音片段处分割",
+        "model_for_recogn2":"二次识别所用模型(固定使用faster-whisper渠道)",
 
         "merge_short_sub": "只有选中该项，才会合并短字幕",
         "whisper_prepare": "是否提前将音频切割为句子片段后再发给whisper模型识别?\n若使用clone配音角色，请选中，并将最短语音设为3000，最大语音设为10，提供语音克隆可靠性",
@@ -157,6 +159,7 @@ titles = {
     "hf_token": "Huggingface的token",
 
     "show_more_settings": "主界面显示所有参数?",
+    "model_for_recogn2":"二次识别所用模型",
 
     "edgetts_max_concurrent_tasks": "EdgeTTS配音渠道配音并发数",
     "edgetts_retry_nums": "EdgeTTS配音渠道失败重试次数",
@@ -266,7 +269,7 @@ if defaulelang != 'zh_CN':
             "max_speech_duration_s": "VAD: Maximum duration (s) of a single speech segment before splitting.",
             "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle.",
             "min_silence_duration_ms": "VAD: Minimum silence duration (ms) to mark the end of a segment.",
-
+            "model_for_recogn2":"The model used for secondary recognition (always using the Faster-Whisper channel)",
 
             "max_speech_duration_s2": "Maximum speech duration (seconds) during secondary recognition. Limits the maximum length of a single speech segment. Forced segmentation occurs if this length is exceeded. Enter a number in seconds.",
             "min_speech_duration_ms2": "Shortest speech duration (milliseconds) during secondary recognition. If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle. Unit: milliseconds.",
@@ -351,6 +354,8 @@ if defaulelang != 'zh_CN':
         "uvr_models": "BGM separation model",
         "del_end_punc": "Remove punctuation at end subtitles?",
         "out_video_ext": "Output video format (mp4/mkv)",
+
+        "model_for_recogn2":"The model used for secondary recognition",
         
         "asr_wait": "Cloud API pauses after each recognition/Seconds",
 
@@ -442,7 +447,7 @@ class Ui_setini(object):
             settings.save()
 
     def _is_comboBox(self,key):
-        return key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset','lang','uvr_models','out_video_ext',"fps_mode","device_name"]
+        return key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset','lang','uvr_models','out_video_ext',"fps_mode","device_name","model_for_recogn2"]
 
     def _get_comboBox(self, key) -> List[str]:
         data = {
@@ -479,7 +484,8 @@ class Ui_setini(object):
                 'UVR-MDX-NET-Inst_3'
             ],
             "out_video_ext": ['.mp4', '.mkv'],
-            "device_name":['auto','cuda','cpu','mps','xpu','cuda:0','cuda:1','cuda:2','cuda:3']
+            "device_name":['auto','cuda','cpu','mps','xpu','cuda:0','cuda:1','cuda:2','cuda:3'],
+            "model_for_recogn2":Whisper_Models.split(',')
         }
 
         return data.get(key, [""])

@@ -5,6 +5,8 @@
 import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
+
+from videotrans.configure._paths import TEMP_ROOT
 from videotrans.task.taskcfg import SrtItem
 from videotrans.configure.config import logger, ROOT_DIR
 
@@ -80,6 +82,7 @@ def openai_whisper(
                 condition_on_previous_text=condition_on_previous_text
             )
             i = 0
+            Path(f'{TEMP_ROOT}/detect_language_source_{kw.get("uuid")}.txt').write_text(result['language'])
             for segment in result['segments']:
                 # 时间戳大于总时长，出错跳过
                 if segment['end'] > last_end_time:
@@ -114,6 +117,7 @@ def openai_whisper(
                 compression_ratio_threshold=compression_ratio_threshold,
                 condition_on_previous_text=condition_on_previous_text
             )
+            Path(f'{TEMP_ROOT}/detect_language_source_{kw.get("uuid")}.txt').write_text(segments['language'])
             texts = []
             i = 0
             for segment in segments['segments']:

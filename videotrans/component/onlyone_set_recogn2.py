@@ -319,7 +319,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
             h_header.setSectionResizeMode(2, QHeaderView.Fixed)
             h_header.setSectionResizeMode(3, QHeaderView.Fixed)
 
-            self.table.setColumnWidth(0, 50)
+            self.table.setColumnWidth(0, 120)
             self.table.setColumnWidth(1, 120)
             self.table.setColumnWidth(2, 120)
             self.table.setColumnWidth(3, 30)
@@ -362,7 +362,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
         for row in range(start_row, end_row):
             data = self.display_data[row]
 
-            item0 = QTableWidgetItem(str(data['line']))
+            item0 = QTableWidgetItem(str(data['line']) +f'({(data["end_time"]-data["start_time"])/1000.0}s)'  )
             item0.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 0, item0)
 

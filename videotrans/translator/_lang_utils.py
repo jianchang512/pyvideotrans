@@ -29,7 +29,7 @@ def get_code(show_text=None):
     from videotrans.configure.contants import EDGET_LANGUAGES_NAME2CODE
     if show_text in EDGET_LANGUAGES_NAME2CODE:
         return EDGET_LANGUAGES_NAME2CODE.get(show_text)
-    return show_text
+    return show_text if show_text!=tr('auto') else 'auto'
 
 
 # 根据显示的语言和翻译通道，获取该翻译通道要求的源语言代码和目标语言代码
@@ -62,7 +62,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
 
     # 均未找到，可能是新增语言代码
     if not source_list and not target_list:
-        return show_source, show_target  # 返回原始输入
+        return show_source if show_source!=tr('auto') else 'auto', show_target  # 返回原始输入
 
     # 未设置渠道则使用 Google
     if not translate_type or translate_type in [GOOGLE_INDEX, TRANSAPI_INDEX, CAMB_INDEX]:
@@ -97,7 +97,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return source_list[8] if source_list else show_source, target_list[8] if target_list else show_target
     if translate_type == M2M100_INDEX:
         return source_list[10] if source_list else show_source, target_list[10] if target_list else show_target
-    return show_source, show_target
+    return show_source if show_source!=tr('auto') else 'auto', show_target
 
 
 
@@ -146,7 +146,6 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
             target_list = LANG_CODE['zh-cn']
 
         if target_list and target_list[index] == 'No':
-
             return tr('deepl_nosupport') + f':{show_target}' if return_str else show_error(
                 tr('deepl_nosupport') + f':{show_target}')
     return True
@@ -155,10 +154,11 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
 # 获取用于进行语音识别的预设语言，比如语音是英文发音、中文发音
 # 根据 原语言进行判断,基本等同于google，但只保留_之前的部分
 def get_audio_code(*, show_source=None):
-    if not show_source or show_source in ['auto', '-']:
+    if not show_source or show_source in ['auto', '-','No']:
         return 'auto'
     source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE.get(
         LANGNAME_DICT_REV.get(show_source))
+
     return source_list[0] if source_list else "auto"
 
 

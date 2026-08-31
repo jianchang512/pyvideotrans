@@ -59,6 +59,8 @@ def _set_env():
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
     os.environ["CT2_VERBOSE"] = "1"
+    os.environ["CT2_CUDA_ALLOW_BF16"] = "1"
+    os.environ["CT2_CUDA_ALLOW_FP16"] = "1"
     os.environ["OMP_NUM_THREADS"] = "1"
     os.environ["PYTHONWARNINGS"]="ignore"
     os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"

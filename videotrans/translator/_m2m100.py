@@ -37,11 +37,10 @@ class M2M100Trans(BaseTrans):
             device="cpu" if not torch.cuda.is_available() else "cuda"
         self.model = ctranslate2.Translator(
             model_path=f'{ROOT_DIR}/models/m2m100_12b',
-            device=device,
-            device_index=0,
+            device=device
         )
         self.model.load_model()
-        self.sentence_piece_processor = spm.SentencePieceProcessor(model_file=f'{ROOT_DIR}/models/m2m100_12b/sentencepiece.model')
+        self.sentence_piece_processor = spm.SentencePieceProcessor(f'{ROOT_DIR}/models/m2m100_12b/sentencepiece.model')
         return True
 
     def _unload(self):

@@ -81,6 +81,7 @@ class Ui_recogn(object):
         self.remove_noise = QtWidgets.QCheckBox()
 
 
+
         self.horizontalLayout.addStretch()
         self.horizontalLayout.addWidget(self.is_cuda)
         self.horizontalLayout.addWidget(self.remove_noise)

@@ -287,8 +287,8 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             header = self.table.horizontalHeader()
             header.setSectionResizeMode(0, QHeaderView.Fixed)  # Sel
             header.setSectionResizeMode(1, QHeaderView.Fixed)  # ID
-            header.setSectionResizeMode(2, QHeaderView.Fixed)  # Spk
-            header.setSectionResizeMode(3, QHeaderView.Fixed)  # Role
+            header.setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Spk
+            header.setSectionResizeMode(3, QHeaderView.ResizeToContents)  # Role
             header.setSectionResizeMode(4, QHeaderView.Fixed)  # Time
             header.setSectionResizeMode(5, QHeaderView.Fixed)  # Time
             header.setSectionResizeMode(6, QHeaderView.Fixed)  # Play
@@ -296,7 +296,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             header.setSectionResizeMode(8, QHeaderView.Stretch)  # SourceText
             
             self.table.setColumnWidth(0, 30)
-            self.table.setColumnWidth(1, 40)
+            self.table.setColumnWidth(1, 120)
             self.table.setColumnWidth(2, 100)
             self.table.setColumnWidth(3, 150)
             self.table.setColumnWidth(4, 125)
@@ -374,7 +374,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             self.table.setItem(row, 0, chk_item)
             
             # 第1列：ID（只读）
-            id_item = QTableWidgetItem(str(data['line']))
+            id_item = QTableWidgetItem(str(data['line'])+ f'({(data["end_time"]-data["start_time"])/1000.0}s)' )
             id_item.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 1, id_item)
             

@@ -81,7 +81,7 @@ class QwenMT(BaseTrans):
             self.api_url=self.api_url.replace('/api/v1','/compatible-mode/v1')
         elif not self.api_url.endswith('/v1'):
             self.api_url=self.api_url+'/compatible-mode/v1'
-        print(f'{self.api_url=}')
+
         self.prompt = get_prompt(ainame='bailian',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name).replace('{lang_prompt}',self.lang_prompt)
         message = [
             {

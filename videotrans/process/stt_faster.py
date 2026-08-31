@@ -5,6 +5,9 @@
 import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
+
+from videotrans.configure._paths import TEMP_ROOT
+from videotrans.process._stt_utils import _resegment2
 from videotrans.task.taskcfg import SrtItem
 from videotrans.configure.config import logger
 
@@ -137,6 +140,7 @@ def faster_whisper(
                 language=detect_language.split('-')[0] if detect_language and detect_language != 'auto' else None,
                 initial_prompt=prompt
             )
+            Path(f'{TEMP_ROOT}/detect_language_source_{kw.get("uuid")}.txt').write_text(info.language)
             i = 0
             logger.debug(f'faster-whisper模式下，预先使用VAD分割音频，对{model_name}模型返回的文字结果直接使用')
             for segment in segments:
@@ -209,7 +213,14 @@ def faster_whisper(
                 msg=f"No human voice detected. Please confirm that human speech is present in the original file. [{info.duration_after_vad=}s].\n{_kw=}\n{info=}"
                 logger.error(msg)
                 return False, msg
-            raws = _resegment(texts, info.language, max_speech_ms, logs_file)
+            recogn2_max_speech,recogn2_min_speech=kw.get('recogn2_max_speech'), kw.get('recogn2_min_speech')
+            if recogn2_max_speech and recogn2_min_speech:
+                logger.debug(f'进入二次识别重新断句:{recogn2_min_speech=},{recogn2_max_speech=},\n{texts=}\n')
+                raws = _resegment2(texts, info.language, recogn2_max_speech,recogn2_min_speech, logs_file)
+                logger.debug(f'二次识别断句后：{raws=}')
+            else:
+                raws = _resegment(texts, info.language, max_speech_ms, logs_file)
+                Path(f'{TEMP_ROOT}/detect_language_source_{kw.get("uuid")}.txt').write_text(info.language)
             if jianfan and raws:
                 for it in raws:
                     it['text'] = zhconv.convert(it['text'], 'zh-hans')

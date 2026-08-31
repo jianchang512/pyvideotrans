@@ -68,7 +68,7 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
         self.languagename = list(LANGNAME_DICT.values())
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
         self.source_language.addItems(self.languagename)
-        self.target_language.addItems(["-"] + self.languagename)
+        self.target_language.addItems(["-"] + self.languagename[:-1])
 
         self.tts_type.addItems(tts.TTS_NAME_LIST)
         self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)

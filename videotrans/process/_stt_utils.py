@@ -1,15 +1,179 @@
 import json, re
-from typing import List
 from videotrans.task.taskcfg import SrtItem
+from typing import List, Dict, Any, Optional
 
 from ._utils import _write_log
 
+# --- 辅助函数：将毫秒转换为 SRT 标准时间格式 HH:MM:SS,mmm ---
+def format_srt_time(ms_time):
+    ms_time = int(ms_time)
+    seconds, milliseconds = divmod(ms_time, 1000)
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
 
 def _remove_unwanted_characters(text: str) -> str:
     # 保留中文、日文、韩文、英文、数字和常见符号，去除其他字符
     allowed_characters = re.compile(r'<\|\w+\|>')
     return re.sub(allowed_characters, '', text)
 
+"""
+texts=[
+{
+                    "text": 句子,
+                    "start": 开始秒,
+                    "end": 结束秒,
+                    "words": [{'word': 单词或单个字, 'start': 开始秒, 'end': 结束秒}...]
+},
+....
+
+
+max_speech_ms=允许的最长时长ms
+min_speech_ms=最短时长ms
+language=语言代码，zh,ja,en等
+"""
+
+
+
+def _resegment2(texts: List[Dict[str, Any]], language: str, max_speech_ms: int, min_speech_ms: int, logs_file=None) -> List[Any]:
+    if not texts:
+        return []
+
+    # --- 1. 语言连接规则与标点判定 ---
+    no_space_langs = {'zh', 'ja', 'th', 'yue', 'ko', 'km'}
+    use_space = language.lower() not in no_space_langs
+
+    end_punc = set('.?!。？！\n')
+    comma_punc = set(',;:，；：、')
+
+    # --- 2. 展平并标准化字词数据 (转为毫秒) ---
+    all_words = []
+    for item in texts:
+        words = item.get('words', [])
+        if words:
+            for w in words:
+                word_text = str(w.get('word', ''))
+                if not word_text:
+                    continue
+                start_ms = int(round(float(w['start']) * 1000))
+                end_ms = int(round(float(w['end']) * 1000))
+                all_words.append({
+                    'word': word_text,
+                    'start_ms': start_ms,
+                    'end_ms': max(start_ms, end_ms)
+                })
+        else:
+            # 降级容错：如果没有字级时间戳，把整个 text 当作一个整体 word
+            text = str(item.get('text', '')).strip()
+            if text:
+                start_ms = int(round(float(item['start']) * 1000))
+                end_ms = int(round(float(item['end']) * 1000))
+                all_words.append({
+                    'word': text,
+                    'start_ms': start_ms,
+                    'end_ms': max(start_ms, end_ms)
+                })
+
+    if not all_words:
+        return []
+
+    # --- 3. 核心切分逻辑 ---
+    raw_chunks = []
+    cur_chunk = []
+
+    for i, word in enumerate(all_words):
+        if not cur_chunk:
+            cur_chunk.append(word)
+            continue
+
+        prev_word = cur_chunk[-1]
+
+        # 停顿与时长计算 (ms)
+        gap_ms = max(0, word['start_ms'] - prev_word['end_ms'])
+        cur_start = cur_chunk[0]['start_ms']
+        cur_duration = prev_word['end_ms'] - cur_start
+        new_duration = word['end_ms'] - cur_start
+
+        # 标点判定
+        prev_text = prev_word['word'].rstrip()
+        has_end_punc = any(prev_text.endswith(p) for p in end_punc)
+        has_comma_punc = any(prev_text.endswith(p) for p in comma_punc)
+
+        split = False
+
+        # 规则 A: 超过最大允许时长，强制在此切分 (Hard limit)
+        if new_duration > max_speech_ms:
+            split = True
+
+        # 规则 B: 明显的较长静音停顿 (>= 800ms)，属于天然断句点
+        elif gap_ms >= 800 and cur_duration >= min(min_speech_ms, 800):
+            split = True
+
+        # 规则 C: 达到最短时长要求后的断句优化 (优先按静音/标点)
+        elif cur_duration >= min_speech_ms:
+            if gap_ms >= 350:  # 字词间有明显小停顿
+                split = True
+            elif has_end_punc:  # 遇到完整句号/问号/感叹号
+                split = True
+            elif has_comma_punc and (gap_ms >= 150 or cur_duration >= (min_speech_ms + max_speech_ms) // 2):
+                # 遇到逗号且有轻微停顿，或者句长已达到中间适中长度
+                split = True
+
+        if split:
+            raw_chunks.append(cur_chunk)
+            cur_chunk = [word]
+        else:
+            cur_chunk.append(word)
+
+    if cur_chunk:
+        raw_chunks.append(cur_chunk)
+
+    # --- 4. 碎片短句回退合并 (避免末尾出现闪烁的极短字幕) ---
+    merged_chunks = []
+    for chunk in raw_chunks:
+        if not merged_chunks:
+            merged_chunks.append(chunk)
+            continue
+
+        dur = chunk[-1]['end_ms'] - chunk[0]['start_ms']
+        prev_dur = merged_chunks[-1][-1]['end_ms'] - merged_chunks[-1][0]['start_ms']
+        combined_dur = chunk[-1]['end_ms'] - merged_chunks[-1][0]['start_ms']
+
+        # 如果当前片段短于 min_speech_ms，且合并后不超过 max_speech_ms，则合并
+        if dur < min_speech_ms and combined_dur <= max_speech_ms:
+            merged_chunks[-1].extend(chunk)
+        else:
+            merged_chunks.append(chunk)
+
+    # --- 5. 组装文本与生成 SrtItem ---
+    def concat_words(words_list: List[Dict[str, Any]]) -> str:
+        # 判断原始字是否自带空格（如 Whisper 英文词通常自带前导空格）
+        has_leading_space = any(w['word'].startswith(' ') for w in words_list)
+        if not use_space or has_leading_space:
+            return "".join(w['word'] for w in words_list).strip()
+        else:
+            return " ".join(w['word'].strip() for w in words_list if w['word'].strip()).strip()
+
+    srt_output = []
+    for idx, chunk in enumerate(merged_chunks):
+        start_ms = int(chunk[0]['start_ms'])
+        end_ms = int(chunk[-1]['end_ms'])
+        text = concat_words(chunk)
+
+        start_raw = format_srt_time(start_ms)
+        end_raw = format_srt_time(end_ms)
+
+        srt_output.append(SrtItem(**{
+            "line": idx + 1,
+            "text": text,
+            "start_time": start_ms,
+            "end_time": end_ms,
+            "startraw": start_raw,
+            "endraw": end_raw,
+            "time": f"{start_raw} --> {end_raw}"
+        }))
+
+    return srt_output
 
 def _resegment(texts, language, max_speech_ms, logs_file=None) -> List[SrtItem]:
     """
@@ -17,13 +181,6 @@ def _resegment(texts, language, max_speech_ms, logs_file=None) -> List[SrtItem]:
     保留 Whisper 原本正常的短句，不对其进行全局拉平。
     """
 
-    # --- 辅助函数：将毫秒转换为 SRT 标准时间格式 HH:MM:SS,mmm ---
-    def format_srt_time(ms_time):
-        ms_time = int(ms_time)
-        seconds, milliseconds = divmod(ms_time, 1000)
-        minutes, seconds = divmod(seconds, 60)
-        hours, minutes = divmod(minutes, 60)
-        return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
 
     # --- 语言连接规则与标点判定 ---
     # 东方中日韩等语言通常无需空格，其他字母系语言需空格
@@ -62,7 +219,7 @@ def _resegment(texts, language, max_speech_ms, logs_file=None) -> List[SrtItem]:
 
         # 1. 如果该句话时长未超过 max_speech_ms，或者没有 words 数据可供细分
         # 直接原样保留该句，不破坏 Whisper 原有断句结构
-        if seg_duration <= max_speech_ms or not words:
+        if seg_duration <= (max_speech_ms+1500) or not words:
             final_segments.append({
                 'text': segment.get('text', '').strip(),
                 'start': seg_start_ms,

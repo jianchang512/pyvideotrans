@@ -22,7 +22,7 @@ def openwin():
     SOURCE_DIR = RESULT_DIR
     uuid_list=[]
     percent=""
-    language_namelist = ["-"] + list(translator.LANGNAME_DICT.values())
+    language_namelist = list(translator.LANGNAME_DICT.values())
 
     def toggle_state(state):
         winobj.fanyi_translate_type.setDisabled(state)
@@ -111,13 +111,13 @@ def openwin():
         winobj.has_done = False
         target_language = winobj.fanyi_target.currentText()
         translate_type = winobj.fanyi_translate_type.currentIndex()
-        source_code, target_code = translator.get_source_target_code(show_source=winobj.fanyi_source.currentText(),
-                                                                     show_target=target_language,
-                                                                     translate_type=translate_type)
+        source_language_name=winobj.fanyi_source.currentText()
+        source_code, target_code = translator.get_source_target_code(
+            show_source='auto' if source_language_name==tr('auto') else source_language_name,
+            show_target=target_language,
+            translate_type=translate_type)
        
-        if target_language == '-':
-            return show_error(tr("fanyimoshi1"))
-        
+
 
         proxy = winobj.fanyi_proxy.text()
 
@@ -192,7 +192,7 @@ def openwin():
     # 更新目标语言列表
     def update_target_language():        
         winobj.fanyi_target.clear()
-        winobj.fanyi_target.addItems(language_namelist)
+        winobj.fanyi_target.addItems(language_namelist[:-1])
         winobj.aisendsrt.setChecked(settings.get('aisendsrt'))
 
     # 翻译渠道变化时重新设置目标语言
@@ -290,14 +290,14 @@ def openwin():
 
     winobj = Fanyisrt()
     app_cfg.child_forms['fn_fanyisrt'] = winobj
-    #winobj.show()
+
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
         winobj.fanyi_translate_type.setCurrentIndex(int(params.get('trans_translate_type', 0)))
 
         update_target_language()
-        winobj.fanyi_source.addItems(['-'] + list(translator.LANGNAME_DICT.values()))
+        winobj.fanyi_source.addItems([tr('auto')] + language_namelist[:-1])
         winobj.fanyi_import.clicked.connect(fanyi_import_fun)
         winobj.fanyi_start.clicked.connect(fanyi_start_fun)
         winobj.fanyi_stop.clicked.connect(pause_trans)

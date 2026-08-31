@@ -258,7 +258,7 @@ def openwin():
 
     def getlangnamelist(tts_type=0):
         if tts_type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
-            return   list(translator.LANGNAME_DICT.values())
+            return   list(translator.LANGNAME_DICT.values())[:-1]
 
         return  list(EDGE_LANGUANGES_DICT.values())
 

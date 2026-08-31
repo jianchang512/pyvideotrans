@@ -141,6 +141,7 @@ class RecognMixin:
             shutil.copy2(self.cfg.source_sub,  f"{self.cfg.target_dir}/{self.cfg.noextname}.srt")
         self.signal(text=tr('endtiquzimu'))
 
+    # 二次识别固定使用 faster-whisper 渠道
     def recogn2pass(self) -> None:
         _st=time.time()
         if not self.should_recogn2 or self._exit():
@@ -165,16 +166,11 @@ class RecognMixin:
             return
 
         try:
-            recogn_type = self.cfg.recogn_type
-            model_name = self.cfg.model_name
+
             detect_language = self.cfg.target_language_code.split('-')[0]
-
-            if recogn_allow_lang(langcode=self.cfg.target_language_code,
-                                 recogn_type=recogn_type,
-                                 model_name=model_name) is not True:
-                recogn_type = FASTER_WHISPER
-                model_name = 'large-v3-turbo'
-
+            recogn_type = FASTER_WHISPER
+            model_name = settings.get('model_for_recogn2','large-v3-turbo')
+            logger.debug(f'二次识别：faster-whisper + {detect_language=} + {model_name=}')
             raw_subtitles = run_recogn(
                 recogn_type=recogn_type,
                 uuid=self.uuid,

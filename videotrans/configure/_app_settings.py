@@ -148,19 +148,25 @@ class AppSettings:
             "aitrans_temperature": 0.1,
             "aitrans_context": False,
             "batch_nums": 0,
+            "uvr_models": "spleeter",
 
             "max_audio_speed_rate": 100,
             "max_video_pts_rate": 10,
-            "threshold": 0.5,
-            "min_speech_duration_ms": 2000,
-            "max_speech_duration_s": 5,
-            "min_speech_duration_ms2": 1000,
-            "max_speech_duration_s2": 2,
-            "min_silence_duration_ms": 140,
+
+            "threshold": 0.45,
             "no_speech_threshold": 0.6,
+            "min_speech_duration_ms": 3000,
+            "max_speech_duration_s": 6,
+            "min_silence_duration_ms": 140,
+
+            "min_speech_duration_ms2": 500,
+            "max_speech_duration_s2": 2,
+            "model_for_recogn2":"large-v3-turbo",
+
             "whisper_prepare": False,
             "merge_short_sub": False,
             "vad_type": "silero",
+
             "trans_thread": 10,
             "aitrans_thread": 50,
             "translation_wait": 0,
@@ -173,14 +179,15 @@ class AppSettings:
             "countdown_sec": 30,
             "backaudio_volume": 0.8,
             "loop_backaudio": 1,
+
             "cuda_com_type": "default",
             "beam_size": 5,
             "best_of": 5,
-            "uvr_models": "spleeter",
             "condition_on_previous_text": False,
             "temperature": "0.0",
             "repetition_penalty": 1.0,
             "compression_ratio_threshold": 2.4,
+
             "qwentts_role": '',
             "show_more_settings": False,
             "speaker_type": "built",

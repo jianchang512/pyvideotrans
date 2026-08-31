@@ -97,11 +97,13 @@ class BaseRecogn(BaseCon):
                 self._download()
             self.signal(text=tr("Transcription in progress, please wait"))
             res = self._exec()
-            if res:
-                return self._post_fix(res)
-            from videotrans.configure.excepts import SpeechToTextError
-            raise SpeechToTextError(
-                tr('No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.'))
+            if not res:
+                from videotrans.configure.excepts import SpeechToTextError
+                raise SpeechToTextError(
+                    tr('No speech was detected, please make sure there is human speech in the selected audio/video and that the language is the same as the selected one.'))
+            if self.recogn2pass:
+                return res
+            return self._post_fix(res)
         except RetryError as e:
             raise e.last_attempt.exception()
         except (OSError, FileNotFoundError) as e:
@@ -128,13 +130,13 @@ class BaseRecogn(BaseCon):
         for i, it in enumerate(srt_list):
             if i > 0 and srt_list[i - 1]['end_time'] > it['start_time']:
                 logger.warning(
-                    f'修正字幕时间轴重叠：将前面字幕 end_time={srt_list[i - 1]["end_time"]} 改为当前字幕 start_time, {it=}')
+                    f'\n前面字幕[{i-1}] end_time > 当前字幕[{i}] start_time，重叠，需修正\n前{srt_list[i - 1]=}\n当{it=}\n')
                 srt_list[i - 1]['end_time'] = it['start_time']
                 srt_list[i - 1]['endraw'] = ms_to_time_string(ms=it['start_time'])
                 srt_list[i - 1]['time'] = f"{srt_list[i - 1]['startraw']} --> {srt_list[i - 1]['endraw']}"
 
         # 不是LLM重新断句，并且选中合并过短字幕, 进行合并
-        if not self.recogn2pass and not self.llm_post and settings.get('merge_short_sub', True):
+        if not self.llm_post and settings.get('merge_short_sub', True):
             logger.debug('开始合并邻近短字幕')
             srt_list = self._merge_sub(srt_list)
 
@@ -156,26 +158,18 @@ class BaseRecogn(BaseCon):
         self.signal(text=f'VAD:{_vad_type} split audio...')
 
         _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 0)
-
-        # ten-vad 最小片段不得低于1000ms
-        if _vad_type == 'tenvad':
-            _min_speech = max(_min_speech, 1000)
+        _min_speech = max(_min_speech, 1000)
 
         # 最长片段不得大于30s,并且不得小于 _min_speech
         _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 30000), _min_speech + 1000)
 
-        # 静音阈值不得低于25ms
-        _min_silence = max(int(settings.get('min_silence_duration_ms', 600)), 25)
-        if self.recogn2pass:
-            # 2次识别 生成简短的字幕
-            _min_speech = max(int(float(settings.get('min_speech_duration_ms2', 1000))), 1000)
-            _max_speech = max(min(int(float(settings.get('max_speech_duration_s2', 2)) * 1000), 4000),
-                              _min_speech + 1000)
-            logger.debug(f'[当前是二次语音识别]{_vad_type},{_min_speech=}ms,{_max_speech=}ms,{_min_silence=}ms')
+        # 静音阈值不得低于100ms
+        _min_silence = max(int(settings.get('min_silence_duration_ms', 600)), 100)
+
 
         kw = {
             "input_wav": self.audio_file,
-            "threshold": float(settings.get('threshold', 0.5)),
+            "threshold": float(settings.get('threshold', 0.45)),
             "min_speech_duration_ms": _min_speech,
             "max_speech_duration_ms": _max_speech,
             "min_silent_duration_ms": _min_silence
@@ -195,8 +189,6 @@ class BaseRecogn(BaseCon):
     # 预先使用 VAD 将待识别的音频切割为语句片段后进行识别
     def cut_audio(self) -> List[SrtItem]:
         from pydub import AudioSegment
-        import numpy as np
-
         dir_name = f"{config.TEMP_DIR}/clip_{time.time()}"
         Path(dir_name).mkdir(parents=True, exist_ok=True)
 
@@ -205,75 +197,23 @@ class BaseRecogn(BaseCon):
 
         audio = AudioSegment.from_wav(self.audio_file)
 
-        # 最小片段时长（至少 1000ms，至多 25000ms）
-        min_speech_duration_ms = min(25000, max(int(settings.get('min_speech_duration_ms', 1000)), 1000))
-        max_speech_duration_ms = 30000
-
         # 深拷贝
         segs = [seg[:] for seg in self.speech_timestamps]
         segs = [[max(0, s), max(0, e)] for s, e in segs if e > s]
 
-        # 短片段合并（栈式算法）
-        merged = []
-        for seg in segs:
-            if not merged:
-                merged.append(seg)
-                continue
-            # 如果上一个片段过短，则向前合并到当前片段
-            while merged and (merged[-1][1] - merged[-1][0]) < min_speech_duration_ms:
-                prev = merged.pop()
-                seg[0] = prev[0]  # 当前片段吞并前一个
-            # 当前片段自身如果仍过短，尝试合并到栈顶（如果存在）
-            if (seg[1] - seg[0]) < min_speech_duration_ms:
-                if merged:
-                    merged[-1][1] = seg[1]
-                else:
-                    merged.append(seg)  # 孤立的短片段保留（后续无法再合并）
-            else:
-                merged.append(seg)
-        segs = merged
-
-        # 超长片段截断（基于音频能量）
-        final_segs = []
-        raw_samples = np.array(audio.get_array_of_samples(), dtype=np.float32)
-        energy = np.abs(raw_samples)
-
-        for s, e in segs:
-            dur = e - s
-            if dur <= max_speech_duration_ms:
-                final_segs.append([s, e])
-                continue
-
-            # 在 70%～100% 的时间区域内寻找能量最低的点，作为安全切割位置
-            start_sample = int(s * audio.frame_rate / 1000)
-            end_sample = int(e * audio.frame_rate / 1000)
-            segment_energy = energy[start_sample:end_sample]
-            search_start = int(len(segment_energy) * 0.7)
-            search_end = len(segment_energy) - 1
-            if search_end > search_start:
-                min_idx = search_start + np.argmin(segment_energy[search_start:search_end])
-            else:
-                min_idx = len(segment_energy) // 2  # 兜底：对半切
-
-            cut_ms = s + int(min_idx * 1000 / audio.frame_rate)
-            # 避免切出极短片段（至少保留 1 秒）
-            cut_ms = max(s + 1000, min(cut_ms, e - 1000))
-            final_segs.append([s, cut_ms])
-            final_segs.append([cut_ms, e])
-
-        # 为每个片段添加 500ms 静音头尾并导出
+        # 为每个片段添加 200ms 静音头尾并导出
         # 音频为 16k 单声道
         silent_segment = AudioSegment.silent(
-            duration=500,
+            duration=200,
             frame_rate=audio.frame_rate
         ).set_channels(audio.channels).set_sample_width(audio.sample_width)
 
         data = []
-        for i, (start_ms, end_ms) in enumerate(final_segs):
+        for i, (start_ms, end_ms) in enumerate(segs):
             startraw = ms_to_time_string(ms=start_ms)
             endraw = ms_to_time_string(ms=end_ms)
-            chunk = audio[start_ms:end_ms]
             file_name = f"{dir_name}/audio_{i}.wav"
+            chunk = audio[start_ms:end_ms]
             final_audio = silent_segment + chunk + silent_segment
             final_audio.export(file_name, format="wav")
             data.append(SrtItem(
