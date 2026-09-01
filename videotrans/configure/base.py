@@ -66,7 +66,8 @@ class BaseCon:
             self.signal(text=f" {tr('Downloading please wait')} {current_file_idx}/{total_files} files")
 
     # 设置、获取代理
-    def _set_proxy(self, type='set'):
+    @staticmethod
+    def _set_proxy(type='set'):
         if type == 'del':
             os.environ['bak_proxy'] = app_cfg.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
             app_cfg.proxy = ''
@@ -91,7 +92,8 @@ class BaseCon:
 
 
     # 语音合成后统一转为 wav 音频,方便后续变速等处理
-    def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None):
+    @staticmethod
+    def convert_to_wav(mp3_file_path: str, output_wav_file_path: str, extra=None):
         if app_cfg.exit_soft or not vail_file(mp3_file_path):
             return
         cmd = [
@@ -121,7 +123,8 @@ class BaseCon:
         return True
 
 
-    def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:
+    @staticmethod
+    def _base64_to_audio(encoded_str: str, output_path: str) -> None:
         if not encoded_str:
             raise ValueError("Base64 encoded string is empty.")
         from videotrans.util.help_ffmpeg import runffmpeg
@@ -156,7 +159,8 @@ class BaseCon:
         with open(output_path, "wb") as wav_file:
             wav_file.write(wav_bytes)
 
-    def _audio_to_base64(self, file_path: str):
+    @staticmethod
+    def _audio_to_base64(file_path: str):
         if not file_path or not Path(file_path).exists():
             return None
         with open(file_path, "rb") as wav_file:

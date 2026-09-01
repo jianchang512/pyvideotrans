@@ -99,7 +99,8 @@ class AppSettings:
 
         return self.to_dict()
 
-    def _models_dict(self):
+    @staticmethod
+    def _models_dict():
         return {
             "Whisper_cpp_models": Whisper_cpp_models,
             "Whisper_net_models": Whisper_cpp_models,
@@ -156,15 +157,13 @@ class AppSettings:
             "threshold": 0.45,
             "no_speech_threshold": 0.6,
             "min_speech_duration_ms": 3000,
-            "max_speech_duration_s": 6,
+            "max_speech_duration_s": 5,
             "min_silence_duration_ms": 140,
 
             "min_speech_duration_ms2": 500,
             "max_speech_duration_s2": 2,
             "model_for_recogn2":"large-v3-turbo",
 
-            "whisper_prepare": False,
-            "merge_short_sub": False,
             "vad_type": "silero",
 
             "trans_thread": 10,
@@ -195,7 +194,7 @@ class AppSettings:
             "cjk_len": 15,
             "other_len": 40,
             "llm_chunk_size": 50,
-            "llm_ai_type": "deepseek",
+            "llm_ai_type": 1,
             "gemini_recogn_chunk": 50,
             "zh_hant_s": True,
             "process_max": 0,
@@ -290,6 +289,7 @@ class AppSettings:
             "gemini_recogn_chunk",
             "process_max",
             "process_max_gpu",
+            "llm_ai_type",
             "retry_nums",
         ]
         try:

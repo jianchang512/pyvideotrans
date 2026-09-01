@@ -338,7 +338,8 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             self.remove_silent_mid.setVisible(True)
             self.align_sub_audio.setVisible(True)
 
-    def help_doc(self):
+    @staticmethod
+    def help_doc():
         open_url('https://pyvideotrans.com/danshipin')
 
     def load_table(self):
@@ -672,7 +673,8 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         # 更新显示
         self._refresh_row(row)
 
-    def _ms_to_fmt(self, ms):
+    @staticmethod
+    def _ms_to_fmt(ms):
         """毫秒转时间格式"""
         seconds, milliseconds = divmod(ms, 1000)
         minutes, seconds = divmod(seconds, 60)
@@ -735,7 +737,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
 
     def _on_video_position_changed(self, position):
         """Stop video when it reaches the subtitle end time."""
-        if self._video_end_ms > 0 and position >= self._video_end_ms:
+        if 0 < self._video_end_ms <= position:
             try:
                 self.video_player.pause()
             except Exception:

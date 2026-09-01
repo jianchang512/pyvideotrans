@@ -209,7 +209,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
         self.stop_play_btn.hide()
 
     def _on_video_position_changed(self, position):
-        if self._target_end_ms > 0 and position >= self._target_end_ms:
+        if 0 < self._target_end_ms <= position:
             self._pause_play()
 
     def _play_segment(self, start_ms, end_ms):

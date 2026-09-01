@@ -9,8 +9,8 @@ class HuoShan(OpenAICampat):
         self.ainame ="zijie"
         self.api_key =params.get('zijiehuoshan_key','')
         self.api_url ='https://ark.cn-beijing.volces.com/api/v3'
-        self.max_tokens =int(params.get('huoshan_max_token',32768))
+        self.max_tokens =int(params.get('zijiehuoshan_max_token',32768))
         self.model_name =params.get("zijiehuoshan_model",'')
-        self.extra_body={"thinking": {"type": "disabled" if not params.get('huoshan_thinking') else "enabled"}}
+        self.extra_body={"thinking": {"type": "disabled" if not params.get('zijiehuoshan_thinking') else "enabled"}}
         super().__post_init__()
 

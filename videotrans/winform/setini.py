@@ -40,7 +40,9 @@ def openwin():
             # 检查QLineEdit是否有objectName
             if hasattr(line_edit, 'objectName') and line_edit.objectName():
                 name = line_edit.objectName()
-                if name=='video_codec':
+                if name=='llm_ai_type':
+                    settings[name]=line_edit.currentIndex()
+                elif name=='video_codec':
                     settings[name]=int(line_edit.currentText())
                 else:
                     # 将objectName作为key，text作为value添加到字典中

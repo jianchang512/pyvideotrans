@@ -28,7 +28,8 @@ class GEMINITTS(BaseTTS):
             raise StopTask(e.message)
         self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
 
-    def generate_tts_segment(self, text, voice, model, file_name):
+    @staticmethod
+    def generate_tts_segment(text, voice, model, file_name):
         def convert_to_wav(audio_data: bytes, mime_type: str) -> bytes:
             parameters = parse_audio_mime_type(mime_type)
             bits_per_sample = parameters["bits_per_sample"]

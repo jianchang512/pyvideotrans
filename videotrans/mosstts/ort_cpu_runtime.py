@@ -148,11 +148,11 @@ def _sample_from_scores(
     if not (temperature > 0):
         raise ValueError("temperature must be positive when do_sample=True")
     scores = np.asarray(values, dtype=np.float32).copy() / float(temperature)
-    if top_k > 0 and top_k < scores.shape[0]:
+    if 0 < top_k < scores.shape[0]:
         sorted_desc = np.sort(scores)[::-1]
         threshold = float(sorted_desc[top_k - 1])
         scores[scores < threshold] = float("-inf")
-    if top_p > 0 and top_p < 1:
+    if 0 < top_p < 1:
         indexed = list(enumerate(scores.tolist()))
         indexed.sort(key=lambda item: item[1], reverse=True)
         sorted_scores = np.asarray([item[1] for item in indexed], dtype=np.float32)
@@ -633,7 +633,8 @@ class OrtCpuRuntime:
         should_continue = bool(int(np.asarray(named_outputs["should_continue"]).reshape(-1)[0]))
         return should_continue, [int(item) for item in frame_token_ids]
 
-    def slice_audio_channel_logits(self, audio_logits: np.ndarray, channel_index: int) -> np.ndarray:
+    @staticmethod
+    def slice_audio_channel_logits(audio_logits: np.ndarray, channel_index: int) -> np.ndarray:
         per_channel = int(audio_logits.shape[-1])
         flat = audio_logits.reshape(-1)
         start = channel_index * per_channel

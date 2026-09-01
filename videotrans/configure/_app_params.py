@@ -60,14 +60,15 @@ class AppParams:
         self._apply_dict(default)
         return self.to_dict()
 
-    def _get_defaults(self):
+    @staticmethod
+    def _get_defaults():
         _settings = _settings_ref
         return {
             "last_opendir": os.path.expanduser("~"),
             "output_dir": "",
             "is_cuda": False,
             "line_roles": {},
-            "rephrase": 0,
+            "rephrase": False,
             "is_separate": False,
             "clear_cache": True,
             "embed_bgm": True,
@@ -144,9 +145,9 @@ class AppParams:
             "litellm_reasoning_effort": "default",
             "litellm_model": str(_settings.get('litellm_model', '-')).strip().split(',')[0],
             "litellm_max_token": 16384,
-            "huoshan_max_token": 32768,#最大输出32k
+            "zijiehuoshan_max_token": 32768,#最大输出32k
             "zijiehuoshan_key": "",
-            "huoshan_thinking": False,
+            "zijiehuoshan_thinking": False,
             "zijiehuoshan_model": str(_settings.get('zijiehuoshan_model', '-')).strip().split(',')[0],
             "qwenmt_key": "",
             "qwenmt_spaceid": "",
@@ -171,7 +172,7 @@ class AppParams:
             "xiaomi_key": "",
             "xiaomi_thinking": False,
             "xiaomi_model": XIAOMI_MODELS.split(',')[0],
-            "xiaomi_maxtoken": 16384,
+            "xiaomi_max_token": 16384,
             "openaitts_instructions": "",
             "qwentts_spaceid": "",
             "qwentts_key": "",
@@ -199,7 +200,7 @@ class AppParams:
             "minimaxi_model": MINIMAX_TTS_MODELS.split(',')[0],
             "minimax_key": "",
             "minimax_model": MINIMAX_MODELS.split(',')[0],
-            "minimax_max_tokens": 16384,
+            "minimax_max_token": 16384,
             "minimax_api": "https://api.minimaxi.com/v1",
             "minimax_thinking":False,
             "ai302tts_key": "",
@@ -240,7 +241,7 @@ class AppParams:
             "stt_remove_noise": False,
             "stt_enable_diariz": False,
             "stt_spk_insert": True,
-            "stt_rephrase": 0,
+            "stt_rephrase": False,
             "stt_nums_diariz": 0,
             "subtitlecover_outformat": "srt",
             "deepgram_apikey": "",

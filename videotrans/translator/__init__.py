@@ -12,6 +12,7 @@ from videotrans.translator._constants import (  # noqa: F401
 from videotrans.translator._registry import (  # noqa: F401
     _ID_NAME_DICT,
     TRANSLASTE_NAME_LIST,
+    LLM_CONCERT_MAP
 )
 
 from videotrans.translator._lang_codes import (  # noqa: F401

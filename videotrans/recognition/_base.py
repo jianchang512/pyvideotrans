@@ -53,8 +53,6 @@ class BaseRecogn(BaseCon):
     # 说话人，-1不启用说话人，0=不限制数量，>0 说话人最大数量
     max_speakers: int = -1
 
-    # 是否进行llm重新断句，如果是，则无需在识别完成后进行简单修正
-    llm_post: bool = False
     # vad切割好的数据
     speech_timestamps: List = field(default_factory=list)
     # 当前需进行的是否是二次识别
@@ -114,7 +112,8 @@ class BaseRecogn(BaseCon):
             raise
 
     # 对转录结果进行简单后处理
-    def _post_fix(self, res: List[SrtItem]) -> List[SrtItem]:
+    @staticmethod
+    def _post_fix(res: List[SrtItem]) -> List[SrtItem]:
         srt_list = []
         for i, it in enumerate(res):
             text = it['text'].strip()
@@ -135,10 +134,6 @@ class BaseRecogn(BaseCon):
                 srt_list[i - 1]['endraw'] = ms_to_time_string(ms=it['start_time'])
                 srt_list[i - 1]['time'] = f"{srt_list[i - 1]['startraw']} --> {srt_list[i - 1]['endraw']}"
 
-        # 不是LLM重新断句，并且选中合并过短字幕, 进行合并
-        if not self.llm_post and settings.get('merge_short_sub', True):
-            logger.debug('开始合并邻近短字幕')
-            srt_list = self._merge_sub(srt_list)
 
         if settings.get('del_end_punc'):
             logger.debug(f'开始移除每条字幕末尾标点')
@@ -157,11 +152,9 @@ class BaseRecogn(BaseCon):
         _vad_type = settings.get('vad_type', 'tenvad')
         self.signal(text=f'VAD:{_vad_type} split audio...')
 
-        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 0)
-        _min_speech = max(_min_speech, 1000)
-
-        # 最长片段不得大于30s,并且不得小于 _min_speech
-        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 30000), _min_speech + 1000)
+        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
+        # 最长片段不得大于25s,并且不得小于 _min_speech
+        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000), _min_speech + 1000)
 
         # 静音阈值不得低于100ms
         _min_silence = max(int(settings.get('min_silence_duration_ms', 600)), 100)
@@ -174,6 +167,7 @@ class BaseRecogn(BaseCon):
             "max_speech_duration_ms": _max_speech,
             "min_silent_duration_ms": _min_silence
         }
+
 
         try:
             from videotrans.process.vad import get_speech_timestamp, get_speech_timestamp_silero
@@ -204,7 +198,7 @@ class BaseRecogn(BaseCon):
         # 为每个片段添加 200ms 静音头尾并导出
         # 音频为 16k 单声道
         silent_segment = AudioSegment.silent(
-            duration=200,
+            duration=400,
             frame_rate=audio.frame_rate
         ).set_channels(audio.channels).set_sample_width(audio.sample_width)
 
@@ -229,152 +223,3 @@ class BaseRecogn(BaseCon):
 
         logger.debug(f'切分为 {len(data)} 个音频片段')
         return data
-
-    def _merge_sub(self, srt_list: List[SrtItem]) -> List[SrtItem]:
-        """合并过短字幕，按标点重分配片段"""
-        post_srt_raws = []
-        min_speech = max(500, int(float(settings.get('min_speech_duration_ms', 1000))))
-        max_speech = int(1000 * float(settings.get('max_speech_duration_s', 5)))
-        logger.debug(f'对识别出的字幕进行简单合并与修正，{min_speech=}ms,{max_speech=}ms')
-
-        # 阶段 1：遍历合并过短项
-        post_srt_raws = self._phase1_merge_short(srt_list, min_speech, post_srt_raws, max_speech)
-
-        if len(post_srt_raws) < 2:
-            return post_srt_raws
-
-        # 阶段 2：处理首条过短
-        post_srt_raws = self._phase2_merge_first(post_srt_raws, min_speech)
-        if len(post_srt_raws) < 2:
-            return post_srt_raws
-
-        # 阶段 3：处理末条过短
-        post_srt_raws = self._phase3_merge_last(post_srt_raws, min_speech)
-        if len(post_srt_raws) < 2:
-            return post_srt_raws
-
-        # 阶段 4：标点碎片向前重分配
-        post_srt_raws = self._phase4_redistribute_by_punct(post_srt_raws, forward=True)
-        # 阶段 5：标点碎片向后重分配
-        post_srt_raws = self._phase4_redistribute_by_punct(post_srt_raws, forward=False)
-
-        # 阶段 6：清理尾部标点，剔除空白字幕
-        if settings.get('del_end_punc'):
-            for it in post_srt_raws:
-                # 删除尾部标点
-                it['text'] = it['text'].strip('。,.').strip()
-        return [it for it in post_srt_raws if it['text'].strip()]
-
-    def _phase1_merge_short(self, srt_list, min_speech, post_srt_raws, max_speech=5000):
-        """遍历原始列表，短字幕合并到前后邻项"""
-        for idx, it in enumerate(srt_list):
-            if not it['text'].strip():
-                continue
-
-            _words_len = len(it['text'].strip()) if self.is_cjk else len(it['text'].strip().split(' '))
-            if idx == 0 or idx == len(srt_list) - 1 or (
-                    it['end_time'] - it['start_time'] >= min_speech and _words_len > 1):
-                post_srt_raws.append(it)
-                continue
-
-            prev_diff = it['start_time'] - post_srt_raws[-1]['end_time']
-            next_diff = srt_list[idx + 1]['start_time'] - it['end_time']
-            merge_forward = (
-                    (post_srt_raws[-1]['text'][-1] not in self.flag and it['text'][-1] in self.flag)
-                    or (post_srt_raws[-1]['text'][-1] in self.half_flag and it['text'][-1] in self.end_flag)
-                    or prev_diff <= next_diff
-            )
-            # 如果需要合并到前面，但前面的长度已超过最大允许允许时长，并且差距不超过2s，则合并到后边，否则合并到前面
-            if merge_forward and (prev_diff + 2000 > next_diff) and (
-                    post_srt_raws[-1]['end_time'] - post_srt_raws[-1]['start_time'] > max_speech):
-                merge_forward = False
-                logger.warning(f'应合并到前边字幕，但已过长，因此强制合并进后个字幕')
-
-            # 如果已是要求合并到前边，但是只有1-2个字符，并且前后时间相连，则合并到后边
-            if merge_forward and idx < len(srt_list) - 1 and _words_len < 3 and next_diff == 0:
-                merge_forward = False
-                logger.warning(f'已是要求合并到前边，但是只有1-2个字符，并且前后时间相连，则合并到后边,{next_diff=},{it["text"]=},{idx=}')
-
-            if merge_forward:
-                self._log_merge('前', it, post_srt_raws[-1], prev_diff, next_diff)
-                post_srt_raws[-1]['end_time'] = it['end_time']
-                post_srt_raws[-1]['endraw'] = ms_to_time_string(ms=it['end_time'])
-                post_srt_raws[-1]['time'] = f"{post_srt_raws[-1]['startraw']} --> {post_srt_raws[-1]['endraw']}"
-                post_srt_raws[-1]['text'] += ' ' + it['text']
-            else:
-                self._log_merge('后', it, srt_list[idx + 1], prev_diff, next_diff)
-                srt_list[idx + 1]['text'] = it['text'] + ' ' + srt_list[idx + 1]['text']
-                srt_list[idx + 1]['start_time'] = it['start_time']
-                srt_list[idx + 1]['startraw'] = ms_to_time_string(ms=it['start_time'])
-                srt_list[idx + 1]['time'] = f"{srt_list[idx + 1]['startraw']} --> {srt_list[idx + 1]['endraw']}"
-        return post_srt_raws
-
-    def _phase2_merge_first(self, post_srt_raws, min_speech):
-        """首条时长不足 min_speech 且与次条间隙 < 2s → 合并"""
-        if (post_srt_raws[0]['end_time'] - post_srt_raws[0]['start_time'] < min_speech
-            and post_srt_raws[1]['start_time'] - post_srt_raws[0]['end_time'] < 2000) or len(
-            post_srt_raws[0]['text'].strip()) < 2:
-            post_srt_raws[1]['start_time'] = post_srt_raws[0]['start_time']
-            post_srt_raws[1]['text'] = post_srt_raws[0]['text'] + self.join_word_flag + post_srt_raws[1]['text']
-            post_srt_raws.pop(0)
-        return post_srt_raws
-
-    def _phase3_merge_last(self, post_srt_raws, min_speech):
-        """末条时长不足 min_speech 且与前条间隙 < 2s → 合并"""
-        if (post_srt_raws[-1]['end_time'] - post_srt_raws[-1]['start_time'] < min_speech
-            and post_srt_raws[-1]['start_time'] - post_srt_raws[-2]['end_time'] < 2000) or len(
-            post_srt_raws[-1]['text'].strip()) < 2:
-            post_srt_raws[-2]['end_time'] = post_srt_raws[-1]['end_time']
-            post_srt_raws[-2]['text'] += self.join_word_flag + post_srt_raws[-1]['text']
-            post_srt_raws.pop(-1)
-        return post_srt_raws
-
-    def _phase4_redistribute_by_punct(self, post_srt_raws, forward):
-        """根据标点把短片段从当前字幕挪给前/后邻字幕"""
-        for i, it in enumerate(post_srt_raws):
-            if i == 0 or i == len(post_srt_raws) - 1:
-                continue
-            neighbour = i - 1 if forward else i + 1
-            if post_srt_raws[neighbour]['end_time' if forward else 'start_time'] != it[
-                'start_time' if forward else 'end_time']:
-                continue
-
-            fragments = [t for t in re.split(r'[,.，。]', it['text']) if t.strip()]
-            if not fragments:
-                it['text'] = ''
-                continue
-            if len(fragments) == 1:
-                continue
-
-            target_fragment = fragments[0] if forward else fragments[-1]
-            # 检查片段是否太长
-            if self.is_cjk:
-                if len(target_fragment.strip()) > 3:
-                    continue
-            else:
-                if len(target_fragment.strip().split(' ')) > 3:
-                    continue
-
-            # 邻项末尾/开头有结束标点则跳过
-            if forward and post_srt_raws[i - 1]['text'][-1] in self.flag:
-                continue
-            if not forward and it['text'][-1] in self.flag:
-                continue
-
-            cut_len = len(fragments[0]) + 1 if forward else len(fragments[-1]) + 1
-            moved_text = it['text'][:cut_len] if forward else it['text'][-len(fragments[-1]):]
-
-            if forward:
-                post_srt_raws[i - 1]['text'] += self.join_word_flag + moved_text
-                it['text'] = it['text'][cut_len:]
-            else:
-                post_srt_raws[i + 1]['text'] = moved_text + self.join_word_flag + post_srt_raws[i + 1]['text']
-                it['text'] = it['text'][:-len(fragments[-1])]
-
-            logger.warning(f'该字幕原始文字={it["text"]}, 合并进{"前" if forward else "后"}条字幕的文字={moved_text}')
-        return post_srt_raws
-
-    @staticmethod
-    def _log_merge(direction, current, neighbour, prev_diff, next_diff):
-        logger.warning(
-            f'\n[P]字幕时长过短，合并进 [{direction}面] 字幕,{prev_diff=},{next_diff=}\n当前被合并字幕={current}\n合并到的字幕={neighbour}')

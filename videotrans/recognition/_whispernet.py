@@ -50,7 +50,8 @@ class WhisperNetRecogn(BaseRecogn):
         if WhisperNetRecogn._dll_dir_handles is None:
             WhisperNetRecogn._dll_dir_handles = []
 
-    def _add_dll_search_dir(self, path: str) -> None:
+    @staticmethod
+    def _add_dll_search_dir(path: str) -> None:
         """添加DLL搜索目录"""
         if not os.path.isdir(path):
             return
@@ -59,7 +60,8 @@ class WhisperNetRecogn(BaseRecogn):
             handle = os.add_dll_directory(path)
             WhisperNetRecogn._dll_dir_handles.append(handle)
 
-    def _preload_native_library(self, native_dir: str) -> None:
+    @staticmethod
+    def _preload_native_library(native_dir: str) -> None:
         """预加载native库"""
         if not sys.platform.startswith("win"):
             return

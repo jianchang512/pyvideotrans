@@ -17,7 +17,8 @@ from videotrans.translator._base import BaseTrans
 @dataclass
 class Ali(BaseTrans):
 
-    def create_client(self) -> alimt20181012Client:
+    @staticmethod
+    def create_client() -> alimt20181012Client:
         cf = open_api_models.Config(
             access_key_id=params.get('ali_id',''),
             access_key_secret=params.get('ali_key','')

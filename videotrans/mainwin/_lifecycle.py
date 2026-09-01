@@ -26,7 +26,8 @@ class LifecycleMixin:
             self.is_restarting = True
             self.close()
 
-    def kill_ffmpeg_processes(self):
+    @staticmethod
+    def kill_ffmpeg_processes():
         from videotrans.configure.config import logger
 
         current_user = getpass.getuser()

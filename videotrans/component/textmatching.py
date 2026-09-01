@@ -27,6 +27,18 @@ from videotrans.util.help_down import check_and_down_hf
 # 2. 核心逻辑线程
 # ==========================================
 
+def ms_to_srt_time(seconds):
+    if seconds is None:
+        return "00:00:00,000"
+    td = datetime.timedelta(seconds=seconds)
+    total_seconds = int(td.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    secs = total_seconds % 60
+    millis = int(td.microseconds / 1000)
+    return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
+
+
 class AlignmentWorker(QThread):
     log_signal = Signal(str)
     finished_signal = Signal(str)
@@ -41,17 +53,6 @@ class AlignmentWorker(QThread):
         self.compute_type = compute_type
         self.language =None if language=='auto' else  language
         self.local_dir = f'{ROOT_DIR}/models/models--' + FASTER_MODELS_DICT[model_name].replace('/', '--')
-
-    def ms_to_srt_time(self, seconds):
-        if seconds is None:
-            return "00:00:00,000"
-        td = datetime.timedelta(seconds=seconds)
-        total_seconds = int(td.total_seconds())
-        hours = total_seconds // 3600
-        minutes = (total_seconds % 3600) // 60
-        secs = total_seconds % 60
-        millis = int(td.microseconds / 1000)
-        return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
 
     def run(self):
         try:
@@ -234,7 +235,7 @@ class AlignmentWorker(QThread):
                     text_line = "".join(sentence_buffer).strip()
                     if text_line and line_start_time is not None:
                         self.log_signal.emit(text_line)
-                        srt_parts.append(f"{srt_index}\n{self.ms_to_srt_time(line_start_time)} --> {self.ms_to_srt_time(line_end_time)}\n{text_line}\n")
+                        srt_parts.append(f"{srt_index}\n{ms_to_srt_time(line_start_time)} --> {ms_to_srt_time(line_end_time)}\n{text_line}\n")
                         srt_index += 1
 
                     sentence_buffer = []

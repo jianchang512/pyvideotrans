@@ -86,8 +86,8 @@ def _create_asr_row(ui, parent):
     ui.model_name.setMinimumWidth(300)
     ui.model_name.setObjectName("model_name")
 
-    ui.rephrase = QtWidgets.QComboBox()
-    ui.rephrase.addItems([tr("Default sentence"), tr("LLM Rephrase")])
+    ui.rephrase = QtWidgets.QCheckBox()
+    ui.rephrase.setText(tr("LLM Rephrase"))
     ui.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
 
     ui.remove_noise = QtWidgets.QCheckBox()
@@ -103,8 +103,8 @@ def _create_asr_row(ui, parent):
     layout.addWidget(ui.recogn_type)
     layout.addWidget(ui.model_name_help)
     layout.addWidget(ui.model_name)
-    layout.addWidget(ui.rephrase)
     layout.addStretch()
+    layout.addWidget(ui.rephrase)
     layout.addWidget(ui.recogn2pass)
     return layout
 

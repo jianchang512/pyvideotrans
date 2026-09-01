@@ -15,7 +15,8 @@ from videotrans.util.help_misc import open_url, show_error
 
 class WinActionBaseMiscMixin:
 
-    def about(self):
+    @staticmethod
+    def about():
         if app_cfg.child_forms.get('information'):
             app_cfg.child_forms.get('information').show()
             return
@@ -152,5 +153,6 @@ class WinActionBaseMiscMixin:
         self.law.raise_()
         self.law.activateWindow()
 
-    def open_url(self, title):
+    @staticmethod
+    def open_url(title):
         open_url(title)

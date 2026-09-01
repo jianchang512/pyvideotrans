@@ -1,6 +1,6 @@
 import json, re
 from videotrans.task.taskcfg import SrtItem
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 from ._utils import _write_log
 
@@ -45,7 +45,7 @@ def _resegment2(texts: List[Dict[str, Any]], language: str, max_speech_ms: int, 
 
     end_punc = set('.?!。？！\n')
     comma_punc = set(',;:，；：、')
-
+    _write_log(logs_file, json.dumps({"type": "logs", "text": f'Secondary Resegment:start'}))
     # --- 2. 展平并标准化字词数据 (转为毫秒) ---
     all_words = []
     for item in texts:
@@ -175,13 +175,10 @@ def _resegment2(texts: List[Dict[str, Any]], language: str, max_speech_ms: int, 
 
     return srt_output
 
-def _resegment(texts, language, max_speech_ms, logs_file=None) -> List[SrtItem]:
-    """
-    仅针对过长的 Whisper 识别结果重新断句，并格式化为 SRT 字幕格式。
-    保留 Whisper 原本正常的短句，不对其进行全局拉平。
-    """
 
 
+def _resegment(texts, language, max_speech_ms, min_speech_ms,logs_file=None) -> List[SrtItem]:
+    _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:start'}))
     # --- 语言连接规则与标点判定 ---
     # 东方中日韩等语言通常无需空格，其他字母系语言需空格
     no_space_langs = {'zh', 'ja', 'th', 'yue', 'ko', 'km'}
@@ -209,6 +206,8 @@ def _resegment(texts, language, max_speech_ms, logs_file=None) -> List[SrtItem]:
 
     _len = len(texts)
     _block = 100 / _len
+    _rc=500# 容差 ms，超过才强制分割
+    _min_words=1# 小于这几个词，不拆分而是合并
     for seg_idx, segment in enumerate(texts):
         seg_start_ms = float(segment.get('start', 0)) * 1000
         seg_end_ms = float(segment.get('end', 0)) * 1000
@@ -219,12 +218,17 @@ def _resegment(texts, language, max_speech_ms, logs_file=None) -> List[SrtItem]:
 
         # 1. 如果该句话时长未超过 max_speech_ms，或者没有 words 数据可供细分
         # 直接原样保留该句，不破坏 Whisper 原有断句结构
-        if seg_duration <= (max_speech_ms+1500) or not words:
+        if min_speech_ms <= seg_duration <= (max_speech_ms+_rc):
             final_segments.append({
                 'text': segment.get('text', '').strip(),
                 'start': seg_start_ms,
                 'end': seg_end_ms
             })
+            continue
+        # 前面一个句子太短， 强制和当前句子合并
+        if final_segments and final_segments[-1]['end']-final_segments[-1]['start']<min_speech_ms:
+            final_segments[-1]['text']+=(" " if use_space else "") +segment.get('text','').strip()
+            final_segments[-1]['end']=seg_end_ms
             continue
 
         # 2. 如果该句话超长，则必须进入其内部使用 words 进行重新局部切分
@@ -253,14 +257,15 @@ def _resegment(texts, language, max_speech_ms, logs_file=None) -> List[SrtItem]:
             should_split = False
 
             # 强制切断：如果不切，加上这个词就会直接超时 (确保绝对 <= max_speech_ms)
-            if future_duration > max_speech_ms and len(current_chunk) > 0:
+            if future_duration >= (max_speech_ms+_rc) and len(current_chunk) > 0:
                 should_split = True
             else:
                 # 弹性切断：在不超时的前提下，寻找标点或明显的语音停顿
                 pause_ms = w_start_ms - prev_word_end_ms if prev_word_end_ms is not None else 0
                 current_duration = prev_word_end_ms - chunk_start_ms if prev_word_end_ms else 0
 
-                if len(current_chunk) > 0:
+                # 至少3个单词
+                if len(current_chunk) >= _min_words and current_duration>=min_speech_ms:
                     # 遇到强标点结束
                     if has_punc(prev_word_text, end_punc):
                         should_split = True
@@ -276,11 +281,12 @@ def _resegment(texts, language, max_speech_ms, logs_file=None) -> List[SrtItem]:
 
             if should_split:
                 # 结算当前子句
-                final_segments.append({
+                _tmp={
                     'text': build_text(current_chunk),
                     'start': chunk_start_ms,
                     'end': prev_word_end_ms
-                })
+                }
+                final_segments.append(_tmp)
                 # 将当前词作为下一个新子句的开头
                 current_chunk = [w_text]
                 chunk_start_ms = w_start_ms
@@ -299,9 +305,27 @@ def _resegment(texts, language, max_speech_ms, logs_file=None) -> List[SrtItem]:
                 'end': prev_word_end_ms
             })
 
-    # --- 3. 组装输出：封装为指定的 SRT 字典列表格式 ---
-    srt_output = []
+
+
+    _merged=[]
     for idx, seg in enumerate(final_segments):
+        # 最后一个句子可能过短,和当前强制合并
+        if _merged and _merged[-1]['end']-_merged[-1]['start']<min_speech_ms:
+            _merged[-1]['text']+=(' ' if use_space else '')+seg['text']
+            _merged[-1]['end']=seg['end']
+            continue
+
+        #第一个，长度合适，或最后一个已超长
+        if idx==0 or seg['end']-seg['start']>=min_speech_ms or (_merged[-1]['end']-_merged[-1]['start'])>=max_speech_ms:
+            _merged.append(seg)
+            continue
+        #其他情况
+        _merged[-1]['text']+=(' ' if use_space else '')+seg['text']
+        _merged[-1]['end']=seg['end']
+
+    # 输出
+    srt_output = []
+    for idx, seg in enumerate(_merged):
         start_ms = int(seg['start'])
         end_ms = int(seg['end'])
 
@@ -317,5 +341,6 @@ def _resegment(texts, language, max_speech_ms, logs_file=None) -> List[SrtItem]:
             "endraw": end_raw,
             "time": f"{start_raw} --> {end_raw}"
         }))
+        print(f'{(end_ms-start_ms)/1000.0}s')
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:ended'}))
     return srt_output

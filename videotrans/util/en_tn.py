@@ -137,14 +137,16 @@ class EnglishNormalizer:
         else:
             return "number out of range"
 
-    def convert_to_ascii(self, text: str) -> str:
+    @staticmethod
+    def convert_to_ascii(text: str) -> str:
         """
         Converts unicode to ascii
         """
         # 将Unicode文本转换为ASCII编码，忽略非ASCII字符
         return text.encode("ascii", "ignore").decode("utf-8")
 
-    def _expand_dollars(self, m: str) -> str:
+    @staticmethod
+    def _expand_dollars(m: str) -> str:
         """
         This method is used to expand numerical dollar values into spoken words.
         """
@@ -172,14 +174,16 @@ class EnglishNormalizer:
         else:
             return "zero dollars"
 
-    def _remove_commas(self, m: str) -> str:
+    @staticmethod
+    def _remove_commas(m: str) -> str:
         """
         This method is used to remove commas from sentences.
         """
         # 去除输入字符串中的逗号
         return m.group(1).replace(",", "")
 
-    def _expand_decimal_point(self, m: str) -> str:
+    @staticmethod
+    def _expand_decimal_point(m: str) -> str:
         """
         This method is used to expand '.' into spoken word ' point '.
         """
@@ -251,7 +255,8 @@ class EnglishNormalizer:
         return text
 
     # 去除多余的空白字符
-    def collapse_whitespace(self, text: str) -> str:
+    @staticmethod
+    def collapse_whitespace(text: str) -> str:
         # 使用正则表达式将多个连续的空白字符替换为一个空格
         return re.sub(re.compile(r"\s+"), " ", text)
 

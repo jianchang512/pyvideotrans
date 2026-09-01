@@ -6,6 +6,7 @@ from PySide6.QtCore import QTimer
 
 from videotrans import translator, recognition, tts
 from videotrans.configure.config import tr, params, settings, app_cfg,logger
+from videotrans.translator._registry import get_name_index
 from videotrans.util.help_misc import ensure_safe_media_file, is_dir_not_empty, show_error
 
 
@@ -182,7 +183,7 @@ class WinActionCheckMixin:
             self.main.startbtn.setDisabled(False)
             return
 
-        self.cfg['rephrase'] = self.main.rephrase.currentIndex()
+        self.cfg['rephrase'] = self.main.rephrase.isChecked()
         self.cfg['is_cuda'] = self.main.enable_cuda.isChecked()
         self.cfg['remove_silent_mid'] = False
         self.cfg['align_sub_audio'] = True
@@ -202,14 +203,19 @@ class WinActionCheckMixin:
             self.main.startbtn.setDisabled(False)
             return
 
-        if self.main.rephrase.currentIndex() == 1:
-            ai_type = settings.get('llm_ai_type', 'chatgpt')
-            if (ai_type in ['chatgpt', 'openai'] and not params.get('chatgpt_key')) or (ai_type == 'deepseek' and not params.get('deepseek_key')):
-                self.main.startbtn.setDisabled(False)
-                show_error(tr('llmduanju'))
-                from videotrans.winform import get_win
-                get_win('deepseek' if ai_type == 'deepseek' else 'chatgpt').openwin()
-                return
+        if self.main.rephrase.isChecked():
+            try:
+                ai_type = settings.get('llm_ai_type', 1)
+                name=get_name_index(ai_type,'key')
+
+                if not params.get(f'{name}_key'):
+                    self.main.startbtn.setDisabled(False)
+                    show_error(tr('llmduanju',get_name_index(ai_type,'name')))
+                    from videotrans.winform import get_win
+                    get_win(name).openwin()
+                    return
+            except Exception as e:
+                logger.exception(f'校验LLM纠错设置时出错:{e}',exc_info=True)
 
         if self.check_name_length() is not True:
             self.main.startbtn.setDisabled(False)

@@ -10,7 +10,8 @@ from videotrans.util.help_role import role_menu
 
 class WinActionConfigMixin:
 
-    def show_xxl_select(self):
+    @staticmethod
+    def show_xxl_select():
         import sys
         if sys.platform != 'win32':
             show_error(

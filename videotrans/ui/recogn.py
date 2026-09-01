@@ -4,7 +4,7 @@ import platform
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import Qt
 
-from videotrans.configure.config import tr, settings
+from videotrans.configure.config import tr
 
 
 class Ui_recogn(object):
@@ -100,8 +100,8 @@ class Ui_recogn(object):
 
         recogn.setWindowTitle(tr("stt-windows-title"))
 
-        self.rephrase = QtWidgets.QComboBox()
-        self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase")])
+        self.rephrase = QtWidgets.QCheckBox()
+        self.rephrase.setText(tr("LLM Rephrase"))
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
         
         self.fix_punc = QtWidgets.QComboBox()
@@ -112,30 +112,23 @@ class Ui_recogn(object):
             tr("Delete punctuation")
         ])
 
-        
-
         self.copysrt_rawvideo = QtWidgets.QCheckBox()
         self.copysrt_rawvideo.setMinimumSize(QtCore.QSize(0, 30))
         self.copysrt_rawvideo.setObjectName("copysrt_rawvideo")
-        
 
-
-
-        
         self.h4 = QtWidgets.QHBoxLayout()
         self.h4.addStretch()
         self.h4.addWidget(self.shibie_startbtn)
         self.h4.addWidget(self.shibie_stop)
-        self.h4.addWidget(self.rephrase)
         self.h4.addWidget(self.fix_punc)
+        self.h4.addWidget(self.rephrase)
 
-        self.h4.addWidget(self.copysrt_rawvideo)
-        
         self.h4.addWidget(self.enable_diariz)
         self.h4.addWidget(self.nums_diariz)
 
 
         self.h4.addWidget(self.spk_insert)
+        self.h4.addWidget(self.copysrt_rawvideo)
 
         
         self.h4.addStretch()

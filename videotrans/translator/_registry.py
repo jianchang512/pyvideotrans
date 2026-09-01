@@ -20,7 +20,7 @@ _ID_NAME_DICT = {
     DEEPSEEK_INDEX: ChannelProvider("DeepSeek", key_name="deepseek_key", win="deepseek", imp="._deepseek"),
     GEMINI_INDEX: ChannelProvider("Gemini AI", key_name="gemini_key", win="gemini", imp="._gemini"),
     ZHIPUAI_INDEX: ChannelProvider(tr('Zhipu AI'), key_name="zhipu_key", win="zhipuai", imp="._zhipuai"),
-    AZUREGPT_INDEX: ChannelProvider("AzureGPT AI", key_name="azure_key", win="azure", imp="._azure"),
+    AZUREGPT_INDEX: ChannelProvider("Azure AI", key_name="azure_key", win="azure", imp="._azure"),
     LOCALLLM_INDEX: ChannelProvider(tr('Local LLM'), key_name="localllm_api", win="localllm", imp="._localllm"),
 
     OPENROUTER_INDEX: ChannelProvider("OpenRouter",  key_name="openrouter_key", win="openrouter", imp="._openrouter"),
@@ -43,6 +43,45 @@ _ID_NAME_DICT = {
     TRANSAPI_INDEX: ChannelProvider(tr('Customized API'), key_name="trans_api_url", win="transapi", imp="._transapi"),
     LITELLM_INDEX: ChannelProvider("LiteLLM", key_name="litellm_key", win="litellm", imp="._litellm"),
 }
+
+
+# LLM 纠错中根据 索引获取 name
+LLM_CONCERT_MAP={
+        "chatgpt":tr("OpenAI ChatGPT"),
+        "deepseek":"DeepSeek",
+        "ai302":"302.AI",
+        "azure":"Azure",
+        "zijiehuoshan":tr("VolcEngine LLM"),
+        "localllm":tr("Local LLM"),
+        "minimax":"MiniMax AI",
+        "openrouter":"OpenRouter",
+        "siliconflow":tr("SiliconFlow"),
+        "xiaomi":tr("XiaoMi"),
+        "zhipuai":tr("Zhipu AI")
+}
+
+LLM_CONCERT_INDEX={
+        "chatgpt":CHATGPT_INDEX,
+        "deepseek":DEEPSEEK_INDEX,
+        "ai302":AI302_INDEX,
+        "azure":AZUREGPT_INDEX,
+        "zijiehuoshan":ZIJIE_INDEX,
+        "localllm":LOCALLLM_INDEX,
+        "minimax":MINIMAX_INDEX,
+        "openrouter":OPENROUTER_INDEX,
+        "siliconflow":SILICONFLOW_INDEX,
+        "xiaomi":XIAOMI_INDEX,
+        "zhipuai":ZHIPUAI_INDEX
+}
+# 根据 llm_ai_type 当前所选的索引，获取对应key name 或 常量
+def get_name_index(idx,return_type='key'):
+    idx=int(idx)
+    _key= list(LLM_CONCERT_MAP.keys())[idx]
+    if return_type=='index':
+        return LLM_CONCERT_INDEX.get(_key)
+    if return_type=='name':
+        return LLM_CONCERT_MAP[_key]
+    return _key
 
 _ID_NAME_DICT = dict(sorted(_ID_NAME_DICT.items(), key=lambda item: item[0]))
 TRANSLASTE_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]

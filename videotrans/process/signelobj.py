@@ -8,9 +8,12 @@ def pool_init_worker():
     class NullWriter:
         def write(self, *args, **kwargs): pass
         def flush(self, *args, **kwargs): pass
-        def isatty(self): return False
-        def fileno(self): return -1
-        def read(self, *args, **kwargs): return ""
+        @staticmethod
+        def isatty(): return False
+        @staticmethod
+        def fileno(): return -1
+        @staticmethod
+        def read(*args, **kwargs): return ""
         def close(self): pass
         @property
         def encoding(self): return "utf-8"

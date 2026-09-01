@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import Optional
 from videotrans.configure.config import logger
 
-VERSION = "v4.11"
-VERSION_NUM = 411
+VERSION = "v4.12"
+VERSION_NUM = 412
 _loaded_modules = {}
 
 @dataclass

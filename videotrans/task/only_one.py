@@ -183,7 +183,8 @@ class Worker(QThread):
         except (ValueError,IndexError,TypeError):
             pass
 
-    def _exit(self):
+    @staticmethod
+    def _exit():
         if app_cfg.exit_soft or app_cfg.current_status != 'ing':
             return True
         return False

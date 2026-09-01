@@ -7,7 +7,7 @@ class SILICONFLOW(OpenAICampat):
 
     def __post_init__(self):
         self.ainame ='siliconflow'
-        self.max_tokens =int(params.get('guiji_max_tokens',8192))
+        self.max_tokens =int(params.get('guiji_max_token',8192))
         self.model_name = params.get('guiji_model', '')
         self.api_url = "https://api.siliconflow.cn/v1"
         self.api_key = params.get('guiji_key', '')

@@ -10,18 +10,18 @@ from videotrans.configure.config import logger
 
 def get_speech_timestamp_silero(input_wav,
                                 threshold=0.5,
-                                min_speech_duration_ms=2000,
+                                min_speech_duration_ms=3000,
                                 max_speech_duration_ms=6000,
                                 min_silent_duration_ms=140,
-                                speech_pad_ms=0,  #  前后扩展200ms，避免吞字头字尾
+                                speech_pad_ms=0,
                                 max_merge_gap_ms=800,  #两次说话间隔<800ms且总长不超限时，自动粘合
                                 **kw):
     vad_p = {
         "threshold": threshold,
-        "min_speech_duration_ms": 50,# 超过该值直接丢弃，不可过大，否则会吞字
+        "min_speech_duration_ms": 100,# 超过该值直接丢弃，不可过大，否则会吞字
         "max_speech_duration_s": float(max_speech_duration_ms / 1000.0),
         "min_silence_duration_ms": int(max(min_silent_duration_ms, 140)),#静音分割区间
-        "speech_pad_ms": int(max(speech_pad_ms, 0)),  # 边缘补白
+        "speech_pad_ms": speech_pad_ms  # 仅 faster-whisper时在此处进行边缘补白，因无需cut_audio
     }
     logger.debug(
         f'[silero-VAD]:最终断句参数：{vad_p=}')
@@ -66,7 +66,7 @@ def get_speech_timestamp_silero(input_wav,
         combined_duration = cur_end - prev_start
 
         # 只要与前一片段距离近，且合并后不超长，全部粘合在一起
-        if gap <= max_merge_gap_ms and combined_duration <= max_speech_duration_ms:
+        if gap <= max_merge_gap_ms and combined_duration <= (max_speech_duration_ms+1000):
             merged_segments[-1][1] = cur_end  # 扩大上一个片段的右边界
         else:
             merged_segments.append([cur_start, cur_end])
@@ -87,12 +87,23 @@ def get_speech_timestamp_silero(input_wav,
         if e_clamped > s_clamped:
             final_segments.append([s_clamped, e_clamped])
 
-    logger.debug(
-        f"[VAD-Robust]: 原始片段数 {len(raw_segments)} -> 优化整合为 {len(final_segments)} 个完整句子"
-    )
-    logger.debug(f'{final_segments=}')
+    # 再次合并过短的
+    _thrid_segs=[]
+    for i,it in enumerate(final_segments):
+        if not _thrid_segs or (_thrid_segs[-1][1]-_thrid_segs[-1][0]>=max_speech_duration_ms):
+            _thrid_segs.append(it)
+            continue
+        if _thrid_segs[-1][1]-_thrid_segs[-1][0] < min_speech_duration_ms:
+            _thrid_segs[-1][1]=it[1]
+            continue
+        _thrid_segs.append(it)
 
-    return final_segments
+
+    logger.debug(
+        f"[VAD-Robust]: 原始片段数 {len(raw_segments)} -> {len(final_segments)} -> {len(_thrid_segs)} 个完整句子"
+    )
+
+    return _thrid_segs
 
 
 
@@ -102,11 +113,12 @@ def get_speech_timestamp_silero(input_wav,
 def get_speech_timestamp(
     input_wav=None,
     threshold=0.45,
-    max_speech_duration_ms=10000,  # 目标最大片段长度 (建议8~12s)
+    max_speech_duration_ms=6000,  # 目标最大片段长度 (建议8~12s)
+    min_speech_duration_ms=3000,  # 目标最大片段长度 (建议8~12s)
     min_silent_duration_ms=140,  # VAD停顿判定阈值 (300ms)
-    speech_pad_ms=0,  # 核心：前后补白200ms，保护辅音与字头字尾
+    speech_pad_ms=0,  # 不在此处补白，避免时间戳错乱
     max_merge_gap_ms=800,  # 核心：停顿<=800ms一律视为同一句，直接合并
-    min_isolated_duration_ms=140,  # 仅剔除孤立无援的超短噪点(<150ms)
+    min_isolated_duration_ms=140,  # 剔除孤立无援的超短噪点(<150ms)
     **kw,
 ):
     st_ = time.time()
@@ -187,7 +199,7 @@ def get_speech_timestamp(
         # (1) 前后有重叠 (gap <= 0)
         # (2) 间隔停顿小于设定阈值 (gap <= max_merge_gap_ms) 且 合并后总长不超标
         if (gap <= max_merge_gap_ms) and (
-            combined_duration <= max_speech_duration_ms
+            combined_duration <= (max_speech_duration_ms+1000)
         ):
             # 扩展上一个片段的右边界
             merged_segments[-1][1] = max(prev_end, cur_end)
@@ -210,11 +222,22 @@ def get_speech_timestamp(
 
         final_segments.append([s, e])
 
+    # 再次合并过短的
+    _thrid_segs=[]
+    for i,it in enumerate(final_segments):
+        if not _thrid_segs or (_thrid_segs[-1][1]-_thrid_segs[-1][0]>=max_speech_duration_ms):
+            _thrid_segs.append(it)
+            continue
+        if _thrid_segs[-1][1]-_thrid_segs[-1][0] < min_speech_duration_ms:
+            _thrid_segs[-1][1]=it[1]
+            continue
+        _thrid_segs.append(it)
+
     logger.debug(
-        f"[Ten-VAD] 处理完成，共切分 {len(final_segments)} 个片段，耗时: {time.time() - st_:.2f}s"
+        f"[Ten-VAD] {len(merged_segments)} -> {len(final_segments)} -> {len(_thrid_segs)} 优化"
     )
 
-    return final_segments if final_segments else None
+    return _thrid_segs
 
 
 def _detect_raw_segments(

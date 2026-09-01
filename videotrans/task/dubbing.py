@@ -56,7 +56,8 @@ class DubbingSrt(BaseTask):
         self._tts()
 
     # 字幕可能是gbk gb2312 等编码，需转为 utf-8
-    def _convert_to_utf8_if_needed(self, file_path: str) -> str:
+    @staticmethod
+    def _convert_to_utf8_if_needed(file_path: str) -> str:
         try:
             # 1. 尝试以 UTF-8 编码打开并完全读取文件，检查其有效性
             # 'strict' 是默认错误处理方式，遇到无法解码的字节会抛出 UnicodeDecodeError

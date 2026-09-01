@@ -132,7 +132,8 @@ class WinActionBaseModeMixin:
         self.hide_show_element(self.main.dubb_thread_layout, self.show_adv_status)
         self.main.advcontainer.setVisible(self.show_adv_status)
 
-    def hide_show_element(self, wrap_layout, show_status):
+    @staticmethod
+    def hide_show_element(wrap_layout, show_status):
         def hide_recursive(layout, show_status):
             for i in range(layout.count()):
                 item = layout.itemAt(i)

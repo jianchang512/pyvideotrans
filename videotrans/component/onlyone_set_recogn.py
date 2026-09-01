@@ -224,7 +224,7 @@ class EditRecognResultDialog(QDialog,DanspMixin):
 
     # 播放进度触发
     def _on_video_position_changed(self, position):
-        if self._target_end_ms > 0 and position >= self._target_end_ms:
+        if 0 < self._target_end_ms <= position:
             self._pause_play()
 
     def _play_segment(self, start_ms, end_ms):

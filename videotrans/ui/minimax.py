@@ -139,7 +139,7 @@ class Ui_minimaxform(object):
 
         self.minimax_key.setText(str(params.get("minimax_key",'')))
         self.minimax_api.setText(str(params.get("minimax_api",'')))
-        self.max_token.setText(str(params.get("minimax_max_tokens",'8192')))
+        self.max_token.setText(str(params.get("minimax_max_token",'8192')))
         self.minimax_model.setCurrentText(str(params.get("minimax_model",'')))
         self.minimax_thinking.setChecked(bool(params.get("minimax_thinking",False)))
         

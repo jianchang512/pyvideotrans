@@ -206,7 +206,6 @@ def run(*,
         is_cuda=None,
         subtitle_type=0,
         max_speakers=-1,  # -1 不启用说话人识别,0=不限制数量，>0最大数量
-        llm_post=False,
         recogn2pass=False  # 二次对配音文件识别，生成简短字幕
 
         ) -> Union[List[SrtItem], None]:
@@ -221,7 +220,6 @@ def run(*,
         "subtitle_type": subtitle_type,
         "recogn_type": recogn_type,
         "max_speakers": max_speakers,
-        "llm_post": llm_post,
         "recogn2pass": recogn2pass
     }
     _cls: Union[Type[BaseRecogn], None] = get_class(recogn_type, "recognition", _ID_NAME_DICT)
