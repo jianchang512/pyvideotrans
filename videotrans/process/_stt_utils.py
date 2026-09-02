@@ -208,7 +208,7 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
     final_segments = []
 
     _block = 100 / len(texts)
-    _rc = 800  # 容差 ms，超过才强制分割
+    _rc = 1000  # 容差 ms，超过才强制分割
     _min_words = 1  # 小于这几个词，不拆分而是合并
     for seg_idx, segment in enumerate(texts):
         seg_start_ms = float(segment.get('start', 0)) * 1000
@@ -267,18 +267,18 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
                 current_duration = prev_word_end_ms - chunk_start_ms if prev_word_end_ms else 0
 
                 # 至少3个单词
-                if len(current_chunk) >= _min_words and current_duration >= min_speech_ms:
+                if len(current_chunk) >= _min_words and current_duration > min_speech_ms:
                     # 遇到强标点结束
                     if has_punc(prev_word_text, end_punc):
                         should_split = True
-                    # 遇到明显的长静音停顿 (>= 500ms)
-                    elif pause_ms >= 500:
+                    # 遇到明显的长静音停顿 (>= 600ms)
+                    elif pause_ms >= 600:
                         should_split = True
-                    # 遇到短停顿 (>= 200ms) 且伴随逗号等弱标点
-                    elif has_punc(prev_word_text, comma_punc) and pause_ms >= 200:
+                    # 遇到短停顿 (>= 100ms) 且伴随逗号等弱标点
+                    elif has_punc(prev_word_text, comma_punc) and pause_ms >= 100:
                         should_split = True
-                    # 为了防止有些长句既没标点也没大停顿，如果时长已经过半，遇到个中等停顿(>=400ms)也果断切
-                    elif current_duration > (max_speech_ms * 0.5) and pause_ms >= 300:
+                    # 为了防止有些长句既没标点也没大停顿，如果时长已经过半，遇到个中等停顿(>=200ms)也果断切
+                    elif current_duration > max(min_speech_ms,max_speech_ms * 0.5) and pause_ms >= 200:
                         should_split = True
 
             if should_split:
@@ -318,12 +318,12 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
 
         _last_duration = _merged[-1]['end'] - _merged[-1]['start']
 
-        # 最后一个超长时，并且当前不是最后一个时，直接插入
+        # _merged的最后一个超长时，并且当前不是final_segments最后一个时，直接插入
         if _last_duration >= max_speech_ms and idx < _len - 1:
             _merged.append(seg)
             continue
 
-        # 其他情况
+        # 其他情况合并进前面
         _merged[-1]['text'] += (' ' if use_space else '') + seg['text']
         _merged[-1]['end'] = seg['end']
 
