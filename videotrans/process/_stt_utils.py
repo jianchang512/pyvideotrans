@@ -323,6 +323,13 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms,logs_file=None) -> 
         _merged[-1]['text']+=(' ' if use_space else '')+seg['text']
         _merged[-1]['end']=seg['end']
 
+
+    if len(_merged)>1 and _merged[-1]['end']-_merged[-1]['start']<min_speech_ms:
+        p=_merged[-1]
+        _merged[-1]['text']+=(' ' if use_space else '')+p['text']
+        _merged[-1]['end']=p['end']
+
+
     # 输出
     srt_output = []
     for idx, seg in enumerate(_merged):

@@ -21,7 +21,7 @@ def qwen3asr_fun(
 ):
     from qwen_asr import Qwen3ASRModel
     from videotrans.task.taskcfg import SrtItem
-    from videotrans.process._stt_utils import _write_log
+    from videotrans.process._stt_utils import _write_log,_resegment
 
     try:
         srts: List[SrtItem] = [SrtItem(**item) for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
@@ -38,16 +38,36 @@ def qwen3asr_fun(
                 # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
                 max_new_tokens=4096,  # Maximum number of tokens to generate. Set a larger value for long audio input.
             )
-            msg= f'Load {model_name} running on {model.device}'
-            _write_log(logs_file, json.dumps({"type": "logs", "text":msg}))
-            logger.debug(f'QwenASR本地渠道  {local_dir} 模型，{msg}')
+        else:
+            from transformers4576 import BitsAndBytesConfig
 
+            quant_config = BitsAndBytesConfig(
+                    load_in_8bit=True
+                )
+            model = Qwen3ASRModel.from_pretrained(
+                local_dir,  # f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
+                dtype='auto',
+                device_map=kw.get('device_name','auto'),
+                max_inference_batch_size=2,
+                max_new_tokens=81920, # Maximum number of tokens to generate. Set a larger value for long audio input.
+                forced_aligner=local_dir_align,
+                quantization_config=quant_config,
+                forced_aligner_kwargs=dict(
+                    dtype='auto',
+                    device_map="auto",
+                )
+            )
 
+        msg= f'Load {model_name} running on {model.device}'
+        _write_log(logs_file, json.dumps({"type": "logs", "text":msg}))
+        logger.debug(f'QwenASR 本地渠道  {local_dir} 模型，{msg}')
+
+        if not force_align:
             srts_chunk = [srts[i:i + 4] for i in range(0, len(srts), 4)]
             for i, it_list in enumerate(srts_chunk):
                 results = model.transcribe(
                     audio=[it['filename'] for it in it_list],
-                    language=[None for it in it_list],  # can also be set to None for automatic language detection
+                    language=[None for it in it_list],
                     return_time_stamps=False,
                     # context=hotword.split(',') if hotword else []
                 )
@@ -58,27 +78,7 @@ def qwen3asr_fun(
 
             return srts, None
 
-        from transformers4576 import BitsAndBytesConfig
-        from videotrans.process._stt_utils import _resegment
-        quant_config = BitsAndBytesConfig(
-                load_in_8bit=True
-            )
-        model = Qwen3ASRModel.from_pretrained(
-            local_dir,  # f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
-            dtype='auto',
-            device_map=kw.get('device_name','auto'),
-            max_inference_batch_size=2,
-            max_new_tokens=81920, # Maximum number of tokens to generate. Set a larger value for long audio input.
-            forced_aligner=local_dir_align,
-            quantization_config=quant_config,
-            forced_aligner_kwargs=dict(
-                dtype='auto',
-                device_map="auto",
-            )
-        )
-        msg= f'Load {model_name} running on {model.device}'
-        _write_log(logs_file, json.dumps({"type": "logs", "text":msg}))
-        logger.debug(f'QwenASR 本地渠道  {local_dir} 模型，{msg}')
+
         texts=[{
           "start":0,
           "end":0,
@@ -97,12 +97,12 @@ def qwen3asr_fun(
             timestamps=results[0].time_stamps.items
             offset=it['start_time']/1000.0
             if i==0:
-                texts[0]['start']=timestamps[0]['start_time']+offset
+                texts[0]['start']=timestamps[0].start_time+offset
             for item in timestamps:
               tmp={"word":item.text,"start":item.start_time+offset,"end":item.end_time+offset}
               texts[0]['words'].append(tmp)
             if i==len(srts)-1:
-                texts[0]['end']=timestamps[-1]['end_time']+offset
+                texts[0]['end']=timestamps[-1].end_time+offset
 
         srts=_resegment(texts, "zh" if language in ["Chinese","Cantonese","Japanese","Korean"] else 'en' , max_speech_ms,min_speech_ms,logs_file)
         return srts,None

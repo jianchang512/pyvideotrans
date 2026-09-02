@@ -441,7 +441,7 @@ def build_stt_params(args: argparse.Namespace) -> dict:
     """Build STT-specific parameters."""
     return {
         "recogn_type": args.recogn_type,
-        "detect_language": args.detect_language,
+        "detect_language": args.source_language_code or args.detect_language,
         "model_name": args.model_name,
         "is_cuda": args.cuda,
         "remove_noise": args.remove_noise,
