@@ -9,9 +9,9 @@ from videotrans.configure.config import logger
 
 
 def get_speech_timestamp_silero(input_wav,
-                                threshold=0.5,
+                                threshold=0.45,
                                 min_speech_duration_ms=3000,
-                                max_speech_duration_ms=6000,
+                                max_speech_duration_ms=5000,
                                 min_silent_duration_ms=140,
                                 speech_pad_ms=0,
                                 max_merge_gap_ms=800,  #两次说话间隔<800ms且总长不超限时，自动粘合
@@ -90,13 +90,17 @@ def get_speech_timestamp_silero(input_wav,
     # 再次合并过短的
     _thrid_segs=[]
     for i,it in enumerate(final_segments):
-        if not _thrid_segs or (_thrid_segs[-1][1]-_thrid_segs[-1][0]>=max_speech_duration_ms):
+        _duration=it[1]-it[0]
+        if not _thrid_segs or _duration>=max_speech_duration_ms:
             _thrid_segs.append(it)
             continue
-        if _thrid_segs[-1][1]-_thrid_segs[-1][0] < min_speech_duration_ms:
-            _thrid_segs[-1][1]=it[1]
+        _last_duration=_thrid_segs[-1][1]-_thrid_segs[-1][0]
+
+        if _last_duration>=max_speech_duration_ms and  i< len(final_segments) - 1:
+            _thrid_segs.append(it)
             continue
-        _thrid_segs.append(it)
+
+        _thrid_segs[-1][1]=it[1]
 
 
     logger.debug(
@@ -113,7 +117,7 @@ def get_speech_timestamp_silero(input_wav,
 def get_speech_timestamp(
     input_wav=None,
     threshold=0.45,
-    max_speech_duration_ms=6000,  # 目标最大片段长度 (建议8~12s)
+    max_speech_duration_ms=5000,  # 目标最大片段长度 (建议8~12s)
     min_speech_duration_ms=3000,  # 目标最大片段长度 (建议8~12s)
     min_silent_duration_ms=140,  # VAD停顿判定阈值 (300ms)
     speech_pad_ms=0,  # 不在此处补白，避免时间戳错乱
@@ -121,15 +125,15 @@ def get_speech_timestamp(
     min_isolated_duration_ms=140,  # 剔除孤立无援的超短噪点(<150ms)
     **kw,
 ):
-    st_ = time.time()
 
     try:
         sr, data = Wavfile.read(input_wav)
     except Exception as e:
         logger.exception(f"读取音频失败: {e}", exc_info=True)
         return None
+
     logger.debug(f'[ten-vad]最终参数:{threshold=},{max_speech_duration_ms=},{min_silent_duration_ms=},{speech_pad_ms=},{max_merge_gap_ms=},{min_isolated_duration_ms=}')
-    # 1. 音频格式标准化 (转单声道 + int16)
+
     if data.ndim > 1:
         data = np.mean(data, axis=1)
 
@@ -206,32 +210,33 @@ def get_speech_timestamp(
         else:
             merged_segments.append([cur_start, cur_end])
 
-    # ==========================================
     # 剔除孤立噪点与边界安全规整
-    # ==========================================
     final_segments = []
     for s, e in merged_segments:
         duration = e - s
-
         # 只有在完全孤立且时长 < min_isolated_duration_ms 时才丢弃
         if duration < min_isolated_duration_ms:
             logger.debug(
                 f"[Ten-VAD] 丢弃孤立短噪点: [{s}ms - {e}ms], 时长: {duration}ms"
             )
             continue
-
         final_segments.append([s, e])
 
     # 再次合并过短的
     _thrid_segs=[]
     for i,it in enumerate(final_segments):
-        if not _thrid_segs or (_thrid_segs[-1][1]-_thrid_segs[-1][0]>=max_speech_duration_ms):
+        _duration=it[1]-it[0]
+        if not _thrid_segs or _duration>=max_speech_duration_ms:
             _thrid_segs.append(it)
             continue
-        if _thrid_segs[-1][1]-_thrid_segs[-1][0] < min_speech_duration_ms:
-            _thrid_segs[-1][1]=it[1]
+
+        _last_duration=_thrid_segs[-1][1]-_thrid_segs[-1][0]
+
+        if _last_duration>=max_speech_duration_ms and  i< len(final_segments) - 1:
+            _thrid_segs.append(it)
             continue
-        _thrid_segs.append(it)
+
+        _thrid_segs[-1][1]=it[1]
 
     logger.debug(
         f"[Ten-VAD] {len(merged_segments)} -> {len(final_segments)} -> {len(_thrid_segs)} 优化"
