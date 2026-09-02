@@ -963,5 +963,6 @@
   "msg_text_empty": "文本内容不能为空。",
   "msg_save_fail": "保存文件失败: {}",
   "msg_success_detail": "SRT 字幕生成成功！\n文件已保存为:\n{}",
-  "We accept two API request methods": "接受两种 API 请求方式，具体请点击 【查看填写教程】 按钮了解"
+  "We accept two API request methods": "接受两种 API 请求方式，具体请点击 【查看填写教程】 按钮了解",
+  "More than 30 minutes of audio and video require a large amount of video memory": "60分钟以上音视频，需要极大显存，将发音语言设为自动检测可分片转录降低显存占用"
 }

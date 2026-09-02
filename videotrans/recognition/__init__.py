@@ -162,14 +162,17 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
     # faster-whisper/openai-whisper支持所有语言
     if recogn_type in [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API, AI_302, GEMINI_SPEECH, WHISPER_NET]:
         return True
+    if recogn_type == QWENASR:
+        return tr('More than 30 minutes of audio and video require a large amount of video memory')
     # huggingface_asr 渠道里的 openai 和 Systran 模型也支持所有语言
-    if recogn_type == HUGGINGFACE_ASR and not HUGGINGFACE_ASR_MODELS.get(model_name):
-        return True
+    if recogn_type == HUGGINGFACE_ASR:
+        if not HUGGINGFACE_ASR_MODELS.get(model_name):
+            return True
         
-    if recogn_type == HUGGINGFACE_ASR and HUGGINGFACE_ASR_MODELS.get(model_name):
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
             return tr("Only support") + tr(HUGGINGFACE_ASR_MODELS[model_name])
         return True
+
     if recogn_type == PARAKEET_JA:
         return tr("Only support") + tr('ja')
         
@@ -178,9 +181,6 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
     if recogn_type == FIREREDASR:
         return tr("Only support") + tr('Chinese & English and Chinese dialects')
     
-    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs, Faster_Whisper_XXL, Whisper_CPP,  WHISPERX_API, AI_302, OPENAI_API, WHISPER_NET,DOLPHIN,FIREREDASR,HUGGINGFACE_ASR,Omnilingual]:
-        return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
-
     return True
 
 

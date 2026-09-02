@@ -963,5 +963,6 @@
   "msg_text_empty": "Text content cannot be empty.",
   "msg_save_fail": "Failed to save file: {}",
   "msg_success_detail": "SRT generated successfully!\nFile saved as:\n{}",
-  "We accept two API request methods": "We accept two API request methods. Please click the Help Doc button for details."
+  "We accept two API request methods": "We accept two API request methods. Please click the Help Doc button for details.",
+  "More than 30 minutes of audio and video require a large amount of video memory": "For A/V longer than 60 min, which require substantial GPU memory, set the Spoken language to auto-detection enables segmented transcription to reduce memory usage"
 }
