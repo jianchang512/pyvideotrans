@@ -80,13 +80,18 @@ class WinActionConfigMixin:
     def set_voice_role(self, t):
         role = self.main.voice_role.currentText()
         code = translator.get_code(show_text=t)
-        if code and code != '-':
+        if code and code not in ['-','No']:
+            _tips=""
             is_allow_lang = tts.is_allow_lang(langcode=code, tts_type=self.main.tts_type.currentIndex())
-            self.main.show_tips.setText(str(is_allow_lang) if is_allow_lang is not True else '')
-            
-            if translator.is_allow_translate(translate_type=self.main.translate_type.currentIndex(),
-                                             show_target=t) is not True:
-                return
+            if is_allow_lang is not True:
+                _tips+=f'{is_allow_lang} '
+
+            rs=translator.is_allow_translate(translate_type=self.main.translate_type.currentIndex(),
+                                             show_target=t)
+            if rs is not True:
+                _tips+=rs
+            self.main.show_tips.setText(_tips)
+
         if self.main.tts_type.currentIndex() not in tts.CHANGE_BY_LANGUAGE:
             if role != 'No' and self.main.app_mode in ['biaozhun']:
                 self.main.listen_btn.show()

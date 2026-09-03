@@ -115,8 +115,7 @@ class SpeechToText(BaseTask):
 
 
         # 中英恢复标点符号
-        if self.cfg.detect_language != 'auto' and self.cfg.fix_punc==1 and self.cfg.detect_language.split('-')[0] in ['zh', 'en']:
-
+        if self.cfg.fix_punc==1:
             try:
                 from videotrans.process.prepare_audio import fix_punc
                 down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF, callback=self._process_callback)
@@ -142,9 +141,8 @@ class SpeechToText(BaseTask):
 
         # 本身已有说话人识别的，就不再重新断句
         self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
-        if Path(self.cfg.cache_folder + "/speaker.json").exists(): return
-        
-        # LLM重新短句
+
+        # LLM纠错
         if self.cfg.rephrase:
             self.source_srt_list=self._llmpost(self.source_srt_list)
 

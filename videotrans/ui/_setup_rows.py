@@ -15,6 +15,7 @@ def _create_file_row(ui, parent):
     ui.btn_get_video.setMinimumSize(QtCore.QSize(120, 30))
     ui.btn_get_video.setObjectName("btn_get_video")
 
+
     ui.source_mp4 = QtWidgets.QLabel('')
     ui.source_mp4.setMaximumWidth(100)
     ui.source_mp4.setObjectName("source_mp4")

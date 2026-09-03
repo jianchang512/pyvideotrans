@@ -112,7 +112,7 @@ def faster_whisper(
             condition_on_previous_text=condition_on_previous_text,
             vad_filter=True,
             vad_parameters=dict(
-                min_silence_duration_ms=140,
+                min_silence_duration_ms=2000,
                 min_speech_duration_ms=0,
                 threshold=threshold
                 ),

@@ -17,6 +17,8 @@ def glmasr_asr(
         **kw
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     from videotrans.process._stt_utils import _write_log
+    import copyreg
+    copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
     from transformers import AutoProcessor, GlmAsrForConditionalGeneration, BitsAndBytesConfig
 
     processor = AutoProcessor.from_pretrained(local_dir)

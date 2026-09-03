@@ -4,6 +4,10 @@ from typing import List, Dict, Any
 
 from ._utils import _write_log
 
+no_space_langs = {'zh', 'ja', 'th', 'yue', 'ko', 'km'}
+end_punc = set('.?!。？！\n')
+comma_punc = set(',;:，；：、')
+
 
 # --- 辅助函数：将毫秒转换为 SRT 标准时间格式 HH:MM:SS,mmm ---
 def format_srt_time(ms_time):
@@ -21,16 +25,15 @@ def _remove_unwanted_characters(text: str) -> str:
 
 
 """
+针对二次识别后 whisper 返回的字级时间戳
 texts=[
 {
-                    "text": 句子,
-                    "start": 开始秒,
-                    "end": 结束秒,
-                    "words": [{'word': 单词或单个字, 'start': 开始秒, 'end': 结束秒}...]
+    "text": 句子,
+    "start": 开始秒,
+    "end": 结束秒,
+    "words": [{'word': 单词或单个字, 'start': 开始秒, 'end': 结束秒}...]
 },
 ....
-
-
 max_speech_ms=允许的最长时长ms
 min_speech_ms=最短时长ms
 language=语言代码，zh,ja,en等
@@ -41,50 +44,32 @@ def _resegment2(texts: List[Dict[str, Any]], language: str, max_speech_ms: int, 
 List[Any]:
     if not texts:
         return []
-
-    # --- 1. 语言连接规则与标点判定 ---
-    no_space_langs = {'zh', 'ja', 'th', 'yue', 'ko', 'km'}
     use_space = language.lower() not in no_space_langs
-
-    end_punc = set('.?!。？！\n')
-    comma_punc = set(',;:，；：、')
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'Secondary Resegment:start'}))
-    # --- 2. 展平并标准化字词数据 (转为毫秒) ---
+    # --- 展平并标准化字词数据 (转为毫秒) ---
     all_words = []
     for item in texts:
-        words = item.get('words', [])
-        if words:
-            for w in words:
-                word_text = str(w.get('word', ''))
-                if not word_text:
-                    continue
-                start_ms = int(round(float(w['start']) * 1000))
-                end_ms = int(round(float(w['end']) * 1000))
-                all_words.append({
-                    'word': word_text,
-                    'start_ms': start_ms,
-                    'end_ms': max(start_ms, end_ms)
-                })
-        else:
-            # 降级容错：如果没有字级时间戳，把整个 text 当作一个整体 word
-            text = str(item.get('text', '')).strip()
-            if text:
-                start_ms = int(round(float(item['start']) * 1000))
-                end_ms = int(round(float(item['end']) * 1000))
-                all_words.append({
-                    'word': text,
-                    'start_ms': start_ms,
-                    'end_ms': max(start_ms, end_ms)
-                })
+        for w in item.get('words', []):
+            word_text = str(w.get('word', ''))
+            if not word_text:
+                continue
+            start_ms = int(round(float(w['start']) * 1000))
+            end_ms = int(round(float(w['end']) * 1000))
+            all_words.append({
+                'word': word_text,
+                'start_ms': start_ms,
+                'end_ms': max(start_ms, end_ms)
+            })
 
     if not all_words:
         return []
 
-    # --- 3. 核心切分逻辑 ---
     raw_chunks = []
     cur_chunk = []
+    _rc=int(max_speech_ms*0.3)
 
     for i, word in enumerate(all_words):
+        if not word['word'].strip():continue
         if not cur_chunk:
             cur_chunk.append(word)
             continue
@@ -105,22 +90,21 @@ List[Any]:
         split = False
 
         # 规则 A: 超过最大允许时长，强制在此切分 (Hard limit)
-        if new_duration > max_speech_ms:
+        # 明显的较长静音停顿 (>= 600ms)，属于天然断句点
+        if new_duration >= (max_speech_ms+_rc) or gap_ms>=400:
             split = True
-
-        # 规则 B: 明显的较长静音停顿 (>= 800ms)，属于天然断句点
-        elif gap_ms >= 800 and cur_duration >= min(min_speech_ms, 800):
-            split = True
-
         # 规则 C: 达到最短时长要求后的断句优化 (优先按静音/标点)
-        elif cur_duration >= min_speech_ms:
-            if gap_ms >= 350:  # 字词间有明显小停顿
-                split = True
-            elif has_end_punc:  # 遇到完整句号/问号/感叹号
-                split = True
-            elif has_comma_punc and (gap_ms >= 150 or cur_duration >= (min_speech_ms + max_speech_ms) // 2):
-                # 遇到逗号且有轻微停顿，或者句长已达到中间适中长度
-                split = True
+        elif gap_ms >= 100 or has_end_punc or has_comma_punc:  # 遇到标点
+            split = True
+        elif not use_space and word['word'][0]==" ":
+            split = True
+
+        # 中日韩最后一个是空格，应在此分割并将当前词插入 raw_chunks
+        if not split and not use_space and word['word'][-1]==" ":
+            cur_chunk.append(word)
+            raw_chunks.append(cur_chunk)
+            cur_chunk=[]
+            continue
 
         if split:
             raw_chunks.append(cur_chunk)
@@ -131,40 +115,23 @@ List[Any]:
     if cur_chunk:
         raw_chunks.append(cur_chunk)
 
-    # --- 4. 碎片短句回退合并 (避免末尾出现闪烁的极短字幕) ---
-    merged_chunks = []
-    for chunk in raw_chunks:
-        if not merged_chunks:
-            merged_chunks.append(chunk)
-            continue
-
-        dur = chunk[-1]['end_ms'] - chunk[0]['start_ms']
-        prev_dur = merged_chunks[-1][-1]['end_ms'] - merged_chunks[-1][0]['start_ms']
-        combined_dur = chunk[-1]['end_ms'] - merged_chunks[-1][0]['start_ms']
-
-        # 如果当前片段短于 min_speech_ms，且合并后不超过 max_speech_ms，则合并
-        if dur < min_speech_ms and combined_dur <= max_speech_ms:
-            merged_chunks[-1].extend(chunk)
-        else:
-            merged_chunks.append(chunk)
-
-    # --- 5. 组装文本与生成 SrtItem ---
+    # --- 组装文本与生成 SrtItem ---
     def concat_words(words_list: List[Dict[str, Any]]) -> str:
         # 判断原始字是否自带空格（如 Whisper 英文词通常自带前导空格）
         has_leading_space = any(w['word'].startswith(' ') for w in words_list)
         if not use_space or has_leading_space:
             return "".join(w['word'] for w in words_list).strip()
-        else:
-            return " ".join(w['word'].strip() for w in words_list if w['word'].strip()).strip()
+        return " ".join(w['word'].strip() for w in words_list if w['word'].strip()).strip()
 
     srt_output = []
-    for idx, chunk in enumerate(merged_chunks):
+    for idx, chunk in enumerate(raw_chunks):
         start_ms = int(chunk[0]['start_ms'])
         end_ms = int(chunk[-1]['end_ms'])
         text = concat_words(chunk)
 
         start_raw = format_srt_time(start_ms)
         end_raw = format_srt_time(end_ms)
+        print(f'regsegment2: {(end_ms-start_ms)/1000.0}s')
 
         srt_output.append(SrtItem(**{
             "line": idx + 1,
@@ -175,20 +142,24 @@ List[Any]:
             "endraw": end_raw,
             "time": f"{start_raw} --> {end_raw}"
         }))
-
     return srt_output
+
+
+"""
+针对 whisper 模型返回的字级时间戳数据，根据静音和标点重新断句
+"""
 
 
 def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) -> List[SrtItem]:
     if not texts: return []
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:start'}))
-    # --- 语言连接规则与标点判定 ---
-    # 东方中日韩等语言通常无需空格，其他字母系语言需空格
-    no_space_langs = {'zh', 'ja', 'th', 'yue', 'ko', 'km'}
-    use_space = language.lower() not in no_space_langs
+    # 最长可能句子: max_speech_ms + _rc + min_speech_ms
+    # 最短句子: min_speech_ms
+    _rc = 1500  # 超过 max_speech_ms + _rc ，强制分割
+    _min_words = 1  # 大于该数量的词，才考虑分割
 
-    end_punc = set('.?!。？！\n')
-    comma_punc = set(',;:，；：、')
+    # 东方中日韩等语言通常无需空格，其他字母系语言需空格
+    use_space = language.lower() not in no_space_langs
 
     def has_punc(text, punc_set):
         if not text:
@@ -204,12 +175,8 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
             text_str = "".join(chunk_words)
         return text_str.strip()
 
-    # --- 核心逻辑 ---
     final_segments = []
-
     _block = 100 / len(texts)
-    _rc = 1000  # 容差 ms，超过才强制分割
-    _min_words = 1  # 小于这几个词，不拆分而是合并
     for seg_idx, segment in enumerate(texts):
         seg_start_ms = float(segment.get('start', 0)) * 1000
         seg_end_ms = float(segment.get('end', 0)) * 1000
@@ -218,8 +185,7 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
         _c_percent = seg_idx * _block
         _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:{_c_percent:.2f}%'}))
 
-        # 1. 如果该句话时长未超过 max_speech_ms，或者没有 words 数据可供细分
-        # 直接原样保留该句，不破坏 Whisper 原有断句结构
+        # 时间符合最大最小值，
         if min_speech_ms <= seg_duration <= (max_speech_ms + _rc):
             final_segments.append({
                 'text': segment.get('text', '').strip(),
@@ -266,19 +232,19 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
                 pause_ms = w_start_ms - prev_word_end_ms if prev_word_end_ms is not None else 0
                 current_duration = prev_word_end_ms - chunk_start_ms if prev_word_end_ms else 0
 
-                # 至少3个单词
-                if len(current_chunk) >= _min_words and current_duration > min_speech_ms:
+                # 至少个单词
+                if len(current_chunk) >= _min_words and current_duration >= min_speech_ms:
                     # 遇到强标点结束
                     if has_punc(prev_word_text, end_punc):
                         should_split = True
-                    # 遇到明显的长静音停顿 (>= 600ms)
-                    elif pause_ms >= 600:
+                    # 遇到明显的长静音停顿 (>= 400ms)
+                    elif pause_ms >= 400:
                         should_split = True
-                    # 遇到短停顿 (>= 100ms) 且伴随逗号等弱标点
-                    elif has_punc(prev_word_text, comma_punc) and pause_ms >= 100:
+                    # 遇到短停顿 (>= 200ms) 且伴随逗号等弱标点
+                    elif has_punc(prev_word_text, comma_punc) and pause_ms >= 200:
                         should_split = True
-                    # 为了防止有些长句既没标点也没大停顿，如果时长已经过半，遇到个中等停顿(>=200ms)也果断切
-                    elif current_duration > max(min_speech_ms,max_speech_ms * 0.5) and pause_ms >= 200:
+                    # 为了防止有些长句既没标点也没大停顿，如果时长已经过半，遇到个中等停顿(>=100ms)也果断切
+                    elif current_duration > max(min_speech_ms, max_speech_ms * 0.5) and pause_ms >= 100:
                         should_split = True
 
             if should_split:
@@ -300,7 +266,11 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
             prev_word_text = w_text
 
         # 遍历完该句的所有 words 后，将残存的词组收尾
-        if current_chunk:
+        # 是最后一个了，并且小于 min_speech_ms,则合并
+        if current_chunk and seg_idx == len(texts) - 1 and prev_word_end_ms - chunk_start_ms < min_speech_ms:
+            final_segments[-1]['end'] = prev_word_end_ms
+            final_segments[-1]['text'] += (" " if use_space else "") + build_text(current_chunk)
+        elif current_chunk:
             final_segments.append({
                 'text': build_text(current_chunk),
                 'start': chunk_start_ms,
@@ -322,7 +292,8 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
         if _last_duration >= max_speech_ms and idx < _len - 1:
             _merged.append(seg)
             continue
-
+        if _duration<min_speech_ms:
+            print(f'{_duration/1000.0}s {seg=},{_merged[-1]=}')
         # 其他情况合并进前面
         _merged[-1]['text'] += (' ' if use_space else '') + seg['text']
         _merged[-1]['end'] = seg['end']
@@ -335,6 +306,7 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
 
         start_raw = format_srt_time(start_ms)
         end_raw = format_srt_time(end_ms)
+        print(f'regsegment:{(end_ms-start_ms)/1000.0}s')
 
         srt_output.append(SrtItem(**{
             "line": idx + 1,
@@ -345,6 +317,5 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
             "endraw": end_raw,
             "time": f"{start_raw} --> {end_raw}"
         }))
-        print(f'{(end_ms - start_ms) / 1000.0}s')
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:ended'}))
     return srt_output

@@ -19,6 +19,8 @@ def higgs_fun(
     from videotrans.util.help_role import get_f5tts_role
     from videotrans.util.help_misc import vail_file
     import torch, torchaudio
+    import copyreg
+    copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
     repo = f"{ROOT_DIR}/models/models--multimodalart--higgs-audio-v3-tts-4b-transformers"

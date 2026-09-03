@@ -15,10 +15,9 @@ class WinActionCheckMixin:
     def set_translate_type(self, idx):
         try:
             t = self.main.target_language.currentText()
-            if t not in ['-']:
+            if t not in ['-','No']:
                 rs = translator.is_allow_translate(translate_type=idx, show_target=t)
-                if rs is not True:
-                    return False
+                self.main.show_tips.setText(rs if rs is not True else '')
         except Exception as e:
             show_error(str(e))
 
@@ -172,11 +171,13 @@ class WinActionCheckMixin:
             self.main.startbtn.setDisabled(False)
             return
 
-        if self.shound_translate() and translator.is_allow_translate(
+        if self.shound_translate():
+            rs=translator.is_allow_translate(
                 translate_type=self.cfg['translate_type'],
-                show_target=self.cfg['target_language_code']) is not True:
-            self.main.startbtn.setDisabled(False)
-            return
+                show_target=self.cfg['target_language_code'])
+
+            self.main.show_tips.setText(rs if rs is not True else '')
+
 
         if self.check_tts() is not True:
             self.main.tts_type.setCurrentIndex(0)

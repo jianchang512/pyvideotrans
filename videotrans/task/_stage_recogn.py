@@ -85,7 +85,7 @@ class RecognMixin:
         self._save_srt_target(raw_subtitles, self.cfg.source_sub)
         self.source_srt_list = raw_subtitles
         # 恢复标点
-        if self.cfg.fix_punc==1 and self.cfg.detect_language.split('-')[0] in ['zh', 'en']:
+        if self.cfg.fix_punc==1:
             try:
                 down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF, callback=self._process_callback)
                 from videotrans.process.prepare_audio import fix_punc
@@ -108,13 +108,10 @@ class RecognMixin:
                 logger.exception(f'标点恢复失败，跳过 {e}', exc_info=True)
 
         self.signal(text=Path(self.cfg.source_sub).read_text(encoding='utf-8'), type='replace_subtitle')
-        if Path(self.cfg.cache_folder + "/speaker.json").exists():
-            self._recogn_succeed()
-            self.signal(text=tr('endtiquzimu'))
-            return
-        
-        # 未选中说话人识别时，才重新断句
-        if self.cfg.rephrase and (not self.do_diarize or not self.cfg.enable_diariz):
+
+
+        # LLM纠错
+        if self.cfg.rephrase:
             self.source_srt_list=self._llmpost(self.source_srt_list)
         
         self._recogn_succeed()

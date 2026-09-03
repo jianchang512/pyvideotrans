@@ -3,10 +3,12 @@
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
+import re
 from pathlib import Path
 from typing import List
 
 from videotrans.configure.config import logger
+
 
 def qwen3asr_fun(
         cut_audio_list=None,
@@ -16,53 +18,54 @@ def qwen3asr_fun(
         max_speech_ms=6000,
         min_speech_ms=3000,
         model_name=None,
-        force_align=False,#是否需要对齐时间戳
+        detect_language=None,
+        force_align=False,  # 是否需要对齐时间戳:只有明确指定属于这些语言中的某个 ["zh","en","ja",'ko','yue','fr','es','it','de','pt','ru'] 才支持
         **kw
 ):
+    import copyreg
+    copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
+    from transformers4576 import BitsAndBytesConfig
     from qwen_asr import Qwen3ASRModel
     from videotrans.task.taskcfg import SrtItem
-    from videotrans.process._stt_utils import _write_log,_resegment
+    from videotrans.process._stt_utils import _write_log, _resegment
 
     try:
+        quant=BitsAndBytesConfig(
+                    load_in_8bit=True
+        )# 8位量化，避免爆显存
         srts: List[SrtItem] = [SrtItem(**item) for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         if not force_align:
-            """
-            自动检测语言：不可使用返回时间戳，只有明确指定 ["zh","en","ja",'ko','yue','fr','es','it','de','pt','ru'] 这些语言才支持。
-            超过30分钟的视频需要极大显存，可能爆显存，此时设为自动检测语言，可避免
-            """
             model = Qwen3ASRModel.from_pretrained(
-                local_dir,  # f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
+                local_dir,
                 dtype='auto',
-                device_map=kw.get('device_name','auto'),
-                max_inference_batch_size=8,
-                # Batch size limit for inference. -1 means unlimited. Smaller values can help avoid OOM.
-                max_new_tokens=4096,  # Maximum number of tokens to generate. Set a larger value for long audio input.
+                device_map=kw.get('device_name', 'auto'),
+                max_inference_batch_size=4,
+                max_new_tokens=4096,
+                quantization_config=quant,
             )
         else:
-            from transformers4576 import BitsAndBytesConfig
 
-            quant_config = BitsAndBytesConfig(
-                    load_in_8bit=True
-                )
+
             model = Qwen3ASRModel.from_pretrained(
-                local_dir,  # f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{model_name}",
+                local_dir,
                 dtype='auto',
-                device_map=kw.get('device_name','auto'),
+                device_map=kw.get('device_name', 'auto'),
                 max_inference_batch_size=2,
-                max_new_tokens=81920, # Maximum number of tokens to generate. Set a larger value for long audio input.
+                max_new_tokens=80920,#80k
                 forced_aligner=local_dir_align,
-                quantization_config=quant_config,
+                quantization_config=quant,
                 forced_aligner_kwargs=dict(
                     dtype='auto',
-                    device_map="auto",
+                    device_map=kw.get('device_name', 'auto')
                 )
             )
 
-        msg= f'Load {model_name} running on {model.device}'
-        _write_log(logs_file, json.dumps({"type": "logs", "text":msg}))
-        logger.debug(f'QwenASR 本地渠道  {local_dir} 模型，{msg}')
+        msg = f'Load {model_name} running on {model.device}'
+        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+        logger.debug(f'QwenASR:{local_dir}，{msg}，{detect_language=}, 是否返回字级时间戳:{force_align}')
 
         if not force_align:
+            # 不返还时间戳数据
             srts_chunk = [srts[i:i + 4] for i in range(0, len(srts), 4)]
             for i, it_list in enumerate(srts_chunk):
                 results = model.transcribe(
@@ -77,35 +80,36 @@ def qwen3asr_fun(
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": "\n".join([it['text'] for it in it_list])}))
 
             return srts, None
-
-
-        texts=[{
-          "start":0,
-          "end":0,
-          "text":"",
-          "words":[]
+        # 需要返回时间戳
+        texts = [{
+            "start": 0,
+            "end": 0,
+            "text": "",
+            "words": []
         }]
-        language=None
-        for i,it in enumerate(srts):
+        language = None
+        for i, it in enumerate(srts):
             results = model.transcribe(
                 audio=[it['filename']],
-                language=[None], # can also be set to None for automatic language detection
+                language=[None],
                 return_time_stamps=True,
             )
             if not language:
-                language=results[0].language
-            timestamps=results[0].time_stamps.items
-            offset=it['start_time']/1000.0
-            if i==0:
-                texts[0]['start']=timestamps[0].start_time+offset
+                language = results[0].language
+            timestamps = results[0].time_stamps.items
+            print(f'{results[0].text=}')
+            offset = it['start_time'] / 1000.0
+            if i == 0:
+                texts[0]['start'] = timestamps[0].start_time + offset
             for item in timestamps:
-              tmp={"word":item.text,"start":item.start_time+offset,"end":item.end_time+offset}
-              texts[0]['words'].append(tmp)
-            if i==len(srts)-1:
-                texts[0]['end']=timestamps[-1].end_time+offset
+                texts[0]['words'].append({"word": item.text, "start": item.start_time + offset, "end": item.end_time + offset})
+            _write_log(logs_file, json.dumps({"type": "subtitle", "text":"\n".join(re.split(r'[,.?!，。？！]',results[0].text)) +"\n" }))
+            if i == len(srts) - 1:
+                texts[0]['end'] = timestamps[-1].end_time + offset
 
-        srts=_resegment(texts, "zh" if language in ["Chinese","Cantonese","Japanese","Korean"] else 'en' , max_speech_ms,min_speech_ms,logs_file)
-        return srts,None
+        srts = _resegment(texts, "zh" if language in ["Chinese", "Cantonese", "Japanese", "Korean"] else 'en',
+                          max_speech_ms, min_speech_ms, logs_file)
+        return srts, None
     except BaseException as e:
         msg = traceback.format_exc()
         return False, f'{e}:{msg}'

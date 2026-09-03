@@ -12,7 +12,7 @@ def get_speech_timestamp_silero(input_wav,
                                 threshold=0.45,
                                 min_speech_duration_ms=3000,
                                 max_speech_duration_ms=5000,
-                                min_silent_duration_ms=140,
+                                min_silent_duration_ms=300,
                                 speech_pad_ms=0,
                                 max_merge_gap_ms=800,  #两次说话间隔<800ms且总长不超限时，自动粘合
                                 **kw):
@@ -23,8 +23,7 @@ def get_speech_timestamp_silero(input_wav,
         "min_silence_duration_ms": int(max(min_silent_duration_ms, 140)),#静音分割区间
         "speech_pad_ms": speech_pad_ms  # 仅 faster-whisper时在此处进行边缘补白，因无需cut_audio
     }
-    logger.debug(
-        f'[silero-VAD]:最终断句参数：{vad_p=}')
+    logger.debug(f'[silero-VAD]:最终断句参数：{vad_p=}')
 
     sampling_rate = 16000
     min_isolated_duration_ms=140  # 前后孤立，并且片段时长小于此，则丢弃
@@ -91,7 +90,7 @@ def get_speech_timestamp_silero(input_wav,
     _thrid_segs=[]
     for i,it in enumerate(final_segments):
         _duration=it[1]-it[0]
-        if not _thrid_segs or _duration>=max_speech_duration_ms:
+        if not _thrid_segs or _duration>=min_speech_duration_ms:
             _thrid_segs.append(it)
             continue
         _last_duration=_thrid_segs[-1][1]-_thrid_segs[-1][0]
@@ -102,9 +101,11 @@ def get_speech_timestamp_silero(input_wav,
 
         _thrid_segs[-1][1]=it[1]
 
+    for it in _thrid_segs:
+        print(f'silero-VAD: {(it[1]-it[0])/1000.0}s')
 
     logger.debug(
-        f"[VAD-Robust]: 原始片段数 {len(raw_segments)} -> {len(final_segments)} -> {len(_thrid_segs)} 个完整句子"
+        f"[silero-VAD]: 原始片段数 {len(raw_segments)} -> {len(final_segments)} -> {len(_thrid_segs)} 句子"
     )
 
     return _thrid_segs
@@ -119,7 +120,7 @@ def get_speech_timestamp(
     threshold=0.45,
     max_speech_duration_ms=5000,  # 目标最大片段长度 (建议8~12s)
     min_speech_duration_ms=3000,  # 目标最大片段长度 (建议8~12s)
-    min_silent_duration_ms=140,  # VAD停顿判定阈值 (300ms)
+    min_silent_duration_ms=300,  # VAD停顿判定阈值 (300ms)
     speech_pad_ms=0,  # 不在此处补白，避免时间戳错乱
     max_merge_gap_ms=800,  # 核心：停顿<=800ms一律视为同一句，直接合并
     min_isolated_duration_ms=140,  # 剔除孤立无援的超短噪点(<150ms)
@@ -132,7 +133,7 @@ def get_speech_timestamp(
         logger.exception(f"读取音频失败: {e}", exc_info=True)
         return None
 
-    logger.debug(f'[ten-vad]最终参数:{threshold=},{max_speech_duration_ms=},{min_silent_duration_ms=},{speech_pad_ms=},{max_merge_gap_ms=},{min_isolated_duration_ms=}')
+    logger.debug(f'[ten-vad]最终参数:{threshold=},{max_speech_duration_ms=},{min_speech_duration_ms},{min_silent_duration_ms=},{speech_pad_ms=},{max_merge_gap_ms=},{min_isolated_duration_ms=}')
 
     if data.ndim > 1:
         data = np.mean(data, axis=1)
@@ -226,7 +227,7 @@ def get_speech_timestamp(
     _thrid_segs=[]
     for i,it in enumerate(final_segments):
         _duration=it[1]-it[0]
-        if not _thrid_segs or _duration>=max_speech_duration_ms:
+        if not _thrid_segs or _duration>=min_speech_duration_ms:
             _thrid_segs.append(it)
             continue
 
@@ -237,6 +238,9 @@ def get_speech_timestamp(
             continue
 
         _thrid_segs[-1][1]=it[1]
+
+    for it in _thrid_segs:
+        print(f'ten-VAD: {(it[1]-it[0])/1000.0}s')
 
     logger.debug(
         f"[Ten-VAD] {len(merged_segments)} -> {len(final_segments)} -> {len(_thrid_segs)} 优化"

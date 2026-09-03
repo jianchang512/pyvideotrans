@@ -162,8 +162,7 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
     # faster-whisper/openai-whisper支持所有语言
     if recogn_type in [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API, AI_302, GEMINI_SPEECH, WHISPER_NET]:
         return True
-    if recogn_type == QWENASR:
-        return tr('More than 30 minutes of audio and video require a large amount of video memory')
+
     # huggingface_asr 渠道里的 openai 和 Systran 模型也支持所有语言
     if recogn_type == HUGGINGFACE_ASR:
         if not HUGGINGFACE_ASR_MODELS.get(model_name):

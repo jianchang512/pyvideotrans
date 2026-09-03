@@ -1,5 +1,7 @@
+from videotrans.configure._languages_dict import EDGET_LANGUAGES_NAME2CODE_EN, \
+    EDGET_LANGUAGES_NAME2CODE
 from videotrans.configure.config import tr, params, logger
-from videotrans.util.help_misc import show_error
+
 from videotrans import winform
 from videotrans.translator._constants import (
     GOOGLE_INDEX, MICROSOFT_INDEX, M2M100_INDEX,
@@ -29,7 +31,7 @@ def get_code(show_text=None):
     from videotrans.configure.contants import EDGET_LANGUAGES_NAME2CODE
     if show_text in EDGET_LANGUAGES_NAME2CODE:
         return EDGET_LANGUAGES_NAME2CODE.get(show_text)
-    return show_text if show_text!=tr('auto') else 'auto'
+    return tr(show_text) if show_text!=tr('auto') else 'auto'
 
 
 # 根据显示的语言和翻译通道，获取该翻译通道要求的源语言代码和目标语言代码
@@ -42,7 +44,7 @@ def get_code(show_text=None):
 def get_source_target_code(*, show_source=None, show_target=None, translate_type=None):
     source_list = None
     target_list = None
-
+    # 先从 LANG_CODE 中获取手动指定的
     if show_source and show_source not in ['-', 'No']:
         if show_source in LANG_CODE:  # 是语言代码
             source_list = LANG_CODE[show_source]
@@ -60,25 +62,42 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
             # 特殊兼容zh
             target_list = LANG_CODE['zh-cn']
 
-    # 均未找到，可能是新增语言代码
-    if not source_list and not target_list:
-        return show_source if show_source!=tr('auto') else 'auto', show_target  # 返回原始输入
+
+    # qwenmt翻译渠道语言代码
+    if translate_type == QWENMT_INDEX and params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
+        return source_list[0] if source_list else (tr(show_source) if show_source else None), target_list[0] if target_list else (show_target if show_target else None)
+
+    # AI渠道 获取语言名称，英语形式表示
+    if translate_type in AI_TRANS_CHANNELS or translate_type==QWENMT_INDEX:
+        # 如果不在 LANG_CODE 中，则到 EDGE 完整语言列表中寻找 返回英语形式的语言名称
+        s_text=source_list[7] if source_list else None
+        t_text=target_list[7] if target_list else None
+        if (show_source and not s_text) or (show_target and not t_text):
+            # 获取 语言代码:语言的英文名称
+            _code_name={code:name for name,code in EDGET_LANGUAGES_NAME2CODE_EN.items()}
+            if show_source and not s_text and show_source in EDGET_LANGUAGES_NAME2CODE:
+                s_text=_code_name.get(EDGET_LANGUAGES_NAME2CODE[show_source])
+            elif show_source and not s_text:
+                #从翻译字典中取出语言代码
+                s_text=_code_name.get(tr(show_source))
+            if show_target and not t_text and show_target in EDGET_LANGUAGES_NAME2CODE:
+                t_text=_code_name.get(EDGET_LANGUAGES_NAME2CODE[show_target])
+            elif show_target and not t_text:
+                #从翻译字典中取出语言代码
+                t_text=_code_name.get(tr(show_target))
+
+        return s_text or show_source,t_text or show_target
+
+    # 不存在与 LANG_CODE 中，从 EDGE语言列表寻找,如果仍不存在， 则从 翻译字典中获取
+    if show_source and not source_list:
+        show_source=EDGET_LANGUAGES_NAME2CODE.get(show_source,tr(show_source)) if show_source!=tr('auto') else 'auto'
+    if show_target and not target_list:
+        show_target=EDGET_LANGUAGES_NAME2CODE.get(show_target,tr(show_target))
 
     # 未设置渠道则使用 Google
     if not translate_type or translate_type in [GOOGLE_INDEX, TRANSAPI_INDEX, CAMB_INDEX]:
         return source_list[0] if source_list else show_source, target_list[0] if target_list else show_target
 
-    # qwenmt翻译渠道语言代码
-    if translate_type == QWENMT_INDEX:
-        # 返回代码
-        if params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
-            return source_list[0] if source_list else show_source, target_list[0] if target_list else show_target
-        # 其他大模型返回文字
-        return source_list[7] if source_list else show_source, target_list[7] if target_list else show_target
-
-    # AI渠道
-    if translate_type in AI_TRANS_CHANNELS:
-        return source_list[7] if source_list else show_source, target_list[7] if target_list else show_target
 
     if translate_type == BAIDU_INDEX:
         return source_list[2] if source_list else show_source, target_list[2] if target_list else show_target
@@ -97,15 +116,15 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return source_list[8] if source_list else show_source, target_list[8] if target_list else show_target
     if translate_type == M2M100_INDEX:
         return source_list[10] if source_list else show_source, target_list[10] if target_list else show_target
-    return show_source if show_source!=tr('auto') else 'auto', show_target
+    return tr(show_source) if show_source else None,tr(show_target) if show_target else None
 
 
 
 # 判断当前翻译通道和目标语言是否允许翻译
-# 比如deepl不允许翻译到某些目标语言，某些通道是否填写api key 等
 # translate_type翻译通道
 # show_target 翻译后显示的目标语言名称
 # only_key=True 仅检测 key 和api，不判断目标语言
+# 判断是否支持该语言时，仅提示，不再报错
 def is_allow_translate(*, translate_type=None, show_target=None, only_key=False, return_str=False):
     if not translate_type or translate_type in [GOOGLE_INDEX, MICROSOFT_INDEX]:
         return True
@@ -118,6 +137,9 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
 
     # 如果只需要判断是否填写了 api key 等信息，到此返回
     if only_key:
+        return True
+
+    if translate_type in AI_TRANS_CHANNELS:
         return True
 
     if show_target:
@@ -145,9 +167,9 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
             # 特殊兼容zh
             target_list = LANG_CODE['zh-cn']
 
-        if target_list and target_list[index] == 'No':
-            return tr('deepl_nosupport') + f':{show_target}' if return_str else show_error(
-                tr('deepl_nosupport') + f':{show_target}')
+        if not target_list or  (target_list[index] == 'No'):
+            return tr('deepl_nosupport') + f':{show_target}'
+
     return True
 
 

@@ -88,11 +88,9 @@ def openwin():
     # 试听配音
     def listen_voice_fun():
         lang = translator.get_code(show_text=winobj.hecheng_language.currentText())
-        print(f'{lang=}')
         if not lang or lang == '-':
             return show_error(tr("The current language does not support audition"))
         text = LISTEN_TEXT.get(lang.split('-')[0])
-        print(f'{text=}')
         if not text:
             return show_error(tr('The current language does not support audition'))
         role = winobj.hecheng_role.currentText()
@@ -257,8 +255,8 @@ def openwin():
         uuid_list = list()
 
     def getlangnamelist(tts_type=0):
-        if tts_type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
-            return   list(translator.LANGNAME_DICT.values())[:-1]
+        # if tts_type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
+        #     return   list(translator.LANGNAME_DICT.values())[:-1]
 
         return  list(EDGE_LANGUANGES_DICT.values())
 
@@ -318,11 +316,11 @@ def openwin():
         winobj.hecheng_role.addItems(role_list)
 
     def opendir_fn():
-        nonlocal RESULT_DIR
-        if len(winobj.hecheng_importbtn.filelist) > 0 and winobj.save_to_srt.isChecked():
-            RESULT_DIR = Path(winobj.hecheng_importbtn.filelist[0]).parent.as_posix()
-        else:
-            RESULT_DIR = HOME_DIR + "/tts"
+        # nonlocal RESULT_DIR
+        # if len(winobj.hecheng_importbtn.filelist) > 0 and winobj.save_to_srt.isChecked():
+        #     RESULT_DIR = Path(winobj.hecheng_importbtn.filelist[0]).parent.as_posix()
+        # else:
+        #     RESULT_DIR = HOME_DIR + "/tts"
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     def show_detail_error():

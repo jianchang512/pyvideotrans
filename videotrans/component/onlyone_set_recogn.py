@@ -386,7 +386,7 @@ class EditRecognResultDialog(QDialog,DanspMixin):
             data = self.display_data[row]
 
             # 0: Line
-            item0 = QTableWidgetItem(str(data['line'])+f'({(data["end_time"]-data["start_time"])/1000.0}s)')
+            item0 = QTableWidgetItem(str(data['line'])+f' ({(data["end_time"]-data["start_time"])/1000.0}s)')
             item0.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 0, item0)
 

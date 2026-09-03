@@ -374,7 +374,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             self.table.setItem(row, 0, chk_item)
             
             # 第1列：ID（只读）
-            id_item = QTableWidgetItem(str(data['line'])+ f'({(data["end_time"]-data["start_time"])/1000.0}s)' )
+            id_item = QTableWidgetItem(str(data['line'])+ f' ({(data["end_time"]-data["start_time"])/1000.0}s)' )
             id_item.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 1, id_item)
             

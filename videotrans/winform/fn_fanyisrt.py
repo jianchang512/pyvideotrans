@@ -1,4 +1,5 @@
 # 字幕批量翻译
+from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
 
 
 def openwin():
@@ -22,7 +23,10 @@ def openwin():
     SOURCE_DIR = RESULT_DIR
     uuid_list=[]
     percent=""
-    language_namelist = list(translator.LANGNAME_DICT.values())
+    # LANGNAME_DICT 支持的30多种语言+ EDGE 语言列表
+    language_namelist = []
+    for code in EDGE_LANGUANGES_CODE:
+        language_namelist.append(tr(code))
 
     def toggle_state(state):
         winobj.fanyi_translate_type.setDisabled(state)
@@ -112,11 +116,12 @@ def openwin():
         target_language = winobj.fanyi_target.currentText()
         translate_type = winobj.fanyi_translate_type.currentIndex()
         source_language_name=winobj.fanyi_source.currentText()
+
         source_code, target_code = translator.get_source_target_code(
             show_source='auto' if source_language_name==tr('auto') else source_language_name,
             show_target=target_language,
             translate_type=translate_type)
-       
+        print(f'{source_code=},{target_code=}')
 
 
         proxy = winobj.fanyi_proxy.text()
@@ -127,8 +132,7 @@ def openwin():
             settings['proxy'] = proxy
 
         rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_code)
-        if rs is not True:
-            return False
+        winobj.loglabel.setText(rs if rs is not True else '')
         if len(winobj.files) < 1:
             return show_error(tr("Must import srt subtitle files"))
         winobj.fanyi_sourcetext.clear()
@@ -185,14 +189,16 @@ def openwin():
         if not t or t in ['-', 'No']:
             return
         # 判断翻译渠道是否支持翻译到该目标语言
-        if translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=t) is not True:
-            return
+        rs=translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=t)
+
+        winobj.loglabel.setText(rs if rs is not True else '')
+
 
 
     # 更新目标语言列表
     def update_target_language():        
         winobj.fanyi_target.clear()
-        winobj.fanyi_target.addItems(language_namelist[:-1])
+        winobj.fanyi_target.addItems(language_namelist)
         winobj.aisendsrt.setChecked(settings.get('aisendsrt'))
 
     # 翻译渠道变化时重新设置目标语言
@@ -297,7 +303,7 @@ def openwin():
         winobj.fanyi_translate_type.setCurrentIndex(int(params.get('trans_translate_type', 0)))
 
         update_target_language()
-        winobj.fanyi_source.addItems([tr('auto')] + language_namelist[:-1])
+        winobj.fanyi_source.addItems([tr('auto')] + language_namelist)
         winobj.fanyi_import.clicked.connect(fanyi_import_fun)
         winobj.fanyi_start.clicked.connect(fanyi_start_fun)
         winobj.fanyi_stop.clicked.connect(pause_trans)

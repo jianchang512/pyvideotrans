@@ -21,7 +21,7 @@ from videotrans.util.help_misc import is_connect_hf
 @dataclass
 class QwenasrlocalRecogn(BaseRecogn):
 
-    align_language:List[str]=("zh","en","ja",'ko','yue','fr','es','it','de','pt','ru')
+    align_language:List[str]=("zh","zh-cn","zh-tw","en","ja",'ko','yue','fr','es','es-419','it','de','pt','pt-br','pt-pt','ru')
 
     def __post_init__(self):
         super().__post_init__()
@@ -51,6 +51,7 @@ class QwenasrlocalRecogn(BaseRecogn):
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3asrlocal-{time.time()}.log'
         title = f"Qwen3-ASR {self.model_name}"
         cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
+        print(f'{self.detect_language=}')
         if self.detect_language not in self.align_language:
             # 不支持对齐时间戳 需切片
             Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]), encoding='utf-8')
@@ -70,7 +71,8 @@ class QwenasrlocalRecogn(BaseRecogn):
             "hotword":settings.get('hotwords'),
             "min_speech_ms":_min_speech,
             "max_speech_ms":_max_speech,
-            "force_align":self.detect_language in self.align_language
+            "force_align":self.detect_language in self.align_language,
+            "detect_language":self.detect_language
         }
         from videotrans.process.stt_qwen import qwen3asr_fun
         jsdata = self._new_process(callback=qwen3asr_fun, title=title, is_cuda=self.is_cuda, kwargs=kwargs)
@@ -103,7 +105,7 @@ class QwenasrlocalRecogn(BaseRecogn):
             "input_wav": self.audio_file,
             "threshold": 0.45,
             "min_speech_duration_ms": 60000,
-            "max_speech_duration_ms": 540000,
+            "max_speech_duration_ms": 300000,
             "min_silent_duration_ms": 2000
         }
         self.speech_timestamps=get_speech_timestamp_silero(**kw)
