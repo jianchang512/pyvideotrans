@@ -50,7 +50,7 @@ def qwen3asr_fun(
                 local_dir,
                 dtype='auto',
                 device_map=kw.get('device_name', 'auto'),
-                max_inference_batch_size=2,
+                max_inference_batch_size=4,
                 max_new_tokens=80920,#80k
                 forced_aligner=local_dir_align,
                 quantization_config=quant,
@@ -80,6 +80,7 @@ def qwen3asr_fun(
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": "\n".join([it['text'] for it in it_list])}))
 
             return srts, None
+
         # 需要返回时间戳
         texts = [{
             "start": 0,
@@ -88,24 +89,27 @@ def qwen3asr_fun(
             "words": []
         }]
         language = None
-        for i, it in enumerate(srts):
+        srts_chunk = [srts[i:i + 4] for i in range(0, len(srts), 4)]
+        for i, it_list in enumerate(srts_chunk):
+            print(f'{i=},{len(it_list)=}')
             results = model.transcribe(
-                audio=[it['filename']],
-                language=[None],
+                audio=[it['filename'] for it in it_list],
+                language=[None for it in it_list],
                 return_time_stamps=True,
             )
             if not language:
                 language = results[0].language
-            timestamps = results[0].time_stamps.items
-            print(f'{results[0].text=}')
-            offset = it['start_time'] / 1000.0
-            if i == 0:
-                texts[0]['start'] = timestamps[0].start_time + offset
-            for item in timestamps:
-                texts[0]['words'].append({"word": item.text, "start": item.start_time + offset, "end": item.end_time + offset})
-            _write_log(logs_file, json.dumps({"type": "subtitle", "text":"\n".join(re.split(r'[,.?!，。？！]',results[0].text)) +"\n" }))
-            if i == len(srts) - 1:
-                texts[0]['end'] = timestamps[-1].end_time + offset
+            for j,it in enumerate(it_list):
+                timestamps = results[j].time_stamps.items
+                print(f'{j=},{results[j].text=},{it["start_time"]/1000.0}s --> {it["end_time"]/1000.0}s')
+                offset = it['start_time'] / 1000.0
+                if i == 0 and j==0:
+                    texts[0]['start'] = timestamps[0].start_time + offset
+                for item in timestamps:
+                    texts[0]['words'].append({"word": item.text, "start": item.start_time + offset, "end": item.end_time + offset})
+                _write_log(logs_file, json.dumps({"type": "subtitle", "text":"\n".join(re.split(r'[,.?!，。？！]',results[j].text)) +"\n" }))
+                if i == len(srts_chunk) - 1 and j==len(it_list)-1:
+                    texts[0]['end'] = timestamps[-1].end_time + offset
 
         srts = _resegment(texts, "zh" if language in ["Chinese", "Cantonese", "Japanese", "Korean"] else 'en',
                           max_speech_ms, min_speech_ms, logs_file)

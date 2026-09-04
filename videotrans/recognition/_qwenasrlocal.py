@@ -51,7 +51,7 @@ class QwenasrlocalRecogn(BaseRecogn):
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3asrlocal-{time.time()}.log'
         title = f"Qwen3-ASR {self.model_name}"
         cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
-        print(f'{self.detect_language=}')
+
         if self.detect_language not in self.align_language:
             # 不支持对齐时间戳 需切片
             Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]), encoding='utf-8')
@@ -76,13 +76,13 @@ class QwenasrlocalRecogn(BaseRecogn):
         }
         from videotrans.process.stt_qwen import qwen3asr_fun
         jsdata = self._new_process(callback=qwen3asr_fun, title=title, is_cuda=self.is_cuda, kwargs=kwargs)
-        logger.debug(f'Qwen-asr返回的字词时间戳数据:{jsdata=}')
         return jsdata
 
     def _cut(self,cut_audio_list_file):
         audio = AudioSegment.from_wav(self.audio_file)
         _len=len(audio)
-        if _len<=300000:
+        _max_segments=120000
+        if _len<=_max_segments:
             _endraw=ms_to_time_string(ms=_len)
             Path(cut_audio_list_file).write_text(json.dumps([
             {
@@ -105,7 +105,7 @@ class QwenasrlocalRecogn(BaseRecogn):
             "input_wav": self.audio_file,
             "threshold": 0.45,
             "min_speech_duration_ms": 60000,
-            "max_speech_duration_ms": 300000,
+            "max_speech_duration_ms": _max_segments,
             "min_silent_duration_ms": 2000
         }
         self.speech_timestamps=get_speech_timestamp_silero(**kw)

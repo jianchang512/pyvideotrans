@@ -383,7 +383,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             h_header.setSectionResizeMode(1, QHeaderView.Fixed)  # Play
             h_header.setSectionResizeMode(2, QHeaderView.Fixed)  # Start
             h_header.setSectionResizeMode(3, QHeaderView.Fixed)  # End
-            h_header.setSectionResizeMode(4, QHeaderView.Fixed)  # Status
+            h_header.setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Status
             h_header.setSectionResizeMode(5, QHeaderView.Stretch)  # Text
             
             # 设置列宽
