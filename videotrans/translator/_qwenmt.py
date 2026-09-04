@@ -36,7 +36,6 @@ class QwenMT(BaseTrans):
         if self._exit(): return
         text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
         model_name=params.get('qwenmt_model', 'qwen-mt-turbo')
-        print(f'{model_name=}')
         if model_name=='qwen-turbo':
             model_name='qwen-mt-turbo'
         if not model_name.startswith('qwen-mt'):
@@ -47,7 +46,7 @@ class QwenMT(BaseTrans):
                 "content":text
             }
         ]
-        logger.debug(f'qwen-mt请求:{messages}')
+        logger.debug(f'qwen-mt请求:{model_name=}')
 
         translation_options = {
             "source_lang": "auto" if not self.source_code else self.source_code.split('-')[0],

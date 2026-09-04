@@ -1,9 +1,9 @@
 # 字幕批量翻译
-from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
 
 
 def openwin():
 
+    from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
     from videotrans.util.help_misc import show_glossary_editor, show_error, set_proxy
     from typing import List
     from videotrans.task.taskcfg import InputFile
@@ -14,7 +14,7 @@ def openwin():
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
     from PySide6 import QtWidgets
     from PySide6.QtWidgets import QFileDialog, QPlainTextEdit
-    from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR,logger
     from videotrans.configure import config
     from videotrans.task.taskcfg import TaskCfgSTS
     from videotrans import translator
@@ -121,7 +121,8 @@ def openwin():
             show_source='auto' if source_language_name==tr('auto') else source_language_name,
             show_target=target_language,
             translate_type=translate_type)
-        print(f'{source_code=},{target_code=}')
+
+        logger.debug(f'{source_code=},{target_code=}')
 
 
         proxy = winobj.fanyi_proxy.text()

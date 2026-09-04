@@ -131,7 +131,7 @@ List[Any]:
 
         start_raw = format_srt_time(start_ms)
         end_raw = format_srt_time(end_ms)
-        print(f'regsegment2: {(end_ms-start_ms)/1000.0}s')
+        # print(f'regsegment2: {(end_ms-start_ms)/1000.0}s')
 
         srt_output.append(SrtItem(**{
             "line": idx + 1,
@@ -292,8 +292,7 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
         if _last_duration >= max_speech_ms and idx < _len - 1:
             _merged.append(seg)
             continue
-        if _duration<min_speech_ms:
-            print(f'{_duration/1000.0}s {seg=},{_merged[-1]=}')
+
         # 其他情况合并进前面
         _merged[-1]['text'] += (' ' if use_space else '') + seg['text']
         _merged[-1]['end'] = seg['end']

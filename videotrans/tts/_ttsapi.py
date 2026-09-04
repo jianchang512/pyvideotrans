@@ -51,7 +51,8 @@ class TTSAPI(BaseTTS):
         # 如果是 gradio api请求
         _gradio_api=f'{ROOT_DIR}/gradio_api.txt'
         if Path(_gradio_api).exists() and Path(_gradio_api).stat().st_size>0:
-            _args=Path(_gradio_api).read_text(encoding='utf-8').strip().split("\n")            
+            _args=Path(_gradio_api).read_text(encoding='utf-8').strip().split("\n")
+            logger.debug(f'来自 {_gradio_api} 的参数为: {_args}')
             return self._send(_args,data_item,ref_wav,ref_text)
         
         
@@ -141,7 +142,7 @@ class TTSAPI(BaseTTS):
             else:
                 kwargs[_kv[0]]=_kv[1]
                     
-        logger.debug(f'[自定义TTS API|gradio api]:{self.api_url=},{kwargs=}')
+        logger.debug(f'[自定义TTS API]:{self.api_url=},\n实际使用处理后来自 gradio_api.txt 的参数为:{kwargs=}')
         try:
             client = self.get_thread_client()
             result = client.predict(**kwargs)
@@ -156,7 +157,7 @@ class TTSAPI(BaseTTS):
         except (TypeError,ValueError,IndexError,AttributeError,urllib3.exceptions.NewConnectionError,httpx.ConnectError) as e:
             raise StopTask(e) from e
         except concurrent.futures.CancelledError as e:
-            logger.exception(f'配音失败:{self.ainame}',exc_info=True)
+            logger.exception(f'自定义TTS-API配音失败',exc_info=True)
             # 清理当前线程的客户端缓存，防止下次复用一个已损坏的连接
             if hasattr(thread_local, "client"):
                 del thread_local.client

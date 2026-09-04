@@ -18,6 +18,8 @@ from videotrans.util.help_misc import open_url
 
 prompt_dicts={}
 for code in LANG_CODE.keys():
+    if code == 'auto':
+        continue
     prompt_dicts[f'initial_prompt_{code}']=tr('Initial prompt for the Whisper model for speech',tr(code))
 
 notices = {
@@ -39,7 +41,7 @@ notices = {
         "show_more_settings": "为避免过多参数造成困扰，主界面默认隐藏大部分参数，如果选中这里将切换为默认显示所有参数",
 
         "process_max": "最大CPU同时任务数，越大越快但可能爆内存，最大不应超过cpu核数\n(修改保存后重启生效)",
-        "process_max_gpu": "GPU任务同时执行数量，除非多卡，否则请设为1\n(修改保存后重启生效)",
+        "process_max_gpu": "GPU任务同时执行数量，除非显存超大，否则请设为1\n(修改保存后重启生效)",
         "device_name":"强制指定重型任务运行设备，不要乱动，除非你知道自己在做什么"
     },
 
@@ -129,9 +131,9 @@ titles = {
     "batch_nums": "批量翻译视频时每批数量",
     "dont_notify": "禁用桌面通知",
     "llm_ai_type": "LLM纠错所用AI渠道",
+    "llm_chunk_size": "LLM纠错每批字幕行数",
     "prompt_init": "Whisper模型提示词",
     "gemini_recogn_chunk": "Gemini语音识别每批切片数",
-    "llm_chunk_size": "LLM重新断句每批字幕行数",
     "aitrans_temperature": "AI翻译模型温度值",
     "aitrans_context": "AI翻译一次性翻译所有字幕行",
     "remove_dubb_silence": "移除配音前后静音缓冲",
@@ -173,7 +175,7 @@ titles = {
     "zijiehuoshan_model": "字节火山推理接入点",
     "model_list": "faster-whisper模型",
     "Whisper_cpp_models": "whisper.cpp模型",
-    "homedir": "独立功能输出目录",
+    "homedir": "独立功能(如语音转录/文字配音/翻译字幕)输出目录",
     "lang": "软件界面语言",
     "save_segment_audio": "保留每条字幕的配音文件",
     "crf": "视频输出质量控制",
@@ -188,7 +190,6 @@ titles = {
 
     "max_speech_duration_s2": "二次识别最长语音持续(秒)",
     "min_speech_duration_ms2": "二次识别最短语音持续(毫秒)",
-
 
     "min_silence_duration_ms": "静音分割持续毫秒",
     "vad_type": "选择VAD",
@@ -232,8 +233,8 @@ if defaulelang != 'zh_CN':
 
             "retry_nums": "Number of retries after failure",
 
-            "llm_chunk_size": "When re-segmenting sentences in the LLM large model, the number of subtitles sent each time is important. A larger value results in better sentence segmentation. Sending all subtitles at once is optimal, but this is limited by the maximum output token and context (max_token). An excessively long input may exceed the AI  limit and fail. The default is 20 subtitles.",
-            "llm_ai_type": "AI provider for LLM Post-Editor.",
+            "llm_chunk_size": "When LLM Correction errors in the LLM large model, the number of subtitles sent each time is important. A larger value results in better sentence segmentation. Sending all subtitles at once is optimal, but this is limited by the maximum output token and context (max_token). An excessively long input may exceed the AI  limit and fail. The default is 20 subtitles.",
+            "llm_ai_type": "AI provider for LLM Correction errors",
 
             "dont_notify": "Disable desktop notifications for task completion or failure.",
 
@@ -244,7 +245,7 @@ if defaulelang != 'zh_CN':
             "show_more_settings": "To avoid confusion caused by too many parameters, most parameters are hidden by default on the main interface. Selecting this option will switch to displaying all parameters by default.",
 
             "process_max": "Process Maximum for CPU",
-            "process_max_gpu": "The number of GPU tasks that can be executed simultaneously should be set to 1 unless multi GPUs",
+            "process_max_gpu": "The number of GPU tasks that can be executed simultaneously should be set to 1 unless video memory very large",
             "device_name":"Force the operation of heavy-duty equipment; do not tamper with it unless you know what you are doing."
 
         },
@@ -332,10 +333,10 @@ if defaulelang != 'zh_CN':
         "max_video_pts_rate": "Maximum video slow-down rate",
         "batch_nums": "Translating batches, quantity per batch",
         "dont_notify": "Disable desktop notifications",
-        "llm_ai_type": "AI provider for LLM Post-Editor",
+        "llm_ai_type": "AI provider for LLM Correction errors",
         "prompt_init": "Whisper model initial prompt",
         "gemini_recogn_chunk": "Gemini speech recognition batch slice count",
-        "llm_chunk_size": "LLM re-segmentation How many subtitles are sent each time",
+        "llm_chunk_size": "LLM Correction errors How many subtitles are sent each time",
         "hw_decode": "ffmpeg decode video use cuda",
         "ai302_models": "302.AI translation models",
         "ai302tts_models": "302.AI-TTS models",

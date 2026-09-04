@@ -1,8 +1,8 @@
-from videotrans.translator._registry import get_name_index
 
 
 def openwin():
 
+    from videotrans.translator._registry import get_name_index
     from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
     from videotrans.util.help_misc import  show_error
     from typing import List

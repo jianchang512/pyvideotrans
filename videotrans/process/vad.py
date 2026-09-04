@@ -102,9 +102,6 @@ def get_speech_timestamp_silero(input_wav,
 
         _thrid_segs[-1][1]=it[1]
 
-    for it in _thrid_segs:
-        print(f'silero-VAD: {(it[1]-it[0])/1000.0}s')
-
     logger.debug(
         f"[silero-VAD]: 原始片段数 {len(raw_segments)} -> {len(final_segments)} -> {len(_thrid_segs)} 句子"
     )
