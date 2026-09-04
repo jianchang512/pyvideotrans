@@ -20,6 +20,7 @@ def qwen3asr_fun(
         model_name=None,
         detect_language=None,
         force_align=False,  # 是否需要对齐时间戳:只有明确指定属于这些语言中的某个 ["zh","en","ja",'ko','yue','fr','es','it','de','pt','ru'] 才支持
+        hotword=None,
         **kw
 ):
     import copyreg
@@ -30,6 +31,7 @@ def qwen3asr_fun(
     from videotrans.process._stt_utils import _write_log, _resegment
 
     try:
+        batch_size=2
         quant=BitsAndBytesConfig(
                     load_in_8bit=True
         )# 8位量化，避免爆显存
@@ -39,7 +41,7 @@ def qwen3asr_fun(
                 local_dir,
                 dtype='auto',
                 device_map=kw.get('device_name', 'auto'),
-                max_inference_batch_size=4,
+                max_inference_batch_size=batch_size,
                 max_new_tokens=4096,
                 quantization_config=quant,
             )
@@ -50,7 +52,7 @@ def qwen3asr_fun(
                 local_dir,
                 dtype='auto',
                 device_map=kw.get('device_name', 'auto'),
-                max_inference_batch_size=4,
+                max_inference_batch_size=batch_size,
                 max_new_tokens=80920,#80k
                 forced_aligner=local_dir_align,
                 quantization_config=quant,
@@ -66,13 +68,13 @@ def qwen3asr_fun(
 
         if not force_align:
             # 不返还时间戳数据
-            srts_chunk = [srts[i:i + 4] for i in range(0, len(srts), 4)]
+            srts_chunk = [srts[i:i + batch_size] for i in range(0, len(srts), batch_size)]
             for i, it_list in enumerate(srts_chunk):
                 results = model.transcribe(
                     audio=[it['filename'] for it in it_list],
                     language=[None for it in it_list],
                     return_time_stamps=False,
-                    # context=hotword.split(',') if hotword else []
+                    context=[hotword for it in it_list]
                 )
                 for j, it in enumerate(it_list):
                     it['text'] = results[j].text
@@ -89,19 +91,18 @@ def qwen3asr_fun(
             "words": []
         }]
         language = None
-        srts_chunk = [srts[i:i + 4] for i in range(0, len(srts), 4)]
+        srts_chunk = [srts[i:i + batch_size] for i in range(0, len(srts), batch_size)]
         for i, it_list in enumerate(srts_chunk):
-            print(f'{i=},{len(it_list)=}')
             results = model.transcribe(
                 audio=[it['filename'] for it in it_list],
                 language=[None for it in it_list],
                 return_time_stamps=True,
+                context=[hotword for it in it_list]
             )
             if not language:
                 language = results[0].language
             for j,it in enumerate(it_list):
                 timestamps = results[j].time_stamps.items
-                print(f'{j=},{results[j].text=},{it["start_time"]/1000.0}s --> {it["end_time"]/1000.0}s')
                 offset = it['start_time'] / 1000.0
                 if i == 0 and j==0:
                     texts[0]['start'] = timestamps[0].start_time + offset
