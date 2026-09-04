@@ -1,10 +1,10 @@
-import time
 from pathlib import Path
 from typing import Union, List, Type
 
 from videotrans import winform, ChannelProvider, get_class
 from videotrans.configure import contants
 from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR, settings
+from videotrans.configure.contants import Qwenasr_Models
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 
@@ -43,10 +43,13 @@ WHISPER_NET = 26
 CUSTOM_API = 27
 
 # 允许切换不同模型的渠道
-ALLOW_CHANGE_MODEL = [FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
+ALLOW_CHANGE_MODEL = [
+    FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
                       OPENAI_WHISPER, FUNASR_CN, Deepgram,
                       WHISPERX_API, HUGGINGFACE_ASR, QWENASR,
-                      WHISPER_NET]
+                      WHISPER_NET,QWEN3ASR
+
+]
 
 # 渠道id对应的设置窗口和sk键名, key_name: 存储SK或api url的键，(app_cfg.params),win:对应winform中的映射
 _ID_NAME_DICT = {
@@ -99,15 +102,30 @@ HUGGINGFACE_ASR_MODELS = {
     "ibm-granite/granite-speech-4.1-2b": ['fr','en','de','es','pt','ja'],
     "nvidia/parakeet-ctc-1.1b": ['en'],
     # hub
-    "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],
+    "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],#日语
     # pipeline whisper
-    "kotoba-tech/kotoba-whisper-v2.0": ['ja'],
+    "kotoba-tech/kotoba-whisper-v2.0": ['ja'],#日语
     # pipeline whisper
-    "biodatlab/whisper-th-large-v3": ['th'],
-    "vinai/Phowhisper-large": ['vi'],
-    "anke01/whisper-small-uyghur":['ug'],
-    "openai/whisper-large-v3": [],
-    #"OpenMOSS-Team/MOSS-Transcribe-Diarize":[]
+    "vinai/Phowhisper-large": ['vi'],#越南语
+    "nguyenvulebinh/wav2vec2-base-vietnamese-250h": ['vi'],#越南语
+    "biodatlab/whisper-th-large-v3": ['th'],#泰语
+    "sakares/wav2vec2-large-xlsr-thai-demo": ['th'],#泰语
+    "SiangLao/xlsr-53-lao-asr":['lo'],# 老挝语
+    "chuuhtetnaing/whisper-large-v3-myanmar":[],#缅甸语
+    "1morecupofhottea/whisper-turbo-khmer-v9":[],#高棉语 柬埔寨
+    "anke01/whisper-small-uyghur":[],#维吾尔语
+    "kingabzpro/whisper-large-v3-turbo-urdu":[],#乌尔都语
+    "vasista22/whisper-tamil-small":[],#泰米尔
+    "theainerd/Wav2Vec2-large-xlsr-hindi":[],#印地语
+    "cautroi/whisper-large-v3-id":[],#印尼语
+    "Khalsuu/filipino-wav2vec2-l-xls-r-300m-official":[],#菲律宾
+    "navai-uz/whisper-medium-uzbek":[],#乌兹别克
+    "jonatasgrosman/wav2vec2-large-xlsr-53-persian":[],#波斯语
+    "Ghost3454/translynx-pakistani-punjabi-whisper-small":[],#旁遮普语
+    "turkmedstt/whisper-large-v3-turkish-general":[],#土耳其语
+    "anton-l/wav2vec2-large-xlsr-53-mongolian":[],#蒙古语
+    "HNO333333/w2v-bert-2.0-Tibetan-Amdo":[],#藏语
+    "openai/whisper-large-v3": []
 }
 try:
     if Path(f'{ROOT_DIR}/huggingface_models.txt').exists():
@@ -121,9 +139,9 @@ def get_model_by_type(recogn_type: int) -> List[str]:
     if recogn_type == Deepgram:
         return contants.DEEPGRAM_MODEL
     if recogn_type == Whisper_CPP:
-        return settings.Whisper_CPP_MODEL_LIST
+        return settings.get('Whisper_cpp_models','').split(',')
     if recogn_type == WHISPER_NET:
-        return settings.Whisper_NET_MODEL_LIST
+        return settings.get('Whisper_net_models','').split(',')
     if recogn_type == QWENASR:
         return contants.QWENASR_LOCAL
     if recogn_type == FUNASR_CN:
@@ -132,8 +150,10 @@ def get_model_by_type(recogn_type: int) -> List[str]:
         return list(HUGGINGFACE_ASR_MODELS.keys())
     if recogn_type == OPENAI_WHISPER:
         return contants.Openai_Whisper_Models.split(',')
+    if recogn_type == QWEN3ASR:
+        return Qwenasr_Models.split(',')
 
-    return settings.WHISPER_MODEL_LIST
+    return settings.get('model_list','').split(',')
 
 
 # 判断所用渠道和模型是否支持该语言的语音识别
@@ -142,14 +162,16 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
     # faster-whisper/openai-whisper支持所有语言
     if recogn_type in [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API, AI_302, GEMINI_SPEECH, WHISPER_NET]:
         return True
+
     # huggingface_asr 渠道里的 openai 和 Systran 模型也支持所有语言
-    if recogn_type == HUGGINGFACE_ASR and not HUGGINGFACE_ASR_MODELS.get(model_name):
-        return True
+    if recogn_type == HUGGINGFACE_ASR:
+        if not HUGGINGFACE_ASR_MODELS.get(model_name):
+            return True
         
-    if recogn_type == HUGGINGFACE_ASR and HUGGINGFACE_ASR_MODELS.get(model_name):
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
             return tr("Only support") + tr(HUGGINGFACE_ASR_MODELS[model_name])
         return True
+
     if recogn_type == PARAKEET_JA:
         return tr("Only support") + tr('ja')
         
@@ -158,9 +180,6 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
     if recogn_type == FIREREDASR:
         return tr("Only support") + tr('Chinese & English and Chinese dialects')
     
-    if (langcode == 'auto' or not langcode) and recogn_type not in [FASTER_WHISPER, OPENAI_WHISPER, GEMINI_SPEECH, ElevenLabs, Faster_Whisper_XXL, Whisper_CPP,  WHISPERX_API, AI_302, OPENAI_API, WHISPER_NET,DOLPHIN,FIREREDASR,HUGGINGFACE_ASR,Omnilingual]:
-        return tr("Recognition language is only supported in faster-whisper or openai-whisper or Gemini  modes.")
-
     return True
 
 
@@ -186,7 +205,6 @@ def run(*,
         is_cuda=None,
         subtitle_type=0,
         max_speakers=-1,  # -1 不启用说话人识别,0=不限制数量，>0最大数量
-        llm_post=False,
         recogn2pass=False  # 二次对配音文件识别，生成简短字幕
 
         ) -> Union[List[SrtItem], None]:
@@ -201,7 +219,6 @@ def run(*,
         "subtitle_type": subtitle_type,
         "recogn_type": recogn_type,
         "max_speakers": max_speakers,
-        "llm_post": llm_post,
         "recogn2pass": recogn2pass
     }
     _cls: Union[Type[BaseRecogn], None] = get_class(recogn_type, "recognition", _ID_NAME_DICT)

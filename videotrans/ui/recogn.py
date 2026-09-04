@@ -4,7 +4,7 @@ import platform
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import Qt
 
-from videotrans.configure.config import tr, settings
+from videotrans.configure.config import tr
 
 
 class Ui_recogn(object):
@@ -33,7 +33,6 @@ class Ui_recogn(object):
         self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
         self.shibie_language = QtWidgets.QComboBox()
-        #self.shibie_language.setMinimumSize(QtCore.QSize(100, 30))
         self.shibie_language.setObjectName("shibie_language")
 
         self.is_cuda = QtWidgets.QCheckBox()
@@ -44,18 +43,14 @@ class Ui_recogn(object):
 
         self.shibie_label = QtWidgets.QLabel()
         self.shibie_recogn_type = QtWidgets.QComboBox()
-        #self.shibie_recogn_type.setMinimumSize(QtCore.QSize(150, 30))
         self.shibie_recogn_type.setObjectName("shibie_recogn_type")
 
 
         self.shibie_model = QtWidgets.QComboBox()
-        self.shibie_model.setMinimumSize(QtCore.QSize(250, 30))
+        self.shibie_model.setMinimumSize(QtCore.QSize(300, 30))
         self.shibie_model.setObjectName("shibie_model")
         
-        
-
-
-        
+            
         
         
         self.enable_diariz = QtWidgets.QCheckBox()
@@ -86,6 +81,7 @@ class Ui_recogn(object):
         self.remove_noise = QtWidgets.QCheckBox()
 
 
+
         self.horizontalLayout.addStretch()
         self.horizontalLayout.addWidget(self.is_cuda)
         self.horizontalLayout.addWidget(self.remove_noise)
@@ -104,8 +100,8 @@ class Ui_recogn(object):
 
         recogn.setWindowTitle(tr("stt-windows-title"))
 
-        self.rephrase = QtWidgets.QComboBox()
-        self.rephrase.addItems([tr("Default sentence"),tr("LLM Rephrase")])
+        self.rephrase = QtWidgets.QCheckBox()
+        self.rephrase.setText(tr("LLM Rephrase"))
         self.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
         
         self.fix_punc = QtWidgets.QComboBox()
@@ -116,30 +112,23 @@ class Ui_recogn(object):
             tr("Delete punctuation")
         ])
 
-        
-
         self.copysrt_rawvideo = QtWidgets.QCheckBox()
         self.copysrt_rawvideo.setMinimumSize(QtCore.QSize(0, 30))
         self.copysrt_rawvideo.setObjectName("copysrt_rawvideo")
-        
 
-
-
-        
         self.h4 = QtWidgets.QHBoxLayout()
         self.h4.addStretch()
         self.h4.addWidget(self.shibie_startbtn)
         self.h4.addWidget(self.shibie_stop)
-        self.h4.addWidget(self.rephrase)
         self.h4.addWidget(self.fix_punc)
+        self.h4.addWidget(self.rephrase)
 
-        self.h4.addWidget(self.copysrt_rawvideo)
-        
         self.h4.addWidget(self.enable_diariz)
         self.h4.addWidget(self.nums_diariz)
 
 
         self.h4.addWidget(self.spk_insert)
+        self.h4.addWidget(self.copysrt_rawvideo)
 
         
         self.h4.addStretch()

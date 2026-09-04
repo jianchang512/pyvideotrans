@@ -3,6 +3,7 @@
 
 def openwin():
 
+    from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
     from videotrans.util.help_misc import show_glossary_editor, show_error, set_proxy
     from typing import List
     from videotrans.task.taskcfg import InputFile
@@ -13,7 +14,7 @@ def openwin():
     from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
     from PySide6 import QtWidgets
     from PySide6.QtWidgets import QFileDialog, QPlainTextEdit
-    from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR,logger
     from videotrans.configure import config
     from videotrans.task.taskcfg import TaskCfgSTS
     from videotrans import translator
@@ -22,7 +23,10 @@ def openwin():
     SOURCE_DIR = RESULT_DIR
     uuid_list=[]
     percent=""
-    language_namelist = ["-"] + list(translator.LANGNAME_DICT.values())
+    # LANGNAME_DICT 支持的30多种语言+ EDGE 语言列表
+    language_namelist = []
+    for code in EDGE_LANGUANGES_CODE:
+        language_namelist.append(tr(code))
 
     def toggle_state(state):
         winobj.fanyi_translate_type.setDisabled(state)
@@ -111,13 +115,15 @@ def openwin():
         winobj.has_done = False
         target_language = winobj.fanyi_target.currentText()
         translate_type = winobj.fanyi_translate_type.currentIndex()
-        source_code, target_code = translator.get_source_target_code(show_source=winobj.fanyi_source.currentText(),
-                                                                     show_target=target_language,
-                                                                     translate_type=translate_type)
-       
-        if target_language == '-':
-            return show_error(tr("fanyimoshi1"))
-        
+        source_language_name=winobj.fanyi_source.currentText()
+
+        source_code, target_code = translator.get_source_target_code(
+            show_source='auto' if source_language_name==tr('auto') else source_language_name,
+            show_target=target_language,
+            translate_type=translate_type)
+
+        logger.debug(f'{source_code=},{target_code=}')
+
 
         proxy = winobj.fanyi_proxy.text()
 
@@ -127,8 +133,7 @@ def openwin():
             settings['proxy'] = proxy
 
         rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_code)
-        if rs is not True:
-            return False
+        winobj.loglabel.setText(rs if rs is not True else '')
         if len(winobj.files) < 1:
             return show_error(tr("Must import srt subtitle files"))
         winobj.fanyi_sourcetext.clear()
@@ -185,8 +190,10 @@ def openwin():
         if not t or t in ['-', 'No']:
             return
         # 判断翻译渠道是否支持翻译到该目标语言
-        if translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=t) is not True:
-            return
+        rs=translator.is_allow_translate(translate_type=winobj.fanyi_translate_type.currentIndex(), show_target=t)
+
+        winobj.loglabel.setText(rs if rs is not True else '')
+
 
 
     # 更新目标语言列表
@@ -290,14 +297,14 @@ def openwin():
 
     winobj = Fanyisrt()
     app_cfg.child_forms['fn_fanyisrt'] = winobj
-    #winobj.show()
+
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
         winobj.fanyi_translate_type.setCurrentIndex(int(params.get('trans_translate_type', 0)))
 
         update_target_language()
-        winobj.fanyi_source.addItems(['-'] + list(translator.LANGNAME_DICT.values()))
+        winobj.fanyi_source.addItems([tr('auto')] + language_namelist)
         winobj.fanyi_import.clicked.connect(fanyi_import_fun)
         winobj.fanyi_start.clicked.connect(fanyi_start_fun)
         winobj.fanyi_stop.clicked.connect(pause_trans)

@@ -13,7 +13,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.deepl_authkey.text()
+        key = winobj.deepl_authkey.text().strip()
         if not key:
             return show_error(tr("Please input auth Secret"))
         params['deepl_authkey'] = key
@@ -26,7 +26,7 @@ def openwin():
         task.start()
 
     def save():
-        params['deepl_authkey'] = winobj.deepl_authkey.text()
+        params['deepl_authkey'] = winobj.deepl_authkey.text().strip()
         params['deepl_api'] = winobj.deepl_api.text().strip()
         params['deepl_gid'] = winobj.deepl_gid.text().strip()
         params.save()

@@ -140,5 +140,3 @@ class WinActionBaseFileMixin:
         if fname:
             app_cfg.onlyone_importsrtfile=fname            
             self.main.subtitle_area.insertPlainText(f'{tr("Import SRT(only effective for single-video)")}\n{tr("For instructions on importing local SRT files during batch translation")}\n\n'+Path(fname).read_text(encoding='utf-8'))
-        
-        #params['last_opendir'] = Path(mp4_list[0]).parent.resolve().as_posix()

@@ -17,7 +17,7 @@ def openwin():
 
     def test():
         params["trans_api_url"] = _fix_url(winobj.api_url.text().strip())
-        params["trans_secret"] = winobj.miyue.text()
+        params["trans_secret"] = winobj.miyue.text().strip()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.TRANSAPI_INDEX)
         task.uito.connect(feed)
@@ -25,7 +25,7 @@ def openwin():
 
     def save():
         params["trans_api_url"] = _fix_url(winobj.api_url.text().strip())
-        params["trans_secret"] = winobj.miyue.text()
+        params["trans_secret"] = winobj.miyue.text().strip()
         params.save()
         winobj.close()
 

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
-from pathlib import Path
+import shutil
 
 from videotrans.configure.config import ROOT_DIR, app_cfg, settings
 from videotrans.task.taskcfg import InputFile
-
+import unicodedata
+from pathlib import Path
+from typing import Tuple, Union
 
 def send_notification(title, message):
     if app_cfg.exec_mode == 'cli':
@@ -47,3 +49,6 @@ def format_video(name, target_dir=None)->InputFile:
     _stat = raw_pathlib.stat()
     obj.uuid = help_misc.get_md5(f'{name}-{_stat.st_size}-{_stat.st_mtime}')[:10]
     return obj
+
+
+

@@ -18,7 +18,8 @@ class UnicodeProcessor:
         with open(unicode_indexer_path, "r") as f:
             self.indexer = json.load(f)
 
-    def _preprocess_text(self, text: str, lang: str) -> str:
+    @staticmethod
+    def _preprocess_text(text: str, lang: str) -> str:
         # TODO: Need advanced normalizer for better performance
         text = normalize("NFKD", text)
 
@@ -104,11 +105,13 @@ class UnicodeProcessor:
         text = f"<{lang}>" + text + f"</{lang}>"
         return text
 
-    def _get_text_mask(self, text_ids_lengths: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def _get_text_mask(text_ids_lengths: np.ndarray) -> np.ndarray:
         text_mask = length_to_mask(text_ids_lengths)
         return text_mask
 
-    def _text_to_unicode_values(self, text: str) -> np.ndarray:
+    @staticmethod
+    def _text_to_unicode_values(text: str) -> np.ndarray:
         unicode_values = np.array(
             [ord(char) for char in text], dtype=np.uint16
         )  # 2 bytes

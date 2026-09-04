@@ -21,8 +21,8 @@ class AudioMixin:
             atime = get_audio_time(self.cfg.background_music)
             if atime < 1:
                 return
-            bgm_file = self.cfg.cache_folder + f'/bgm_file.wav'
-            self.convert_to_wav(self.cfg.background_music, bgm_file, ["-filter:a", f"volume={self.cfg.backaudio_volume}"])
+            bgm_file=self.cfg.cache_folder + f'/bgm_file.wav'
+            self._set_volume(self.cfg.background_music, bgm_file)
             self.cfg.background_music = bgm_file
             beishu = math.ceil(vtime / atime)
             if self.cfg.loop_backaudio and beishu > 1 and vtime - 1000 > atime:
@@ -75,7 +75,8 @@ class AudioMixin:
 
             tmp_out_wav = Path(self.cfg.cache_folder + f'/{time.time()}-1.wav').as_posix()
             tmp_volume = Path(self.cfg.cache_folder + f'/{time.time()}.wav').as_posix()
-            self.convert_to_wav(instrument_file, tmp_volume, ["-filter:a", f"volume={self.cfg.backaudio_volume}"])
+
+            self._set_volume(instrument_file, tmp_volume)
             runffmpeg(['-y', '-i', os.path.basename(self.cfg.target_wav), '-i', os.path.basename(tmp_volume),
                              '-filter_complex',
                              # amix 加 normalize=0 防止默认归一化把人声音量减半；alimiter 防止音量提升后爆音
@@ -84,3 +85,20 @@ class AudioMixin:
             shutil.copy2(tmp_out_wav, self.cfg.target_wav)
         except Exception as e:
             logger.exception(f'重新嵌入分离的背景音失败 {e}', exc_info=True)
+    
+    def _set_volume(self,input_file,output_file):
+        runffmpeg([
+            "-y",
+            "-i",
+            input_file,
+            "-ar",
+            "48000",
+            "-ac",
+            "2",
+            "-c:a",
+            "pcm_s16le",
+            "-filter:a", 
+            f"volume={self.cfg.backaudio_volume}",
+        
+            output_file
+        ], force_cpu=True)

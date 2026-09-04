@@ -116,7 +116,7 @@ class Ui_recognapiform(object):
             "data":"1\n00:00:01,000 --> 00:00:06,500\n字幕文字\n\n2\n00:00:06,900 --> 00:00:12,200\n字幕文字"
         }
         """
-        if defaulelang != 'zh':
+        if defaulelang != 'zh_CN':
             tips = '''
             
             Request send: sends audio data in wav format with key name audio in binary form, sample rate 16k, channel 1

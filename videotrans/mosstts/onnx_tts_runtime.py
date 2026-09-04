@@ -434,7 +434,8 @@ class OnnxTtsRuntime(OrtCpuRuntime):
             chunks.append(current_chunk.strip())
         return chunks if len(chunks) > 1 else [normalized_text]
 
-    def estimate_voice_clone_inter_chunk_pause_seconds(self, text_chunk: str) -> float:
+    @staticmethod
+    def estimate_voice_clone_inter_chunk_pause_seconds(text_chunk: str) -> float:
         word_count = len([item for item in str(text_chunk or "").strip().split() if item])
         return (
             DEFAULT_VOICE_CLONE_INTER_CHUNK_PAUSE_SHORT_SECONDS

@@ -14,12 +14,6 @@ from videotrans.configure.config import tr, settings, logger, ROOT_DIR
 from videotrans.configure import config
 from videotrans.util.help_misc import vail_file,pygameaudio,get_tts_type
 
-"""
-edge-tts 当前线程中async异步任务
-其他渠道多线程执行
-run->exec->[local_mutli]->item_task
-"""
-
 
 @dataclass
 class BaseTTS(BaseCon):
@@ -212,7 +206,7 @@ class BaseTTS(BaseCon):
     def _item_task(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, Exception, None]:
         if self._exit() or not data_item.get('text', '').strip() or vail_file(data_item.get('filename')):
             return
-        # 有些不可恢复的错误，例如 404 sk错误 无权访问等，直接发送 error 信号，无需继续多线程
+
         try:
             self.signal(text=f'{tr("Dubbing")} {idx}/{self.len}')
             return self._run(data_item,idx)
@@ -290,14 +284,17 @@ class BaseTTS(BaseCon):
         role = item['role']
         ref_wav, ref_text = None, None
         if role == 'clone':
-            ref_wav = item.get('ref_wav', '')
-            ref_text = item.get('ref_text').strip()
-        elif role in self.roledict:
+            ref_wav = item.get('ref_wav')
+            ref_text = item.get('ref_text','').strip()
+            if not ref_wav or not Path(ref_wav).exists():
+                raise RuntimeError(tr('The voice actor has been cloned, but there is no'))
+
+        elif role !='No' and role in self.roledict:
             if not isinstance(self.roledict[role],dict):
                 return ref_wav,ref_text
             ref_text = self.roledict[role]['ref_text']
             ref_wav = ROOT_DIR + f"/f5-tts/{role}"
+            if not ref_wav or not Path(ref_wav).exists():
+                raise RuntimeError(tr('The role {} does not exist', role))
 
-        if not ref_wav or not Path(ref_wav).exists():
-            raise RuntimeError(tr('The role {} does not exist', role))
         return ref_wav, ref_text

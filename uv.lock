@@ -3133,7 +3133,7 @@ wheels = [
 
 [[package]]
 name = "omnivoice"
-version = "0.2.0"
+version = "0.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "accelerate" },
@@ -3153,9 +3153,9 @@ dependencies = [
     { name = "transformers" },
     { name = "webdataset" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/af/39/fda2cb716b877bff9896f59b4dc31575091c09e9138b0917b35ab8ceb476/omnivoice-0.2.0.tar.gz", hash = "sha256:227db01ad828eb2ba1cabd259f29d0e42158b80af60af672da2b823324a83721", size = 114332, upload-time = "2026-07-06T09:42:19.812Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b7/2f/a8a85e78f8e695df12fbe4a17bfad2e73f7cf60b568d2de833b4c9df3db0/omnivoice-0.2.1.tar.gz", hash = "sha256:b55e5078a371f45ec72443b5cdafe4a87fd0c5c27056fbab113d8cccceff5c7c", size = 119568, upload-time = "2026-07-16T04:48:05.284Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/52/07/27e19dba17035ddb21e957c59b8eb2fbfae65d2fb004e0ba66ea93e3ed9c/omnivoice-0.2.0-py3-none-any.whl", hash = "sha256:d3f027df94888702dc2adae3045c9ad58cb659582f5f9797daf1af92e352c9c0", size = 163047, upload-time = "2026-07-06T09:42:18.399Z" },
+    { url = "https://files.pythonhosted.org/packages/63/68/862ac66ab83a28e43400c8bf608ac5f1d6d16a0b583540d8bd9d4297b663/omnivoice-0.2.1-py3-none-any.whl", hash = "sha256:23f113ef51116a16308b55c4c2ac9c08efca7dfb594802f5c8adfb7523313ccc", size = 168460, upload-time = "2026-07-16T04:48:03.941Z" },
 ]
 
 [[package]]
@@ -4336,7 +4336,7 @@ wheels = [
 
 [[package]]
 name = "pyvideotrans"
-version = "4.5"
+version = "4.11"
 source = { virtual = "." }
 dependencies = [
     { name = "absl-py" },

@@ -64,7 +64,7 @@ class TransCreate(
                 shutil.rmtree(self.cfg.cache_folder, ignore_errors=True)
 
         self.signal(text=tr('kaishichuli'))
-        self.max_speakers = self.cfg.nums_diariz if self.cfg.enable_diariz else -1
+        self.max_speakers = max(self.cfg.nums_diariz,0) if self.cfg.enable_diariz else -1
         if self.max_speakers > 0:
             self.max_speakers += 1
         self.should_recogn = True

@@ -2,7 +2,7 @@
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QMetaObject, QSize, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QPushButton, QSizePolicy
-from videotrans.configure.config import tr, defaulelang
+from videotrans.configure.config import tr
 from videotrans.util.help_misc import show_refaudio_win, open_url
 
 
@@ -25,7 +25,7 @@ class Ui_qwenttslocal(object):
 
         h1_prompt = QtWidgets.QHBoxLayout()
         self.instruct_text = QLineEdit()
-        h1_prompt.addWidget(QLabel('自定义音色提示词' if defaulelang=='zh' else 'Custom Voice Prompt'))
+        h1_prompt.addWidget(QLabel('Custom Voice Prompt'))
         h1_prompt.addWidget(self.instruct_text)
         v1.addLayout(h1_prompt)
         

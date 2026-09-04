@@ -2,7 +2,9 @@
 
 def openwin():
 
-    from videotrans.util.help_misc import hide_show_element, show_error
+    from videotrans.translator._registry import get_name_index
+    from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
+    from videotrans.util.help_misc import  show_error
     from typing import List
     from videotrans.task.taskcfg import InputFile
     import sys
@@ -16,6 +18,11 @@ def openwin():
     from videotrans.task.taskcfg import TaskCfgSTT
     from videotrans import translator, recognition
     from videotrans.component.set_form import Recognform
+
+    EDGE_LANGUANGES_DICT = {}
+
+    for code in EDGE_LANGUANGES_CODE:
+        EDGE_LANGUANGES_DICT[code]=tr(code)
 
 
     RESULT_DIR = HOME_DIR + f"/recogn"
@@ -113,25 +120,24 @@ def openwin():
         if recognition.is_input_api(recogn_type=recogn_type) is not True:
             return
 
-        if winobj.rephrase.currentIndex() == 1:
+        if winobj.rephrase.isChecked():
+            ai_type = settings.get('llm_ai_type', 1)
+            name=get_name_index(ai_type,'key')
+
             ai_type = settings.get('llm_ai_type', 'openai')
-            if ai_type in ['openai','chatgpt'] and not params.get('chatgpt_key'):
-                show_error(tr('llmduanju'))
-                from videotrans.winform import chatgpt
-                chatgpt.openwin()
+            if not params.get(f'{name}_key'):
+                show_error(tr('llmduanju',get_name_index(ai_type,'name')))
+                from videotrans.winform import get_win
+                get_win(name).openwin()
                 return
-            if ai_type == 'deepseek' and not params.get('deepseek_key'):
-                show_error(tr('llmduanjudp'))
-                from videotrans.winform import deepseek
-                deepseek.openwin()
-                return
+
         enable_diariz_is = winobj.enable_diariz.isChecked()
 
         toggle_state(True)
         winobj.shibie_startbtn.setText(tr("running"))
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()
-        stt_rephrase = int(winobj.rephrase.currentIndex())
+        stt_rephrase = winobj.rephrase.isChecked()
         settings.save()
         from videotrans.util.help_ffmpeg import format_video
         try:
@@ -271,9 +277,9 @@ def openwin():
         winobj.shibie_dropbtn.setMinimumSize(0, 150)
         winobj.shibie_widget.insertWidget(0, winobj.shibie_dropbtn)
 
-        winobj.shibie_language.addItems([tr('auto')]+list(translator.LANGNAME_DICT.values()))
+        winobj.shibie_language.addItems([tr('auto')]+list(EDGE_LANGUANGES_DICT.values()))
         winobj.is_cuda.setChecked(params.get("stt_cuda", False))
-        winobj.rephrase.setCurrentIndex(int(params.get('stt_rephrase', 2)))
+        winobj.rephrase.setChecked(bool(params.get('stt_rephrase', False)))
         winobj.remove_noise.setChecked(bool(params.get('stt_remove_noise')))
         winobj.copysrt_rawvideo.setChecked(params.get('stt_copysrt_rawvideo', False))
         winobj.spk_insert.setChecked(bool(params.get('stt_spk_insert', True)))

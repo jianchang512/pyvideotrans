@@ -242,7 +242,7 @@ class WinActionTaskMixin:
             current_model_name = self.main.model_name.currentText()
             self.main.model_name.clear()
             self.main.model_name.addItems(
-                settings.Whisper_CPP_MODEL_LIST if self.main.recogn_type.currentIndex() == recognition.Whisper_CPP else settings.WHISPER_MODEL_LIST)
+                settings.get('Whisper_cpp_models','').split(',') if self.main.recogn_type.currentIndex() == recognition.Whisper_CPP else settings.get('model_list','').split(','))
             self.main.model_name.setCurrentText(current_model_name)
             return
         if d['type'] == 'shitingerror':

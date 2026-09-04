@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import traceback, time, json
-from videotrans.configure.config import ROOT_DIR, logger,app_cfg
+from videotrans.configure.config import ROOT_DIR, logger, app_cfg
 from pathlib import Path
 from collections import defaultdict
-
 
 """
 
@@ -39,7 +38,7 @@ def _assign_speakers(subtitles, diarizations):
 
     # ----------------- 3. 扫描线分配说话人 -----------------
     d_ptr = 0
-    active = []           # 存储 (d_start, d_end, speaker)
+    active = []  # 存储 (d_start, d_end, speaker)
     total_diars = len(clean_diars)
 
     for orig_idx, s_start, s_end in valid_subs:
@@ -58,7 +57,7 @@ def _assign_speakers(subtitles, diarizations):
         overlaps = defaultdict(int)
         for d_start, d_end, spk in active:
             o_start = max(s_start, d_start)
-            o_end   = min(s_end,   d_end)
+            o_end = min(s_end, d_end)
             overlaps[spk] += (o_end - o_start)
 
         if not overlaps:
@@ -75,6 +74,7 @@ def _assign_speakers(subtitles, diarizations):
                 output[orig_idx] = best_spk
             # 否则保持 "spk0"
     return output
+
 
 def _map_speakers(diarizations):
     speaker_list = sorted(list(set(d['speaker'] for d in diarizations)))
@@ -116,16 +116,16 @@ def _diarize_and_write(subtitles_file, diarizations, speak_file):
     return False, "0 speakers"
 
 
-def cam_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False, logs_file=None,
-                 device_index=0):
+def cam_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False,  device_index=0,**kw):
     from modelscope.pipelines import pipeline
-    device = f"cuda:{device_index}" if is_cuda else "cpu"
+    device=kw.get('device_name','auto')
+    if device=='auto':
+        device = f"cuda:{device_index}" if is_cuda else "cpu"
     _st = time.time()
     logger.debug(f'开始说话人分离:使用阿里cam++模型')
 
     try:
         subtitles = json.loads(Path(subtitles_file).read_text(encoding='utf-8'))
-
         ans = pipeline(
             task='speaker-diarization',
             model=f'{ROOT_DIR}/models/speech_campplus_speaker-diarization_common',
@@ -159,7 +159,7 @@ def _hook_hf():
     if app_cfg.proxy:
         os.environ['HTTPS_PROXY'] = app_cfg.proxy
         os.environ['HTTP_PROXY'] = app_cfg.proxy
-    import huggingface_hub
+
     import huggingface_hub.file_download
 
     # 1. 备份原生的 hf_hub_download 方法
@@ -171,11 +171,11 @@ def _hook_hf():
         if "use_auth_token" in kwargs:
             # 取出 use_auth_token 并从 kwargs 中删除
             auth_token = kwargs.pop("use_auth_token")
-            
+
             # 将其赋值给新版 hf_hub_download 认的 'token' 参数
             if "token" not in kwargs:
                 kwargs["token"] = auth_token
-                
+
         # 调用并返回原本的下载逻辑
         return _original_hf_hub_download(*args, **kwargs)
 
@@ -183,9 +183,9 @@ def _hook_hf():
     huggingface_hub.hf_hub_download = patched_hf_hub_download
     huggingface_hub.file_download.hf_hub_download = patched_hf_hub_download
 
+
 def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False,
-                      logs_file=None,
-                      device_index=0):
+                     device_index=0,**kw):
     _hook_hf()
     import torch, pyannote.audio, torchaudio
     torch.serialization.add_safe_globals([
@@ -198,8 +198,10 @@ def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_s
 
     def _get_diariz():
         pipeline = Pipeline.from_pretrained(f"{ROOT_DIR}/models/models--pyannote--speaker-diarization-3.1/config.yaml")
-
-        if is_cuda:
+        _device_name=kw.get('device_name','auto')
+        if _device_name!='auto':
+            pipeline.to(torch.device(_device_name))
+        elif is_cuda:
             pipeline.to(torch.device(f"cuda:{device_index}"))
 
         waveform, sample_rate = torchaudio.load(input_file)
@@ -234,9 +236,7 @@ def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_s
         return False, f'{e}{msg}'
 
 
-
-def built_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, language="zh", logs_file=None,
-                   is_cuda=False):
+def built_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, language="zh", **kw):
     import librosa
     import soundfile as sf
 

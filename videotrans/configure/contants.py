@@ -1,7 +1,7 @@
-from ._languages_dict import LISTEN_TEXT,_LANGUAGE_M2M100,_LANGUAGE_FIRERED3,LANG_CODE,EDGE_LANGUANGES_CODE
+from ._languages_dict import LISTEN_TEXT,_LANGUAGE_M2M100,_LANGUAGE_FIRERED3,LANG_CODE,EDGE_LANGUANGES_CODE,EDGET_LANGUAGES_NAME2CODE,EDGET_LANGUAGES_NAME2CODE_EN
 #-------------标点 空格语言-----------
 # 中日韩 泰国语 高棉语 粤语 不使用空格
-CJK_LANG = ["zh", "ja", "ko","th", "km", "yue"]
+CJK_LANG = ["zh", "ja", "ko","th", "km", "yue","lo","lao"]
 # 常见标点
 PUNC_FLAGS = [",", ".", "?", "!", ";", "，", "。", "？", "；", "！"]
 # 逗号等软性标点
@@ -107,16 +107,25 @@ DEEPGRAM_MODEL = [
 ]
 
 # 缺省 gemini 模型
-DEFAULT_GEMINI_MODEL = "gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"
 # gemini-tts 音色
 GEMINITTS_ROLES = "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
 
 GEMINI_TTS_MODELS = "gemini-3.1-flash-tts-preview,gemini-2.5-flash-preview-tts,gemini-2.5-pro-preview-tts"
 
+GEMINI_ASR_MODELS="gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-flash-latest"
+
 Whisper_cpp_models = "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
 Whisper_net_models = Whisper_cpp_models
-Qwenmt_Model = "qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3.7-max,qwen3.7-plus,qwen3.6-flash,qwen3.6-plus,qwen3-asr-flash"
+# 阿里百炼用于 qwenmt翻译和文字大模型翻译
+Qwenmt_Model = "qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3.8-flash,qwen3.8-max,qwen3.7-plus,qwen3.7-flash,qwen3.7-max,qwen3.6-flash,qwen3.5-flash"
+
+# 阿里百炼TTS模型
 Qwentts_Models = 'qwen3-tts-flash,qwen3-tts-instruct-flash,qwen-tts-latest,qwen-tts'
+
+# 阿里百炼ASR模型
+Qwenasr_Models='qwen3-asr-flash,qwen-audio-3.0-asr-flash,fun-asr-flash-2026-06-15'
+
 Qpenaitts_Model = "tts-1,tts-1-hd,gpt-4o-mini-tts"
 
 Openairecognapi_Model = "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe,gpt-4o-transcribe-diarize"

@@ -29,7 +29,8 @@ class Doubao2TTS(BaseTTS):
 
         self.appid = params.get('doubao2_appid', '')
         self.access_token = params.get('doubao2_access', '')
-    def _save_pcm_to_wav(self, audio_data, output_filename: str,
+    @staticmethod
+    def _save_pcm_to_wav(audio_data, output_filename: str,
                          channels: int = 1, sample_rate: int = 48000, sample_width: int = 2):
         import wave
         if not output_filename.lower().endswith('.wav'):

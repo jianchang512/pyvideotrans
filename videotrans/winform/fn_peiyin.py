@@ -255,8 +255,8 @@ def openwin():
         uuid_list = list()
 
     def getlangnamelist(tts_type=0):
-        if tts_type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
-            return   list(translator.LANGNAME_DICT.values())
+        # if tts_type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
+        #     return   list(translator.LANGNAME_DICT.values())[:-1]
 
         return  list(EDGE_LANGUANGES_DICT.values())
 
@@ -316,11 +316,11 @@ def openwin():
         winobj.hecheng_role.addItems(role_list)
 
     def opendir_fn():
-        nonlocal RESULT_DIR
-        if len(winobj.hecheng_importbtn.filelist) > 0 and winobj.save_to_srt.isChecked():
-            RESULT_DIR = Path(winobj.hecheng_importbtn.filelist[0]).parent.as_posix()
-        else:
-            RESULT_DIR = HOME_DIR + "/tts"
+        # nonlocal RESULT_DIR
+        # if len(winobj.hecheng_importbtn.filelist) > 0 and winobj.save_to_srt.isChecked():
+        #     RESULT_DIR = Path(winobj.hecheng_importbtn.filelist[0]).parent.as_posix()
+        # else:
+        #     RESULT_DIR = HOME_DIR + "/tts"
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     def show_detail_error():

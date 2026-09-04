@@ -383,7 +383,8 @@ class RealTimeWindow(QWidget):
             
        
 
-    def open_dir(self):
+    @staticmethod
+    def open_dir():
         if not Path(f'{HOME_DIR}/realtime_stt').exists():
             Path(f'{HOME_DIR}/realtime_stt').mkdir(exist_ok=True)
         QDesktopServices.openUrl(QUrl.fromLocalFile(f'{HOME_DIR}/realtime_stt'))

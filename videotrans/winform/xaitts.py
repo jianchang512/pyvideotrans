@@ -21,7 +21,7 @@ def openwin():
         winobj.test_xaitts.setText(tr("Test"))
 
     def test():
-        params["xaitts_key"] = winobj.xaitts_key.text()
+        params["xaitts_key"] = winobj.xaitts_key.text().strip()
         params.save()
         winobj.test_xaitts.setText(tr("Testing..."))
         from videotrans import tts
@@ -37,7 +37,7 @@ def openwin():
         wk.start()
 
     def save():
-        params["xaitts_key"] = winobj.xaitts_key.text()
+        params["xaitts_key"] = winobj.xaitts_key.text().strip()
         params.save()
         winobj.close()
 

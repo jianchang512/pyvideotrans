@@ -147,19 +147,17 @@ TTS_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 # 检查当前配音渠道是否支持所选配音语言
 # 返回True为支持，其他为不支持并返回错误字符串
 def is_allow_lang(langcode: str = None, tts_type: int = None):
-    if langcode is None or tts_type is None:
+    if langcode is None or tts_type is None or tts_type in [EDGE_TTS,G_TTS,HIGGS_AUDIO_TTS,OMNIVOICE_TTS]:
         return True
     name = _ID_NAME_DICT.get(tts_type).name
     _lang2=langcode.split('-')[0]
+
     
     if tts_type in [CHATTTS,ZIPVOICE_TTS,VITSCNEN_TTS,SPARK_TTS] and _lang2 not in ['zh', 'en']:
         return name + tr('Dubbing channel') + ' ' +tr('may not support') + tr(langcode)
     if tts_type in [INDEX_TTS] and _lang2 not in ['zh', 'en','ja','es','ar']:
         return name + tr('Dubbing channel') + ' ' +tr('may not support') + tr(langcode)
-    
-    if tts_type==PIPER_TTS and _lang2 not in ["ar","cs","de","el","en","es","fa","fr","hi","hu","id","it","kk","nl","pl","pt","ro","ru","sv","tr","uk","ur","vi","zh"]:
-        return name + tr('Dubbing channel') + ' ' +tr('may not support') + tr(langcode)
-        
+
 
     if tts_type == GPTSOVITS_TTS and _lang2 not in ['zh', 'ja', 'ko', 'en', 'yue']:
         return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
@@ -178,16 +176,15 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     if tts_type==MOSS_TTS and _lang2 not in ["zh","yue","en","de","es","fr","ja","it","hu","ko","ru","fa","ar","pl","pt","cs","sv","el","tr","da"]:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
 
-    #Arabic, Danish, German, Greek, English, Spanish, Finnish, French, Hebrew, Hindi, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese, Russian, Swedish, Swahili, Turkish, Chinese
     if tts_type==CHATTERBOX_TTS and _lang2 not in ["zh","yue","en","de","es","fr","ja","it","ko","ru","ar","pl","pt","sv","el","tr","da","he",'hi',"ms","nl","nb"]:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
     
     if tts_type==CONFUCIUS_TTS and _lang2 not in ["zh", "en", "ja", "ko", "de", "fr", "th", 
     "id", "vi", "es", "pt", "it", "ru", "ms"]:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
-    
-    if tts_type==HIGGS_AUDIO_TTS:
-        return tr('higgs-audio-v3-tips')
+    _mainsupport=["ar","cs","de","el","en","es","fa","fr","hi","hu","id","it","kk","nl","pl","pt","ro","ru","sv","tr","uk","ur","vi","zh"]
+    if _lang2 not in _mainsupport:
+        return name + tr('Dubbing channel') + ' ' +tr('may not support') + tr(langcode)
     return True
 
 

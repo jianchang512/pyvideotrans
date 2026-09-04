@@ -1,4 +1,5 @@
 import json
+import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,6 +10,7 @@ from videotrans.configure.excepts import SpeechToTextError
 from videotrans.configure.config import params
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
+from videotrans.util._ffmpeg_runner import runffmpeg
 from videotrans.util._srt_parse import ms_to_time_string
 
 _error = {
@@ -28,6 +30,17 @@ class ZijieRecogn(BaseRecogn):
 
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit():  return
+        mp3_tmp = f'{self.cache_folder}/recogn-{time.time()}.mp3'
+        runffmpeg([
+            "-y",
+            "-i",
+            Path(self.audio_file).as_posix(),
+            "-ac",
+            "1",
+            "-ar",
+            "16000",
+            mp3_tmp
+        ])
 
         submit_url = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash"
         task_id = str(uuid.uuid4())
@@ -43,7 +56,7 @@ class ZijieRecogn(BaseRecogn):
             "user": {
                 "uid": appid
             },
-            "audio": {"data": self._audio_to_base64(self.audio_file)},
+            "audio": {"data": self._audio_to_base64(mp3_tmp)},
             "request": {
                 "model_name": "bigmodel",
                 "model_version": "400",
@@ -56,6 +69,7 @@ class ZijieRecogn(BaseRecogn):
                 "enable_speaker_info": True
             }
         }
+
         response = requests.post(submit_url, json=request, headers=headers)
         response.raise_for_status()
         code = response.headers.get('X-Api-Status-Code')

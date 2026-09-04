@@ -15,7 +15,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test_chatgpt")
 
     def test():
-        key = winobj.chatgpt_key.text()
+        key = winobj.chatgpt_key.text().strip()
         url = process_openai_api(winobj.chatgpt_api.text().strip())
         params["chatgpt_key"] = key
         params["chatgpt_api"] = url
@@ -32,7 +32,7 @@ def openwin():
 
     def save_chatgpt():
         params["chatgpt_max_token"] = winobj.chatgpt_max_token.text().strip()
-        params["chatgpt_key"] = winobj.chatgpt_key.text()
+        params["chatgpt_key"] = winobj.chatgpt_key.text().strip()
         params["chatgpt_api"] = process_openai_api(winobj.chatgpt_api.text().strip())
         params["chatgpt_model"] = winobj.chatgpt_model.currentText()
         params["chatgpt_reasoning_effort"] = winobj.reasoning_effort.currentText()

@@ -224,7 +224,7 @@ class EditRecognResultDialog(QDialog,DanspMixin):
 
     # 播放进度触发
     def _on_video_position_changed(self, position):
-        if self._target_end_ms > 0 and position >= self._target_end_ms:
+        if 0 < self._target_end_ms <= position:
             self._pause_play()
 
     def _play_segment(self, start_ms, end_ms):
@@ -386,7 +386,7 @@ class EditRecognResultDialog(QDialog,DanspMixin):
             data = self.display_data[row]
 
             # 0: Line
-            item0 = QTableWidgetItem(str(data['line'])+f'({(data["end_time"]-data["start_time"])/1000.0}s)')
+            item0 = QTableWidgetItem(str(data['line'])+f' ({(data["end_time"]-data["start_time"])/1000.0}s)')
             item0.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 0, item0)
 
@@ -477,9 +477,10 @@ class EditRecognResultDialog(QDialog,DanspMixin):
         for i, data in enumerate(self.display_data):
             start_time = self.table.item(i, 1)
             end_time = self.table.item(i, 2)
+            item = self.table.item(i, 4)
+            if not start_time:continue
             start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
             end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))
-            item = self.table.item(i, 4)
             text = item.text().strip() if item else data['text'].strip()
             if text:
                 srt_str_list.append(f'{len(srt_str_list)+1}\n{start_raw} --> {end_raw}\n{text}')

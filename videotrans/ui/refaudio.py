@@ -9,14 +9,7 @@ from pathlib import Path
 
 class Ui_refform(object):
     def setupUi(self, refform):
-        refform.setWindowModality(Qt.NonModal)
-        refform.resize(600, 500)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(refform.sizePolicy().hasHeightForWidth())
-        refform.setSizePolicy(sizePolicy)
-        refform.setMaximumSize(QSize(600, 500))
+        refform.setMinimumSize(QSize(800, 500))
 
         v1 = QtWidgets.QVBoxLayout(refform)
 

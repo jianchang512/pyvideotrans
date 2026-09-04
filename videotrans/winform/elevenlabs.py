@@ -21,7 +21,7 @@ def openwin():
         winobj.test.setText(tr("Test"))
 
     def test():
-        params['elevenlabstts_key'] = winobj.elevenlabstts_key.text()
+        params['elevenlabstts_key'] = winobj.elevenlabstts_key.text().strip()
         try:
             from videotrans import tts
             from videotrans.task.simple_runnable_qt import run_in_threadpool
@@ -44,7 +44,7 @@ def openwin():
             show_error(get_msg_from_except(e))
 
     def save():
-        params['elevenlabstts_key'] = winobj.elevenlabstts_key.text()
+        params['elevenlabstts_key'] = winobj.elevenlabstts_key.text().strip()
         params['elevenlabstts_models'] = winobj.elevenlabstts_models.currentText()
         params.save()
         set_process(text='', type="refreshtts")

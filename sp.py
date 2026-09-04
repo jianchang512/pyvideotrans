@@ -160,8 +160,54 @@ def initialize_full_app(start_window, app_instance):
         app_instance.quit()
         return
 
+def fix_stdio():
+    if sys.stdout is None or sys.stderr is None:
+        try:
+            import ctypes
+            if ctypes.windll.kernel32.AttachConsole(-1):
+                if sys.stdout is None:
+                    sys.stdout = open("CONOUT$", "w", encoding="utf-8", buffering=1)
+                if sys.stderr is None:
+                    sys.stderr = open("CONOUT$", "w", encoding="utf-8", buffering=1)
+                return
+        except Exception:
+            pass
+
+        if sys.stdout is None:
+            sys.stdout = open(os.devnull, "w", encoding="utf-8")
+        if sys.stderr is None:
+            sys.stderr = open(os.devnull, "w", encoding="utf-8")
+
+def check_and_run_external_script():
+    """
+    检查是否作为脚本解释器启动。
+    例如运行：sp.exe xxx.py arg1 arg2
+    import subprocess
+    subprocess.run([sys.executable, r"test.py"])
+    import subprocess
+    subprocess.run([sys.executable, r"test.py","a","b"])
+    """
+    if len(sys.argv) > 1 and sys.argv[1].endswith('.py'):
+        fix_stdio()  
+        import runpy
+        script_path = os.path.abspath(sys.argv[1])
+        if script_path and os.path.isfile(script_path):
+            # 将 script_path 的所在目录加入 sys.path，保证脚本内导入本地模块正常
+            script_dir = os.path.dirname(script_path)
+            if script_dir not in sys.path:
+                sys.path.insert(0, script_dir)
+
+            # 重构 sys.argv，让外部脚本读取到的 sys.argv 是正常的（sys.argv[0] 是脚本自身）
+            sys.argv = sys.argv[1:]
+
+            # 执行外部脚本
+            runpy.run_path(script_path, run_name='__main__')
+            sys.exit(0)
+
 
 if __name__ == "__main__":
+    check_and_run_external_script()
+
     # Windows 打包需要
     import multiprocessing
 

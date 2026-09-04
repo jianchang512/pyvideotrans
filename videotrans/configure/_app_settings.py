@@ -24,16 +24,12 @@ class AppSettings:
     """
     homedir: str = ROOT_DIR + "/output"
     lang: str = ""
-    initial_prompt_zh_cn: str = ""
-    initial_prompt_zh_tw: str = ""
     hf_token: str = ""
     proxy: str = ''
 
     _json_path: str = f"{ROOT_DIR}/videotrans/cfg.json"
-    WHISPER_MODEL_LIST: List = field(default_factory=list, repr=False)
-    ChatTTS_voicelist: List = field(default_factory=list, repr=False)
-    Whisper_CPP_MODEL_LIST: List = field(default_factory=list, repr=False)
-    Whisper_NET_MODEL_LIST: List = field(default_factory=list, repr=False)
+
+
 
     def __post_init__(self):
         self.parse_init()
@@ -65,13 +61,8 @@ class AppSettings:
             return default
 
         merged_settings = {}
-        hyphen_map = {"initial_prompt_zh-cn": "initial_prompt_zh_cn", "initial_prompt_zh-tw": "initial_prompt_zh_tw"}
 
-        for key, val in temp_json.items():
-            py_key = hyphen_map.get(key, key)
-
-            if key not in default and py_key not in default:
-                continue
+        for py_key, val in temp_json.items():
             value = str(val).strip()
             if re.match(r'^\d+$', value):
                 merged_settings[py_key] = int(value)
@@ -81,12 +72,10 @@ class AppSettings:
                 merged_settings[py_key] = True
             elif value.lower() == 'false':
                 merged_settings[py_key] = False
-            elif value:
+            else:
                 merged_settings[py_key] = value
 
-        _extend_models = ['localllm_model', 'zhipuai_model', 'deepseek_model', 'openrouter_model',
-                          'litellm_model', 'guiji_model', 'zijiehuoshan_model', 'model_list', 'qwentts_models',
-                          'gemini_model', 'chattts_voice']
+        _extend_models = list(self._models_dict().keys())
 
         for m in _extend_models:
             def_val = str(default.get(m, ''))
@@ -101,26 +90,47 @@ class AppSettings:
 
         default.update(merged_settings)
 
-        self.WHISPER_MODEL_LIST = re.split(r'[,，]', default.get('model_list', ''))
-        self.ChatTTS_voicelist = re.split(r'[,，]', str(default.get('chattts_voice', '')))
-        self.Whisper_CPP_MODEL_LIST = str(default.get('Whisper_cpp_models', 'ggml-tiny')).strip().split(',')
-        self.Whisper_NET_MODEL_LIST = str(default.get('Whisper_net_models', 'ggml-tiny.bin')).strip().split(',')
+
+
 
         self._apply_dict(default)
-
         self._save_to_disk()
         self._handle_hf_token()
 
         return self.to_dict()
 
-    def _get_defaults(self) -> Dict:
+    @staticmethod
+    def _models_dict():
         return {
+            "Whisper_cpp_models": Whisper_cpp_models,
+            "Whisper_net_models": Whisper_cpp_models,
+            "ai302_models": Ai302_Models,
+            'qwenmt_model': Qwenmt_Model,
+            "openaitts_model": Qpenaitts_Model,
+            "openairecognapi_model": Openairecognapi_Model,
+            "chatgpt_model": Chatgpt_Model,
+            "azure_model": Azure_Model,
+            "localllm_model": Localllm_Model,
+            "zhipuai_model": Zhipuai_Model,
+            "deepseek_model": Deepseek_Model,
+            "xiaomi_model": XIAOMI_MODELS,
+            "openrouter_model": Openrouter_Model,
+            "litellm_model": Litellm_Model,
+            "guiji_model": Guiji_Model,
+            "zijiehuoshan_model": Zijiehuoshan_Model,
+            "model_list": Whisper_Models,
+            "minimax_model": MINIMAX_MODELS,
+            "qwentts_models": Qwentts_Models,
+            "chattts_voice": ChatTTS_VOICE,
+            "gemini_model": DEFAULT_GEMINI_MODEL,
+        }
+
+    def _get_defaults(self) -> Dict:
+        _d = {
             "homedir": ROOT_DIR + "/output",
             "lang": "",
             "Faster_Whisper_XXL": "",
             "Whisper_cpp": "",
-            "Whisper_cpp_models": Whisper_cpp_models,
-            "Whisper_net_models": Whisper_cpp_models,
             "crf": 23,
             "fps_mode": "vfr",
             "hotwords": "",
@@ -139,33 +149,23 @@ class AppSettings:
             "aitrans_temperature": 0.1,
             "aitrans_context": False,
             "batch_nums": 0,
-            "ai302_models": Ai302_Models,
-            'qwenmt_model': Qwenmt_Model,
-            "openaitts_model": Qpenaitts_Model,
-            "openairecognapi_model": Openairecognapi_Model,
-            "chatgpt_model": Chatgpt_Model,
-            "azure_model": Azure_Model,
-            "localllm_model": Localllm_Model,
-            "zhipuai_model": Zhipuai_Model,
-            "deepseek_model": Deepseek_Model,
-            "xiaomi_model": XIAOMI_MODELS,
-            "openrouter_model": Openrouter_Model,
-            "litellm_model": Litellm_Model,
-            "guiji_model": Guiji_Model,
-            "zijiehuoshan_model": Zijiehuoshan_Model,
-            "model_list": Whisper_Models,
+            "uvr_models": "spleeter",
+
             "max_audio_speed_rate": 100,
             "max_video_pts_rate": 10,
-            "threshold": 0.5,
-            "min_speech_duration_ms": 2000,
-            "max_speech_duration_s": 5,
-            "min_speech_duration_ms2": 1000,
-            "max_speech_duration_s2": 2,
-            "min_silence_duration_ms": 140,
+
+            "threshold": 0.45,
             "no_speech_threshold": 0.6,
-            "whisper_prepare": False,
-            "merge_short_sub": False,
+            "min_speech_duration_ms": 3000,
+            "max_speech_duration_s": 5,
+            "min_silence_duration_ms": 600,
+
+            "min_speech_duration_ms2": 600,
+            "max_speech_duration_s2": 1.0,
+            "model_for_recogn2":"large-v3-turbo",
+
             "vad_type": "silero",
+
             "trans_thread": 10,
             "aitrans_thread": 50,
             "translation_wait": 0,
@@ -178,85 +178,52 @@ class AppSettings:
             "countdown_sec": 30,
             "backaudio_volume": 0.8,
             "loop_backaudio": 1,
+
             "cuda_com_type": "default",
-            "initial_prompt_zh-cn": "",
-            "initial_prompt_zh-tw": "",
-            "initial_prompt_en": "",
-            "initial_prompt_fr": "",
-            "initial_prompt_de": "",
-            "initial_prompt_ja": "",
-            "initial_prompt_ko": "",
-            "initial_prompt_ru": "",
-            "initial_prompt_es": "",
-            "initial_prompt_th": "",
-            "initial_prompt_it": "",
-            "initial_prompt_pt": "",
-            "initial_prompt_vi": "",
-            "initial_prompt_ar": "",
-            "initial_prompt_tr": "",
-            "initial_prompt_hi": "",
-            "initial_prompt_hu": "",
-            "initial_prompt_uk": "",
-            "initial_prompt_id": "",
-            "initial_prompt_ms": "",
-            "initial_prompt_km": "",
-            "initial_prompt_kk": "",
-            "initial_prompt_nb": "",
-            "initial_prompt_el": "",
-            "initial_prompt_cs": "",
-            "initial_prompt_pl": "",
-            "initial_prompt_nl": "",
-            "initial_prompt_bn": "",
-            "initial_prompt_he": "",
-            "initial_prompt_sv": "",
-            "initial_prompt_fa": "",
-            "initial_prompt_ur": "",
-            "initial_prompt_yue": "",
-            "initial_prompt_ro": "",
-            "initial_prompt_fil": "",
             "beam_size": 5,
             "best_of": 5,
-            "minimax_model": MINIMAX_MODELS,
-            "uvr_models": "spleeter",
             "condition_on_previous_text": False,
-            "temperature": "",
+            "temperature": "0.0",
             "repetition_penalty": 1.0,
             "compression_ratio_threshold": 2.4,
+
             "qwentts_role": '',
-            "qwentts_models": Qwentts_Models,
             "show_more_settings": False,
             "speaker_type": "built",
             "hf_token": "",
             "cjk_len": 15,
             "other_len": 40,
-            "gemini_model": DEFAULT_GEMINI_MODEL,
             "llm_chunk_size": 50,
-            "llm_ai_type": "deepseek",
+            "llm_ai_type": 1,
             "gemini_recogn_chunk": 50,
             "zh_hant_s": True,
             "process_max": 0,
             "process_max_gpu": 1,
-            "multi_gpus": False,
+            "device_name":"auto",
             "retry_nums": 1,
-            "chattts_voice": ChatTTS_VOICE,
             "proxy": ""
-        }
+         }
+        _d.update(self._models_dict())
+        return _d
 
     def _apply_dict(self, data: Dict):
         for k, v in data.items():
             attr_name = k
-            if k == "initial_prompt_zh-cn":
-                attr_name = "initial_prompt_zh_cn"
-            if k == "initial_prompt_zh-tw":
-                attr_name = "initial_prompt_zh_tw"
+            if k.startswith('initial_prompt') and "-" in k:
+                attr_name=k.replace('-','_')
             setattr(self, attr_name, v)
 
     def to_dict(self) -> Dict:
         data = {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
+        # 特殊处理几个语言
         if "initial_prompt_zh_cn" in data:
             data["initial_prompt_zh-cn"] = data.pop("initial_prompt_zh_cn")
         if "initial_prompt_zh_tw" in data:
             data["initial_prompt_zh-tw"] = data.pop("initial_prompt_zh_tw")
+        if "initial_prompt_pt_br" in data:
+            data["initial_prompt_pt-br"] = data.pop("initial_prompt_pt_br")
+        if "initial_prompt_es_419" in data:
+            data["initial_prompt_es-419"] = data.pop("initial_prompt_es_419")
         return data
 
     def _save_to_disk(self):
@@ -276,18 +243,14 @@ class AppSettings:
 
     def __getitem__(self, key):
         attr = key
-        if key == "initial_prompt_zh-cn":
-            attr = "initial_prompt_zh_cn"
-        if key == "initial_prompt_zh-tw":
-            attr = "initial_prompt_zh_tw"
+        if key.startswith('initial_prompt') and "-" in key:
+            attr=key.replace('-','_')
         return getattr(self, attr)
 
     def __setitem__(self, key, value):
         attr = key
-        if key == "initial_prompt_zh-cn":
-            attr = "initial_prompt_zh_cn"
-        if key == "initial_prompt_zh-tw":
-            attr = "initial_prompt_zh_tw"
+        if key.startswith('initial_prompt') and "-" in key:
+            attr=key.replace('-','_')
         setattr(self, attr, value)
 
     def get(self, key, default=None):
@@ -326,6 +289,7 @@ class AppSettings:
             "gemini_recogn_chunk",
             "process_max",
             "process_max_gpu",
+            "llm_ai_type",
             "retry_nums",
         ]
         try:

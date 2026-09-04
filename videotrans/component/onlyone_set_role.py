@@ -287,8 +287,8 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             header = self.table.horizontalHeader()
             header.setSectionResizeMode(0, QHeaderView.Fixed)  # Sel
             header.setSectionResizeMode(1, QHeaderView.Fixed)  # ID
-            header.setSectionResizeMode(2, QHeaderView.Fixed)  # Spk
-            header.setSectionResizeMode(3, QHeaderView.Fixed)  # Role
+            header.setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Spk
+            header.setSectionResizeMode(3, QHeaderView.ResizeToContents)  # Role
             header.setSectionResizeMode(4, QHeaderView.Fixed)  # Time
             header.setSectionResizeMode(5, QHeaderView.Fixed)  # Time
             header.setSectionResizeMode(6, QHeaderView.Fixed)  # Play
@@ -296,7 +296,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             header.setSectionResizeMode(8, QHeaderView.Stretch)  # SourceText
             
             self.table.setColumnWidth(0, 30)
-            self.table.setColumnWidth(1, 40)
+            self.table.setColumnWidth(1, 120)
             self.table.setColumnWidth(2, 100)
             self.table.setColumnWidth(3, 150)
             self.table.setColumnWidth(4, 125)
@@ -374,7 +374,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             self.table.setItem(row, 0, chk_item)
             
             # 第1列：ID（只读）
-            id_item = QTableWidgetItem(str(data['line']))
+            id_item = QTableWidgetItem(str(data['line'])+ f' ({(data["end_time"]-data["start_time"])/1000.0}s)' )
             id_item.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 1, id_item)
             
@@ -627,7 +627,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
 
 
     def _on_video_position_changed(self, position):
-        if self._target_end_ms > 0 and position >= self._target_end_ms:
+        if 0 < self._target_end_ms <= position:
             self._pause_play()
 
 
@@ -763,6 +763,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
         for row, data in enumerate(self.display_data):
             # 获取当前文本（从表格中获取最新值）
             start_time = self.table.item(row, 4)
+            if not start_time:continue
             end_time = self.table.item(row, 5)
             start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
             end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))
@@ -770,7 +771,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             text_item = self.table.item(row, 7)
             text = text_item.text().strip() if text_item else data['text'].strip()
             if not text:continue
-            
+
             srt_str_list.append(f'{len(srt_str_list)+1}\n{start_raw} --> {end_raw}\n{text}')
 
             # 角色保存逻辑

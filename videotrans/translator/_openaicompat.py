@@ -92,7 +92,8 @@ class OpenAICampat(BaseTrans):
             raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e.message}') from e
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
             del kwargs['messages']
-            raise StopTask((e.body.get('message') if e.body else e.message)+f'\n{self.api_url}\n{kwargs}') from e
+            _msg=(e.body.get('message') if e.body else e.message) or str(e)
+            raise StopTask(f'{_msg}\n{self.api_url}\n{kwargs}') from e
         except APIError as e: 
             if re.search(r"insufficient.*?balance",e.message,flags=re.I):
                 raise StopTask(tr('The server returned an error message: Insufficient balance',get_tanslate_type(self.translate_type),self.api_url))
@@ -115,36 +116,32 @@ class OpenAICampat(BaseTrans):
 
     def llm_segment(self, srt_list,step='')->List[SrtItem]:
         _st=time.time()
-        api_url=params.get('chatgpt_api') if self.ainame!='deepseek' else 'https://api.deepseek.com/v1/'
-        if len(api_url)<10:
-            raise StopTask(f'API URL is error: {api_url}')
 
-        prompts_template = Path(f'{ROOT_DIR}/videotrans/prompts/resegment/llm{step}.txt').read_text(encoding='utf-8')
-        prompts_template = prompts_template.replace('{max_speech_s}', str(int(int(settings.get('max_speech_duration_s', 6))*1.7)) )
+
+        prompts_template = Path(f'{ROOT_DIR}/videotrans/prompts/resegment/llm.txt').read_text(encoding='utf-8')
         chunk_size = int(settings.get('llm_chunk_size', 20))
-        model_name=params.get(f'{self.ainame}_model')
-        max_tokens=max(8192,int( float(params.get(f'{self.ainame}_max_token', 8192)) ))
-        temperature=float(settings.get('aitrans_temperature', 1.0))
-        api_key=params.get(f'{self.ainame}_key')           
-        reasoning_effort='high' if self.ainame=='deepseek' else None
-        
-        if reasoning_effort is None:
-            _reason=params.get('chatgpt_reasoning_effort')
-            reasoning_effort=None if not _reason or _reason=='No' else _reason
+
+
+
+        # reasoning_effort='high' if self.ainame=='deepseek' else None
+        #
+        # if reasoning_effort is None:
+        #     _reason=params.get('chatgpt_reasoning_effort')
+        #     reasoning_effort=None if not _reason or _reason=='default' else _reason
         
         kwargs={
-                "model":model_name,
-                
-                "temperature":temperature,
+                "model":self.model_name,
+                "temperature":self.temperature,
                 "timeout":600,   
         }
-        if reasoning_effort:
-            kwargs['reasoning_effort']=reasoning_effort
-        if "api.openai.com" in api_url or ( self.ainame=='chatgpt' and re.match(r'^(gpt|o\d)', model_name, flags=re.I)):
-            kwargs["max_completion_tokens"]=int(max_tokens)
+        if self.reasoning_effort:
+            kwargs["reasoning_effort"]=self.reasoning_effort
+
+        if "api.openai.com" in self.api_url or ( self.ainame=='chatgpt' and re.match(r'^(gpt|o\d)', self.model_name, flags=re.I)):
+            kwargs["max_completion_tokens"]=int(self.max_tokens)
         else:
-            kwargs["max_tokens"]=int(max_tokens)
-        logger.debug(f'LLM Re-segmenting:{self.ainame=},{kwargs=},{model_name=},{api_url=},{step=}')
+            kwargs["max_tokens"]=int(self.max_tokens)
+        logger.debug(f'LLM Re-segmenting:{self.ainame=},{kwargs=},{self.model_name=},{self.api_url=},{step=}')
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(2)),
                wait=wait_fixed(5), before=before_log(logger, logging.INFO),
                after=after_log(logger, logging.INFO))
@@ -159,20 +156,17 @@ class OpenAICampat(BaseTrans):
                 }
             ]
             kwargs["messages"]=message
-            model = OpenAI(api_key=api_key, base_url=api_url)
-            response = model.chat.completions.create(
-                    **kwargs,
-                    extra_body={"thinking": {"type": "enabled"}} if self.ainame=='deepseek' else None
-            )
+            response = self._create_completion(kwargs)
+
             
             if not response or not hasattr(response, 'choices') or not response.choices:
-                logger.warning(f'[{self.ainame}]重新断句失败:{response=}')
+                logger.warning(f'[{self.ainame}] LLM纠错失败:{response=}')
                 raise LLMSegmentError(f"[{self.ainame}]{response}")
 
             if response.choices[0].finish_reason == 'length':
                 raise LLMSegmentError(f"[{self.ainame}] Please increase max_token")
             if not response.choices[0].message.content:
-                logger.warning(f'[{self.ainame}]重新断句失败:{response=}')
+                logger.warning(f'[{self.ainame}] LLM纠错失败:{response=}')
                 raise LLMSegmentError(f"[{self.ainame}] {response}")
 
             result = response.choices[0].message.content
@@ -203,5 +197,5 @@ class OpenAICampat(BaseTrans):
                 it['startraw'] = ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = ms_to_time_string(ms=it['end_time'])
                 it["time"] = f"{it['startraw']} --> {it['endraw']}"
-        logger.debug(f'{"【二次识别后】"  if step else ""}LLM重新断句完成,原始字幕行:{len(srt_list)}, 新字幕行:{len(_srtlist)}, 用时:{time.time()-_st}s')
+        logger.debug(f'{"【二次识别后】"  if step else ""}LLM纠错完成,原始字幕行:{len(srt_list)}, 新字幕行:{len(_srtlist)}, 用时:{time.time()-_st}s')
         return _srtlist

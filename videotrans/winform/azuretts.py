@@ -39,7 +39,7 @@ def openwin():
         winobj.test.setText('Testing...')
 
     def save():
-        params['azure_speech_key'] = winobj.speech_key.text()
+        params['azure_speech_key'] = winobj.speech_key.text().strip()
         region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):
             region = winobj.azuretts_area.currentText()

@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QGraphicsRectItem, QGraphicsPathItem, QScrollArea, QLineEdit
 )
 
+from videotrans.configure._languages_dict import LISTEN_TEXT
 from videotrans.configure.config import ROOT_DIR, tr, defaulelang, settings
 
 JSON_FILE = f'{ROOT_DIR}/videotrans/ass.json'
@@ -134,7 +135,7 @@ class PreviewWidget(QGraphicsView):
     def update_preview(self, style):
         self.clear_items()
 
-        text =  '你好啊，亲爱的朋友们！' if defaulelang=='zh' else  'Hello, my dear friend. hope your every day beautiful'
+        text =  LISTEN_TEXT["en"]
 
         font = QFont(style['Fontname'], style['Fontsize'])
         font.setBold(bool(style['Bold']))

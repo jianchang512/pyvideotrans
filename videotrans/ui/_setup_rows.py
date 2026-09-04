@@ -15,6 +15,7 @@ def _create_file_row(ui, parent):
     ui.btn_get_video.setMinimumSize(QtCore.QSize(120, 30))
     ui.btn_get_video.setObjectName("btn_get_video")
 
+
     ui.source_mp4 = QtWidgets.QLabel('')
     ui.source_mp4.setMaximumWidth(100)
     ui.source_mp4.setObjectName("source_mp4")
@@ -83,11 +84,11 @@ def _create_asr_row(ui, parent):
     ui.model_name_help.setText(tr("ASRModel"))
 
     ui.model_name = QtWidgets.QComboBox(parent)
-    ui.model_name.setMinimumWidth(250)
+    ui.model_name.setMinimumWidth(300)
     ui.model_name.setObjectName("model_name")
 
-    ui.rephrase = QtWidgets.QComboBox()
-    ui.rephrase.addItems([tr("Default sentence"), tr("LLM Rephrase")])
+    ui.rephrase = QtWidgets.QCheckBox()
+    ui.rephrase.setText(tr("LLM Rephrase"))
     ui.rephrase.setToolTip(tr("re-segment the sentence.the original segmentation will be used"))
 
     ui.remove_noise = QtWidgets.QCheckBox()
@@ -103,8 +104,8 @@ def _create_asr_row(ui, parent):
     layout.addWidget(ui.recogn_type)
     layout.addWidget(ui.model_name_help)
     layout.addWidget(ui.model_name)
-    layout.addWidget(ui.rephrase)
     layout.addStretch()
+    layout.addWidget(ui.rephrase)
     layout.addWidget(ui.recogn2pass)
     return layout
 

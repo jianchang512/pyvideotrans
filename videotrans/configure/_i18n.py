@@ -25,27 +25,32 @@ def _get_langjson_list():
 
 
 @lru_cache()
-def _get_transobj(lang):
+def _get_transobj(lang:str=None):
     SUPPORT_LANG = _get_langjson_list()
-    try:
-        _tobj = json.loads(Path(SUPPORT_LANG.get(lang)).read_text(encoding='utf-8'))
-    except (json.JSONDecodeError, OSError, TypeError):
-        _tobj = None
+    _tobj={}
+    if not lang:
+        return _tobj
+    for n in [lang,lang.split('_')[0].lower()]:
+        _langfile=SUPPORT_LANG.get(lang)
+        if _langfile and Path(_langfile).exists():
+            try:
+                _tobj = json.loads(Path(_langfile).read_text(encoding='utf-8'))
+            except Exception as e:
+                Path(f'{ROOT_DIR}/start_error.txt').write_text(f"{e}")
     return _tobj
-
 
 def _init_language(settings):
     global defaulelang, _transobj
     SUPPORT_LANG = _get_langjson_list()
     try:
         _lang = os.environ.get('PYVIDEOTRANS_LANG', settings.lang)
-        if not _lang:
-            _lang = QLocale.system().name()[:2].lower()
+        if not _lang or not SUPPORT_LANG.get(_lang) or not Path(SUPPORT_LANG.get(_lang)).exists():
+            _lang = QLocale.system().name()
     except Exception:
-        _lang = "en"
+        _lang = "en_US"
 
     if _lang not in SUPPORT_LANG:
-        _lang = "en"
+        _lang = "en_US"
     if not settings.lang:
         settings.lang = _lang
         settings.save()

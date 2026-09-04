@@ -36,7 +36,8 @@ class XXLRecogn(BaseRecogn):
                 shutil.copy2(path, dst_dir)
 
     
-    def _return_time(self,t):
+    @staticmethod
+    def _return_time(t):
         _spear2=t.split('.')
         if len(_spear2)<=1:
             return '00:00:00,000'

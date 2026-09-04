@@ -10,7 +10,7 @@ from typing import List
 from videotrans.configure import contants
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger, HOME_DIR
 from videotrans.configure import config
-from videotrans.configure.contants import BUILTINT_URL_MS, PUNC_RESTORE_MS, DENOISE_URL_MS, BUILTINT_URL_HF,  DENOISE_URL_HF, PUNC_RESTORE_HF
+from videotrans.configure.contants import PUNC_RESTORE_MS, DENOISE_URL_MS,  DENOISE_URL_HF, PUNC_RESTORE_HF
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
@@ -41,7 +41,7 @@ class SpeechToText(BaseTask):
     def __post_init__(self):
         super().__post_init__()
         # -1=不启用说话人，0=启用并且不限制说话人数量，>0+1是最大说话人数量
-        self.max_speakers = self.cfg.nums_diariz if self.cfg.enable_diariz else -1
+        self.max_speakers = max(self.cfg.nums_diariz,0) if self.cfg.enable_diariz else -1
         if self.max_speakers > 0:
             self.max_speakers += 1
         # 存放目标文件夹
@@ -107,7 +107,6 @@ class SpeechToText(BaseTask):
             is_cuda=self.cfg.is_cuda,
             subtitle_type=0,
             max_speakers=self.max_speakers,
-            llm_post=self.cfg.rephrase == 1
         )
         if not raw_subtitles or len(raw_subtitles) < 1:
             raise SpeechToTextError(self.cfg.basename + tr('recogn result is empty'))
@@ -116,8 +115,7 @@ class SpeechToText(BaseTask):
 
 
         # 中英恢复标点符号
-        if self.cfg.detect_language != 'auto' and self.cfg.fix_punc==1 and self.cfg.detect_language.split('-')[0] in ['zh', 'en']:
-
+        if self.cfg.fix_punc==1:
             try:
                 from videotrans.process.prepare_audio import fix_punc
                 down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF, callback=self._process_callback)
@@ -143,101 +141,15 @@ class SpeechToText(BaseTask):
 
         # 本身已有说话人识别的，就不再重新断句
         self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
-        if Path(self.cfg.cache_folder + "/speaker.json").exists(): return
-        
-        # 选中说话人识别，则不使用LLM重新短句
-        if not self.cfg.enable_diariz and self.cfg.rephrase == 1:
-            # LLM重新断句
-            try:
-                from videotrans.translator._openaicompat import OpenAICampat
-                ob = OpenAICampat(
-                    ainame='chatgpt' if settings.get('llm_ai_type', 'chatgpt') != 'deepseek' else 'deepseek',
-                    uuid=self.uuid)
-                self.signal(text=tr("Re-segmenting..."))
-                srt_list = ob.llm_segment(self.source_srt_list)
-                if srt_list and len(srt_list) > len(self.source_srt_list) / 2:
-                    self.source_srt_list = srt_list
-                    self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
-                else:
-                    logger.error(f'重新断句失败，已恢复原样,原始字幕行:{len(self.source_srt_list)}, 重新断句后字幕行:{len(srt_list)}\n断句结果:\n{srt_list=}')
-            except Exception as e:
-                self.signal(text=tr("Re-segmenting Error"))
-                logger.exception(f"重新断句失败已恢复原样 {e}", exc_info=True)
+
+        # LLM纠错
+        if self.cfg.rephrase:
+            self.source_srt_list=self._llmpost(self.source_srt_list)
 
     def diariz(self):
         if self._exit() or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
             return
-        from videotrans.util.help_down import down_file_from_hf, check_and_down_ms
-        speaker_type = settings.get('speaker_type', 'built')
-        hf_token = settings.get('hf_token')
-        if speaker_type == 'built' and self.cfg.detect_language.split('-')[0] not in ['zh', 'en']:
-            logger.error(f'当前选择 built 说话人分离模型，但不支持当前语言:{self.cfg.detect_language}')
-            return
-        if speaker_type in ['pyannote', 'reverb'] and not hf_token:
-            logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
-            return
-
-        self.precent += 3
-        ishf=is_connect_hf()
-        title = tr(f'Speaker classification') + f':{speaker_type}'
-        subtitles_file=f'{self.cfg.cache_folder}/diariz-{time.time()}.json'
-        Path(subtitles_file).write_text(json.dumps([[it['start_time'], it['end_time']] for it in self.source_srt_list]),encoding='utf-8')
-        kw = {
-            "input_file": self.cfg.shibie_audio,
-            "subtitles_file": subtitles_file,
-            "speak_file":self.cfg.cache_folder + "/speaker.json",
-            "num_speakers": self.max_speakers,
-            "is_cuda": self.cfg.is_cuda
-        }
-        if speaker_type == 'built':
-            down_file_from_hf(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_MS if not ishf else BUILTINT_URL_HF, callback=self._process_callback)
-            from videotrans.process.prepare_audio import built_speakers as _run_speakers
-            del kw['is_cuda']
-            kw['num_speakers'] = -1 if self.max_speakers < 1 else self.max_speakers
-            kw['language'] = self.cfg.detect_language
-        elif speaker_type == 'ali_CAM':
-            check_and_down_ms(
-                model_id='iic/speech_campplus_speaker-diarization_common', 
-                local_dir=f"{ROOT_DIR}/models/speech_campplus_speaker-diarization_common",
-                callback=self._process_callback)
-            from videotrans.process.prepare_audio import cam_speakers as _run_speakers
-        elif speaker_type in ['pyannote','reverb']:
-            from videotrans.process.prepare_audio import pyannote_speakers as _run_speakers
-        else:
-            logger.error(f'当前所选说话人分离模型不支持:{speaker_type=}')
-            return
-        try:
-            if speaker_type in ['pyannote', 'reverb']:
-                from videotrans.util.help_down import check_and_down_hf
-                check_and_down_hf(
-                    speaker_type, 
-                    "pyannote/speaker-diarization-3.1", 
-                    f'{ROOT_DIR}/models/models--pyannote--speaker-diarization-3.1', 
-                    self._process_callback, 
-                    None,
-                    hf_token)
-                check_and_down_hf(
-                    speaker_type, 
-                    "pyannote/segmentation-3.0", 
-                    f'{ROOT_DIR}/models/models--pyannote--segmentation-3.0', 
-                    self._process_callback, 
-                    None,
-                    hf_token)
-                check_and_down_hf(
-                    speaker_type, 
-                    "pyannote/wespeaker-voxceleb-resnet34-LM", 
-                    f'{ROOT_DIR}/models/models--pyannote--wespeaker-voxceleb-resnet34-LM', 
-                    self._process_callback, 
-                    None,
-                    hf_token)
-            _rs = self._new_process(callback=_run_speakers, title=title,
-                                         is_cuda=self.cfg.is_cuda and speaker_type != 'built', kwargs=kw)
-
-            logger.debug('分离说话人成功完成' if _rs else '分离失败说话人失败')
-            self.signal(text=tr('separating speakers end'))
-        except Exception as e:
-            logger.exception(f'说话人分离失败，跳过 {e}', exc_info=True)
-        self.signal(text=tr('separating speakers end'))
+        self._diariz_common(self.cfg.shibie_audio)
 
     def task_done(self):
         if self._exit(): return

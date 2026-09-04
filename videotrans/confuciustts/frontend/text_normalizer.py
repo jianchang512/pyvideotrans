@@ -46,23 +46,26 @@ class TextNormalizer:
     def is_only_punctuation(self, text: str) -> bool:
         return bool(regex.fullmatch(self.punctuation_pattern, text))
 
-    def replace_corner_marks(self, text: str) -> str:
+    @staticmethod
+    def replace_corner_marks(text: str) -> str:
         text = text.replace('²', '平方')
         text = text.replace('³', '立方')
         return text
 
-    def remove_brackets(self, text: str) -> str:
+    @staticmethod
+    def remove_brackets(text: str) -> str:
         text = text.replace('（', '').replace('）', '')
         text = text.replace('【', '').replace('】', '')
         text = text.replace('`', '').replace('`', '')
         text = text.replace("——", " ")
         return text
 
-    def remove_blank_between_chinese(self, text: str) -> str:
+    @staticmethod
+    def remove_blank_between_chinese(text: str) -> str:
         out_str = []
         for i, c in enumerate(text):
             if c == " ":
-                if i > 0 and i < len(text) - 1:
+                if 0 < i < len(text) - 1:
                     if (text[i + 1].isascii() and text[i + 1] != " " and
                         text[i - 1].isascii() and text[i - 1] != " "):
                         out_str.append(c)
@@ -116,7 +119,8 @@ class TextNormalizer:
 
         return text
 
-    def normalize_japanese(self, text: str) -> str:
+    @staticmethod
+    def normalize_japanese(text: str) -> str:
         return to_katakana(text)
 
     def normalize(self, text: str, language: str = "auto") -> str:

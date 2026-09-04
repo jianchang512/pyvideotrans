@@ -96,7 +96,7 @@ class Ui_ttsapiform(object):
     # setupUi
 
     def retranslateUi(self, ttsapiform):
-        tips = """接受两种 API 请求方式，具体请点击 【查看填写教程】 按钮了解""" if defaulelang == 'zh' else  """We accept two API request methods. Please click the [View Setup Guide] button for details."""
+        tips = tr("We accept two API request methods")
         ttsapiform.setWindowTitle(tr("Customizing the TTS-API"))
         self.label_3.setText(tr("SK"))
         self.tips.setText(tips)

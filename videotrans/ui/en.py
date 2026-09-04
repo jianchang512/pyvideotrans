@@ -293,6 +293,7 @@ class Ui_MainWindow(object):
         self.btn_get_video.setToolTip(
             tr("Multiple MP4 videos can be selected and automatically queued for processing"))
         self.btn_get_video.setText(tr("Select audio & video"))
+
         self.btn_save_dir.setToolTip(tr("Select where to save the processed output resources"))
         self.btn_save_dir.setText(tr("Save to.."))
 

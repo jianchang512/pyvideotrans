@@ -76,7 +76,8 @@ def f5tts_fun(
         speed=1.0,
         is_cuda=False,
         device_index=0, # gpu索引
-        is_redubb=False#是否处于单视频校对配音流程
+        is_redubb=False,#是否处于单视频校对配音流程
+        **kw
 )->Tuple[bool,Union[str,None]]:
     from videotrans.util.help_role import get_f5tts_role
     from videotrans.util.help_misc import vail_file
@@ -89,15 +90,19 @@ def f5tts_fun(
     if not cfg:
         return False,f"[F5-TTS] may not support {language}"
 
+    device=kw.get('device_name','auto')
+    if device =='auto':
+        device=f'cuda:{device_index}' if is_cuda else gpus.mps_or_cpu()
+
     local_dir=f'{ROOT_DIR}/models/models--'+cfg['repid'].replace('/','--')
     f5tts = _F5TTS(
         yaml_path=f"{ROOT_DIR}/videotrans/voicejson/{cfg['config']}",
         ckpt_file=f'{local_dir}/{cfg["model_name"]}',
         vocab_file=f'{local_dir}/{cfg["vocab_name"]}',
         vocoder_local_path=f'{ROOT_DIR}/models/models--charactr--vocos-mel-24khz',
-        device=f'cuda:{device_index}' if is_cuda else gpus.mps_or_cpu()
+        device=device
     )
-    logger.debug(f'F5-TTS 本地内置渠道使用 {cfg["model_name"]} 模型,{is_cuda=}')
+    logger.debug(f'F5-TTS 本地内置渠道使用 {cfg["model_name"]} 模型,{is_cuda=}, running on {f5tts.device}')
     try:
         if is_redubb:
             queue_tts_file=REDUBB_QUEUE_FILE
@@ -139,7 +144,7 @@ def f5tts_fun(
                     last_error=msg
                     continue
 
-                wav, sr, spec = f5tts.infer(
+                f5tts.infer(
                         ref_file=wavfile,
                         ref_text=ref_text,
                         gen_text=it['text'],

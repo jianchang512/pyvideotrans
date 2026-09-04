@@ -4,7 +4,7 @@ import ctranslate2
 import sentencepiece as spm
 from dataclasses import dataclass
 from typing import List, Union
-from videotrans.configure.config import ROOT_DIR,logger
+from videotrans.configure.config import ROOT_DIR, logger, settings
 from videotrans.configure.contants import M2M100_URL_MS, M2M100_URL_HF,_LANGUAGE_M2M100
 from videotrans.translator._base import BaseTrans
 import torch
@@ -32,13 +32,15 @@ class M2M100Trans(BaseTrans):
     def _download(self):
         if not Path(f'{ROOT_DIR}/models/m2m100_12b/model.bin').exists():
             down_zip(f"{ROOT_DIR}/models", M2M100_URL_MS if not is_connect_hf() else M2M100_URL_HF,self._process_callback)
+        device=settings.get('device_name','auto')
+        if device=='auto':
+            device="cpu" if not torch.cuda.is_available() else "cuda"
         self.model = ctranslate2.Translator(
             model_path=f'{ROOT_DIR}/models/m2m100_12b',
-            device="cpu" if not torch.cuda.is_available() else "cuda",
-            device_index=0,
+            device=device
         )
         self.model.load_model()
-        self.sentence_piece_processor = spm.SentencePieceProcessor(model_file=f'{ROOT_DIR}/models/m2m100_12b/sentencepiece.model')
+        self.sentence_piece_processor = spm.SentencePieceProcessor(f'{ROOT_DIR}/models/m2m100_12b/sentencepiece.model')
         return True
 
     def _unload(self):

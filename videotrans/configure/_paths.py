@@ -59,6 +59,8 @@ def _set_env():
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
     os.environ["CT2_VERBOSE"] = "1"
+    os.environ["CT2_CUDA_ALLOW_BF16"] = "1"
+    os.environ["CT2_CUDA_ALLOW_FP16"] = "1"
     os.environ["OMP_NUM_THREADS"] = "1"
     os.environ["PYTHONWARNINGS"]="ignore"
     os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
@@ -68,6 +70,7 @@ def _set_env():
     os.environ['MODELSCOPE_CACHE'] = ROOT_DIR + "/models"
     os.environ['HF_HOME'] = ROOT_DIR + "/models"
     os.environ['PYANNOTE_CACHE'] = ROOT_DIR + "/models"
+    os.environ['PKUSEG_HOME'] = ROOT_DIR + "/models/pkuser_home"
     os.environ['HF_HUB_CACHE'] = ROOT_DIR + "/models"
     os.environ['HF_TOKEN_PATH'] = ROOT_DIR + "/models/hf_token.txt"
     os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'

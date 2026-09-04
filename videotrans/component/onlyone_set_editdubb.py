@@ -338,7 +338,8 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             self.remove_silent_mid.setVisible(True)
             self.align_sub_audio.setVisible(True)
 
-    def help_doc(self):
+    @staticmethod
+    def help_doc():
         open_url('https://pyvideotrans.com/danshipin')
 
     def load_table(self):
@@ -382,7 +383,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             h_header.setSectionResizeMode(1, QHeaderView.Fixed)  # Play
             h_header.setSectionResizeMode(2, QHeaderView.Fixed)  # Start
             h_header.setSectionResizeMode(3, QHeaderView.Fixed)  # End
-            h_header.setSectionResizeMode(4, QHeaderView.Fixed)  # Status
+            h_header.setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Status
             h_header.setSectionResizeMode(5, QHeaderView.Stretch)  # Text
             
             # 设置列宽
@@ -672,7 +673,8 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         # 更新显示
         self._refresh_row(row)
 
-    def _ms_to_fmt(self, ms):
+    @staticmethod
+    def _ms_to_fmt(ms):
         """毫秒转时间格式"""
         seconds, milliseconds = divmod(ms, 1000)
         minutes, seconds = divmod(seconds, 60)
@@ -735,7 +737,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
 
     def _on_video_position_changed(self, position):
         """Stop video when it reaches the subtitle end time."""
-        if self._video_end_ms > 0 and position >= self._video_end_ms:
+        if 0 < self._video_end_ms <= position:
             try:
                 self.video_player.pause()
             except Exception:
@@ -1029,6 +1031,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         srt_str_list=[]
         for i, item in enumerate(self.queue_tts):
             start_time = self.table.item(i, 2)
+            if not start_time:continue
             end_time = self.table.item(i, 3)
             start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
             end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))

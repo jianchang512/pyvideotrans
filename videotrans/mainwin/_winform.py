@@ -1,6 +1,7 @@
 class WinformMixin:
 
-    def open_winform(self, name):
+    @staticmethod
+    def open_winform(name):
         from videotrans.configure.config import app_cfg
         from videotrans.util.help_misc import show_refaudio_win
 

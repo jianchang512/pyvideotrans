@@ -5,7 +5,7 @@ from pathlib import Path
 
 from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
-from videotrans.configure.config import params, logger, app_cfg, ROOT_DIR
+from videotrans.configure.config import params, logger, app_cfg, ROOT_DIR, settings
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_role import get_chatterbox_role
@@ -32,11 +32,11 @@ class ChatterBoxTTS(BaseTTS):
 
     def _exec(self):
         from chatterbox.mtl_tts import ChatterboxMultilingualTTS
-
-        model = ChatterboxMultilingualTTS.from_local(self.local_dir,
-                                         device='cuda' if self.is_cuda else mps_or_cpu(),
-                                         t3_model="v3")
-
+        device=settings.get('device_name','auto')
+        if device=='auto':
+            device='cuda' if self.is_cuda else mps_or_cpu()
+        logger.debug(f'Chatterbox running on {device}')
+        model = ChatterboxMultilingualTTS.from_local(self.local_dir, device=device,  t3_model="v3")
 
         ok, err = 0, 0
         _except = None

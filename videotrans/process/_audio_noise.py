@@ -4,7 +4,7 @@ from videotrans.configure.config import ROOT_DIR, logger, settings
 from pathlib import Path
 
 
-def remove_noise(*, input_file, output_file, is_cuda=False, logs_file=None, device_index=0):
+def remove_noise(*, input_file, output_file, **kw):
     from videotrans.util._ffmpeg_runner import runffmpeg
     import numpy as np
     import sherpa_onnx, time
@@ -51,7 +51,7 @@ def remove_noise(*, input_file, output_file, is_cuda=False, logs_file=None, devi
         return False, f'{e}{msg}'
 
 
-def fix_punc(*, text_dict_file: str, is_cuda=False, logs_file=None, device_index=0):
+def fix_punc(*, text_dict_file: str, **kw):
     import sherpa_onnx
     model = f"{ROOT_DIR}/models/puntc/model.onnx"
     try:

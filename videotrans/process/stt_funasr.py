@@ -15,23 +15,23 @@ def funasr_mlt(
         model_name=None,
         logs_file=None,
         is_cuda=False,
-        audio_file=None,
-        jianfan=False,
-        max_speakers=-1,
-        cache_folder=None,
         device_index=0,  # gpu索引
-        hotword=None
+        hotword=None,
+        **kw
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     from funasr import AutoModel
     from videotrans.process._stt_utils import _write_log, _remove_unwanted_characters
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
 
-    msg = f'Load {model_name}'
-    _write_log(logs_file, json.dumps({"type": "logs", "text": f'{msg}'}))
+    device=kw.get('device_name','auto')
+    if device=='auto':
+        device = f"cuda:{device_index}" if is_cuda else 'cpu'
 
-    device = f"cuda:{device_index}" if is_cuda else 'cpu'
-    logger.debug(f'阿里FunASR渠道使用 {model_name} 模型，{device=}')
+    msg = f'Load {model_name} running on {device}'
+    _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+    logger.debug(f'阿里FunASR渠道 {msg}')
+
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
             cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in
@@ -42,7 +42,6 @@ def funasr_mlt(
             model = pipeline(
                 task=Tasks.auto_speech_recognition,
                 model=f'{ROOT_DIR}/models/SenseVoiceSmall',
-                # model_revision="master",
                 disable_update=True,
                 disable_progress_bar=True,
                 disable_log=True,
@@ -54,7 +53,6 @@ def funasr_mlt(
                 model=f'{ROOT_DIR}/models/'+model_name.split('/')[-1],
                 punc_model=f'{ROOT_DIR}/models/punc_ct-transformer_zh-cn-common-vocab272727-pytorch',
                 device=device,
-                #local_dir=ROOT_DIR + "/models",
                 disable_update=True,
                 disable_progress_bar=True,
                 disable_log=True,

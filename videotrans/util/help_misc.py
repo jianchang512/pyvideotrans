@@ -2,6 +2,7 @@ import hashlib
 import json
 import os, re
 import platform
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -9,6 +10,9 @@ import time
 from dataclasses import is_dataclass, asdict
 from functools import lru_cache
 from pathlib import Path
+from typing import Tuple, Union
+
+import unicodedata
 
 from videotrans import VERSION
 from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulelang, push_queue
@@ -56,7 +60,7 @@ def show_error(tb_str):
 
     # 添加一个标准的“OK”按钮
     ok_button = msg_box.addButton(QtWidgets.QMessageBox.StandardButton.Ok)
-    if defaulelang == 'zh':
+    if defaulelang == 'zh_CN':
         ok_button.setText("知道了")
 
     # 添加自定义的“报告错误”按钮
@@ -518,3 +522,101 @@ def atomic_write_json(data, target_path):
     # 原子替换（此处即使进程崩溃，原文件依然完整）
     os.replace(tmp_name, target_path)
 
+def is_problematic_char(char: str) -> bool:
+    """
+    判断单个字符是否为 Emoji、特殊符号或控制字符。
+    保留：多国语言文字(L)、数字(N)、注音/组合符(M)、安全标点(P)、空格(Z)。
+    剔除：Emoji/象形符号(So)、修饰符(Sk)、格式控制符(Cf如零宽连字符/变体选择符)、控制字符(Cc)。
+    """
+    # Windows 下禁止出现的保留文件名字符
+    WIN_FORBIDDEN_CHARS = set(r'\/:*?"<>|')
+    if char in WIN_FORBIDDEN_CHARS:
+        return True
+
+    cat = unicodedata.category(char)
+    # So: 各种 Emoji / 杂项图形符号 (如 🔥, 👍, 🌟)
+    # Sk: 修饰符号 (如肤色选择器)
+    # Cc: 控制字符 (如换行符、制表符)
+    # Cf: 格式字符 (如用于 Emoji 组合的 Zero-Width Joiner \u200d, \ufe0f 等)
+    if cat in ('So', 'Sk', 'Cc', 'Cf'):
+        return True
+
+    # 额外拦截部分特殊的 Dingbats 符号区段 (2600-27BF)
+    code = ord(char)
+    if (0x2600 <= code <= 0x27BF) or (0x1F300 <= code <= 0x1FAFF):
+        return True
+
+    return False
+
+def check_and_clean_stem(stem: str) -> Tuple[bool, str]:
+    """
+    检查并清洗文件名（无后缀部分）。
+    返回: (是否含有特殊字符, 清洗后的文件名)
+    """
+    has_problem = False
+    cleaned_chars = []
+
+    for char in stem:
+        if is_problematic_char(char):
+            has_problem = True
+        else:
+            cleaned_chars.append(char)
+
+    cleaned_stem = "".join(cleaned_chars).strip(" ._")
+
+    # 如果文件名被全部过滤完（比如原名叫 "🔥🔥🔥.mp4"）
+    if not cleaned_stem:
+        cleaned_stem = "media_task"
+        has_problem = True
+
+    return has_problem, cleaned_stem
+
+def ensure_safe_media_file(file_path: Union[str, Path]) -> str:
+    """
+    预检文件：若包含 Emoji 或特殊符号，则复制一份清洗后的安全文件并返回新路径。
+    """
+    src_path = Path(file_path).resolve()
+    if not src_path.exists():
+        raise FileNotFoundError(f"No file: {src_path}")
+
+    has_special, clean_stem = check_and_clean_stem(src_path.stem)
+
+    if not has_special:
+        return src_path.as_posix()
+
+    ext = src_path.suffix
+    target_name = f"{clean_stem}{ext}"
+    target_path = src_path.parent / target_name
+
+    # 避免覆盖同目录下刚好同名的正常文件 (加数字序号)
+    counter = 1
+    while target_path.exists() and target_path != src_path:
+        target_name = f"{clean_stem}_clean{counter}{ext}"
+        target_path = src_path.parent / target_name
+        counter += 1
+
+    #  1：硬链接
+    try:
+        os.link(src_path, target_path)
+        return target_path.as_posix()
+    except (OSError, NotImplementedError, PermissionError):
+        pass
+
+    # 2：exFAT 分区不支持硬链接，直接原地改名
+    try:
+        os.replace(src_path, target_path)
+        return target_path.as_posix()
+    except Exception as e:
+        logger.error(f"创建安全文件名失败 {src_path} -> {target_path}: {e}")
+        return src_path.as_posix()
+
+
+# 判断目录不为空，不为空返回 True。为空返回False
+def is_dir_not_empty(dir_path: str) -> bool:
+    if not Path(dir_path).exists():
+        return False
+    try:
+        with os.scandir(dir_path) as it:
+            return next(it, None) is not None
+    except Exception:
+        return False

@@ -15,7 +15,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.openrouter_key.text()
+        key = winobj.openrouter_key.text().strip()
         if not key:
             return show_error(tr("Please input Secret"))
         params["openrouter_key"] = key
@@ -29,7 +29,7 @@ def openwin():
         task.start()
 
     def save():
-        params["openrouter_key"] = winobj.openrouter_key.text()
+        params["openrouter_key"] = winobj.openrouter_key.text().strip()
         params["openrouter_model"] = winobj.openrouter_model.currentText()
         params["openrouter_max_token"] = winobj.max_token.text().strip()
         params["openro_reasoning_effort"] = winobj.reasoning_effort.currentText()

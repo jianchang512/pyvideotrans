@@ -15,7 +15,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.litellm_key.text()
+        key = winobj.litellm_key.text().strip()
         params["litellm_api"] = winobj.litellm_api.text().strip()
         params["litellm_key"] = key
         params["litellm_model"] = winobj.litellm_model.currentText()
@@ -29,7 +29,7 @@ def openwin():
 
     def save():
         params["litellm_api"] = winobj.litellm_api.text().strip()
-        params["litellm_key"] = winobj.litellm_key.text()
+        params["litellm_key"] = winobj.litellm_key.text().strip()
         params["litellm_model"] = winobj.litellm_model.currentText()
         params["litellm_max_token"] = winobj.max_token.text().strip()
         params["litellm_reasoning_effort"] = winobj.reasoning_effort.currentText()

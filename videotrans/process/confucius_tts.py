@@ -16,17 +16,21 @@ def confucius_fun(
         logs_file=None,
         is_cuda=False,
         device_index=0, # gpu索引
-        is_redubb=False#是否处于单视频校对配音流程
+        is_redubb=False,#是否处于单视频校对配音流程
+        **kw
 )->Tuple[bool,Union[str,None]]:
     from videotrans.util.help_misc import vail_file
     import torchaudio
     from videotrans.confuciustts.cli.inference import ConfuciusTTS
 
     try:
+        device=kw.get('device_name','auto')
+        if device == 'auto':
+            device=f'cuda:{device_index}' if is_cuda else 'cpu'
         model = ConfuciusTTS(
-            device=f'cuda:{device_index}' if is_cuda else 'cpu',
+            device=device
         )
-        logger.debug(f'Confucius-TTS 本地内置渠道，{is_cuda=}')
+        logger.debug(f'Confucius-TTS 本地内置渠道，{is_cuda=},running on {model.device}')
         if is_redubb:
             queue_tts_file=REDUBB_QUEUE_FILE
         # 循环，用于轮询重新配音数据，非重新配音时，第一轮直接返回

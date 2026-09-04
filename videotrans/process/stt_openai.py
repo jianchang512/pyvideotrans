@@ -5,8 +5,10 @@
 import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
+
+from videotrans.configure._paths import TEMP_ROOT
 from videotrans.task.taskcfg import SrtItem
-from videotrans.configure.config import logger, ROOT_DIR, defaulelang
+from videotrans.configure.config import logger, ROOT_DIR
 
 def openai_whisper(
         *,
@@ -17,30 +19,26 @@ def openai_whisper(
         is_cuda=False,
         no_speech_threshold=0.5,
         condition_on_previous_text=False,
-        speech_timestamps=None,
         audio_file=None,
         jianfan=False,
-        audio_duration=0,
         temperature=None,
         compression_ratio_threshold=2.2,
         device_index=0,  # gpu索引
-        max_speech_ms=6000
+        max_speech_ms=6000,
+        min_speech_ms=3000,
+        **kw
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     import whisper,zhconv
     from videotrans.process._stt_utils import _write_log, _resegment
-    from videotrans.util._srt_parse import ms_to_time_string
-    device=f"cuda:{device_index}" if is_cuda else 'cpu'
+    device=kw.get('device_name','auto')
+    if device=='auto':
+        device=f"cuda:{device_index}" if is_cuda else 'cpu'
 
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
-        msg = f"模型 {model_name} 不存在，将自动下载 " if defaulelang == 'zh' else f'Model {model_name} does not exist and will be automatically downloaded'
-    else:
-        msg = f"Loading {model_name} on {device}"
-    _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+        msg = f'Model {model_name} will be automatically downloaded'
+        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
 
-    raws = []
     try:
-        if speech_timestamps and isinstance(speech_timestamps, str):
-            speech_timestamps = json.loads(Path(speech_timestamps).read_text(encoding='utf-8'))
         if not temperature:
             temperature = (
                 0.0, 0.2, 0.4, 0.6, 0.8, 1.0
@@ -50,91 +48,59 @@ def openai_whisper(
         else:
             temperature = float(temperature)
 
+        msg = f"Loading {model_name} running on {device}"
+        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+        logger.debug(msg)
+
         model = whisper.load_model(
             model_name,
             device=device,
             download_root=ROOT_DIR + "/models"
         )
 
-        last_end_time = audio_duration / 1000.0 if audio_duration > 0 else (speech_timestamps[-1][1] / 1000.0 if speech_timestamps else 0)
-        speech_timestamps_flat = []
         if detect_language == 'fil':
             detect_language = 'tl'
-        if speech_timestamps:
-            _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe batch...'}))
-            for it in speech_timestamps:
-                if it[0]>=0 and it[1]>it[0]:
-                    speech_timestamps_flat.extend([it[0] / 1000.0, it[1] / 1000.0])
-            
-            result = model.transcribe(
-                audio_file,
-                no_speech_threshold=no_speech_threshold,
-                language=detect_language.split('-')[0] if detect_language != 'auto' else None,
-                clip_timestamps=speech_timestamps_flat,
-                initial_prompt=prompt if prompt else None,
-                temperature=temperature,
-                compression_ratio_threshold=compression_ratio_threshold,
-                condition_on_previous_text=condition_on_previous_text
-            )
-            i = 0
-            for segment in result['segments']:
-                # 时间戳大于总时长，出错跳过
-                if segment['end'] > last_end_time:
-                    continue
-                text = segment['text']
-                if not text.strip():
-                    continue
-                i += 1
-                if jianfan:
-                    text = zhconv.convert(text, 'zh-hans')
-                s, e = int(segment['start'] * 1000), int(segment['end'] * 1000)
-                tmp = SrtItem(**{
-                    'text': text,
-                    'start_time': s,
-                    'end_time': e
-                })
-                tmp['startraw'] = ms_to_time_string(ms=tmp['start_time'])
-                tmp['endraw'] = ms_to_time_string(ms=tmp['end_time'])
-                tmp['time'] = f"{tmp['startraw']} --> {tmp['endraw']}"
-                raws.append(tmp)
-                _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {text}\n'}))
-            logger.debug(f'openai-whisper模式下，预先使用VAD分割音频，直接使用{model_name}模型返回的各个片段音频的文字结果')
-        else:
-            _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word timestamps'}))
-            segments = model.transcribe(
-                audio_file,
-                no_speech_threshold=no_speech_threshold,
-                language=detect_language.split('-')[0] if detect_language != 'auto' else None,
-                initial_prompt=prompt if prompt else None,
-                temperature=temperature,
-                word_timestamps=True,
-                compression_ratio_threshold=compression_ratio_threshold,
-                condition_on_previous_text=condition_on_previous_text
-            )
-            texts = []
-            i = 0
-            for segment in segments['segments']:
-                i += 1
-                texts.append({
-                    "text": segment['text'],
-                    "start": segment['start'],
-                    "end": segment['end'],
-                    "words": [{'word': it['word'], 'start': it['start'], 'end': it['end']} for it in segment['words']]
-                })
-                _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment["text"]}\n'}))
-            logger.debug(f'openai-whisper模式下，传递完整音频由模型{model_name} 输出字级时间戳')
-            if not texts:
-                logger.error(f'no texts:{segments=}')
-                return False, "No transcription results returned. Please check the original audio/video or model and try again."
-            logger.debug(f'对字级时间戳进行组合断句')
-            raws = _resegment(texts, segments['language'], max_speech_ms, logs_file)
-            if jianfan and raws:
-                for it in raws:
-                    it['text'] = zhconv.convert(it['text'], 'zh-hans')
-            logger.debug('断句完毕，返回结果')
+
+        _write_log(logs_file, json.dumps({"type": "logs", "text": 'Transcribe word timestamps'}))
+        segments = model.transcribe(
+            audio_file,
+            language=detect_language.split('-')[0] if detect_language != 'auto' else None,
+            word_timestamps=True,
+            no_speech_threshold=no_speech_threshold,
+            initial_prompt=prompt if prompt else None,
+            temperature=temperature,
+            compression_ratio_threshold=compression_ratio_threshold,
+            condition_on_previous_text=condition_on_previous_text
+        )
+        Path(f'{TEMP_ROOT}/detect_language_source_{kw.get("uuid")}.txt').write_text(segments['language'])
+        texts = []
+        i = 0
+        for segment in segments['segments']:
+            i += 1
+            texts.append({
+                "text": segment['text'],
+                "start": segment['start'],
+                "end": segment['end'],
+                "words": [{'word': it['word'], 'start': it['start'], 'end': it['end']} for it in segment['words']]
+            })
+            _write_log(logs_file, json.dumps({"type": "subtitle", "text": f'[{i}] {segment["text"]}\n'}))
+        logger.debug(f'openai-whisper模式下，传递完整音频由模型{model_name} 输出字级时间戳')
+        if not texts:
+            _kw=dict(no_speech_threshold=no_speech_threshold,
+            initial_prompt=prompt,
+            temperature=temperature,
+            compression_ratio_threshold=compression_ratio_threshold,
+            condition_on_previous_text=condition_on_previous_text)
+            msg=f"No human voice detected. Please confirm that human speech is present in the original file.\n{_kw=}\n{segments=}"
+            logger.error(msg)
+            return False, msg
+
+        raws = _resegment(texts, segments['language'], max_speech_ms,min_speech_ms, logs_file)
+        if jianfan and raws:
+            for it in raws:
+                it['text'] = zhconv.convert(it['text'], 'zh-hans')
+        logger.debug(f'断句完毕，返回结果:{max_speech_ms=},{min_speech_ms=}')
         return raws, None
     except BaseException as e:
         msg = traceback.format_exc()
-        if speech_timestamps:
-            msg+=f'\n{speech_timestamps=}'
         return False, f'{e}:{msg}'

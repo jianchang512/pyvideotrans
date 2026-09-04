@@ -8,8 +8,6 @@ from pathlib import Path
 from typing import Optional
 from videotrans.configure.config import tr, settings, app_cfg, logger, push_queue, TEMP_ROOT
 from videotrans.util.help_misc import set_proxy,vail_file
-import sys
-
 
 
 @dataclass
@@ -68,7 +66,8 @@ class BaseCon:
             self.signal(text=f" {tr('Downloading please wait')} {current_file_idx}/{total_files} files")
 
     # 设置、获取代理
-    def _set_proxy(self, type='set'):
+    @staticmethod
+    def _set_proxy(type='set'):
         if type == 'del':
             os.environ['bak_proxy'] = app_cfg.proxy or os.environ.get('HTTP_PROXY') or os.environ.get('HTTPS_PROXY')
             app_cfg.proxy = ''
@@ -93,7 +92,8 @@ class BaseCon:
 
 
     # 语音合成后统一转为 wav 音频,方便后续变速等处理
-    def convert_to_wav(self, mp3_file_path: str, output_wav_file_path: str, extra=None):
+    @staticmethod
+    def convert_to_wav(mp3_file_path: str, output_wav_file_path: str, extra=None):
         if app_cfg.exit_soft or not vail_file(mp3_file_path):
             return
         cmd = [
@@ -123,7 +123,8 @@ class BaseCon:
         return True
 
 
-    def _base64_to_audio(self, encoded_str: str, output_path: str) -> None:
+    @staticmethod
+    def _base64_to_audio(encoded_str: str, output_path: str) -> None:
         if not encoded_str:
             raise ValueError("Base64 encoded string is empty.")
         from videotrans.util.help_ffmpeg import runffmpeg
@@ -158,7 +159,8 @@ class BaseCon:
         with open(output_path, "wb") as wav_file:
             wav_file.write(wav_bytes)
 
-    def _audio_to_base64(self, file_path: str):
+    @staticmethod
+    def _audio_to_base64(file_path: str):
         if not file_path or not Path(file_path).exists():
             return None
         with open(file_path, "rb") as wav_file:
@@ -175,8 +177,8 @@ class BaseCon:
                 return
             timeout += 1
             if timeout > 7200:
-                logger.warning(f'新进程已执行3600s仍未终止，可能已出错: {logs_file}')
-                return
+                logger.warning(f'新进程已执行 {timeout}s 仍未终止，可能已出错: {logs_file}')
+
             _p = Path(logs_file)
             # 已删掉
             if last_mtime > 0 and not _p.exists():
@@ -229,17 +231,9 @@ class BaseCon:
                 if not torch.cuda.is_available():
                     is_cuda = False
 
-            # 如果使用gpu，则获取可用 device_index
-            if is_cuda:
-                # 启用了多显卡模式
-                if settings.get('multi_gpus'):
-                    from videotrans.util.gpus import get_cudaX
-                    device_index = get_cudaX()
-                if device_index == -1:
-                    is_cuda = False
-                    kwargs['is_cuda'] = False
-                    logger.error(f'已启用CUDA但未检测到可用显卡，强制使用CPU')
-                kwargs['device_index'] = max(device_index, 0)
+            # gpu， device_index 固定使用第0号
+            kwargs['device_index'] = 0
+            kwargs['device_name']=settings.get('device_name','auto')
             logger.debug(f'新进程任务 参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,

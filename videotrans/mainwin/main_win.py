@@ -68,7 +68,7 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
         self.languagename = list(LANGNAME_DICT.values())
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
         self.source_language.addItems(self.languagename)
-        self.target_language.addItems(["-"] + self.languagename)
+        self.target_language.addItems(["-"] + self.languagename[:-1])
 
         self.tts_type.addItems(tts.TTS_NAME_LIST)
         self.recogn_type.addItems(recognition.RECOGN_NAME_LIST)
@@ -144,7 +144,7 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
         self.nums_diariz.setCurrentIndex(int(params.get('nums_diariz', 0)))
         self.is_separate.setChecked(bool(params.get('is_separate', False)))
         self.embed_bgm.setChecked(bool(params.get('embed_bgm', True)))
-        self.rephrase.setCurrentIndex(int(params.get('rephrase', 0)))
+        self.rephrase.setChecked(bool(params.get('rephrase', False)))
         self.remove_noise.setChecked(bool(params.get('remove_noise')))
         self.copysrt_rawvideo.setChecked(bool(params.get('copysrt_rawvideo', False)))
         self.bgmvolume.setText(str(settings.get('backaudio_volume', 0.8)))
@@ -170,7 +170,8 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
         QTimer.singleShot(10,self._bind_signal)
 
 
-    def _daemon(self):
+    @staticmethod
+    def _daemon():
         from videotrans.util.help_ffmpeg import check_hw_on_start
         from videotrans.util.help_misc import check_new_version, is_connect_hf
         check_hw_on_start(force=True)
@@ -186,7 +187,8 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
             from videotrans.util.help_misc import show_error
             show_error(status)
 
-    def checkbox_state_changed(self, state):
+    @staticmethod
+    def checkbox_state_changed(state):
         if state:
             settings['aisendsrt'] = True
         else:

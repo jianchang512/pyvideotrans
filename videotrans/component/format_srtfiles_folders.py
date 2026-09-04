@@ -176,7 +176,8 @@ class FormatSrtFilesFolders(QMainWindow):
 
 
     
-    def _help(self):
+    @staticmethod
+    def _help():
         from videotrans.util.help_misc import open_url
         open_url("http://pyvideotrans.com/localsrt")
     

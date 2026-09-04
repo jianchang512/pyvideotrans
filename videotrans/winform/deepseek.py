@@ -14,7 +14,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.deepseek_key.text()
+        key = winobj.deepseek_key.text().strip()
         if not key:
             return show_error(tr("Please input Secret"))
         params["deepseek_key"] = key
@@ -28,7 +28,7 @@ def openwin():
         task.start()
 
     def save():
-        params["deepseek_key"] = winobj.deepseek_key.text()
+        params["deepseek_key"] = winobj.deepseek_key.text().strip()
         params["deepseek_model"] = winobj.deepseek_model.currentText()
         params["deepseek_max_token"] = winobj.deepseek_max_token.text()
         params["deepseek_thinking"] = winobj.deepseek_thinking.isChecked()

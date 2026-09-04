@@ -35,7 +35,8 @@ class OmniVoice(BaseTTS):
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
             "speed":self.get_speed(),
-            "is_redubb":self.is_redubb
+            "is_redubb":self.is_redubb,
+            "language":self.language.split('-')[0] if self.language!='auto' else None
         }
         from videotrans.process.omnivoice_tts import omnivoice_fun
         self._new_process(callback=omnivoice_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)

@@ -209,7 +209,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
         self.stop_play_btn.hide()
 
     def _on_video_position_changed(self, position):
-        if self._target_end_ms > 0 and position >= self._target_end_ms:
+        if 0 < self._target_end_ms <= position:
             self._pause_play()
 
     def _play_segment(self, start_ms, end_ms):
@@ -319,7 +319,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
             h_header.setSectionResizeMode(2, QHeaderView.Fixed)
             h_header.setSectionResizeMode(3, QHeaderView.Fixed)
 
-            self.table.setColumnWidth(0, 50)
+            self.table.setColumnWidth(0, 120)
             self.table.setColumnWidth(1, 120)
             self.table.setColumnWidth(2, 120)
             self.table.setColumnWidth(3, 30)
@@ -362,7 +362,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
         for row in range(start_row, end_row):
             data = self.display_data[row]
 
-            item0 = QTableWidgetItem(str(data['line']))
+            item0 = QTableWidgetItem(str(data['line']) +f' ({(data["end_time"]-data["start_time"])/1000.0}s)'  )
             item0.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 0, item0)
 
@@ -460,6 +460,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
         srt_str_list = []
         for i, data in enumerate(self.display_data):
             start_time = self.table.item(i, 1)
+            if not start_time:continue
             end_time = self.table.item(i, 2)
             start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
             end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))

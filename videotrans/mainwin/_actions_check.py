@@ -6,7 +6,8 @@ from PySide6.QtCore import QTimer
 
 from videotrans import translator, recognition, tts
 from videotrans.configure.config import tr, params, settings, app_cfg,logger
-from videotrans.util.help_misc import show_error
+from videotrans.translator._registry import get_name_index
+from videotrans.util.help_misc import ensure_safe_media_file, is_dir_not_empty, show_error
 
 
 class WinActionCheckMixin:
@@ -14,10 +15,9 @@ class WinActionCheckMixin:
     def set_translate_type(self, idx):
         try:
             t = self.main.target_language.currentText()
-            if t not in ['-']:
+            if t not in ['-','No']:
                 rs = translator.is_allow_translate(translate_type=idx, show_target=t)
-                if rs is not True:
-                    return False
+                self.main.show_tips.setText(rs if rs is not True else '')
         except Exception as e:
             show_error(str(e))
 
@@ -69,7 +69,7 @@ class WinActionCheckMixin:
         for it in self.queue_mp4:
             p = Path(it)
             folder = output_folder / f'{p.stem}-{p.suffix.lower()[1:]}'
-            if folder.exists():
+            if folder.exists() and is_dir_not_empty(str(folder)):
                 reply = QMessageBox.question(
                     self.main,
                     tr("Are you sure the cleanup has been output?"),
@@ -91,7 +91,7 @@ class WinActionCheckMixin:
         for it in self.queue_mp4:
             _itlen = len(it)
             _namelen = len(Path(it).name)
-            if _itlen >= 170 and _namelen >= 90:
+            if _itlen > 250:
                 reply = QMessageBox.question(
                     self.main,
                     tr("The filename is too long"),
@@ -171,18 +171,20 @@ class WinActionCheckMixin:
             self.main.startbtn.setDisabled(False)
             return
 
-        if self.shound_translate() and translator.is_allow_translate(
+        if self.shound_translate():
+            rs=translator.is_allow_translate(
                 translate_type=self.cfg['translate_type'],
-                show_target=self.cfg['target_language_code']) is not True:
-            self.main.startbtn.setDisabled(False)
-            return
+                show_target=self.cfg['target_language_code'])
+
+            self.main.show_tips.setText(rs if rs is not True else '')
+
 
         if self.check_tts() is not True:
             self.main.tts_type.setCurrentIndex(0)
             self.main.startbtn.setDisabled(False)
             return
 
-        self.cfg['rephrase'] = self.main.rephrase.currentIndex()
+        self.cfg['rephrase'] = self.main.rephrase.isChecked()
         self.cfg['is_cuda'] = self.main.enable_cuda.isChecked()
         self.cfg['remove_silent_mid'] = False
         self.cfg['align_sub_audio'] = True
@@ -202,14 +204,19 @@ class WinActionCheckMixin:
             self.main.startbtn.setDisabled(False)
             return
 
-        if self.main.rephrase.currentIndex() == 1:
-            ai_type = settings.get('llm_ai_type', 'chatgpt')
-            if (ai_type in ['chatgpt', 'openai'] and not params.get('chatgpt_key')) or (ai_type == 'deepseek' and not params.get('deepseek_key')):
-                self.main.startbtn.setDisabled(False)
-                show_error(tr('llmduanju'))
-                from videotrans.winform import get_win
-                get_win('deepseek' if ai_type == 'deepseek' else 'chatgpt').openwin()
-                return
+        if self.main.rephrase.isChecked():
+            try:
+                ai_type = settings.get('llm_ai_type', 1)
+                name=get_name_index(ai_type,'key')
+
+                if not params.get(f'{name}_key'):
+                    self.main.startbtn.setDisabled(False)
+                    show_error(tr('llmduanju',get_name_index(ai_type,'name')))
+                    from videotrans.winform import get_win
+                    get_win(name).openwin()
+                    return
+            except Exception as e:
+                logger.exception(f'校验LLM纠错设置时出错:{e}',exc_info=True)
 
         if self.check_name_length() is not True:
             self.main.startbtn.setDisabled(False)
@@ -251,16 +258,5 @@ class WinActionCheckMixin:
     def _rename_video(self):
         _del=r'[%?*"\|<>:]'
         for i,it in enumerate(self.queue_mp4):
-            p=Path(it)
-            if re.search(_del,p.name):
-                _newit=re.sub(_del,'-',p.name)
-                try:
-                    p2=p.with_name(_newit)
-                    if p2.exists() and p != p2:
-                        continue
-                    p.rename(p2)
-                    self.queue_mp4[i]=p2.as_posix()
-                except OSError as e:                    
-                    logger.warning(f'{it}->{_newit} error:{e}')
+            self.queue_mp4[i]=ensure_safe_media_file(it)
 
-            

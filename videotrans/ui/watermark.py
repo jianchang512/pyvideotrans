@@ -76,7 +76,7 @@ class Ui_watermark(object):
                                  "右下角",
                                  "左下角",
                                  "居 中"
-                             ] if defaulelang == 'zh' else [
+                             ] if defaulelang == 'zh_CN' else [
             "Upper left",
             "Upper right",
             "Bottom right",

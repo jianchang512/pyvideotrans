@@ -65,3 +65,24 @@ def run(*, translate_type=0,
         raise RuntimeError(f'No this Translation Channel:{translate_type}')
 
     return _cls(**kwargs).run()#type:ignore
+
+
+
+# 翻译,先根据翻译通道和目标语言，取出目标语言代码
+def get_model_transobj(*, translate_type=0, uuid=None) -> Union[List, str, None]:
+    translate_type = int(translate_type)
+    # ai渠道下，target_language_name 是语言名称
+    # 其他渠道下是语言代码
+    # source_code 是原语言代码
+
+    kwargs = {
+        "uuid": uuid,
+        "translate_type": translate_type
+    }
+
+
+    _cls: Union[Type[BaseTrans], None] = get_class(translate_type,"translator",_ID_NAME_DICT)
+    if _cls is None:
+        raise RuntimeError(f'No this Translation Channel:{translate_type}')
+
+    return _cls(**kwargs)

@@ -211,27 +211,24 @@ def start_thread():
     # 存在可用显卡时，进一步判断应该启动几个相关线程
     if app_cfg.NVIDIA_GPU_NUMS > 0:
         try:
-            process_max_gpu = int(float(settings.get('process_max_gpu', 0)))
+            process_max_gpu = max(1,int(float(settings.get('process_max_gpu', 0))) )
         except (TypeError,ValueError):
             process_max_gpu = 1
-        # 如果手动设置了gpu进程数量
-        if process_max_gpu > 0:
-            task_nums = process_max_gpu
-        elif app_cfg.NVIDIA_GPU_NUMS > 1 and bool(settings.get('multi_gpus')):
-            # 显卡数量真的大于1 并且 启用了多显卡，
-            task_nums = 2 if app_cfg.NVIDIA_GPU_NUMS < 4 else 4
-        logger.debug(f'最大允许GPU进程[0为不限制]:{process_max_gpu}, 是否多显卡模式:{settings.get("multi_gpus")}, {task_nums=} ')
+
+        task_nums = min(process_max_gpu,4)
+        logger.debug(f'最大允许GPU进程:{process_max_gpu},  {task_nums=} ')
+
     logger.debug(f'最大允许CPU进程[0为不限制]: {settings.get("process_max")}, {task_nums=}')
     worker_config = {
         WorkerPrepare: task_nums,  # 准备工作
         WorkerRegcon: task_nums,  # 语音识别
         WorkerDiariz: task_nums,
-        WorkerTrans: 1,
-        WorkerDubb: 1,
+        WorkerTrans: task_nums,
+        WorkerDubb: task_nums,
         WorkerRegcon2Pass: 1,
-        WorkerAlign: 1,
+        WorkerAlign: task_nums,
         WorkerAssemb: task_nums,
-        WorkerTaskDone: 1,
+        WorkerTaskDone: task_nums
     }
 
     workers = []

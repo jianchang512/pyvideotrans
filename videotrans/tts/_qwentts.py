@@ -25,8 +25,10 @@ class QWENTTS(BaseTTS):
         self.role_dict=get_qwen3tts_rolelist()
         self.api_key=params.get('qwentts_key', '')
         spaceid=params.get('qwentts_spaceid', '')
-        if spaceid:
+        if spaceid and not spaceid.startswith('http'):
             dashscope.base_http_api_url = f'https://{spaceid}.cn-beijing.maas.aliyuncs.com/api/v1'
+        elif spaceid and spaceid.startswith('http'):
+            dashscope.base_http_api_url = spaceid.strip().strip('/')
         _langnames = translator.LANG_CODE.get(self.language, [])
         self.target_language = _langnames[9].capitalize() if _langnames and len(_langnames) >= 10 else 'Auto'
         self.model=params.get('qwentts_model', 'qwen3-tts-flash')

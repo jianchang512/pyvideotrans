@@ -45,7 +45,7 @@ def openwin():
         wk.start()
 
     def save():
-        params["qwentts_key"] = winobj.qwentts_key.text()
+        params["qwentts_key"] = winobj.qwentts_key.text().strip()
         params["qwentts_model"] = winobj.qwentts_model.currentText()
         params["qwentts_spaceid"] = winobj.qwentts_spaceid.text().strip()
         params.save()

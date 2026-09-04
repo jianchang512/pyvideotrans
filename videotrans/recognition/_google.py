@@ -83,7 +83,8 @@ class GoogleRecogn(BaseRecogn):
                 time.sleep(self.asr_wait)
         return self.raws
 
-    def match_target_amplitude(self, sound, target_dBFS):
+    @staticmethod
+    def match_target_amplitude(sound, target_dBFS):
         change_in_dBFS = target_dBFS - sound.dBFS
         return sound.apply_gain(change_in_dBFS)
 
