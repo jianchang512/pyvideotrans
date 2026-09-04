@@ -34,10 +34,11 @@ class AudioMixin:
                     out=self.cfg.cache_folder + "/bgm_file_extend.wav")
                 self.cfg.background_music = self.cfg.cache_folder + "/bgm_file_extend.wav"
 
+            # amix 加 normalize=0 防止默认归一化把人声音量减半；alimiter 防止音量提升后爆音
             cmd = ['-y',
                    '-i', os.path.basename(self.cfg.target_wav),
                    '-i', self.cfg.background_music,
-                   '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2",
+                   '-filter_complex', "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2:normalize=0,alimiter=limit=0.95:level=0",
                    '-ac', '2',
                    '-c:a', 'pcm_s16le',
                    "lastend.wav"
@@ -77,7 +78,8 @@ class AudioMixin:
             self.convert_to_wav(instrument_file, tmp_volume, ["-filter:a", f"volume={self.cfg.backaudio_volume}"])
             runffmpeg(['-y', '-i', os.path.basename(self.cfg.target_wav), '-i', os.path.basename(tmp_volume),
                              '-filter_complex',
-                             "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2", '-ac', '2', "-b:a", "128k",
+                             # amix 加 normalize=0 防止默认归一化把人声音量减半；alimiter 防止音量提升后爆音
+                             "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2:normalize=0,alimiter=limit=0.95:level=0", '-ac', '2', "-b:a", "128k",
                              '-c:a', 'pcm_s16le', os.path.basename(tmp_out_wav)], cmd_dir=self.cfg.cache_folder)
             shutil.copy2(tmp_out_wav, self.cfg.target_wav)
         except Exception as e:
