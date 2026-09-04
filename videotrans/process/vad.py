@@ -65,7 +65,7 @@ def get_speech_timestamp_silero(input_wav,
         combined_duration = cur_end - prev_start
 
         # 只要与前一片段距离近，且合并后不超长，全部粘合在一起
-        if gap <= max_merge_gap_ms and combined_duration <= (max_speech_duration_ms+1000):
+        if gap <= max_merge_gap_ms and combined_duration <= (max_speech_duration_ms+1500):
             merged_segments[-1][1] = cur_end  # 扩大上一个片段的右边界
         else:
             merged_segments.append([cur_start, cur_end])
