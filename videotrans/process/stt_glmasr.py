@@ -20,12 +20,11 @@ def glmasr_asr(
     import copyreg
     copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
     from transformers import AutoProcessor, GlmAsrForConditionalGeneration, BitsAndBytesConfig
+    import torch
 
     processor = AutoProcessor.from_pretrained(local_dir)
 
-    quant_config = BitsAndBytesConfig(
-        load_in_8bit=True
-    )
+    quant_config = BitsAndBytesConfig( load_in_8bit=True )   if torch.cuda.is_available() else None
     model = GlmAsrForConditionalGeneration.from_pretrained(
         local_dir,
         quantization_config=quant_config,

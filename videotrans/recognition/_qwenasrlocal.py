@@ -81,6 +81,7 @@ class QwenasrlocalRecogn(BaseRecogn):
     def _cut(self,cut_audio_list_file):
         audio = AudioSegment.from_wav(self.audio_file)
         _len=len(audio)
+        _min_segments=60000#最小1分钟
         _max_segments=120000#最大2分钟，减少显存占用
         if _len<=_max_segments:
             _endraw=ms_to_time_string(ms=_len)
@@ -104,7 +105,7 @@ class QwenasrlocalRecogn(BaseRecogn):
         kw = {
             "input_wav": self.audio_file,
             "threshold": 0.45,
-            "min_speech_duration_ms": 60000,
+            "min_speech_duration_ms": _min_segments,
             "max_speech_duration_ms": _max_segments,
             "min_silent_duration_ms": 2000
         }

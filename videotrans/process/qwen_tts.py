@@ -26,6 +26,7 @@ def qwen3tts_fun(
     import soundfile as sf
     from qwen_tts import Qwen3TTSModel
     from videotrans.util.help_misc import vail_file
+    import torch
 
     CUSTOM_VOICE = {"Vivian", "Serena", "Uncle_fu", "Dylan", "Eric", "Ryan", "Aiden", "Ono_anna", "Sohee"}
 
@@ -38,7 +39,7 @@ def qwen3tts_fun(
     if is_redubb:
         queue_tts_file = REDUBB_QUEUE_FILE
     try:
-        quant = BitsAndBytesConfig(load_in_8bit=True)  # 8位量化，避免爆显存
+        quant = BitsAndBytesConfig(load_in_8bit=True)  if torch.cuda.is_available() else None
         while 1:
             if is_redubb and Path(REDUBB_STATUS_FILE).exists():
                 return True, None

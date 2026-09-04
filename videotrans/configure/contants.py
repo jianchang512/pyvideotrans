@@ -107,7 +107,7 @@ DEEPGRAM_MODEL = [
 ]
 
 # 缺省 gemini 模型
-DEFAULT_GEMINI_MODEL = "gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"
 # gemini-tts 音色
 GEMINITTS_ROLES = "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
 

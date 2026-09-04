@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 from typing import List
 
+
 from videotrans.configure.config import logger
 
 
@@ -29,12 +30,12 @@ def qwen3asr_fun(
     from qwen_asr import Qwen3ASRModel
     from videotrans.task.taskcfg import SrtItem
     from videotrans.process._stt_utils import _write_log, _resegment
+    import torch
 
     try:
         batch_size=2
-        quant=BitsAndBytesConfig(
-                    load_in_8bit=True
-        )# 8位量化，避免爆显存
+        # 8位量化，避免爆显存
+        quant= BitsAndBytesConfig( load_in_8bit=True ) if torch.cuda.is_available() else None
         srts: List[SrtItem] = [SrtItem(**item) for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         if not force_align:
             model = Qwen3ASRModel.from_pretrained(

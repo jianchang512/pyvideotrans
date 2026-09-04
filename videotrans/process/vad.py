@@ -24,6 +24,7 @@ def get_speech_timestamp_silero(input_wav,
         "speech_pad_ms": speech_pad_ms  # 仅 faster-whisper时在此处进行边缘补白，因无需cut_audio
     }
     logger.debug(f'[silero-VAD]:最终断句参数：{vad_p=}')
+    _rc=max(int(max_speech_duration_ms*0.2),1500)
 
     sampling_rate = 16000
     min_isolated_duration_ms=140  # 前后孤立，并且片段时长小于此，则丢弃
@@ -65,7 +66,7 @@ def get_speech_timestamp_silero(input_wav,
         combined_duration = cur_end - prev_start
 
         # 只要与前一片段距离近，且合并后不超长，全部粘合在一起
-        if gap <= max_merge_gap_ms and combined_duration <= (max_speech_duration_ms+1500):
+        if gap <= max_merge_gap_ms and combined_duration <= (max_speech_duration_ms+_rc):
             merged_segments[-1][1] = cur_end  # 扩大上一个片段的右边界
         else:
             merged_segments.append([cur_start, cur_end])
@@ -134,7 +135,7 @@ def get_speech_timestamp(
         return None
 
     logger.debug(f'[ten-vad]最终参数:{threshold=},{max_speech_duration_ms=},{min_speech_duration_ms},{min_silent_duration_ms=},{speech_pad_ms=},{max_merge_gap_ms=},{min_isolated_duration_ms=}')
-
+    _rc=max(int(max_speech_duration_ms*0.2),1500)
     if data.ndim > 1:
         data = np.mean(data, axis=1)
 
@@ -204,7 +205,7 @@ def get_speech_timestamp(
         # (1) 前后有重叠 (gap <= 0)
         # (2) 间隔停顿小于设定阈值 (gap <= max_merge_gap_ms) 且 合并后总长不超标
         if (gap <= max_merge_gap_ms) and (
-            combined_duration <= (max_speech_duration_ms+1000)
+            combined_duration <= (max_speech_duration_ms+_rc)
         ):
             # 扩展上一个片段的右边界
             merged_segments[-1][1] = max(prev_end, cur_end)

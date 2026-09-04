@@ -27,9 +27,7 @@ def higgs_fun(
     tokenizer = AutoTokenizer.from_pretrained(repo, trust_remote_code=True)
 
     # 量化处理，以降低显存，不量化需>18G显存
-    quant_config = BitsAndBytesConfig(
-        load_in_8bit=True
-    )
+    quant_config = BitsAndBytesConfig( load_in_8bit=True ) if torch.cuda.is_available() else None
     model = AutoModelForCausalLM.from_pretrained(
         repo,
         trust_remote_code=True,

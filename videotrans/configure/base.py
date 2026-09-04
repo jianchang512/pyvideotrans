@@ -177,8 +177,8 @@ class BaseCon:
                 return
             timeout += 1
             if timeout > 7200:
-                logger.warning(f'新进程已执行3600s仍未终止，可能已出错: {logs_file}')
-                return
+                logger.warning(f'新进程已执行 {timeout}s 仍未终止，可能已出错: {logs_file}')
+
             _p = Path(logs_file)
             # 已删掉
             if last_mtime > 0 and not _p.exists():
