@@ -1,0 +1,1 @@
+Use natural spoken Korean (구어체). Strictly drop subject and object markers (은/는, 이/가, 을/를) and pronouns (나, 너, 그) where context allows. Match the speech level (반말 vs 존댓말) to the source. For split blocks, use spoken inversion (도치법) to keep fragments local rather than delaying the verb to the next block.

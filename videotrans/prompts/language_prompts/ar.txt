@@ -1,0 +1,1 @@
+Use modern, dubbing-friendly Spoken-style Standard Arabic (الفصحى المبسطة). Arabic expands easily: eliminate repetitive coordinating conjunctions (like cascading 'و') and drop redundant demonstratives. Use compact active-verb sentences (جمل فعلية قصيرة) for brisk TTS pacing.

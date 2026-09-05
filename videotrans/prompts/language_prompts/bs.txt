@@ -1,0 +1,1 @@
+Use conversational Bosnian; drop all redundant subject pronouns (ja, ti, on). Use short, active verbs and avoid bureaucratic noun stacking to keep line length dubbing-friendly.

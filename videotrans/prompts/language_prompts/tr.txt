@@ -1,0 +1,1 @@
+Turkish is an agglutinative SOV language: drop personal pronouns (ben, sen) as verb suffixes express person. When sentences are split across blocks, utilize natural spoken Turkish inverted syntax (devrik cümle) to keep verbs inside their original block without moving components.

@@ -1,0 +1,1 @@
+Use authentic spoken Japanese (話し言葉). Strictly drop overt subjects (私, あなた) whenever context is clear. Use natural spoken contractions (〜ちゃう, 〜とく, 〜なきゃ). When a sentence is artificially split, use spoken inversions (倒置法) or natural mid-sentence particles (〜けど..., 〜から...) to prevent shifting verbs or nouns across blocks.

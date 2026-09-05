@@ -1,0 +1,1 @@
+Use natural conversational Indonesian (Bahasa Indonesia sehari-hari / santai). Use standard informal contractions ('nggak', 'udah', 'banget'). Drop overt pronouns and passive prefixes where implied by context to ensure lines stay short for TTS.

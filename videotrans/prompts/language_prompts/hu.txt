@@ -1,0 +1,1 @@
+Hungarian is agglutinative; drop subject pronouns (én, te, ő) entirely since verbs express person. Use concise stems with suffixes instead of analytical constructions. Leverage flexible spoken word order to keep fragments localized inside each block.

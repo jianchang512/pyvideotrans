@@ -1,0 +1,1 @@
+Use spoken Lithuanian. Omit subject pronouns (aš, tu). Prune redundant demonstratives and filler words to prevent line overrun.

@@ -59,7 +59,7 @@ class HYMT2(BaseTrans):
         with torch.no_grad():
             outputs = self.hymt2_model.generate(
                 **inputs,
-                max_new_tokens=4096,
+                max_new_tokens=8092,
             )
         response = self.hymt2_tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
         return response.strip()

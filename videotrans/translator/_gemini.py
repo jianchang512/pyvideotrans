@@ -21,7 +21,7 @@ class Gemini(BaseTrans):
         super().__post_init__()
         self.model_name = params.get("gemini_model",'gemini-3.5-flash')
         lang_prompt=''
-        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_language_name}.txt'
+        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_code}.txt'
         if Path(lang_prompt_file).exists():
             lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
         self.prompt = get_prompt(ainame='gemini',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name).replace('{lang_prompt}',lang_prompt)

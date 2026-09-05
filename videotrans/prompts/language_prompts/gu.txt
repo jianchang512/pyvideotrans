@@ -1,0 +1,1 @@
+Use natural conversational Gujarati (બોલચાલની ગુજરાતી). Omit implied personal pronouns and use compact spoken verbal combinations to fit TTS time slots.

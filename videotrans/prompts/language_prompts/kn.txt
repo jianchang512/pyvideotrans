@@ -1,0 +1,1 @@
+Use conversational Kannada (ಮಾತುಕತೆ ಕನ್ನಡ). Drop explicit subject pronouns encoded in verb endings; use spoken contractions to save audio duration.

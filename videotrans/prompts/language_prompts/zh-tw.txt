@@ -1,0 +1,1 @@
+Use natural spoken Taiwanese Mandarin (台灣繁體口語) in Traditional characters. Use authentic local spoken vocabulary and rhythm, dropping obvious subjects. Target 3-4 characters per second for TTS pacing. For incomplete fragments, rely on spoken inversion or ellipsis continuity rather than shifting nouns/verbs across blocks.

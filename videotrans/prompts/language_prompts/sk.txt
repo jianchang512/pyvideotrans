@@ -1,0 +1,1 @@
+Use natural spoken Slovak. Strictly drop subject pronouns (ja, ty). Compress sentences by avoiding descriptive prepositional phrases.

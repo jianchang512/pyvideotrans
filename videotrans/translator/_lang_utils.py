@@ -1,8 +1,7 @@
 import re
 from typing import Tuple
 
-from videotrans.configure._languages_dict import EDGET_LANGUAGES_NAME2CODE_EN, \
-    EDGET_LANGUAGES_NAME2CODE
+from videotrans.configure.contants import EDGET_LANGUAGES_NAME2CODE_EN, EDGET_LANGUAGES_NAME2CODE, SUBTITLE_CODE,SUBTITLE_CODE_B
 from videotrans.configure.config import tr, params, logger
 
 from videotrans import winform
@@ -34,52 +33,49 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
             _cls.win).openwin()
 
     # 如果只需要判断是否填写了 api key 等信息，到此返回
-    if only_key:
+    if only_key or translate_type in AI_TRANS_CHANNELS:
         return True
 
-    if translate_type in AI_TRANS_CHANNELS:
-        return True
+    if not show_target:return True
+    # 再判断是否为No，即不支持
+    index = 0
+    target_list = None
+    if translate_type == BAIDU_INDEX:
+        index = 2
+    elif translate_type in [DEEPLX_INDEX, DEEPL_INDEX]:
+        index = 3
+    elif translate_type == TENCENT_INDEX:
+        index = 4
+    elif translate_type == MICROSOFT_INDEX:
+        index = 6
+    elif translate_type == ALI_INDEX:
+        index = 8
+    elif translate_type == M2M100_INDEX:
+        index = 10
 
-    if show_target:
-        # 再判断是否为No，即不支持
-        index = 0
-        target_list = None
-        if translate_type == BAIDU_INDEX:
-            index = 2
-        elif translate_type in [DEEPLX_INDEX, DEEPL_INDEX]:
-            index = 3
-        elif translate_type == TENCENT_INDEX:
-            index = 4
-        elif translate_type == MICROSOFT_INDEX:
-            index = 6
-        elif translate_type == ALI_INDEX:
-            index = 8
-        elif translate_type == M2M100_INDEX:
-            index = 10
+    if show_target in LANG_CODE:
+        target_list = LANG_CODE[show_target]
+    elif LANGNAME_DICT_REV.get(show_target):
+        target_list = LANG_CODE.get(LANGNAME_DICT_REV.get(show_target))
+    elif show_target == 'zh':
+        # 特殊兼容zh
+        target_list = LANG_CODE['zh-cn']
 
-        if show_target in LANG_CODE:
-            target_list = LANG_CODE[show_target]
-        elif LANGNAME_DICT_REV.get(show_target):
-            target_list = LANG_CODE.get(LANGNAME_DICT_REV.get(show_target))
-        elif show_target == 'zh':
-            # 特殊兼容zh
-            target_list = LANG_CODE['zh-cn']
-
-        if not target_list or (target_list[index] == 'No'):
-            return tr('deepl_nosupport') + f':{show_target}'
-
+    if not target_list or (target_list[index] == 'No'):
+        return tr('deepl_nosupport') + f':{show_target}'
     return True
+
 
 
 # 获取用于进行语音识别的预设语言，比如语音是英文发音、中文发音
 # 根据 原语言进行判断,基本等同于google，但只保留_之前的部分
 def get_audio_code(*, show_source=None):
-    if not show_source or show_source in ['auto', '-', 'No']:
+    if not show_source or show_source in ['auto', '-', 'No',tr('auto')]:
         return 'auto'
     source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE.get(
         LANGNAME_DICT_REV.get(show_source))
-
-    return source_list[0] if source_list else "auto"
+    if source_list: return source_list[0]
+    return get_code(show_text=show_source)
 
 
 # 获取嵌入MP4视频嵌入软字幕的3位字母语言代码 ISO 639-2/T ，根据目标语言确定
@@ -90,6 +86,8 @@ def get_subtitle_code(*, show_target=None):
             return LANG_CODE[show_target][1]
         if show_target in LANGNAME_DICT_REV:
             return LANG_CODE[LANGNAME_DICT_REV[show_target]][1]
+        code=get_code(show_target)
+        return SUBTITLE_CODE.get(code,'zho')
     except Exception as e:
         logger.error(f'获取字幕嵌入3为语言代码错误:{e}')
     return 'eng'
@@ -98,38 +96,8 @@ def get_subtitle_code(*, show_target=None):
 # 如果是 mkv 软字幕，根据mp4所需code换算为  B 标准代码 ISO 639-2/B
 def get_mkv_code(code):
     #  ISO 639-2/T :ISO 639-2/B
-    langcode = {
-        "fra": "fre",
-        "deu": "ger",
-        "zho": "chi",
-        "ces": "cze",
-        "ell": "gre",
-        "fas": "per",
-        "msa": "may",
-        "nld": "dut",
-        "ron": "rum",
-        "mya": "bur"
-    }
-    return langcode.get(code, code)
+    return SUBTITLE_CODE_B.get(code, code)
 
-
-# 根据语言显示文字，返回语言代码，show_text 可能是显示文字或本身已是语言代码
-# def get_code(show_text=None):
-#     # - None 即不选择语言，则返回 None，调用处需根据返回结果判断
-#     # 未在 LANG CODE 中找到则原样返回
-#     if not show_text or show_text in ['-', 'No']:
-#         return None
-#     if show_text == 'zh':
-#         return 'zh-cn'
-#     # 是语言代码本身，例如 zh-cn,en
-#     if show_text in LANG_CODE:
-#         return show_text
-#     # 是语言显示名称，例如 简体中文，English
-#     if show_text in LANGNAME_DICT_REV:
-#         return LANGNAME_DICT_REV.get(show_text)
-#
-#     return _get_language_code(show_text)
-#
 
 # 根据显示的语言和翻译通道，获取该翻译通道要求的源语言代码和目标语言代码
 # translate_type 翻译通道索引
@@ -223,6 +191,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
     return show_source, show_target
 
 
+# 获取频道 模型无关的语言代码
 # 分别从 EDGET_LANGUAGES_NAME2CODE、判断本身是否是语言代码、从  tr 获取
 def get_code(show_text: str = None):
     if not show_text or show_text in ['-', 'No']: return None

@@ -1,0 +1,1 @@
+Use natural colloquial Bengali (চলিত ভাষা). Omit overt subject pronouns (আমি, তুমি) when verb inflections make them clear. Avoid long compound postpositions; use simple case markers to keep syllable count low.

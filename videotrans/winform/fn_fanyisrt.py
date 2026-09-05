@@ -117,10 +117,8 @@ def openwin():
         translate_type = winobj.fanyi_translate_type.currentIndex()
         source_language_name=winobj.fanyi_source.currentText()
 
-        source_code, target_code = translator.get_source_target_code(
-            show_source='auto' if source_language_name==tr('auto') else source_language_name,
-            show_target=target_language,
-            translate_type=translate_type)
+        source_code=translator.get_code(show_text='auto' if source_language_name==tr('auto') else source_language_name)
+        target_code=translator.get_code(show_text=target_language)
 
         logger.debug(f'{source_code=},{target_code=}')
 

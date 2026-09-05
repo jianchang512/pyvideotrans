@@ -1,0 +1,1 @@
+Use natural conversational Vietnamese (tiếng Việt khẩu ngữ). Pick appropriate social pronouns (mình, cậu, anh, em) but omit them where implied. Drop redundant tense/aspect markers (đang, đã, sẽ) if clear from context. Use short spoken sentence-ending particles (nè, nha, nhé) concisely.

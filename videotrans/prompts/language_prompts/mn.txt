@@ -1,0 +1,1 @@
+Use modern spoken Mongolian (ярианы хэл). Drop obvious subject pronouns; use concise verbal suffixes and active voice for crisp TTS delivery.

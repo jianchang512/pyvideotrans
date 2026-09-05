@@ -1,0 +1,1 @@
+Russian words are long and expand speech length; use aggressive compression. Drop subject pronouns (я, ты, он) where verb inflections make it obvious. Avoid participial/adverbial clauses (причастные/деепричастные обороты); use crisp, dynamic spoken main clauses and colloquial phrasing.

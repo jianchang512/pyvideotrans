@@ -21,7 +21,7 @@ class QwenMT(BaseTrans):
         super().__post_init__()
         spaceid=params.get('qwenmt_spaceid', '')
         self.lang_prompt=''
-        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_language_name}.txt'
+        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_code}.txt'
         if Path(lang_prompt_file).exists():
             self.lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
 

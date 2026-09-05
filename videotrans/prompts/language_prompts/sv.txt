@@ -1,0 +1,1 @@
+Use natural spoken Swedish (vardaglig svenska). Use spoken forms and contractions (ska, ta). Omit redundant pronouns and descriptive modifiers to match TTS dubbing pacing.

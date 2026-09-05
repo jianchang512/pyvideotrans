@@ -1,0 +1,1 @@
+Use natural, punchy spoken English. Extensively use contractions (I'll, don't, gonna, wanna, we're) to minimize syllables and match fast TTS delivery. Drop redundant subjects/auxiliaries where natural (e.g., 'Sounds good', 'Coming?'). Avoid multisyllabic Latinate words in favor of short Germanic roots.

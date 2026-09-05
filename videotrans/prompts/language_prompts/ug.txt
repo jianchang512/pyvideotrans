@@ -1,0 +1,1 @@
+Use natural spoken Uyghur (ئۇيغۇر ئېغىز تىلى). Drop redundant subject pronouns since verb endings convey the person; use concise spoken verbal structures to match TTS pacing.

@@ -1,0 +1,1 @@
+Use conversational Hindustani (बोलचाल की हिंदी) as heard in modern cinema, avoiding heavy Sanskritized or archaic Persian words. Drop obvious pronouns (मैं, तुम). For split blocks, take advantage of Hindi's flexible spoken word order to avoid moving verbs or nouns between blocks.

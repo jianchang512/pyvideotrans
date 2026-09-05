@@ -1,0 +1,1 @@
+Use natural spoken Javanese (conversational Ngoko by default unless context demands formal). Drop obvious personal pronouns and shorten affixes common in daily speech.

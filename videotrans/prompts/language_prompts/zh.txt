@@ -1,0 +1,1 @@
+Use natural colloquial Mandarin (普通话口语). Drop redundant subject pronouns (我, 你, 他) when clear from context. Strip translationese (avoid '关于...', '进行了...'). Target a dubbing pace of 3-4 characters per second. For split fragments, use natural spoken sentence-final particles (吧, 呢, 嘛) or spoken inversion (倒装) to keep each block self-contained without moving words.

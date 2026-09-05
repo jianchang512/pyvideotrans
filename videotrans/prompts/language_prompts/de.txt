@@ -1,0 +1,1 @@
+German expands heavily; aggressively compress to prevent TTS overrun. Drop unnecessary modal particles (ja, doch, mal) and bulky compound nouns. Prefer spoken Perfekt over Präteritum. For mid-clause fragment splits, use spoken parataxis, topical fronting, or ellipsis bridging rather than forcing standard V2/verb-final order across blocks.

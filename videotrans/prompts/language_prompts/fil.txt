@@ -1,0 +1,1 @@
+Use natural conversational Filipino / Tagalog. Use standard colloquial contractions ('di for hindi, 'pag for kapag). Drop redundant topic markers ('ang') and pronouns when context is clear to prevent TTS audio delay.

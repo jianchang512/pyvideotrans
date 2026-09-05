@@ -1,0 +1,1 @@
+Swahili verbs incorporate subject, tense, and object markers; strictly drop redundant standalone pronouns (mimi, wewe). Keep phrasing concise to avoid TTS overrun.

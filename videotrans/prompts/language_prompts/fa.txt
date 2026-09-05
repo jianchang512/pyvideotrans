@@ -1,0 +1,1 @@
+Use natural conversational spoken Persian (فارسی محاوره‌ای / گفتاری, e.g., colloquial verb endings like -ه instead of -است). Strictly drop subject pronouns (من, تو). For split blocks, use Persian spoken inversion to avoid shifting verbs across blocks.

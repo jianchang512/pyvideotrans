@@ -31,11 +31,12 @@ class OpenAICampat(BaseTrans):
         super().__post_init__()
         self.temperature=float(settings.get('aitrans_temperature', 1.0))
         lang_prompt=''
-        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_language_name}.txt'
+        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_code}.txt'
         if Path(lang_prompt_file).exists():
             lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
         self.prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name).replace('{lang_prompt}',lang_prompt)
-
+        logger.debug(f'{self.ainame=},{self.source_code=},{self.target_code=},{self.target_language_name=},{self.aisendsrt=}\n{self.prompt=}')
+        
         try:
             self.max_tokens=int(self.max_tokens)
         except (ValueError,TypeError) as e:
@@ -121,13 +122,6 @@ class OpenAICampat(BaseTrans):
         prompts_template = Path(f'{ROOT_DIR}/videotrans/prompts/resegment/llm.txt').read_text(encoding='utf-8')
         chunk_size = int(settings.get('llm_chunk_size', 20))
 
-
-
-        # reasoning_effort='high' if self.ainame=='deepseek' else None
-        #
-        # if reasoning_effort is None:
-        #     _reason=params.get('chatgpt_reasoning_effort')
-        #     reasoning_effort=None if not _reason or _reason=='default' else _reason
         
         kwargs={
                 "model":self.model_name,

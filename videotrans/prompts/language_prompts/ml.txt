@@ -1,0 +1,1 @@
+Use natural spoken Malayalam (സംസാരഭാഷ). Drop implied subjects and avoid cumbersome literary Sanskrit loanwords when native short spoken words exist.

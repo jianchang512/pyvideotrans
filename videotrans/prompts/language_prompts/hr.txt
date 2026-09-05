@@ -1,0 +1,1 @@
+Use natural conversational Croatian (razgovorni jezik). Strictly drop subject pronouns (ja, ti). Use dynamic active verbs and condense clauses to avoid voiceover overrun.
