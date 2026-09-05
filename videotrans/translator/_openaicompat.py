@@ -35,7 +35,7 @@ class OpenAICampat(BaseTrans):
         if Path(lang_prompt_file).exists():
             lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
         self.prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name).replace('{lang_prompt}',lang_prompt)
-        logger.debug(f'{self.ainame=},{self.source_code=},{self.target_code=},{self.target_language_name=},{self.aisendsrt=}\n{self.prompt=}')
+        logger.debug(f'{self.ainame=},{self.source_code=},{self.target_code=},{self.target_language_name=},{self.aisendsrt=}')
         
         try:
             self.max_tokens=int(self.max_tokens)
