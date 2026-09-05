@@ -34,7 +34,8 @@ class QwenasrlocalRecogn(BaseRecogn):
 
 
     def _download(self):
-        
+        if Path(self.local_dir+'/model.safetensors').exists() and Path(f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B/model.safetensors").exists():
+            return
         if not is_connect_hf():
             check_and_down_ms(self._repid, callback=self._process_callback, local_dir=self.local_dir)
             check_and_down_ms("Qwen/Qwen3-ForcedAligner-0.6B", callback=self._process_callback, local_dir=f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B")
