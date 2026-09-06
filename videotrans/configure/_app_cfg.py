@@ -12,6 +12,10 @@ class AppCfg:
     存储直接属于 config.py 的运行时属性 (原全局变量)。
     """
     NVIDIA_GPU_NUMS: int = -1
+    
+    MAX_CPU_PROCESS:int=1
+    MAX_GPU_PROCESS:int=1
+    
     # 全局状态标识
     stoped_uuid_set: set = field(default_factory=set)
     global_msg: List = field(default_factory=list)

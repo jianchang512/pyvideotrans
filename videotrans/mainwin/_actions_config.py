@@ -71,9 +71,12 @@ class WinActionConfigMixin:
 
         app_cfg.line_roles = {}
         _role_list = role_menu(type, lang if lang and lang != '-' else None)
+        _origin_role=self.main.voice_role.currentText()
         self.main.voice_role.clear()
         self.main.current_rolelist = _role_list
-        self.main.voice_role.addItems(self.main.current_rolelist)
+        self.main.voice_role.addItems(_role_list)
+        if _origin_role and _origin_role in _role_list:
+            self.main.voice_role.setCurrentText(_origin_role)
         if tts.is_input_api(tts_type=type) is not True:
             return
 

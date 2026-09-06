@@ -35,7 +35,7 @@ class HiggsVoice(BaseTTS):
         logs_file = f'{TEMP_DIR}/{self.uuid}/higgs-audio-v2-{time.time()}.log'
         queue_tts_file = f'{TEMP_DIR}/{self.uuid}/higgs-audio-v2-{time.time()}.json'
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
-        title="higgs-audio-v2-TTS dubbing..."
+        title="higgs-audio-TTS dubbing..."
         kwargs = {
             "queue_tts_file":queue_tts_file,
             "logs_file": logs_file,

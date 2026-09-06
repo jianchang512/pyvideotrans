@@ -1,4 +1,4 @@
-import traceback
+import traceback,os
 from queue import Empty
 
 from PySide6.QtCore import QThread
@@ -207,18 +207,37 @@ class WorkerTaskDone(BaseWorker):
 
 def start_thread():
     gpus.getset_gpu()
-    task_nums = 1
-    # 存在可用显卡时，进一步判断应该启动几个相关线程
+    cpu_count = max(int(os.cpu_count()),1)
+
+    # 不存在时固定为1，存在可用显卡时，进一步判断应该启动几个GPU进程,  1->min(CPU核数,8)
     if app_cfg.NVIDIA_GPU_NUMS > 0:
         try:
-            process_max_gpu = max(1,int(float(settings.get('process_max_gpu', 0))) )
+            app_cfg.MAX_GPU_PROCESS =  min(cpu_count,8,max(1,int(float(settings.get('process_max_gpu', 0))) ))
         except (TypeError,ValueError):
-            process_max_gpu = 1
+            app_cfg.MAX_GPU_PROCESS = 1
 
-        task_nums = min(process_max_gpu,4)
-        logger.debug(f'最大允许GPU进程:{process_max_gpu},  {task_nums=} ')
+    
+    # CPU进程数 1-> min(8,CPU核数,内存/1G)
+    try:
+        app_cfg.MAX_CPU_PROCESS = int(float(settings.get('process_max', 0)))
+    except (ValueError, TypeError):
+        app_cfg.MAX_CPU_PROCESS = 0
+    if app_cfg.MAX_CPU_PROCESS > 0:
+        # 最小1个
+        app_cfg.MAX_CPU_PROCESS=int(min(app_cfg.MAX_CPU_PROCESS, 8, cpu_count))
+    else:
+        import psutil
+        mem = psutil.virtual_memory()
+        # 最多8个进程,最小1个
+        _max=max( int( (mem.available / (1024 ** 3)) // 4 ),1)
+        app_cfg.MAX_CPU_PROCESS=int(min( _max , 8, cpu_count))
+    
+    #最少1个，最多4个，跟随 CPU GPU 进程最大数 1-> min(CPU和GPU进程最大值,4)
+    task_nums = min(max(app_cfg.MAX_GPU_PROCESS,app_cfg.MAX_CPU_PROCESS,1),4)
+    
+    
+    logger.debug(f'{cpu_count=},{app_cfg.MAX_GPU_PROCESS=}, {app_cfg.MAX_CPU_PROCESS=}, {task_nums=} ')
 
-    logger.debug(f'最大允许CPU进程[0为不限制]: {settings.get("process_max")}, {task_nums=}')
     worker_config = {
         WorkerPrepare: task_nums,  # 准备工作
         WorkerRegcon: task_nums,  # 语音识别

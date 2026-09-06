@@ -92,22 +92,7 @@ class GlobalProcessManager:
     _executor_cpu = None
     _executor_gpu = None
 
-    @classmethod
-    def get_cpu_process_nums(cls):
-        cpu_count = max(int(os.cpu_count()),1)
-        try:
-            man_set = int(float(settings.get('process_max', 0)))
-        except (ValueError, TypeError):
-            man_set = 0
-        if man_set > 0:
-            # 最小1个
-            return int(min(man_set, 8, cpu_count))
 
-        import psutil
-        mem = psutil.virtual_memory()
-        # 最多8个进程,最小1个
-        _max=max( int( (mem.available / (1024 ** 3)) // 4 ),1)
-        return int(min( _max , 8, cpu_count))
 
     @classmethod
     def get_gpu_process_nums(cls):
@@ -124,7 +109,7 @@ class GlobalProcessManager:
     def get_executor_cpu(cls):
         if cls._executor_cpu is None:
             ctx = multiprocessing.get_context('spawn')
-            max_workers = cls.get_cpu_process_nums()
+            max_workers = app_cfg.MAX_CPU_PROCESS
             logger.debug(f'CPU进程池:{max_workers=}')
             cls._executor_cpu = ctx.Pool(
                 processes=int(max_workers),
@@ -140,7 +125,7 @@ class GlobalProcessManager:
         """
         if cls._executor_gpu is None:
             ctx = multiprocessing.get_context('spawn')
-            max_workers = cls.get_gpu_process_nums()
+            max_workers = app_cfg.MAX_GPU_PROCESS
             logger.debug(f'GPU进程池:{max_workers=}')
             cls._executor_gpu = ctx.Pool(
                 processes=int(max_workers),

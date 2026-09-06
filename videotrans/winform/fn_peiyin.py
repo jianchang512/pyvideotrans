@@ -255,9 +255,6 @@ def openwin():
         uuid_list = list()
 
     def getlangnamelist(tts_type=0):
-        # if tts_type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
-        #     return   list(translator.LANGNAME_DICT.values())[:-1]
-
         return  list(EDGE_LANGUANGES_DICT.values())
 
     # tts类型改变
@@ -278,10 +275,13 @@ def openwin():
             winobj.loglabel.setText(is_allow_lang_res if is_allow_lang_res is not True else '')
 
         role_list = role_menu(type, code)
+        _origin_role=winobj.hecheng_role.currentText()
         winobj.hecheng_role.clear()
         if "clone" in role_list:
             role_list.remove('clone')
         winobj.hecheng_role.addItems(role_list)
+        if _origin_role and _origin_role in role_list:
+            winobj.hecheng_role.setCurrentText(_origin_role)
         if type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS] and tts.is_input_api(tts_type=type) is not True:
             return False
 
