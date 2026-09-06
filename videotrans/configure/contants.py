@@ -113,7 +113,7 @@ GEMINITTS_ROLES = "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Aut
 
 GEMINI_TTS_MODELS = "gemini-3.1-flash-tts-preview,gemini-2.5-flash-preview-tts,gemini-2.5-pro-preview-tts"
 
-GEMINI_ASR_MODELS="gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-flash-latest"
+GEMINI_ASR_MODELS="gemini-3.5-transcribe"
 
 Whisper_cpp_models = "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
 Whisper_net_models = Whisper_cpp_models

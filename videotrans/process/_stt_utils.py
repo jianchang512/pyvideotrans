@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 
 from ._utils import _write_log
 
-no_space_langs = {'zh', 'ja', 'th', 'yue', 'ko', 'km'}
+no_space_langs = {'zh', "zh-cn","zh-tw",'ja', 'th', 'yue', 'ko', 'km'}
 end_punc = set('.?!。？！\n')
 comma_punc = set(',;:，；：、')
 
