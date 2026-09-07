@@ -17,10 +17,8 @@ def pipe_asr(
         detect_language=None,
         logs_file=None,
         local_dir=None,
-        jianfan=False,
         **kw
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
-    import zhconv
     from transformers import pipeline
 
     def inputs_generator():
@@ -74,8 +72,6 @@ def pipe_asr(
             text = res.get('text', '')
             if text:
                 cleaned_text = re.sub(r'<unk>|</unk>', '', text).strip()
-                if jianfan:
-                    cleaned_text = zhconv.convert(cleaned_text, 'zh-hans')
                 raws[i]['text'] = cleaned_text
 
                 _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {cleaned_text}\n'}))

@@ -54,9 +54,7 @@ class HuggingfaceRecogn(BaseRecogn):
             "is_cuda": self.is_cuda,
             "audio_file": None,
             "local_dir": self.local_dir,
-            "jianfan": self.jianfan
         }
-        from videotrans.process.stt_faster import faster_whisper
         from videotrans.process.stt_pipe import  pipe_asr
         from videotrans.process.stt_glmasr import glmasr_asr
         from videotrans.process.stt_arkasr import ark_asr
