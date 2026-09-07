@@ -44,7 +44,7 @@ def nemotron_asr(
             inputs = processor(audio, sampling_rate=processor.feature_extractor.sampling_rate) # equiv to ..., language="auto"
             inputs.to(model.device, dtype=model.dtype)
             output = model.generate(**inputs, return_dict_in_generate=True)
-            text_list=processor.decode(output.sequences, skip_special_tokens=False)
+            text_list=processor.decode(output.sequences, skip_special_tokens=True)
 
             text = text_list[0].strip()
             if text:
