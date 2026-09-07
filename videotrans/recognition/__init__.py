@@ -13,12 +13,12 @@ OPENAI_WHISPER = 1
 QWENASR = 2
 FUNASR_CN = 3
 NEMOTRON_ASR=4
-Whisper_CPP = 5
-FIREREDASR=6
-DOLPHIN=7
-Omnilingual=8
-HUGGINGFACE_ASR = 9
-MOSS_DIARIZE=10
+FIREREDASR=5
+DOLPHIN=6
+Omnilingual=7
+HUGGINGFACE_ASR = 8
+MOSS_DIARIZE=9
+Whisper_CPP = 10
 
 OPENAI_API = 11
 QWEN3ASR = 12
@@ -58,13 +58,13 @@ _ID_NAME_DICT = {
     QWENASR: ChannelProvider(f"Qwen-ASR({tr('Built-in')})", imp="._qwenasrlocal"),
     FUNASR_CN: ChannelProvider(tr("FunASR-Chinese")+f"({tr('Built-in')})", imp="._funasr"),
     NEMOTRON_ASR: ChannelProvider(f"Nemotron-3.5-asr-0.6b({tr('Built-in')})", imp="._nemotronasr"),
-    Whisper_CPP: ChannelProvider(f"Whisper.cpp(Win{tr('Built-in')})", imp="._cpp"),
     FIREREDASR: ChannelProvider(f"{tr('FireRed')}({tr('Built-in')})", imp="._fireredasr"),
     DOLPHIN: ChannelProvider(f"{tr('Dolphin')}({tr('Built-in')})", imp="._dolphin"),
     Omnilingual: ChannelProvider(f"{tr('Omnilingual')}({tr('Built-in')})", imp="._omnilingual"),
     HUGGINGFACE_ASR: ChannelProvider(f"Huggingface_ASR({tr('Built-in')})", imp="._huggingface"),
     MOSS_DIARIZE: ChannelProvider(f"MOSS-Diarize({tr('Built-in')})", imp="._moss"),
-    
+    Whisper_CPP: ChannelProvider(f"Whisper.cpp(Win{tr('Built-in')})", imp="._cpp"),
+
 
 
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"), key_name="openairecognapi_key", win="openairecognapi",
@@ -96,8 +96,8 @@ _ID_NAME_DICT=dict(sorted(_ID_NAME_DICT.items(),key=lambda item:item[0]))
 RECOGN_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
 HUGGINGFACE_ASR_MODELS = {
-    "nvidia/nemotron-3.5-asr-streaming-0.6b": [],
     "nvidia/parakeet-tdt-0.6b-v3": ['en,bg,hr,cs,da,nl,et,fi,fr,de,el,hu,it,lv,lt,mt,pl,pt,ro,sk,sl,es,sv,ru,uk'],
+    "nvidia/nemotron-3.5-asr-streaming-0.6b": [],
     "Audio8/ARK-ASR-0.6B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
     "Audio8/ARK-ASR-3B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
     "zai-org/GLM-ASR-Nano-2512": ['zh','en','yue'],
