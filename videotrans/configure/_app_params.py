@@ -108,7 +108,7 @@ class AppParams:
             "chatgpt_key": "",
             "chatgpt_reasoning_effort": "default",
             "localllm_reasoning_effort":"default",
-            "chatgpt_max_token": 32768,#32k
+            "chatgpt_max_token": 16384,
             "chatgpt_model": str(_settings.get('chatgpt_model', '-')).strip().split(',')[0],
             "azure_api": "",
             "azure_key": "",
@@ -116,7 +116,7 @@ class AppParams:
             "azure_model": str(_settings.get('azure_model', '-')).strip().split(',')[0],
             "gemini_key": "",
             "gemini_model": DEFAULT_GEMINI_MODEL.split(',')[0],
-            "gemini_maxtoken": 32768,
+            "gemini_maxtoken": 16384,
             "gemini_ttsstyle": "",
             "gemini_ttsmodel": GEMINI_TTS_MODELS.split(',')[0],
             "gemini_asrmodel": GEMINI_ASR_MODELS.split(',')[0],
@@ -135,7 +135,7 @@ class AppParams:
             "deepseek_key": "",
             "deepseek_thinking": False,
             "deepseek_model": str(_settings.get('deepseek_model', '-')).strip().split(',')[0],
-            "deepseek_max_token": 65536,#最大输出64k
+            "deepseek_max_token": 16384,#最大输出64k
             "openrouter_key": "",
             "openrouter_reasoning_effort": "default",
             "openrouter_model": str(_settings.get('openrouter_model', '-')).strip().split(',')[0],
@@ -145,7 +145,7 @@ class AppParams:
             "litellm_reasoning_effort": "default",
             "litellm_model": str(_settings.get('litellm_model', '-')).strip().split(',')[0],
             "litellm_max_token": 16384,
-            "zijiehuoshan_max_token": 32768,#最大输出32k
+            "zijiehuoshan_max_token": 16384,
             "zijiehuoshan_key": "",
             "zijiehuoshan_thinking": False,
             "zijiehuoshan_model": str(_settings.get('zijiehuoshan_model', '-')).strip().split(',')[0],
