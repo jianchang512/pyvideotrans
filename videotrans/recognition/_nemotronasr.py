@@ -1,9 +1,12 @@
-from dataclasses import dataclass
+import json
+from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import List, Union
 import time
-from videotrans.configure.config import params, logger, settings,ROOT_DIR
-from videotrans.configure.excepts import SpeechToTextError, StopTask
+
+from videotrans.configure import config
+from videotrans.configure.config import  logger, ROOT_DIR
+from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util.help_down import check_and_down_hf
