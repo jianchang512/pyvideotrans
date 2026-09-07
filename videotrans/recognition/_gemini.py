@@ -103,7 +103,7 @@ class GeminiRecogn(BaseRecogn):
                 if i==len(srts)-1 and j==len(words)-1:
                     texts[0]['end']=et
             self.signal(
-                text=f"{_text[:120]}\n",
+                text=f"{_text[:60]}...\n",
                 type='subtitle'
             )
             if self.asr_wait>0:

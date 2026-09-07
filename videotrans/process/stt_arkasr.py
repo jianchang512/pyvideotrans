@@ -23,12 +23,16 @@ def ark_asr(
     try:
         processor = AutoProcessor.from_pretrained(local_dir, trust_remote_code=True)
         tokenizer = AutoTokenizer.from_pretrained(local_dir, trust_remote_code=True)
+        _mdargs={
+            "device_map":kw.get('device_name','auto'),
+            "trust_remote_code":True,
+            "dtype":"auto"
+        }
+        if torch.cuda.is_available() and  ("auto" in _mdargs['device_map']  or "cuda" in _mdargs['device_map']):
+            _mdargs['attn_implementation']="sdpa"
         model = AutoModelForCausalLM.from_pretrained(
             local_dir,
-            trust_remote_code=True,
-            dtype='auto',
-            device_map=kw.get('device_name','auto'),
-            attn_implementation="sdpa",
+            **_mdargs
         )
         _write_log(logs_file, json.dumps({"type": "logs", "text": f"Running on {model.device}"}))
         vt_logger.debug(f'{local_dir}, running on {model.device}')

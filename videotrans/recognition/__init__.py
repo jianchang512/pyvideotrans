@@ -11,12 +11,12 @@ from videotrans.task.taskcfg import SrtItem
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
 QWENASR = 2
-Whisper_CPP = 3
-FUNASR_CN = 4
-FIREREDASR=5
-DOLPHIN=6
-Omnilingual=7
-PARAKEET_JA=8
+FUNASR_CN = 3
+NEMOTRON_ASR=4
+Whisper_CPP = 5
+FIREREDASR=6
+DOLPHIN=7
+Omnilingual=8
 HUGGINGFACE_ASR = 9
 MOSS_DIARIZE=10
 
@@ -56,12 +56,12 @@ _ID_NAME_DICT = {
     FASTER_WHISPER: ChannelProvider(f"faster-whisper({tr('Built-in')})", imp="._whisper"),
     OPENAI_WHISPER: ChannelProvider(f"openai-whisper({tr('Built-in')})", imp="._whisper"),
     QWENASR: ChannelProvider(f"Qwen-ASR({tr('Built-in')})", imp="._qwenasrlocal"),
-    Whisper_CPP: ChannelProvider(f"Whisper.cpp(Win{tr('Built-in')})", imp="._cpp"),
     FUNASR_CN: ChannelProvider(tr("FunASR-Chinese")+f"({tr('Built-in')})", imp="._funasr"),
+    NEMOTRON_ASR: ChannelProvider(f"Nemotron-3.5-asr-0.6b({tr('Built-in')})", imp="._nemotronasr"),
+    Whisper_CPP: ChannelProvider(f"Whisper.cpp(Win{tr('Built-in')})", imp="._cpp"),
     FIREREDASR: ChannelProvider(f"{tr('FireRed')}({tr('Built-in')})", imp="._fireredasr"),
     DOLPHIN: ChannelProvider(f"{tr('Dolphin')}({tr('Built-in')})", imp="._dolphin"),
     Omnilingual: ChannelProvider(f"{tr('Omnilingual')}({tr('Built-in')})", imp="._omnilingual"),
-    PARAKEET_JA: ChannelProvider(f"{tr('parakeet-ja')}({tr('Built-in')})", imp="._parakeetja"),
     HUGGINGFACE_ASR: ChannelProvider(f"Huggingface_ASR({tr('Built-in')})", imp="._huggingface"),
     MOSS_DIARIZE: ChannelProvider(f"MOSS-Diarize({tr('Built-in')})", imp="._moss"),
     
@@ -96,11 +96,13 @@ _ID_NAME_DICT=dict(sorted(_ID_NAME_DICT.items(),key=lambda item:item[0]))
 RECOGN_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
 HUGGINGFACE_ASR_MODELS = {
+    "nvidia/nemotron-3.5-asr-streaming-0.6b": [],
+    "nvidia/parakeet-tdt-0.6b-v3": ['en,bg,hr,cs,da,nl,et,fi,fr,de,el,hu,it,lv,lt,mt,pl,pt,ro,sk,sl,es,sv,ru,uk'],
     "Audio8/ARK-ASR-0.6B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
     "Audio8/ARK-ASR-3B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
     "zai-org/GLM-ASR-Nano-2512": ['zh','en','yue'],
+
     "ibm-granite/granite-speech-4.1-2b": ['fr','en','de','es','pt','ja'],
-    "nvidia/parakeet-ctc-1.1b": ['en'],
     # hub
     "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],#日语
     # pipeline whisper
@@ -172,8 +174,6 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
             return tr("Only support") + tr(HUGGINGFACE_ASR_MODELS[model_name])
         return True
 
-    if recogn_type == PARAKEET_JA:
-        return tr("Only support") + tr('ja')
         
     if recogn_type == DOLPHIN:
         return tr("Only support") + tr('40 Eastern languages and 22 Chinese dialects')
