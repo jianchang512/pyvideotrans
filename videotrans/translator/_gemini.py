@@ -56,10 +56,6 @@ class Gemini(BaseTrans):
                 system_instruction="You are a top-tier Subtitle Translation Engine.",
                 generation_config=generation_config
             )
-
-            print(result.output_text)
-            
-
             if not result:
                 logger.warning(f'[gemini]请求失败')
                 raise TranslateSrtError(f"[Gemini]result is empty")
@@ -76,7 +72,6 @@ class Gemini(BaseTrans):
             if e.code in [400,403,404,429,500]:
                 raise StopTask(e.message)
             raise TranslateSrtError(e.message)
-
         finally:
             if client:
                 client.close()

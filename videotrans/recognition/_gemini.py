@@ -1,6 +1,5 @@
-import json
 import logging
-import re,httpx,time
+import httpx,time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Union
@@ -10,13 +9,13 @@ from google.genai import types,errors
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTextError,StopTask
-from videotrans.configure.config import params, logger, ROOT_DIR, settings,tr
+from videotrans.configure.config import params, logger,  settings,tr
 from videotrans.configure.contants import GEMINI_ASR_MODELS
+from videotrans.process.vad import get_speech_timestamp_silero
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util._srt_parse import ms_to_time_string
-import os,sys
-from videotrans.process._stt_utils import _write_log, _resegment
+from videotrans.process._stt_utils import _resegment
 from pydub import AudioSegment
 
 @dataclass
@@ -67,8 +66,6 @@ class GeminiRecogn(BaseRecogn):
                 },
 
             )
-            
-            print(interaction.output_text)
             return self.extract_word_annotations(interaction),interaction.output_text
             
         except httpx.ConnectTimeout as e:
@@ -87,20 +84,17 @@ class GeminiRecogn(BaseRecogn):
         if len(srts) < 1:
             raise SpeechToTextError(f'VAD error')
         texts = [{
-            "start": 0,
-            "end": 0,
+            "start": 0.0,
+            "end": 0.0,
             "text": "",
             "words": []
         }]
         _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
-        # 最长片段不得大于25s,并且不得小于 _min_speech
-        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000), _min_speech + 1000)
-        for i,it in enumerate(srts):
-                        
+        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 20000), _min_speech + 1000)
+        for i,it in enumerate(srts):                       
             words,_text=self._req(it['filename'])
             offset = it['start_time'] / 1000.0
             for j,w in enumerate(words):
-                print(f'{w=}')
                 st=float(w.start_offset.replace('s',''))
                 et=float(w.end_offset.replace('s',''))
                 if i==0:
@@ -109,7 +103,7 @@ class GeminiRecogn(BaseRecogn):
                 if i==len(srts)-1 and j==len(words)-1:
                     texts[0]['end']=et
             self.signal(
-                text=f"{_text}\n",
+                text=f"{_text[:120]}\n",
                 type='subtitle'
             )
             if self.asr_wait>0:
@@ -122,8 +116,8 @@ class GeminiRecogn(BaseRecogn):
     def _cut(self):
         audio = AudioSegment.from_wav(self.audio_file)
         _len=len(audio)
-        _min_segments=300000#最小1分钟
-        _max_segments=600000#最大2分钟，减少显存占用
+        _min_segments=60000#最小5分钟
+        _max_segments=300000#最大10分钟，减少发送次数，避免超频
         if _len<=_max_segments:
             _endraw=ms_to_time_string(ms=_len)
             return [{
