@@ -49,7 +49,7 @@ def nemotron_asr(
             text = text_list[0].strip()
             if text:
                 raws[i]['text'] = text
-                _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {cleaned_text}\n'}))
+                _write_log(logs_file, json.dumps({"type": "subtitles", "text": f'[{i}] {text}\n'}))
         return raws, None
     except Exception as e:
         msg = traceback.format_exc()
