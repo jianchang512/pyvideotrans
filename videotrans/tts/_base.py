@@ -219,7 +219,7 @@ class BaseTTS(BaseCon):
 
     # 子类未重写 _exec 方法时，则必须实现该方法
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
-        raise NotImplemented
+        raise NotImplementedError
 
     # 文本规范化和清理音量等参数
     def _cleantts(self) -> None:

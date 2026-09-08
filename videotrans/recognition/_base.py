@@ -143,7 +143,7 @@ class BaseRecogn(BaseCon):
         return srt_list
 
     def _exec(self) -> Union[List[SrtItem], None]:
-        raise NotImplemented()
+        raise NotImplementedError()
 
     # 有些识别渠道需要预先使用VAD切割为合适时长的音频片段，然后再对片段识别，每个识别结果即为一条字幕
     # whisper模型并且没有选中预先分割，无需切割
