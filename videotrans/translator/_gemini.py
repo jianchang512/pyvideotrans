@@ -4,28 +4,24 @@ from dataclasses import dataclass, field
 from typing import List, Union
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError, StopTask
-from videotrans.configure.config import tr,settings,params,logger,ROOT_DIR
+from videotrans.configure.config import tr,settings,params,logger
 from videotrans.translator._base import BaseTrans
 from google import genai
 from google.genai import types,errors
-from pathlib import Path
-from videotrans.util.help_misc import get_prompt
 
 
 @dataclass
 class Gemini(BaseTrans):
+    ainame:str="gemini"
     prompt: str = field(init=False)
     api_keys: List[str] = field(init=False, repr=False)  # Use repr=False for sensitive data
 
     def __post_init__(self):
         super().__post_init__()
         self.model_name = params.get("gemini_model",'gemini-flash-latest')
-        lang_prompt=''
-        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_code}.txt'
-        if Path(lang_prompt_file).exists():
-            lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
-        self.prompt = get_prompt(ainame='gemini',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name).replace('{lang_prompt}',lang_prompt)
+        self.prompt=self._set_context()
         self.api_keys = params.get('gemini_key', '').strip().split(',')
+        logger.debug(f'{self.ainame=},{self.source_code=},{self.target_code=},{self.target_language_name=},{self.aisendsrt=}')
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
@@ -50,6 +46,7 @@ class Gemini(BaseTrans):
             )
             
             message=self.prompt.replace('{batch_input}', f'{text}')
+            logger.debug(f'{message=}')
             result = client.interactions.create(
                 model=model,
                 input=message,

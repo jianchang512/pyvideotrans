@@ -76,6 +76,9 @@ Yeah.
 ---
 {GLOSSARY_DICT}
 
+
+{context_info}
+
 # FINAL OUTPUT CONSTRAINTS
 - Output ONLY the valid SRT text wrapped inside `<TRANSLATE_TEXT>` and `</TRANSLATE_TEXT>`.
 - Do NOT output markdown code blocks (NO ``` or ```srt).

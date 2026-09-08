@@ -29,7 +29,7 @@ class DubbingMixin:
             for it in subs:
                 if self.cfg.fix_punc==2:
                     it['text']=delete_punc(it['text'])
-                it['text']=it['text'].strip('...')
+                it['text']=it['text'].strip('...').strip('…').strip()
             self._save_srt_target(subs, self.cfg.source_sub)
         if self.should_dubbing:
             self.signal(text=tr('The dubbing is finished'))
@@ -110,7 +110,7 @@ class DubbingMixin:
             outname = self.cfg.target_dir + f'/segment_audio_{self.cfg.noextname}'
             Path(outname).mkdir(parents=True, exist_ok=True)
         for it in self.queue_tts:
-            it['text']=it['text'].strip('...')
+            it['text']=it['text'].strip('...').strip('…').strip()
             if self.cfg.fix_punc==2:
                 it['text']=delete_punc(it['text'])
             if Path(it['filename']).exists():

@@ -70,7 +70,7 @@ _ID_NAME_DICT = {
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"), key_name="openairecognapi_key", win="openairecognapi",
                                 imp="._openairecognapi"),
     QWEN3ASR: ChannelProvider(tr("Ali Qwen3-ASR"), key_name="qwenmt_key", win="qwenmt", imp="._qwen3asr"),
-    XIAOMIASR: ChannelProvider(tr("XiaoMi")+"ASR", key_name="xiaomi_key", win="xiaomi", imp="._xiaomiasr"),
+    XIAOMIASR: ChannelProvider(tr("XiaoMi"), key_name="xiaomi_key", win="xiaomi", imp="._xiaomiasr"),
     ZIJIE_RECOGN_MODEL: ChannelProvider(tr("VolcEngine STT"), key_name="zijierecognmodel_appid", win="zijierecognmodel",
                                         imp="._zijiemodel"),
     ZHIPU_API: ChannelProvider(f'{tr("Zhipu AI")} GLM-ASR', key_name="zhipu_key", win="zhipuai", imp="._glmasr"),
@@ -96,8 +96,8 @@ _ID_NAME_DICT=dict(sorted(_ID_NAME_DICT.items(),key=lambda item:item[0]))
 RECOGN_NAME_LIST = [it.name for it in _ID_NAME_DICT.values()]
 
 HUGGINGFACE_ASR_MODELS = {
-    "nvidia/parakeet-tdt-0.6b-v3": ['en,bg,hr,cs,da,nl,et,fi,fr,de,el,hu,it,lv,lt,mt,pl,pt,ro,sk,sl,es,sv,ru,uk'],
-    "nvidia/nemotron-3.5-asr-streaming-0.6b": [],
+    "nvidia/parakeet-tdt-0.6b-v3": ['en','bg','hr','cs','da','nl','et','fi','fr','de','el','hu','it','lv','lt','mt','pl','pt','ro','sk','sl','es','sv','ru','uk'],
+    "nvidia/nemotron-3.5-asr-streaming-0.6b": ["en","es","fr","it","pt","nl","de","tr","ru","ar","hi","ja","ko","vi","uk","pl","sv","cs","nb","da","bg","fi","hr","sk","zh","hu","ro","et","el","lt","lv","mt","sl","he","th","nn"],
     "Audio8/ARK-ASR-0.6B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
     "Audio8/ARK-ASR-3B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
     "zai-org/GLM-ASR-Nano-2512": ['zh','en','yue'],
@@ -171,14 +171,14 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
             return True
         
         if langcode not in HUGGINGFACE_ASR_MODELS[model_name]:
-            return tr("Only support") + tr(HUGGINGFACE_ASR_MODELS[model_name])
+            return tr(HUGGINGFACE_ASR_MODELS[model_name])
         return True
 
         
     if recogn_type == DOLPHIN:
-        return tr("Only support") + tr('40 Eastern languages and 22 Chinese dialects')
+        return tr('40 Eastern languages and 22 Chinese dialects')
     if recogn_type == FIREREDASR:
-        return tr("Only support") + tr('Chinese & English and Chinese dialects')
+        return tr('Chinese & English and Chinese dialects')
     
     return True
 

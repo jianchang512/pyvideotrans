@@ -6,11 +6,13 @@ from typing import List, Optional, Union
 from tenacity import RetryError
 
 from videotrans import translator
+from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure.base import BaseCon
 from videotrans.configure.config import tr, settings, logger, TEMP_ROOT
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util.help_srt import get_subtitle_from_srt,cleartext
-from videotrans.util.help_misc import get_md5,serial
+from videotrans.util.help_misc import get_md5, serial, get_prompt
+
 
 @dataclass
 class BaseTrans(BaseCon):
@@ -47,10 +49,7 @@ class BaseTrans(BaseCon):
         self.aisendsrt = settings.get('aisendsrt', False) and self.translate_type in translator.AI_TRANS_CHANNELS
         if self.translate_type==translator.HYMT2_INDEX:
             self.aisendsrt=False
-        if self.aisendsrt:
-            self.trans_thread = int(settings.get('aitrans_thread', 20)) if not settings.get('aitrans_context') else len(self.text_list)
-        else:
-            self.trans_thread = int(settings.get('trans_thread', 5))
+        self.trans_thread = int(settings.get('aitrans_thread', 20)) if self.aisendsrt else int(settings.get('trans_thread', 5))
 
     def _item_task(self, data: Union[List[str], str]):
         raise NotImplemented()
@@ -186,3 +185,17 @@ class BaseTrans(BaseCon):
         it=serial(it)
         key_str = f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}'
         return get_md5(key_str)
+    
+    def _set_context(self):
+        lang_prompt=''
+        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_code}.txt'
+        if Path(lang_prompt_file).exists():
+            lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
+        prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name).replace('{lang_prompt}',lang_prompt)
+        if not settings.get('aitrans_context'):
+            return prompt.replace('{context_info}','')
+            
+        from videotrans.configure.contants import CONTEXT_INFO_PROMPT
+        
+        _info="\n\n".join([f"{t['line']}\n{t['time']}\n{t['text']}" for t in self.text_list])
+        return prompt.replace('{context_info}',f'{CONTEXT_INFO_PROMPT}\n<GLOBAL_REFERENCE_CONTEXT>{_info}</GLOBAL_REFERENCE_CONTEXT>\n\n')

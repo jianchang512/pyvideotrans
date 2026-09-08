@@ -46,7 +46,7 @@ class TranslateMixin:
         # 无需配音或提取模式，在此移除标点
         if self.cfg.app_mode=='tiqu' or not self.should_dubbing:
             for it in target_srt:
-                it['text']=it['text'].strip('...')
+                it['text']=it['text'].strip('...').strip('…').strip()
                 if self.cfg.fix_punc==2:
                     it['text']=delete_punc(it['text'])
 

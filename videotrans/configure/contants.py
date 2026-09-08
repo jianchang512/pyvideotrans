@@ -232,6 +232,26 @@ INSTALL_RUBBERBAND_TIPS = """Windows: For Windows systems, please download the f
 Darwin: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm
 Linux: `sudo apt install rubberband-cli libsndfile1-dev` and `uv add pyrubberband`  Use a better audio acceleration algorithm"""
 
+
+CONTEXT_INFO_PROMPT="""
+# GLOBAL CONTEXT REFERENCE (STRICTLY READ-ONLY)
+
+Below inside `<GLOBAL_REFERENCE_CONTEXT>` is the **complete, full-length original transcript** of the entire video.
+
+### CRITICAL RULES FOR USING THIS REFERENCE:
+1. **READ-ONLY BACKGROUND CONTEXT ONLY**:
+   - This full script is provided EXCLUSIVELY to help you understand the broader story, resolve ambiguous pronouns (e.g., who "he/she/it" refers to), infer speaker tone, and see complete sentences that may have been cut off at chunk boundaries.
+2. **DO NOT TRANSLATE OR REPRODUCE THIS REFERENCE**:
+   - **STRICT PROHIBITION**: Do NOT translate, quote, summarize, or reproduce any part of `<GLOBAL_REFERENCE_CONTEXT>`.
+   - Outputting any block from outside the `<INPUT>` section is a critical system failure.
+3. **YOUR EXCLUSIVE TRANSLATION TARGET IS `<INPUT>`**:
+   - You must ONLY translate and output the subset of subtitle blocks provided inside `<INPUT>`.
+   - Your final output count, index numbers, and timestamps must match `<INPUT>` and `<INPUT>` ALONE.
+
+
+"""
+
+
 #--------进度状态提示文字-----------------------
 END_STATUS = "end"
 ERROR_STATUS = "error"

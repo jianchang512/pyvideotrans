@@ -101,7 +101,7 @@ class StartWindow(QWidget):
         super().closeEvent(event)
 
     def update_lable(self, t):
-        print(f'{int(time.time())}:{t}')
+        print(f'{t}')
         if t == 'end':
             self.status_label.setText(f'Total time {int(time.time() - self.start_time)}s')
             QTimer.singleShot(1000, lambda: self.close())

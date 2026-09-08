@@ -1,35 +1,32 @@
-import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Union
 import dashscope
 import httpx
-from tenacity import retry, retry_if_not_exception_type, wait_fixed, stop_after_attempt, before_log, after_log
-from videotrans.configure.excepts import TranslateSrtError, NO_RETRY_EXCEPT
-from videotrans.configure.config import params, logger, settings,ROOT_DIR
+from videotrans.configure.excepts import TranslateSrtError
+from videotrans.configure.config import params, logger
 from videotrans.translator._base import BaseTrans
-from videotrans.util.help_misc import qwenmt_glossary, get_prompt
-from pathlib import Path
-import os
-from openai import OpenAI, APIError
+from videotrans.util.help_misc import qwenmt_glossary
+from openai import OpenAI
 
 
 @dataclass
 class QwenMT(BaseTrans):
-    lang_prompt:str=''
+    ainame:str="bailian"
+    prompt: str = field(init=False)
+
     def __post_init__(self):
         super().__post_init__()
         spaceid=params.get('qwenmt_spaceid', '')
-        self.lang_prompt=''
-        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_code}.txt'
-        if Path(lang_prompt_file).exists():
-            self.lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
 
+        self.prompt=self._set_context()
+        
         if spaceid and  not spaceid.startswith('http'):
             self.api_url = f'https://{spaceid}.cn-beijing.maas.aliyuncs.com/api/v1'
         elif spaceid and spaceid.startswith('http'):
             self.api_url = spaceid.strip().strip('/')
         dashscope.base_http_api_url = self.api_url
+        logger.debug(f'{self.ainame=},{self.source_code=},{self.target_code=},{self.target_language_name=},{self.aisendsrt=}')
     
 
     def _item_task(self, data: Union[List[str], str]) -> str:
@@ -81,7 +78,8 @@ class QwenMT(BaseTrans):
         elif not self.api_url.endswith('/v1'):
             self.api_url=self.api_url+'/compatible-mode/v1'
 
-        self.prompt = get_prompt(ainame='bailian',aisendsrt=self.aisendsrt).replace('{lang}', self.target_language_name).replace('{lang_prompt}',self.lang_prompt)
+        
+            
         message = [
             {
                 'role': 'system',
@@ -91,6 +89,7 @@ class QwenMT(BaseTrans):
                 'content': self.prompt.replace('{batch_input}', f'{text}')
                 },
         ]
+
         try:
             client = OpenAI(
                 # 各地域的API Key不同。获取API Key：https://www.alibabacloud.com/help/zh/model-studio/get-api-key

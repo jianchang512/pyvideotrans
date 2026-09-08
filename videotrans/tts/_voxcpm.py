@@ -17,7 +17,7 @@ class VoxCPMTTS(GradioBase):
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         if vail_file(data_item['filename']):return
         kwargs = {
-            "do_normalize": True,
+            "do_normalize": False,
             "denoise": False,
             "api_name": '/generate'
         }
@@ -30,7 +30,8 @@ class VoxCPMTTS(GradioBase):
             kwargs['use_prompt_text'] = True if ref_text else False
             kwargs['ref_wav'] = handle_file(ref_wav)
             kwargs['dit_steps'] = 10
-            kwargs["cfg_value"] = 2
+            kwargs["cfg_value"] = 2.0
+            kwargs["seed_value"]=42
             kwargs["prompt_text_value"] = ref_text
         elif _version == 'hf':
             kwargs['text_input'] = text
@@ -39,7 +40,6 @@ class VoxCPMTTS(GradioBase):
             kwargs['reference_wav_path_input'] = handle_file(ref_wav)
             kwargs["cfg_value_input"] = 2
             kwargs["prompt_text_input"] = ref_text
-
         else:
             kwargs['text_input'] = text
             kwargs['prompt_wav_path_input'] = handle_file(ref_wav)

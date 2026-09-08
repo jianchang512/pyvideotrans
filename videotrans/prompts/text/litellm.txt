@@ -28,6 +28,8 @@ Yeah.
 [Line 3 translation]
 </TRANSLATE_TEXT>
 
+{context_info}
+
 # OUTPUT FORMAT
 - Output ONLY the translated text inside `<TRANSLATE_TEXT>` and `</TRANSLATE_TEXT>`.
 - Total output line count must strictly equal input line count.
