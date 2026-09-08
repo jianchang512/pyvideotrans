@@ -17,7 +17,7 @@ class Ui_geminiform(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(geminiform.sizePolicy().hasHeightForWidth())
         geminiform.setSizePolicy(sizePolicy)
-        geminiform.setMaximumSize(QtCore.QSize(600, 500))
+        geminiform.setMaximumSize(QtCore.QSize(600, 550))
 
         v1 = QtWidgets.QVBoxLayout(geminiform)
 
@@ -82,14 +82,6 @@ class Ui_geminiform(object):
         hrecogn.addWidget(self.label_srt)
 
         v1.addLayout(hrecogn)
-
-        self.gemini_srtprompt = QtWidgets.QLineEdit()
-        self.gemini_srtprompt.setObjectName("gemini_srtprompt")
-        self.gemini_srtprompt.setReadOnly(True)
-        self.gemini_srtprompt.setDisabled(True)
-        self.gemini_srtprompt.setText(f'{ROOT_DIR}/videotrans/prompts/recogn/gemini_recogn.txt')
-
-        v1.addWidget(self.gemini_srtprompt)
 
         h2ttsmodel = QtWidgets.QHBoxLayout()
         self.label_ttsmodel = QtWidgets.QLabel()
