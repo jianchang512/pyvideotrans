@@ -53,7 +53,7 @@ class BaseTrans(BaseCon):
             self.trans_thread = int(settings.get('trans_thread', 5))
 
     def _item_task(self, data: Union[List[str], str]):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     # 实际操作 run  -> run_text|run_srt -> _item_task
     def run(self) -> List[SrtItem]:
