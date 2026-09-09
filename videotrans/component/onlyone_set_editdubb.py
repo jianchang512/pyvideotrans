@@ -168,8 +168,6 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         htips.addWidget(self.video_hint)
         main_layout.addLayout(htips)
         
-
-
         # ===================== Splitter: video (top) + table (bottom) =====================
         self.splitter = QSplitter(Qt.Vertical)
         self.splitter.setHandleWidth(6)
@@ -357,9 +355,15 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         try:
             # 1. 创建 QTableWidget - 6列
             # 列：Line | Play | Start | End | Status | Text
-            self.table.setColumnCount(6)
+            self.table.setColumnCount(7)
             self.table.setHorizontalHeaderLabels([
-                tr("Line"), '\u23F5', '\u270D'+tr("Start Time")+'/s', '\u270D'+tr("End Time")+'/s', tr("Dubbed Status"), '\u270D'+tr("Subtitle Text")
+                tr("Line"),
+                tr("Time Axis"),
+                '\u23F5',
+                '\u270D'+tr("Start Time")+'/s',
+                '\u270D'+tr("End Time")+'/s',
+                tr("Dubbed Status"),
+                '\u270D'+tr("Subtitle Text")
             ])
             
             # 2.
@@ -380,18 +384,20 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             # 水平表头
             h_header = self.table.horizontalHeader()
             h_header.setSectionResizeMode(0, QHeaderView.Fixed)  # Line
-            h_header.setSectionResizeMode(1, QHeaderView.Fixed)  # Play
-            h_header.setSectionResizeMode(2, QHeaderView.Fixed)  # Start
-            h_header.setSectionResizeMode(3, QHeaderView.Fixed)  # End
-            h_header.setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Status
-            h_header.setSectionResizeMode(5, QHeaderView.Stretch)  # Text
+            h_header.setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Play
+            h_header.setSectionResizeMode(2, QHeaderView.Fixed)  # Play
+            h_header.setSectionResizeMode(3, QHeaderView.ResizeToContents)  # Start
+            h_header.setSectionResizeMode(4, QHeaderView.ResizeToContents)  # End
+            h_header.setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Status
+            h_header.setSectionResizeMode(6, QHeaderView.Stretch)  # Text
             
             # 设置列宽
             self.table.setColumnWidth(0, 50)   # Line
-            self.table.setColumnWidth(1, 30)   # Play
-            self.table.setColumnWidth(2, 130)   # Start
-            self.table.setColumnWidth(3, 130)   # End
-            self.table.setColumnWidth(4, 180)  # Status
+            self.table.setColumnWidth(1, 100)   # Timex
+            self.table.setColumnWidth(2, 30)   # Play
+            self.table.setColumnWidth(3, 100)   # Start
+            self.table.setColumnWidth(4, 100)   # End
+            self.table.setColumnWidth(5, 180)  # Status
             
 
             self.table.setStyleSheet(self.table_style_css)
@@ -456,11 +462,11 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
 
     def _text_change(self, item):
         _column=item.column()
-        if _column in [2,3]:
+        if _column in [3,4]:
             row = item.row()
             new_text = item.text().strip()
-            offset=(float(new_text)*1000)-self.queue_tts[row]['start_time' if _column==2 else 'end_time']
-            self._adjust_time(row,'start' if _column==2 else 'end',offset)
+            offset=(float(new_text)*1000)-self.queue_tts[row]['start_time' if _column==3 else 'end_time']
+            self._adjust_time(row,'start' if _column==3 else 'end',offset)
 
 
     def _batch_fill(self, start_row, end_row):
@@ -472,8 +478,14 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             line_item = QTableWidgetItem(str(data['line']))
             line_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             line_item.setData(Qt.UserRole, row)
+            line_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
             self.table.setItem(row, 0, line_item)
-            
+
+            line_item = QTableWidgetItem(f'{data["startraw"]}->{data["endraw"]}')
+            line_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+            line_item.setData(Qt.UserRole, row)
+            self.table.setItem(row, 1, line_item)
+
             # 1: Play button
             btn = QPushButton("\u23F5")
             btn.setObjectName("playBtn")
@@ -481,26 +493,27 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             s = data['start_time']
             e = data['end_time']
             btn.clicked.connect(lambda checked=False, _s=s, _e=e, _r=row: self._listen(_r))
-            self.table.setCellWidget(row, 1, btn)
+            self.table.setCellWidget(row, 2, btn)
             
             # 2: Start
             start_item = QTableWidgetItem(f"{data['start_time']/1000.0}")
             start_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             start_item.setTextAlignment(Qt.AlignCenter)
-            # start_item.setToolTip(tr("Double-click: -0.1s | Right-click: adjust"))
-            self.table.setItem(row, 2, start_item)
+            start_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            self.table.setItem(row, 3, start_item)
             
             # 3: End
             end_item = QTableWidgetItem(f"{data['end_time']/1000.0}")
             end_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             end_item.setTextAlignment(Qt.AlignCenter)
-            # end_item.setToolTip(tr("Double-click: +0.1s | Right-click: adjust"))
-            self.table.setItem(row, 3, end_item)
+            end_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            self.table.setItem(row, 4, end_item)
             
             # 4: Status
             msg_item = QTableWidgetItem(data['_msg'])
             msg_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             msg_item.setTextAlignment(Qt.AlignCenter)
+            msg_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
             dubbing = float(data.get('dubbing_s', 0.0))
             diff=dubbing - float( data['_duration'])
             if dubbing <= 0:
@@ -511,12 +524,12 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
                 msg_item.setForeground(QColor("#ffffff"))
             else:
                 msg_item.setForeground(QColor("#66ff66"))
-            self.table.setItem(row, 4, msg_item)
+            self.table.setItem(row, 5, msg_item)
             
             # 5: Text (可编辑)
             text_item = QTableWidgetItem(data['text'])
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            self.table.setItem(row, 5, text_item)
+            self.table.setItem(row, 6, text_item)
         self.table.itemChanged.connect(self._text_change)
 
     def _load_remaining(self, start_row):
@@ -538,21 +551,15 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
                 if key in (Qt.Key_Left, Qt.Key_Right):
                     row = self.table.currentRow()
                     col = self.table.currentColumn()
-                    if row >= 0 and col in (2, 3):
+                    if row >= 0 and col in (3, 4):
                         offset = -100 if key == Qt.Key_Left else 100
-                        mode = 'start' if col == 2 else 'end'
+                        mode = 'start' if col == 3 else 'end'
                         self._adjust_time(row, mode, offset)
                         return True  # 拦截事件，阻止表格默认行为
         return super().eventFilter(obj, event)
 
     def _on_cell_double_clicked(self, row, col):
-        """单元格双击"""
-        # if col == 2:  # Start 列 - 减0.1秒
-        #     self._adjust_time(row, 'start', -100)
-        # elif col == 3:  # End 列 - 加0.1秒
-        #     self._adjust_time(row, 'end', 100)
-        # el
-        if col == 5:  # Text 列 - 编辑
+        if col == 6:  # Text 列 - 编辑
             self.table.editItem(self.table.item(row, col))
 
     def _show_context_menu(self, pos):
@@ -576,23 +583,23 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             }
         """)
         
-        if col == 2:  # Start 列
+        if col == 3:  # Start 列
             menu.addAction(tr("Start -0.1s"), lambda: self._adjust_time(row, 'start', -100))
             menu.addAction(tr("Start +0.1s"), lambda: self._adjust_time(row, 'start', 100))
             menu.addSeparator()
             menu.addAction(tr("Custom adjust..."), lambda: self._custom_adjust(row, 'start'))
             
-        elif col == 3:  # End 列
+        elif col == 4:  # End 列
             menu.addAction(tr("End -0.1s"), lambda: self._adjust_time(row, 'end', -100))
             menu.addAction(tr("End +0.1s"), lambda: self._adjust_time(row, 'end', 100))
             menu.addSeparator()
             menu.addAction(tr("Custom adjust..."), lambda: self._custom_adjust(row, 'end'))
             
-        elif col == 4:  # Status 列
+        elif col == 5:  # Status 列
             menu.addAction(tr("Trial dubbing"), lambda: self._listen(row))
             menu.addAction(tr("Re-dubbed"), lambda: self._redub(row))
             
-        elif col == 5:  # Text 列
+        elif col == 6:  # Text 列
             menu.addAction(tr("Trial dubbing"), lambda: self._listen(row))
             menu.addAction(tr("Re-dubbed"), lambda: self._redub(row))
             menu.addSeparator()
@@ -612,7 +619,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
 
     def _clear_text(self, row):
         """清空文本"""
-        text_item = self.table.item(row, 5)
+        text_item = self.table.item(row, 6)
         if text_item:
             text_item.setText("")
             self.queue_tts[row]['text'] = ""
@@ -686,12 +693,12 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         item = self.queue_tts[row]
         
         # 更新Start
-        start_item = self.table.item(row, 2)
+        start_item = self.table.item(row, 3)
         if start_item:
             start_item.setText(f"{item['start_time']/1000.0}")
         
         # 更新End
-        end_item = self.table.item(row, 3)
+        end_item = self.table.item(row, 4)
         if end_item:
             end_item.setText(f"{item['end_time']/1000.0}")
         
@@ -709,7 +716,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             else:
                 msg = f'{dubbing}s'
         
-        msg_item = self.table.item(row, 4)
+        msg_item = self.table.item(row, 5)
         if msg_item:
             msg_item.setText(str(msg))
             if dubbing <= 0:
@@ -899,7 +906,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         self._refresh_row(row,msg=f'{tr("Re-dubbed")}...')
         
         # 获取当前文本
-        text_item = self.table.item(row, 5)
+        text_item = self.table.item(row, 6)
         current_text = text_item.text() if text_item else self.queue_tts[row]['text']
         
         # 准备TTS参数
@@ -1030,13 +1037,13 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         app_cfg.onlyone_align_sub_audio=self.align_sub_audio.isChecked()
         srt_str_list=[]
         for i, item in enumerate(self.queue_tts):
-            start_time = self.table.item(i, 2)
+            start_time = self.table.item(i, 3)
             if not start_time:continue
-            end_time = self.table.item(i, 3)
+            end_time = self.table.item(i, 4)
             start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
             end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))
             # 不修改文本，以便可以单独使用 各种配音渠道支持的控制符号进行声音微调
-            text_item = self.table.item(i, 5)
+            text_item = self.table.item(i, 6)
             text = text_item.text().strip() if text_item else item['text'].strip()
             # 删除空文本对应的音频文件
             if not text:

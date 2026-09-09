@@ -76,22 +76,18 @@ class EditRecognResultDialog(QDialog,DanspMixin):
         search_replace_layout.addStretch()
         main_layout.addLayout(search_replace_layout)
 
-        # ===================== Splitter: video (top) + subtitles (bottom) =====================
         self.splitter = QSplitter(Qt.Vertical)
         self.splitter.setHandleWidth(6)
 
-        # --- Top area: video display (players created lazily on first play) ---
         self.video_widget = QVideoWidget()
         self.video_widget.setStyleSheet("background-color: #1a1a1a;")
         self.video_widget.setMinimumHeight(150)
 
-        # Hint label over video area
         self.video_hint = QLabel(tr("Click on a subtitle below to play video"))
         self.video_hint.setStyleSheet("color:#ffcc00;  background-color:transparent;")
         self.video_hint.setAlignment(Qt.AlignCenter)
         self.video_hint.setAttribute(Qt.WA_TransparentForMouseEvents)
 
-        # Status label above video
         self.video_status = QLabel("")
         self.video_status.setStyleSheet("color:#aaaaaa; font-size:12px;")
 
@@ -313,9 +309,14 @@ class EditRecognResultDialog(QDialog,DanspMixin):
     def load_table(self):
         try:
             self.srt_list_dict=get_subtitle_from_srt(self.source_sub)
-            self.table.setColumnCount(5)
+            self.table.setColumnCount(6)
             self.table.setHorizontalHeaderLabels([
-                tr("Line"), '\u270D'+tr("Start Time")+'/s', '\u270D'+tr("End Time")+'/s','\u23F5', '\u270D'+tr("Subtitle Text")
+                tr("Line"),
+                tr("Time Axis"),
+                '\u270D'+tr("Start Time")+'/s',
+                '\u270D'+tr("End Time")+'/s',
+                '\u23F5',
+                '\u270D'+tr("Subtitle Text")
             ])
 
             self.table.setShowGrid(False)
@@ -333,14 +334,16 @@ class EditRecognResultDialog(QDialog,DanspMixin):
             h_header = self.table.horizontalHeader()
             h_header.setStretchLastSection(True)
             h_header.setSectionResizeMode(0, QHeaderView.Fixed)
-            h_header.setSectionResizeMode(1, QHeaderView.Fixed)
-            h_header.setSectionResizeMode(2, QHeaderView.Fixed)
-            h_header.setSectionResizeMode(3, QHeaderView.Fixed)
+            h_header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            h_header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+            h_header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+            h_header.setSectionResizeMode(4, QHeaderView.Fixed)
 
-            self.table.setColumnWidth(0, 120)
-            self.table.setColumnWidth(1, 120)
-            self.table.setColumnWidth(2, 120)
-            self.table.setColumnWidth(3, 30)
+            self.table.setColumnWidth(0, 50)
+            self.table.setColumnWidth(1, 100)
+            self.table.setColumnWidth(2, 100)
+            self.table.setColumnWidth(3, 100)
+            self.table.setColumnWidth(4, 30)
 
             self.table.setStyleSheet(self.table_style_css)
 
@@ -365,7 +368,6 @@ class EditRecognResultDialog(QDialog,DanspMixin):
             # Render all rows via timers — never block the UI
             QTimer.singleShot(0, lambda: self._load_remaining(0))
 
-            # Media is loaded lazily on first play-button click — no preload
 
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.update_countdown)
@@ -386,18 +388,26 @@ class EditRecognResultDialog(QDialog,DanspMixin):
             data = self.display_data[row]
 
             # 0: Line
-            item0 = QTableWidgetItem(str(data['line'])+f' ({(data["end_time"]-data["start_time"])/1000.0}s)')
+            item0 = QTableWidgetItem(str(data['line']))
             item0.setFlags(Qt.ItemIsEnabled)
+            item0.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
             self.table.setItem(row, 0, item0)
+
+            item0 = QTableWidgetItem(f'{data["startraw"]}->{data["endraw"]} ({(data["end_time"]-data["start_time"])/1000.0}s)')
+            item0.setFlags(Qt.ItemIsEnabled)
+            self.table.setItem(row, 1, item0)
+
 
             # 1: Time
             item1 = QTableWidgetItem(str(int(data['start_time'])/1000.0))
             item1.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            self.table.setItem(row, 1, item1)
+            item1.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            self.table.setItem(row, 2, item1)
 
             item2 = QTableWidgetItem(str(int(data['end_time'])/1000.0))
             item2.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            self.table.setItem(row, 2, item2)
+            item2.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            self.table.setItem(row, 3, item2)
 
             # 2: Play button
             btn = QPushButton("\u23F5")
@@ -406,12 +416,12 @@ class EditRecognResultDialog(QDialog,DanspMixin):
             s = data['start_time']
             e = data['end_time']
             btn.clicked.connect(lambda checked=False, _s=s, _e=e: self._play_segment(_s, _e))
-            self.table.setCellWidget(row, 3, btn)
+            self.table.setCellWidget(row, 4, btn)
 
             # 3: Text (editable)
             item3 = QTableWidgetItem(data['text'])
             item3.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            self.table.setItem(row, 4, item3)
+            self.table.setItem(row, 5, item3)
 
     def _load_remaining(self, start_row):
         total = len(self.display_data)
@@ -454,7 +464,7 @@ class EditRecognResultDialog(QDialog,DanspMixin):
             if search_text in data['text']:
                 new_text = data['text'].replace(search_text, replace_text)
                 data['text'] = new_text
-                item = self.table.item(i, 3)
+                item = self.table.item(i, 5)
                 if item:
                     item.setText(new_text)
         self.table.setUpdatesEnabled(True)
@@ -475,9 +485,9 @@ class EditRecognResultDialog(QDialog,DanspMixin):
         self.save_button.setDisabled(True)
         srt_str_list = []
         for i, data in enumerate(self.display_data):
-            start_time = self.table.item(i, 1)
-            end_time = self.table.item(i, 2)
-            item = self.table.item(i, 4)
+            start_time = self.table.item(i, 2)
+            end_time = self.table.item(i, 3)
+            item = self.table.item(i, 5)
             if not start_time:continue
             start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
             end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))

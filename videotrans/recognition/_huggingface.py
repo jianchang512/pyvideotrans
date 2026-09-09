@@ -22,7 +22,6 @@ class HuggingfaceRecogn(BaseRecogn):
         super().__post_init__()
         self.local_dir = f'{ROOT_DIR}/models/models--' + self.model_name.replace('/', '--')
         self.signal(text=f"use {self.model_name}")
-        self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
 
     def _download(self):
         check_and_down_hf(self.model_name,self.model_name,self.local_dir,callback=self._process_callback)

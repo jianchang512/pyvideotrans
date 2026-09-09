@@ -687,7 +687,7 @@
   "will be automatically identified as the speaker": "Prefixes formatted like [Speaker] or [speaker2] are automatically recognized as speaker tags and stripped during TTS.",
   "Subtitle Text": "Subtitle Text (Double-click to edit)",
   "SourceLang Text": "Original Subtitle",
-  "Time Axis": "Timecode",
+  "Time Axis": "TimeAxis",
   "Line": "Line",
   "Dubbed Status": "TTS Duration",
   "If not specified separately": "Uses default main-window voice if left unspecified",
