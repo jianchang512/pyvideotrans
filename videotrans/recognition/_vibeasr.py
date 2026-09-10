@@ -64,8 +64,8 @@ class VibeasrRecogn(BaseRecogn):
     def _cut(self,cut_audio_list_file):
         audio = AudioSegment.from_wav(self.audio_file)
         _len=len(audio)
-        _min_segments=20000#最小20s
-        _max_segments=60000#最大60s
+        _min_segments=3000#最小20s
+        _max_segments=10000#最大60s
         if _len<=_max_segments:
             _endraw=ms_to_time_string(ms=_len)
             Path(cut_audio_list_file).write_text(json.dumps([

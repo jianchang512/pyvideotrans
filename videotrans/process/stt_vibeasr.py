@@ -25,7 +25,6 @@ def videasr_fun(
     from videotrans.task.taskcfg import SrtItem
     from videotrans.process._stt_utils import _write_log
     import torch
-    #from transformers import pipeline
     from videotrans.util._srt_parse import ms_to_time_string
     from transformers import AutoProcessor, VibeVoiceAsrForConditionalGeneration,BitsAndBytesConfig
 
@@ -34,11 +33,10 @@ def videasr_fun(
     try:
 
         # 8位量化，避免爆显存
-        quant= BitsAndBytesConfig( load_in_8bit=True ) if torch.cuda.is_available() else None
-        #pipe = pipeline("any-to-any", model=local_dir, device_map=kw.get('device_name', 'auto'),quantization_config=quant)
+        #quant= BitsAndBytesConfig( load_in_8bit=True ) if torch.cuda.is_available() else None
         
         processor = AutoProcessor.from_pretrained(local_dir)
-        model = VibeVoiceAsrForConditionalGeneration.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'),quantization_config=quant)
+        model = VibeVoiceAsrForConditionalGeneration.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'))
 
         
         
@@ -49,31 +47,17 @@ def videasr_fun(
         logger.debug(f'QwenASR:{local_dir}，{msg}，{detect_language=}')
 
         for i, it in enumerate(srts):
-            chat_template = [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "audio",
-                            "path": it['filename'],
-                        },
-                    ],
-                }
-            ]
-            if hotword:
-                chat_template[0]['content'].insert(0,{"type":"text","text":hotword})
             offset=it['start_time']
-            inputs = processor.apply_chat_template(
-                chat_template, 
-                #tokenize=True,    
-                #return_dict=True,
+            inputs = processor.apply_transcription_request(
+                audio=it['filename'], 
+                prompt=hotword
             ).to(model.device, model.dtype)
             output_ids = model.generate(**inputs)
             generated_ids = output_ids[:, inputs["input_ids"].shape[1] :]
 
-            #dict_output = pipe.processor.extract_speaker_dict(outputs[0]["generated_text"])
+
             dict_output = processor.decode(generated_ids, return_format="parsed")[0]
-            
+            print(f'{dict_output=}')
             for item in dict_output:
                 print(f'{item=}')
                 _s=offset+int(float(item['Start'])*1000)
