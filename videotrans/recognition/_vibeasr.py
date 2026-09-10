@@ -43,9 +43,6 @@ class VibeasrRecogn(BaseRecogn):
 
         self._cut(cut_audio_list_file)
 
-        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
-        # 最长片段不得大于25s,并且不得小于 _min_speech
-        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000), _min_speech + 1000)
 
         kwargs = {
             "cut_audio_list": cut_audio_list_file,
@@ -53,8 +50,6 @@ class VibeasrRecogn(BaseRecogn):
             "model_name": self.model_name,
             "local_dir":self.local_dir,
             "hotword":settings.get('hotwords'),
-            "min_speech_ms":_min_speech,
-            "max_speech_ms":_max_speech,
             "detect_language":self.detect_language
         }
         from videotrans.process.stt_vibeasr import videasr_fun
@@ -64,8 +59,9 @@ class VibeasrRecogn(BaseRecogn):
     def _cut(self,cut_audio_list_file):
         audio = AudioSegment.from_wav(self.audio_file)
         _len=len(audio)
-        _min_segments=3000#最小20s
-        _max_segments=10000#最大60s
+        # 不使用 VibeVoice-ASR 内部自动断句，因中文下会生成十几秒到几十秒的超长断句
+        _min_segments=3000#最小3s
+        _max_segments=6000#最大10s
         if _len<=_max_segments:
             _endraw=ms_to_time_string(ms=_len)
             Path(cut_audio_list_file).write_text(json.dumps([
@@ -82,12 +78,12 @@ class VibeasrRecogn(BaseRecogn):
             ]), encoding='utf-8')
             return
 
-        # 针对大于10分钟的视频，重新进行切割
+
         dir_name = f"{config.TEMP_DIR}/clip_{time.time()}"
         Path(dir_name).mkdir(parents=True, exist_ok=True)
         kw = {
             "input_wav": self.audio_file,
-            "threshold": 0.45,
+            "threshold": float(settings.get('threshold', 0.45)),
             "min_speech_duration_ms": _min_segments,
             "max_speech_duration_ms": _max_segments,
             "min_silent_duration_ms": 2000

@@ -77,7 +77,9 @@ def openwin():
         winobj.shibie_language.setDisabled(state)
         winobj.is_cuda.setDisabled(state)
         winobj.shibie_recogn_type.setDisabled(state)
-        winobj.shibie_model.setDisabled(state)
+        _recogn_type=winobj.shibie_recogn_type.currentIndex()
+        winobj.shibie_model.setDisabled(True if not state or _recogn_type not in recognition.ALLOW_CHANGE_MODEL else False)
+        
         winobj.out_format.setDisabled(state)
         winobj.shibie_opendir.setDisabled(state)
         winobj.shibie_startbtn.setDisabled(state)

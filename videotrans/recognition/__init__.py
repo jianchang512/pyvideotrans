@@ -18,30 +18,31 @@ DOLPHIN=6
 Omnilingual=7
 HUGGINGFACE_ASR = 8
 MOSS_DIARIZE=9
-Whisper_CPP = 10
+VIBEVOICE_ASR = 10
+Whisper_CPP = 11
 
-OPENAI_API = 11
-QWEN3ASR = 12
-XIAOMIASR = 13
-ZIJIE_RECOGN_MODEL = 14
-ZHIPU_API = 15
+OPENAI_API = 12
+QWEN3ASR = 13
+XIAOMIASR = 14
+ZIJIE_RECOGN_MODEL = 15
+ZHIPU_API = 16
 
-GEMINI_SPEECH = 16
+GEMINI_SPEECH = 17
 
-Faster_Whisper_XXL = 17
-WHISPERX_API = 18
-PARAKEET = 19
+Faster_Whisper_XXL = 18
+WHISPERX_API = 19
+PARAKEET = 20
 
-AI_302 = 20
-ElevenLabs = 21
-GOOGLE_SPEECH = 22
+AI_302 = 21
+ElevenLabs = 22
+GOOGLE_SPEECH = 23
 
-Deepgram = 23
-CAMB_ASR = 24
-STT_API = 25
-WHISPER_NET = 26
-CUSTOM_API = 27
-VIBEVOICE_ASR = 28
+Deepgram = 24
+CAMB_ASR = 25
+STT_API = 26
+WHISPER_NET = 27
+CUSTOM_API = 28
+
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [
@@ -64,6 +65,7 @@ _ID_NAME_DICT = {
     Omnilingual: ChannelProvider(f"{tr('Omnilingual')}({tr('Built-in')})", imp="._omnilingual"),
     HUGGINGFACE_ASR: ChannelProvider(f"Huggingface_ASR({tr('Built-in')})", imp="._huggingface"),
     MOSS_DIARIZE: ChannelProvider(f"MOSS-Diarize({tr('Built-in')})", imp="._moss"),
+    VIBEVOICE_ASR: ChannelProvider(f'{tr("VibeVoice-ASR")}({tr("Built-in")})', imp="._vibeasr"),
     Whisper_CPP: ChannelProvider(f"Whisper.cpp(Win{tr('Built-in')})", imp="._cpp"),
 
 
@@ -91,7 +93,7 @@ _ID_NAME_DICT = {
     STT_API: ChannelProvider(f"STT({tr('Local')}API)", key_name="stt_url", win="sttapi", imp="._stt"),
     WHISPER_NET: ChannelProvider("Whisper.NET", imp="._whispernet"),
     CUSTOM_API: ChannelProvider(tr("Custom API"), key_name="recognapi_url", win="recognapi", imp="._recognapi"),
-    VIBEVOICE_ASR: ChannelProvider(tr("VibeVoice-ASR"), imp="._vibeasr"),
+    
 }
 # 强制保持按照每个常量值大小排序
 _ID_NAME_DICT=dict(sorted(_ID_NAME_DICT.items(),key=lambda item:item[0]))

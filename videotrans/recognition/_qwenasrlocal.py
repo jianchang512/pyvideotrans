@@ -111,7 +111,7 @@ class QwenasrlocalRecogn(BaseRecogn):
         Path(dir_name).mkdir(parents=True, exist_ok=True)
         kw = {
             "input_wav": self.audio_file,
-            "threshold": 0.45,
+            "threshold": float(settings.get('threshold', 0.45)),
             "min_speech_duration_ms": _min_segments,
             "max_speech_duration_ms": _max_segments,
             "min_silent_duration_ms": 2000

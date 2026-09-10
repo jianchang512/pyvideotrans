@@ -1,7 +1,7 @@
 import platform
 
 from videotrans.configure.config import tr, defaulelang
-
+from videotrans.recognition import ALLOW_CHANGE_MODEL
 
 class WinActionBaseModeMixin:
 
@@ -181,7 +181,9 @@ class WinActionBaseModeMixin:
         self.main.source_language.setDisabled(type)
         self.main.target_language.setDisabled(type)
         self.main.tts_type.setDisabled(type)
-        self.main.model_name.setDisabled(type)
+        
+        _recogn_type=self.main.recogn_type.currentIndex()
+        self.main.model_name.setDisabled(True if not type or _recogn_type not in ALLOW_CHANGE_MODEL else False)
         self.main.subtitle_type.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
         self.main.recogn_type.setDisabled(type)

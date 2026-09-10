@@ -12,7 +12,7 @@ def get_speech_timestamp_silero(input_wav,
                                 threshold=0.45,
                                 min_speech_duration_ms=3000,
                                 max_speech_duration_ms=5000,
-                                min_silent_duration_ms=300,
+                                min_silent_duration_ms=600,
                                 speech_pad_ms=0,
                                 max_merge_gap_ms=800,  #两次说话间隔<800ms且总长不超限时，自动粘合
                                 **kw):
@@ -118,7 +118,7 @@ def get_speech_timestamp(
     threshold=0.45,
     max_speech_duration_ms=5000,  # 目标最大片段长度 (建议8~12s)
     min_speech_duration_ms=3000,  # 目标最大片段长度 (建议8~12s)
-    min_silent_duration_ms=300,  # VAD停顿判定阈值 (300ms)
+    min_silent_duration_ms=600,  # VAD停顿判定阈值 (300ms)
     speech_pad_ms=0,  # 不在此处补白，避免时间戳错乱
     max_merge_gap_ms=800,  # 核心：停顿<=800ms一律视为同一句，直接合并
     min_isolated_duration_ms=140,  # 剔除孤立无援的超短噪点(<150ms)

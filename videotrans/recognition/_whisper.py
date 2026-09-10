@@ -100,7 +100,7 @@ class FasterAll(BaseRecogn):
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
             "no_speech_threshold": float(settings.get('no_speech_threshold', 0.6)),
-            "threshold":float(settings.get('threshold', 0.5)),
+            "threshold":float(settings.get('threshold', 0.45)),
             "condition_on_previous_text": settings.get('condition_on_previous_text', False),
             "audio_file": self.audio_file,
             "local_dir": self.local_dir,
