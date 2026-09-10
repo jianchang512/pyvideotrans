@@ -33,7 +33,7 @@ def higgs_fun(
         trust_remote_code=True,
         quantization_config=quant_config,
         device_map=kw.get('device_name','auto'),
-        dtype='auto',  # torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
+        dtype='auto', 
     ).eval()
 
     logger.debug(f'higgs_tts本地内置渠道，running on {model.device}')

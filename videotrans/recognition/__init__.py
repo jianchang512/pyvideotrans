@@ -41,6 +41,7 @@ CAMB_ASR = 24
 STT_API = 25
 WHISPER_NET = 26
 CUSTOM_API = 27
+VIBEVOICE_ASR = 28
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [
@@ -90,6 +91,7 @@ _ID_NAME_DICT = {
     STT_API: ChannelProvider(f"STT({tr('Local')}API)", key_name="stt_url", win="sttapi", imp="._stt"),
     WHISPER_NET: ChannelProvider("Whisper.NET", imp="._whispernet"),
     CUSTOM_API: ChannelProvider(tr("Custom API"), key_name="recognapi_url", win="recognapi", imp="._recognapi"),
+    VIBEVOICE_ASR: ChannelProvider(tr("VibeVoice-ASR"), imp="._vibeasr"),
 }
 # 强制保持按照每个常量值大小排序
 _ID_NAME_DICT=dict(sorted(_ID_NAME_DICT.items(),key=lambda item:item[0]))

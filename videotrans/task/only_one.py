@@ -171,7 +171,9 @@ class Worker(QThread):
             except_msg = get_msg_from_except(e)
             msg=f"{except_msg}\n{traceback.format_exc()}\n"
             if trk:
-                msg+=f'cfg={trk.cfg}'
+                video_duration_ms=trk.video_info.get('time')
+                
+                msg+=f'cfg={trk.cfg}'+(f'\n{video_duration_ms=}' if video_duration_ms else '')
             self._post(text=msg, type='error')
         finally:
             app_cfg.onlyone_importsrtfile=None

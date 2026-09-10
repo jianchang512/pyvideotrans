@@ -14,56 +14,34 @@ from videotrans.process.vad import get_speech_timestamp_silero
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util._srt_parse import ms_to_time_string
-from videotrans.util.help_down import check_and_down_ms, check_and_down_hf
-from videotrans.util.help_misc import is_connect_hf
+from videotrans.util.help_down import check_and_down_hf
 
 
 @dataclass
-class QwenasrlocalRecogn(BaseRecogn):
-
-    align_language:List[str]=("zh","zh-cn","zh-tw","en","ja",'ko','yue','fr','es','es-419','it','de','pt','pt-br','pt-pt','ru')
+class VibeasrRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        if self.model_name not in ['1.7B','0.6B']:
-            self.model_name='0.6B'
-        self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}-hf'
-        self._repid=f'Qwen/Qwen3-ASR-{self.model_name}-hf'
+        self.model_name='microsoft/VibeVoice-ASR-HF'
+        self.local_dir=f'{ROOT_DIR}/models/models--microsoft--VibeVoice-ASR-HF'
+        self._repid=f'microsoft/VibeVoice-ASR-HF'
 
 
 
     def _download(self):
-        if Path(self.local_dir+'/model.safetensors').exists() and Path(f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf/model.safetensors").exists():
-            return
-        if not is_connect_hf():
-            check_and_down_ms(self._repid, callback=self._process_callback, local_dir=self.local_dir)
-            check_and_down_ms(
-                "Qwen/Qwen3-ForcedAligner-0.6B-hf", 
-                callback=self._process_callback, 
-                local_dir=f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf")
-        else:
-            check_and_down_hf(model_id=self._repid,
+        check_and_down_hf(model_id=self._repid,
                                     repo_id=self._repid,
                                     local_dir=self.local_dir,
                                     callback=self._process_callback)
-            check_and_down_hf(
-                "Qwen/Qwen3-ForcedAligner-0.6B-hf",
-                repo_id="Qwen/Qwen3-ForcedAligner-0.6B-hf", 
-                callback=self._process_callback, 
-                local_dir=f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf")
 
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
 
-        logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3asrlocal-{time.time()}.log'
-        title = f"Qwen3-ASR {self.model_name}"
+        logs_file = f'{config.TEMP_DIR}/{self.uuid}/vibeasr-{time.time()}.log'
+        title = f"VibeVoice-ASR {self.model_name}"
         cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
 
-        if self.detect_language not in self.align_language:
-            # 不支持对齐时间戳 需切片
-            Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]), encoding='utf-8')
-        else:
-            self._cut(cut_audio_list_file)
+        self._cut(cut_audio_list_file)
 
         _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
         # 最长片段不得大于25s,并且不得小于 _min_speech
@@ -74,22 +52,20 @@ class QwenasrlocalRecogn(BaseRecogn):
             "logs_file": logs_file,
             "model_name": self.model_name,
             "local_dir":self.local_dir,
-            "local_dir_align":f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf",
             "hotword":settings.get('hotwords'),
             "min_speech_ms":_min_speech,
             "max_speech_ms":_max_speech,
-            "force_align":self.detect_language in self.align_language,
-            "detect_language":self.detect_language if self.detect_language not in ['auto',"",None] else None
+            "detect_language":self.detect_language
         }
-        from videotrans.process.stt_qwen import qwen3asr_fun
-        jsdata = self._new_process(callback=qwen3asr_fun, title=title, is_cuda=self.is_cuda, kwargs=kwargs)
+        from videotrans.process.stt_vibeasr import videasr_fun
+        jsdata = self._new_process(callback=videasr_fun, title=title, is_cuda=self.is_cuda, kwargs=kwargs)
         return jsdata
 
     def _cut(self,cut_audio_list_file):
         audio = AudioSegment.from_wav(self.audio_file)
         _len=len(audio)
-        _min_segments=60000#最小1分钟
-        _max_segments=120000#最大2分钟，减少显存占用
+        _min_segments=20000#最小20s
+        _max_segments=60000#最大60s
         if _len<=_max_segments:
             _endraw=ms_to_time_string(ms=_len)
             Path(cut_audio_list_file).write_text(json.dumps([

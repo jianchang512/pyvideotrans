@@ -1440,22 +1440,6 @@ wheels = [
 ]
 
 [[package]]
-name = "flask"
-version = "3.0.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "blinker" },
-    { name = "click" },
-    { name = "itsdangerous" },
-    { name = "jinja2" },
-    { name = "werkzeug" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/41/e1/d104c83026f8d35dfd2c261df7d64738341067526406b40190bc063e829a/flask-3.0.3.tar.gz", hash = "sha256:ceb27b0af3823ea2737928a4d99d125a06175b8512c445cbd9a9ce200ef76842", size = 676315, upload-time = "2024-04-07T19:26:11.035Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/61/80/ffe1da13ad9300f87c93af113edd0638c75138c42a0994becfacac078c06/flask-3.0.3-py3-none-any.whl", hash = "sha256:34e815dfaa43340d1d15a5c3a02b8476004037eb4840b34910c6e21679d288f3", size = 101735, upload-time = "2024-04-07T19:26:08.569Z" },
-]
-
-[[package]]
 name = "flatbuffers"
 version = "25.9.23"
 source = { registry = "https://pypi.org/simple" }
@@ -4260,7 +4244,7 @@ wheels = [
 
 [[package]]
 name = "pyvideotrans"
-version = "4.11"
+version = "4.12"
 source = { virtual = "." }
 dependencies = [
     { name = "absl-py" },
@@ -4406,6 +4390,7 @@ dependencies = [
     { name = "msgpack" },
     { name = "multidict" },
     { name = "mypy-extensions" },
+    { name = "nagisa" },
     { name = "networkx" },
     { name = "norbert" },
     { name = "numba" },
@@ -4470,7 +4455,6 @@ dependencies = [
     { name = "pyyaml" },
     { name = "pyzstd" },
     { name = "qdarkstyle" },
-    { name = "qwen-asr-pvt" },
     { name = "qwen-tts-pvt" },
     { name = "regex" },
     { name = "requests", extra = ["socks"] },
@@ -4497,6 +4481,7 @@ dependencies = [
     { name = "sounddevice" },
     { name = "soundfile" },
     { name = "soxr" },
+    { name = "soynlp" },
     { name = "speechrecognition" },
     { name = "srt" },
     { name = "stack-data" },
@@ -4695,6 +4680,7 @@ requires-dist = [
     { name = "msgpack", specifier = "==1.1.1" },
     { name = "multidict", specifier = ">=6.7" },
     { name = "mypy-extensions", specifier = "==1.0.0" },
+    { name = "nagisa", specifier = "==0.2.11" },
     { name = "networkx", specifier = "==3.2" },
     { name = "norbert", specifier = "==0.2.1" },
     { name = "numba", specifier = "==0.61.2" },
@@ -4759,7 +4745,6 @@ requires-dist = [
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "pyzstd", specifier = "==0.16.1" },
     { name = "qdarkstyle", specifier = "==3.2.3" },
-    { name = "qwen-asr-pvt" },
     { name = "qwen-tts-pvt" },
     { name = "regex" },
     { name = "requests", extras = ["socks"], specifier = "==2.32.5" },
@@ -4786,6 +4771,7 @@ requires-dist = [
     { name = "sounddevice", specifier = ">=0.5.3" },
     { name = "soundfile", specifier = "==0.13.1" },
     { name = "soxr", specifier = "==0.5.0.post1" },
+    { name = "soynlp", specifier = "==0.0.493" },
     { name = "speechrecognition", specifier = "==3.10.0" },
     { name = "srt", specifier = "==3.5.2" },
     { name = "stack-data", specifier = "==0.6.3" },
@@ -4924,44 +4910,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/70/01/392eba83c8e47b946b929d7c46e0f04b35e9671f8bb6fc36b6f7945b4de8/qtpy-2.4.3.tar.gz", hash = "sha256:db744f7832e6d3da90568ba6ccbca3ee2b3b4a890c3d6fbbc63142f6e4cdf5bb", size = 66982, upload-time = "2025-02-11T15:09:25.759Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/69/76/37c0ccd5ab968a6a438f9c623aeecc84c202ab2fabc6a8fd927580c15b5a/QtPy-2.4.3-py3-none-any.whl", hash = "sha256:72095afe13673e017946cc258b8d5da43314197b741ed2890e563cf384b51aa1", size = 95045, upload-time = "2025-02-11T15:09:24.162Z" },
-]
-
-[[package]]
-name = "qwen-asr-pvt"
-version = "0.0.6"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "accelerate" },
-    { name = "flask" },
-    { name = "gradio" },
-    { name = "librosa" },
-    { name = "nagisa" },
-    { name = "pytz" },
-    { name = "qwen-omni-utils" },
-    { name = "soundfile" },
-    { name = "sox" },
-    { name = "soynlp" },
-    { name = "transformers4576" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c7/23/94ae6d1a2d65adcba66c2f66f19d9b2e46f0c4dbb4d9676a4a045aae0f76/qwen_asr_pvt-0.0.6.tar.gz", hash = "sha256:885f9b72ca962aaa463721f28b65d30b9b990fbb37f8e41f62d155eb2eac8677", size = 147026, upload-time = "2026-07-06T03:14:35.178Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d3/0c/71fa07a4eb31e25c01190d4b0d9907906bc185cf335e0f3ba8dbfbea3163/qwen_asr_pvt-0.0.6-py3-none-any.whl", hash = "sha256:8ddc44f00d83320f9f9c5c8212822a320d0ae0346b57fb9b7d1bb9b0361ece40", size = 142170, upload-time = "2026-07-06T03:14:33.517Z" },
-]
-
-[[package]]
-name = "qwen-omni-utils"
-version = "0.0.9"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "av" },
-    { name = "librosa" },
-    { name = "packaging" },
-    { name = "pillow" },
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a2/27/81a51b10ef6d1a4f158498089530eb4307689d75adf6bd34f6632eda3099/qwen_omni_utils-0.0.9.tar.gz", hash = "sha256:c598269c7069afb4d154f8ea523972e8d8794a978fffed89cb4d87c326f97447", size = 8632, upload-time = "2026-02-10T09:45:30.538Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/a8/dfc07e5b9005decbd2f08ac564250775fea9526473ae1bc90fbf45e8036f/qwen_omni_utils-0.0.9-py3-none-any.whl", hash = "sha256:f111db07af669c83333411c5177131e18e831fe666d6a55a1af263952ada8939", size = 9657, upload-time = "2026-02-10T09:45:28.888Z" },
 ]
 
 [[package]]

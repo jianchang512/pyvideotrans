@@ -31,7 +31,7 @@ class VoxCPMTTS(GradioBase):
             kwargs['ref_wav'] = handle_file(ref_wav)
             kwargs['dit_steps'] = 10
             kwargs["cfg_value"] = 2.0
-            kwargs["seed_value"]=42
+            #kwargs["seed_value"]=42
             kwargs["prompt_text_value"] = ref_text
         elif _version == 'hf':
             kwargs['text_input'] = text

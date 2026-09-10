@@ -26,63 +26,44 @@ def qwen3asr_fun(
 ):
     import copyreg
     copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
-    from transformers4576 import BitsAndBytesConfig
-    from qwen_asr import Qwen3ASRModel
+
+
     from videotrans.task.taskcfg import SrtItem
     from videotrans.process._stt_utils import _write_log, _resegment
     import torch
 
+    from transformers import AutoProcessor, AutoModelForMultimodalLM,AutoModelForTokenClassification
+
     try:
         batch_size=2
         # 8位量化，避免爆显存
-        quant= BitsAndBytesConfig( load_in_8bit=True ) if torch.cuda.is_available() else None
         srts: List[SrtItem] = [SrtItem(**item) for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         if not force_align:
-            model = Qwen3ASRModel.from_pretrained(
-                local_dir,
-                dtype='auto',
-                device_map=kw.get('device_name', 'auto'),
-                max_inference_batch_size=batch_size,
-                max_new_tokens=4096,
-                quantization_config=quant,
-            )
-        else:
+            processor = AutoProcessor.from_pretrained(local_dir)
+            model = AutoModelForMultimodalLM.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'))
+            msg = f'Load {model_name} running on {model.device}'
+            _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+            logger.debug(f'QwenASR:{local_dir}，{msg}，{detect_language=}')
 
-
-            model = Qwen3ASRModel.from_pretrained(
-                local_dir,
-                dtype='auto',
-                device_map=kw.get('device_name', 'auto'),
-                max_inference_batch_size=batch_size,
-                max_new_tokens=80920,#80k
-                forced_aligner=local_dir_align,
-                quantization_config=quant,
-                forced_aligner_kwargs=dict(
-                    dtype='auto',
-                    device_map=kw.get('device_name', 'auto')
-                )
-            )
-
-        msg = f'Load {model_name} running on {model.device}'
-        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
-        logger.debug(f'QwenASR:{local_dir}，{msg}，{detect_language=}, 是否返回字级时间戳:{force_align}')
-
-        if not force_align:
             # 不返还时间戳数据
             srts_chunk = [srts[i:i + batch_size] for i in range(0, len(srts), batch_size)]
             for i, it_list in enumerate(srts_chunk):
-                results = model.transcribe(
-                    audio=[it['filename'] for it in it_list],
-                    language=[None for it in it_list],
-                    return_time_stamps=False,
-                    context=[hotword for it in it_list]
-                )
-                for j, it in enumerate(it_list):
-                    it['text'] = results[j].text
-                srts_chunk[i] = it_list
+                audio = [it['filename'] for it in it_list]
+                inputs = processor.apply_transcription_request(
+                    audio, language=[detect_language for it in audio],
+                ).to(model.device, model.dtype)
+
+                output_ids = model.generate(**inputs, max_new_tokens=256)
+                generated_ids = output_ids[:, inputs["input_ids"].shape[1]:]
+                transcriptions = processor.decode(generated_ids, return_format="transcription_only")
+                for i, text in enumerate(transcriptions):
+                    it_list[i]['text'] = text
+                
                 _write_log(logs_file, json.dumps({"type": "subtitle", "text": "\n".join([it['text'] for it in it_list])}))
 
             return srts, None
+            
+        
 
         # 需要返回时间戳
         texts = [{
@@ -92,29 +73,62 @@ def qwen3asr_fun(
             "words": []
         }]
         language = None
-        srts_chunk = [srts[i:i + batch_size] for i in range(0, len(srts), batch_size)]
-        for i, it_list in enumerate(srts_chunk):
-            results = model.transcribe(
-                audio=[it['filename'] for it in it_list],
-                language=[None for it in it_list],
-                return_time_stamps=True,
-                context=[hotword for it in it_list]
-            )
-            if not language:
-                language = results[0].language
-            for j,it in enumerate(it_list):
-                timestamps = results[j].time_stamps.items
-                offset = it['start_time'] / 1000.0
-                if i == 0 and j==0:
-                    texts[0]['start'] = timestamps[0].start_time + offset
-                for item in timestamps:
-                    texts[0]['words'].append({"word": item.text, "start": item.start_time + offset, "end": item.end_time + offset})
-                _write_log(logs_file, json.dumps({"type": "subtitle", "text":"\n".join(re.split(r'[,.?!，。？！]',results[j].text)) +"\n" }))
-                if i == len(srts_chunk) - 1 and j==len(it_list)-1:
-                    texts[0]['end'] = timestamps[-1].end_time + offset
+        asr_processor = AutoProcessor.from_pretrained(local_dir)
+        asr_model = AutoModelForMultimodalLM.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'))
 
-        srts = _resegment(texts, "zh" if language in ["Chinese", "Cantonese", "Japanese", "Korean"] else 'en',
-                          max_speech_ms, min_speech_ms, logs_file)
+        aligner_processor = AutoProcessor.from_pretrained(local_dir_align)
+        aligner_model = AutoModelForTokenClassification.from_pretrained(
+    local_dir_align, dtype='auto', device_map=kw.get('device_name', 'auto'))
+        msg = f'Load {model_name} running on {asr_model.device}'
+        _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
+        logger.debug(f'QwenASR:{local_dir}，{msg}，{detect_language=}, {force_align=}')
+ 
+
+        for i, it in enumerate(srts):
+            inputs = asr_processor.apply_transcription_request(audio=it['filename'],language=detect_language)
+            inputs = inputs.to(asr_model.device, asr_model.dtype)
+            output_ids = asr_model.generate(**inputs, max_new_tokens=1024)
+            generated_ids = output_ids[:, inputs["input_ids"].shape[1]:]
+            parsed = asr_processor.decode(generated_ids, return_format="parsed")[0]
+            transcript = parsed["transcription"]
+            language = parsed["language"] or "English"
+            # Step 2: Prepare alignment inputs
+            aligner_inputs, word_lists = aligner_processor.prepare_forced_aligner_inputs(
+                audio=it['filename'], 
+                transcript=transcript, 
+                language=language,
+            )
+            aligner_inputs = aligner_inputs.to(aligner_model.device, aligner_model.dtype)
+            # Step 3: Run forced aligner
+            with torch.inference_mode():
+                outputs = aligner_model(**aligner_inputs)
+            # Step 4: Decode timestamps
+            timestamps = aligner_processor.decode_forced_alignment(
+                logits=outputs.logits,
+                input_ids=aligner_inputs["input_ids"],
+                word_lists=word_lists,
+                timestamp_token_id=aligner_model.config.timestamp_token_id,
+            )[0]
+
+                    
+            offset = it['start_time'] / 1000.0
+
+            if i == 0:
+                texts[0]['start'] = float(timestamps[0]['start_time']) + offset
+
+            for item in timestamps:
+                texts[0]['words'].append({
+                    "word": item['text'], 
+                    "start": float(item['start_time']) + offset, 
+                    "end": float(item['end_time']) + offset
+                })
+                
+            _write_log(logs_file, json.dumps({"type": "subtitle", "text":transcript[:90]+"..." }))
+            
+            if i == len(srts) - 1:
+                texts[0]['end'] = float(timestamps[-1]['end_time']) + offset
+
+        srts = _resegment(texts, "zh" if language in ["Chinese", "Cantonese", "Japanese", "Korean"] else 'en', max_speech_ms, min_speech_ms, logs_file)
         return srts, None
     except BaseException as e:
         msg = traceback.format_exc()

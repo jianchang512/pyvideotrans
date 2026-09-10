@@ -130,5 +130,5 @@ class TransCreate(
         if app_cfg.exec_mode != 'cli':
             threading.Thread(target=runing, daemon=True).start()
 
-    def __repr__(self):
-        return f'[TransCreate]翻译视频: {self.is_copy_video=},{self.video_codec_num=},{self.is_audio_trans=},{self.video_info=}\n{self.cfg}'
+    def __repr__(self):        
+        return f'[TransCreate]: {self.is_copy_video=},{self.video_codec_num=},{self.video_info=},{self.is_audio_trans=}\n{self.cfg=}' 
