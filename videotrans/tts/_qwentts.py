@@ -24,7 +24,8 @@ class QWENTTS(BaseTTS):
         super().__post_init__()
         self.role_dict=get_qwen3tts_rolelist()
         self.api_key=params.get('qwentts_key', '')
-        spaceid=params.get('qwentts_spaceid', '')
+        spaceid=params.get('qwentts_spaceid', '').strip()
+
         if spaceid and not spaceid.startswith('http'):
             dashscope.base_http_api_url = f'https://{spaceid}.cn-beijing.maas.aliyuncs.com/api/v1'
         elif spaceid and spaceid.startswith('http'):

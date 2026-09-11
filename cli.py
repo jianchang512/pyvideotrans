@@ -25,6 +25,8 @@ from multiprocessing import freeze_support
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import torch.cuda
+
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
@@ -443,7 +445,7 @@ def build_stt_params(args: argparse.Namespace) -> dict:
         "recogn_type": args.recogn_type,
         "detect_language": args.source_language_code or args.detect_language,
         "model_name": args.model_name,
-        "is_cuda": args.cuda,
+        "is_cuda": args.cuda if args.cuda and torch.cuda.is_available() else False,
         "remove_noise": args.remove_noise,
         "enable_diariz": args.enable_diariz,
         "nums_diariz": args.nums_diariz,
@@ -460,7 +462,7 @@ def build_tts_params(args: argparse.Namespace) -> dict:
         "voice_rate": args.voice_rate,
         "volume": args.volume,
         "pitch": args.pitch,
-        "is_cuda": args.cuda,
+        "is_cuda": args.cuda if args.cuda and torch.cuda.is_available() else False,
         "voice_autorate": args.voice_autorate,
         "align_sub_audio": args.align_sub_audio,
         "target_language_code": args.target_language_code,
@@ -484,7 +486,7 @@ def build_vtv_params(args: argparse.Namespace) -> dict:
         **build_stt_params(args),
         **{k: v for k, v in build_tts_params(args).items()
            if k not in ('target_language_code', 'is_cuda')},
-        "is_cuda": args.cuda,
+        "is_cuda": args.cuda if args.cuda and torch.cuda.is_available() else False,
         "translate_type": args.translate_type,
         "is_separate": args.is_separate,
         "recogn2pass": args.recogn2pass,

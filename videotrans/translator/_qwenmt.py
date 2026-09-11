@@ -17,10 +17,10 @@ class QwenMT(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-        spaceid=params.get('qwenmt_spaceid', '')
+        spaceid=params.get('qwenmt_spaceid', '').strip()
 
         self.prompt=self._set_context()
-        
+        self.api_url = 'https://dashscope.aliyuncs.com/api/v1'
         if spaceid and  not spaceid.startswith('http'):
             self.api_url = f'https://{spaceid}.cn-beijing.maas.aliyuncs.com/api/v1'
         elif spaceid and spaceid.startswith('http'):

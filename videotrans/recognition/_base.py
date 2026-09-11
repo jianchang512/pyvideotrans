@@ -58,19 +58,21 @@ class BaseRecogn(BaseCon):
     # 当前需进行的是否是二次识别
     recogn2pass: bool = False
     # 每次识别后等待时间，用于在线API，防止超频
-    asr_wait: float = float(settings.get('asr_wait', 0))
+    asr_wait: Optional[float] = None
     # 本地模型存放目录
     local_dir: str = None
 
     def __post_init__(self):
         super().__post_init__()
         self.device = 'cuda' if self.is_cuda else 'cpu'
+        if self.asr_wait is None:
+            self.asr_wait = float(settings.get('asr_wait', 0) or 0)
         # 常见标点
-        self.flag = contants.PUNC_FLAGS
+        self.flag = list(contants.PUNC_FLAGS)
         # 逗号等软性标点
-        self.half_flag = contants.PUNC_FLAGS_HALF
+        self.half_flag = list(contants.PUNC_FLAGS_HALF)
         # 句子终止标点
-        self.end_flag = contants.PUNC_FLAGS_END
+        self.end_flag = list(contants.PUNC_FLAGS_END)
         # 连接字符 中日韩粤语高棉语泰国语 直接连接，无需空格，其他语言空格连接
         self.join_word_flag = " "
         # 是中日韩文字

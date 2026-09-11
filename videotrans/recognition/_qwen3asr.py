@@ -19,7 +19,9 @@ from videotrans.task.taskcfg import SrtItem
 class Qwen3ASRRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
-        spaceid=params.get('qwenmt_spaceid', '')
+        spaceid=params.get('qwenmt_spaceid', '').strip()
+        # 未填写业务空间ID时使用百炼默认地址，否则 api_url 为空字符串，请求地址无协议头导致报错
+        self.api_url = 'https://dashscope.aliyuncs.com/api/v1'
         if spaceid and  not spaceid.startswith('http'):
             self.api_url = f'https://{spaceid}.cn-beijing.maas.aliyuncs.com/api/v1'
         elif spaceid and spaceid.startswith('http'):
@@ -62,7 +64,7 @@ class Qwen3ASRRecogn(BaseRecogn):
             if not hasattr(response, 'output') or not hasattr(response.output, 'choices') or not response.output.choices:
                 error=f'{response.code}:{response.message}'
                 continue
-                
+
             ok_nums+=1
             txt=''
             for t in response.output.choices[0]['message']['content']:
@@ -71,12 +73,12 @@ class Qwen3ASRRecogn(BaseRecogn):
             self.signal(text=f"{txt}\n",type="subtitle")
             if self.asr_wait>0:
                 time.sleep(self.asr_wait)
-            
+
         if ok_nums==0:
             raise SpeechToTextError(error)
         return self.raws
 
- 
+
     # 针对 qwen-audio-3.0-asr-flash 和 fun-asr-flash-2026-06-15
     def _audio_funasr_flash(self,api_key,model):
         if self._exit(): return
@@ -121,8 +123,19 @@ class Qwen3ASRRecogn(BaseRecogn):
             }
 
 
-            response = requests.post(self.api_url, headers=headers, json=payload,verify=False,proxies={"https":"","http":""})
-            if response.status_code in [400,401,403,404,422]:
+            try:
+                # 带 API Key 访问公网，保持证书校验
+                response = requests.post(self.api_url, headers=headers, json=payload, timeout=(30, 300), proxies={"https":"","http":""})
+            except requests.exceptions.RequestException as e:
+                error=str(e)
+                continue
+            if response.status_code in [401,403,404]:
+                raise StopTask(response.text)
+            if response.status_code in [400,422]:
+                # 单个片段被内容审核拦截时跳过该片段，其他参数错误仍中止任务
+                if 'DataInspectionFailed' in response.text:
+                    error=response.text
+                    continue
                 raise StopTask(response.text)
             if response.status_code!=200:
                 error=response.text

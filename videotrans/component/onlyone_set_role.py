@@ -380,40 +380,42 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             chk_item = QTableWidgetItem()
             chk_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
             chk_item.setCheckState(Qt.Unchecked)
+            chk_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 0, chk_item)
             
             # 第1列：ID（只读）
             id_item = QTableWidgetItem(str(data['line']))
             id_item.setFlags(Qt.ItemIsEnabled)
-            id_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            id_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 1, id_item)
 
             id_item = QTableWidgetItem(f'{data["startraw"]}->{data["endraw"]} ({(data["end_time"]-data["start_time"])/1000.0}s)' )
             id_item.setFlags(Qt.ItemIsEnabled)
+            id_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 2, id_item)
 
             # 第2列：Speaker 
             spk_item = QTableWidgetItem(data['spk'])
             spk_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            spk_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            spk_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 3, spk_item)
             
             # 第3列：Role（只读，显示用）
             role_item = QTableWidgetItem(app_cfg.onlyone_voice_role)
             role_item.setFlags(Qt.ItemIsEnabled)
             role_item.setForeground(QColor("#ff4d4d"))
-            role_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            role_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 4, role_item)
             
             # 第4列：Time
             time_item = QTableWidgetItem( str(data['start_time']/1000.0 ))
             time_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            time_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            time_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 5, time_item)
 
             time_item2 = QTableWidgetItem(str(data['end_time']/1000.0 ))
             time_item2.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            time_item2.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            time_item2.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 6, time_item2)
 
             # 第5列：Play button
@@ -428,10 +430,12 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             # 第6列：Text（可编辑）
             text_item = QTableWidgetItem(data['text'])
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+            text_item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter)
             self.table.setItem(row, 8, text_item)
             
             origin_text_item = QTableWidgetItem(data['origin_text'])
             origin_text_item.setFlags(Qt.ItemIsEnabled)
+            origin_text_item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter)
             self.table.setItem(row, 9, origin_text_item)
 
     def _load_remaining_rows(self, start_row):

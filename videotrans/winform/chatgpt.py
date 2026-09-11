@@ -23,7 +23,6 @@ def openwin():
         params["chatgpt_model"] = winobj.chatgpt_model.currentText()
         params["chatgpt_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
-        os.environ['OPENAI_API_KEY'] = key
         winobj.test_chatgpt.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.CHATGPT_INDEX)

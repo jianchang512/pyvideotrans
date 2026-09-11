@@ -478,12 +478,13 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             line_item = QTableWidgetItem(str(data['line']))
             line_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             line_item.setData(Qt.UserRole, row)
-            line_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            line_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 0, line_item)
 
             line_item = QTableWidgetItem(f'{data["startraw"]}->{data["endraw"]}')
             line_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             line_item.setData(Qt.UserRole, row)
+            line_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 1, line_item)
 
             # 1: Play button
@@ -498,22 +499,19 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             # 2: Start
             start_item = QTableWidgetItem(f"{data['start_time']/1000.0}")
             start_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            start_item.setTextAlignment(Qt.AlignCenter)
-            start_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            start_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 3, start_item)
             
             # 3: End
             end_item = QTableWidgetItem(f"{data['end_time']/1000.0}")
             end_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            end_item.setTextAlignment(Qt.AlignCenter)
-            end_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            end_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 4, end_item)
             
             # 4: Status
             msg_item = QTableWidgetItem(data['_msg'])
             msg_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
-            msg_item.setTextAlignment(Qt.AlignCenter)
-            msg_item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            msg_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             dubbing = float(data.get('dubbing_s', 0.0))
             diff=dubbing - float( data['_duration'])
             if dubbing <= 0:
@@ -529,6 +527,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             # 5: Text (可编辑)
             text_item = QTableWidgetItem(data['text'])
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+            text_item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter)
             self.table.setItem(row, 6, text_item)
         self.table.itemChanged.connect(self._text_change)
 

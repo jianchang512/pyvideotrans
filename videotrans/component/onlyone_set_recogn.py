@@ -390,23 +390,24 @@ class EditRecognResultDialog(QDialog,DanspMixin):
             # 0: Line
             item0 = QTableWidgetItem(str(data['line']))
             item0.setFlags(Qt.ItemIsEnabled)
-            item0.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            item0.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 0, item0)
 
             item0 = QTableWidgetItem(f'{data["startraw"]}->{data["endraw"]} ({(data["end_time"]-data["start_time"])/1000.0}s)')
             item0.setFlags(Qt.ItemIsEnabled)
+            item0.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 1, item0)
 
 
             # 1: Time
             item1 = QTableWidgetItem(str(int(data['start_time'])/1000.0))
             item1.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            item1.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            item1.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 2, item1)
 
             item2 = QTableWidgetItem(str(int(data['end_time'])/1000.0))
             item2.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            item2.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            item2.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 3, item2)
 
             # 2: Play button
@@ -421,6 +422,7 @@ class EditRecognResultDialog(QDialog,DanspMixin):
             # 3: Text (editable)
             item3 = QTableWidgetItem(data['text'])
             item3.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+            item3.setTextAlignment(Qt.AlignmentFlag.AlignVCenter)
             self.table.setItem(row, 5, item3)
 
     def _load_remaining(self, start_row):

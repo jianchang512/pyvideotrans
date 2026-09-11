@@ -38,9 +38,9 @@ class APIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        api_url = params.get('recognapi_url', '').strip().rstrip('/').lower()
+        api_url = params.get('recognapi_url', '').strip().rstrip('/')
 
-        if not api_url.startswith('http'):
+        if not api_url.lower().startswith('http'):
             api_url = f'http://{api_url}'
 
         if params.get('recognapi_key'):

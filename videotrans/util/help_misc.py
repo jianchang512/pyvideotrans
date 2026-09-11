@@ -43,6 +43,7 @@ def show_error(tb_str):
     from PySide6 import QtWidgets
     from PySide6.QtGui import QIcon, QDesktopServices
     from PySide6.QtCore import QUrl, Qt
+    from videotrans.configure._redact import redact
 
     msg_box = QtWidgets.QMessageBox()
     msg_box.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint)
@@ -66,6 +67,7 @@ def show_error(tb_str):
     # 添加自定义的“报告错误”按钮
     report_button = msg_box.addButton(tr("Report Error"), QtWidgets.QMessageBox.ButtonRole.NoRole)
     url_button = None
+    tb_str = redact(str(tb_str))
     urls = re.findall(r'\[(https?:.*?)\]', tb_str)
     if urls and urls[0]:
         url_button = msg_box.addButton(tr('Download URL' if "pyvideotrans.com" not in urls[0] else 'Help document'), QtWidgets.QMessageBox.ButtonRole.NoRole)

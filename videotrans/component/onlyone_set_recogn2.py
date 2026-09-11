@@ -371,16 +371,17 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
 
             item0 = QTableWidgetItem(str(data['line']))
             item0.setFlags(Qt.ItemIsEnabled)
-            item0.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            item0.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 0, item0)
 
             item0 = QTableWidgetItem(f'{data["startraw"]}->{data["endraw"]} ({(data["end_time"]-data["start_time"])/1000.0}s)'  )
             item0.setFlags(Qt.ItemIsEnabled)
+            item0.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 1, item0)
 
             item1 = QTableWidgetItem(f'{data["start_time"]/1000.0}')
             item1.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            item1.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            item1.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 2, item1)
 
 
@@ -388,7 +389,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
 
             item2 = QTableWidgetItem(f'{data["end_time"]/1000.0}')
             item2.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
-            item2.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+            item2.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 3, item2)
 
             btn = QPushButton("\u23F5")
@@ -401,6 +402,7 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
 
             text_item = QTableWidgetItem(data['text'])
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+            text_item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter)
             self.table.setItem(row, 5, text_item)
 
 

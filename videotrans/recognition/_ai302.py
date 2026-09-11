@@ -88,7 +88,7 @@ class AI302Recogn(BaseRecogn):
             with open(it['filename'], 'rb') as f:
                 audio_chunk = f.read()
             response = requests.post(url,
-                 files={"file": (Path(it['file']).name, audio_chunk)},
+                 files={"file": (Path(it['filename']).name, audio_chunk)},
                  data={
                      "model": model_name,
                      'response_format': 'json',
