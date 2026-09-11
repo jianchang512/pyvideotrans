@@ -212,7 +212,8 @@ class WhisperNetRecogn(BaseRecogn):
                 builder = builder.WithLanguageDetection()
 
             # 设置其他参数
-            if settings.get('condition_on_previous_text', False):
+            # 未启用“以前文为条件”时才关闭上下文
+            if not settings.get('condition_on_previous_text', False):
                 builder = builder.WithNoContext()
             builder = builder.WithNoSpeechThreshold(float(settings.get('no_speech_threshold', -0.8)))
             builder = builder.WithLogProbThreshold(float(settings.get('logprob_threshold', -1.0)))

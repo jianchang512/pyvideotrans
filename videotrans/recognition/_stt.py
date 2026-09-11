@@ -29,6 +29,7 @@ from videotrans.util._srt_parse import get_subtitle_from_srt
 """
 
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from videotrans.configure._retry import stop_after_retry_nums
 import logging
 
 
@@ -37,15 +38,15 @@ class SttAPIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        api_url = params.get('stt_url', '').strip().rstrip('/').lower()
+        api_url = params.get('stt_url', '').strip().rstrip('/')
         if not api_url:
             raise SpeechToTextError(tr("Custom api address must be filled in"))
 
-        if not api_url.startswith('http'):
+        if not api_url.lower().startswith('http'):
             api_url = f'http://{api_url}'
         self.api_url = f'{api_url}/api' if not api_url.endswith('/api') else api_url
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=stop_after_retry_nums(), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[SrtItem],None]:
         if self._exit(): return
         with open(self.audio_file, 'rb') as f:

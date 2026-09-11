@@ -123,8 +123,19 @@ class Qwen3ASRRecogn(BaseRecogn):
             }
 
 
-            response = requests.post(self.api_url, headers=headers, json=payload,verify=False,proxies={"https":"","http":""})
-            if response.status_code in [400,401,403,404,422]:
+            try:
+                # 带 API Key 访问公网，保持证书校验
+                response = requests.post(self.api_url, headers=headers, json=payload, timeout=(30, 300), proxies={"https":"","http":""})
+            except requests.exceptions.RequestException as e:
+                error=str(e)
+                continue
+            if response.status_code in [401,403,404]:
+                raise StopTask(response.text)
+            if response.status_code in [400,422]:
+                # 单个片段被内容审核拦截时跳过该片段，其他参数错误仍中止任务
+                if 'DataInspectionFailed' in response.text:
+                    error=response.text
+                    continue
                 raise StopTask(response.text)
             if response.status_code!=200:
                 error=response.text

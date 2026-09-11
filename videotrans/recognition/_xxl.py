@@ -53,13 +53,14 @@ class XXLRecogn(BaseRecogn):
         return ":".join(_hms)+f",{ms}"
         
     def _getsrt_from_stdout(self,content,srt_filename):
-        s=re.findall(r'\n(\[([\d:\.]+?) --> ([\d:\.]+?)\])\s(.+?)\n',content,flags=re.S)
+        # 按行匹配，避免前一行末尾换行被消耗后相邻字幕行漏匹配
+        s=re.findall(r'^\[([\d:\.]+?) --> ([\d:\.]+?)\][ \t]*(.+?)[ \t]*\r?$',content,flags=re.M)
 
         if not s or len(s)<1:
             return
         srts=[]
         for i,it in enumerate(s):
-            srts.append(f"{i+1}\n{self._return_time(it[1])} --> {self._return_time(it[2])}\n{it[3].strip()}")
+            srts.append(f"{i+1}\n{self._return_time(it[0])} --> {self._return_time(it[1])}\n{it[2].strip()}")
         if not srts:
             return
         

@@ -5,6 +5,7 @@ from typing import List, Union
 import httpx
 from elevenlabs import ElevenLabs
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from videotrans.configure._retry import stop_after_retry_nums
 from videotrans.configure.config import  params, settings, logger
 from videotrans.configure.excepts import NO_RETRY_EXCEPT
 from videotrans.recognition._base import BaseRecogn
@@ -15,7 +16,7 @@ from videotrans.util._srt_parse import ms_to_time_string
 @dataclass
 class ElevenLabsRecogn(BaseRecogn):
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=stop_after_retry_nums(), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
 

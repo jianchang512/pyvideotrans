@@ -6,6 +6,7 @@ from typing import List,  Union
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from videotrans.configure._retry import stop_after_retry_nums
 from videotrans.configure.config import params,settings,logger
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
@@ -16,7 +17,7 @@ from videotrans.util._srt_parse import ms_to_time_string
 @dataclass
 class AI302Recogn(BaseRecogn):
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=stop_after_retry_nums(), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
         self.signal(text=f"start speech to srt")
@@ -88,7 +89,7 @@ class AI302Recogn(BaseRecogn):
             with open(it['filename'], 'rb') as f:
                 audio_chunk = f.read()
             response = requests.post(url,
-                 files={"file": (Path(it['file']).name, audio_chunk)},
+                 files={"file": (Path(it['filename']).name, audio_chunk)},
                  data={
                      "model": model_name,
                      'response_format': 'json',
@@ -149,14 +150,11 @@ class AI302Recogn(BaseRecogn):
                     ms=it['end'] * 1000),
             ))
 
-            sp=it.get('speaker')
-            if not sp:
-                speaker_list.append(f'spk{len(speaker_list)}')
-            elif sp in speaker_name:
-                speaker_list.append(f'spk{speaker_name.index(sp)}')
-            else:
-                speaker_list.append(f'spk{len(speaker_list)}')
+            sp=it.get('speaker') or '-'
+            # 按说话人首次出现的顺序编号，保证同一说话人编号一致
+            if sp not in speaker_name:
                 speaker_name.append(sp)
+            speaker_list.append(f'spk{speaker_name.index(sp)}')
 
         if speaker_list:
             Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')

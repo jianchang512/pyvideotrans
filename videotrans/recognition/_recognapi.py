@@ -38,9 +38,9 @@ class APIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        api_url = params.get('recognapi_url', '').strip().rstrip('/').lower()
+        api_url = params.get('recognapi_url', '').strip().rstrip('/')
 
-        if not api_url.startswith('http'):
+        if not api_url.lower().startswith('http'):
             api_url = f'http://{api_url}'
 
         if params.get('recognapi_key'):
@@ -80,10 +80,6 @@ class APIRecogn(BaseRecogn):
             }
             testdata=json.dumps(testdata,ensure_ascii=False)
             raise SpeechToTextError(f'识别出错,应返回类似数据:\n{testdata}\n\n但实际返回: {res}')
-        self.signal(
-            text=get_srt_from_list(res['data']),
-            type='replace_subtitle'
-        )
 
         if isinstance(res['data'],list):
             data=[f'{i+1}\n{it["time"]}\n{it["text"]}' for i,it in enumerate(res['data'])]
@@ -91,6 +87,8 @@ class APIRecogn(BaseRecogn):
         else:
             data=res['data']
         
+        # data 为 SRT 字符串（列表时已在上方转换），直接用于界面显示
+        self.signal(text=data, type='replace_subtitle')
         return get_subtitle_from_srt(data, is_file=False)
         
 
@@ -193,13 +191,14 @@ class APIRecogn(BaseRecogn):
                 try:
                     segments = ast.literal_eval(list_str)
                 except (ValueError, SyntaxError):
-                    context = {
-                        "null": None,
-                        "true": True,
-                        "false": False,
-                        "__builtins__": None
-                    }
-                    segments = eval(list_str, context)
+                    # 兼容 JSON 字面量 null/true/false，只做字面量解析，不执行服务器返回的内容
+                    try:
+                        _normalized = re.sub(r'\bnull\b', 'None', list_str)
+                        _normalized = re.sub(r'\btrue\b', 'True', _normalized)
+                        _normalized = re.sub(r'\bfalse\b', 'False', _normalized)
+                        segments = ast.literal_eval(_normalized)
+                    except (ValueError, SyntaxError) as e:
+                        logger.error(f"Parse vibevoice-asr result failed: {e}")
             except Exception as e:
                 logger.error(f"AST eval failed: {e}")
             if not segments:

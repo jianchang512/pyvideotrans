@@ -132,9 +132,10 @@ HUGGINGFACE_ASR_MODELS = {
 try:
     if Path(f'{ROOT_DIR}/huggingface_models.txt').exists():
         for it in Path(f'{ROOT_DIR}/huggingface_models.txt').read_text(encoding='utf-8').strip().split("\n"):
-            HUGGINGFACE_ASR_MODELS[it.strip()] = []
+            if it.strip():
+                HUGGINGFACE_ASR_MODELS[it.strip()] = []
 except Exception as e:
-    logger.waring(f'添加自定义 Huggingface_ASR 模型失败:{e}')
+    logger.warning(f'添加自定义 Huggingface_ASR 模型失败:{e}')
 
 
 def get_model_by_type(recogn_type: int) -> List[str]:
@@ -189,7 +190,7 @@ def is_input_api(recogn_type: int = None, return_str=False):
     _cls = _ID_NAME_DICT.get(recogn_type)
     if not _cls: return True
     if _cls.key_name and not params.get(_cls.key_name):
-        return "Please configure the API Key information of the Deepgram channel first." if return_str else winform.get_win(
+        return f"Please configure the API Key information of the {_cls.name} channel first." if return_str else winform.get_win(
             _cls.win).openwin()
     return True
 

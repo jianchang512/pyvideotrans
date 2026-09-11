@@ -7,6 +7,7 @@ from typing import List, Union
 from google import genai
 from google.genai import types,errors
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
+from videotrans.configure._retry import stop_after_retry_nums
 
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTextError,StopTask
 from videotrans.configure.config import params, logger,  settings,tr
@@ -29,7 +30,7 @@ class GeminiRecogn(BaseRecogn):
         if self.model_name not in GEMINI_ASR_MODELS.split(','):
             self.model_name='gemini-3.5-transcribe'
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=stop_after_retry_nums(), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _req(self,file):
         client=None
         try:
@@ -74,6 +75,8 @@ class GeminiRecogn(BaseRecogn):
             logger.error(str(e))
             if e.code in [400,403,404,429,500]:
                 raise StopRetry(e.message)
+            # 其他错误（如 502/503）继续抛出，交给重试处理
+            raise
         finally:
             if client:
                 client.close()
@@ -91,23 +94,28 @@ class GeminiRecogn(BaseRecogn):
         }]
         _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
         _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 20000), _min_speech + 1000)
-        for i,it in enumerate(srts):                       
+        _texts = []
+        for i,it in enumerate(srts):
             words,_text=self._req(it['filename'])
             offset = it['start_time'] / 1000.0
-            for j,w in enumerate(words):
+            for w in words or []:
                 st=float(w.start_offset.replace('s',''))
                 et=float(w.end_offset.replace('s',''))
-                if i==0:
-                    texts[0]['start']=st
+                # 汇总条目的起止时间使用加上片段偏移后的绝对时间
+                if not texts[0]['words']:
+                    texts[0]['start']=st + offset
                 texts[0]['words'].append({"word": w.text, "start": st + offset, "end": et + offset})
-                if i==len(srts)-1 and j==len(words)-1:
-                    texts[0]['end']=et
+                texts[0]['end']=et + offset
+            if _text:
+                _texts.append(_text.strip())
             self.signal(
-                text=f"{_text[:60]}...\n",
+                text=f"{(_text or '')[:60]}...\n",
                 type='subtitle'
             )
             if self.asr_wait>0:
                 time.sleep(self.asr_wait)
+        # 整体时长未超出限制时，_resegment 会直接把该文本作为一条字幕
+        texts[0]['text'] = self.join_word_flag.join(_texts)
         srt_str_list = _resegment(texts, self.detect_language, _max_speech, _min_speech, f"{self.cache_folder}/gemini-stt.log")
         return srt_str_list
 
