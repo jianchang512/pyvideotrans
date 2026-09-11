@@ -6,6 +6,7 @@ import sys
 import time
 
 from videotrans.configure._paths import ROOT_DIR
+from videotrans.configure._redact import RedactFilter
 
 
 def _set_logs():
@@ -16,12 +17,15 @@ def _set_logs():
                                         encoding='utf-8')
     _file_handler.setLevel(logging.DEBUG)
     _file_handler.setFormatter(formatter)
+    # 写入日志前脱敏，避免 API Key 出现在日志文件中
+    _file_handler.addFilter(RedactFilter())
     logger.addHandler(_file_handler)
 
     if sys.stdout is not None:
         _console_handler = logging.StreamHandler(sys.stdout)
         _console_handler.setLevel(logging.WARNING)
         _console_handler.setFormatter(formatter)
+        _console_handler.addFilter(RedactFilter())
         logger.addHandler(_console_handler)
 
     logging.getLogger("transformers").setLevel(logging.DEBUG)

@@ -25,11 +25,13 @@ uv sync --extra webui
 启动服务：
 
 ```bash
-uv run webui.py                    # 默认 0.0.0.0:7860
-uv run webui.py --port 8080        # 指定端口
-uv run webui.py --host 127.0.0.1   # 仅本机访问
-uv run webui.py --share            # 创建 Gradio 公网链接
+uv run webui.py                                   # 默认仅本机访问 127.0.0.1:7860
+uv run webui.py --port 8080                       # 指定端口
+uv run webui.py --host 0.0.0.0 --auth 用户名:密码   # 允许局域网访问，并启用登录验证
+uv run webui.py --share --auth 用户名:密码          # 创建 Gradio 公网链接，务必启用登录验证
 ```
+
+> 设置页可以查看和修改各渠道的 API Key。允许其他机器访问（`--host 0.0.0.0` 或 `--share`）时，请务必加上 `--auth`。
 
 访问：`http://127.0.0.1:7860` 或 `http://<服务器IP>:7860`
 
@@ -43,6 +45,9 @@ docker build -t pyvideotrans-webui .
 
 # 运行
 docker run -d -p 7860:7860 --name pyvideotrans pyvideotrans-webui
+
+# 启用登录验证（推荐，容器默认监听 0.0.0.0）
+docker run -d -p 7860:7860 --name pyvideotrans pyvideotrans-webui python webui.py --host 0.0.0.0 --auth 用户名:密码
 
 # 持久化配置和输出
 docker run -d -p 7860:7860 \

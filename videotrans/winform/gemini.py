@@ -14,7 +14,6 @@ def openwin():
 
     def test():
         key = winobj.gemini_key.text().strip()
-        os.environ['GOOGLE_API_KEY'] = key
         params["gemini_key"] = key
         params["gemini_model"] = winobj.model.currentText()
         params["gemini_maxtoken"] = winobj.gemini_maxtoken.text()

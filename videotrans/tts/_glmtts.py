@@ -39,7 +39,7 @@ class GLMTTS(BaseTTS):
         response = requests.post(url, headers={
             'Authorization': f'Bearer {params.get("zhipu_key","")}',
             'Content-Type': 'application/json'
-        }, data=json.dumps(payload), verify=False)
+        }, data=json.dumps(payload))
         if response.status_code in [401,403,404,434]:
             raise StopTask(response.text)
         content_type = response.headers.get('Content-Type')

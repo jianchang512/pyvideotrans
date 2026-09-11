@@ -40,6 +40,9 @@ def show_popup(title, text):
 
 def show_error(tb_str):
     """槽函数 显示对话框。"""
+    from videotrans.configure._redact import redact
+    # 脱敏后再显示和用于报告错误，避免 API Key 出现在弹窗和论坛链接中
+    tb_str = redact(str(tb_str))
     from PySide6 import QtWidgets
     from PySide6.QtGui import QIcon, QDesktopServices
     from PySide6.QtCore import QUrl, Qt

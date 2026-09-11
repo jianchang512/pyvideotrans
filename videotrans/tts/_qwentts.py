@@ -40,7 +40,7 @@ class QWENTTS(BaseTTS):
         if vail_file(data_item['filename']):return
         role = self.role_dict.get(data_item['role'],'Cherry')
         try:
-            logger.debug(f"[Qwen-TTS(bailian)]{self.model=},{self.api_key=},{role=},{data_item['text']=},{self.target_language=}")
+            logger.debug(f"[Qwen-TTS(bailian)]{self.model=},{role=},{data_item['text']=},{self.target_language=}")
             response = dashscope.MultiModalConversation.call(
                 model=self.model,
                 # 新加坡和北京地域的API Key不同。获取API Key：https://help.aliyun.com/zh/model-studio/get-api-key

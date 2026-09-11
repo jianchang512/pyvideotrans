@@ -205,6 +205,14 @@ def _format_pitch(v):
     return f"+{v}Hz" if v >= 0 else f"{v}Hz"
 
 
+def _is_secret_field(key: str) -> bool:
+    """API Key、密钥、Token 等字段以密码框显示，避免被旁人看到"""
+    k = key.lower()
+    if 'max_token' in k or 'maxtoken' in k:
+        return False
+    return k.endswith(('key', 'secret', 'secretid', 'token'))
+
+
 def _safe_get(key, default=""):
     """从 _user_params 读取值，支持 str/int/float/bool"""
     v = _user_params.get(key, default)
@@ -592,6 +600,7 @@ def build_channel_settings():
                                 label=f["label"],
                                 value=val,
                                 placeholder=f.get("placeholder", ""),
+                                type="password" if _is_secret_field(f["key"]) else "text",
                                 interactive=True,
                             )
                             fields.append((f["key"], tb))
@@ -1226,12 +1235,21 @@ if __name__ == "__main__":
         import argparse
         import gradio as gr
         parser = argparse.ArgumentParser(description="pyVideoTrans WebUI")
-        parser.add_argument("--host", type=str, default="0.0.0.0", help="Host address")
+        parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address, use 0.0.0.0 to allow LAN access")
         parser.add_argument("--port", type=int, default=7860, help="Port number")
         parser.add_argument("--share", action="store_true", help="Create a public Gradio link")
+        parser.add_argument("--auth", type=str, default="", help="Login credentials, format user:password")
         args = parser.parse_args()
+        auth = None
+        if args.auth:
+            if ':' not in args.auth:
+                parser.error("--auth must be in user:password format")
+            auth = tuple(args.auth.split(':', 1))
+        elif args.share or args.host not in ('127.0.0.1', 'localhost', '::1'):
+            # 设置页可查看和修改所有 API Key，对外开放时应启用登录验证
+            print("Warning: WebUI is reachable from other machines without --auth, anyone who can open the page can view the API keys in settings.")
         app = build_ui()
-        app.launch(server_name=args.host, server_port=args.port, share=args.share, inbrowser=True, theme=gr.themes.Soft(),css="""
+        app.launch(server_name=args.host, server_port=args.port, share=args.share, auth=auth, inbrowser=True, theme=gr.themes.Soft(),css="""
         /* 默认字体：微软雅黑 > 苹果方黑 > 系统无衬线字体 */
         *, *::before, *::after {
             font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", sans-serif !important;

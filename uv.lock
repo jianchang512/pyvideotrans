@@ -13,7 +13,7 @@ resolution-markers = [
 
 [manifest]
 overrides = [
-    { name = "chatterbox-tts", url = "https://github.com/resemble-ai/chatterbox/archive/refs/heads/master.tar.gz" },
+    { name = "chatterbox-tts", url = "https://github.com/resemble-ai/chatterbox/archive/5de7a54aa4e5e2baadb0182dde554908b48b85c2.tar.gz" },
     { name = "diffusers", specifier = "==0.33.1" },
     { name = "f5-tts", specifier = "==1.1.20" },
     { name = "google-cloud-storage", specifier = "==3.12.0" },
@@ -746,7 +746,7 @@ wheels = [
 [[package]]
 name = "chatterbox-tts"
 version = "0.1.7"
-source = { url = "https://github.com/resemble-ai/chatterbox/archive/refs/heads/master.tar.gz" }
+source = { url = "https://github.com/resemble-ai/chatterbox/archive/5de7a54aa4e5e2baadb0182dde554908b48b85c2.tar.gz" }
 dependencies = [
     { name = "conformer" },
     { name = "diffusers" },
@@ -769,7 +769,7 @@ dependencies = [
     { name = "torchaudio", version = "2.7.1+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux') or sys_platform == 'win32'" },
     { name = "transformers" },
 ]
-sdist = { hash = "sha256:6a51eaa0b82cd28e59e5c6d2cb4b41ced0b4b221b85b97376b70c5bf8251cb12" }
+sdist = { hash = "sha256:003f8c85dcfeb2d91b3a6f97f43b74703d15131e987dfabb7f3d9aee7c0da2cf" }
 
 [package.metadata]
 requires-dist = [
@@ -4595,7 +4595,7 @@ requires-dist = [
     { name = "cffi", specifier = "==1.17.1" },
     { name = "chardet", specifier = "==3.0.4" },
     { name = "charset-normalizer", specifier = "==3.4.4" },
-    { name = "chatterbox-tts", url = "https://github.com/resemble-ai/chatterbox/archive/refs/heads/master.tar.gz" },
+    { name = "chatterbox-tts", url = "https://github.com/resemble-ai/chatterbox/archive/5de7a54aa4e5e2baadb0182dde554908b48b85c2.tar.gz" },
     { name = "click", specifier = "==8.1.7" },
     { name = "colorama", specifier = "==0.4.6" },
     { name = "coloredlogs", specifier = "==15.0.1" },

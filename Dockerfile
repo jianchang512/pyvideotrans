@@ -61,4 +61,4 @@ COPY . .
 
 EXPOSE 7860
 
-CMD ["python", "webui.py"]
+CMD ["python", "webui.py", "--host", "0.0.0.0"]

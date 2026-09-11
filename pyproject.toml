@@ -298,7 +298,6 @@ override-dependencies = [
 	"pythonnet ; sys_platform == 'win32'",
 ]
 
-index-strategy = "unsafe-best-match"
 
 
 
@@ -327,12 +326,14 @@ torchaudio = [
 # https://github.com/OpenMOSS/MOSS-TTS-Nano/issues/6
 #  https://github.com/billwuhao/pynini-windows-wheels/releases/download/v2.1.6.post1/pynini-2.1.6.post1-cp310-cp310-win_amd64.whl
 
+# 注意：该 wheel 由第三方账号构建，uv.lock 中已固定 sha256；更换版本时需重新核对来源
 pynini = [
     { url = "https://github.com/billwuhao/pynini-windows-wheels/releases/download/v2.1.6.post1/pynini-2.1.6.post1-cp310-cp310-win_amd64.whl", marker = "sys_platform == 'win32'" }
 ]
 
 
 #faster-whisper = { url = "https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz" }
-chatterbox-tts = { url = "https://github.com/resemble-ai/chatterbox/archive/refs/heads/master.tar.gz" }
+# 固定到具体提交（内容与原 master 锁定版本一致），避免 master 变动后重新锁定时拉取未审查的代码
+chatterbox-tts = { url = "https://github.com/resemble-ai/chatterbox/archive/5de7a54aa4e5e2baadb0182dde554908b48b85c2.tar.gz" }
 
 

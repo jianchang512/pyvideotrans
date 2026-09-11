@@ -39,7 +39,7 @@ class XAITTS(BaseTTS):
             response = requests.post('https://api.x.ai/v1/tts', headers={
             'Authorization': f'Bearer {params.get("xaitts_key","")}',
             'Content-Type': 'application/json'
-            }, json=payload, verify=False)
+            }, json=payload)
         
             if response.status_code in [401,403,404,405,415,422]:
                 raise StopTask(response.text)
