@@ -19,7 +19,9 @@ from videotrans.task.taskcfg import SrtItem
 class Qwen3ASRRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
-        spaceid=params.get('qwenmt_spaceid', '')
+        spaceid=params.get('qwenmt_spaceid', '').strip()
+        # 未填写业务空间ID时使用百炼默认地址，否则 api_url 为空字符串，请求地址无协议头导致报错
+        self.api_url = 'https://dashscope.aliyuncs.com/api/v1'
         if spaceid and  not spaceid.startswith('http'):
             self.api_url = f'https://{spaceid}.cn-beijing.maas.aliyuncs.com/api/v1'
         elif spaceid and spaceid.startswith('http'):
