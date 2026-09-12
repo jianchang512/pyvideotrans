@@ -183,7 +183,7 @@ class WinActionBaseModeMixin:
         self.main.tts_type.setDisabled(type)
         
         _recogn_type=self.main.recogn_type.currentIndex()
-        self.main.model_name.setDisabled(True if not type or _recogn_type not in ALLOW_CHANGE_MODEL else False)
+        self.main.model_name.setDisabled(True if type or _recogn_type not in ALLOW_CHANGE_MODEL else False)
         self.main.subtitle_type.setDisabled(type)
         self.main.enable_cuda.setDisabled(type)
         self.main.recogn_type.setDisabled(type)

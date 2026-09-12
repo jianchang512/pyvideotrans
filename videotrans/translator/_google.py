@@ -51,5 +51,5 @@ class Google(BaseTrans):
 
         re_result = re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<', response.text)
         if not re_result or len(re_result.groups()) < 1:
-            raise TranslateSrtError(tr("Google Translate error"))
+            raise TranslateSrtError(f'{tr("Google Translate error")}\n{response.text=}')
         return re_result.group(1)

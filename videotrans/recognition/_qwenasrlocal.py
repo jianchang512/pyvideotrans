@@ -79,7 +79,7 @@ class QwenasrlocalRecogn(BaseRecogn):
             "min_speech_ms":_min_speech,
             "max_speech_ms":_max_speech,
             "force_align":self.detect_language in self.align_language,
-            "detect_language":self.detect_language if self.detect_language not in ['auto',"",None] else None
+            "detect_language":self.detect_language.split('-')[0] if self.detect_language not in ['auto',"",None] else None
         }
         from videotrans.process.stt_qwen import qwen3asr_fun
         jsdata = self._new_process(callback=qwen3asr_fun, title=title, is_cuda=self.is_cuda, kwargs=kwargs)

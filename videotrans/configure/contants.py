@@ -91,7 +91,7 @@ FASTER_MODELS_DICT = {
 }
 # funasr模型
 FUNASR_MODEL = ['Fun-ASR-Nano-2512', 'Fun-ASR-MLT-Nano-2512', 'paraformer-zh', 'SenseVoiceSmall']
-QWENASR_LOCAL=['1.7B', '0.6B','CN_Dialect']
+QWENASR_LOCAL=['1.7B', '0.6B']
 
 # deepgram 支持的语音识别模型
 DEEPGRAM_MODEL = [
@@ -226,6 +226,12 @@ REALTIME_URL_HF='https://huggingface.co/mortimerme/repocollect/resolve/main/real
 # whisper.cpp 模型下载地址
 WHISPERCPP_MODEL_URL_HF='https://huggingface.co/ggerganov/whisper.cpp/resolve/main/{}?download=true'
 WHISPERCPP_MODEL_URL_MS='https://modelscope.cn/models/viggocx/whisper.cpp/resolve/master/{}'
+
+
+# spacy_ontonotes.zip
+SPACY_URL_MS='https://modelscope.cn/models/himyworld/videotrans/resolve/master/spacy_ontonotes.zip'
+SPACY_URL_HF='https://github.com/explosion/spacy-pkuseg/releases/download/v0.0.26/spacy_ontonotes.zip'
+
 
 #----------Rubberband 库安装提示------------------
 INSTALL_RUBBERBAND_TIPS = """Windows: For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip

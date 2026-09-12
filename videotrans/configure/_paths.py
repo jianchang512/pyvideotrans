@@ -74,8 +74,8 @@ def _set_env():
     os.environ['HF_HUB_CACHE'] = ROOT_DIR + "/models"
     os.environ['HF_TOKEN_PATH'] = ROOT_DIR + "/models/hf_token.txt"
     os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = 'true'
-    os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "3600"
-    os.environ['HF_HUB_ETAG_TIMEOUT'] = "30"
+    os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = "7200"
+    os.environ['HF_HUB_ETAG_TIMEOUT'] = "60"
     os.environ["HF_HUB_DISABLE_XET"] = "1"
     os.environ['GRADIO_ANALYTICS_ENABLED'] = '0'
     # 必须在 import requests, modelscope 等库之前执行！

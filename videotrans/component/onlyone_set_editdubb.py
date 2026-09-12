@@ -481,7 +481,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             line_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row, 0, line_item)
 
-            line_item = QTableWidgetItem(f'{data["startraw"]}->{data["endraw"]}')
+            line_item = QTableWidgetItem(f'{data["startraw"]}->{data["endraw"]} ({(data["end_time"]-data["start_time"])/1000.0}s)')
             line_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             line_item.setData(Qt.UserRole, row)
             line_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)

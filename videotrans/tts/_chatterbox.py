@@ -7,6 +7,7 @@ from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
 from videotrans.configure.config import params, logger, app_cfg, ROOT_DIR, settings
 from videotrans.configure.excepts import DubbingSrtError
+from videotrans.configure.contants import SPACY_URL_MS,SPACY_URL_HF
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_role import get_chatterbox_role
 from videotrans.util.gpus import mps_or_cpu
@@ -22,9 +23,10 @@ class ChatterBoxTTS(BaseTTS):
         self.local_dir=f'{ROOT_DIR}/models/models--resembleAI--chatterbox'
 
     def _download(self):
-        if Path(f'{self.local_dir}/ve.pt').exists():
-            return True
-        from videotrans.util.help_down import check_and_down_hf,check_and_down_ms
+        if Path(f'{self.local_dir}/ve.pt').exists(): return True
+        from videotrans.util.help_down import check_and_down_hf,check_and_down_ms,down_zip
+        down_zip(f'{ROOT_DIR}/models/pkuser_home/spacy_ontonotes',SPACY_URL_HF if is_connect_hf() else SPACY_URL_MS)
+        
         check_and_down_hf("", 'resembleAI/chatterbox', self.local_dir,
                                 callback=self._process_callback,
                                 allow_list=["ve.pt","t3_mtl23ls_v3.safetensors","t3_mtl23ls_v2.safetensors","s3gen.pt", "grapheme_mtl_merged_expanded_v1.json", "conds.pt", "Cangjie5_TC.json"])
