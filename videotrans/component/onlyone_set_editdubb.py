@@ -770,8 +770,8 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         """Play audio to completion while video plays only the segment."""
         self._ensure_players()
         self.stop_play_btn.show()
-        self._pending_start = video_start_ms
-        self._pending_end = video_end_ms
+        self._pending_start = int(video_start_ms)
+        self._pending_end = int(video_end_ms)
 
         video_needs_load = False
         play_audio=True
@@ -822,10 +822,10 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             self._do_play(self._pending_start, self._pending_end)
 
     def _do_play(self, video_start_ms, video_end_ms,play_audio=True):
-        self._video_end_ms = video_end_ms
+        self._video_end_ms = int(video_end_ms)
         self._audio_playing = True
 
-        self.video_player.setPosition(video_start_ms)
+        self.video_player.setPosition(int(video_start_ms))
         if play_audio:
             self.audio_player.setPosition(0)
         self.video_player.play()
@@ -834,7 +834,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         self._stack.setCurrentIndex(0)
         if play_audio:
             self.video_status.setText(
-            f"\u23F5 {ms_to_time_string(ms=video_start_ms)} → {ms_to_time_string(ms=video_end_ms)}"
+            f"\u23F5 {ms_to_time_string(ms=int(video_start_ms))} → {ms_to_time_string(ms=int(video_end_ms))}"
             )
         if not play_audio:
             self.video_player.pause()
@@ -886,8 +886,8 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
         
         self._play_with_video(
             audio_path=filename,
-            video_start_ms=item['start_time'],
-            video_end_ms=item['end_time'],
+            video_start_ms=int(item['start_time']),
+            video_end_ms=int(item['end_time']),
         )
 
     def _redub(self, row):
