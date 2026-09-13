@@ -3,6 +3,7 @@ import importlib
 _module_map = {
 "ai302":".ai302",
 "ali":".ali",
+"api_route":".api_route",
 "azure":".azure",
 "azuretts":".azuretts",
 "baidu":".baidu",

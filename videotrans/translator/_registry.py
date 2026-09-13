@@ -7,7 +7,7 @@ from videotrans.translator._constants import (
     QWENMT_INDEX, ZIJIE_INDEX,
     TENCENT_INDEX, BAIDU_INDEX, DEEPL_INDEX, DEEPLX_INDEX, ALI_INDEX,
     LIBRE_INDEX, MINIMAX_INDEX, XIAOMI_INDEX, CAMB_INDEX, TRANSAPI_INDEX,HYMT2_INDEX,
-    LITELLM_INDEX
+    LITELLM_INDEX, API_ROUTE_INDEX
 )
 
 _ID_NAME_DICT = {
@@ -42,6 +42,7 @@ _ID_NAME_DICT = {
     CAMB_INDEX: ChannelProvider("CAMB AI", key_name="camb_api_key", win="cambtts", imp="._camb"),
     TRANSAPI_INDEX: ChannelProvider(tr('Customized API'), key_name="trans_api_url", win="transapi", imp="._transapi"),
     LITELLM_INDEX: ChannelProvider("LiteLLM", key_name="litellm_key", win="litellm", imp="._litellm"),
+    API_ROUTE_INDEX: ChannelProvider("API Route", key_name="api_route_key", win="api_route", imp="._api_route"),
 }
 
 
@@ -57,7 +58,8 @@ LLM_CONCERT_MAP={
         "openrouter":"OpenRouter",
         "siliconflow":tr("SiliconFlow"),
         "xiaomi":tr("XiaoMi"),
-        "zhipuai":tr("Zhipu AI")
+        "zhipuai":tr("Zhipu AI"),
+        "api_route":"API Route"
 }
 
 LLM_CONCERT_INDEX={
@@ -71,7 +73,8 @@ LLM_CONCERT_INDEX={
         "openrouter":OPENROUTER_INDEX,
         "siliconflow":SILICONFLOW_INDEX,
         "xiaomi":XIAOMI_INDEX,
-        "zhipuai":ZHIPUAI_INDEX
+        "zhipuai":ZHIPUAI_INDEX,
+        "api_route":API_ROUTE_INDEX
 }
 # 根据 llm_ai_type 当前所选的索引，获取对应key name 或 常量
 def get_name_index(idx,return_type='key'):

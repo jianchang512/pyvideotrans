@@ -123,6 +123,11 @@ class TestTranslatorIndexConstants:
         assert LITELLM_INDEX == 25
         assert LITELLM_INDEX in AI_TRANS_CHANNELS
 
+    def test_api_route_index(self):
+        from videotrans.translator import API_ROUTE_INDEX, AI_TRANS_CHANNELS
+        assert API_ROUTE_INDEX == 26
+        assert API_ROUTE_INDEX in AI_TRANS_CHANNELS
+
     def test_siliconflow_index(self):
         from videotrans.translator import SILICONFLOW_INDEX
         assert SILICONFLOW_INDEX == 10

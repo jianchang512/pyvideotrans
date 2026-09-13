@@ -50,6 +50,7 @@ class QWidgetBase(QtWidgets.QWidget, CommonBaseMixin):
 _LAZY_FORMS = {
     "AI302Form": ("QDialogBase", "videotrans.ui.ai302", "Ui_ai302form"),
     "AliForm": ("QDialogBase", "videotrans.ui.ali", "Ui_aliform"),
+    "ApiRouteForm": ("QDialogBase", "videotrans.ui.api_route", "Ui_apirouteform"),
     "AzureForm": ("QDialogBase", "videotrans.ui.azure", "Ui_azureform"),
     "AzurettsForm": ("QDialogBase", "videotrans.ui.azuretts", "Ui_azurettsform"),
     "BaiduForm": ("QDialogBase", "videotrans.ui.baidu", "Ui_baiduform"),

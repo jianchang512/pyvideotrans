@@ -91,6 +91,7 @@ class BindSignalsMixin:
         self.actionqwenmt_key.triggered.connect(lambda: self.open_winform('qwenmt'))
         self.actionopenrouter_key.triggered.connect(lambda: self.open_winform('openrouter'))
         self.actionlitellm_key.triggered.connect(lambda: self.open_winform('litellm'))
+        self.actionapiroute_key.triggered.connect(lambda: self.open_winform('api_route'))
         self.actionsiliconflow_key.triggered.connect(lambda: self.open_winform('siliconflow'))
         self.actionwatermark.triggered.connect(lambda: self.open_winform('fn_watermark'))
         self.actionsepar.triggered.connect(lambda: self.open_winform('fn_separate'))
