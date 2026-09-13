@@ -74,8 +74,9 @@ def get_audio_code(*, show_source=None):
         return 'auto'
     source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE.get(
         LANGNAME_DICT_REV.get(show_source))
-    if source_list: return source_list[0]
-    return get_code(show_text=show_source)
+    if source_list and source_list[0]: return source_list[0].split('-')[0]
+    _code=get_code(show_text=show_source)
+    return _code.split('-')[0] if _code else 'auto'
 
 
 # 获取嵌入MP4视频嵌入软字幕的3位字母语言代码 ISO 639-2/T ，根据目标语言确定

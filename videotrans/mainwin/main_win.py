@@ -3,6 +3,8 @@ import asyncio
 import sys
 import os
 
+from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
+
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from PySide6.QtCore import QEvent, QTimer
@@ -63,9 +65,12 @@ class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui
         self.callback('import tts ...')
         from videotrans import tts
         self.callback('import translate ...')
-        from videotrans.translator import TRANSLASTE_NAME_LIST,LANGNAME_DICT,get_code
+        from videotrans.translator import TRANSLASTE_NAME_LIST,get_code
         self.callback('Get cache  ...')
-        self.languagename = list(LANGNAME_DICT.values())
+        _languagename = [tr("auto")]
+        for code in EDGE_LANGUANGES_CODE:
+            _languagename.insert(-1,tr(code))
+        self.languagename=_languagename
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
         self.source_language.addItems(self.languagename)
         self.target_language.addItems(["-"] + self.languagename[:-1])

@@ -437,7 +437,7 @@
   "commencement of execution": "开始执行合并",
   "cudatips": "如果有英伟达显卡并且配置好了CUDA环境，可启用，将极大提升执行速度",
   "dakaizimubaocunmulu": "打开翻译结果保存目录",
-  "deepl_nosupport": "当前翻译渠道可能不支持该目标语言 ",
+  "deepl_nosupport": "当前翻译渠道可能不支持该目标语言,建议切换为AI渠道 ",
   "default": "默认",
   "duiqicaozuo": "开始处理音频画面字幕对齐",
   "embedsubtitle": "嵌入硬字幕",
