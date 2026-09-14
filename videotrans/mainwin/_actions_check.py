@@ -15,9 +15,8 @@ class WinActionCheckMixin:
     def set_translate_type(self, idx):
         try:
             t = self.main.target_language.currentText()
-            if t not in ['-','No']:
-                rs = translator.is_allow_translate(translate_type=idx, show_target=t)
-                self.main.show_tips.setText(rs if rs is not True else '')
+            rs = translator.is_allow_translate(translate_type=idx, show_target=t,only_key=False if t not in ['-','No'] else True)
+            self.main.show_tips.setText(rs if rs is not True else '')
         except Exception as e:
             show_error(str(e))
 

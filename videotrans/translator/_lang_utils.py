@@ -29,8 +29,10 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
     if not _cls:
         return True
     if _cls.key_name and not params.get(_cls.key_name):
-        return "Please configure the SK or API information of the channel first." if return_str else winform.get_win(
-            _cls.win).openwin()
+        if return_str:
+            return "Please configure the SK or API information of the channel first."  
+        winform.get_win(_cls.win).openwin()
+        return True
 
     # 如果只需要判断是否填写了 api key 等信息，到此返回
     if only_key or translate_type in AI_TRANS_CHANNELS:

@@ -193,8 +193,9 @@ def is_input_api(recogn_type: int = None, return_str=False):
     _cls = _ID_NAME_DICT.get(recogn_type)
     if not _cls: return True
     if _cls.key_name and not params.get(_cls.key_name):
-        return f"Please configure the API Key information of the {_cls.name} channel first." if return_str else winform.get_win(
-            _cls.win).openwin()
+        if return_str:
+            return f"Please configure the API Key information of the {_cls.name} channel first."  
+        winform.get_win(_cls.win).openwin()
     return True
 
 

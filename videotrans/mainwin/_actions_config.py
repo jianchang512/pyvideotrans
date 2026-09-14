@@ -91,7 +91,7 @@ class WinActionConfigMixin:
 
             rs=translator.is_allow_translate(translate_type=self.main.translate_type.currentIndex(),
                                              show_target=t)
-            if rs is not True:
+            if isinstance(rs,str):
                 _tips+=rs
             self.main.show_tips.setText(_tips)
 

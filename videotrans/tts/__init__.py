@@ -195,8 +195,10 @@ def is_input_api(tts_type: int = None, return_str=False):
     if not _cls:
         return True
     if _cls.key_name and not params.get(_cls.key_name):
+        if return_str:
+            return "Please configure the SK or API information of the channel first."  
         from videotrans import winform
-        return "Please configure the SK or API information of the channel first." if return_str else winform.get_win(_cls.win).openwin()
+        winform.get_win(_cls.win).openwin()
     return True
 
 
