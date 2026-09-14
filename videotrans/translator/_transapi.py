@@ -15,10 +15,10 @@ class TransAPI(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-        url = params.get('trans_api_url','').strip().rstrip('/').lower()
+        url = params.get('trans_api_url','').strip().rstrip('/')
         if len(url)<4:
             raise StopTask(f'API URL is error: {url}')
-        if not url.startswith('http'):
+        if not url.lower().startswith('http'):
             url = f"http://{url}"
         self.api_url = url + ('&' if '?' in url else '/?')
 

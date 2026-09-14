@@ -30,10 +30,10 @@ class TTSAPI(BaseTTS):
         super().__post_init__()
         self.speed=self.get_speed()
 
-        api_url = params.get('ttsapi_url','').strip().rstrip('/').lower()
+        api_url = params.get('ttsapi_url','').strip().rstrip('/')
         if len(api_url)<4:
             raise StopTask(f'API URL is error: {api_url}')
-        if not api_url.startswith('http'):
+        if not api_url.lower().startswith('http'):
             self.api_url = 'http://' + api_url
         else:
             self.api_url = api_url
