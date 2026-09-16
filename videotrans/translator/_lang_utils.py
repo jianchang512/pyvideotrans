@@ -48,6 +48,8 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         index = 3
     elif translate_type == TENCENT_INDEX:
         index = 4
+    elif translate_type == LIBRE_INDEX:
+        index = 5
     elif translate_type == MICROSOFT_INDEX:
         index = 6
     elif translate_type == ALI_INDEX:
