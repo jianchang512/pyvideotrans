@@ -201,7 +201,7 @@ def get_subtitle_from_srt(srtfile, *, is_file=True) -> List[SrtItem]:
                 end_time=2000,
                 endraw="00:00:02,000",
                 time="00:00:00,000 --> 00:00:02,000",
-                text="\n".join(content)
+                text=content
             )
         ]
     return result
