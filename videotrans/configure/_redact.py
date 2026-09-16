@@ -3,7 +3,8 @@ import re
 import threading
 
 # 配置项名称以这些结尾时视为密钥，max_token 这类数值配置除外
-_SECRET_NAME_RE = re.compile(r'(key|secret|secretid|token)$', re.I)
+# baidu_miyue 是百度翻译密钥，doubao2_access 是豆包 Access Token
+_SECRET_NAME_RE = re.compile(r'(key|secret|secretid|token|miyue|access)$', re.I)
 _NOT_SECRET_NAME_RE = re.compile(r'max_?tokens?$', re.I)
 _MIN_SECRET_LEN = 6
 
