@@ -24,13 +24,13 @@ def extract_concise_error(stderr_text: str,stdout:str="") -> str:
     return " ".join(result)
 
 
-def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
+def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None,state_dict=None):
     if settings.get('force_lib'):
         force_cpu = True
 
     final_args = arg
 
-    cmd = ['ffmpeg', "-hide_banner", "-nostdin", "-ignore_unknown", '-threads', '0']
+    cmd = ['ffmpeg', "-hide_banner", "-nostdin", "-ignore_unknown"]
     if "-y" not in final_args:
         cmd.append("-y")
     cmd.extend(final_args)

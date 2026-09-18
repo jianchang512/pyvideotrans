@@ -1,15 +1,15 @@
 
 
 def openwin():
-    import os
+    from videotrans.winform import get_cls
+    from pathlib import Path
     from videotrans.util.help_misc import process_openai_api
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
-    from videotrans.component.set_form import ChatgptForm
 
-    winobj = ChatgptForm()
-    app_cfg.child_forms['chatgpt'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     feed = make_feed_translator(winobj, "test_chatgpt")
@@ -41,4 +41,4 @@ def openwin():
     winobj.set_chatgpt.clicked.connect(save_chatgpt)
     winobj.test_chatgpt.clicked.connect(test)
     winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'chatgpt_model', 'chatgpt_model'))
-    winobj.show()
+    return winobj

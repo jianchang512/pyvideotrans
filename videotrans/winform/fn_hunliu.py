@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
     import json
     from videotrans.util._ffmpeg_runner import runffmpeg
     from videotrans.util.help_misc import show_error
@@ -9,7 +10,7 @@ def openwin():
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure import contants
+    from videotrans.configure import constants
     from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
     RESULT_DIR = HOME_DIR + "/hunliu"
 
@@ -64,7 +65,7 @@ def openwin():
             winobj.hun_opendir.setDisabled(False)
 
     def get_file(num=1):
-        format_str = " ".join(['*.' + f for f in contants.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in constants.AUDIO_EXITS])
         fname, _ = QFileDialog.getOpenFileName(winobj, 'Select Audio', params.get('last_opendir',''),
                                                f"Audio files({format_str})")
         if not fname:
@@ -94,14 +95,13 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component.set_form import HunliuForm
-    winobj = HunliuForm()
-    app_cfg.child_forms['fn_hunliu'] = winobj
-    winobj.show()
+
+    winobj = get_cls(Path(__file__).stem)()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.hun_file1btn.clicked.connect(lambda: get_file(1))
         winobj.hun_file2btn.clicked.connect(lambda: get_file(2))
         winobj.hun_opendir.clicked.connect(opendir)
         winobj.hun_startbtn.clicked.connect(start)
-    QTimer.singleShot(10,_bind)
+    _bind()
+    return winobj

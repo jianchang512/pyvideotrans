@@ -1,12 +1,13 @@
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt
-    from videotrans.component.set_form import WhisperXAPIForm
+    from pathlib import Path
 
-    winobj = WhisperXAPIForm()
-    app_cfg.child_forms['whisperx'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     feed = make_feed_stt(winobj, "test")
 
@@ -30,4 +31,4 @@ def openwin():
     winobj.api_url.setText(str(params.get("whisperx_api", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

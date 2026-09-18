@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Union
 
 from videotrans.configure.config import ROOT_DIR, logger
-from videotrans.configure.contants import INSTALL_RUBBERBAND_TIPS
+from videotrans.configure.constants import INSTALL_RUBBERBAND_TIPS
 from videotrans.util._ffmpeg_runner import runffmpeg
 
 

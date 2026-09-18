@@ -1,12 +1,13 @@
 def openwin():
+    from videotrans.winform import get_cls
+    from pathlib import Path
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_feed_translator
-    from videotrans.component.set_form import TransapiForm
 
-    winobj = TransapiForm()
-    app_cfg.child_forms['transapi'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     feed = make_feed_translator(winobj, "test")
 
@@ -33,4 +34,4 @@ def openwin():
     winobj.miyue.setText(str(params.get("trans_secret", '')))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

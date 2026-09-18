@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import List, Union
 from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, settings
 from videotrans.configure.base import BaseCon
-from videotrans.configure.contants import BUILTINT_URL_MS, BUILTINT_URL_HF
+from videotrans.configure.constants import BUILTINT_URL_MS, BUILTINT_URL_HF
 from videotrans.task.taskcfg import TaskCfgBase, SrtItem
-from videotrans.translator._registry import get_name_index
+from videotrans.translator import get_name_index
 from videotrans.translator._runner import get_model_transobj
 from videotrans.util.help_misc import is_connect_hf
 

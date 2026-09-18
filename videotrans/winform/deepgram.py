@@ -1,15 +1,16 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
+    from pathlib import Path
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt
-    from videotrans.component.set_form import DeepgramForm
 
-    winobj = DeepgramForm()
-    app_cfg.child_forms['deepgram'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     feed = make_feed_stt(winobj, "test")
 
@@ -41,4 +42,4 @@ def openwin():
     winobj.utt.setText(str(params.get("deepgram_utt", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

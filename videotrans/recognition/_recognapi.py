@@ -6,10 +6,10 @@ from typing import List, Union
 
 import requests
 from videotrans.configure.excepts import StopRetry, SpeechToTextError
-from videotrans.configure.config import tr, params, app_cfg, logger
+from videotrans.configure.config import tr, params, app_cfg, logger, settings
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.configure import contants
+from videotrans.configure import constants
 from videotrans.util._srt_parse import get_srt_from_list, get_subtitle_from_srt, ms_to_time_string
 
 """
@@ -29,7 +29,7 @@ from videotrans.util._srt_parse import get_srt_from_list, get_subtitle_from_srt,
             }
 """
 
-RETRY_NUMS = 2
+RETRY_NUMS = settings.get('retry_nums')
 RETRY_DELAY = 10
 
 
@@ -149,7 +149,7 @@ class APIRecogn(BaseRecogn):
             if d['status'] == 'done':
                 sens = d['result']['transcription']['subtitles'][0]['subtitles']
                 raws = get_subtitle_from_srt(sens, is_file=False)
-                if self.detect_language and self.detect_language.split('-')[0] in contants.CJK_LANG:
+                if self.detect_language and self.detect_language.split('-')[0] in constants.CJK_LANG:
                     for i, it in enumerate(raws):
                         text = re.sub(r'\s+', '', it['text'], flags=re.I | re.S)
                         raws[i]['text'] = text

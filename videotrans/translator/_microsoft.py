@@ -20,7 +20,7 @@ class Microsoft(BaseTrans):
         self.api_url = 'https://edge.microsoft.com/translate/translatetext'
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
-    def _item_task(self, data: Union[List[str], str]) -> str:
+    def _item_task(self, data: str) -> str:
         if self._exit(): return
         if not self.target_code:
             raise StopRetry(tr("The target language code is not set correctly and cannot be translated"))
@@ -30,7 +30,7 @@ class Microsoft(BaseTrans):
         elif tocode.lower() == 'zh-tw':
             tocode = 'zh-Hant'
 
-        texts = data if isinstance(data, list) else [data]
+        texts = data.split("\n")
         url = f"{self.api_url}?from=&to={tocode}&isEnterpriseClient=false"
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',

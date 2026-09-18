@@ -1,14 +1,15 @@
 
 
 def openwin():
+    from pathlib import Path
+    from videotrans.winform import get_cls
     from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans.winform._helpers import make_feed_translator
-    from videotrans.component.set_form import DeepLForm
 
-    winobj = DeepLForm()
-    app_cfg.child_forms['deepl'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     feed = make_feed_translator(winobj, "test")
 
@@ -40,4 +41,4 @@ def openwin():
         winobj.deepl_gid.setText(str(params['deepl_gid']))
     winobj.set_deepl.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

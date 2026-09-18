@@ -4,7 +4,7 @@ from pathlib import Path
 
 from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
-from videotrans.configure.contants import ZIPVOICE_URL_MS, ZIPVOICE_URL_HF
+from videotrans.configure.constants import ZIPVOICE_URL_MS, ZIPVOICE_URL_HF
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.configure.config import ROOT_DIR, app_cfg, logger,settings
 from videotrans.tts._base import BaseTTS

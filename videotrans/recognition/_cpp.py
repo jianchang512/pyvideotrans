@@ -6,10 +6,10 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from videotrans.configure import contants
+from videotrans.configure import constants
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure.config import tr, settings, logger
-from videotrans.configure.contants import WHISPER_CPP_URL_MS, WHISPER_CPP_URL_HF, WHISPERCPP_MODEL_URL_MS, \
+from videotrans.configure.constants import WHISPER_CPP_URL_MS, WHISPER_CPP_URL_HF, WHISPERCPP_MODEL_URL_MS, \
     WHISPERCPP_MODEL_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
@@ -70,7 +70,7 @@ class CPPRecogn(BaseRecogn):
             cmd += ['--prompt', prompt]
         if _lang.lower() !='auto':
             # 最多2倍设定字幕字符长度，防止过长
-            _ml=2*int(settings.get('cjk_len', 15) if _lang in contants.CJK_LANG else settings.get('other_len', 60))
+            _ml=2*int(settings.get('cjk_len', 15) if _lang in constants.CJK_LANG else settings.get('other_len', 60))
             cmd+=['-ml', str(_ml)]
 
         if txt_file and Path(txt_file).exists():

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Union
 from videotrans.configure.config import  logger, settings,ROOT_DIR
-from videotrans.configure.contants import DOLPHIN_URL_MS, DOLPHIN_URL_HF
+from videotrans.configure.constants import DOLPHIN_URL_MS, DOLPHIN_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem

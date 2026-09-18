@@ -7,7 +7,7 @@ from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
 from videotrans.configure.config import params, logger, app_cfg, ROOT_DIR, settings
 from videotrans.configure.excepts import DubbingSrtError
-from videotrans.configure.contants import SPACY_URL_MS,SPACY_URL_HF
+from videotrans.configure.constants import SPACY_URL_MS,SPACY_URL_HF
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_role import get_chatterbox_role
 from videotrans.util.gpus import mps_or_cpu

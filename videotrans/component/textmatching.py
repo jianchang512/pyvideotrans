@@ -15,7 +15,7 @@ from PySide6.QtCore import Qt, QThread, Signal, Slot, QSettings, QUrl
 
 from videotrans.configure.config import ROOT_DIR, settings,  defaulelang,tr
 from videotrans.configure import config
-from videotrans.configure.contants import FASTER_MODELS_DICT
+from videotrans.configure.constants import FASTER_MODELS_DICT
 
 
 from videotrans.util._ffmpeg_audio import conver_to_16k
@@ -271,7 +271,7 @@ class AlignmentWorker(QThread):
 # 3. 界面主类
 # ==========================================
 
-class TextmatchingWindow(QWidget):
+class TEXTMATCHING(QWidget):
     def __init__(self):
         super().__init__()
         self.settings = QSettings("MyTools", "WhisperForceAlign")
@@ -543,13 +543,4 @@ class TextmatchingWindow(QWidget):
         self.btn_start.setEnabled(True)
         self.btn_start.setText(tr("btn_start"))
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
 
-    font = app.font()
-    font.setPointSize(10)
-    app.setFont(font)
-
-    window = TextmatchingWindow()
-    window.show()
-    sys.exit(app.exec())

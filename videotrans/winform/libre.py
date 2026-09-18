@@ -1,12 +1,15 @@
+
+
 def openwin():
+    from pathlib import Path
+    from videotrans.winform import get_cls
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_feed_translator
-    from videotrans.component.set_form import LibreForm
 
-    winobj = LibreForm()
-    app_cfg.child_forms['libre'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     feed = make_feed_translator(winobj, "test")
 
@@ -33,4 +36,4 @@ def openwin():
     winobj.key.setText(str(params.get("libre_key", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

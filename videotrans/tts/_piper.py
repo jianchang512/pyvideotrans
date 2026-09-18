@@ -5,7 +5,7 @@ from pathlib import Path
 
 from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_QUEUE_FILE, REDUBB_STATUS_FILE
-from videotrans.configure.contants import GPTW_URL_MS, GPTW_URL_HF
+from videotrans.configure.constants import GPTW_URL_MS, GPTW_URL_HF
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.configure.config import ROOT_DIR,app_cfg,logger
 from videotrans.tts._base import BaseTTS

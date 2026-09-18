@@ -3,7 +3,7 @@ from pathlib import Path
 import shutil, os
 import zipfile
 from videotrans.configure.config import  tr, logger,  app_cfg
-from videotrans.configure.contants import FASTER_MODELS_DICT
+from videotrans.configure.constants import FASTER_MODELS_DICT
 from urllib.parse import urlparse
 import threading
 import tqdm

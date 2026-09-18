@@ -276,7 +276,7 @@ class PreviewWidget(QGraphicsView):
         if style['Shadow'] > 0:
             shadow_item.setPos(x + style['Shadow'], y + style['Shadow'])
 
-class ASSStyleDialog(QDialog):
+class SET_ASS(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle(tr("window_title"))

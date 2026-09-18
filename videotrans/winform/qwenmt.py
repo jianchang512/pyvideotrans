@@ -1,15 +1,15 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
+    from pathlib import Path
     from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,params,app_cfg
-    from videotrans.configure.contants import Qwenmt_Model
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
-    from videotrans.component.set_form import QwenmtForm
 
-    winobj = QwenmtForm()
-    app_cfg.child_forms['qwenmt'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     feed = make_feed_translator(winobj, "test")
@@ -43,4 +43,4 @@ def openwin():
     
     winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'qwenmt_model', 'qwenmt_model'))
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

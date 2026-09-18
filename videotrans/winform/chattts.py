@@ -1,15 +1,16 @@
 
 
 def openwin():
-    from videotrans.configure.contants import LISTEN_TEXT
+    from pathlib import Path
+    from videotrans.winform import get_cls
+    from videotrans.configure.constants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr,app_cfg,settings,params
     from videotrans.configure import config
     from videotrans.util.ListenVoice import ListenVoice
-    from videotrans.component.set_form import ChatttsForm
 
-    winobj = ChatttsForm()
-    app_cfg.child_forms['chattts'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     def feed(d):
         if d == "ok":
@@ -47,4 +48,4 @@ def openwin():
     winobj.chattts_voice.setText(str(settings.get("chattts_voice",'')))
     winobj.set_chattts.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

@@ -17,9 +17,9 @@ from videotrans.util._srt_parse import cleartext
 class Baidu(BaseTrans):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
-    def _item_task(self, data: Union[List[str], str]) -> str:
+    def _item_task(self, data: str) -> str:
         if self._exit(): return
-        text = "\n".join(data)
+        text = data
         salt = int(time.time())
         strtext = f"{params.get('baidu_appid','')}{text}{salt}{params.get('baidu_miyue','')}"
         md5 = hashlib.md5()

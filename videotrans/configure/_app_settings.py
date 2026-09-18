@@ -8,7 +8,7 @@ from typing import Dict, List
 
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure._logging import _write_with_retry
-from videotrans.configure.contants import (
+from videotrans.configure.constants import (
     DEFAULT_GEMINI_MODEL, ChatTTS_VOICE, Qwentts_Models,
     Whisper_Models, Zijiehuoshan_Model, Zhipuai_Model, Localllm_Model, Azure_Model,
     Chatgpt_Model, Openairecognapi_Model, Qpenaitts_Model, Qwenmt_Model, Ai302_Models,
@@ -120,7 +120,7 @@ class AppSettings:
             "guiji_model": Guiji_Model,
             "zijiehuoshan_model": Zijiehuoshan_Model,
             "model_list": Whisper_Models,
-            "minimax_model": MINIMAX_MODELS,
+            "minimaxi_model": MINIMAX_MODELS,
             "qwentts_models": Qwentts_Models,
             "chattts_voice": ChatTTS_VOICE,
             "gemini_model": DEFAULT_GEMINI_MODEL,
@@ -161,7 +161,7 @@ class AppSettings:
             "max_speech_duration_s": 5,
             "min_silence_duration_ms": 600,
 
-            "min_speech_duration_ms2": 600,
+            "min_speech_duration_ms2": 300,
             "max_speech_duration_s2": 1.0,
             "model_for_recogn2":"large-v3-turbo",
 
@@ -169,10 +169,10 @@ class AppSettings:
 
             "trans_thread": 10,
             "aitrans_thread": 50,
-            "translation_wait": 0,
+            "translation_wait": 0.1,
             "dubbing_wait": 1,
             "dubbing_thread": 1,
-            "asr_wait": 0,
+            "asr_wait": 1,
             "normal_text": False,
             "remove_dubb_silence": True,
             "save_segment_audio": False,
@@ -201,7 +201,7 @@ class AppSettings:
             "process_max": 0,
             "process_max_gpu": 1,
             "device_name":"auto",
-            "retry_nums": 1,
+            "retry_nums": 2,
             "proxy": ""
          }
         _d.update(self._models_dict())

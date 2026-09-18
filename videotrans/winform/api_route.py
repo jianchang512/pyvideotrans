@@ -1,13 +1,13 @@
 def openwin():
+    from videotrans.winform import get_cls
+    from pathlib import Path
     from videotrans.configure.config import tr, params, app_cfg
     from videotrans.util.help_misc import show_error
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
-    from videotrans.component.set_form import ApiRouteForm
 
-    winobj = ApiRouteForm()
-    app_cfg.child_forms['api_route'] = winobj
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     feed = make_feed_translator(winobj, "test")
@@ -34,4 +34,4 @@ def openwin():
     winobj.set.clicked.connect(save)
     winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'api_route_model', 'api_route_model'))
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

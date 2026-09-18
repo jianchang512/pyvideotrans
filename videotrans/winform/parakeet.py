@@ -1,15 +1,16 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.util.help_misc import set_process
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt
-    from videotrans.component.set_form import ParakeetForm
+    from pathlib import Path
 
-    winobj = ParakeetForm()
-    app_cfg.child_forms['parakeet'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     feed = make_feed_stt(winobj, "test")
@@ -43,4 +44,4 @@ def openwin():
 
     winobj.set_btn.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

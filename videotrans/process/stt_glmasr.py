@@ -17,17 +17,13 @@ def glmasr_asr(
         **kw
 ) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
     from videotrans.process._stt_utils import _write_log
-    import copyreg
-    copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
-    from transformers import AutoProcessor, GlmAsrForConditionalGeneration, BitsAndBytesConfig
+    from transformers import AutoProcessor, GlmAsrForConditionalGeneration
     import torch
 
     processor = AutoProcessor.from_pretrained(local_dir)
 
-    quant_config = BitsAndBytesConfig( load_in_8bit=True )   if torch.cuda.is_available() else None
     model = GlmAsrForConditionalGeneration.from_pretrained(
         local_dir,
-        quantization_config=quant_config,
         device_map=kw.get('device_name','auto'),
         dtype='auto'  # torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
     )

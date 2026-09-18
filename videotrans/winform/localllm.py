@@ -1,12 +1,16 @@
+
+
+
 def openwin():
+    from pathlib import Path
+    from videotrans.winform import get_cls
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
-    from videotrans.component.set_form import LocalLLMForm
 
-    winobj = LocalLLMForm()
-    app_cfg.child_forms['localllm'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     feed = make_feed_translator(winobj, "test_localllm")
@@ -39,4 +43,4 @@ def openwin():
     winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'localllm_model', 'localllm_model'))
     winobj.set_localllm.clicked.connect(save_localllm)
     winobj.test_localllm.clicked.connect(test)
-    winobj.show()
+    return winobj

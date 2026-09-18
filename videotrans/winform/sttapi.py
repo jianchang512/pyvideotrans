@@ -1,12 +1,13 @@
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt
-    from videotrans.component.set_form import SttAPIForm
+    from pathlib import Path
 
-    winobj = SttAPIForm()
-    app_cfg.child_forms['sttapi'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     feed = make_feed_stt(winobj, "test")
 
@@ -32,4 +33,4 @@ def openwin():
     winobj.stt_model.setCurrentText(str(params.get("stt_model", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

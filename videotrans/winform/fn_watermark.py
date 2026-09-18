@@ -2,7 +2,7 @@
 
 
 def openwin():
-
+    from videotrans.winform import get_cls
     from videotrans.util._ffmpeg_runner import runffmpeg
     from videotrans.util._ffprobe import get_video_duration
     from videotrans.util.help_misc import show_error, read_last_n_lines
@@ -13,7 +13,7 @@ def openwin():
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure import contants
+    from videotrans.configure import constants
     from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR
     from videotrans.configure import config
     # 使用内置的 open 函数
@@ -143,7 +143,7 @@ def openwin():
 
     def get_file(type):
         if type == 1:
-            format_str = " ".join(['*.' + f for f in contants.VIDEO_EXTS])
+            format_str = " ".join(['*.' + f for f in constants.VIDEO_EXTS])
             fname, _ = QFileDialog.getOpenFileNames(winobj, "Select Video",
                                                     params['last_opendir'],
                                                     f"Video files({format_str})")
@@ -194,10 +194,8 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component.set_form import WatermarkForm
-    winobj = WatermarkForm()
-    app_cfg.child_forms['fn_watermark'] = winobj
-    winobj.show()
+
+    winobj = get_cls(Path(__file__).stem)()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.videobtn.clicked.connect(lambda: get_file(1))
@@ -205,4 +203,5 @@ def openwin():
 
         winobj.resultbtn.clicked.connect(opendir)
         winobj.startbtn.clicked.connect(start)
-    QTimer.singleShot(10,_bind)
+    _bind()
+    return winobj

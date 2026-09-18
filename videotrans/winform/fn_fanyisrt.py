@@ -2,7 +2,7 @@
 
 
 def openwin():
-
+    from videotrans.winform import get_cls
     from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
     from videotrans.util.help_misc import show_glossary_editor, show_error, set_proxy
     from typing import List
@@ -291,10 +291,7 @@ def openwin():
         else:
             settings['aisendsrt'] = False
 
-    from videotrans.component.set_form import Fanyisrt
-
-    winobj = Fanyisrt()
-    app_cfg.child_forms['fn_fanyisrt'] = winobj
+    winobj = get_cls(Path(__file__).stem)()
 
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from videotrans import translator, recognition, tts
-from videotrans.configure import contants
+from videotrans.configure import constants
 from videotrans.configure.config import tr, settings, app_cfg
 from videotrans.recognition import ALLOW_CHANGE_MODEL, get_model_by_type
 from videotrans.util.help_misc import show_error

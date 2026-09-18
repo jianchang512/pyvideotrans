@@ -4,7 +4,8 @@ from typing import List
 from videotrans.configure.config import ROOT_DIR, tr, settings, params, logger
 from pathlib import Path
 from functools import lru_cache
-from videotrans.configure import contants
+from videotrans.configure import constants, config
+
 
 @lru_cache
 def get_camb_role(force=False, raise_exception=False):
@@ -121,7 +122,7 @@ def get_302ai():
         _minimaxi = ai302_voice_roles.get("AI302_minimaxi", {})
         _dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
         _doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
-    _openai = contants.OPENAITTS_ROLES.split(",")
+    _openai = constants.OPENAITTS_ROLES.split(",")
     role_dict['zh'] = role_dict['zh'] | _doubao | _minimaxi | _dubbingx | {k: k for k in _openai}
     role_dict['ja'] = role_dict['ja'] | _doubao_ja
     return role_dict
@@ -299,19 +300,33 @@ def get_clone_role(set_p=False):
         if set_p: raise
     return False
 
+def get_openrouter_role(model_name):
+    rolelist=['No']
+    d=json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/openrouter.json').read_text(encoding="utf-8"))
+    _r=d.get(model_name)
+    if not _r:
+        return rolelist
+    rolelist.extend(_r.split(','))
+    return rolelist
 
 # 根据渠道返回角色列表 供下拉菜单使用
 def role_menu(tts_type, langcode=None) -> List:
     from videotrans import tts
 
+    if tts_type == tts.OPENROUTER_API:
+        return get_openrouter_role(config.params.get("openrouter_tts_model"))
+
+    if tts_type == tts.SILICONFLOW_API:
+        return ['No'] + constants.Guiji_TTS_Role.split(',')
+
     if tts_type == tts.OPENAI_TTS:
-        return ['No'] + (params.get('openaitts_role') or contants.OPENAITTS_ROLES).split(',')
+        return ['No'] + (params.get('openaitts_role') or constants.OPENAITTS_ROLES).split(',')
 
     if tts_type == tts.XAI_TTS:
-        return ['No'] + contants.XAITTS_ROLES.split(',')
+        return ['No'] + constants.XAITTS_ROLES.split(',')
 
     if tts_type == tts.XIAOMI_TTS:
-        return ['No'] + contants.MITTS_ROLES.split(',')
+        return ['No'] + constants.MITTS_ROLES.split(',')
 
     if tts_type == tts.QWEN_TTS:
         return list(get_qwen3tts_rolelist().keys())
@@ -323,7 +338,7 @@ def role_menu(tts_type, langcode=None) -> List:
         return list(get_glmtts_rolelist().keys())
 
     if tts_type == tts.GEMINI_TTS:
-        return contants.GEMINITTS_ROLES.split(',')
+        return constants.GEMINITTS_ROLES.split(',')
 
     if tts_type == tts.ELEVENLABS_TTS:
         return get_elevenlabs_role()

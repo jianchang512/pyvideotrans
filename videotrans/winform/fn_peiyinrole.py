@@ -1,12 +1,13 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.task.taskcfg import InputFile
     from videotrans.util._ffmpeg_misc import format_video
     from videotrans.util.help_misc import show_error
     from videotrans.util.help_role import role_menu
     from videotrans.task.taskcfg import TaskCfgTTS
-    from videotrans.configure.contants import LISTEN_TEXT,EDGE_LANGUANGES_CODE
+    from videotrans.configure.constants import LISTEN_TEXT,EDGE_LANGUANGES_CODE
     import json
     import os,time
     from pathlib import Path
@@ -17,7 +18,7 @@ def openwin():
     from videotrans.configure import config
     from videotrans.task.dubbing import DubbingSrt
     from videotrans import translator, tts
-    from videotrans.component.set_form import Peiyinformrole
+
 
     EDGE_LANGUANGES_DICT={}
     for code in EDGE_LANGUANGES_CODE:
@@ -335,10 +336,7 @@ def openwin():
                 return False
         return True
 
-    winobj = Peiyinformrole()
-    app_cfg.child_forms['fn_peiyinrole'] = winobj
-    winobj.show()
-
+    winobj = get_cls(Path(__file__).stem)()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
         if not params.get('dubb_voice_autorate', False):
@@ -381,4 +379,6 @@ def openwin():
 
 
 
-    QTimer.singleShot(10, _bind)
+    _bind()
+    return winobj
+

@@ -1,5 +1,5 @@
 from videotrans.configure.config import tr
-from videotrans.configure.contants import LANG_CODE
+from videotrans.configure.constants import LANG_CODE
 
 
 # 视频翻译、语音转录、字幕翻译、文字配音(Edge-TTS/OmniVoice外) 用于显示的可选语言 {代码名：语言名,...}

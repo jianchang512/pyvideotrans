@@ -4,9 +4,8 @@ from videotrans.configure.config import app_cfg, logger
 from videotrans.translator._base import BaseTrans
 from videotrans import get_class
 from videotrans.translator._constants import (
-    GOOGLE_INDEX, MICROSOFT_INDEX,    AI_TRANS_CHANNELS,
+    GOOGLE_INDEX, MICROSOFT_INDEX,    AI_TRANS_CHANNELS,ID_NAME_DICT
 )
-from videotrans.translator._registry import _ID_NAME_DICT
 from videotrans.translator._lang_utils import get_source_target_code
 
 
@@ -44,7 +43,7 @@ def run(*, translate_type=0,
     kwargs = {
         "text_list": text_list,
         "target_language_name": target_language_name,
-        "source_code": source_code if source_code and source_code not in ['-', 'No'] else 'auto',
+        "source_code": 'auto' if not source_code or source_code in ['-', 'auto'] else source_code,
         "target_code": target_code,
         "uuid": uuid,
         "is_test": is_test,
@@ -60,7 +59,7 @@ def run(*, translate_type=0,
         logger.warning('未设置代理并且检测google失败，改为使用微软翻译')
         translate_type = MICROSOFT_INDEX
         kwargs['translate_type']=translate_type
-    _cls: Union[Type[BaseTrans], None] = get_class(translate_type,"translator",_ID_NAME_DICT)
+    _cls: Union[Type[BaseTrans], None] = get_class(translate_type,"translator",ID_NAME_DICT)
     if _cls is None:
         raise RuntimeError(f'No this Translation Channel:{translate_type}')
 
@@ -81,7 +80,7 @@ def get_model_transobj(*, translate_type=0, uuid=None) -> Union[List, str, None]
     }
 
 
-    _cls: Union[Type[BaseTrans], None] = get_class(translate_type,"translator",_ID_NAME_DICT)
+    _cls: Union[Type[BaseTrans], None] = get_class(translate_type,"translator",ID_NAME_DICT)
     if _cls is None:
         raise RuntimeError(f'No this Translation Channel:{translate_type}')
 

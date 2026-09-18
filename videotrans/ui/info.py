@@ -1,14 +1,19 @@
 import requests
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QByteArray, QThread, Signal
-from PySide6.QtGui import Qt, QPixmap
+from PySide6.QtGui import Qt, QPixmap, QIcon
+from PySide6.QtWidgets import QDialog
 
 from videotrans import VERSION
-from videotrans.configure.config import tr, app_cfg, defaulelang
+from videotrans.configure.config import tr, app_cfg, defaulelang, ROOT_DIR
 from videotrans.util.help_misc import open_url
 
 
-class Ui_infoform(object):
+class Ui_info(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
     def setupUi(self, infoform):
         infoform.setObjectName("infoform")
         infoform.setWindowModality(QtCore.Qt.NonModal)

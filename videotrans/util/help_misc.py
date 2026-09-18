@@ -116,27 +116,8 @@ def show_error(tb_str):
 
 def open_url(url: str = None):
     import webbrowser
-    title_url_dict = {
-        'bbs': "https://bbs.pyvideotrans.com",
-        'ffmpeg': "https://www.ffmpeg.org/download.html",
-        'git': "https://github.com/jianchang512/pyvideotrans",
-        'issue': "https://github.com/jianchang512/pyvideotrans/issues",
-        'hfmirrorcom': "https://pyvideotrans.com/819",
-        'models': "https://github.com/jianchang512/stt/releases/tag/0.0",
-        'stt': "https://github.com/jianchang512/stt/",
-
-        'gtrans': "https://pyvideotrans.com/ocrsp",
-        'cuda': "https://pyvideotrans.com/gpu",
-        'website': "https://pyvideotrans.com",
-        'help': "https://pyvideotrans.com",
-        'xinshou': "https://pyvideotrans.com/getstart",
-        "about": "https://pyvideotrans.com/about",
-        'download': "https://github.com/jianchang512/pyvideotrans/releases",
-    }
     if url and url.startswith("http"):
         return webbrowser.open_new_tab(url)
-    if url and url in title_url_dict:
-        return webbrowser.open_new_tab(title_url_dict[url])
     return
 
 
@@ -507,9 +488,8 @@ def is_connect_hf()->bool:
         return True
 
 def show_refaudio_win():
-    from videotrans.component.set_form import RefaudioForm
-    dialog = RefaudioForm()
-    dialog.exec()
+    from videotrans.winform import get_win
+    get_win('refaudio')
     return
 
 

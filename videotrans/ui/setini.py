@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import List
 
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtGui import Qt
+from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QFileDialog
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, defaulelang
-from videotrans.configure.contants import LANG_CODE, Whisper_Models
+from videotrans.configure.constants import LANG_CODE, Whisper_Models
 
 # ultrafast 、 superfast 、 veryfast 、 faster 、 fast 、 medium （默认）、 slow和veryslow
 # 处理速度越来越慢，输出视频压缩率和质量越来越高，视频尺寸也将变小
@@ -429,7 +429,12 @@ if defaulelang != 'zh_CN':
 titles.update(prompt_dicts)
 notices['prompt_init'].update(prompt_dicts)
 
-class Ui_setini(object):
+class Ui_setini(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
+
 
     def get_target(self):
         dirname = QFileDialog.getExistingDirectory(self, tr('selectsavedir'), Path.home().as_posix())

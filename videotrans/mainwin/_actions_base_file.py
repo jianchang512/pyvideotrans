@@ -7,14 +7,14 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QTimer
 
 from videotrans.configure.config import tr, settings, params, app_cfg, ROOT_DIR, TEMP_ROOT
-from videotrans.configure import contants
+from videotrans.configure import constants
 from videotrans.util.help_misc import show_popup, set_proxy, set_process
 
 
 class WinActionBaseFileMixin:
 
     def get_mp4(self):
-        allowed_exts = contants.VIDEO_EXTS + contants.AUDIO_EXITS
+        allowed_exts = constants.VIDEO_EXTS + constants.AUDIO_EXITS
         format_str = " ".join(['*.' + f for f in allowed_exts])
         mp4_list = []
         if self.main.select_file_type.isChecked():
@@ -68,7 +68,7 @@ class WinActionBaseFileMixin:
         params.save()
 
     def get_background(self):
-        format_str = " ".join(['*.' + f for f in contants.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in constants.AUDIO_EXITS])
         fname, _ = QtWidgets.QFileDialog.getOpenFileName(self.main, 'Background music', params.get('last_opendir', ''),
                                                           f"Audio files({format_str})")
         if not fname:
@@ -105,30 +105,6 @@ class WinActionBaseFileMixin:
                 if self.main.proxy.text().strip()==test_proxy:
                     set_process(text=test_proxy, type="proxy_error")
         threading.Thread(target=_curl).start()
-
-    def proxy_alert(self):
-        from videotrans.component.set_proxy import SetThreadProxy
-        dialog = SetThreadProxy()
-        if dialog.exec():
-            proxy = dialog.get_values()
-            self.main.proxy.setText(proxy)
-
-    def clearcache(self):
-        question = show_popup(tr('Confirm cleanup?'),
-                                    tr('After cleaning, you need to restart the software. Only cache and temporary files are cleaned. For configuration information, please directly delete the .json in the videotrans folder.'))
-
-        if int(question) == int(QtWidgets.QMessageBox.Yes):
-            os.chdir(ROOT_DIR)
-            self._clean_dir()
-
-    def _clean_dir(self):
-        for it in Path(TEMP_ROOT).iterdir():
-            shutil.rmtree(it, ignore_errors=True)
-
-        Path(ROOT_DIR + "/videotrans/codec.json").unlink(missing_ok=True)
-        Path(ROOT_DIR + "/videotrans/ass.json").unlink(missing_ok=True)
-        self.main.restart_app()
-
 
     def import_srtfile(self):
         fname,_ = QtWidgets.QFileDialog.getOpenFileName(self.main,

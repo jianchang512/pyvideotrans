@@ -33,7 +33,7 @@ class DeepLX(BaseTrans):
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
-    def _item_task(self, data: Union[List[str], str]) -> str:
+    def _item_task(self, data: str) -> str:
         if self._exit(): return
         target_code = self.target_code.upper()
         if target_code == 'EN':
@@ -47,7 +47,7 @@ class DeepLX(BaseTrans):
         sourcecode = self.source_code.split('-')[0].upper() if self.source_code else None
         sourcecode = sourcecode if sourcecode != 'AUTO' else None
         jsondata = {
-            "text": "\n".join(data),
+            "text": data,
             "source_lang": sourcecode,
             "target_lang": target_code
         }

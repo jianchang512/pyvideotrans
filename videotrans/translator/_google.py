@@ -19,9 +19,9 @@ class Google(BaseTrans):
     # 实际发出请求获取结果
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))),
            wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
-    def _item_task(self, data: Union[List[str], str]) -> str:
+    def _item_task(self, data: str) -> str:
         if self._exit(): return
-        text = urllib.parse.quote("\n".join([i.strip() for i in data]) if isinstance(data, list) else data)
+        text = urllib.parse.quote(data)
 
         source_code = 'auto' if not self.source_code or self.source_code == 'auto' else self.source_code
 

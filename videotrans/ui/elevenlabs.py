@@ -3,13 +3,19 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QDialog
 
-from videotrans.configure.config import tr
-from videotrans.configure.contants import ELEVENLABS_TTS_MODELS
+from videotrans.configure.config import tr,ROOT_DIR
+from videotrans.configure.constants import ELEVENLABS_TTS_MODELS
 from videotrans.util.help_misc import open_url
 
 
-class Ui_elevenlabsform(object):
+class Ui_elevenlabs(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
     def setupUi(self, elevenlabsform):
         self.has_done = False
         elevenlabsform.setObjectName("elevenlabsform")

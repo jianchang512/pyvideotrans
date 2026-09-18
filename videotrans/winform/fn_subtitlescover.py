@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.util._ffmpeg_runner import runffmpeg
     from videotrans.util._srt_parse import get_subtitle_from_srt
     from videotrans.util.help_misc import show_error
@@ -127,15 +128,14 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component.set_form import SubtitlescoverForm
-    winobj = SubtitlescoverForm()
-    app_cfg.child_forms['fn_subtitlescover'] = winobj
-    winobj.show()
+
+    winobj = get_cls(Path(__file__).stem)()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.selectbtn.clicked.connect(lambda: get_file())
         winobj.opendir.clicked.connect(opendir)
         winobj.startbtn.clicked.connect(start)
         winobj.formatlist.setCurrentText(params.get('subtitlecover_outformat','srt'))
-    QTimer.singleShot(10,_bind)
+    _bind()
+    return winobj
 

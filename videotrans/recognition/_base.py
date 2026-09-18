@@ -8,7 +8,7 @@ from videotrans.configure import config
 from videotrans.configure.base import BaseCon
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.task.taskcfg import SrtItem
-from videotrans.configure import contants
+from videotrans.configure import constants
 from videotrans.util.help_srt import ms_to_time_string
 from tenacity import RetryError
 
@@ -68,18 +68,18 @@ class BaseRecogn(BaseCon):
         if self.asr_wait is None:
             self.asr_wait = float(settings.get('asr_wait', 0) or 0)
         # 常见标点
-        self.flag = list(contants.PUNC_FLAGS)
+        self.flag = list(constants.PUNC_FLAGS)
         # 逗号等软性标点
-        self.half_flag = list(contants.PUNC_FLAGS_HALF)
+        self.half_flag = list(constants.PUNC_FLAGS_HALF)
         # 句子终止标点
-        self.end_flag = list(contants.PUNC_FLAGS_END)
+        self.end_flag = list(constants.PUNC_FLAGS_END)
         # 连接字符 中日韩粤语高棉语泰国语 直接连接，无需空格，其他语言空格连接
         self.join_word_flag = " "
         # 是中日韩文字
         self.is_cjk = False
 
         _lang = self.detect_language.split('-')[0].lower()
-        if self.detect_language and _lang in contants.CJK_LANG:
+        if self.detect_language and _lang in constants.CJK_LANG:
             self.maxlen = int(float(settings.get('cjk_len', 20)))
             self.jianfan = True if _lang == 'zh' and settings.get('zh_hant_s') else False
             self.flag.append(" ")
@@ -119,7 +119,7 @@ class BaseRecogn(BaseCon):
         srt_list = []
         for i, it in enumerate(res):
             text = it['text'].strip()
-            if text and not re.match(contants.NON_WORD, text):
+            if text and not re.match(constants.NON_WORD, text):
                 it['line'] = len(srt_list) + 1
                 srt_list.append(it)
             else:
@@ -147,42 +147,9 @@ class BaseRecogn(BaseCon):
     def _exec(self) -> Union[List[SrtItem], None]:
         raise NotImplementedError()
 
-    # 有些识别渠道需要预先使用VAD切割为合适时长的音频片段，然后再对片段识别，每个识别结果即为一条字幕
-    # whisper模型并且没有选中预先分割，无需切割
-    def _vad_split(self):
-        _st = time.time()
-        _vad_type = settings.get('vad_type', 'tenvad')
-        self.signal(text=f'VAD:{_vad_type} split audio...')
-
-        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
-        # 最长片段不得大于25s,并且不得小于 _min_speech
-        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000), _min_speech + 1000)
-
-        # 静音阈值不得低于100ms
-        _min_silence = max(int(settings.get('min_silence_duration_ms', 600)), 100)
-
-
-        kw = {
-            "input_wav": self.audio_file,
-            "threshold": float(settings.get('threshold', 0.45)),
-            "min_speech_duration_ms": _min_speech,
-            "max_speech_duration_ms": _max_speech,
-            "min_silent_duration_ms": _min_silence
-        }
-
-
-        try:
-            from videotrans.process.vad import get_speech_timestamp, get_speech_timestamp_silero
-            self.speech_timestamps = get_speech_timestamp(
-                **kw) if _vad_type == 'tenvad' else get_speech_timestamp_silero(**kw)
-        except Exception as e:
-            msg=f'[{_vad_type}]:{kw=}\n{e}'
-            logger.exception(msg, exc_info=True)
-            if not self.recogn2pass:
-                raise SpeechToTextError(msg) from e
-        self.signal(text=f'[VAD] ended {int(time.time() - _st)}s')
 
     # 预先使用 VAD 将待识别的音频切割为语句片段后进行识别
+    # 对于无法返回字级时间戳 或 不适合返回字级时间戳 的渠道，需预先调用该方法切片
     def cut_audio(self) -> List[SrtItem]:
         from pydub import AudioSegment
         dir_name = f"{config.TEMP_DIR}/clip_{time.time()}"
@@ -225,3 +192,43 @@ class BaseRecogn(BaseCon):
 
         logger.debug(f'切分为 {len(data)} 个音频片段')
         return data
+
+    # 若需下载模型，子类需实现
+    def _download(self):
+        pass
+    # 有些识别渠道需要预先使用VAD切割为合适时长的音频片段，然后再对片段识别，每个识别结果即为一条字幕
+    # whisper模型并且没有选中预先分割，无需切割
+    def _vad_split(self):
+        _st = time.time()
+        _vad_type = settings.get('vad_type', 'tenvad')
+        self.signal(text=f'VAD:{_vad_type} split audio...')
+
+        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
+        # 最长片段不得大于25s,并且不得小于 _min_speech
+        _max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000)
+        if _max_speech<=_min_speech:
+            _max_speech=_min_speech+1000
+
+        # 静音阈值不得低于100ms
+        _min_silence = max(int(settings.get('min_silence_duration_ms', 600)), 100)
+
+
+        kw = {
+            "input_wav": self.audio_file,
+            "threshold": float(settings.get('threshold', 0.45)),
+            "min_speech_duration_ms": _min_speech,
+            "max_speech_duration_ms": _max_speech,
+            "min_silent_duration_ms": _min_silence
+        }
+
+
+        try:
+            from videotrans.process.vad import get_speech_timestamp, get_speech_timestamp_silero
+            self.speech_timestamps = get_speech_timestamp(
+                **kw) if _vad_type == 'tenvad' else get_speech_timestamp_silero(**kw)
+        except Exception as e:
+            msg=f'[{_vad_type}]:{kw=}\n{e}'
+            logger.exception(msg, exc_info=True)
+            if not self.recogn2pass:
+                raise SpeechToTextError(msg) from e
+        self.signal(text=f'[VAD] ended {int(time.time() - _st)}s')

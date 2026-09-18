@@ -8,25 +8,12 @@ from pathlib import Path
 from PySide6.QtCore import QTimer
 
 from videotrans.configure.config import tr, app_cfg
-from videotrans.configure import contants
-from videotrans.configure.contants import LISTEN_TEXT
+from videotrans.configure import constants
+from videotrans.configure.constants import LISTEN_TEXT
 from videotrans.util.help_misc import open_url, show_error
 
 
 class WinActionBaseMiscMixin:
-
-    @staticmethod
-    def about():
-        if app_cfg.child_forms.get('information'):
-            app_cfg.child_forms.get('information').show()
-            return
-
-        from videotrans.component.set_form import InfoForm
-        def open():
-            app_cfg.child_forms['information'] = InfoForm()
-            app_cfg.child_forms['information'].show()
-
-        QTimer.singleShot(200, open)
 
     def check_cuda(self, state):
         res = state
@@ -128,7 +115,7 @@ class WinActionBaseMiscMixin:
     def show_listen_btn(self, role):
         voice_role = self.main.voice_role.currentText()
         from videotrans import tts
-        _tip = tts.clone_tips(self.main.tts_type.currentIndex(), voice_role, self.main.recogn_type.currentIndex())
+        _tip = tts.clone_tips(voice_role)
         if _tip:
             self.main.show_tips.setText(_tip)
         if role == 'No' or voice_role == 'clone':
@@ -141,17 +128,10 @@ class WinActionBaseMiscMixin:
     def check_name(self):
         if self.main.app_mode != 'tiqu':
             for it in self.queue_mp4:
-                if Path(it).suffix.lower() in contants.AUDIO_EXITS:
+                if Path(it).suffix.lower() in constants.AUDIO_EXITS:
                     self.main.app_mode = 'tiqu'
                     break
         return True
-
-    def lawalert(self):
-        from videotrans.ui.lawalert import Ui_lawalert
-        self.law = Ui_lawalert(self.main)
-        self.law.show()
-        self.law.raise_()
-        self.law.activateWindow()
 
     @staticmethod
     def open_url(title):

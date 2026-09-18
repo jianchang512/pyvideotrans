@@ -4,7 +4,7 @@ from typing import List, Dict, Union
 from gradio_client import handle_file
 from videotrans.tts._gradio import GradioBase
 from videotrans.util.help_misc import vail_file
-from videotrans.configure.contants import _LANGUAGE_FIRERED3
+from videotrans.configure.constants import _LANGUAGE_FIRERED3
 
 
 @dataclass

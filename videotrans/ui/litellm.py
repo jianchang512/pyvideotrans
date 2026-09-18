@@ -3,11 +3,18 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from videotrans.configure.config import tr, settings, params
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QDialog
+
+from videotrans.configure.config import tr, settings, params, ROOT_DIR
 from videotrans.util.help_misc import open_url
 
 
-class Ui_litellmform(object):
+class Ui_litellm(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
     def setupUi(self, litellmform):
         self.has_done = False
         litellmform.setObjectName("litellmform")

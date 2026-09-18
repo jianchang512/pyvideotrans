@@ -9,7 +9,7 @@ from videotrans.configure.config import settings,logger,ROOT_DIR
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util._srt_parse import get_subtitle_from_srt
-from videotrans.configure.contants import FASTER_MODELS_DICT
+from videotrans.configure.constants import FASTER_MODELS_DICT
 from videotrans.util.help_down import check_and_down_hf
 
 

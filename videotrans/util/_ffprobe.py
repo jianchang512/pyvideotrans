@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, logger
-from videotrans.configure import contants
+from videotrans.configure import constants
 from videotrans.util._ffmpeg_runner import extract_concise_error
 
 
@@ -152,11 +152,11 @@ def _get_ms_from_media(file):
     ms = 0
     ext = Path(file).suffix.lower()[1:]
     try:
-        if ext in contants.VIDEO_EXTS:
+        if ext in constants.VIDEO_EXTS:
             ms = int(float(runffprobe(
                 ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=duration', '-of',
                  'default=noprint_wrappers=1:nokey=1', file])) * 1000)
-        elif ext in contants.AUDIO_EXITS:
+        elif ext in constants.AUDIO_EXITS:
             ms = int(float(runffprobe(
                 ['-v', 'error', '-select_streams', 'a:0', '-show_entries', 'stream=duration', '-of',
                  'default=noprint_wrappers=1:nokey=1', file])) * 1000)

@@ -20,20 +20,17 @@ def videasr_fun(
         hotword=None,
         **kw
 ):
-    import copyreg
-    copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
+
     from videotrans.task.taskcfg import SrtItem
     from videotrans.process._stt_utils import _write_log
     import torch
     from videotrans.util._srt_parse import ms_to_time_string
-    from transformers import AutoProcessor, VibeVoiceAsrForConditionalGeneration,BitsAndBytesConfig
+    from transformers import AutoProcessor, VibeVoiceAsrForConditionalGeneration
 
 
     raws=[]
     try:
 
-        # 8位量化，避免爆显存
-        #quant= BitsAndBytesConfig( load_in_8bit=True ) if torch.cuda.is_available() else None
         
         processor = AutoProcessor.from_pretrained(local_dir)
         model = VibeVoiceAsrForConditionalGeneration.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'))

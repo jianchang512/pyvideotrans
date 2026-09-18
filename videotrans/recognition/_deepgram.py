@@ -17,7 +17,7 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT
 from videotrans.configure.config import tr,params,settings,logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.configure import contants
+from videotrans.configure import constants
 from videotrans.util._ffmpeg_runner import runffmpeg
 from videotrans.util._srt_parse import ms_to_time_string, get_subtitle_from_srt
 
@@ -75,7 +75,7 @@ class DeepgramRecogn(BaseRecogn):
                     "end_time": int(it.end * 1000),
                     "text": it.transcript
                 }
-                if self.detect_language.split('-')[0] in contants.CJK_LANG:
+                if self.detect_language.split('-')[0] in constants.CJK_LANG:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'],flags=re.I | re.S)
                 tmp['startraw']=ms_to_time_string(ms=tmp['start_time'])
                 tmp['endraw']=ms_to_time_string(ms=tmp['end_time'])
@@ -89,7 +89,7 @@ class DeepgramRecogn(BaseRecogn):
             srt_str = srt(transcription,
                           line_length=int(settings.get('cjk_len') if _lang in ['zh', 'ja','ko'] else settings.get('other_len')))
             raws = get_subtitle_from_srt(srt_str, is_file=False)
-            if _lang in contants.CJK_LANG:
+            if _lang in constants.CJK_LANG:
                 for i, it in enumerate(raws):
                     if _lang == 'zh':
                         it['text'] = zhconv.convert(it['text'], 'zh-hans')

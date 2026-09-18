@@ -8,10 +8,11 @@ from typing import Dict
 
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure._logging import _write_with_retry
-from videotrans.configure.contants import (
-    DEFAULT_GEMINI_MODEL, OPENAITTS_ROLES, GEMINI_TTS_MODELS,GEMINI_ASR_MODELS,
+from videotrans.configure.constants import (
+    DEFAULT_GEMINI_MODEL, OPENAITTS_ROLES, GEMINI_TTS_MODELS, GEMINI_ASR_MODELS,
     XIAOMI_MODELS, XIAOMI_TTS_MODELS, ELEVENLABS_TTS_MODELS,
-    MINIMAX_TTS_MODELS, MINIMAX_MODELS
+    MINIMAX_TTS_MODELS, MINIMAX_MODELS, Guiji_ASR_Model, Guiji_TTS_Model, Openrouter_ASR_Model, Openrouter_TTS_Model,
+    MINIMAX_ASR_MODELS
 )
 
 # Module-level reference to settings singleton, set by config.py
@@ -131,6 +132,8 @@ class AppParams:
             "guiji_key": "",
             "guiji_thinking": False,
             "guiji_model": str(_settings.get('guiji_model', '-')).strip().split(',')[0],
+            "guiji_asr_model": Guiji_ASR_Model.strip().split(',')[0],
+            "guiji_tts_model": Guiji_TTS_Model.strip().split(',')[0],
             "guiji_max_token": 16384,#最大输出16k
             "deepseek_key": "",
             "deepseek_thinking": False,
@@ -139,6 +142,8 @@ class AppParams:
             "openrouter_key": "",
             "openrouter_reasoning_effort": "default",
             "openrouter_model": str(_settings.get('openrouter_model', '-')).strip().split(',')[0],
+            "openrouter_asr_model": Openrouter_ASR_Model.strip().split(',')[0],
+            "openrouter_tts_model": Openrouter_TTS_Model.strip().split(',')[0],
             "openrouter_max_token": 16384,#最大输出16k
             "litellm_api":'http://localhost:4000/v1',
             "litellm_key": "",
@@ -198,14 +203,13 @@ class AppParams:
             "ttsapi_extra": "123456",
 
             "minimaxi_apikey": "",
+            "minimaxi_apiurl": "api.minimax.cn",
             "minimaxi_emotion": "",
-            "minimaxi_apiurl": "api.minimaxi.com",
-            "minimaxi_model": MINIMAX_TTS_MODELS.split(',')[0],
-            "minimax_key": "",
-            "minimax_model": MINIMAX_MODELS.split(',')[0],
-            "minimax_max_token": 16384,
-            "minimax_api": "https://api.minimaxi.com/v1",
-            "minimax_thinking":False,
+            "minimaxi_asr_model": MINIMAX_ASR_MODELS.split(',')[0],
+            "minimaxi_tts_model": MINIMAX_TTS_MODELS.split(',')[0],
+            "minimaxi_text_model": MINIMAX_MODELS.split(',')[0],
+            "minimaxi_max_token": 16384,
+            "minimaxi_thinking":False,
             "ai302tts_key": "",
             "ai302tts_model": "",
             "ai302tts_role": OPENAITTS_ROLES,

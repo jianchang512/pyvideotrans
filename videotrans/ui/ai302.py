@@ -2,13 +2,21 @@
 
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QDialog
 
-from videotrans.configure.config import tr, params, settings
+from videotrans.configure.config import tr, params, settings, ROOT_DIR
 from videotrans.util.help_misc import open_url
 
 
-class Ui_ai302form(object):
+class Ui_ai302(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
+
     def setupUi(self, ai302form):
+
         ai302form.setObjectName("ai302form")
         ai302form.setWindowModality(QtCore.Qt.NonModal)
         ai302form.resize(600, 550)

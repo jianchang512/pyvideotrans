@@ -14,7 +14,7 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry
 from videotrans.configure.config import tr, params, settings,  logger, ROOT_DIR
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.configure import contants
+from videotrans.configure import constants
 from videotrans.util._srt_parse import ms_to_time_string
 
 
@@ -125,7 +125,7 @@ class CambRecogn(BaseRecogn):
                     "text": text.strip()
                 })
 
-                if self.detect_language and self.detect_language.split('-')[0] in contants.CJK_LANG:
+                if self.detect_language and self.detect_language.split('-')[0] in constants.CJK_LANG:
                     tmp['text'] = re.sub(r'\s| ', '', tmp['text'], flags=re.I | re.S)
 
                 tmp['time'] = ms_to_time_string(ms=start_ms) + ' --> ' + ms_to_time_string(ms=end_ms)

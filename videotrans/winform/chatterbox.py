@@ -1,17 +1,17 @@
 
 
 def openwin():
-    from videotrans.configure.contants import LISTEN_TEXT
+    from videotrans.winform import get_cls
+    from videotrans.configure.constants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.util.help_role import get_f5tts_role
     from pathlib import Path
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,params
     from videotrans.configure import config
     from videotrans.util.ListenVoice import ListenVoice
-    from videotrans.component.set_form import ChatterboxForm
 
-    winobj = ChatterboxForm()
-    app_cfg.child_forms['chatterbox'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     def feed(d):
         if d == "ok":
@@ -67,4 +67,4 @@ def openwin():
     winobj.exaggeration.setText(str(params.get("chatterbox_exaggeration",'')))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

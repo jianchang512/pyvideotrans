@@ -1,15 +1,16 @@
 
 
 def openwin():
+    from pathlib import Path
+    from videotrans.winform import get_cls
     from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt
-    from videotrans.component.set_form import ZijierecognmodelForm
 
-    winobj = ZijierecognmodelForm()
-    app_cfg.child_forms['zijierecognmodel'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     feed = make_feed_stt(winobj, "test")
@@ -34,4 +35,4 @@ def openwin():
 
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

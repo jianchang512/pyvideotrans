@@ -1,18 +1,17 @@
 
 
 def openwin():
-    from videotrans.configure.contants import LISTEN_TEXT
+    from pathlib import Path
+    from videotrans.util.TestSrtTrans import TestSrtTrans
+    from videotrans.winform import get_cls
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr,app_cfg,params
-    from videotrans.configure import config
-    from videotrans.util.ListenVoice import ListenVoice
-    from videotrans.component.set_form import MinimaxiForm
 
-    winobj = MinimaxiForm()
-    app_cfg.child_forms['minimaxi'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     def feed(d):
-        if d == "ok":
+        if d and d.startswith('ok'):
             from PySide6 import QtWidgets
             QtWidgets.QMessageBox.information(winobj, "ok", "Test Ok")
         else:
@@ -21,42 +20,39 @@ def openwin():
 
     def test():
         apikey = winobj.apikey.text().strip()
-        model = winobj.model.currentText()
         apiurl = winobj.apiurl.currentText()
         if not apikey:
             return show_error(tr("SK is required"))
         params["minimaxi_apikey"] = apikey
-        params["minimaxi_model"] = model
         params["minimaxi_apiurl"] = apiurl
+        params["minimaxi_tts_model"] = winobj.tts_model.currentText()
         params["minimaxi_emotion"] = winobj.emotion.currentText()
+        params["minimaxi_text_model"] = winobj.text_model.currentText()
+        params["minimaxi_asr_model"] = winobj.asr_model.currentText()
+        params["minimaxi_max_token"] = winobj.max_token.text()
+        params["minimaxi_thinking"] = winobj.minimaxi_thinking.isChecked()
         params.save()
         winobj.test.setText(tr("Testing..."))
-        from videotrans import tts
-        import time
-        wk = ListenVoice(parent=winobj, queue_tts=[{
-            "text":  LISTEN_TEXT.get('zh'),
-            "role": "\u9752\u6da9\u9752\u5e74\u97f3\u8272" if "api.minimaxi.com"==apiurl else 'Reliable Executive',
-            "filename": config.TEMP_DIR + f"/{time.time()}-minimaxi.wav",
-            "tts_type": tts.MINIMAXI_TTS}],
-                         language="zh",
-                         tts_type=tts.MINIMAXI_TTS)
-        wk.uito.connect(feed)
-        wk.start()
+        from videotrans import translator
+        task = TestSrtTrans(parent=winobj, translator_type=translator.MINIMAX_INDEX)
+        task.uito.connect(feed)
+        task.start()
         set_process(text='', type="refreshtts")
 
     def save():
         params["minimaxi_apikey"] = winobj.apikey.text().strip()
-        params["minimaxi_model"] = winobj.model.currentText()
         params["minimaxi_apiurl"] = winobj.apiurl.currentText()
+        params["minimaxi_tts_model"] = winobj.tts_model.currentText()
         params["minimaxi_emotion"] = winobj.emotion.currentText()
+        params["minimaxi_text_model"] = winobj.text_model.currentText()
+        params["minimaxi_asr_model"] = winobj.asr_model.currentText()
+        params["minimaxi_max_token"] = winobj.max_token.text()
+        params["minimaxi_thinking"] = winobj.minimaxi_thinking.isChecked()
         params.save()
         set_process(text='', type="refreshtts")
         winobj.close()
 
-    winobj.apikey.setText(str(params.get("minimaxi_apikey",'')))
-    winobj.apiurl.setCurrentText(str(params.get("minimaxi_apiurl",'api.minimaxi.com')))
-    winobj.emotion.setCurrentText(str(params.get("minimaxi_emotion",'')))
-    winobj.model.setCurrentText(str(params.get("minimaxi_model",'')))
+
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

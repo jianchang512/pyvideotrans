@@ -28,14 +28,14 @@ class Ali(BaseTrans):
         return alimt20181012Client(cf)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
-    def _item_task(self, data: Union[List[str], str]) -> str:
+    def _item_task(self,data: str) -> str:
         if self._exit(): return
         client = self.create_client()
         translate_general_request = alimt_20181012_models.TranslateGeneralRequest(
             format_type='text',
             source_language='auto',
             target_language='zh' if self.target_code.split('-')[0] == 'zh' else self.target_code,
-            source_text="\n".join(data),
+            source_text=data,
             scene='general'
         )
         runtime = util_models.RuntimeOptions()

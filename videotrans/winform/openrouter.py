@@ -1,15 +1,15 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
-    from videotrans.component.set_form import OpenrouterForm
+    from pathlib import Path
 
-    winobj = OpenrouterForm()
-    app_cfg.child_forms['openrouter'] = winobj
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     feed = make_feed_translator(winobj, "test")
@@ -20,6 +20,8 @@ def openwin():
             return show_error(tr("Please input Secret"))
         params["openrouter_key"] = key
         params["openrouter_model"] = winobj.openrouter_model.currentText()
+        params["openrouter_asr_model"] = winobj.openrouter_asr_model.currentText()
+        params["openrouter_tts_model"] = winobj.openrouter_tts_model.currentText()
         params["openrouter_max_token"] = winobj.max_token.text().strip()
         params["openrouter_reasoning_effort"] = winobj.reasoning_effort.currentText()
         winobj.test.setText(tr("Testing..."))
@@ -31,6 +33,8 @@ def openwin():
     def save():
         params["openrouter_key"] = winobj.openrouter_key.text().strip()
         params["openrouter_model"] = winobj.openrouter_model.currentText()
+        params["openrouter_asr_model"] = winobj.openrouter_asr_model.currentText()
+        params["openrouter_tts_model"] = winobj.openrouter_tts_model.currentText()
         params["openrouter_max_token"] = winobj.max_token.text().strip()
         params["openro_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
@@ -39,4 +43,4 @@ def openwin():
     winobj.set.clicked.connect(save)
     winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'openrouter_model', 'openrouter_model'))
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj
