@@ -137,12 +137,21 @@ class BaseRecogn(BaseCon):
                 srt_list[i - 1]['time'] = f"{srt_list[i - 1]['startraw']} --> {srt_list[i - 1]['endraw']}"
 
 
-        if settings.get('del_end_punc'):
-            logger.debug(f'开始移除每条字幕末尾标点')
-            for it in srt_list:
-                # 移除末尾标点
+        _post_fix_srt=[]
+        for it in srt_list:
+            # 移除末尾标点
+            if it['end_time']<=it['start_time']:
+                logger.warning(f'结束时间小于开始时间，丢弃该字幕:{it=}')
+                continue
+            if settings.get('del_end_punc'):
                 it['text'] = it['text'].strip('。，？！,.?!').strip()
-        return srt_list
+            if not it['text'].strip():
+                logger.warning(f'无有效字符，丢弃该字幕:{it=}')
+                continue
+            _post_fix_srt.append(it)
+
+
+        return _post_fix_srt
 
     def _exec(self) -> Union[List[SrtItem], None]:
         raise NotImplementedError()
