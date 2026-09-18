@@ -17,11 +17,13 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     Returns:
 
     """
-    if langcode is None or tts_type is None or tts_type in [EDGE_TTS, G_TTS, HIGGS_AUDIO_TTS, OMNIVOICE_TTS,AZURE_TTS]:
+    if langcode is None or tts_type is None or tts_type in [EDGE_TTS, G_TTS, HIGGS_AUDIO_TTS, OMNIVOICE_TTS, AZURE_TTS]:
         return True
 
     name = ID_NAME_DICT.get(tts_type).name
     _lang2 = langcode.split('-')[0]
+    if tts_type == DOUBAO2_TTS and _lang2 not in ["zh", "en", "ja", "id", "es", "ar", "de", "fr", "ko", "ms", "pt","ru", "th", "fil", "vi", "it","yue"]:
+        return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
 
     if tts_type in [CHATTTS, ZIPVOICE_TTS, VITSCNEN_TTS, SPARK_TTS] and _lang2 not in ['zh', 'en']:
         return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
@@ -54,9 +56,8 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     if tts_type == CONFUCIUS_TTS and _lang2 not in ["zh", "en", "ja", "ko", "de", "fr", "th",
                                                     "id", "vi", "es", "pt", "it", "ru", "ms"]:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
-    _mainsupport = ["ar", "cs", "de", "el", "en", "es", "fa", "fr", "hi", "hu", "id", "it", "kk", "nl", "pl", "pt","ro", "ru", "sv", "tr", "uk", "ur", "vi", "zh"]
-    if _lang2 not in _mainsupport:
-        return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
+    _mainsupport = ["ar", "cs", "de", "el", "en", "es", "fa", "fr", "hi", "hu", "id", "it", "kk", "nl", "pl", "pt",
+                    "ro", "ru", "sv", "tr", "uk", "ur", "vi", "zh", "ja"]
     return True
 
 
@@ -73,13 +74,14 @@ def is_input_api(tts_type: int = None, return_str=False):
         winform.get_win(_cls.win)
     return True
 
+
 # 使用 clone 音色时提示，字幕需保持在 3-10s
 def clone_tips(role: str = 'No'):
     return tr('clone_dubb_tips1') + tr('clone_dubb_tips2') if role == 'clone' else ""
 
 
 # 统一调用 tts渠道入口，通过 tts_type 调用对应渠道
-def run(*, queue_tts=None, language="", uuid=None, play=False,  tts_type=0, is_cuda=False,
+def run(*, queue_tts=None, language="", uuid=None, play=False, tts_type=0, is_cuda=False,
         is_redubb=False) -> None:
     """
 

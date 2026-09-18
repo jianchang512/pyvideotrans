@@ -220,7 +220,6 @@ def openwin():
                         self.audio = tmp_audio
 
                     # 需要保留原视频中声音，则需要混合 self.audio 和视频声音
-                    print(f'{self.video_info=}')
                     if self.saveraw and self.video_info['streams_audio']:
                         tmp_mp4a = config.TEMP_DIR + f"/vas-fromvideotowav-{time.time()}.wav"
                         end_m4a = config.TEMP_DIR + f"/vas-fromvideotowav2uploadwav-{time.time()}.m4a"
@@ -385,7 +384,6 @@ def openwin():
                         '-c:v',
                         vcodec]
                     cmd += enc_args + [self.file]
-                    print(" ".join(cmd))
                     self._subprocess(cmd)
                 self.post(type='ok', text=self.file)
             except Exception as e:
@@ -413,7 +411,6 @@ def openwin():
                     return  # raise RuntimeError("进程被强行终止")
                 time.sleep(0.1)  # 免 CPU 飙升
             stdout, stderr = proc.communicate()
-            print(f'{proc.returncode=},{stdout=},{stderr=}')
             if proc.returncode != 0:
                 raise FFmpegError(
                     f'{proc.returncode=}\n{cmd=}\n{stdout=}\n{stderr=}'

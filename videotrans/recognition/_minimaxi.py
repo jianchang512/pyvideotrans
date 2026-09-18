@@ -29,7 +29,6 @@ class MinimaxiASR(BaseRecogn):
         ok_nums=0
         for i, it in enumerate(raws):
             res_json=self._req(it['filename'])
-            print(f'{res_json=}')
             if "error" in res_json:
                 err=res_json['error']['message']
                 continue

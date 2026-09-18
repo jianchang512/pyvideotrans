@@ -6,7 +6,6 @@ from videotrans.winform import get_win
 
 
 def _make_action(ui, obj=None,menu=None,add_hr=True):
-    print(f'{obj=}')
     k,title,_inst=obj
     action = QtGui.QAction()
     action.setObjectName(k)

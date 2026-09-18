@@ -137,7 +137,7 @@ def _resolve_role(roles_dict, role_name, default=None):
         return role_name
     return default
 
-
+# https://docs.volcengine.com/docs/DoubaoVoice/Tonelist-1?lang=zh
 @lru_cache
 def get_doubao2_rolelist(role_name=None, langcode="zh"):
     roledata = json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/doubao2.json').read_text(encoding='utf-8-sig'))

@@ -159,7 +159,7 @@ Guiji_TTS_Role="alex,benjamin,charles,david,anna,bella,claire,diana"
 
 Ai302_Models = "deepseek-v4-pro,deepseek-v4-flash"
 
-Zijiehuoshan_Model = "doubao-seed-evolving,doubao-seed-2-1-pro-260628,doubao-seed-2-1-turbo-260628,doubao-seed-2-0-pro-260215"
+Zijiehuoshan_Model = "doubao-seed-evolving,doubao-seed-2-1-pro-260915,doubao-seed-2-1-turbo-260628,doubao-seed-character-260628,doubao-seed-2-0-pro-260215,doubao-seed-2-0-mini-260428"
 
 Whisper_Models = "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3,distil-large-v3.5"
 Openai_Whisper_Models = "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3"

@@ -299,7 +299,6 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
         end_raw = format_srt_time(end_ms)
         text=seg['text'].replace(origin_end,' ')
         if not text.strip():continue
-
         print(f'regsegment:{(end_ms - start_ms) / 1000.0}s')
         if idx > 0 and start_ms == _merged[idx - 1]['end']:
             _last = _merged[idx - 1]['text'][-3:]

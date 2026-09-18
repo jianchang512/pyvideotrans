@@ -43,9 +43,7 @@ def videasr_fun(
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
         logger.debug(f'QwenASR:{local_dir}，{msg}，{detect_language=}')
         srts_chunk = [srts[i:i + 2] for i in range(0, len(srts), 2)]
-        print(f'#### {len(srts_chunk)=}')
         for j, it_list in enumerate(srts_chunk):
-          print(f'{j=},{len(it_list)=}')
           inputs = processor.apply_transcription_request(
               audio=[it['filename'] for it in it_list], 
               prompt=[hotword for it in it_list]
@@ -55,9 +53,6 @@ def videasr_fun(
           dict_output_list = processor.decode(generated_ids, return_format="parsed")
           for i,dict_output in enumerate(dict_output_list):
             offset=it_list[i]['start_time']
-            print(f'\t[{i=} {offset=}]{len(dict_output)=}')
-
-              
             for item in dict_output:
               print(f'\t{item=}')
               _s=offset+int(float(item['Start'])*1000)
