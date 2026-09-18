@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.util._ffmpeg_runner import runffmpeg
     from videotrans.util.help_misc import show_error
     import json
@@ -9,7 +10,7 @@ def openwin():
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure import contants
+    from videotrans.configure import constants
     from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
     RESULT_DIR = HOME_DIR + "/audiofromvideo"
 
@@ -80,7 +81,7 @@ def openwin():
             winobj.videourls = []
 
     def get_file():
-        format_str = " ".join(['*.' + f for f in contants.VIDEO_EXTS])
+        format_str = " ".join(['*.' + f for f in constants.VIDEO_EXTS])
         fnames, _ = QFileDialog.getOpenFileNames(winobj, tr('selectmp4'),
                                                  params['last_opendir'],
                                                  f"Video files({format_str})")
@@ -111,13 +112,12 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    from videotrans.component.set_form import GetaudioForm
-    winobj = GetaudioForm()
-    app_cfg.child_forms['fn_audiofromvideo'] = winobj
-    winobj.show()
+
+    winobj = get_cls(Path(__file__).stem)()
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.videobtn.clicked.connect(lambda: get_file())
         winobj.resultbtn.clicked.connect(opendir)
         winobj.startbtn.clicked.connect(start)
-    QTimer.singleShot(10,_bind)
+    _bind()
+    return winobj

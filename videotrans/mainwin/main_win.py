@@ -19,11 +19,10 @@ from videotrans.ui.en import Ui_MainWindow
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 
 from videotrans.mainwin._bind_signals import BindSignalsMixin
-from videotrans.mainwin._winform import WinformMixin
 from videotrans.mainwin._lifecycle import LifecycleMixin
 from videotrans.task.job import start_thread
 
-class MainWindow(BindSignalsMixin, WinformMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
+class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
 
 
     def __init__(self, parent=None, width=1400, height=700,callback=None,screen_size=None):

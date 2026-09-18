@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Union
 
 from videotrans.configure.config import ROOT_DIR, logger
-from videotrans.configure.contants import INSTALL_RUBBERBAND_TIPS
+from videotrans.configure.constants import INSTALL_RUBBERBAND_TIPS
 from videotrans.util._ffmpeg_runner import runffmpeg
 
 
@@ -183,7 +183,6 @@ def remove_silence_wav(audio_file:str, rm_start=True)->bool:
 
         trimmed_audio = audio[start_trim:end_trim]
         trimmed_audio.export(audio_file, format="wav")
-        #print(f'原:{len(audio)},新:{len(trimmed_audio)}')
         return True
 
     return False

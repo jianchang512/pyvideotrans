@@ -2,13 +2,11 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.util.help_misc import set_process
-
-    from PySide6.QtCore import QTimer
     from PySide6.QtWidgets import QLineEdit, QPlainTextEdit, QCheckBox, QComboBox
     from videotrans.configure.config import ROOT_DIR, app_cfg,settings
     from pathlib import Path
-    winobj = None
 
     def save():
         # 创建一个空字典来存储结果
@@ -58,21 +56,6 @@ def openwin():
         winobj.close()
 
 
-    def create():
-        nonlocal winobj
-        from videotrans.component.set_form import SetINIForm
-        winobj=app_cfg.child_forms.get('setini')
-        if winobj:
-
-            winobj.show()
-            winobj.raise_()
-            winobj.activateWindow()
-            return
-        winobj = SetINIForm()
-        app_cfg.child_forms['setini'] = winobj
-        winobj.set_ok.clicked.connect(save)
-        winobj.show()
-        winobj.raise_()
-        winobj.activateWindow()
-
-    QTimer.singleShot(100, create)
+    winobj = get_cls(Path(__file__).stem)()
+    winobj.set_ok.clicked.connect(save)
+    return winobj

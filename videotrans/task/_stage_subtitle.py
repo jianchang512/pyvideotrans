@@ -5,7 +5,7 @@ from typing import Union
 
 from videotrans import translator
 from videotrans.configure.config import tr, ROOT_DIR, settings, logger
-from videotrans.configure import contants
+from videotrans.configure import constants
 from videotrans.configure.excepts import VideoTransError
 from videotrans.util.help_srt import get_subtitle_from_srt, simple_wrap, set_ass_font
 
@@ -25,7 +25,7 @@ class SubtitleMixin:
 
         process_end_subtitle = self.cfg.cache_folder + f'/end.srt'
         maxlen = int(
-            settings.get('cjk_len', 15) if self.cfg.target_language_code[:2] in contants.CJK_LANG else
+            settings.get('cjk_len', 15) if self.cfg.target_language_code[:2] in constants.CJK_LANG else
             settings.get('other_len', 60))
         target_sub_list = get_subtitle_from_srt(self.cfg.target_sub)
 
@@ -35,7 +35,7 @@ class SubtitleMixin:
             source_sub_list = get_subtitle_from_srt(self.cfg.source_sub)
             source_length = len(source_sub_list)
             source_maxlen = int(
-                settings.get('cjk_len', 15) if self.cfg.source_language_code.split('-')[0] in contants.CJK_LANG   else
+                settings.get('cjk_len', 15) if self.cfg.source_language_code.split('-')[0] in constants.CJK_LANG   else
                 settings.get('other_len', 60))
 
             _join_flag = self._get_join_flag()

@@ -309,7 +309,7 @@ def list_languages() -> None:
 
 def list_models() -> None:
     """Print available faster-whisper models."""
-    from videotrans.configure.contants import FASTER_MODELS_DICT
+    from videotrans.configure.constants import FASTER_MODELS_DICT
 
     print(tr('list_models_header'))
     for name, repo in FASTER_MODELS_DICT.items():

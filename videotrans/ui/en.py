@@ -2,7 +2,7 @@ import platform
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtWidgets import QSizePolicy, QApplication,QPlainTextEdit
+from PySide6.QtWidgets import QSizePolicy, QApplication, QPlainTextEdit
 
 from videotrans.configure.config import tr, settings
 from videotrans.ui._setup_menus import _setup_actions_and_menus
@@ -239,17 +239,17 @@ class Ui_MainWindow(object):
         self.subtitle_layout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.subtitle_layout.setContentsMargins(3, 0, 0, 0)
         self.subtitle_layout.setObjectName("subtitle_layout")
-    
-        self.subtitle_area =  QPlainTextEdit()
+
+        self.subtitle_area = QPlainTextEdit()
         self.subtitle_area.setReadOnly(True)
         self.subtitle_area.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
         self.subtitle_area.setObjectName("subtitle_area")
         self.subtitle_area.setPlaceholderText(
             f"\n{tr('subtitle_tips')}\n\n{tr('meitiaozimugeshi')}")
-    
+
         self.subtitle_layout.addWidget(self.subtitle_area)
-        
-        self.import_subtitle=QtWidgets.QPushButton()
+
+        self.import_subtitle = QtWidgets.QPushButton()
         self.import_subtitle.setText(tr('Import SRT(only effective for single-video)'))
         self.import_subtitle.setCursor(Qt.PointingHandCursor)
         self.subtitle_layout.addWidget(self.import_subtitle)
@@ -269,8 +269,7 @@ class Ui_MainWindow(object):
 
         self._set_Ui_Text()
 
-    def _set_Ui_Text(self):       
-
+    def _set_Ui_Text(self):
         self.statusLabel = QtWidgets.QPushButton(tr("Open Documents"))
         self.statusLabel.setStyleSheet("""color:#ffff66""")
         self.statusBar.addWidget(self.statusLabel)
@@ -347,141 +346,18 @@ class Ui_MainWindow(object):
         self.back_audio.setPlaceholderText(tr("back_audio_place"))
         self.back_audio.setToolTip(tr("back_audio_place"))
 
-
         self.menu_Key.setTitle(tr("&Setting"))
         self.menu_TTS.setTitle(tr("&TTSsetting"))
         self.menu_RECOGN.setTitle(tr("&RECOGNsetting"))
         self.menu.setTitle(tr("&Tools"))
         self.menu_H.setTitle(tr("&Help"))
         self.toolBar.setWindowTitle("toolBar")
-        self.actionbaidu_key.setText(tr("Baidu Key"))
-        self.actionali_key.setText(tr("Alibaba Translation"))
-        self.actionchatgpt_key.setText(
-            tr("OpenAI API & Compatible AI"))
-        self.actionzhipuai_key.setText(tr("Zhipu AI"))
-        self.actionsiliconflow_key.setText(tr("SiliconFlow"))
-        self.actiondeepseek_key.setText('DeepSeek')
-        self.actionminimax_key.setText('MiniMax AI')
-        self.actionqwenmt_key.setText(tr('Ali Qwen3-ASR'))
-        self.actionopenrouter_key.setText('OpenRouter.ai')
-        self.actionlitellm_key.setText('LiteLLM')
-        self.actionapiroute_key.setText('API Route')
-        self.actionlibretranslate_key.setText("LibreTranslate API")
-        self.actionopenaitts_key.setText("OpenAI TTS")
-        self.actionxaitts_key.setText("X.AI TTS")
-        self.actionxiaomi_key.setText(tr("XiaoMi")+ "AI")
-        self.actionqwentts_key.setText(f"{tr('Ali-Bailian')}/Qwen3-TTS")
-        self.actionopenairecognapi_key.setText(
-            tr("OpenAI Speech to Text API"))
-        self.actionparakeet_key.setText('Nvidia parakeet-tdt')
-        self.actionai302_key.setText(tr("302.AI API KEY"))
-        self.actionlocalllm_key.setText(tr("Local LLM API"))
-        self.actionzijiehuoshan_key.setText(tr("ByteDance Ark"))
-        self.actiondeepL_key.setText("DeepL Key")
 
-        self.action_ffmpeg.setText("FFmpeg")
-        self.action_ffmpeg.setToolTip(tr("Go FFmpeg website"))
-        self.action_git.setText("Github Repository")
-        self.action_issue.setText(tr("Post issue"))
-        self.actiondeepLX_address.setText("DeepLX Api")
-        self.actionclone_address.setText(tr("Clone-Voice TTS"))
-        self.actionkokoro_address.setText("Kokoro TTS")
-        self.actionchattts_address.setText("ChatTTS")
-        self.actiontts_api.setText(tr("TTS API"))
-        self.actionminimaxi_api.setText("Minimaxi TTS API")
-        self.actiontrans_api.setText(tr("Transate API"))
-        self.actionrecognapi.setText(tr("Custom Speech Recognition API"))
-        self.actionsttapi.setText(tr("STT Speech Recognition API"))
-        self.actionwhisperx.setText('WhisperX-API')
-        self.actiondeepgram.setText(
-            tr("Deepgram Speech Recognition API"))
-        self.actionxxl.setText('Faster_Whisper_XXL.exe')
-        self.actionzijierecognmodel_api.setText(tr("VolcEngine STT"))
-        self.actiontts_gptsovits.setText("GPT-SoVITS TTS")
-        self.actiontts_chatterbox.setText("ChatterBox TTS")
-        self.actiontts_cosyvoice.setText("CosyVoice TTS")
-        self.actiontts_qwenttslocal.setText(f"Qwen3 TTS({tr('Local')})")
-        self.actiontts_fishtts.setText("Fish TTS")
-        self.actiontts_gradiowin.setText("Index/VoxCPM/SparK/FireRed3")
-        self.actiontts_refaudio.setText(tr("Set reference audio"))
-        self.actiontts_doubao2.setText(tr("DouBao2"))
-        self.action_website.setText(tr("Documents"))
-        self.action_discord.setText(tr("Solution to model download failure"))
-        self.action_blog.setText(tr("Having problems? Ask"))
-        self.action_gtrans.setText(
-            tr("Download Hard Subtitle Extraction Software"))
-        self.action_cuda.setText('CUDA & cuDNN')
-        self.action_online.setText(tr("Disclaimer"))
-        self.actiontencent_key.setText(tr("Tencent Key"))
-        self.action_about.setText(tr("Donating developers"))
-
-        self.action_biaozhun.setText(tr("Standard Function Mode"))
         self.action_biaozhun.setToolTip(
             tr("Batch audio or video translation with all configuration options customizable on demand"))
-        self.action_yuyinshibie.setText(tr("Speech Recognition Text"))
-        self.action_yuyinshibie.setToolTip(
-            tr("stt-windows-title"))
-
-        self.action_yuyinhecheng.setText(tr("From  Text  Into  Speech"))
-        self.action_yuyinhecheng.setToolTip(
-            tr("tts-windows-title"))
-
-        self.action_tiquzimu.setText(tr("Extract Srt And Translate"))
-        self.action_tiquzimu.setToolTip(
-            tr("Batch recognize speech in video as srt subtitles"))
-        self.action_yingyinhebing.setText(tr("Video Subtitles Merging"))
-        self.action_yingyinhebing.setToolTip(tr("hebing-windows-title"))
-
-        self.action_yinshipinfenli.setText(tr("Separate Video to audio"))
-        self.action_yinshipinfenli.setToolTip(tr("Separate audio and silent videos from videos"))
-
-        self.action_clipvideo.setText(tr("Edit video on subtitles"))
-        self.action_clipvideo.setToolTip(tr("Edit video on subtitles"))
-        self.action_realtime_stt.setText(tr("Real-time speech-to-text"))
-        self.action_textmatching.setText(tr("Text matching and timing"))
-        self.action_textmatching.setToolTip(tr("Text matching and timing"))
-
-        self.action_hun.setText(tr("Mixing 2 Audio Streams"))
-        self.action_hun.setToolTip(tr("Mix two audio files into one audio file"))
-        self.action_formatsrtfiles.setText(tr("Batch create folder structure"))
-
-        self.action_fanyi.setText(tr("Text  Or Srt  Translation"))
-        self.action_fanyi.setToolTip(
-            tr("transsrt-windows-title"))
-
-        self.action_hebingsrt.setText(tr("Combine Two Subtitles"))
-        self.action_hebingsrt.setToolTip(
-            tr("Combine 2 subtitle files into one to form bilingual subtitles"))
-
-        self.action_clearcache.setText(tr("Clear Cache"))
-        self.action_set_proxy.setText(tr("Setting up a network proxy"))
-
-        self.actionazure_key.setText(tr("AzureOpenAI Translation"))
-        self.actionazure_tts.setText(tr("AzureAI TTS"))
-        self.actiongemini_key.setText("Gemini AI")
-        self.actioncamb_key.setText("CAMB AI")
-        self.actionElevenlabs_key.setText("ElevenLabs.io")
-
-        self.actionwatermark.setText(tr("Add watermark to video"))
-        self.actionsepar.setText(tr("Vocal & instrument Separate"))
-        self.actionsetini.setText(tr("Options"))
-
-        self.actionvideoandaudio.setText(tr("Batch video/audio merger"))
-        self.actionvideoandaudio.setToolTip(
-            tr("Batch merge video and audio one-to-one"))
-
-        self.actionvideoandsrt.setText(tr("Batch Video Srt merger"))
-        self.actionvideoandsrt.setToolTip(
-            tr("Batch merge video and srt subtitles one by one."))
-
-        self.actionformatcover.setText(tr("Batch Audio/Video conver"))
-        self.actionformatcover.setToolTip(
-            tr("Batch convert audio and video formats"))
-
-        self.actionsubtitlescover.setText(tr("Conversion Subtitle Format"))
-        self.actionsubtitlescover.setToolTip(
-            tr("Batch convert subtitle formats (srt/ass/vtt)"))
-
-        self.actionsrtmultirole.setText(tr("Multi voice dubbing for SRT"))
-        self.actionsrtmultirole.setToolTip(
-            tr("multi-windows-title"))
+        self.action_tiquzimu.setToolTip(tr("Batch recognize speech in video as srt subtitles"))
+        self.fn_recogn.setToolTip(tr("stt-windows-title"))
+        self.fn_peiyin.setToolTip(tr("tts-windows-title"))
+        self.fn_fanyisrt.setToolTip(tr("transsrt-windows-title"))
+        self.fn_peiyinrole.setToolTip(tr("multi-windows-title"))
+        self.fn_vas.setToolTip(tr("hebing-windows-title"))

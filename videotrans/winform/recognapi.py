@@ -1,12 +1,13 @@
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans import recognition
     from videotrans.util.TestSTT import TestSTT
     from videotrans.winform._helpers import make_feed_stt
-    from videotrans.component.set_form import RecognAPIForm
+    from pathlib import Path
 
-    winobj = RecognAPIForm()
-    app_cfg.child_forms['recognapi'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     feed = make_feed_stt(winobj, "test")
 
@@ -34,4 +35,4 @@ def openwin():
     winobj.recognapiform_key.setText(str(params.get("recognapi_key", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

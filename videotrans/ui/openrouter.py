@@ -3,57 +3,61 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from videotrans.configure.config import tr, settings, params
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QDialog
+
+from videotrans.configure.config import tr, settings, params, ROOT_DIR
+from videotrans.configure.constants import Openrouter_ASR_Model, Openrouter_TTS_Model
 from videotrans.util.help_misc import open_url
 
 
-class Ui_openrouterform(object):
+class Ui_openrouter(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
     def setupUi(self, openrouterform):
         self.has_done = False
         openrouterform.setObjectName("openrouterform")
         openrouterform.setWindowModality(QtCore.Qt.NonModal)
         openrouterform.resize(600, 600)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(openrouterform.sizePolicy().hasHeightForWidth())
-        openrouterform.setSizePolicy(sizePolicy)
+        openrouterform.setWindowTitle("OpenRouter")
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(openrouterform.sizePolicy().hasHeightForWidth())
+        # openrouterform.setSizePolicy(sizePolicy)
         openrouterform.setMaximumSize(QtCore.QSize(600, 600))
 
         v1 = QtWidgets.QVBoxLayout(openrouterform)
         h2 = QtWidgets.QHBoxLayout()
-
         h4 = QtWidgets.QHBoxLayout()
 
-        self.label_0 = QtWidgets.QPushButton()
-        self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.setText('Openrouter.ai')
-        v1.addWidget(self.label_0)
+        label_0 = QtWidgets.QPushButton()
+        label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
+        label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
+        label_0.setText('OpenRouter.ai')
+        v1.addWidget(label_0)
 
-        self.label_2 = QtWidgets.QLabel(openrouterform)
-        self.label_2.setMinimumSize(QtCore.QSize(0, 35))
-        self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
-        self.label_2.setObjectName("label_2")
+        label_2 = QtWidgets.QLabel(openrouterform)
+        label_2.setMinimumSize(QtCore.QSize(0, 35))
+        label_2.setSizeIncrement(QtCore.QSize(0, 35))
+        label_2.setObjectName("label_2")
+        label_2.setText(tr("SK"))
         self.openrouter_key = QtWidgets.QLineEdit(openrouterform)
         self.openrouter_key.setMinimumSize(QtCore.QSize(0, 35))
         self.openrouter_key.setObjectName("openrouter_key")
-        h2.addWidget(self.label_2)
+        h2.addWidget(label_2)
         h2.addWidget(self.openrouter_key)
         v1.addLayout(h2)
 
-
-
-
         h_token = QtWidgets.QHBoxLayout()
-
         label_token = QtWidgets.QLabel()
         label_token.setObjectName("label_token")
         label_token.setText(tr("Maximum output token"))
         self.max_token = QtWidgets.QLineEdit()
         self.max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.max_token.setObjectName("max_token")
-
         h_token.addWidget(label_token)
         h_token.addWidget(self.max_token)
         v1.addLayout(h_token)
@@ -70,7 +74,7 @@ class Ui_openrouterform(object):
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
-        self.label_selectmodel.setText(tr("Select model"))
+        self.label_selectmodel.setText(tr('Text  Or Srt  Translation')+tr("Model"))
         self.openrouter_model = QtWidgets.QComboBox()
         self.openrouter_model.setMinimumSize(QtCore.QSize(0, 35))
         self.openrouter_model.setObjectName("openrouter_model")
@@ -78,28 +82,57 @@ class Ui_openrouterform(object):
         h_model.addWidget(self.openrouter_model)
         v1.addLayout(h_model)
 
-        self.label_allmodels = QtWidgets.QLabel()
-        self.label_allmodels.setObjectName("label_allmodels")
-        self.label_allmodels.setText(
+        # asr tts
+        h_asr_model = QtWidgets.QHBoxLayout()
+        label_asr_selectmodel = QtWidgets.QLabel()
+        label_asr_selectmodel.setObjectName("label_asr_selectmodel")
+        label_asr_selectmodel.setText(tr('Speech Recognit')+tr("Model"))
+        self.openrouter_asr_model = QtWidgets.QComboBox()
+        self.openrouter_asr_model.addItems(Openrouter_ASR_Model.strip().split(','))
+        self.openrouter_asr_model.setMinimumSize(QtCore.QSize(0, 35))
+        self.openrouter_asr_model.setObjectName("openrouter_asr_model")
+        h_asr_model.addWidget(label_asr_selectmodel)
+        h_asr_model.addWidget(self.openrouter_asr_model)
+        v1.addLayout(h_asr_model)
+
+        h_tts_model = QtWidgets.QHBoxLayout()
+        label_tts_selectmodel = QtWidgets.QLabel()
+        label_tts_selectmodel.setObjectName("label_tts_selectmodel")
+        label_tts_selectmodel.setText(tr('From  Text  Into  Speech')+tr("Model"))
+        self.openrouter_tts_model = QtWidgets.QComboBox()
+        self.openrouter_tts_model.addItems(Openrouter_TTS_Model.strip().split(','))
+        self.openrouter_tts_model.setMinimumSize(QtCore.QSize(0, 35))
+        self.openrouter_tts_model.setObjectName("openrouter_tts_model")
+        h_tts_model.addWidget(label_tts_selectmodel)
+        h_tts_model.addWidget(self.openrouter_tts_model)
+        v1.addLayout(h_tts_model)
+
+
+
+        label_allmodels = QtWidgets.QLabel()
+        label_allmodels.setObjectName("label_allmodels")
+        label_allmodels.setText(
             tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
-        v1.addWidget(self.label_allmodels)
+        v1.addWidget(label_allmodels)
 
         self.edit_allmodels = QtWidgets.QPlainTextEdit()
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-        self.label_4 = QtWidgets.QLabel(openrouterform)
-        self.label_4.setObjectName("label_4")
+        label_4 = QtWidgets.QLabel(openrouterform)
+        label_4.setObjectName("label_4")
+        label_4.setText(tr("{lang} represents the target language name, do not delete it."))
 
         self.template = QtWidgets.QPlainTextEdit(openrouterform)
         self.template.setObjectName("template")
         self.template.setReadOnly(True)
-        v1.addWidget(self.label_4)
+        v1.addWidget(label_4)
         v1.addWidget(self.template)
 
         self.set = QtWidgets.QPushButton(openrouterform)
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
+        self.set.setText(tr('Save'))
 
         self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
@@ -119,8 +152,6 @@ class Ui_openrouterform(object):
         h4.addWidget(help_btn)
         v1.addLayout(h4)
         self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'openrouter', 'openrouter'))
-
-        self.retranslateUi(openrouterform)
         QtCore.QMetaObject.connectSlotsByName(openrouterform)
 
     def update_ui(self):
@@ -140,8 +171,6 @@ class Ui_openrouterform(object):
             _effort='default'
         self.reasoning_effort.setCurrentText(_effort)
 
-    def retranslateUi(self, openrouterform):
-        openrouterform.setWindowTitle("OpenRouter")
-        self.label_2.setText(tr("SK"))
-        self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
-        self.set.setText(tr('Save'))
+
+
+

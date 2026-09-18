@@ -24,9 +24,6 @@ def qwen3asr_fun(
         hotword=None,
         **kw
 ):
-    import copyreg
-    copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
-
 
     from videotrans.task.taskcfg import SrtItem
     from videotrans.process._stt_utils import _write_log, _resegment

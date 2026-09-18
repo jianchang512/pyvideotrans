@@ -10,7 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, SpeechToTextError,StopTask
 from videotrans.configure.config import params, logger,  settings,tr
-from videotrans.configure.contants import GEMINI_ASR_MODELS
+from videotrans.configure.constants import GEMINI_ASR_MODELS
 from videotrans.process.vad import get_speech_timestamp_silero
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem

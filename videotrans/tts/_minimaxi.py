@@ -19,8 +19,7 @@ class MinimaxiTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.stop_next_all=False
-        self.api_url='https://'+params.get('minimaxi_apiurl','api.minimaxi.com')+'/v1/t2a_v2'
+        self.api_url='https://'+params.get('minimaxi_apiurl','api.minimax.cn')+'/v1/t2a_v2'
         rolelist=get_minimaxi_rolelist()
         self.rolelist=rolelist.get(self.language.split('-')[0].lower())
         self.speed=self.get_speed()
@@ -34,7 +33,7 @@ class MinimaxiTTS(BaseTTS):
         role = data_item['role'].strip()
         voice_id = self.rolelist.get(role, 'male-qn-qingse')
         payload = json.dumps({
-            "model": params.get('minimaxi_model'),
+            "model": params.get('minimaxi_tts_model'),
             "text": data_item.get('text'),
             "stream": False,
             "voice_setting": {

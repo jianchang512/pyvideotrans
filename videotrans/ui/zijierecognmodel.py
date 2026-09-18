@@ -3,11 +3,18 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
-from videotrans.configure.config import tr, params
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QDialog
+
+from videotrans.configure.config import tr, params,ROOT_DIR
 from videotrans.util.help_misc import open_url
 
 
-class Ui_zijierecognform(object):
+class Ui_zijierecognmodel(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
     def setupUi(self, zijierecognform):
         self.has_done = False
         zijierecognform.setObjectName("zijierecognform")
@@ -45,12 +52,8 @@ class Ui_zijierecognform(object):
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
         self.zijierecognmodel_appid = QtWidgets.QLineEdit(zijierecognform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.zijierecognmodel_appid.sizePolicy().hasHeightForWidth())
-        self.zijierecognmodel_appid.setSizePolicy(sizePolicy)
-        self.zijierecognmodel_appid.setMinimumSize(QtCore.QSize(210, 35))
+
+        self.zijierecognmodel_appid.setMinimumSize(QtCore.QSize(0, 35))
         self.zijierecognmodel_appid.setObjectName("zijierecognmodel_appid")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.zijierecognmodel_appid)
         self.verticalLayout.addLayout(self.formLayout_2)

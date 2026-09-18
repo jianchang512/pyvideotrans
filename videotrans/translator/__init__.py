@@ -1,20 +1,4 @@
-from videotrans.translator._constants import (  # noqa: F401
-    GOOGLE_INDEX, MICROSOFT_INDEX, M2M100_INDEX,
-    CHATGPT_INDEX, DEEPSEEK_INDEX, GEMINI_INDEX, ZHIPUAI_INDEX, AZUREGPT_INDEX, LOCALLLM_INDEX,
-    OPENROUTER_INDEX, SILICONFLOW_INDEX, AI302_INDEX,
-    QWENMT_INDEX, ZIJIE_INDEX,
-    TENCENT_INDEX, BAIDU_INDEX, DEEPL_INDEX, DEEPLX_INDEX, ALI_INDEX,
-    LIBRE_INDEX, MINIMAX_INDEX, XIAOMI_INDEX, CAMB_INDEX, TRANSAPI_INDEX,
-    LITELLM_INDEX, API_ROUTE_INDEX,
-    AI_TRANS_CHANNELS,HYMT2_INDEX
-)
-
-from videotrans.translator._registry import (  # noqa: F401
-    _ID_NAME_DICT,
-    TRANSLASTE_NAME_LIST,
-    LLM_CONCERT_MAP
-)
-
+from videotrans.translator._constants import *
 from videotrans.translator._lang_codes import (  # noqa: F401
     LANGNAME_DICT,
     LANGNAME_DICT_REV,
@@ -36,3 +20,13 @@ from videotrans.translator._runner import (  # noqa: F401
 )
 
 from videotrans.translator._base import BaseTrans  # noqa: F401
+
+# 根据 llm_ai_type 当前所选的索引，获取对应key name 或 常量
+def get_name_index(idx,return_type='key'):
+    idx=int(idx)
+    _key= list(LLM_CONCERT_MAP.keys())[idx]
+    if return_type=='index':
+        return LLM_CONCERT_INDEX.get(_key)
+    if return_type=='name':
+        return LLM_CONCERT_MAP[_key]
+    return _key

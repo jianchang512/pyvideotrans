@@ -21,11 +21,9 @@ def test_main_win_importable():
 def test_main_win_class_hierarchy():
     from videotrans.mainwin.main_win import MainWindow
     from videotrans.mainwin._bind_signals import BindSignalsMixin
-    from videotrans.mainwin._winform import WinformMixin
     from videotrans.mainwin._lifecycle import LifecycleMixin
 
     assert issubclass(MainWindow, BindSignalsMixin)
-    assert issubclass(MainWindow, WinformMixin)
     assert issubclass(MainWindow, LifecycleMixin)
 
 

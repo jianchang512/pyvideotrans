@@ -1,13 +1,13 @@
 def openwin():
-    import os
+    from videotrans.winform import get_cls
+    from pathlib import Path
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
-    from videotrans.component.set_form import GeminiForm
 
-    winobj = GeminiForm()
-    app_cfg.child_forms['gemini'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     feed = make_feed_translator(winobj, "test")
@@ -37,4 +37,4 @@ def openwin():
     winobj.set_gemini.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'model', 'gemini_model'))
-    winobj.show()
+    return winobj

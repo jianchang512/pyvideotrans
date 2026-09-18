@@ -48,12 +48,22 @@ class OpenAICampat(BaseTrans):
         return model.chat.completions.create(**kwargs, extra_body=self.extra_body)
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
-    def _item_task(self, data: Union[List[str], str]) -> str:
+    def _item_task(self, data: str) -> str:
+        """
+
+        Args:
+            data: 1. 是AI翻译渠道并且选中了`发送完整字幕`：data是  SRT格式字幕字符串
+                 2. 是传统翻译渠道或未选`发送完整字幕`：data是  多行字幕文本字符串
+
+        Returns:
+            str
+
+        """
         if self._exit(): return
         if len(self.api_url)<10:
             raise StopTask(f'API URL is error: {self.api_url}')
         
-        text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
+        text = data
         
         message = [
             {

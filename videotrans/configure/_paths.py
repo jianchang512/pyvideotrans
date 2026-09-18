@@ -50,7 +50,7 @@ def fix_ssl_cert_env():
 
 
 def _set_env():
-    from videotrans.configure.contants import no_proxy
+    from videotrans.configure.constants import no_proxy
     if IS_FROZEN:
         os.environ['TQDM_DISABLE'] = '1'
     os.environ['no_proxy'] = no_proxy

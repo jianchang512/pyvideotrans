@@ -1,15 +1,16 @@
 
 
 def openwin():
-    from videotrans.configure.contants import LISTEN_TEXT
+    from videotrans.winform import get_cls
+    from pathlib import Path
+    from videotrans.configure.constants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans.configure import config
     from videotrans.util.ListenVoice import ListenVoice
-    from videotrans.component.set_form import CloneForm
 
-    winobj = CloneForm()
-    app_cfg.child_forms['clone'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     def feed(d):
         if d == "ok":
@@ -49,4 +50,4 @@ def openwin():
         winobj.clone_address.setText(str(params.get("clone_api",'')))
     winobj.set_clone.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

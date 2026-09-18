@@ -2,7 +2,7 @@
 import re
 from functools import lru_cache
 
-from videotrans.configure import contants
+from videotrans.configure import constants
 
 
 @lru_cache
@@ -17,7 +17,7 @@ def simple_wrap(text: str, maxlen: int = 15, language: str = "en") -> str:
         return text
     text_lilst = []
     current_text = ""
-    offset = 2 if language.split('-')[0] in contants.CJK_LANG else 8
+    offset = 2 if language.split('-')[0] in constants.CJK_LANG else 8
     maxlen = max(3, maxlen)
     offset = min(offset, maxlen // 2)
 

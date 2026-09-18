@@ -6,7 +6,7 @@ from PySide6.QtCore import QTimer
 
 from videotrans import translator, recognition, tts
 from videotrans.configure.config import tr, params, settings, app_cfg,logger
-from videotrans.translator._registry import get_name_index
+from videotrans.translator import get_name_index
 from videotrans.util.help_misc import ensure_safe_media_file, is_dir_not_empty, show_error
 
 
@@ -212,7 +212,7 @@ class WinActionCheckMixin:
                     self.main.startbtn.setDisabled(False)
                     show_error(tr('llmduanju',get_name_index(ai_type,'name')))
                     from videotrans.winform import get_win
-                    get_win(name).openwin()
+                    get_win(name)
                     return
             except Exception as e:
                 logger.exception(f'校验LLM纠错设置时出错:{e}',exc_info=True)

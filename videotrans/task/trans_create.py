@@ -9,7 +9,7 @@ from videotrans.configure import config
 from videotrans.translator import get_audio_code
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgVTT
-from videotrans.configure import contants
+from videotrans.configure import constants
 
 from videotrans.task._stage_prepare import PrepareMixin
 from videotrans.task._stage_recogn import RecognMixin
@@ -98,7 +98,7 @@ class TransCreate(
             self.cfg.target_wav = f"{self.cfg.cache_folder}/target-dubbing.wav"
             self.should_dubbing = True
 
-        if self.cfg.ext in contants.AUDIO_EXITS:
+        if self.cfg.ext in constants.AUDIO_EXITS:
             self.is_audio_trans = True
             self.should_hebing = False
 

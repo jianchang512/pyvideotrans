@@ -10,7 +10,7 @@ import numpy as np  # 新增 numpy 用于声道处理
 from pydub import AudioSegment
 
 # 尝试导入 pyrubberband
-from videotrans.configure.contants import INSTALL_RUBBERBAND_TIPS
+from videotrans.configure.constants import INSTALL_RUBBERBAND_TIPS
 
 try:
     import pyrubberband as pyrb

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Union
 from videotrans.configure.config import params, logger, settings,ROOT_DIR
-from videotrans.configure.contants import FIRERED_URL_MS, FIRERED_URL_HF
+from videotrans.configure.constants import FIRERED_URL_MS, FIRERED_URL_HF
 from videotrans.configure.excepts import SpeechToTextError, StopTask
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem

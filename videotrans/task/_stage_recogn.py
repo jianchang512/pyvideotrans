@@ -7,11 +7,9 @@ from pathlib import Path
 import os
 
 from videotrans.configure.config import tr, ROOT_DIR, settings, logger
-from videotrans.configure.contants import DENOISE_URL_MS, PUNC_RESTORE_MS, DENOISE_URL_HF, PUNC_RESTORE_HF
+from videotrans.configure.constants import DENOISE_URL_MS, PUNC_RESTORE_MS, DENOISE_URL_HF, PUNC_RESTORE_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run as run_recogn,  FASTER_WHISPER
-from videotrans.translator._registry import get_name_index
-from videotrans.translator._runner import get_model_transobj
 from videotrans.util.help_ffmpeg import conver_to_16k, runffmpeg, cut_from_audio
 from videotrans.util.help_misc import vail_file, is_connect_hf
 from videotrans.util.help_srt import get_subtitle_from_srt, delete_punc

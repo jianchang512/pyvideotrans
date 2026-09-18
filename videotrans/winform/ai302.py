@@ -1,15 +1,17 @@
+
+
 def openwin():
+    from pathlib import Path
+    from videotrans.winform import get_cls
     import webbrowser
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
-    from videotrans.component.set_form import AI302Form
 
-    winobj = AI302Form()
-    app_cfg.child_forms['ai302'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
-
     feed = make_feed_translator(winobj, "test_ai302")
 
     def test():
@@ -32,4 +34,4 @@ def openwin():
     winobj.set_ai302.clicked.connect(save_ai302)
     winobj.test_ai302.clicked.connect(test)
     winobj.label_0.clicked.connect(lambda: webbrowser.open_new_tab("https://pyvideotrans.com/302ai"))
-    winobj.show()
+    return winobj

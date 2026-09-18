@@ -1,11 +1,17 @@
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QDialog
 
-from videotrans.configure.config import tr
+from videotrans.configure.config import tr, ROOT_DIR
 from videotrans.util.help_misc import open_url
 
 
-class Ui_cambttsform(object):
+class Ui_cambtts(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
     def setupUi(self, cambttsform):
         self.has_done = False
         cambttsform.setObjectName("cambttsform")

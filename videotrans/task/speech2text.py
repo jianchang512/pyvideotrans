@@ -7,10 +7,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-from videotrans.configure import contants
+from videotrans.configure import constants
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger, HOME_DIR
 from videotrans.configure import config
-from videotrans.configure.contants import PUNC_RESTORE_MS, DENOISE_URL_MS,  DENOISE_URL_HF, PUNC_RESTORE_HF
+from videotrans.configure.constants import PUNC_RESTORE_MS, DENOISE_URL_MS,  DENOISE_URL_HF, PUNC_RESTORE_HF
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
@@ -157,7 +157,7 @@ class SpeechToText(BaseTask):
         if self.cfg.detect_language and self.cfg.detect_language != 'auto':
             # 处理换行
             maxlen = int(
-                settings.get('cjk_len', 15) if self.cfg.detect_language.split('-')[0] in contants.CJK_LANG else
+                settings.get('cjk_len', 15) if self.cfg.detect_language.split('-')[0] in constants.CJK_LANG else
                 settings.get('other_len', 60))
             for i, it in enumerate(self.source_srt_list):
                 it['text'] = simple_wrap(it['text'], maxlen, self.cfg.detect_language)

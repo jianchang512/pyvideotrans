@@ -107,7 +107,7 @@ class ClipTask(QRunnable):
 
 
 
-class ClipVideoWindow(QWidget):
+class CLIP_VIDEO(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(tr("appTitle"))
@@ -236,6 +236,9 @@ class ClipVideoWindow(QWidget):
             self.video_path = path
             self.video_label.setText(os.path.basename(path))
             settings['last_opendir']=Path(path).parent.as_posix()
+
+    def openwin(self):
+        return self
 
     def select_subtitle(self):
         global output_folder
@@ -379,7 +382,7 @@ class Worker(QThread):
     uito = Signal(str)
 
     def __init__(self, *,
-        parent:ClipVideoWindow,
+        parent=None,
         mode=None):
         super().__init__(parent=parent)
         self.parent=parent

@@ -23,9 +23,9 @@ class TransAPI(BaseTrans):
         self.api_url = url + ('&' if '?' in url else '/?')
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
-    def _item_task(self, data: Union[List[str], str]) -> str:
+    def _item_task(self, data: str) -> str:
         if self._exit(): return
-        text = quote("\n".join(data))
+        text = quote(data)
         requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code.split('-')[0] if self.source_code else ''}&text={text}&secret={params.get('trans_secret','')}"
 
         response = requests.get(url=requrl,verify=False)

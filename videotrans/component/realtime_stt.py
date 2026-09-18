@@ -13,7 +13,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, Q
     QFileDialog, QMessageBox
 
 from videotrans.configure.config import ROOT_DIR, HOME_DIR, tr
-from videotrans.configure.contants import REALTIME_URL_HF, REALTIME_URL_MS
+from videotrans.configure.constants import REALTIME_URL_HF, REALTIME_URL_MS
 from videotrans.util.help_down import down_zip
 from videotrans.util.help_misc import is_connect_hf
 
@@ -295,7 +295,7 @@ class CheckMics(QThread):
         
 
 # Main GUI window
-class RealTimeWindow(QWidget):
+class REALTIME_STT(QWidget):
     def __init__(self):
         super().__init__()
         self.setMinimumSize(1000, 500)

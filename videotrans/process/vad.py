@@ -237,8 +237,6 @@ def get_speech_timestamp(
 
         _thrid_segs[-1][1]=it[1]
 
-    for it in _thrid_segs:
-        print(f'ten-VAD: {(it[1]-it[0])/1000.0}s')
 
     logger.debug(
         f"[Ten-VAD] {len(merged_segments)} -> {len(final_segments)} -> {len(_thrid_segs)} 优化"

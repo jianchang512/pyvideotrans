@@ -1,7 +1,9 @@
 # 视频 字幕 音频 合并
+from videotrans.winform import get_win
 
 
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.util._ffmpeg_runner import runffmpeg
     from videotrans.util._srt_ass import set_ass_font
     from videotrans.util._srt_parse import get_subtitle_from_srt
@@ -15,7 +17,7 @@ def openwin():
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
 
-    from videotrans.configure import contants
+    from videotrans.configure import constants
     from videotrans.configure.config import tr,app_cfg,settings,params,logger, HOME_DIR
     from videotrans.configure import config
     RESULT_DIR = HOME_DIR + "/videoandsrt"
@@ -44,7 +46,7 @@ def openwin():
             for it in Path(self.folder).iterdir():
                 if it.is_file():
                     suffix = it.suffix.lower()[1:]
-                    if suffix in contants.VIDEO_EXTS:
+                    if suffix in constants.VIDEO_EXTS:
                         videos[it.stem] = it.resolve().as_posix()
                     elif suffix == 'srt':
                         srts[it.stem] = it.resolve().as_posix()
@@ -188,16 +190,10 @@ def openwin():
     def opendir():
         QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
-    def _open_ass():
-        from videotrans.component.set_ass import ASSStyleDialog
-        dialog = ASSStyleDialog()
-        dialog.exec()
 
-    from videotrans.component.set_form import Videoandsrtform
+
     from videotrans.translator import LANGNAME_DICT
-    winobj = Videoandsrtform()
-    app_cfg.child_forms['fn_videoandsrt'] = winobj
-    winobj.show()
+    winobj = get_cls(Path(__file__).stem)()
 
     def _bind():
         Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
@@ -205,6 +201,7 @@ def openwin():
         winobj.startbtn.clicked.connect(start)
         winobj.opendir.clicked.connect(opendir)
         winobj.language.addItems(list(LANGNAME_DICT.values()))
-        winobj.set_ass.clicked.connect(_open_ass)
+        winobj.set_ass.clicked.connect(lambda :get_win('set_ass'))
 
-    QTimer.singleShot(10,_bind)
+    _bind()
+    return winobj

@@ -1,14 +1,15 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
+    from pathlib import Path
     from videotrans.util.help_misc import show_error
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans.winform._helpers import make_feed_translator
-    from videotrans.component.set_form import BaiduForm
 
-    winobj = BaiduForm()
-    app_cfg.child_forms['baidu'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     feed = make_feed_translator(winobj, "test")
 
@@ -37,4 +38,4 @@ def openwin():
         winobj.baidu_miyue.setText(str(params.get("baidu_miyue", '')))
     winobj.set_badiu.clicked.connect(save_baidu)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

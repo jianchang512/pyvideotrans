@@ -6,7 +6,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.configure.config import settings, params,  logger, ROOT_DIR
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
-from videotrans.configure import contants
+from videotrans.configure import constants
 from dataclasses import dataclass
 
 from videotrans.util.help_misc import vail_file
@@ -25,7 +25,7 @@ class AI302(BaseTTS):
             self.AI302_minimaxi = ai302_voice_roles.get("AI302_minimaxi", {})
             self.AI302_dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
             self.AI302_doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
-        self.AI302_openai= contants.OPENAITTS_ROLES.split(",")
+        self.AI302_openai= constants.OPENAITTS_ROLES.split(",")
         self.speed=self.get_speed()
         self.volume=self.get_volume()
 

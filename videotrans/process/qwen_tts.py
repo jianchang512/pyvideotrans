@@ -19,9 +19,6 @@ def qwen3tts_fun(
         is_redubb=False,  # 是否处于单视频校对配音流程
         **kw
 ) -> Tuple[bool, Union[str, None]]:
-    import copyreg
-    copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
-    from transformers4576 import BitsAndBytesConfig
     from videotrans.util.help_role import get_qwenttslocal_rolelist
     import soundfile as sf
     from qwen_tts import Qwen3TTSModel
@@ -39,7 +36,6 @@ def qwen3tts_fun(
     if is_redubb:
         queue_tts_file = REDUBB_QUEUE_FILE
     try:
-        quant = BitsAndBytesConfig(load_in_8bit=True)  if torch.cuda.is_available() else None
         while 1:
             if is_redubb and Path(REDUBB_STATUS_FILE).exists():
                 return True, None
@@ -51,7 +47,6 @@ def qwen3tts_fun(
                     f"{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{model_name}-CustomVoice",
                     device_map=device_map,
                     dtype=dtype,
-                    quantization_config=quant,
                     attn_implementation=atten
                 )
                 logger.debug(f'存在内置自定义音色，加载 {model_name} 模型,running on {CUSTOM_OBJ.device}')
@@ -61,7 +56,6 @@ def qwen3tts_fun(
                     f"{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{model_name}-Base",
                     device_map=device_map,
                     dtype=dtype,
-                    quantization_config=quant,
                     attn_implementation=atten
                 )
                 logger.debug(f'需要克隆音色，加载 {model_name} 模型, running on {BASE_OBJ.device}')

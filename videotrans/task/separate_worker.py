@@ -6,7 +6,7 @@ from PySide6.QtCore import QThread, Signal as pyqtSignal
 
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger
 from videotrans.configure import config
-from videotrans.configure.contants import UVR_URL_HF, UVR_URL_MS
+from videotrans.configure.constants import UVR_URL_HF, UVR_URL_MS
 from videotrans.process.prepare_audio import vocal_bgm
 from videotrans.process.signelobj import GlobalProcessManager
 from videotrans.util import tools

@@ -31,8 +31,6 @@ class BaseTTS(BaseCon):
     uuid: Optional[str] = None
     # 是否立即播放
     play: bool = False
-    # 是否测试
-    is_test: bool = False
     # 音量 音速 音调，默认 edge-tts格式， % 号结尾
     volume: Union[float, str] = field(default='+0%', init=False)
     rate: Union[float, str] = field(default='+0%', init=False)
@@ -199,6 +197,9 @@ class BaseTTS(BaseCon):
     def _exec(self) -> None:
         self._local_mul_thread()
 
+    # 若需下载模型，子类需实现
+    def _download(self):
+        pass
     # 每条字幕任务，由 _local_mul_thread 方法在多个线程中调用
     # data_item 是 queue_tts 中每个元素
     # 子类若没有覆写 _exec() 方法，则必须实现 _run() 方法

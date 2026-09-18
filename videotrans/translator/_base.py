@@ -50,8 +50,10 @@ class BaseTrans(BaseCon):
         if self.translate_type==translator.HYMT2_INDEX:
             self.aisendsrt=False
         self.trans_thread = int(settings.get('aitrans_thread', 20)) if self.aisendsrt else int(settings.get('trans_thread', 5))
-
-    def _item_task(self, data: Union[List[str], str]):
+    
+    # 当是AI翻译渠道并且选中了`发送完整字幕`：data是  SRT格式字幕字符串
+    # 当传统翻译渠道或未选`发送完整字幕`：data是 多行字幕文本字符串
+    def _item_task(self, data: str)->str:
         raise NotImplementedError()
 
     # 实际操作 run  -> run_text|run_srt -> _item_task
@@ -102,7 +104,7 @@ class BaseTrans(BaseCon):
             self.signal(text=tr('starttrans') + f' {i} ')
             result = self._get_cache(it)
             if not result:
-                result = cleartext(self._item_task(it))
+                result = cleartext( self._item_task( ("\n".join(it)).strip() ) )
                 self._set_cache(it, result)
             sep_res = result.split("\n")
             for x, result_item in enumerate(sep_res):
@@ -150,7 +152,7 @@ class BaseTrans(BaseCon):
                 [f"{srt_dict['line']}\n{srt_dict['time']}\n{srt_dict['text'].strip()}" for srt_dict in it])
             result = self._get_cache(srt_str)
             if not result:
-                result = self._item_task(srt_str)
+                result = self._item_task(srt_str.strip())
                 if not result.strip():
                     raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
                 self._set_cache(it, result)
@@ -167,6 +169,10 @@ class BaseTrans(BaseCon):
             raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
         logger.debug(f'原始字幕行数：{len(self.text_list)}, 翻译后行数:{len(raws_list)}')
         return raws_list
+
+    # 若需下载模型，子类应实现，下载到 ｛ROOT_DIR｝/models 目录内
+    def _download(self):
+        pass
 
     def _set_cache(self, it, res_str):
         if not res_str.strip(): return
@@ -195,7 +201,7 @@ class BaseTrans(BaseCon):
         if not settings.get('aitrans_context'):
             return prompt.replace('{context_info}','')
             
-        from videotrans.configure.contants import CONTEXT_INFO_PROMPT
+        from videotrans.configure.constants import CONTEXT_INFO_PROMPT
         
         _info="\n\n".join([f"{t['line']}\n{t['time']}\n{t['text']}" for t in self.text_list])
         return prompt.replace('{context_info}',f'{CONTEXT_INFO_PROMPT}\n<GLOBAL_REFERENCE_CONTEXT>{_info}</GLOBAL_REFERENCE_CONTEXT>\n\n')

@@ -10,7 +10,7 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT,StopRetry
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_misc import vail_file
 
-RETRY_NUMS = 2
+RETRY_NUMS = settings.get('retry_nums')
 RETRY_DELAY = 5
 
 

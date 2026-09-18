@@ -1,10 +1,11 @@
 def openwin():
+    from videotrans.winform import get_cls
+    from pathlib import Path
     from videotrans.configure.config import params,app_cfg
     from videotrans.winform._helpers import make_setallmodels
-    from videotrans.component.set_form import AzureForm
 
-    winobj = AzureForm()
-    app_cfg.child_forms['azure'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     def save():
@@ -17,4 +18,4 @@ def openwin():
 
     winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'azure_model', 'azure_model'))
     winobj.set_azure.clicked.connect(save)
-    winobj.show()
+    return winobj

@@ -1,15 +1,16 @@
 
 
 def openwin():
-    from videotrans.configure.contants import LISTEN_TEXT
+    from videotrans.winform import get_cls
+    from videotrans.configure.constants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.configure.config import tr,app_cfg,settings,params
     from videotrans.configure import config
     from videotrans.util.ListenVoice import ListenVoice
-    from videotrans.component.set_form import QwenTTSForm
+    from pathlib import Path
 
-    winobj = QwenTTSForm()
-    app_cfg.child_forms['qwentts'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     def feed(d):
@@ -56,4 +57,4 @@ def openwin():
 
     winobj.set_qwentts.clicked.connect(save)
     winobj.test_qwentts.clicked.connect(test)
-    winobj.show()
+    return winobj

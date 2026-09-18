@@ -1,16 +1,17 @@
 
 
 def openwin():
-    from videotrans.configure.contants import LISTEN_TEXT
+    from videotrans.winform import get_cls
+    from pathlib import Path
+    from videotrans.configure.constants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.util.help_role import get_elevenlabs_role
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,params
     from videotrans.configure import config
     from videotrans.util.ListenVoice import ListenVoice
-    from videotrans.component.set_form import ElevenlabsForm
 
-    winobj = ElevenlabsForm()
-    app_cfg.child_forms['elevenlabs'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     def feed(d):
         if not d.startswith("ok"):
@@ -55,4 +56,4 @@ def openwin():
     winobj.elevenlabstts_models.setCurrentText(params.get('elevenlabstts_models',''))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

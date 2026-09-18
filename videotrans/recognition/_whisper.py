@@ -14,7 +14,7 @@ from videotrans.util.help_srt import get_subtitle_from_srt
 from pydub import AudioSegment
 
 
-from videotrans.configure.contants import FASTER_MODELS_DICT
+from videotrans.configure.constants import FASTER_MODELS_DICT
 from videotrans.configure.excepts import SttTimeoutError
 
 @dataclass
@@ -55,9 +55,11 @@ class FasterAll(BaseRecogn):
         # 起一个进程
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/openai-{self.detect_language}-{time.time()}.log'
 
-        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
+        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 3000)
         # 最长片段不得大于25s,并且不得小于 _min_speech
-        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000), _min_speech + 1000)
+        _max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000)
+        if _max_speech<=_min_speech:
+            _max_speech=_min_speech+1000
 
         kwargs = {
             "prompt": settings.get(f'initial_prompt_{self.detect_language}'),
@@ -87,9 +89,11 @@ class FasterAll(BaseRecogn):
         self.signal(text=title)
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/faster-{self.detect_language}-{time.time()}.log'
 
-        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
+        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 3000)
         # 最长片段不得大于25s,并且不得小于 _min_speech
-        _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000), _min_speech + 1000)
+        _max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000)
+        if _max_speech<=_min_speech:
+            _max_speech=_min_speech+1000
 
         
         
@@ -121,10 +125,10 @@ class FasterAll(BaseRecogn):
         }
         if self.recogn2pass:
             # 2次识别， 生成简短的字幕
-            kwargs['recogn2_max_speech'] = max(int(float(settings.get('max_speech_duration_s2', 2)) * 1000),1000)
-            kwargs['recogn2_min_speech'] = max(int(float(settings.get('min_speech_duration_ms2',300))),300)
+            kwargs['recogn2_max_speech'] = max(int(float(settings.get('max_speech_duration_s2', 1)) * 1000),500)
+            kwargs['recogn2_min_speech'] = max(int(float(settings.get('min_speech_duration_ms2',200))),200)
             if kwargs['recogn2_min_speech']>=kwargs['recogn2_max_speech']:
-                kwargs['recogn2_max_speech']+=500
+                kwargs['recogn2_max_speech']+=200
         try:
             from videotrans.process.stt_faster import  faster_whisper
             raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)

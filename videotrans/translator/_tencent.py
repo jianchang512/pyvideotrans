@@ -18,7 +18,7 @@ from videotrans.translator._base import BaseTrans
 class Tencent(BaseTrans):
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
-    def _item_task(self, data: Union[List[str], str]) -> str:
+    def _item_task(self, data: str) -> str:
         if self._exit(): return
         cred = credential.Credential(params.get('tencent_SecretId', '').strip(),
                                      params.get('tencent_SecretKey',''))
@@ -33,7 +33,7 @@ class Tencent(BaseTrans):
         client = tmt_client.TmtClient(cred, "ap-beijing", clientProfile)
 
         reqdata = {
-            "SourceText": "\n".join(data),
+            "SourceText": data,
             "Source": 'zh' if self.source_code.lower() == 'zh-cn' else (self.source_code or 'auto'),
             "Target": 'zh' if self.target_code.lower() == 'zh-cn' else self.target_code,
             "ProjectId": 0,

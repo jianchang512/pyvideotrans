@@ -3,12 +3,19 @@
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QDialog
+
 from videotrans.util.help_misc import open_url
 
-from videotrans.configure.config import tr, params
+from videotrans.configure.config import tr, params, ROOT_DIR
 
 
-class Ui_xaittsform(object):
+class Ui_xaitts(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
     def setupUi(self, xaittsform):
         self.has_done = False
         xaittsform.setObjectName("xaittsform")

@@ -1,16 +1,17 @@
 
 
 def openwin():
+    from pathlib import Path
+    from videotrans.winform import get_cls
     from videotrans.util.help_misc import show_error
     from PySide6 import QtWidgets
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans import translator
     from videotrans.winform._helpers import make_setallmodels
-    from videotrans.component.set_form import ZijiehuoshanForm
 
-    winobj = ZijiehuoshanForm()
-    app_cfg.child_forms['zijie'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     def feed(d):
@@ -48,4 +49,4 @@ def openwin():
     winobj.huoshan_thinking.setChecked(bool(params.get('zijiehuoshan_thinking',False)))
     winobj.huoshan_max_token.setText(str(params.get('zijiehuoshan_max_token',32768)))
     winobj.test_zijiehuoshan.clicked.connect(test)
-    winobj.show()
+    return winobj

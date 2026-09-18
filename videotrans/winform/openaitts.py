@@ -1,16 +1,17 @@
 
 
 def openwin():
-    from videotrans.configure.contants import LISTEN_TEXT
+    from videotrans.winform import get_cls
+    from videotrans.configure.constants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, process_openai_api, show_error
     from videotrans.configure.config import tr,app_cfg,params
     from videotrans.configure import config
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans.winform._helpers import make_setallmodels
-    from videotrans.component.set_form import OpenAITTSForm
+    from pathlib import Path
 
-    winobj = OpenAITTSForm()
-    app_cfg.child_forms['openaitts'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
 
     def feed(d):
@@ -58,4 +59,4 @@ def openwin():
     winobj.test_openaitts.clicked.connect(test)
     winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'openaitts_model', 'openaitts_model'))
     winobj.edit_roles.textChanged.connect(setedit_roles)
-    winobj.show()
+    return winobj

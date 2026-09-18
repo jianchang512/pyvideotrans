@@ -1,0 +1,11 @@
+{
+    "qwen/qwen-audio-3.0-tts-flash":"loongjohn,longanhuan_v3.6",
+    "qwen/qwen-audio-3.0-tts-plus":"longanlingxin,longanlufeng",
+    "microsoft/mai-voice-2-flash":"en-US-Harper:MAI-Voice-2,es-MX-Valeria:MAI-Voice-2,fr-FR-Soleil:MAI-Voice-2,de-DE-Klaus:MAI-Voice-2",
+    "x-ai/grok-voice-tts-1.0":"eve,ara,rex,sal,leo",
+    "google/gemini-3.1-flash-tts-preview":"Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat",
+    "deepgram/flux-tts:free":"flux-alexis-en,flux-bree-en,flux-brittany-en,flux-brooke-en,flux-bruce-en,flux-cliff-en,flux-cole-en,flux-colin-en,flux-conor-en,flux-donovan-en,flux-drew-en,flux-elise-en,flux-gemma-en,flux-haley-en,flux-hannah-en,flux-heather-en,flux-jack-en,flux-kai-en,flux-kelsey-en,flux-kit-en,flux-maeve-en,flux-marcelo-en,flux-marcus-en,flux-meena-en,flux-meghan-en,flux-miles-en,flux-naveen-en,flux-paige-en,flux-priya-en,flux-rufus-en,flux-sean-en,flux-sharon-en,flux-sienna-en,flux-tanner-en,flux-wade-en,flux-wes-en",
+    "canopylabs/orpheus-3b-0.1-ft":"tara,leah,jess,leo,dan,mia,zac",
+    "hexgrad/kokoro-82m":"af_alloy,af_aoede,af_bella,af_heart,af_jessica,af_kore,af_nicole,af_nova,af_river,af_sarah,af_sky,am_adam,am_echo,am_eric,am_fenrir,am_liam,am_michael,am_onyx,am_puck,am_santa,bf_alice,bf_emma,bf_isabella,bf_lily,bm_daniel,bm_fable,bm_george,bm_lewis,ef_dora,em_alex,em_santa,ff_siwis,hf_alpha,hf_beta,hm_omega,hm_psi,if_sara,im_nicola,jf_alpha,jf_gongitsune,jf_nezumi,jf_tebukuro,jm_kumo,pf_dora,pm_alex,pm_santa,zf_xiaobei,zf_xiaoni,zf_xiaoxiao,zf_xiaoyi,zm_yunjian,zm_yunxi,zm_yunxia,zm_yunyang",
+    "mistralai/voxtral-mini-tts-2603":"en_paul_sad,en_paul_neutral,en_paul_happy,en_paul_frustrated,en_paul_excited,en_paul_confident,en_paul_cheerful,en_paul_angry,gb_oliver_neutral,gb_oliver_sad,gb_oliver_excited,gb_oliver_curious,gb_oliver_confident,gb_oliver_cheerful,gb_oliver_angry,gb_jane_sarcasm,gb_jane_confused,gb_jane_shameful,gb_jane_sad,gb_jane_neutral,gb_jane_jealousy,gb_jane_frustrated,gb_jane_curious,gb_jane_confident,fr_marie_sad,fr_marie_neutral,fr_marie_happy,fr_marie_excited,fr_marie_curious,fr_marie_angry"
+}

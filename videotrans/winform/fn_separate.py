@@ -1,9 +1,10 @@
 
 
 def openwin():
+    from videotrans.winform import get_cls
     from videotrans.util.help_misc import show_error, get_md5
     import os
-    from videotrans.configure import contants
+    from videotrans.configure import constants
     from pathlib import Path
     from PySide6.QtCore import QTimer
     from PySide6.QtWidgets import QFileDialog
@@ -12,7 +13,7 @@ def openwin():
 
     outdir = HOME_DIR +'/separate'
     def get_file():
-        format_str = " ".join(['*.' + f for f in contants.VIDEO_EXTS + contants.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in constants.VIDEO_EXTS + constants.AUDIO_EXITS])
         fname, _ = QFileDialog.getOpenFileName(winobj, "Select audio or video",
                                                params.get('last_opendir',''),
                                                f"files({format_str})")
@@ -64,13 +65,10 @@ def openwin():
         winobj.task.finish_event.connect(update)
         winobj.task.start()
     
-    from videotrans.component.set_form import SeparateForm
 
-    winobj = SeparateForm()
-    app_cfg.child_forms['fn_separate'] = winobj
-    winobj.show()
+
+    winobj = get_cls(Path(__file__).stem)()
     def _bind():
-
         Path(outdir).mkdir(exist_ok=True,parents=True)
         # 创建事件过滤器实例并将其安装到 lineEdit 上
         winobj.url.setText(outdir)
@@ -78,4 +76,5 @@ def openwin():
         winobj.selectfile.clicked.connect(get_file)
 
         winobj.set.clicked.connect(start)
-    QTimer.singleShot(10,_bind)
+    _bind()
+    return winobj

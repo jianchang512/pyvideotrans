@@ -1,11 +1,12 @@
 def openwin():
+    from videotrans.winform import get_cls
+    from pathlib import Path
     from videotrans.configure.config import tr,params,app_cfg
     from videotrans.util.TestSrtTrans import TestSrtTrans
     from videotrans.winform._helpers import make_feed_translator
-    from videotrans.component.set_form import AliForm
 
-    winobj = AliForm()
-    app_cfg.child_forms['ali'] = winobj
+
+    winobj = get_cls(Path(__file__).stem)()
 
     feed = make_feed_translator(winobj, "test")
 
@@ -35,4 +36,4 @@ def openwin():
         winobj.ali_key.setText(str(params.get("ali_key")))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
-    winobj.show()
+    return winobj

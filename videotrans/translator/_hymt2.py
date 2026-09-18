@@ -46,9 +46,9 @@ class HYMT2(BaseTrans):
         self.hymt2_model.eval()
         return True
 
-    def _item_task(self, data: Union[List[str], str]) -> str:
+    def _item_task(self, data: str) -> str:
         if self._exit(): return
-        text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
+        text = data
 
         prompt = f"""Please translate the following text accurately into {self.target_language_name}. You must retain the same number of line breaks in the translation; do not omit, merge, or delete line breaks, and pay attention to their placement.\n\n{text}"""
 

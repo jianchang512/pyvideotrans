@@ -29,9 +29,9 @@ class QwenMT(BaseTrans):
         logger.debug(f'{self.ainame=},{self.source_code=},{self.target_code=},{self.target_language_name=},{self.aisendsrt=}')
     
 
-    def _item_task(self, data: Union[List[str], str]) -> str:
+    def _item_task(self, data: str) -> str:
         if self._exit(): return
-        text = "\n".join([i.strip() for i in data]) if isinstance(data, list) else data
+        text = data
         model_name=params.get('qwenmt_model', 'qwen-mt-turbo')
         if model_name=='qwen-turbo':
             model_name='qwen-mt-turbo'

@@ -5,7 +5,7 @@ from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QFileDialog, QPushButton, QPlainTextEdit
 
 from videotrans.configure.config import tr, params
-from videotrans.configure import contants
+from videotrans.configure import constants
 
 
 class DropButton(QPushButton):
@@ -17,7 +17,7 @@ class DropButton(QPushButton):
         self.setCursor(Qt.PointingHandCursor)
 
     def get_file(self):
-        format_str = " ".join(['*.' + f for f in contants.VIDEO_EXTS + contants.AUDIO_EXITS])
+        format_str = " ".join(['*.' + f for f in constants.VIDEO_EXTS + constants.AUDIO_EXITS])
         fnames, _ = QFileDialog.getOpenFileNames(self, tr('xuanzeyinpinwenjian'),
                                                  params['last_opendir'],
                                                  filter=f"Video/Audio files({format_str})")
@@ -33,7 +33,7 @@ class DropButton(QPushButton):
         files = event.mimeData().text().strip().lower()
         allow = True
         for it in files.split("\n"):
-            if it.split('.')[-1] not in contants.VIDEO_EXTS + contants.AUDIO_EXITS:
+            if it.split('.')[-1] not in constants.VIDEO_EXTS + constants.AUDIO_EXITS:
                 allow = False
                 break
         if allow:
@@ -122,7 +122,7 @@ class TextGetdir(QPlainTextEdit):
         files = event.mimeData().text().split("\n")
         result = []
         for it in files:
-            if it != "" and it.split('.')[-1] in contants.VIDEO_EXTS + contants.AUDIO_EXITS:
+            if it != "" and it.split('.')[-1] in constants.VIDEO_EXTS + constants.AUDIO_EXITS:
                 result.append(it)
         if len(result) > 0:
             event.acceptProposedAction()
@@ -135,7 +135,7 @@ class TextGetdir(QPlainTextEdit):
         if self.toPlainText().strip():
             result = self.toPlainText().strip().split("\n")
         for it in files:
-            if it != "" and it.split('.')[-1] in contants.VIDEO_EXTS + contants.AUDIO_EXITS:
+            if it != "" and it.split('.')[-1] in constants.VIDEO_EXTS + constants.AUDIO_EXITS:
                 f = it.replace('file:///', '')
                 if f not in result:
                     result.append(f)

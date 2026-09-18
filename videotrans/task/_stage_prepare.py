@@ -2,7 +2,7 @@ import time,re,json,shutil
 from pathlib import Path
 
 from videotrans.configure.config import tr, app_cfg, settings, logger
-from videotrans.configure.contants import UVR_URL_MS, UVR_URL_HF
+from videotrans.configure.constants import UVR_URL_MS, UVR_URL_HF
 from videotrans.configure.excepts import VideoTransError
 from videotrans.task.simple_runnable_qt import run_in_threadpool
 from videotrans.util.help_ffmpeg import get_video_info, runffmpeg

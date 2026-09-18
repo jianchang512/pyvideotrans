@@ -1,9 +1,9 @@
 
 
 def openwin():
-
-    from videotrans.translator._registry import get_name_index
-    from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
+    from videotrans.winform import get_cls
+    from videotrans.translator import get_name_index
+    from videotrans.configure.constants import EDGE_LANGUANGES_CODE
     from videotrans.util.help_misc import  show_error
     from typing import List
     from videotrans.task.taskcfg import InputFile
@@ -17,7 +17,7 @@ def openwin():
     from videotrans.configure import config
     from videotrans.task.taskcfg import TaskCfgSTT
     from videotrans import translator, recognition
-    from videotrans.component.set_form import Recognform
+
 
     EDGE_LANGUANGES_DICT = {}
 
@@ -130,7 +130,7 @@ def openwin():
             if not params.get(f'{name}_key'):
                 show_error(tr('llmduanju',get_name_index(ai_type,'name')))
                 from videotrans.winform import get_win
-                get_win(name).openwin()
+                get_win(name)
                 return
 
         enable_diariz_is = winobj.enable_diariz.isChecked()
@@ -265,9 +265,8 @@ def openwin():
             show_error(winobj.error_msg)
 
 
-    winobj = Recognform()
-    app_cfg.child_forms['fn_recogn'] = winobj
 
+    winobj = get_cls(Path(__file__).stem)()
     def _bind():
         from videotrans.component.component import DropButton
         winobj.shibie_dropbtn = DropButton(tr('xuanzeyinshipin'))

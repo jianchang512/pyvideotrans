@@ -22,7 +22,6 @@ class ListenVoice(QThread):
                 queue_tts=self.queue_tts,
                 language=self.language,
                 play=True,
-                is_test=True,
                 tts_type=self.tts_type
             )
             self.uito.emit("ok")

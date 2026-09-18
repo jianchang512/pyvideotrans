@@ -1,7 +1,8 @@
 
 
 def openwin():
-    from videotrans.configure.contants import LISTEN_TEXT
+    from videotrans.winform import get_cls
+    from videotrans.configure.constants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
     from videotrans.util.help_role import get_f5tts_role
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg, params
@@ -67,10 +68,10 @@ def openwin():
         set_process(text='', type="refreshtts")
         winobj.close()
 
-    from videotrans.component.set_form import GradiowinForm
+
     Path(ROOT_DIR + "/f5-tts").mkdir(exist_ok=True)
-    winobj = GradiowinForm()
-    app_cfg.child_forms['gradiowin'] = winobj
+    winobj = get_cls(Path(__file__).stem)()
+
     winobj.index_tts_version.setCurrentIndex(int(params.get('index_tts_version',0)))
     winobj.voxcpmtts_version.setCurrentText(str(params.get('voxcpmtts_version','v2')))
     
@@ -84,10 +85,10 @@ def openwin():
     winobj.indextts_urltest.clicked.connect(lambda: test(tts.INDEX_TTS))
     winobj.voxcpmtts_urltest.clicked.connect(lambda: test(tts.VOXCPM_TTS))
     winobj.firered3tts_urltest.clicked.connect(lambda: test(tts.FIRERED3_TTS))
-    winobj.show()
     test_btn={
         tts.INDEX_TTS:winobj.indextts_urltest,
         tts.SPARK_TTS:winobj.sparktts_urltest,
         tts.VOXCPM_TTS:winobj.voxcpmtts_urltest,
         tts.FIRERED3_TTS:winobj.firered3tts_urltest,
     }
+    return winobj

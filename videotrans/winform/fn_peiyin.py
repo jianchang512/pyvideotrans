@@ -2,13 +2,13 @@
 
 
 def openwin():
-
+    from videotrans.winform import get_cls
     from videotrans.util.help_misc import show_error
     from videotrans.util.help_role import role_menu
     from typing import List
     from videotrans.task.taskcfg import InputFile
     from datetime import datetime
-    from videotrans.configure.contants import LISTEN_TEXT,EDGE_LANGUANGES_CODE
+    from videotrans.configure.constants import LISTEN_TEXT,EDGE_LANGUANGES_CODE
     import re,time
     import json
     from pathlib import Path
@@ -19,7 +19,7 @@ def openwin():
     from videotrans.configure import config
     from videotrans.task.taskcfg import TaskCfgTTS
     from videotrans import translator, tts
-    from videotrans.component.set_form import Peiyinform
+
 
 
     EDGE_LANGUANGES_DICT = {}
@@ -342,9 +342,7 @@ def openwin():
         return True
 
 
-    winobj = Peiyinform()
-    app_cfg.child_forms['fn_peiyin'] = winobj
-
+    winobj = get_cls(Path(__file__).stem)()
     def _bind():
         from videotrans.component.component import PeiyinDropButton
         winobj.hecheng_importbtn = PeiyinDropButton(tr('Import text to be translated from a file..'))
