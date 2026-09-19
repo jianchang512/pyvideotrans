@@ -4244,7 +4244,7 @@ wheels = [
 
 [[package]]
 name = "pyvideotrans"
-version = "4.12"
+version = "4.13"
 source = { virtual = "." }
 dependencies = [
     { name = "absl-py" },

@@ -669,7 +669,7 @@
   "Built-in": "Built-in",
   "win-forbid-name": "Invalid Windows file characters: [{}] . Rename file and try again.",
   "cosyvoice23webui": "CosyVoice 2/3 requires running webui.py from the official repo. Note: CosyVoice 3 official webui.py cannot directly integrate with this software; click 'Setup Guide' bottom-right for solutions.",
-  "Download URL": "Download URL",
+  "Download URL": "Model Download URL",
   "downloading all files": "Model download failed.\nYou can open the URL and download all files manually to folder:\n{}",
   "Restoring punct": "Restore Punctuation",
   "Restoring punctuation marks when Chinese & English": "Restore punctuation marks for Chinese & English speech recognition",
@@ -1012,5 +1012,6 @@
   "msg_save_fail": "Failed to save file: {}",
   "msg_success_detail": "SRT generated successfully!\nFile saved as:\n{}",
   "We accept two API request methods": "We accept two API request methods. Please click the Help Doc button for details.",
-  "More than 30 minutes of audio and video require a large amount of video memory": "For A/V longer than 60 min, which require substantial GPU memory, set the Spoken language to auto-detection enables segmented transcription to reduce memory usage"
+  "More than 30 minutes of audio and video require a large amount of video memory": "For A/V longer than 60 min, which require substantial GPU memory, set the Spoken language to auto-detection enables segmented transcription to reduce memory usage",
+  "hf_model error": "The model download failed. Please click the button [Model Download URL] to manually download all files to:\n{}\n[{}]"
 }

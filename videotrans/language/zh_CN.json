@@ -671,7 +671,7 @@
   "Built-in": "内置",
   "win-forbid-name": "Windows系统中，文件名不允许使用这些符号【 {} 】,某些下载工具可能会创建不符合Windows规则的文件名,请修改后重试。",
   "cosyvoice23webui": "使用该接口需启动 CosyVoice2/3 官方项目的webui.py, cosyvoice3无法直接使用官方webui.py对接本软件，点击右下角填写教程按钮，查看解决办法",
-  "Download URL": "下载地址",
+  "Download URL": "模型下载地址",
   "downloading all files": "下载模型失败，\n你可以尝试打开以下网址，将所有文件下载到\n {} 文件夹内",
   "Restoring punct": "恢复标点",
   "Restoring punctuation marks when Chinese & English": "在中文和英文发音时，可选择是否恢复标点符号",
@@ -1012,5 +1012,6 @@
   "msg_save_fail": "保存文件失败: {}",
   "msg_success_detail": "SRT 字幕生成成功！\n文件已保存为:\n{}",
   "We accept two API request methods": "接受两种 API 请求方式，具体请点击 【查看填写教程】 按钮了解",
-  "More than 30 minutes of audio and video require a large amount of video memory": "60分钟以上音视频，需要极大显存，将发音语言设为自动检测可分片转录降低显存占用"
+  "More than 30 minutes of audio and video require a large amount of video memory": "60分钟以上音视频，需要极大显存，将发音语言设为自动检测可分片转录降低显存占用",
+  "hf_model error": "模型下载失败，请点击 【模型下载地址】按钮，手动下载所有文件到:\n{}\n[{}]"
 }
