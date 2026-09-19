@@ -1,168 +1,359 @@
-- 优化模型下载失败处理，失败后将自动重试
-- 优化 whisper 模型识别后重断句算法
-- 硅基流动、Minimax、OpenRouter 完善 语音识别/字幕翻译/语音合成 模型支持
-- 豆包语音合成2.0 新增配音角色
-- 重构 设置窗口、菜单架构，简化新增渠道
-- Qwen-TTS/Higgs等本地配音渠道放弃8位量化，避免某些环境下兼容问题
-- 修复其他已知bug
+# pyvideotrans 渠道扩展二次开发指南
 
+> 本指南适用于 `pyvideotrans` 重构后的插件化渠道架构。开发者可通过继承基类并完成对应注册，快速为软件接入自定义的 **语音识别（STT）**、**字幕翻译（Trans）** 或 **文字配音（TTS）** 渠道。
 
+---
 
-新增 语音识别渠道、字幕翻译渠道、文字配音渠道的方法
+## 目录
+1. [全景开发流程](#一全景开发流程)
+2. [步骤一：定义与注册渠道常量](#步骤一定义与注册渠道常量)
+3. [步骤二：配置窗口与菜单集成（可选）](#步骤二配置窗口与菜单集成可选)
+4. [步骤三：实现渠道核心逻辑](#步骤三实现渠道核心逻辑)
+   - [3.1 字幕翻译渠道 (Translator)](#31-字幕翻译渠道-videotranstranslator)
+   - [3.2 语音识别渠道 (STT/Recognition)](#32-语音识别渠道-videotransrecognition)
+   - [3.3 文字配音渠道 (TTS)](#33-文字配音渠道-videotranstts)
+5. [TTS 角色清单扩展规范](#五tts-角色清单扩展规范)
+6. [开发避坑与最佳实践](#六开发避坑与最佳实践)
+7. [附录：版本更新参考](#附录版本更新参考)
 
-- 源码目录 `videotrans/recognition` 是语音识别渠道代码，在此新增，`_base.py`是所有语音识别渠道的基类
-- 源码目录 `videotrans/translator`  是字幕翻译渠道代码，在此新增，`_base.py`是所有字幕翻译渠道的基类
-- 源码目录 `videotrans/tts`  是文字配音渠道代码，在此新增，`_base.py`是所有文字配音渠道的基类
+---
 
-每个目录下的 `_constants.py `是渠道ID和名字定义文件，打开后在已有定义常量后边为新渠道新增一个常量，值递增，如 `NEWAI_API=32`
+## 一、全景开发流程
+
+接入一个新渠道（以内部标识名 `{name}` 为例，如 `newai`）的标准闭环如下：
+
+```text
+[1. 常量定义与注册] 
+    videotrans/{module}/_constants.py  --> 分配 ID、声明 ChannelProvider
+              ↓
+[2. UI 与参数配置 (需配置项时)]
+    videotrans/ui/{name}.py             --> 界面布局 (UI)
+    videotrans/winform/{name}.py        --> 业务交互控制 (WinForm)
+    videotrans/configure/_app_params.py --> 注入默认参数
+    videotrans/ui/menu_list.py          --> 挂载到顶部设置菜单
+              ↓
+[3. 核心业务实现]
+    videotrans/{module}/_{name}.py      --> 继承 Base 类，实现对应抽象方法
+              ↓
+[4. 角色配置 (仅 TTS 需要)]
+    videotrans/configure/constant.py 或 videotrans/voicejson/{name}.json
 ```
-Deepgram = 24
-CAMB_ASR = 25
-STT_API = 26
-# .net
-WHISPER_NET = 27
-# 自定义API
-CUSTOM_API = 28
-SILICONFLOW_API = 29
-OPENROUTER_API = 30
-MINIMAX_API = 31
 
+---
+
+## 步骤一：定义与注册渠道常量
+
+对应模块目录：
+- 语音识别：`videotrans/recognition/`
+- 字幕翻译：`videotrans/translator/`
+- 文字配音：`videotrans/tts/`
+
+打开对应目录下的 **`_constants.py`**：
+
+### 1. 规则约束
+- **唯一 ID**：在常量列表末尾添加新常量，数值递增（如 `NEWAI_API = 32`）。
+- **模块代号 `{name}`**：必须以**英文字母开头**，仅由**小写英文字母、数字、下划线**组成（例如 `newai`）。
+- **实现文件**：在同级目录下新建 `_{name}.py`（例如 `_newai.py`）。
+
+### 2. 注册到 `ID_NAME_DICT`
+
+```python
+# videotrans/{module}/_constants.py
+
+# 1. 新增递增常量
+NEWAI_API = 32
+
+# 2. 在 ID_NAME_DICT 字典末尾注册
+ID_NAME_DICT[NEWAI_API] = ChannelProvider(
+    name="NewAI 渠道",         # 界面下拉列表显示的名称
+    key_name="newai_key",       # 关键必填校验参数（用于校验是否已填写配置）
+    win="newai",                # 对应的配置窗口名（与 winform/{name}.py 对应）
+    imp="._newai"               # 动态导入的实现文件路径（相对于当前包）
+)
 ```
 
+> **`key_name` 说明**：若该渠道需要配置 API Key、Token 或 Base URL 等，填入核心必填项名称。当用户未在界面填写该项便直接调用时，系统将拦截并自动弹窗警告。
 
-为此渠道起一个 `{name}`，必须以英文字母开头，并且仅可包含 英文字母、数字、下划线，然后在该包内创建一个py文件，名称为`_{name}.py`,此即为该渠道的所有实现代码，可直接复制已有渠道的代码进行修改
+---
 
-然后在 `ID_NAME_DICT` 对象末尾新增一组设置，key为新增的常量，值为 ChannelProvider 实例，该实例第一个参数是该渠道在软件中的显示名称，`imp`参数是`._{name}.py`，即该渠道的代码文件.
+## 步骤二：配置窗口与菜单集成（可选）
 
-例如 `NEWAI_API: ChannelProvider('NEWAI渠道', key_name="{name}_key", win="{name}", imp="._{name}"),
-`
+若新渠道不需要用户配置 API/模型参数（如零配置的本地模型），本步可直接跳过。
 
-如果该渠道需配置 `SK/API URL`,即需要一个设置界面
-	- 需传入参数`key_name={必须填写的参数名，例如api url 或 SK}`，参数名同样仅包含`字母、数字、下划线`，例如`newai_key`, 无论实际定义多少个，这里仅需要填写一个必填参数，例如参数可能有 SK、模型名、max_token、api地址等多个，这里仅填写 sk 即必须填写的。在实际调用该渠道时，软件会判断该值是否已填写，若否将报错提示。
-	- 需传入参数`win="{name}"`,即该渠道的设置界面窗口名
-	- 在 `videotrans/ui` 内定义一个文件`{name}.py`，这是界面设置文件，同样可直接复制已有的文件进行修改
-	- 在 `videotrans/winform` 内定义一个文件`{name}.py`，这是调用ui文件并实现各参数填写、测试的控制代码
-	- 在 `videotrans/configure/_app_params.py` 中，`_get_defaults` 方法中，设置默认参数，此步也可省略
-	- 在 `videotrans/ui/menu_list.py` 中，新增一个菜单，如果该渠道是 字幕翻译设置，添加到变量`MENU_CFG_TRANS`中，若是TTS渠道，则添加到`MENU_CFG_TTS`，若是语音识别渠道，则添加到`MENU_CFG_STT` 中，菜单是一个元组，有3个元素组成
-		0. 元素0填写 `{name}`
-		1. 元素1填写菜单显示名称
-		2. 元素2填写`None`，代表点击时打开`videotrans/winform/{name}.py`
-	例如`("{name}","newai设置菜单",None)`
+### 1. 新增 UI 布局与控制器
+- **UI 界面**：新建 `videotrans/ui/{name}.py`（定义输入框、保存按钮等组件，推荐参考同目录下已有文件如 `deepseek.py` 复制修改）。
+- **窗口控制器**：新建 `videotrans/winform/{name}.py`（处理参数回显、数据保存、连接测试等逻辑）。
 
-## 字幕翻译渠道子类
-假设定义的`name=newai_route`
-创建文件 `videotrans/translator/_newai_route.py`,如果该渠道是api请求并且兼容OpenAI格式，可直接复制`_deepseek.py`修改实现，若否，则可复制 `_google.py` 或 `_hymt2.py` 等实现
-
-必须实现的函数只有一个`def _item_task(self, data: str) -> str:`
-参数data：
-	当是AI翻译渠道并且选中了`发送完整字幕`：data是  SRT格式字幕字符串
-    当传统翻译渠道或未选`发送完整字幕`：data是 多行字幕文本字符串
-
-如果该渠道需要下载模型到本地，还需实现 `def _download(self):`方法，模型下载到`{ROOT_DIR}/models` 目录下，`{ROOT_DIR}`变量来自 `videotrans.configure.config`，具体可参考 `_hymt2.py`文件
-
-例如代码示例
+### 2. 注入默认配置参数（可选）
+在 `videotrans/configure/_app_params.py` 的 `_get_defaults()` 方法中追加默认参数：
+```python
+# videotrans/configure/_app_params.py
+def _get_defaults():
+    return {
+        # ...已有配置项
+        "newai_key": "",
+        "newai_url": "https://api.newai.com/v1",
+        "newai_model": "newai-v1",
+    }
 ```
+
+### 3. 挂载到软件菜单栏
+打开 `videotrans/ui/menu_list.py`，根据模块类型追加到对应列表中：
+- 翻译渠道：追加到 `MENU_CFG_TRANS`
+- 配音渠道：追加到 `MENU_CFG_TTS`
+- 识别渠道：追加到 `MENU_CFG_STT`
+
+菜单结构为三元元组：`("{name}", "菜单显示文本", None)`（第 3 个参数为 `None` 时，系统会自动寻址打开 `videotrans/winform/{name}.py`）：
+
+```python
+# videotrans/ui/menu_list.py
+MENU_CFG_TRANS = [
+    # ...
+    ("newai", "NewAI 设置", None),
+]
+```
+
+---
+
+## 步骤三：实现渠道核心逻辑
+
+### 3.1 字幕翻译渠道 (`videotrans/translator/`)
+
+新建文件：`videotrans/translator/_{name}.py`。
+- 参考范例：兼容 OpenAI 格式可参考 `_deepseek.py`；自建 API 或传统 HTTP 可参考 `_google.py`；本地模型可参考 `_hymt2.py`。
+
+```python
+from dataclasses import dataclass
+from typing import Union
+from videotrans.configure.config import ROOT_DIR, params
+from videotrans.translator._base import BaseTrans
+
 @dataclass
 class NewAITrans(BaseTrans):
-	# 必须实现
+    """
+    NewAI 翻译渠道实现
+    """
+
     def _item_task(self, data: str) -> str:
-	# 当是AI翻译渠道并且选中了`发送完整字幕`：data是  SRT格式字幕字符串
-    # 当传统翻译渠道或未选`发送完整字幕`：data是 多行字幕文本字符串
-	
-	
-	# 若需下载模型，子类应实现，下载到 ｛ROOT_DIR｝/models 目录内
+        """
+        核心翻译执行函数（必须实现）
+        
+        :param data: 待翻译文本内容
+                     - 若勾选"发送完整字幕(Send full SRT)"：data 为标准 SRT 格式的多行纯文本字符串
+                     - 若未勾选/传统渠道：data 为以换行分隔的多行文本字符串
+        :return: 翻译后的文本字符串（格式需与输入保持严格对齐）
+        """
+        api_key = params.get("newai_key")
+        
+        # 退出信号检测
+        if self._exit():
+            return ""
+        
+        # TODO: 发起 HTTP 请求进行翻译
+        translated_text = self._request_translate(api_key, data)
+        return translated_text
+
     def _download(self):
+        """
+        模型下载函数（本地模型渠道必选，API 渠道可 pass）
+        模型统一存放路径规范：f"{ROOT_DIR}/models/{model_name}"
+        """
         pass
 ```
 
+---
 
-## 语音识别渠道子类
-假设定义的`name=newai_route`
-创建文件 `videotrans/recognition/_newai_route.py`,如果该渠道是api请求，可直接复制`_openrouter.py`修改实现，若否，本地模型则可复制 `_fireredasr.py` 等实现.
-如果是较大模型，比较吃内存和显存，可考虑独立进程运行，可参考 `_whisper.py` 实现
+### 3.2 语音识别渠道 (`videotrans/recognition/`)
 
+新建文件：`videotrans/recognition/_{name}.py`。
+- 参考范例：API 识别参考 `_openrouter.py`；轻量本地模型参考 `_fireredasr.py`；多进程/吃显存的重量级模型参考 `_whisper.py`。
 
-必须实现的函数只有一个`def _exec(self) -> Union[List[SrtItem], None]:`
-可调用`raws = self.cut_audio()`直接返回使用VAD切好片的数据：`List[SrtItem]`
-其中 `filename`字段即是需要识别转文字的一条字幕语音。
+```python
+from dataclasses import dataclass
+from typing import List, Union
+from videotrans.configure.config import ROOT_DIR, params
+from videotrans.recognition._base import BaseRecogn
+from videotrans.util.tools import SrtItem
 
-
-如果该渠道需要下载模型到本地，还需实现 `def _download(self):`方法，模型下载到`{ROOT_DIR}/models` 目录下，`{ROOT_DIR}`变量来自 `videotrans.configure.config`，具体可参考 `_whisper.py`文件
-
-例如代码
-```
 @dataclass
-class NewaiRecogn(BaseRecogn):
+class NewAIRecogn(BaseRecogn):
+    """
+    NewAI 语音识别渠道实现
+    """
 
-	def _exec(self) -> Union[List[SrtItem], None]:
-        if self._exit(): return
-        # 发送请求
-        raws = self.cut_audio()
-		for i, it in enumerate(raws):
-			it['text']=`转录函数(it['filename'])`
-			
-		return raws
-	
-	
-	def _download(self):
-		pass
+    def _exec(self) -> Union[List[SrtItem], None]:
+        """
+        核心识别逻辑（必须实现）
+        :return: 填充好识别文本的 SrtItem 列表，或者在异常/退出时返回 None
+        """
+        if self._exit():
+            return None
+
+        # self.cut_audio() 会基于 VAD 算法自动完成音频切片
+        # raws: List[SrtItem]，每个元素包含 'filename'(切片音频绝对路径)、'from_time'、'to_time' 等字段
+        raws: List[SrtItem] = self.cut_audio()
+        
+        for it in raws:
+            if self._exit():
+                return None
+            
+            # 调用识别逻辑填充文本
+            audio_file = it["filename"]
+            it["text"] = self._transcribe_file(audio_file)
+
+        return raws
+
+    def _download(self):
+        """若需要本地模型，下载至 {ROOT_DIR}/models 目录"""
+        pass
+
+    def _transcribe_file(self, audio_path: str) -> str:
+        # TODO: 实际单段音频识别逻辑
+        return ""
 ```
 
-## 文字配音渠道子类
+---
 
-假设定义的`name=newai_route`
-创建文件 `videotrans/tts/_newai_route.py`,如果该渠道是api请求，可直接复制`_openrouter.py/_xiaomi.py`等修改实现，若否，本地模型，则可复制 `_zipvoice.py` 等实现.
-如果是较大模型，比较吃内存和显存，可考虑独立进程运行，可参考 `_omnivoice.py` 实现
+### 3.3 文字配音渠道 (`videotrans/tts/`)
 
-1. 如果是 api请求，则必须实现的函数只有一个`def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:`
+> 每条字幕配音完成后，必须对配音音频文件重新格式化为 48000采样率、双通道、pcm_s16le格式，方便后续对齐和连接处理，避免数据格式不一致的各种错误
+>
+> 可直接调用该方法`self.convert_to_wav(配音后的音频文件, data_item['filename'])`
 
-`data_item` 是一条字幕的数据字典，`{filename:配音文件最终需生成该名,role:界面中显示的配音角色名称,text:需配音的文字}`
-可参考`_openrouter.py`的实现
 
-```
+
+新建文件：`videotrans/tts/_{name}.py`。
+配音根据运行机制分为两类，实现不同的核心函数：
+
+#### 机制 A：基于 API 的网络流式/并发请求（必须实现 `_run`）
+参考范例：`_openrouter.py`、`_xiaomi.py`。
+
+```python
+from dataclasses import dataclass
+from typing import Dict, List, Union
+from videotrans.configure.config import ROOT_DIR, params
+from videotrans.tts._base import BaseTTS
+
 @dataclass
 class NewAITTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_key = params.get('newai_key')
-        self.speed=self.get_speed()
+        self.api_key = params.get("newai_key")
+        self.speed = self.get_speed()  # 获取用户在界面设定的语速
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
-	
-	def _download(self):
+        """
+        单条字幕配音处理
+        
+        :param data_item: 单条字幕元数据字典
+                          {
+                              "filename": "/path/to/target.wav",  # 输出音频的目标绝对路径
+                              "role": "RoleName",                 # 界面选中的声音角色
+                              "text": "待合成的文本内容"            # 配音文字
+                          }
+        :param idx: 当前字幕下标索引
+        :return: 成功返回生成文件绝对路径，失败返回 None
+        """
+        if self._exit():
+            return None
+
+        out_path = data_item["filename"]
+        role = data_item["role"]
+        text = data_item["text"]
+
+        # TODO: 发送 TTS 请求并写入 out_path
+        self._generate_voice(text, role, out_path)
+        return out_path
+
+    def _download(self):
+        pass
 ```
 
-2. 如果是本地模型，则必须实现的函数只有一个`def _exec(self):`,所有需要配音的字幕列表字典存在在
-self.queue_tts中，具体可参考`_omnivoice.py实现`
-```
+#### 机制 B：基于本地权重的本地模型（必须实现 `_exec`）
+参考范例：`_omnivoice.py`、`_zipvoice.py`。
+
+```python
+from dataclasses import dataclass
+from videotrans.configure.config import ROOT_DIR
+from videotrans.tts._base import BaseTTS
+
 @dataclass
-class NewAiTTS(BaseTTS):
-	def _exec(self):
-        for it in self.queue_tts:
-	def _download(self):
+class NewAILocalTTS(BaseTTS):
+
+    def _exec(self):
+        """
+        批量/队列式本地推理任务
+        所有待配音的任务队列统一存储在 self.queue_tts 中
+        """
+        for item in self.queue_tts:
+            if self._exit():
+                break
+            
+            out_path = item["filename"]
+            role = item["role"]
+            text = item["text"]
+            
+            # TODO: 模型批处理推理
+            self.model_infer(text, role, out_path)
+
+    def _download(self):
+        # 下载权重到 {ROOT_DIR}/models
+        pass
 ```
 
-如果该渠道需要下载模型到本地，还需实现 `def _download(self):`方法，模型下载到`{ROOT_DIR}/models` 目录下，`{ROOT_DIR}`变量来自 `videotrans.configure.config`，具体可参考 `_omnivoice.py`文件
+---
 
+## 五、TTS 角色清单扩展规范
 
-如果所有配音角色，不因语言变化而不同，可直接定义在`videotrans/configure/constant.py`中，在 `videotrans/util/help_role.py` 的`def role_menu()`方法中，返回配音角色名的list。
+软件下拉框的角色清单支持以下两种维度配置：
+
+### 1. 全局角色（角色不随源语言/目标语言改变）
+直接在 `videotrans/configure/constant.py` 中声明逗号分隔的角色字符串，并在 `videotrans/util/help_role.py` 的 `role_menu()` 函数中返回即可：
+
+```python
+# videotrans/configure/constant.py
+NEWAITTS_ROLES = "voice_a,voice_b,voice_c"
 ```
-#configure/constant.py
-OPENAITTS_ROLES = "alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
 
-```
+> **设计原则**：角色名称推荐直接使用**渠道接口实际接收的声音 ID**（如 `zh-CN-YunxiNeural`）。避免在界面上展示自然语言别名后再二次映射，降低维护复杂度。
 
+### 2. 多语言角色（角色列表依赖于语言切换）
+适用于各语言音色互不通用的情况：
+1. 在 `videotrans/voicejson/` 目录下新建 `{name}.json`（例如 `newai.json`）。
+2. 参考 `videotrans/configure/_languages_dict.py` 中的 `EDGE_LANGUANGES_CODE` 国际标准语言代码：
 
-为减少复杂性，角色名建议直接使用api请求时的实际声音id(例如有的渠道配音角色显示为描述性的自然语言名称，而实际却需要传递英文id，则需要再次映射转换)
-
-如果角色因语言不同而变化，建议编制一个json文件，key是语言代码，参考`videotrans/voicejson/kokoro.json`，
-```
+```json
 {
-	"en":["voice_id1","voice_id2"],
-	...
+  "zh-cn": ["xiaoxiao", "yunxi"],
+  "en": ["jenny", "guy"],
+  "ja": ["nanami", "keita"]
 }
-
 ```
-语言代码参考 `videotrans/configure/_languages_dict.py`的`EDGE_LANGUANGES_CODE`变量
 
+---
+
+## 六、开发避坑与最佳实践
+
+1. **退出响应（极其重要）**：
+   长时间运行的循环或网络请求中，务必频繁穿插 `if self._exit(): return` 检查，否则用户在主界面点击“停止”时任务无法及时终止。
+2. **重型本地模型隔离**：
+   显存开销较大或包含 PyTorch/C++ 绑定的本地模型（如 Whisper、Kokoro、OmniVoice），严禁在主进程直接加载，请参考 `_whisper.py` 采用独立子进程（`multiprocessing` / `subprocess`）拉起，防止主界面卡顿或显存泄露。
+3. **本地模型路径规范**：
+   下载权重必须限定在 `{ROOT_DIR}/models/{model_name}` 目录下，禁止直接在当前工作目录创建相对路径。
+4. **下载自动重试机制**：
+   模型下载建议接入重试与断点续传逻辑，避免弱网环境下偶发网络超时导致流程阻断。
+5. **SRT 结构与对齐风险**：
+   翻译渠道在勾选“发送完整字幕”模式下，LLM 偶尔会破坏换行或缺失时间戳标记，需在写入前对返回行数进行合法性校验，格式损坏时需退化处理或报错提示。
+
+---
+
+## 附录：版本更新参考
+
+本次重构对架构进行的主要优化点：
+- **容错增强**：优化模型下载失败处理，加入超时重试机制。
+- **切分优化**：优化 Whisper 识别后重新断句算法。
+- **渠道补全**：完善 硅基流动、Minimax、OpenRouter 在识别/翻译/TTS 的多模型矩阵支持。
+- **音色扩容**：豆包语音合成 2.0 接入更多预设角色。
+- **架构解耦**：重构设置窗口与菜单架构，渠道注册由配置字典统一驱动。
+- **兼容性保障**：本地配音渠道（如 Qwen-TTS、Higgs）剔除 8-bit 量化，规避跨平台环境兼容问题。
