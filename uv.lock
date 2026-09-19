@@ -1740,6 +1740,18 @@ wheels = [
 ]
 
 [[package]]
+name = "googletrans"
+version = "4.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx", extra = ["http2"] },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d8/52/18700a3356c9359d2208e21350f52445982ef884898d6c11671f6a829876/googletrans-4.0.2.tar.gz", hash = "sha256:d9ef126b5d92fabeec0bb9ddcdbeecd43865fc00e17f1dfa07717837827a17de", size = 50353, upload-time = "2025-01-01T14:12:04.249Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3c/9c/3ec8e2a1f9bf57b8ee3a26c49d0dcbfa21d54d412d2e7d158fac46fa6e67/googletrans-4.0.2-py3-none-any.whl", hash = "sha256:19e4fbbf7463e0cf4cd8f03479372910368730ac13dfb023fed6db58fd093547", size = 18340, upload-time = "2025-01-01T14:12:00.321Z" },
+]
+
+[[package]]
 name = "gradio"
 version = "6.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2010,6 +2022,9 @@ wheels = [
 ]
 
 [package.optional-dependencies]
+http2 = [
+    { name = "h2" },
+]
 socks = [
     { name = "socksio" },
 ]
@@ -4330,6 +4345,7 @@ dependencies = [
     { name = "google-cloud-storage" },
     { name = "google-genai" },
     { name = "googleapis-common-protos" },
+    { name = "googletrans" },
     { name = "gradio" },
     { name = "gradio-client" },
     { name = "grpcio" },
@@ -4620,6 +4636,7 @@ requires-dist = [
     { name = "google-cloud-storage", specifier = ">=3.12.0" },
     { name = "google-genai" },
     { name = "googleapis-common-protos" },
+    { name = "googletrans", specifier = ">=4.0.2" },
     { name = "gradio", specifier = ">=6.8.0" },
     { name = "gradio", marker = "extra == 'webui'" },
     { name = "gradio-client", specifier = ">=2.0.1" },
