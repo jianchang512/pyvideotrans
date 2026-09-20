@@ -9,7 +9,7 @@ from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 
-from videotrans.util.help_down import check_and_down_hf
+from videotrans.util.help_down import check_and_down_hf,down_file_from_hf
 from videotrans.util.help_srt import get_subtitle_from_srt
 from pydub import AudioSegment
 
@@ -48,6 +48,10 @@ class FasterAll(BaseRecogn):
             else:
                 repo_id = self.model_name
             check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
+        elif self.recogn_type==1 and not Path(f'{ROOT_DIR}/models/{self.model_name}.pt').exists():
+            import whisper            
+            down_file_from_hf(f'{ROOT_DIR}/models',[whisper._MODELS[self.model_name]],callback=self._process_callback)
+            
 
     def _openai(self)->Union[List[SrtItem], None]:
         title=f'Model: {self.model_name}'
