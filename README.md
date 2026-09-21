@@ -1,5 +1,6 @@
 ﻿> Sponsors:
 > - **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans) -  Meeting Transcription API**:  If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more
+> - **[infistar - 160+ 模型,一个 Key](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link)**: 字幕翻译还在纠结用 GPT、Claude、Gemini 还是 DeepSeek? infistar 是 OpenAI 兼容中转,一个 Key 随时切 160+ 模型,挑出翻得最准又最省的那个
 
 
 ---
@@ -10,7 +11,7 @@
 
 **A Powerful Open Source Video Translation / Audio Transcription / AI Dubbing / Subtitle Translation Tool**
 
-[中文](docs/README_CN.md) | [**Documentation**](https://pyvideotrans.com) | [**Online Q&A**](https://bbs.pyvideotrans.com)
+[简体中文](docs/README_CN.md) | [**Documentation**](https://pyvideotrans.com) | [**Online Q&A**](https://bbs.pyvideotrans.com)
 
 [![License](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://www.python.org/) [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
@@ -174,6 +175,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | WhisperX / Parakeet | Supports timestamp alignment & speaker diarization |
 | | Alibaba Qwen3-ASR / ByteDance Volcano | Online API, excellent for Chinese |
 | **Translation (LLM/MT)** | **DeepSeek** / ChatGPT | Supports context understanding, more natural translation |
+| | [infistar AI](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link) | infistar - 160+ models, one Key, OpenAI compatible gateway, switch to 160+ models at any time with one Key |
 | | MiniMax AI | MiniMax M3 LLM, latest flagship model, OpenAI-compatible |
 | | Google / Microsoft | Traditional machine translation, fast speed |
 | | Ollama / M2M100 | Fully local offline translation |
@@ -188,7 +190,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 * **Official Documentation**: [https://pyvideotrans.com](https://pyvideotrans.com) (Includes detailed tutorials, API configuration guides, FAQ)
 * **Online Q&A Community**: [https://bbs.pyvideotrans.com](https://bbs.pyvideotrans.com) (Submit error logs for automated AI analysis and answers)
-* **GitHub Wiki**: [architecture.md](docs/architecture.md) | [cli.md](docs/cli.md) | [webui.md](docs/webui.md) | [Synchronize.md](docs/Synchronize.md) | [faq.md](docs/faq.md)
+* **GitHub Wiki**: [architecture.md](docs/architecture.md) | [Add new Translator Channel](docs/dev_extend.md) | [cli.md](docs/cli.md) | [webui.md](docs/webui.md) | [Synchronize.md](docs/Synchronize.md) | [faq.md](docs/faq.md)
 
 ##  Disclaimer
 
