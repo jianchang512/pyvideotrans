@@ -128,6 +128,11 @@ class TestTranslatorIndexConstants:
         assert API_ROUTE_INDEX == 26
         assert API_ROUTE_INDEX in AI_TRANS_CHANNELS
 
+    def test_cheaperinference_index(self):
+        from videotrans.translator import CHEAPERINFERENCE_INDEX, AI_TRANS_CHANNELS
+        assert CHEAPERINFERENCE_INDEX == 27
+        assert CHEAPERINFERENCE_INDEX in AI_TRANS_CHANNELS
+
     def test_siliconflow_index(self):
         from videotrans.translator import SILICONFLOW_INDEX
         assert SILICONFLOW_INDEX == 10
