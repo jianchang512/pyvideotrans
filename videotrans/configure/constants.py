@@ -148,6 +148,7 @@ Openrouter_TTS_Model="qwen/qwen-audio-3.0-tts-flash,qwen/qwen-audio-3.0-tts-plus
 # are only convenience defaults for the dropdown and can be edited freely.
 Litellm_Model = "gpt-4o-mini,gpt-4o,claude-sonnet-4-6,claude-haiku-4-5,deepseek-chat"
 APIRoute_Model = "gpt-5.4-mini,gpt-5.4,claude-sonnet-4-6,deepseek-chat,glm-5"
+CheaperInference_Model = "gpt-5.4-mini,gpt-5.4,claude-sonnet-5,gemini-3.1-pro,deepseek-v4-flash"
 # 硅基流动 文本模型
 Guiji_Model = "tencent/Hy4-preview,zai-org/GLM-5.3,deepseek-ai/DeepSeek-V4-Flash,meituan-longcat/LongCat-2.0,zai-org/GLM-5.2,deepseek-ai/DeepSeek-V4-Pro,Qwen/Qwen3.8-27B"
 # 硅基流动 asr 模型

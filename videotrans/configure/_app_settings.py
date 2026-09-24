@@ -12,7 +12,7 @@ from videotrans.configure.constants import (
     DEFAULT_GEMINI_MODEL, ChatTTS_VOICE, Qwentts_Models,
     Whisper_Models, Zijiehuoshan_Model, Zhipuai_Model, Localllm_Model, Azure_Model,
     Chatgpt_Model, Openairecognapi_Model, Qpenaitts_Model, Qwenmt_Model, Ai302_Models,
-    Whisper_cpp_models, Deepseek_Model, Openrouter_Model, Litellm_Model, APIRoute_Model, Guiji_Model, MINIMAX_MODELS,
+    Whisper_cpp_models, Deepseek_Model, Openrouter_Model, Litellm_Model, APIRoute_Model, CheaperInference_Model, Guiji_Model, MINIMAX_MODELS,
     XIAOMI_MODELS
 )
 
@@ -117,6 +117,7 @@ class AppSettings:
             "openrouter_model": Openrouter_Model,
             "litellm_model": Litellm_Model,
             "api_route_model": APIRoute_Model,
+            "cheaperinference_model": CheaperInference_Model,
             "guiji_model": Guiji_Model,
             "zijiehuoshan_model": Zijiehuoshan_Model,
             "model_list": Whisper_Models,
