@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import List, Tuple, Union
 
 from videotrans.configure._paths import TEMP_ROOT
-from videotrans.task.taskcfg import SrtItem
 from videotrans.configure.config import logger
 
 
@@ -37,7 +36,7 @@ def faster_whisper(
         min_speech_ms=3000,
         subtitle_srt=None,
         **kw
-) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
+):
     import zhconv
     from videotrans.process._stt_utils import _write_log,_resegment2,_resegment
     from videotrans.util._srt_parse import ms_to_time_string

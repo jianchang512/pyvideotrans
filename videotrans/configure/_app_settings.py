@@ -2,9 +2,9 @@
 import json
 import logging
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure._logging import _write_with_retry
@@ -140,6 +140,7 @@ class AppSettings:
             "del_end_punc": True,
             "force_lib": False,
             "hw_decode": False,
+            "bit8": False,# 针对 qwen3-tts和glmasr使用8位量化处理？
             "preset": "slow",
             "ffmpeg_cmd": "",
             "aisendsrt": True,
@@ -152,7 +153,7 @@ class AppSettings:
             "batch_nums": 0,
             "uvr_models": "spleeter",
 
-            "max_audio_speed_rate": 100,
+            "max_audio_speed_rate": 50,
             "max_video_pts_rate": 10,
 
             "threshold": 0.45,

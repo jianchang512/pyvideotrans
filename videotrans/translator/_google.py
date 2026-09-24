@@ -2,7 +2,6 @@ import logging
 import re
 import urllib
 from dataclasses import dataclass
-from typing import List, Union
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
@@ -27,8 +26,9 @@ class Google(BaseTrans):
 
         if source_code == 'auto' and Path(f'{TEMP_ROOT}/detect_language_source_{self.uuid}.txt').is_file():
             source_code = \
-            Path(f'{TEMP_ROOT}/detect_language_source_{self.uuid}.txt').read_text(encoding="utf-8").strip().split('-')[
-                0]
+                Path(f'{TEMP_ROOT}/detect_language_source_{self.uuid}.txt').read_text(encoding="utf-8").strip().split(
+                    '-')[
+                    0]
         if source_code == 'zh':
             source_code = 'zh-TW'
 

@@ -42,6 +42,7 @@ class QwenasrlocalRecogn(BaseRecogn):
                 callback=self._process_callback, 
                 local_dir=f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf")
         else:
+            print('#########')
             check_and_down_hf(model_id=self._repid,
                                     repo_id=self._repid,
                                     local_dir=self.local_dir,

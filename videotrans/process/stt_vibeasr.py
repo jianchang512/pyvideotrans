@@ -21,7 +21,6 @@ def videasr_fun(
         **kw
 ):
 
-    from videotrans.task.taskcfg import SrtItem
     from videotrans.process._stt_utils import _write_log
     import torch
     from videotrans.util._srt_parse import ms_to_time_string
@@ -54,7 +53,6 @@ def videasr_fun(
           for i,dict_output in enumerate(dict_output_list):
             offset=it_list[i]['start_time']
             for item in dict_output:
-              print(f'\t{item=}')
               _s=offset+int(float(item['Start'])*1000)
               _e=offset+int(float(item['End'])*1000)
               _sraw=ms_to_time_string(ms=_s)

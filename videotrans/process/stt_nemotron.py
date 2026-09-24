@@ -5,7 +5,6 @@
 import re, json, traceback, logging
 from pathlib import Path
 from typing import List, Tuple, Union
-from videotrans.task.taskcfg import SrtItem
 from videotrans.configure.config import logger
 from videotrans.process._stt_utils import _write_log
 
@@ -16,14 +15,14 @@ def nemotron_asr(
         logs_file=None,
         local_dir=None,
         **kw
-) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
+):
     from transformers import AutoModelForRNNT, AutoProcessor
     from transformers.audio_utils import load_audio
 
 
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
-            cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in
+            cut_audio_list = [item for item in
                                              json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         raws = cut_audio_list
         processor = AutoProcessor.from_pretrained(local_dir)

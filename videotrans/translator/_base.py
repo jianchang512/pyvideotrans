@@ -77,7 +77,7 @@ class BaseTrans(BaseCon):
             _e=str(e)
             if self.local_dir and ("no file named model.safetensors" in _e or os.path.basename(self.local_dir) in _e):
                from videotrans.configure.excepts import DownloadModelsError
-               raise  DownloadModelsError(tr('model incomplete error',self.local_dir,tr('Help document')))
+               raise  DownloadModelsError(tr('model incomplete error',self.local_dir,tr('Help document'))+f'\n{self=}')
             raise
         finally:
             if hasattr(self, '_unload'):
@@ -128,7 +128,7 @@ class BaseTrans(BaseCon):
 
         if _empty_line >= len(self.text_list):
             from videotrans.configure.excepts import TranslateSrtError
-            raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
+            raise TranslateSrtError(tr("Translate result is empty")+f'\n{self=}')
         return self.text_list
 
 
@@ -154,7 +154,7 @@ class BaseTrans(BaseCon):
             if not result:
                 result = self._item_task(srt_str.strip())
                 if not result.strip():
-                    raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
+                    raise TranslateSrtError(tr("Translate result is empty")+f'\n{self=}')
                 self._set_cache(it, result)
 
             self.signal(text=result, type='subtitle')
@@ -166,7 +166,7 @@ class BaseTrans(BaseCon):
             if not it['text'].strip():
                 _empty_line += 1
         if _empty_line >= len(raws_list):
-            raise TranslateSrtError(tr("Translate result is empty")+f'\n{self.api_url}')
+            raise TranslateSrtError(tr("Translate result is empty")+f'\n{self=}')
         logger.debug(f'原始字幕行数：{len(self.text_list)}, 翻译后行数:{len(raws_list)}')
         return raws_list
 
@@ -198,7 +198,7 @@ class BaseTrans(BaseCon):
         if Path(lang_prompt_file).exists():
             lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
         prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name).replace('{lang_prompt}',lang_prompt)
-        if not settings.get('aitrans_context'):
+        if not settings.get('aitrans_context') or not self.text_list:
             return prompt.replace('{context_info}','')
             
         from videotrans.configure.constants import CONTEXT_INFO_PROMPT

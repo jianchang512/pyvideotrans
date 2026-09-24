@@ -12,10 +12,10 @@ class AppCfg:
     存储直接属于 config.py 的运行时属性 (原全局变量)。
     """
     NVIDIA_GPU_NUMS: int = -1
-    
-    MAX_CPU_PROCESS:int=1
-    MAX_GPU_PROCESS:int=1
-    
+
+    MAX_CPU_PROCESS: int = 1
+    MAX_GPU_PROCESS: int = 1
+
     # 全局状态标识
     stoped_uuid_set: set = field(default_factory=set)
     global_msg: List = field(default_factory=list)
@@ -38,8 +38,7 @@ class AppCfg:
     regcon2_queue: Queue = field(default_factory=lambda: Queue(maxsize=0))
     assemb_queue: Queue = field(default_factory=lambda: Queue(maxsize=0))
     taskdone_queue: Queue = field(default_factory=lambda: Queue(maxsize=0))
-    
-    
+
     # 单视频模式变量，传递各个编辑窗口
     # 单视频倒计时
     onlyone_source_sub: Any = None
@@ -49,14 +48,14 @@ class AppCfg:
     onlyone_novoice_mp4: Any = None
     onlyone_name: Any = None
     onlyone_voice_role: Any = None
-    onlyone_recogn2_video:Any=None
-    onlyone_voice_autorate:bool=True
-    onlyone_video_autorate:bool=False    
-    onlyone_align_sub_audio:bool=True
-    onlyone_remove_silent_mid:bool=False
+    onlyone_recogn2_video: Any = None
+    onlyone_voice_autorate: bool = True
+    onlyone_video_autorate: bool = False
+    onlyone_align_sub_audio: bool = True
+    onlyone_remove_silent_mid: bool = False
     onlyone_trans: bool = False
-    onlyone_is_cuda:bool=False
-    onlyone_importsrtfile:str=None
+    onlyone_is_cuda: bool = False
+    onlyone_importsrtfile: str = None
 
     # cli模式、qt界面模式、web模式
     exec_mode: str = "gui"
@@ -68,7 +67,7 @@ class AppCfg:
     line_roles: Dict = field(default_factory=dict)
     # 按角色配音功能
     dubbing_role: Dict = field(default_factory=dict)
-    
+
     SUPPORT_LANG: Dict = field(default_factory=dict)
     proxy: str = ''
     new_version_pvt = ""

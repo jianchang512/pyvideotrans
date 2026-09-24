@@ -179,8 +179,8 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | Google / Microsoft | 传统机器翻译，速度快 |
 | | Ollama / M2M100 | 完全本地离线翻译 |
 | **语音合成 (TTS)** | **Edge-TTS** | 微软免费接口，效果自然 |
-| | **F5-TTS / CosyVoice** | 支持 **声音克隆**，需本地部署 |
-| | GPT-SoVITS / ChatTTS | 高质量开源 TTS |
+| | **F5-TTS / OmniVoice / Qwen3-TTS** | 支持 **声音克隆** |
+| | GPT-SoVITS / ChatTTS / Index-TTS | 高质量开源 TTS,要求本地部署 |
 | | 302.AI / OpenAI / Azure | 高质量商业 API |
 
 ---

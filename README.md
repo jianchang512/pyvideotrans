@@ -180,8 +180,8 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | Google / Microsoft | Traditional machine translation, fast speed |
 | | Ollama / M2M100 | Fully local offline translation |
 | **TTS (Speech Synthesis)** | **Edge-TTS** | Microsoft free interface, natural effect |
-| | **F5-TTS / CosyVoice** | Supports **Voice Cloning**, requires local deployment |
-| | GPT-SoVITS / ChatTTS | High-quality open-source TTS |
+| | **F5-TTS / OmniVoice / Qwen3-TTS** | Supports **Voice Cloning** |
+| | GPT-SoVITS / Index-TTS / ChatTTS | High-quality open-source TTS, requires local deployment |
 | | 302.AI / OpenAI / Azure | High-quality commercial API |
 
 ---

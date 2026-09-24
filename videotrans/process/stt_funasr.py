@@ -5,7 +5,6 @@
 import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
-from videotrans.task.taskcfg import SrtItem
 from videotrans.configure.config import logger, ROOT_DIR
 
 
@@ -18,7 +17,7 @@ def funasr_mlt(
         device_index=0,  # gpu索引
         hotword=None,
         **kw
-) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
+):
     from funasr import AutoModel
     from videotrans.process._stt_utils import _write_log, _remove_unwanted_characters
     from modelscope.pipelines import pipeline
@@ -34,7 +33,7 @@ def funasr_mlt(
 
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
-            cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in
+            cut_audio_list = [item for item in
                                              json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
 
         srts = cut_audio_list

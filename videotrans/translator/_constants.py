@@ -91,8 +91,8 @@ ID_NAME_DICT = {
 
     TENCENT_INDEX: ChannelProvider(tr('Tencent'), key_name="tencent_SecretKey", win="tencent", imp="._tencent"),
     BAIDU_INDEX: ChannelProvider(tr('Baidu'), key_name="baidu_miyue", win="baidu", imp="._baidu"),
-    DEEPL_INDEX: ChannelProvider("DeepL", key_name="deepl_authkey", win="deepL", imp="._deepl"),
-    DEEPLX_INDEX: ChannelProvider("DeepLx", key_name="deeplx_address", win="deepLX", imp="._deeplx"),
+    DEEPL_INDEX: ChannelProvider("DeepL", key_name="deepl_authkey", win="deepL", imp="._deepL"),
+    DEEPLX_INDEX: ChannelProvider("DeepLx", key_name="deeplx_address", win="deepLX", imp="._deepLX"),
     ALI_INDEX: ChannelProvider(tr('Alibaba Machine Translation'), key_name="ali_key", win="ali", imp="._ali"),
 
     LIBRE_INDEX: ChannelProvider(f"{tr('LibreTranslate')}({tr('Local')}API)", key_name="libre_address", win="libre",

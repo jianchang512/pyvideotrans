@@ -139,7 +139,6 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
                         huggingface_hub.snapshot_download(
                             repo_id=repo_id,
                             local_dir=local_dir,
-                            # local_dir_use_symlinks=False,
                             endpoint=os.environ.get('HF_ENDPOINT'),
                             tqdm_class=QtAwareTqdm if callback else None,
                             local_files_only=False,
@@ -156,6 +155,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
                                 callback(f"{tr('Please wait')}{retry_delay}s  {tr('Retry failed')}[{attempt}]...")
                             time.sleep(retry_delay)
                         else:
+                            logger.error(f'重试下载 {attempt} 次仍失败')
                             raise
 
         junk_paths = [

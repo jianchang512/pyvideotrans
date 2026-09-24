@@ -177,12 +177,14 @@ class OpenAICampat(BaseTrans):
             return result.strip()
         
         new_sublist = []
+        logger.debug(f'LLM纠错前:{srt_list=}')
         for idx in range(0, len(srt_list), chunk_size):
             self.signal(text=f'[{idx}] {self.ainame} ' + tr("Re-segmenting..."))
             srt_str = "\n\n".join(
                 [f"{line + 1}\n{it['time']}\n{it['text']}" for line, it in enumerate(srt_list[idx: idx + chunk_size])])
             new_sublist.append(_send(srt_str))
 
+        logger.debug(f'LLM纠错后:{new_sublist=}')
         _srtlist = get_subtitle_from_srt("\n\n".join(new_sublist), is_file=False)
         # 修正可能存在的时间戳错误
         _len = len(_srtlist)

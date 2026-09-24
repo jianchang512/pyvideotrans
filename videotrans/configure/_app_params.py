@@ -50,7 +50,8 @@ class AppParams:
             try:
                 loaded = json.loads(Path(self._json_path).read_text(encoding='utf-8'))
                 # 单独更新 f5tts_role
-                loaded['f5tts_role']=("\n".join(set( (loaded['f5tts_role'].strip()+"\n"+default['f5tts_role']).split("\n") ) )).strip()
+                loaded['f5tts_role'] = (
+                    "\n".join(set((loaded['f5tts_role'].strip() + "\n" + default['f5tts_role']).split("\n")))).strip()
                 default.update(loaded)
             except (OSError, json.JSONDecodeError):
                 pass
@@ -108,7 +109,7 @@ class AppParams:
             "chatgpt_api": "",
             "chatgpt_key": "",
             "chatgpt_reasoning_effort": "default",
-            "localllm_reasoning_effort":"default",
+            "localllm_reasoning_effort": "default",
             "chatgpt_max_token": 16384,
             "chatgpt_model": str(_settings.get('chatgpt_model', '-')).strip().split(',')[0],
             "azure_api": "",
@@ -134,18 +135,18 @@ class AppParams:
             "guiji_model": str(_settings.get('guiji_model', '-')).strip().split(',')[0],
             "guiji_asr_model": Guiji_ASR_Model.strip().split(',')[0],
             "guiji_tts_model": Guiji_TTS_Model.strip().split(',')[0],
-            "guiji_max_token": 16384,#最大输出16k
+            "guiji_max_token": 16384,  # 最大输出16k
             "deepseek_key": "",
             "deepseek_thinking": False,
             "deepseek_model": str(_settings.get('deepseek_model', '-')).strip().split(',')[0],
-            "deepseek_max_token": 16384,#最大输出64k
+            "deepseek_max_token": 16384,  # 最大输出64k
             "openrouter_key": "",
             "openrouter_reasoning_effort": "default",
             "openrouter_model": str(_settings.get('openrouter_model', '-')).strip().split(',')[0],
             "openrouter_asr_model": Openrouter_ASR_Model.strip().split(',')[0],
             "openrouter_tts_model": Openrouter_TTS_Model.strip().split(',')[0],
-            "openrouter_max_token": 16384,#最大输出16k
-            "litellm_api":'http://localhost:4000/v1',
+            "openrouter_max_token": 16384,  # 最大输出16k
+            "litellm_api": 'http://localhost:4000/v1',
             "litellm_key": "",
             "litellm_reasoning_effort": "default",
             "litellm_model": str(_settings.get('litellm_model', '-')).strip().split(',')[0],
@@ -209,7 +210,7 @@ class AppParams:
             "minimaxi_tts_model": MINIMAX_TTS_MODELS.split(',')[0],
             "minimaxi_text_model": MINIMAX_MODELS.split(',')[0],
             "minimaxi_max_token": 16384,
-            "minimaxi_thinking":False,
+            "minimaxi_thinking": False,
             "ai302tts_key": "",
             "ai302tts_model": "",
             "ai302tts_role": OPENAITTS_ROLES,

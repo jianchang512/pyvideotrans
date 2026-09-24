@@ -19,16 +19,23 @@ def qwen3tts_fun(
         is_redubb=False,  # 是否处于单视频校对配音流程
         **kw
 ) -> Tuple[bool, Union[str, None]]:
+    quant=None
+    import torch
+    if kw.get('bit8'):
+        import copyreg
+        copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
+        copyreg.pickle(type({}.items()), lambda it: (list, (list(it),)))
+        from transformers4576 import BitsAndBytesConfig
+        quant = BitsAndBytesConfig(load_in_8bit=True)  if torch.cuda.is_available() else None
     from videotrans.util.help_role import get_qwenttslocal_rolelist
     import soundfile as sf
     from qwen_tts import Qwen3TTSModel
     from videotrans.util.help_misc import vail_file
-    import torch
 
+    device_map = kw.get('device_name', 'auto')
     CUSTOM_VOICE = {"Vivian", "Serena", "Uncle_fu", "Dylan", "Eric", "Ryan", "Aiden", "Ono_anna", "Sohee"}
 
     atten = None
-    device_map = kw.get('device_name', 'auto')
     dtype = 'auto'
     logger.debug(f'Qwen-TTS本地内置渠道使用 {model_name} 模型')
     BASE_OBJ = None
@@ -47,6 +54,7 @@ def qwen3tts_fun(
                     f"{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{model_name}-CustomVoice",
                     device_map=device_map,
                     dtype=dtype,
+                    quantization_config=quant,
                     attn_implementation=atten
                 )
                 logger.debug(f'存在内置自定义音色，加载 {model_name} 模型,running on {CUSTOM_OBJ.device}')
@@ -56,6 +64,7 @@ def qwen3tts_fun(
                     f"{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{model_name}-Base",
                     device_map=device_map,
                     dtype=dtype,
+                    quantization_config=quant,
                     attn_implementation=atten
                 )
                 logger.debug(f'需要克隆音色，加载 {model_name} 模型, running on {BASE_OBJ.device}')

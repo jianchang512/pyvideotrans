@@ -170,8 +170,8 @@ MINIMAX_ASR_MODELS = "asr-1.0"
 
 ELEVENLABS_TTS_MODELS = "eleven_v3,eleven_flash_v2_5,eleven_flash_v2,eleven_multilingual_v2,eleven_multilingual_v1"
 
-XIAOMI_MODELS = 'mimo-v2.5-pro,mimo-v2.5,mimo-v2-pro,mimo-v2-omni'
-XIAOMI_TTS_MODELS = 'mimo-v2.5-tts,mimo-v2-tts'
+XIAOMI_MODELS = 'mimo-v2.6-flash,mimo-v2.6-pro,mimo-v2.5-pro,mimo-v2.5'
+XIAOMI_TTS_MODELS = 'mimo-v2.5-tts'
 
 
 #--------------模型下载地址-------------------

@@ -57,24 +57,6 @@ class AssembleMixin:
         self.set_end(True)
         logger.debug(f'[{self.cfg.name}视频翻译任务结束，总耗时]:{time.time()-self.cost_duration}s')
 
-    def _video_extend(self, duration_ms=1000):
-        sec = duration_ms / 1000.0
-        final_video_path = Path(f'{self.cfg.cache_folder}/final_video_with_freeze_lastend.mp4').as_posix()
-
-        cmd = ['-y', '-i', os.path.basename(self.cfg.novoice_mp4),
-               '-vf', f'tpad=stop_mode=clone:stop_duration={sec:.3f}',
-               '-c:v', 'libx264',
-               '-crf', f'{settings.get("crf", 23)}',
-               '-preset', settings.get('preset', 'veryfast'),
-               '-an', 'final_video_with_freeze_lastend.mp4'
-        ]
-        try:
-            runffmpeg(cmd, force_cpu=True, cmd_dir=self.cfg.cache_folder)
-            if Path(final_video_path).exists():
-                shutil.copy2(final_video_path, self.cfg.novoice_mp4)
-                logger.debug(f"视频定格应延长{duration_ms}ms，实际向上取整秒延长{sec}s,操作成功。")
-        except Exception as e:
-            logger.exception(f"视频定格延长操作失败,跳过 {e}", exc_info=True)
 
     def _join_video_audio_srt(self) -> None:
         if self._exit() or not self.should_hebing:
@@ -123,22 +105,14 @@ class AssembleMixin:
             self.signal(text=tr("Check original BGM..."))
             self._separate()
 
-            audio_ms = get_audio_time(self.cfg.target_wav)
+
             _cmd=[
                 "-y",
                 "-i",
-                os.path.basename(self.cfg.target_wav)
-            ]
-            v_a_offset=duration_ms-audio_ms
-            # 视频时长大于音频超过100ms，音频末尾补静音
-            if v_a_offset>100:
-                audio_had_append=True
-                logger.debug(f'视频时长{duration_ms}ms-音频时长{audio_ms}ms={v_a_offset}ms,需延长音频')
-                _cmd.extend(['-af', f'apad=pad_dur={v_a_offset/1000.0}'])
-            _cmd.extend([
+                os.path.basename(self.cfg.target_wav),
                 "-ac", "2", "-b:a", "128k", "-c:a", "aac",
                 os.path.basename(target_m4a)
-            ])
+            ]
             self.signal(text=tr("Process voiceover for embedding..."))
             runffmpeg(_cmd, cmd_dir=self.cfg.cache_folder)
 
@@ -154,19 +128,13 @@ class AssembleMixin:
             subtitle_langcode=translator.get_mkv_code(subtitle_langcode)
 
         audio_ms = get_audio_time(target_m4a)
-        a_v_offset=audio_ms-duration_ms
-
+        logger.debug(f'当前音频时长 {audio_ms}ms, 视频时长: {duration_ms}ms')
         is_copy_mode = str(self.video_codec_num) == '264'
         is_lossless=self.is_copy_video and is_copy_mode and not self.cfg.video_autorate and self.cfg.subtitle_type not in [1, 3]
         if is_lossless:
-            logger.debug(f'当前原始视频是标准264,输出也是264，未视频慢速，未嵌入硬字幕，放弃视频末尾处理，实现无损输出。音频时长-视频时长={a_v_offset}ms'+('，\n音频时长大于视频时长{a_v_offset}ms，理论上视频末尾应定格等待音频播放完毕，但不同播放器可能有不同处理方式，如音频截断，视频末尾黑屏等' if a_v_offset>0 else ''))
+            a_v_offset=audio_ms-duration_ms
+            logger.debug(f'当前原始视频是标准264,输出也是264，未视频慢速，未嵌入硬字幕，放弃视频末尾处理，实现无损输出。音频时长-视频时长={a_v_offset}ms'+(f'，\n音频时长大于视频时长{a_v_offset}ms，理论上视频末尾应定格等待音频播放完毕，但不同播放器可能有不同处理方式，如音频截断，视频末尾黑屏等' if a_v_offset>0 else ''))
 
-        elif a_v_offset > 500 and not audio_had_append:#只有未对音频末尾增加静音，才考虑延长视频
-            try:
-                self.signal(text="Freeze end of video...")
-                self._video_extend(a_v_offset)
-            except Exception as e:
-                logger.exception(f'定格视频最后一帧时失败，跳过 {e}', exc_info=True)
 
         tmp_target_mp4 = self.cfg.cache_folder + f"/laste_target{_video_output_ext}"
         self.signal(text=tr("Video + Subtitles + Dubbing in merge"))
@@ -236,7 +204,7 @@ class AssembleMixin:
                 if fps_mode:
                     cmd2.extend(fps_mode)
 
-                cmd2.extend(['-shortest',tmp_target_mp4_basename])
+                cmd2.extend([tmp_target_mp4_basename])
                 if is_copy_mode:
                     logger.debug(f'[最终视频合成]copy模式，无需重新编码:\n{cmd0 + cmd1 + cmd2}')
                     runffmpeg(cmd0 + cmd1 + cmd2, cmd_dir=self.cfg.cache_folder, force_cpu=True)

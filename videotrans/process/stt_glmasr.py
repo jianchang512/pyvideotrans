@@ -5,7 +5,6 @@
 import re, json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
-from videotrans.task.taskcfg import SrtItem
 from videotrans.util import gpus
 from videotrans.configure.config import logger
 
@@ -15,24 +14,31 @@ def glmasr_asr(
         logs_file=None,
         local_dir=None,
         **kw
-) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
-    from videotrans.process._stt_utils import _write_log
-    from transformers import AutoProcessor, GlmAsrForConditionalGeneration
+):
+    quant=None
     import torch
+    from transformers import AutoProcessor, GlmAsrForConditionalGeneration,BitsAndBytesConfig
+    if kw.get('bit8'):
+        import copyreg
+        copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
+        copyreg.pickle(type({}.items()), lambda it: (list, (list(it),)))
+        quant = BitsAndBytesConfig(load_in_8bit=True)  if torch.cuda.is_available() else None
+    from videotrans.process._stt_utils import _write_log
 
     processor = AutoProcessor.from_pretrained(local_dir)
 
     model = GlmAsrForConditionalGeneration.from_pretrained(
         local_dir,
         device_map=kw.get('device_name','auto'),
-        dtype='auto'  # torch.bfloat16  if torch.cuda.is_bf16_supported() else torch.float16
+        quantization_config=quant,
+        dtype='auto'
     )
     msg = f'running on {model.device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
     logger.debug(f'huggingface_asr 渠道使用模型: {local_dir}, {msg}')
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
-            cut_audio_list: List[SrtItem] = [SrtItem(**item) for item in
+            cut_audio_list = [item for item in
                                              json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         raws = cut_audio_list
         conversation = []

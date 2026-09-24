@@ -18,7 +18,7 @@ def _assign_speakers(subtitles, diarizations):
     # ----------------- 1. 预处理 diarizations -----------------
     clean_diars = []
     for dia in diarizations:
-        if (len(dia) == 2 and len(dia[0]) == 2 and dia[0][0] < dia[0][1]):
+        if len(dia) == 2 and len(dia[0]) == 2 and dia[0][0] < dia[0][1]:
             clean_diars.append((dia[0][0], dia[0][1], dia[1]))
     clean_diars.sort(key=lambda x: x[0])  # 按开始时间排序
 

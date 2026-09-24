@@ -19,8 +19,8 @@ class WinActionConfigMixin:
             return False
         xxl_path = settings.get('Faster_Whisper_XXL', '')
         if not xxl_path or not Path(xxl_path).exists():
-            from videotrans.component.set_xxl import SetFasterXXL
-            dialog = SetFasterXXL()
+            from videotrans.component.xxl import XXL
+            dialog = XXL()
             if dialog.exec():
                 xxl_path = dialog.get_values()
                 if xxl_path and Path(xxl_path).is_file():

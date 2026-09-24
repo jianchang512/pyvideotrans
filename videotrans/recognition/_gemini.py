@@ -163,7 +163,8 @@ class GeminiRecogn(BaseRecogn):
         return data
 
 
-    def extract_word_annotations(self,interaction):
+    @staticmethod
+    def extract_word_annotations(interaction):
         words = []
         for step in getattr(interaction, "steps", []) or []:
             for content in getattr(step, "content", []) or []:

@@ -1,6 +1,3 @@
-import os
-import shutil
-
 from pathlib import Path
 
 from PySide6 import QtWidgets
@@ -8,7 +5,7 @@ from PySide6.QtCore import QTimer
 
 from videotrans.configure.config import tr, settings, params, app_cfg, ROOT_DIR, TEMP_ROOT
 from videotrans.configure import constants
-from videotrans.util.help_misc import show_popup, set_proxy, set_process
+from videotrans.util.help_misc import  set_proxy, set_process
 
 
 class WinActionBaseFileMixin:

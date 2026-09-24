@@ -8,7 +8,7 @@ from videotrans.configure.config import ROOT_DIR, tr, settings
 from videotrans.util.help_misc import open_url
 
 
-class SET_XXL(QDialog):
+class XXL(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         

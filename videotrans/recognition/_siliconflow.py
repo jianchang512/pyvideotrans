@@ -48,10 +48,14 @@ class SiliconflowASR(BaseRecogn):
                 "file": (Path(file).name, audio_file),
                 "model": (None, self.model_name)
             }
+            response=None
             try:
                 response = requests.post(url, headers=headers, files=files, verify=False)
                 return response.json()
             except Exception as e:
-                return {"message":str(e)}
+                _err=str(e)
+                if response and hasattr(response,'text'):
+                    _err+=f"\n{response.text}"
+                return {"message":_err}
 
 

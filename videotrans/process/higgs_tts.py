@@ -16,10 +16,17 @@ def higgs_fun(
         is_redubb=False,  # 是否处于单视频校对配音流程
         **kw
 ) -> Tuple[bool, Union[str, None]]:
+    quant=None
+    import torch
+    import torchaudio
+    from transformers import AutoModelForCausalLM, AutoTokenizer,BitsAndBytesConfig
+    if kw.get('bit8'):
+        import copyreg
+        copyreg.pickle(type({}.keys()), lambda k: (list, (list(k),)))
+        copyreg.pickle(type({}.items()), lambda it: (list, (list(it),)))
+        quant = BitsAndBytesConfig(load_in_8bit=True)  if torch.cuda.is_available() else None
     from videotrans.util.help_role import get_f5tts_role
     from videotrans.util.help_misc import vail_file
-    import torch, torchaudio
-    from transformers import AutoModelForCausalLM, AutoTokenizer
 
     repo = f"{ROOT_DIR}/models/models--multimodalart--higgs-audio-v3-tts-4b-transformers"
     tokenizer = AutoTokenizer.from_pretrained(repo, trust_remote_code=True)
@@ -27,6 +34,7 @@ def higgs_fun(
     model = AutoModelForCausalLM.from_pretrained(
         repo,
         trust_remote_code=True,
+        quantization_config=quant,
         device_map=kw.get('device_name','auto'),
         dtype='auto', 
     ).eval()

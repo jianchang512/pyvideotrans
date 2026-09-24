@@ -12,11 +12,13 @@ import importlib
 from videotrans.configure.config import app_cfg
 
 _loaded_modules = {}  # 用于缓存已经加载过的模块
+
+
 def get_win(name):
     """
     根据名字按需导入返回并显示窗口模块。
     """
-    _win=app_cfg.child_forms.get(name)
+    _win = app_cfg.child_forms.get(name)
     if _win:
         if hasattr(_win, 'update_ui'):
             _win.update_ui()
@@ -24,26 +26,26 @@ def get_win(name):
         _win.activateWindow()
         return
 
-
-    if name in ['clip_video','realtime_stt','textmatching','set_ass','formatsrtfiles','set_xxl']:
+    if name in ['clip_video', 'realtime_stt', 'textmatching', 'set_ass', 'formatsrtfiles', 'xxl']:
         # 在 videotrans.component.xx 返回类的实例，直接调用 .show()
         module = importlib.import_module(f'..component.{name}', package=__package__)
         _win = getattr(module, name.upper())()
-        app_cfg.child_forms[name]=_win
+        app_cfg.child_forms[name] = _win
         _win.show()
         return _win
 
     try:
-        #返回函数执行后的结果,直接 调用 show()
+        # 返回函数执行后的结果,直接 调用 show()
         module = importlib.import_module(f'.{name}', package=__package__)
-        obj = getattr(module,"openwin")()
-        app_cfg.child_forms[name]=obj
-        if hasattr(obj,'update_ui'):
+        obj = getattr(module, "openwin")()
+        app_cfg.child_forms[name] = obj
+        if hasattr(obj, 'update_ui'):
             obj.update_ui()
         obj.show()
         return obj
     except ImportError as e:
         raise ImportError(f"Could not import winform module '{name}': {e}")
+
 
 # 从 ui 包里获取ui类
 def get_cls(module_name):
@@ -51,5 +53,5 @@ def get_cls(module_name):
         return getattr(_loaded_modules[module_name], f'Ui_{module_name}')
 
     module = importlib.import_module(f'..ui.{module_name}', package=__package__)
-    _loaded_modules[module_name]=module
+    _loaded_modules[module_name] = module
     return getattr(module, f'Ui_{module_name}')

@@ -370,7 +370,6 @@ def openwin():
 
                     self.post(text='embed subtitle to video...')
                     hw_decode_args, vf_string, vcodec, enc_args = self._get_hard_cfg(os.path.basename(assfile))
-                    print(f'{vf_string=}')
                     cmd += hw_decode_args
                     cmd += [
                         '-i',
@@ -418,7 +417,6 @@ def openwin():
             return True
 
     def feed(d):
-        print(f'{d=}')
         if winobj.has_done:
             return
 

@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import List, Tuple, Union
 
 from videotrans.configure._paths import TEMP_ROOT
-from videotrans.task.taskcfg import SrtItem
 from videotrans.configure.config import logger, ROOT_DIR
 
 def openai_whisper(
@@ -27,7 +26,7 @@ def openai_whisper(
         max_speech_ms=6000,
         min_speech_ms=3000,
         **kw
-) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
+):
     import whisper,zhconv
     from videotrans.process._stt_utils import _write_log, _resegment
     device=kw.get('device_name','auto')

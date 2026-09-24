@@ -42,7 +42,8 @@ notices = {
 
         "process_max": "最大CPU同时任务数，越大越快但可能爆内存，最大不应超过cpu核数\n(修改保存后重启生效)",
         "process_max_gpu": "GPU任务同时执行数量，除非显存超大，否则请设为1\n(修改保存后重启生效)",
-        "device_name":"强制指定重型任务运行设备，不要乱动，除非你知道自己在做什么"
+        "device_name":"强制指定重型任务运行设备，不要乱动，除非你知道自己在做什么",
+        "bit8":"针对qwen3-tts使用8位量化，以减少显存占用"
     },
 
     "video": {
@@ -125,6 +126,7 @@ titles = {
     "process_max_gpu": "GPU同时任务数[重启生效]",
     "device_name":"强制指定重型任务运行设备",
     "cjk_len": "中日韩字幕单行字符数",
+    "bit8":"为qwen3-tts使用8位量化",
     "other_len": "其他语言字幕单行字符数",
     "max_audio_speed_rate": "音频加速最大倍数",
     "max_video_pts_rate": "视频慢放最大倍数",
@@ -246,7 +248,8 @@ if defaulelang != 'zh_CN':
 
             "process_max": "Process Maximum for CPU",
             "process_max_gpu": "The number of GPU tasks that can be executed simultaneously should be set to 1 unless video memory very large",
-            "device_name":"Force the operation of heavy-duty equipment; do not tamper with it unless you know what you are doing."
+            "device_name":"Force the operation of heavy-duty equipment; do not tamper with it unless you know what you are doing.",
+            "bit8":"8-bit quantization is used for qwen3-tts to reduce video memory usage."
 
         },
         "video": {
@@ -326,6 +329,7 @@ if defaulelang != 'zh_CN':
     titles = {
         "cjk_len": "Number of characters per line for CJK",
         "other_len": "Number of words per line for Other",
+        "bit8":"8-bit quantization for qwen3-tts",
         "process_max": "Number of CPU tasks[restart]",
         "process_max_gpu": "Number of GPU tasks[restart]",
         "device_name":"Force the operation of heavy-duty equipment",
@@ -393,8 +397,8 @@ if defaulelang != 'zh_CN':
         "max_speech_duration_s": "VAD:max speech duration(s)",
         "min_speech_duration_ms": "VAD:min speech duration(ms)",
 
-        "max_speech_duration_s2": "Recognition(2): max duration(s)",
-        "min_speech_duration_ms2": "Recognition(2): min duration(ms)",
+        "max_speech_duration_s2": "Recognition(2): max speech duration(s)",
+        "min_speech_duration_ms2": "Recognition(2): min speech duration(ms)",
 
         "min_silence_duration_ms": "VAD:Min silence duration for split(ms)",
         "trans_thread": "Batch size (lines) for traditional translation",
@@ -416,7 +420,7 @@ if defaulelang != 'zh_CN':
     }
 
     heads = {
-        "common": "Common",
+        "common": "General",
         "video": "Video Output",
         "whisper": "ASR Settings",
         "justify": "Alignment",

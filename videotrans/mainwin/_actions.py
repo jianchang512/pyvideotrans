@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from videotrans.configure.config import tr, params, app_cfg
+from videotrans.configure.config import tr,  app_cfg
 from videotrans.mainwin._actions_base import WinActionBase
 
 

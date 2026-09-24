@@ -22,7 +22,8 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
 
     name = ID_NAME_DICT.get(tts_type).name
     _lang2 = langcode.split('-')[0]
-    if tts_type == DOUBAO2_TTS and _lang2 not in ["zh", "en", "ja", "id", "es", "ar", "de", "fr", "ko", "ms", "pt","ru", "th", "fil", "vi", "it","yue"]:
+    if tts_type == DOUBAO2_TTS and _lang2 not in ["zh", "en", "ja", "id", "es", "ar", "de", "fr", "ko", "ms", "pt",
+                                                  "ru", "th", "fil", "vi", "it", "yue"]:
         return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
 
     if tts_type in [CHATTTS, ZIPVOICE_TTS, VITSCNEN_TTS, SPARK_TTS] and _lang2 not in ['zh', 'en']:

@@ -110,7 +110,7 @@ class BaseRecogn(BaseCon):
             _e = str(e)
             if self.local_dir and ("no file named model.safetensors" in _e or os.path.basename(self.local_dir) in _e):
                 from videotrans.configure.excepts import DownloadModelsError
-                raise DownloadModelsError(tr('model incomplete error', self.local_dir, tr('Help document')))
+                raise DownloadModelsError(tr('model incomplete error', self.local_dir, tr('Help document'))+f'\n{self=}')
             raise
 
     # 对转录结果进行简单后处理

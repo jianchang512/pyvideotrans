@@ -1,12 +1,7 @@
 import platform
-import re
 import time
 import tempfile
-
 from pathlib import Path
-
-from PySide6.QtCore import QTimer
-
 from videotrans.configure.config import tr, app_cfg
 from videotrans.configure import constants
 from videotrans.configure.constants import LISTEN_TEXT

@@ -140,17 +140,17 @@ ID_NAME_DICT = {
     XAI_TTS: ChannelProvider('X.AI TTS', imp="._xaitts", key_name="xaitts_key", win="xaitts"),
     G_TTS: ChannelProvider(f"gTTS({tr('free')})", imp="._gtts"),
 
-    CHATTTS: ChannelProvider(f"ChatTTS({tr('Local')}API)", "._chattts", key_name="chattts_api", win="chattts"),
-    SPARK_TTS: ChannelProvider(f"Spark-TTS({tr('Local')}API)", "._spark", key_name="sparktts_url", win="f5tts"),
-    KOKORO_TTS: ChannelProvider(f"kokoro({tr('Local')}API)", "._kokoro", key_name="kokoro_api", win="kokoro"),
-    FISHTTS: ChannelProvider(f"Fish TTS({tr('Local')}API)", "._fishtts", key_name="fishtts_url", win="fishtts"),
+    CHATTTS: ChannelProvider(f"ChatTTS({tr('Local')}API)", imp="._chattts", key_name="chattts_api", win="chattts"),
+    SPARK_TTS: ChannelProvider(f"Spark-TTS({tr('Local')}API)", imp="._spark", key_name="sparktts_url", win="f5tts"),
+    KOKORO_TTS: ChannelProvider(f"kokoro({tr('Local')}API)", imp="._kokoro", key_name="kokoro_api", win="kokoro"),
+    FISHTTS: ChannelProvider(f"Fish TTS({tr('Local')}API)", imp="._fishtts", key_name="fishtts_url", win="fishtts"),
 
-    CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)", "._clone", key_name="clone_api", win="clone"),
-    AZURE_TTS: ChannelProvider("Azure TTS", "._azuretts", key_name="azure_speech_key", win="azuretts"),
-    AI302_TTS: ChannelProvider("302.AI", "._ai302tts", key_name="ai302_key", win="ai302"),
-    CAMB_TTS: ChannelProvider("CAMB AI", "._cambtts", key_name="camb_api_key", win="cambtts"),
+    CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)", imp="._clone", key_name="clone_api", win="clone"),
+    AZURE_TTS: ChannelProvider("Azure TTS", imp="._azure", key_name="azure_speech_key", win="azuretts"),
+    AI302_TTS: ChannelProvider("302.AI", imp="._ai302", key_name="ai302_key", win="ai302"),
+    CAMB_TTS: ChannelProvider("CAMB AI", imp="._cambtts", key_name="camb_api_key", win="cambtts"),
 
-    TTS_API: ChannelProvider(tr("Customize API"), "._ttsapi", key_name="ttsapi_url", win="ttsapi"),
+    TTS_API: ChannelProvider(tr("Customize API"), imp="._ttsapi", key_name="ttsapi_url", win="ttsapi"),
     SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), imp="._siliconflow", key_name="guiji_key", win="siliconflow" ),
     OPENROUTER_API: ChannelProvider("OpenRouter", imp="._openrouter", key_name="openrouter_key", win="openrouter" ),
 }

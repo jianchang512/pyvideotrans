@@ -24,17 +24,13 @@ def qwen3asr_fun(
         hotword=None,
         **kw
 ):
-
-    from videotrans.task.taskcfg import SrtItem
-    from videotrans.process._stt_utils import _write_log, _resegment
     import torch
-
+    from videotrans.process._stt_utils import _write_log, _resegment
     from transformers import AutoProcessor, AutoModelForMultimodalLM,AutoModelForTokenClassification
 
     try:
         batch_size=2
-        # 8位量化，避免爆显存
-        srts: List[SrtItem] = [SrtItem(**item) for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
+        srts = [item for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         if not force_align:
             processor = AutoProcessor.from_pretrained(local_dir)
             model = AutoModelForMultimodalLM.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'))

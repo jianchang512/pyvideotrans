@@ -21,12 +21,13 @@ from videotrans.translator._runner import (  # noqa: F401
 
 from videotrans.translator._base import BaseTrans  # noqa: F401
 
+
 # 根据 llm_ai_type 当前所选的索引，获取对应key name 或 常量
-def get_name_index(idx,return_type='key'):
-    idx=int(idx)
-    _key= list(LLM_CONCERT_MAP.keys())[idx]
-    if return_type=='index':
+def get_name_index(idx, return_type='key'):
+    idx = int(idx)
+    _key = list(LLM_CONCERT_MAP.keys())[idx]
+    if return_type == 'index':
         return LLM_CONCERT_INDEX.get(_key)
-    if return_type=='name':
+    if return_type == 'name':
         return LLM_CONCERT_MAP[_key]
     return _key

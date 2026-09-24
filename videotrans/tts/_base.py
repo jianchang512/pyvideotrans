@@ -99,7 +99,7 @@ class BaseTTS(BaseCon):
             _e=str(e)
             if self.local_dir and ("no file named model.safetensors" in _e or os.path.basename(self.local_dir) in _e):
                from videotrans.configure.excepts import DownloadModelsError
-               raise  DownloadModelsError(tr('model incomplete error',self.local_dir,tr('Help document')))
+               raise  DownloadModelsError(tr('model incomplete error',self.local_dir,tr('Help document'))+f'\n{self=}')
             raise
         except RuntimeError as e:
             logger.warning(f'TTS 线程运行时发生错误: {e}')
@@ -119,7 +119,7 @@ class BaseTTS(BaseCon):
                 raise self.error.last_attempt.exception()
             if not self.error:
                 self.error='No audio file was generated during the listening test.'
-            raise self.error if isinstance(self.error, Exception) else DubbingSrtError(str(self.error))
+            raise self.error if isinstance(self.error, Exception) else DubbingSrtError(str(self.error)+f'\n{self=}')
 
         # 记录成功数量
         succeed_nums = 0
@@ -134,7 +134,7 @@ class BaseTTS(BaseCon):
             if isinstance(self.error, Exception):
                 raise self.error.last_attempt.exception() if isinstance(self.error, RetryError) else self.error
 
-            raise DubbingSrtError(tr("Dubbing failed") + str(self.error))
+            raise DubbingSrtError(tr("Dubbing failed") + str(self.error)+f'\n{self=}')
         logger.debug(f'本次 {_tts_name} 配音成功 {succeed_nums} 个，失败 {self.len - succeed_nums} 个')
         self.signal(text=tr("Dubbing succeeded {}，failed {}", succeed_nums, self.len - succeed_nums))
 
@@ -288,7 +288,7 @@ class BaseTTS(BaseCon):
             ref_wav = item.get('ref_wav')
             ref_text = item.get('ref_text','').strip()
             if not ref_wav or not Path(ref_wav).exists():
-                raise RuntimeError(tr('The voice actor has been cloned, but there is no'))
+                raise RuntimeError(tr('The voice actor has been cloned, but there is no')+f'\n{self=}')
 
         elif role !='No' and role in self.roledict:
             if not isinstance(self.roledict[role],dict):
@@ -296,6 +296,6 @@ class BaseTTS(BaseCon):
             ref_text = self.roledict[role]['ref_text']
             ref_wav = ROOT_DIR + f"/f5-tts/{role}"
             if not ref_wav or not Path(ref_wav).exists():
-                raise RuntimeError(tr('The role {} does not exist', role))
+                raise RuntimeError(tr('The role {} does not exist', role)+f'\n{self=}')
 
         return ref_wav, ref_text

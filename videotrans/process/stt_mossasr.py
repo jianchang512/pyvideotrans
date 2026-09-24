@@ -5,7 +5,6 @@
 import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
-from videotrans.task.taskcfg import SrtItem
 from videotrans.configure.config import logger
 from videotrans.process._stt_utils import _write_log
 
@@ -18,7 +17,7 @@ def mosstrans_asr(
         cache_folder=None,
         hotword=None,
         **kw
-) -> Tuple[Union[List[SrtItem], bool], Union[str, None]]:
+):
     from videotrans.util._srt_parse import  ms_to_time_string
     from transformers import AutoModelForCausalLM, AutoProcessor
 
@@ -49,7 +48,7 @@ def mosstrans_asr(
         raws = []
         if cut_audio_list:
             # 是文件名，获取列表
-            cut_audio_list = [SrtItem(**item) for item in
+            cut_audio_list = [item for item in
                               json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
             raws = cut_audio_list
             for i, it in enumerate(raws):
