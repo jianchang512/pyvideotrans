@@ -27,7 +27,7 @@ MENU_CFG_TRANS = [
     ("ai302", "302.AI", None),
     ("litellm", 'LiteLLM', None),
     ("cambtts", "CAMB.ai", None),
-    ("api_route", 'api-rote.com', None),
+    ("api_route", 'api-route.com', None),
     ("cheaperinference", 'Cheaper Inference', None),
 
     ("deepl", "DeepL API", None),

@@ -444,7 +444,6 @@ class SpeedRate:
                 flag += f' 视频慢速目标时长: {video_target}ms，PTS={pts}  '
 
             logger.debug(flag)
-        # logger.debug(f'待处理的视频慢速数据:{self.video_for_clips=}')
 
     def _execute_audio_speedup_rubberband(self):
         if len(self.audio_data) < 1: return
@@ -508,8 +507,9 @@ class SpeedRate:
         self.audio_data = []
         _st=0
         for i, it in enumerate(processed_clips):
+            # 删除视频
             self.queue_tts[i]['start_time']=_st
-            _actual_duration = it.get('actual_duration', self.queue_tts[i]['source_duration'])  # 变速结束后需达到的目标时长
+            _actual_duration = it.get('actual_duration', 0)  # 变速结束后需达到的目标时长
             _ed=_st+_actual_duration
             self.queue_tts[i]['end_time']=_ed
             self.queue_tts[i]['source_duration']=_actual_duration
@@ -518,27 +518,6 @@ class SpeedRate:
 
 
         for i, it in enumerate(self.queue_tts):
-            # # 实际视频片段时长
-            # _actual_duration = it.get('actual_duration', 0)  # 变速结束后需达到的目标时长
-            # if _actual_duration == 0:
-            #     # 该片段失败，丢弃，同时应删除该字幕
-            #     self.queue_tts[i]['start_time'] = self.queue_tts[i]['end_time']
-            #     self.queue_tts[i]['source_duration'] = 0
-            #     logger.error(f'字幕{i}视频片段失败，对应需丢弃该字幕')
-            #     continue
-            #
-            # # 更新对应字幕队列时长
-            # _msg = f"字幕{i}: 原始字幕时长 {self.queue_tts[i]['source_duration']}ms, 视频片段实际时长: {_actual_duration}ms，原字幕结束时刻 {self.queue_tts[i]['end_time']}ms, 调整为 "
-            #
-            # # 如果结束时刻大于下条字幕开始时刻，有错误，需更新结束时刻
-            # if i > 0 and self.queue_tts[i]['start_time'] < self.queue_tts[i - 1]['end_time']:
-            #     self.queue_tts[i]['start_time'] = self.queue_tts[i - 1]['end_time']
-            #
-            # self.queue_tts[i]['end_time'] = self.queue_tts[i]['start_time'] + _actual_duration
-            # _msg += f"{self.queue_tts[i]['end_time']}ms, "
-            # self.queue_tts[i]['source_duration'] = _actual_duration
-
-            # logger.debug(_msg)
             tmp={
                 "filename": it['filename'],
                 "dubb_time": it['dubb_time'],  # 变速前实际配音时长
@@ -665,7 +644,7 @@ class SpeedRate:
             audio_list.append(self._create_silen_file(f"append_video_end", self.raw_total_time - _total_ms))
             _total_ms+=self.raw_total_time - _total_ms
         elif _total_ms > self.raw_total_time and not Path(f'{ROOT_DIR}/noloss.txt').exists():
-            # 定格视频
+            # 定格视频, 如果软件根目录下存在 noloss.txt文件，则不定格，以便实现无损输出，可能导致音频末尾截断
             self._video_extend(_total_ms - self.raw_total_time)
             # 定格后视频可能大于音频，需补音频静音
             if self.raw_total_time > _total_ms:

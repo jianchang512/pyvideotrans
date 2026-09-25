@@ -45,6 +45,7 @@ class BaseTTS(BaseCon):
     error: Union[str, Exception, None] = None
     # 配音api地址
     api_url: str = field(default='', init=False)
+    model_name: str = field(default='', init=False)
     # 启用CUDA，仅 qwen3-tts-local 游戏哦啊
     is_cuda: bool = False
     # 本地模型目录
@@ -130,11 +131,11 @@ class BaseTTS(BaseCon):
         # 只有全部配音都失败，才视为失败
         if succeed_nums < 1:
             if self._exit(): return
-            logger.error(f'本次配音全部失败：{self.error}')
+            logger.error(f'本次配音全部失败：{self.error}\n{self=}')
             if isinstance(self.error, Exception):
                 raise self.error.last_attempt.exception() if isinstance(self.error, RetryError) else self.error
 
-            raise DubbingSrtError(tr("Dubbing failed") + str(self.error)+f'\n{self=}')
+            raise DubbingSrtError(tr("Dubbing failed") + str(self.error)+f'\n{self.model_name=}\n{self=}')
         logger.debug(f'本次 {_tts_name} 配音成功 {succeed_nums} 个，失败 {self.len - succeed_nums} 个')
         self.signal(text=tr("Dubbing succeeded {}，failed {}", succeed_nums, self.len - succeed_nums))
 

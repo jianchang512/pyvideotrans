@@ -1,16 +1,16 @@
-import json
+
 import logging
 from typing import Union, Dict, List
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import settings, params,  logger, ROOT_DIR
-from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
+from videotrans.configure.config import settings, params,  logger
+from videotrans.configure.excepts import NO_RETRY_EXCEPT
 from videotrans.tts._base import BaseTTS
-from videotrans.configure import constants
+
 from dataclasses import dataclass
 
 from videotrans.util.help_misc import vail_file
-from videotrans.util.help_role import get_azure_rolelist
+
 
 
 @dataclass

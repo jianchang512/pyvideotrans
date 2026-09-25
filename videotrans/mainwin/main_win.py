@@ -170,17 +170,17 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
                 self.voice_role.setCurrentText(_role)
         self.callback('show main window ...')
         self.show()
-        run_in_threadpool(self._daemon)
         QTimer.singleShot(10,self._bind_signal)
+        run_in_threadpool(self._daemon)
 
 
     @staticmethod
     def _daemon():
         from videotrans.util.help_ffmpeg import check_hw_on_start
         from videotrans.util.help_misc import check_new_version, is_connect_hf
-        check_hw_on_start(force=True)
         check_new_version()
         is_connect_hf()
+        check_hw_on_start(force=True)
 
     def _start_workers(self, status):
         if status == 'end':

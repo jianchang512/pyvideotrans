@@ -21,7 +21,7 @@ class OpenRouterASR(BaseRecogn):
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
-        self.signal(text=f"start speech to srt")
+        self.signal(text=f"start speech to srt {self.model_name}")
         raws = self.cut_audio()
         err=''
         ok_nums=0
@@ -35,7 +35,7 @@ class OpenRouterASR(BaseRecogn):
             if self.asr_wait>0:
                 time.sleep(self.asr_wait)
         if ok_nums<1:
-            raise SpeechToTextError(err)
+            raise SpeechToTextError(err+f'\n{self.model_name=}')
         return raws
 
 
@@ -55,6 +55,6 @@ class OpenRouterASR(BaseRecogn):
             response = requests.post(url, json=payload, headers=headers,verify=False)
             return response.json()
         except Exception as e:
-            return {"error":{"message":str(e)+f'\n{self.model_name=}'}}
+            return {"error":{"message":str(e)}}
 
 

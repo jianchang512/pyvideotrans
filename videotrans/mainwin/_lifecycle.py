@@ -3,7 +3,6 @@ import platform
 import shutil
 import subprocess
 import sys
-import time
 import getpass
 from pathlib import Path
 
@@ -58,7 +57,8 @@ class LifecycleMixin:
             logger.exception(f"Error using pkill: {e}", exc_info=True)
 
     def closeEvent(self, event):
-        from videotrans.configure.config import app_cfg, ROOT_DIR, TEMP_DIR, REDUBB_STATUS_FILE
+        self.hide()
+        from videotrans.configure.config import app_cfg, ROOT_DIR, TEMP_DIR, TEMP_ROOT,REDUBB_STATUS_FILE
         try:
             if Path(REDUBB_STATUS_FILE).exists():
                 Path(REDUBB_STATUS_FILE).write_text('end')
@@ -66,7 +66,6 @@ class LifecycleMixin:
             pass
         app_cfg.exit_soft = True
         app_cfg.current_status = 'stop'
-        self.hide()
         os.chdir(ROOT_DIR)
         self.cleanup_and_accept()
 
@@ -74,11 +73,19 @@ class LifecycleMixin:
             shutil.rmtree(TEMP_DIR, ignore_errors=True)
         except OSError:
             pass
+        # 清理 TEMP_ROOT 下的 txt srt json 文件，
+        # 不直接删除 tmp 文件夹，避免同时启动多个实例导致其他报错，保留 pid 状态文件，防止其他实例出错
+        for it in Path(TEMP_ROOT).iterdir():
+            if it.is_file() and it.suffix.lower()!='pid':
+                try:
+                    it.unlink()
+                except Exception:
+                    pass
+
         if not self.is_restarting:
             event.accept()
             return
 
-        import subprocess
         if getattr(sys, 'frozen', False):
             subprocess.Popen([sys.executable] + sys.argv[1:])
         else:

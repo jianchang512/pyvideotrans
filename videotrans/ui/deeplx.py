@@ -9,7 +9,7 @@ from videotrans.configure.config import tr, ROOT_DIR
 from videotrans.util.help_misc import open_url
 
 
-class Ui_deepLX(QDialog):
+class Ui_deeplx(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))

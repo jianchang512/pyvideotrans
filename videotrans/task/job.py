@@ -41,7 +41,7 @@ class BaseWorker(QThread):
 
     def handle_error(self, e, trk):
         """统一的错误处理逻辑"""
-        logger.error(f'{trk=}')
+
         logger.exception(e, exc_info=True)
         # 简单的错误消息
         except_msg = get_msg_from_except(e)
@@ -54,6 +54,7 @@ class BaseWorker(QThread):
         prefix = self.get_error_prefix(trk)
         if prefix:
             except_msg = f"{prefix} {except_msg}"
+        logger.error(f'{except_msg}\n{detail_back}\n{trk=}')
         if trk.uuid not in app_cfg.stoped_uuid_set:
             if app_cfg.exit_soft: return
             trk.signal(text=f'{except_msg}\n{detail_back}\n{trk}', type='error', uuid=trk.uuid)

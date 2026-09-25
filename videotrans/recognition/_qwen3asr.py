@@ -8,10 +8,9 @@ from typing import List, Union
 import dashscope
 import requests
 from dashscope.common.error import AuthenticationError
-from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, wait_fixed, before_log, after_log
 
-from videotrans.configure.excepts import SpeechToTextError, StopTask, NO_RETRY_EXCEPT
-from videotrans.configure.config import params, settings, logger
+from videotrans.configure.excepts import SpeechToTextError, StopTask
+from videotrans.configure.config import params
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 

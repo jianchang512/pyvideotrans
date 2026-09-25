@@ -37,7 +37,7 @@ class MinimaxiASR(BaseRecogn):
             if self.asr_wait>0:
                 time.sleep(self.asr_wait)
         if ok_nums<1:
-            raise SpeechToTextError(err)
+            raise SpeechToTextError(err+f'\n{self.model_name=}')
         return raws
 
 
