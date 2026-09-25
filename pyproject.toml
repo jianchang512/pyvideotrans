@@ -268,7 +268,6 @@ dependencies = [
     "bitsandbytes>=0.49.2",
     "soynlp==0.0.493",
     "nagisa==0.2.11",
-    "googletrans>=4.0.2",
 ]
 
 [project.optional-dependencies]

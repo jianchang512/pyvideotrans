@@ -11,6 +11,16 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopRetry, TranslateSr
 from videotrans.translator._base import BaseTrans
 
 
+_LANGCODE_MAP={
+    "pt-br":"pt",
+    "pt":"pt-PT",
+    "zh":"zh-Hans",
+    "zh-cn":"zh-Hans",
+    "zh-tw":"zh-Hant",
+    "sr":"sr-Cyrl",
+    "es-419":"es"
+}
+
 
 @dataclass
 class Microsoft(BaseTrans):
@@ -24,7 +34,7 @@ class Microsoft(BaseTrans):
         if self._exit(): return
         if not self.target_code:
             raise StopRetry(tr("The target language code is not set correctly and cannot be translated"))
-        tocode = self.target_code
+        tocode = _LANGCODE_MAP.get(self.target_code,self.target_code)
         if tocode.lower() == 'zh-cn':
             tocode = 'zh-Hans'
         elif tocode.lower() == 'zh-tw':

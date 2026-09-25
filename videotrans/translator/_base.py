@@ -189,8 +189,7 @@ class BaseTrans(BaseCon):
 
     def _get_key(self, it) -> str:
         it=serial(it)
-        key_str = f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}'
-        return get_md5(key_str)
+        return get_md5(f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}')
     
     def _set_context(self):
         lang_prompt=''

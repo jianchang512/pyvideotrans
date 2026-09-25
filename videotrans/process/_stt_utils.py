@@ -146,6 +146,7 @@ def _resegment2(texts: List[Dict[str, Any]], language: str, max_speech_ms: int, 
 
 def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) -> List[SrtItem]:
     if not texts: return []
+    srt_output = []
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:start'}))
     # 最长可能句子: max_speech_ms  + min_speech_ms
     # 最短句子: min_speech_ms
@@ -185,10 +186,33 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
 
     all_words = []
     for seg_idx, segment in enumerate(texts):
-        _t=[it for it in segment['words']]
-        _t[-1]['word']+=origin_end
-        all_words.extend(_t)
+        _t=segment['words'][:]
+        if _t and _t[-1] and 'word' in _t[-1]:
+            _t[-1]['word']+=origin_end
+            all_words.extend(_t)
 
+    # 某些特殊情况下，whisper返回数据中存在 text 但 words 为空，即不存在字级时间戳
+    if not all_words:
+        for idx, seg in enumerate(texts):
+            if not seg['text'].strip():continue
+
+            start_ms = int(float(seg.get('start', 0)) * 1000)
+            end_ms = int(float(seg.get('end', 0)) * 1000)
+
+            start_raw = format_srt_time(start_ms)
+            end_raw = format_srt_time(end_ms)
+
+            srt_output.append(SrtItem(**{
+                "line": len(srt_output) + 1,
+                "text": seg['text'].strip(),
+                "start_time": start_ms,
+                "end_time": end_ms,
+                "startraw": start_raw,
+                "endraw": end_raw,
+                "time": f"{start_raw} --> {end_raw}"
+            }))
+        return srt_output
+        
     _mid_duration = (max_speech_ms + _rc) // 2
     _len = len(all_words)
     for w_idx, w in enumerate(all_words):
@@ -239,6 +263,9 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
             # 仍未找到断句，再次弱化判断，可能 pause_ms 是0，但存在标点，也切
             if not should_split and current_duration >= min_speech_ms and has_punc(prev_word_text, end_punc | _comma_punc):
                 should_split = True
+            # 上个结尾是小数或数字，当前开头是数字，不断句
+            if should_split and re.match(r'.*?\d\.?$',prev_word_text.strip()) and re.match(r'^\.?\d',w_text.strip()):
+                should_split=False
         if should_split:
             # 结算当前子句
             _tmp = {
@@ -289,8 +316,7 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
         _merged[-1]['text'] += (' ' if use_space else '') + seg['text']
         _merged[-1]['end'] = seg['end']
 
-    # 输出
-    srt_output = []
+    
     for idx, seg in enumerate(_merged):
         start_ms = int(seg['start'])
         end_ms = int(seg['end'])

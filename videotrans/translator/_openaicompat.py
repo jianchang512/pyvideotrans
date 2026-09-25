@@ -96,6 +96,11 @@ class OpenAICampat(BaseTrans):
         
         try:
             response = self._create_completion(kwargs)
+            result = response.choices[0].message.content.strip()
+            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>', '',result,flags=re.I), flags=re.S|re.I)
+            if match:
+                return match.group(1)
+            return result.strip()
         except APIConnectionError as e:
             raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e.message}') from e
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
@@ -107,19 +112,7 @@ class OpenAICampat(BaseTrans):
                 raise StopTask(tr('The server returned an error message: Insufficient balance',get_tanslate_type(self.translate_type),self.api_url))
             raise
             
-        result = ""
-        if not hasattr(response,'choices') or not response.choices:
-            raise TranslateSrtError(str(response))
-        if response.choices[0].finish_reason=='length':
-            raise LengthFinishReasonError(completion=response)
-        if not response.choices[0].message.content:
-            logger.warning(f'[{self.ainame}]请求失败:{response=}')
-            raise TranslateSrtError(f"[{self.ainame}] {self.api_url} {response.choices[0].finish_reason}:{response}")
-        result = response.choices[0].message.content.strip()
-        match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>', '',result), re.S)
-        if match:
-            return match.group(1)
-        return result.strip()
+
 
 
     def llm_segment(self, srt_list,step='')->List[SrtItem]:
@@ -143,6 +136,7 @@ class OpenAICampat(BaseTrans):
         else:
             kwargs["max_tokens"]=int(self.max_tokens)
         logger.debug(f'LLM Re-segmenting:{self.ainame=},{kwargs=},{self.model_name=},{self.api_url=},{step=}')
+        
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(2)),
                wait=wait_fixed(5), before=before_log(logger, logging.INFO),
                after=after_log(logger, logging.INFO))
@@ -158,23 +152,13 @@ class OpenAICampat(BaseTrans):
             ]
             kwargs["messages"]=message
             response = self._create_completion(kwargs)
-
             
-            if not response or not hasattr(response, 'choices') or not response.choices:
-                logger.warning(f'[{self.ainame}] LLM纠错失败:{response=}')
-                raise LLMSegmentError(f"[{self.ainame}]{response}")
-
-            if response.choices[0].finish_reason == 'length':
-                raise LLMSegmentError(f"[{self.ainame}] Please increase max_token")
-            if not response.choices[0].message.content:
-                logger.warning(f'[{self.ainame}] LLM纠错失败:{response=}')
-                raise LLMSegmentError(f"[{self.ainame}] {response}")
-
-            result = response.choices[0].message.content
-            match = re.search(r'<SRT>(.*?)</SRT>', re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S), re.S | re.I)
+            result = response.choices[0].message.content or ""
+            match = re.search(r'<SRT>(.*?)</SRT>', re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S), flags=re.S | re.I)
             if match:
                 return match.group(1)
             return result.strip()
+            
         
         new_sublist = []
         logger.debug(f'LLM纠错前:{srt_list=}')

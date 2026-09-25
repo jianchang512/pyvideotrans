@@ -61,12 +61,12 @@ def run(*, translate_type=0,
         if _rs == 200:
             from videotrans.translator._google import Google
             return Google(**kwargs).run()
-        if _rs == 429:
-            logger.warning(f'Google翻译测试返回 429 反爬拦截，改用  googletrans 库尝试')
-            from videotrans.translator._googlepy import GoogleTrans
-            return GoogleTrans(**kwargs).run()
+        # if _rs == 429:
+        #     logger.warning(f'Google翻译测试返回 429 反爬拦截，改用  googleapis 尝试')
+        #     from videotrans.translator._googlepy import GoogleTrans
+        #     return GoogleTrans(**kwargs).run()
 
-        logger.warning(f'检测google翻译失败:status_code{_rs}，改为使用微软翻译')
+        logger.warning(f'检测google翻译失败:status_code={_rs}，改为使用微软翻译')
         translate_type = MICROSOFT_INDEX
         kwargs['translate_type']=translate_type
     _cls: Union[Type[BaseTrans], None] = get_class(translate_type,"translator",ID_NAME_DICT)

@@ -190,7 +190,7 @@ class NewAIRecogn(BaseRecogn):
             return None
 
         # self.cut_audio() 会基于 VAD 算法自动完成音频切片
-        # raws: List[SrtItem]，每个元素包含 'filename'(切片音频绝对路径)、'from_time'、'to_time' 等字段
+        # raws: List[SrtItem]，每个元素包含 'filename'(切片音频绝对路径)、'start_time'、'end_time' 等字段
         raws: List[SrtItem] = self.cut_audio()
         
         for it in raws:
@@ -335,7 +335,7 @@ NEWAITTS_ROLES = "voice_a,voice_b,voice_c"
 
 ## 六、开发避坑与最佳实践
 
-1. **退出响应（极其重要）**：
+1. **退出响应**：
    长时间运行的循环或网络请求中，务必频繁穿插 `if self._exit(): return` 检查，否则用户在主界面点击“停止”时任务无法及时终止。
 2. **重型本地模型隔离**：
    显存开销较大或包含 PyTorch/C++ 绑定的本地模型（如Qwen3-TTS、F5-TTS 、OmniVoice），严禁在主进程直接加载，请参考 `_whisper.py` 采用独立子进程（`multiprocessing` / `subprocess`）拉起，防止主界面卡顿或显存泄露。

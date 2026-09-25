@@ -2,9 +2,8 @@
 # 返回元组
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
-import re, json, traceback, logging
+import re, json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
 from videotrans.configure.config import logger
 from videotrans.process._stt_utils import _write_log
 
@@ -18,7 +17,6 @@ def nemotron_asr(
 ):
     from transformers import AutoModelForRNNT, AutoProcessor
     from transformers.audio_utils import load_audio
-
 
     try:
         if cut_audio_list and isinstance(cut_audio_list, str):
@@ -38,8 +36,6 @@ def nemotron_asr(
             audio = load_audio(it['filename'],
                 sampling_rate=processor.feature_extractor.sampling_rate,
             )
-
-
             inputs = processor(audio, sampling_rate=processor.feature_extractor.sampling_rate) # equiv to ..., language="auto"
             inputs.to(model.device, dtype=model.dtype)
             output = model.generate(**inputs, return_dict_in_generate=True)

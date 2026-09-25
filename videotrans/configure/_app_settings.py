@@ -170,7 +170,7 @@ class AppSettings:
             "vad_type": "silero",
 
             "trans_thread": 10,
-            "aitrans_thread": 50,
+            "aitrans_thread": 40,
             "translation_wait": 0.1,
             "dubbing_wait": 1,
             "dubbing_thread": 1,

@@ -55,6 +55,6 @@ class OpenRouterASR(BaseRecogn):
             response = requests.post(url, json=payload, headers=headers,verify=False)
             return response.json()
         except Exception as e:
-            return {"error":{"message":str(e)}}
+            return {"error":{"message":str(e)+f'\n{self.model_name=}'}}
 
 

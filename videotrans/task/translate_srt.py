@@ -63,7 +63,7 @@ class TranslateSrt(BaseTask):
         raw_subtitles = self.check_target_sub(source_sub_list, raw_subtitles)
 
         for it in raw_subtitles:
-            it['text']=it['text'].strip('...').strip('…').strip()
+            it['text']=it['text'].strip().strip('...').strip('…').strip()
 
         # 单语字幕
         if self.out_format == 0:

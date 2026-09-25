@@ -3,9 +3,7 @@
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
-import re
 from pathlib import Path
-from typing import List
 from videotrans.configure.config import logger
 
 
@@ -13,8 +11,6 @@ def videasr_fun(
         cut_audio_list=None,
         logs_file=None,
         local_dir=None,
-        max_speech_ms=6000,
-        min_speech_ms=3000,
         model_name=None,
         detect_language=None,
         hotword=None,
@@ -22,19 +18,13 @@ def videasr_fun(
 ):
 
     from videotrans.process._stt_utils import _write_log
-    import torch
     from videotrans.util._srt_parse import ms_to_time_string
     from transformers import AutoProcessor, VibeVoiceAsrForConditionalGeneration
 
-
     raws=[]
     try:
-
-        
         processor = AutoProcessor.from_pretrained(local_dir)
         model = VibeVoiceAsrForConditionalGeneration.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'))
-
-        
         
         srts = [item for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
 

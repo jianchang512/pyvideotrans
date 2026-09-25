@@ -2,10 +2,8 @@
 # 返回元组
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
-import re, json, traceback, logging
+import re, json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
-
 from videotrans.configure.config import logger
 from videotrans.process._stt_utils import _write_log
 
@@ -37,7 +35,7 @@ def pipe_asr(
             model=local_dir,
             batch_size=4,
             device_map=kw.get('device_name','auto'),
-            dtype='auto'  # torch.float16 if is_cuda else torch.float32,
+            dtype='auto'
         )
         msg = f"running on {p.model.device}"
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))

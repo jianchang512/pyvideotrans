@@ -1,9 +1,9 @@
 import logging
 import re
 import urllib
+import requests
 from dataclasses import dataclass
 
-import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError
