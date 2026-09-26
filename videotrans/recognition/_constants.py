@@ -53,6 +53,7 @@ CUSTOM_API = 28
 SILICONFLOW_API = 29
 OPENROUTER_API = 30
 MINIMAX_API = 31
+AUDEXUM_API = 32
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [
@@ -105,6 +106,7 @@ ID_NAME_DICT = {
     SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), key_name="guiji_key", win="siliconflow", imp="._siliconflow"),
     OPENROUTER_API: ChannelProvider('OpenRouter', key_name="openrouter_key", win="openrouter", imp="._openrouter"),
     MINIMAX_API: ChannelProvider('Minimax AI', key_name="minimaxi_apikey", win="minimaxi", imp="._minimaxi"),
+    AUDEXUM_API: ChannelProvider("Audexum", key_name="audexum_key", win="audexum", imp="._audexum"),
 
 }
 # 强制保持按照每个常量值大小排序

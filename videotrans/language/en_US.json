@@ -1013,5 +1013,7 @@
   "msg_success_detail": "SRT generated successfully!\nFile saved as:\n{}",
   "We accept two API request methods": "We accept two API request methods. Please click the Help Doc button for details.",
   "More than 30 minutes of audio and video require a large amount of video memory": "For A/V longer than 60 min, which require substantial GPU memory, set the Spoken language to auto-detection enables segmented transcription to reduce memory usage",
-  "hf_model error": "The model download failed. Please click the button [Model Download URL] to manually download all files to:\n{}\n[{}]"
+  "hf_model error": "The model download failed. Please click the button [Model Download URL] to manually download all files to:\n{}\n[{}]",
+  "Audexum: the API key is invalid. Get a key at {}": "Audexum: the API key is invalid. Get a key at {}",
+  "Audexum: not enough credits for this audio. Top up at {}": "Audexum: not enough credits for this audio. Top up at {}"
 }

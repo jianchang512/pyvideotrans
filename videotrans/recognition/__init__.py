@@ -38,7 +38,7 @@ def get_model_by_type(recogn_type: int) -> List[str]:
 # model_name=模型名字
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
     if recogn_type in [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API,
-                       AI_302, GEMINI_SPEECH, WHISPER_NET, GOOGLE_SPEECH]:
+                       AI_302, GEMINI_SPEECH, WHISPER_NET, GOOGLE_SPEECH, AUDEXUM_API]:
         return True
 
     # huggingface_asr 渠道里的 openai 和 Systran 模型也支持所有语言

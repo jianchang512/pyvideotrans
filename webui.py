@@ -370,6 +370,12 @@ CHANNEL_SETTINGS = {
             {"key": "deepgram_apikey", "label": "API Key", "type": "text", "default": ""},
         ],
     },
+    "Audexum ASR": {
+        "category": "语音识别渠道",
+        "fields": [
+            {"key": "audexum_key", "label": "API Key", "type": "text", "default": ""},
+        ],
+    },
     "Parakeet ASR": {
         "category": "语音识别渠道",
         "fields": [

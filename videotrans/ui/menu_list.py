@@ -78,6 +78,7 @@ MENU_CFG_STT = [
     ("parakeet", 'Nvidia parakeet-tdt', None),
     ("whisperxapi", 'WhisperX-API', None),
     ("deepgram", tr("Deepgram Speech Recognition API"), None),
+    ("audexum", "Audexum", None),
     ("xxl", 'Faster_Whisper_XXL.exe', None),
     ("sttapi", tr("STT Speech Recognition API"), None),
     ("recognapi", tr("Custom Speech Recognition API"), None),

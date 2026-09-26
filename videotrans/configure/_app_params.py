@@ -256,6 +256,7 @@ class AppParams:
             "stt_nums_diariz": 0,
             "subtitlecover_outformat": "srt",
             "deepgram_apikey": "",
+            "audexum_key": "",
             "trans_translate_type": 0,
             "trans_source_language": 0,
             "trans_target_language": 1,
