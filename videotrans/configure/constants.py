@@ -153,7 +153,7 @@ XIAOMI_MODELS = 'mimo-v2.6-flash,mimo-v2.6-pro,mimo-v2.5-pro,mimo-v2.5'
 ########TTS模型=====================================================
 
 # 阿里百炼TTS模型
-GEMINI_TTS_MODELS = "gemini-3.1-flash-tts-preview,gemini-2.5-flash-preview-tts,gemini-2.5-pro-preview-tts"
+GEMINI_TTS_MODELS = "gemini-3.1-flash-tts-preview,gemini-3.8-flash-tts,gemini-2.5-flash-preview-tts,gemini-2.5-pro-preview-tts"
 Qwentts_Models = 'qwen3-tts-flash,qwen3-tts-instruct-flash,qwen-tts-latest,qwen-tts'
 Qpenaitts_Model = "tts-1,tts-1-hd,gpt-4o-mini-tts"
 # openrouter.ai tts 模型

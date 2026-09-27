@@ -54,7 +54,7 @@ We provide a pre-packaged `.exe` version for Windows 10/11 users, requiring no P
 
 > **Note**:
 > * Do not run directly from within the compressed archive.
-> * To use GPU acceleration, ensure **CUDA 12.8** and **cuDNN 9.11** are installed.
+> * To use GPU acceleration(NVIDIA GPU only), ensure **CUDA 12.8** and **cuDNN 9.11** are installed.
 
 ---
 
@@ -150,7 +150,7 @@ docker run -d -p 7860:7860 \
 
 > [WebUI documentation](docs/webui.md)
 
-### 5. (Optional) GPU Acceleration Configuration
+### 5. (Optional) NVIDIA GPU Acceleration Configuration
 
 If you have an NVIDIA graphics card, execute the following commands to install the CUDA-supported PyTorch version:
 
