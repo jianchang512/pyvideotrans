@@ -29,6 +29,7 @@ MENU_CFG_TRANS = [
     ("cambtts", "CAMB.ai", None),
     ("api_route", 'api-route.com', None),
     ("cheaperinference", 'Cheaper Inference', None),
+    ("infistar", 'Infistar.cc', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),

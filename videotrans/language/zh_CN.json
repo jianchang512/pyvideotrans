@@ -1015,5 +1015,7 @@
   "More than 30 minutes of audio and video require a large amount of video memory": "60分钟以上音视频，需要极大显存，将发音语言设为自动检测可分片转录降低显存占用",
   "hf_model error": "模型下载失败，请点击 【模型下载地址】按钮，手动下载所有文件到:\n{}\n[{}]",
   "Audexum: the API key is invalid. Get a key at {}": "Audexum：API Key 无效，请在 {} 获取",
-  "Audexum: not enough credits for this audio. Top up at {}": "Audexum：余额不足，无法识别该音频，请在 {} 充值"
+  "Audexum: not enough credits for this audio. Top up at {}": "Audexum：余额不足，无法识别该音频，请在 {} 充值",
+  "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen": "兼容 OpenAI 的模型中转，一个 Key 调用 GPT、Claude、Gemini、DeepSeek、Qwen",
+  "Get API Key": "获取 API Key"
 }

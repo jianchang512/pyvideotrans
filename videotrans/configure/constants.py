@@ -143,6 +143,7 @@ Openrouter_Model = "~deepseek/deepseek-flash-latest,~deepseek/deepseek-pro-lates
 Litellm_Model = "gpt-4o-mini,gpt-4o,claude-sonnet-4-6,claude-haiku-4-5,deepseek-chat"
 APIRoute_Model = "gpt-5.4-mini,gpt-5.4,claude-sonnet-4-6,deepseek-chat,glm-5"
 CheaperInference_Model = "gpt-5.4-mini,gpt-5.4,claude-sonnet-5,gemini-3.1-pro,deepseek-v4-flash"
+Infistar_Model = "gpt-5.4-mini,deepseek-v4-flash,gpt-5.4,claude-sonnet-5,gemini-3.8-flash,qwen3.7-plus"
 # 硅基流动
 Guiji_Model = "tencent/Hy4-preview,zai-org/GLM-5.3,deepseek-ai/DeepSeek-V4-Flash,meituan-longcat/LongCat-2.0,zai-org/GLM-5.2,deepseek-ai/DeepSeek-V4-Pro,Qwen/Qwen3.8-27B"
 Ai302_Models = "deepseek-v4-pro,deepseek-v4-flash"

@@ -133,6 +133,11 @@ class TestTranslatorIndexConstants:
         assert CHEAPERINFERENCE_INDEX == 27
         assert CHEAPERINFERENCE_INDEX in AI_TRANS_CHANNELS
 
+    def test_infistar_index(self):
+        from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
+        assert INFISTAR_INDEX == 28
+        assert INFISTAR_INDEX in AI_TRANS_CHANNELS
+
     def test_siliconflow_index(self):
         from videotrans.translator import SILICONFLOW_INDEX
         assert SILICONFLOW_INDEX == 10

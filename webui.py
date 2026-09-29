@@ -346,6 +346,14 @@ CHANNEL_SETTINGS = {
             {"key": "cheaperinference_max_token", "label": "最大输出 Token", "type": "text", "default": "8192"},
         ],
     },
+    "Infistar 翻译": {
+        "category": "字幕翻译渠道",
+        "fields": [
+            {"key": "infistar_key", "label": "API Key", "type": "text", "default": ""},
+            {"key": "infistar_model", "label": "模型", "type": "text", "default": "gpt-5.4-mini", "placeholder": "输入模型名称"},
+            {"key": "infistar_max_token", "label": "最大输出 Token", "type": "text", "default": "8192"},
+        ],
+    },
     "小米 AI 翻译": {
         "category": "字幕翻译渠道",
         "fields": [
