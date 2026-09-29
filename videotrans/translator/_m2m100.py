@@ -34,7 +34,7 @@ class M2M100Trans(BaseTrans):
             down_zip(f"{ROOT_DIR}/models", M2M100_URL_MS if not is_connect_hf() else M2M100_URL_HF,self._process_callback)
         device=settings.get('device_name','auto')
         if device=='auto':
-            device="cpu" if not torch.cuda.is_available() else "cuda"
+            device="cpu" if not self.is_cuda or not torch.cuda.is_available() else "cuda"
         self.model = ctranslate2.Translator(
             model_path=f'{ROOT_DIR}/models/m2m100_12b',
             device=device

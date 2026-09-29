@@ -33,7 +33,8 @@ class TranslateMixin:
             text_list=copy.deepcopy(rawsrt),
             uuid=self.uuid,
             source_code=self.cfg.source_language_code,
-            target_code=self.cfg.target_language_code
+            target_code=self.cfg.target_language_code,
+            is_cuda=self.cfg.is_cuda
         )
         if self._exit():  return
 

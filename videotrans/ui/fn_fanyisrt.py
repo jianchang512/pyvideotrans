@@ -112,6 +112,9 @@ class Ui_fn_fanyisrt(QtWidgets.QWidget):
         self.horizontalLayout_18.addStretch()
         self.verticalLayout_13.addLayout(self.horizontalLayout_18)
 
+        self.is_cuda = QtWidgets.QCheckBox()
+        self.is_cuda.setText(tr("Enable CUDA?"))
+        
         self.aisendsrt = QtWidgets.QCheckBox()
         self.aisendsrt.setText(tr("Send SRT"))
         self.aisendsrt.setToolTip(
@@ -133,6 +136,7 @@ class Ui_fn_fanyisrt(QtWidgets.QWidget):
 
         self.horizontalLayout_new = QtWidgets.QHBoxLayout()
         self.horizontalLayout_new.addWidget(self.aisendsrt)
+        self.horizontalLayout_new.addWidget(self.is_cuda)
 
         self.horizontalLayout_new.addWidget(self.label_614)
         self.horizontalLayout_new.addWidget(self.fanyi_proxy)

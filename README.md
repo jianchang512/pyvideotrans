@@ -190,7 +190,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 * **Official Documentation**: [https://pyvideotrans.com](https://pyvideotrans.com) (Includes detailed tutorials, API configuration guides, FAQ)
 * **Online Q&A Community**: [https://bbs.pyvideotrans.com](https://bbs.pyvideotrans.com) (Submit error logs for automated AI analysis and answers)
-* **GitHub Wiki**: [architecture.md](docs/architecture.md) | [Add new Translator Channel](docs/dev_extend.md) | [cli.md](docs/cli.md) | [webui.md](docs/webui.md) | [Synchronize.md](docs/Synchronize.md) | [faq.md](docs/faq.md)
+* **GitHub Wiki**: [architecture.md](docs/architecture.md) | [Add new Translator Channel](docs/dev_extend_en.md) | [cli.md](docs/cli.md) | [webui.md](docs/webui.md) | [Synchronize.md](docs/Synchronize.md) | [faq.md](docs/faq.md)
 
 ##  Disclaimer
 
