@@ -13,28 +13,22 @@ class Ui_ttsapi(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, ttsapiform):
+    def setupUi(self, form):
         self.has_done = False
-        if not ttsapiform.objectName():
-            ttsapiform.setObjectName("ttsapiform")
-        ttsapiform.setWindowModality(Qt.NonModal)
-        ttsapiform.resize(600, 600)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(ttsapiform.sizePolicy().hasHeightForWidth())
-        ttsapiform.setSizePolicy(sizePolicy)
-        ttsapiform.setMaximumSize(QSize(600, 600))
+        if not form.objectName():
+            form.setObjectName("form")
+        form.setWindowModality(Qt.NonModal)
+        form.resize(600, 600)
 
-        v1 = QtWidgets.QVBoxLayout(ttsapiform)
-        self.tips = QLabel(ttsapiform)
+        v1 = QtWidgets.QVBoxLayout(form)
+        self.tips = QLabel()
         self.tips.setObjectName("tips")
         v1.addWidget(self.tips)
         
         self.label = QLabel()
         self.label.setObjectName("label")
         self.label.setMinimumSize(QSize(0, 35))
-        self.api_url = QLineEdit(ttsapiform)
+        self.api_url = QLineEdit()
         self.api_url.setObjectName("api_url")
         self.api_url.setMinimumSize(QSize(0, 35))
 
@@ -44,11 +38,11 @@ class Ui_ttsapi(QDialog):
         v1.addLayout(h1)
 
         h2 = QtWidgets.QHBoxLayout()
-        self.label_2 = QLabel(ttsapiform)
+        self.label_2 = QLabel()
         self.label_2.setObjectName("label_2")
         self.label_2.setMinimumSize(QSize(0, 35))
         self.label_2.setSizeIncrement(QSize(0, 35))
-        self.voice_role = QPlainTextEdit(ttsapiform)
+        self.voice_role = QPlainTextEdit()
         self.voice_role.setObjectName("voice_role")
         self.voice_role.setMinimumSize(QSize(0, 35))
         h2.addWidget(self.label_2)
@@ -56,29 +50,21 @@ class Ui_ttsapi(QDialog):
         v1.addLayout(h2)
 
         h3 = QtWidgets.QHBoxLayout()
-
-
-        self.label_3 = QLabel(ttsapiform)
+        self.label_3 = QLabel()
         self.label_3.setObjectName("label_3")
-        self.extra = QLineEdit(ttsapiform)
+        self.extra = QLineEdit()
         self.extra.setObjectName("extra")
         self.extra.setMinimumSize(QSize(0, 35))
 
-
-
-
         h3.addWidget(self.label_3)
         h3.addWidget(self.extra)
-        
-        
         v1.addLayout(h3)
 
-
         h4 = QtWidgets.QHBoxLayout()
-        self.save = QPushButton(ttsapiform)
+        self.save = QPushButton()
         self.save.setObjectName("save")
         self.save.setMinimumSize(QSize(0, 35))
-        self.test = QPushButton(ttsapiform)
+        self.test = QPushButton()
         self.test.setObjectName("test")
         self.test.setMinimumSize(QSize(0, 35))
 
@@ -95,15 +81,13 @@ class Ui_ttsapi(QDialog):
         h4.addWidget(help_btn)
         v1.addLayout(h4)
 
-        self.retranslateUi(ttsapiform)
+        self.retranslateUi(form)
 
-        QMetaObject.connectSlotsByName(ttsapiform)
+        QMetaObject.connectSlotsByName(form)
 
-    # setupUi
-
-    def retranslateUi(self, ttsapiform):
+    def retranslateUi(self, form):
         tips = tr("We accept two API request methods")
-        ttsapiform.setWindowTitle(tr("Customizing the TTS-API"))
+        form.setWindowTitle(tr("Customizing the TTS-API"))
         self.label_3.setText(tr("SK"))
         self.tips.setText(tips)
 
@@ -117,4 +101,3 @@ class Ui_ttsapi(QDialog):
         self.extra.setPlaceholderText(
             tr("Fill in the extra parameters passed to the api via the extra key, null to pass pyvideotrans"))
         self.test.setText(tr("Test"))
-    # retranslateUi

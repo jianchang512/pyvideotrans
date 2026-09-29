@@ -61,10 +61,10 @@ ALLOW_CHANGE_MODEL = [
     OPENAI_WHISPER, FUNASR_CN, Deepgram,
     WHISPERX_API, HUGGINGFACE_ASR, QWENASR,
     WHISPER_NET, QWEN3ASR, SILICONFLOW_API, OPENROUTER_API, MINIMAX_API, GEMINI_SPEECH, ElevenLabs, CAMB_ASR,
-    OPENAI_API, STT_API,XIAOMIASR]
+    OPENAI_API, STT_API, XIAOMIASR]
 
 # 允许所有语言，无需语言支持检测
-ALLOW_ALL_LANGUAGES=[FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API,
+ALLOW_ALL_LANGUAGES = [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API,
                        AI_302, GEMINI_SPEECH, WHISPER_NET, GOOGLE_SPEECH, AUDEXUM_API]
 
 # 渠道id对应的设置窗口和sk键名,
@@ -87,7 +87,7 @@ ID_NAME_DICT = {
 
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"), key_name="openairecognapi_key", win="openairecognapi",
                                 imp="._openairecognapi"),
-    QWEN3ASR: ChannelProvider(tr("Ali Qwen3-ASR"), key_name="qwenmt_key", win="qwenmt", imp="._qwen3asr"),
+    QWEN3ASR: ChannelProvider(tr("Ali-Bailian"), key_name="qwenmt_key", win="bailian", imp="._bailian"),
     XIAOMIASR: ChannelProvider(tr("XiaoMi"), key_name="xiaomi_key", win="xiaomi", imp="._xiaomi"),
     ZIJIE_RECOGN_MODEL: ChannelProvider(tr("VolcEngine STT"), key_name="zijierecognmodel_appid", win="zijierecognmodel",
                                         imp="._zijierecognmodel"),
@@ -103,11 +103,12 @@ ID_NAME_DICT = {
     ElevenLabs: ChannelProvider("ElevenLabs.io", key_name="elevenlabstts_key", win="elevenlabs", imp="._elevenlabs"),
     GOOGLE_SPEECH: ChannelProvider(tr("Google Speech to Text"), imp="._google"),
     Deepgram: ChannelProvider("Deepgram.com", key_name="deepgram_apikey", win="deepgram", imp="._deepgram"),
-    CAMB_ASR: ChannelProvider("CAMB AI", key_name="camb_api_key", win="cambtts", imp="._camb"),
+    CAMB_ASR: ChannelProvider("CAMB AI", key_name="camb_api_key", win="camb", imp="._camb"),
     STT_API: ChannelProvider(f"STT({tr('Local')}API)", key_name="stt_url", win="sttapi", imp="._sttapi"),
     WHISPER_NET: ChannelProvider("Whisper.NET", imp="._whispernet"),
     CUSTOM_API: ChannelProvider(tr("Custom API"), key_name="recognapi_url", win="recognapi", imp="._recognapi"),
-    SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), key_name="siliconflow_key", win="siliconflow", imp="._siliconflow"),
+    SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), key_name="siliconflow_key", win="siliconflow",
+                                     imp="._siliconflow"),
     OPENROUTER_API: ChannelProvider('OpenRouter', key_name="openrouter_key", win="openrouter", imp="._openrouter"),
     MINIMAX_API: ChannelProvider('Minimax AI', key_name="minimaxi_apikey", win="minimaxi", imp="._minimaxi"),
     AUDEXUM_API: ChannelProvider("Audexum", key_name="audexum_key", win="audexum", imp="._audexum"),

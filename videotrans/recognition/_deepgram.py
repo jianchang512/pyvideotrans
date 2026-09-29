@@ -1,38 +1,26 @@
-import logging
-import os
-import re
 from dataclasses import dataclass
 from typing import List, Union
-from pathlib import Path
-import json
 import httpx
 from deepgram import (
-    DeepgramClient,
-    PrerecordedOptions,
-    FileSource,
+    DeepgramClient
 )
-from deepgram_captions import DeepgramConverter, srt
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
-from videotrans.configure.config import tr,params,settings,logger
+from deepgram.core import ApiError
+
+from videotrans.configure.config import tr,params,settings
+from videotrans.configure.excepts import SpeechToTextError
+from videotrans.process._stt_utils import _resegment
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.configure import constants
 from videotrans.util._ffmpeg_runner import runffmpeg
-from videotrans.util._srt_parse import ms_to_time_string, get_subtitle_from_srt
 
 
 @dataclass
 class DeepgramRecogn(BaseRecogn):
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
-        import zhconv    
-        if os.path.getsize(self.audio_file) > 52428800:
-            runffmpeg(
-                ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/deepgram-tmp.mp3'])
-            self.audio_file = self.cache_folder + '/deepgram-tmp.mp3'
+        runffmpeg( ['-y', '-i', self.audio_file, '-ac', '1', '-ar', '16000', self.cache_folder + '/deepgram-tmp.mp3'])
+        self.audio_file = self.cache_folder + '/deepgram-tmp.mp3'
         with open(self.audio_file, "rb") as file:
             buffer_data = file.read()
         self.signal(
@@ -40,59 +28,45 @@ class DeepgramRecogn(BaseRecogn):
 
         httpx.HTTPTransport(proxy=self.proxy_str)
 
-        deepgram = DeepgramClient(params.get('deepgram_apikey'))
-        payload: FileSource = {
-            "buffer": buffer_data,
-        }
-
-        diarize = self.max_speakers>-1
-        options = PrerecordedOptions(
+        client = DeepgramClient(api_key=params.get('deepgram_apikey'))
+        language=self.detect_language.split('-')[0]
+        options=dict(request=buffer_data,
             model=self.model_name,
-            # detect_language=True,
-            language=self.detect_language.split('-')[0],
             smart_format=True,
             punctuate=True,
-            paragraphs=True,
             utterances=True,
-            diarize=diarize,
+            utt_split=int(settings.get('min_silence_duration_ms', 600)) / 1000)
 
-            utt_split=int(settings.get('min_silence_duration_ms', 140)) / 1000,
-        )
-
-        res = deepgram.listen.rest.v("1").transcribe_file(payload, options, timeout=600)
-
-        raws = []
-        if diarize:
-            speaker_list=[]
-            logger.debug(f"{res['results']['utterances']=}")
-            for it in res['results']['utterances']:
-                if not it.transcript.strip():
-                    continue
-                speaker_list.append(f'[spk{it.speaker}]')
-                tmp = {
-                    "line": len(raws) + 1,
-                    "start_time": int(it.start * 1000),
-                    "end_time": int(it.end * 1000),
-                    "text": it.transcript
-                }
-                if self.detect_language.split('-')[0] in constants.CJK_LANG:
-                    tmp['text'] = re.sub(r'\s| ', '', tmp['text'],flags=re.I | re.S)
-                tmp['startraw']=ms_to_time_string(ms=tmp['start_time'])
-                tmp['endraw']=ms_to_time_string(ms=tmp['end_time'])
-                tmp['time'] =  f"{tmp['startraw']} --> {tmp['endraw']}"
-                raws.append(tmp)
-            if speaker_list:
-                Path(f'{self.cache_folder}/speaker.json').write_text(json.dumps(speaker_list), encoding='utf-8')
+        if language=='auto':
+            options['detect_language']=True
         else:
-            transcription = DeepgramConverter(res)
-            _lang=self.detect_language.split('-')[0]
-            srt_str = srt(transcription,
-                          line_length=int(settings.get('cjk_len') if _lang in ['zh', 'ja','ko'] else settings.get('other_len')))
-            raws = get_subtitle_from_srt(srt_str, is_file=False)
-            if _lang in constants.CJK_LANG:
-                for i, it in enumerate(raws):
-                    if _lang == 'zh':
-                        it['text'] = zhconv.convert(it['text'], 'zh-hans')
-                    raws[i]['text'] = it['text'].replace(' ', '')
+            options['language']=language
+        try:
+           response = client.listen.v1.media.transcribe_file(
+                **options,
+                request_options={"timeout":600}
+            )
+        except ApiError as e:
+            raise SpeechToTextError(e.body)
+        except httpx.ReadTimeout:
+            raise SpeechToTextError('Timeout, try again')
+        else:
+            if language=='auto' and response.results.channels[0].detected_language:
+                language=response.results.channels[0].detected_language
 
-        return raws
+            text_words=[]
+            for i,it in enumerate(response.results.utterances):
+                tmp={
+                    'text':it.transcript,
+                    'words':[]
+                }
+                for w in it.words:
+                    tmp['words'].append({"start":w.start,"end":w.end,"word":w.punctuated_word})
+                text_words.append(tmp)
+
+            min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 3000)
+            # 最长片段不得大于25s,并且不得小于 _min_speech
+            max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000)
+            if max_speech<=min_speech:
+                max_speech=min_speech+1000
+            return _resegment(text_words, language, max_speech, min_speech, logs_file=None)

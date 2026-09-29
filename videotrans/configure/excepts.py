@@ -216,7 +216,6 @@ def get_msg_from_except(ex:Exception)->str:
             pass
     from elevenlabs.core import ApiError as ApiError_11
     import httpcore
-    from deepgram.clients.common.v1.errors import DeepgramApiError
     from openai import AuthenticationError, PermissionDeniedError, NotFoundError, BadRequestError, RateLimitError, \
     APIConnectionError, APIError, ContentFilterFinishReasonError, InternalServerError, LengthFinishReasonError
     # 异常处理映射
@@ -259,7 +258,6 @@ def get_msg_from_except(ex:Exception)->str:
 
         (HTTPError, RetryError): lambda e: f'{e}',
 
-        DeepgramApiError: lambda e: e.message if hasattr(e, 'message') else str(e),
         ApiError_11: lambda e: e.body.get('detail', {}).get('message', e.body) if hasattr(e, 'body') else str(e),
         # === 网络连接问题 ===
         (ReqConnectionError, ConnectionError, ConnectionResetError, ConnectionRefusedError, ConnectionAbortedError,

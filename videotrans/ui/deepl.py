@@ -15,25 +15,24 @@ class Ui_deepl(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, deeplform):
+    def setupUi(self, form):
         self.has_done = False
-        deeplform.setObjectName("deeplform")
-        deeplform.setWindowModality(QtCore.Qt.NonModal)
-        deeplform.setMinimumSize(QtCore.QSize(550, 330))
+        form.setObjectName("form")
+        form.setMinimumSize(QtCore.QSize(550, 330))
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(deeplform)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
 
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(deeplform)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.deepl_authkey = QtWidgets.QLineEdit(deeplform)
+        self.deepl_authkey = QtWidgets.QLineEdit()
         self.deepl_authkey.setMinimumSize(QtCore.QSize(210, 35))
         self.deepl_authkey.setObjectName("deepl_authkey")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deepl_authkey)
@@ -42,12 +41,12 @@ class Ui_deepl(QDialog):
         self.formLayout_22.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_22.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_22.setObjectName("formLayout_22")
-        self.label22 = QtWidgets.QLabel(deeplform)
+        self.label22 = QtWidgets.QLabel()
         self.label22.setMinimumSize(QtCore.QSize(100, 35))
         self.label22.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label22.setObjectName("label22")
         self.formLayout_22.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label22)
-        self.deepl_api = QtWidgets.QLineEdit(deeplform)
+        self.deepl_api = QtWidgets.QLineEdit()
         self.deepl_api.setMinimumSize(QtCore.QSize(210, 35))
         self.deepl_api.setObjectName("deepl_api")
         self.formLayout_22.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deepl_api)
@@ -56,12 +55,12 @@ class Ui_deepl(QDialog):
         self.formLayout_33.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_33.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_33.setObjectName("formLayout_33")
-        self.label33 = QtWidgets.QLabel(deeplform)
+        self.label33 = QtWidgets.QLabel()
         self.label33.setMinimumSize(QtCore.QSize(100, 35))
         self.label33.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label33.setObjectName("label33")
         self.formLayout_33.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label33)
-        self.deepl_gid = QtWidgets.QLineEdit(deeplform)
+        self.deepl_gid = QtWidgets.QLineEdit()
         self.deepl_gid.setMinimumSize(QtCore.QSize(210, 35))
         self.deepl_gid.setObjectName("deepl_gid")
         self.formLayout_33.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deepl_gid)
@@ -70,11 +69,11 @@ class Ui_deepl(QDialog):
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout.addLayout(self.formLayout_33)
 
-        self.set_deepl = QtWidgets.QPushButton(deeplform)
+        self.set_deepl = QtWidgets.QPushButton()
         self.set_deepl.setMinimumSize(QtCore.QSize(0, 35))
         self.set_deepl.setObjectName("set_deepl")
 
-        self.test = QtWidgets.QPushButton(deeplform)
+        self.test = QtWidgets.QPushButton()
         self.test.setObjectName("test")
 
         help_btn = QtWidgets.QPushButton()
@@ -92,11 +91,11 @@ class Ui_deepl(QDialog):
 
         self.verticalLayout.addLayout(h1)
 
-        self.retranslateUi(deeplform)
-        QtCore.QMetaObject.connectSlotsByName(deeplform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, deeplform):
-        deeplform.setWindowTitle("DeepL Setting")
+    def retranslateUi(self, form):
+        form.setWindowTitle("DeepL Setting")
         self.label.setText(tr("AUTH KEY"))
         self.label22.setText(tr("API"))
         self.label33.setText(tr("Glossary id"))

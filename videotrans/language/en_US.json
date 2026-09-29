@@ -19,9 +19,7 @@
   "Adding background audio": "Adding background audio...",
   "Adding image watermark to videos": "Batch adding image watermarks...",
   "After cleaning, you need to restart the software. Only cache and temporary files are cleaned. For configuration information, please directly delete the .json in the videotrans folder.": "Restart software after cleanup. Only cache and temp files are deleted. To reset configs/keys, delete .json files in videotrans folder.",
-  "Ali Qwen3-ASR": "Bailian / Qwen-ASR",
-  "Ali-BaiLian API/Qwen3-ASR AI": "Bailian / Qwen-ASR",
-  "Ali-Bailian": "Bailian API",
+  "Ali-Bailian": "Ali Bailian API",
   "Solution to model download failure": "Model Download Troubleshooting",
   "Alibaba Machine Translation": "Alibaba Machine Translation",
   "Alibaba Translation": "Alibaba Machine Translation",
@@ -1019,5 +1017,7 @@
   "More than 30 minutes of audio and video require a large amount of video memory": "For A/V longer than 60 min, which require substantial GPU memory, set the Spoken language to auto-detection enables segmented transcription to reduce memory usage",
   "hf_model error": "The model download failed. Please click the button [Model Download URL] to manually download all files to:\n{}\n[{}]",
   "Audexum: the API key is invalid. Get a key at {}": "Audexum: the API key is invalid. Get a key at {}",
-  "Audexum: not enough credits for this audio. Top up at {}": "Audexum: not enough credits for this audio. Top up at {}"
+  "Audexum: not enough credits for this audio. Top up at {}": "Audexum: not enough credits for this audio. Top up at {}",
+  "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen": "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen",
+  "Get API Key": "Get API Key"
 }

@@ -662,7 +662,6 @@ class Ui_setini(QtWidgets.QWidget):
         self.help_btn = QtWidgets.QPushButton()
         self.help_btn.setObjectName("help_btn")
         self.help_btn.setMinimumSize(QtCore.QSize(120, 30))
-        self.help_btn.setMaximumSize(QtCore.QSize(160, 30))
         self.help_btn.setCursor(Qt.PointingHandCursor)
         self.help_btn.setStyleSheet("""
             QPushButton {

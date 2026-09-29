@@ -13,10 +13,11 @@ class Ui_refaudio(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, refform):
-        refform.setMinimumSize(QSize(800, 500))
 
-        v1 = QtWidgets.QVBoxLayout(refform)
+    def setupUi(self, form):
+        form.setMinimumSize(QSize(800, 500))
+
+        v1 = QtWidgets.QVBoxLayout(form)
 
         label = QLabel()
         label.setObjectName("label")
@@ -42,8 +43,8 @@ class Ui_refaudio(QDialog):
         self.save.clicked.connect(self._save)
 
         v1.addWidget(self.save)
-        self.retranslateUi(refform)
-        QMetaObject.connectSlotsByName(refform)
+        self.retranslateUi(form)
+        QMetaObject.connectSlotsByName(form)
 
     def _save(self):
         role = self.roles.toPlainText().strip()
@@ -69,7 +70,6 @@ class Ui_refaudio(QDialog):
         set_process(text='', type="refreshtts")
         self.close()
 
-    def retranslateUi(self, refform):
-        refform.setWindowTitle(tr("Set reference audio"))
+    def retranslateUi(self, form):
+        form.setWindowTitle(tr("Set reference audio"))
         self.save.setText(tr("Save"))
-        

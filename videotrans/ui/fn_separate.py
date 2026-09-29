@@ -34,18 +34,18 @@ class Ui_fn_separate(QtWidgets.QWidget):
         self.hide()
         event.ignore()
 
-    def setupUi(self, separateform):
+    def setupUi(self, form):
         self.has_done = False
-        separateform.setObjectName("separateform")
+        form.setObjectName("form")
 
-        separateform.setMinimumSize(600, 300)
+        form.setMinimumSize(600, 300)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(separateform.sizePolicy().hasHeightForWidth())
-        separateform.setSizePolicy(sizePolicy)
+        sizePolicy.setHeightForWidth(form.sizePolicy().hasHeightForWidth())
+        form.setSizePolicy(sizePolicy)
 
-        v1=QtWidgets.QVBoxLayout(separateform)
+        v1=QtWidgets.QVBoxLayout(form)
 
         self.showtips = QtWidgets.QLabel()
         self.showtips.setStyleSheet("""color:#eeeeee""")
@@ -136,8 +136,8 @@ class Ui_fn_separate(QtWidgets.QWidget):
         v1.addWidget(self.logs)
 
         self.retranslateUi()
-        separateform.setWindowTitle(tr("Separte vocal and instrument"))
-        QtCore.QMetaObject.connectSlotsByName(separateform)
+        form.setWindowTitle(tr("Separte vocal and instrument"))
+        QtCore.QMetaObject.connectSlotsByName(form)
 
 
     def retranslateUi(self):

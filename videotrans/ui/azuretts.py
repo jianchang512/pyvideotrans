@@ -15,41 +15,27 @@ class Ui_azuretts(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, azurettsform):
-        self.has_done = False
-        azurettsform.setObjectName("azurettsform")
-        azurettsform.setWindowModality(QtCore.Qt.NonModal)
-        azurettsform.resize(400, 250)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(azurettsform.sizePolicy().hasHeightForWidth())
-        azurettsform.setSizePolicy(sizePolicy)
-        azurettsform.setMaximumSize(QtCore.QSize(400, 250))
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(azurettsform)
+    def setupUi(self, form):
+        self.has_done = False
+        form.setObjectName("form")
+        form.resize(400, 250)
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
 
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(azurettsform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
+
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.speech_region = QtWidgets.QLineEdit(azurettsform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.speech_region.sizePolicy().hasHeightForWidth())
-        self.speech_region.setSizePolicy(sizePolicy)
+
+        self.speech_region = QtWidgets.QLineEdit()
         self.speech_region.setMinimumSize(QtCore.QSize(210, 35))
         self.speech_region.setObjectName("speech_region")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.speech_region)
@@ -58,22 +44,14 @@ class Ui_azuretts(QDialog):
         self.formLayout_22.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_22.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_22.setObjectName("formLayout_22")
-        self.label22 = QtWidgets.QLabel(azurettsform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label22.sizePolicy().hasHeightForWidth())
-        self.label22.setSizePolicy(sizePolicy)
+
+        self.label22 = QtWidgets.QLabel()
         self.label22.setMinimumSize(QtCore.QSize(100, 35))
         self.label22.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label22.setObjectName("label22")
         self.formLayout_22.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label22)
-        self.speech_key = QtWidgets.QLineEdit(azurettsform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.speech_key.sizePolicy().hasHeightForWidth())
-        self.speech_key.setSizePolicy(sizePolicy)
+
+        self.speech_key = QtWidgets.QLineEdit()
         self.speech_key.setMinimumSize(QtCore.QSize(210, 35))
         self.speech_key.setObjectName("speech_key")
         self.formLayout_22.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.speech_key)
@@ -85,19 +63,13 @@ class Ui_azuretts(QDialog):
         self.formLayout_222.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_222.setObjectName("formLayout_222")
 
-        self.label222 = QtWidgets.QLabel(azurettsform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label222.sizePolicy().hasHeightForWidth())
-        self.label222.setSizePolicy(sizePolicy)
+        self.label222 = QtWidgets.QLabel()
         self.label222.setMinimumSize(QtCore.QSize(100, 35))
         self.label222.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label222.setObjectName("label222")
         self.formLayout_222.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label222)
 
-        self.azuretts_area = QtWidgets.QComboBox(azurettsform)
-
+        self.azuretts_area = QtWidgets.QComboBox()
         self.azuretts_area.setObjectName("azuretts_area")
         self.azuretts_area.addItems([
             "EastAsia",
@@ -137,24 +109,17 @@ class Ui_azuretts(QDialog):
             "USDoDCentral",
             "USDoDEast"
         ])
-
         self.azuretts_area.setMinimumSize(QtCore.QSize(210, 40))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-
-        self.azuretts_area.setSizePolicy(sizePolicy)
-
         self.formLayout_222.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.azuretts_area)
 
         self.verticalLayout.addLayout(self.formLayout_222)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-        self.save = QtWidgets.QPushButton(azurettsform)
+        self.save = QtWidgets.QPushButton()
         self.save.setMinimumSize(QtCore.QSize(0, 35))
         self.save.setObjectName("save")
 
-        self.test = QtWidgets.QPushButton(azurettsform)
+        self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 35))
         self.test.setObjectName("test")
 
@@ -173,11 +138,11 @@ class Ui_azuretts(QDialog):
 
         self.verticalLayout.addLayout(hv)
 
-        self.retranslateUi(azurettsform)
-        QtCore.QMetaObject.connectSlotsByName(azurettsform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, azurettsform):
-        azurettsform.setWindowTitle("AzureTTS")
+    def retranslateUi(self, form):
+        form.setWindowTitle("AzureTTS")
         self.label.setText(tr("Your SPEECH REGION"))
         self.label22.setText(tr("SPEECH_KEY"))
         self.label222.setText(tr("REGION"))

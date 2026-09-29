@@ -13,19 +13,11 @@ class Ui_transapi(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, transapiform):
+    def setupUi(self, form):
         self.has_done = False
-        if not transapiform.objectName():
-            transapiform.setObjectName("transapiform")
-        transapiform.setWindowModality(Qt.NonModal)
-        transapiform.resize(600, 400)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(transapiform.sizePolicy().hasHeightForWidth())
-        transapiform.setSizePolicy(sizePolicy)
-        transapiform.setMaximumSize(QSize(600, 400))
-        v1 = QtWidgets.QVBoxLayout(transapiform)
+        form.setObjectName("form")
+        form.resize(600, 400)
+        v1 = QtWidgets.QVBoxLayout(form)
 
         h1 = QtWidgets.QHBoxLayout()
         self.label = QLabel()
@@ -59,7 +51,7 @@ class Ui_transapi(QDialog):
         self.save.setObjectName("save")
         self.save.setMinimumSize(QSize(0, 35))
 
-        self.test = QPushButton(transapiform)
+        self.test = QPushButton()
         self.test.setObjectName("test")
         self.test.setMinimumSize(QSize(0, 35))
 
@@ -76,13 +68,13 @@ class Ui_transapi(QDialog):
 
         v1.addLayout(h3)
 
-        self.retranslateUi(transapiform)
+        self.retranslateUi(form)
 
-        QMetaObject.connectSlotsByName(transapiform)
+        QMetaObject.connectSlotsByName(form)
 
     # setupUi
 
-    def retranslateUi(self, transapiform):
+    def retranslateUi(self, form):
         if defaulelang == 'zh_CN':
             tips = """
 将以GET请求向填写的API地址发送application/www-urlencode数据：
@@ -107,7 +99,7 @@ Expect data to be returned from the interface in json format:
 }
 Usage: github.com/jianchang512/translate-api
 """
-        transapiform.setWindowTitle(
+        form.setWindowTitle(
             tr("Customizing the Translate API"))
         self.label_3.setText(tr("Secret"))
         self.miyue.setPlaceholderText("填写密钥")
@@ -119,4 +111,3 @@ Usage: github.com/jianchang512/translate-api
             tr("Fill in the full address starting with http"))
         self.label.setText(tr("Translate API"))
         self.test.setText(tr("Test"))
-    # retranslateUi

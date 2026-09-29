@@ -4,7 +4,7 @@ from videotrans.configure._i18n import tr
 # 0:键名([a-zA-Z][a-zA-Z0-9_]+)
 # 1: 菜单显示名称
 # 2:
-#   None:点击菜单时调用 winform.{键名}模块。
+#   None:点击菜单时调用 form.{键名}模块。
 #   False: 什么也不做
 #   http开头的url地址:在浏览器中打开
 #   其他字符串: 弹窗
@@ -19,16 +19,17 @@ MENU_CFG_TRANS = [
     ("zhipuai", tr("Zhipu AI"), None),
 
     ("minimaxi", "Minimaxi AI", None),
-
-    ("qwenmt", tr('Ali Qwen3-ASR'), None),
+    ("xiaomi", tr("XiaoMi"), None),
+    ("bailian", tr('Ali-Bailian'), None),
     ("azure", tr("AzureOpenAI Translation"), None),
     ("openrouter", 'OpenRouter.AI', None),
     ("siliconflow", tr("SiliconFlow"), None),
     ("ai302", "302.AI", None),
     ("litellm", 'LiteLLM', None),
-    ("cambtts", "CAMB.ai", None),
+    ("camb", "CAMB.ai", None),
     ("api_route", 'api-route.com', None),
     ("cheaperinference", 'Cheaper Inference', None),
+    ("infistar", 'Infistar.cc', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),
@@ -48,8 +49,6 @@ MENU_CFG_TTS = [
 
     ("openaitts", "OpenAI TTS", None),
     ("doubao2", tr("DouBao2"), None),
-    ("xiaomi", tr("XiaoMi"), None),
-    ("qwentts", f"{tr('Ali-Bailian')}/Qwen3-TTS", None),
 
 
     ("xaitts", "X.AI TTS", None),

@@ -7,7 +7,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure.config import tr, settings, params, ROOT_DIR
-from videotrans.configure.constants import SILICONFLOW_ASR_MODELS,SILICONFLOW_TTS_MODELS
+from videotrans.configure.constants import SILICONFLOW_TTS_MODELS
 from videotrans.util.help_misc import open_url
 
 
@@ -16,19 +16,12 @@ class Ui_siliconflow(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, siliconflowform):
+    def setupUi(self, form):
         self.has_done = False
-        siliconflowform.setObjectName("siliconflowform")
-        siliconflowform.setWindowModality(QtCore.Qt.NonModal)
-        siliconflowform.resize(600, 600)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(siliconflowform.sizePolicy().hasHeightForWidth())
-        siliconflowform.setSizePolicy(sizePolicy)
-        siliconflowform.setMaximumSize(QtCore.QSize(600, 600))
+        form.setObjectName("form")
+        form.resize(600, 600)
 
-        v1 = QtWidgets.QVBoxLayout(siliconflowform)
+        v1 = QtWidgets.QVBoxLayout(form)
 
         h3 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
@@ -39,9 +32,9 @@ class Ui_siliconflow(QDialog):
         self.label_0.setText(tr('SiliconFlow'))
         v1.addWidget(self.label_0)
 
-        self.label_3 = QtWidgets.QLabel(siliconflowform)
+        self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
-        self.siliconflow_key = QtWidgets.QLineEdit(siliconflowform)
+        self.siliconflow_key = QtWidgets.QLineEdit()
         self.siliconflow_key.setMinimumSize(QtCore.QSize(0, 35))
         self.siliconflow_key.setObjectName("siliconflow_key")
         h3.addWidget(self.label_3)
@@ -94,8 +87,6 @@ class Ui_siliconflow(QDialog):
         h_tts_model.addWidget(self.siliconflow_tts_model)
         v1.addLayout(h_tts_model)
 
-
-
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
@@ -106,16 +97,16 @@ class Ui_siliconflow(QDialog):
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-        self.label_4 = QtWidgets.QLabel(siliconflowform)
+        self.label_4 = QtWidgets.QLabel()
         self.label_4.setObjectName("label_4")
 
-        self.template = QtWidgets.QPlainTextEdit(siliconflowform)
+        self.template = QtWidgets.QPlainTextEdit()
         self.template.setObjectName("template")
         self.template.setReadOnly(True)
         v1.addWidget(self.label_4)
         v1.addWidget(self.template)
 
-        self.set = QtWidgets.QPushButton(siliconflowform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
 
@@ -138,8 +129,8 @@ class Ui_siliconflow(QDialog):
         v1.addLayout(h4)
         self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'siliconflow', 'siliconflow'))
 
-        self.retranslateUi(siliconflowform)
-        QtCore.QMetaObject.connectSlotsByName(siliconflowform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
         allmodels_str = settings.get('siliconflow_model','')
@@ -156,8 +147,8 @@ class Ui_siliconflow(QDialog):
             self.siliconflow_tts_model.setCurrentText(params.get("siliconflow_tts_model"))
 
 
-    def retranslateUi(self, siliconflowform):
-        siliconflowform.setWindowTitle(tr("SiliconFlow"))
+    def retranslateUi(self, form):
+        form.setWindowTitle(tr("SiliconFlow"))
         self.label_3.setText(tr("SK"))
         self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
         self.set.setText(tr('Save'))

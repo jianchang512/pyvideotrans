@@ -15,18 +15,12 @@ class Ui_sttapi(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, sttform):
+    def setupUi(self, form):
         self.has_done = False
-        sttform.setObjectName("sttform")
-        sttform.setWindowModality(QtCore.Qt.NonModal)
-        sttform.resize(500, 300)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(sttform.sizePolicy().hasHeightForWidth())
-        sttform.setSizePolicy(sizePolicy)
+        form.setObjectName("form")
+        form.resize(500, 300)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(sttform)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.verticalLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
@@ -34,68 +28,24 @@ class Ui_sttapi(QDialog):
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(sttform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.stt_url = QtWidgets.QLineEdit(sttform)
-        self.stt_url.setMinimumSize(QtCore.QSize(0, 35))
-        self.stt_url.setObjectName("stt_url")
+        self.sttapi_url = QtWidgets.QLineEdit()
+        self.sttapi_url.setMinimumSize(QtCore.QSize(0, 35))
+        self.sttapi_url.setObjectName("sttapi_url")
 
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.stt_url)
+        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.sttapi_url)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-        # sk
-        self.formLayout_3 = QtWidgets.QFormLayout()
-        self.formLayout_3.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout_3.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
-        self.formLayout_3.setObjectName("formLayout_3")
-        self.labelkey = QtWidgets.QLabel(sttform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.labelkey.sizePolicy().hasHeightForWidth())
-        self.labelkey.setSizePolicy(sizePolicy)
-        self.labelkey.setMinimumSize(QtCore.QSize(100, 35))
-        self.labelkey.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
-        self.labelkey.setObjectName("label")
-
-        self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.labelkey)
-        self.stt_model = QtWidgets.QComboBox(sttform)
-        self.stt_model.addItems([
-            "tiny",
-            "tiny.en",
-            "base",
-            "base.en",
-            "small",
-            "small.en",
-            "medium",
-            "medium.en",
-            "large-v1",
-            "large-v2",
-            "large-v3",
-            "distil-whisper-small.en",
-            "distil-whisper-medium.en",
-            "distil-whisper-large-v2",
-            "distil-whisper-large-v3",
-        ])
-        self.stt_model.setObjectName("stt_model")
-
-        self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.stt_model)
-        self.verticalLayout.addLayout(self.formLayout_3)
-
-        self.set = QtWidgets.QPushButton(sttform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
 
-        self.test = QtWidgets.QPushButton(sttform)
+        self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
 
@@ -116,15 +66,13 @@ class Ui_sttapi(QDialog):
 
         self.verticalLayout.addLayout(self.layout_btn)
 
-        self.retranslateUi(sttform)
-        QtCore.QMetaObject.connectSlotsByName(sttform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, sttform):
-        sttform.setWindowTitle(tr("STT Speech Recognition API"))
+    def retranslateUi(self, form):
+        form.setWindowTitle(tr("STT Speech Recognition API"))
 
         self.label.setText(tr('API URL'))
-        self.labelkey.setText(tr("Select model"))
-
-        self.stt_url.setPlaceholderText(tr('API URL'))
+        self.sttapi_url.setPlaceholderText(tr('API URL'))
         self.set.setText(tr("Save"))
         self.test.setText(tr("Test"))

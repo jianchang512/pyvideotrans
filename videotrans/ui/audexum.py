@@ -13,21 +13,21 @@ class Ui_audexum(QDialog):
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
 
-    def setupUi(self, audexumform):
+    def setupUi(self, form):
         self.has_done = False
-        audexumform.setObjectName("audexumform")
-        audexumform.setWindowModality(QtCore.Qt.NonModal)
-        audexumform.resize(500, 200)
-        audexumform.setWindowTitle("Audexum")
+        form.setObjectName("form")
+        form.resize(500, 200)
+        form.setWindowTitle("Audexum")
 
-        v1 = QtWidgets.QVBoxLayout(audexumform)
+        v1 = QtWidgets.QVBoxLayout(form)
         v1.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
         h2 = QtWidgets.QHBoxLayout()
-        label_key = QtWidgets.QLabel(audexumform)
+        label_key = QtWidgets.QLabel()
         label_key.setMinimumSize(QtCore.QSize(0, 35))
         label_key.setText(tr("SK"))
-        self.audexum_key = QtWidgets.QLineEdit(audexumform)
+
+        self.audexum_key = QtWidgets.QLineEdit()
         self.audexum_key.setMinimumSize(QtCore.QSize(0, 35))
         self.audexum_key.setObjectName("audexum_key")
         h2.addWidget(label_key)
@@ -35,17 +35,17 @@ class Ui_audexum(QDialog):
         v1.addLayout(h2)
 
         h4 = QtWidgets.QHBoxLayout()
-        self.set = QtWidgets.QPushButton(audexumform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
         self.set.setText(tr("Save"))
 
-        self.test = QtWidgets.QPushButton(audexumform)
+        self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 35))
         self.test.setObjectName("test")
         self.test.setText(tr("Test"))
 
-        help_btn = QtWidgets.QPushButton(audexumform)
+        help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
@@ -57,7 +57,7 @@ class Ui_audexum(QDialog):
         h4.addWidget(self.test)
         h4.addWidget(help_btn)
         v1.addLayout(h4)
-        QtCore.QMetaObject.connectSlotsByName(audexumform)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
         self.audexum_key.setText(str(params.get("audexum_key", "")))

@@ -13,21 +13,13 @@ class Ui_cosyvoice(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, cosyvoiceform):
+    def setupUi(self, form):
         self.has_done = False
-        if not cosyvoiceform.objectName():
-            cosyvoiceform.setObjectName("cosyvoiceform")
-        cosyvoiceform.setWindowModality(Qt.NonModal)
-        cosyvoiceform.resize(600, 250)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(cosyvoiceform.sizePolicy().hasHeightForWidth())
-        cosyvoiceform.setSizePolicy(sizePolicy)
-        cosyvoiceform.setMaximumSize(QSize(600, 250))
+        form.setObjectName("form")
+        form.resize(600, 250)
 
         # 创建一个垂直布局
-        v1 = QtWidgets.QVBoxLayout(cosyvoiceform)
+        v1 = QtWidgets.QVBoxLayout(form)
         tipslabel=QLabel(tr('cosyvoice23webui'))
         tipslabel.setWordWrap(True)
         v1.addWidget(tipslabel)
@@ -78,14 +70,14 @@ class Ui_cosyvoice(QDialog):
 
         v1.addLayout(h2)
 
-        self.retranslateUi(cosyvoiceform)
+        self.retranslateUi(form)
 
-        QMetaObject.connectSlotsByName(cosyvoiceform)
+        QMetaObject.connectSlotsByName(form)
 
     
     
-    def retranslateUi(self, cosyvoiceform):
-        cosyvoiceform.setWindowTitle("CosyVoice2/3" +tr('This channel needs deployed and started before available'))
+    def retranslateUi(self, form):
+        form.setWindowTitle("CosyVoice2/3" +tr('This channel needs deployed and started before available'))
         self.save.setText(tr("Save"))
         self.api_url.setPlaceholderText("webui url")
         self.label.setText("WebUI url")

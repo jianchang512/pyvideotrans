@@ -16,28 +16,19 @@ class Ui_xaitts(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, xaittsform):
+    def setupUi(self, form):
         self.has_done = False
-        xaittsform.setObjectName("xaittsform")
-        xaittsform.setWindowModality(QtCore.Qt.NonModal)
-        xaittsform.resize(600, 300)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(xaittsform.sizePolicy().hasHeightForWidth())
-        xaittsform.setSizePolicy(sizePolicy)
-        xaittsform.setMaximumSize(QtCore.QSize(600, 300))
+        form.setObjectName("form")
+        form.resize(600, 300)
 
-        v1 = QtWidgets.QVBoxLayout(xaittsform)
-
-
+        v1 = QtWidgets.QVBoxLayout(form)
 
         h2 = QtWidgets.QHBoxLayout()
-        self.label_2 = QtWidgets.QLabel(xaittsform)
+        self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
-        self.xaitts_key = QtWidgets.QLineEdit(xaittsform)
+        self.xaitts_key = QtWidgets.QLineEdit()
         self.xaitts_key.setMinimumSize(QtCore.QSize(0, 35))
         self.xaitts_key.setObjectName("xaitts_key")
         h2.addWidget(self.label_2)
@@ -46,12 +37,11 @@ class Ui_xaitts(QDialog):
 
 
         h4 = QtWidgets.QHBoxLayout()
-
-        self.set_xaitts = QtWidgets.QPushButton(xaittsform)
+        self.set_xaitts = QtWidgets.QPushButton()
         self.set_xaitts.setMinimumSize(QtCore.QSize(0, 35))
         self.set_xaitts.setObjectName("set_xaitts")
 
-        self.test_xaitts = QtWidgets.QPushButton(xaittsform)
+        self.test_xaitts = QtWidgets.QPushButton()
         self.test_xaitts.setMinimumSize(QtCore.QSize(0, 30))
         self.test_xaitts.setObjectName("test_xaitts")
 
@@ -68,16 +58,15 @@ class Ui_xaitts(QDialog):
         h4.addWidget(help_btn)
         v1.addLayout(h4)
 
-        self.retranslateUi(xaittsform)
-        QtCore.QMetaObject.connectSlotsByName(xaittsform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
-
         if params.get("xaitts_key",''):
             self.xaitts_key.setText(str(params.get("xaitts_key",'')))
 
-    def retranslateUi(self, xaittsform):
-        xaittsform.setWindowTitle("XAI TTS")
+    def retranslateUi(self, form):
+        form.setWindowTitle("XAI TTS")
         self.set_xaitts.setText(tr("Save"))
         self.test_xaitts.setText(tr("Test"))
         self.xaitts_key.setPlaceholderText("SK")

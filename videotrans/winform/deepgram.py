@@ -20,7 +20,6 @@ def openwin():
             show_error(tr("Must fill in the API Key"))
             return
         params["deepgram_apikey"] = apikey
-        params["deepgram_utt"] = winobj.utt.text().strip() or 200
         params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.Deepgram, model_name="whisper-large")
@@ -33,13 +32,11 @@ def openwin():
             show_error(tr("Must fill in the API Key"))
             return
         params["deepgram_apikey"] = apikey
-        params["deepgram_utt"] = winobj.utt.text().strip() or 200
         params.save()
         set_process(text='', type="refreshmodel_list")
         winobj.close()
 
     winobj.apikey.setText(str(params.get("deepgram_apikey", '')))
-    winobj.utt.setText(str(params.get("deepgram_utt", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     return winobj

@@ -15,13 +15,12 @@ class Ui_whisperxapi(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, whisperxform):
+    def setupUi(self, form):
         self.has_done = False
-        whisperxform.setObjectName("whisperxform")
-        whisperxform.setWindowModality(QtCore.Qt.NonModal)
-        whisperxform.resize(800, 400)
+        form.setObjectName("form")
+        form.resize(800, 400)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(whisperxform)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.verticalLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         self.helplabel=QtWidgets.QLabel(tr('whisperx-tips'))
@@ -45,7 +44,6 @@ class Ui_whisperxapi(QDialog):
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.api_url)
         self.verticalLayout.addLayout(self.formLayout_2)
-
 
 
         self.set = QtWidgets.QPushButton()
@@ -72,11 +70,11 @@ class Ui_whisperxapi(QDialog):
 
         self.verticalLayout.addLayout(self.layout_btn)
 
-        self.retranslateUi(whisperxform)
-        QtCore.QMetaObject.connectSlotsByName(whisperxform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, whisperxform):
-        whisperxform.setWindowTitle('WhipserX-API '+tr('This channel needs deployed and started before available'))
+    def retranslateUi(self, form):
+        form.setWindowTitle('WhipserX-API '+tr('This channel needs deployed and started before available'))
 
         self.label.setText(tr('API URL'))
         self.api_url.setPlaceholderText(tr('API URL'))

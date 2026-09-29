@@ -8,24 +8,18 @@ from videotrans.configure.constants import  CAMBAI_ASR_MODELS
 from videotrans.util.help_misc import open_url
 
 
-class Ui_cambtts(QDialog):
+class Ui_camb(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, cambttsform):
-        self.has_done = False
-        cambttsform.setObjectName("cambttsform")
-        cambttsform.setWindowModality(QtCore.Qt.NonModal)
-        cambttsform.resize(400, 260)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(cambttsform.sizePolicy().hasHeightForWidth())
-        cambttsform.setSizePolicy(sizePolicy)
-        cambttsform.setMaximumSize(QtCore.QSize(400, 300))
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(cambttsform)
+    def setupUi(self, form):
+        self.has_done = False
+        form.setObjectName("form")
+        form.resize(400, 260)
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
 
         # API Key row
@@ -38,7 +32,6 @@ class Ui_cambtts(QDialog):
         self.camb_api_key.setObjectName("camb_api_key")
         self.formLayout_2.addWidget(self.label)
         self.formLayout_2.addWidget(self.camb_api_key)
-
 
         self.verticalLayout.addLayout(self.formLayout_2)
 
@@ -66,11 +59,11 @@ class Ui_cambtts(QDialog):
 
         self.verticalLayout.addLayout(hv)
 
-        self.retranslateUi(cambttsform)
-        QtCore.QMetaObject.connectSlotsByName(cambttsform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, cambttsform):
-        cambttsform.setWindowTitle("CAMB AI TTS")
+    def retranslateUi(self, form):
+        form.setWindowTitle("CAMB AI TTS")
         self.label.setText("API_KEY")
         self.set.setText(tr("Save"))
         self.test.setText(tr("Test & get roles"))

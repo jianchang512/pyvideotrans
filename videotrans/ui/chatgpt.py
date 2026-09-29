@@ -15,19 +15,12 @@ class Ui_chatgpt(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, chatgptform):
+    def setupUi(self, form):
         self.has_done = False
-        chatgptform.setObjectName("chatgptform")
-        chatgptform.setWindowModality(QtCore.Qt.NonModal)
-        chatgptform.resize(600, 600)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(chatgptform.sizePolicy().hasHeightForWidth())
-        chatgptform.setSizePolicy(sizePolicy)
-        chatgptform.setMaximumSize(QtCore.QSize(600, 600))
+        form.setObjectName("form")
+        form.resize(600, 600)
 
-        v1 = QtWidgets.QVBoxLayout(chatgptform)
+        v1 = QtWidgets.QVBoxLayout(form)
         h1 = QtWidgets.QHBoxLayout()
         h2 = QtWidgets.QHBoxLayout()
         h3 = QtWidgets.QHBoxLayout()
@@ -41,21 +34,21 @@ class Ui_chatgpt(QDialog):
             tr("AIs compatible with the ChatGPT also used here(For LLM re-segment)"))
         v1.addWidget(self.label_0)
 
-        self.label = QtWidgets.QLabel(chatgptform)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(0, 35))
         self.label.setObjectName("label")
-        self.chatgpt_api = QtWidgets.QLineEdit(chatgptform)
+        self.chatgpt_api = QtWidgets.QLineEdit()
         self.chatgpt_api.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_api.setObjectName("chatgpt_api")
         h1.addWidget(self.label)
         h1.addWidget(self.chatgpt_api)
         v1.addLayout(h1)
 
-        self.label_2 = QtWidgets.QLabel(chatgptform)
+        self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
-        self.chatgpt_key = QtWidgets.QLineEdit(chatgptform)
+        self.chatgpt_key = QtWidgets.QLineEdit()
         self.chatgpt_key.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_key.setObjectName("chatgpt_key")
         h2.addWidget(self.label_2)
@@ -63,10 +56,10 @@ class Ui_chatgpt(QDialog):
 
         h_token = QtWidgets.QHBoxLayout()
 
-        label_token = QtWidgets.QLabel(chatgptform)
+        label_token = QtWidgets.QLabel()
         label_token.setObjectName("label_token")
         label_token.setText(tr("Maximum output token"))
-        self.chatgpt_max_token = QtWidgets.QLineEdit(chatgptform)
+        self.chatgpt_max_token = QtWidgets.QLineEdit()
         self.chatgpt_max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_max_token.setObjectName("chatgpt_max_token")
 
@@ -85,39 +78,39 @@ class Ui_chatgpt(QDialog):
         v1.addLayout(hreason)
         
 
-        self.label_3 = QtWidgets.QLabel(chatgptform)
+        self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
-        self.chatgpt_model = QtWidgets.QComboBox(chatgptform)
+        self.chatgpt_model = QtWidgets.QComboBox()
         self.chatgpt_model.setMinimumSize(QtCore.QSize(0, 35))
         self.chatgpt_model.setObjectName("chatgpt_model")
         h3.addWidget(self.label_3)
         h3.addWidget(self.chatgpt_model)
         v1.addLayout(h3)
 
-        self.label_allmodels = QtWidgets.QLabel(chatgptform)
+        self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
             tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
         v1.addWidget(self.label_allmodels)
 
-        self.edit_allmodels = QtWidgets.QPlainTextEdit(chatgptform)
+        self.edit_allmodels = QtWidgets.QPlainTextEdit()
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-        self.label_4 = QtWidgets.QLabel(chatgptform)
+        self.label_4 = QtWidgets.QLabel()
         self.label_4.setObjectName("label_4")
 
-        self.chatgpt_template = QtWidgets.QPlainTextEdit(chatgptform)
+        self.chatgpt_template = QtWidgets.QPlainTextEdit()
         self.chatgpt_template.setObjectName("chatgpt_template")
         self.chatgpt_template.setReadOnly(True)
         v1.addWidget(self.label_4)
         v1.addWidget(self.chatgpt_template)
 
-        self.set_chatgpt = QtWidgets.QPushButton(chatgptform)
+        self.set_chatgpt = QtWidgets.QPushButton()
         self.set_chatgpt.setMinimumSize(QtCore.QSize(0, 35))
         self.set_chatgpt.setObjectName("set_chatgpt")
 
-        self.test_chatgpt = QtWidgets.QPushButton(chatgptform)
+        self.test_chatgpt = QtWidgets.QPushButton()
         self.test_chatgpt.setMinimumSize(QtCore.QSize(0, 30))
         self.test_chatgpt.setObjectName("test_chatgpt")
         help_btn = QtWidgets.QPushButton()
@@ -134,11 +127,10 @@ class Ui_chatgpt(QDialog):
         v1.addLayout(h4)
         self.chatgpt_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'chatgpt', 'chatgpt'))
 
-        self.retranslateUi(chatgptform)
-        QtCore.QMetaObject.connectSlotsByName(chatgptform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
-
         allmodels_str = settings.get('chatgpt_model','')
         allmodels = str(settings.get('chatgpt_model','')).split(',')
         self.chatgpt_model.clear()
@@ -155,9 +147,9 @@ class Ui_chatgpt(QDialog):
             _effort='default'
         self.reasoning_effort.setCurrentText(_effort)
         
-    def retranslateUi(self, chatgptform):
-        chatgptform.setWindowTitle(tr("OpenAI API & Compatible AI"))
-        self.label_3.setText(tr("Model"))
+    def retranslateUi(self, form):
+        form.setWindowTitle(tr("OpenAI API & Compatible AI"))
+        self.label_3.setText(tr('Text  Or Srt  Translation')+tr("Model"))
         self.chatgpt_template.setPlaceholderText("prompt")
         self.label_4.setText(
             tr("{lang} represents the target language name, do not delete it."))

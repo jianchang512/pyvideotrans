@@ -14,19 +14,12 @@ class Ui_gemini(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, geminiform):
+    def setupUi(self, form):
         self.has_done = False
-        geminiform.setObjectName("geminiform")
-        geminiform.setWindowModality(QtCore.Qt.NonModal)
-        geminiform.resize(600, 550)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(geminiform.sizePolicy().hasHeightForWidth())
-        geminiform.setSizePolicy(sizePolicy)
-        geminiform.setMaximumSize(QtCore.QSize(600, 550))
+        form.setObjectName("form")
+        form.resize(600, 550)
 
-        v1 = QtWidgets.QVBoxLayout(geminiform)
+        v1 = QtWidgets.QVBoxLayout(form)
 
         h1 = QtWidgets.QHBoxLayout()
         self.label_2 = QtWidgets.QLabel()
@@ -133,9 +126,9 @@ class Ui_gemini(QDialog):
         h3.addWidget(help_btn)
         v1.addLayout(h3)
         self.gemini_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'gemini', 'gemini'))
-        geminiform.setWindowTitle("Gemini AI")
+        form.setWindowTitle("Gemini AI")
         self.retranslateUi()
-        QtCore.QMetaObject.connectSlotsByName(geminiform)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
 
     def update_ui(self):
@@ -164,4 +157,4 @@ class Ui_gemini(QDialog):
         self.label_srt.setText(
             tr("Prompt for subtitles when converting audio to video"))
         self.label_srt.setStyleSheet("color: #999;")
-        self.label_3.setText(tr("Select model"))
+        self.label_3.setText(tr('Text  Or Srt  Translation')+tr("Model"))

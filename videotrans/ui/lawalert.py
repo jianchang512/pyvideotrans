@@ -13,21 +13,15 @@ class Ui_lawalert(QtWidgets.QWidget):
         self.setupUi(self)
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
 
-    def setupUi(self, lawalert):
-
-        lawalert.setObjectName("lawalert")
-        lawalert.setWindowModality(QtCore.Qt.ApplicationModal)
-        lawalert.resize(950, 600)
+    def setupUi(self, form):
+        form.setObjectName("form")
+        form.setWindowModality(QtCore.Qt.ApplicationModal)
+        form.resize(950, 600)
         flags = QtCore.Qt.Window | QtCore.Qt.WindowTitleHint | QtCore.Qt.WindowCloseButtonHint
         self.setWindowFlags(flags)
         self.window().setWindowFlag(QtCore.Qt.WindowCloseButtonHint, False)
 
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(lawalert.sizePolicy().hasHeightForWidth())
-        lawalert.setSizePolicy(sizePolicy)
-        self.v1 = QtWidgets.QVBoxLayout(lawalert)
+        self.v1 = QtWidgets.QVBoxLayout(form)
         # 将 v1 设为垂直顶部对齐
         self.v1.setAlignment(Qt.AlignTop)
 
@@ -136,7 +130,7 @@ class Ui_lawalert(QtWidgets.QWidget):
         btn_h.addWidget(dont)
         self.v1.addLayout(btn_h)
 
-        lawalert.setWindowTitle('pyVideoTrans '+tr('Software License Agreement'))
+        form.setWindowTitle('pyVideoTrans '+tr('Software License Agreement'))
 
     def _close(self,res=True):
         if res:

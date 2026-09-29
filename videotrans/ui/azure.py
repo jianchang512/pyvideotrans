@@ -15,19 +15,13 @@ class Ui_azure(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, azureform):
-        self.has_done = False
-        azureform.setObjectName("azureform")
-        azureform.setWindowModality(QtCore.Qt.NonModal)
-        azureform.resize(600, 580)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(azureform.sizePolicy().hasHeightForWidth())
-        azureform.setSizePolicy(sizePolicy)
-        azureform.setMaximumSize(QtCore.QSize(600, 580))
 
-        v1 = QtWidgets.QVBoxLayout(azureform)
+    def setupUi(self, form):
+        self.has_done = False
+        form.setObjectName("form")
+        form.resize(600, 580)
+
+        v1 = QtWidgets.QVBoxLayout(form)
 
         h1 = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel()
@@ -51,25 +45,6 @@ class Ui_azure(QDialog):
         h2.addWidget(self.label_2)
         h2.addWidget(self.azure_key)
         v1.addLayout(h2)
-
-        h3 = QtWidgets.QHBoxLayout()
-        self.label_version = QtWidgets.QLabel()
-        self.label_version.setObjectName("label_version")
-        self.azure_version = QtWidgets.QComboBox()
-        self.azure_version.setMinimumSize(QtCore.QSize(0, 35))
-        self.azure_version.setObjectName("azure_version")
-        self.azure_version.addItems([
-            "2025-04-01-preview",
-            "2025-02-01-preview",
-            "2025-01-01-preview",
-            "2024-12-01-preview",
-            "2024-09-01-preview",
-            "2024-08-01-preview",
-            "2024-07-01-preview",
-        ])
-        h3.addWidget(self.label_version)
-        h3.addWidget(self.azure_version)
-        v1.addLayout(h3)
 
         h4 = QtWidgets.QHBoxLayout()
         self.label_3 = QtWidgets.QLabel()
@@ -120,8 +95,8 @@ class Ui_azure(QDialog):
         v1.addLayout(h5)
         self.azure_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'azure', 'azure'))
 
-        self.retranslateUi(azureform)
-        QtCore.QMetaObject.connectSlotsByName(azureform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
     def update_ui(self):
 
         allmodels_str = settings.get('azure_model','')
@@ -131,13 +106,11 @@ class Ui_azure(QDialog):
         self.edit_allmodels.setPlainText(str(allmodels_str))
         self.azure_key.setText(str(params.get("azure_key",'')))
         self.azure_api.setText(str(params.get("azure_api",'')))
-        self.azure_version.setCurrentText(str(params.get("azure_version",'')))
         if params.get('azure_model','') in allmodels:
             self.azure_model.setCurrentText(str(params.get("azure_model",'')))
-    def retranslateUi(self, azureform):
-        azureform.setWindowTitle("AzureGPT")
-        self.label_3.setText(tr("Model"))
-        self.label_version.setText("API Version")
+    def retranslateUi(self, form):
+        form.setWindowTitle("AzureGPT")
+        self.label_3.setText(tr('Text  Or Srt  Translation')+tr("Model"))
         self.label_4.setText(
             tr("{lang} represents the target language name, do not delete it."))
         self.set_azure.setText(tr("Save"))

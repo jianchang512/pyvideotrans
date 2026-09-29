@@ -14,15 +14,12 @@ class Ui_minimaxi(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, minimaxiform):
+    def setupUi(self, form):
         self.has_done = False
-        if not minimaxiform.objectName():
-            minimaxiform.setObjectName("minimaxiform")
-        minimaxiform.setWindowModality(Qt.NonModal)
-        minimaxiform.resize(800, 300)
-        minimaxiform.setMaximumSize(QSize(800, 300))
+        form.setObjectName("form")
+        form.resize(800, 300)
 
-        v1 = QtWidgets.QVBoxLayout(minimaxiform)
+        v1 = QtWidgets.QVBoxLayout(form)
         h1 = QtWidgets.QHBoxLayout()
         label_api = QLabel()
         label_api.setObjectName("label_api")
@@ -137,9 +134,9 @@ class Ui_minimaxi(QDialog):
         h4.addWidget(help_btn)
         v1.addLayout(h4)
 
-        self.retranslateUi(minimaxiform)
+        self.retranslateUi(form)
 
-        QMetaObject.connectSlotsByName(minimaxiform)
+        QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
         allmodels_str = settings.get('minimaxi_model','')
@@ -158,8 +155,8 @@ class Ui_minimaxi(QDialog):
         self.minimaxi_thinking.setChecked(bool(params.get("minimaxi_thinking",False)))
 
 
-    def retranslateUi(self, minimaxiform):
-        minimaxiform.setWindowTitle("Minimaxi API")
+    def retranslateUi(self, form):
+        form.setWindowTitle("Minimaxi API")
         self.save.setText(tr("Save"))
         self.apikey.setPlaceholderText( tr("SK"))
         self.test.setText(tr("Test"))

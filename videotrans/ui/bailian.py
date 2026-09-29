@@ -7,30 +7,21 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure.config import tr, params, settings, ROOT_DIR
+from videotrans.configure.constants import QWEN_TTS_MODELS
 from videotrans.util.help_misc import open_url
 
 
-class Ui_qwenmt(QDialog):
+class Ui_bailian(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, qwenmtform):
+    def setupUi(self, form):
         self.has_done = False
-        qwenmtform.setObjectName("qwenmtform")
-        qwenmtform.setWindowModality(QtCore.Qt.NonModal)
-        qwenmtform.resize(800, 600)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(qwenmtform.sizePolicy().hasHeightForWidth())
-        qwenmtform.setSizePolicy(sizePolicy)
-        qwenmtform.setMaximumSize(QtCore.QSize(800, 600))
+        form.setObjectName("form")
+        form.resize(800, 600)
 
-        v1 = QtWidgets.QVBoxLayout(qwenmtform)
-
-
-
+        v1 = QtWidgets.QVBoxLayout(form)
 
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
@@ -65,12 +56,12 @@ class Ui_qwenmt(QDialog):
         v1.addLayout(hspaceid)
 
 
-        label_domains = QtWidgets.QLabel(qwenmtform)
+        label_domains = QtWidgets.QLabel()
         label_domains.setMinimumSize(QtCore.QSize(0, 35))
         label_domains.setSizeIncrement(QtCore.QSize(0, 35))
         label_domains.setObjectName("label_domains")
         label_domains.setText(tr("Translation style prompt"))
-        self.qwenmt_domains = QtWidgets.QLineEdit(qwenmtform)
+        self.qwenmt_domains = QtWidgets.QLineEdit()
         self.qwenmt_domains.setMinimumSize(QtCore.QSize(0, 35))
         self.qwenmt_domains.setObjectName("qwenmt_domains")
         self.qwenmt_domains.setPlaceholderText(tr("Fill in a natural language text (must be English) describing your domain, which will be provided to the model as a prompt"))
@@ -78,8 +69,6 @@ class Ui_qwenmt(QDialog):
         h3.addWidget(label_domains)
         h3.addWidget(self.qwenmt_domains)
         v1.addLayout(h3)
-
-
 
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
@@ -92,6 +81,18 @@ class Ui_qwenmt(QDialog):
         h_model.addWidget(self.qwenmt_model)
         v1.addLayout(h_model)
 
+
+        h_tts = QtWidgets.QHBoxLayout()
+        label_tts = QtWidgets.QLabel()
+        label_tts.setObjectName("label_tts")
+        label_tts.setText('TTS '+tr("Model"))
+        self.qwenmt_ttsmodel = QtWidgets.QComboBox()
+        self.qwenmt_ttsmodel.setMinimumSize(QtCore.QSize(0, 35))
+        self.qwenmt_ttsmodel.setObjectName("qwenmt_ttsmodel")
+        self.qwenmt_ttsmodel.addItems(QWEN_TTS_MODELS.split(','))
+        h_tts.addWidget(label_tts)
+        h_tts.addWidget(self.qwenmt_ttsmodel)
+        v1.addLayout(h_tts)
 
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
@@ -110,7 +111,7 @@ class Ui_qwenmt(QDialog):
 
         v1.addWidget(self.template)
 
-        self.set = QtWidgets.QPushButton(qwenmtform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
 
@@ -133,14 +134,13 @@ class Ui_qwenmt(QDialog):
         h4.addWidget(help_btn)
         v1.addLayout(h4)
 
-        self.retranslateUi(qwenmtform)
-        QtCore.QMetaObject.connectSlotsByName(qwenmtform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
         allmodels_str = settings.get('qwenmt_model','')
         allmodels = str(settings.get('qwenmt_model','')).split(',')
         self.qwenmt_model.clear()
-
         self.qwenmt_model.addItems([ it  for it in allmodels if "-asr" not in it])
         self.edit_allmodels.setPlainText(allmodels_str)
         
@@ -153,10 +153,10 @@ class Ui_qwenmt(QDialog):
             params['qwenmt_model']='qwen-mt-turbo'
             params.save()
 
-        self.qwenmt_model.setCurrentText(params["qwenmt_model"])
-        
+        self.qwenmt_model.setCurrentText(params.get("qwenmt_model"))
+        self.qwenmt_ttsmodel.setCurrentText(params.get("qwenmt_ttsmodel",''))
 
-    def retranslateUi(self, qwenmtform):
-        qwenmtform.setWindowTitle(tr("Ali-BaiLian API/Qwen-ASR AI"))
+    def retranslateUi(self, form):
+        form.setWindowTitle(tr("Ali-Bailian"))
         self.label_2.setText(f"{tr('Ali-Bailian')} {tr('SK')}")
         self.set.setText(tr("Save"))

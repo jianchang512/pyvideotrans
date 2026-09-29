@@ -2,6 +2,7 @@ from pathlib import Path
 from videotrans.configure.config import logger,settings
 
 def _write_log(file, msg):
+    if not file:return
     try:
         Path(file).write_text(msg, encoding='utf-8')
     except Exception as e:

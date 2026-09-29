@@ -11,7 +11,6 @@ def openwin():
     def save():
         params["azure_key"] = winobj.azure_key.text().strip()
         params["azure_api"] = winobj.azure_api.text()
-        params["azure_version"] = winobj.azure_version.currentText()
         params["azure_model"] = winobj.azure_model.currentText()
         params.save()
         winobj.close()

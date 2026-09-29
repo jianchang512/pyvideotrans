@@ -14,19 +14,12 @@ class Ui_deeplx(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, deeplxform):
+    def setupUi(self, form):
         self.has_done = False
-        deeplxform.setObjectName("deeplxform")
-        deeplxform.setWindowModality(QtCore.Qt.NonModal)
-        deeplxform.resize(500, 300)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(deeplxform.sizePolicy().hasHeightForWidth())
-        deeplxform.setSizePolicy(sizePolicy)
-        deeplxform.setMaximumSize(QtCore.QSize(500, 300))
+        form.setObjectName("form")
+        form.resize(500, 300)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(deeplxform)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -38,22 +31,22 @@ class Ui_deeplx(QDialog):
         self.formLayout_3.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
 
-        self.label = QtWidgets.QLabel(deeplxform)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.deeplx_address = QtWidgets.QLineEdit(deeplxform)
+        self.deeplx_address = QtWidgets.QLineEdit()
         self.deeplx_address.setMinimumSize(QtCore.QSize(320, 35))
         self.deeplx_address.setObjectName("deeplx_address")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deeplx_address)
 
-        self.label2 = QtWidgets.QLabel(deeplxform)
+        self.label2 = QtWidgets.QLabel()
         self.label2.setMinimumSize(QtCore.QSize(100, 35))
         self.label2.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label2.setObjectName("label2")
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label2)
-        self.deeplx_key = QtWidgets.QLineEdit(deeplxform)
+        self.deeplx_key = QtWidgets.QLineEdit()
         self.deeplx_key.setMinimumSize(QtCore.QSize(320, 35))
         self.deeplx_key.setObjectName("deeplx_key")
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deeplx_key)
@@ -61,11 +54,11 @@ class Ui_deeplx(QDialog):
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout.addLayout(self.formLayout_3)
 
-        self.set_deeplx = QtWidgets.QPushButton(deeplxform)
+        self.set_deeplx = QtWidgets.QPushButton()
         self.set_deeplx.setMinimumSize(QtCore.QSize(0, 35))
         self.set_deeplx.setObjectName("set_deeplx")
 
-        self.test = QtWidgets.QPushButton(deeplxform)
+        self.test = QtWidgets.QPushButton()
         self.test.setObjectName("test")
 
         help_btn = QtWidgets.QPushButton()
@@ -83,11 +76,11 @@ class Ui_deeplx(QDialog):
 
         self.verticalLayout.addLayout(h1)
 
-        self.retranslateUi(deeplxform)
-        QtCore.QMetaObject.connectSlotsByName(deeplxform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, deeplxform):
-        deeplxform.setWindowTitle("DeepLx")
+    def retranslateUi(self, form):
+        form.setWindowTitle("DeepLx")
         self.label.setText(tr("API URL"))
         self.label2.setText(tr("SK"))
         self.deeplx_key.setPlaceholderText(

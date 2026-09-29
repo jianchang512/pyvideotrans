@@ -16,78 +16,58 @@ class Ui_ali(QDialog):
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
 
-    def setupUi(self, aliform):
+    def setupUi(self, form):
         self.has_done = False
-        aliform.setObjectName("aliform")
-        aliform.setWindowModality(QtCore.Qt.NonModal)
-        aliform.resize(400, 223)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(aliform.sizePolicy().hasHeightForWidth())
-        aliform.setSizePolicy(sizePolicy)
-        aliform.setMaximumSize(QtCore.QSize(400, 300))
+        form.setObjectName("form")
+        form.resize(400, 223)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(aliform)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
+
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(aliform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
+
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.ali_id = QtWidgets.QLineEdit(aliform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.ali_id.sizePolicy().hasHeightForWidth())
-        self.ali_id.setSizePolicy(sizePolicy)
+
+        self.ali_id = QtWidgets.QLineEdit()
         self.ali_id.setMinimumSize(QtCore.QSize(210, 35))
         self.ali_id.setObjectName("ali_id")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.ali_id)
         self.verticalLayout.addLayout(self.formLayout_2)
+
         self.formLayout = QtWidgets.QFormLayout()
         self.formLayout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.formLayout.setObjectName("formLayout")
-        self.label_2 = QtWidgets.QLabel(aliform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
-        self.label_2.setSizePolicy(sizePolicy)
+
+        self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(100, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_2)
-        self.ali_key = QtWidgets.QLineEdit(aliform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.ali_key.sizePolicy().hasHeightForWidth())
-        self.ali_key.setSizePolicy(sizePolicy)
+
+        self.ali_key = QtWidgets.QLineEdit()
         self.ali_key.setMinimumSize(QtCore.QSize(210, 35))
         self.ali_key.setObjectName("ali_key")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.ali_key)
         self.verticalLayout.addLayout(self.formLayout)
 
         h4 = QtWidgets.QHBoxLayout()
-        self.set = QtWidgets.QPushButton(aliform)
+
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
 
-        self.test = QtWidgets.QPushButton(aliform)
+        self.test = QtWidgets.QPushButton()
         self.test.setObjectName("test")
 
-        help_btn = QtWidgets.QPushButton(aliform)
+        help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
@@ -101,11 +81,11 @@ class Ui_ali(QDialog):
 
         self.verticalLayout.addLayout(h4)
 
-        self.retranslateUi(aliform)
-        QtCore.QMetaObject.connectSlotsByName(aliform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, aliform):
-        aliform.setWindowTitle(tr("Alibaba Machine Translation"))
+    def retranslateUi(self, form):
+        form.setWindowTitle(tr("Alibaba Machine Translation"))
         self.label.setText("AccessKey ID")
         self.label_2.setText("AccessKey Secret")
         self.set.setText(tr("Save"))

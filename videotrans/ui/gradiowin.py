@@ -13,20 +13,12 @@ class Ui_gradiowin(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, gradiowinform):
+    def setupUi(self, form):
         self.has_done = False
-        if not gradiowinform.objectName():
-            gradiowinform.setObjectName("gradiowinform")
-        gradiowinform.setWindowModality(Qt.NonModal)
-        gradiowinform.resize(600, 500)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(gradiowinform.sizePolicy().hasHeightForWidth())
-        gradiowinform.setSizePolicy(sizePolicy)
-        gradiowinform.setMaximumSize(QSize(600, 500))
+        form.setObjectName("form")
+        form.resize(600, 500)
 
-        v1 = QtWidgets.QVBoxLayout(gradiowinform)
+        v1 = QtWidgets.QVBoxLayout(form)
 
         h1indextts_url = QtWidgets.QHBoxLayout()
         self.indextts_urllabel = QLabel('Index-TTS URL')
@@ -98,21 +90,13 @@ class Ui_gradiowin(QDialog):
 
         h1firered3tts_url.addWidget(self.firered3tts_urllabel)
         h1firered3tts_url.addWidget(self.firered3tts_url)
-
-        
-        
         self.firered3tts_urltest = QPushButton(tr("Test"))        
         h1firered3tts_url.addWidget(self.firered3tts_urltest)
-        v1.addLayout(h1firered3tts_url) 
-        
-        
-        
-
+        v1.addLayout(h1firered3tts_url)
         h2 = QtWidgets.QHBoxLayout()
 
         self.save = QPushButton()
         self.save.setObjectName("save")
-        self.save.setGeometry(QRect(10, 450, 93, 35))
         self.save.setMinimumSize(QSize(0, 35))
        
 
@@ -131,13 +115,10 @@ class Ui_gradiowin(QDialog):
         h2.addWidget(ref_btn)
         h2.addWidget(help_btn)
         v1.addLayout(h2)
-
-        self.retranslateUi(gradiowinform)
-
-        QMetaObject.connectSlotsByName(gradiowinform)
+        self.retranslateUi(form)
+        QMetaObject.connectSlotsByName(form)
 
 
-    def retranslateUi(self, gradiowinform):
-
-        gradiowinform.setWindowTitle("Index/VoxCPM/Spark/FireRed3" +tr('This channel needs deployed and started before available'))
+    def retranslateUi(self, form):
+        form.setWindowTitle("Index/VoxCPM/Spark/FireRed3" +tr('This channel needs deployed and started before available'))
         self.save.setText(tr("Save"))

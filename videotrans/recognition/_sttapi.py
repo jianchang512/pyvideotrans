@@ -37,7 +37,7 @@ class SttAPIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        api_url = params.get('stt_url', '').strip().rstrip('/')
+        api_url = params.get('sttapi_url', '').strip().rstrip('/')
         if not api_url:
             raise SpeechToTextError(tr("Custom api address must be filled in"))
 
@@ -54,7 +54,7 @@ class SttAPIRecogn(BaseRecogn):
         self.signal(
             text=tr("Recognition may take a while, please be patient"))
 
-        data = {"language": self.detect_language.split('-')[0], "model": params.get('stt_model', 'tiny'),
+        data = {"language": self.detect_language.split('-')[0], "model": self.model_name,
                 "response_format": "srt"}
         try:
             res = requests.post(f"{self.api_url}", files=files, data=data, timeout=7200)

@@ -16,19 +16,12 @@ class Ui_elevenlabs(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, elevenlabsform):
+    def setupUi(self, form):
         self.has_done = False
-        elevenlabsform.setObjectName("elevenlabsform")
-        elevenlabsform.setWindowModality(QtCore.Qt.NonModal)
-        elevenlabsform.resize(400, 223)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(elevenlabsform.sizePolicy().hasHeightForWidth())
-        elevenlabsform.setSizePolicy(sizePolicy)
-        elevenlabsform.setMaximumSize(QtCore.QSize(400, 300))
+        form.setObjectName("form")
+        form.resize(400, 223)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(elevenlabsform)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
 
         self.formLayout_2 = QtWidgets.QHBoxLayout()
@@ -83,11 +76,11 @@ class Ui_elevenlabs(QDialog):
 
         self.verticalLayout.addLayout(hv)
 
-        self.retranslateUi(elevenlabsform)
-        QtCore.QMetaObject.connectSlotsByName(elevenlabsform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, elevenlabsform):
-        elevenlabsform.setWindowTitle("ElevenLabs.io")
+    def retranslateUi(self, form):
+        form.setWindowTitle("ElevenLabs.io")
         self.label2.setText("TTS model")
         self.label.setText("API_KEY")
         self.set.setText(tr("Save"))

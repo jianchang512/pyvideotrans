@@ -16,20 +16,13 @@ class Ui_openrouter(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, openrouterform):
+    def setupUi(self, form):
         self.has_done = False
-        openrouterform.setObjectName("openrouterform")
-        openrouterform.setWindowModality(QtCore.Qt.NonModal)
-        openrouterform.resize(600, 600)
-        openrouterform.setWindowTitle("OpenRouter")
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(openrouterform.sizePolicy().hasHeightForWidth())
-        # openrouterform.setSizePolicy(sizePolicy)
-        openrouterform.setMaximumSize(QtCore.QSize(600, 600))
+        form.setObjectName("form")
+        form.resize(600, 600)
+        form.setWindowTitle("OpenRouter")
 
-        v1 = QtWidgets.QVBoxLayout(openrouterform)
+        v1 = QtWidgets.QVBoxLayout(form)
         h2 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
 
@@ -39,12 +32,12 @@ class Ui_openrouter(QDialog):
         label_0.setText('OpenRouter.ai')
         v1.addWidget(label_0)
 
-        label_2 = QtWidgets.QLabel(openrouterform)
+        label_2 = QtWidgets.QLabel(form)
         label_2.setMinimumSize(QtCore.QSize(0, 35))
         label_2.setSizeIncrement(QtCore.QSize(0, 35))
         label_2.setObjectName("label_2")
         label_2.setText(tr("SK"))
-        self.openrouter_key = QtWidgets.QLineEdit(openrouterform)
+        self.openrouter_key = QtWidgets.QLineEdit(form)
         self.openrouter_key.setMinimumSize(QtCore.QSize(0, 35))
         self.openrouter_key.setObjectName("openrouter_key")
         h2.addWidget(label_2)
@@ -108,17 +101,17 @@ class Ui_openrouter(QDialog):
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-        label_4 = QtWidgets.QLabel(openrouterform)
+        label_4 = QtWidgets.QLabel()
         label_4.setObjectName("label_4")
         label_4.setText(tr("{lang} represents the target language name, do not delete it."))
 
-        self.template = QtWidgets.QPlainTextEdit(openrouterform)
+        self.template = QtWidgets.QPlainTextEdit()
         self.template.setObjectName("template")
         self.template.setReadOnly(True)
         v1.addWidget(label_4)
         v1.addWidget(self.template)
 
-        self.set = QtWidgets.QPushButton(openrouterform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
         self.set.setText(tr('Save'))
@@ -141,7 +134,7 @@ class Ui_openrouter(QDialog):
         h4.addWidget(help_btn)
         v1.addLayout(h4)
         self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'openrouter', 'openrouter'))
-        QtCore.QMetaObject.connectSlotsByName(openrouterform)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
         allmodels_str = settings.get('openrouter_model','')

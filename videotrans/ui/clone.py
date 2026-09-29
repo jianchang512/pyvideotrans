@@ -15,52 +15,35 @@ class Ui_clone(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, clone):
+    def setupUi(self, form):
         self.has_done = False
-        clone.setObjectName("clone")
-        clone.setWindowModality(QtCore.Qt.NonModal)
-        clone.resize(500, 223)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(clone.sizePolicy().hasHeightForWidth())
-        clone.setSizePolicy(sizePolicy)
+        form.setObjectName("form")
+        form.resize(500, 223)
 
-
-        self.verticalLayout = QtWidgets.QVBoxLayout(clone)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(clone)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.clone_address = QtWidgets.QLineEdit(clone)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.clone_address.sizePolicy().hasHeightForWidth())
-        self.clone_address.setSizePolicy(sizePolicy)
+        self.clone_address = QtWidgets.QLineEdit()
         self.clone_address.setMinimumSize(QtCore.QSize(200, 35))
         self.clone_address.setObjectName("clone_address")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.clone_address)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-        self.set_clone = QtWidgets.QPushButton(clone)
+        self.set_clone = QtWidgets.QPushButton()
         self.set_clone.setMinimumSize(QtCore.QSize(0, 35))
         self.set_clone.setObjectName("set_clone")
 
-        self.test = QtWidgets.QPushButton(clone)
+        self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
         help_btn = QtWidgets.QPushButton()
@@ -79,11 +62,11 @@ class Ui_clone(QDialog):
 
         self.verticalLayout.addLayout(self.layout_btn)
 
-        self.retranslateUi(clone)
-        QtCore.QMetaObject.connectSlotsByName(clone)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, clone):
-        clone.setWindowTitle("clone-voice "+tr('This channel needs deployed and started before available'))
+    def retranslateUi(self, form):
+        form.setWindowTitle("clone-voice "+tr('This channel needs deployed and started before available'))
         self.label.setText(tr("clone-voice url"))
         self.clone_address.setPlaceholderText(
             tr("Fill in the HTTP address after the clone voice program starts"))

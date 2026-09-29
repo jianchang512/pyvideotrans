@@ -15,32 +15,21 @@ class Ui_api_route(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, apirouteform):
-        self.has_done = False
-        apirouteform.setObjectName("apirouteform")
-        apirouteform.setWindowModality(QtCore.Qt.NonModal)
-        apirouteform.resize(600, 600)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(apirouteform.sizePolicy().hasHeightForWidth())
-        apirouteform.setSizePolicy(sizePolicy)
-        apirouteform.setMaximumSize(QtCore.QSize(600, 600))
 
-        v1 = QtWidgets.QVBoxLayout(apirouteform)
+    def setupUi(self, form):
+        self.has_done = False
+        form.setObjectName("form")
+        form.resize(600, 600)
+
+        v1 = QtWidgets.QVBoxLayout(form)
 
         h3 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
 
-        self.label_0 = QtWidgets.QPushButton()
-        self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.setText('API Route')
-        v1.addWidget(self.label_0)
 
-        self.label_3 = QtWidgets.QLabel(apirouteform)
+        self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
-        self.api_route_key = QtWidgets.QLineEdit(apirouteform)
+        self.api_route_key = QtWidgets.QLineEdit()
         self.api_route_key.setMinimumSize(QtCore.QSize(0, 35))
         self.api_route_key.setObjectName("api_route_key")
         h3.addWidget(self.label_3)
@@ -48,7 +37,6 @@ class Ui_api_route(QDialog):
         v1.addLayout(h3)
 
         h_token = QtWidgets.QHBoxLayout()
-
         label_token = QtWidgets.QLabel()
         label_token.setObjectName("label_token")
         label_token.setText(tr("Maximum output token"))
@@ -63,7 +51,8 @@ class Ui_api_route(QDialog):
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
-        self.label_selectmodel.setText(tr("Model"))
+        self.label_selectmodel.setText(tr('Text  Or Srt  Translation')+tr("Model"))
+
         self.api_route_model = QtWidgets.QComboBox()
         self.api_route_model.setMinimumSize(QtCore.QSize(0, 35))
         self.api_route_model.setObjectName("api_route_model")
@@ -81,16 +70,16 @@ class Ui_api_route(QDialog):
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-        self.label_4 = QtWidgets.QLabel(apirouteform)
+        self.label_4 = QtWidgets.QLabel()
         self.label_4.setObjectName("label_4")
 
-        self.template = QtWidgets.QPlainTextEdit(apirouteform)
+        self.template = QtWidgets.QPlainTextEdit()
         self.template.setObjectName("template")
         self.template.setReadOnly(True)
         v1.addWidget(self.label_4)
         v1.addWidget(self.template)
 
-        self.set = QtWidgets.QPushButton(apirouteform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
 
@@ -113,8 +102,8 @@ class Ui_api_route(QDialog):
         v1.addLayout(h4)
         self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'api_route', 'api_route'))
 
-        self.retranslateUi(apirouteform)
-        QtCore.QMetaObject.connectSlotsByName(apirouteform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
         allmodels_str = settings.get('api_route_model', '')
@@ -126,8 +115,8 @@ class Ui_api_route(QDialog):
         self.api_route_model.setCurrentText(params.get("api_route_model", ''))
         self.max_token.setText(str(params.get("api_route_max_token", '')))
 
-    def retranslateUi(self, apirouteform):
-        apirouteform.setWindowTitle("API Route")
+    def retranslateUi(self, form):
+        form.setWindowTitle("API Route")
         self.label_3.setText(tr("SK"))
         self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
         self.set.setText(tr('Save'))

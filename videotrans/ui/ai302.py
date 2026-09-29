@@ -15,26 +15,19 @@ class Ui_ai302(QDialog):
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
 
-    def setupUi(self, ai302form):
+    def setupUi(self, form):
 
-        ai302form.setObjectName("ai302form")
-        ai302form.setWindowModality(QtCore.Qt.NonModal)
-        ai302form.resize(600, 550)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(ai302form.sizePolicy().hasHeightForWidth())
-        ai302form.setSizePolicy(sizePolicy)
-        ai302form.setMaximumSize(QtCore.QSize(600, 550))
+        form.setObjectName("form")
+        form.resize(600, 550)
 
         self.has_done = False
-        v1 = QtWidgets.QVBoxLayout(ai302form)
+        v1 = QtWidgets.QVBoxLayout(form)
 
         h1 = QtWidgets.QHBoxLayout()
-
         self.label_1 = QtWidgets.QLabel()
         self.label_1.setObjectName("label_1")
-        self.label_1.setText(tr("Has been connected to the text model translation subtitles and speech recognition and openai/doubao/Azure/Minimaxi/Dubbingx dubbing characters"))
+        self.label_1.setText(
+            tr("Has been connected to the text model translation subtitles and speech recognition and openai/doubao/Azure/Minimaxi/Dubbingx dubbing characters"))
         v1.addWidget(self.label_1)
 
         self.label_2 = QtWidgets.QLabel()
@@ -47,7 +40,6 @@ class Ui_ai302(QDialog):
         v1.addLayout(h1)
 
         h2 = QtWidgets.QHBoxLayout()
-
         self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
         self.ai302_model = QtWidgets.QComboBox()
@@ -55,9 +47,6 @@ class Ui_ai302(QDialog):
         self.ai302_model.setObjectName("ai302_model")
         h2.addWidget(self.label_3)
         h2.addWidget(self.ai302_model)
-
-
-        
         v1.addLayout(h2)
 
         self.label_allmodels = QtWidgets.QLabel()
@@ -75,7 +64,7 @@ class Ui_ai302(QDialog):
         self.ai302_template = QtWidgets.QPlainTextEdit()
         self.ai302_template.setObjectName("ai302_template")
         self.ai302_template.setReadOnly(True)
-        self.ai302_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'ai302','ai302'))
+        self.ai302_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'ai302', 'ai302'))
         v1.addWidget(self.ai302_template)
 
         h3 = QtWidgets.QHBoxLayout()
@@ -87,37 +76,38 @@ class Ui_ai302(QDialog):
         self.test_ai302.setMinimumSize(QtCore.QSize(0, 30))
         self.test_ai302.setObjectName("test_ai302")
 
-        self.label_0 = QtWidgets.QPushButton()
-        self.label_0.setCursor(QtCore.Qt.PointingHandCursor)
-        self.label_0.setStyleSheet("""text-align:left;background-color:transparent""")
-        self.label_0.setText(tr('Fill out the tutorial'))
-        self.label_0.clicked.connect(lambda: open_url("https://pyvideotrans.com/302ai"))
+        self.help_btn = QtWidgets.QPushButton()
+        self.help_btn.setCursor(QtCore.Qt.PointingHandCursor)
+        self.help_btn.setStyleSheet("""text-align:left;background-color:transparent""")
+        self.help_btn.setText(tr('Fill out the tutorial'))
+        self.help_btn.clicked.connect(lambda: open_url("https://pyvideotrans.com/302ai"))
 
         h3.addWidget(self.set_ai302)
         h3.addWidget(self.test_ai302)
-        h3.addWidget(self.label_0)
+        h3.addWidget(self.help_btn)
         v1.addLayout(h3)
 
-        self.retranslateUi(ai302form)
-        QtCore.QMetaObject.connectSlotsByName(ai302form)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
-        allmodels_str = settings.get('ai302_models','')
-        allmodels = str(settings.get('ai302_models','')).split(',')
+        allmodels_str = settings.get('ai302_models', '')
+        allmodels = str(settings.get('ai302_models', '')).split(',')
 
         self.ai302_model.clear()
         self.ai302_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(str(allmodels_str))
 
-        if params.get("ai302_key",''):
-            self.ai302_key.setText(str(params.get("ai302_key",'')))
-        if  params.get("ai302_model") in allmodels:
-            self.ai302_model.setCurrentText(str(params.get("ai302_model",'')))
+        if params.get("ai302_key", ''):
+            self.ai302_key.setText(str(params.get("ai302_key", '')))
+        if params.get("ai302_model") in allmodels:
+            self.ai302_model.setCurrentText(str(params.get("ai302_model", '')))
 
-    def retranslateUi(self, ai302form):
-        ai302form.setWindowTitle("302.ai"+tr("Access translation and dubbing channel configuration"))
-        self.label_3.setText(tr('starttrans')+" Model")
-        self.label_allmodels.setText(tr('Fill in all available models, separated by commas. After filling in, you can select them above'))
+    def retranslateUi(self, form):
+        form.setWindowTitle("302.AI" + tr("Access translation and dubbing channel configuration"))
+        self.label_3.setText(tr('Text  Or Srt  Translation') + tr("Model"))
+        self.label_allmodels.setText(
+            tr('Fill in all available models, separated by commas. After filling in, you can select them above'))
         self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
         self.set_ai302.setText(tr('Save'))
         self.test_ai302.setText(tr('Test'))

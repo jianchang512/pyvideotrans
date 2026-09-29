@@ -15,18 +15,12 @@ class Ui_deepgram(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, deepgramform):
+    def setupUi(self, form):
         self.has_done = False
-        deepgramform.setObjectName("deepgramform")
-        deepgramform.setWindowModality(QtCore.Qt.NonModal)
-        deepgramform.resize(500, 300)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(deepgramform.sizePolicy().hasHeightForWidth())
-        deepgramform.setSizePolicy(sizePolicy)
+        form.setObjectName("form")
+        form.resize(500, 300)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(deepgramform)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.verticalLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
@@ -36,54 +30,27 @@ class Ui_deepgram(QDialog):
         self.formLayout_2.setObjectName("formLayout_2")
 
         # api key
-        self.label_apikey = QtWidgets.QLabel(deepgramform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_apikey.sizePolicy().hasHeightForWidth())
-        self.label_apikey.setSizePolicy(sizePolicy)
+        self.label_apikey = QtWidgets.QLabel()
         self.label_apikey.setMinimumSize(QtCore.QSize(100, 35))
         self.label_apikey.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label_apikey.setObjectName("label_apikey")
         self.label_apikey.setText(tr('SK'))
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_apikey)
-        self.apikey = QtWidgets.QLineEdit(deepgramform)
+        self.apikey = QtWidgets.QLineEdit()
         self.apikey.setMinimumSize(QtCore.QSize(0, 35))
         self.apikey.setObjectName("apikey")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.apikey)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-        self.formLayout_3 = QtWidgets.QFormLayout()
-        self.formLayout_3.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.formLayout_3.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
-        self.formLayout_3.setObjectName("formLayout_3")
-        self.label_utt = QtWidgets.QLabel(deepgramform)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_utt.sizePolicy().hasHeightForWidth())
-        self.label_utt.setSizePolicy(sizePolicy)
-        self.label_utt.setMinimumSize(QtCore.QSize(100, 35))
-        self.label_utt.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
-        self.label_utt.setObjectName("label")
-        self.label_utt.setText('静默时间长度/毫秒')
 
-        self.utt = QtWidgets.QLineEdit(deepgramform)
-        self.utt.setMinimumSize(QtCore.QSize(0, 35))
-        self.utt.setObjectName("utt")
 
-        self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_utt)
-        self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.utt)
-
-        self.verticalLayout.addLayout(self.formLayout_3)
-
-        self.set = QtWidgets.QPushButton(deepgramform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
 
-        self.test = QtWidgets.QPushButton(deepgramform)
+        self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
 
@@ -104,14 +71,13 @@ class Ui_deepgram(QDialog):
 
         self.verticalLayout.addLayout(self.layout_btn)
 
-        self.retranslateUi(deepgramform)
-        QtCore.QMetaObject.connectSlotsByName(deepgramform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, deepgramform):
-        deepgramform.setWindowTitle(tr("Deepgram Speech Recognition"))
+    def retranslateUi(self, form):
+        form.setWindowTitle(tr("Deepgram Speech Recognition"))
 
         self.label_apikey.setText(tr('SK'))
-        self.label_utt.setText(tr("silence between words/ms"))
 
         self.set.setText(tr("Save"))
         self.test.setText(tr("Test"))

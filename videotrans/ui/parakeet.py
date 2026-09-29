@@ -15,52 +15,35 @@ class Ui_parakeet(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, parakeet):
+    def setupUi(self, form):
         self.has_done = False
-        parakeet.setObjectName("parakeet")
-        parakeet.setWindowModality(QtCore.Qt.NonModal)
-        parakeet.resize(500, 223)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(parakeet.sizePolicy().hasHeightForWidth())
-        parakeet.setSizePolicy(sizePolicy)
-        parakeet.setMaximumSize(QtCore.QSize(500, 300))
+        form.setObjectName("form")
+        form.resize(500, 223)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(parakeet)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(parakeet)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.parakeet_address = QtWidgets.QLineEdit(parakeet)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.parakeet_address.sizePolicy().hasHeightForWidth())
-        self.parakeet_address.setSizePolicy(sizePolicy)
+        self.parakeet_address = QtWidgets.QLineEdit()
         self.parakeet_address.setMinimumSize(QtCore.QSize(400, 35))
         self.parakeet_address.setObjectName("parakeet_address")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.parakeet_address)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-        self.set_btn = QtWidgets.QPushButton(parakeet)
+        self.set_btn = QtWidgets.QPushButton()
         self.set_btn.setMinimumSize(QtCore.QSize(0, 35))
         self.set_btn.setObjectName("set_btn")
 
-        self.test = QtWidgets.QPushButton(parakeet)
+        self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
         help_btn = QtWidgets.QPushButton()
@@ -79,13 +62,13 @@ class Ui_parakeet(QDialog):
 
         self.verticalLayout.addLayout(self.layout_btn)
 
-        self.retranslateUi(parakeet)
-        QtCore.QMetaObject.connectSlotsByName(parakeet)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
         self.parakeet_address.setText(str(params.get("parakeet_address",'')))
-    def retranslateUi(self, parakeet):
-        parakeet.setWindowTitle("parakeet-tdt "+tr('This channel needs deployed and started before available'))
+    def retranslateUi(self, form):
+        form.setWindowTitle("parakeet-tdt "+tr('This channel needs deployed and started before available'))
         self.label.setText(tr("parakeet url"))
         self.set_btn.setText(tr("Save"))
         self.test.setText(tr("Test"))

@@ -15,31 +15,23 @@ class Ui_openaitts(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, openaittsform):
+    def setupUi(self, form):
         self.has_done = False
-        openaittsform.setObjectName("openaittsform")
-        openaittsform.setWindowModality(QtCore.Qt.NonModal)
-        openaittsform.resize(600, 600)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(openaittsform.sizePolicy().hasHeightForWidth())
-        openaittsform.setSizePolicy(sizePolicy)
-        openaittsform.setMaximumSize(QtCore.QSize(600, 600))
+        form.setObjectName("form")
+        form.resize(600, 600)
 
-        v1 = QtWidgets.QVBoxLayout(openaittsform)
+        v1 = QtWidgets.QVBoxLayout(form)
 
-        self.label_0 = QtWidgets.QLabel(openaittsform)
-        self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
+        self.label_0 = QtWidgets.QLabel()
         self.label_0.setText(
             tr("AIs compatible with the ChatGPT also used here"))
         v1.addWidget(self.label_0)
 
         h1 = QtWidgets.QHBoxLayout()
-        self.label = QtWidgets.QLabel(openaittsform)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(0, 35))
         self.label.setObjectName("label")
-        self.openaitts_api = QtWidgets.QLineEdit(openaittsform)
+        self.openaitts_api = QtWidgets.QLineEdit()
         self.openaitts_api.setMinimumSize(QtCore.QSize(0, 35))
         self.openaitts_api.setObjectName("openaitts_api")
         h1.addWidget(self.label)
@@ -47,11 +39,11 @@ class Ui_openaitts(QDialog):
         v1.addLayout(h1)
 
         h2 = QtWidgets.QHBoxLayout()
-        self.label_2 = QtWidgets.QLabel(openaittsform)
+        self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
-        self.openaitts_key = QtWidgets.QLineEdit(openaittsform)
+        self.openaitts_key = QtWidgets.QLineEdit()
         self.openaitts_key.setMinimumSize(QtCore.QSize(0, 35))
         self.openaitts_key.setObjectName("openaitts_key")
         h2.addWidget(self.label_2)
@@ -59,20 +51,20 @@ class Ui_openaitts(QDialog):
         v1.addLayout(h2)
 
         h3 = QtWidgets.QHBoxLayout()
-        self.label_3 = QtWidgets.QLabel(openaittsform)
+        self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
-        self.openaitts_model = QtWidgets.QComboBox(openaittsform)
+        self.openaitts_model = QtWidgets.QComboBox()
         self.openaitts_model.setMinimumSize(QtCore.QSize(0, 35))
         self.openaitts_model.setObjectName("openaitts_model")
         h3.addWidget(self.label_3)
         h3.addWidget(self.openaitts_model)
 
         hintru = QtWidgets.QHBoxLayout()
-        label_intru = QtWidgets.QLabel(openaittsform)
+        label_intru = QtWidgets.QLabel()
         label_intru.setObjectName("label_intru")
         label_intru.setText(
             tr("voice with instructions(gpt-4o-mini-tts)"))
-        self.openaitts_instructions = QtWidgets.QLineEdit(openaittsform)
+        self.openaitts_instructions = QtWidgets.QLineEdit()
         self.openaitts_instructions.setMinimumSize(QtCore.QSize(0, 35))
         self.openaitts_instructions.setObjectName("openaitts_instructions")
         hintru.addWidget(label_intru)
@@ -81,30 +73,30 @@ class Ui_openaitts(QDialog):
         v1.addLayout(h3)
         v1.addLayout(hintru)
 
-        self.label_allmodels = QtWidgets.QLabel(openaittsform)
+        self.label_allmodels = QtWidgets.QLabel()
 
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
             tr("Fill in all available models, separated by commas. After filling in, you can select them above"))
         v1.addWidget(self.label_allmodels)
-        self.edit_allmodels = QtWidgets.QPlainTextEdit(openaittsform)
+        self.edit_allmodels = QtWidgets.QPlainTextEdit()
         self.edit_allmodels.setMinimumHeight(40)
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
         v1.addWidget(QtWidgets.QLabel(tr("Role list")))
-        self.edit_roles = QtWidgets.QPlainTextEdit(openaittsform)
+        self.edit_roles = QtWidgets.QPlainTextEdit()
         self.edit_roles.setMinimumHeight(40)
         self.edit_roles.setObjectName("edit_roles")
         v1.addWidget(self.edit_roles)
 
         h4 = QtWidgets.QHBoxLayout()
 
-        self.set_openaitts = QtWidgets.QPushButton(openaittsform)
+        self.set_openaitts = QtWidgets.QPushButton()
         self.set_openaitts.setMinimumSize(QtCore.QSize(0, 35))
         self.set_openaitts.setObjectName("set_openaitts")
 
-        self.test_openaitts = QtWidgets.QPushButton(openaittsform)
+        self.test_openaitts = QtWidgets.QPushButton()
         self.test_openaitts.setMinimumSize(QtCore.QSize(0, 30))
         self.test_openaitts.setObjectName("test_openaitts")
 
@@ -121,8 +113,8 @@ class Ui_openaitts(QDialog):
         h4.addWidget(help_btn)
         v1.addLayout(h4)
 
-        self.retranslateUi(openaittsform)
-        QtCore.QMetaObject.connectSlotsByName(openaittsform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
         allmodels_str = settings.get('openaitts_model','')
@@ -141,8 +133,8 @@ class Ui_openaitts(QDialog):
             self.openaitts_api.setText(str(params.get("openaitts_api",'')))
         if params.get("openaitts_model",'') and params.get('openaitts_model','') in allmodels:
             self.openaitts_model.setCurrentText(str(params.get("openaitts_model",'')))
-    def retranslateUi(self, openaittsform):
-        openaittsform.setWindowTitle("OpenAI API TTS")
+    def retranslateUi(self, form):
+        form.setWindowTitle("OpenAI API TTS")
         self.label_3.setText(tr("Model"))
         self.set_openaitts.setText(tr("Save"))
         self.test_openaitts.setText(tr("Test"))

@@ -13,21 +13,13 @@ class Ui_qwenttslocal(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, qwenttslocal):
+    def setupUi(self, form):
         self.has_done = False
-        if not qwenttslocal.objectName():
-            qwenttslocal.setObjectName("qwenttslocal")
-        qwenttslocal.setWindowModality(Qt.NonModal)
-        qwenttslocal.resize(1000, 300)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(qwenttslocal.sizePolicy().hasHeightForWidth())
-        qwenttslocal.setSizePolicy(sizePolicy)
-        qwenttslocal.setMaximumSize(QSize(1000, 300))
+        form.setObjectName("form")
+        form.resize(1000, 300)
 
         # 创建一个垂直布局
-        v1 = QtWidgets.QVBoxLayout(qwenttslocal)
+        v1 = QtWidgets.QVBoxLayout(form)
 
         h1_prompt = QtWidgets.QHBoxLayout()
         self.instruct_text = QLineEdit()
@@ -35,8 +27,6 @@ class Ui_qwenttslocal(QDialog):
         h1_prompt.addWidget(self.instruct_text)
         v1.addLayout(h1_prompt)
         
-
-
         h2 = QtWidgets.QHBoxLayout()
         self.save = QPushButton()
         self.save.setObjectName("save")
@@ -65,13 +55,11 @@ class Ui_qwenttslocal(QDialog):
 
         v1.addLayout(h2)
 
-        self.retranslateUi(qwenttslocal)
+        self.retranslateUi(form)
 
-        QMetaObject.connectSlotsByName(qwenttslocal)
+        QMetaObject.connectSlotsByName(form)
 
-    # setupUi
-
-    def retranslateUi(self, qwenttslocal):
-        qwenttslocal.setWindowTitle(f"Qwen3-TTS {tr('Local')}")
+    def retranslateUi(self, form):
+        form.setWindowTitle(f"Qwen3-TTS {tr('Local')}")
         self.save.setText(tr("Save"))
         self.test.setText(tr("Test"))

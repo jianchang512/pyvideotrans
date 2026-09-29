@@ -94,7 +94,7 @@ def _create_asr_row(ui, parent):
     ui.remove_noise = QtWidgets.QCheckBox()
     ui.remove_noise.setText(tr("Noise reduction"))
     ui.remove_noise.setToolTip(
-        tr("Select to perform noise reduction processing from modelscope.cn, which takes a long time"))
+        tr("Select to form noise reduction processing from modelscope.cn, which takes a long time"))
 
     ui.recogn2pass = QtWidgets.QCheckBox()
     ui.recogn2pass.setToolTip(tr("Secondary speech recognition of dubbing files"))

@@ -129,7 +129,7 @@ ID_NAME_DICT = {
                                   win="gradiowin"),
 
     DOUBAO2_TTS: ChannelProvider(tr("DouBao2"), imp="._doubao2", key_name="doubao2_access", win="doubao2"),
-    QWEN_TTS: ChannelProvider(f"{tr('Ali-Bailian')}/Qwen3-TTS", imp="._qwentts", key_name="qwentts_key", win="qwentts"),
+    QWEN_TTS: ChannelProvider(f"{tr('Ali-Bailian')}", imp="._bailian", key_name="qwenmt_key", win="bailian"),
     XIAOMI_TTS: ChannelProvider(tr('XiaoMi'), imp="._xiaomi", key_name="xiaomi_key", win="xiaomi"),
     GLM_TTS: ChannelProvider(f'GLM TTS {tr("Zhipu AI")}', imp="._glmtts", key_name="zhipu_key", win="zhipuai"),
     MINIMAXI_TTS: ChannelProvider("Minimaxi TTS", imp="._minimaxi", key_name="minimaxi_apikey", win="minimaxi"),
@@ -148,7 +148,7 @@ ID_NAME_DICT = {
     CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)", imp="._clone", key_name="clone_api", win="clone"),
     AZURE_TTS: ChannelProvider("Azure TTS", imp="._azure", key_name="azure_speech_key", win="azuretts"),
     AI302_TTS: ChannelProvider("302.AI", imp="._ai302", key_name="ai302_key", win="ai302"),
-    CAMB_TTS: ChannelProvider("CAMB AI", imp="._cambtts", key_name="camb_api_key", win="cambtts"),
+    CAMB_TTS: ChannelProvider("CAMB AI", imp="._camb", key_name="camb_api_key", win="camb"),
 
     TTS_API: ChannelProvider(tr("Customize API"), imp="._ttsapi", key_name="ttsapi_url", win="ttsapi"),
     SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), imp="._siliconflow", key_name="siliconflow_key", win="siliconflow" ),

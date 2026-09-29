@@ -1048,31 +1048,19 @@ wheels = [
 ]
 
 [[package]]
-name = "deepgram-captions"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b8/23/6d8aeb10c675b8f30697f0239d8e63b0cc5dc3f861dc7070a3d3eb4ecf12/deepgram-captions-1.2.0.tar.gz", hash = "sha256:2d041b5c84a4438d7b7a633780fee92ecff3c7880721737c8244acd9eb5a7a53", size = 8297, upload-time = "2024-02-07T21:11:00.917Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/95/795fdd6c99d2e6dfd2478402c25b1087b5129bc970124ce2e4b0571a8c3d/deepgram_captions-1.2.0-py3-none-any.whl", hash = "sha256:fb8c26586fc7f15160644d45f9c5fefec4b1caa375df01d2320599245e03095a", size = 7643, upload-time = "2024-02-07T21:10:59.764Z" },
-]
-
-[[package]]
 name = "deepgram-sdk"
-version = "4.1.0"
+version = "7.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "aenum" },
-    { name = "aiofiles" },
-    { name = "aiohttp" },
-    { name = "dataclasses-json" },
-    { name = "deprecation" },
     { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pydantic-core" },
     { name = "typing-extensions" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2d/9f/2529466844cb0e0961dea6c2149e98fb9f8a08baead31dda10b5a5b69f77/deepgram_sdk-4.1.0.tar.gz", hash = "sha256:6dc669052e37fb8187cb179ff31e333916b5870b4935abd4ad2146ab907a5313", size = 93311, upload-time = "2025-05-09T21:01:21.886Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fc/bc/3c6cf6b9f2888b43425eb5229718cbf390125ec47189c51bb2ec667ea25f/deepgram_sdk-7.11.0.tar.gz", hash = "sha256:d59a162ac2b41a65e5923b0e190dcc3e470a5e9791344fd2f791022e40883734", size = 247807, upload-time = "2026-09-28T09:51:02.428Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/bd/f74ee57de5c88096451179a975cbfe99d87d9e53d795f581c257d4201452/deepgram_sdk-4.1.0-py3-none-any.whl", hash = "sha256:239f3e74113efdf7eab020c9092f9ce2096644509a9d499aa87d123cb6f0e44b", size = 153222, upload-time = "2025-05-09T21:01:20.083Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/f0/0203098b9f118ba18875f730b8bf25c6bcf94b5f715e4f32df756fe253a2/deepgram_sdk-7.11.0-py3-none-any.whl", hash = "sha256:bc8aa74e6338a1f508829fe9ca4c628770fde136035e5895f623bad0968b18f6", size = 647309, upload-time = "2026-09-28T09:51:00.715Z" },
 ]
 
 [[package]]
@@ -4303,7 +4291,6 @@ dependencies = [
     { name = "dataclasses-json" },
     { name = "datasets" },
     { name = "decorator" },
-    { name = "deepgram-captions" },
     { name = "deepgram-sdk" },
     { name = "deepl" },
     { name = "deprecation" },
@@ -4593,8 +4580,7 @@ requires-dist = [
     { name = "dataclasses-json", specifier = "==0.6.7" },
     { name = "datasets", specifier = "==3.0.0" },
     { name = "decorator", specifier = "==5.2.1" },
-    { name = "deepgram-captions", specifier = "==1.2.0" },
-    { name = "deepgram-sdk", specifier = "==4.1.0" },
+    { name = "deepgram-sdk" },
     { name = "deepl", specifier = "==1.18.0" },
     { name = "deprecation", specifier = "==2.1.0" },
     { name = "diffusers", specifier = "==0.33.1" },

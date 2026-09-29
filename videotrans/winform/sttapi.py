@@ -17,20 +17,18 @@ def openwin():
         return url
 
     def test():
-        params['stt_url'] = _fix_url(winobj.stt_url.text().strip())
+        params['sttapi_url'] = _fix_url(winobj.sttapi_url.text().strip())
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.STT_API, model_name=winobj.stt_model.currentText())
         task.uito.connect(feed)
         task.start()
 
     def save():
-        params["stt_url"] = _fix_url(winobj.stt_url.text().strip()).rstrip('/')
-        params["stt_model"] = winobj.stt_model.currentText()
+        params["sttapi_url"] = _fix_url(winobj.sttapi_url.text().strip()).rstrip('/')
         params.save()
         winobj.close()
 
-    winobj.stt_url.setText(str(params.get("stt_url", '')))
-    winobj.stt_model.setCurrentText(str(params.get("stt_model", '')))
+    winobj.sttapi_url.setText(str(params.get("sttapi_url", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     return winobj

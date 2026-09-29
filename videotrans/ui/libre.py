@@ -14,19 +14,12 @@ class Ui_libre(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, libretranslateform):
+    def setupUi(self, form):
         self.has_done = False
-        libretranslateform.setObjectName("libretranslateform")
-        libretranslateform.setWindowModality(QtCore.Qt.NonModal)
-        libretranslateform.resize(500, 300)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(libretranslateform.sizePolicy().hasHeightForWidth())
-        libretranslateform.setSizePolicy(sizePolicy)
-        libretranslateform.setMaximumSize(QtCore.QSize(500, 300))
+        form.setObjectName("form")
+        form.resize(500, 300)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(libretranslateform)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -38,22 +31,22 @@ class Ui_libre(QDialog):
         self.formLayout_3.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
 
-        self.label = QtWidgets.QLabel(libretranslateform)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.address = QtWidgets.QLineEdit(libretranslateform)
+        self.address = QtWidgets.QLineEdit()
         self.address.setMinimumSize(QtCore.QSize(320, 35))
         self.address.setObjectName("address")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.address)
 
-        self.label2 = QtWidgets.QLabel(libretranslateform)
+        self.label2 = QtWidgets.QLabel()
         self.label2.setMinimumSize(QtCore.QSize(100, 35))
         self.label2.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label2.setObjectName("label2")
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label2)
-        self.key = QtWidgets.QLineEdit(libretranslateform)
+        self.key = QtWidgets.QLineEdit()
         self.key.setMinimumSize(QtCore.QSize(320, 35))
         self.key.setObjectName("key")
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.key)
@@ -61,11 +54,11 @@ class Ui_libre(QDialog):
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout.addLayout(self.formLayout_3)
 
-        self.set = QtWidgets.QPushButton(libretranslateform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
 
-        self.test = QtWidgets.QPushButton(libretranslateform)
+        self.test = QtWidgets.QPushButton()
         self.test.setObjectName("test")
 
         help_btn = QtWidgets.QPushButton()
@@ -82,11 +75,11 @@ class Ui_libre(QDialog):
 
         self.verticalLayout.addLayout(h1)
 
-        self.retranslateUi(libretranslateform)
-        QtCore.QMetaObject.connectSlotsByName(libretranslateform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, libretranslateform):
-        libretranslateform.setWindowTitle("LibreTranslate"+tr('This channel needs deployed and started before available'))
+    def retranslateUi(self, form):
+        form.setWindowTitle("LibreTranslate"+tr('This channel needs deployed and started before available'))
         self.label.setText(tr("API URL"))
         self.label2.setText(tr('SK'))
         self.key.setPlaceholderText(tr("Input your libretranslate key"))

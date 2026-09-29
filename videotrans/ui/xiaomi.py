@@ -14,20 +14,13 @@ class Ui_xiaomi(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, xiaomiform):
+
+    def setupUi(self, form):
         self.has_done = False
-        xiaomiform.setObjectName("xiaomiform")
-        xiaomiform.setWindowModality(QtCore.Qt.NonModal)
-        xiaomiform.resize(600, 550)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(xiaomiform.sizePolicy().hasHeightForWidth())
-        xiaomiform.setSizePolicy(sizePolicy)
-        xiaomiform.setMaximumSize(QtCore.QSize(600, 500))
+        form.setObjectName("form")
+        form.resize(600, 550)
 
-        v1 = QtWidgets.QVBoxLayout(xiaomiform)
-
+        v1 = QtWidgets.QVBoxLayout(form)
         h1 = QtWidgets.QHBoxLayout()
         self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
@@ -64,11 +57,9 @@ class Ui_xiaomi(QDialog):
         h_token.addWidget(label_token)
         h_token.addWidget(self.xiaomi_max_token)
         h_token.addWidget(self.xiaomi_thinking)
-        
-        
+
         v1.addLayout(h_token)
         
-
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
         self.label_allmodels.setText(
@@ -87,7 +78,6 @@ class Ui_xiaomi(QDialog):
         self.xiaomi_template.setReadOnly(True)
         v1.addWidget(self.label_4)
         v1.addWidget(self.xiaomi_template)
-
 
 
         h2ttsmodel = QtWidgets.QHBoxLayout()
@@ -124,9 +114,9 @@ class Ui_xiaomi(QDialog):
         h3.addWidget(help_btn)
         v1.addLayout(h3)
         self.xiaomi_template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'xiaomi', 'xiaomi'))
-        xiaomiform.setWindowTitle(tr("XiaoMi")+"AI")
+        form.setWindowTitle(tr("XiaoMi"))
         self.retranslateUi()
-        QtCore.QMetaObject.connectSlotsByName(xiaomiform)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
 
     def update_ui(self):
@@ -144,7 +134,6 @@ class Ui_xiaomi(QDialog):
         self.ttsmodel.setCurrentText(params.get("xiaomi_ttsmodel",''))
 
     def retranslateUi(self):
-        
         self.xiaomi_template.setPlaceholderText("prompt")
         self.label_4.setText(
             tr("{lang} represents the target language name, do not delete it."))
@@ -153,4 +142,4 @@ class Ui_xiaomi(QDialog):
         self.test.setText(tr("Test"))
         self.xiaomi_key.setPlaceholderText("XiaoMi API Keys")
         self.label_2.setText("XiaoMi API Key ")
-        self.label_3.setText(tr("Select model"))
+        self.label_3.setText(tr('Text  Or Srt  Translation')+tr("Model"))

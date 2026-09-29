@@ -15,52 +15,35 @@ class Ui_kokoro(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, kokoro):
+    def setupUi(self, form):
         self.has_done = False
-        kokoro.setObjectName("kokoro")
-        kokoro.setWindowModality(QtCore.Qt.NonModal)
-        kokoro.resize(500, 223)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(kokoro.sizePolicy().hasHeightForWidth())
-        kokoro.setSizePolicy(sizePolicy)
-        kokoro.setMaximumSize(QtCore.QSize(500, 300))
+        form.setObjectName("form")
+        form.resize(500, 223)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(kokoro)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(kokoro)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.kokoro_address = QtWidgets.QLineEdit(kokoro)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.kokoro_address.sizePolicy().hasHeightForWidth())
-        self.kokoro_address.setSizePolicy(sizePolicy)
+        self.kokoro_address = QtWidgets.QLineEdit()
         self.kokoro_address.setMinimumSize(QtCore.QSize(400, 35))
         self.kokoro_address.setObjectName("kokoro_address")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.kokoro_address)
         self.verticalLayout.addLayout(self.formLayout_2)
 
-        self.set_kokoro = QtWidgets.QPushButton(kokoro)
+        self.set_kokoro = QtWidgets.QPushButton()
         self.set_kokoro.setMinimumSize(QtCore.QSize(0, 35))
         self.set_kokoro.setObjectName("set_kokoro")
 
-        self.test = QtWidgets.QPushButton(kokoro)
+        self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
         help_btn = QtWidgets.QPushButton()
@@ -79,11 +62,11 @@ class Ui_kokoro(QDialog):
 
         self.verticalLayout.addLayout(self.layout_btn)
 
-        self.retranslateUi(kokoro)
-        QtCore.QMetaObject.connectSlotsByName(kokoro)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, kokoro):
-        kokoro.setWindowTitle("Kokoro TTS"+tr('This channel needs deployed and started before available'))
+    def retranslateUi(self, form):
+        form.setWindowTitle("Kokoro TTS"+tr('This channel needs deployed and started before available'))
         self.label.setText(tr("kokoro api"))
         self.kokoro_address.setPlaceholderText(
             tr("Fill in the HTTP address after the kokoro program starts"))

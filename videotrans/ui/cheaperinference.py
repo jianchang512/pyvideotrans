@@ -15,19 +15,12 @@ class Ui_cheaperinference(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, cheaperinferenceform):
+    def setupUi(self, form):
         self.has_done = False
-        cheaperinferenceform.setObjectName("cheaperinferenceform")
-        cheaperinferenceform.setWindowModality(QtCore.Qt.NonModal)
-        cheaperinferenceform.resize(600, 600)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(cheaperinferenceform.sizePolicy().hasHeightForWidth())
-        cheaperinferenceform.setSizePolicy(sizePolicy)
-        cheaperinferenceform.setMaximumSize(QtCore.QSize(600, 600))
+        form.setObjectName("form")
+        form.resize(600, 600)
 
-        v1 = QtWidgets.QVBoxLayout(cheaperinferenceform)
+        v1 = QtWidgets.QVBoxLayout(form)
 
         h3 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
@@ -38,9 +31,9 @@ class Ui_cheaperinference(QDialog):
         self.label_0.setText('Cheaper Inference')
         v1.addWidget(self.label_0)
 
-        self.label_3 = QtWidgets.QLabel(cheaperinferenceform)
+        self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
-        self.cheaperinference_key = QtWidgets.QLineEdit(cheaperinferenceform)
+        self.cheaperinference_key = QtWidgets.QLineEdit()
         self.cheaperinference_key.setMinimumSize(QtCore.QSize(0, 35))
         self.cheaperinference_key.setObjectName("cheaperinference_key")
         h3.addWidget(self.label_3)
@@ -63,7 +56,7 @@ class Ui_cheaperinference(QDialog):
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
-        self.label_selectmodel.setText(tr("Model"))
+        self.label_selectmodel.setText(tr('Text  Or Srt  Translation')+tr("Model"))
         self.cheaperinference_model = QtWidgets.QComboBox()
         self.cheaperinference_model.setMinimumSize(QtCore.QSize(0, 35))
         self.cheaperinference_model.setObjectName("cheaperinference_model")
@@ -81,16 +74,16 @@ class Ui_cheaperinference(QDialog):
         self.edit_allmodels.setObjectName("edit_allmodels")
         v1.addWidget(self.edit_allmodels)
 
-        self.label_4 = QtWidgets.QLabel(cheaperinferenceform)
+        self.label_4 = QtWidgets.QLabel()
         self.label_4.setObjectName("label_4")
 
-        self.template = QtWidgets.QPlainTextEdit(cheaperinferenceform)
+        self.template = QtWidgets.QPlainTextEdit()
         self.template.setObjectName("template")
         self.template.setReadOnly(True)
         v1.addWidget(self.label_4)
         v1.addWidget(self.template)
 
-        self.set = QtWidgets.QPushButton(cheaperinferenceform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
 
@@ -113,8 +106,8 @@ class Ui_cheaperinference(QDialog):
         v1.addLayout(h4)
         self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'cheaperinference', 'cheaperinference'))
 
-        self.retranslateUi(cheaperinferenceform)
-        QtCore.QMetaObject.connectSlotsByName(cheaperinferenceform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
         allmodels_str = settings.get('cheaperinference_model', '')
@@ -126,8 +119,8 @@ class Ui_cheaperinference(QDialog):
         self.cheaperinference_model.setCurrentText(params.get("cheaperinference_model", ''))
         self.max_token.setText(str(params.get("cheaperinference_max_token", '')))
 
-    def retranslateUi(self, cheaperinferenceform):
-        cheaperinferenceform.setWindowTitle("Cheaper Inference")
+    def retranslateUi(self, form):
+        form.setWindowTitle("Cheaper Inference")
         self.label_3.setText(tr("SK"))
         self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
         self.set.setText(tr('Save'))

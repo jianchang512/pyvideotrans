@@ -15,33 +15,27 @@ class Ui_recognapi(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, recognapiform):
+    def setupUi(self, form):
         self.has_done = False
-        recognapiform.setObjectName("recognapiform")
-        recognapiform.setWindowModality(QtCore.Qt.NonModal)
-        recognapiform.resize(500, 400)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(recognapiform.sizePolicy().hasHeightForWidth())
-        recognapiform.setSizePolicy(sizePolicy)
+        form.setObjectName("form")
+        form.resize(500, 400)
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(recognapiform)
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
 
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(recognapiform)
+        self.label = QtWidgets.QLabel()
 
-        self.label.setMinimumSize(QtCore.QSize(100, 35))
+        self.label.setMinimumSize(QtCore.QSize(0, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.recognapiform_address = QtWidgets.QLineEdit(recognapiform)
-        self.recognapiform_address.setMinimumSize(QtCore.QSize(210, 35))
+        self.recognapiform_address = QtWidgets.QLineEdit()
+        self.recognapiform_address.setMinimumSize(QtCore.QSize(0, 35))
         self.recognapiform_address.setObjectName("recognapiform_address")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.recognapiform_address)
@@ -52,24 +46,24 @@ class Ui_recognapi(QDialog):
         self.formLayout_3.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_3.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
-        self.labelkey = QtWidgets.QLabel(recognapiform)
-        self.labelkey.setMinimumSize(QtCore.QSize(100, 35))
+        self.labelkey = QtWidgets.QLabel()
+        self.labelkey.setMinimumSize(QtCore.QSize(0, 35))
         self.labelkey.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.labelkey.setObjectName("label")
 
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.labelkey)
-        self.recognapiform_key = QtWidgets.QLineEdit(recognapiform)
-        self.recognapiform_key.setMinimumSize(QtCore.QSize(210, 35))
+        self.recognapiform_key = QtWidgets.QLineEdit()
+        self.recognapiform_key.setMinimumSize(QtCore.QSize(0, 35))
         self.recognapiform_key.setObjectName("recognapiform_key")
 
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.recognapiform_key)
         self.verticalLayout.addLayout(self.formLayout_3)
 
-        self.set = QtWidgets.QPushButton(recognapiform)
+        self.set = QtWidgets.QPushButton()
         self.set.setMinimumSize(QtCore.QSize(0, 35))
         self.set.setObjectName("set")
 
-        self.test = QtWidgets.QPushButton(recognapiform)
+        self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
 
@@ -81,7 +75,7 @@ class Ui_recognapi(QDialog):
         help_btn.setText(tr("Fill out the tutorial"))
         help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/recognapi'))
 
-        self.ask = QPlainTextEdit(recognapiform)
+        self.ask = QPlainTextEdit()
         self.ask.setMinimumSize(QtCore.QSize(0, 200))
         self.ask.setReadOnly(True)
         self.verticalLayout.addWidget(self.ask)
@@ -95,11 +89,11 @@ class Ui_recognapi(QDialog):
 
         self.verticalLayout.addLayout(self.layout_btn)
 
-        self.retranslateUi(recognapiform)
-        QtCore.QMetaObject.connectSlotsByName(recognapiform)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, recognapiform):
-        recognapiform.setWindowTitle(tr("Custom Speech Recognition API"))
+    def retranslateUi(self, form):
+        form.setWindowTitle(tr("Custom Speech Recognition API"))
 
         self.label.setText(tr("API"))
         self.labelkey.setText(tr("Password/Token"))

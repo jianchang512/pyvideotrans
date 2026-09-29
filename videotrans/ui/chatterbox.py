@@ -13,21 +13,14 @@ class Ui_chatterbox(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, chatterboxform):
-        self.has_done = False
-        if not chatterboxform.objectName():
-            chatterboxform.setObjectName("chatterboxform")
-        chatterboxform.setWindowModality(Qt.NonModal)
-        chatterboxform.resize(600, 250)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(chatterboxform.sizePolicy().hasHeightForWidth())
-        chatterboxform.setSizePolicy(sizePolicy)
-        chatterboxform.setMaximumSize(QSize(600, 250))
 
-        self.wrap_h = QHBoxLayout(chatterboxform)
-        self.wrap_h.setObjectName(u"wrap_h")
+    def setupUi(self, form):
+        self.has_done = False
+        form.setObjectName("form")
+        form.resize(600, 250)
+
+        self.wrap_h = QHBoxLayout(form)
+        self.wrap_h.setObjectName("wrap_h")
         self.inner_v = QVBoxLayout()
 
         cfg_h = QHBoxLayout()
@@ -76,12 +69,12 @@ class Ui_chatterbox(QDialog):
         # end
         self.wrap_h.addLayout(self.inner_v)
 
-        self.retranslateUi(chatterboxform)
-        QMetaObject.connectSlotsByName(chatterboxform)
+        self.retranslateUi(form)
+        QMetaObject.connectSlotsByName(form)
 
     # setupUi
 
-    def retranslateUi(self, chatterboxform):
-        chatterboxform.setWindowTitle("Chatterbox-TTS")
+    def retranslateUi(self, form):
+        form.setWindowTitle("Chatterbox-TTS")
         self.save.setText(tr("Save"))
         self.test.setText(tr("Test"))

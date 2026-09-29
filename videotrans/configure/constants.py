@@ -33,7 +33,7 @@ FASTER_MODELS_DICT = {
 FUN_ASR_MODELS = 'Fun-ASR-Nano-2512,Fun-ASR-MLT-Nano-2512,paraformer-zh,SenseVoiceSmall'
 QWEN_ASR_LOCAL_MODELS = '1.7B,0.6B'
 ELEVENLABS_ASR_MODELS='scribe_v1,scribe_v2'
-DEEPGRAM_ASR_MODELS =  "nova-3,whisper-large,whisper-medium,whisper-small,whisper-base,whisper-tiny,nova-2,enhanced,base"
+DEEPGRAM_ASR_MODELS =  "nova-3,nova-2,whisper-large"
 GEMINI_ASR_MODELS = "gemini-3.5-transcribe"
 WHISPER_CPP_MODELS = "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
 WHISPER_NET_MODELS = WHISPER_CPP_MODELS
@@ -65,6 +65,7 @@ AI302_MODELS = "deepseek-v4-pro,deepseek-v4-flash"
 ZIJIEHUOSHAN_MODELS = "doubao-seed-evolving,doubao-seed-2-1-pro-260915,doubao-seed-2-1-turbo-260628,doubao-seed-character-260628,doubao-seed-2-0-pro-260215,doubao-seed-2-0-mini-260428"
 MINIMAX_MODELS = "MiniMax-M3,MiniMax-M2.7,MiniMax-M2.7-highspeed"
 XIAOMI_MODELS = 'mimo-v2.6-flash,mimo-v2.6-pro,mimo-v2.5-pro,mimo-v2.5'
+INFISTAR_MODELS = "gpt-5.4-mini,deepseek-v4-flash,gpt-5.4,claude-sonnet-5,gemini-3.8-flash,qwen3.7-plus"
 
 #---------TTS 语音合成模型=====================================================
 GEMINI_TTS_MODELS = "gemini-3.1-flash-tts-preview,gemini-3.8-flash-tts,gemini-2.5-flash-preview-tts,gemini-2.5-pro-preview-tts"
@@ -98,7 +99,7 @@ NON_WORD = r"""^[,.?!;'"_，。？；‘’“”！~@#￥%…&*（【】）｛�
 
 # ------------跳过使用代理的域名---------------
 # 不使用代理的域名
-_no_proxy_list = [
+no_proxy = ",".join( [
     # --- 腾讯云 ---
     "tencentcloudapi.com", ".tencentcloudapi.com",
 
@@ -136,8 +137,7 @@ _no_proxy_list = [
     "127.0.0.1",
     "127.0.0.2",
     "0.0.0.0",
-]
-no_proxy = ",".join(_no_proxy_list)
+])
 
 #-------------模型下载地址===========================================
 # whisper.cpp windows二进制文件

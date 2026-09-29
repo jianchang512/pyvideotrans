@@ -43,6 +43,7 @@ TRANSAPI_INDEX = 24
 LITELLM_INDEX = 25
 API_ROUTE_INDEX = 26
 CHEAPERINFERENCE_INDEX = 27
+INFISTAR_INDEX = 28
 
 # AI 翻译渠道
 AI_TRANS_CHANNELS = [
@@ -63,7 +64,8 @@ AI_TRANS_CHANNELS = [
     XIAOMI_INDEX,
     HYMT2_INDEX,
     CAMB_INDEX,
-    CHEAPERINFERENCE_INDEX
+    CHEAPERINFERENCE_INDEX,
+    INFISTAR_INDEX
 ]
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -87,7 +89,7 @@ ID_NAME_DICT = {
     SILICONFLOW_INDEX: ChannelProvider(tr('SiliconFlow'), key_name="siliconflow_key", win="siliconflow", imp="._siliconflow"),
     AI302_INDEX: ChannelProvider("302.AI", key_name="ai302_key", win="ai302", imp="._ai302"),
 
-    QWENMT_INDEX: ChannelProvider(tr('Ali-Bailian'), key_name="qwenmt_key", win="qwenmt", imp="._qwenmt"),
+    QWENMT_INDEX: ChannelProvider(tr('Ali-Bailian'), key_name="qwenmt_key", win="bailian", imp="._bailian"),
     ZIJIE_INDEX: ChannelProvider(tr('VolcEngine LLM'), key_name="zijiehuoshan_key", win="zijiehuoshan",
                                  imp="._huoshan"),
 
@@ -101,12 +103,13 @@ ID_NAME_DICT = {
                                  imp="._libre"),
     MINIMAX_INDEX: ChannelProvider("MiniMax AI", key_name="minimaxi_apikey", win="minimaxi", imp="._minimaxi"),
     XIAOMI_INDEX: ChannelProvider(tr("XiaoMi"), key_name="xiaomi_key", win="xiaomi", imp="._xiaomi"),
-    CAMB_INDEX: ChannelProvider("CAMB AI", key_name="camb_api_key", win="cambtts", imp="._camb"),
+    CAMB_INDEX: ChannelProvider("CAMB AI", key_name="camb_api_key", win="camb", imp="._camb"),
     TRANSAPI_INDEX: ChannelProvider(tr('Customized API'), key_name="trans_api_url", win="transapi", imp="._transapi"),
     LITELLM_INDEX: ChannelProvider("LiteLLM", key_name="litellm_key", win="litellm", imp="._litellm"),
     API_ROUTE_INDEX: ChannelProvider("API Route", key_name="api_route_key", win="api_route", imp="._api_route"),
     CHEAPERINFERENCE_INDEX: ChannelProvider("Cheaper Inference", key_name="cheaperinference_key", win="cheaperinference",
                                             imp="._cheaperinference"),
+    INFISTAR_INDEX: ChannelProvider("Infistar", key_name="infistar_key", win="infistar", imp="._infistar"),
 }
 
 # 菜单--工具/选项--高级选项-通用设置--LLM纠错所用渠道的显示数据
@@ -124,7 +127,8 @@ LLM_CONCERT_MAP = {
     "xiaomi": tr("XiaoMi"),
     "zhipuai": tr("Zhipu AI"),
     "api_route": "API Route",
-    "cheaperinference": "Cheaper Inference"
+    "cheaperinference": "Cheaper Inference",
+    "infistar": "Infistar"
 }
 
 LLM_CONCERT_INDEX = {
@@ -140,7 +144,8 @@ LLM_CONCERT_INDEX = {
     "xiaomi": XIAOMI_INDEX,
     "zhipuai": ZHIPUAI_INDEX,
     "api_route": API_ROUTE_INDEX,
-    "cheaperinference": CHEAPERINFERENCE_INDEX
+    "cheaperinference": CHEAPERINFERENCE_INDEX,
+    "infistar": INFISTAR_INDEX
 }
 
 ID_NAME_DICT = dict(sorted(ID_NAME_DICT.items(), key=lambda item: item[0]))

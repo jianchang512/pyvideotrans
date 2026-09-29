@@ -13,25 +13,17 @@ class Ui_fishtts(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, fishttsform):
+    def setupUi(self, form):
         self.has_done = False
-        if not fishttsform.objectName():
-            fishttsform.setObjectName("fishttsform")
-        fishttsform.setWindowModality(Qt.NonModal)
-        fishttsform.resize(600, 250)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(fishttsform.sizePolicy().hasHeightForWidth())
-        fishttsform.setSizePolicy(sizePolicy)
-        fishttsform.setMaximumSize(QSize(600, 250))
+        form.setObjectName("form")
+        form.resize(600, 250)
 
-        v1 = QtWidgets.QVBoxLayout(fishttsform)
+        v1 = QtWidgets.QVBoxLayout(form)
 
-        self.label = QLabel(fishttsform)
+        self.label = QLabel()
         self.label.setObjectName("label")
         self.label.setMinimumSize(QSize(0, 35))
-        self.api_url = QLineEdit(fishttsform)
+        self.api_url = QLineEdit()
         self.api_url.setObjectName("api_url")
         self.api_url.setMinimumSize(QSize(0, 35))
         h1 = QtWidgets.QHBoxLayout()
@@ -39,13 +31,7 @@ class Ui_fishtts(QDialog):
         h1.addWidget(self.api_url)
         v1.addLayout(h1)
 
-
-        self.label_5 = QLabel(fishttsform)
-        self.label_5.setObjectName("label_5")
-        self.label_5.setText('API请求说明')
-        v1.addWidget(self.label_5)
-
-        self.tips = QPlainTextEdit(fishttsform)
+        self.tips = QPlainTextEdit()
         self.tips.setObjectName("tips")
         self.tips.setMinimumHeight(150)
         self.tips.setReadOnly(True)
@@ -53,14 +39,12 @@ class Ui_fishtts(QDialog):
 
         h2 = QtWidgets.QHBoxLayout()
 
-        self.save = QPushButton(fishttsform)
+        self.save = QPushButton()
         self.save.setObjectName("save")
-        self.save.setGeometry(QRect(10, 450, 93, 35))
         self.save.setMinimumSize(QSize(0, 35))
 
-        self.test = QPushButton(fishttsform)
+        self.test = QPushButton()
         self.test.setObjectName("test")
-        self.test.setGeometry(QRect(490, 450, 93, 35))
         self.test.setMinimumSize(QSize(0, 35))
 
         help_btn = QtWidgets.QPushButton()
@@ -80,13 +64,13 @@ class Ui_fishtts(QDialog):
         h2.addWidget(help_btn)
         v1.addLayout(h2)
 
-        self.retranslateUi(fishttsform)
+        self.retranslateUi(form)
 
-        QMetaObject.connectSlotsByName(fishttsform)
+        QMetaObject.connectSlotsByName(form)
 
     # setupUi
 
-    def retranslateUi(self, fishttsform):
+    def retranslateUi(self, form):
         tips = """
 Fish-speech TTS 开源地址 https://github.com/fishaudio/fish-speech
 
@@ -106,9 +90,8 @@ references[0][text]:参考音频中的语音文本
 请求成功时返回音频流
 """
 
-        fishttsform.setWindowTitle("Fish-speech API " +tr('This channel needs deployed and started before available'))
+        form.setWindowTitle("Fish-speech API " +tr('This channel needs deployed and started before available'))
         self.tips.setPlainText(tips)
         self.save.setText(tr("Save"))
-        self.api_url.setPlaceholderText("填写http开头的API,Fish-speech 1.5.0默认 http://127.0.0.1:8080/v1/tts")
         self.label.setText("Fish-speech API")
         self.test.setText(tr("Test"))

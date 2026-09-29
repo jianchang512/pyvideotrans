@@ -187,7 +187,7 @@ class Ui_fn_recogn(QtWidgets.QWidget):
 
         self.remove_noise.setText(tr("Noise reduction"))
         self.remove_noise.setToolTip(
-            tr("Select to perform noise reduction processing from modelscope.cn, which takes a long time"))
+            tr("Select to form noise reduction processing from modelscope.cn, which takes a long time"))
         self.copysrt_rawvideo.setText(tr("Moving subtitle"))
         self.copysrt_rawvideo.setToolTip(
             tr("If selected, the subtitles will be saved to the original audio and video location and renamed to the same name as the original audio and video"))

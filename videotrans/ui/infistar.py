@@ -10,7 +10,7 @@ from videotrans.configure.config import tr, settings, params, ROOT_DIR
 from videotrans.util.help_misc import open_url
 
 
-class Ui_deepseek(QDialog):
+class Ui_infistar(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
@@ -21,58 +21,50 @@ class Ui_deepseek(QDialog):
         form.resize(600, 600)
 
         v1 = QtWidgets.QVBoxLayout(form)
-        h2 = QtWidgets.QHBoxLayout()
 
+        h3 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
 
         self.label_0 = QtWidgets.QPushButton()
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.setText(
-            'DeepSeek AI')
+        self.label_0.setCursor(Qt.PointingHandCursor)
+        self.label_0.setText('Infistar.cc - ' + tr('OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen'))
+        self.label_0.clicked.connect(lambda: open_url(url='https://infistar.cc/register?aff=9H6H7RR9&ref_source=link'))
         v1.addWidget(self.label_0)
 
-        self.label_2 = QtWidgets.QLabel()
-        self.label_2.setMinimumSize(QtCore.QSize(0, 35))
-        self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
-        self.label_2.setObjectName("label_2")
-        self.deepseek_key = QtWidgets.QLineEdit()
-        self.deepseek_key.setMinimumSize(QtCore.QSize(0, 35))
-        self.deepseek_key.setObjectName("deepseek_key")
-        h2.addWidget(self.label_2)
-        h2.addWidget(self.deepseek_key)
-        v1.addLayout(h2)
+        self.label_3 = QtWidgets.QLabel()
+        self.label_3.setObjectName("label_3")
+        self.infistar_key = QtWidgets.QLineEdit()
+        self.infistar_key.setMinimumSize(QtCore.QSize(0, 35))
+        self.infistar_key.setObjectName("infistar_key")
+        h3.addWidget(self.label_3)
+        h3.addWidget(self.infistar_key)
+        v1.addLayout(h3)
 
+        h_token = QtWidgets.QHBoxLayout()
+
+        label_token = QtWidgets.QLabel()
+        label_token.setObjectName("label_token")
+        label_token.setText(tr("Maximum output token"))
+        self.max_token = QtWidgets.QLineEdit()
+        self.max_token.setMinimumSize(QtCore.QSize(0, 35))
+        self.max_token.setObjectName("max_token")
+
+        h_token.addWidget(label_token)
+        h_token.addWidget(self.max_token)
+        v1.addLayout(h_token)
 
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
         self.label_selectmodel.setText(tr('Text  Or Srt  Translation')+tr("Model"))
-        self.deepseek_model = QtWidgets.QComboBox()
-        self.deepseek_model.setMinimumSize(QtCore.QSize(0, 35))
-        self.deepseek_model.setObjectName("deepseek_model")
+        self.infistar_model = QtWidgets.QComboBox()
+        self.infistar_model.setMinimumSize(QtCore.QSize(0, 35))
+        self.infistar_model.setObjectName("infistar_model")
         h_model.addWidget(self.label_selectmodel)
-        h_model.addWidget(self.deepseek_model)
+        h_model.addWidget(self.infistar_model)
         v1.addLayout(h_model)
-        
-        h_deepseek_max_token = QtWidgets.QHBoxLayout()
-        label_deepseek_max_token = QtWidgets.QLabel()
-        label_deepseek_max_token.setObjectName("label_deepseek_max_token")
-        label_deepseek_max_token.setText("Max token")
-        self.deepseek_max_token = QtWidgets.QLineEdit()
-        self.deepseek_max_token.setMinimumSize(QtCore.QSize(0, 35))
-        self.deepseek_max_token.setObjectName("deepseek_max_token")
-        
-
-        self.deepseek_thinking = QtWidgets.QCheckBox()
-        self.deepseek_thinking.setObjectName("deepseek_thinking")
-        self.deepseek_thinking.setText("Thinking")
-        
-        h_deepseek_max_token.addWidget(label_deepseek_max_token)
-        h_deepseek_max_token.addWidget(self.deepseek_max_token)
-        h_deepseek_max_token.addWidget(self.deepseek_thinking)
-        
-        v1.addLayout(h_deepseek_max_token)
 
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
@@ -107,33 +99,30 @@ class Ui_deepseek(QDialog):
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
-        help_btn.setText(tr("Fill out the tutorial"))
-        help_btn.clicked.connect(lambda: open_url(url='https://pyvideotrans.com/deepseek-ai'))
+        help_btn.setText(tr("Get API Key"))
+        help_btn.clicked.connect(lambda: open_url(url='https://infistar.cc/register?aff=9H6H7RR9&ref_source=link'))
 
         h4.addWidget(self.set)
         h4.addWidget(self.test)
         h4.addWidget(help_btn)
         v1.addLayout(h4)
-        self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'deepseek', 'deepseek'))
+        self.template.setPlainText(tr("Prompt: Please open the {} file directly to modify it", 'infistar', 'infistar'))
 
         self.retranslateUi(form)
         QtCore.QMetaObject.connectSlotsByName(form)
 
-
     def update_ui(self):
-        allmodels_str = settings.get('deepseek_model','')
-        allmodels = str(settings.get('deepseek_model','')).split(',')
-        self.deepseek_model.clear()
-        self.deepseek_model.addItems(allmodels)
+        allmodels_str = settings.get('infistar_model', '')
+        allmodels = str(settings.get('infistar_model', '')).split(',')
+        self.infistar_model.clear()
+        self.infistar_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.deepseek_max_token.setText(str(params.get('deepseek_max_token',40960)))
-
-        self.deepseek_thinking.setChecked(bool(params.get("deepseek_thinking",False)))
-        self.deepseek_key.setText(str(params.get("deepseek_key",'')))
-        self.deepseek_model.setCurrentText(params.get("deepseek_model",''))
+        self.infistar_key.setText(str(params.get("infistar_key", '')))
+        self.infistar_model.setCurrentText(params.get("infistar_model", ''))
+        self.max_token.setText(str(params.get("infistar_max_token", '')))
 
     def retranslateUi(self, form):
-        form.setWindowTitle("DeepSeek AI")
-        self.label_2.setText(tr("SK"))
+        form.setWindowTitle("Infistar")
+        self.label_3.setText(tr("SK"))
         self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
         self.set.setText(tr('Save'))

@@ -14,41 +14,25 @@ class Ui_chattts(QDialog):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
-    def setupUi(self, chattts):
-        self.has_done = False
-        chattts.setObjectName("chattts")
-        chattts.setWindowModality(QtCore.Qt.NonModal)
-        chattts.resize(500, 223)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(chattts.sizePolicy().hasHeightForWidth())
-        chattts.setSizePolicy(sizePolicy)
-        chattts.setMaximumSize(QtCore.QSize(500, 300))
 
-        self.verticalLayout = QtWidgets.QVBoxLayout(chattts)
+    def setupUi(self, form):
+        self.has_done = False
+        form.setObjectName("form")
+        form.resize(500, 223)
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
         self.formLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_2.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_2.setObjectName("formLayout_2")
-        self.label = QtWidgets.QLabel(chattts)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
+        self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(100, 35))
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.chattts_address = QtWidgets.QLineEdit(chattts)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.chattts_address.sizePolicy().hasHeightForWidth())
-        self.chattts_address.setSizePolicy(sizePolicy)
+        self.chattts_address = QtWidgets.QLineEdit()
         self.chattts_address.setMinimumSize(QtCore.QSize(400, 35))
         self.chattts_address.setObjectName("chattts_address")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.chattts_address)
@@ -57,23 +41,13 @@ class Ui_chattts(QDialog):
         self.formLayout_3.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.formLayout_3.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.formLayout_3.setObjectName("formLayout_3")
-        self.label3 = QtWidgets.QLabel(chattts)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label3.sizePolicy().hasHeightForWidth())
-        self.label3.setSizePolicy(sizePolicy)
+        self.label3 = QtWidgets.QLabel()
         self.label3.setMinimumSize(QtCore.QSize(100, 35))
         self.label3.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label3.setObjectName("label3")
 
         self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label3)
-        self.chattts_voice = QtWidgets.QLineEdit(chattts)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.chattts_voice.sizePolicy().hasHeightForWidth())
-        self.chattts_voice.setSizePolicy(sizePolicy)
+        self.chattts_voice = QtWidgets.QLineEdit()
         self.chattts_voice.setMinimumSize(QtCore.QSize(400, 35))
         self.chattts_voice.setObjectName("chattts_voice")
 
@@ -82,11 +56,11 @@ class Ui_chattts(QDialog):
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout.addLayout(self.formLayout_3)
 
-        self.set_chattts = QtWidgets.QPushButton(chattts)
+        self.set_chattts = QtWidgets.QPushButton()
         self.set_chattts.setMinimumSize(QtCore.QSize(0, 35))
         self.set_chattts.setObjectName("set_chattts")
 
-        self.test = QtWidgets.QPushButton(chattts)
+        self.test = QtWidgets.QPushButton()
         self.test.setMinimumSize(QtCore.QSize(0, 30))
         self.test.setObjectName("test")
 
@@ -106,11 +80,11 @@ class Ui_chattts(QDialog):
 
         self.verticalLayout.addLayout(self.layout_btn)
 
-        self.retranslateUi(chattts)
-        QtCore.QMetaObject.connectSlotsByName(chattts)
+        self.retranslateUi(form)
+        QtCore.QMetaObject.connectSlotsByName(form)
 
-    def retranslateUi(self, chattts):
-        chattts.setWindowTitle("ChatTTS API "+tr('This channel needs deployed and started before available'))
+    def retranslateUi(self, form):
+        form.setWindowTitle("ChatTTS API "+tr('This channel needs deployed and started before available'))
         self.label.setText(tr("ChatTTS URL"))
         self.label3.setText(tr("ChatTTS Voice"))
         self.chattts_address.setPlaceholderText(

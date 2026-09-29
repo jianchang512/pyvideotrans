@@ -15,7 +15,8 @@ from videotrans.configure.constants import (
     WHISPER_CPP_MODELS, MINIMAX_MODELS,
     XIAOMI_MODELS, WHISPER_NET_MODELS, AI302_MODELS, QWENMT_MODELS, CHATGPT_MODELS, AZURE_MODELS, LOCALLLM_MODELS,
     ZHIPUAI_MODELS, DEEPSEEK_MODELS, OPENROUTER_MODELS, LITELLM_MODELS, APIROUTE_MODELS, CheaperInference_MODELS,
-    SILICONFLOW_MODELS, ZIJIEHUOSHAN_MODELS, GEMINI_MODELS, OPENAI_TTS_MODELS, QWEN_TTS_MODELS
+    SILICONFLOW_MODELS, ZIJIEHUOSHAN_MODELS, GEMINI_MODELS, OPENAI_TTS_MODELS, QWEN_TTS_MODELS,INFISTAR_MODELS
+
 )
 
 
@@ -123,8 +124,9 @@ class AppSettings:
             "siliconflow_model": SILICONFLOW_MODELS,
             "zijiehuoshan_model": ZIJIEHUOSHAN_MODELS,
             "model_list": WHISPER_MODELS,
+            "infistar_model": INFISTAR_MODELS,
+
             "minimaxi_model": MINIMAX_MODELS,
-            "qwentts_models": QWEN_TTS_MODELS,
             "chattts_voice": CHATTTS_ROLES,
             "gemini_model": GEMINI_MODELS,
         }
@@ -192,7 +194,6 @@ class AppSettings:
             "repetition_penalty": 1.0,
             "compression_ratio_threshold": 2.4,
 
-            "qwentts_role": '',
             "show_more_settings": False,
             "speaker_type": "built",
             "hf_token": "",
