@@ -32,6 +32,7 @@ def openwin():
         winobj.fanyi_translate_type.setDisabled(state)
         winobj.fanyi_model_list.setDisabled(state)
         winobj.fanyi_source.setDisabled(state)
+        winobj.is_cuda.setDisabled(state)
         winobj.fanyi_target.setDisabled(state)
         winobj.out_format.setDisabled(state)
         winobj.aisendsrt.setDisabled(state)
@@ -146,6 +147,7 @@ def openwin():
         uuid_list = [obj['uuid'] for obj in video_list]
         if winobj.save_source.isChecked():
             SOURCE_DIR = Path(video_list[0]['name']).parent.as_posix()
+        _is_cuda=winobj.is_cuda.isChecked()
         for it in video_list:
             app_cfg.rm_uuid(it['uuid'])
             it['target_dir']=SOURCE_DIR if SOURCE_DIR else RESULT_DIR
@@ -153,7 +155,8 @@ def openwin():
                 "translate_type": translate_type,
                 "uuid": it['uuid'],
                 "source_language_code": source_code,
-                "target_language_code": target_code
+                "target_language_code": target_code,
+                "is_cuda":_is_cuda
             }
             from videotrans.task.translate_srt import TranslateSrt
             trk = TranslateSrt(cfg=TaskCfgSTS(**cfg|it),out_format=winobj.out_format.currentIndex())
@@ -178,6 +181,7 @@ def openwin():
         params["trans_target_language"] = winobj.fanyi_target.currentIndex()
         params["trans_out_format"] = winobj.out_format.currentIndex()
         params["trans_save_source"] = winobj.save_source.isChecked()
+        params["trans_is_cuda"] = winobj.is_cuda.isChecked()
         params.save()
 
         toggle_state(True)
@@ -334,6 +338,7 @@ def openwin():
         winobj.glossary.clicked.connect(lambda: show_glossary_editor(winobj))
         winobj.aisendsrt.toggled.connect(checkbox_state_changed)
         winobj.save_source.setChecked(params.get("trans_save_source",False))
+        winobj.is_cuda.setChecked(params.get("trans_is_cuda",False))
 
     _bind()
     return winobj

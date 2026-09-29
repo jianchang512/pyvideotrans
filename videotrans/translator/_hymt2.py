@@ -36,9 +36,13 @@ class HYMT2(BaseTrans):
         self.hymt2_tokenizer = AutoTokenizer.from_pretrained(self.local_dir, trust_remote_code=True)
 
         # Load model
+        device=settings.get('device_name','auto')
+        if device=='auto':
+            import torch
+            device="cpu" if not self.is_cuda or not torch.cuda.is_available() else "cuda"
         self.hymt2_model = AutoModelForCausalLM.from_pretrained(
             self.local_dir,
-            device_map=settings.get('device_name', 'auto'),
+            device_map=device,
             dtype='auto',
             trust_remote_code=True,
         )

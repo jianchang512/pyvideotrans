@@ -35,7 +35,7 @@ def run(*, translate_type=0,
         is_test=False,
         source_code="",
         target_code="",
-        uuid=None) -> Union[List, str, None]:
+        uuid=None,is_cuda=False) -> Union[List, str, None]:
     translate_type = int(translate_type)
     # ai渠道下，target_language_name 是语言名称
     # 其他渠道下是语言代码
@@ -51,6 +51,7 @@ def run(*, translate_type=0,
         "target_code": target_code,
         "uuid": uuid,
         "is_test": is_test,
+        "is_cuda":is_cuda,
         "translate_type": translate_type
     }
 

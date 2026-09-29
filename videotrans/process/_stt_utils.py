@@ -286,7 +286,7 @@ def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) ->
 
     # 最后剩余
     if current_chunk:
-        if prev_word_end_ms-chunk_start_ms< min_speech_ms:
+        if final_segments and prev_word_end_ms-chunk_start_ms< min_speech_ms:
             final_segments[-1]['text']+= (" " if use_space else '')+build_text(current_chunk)
             final_segments[-1]['end']=prev_word_end_ms
         else:

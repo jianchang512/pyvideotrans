@@ -42,6 +42,7 @@ class BaseTrans(BaseCon):
     #  是AI翻译渠道并且选中了以完整srt格式字幕发送
     aisendsrt: bool = False
     local_dir: str = None
+    is_cuda:bool=False
 
     def __post_init__(self):
         super().__post_init__()
