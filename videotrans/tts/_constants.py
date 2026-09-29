@@ -151,7 +151,7 @@ ID_NAME_DICT = {
     CAMB_TTS: ChannelProvider("CAMB AI", imp="._cambtts", key_name="camb_api_key", win="cambtts"),
 
     TTS_API: ChannelProvider(tr("Customize API"), imp="._ttsapi", key_name="ttsapi_url", win="ttsapi"),
-    SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), imp="._siliconflow", key_name="guiji_key", win="siliconflow" ),
+    SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), imp="._siliconflow", key_name="siliconflow_key", win="siliconflow" ),
     OPENROUTER_API: ChannelProvider("OpenRouter", imp="._openrouter", key_name="openrouter_key", win="openrouter" ),
 }
 

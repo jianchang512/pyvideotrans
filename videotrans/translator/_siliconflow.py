@@ -7,9 +7,9 @@ class SILICONFLOW(OpenAICampat):
 
     def __post_init__(self):
         self.ainame ='siliconflow'
-        self.max_tokens =int(params.get('guiji_max_token',8192))
-        self.model_name = params.get('guiji_model', '')
+        self.max_tokens =int(params.get('siliconflow_max_token',8192))
+        self.model_name = params.get('siliconflow_model', '')
         self.api_url = "https://api.siliconflow.cn/v1"
-        self.api_key = params.get('guiji_key', '')
-        self.extra_body={"enable_thinking": bool(params.get('guiji_thinking'))}
+        self.api_key = params.get('siliconflow_key', '')
+        self.extra_body={"enable_thinking": bool(params.get('siliconflow_thinking'))}
         super().__post_init__()

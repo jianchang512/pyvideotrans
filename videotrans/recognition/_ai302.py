@@ -20,11 +20,10 @@ class AI302Recogn(BaseRecogn):
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
         self.signal(text=f"start speech to srt")
-        model_name = params.get('ai302_model_recogn','whisper-1')
-        if model_name=='gpt-4o-transcribe-diarize':
+        if self.model_name=='gpt-4o-transcribe-diarize':
             # 说话人识别模型
             return self._diarize()
-        if model_name.startswith('gpt-4o-'):
+        if self.model_name.startswith('gpt-4o-'):
             # gpt-4o 只可返回json格式
             return self._thrid_api()
         
@@ -44,7 +43,7 @@ class AI302Recogn(BaseRecogn):
         response = requests.post(url,
                                  files={"file": (Path(self.audio_file).name, audio_data)},
                                  data={
-                                     "model": model_name,
+                                     "model": self.model_name,
                                      'response_format': 'verbose_json',
                                      'prompt': prompt,
                                      'language': langcode},
@@ -72,7 +71,7 @@ class AI302Recogn(BaseRecogn):
 
     def _thrid_api(self):
         # 发送请求
-        model_name = params.get('ai302_model_recogn','whisper-1')
+
         raws = self.cut_audio()
         apikey = params.get('ai302_key')
         langcode = self.detect_language.split('-')[0].lower()
@@ -90,7 +89,7 @@ class AI302Recogn(BaseRecogn):
             response = requests.post(url,
                  files={"file": (Path(it['filename']).name, audio_chunk)},
                  data={
-                     "model": model_name,
+                     "model": self.model_name,
                      'response_format': 'json',
                      'prompt': prompt,
                      'language': langcode},
@@ -125,7 +124,7 @@ class AI302Recogn(BaseRecogn):
         response = requests.post(url,
              files={"file": (Path(self.audio_file).name, audio_data)},
              data={
-                 "model": 'gpt-4o-transcribe-diarize',
+                 "model": self.model_name,
                  'response_format': 'diarized_json',
                  # 'prompt': prompt,
                  'language': langcode},

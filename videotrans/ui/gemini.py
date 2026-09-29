@@ -5,7 +5,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure.config import tr,ROOT_DIR, params,settings
-from videotrans.configure.constants import GEMINI_TTS_MODELS,GEMINI_ASR_MODELS
+from videotrans.configure.constants import GEMINI_TTS_MODELS
 from videotrans.util.help_misc import open_url
 
 
@@ -55,11 +55,11 @@ class Ui_gemini(QDialog):
         label_token = QtWidgets.QLabel()
         label_token.setObjectName("label_token")
         label_token.setText('Max Token')
-        self.gemini_maxtoken = QtWidgets.QLineEdit()
-        self.gemini_maxtoken.setObjectName("gemini_maxtoken")
+        self.gemini_max_token = QtWidgets.QLineEdit()
+        self.gemini_max_token.setObjectName("gemini_max_token")
         
         h_token.addWidget(label_token)
-        h_token.addWidget(self.gemini_maxtoken)
+        h_token.addWidget(self.gemini_max_token)
         v1.addLayout(h_token)
         
 
@@ -107,14 +107,6 @@ class Ui_gemini(QDialog):
         self.label_asrmodel.setObjectName("label_asrmodel")
         self.label_asrmodel.setText('ASR model')
 
-        self.asrmodel = QtWidgets.QComboBox()
-        self.asrmodel.setMinimumSize(QtCore.QSize(0, 35))
-        self.asrmodel.setObjectName("asrmodel")
-        self.asrmodel.addItems(GEMINI_ASR_MODELS.split(','))
-        h3asrmodel.addWidget(self.label_asrmodel)
-        h3asrmodel.addWidget(self.asrmodel)
-        
-        
         
         
         v1.addLayout(h2ttsmodel)
@@ -155,10 +147,9 @@ class Ui_gemini(QDialog):
         self.gemini_key.setText(str(params.get("gemini_key",'')))
         self.model.setCurrentText(str(params.get("gemini_model",'')))
         
-        self.gemini_maxtoken.setText(str(params.get("gemini_maxtoken",'16384')))
+        self.gemini_max_token.setText(str(params.get("gemini_max_token",'16384')))
 
         self.ttsmodel.setCurrentText(str(params.get("gemini_ttsmodel",'')))
-        self.asrmodel.setCurrentText(str(params.get("gemini_asrmodel",'')))
 
     def retranslateUi(self):
         

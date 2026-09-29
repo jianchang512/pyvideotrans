@@ -963,7 +963,11 @@
   "Click to pause playback": "Click pause playback",
   "Increase table font size": "Increase table font size",
   "Decrease table font size": "Decrease table font size",
-  "Import SRT(only effective for single-video)": "Import origin SRT(only effective single-video)",
+
+  "Import spoken SRT": "Import Speech Language SRT",
+  "Import target language SRT": "Import target language SRT",
+  "This only works for translating a single video":"The import button is only active when translating a single video. \nClicking the import button and closing the pop-up will delete the imported subtitles.",
+  
   "For instructions on importing local SRT files during batch translation": "For instructions on importing local SRT files during batch translation, please refer to [https://pyvideotrans.com/localsrt].",
   "higgs-audio-v3-tips": "CUDA acceleration 8-bit quantization requires 10GB of gpu memory; pure CPU operation requires more than 20GB of RAM.",
   "Standardized dubbing segment processing": "Standardized dubbing segment processing...",

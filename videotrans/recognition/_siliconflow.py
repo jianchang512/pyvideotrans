@@ -16,8 +16,7 @@ from videotrans.task.taskcfg import SrtItem
 class SiliconflowASR(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
-        self.api_key = params.get('guiji_key')
-        self.model_name = params.get('guiji_asr_model','FunAudioLLM/SenseVoiceSmall')
+        self.api_key = params.get('siliconflow_key')
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[SrtItem], None]:

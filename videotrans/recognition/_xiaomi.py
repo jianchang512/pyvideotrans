@@ -55,7 +55,7 @@ class XiaomiASRRecogn(BaseRecogn):
                     audio_bytes = f.read()
                 audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
                 completion = client.chat.completions.create(
-                    model="mimo-v2.5-asr",
+                    model=self.model_name,
                     messages=[
                         {
                             "role": "user",

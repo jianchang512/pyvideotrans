@@ -27,23 +27,17 @@ class ElevenLabsRecogn(BaseRecogn):
             httpx_client=httpx.Client(proxy=self.proxy_str)
         )
 
-        language_code = self.detect_language.split('-')[0] if self.detect_language and self.detect_language != 'auto' else ''
+        language_code = self.detect_language.split('-')[0] if self.detect_language and self.detect_language != 'auto' else None
         logger.debug(f'{language_code=}')
 
         raws = []
-        if language_code:
-            res = client.speech_to_text.convert(
-                model_id="scribe_v2",
-                file=file_object,
-                language_code=language_code,
-                diarize=True
-            )
-        else:
-            res = client.speech_to_text.convert(
-                model_id="scribe_v1",
-                file=file_object,
-                diarize=True
-            )
+        res = client.speech_to_text.convert(
+            model_id=self.model_name,
+            file=file_object,
+            language_code=language_code,
+            diarize=True
+        )
+
         last_tmp = None
         logger.debug(f'elevenlabs{res=}\n')
         for it in res.words:

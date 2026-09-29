@@ -20,7 +20,6 @@ def openwin():
             return show_error(tr("Please input Secret"))
         params["openrouter_key"] = key
         params["openrouter_model"] = winobj.openrouter_model.currentText()
-        params["openrouter_asr_model"] = winobj.openrouter_asr_model.currentText()
         params["openrouter_tts_model"] = winobj.openrouter_tts_model.currentText()
         params["openrouter_max_token"] = winobj.max_token.text().strip()
         params["openrouter_reasoning_effort"] = winobj.reasoning_effort.currentText()
@@ -33,7 +32,6 @@ def openwin():
     def save():
         params["openrouter_key"] = winobj.openrouter_key.text().strip()
         params["openrouter_model"] = winobj.openrouter_model.currentText()
-        params["openrouter_asr_model"] = winobj.openrouter_asr_model.currentText()
         params["openrouter_tts_model"] = winobj.openrouter_tts_model.currentText()
         params["openrouter_max_token"] = winobj.max_token.text().strip()
         params["openro_reasoning_effort"] = winobj.reasoning_effort.currentText()

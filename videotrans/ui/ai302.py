@@ -47,7 +47,6 @@ class Ui_ai302(QDialog):
         v1.addLayout(h1)
 
         h2 = QtWidgets.QHBoxLayout()
-        h2_recogn = QtWidgets.QHBoxLayout()
 
         self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
@@ -57,17 +56,9 @@ class Ui_ai302(QDialog):
         h2.addWidget(self.label_3)
         h2.addWidget(self.ai302_model)
 
-        self.label_recogn = QtWidgets.QLabel()
-        self.label_recogn.setObjectName("label_recogn")
-        self.ai302_model_recogn = QtWidgets.QComboBox()
-        self.ai302_model_recogn.setMinimumSize(QtCore.QSize(0, 35))
-        self.ai302_model_recogn.setObjectName("ai302_model_recogn")
-        h2_recogn.addWidget(self.label_recogn)
-        h2_recogn.addWidget(self.ai302_model_recogn)
-        
+
         
         v1.addLayout(h2)
-        v1.addLayout(h2_recogn)
 
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
@@ -116,20 +107,16 @@ class Ui_ai302(QDialog):
 
         self.ai302_model.clear()
         self.ai302_model.addItems(allmodels)
-        self.ai302_model_recogn.clear()
-        self.ai302_model_recogn.addItems(['whisper-1','gpt-4o-transcribe','gpt-4o-mini-transcribe','gpt-4o-transcribe-diarize'])
         self.edit_allmodels.setPlainText(str(allmodels_str))
 
         if params.get("ai302_key",''):
             self.ai302_key.setText(str(params.get("ai302_key",'')))
         if  params.get("ai302_model") in allmodels:
             self.ai302_model.setCurrentText(str(params.get("ai302_model",'')))
-        self.ai302_model_recogn.setCurrentText(str(params.get("ai302_model_recogn",'')))
 
     def retranslateUi(self, ai302form):
         ai302form.setWindowTitle("302.ai"+tr("Access translation and dubbing channel configuration"))
         self.label_3.setText(tr('starttrans')+" Model")
-        self.label_recogn.setText(tr('Whisper model'))
         self.label_allmodels.setText(tr('Fill in all available models, separated by commas. After filling in, you can select them above'))
         self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
         self.set_ai302.setText(tr('Save'))

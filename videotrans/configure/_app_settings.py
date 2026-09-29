@@ -9,11 +9,13 @@ from typing import Dict
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure._logging import _write_with_retry
 from videotrans.configure.constants import (
-    DEFAULT_GEMINI_MODEL, ChatTTS_VOICE, Qwentts_Models,
-    Whisper_Models, Zijiehuoshan_Model, Zhipuai_Model, Localllm_Model, Azure_Model,
-    Chatgpt_Model, Openairecognapi_Model, Qpenaitts_Model, Qwenmt_Model, Ai302_Models,
-    Whisper_cpp_models, Deepseek_Model, Openrouter_Model, Litellm_Model, APIRoute_Model, CheaperInference_Model, Guiji_Model, MINIMAX_MODELS,
-    XIAOMI_MODELS
+    CHATTTS_ROLES,
+    WHISPER_MODELS,
+    OPENAIRECOGNAPI_MODELS,
+    WHISPER_CPP_MODELS, MINIMAX_MODELS,
+    XIAOMI_MODELS, WHISPER_NET_MODELS, AI302_MODELS, QWENMT_MODELS, CHATGPT_MODELS, AZURE_MODELS, LOCALLLM_MODELS,
+    ZHIPUAI_MODELS, DEEPSEEK_MODELS, OPENROUTER_MODELS, LITELLM_MODELS, APIROUTE_MODELS, CheaperInference_MODELS,
+    SILICONFLOW_MODELS, ZIJIEHUOSHAN_MODELS, GEMINI_MODELS, OPENAI_TTS_MODELS, QWEN_TTS_MODELS
 )
 
 
@@ -102,29 +104,29 @@ class AppSettings:
     @staticmethod
     def _models_dict():
         return {
-            "Whisper_cpp_models": Whisper_cpp_models,
-            "Whisper_net_models": Whisper_cpp_models,
-            "ai302_models": Ai302_Models,
-            'qwenmt_model': Qwenmt_Model,
-            "openaitts_model": Qpenaitts_Model,
-            "openairecognapi_model": Openairecognapi_Model,
-            "chatgpt_model": Chatgpt_Model,
-            "azure_model": Azure_Model,
-            "localllm_model": Localllm_Model,
-            "zhipuai_model": Zhipuai_Model,
-            "deepseek_model": Deepseek_Model,
+            "Whisper_cpp_models": WHISPER_CPP_MODELS,
+            "Whisper_net_models": WHISPER_NET_MODELS,
+            "ai302_models": AI302_MODELS,
+            'qwenmt_model': QWENMT_MODELS,
+            "openaitts_model": OPENAI_TTS_MODELS,
+            "openairecognapi_model": OPENAIRECOGNAPI_MODELS,
+            "chatgpt_model": CHATGPT_MODELS,
+            "azure_model": AZURE_MODELS,
+            "localllm_model": LOCALLLM_MODELS,
+            "zhipuai_model": ZHIPUAI_MODELS,
+            "deepseek_model": DEEPSEEK_MODELS,
             "xiaomi_model": XIAOMI_MODELS,
-            "openrouter_model": Openrouter_Model,
-            "litellm_model": Litellm_Model,
-            "api_route_model": APIRoute_Model,
-            "cheaperinference_model": CheaperInference_Model,
-            "guiji_model": Guiji_Model,
-            "zijiehuoshan_model": Zijiehuoshan_Model,
-            "model_list": Whisper_Models,
+            "openrouter_model": OPENROUTER_MODELS,
+            "litellm_model": LITELLM_MODELS,
+            "api_route_model": APIROUTE_MODELS,
+            "cheaperinference_model": CheaperInference_MODELS,
+            "siliconflow_model": SILICONFLOW_MODELS,
+            "zijiehuoshan_model": ZIJIEHUOSHAN_MODELS,
+            "model_list": WHISPER_MODELS,
             "minimaxi_model": MINIMAX_MODELS,
-            "qwentts_models": Qwentts_Models,
-            "chattts_voice": ChatTTS_VOICE,
-            "gemini_model": DEFAULT_GEMINI_MODEL,
+            "qwentts_models": QWEN_TTS_MODELS,
+            "chattts_voice": CHATTTS_ROLES,
+            "gemini_model": GEMINI_MODELS,
         }
 
     def _get_defaults(self) -> Dict:

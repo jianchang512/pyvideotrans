@@ -84,7 +84,7 @@ ID_NAME_DICT = {
     LOCALLLM_INDEX: ChannelProvider(tr('Local LLM'), key_name="localllm_api", win="localllm", imp="._localllm"),
 
     OPENROUTER_INDEX: ChannelProvider("OpenRouter", key_name="openrouter_key", win="openrouter", imp="._openrouter"),
-    SILICONFLOW_INDEX: ChannelProvider(tr('SiliconFlow'), key_name="guiji_key", win="siliconflow", imp="._siliconflow"),
+    SILICONFLOW_INDEX: ChannelProvider(tr('SiliconFlow'), key_name="siliconflow_key", win="siliconflow", imp="._siliconflow"),
     AI302_INDEX: ChannelProvider("302.AI", key_name="ai302_key", win="ai302", imp="._ai302"),
 
     QWENMT_INDEX: ChannelProvider(tr('Ali-Bailian'), key_name="qwenmt_key", win="qwenmt", imp="._qwenmt"),

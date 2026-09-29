@@ -1,8 +1,92 @@
 from ._languages_dict import LISTEN_TEXT, _LANGUAGE_M2M100, _LANGUAGE_FIRERED3, LANG_CODE, EDGE_LANGUANGES_CODE, \
     EDGET_LANGUAGES_NAME2CODE, EDGET_LANGUAGES_NAME2CODE_EN, SUBTITLE_CODE, SUBTITLE_CODE_B
 
-# -------------标点 空格语言-----------
-# 中日韩 泰国语 高棉语 粤语 不使用空格
+
+# 支持的视频格式
+VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts", "flv", "wmv"]
+# 支持的音频格式
+AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a", "ogg", "wma"]
+
+
+# -----------语音识别模型-----------------
+FASTER_MODELS_DICT = {
+    "tiny.en": "Systran/faster-whisper-tiny.en",
+    "tiny": "Systran/faster-whisper-tiny",
+    "base.en": "Systran/faster-whisper-base.en",
+    "base": "Systran/faster-whisper-base",
+    "small.en": "Systran/faster-whisper-small.en",
+    "small": "Systran/faster-whisper-small",
+    "medium.en": "Systran/faster-whisper-medium.en",
+    "medium": "Systran/faster-whisper-medium",
+    "large-v1": "Systran/faster-whisper-large-v1",
+    "large-v2": "Systran/faster-whisper-large-v2",
+    "large-v3": "Systran/faster-whisper-large-v3",
+    "large": "Systran/faster-whisper-large-v3",
+    "distil-large-v2": "Systran/faster-distil-whisper-large-v2",
+    "distil-medium.en": "Systran/faster-distil-whisper-medium.en",
+    "distil-small.en": "Systran/faster-distil-whisper-small.en",
+    "distil-large-v3": "Systran/faster-distil-whisper-large-v3",
+    "distil-large-v3.5": "distil-whisper/distil-large-v3.5-ct2",
+    "large-v3-turbo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
+    "turbo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
+}
+FUN_ASR_MODELS = 'Fun-ASR-Nano-2512,Fun-ASR-MLT-Nano-2512,paraformer-zh,SenseVoiceSmall'
+QWEN_ASR_LOCAL_MODELS = '1.7B,0.6B'
+ELEVENLABS_ASR_MODELS='scribe_v1,scribe_v2'
+DEEPGRAM_ASR_MODELS =  "nova-3,whisper-large,whisper-medium,whisper-small,whisper-base,whisper-tiny,nova-2,enhanced,base"
+GEMINI_ASR_MODELS = "gemini-3.5-transcribe"
+WHISPER_CPP_MODELS = "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
+WHISPER_NET_MODELS = WHISPER_CPP_MODELS
+QWEN_ASR_MODELS = 'qwen3-asr-flash,qwen-audio-3.0-asr-flash,fun-asr-flash-2026-06-15'
+OPENAIRECOGNAPI_MODELS = "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe,gpt-4o-transcribe-diarize"
+OPENROUTER_ASR_MODELS = "microsoft/mai-transcribe-2,microsoft/mai-transcribe-1.5,nvidia/nemotron-3.5-asr-streaming-multilingual-0.6b,nvidia/parakeet-tdt-0.6b-v3,mistralai/voxtral-small-24b-2507-stt,mistralai/voxtral-mini-3b-2507,mistralai/voxtral-mini-transcribe,qwen/qwen3-asr-1.7b,qwen/qwen3-asr-0.6b,qwen/qwen3-asr-flash-2026-02-10,openai/gpt-4o-mini-transcribe,openai/gpt-transcribe,openai/whisper-large-v3-turbo,openai/whisper-large-v3,openai/gpt-4o-transcribe,openai/whisper-1,fish-audio/transcribe-1,x-ai/grok-stt-1.0,deepgram/nova-3,meta/muse-voice-transcribe-1.0,"
+CAMBAI_ASR_MODELS='mars-flash,mars-pro,mars-instruct'
+SILICONFLOW_ASR_MODELS = "XingChenAGI/XingChenGSR-V1.0,XingChenAGI/XingChenASR-V3.2-Ultra,Qwen/Qwen3-ASR-1.7B,XingChenAGI/XingChenASR-V3.2,FunAudioLLM/SenseVoiceSmall"
+WHISPER_MODELS = "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3,distil-large-v3.5"
+OPENAI_WHISPER_MODELS = "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3"
+MINIMAX_ASR_MODELS = "asr-1.0"
+XIAOMO_ASR_MODELS="mimo-v2.5-asr"
+ZHIPU_ASR_MODELS="glm-asr-2512"
+
+#---------文本模型 字幕翻译模型 =====================================
+GEMINI_MODELS = "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"
+QWENMT_MODELS = "qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3.8-flash,qwen3.8-max,qwen3.7-plus,qwen3.7-flash,qwen3.7-max,qwen3.6-flash,qwen3.5-flash"
+CHATGPT_MODELS = "gpt-5.6-sol,gpt-5.6-luna,gpt-5.5,gpt-5.5-pro,gpt-5.4-pro,gpt-5.4,gpt-5.4-mini,gpt-5,gpt-5-mini"
+AZURE_MODELS = "gpt-5.5,gpt-5.4-mini, gpt-5.4-nano, gpt-5.4, gpt-5.4-pro,gpt-5.1, gpt-5.1-chat"
+LOCALLLM_MODELS = "qwen3.6,deepseek-v4-flash"
+ZHIPUAI_MODELS = "glm-5.3,glm-5.2,glm-5.1,glm-5, glm-4.7, glm-4.7-flash, glm-4.6,glm-4.5-flash"
+DEEPSEEK_MODELS = "deepseek-flash,deepseek-v4-pro,deepseek-v4-flash"
+OPENROUTER_MODELS = "~deepseek/deepseek-flash-latest,~deepseek/deepseek-pro-latest,~openai/gpt-astra-latest,~openai/gpt-sol-latest,~openai/gpt-terra-latest,~openai/gpt-luna-latest,openai/gpt-6-astra,openai/gpt-6-astra-pro,qwen/qwen3.8-max-0902,google/gemini-3.8-flash,anthropic/claude-fable-5.1,tencent/hy4-preview,~z-ai/glm-flash-latest,qwen/qwen3.8-flash,z-ai/glm-5.3-flash,~z-ai/glm-latest,z-ai/glm-5.3,qwen/qwen3.8-27b,google/gemini-3.7-flash"
+LITELLM_MODELS = "gpt-4o-mini,gpt-4o,claude-sonnet-4-6,claude-haiku-4-5,deepseek-chat"
+APIROUTE_MODELS = "gpt-5.4-mini,gpt-5.4,claude-sonnet-4-6,deepseek-chat,glm-5"
+CheaperInference_MODELS = "gpt-5.4-mini,gpt-5.4,claude-sonnet-5,gemini-3.1-pro,deepseek-v4-flash"
+SILICONFLOW_MODELS = "tencent/Hy4-preview,zai-org/GLM-5.3,deepseek-ai/DeepSeek-V4-Flash,meituan-longcat/LongCat-2.0,zai-org/GLM-5.2,deepseek-ai/DeepSeek-V4-Pro,Qwen/Qwen3.8-27B"
+AI302_MODELS = "deepseek-v4-pro,deepseek-v4-flash"
+ZIJIEHUOSHAN_MODELS = "doubao-seed-evolving,doubao-seed-2-1-pro-260915,doubao-seed-2-1-turbo-260628,doubao-seed-character-260628,doubao-seed-2-0-pro-260215,doubao-seed-2-0-mini-260428"
+MINIMAX_MODELS = "MiniMax-M3,MiniMax-M2.7,MiniMax-M2.7-highspeed"
+XIAOMI_MODELS = 'mimo-v2.6-flash,mimo-v2.6-pro,mimo-v2.5-pro,mimo-v2.5'
+
+#---------TTS 语音合成模型=====================================================
+GEMINI_TTS_MODELS = "gemini-3.1-flash-tts-preview,gemini-3.8-flash-tts,gemini-2.5-flash-preview-tts,gemini-2.5-pro-preview-tts"
+QWEN_TTS_MODELS = 'qwen3-tts-flash,qwen3-tts-instruct-flash,qwen-tts-latest,qwen-tts'
+OPENAI_TTS_MODELS = "tts-1,tts-1-hd,gpt-4o-mini-tts"
+OPENROUTER_TTS_MODELS = "qwen/qwen-audio-3.0-tts-flash,qwen/qwen-audio-3.0-tts-plus,microsoft/mai-voice-2-flash,x-ai/grok-voice-tts-1.0,google/gemini-3.1-flash-tts-preview,deepgram/flux-tts:free,canopylabs/orpheus-3b-0.1-ft,hexgrad/kokoro-82m,mistralai/voxtral-mini-tts-2603"
+SILICONFLOW_TTS_MODELS = "fnlp/MOSS-TTSD-v0.5,FunAudioLLM/CosyVoice2-0.5B"
+MINIMAX_TTS_MODELS = "speech-2.8-hd,speech-2.8-turbo,speech-2.6-hd,speech-2.6-turbo,speech-02-hd,speech-02-turbo"
+ELEVENLABS_TTS_MODELS = "eleven_v4,eleven_v3,eleven_flash_v2_5,eleven_flash_v2,eleven_multilingual_v2,eleven_multilingual_v1"
+XIAOMI_TTS_MODELS = 'mimo-v2.5-tts'
+
+
+# ------------默认TTS配音角色=================================
+SILICONFLOW_ROLES = "alex,benjamin,charles,david,anna,bella,claire,diana"
+CHATTTS_ROLES = "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
+OPENAITTS_ROLES = "alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
+XAITTS_ROLES = 'eve,ara,rex,sal,leo'
+MITTS_ROLES = 'mimo_default,default_zh,冰糖,茉莉,苏打,白桦,Mia,Milo,Dean,Chloe,default_en'
+GEMINITTS_ROLES = "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
+
+
+#---------------- 中日韩 泰国语 高棉语 粤语 不使用空格
 CJK_LANG = ["zh", "ja", "ko", "th", "km", "yue", "lo", "lao"]
 # 常见标点
 PUNC_FLAGS = [",", ".", "?", "!", ";", "，", "。", "？", "；", "！"]
@@ -46,7 +130,6 @@ _no_proxy_list = [
     "bigmodel.cn", ".bigmodel.cn",
 
     "api.gradio.app", ".api.gradio.app",
-    # "microsoft.com", ".microsoft.com", # 涵盖 tts.speech.microsoft.com
 
     # --- 本地回环 (涵盖所有端口：7860, 8000, 9880, 5051等) ---
     "localhost",
@@ -56,121 +139,7 @@ _no_proxy_list = [
 ]
 no_proxy = ",".join(_no_proxy_list)
 
-# ----------------支持的音视频格式---------------
-# 支持的视频格式
-VIDEO_EXTS = ["mp4", "mkv", "mpeg", "avi", "mov", "mts", "webm", "ogg", "ts", "flv", "wmv"]
-# 支持的音频格式
-AUDIO_EXITS = ["mp3", "wav", "aac", "flac", "m4a", "ogg", "wma"]
-
-# ------------默认TTS配音角色=================================
-ChatTTS_VOICE = "11,12,16,2222,4444,6653,7869,9999,5,13,14,1111,3333,4099,5099,5555,8888,6666,7777"
-# openai-tts音色
-OPENAITTS_ROLES = "alloy,ash,ballad,coral,echo,fable,onyx,nova,sage,shimmer,verse"
-XAITTS_ROLES = 'eve,ara,rex,sal,leo'
-MITTS_ROLES = 'mimo_default,default_zh,冰糖,茉莉,苏打,白桦,Mia,Milo,Dean,Chloe,default_en'
-# gemini-tts 音色
-GEMINITTS_ROLES = "Zephyr,Puck,Charon,Kore,Fenrir,Leda,Orus,Aoede,Callirrhoe,Autonoe,Enceladus,Iapetus,Umbriel,Algieba,Despina,Erinome,Algenib,Rasalgethi,Laomedeia,Achernar,Alnilam,Schedar,Gacrux,Pulcherrima,Achird,Zubenelgenubi,Vindemiatrix,Sadachbia,Sadaltager,Sulafat"
-
-# -----------语音识别模型名字-----------------
-FASTER_MODELS_DICT = {
-    "tiny.en": "Systran/faster-whisper-tiny.en",
-    "tiny": "Systran/faster-whisper-tiny",
-    "base.en": "Systran/faster-whisper-base.en",
-    "base": "Systran/faster-whisper-base",
-    "small.en": "Systran/faster-whisper-small.en",
-    "small": "Systran/faster-whisper-small",
-    "medium.en": "Systran/faster-whisper-medium.en",
-    "medium": "Systran/faster-whisper-medium",
-    "large-v1": "Systran/faster-whisper-large-v1",
-    "large-v2": "Systran/faster-whisper-large-v2",
-    "large-v3": "Systran/faster-whisper-large-v3",
-    "large": "Systran/faster-whisper-large-v3",
-    "distil-large-v2": "Systran/faster-distil-whisper-large-v2",
-    "distil-medium.en": "Systran/faster-distil-whisper-medium.en",
-    "distil-small.en": "Systran/faster-distil-whisper-small.en",
-    "distil-large-v3": "Systran/faster-distil-whisper-large-v3",
-    "distil-large-v3.5": "distil-whisper/distil-large-v3.5-ct2",
-    "large-v3-turbo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
-    "turbo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
-}
-# funasr模型
-FUNASR_MODEL = ['Fun-ASR-Nano-2512', 'Fun-ASR-MLT-Nano-2512', 'paraformer-zh', 'SenseVoiceSmall']
-QWENASR_LOCAL = ['1.7B', '0.6B']
-
-# deepgram 支持的语音识别模型
-DEEPGRAM_MODEL = [
-    "nova-3",
-    "whisper-large",
-    "whisper-medium",
-    "whisper-small",
-    "whisper-base",
-    "whisper-tiny",
-    "nova-2",
-    "enhanced",
-    "base",
-]
-GEMINI_ASR_MODELS = "gemini-3.5-transcribe"
-Whisper_cpp_models = "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
-Whisper_net_models = Whisper_cpp_models
-# 阿里百炼ASR模型
-Qwenasr_Models = 'qwen3-asr-flash,qwen-audio-3.0-asr-flash,fun-asr-flash-2026-06-15'
-Openairecognapi_Model = "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe,gpt-4o-transcribe-diarize"
-# openrouter.ai asr 模型
-Openrouter_ASR_Model = "microsoft/mai-transcribe-2,microsoft/mai-transcribe-1.5,nvidia/nemotron-3.5-asr-streaming-multilingual-0.6b,nvidia/parakeet-tdt-0.6b-v3,mistralai/voxtral-small-24b-2507-stt,mistralai/voxtral-mini-3b-2507,mistralai/voxtral-mini-transcribe,qwen/qwen3-asr-1.7b,qwen/qwen3-asr-0.6b,qwen/qwen3-asr-flash-2026-02-10,openai/gpt-4o-mini-transcribe,openai/gpt-transcribe,openai/whisper-large-v3-turbo,openai/whisper-large-v3,openai/gpt-4o-transcribe,openai/whisper-1,fish-audio/transcribe-1,x-ai/grok-stt-1.0,deepgram/nova-3,meta/muse-voice-transcribe-1.0,"
-
-# 硅基流动 asr 模型
-Guiji_ASR_Model = "XingChenAGI/XingChenGSR-V1.0,XingChenAGI/XingChenASR-V3.2-Ultra,Qwen/Qwen3-ASR-1.7B,XingChenAGI/XingChenASR-V3.2,FunAudioLLM/SenseVoiceSmall"
-Whisper_Models = "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3,distil-large-v3,distil-large-v3.5"
-Openai_Whisper_Models = "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3"
-MINIMAX_ASR_MODELS = "asr-1.0"
-
-#####  文本模型 字幕翻译模型 =====================================
-# 缺省 gemini 模型
-DEFAULT_GEMINI_MODEL = "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"
-
-# 阿里百炼用于 qwenmt翻译和文字大模型翻译
-Qwenmt_Model = "qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3.8-flash,qwen3.8-max,qwen3.7-plus,qwen3.7-flash,qwen3.7-max,qwen3.6-flash,qwen3.5-flash"
-Chatgpt_Model = "gpt-5.6-sol,gpt-5.6-luna,gpt-5.5,gpt-5.5-pro,gpt-5.4-pro,gpt-5.4,gpt-5.4-mini,gpt-5,gpt-5-mini"
-Azure_Model = "gpt-5.5,gpt-5.4-mini, gpt-5.4-nano, gpt-5.4, gpt-5.4-pro,gpt-5.1, gpt-5.1-chat"
-Localllm_Model = "qwen3.6,deepseek-v4-flash"
-
-Zhipuai_Model = "glm-5.3,glm-5.2,glm-5.1,glm-5, glm-4.7, glm-4.7-flash, glm-4.6,glm-4.5-flash"
-
-Deepseek_Model = "deepseek-flash,deepseek-v4-pro,deepseek-v4-flash"
-
-# OpenRouter.ai
-Openrouter_Model = "~deepseek/deepseek-flash-latest,~deepseek/deepseek-pro-latest,~openai/gpt-astra-latest,~openai/gpt-sol-latest,~openai/gpt-terra-latest,~openai/gpt-luna-latest,openai/gpt-6-astra,openai/gpt-6-astra-pro,qwen/qwen3.8-max-0902,google/gemini-3.8-flash,anthropic/claude-fable-5.1,tencent/hy4-preview,~z-ai/glm-flash-latest,qwen/qwen3.8-flash,z-ai/glm-5.3-flash,~z-ai/glm-latest,z-ai/glm-5.3,qwen/qwen3.8-27b,google/gemini-3.7-flash"
-Litellm_Model = "gpt-4o-mini,gpt-4o,claude-sonnet-4-6,claude-haiku-4-5,deepseek-chat"
-APIRoute_Model = "gpt-5.4-mini,gpt-5.4,claude-sonnet-4-6,deepseek-chat,glm-5"
-CheaperInference_Model = "gpt-5.4-mini,gpt-5.4,claude-sonnet-5,gemini-3.1-pro,deepseek-v4-flash"
-# 硅基流动
-Guiji_Model = "tencent/Hy4-preview,zai-org/GLM-5.3,deepseek-ai/DeepSeek-V4-Flash,meituan-longcat/LongCat-2.0,zai-org/GLM-5.2,deepseek-ai/DeepSeek-V4-Pro,Qwen/Qwen3.8-27B"
-Ai302_Models = "deepseek-v4-pro,deepseek-v4-flash"
-Zijiehuoshan_Model = "doubao-seed-evolving,doubao-seed-2-1-pro-260915,doubao-seed-2-1-turbo-260628,doubao-seed-character-260628,doubao-seed-2-0-pro-260215,doubao-seed-2-0-mini-260428"
-MINIMAX_MODELS = "MiniMax-M3,MiniMax-M2.7,MiniMax-M2.7-highspeed"
-XIAOMI_MODELS = 'mimo-v2.6-flash,mimo-v2.6-pro,mimo-v2.5-pro,mimo-v2.5'
-
-########TTS模型=====================================================
-
-# 阿里百炼TTS模型
-GEMINI_TTS_MODELS = "gemini-3.1-flash-tts-preview,gemini-3.8-flash-tts,gemini-2.5-flash-preview-tts,gemini-2.5-pro-preview-tts"
-Qwentts_Models = 'qwen3-tts-flash,qwen3-tts-instruct-flash,qwen-tts-latest,qwen-tts'
-Qpenaitts_Model = "tts-1,tts-1-hd,gpt-4o-mini-tts"
-# openrouter.ai tts 模型
-Openrouter_TTS_Model = "qwen/qwen-audio-3.0-tts-flash,qwen/qwen-audio-3.0-tts-plus,microsoft/mai-voice-2-flash,x-ai/grok-voice-tts-1.0,google/gemini-3.1-flash-tts-preview,deepgram/flux-tts:free,canopylabs/orpheus-3b-0.1-ft,hexgrad/kokoro-82m,mistralai/voxtral-mini-tts-2603"
-
-# 硅基流动 tts 模型
-Guiji_TTS_Model = "fnlp/MOSS-TTSD-v0.5,FunAudioLLM/CosyVoice2-0.5B"
-# 硅基流动 tts 系统角色
-Guiji_TTS_Role = "alex,benjamin,charles,david,anna,bella,claire,diana"
-
-MINIMAX_TTS_MODELS = "speech-2.8-hd,speech-2.8-turbo,speech-2.6-hd,speech-2.6-turbo,speech-02-hd,speech-02-turbo"
-
-ELEVENLABS_TTS_MODELS = "eleven_v3,eleven_flash_v2_5,eleven_flash_v2,eleven_multilingual_v2,eleven_multilingual_v1"
-
-XIAOMI_TTS_MODELS = 'mimo-v2.5-tts'
-
-#####################模型下载地址===========================================
+#-------------模型下载地址===========================================
 # whisper.cpp windows二进制文件
 WHISPER_CPP_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/whisper-cpp-win32.zip'
 WHISPER_CPP_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/whisper-cpp-win32.zip?download=true'

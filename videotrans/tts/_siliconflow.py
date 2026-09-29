@@ -18,8 +18,8 @@ class SiliconflowTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_key = params.get('guiji_key')
-        self.model_name = params.get('guiji_tts_model','FunAudioLLM/CosyVoice2-0.5B')
+        self.api_key = params.get('siliconflow_key')
+        self.model_name = params.get('siliconflow_tts_model','FunAudioLLM/CosyVoice2-0.5B')
         self.speed=self.get_speed()
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))

@@ -50,13 +50,11 @@ def openwin():
 
     def save():
         params['camb_api_key'] = winobj.camb_api_key.text().strip()
-        params['camb_speech_model'] = winobj.camb_speech_model.currentText()
         params.save()
         set_process(text='', type="refreshtts")
         winobj.close()
 
     winobj.camb_api_key.setText(str(params.get('camb_api_key', '')))
-    winobj.camb_speech_model.setCurrentText(params.get('camb_speech_model', 'mars-flash'))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     return winobj

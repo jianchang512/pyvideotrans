@@ -7,7 +7,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure.config import tr, settings, params, ROOT_DIR
-from videotrans.configure.constants import Guiji_ASR_Model, Guiji_TTS_Model
+from videotrans.configure.constants import SILICONFLOW_ASR_MODELS,SILICONFLOW_TTS_MODELS
 from videotrans.util.help_misc import open_url
 
 
@@ -41,11 +41,11 @@ class Ui_siliconflow(QDialog):
 
         self.label_3 = QtWidgets.QLabel(siliconflowform)
         self.label_3.setObjectName("label_3")
-        self.guiji_key = QtWidgets.QLineEdit(siliconflowform)
-        self.guiji_key.setMinimumSize(QtCore.QSize(0, 35))
-        self.guiji_key.setObjectName("guiji_key")
+        self.siliconflow_key = QtWidgets.QLineEdit(siliconflowform)
+        self.siliconflow_key.setMinimumSize(QtCore.QSize(0, 35))
+        self.siliconflow_key.setObjectName("siliconflow_key")
         h3.addWidget(self.label_3)
-        h3.addWidget(self.guiji_key)
+        h3.addWidget(self.siliconflow_key)
         v1.addLayout(h3)
 
 
@@ -62,10 +62,10 @@ class Ui_siliconflow(QDialog):
         h_token.addWidget(self.max_token)
         
         
-        self.guiji_thinking = QtWidgets.QCheckBox()
-        self.guiji_thinking.setObjectName("guiji_thinking")
-        self.guiji_thinking.setText("Thinking")
-        h_token.addWidget(self.guiji_thinking)
+        self.siliconflow_thinking = QtWidgets.QCheckBox()
+        self.siliconflow_thinking.setObjectName("siliconflow_thinking")
+        self.siliconflow_thinking.setText("Thinking")
+        h_token.addWidget(self.siliconflow_thinking)
         
         v1.addLayout(h_token)
 
@@ -74,35 +74,24 @@ class Ui_siliconflow(QDialog):
         label_selectmodel = QtWidgets.QLabel()
         label_selectmodel.setObjectName("label_selectmodel")
         label_selectmodel.setText(tr('Text  Or Srt  Translation')+tr("Model"))
-        self.guiji_model = QtWidgets.QComboBox()
-        self.guiji_model.setMinimumSize(QtCore.QSize(0, 35))
-        self.guiji_model.setObjectName("guiji_model")
+        self.siliconflow_model = QtWidgets.QComboBox()
+        self.siliconflow_model.setMinimumSize(QtCore.QSize(0, 35))
+        self.siliconflow_model.setObjectName("siliconflow_model")
         h_model.addWidget(label_selectmodel)
-        h_model.addWidget(self.guiji_model)
+        h_model.addWidget(self.siliconflow_model)
         v1.addLayout(h_model)
 
-        h_asr_model = QtWidgets.QHBoxLayout()
-        label_asr_selectmodel = QtWidgets.QLabel()
-        label_asr_selectmodel.setObjectName("label_asr_selectmodel")
-        label_asr_selectmodel.setText(tr('Speech Recognit')+tr("Model"))
-        self.guiji_asr_model = QtWidgets.QComboBox()
-        self.guiji_asr_model.addItems(Guiji_ASR_Model.strip().split(','))
-        self.guiji_asr_model.setMinimumSize(QtCore.QSize(0, 35))
-        self.guiji_asr_model.setObjectName("guiji_asr_model")
-        h_asr_model.addWidget(label_asr_selectmodel)
-        h_asr_model.addWidget(self.guiji_asr_model)
-        v1.addLayout(h_asr_model)
 
         h_tts_model = QtWidgets.QHBoxLayout()
         label_tts_selectmodel = QtWidgets.QLabel()
         label_tts_selectmodel.setObjectName("label_tts_selectmodel")
         label_tts_selectmodel.setText(tr('From  Text  Into  Speech')+tr("Model"))
-        self.guiji_tts_model = QtWidgets.QComboBox()
-        self.guiji_tts_model.addItems(Guiji_TTS_Model.strip().split(','))
-        self.guiji_tts_model.setMinimumSize(QtCore.QSize(0, 35))
-        self.guiji_tts_model.setObjectName("guiji_tts_model")
+        self.siliconflow_tts_model = QtWidgets.QComboBox()
+        self.siliconflow_tts_model.addItems(SILICONFLOW_TTS_MODELS.strip().split(','))
+        self.siliconflow_tts_model.setMinimumSize(QtCore.QSize(0, 35))
+        self.siliconflow_tts_model.setObjectName("siliconflow_tts_model")
         h_tts_model.addWidget(label_tts_selectmodel)
-        h_tts_model.addWidget(self.guiji_tts_model)
+        h_tts_model.addWidget(self.siliconflow_tts_model)
         v1.addLayout(h_tts_model)
 
 
@@ -153,20 +142,18 @@ class Ui_siliconflow(QDialog):
         QtCore.QMetaObject.connectSlotsByName(siliconflowform)
 
     def update_ui(self):
-        allmodels_str = settings.get('guiji_model','')
-        allmodels = str(settings.get('guiji_model','')).split(',')
-        self.guiji_model.clear()
-        self.guiji_model.addItems(allmodels)
+        allmodels_str = settings.get('siliconflow_model','')
+        allmodels = str(settings.get('siliconflow_model','')).split(',')
+        self.siliconflow_model.clear()
+        self.siliconflow_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)
-        self.guiji_key.setText(str(params.get("guiji_key",'')))
-        self.max_token.setText(str(params.get("guiji_max_token",'')))
-        self.guiji_thinking.setChecked(bool(params.get("guiji_thinking",False)))
-        if params.get("guiji_model"):
-            self.guiji_model.setCurrentText(params.get("guiji_model"))
-        if params.get("guiji_asr_model"):
-            self.guiji_asr_model.setCurrentText(params.get("guiji_asr_model"))
-        if params.get("guiji_tts_model"):
-            self.guiji_tts_model.setCurrentText(params.get("guiji_tts_model"))
+        self.siliconflow_key.setText(str(params.get("siliconflow_key",'')))
+        self.max_token.setText(str(params.get("siliconflow_max_token",'')))
+        self.siliconflow_thinking.setChecked(bool(params.get("siliconflow_thinking",False)))
+        if params.get("siliconflow_model"):
+            self.siliconflow_model.setCurrentText(params.get("siliconflow_model"))
+        if params.get("siliconflow_tts_model"):
+            self.siliconflow_tts_model.setCurrentText(params.get("siliconflow_tts_model"))
 
 
     def retranslateUi(self, siliconflowform):

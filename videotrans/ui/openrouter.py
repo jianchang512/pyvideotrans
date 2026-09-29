@@ -7,7 +7,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure.config import tr, settings, params, ROOT_DIR
-from videotrans.configure.constants import Openrouter_ASR_Model, Openrouter_TTS_Model
+from videotrans.configure.constants import OPENROUTER_ASR_MODELS,OPENROUTER_TTS_MODELS
 from videotrans.util.help_misc import open_url
 
 
@@ -82,25 +82,14 @@ class Ui_openrouter(QDialog):
         h_model.addWidget(self.openrouter_model)
         v1.addLayout(h_model)
 
-        # asr tts
-        h_asr_model = QtWidgets.QHBoxLayout()
-        label_asr_selectmodel = QtWidgets.QLabel()
-        label_asr_selectmodel.setObjectName("label_asr_selectmodel")
-        label_asr_selectmodel.setText(tr('Speech Recognit')+tr("Model"))
-        self.openrouter_asr_model = QtWidgets.QComboBox()
-        self.openrouter_asr_model.addItems(Openrouter_ASR_Model.strip().split(','))
-        self.openrouter_asr_model.setMinimumSize(QtCore.QSize(0, 35))
-        self.openrouter_asr_model.setObjectName("openrouter_asr_model")
-        h_asr_model.addWidget(label_asr_selectmodel)
-        h_asr_model.addWidget(self.openrouter_asr_model)
-        v1.addLayout(h_asr_model)
+        #  tts
 
         h_tts_model = QtWidgets.QHBoxLayout()
         label_tts_selectmodel = QtWidgets.QLabel()
         label_tts_selectmodel.setObjectName("label_tts_selectmodel")
         label_tts_selectmodel.setText(tr('From  Text  Into  Speech')+tr("Model"))
         self.openrouter_tts_model = QtWidgets.QComboBox()
-        self.openrouter_tts_model.addItems(Openrouter_TTS_Model.strip().split(','))
+        self.openrouter_tts_model.addItems(OPENROUTER_TTS_MODELS.strip().split(','))
         self.openrouter_tts_model.setMinimumSize(QtCore.QSize(0, 35))
         self.openrouter_tts_model.setObjectName("openrouter_tts_model")
         h_tts_model.addWidget(label_tts_selectmodel)

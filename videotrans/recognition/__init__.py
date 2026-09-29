@@ -4,7 +4,6 @@ from typing import Union, List, Type
 from videotrans import winform, get_class
 from videotrans.configure import constants
 from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR, settings
-from videotrans.configure.constants import Qwenasr_Models
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from ._constants import *
@@ -13,21 +12,41 @@ from ._constants import *
 # 根据渠道id获取模型列表
 def get_model_by_type(recogn_type: int) -> List[str]:
     if recogn_type == Deepgram:
-        return constants.DEEPGRAM_MODEL
+        return constants.DEEPGRAM_ASR_MODELS.split(',')
     if recogn_type == Whisper_CPP:
         return settings.get('Whisper_cpp_models', '').split(',')
     if recogn_type == WHISPER_NET:
         return settings.get('Whisper_net_models', '').split(',')
     if recogn_type == QWENASR:
-        return constants.QWENASR_LOCAL
+        return constants.QWEN_ASR_LOCAL_MODELS.split(',')
+    if recogn_type == QWEN3ASR:
+        return constants.QWEN_ASR_MODELS.split(',')
     if recogn_type == FUNASR_CN:
-        return constants.FUNASR_MODEL
+        return constants.FUN_ASR_MODELS.split(',')
     if recogn_type == HUGGINGFACE_ASR:
         return list(HUGGINGFACE_ASR_MODELS.keys())
     if recogn_type == OPENAI_WHISPER:
-        return constants.Openai_Whisper_Models.split(',')
-    if recogn_type == QWEN3ASR:
-        return Qwenasr_Models.split(',')
+        return constants.OPENAI_WHISPER_MODELS.split(',')
+
+    if recogn_type == SILICONFLOW_API:
+        return constants.SILICONFLOW_ASR_MODELS.split(',')
+    if recogn_type == OPENROUTER_API:
+        return constants.OPENROUTER_ASR_MODELS.split(',')
+    if recogn_type == MINIMAX_API:
+        return constants.MINIMAX_ASR_MODELS.split(',')
+
+    if recogn_type == GEMINI_SPEECH:
+        return constants.GEMINI_ASR_MODELS.split(',')
+    if recogn_type == ElevenLabs:
+        return constants.ELEVENLABS_ASR_MODELS.split(',')
+    if recogn_type == CAMB_ASR:
+        return constants.CAMBAI_ASR_MODELS.split(',')
+    if recogn_type in [OPENAI_API,AI_302]:
+        return constants.OPENAIRECOGNAPI_MODELS.split(',')
+    if recogn_type==XIAOMIASR:
+        return constants.XIAOMO_ASR_MODELS.split(',')
+    if recogn_type==ZHIPU_API:
+        return constants.ZHIPU_ASR_MODELS.split(',')
 
     return settings.get('model_list', '').split(',')
 
@@ -37,8 +56,7 @@ def get_model_by_type(recogn_type: int) -> List[str]:
 # recogn_type=识别渠道,
 # model_name=模型名字
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
-    if recogn_type in [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API,
-                       AI_302, GEMINI_SPEECH, WHISPER_NET, GOOGLE_SPEECH, AUDEXUM_API]:
+    if recogn_type in ALLOW_ALL_LANGUAGES :
         return True
 
     # huggingface_asr 渠道里的 openai 和 Systran 模型也支持所有语言

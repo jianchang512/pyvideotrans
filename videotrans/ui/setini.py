@@ -7,7 +7,7 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QFileDialog
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, defaulelang
-from videotrans.configure.constants import LANG_CODE, Whisper_Models
+from videotrans.configure.constants import LANG_CODE, WHISPER_MODELS
 
 # ultrafast 、 superfast 、 veryfast 、 faster 、 fast 、 medium （默认）、 slow和veryslow
 # 处理速度越来越慢，输出视频压缩率和质量越来越高，视频尺寸也将变小
@@ -488,7 +488,7 @@ class Ui_setini(QtWidgets.QWidget):
             ],
             "out_video_ext": ['.mp4', '.mkv'],
             "device_name":['auto','cuda','cpu','mps','xpu','cuda:0','cuda:1','cuda:2','cuda:3'],
-            "model_for_recogn2":Whisper_Models.split(',')
+            "model_for_recogn2":WHISPER_MODELS.split(',')
         }
 
         return data.get(key, [""])

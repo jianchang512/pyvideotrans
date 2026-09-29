@@ -103,13 +103,27 @@ class WinActionBaseFileMixin:
                     set_process(text=test_proxy, type="proxy_error")
         threading.Thread(target=_curl).start()
 
-    def import_srtfile(self):
+    def import_srtfile(self,srt_type='spoken'):
+        _title=tr('Import spoken SRT') if srt_type=='spoken' else tr('Import target language SRT')
+        
         fname,_ = QtWidgets.QFileDialog.getOpenFileName(self.main,
-                                                                tr("Import SRT(only effective for single-video)"),
+                                                                _title,
                                                                 params.get('last_opendir', ''),
                                                                 f'Files(*.srt)')
-        app_cfg.onlyone_importsrtfile=None
+        
+        if srt_type=='spoken':
+            app_cfg.onlyone_importsrtfile=fname if fname else None        
+        else:
+            app_cfg.onlyone_importsrtfile_target=fname if fname else None        
+        
+        
         self.main.subtitle_area.clear()
-        if fname:
-            app_cfg.onlyone_importsrtfile=fname            
-            self.main.subtitle_area.insertPlainText(f'{tr("Import SRT(only effective for single-video)")}\n{tr("For instructions on importing local SRT files during batch translation")}\n\n'+Path(fname).read_text(encoding='utf-8'))
+        _content=""
+        if app_cfg.onlyone_importsrtfile:
+            _content+=f'\n[{tr("Import spoken SRT")}]\n'+Path(app_cfg.onlyone_importsrtfile).read_text(encoding='utf-8')
+        if app_cfg.onlyone_importsrtfile_target:
+            _content+=f'\n[{tr("Import target language SRT")}]\n'+Path(app_cfg.onlyone_importsrtfile_target).read_text(encoding='utf-8')
+        if _content:
+            self.main.subtitle_area.insertPlainText(_content)
+        
+            

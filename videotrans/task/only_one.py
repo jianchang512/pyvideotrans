@@ -51,6 +51,9 @@ class Worker(QThread):
             if vail_file(app_cfg.onlyone_importsrtfile):
                 Path(trk.cfg.source_sub).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(app_cfg.onlyone_importsrtfile,trk.cfg.source_sub)
+            if vail_file(app_cfg.onlyone_importsrtfile_target):
+                Path(trk.cfg.source_sub).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(app_cfg.onlyone_importsrtfile_target,trk.cfg.target_sub)
             app_cfg.onlyone_source_sub = trk.cfg.source_sub
             app_cfg.onlyone_source_wav = trk.cfg.source_wav
             app_cfg.onlyone_target_sub = trk.cfg.target_sub

@@ -15,31 +15,29 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.guiji_key.text().strip()
+        key = winobj.siliconflow_key.text().strip()
         if not key:
             return show_error(tr("Please input Secret"))
-        params["guiji_key"] = key
-        params["guiji_model"] = winobj.guiji_model.currentText()
-        params["guiji_asr_model"] = winobj.guiji_asr_model.currentText()
-        params["guiji_tts_model"] = winobj.guiji_tts_model.currentText()
-        params["guiji_max_token"] = winobj.max_token.text().strip()
-        params["guiji_thinking"] = winobj.guiji_thinking.isChecked()
+        params["siliconflow_key"] = key
+        params["siliconflow_model"] = winobj.siliconflow_model.currentText()
+        params["siliconflow_tts_model"] = winobj.siliconflow_tts_model.currentText()
+        params["siliconflow_max_token"] = winobj.max_token.text().strip()
+        params["siliconflow_thinking"] = winobj.siliconflow_thinking.isChecked()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.SILICONFLOW_INDEX)
         task.uito.connect(feed)
         task.start()
 
     def save():
-        params["guiji_key"] = winobj.guiji_key.text().strip()
-        params["guiji_model"] = winobj.guiji_model.currentText()
-        params["guiji_max_token"] = winobj.max_token.text().strip()
-        params["guiji_thinking"] = winobj.guiji_thinking.isChecked()
-        params["guiji_asr_model"] = winobj.guiji_asr_model.currentText()
-        params["guiji_tts_model"] = winobj.guiji_tts_model.currentText()
+        params["siliconflow_key"] = winobj.siliconflow_key.text().strip()
+        params["siliconflow_model"] = winobj.siliconflow_model.currentText()
+        params["siliconflow_max_token"] = winobj.max_token.text().strip()
+        params["siliconflow_thinking"] = winobj.siliconflow_thinking.isChecked()
+        params["siliconflow_tts_model"] = winobj.siliconflow_tts_model.currentText()
         params.save()
         winobj.close()
 
     winobj.set.clicked.connect(save)
-    winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'guiji_model', 'guiji_model'))
+    winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'siliconflow_model', 'siliconflow_model'))
     winobj.test.clicked.connect(test)
     return winobj

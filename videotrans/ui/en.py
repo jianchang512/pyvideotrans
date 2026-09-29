@@ -242,17 +242,32 @@ class Ui_MainWindow(object):
 
         self.subtitle_area = QPlainTextEdit()
         self.subtitle_area.setReadOnly(True)
-        self.subtitle_area.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
+        self.subtitle_area.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         self.subtitle_area.setObjectName("subtitle_area")
         self.subtitle_area.setPlaceholderText(
             f"\n{tr('subtitle_tips')}\n\n{tr('meitiaozimugeshi')}")
 
-        self.subtitle_layout.addWidget(self.subtitle_area)
+        self.subtitle_layout.addWidget(self.subtitle_area,stretch=1)
 
+
+        import_srt_layout=QtWidgets.QHBoxLayout()
         self.import_subtitle = QtWidgets.QPushButton()
-        self.import_subtitle.setText(tr('Import SRT(only effective for single-video)'))
+        self.import_subtitle.setText(tr('Import spoken SRT'))
         self.import_subtitle.setCursor(Qt.PointingHandCursor)
-        self.subtitle_layout.addWidget(self.import_subtitle)
+        self.import_subtitle_target = QtWidgets.QPushButton()
+        self.import_subtitle_target.setText(tr('Import target language SRT'))
+        self.import_subtitle_target.setCursor(Qt.PointingHandCursor)
+        import_srt_layout.addWidget(self.import_subtitle)
+        import_srt_layout.addWidget(self.import_subtitle_target)
+        
+        import_srt_tips=QtWidgets.QLabel(tr('This only works for translating a single video'))
+        import_srt_tips.setWordWrap(True)
+        import_srt_tips.setStyleSheet("font-size:12px;color:#848f9c")
+        import_srt_tips.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
+        
+        self.subtitle_layout.addWidget(import_srt_tips,stretch=0)
+        self.subtitle_layout.addLayout(import_srt_layout)
+
 
         self.horizontalLayout_7.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)

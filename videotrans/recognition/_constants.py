@@ -49,7 +49,7 @@ WHISPER_NET = 27
 # 自定义API
 CUSTOM_API = 28
 
-#在线API
+# 在线API
 SILICONFLOW_API = 29
 OPENROUTER_API = 30
 MINIMAX_API = 31
@@ -60,8 +60,12 @@ ALLOW_CHANGE_MODEL = [
     FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
     OPENAI_WHISPER, FUNASR_CN, Deepgram,
     WHISPERX_API, HUGGINGFACE_ASR, QWENASR,
-    WHISPER_NET, QWEN3ASR
-]
+    WHISPER_NET, QWEN3ASR, SILICONFLOW_API, OPENROUTER_API, MINIMAX_API, GEMINI_SPEECH, ElevenLabs, CAMB_ASR,
+    OPENAI_API, STT_API,XIAOMIASR]
+
+# 允许所有语言，无需语言支持检测
+ALLOW_ALL_LANGUAGES=[FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API,
+                       AI_302, GEMINI_SPEECH, WHISPER_NET, GOOGLE_SPEECH, AUDEXUM_API]
 
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -103,46 +107,49 @@ ID_NAME_DICT = {
     STT_API: ChannelProvider(f"STT({tr('Local')}API)", key_name="stt_url", win="sttapi", imp="._sttapi"),
     WHISPER_NET: ChannelProvider("Whisper.NET", imp="._whispernet"),
     CUSTOM_API: ChannelProvider(tr("Custom API"), key_name="recognapi_url", win="recognapi", imp="._recognapi"),
-    SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), key_name="guiji_key", win="siliconflow", imp="._siliconflow"),
+    SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), key_name="siliconflow_key", win="siliconflow", imp="._siliconflow"),
     OPENROUTER_API: ChannelProvider('OpenRouter', key_name="openrouter_key", win="openrouter", imp="._openrouter"),
     MINIMAX_API: ChannelProvider('Minimax AI', key_name="minimaxi_apikey", win="minimaxi", imp="._minimaxi"),
     AUDEXUM_API: ChannelProvider("Audexum", key_name="audexum_key", win="audexum", imp="._audexum"),
 
 }
 # 强制保持按照每个常量值大小排序
-ID_NAME_DICT=dict(sorted(ID_NAME_DICT.items(),key=lambda item:item[0]))
+ID_NAME_DICT = dict(sorted(ID_NAME_DICT.items(), key=lambda item: item[0]))
 RECOGN_NAME_LIST = [it.name for it in ID_NAME_DICT.values()]
 HUGGINGFACE_ASR_MODELS = {
-    "nvidia/parakeet-tdt-0.6b-v3": ['en','bg','hr','cs','da','nl','et','fi','fr','de','el','hu','it','lv','lt','mt','pl','pt','ro','sk','sl','es','sv','ru','uk'],
-    "nvidia/nemotron-3.5-asr-streaming-0.6b": ["en","es","fr","it","pt","nl","de","tr","ru","ar","hi","ja","ko","vi","uk","pl","sv","cs","nb","da","bg","fi","hr","sk","zh","hu","ro","et","el","lt","lv","mt","sl","he","th","nn"],
-    "Audio8/ARK-ASR-0.6B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
-    "Audio8/ARK-ASR-3B": ['zh','en','de','ja','fr','ko','es','pl','it','ro','hu','cs','nl'],
-    "zai-org/GLM-ASR-Nano-2512": ['zh','en','yue'],
+    "nvidia/parakeet-tdt-0.6b-v3": ['en', 'bg', 'hr', 'cs', 'da', 'nl', 'et', 'fi', 'fr', 'de', 'el', 'hu', 'it', 'lv',
+                                    'lt', 'mt', 'pl', 'pt', 'ro', 'sk', 'sl', 'es', 'sv', 'ru', 'uk'],
+    "nvidia/nemotron-3.5-asr-streaming-0.6b": ["en", "es", "fr", "it", "pt", "nl", "de", "tr", "ru", "ar", "hi", "ja",
+                                               "ko", "vi", "uk", "pl", "sv", "cs", "nb", "da", "bg", "fi", "hr", "sk",
+                                               "zh", "hu", "ro", "et", "el", "lt", "lv", "mt", "sl", "he", "th", "nn"],
+    "Audio8/ARK-ASR-0.6B": ['zh', 'en', 'de', 'ja', 'fr', 'ko', 'es', 'pl', 'it', 'ro', 'hu', 'cs', 'nl'],
+    "Audio8/ARK-ASR-3B": ['zh', 'en', 'de', 'ja', 'fr', 'ko', 'es', 'pl', 'it', 'ro', 'hu', 'cs', 'nl'],
+    "zai-org/GLM-ASR-Nano-2512": ['zh', 'en', 'yue'],
 
-    "ibm-granite/granite-speech-4.1-2b": ['fr','en','de','es','pt','ja'],
+    "ibm-granite/granite-speech-4.1-2b": ['fr', 'en', 'de', 'es', 'pt', 'ja'],
     # hub
-    "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],#日语
+    "reazon-research/japanese-wav2vec2-large-rs35kh": ['ja'],  # 日语
     # pipeline whisper
-    "kotoba-tech/kotoba-whisper-v2.0": ['ja'],#日语
+    "kotoba-tech/kotoba-whisper-v2.0": ['ja'],  # 日语
     # pipeline whisper
-    "vinai/Phowhisper-large": ['vi'],#越南语
-    "nguyenvulebinh/wav2vec2-base-vietnamese-250h": ['vi'],#越南语
-    "biodatlab/whisper-th-large-v3": ['th'],#泰语
-    "sakares/wav2vec2-large-xlsr-thai-demo": ['th'],#泰语
-    "SiangLao/xlsr-53-lao-asr":['lo'],# 老挝语
-    "chuuhtetnaing/whisper-large-v3-myanmar":[],#缅甸语
-    "1morecupofhottea/whisper-turbo-khmer-v9":[],#高棉语 柬埔寨
-    "anke01/whisper-small-uyghur":[],#维吾尔语
-    "kingabzpro/whisper-large-v3-turbo-urdu":[],#乌尔都语
-    "vasista22/whisper-tamil-small":[],#泰米尔
-    "theainerd/Wav2Vec2-large-xlsr-hindi":[],#印地语
-    "cautroi/whisper-large-v3-id":[],#印尼语
-    "Khalsuu/filipino-wav2vec2-l-xls-r-300m-official":[],#菲律宾
-    "navai-uz/whisper-medium-uzbek":[],#乌兹别克
-    "jonatasgrosman/wav2vec2-large-xlsr-53-persian":[],#波斯语
-    "Ghost3454/translynx-pakistani-punjabi-whisper-small":[],#旁遮普语
-    "turkmedstt/whisper-large-v3-turkish-general":[],#土耳其语
-    "anton-l/wav2vec2-large-xlsr-53-mongolian":[],#蒙古语
-    "HNO333333/w2v-bert-2.0-Tibetan-Amdo":[],#藏语
+    "vinai/Phowhisper-large": ['vi'],  # 越南语
+    "nguyenvulebinh/wav2vec2-base-vietnamese-250h": ['vi'],  # 越南语
+    "biodatlab/whisper-th-large-v3": ['th'],  # 泰语
+    "sakares/wav2vec2-large-xlsr-thai-demo": ['th'],  # 泰语
+    "SiangLao/xlsr-53-lao-asr": ['lo'],  # 老挝语
+    "chuuhtetnaing/whisper-large-v3-myanmar": [],  # 缅甸语
+    "1morecupofhottea/whisper-turbo-khmer-v9": [],  # 高棉语 柬埔寨
+    "anke01/whisper-small-uyghur": [],  # 维吾尔语
+    "kingabzpro/whisper-large-v3-turbo-urdu": [],  # 乌尔都语
+    "vasista22/whisper-tamil-small": [],  # 泰米尔
+    "theainerd/Wav2Vec2-large-xlsr-hindi": [],  # 印地语
+    "cautroi/whisper-large-v3-id": [],  # 印尼语
+    "Khalsuu/filipino-wav2vec2-l-xls-r-300m-official": [],  # 菲律宾
+    "navai-uz/whisper-medium-uzbek": [],  # 乌兹别克
+    "jonatasgrosman/wav2vec2-large-xlsr-53-persian": [],  # 波斯语
+    "Ghost3454/translynx-pakistani-punjabi-whisper-small": [],  # 旁遮普语
+    "turkmedstt/whisper-large-v3-turkish-general": [],  # 土耳其语
+    "anton-l/wav2vec2-large-xlsr-53-mongolian": [],  # 蒙古语
+    "HNO333333/w2v-bert-2.0-Tibetan-Amdo": [],  # 藏语
     "openai/whisper-large-v3": []
 }

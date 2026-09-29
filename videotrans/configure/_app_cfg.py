@@ -56,6 +56,7 @@ class AppCfg:
     onlyone_trans: bool = False
     onlyone_is_cuda: bool = False
     onlyone_importsrtfile: str = None
+    onlyone_importsrtfile_target: str = None
 
     # cli模式、qt界面模式、web模式
     exec_mode: str = "gui"

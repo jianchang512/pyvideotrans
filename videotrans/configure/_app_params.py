@@ -9,10 +9,10 @@ from typing import Dict
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure._logging import _write_with_retry
 from videotrans.configure.constants import (
-    DEFAULT_GEMINI_MODEL, OPENAITTS_ROLES, GEMINI_TTS_MODELS, GEMINI_ASR_MODELS,
+    OPENAITTS_ROLES, GEMINI_TTS_MODELS,
     XIAOMI_MODELS, XIAOMI_TTS_MODELS, ELEVENLABS_TTS_MODELS,
-    MINIMAX_TTS_MODELS, MINIMAX_MODELS, Guiji_ASR_Model, Guiji_TTS_Model, Openrouter_ASR_Model, Openrouter_TTS_Model,
-    MINIMAX_ASR_MODELS
+    MINIMAX_TTS_MODELS, MINIMAX_MODELS,
+    SILICONFLOW_TTS_MODELS, OPENROUTER_TTS_MODELS, GEMINI_MODELS
 )
 
 # Module-level reference to settings singleton, set by config.py
@@ -117,11 +117,10 @@ class AppParams:
             "azure_version": "2025-04-01-preview",
             "azure_model": str(_settings.get('azure_model', '-')).strip().split(',')[0],
             "gemini_key": "",
-            "gemini_model": DEFAULT_GEMINI_MODEL.split(',')[0],
-            "gemini_maxtoken": 16384,
+            "gemini_model": GEMINI_MODELS.split(',')[0],
+            "gemini_max_token": 16384,
             "gemini_ttsstyle": "",
             "gemini_ttsmodel": GEMINI_TTS_MODELS.split(',')[0],
-            "gemini_asrmodel": GEMINI_ASR_MODELS.split(',')[0],
             "localllm_api": "",
             "localllm_key": "",
             "localllm_model": str(_settings.get('localllm_model', '-')).strip().split(',')[0],
@@ -130,12 +129,11 @@ class AppParams:
             "zhipu_thinking": False,
             "zhipu_model": str(_settings.get('zhipuai_model', '-')).strip().split(',')[0],
             "zhipu_max_token": 16384,
-            "guiji_key": "",
-            "guiji_thinking": False,
-            "guiji_model": str(_settings.get('guiji_model', '-')).strip().split(',')[0],
-            "guiji_asr_model": Guiji_ASR_Model.strip().split(',')[0],
-            "guiji_tts_model": Guiji_TTS_Model.strip().split(',')[0],
-            "guiji_max_token": 16384,  # 最大输出16k
+            "siliconflow_key": "",
+            "siliconflow_thinking": False,
+            "siliconflow_model": str(_settings.get('siliconflow_model', '-')).strip().split(',')[0],
+            "siliconflow_tts_model": SILICONFLOW_TTS_MODELS.strip().split(',')[0],
+            "siliconflow_max_token": 16384,  # 最大输出16k
             "deepseek_key": "",
             "deepseek_thinking": False,
             "deepseek_model": str(_settings.get('deepseek_model', '-')).strip().split(',')[0],
@@ -143,8 +141,7 @@ class AppParams:
             "openrouter_key": "",
             "openrouter_reasoning_effort": "default",
             "openrouter_model": str(_settings.get('openrouter_model', '-')).strip().split(',')[0],
-            "openrouter_asr_model": Openrouter_ASR_Model.strip().split(',')[0],
-            "openrouter_tts_model": Openrouter_TTS_Model.strip().split(',')[0],
+            "openrouter_tts_model": OPENROUTER_TTS_MODELS.strip().split(',')[0],
             "openrouter_max_token": 16384,  # 最大输出16k
             "litellm_api": 'http://localhost:4000/v1',
             "litellm_key": "",
@@ -168,7 +165,7 @@ class AppParams:
             "qwenttslocal_prompt": "",
             "ai302_key": "",
             "ai302_model": "",
-            "ai302_model_recogn": "whisper-1",
+
             "whipserx_api": "http://127.0.0.1:9092",
             "trans_api_url": "",
             "trans_secret": "",
@@ -209,7 +206,6 @@ class AppParams:
             "minimaxi_apikey": "",
             "minimaxi_apiurl": "api.minimax.cn",
             "minimaxi_emotion": "",
-            "minimaxi_asr_model": MINIMAX_ASR_MODELS.split(',')[0],
             "minimaxi_tts_model": MINIMAX_TTS_MODELS.split(',')[0],
             "minimaxi_text_model": MINIMAX_MODELS.split(',')[0],
             "minimaxi_max_token": 16384,

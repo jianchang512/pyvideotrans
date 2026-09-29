@@ -27,7 +27,7 @@ class GLMASRRecogn(BaseRecogn):
                 file_data = f.read()
             files = { "file":   (Path(it['filename']).name, file_data) }
             payload = {
-                "model": "glm-asr-2512",
+                "model":self.model_name,
                 "stream": "false"
             }
             headers = {"Authorization": f"Bearer {apikey}"}

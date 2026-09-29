@@ -4,6 +4,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure.config import tr, ROOT_DIR
+from videotrans.configure.constants import  CAMBAI_ASR_MODELS
 from videotrans.util.help_misc import open_url
 
 
@@ -38,20 +39,8 @@ class Ui_cambtts(QDialog):
         self.formLayout_2.addWidget(self.label)
         self.formLayout_2.addWidget(self.camb_api_key)
 
-        # Speech Model row
-        self.formLayout_3 = QtWidgets.QHBoxLayout()
-        self.label2 = QtWidgets.QLabel()
-        self.label2.setMinimumSize(QtCore.QSize(100, 35))
-        self.label2.setObjectName("label2")
-        self.camb_speech_model = QtWidgets.QComboBox()
-        self.camb_speech_model.setMinimumSize(QtCore.QSize(210, 35))
-        self.camb_speech_model.setObjectName("camb_speech_model")
-        self.camb_speech_model.addItems(['mars-flash', 'mars-pro', 'mars-instruct'])
-        self.formLayout_3.addWidget(self.label2)
-        self.formLayout_3.addWidget(self.camb_speech_model)
 
         self.verticalLayout.addLayout(self.formLayout_2)
-        self.verticalLayout.addLayout(self.formLayout_3)
 
         # Buttons
         self.set = QtWidgets.QPushButton()
@@ -83,6 +72,5 @@ class Ui_cambtts(QDialog):
     def retranslateUi(self, cambttsform):
         cambttsform.setWindowTitle("CAMB AI TTS")
         self.label.setText("API_KEY")
-        self.label2.setText("Speech Model")
         self.set.setText(tr("Save"))
         self.test.setText(tr("Test & get roles"))

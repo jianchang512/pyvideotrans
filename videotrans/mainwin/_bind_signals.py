@@ -41,7 +41,8 @@ class BindSignalsMixin:
         self.action_biaozhun.triggered.connect(self.win_action.set_biaozhun)
         self.action_tiquzimu.triggered.connect(self.win_action.set_tiquzimu)
         self.set_ass.clicked.connect(lambda: get_win('set_ass'))
-        self.import_subtitle.clicked.connect(self.win_action.import_srtfile)
+        self.import_subtitle.clicked.connect(lambda: self.win_action.import_srtfile('spoken'))
+        self.import_subtitle_target.clicked.connect(lambda: self.win_action.import_srtfile('target'))
 
 
         self.aisendsrt.toggled.connect(self.checkbox_state_changed)

@@ -79,17 +79,6 @@ class Ui_minimaxi(QDialog):
         h_text_model.addWidget(self.text_model)
         v1.addLayout(h_text_model)
 
-        h_asr_model = QtWidgets.QHBoxLayout()
-        label_asr = QtWidgets.QLabel()
-        label_asr.setObjectName("label_asr")
-        label_asr.setText(tr('Speech Recognit')+tr("Model"))
-        self.asr_model = QtWidgets.QComboBox()
-        self.asr_model.setMinimumSize(QtCore.QSize(0, 35))
-        self.asr_model.setObjectName("asr_model")
-        self.asr_model.addItems(MINIMAX_ASR_MODELS.strip().split(','))
-        h_asr_model.addWidget(label_asr)
-        h_asr_model.addWidget(self.asr_model)
-        v1.addLayout(h_asr_model)
 
         h_token = QtWidgets.QHBoxLayout()
         label_token = QtWidgets.QLabel()
@@ -163,7 +152,6 @@ class Ui_minimaxi(QDialog):
         self.apiurl.setCurrentText(str(params.get("minimaxi_apiurl",'api.minimax.cn')))
         self.emotion.setCurrentText(str(params.get("minimaxi_emotion",'')))
         self.tts_model.setCurrentText(str(params.get("minimaxi_tts_model",'')))
-        self.asr_model.setCurrentText(str(params.get("minimaxi_asr_model",'')))
 
         self.max_token.setText(str(params.get("minimax_max_token",'8192')))
         self.text_model.setCurrentText(str(params.get("minimaxi_text_model",'')))

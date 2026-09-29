@@ -317,7 +317,7 @@ def role_menu(tts_type, langcode=None) -> List:
         return get_openrouter_role(config.params.get("openrouter_tts_model"))
 
     if tts_type == tts.SILICONFLOW_API:
-        return ['No'] + constants.Guiji_TTS_Role.split(',')
+        return ['No'] + constants.SILICONFLOW_ROLES.split(',')
 
     if tts_type == tts.OPENAI_TTS:
         return ['No'] + (params.get('openaitts_role') or constants.OPENAITTS_ROLES).split(',')
