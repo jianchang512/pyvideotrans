@@ -949,6 +949,19 @@ LANG_CODE = {
         "Northern Uzbek",  # qwen-mt qwen-tts qwen-asr
         "uz"  # m2m100
     ],
+    "az": [
+        "az",  # google通道
+        "aze",  # 字幕嵌入语言
+        "No",  # 百度通道
+        "No",  # deepl deeplx通道
+        "No",  # 腾讯通道
+        "No",  # OTT通道
+        "az",  # 微软翻译
+        "Azerbaijani",  # AI翻译
+        "No",  # 阿里
+        "Azerbaijani",  # qwen-mt qwen-tts qwen-asr
+        "az"  # m2m100
+    ],
     "he": [
         "he",  # google通道
         "heb",  # 字幕嵌入语言
