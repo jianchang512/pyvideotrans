@@ -22,28 +22,16 @@ class GTTS(BaseTTS):
         super().__post_init__()
 
 
-    def _exec(self):
-        self._local_mul_thread()
 
-    def _item_task(self, data_item: Union[Dict, List, None],idx:int=-1):
+    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
+           wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
+           after=after_log(logger, logging.INFO))
+    def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         if self._exit() or not data_item.get('text','').strip():
             return
-        @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
-               wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),
-               after=after_log(logger, logging.INFO))
-        def _run():
-            if self._exit() or vail_file(data_item['filename']):
-                return
-
-            lans = self.language.split('-')
-            if len(lans) > 1:
-                self.language = f'{lans[0]}-{lans[1].upper()}'
-            response = gTTS(data_item['text'], lang=self.language, lang_check=False)
-            response.save(data_item['filename'] + ".mp3")
-            self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])
-
-        try:
-            _run()
-        except Exception as e:
-            self.error=e
-            raise
+        lans = self.language.split('-')
+        if len(lans) > 1:
+            self.language = f'{lans[0]}-{lans[1].upper()}'
+        response = gTTS(data_item['text'], lang=self.language, lang_check=False)
+        response.save(data_item['filename'] + ".mp3")
+        self.convert_to_wav(data_item['filename'] + ".mp3", data_item['filename'])

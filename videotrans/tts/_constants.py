@@ -62,6 +62,7 @@ TTS_API = 35
 # 在线API
 SILICONFLOW_API = 36
 OPENROUTER_API = 37
+DEEPGRAM_TTS = 38
 
 # 支持克隆的渠道，即存在 clone 配音角色
 SUPPORT_CLONE = [
@@ -99,7 +100,7 @@ LOCAL_BUILTIN = [
 
 # 配音角色根据语言不同而变化的渠道
 CHANGE_BY_LANGUAGE = [EDGE_TTS, MINIMAXI_TTS, AZURE_TTS, DOUBAO2_TTS, AI302_TTS, KOKORO_TTS,
-                      PIPER_TTS, VITSCNEN_TTS]
+                      PIPER_TTS, VITSCNEN_TTS,DEEPGRAM_TTS]
 
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -131,7 +132,7 @@ ID_NAME_DICT = {
     DOUBAO2_TTS: ChannelProvider(tr("DouBao2"), imp="._doubao2", key_name="doubao2_access", win="doubao2"),
     QWEN_TTS: ChannelProvider(f"{tr('Ali-Bailian')}", imp="._bailian", key_name="qwenmt_key", win="bailian"),
     XIAOMI_TTS: ChannelProvider(tr('XiaoMi'), imp="._xiaomi", key_name="xiaomi_key", win="xiaomi"),
-    GLM_TTS: ChannelProvider(f'GLM TTS {tr("Zhipu AI")}', imp="._glmtts", key_name="zhipu_key", win="zhipuai"),
+    GLM_TTS: ChannelProvider(f'{tr("Zhipu AI")}', imp="._glmtts", key_name="zhipu_key", win="zhipuai"),
     MINIMAXI_TTS: ChannelProvider("Minimaxi TTS", imp="._minimaxi", key_name="minimaxi_apikey", win="minimaxi"),
 
     OPENAI_TTS: ChannelProvider("OpenAI TTS", imp="._openaitts", key_name="openaitts_key", win="openaitts"),
@@ -147,12 +148,13 @@ ID_NAME_DICT = {
 
     CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)", imp="._clone", key_name="clone_api", win="clone"),
     AZURE_TTS: ChannelProvider("Azure TTS", imp="._azure", key_name="azure_speech_key", win="azuretts"),
-    AI302_TTS: ChannelProvider("302.AI", imp="._ai302", key_name="ai302_key", win="ai302"),
-    CAMB_TTS: ChannelProvider("CAMB AI", imp="._camb", key_name="camb_api_key", win="camb"),
+    AI302_TTS: ChannelProvider("302.ai", imp="._ai302", key_name="ai302_key", win="ai302"),
+    CAMB_TTS: ChannelProvider("CAMB.ai", imp="._camb", key_name="camb_api_key", win="camb"),
 
     TTS_API: ChannelProvider(tr("Customize API"), imp="._ttsapi", key_name="ttsapi_url", win="ttsapi"),
     SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), imp="._siliconflow", key_name="siliconflow_key", win="siliconflow" ),
-    OPENROUTER_API: ChannelProvider("OpenRouter", imp="._openrouter", key_name="openrouter_key", win="openrouter" ),
+    OPENROUTER_API: ChannelProvider("OpenRouter.ai", imp="._openrouter", key_name="openrouter_key", win="openrouter" ),
+    DEEPGRAM_TTS: ChannelProvider("Deepgram.com", imp="._deepgram", key_name="deepgram_apikey", win="deepgram" ),
 }
 
 # 强制保持按照每个常量值大小排序

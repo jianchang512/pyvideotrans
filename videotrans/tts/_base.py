@@ -220,6 +220,7 @@ class BaseTTS(BaseCon):
             return e
 
     # 子类未重写 _exec 方法时，则必须实现该方法
+    # 返回错误信息 或 抛出异常，正常无需返回
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         raise NotImplementedError
 

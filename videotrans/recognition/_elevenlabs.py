@@ -1,125 +1,56 @@
-import logging
 from dataclasses import dataclass
 from typing import List, Union
 
 import httpx
 from elevenlabs import ElevenLabs
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
-from videotrans.configure.config import  params, settings, logger
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
+from elevenlabs.core import ApiError
+
+from videotrans.configure.config import params, settings, logger
+from videotrans.configure.excepts import SpeechToTextError
+from videotrans.process._stt_utils import _resegment
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util._srt_parse import ms_to_time_string
 
 
 @dataclass
 class ElevenLabsRecogn(BaseRecogn):
 
-    @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
 
-        with open(self.audio_file, 'rb') as file:
-            file_object = file.read()
+        language_code = self.detect_language.split('-')[
+            0] if self.detect_language and self.detect_language != 'auto' else None
+        try:
+            with open(self.audio_file, 'rb') as file:
+                file_object = file.read()
+            client = ElevenLabs(
+                api_key=params.get('elevenlabstts_key', ''),
+                httpx_client=httpx.Client(proxy=self.proxy_str)
+            )
 
-        client = ElevenLabs(
-            api_key=params.get('elevenlabstts_key', ''),
-            httpx_client=httpx.Client(proxy=self.proxy_str)
-        )
-
-        language_code = self.detect_language.split('-')[0] if self.detect_language and self.detect_language != 'auto' else None
-        logger.debug(f'{language_code=}')
-
-        raws = []
-        res = client.speech_to_text.convert(
-            model_id=self.model_name,
-            file=file_object,
-            language_code=language_code,
-            diarize=True
-        )
-
-        last_tmp = None
-        logger.debug(f'elevenlabs{res=}\n')
-        for it in res.words:
-            if it.type == 'audio_event':
-                continue
-            text = it.text
-            if not text: continue
-            isflag = text[0] in self.flag or text[-1] in self.flag
-            spk = it.speaker_id.replace('speaker_', '')
-
-            st = int(it.start * 1000)
-            end = int(it.end * 1000)
-
-            if not last_tmp:
-                if not text.strip():
+            logger.debug(f'{language_code=}')
+            res = client.speech_to_text.convert(
+                model_id=self.model_name,
+                file=file_object,
+                language_code=language_code,
+            )
+        except ApiError as e:
+            raise SpeechToTextError(e.body)
+        else:
+            text_words = [{
+                'text': '',
+                'words': []
+            }]
+            logger.debug(f'elevenlabs{res=}\n')
+            for it in res.words:
+                if it.type == 'audio_event':
                     continue
-                last_tmp = SrtItem(
-                    line=len(raws) + 1,
-                    text=text,
-                    start_time=st,
-                    end_time=end,
-                    spk=spk
-                )
-                continue
+                if not it.text.strip(): continue
+                text_words[0]['words'].append({"start": it.start, "end": it.end, "word": it.text})
 
-            # 如果静音超过 200 并且句子时长已超过500，并且有标点，则断句
-            diff_prev = st - last_tmp['end_time']
-            segment_time = last_tmp['end_time'] - last_tmp['start_time']
-
-            logger.debug(f'\n{text=},{isflag=},{spk=},{diff_prev=},{segment_time=}\n')
-
-            # 不同说话人，强制断句
-
-            if spk != last_tmp['spk']:
-                last_tmp['time'] = ms_to_time_string(
-                    ms=last_tmp['start_time']) + ' --> ' + ms_to_time_string(ms=last_tmp['end_time'])
-                logger.debug(f'segments-spk:{last_tmp=}')
-                if last_tmp['text'].strip():
-                    raws.append(last_tmp)
-                last_tmp = SrtItem(
-                    line=len(raws) + 1,
-                    text=text,
-                    start_time=st,
-                    end_time=end,
-                    spk=spk
-                )
-                continue
-
-            if (diff_prev >= 200 or segment_time >= 500) and isflag:
-                # 如果标点在开始，则该word给下个，否则给当前
-                if text[0] in self.flag:
-                    last_tmp['text'] += text[0]
-                    last_tmp['time'] = ms_to_time_string(
-                        ms=last_tmp['start_time']) + ' --> ' + ms_to_time_string(ms=last_tmp['end_time'])
-                    logger.debug(f'segments-flag0:{last_tmp=}')
-                    if last_tmp['text'].strip():
-                        raws.append(last_tmp)
-                    last_tmp = SrtItem(
-                        line=len(raws) + 1,
-                        text=text[1:],
-                        start_time=st,
-                        end_time=end,
-                        spk=spk
-                    )
-                    continue
-
-                last_tmp['end_time'] = end
-                last_tmp['text'] += text
-                last_tmp['time'] = ms_to_time_string(
-                    ms=last_tmp['start_time']) + ' --> ' + ms_to_time_string(ms=end)
-                logger.debug(f'segments-flag1:{last_tmp=}')
-                if last_tmp['text'].strip():
-                    raws.append(last_tmp)
-                last_tmp = None
-            else:
-                last_tmp['end_time'] = end
-                last_tmp['text'] += text
-
-        if last_tmp and last_tmp['text'].strip():
-            last_tmp['time'] = ms_to_time_string(ms=last_tmp['start_time']) + ' --> ' + ms_to_time_string(
-                ms=last_tmp['end_time'])
-            logger.debug(f'segments:{last_tmp=}')
-
-            raws.append(last_tmp)
-        return raws
+            min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 3000)
+            # 最长片段不得大于25s,并且不得小于 _min_speech
+            max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000)
+            if max_speech <= min_speech:
+                max_speech = min_speech + 1000
+            return _resegment(text_words, language_code or 'en', max_speech, min_speech, logs_file=None)

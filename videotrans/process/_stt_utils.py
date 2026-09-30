@@ -144,7 +144,7 @@ def _resegment2(texts: List[Dict[str, Any]], language: str, max_speech_ms: int, 
 """
 
 
-def _resegment(texts, language, max_speech_ms, min_speech_ms, logs_file=None) -> List[SrtItem]:
+def _resegment(texts, language='en', max_speech_ms=6000, min_speech_ms=3000, logs_file=None) -> List[SrtItem]:
     if not texts: return []
     srt_output = []
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:start'}))

@@ -61,6 +61,11 @@ class Ui_elevenlabs(QDialog):
         self.test.setMinimumSize(QtCore.QSize(0, 35))
         self.test.setObjectName("test")
 
+        self.update_btn = QtWidgets.QPushButton()
+        self.update_btn.setMinimumSize(QtCore.QSize(0, 35))
+        self.update_btn.setObjectName("update_btn")
+        self.update_btn.setText(tr("Test & update role"))
+
         help_btn = QtWidgets.QPushButton()
         help_btn.setMinimumSize(QtCore.QSize(0, 35))
         help_btn.setStyleSheet("background-color: rgba(255, 255, 255,0)")
@@ -72,6 +77,7 @@ class Ui_elevenlabs(QDialog):
         hv = QtWidgets.QHBoxLayout()
         hv.addWidget(self.set)
         hv.addWidget(self.test)
+        hv.addWidget(self.update_btn)
         hv.addWidget(help_btn)
 
         self.verticalLayout.addLayout(hv)
@@ -84,4 +90,4 @@ class Ui_elevenlabs(QDialog):
         self.label2.setText("TTS model")
         self.label.setText("API_KEY")
         self.set.setText(tr("Save"))
-        self.test.setText(tr("Test & get roles"))
+        self.test.setText(tr("Test"))

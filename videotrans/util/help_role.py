@@ -56,30 +56,34 @@ def get_elevenlabs_role(force=False, raise_exception=False):
             cache = json.loads(f.read())
             for it in cache.values():
                 namelist.append(it['name'])
-    if not force and len(namelist) > 0:
-        params['elevenlabstts_role'] = namelist
-        return namelist
-    try:
-        from elevenlabs import ElevenLabs
-        client = ElevenLabs(api_key=params.get("elevenlabstts_key", ''))
-        voiceslist = client.voices.get_all()
+    params['elevenlabstts_role'] = namelist
+    return namelist
+def update_elevenlabs_role():
+    from elevenlabs import ElevenLabs
+    client = ElevenLabs(api_key=params.get("elevenlabstts_key", ''))
+    voiceslist = client.voices.get_all()
+    namelist = ['No']
+    result = {}
+    for it in voiceslist.voices:
+        n = re.sub(r'[^a-zA-Z0-9_ -]+', '', it.name, flags=re.I | re.S).strip()
+        result[n] = {"name": n, "voice_id": it.voice_id}
+        namelist.append(n)
+    jsonfile = f'{ROOT_DIR}/videotrans/voicejson/elevenlabs.json'
+    with open(jsonfile, 'w', encoding="utf-8") as f:
+        f.write(json.dumps(result,indent=4))
+    params['elevenlabstts_role'] = namelist
+    return namelist
 
-        namelist = ['No']
-        result = {}
-        for it in voiceslist.voices:
-            n = re.sub(r'[^a-zA-Z0-9_ -]+', '', it.name, flags=re.I | re.S).strip()
-            result[n] = {"name": n, "voice_id": it.voice_id}
-            namelist.append(n)
 
-        with open(jsonfile, 'w', encoding="utf-8") as f:
-            f.write(json.dumps(result))
-        params['elevenlabstts_role'] = namelist
-        return namelist
-    except Exception as e:
-        logger.exception(f'获取 elevenlabs 角色失败:{e}', exc_info=True)
-        if raise_exception:
-            raise
-    return []
+@lru_cache
+def get_deepgram_role(langcode="en"):
+    res = ['No']
+    file_path = f"{ROOT_DIR}/videotrans/voicejson/deepgram.json"
+    rolelist = json.loads(Path(file_path).read_text(encoding='utf-8-sig'))
+    res.extend(rolelist.get(langcode,[]))
+
+    return res
+
 
 @lru_cache
 def get_vits_role():
@@ -312,6 +316,8 @@ def get_openrouter_role(model_name):
 # 根据渠道返回角色列表 供下拉菜单使用
 def role_menu(tts_type, langcode=None) -> List:
     from videotrans import tts
+    if tts_type == tts.DEEPGRAM_TTS:
+        return get_deepgram_role(langcode)
 
     if tts_type == tts.OPENROUTER_API:
         return get_openrouter_role(config.params.get("openrouter_tts_model"))

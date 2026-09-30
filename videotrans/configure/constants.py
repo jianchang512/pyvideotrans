@@ -32,7 +32,7 @@ FASTER_MODELS_DICT = {
 }
 FUN_ASR_MODELS = 'Fun-ASR-Nano-2512,Fun-ASR-MLT-Nano-2512,paraformer-zh,SenseVoiceSmall'
 QWEN_ASR_LOCAL_MODELS = '1.7B,0.6B'
-ELEVENLABS_ASR_MODELS='scribe_v1,scribe_v2'
+ELEVENLABS_ASR_MODELS='scribe_v2'
 DEEPGRAM_ASR_MODELS =  "nova-3,nova-2,whisper-large"
 GEMINI_ASR_MODELS = "gemini-3.5-transcribe"
 WHISPER_CPP_MODELS = "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
@@ -74,7 +74,7 @@ OPENAI_TTS_MODELS = "tts-1,tts-1-hd,gpt-4o-mini-tts"
 OPENROUTER_TTS_MODELS = "qwen/qwen-audio-3.0-tts-flash,qwen/qwen-audio-3.0-tts-plus,microsoft/mai-voice-2-flash,x-ai/grok-voice-tts-1.0,google/gemini-3.1-flash-tts-preview,deepgram/flux-tts:free,canopylabs/orpheus-3b-0.1-ft,hexgrad/kokoro-82m,mistralai/voxtral-mini-tts-2603"
 SILICONFLOW_TTS_MODELS = "fnlp/MOSS-TTSD-v0.5,FunAudioLLM/CosyVoice2-0.5B"
 MINIMAX_TTS_MODELS = "speech-2.8-hd,speech-2.8-turbo,speech-2.6-hd,speech-2.6-turbo,speech-02-hd,speech-02-turbo"
-ELEVENLABS_TTS_MODELS = "eleven_v4,eleven_v3,eleven_flash_v2_5,eleven_flash_v2,eleven_multilingual_v2,eleven_multilingual_v1"
+ELEVENLABS_TTS_MODELS = "eleven_v4,eleven_v3,eleven_multilingual_v2"
 XIAOMI_TTS_MODELS = 'mimo-v2.5-tts'
 
 

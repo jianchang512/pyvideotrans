@@ -24,7 +24,7 @@ def extract_concise_error(stderr_text: str,stdout:str="") -> str:
     return " ".join(result)
 
 
-def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None,state_dict=None):
+def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
     if settings.get('force_lib'):
         force_cpu = True
 

@@ -99,19 +99,19 @@ ID_NAME_DICT = {
     PARAKEET: ChannelProvider(f"Parakeet-tdt({tr('Local')}API)", key_name="parakeet_address", win="parakeet",
                               imp="._parakeet"),
 
-    AI_302: ChannelProvider("302.AI", key_name="ai302_key", win="ai302", imp="._ai302"),
+    AI_302: ChannelProvider("302.ai", key_name="ai302_key", win="ai302", imp="._ai302"),
     ElevenLabs: ChannelProvider("ElevenLabs.io", key_name="elevenlabstts_key", win="elevenlabs", imp="._elevenlabs"),
     GOOGLE_SPEECH: ChannelProvider(tr("Google Speech to Text"), imp="._google"),
     Deepgram: ChannelProvider("Deepgram.com", key_name="deepgram_apikey", win="deepgram", imp="._deepgram"),
-    CAMB_ASR: ChannelProvider("CAMB AI", key_name="camb_api_key", win="camb", imp="._camb"),
+    CAMB_ASR: ChannelProvider("CAMB.ai", key_name="camb_api_key", win="camb", imp="._camb"),
     STT_API: ChannelProvider(f"STT({tr('Local')}API)", key_name="stt_url", win="sttapi", imp="._sttapi"),
     WHISPER_NET: ChannelProvider("Whisper.NET", imp="._whispernet"),
     CUSTOM_API: ChannelProvider(tr("Custom API"), key_name="recognapi_url", win="recognapi", imp="._recognapi"),
     SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), key_name="siliconflow_key", win="siliconflow",
                                      imp="._siliconflow"),
-    OPENROUTER_API: ChannelProvider('OpenRouter', key_name="openrouter_key", win="openrouter", imp="._openrouter"),
+    OPENROUTER_API: ChannelProvider('OpenRouter.ai', key_name="openrouter_key", win="openrouter", imp="._openrouter"),
     MINIMAX_API: ChannelProvider('Minimax AI', key_name="minimaxi_apikey", win="minimaxi", imp="._minimaxi"),
-    AUDEXUM_API: ChannelProvider("Audexum", key_name="audexum_key", win="audexum", imp="._audexum"),
+    AUDEXUM_API: ChannelProvider("Audexum.com", key_name="audexum_key", win="audexum", imp="._audexum"),
 
 }
 # 强制保持按照每个常量值大小排序

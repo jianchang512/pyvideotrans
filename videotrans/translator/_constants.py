@@ -87,7 +87,7 @@ ID_NAME_DICT = {
 
     OPENROUTER_INDEX: ChannelProvider("OpenRouter", key_name="openrouter_key", win="openrouter", imp="._openrouter"),
     SILICONFLOW_INDEX: ChannelProvider(tr('SiliconFlow'), key_name="siliconflow_key", win="siliconflow", imp="._siliconflow"),
-    AI302_INDEX: ChannelProvider("302.AI", key_name="ai302_key", win="ai302", imp="._ai302"),
+    AI302_INDEX: ChannelProvider("302.ai", key_name="ai302_key", win="ai302", imp="._ai302"),
 
     QWENMT_INDEX: ChannelProvider(tr('Ali-Bailian'), key_name="qwenmt_key", win="bailian", imp="._bailian"),
     ZIJIE_INDEX: ChannelProvider(tr('VolcEngine LLM'), key_name="zijiehuoshan_key", win="zijiehuoshan",
@@ -103,7 +103,7 @@ ID_NAME_DICT = {
                                  imp="._libre"),
     MINIMAX_INDEX: ChannelProvider("MiniMax AI", key_name="minimaxi_apikey", win="minimaxi", imp="._minimaxi"),
     XIAOMI_INDEX: ChannelProvider(tr("XiaoMi"), key_name="xiaomi_key", win="xiaomi", imp="._xiaomi"),
-    CAMB_INDEX: ChannelProvider("CAMB AI", key_name="camb_api_key", win="camb", imp="._camb"),
+    CAMB_INDEX: ChannelProvider("CAMB.ai", key_name="camb_api_key", win="camb", imp="._camb"),
     TRANSAPI_INDEX: ChannelProvider(tr('Customized API'), key_name="trans_api_url", win="transapi", imp="._transapi"),
     LITELLM_INDEX: ChannelProvider("LiteLLM", key_name="litellm_key", win="litellm", imp="._litellm"),
     API_ROUTE_INDEX: ChannelProvider("API Route", key_name="api_route_key", win="api_route", imp="._api_route"),
@@ -113,7 +113,6 @@ ID_NAME_DICT = {
 }
 
 # 菜单--工具/选项--高级选项-通用设置--LLM纠错所用渠道的显示数据
-# LLM 纠错中根据 索引获取 name
 LLM_CONCERT_MAP = {
     "chatgpt": tr("OpenAI ChatGPT"),
     "deepseek": "DeepSeek",
@@ -130,7 +129,7 @@ LLM_CONCERT_MAP = {
     "cheaperinference": "Cheaper Inference",
     "infistar": "Infistar"
 }
-
+# LLM 纠错中根据 name 获取 ID
 LLM_CONCERT_INDEX = {
     "chatgpt": CHATGPT_INDEX,
     "deepseek": DEEPSEEK_INDEX,

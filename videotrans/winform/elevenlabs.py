@@ -1,11 +1,14 @@
 
 
 def openwin():
+    from PySide6.QtCore import QThread, Signal
+    from elevenlabs.core import ApiError
+
+    from videotrans.util.help_role import update_elevenlabs_role
     from videotrans.winform import get_cls
     from pathlib import Path
     from videotrans.configure.constants import LISTEN_TEXT
     from videotrans.util.help_misc import set_process, show_error
-    from videotrans.util.help_role import get_elevenlabs_role
     from videotrans.configure.config import ROOT_DIR,tr,app_cfg,params
     from videotrans.configure import config
     from videotrans.util.ListenVoice import ListenVoice
@@ -13,13 +16,33 @@ def openwin():
 
     winobj = get_cls(Path(__file__).stem)()
 
+    class _UpdateRole(QThread):
+        uito = Signal(str)
+
+        def __init__(self, *, parent=None):
+            super().__init__(parent=parent)
+
+        def run(self):
+            try:
+                update_elevenlabs_role()
+                self.uito.emit("ok")
+            except ApiError as e:
+                self.uito.emit(e.body)
+            except Exception as e:
+                self.uito.emit(str(e))
+
+
     def feed(d):
         if not d.startswith("ok"):
             show_error(d)
-        else:
-            from PySide6 import QtWidgets
-            QtWidgets.QMessageBox.information(winobj, "OK", tr("elevenlabs toggle role"))
         winobj.test.setText(tr("Test"))
+        winobj.update_btn.setText(tr('Test & update role'))
+
+    def _update():
+        wk=_UpdateRole(parent=winobj)
+        wk.uito.connect(feed)
+        wk.start()
+        winobj.update_btn.setText('Updating...')
 
     def test():
         params['elevenlabstts_key'] = winobj.elevenlabstts_key.text().strip()
@@ -39,10 +62,11 @@ def openwin():
             wk.uito.connect(feed)
             wk.start()
             winobj.test.setText(tr("Testing..."))
-            run_in_threadpool(get_elevenlabs_role,True)
         except Exception as e:
             from videotrans.configure.excepts import get_msg_from_except
             show_error(get_msg_from_except(e))
+
+
 
     def save():
         params['elevenlabstts_key'] = winobj.elevenlabstts_key.text().strip()
@@ -56,4 +80,5 @@ def openwin():
     winobj.elevenlabstts_models.setCurrentText(params.get('elevenlabstts_models',''))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
+    winobj.update_btn.clicked.connect(_update)
     return winobj

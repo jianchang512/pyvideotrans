@@ -40,18 +40,7 @@ class XiaomiASRRecogn(BaseRecogn):
                     api_key=params.get('xiaomi_key', ''),
                     base_url=self.api_url
                 )
-                mp3_tmp = f'{self.cache_folder}/{i}-recogn.mp3'
-                runffmpeg([
-                    "-y",
-                    "-i",
-                    it['filename'],
-                    "-ac",
-                    "1",
-                    "-ar",
-                    "16000",
-                    mp3_tmp
-                ])
-                with open(mp3_tmp, "rb") as f:
+                with open(it['filename'], "rb") as f:
                     audio_bytes = f.read()
                 audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
                 completion = client.chat.completions.create(
@@ -63,7 +52,7 @@ class XiaomiASRRecogn(BaseRecogn):
                                 {
                                     "type": "input_audio",
                                     "input_audio": {
-                                        "data": f"data:audio/mp3;base64,{audio_base64}"
+                                        "data": f"data:audio/wav;base64,{audio_base64}"
                                     }
                                 }
                             ]

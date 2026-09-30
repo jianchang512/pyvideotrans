@@ -17,48 +17,50 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     Returns:
 
     """
-    if langcode is None or tts_type is None or tts_type in [EDGE_TTS, G_TTS, HIGGS_AUDIO_TTS, OMNIVOICE_TTS, AZURE_TTS]:
-        return True
-
+    is_support=True
     name = ID_NAME_DICT.get(tts_type).name
     _lang2 = langcode.split('-')[0]
-    if tts_type == DOUBAO2_TTS and _lang2 not in ["zh", "en", "ja", "id", "es", "ar", "de", "fr", "ko", "ms", "pt",
+
+    if tts_type == DEEPGRAM_TTS and  _lang2 not in ['de','en','es','fr','ja','nl','it']:
+        is_support=False
+
+    elif tts_type == DOUBAO2_TTS and _lang2 not in ["zh", "en", "ja", "id", "es", "ar", "de", "fr", "ko", "ms", "pt",
                                                   "ru", "th", "fil", "vi", "it", "yue"]:
-        return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
+        is_support=False
 
-    if tts_type in [CHATTTS, ZIPVOICE_TTS, VITSCNEN_TTS, SPARK_TTS] and _lang2 not in ['zh', 'en']:
-        return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
+    elif tts_type in [CHATTTS, ZIPVOICE_TTS, VITSCNEN_TTS, SPARK_TTS] and _lang2 not in ['zh', 'en']:
+        is_support=False
 
-    if tts_type in [INDEX_TTS] and _lang2 not in ['zh', 'en', 'ja', 'es', 'ar']:
-        return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
+    elif tts_type in [INDEX_TTS] and _lang2 not in ['zh', 'en', 'ja', 'es', 'ar']:
+        is_support=False
 
-    if tts_type == GPTSOVITS_TTS and _lang2 not in ['zh', 'ja', 'ko', 'en', 'yue']:
-        return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
+    elif tts_type == GPTSOVITS_TTS and _lang2 not in ['zh', 'ja', 'ko', 'en', 'yue']:
+        is_support=False
 
     # 中文、英文、日文、韩文、德文、法文、俄文、葡萄牙文、西班牙文、意大利文
-    if tts_type == QWEN3LOCAL_TTS and _lang2 not in ['zh', 'ja', 'ko', 'en', 'yue', 'de', 'fr', 'ru', 'pt', 'es', 'it']:
-        return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
+    elif tts_type == QWEN3LOCAL_TTS and _lang2 not in ['zh', 'ja', 'ko', 'en', 'yue', 'de', 'fr', 'ru', 'pt', 'es', 'it']:
+        is_support=False
 
-    if tts_type == F5_TTS and _lang2 not in ['zh', 'ja', 'it', 'en', 'de', 'fr', 'ru', 'hi', 'es', 'ar', 'tr', 'vi']:
-        return name + tr('Dubbing channel') + ' ' + tr('may not support') + tr(langcode)
+    elif tts_type == F5_TTS and _lang2 not in ['zh', 'ja', 'it', 'en', 'de', 'fr', 'ru', 'hi', 'es', 'ar', 'tr', 'vi']:
+        is_support=False
 
-    if tts_type == Supertonic_TTS and _lang2 not in ['ar', 'cs', 'nl', 'en', 'fr', 'de', 'el', 'hi', 'hu', 'id', 'it',
+    elif tts_type == Supertonic_TTS and _lang2 not in ['ar', 'cs', 'nl', 'en', 'fr', 'de', 'el', 'hi', 'hu', 'id', 'it',
                                                      'ja', 'ko', 'pl', 'pt', 'ro', 'ru', 'es', 'sv', 'tr', 'uk', 'vi']:
-        return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
+        is_support=False
 
-    if tts_type == MOSS_TTS and _lang2 not in ["zh", "yue", "en", "de", "es", "fr", "ja", "it", "hu", "ko", "ru", "fa",
+    elif tts_type == MOSS_TTS and _lang2 not in ["zh", "yue", "en", "de", "es", "fr", "ja", "it", "hu", "ko", "ru", "fa",
                                                "ar", "pl", "pt", "cs", "sv", "el", "tr", "da"]:
-        return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
+        is_support=False
 
-    if tts_type == CHATTERBOX_TTS and _lang2 not in ["zh", "yue", "en", "de", "es", "fr", "ja", "it", "ko", "ru", "ar",
+    elif tts_type == CHATTERBOX_TTS and _lang2 not in ["zh", "yue", "en", "de", "es", "fr", "ja", "it", "ko", "ru", "ar",
                                                      "pl", "pt", "sv", "el", "tr", "da", "he", 'hi', "ms", "nl", "nb"]:
-        return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
+        is_support=False
 
-    if tts_type == CONFUCIUS_TTS and _lang2 not in ["zh", "en", "ja", "ko", "de", "fr", "th",
+    elif tts_type == CONFUCIUS_TTS and _lang2 not in ["zh", "en", "ja", "ko", "de", "fr", "th",
                                                     "id", "vi", "es", "pt", "it", "ru", "ms"]:
+        is_support=False
+    if not is_support:
         return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
-    _mainsupport = ["ar", "cs", "de", "el", "en", "es", "fa", "fr", "hi", "hu", "id", "it", "kk", "nl", "pl", "pt",
-                    "ro", "ru", "sv", "tr", "uk", "ur", "vi", "zh", "ja"]
     return True
 
 
