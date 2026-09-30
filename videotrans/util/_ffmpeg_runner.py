@@ -46,17 +46,43 @@ def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None,state_dict=No
     try:
         if app_cfg.exit_soft:
             return
-        subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            encoding="utf-8",
-            errors='replace',
-            check=True,
-            text=True,
-            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
-            cwd=cmd_dir
-        )
+        if state_dict is None:
+            subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                errors='replace',
+                check=True,
+                text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+                cwd=cmd_dir
+            )
+        else:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                errors='replace',
+                text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+                cwd=cmd_dir
+            )
+            while True:
+                if app_cfg.exit_soft or state_dict.get('stop'):
+                    proc.kill()
+                    proc.communicate()
+                    return False
+                try:
+                    stdout, stderr = proc.communicate(timeout=0.1)
+                    break
+                except subprocess.TimeoutExpired:
+                    continue
+            if proc.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    proc.returncode, cmd, output=stdout, stderr=stderr
+                )
         if noextname:
             app_cfg.queue_novice[noextname] = "end"
         return True
