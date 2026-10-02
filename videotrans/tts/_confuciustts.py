@@ -7,10 +7,8 @@ from videotrans.util.help_misc import vail_file
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
-@dataclass
+@dataclass(repr=False)
 class ConfuciusTTS(BaseTTS):
-
-
     def _download(self):
         from videotrans.util import help_down
         self.local_dir=f"{ROOT_DIR}/models/models--netease-youdao--Confucius4-TTS"

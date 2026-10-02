@@ -16,7 +16,7 @@ from videotrans.util.help_misc import vail_file
 from videotrans.util.help_role import get_doubao2_rolelist
 
 
-@dataclass
+@dataclass(repr=False)
 class Doubao2TTS(BaseTTS):
 
     def __post_init__(self):
@@ -27,8 +27,7 @@ class Doubao2TTS(BaseTTS):
         volume = 100 * (self.get_volume() - 1)
         self.volume = min(max(-50.0, volume), 100.0)
 
-        self.appid = params.get('doubao2_appid', '')
-        self.access_token = params.get('doubao2_access', '')
+
     @staticmethod
     def _save_pcm_to_wav(audio_data, output_filename: str,
                          channels: int = 1, sample_rate: int = 48000, sample_width: int = 2):
@@ -50,12 +49,14 @@ class Doubao2TTS(BaseTTS):
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         if vail_file(data_item['filename']):return
+        appid = params.get('doubao2_appid', '')
+        access_token = params.get('doubao2_access', '')
         # 角色为实际名字
         role = data_item.get('role','Vivi 2.0')
         role = get_doubao2_rolelist(role_name=role, langcode=self.language.split('-')[0])
         headers = {
-            "X-Api-App-Id": self.appid,
-            "X-Api-Access-Key": self.access_token,
+            "X-Api-App-Id": appid,
+            "X-Api-Access-Key": access_token,
             "X-Api-Resource-Id": 'seed-tts-2.0',
             "Content-Type": "application/json",
             "Connection": "keep-alive"

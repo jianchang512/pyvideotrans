@@ -21,7 +21,7 @@ from videotrans.util.help_misc import is_connect_hf
 """
 
 
-@dataclass
+@dataclass(repr=False)
 class SpeechToText(BaseTask):
     cfg: TaskCfgSTT = field(default_factory=TaskCfgSTT, repr=False)
     # 识别后输出的字幕格式，srt txt 等
@@ -34,9 +34,6 @@ class SpeechToText(BaseTask):
     source_srt_list: List = field(default_factory=list)
     # 插入说话人到字幕开头
     spk_insert: bool = True
-
-    def __repr__(self):        
-        return f'[SpeechToText]语音转录: {self.out_format=},{self.copysrt_rawvideo=},{self.spk_insert=}\n{self.cfg}'
 
     def __post_init__(self):
         super().__post_init__()

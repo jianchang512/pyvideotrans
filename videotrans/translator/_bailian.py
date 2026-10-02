@@ -5,49 +5,52 @@ import dashscope
 import httpx
 from videotrans.configure.excepts import TranslateSrtError
 from videotrans.configure.config import params, logger
+from videotrans.translator import get_source_target_code, CHATGPT_INDEX
 from videotrans.translator._base import BaseTrans
 from videotrans.util.help_misc import qwenmt_glossary
 from openai import OpenAI
 
 
-@dataclass
+@dataclass(repr=False)
 class QwenMT(BaseTrans):
-    ainame:str="bailian"
-    prompt: str = field(init=False)
 
     def __post_init__(self):
         super().__post_init__()
+        self.ainame="bailian"
         spaceid=params.get('qwenmt_spaceid', '').strip()
+        self.model_name=params.get('qwenmt_model', 'qwen-mt-turbo')
+        if self.model_name=='qwen-turbo':
+            self.model_name='qwen-mt-turbo'
+        # 非 qwen-mt 则为其他文字生成模型，需要语言名称
+        if not self.model_name.startswith('qwen-mt'):
+            _, target_language = get_source_target_code(show_target=self.common_target_code, translate_type=CHATGPT_INDEX)
+            self.prompt=self._set_context(target_language)
 
-        self.prompt=self._set_context()
         self.api_url = 'https://dashscope.aliyuncs.com/api/v1'
         if spaceid and  not spaceid.startswith('http'):
             self.api_url = f'https://{spaceid}.cn-beijing.maas.aliyuncs.com/api/v1'
         elif spaceid and spaceid.startswith('http'):
             self.api_url = spaceid.strip().strip('/')
         dashscope.base_http_api_url = self.api_url
-        logger.debug(f'{self.ainame=},{self.source_code=},{self.target_code=},{self.target_language_name=},{self.aisendsrt=}')
-    
+
 
     def _item_task(self, data: str) -> str:
         if self._exit(): return
         text = data
-        model_name=params.get('qwenmt_model', 'qwen-mt-turbo')
-        if model_name=='qwen-turbo':
-            model_name='qwen-mt-turbo'
-        if not model_name.startswith('qwen-mt'):
-            return self._openai(model_name, text)
+
+        if not self.model_name.startswith('qwen-mt'):
+            return self._openai(text)
         messages = [
             {
                 "role": "user",
                 "content":text
             }
         ]
-        logger.debug(f'qwen-mt请求:{model_name=}')
+        logger.debug(f'qwen-mt请求:{self.model_name=}')
 
         translation_options = {
             "source_lang": "auto" if not self.source_code else self.source_code.split('-')[0],
-            "target_lang": self.target_code.split('-')[0]#self.target_language_name
+            "target_lang": self.target_code.split('-')[0]
         }
         # 术语表
         term=qwenmt_glossary()
@@ -60,7 +63,7 @@ class QwenMT(BaseTrans):
         response = dashscope.Generation.call(
             # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
             api_key=params.get('qwenmt_key',''),
-            model=model_name,
+            model=self.model_name,
             messages=messages,
             result_format='message',
             translation_options=translation_options
@@ -72,7 +75,7 @@ class QwenMT(BaseTrans):
         logger.debug(f'qwen-mt返回响应:{response.output.choices[0].message.content}')
         return response.output.choices[0].message.content
 
-    def _openai(self,model_name,text):
+    def _openai(self,text):
         if self.api_url.endswith('/api/v1'):
             self.api_url=self.api_url.replace('/api/v1','/compatible-mode/v1')
         elif not self.api_url.endswith('/v1'):
@@ -101,7 +104,7 @@ class QwenMT(BaseTrans):
             )
 
             response = client.chat.completions.create(
-                model=model_name,
+                model=self.model_name,
                 messages=message,
             )
             if not response or not response.choices or not response.choices[0] or not response.choices[0].message.content:

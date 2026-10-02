@@ -8,7 +8,7 @@ from videotrans.util.help_misc import vail_file
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
-@dataclass
+@dataclass(repr=False)
 class F5TTSBuilt(BaseTTS):
     
     def _download(self):

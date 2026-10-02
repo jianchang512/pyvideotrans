@@ -11,7 +11,7 @@ from videotrans.translator._base import BaseTrans
 from videotrans.util._srt_parse import cleartext
 
 
-@dataclass
+@dataclass(repr=False)
 class Libre(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
@@ -38,7 +38,7 @@ class Libre(BaseTrans):
             "q": data,
             "source": 'auto',
             "api_key": params.get('libre_key', ''),
-            "target": self.target_code.split('-')[0]
+            "target": self.target_code
         }
         try:
             response = requests.post(url=self.api_url, json=jsondata)
@@ -48,4 +48,4 @@ class Libre(BaseTrans):
         result = response.json()
         result = cleartext(result['translatedText'])
 
-        return result.lower() if self.target_code.split('-')[0] == 'en' else result
+        return result.lower() if self.target_code == 'en' else result

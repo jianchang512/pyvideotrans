@@ -17,7 +17,7 @@ from pydub import AudioSegment
 from videotrans.configure.constants import FASTER_MODELS_DICT
 from videotrans.configure.excepts import SttTimeoutError
 
-@dataclass
+@dataclass(repr=False)
 class FasterAll(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
@@ -27,18 +27,16 @@ class FasterAll(BaseRecogn):
         else:
             local_dir += self.model_name.replace('/', '--')
         self.local_dir = local_dir
-        self.audio_duration=len(AudioSegment.from_wav(self.audio_file))
-        self.speech_timestamps_file=None
-
 
     def _exec(self)->Union[List[SrtItem], None]:
         if self._exit(): return
         self.error = ''
         self.signal(text="STT starting, hold on...")
+        audio_duration=len(AudioSegment.from_wav(self.audio_file))
         if self.recogn_type == 1:  # openai-whisper
-            raws = self._openai()
+            raws = self._openai(audio_duration)
         else:
-            raws = self._faster()
+            raws = self._faster(audio_duration)
         return raws
 
     def _download(self):
@@ -53,7 +51,7 @@ class FasterAll(BaseRecogn):
             down_file_from_hf(f'{ROOT_DIR}/models',[whisper._MODELS[self.model_name]],callback=self._process_callback)
             
 
-    def _openai(self)->Union[List[SrtItem], None]:
+    def _openai(self,audio_duration)->Union[List[SrtItem], None]:
         title=f'Model: {self.model_name}'
         self.signal(text=title)
         # 起一个进程
@@ -77,7 +75,7 @@ class FasterAll(BaseRecogn):
             "jianfan": self.jianfan,
             "uuid":self.uuid,
             
-            "audio_duration":self.audio_duration,
+            "audio_duration":audio_duration,
             "temperature":settings.get('temperature'),
             "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.4)),
             "max_speech_ms":_max_speech,
@@ -88,7 +86,7 @@ class FasterAll(BaseRecogn):
         return raws
 
 
-    def _faster(self)->Union[List[SrtItem], None]:
+    def _faster(self,audio_duration)->Union[List[SrtItem], None]:
         title=f"Model: {self.model_name}"
         self.signal(text=title)
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/faster-{self.detect_language}-{time.time()}.log'
@@ -114,7 +112,7 @@ class FasterAll(BaseRecogn):
             "local_dir": self.local_dir,
             "compute_type": settings.get('cuda_com_type', 'int8'),
             "jianfan": self.jianfan,
-            "audio_duration":self.audio_duration,
+            "audio_duration":audio_duration,
             "hotwords":settings.get('hotwords'),
             "prompt": settings.get(f'initial_prompt_{self.detect_language}'),
             "beam_size": int(settings.get('beam_size', 5)),

@@ -6,11 +6,11 @@ from videotrans.tts._gradio import GradioBase
 from videotrans.util.help_misc import vail_file
 
 
-@dataclass
+@dataclass(repr=False)
 class SparkTTS(GradioBase):
     def __post_init__(self):
-        self.ainame = "sparktts"
         super().__post_init__()
+        self.ainame = "sparktts"
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         if vail_file(data_item['filename']):return

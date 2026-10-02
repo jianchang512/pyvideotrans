@@ -10,7 +10,7 @@ from videotrans.translator._base import BaseTrans
 
 
 
-@dataclass
+@dataclass(repr=False)
 class TransAPI(BaseTrans):
 
     def __post_init__(self):

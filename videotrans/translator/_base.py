@@ -28,21 +28,29 @@ class BaseTrans(BaseCon):
     source_code: str = ""
     # 目标语言代码
     target_code: str = ""
-    # 对于AI渠道，这是目标语言的自然语言表达，其他渠道等于 target_code
-    target_language_name: str = ""
+    # 目标语言通用代码，对应 LANG_CODE 键
+    common_target_code:str=''
 
     # 翻译API 地址
     api_url: str = field(default="", init=False)
+    api_key:str=""
     # 模型名
     model_name: str = field(default="", init=False)
     # 同时翻译的字幕行数量
     trans_thread: int = 5
     # 翻译后暂停秒
     wait_sec: float = float(settings.get('translation_wait', 0))
-    #  是AI翻译渠道并且选中了以完整srt格式字幕发送
-    aisendsrt: bool = False
     local_dir: str = None
     is_cuda:bool=False
+
+    #  是AI翻译渠道并且选中了以完整srt格式字幕发送
+    aisendsrt: bool = False
+    ainame:str=None
+    prompt: str = field(init=False)
+    temperature:float=1.0
+    max_tokens:int=8192
+    reasoning_effort:str=None
+    extra_body:Union[dict,None]=None
 
     def __post_init__(self):
         super().__post_init__()
@@ -51,7 +59,19 @@ class BaseTrans(BaseCon):
         if self.translate_type==translator.HYMT2_INDEX:
             self.aisendsrt=False
         self.trans_thread = int(settings.get('aitrans_thread', 20)) if self.aisendsrt else int(settings.get('trans_thread', 5))
-    
+    def __repr__(self):
+        cls = self.__class__
+        # 1. 仅获取当前类自身定义的注解字段 (不包含继承自父类的字段)
+        local_fields = cls.__dict__.get("__annotations__", {}).keys()
+
+        attrs = [
+            f"{name}={getattr(self, name)!r}"
+            for name in local_fields
+            if hasattr(self, name) and name not in ["text_list","prompt","api_key"]
+        ]
+        return f"[{cls.__name__}]: {', '.join(attrs)}"
+
+
     # 当是AI翻译渠道并且选中了`发送完整字幕`：data是  SRT格式字幕字符串
     # 当传统翻译渠道或未选`发送完整字幕`：data是 多行字幕文本字符串
     def _item_task(self, data: str)->str:
@@ -59,6 +79,7 @@ class BaseTrans(BaseCon):
 
     # 实际操作 run  -> run_text|run_srt -> _item_task
     def run(self) -> List[SrtItem]:
+        logger.debug(f'{self=}')
         try:
             if hasattr(self, '_download'):
                 self.signal(text=tr("check or download models"))
@@ -192,12 +213,12 @@ class BaseTrans(BaseCon):
         it=serial(it)
         return get_md5(f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}')
     
-    def _set_context(self):
+    def _set_context(self,target_code=None):
         lang_prompt=''
-        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.target_code}.txt'
+        lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.common_target_code}.txt'
         if Path(lang_prompt_file).exists():
             lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
-        prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',self.target_language_name).replace('{lang_prompt}',lang_prompt)
+        prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',target_code or self.target_code).replace('{lang_prompt}',lang_prompt)
         if not settings.get('aitrans_context') or not self.text_list:
             return prompt.replace('{context_info}','')
             

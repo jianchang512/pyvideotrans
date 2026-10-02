@@ -18,9 +18,9 @@ from videotrans.util.help_role import get_f5tts_role
 thread_local = threading.local()
 
 
-@dataclass
+@dataclass(repr=False)
 class GradioBase(BaseTTS):
-    ainame: str = None
+
 
     def __post_init__(self):
         super().__post_init__()

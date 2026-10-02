@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from videotrans.util.help_misc import vail_file
 
 
-@dataclass
+@dataclass(repr=False)
 class XiaoMiTTS(BaseTTS):
 
     def __post_init__(self):

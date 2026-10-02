@@ -7,9 +7,14 @@ import torch
 
 
 @dataclass
-class HYMT2(BaseTrans):
+class HYOBJ:
     hymt2_tokenizer: Any = None
     hymt2_model: Any = None
+
+hy=HYOBJ()
+
+@dataclass(repr=False)
+class HYMT2(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
@@ -33,37 +38,44 @@ class HYMT2(BaseTrans):
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
         # Load tokenizer
-        self.hymt2_tokenizer = AutoTokenizer.from_pretrained(self.local_dir, trust_remote_code=True)
+        hy.hymt2_tokenizer = AutoTokenizer.from_pretrained(self.local_dir, trust_remote_code=True)
 
         # Load model
         device=settings.get('device_name','auto')
         if device=='auto':
             import torch
             device="cpu" if not self.is_cuda or not torch.cuda.is_available() else "cuda"
-        self.hymt2_model = AutoModelForCausalLM.from_pretrained(
+        hy.hymt2_model = AutoModelForCausalLM.from_pretrained(
             self.local_dir,
             device_map=device,
             dtype='auto',
             trust_remote_code=True,
         )
-        logger.debug(f'HY2-MT:running on {self.hymt2_model.device}')
-        self.hymt2_model.eval()
+        logger.debug(f'HY2-MT:running on {hy.hymt2_model.device}')
+        hy.hymt2_model.eval()
         return True
 
     def _item_task(self, data: str) -> str:
         if self._exit(): return
         text = data
 
-        prompt = f"""Please translate the following text accurately into {self.target_language_name}. You must retain the same number of line breaks in the translation; do not omit, merge, or delete line breaks, and pay attention to their placement.\n\n{text}"""
+        prompt = f"""Please translate the following text accurately into {self.target_code}. You must retain the same number of line breaks in the translation; do not omit, merge, or delete line breaks, and pay attention to their placement.\n\n{text}"""
 
         messages = [{"role": "user", "content": prompt}]
-        inputs = self.hymt2_tokenizer.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt").to(
-            self.hymt2_model.device)
+        inputs = hy.hymt2_tokenizer.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt").to(
+            hy.hymt2_model.device)
 
         with torch.no_grad():
-            outputs = self.hymt2_model.generate(
+            outputs = hy.hymt2_model.generate(
                 **inputs,
                 max_new_tokens=8092,
             )
-        response = self.hymt2_tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+        response = hy.hymt2_tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
         return response.strip()
+
+    def _unload(self):
+        try:
+            hy.hymt2_model=None
+            hy.hymt2_tokenizer=None
+        except BaseException:
+            pass

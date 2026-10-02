@@ -18,7 +18,7 @@ import asyncio
 """
 
 
-@dataclass
+@dataclass(repr=False)
 class DubbingSrt(BaseTask):
     cfg: TaskCfgTTS = field(default_factory=TaskCfgTTS, repr=False)
     out_ext: str = "wav"
@@ -30,9 +30,6 @@ class DubbingSrt(BaseTask):
     output_folder:str=None
     # 多角色配音时直接使用该字幕信息
     subs: List = field(default_factory=list, repr=False)
-
-    def __repr__(self):        
-        return f'[DubbingSrt]语音合成: {self.out_ext=},{self.is_multi_role=}\n{self.cfg}'
 
     def __post_init__(self):
         super().__post_init__()
@@ -273,7 +270,7 @@ class DubbingSrt(BaseTask):
         if self._exit(): return
         from videotrans.util.help_ffmpeg import runffmpeg, remove_silence_wav
         if Path(self.cfg.target_wav).is_file():
-            # 移除末尾静音
+            # 只移除末尾静音
             remove_silence_wav(self.cfg.target_wav, rm_start=False)
             target_dir=self.cfg.target_dir if not self.output_folder else self.output_folder
             _output= f'{target_dir}/{self.cfg.noextname}.{self.out_ext}'

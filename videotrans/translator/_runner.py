@@ -4,7 +4,7 @@ from videotrans.configure.config import app_cfg, logger
 from videotrans.translator._base import BaseTrans
 from videotrans import get_class
 from videotrans.translator._constants import (
-    GOOGLE_INDEX, MICROSOFT_INDEX,    AI_TRANS_CHANNELS,ID_NAME_DICT
+    GOOGLE_INDEX, MICROSOFT_INDEX, ID_NAME_DICT
 )
 from videotrans.translator._lang_utils import get_source_target_code
 
@@ -37,23 +37,18 @@ def run(*, translate_type=0,
         target_code="",
         uuid=None,is_cuda=False) -> Union[List, str, None]:
     translate_type = int(translate_type)
-    # ai渠道下，target_language_name 是语言名称
-    # 其他渠道下是语言代码
-    # source_code 是原语言代码
-    target_language_name = target_code
-    if translate_type in AI_TRANS_CHANNELS:
-        # 对AI渠道，返回目标语言的自然语言表达
-        _, target_language_name = get_source_target_code(show_target=target_code, translate_type=translate_type)
+    real_source_code, real_target_code = get_source_target_code(show_source=source_code,show_target=target_code, translate_type=translate_type)
     kwargs = {
         "text_list": text_list,
-        "target_language_name": target_language_name,
-        "source_code": 'auto' if not source_code or source_code in ['-', 'auto'] else source_code,
-        "target_code": target_code,
+        "source_code": real_source_code or 'auto',
+        "target_code": real_target_code,
+        "common_target_code": target_code,# 记录原始语言代码
         "uuid": uuid,
         "is_test": is_test,
         "is_cuda":is_cuda,
         "translate_type": translate_type
     }
+    logger.debug(f'字幕翻译前参数:{[{k:v} for k,v in kwargs.items() if k !="text_list"]}')
 
     # 未设置代理并且检测google失败，则使用微软翻译
     if translate_type == GOOGLE_INDEX:

@@ -1,4 +1,5 @@
 import logging
+import random
 import re,httpx
 from dataclasses import dataclass, field
 from typing import List, Union
@@ -10,18 +11,14 @@ from google import genai
 from google.genai import types,errors
 
 
-@dataclass
+@dataclass(repr=False)
 class Gemini(BaseTrans):
-    ainame:str="gemini"
-    prompt: str = field(init=False)
-    api_keys: List[str] = field(init=False, repr=False)  # Use repr=False for sensitive data
 
     def __post_init__(self):
         super().__post_init__()
+        self.ainame='gemini'
         self.model_name = params.get("gemini_model",'gemini-flash-latest')
         self.prompt=self._set_context()
-        self.api_keys = params.get('gemini_key', '').strip().split(',')
-        logger.debug(f'{self.ainame=},{self.source_code=},{self.target_code=},{self.target_language_name=},{self.aisendsrt=}')
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
@@ -35,8 +32,8 @@ class Gemini(BaseTrans):
             if model.startswith('gemini-3') or model.startswith('gemini-4') or model.startswith('gemini-flash'):
                 generation_config["thinking_level"]="high"
             
-            api_key = self.api_keys.pop(0)
-            self.api_keys.append(api_key)
+            api_keys=params.get('gemini_key', '').strip().split(',')
+            api_key = api_keys[random.randint(0,len(api_keys)-1)]
             client = genai.Client(
                 api_key=api_key,
                 http_options = types.HttpOptions(

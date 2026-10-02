@@ -1,9 +1,9 @@
 
 
 def openwin():
+    from videotrans.translator import LANGNAME_DICT
     from videotrans.winform import get_cls
     from videotrans.translator import get_name_index
-    from videotrans.configure.constants import EDGE_LANGUANGES_CODE
     from videotrans.util.help_misc import  show_error
     from typing import List
     from videotrans.task.taskcfg import InputFile
@@ -19,10 +19,8 @@ def openwin():
     from videotrans import translator, recognition
 
 
-    EDGE_LANGUANGES_DICT = {}
+    langnamelist = list(LANGNAME_DICT.values())
 
-    for code in EDGE_LANGUANGES_CODE:
-        EDGE_LANGUANGES_DICT[code]=tr(code)
 
 
     RESULT_DIR = HOME_DIR + f"/recogn"
@@ -111,11 +109,11 @@ def openwin():
         if not files or len(files) < 1:
             return show_error(tr('bixuyinshipin'))
         
-        langcode=winobj.shibie_language.currentText()
-        if langcode==tr('auto'):
+        langtext=winobj.shibie_language.currentText()
+        if langtext==tr('auto'):
             langcode='auto'
         else:
-            langcode = translator.get_audio_code(show_source=langcode)
+            langcode = translator.get_audio_code(show_source=langtext)
             is_allow_lang_res = recognition.is_allow_lang(langcode=langcode, recogn_type=recogn_type, model_name=model)
             winobj.loglabel.setText(is_allow_lang_res if is_allow_lang_res is not True else '')
         # 判断是否填写自定义识别api openai-api识别、zh_recogn识别信息
@@ -278,7 +276,7 @@ def openwin():
         winobj.shibie_dropbtn.setMinimumSize(0, 150)
         winobj.shibie_widget.insertWidget(0, winobj.shibie_dropbtn)
 
-        winobj.shibie_language.addItems([tr('auto')]+list(EDGE_LANGUANGES_DICT.values()))
+        winobj.shibie_language.addItems(langnamelist)
         winobj.is_cuda.setChecked(params.get("stt_cuda", False))
         winobj.rephrase.setChecked(bool(params.get('stt_rephrase', False)))
         winobj.remove_noise.setChecked(bool(params.get('stt_remove_noise')))

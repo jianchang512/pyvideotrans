@@ -10,22 +10,21 @@ from dataclasses import dataclass
 from videotrans.util.help_misc import vail_file
 
 
-@dataclass
+@dataclass(repr=False)
 class XAITTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.stop_next_all=False
-        self.xai_language='auto'
-        if self.language and self.language in ['ar','pt','es']:
-            self.xai_language= 'ar-SA' if self.language=='ar' else f'{self.language}-{self.language.upper()}'
-        elif self.language:
-            self.xai_language=self.language.split('-')[0]
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         if vail_file(data_item['filename']):return
+        xai_language='auto'
+        if self.language and self.language in ['ar','pt','es']:
+            xai_language= 'ar-SA' if self.language=='ar' else f'{self.language}-{self.language.upper()}'
+        elif self.language:
+            xai_language=self.language.split('-')[0]
         payload={
             "text": data_item['text'],
             "voice_id": data_item['role'],
@@ -33,7 +32,7 @@ class XAITTS(BaseTTS):
                 "codec": "wav",
                 "sample_rate": 48000
               },
-            "language": self.xai_language
+            "language": xai_language
         }
         try:
             response = requests.post('https://api.x.ai/v1/tts', headers={

@@ -132,6 +132,8 @@ def run(*,
         "max_speakers": max_speakers,
         "recogn2pass": recogn2pass
     }
+    logger.debug(f'语音识别前参数:{kwargs}')
+
     _cls: Union[Type[BaseRecogn], None] = get_class(recogn_type, "recognition", ID_NAME_DICT)
     if not _cls:
         raise RuntimeError(f'No this Recognition Channel:{recogn_type=}')

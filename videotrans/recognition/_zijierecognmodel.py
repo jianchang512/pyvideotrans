@@ -27,7 +27,7 @@ _error = {
     "55000031": "服务器繁忙"
 }
 
-@dataclass
+@dataclass(repr=False)
 class ZijieRecogn(BaseRecogn):
 
     def _exec(self) -> Union[List[SrtItem], None]:

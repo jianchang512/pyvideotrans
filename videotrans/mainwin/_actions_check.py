@@ -43,7 +43,7 @@ class WinActionCheckMixin:
         return True
 
     def check_reccogn(self):
-        langcode = translator.get_code(show_text=self.main.source_language.currentText())
+        langcode = translator.get_audio_code(show_source=self.main.source_language.currentText())
         recogn_type = self.main.recogn_type.currentIndex()
         model_name = self.main.model_name.currentText()
         res = recognition.is_allow_lang(langcode=langcode, recogn_type=recogn_type, model_name=model_name)
@@ -123,8 +123,10 @@ class WinActionCheckMixin:
         self.cfg['translate_type'] = self.main.translate_type.currentIndex()
         self.cfg['source_language'] = self.main.source_language.currentText()
         self.cfg['target_language'] = self.main.target_language.currentText()
+        # 直接返回 LANG_CODE 的键作为标识，真实目标语言名称在  runner 入口获取
         self.cfg['source_language_code'] = translator.get_code(show_text=self.cfg['source_language'])
         self.cfg['target_language_code'] = translator.get_code(show_text=self.cfg['target_language'])
+
 
         self.cfg['clear_cache'] = self.main.clear_cache.isChecked()
         self.cfg['only_out_mp4'] = self.main.only_out_mp4.isChecked()

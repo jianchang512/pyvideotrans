@@ -10,7 +10,7 @@ from videotrans.task.taskcfg import SrtItem
 from videotrans.util._srt_parse import ms_to_time_string
 
 
-@dataclass
+@dataclass(repr=False)
 class WhisperXRecogn(BaseRecogn):
 
     def __post_init__(self):

@@ -15,7 +15,7 @@ from videotrans.task.taskcfg import SrtItem
 from videotrans.util.help_down import check_and_down_hf
 
 
-@dataclass
+@dataclass(repr=False)
 class HuggingfaceRecogn(BaseRecogn):
 
     def __post_init__(self):

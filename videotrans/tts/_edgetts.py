@@ -3,6 +3,7 @@ import functools
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, Union
 
 import aiohttp
 from edge_tts import Communicate
@@ -16,70 +17,76 @@ from videotrans.tts._base import BaseTTS
 from videotrans.util.help_misc import vail_file
 from videotrans.util.help_role import get_edge_rolelist
 
-MAX_CONCURRENT_TASKS = int(settings.get('edgetts_max_concurrent_tasks',10))
-RETRY_NUMS = int(settings.get('edgetts_retry_nums',3))+1
+MAX_CONCURRENT_TASKS = int(settings.get('edgetts_max_concurrent_tasks', 10))
+RETRY_NUMS = int(settings.get('edgetts_retry_nums', 3)) + 1
 RETRY_DELAY = 5
 POLL_INTERVAL = 0.1
-SIGNAL_TIMEOUT = 2 # 发给UI界面的信号，超时2秒，以防UI卡顿
+SIGNAL_TIMEOUT = 2  # 发给UI界面的信号，超时2秒，以防UI卡顿
 SAVE_TIMEOUT = 30  # edge_tts可能限流超时，超过30s就认定失败，防止无限挂起
 
-    
+
 @dataclass
+class _Control:
+    _stop_event: Any = None
+    ends_counter: int = 0
+    lock: Any = None
+    useproxy: Union[str, None] = None
+
+
+_control_obj = _Control()
+
+
+@dataclass(repr=False)
 class EdgeTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        self._stop_event = None#asyncio.Event()
-        self.ends_counter = 0
-        self.lock = None#asyncio.Lock()
 
         # 默认跟随设置使用代理，如果不想使用，单独根目录下创建 edgetts-noproxy.txt 文件
-        self.useproxy=None if not self.proxy_str or Path(f'{ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
-
+        _control_obj.useproxy = None if not self.proxy_str or Path(
+            f'{ROOT_DIR}/edgetts-noproxy.txt').exists() else self.proxy_str
 
     async def increment_counter(self):
-        async with self.lock:
-            self.ends_counter += 1
+        async with _control_obj.lock:
+            _control_obj.ends_counter += 1
 
     async def _create_audio_with_retry(self, item, index, total_tasks, semaphore):
         # 根据角色名获取真实 配音所需的角色
         task_id = f" [{index + 1}/{total_tasks}]"
-        if self._exit() or not item.get('text','').strip() or vail_file(item['filename']):
+        if self._exit() or not item.get('text', '').strip() or vail_file(item['filename']):
             await self.increment_counter()
             return
-        
+
         try:
             async with semaphore:
-                
-                if self._stop_event.is_set():
+
+                if _control_obj._stop_event.is_set():
                     return
-                msg=""
-                for attempt in range(RETRY_NUMS+1):
-                    if self._exit() or self._stop_event.is_set():
+                msg = ""
+                for attempt in range(RETRY_NUMS + 1):
+                    if self._exit() or _control_obj._stop_event.is_set():
                         return
-                    
+
                     try:
 
-                        
-                        if attempt>0:
-                            msg= f'Retry after {attempt}nd  '
+                        if attempt > 0:
+                            msg = f'Retry after {attempt}nd  '
                         communicate = Communicate(
                             item['text'], voice=item['role'], rate=self.rate,
-                            volume=self.volume, proxy=self.useproxy, pitch=self.pitch, connect_timeout=5
+                            volume=self.volume, proxy=_control_obj.useproxy, pitch=self.pitch, connect_timeout=5
                         )
                         # 防止WebSocket连接或数据读取无限挂起
                         await asyncio.wait_for(
                             communicate.save(item['filename'] + ".mp3"),
                             timeout=SAVE_TIMEOUT
                         )
-                        
 
-                        if self._stop_event.is_set(): return
+                        if _control_obj._stop_event.is_set(): return
                         loop = asyncio.get_running_loop()
                         signal_with_args = functools.partial(
-                            self.signal, 
-                            text=f'{tr("kaishipeiyin")} {msg}[{self.ends_counter + 1}/{total_tasks}]'
+                            self.signal,
+                            text=f'{tr("kaishipeiyin")} {msg}[{_control_obj.ends_counter + 1}/{total_tasks}]'
                         )
-                        
+
                         try:
                             await asyncio.wait_for(
                                 loop.run_in_executor(None, signal_with_args),
@@ -97,13 +104,13 @@ class EdgeTTS(BaseTTS):
                             await asyncio.sleep(RETRY_DELAY)
                         else:
                             logger.error(f"EdgeTTS配音: 已达到最大重试次数，任务失败 (超时)。")
-                            self.error=e
+                            self.error = e
                             # 失败也是一种完成，直接返回
                             return
                     except (NoAudioReceived, aiohttp.ClientError) as e:
-                        self.error=e if not self.useproxy else f'proxy={self.useproxy}, {tr("Please turn off the clear proxy and try again")}:{e}'
+                        self.error = e if not _control_obj.useproxy else f'proxy={_control_obj.useproxy}, {tr("Please turn off the clear proxy and try again")}:{e}'
                         # 强制禁用代理重试
-                        self.useproxy=None
+                        _control_obj.useproxy = None
                         if attempt < RETRY_NUMS:
                             await asyncio.sleep(RETRY_DELAY)
                         else:
@@ -112,56 +119,57 @@ class EdgeTTS(BaseTTS):
                             return
 
         except asyncio.CancelledError as e:
-            self.error=e
+            self.error = e
         except Exception as e:
             logger.exception(f"{task_id}: 发生未知严重错误，任务终止。", exc_info=True)
-            self.error=e
+            self.error = e
         finally:
             # 无论成功、失败、取消还是异常，都在这里统一增加计数
             await self.increment_counter()
 
     async def watchdog(self, tasks):
         """看门狗"""
-        await self._stop_event.wait()
+        await _control_obj._stop_event.wait()
         for task in tasks:
             task.cancel()
 
     async def _exit_monitor(self):
         """退出监控器"""
         while not self._exit():
-            if self._stop_event.is_set():
+            if _control_obj._stop_event.is_set():
                 break
             await asyncio.sleep(POLL_INTERVAL)
         if self._exit():
-            self._stop_event.set()
-    
+            _control_obj._stop_event.set()
+
     async def _exec(self) -> None:
-        self._stop_event = asyncio.Event()
-        self.lock = asyncio.Lock()
-        self.ends_counter = 0
+        _control_obj._stop_event = asyncio.Event()
+        _control_obj.lock = asyncio.Lock()
+        _control_obj.ends_counter = 0
         total_tasks = len(self.queue_tts)
-        if total_tasks==1:
+        if total_tasks == 1:
             communicate = Communicate(
                 self.queue_tts[0]['text'],
-                voice=get_edge_rolelist(self.queue_tts[0]['role'],self.language),
+                voice=get_edge_rolelist(self.queue_tts[0]['role'], self.language),
                 rate=self.rate,
                 volume=self.volume,
-                proxy=self.useproxy,
+                proxy=_control_obj.useproxy,
                 pitch=self.pitch,
                 connect_timeout=5
             )
-            mp3_path=self.queue_tts[0]['filename'] + ".mp3"
+            mp3_path = self.queue_tts[0]['filename'] + ".mp3"
             await communicate.save(mp3_path)
             if vail_file(mp3_path):
-                self.convert_to_wav(mp3_path,self.queue_tts[0]['filename'])
+                self.convert_to_wav(mp3_path, self.queue_tts[0]['filename'])
             return
 
-        logger.debug(f'本次EdgeTTS配音：重试延迟:{RETRY_DELAY},出错将重试:{RETRY_NUMS},并发:{MAX_CONCURRENT_TASKS}, 代理:{self.useproxy}')
+        logger.debug(
+            f'本次EdgeTTS配音：重试延迟:{RETRY_DELAY},出错将重试:{RETRY_NUMS},并发:{MAX_CONCURRENT_TASKS}, 代理:{_control_obj.useproxy}')
 
-        self._stop_event.clear()
-        all_voices=set()
+        _control_obj._stop_event.clear()
+        all_voices = set()
         for it in self.queue_tts:
-            it['role']=get_edge_rolelist(it['role'],self.language)
+            it['role'] = get_edge_rolelist(it['role'], self.language)
             all_voices.add(it['role'])
 
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
@@ -178,9 +186,9 @@ class EdgeTTS(BaseTTS):
 
         monitor_task = asyncio.create_task(self._exit_monitor())
         watchdog_task = asyncio.create_task(self.watchdog(worker_tasks))
-        
+
         all_workers_done = asyncio.gather(*worker_tasks, return_exceptions=True)
-        
+
         # 为整体等待添加超时，防止无限挂起（例如所有任务都超时但未取消）
         try:
             done, pending = await asyncio.wait(
@@ -190,9 +198,9 @@ class EdgeTTS(BaseTTS):
             )
         except asyncio.TimeoutError:
             logger.error("整体执行超时！强制取消所有任务。")
-            self._stop_event.set()
+            _control_obj._stop_event.set()
             done, pending = await asyncio.wait([all_workers_done, monitor_task], return_when=asyncio.ALL_COMPLETED)
-        
+
         try:
             if monitor_task not in done:
                 logger.debug("所有配音任务结束。")
@@ -201,41 +209,40 @@ class EdgeTTS(BaseTTS):
             watchdog_task.cancel()
             for task in pending:
                 task.cancel()
-            
+
             await asyncio.gather(all_workers_done, monitor_task, watchdog_task, return_exceptions=True)
-            
-            final_count = self.ends_counter
+
+            final_count = _control_obj.ends_counter
             if final_count != total_tasks:
                 logger.error(
                     f"!!!!!!!!!!!!!!!!!! 任务计数不匹配 !!!!!!!!!!!!!!!!!!"
                     f"预期任务数: {total_tasks}, 实际完成数: {final_count}."
                     f"丢失了 {total_tasks - final_count} 个任务的状态。"
                     "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                )        
-            
+                )
 
             ok, err = 0, 0
             for i, item in enumerate(self.queue_tts):
                 if app_cfg.exit_soft:
                     return
                 mp3_path = item['filename'] + ".mp3"
-                if vail_file(item['filename']) or  vail_file(mp3_path):
+                if vail_file(item['filename']) or vail_file(mp3_path):
                     ok += 1
                 else:
                     err += 1
-            if ok==0:
+            if ok == 0:
                 logger.debug('本次配音全部失败')
                 raise DubbingSrtError(f'{tr("Dubbing failed")}:{self.error}\n{all_voices=}')
 
-            if ok>0:
+            if ok > 0:
                 all_task = []
                 from concurrent.futures import ThreadPoolExecutor
                 self.signal(text=f'convert wav[{total_tasks}]')
-                with ThreadPoolExecutor(max_workers=min(1,len(self.queue_tts),os.cpu_count() or 1)) as pool:
+                with ThreadPoolExecutor(max_workers=min(1, len(self.queue_tts), os.cpu_count() or 1)) as pool:
                     for item in self.queue_tts:
                         mp3_path = item['filename'] + ".mp3"
                         if not vail_file(item['filename']) and vail_file(mp3_path):
-                            all_task.append(pool.submit(self.convert_to_wav, mp3_path,item['filename']))
+                            all_task.append(pool.submit(self.convert_to_wav, mp3_path, item['filename']))
                     if len(all_task) > 0:
                         _ = [i.result() for i in all_task]
             logger.debug(f'本次配音 {ok} 个成功， {err} 个失败')

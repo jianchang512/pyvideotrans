@@ -32,7 +32,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 import logging
 
 
-@dataclass
+@dataclass(repr=False)
 class SttAPIRecogn(BaseRecogn):
 
     def __post_init__(self):

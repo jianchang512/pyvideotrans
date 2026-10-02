@@ -7,7 +7,7 @@ from videotrans.translator._openaicompat import OpenAICampat
 DEFAULT_LITELLM_API = 'http://localhost:4000/v1'
 
 
-@dataclass
+@dataclass(repr=False)
 class LiteLLM(OpenAICampat):
     """LiteLLM AI gateway channel.
 

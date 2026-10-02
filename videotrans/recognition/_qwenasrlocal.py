@@ -18,32 +18,30 @@ from videotrans.util.help_down import check_and_down_ms, check_and_down_hf
 from videotrans.util.help_misc import is_connect_hf
 
 
-@dataclass
+@dataclass(repr=False)
 class QwenasrlocalRecogn(BaseRecogn):
 
-    align_language:List[str]=("zh","zh-cn","zh-tw","en","ja",'ko','yue','fr','es','es-419','it','de','pt','pt-br','pt-pt','ru')
 
     def __post_init__(self):
         super().__post_init__()
         if self.model_name not in ['1.7B','0.6B']:
             self.model_name='0.6B'
         self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}-hf'
-        self._repid=f'Qwen/Qwen3-ASR-{self.model_name}-hf'
-
 
 
     def _download(self):
+        _repid=f'Qwen/Qwen3-ASR-{self.model_name}-hf'
         if Path(self.local_dir+'/model.safetensors').exists() and Path(f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf/model.safetensors").exists():
             return
         if not is_connect_hf():
-            check_and_down_ms(self._repid, callback=self._process_callback, local_dir=self.local_dir)
+            check_and_down_ms(_repid, callback=self._process_callback, local_dir=self.local_dir)
             check_and_down_ms(
                 "Qwen/Qwen3-ForcedAligner-0.6B-hf", 
                 callback=self._process_callback, 
                 local_dir=f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf")
         else:
-            check_and_down_hf(model_id=self._repid,
-                                    repo_id=self._repid,
+            check_and_down_hf(model_id=_repid,
+                                    repo_id=_repid,
                                     local_dir=self.local_dir,
                                     callback=self._process_callback)
             check_and_down_hf(
@@ -54,12 +52,13 @@ class QwenasrlocalRecogn(BaseRecogn):
 
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
+        align_language=("zh","zh-cn","zh-tw","en","ja",'ko','yue','fr','es','es-419','it','de','pt','pt-br','pt-pt','ru')
 
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/qwen3asrlocal-{time.time()}.log'
         title = f"Qwen3-ASR {self.model_name}"
         cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
 
-        if self.detect_language not in self.align_language:
+        if self.detect_language not in align_language:
             # 不支持对齐时间戳 需切片
             Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]), encoding='utf-8')
         else:
@@ -78,7 +77,7 @@ class QwenasrlocalRecogn(BaseRecogn):
             "hotword":settings.get('hotwords'),
             "min_speech_ms":_min_speech,
             "max_speech_ms":_max_speech,
-            "force_align":self.detect_language in self.align_language,
+            "force_align":self.detect_language in align_language,
             "detect_language":self.detect_language.split('-')[0] if self.detect_language not in ['auto',"",None] else None
         }
         from videotrans.process.stt_qwen import qwen3asr_fun

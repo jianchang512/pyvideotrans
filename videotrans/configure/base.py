@@ -17,6 +17,8 @@ class BaseCon:
     # 用于其他需要直接代理字符串
     proxy_str: str = ''
     last_down_time:int=0
+    # 懒加载时用于判断属于 BaseCon 的子类
+    _base_name:str="BaseCon"
 
 
     def __post_init__(self):
@@ -115,8 +117,9 @@ class BaseCon:
         try:
             from videotrans.util.help_ffmpeg import runffmpeg,remove_silence_wav
             runffmpeg(cmd, force_cpu=True)
-            if settings.get('remove_dubb_silence', True):
-                remove_silence_wav(output_wav_file_path)
+            _se,_all=settings.get('remove_dubb_silence', True),settings.get('remove_dubb_all_silence', True)
+            if  _se or _all:
+                remove_silence_wav(output_wav_file_path,rm_start=True,rm_all=_all,rm_level=settings.get('remove_dubb_silence_level', 'default'))
         except Exception as e:
             logger.exception(f'转为 48k wav时失败，跳过{e}',exc_info=True)
             return False

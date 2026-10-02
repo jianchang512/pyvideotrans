@@ -12,7 +12,7 @@ from videotrans.tts._base import BaseTTS
 from videotrans.util.help_misc import vail_file
 
 
-@dataclass
+@dataclass(repr=False)
 class ElevenLabsC(BaseTTS):
     def __post_init__(self):
         super().__post_init__()

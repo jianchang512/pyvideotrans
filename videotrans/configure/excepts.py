@@ -204,7 +204,7 @@ def _nofoundfile(e,lang):
     return f"文件不存在：{filename}" if lang == 'zh' else f"File not found: {filename}"
 
 # 根据异常类型，返回整理后的可读性错误消息
-def get_msg_from_except(ex:Exception)->str:
+def get_msg_from_except(ex:BaseException)->str:
     if isinstance(ex, VideoTransError):
         return str(ex)
 

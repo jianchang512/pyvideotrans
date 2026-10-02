@@ -3,8 +3,7 @@ import asyncio
 import sys
 import os
 
-from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
-
+from videotrans.translator import LANGNAME_DICT
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from PySide6.QtCore import QEvent, QTimer
@@ -66,10 +65,8 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
         self.callback('import translate ...')
         from videotrans.translator import TRANSLASTE_NAME_LIST,get_code
         self.callback('Get cache  ...')
-        _languagename = [tr("auto")]
-        for code in EDGE_LANGUANGES_CODE:
-            _languagename.insert(-1,tr(code))
-        self.languagename=_languagename
+
+        self.languagename=list(LANGNAME_DICT.values())
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
         self.source_language.addItems(self.languagename)
         self.target_language.addItems(["-"] + self.languagename[:-1])

@@ -33,7 +33,7 @@ RETRY_NUMS = settings.get('retry_nums')
 RETRY_DELAY = 10
 
 
-@dataclass
+@dataclass(repr=False)
 class APIRecogn(BaseRecogn):
 
     def __post_init__(self):

@@ -15,7 +15,7 @@ from videotrans.util.help_misc import vail_file
 from videotrans.util.help_role import get_gptsovits_role
 
 
-@dataclass
+@dataclass(repr=False)
 class GPTSoVITS(BaseTTS):
 
     def __post_init__(self):

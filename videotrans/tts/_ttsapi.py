@@ -23,7 +23,7 @@ import httpx
 thread_local = threading.local()
 
 
-@dataclass
+@dataclass(repr=False)
 class TTSAPI(BaseTTS):
 
     def __post_init__(self):

@@ -19,7 +19,7 @@ import base64
 import urllib.request
 
 
-@dataclass
+@dataclass(repr=False)
 class XiaomiASRRecogn(BaseRecogn):
 
     def __post_init__(self):

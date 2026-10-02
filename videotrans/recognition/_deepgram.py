@@ -14,7 +14,7 @@ from videotrans.task.taskcfg import SrtItem
 from videotrans.util._ffmpeg_runner import runffmpeg
 
 
-@dataclass
+@dataclass(repr=False)
 class DeepgramRecogn(BaseRecogn):
 
     def _exec(self) -> Union[List[SrtItem], None]:

@@ -2,8 +2,8 @@
 
 
 def openwin():
+    from videotrans.translator import LANGNAME_DICT
     from videotrans.winform import get_cls
-    from videotrans.configure._languages_dict import EDGE_LANGUANGES_CODE
     from videotrans.util.help_misc import show_glossary_editor, show_error, set_proxy
     from typing import List
     from videotrans.task.taskcfg import InputFile
@@ -24,9 +24,7 @@ def openwin():
     uuid_list=[]
     percent=""
     # LANGNAME_DICT 支持的30多种语言+ EDGE 语言列表
-    language_namelist = []
-    for code in EDGE_LANGUANGES_CODE:
-        language_namelist.append(tr(code))
+    language_namelist = list(LANGNAME_DICT.values())
 
     def toggle_state(state):
         winobj.fanyi_translate_type.setDisabled(state)
@@ -118,8 +116,8 @@ def openwin():
         translate_type = winobj.fanyi_translate_type.currentIndex()
         source_language_name=winobj.fanyi_source.currentText()
 
-        source_code=translator.get_code(show_text='auto' if source_language_name==tr('auto') else source_language_name)
-        target_code=translator.get_code(show_text=target_language)
+        # 直接返回 LANG_CODE 的键通用代码作为标识，真实目标语言名称在  runner 入口获取
+        source_code,target_code=translator.get_code(source_language_name),translator.get_code(target_language)
 
         logger.debug(f'{source_code=},{target_code=}')
 
@@ -201,7 +199,7 @@ def openwin():
     # 更新目标语言列表
     def update_target_language():        
         winobj.fanyi_target.clear()
-        winobj.fanyi_target.addItems(language_namelist)
+        winobj.fanyi_target.addItems(language_namelist[:-1])
         winobj.aisendsrt.setChecked(settings.get('aisendsrt'))
 
     # 翻译渠道变化时重新设置目标语言
@@ -303,7 +301,7 @@ def openwin():
         winobj.fanyi_translate_type.setCurrentIndex(int(params.get('trans_translate_type', 0)))
 
         update_target_language()
-        winobj.fanyi_source.addItems([tr('auto')] + language_namelist)
+        winobj.fanyi_source.addItems(language_namelist)
         winobj.fanyi_import.clicked.connect(fanyi_import_fun)
         winobj.fanyi_start.clicked.connect(fanyi_start_fun)
         winobj.fanyi_stop.clicked.connect(pause_trans)

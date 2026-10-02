@@ -4,7 +4,7 @@ from videotrans.configure.config import params
 from videotrans.translator._openaicompat import OpenAICampat
 
 
-@dataclass
+@dataclass(repr=False)
 class LocalLLM(OpenAICampat):
 
     def __post_init__(self):

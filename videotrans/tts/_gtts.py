@@ -14,14 +14,8 @@ RETRY_NUMS = settings.get('retry_nums')
 RETRY_DELAY = 5
 
 
-@dataclass
+@dataclass(repr=False)
 class GTTS(BaseTTS):
-    api_url: str = field(default='https://translate.google.com', init=False)
-
-    def __post_init__(self):
-        super().__post_init__()
-
-
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(RETRY_NUMS)),
            wait=wait_fixed(RETRY_DELAY), before=before_log(logger, logging.INFO),

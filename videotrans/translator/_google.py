@@ -12,7 +12,7 @@ from videotrans.translator._base import BaseTrans
 from pathlib import Path
 
 
-@dataclass
+@dataclass(repr=False)
 class Google(BaseTrans):
 
     # 实际发出请求获取结果

@@ -22,7 +22,7 @@ _LANGCODE_MAP={
 }
 
 
-@dataclass
+@dataclass(repr=False)
 class Microsoft(BaseTrans):
 
     def __post_init__(self):

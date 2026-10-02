@@ -13,7 +13,7 @@ from videotrans.mosstts.onnx_tts_runtime import    OnnxTtsRuntime
 from videotrans.util.help_misc import vail_file, is_connect_hf
 
 
-@dataclass
+@dataclass(repr=False)
 class MossTTS(BaseTTS):
 
     def __post_init__(self):

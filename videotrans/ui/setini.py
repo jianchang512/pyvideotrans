@@ -102,7 +102,9 @@ notices = {
     "dubbing": {
         "dubbing_thread": "同时配音的线程数",
         "dubbing_wait": "每次配音后暂停秒数,用于限制请求频率",
-        "remove_dubb_silence": "移除每条字幕配音前后静音缓冲，利于音画同步，但可能结尾仓促",
+        "remove_dubb_silence": "移除每条字幕配音开头和结尾静音缓冲，利于音画同步",
+        "remove_dubb_all_silence": "移除每条字幕配音中全部静音缓冲，包括开头结尾和中间停顿，利于音画同步",
+        "remove_dubb_silence_level":"移除静音的力度，默认default中等，low降低力度减少移除，max增大力度移除更多静音",
         "save_segment_audio": "保留每行字幕的配音结果",
         "normal_text": "配音前对文本规范化处理",
         "chattts_voice": "ChatTTS 音色值",
@@ -138,7 +140,9 @@ titles = {
     "gemini_recogn_chunk": "Gemini语音识别每批切片数",
     "aitrans_temperature": "AI翻译模型温度值",
     "aitrans_context": "AI翻译附带所有字幕做参考",
-    "remove_dubb_silence": "移除配音前后静音缓冲",
+    "remove_dubb_silence": "移除每条字幕配音开头结尾静音缓冲",
+    "remove_dubb_all_silence": "移除每条字幕配音全部静音缓冲",
+    "remove_dubb_silence_level":"静音移除力度",
     "hw_decode": "视频合成cuda硬解码",
     "normal_text": "文本规范化",
     "uvr_models": "分离背景声模型",
@@ -302,12 +306,15 @@ if defaulelang != 'zh_CN':
             "translation_wait": "Delay (in seconds) between translation requests to prevent rate-limiting.",
             "aisendsrt": "Send full SRT format content when using AI translation.",
             "aitrans_temperature": "AI models temperature,default is 1.0",
-            "aitrans_context": "The AI ​​translation channel includes all original subtitles for reference."
+            "aitrans_context": "The AI translation channel includes all original subtitles for reference."
         },
         "dubbing": {
             "dubbing_thread": "Number of concurrent threads for dubbing.",
             "dubbing_wait": "Delay (in seconds) between dubbing requests to prevent rate-limiting.",
-            "remove_dubb_silence": "Remove the mute buffer before and after each subtitle audio. Selecting this option will improve audio-visual synchronization, but may make the ending feel rushed.",
+            "remove_dubb_silence": "Removes the mute buffer at the beginning and end of each subtitle's audio, improving synchronization.",
+            "remove_dubb_all_silence": "Removes all mute buffers in each subtitle's audio, including the beginning, end, and pauses, audio-visual synchronization.",
+            "remove_dubb_silence_level":"Mute removal level",
+
             "save_segment_audio": "Save the dubbed audio for each individual subtitle line.",
             "normal_text": "Text normalization before dubbing",
             "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
@@ -345,11 +352,13 @@ if defaulelang != 'zh_CN':
         "ai302_models": "302.AI translation models",
         "ai302tts_models": "302.AI-TTS models",
         "aitrans_temperature": "AI temperature for translation subtitles",
-        "aitrans_context": "AI ​​translation includes all original subtitles for reference?",
+        "aitrans_context": "AI translation includes all original subtitles for reference?",
         "no_speech_threshold": "no speech threshold",
         "temperature": "temperature",
         "hotwords": "hotwords",
-        "remove_dubb_silence": "Remove the mute buffer each subtitle audio",
+        "remove_dubb_silence": "Removes the mute buffer at the beginning and end of each subtitle's audio",
+        "remove_dubb_all_silence": "Removes all mute buffers in each subtitle's audio",
+        "remove_dubb_silence_level":"Mute removal level",
         "normal_text": "Text Text normalization",
         "uvr_models": "BGM separation model",
         "del_end_punc": "Remove punctuation at end subtitles?",
@@ -450,7 +459,7 @@ class Ui_setini(QtWidgets.QWidget):
             settings.save()
 
     def _is_comboBox(self,key):
-        return key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset','lang','uvr_models','out_video_ext',"fps_mode","device_name","model_for_recogn2"]
+        return key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset','lang','uvr_models','out_video_ext',"fps_mode","device_name","model_for_recogn2","remove_dubb_silence_level"]
 
     def _get_comboBox(self,key) -> List[str]:
         data = {
@@ -488,7 +497,8 @@ class Ui_setini(QtWidgets.QWidget):
             ],
             "out_video_ext": ['.mp4', '.mkv'],
             "device_name":['auto','cuda','cpu','mps','xpu','cuda:0','cuda:1','cuda:2','cuda:3'],
-            "model_for_recogn2":WHISPER_MODELS.split(',')
+            "model_for_recogn2":WHISPER_MODELS.split(','),
+            "remove_dubb_silence_level":["low","default","max"]
         }
 
         return data.get(key, [""])

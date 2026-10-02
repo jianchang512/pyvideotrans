@@ -5,7 +5,7 @@ import sentencepiece as spm
 from dataclasses import dataclass
 from typing import List, Union
 from videotrans.configure.config import ROOT_DIR, logger, settings
-from videotrans.configure.constants import M2M100_URL_MS, M2M100_URL_HF,_LANGUAGE_M2M100
+from videotrans.configure.constants import M2M100_URL_MS, M2M100_URL_HF
 from videotrans.translator._base import BaseTrans
 import torch
 
@@ -18,16 +18,8 @@ from videotrans.util.help_misc import is_connect_hf
 # Refer to https://github.com/ymoslem/DesktopTranslator/blob/main/utils/m2m_languages.json
 # other languages can be added as well
 
-@dataclass
+@dataclass(repr=False)
 class M2M100Trans(BaseTrans):
-
-    def __post_init__(self):
-        super().__post_init__()
-        if not self.source_code or self.source_code=='auto':
-            self.from_lang='auto'
-        else:
-            self.from_lang=_LANGUAGE_M2M100.get(self.source_code.split('-')[0].lower(),'auto')
-        self.to_lang=_LANGUAGE_M2M100.get(self.target_code.split('-')[0].lower())
 
     def _download(self):
         if not Path(f'{ROOT_DIR}/models/m2m100_12b/model.bin').exists():
@@ -54,10 +46,10 @@ class M2M100Trans(BaseTrans):
     def _item_task(self, data: str)->str:
         queries = data.split("\n")
     
-        queries_tokenized = self.tokenize(queries, self.from_lang)
+        queries_tokenized = self.tokenize(queries, self.source_code)
         translated_tokenized = self.model.translate_batch(
             source=queries_tokenized,
-            target_prefix=[[self.to_lang]] * len(queries),
+            target_prefix=[[self.target_code]] * len(queries),
             beam_size=5,
             max_batch_size=2048,
             return_alternatives=False,
@@ -65,7 +57,7 @@ class M2M100Trans(BaseTrans):
             replace_unknowns=True,
             repetition_penalty=3,
         )
-        translated = self.detokenize(list(map(lambda t: t[0]['tokens'], translated_tokenized)), self.to_lang)
+        translated = self.detokenize(list(map(lambda t: t[0]['tokens'], translated_tokenized)), self.target_code)
         return "\n".join([it.strip() for it in translated])
 
     def tokenize(self, queries, lang=None):

@@ -1,8 +1,8 @@
 import re
 from typing import Tuple
 
-from videotrans.configure.constants import EDGET_LANGUAGES_NAME2CODE_EN, EDGET_LANGUAGES_NAME2CODE, SUBTITLE_CODE, \
-    SUBTITLE_CODE_B
+from videotrans.configure._languages_dict import LANGUAGE_M2M100
+from videotrans.configure.constants import  SUBTITLE_CODE, SUBTITLE_CODE_B
 from videotrans.configure.config import tr, params, logger
 
 from videotrans import winform
@@ -56,6 +56,8 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         index = 8
     elif translate_type == M2M100_INDEX:
         index = 10
+    elif translate_type == QWENMT_INDEX:
+        index = 9
 
     if show_target in LANG_CODE:
         target_list = LANG_CODE[show_target]
@@ -78,6 +80,11 @@ def get_audio_code(*, show_source=None):
     source_list = LANG_CODE[show_source] if show_source in LANG_CODE else LANG_CODE.get(
         LANGNAME_DICT_REV.get(show_source))
     if source_list and source_list[0]: return source_list[0].split('-')[0]
+    # 兼容 zh_tw 等 下划线形式
+    _t=show_source.split('_')
+    if len(_t)>1 and _t[0] in LANG_CODE:
+        return LANG_CODE[_t[0]][0]
+
     _code = get_code(show_text=show_source)
     return _code.split('-')[0] if _code else 'auto'
 
@@ -90,8 +97,7 @@ def get_subtitle_code(*, show_target=None):
             return LANG_CODE[show_target][1]
         if show_target in LANGNAME_DICT_REV:
             return LANG_CODE[LANGNAME_DICT_REV[show_target]][1]
-        code = get_code(show_target)
-        return SUBTITLE_CODE.get(code, 'zho')
+        return SUBTITLE_CODE.get(get_code(show_target), 'zho')
     except Exception as e:
         logger.error(f'获取字幕嵌入3为语言代码错误:{e}')
     return 'eng'
@@ -134,34 +140,11 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
             # 特殊兼容zh
             target_list = LANG_CODE['zh-cn']
 
-    # qwen-mt 翻译渠道语言代码
-    if translate_type == QWENMT_INDEX and params.get('qwenmt_model', 'qwen-mt-turbo').startswith('qwen-mt'):
-        return source_list[0] if source_list else (tr(show_source) if show_source else None), target_list[
-            0] if target_list else (show_target if show_target else None)
 
-    # AI渠道 包括 qwen-mt中使用的 其他qwen大模型，返回语言的英文名称
-    if translate_type in AI_TRANS_CHANNELS or translate_type == QWENMT_INDEX:
-        # 如果不在 LANG_CODE 中，则到 EDGE 完整语言列表中寻找到语言代码，再根据代码获取语言的英文名称
-        s_text = source_list[7] if source_list else None
-        t_text = target_list[7] if target_list else None
-        has_source = show_source and not s_text
-        has_target = show_target and not t_text
-        if has_source or has_target:
-            # 反转获取到  {语言代码:语言的英文名称}
-            _code_name = {code: name for name, code in EDGET_LANGUAGES_NAME2CODE_EN.items()}
-            if has_source and show_source in EDGET_LANGUAGES_NAME2CODE:
-                s_text = _code_name.get(EDGET_LANGUAGES_NAME2CODE[show_source])
-            elif has_source:
-                # 从翻译字典中取出语言代码
-                s_text = _code_name.get(show_source) or _code_name.get(tr(show_source))
 
-            if has_target and show_target in EDGET_LANGUAGES_NAME2CODE:
-                t_text = _code_name.get(EDGET_LANGUAGES_NAME2CODE[show_target])
-            elif has_target:
-                # 从翻译字典中取出语言代码
-                t_text = _code_name.get(show_target) or _code_name.get(tr(show_target))
-        # 仍然无法找到时，保底直接返回显示名称
-        return s_text or show_source, t_text or show_target
+    # AI渠道
+    if translate_type in AI_TRANS_CHANNELS:
+        return source_list[7] if source_list else show_source,target_list[7] if target_list else show_target
 
     # 非AI渠道，需返回语言的代码形式
 
@@ -190,32 +173,30 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return source_list[6] if source_list else show_source, target_list[6] if target_list else show_target
     if translate_type == ALI_INDEX:
         return source_list[8] if source_list else show_source, target_list[8] if target_list else show_target
+
+    # qwen-mt 翻译渠道语言代码
+    if translate_type == QWENMT_INDEX:
+        return source_list[9] if source_list else None, target_list[9] if target_list else None
     if translate_type == M2M100_INDEX:
-        return source_list[10] if source_list else show_source, target_list[10] if target_list else show_target
+        s,t=None,None
+        if source_list:
+            s=LANGUAGE_M2M100.get(source_list[0].split('-')[0])
+        if target_list:
+            t=LANGUAGE_M2M100.get(target_list[0].split('-')[0])
+        return s ,t
     return show_source, show_target
 
 
-# 获取频道 模型无关的语言代码
-# 分别从 EDGET_LANGUAGES_NAME2CODE、判断本身是否是语言代码、从  tr 获取
+# 获取频道 模型无关的语言代码, 对应 videotrans/configure/constants.py 中 LANG_CODE 键
+# 用于原始、目标语言字幕文件名，以及 AI翻译渠道时用于换取 语言名称
 def get_code(show_text: str = None):
-    if not show_text or show_text == '-': return None
+    if not show_text or show_text in ['-','No']: return None
     if show_text == 'zh': return 'zh-cn'
     # 是语言代码本身，例如 zh-cn,en
     if show_text in LANG_CODE: return show_text
     # 是语言显示名称，例如 简体中文，English
     if show_text in LANGNAME_DICT_REV: return LANGNAME_DICT_REV.get(show_text)
     if show_text == tr('auto') or show_text.lower() == 'auto': return 'auto'
-
-    _show = EDGET_LANGUAGES_NAME2CODE.get(show_text)
-    if _show: return _show
-
-    # 未从 EDGET_LANGUAGES_NAME2CODE 找到
-    _show_list = re.split(r'[_-]', show_text)
-    _len = len(_show_list)
-    # 可能是用户自定义新增的语言 zh zh_cn pt-br  zh_HANS 等语言代码形式
-    if re.fullmatch(r'[a-zA-Z]{2,3}', _show_list[0]) and (
-            _len == 1 or (_len == 2 and re.fullmatch(r'[a-zA-Z]{2,5}', _show_list[1]))):
-        return show_text
 
     # 否则，可能是 语言名称，则从翻译字典中获取
     return tr(show_text)

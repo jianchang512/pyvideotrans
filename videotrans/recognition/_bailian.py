@@ -14,7 +14,7 @@ from videotrans.configure.config import params
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 
-@dataclass
+@dataclass(repr=False)
 class Qwen3ASRRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()

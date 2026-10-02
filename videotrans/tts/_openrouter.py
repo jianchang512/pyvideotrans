@@ -13,12 +13,11 @@ from videotrans.util.help_misc import vail_file
 
 
 
-@dataclass
+@dataclass(repr=False)
 class OpenrouterTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_key = params.get('openrouter_key')
         self.model_name = params.get('openrouter_tts_model')
         self.speed=self.get_speed()
 
@@ -34,7 +33,7 @@ class OpenrouterTTS(BaseTTS):
             "voice": data_item['role']
         }
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {params.get('openrouter_key')}",
             "Content-Type": "application/json"
         }
 

@@ -11,7 +11,7 @@ from videotrans.translator._base import BaseTrans
 from videotrans.util._srt_parse import cleartext
 
 
-@dataclass
+@dataclass(repr=False)
 class DeepLX(BaseTrans):
 
     def __post_init__(self):
@@ -44,7 +44,7 @@ class DeepLX(BaseTrans):
             target_code = 'ZH-HANT'
         elif target_code == 'PT':
             target_code = 'PT-PT'
-        sourcecode = self.source_code.split('-')[0].upper() if self.source_code else None
+        sourcecode = self.source_code.upper() if self.source_code else None
         sourcecode = sourcecode if sourcecode != 'AUTO' else None
         jsondata = {
             "text": data,

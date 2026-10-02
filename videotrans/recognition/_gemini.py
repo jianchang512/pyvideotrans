@@ -1,4 +1,6 @@
 import logging
+import random
+
 import httpx,time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -18,20 +20,15 @@ from videotrans.util._srt_parse import ms_to_time_string
 from videotrans.process._stt_utils import _resegment
 from pydub import AudioSegment
 
-@dataclass
+@dataclass(repr=False)
 class GeminiRecogn(BaseRecogn):
-    api_keys: List[str] = field(init=False)
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.api_keys = params.get('gemini_key', '').strip().split(',')
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _req(self,file):
         client=None
         try:
-            api_key = self.api_keys.pop(0)
-            self.api_keys.append(api_key)
+            api_keys=params.get('gemini_key', '').strip().split(',')
+            api_key = api_keys[random.randint(0,len(api_keys)-1)]
             client = genai.Client(
                 api_key=api_key,
                 http_options = types.HttpOptions(

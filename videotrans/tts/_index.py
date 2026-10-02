@@ -12,11 +12,11 @@ METHOD_TEXT_EN='Same as the voice reference'
 METHOD_TEXT_CN='与音色参考音频相同'
 REAL_USE=METHOD_TEXT_EN
 
-@dataclass
+@dataclass(repr=False)
 class IndexTTS(GradioBase):
     def __post_init__(self):
-        self.ainame = "indextts"
         super().__post_init__()
+        self.ainame = "indextts"
 
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:

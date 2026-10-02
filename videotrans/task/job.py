@@ -52,13 +52,11 @@ class BaseWorker(QThread):
 
         # 获取子类可能自定义的错误前缀 (如识别引擎名称、动作名称)
         prefix = self.get_error_prefix(trk)
-        if prefix:
-            except_msg = f"{prefix} {except_msg}"
-        logger.error(f'{except_msg}\n{detail_back}\n{trk=}')
+
         if trk.uuid not in app_cfg.stoped_uuid_set:
             if app_cfg.exit_soft: return
-            trk.signal(text=f'{except_msg}\n{detail_back}\n{trk}', type='error', uuid=trk.uuid)
-            send_notification(f'Error:{e}', f'{trk.cfg.basename}')
+            trk.signal(text=f'{prefix} {except_msg}\n{detail_back}\n{trk=}', type='error', uuid=trk.uuid)
+            send_notification(f'Error:{except_msg[:90]}', f'{trk.cfg.basename}')
         trk.set_end()
         self.cleanup_on_error(trk)
 

@@ -11,7 +11,7 @@ from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 
 
-@dataclass
+@dataclass(repr=False)
 class GLMASRRecogn(BaseRecogn):
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return

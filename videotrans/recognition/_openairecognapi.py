@@ -18,7 +18,7 @@ from videotrans.util._ffmpeg_runner import runffmpeg
 from videotrans.util._srt_parse import ms_to_time_string
 
 
-@dataclass
+@dataclass(repr=False)
 class OpenaiAPIRecogn(BaseRecogn):
 
     def __post_init__(self):

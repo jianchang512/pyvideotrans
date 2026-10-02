@@ -181,6 +181,8 @@ class AppSettings:
             "asr_wait": 1,
             "normal_text": False,
             "remove_dubb_silence": True,
+            "remove_dubb_all_silence": False,
+            "remove_dubb_silence_level": 'default',
             "save_segment_audio": False,
             "countdown_sec": 30,
             "backaudio_volume": 0.8,

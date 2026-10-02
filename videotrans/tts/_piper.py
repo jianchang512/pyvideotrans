@@ -28,13 +28,12 @@ g2pw.api.open=_utf8_open
 
 from piper import PiperVoice,SynthesisConfig
 
-@dataclass
+@dataclass(repr=False)
 class PiperTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
         self.speed=self.get_speed()
-        self.device="cpu"# todo cuda
         self.local_dir=f'{ROOT_DIR}/models/piper'
         
     def _get_model_from_name(self,name):
@@ -102,7 +101,7 @@ class PiperTTS(BaseTTS):
                     _model_file=role_model.get(item['role'])
                     voice=_model_obj.get(_model_file)
                     if voice is None:
-                        voice = PiperVoice.load(_model_file,use_cuda=True if self.device=='cuda' else False,download_dir=f'{ROOT_DIR}/models')
+                        voice = PiperVoice.load(_model_file,use_cuda=False,download_dir=f'{ROOT_DIR}/models')
                         _model_obj[_model_file]=voice
                     with wave.open(item['filename']+'-24k.wav', "wb") as wav_file:
                         voice.synthesize_wav(item.get('text'), wav_file,syn_config=syn_config)

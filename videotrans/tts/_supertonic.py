@@ -15,7 +15,7 @@ from videotrans.util.help_misc import vail_file, is_connect_hf
 from videotrans.util.helper_supertonic import load_text_to_speech, load_voice_style
 
 
-@dataclass
+@dataclass(repr=False)
 class SupertonicTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()

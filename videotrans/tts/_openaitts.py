@@ -11,11 +11,10 @@ from videotrans.tts._base import BaseTTS
 from videotrans.util.help_misc import vail_file
 
 
-@dataclass
+@dataclass(repr=False)
 class OPENAITTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-        self.stop_next_all=False
         self.api_url = params.get('openaitts_api','')
         if len(self.api_url)<10:
             raise StopTask(f'API URL is error: {self.api_url}')

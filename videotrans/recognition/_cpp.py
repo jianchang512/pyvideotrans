@@ -18,12 +18,8 @@ from videotrans.util.help_down import down_zip
 from videotrans.util.help_misc import is_connect_hf
 
 
-@dataclass
+@dataclass(repr=False)
 class CPPRecogn(BaseRecogn):
-    def __post_init__(self):
-        super().__post_init__()
-        self.cpp_path=f'{ROOT_DIR}/whisper-cpp/whisper-cli'#whisper-cli.exe | whisper-cli
-
 
     def _win_download_cli(self):
         # windows上自动下载exe
@@ -32,9 +28,10 @@ class CPPRecogn(BaseRecogn):
 
 
     def _exec(self):
+        cpp_path=f'{ROOT_DIR}/whisper-cpp/whisper-cli'#whisper-cli.exe | whisper-cli
         if sys.platform=='win32':
-            self.cpp_path+='.exe'
-        Path_cpp=Path(self.cpp_path)
+            cpp_path+='.exe'
+        Path_cpp=Path(cpp_path)
         if not Path_cpp.is_file():
             if sys.platform!='win32':
                 raise SpeechToTextError(tr('download whisper.cpp or make binary',f'{ROOT_DIR}/whisper-cpp'))
@@ -53,7 +50,7 @@ class CPPRecogn(BaseRecogn):
         txt_file = ROOT_DIR + '/pyvideotrans.txt'
 
         cmd = [
-            self.cpp_path,
+            cpp_path,
             "-p",str(max(min(4,int(os.cpu_count())-1),1)),
             "-f",
             self.audio_file,

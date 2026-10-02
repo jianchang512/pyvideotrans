@@ -13,7 +13,7 @@ from videotrans.tts._base import BaseTTS
 from videotrans.util.help_misc import vail_file
 
 
-@dataclass
+@dataclass(repr=False)
 class ChatTTS(BaseTTS):
 
     def __post_init__(self):

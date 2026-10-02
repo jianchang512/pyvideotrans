@@ -11,10 +11,8 @@ from videotrans.util.help_down import check_and_down_ms,check_and_down_hf
 from videotrans.util.help_misc import is_connect_hf
 
 
-@dataclass
+@dataclass(repr=False)
 class FunasrRecogn(BaseRecogn):
-    
-
 
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit():

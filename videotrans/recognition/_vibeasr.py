@@ -17,20 +17,18 @@ from videotrans.util._srt_parse import ms_to_time_string
 from videotrans.util.help_down import check_and_down_hf
 
 
-@dataclass
+@dataclass(repr=False)
 class VibeasrRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
         self.model_name='microsoft/VibeVoice-ASR-HF'
         self.local_dir=f'{ROOT_DIR}/models/models--microsoft--VibeVoice-ASR-HF'
-        self._repid=f'microsoft/VibeVoice-ASR-HF'
-
-
 
     def _download(self):
-        check_and_down_hf(model_id=self._repid,
-                                    repo_id=self._repid,
+        _repid=f'microsoft/VibeVoice-ASR-HF'
+        check_and_down_hf(model_id=_repid,
+                                    repo_id=_repid,
                                     local_dir=self.local_dir,
                                     callback=self._process_callback)
 

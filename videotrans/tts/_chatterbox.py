@@ -15,7 +15,7 @@ import soundfile as sf
 from videotrans.util.help_misc import vail_file, is_connect_hf
 
 
-@dataclass
+@dataclass(repr=False)
 class ChatterBoxTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()

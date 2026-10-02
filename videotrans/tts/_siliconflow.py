@@ -13,12 +13,11 @@ from videotrans.util.help_misc import vail_file
 from videotrans.util.help_role import get_azure_rolelist
 
 
-@dataclass
+@dataclass(repr=False)
 class SiliconflowTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_key = params.get('siliconflow_key')
         self.model_name = params.get('siliconflow_tts_model','FunAudioLLM/CosyVoice2-0.5B')
         self.speed=self.get_speed()
 
@@ -34,7 +33,7 @@ class SiliconflowTTS(BaseTTS):
             "response_format": "wav"
         }
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {params.get('siliconflow_key')}",
             "Content-Type": "application/json"
         }
         response = requests.post(url, json=payload, headers=headers, verify=False)

@@ -11,11 +11,10 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_excepti
 from videotrans.util.help_misc import vail_file
 
 
-@dataclass
+@dataclass(repr=False)
 class KokoroTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()
-
         api_url = 'http://' + params.get('kokoro_api','').strip().rstrip('/').lower().replace('http://', '')
         if len(api_url)<10:
             raise StopTask(f'API URL is error: {api_url}')

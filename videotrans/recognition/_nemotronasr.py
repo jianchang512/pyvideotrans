@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from videotrans.recognition._huggingface import HuggingfaceRecogn
 
 
-@dataclass
+@dataclass(repr=False)
 class NemotronRecogn(HuggingfaceRecogn):
     def __post_init__(self):
         super().__post_init__()

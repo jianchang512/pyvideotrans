@@ -33,10 +33,22 @@ class BaseTask(BaseCon):
     # 是否需要嵌入配音或字幕
     should_hebing: bool = False
 
+    def __repr__(self):
+        cls = self.__class__
+        # 1. 仅获取当前类自身定义的注解字段 (不包含继承自父类的字段)
+        local_fields = cls.__dict__.get("__annotations__", {}).keys()
+
+        attrs = [
+            f"{name}={getattr(self, name)!r}"
+            for name in local_fields
+            if hasattr(self, name) and name not in ["queue_tts","source_srt_list","target_srt_list"]
+        ]
+        return f"[{cls.__name__}]: {', '.join(attrs)}"
     def __post_init__(self):
         super().__post_init__()
         if self.cfg.uuid:
             self.uuid = self.cfg.uuid
+
 
     # 预先处理，例如从视频中拆分音频、人声背景分离、转码等
     def prepare(self):

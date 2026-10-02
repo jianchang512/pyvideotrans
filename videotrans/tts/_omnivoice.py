@@ -8,7 +8,7 @@ from pathlib import Path
 import json,time,os
 from concurrent.futures import ThreadPoolExecutor
 
-@dataclass
+@dataclass(repr=False)
 class OmniVoice(BaseTTS):
 
 

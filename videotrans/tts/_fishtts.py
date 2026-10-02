@@ -10,7 +10,7 @@ from videotrans.util.help_misc import vail_file
 from videotrans.util.help_role import get_f5tts_role
 
 
-@dataclass
+@dataclass(repr=False)
 class FishTTS(BaseTTS):
     def __post_init__(self):
         super().__post_init__()

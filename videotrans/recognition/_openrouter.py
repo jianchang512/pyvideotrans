@@ -11,7 +11,7 @@ from videotrans.task.taskcfg import SrtItem
 
 
 
-@dataclass
+@dataclass(repr=False)
 class OpenRouterASR(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()

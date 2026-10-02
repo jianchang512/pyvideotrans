@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 
 # 固定不变:M2M100 翻译渠道,
-_LANGUAGE_M2M100 = {
+LANGUAGE_M2M100 = {
     "af": "__af__",
     "am": "__am__",
     "ar": "__ar__",
@@ -107,7 +107,7 @@ _LANGUAGE_M2M100 = {
     "zu": "__zu__"
 }
 # 固定不变:小红书 TTS3 渠道 
-_LANGUAGE_FIRERED3 = {
+LANGUAGE_FIRERED3 = {
     "ar": "Arabic",
     "yue": "Cantonese",
     "zh": "Chinese",
@@ -133,182 +133,6 @@ _LANGUAGE_FIRERED3 = {
     "fi": "Finnish",
     "vi": "Vietnamese"
 }
-# 固定不变:edge-tts/omnivoice 可用的语言代码列表：
-EDGE_LANGUANGES_CODE = ['zh-cn', 'en', 'ja', 'ko', 'zh-tw', 'yue', 'fr', 'de', 'es', 'es-419', 'pt', 'pt-br', 'it',
-                        'ru', 'hu', 'pl', 'nl', 'sv', 'uk', 'cs', 'el', 'nb', 'ro', 'bg', 'fi', 'vi', 'th', 'id', 'ms',
-                        'fil', 'km', 'lo', 'my', 'hi', 'ur', 'bn', 'ar', 'tr', 'fa', 'kk', 'uz', 'he', 'af', 'sq', 'am',
-                        'az', 'bs', 'ca', 'hr', 'da', 'et', 'gl', 'ka', 'gu', 'is', 'iu', 'ga', 'jv', 'kn', 'lv', 'lt',
-                        'mk', 'ml', 'mt', 'mr', 'mn', 'ne', 'ps', 'sr', 'si', 'sk', 'sl', 'so', 'su', 'sw', 'ta', 'te',
-                        'cy', 'zu']
-
-# key 需同 videotrans/languages/*.json中译文value一致，否则无法根据界面显示获取到 edge-tts/gtts 不在 LANG_CODE 中的语言代码，进而无法获取到试听文本
-EDGET_LANGUAGES_NAME2CODE = {
-    "中文": "zh",
-    "简体中文": "zh-cn",
-    "繁体中文": "zh-tw",
-    "粤语": "yue",
-    "英语": "en",
-    "法语": "fr",
-    "德语": "de",
-    "日语": "ja",
-    "韩语": "ko",
-    "俄语": "ru",
-    "西班牙语": "es",
-    "泰国语": "th",
-    "意大利语": "it",
-    "葡萄牙语": "pt",
-    "越南语": "vi",
-    "阿拉伯语": "ar",
-    "土耳其语": "tr",
-    "印度语": "hi",
-    "匈牙利语": "hu",
-    "乌克兰语": "uk",
-    "印度尼西亚": "id",
-    "马来语": "ms",
-    "哈萨克语": "kk",
-    "捷克语": "cs",
-    "波兰语": "pl",
-    "荷兰语": "nl",
-    "瑞典语": "sv",
-    "希伯来语": "he",
-    "孟加拉语": "bn",
-    "菲律宾语": "fil",
-    "南非荷兰语": "af",
-    "阿尔巴尼亚语": "sq",
-    "阿姆哈拉语": "am",
-    "阿塞拜疆语": "az",
-    "波斯尼亚语": "bs",
-    "保加利亚语": "bg",
-    "缅甸语": "my",
-    "加泰罗尼亚语": "ca",
-    "克罗地亚语": "hr",
-    "丹麦语": "da",
-    "爱沙尼亚语": "et",
-    "芬兰语": "fi",
-    "加利西亚语": "gl",
-    "格鲁吉亚语": "ka",
-    "希腊语": "el",
-    "古吉拉特语": "gu",
-    "冰岛语": "is",
-    "因纽特语": "iu",
-    "爱尔兰语": "ga",
-    "爪哇语": "jv",
-    "卡纳达语": "kn",
-    "高棉语": "km",
-    "老挝语": "lo",
-    "拉脱维亚语": "lv",
-    "立陶宛语": "lt",
-    "马其顿语": "mk",
-    "马拉雅拉姆语": "ml",
-    "马耳他语": "mt",
-    "马拉地语": "mr",
-    "蒙古语": "mn",
-    "尼泊尔语": "ne",
-    "挪威语(书面挪威语)": "nb",
-    "普什图语": "ps",
-    "波斯语": "fa",
-    "罗马尼亚语": "ro",
-    "塞尔维亚语": "sr",
-    "僧伽罗语": "si",
-    "斯洛伐克语": "sk",
-    "斯洛文尼亚语": "sl",
-    "索马里语": "so",
-    "巽他语": "su",
-    "斯瓦希里语": "sw",
-    "泰米尔语": "ta",
-    "泰卢固语": "te",
-    "乌尔都语": "ur",
-    "乌兹别克语": "uz",
-    "威尔士语": "cy",
-    "祖鲁语": "zu",
-    "葡萄牙语(巴西)": "pt-br",
-    "西班牙语(拉美)": "es-419",
-}
-# 英语形式
-EDGET_LANGUAGES_NAME2CODE_EN = {
-    "Chinese": "zh",
-    "Simplified Chinese": "zh-cn",
-    "Traditional Chinese": "zh-tw",
-    "Cantonese": "yue",
-    "English": "en",
-    "French": "fr",
-    "German": "de",
-    "Japanese": "ja",
-    "Korean": "ko",
-    "Russian": "ru",
-    "Spanish": "es",
-    "Thai": "th",
-    "Italian": "it",
-    "Portuguese": "pt",
-    "Vietnamese": "vi",
-    "Arabic": "ar",
-    "Turkish": "tr",
-    "Hindi": "hi",
-    "Hungarian": "hu",
-    "Ukrainian": "uk",
-    "Indonesian": "id",
-    "Malay": "ms",
-    "Kazakh": "kk",
-    "Czech": "cs",
-    "Polish": "pl",
-    "Dutch": "nl",
-    "Swedish": "sv",
-    "Hebrew": "he",
-    "Bengali": "bn",
-    "Filipino": "fil",
-    "Afrikaans": "af",
-    "Albanian": "sq",
-    "Amharic": "am",
-    "Azerbaijani": "az",
-    "Bosnian": "bs",
-    "Bulgarian": "bg",
-    "Burmese": "my",
-    "Catalan": "ca",
-    "Croatian": "hr",
-    "Danish": "da",
-    "Estonian": "et",
-    "Finnish": "fi",
-    "Galician": "gl",
-    "Georgian": "ka",
-    "Greek": "el",
-    "Gujarati": "gu",
-    "Icelandic": "is",
-    "Inuktitut": "iu",
-    "Irish": "ga",
-    "Javanese": "jv",
-    "Kannada": "kn",
-    "Khmer": "km",
-    "Lao": "lo",
-    "Latvian": "lv",
-    "Lithuanian": "lt",
-    "Macedonian": "mk",
-    "Malayalam": "ml",
-    "Maltese": "mt",
-    "Marathi": "mr",
-    "Mongolian": "mn",
-    "Nepali": "ne",
-    "Norwegian (Bokmål)": "nb",
-    "Pashto": "ps",
-    "Persian": "fa",
-    "Romanian": "ro",
-    "Serbian": "sr",
-    "Sinhala": "si",
-    "Slovak": "sk",
-    "Slovenian": "sl",
-    "Somali": "so",
-    "Sundanese": "su",
-    "Swahili": "sw",
-    "Tamil": "ta",
-    "Telugu": "te",
-    "Urdu": "ur",
-    "Uzbek": "uz",
-    "Welsh": "cy",
-    "Zulu": "zu",
-    "Portuguese (Brazilian)": "pt-br",
-    "Spanish (Latin America)": "es-419"
-}
-
-EDGET_LANGUAGES_NAME2CODE.update(EDGET_LANGUAGES_NAME2CODE_EN)
 # 每增加一个语言，需在此添加对应的试听词
 LISTEN_TEXT = {
     "zh": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
@@ -390,6 +214,113 @@ LISTEN_TEXT = {
     "cy": "Helo, fy ffrind annwyl, rwy'n gobeithio bod pob un o'th ddiwrnodau'n hyfryd ac yn bleserus!",
     "zu": "Sawubona, mngane wami othandekayo, ngithemba ukuthi zonke izinsuku zakho zizoba zinhle futhi zijabulise!"
 }
+# 字幕嵌入代码 T 类型
+SUBTITLE_CODE = {
+    "zh": "zho",
+    "zh-cn": "zho",
+    "zh-tw": "zho",
+    "yue": "yue",
+    "en": "eng",
+    "fr": "fra",
+    "de": "deu",
+    "ja": "jpn",
+    "ko": "kor",
+    "ru": "rus",
+    "es": "spa",
+    "th": "tha",
+    "it": "ita",
+    "pt": "por",
+    "vi": "vie",
+    "ar": "ara",
+    "tr": "tur",
+    "hi": "hin",
+    "hu": "hun",
+    "uk": "ukr",
+    "id": "ind",
+    "ms": "msa",
+    "kk": "kaz",
+    "cs": "ces",
+    "pl": "pol",
+    "nl": "nld",
+    "sv": "swe",
+    "he": "heb",
+    "bn": "ben",
+    "fil": "fil",
+    "af": "afr",
+    "sq": "sqi",
+    "am": "amh",
+    "az": "aze",
+    "bs": "bos",
+    "bg": "bul",
+    "my": "mya",
+    "ca": "cat",
+    "hr": "hrv",
+    "da": "dan",
+    "et": "est",
+    "fi": "fin",
+    "gl": "glg",
+    "ka": "kat",
+    "el": "ell",
+    "gu": "guj",
+    "is": "isl",
+    "iu": "iku",
+    "ga": "gle",
+    "jv": "jav",
+    "kn": "kan",
+    "km": "khm",
+    "lo": "lao",
+    "lv": "lav",
+    "lt": "lit",
+    "mk": "mkd",
+    "ml": "mal",
+    "mt": "mlt",
+    "mr": "mar",
+    "mn": "mon",
+    "ne": "nep",
+    "nb": "nob",
+    "ps": "pus",
+    "fa": "fas",
+    "ro": "ron",
+    "sr": "srp",
+    "si": "sin",
+    "sk": "slk",
+    "sl": "slv",
+    "so": "som",
+    "su": "sun",
+    "sw": "swa",
+    "ta": "tam",
+    "te": "tel",
+    "ur": "urd",
+    "uz": "uzb",
+    "cy": "cym",
+    "zu": "zul",
+    "pt-br": "por",
+    "es-419": "spa",
+    "ug": "uig"
+}
+# 字幕嵌入代码，根据 T 类型获取 B类型
+SUBTITLE_CODE_B = {
+    "zho": "chi",
+    "fra": "fre",
+    "deu": "ger",
+    "msa": "may",
+    "ces": "cze",
+    "nld": "dut",
+    "sqi": "alb",
+    "mya": "bur",
+    "kat": "geo",
+    "ell": "gre",
+    "isl": "ice",
+    "mkd": "mac",
+    "fas": "per",
+    "ron": "rum",
+    "slk": "slo",
+    "cym": "wel",
+    "bod": "tib",
+    "eus": "baq",
+    "hye": "arm",
+    "mri": "mao"
+}
 
 # 根据语言代码查找各个翻译渠道对应的 代码list
 # 字幕嵌入代码默认使用  ISO 639-2/T(mp4所需)，MKV视频需使用 ISO 639-2/B 格式 https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
@@ -417,8 +348,7 @@ LANG_CODE = {
         "zh-Hans",  # 微软翻译
         "Simplified Chinese",  # AI翻译
         "zh",  # 阿里
-        "Chinese",  # qwen-mt qwen-tts qwen-asr
-        "zh"  # m2m100
+        "zh",  # qwen-mt
     ],
 
     "en": [
@@ -431,8 +361,7 @@ LANG_CODE = {
         "en",
         "English",
         "en",
-        "English",
-        "en"  # m2m100
+        "en",
     ],
 
     "ja": [
@@ -445,8 +374,7 @@ LANG_CODE = {
         "ja",
         "Japanese",
         "ja",
-        "Japanese",
-        "ja"  # m2m100
+        "ja",
     ],
     "ko": [
         "ko",
@@ -458,8 +386,7 @@ LANG_CODE = {
         "ko",
         "Korean",
         "ko",
-        "Korean",
-        "ko"  # m2m100
+        "ko",
     ],
     "zh-tw": [
         "zh-tw",
@@ -471,21 +398,19 @@ LANG_CODE = {
         "zh-Hant",
         "Traditional Chinese",
         "zh-tw",
-        "Traditional Chinese",
-        "zh"  # m2m100
+        "zh_tw",
     ],
     "yue": [
         "yue",  # google通道
         "chi",  # 字幕嵌入语言
         "yue",  # 百度通道
         "YUE",  # deepl deeplx通道
-        "yue",  # 腾讯通道
+        "zh-HK",  # 腾讯通道
         "No",  # OTT通道
         "yue",  # 微软翻译
         "Cantonese",  # AI翻译
         "yue",  # 阿里
-        "Cantonese",
-        "zh"  # m2m100
+        "yue",
     ],
     # 欧洲
     "fr": [
@@ -498,8 +423,7 @@ LANG_CODE = {
         "fr",
         "French",
         "fr",
-        "French",
-        "fr"  # m2m100
+        "fr",
     ],
 
     "de": [
@@ -512,8 +436,7 @@ LANG_CODE = {
         "de",
         "German",
         "de",
-        "German",
-        "de"  # m2m100
+        "de",
     ],
     "es": [
         "es",
@@ -525,8 +448,7 @@ LANG_CODE = {
         "es",
         "Spanish",
         "es",
-        "Spanish",
-        "es"  # m2m100
+        "es",
     ],
     "es-419": [
         "es",  # google
@@ -538,8 +460,7 @@ LANG_CODE = {
         "es",  # 微软
         "Spanish",  # AI
         "es",  # 阿里机器
-        "Spanish",  # qwenmt
-        "es"  # m2m100
+        "es",  # qwenmt
     ],
     "pt": [
         "pt-PT",  # pt-PT
@@ -551,8 +472,7 @@ LANG_CODE = {
         "pt",
         "Portuguese",
         "pt",
-        "Portuguese",
-        "pt"  # m2m100
+        "pt",
     ],
     "pt-br": [
         "pt",  # pt-PT
@@ -564,8 +484,7 @@ LANG_CODE = {
         "pt",  # 微软
         "Portuguese (Brazilian)",  # AI
         "pt",  # 阿里
-        "Portuguese (Brazilian)",  # qwen-mt
-        "pt"  # m2m100
+        "pt",  # qwen-mt
     ],
     "it": [
         "it",
@@ -577,8 +496,7 @@ LANG_CODE = {
         "it",
         "Italian",
         "it",
-        "Italian",
-        "it"  # m2m100
+        "it",
     ],
     "ru": [
         "ru",
@@ -590,60 +508,55 @@ LANG_CODE = {
         "ru",
         "Russian",
         "ru",
-        "Russian",
-        "ru"  # m2m100
+        "ru",
     ],
     "hu": [
         "hu",
         "hun",
         "hu",
         "HU",
-        "hu",
+        "No",
         "hu",
         "hu",
         "Hungarian",
         "hu",
-        "Hungarian",
-        "hu"  # m2m100
+        "hu",
     ],
     "pl": [
         "pl",
         "pol",
         "pl",
         "PL",
-        "pl",
+        "No",
         "pl",
         "pl",
         "Polish",
         "pl",
-        "Polish",
-        "pl"  # m2m100
+        "pl",
     ],
     "nl": [
         "nl",  # google通道
         "nld",  # 字幕嵌入语言
         "nl",  # 百度通道
         "NL",  # deepl deeplx通道
-        "nl",  # 腾讯通道
+        "No",  # 腾讯通道
         "nl",  # OTT通道
         "nl",  # 微软翻译
         "Dutch",  # AI翻译
         "nl",
-        "Dutch",
-        "nl"  # m2m100
+        "nl",
     ],
     "sv": [
         "sv",  # google通道
         "swe",  # 字幕嵌入语言
         "swe",  # 百度通道
         "SV",  # deepl deeplx通道
-        "sv",  # 腾讯通道
+        "No",  # 腾讯通道
         "sv",  # OTT通道
         "sv",  # 微软翻译
         "Swedish",  # AI翻译
         "sv",
-        "Swedish",
-        "sv"  # m2m100
+        "sv",
     ],
 
     "uk": [
@@ -651,39 +564,36 @@ LANG_CODE = {
         "ukr",
         "ukr",  # 百度
         "UK",  # deepl
-        "uk",  # 腾讯
+        "No",  # 腾讯
         "uk",  # ott
         "uk",  # 微软
         "Ukrainian",
         "No",
-        "Ukrainian",
-        "uk"  # m2m100
+        "uk",
     ],
     "cs": [
         "cs",
         "ces",
         "cs",
         "CS",
-        "cs",
+        "No",
         "cs",
         "cs",
         "Czech",
         "cs",
-        "Czech",
-        "cs"  # m2m100
+        "cs",
     ],
     "el": [
         "el",  # google
         "ell",  # subtitle embed (ISO 639-2/T)
         "el",  # baidu
         "EL",  # deepl / deeplx
-        "el",  # tencent
+        "No",  # tencent
         "el",  # OTT
         "el",  # microsoft / bing
         "Greek",  # AI (LLM)
         "el",  # alibaba
-        "Greek",  # qwen-mt / qwen-tts / qwen-asr
-        "el"  # m2m100
+        "el",  # qwen-mt
     ],
     "nb": [
         "no",  # google
@@ -695,47 +605,32 @@ LANG_CODE = {
         "nb",  # microsoft / bing
         "Norwegian Bokmål",  # AI (LLM) 书面挪威语
         "no",  # alibaba
-        "Norwegian Bokmål",  # qwen-mt / qwen-tts / qwen-asr
-        "no"  # m2m100
+        "nb",  # qwen-mt
     ],
     "ro": [
         "ro",  # google通道
         "ron",  # 字幕嵌入语言
         "rom",  # 百度通道
         "RO",  # deepl deeplx通道
-        "ro",  # 腾讯通道
+        "No",  # 腾讯通道
         "No",  # OTT通道
         "ro",  # 微软翻译
         "Romanian",  # AI翻译
         "ro",  # 阿里
-        "Romanian",  # qwen-mt
-        "ro"  # m2m100
+        "ro",  # qwen-mt
     ],
-    "bg": [
-        "bg",  # google通道
-        "bul",  # 字幕嵌入语言
-        "bg",  # 百度通道
-        "BG",  # deepl deeplx通道
-        "bg",  # 腾讯通道
-        "bg",  # OTT通道
-        "bg",  # 微软翻译
-        "Bulgarian",  # AI翻译
-        "bg",  # 阿里
-        "Bulgarian",  # qwen-mt qwen-tts qwen-asr
-        "bg"  # m2m100
-    ],
+    "bg": ['bg', 'bul', 'bul', 'BG', 'No', 'No', 'bg', 'Bulgarian', 'bg', 'bg'],
     "fi": [
         "fi",  # google通道
         "fin",  # 字幕嵌入语言
         "fin",  # 百度通道
         "FI",  # deepl deeplx通道
-        "fi",  # 腾讯通道
+        "No",  # 腾讯通道
         "fi",  # OTT通道
         "fi",  # 微软翻译
         "Finnish",  # AI翻译
         "fi",  # 阿里
-        "Finnish",  # qwen-tts 
-        "fi"  # m2m100
+        "fi",  # qwen-tts
     ],
 
     # 东南亚
@@ -749,8 +644,7 @@ LANG_CODE = {
         "vi",
         "Vietnamese",
         "vi",
-        "Vietnamese",
-        "vi"  # m2m100
+        "vi",
     ],
     "th": [
         "th",
@@ -762,8 +656,7 @@ LANG_CODE = {
         "th",
         "Thai",
         "th",
-        "Thai",
-        "th"  # m2m100
+        "th",
     ],
     "id": [
         "id",
@@ -775,8 +668,7 @@ LANG_CODE = {
         "id",
         "Indonesian",
         "id",
-        "Indonesian",
-        "id"  # m2m100
+        "id",
     ],
     "ms": [
         "ms",
@@ -788,34 +680,31 @@ LANG_CODE = {
         "ms",
         "Malay",
         "ms",
-        "Malay",
-        "ms"  # m2m100
+        "ms",
     ],
     "fil": [
         "tl",  # google通道
         "fil",  # 字幕嵌入语言
         "fil",  # 百度通道
         "No",  # deepl deeplx通道
-        "fil",  # 腾讯通道
+        "No",  # 腾讯通道
         "No",  # OTT通道
         "fil",  # 微软翻译
         "Filipino",  # AI翻译
         "fil",  # 阿里
-        "Filipino",
-        "No"
+        "No",
     ],
     "km": [
         "km",  # google通道
         "khm",  # 字幕嵌入语言
         "km",  # 百度通道
         "No",  # deepl deeplx通道
-        "km",  # 腾讯通道
+        "No",  # 腾讯通道
         "No",  # OTT通道
         "km",  # 微软翻译
         "Khmer",  # AI翻译
         "km",  # 阿里
-        "Khmer",
-        "km"  # m2m100
+        "km",
     ],
     "lo": [
         "lo",  # google通道
@@ -827,8 +716,7 @@ LANG_CODE = {
         "lo",  # 微软翻译
         "Lao",  # AI翻译
         "lo",  # 阿里
-        "Lao",  # qwen-tts
-        "lo"  # m2m100
+        "lo",  # qwen-tts
     ],
     "my": [
         "my",  # google通道
@@ -840,8 +728,7 @@ LANG_CODE = {
         "my",  # 微软翻译
         "Burmese",  # AI翻译
         "my",  # 阿里
-        "Burmese",  # qwen-tts
-        "my"  # m2m100
+        "my",  # qwen-tts
     ],
     # 南亚
     "hi": [
@@ -849,39 +736,36 @@ LANG_CODE = {
         "hin",
         "hi",
         "HI",
-        "hi",
+        "No",
         "hi",
         "hi",
         "Hindi",
         "hi",
-        "Hindi",
-        "hi"  # m2m100
+        "hi",
     ],
     "ur": [
         "ur",  # google通道
         "urd",  # 字幕嵌入语言
         "ur",  # 百度通道
         "UR",  # deepl deeplx通道
-        "ur",  # 腾讯通道
+        "No",  # 腾讯通道
         "No",  # OTT通道
         "ur",  # 微软翻译
         "Urdu",  # AI翻译
         "ur",  # 阿里
-        "Urdu",
-        "ur"  # m2m100
+        "ur",
     ],
     "bn": [
         "bn",  # google通道
         "ben",  # 字幕嵌入语言
         "ben",  # 百度通道
         "BN",  # deepl deeplx通道
-        "bn",  # 腾讯通道
+        "No",  # 腾讯通道
         "No",  # OTT通道
         "bn",  # 微软翻译
         "Bengali",  # AI翻译,
         "bn",
-        "Bengali",
-        "bn"  # m2m100
+        "bn",
     ],
     # 中东 中亚
     "ar": [
@@ -894,8 +778,7 @@ LANG_CODE = {
         "ar",
         "Arabic",
         "ar",
-        "Arabic",
-        "ar"  # m2m100
+        "ar",
     ],
     "tr": [
         "tr",
@@ -907,61 +790,94 @@ LANG_CODE = {
         "tr",
         "Turkish",
         "tr",
-        "Turkish",
-        "tr"  # m2m100
+        "tr",
     ],
     "fa": [
         "fa",  # google通道
         "fas",  # 字幕嵌入语言
         "per",  # 百度通道
         "FA",  # deepl deeplx通道
-        "fa",  # 腾讯通道
+        "No",  # 腾讯通道
         "No",  # OTT通道
         "fa",  # 微软翻译
         "Persian",  # AI翻译
         "fa",  # 阿里
-        "Western Persian",
-        "fa"  # m2m100
+        "fa",
     ],
     "kk": [
         "kk",
         "kaz",
         "No",
         "KK",
-        "kk",
+        "No",
         "No",
         "kk",
         "Kazakh",
         "kk",
-        "Kazakh",
-        "kk"  # m2m100
+        "kk",
     ],
     "uz": [
         "uz",  # google通道
         "uzb",  # 字幕嵌入语言
         "No",  # 百度通道
         "UZ",  # deepl deeplx通道
-        "uz",  # 腾讯通道
+        "No",  # 腾讯通道
         "uz",  # OTT通道
         "uz",  # 微软翻译
         "Uzbek",  # AI翻译
         "uz",  # 阿里
-        "Northern Uzbek",  # qwen-mt qwen-tts qwen-asr
-        "uz"  # m2m100
+        "uz",  # qwen-mt
     ],
     "he": [
         "he",  # google通道
         "heb",  # 字幕嵌入语言
         "heb",  # 百度通道
         "HE",  # deepl deeplx通道
-        "he",  # 腾讯通道
+        "No",  # 腾讯通道
         "No",  # OTT通道
         "he",  # 微软翻译
         "Hebrew",  # AI翻译
         "he",
-        "Hebrew",
-        "he"  # m2m100
+        "he",
     ],
+    'af': ['af', 'afr', 'afr', 'AF', 'No', 'No', 'af', 'Afrikaans', 'af', 'af'],
+    'sq': ['sq', 'sqi', 'alb', 'SQ', 'No', 'No', 'sq', 'Albanian', 'sq',
+           'sq'], 'am': ['am', 'amh', 'amh', 'No', 'No', 'No', 'am', 'Amharic', 'am', 'No'],
+    'az': ['az', 'aze', 'aze', 'AZ', 'No', 'No', 'az', 'Azerbaijani',
+           'az', 'az'], 'bs': ['bs', 'bos', 'bos', 'BS', 'No', 'No', 'bs', 'Bosnian', 'bs', 'bs'],
+    'ca': ['ca', 'cat', 'cat', 'CA', 'No', 'No', 'ca', 'Catalan', 'ca', 'ca'],
+    'hr': ['hr', 'hrv', 'hrv', 'HR', 'No', 'No', 'hr', 'Croatian', 'hbs', 'hr'],
+    'da': ['da', 'dan', 'dan', 'DA', 'No', 'No', 'da', 'Danish', 'da', 'da'],
+    'et': ['et', 'est', 'est', 'ET', 'No', 'No', 'et', 'Estonian', 'et', 'et'],
+    'gl': ['gl', 'glg', 'glg', 'GL', 'No', 'No', 'gl', 'Galician', 'gl', 'gl'],
+    'ka': ['ka', 'kat', 'geo', 'KA', 'No', 'No', 'ka', 'Georgian', 'ka', 'ka'],
+    'gu': ['gu', 'guj', 'guj', 'GU', 'No', 'No', 'gu', 'Gujarati', 'gu', 'gu'],
+    'is': ['is', 'isl', 'ice', 'IS', 'No', 'No', 'is', 'Icelandic', 'is', 'is'],
+    'iu': ['iu', 'iku', 'iku', 'No', 'No', 'No', 'iu', 'Inuktitut', 'iu', 'No'],
+    'ga': ['ga', 'gle', 'gle', 'GA', 'No', 'No', 'ga', 'Irish', 'ga', 'No'],
+    'jv': ['jv', 'jav', 'jav', 'JV', 'No', 'No', 'jav', 'Javanese', 'jv', 'jv'],
+    'kn': ['kn', 'kan', 'kan', 'No', 'No', 'No', 'kn', 'Kannada', 'kn', 'kn'],
+    'lv': ['lv', 'lav', 'lav', 'LV', 'No', 'No', 'lv', 'Latvian', 'lv', 'lv'],
+    'lt': ['lt', 'lit', 'lit', 'LT', 'No', 'No', 'lt', 'Lithuanian', 'lt', 'lt'],
+    'mk': ['mk', 'mkd', 'mac', 'MK', 'No', 'No', 'mk', 'Macedonian', 'mk', 'mk'],
+    'ml': ['ml', 'mal', 'mal', 'ML', 'No', 'No', 'ml', 'Malayalam', 'ml', 'No'],
+    'mt': ['mt', 'mlt', 'mlt', 'MT', 'No', 'No', 'mt', 'Maltese', 'mt', 'mt'],
+    'mr': ['mr', 'mar', 'mar', 'MR', 'No', 'No', 'mr', 'Marathi', 'mr', 'mr'],
+    'mn': ['mn', 'mon', 'No', 'MN', 'No', 'No', 'mn-Mong', 'Mongolian', 'mn', 'No'],
+    'ne': ['ne', 'nep', 'nep', 'NE', 'No', 'No', 'ne', 'Nepali', 'ne', 'ne'],
+    'ps': ['ps', 'pus', 'pus', 'PS', 'No', 'No', 'ps', 'Pashto', 'ps', 'No'],
+    'sr': ['sr', 'srp', 'srp', 'SR', 'No', 'No', 'sr-Cyrl', 'Serbian', 'No', 'sr'],
+    'si': ['si', 'sin', 'sin', 'No', 'No', 'No', 'si', 'Sinhala', 'si', 'si'],
+    'sk': ['sk', 'slk', 'sk', 'SK', 'No', 'No', 'sk', 'Slovak', 'sk', 'sk'],
+    'sl': ['sl', 'slv', 'slo', 'SL', 'No', 'No', 'sl', 'Slovenian', 'sl', 'sl'],
+    'so': ['so', 'som', 'som', 'No', 'No', 'No', 'so', 'Somali', 'so', 'No'],
+    'su': ['su', 'sun', 'sun', 'SU', 'No', 'No', 'su', 'Sundanese', 'su', 'No'],
+    'sw': ['sw', 'swa', 'swa', 'SW', 'No', 'No', 'sw', 'Swahili', 'sw', 'sw'],
+    'ta': ['ta', 'tam', 'tam', 'TA', 'No', 'No', 'ta', 'Tamil', 'ta', 'ta'],
+    'te': ['te', 'tel', 'tel', 'TE', 'No', 'No', 'te', 'Telugu', 'te', 'te'],
+    'cy': ['cy', 'cym', 'wel', 'CY', 'No', 'No', 'cy', 'Welsh', 'cy', 'cy'],
+    'zu': ['zu', 'zul', 'zul', 'ZU', 'No', 'No', 'zu', 'Zulu',
+           'zu', 'No'],
 
     "auto": [
         "auto",
@@ -974,117 +890,8 @@ LANG_CODE = {
         "auto",
         "auto",
         "auto",
-        "auto"
     ]
 }
-
-# 字幕嵌入代码 T 类型
-SUBTITLE_CODE={
-  "zh": "zho",
-  "zh-cn": "zho",
-  "zh-tw": "zho",
-  "yue": "yue",
-  "en": "eng",
-  "fr": "fra",
-  "de": "deu",
-  "ja": "jpn",
-  "ko": "kor",
-  "ru": "rus",
-  "es": "spa",
-  "th": "tha",
-  "it": "ita",
-  "pt": "por",
-  "vi": "vie",
-  "ar": "ara",
-  "tr": "tur",
-  "hi": "hin",
-  "hu": "hun",
-  "uk": "ukr",
-  "id": "ind",
-  "ms": "msa",
-  "kk": "kaz",
-  "cs": "ces",
-  "pl": "pol",
-  "nl": "nld",
-  "sv": "swe",
-  "he": "heb",
-  "bn": "ben",
-  "fil": "fil",
-  "af": "afr",
-  "sq": "sqi",
-  "am": "amh",
-  "az": "aze",
-  "bs": "bos",
-  "bg": "bul",
-  "my": "mya",
-  "ca": "cat",
-  "hr": "hrv",
-  "da": "dan",
-  "et": "est",
-  "fi": "fin",
-  "gl": "glg",
-  "ka": "kat",
-  "el": "ell",
-  "gu": "guj",
-  "is": "isl",
-  "iu": "iku",
-  "ga": "gle",
-  "jv": "jav",
-  "kn": "kan",
-  "km": "khm",
-  "lo": "lao",
-  "lv": "lav",
-  "lt": "lit",
-  "mk": "mkd",
-  "ml": "mal",
-  "mt": "mlt",
-  "mr": "mar",
-  "mn": "mon",
-  "ne": "nep",
-  "nb": "nob",
-  "ps": "pus",
-  "fa": "fas",
-  "ro": "ron",
-  "sr": "srp",
-  "si": "sin",
-  "sk": "slk",
-  "sl": "slv",
-  "so": "som",
-  "su": "sun",
-  "sw": "swa",
-  "ta": "tam",
-  "te": "tel",
-  "ur": "urd",
-  "uz": "uzb",
-  "cy": "cym",
-  "zu": "zul",
-  "pt-br": "por",
-  "es-419": "spa",
-  "ug": "uig"
-}
-# 字幕嵌入代码，根据 T 类型获取 B类型
-SUBTITLE_CODE_B = {
-      "zho": "chi",
-      "fra": "fre",
-      "deu": "ger",
-      "msa": "may",
-      "ces": "cze",
-      "nld": "dut",
-      "sqi": "alb",
-      "mya": "bur",
-      "kat": "geo",
-      "ell": "gre",
-      "isl": "ice",
-      "mkd": "mac",
-      "fas": "per",
-      "ron": "rum",
-      "slk": "slo",
-      "cym": "wel",
-      "bod": "tib",
-      "eus": "baq",
-      "hye": "arm",
-      "mri": "mao"
-    }
 
 
 # 合并自定义语言

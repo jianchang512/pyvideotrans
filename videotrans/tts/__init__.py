@@ -1,5 +1,5 @@
 from typing import Union, Type
-from videotrans.configure.config import tr, params, app_cfg
+from videotrans.configure.config import tr, params, app_cfg, logger
 from videotrans.tts._base import BaseTTS
 from videotrans import get_class
 from ._constants import *
@@ -112,6 +112,7 @@ def run(*, queue_tts=None, language="", uuid=None, play=False, tts_type=0, is_cu
         "is_cuda": is_cuda,
         "is_redubb": is_redubb
     }
+    logger.debug(f'文字配音前参数:{[{k:v} for k,v in kwargs.items() if k !="queue_tts"]}')
 
     _cls: Union[Type[BaseTTS], None] = get_class(tts_type, "tts", ID_NAME_DICT)
     if not _cls:

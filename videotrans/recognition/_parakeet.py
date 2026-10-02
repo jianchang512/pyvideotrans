@@ -10,7 +10,7 @@ from videotrans.task.taskcfg import SrtItem
 from videotrans.util._srt_parse import get_subtitle_from_srt
 
 
-@dataclass
+@dataclass(repr=False)
 class ParaketRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()

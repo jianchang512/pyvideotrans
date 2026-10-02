@@ -13,19 +13,19 @@ from videotrans.util.help_misc import vail_file
 from videotrans.util.help_role import get_azure_rolelist
 
 
-@dataclass
+AI302_openai= constants.OPENAITTS_ROLES.split(",")
+with open(ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
+    ai302_voice_roles = json.loads(f.read())
+    AI302_doubao = ai302_voice_roles.get("AI302_doubao", {})
+    AI302_minimaxi = ai302_voice_roles.get("AI302_minimaxi", {})
+    AI302_dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
+    AI302_doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
+
+@dataclass(repr=False)
 class AI302(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.stop_next_all=False
-        with open(ROOT_DIR + "/videotrans/voicejson/302.json", 'r', encoding='utf-8') as f:
-            ai302_voice_roles = json.loads(f.read())
-            self.AI302_doubao = ai302_voice_roles.get("AI302_doubao", {})
-            self.AI302_minimaxi = ai302_voice_roles.get("AI302_minimaxi", {})
-            self.AI302_dubbingx = ai302_voice_roles.get("AI302_dubbingx", {})
-            self.AI302_doubao_ja = ai302_voice_roles.get("AI302_doubao_ja", {})
-        self.AI302_openai= constants.OPENAITTS_ROLES.split(",")
         self.speed=self.get_speed()
         self.volume=self.get_volume()
 
@@ -40,17 +40,17 @@ class AI302(BaseTTS):
             "speed": self.speed,
             "volume": self.volume
         }
-        if data_item['role'] in self.AI302_doubao or data_item['role'] in self.AI302_doubao_ja:
+        if data_item['role'] in AI302_doubao or data_item['role'] in AI302_doubao_ja:
             payload['provider'] = 'doubao'
-            payload['voice'] = self.AI302_doubao.get(data_item['role'],self.AI302_doubao_ja.get(data_item['role']))
-        elif data_item['role'] in self.AI302_minimaxi:
+            payload['voice'] = AI302_doubao.get(data_item['role'],AI302_doubao_ja.get(data_item['role']))
+        elif data_item['role'] in AI302_minimaxi:
             payload['provider'] = 'minimaxi'
             payload['model'] = 'speech-02-hd'
-            payload['voice'] = self.AI302_minimaxi.get(data_item['role'])
-        elif data_item['role'] in self.AI302_dubbingx:
+            payload['voice'] = AI302_minimaxi.get(data_item['role'])
+        elif data_item['role'] in AI302_dubbingx:
             payload['provider'] = 'dubbingx'
-            payload['voice'] = self.AI302_dubbingx.get(data_item['role'])
-        elif data_item['role'] in self.AI302_openai:
+            payload['voice'] = AI302_dubbingx.get(data_item['role'])
+        elif data_item['role'] in AI302_openai:
             payload['provider'] = 'openai'
             payload['model'] = 'gpt-4o-mini-tts'
             payload['voice'] = data_item['role']

@@ -26,7 +26,7 @@ def _error_code(e: APIStatusError) -> str:
     return str(detail or "")
 
 
-@dataclass
+@dataclass(repr=False)
 class AudexumRecogn(BaseRecogn):
 
     def _exec(self) -> Union[List[SrtItem], None]:

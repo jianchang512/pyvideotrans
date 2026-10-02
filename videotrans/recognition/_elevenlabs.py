@@ -12,7 +12,7 @@ from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 
 
-@dataclass
+@dataclass(repr=False)
 class ElevenLabsRecogn(BaseRecogn):
 
     def _exec(self) -> Union[List[SrtItem], None]:

@@ -11,17 +11,34 @@ from videotrans.tts._base import BaseTTS
 from videotrans.util.help_misc import vail_file, is_connect_hf
 
 
-@dataclass
+
+_MAIN_LANGUAGE={
+    "zh":"Chinese",
+    "zh-cn":"Chinese",
+    "zh-tw":"Chinese",
+    "yue":"Chinese",
+    "en":"English",
+    "ja":"Japanese",
+    "ko":"Korean",
+    "de":"German",
+    "fr":"French",
+    "ru":"Russian",
+    "pt":"Portuguese",
+    "pt-br":"Portuguese",
+    "pt-pt":"Portuguese",
+    "es":"Spanish",
+    "es-419":"Spanish",
+    "it":"Italian"
+}
+
+@dataclass(repr=False)
 class QwenttsLocal(BaseTTS):
-    target_language: str = None
-    
+
     def __post_init__(self):
         super().__post_init__()
         self.model_name="0.6B"
-        _langnames = translator.LANG_CODE.get(self.language, [])
-        self.target_language = _langnames[9].capitalize() if _langnames and len(_langnames) >= 10 else 'Auto'
 
-    
+
     def _download(self):
         from videotrans.util import help_down
         if Path(f'{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-Base/model.safetensors').exists() and Path(f'{ROOT_DIR}/models/models--Qwen--Qwen3-TTS-12Hz-{self.model_name}-CustomVoice/model.safetensors').exists():
@@ -46,9 +63,10 @@ class QwenttsLocal(BaseTTS):
         queue_tts_file = f'{TEMP_DIR}/{self.uuid}/queuetts-{time.time()}.json'
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
         title="Qwen3-TTS dubbing..."
+
         kwargs = {
             "queue_tts_file":queue_tts_file,
-            "language": self.target_language,
+            "language": _MAIN_LANGUAGE.get(self.language,'auto').capitalize(),
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
             "model_name":self.model_name,

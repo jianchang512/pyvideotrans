@@ -14,7 +14,7 @@ from videotrans.util.help_down import check_and_down_hf
 
 
 
-@dataclass
+@dataclass(repr=False)
 class XXLRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()

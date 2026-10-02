@@ -4,10 +4,10 @@ from typing import List, Dict, Union
 from gradio_client import handle_file
 from videotrans.tts._gradio import GradioBase
 from videotrans.util.help_misc import vail_file
-from videotrans.configure.constants import _LANGUAGE_FIRERED3
+from videotrans.configure.constants import LANGUAGE_FIRERED3
 
 
-@dataclass
+@dataclass(repr=False)
 class FireRed3TTS(GradioBase):
     def __post_init__(self):
         self.ainame = "firered3tts"
@@ -24,7 +24,7 @@ class FireRed3TTS(GradioBase):
             "n_timesteps": 10,
             "seed": 1234,
             "do_tn": True,
-            "language": _LANGUAGE_FIRERED3.get(self.language.split('-')[0], "Auto-detect"),
+            "language": LANGUAGE_FIRERED3.get(self.language.split('-')[0], "Auto-detect"),
             "api_name": '/voice_clone'
         }
         return self._send(kwargs, data_item)

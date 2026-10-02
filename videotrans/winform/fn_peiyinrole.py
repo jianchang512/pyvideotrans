@@ -1,13 +1,14 @@
 
 
 def openwin():
+    from videotrans.translator import LANGNAME_DICT
     from videotrans.winform import get_cls
     from videotrans.task.taskcfg import InputFile
     from videotrans.util._ffmpeg_misc import format_video
     from videotrans.util.help_misc import show_error
     from videotrans.util.help_role import role_menu
     from videotrans.task.taskcfg import TaskCfgTTS
-    from videotrans.configure.constants import LISTEN_TEXT,EDGE_LANGUANGES_CODE
+    from videotrans.configure.constants import LISTEN_TEXT
     import json
     import os,time
     from pathlib import Path
@@ -20,9 +21,10 @@ def openwin():
     from videotrans import translator, tts
 
 
-    EDGE_LANGUANGES_DICT={}
-    for code in EDGE_LANGUANGES_CODE:
-        EDGE_LANGUANGES_DICT[code]=tr(code)
+    EDGE_LANGUANGES_DICT = {}
+    for k, v in LANGNAME_DICT.items():
+        if k != 'auto':
+            EDGE_LANGUANGES_DICT[k]=v
 
     RESULT_DIR = HOME_DIR + "/tts"
     Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)

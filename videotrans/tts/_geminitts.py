@@ -1,5 +1,6 @@
 import logging
 import mimetypes
+import random
 import struct
 from dataclasses import dataclass, field
 from typing import Union, Dict, List
@@ -16,13 +17,11 @@ import wave
 import base64
 
 
-@dataclass
+@dataclass(repr=False)
 class GEMINITTS(BaseTTS):
-    api_keys: List[str] = field(init=False)
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_keys = params.get('gemini_key', '').strip().split(',')
 
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT+(APIError,)), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO), after=after_log(logger, logging.INFO))
@@ -46,8 +45,8 @@ class GEMINITTS(BaseTTS):
 
 
     def generate_tts_segment(self,text, voice, model, file_name):
-        api_key = self.api_keys.pop(0)
-        self.api_keys.append(api_key)
+        api_keys=params.get('gemini_key', '').strip().split(',')
+        api_key = api_keys[random.randint(0,len(api_keys)-1)]
         client = genai.Client(
             api_key=api_key,
             http_options = types.HttpOptions(

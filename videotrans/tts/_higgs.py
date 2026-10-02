@@ -8,9 +8,8 @@ from pathlib import Path
 import json,time,os
 from concurrent.futures import ThreadPoolExecutor
 
-@dataclass
+@dataclass(repr=False)
 class HiggsVoice(BaseTTS):
-
 
     def _download(self):
         from videotrans.util import help_down

@@ -6,11 +6,11 @@ from videotrans.tts._gradio import GradioBase
 from videotrans.util.help_misc import vail_file
 
 
-@dataclass
+@dataclass(repr=False)
 class CosyVoice(GradioBase):
     def __post_init__(self):
-        self.ainame = "cosyvoice"
         super().__post_init__()
+        self.ainame = "cosyvoice"
         self.speed = max(0.5, min(2.0, self.get_speed()))
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1)->Union[str, None]:

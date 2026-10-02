@@ -37,6 +37,7 @@ class BaseRecogn(BaseCon):
     error: str = field(default='', init=False)
     # 识别 api地址
     api_url: str = field(default='', init=False)
+    api_key: str = field(default='', init=False)
     # 设备类型 cpu cuda
     device: str = field(init=False, default='cpu')
     # 标点符号
@@ -88,9 +89,21 @@ class BaseRecogn(BaseCon):
         else:
             self.maxlen = int(float(settings.get('other_len', 60)))
             self.jianfan = False
+    def __repr__(self):
+        cls = self.__class__
+        # 1. 仅获取当前类自身定义的注解字段 (不包含继承自父类的字段)
+        local_fields = cls.__dict__.get("__annotations__", {}).keys()
+
+        attrs = [
+            f"{name}={getattr(self, name)!r}"
+            for name in local_fields
+            if hasattr(self, name) and name not in ['raws','speech_timestamps','api_key']
+        ]
+        return f"[{cls.__name__}]: {', '.join(attrs)}"
 
     # run->_exec
     def run(self) -> Union[List[SrtItem], None]:
+        logger.debug(f'{self=}')
         try:
             if hasattr(self, '_download'):
                 self.signal(text=tr("check or download models"))

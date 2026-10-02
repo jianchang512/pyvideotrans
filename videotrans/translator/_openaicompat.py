@@ -17,21 +17,13 @@ from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
 from videotrans.util.help_misc import  get_tanslate_type
 
 
-@dataclass
+@dataclass(repr=False)
 class OpenAICampat(BaseTrans):
-    ainame:str=None
-    prompt: str = field(init=False)
-    api_key: str = field(init=False)
-    temperature:float=1.0
-    max_tokens:int=8192
-    reasoning_effort:str=None
-    extra_body:Union[dict,None]=None
 
     def __post_init__(self):
         super().__post_init__()
         self.temperature=float(settings.get('aitrans_temperature', 1.0))
         self.prompt=self._set_context()
-        logger.debug(f'{self.ainame=},{self.source_code=},{self.target_code=},{self.target_language_name=},{self.aisendsrt=}')
 
         try:
             self.max_tokens=int(self.max_tokens)
@@ -106,7 +98,7 @@ class OpenAICampat(BaseTrans):
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
             del kwargs['messages']
             _msg=(e.body.get('message') if e.body else e.message) or str(e)
-            raise StopTask(f'{_msg}\n{self.api_url}\n{kwargs}') from e
+            raise StopTask(f'{_msg}\n{self.api_url}\n{kwargs}\n{self.extra_body}') from e
         except APIError as e: 
             if re.search(r"insufficient.*?balance",e.message,flags=re.I):
                 raise StopTask(tr('The server returned an error message: Insufficient balance',get_tanslate_type(self.translate_type),self.api_url))

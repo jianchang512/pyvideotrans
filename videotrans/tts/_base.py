@@ -33,8 +33,9 @@ class BaseTTS(BaseCon):
     play: bool = False
     # 音量 音速 音调，默认 edge-tts格式， % 号结尾
     volume: Union[float, str] = field(default='+0%', init=False)
-    rate: Union[float, str] = field(default='+0%', init=False)
     pitch: Union[float, str] = field(default='+0Hz', init=False)
+    rate: Union[float, str] = field(default='+0%', init=False)
+    speed:Union[float,str]=1.0
     # 是否完成
     has_done: int = field(default=0, init=False)
     # 每次任务后暂停时间
@@ -45,7 +46,6 @@ class BaseTTS(BaseCon):
     error: Union[str, Exception, None] = None
     # 配音api地址
     api_url: str = field(default='', init=False)
-    model_name: str = field(default='', init=False)
     # 启用CUDA，仅 qwen3-tts-local 游戏哦啊
     is_cuda: bool = False
     # 本地模型目录
@@ -53,6 +53,8 @@ class BaseTTS(BaseCon):
     # 单视频模式下，配音校对面板可能需要重新配音，对于 F5-TTS等重型独立配音进程不能再任务完成后退出，需轮询等待是否有新的配音任务
     # is_redubb is True 代表是配音校对面板发起的
     is_redubb:bool=False
+    model_name: str = field(default='', init=False)
+    ainame: str = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -60,14 +62,25 @@ class BaseTTS(BaseCon):
         self.queue_tts = copy.deepcopy(self.queue_tts)
         self.len = len(self.queue_tts)
         self._cleantts()
+    def __repr__(self):
+        cls = self.__class__
+        # 1. 仅获取当前类自身定义的注解字段 (不包含继承自父类的字段)
+        local_fields = cls.__dict__.get("__annotations__", {}).keys()
+
+        attrs = [
+            f"{name}={getattr(self, name)!r}"
+            for name in local_fields
+            if hasattr(self, name) and name not in ["queue_tts","roledict","api_key"]
+        ]
+        return f"[{cls.__name__}]: {', '.join(attrs)}"
 
     # 子类未重写 _exec()方法: run() ->_exec() ->__local_mul_thread() -> _item_task() -> _run()
     # 子类重写  _exec()方法 run() -> _exec()
     def run(self) -> None:
         if self._exit(): return
+        logger.debug(f'{self=}')
         from videotrans.configure.excepts import DubbingSrtError
         _tts_name=get_tts_type(self.tts_type)
-        logger.debug(f'当前使用配音渠道：{_tts_name}')
         self.signal(text=f"{_tts_name} starting: [len={self.len}]")
         loop = None
         try:
