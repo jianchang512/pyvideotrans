@@ -1,9 +1,8 @@
 
 
 def openwin():
-    from videotrans.translator import LANGNAME_DICT
+    from videotrans.translator import LANGNAME_DICT,LLM_CONCERT_DICT
     from videotrans.winform import get_cls
-    from videotrans.translator import get_name_index
     from videotrans.util.help_misc import  show_error
     from typing import List
     from videotrans.task.taskcfg import InputFile
@@ -122,13 +121,10 @@ def openwin():
 
         if winobj.rephrase.isChecked():
             ai_type = settings.get('llm_ai_type', 1)
-            name=get_name_index(ai_type,'key')
-
-            ai_type = settings.get('llm_ai_type', 'openai')
-            if not params.get(f'{name}_key'):
-                show_error(tr('llmduanju',get_name_index(ai_type,'name')))
-                from videotrans.winform import get_win
-                get_win(name)
+            ai_dict=LLM_CONCERT_DICT[ai_type]
+            api_key=params.get(ai_dict['api_key_name'])
+            if not api_key:
+                show_error(tr('llmduanju',ai_dict['name']))
                 return
 
         enable_diariz_is = winobj.enable_diariz.isChecked()

@@ -60,7 +60,7 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
                                                     "id", "vi", "es", "pt", "it", "ru", "ms"]:
         is_support=False
     if not is_support:
-        return name + tr('Dubbing channel') + tr('may not support') + tr(langcode)
+        return f"{name} {tr('Dubbing channel')} {tr('may not support')} {tr(langcode)}"
     return True
 
 

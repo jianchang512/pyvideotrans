@@ -3,7 +3,7 @@ import json
 import os
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Optional
 from videotrans.configure.config import tr, settings, app_cfg, logger, push_queue, TEMP_ROOT
@@ -19,6 +19,16 @@ class BaseCon:
     last_down_time:int=0
     # 懒加载时用于判断属于 BaseCon 的子类
     _base_name:str="BaseCon"
+
+    def __repr__(self):
+        cls = self.__class__
+        exclude_fields=["_base_name","queue_tts","source_srt_list","target_srt_list","roledict","api_key",'raws','speech_timestamps',"text_list", "prompt","last_down_time"]
+        attrs = [
+            f"{f.name}={getattr(self, f.name)!r}"
+            for f in fields(self)
+            if hasattr(self, f.name) and f.name not in exclude_fields
+        ]
+        return f"[{cls.__name__}]: {', '.join(attrs)}"
 
 
     def __post_init__(self):

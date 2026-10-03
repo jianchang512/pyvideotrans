@@ -2,19 +2,19 @@ import copy
 import json
 import shutil
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import List, Union
 from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, settings
 from videotrans.configure.base import BaseCon
 from videotrans.configure.constants import BUILTINT_URL_MS, BUILTINT_URL_HF
 from videotrans.task.taskcfg import TaskCfgBase, SrtItem
-from videotrans.translator import get_name_index
+from videotrans.translator import LLM_CONCERT_DICT
 from videotrans.translator._runner import get_model_transobj
 from videotrans.util.help_misc import is_connect_hf
 
 
-@dataclass
+@dataclass(repr=False)
 class BaseTask(BaseCon):
     # 各项配置信息，例如 翻译、配音、识别渠道等
     cfg: TaskCfgBase = field(default_factory=TaskCfgBase, repr=False)
@@ -33,17 +33,6 @@ class BaseTask(BaseCon):
     # 是否需要嵌入配音或字幕
     should_hebing: bool = False
 
-    def __repr__(self):
-        cls = self.__class__
-        # 1. 仅获取当前类自身定义的注解字段 (不包含继承自父类的字段)
-        local_fields = cls.__dict__.get("__annotations__", {}).keys()
-
-        attrs = [
-            f"{name}={getattr(self, name)!r}"
-            for name in local_fields
-            if hasattr(self, name) and name not in ["queue_tts","source_srt_list","target_srt_list"]
-        ]
-        return f"[{cls.__name__}]: {', '.join(attrs)}"
     def __post_init__(self):
         super().__post_init__()
         if self.cfg.uuid:
@@ -109,8 +98,9 @@ class BaseTask(BaseCon):
 
     def _llmpost(self,raw_subtitles,step=''):
         try:
-            _ai_type=settings.get('llm_ai_type',1)
-            ob = get_model_transobj(translate_type=get_name_index(_ai_type,'index'),uuid=self.uuid)
+            ai_type = settings.get('llm_ai_type', 1)
+            ai_dict=LLM_CONCERT_DICT[ai_type]
+            ob = get_model_transobj(translate_type=ai_dict['id'],uuid=self.uuid)
 
             self.signal(text=tr("Re-segmenting..."))
             srt_list = ob.llm_segment(raw_subtitles,step=step)

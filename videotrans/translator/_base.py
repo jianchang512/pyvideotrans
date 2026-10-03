@@ -1,5 +1,5 @@
 import time,os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -14,7 +14,7 @@ from videotrans.util.help_srt import get_subtitle_from_srt,cleartext
 from videotrans.util.help_misc import get_md5, serial, get_prompt
 
 
-@dataclass
+@dataclass(repr=False)
 class BaseTrans(BaseCon):
     # 翻译渠道
     translate_type: int = 0
@@ -59,18 +59,6 @@ class BaseTrans(BaseCon):
         if self.translate_type==translator.HYMT2_INDEX:
             self.aisendsrt=False
         self.trans_thread = int(settings.get('aitrans_thread', 20)) if self.aisendsrt else int(settings.get('trans_thread', 5))
-    def __repr__(self):
-        cls = self.__class__
-        # 1. 仅获取当前类自身定义的注解字段 (不包含继承自父类的字段)
-        local_fields = cls.__dict__.get("__annotations__", {}).keys()
-
-        attrs = [
-            f"{name}={getattr(self, name)!r}"
-            for name in local_fields
-            if hasattr(self, name) and name not in ["text_list","prompt","api_key"]
-        ]
-        return f"[{cls.__name__}]: {', '.join(attrs)}"
-
 
     # 当是AI翻译渠道并且选中了`发送完整字幕`：data是  SRT格式字幕字符串
     # 当传统翻译渠道或未选`发送完整字幕`：data是 多行字幕文本字符串
@@ -214,12 +202,13 @@ class BaseTrans(BaseCon):
         return get_md5(f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}')
     
     def _set_context(self,target_code=None):
+        if not self.text_list: return '' # LLM  error correction
         lang_prompt=''
         lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.common_target_code}.txt'
         if Path(lang_prompt_file).exists():
             lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
         prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',target_code or self.target_code).replace('{lang_prompt}',lang_prompt)
-        if not settings.get('aitrans_context') or not self.text_list:
+        if not settings.get('aitrans_context'):
             return prompt.replace('{context_info}','')
             
         from videotrans.configure.constants import CONTEXT_INFO_PROMPT

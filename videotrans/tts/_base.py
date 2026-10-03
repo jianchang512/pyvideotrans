@@ -5,7 +5,7 @@ import inspect
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Union, Tuple
 from tenacity import RetryError
@@ -15,7 +15,7 @@ from videotrans.configure import config
 from videotrans.util.help_misc import vail_file,pygameaudio,get_tts_type
 
 
-@dataclass
+@dataclass(repr=False)
 class BaseTTS(BaseCon):
     # 配音渠道
     tts_type: int = 0
@@ -62,17 +62,6 @@ class BaseTTS(BaseCon):
         self.queue_tts = copy.deepcopy(self.queue_tts)
         self.len = len(self.queue_tts)
         self._cleantts()
-    def __repr__(self):
-        cls = self.__class__
-        # 1. 仅获取当前类自身定义的注解字段 (不包含继承自父类的字段)
-        local_fields = cls.__dict__.get("__annotations__", {}).keys()
-
-        attrs = [
-            f"{name}={getattr(self, name)!r}"
-            for name in local_fields
-            if hasattr(self, name) and name not in ["queue_tts","roledict","api_key"]
-        ]
-        return f"[{cls.__name__}]: {', '.join(attrs)}"
 
     # 子类未重写 _exec()方法: run() ->_exec() ->__local_mul_thread() -> _item_task() -> _run()
     # 子类重写  _exec()方法 run() -> _exec()

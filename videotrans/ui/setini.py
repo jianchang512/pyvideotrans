@@ -13,7 +13,7 @@ from videotrans.configure.constants import LANG_CODE, WHISPER_MODELS
 # 处理速度越来越慢，输出视频压缩率和质量越来越高，视频尺寸也将变小
 
 # 中文注释 界面ui控制
-from videotrans.translator import LLM_CONCERT_MAP
+from videotrans.translator import LLM_CONCERT_DICT
 from videotrans.util.help_misc import open_url
 
 prompt_dicts={}
@@ -96,7 +96,6 @@ notices = {
         "aitrans_thread": "AI翻译渠道每次发送字幕行数",
         "aitrans_context": "AI翻译渠道附带全部原始字幕做参考，翻译质量最佳\n【务必注意】\n1. 必须使用支持超长上下文的先进模型(在线AI旗舰模型)\n2.  可能反馈较慢，表现为迟迟未返回数据",
         "translation_wait": "每次翻译后暂停秒数,用于限制请求频率",
-        "aisendsrt": "是否在使用AI翻译渠道时发送完整字幕格式内容",
         "aitrans_temperature": "AI翻译模型温度值，默认0.1",
     },
     "dubbing": {
@@ -202,7 +201,6 @@ titles = {
 
     "trans_thread": "传统翻译渠道每批字幕行数",
     "aitrans_thread": "AI翻译渠道每批字幕行数",
-    "aisendsrt": "发送完整字幕",
     "translation_wait": "翻译后暂停秒",
     "dubbing_wait": "配音后暂停秒",
     "dubbing_thread": "并发配音线程数",
@@ -304,7 +302,6 @@ if defaulelang != 'zh_CN':
             "trans_thread": "Number of subtitle lines per request for traditional translation.",
             "aitrans_thread": "Number of subtitle lines per request for AI translation.",
             "translation_wait": "Delay (in seconds) between translation requests to prevent rate-limiting.",
-            "aisendsrt": "Send full SRT format content when using AI translation.",
             "aitrans_temperature": "AI models temperature,default is 1.0",
             "aitrans_context": "The AI translation channel includes all original subtitles for reference."
         },
@@ -425,7 +422,6 @@ if defaulelang != 'zh_CN':
         "translation_wait": "Pause (s) after each translation request",
         "dubbing_wait": "Pause (s) after each dubbing request",
         "gemini_model": "Gemini model list",
-        "aisendsrt": "Send full SRT format for AI translation",
     }
 
     heads = {
@@ -476,7 +472,7 @@ class Ui_setini(QtWidgets.QWidget):
                 'int8_bfloat16'
             ],
             "fps_mode":["vfr","cfr"],
-            "llm_ai_type": list(LLM_CONCERT_MAP.values()),
+            "llm_ai_type": [it['name'] for it in LLM_CONCERT_DICT],
             "vad_type": ['tenvad', 'silero'],
             "speaker_type": ['built', 'ali_CAM', 'pyannote'],
             "video_codec": ['264', '265'],

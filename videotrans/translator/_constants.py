@@ -82,10 +82,11 @@ ID_NAME_DICT = {
     GEMINI_INDEX: ChannelProvider("Gemini AI", key_name="gemini_key", win="gemini", imp="._gemini"),
     ZHIPUAI_INDEX: ChannelProvider(tr('Zhipu AI'), key_name="zhipu_key", win="zhipuai", imp="._zhipuai"),
     AZUREGPT_INDEX: ChannelProvider("Azure AI", key_name="azure_key", win="azure", imp="._azure"),
-    LOCALLLM_INDEX: ChannelProvider(tr('Local LLM'), key_name="localllm_api", win="localllm", imp="._localllm"),
+    LOCALLLM_INDEX: ChannelProvider(tr('Local LLM API'), key_name="localllm_api", win="localllm", imp="._localllm"),
 
     OPENROUTER_INDEX: ChannelProvider("OpenRouter", key_name="openrouter_key", win="openrouter", imp="._openrouter"),
-    SILICONFLOW_INDEX: ChannelProvider(tr('SiliconFlow'), key_name="siliconflow_key", win="siliconflow", imp="._siliconflow"),
+    SILICONFLOW_INDEX: ChannelProvider(tr('SiliconFlow'), key_name="siliconflow_key", win="siliconflow",
+                                       imp="._siliconflow"),
     AI302_INDEX: ChannelProvider("302.ai", key_name="ai302_key", win="ai302", imp="._ai302"),
 
     QWENMT_INDEX: ChannelProvider(tr('Ali-Bailian'), key_name="qwenmt_key", win="bailian", imp="._bailian"),
@@ -106,45 +107,29 @@ ID_NAME_DICT = {
     TRANSAPI_INDEX: ChannelProvider(tr('Customized API'), key_name="trans_api_url", win="transapi", imp="._transapi"),
     LITELLM_INDEX: ChannelProvider("LiteLLM", key_name="litellm_key", win="litellm", imp="._litellm"),
     API_ROUTE_INDEX: ChannelProvider("API Route", key_name="api_route_key", win="api_route", imp="._api_route"),
-    CHEAPERINFERENCE_INDEX: ChannelProvider("Cheaper Inference", key_name="cheaperinference_key", win="cheaperinference",
+    CHEAPERINFERENCE_INDEX: ChannelProvider("Cheaper Inference", key_name="cheaperinference_key",
+                                            win="cheaperinference",
                                             imp="._cheaperinference"),
     INFISTAR_INDEX: ChannelProvider("Infistar", key_name="infistar_key", win="infistar", imp="._infistar"),
 }
 
 # 菜单--工具/选项--高级选项-通用设置--LLM纠错所用渠道的显示数据
-LLM_CONCERT_MAP = {
-    "chatgpt": tr("OpenAI ChatGPT"),
-    "deepseek": "DeepSeek",
-    "ai302": "302.AI",
-    "azure": "Azure",
-    "zijiehuoshan": tr("VolcEngine LLM"),
-    "localllm": tr("Local LLM"),
-    "minimax": "MiniMax AI",
-    "openrouter": "OpenRouter",
-    "siliconflow": tr("SiliconFlow"),
-    "xiaomi": tr("XiaoMi"),
-    "zhipuai": tr("Zhipu AI"),
-    "api_route": "API Route",
-    "cheaperinference": "Cheaper Inference",
-    "infistar": "Infistar"
-}
-# LLM 纠错中根据 name 获取 ID
-LLM_CONCERT_INDEX = {
-    "chatgpt": CHATGPT_INDEX,
-    "deepseek": DEEPSEEK_INDEX,
-    "ai302": AI302_INDEX,
-    "azure": AZUREGPT_INDEX,
-    "zijiehuoshan": ZIJIE_INDEX,
-    "localllm": LOCALLLM_INDEX,
-    "minimax": MINIMAX_INDEX,
-    "openrouter": OPENROUTER_INDEX,
-    "siliconflow": SILICONFLOW_INDEX,
-    "xiaomi": XIAOMI_INDEX,
-    "zhipuai": ZHIPUAI_INDEX,
-    "api_route": API_ROUTE_INDEX,
-    "cheaperinference": CHEAPERINFERENCE_INDEX,
-    "infistar": INFISTAR_INDEX
-}
+LLM_CONCERT_DICT = [
+    {"name": tr("OpenAI ChatGPT"), "api_key_name": "chatgpt_key", "id": CHATGPT_INDEX},
+    {"name": "DeepSeek", "api_key_name": "deepseek_key", "id": DEEPSEEK_INDEX},
+    {"name": "302.AI", "api_key_name": "ai302_key", "id": AI302_INDEX},
+    {"name": "Azure", "api_key_name": "azure_key", "id": AZUREGPT_INDEX},
+    {"name": tr("VolcEngine LLM"), "api_key_name": "zijiehuoshan_key", "id": ZIJIE_INDEX},
+    {"name": tr("Local LLM API"), "api_key_name": "localllm_api", "id": LOCALLLM_INDEX},
+    {"name": "MiniMax AI", "api_key_name": "minimaxi_apikey", "id": MINIMAX_INDEX},
+    {"name": "OpenRouter", "api_key_name": "openrouter_key", "id": OPENROUTER_INDEX},
+    {"name": tr("SiliconFlow"), "api_key_name": "siliconflow_key", "id": SILICONFLOW_INDEX},
+    {"name": tr("XiaoMi"), "api_key_name": "xiaomi_key", "id": XIAOMI_INDEX},
+    {"name": tr("Zhipu AI"), "api_key_name": "zhipu_key", "id": ZHIPUAI_INDEX},
+    {"name": "API Route", "api_key_name": "api_route_key", "id": API_ROUTE_INDEX},
+    {"name": "Cheaper Inference", "api_key_name": "cheaperinference_key", "id": CHEAPERINFERENCE_INDEX},
+    {"name": "Infistar", "api_key_name": "infistar_key", "id": INFISTAR_INDEX},
+]
 
 ID_NAME_DICT = dict(sorted(ID_NAME_DICT.items(), key=lambda item: item[0]))
 TRANSLASTE_NAME_LIST = [it.name for it in ID_NAME_DICT.values()]

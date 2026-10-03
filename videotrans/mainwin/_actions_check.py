@@ -6,7 +6,7 @@ from PySide6.QtCore import QTimer
 
 from videotrans import translator, recognition, tts
 from videotrans.configure.config import tr, params, settings, app_cfg,logger
-from videotrans.translator import get_name_index
+from videotrans.translator import LLM_CONCERT_DICT
 from videotrans.util.help_misc import ensure_safe_media_file, is_dir_not_empty, show_error
 
 
@@ -208,13 +208,12 @@ class WinActionCheckMixin:
         if self.main.rephrase.isChecked():
             try:
                 ai_type = settings.get('llm_ai_type', 1)
-                name=get_name_index(ai_type,'key')
+                ai_dict=LLM_CONCERT_DICT[ai_type]
+                api_key=params.get(ai_dict['api_key_name'])
 
-                if not params.get(f'{name}_key'):
+                if not api_key:
                     self.main.startbtn.setDisabled(False)
-                    show_error(tr('llmduanju',get_name_index(ai_type,'name')))
-                    from videotrans.winform import get_win
-                    get_win(name)
+                    show_error(tr('llmduanju',ai_dict['name']))
                     return
             except Exception as e:
                 logger.exception(f'校验LLM纠错设置时出错:{e}',exc_info=True)

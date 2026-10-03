@@ -16,7 +16,7 @@ def openwin():
     feed = make_feed_translator(winobj, "test_localllm")
 
     def _fix_url(url):
-        if not url.startswith('http'):
+        if url and not url.startswith('http'):
             return 'http://' + url
         return url
 
