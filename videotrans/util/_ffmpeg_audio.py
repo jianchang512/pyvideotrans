@@ -281,8 +281,8 @@ def remove_silence_wav(
         trimmed_audio = audio[start_trim:end_trim]
 
     # 4. 导出覆盖原文件
-    print(f'结果长度: {len(trimmed_audio)}ms')
-    print(f'移除: {total_len- len(trimmed_audio) }ms')
+    # print(f'结果长度: {len(trimmed_audio)}ms')
+    # print(f'移除: {total_len- len(trimmed_audio) }ms')
     trimmed_audio.export(audio_file, format="wav")
     return True
 

@@ -168,10 +168,10 @@ PUNC_RESTORE_HF = [
 ]
 # 降噪模型下载地址
 DENOISE_URL_MS = [
-    'https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet8.onnx'
+    'https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet4.onnx'
 ]
 DENOISE_URL_HF = [
-    'https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/dpdfnet8.onnx?download=true'
+    'https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/dpdfnet4.onnx?download=true'
 ]
 # 背景音频分离地址前缀
 UVR_URL_MS = 'https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/{}'

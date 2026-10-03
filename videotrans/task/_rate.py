@@ -160,7 +160,7 @@ def _change_speed_rubberband(input_path, target_duration):
         time_stretch_rate = max(0.2, min(time_stretch_rate, 50.0))
 
         logger.debug(
-            f"[rubberband] {input_path} 配音时长:{current_duration}ms, 目标时长:{target_duration}ms 倍率:{time_stretch_rate:.2f}")
+            f"[rubberband] 配音时长:{current_duration}ms, 目标时长:{target_duration}ms 倍率:{time_stretch_rate:.2f}")
 
         y_stretched = pyrb.time_stretch(y, sr, time_stretch_rate)
 
@@ -523,7 +523,6 @@ class SpeedRate:
                 "dubb_time": it['dubb_time'],  # 变速前实际配音时长
                 "target_time": it['source_duration']
             }
-            logger.debug(f'该片段配音待处理数据: {tmp=}')
             self.audio_data.append(tmp)
 
         return processed_clips, _total_ms

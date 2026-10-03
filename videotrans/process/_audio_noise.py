@@ -26,7 +26,7 @@ def remove_noise(*, input_file, output_file, **kw):
         config = sherpa_onnx.OfflineSpeechDenoiserConfig(
             model=sherpa_onnx.OfflineSpeechDenoiserModelConfig(
                 dpdfnet=sherpa_onnx.OfflineSpeechDenoiserDpdfNetModelConfig(
-                    model=f"{ROOT_DIR}/models/onnx/dpdfnet8.onnx",
+                    model=f"{ROOT_DIR}/models/onnx/dpdfnet4.onnx",
                 ),
                 num_threads=int(settings.get('noise_separate_nums', 4)),
                 debug=False,
