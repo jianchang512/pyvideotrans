@@ -37,9 +37,7 @@ def _exec(nodes, namespace, filename=ROOT / "webui.py"):
 
 
 def _translator(locale):
-    tree = ast.parse(
-        (ROOT / "videotrans/webui_i18n.py").read_text(encoding="utf-8")
-    )
+    tree = ast.parse((ROOT / "videotrans/webui_i18n.py").read_text(encoding="utf-8"))
     namespace = _exec(tree.body, {"__file__": str(ROOT / "videotrans/webui_i18n.py")})
     catalog = namespace["_load_catalog"](locale)
 
