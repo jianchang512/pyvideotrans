@@ -7,7 +7,7 @@ locale.
 
 import json
 import os
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 WEBUI_LANGUAGE_DIR = Path(__file__).resolve().parent / "webui_languages"
@@ -25,7 +25,7 @@ def normalize_locale(value):
     }.get(value, value)
 
 
-@lru_cache(maxsize=None)
+@cache
 def _load_catalog(locale):
     """Load only WebUI-owned translations for locale."""
     locale = normalize_locale(locale)
