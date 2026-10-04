@@ -392,5 +392,9 @@
   "❌ 执行出错: {}\n\n{}": "❌ Erreur d'exécution : {}\n\n{}",
   "⚙️ 渠道设置": "⚙️ Paramètres des fournisseurs",
   "🔧 高级选项": "🔧 Options avancées",
-  "\n❌ 启动失败: {}": "\n❌ Échec du démarrage : {}"
+  "\n❌ 启动失败: {}": "\n❌ Échec du démarrage : {}",
+  "API Route 翻译": "Traduction API Route",
+  "Cheaper Inference 翻译": "Traduction Cheaper Inference",
+  "Infistar 翻译": "Traduction Infistar",
+  "Audexum ASR": "Audexum ASR"
 }
