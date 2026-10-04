@@ -43,7 +43,7 @@ from videotrans.configure.config import (  # noqa: E402
     params,
     settings,
 )
-from videotrans.configure.contants import (  # noqa: E402
+from videotrans.configure.constants import (  # noqa: E402
     FASTER_MODELS_DICT,
     DEEPGRAM_MODEL,
     Openai_Whisper_Models,
@@ -576,6 +576,68 @@ CHANNEL_SETTINGS = {
             },
         ],
     },
+    tr("API Route 翻译"): {
+        "category": tr("字幕翻译渠道"),
+        "fields": [
+            {"key": "api_route_key", "label": "API Key", "type": "text", "default": ""},
+            {
+                "key": "api_route_model",
+                "label": tr("模型"),
+                "type": "text",
+                "default": "gpt-5.4-mini",
+                "placeholder": tr("输入模型名称"),
+            },
+            {
+                "key": "api_route_max_token",
+                "label": tr("最大输出 Token"),
+                "type": "text",
+                "default": "8192",
+            },
+        ],
+    },
+    tr("Cheaper Inference 翻译"): {
+        "category": tr("字幕翻译渠道"),
+        "fields": [
+            {
+                "key": "cheaperinference_key",
+                "label": "API Key",
+                "type": "text",
+                "default": "",
+            },
+            {
+                "key": "cheaperinference_model",
+                "label": tr("模型"),
+                "type": "text",
+                "default": "gpt-5.4-mini",
+                "placeholder": tr("输入模型名称"),
+            },
+            {
+                "key": "cheaperinference_max_token",
+                "label": tr("最大输出 Token"),
+                "type": "text",
+                "default": "8192",
+            },
+        ],
+    },
+    tr("Infistar 翻译"): {
+        "category": tr("字幕翻译渠道"),
+        "fields": [
+            {"key": "infistar_key", "label": "API Key", "type": "text", "default": ""},
+            {
+                "key": "infistar_model",
+                "label": tr("模型"),
+                "type": "text",
+                "default": "gpt-5.4-mini",
+                "placeholder": tr("输入模型名称"),
+            },
+            {
+                "key": "infistar_max_token",
+                "label": tr("最大输出 Token"),
+                "type": "text",
+                "default": "8192",
+            },
+        ],
+    },
     tr("小米 AI 翻译"): {
         "category": tr("字幕翻译渠道"),
         "fields": [
@@ -635,6 +697,12 @@ CHANNEL_SETTINGS = {
                 "type": "text",
                 "default": "",
             },
+        ],
+    },
+    "Audexum ASR": {
+        "category": tr("语音识别渠道"),
+        "fields": [
+            {"key": "audexum_key", "label": "API Key", "type": "text", "default": ""},
         ],
     },
     "Parakeet ASR": {
