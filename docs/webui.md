@@ -1,5 +1,26 @@
 ﻿# pyVideoTrans WebUI 使用指南
 
+## French interface / Interface française
+
+Set the UI language before starting the WebUI:
+
+```bash
+PYVIDEOTRANS_LANG=fr_FR uv run python webui.py
+```
+
+`fr` and `fr-FR` are also accepted. Without this variable, the WebUI keeps
+Chinese (`zh_CN`) as its default. An explicit language is no longer overwritten
+at startup. Restart the process after changing the language.
+
+This translates the Gradio screens, provider settings, advanced settings and
+WebUI status messages. It does not translate every desktop or model-runtime log;
+entries not in the French catalog fall back to their source text. Processing
+language codes, model names, voice identifiers and saved numeric settings remain
+unchanged.
+
+Pour afficher l’interface en français, utilisez la commande ci-dessus. Le choix
+de la langue de l’interface ne change pas la langue source ou cible des vidéos.
+
 ## ⚠️ 重要提示
 
 > **WebUI 版本仅实现了部分功能**，主要用于以下场景：
