@@ -122,6 +122,7 @@ class FasterAll(BaseRecogn):
             "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.2)),
             "max_speech_ms":_max_speech,
             "min_speech_ms":_min_speech,
+            "min_silence_duration_ms":max(int(settings.get('min_silence_duration_ms', 600)), 100),
             "uuid":self.uuid,
             "subtitle_srt":subtitle_srt
         }

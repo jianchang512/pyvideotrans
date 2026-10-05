@@ -141,10 +141,13 @@ def _resegment2(texts: List[Dict[str, Any]], language: str, max_speech_ms: int, 
 
 """
 针对 whisper 模型返回的字级时间戳数据，根据静音和标点重新断句
+
+no_resegment: 如果存在不重新断句 no_resegment.txt ,则直接返回模型切分好的句子
+
 """
 
 
-def _resegment(texts, language='en', max_speech_ms=6000, min_speech_ms=3000, logs_file=None) -> List[SrtItem]:
+def _resegment(texts, language='en', max_speech_ms=6000, min_speech_ms=3000, logs_file=None,no_resegment=False) -> List[SrtItem]:
     if not texts: return []
     srt_output = []
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:start'}))
@@ -192,7 +195,7 @@ def _resegment(texts, language='en', max_speech_ms=6000, min_speech_ms=3000, log
             all_words.extend(_t)
 
     # 某些特殊情况下，whisper返回数据中存在 text 但 words 为空，即不存在字级时间戳
-    if not all_words:
+    if not all_words or no_resegment:
         for idx, seg in enumerate(texts):
             if not seg['text'].strip():continue
 

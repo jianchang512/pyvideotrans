@@ -181,7 +181,6 @@ def remove_silence_wav(
 
     audio = AudioSegment.from_file(audio_file, format="wav")
     total_len = len(audio)
-    print(f'原始长度: {total_len}ms')
     if total_len == 0:
         return False
 
@@ -286,45 +285,3 @@ def remove_silence_wav(
     trimmed_audio.export(audio_file, format="wav")
     return True
 
-def remove_silence_wav_bak(audio_file:str, rm_start=True,rm_all=False,rm_level="middle")->bool:
-    """
-
-    Args:
-        audio_file: 待处理的音频文件
-        rm_start:  是否移除开头的静音部分
-        rm_all:  是否移除开头、末尾、中间等所有静音，若 True 则忽略 rm_start 并移除 audio_file 中所有静音
-        rm_level: 移除静音力度，middle是默认，low 是轻度移除，比middle移除更少的静音， max 是最大力度移除，尽量多的移除静音
-
-    Returns:
-
-    """
-    from pydub import AudioSegment
-    from pydub.silence import detect_nonsilent
-
-    audio = AudioSegment.from_file(audio_file, format="wav")
-
-    silence_threshold = -50 # 越大处理越激进，移除更多静音
-    min_silence_len = 100 #连续超过这些ms视为可移除的有效静音
-
-    nonsilent_chunks = detect_nonsilent(
-        audio,
-        min_silence_len=min_silence_len,
-        silence_thresh=silence_threshold,
-        seek_step=10
-    )
-
-    if len(nonsilent_chunks) > 0:
-        head_padding_ms = 80
-        tail_padding_ms = 150
-
-        raw_start = nonsilent_chunks[0][0]
-        raw_end = nonsilent_chunks[-1][1]
-
-        start_trim = max(0, raw_start - head_padding_ms) if rm_start else 0
-        end_trim = min(len(audio), raw_end + tail_padding_ms)
-
-        trimmed_audio = audio[start_trim:end_trim]
-        trimmed_audio.export(audio_file, format="wav")
-        return True
-
-    return False

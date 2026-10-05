@@ -135,7 +135,6 @@ def get_video_info(mp4_file, *, video_fps=False, video_scale=False, video_time=F
 
         result['r_frame_rate']=result['video_fps'] = fps_avg if 1 <= fps_avg <= 120 else 30
 
-    logger.debug(f'The file info after process:{result=}')
     if video_time:
         return result['time']
     if video_fps:

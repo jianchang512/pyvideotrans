@@ -46,7 +46,6 @@ class TransCreate(
     is_audio_trans: bool = False
     queue_tts: List = field(default_factory=list, repr=False)
     clone_ref: str = ""
-    cost_duration:float=0.0
     should_recogn2:bool=False
     # 批量时不进行说话人分离，仅在单个视频翻译时，根据选项进入说话人
     # 只要 do_diarize 是 Flase，无论是否选中分离说话人，都不分离，是 True时，若选中则分离
@@ -54,7 +53,6 @@ class TransCreate(
 
     def __post_init__(self):
         super().__post_init__()
-        self.cost_duration=time.time()
         if not self.cfg.cache_folder:
             self.cfg.cache_folder = f"{config.TEMP_DIR}/{self.uuid}"
         if self.cfg.clear_cache:

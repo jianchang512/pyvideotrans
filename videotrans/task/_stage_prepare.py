@@ -21,6 +21,7 @@ class PrepareMixin:
         self._unlink_size0([self.cfg.source_sub, self.cfg.target_sub, self.cfg.targetdir_mp4])
         self.video_info = get_video_info(self.cfg.name)
         self.video_time = self.video_info['time']
+        logger.debug(f'原始输入文件信息:{self.video_info=}')
         audio_stream_len = self.video_info.get('streams_audio', 0)
 
         if self.video_info.get('video_streams', 0) < 1 and not self.is_audio_trans and self.cfg.app_mode != 'tiqu':

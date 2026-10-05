@@ -6,7 +6,7 @@ import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
 
-from videotrans.configure._paths import TEMP_ROOT
+from videotrans.configure._paths import TEMP_ROOT,ROOT_DIR
 from videotrans.configure.config import logger
 
 
@@ -86,6 +86,20 @@ def faster_whisper(
         error = traceback.format_exc()
         logger.error(f'[faster_whisper][{is_cuda=}]语音转录加载模型失败:{local_dir=}\n{error}')
         return False, f'{e},{error}'
+    # 禁止重新按 字级时间戳 断句，直接使用 模型返回的句子结果
+    no_resegment=Path(f'{ROOT_DIR}/no_resegment.txt').exists()
+    vad_p={
+        "min_silence_duration_ms":2000,
+        "min_speech_duration_ms":0,
+        "threshold":threshold
+    }
+    if no_resegment:
+        vad_p = {
+            "threshold": threshold,
+            "min_speech_duration_ms": 0,# 超过该值直接丢弃，不可过大，否则会吞字
+            "max_speech_duration_s": float(max_speech_ms / 1000.0),
+            "min_silence_duration_ms": kw.get('min_silence_duration_ms',140),#静音分割区间
+        }
 
     try:
         if not temperature:
@@ -110,11 +124,7 @@ def faster_whisper(
             best_of=best_of,
             condition_on_previous_text=condition_on_previous_text,
             vad_filter=True,
-            vad_parameters=dict(
-                min_silence_duration_ms=2000,
-                min_speech_duration_ms=0,
-                threshold=threshold
-                ),
+            vad_parameters=vad_p,
             no_speech_threshold=no_speech_threshold,
             word_timestamps=True,
             temperature=temperature,
@@ -157,9 +167,9 @@ def faster_whisper(
             raws = _resegment2(texts, info.language, recogn2_max_speech,recogn2_min_speech, logs_file)
             logger.debug(f'二次识别断句完成')
         else:
-            raws = _resegment(texts, info.language, max_speech_ms,min_speech_ms, logs_file)
+            raws = _resegment(texts, info.language, max_speech_ms,min_speech_ms, logs_file,no_resegment=no_resegment)
             Path(f'{TEMP_ROOT}/detect_language_source_{kw.get("uuid")}.txt').write_text(info.language)
-            logger.debug(f'断句完毕返回结果:{max_speech_ms=},{min_speech_ms=}')
+            logger.debug('由字级时间戳重新断句完毕' if not no_resegment else '未重新断句，直接使用 faster-whisper 模型返回句子')
         if jianfan and raws:
             for it in raws:
                 it['text'] = zhconv.convert(it['text'], 'zh-hans')
