@@ -354,6 +354,14 @@ CHANNEL_SETTINGS = {
             {"key": "infistar_max_token", "label": "最大输出 Token", "type": "text", "default": "8192"},
         ],
     },
+    "Atlas Cloud 翻译": {
+        "category": "字幕翻译渠道",
+        "fields": [
+            {"key": "atlascloud_key", "label": "API Key", "type": "text", "default": ""},
+            {"key": "atlascloud_model", "label": "模型", "type": "text", "default": "deepseek-ai/DeepSeek-V3.1-Terminus", "placeholder": "输入模型名称"},
+            {"key": "atlascloud_max_token", "label": "最大输出 Token", "type": "text", "default": "8192"},
+        ],
+    },
     "小米 AI 翻译": {
         "category": "字幕翻译渠道",
         "fields": [

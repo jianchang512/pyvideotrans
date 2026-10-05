@@ -44,6 +44,7 @@ LITELLM_INDEX = 25
 API_ROUTE_INDEX = 26
 CHEAPERINFERENCE_INDEX = 27
 INFISTAR_INDEX = 28
+ATLASCLOUD_INDEX = 29
 
 # AI 翻译渠道
 AI_TRANS_CHANNELS = [
@@ -64,7 +65,8 @@ AI_TRANS_CHANNELS = [
     HYMT2_INDEX,
     CAMB_INDEX,
     CHEAPERINFERENCE_INDEX,
-    INFISTAR_INDEX
+    INFISTAR_INDEX,
+    ATLASCLOUD_INDEX
 ]
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -111,6 +113,8 @@ ID_NAME_DICT = {
                                             win="cheaperinference",
                                             imp="._cheaperinference"),
     INFISTAR_INDEX: ChannelProvider("Infistar", key_name="infistar_key", win="infistar", imp="._infistar"),
+    ATLASCLOUD_INDEX: ChannelProvider("Atlas Cloud", key_name="atlascloud_key", win="atlascloud",
+                                      imp="._atlascloud"),
 }
 
 # 菜单--工具/选项--高级选项-通用设置--LLM纠错所用渠道的显示数据

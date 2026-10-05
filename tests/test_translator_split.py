@@ -133,6 +133,11 @@ class TestTranslatorIndexConstants:
         assert CHEAPERINFERENCE_INDEX == 27
         assert CHEAPERINFERENCE_INDEX in AI_TRANS_CHANNELS
 
+    def test_atlascloud_index(self):
+        from videotrans.translator import ATLASCLOUD_INDEX, AI_TRANS_CHANNELS
+        assert ATLASCLOUD_INDEX == 29
+        assert ATLASCLOUD_INDEX in AI_TRANS_CHANNELS
+
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
         assert INFISTAR_INDEX == 28

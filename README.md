@@ -176,6 +176,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | Alibaba Qwen3-ASR / ByteDance Volcano | Online API, excellent for Chinese |
 | **Translation (LLM/MT)** | **DeepSeek** / ChatGPT | Supports context understanding, more natural translation |
 | | [infistar AI](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link) | infistar - 160+ models, one Key, OpenAI compatible gateway, switch to 160+ models at any time with one Key |
+| | [Atlas Cloud](https://atlascloud.ai) | OpenAI-compatible gateway, one Key for DeepSeek, GLM, Kimi, Qwen, MiniMax and proxied vendor models |
 | | MiniMax AI | MiniMax M3 LLM, latest flagship model, OpenAI-compatible |
 | | Google / Microsoft | Traditional machine translation, fast speed |
 | | Ollama / M2M100 | Fully local offline translation |
