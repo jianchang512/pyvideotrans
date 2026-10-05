@@ -36,7 +36,8 @@ def openai_whisper(
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
         msg = f'Model {model_name} will be automatically downloaded'
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
-
+    # 禁止重新按 字级时间戳 断句，直接使用 模型返回的句子结果
+    no_resegment=Path(f'{ROOT_DIR}/no_resegment.txt').exists()
     try:
         if not temperature:
             temperature = (
@@ -94,11 +95,11 @@ def openai_whisper(
             logger.error(msg)
             return False, msg
 
-        raws = _resegment(texts, segments['language'], max_speech_ms,min_speech_ms, logs_file)
+        raws = _resegment(texts, segments['language'], max_speech_ms,min_speech_ms, logs_file,no_resegment=no_resegment)
         if jianfan and raws:
             for it in raws:
                 it['text'] = zhconv.convert(it['text'], 'zh-hans')
-        logger.debug(f'断句完毕，返回结果:{max_speech_ms=},{min_speech_ms=}')
+        logger.debug('由字级时间戳重新断句完毕' if not no_resegment else '未重新断句，直接使用 whisper 模型返回句子')
         return raws, None
     except BaseException as e:
         msg = traceback.format_exc()

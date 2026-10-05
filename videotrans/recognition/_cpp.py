@@ -47,7 +47,7 @@ class CPPRecogn(BaseRecogn):
                 f"{ROOT_DIR}/models",
                 [url],
                 self._process_callback)
-        txt_file = ROOT_DIR + '/pyvideotrans.txt'
+        txt_file = ROOT_DIR + '/pyvideotrans_cpp.txt'
 
         cmd = [
             cpp_path,

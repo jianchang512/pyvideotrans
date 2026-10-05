@@ -239,7 +239,7 @@ def _create_alignment_row(ui, parent):
     ui.label.setStyleSheet("""background-color:transparent""")
 
     ui.proxy = QtWidgets.QLineEdit(parent)
-    ui.proxy.setMinimumSize(QtCore.QSize(200, 30))
+    ui.proxy.setMinimumSize(QtCore.QSize(150, 30))
     ui.proxy.setObjectName("proxy")
 
     ui.output_srt_label = QtWidgets.QLabel(tr('Output') + tr('Subtitles'))
